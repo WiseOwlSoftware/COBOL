@@ -1403,6 +1403,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         return !subscripted && !refModified;
     }
 
+    /// <summary>⛔ THE ONE LINKER of a file's implicitly shared record area — §13.18.33.4 GR3: "Multiple level 1
+    /// entries subordinate to a FD or SD entry represent implicit redefinitions of the same area". Every record
+    /// with a CHARACTER WINDOW becomes an implicit redefinition of the first such record (the FD and SD arms used
+    /// to spell this loop twice). An OUT-OF-LINE record (<see cref="FileModel.IsOutOfLineRecord"/> — a
+    /// dynamic-length record, a variable-length group, a pointer-class record) is NOT linked: it has no window
+    /// over the character area (§8.5.1.10.3 lets its storage be "located elsewhere"; a pointer has no character
+    /// image, CONFORMANCE.md A.1 item 216), and it shares the area at the transfer boundary instead
+    /// (<see cref="FileModel.OutOfLineRecords"/> — determination D-FRA, kb/Work PB981). Linking it is what used to
+    /// stage such an FD loud as COBOLNET0899: the class model has no shape for a member without a window.</summary>
+    private static void LinkImplicitRecordArea(FileModel file)
+    {
+        if (file.CharacterAnchor is not { } anchor) return;
+        foreach (var record in file.Records)
+            if (!ReferenceEquals(record, anchor) && record.RedefinesTarget is null
+                && !FileModel.IsOutOfLineRecord(record))
+                record.SetRedefinition(anchor, RedefinitionKind.ImplicitFileRecord);
+    }
+
     /// <summary>Bind the FILE SECTION's FD records into the storage forest (they emit as Program fields, like
     /// WORKING-STORAGE), attach them to their <see cref="FileModel"/>, and model the shared record area: multiple
     /// <c>01</c>s under one FD occupy ONE area (ISO §9.1.2), so each secondary record is synthesized as a REDEFINES of
@@ -1427,9 +1445,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             file.Records.AddRange(records);
             // §13.18.33.4 GR3: "Multiple level 1 entries subordinate to a FD or SD entry represent implicit
             // redefinitions of the same area" — an IMPLICIT redefinition, not a REDEFINES clause (kb/Work PB836).
-            for (int i = 1; i < records.Count; i++)
-                if (records[i].RedefinesTarget is null)
-                    records[i].SetRedefinition(records[0], RedefinitionKind.ImplicitFileRecord);
+            LinkImplicitRecordArea(file);
             foreach (var clause in fd.fileDescriptionClauses()?.fileDescriptionClause() ?? [])
                 if (clause.recordClause() is { } rc)
                     BindRecordClause(rc, file);   // RECORD VARYING / m TO n → FileModel.Varying (ISO §13.18.43)
@@ -1510,9 +1526,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     + "file description entry (ISO §13.4.6.3 SR2) — a SORT or MERGE key is a data item within a "
                     + "record of this file (§14.9.40.3 SR6 a), so there is nothing for the KEY phrase to name.");
             sdFile.Records.AddRange(sdRecords);
-            for (int i = 1; i < sdRecords.Count; i++)   // §13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
-                if (sdRecords[i].RedefinesTarget is null)
-                    sdRecords[i].SetRedefinition(sdRecords[0], RedefinitionKind.ImplicitFileRecord);
+            LinkImplicitRecordArea(sdFile);   // §13.18.33.4 GR3 — the SD twin of the FD arm (kb/Work PB836)
             foreach (var clause in sd.sortMergeDescriptionClauses()?.sortMergeDescriptionClause() ?? [])
             {
                 if (clause.recordClause() is { } rc)
@@ -1740,15 +1754,23 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // makes the unsuccessful case outright undefined), so COBOL.NET's determination is that the storage
             // KEEPS ITS LAST CONTENT, documented at docs/CONFORMANCE.md §7, A.1 item 24 (kb/Work PB235).
             DataItem? anchor = null;
+            var sharing = new List<FileModel>();
             foreach (var fn in same.fileName())
             {
                 if (!FilesByName.TryGetValue(fn.GetText(), out var f) || f.Records.Count == 0) continue;
-                if (anchor is null) { anchor = f.Records[0]; continue; }
+                sharing.Add(f);
+                // The area's CHARACTER half is linked here; an out-of-line record (FileModel.IsOutOfLineRecord —
+                // D-FRA, kb/Work PB981) has no window over it and reaches the shared area through
+                // FileModel.OutOfLineRecords, which is why every sharing file learns its peers below.
+                if (f.CharacterAnchor is not { } fAnchor) continue;
+                if (anchor is null) { anchor = fAnchor; continue; }
                 // §12.4.6.4.4 GR2: "equivalent to an implicit redefinition of the area with records aligned on the
                 // leftmost byte position" — implicit, like the FD's own records (kb/Work PB836).
-                if (!ReferenceEquals(f.Records[0], anchor) && f.Records[0].RedefinesTarget is null)
-                    f.Records[0].SetRedefinition(anchor, RedefinitionKind.SameRecordArea);
+                if (!ReferenceEquals(fAnchor, anchor) && fAnchor.RedefinesTarget is null)
+                    fAnchor.SetRedefinition(anchor, RedefinitionKind.SameRecordArea);
             }
+            foreach (var f in sharing)
+                f.SameRecordAreaPeers.AddRange(sharing.Where(o => !ReferenceEquals(o, f) && !f.SameRecordAreaPeers.Contains(o)));
         }
     }
 
@@ -1773,15 +1795,24 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // the case SR2's own FileControlKeyRules row reports. What changed with kb/Work PB489 is only WHERE
             // the candidates come from — the one §8.4.2.2 resolver, so the file-name qualifier (§8.4.2.2.2
             // Format 1's file-report-qualifier) works here too, instead of a private record-subtree walk.
-            DataItem? InRecords(string keyName, IReadOnlyList<string> quals)
+            // ⛔ AND THE SELECTION IS COUNTED (kb/Work PB978): SR2 narrows the set to this file's records when any
+            // survivor lies there, and what remains must be ONE — two same-named keys in this file's records, or
+            // two outside them with none inside, are §8.4.2.2.3 SR1's ambiguity, never the first declared.
+            HashSet<string> ambiguousKeys = new(StringComparer.OrdinalIgnoreCase);
+            DataItem? InRecords(string keyName, IReadOnlyList<string> quals, string face, Editions.DiagnosticCursor at)
             {
                 var cands = QualifiedCandidates(keyName, quals, Model.Scope.Program);
-                return cands.FirstOrDefault(i => RecordLayout.IsInRecordOfFile(file, i))
-                    ?? (cands.Count > 0 ? cands[0] : null);
+                var inFile = cands.Where(i => RecordLayout.IsInRecordOfFile(file, i));
+                using var __ = Edition.At(at);
+                var hit = UniqueOrReportAmbiguous(inFile.Count > 0 ? inFile : cands, face,
+                    WrittenQualified(keyName, quals), out bool ambiguous);
+                if (ambiguous && hit is null) ambiguousKeys.Add(keyName);
+                return hit;
             }
-            if (file.RecordKeyName is { } rk) file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers);
+            if (file.RecordKeyName is { } rk)
+                file.RecordKeyItem = InRecords(rk, file.RecordKeyQualifiers, "RECORD KEY", file.RecordKeyAt);
             foreach (var clause in file.AlternateKeyNames)
-                if ((clause.Item = InRecords(clause.Name, clause.Qualifiers)) is { } alt)
+                if ((clause.Item = InRecords(clause.Name, clause.Qualifiers, "ALTERNATE RECORD KEY", clause.At)) is { } alt)
                     file.AlternateKeys.Add((alt, clause.Duplicates, clause.Suppress));
             ResolveFileCollating(file);   // §12.4.5.7 — per-key collating weights (needs the resolved keys)
             if (file.RelativeKeyName is { } rl)
@@ -1791,7 +1822,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // whatever the procedure division does with it. They used to run from KeyedIoBinder on the first keyed
             // VERB that named the file, so a program that only OPENed and CLOSEd a file whose keys break them
             // compiled clean (kb/Work PB699). One table, one screen: FileControlKeyRules.
-            FileControlKeyRules.Screen(file, Edition);
+            FileControlKeyRules.Screen(file, Edition, ambiguousKeys);
             // ⛔ The RECORD clause's own size syntax rules (ISO §13.18.43.3 SR3/SR4/SR5/SR9), screened HERE for
             // the same reason and by the same shape: they are rules of the file description ENTRY, and SR3/SR4
             // compare the clause's integers against §13.18.43.4 GR8's byte counts of the record descriptions,
@@ -1825,21 +1856,19 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                                            Editions.DiagnosticCursor at)
     {
         var survivors = QualifiedCandidates(name, quals, Model.Scope.Program);
-        if (survivors.Count == 1) return survivors[0];
+        if (survivors.Single is { } one) return one;
         if (_refusedClauseOperands.Contains(name)) return null;   // already refused at capture — one fault, one verdict
         using var __ = Edition.At(at);
-        string written = quals.Count == 0 ? name : name + " OF " + string.Join(" OF ", quals);
-        Edition.Error(DiagnosticCatalog.UndefinedReference, survivors.Count == 0
-            ? $"{clauseFace} '{written}': the clause's data-name references no data item — "
+        string written = WrittenQualified(name, quals);
+        if (survivors.Count > 1)
+            return UniqueOrReportAmbiguous(survivors, clauseFace, written, out _);
+        Edition.Error(DiagnosticCatalog.UndefinedReference,
+            $"{clauseFace} '{written}': the clause's data-name references no data item — "
               + (Symbols.TryResolve(name, Model.Scope.Program, out _)
                   ? $"'{name}' is declared, but not under the given qualifier{(quals.Count == 1 ? "" : "s")} "
                     + "(ISO §8.4.2.2 — qualification shall establish uniqueness)"
                   : $"no declaration in this source element gives the name '{name}' (ISO §8.4.2.1: \"a statement "
-                    + "shall contain a reference that uniquely identifies that resource\")")
-            : $"{clauseFace} '{written}' does not uniquely identify a data item — {survivors.Count} declarations "
-              + "match the written reference (ISO §8.4.2.2.3 SR1: \"For each non unique user-defined name that is "
-              + "explicitly referenced, uniqueness shall be established through a sequence of qualifiers that "
-              + "precludes any ambiguity of reference\")");
+                    + "shall contain a reference that uniquely identifies that resource\")"));
         return null;
     }
 
@@ -1894,8 +1923,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The §8.4.2.2 candidate set (kb/Work PB489 — one resolver); SR7's own verdict below speaks for a
         // reference that survives nothing, so this site reports the category sentence rather than a second
         // uniqueness one.
-        DataItem? item = QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program)
-            .FirstOrDefault();
+        // Counted (kb/Work PB978): two survivors are §8.4.2.2.3 SR1's ambiguity, reported once by the ONE verdict.
+        DataItem? item = UniqueOrReportAmbiguous(
+            QualifiedCandidates(dynName, file.AssignUsingQualifiers, Model.Scope.Program), "ASSIGN … USING",
+            WrittenQualified(dynName, file.AssignUsingQualifiers), out bool ambiguous);
+        if (ambiguous && item is null) return;
         if (item is null || !ItemCategory.IsAlphanumeric(item))
         {
             Edition.Error(DiagnosticCatalog.AssignUsingNotAlphanumeric,
@@ -2975,20 +3007,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // Resolve data-name-1: an ordinary data-name reference (qualification narrows by ancestor names);
         // never subscripted — SR1 makes a table-subordinate target illegal anyway. TYPEDEF template members
         // are OFF ByName (§13.18.58.4 GR1), so a type declaration's insides are unreachable here by design.
-        var candidates = ByName.TryGetValue(targetName, out var byName)
-            ? byName.Where(c => SameAsQualifiersMatch(c, item.SameAsQualifiers)).ToList()
-            : [];
-        if (candidates.Count != 1)
+        // ⛔ Through the ONE §8.4.2.2 resolver and the ONE ambiguity verdict (kb/Work PB978): the private
+        // qualifier matcher this used knew nothing of the file-name qualifier (§8.4.2.2.2 Format 1's
+        // file-report-qualifier), and its ambiguity sentence cited §8.4.3.2, a clause about something else.
+        // §8.4.2.2.1 rule 5's implicit qualifiers apply: SAME AS is a data description entry clause.
+        var candidates = EntryClauseCandidates(item, targetName, item.SameAsQualifiers, Model.Scope.Program);
+        string writtenTarget = WrittenQualified(targetName, item.SameAsQualifiers);
+        if (candidates.Count == 0)
         {
-            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS "
-                + $"'{targetName}{(item.SameAsQualifiers.Count > 0 ? " OF " + string.Join(" OF ", item.SameAsQualifiers) : "")}' "
-                + (candidates.Count == 0
-                    ? "does not resolve to a data description entry (ISO §13.18.49.2 — data-name-1 shall "
-                      + "reference a data item; §13.18.49.3 SR7)"
-                    : "is ambiguous — the reference shall identify exactly one entry (ISO §8.4.3.2)"));
+            Edition.Error(DiagnosticCatalog.SameAsReferencedEntry, $"'{subject}': SAME AS '{writtenTarget}' "
+                + "does not resolve to a data description entry (ISO §13.18.49.2 — data-name-1 shall reference a "
+                + "data item; §13.18.49.3 SR7)");
             return;
         }
-        var target = candidates[0];
+        if (UniqueOrReportAmbiguous(candidates, $"'{subject}': SAME AS", writtenTarget, out bool _) is not { } target)
+            return;
 
         // §13.18.49.3 SR3 — cycles: data-name-1 (or its description, through a chain) shall not reference the
         // subject or any group the subject is subordinate to. The chain leg is the expanding-set test; the
@@ -3138,21 +3171,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         expanding.Remove(item);
     }
 
-    /// <summary>Whether a candidate matches a SAME AS reference's OF/IN qualifiers: each qualifier, in written
-    /// order, names some (strictly enclosing) ancestor of the previous match (ISO §8.4.3.2 qualification).</summary>
-    private static bool SameAsQualifiersMatch(DataItem candidate, List<string> qualifiers)
-    {
-        var p = candidate.Parent;
-        foreach (string q in qualifiers)
-        {
-            while (p is not null && !string.Equals(p.CobolName, q, StringComparison.OrdinalIgnoreCase))
-                p = p.Parent;
-            if (p is null) return false;
-            p = p.Parent;
-        }
-        return true;
-    }
-
     /// <summary>Whether an item belongs to a FILE SECTION record (its root is some FD/SD's record) — the
     /// §13.18.49.3 SR6 placement test.</summary>
     private bool IsFileSectionItem(DataItem item)
@@ -3243,6 +3261,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var rc = entry.dataDescriptionBody().renamesClause();
         if (rc is null || entry.dataName()?.GetText() is not { } name || _lastRoot is null) return null;
         bool thru = rc.THRU() is not null || rc.THROUGH() is not null;
+        // data-name-2 / data-name-3 through the ONE screened data-name-n capture: §13.18.45.3 SR7 — "Data-name-2 and
+        // data-name-3 shall not be subscripted" — which the bare-word capture used to satisfy by dropping the
+        // subscript in silence (kb/Work PB978's sweep).
+        var (fromBase, fromQuals) = ClauseDataName(rc.dataReference(0), $"'{name}' RENAMES");
+        var (thruBase, thruQuals) = thru && rc.dataReference().Length > 1
+            ? ClauseDataName(rc.dataReference(1), $"'{name}' RENAMES … THRU")
+            : (null, []);
         var item = new DataItem
         {
             Level = 66,
@@ -3251,12 +3276,14 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             CsName = DataItem.Sanitize(name),
             Renames = new RenamesInfo
             {
-                // The BASE word only: an OF/IN-qualified operand (`SUB-GRP-1 OF GRP — NC252A RENAMES-TEST-2`)
-                // is redundant inside the owning record, and GetText() would glue the suffix into the name.
-                FromName = rc.dataReference(0).cobolWord()?.GetText() ?? rc.dataReference(0).GetText(),
-                ThruName = thru && rc.dataReference().Length > 1
-                    ? rc.dataReference(1).cobolWord()?.GetText() ?? rc.dataReference(1).GetText()
-                    : null,
+                // The base word AND its IN/OF qualifiers (`SUB-GRP-1 OF GRP` — NC252A RENAMES-TEST-2). The
+                // qualifiers used to be dropped as "redundant inside the owning record", which they are only
+                // when the base word is unique there; with two same-named items in the record they are what
+                // §8.4.2.2.3 SR1 requires, and dropping them bound the first-declared (kb/Work PB978).
+                FromName = fromBase,
+                FromQualifiers = fromQuals,
+                ThruName = thruBase,
+                ThruQualifiers = thruQuals,
             },
         };
         item.Uid = _uidCounter++;
@@ -5814,8 +5841,21 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var ren in root.Renames66)
             {
                 var info = ren.Renames!;
-                info.From = FindDescendantOrSelf(root, info.FromName);
-                info.Thru = info.ThruName is { } t ? FindDescendantOrSelf(root, t) : null;
+                // SR4 confines both operands to THIS record, so the candidate set is the record's; it is COUNTED
+                // (kb/Work PB978) — two same-named items there are §8.4.2.2.3 SR1's ambiguity, not the first found.
+                // An operand the capture REFUSED (§13.18.45.3 SR7 / §8.4.2.2.2) was reported there — one fault, one verdict.
+                if (_refusedClauseOperands.Contains(info.FromName)
+                    || (info.ThruName is { } rt && _refusedClauseOperands.Contains(rt))) continue;
+                using var __q = Edition.At(ren);
+                string face = $"'{ren.CobolName ?? "FILLER"}' RENAMES";
+                info.From = UniqueOrReportAmbiguous(SubtreeCandidates(root, info.FromName, info.FromQualifiers), face,
+                    WrittenQualified(info.FromName, info.FromQualifiers), out bool fromAmbiguous);
+                bool thruAmbiguous = false;
+                info.Thru = info.ThruName is { } t
+                    ? UniqueOrReportAmbiguous(SubtreeCandidates(root, t, info.ThruQualifiers), face,
+                        WrittenQualified(t, info.ThruQualifiers), out thruAmbiguous)
+                    : null;
+                if (fromAmbiguous || thruAmbiguous) continue;
                 if (info.From is null || (info.ThruName is not null && info.Thru is null))
                 {
                     // kb/Work PB93: an operand naming nothing in the record was skipped silently — the alias then had
@@ -6120,23 +6160,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         reject = $"REDEFINES entry side '{m.CobolName ?? m.CsName}' is {vlShape} "
                             + "(ISO §13.18.44.3 SR17)";
                     }
-            // ⛔ THE IMPLICIT-AREA ARM (kb/Work PB836). No syntax rule forbids a file's records from being a
-            // dynamic-length item, a variable-length group, a dynamic-capacity table or a pointer — §13.18.33.4
-            // GR3 simply makes them share one area — so none of this is a conformance rejection. It is the
-            // storage model's limit, staged LOUD rather than let through: such a member takes a disjoint native
-            // carrier (StorageFormPass's DynamicString / dynamic-table arms precede its REDEFINES-view arm) or a
-            // managed slot the shared backing does not have (ComputeTier's carrier arm), so the "one area" would
-            // silently be two. The reason names the rule the program DID use, never §13.18.44.
+            // ⛔ THE IMPLICIT-AREA ARM (kb/Work PB836, narrowed by PB981). No syntax rule forbids a file's records
+            // from being a dynamic-length item, a variable-length group or a pointer — §13.18.33.4 GR3 simply makes
+            // them share one area — and since PB981 none of those reaches a class at all: they are OUT-OF-LINE
+            // records (FileModel.IsOutOfLineRecord, determination D-FRA), which LinkImplicitRecordArea never links,
+            // and they share the area at the transfer boundary (FileModel.OutOfLineRecords). What can still reach
+            // here Rejected is a ComputeTier residue of a CHARACTER-window record (ByteWindowResidueOf), staged
+            // LOUD rather than let through. The reason names the rule the program DID use, never §13.18.44.
             if (implicitArea)
             {
-                if (tier is not RedefinesTier.Rejected
-                    && cls.Members.Select(m => (m, Shape: Sr17Shape(m)
-                            ?? (m.IsDynamicTable ? "a dynamic-capacity table (ISO §8.5.1.9.1)" : null)))
-                        .FirstOrDefault(x => x.Shape is not null) is { Shape: { } shape } hit)
-                {
-                    tier = RedefinesTier.Rejected;
-                    reject = $"record '{hit.m.CobolName ?? hit.m.CsName}' is {shape}";
-                }
                 if (tier is RedefinesTier.Rejected)
                 {
                     var rule = cls.Members.Any(m => m.RedefinesKind is RedefinitionKind.SameRecordArea)
@@ -6494,11 +6526,12 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // be of class object, message-tag, or pointer, a strongly-typed group item, or an item subordinate to a
         // strongly-typed group item"; and §13.18.60.3 SR14, which admits a pointer USAGE "only for an elementary
         // data item at level 1 or an elementary data item subordinate to a type declaration that includes the
-        // STRONG phrase". ⛔ BUT REACHABLE THROUGH THE FILE SECTION (kb/Work PB836): a level-1 `USAGE POINTER`
-        // record is legal by that third rule, and a second record of the same FD shares its area by §13.18.33.4
-        // GR3 with no REDEFINES clause for SR12/SR14 to bar. There this arm is the storage model's limit, staged
-        // loud as COBOLNET0899 (DiagnosticCatalog.ImplicitRecordAreaShape) by ClassifyRedefinesClasses — never a
-        // silent alias of reserved bytes.
+        // STRONG phrase". The FILE SECTION's implicit area, which used to reach it (kb/Work PB836 — a level-1
+        // `USAGE POINTER` record beside another record of the same FD, legal by that third rule and joined by
+        // §13.18.33.4 GR3 with no REDEFINES clause for SR12/SR14 to bar), no longer does: since kb/Work PB981 a
+        // pointer-class record is an OUT-OF-LINE record (FileModel.IsOutOfLineRecord, determination D-FRA) that
+        // LinkImplicitRecordArea never links. The arm stays the loud guard for any path that would alias a
+        // managed slot over a stored string backing — never a silent alias of reserved bytes.
         if (!cls.IsCellBacked && leaves.FirstOrDefault(SlotWindow.CarriedBySlot) is { } managed)
         {
             reject = $"'{managed.CobolName ?? "FILLER"}' is of a pointer class, whose value rides the storage "
@@ -6650,15 +6683,6 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             foreach (var l in LeavesOf(c)) yield return l;
     }
 
-    /// <summary>Find an item by COBOL name within a record subtree (the item itself or any descendant).</summary>
-    private static DataItem? FindDescendantOrSelf(DataItem root, string name)
-    {
-        if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase)) return root;
-        foreach (var c in root.Children)
-            if (FindDescendantOrSelf(c, name) is { } f) return f;
-        return null;
-    }
-
     /// <summary>⭐ THE ONE ISO §8.4.2.2 QUALIFICATION RESOLVER (kb/Work PB489). Every in-scope declaration of
     /// <paramref name="name"/> whose ancestor chain carries each written qualifier in order (inner → outer,
     /// §8.4.2.2.2 Format 1 — qualifiers need not name consecutive levels), with the OUTERMOST qualifier
@@ -6678,15 +6702,84 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// did both — one rule written down twice, with the procedure division reading the complete one and the data
     /// division the partial one (feedback_one_rule_one_place). <see cref="ReferenceResolver"/> now calls this.
     /// </para></summary>
-    internal List<DataItem> QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
+    internal DataNameCandidates QualifiedCandidates(string name, IReadOnlyList<string> quals, Model.Scope scope)
     {
         List<DataItem> survivors = [];
         if (Symbols.TryResolve(name, scope, out var candidates))
             foreach (var cand in candidates)
                 if (QualifierChainMatches(cand, quals) && !survivors.Contains(cand))
                     survivors.Add(cand);
-        return survivors;
+        return new DataNameCandidates(survivors);
     }
+
+    /// <summary>The §8.4.2.2 candidate set of <paramref name="name"/> WITHIN one record — every entry of
+    /// <paramref name="root"/>'s subtree (itself included) so named whose ancestor chain carries the written
+    /// qualifiers (<see cref="QualifierChainMatches"/>). For the operands confined to one record: RENAMES
+    /// data-name-2 / data-name-3 (§13.18.45.3 SR4 — "in the same record") and a TYPEDEF clone's own OCCURS
+    /// DEPENDING ON counter. The tree walk, not the name index, because a TYPEDEF template's members are off the
+    /// name index (§13.18.58.4 GR1). Counted like every other candidate set (kb/Work PB978).</summary>
+    internal DataNameCandidates SubtreeCandidates(DataItem root, string name, IReadOnlyList<string> quals)
+    {
+        List<DataItem> hits = [];
+        void Walk(DataItem n)
+        {
+            if (string.Equals(n.CobolName, name, StringComparison.OrdinalIgnoreCase) && QualifierChainMatches(n, quals))
+                hits.Add(n);
+            foreach (var c in n.Children) Walk(c);
+        }
+        Walk(root);
+        return new DataNameCandidates(hits);
+    }
+
+    /// <summary>The candidate set of a data-name referenced in a DATA DESCRIPTION ENTRY CLAUSE of
+    /// <paramref name="subject"/> (OCCURS … DEPENDING ON, SAME AS), with ISO §8.4.2.2.1 rule 5's implicit
+    /// qualification applied: "The name is a data-name referenced in a data description entry clause whose subject
+    /// is subordinate to the same group item as that data-name. In this case, the names of any group items
+    /// superordinate to both the data-name and the subject of the data description entry clause are used as
+    /// implicit qualifiers for the reference, in addition to any explicit qualifiers needed to establish uniqueness
+    /// within that group." So the set is the one under the INNERMOST group superordinate to the subject that holds
+    /// any candidate — every candidate there shares exactly the same implicit qualifiers, so two of them are still
+    /// ambiguous — and the scope-wide set only when no group of the subject's holds one. This is also the rule
+    /// behind a TYPEDEF clone's own DEPENDING ON counter (a tree walk, so a clone's members off the name index are
+    /// found). Counted like every candidate set (kb/Work PB978).</summary>
+    internal DataNameCandidates EntryClauseCandidates(DataItem subject, string name, IReadOnlyList<string> quals,
+                                                      Model.Scope scope)
+    {
+        for (DataItem? group = subject.Parent; group is not null; group = group.Parent)
+            if (SubtreeCandidates(group, name, quals) is { Count: > 0 } within) return within;
+        return QualifiedCandidates(name, quals, scope);
+    }
+
+    /// <summary>⛔ THE ONE AMBIGUITY VERDICT OF THE DATA DIVISION (kb/Work PB978). Exactly one survivor is the item.
+    /// Several is ISO §8.4.2.2.3 SR1's failure — "For each non unique user-defined name that is explicitly
+    /// referenced, uniqueness shall be established through a sequence of qualifiers that precludes any ambiguity
+    /// of reference" — reported HERE, at the caller's cursor, under the procedure division's own descriptor
+    /// (COBOLNET1639) and with its disposition: an error, or under <c>--permissive</c> a warning and the
+    /// first-declared survivor (ReferenceResolver.ResolveUnqualified, kb/Work R33). None returns null WITHOUT a
+    /// report: an operand that names nothing breaks the CLAUSE's own rule, which the caller states
+    /// (<paramref name="ambiguityReported"/> says which of the two a null is).</summary>
+    internal DataItem? UniqueOrReportAmbiguous(DataNameCandidates candidates, string clauseFace, string written,
+                                               out bool ambiguityReported)
+    {
+        ambiguityReported = false;
+        if (candidates.Count <= 1) return candidates.Single;
+        ambiguityReported = true;
+        string msg = $"{clauseFace} '{written}' does not uniquely identify a data item — {candidates.Count} "
+            + "declarations match the written reference (ISO §8.4.2.2.3 SR1: \"For each non unique user-defined "
+            + "name that is explicitly referenced, uniqueness shall be established through a sequence of qualifiers "
+            + "that precludes any ambiguity of reference\")";
+        if (!Edition.Permissive)
+        {
+            Edition.Error(DiagnosticCatalog.UndefinedReference, msg);
+            return null;
+        }
+        Edition.Warning(DiagnosticCatalog.UndefinedReference, msg + "; --permissive resolves to the first declaration");
+        return candidates.FirstDeclaredForPermissive;
+    }
+
+    /// <summary>The written form of a qualified data-name, for a diagnostic: <c>K OF G OF R</c>.</summary>
+    internal static string WrittenQualified(string name, IReadOnlyList<string> quals) =>
+        quals.Count == 0 ? name : name + " OF " + string.Join(" OF ", quals);
 
     /// <summary>True when every qualifier names strictly-superordinate context of <paramref name="cand"/>,
     /// consumed inner → outer with gaps allowed (ISO §8.4.2.2.3 SR4 — "Qualifiers shall be specified in the order

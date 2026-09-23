@@ -306,8 +306,8 @@ public sealed record SlotWindow(AccessPath Cell) : WindowCoding
     /// data item subordinate to a type declaration that includes the STRONG phrase" — so a pointer member of a
     /// REDEFINES-CLAUSE class is barred at the entry by the first two rules or at the declaration by the third. A
     /// file's IMPLICITLY shared record area (§13.18.33.4 GR3 — a level-1 pointer record beside another record of
-    /// the same FD) is legal source, and there the class is Rejected and staged loud (COBOLNET0899,
-    /// kb/Work PB836) before any view place is built.</para></summary>
+    /// the same FD) is legal source, and there the pointer record is an OUT-OF-LINE record that never joins the
+    /// class (FileModel.IsOutOfLineRecord — determination D-FRA, kb/Work PB981).</para></summary>
     public static bool CarriedBySlot(DataItem item) =>
         item.IsElementary && item.Pic is
             { Category: PicCategory.Pointer or PicCategory.ProgramPointer or PicCategory.FunctionPointer

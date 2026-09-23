@@ -1232,14 +1232,16 @@ public sealed class SequentialConnector : FileConnector
             }
             else if (NextFrame(out _) is { } physical) line = physical;
             else { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
-            if (line.Length > RecordWidth)
+            // The bound is the maximum size the RECORD DESCRIPTIONS specify (GR15's own words), which is the
+            // record area's width except for a variable-length record (MaxRecordSize — kb/Work PB981).
+            if (line.Length > MaxRecordSize)
             {
-                _lineRemainder = line[RecordWidth..];
-                image = line[..RecordWidth];
-                LastReadLength = RecordWidth;
+                _lineRemainder = line[MaxRecordSize..];
+                NoteRecordRead(line[..MaxRecordSize]);
+                image = Fit(CurrentRecord);
                 lineTooLong = true;
             }
-            else { LastReadLength = line.Length; image = Fit(line); }   // §14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
+            else { NoteRecordRead(line); image = Fit(line); }   // §14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
             // §14.9.30.4 GR16: "If the execution of the READ statement is successful but the record area
             // contains one or more characters not in the implementor-defined character set for a line
             // sequential file, the I-O status in the read file connector is set to '09'" (§9.1.13.2 item 7).
@@ -1251,7 +1253,7 @@ public sealed class SequentialConnector : FileConnector
         }
         else if (NextFrame(out _) is { } data)
         {
-            LastReadLength = data.Length;
+            NoteRecordRead(data);
             image = Fit(data);   // §14.9.30.4 GR14/GR15 fill — national-aware (kb/Work PB327)
             // A VARYING record outside the file's min/max is §14.9.30 GR14's '04'. Fixed-length record
             // sequential: min == max == RecordWidth, so a partial (short) final record is '04' too; a

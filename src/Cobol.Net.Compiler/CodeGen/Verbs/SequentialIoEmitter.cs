@@ -127,8 +127,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             bool lineSeq = file.Organization == FileOrganization.LineSequential;
             // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) — the connector
             // length-frames its records and enforces the GR14 '44' boundary checks.
-            string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
-            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, vary, CsLiteral(file.SelectName))};");
+            // A variable-length record (D-FRA; kb/Work PB981) implies Format 2 (§13.18.43.4 GR5) and reaches past
+            // the character area, so the connector learns the record descriptions' own maximum (GR14/GR15's
+            // truncation bound) separately from the area width it pads to.
+            string vary = file.RecordSizeVaries ? $", {file.VaryMin}, {file.VaryMax}" : "";
+            int recordMax = file.RecordMax > file.RecordWidth ? file.RecordMax : 0;
+            w.Line($"{RuntimeApi.FileRegister(FileKeyExpr(file), CsLiteral(file.AssignTarget), $"{file.RecordWidth}", lineSeq ? "true" : "false", file.Optional ? "true" : "false", ctx.Data.Edition.DialectLevel, vary, CsLiteral(file.SelectName), recordMax)};");
             EmitAreaRegistrations(w, file);
             EmitSharingRegistration(w, file);
         }
@@ -616,7 +620,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string readCall = EmitReadSharedCall(rd, name, tmp);
         using (w.Block($"if ({readCall})"))
         {
-            if (area is not null) EmitImageInto(area, tmp);
+            EmitRecordAreaStore(rd.File, area, tmp, RuntimeApi.FileCurrentRecord(name));
             EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
             // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
@@ -671,6 +675,55 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         EmitStoreFileStatus(rw.File);
         EmitUseHook(rw.File);   // invalidKeyHandled stays false: no '2x' status is reachable here (§9.1.13.5)
         if (rst is not null) EmitInvalid(rst, rw.InvalidKey);
+    }
+
+    /// <summary>⛔ THE ONE RECORD-AREA STORE of a READ / RETURN — "the record is made available in the record
+    /// area" (ISO §14.9.30.4 / §14.9.34.4 GR3), and the area is EVERY record of the file (§13.18.33.4 GR3) and of
+    /// every file sharing it (§12.4.6.4.4 GR2). Its two halves are determination D-FRA (docs/CONFORMANCE.md §3;
+    /// kb/Work PB981): the CHARACTER half — <paramref name="area"/>, the largest character-window record, whose
+    /// view spans the shared backing — takes the area image <paramref name="areaImage"/>; each OUT-OF-LINE
+    /// record (<see cref="FileModel.OutOfLineRecords"/>, or the area itself when every record is out of line)
+    /// takes the CURRENT RECORD <paramref name="currentRecord"/> at its own length, through
+    /// <see cref="EmitOutOfLineInto"/>. Every READ organization and the sort RETURN route here, so no transfer
+    /// can reach one half of the area and not the other.</summary>
+    public void EmitRecordAreaStore(FileModel file, Place? area, string areaImage, string currentRecord)
+    {
+        if (area is not null)
+        {
+            if (FileModel.IsOutOfLineRecord(area.Item)) EmitOutOfLineInto(area, currentRecord);
+            else EmitImageInto(area, areaImage);
+        }
+        foreach (var record in file.OutOfLineRecords)
+            if (refs.ResolveItem(record) is { } place)
+                EmitOutOfLineInto(place, currentRecord);
+    }
+
+    /// <summary>Make the current record available in ONE out-of-line record (D-FRA; kb/Work PB981) — the
+    /// receiving inverse of <see cref="OperandText.RecordAreaImage"/>'s out-of-line arms, arm for arm: a
+    /// variable-length group decomposes the contiguous record (§8.5.1.11.2) through its generated
+    /// <c>FromContiguousImage</c>; a dynamic-length record takes the record as its new content (§8.5.1.10.4 —
+    /// "the new value becomes the content of the item", truncated on the right at its maximum; a NATIONAL one
+    /// decodes the record's byte pairs first, the inverse of its NatBytes image); a pointer-class record has no
+    /// character image, so the record does not reach it and its value is unchanged.</summary>
+    private void EmitOutOfLineInto(Place record, string currentRecord)
+    {
+        var w = ctx.Writer;
+        var item = record.Item;
+        if (item.IsGroup)
+        {
+            w.Line(PlaceRenderer.WriteVarGroupContiguous(record, currentRecord, $"record area '{item.CobolName}' read"));
+            return;
+        }
+        if (item.IsDynamicLength)
+        {
+            string content = item.Pic?.Category is PicCategory.National
+                ? RuntimeApi.NatReadWindow(currentRecord, "0", $"{currentRecord}.Length / 2")
+                : currentRecord;
+            w.Line(PlaceRenderer.Write(record, ReceivingStore.Characters(item, content, "0")));   // the ONE elementary character store (PB871)
+            return;
+        }
+        // A pointer-class record: no character image (A.1 items 210/216) — nothing of the record lands in it.
+        w.Line($"// '{item.CobolName}' — pointer-class record: no character image, the READ leaves its value unchanged (D-FRA)");
     }
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;

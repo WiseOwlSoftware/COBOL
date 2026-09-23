@@ -55,11 +55,63 @@ Deep, decision-complete design for the COBOL.NET FILES subsystem (typed records,
 > SR12, SR14, SR16, SR17) screen `Clause` members only — an implicit redefinition has no clause and no
 > data-name-2. What DOES reach the implicit case is §13.18.57.3 SR4 ("shall not be implicitly or explicitly
 > redefined"): a strongly-typed item anywhere in a record that shares its area is COBOLNET1532, tested on BOTH
-> sides of the pair because the sharing is symmetric. A record whose shape the shared backing cannot carry — a
-> dynamic-length item, a variable-length group, a dynamic-capacity table, a pointer — is legal source the storage
-> model does not yet share, staged loud as COBOLNET0899 (`implicit-record-area-shape`), never borrowed from a
-> REDEFINES rule. A report description's level-1 entries are NOT implicit redefinitions (§13.18.33.4 GR3's second
-> sentence) and never join a class.
+> sides of the pair because the sharing is symmetric. A dynamic-length, variable-length-group or pointer-class
+> record never joins the class at all — it is an OUT-OF-LINE record (D27). What can still be staged loud as
+> COBOLNET0899 (`implicit-record-area-shape`) is a character-window record with a byte-window residue, and an
+> EXTERNAL file's area that has an out-of-line record (D27) — never borrowed from a REDEFINES rule. A report
+> description's level-1 entries are NOT implicit redefinitions (§13.18.33.4 GR3's second sentence) and never join a
+> class.
+
+### D27. A record with no character window is an OUT-OF-LINE record: it is never linked into the area's class, and it shares the area at the transfer boundary (kb/Work PB981; determination D-FRA, docs/CONFORMANCE.md §3).
+
+**The rule and the latitude.** §13.18.33.4 GR3 makes every level-1 entry of an FD/SD an implicit redefinition of
+one area, and nothing forbids such a record from being a dynamic-length item, a variable-length group
+(§8.5.1.12.1) or a pointer-class item (§13.18.60.3 SR14 admits a pointer "only for an elementary data item at level
+1"). The standard also leaves where such an item LIVES to the implementor: *"Dynamic-length elementary items may be
+physically located in memory within the record they are subordinate to, or they may be located elsewhere in the
+computer's memory"* (§8.5.1.10.3), its internal structure is implementor-defined (§8.5.1.10.2), and a pointer here
+has no character image (A.1 items 210/216). What it does NOT leave open is the procedural view: a variable-length
+item *"behaves in all respects as though it were in fact contiguous with its neighbors whenever a procedural
+operation is applied to a group containing it"* (§8.5.1.11.2).
+
+**The decision — one predicate, two halves of one area.**
+- `FileModel.IsOutOfLineRecord` is THE predicate (a dynamic-length elementary record, a variable-length group, a
+  pointer-class elementary record). `DataBinder.LinkImplicitRecordArea` — the ONE linker for the FD and SD arms —
+  and the SAME RECORD AREA arm link only character-window records, anchored on `FileModel.CharacterAnchor`; each
+  file of a record-area SAME clause learns its `SameRecordAreaPeers`.
+- `FileModel.AreaRecord` is the largest CHARACTER-window record (the first record only when every record is out of
+  line); `FileModel.OutOfLineRecords` is every other out-of-line record of the file and of its SAME peers.
+- **READ / RETURN** go through ONE store, `SequentialIoEmitter.EmitRecordAreaStore`: the character half takes the
+  area image as before; each out-of-line record takes the CURRENT RECORD at its own length
+  (`FileConnector.CurrentRecord`, written only through `NoteRecordRead` beside `LastReadLength`; a RETURN's
+  returned image is already that). A variable-length group decomposes it through its generated
+  `FromContiguousImage` → the ONE split rule `CobolVarGroup.FromContiguous` (each dynamic component, left to right,
+  takes as many whole units as the record holds beyond the fixed material still to come, up to its maximum; in a
+  file record the components are dynamic-length items only, since a dynamic-capacity table "may be defined in any
+  place, other than the file section", §8.5.1.9.1 3), and the rule's element-unit arm serves the generic
+  carrier — the
+  exact inverse of the composer for one variable-length member, the earlier component taking the excess for
+  several); a dynamic-length record takes the record as its content (§8.5.1.10.4); a pointer record is not reached.
+- **WRITE / REWRITE / RELEASE** send `OperandText.RecordAreaImage`, whose out-of-line arms are the contiguous
+  `CurrentImage()` of a variable-length group (`PlaceRenderer.VarGroupCurrentImage`), a dynamic-length record's
+  content, and the zero-length image of a pointer record.
+- **The implied RECORD clause** (§13.18.43.4 GR5, implementor-defined) is Format 2 exactly when a record is
+  variable-length (`FileModel.ImpliesVariableFormat`; `RecordSizeVaries` is the one question every registration
+  and `SortBinder.SortVaryingOf` ask). `MaxRecordSize` counts a dynamic-length item at its maximum size and a
+  dynamic table at its maximum capacity (GR8 b); `FileModel.RecordMax` reaches the connector as `RecordMax`, the
+  §14.9.30.4 GR14/GR15 truncation bound, separately from the area width the image is padded to — an unlimited
+  dynamic-length record must not size every READ's area buffer.
+- **SD records.** `SortBinder.SortRecordOf` admits a variable-length record whose extent composes; a SORT/MERGE
+  key at or past the record's first variable-length member has no fixed position in the contiguous image the
+  store compares, and is refused by name (not yet implemented) rather than sliced wrong.
+- **EXTERNAL.** An EXTERNAL file whose area has an out-of-line record is staged loud (COBOLNET0899): its run-unit
+  cell would carry only the character half.
+
+**Rejected alternatives.** Stage the shapes loud (the PB836 posture — rejects legal source); make the record area a
+cell with managed slots for a pointer record (the pointer still has no character image to send, and a dynamic
+member still has no fixed window); give a dynamic-length member a length prefix in the record (that is the
+DYNAMIC LENGTH STRUCTURE clause's job, §8.5.1.10.2, which is not claimed — COBOLNET1562 — and the contiguous
+procedural view of §8.5.1.11.2 would then not be what the file holds).
 
 ### D6. SORT and MERGE: the SD record is a typed struct; the sort store holds serialized images ordered by the same CobolKey policy; SORT key offsets are computed into the deterministic serialized image at compile time. Format-2 in-place table SORT operates on the typed array directly.
 
@@ -1609,6 +1661,16 @@ file name as the clause's data-name and died at OPEN naming a word the programme
   optionally the owning FILE (Format 1's `file-report-qualifier`). It returns the SET, because the count is the
   standard's answer. `ReferenceResolver.ResolveQualified` — which used to own the only complete copy, while the
   binder carried a weaker private twin that knew neither the file-name qualifier nor uniqueness — now calls it.
+  **The set is a `DataNameCandidates` and has no indexer (kb/Work PB978):** it can be counted, narrowed
+  (`Where`) and read only as `Single`, so no caller can take "the first". Its record-confined twin
+  `SubtreeCandidates(root, name, quals)` serves RENAMES (§13.18.45.3 SR4) and a TYPEDEF clone's own OCCURS DEPENDING
+  ON counter. Several survivors go to **`UniqueOrReportAmbiguous`**, the ONE data-division ambiguity verdict
+  (§8.4.2.2.3 SR1, COBOLNET1639; under `--permissive` a warning and the first declared — the procedure division's
+  own disposition). Every data-division operand reads it: FILE STATUS, RELATIVE KEY, RECORD … DEPENDING ON and LINAGE
+  (through `ResolveClauseOperand`), RECORD KEY / ALTERNATE RECORD KEY (SR2 narrows to this file's records first,
+  then counts), ASSIGN … USING, OCCURS … DEPENDING ON, SAME AS, RENAMES, and the report CONTROL / SOURCE / SUM
+  operands. `DataNameResolutionDriftTests` (Unit) pins the type's shape and forbids `[0]` off a raw candidate list
+  in the data binder.
 - **`ClauseDataName(dref, clauseFace)`** — the capture, screened by `ScreenClauseOperandShape` against the three
   shapes a `data-name-n` position does not admit → **COBOLNET2024**: a SPECIAL REGISTER (LINAGE-COUNTER /
   LINE-COUNTER / PAGE-COUNTER are §8.4.3.1 Format 10 / Format 11 identifiers, and §8.4.3.14.3 SR1 / §8.4.3.15.3

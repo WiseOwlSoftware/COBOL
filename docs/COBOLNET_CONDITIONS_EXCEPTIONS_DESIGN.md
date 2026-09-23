@@ -839,7 +839,24 @@ The whole-group character-image facility: every group record struct emits AsImag
 
 ### Distinguishing a bare data-name operand in a condition: level-88 condition-name vs boolean PIC 1 vs mnemonic switch vs numeric-implicit-≠0 vs alphanumeric truthiness.
 
-Binder resolves the name's category: 88→condition-name bool property; PIC 1/boolean→the field itself; SPECIAL-NAMES switch→switch test; numeric→`(num != 0)` (legacy lines 220–228); alphanumeric→`!string.IsNullOrWhiteSpace(item)` (legacy-compatible, COBOLNET0702).
+`ConditionBinder.AnalyzeBareOperand` resolves the SYMBOL once (D5a): a level-88 condition-name → the conditional
+variable's bool property; a switch-status condition-name → the switch test; a one-position boolean item or literal
+→ a §8.8.4.3 simple boolean condition (SR1's length screen, COBOLNET1511); a bare class-name / alphabet-name → an
+EVALUATE partial-expression object only (§14.9.13.3 SR5, kb/Work PB843). Inside an abbreviated combined relation
+any other operand is the OBJECT of the carried subject and operator (§8.8.4.12). Everything else — an alphanumeric
+or numeric data item, a literal, a figurative, an arithmetic expression, a function reference, a class-name
+outside EVALUATE, a switch's mnemonic-name — is **not a condition** (§8.8.4.2.1: "The simple conditions are the
+relation, boolean, class, condition-name, switch-status, sign, and omitted-argument conditions") and is refused at
+compile time by `ConditionBinder.RefuseNonCondition` with COBOLNET2318, which names what the operand IS. There is no
+numeric-≠0 or alphanumeric-truthiness reading: the legacy engine's were non-ISO, and until kb/Work PB982 the
+greenfield binder compiled such a condition with no diagnostic and aborted the run unit when it was reached.
+
+**One construction site for a condition error node (kb/Work PB982).** `BoundConditionError` is built ONLY by
+`ConditionBinder.Refused(feature)` (`EvaluateBinder` reaches it through `host.Cond`). A refusal reports the rule's
+own diagnostic first; `Refused` then fails the compile with the internal COBOLNET2319 if no failing diagnostic has
+been recorded, so a condition error node can never reach a successful compile and the emitter's
+`NotImplemented` lowering of it is unreachable. `ConditionErrorConstructionDriftTests` (Unit) keeps every other
+`new BoundConditionError(` out of the compiler.
 
 ## Edge cases
 

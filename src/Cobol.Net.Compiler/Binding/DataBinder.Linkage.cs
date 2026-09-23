@@ -445,9 +445,24 @@ public sealed partial class DataBinder
         // GR4b/GR5 — the records of every describer alias it; multi-01 records under the FD are already one
         // REDEFINES class, so re-basing the first record re-bases the whole area). The GR6 same-byte-count
         // conformance check across describers is EC-band work (§14.8.4) — not enforced here.
+        // ⛔ AN OUT-OF-LINE RECORD (FileModel.IsOutOfLineRecord — determination D-FRA, kb/Work PB981) has no
+        // window over the cell, so the run-unit cell would carry only the CHARACTER half of the area and every
+        // describer would keep its own copy of the rest — GR4b's one area silently split in two. Staged LOUD.
         foreach (var file in Files)
             if (file is { IsExternal: true, ExternalName: { } extName } && file.Records.Count > 0)
+            {
+                if (file.Records.FirstOrDefault(FileModel.IsOutOfLineRecord) is { } outOfLine)
+                {
+                    using var __ = Edition.At(outOfLine);
+                    Edition.Error(DiagnosticCatalog.ImplicitRecordAreaShape,
+                        $"the record area of EXTERNAL file '{file.CobolName}' is external — \"the data contained in all record description entries\" (ISO "
+                        + $"§13.18.22.4 GR4 b)) — and record '{outOfLine.CobolName}' is an out-of-line record (a dynamic-length, "
+                        + "variable-length-group or pointer-class record) with no window over it: an EXTERNAL record "
+                        + "area of that shape is recognized but not yet implemented");
+                    continue;
+                }
                 CallMakeExternal(file.Records[0], "FD::" + extName);
+            }
 
         // GLOBAL FDs: the record-names of a GLOBAL FD are GLOBAL names (ISO §13.18.30 — the file-name and the
         // record-names described subordinate to the FD are global names): the records join the GLOBAL roots so

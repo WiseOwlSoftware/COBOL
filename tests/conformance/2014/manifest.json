@@ -121,7 +121,8 @@
   "pb965_fixed_group_vlg_invoke",
   "pb965_vlg_into_fixed_boundary",
   "pb965_vlg_into_fixed_invoke",
-  "pb969_function_pointer_empty_arguments"
+  "pb969_function_pointer_empty_arguments",
+  "pb981_fd_variable_length_records"
  ],
  "pending": []
 }

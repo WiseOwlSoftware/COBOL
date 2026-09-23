@@ -2232,8 +2232,8 @@ public sealed partial class DataBinder
             foreach (var ctl in model.Controls)
                 if (!ctl.IsFinal && ctl.Operand is { } op)
                 {
-                    ctl.Item = LookupQualified(op.Name, op.Qualifiers);
-                    if (ctl.Item is null)
+                    ctl.Item = LookupQualified(op.Name, op.Qualifiers, $"RD '{model.Name}': CONTROL operand", out bool ctlAmbiguous);
+                    if (ctl.Item is null && !ctlAmbiguous)
                     {
                         // §13.18.16.3 SR2 — "Data-name-1 shall not be defined in the report section." The report
                         // section's own names never enter ByName, so such an operand FAILS RESOLUTION: the right
@@ -2249,14 +2249,14 @@ public sealed partial class DataBinder
                             Edition.Error(DiagnosticCatalog.ReportControlOperandUnresolved, $"RD '{model.Name}': CONTROL operand '{op}' does not "
                                 + "resolve to a data item (ISO §8.4.2.1)");
                     }
-                    else if (ControlOperandShapeViolation(ctl.Item) is { } shape)
+                    else if (ctl.Item is { } ctlItem && ControlOperandShapeViolation(ctlItem) is { } shape)
                         Edition.Error(shape.Code, $"RD '{model.Name}': CONTROL operand '{op}' {shape.Clause}");
                     // §8.4.3.3.3 SR1 governs a ref-modded operand here exactly as in the procedure division, and
                     // it is read through the ONE exclusion test so the two paths cannot drift (kb/Work PB205).
                     // The BOUNDS are deliberately NOT screened here: §8.4.3.3.4 item 5c defines an out-of-range
                     // slice as the EC-BOUND-REF-MOD condition, and the emitted RefModPlace raises it — a general
                     // rule, not a syntax rule, so a compile-time rejection would be this compiler's invention.
-                    else if (op.RefModStart is not null
+                    else if (op.RefModStart is not null && ctl.Item is not null
                              && ReferenceResolver.RefModExclusion(ctl.Item) is { } why)
                         Edition.Error(DiagnosticCatalog.RefModIdentifierNotPermitted, $"RD '{model.Name}': CONTROL operand '{op}': reference "
                             + $"modification of {why} is not permitted (ISO §8.4.3.3.3 SR1)");
@@ -2286,8 +2286,8 @@ public sealed partial class DataBinder
                             switch (fs)
                             {
                                 case FieldDataSource ds:
-                                    ds.Item = LookupQualified(ds.Name, ds.Qualifiers);
-                                    if (ds.Item is null)
+                                    ds.Item = LookupQualified(ds.Name, ds.Qualifiers, $"RD '{model.Name}': SOURCE", out bool srcAmbiguous);
+                                    if (ds.Item is null && !srcAmbiguous)
                                         Edition.Error(DiagnosticCatalog.ReportSourceOperandUnresolved, $"RD '{model.Name}': SOURCE '{ds.Name}' does not "
                                             + "resolve to a data item (ISO §13.18.53.3 SR4)");
                                     break;
@@ -2432,8 +2432,9 @@ public sealed partial class DataBinder
                 + "implemented");
             return;
         }
-        if (LookupQualified(addend.Name, addend.Qualifiers) is not { } item)
+        if (LookupQualified(addend.Name, addend.Qualifiers, $"RD '{model.Name}': SUM addend", out bool sumAmbiguous) is not { } item)
         {
+            if (sumAmbiguous) return;
             Edition.Error(DiagnosticCatalog.ReportSumAddendUnresolved, $"RD '{model.Name}': SUM addend '{addend.Written}' does not resolve "
                 + "to a data item outside the report section (ISO §13.18.54.3 SR5)");
             return;
@@ -2706,20 +2707,15 @@ public sealed partial class DataBinder
         return null;
     }
 
-    /// <summary>Resolve a (possibly IN/OF-qualified) data-name against the storage forest: the first
-    /// <see cref="ByName"/> candidate whose ancestor chain matches every qualifier in written
-    /// (innermost→outermost) order, skips allowed (ISO §8.4.2.2 Qualification).</summary>
-    private DataItem? LookupQualified(string name, IReadOnlyList<string> qualifiers)
-    {
-        if (!ByName.TryGetValue(name, out var list) || list.Count == 0) return null;
-        if (qualifiers.Count == 0) return list[0];
-        foreach (var cand in list)
-        {
-            int qi = 0;
-            for (DataItem? a = cand.Parent; a is not null && qi < qualifiers.Count; a = a.Parent)
-                if (string.Equals(a.CobolName, qualifiers[qi], StringComparison.OrdinalIgnoreCase)) qi++;
-            if (qi == qualifiers.Count) return cand;
-        }
-        return null;
-    }
+    /// <summary>Resolve a report clause's (possibly IN/OF-qualified) data-name — CONTROL, SOURCE, SUM — through the
+    /// ONE §8.4.2.2 resolver (<see cref="QualifiedCandidates"/>) and the ONE ambiguity verdict
+    /// (<see cref="UniqueOrReportAmbiguous"/>). <paramref name="ambiguous"/> says the null was reported here as
+    /// §8.4.2.2.3 SR1's ambiguity; any other null names nothing, which the caller's own clause rule reports.
+    /// <para>⛔ THIS WAS A PRIVATE FIRST-MATCH TWIN (kb/Work PB978): an unqualified name took <c>ByName[n][0]</c>
+    /// and a qualified one the first candidate whose chain matched, so <c>RD RPT CONTROL IS K OF G</c> with both
+    /// <c>A.G.K</c> and <c>B.G.K</c> declared compiled clean and broke control on whichever K came first. Its
+    /// qualifier walk also knew nothing of the file-name qualifier (§8.4.2.2.2 Format 1).</para></summary>
+    private DataItem? LookupQualified(string name, IReadOnlyList<string> qualifiers, string face, out bool ambiguous) =>
+        UniqueOrReportAmbiguous(QualifiedCandidates(name, qualifiers, Model.Scope.Program), face,
+            WrittenQualified(name, qualifiers), out ambiguous);
 }

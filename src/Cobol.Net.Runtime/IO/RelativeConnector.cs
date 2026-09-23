@@ -325,7 +325,7 @@ public sealed class RelativeConnector : KeyedConnector
         }
         _fpi = s; _fpiValid = true; _inclusive = false;   // GR21 rule f + rule c's exclusive bound
         _lastSlot = s;
-        LastReadLength = _slots[s].Length;   // §13.18.43 GR15 — the stored frame length
+        NoteRecordRead(_slots[s]);   // §13.18.43 GR15 — the stored frame length
         image = Fit(_slots[s]);
         return ReadSucceeded(FileStatusCode.Success);
     }
@@ -344,7 +344,7 @@ public sealed class RelativeConnector : KeyedConnector
         }
         _fpi = _pendingKey; _fpiValid = true; _inclusive = false;
         _lastSlot = _pendingKey;
-        LastReadLength = rec.Length;         // §13.18.43 GR15 — the stored frame length
+        NoteRecordRead(rec);         // §13.18.43 GR15 — the stored frame length
         image = Fit(rec);
         return ReadSucceeded(FileStatusCode.Success);
     }

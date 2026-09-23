@@ -245,6 +245,46 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
         return new CobolVarGroup(fixedRun, dyn);
     }
 
+    /// <summary>⛔ A FILE RECORD'S CONTIGUOUS IMAGE, DECOMPOSED — the READ / RETURN half of a variable-length
+    /// record (docs/CONFORMANCE.md §3 determination D-FRA; kb/Work PB981). A WRITE sends the record "as though
+    /// it were in fact contiguous with its neighbors" (ISO §8.5.1.11.2) — the group's <c>CurrentImage()</c> —
+    /// so a record read back carries no marker of where a dynamic member ends. This is the ONE rule that finds
+    /// it: walking the components left to right, each takes as many whole units (one character of a
+    /// dynamic-length item, one element of a dynamic-capacity table) as the record holds beyond the FIXED
+    /// material still to come, up to its maximum; the fixed material then lands at its own positions. It is the
+    /// exact inverse of the composer whenever at most one component is non-empty — in particular for every
+    /// record with ONE variable-length member, wherever it sits — and with several, the EARLIER component takes
+    /// the excess (the determination's stated reading).
+    /// <para><paramref name="fixedAt"/>[k] is component k's offset in the FIXED run (the §8.5.1.12.3
+    /// zero-length accounting <see cref="Fixed"/> uses), <paramref name="unit"/>[k] its unit width in
+    /// characters, <paramref name="maxUnits"/>[k] its maximum size in units (§8.5.1.10.1's maximum size / the
+    /// table's maximum capacity). A record SHORTER than the fixed run leaves every component empty and the
+    /// fixed run short — <c>FromVarImage</c> space-fills it, as §14.9.30.4 GR15 fills a short line.</para></summary>
+    public static CobolVarGroup FromContiguous(string record, int fixedTotal, int[] fixedAt, int[] unit, long[] maxUnits)
+    {
+        var dyn = new string[fixedAt.Length];
+        var fixedRun = new System.Text.StringBuilder(fixedTotal);
+        long excess = Math.Max(0, record.Length - fixedTotal);
+        int pos = 0, fpos = 0;
+        for (int k = 0; k < dyn.Length; k++)
+        {
+            int lead = fixedAt[k] - fpos;
+            fixedRun.Append(Slice(record, pos, lead));
+            pos += lead;
+            fpos = fixedAt[k];
+            long units = unit[k] <= 0 ? 0 : Math.Min(excess / unit[k], maxUnits[k]);
+            int take = (int)(units * unit[k]);
+            dyn[k] = Slice(record, pos, take);
+            pos += take;
+            excess -= take;
+        }
+        fixedRun.Append(Slice(record, pos, fixedTotal - fpos));
+        return new CobolVarGroup(fixedRun.ToString(), dyn);
+    }
+
+    private static string Slice(string s, int at, int length) =>
+        at >= s.Length || length <= 0 ? "" : s.Substring(at, Math.Min(length, s.Length - at));
+
     /// <summary>Split a dynamic-capacity table's carried content into its occurrences at
     /// <paramref name="elementWidth"/> character positions each — the read half of the concatenation the
     /// composer emits. A trailing partial occurrence is padded, so a sender whose capacity ended mid-element

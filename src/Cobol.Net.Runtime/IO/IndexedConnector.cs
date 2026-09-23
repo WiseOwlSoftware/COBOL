@@ -451,7 +451,7 @@ public sealed class IndexedConnector : KeyedConnector
         _readOrdinal = Ordinal(found, _refKey);                            // GR21 e)/f) — where in its set of duplicates
         _fpiValid = true; _positioner = 'R';
         _lastReadPrime = KeyOf(found.Image, PrimeKey);
-        LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
+        NoteRecordRead(found.Image);   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
         return ReadSucceeded(status);
     }
@@ -478,7 +478,7 @@ public sealed class IndexedConnector : KeyedConnector
         // duplicate-set position of the record made available is separate state (GR21 e)/f), kb/Work PB342).
         _fpiKey = value; _readOrdinal = Ordinal(found, keyIndex); _fpiValid = true; _positioner = 'R';
         _lastReadPrime = KeyOf(found.Image, PrimeKey);
-        LastReadLength = found.Image.Length;   // §13.18.43 GR15 — the stored frame length
+        NoteRecordRead(found.Image);   // §13.18.43 GR15 — the stored frame length
         image = Fit(found.Image);
         return ReadSucceeded(FileStatusCode.Success);
     }

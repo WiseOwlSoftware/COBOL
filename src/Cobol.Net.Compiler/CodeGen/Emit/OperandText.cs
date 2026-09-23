@@ -142,7 +142,19 @@ internal static class OperandText
     /// (measured: `01 L-REC PIC N(5).` holding N"AB" wrote `41 42` where D-N1's representation is
     /// `00 41 00 42`), and a USAGE BIT one wrote its '0'/'1' carrier into a ceil(n/8)-byte record. A GROUP record
     /// took the same string either way, which is exactly why the elementary half went unnoticed.</summary>
-    public static string RecordAreaImage(Place record) => AsStorageImage(record, "record-area image of");
+    /// <para>⛔ AN OUT-OF-LINE RECORD (<c>FileModel.IsOutOfLineRecord</c> — determination D-FRA, kb/Work PB981)
+    /// has no character window, so its record image is stated by the determination rather than read from one: a
+    /// VARIABLE-LENGTH GROUP sends its contiguous image at its current extent (ISO §8.5.1.11.2 — the
+    /// <c>CurrentImage()</c> composer; §13.18.43.4 GR13 c) sizes it), a DYNAMIC-LENGTH record its content at its
+    /// current length (§8.5.1.10.4 — a sending operand "is treated as a fixed-length data item whose length is
+    /// the dynamic-length elementary item's current length"; the storage arm below already renders exactly that),
+    /// and a POINTER-CLASS record the zero-length image — it has no character image (A.1 items 210/216), so there
+    /// is nothing of it for a file to carry.</para></summary>
+    public static string RecordAreaImage(Place record) =>
+        record.Item.IsGroup && FileModel.IsVariableLengthRecord(record.Item)
+            ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of")
+        : record.Item.IsElementary && SlotWindow.CarriedBySlot(record.Item) ? "\"\""
+        : AsStorageImage(record, "record-area image of");
 
     /// <summary>THE CURRENT RECORD's character image — the sending operand of a <c>READ … INTO</c> /
     /// <c>RETURN … INTO</c> implicit MOVE (ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b): the record area's image

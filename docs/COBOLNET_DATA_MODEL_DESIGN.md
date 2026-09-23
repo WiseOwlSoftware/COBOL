@@ -1257,8 +1257,10 @@ row `usage-pointer-to-type-2014` (the P12 re-scout re-anchored the former "`TYPE
 nested TYPE ref's SR6 ancestor walk sees the enclosing strong item (no false SR6 strong-in-strong rejection).
 `StrongTypeModel.TypeAnchor` (the NEAREST TYPE-carrying ancestor) drives `SameType`, so a nested `TYPE INNER-T`
 subgroup matches a standalone INNER-T item (§8.5.3.1 alternative 1). A cloned OCCURS DEPENDING ON resolves data-name-1 in the clone's
-OWN record subtree first (`OdoResolve` `FindInSubtree` before the global-scope lookup — §13.18.57.4 GR1 / §13.18.38
-SR20), not a globally-first same-named counter. Three §13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
+OWN record subtree first (`OdoResolve` reads `SubtreeCandidates` over the record before the scope-wide
+`QualifiedCandidates` — §13.18.57.4 GR1's "coded in place"), not a globally-first same-named counter; each tier is
+COUNTED, and several survivors are §8.4.2.2.3 SR1's ambiguity (COBOLNET1639 through `UniqueOrReportAmbiguous`,
+kb/Work PB978), never the first declared. Three §13.18.57.3 syntax rules are enforced: **1536** SR7 (a level-77
 subject needs an elementary type — weak-invariant, not just STRONG), **1537** SR2 (a TYPE entry must be followed
 immediately by a subordinate or level-88 entry, else a silent member-merge / CS1061 leak), **1538** SR5 (no USAGE/SIGN
 on a group superordinate to a TYPE subject). The 15xx TYPEDEF band spans **1529–1538**.

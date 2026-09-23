@@ -487,8 +487,36 @@ public abstract class FileConnector
     }
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15 — the frame length on a varying
-    /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).</summary>
-    public int LastReadLength { get; protected set; }
+    /// file, the record width on a fixed one; the RECORD VARYING DEPENDING item receives it after a READ).
+    /// Written only through <see cref="NoteRecordRead"/>, so it can never disagree with
+    /// <see cref="CurrentRecord"/>.</summary>
+    public int LastReadLength { get; private set; }
+
+    /// <summary>⛔ THE CURRENT RECORD — the record the most recent successful READ made available, at its OWN
+    /// length (never fitted to the record area): §13.18.43.4 GR16's "number of bytes in the current record".
+    /// The record area's character image is this record fitted to <see cref="RecordWidth"/>; an OUT-OF-LINE
+    /// record of the area (a dynamic-length record or a variable-length group — docs/CONFORMANCE.md §7
+    /// determination D-FRA, kb/Work PB981) has no window over that image and receives THIS instead, so its
+    /// dynamic members are not truncated to the character area nor padded with the area's filler.</summary>
+    public string CurrentRecord { get; private set; } = "";
+
+    /// <summary>The ONE writer of <see cref="LastReadLength"/> and <see cref="CurrentRecord"/>: every
+    /// organization's successful READ reports the record it made available here.</summary>
+    protected void NoteRecordRead(string record)
+    {
+        CurrentRecord = record;
+        LastReadLength = record.Length;
+    }
+
+    /// <summary>The maximum size specified by the record description entries, when it EXCEEDS the record area's
+    /// character width — ISO §14.9.30.4 GR14/GR15's truncation bound ("the record is truncated on the right to
+    /// the maximum size"). Zero (the default) means <see cref="RecordWidth"/>, which is the bound for every file
+    /// whose records all have a character window; only a variable-length record (D-FRA, kb/Work PB981) reaches
+    /// past it.</summary>
+    public int RecordMax { get; init; }
+
+    /// <summary>GR14/GR15's "maximum size specified by the record description entries".</summary>
+    protected int MaxRecordSize => RecordMax > RecordWidth ? RecordMax : RecordWidth;
 
     // ── Record-lock identity (ISO §9.1.16 — record locking applies to EVERY organization; the READ/REWRITE/
     //    WRITE/DELETE lock rules §14.9.30 GR7–GR12 / §14.9.35 GR11–GR12 / §14.9.51 GR10–GR11 / §14.9.10 GR6–GR7

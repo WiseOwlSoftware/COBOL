@@ -32,8 +32,9 @@ public static class CobolFile
     /// <summary>Register a SELECTed sequential file (emitted at program start, one per SELECT); the host path is
     /// resolved from the ASSIGN target by <see cref="ResolveHostPath"/>. See <see cref="FileRegistry.Register"/>.</summary>
     public static void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023)
-        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName, edition);
+        bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023,
+        int recordMax = 0)
+        => _reg.Register(cobolName, assignTarget, recordWidth, lineSequential, optional, varyMin, varyMax, selectName, edition, recordMax);
 
     /// <summary>Register a SELECTed RELATIVE file (emitted at program start).</summary>
     public static void RegisterRelative(string cobolName, string assignTarget, int recordWidth, bool optional,
@@ -141,6 +142,10 @@ public static class CobolFile
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
     public static int LastReadLength(string name) => _reg.LastReadLength(name);
+
+    /// <summary>The record the most recent successful READ made available, at its own length — what an
+    /// OUT-OF-LINE record of the area receives (docs/CONFORMANCE.md §3 D-FRA; kb/Work PB981).</summary>
+    public static string CurrentRecord(string name) => _reg.CurrentRecord(name);
 
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public static string Status(string name) => _reg.Status(name);

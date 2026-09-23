@@ -2,6 +2,7 @@
  "enabled": [
   "pb829_assign_device_class",
   "pb823_refmod_class_numeric",
+  "pb978_data_division_qualified_operands",
   "pb880_initialize_replacing_figurative_numeric",
   "pb842_evaluate_condition_subject",
   "pb885_odo_depending_qualified",

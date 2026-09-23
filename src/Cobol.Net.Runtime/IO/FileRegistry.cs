@@ -134,14 +134,14 @@ public sealed class FileRegistry
     /// <c>"::EXT::"</c> key band) is ONE per run unit shared by every describing program (ISO §13.18.22.4
     /// GR4a) — a later describer keeps the existing live connector (IC227A).</summary>
     public void Register(string cobolName, string assignTarget, int recordWidth, bool lineSequential,
-        bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023)
+        bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0)
     {
         if (cobolName.StartsWith("::EXT::", StringComparison.Ordinal) && _files.ContainsKey(cobolName))
             return;   // the run-unit EXTERNAL connector already exists (§13.18.22.4 GR4a)
         CloseDisplaced(cobolName);
         _files[cobolName] = new SequentialConnector(CobolFile.ResolveHostPath(assignTarget), recordWidth,
             lineSequential, varyMin, varyMax)
-        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition };
+        { IsOptional = optional, SelectName = selectName ?? KeyTail(cobolName), Edition = edition, RecordMax = recordMax };
     }
 
     /// <summary>Close a still-open INTERNAL connector a registration is about to replace (kb/Work PB168):
@@ -547,6 +547,10 @@ public sealed class FileRegistry
 
     /// <summary>The length of the most recently read record (ISO §13.18.43 GR15).</summary>
     public int LastReadLength(string name) => _files.TryGetValue(name, out var c) ? c.LastReadLength : 0;
+
+    /// <summary>The record the most recent successful READ made available, at its own length
+    /// (<see cref="FileConnector.CurrentRecord"/>); "" for an unknown name.</summary>
+    public string CurrentRecord(string name) => _files.TryGetValue(name, out var c) ? c.CurrentRecord : "";
 
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;

@@ -31,6 +31,14 @@ public sealed class RenamesInfo
     /// <summary>The <c>data-name-3</c> (THRU) operand text, or <see langword="null"/> for the no-THRU form.</summary>
     public string? ThruName { get; init; }
 
+    /// <summary>The IN/OF qualifiers written on data-name-2 — innermost first (kb/Work PB978). They are NOT
+    /// redundant inside the owning record: two same-named items in one record are distinguished only by them
+    /// (§8.4.2.2.3 SR1).</summary>
+    public IReadOnlyList<string> FromQualifiers { get; init; } = [];
+
+    /// <summary>The IN/OF qualifiers written on data-name-3 (empty for the no-THRU form).</summary>
+    public IReadOnlyList<string> ThruQualifiers { get; init; } = [];
+
     /// <summary>The resolved FROM item (set post-build).</summary>
     public DataItem? From { get; set; }
 

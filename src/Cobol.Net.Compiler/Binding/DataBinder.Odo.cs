@@ -140,16 +140,6 @@ public sealed partial class DataBinder
             return d;
         }
 
-        // The first item named `name` within `root`'s subtree (the same record) — used to prefer a same-record
-        // counter over a globally-first same-named item (review DEVLOG 664 fix #4).
-        static DataItem? FindInSubtree(DataItem root, string name)
-        {
-            if (string.Equals(root.CobolName, name, StringComparison.OrdinalIgnoreCase)) return root;
-            foreach (var c in root.Children)
-                if (FindInSubtree(c, name) is { } hit) return hit;
-            return null;
-        }
-
         foreach (var item in AllItems())
         {
             if (item.OccursSpec is not { DependingName: { } depName } spec) continue;
@@ -161,47 +151,34 @@ public sealed partial class DataBinder
                 Edition.Error("COBOLNET0850", $"OCCURS {spec.Min} TO {spec.Max} on '{subject}': integer-1 shall "
                     + "be greater than or equal to zero and less than integer-2 (ISO §13.18.38.3 SR16)");
 
-            // data-name-1 resolution. PREFER a counter in the item's OWN record (same subtree) — critical for a
-            // TYPEDEF clone, whose internal DEPENDING must bind to the clone's OWN sibling, not a globally-first
-            // same-named item in a different record (review DEVLOG 664 fix #4; §13.18.57.4 GR1 — the type is coded in
-            // place — + §13.18.38 SR20, data-name-1 lies within the same record). Otherwise fall back to the
-            // scope-aware lookup (M2-OO-1h): a method table's data-name-1 resolves in the owning method's scope first
-            // (§11.7.4 GR5), then a visible object/program item.
+            // data-name-1 resolution. A counter under a group the table is ALSO subordinate to is found first:
+            // §8.4.2.2.1 rule 5 makes the groups superordinate to both the data-name and the subject IMPLICIT
+            // qualifiers of a data-name referenced in a data description entry clause. That is also what binds a
+            // TYPEDEF clone's internal DEPENDING to the clone's own sibling (review DEVLOG 664 fix #4; §13.18.57.4
+            // GR1 — the type is "coded in place"). (This comment used to justify the own-record preference by
+            // "§13.18.38.3 SR20, data-name-1 lies within the same record"; SR20 forbids data-name-1 a byte position
+            // between the OCCURS entry and the end of its record and places no counter anywhere, kb/Work PB978.)
+            // Otherwise the scope-aware set (M2-OO-1h): a method table's data-name-1 resolves in the owning
+            // method's scope first (§11.7.4 GR5), then a visible object/program item.
             // A data-name-1 the capture REFUSED (§13.18.38.3 SR2 — subscripted, or not a data-name at all) was
             // reported there; one fault, one verdict (kb/Work PB885).
             if (_refusedClauseOperands.Contains(depName)) continue;
-            // A QUALIFIED data-name-1 (§8.4.2.2.2 Format 1) resolves through the ONE qualifier matcher, which
-            // counts survivors (§8.4.2.2.1 — "uniqueness shall be established through qualification").
-            DataItem? qualified = null;
-            if (spec.DependingQualifiers.Count > 0)
+            // ⛔ THE SET IS COUNTED (kb/Work PB978) — one survivor, or §8.4.2.2.3 SR1's ambiguity through the ONE
+            // verdict; never the first declared, which the unqualified fallback here used to take (`cands[0]`): with
+            // CNT declared under two groups `OCCURS 1 TO 9 DEPENDING ON CNT` compiled clean and ran on the first.
+            string writtenDep = WrittenQualified(depName, spec.DependingQualifiers);
+            string depFace = $"OCCURS … DEPENDING ON data-name-1 of '{subject}'";
+            var tier = EntryClauseCandidates(item, depName, spec.DependingQualifiers, ScopeOf(RootOf(item)));
+            if (tier.Count == 0)
             {
-                var survivors = QualifiedCandidates(depName, spec.DependingQualifiers, ScopeOf(RootOf(item)));
-                // A TYPEDEF clone's own record first (the unqualified arm's rule below, review DEVLOG 664 fix #4).
-                var own = survivors.Where(s => ReferenceEquals(RootOf(s), RootOf(item))).ToList();
-                if (own.Count == 1) survivors = own;
-                if (survivors.Count != 1)
-                {
-                    string written = depName + " OF " + string.Join(" OF ", spec.DependingQualifiers);
-                    Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{written}' on '{subject}': data-name-1 "
-                        + (survivors.Count == 0
-                            ? "is not defined under the given qualifiers"
-                            : $"does not uniquely identify a data item — {survivors.Count} declarations match")
-                        + " (ISO §8.4.2.2.1: uniqueness shall be established through qualification)");
-                    continue;
-                }
-                qualified = survivors[0];
+                Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': data-name-1 "
+                    + (spec.DependingQualifiers.Count > 0
+                        ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
+                          + "through qualification)"
+                        : "is not defined (ISO §13.18.38 Format 2)"));
+                continue;
             }
-            DataItem? dep = qualified ?? FindInSubtree(RootOf(item), depName);
-            if (dep is null)
-            {
-                if (!Symbols.TryResolve(depName, ScopeOf(RootOf(item)), out var cands))
-                {
-                    Edition.Error("COBOLNET0851", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                        + "is not defined (ISO §13.18.38 Format 2)");
-                    continue;
-                }
-                dep = cands[0];
-            }
+            if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _) is not { } dep) continue;
             spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer (an index item is NOT an integer data item).

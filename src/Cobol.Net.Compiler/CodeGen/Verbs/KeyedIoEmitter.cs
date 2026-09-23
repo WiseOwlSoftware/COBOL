@@ -52,7 +52,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         string opt = file.Optional ? "true" : "false";
         // A variable-length file registers its record-size bounds (ISO §13.18.43 GR9/GR10) for the GR14/§14.9.35
         // GR20 '44' boundary checks; the keyed frames already carry per-record lengths.
-        string vary = file.Varying is not null ? $", {file.VaryMin}, {file.VaryMax}" : "";
+        string vary = file.RecordSizeVaries ? $", {file.VaryMin}, {file.VaryMax}" : "";
         if (file.Organization == FileOrganization.Relative)
         {
             int digits = file.RelativeKeyItem?.Pic?.Digits ?? 0;
@@ -156,7 +156,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         using (w.Block($"if ({IoStatusClass.Successful(st)})"))
         {
-            if (area is not null) SeqIo.EmitImageInto(area, img);
+            SeqIo.EmitRecordAreaStore(file, area, img, RuntimeApi.FileCurrentRecord(name));
             SeqIo.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
             // §14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
             // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).

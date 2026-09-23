@@ -426,7 +426,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ? new BoundNot(BindCondition(u.primaryCondition(), carry)) : BindCondition(u.primaryCondition(), carry),
         Core.AbbreviatedRelationContext ar => BindAbbreviatedRelation(ar, carry),
         Core.PrimaryConditionContext p => BindPrimary(p, carry),
-        _ => new BoundConditionError("unsupported condition form"),
+        _ => Refused("unsupported condition form"),
     };
 
     /// <summary>The LEFTMOST, elided portion of a partial-expression (ISO §14.9.13.3 SR5): the selection subject
@@ -441,7 +441,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         var subject = carry.PartialSubject;
         carry.PartialSubject = null;   // SR5 elides the LEFTMOST portion only
         bool not = pc.NOT() is not null;
-        if (subject is not { } subj) return new BoundConditionError("partial-expression with no selection subject");
+        if (subject is not { } subj) return Refused("partial-expression with no selection subject");
         if (pc.className() is { } cls) return BindClassConditionOn(cls, not, () => subj.Content, carry);
         if (pc.POSITIVE() is not null || pc.NEGATIVE() is not null || pc.ZERO() is not null)
         {
@@ -509,7 +509,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             carry.Reset();
             return bound;
         }
-        return new BoundConditionError("boolean-literal condition");
+        return Refused("boolean-literal condition");
     }
 
     /// <summary>An abbreviated relation with the subject omitted (<c>comparisonOperator comparisonOperand</c>): the
@@ -517,7 +517,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
     private BoundCondition BindAbbreviatedRelation(Core.AbbreviatedRelationContext ar, AbbrevCarry carry)
     {
         if (carry.Subject is not { } subject)
-            return new BoundConditionError("abbreviated relation with no preceding relation subject");
+            return Refused("abbreviated relation with no preceding relation subject");
         string op = MapOperator(ar.comparisonOperator().GetText());
         carry.Op = op;
         return CheckedRelational(subject, op, ComparisonOperand(ar.comparisonOperand()));
@@ -655,7 +655,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             ctx.Edition.Error(DiagnosticCatalog.LocaleAlphabetNotACharacterSet, $"class condition '{word}': "
                 + "alphabet-name-1 shall not reference an alphabet associated with a locale (ISO §8.8.4.4.3 SR2) — "
                 + "an ALPHABET … IS LOCALE defines a collating sequence, not a coded character set (§12.3.7.4 GR7 Table 6)");
-            return new BoundConditionError($"class condition '{word}'");
+            return Refused($"class condition '{word}'");
         }
         // A SPECIAL-NAMES user-defined class (§12.3.7): membership over the expanded character set.
         if (ctx.Data.UserClasses.TryGetValue(word, out var userClass))
@@ -698,7 +698,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             + "neither an alphabet-name nor a class-name declared in the SPECIAL-NAMES paragraph — the class "
             + "condition's only user-defined-word alternatives (ISO §8.8.4.4.2; §8.4.2.1 — \"In order to use a "
             + "resource, a statement shall contain a reference that uniquely identifies that resource\")");
-        return new BoundConditionError($"class condition '{word}'");
+        return Refused($"class condition '{word}'");
     }
 
     /// <summary>⛔ THE ONE sign-condition body (ISO §8.8.4.7), over an operand node the CALLER names — the written
@@ -712,7 +712,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         // ISO §8.8.4.7.3 SR1 closes the operand to "any single numeric data item described with a usage other
         // than a standard floating-point usage, or any form of arithmetic expression" — named here so a
         // non-numeric operand is sent to the rule it broke, not to §8.8.1.1 alone (kb/Work PB171).
-        if (operand is null) return new BoundConditionError("sign condition with no operand");
+        if (operand is null) return Refused("sign condition with no operand");
         return new BoundSignCondition(
             host.Expr.BindOperandExpr(operand,
                 "ISO §8.8.4.7.3 SR1 admits only a single numeric data item or an arithmetic expression as a "
@@ -752,7 +752,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 ctx.Edition.Error(DiagnosticCatalog.OmittedConditionOperand,
                     $"omitted-argument condition '{fname} IS OMITTED': data-name-1 shall be a formal parameter "
                     + "defined in the source element in which this condition is specified (ISO §8.8.4.8.3 SR1)");
-                return new BoundConditionError($"omitted-argument condition '{fname}'");
+                return Refused($"omitted-argument condition '{fname}'");
             }
             return new BoundOmittedCondition(formal, not);
         }
@@ -789,7 +789,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         if (operands.Length == 1)
             return BindSoleOperandCondition(operands[0].valueOperand(), () => ComparisonOperand(operands[0]), carry);
 
-        return new BoundConditionError($"condition '{cmp.GetText()}'");
+        return Refused($"condition '{cmp.GetText()}'");
     }
 
     /// <summary>A bare single operand is either a level-88 condition-name (a complete simple condition —
@@ -815,7 +815,68 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
         }
         if (carry is { Subject: { } subject, Op: { } op })
             return CheckedRelational(subject, op, bindOperand());
-        return new BoundConditionError($"condition '{vo?.GetText() ?? "operand"}'");
+        return RefuseNonCondition(vo);
+    }
+
+    /// <summary>⛔ A BARE OPERAND THAT IS NONE OF THE CONDITIONS IS A COMPILE-TIME ERROR (kb/Work PB982). ISO
+    /// §8.8.4.2.1: "The simple conditions are the relation, boolean, class, condition-name, switch-status, sign,
+    /// and omitted-argument conditions", and a complex condition is built only from them (§8.8.4.1 — "There are
+    /// two categories of conditions associated with conditional expressions: simple conditions and complex
+    /// conditions"). By the time this runs the operand has been refused as a condition-name, a switch-status
+    /// condition-name and a simple boolean condition (<see cref="AnalyzeBareOperand"/>), and no abbreviated
+    /// relation is in progress to make it an object (§8.8.4.12) — so `IF WS-X` over a PIC X item, a bare
+    /// class-name outside an EVALUATE selection object, a switch's mnemonic-name, a literal, a figurative or an
+    /// arithmetic expression is simply not a conditional expression. It used to return a diagnostic-less
+    /// <see cref="BoundConditionError"/>: the program compiled clean and aborted the run unit with
+    /// NotImplementedCobolFeatureException when the condition was reached. The message names what the operand
+    /// IS, because "not a condition" alone does not tell a programmer which condition they meant to write.</summary>
+    private BoundConditionError RefuseNonCondition(Core.ValueOperandContext? vo)
+    {
+        string text = vo is null ? "operand" : DataBinder.WrittenText(vo);
+        var dref = vo?.arithmeticExpression() is { } expr ? SoleDataRef(expr) : null;
+        string? what = null;
+        if (BareClassWord(vo) is { } classWord)
+            what = ctx.Data.IsAlphabetName(classWord)
+                ? $"alphabet-name '{classWord}', which forms a class condition only after the identifier it tests — "
+                  + "\"identifier-1 IS [NOT] alphabet-name-1\" (ISO §8.8.4.4.2)"
+                : $"class-name '{classWord}', which forms a class condition only after the identifier it tests — "
+                  + "\"identifier-1 IS [NOT] class-name-1\" (ISO §8.8.4.4.2)";
+        else if (dref is { } d && d.dataReferenceSuffix().Length == 0 && d.cobolWord()?.GetText() is { } word
+                 && ctx.Data.SwitchMnemonics.ContainsKey(word))
+            what = $"the mnemonic-name '{word}' of a switch; a switch-status condition is written with a condition-name "
+                + "the SPECIAL-NAMES paragraph associates with the switch's ON or OFF status (ISO §8.8.4.6.1; the §8.8.4.6.2 format is condition-name-1)";
+        else if (dref is { } dd && ctx.Refs.Probe(dd) is { } probe)
+            what = $"data item '{probe.Item.CobolName ?? text}'"
+                + (probe.OperandCategory is { } cat ? $" of category {cat.ToString().ToLowerInvariant()}" : "");
+        else if (dref is { } undefined)
+        {
+            // A word that names nothing is the resolver's own diagnostic (COBOLNET1639), not a second one here.
+            ctx.Refs.Resolve(undefined);
+            return Refused($"condition '{text}'");
+        }
+        ctx.Edition.Error(DiagnosticCatalog.OperandIsNotACondition,
+            $"'{text}' is used as a condition, but it is {what ?? "a literal, a figurative constant, a function reference or an arithmetic expression"}: "
+            + "a conditional expression is a relation, boolean, class, condition-name, switch-status, sign or "
+            + "omitted-argument condition, or a combination of them (ISO §8.8.4.2.1; §8.8.4.1)");
+        return Refused($"condition '{text}'");
+    }
+
+    /// <summary>⛔ THE ONE CONSTRUCTION SITE OF <see cref="BoundConditionError"/> (kb/Work PB982). An error node in a
+    /// condition position is lowered by the emitter to a run-time <c>NotImplemented</c> throw, so a refusal that
+    /// forgot its diagnostic compiled clean and aborted the run unit — the silent-compile / loud-run channel PB982
+    /// found open at <see cref="BindSoleOperandCondition"/>. Every refusal now comes through here, and when the
+    /// compilation has recorded NO failing diagnostic yet this reports COBOLNET2319: an internal-error diagnostic
+    /// naming the refused form, so no condition error node can ever reach a successful compile. The invariant is
+    /// exactly "a program that compiles contains no condition error node", which is why the test is the sink's
+    /// <see cref="EditionContext.HasErrors"/> rather than a per-site flag. <c>ConditionErrorConstructionDriftTests</c>
+    /// holds every other <c>Refused(</c> out of the compiler.</summary>
+    internal BoundConditionError Refused(string feature)
+    {
+        if (!ctx.Edition.HasErrors)
+            ctx.Edition.Error(DiagnosticCatalog.UnreportedConditionRefusal,
+                $"the condition form {feature} was refused without a diagnostic naming the rule it breaks; "
+                + "this is a COBOL.NET internal error — please report it with the source that produced it");
+        return new BoundConditionError(feature);
     }
 
     /// <summary>⛔ THE ONE ANALYSIS OF A BARE OPERAND — which of the three shapes it is, resolved ONCE
@@ -836,7 +897,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
                 ctx.Refs.ResolveForItem(dref, cond.Parent) is { } parent
                     ? new BoundCondition88(parent, cond,
                         ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, dref.Start.Line))
-                    : new BoundConditionError($"condition-name '{cond.Name}' (unresolvable conditional variable)"));
+                    : Refused($"condition-name '{cond.Name}' (unresolvable conditional variable)"));
         // A switch-status condition-name — resolved AFTER level-88 (NC211A: a name defined as both → the 88
         // wins), BEFORE the abbreviated-carry fallback.
         if (vo?.arithmeticExpression() is { } swx && SoleDataRef(swx) is { } swr && host.Alter.SwitchCondOf(swr) is { } swCond)

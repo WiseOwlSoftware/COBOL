@@ -441,7 +441,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     return new BoundNot(new BoundLogical("^",
                         [subjCond, host.Udf.UdfAttachPerEvaluation(objCond2, objMark2)]));
             }
-            return new BoundConditionError($"EVALUATE condition-subject paired with non-boolean WHEN '{item.GetText()}'");
+            return host.Cond.Refused($"EVALUATE condition-subject paired with non-boolean WHEN '{item.GetText()}'");
         }
 
         // A `condition` the classifier re-read as SR5's partial-expression (a bare class-name leftmost — PB843) is
@@ -494,7 +494,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         if (pair.Object is EvaluateObjectOperand.PartialExpression)
         {
             if (slot.Node.valueOperand() is not { } subjOp || slot.Value is not { } subjValue)
-                return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
+                return host.Cond.Refused("EVALUATE TRUE/FALSE paired with a value WHEN object");
             var content = slot.InPlaceValue is BoundFieldOperand inPlace ? inPlace : subjValue;
             var spliced = new ConditionBinder.PartialSubjectOperand(subjOp, subjValue, content);
             int objMark = host.Udf.PendingCount;
@@ -504,7 +504,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
                     ? host.Cond.BindPartialExpression(leadingClass, spliced)
                 : pair.ObjectBare.ClassWord is { } classWord
                     ? host.Cond.BindPartialClassName(classWord, spliced)
-                    : new BoundConditionError($"EVALUATE partial-expression '{item.GetText()}'");
+                    : host.Cond.Refused($"EVALUATE partial-expression '{item.GetText()}'");
             return host.Udf.UdfAttachPerEvaluation(partialCond, objMark);
         }
 
@@ -516,7 +516,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         // answer no single subject value can produce. No residue stage here any more — a subject activation
         // hoists to statement scope with the value, which is what the rule asks for.
         if (slot.Value is not { } left)
-            return new BoundConditionError("EVALUATE TRUE/FALSE paired with a value WHEN object");
+            return host.Cond.Refused("EVALUATE TRUE/FALSE paired with a value WHEN object");
 
         if (item.valueRange() is { } range)
         {
@@ -534,7 +534,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             // Format 3 diagnostic TWICE more about the same two operands after SR4 has said the range may not
             // exist at all.
             if (!ScreenRangeOperands(range, lo, hi))
-                return new BoundConditionError(
+                return host.Cond.Refused(
                     $"EVALUATE range-expression '{DataBinder.WrittenText(range)}'");
             bool check = ctx.EcState.Turn.Enabled("EC-RANGE-INVALID", null, item.Start.Line);
             // ⛔ THE RANGE'S CLASS, ASKED ONCE, OF BOTH ENDS (§14.9.13.3 SR4 gives the pair one class to have) —
@@ -578,7 +578,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             return host.Udf.UdfAttachPerEvaluation(
                 host.Cond.CheckedRelational(left, "==", BindValueOperand(v)), objMark);
         }
-        return new BoundConditionError($"EVALUATE WHEN object '{item.GetText()}'");
+        return host.Cond.Refused($"EVALUATE WHEN object '{item.GetText()}'");
     }
 
     /// <summary>The range's <c>IN alphabet-name-1</c> phrase (ISO §14.9.13.2's range-expression), screened by

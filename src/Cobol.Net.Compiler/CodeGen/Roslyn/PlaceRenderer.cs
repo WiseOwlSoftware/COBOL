@@ -392,6 +392,30 @@ internal static class PlaceRenderer
         _ => $"{Read(group)}.FromVarImage({value});",
     };
 
+    /// <summary>⛔ A VARIABLE-LENGTH GROUP'S CONTIGUOUS IMAGE at its current extent — ISO §8.5.1.11.2: "a
+    /// variable-length data item behaves in all respects as though it were in fact contiguous with its neighbors
+    /// whenever a procedural operation is applied to a group containing it". The generated <c>CurrentImage()</c>
+    /// (the A.1 item 57 composer DISPLAY already uses), behind the same capability guard and unwrap as
+    /// <see cref="VarGroupImage"/>. It is what a WRITE / REWRITE / RELEASE of a variable-length RECORD sends
+    /// (determination D-FRA; kb/Work PB981).</summary>
+    public static string VarGroupCurrentImage(Place group, string context) => group switch
+    {
+        OdoGroupPlace o => VarGroupCurrentImage(o.Inner, context),
+        _ when !group.Item.CurrentExtentImageCapable =>
+            EmitText.LoudValue("string", TierCIsland.Reason(group.Item, context)),
+        _ => $"{Read(group)}.CurrentImage()",
+    };
+
+    /// <summary>The inverse of <see cref="VarGroupCurrentImage"/> — a record read into a variable-length
+    /// record, decomposed by the generated <c>FromContiguousImage</c> (the ONE split rule,
+    /// <c>CobolVarGroup.FromContiguous</c>; determination D-FRA, kb/Work PB981).</summary>
+    public static string WriteVarGroupContiguous(Place group, string record, string context) => group switch
+    {
+        OdoGroupPlace o => WriteVarGroupContiguous(o.Inner, record, context),
+        _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
+        _ => $"{Read(group)}.FromContiguousImage({record});",
+    };
+
     /// <summary>⛔ THE ONE READER OF A GROUP OPERAND'S IMAGE IN A <b>SENDING</b> CONTEXT — <see cref="GroupImage"/>,
     /// except that an occurs-depending group sends only its ISO §13.18.38.4 GR8 CURRENT-count part. Both GR8 arms
     /// agree on the sending direction: GR8a (data-name-1 outside the group) and GR8b (data-name-1 inside, "and the

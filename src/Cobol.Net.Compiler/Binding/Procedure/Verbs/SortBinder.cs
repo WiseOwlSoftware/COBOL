@@ -420,10 +420,36 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// REDEFINES, ISO §9.1.2), or null when absent / not image-capable (the sort store carries record IMAGES —
     /// zoned, radix-2, BCD and the kb/Work PB164 IEEE forms per the leaves' pinned byte representations,
     /// COBOLNET_DESIGN §14.4/§8.2; only a variable-length or pointer/object-leafed record keeps the record out
-    /// of the image store — every NUMERIC leaf kind joined the image, kb/Work PB164 + R40 — deferred, loud).</summary>
+    /// of the image store — every NUMERIC leaf kind joined the image, kb/Work PB164 + R40 — deferred, loud).
+    /// <para>A VARIABLE-LENGTH record whose current extent composes (<see cref="DataItem.CurrentExtentImageCapable"/>)
+    /// is admitted since kb/Work PB981: the store carries its CONTIGUOUS image (ISO §8.5.1.11.2 — RELEASE sends
+    /// <c>CurrentImage()</c>) and RETURN decomposes it back (determination D-FRA, docs/CONFORMANCE.md §3).</para></summary>
     private static DataItem? SortRecordOf(FileModel file) =>
-        file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsImageCapable)
+        file.Records.Count > 0 && (file.Records[0].IsElementary || file.Records[0].IsImageCapable
+            || file.Records[0].CurrentExtentImageCapable)
             ? file.Records[0] : null;
+
+    /// <summary>The FIXED-run offset of the first variable-length member of <paramref name="record"/> (a
+    /// dynamic-length item or a dynamic-capacity table), or null for a fixed-length record. A key at or past it
+    /// does not sit at a fixed position of the contiguous image the store compares (§8.5.1.11.2), so its window
+    /// cannot be sliced from that image (kb/Work PB981).</summary>
+    private static int? FirstVariableOffset(DataItem record)
+    {
+        int? first = null;
+        foreach (var d in Descendants(record))
+            if ((d.IsDynamicLength || d.IsDynamicTable) && Model.RecordLayout.OffsetInRecord(record, d) is { } o)
+                first = first is { } f ? Math.Min(f, o) : o;
+        return first;
+
+        static IEnumerable<DataItem> Descendants(DataItem n)
+        {
+            foreach (var c in n.Children.Where(c => c.RedefinesTargetName is null))
+            {
+                yield return c;
+                if (c.IsGroup && !c.IsDynamicTable) foreach (var g in Descendants(c)) yield return g;
+            }
+        }
+    }
 
     /// <summary>Bind one ASC/DESC key phrase's data-names into <paramref name="keys"/> (ISO §14.9.40 GR1 — the
     /// direction word is transitive across the phrase's data-names; each <c>sortKeyPhrase</c>/<c>mergeKeyPhrase</c>
@@ -462,6 +488,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // compared EQUAL, which is a stable sort returning the release order.
             int len = item.IsGroup ? Model.RecordLayout.AreaWidth(item) : item.ByteWidth;
             if (len <= 0) return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' has no character image";
+            if (FirstVariableOffset(root) is { } dynAt && off >= dynAt)
+                return $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' follows a variable-length member of record "
+                    + $"'{root.CobolName}', so its position in the record's contiguous image (ISO §8.5.1.11.2) varies "
+                    + "from record to record and the sort store cannot slice it (kb/Work PB981)";
             // SR6g: with variable-length records every key must lie within the first min-record-size bytes.
             if (file.Varying is { Min: { } min } && off + len > min)
                 ctx.Edition.Error("COBOLNET0874", $"SORT/MERGE key '{DataBinder.WrittenText(dref)}' occupies character positions "
@@ -606,7 +636,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// per GR9/GR10 (the smallest/largest record described) via the FileModel accessors.</summary>
     private SortVaryingInfo? SortVaryingOf(FileModel file)
     {
-        if (file.Varying is null) return null;
+        if (!file.RecordSizeVaries) return null;   // an explicit variable-length RECORD clause, or D-FRA's implied Format 2 (kb/Work PB981)
         Place? dep = file.VaryingDependingItem is { } d ? ctx.Refs.ResolveItem(d) : null;
         return new SortVaryingInfo(dep, file.VaryMin, file.VaryMax);
     }

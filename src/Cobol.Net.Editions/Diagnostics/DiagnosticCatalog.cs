@@ -172,17 +172,20 @@ public static class DiagnosticCatalog
 
     // ── COBOLNET0899 — a file's IMPLICITLY shared record area of a shape the storage model cannot share (kb/Work PB836)
     /// <summary>An FD/SD's level-1 records (ISO §13.18.33.4 GR3) or a record-area SAME clause's files' records
-    /// (§12.4.6.4.4 GR2) share ONE area, and one of them is a dynamic-length item, a variable-length group, a
-    /// dynamic-capacity table or a pointer — a shape the typed-native storage model gives its own native carrier
-    /// or managed slot, so the shared area would silently be two. No syntax rule forbids the source; this is
-    /// recognized-not-implemented debt, NOT the §13.18.44.3 REDEFINES-clause rejection the binder used to borrow
-    /// for it (the source contains no REDEFINES clause).</summary>
+    /// (§12.4.6.4.4 GR2) share ONE area, and the typed-native storage model cannot yet carry one of them in that
+    /// shared area. No syntax rule forbids the source; this is recognized-not-implemented debt, NOT the
+    /// §13.18.44.3 REDEFINES-clause rejection the binder used to borrow for it (the source contains no REDEFINES
+    /// clause). ⚠ Since kb/Work PB981 a dynamic-length, variable-length-group or pointer-class record is NOT such a
+    /// shape — it is an OUT-OF-LINE record (determination D-FRA, docs/CONFORMANCE.md §3) and compiles. What remains
+    /// is a character-window record with a byte-window residue (<c>DataBinder.ByteWindowResidueOf</c>) and the
+    /// run-unit EXTERNAL area of a file that has an out-of-line record (its run-unit cell carries only the
+    /// character half).</summary>
     public static readonly DiagnosticDescriptor ImplicitRecordAreaShape = new(
         NotImplemented, "implicit-record-area-shape", EditionSeverity.Error,
         "The records of one file description (ISO §13.18.33.4 GR3), or of the files of one record-area SAME "
-        + "clause (§12.4.6.4.4 GR2), share one storage area, and one of them is a dynamic-length item, a "
-        + "variable-length group, a dynamic-capacity table or a pointer: a shared record area of that shape is "
-        + "recognized but not yet implemented.", "ISO §13.18.33.4 GR3 / §12.4.6.4.4 GR2",
+        + "clause (§12.4.6.4.4 GR2), share one storage area, and one of them is of a shape the storage model "
+        + "cannot yet carry in that shared area: a shared record area of that shape is recognized but not yet "
+        + "implemented.", "ISO §13.18.33.4 GR3 / §12.4.6.4.4 GR2",
         RecognizedNotImplemented);
 
     // ── COBOLNET0899 — the staged-loud constant-entry legs (recognized, not yet implemented) ─────────────
@@ -4724,6 +4727,29 @@ public static class DiagnosticCatalog
         + "class-name-1 [FOR {ALPHANUMERIC | NATIONAL}] IS …) or, for SYMBOLIC CHARACTERS, before the first "
         + "symbolic-character-1. No edition and no dialect admits the trailing spelling; move the phrase.",
         "ISO §12.3.7.2");
+
+    /// <summary>A bare operand that is none of the conditions is used as a condition (kb/Work PB982):
+    /// <c>IF WS-X</c> over a PIC X item used to compile with no diagnostic and abort the run unit when reached.</summary>
+    public static readonly DiagnosticDescriptor OperandIsNotACondition = new(
+        "COBOLNET2318", "operand-is-not-a-condition", EditionSeverity.Error,
+        "An operand that is not a condition is written where a conditional expression is required (IF, EVALUATE, "
+        + "PERFORM UNTIL, SEARCH WHEN, or an operand of NOT / AND / OR / XOR). ISO §8.8.4.2.1: \"The simple "
+        + "conditions are the relation, boolean, class, condition-name, switch-status, sign, and omitted-argument "
+        + "conditions\"; a complex condition combines them (§8.8.4.1). A data item that is not a one-position "
+        + "boolean item, a literal, an arithmetic expression, a bare class-name or alphabet-name (which needs the "
+        + "identifier it tests, §8.8.4.4.2) and a switch's mnemonic-name (a switch-status condition is written with "
+        + "its condition-name, §8.8.4.6.2) are none of them. Within an abbreviated combined relation condition the "
+        + "same operand is the object of the carried relation (§8.8.4.12) and is not refused.",
+        "ISO §8.8.4.2.1; §8.8.4.1");
+
+    /// <summary>The internal-error net under the ONE <c>BoundConditionError</c> construction site (kb/Work PB982):
+    /// a condition refused with no failing diagnostic recorded would compile clean and throw at run time.</summary>
+    public static readonly DiagnosticDescriptor UnreportedConditionRefusal = new(
+        "COBOLNET2319", "unreported-condition-refusal", EditionSeverity.Error,
+        "COBOL.NET internal error: the binder refused a condition form without reporting the rule it breaks. The "
+        + "compile is failed rather than let the unbound condition reach the generated program, where it would "
+        + "abort the run unit when evaluated. Please report the source that produced it.",
+        "COBOL.NET internal (no ISO rule)");
 
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>

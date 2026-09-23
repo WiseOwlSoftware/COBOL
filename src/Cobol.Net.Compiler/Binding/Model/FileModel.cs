@@ -344,12 +344,36 @@ public sealed class FileModel
     /// <summary>The variable-length minimum record size (ISO §13.18.43 GR9 — an unstated minimum defaults to the
     /// smallest record described for the file, where an occurs-depending table contributes its MINIMUM
     /// occurrences per GR8a); −1 for fixed-length records.</summary>
-    public int VaryMin => Varying is { } v ? v.Min ?? (Records.Count == 0 ? 1 : Records.Min(MinRecordSize)) : -1;
+    public int VaryMin => Varying is { } v ? v.Min ?? (Records.Count == 0 ? 1 : Records.Min(MinRecordSize))
+        : ImpliesVariableFormat ? Records.Min(MinRecordSize) : -1;
 
     /// <summary>The variable-length maximum record size (ISO §13.18.43 GR10 — an unstated maximum defaults to the
     /// largest record described for the file; an ODO table allocates its maximum, GR8b); −1 for fixed-length
     /// records.</summary>
-    public int VaryMax => Varying is { } v ? v.Max ?? Math.Max(1, RecordWidth) : -1;
+    public int VaryMax => Varying is { } v ? v.Max ?? Math.Max(1, RecordWidth)
+        : ImpliesVariableFormat ? RecordMax : -1;
+
+    /// <summary>True when the file's record size varies — an explicit variable-length RECORD clause, or the
+    /// implied Format 2 clause of <see cref="ImpliesVariableFormat"/>. THE ONE question every registration asks
+    /// before passing <see cref="VaryMin"/>/<see cref="VaryMax"/> to its connector.</summary>
+    public bool RecordSizeVaries => Varying is not null || ImpliesVariableFormat;
+
+    /// <summary>⛔ DETERMINATION D-FRA (docs/CONFORMANCE.md §3, kb/Work PB981) — ISO §13.18.43.4 GR5: "If the
+    /// RECORD clause is not specified, an implicit format 1 or format 2 RECORD clause is assumed to be
+    /// specified. This implicit RECORD clause is defined by the implementor". COBOL.NET implies FORMAT 2 exactly
+    /// when a record description is VARIABLE-LENGTH (a dynamic-length elementary record, or a variable-length
+    /// group — §8.5.1.12.1): such a record has no one size, and §13.18.43.4 GR13 c) already sizes a record containing a
+    /// variable-occurrence item by its extent at the time of the output statement, which is what WRITE sends.
+    /// Every other file keeps the implied Format 1 it has always had, so no fixed-record file changes
+    /// shape.</summary>
+    public bool ImpliesVariableFormat => Varying is null && RecordContains is null && Records.Any(IsVariableLengthRecord);
+
+    /// <summary>The maximum size specified by the record description entries — ISO §14.9.30.4 GR14/GR15's
+    /// truncation bound ("the record is truncated on the right to the maximum size"), computed by
+    /// <see cref="MaxRecordSize"/>. It equals <see cref="RecordWidth"/> for every file whose records are all
+    /// character-window records; it exceeds it only for a variable-length record, whose dynamic members reach
+    /// past the character area (D-FRA).</summary>
+    public int RecordMax => Records.Count == 0 ? 0 : Math.Max(RecordWidth, Records.Max(MaxRecordSize));
 
     /// <summary>⛔ THE ONE READER of WHICH §13.18.43.2 GENERAL FORMAT this file description entry's RECORD clause
     /// was written in, and of the integers it states — the projection every §13.18.43.3 syntax rule is stated
@@ -378,7 +402,64 @@ public sealed class FileModel
     /// is its MAXIMUM occurrence count, which is GR8 b)'s own choice. A parallel recursion here would be the same
     /// rule written down twice, and the copy is the one that would not learn about the next layout change (the
     /// §8.5.1.6.3 bit walk is inside <c>ImageWidth</c> and would have been missed).</para></summary>
-    internal static int MaxRecordSize(DataItem item) => item.ImageWidth;
+    internal static int MaxRecordSize(DataItem item) =>
+        IsVariableLengthRecord(item) ? (int)Math.Min(int.MaxValue, MaxDynamicExtent(item)) : item.ImageWidth;
+
+    /// <summary>GR8 b)'s maximum for a record with variable-length members (kb/Work PB981): a dynamic-length
+    /// item contributes its MAXIMUM size (§8.5.1.10.1 — <see cref="DataItem.DynMaxSize"/> characters, two bytes
+    /// each when national, D-N1) and a dynamic-capacity table its maximum capacity, the same "maximum number of
+    /// table elements" GR8 b) names for every table. Every other member is <see cref="DataItem.ImageWidth"/>'s
+    /// own sum, so this is that sum with the variable-length members filled in, never a second layout.</summary>
+    private static long MaxDynamicExtent(DataItem item) =>
+        item.IsDynamicLength ? (long)item.DynMaxSize * (item.Pic?.Category is PicCategory.National ? 2 : 1)
+        : item.IsDynamicTable ? (long)(item.OccursSpec?.Max ?? 0) * PerOccurrenceMax(item)
+        : item.IsElementary || !CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(item) ? (long)item.ImageWidth * (item.Occurs ?? 1)
+        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(MaxDynamicExtent) * (item.Occurs ?? 1);
+
+    private static long PerOccurrenceMax(DataItem table) =>
+        table.IsElementary || !CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(table) ? table.ImageWidth
+        : table.Children.Where(c => c.RedefinesTargetName is null).Sum(MaxDynamicExtent);
+
+    /// <summary>⛔ THE ONE "does this record have a fixed character window?" predicate — D-FRA
+    /// (docs/CONFORMANCE.md §3, kb/Work PB981). A record description that is a dynamic-length elementary item,
+    /// a variable-length group (§8.5.1.12.1), or an elementary item of a pointer class is an OUT-OF-LINE record:
+    /// it does not overlay the file's character record area, so bind time does NOT make it an implicit
+    /// redefinition of the first record (§13.18.33.4 GR3 / §12.4.6.4.4 GR2).
+    /// <para>The standard permits exactly this placement: "Dynamic-length elementary items may be physically
+    /// located in memory within the record they are subordinate to, or they may be located elsewhere in the
+    /// computer's memory" (§8.5.1.10.3), a dynamic-length item's internal structure is implementor-defined
+    /// (§8.5.1.10.2), and a pointer-class item holds a managed reference with no character image
+    /// (CONFORMANCE.md A.1 items 210/216). The ONE area is realized at the transfer boundary, where it is
+    /// observable: a READ / RETURN makes the record available in EVERY record of the area
+    /// (<see cref="OutOfLineRecords"/>), and a WRITE / REWRITE / RELEASE of an out-of-line record sends its
+    /// contiguous image (§8.5.1.11.2).</para></summary>
+    public static bool IsOutOfLineRecord(DataItem record) =>
+        IsVariableLengthRecord(record) || (record.IsElementary && SlotWindow.CarriedBySlot(record));
+
+    /// <summary>A record description whose size varies at run time — a dynamic-length elementary item or a
+    /// variable-length group (§8.5.1.12.1). The subset of <see cref="IsOutOfLineRecord"/> that makes the implied
+    /// RECORD clause Format 2 (<see cref="ImpliesVariableFormat"/>).</summary>
+    public static bool IsVariableLengthRecord(DataItem record) =>
+        record.IsDynamicLength || (record.IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(record));
+
+    /// <summary>The records of this file's area that ride OUT OF LINE (<see cref="IsOutOfLineRecord"/>) and are
+    /// not <see cref="AreaRecord"/> itself, together with those of every file that shares the area through a
+    /// record-area SAME clause (§12.4.6.4.4 GR2 — "two or more files ... are to share a memory area for
+    /// processing the current logical record"). A READ / RETURN on this file makes the current record available
+    /// in each of them — the out-of-line half of the one-area rule; the character half is the shared
+    /// backing.</summary>
+    public IEnumerable<DataItem> OutOfLineRecords =>
+        new[] { this }.Concat(SameRecordAreaPeers).SelectMany(f => f.Records)
+            .Where(r => IsOutOfLineRecord(r) && !ReferenceEquals(r, AreaRecord)).Distinct();
+
+    /// <summary>The OTHER files named with this one in a record-area SAME clause (§12.4.6.4.4 GR2), set by
+    /// <c>DataBinder</c> when it links their records into one area.</summary>
+    public List<FileModel> SameRecordAreaPeers { get; } = [];
+
+    /// <summary>The first record of this file that has a character window — the anchor every other
+    /// character-window record implicitly redefines (§13.18.33.4 GR3), or null when every record is out of
+    /// line.</summary>
+    public DataItem? CharacterAnchor => Records.FirstOrDefault(r => !IsOutOfLineRecord(r));
 
     /// <summary>The minimum byte size of one record description (ISO §13.18.43 GR8a): the sum over non-redefining
     /// content with every occurs-depending table at its MINIMUM occurrence count (a bare <c>RECORD IS VARYING</c>
@@ -402,7 +483,11 @@ public sealed class FileModel
     /// whole area, so every area-wide store/read (sequential and keyed READ, sort RETURN) must go through THIS
     /// record's view — a shorter <c>Records[0]</c> window would truncate the splice (ST111A's 50/75/100 FD,
     /// RL106A's 56/102 pair). Null when the FD has no record description.</summary>
-    public DataItem? AreaRecord => Records.Count == 0 ? null : Records.MaxBy(r => r.ImageWidth);
+    /// <para>⛔ AN OUT-OF-LINE RECORD (<see cref="IsOutOfLineRecord"/>) IS NEVER CHOSEN WHILE A CHARACTER-WINDOW
+    /// RECORD EXISTS (kb/Work PB981): it has no window over the character area, and its image width is not the
+    /// area's. When EVERY record is out of line the first one is the area — the file's only storage.</para>
+    public DataItem? AreaRecord => Records.Count == 0 ? null
+        : Records.Where(r => !IsOutOfLineRecord(r)).MaxBy(r => r.ImageWidth) ?? Records[0];
 
     /// <summary>True for either sequential shape (the only organizations this slice can OPEN/READ/WRITE).</summary>
     public bool IsSequential => Organization is FileOrganization.Sequential or FileOrganization.LineSequential;

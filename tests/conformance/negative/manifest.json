@@ -1358,7 +1358,12 @@
   "pb966-add-corr-level66-alias",
   "pb966-initialize-level66-alias",
   "pb980-unstring-national-mix",
-  "pb980-inspect-national-mix"
+  "pb980-inspect-national-mix",
+  "pb982-data-item-as-condition",
+  "pb982-class-name-as-condition",
+  "pb978-odo-depending-ambiguous",
+  "pb978-report-control-ambiguous",
+  "pb981-fd-dynamic-length-record-at-2002"
  ],
  "pending": []
 }

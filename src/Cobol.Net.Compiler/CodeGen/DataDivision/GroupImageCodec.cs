@@ -389,6 +389,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             w.Line($"return new CobolVarGroup({(fixedParts.Count > 0 ? string.Join(" + ", fixedParts) : "\"\"")}, "
                 + $"new string[] {{ {string.Join(", ", dynParts)} }});");
         }
+        // THE FILE-RECORD HALF (determination D-FRA; kb/Work PB981): a record read back as ONE contiguous image
+        // (§8.5.1.11.2 — what CurrentImage() wrote) is decomposed into this same carrier by the ONE split rule,
+        // CobolVarGroup.FromContiguous, over the component layout below — the flattened VarParts walk, so a
+        // nested variable-length group's components are located exactly where FromVarImage's Slice expects them.
+        var layout = new List<(int FixedAt, int Unit, long MaxUnits)>();
+        ContiguousLayout(group, 0, layout);
+        w.Line("public void FromContiguousImage(string __r) => FromVarImage("
+            + RuntimeApi.VarGroupFromContiguous("__r", totalFixed, layout.Select(l => l.FixedAt),
+                layout.Select(l => l.Unit), layout.Select(l => l.MaxUnits)) + ");");
         using (w.Block("public void FromVarImage(CobolVarGroup __v)"))
         {
             w.Line($"string __s = {RuntimeApi.StrStore("__v.Fixed", $"{totalFixed}")};");
@@ -435,6 +444,25 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 }
             }
         }
+    }
+
+    /// <summary>The flattened component layout <c>CobolVarGroup.FromContiguous</c> decomposes a record over:
+    /// each variable-length component's offset in the FIXED run, its unit width in characters (one for a
+    /// dynamic-length item — <see cref="CurrentMemberImage"/> contributes its content character for character —
+    /// the element width for a dynamic-capacity table), and its maximum size in those units (§8.5.1.10.1's
+    /// maximum size; the table's maximum capacity). Nested scalar variable-length groups flatten in place, the
+    /// same flattening <see cref="VarParts"/> gives the carrier.</summary>
+    private void ContiguousLayout(DataItem group, int baseAt, List<(int FixedAt, int Unit, long MaxUnits)> layout)
+    {
+        int off = baseAt;
+        foreach (var p in VarParts(group))
+            switch (p.Kind)
+            {
+                case VarPartKind.Fixed: off += p.Field.Width; break;
+                case VarPartKind.DynLeaf: layout.Add((off, 1, p.Item!.DynMaxSize)); break;
+                case VarPartKind.DynTable: layout.Add((off, p.Field.Width, p.Item!.OccursSpec?.Max ?? 0)); break;
+                case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off += p.FixedWidth; break;
+            }
     }
 
     /// <summary>The inverse of <see cref="CurrentMemberImage"/>'s dynamic-table element lane, arm for arm: a

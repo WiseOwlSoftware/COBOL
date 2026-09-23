@@ -1023,8 +1023,9 @@ internal static class RuntimeApi
     /// <summary>Register a SEQUENTIAL/LINE-SEQUENTIAL connector — <c>CobolFile.Register</c>.
     /// <paramref name="varyArgs"/> is the optional trailing ", min, max" bounds fragment;
     /// <paramref name="edition"/> is the compiling program's <c>--std</c> (see <see cref="EditionArg"/>).</summary>
-    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, int edition, string varyArgs = "", string? selectName = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)})";
+    public static string FileRegister(string name, string assign, string width, string lineSeq, string optional, int edition, string varyArgs = "", string? selectName = null, int recordMax = 0) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.Register)}({name}, {assign}, {width}, {lineSeq}, {optional}{varyArgs}{SelectNameArg(selectName)}{EditionArg(edition)}"
+        + (recordMax > 0 ? $", recordMax: {recordMax})" : ")");
 
     /// <summary>⛔ THE PER-STATEMENT OPERANDS OF THE RUNTIME ELEMENT EXECUTING A FILE STATEMENT — the
     /// <c>assign, assignDynamic, page</c> argument triple every OPEN entry takes (kb/Work PB673). ISO
@@ -1137,6 +1138,11 @@ internal static class RuntimeApi
     /// <summary>The just-read record's frame length — <c>CobolFile.LastReadLength</c>.</summary>
     public static string FileLastReadLength(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.LastReadLength)}({name})";
+
+    /// <summary>The record the last successful READ made available, at its own length —
+    /// <c>CobolFile.CurrentRecord</c> (determination D-FRA; kb/Work PB981).</summary>
+    public static string FileCurrentRecord(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.CurrentRecord)}({name})";
 
     // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
 
@@ -1275,6 +1281,14 @@ internal static class RuntimeApi
 
     /// <summary>The C# type of the variable-length-group boundary carrier.</summary>
     public static string VarGroupType => nameof(CobolVarGroup);
+
+    /// <summary>A file record's contiguous image decomposed into a variable-length group's carrier —
+    /// <c>CobolVarGroup.FromContiguous</c> (determination D-FRA; kb/Work PB981).</summary>
+    public static string VarGroupFromContiguous(string record, int fixedTotal, IEnumerable<int> fixedAt,
+        IEnumerable<int> unit, IEnumerable<long> maxUnits) =>
+        $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.FromContiguous)}({record}, {fixedTotal}, "
+        + $"new int[] {{ {string.Join(", ", fixedAt)} }}, new int[] {{ {string.Join(", ", unit)} }}, "
+        + $"new long[] {{ {string.Join(", ", maxUnits.Select(m => $"{m}L"))} }})";
 
     /// <summary>The empty carrier value (an unbound formal's seed).</summary>
     public static string VarGroupEmpty => $"{nameof(CobolVarGroup)}.{nameof(CobolVarGroup.Empty)}";

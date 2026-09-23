@@ -79,21 +79,67 @@ public sealed class ImplicitRecordRedefinitionTests
         Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("§13.18.44", StringComparison.Ordinal));
     }
 
-    /// <summary>A level-1 <c>USAGE POINTER</c> record is legal (§13.18.60.3 SR14 admits a pointer at level 1) and a
-    /// second record shares its area by §13.18.33.4 GR3 — no REDEFINES clause, so no SR12. The shared backing has no
-    /// managed slot to carry the pointer, which is the storage model's limit: staged loud as COBOLNET0899, citing the
-    /// rule the program used.</summary>
-    [Fact]
-    public void PointerRecord_InAMultiRecordFd_IsStagedLoud_NotSr12()
+    /// <summary>⛔ AN OUT-OF-LINE RECORD IS NEVER LINKED (kb/Work PB981 — determination D-FRA, docs/CONFORMANCE.md
+    /// §3). A level-1 <c>USAGE POINTER</c> record is legal (§13.18.60.3 SR14 admits a pointer "only for an
+    /// elementary data item at level 1"), and so are a dynamic-length record and a variable-length group; §13.18.33.4
+    /// GR3 makes each an implicit redefinition of the FD's area. None of them has a window over the character area,
+    /// so the binder does NOT link it into the area's class (which staged every one of them loud as COBOLNET0899,
+    /// and before PB836 drew the REDEFINES-clause rules SR12/SR17). It shares the area at the transfer boundary
+    /// instead: <see cref="FileModel.OutOfLineRecords"/> is what a READ reaches, and the character-window record is
+    /// the <see cref="FileModel.AreaRecord"/>. One row per out-of-line shape, so a new shape added to
+    /// <see cref="FileModel.IsOutOfLineRecord"/> without its binder half fails here. (A dynamic-capacity table is
+    /// never one: it "may be defined in any place, other than the file section", §8.5.1.9.1 3) — COBOLNET1526.)</summary>
+    [Theory]
+    [InlineData("01 R3 USAGE POINTER.")]
+    [InlineData("01 R3 USAGE PROGRAM-POINTER.")]
+    [InlineData("01 R3 PIC X DYNAMIC LENGTH.")]
+    [InlineData("01 R3.\n          05 A PIC X(2).\n          05 D PIC X DYNAMIC LENGTH LIMIT 9.")]
+    public void OutOfLineRecord_InAMultiRecordFd_IsNotLinked_AndSharesTheAreaAtTheTransfer(string record)
     {
-        var (d, ed) = Compile(Fd("01 R2 PIC X(10).\n       01 R3 USAGE POINTER.", ""));
-        Assert.Equal(RedefinitionKind.ImplicitFileRecord, d.ByName["R3"][0].RedefinesKind);
-        Assert.Equal(RedefinesTier.Rejected, d.ByName["R3"][0].Class!.Tier);
-        Assert.DoesNotContain(ed.Diagnostics, x => x.Contains("COBOLNET1697", StringComparison.Ordinal));
-        var staged = Assert.Single(ed.Diagnostics, x => x.Contains("COBOLNET0899", StringComparison.Ordinal));
-        Assert.Contains("§13.18.33.4 GR3", staged);
-        Assert.Contains("in the shared record area of 'R2'", staged);
-        Assert.DoesNotContain("REDEFINES", staged);
+        var (d, ed) = Compile(Fd("01 R2 PIC X(10).\n       " + record, ""));
+        Assert.Empty(ed.Diagnostics);
+        var r3 = d.ByName["R3"][0];
+        Assert.True(FileModel.IsOutOfLineRecord(r3));
+        Assert.Equal(RedefinitionKind.None, r3.RedefinesKind);
+        Assert.Null(r3.RedefinesTarget);
+        var file = Assert.Single(d.Files, f => f.Records.Contains(r3));
+        Assert.Same(d.ByName["R2"][0], file.AreaRecord);
+        Assert.Same(r3, Assert.Single(file.OutOfLineRecords));
+    }
+
+    /// <summary>The record-area SAME clause twin (§12.4.6.4.4 GR2): an out-of-line record of one file is reached by
+    /// a READ of the OTHER file — each sharing file learns its peers, and only the character-window records are
+    /// linked into one class.</summary>
+    [Fact]
+    public void OutOfLineRecord_InASameRecordArea_IsReachedThroughThePeerFile()
+    {
+        string src = """
+               IDENTIFICATION DIVISION.
+               PROGRAM-ID. IRRSAME.
+               ENVIRONMENT DIVISION.
+               INPUT-OUTPUT SECTION.
+               FILE-CONTROL.
+                   SELECT F ASSIGN TO "irr_f.dat" ORGANIZATION IS SEQUENTIAL.
+                   SELECT G ASSIGN TO "irr_g.dat" ORGANIZATION IS SEQUENTIAL.
+               I-O-CONTROL.
+                   SAME RECORD AREA FOR F G.
+               DATA DIVISION.
+               FILE SECTION.
+               FD F.
+               01 R1 PIC X(6).
+               FD G.
+               01 GD PIC X DYNAMIC LENGTH.
+               01 G2 PIC X(3).
+               PROCEDURE DIVISION.
+                   STOP RUN.
+        """;
+        var (d, ed) = Compile(src);
+        Assert.Empty(ed.Diagnostics);
+        var f = Assert.Single(d.Files, x => x.Records.Contains(d.ByName["R1"][0]));
+        Assert.Same(d.ByName["GD"][0], Assert.Single(f.OutOfLineRecords));
+        Assert.Equal(RedefinitionKind.SameRecordArea, d.ByName["G2"][0].RedefinesKind);
+        Assert.Same(d.ByName["R1"][0], d.ByName["G2"][0].RedefinesTarget);
+        Assert.Equal(RedefinitionKind.None, d.ByName["GD"][0].RedefinesKind);
     }
 
     /// <summary>The record kinds, and the clause kind beside them: the one fact every clause screen now reads.</summary>

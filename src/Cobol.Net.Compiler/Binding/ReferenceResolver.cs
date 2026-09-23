@@ -1374,8 +1374,7 @@ public sealed class ReferenceResolver(DataBinder data)
     /// exactly one resolves.</para>
     private DataItem? ResolveQualified(string name, List<string> qualifiers)
     {
-        var survivors = data.QualifiedCandidates(name, qualifiers, data.ActiveScope);
-        return survivors.Count == 1 ? survivors[0] : null;
+        return data.QualifiedCandidates(name, qualifiers, data.ActiveScope).Single;
     }
 
     // ── Access-path construction (subscripts attach to OCCURS levels, outer→inner) ───────────────────────

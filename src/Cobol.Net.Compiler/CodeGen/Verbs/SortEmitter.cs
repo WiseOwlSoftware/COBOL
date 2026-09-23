@@ -137,8 +137,11 @@ internal sealed class SortEmitter(EmitContext ctx,
             // §18.16). Fixed SD: the short record space-fills right to the fixed length (GR7c/MERGE GR2c — the
             // Store pad); varying SD: each record releases at the size it was READ (GR12b — LastReadLength is
             // the frame length on a varying input file, the record width on a fixed one; Read pads the area).
+            // The varying arm releases the CURRENT RECORD itself (FileConnector.CurrentRecord — the area image
+            // sliced to LastReadLength whenever the record fits the area, and the whole record when a
+            // variable-length record reaches past the character area, determination D-FRA, kb/Work PB981).
             w.Line($"{RuntimeApi.SortRelease(sdLit, varying
-                ? RuntimeApi.StrRefMod(tmp, "1", $"(int){RuntimeApi.FileLastReadLength(f)}")
+                ? RuntimeApi.FileCurrentRecord(f)
                 : RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
         }
         w.Line($"{RuntimeApi.FileClose(f)};   // implicit CLOSE (GR12c / GR7c)");
@@ -269,7 +272,8 @@ internal sealed class SortEmitter(EmitContext ctx,
         string tmp = $"__srt{ctx.Names.NextSort()}";
         using (w.Block($"if ({RuntimeApi.SortReturn(sd, tmp)})"))
         {
-            seqIo.EmitImageInto(rt.RecordArea, tmp);   // GR3 — made available in the record area
+            // GR3 — made available in the record area: the returned record IS the current record, at its own length.
+            seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp);
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
             // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1, the move BOUND by

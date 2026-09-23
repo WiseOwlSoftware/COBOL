@@ -320,6 +320,7 @@
     "pb888_compiler_temp_takes_the_whole_description",
     "pb889_type_to_optional_word",
     "pb836_implicit_record_redefinition",
+    "pb982_bare_operand_conditions",
     "pb455_set_false_group_length", "pb555_value_false_phrase",
     "pb555_typedef_condition_clone",
     "pb401_range_invalid_by_class",
@@ -357,7 +358,8 @@
   "pb894_program_prototype_2002",
   "pb971_program_arg_omitted",
   "pb971_function_arg_omitted",
-  "pb979_unstring_any_length_national"
+  "pb979_unstring_any_length_national",
+  "pb981_fd_pointer_record"
   ],
   "pending": []
 }

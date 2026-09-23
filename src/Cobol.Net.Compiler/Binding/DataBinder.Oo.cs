@@ -701,7 +701,7 @@ public sealed partial class DataBinder
         // data-name-1 through Symbols.TryResolve(…, ScopeOf(RootOf(item))) — the method's own scope first
         // (§11.7.4 GR5), then a visible object item — instead of the raw global ByName.
         // level-66 RENAMES in method data is LIVE (M2-OO-1h step 1, DEVLOG 637): ResolveRedefines resolves the
-        // alias FROM/THRU structurally via FindDescendantOrSelf over the owning record (DataBinder.cs:1128-1152),
+        // alias FROM/THRU structurally via SubtreeCandidates over the owning record (kb/Work PB978 — counted),
         // so it is correct regardless of OoScopeSubtree's name re-homing — no gate needed.
         foreach (var child in item.Children) OoGateUnsupportedShapes(child, where);
         // Level-66s live OFF the children (Renames66) — without this walk the gate above is dead code and a
