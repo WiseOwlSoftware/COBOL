@@ -8,8 +8,8 @@ namespace CobolNet.Compiler.Oo;
 /// <summary>
 /// The ONE home for every OO C# / file-key naming convention (P9 R8 — kills the four scattered
 /// <c>__GET_</c>/<c>__SET_</c> accessor-name builders and the loose <c>__FACTORY</c>/band strings).
-/// The <c>__</c> prefix cannot appear in a COBOL-derived name (§8.3.1: user words never carry consecutive
-/// leading underscores through <see cref="DataItem.Sanitize"/>'s mapping), so none of these collide with user
+/// The <c>__</c> prefix cannot appear in a COBOL-derived name (§8.3.2.1: a user word never begins with a hyphen
+/// or underscore, so <see cref="DataItem.Sanitize"/> never yields a leading <c>__</c>), so none of these collide with user
 /// names — the §8.4.5/§11.7.4 GR1a implementor-defined externalized-name license.
 /// NOTE — the <c>::EXT::</c> band is a WIRE CONTRACT with the runtime: <c>CobolFile.Register*</c> and
 /// <c>ExternalStore</c> recognize the prefix on the emitted key (ISO §13.18.22.4 GR4a run-unit sharing), so the
@@ -44,4 +44,60 @@ public static class NamingConvention
     /// <summary>The pinned accessor-roster name of a property SET method (<c>__SET_&lt;P&gt;</c>).</summary>
     public static string SetAccessorName(string propertyName) =>
         "__SET_" + DataItem.Sanitize(propertyName).ToUpperInvariant();
+
+    // ── COBOL-word-derived synthesized C# names (kb/Work PB973) ────────────────────────────────────────────
+    // A synthesized member whose C# name EMBEDS a user-defined word lives in the same identifier space as the
+    // emitter's own fixed `__X` members (`__N` the paragraph count, `__pc`, `__V`, `__NEW`, `__PROP`, …). A family
+    // is collision-free only when it carries a NON-EMPTY TAG that no fixed emitter name starts with: the bare
+    // `"__" + WORD` shape (the old method-formal parameter name) let a LINKAGE formal named N become `__N` and
+    // shadow the paragraph-count constant (CS1628 inside the dispatch local function). The families are listed
+    // ONCE here; `SynthesizedNameFamilyDriftTests` (Unit) proves every emitter-fixed `__X` literal in the compiler
+    // sources falls outside every family, and that no other site derives a `__` name from a user word.
+
+    /// <summary>Every COBOL-word-derived family prefix (the drift test's roster). Adding a family = one entry.</summary>
+    public static readonly IReadOnlyList<string> CobolWordDerivedPrefixes =
+    [
+        FormalParameterPrefix, AddressCarrierPrefix, InstanceFileKeyPrefix, CapacityRegisterPrefix,
+        DebugRegisterPrefix, ImplicitNewTempPrefix, SumCounterPrefix, "__GET_", "__SET_",
+    ];
+
+    /// <summary>A method formal's C# <c>ref</c> parameter (the carrier; the body reads the capturable LOCAL
+    /// named <see cref="DataItem.CsName"/>, and a C# local may not shadow a parameter — CS0136).</summary>
+    public const string FormalParameterPrefix = "__formal_";
+    /// <summary>A BASED record's address carrier field (ALLOCATE / SET ADDRESS OF).</summary>
+    public const string AddressCarrierPrefix = "__addr_";
+    /// <summary>A method-scope file's per-object connector-key field.</summary>
+    public const string InstanceFileKeyPrefix = "__fkey_";
+    /// <summary>An OCCURS DYNAMIC CAPACITY register.</summary>
+    public const string CapacityRegisterPrefix = "__cap_";
+    /// <summary>A DEBUG-ITEM register.</summary>
+    public const string DebugRegisterPrefix = "__dbg_";
+    /// <summary>The implicit NEW temp of an inline object-class invocation.</summary>
+    public const string ImplicitNewTempPrefix = "__new_";
+    /// <summary>A report SUM counter register.</summary>
+    public const string SumCounterPrefix = "__sum_";
+
+    /// <summary>A method formal's C# parameter name (uppercased word; the method's binder uniquifies).</summary>
+    public static string FormalParameterName(string cobolWord) =>
+        FormalParameterPrefix + DataItem.Sanitize(cobolWord).ToUpperInvariant();
+
+    /// <summary>A BASED record's address-carrier field name.</summary>
+    public static string AddressCarrierName(string cobolWord) =>
+        AddressCarrierPrefix + DataItem.Sanitize(cobolWord).ToUpperInvariant();
+
+    /// <summary>A method-scope file's instance connector-key field name.</summary>
+    public static string InstanceFileKeyName(string fileName) => InstanceFileKeyPrefix + DataItem.Sanitize(fileName);
+
+    /// <summary>An OCCURS DYNAMIC table's CAPACITY register name (keyed on the table's own C# name).</summary>
+    public static string CapacityRegisterName(string tableCsName) => CapacityRegisterPrefix + tableCsName;
+
+    /// <summary>A DEBUG-ITEM register name (<c>DEBUG-ITEM</c>, <c>DEBUG-LINE</c>, …).</summary>
+    public static string DebugRegisterName(string registerWord) => DebugRegisterPrefix + DataItem.Sanitize(registerWord);
+
+    /// <summary>The implicit NEW temp of an inline invocation on object class <paramref name="className"/>.</summary>
+    public static string ImplicitNewTempName(string className) => ImplicitNewTempPrefix + DataItem.Sanitize(className);
+
+    /// <summary>A report SUM counter register (report-name + the entry's ordinal in the RD).</summary>
+    public static string SumCounterName(string reportName, int ordinal) =>
+        $"{SumCounterPrefix}{DataItem.Sanitize(reportName)}_{ordinal}";
 }

@@ -22,56 +22,29 @@ public readonly record struct AdapterPair(
 /// </summary>
 public static class OoConformance
 {
-    /// <summary>Validate every override's SIGNATURE against the overridden method (§9.3.8.2 method-signature
-    /// conformance: the same formal count with identical descriptions, and identical RETURNING items — via
-    /// <see cref="DescriptionMismatch"/>, the ONE description-equality check shared with INVOKE argument
-    /// conformance so the two rules can never drift apart). Runs AFTER every class's data has bound (formals
-    /// resolve at data-bind time, not pass-1). A violation is COBOLNET0829 — a COBOL-worded bind diagnostic,
-    /// never a Roslyn CS0508/CS0115 on user source (the G4 rule).</summary>
+    /// <summary>Validate every override against the method it overrides — ISO §11.7.3 SR9: "If method-name-1 or
+    /// literal-1 is the same as a method-name inherited or implemented by the containing definition, the parameter
+    /// declarations, returning item, and exceptions that may be raised on the procedure division header shall obey
+    /// the rules of conformance according to 9.3.8.2.3, Conformance between interfaces, such that the interface
+    /// described by the factory or instance definition containing this method definition conforms to the
+    /// interface described by the factory or instance definition containing the inherited or implemented method
+    /// definition." So the OVERRIDE is interface-1's method and the overridden one interface-2's, and the rules
+    /// are <see cref="MethodConformanceMismatches"/> — the ONE place they are written (kb/Work PB972: this pass
+    /// used to re-spell rules 1–6 and 8 with its own wording, and rule 9 was missing from both copies). Runs AFTER
+    /// every class's data has bound (formals resolve at data-bind time, not pass-1). A violation is COBOLNET0829 —
+    /// a COBOL-worded bind diagnostic, never a Roslyn CS0508/CS0115 on user source (the G4 rule), positioned at
+    /// the overriding method.</summary>
     public static void ValidateOverrideSignatures(OoClassTable table, EditionContext edition)
     {
         foreach (var cls in table.Classes)
             foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
             {
                 if (m.OverrideOf is not { } baseM) continue;
-                string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Name}'";
-                if (m.Binding!.Formals.Count != baseM.Binding!.Formals.Count)
-                {
-                    edition.Error("COBOLNET0829", $"{where}: {m.Binding!.Formals.Count} formal parameter(s) vs the "
-                        + $"overridden method's {baseM.Binding!.Formals.Count} (ISO §9.3.8.2 — an override's signature "
-                        + "shall conform)");
-                    continue;
-                }
-                for (int i = 0; i < m.Binding!.Formals.Count; i++)
-                {
-                    if (DescriptionMismatch(baseM.Binding!.Formals[i].Item, m.Binding!.Formals[i].Item) is { } err)
-                        edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
-                            + $"('{m.Binding!.Formals[i].Item.CobolName}'): {err} (ISO §9.3.8.2)");
-                    // §11.7.3 SR9 holds an inherited method's parameter declarations to §9.3.8.2.3 — rule 8 included.
-                    if (OptionalMismatch(m.Binding!.Formals[i], baseM.Binding!.Formals[i]) is { } oerr)
-                        edition.Error("COBOLNET0829", $"{where}: formal parameter #{i + 1} "
-                            + $"('{m.Binding!.Formals[i].Item.CobolName}'): {oerr} (ISO §11.7.3 SR9; §9.3.8.2.3 rule 8)");
-                }
-                if ((m.Binding!.Returning is null) != (baseM.Binding!.Returning is null))
-                    edition.Error("COBOLNET0829", $"{where}: RETURNING presence differs from the overridden "
-                        + "method (ISO §9.3.8.2)");
-                else if (m.Binding!.Returning is { } r && baseM.Binding!.Returning is { } br)
-                {
-                    // §9.3.8.2.3 rules 5a/5c2 — a COVARIANT object-reference RETURNING is legal: a universal
-                    // base accepts any object-reference override; a typed base accepts the SAME class or a
-                    // SUBCLASS (C# 9+ covariant returns render it directly). Everything else stays the strict
-                    // rule-6 identical-description check.
-                    if (r.Pic is { Category: PicCategory.ObjectReference } rp
-                        && br.Pic is { Category: PicCategory.ObjectReference } brp)
-                    {
-                        if (ObjectRefAssignmentMismatch(table, rp, brp, activeClassSenderAdmitted: false) is { } werr)
-                            edition.Error("COBOLNET0829", $"{where}: RETURNING item: {werr} "
-                                + "(ISO §9.3.8.2.3 rules 5a/5c2 — the override's class shall be the same "
-                                + "class or a subclass of the overridden method's)");
-                    }
-                    else if (DescriptionMismatch(br, r) is { } rerr)
-                        edition.Error("COBOLNET0829", $"{where}: RETURNING item: {rerr} (ISO §9.3.8.2)");
-                }
+                using var atMethod = edition.At(m.Ctx);
+                string where = $"class '{cls.Name}', method '{m.Name}' overriding '{baseM.Owner.Name}'.'{baseM.Name}'";
+                foreach (var err in MethodConformanceMismatches(table, m, baseM,
+                             $"the overridden method of class '{baseM.Owner.Name}'"))
+                    edition.Error("COBOLNET0829", $"{where}: {err}; ISO §11.7.3 SR9");
             }
     }
 
@@ -103,6 +76,7 @@ public static class OoConformance
                     var impl = factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName);   // the roster key (PB303)
                     if (impl is null)
                     {
+                        using var atClass = edition.At(cls.Ctx.classIdParagraph().className(0));
                         edition.Error("COBOLNET0841",
                             $"class '{cls.Name}': the {side}interface '{iface.Name}' requires a method "
                             + $"'{proto.Name}' and none is defined or inherited (ISO §9.3.11 — a class "
@@ -111,11 +85,13 @@ public static class OoConformance
                         continue;
                     }
                     bool conforms = true;
-                    foreach (var err in MethodConformanceMismatches(table, impl, proto, iface.Name))
-                    {
-                        conforms = false;
-                        edition.Error("COBOLNET0841", $"class '{cls.Name}', method '{impl.Name}': {err}");
-                    }
+                    using (edition.At(impl.Ctx))
+                        foreach (var err in MethodConformanceMismatches(table, impl, proto,
+                                     $"the '{iface.Name}' prototype"))
+                        {
+                            conforms = false;
+                            edition.Error("COBOLNET0841", $"class '{cls.Name}', method '{impl.Name}': {err}");
+                        }
                     // Conformant-but-covariant RETURNING: C# needs the explicit-implementation adapter.
                     if (conforms
                         && impl.Binding!.Returning?.Pic is { Category: PicCategory.ObjectReference } rp
@@ -139,35 +115,45 @@ public static class OoConformance
     /// ⛔ ISO §9.3.8.2.3 FOR ONE METHOD PAIR — the ONE place the per-method conformance rules are written: does
     /// method <paramref name="m1"/> (of interface-1, the CONFORMING side — a class's implementation, or another
     /// interface's prototype) satisfy the conditions for method <paramref name="m2"/> of interface-2 (named
-    /// <paramref name="iface2"/> in the messages)? Yields one rule-cited message per violation; empty ⇔ the pair
-    /// conforms. Rules carried: 1) the parameter count; 2)/3) identical formal descriptions
-    /// (<see cref="DescriptionMismatch"/>); 4) RETURNING presence; 5) the object-reference RETURNING (covariant —
-    /// <see cref="ObjectRefAssignmentMismatch(OoClassTable, ObjectRefDescriptor, ObjectRefDescriptor, bool)"/>
-    /// with rule 5's closed ACTIVE-CLASS list); 6) identical non-object RETURNING descriptions; 8) the OPTIONAL phrase (<see cref="OptionalMismatch"/>).
+    /// <paramref name="counterpart"/> in the messages — "the 'I' prototype", "the overridden method of class 'B'")?
+    /// Yields one rule-cited message per violation; empty ⇔ the pair conforms. Rules carried: 1) the parameter
+    /// count (every method formal is BY REFERENCE today — a BY VALUE method formal is refused at bind, COBOLNET0899 —
+    /// so rule 1's "consistent BY REFERENCE and BY VALUE specifications" cannot differ); 2)/3) identical formal
+    /// descriptions (<see cref="DescriptionMismatch"/>); 4) RETURNING presence; 5) the object-reference RETURNING
+    /// (covariant — <see cref="ObjectRefAssignmentMismatch(OoClassTable, ObjectRefDescriptor, ObjectRefDescriptor, bool)"/>
+    /// with rule 5's closed ACTIVE-CLASS list); 6) identical non-object RETURNING descriptions; 7) strongly-typed
+    /// groups of the same type (inside <see cref="DescriptionMismatch"/>, <c>StrongTypeMismatch</c>, for every
+    /// formal and a non-object RETURNING); 8) the OPTIONAL phrase (<see cref="OptionalMismatch"/>); 9) the RAISING
+    /// phrase (<see cref="RaisingMismatches"/>).
+    /// <para>Its three askers: §9.3.11 IMPLEMENTS (<see cref="ValidateImplements"/> — the class is interface-1),
+    /// §11.7.3 SR9 overrides (<see cref="ValidateOverrideSignatures"/> — the override is interface-1), and the
+    /// interface-to-interface relation (<see cref="InterfaceConformsTo"/>).</para>
     /// <para>Extracted from <see cref="ValidateImplements"/> (kb/Work PB814) so that §9.3.11 IMPLEMENTS
     /// conformance and the interface-to-interface conformance GOBACK §14.9.18.3 SR4 b) asks
     /// (<see cref="InterfaceConformsTo"/>) run the SAME comparisons — two copies of one rule set is the shape
     /// under which one arm silently drifts.</para>
     /// </summary>
     internal static IEnumerable<string> MethodConformanceMismatches(OoClassTable table, OoMethodSymbol m1,
-        OoMethodSymbol m2, string iface2)
+        OoMethodSymbol m2, string counterpart)
     {
+        foreach (var rerr in RaisingMismatches(table, m1, m2, counterpart))
+            yield return rerr;
         if (m1.Binding!.Formals.Count != m2.Binding!.Formals.Count)
         {
-            yield return $"{m1.Binding!.Formals.Count} formal(s) vs the '{iface2}' prototype's "
+            yield return $"{m1.Binding!.Formals.Count} formal(s) vs {counterpart}'s "
                 + $"{m2.Binding!.Formals.Count} (ISO §9.3.8.2.3 rule 1)";
             yield break;
         }
         for (int i = 0; i < m1.Binding!.Formals.Count; i++)
         {
             if (DescriptionMismatch(m2.Binding!.Formals[i].Item, m1.Binding!.Formals[i].Item) is { } err)
-                yield return $"formal #{i + 1}: {err} (ISO §9.3.8.2.3 rules 2/3 vs interface '{iface2}' — "
+                yield return $"formal #{i + 1}: {err} (ISO §9.3.8.2.3 rules 2/3 vs {counterpart} — "
                     + "identical descriptions; the C# projection cannot check this)";
             if (OptionalMismatch(m1.Binding!.Formals[i], m2.Binding!.Formals[i]) is { } oerr)
-                yield return $"formal #{i + 1}: {oerr} vs interface '{iface2}' (ISO §9.3.8.2.3 rule 8)";
+                yield return $"formal #{i + 1}: {oerr} vs {counterpart} (ISO §9.3.8.2.3 rule 8)";
         }
         if ((m1.Binding!.Returning is null) != (m2.Binding!.Returning is null))
-            yield return $"RETURNING presence differs from the '{iface2}' prototype (ISO §9.3.8.2.3 rule 4)";
+            yield return $"RETURNING presence differs from {counterpart} (ISO §9.3.8.2.3 rule 4)";
         else if (m1.Binding!.Returning is { } r && m2.Binding!.Returning is { } pr)
         {
             if (r.Pic is { Category: PicCategory.ObjectReference } rp
@@ -179,6 +165,87 @@ public static class OoConformance
             else if (DescriptionMismatch(pr, r) is { } rerr)
                 yield return $"RETURNING: {rerr} (ISO §9.3.8.2.3 rule 6)";
         }
+    }
+
+    /// <summary>
+    /// ISO §9.3.8.2.3 rule 9: "If the RAISING phrase is specified in the procedure division header of the method in
+    /// interface-1, the corresponding method in interface-2 specifies the RAISING phrase following these rules" —
+    /// EVERY element of <paramref name="m1"/>'s phrase needs a covering element in <paramref name="m2"/>'s:
+    /// <list type="bullet">
+    ///   <item>a) an exception-name — "the same exception-name";</item>
+    ///   <item>b) an object-class-name — "the same object-class-name or the name of a superclass of the class
+    ///     identified by that object-class-name, including the FACTORY phrase if and only if the RAISING phrase in
+    ///     interface-1 specifies the FACTORY phrase", or "the name of an interface implemented by the factory
+    ///     object of that class" (FACTORY) / "by the instance object of that class" (no FACTORY) — implemented in
+    ///     the §11.8.4 GR2 sense, <see cref="OoClassTable.ImplementsClosure"/>;</item>
+    ///   <item>c) an interface-name — "the same interface-name or the name of an interface inherited by that
+    ///     interface" (the INHERITS closure, §9.3.10).</item>
+    /// </list>
+    /// The direction matters: an interface-2 RAISING phrase with nothing in interface-1 conforms (interface-1 may
+    /// raise LESS). Every name here was scope-checked where it was written (<c>RaisingPhrase.Partition</c>, the
+    /// §8.4.6.4 funnel), so the table lookups below are symbol lookups on validated names.
+    /// </summary>
+    internal static IEnumerable<string> RaisingMismatches(OoClassTable table, OoMethodSymbol m1, OoMethodSymbol m2,
+        string counterpart)
+    {
+        foreach (var t in m1.Raising)
+        {
+            string? arm = t.Kind switch
+            {
+                RaisingTargetKind.ExceptionName => m2.Raising.Any(u => u.Kind is RaisingTargetKind.ExceptionName
+                    && string.Equals(u.Name, t.Name, StringComparison.OrdinalIgnoreCase)) ? null : "a",
+                RaisingTargetKind.ObjectClass => ClassRaisingCovered(table, t, m2.Raising) ? null : "b",
+                _ => InterfaceRaisingCovered(table, t, m2.Raising) ? null : "c",
+            };
+            if (arm is null) continue;
+            string need = arm switch
+            {
+                "a" => $"the exception-name {t.Name}",
+                "b" => $"'{t.Spelled}' or a superclass of {t.Name} with the FACTORY phrase "
+                    + $"{(t.Factory ? "" : "not ")}specified, or an interface implemented by the "
+                    + $"{(t.Factory ? "factory" : "instance")} object of {t.Name}",
+                _ => $"the interface {t.Name} or an interface it inherits",
+            };
+            yield return m2.Raising.Count == 0
+                ? $"RAISING {t.Spelled}: {counterpart} specifies no RAISING phrase, and it shall specify {need} "
+                    + $"(ISO §9.3.8.2.3 rule 9 {arm}))"
+                : $"RAISING {t.Spelled}: the RAISING phrase of {counterpart} "
+                    + $"({string.Join(", ", m2.Raising.Select(u => u.Spelled))}) does not specify {need} "
+                    + $"(ISO §9.3.8.2.3 rule 9 {arm}))";
+        }
+    }
+
+    /// <summary>Rule 9 b) for one object-class-name element <paramref name="t"/> of interface-1's phrase.</summary>
+    private static bool ClassRaisingCovered(OoClassTable table, RaisingTarget t, IReadOnlyList<RaisingTarget> other)
+    {
+        var cls = table.Find(t.Name);
+        for (var c = cls; c is not null; c = c.Base)
+            if (other.Any(u => u.Kind is RaisingTargetKind.ObjectClass && u.Factory == t.Factory
+                    && string.Equals(u.Name, c.Name, StringComparison.OrdinalIgnoreCase)))
+                return true;
+        if (cls is null) return false;
+        var implemented = table.ImplementsClosure(cls, factory: t.Factory);
+        return other.Any(u => u.Kind is RaisingTargetKind.Interface
+            && implemented.Any(i => string.Equals(i.Name, u.Name, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    /// <summary>Rule 9 c) for one interface-name element <paramref name="t"/> of interface-1's phrase.</summary>
+    private static bool InterfaceRaisingCovered(OoClassTable table, RaisingTarget t, IReadOnlyList<RaisingTarget> other)
+    {
+        var listed = other.Where(u => u.Kind is RaisingTargetKind.Interface).ToList();
+        if (listed.Count == 0) return false;
+        if (listed.Any(u => string.Equals(u.Name, t.Name, StringComparison.OrdinalIgnoreCase))) return true;
+        if (table.FindInterface(t.Name) is not { } iface) return false;
+        var seen = new HashSet<OoInterfaceSymbol>();
+        var stack = new Stack<OoInterfaceSymbol>(iface.Inherits);
+        while (stack.Count > 0)
+        {
+            var b = stack.Pop();
+            if (!seen.Add(b)) continue;
+            if (listed.Any(u => string.Equals(u.Name, b.Name, StringComparison.OrdinalIgnoreCase))) return true;
+            foreach (var bb in b.Inherits) stack.Push(bb);
+        }
+        return false;
     }
 
     /// <summary>
@@ -201,7 +268,7 @@ public static class OoConformance
         foreach (var p in interface1.AllPrototypes()) mine.TryAdd(p.ExternalizedName, p);   // first declaration wins
         foreach (var m2 in interface2.AllPrototypes())
             if (!mine.TryGetValue(m2.ExternalizedName, out var m1)
-                || MethodConformanceMismatches(table, m1, m2, interface2.Name).Any())
+                || MethodConformanceMismatches(table, m1, m2, $"the '{interface2.Name}' prototype").Any())
                 return false;
         return true;
     }

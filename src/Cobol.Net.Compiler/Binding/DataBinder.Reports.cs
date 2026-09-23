@@ -9,6 +9,7 @@ using CobolNet.Binding.Model;
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
+using CobolNet.Compiler.Oo;
 
 // ═══════════════════════════════════════════════════════════════════════════════════════════════════════════════
 //  REPORT SECTION binding (ISO/IEC 1989:2023 §13.6 report section / §13.14 report description / §13.15 report
@@ -2068,7 +2069,7 @@ public sealed partial class DataBinder
                 Level = 49,
                 DeclaredAt = Edition.Cursor,
                 CobolName = entryName,
-                CsName = $"__sum_{model.Name}_{model.Sums.Count}",
+                CsName = NamingConvention.SumCounterName(model.Name, model.Sums.Count),
                 Pic = PicInfo.SumCounterItem(pic?.Digits ?? 18, pic?.Scale ?? 0),
                 Uid = _uidCounter++,
             },

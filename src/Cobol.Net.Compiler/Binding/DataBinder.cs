@@ -312,7 +312,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             _debugRegisters[name] = (new DataItem
             {
                 Level = 49,
-                CsName = "__dbg_" + name.Replace('-', '_'),
+                CsName = NamingConvention.DebugRegisterName(name),
                 CobolName = name,
                 Pic = new PicInfo(PicCategory.Alphanumeric, Usage.Display, Length: width, Digits: 0, Scale: 0, Signed: false),
                 Uid = _uidCounter++,

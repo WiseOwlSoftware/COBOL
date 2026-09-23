@@ -247,7 +247,7 @@ internal sealed partial class OoBinder
         {
             Level = 1,
             CobolName = "__NEW-" + cls.Name,
-            CsName = "__new_" + DataItem.Sanitize(cls.Name),
+            CsName = NamingConvention.ImplicitNewTempName(cls.Name),
             Pic = PicInfo.ObjectReferenceItem(
                 ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true)),
         };

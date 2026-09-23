@@ -9,6 +9,7 @@ using CobolNet.Binding.Model;
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
+using CobolNet.Compiler.Oo;
 
 /// <summary>
 /// The OCCURS DEPENDING ON half of the data binder (ISO/IEC 1989:2023 §13.18.38): Format-2 clause capture
@@ -382,7 +383,7 @@ public sealed partial class DataBinder
             var reg = new DataItem
             {
                 Level = 49,
-                CsName = "__cap_" + item.CsName,
+                CsName = NamingConvention.CapacityRegisterName(item.CsName),
                 CobolName = spec.CapacityName,
                 Pic = PicInfo.BinaryItem(Usage.BinaryLong, signed: false),
                 Parent = item.Parent,

@@ -167,6 +167,7 @@ public sealed class OoClassTable
         foreach (var ictx in interfaces ?? [])
         {
             string iname = ictx.interfaceName(0).GetText();
+            using var atInterface = edition.At(ictx.interfaceName(0));   // PB975 — every pass-1 report is positioned
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitInterfaceDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string icsName = DataItem.Sanitize(iname).ToUpperInvariant();
@@ -185,12 +186,11 @@ public sealed class OoClassTable
             }
             table._ifaceByName.Add(iname, isym);
             table._interfaces.Add(isym);
-            foreach (var inh in ictx.interfaceName().Skip(1).Take(ictx.interfaceName().Length - 2))
-                isym.InheritNames.Add(inh.GetText());
             if (!string.Equals(ictx.interfaceName(ictx.interfaceName().Length - 1).GetText(), iname,
                     StringComparison.OrdinalIgnoreCase))
-                edition.Error("COBOLNET0840",
-                    $"END INTERFACE does not match INTERFACE-ID '{iname}' (ISO §10.7)");
+                using (edition.At(ictx.interfaceName(ictx.interfaceName().Length - 1)))
+                    edition.Error("COBOLNET0840",
+                        $"END INTERFACE does not match INTERFACE-ID '{iname}' (ISO §10.7)");
 
             // PROTOTYPES (§10.6.2 SR4): a header + optional LINKAGE-only data division, NO procedure body,
             // NO OVERRIDE/FINAL attributes (§11.7 SR2/SR8 — the OVERRIDE/FINAL wave's forward obligation).
@@ -198,6 +198,7 @@ public sealed class OoClassTable
             {
                 string pname = (m.methodName().Length > 0 ? m.methodName(0)?.GetText() : null)
                     ?? m.methodPropertySelector()?.propertyName()?.GetText() ?? "?";
+                using var atPrototype = edition.At(m);
                 var pd = m.procedureDivision();
                 if (m.OVERRIDE() is not null || m.FINAL() is not null)
                     edition.Error("COBOLNET0840",
@@ -232,8 +233,10 @@ public sealed class OoClassTable
         }
         // Interface INHERITS resolution + cycle check (§11.6.3 SR2/SR3/SR6).
         foreach (var isym in table._interfaces)
-            foreach (string inh in isym.InheritNames)
+            foreach (var inhCtx in isym.Ctx.interfaceName().Skip(1).Take(isym.Ctx.interfaceName().Length - 2))
             {
+                string inh = inhCtx.GetText();
+                using var atInherits = edition.At(inhCtx);
                 // §11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
                 // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
                 if (OoNameResolution.Resolve(table, edition, isym.Ctx, inh, OoNameResolution.Want.Interface,
@@ -249,6 +252,7 @@ public sealed class OoClassTable
             }
         foreach (var isym in table._interfaces)
         {
+            using var atInterface = edition.At(isym.Ctx.interfaceName(0));
             var seenI = new HashSet<OoInterfaceSymbol>();
             var stack = new Stack<OoInterfaceSymbol>([isym]);
             while (stack.Count > 0)
@@ -272,6 +276,7 @@ public sealed class OoClassTable
         {
             var id = ctx.classIdParagraph();
             string name = id.className(0).GetText();
+            using var atClass = edition.At(id.className(0));
             // COBOL-2002 introduction gate: VersionConformancePass ParseArm.VisitClassDefinition (rearch 14g.3,
             // recognition — fires per parse node, so a duplicate/colliding definition dropped below still names its edition).
             string csName = DataItem.Sanitize(name).ToUpperInvariant();   // MUST match PicInfo.ClrType's mapping
@@ -289,10 +294,11 @@ public sealed class OoClassTable
                 // ISO §11.3.2 permits several INHERITS bases; COBOL.NET v1 restricts to SINGLE inheritance and
                 // rejects the rest LOUDLY (SSOT §18 #18; A.4.10 — multiple inheritance / parametric polymorphism
                 // rejected). Silently compiling against only the first base was the R9 silent-miscompile.
-                edition.Error("COBOLNET0849",
-                    $"class '{name}': INHERITS FROM {bases.Count} base classes ({string.Join(", ", bases)}) — "
-                    + "COBOL.NET v1 supports single inheritance only; multiple inheritance is rejected "
-                    + "(ISO §11.3.2; SSOT §18 #18 / A.4.10)");
+                using (edition.At(id.className(2)))
+                    edition.Error("COBOLNET0849",
+                        $"class '{name}': INHERITS FROM {bases.Count} base classes ({string.Join(", ", bases)}) — "
+                        + "COBOL.NET v1 supports single inheritance only; multiple inheritance is rejected "
+                        + "(ISO §11.3.2; SSOT §18 #18 / A.4.10)");
             usedCsNames.Add(csName + NamingConvention.FactorySuffix);   // belt-and-braces (a `__` name cannot collide with COBOL-derived names)
             if (table._ifaceByName.ContainsKey(name))
                 edition.Error("COBOLNET0840",
@@ -310,12 +316,14 @@ public sealed class OoClassTable
 
             if (ctx.endClassHeader().className().GetText() is { } endName
                 && !string.Equals(endName, name, StringComparison.OrdinalIgnoreCase))
-                edition.Error("COBOLNET0820",
-                    $"END CLASS '{endName}' does not match CLASS-ID '{name}' (ISO §10.7 — the end marker names "
-                    + "its class)");
+                using (edition.At(ctx.endClassHeader()))
+                    edition.Error("COBOLNET0820",
+                        $"END CLASS '{endName}' does not match CLASS-ID '{name}' (ISO §10.7 — the end marker names "
+                        + "its class)");
 
             foreach (var m in ctx.objectParagraph()?.methodDefinition() ?? [])
             {
+                using var atMethod = edition.At(m);
                 var sel = m.methodPropertySelector();
                 string methodName = sel is not null
                     ? (sel.GET() is not null
@@ -325,7 +333,12 @@ public sealed class OoClassTable
                 var pd = m.procedureDivision();
                 string mcs = sel is not null ? methodName : DataItem.Sanitize(methodName).ToUpperInvariant();
                 // CS0542 guard: a C# member may not be named like its enclosing type — a METHOD-ID named like
-                // its CLASS-ID is legal COBOL (§8.4.5 distinct name categories), so the SYMBOL renames.
+                // its CLASS-ID is legal COBOL, so the SYMBOL renames. Derivation (kb/Work PB975): §8.3.2.2 bars
+                // one word as two types of user-defined word only "Within a source element"; §10.4 makes a method
+                // a source unit "directly contained within" its factory/instance definition, and §10.5 "A source
+                // element is a source unit excluding any contained source units" — so the method-name and the
+                // class-name sit in DIFFERENT source elements, which §8.4.6.1 lets "use identical user-defined
+                // words ... independent of the use of these user-defined words by other source elements".
                 if (mcs == csName) mcs += "_M";
                 var method = new OoMethodSymbol(
                     methodName,
@@ -358,9 +371,10 @@ public sealed class OoClassTable
                         + "(Annex A.4.10 item 3; §9.3.5.3 rule 7) whose support COBOL.NET does not claim");
                 if (sel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
-                    edition.Error("COBOLNET0820",
-                        $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
-                        + $"'{methodName}' (ISO §10.7)");
+                    using (edition.At(m.methodName(1)))
+                        edition.Error("COBOLNET0820",
+                            $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
+                            + $"'{methodName}' (ISO §10.7)");
             }
 
             // FACTORY methods (§11.4) — a SEPARATE roster/interface (§9.3.6: an instance method and a
@@ -368,6 +382,7 @@ public sealed class OoClassTable
             // predefined New (§16.2.1) is the generated ctor (D4) and overriding it is a v1 restriction.
             foreach (var m in ctx.factoryParagraph()?.methodDefinition() ?? [])
             {
+                using var atMethod = edition.At(m);
                 var fsel = m.methodPropertySelector();
                 string methodName = fsel is not null
                     ? (fsel.GET() is not null
@@ -405,9 +420,10 @@ public sealed class OoClassTable
                         + "not claim — the factory arm carried NO citation at all before this");
                 if (fsel is null && m.methodName().Length > 1
                     && !string.Equals(m.methodName(1).GetText(), methodName, StringComparison.OrdinalIgnoreCase))
-                    edition.Error("COBOLNET0820",
-                        $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
-                        + $"'{methodName}' (ISO §10.7)");
+                    using (edition.At(m.methodName(1)))
+                        edition.Error("COBOLNET0820",
+                            $"class '{name}': END METHOD '{m.methodName(1).GetText()}' does not match METHOD-ID "
+                            + $"'{methodName}' (ISO §10.7)");
             }
         }
 
@@ -415,6 +431,7 @@ public sealed class OoClassTable
         foreach (var sym in table._classes)
         {
             if (sym.BaseName is not { } baseName) continue;
+            using var atBase = edition.At(sym.Ctx.classIdParagraph().className(1));
             // §11.3.3 SR2: "Object-class-name-2 shall be the name of a class specified in the REPOSITORY
             // paragraph of this source element" — an INSTANCE of §8.4.6.4, so it resolves through the ONE
             // funnel and NOT through this table's group-wide Find (kb/Work PB365).
@@ -434,6 +451,7 @@ public sealed class OoClassTable
         // (the loud-failure violation). Reject at pass-1 and CUT the link so downstream chain walks stay finite.
         foreach (var sym in table._classes)
         {
+            using var atClass = edition.At(sym.Ctx.classIdParagraph().className(0));
             var seen = new HashSet<OoClassSymbol> { sym };
             for (OoClassSymbol? b = sym.Base; b is not null; b = b.Base)
                 if (!seen.Add(b))
@@ -478,6 +496,7 @@ public sealed class OoClassTable
             {
                 foreach (var iref in impl?.interfaceName() ?? [])
                 {
+                    using var atImplements = edition.At(iref);
                     // The site is the CLASS definition (§11.8.3 SR1 says "of the containing class
                     // definition"), which is also where the OBJECT/FACTORY paragraph's own scope comes from:
                     // §12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
@@ -501,6 +520,7 @@ public sealed class OoClassTable
         {
             foreach (var m in roster)
             {
+                using var atMethod = edition.At(m.Ctx);
                 var baseM = findInBase?.Invoke(m.ExternalizedName);   // the roster key (PB303)
                 if (baseM is null)
                 {

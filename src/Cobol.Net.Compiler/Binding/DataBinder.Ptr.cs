@@ -9,6 +9,7 @@ using CobolNet.Binding.Model;
 namespace CobolNet.Binding;
 
 using Core = CobolParserCore;
+using CobolNet.Compiler.Oo;
 
 /// <summary>
 /// The data-pointer half of the data binder (Phase-4b increment 2 — ISO §13.18.5 BASED / §8.4.3.11 ADDRESS OF;
@@ -80,7 +81,7 @@ public sealed partial class DataBinder
                     + "is recognized but not yet implemented (kb/Work PB164; ISO §13.18.5 / §14.9.3)");
                 continue;
             }
-            string addr = "__addr_" + DataItem.Sanitize(root.CobolName ?? root.CsName).ToUpperInvariant();
+            string addr = NamingConvention.AddressCarrierName(root.CobolName ?? root.CsName);
             cls.BasedPointerField = addr;
             _ptrBasedBridges.Add((cls.BackingCsName, cls.BackingCellCsName, addr, cls.Width));
         }

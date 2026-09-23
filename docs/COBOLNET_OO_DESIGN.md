@@ -55,9 +55,13 @@ early) + `OoConformance` (the §9.3.8.2/§9.3.11 validator; `ValidateImplements`
 `AdapterPair` list, threaded via `BoundCompilation.OoAdapters` to the interface emitter) + `OoDriver` (the
 bind bodies: interface prototype data, class OBJECT/FACTORY halves + signatures, method-body rosters — owned
 and sequenced by `BinderDriver.Bind`; the former emitter-hosted `IOoBindHost` seam is DELETED) +
-`NamingConvention` (the ONE home for `__GET_`/`__SET_`, `__FACTORY`/`__Instance`/`__New`, and the
+`NamingConvention` (the ONE home for `__GET_`/`__SET_`, `__FACTORY`/`__Instance`/`__New`, the
 `::EXT::`/`::INST::`/`::FACT::` file-key bands — the runtime's `::EXT::` recognition is the documented wire
-contract). Statement binding is the P7 collaborator `Binding/Procedure/Verbs/OoBinder.cs`; emission is the P7
+contract — and EVERY synthesized C# name that embeds a user-defined word: each such family carries a NON-EMPTY
+tag (`__formal_` for a method formal's `ref` parameter, `__addr_`, `__fkey_`, `__cap_`, `__dbg_`, `__new_`,
+`__sum_`), listed once in `CobolWordDerivedPrefixes`; `SynthesizedNameFamilyDriftTests` proves no emitter-fixed
+`__X` member enters a family and no site derives an untagged `"__" + word` — the shape that turned a formal named
+N into the paragraph-count constant `__N`, kb/Work PB973). Statement binding is the P7 collaborator `Binding/Procedure/Verbs/OoBinder.cs`; emission is the P7
 collaborator `CodeGen/Verbs/OoEmitter.cs`. The former ambient flags are gone: `ActiveMethodScope` push/pops
 via `BinderContext.EnterMethodScope`; `OoIsClassUnit`/`OoCurrentClass`/`OoInFactory` are `init`-only
 per-binder configuration set by `OoDriver` at construction. P9's feature closes: ANY LENGTH §13.18.2
@@ -129,7 +133,7 @@ shall be true in the invoked method" — and a C# `ref T` has no omitted state, 
 EVERY formal's, not only an OPTIONAL one's: §8.8.4.8.4 GR1c makes omission transitive through a forwarded formal
 whatever the receiving formal's own phrase, exactly as the program ABI's null carrier is (the rejected
 alternative, a flag on OPTIONAL formals only, cannot carry that case). The flag is `OoFormal.OmittedFlag`
-(`__omittedN`, lower-case so no upper-cased `ParamName` can collide); `OoSignatureOf` declares the pair and
+(`__omittedN`, positional and outside every word-derived family, so no `__formal_` `ParamName` can collide); `OoSignatureOf` declares the pair and
 `OoArgPair` renders it at every caller — the typed INVOKE, the covariant adapter, the universal switch and the
 PROPERTY setter — so signature and argument lists cannot drift. In the body an omitted formal's local starts at
 its initial state (no copy-in) and is not copied out; every REFERENCE to it (or to a subordinate) renders through
@@ -141,8 +145,19 @@ spelled OMITTED (descriptor `CobolInvokeArg.OmittedDescriptor`) from the descrip
 formal only (§9.3.6 match rule 3 b) — "no further checking is performed"). Binder side: `OoBindResolvedInvoke`
 appends an explicit omitted `BoundInvokeArg` for each trailing OPTIONAL formal, and §14.9.23.3 SR18 is
 `COBOLNET2237`. Conformance: §9.3.8.2.3 rule 8 (OPTIONAL presence) is `OoConformance.OptionalMismatch`, read by
-`MethodConformanceMismatches` (IMPLEMENTS / interface conformance) and `ValidateOverrideSignatures` (§11.7.3 SR9).
-The presence fact itself is shared with the program ABI — see COBOLNET_INTERPROGRAM_DESIGN, `OmittedProbe`.
+`MethodConformanceMismatches`. The presence fact itself is shared with the program ABI — see
+COBOLNET_INTERPROGRAM_DESIGN, `OmittedProbe`.
+
+**§9.3.8.2.3 per-method conformance is written ONCE — `OoConformance.MethodConformanceMismatches`** (rules 1–4,
+5 covariant RETURNING, 6, 7 via `DescriptionMismatch`'s strongly-typed sentence, 8, and 9 RAISING via
+`RaisingMismatches`), and it has exactly three askers, each naming which side is interface-1: §9.3.11 IMPLEMENTS
+(`ValidateImplements` — the implementing class; COBOLNET0841), §11.7.3 SR9 overrides (`ValidateOverrideSignatures`
+— the overriding method; COBOLNET0829) and the interface relation (`InterfaceConformsTo` — GOBACK §14.9.18.3 SR4 b)
+/ EXIT §14.9.14.3 SR5 b)). Rule 9 covers every element of interface-1's RAISING phrase: a) the same exception-name;
+b) the same class or a superclass with the same FACTORY presence, or an interface the factory/instance object
+implements (`OoClassTable.ImplementsClosure`); c) the same interface or one it inherits. The override pass was a
+second hand-written copy of rules 1–6 and 8 until kb/Work PB972, with rule 9 in neither;
+`MethodConformanceRuleSetDriftTests` keeps every asker free of rule text of its own.
 
 **A GROUP formal or RETURNING item crosses as its CHARACTER IMAGE, through THE ONE CHANNEL.** §14.2.3 GR8 makes
 a BY REFERENCE formal "occupy the same storage area as the argument" and §14.9.23.4 GR8 delivers the RETURNING

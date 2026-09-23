@@ -15,8 +15,9 @@ public sealed record OoFormal(DataItem Item, int Position, string ParamName, boo
     /// <summary>The C# name of the formal's omitted-presence parameter — the METHOD arm of the one presence fact
     /// (<see cref="OmittedProbe.MethodFlag"/>; kb/Work PB757). EVERY formal carries one, not only an OPTIONAL
     /// one: §8.8.4.8.4 GR1c makes omission transitive through a forwarded formal whatever the receiving
-    /// formal's own phrase, exactly as the program arm's null carrier is. The name is LOWER-case and positional:
-    /// every <c>ParamName</c> is upper-cased (<c>DataBinder.OoParamName</c>), so no formal can collide with it.</summary>
+    /// formal's own phrase, exactly as the program arm's null carrier is. The name is positional and outside
+    /// every COBOL-word-derived family: every <c>ParamName</c> carries the <c>__formal_</c> tag
+    /// (<see cref="NamingConvention.FormalParameterName"/>), so no formal can collide with it.</summary>
     public string OmittedFlag => $"__omitted{Position}";
 
     /// <summary>The presence fact every consumer reads (§8.8.4.8.4 GR1).</summary>

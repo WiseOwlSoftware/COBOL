@@ -22,7 +22,6 @@ public sealed class OoInterfaceSymbol(string name, string csName, CobolParserCor
     public string ExternalizedName { get; init; } = name;
     public string CsName { get; } = csName;
     public CobolParserCore.InterfaceDefinitionContext Ctx { get; } = ctx;
-    public List<string> InheritNames { get; } = [];
     public List<OoInterfaceSymbol> Inherits { get; } = [];
 
     /// <summary>The emitted C# types a COBOL reference to THIS interface selects when the rule asks whether an

@@ -431,14 +431,15 @@ public sealed partial class DataBinder
         }
     }
 
-    /// <summary>The C# parameter name for a formal: <c>__</c> + the sanitized COBOL name, uniquified within
-    /// the method. The <c>__</c> prefix can never collide with a COBOL-derived name (a COBOL word cannot
-    /// contain consecutive hyphens' image <c>__</c> — the dispatcher-internals naming rule), and in particular
-    /// not with the item's own <see cref="DataItem.CsName"/>, which becomes the capturable LOCAL the body
-    /// reads and writes (a C# local may not shadow a parameter — CS0136).</summary>
+    /// <summary>The C# parameter name for a formal: the TAGGED family <see cref="NamingConvention.FormalParameterName"/>
+    /// (<c>__formal_</c> + the sanitized COBOL name), uniquified within the method. The <c>__</c> head keeps it
+    /// off the item's own <see cref="DataItem.CsName"/> (a user word never sanitizes to a leading <c>__</c>), which
+    /// becomes the capturable LOCAL the body reads and writes (a C# local may not shadow a parameter — CS0136);
+    /// the non-empty TAG keeps it off the emitter's fixed <c>__X</c> members — the untagged <c>"__" + word</c>
+    /// shape turned a formal named N into <c>__N</c>, the paragraph-count constant (kb/Work PB973).</summary>
     private static string OoParamName(OoMethodSymbol m, DataItem item, int pos)
     {
-        string name = "__" + DataItem.Sanitize(item.CobolName ?? $"P{pos}").ToUpperInvariant();
+        string name = NamingConvention.FormalParameterName(item.CobolName ?? $"P{pos}");
         while (m.Binding!.Formals.Any(f => f.ParamName == name)) name += "_";
         return name;
     }

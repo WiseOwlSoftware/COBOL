@@ -1057,7 +1057,7 @@ internal sealed class BinderDriver
                 f.CobolName = cls.CsName + "::SORT::" + f.CobolName;
             else
             {
-                f.InstanceKeyField = "__fkey_" + DataItem.Sanitize(f.CobolName);
+                f.InstanceKeyField = NamingConvention.InstanceFileKeyName(f.CobolName);
                 f.CobolName = cls.CsName + NamingConvention.InstanceFileBand + f.CobolName;
             }
         // FACTORY files: the class singleton (§9.3.14.2) — a static class-qualified key (no per-object field).

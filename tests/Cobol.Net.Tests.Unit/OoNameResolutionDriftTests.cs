@@ -36,9 +36,11 @@ public sealed class OoNameResolutionDriftTests
             (6, "the funnel itself — the scoped Lookup's two, plus the four group-wide defined-anywhere tests "
                 + "that decide WHICH failure message to print"),
         [Path.Combine("Oo", "OoConformance.cs")] =
-            (8, "§9.3.8.2.3 / §14.9.39.3 conformance over the recv/send names of an ALREADY-BUILT "
+            (10, "§9.3.8.2.3 / §14.9.39.3 conformance over the recv/send names of an ALREADY-BUILT "
                 + "ObjectRefDescriptor — scope-checked through this funnel at the data description entry "
-                + "that WROTE them, so these are symbol lookups on a validated name, not references"),
+                + "that WROTE them, so these are symbol lookups on a validated name, not references; plus the "
+                + "two §9.3.8.2.3 rule 9 b)/c) lookups of a RAISING element's class / interface, scope-checked "
+                + "where the procedure division header WROTE it (RaisingPhrase.Partition, kb/Work PB972)"),
         [Path.Combine("Binding", "Procedure", "Verbs", "OoBinder.cs")] =
             (4, "re-lookup of a receiver's/target's declared ObjectClassName (scope-checked at its data "
                 + "description entry, COBOLNET0813)"),
