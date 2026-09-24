@@ -81,6 +81,13 @@ Q3 §8.13 external repository — implement, or document a determination (A.1 66
 this registrar's scripts moved to a private `r14a/` subdirectory. `merge_batch.py` printed "owner-decision excluded:
 7" where six rows were absent from the batch — recorded, not chased.
 
+**CI red, fixed before landing.** The first push (761d326a7, run 35991662728) went red on two Unit drift gates the
+registrar's filtered gate did not include: `FileControlKeyRuleDriftTests` (an adjudicator code-location credited
+SR-12.4.5.2-11/-13 to `FileControlKeyRules.cs#Screen`, which does not screen them — re-sited to `BindFileControl`) and
+`ClosesRowsBackLinkDriftTests` (landed PB829 claimed FMT-13.4.5.2, now DIVERGES — the claim withdrawn, PB1081 owns
+the row). Lesson: a registrar that re-verdicts or re-sites rows gates on the WHOLE Unit assembly, not the three
+inventory filters — every drift test that reads the inventory is a consumer of the batch.
+
 ## Entry 1666 — 2026-09-23 11:21 PDT — Landing train 59: five clusters, ten notes landed, GAP 2037 → 2026
 
 **Landing train 59 carried FIVE clusters and TEN notes to `landed` in one landing** (wave 58: KA, KE, KG, KD, KF), one
