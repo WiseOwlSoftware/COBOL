@@ -117,7 +117,7 @@ if __name__ == '__main__':
             o = overrides[rid]
             rr = dict(r); rr['verdict'] = 'DOCUMENTED-NON-SUPPORT'
             rr['test-ref'] = o['test-ref']
-            rr['notes'] = o['notes'] + ' || adjudicator (NEEDS-OWNER-DECISION before R42): ' + r['notes']
+            rr['notes'] = o['notes'] + ' || adjudicator (NEEDS-OWNER-DECISION before R42): ' + r['notes'] + ' || adjudicator code-location: ' + r.get('code-location', '')
             rr['code-location'] = o.get('code-location', r.get('code-location', ''))
             r42.append(norm(rr, schema, rows, {}))
         elif r['verdict'] == 'NEEDS-OWNER-DECISION':
