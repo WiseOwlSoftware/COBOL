@@ -1,0 +1,16 @@
+# registrar-1 gate — 2026-09-24 22:59 UTC — batch-nondoc + batch-r42 recorded, R42 selector arms, notes PB1523-PB1536
+python scripts/spec/work.py check: ✓ 1473 work items, all well-formed
+dotnet build CobolSharp.sln -c Debug: Build succeeded, 0 errors
+
+## filtered gate: SpecTraceabilityInventory|DefectiveRowCoverage|DerivedVerdict|AnnexA1|WorkRegister
+### before the R42 selector arms (batches applied only):
+  Failed CobolNet.Tests.Unit.AnnexA1RegisterDriftTests.EveryVerdictedDocRow_HasItsRegisterDetermination [1 s]
+Failed!  - Failed:     1, Passed:    49, Skipped:     0, Total:    50, Duration: 3 s - Cobol.Net.Tests.Unit.dll (net10.0)
+   11 A.1 item(s) carry an inventory verdict with no docs/CONFORMANCE.md §7 row: [3, 4, 11, 27, 28, 41, 45, 83, 91, 172, 199] — a DOC row's evidence IS its determination, so the verdict rests on nothing. (An item a declined module withdraws is exempt and is reported by the audit's own `unreachable`; these are not in it.)
+### after (final):
+Passed!  - Failed:     0, Passed:    50, Skipped:     0, Total:    50, Duration: 4 s - Cobol.Net.Tests.Unit.dll (net10.0)
+
+## wider: Unit ~Drift|~Inventory|~Schema|~Derivation
+Passed!  - Failed:     0, Passed: 26586, Skipped:     0, Total: 26586, Duration: 1 m 5 s - Cobol.Net.Tests.Unit.dll (net10.0)
+
+audit_annex_a1 --self-test: ALL GREEN; gen_conformance_notes --check: 15 notes match; work.py parity: no findings

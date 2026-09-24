@@ -357,8 +357,17 @@ public sealed class DerivedVerdictDriftTests
         // SR-12.3.7.3-2's CONTENT is what it FORBIDS — every clause other than CURSOR and CRT STATUS — which
         // survives entirely. It is the one §12.3.7.3 rule the operand arm must NOT take.
         Assert.DoesNotContain("SR-12.3.7.3-2", ids);
-        // The Annex A.1 screen obligations are dispositioned by CONFORMANCE.md §7, not here.
-        Assert.DoesNotContain("DOC-A.1-11", ids);
+        // The Annex A.1 arms — owner decision R42 (2026-09-24): an A.1 item of the DECLINED screen module is
+        // withdrawn by A.1's preamble, exactly as A.4.8's items 84/85/173 are. Ten items, by two arms: the
+        // cross-reference into a declined clause, and the SCREEN FORMAT of a shared statement.
+        foreach (string id in (string[])["DOC-A.1-3", "DOC-A.1-4", "DOC-A.1-11", "DOC-A.1-27", "DOC-A.1-41",
+                                         "DOC-A.1-45", "DOC-A.1-83", "DOC-A.1-91", "DOC-A.1-172", "DOC-A.1-199"])
+            Assert.Contains(id, ids);
+        // ⛔ ACCEPT's DEVICE and temporal formats are claimed and share §14.9.1 with the screen format: their A.1
+        // items (conversion, transfer size, …) must never be withdrawn. If one appears, the screen-format arm
+        // lost its `pattern` and is keying on the bare cross-reference.
+        foreach (string id in (string[])["DOC-A.1-1", "DOC-A.1-2", "DOC-A.1-5", "DOC-A.1-111"])
+            Assert.DoesNotContain(id, ids);
         // And the clause arm must not have widened past its own paths (the dotless collision).
         Assert.DoesNotContain("GR-13.18.40.4-1", ids);   // PICTURE, inside "13.18.4" only under a raw prefix
         Assert.DoesNotContain("SR-13.18.30.3-1", ids);   // HIGHLIGHT SR1 is real; §13.18.30 is not §13.18.3
@@ -393,8 +402,11 @@ public sealed class DerivedVerdictDriftTests
         // ⛔ AND THE SCOPE STOPS AT THE MODULE'S OWN CLAUSES. These name APPLY COMMIT only as an antecedent; with
         // the module absent they are VACUOUSLY SATISFIED, which is not the same fact as unsupported, and their
         // verdicts speak about UNLOCK / sharing / LOCK MODE — facilities A.4.7 CLAIMS.
-        foreach (string id in (string[])["SR-14.9.47.3-2", "GR-9.1.15-3", "SR-12.4.5.9.3-1", "DOC-A.1-28"])
+        foreach (string id in (string[])["SR-14.9.47.3-2", "GR-9.1.15-3", "SR-12.4.5.9.3-1"])
             Assert.DoesNotContain(id, ids);
+        // ⚖ DOC-A.1-28's SUBJECT is the module itself ("Commit and rollback (interaction with other facilities and
+        // languages)", §9.1.18), so owner decision R42 (2026-09-24) withdraws it through the Annex A.1 arm.
+        Assert.Contains("DOC-A.1-28", ids);
     }
 
     [Fact]
