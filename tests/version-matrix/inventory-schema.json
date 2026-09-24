@@ -270,14 +270,18 @@
         "restricts a factory/instance SPECIAL-NAMES to CURSOR and CRT STATUS, so its CONTENT is what it FORBIDS —",
         "every other clause — which survives entirely.",
         "",
-        "The nine Annex A.1 rows whose obligations are screen-conditioned are NOT stamped here. That is a scope",
-        "call, not a principle: A.1's own preamble does make them unreachable ('When the element is part of a",
-        "feature that is optional or processor-dependent, the item is not required if the … feature is not",
-        "implemented', --check OK), but they are dispositioned by CONFORMANCE.md §7 and audit_annex_a1.py, and A.4.2",
-        "has no §7 pass yet. (A.4.8's three DOC rows ARE stamped, because their §7 obligations cite nothing but two",
-        "declined clauses; audit_annex_a1.py was taught the A.1-preamble exclusion in the same change set so the",
-        "two registers cannot disagree.) ⚠ The earlier rationale — 'held out by the boilerplate exclusion' — was",
-        "wrong twice: it held only five of the nine, and rule 8 does not forbid it.",
+        "THE ANNEX A.1 ARMS (owner decision R42, 2026-09-24): 'every A.1 item that belongs to a DECLINED module",
+        "(screen handling A.4.2, commit/rollback A.4.3 - docs/CONFORMANCE.md section 5 Not claimed) closes as",
+        "DOCUMENTED-NON-SUPPORT, the same withdrawal ground as DOC-A.1-84/85/86/173'. The ground is A.1's own",
+        "preamble ('When the element is part of a feature that is optional or processor-dependent, the item is not",
+        "required if the optional or processor-dependent feature is not implemented', --check OK). Two arms, both",
+        "`kinds: [DOC]`: an item whose cross-reference cites one of the clause arm's sections (A.1 items 11, 27,",
+        "41, 45, 83, 91, 172, 199), and an item on the SCREEN FORMAT of a shared statement (items 3 and 4 cite",
+        "§14.9.1, which ACCEPT's supported device formats share — so the arm also requires the item's own words",
+        "'screen format', and items 1, 2, 5 and 111 stay out). The TEXT arm now excludes kind DOC by kind instead",
+        "of by the boilerplate pattern 'This item is (required|optional).', which is what held every A.1 row out",
+        "before R42. audit_annex_a1.py derives its `unreachable` set from these selectors, so the §7 counter and",
+        "the inventory give one answer per item with no edit there.",
         "",
         "MEASURED 2026-09-02: 156 of 4,311 rules (110 by clause, 97 by text, 3 by the §12.3.7 operand arm, 6 by the",
         "COLUMN/LINE operand arm; the arms overlap). 149 are blank and 7 already carry DOCUMENTED-NON-SUPPORT, so",
@@ -314,7 +318,8 @@
           "$arm": "text — screen vocabulary inside a SHARED clause; never a general format",
           "pattern": "screen[- ](?:item|record|name|section|description|attribute)|ACCEPT screen|DISPLAY screen|EC-SCREEN|CRT[ -]?STATUS|CURSOR clause|terminal screen|\\b(?:HIGHLIGHT|LOWLIGHT|REVERSE-VIDEO|BLINK|FOREGROUND-COLOR|BACKGROUND-COLOR)\\b",
           "excludes-kinds": [
-            "FMT"
+            "FMT",
+            "DOC"
           ]
         },
         {
@@ -331,6 +336,46 @@
             "13.18.35.3"
           ],
           "pattern": "\\bMINUS\\b|\\bidentifier-1\\b"
+        },
+        {
+          "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO a declined A.4.2 clause is withdrawn by A.1's preamble; keyed on the clause arm, like format-select-when-only's",
+          "xref-sections": [
+            "9.2",
+            "13.9",
+            "13.17",
+            "13.18.3",
+            "13.18.4",
+            "13.18.6",
+            "13.18.7",
+            "13.18.9",
+            "13.18.21",
+            "13.18.23",
+            "13.18.25",
+            "13.18.26",
+            "13.18.30",
+            "13.18.36",
+            "13.18.47",
+            "13.18.48",
+            "13.18.50",
+            "13.18.56",
+            "13.18.59",
+            "13.18.61"
+          ],
+          "kinds": [
+            "DOC"
+          ]
+        },
+        {
+          "$arm": "Annex A.1 — owner decision R42: an obligation on the SCREEN FORMAT of a shared statement (ACCEPT §14.9.1 format 3, DISPLAY §14.9.11 format 2, SET §14.9.39 ATTRIBUTE); the item's own text names the format, so the device formats' items stay out",
+          "xref-sections": [
+            "14.9.1",
+            "14.9.11",
+            "14.9.39"
+          ],
+          "pattern": "\\bscreen format\\b",
+          "kinds": [
+            "DOC"
+          ]
         }
       ],
       "excludes-patterns": [
@@ -338,8 +383,7 @@
         "data description entry|data description or screen description|data, report, or screen",
         "\\bREDEFINES clause\\b",
         "LOCAL-STORAGE, SCREEN, and WORKING-STORAGE",
-        "the only clauses that may be specified",
-        "This item is (?:required|optional)\\."
+        "the only clauses that may be specified"
       ]
     },
     "commit-and-rollback-only": {
@@ -359,7 +403,7 @@
         "APPLY COMMIT only as an antecedent — LOCK MODE (SR-12.4.5.9.3-1), SAME (SR-12.4.6.4.3-11,",
         "GR-12.4.6.4.4-3), sharing mode (GR-9.1.15-3), CLOSE (GR-14.9.6.4-9), DELETE (GR-14.9.10.4-7/-15), OPEN",
         "(SR-14.9.27.3-7/-8, GR-14.9.27.4-6), READ (SR-14.9.30.3-5), REWRITE (SR-14.9.35.3-5), UNLOCK",
-        "(SR-14.9.47.3-2), fatal-exception handling (GR-14.6.13.1.3-8) and DOC-A.1-28. Seven of them have no",
+        "(SR-14.9.47.3-2) and fatal-exception handling (GR-14.6.13.1.3-8). Seven of them have no",
         "surviving content — their antecedents are simply unsatisfiable — so 'content survives' is NOT the ground",
         "for those; the ground is that each one's verdict field speaks about CLOSE / OPEN / READ / REWRITE / UNLOCK",
         "/ LOCK MODE / SAME, facilities A.4.7 CLAIMS, and §4.2.7 discharges non-support through user documentation",
@@ -404,6 +448,11 @@
         "<pre> block. Had it been extracted, the proxy would have stamped COMMIT's format and left ROLLBACK's alone",
         "— a split decided by transcription markup.",
         "",
+        "⚖ DOC-A.1-28 ('Commit and rollback (interaction with other facilities and languages)', cross-reference",
+        "§9.1.18) used to be listed with those antecedent rules. Owner decision R42 (2026-09-24) withdraws it: its",
+        "subject IS the declined module, so the A.1 preamble applies ('the item is not required if the optional …",
+        "feature is not implemented') — the Annex A.1 arm below, keyed on the module's own sections.",
+        "",
         "MEASURED 2026-09-02: 25 selected of 4,311 (20 by clause only, 1 by text only, 4 by both). 22 are blank; the",
         "other 3 (GR-14.9.7.4-3/-4/-5) ALREADY carry DOCUMENTED-NON-SUPPORT from the 2026-08-31 registration wave,",
         "so the selector changes ZERO rows carrying a different verdict — agreement with three hand-adjudicated",
@@ -424,6 +473,18 @@
         {
           "$arm": "text — the facility's own functionality stated inside a mandatory clause; note the PLURAL",
           "pattern": "active APPLY COMMIT clauses\\b"
+        },
+        {
+          "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO the declined module (§9.1.18 Commit and rollback, or its three clauses) is withdrawn by A.1's preamble",
+          "xref-sections": [
+            "9.1.18",
+            "12.4.6.3",
+            "14.9.7",
+            "14.9.36"
+          ],
+          "kinds": [
+            "DOC"
+          ]
         }
       ],
       "excludes-patterns": [

@@ -1,0 +1,11 @@
+records        : 11 across 1 batch file(s)
+rows changed   : 11
+witnesses      : +13 test-ref, +22 code-location added; 0 retired, 0 re-sited
+    DOCUMENTED-NON-SUPPORT      11 — 11 closed the GAP, 0 still test-needed
+
+GAP            : 1663 → 1652  (+11 closed of 4348)
+
+wrote tests/version-matrix/traceability-inventory.json
+⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:
+    python scripts/filter_population.py --filter "FullyQualifiedName~SpecTraceabilityInventory" --filtered tests/Cobol.Net.Tests.Unit --allow-build
+    dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"
