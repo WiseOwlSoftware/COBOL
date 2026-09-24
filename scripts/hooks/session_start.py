@@ -28,7 +28,11 @@ def init_cloud_submodules() -> str:
             capture_output=True, text=True, encoding="utf-8", errors="replace",
             timeout=180, cwd=str(REPO),
         )
-        status = "ok" if r.returncode == 0 else f"FAILED (exit {r.returncode}): {(r.stderr or r.stdout).strip()}"
+        status = "ok" if r.returncode == 0 else (
+            f"FAILED (exit {r.returncode}): {(r.stderr or r.stdout).strip()}\n"
+            "FIX: the cloud GitHub proxy only serves repositories attached to the session — attach "
+            "BrentRector/CobolSharp-private to this session (or the routine's sources), then re-run "
+            "`git submodule update --init --recursive --depth 1`.")
     except Exception as exc:  # noqa: BLE001 - a hook must never break the session
         status = f"FAILED: {exc}"
     return f"cloud session: git submodule update --init → {status}\n\n"

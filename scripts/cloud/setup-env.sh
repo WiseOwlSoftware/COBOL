@@ -10,12 +10,16 @@
 # managers") PLUS:
 #     builds.dotnet.microsoft.com   (dotnet-install.sh downloads the SDK from here)
 #     ftp.gnu.org                   (scripts/fetch-gnucobol-tests.ps1 — the GnuCOBOL 3.2 differential corpus)
-# GitHub (the repo AND the private specs-private submodule) goes through the separate GitHub proxy regardless.
+# GitHub (the repo AND the private specs-private submodule) goes through the separate GitHub proxy regardless — but
+# that proxy only authorizes repositories ATTACHED TO THE SESSION: every cloud session (and every routine's
+# job_config sources) must attach BOTH BrentRector/CobolSharp AND BrentRector/CobolSharp-private, or the submodule
+# clone fails with "could not read Username … terminal prompts disabled".
 #
 # What the VM lacks that this repo needs (everything else — git, python3, java 21 for ANTLR — is pre-installed):
 #   * .NET 10 SDK — global.json pins 10.0.100 (rollForward latestMinor); CI uses setup-dotnet 10.0.x
 #   * pwsh        — the Frontend's ANTLR generation, session-probe.ps1, fetch-gnucobol-tests.ps1
-#   * `python`    — every hook and doc command spells it `python`, not `python3`
+#   * `python`    — the LATEST CPython (3.14, the owner's standard 2026-09-24, same as the dev box); every hook and
+#                   doc command spells it `python`, and the scripts need >= 3.12 (PEP 701 f-strings)
 # The specs-private submodule is NOT fetched here: the repo is cloned per session, so the SessionStart hook
 # (scripts/hooks/session_start.py) initializes it on every cloud session.
 #
@@ -26,10 +30,8 @@ log() { echo "[setup-env] $*"; }
 
 DOTNET_DIR=/usr/share/dotnet
 
-# ── python → python3, in parallel with the SDK download ──────────────────────────────────────────────────────────
-( export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq && apt-get install -y -qq python-is-python3 >/dev/null && log "python-is-python3 ok" \
-    || log "WARN: python-is-python3 install failed" ) &
+# ── apt index refresh, in parallel with the SDK download (the dotnet apt fallback needs it) ──────────────────────
+( export DEBIAN_FRONTEND=noninteractive; apt-get update -qq || log "WARN: apt-get update failed" ) &
 APT_PID=$!
 
 # ── .NET 10 SDK: dotnet-install.sh (latest 10.0 = what CI's setup-dotnet 10.0.x resolves), apt as the fallback ──
@@ -51,6 +53,29 @@ install_dotnet() {
 }
 install_dotnet || true
 wait "$APT_PID" 2>/dev/null || true
+
+# ── python = the latest CPython 3.14. Ubuntu 24.04 packages stop at 3.12, and the image's own /usr/local/bin/python{,3}
+#    → python3.11 sits AHEAD of /usr/bin on PATH (the first smoke session, 2026-09-24, failed 3 Unit tests on it: the
+#    scripts use PEP 701 f-strings). uv comes from PyPI (default allowlist) and installs a standalone CPython 3.14;
+#    fallback = the newest /usr/bin/python3.N with N >= 12. Both names in /usr/local/bin point at the result, and the
+#    repo's only third-party imports (PyMuPDF for the spec renderers, fontTools) go into it. ─────────────────────────
+PYVER=3.14
+PY=""
+if python3 -m pip install -q --break-system-packages --root-user-action=ignore uv >/tmp/uv-install.log 2>&1 \
+   && UV_PYTHON_INSTALL_DIR=/opt/uv-python python3 -m uv python install "$PYVER" >>/tmp/uv-install.log 2>&1; then
+  PY=$(UV_PYTHON_INSTALL_DIR=/opt/uv-python python3 -m uv python find --managed-python "$PYVER" 2>/dev/null)
+fi
+if [ -z "$PY" ]; then
+  log "WARN: uv could not install CPython $PYVER (tail below); falling back to the newest system python3.12+"
+  tail -5 /tmp/uv-install.log 2>/dev/null
+  PY=$(ls /usr/bin/python3.[0-9]* 2>/dev/null | grep -E '/python3\.[0-9]+$' | sort -t. -k2 -n | tail -1)
+  [ -n "$PY" ] && [ "${PY##*.}" -ge 12 ] || { log "WARN: no python3.12+ found (${PY:-none})"; PY=""; }
+fi
+if [ -n "$PY" ]; then
+  ln -sf "$PY" /usr/local/bin/python && ln -sf "$PY" /usr/local/bin/python3 && log "python -> $PY"
+  python -m pip install -q --break-system-packages --root-user-action=ignore PyMuPDF fonttools >/tmp/pip-deps.log 2>&1 \
+    && log "PyMuPDF + fontTools ok" || { log "WARN: pip deps failed"; tail -5 /tmp/pip-deps.log; }
+fi
 
 cat > /etc/profile.d/dotnet.sh <<EOF
 export DOTNET_ROOT=$DOTNET_DIR
