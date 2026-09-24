@@ -368,7 +368,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     }
 
     /// <summary><c>INVOKE identifier-1 "method" …</c>: virtual dispatch through a TYPED object reference; the
-    /// method resolves over the declared class's hierarchy at COMPILE time (§14.9.23.3 SR4d — for the typed
+    /// method resolves over the declared class's hierarchy at COMPILE time (§14.9.23.3 SR4 a)/b) — for the typed
     /// path a lookup failure is a compile-time diagnostic, the static analog of EC-OO-METHOD, GR7b).</summary>
     private BoundStatement OoBindInstanceInvoke(InvocationSite site, Place receiver, string method)
     {
@@ -425,7 +425,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                 $"INVOKE '{receiver.Item.CobolName}' \"{method}\": class '{cls.Name}' (and its inheritance "
                 + $"chain) does not define {(rdesc.Factory ? "a factory" : "an instance")} method named '"
-                + method + "' (ISO §14.9.23.3 SR4d — compile-time "
+                + method + $"' (ISO §14.9.23.3 SR4 {(rdesc.Factory ? "a)" : "b)")} — compile-time "
                 + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
         }
         var bound = OoBindResolvedInvoke(site, m, InvokeForm.Instance, receiver);

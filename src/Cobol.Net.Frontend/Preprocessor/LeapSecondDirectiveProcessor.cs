@@ -16,7 +16,7 @@ namespace CobolNet.Frontend.Preprocessor;
 /// answered 0 (and killed the run unit under EC-ARGUMENT-FUNCTION checking) where §15.79.4 requires 86,400.
 /// <para>The reported side of the directive — whether a value greater than 59 is REPORTED in the seconds position
 /// of ACCEPT … FROM TIME / CURRENT-DATE / FORMATTED-CURRENT-DATE / WHEN-COMPILED, and whether SECONDS-PAST-MIDNIGHT
-/// may return ≥ 86,400 (GR2, GR4) — is implementor-defined and answered "never" (docs/CONFORMANCE.md A.1 item 112:
+/// may return ≥ 86,400 (GR2, GR4) — is implementor-defined and answered "never" (docs/CONFORMANCE.md A.1 items 111 and 112:
 /// the .NET clock has no leap seconds), so ON changes only what the program may PRESENT as an argument.</para>
 /// <para>Line-count preserving (the &gt;&gt;TURN H3 discipline): the directive line is blanked, never deleted.
 /// §7.3.17.3 SR1 — the directive "shall not be specified within a compilation unit": one after the first unit's

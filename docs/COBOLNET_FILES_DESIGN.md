@@ -753,7 +753,8 @@ element that runs the statement — a) *"in the source unit that specifies the O
 per-element nor per-activation. An EXTERNAL file connector is ONE object per run unit shared by every describing
 element (§13.18.22.4 GR4 a), whose entries §12.4.5.3 GR1 b) requires only to be CONSISTENT — unlike GR1 i), which
 makes FILE STATUS *the same* external item — so two programs may legally hold separate storage for data-name-1
-(COBOL.NET's GR1 b) consistency rule is textual sameness of the clause: `docs/CONFORMANCE.md` §7, `DOC-A.1-72`). A
+(COBOL.NET's GR1 b) consistency rule compares the ASSIGN operand text — device class dropped, a literal by its value,
+case ignored, no host-path mapping — and the USING data-name-1 by spelling: `docs/CONFORMANCE.md` §7, `DOC-A.1-72`). A
 RECURSIVE non-INITIAL unit's internal connector is unit-scoped last-used state across activations (§8.6.4,
 §14.6.2.3.3) while its LOCAL-STORAGE is per-activation. An installed closure therefore answers with whichever
 element/activation installed it LAST, which is the executing one only by accident: the earlier
