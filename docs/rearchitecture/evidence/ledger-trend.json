@@ -721,6 +721,15 @@
       "dns": 370,
       "label": "Registrar 15d: batch 15d rec",
       "battery": null
+    },
+    {
+      "sha": "5b51fbb9",
+      "date": "2026-09-24",
+      "gap": 1652,
+      "closed": 2696,
+      "dns": 381,
+      "label": "Cloud registrar-1: every inv",
+      "battery": null
     }
   ]
 }
