@@ -15,7 +15,7 @@
 > future-additive with its OWN private structure→branch lowering — NO shared lowered IR); numerics are native scaled
 > `long`/`Int128` (+ IEEE `float`/`double` for COMP-1/2; no `decimal`/`BigInteger`); the legacy `CobolSharp.*` engine
 > survives in `src/` ONLY as a
-> differential oracle until cut-over (G8). The ISO spec is the submodule **`specs/ISO_COBOL.md`** (authoritative — the
+> differential oracle until cut-over (G8). The ISO spec is **`specs/ISO_COBOL.md`**, tracked in this repo (authoritative — the
 > extracted excerpts were removed as redundant).
 
 **Type legend:** **LIVE** = binding, keep current · **DESIGN** = target design (banner shows real status) ·
@@ -157,7 +157,7 @@
 
 > **Not authoritative.** A cross-linked Obsidian "second brain" derived (paraphrased) from `docs/*` + the source. The
 > docs above remain the SSOT — **the doc wins on any conflict**. Contains **no verbatim ISO text** (that stays in the
-> `specs/ISO_COBOL.md` submodule). The notes are tracked; Obsidian's volatile `.obsidian/` state is gitignored.
+> `specs/ISO_COBOL.md`). The notes are tracked; Obsidian's volatile `.obsidian/` state is gitignored.
 
 | Path | Type | Subject |
 |---|---|---|

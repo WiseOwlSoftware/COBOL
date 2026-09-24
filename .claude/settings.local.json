@@ -46,7 +46,6 @@
       "Bash(grep -rn 'REPLACE ON' /E/CobolSharp/src --include=*.cs --include=*.g4)",
       "Bash(grep -o \"^[a-zA-Z]*Statement\" /E/CobolSharp/src/CobolSharp.Compiler/Grammar/Core/*.g4)",
       "Bash(sed 's/:$//')",
-      "Bash(grep \"^[a-zA-Z]*Statement$\" /E/CobolSharp/src/CobolSharp.Compiler/Grammar/CobolParserCore.g4)",
       "Bash(sed 's/[0-9]*[AM]\\\\.cob//')",
       "Bash(xargs -I {} basename {} .cob)",
       "Bash(sed 's/[0-9]*[AM]$//')",

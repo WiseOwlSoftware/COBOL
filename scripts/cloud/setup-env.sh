@@ -11,9 +11,11 @@
 #     builds.dotnet.microsoft.com   (dotnet-install.sh downloads the SDK from here)
 #     ftp.gnu.org                   (scripts/fetch-gnucobol-tests.ps1 — the GnuCOBOL 3.2 differential corpus)
 # GitHub (the repo AND the private specs-private submodule) goes through the separate GitHub proxy regardless — but
-# that proxy only authorizes repositories ATTACHED TO THE SESSION: every cloud session (and every routine's
-# job_config sources) must attach BOTH BrentRector/CobolSharp AND BrentRector/CobolSharp-private, or the submodule
-# clone fails with "could not read Username … terminal prompts disabled".
+# that proxy only authorizes repositories ATTACHED TO THE SESSION, so the specs-private submodule (the licensed PDF,
+# needed only by render-spec-page.py and the figure audits — specs/ISO_COBOL.md and cite.py are in the main repo)
+# clones only when BrentRector/CobolSharp-private is attached too; otherwise "could not read Username … terminal
+# prompts disabled". `claude --cloud` attaches ONE repository; the claude.ai/code page attaches both ("+" beside the
+# repo chip, or the link https://claude.ai/code?repositories=BrentRector/CobolSharp,BrentRector/CobolSharp-private).
 #
 # What the VM lacks that this repo needs (everything else — git, python3, java 21 for ANTLR — is pre-installed):
 #   * .NET 10 SDK — global.json pins 10.0.100 (rollForward latestMinor); CI uses setup-dotnet 10.0.x
@@ -23,7 +25,7 @@
 # Per-CLONE work (the specs-private submodule, the git-ignored GnuCOBOL corpus under tests/external/) is NOT done
 # here: this script's result is SNAPSHOTTED and reused while the repo is cloned fresh per session, so the
 # SessionStart hook (scripts/hooks/session_start.py) does it on every cloud session. What this script owns is making
-# that hook RUN: with two repositories attached (CobolSharp + CobolSharp-private, both required — see above) Claude
+# that hook RUN: with two repositories attached (CobolSharp + CobolSharp-private — see above) Claude
 # Code starts in their PARENT, /home/user, so the repo's .claude/settings.json never loads and no hook fires (cloud
 # smoke #2, 2026-09-24: "Found 0 total hooks in registry"). The user-level SessionStart hook installed below closes
 # that gap, and the corpus tarball is pre-cached here so the hook's per-clone fetch is a local copy.

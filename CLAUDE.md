@@ -93,7 +93,8 @@ comprehensive pass once the design settles (`PROMPT.md` §4).
 - **History:** `DEVLOG.md`, and nowhere else. **Doctrine:** `PROMPT.md`.
 - **Doc map:** `docs/DOC_INDEX.md` — consult it to find the right doc and keep it in sync. Exactly one canonical
   doc per subsystem: extend it, never fork a second.
-- **Spec:** `specs/ISO_COBOL.md` (private submodule — `git submodule update --init --recursive`).
+- **Spec:** `specs/ISO_COBOL.md` (tracked in this repo). The licensed PDF is the private submodule `specs-private`
+  (`git submodule update --init --recursive`) — needed only to render a page (`scripts/render-spec-page.py`).
 
 ## Testing
 Per commit, run only the WAVE-LOCAL filtered gate (~2 min). Run the FULL Conformance suite plus the GnuCOBOL
