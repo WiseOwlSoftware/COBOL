@@ -1,0 +1,58 @@
+# DOC trial gate — batch-doc.json (126 DOC-A.1 records) applied for real, then RESTORED (kb/Work PB1522 registrar-1 step 2)
+# 2026-09-24 22:41 UTC on 644a7d0 + batch-doc applied; dotnet build CobolSharp.sln -c Debug = Build succeeded (0 warnings, 0 errors)
+# record_verdicts: GAP 1664 -> 1653 (+11 closed); histogram DIVERGES 76 / PARTIAL 26 / CONFORMS 14 (11 closed, 3 test-needed) / NOT-IMPLEMENTED 10
+# filter: FullyQualifiedName~SpecTraceabilityInventory|~DefectiveRowCoverage|~DerivedVerdict|~AnnexA1|~WorkRegister
+
+  Failed CobolNet.Tests.Unit.DefectiveRowCoverageDriftTests.EveryDefectiveRow_IsClaimedByALiveWorkNote [733 ms]
+  Failed CobolNet.Tests.Unit.AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names [1 s]
+  Failed CobolNet.Tests.Unit.SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree [603 ms]
+  Failed CobolNet.Tests.Unit.AnnexA1RegisterDriftTests.EveryVerdictedDocRow_HasItsRegisterDetermination [1 s]
+Failed!  - Failed:     4, Passed:    46, Skipped:     0, Total:    50, Duration: 4 s - Cobol.Net.Tests.Unit.dll (net10.0)
+
+count of "is no longer in that file" failures (EveryCodeLocation_ResolvesInTheTree header): 122 unresolved code-location
+every one is the computed anchor docs/CONFORMANCE.md#DOC-A.1-N of a DOC row whose item has no §7 row:
+DOC-A.1-6: code-location 'docs/CONFORMANCE.md#DOC-A.1-6' — 'DOC-A.1-6' is no longer in that file
+DOC-A.1-7: code-location 'docs/CONFORMANCE.md#DOC-A.1-7' — 'DOC-A.1-7' is no longer in that file
+DOC-A.1-8: code-location 'docs/CONFORMANCE.md#DOC-A.1-8' — 'DOC-A.1-8' is no longer in that file
+DOC-A.1-9: code-location 'docs/CONFORMANCE.md#DOC-A.1-9' — 'DOC-A.1-9' is no longer in that file
+DOC-A.1-12: code-location 'docs/CONFORMANCE.md#DOC-A.1-12' — 'DOC-A.1-12' is no longer in that file
+DOC-A.1-13: code-location 'docs/CONFORMANCE.md#DOC-A.1-13' — 'DOC-A.1-13' is no longer in that file
+DOC-A.1-14: code-location 'docs/CONFORMANCE.md#DOC-A.1-14' — 'DOC-A.1-14' is no longer in that file
+DOC-A.1-15: code-location 'docs/CONFORMANCE.md#DOC-A.1-15' — 'DOC-A.1-15' is no longer in that file
+DOC-A.1-16: code-location 'docs/CONFORMANCE.md#DOC-A.1-16' — 'DOC-A.1-16' is no longer in that file
+DOC-A.1-17: code-location 'docs/CONFORMANCE.md#DOC-A.1-17' — 'DOC-A.1-17' is no longer in that file
+DOC-A.1-20: code-location 'docs/CONFORMANCE.md#DOC-A.1-20' — 'DOC-A.1-20' is no longer in that file
+DOC-A.1-21: code-location 'docs/CONFORMANCE.md#DOC-A.1-21' — 'DOC-A.1-21' is no longer in that file
+DOC-A.1-23: code-location 'docs/CONFORMANCE.md#DOC-A.1-23' — 'DOC-A.1-23' is no longer in that file
+DOC-A.1-25: code-location 'docs/CONFORMANCE.md#DOC-A.1-25' — 'DOC-A.1-25' is no longer in that file
+DOC-A.1-26: code-location 'docs/CONFORMANCE.md#DOC-A.1-26' — 'DOC-A.1-26' is no longer in that file
+DOC-A.1-29: code-location 'docs/CONFORMANCE.md#DOC-A.1-29' — 'DOC-A.1-29' is no longer in that file
+DOC-A.1-30: code-location 'docs/CONFORMANCE.md#DOC-A.1-30' — 'DOC-A.1-30' is no longer in that file
+DOC-A.1-31: code-location 'docs/CONFORMANCE.md#DOC-A.1-31' — 'DOC-A.1-31' is no longer in that file
+DOC-A.1-32: code-location 'docs/CONFORMANCE.md#DOC-A.1-32' — 'DOC-A.1-32' is no longer in that file
+DOC-A.1-34: code-location 'docs/CONFORMANCE.md#DOC-A.1-34' — 'DOC-A.1-34' is no longer in that file
+
+## the other three reds (headers + first lines)
+   111 defective row(s) with no live work note (of 4348 examined):
+-
+   14 Annex A.1 register finding(s):
+-
+   122 unresolved code-location(s) over 4348 inventory row(s):
+-
+   122 A.1 item(s) carry an inventory verdict with no docs/CONFORMANCE.md §7 row: [6, 7, 8, 9, 12, 13, 14, 15, 16, 17, 20, 21, 23, 25, 26, 29, 30, 31, 32, 34] — a DOC row's evidence IS its determination, so the verdict rests on nothing. (An item a declined module withdraws is exempt and is reported by the audit's own `unreachable`; these are not in it.)
+   14 Annex A.1 register finding(s):
+  inventory DOC-A.1-35 closes on ['conformance:2002/pb64t5_case_locale_phrase', 'conformance:2023/pb8_refmod_function_result', 'conformance:2023/pb10_function_identifier_sending'] but CONFORMANCE.md §7 carries no row for item 35
+  inventory DOC-A.1-94 closes on ['conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode'] but CONFORMANCE.md §7 carries no row for item 94
+  inventory DOC-A.1-104 closes on ['conformance:2023/pb317_open_no_rewind'] but CONFORMANCE.md §7 carries no row for item 104
+  inventory DOC-A.1-118 closes on ['unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist', 'unit:LocaleStateTests.Activation_CopiesTheUserDefault_IntoEveryCategory_AndALaterUserDefaultChangeDoesNotMoveThem', 'conformance:2002/pb64t1_set_locale_categories'] but CONFORMANCE.md §7 c
+  inventory DOC-A.1-119 closes on ['conformance:2002/pb64t1_set_locale_categories', 'conformance:2014/pb64t4_locale_functions', 'unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist'] but CONFORMANCE.md §7 carries no row for item 119
+  inventory DOC-A.1-125 closes on ['conformance:2002/pb557_pointer_class_initial_value_is_null', 'conformance:2023/pb452_function_address_runtime'] but CONFORMANCE.md §7 carries no row for item 125
+  inventory DOC-A.1-138 closes on ['conformance:2002/pb759_parameterized_class'] but CONFORMANCE.md §7 carries no row for item 138
+  inventory DOC-A.1-154 closes on ['unit:CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53'] but CONFORMANCE.md §7 carries no row for item 154
+  inventory DOC-A.1-155 closes on ['unit:CobolFileLockTests.ConnectorLockLimit_16thRecord_Is54'] but CONFORMANCE.md §7 carries no row for item 155
+  inventory DOC-A.1-170 closes on ['conformance:85/pb447_search_all_index_stays_in_table'] but CONFORMANCE.md §7 carries no row for item 170
+  inventory DOC-A.1-192 closes on ['conformance-test:StopGobackExitCodeTests.NonNumericStatusOperand_IsLegalAndInterpretedNumerically'] but CONFORMANCE.md §7 carries no row for item 192
+  inventory DOC-A.1-193 closes on ['conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode'] but CONFORMANCE.md §7 carries no row for item 193
+  inventory DOC-A.1-194 closes on ['conformance:85/pb215_index_windows'] but CONFORMANCE.md §7 carries no row for item 194
+  inventory DOC-A.1-201 closes on ['conformance:2002/pb759_parameterized_class'] but CONFORMANCE.md §7 carries no row for item 201
+  Stack Trace:
