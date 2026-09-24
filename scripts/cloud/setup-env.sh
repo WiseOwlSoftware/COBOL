@@ -20,8 +20,13 @@
 #   * pwsh        — the Frontend's ANTLR generation, session-probe.ps1, fetch-gnucobol-tests.ps1
 #   * `python`    — the LATEST CPython (3.14, the owner's standard 2026-09-24, same as the dev box); every hook and
 #                   doc command spells it `python`, and the scripts need >= 3.12 (PEP 701 f-strings)
-# The specs-private submodule is NOT fetched here: the repo is cloned per session, so the SessionStart hook
-# (scripts/hooks/session_start.py) initializes it on every cloud session.
+# Per-CLONE work (the specs-private submodule, the git-ignored GnuCOBOL corpus under tests/external/) is NOT done
+# here: this script's result is SNAPSHOTTED and reused while the repo is cloned fresh per session, so the
+# SessionStart hook (scripts/hooks/session_start.py) does it on every cloud session. What this script owns is making
+# that hook RUN: with two repositories attached (CobolSharp + CobolSharp-private, both required — see above) Claude
+# Code starts in their PARENT, /home/user, so the repo's .claude/settings.json never loads and no hook fires (cloud
+# smoke #2, 2026-09-24: "Found 0 total hooks in registry"). The user-level SessionStart hook installed below closes
+# that gap, and the corpus tarball is pre-cached here so the hook's per-clone fetch is a local copy.
 #
 # Constraints: must exit 0 (non-zero fails the session start) and finish in ~5 minutes.
 set -uo pipefail
@@ -73,7 +78,8 @@ if [ -z "$PY" ]; then
 fi
 if [ -n "$PY" ]; then
   ln -sf "$PY" /usr/local/bin/python && ln -sf "$PY" /usr/local/bin/python3 && log "python -> $PY"
-  python -m pip install -q --break-system-packages --root-user-action=ignore PyMuPDF fonttools >/tmp/pip-deps.log 2>&1 \
+  python -m pip install -q --break-system-packages --root-user-action=ignore --no-warn-script-location \
+      PyMuPDF fonttools >/tmp/pip-deps.log 2>&1 \
     && log "PyMuPDF + fontTools ok" || { log "WARN: pip deps failed"; tail -5 /tmp/pip-deps.log; }
 fi
 
@@ -92,6 +98,47 @@ if command -v dotnet >/dev/null; then
     && ln -sf /usr/local/share/dotnet-tools/pwsh /usr/local/bin/pwsh && log "pwsh ok" \
     || { log "WARN: pwsh install failed"; tail -5 /tmp/pwsh-install.log; }
 fi
+
+# ── the GnuCOBOL 3.2 corpus tarball, pre-cached (pinned: the same URL + SHA-256 as scripts/fetch-gnucobol-tests.ps1,
+#    which the hook runs per clone after copying this file into tests/external/ — the fetch then skips the download).
+#    GPL-3.0 test text: cached OUTSIDE the repo, never committed (the fetch script's licensing posture). ──────────
+CACHE_DIR=/opt/cobolsharp-cache
+GNUCOBOL_TGZ=gnucobol-3.2.tar.xz
+GNUCOBOL_SHA=3bb48af46ced4779facf41fdc2ee60e4ccb86eaa99d010b36685315df39c2ee2
+mkdir -p "$CACHE_DIR"
+if curl -fsSL "https://ftp.gnu.org/gnu/gnucobol/$GNUCOBOL_TGZ" -o "$CACHE_DIR/$GNUCOBOL_TGZ.part" \
+   && echo "$GNUCOBOL_SHA  $CACHE_DIR/$GNUCOBOL_TGZ.part" | sha256sum -c --quiet; then
+  mv "$CACHE_DIR/$GNUCOBOL_TGZ.part" "$CACHE_DIR/$GNUCOBOL_TGZ" && log "GnuCOBOL corpus tarball cached"
+else
+  rm -f "$CACHE_DIR/$GNUCOBOL_TGZ.part"; log "WARN: GnuCOBOL tarball not cached (the hook's fetch will download it)"
+fi
+
+# ── the USER-LEVEL SessionStart hook (see the header): a shim that runs the repo's hook when the session's project
+#    dir is NOT the repo itself (the project-level hook already covers that case — never run it twice). Merged into
+#    ~/.claude/settings.json, never overwriting keys the platform may have put there. ──────────────────────────────
+cat > /usr/local/bin/cobolsharp-session-start <<'EOF'
+#!/usr/bin/env bash
+# User-level SessionStart shim installed by CobolSharp scripts/cloud/setup-env.sh — see that file's header.
+for repo in "${CLAUDE_PROJECT_DIR:-/home/user}/CobolSharp" /home/user/CobolSharp; do
+  [ -f "$repo/scripts/hooks/session_start.py" ] || continue
+  [ "$(realpath "${CLAUDE_PROJECT_DIR:-.}")" = "$(realpath "$repo")" ] && exit 0   # the project hook runs instead
+  exec python "$repo/scripts/hooks/session_start.py"
+done
+exit 0
+EOF
+chmod 755 /usr/local/bin/cobolsharp-session-start
+python - <<'EOF' && log "user-level SessionStart hook installed" || log "WARN: user-level SessionStart hook NOT installed"
+import json, os, pathlib
+p = pathlib.Path(os.path.expanduser("~/.claude/settings.json"))
+p.parent.mkdir(parents=True, exist_ok=True)
+s = json.loads(p.read_text(encoding="utf-8")) if p.exists() and p.read_text(encoding="utf-8").strip() else {}
+entries = s.setdefault("hooks", {}).setdefault("SessionStart", [])
+cmd = "/usr/local/bin/cobolsharp-session-start"
+if not any(h.get("command") == cmd for e in entries for h in e.get("hooks", [])):
+    entries.append({"matcher": "startup|resume|clear|compact",
+                    "hooks": [{"type": "command", "command": cmd, "timeout": 300}]})
+p.write_text(json.dumps(s, indent=2) + "\n", encoding="utf-8")
+EOF
 
 # ── report (visible in the session's setup log) ──────────────────────────────────────────────────────────────────
 log "dotnet: $(dotnet --version 2>&1 | head -1)"

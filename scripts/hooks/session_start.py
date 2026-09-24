@@ -4,10 +4,11 @@
 Plan §0's bootstrap step ③ is "run session-probe.ps1". As a manual ritual it gets skipped; as a hook it cannot be.
 Never fails the session: any error is reported as context, not raised.
 
-In a claude.ai cloud session (CLAUDE_CODE_REMOTE=true) it first initializes the private `specs-private` submodule:
-the cloud VM starts from a fresh clone WITHOUT submodules, and without the spec every §/GR citation (CLAUDE.md
-rule 1, `cite.py --check`) is impossible. The VM toolchain itself comes from scripts/cloud/setup-env.sh. Locally the
-hook stays read-only.
+In a claude.ai cloud session (CLAUDE_CODE_REMOTE=true) it first does the per-CLONE setup: the private
+`specs-private` submodule (a fresh clone has no submodules, and without the spec every §/GR citation — CLAUDE.md
+rule 1, `cite.py --check` — is impossible) and the git-ignored GnuCOBOL corpus. The VM toolchain, and the user-level
+shim that makes this hook fire when the session starts in /home/user rather than the repo, come from
+scripts/cloud/setup-env.sh. Locally the hook stays read-only.
 """
 import json
 import os
@@ -35,7 +36,31 @@ def init_cloud_submodules() -> str:
             "`git submodule update --init --recursive --depth 1`.")
     except Exception as exc:  # noqa: BLE001 - a hook must never break the session
         status = f"FAILED: {exc}"
-    return f"cloud session: git submodule update --init → {status}\n\n"
+    return f"cloud session: git submodule update --init → {status}\n" + fetch_cloud_corpus() + "\n"
+
+
+def fetch_cloud_corpus() -> str:
+    """The git-ignored GnuCOBOL corpus (tests/external/) is per CLONE, so a cloud session starts without it and the
+    population drift gate (ExternalCorpusPopulationDriftTests) is red by design (PB209/PB277) — cloud smoke #2,
+    2026-09-24. setup-env.sh pre-caches the pinned tarball; copying it in first makes the fetch skip the download."""
+    import shutil
+    cached = pathlib.Path("/opt/cobolsharp-cache/gnucobol-3.2.tar.xz")
+    target = REPO / "tests" / "external" / cached.name
+    try:
+        if cached.exists() and not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(cached, target)
+        r = subprocess.run(
+            ["pwsh", "-NoProfile", "-File", str(REPO / "scripts" / "fetch-gnucobol-tests.ps1")],
+            capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180, cwd=str(REPO),
+        )
+        out = (r.stdout or "") + (r.stderr or "")
+        status = "ok" if r.returncode == 0 else (
+            f"FAILED (exit {r.returncode}): "
+            + next((l for l in out.splitlines() if l.startswith("FETCH FAILED")), out.strip()[-400:]))
+    except Exception as exc:  # noqa: BLE001 - a hook must never break the session
+        status = f"FAILED: {exc}"
+    return f"cloud session: GnuCOBOL corpus fetch → {status}\n"
 
 
 def probe() -> str:
