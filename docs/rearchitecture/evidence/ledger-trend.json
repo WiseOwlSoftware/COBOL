@@ -703,6 +703,24 @@
       "dns": 370,
       "label": "Train 57: verdict batches, s",
       "battery": null
+    },
+    {
+      "sha": "a53bce79",
+      "date": "2026-09-23",
+      "gap": 2037,
+      "closed": 2311,
+      "dns": 370,
+      "label": "Train 58: verdict batches, P",
+      "battery": null
+    },
+    {
+      "sha": "21247b6f",
+      "date": "2026-09-24",
+      "gap": 1664,
+      "closed": 2684,
+      "dns": 370,
+      "label": "Registrar 15d: batch 15d rec",
+      "battery": null
     }
   ]
 }
