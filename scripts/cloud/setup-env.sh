@@ -31,6 +31,11 @@
 # Constraints: must exit 0 (non-zero fails the session start) and finish in ~5 minutes.
 set -uo pipefail
 
+# Everything this script prints is ALSO kept in the snapshot: the platform shows setup stdout nowhere a session can
+# read it, so without this copy no session can verify a `[setup-env]` line (cloud smoke #3, 2026-09-24).
+SETUP_LOG=/var/log/cobolsharp-setup-env.log
+exec > >(tee "$SETUP_LOG") 2>&1
+
 log() { echo "[setup-env] $*"; }
 
 DOTNET_DIR=/usr/share/dotnet
