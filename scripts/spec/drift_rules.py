@@ -33,7 +33,9 @@ SPECIFIC_DEPTH = 3   # src/<project> (2 segments) is a tree-wide sweep; src/<pro
 
 
 def drift_files():
-    for f in sorted((ROOT / "tests").rglob("*DriftTests.cs")):
+    # Sort on the repo-relative POSIX string: Path ordering is case-INsensitive on Windows and case-sensitive on
+    # Linux, so sorting Path objects made the generated index differ between a local run and CI.
+    for f in sorted((ROOT / "tests").rglob("*DriftTests.cs"), key=lambda p: p.relative_to(ROOT).as_posix()):
         parts = set(f.relative_to(ROOT).parts)
         if "bin" in parts or "obj" in parts:
             continue

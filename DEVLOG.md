@@ -13,6 +13,14 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1710 — 2026-09-25 13:06 PDT — drift_rules.py: OS-independent ordering (CI red on 4f6cdd346)
+
+The drift-rules audit landed in Entry 1709 went red in the Linux CI `audits` job: `docs/DRIFT_RULES.md is STALE`.
+Cause: sorting `Path` objects is case-INsensitive on Windows and case-sensitive on Linux, so the index generated
+locally listed two rows in a different order from CI's. `drift_rules.py` now sorts on the repo-relative POSIX string;
+`--check` verified current on Windows and under WSL Linux. The public `rule_index.py`
+(BrentRector/claude-skills 9c68b2c) carried the same sort and got the same fix — the sibling sweep.
+
 ## Entry 1709 — 2026-09-25 12:39 PDT — Drift rules surfaced to agents: generated index + per-file query, wired into skills and CI
 
 Owner: "Are the rules of the various drift tests captured in the appropriate skills?" Measured: **no** — 217 `*DriftTests`
