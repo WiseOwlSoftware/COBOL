@@ -330,11 +330,9 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             if (byPhrase)
                 w.Line("// the statement's ON EXCEPTION phrase handles it (§14.6.13.1.3 #1; §14.9.4.4 GR3h item 1)");
             else
-            {
-                w.Line($"int __r{id} = {ec.EcDispatchExpr($"__ce{id}.EcName", "\"\"")};");
-                w.Line(Resume(inExpression, $"__r{id}"));
-                w.Line($"if (__r{id} != -2) throw new CobolFatalException(__ce{id}.EcName, __ce{id}.Message) {{ Dispatched = true }};   // §14.6.13.1.3 #5/#7 (dispatched here)");
-            }
+                ec.EmitSelection($"__ce{id}.EcName",
+                    EcEmitter.FatalTermination($"__ce{id}.EcName", $"__ce{id}.Message"),   // every name here is fatal (Table 13)
+                    r => Resume(inExpression, r));
         }
     }
 
@@ -369,11 +367,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             w.Line(Resume(site.InExpression, $"__or{id}", "   // RESUME AT procedure-name"));
             using (w.Block($"if (__or{id} == -3)   // rule 3 PROPAGATE ON: directive not implemented (residue); rule 4 —"))
             {
-                w.Line("ExceptionState.Set(\"EC-OO-EXCEPTION\", true);   // as if EXCEPTION EC-OO-EXCEPTION (:24608)");
-                w.Line($"int __oq{id} = {ec.EcDispatchExpr("\"EC-OO-EXCEPTION\"", "\"\"")};   // the name enters the F3 tiers");
-                w.Line(Resume(site.InExpression, $"__oq{id}", ""));
-                w.Line($"if (__oq{id} != -2) throw new CobolFatalException(\"EC-OO-EXCEPTION\", "
-                    + "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\") { Dispatched = true };");
+                // As if EXCEPTION EC-OO-EXCEPTION (:24608): the name enters the F3 tiers; Table 13 makes it fatal.
+                ec.EmitConditionSet("EC-OO-EXCEPTION", "as if EXCEPTION EC-OO-EXCEPTION (:24608)");
+                ec.EmitSelection("\"EC-OO-EXCEPTION\"",
+                    EcEmitter.FatalTermination("\"EC-OO-EXCEPTION\"",
+                        "\"an exception object was not handled (ISO 14.6.13.1.5; Table 13 - fatal)\""),
+                    r => Resume(site.InExpression, r, ""));
             }
             w.Line("// -1/-2: declarative completed / RESUME NEXT — normal continuation (:24604)");
         }
@@ -381,11 +380,13 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             + $"out var __pn{id}, out var __pf{id}))   // §14.9.18.4 GR1b — raised HERE iff checking is enabled HERE"))
         {
             if (raised is not null) w.Line($"{raised} = true;");
-            w.Line($"int __pr{id} = {ec.EcDispatchExpr($"__pn{id}", "\"\"")};");
-            w.Line(Resume(site.InExpression, $"__pr{id}"));
-            w.Line($"if (__pr{id} != -2 && __pf{id}) throw new CobolFatalException(__pn{id}, "
-                + "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
-                + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\") { Dispatched = true };");
+            // The propagated name — and so its fatality — is chosen at run time: the staged flag gates the default.
+            ec.EmitSelection($"__pn{id}",
+                EcEmitter.FatalTermination($"__pn{id}",
+                    "\"exception condition propagated by GOBACK/EXIT PROGRAM RAISING and not resumed "
+                    + "(ISO 14.9.18; 14.6.13.1.3 #6/#7)\""),
+                r => Resume(site.InExpression, r),
+                fatalWhen: $"__pf{id}");
         }
         return raised;
     }

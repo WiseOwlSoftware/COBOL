@@ -11,7 +11,10 @@
       *>   exception condition is set to exist, NO DATA ITEMS ARE CHANGED, and the execution of the SET
       *>   statement is terminated."  The outcome is NAMED, so the store is skipped whether or not the
       *>   condition is being checked; only the raise is checking-gated (§14.6.13.1.4).
-      *> §14.6.13.1.4 / §14.9.33 — >>TURN … CHECKING ON enables the two conditions so their declaratives run.
+      *> §14.6.13.1.3 5) — both conditions are FATAL (Table 13): "If execution of the declarative completes
+      *>   normally the execution of the run unit is terminated abnormally". >>TURN … CHECKING ON enables
+      *>   them so their declaratives run, and each declarative ends with RESUME AT NEXT STATEMENT
+      *>   (§14.9.33.4 GR2; NOTE 2 of 5)) so the program continues past the SET (kb/Work PB1549).
       *>
       *> EXPECTED OUTPUT, derived line by line:
       *>   A-SET      WS-NAME holds "PBRTDBL", the function IS locatable, so FPD holds its address (GR1a/GR2).
@@ -57,11 +60,13 @@
        D-NF SECTION.
            USE AFTER EXCEPTION CONDITION EC-FUNCTION-NOT-FOUND.
        D-NF-P.
-           DISPLAY "NF-RAISED".
+           DISPLAY "NF-RAISED"
+           RESUME AT NEXT STATEMENT.
        D-PI SECTION.
            USE AFTER EXCEPTION CONDITION EC-FUNCTION-PTR-INVALID.
        D-PI-P.
-           DISPLAY "PI-RAISED".
+           DISPLAY "PI-RAISED"
+           RESUME AT NEXT STATEMENT.
        END DECLARATIVES.
        MAIN SECTION.
        M-P.

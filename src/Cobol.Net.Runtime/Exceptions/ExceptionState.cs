@@ -247,7 +247,7 @@ public sealed class ExceptionEngine
         {
             // GR1b3a's third sentence — the fatality comes from the catalog (Table 13), never a literal here.
             bool fatal = !ExceptionCatalog.TryGet(RaisingNotSpecified, out var rns)
-                || rns.Fatality is not EcFatality.Nonfatal;
+                || rns.IsFatal;
             _propagated = (RaisingNotSpecified, fatal, statement, location, StagingFor);
         }
         else

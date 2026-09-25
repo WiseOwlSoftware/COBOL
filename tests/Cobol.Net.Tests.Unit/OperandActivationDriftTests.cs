@@ -114,9 +114,12 @@ public sealed class OperandActivationDriftTests
         Assert.Contains("ExceptionState.TakeRaisedPropagation(", body);
         Assert.Contains("throw new RaiseResumeSignal(", body);
         Assert.DoesNotContain("goto ", body);
-        // Two landings — the PERFORM's and the COMPUTE's — and every operand pickup throws rather than falls through.
+        // Two landings — the PERFORM's and the COMPUTE's — and every operand selection throws rather than falls
+        // through: per activation, the GOBACK RAISING pickup AND the activation-failure catch (both render through
+        // EcEmitter.EmitSelection since kb/Work PB1549, so they share its result-variable spelling) — 2 × 2.
         Assert.Equal(2, Regex.Matches(cs, @"catch \(RaiseResumeSignal __as\d+\)").Count);
-        Assert.Equal(2, Regex.Matches(cs, @"== ResumeSignal\.NextStatement\) throw new RaiseResumeSignal\(__pr\d+\);").Count);
+        Assert.Equal(4, Regex.Matches(cs, @"== ResumeSignal\.NextStatement\) throw new RaiseResumeSignal\(__r\d+\);").Count);
+        Assert.Equal(2, Regex.Matches(cs, @"TakeRaisedPropagation\(").Count);
     }
 
     /// <summary>The control: a statement with no operand activation binds no landing.</summary>

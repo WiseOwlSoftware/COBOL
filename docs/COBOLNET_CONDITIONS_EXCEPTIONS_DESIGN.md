@@ -122,6 +122,17 @@ propagation slot + the EC-ARGUMENT-FUNCTION ambient gate), `EcFunctions` (§15.2
   STATEMENT (suppresses a fatal — §14.6.13.1.3 #5 NOTE 2), `-3` no qualifying declarative, `≥0` RESUME AT
   procedure-name's pc (≡ GO TO, §14.9.33.4 GR3). There is no `ExceptionDispatch` registry class: the F3 selector is
   the GENERATED `__EcDispatch` (source-ordered GR3c–g tiers over the program's own declaratives).
+  ⛔ **An emitted raise site renders the selection through ONE method, `EcEmitter.EmitSelection`** (kb/Work
+  PB1549): the selector call, the RESUME landing, and — for a FATAL condition — the default of §14.6.13.1.3 5)/7)
+  (`-1` declarative completed normally and `-3` no handler both terminate the run unit abnormally; only `-2` / a
+  `≥0` transfer continues). A raise site whose exception-name is known at compile time calls
+  `EmitConditionRaise` (or `EmitConditionSet` when its own conditional phrase takes the condition), which reads
+  the fatality from Table 13 (`EcInfo.IsFatal`) instead of the site's author; a dynamic-name site (CALL catch, the
+  GOBACK RAISING pickup, the EC-SIZE family, the statement guard's rethrow) passes its terminate statement.
+  Before this, each site spelled `dispatch + ResumeTransfer` and had to remember the fatal default itself — the
+  SET … ADDRESS OF PROGRAM / FUNCTION sites did not, so a failed SET with checking on and no declarative CONTINUED
+  the run unit while the CALL arm of the same EC-PROGRAM-NOT-FOUND terminated it. `EcRaiseSelectionDriftTests`
+  pins that nothing else renders the selector (the two nonfatal runtime-selector bridges excepted).
   ⛔ **The same `ResumeSignal` has a SECOND entry and a second landing** (kb/Work PB892). A declarative is entered by
   an exception (above) OR by a PERFORM in the nondeclarative portion (§14.9.49.3 SR4 — the only reference a
   nondeclarative procedure may make to one). For that PERFORM §14.9.33.4 GR2 b) puts RESUME AT NEXT STATEMENT's

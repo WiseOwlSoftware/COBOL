@@ -554,7 +554,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
             {
                 if (checking)
                 {
-                    w.Line($"ExceptionState.Set(\"{ecName}\", false);");
+                    Ec.EmitConditionSet(ecName, "the search operation is unsuccessful (§14.9.37.4 GR1 b))");
                     if (dispatchEc) w.Line($"{ecVar} = \"{ecName}\";");
                 }
                 w.Line($"goto __searchAtEnd{id};");
@@ -570,10 +570,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // NEXT / no handler) fall through to the end of the SEARCH (nonfatal — §14.6.13.1.4 #3/#4).
         if (dispatchEc)
             using (w.Block($"if ({ecVar} != null)"))
-            {
-                w.Line($"int __searchR{id} = {Ec.EcDispatchExpr(ecVar, "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__searchR{id}", ""));
-            }
+                Ec.EmitSelection(ecVar, terminate: null);   // EC-RANGE-SEARCH-INDEX / -NO-MATCH: both nonfatal (Table 13)
         bool terminated = s.AtEnd is { } at && Statements.EmitStatementList(at);
         if (!terminated) w.Line($"goto __searchEnd{id};");
         w.Line($"__searchEnd{id}: ;");

@@ -86,7 +86,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         int line = r.Start.Line;
         bool enabled = ctx.EcState.Turn.Enabled(info.Name, null, line);
         bool withLoc = enabled && ctx.EcState.Turn.WithLocation(info.Name, null, line);
-        return new BoundRaise(info.Name, info.Fatality is not EcFatality.Nonfatal, enabled, withLoc, EcLocation(line));
+        return new BoundRaise(info.Name, info.IsFatal, enabled, withLoc, EcLocation(line));
     }
 
     /// <summary>Resolve and validate a written exception-name for the RAISE/RAISING contexts — the ONE funnel
@@ -253,7 +253,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         // is a different element and not knowable here. Staging is unconditional; the activating statement's
         // EcCheckingProfile decides.
         return new BoundRaising(info.Name, IsLast: false,
-            Fatal: info.Fatality is not EcFatality.Nonfatal,
+            Fatal: info.IsFatal,
             WithLocation: ctx.EcState.Turn.WithLocation(info.Name, null, line),
             StatementName: site.Verb.Split(' ')[0], Location: EcLocation(line));
     }

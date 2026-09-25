@@ -40,7 +40,8 @@ public sealed class EcNameResolutionDriftTests
             (1, "the ONE procedure-division-header RAISING partition (§14.2.2 SR7–SR9); an unresolved word may "
                 + "be a class-name or an interface-name", true),
         [Path.Combine("CodeGen", "EcEmitter.cs")] =
-            (2, "emit-side level tests on names already bound and validated", false),
+            (3, "emit-side level tests on names already bound and validated, plus EmitConditionSet's Table 13 "
+                + "fatality lookup of a level-3 name the EMITTER spells (never a written name; kb/Work PB1549)", false),
         [Path.Combine("CodeGen", "Verbs", "ControlFlowEmitter.cs")] =
             (1, "emit-side level test on a bound RAISING name", false),
     };

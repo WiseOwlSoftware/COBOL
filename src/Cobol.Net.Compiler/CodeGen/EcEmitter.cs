@@ -54,6 +54,80 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public string ObjDispatchExpr(string objExpr) =>
         ecState.UnitHasF4 ? $"__EcObjDispatch({objExpr})" : "-3";
 
+    // ── The raise-site selection: ONE place for "select, land the RESUME, apply the fatal default" ────────────
+
+    /// <summary>Emit the processing of an exception condition an emitted raise site has just set to exist: the
+    /// §14.9.49 / §14.9.28 selection (<see cref="EcDispatchExpr"/>), the RESUME landing, and — for a FATAL
+    /// condition — the default ISO §14.6.13.1.3 5) and 7) prescribe: "If execution of the declarative completes
+    /// normally the execution of the run unit is terminated abnormally", and with no handler at all "If checking
+    /// for the exception condition is enabled, execution of the run unit is terminated abnormally as specified in
+    /// 14.6.12". Only RESUME (NOTE 2 — result <c>-2</c>, or a <c>≥0</c> transfer the landing already took) lets
+    /// execution continue; a nonfatal condition continues in every case (§14.6.13.1.4 3)/4)).
+    /// <para>⛔ THIS IS THE ONE PLACE THE FATAL DEFAULT IS DECIDED (kb/Work PB1549). Every emitted raise site used
+    /// to spell <c>dispatch + ResumeTransfer</c> itself and was separately responsible for remembering the
+    /// <c>if (r != -2) throw</c> after it; the SET … ADDRESS OF PROGRAM / FUNCTION raise sites (fatal
+    /// EC-PROGRAM-NOT-FOUND, EC-FUNCTION-NOT-FOUND, EC-FUNCTION-PTR-INVALID) forgot, and a failed SET with checking
+    /// on and no declarative CONTINUED the run unit while the CALL arm of the same condition terminated it.
+    /// <c>EcRaiseSelectionDriftTests</c> pins that no emitter outside this class renders the selector.</para>
+    /// </summary>
+    /// <param name="ecNameExpr">The C# expression naming the raised level-3 exception-name.</param>
+    /// <param name="terminate">The C# statement that terminates the run unit (normally <see cref="FatalTermination"/>),
+    /// or <c>null</c> for a NONFATAL condition. Prefer <see cref="EmitConditionRaise"/>, which takes the fatality
+    /// from Table 13 instead of from the caller, whenever the name is known at compile time.</param>
+    /// <param name="landing">Renders the RESUME landing of the result variable; <see cref="DispatchState.ResumeTransfer"/>
+    /// when omitted (an operand activation passes <see cref="DispatchState.OperandActivationResume"/>).</param>
+    /// <param name="fatalWhen">An extra C# condition ANDed onto the fatal default, for a site whose name — and so its
+    /// fatality — is chosen at run time (the GOBACK … RAISING pickup's propagated fatal flag).</param>
+    public void EmitSelection(string ecNameExpr, string? terminate, Func<string, string>? landing = null,
+        string? fatalWhen = null)
+    {
+        var w = ctx.Writer;
+        string r = $"__r{ctx.Names.NextEc()}";
+        w.Line($"int {r} = {EcDispatchExpr(ecNameExpr, "\"\"")};");
+        w.Line(landing is null ? dispatch.ResumeTransfer(r) : landing(r));
+        if (terminate is null)
+            return;   // nonfatal: declarative completed / RESUME NEXT / no handler all continue (§14.6.13.1.4 3)/4))
+        string when = fatalWhen is null ? "" : $" && {fatalWhen}";
+        w.Line($"if ({r} != ResumeSignal.NextStatement{when}) {terminate}"
+            + "   // fatal, not resumed → abnormal run-unit termination (§14.6.13.1.3 5)/7))");
+    }
+
+    /// <summary>The standard terminate statement of <see cref="EmitSelection"/>: a <c>CobolFatalException</c>
+    /// pre-marked <c>Dispatched</c> (one dispatch per raise — kb/Work PB75 — so an enclosing statement's guard lets
+    /// it pass to the §14.6.12 run-unit boundary instead of selecting a second time).</summary>
+    public static string FatalTermination(string ecNameExpr, string reasonExpr) =>
+        $"throw new CobolFatalException({ecNameExpr}, {reasonExpr}) {{ Dispatched = true }};";
+
+    /// <summary>Set the compile-time-named level-3 condition <paramref name="ecName"/> to exist (§14.6.13.1.1),
+    /// with its fatality taken from Table 13 (<see cref="ExceptionCatalog"/>) — never from the caller. The status
+    /// half of <see cref="EmitConditionRaise"/>, alone for a site whose own conditional phrase takes the condition
+    /// (§14.6.13.1.3 1) / §14.6.13.1.4 1)).</summary>
+    public void EmitConditionSet(string ecName, string why)
+    {
+        var info = CataloguedLevel3(ecName);
+        ctx.Writer.Line($"ExceptionState.Set({CsLiteral(info.Name)}, {(info.IsFatal ? "true" : "false")});   // {why}");
+    }
+
+    /// <summary>Raise a compile-time-named level-3 condition at an emitted raise site whose checking is enabled:
+    /// <see cref="EmitConditionSet"/> then <see cref="EmitSelection"/>, the fatal default applied exactly when
+    /// Table 13 says the condition is fatal. The form every constant-name raise site uses, so "is this condition
+    /// fatal?" is answered by the catalog rather than remembered per emitter.</summary>
+    public void EmitConditionRaise(string ecName, string why)
+    {
+        var info = CataloguedLevel3(ecName);
+        EmitConditionSet(ecName, why);
+        string name = CsLiteral(info.Name);
+        EmitSelection(name, info.IsFatal
+            ? FatalTermination(name, CsLiteral($"{info.Name} was set to exist and not resumed (ISO 14.6.13.1.3 5)/7))"))
+            : null);
+    }
+
+    private static EcInfo CataloguedLevel3(string ecName) =>
+        ExceptionCatalog.TryGet(ecName, out var info) && info.Level == 3
+            ? info
+            : throw new InvalidOperationException(
+                $"'{ecName}' is not a catalogued level-3 exception-name (§14.6.13.1.6 Table 13) — an emitter bug");
+
     /// <summary>Emit the statement an OPERAND activation was specified in (kb/Work PB892) — the landing of
     /// <see cref="DispatchState.OperandActivationResume"/>. ISO §14.9.33.4 GR2 a) 2. makes that statement the
     /// applicable one for a condition a function reference or an inline invocation propagates, and GR2 a) 3. makes
@@ -428,12 +502,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 // it with exactly the WITH-LOCATION names, so an uncovered name answers r1's spaces): one channel
                 // for every raise site, in place of the per-site (stmt, loc) literals this call used to bake.
                 w.Line($"ExceptionState.Set({ecExpr}, true);");
-                w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__r{id}"));
-                // §14.6.13.1.3 2): a condition the SORT/MERGE statement raised itself is the verb's to dispose of —
-                // the statement is terminated and execution continues after it (VerbDisposes; kb/Work PB1036).
-                string verbRule = VerbDisposes(ec.Inner) ? $" && !__af{id}.RaisedBySortMerge" : "";
-                w.Line($"if (__r{id} != -2{verbRule}) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
+                // Terminate by RETHROWING the caught condition (its runtime subtype and message intact), marked
+                // dispatched so the enclosing guards let it pass. §14.6.13.1.3 2): a condition the SORT/MERGE
+                // statement raised itself is the verb's to dispose of — the statement is terminated and execution
+                // continues after it (VerbDisposes; kb/Work PB1036), so on that guard the fatal default applies only
+                // to an unmarked condition.
+                EmitSelection(ecExpr, $"{{ __af{id}.Dispatched = true; throw; }}",
+                    fatalWhen: VerbDisposes(ec.Inner) ? $"!__af{id}.RaisedBySortMerge" : null);
             }
         }
         return false;   // conservative: the catch can resume past an inner transfer
@@ -471,16 +546,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 + "(ISO 14.6.13.1.3 #8 - implementor-defined; this implementation terminates)\");");
             return true;
         }
-        int id = ctx.Names.NextEc();
         string stmt = r.WithLocation ? "\"RAISE\"" : "null";
         string loc = r.WithLocation ? CsLiteral(r.Location) : "null";
-        w.Line($"ExceptionState.Set({CsLiteral(r.EcName)}, {(r.Fatal ? "true" : "false")}, {stmt}, {loc});   // §14.9.29.4 GR1 — raise + EXCEPTION-OBJECT null");
-        w.Line($"int __r{id} = {EcDispatchExpr(CsLiteral(r.EcName), "\"\"")};");
-        w.Line(dispatch.ResumeTransfer($"__r{id}"));
-        if (r.Fatal)
-            w.Line($"if (__r{id} != -2) throw new CobolFatalException({CsLiteral(r.EcName)}, "
-                + "\"raised by RAISE and not resumed (ISO 14.6.13.1.3 #5/#7)\") { Dispatched = true };");
+        string name = CsLiteral(r.EcName);
+        w.Line($"ExceptionState.Set({name}, {(r.Fatal ? "true" : "false")}, {stmt}, {loc});   // §14.9.29.4 GR1 — raise + EXCEPTION-OBJECT null");
         // Nonfatal: handled-or-not, execution continues after the RAISE (§14.6.13.1.4 #3/#4).
+        EmitSelection(name, r.Fatal
+            ? FatalTermination(name, "\"raised by RAISE and not resumed (ISO 14.6.13.1.3 #5/#7)\"")
+            : null);
         return false;
     }
 
@@ -510,22 +583,17 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public void EmitSizeHandling(string flag, string ecnVar, List<string> enabled, bool hasPhrase)
     {
         var w = ctx.Writer;
-        int id = ctx.Names.NextEc();
         string nameTest = string.Join(" || ", enabled.Select(n => $"{ecnVar} == {CsLiteral(n)}"));
         using (w.Block($"if ({flag} && ({nameTest}))"))
         {
             // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14; EmitChecked entered it).
             w.Line($"ExceptionState.Set({ecnVar}, true);   // §14.6.13.1.1 — the last exception status");
             if (!hasPhrase)
-            {
-                w.Line($"int __r{id} = {EcDispatchExpr(ecnVar, "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__r{id}"));
                 // The message decoration reads the statement name back from the status Set just recorded —
                 // the ONE channel — rather than a second baked literal.
-                w.Line($"if (__r{id} != -2) throw new CobolFatalException({ecnVar}, "
-                    + "\"size error and not resumed (ISO 14.7.5; 14.6.13.1.3 #5/#7)\" "
-                    + "+ (ExceptionState.LastStatement is { } __szs ? \" in \" + __szs.TrimEnd() : \"\")) { Dispatched = true };");
-            }
+                EmitSelection(ecnVar, FatalTermination(ecnVar,
+                    "\"size error and not resumed (ISO 14.7.5; 14.6.13.1.3 #5/#7)\" "
+                    + "+ (ExceptionState.LastStatement is { } __szs ? \" in \" + __szs.TrimEnd() : \"\")"));
             // With an ON SIZE ERROR phrase the phrase handles it (§14.6.13.1.3 #1) — state is set, phrase runs below.
         }
     }
@@ -545,17 +613,13 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
     public void EmitOverflow(string ovfFlag, string ecName, bool hasPhrase)
     {
         if (!EnabledHere(ecName)) return;
-        var w = ctx.Writer;
-        int id = ctx.Names.NextEc();
-        using (w.Block($"if ({ovfFlag})"))
+        using (ctx.Writer.Block($"if ({ovfFlag})"))
         {
-            // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
-            w.Line($"ExceptionState.Set({CsLiteral(ecName)}, false);");
-            if (!hasPhrase)
-            {
-                w.Line($"int __r{id} = {EcDispatchExpr(CsLiteral(ecName), "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__r{id}", ""));
-            }
+            // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14). With an ON OVERFLOW phrase
+            // the phrase takes the condition (§14.6.13.1.4 1)), so only the status is set.
+            const string why = "§14.9.43.4 GR8b / §14.9.48.4 GR16b — the overflow condition";
+            if (hasPhrase) EmitConditionSet(ecName, why);
+            else EmitConditionRaise(ecName, why);
         }
     }
 

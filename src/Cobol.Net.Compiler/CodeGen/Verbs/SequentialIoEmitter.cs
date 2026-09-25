@@ -442,10 +442,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             if (active is not null)
                 using (w.Block($"if ({active})"))
                 {
-                    w.Line("ExceptionState.Set(\"EC-REPORT-NOT-TERMINATED\", fatal: false);   // §14.9.6.4 GR5 — after the CLOSE completed");
-                    int id = ctx.Names.NextEc();
-                    w.Line($"int __r{id} = {ec.EcDispatchExpr("\"EC-REPORT-NOT-TERMINATED\"", "\"\"")};");
-                    w.Line(dispatch.ResumeTransfer($"__r{id}", ""));   // -1/-2/-3: the next implicit CLOSE (GR10)
+                    // Nonfatal (Table 13) — -1/-2/-3 continue to the next implicit CLOSE (GR10).
+                    ec.EmitConditionRaise("EC-REPORT-NOT-TERMINATED", "§14.9.6.4 GR5 — after the CLOSE completed");
                 }
         }
     }

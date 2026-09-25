@@ -22,7 +22,14 @@ public enum EcFatality
 /// <summary>One exception-name row (ISO §14.6.13.1.6 Table 13): the canonical name, its level (1/2/3), its
 /// level-2 parent (level-3 rows only), its fatality, and the ISO edition that introduced it (the binder's D8-style
 /// edition gate; 2002 = the EC model's introduction, 2023 = the VCR row-40/61 additions).</summary>
-public readonly record struct EcInfo(string Name, int Level, string? Level2Parent, EcFatality Fatality, int IntroducedIn);
+public readonly record struct EcInfo(string Name, int Level, string? Level2Parent, EcFatality Fatality, int IntroducedIn)
+{
+    /// <summary>Is a raise of this condition processed as FATAL (ISO §14.6.13.1.3) rather than nonfatal
+    /// (§14.6.13.1.4)? Table 13's "F" rows, plus the "Imp" rows this implementation defines as fatal
+    /// (<see cref="EcFatality.Imp"/>). The ONE spelling of that test — every emitter and binder that needs a
+    /// condition's disposition asks here rather than re-deriving it from <see cref="Fatality"/>.</summary>
+    public bool IsFatal => Fatality is EcFatality.Fatal or EcFatality.Imp;
+}
 
 /// <summary>
 /// The exception-name catalog — the ONE machine form of ISO/IEC 1989:2023 §14.6.13.1.6 Table 13 plus the

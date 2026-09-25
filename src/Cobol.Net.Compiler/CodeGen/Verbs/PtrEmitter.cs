@@ -16,7 +16,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// carrier; every runtime rule lives in <c>CobolPtr</c> (Deref/UpBy/Allocate/Free) — the emitters only wire
 /// places to helpers, through the <see cref="RuntimeApi"/> façade.
 /// </summary>
-internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec, DispatchState dispatch)
+internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState ecState, EcEmitter ec)
 {
     /// <summary>The C# expression for an <c>ADDRESS OF identifier</c> value (ISO §8.4.3.11 GR1): a BASED
     /// item's value IS its implicit data-address pointer (§8.6.5 :8791); a cell-forced record renders a
@@ -184,10 +184,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         }
         using (w.Block($"if ({na})"))
         {
-            w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-AVAIL\", false);   // §14.9.3.4 GR5c — set to exist (nonfatal)");
-            int did = ctx.Names.NextPtr();
-            w.Line($"int __pa{did} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-AVAIL\"", "\"\"")};");
-            w.Line(dispatch.ResumeTransfer($"__pa{did}"));
+            ec.EmitConditionRaise("EC-STORAGE-NOT-AVAIL", "§14.9.3.4 GR5c — set to exist (nonfatal)");
         }
     }
 
@@ -209,8 +206,11 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// <summary><c>SET program-pointer… TO ENTRY {literal | identifier}</c> (ISO §14.9.39 Format 9 + §8.4.3.13;
     /// P10 Step 7): resolve the named OUTERMOST program through the run-unit ProgramTable ONCE, assign the
     /// result to every target. Not locatable → GR4: the value is the NULL program address and
-    /// EC-PROGRAM-NOT-FOUND is set to exist — reported through the checking-gated block (§14.6.13.1.4 — an
-    /// unchecked condition is not raised; the EmitFree EC pattern).</summary>
+    /// EC-PROGRAM-NOT-FOUND is set to exist. The condition is FATAL (Table 13): with checking enabled it is raised
+    /// through <see cref="EcEmitter.EmitConditionRaise"/>, and unless a declarative or WHEN phrase RESUMEs, the run
+    /// unit terminates abnormally (§14.6.13.1.3 5)/7); kb/Work PB1549 — the outcome the CALL arm reaches). With
+    /// checking off, §14.6.13.1.3 8) leaves continuation to the implementor; this one continues with the NULL
+    /// value.</summary>
     public void EmitSetEntry(BoundSetEntry s)
     {
         var w = ctx.Writer;
@@ -229,14 +229,13 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
             using (w.Block($"if ({nf})"))
             {
                 // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
-                w.Line($"ExceptionState.Set(\"EC-PROGRAM-NOT-FOUND\", true);   // §8.4.3.13.4 GR4 — set to exist");
-                int did = ctx.Names.NextPtr();
-                w.Line($"int __pe{did} = {ec.EcDispatchExpr("\"EC-PROGRAM-NOT-FOUND\"", "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__pe{did}"));
+                // Fatal (Table 13): unresumed, the run unit terminates abnormally (§14.6.13.1.3 5)/7)) — the same
+                // outcome the CALL arm (ProgramRegistry.EntryOfOperand's throw) reaches (kb/Work PB1549).
+                ec.EmitConditionRaise("EC-PROGRAM-NOT-FOUND", "§8.4.3.13.4 GR4 — set to exist");
             }
         }
         else
-            w.Line($"_ = {nf};   // EC-PROGRAM-NOT-FOUND checking not enabled (§14.6.13.1.4 — not raised; the value is NULL per GR4)");
+            w.Line($"_ = {nf};   // EC-PROGRAM-NOT-FOUND checking not enabled: fatal, so §14.6.13.1.3 8) leaves continuation to the implementor — this one continues with the GR4 NULL value");
     }
 
     /// <summary><c>SET function-pointer… TO ADDRESS OF FUNCTION {function-prototype-name-1 | identifier-1}</c>
@@ -247,7 +246,8 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
     /// <list type="number">
     /// <item>§8.4.3.12.4 GR4 — not locatable: EC-FUNCTION-NOT-FOUND is set to exist and "the value of the
     /// address-identifier is the predefined address NULL". The value is DEFINED, so the store still happens, and
-    /// the raise is checking-gated (§14.6.13.1.4 — an unchecked condition is not raised).</item>
+    /// the raise is checking-gated; both conditions are FATAL (Table 13), so a checked raise that is not RESUMEd
+    /// terminates the run unit (§14.6.13.1.3 5)/7); kb/Work PB1549).</item>
     /// <item>§14.9.39.4 GR14 — located but of a different signature: EC-FUNCTION-PTR-INVALID, "no data items are
     /// changed, and the execution of the SET statement is terminated". ⛔ THE STORE-SKIP IS NOT CHECKING-GATED:
     /// the standard NAMES the outcome, so it holds whether or not the condition is being checked; only the EC
@@ -289,10 +289,7 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 using (w.Block("else"))
                 {
                     // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
-                    w.Line("ExceptionState.Set(\"EC-FUNCTION-PTR-INVALID\", true);   // §14.9.39.4 GR14 — set to exist");
-                    int did = ctx.Names.NextPtr();
-                    w.Line($"int __fe{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-PTR-INVALID\"", "\"\"")};");
-                    w.Line(dispatch.ResumeTransfer($"__fe{did}"));
+                    ec.EmitConditionRaise("EC-FUNCTION-PTR-INVALID", "§14.9.39.4 GR14 — set to exist (fatal)");
                 }
         }
         else
@@ -303,14 +300,11 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
         {
             using (w.Block($"if ({nf})"))
             {
-                w.Line("ExceptionState.Set(\"EC-FUNCTION-NOT-FOUND\", true);   // §8.4.3.12.4 GR4 — set to exist");
-                int did = ctx.Names.NextPtr();
-                w.Line($"int __fn{did} = {ec.EcDispatchExpr("\"EC-FUNCTION-NOT-FOUND\"", "\"\"")};");
-                w.Line(dispatch.ResumeTransfer($"__fn{did}"));
+                ec.EmitConditionRaise("EC-FUNCTION-NOT-FOUND", "§8.4.3.12.4 GR4 — set to exist (fatal)");
             }
         }
         else
-            w.Line($"_ = {nf};   // EC-FUNCTION-NOT-FOUND checking not enabled (§14.6.13.1.4 — not raised; the value is NULL per GR4)");
+            w.Line($"_ = {nf};   // EC-FUNCTION-NOT-FOUND checking not enabled: fatal, so §14.6.13.1.3 8) leaves continuation to the implementor — this one continues with the GR4 NULL value");
     }
 
     /// <summary>FREE (ISO §14.9.15 GR1/GR2 — per operand, left to right): the helper runs the three-way;
@@ -330,13 +324,10 @@ internal sealed class PtrEmitter(EmitContext ctx, NumericRenderer num, EcState e
                 using (w.Block($"if ({na})"))
                 {
                     // The §15.32.3 r2 pair rides the ambient statement context (kb/Work R14).
-                    w.Line($"ExceptionState.Set(\"EC-STORAGE-NOT-ALLOC\", false);   // GR1c — nonfatal (§14.6.13.1.1)");
-                    // §14.6.13.1.3 #5: the F3 selection runs; a nonfatal condition with no handler (or
+                    // §14.6.13.1.4 3)/4): the F3 selection runs; a nonfatal condition with no handler (or
                     // RESUME NEXT / a completed declarative) simply continues (the review finding — the
                     // status set alone never consulted the declarative model).
-                    int id = ctx.Names.NextPtr();
-                    w.Line($"int __fr{id} = {ec.EcDispatchExpr("\"EC-STORAGE-NOT-ALLOC\"", "\"\"")};");
-                    w.Line(dispatch.ResumeTransfer($"__fr{id}"));
+                    ec.EmitConditionRaise("EC-STORAGE-NOT-ALLOC", "§14.9.15.4 GR1c — nonfatal (§14.6.13.1.1)");
                 }
             }
             else

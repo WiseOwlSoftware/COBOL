@@ -217,12 +217,8 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         // point — the runtime reports the raise and the site dispatches; the nonfatal default is to
         // continue, so no throw arm. The recorded-but-never-dispatched status left the golden's own
         // generated handler pc as dead code.
-        int id = _ctx.Names.NextEc();
         using (_ctx.Writer.Block($"if ({call})"))
-        {
-            _ctx.Writer.Line($"int __r{id} = " + _ecEmit.EcDispatchExpr("\"EC-CONTINUE-LESS-THAN-ZERO\"", "\"\"") + ";");
-            _ctx.Writer.Line(_dispatchState.ResumeTransfer($"__r{id}"));
-        }
+            _ecEmit.EmitSelection("\"EC-CONTINUE-LESS-THAN-ZERO\"", terminate: null);
         return false;
     }
 
