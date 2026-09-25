@@ -33456,13 +33456,13 @@
   "ordinal": 1,
   "subject": "RETRY phrase",
   "rule-digest": "ef80a77a1b1b",
-  "verdict": "DIVERGES",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RetryTimes; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#AlignRoundedUp; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RetryLoop",
-  "test-ref": "",
+  "test-ref": "conformance:2002/pb1033_integer_operand_full_value; unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1033 (registrar 14c). cite.py --check 14.7.9.3 \"the value of arithmetic-expression-1 is rounded up to the next whole number\" -> OK 1); --check 14.7.9.3 \"The implementor determines the interval between these attempts\" -> OK 1). Verified: RetryTimes renders through AlignRoundedUp (CobolRounding.TowardGreater; NumericRoundUpSiteDriftTests pins the site), RetryLoop makes exactly n further attempts (unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4, InlineData Times,3 -> 4 calls), interval zero is the documented DOC-A.1-165 determination. End-to-end probe against an external holder (pwsh FileStream FileShare.None released after 1.5 s): `DELETE FILE F RETRY 100000000 TIMES` -> '00', file deleted, 1478 ms — correct. DEFECT (int narrowing, owned by open kb/Work PB1033 which names RetryTimes): the rounded count is cast `(int)(...)` at emit. (a) variable `WN PIC 9(10) VALUE 4294967297`, `RETRY WN TIMES` -> (int) = 1 re-attempt -> '62' in 51 ms with the file NOT deleted, where GR1 requires 4294967297 re-attempts and the same holder scenario yields '00' (wrong answer); (b) literal `RETRY 4294967297 TIMES` -> backend compile failure CS0221 'Constant value 4294967297 cannot be converted to a int' (compiler crash on legal source — a symptom PB1033's body does not record). [editions as adjudicated: 2002, 2014, 2023 (the RETRY phrase is a COBOL-2002 facility; 2023 Annex E lists no change to 14.7.9)]",
-  "state": "GAP"
+  "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.7.9.3 \"the value of arithmetic-expression-1 is rounded up to the next whole number\" -> OK 1); --check 14.7.9.3 \"The implementor determines the interval between these attempts\" -> OK 1). The rounded-up count now reaches the runtime as a long through the saturating RuntimeApi.HostInt64, and every retryAmount parameter (CobolFile / FileRegistry / RetryLoop) is a long. Measured after the fix: `WN PIC 9(10) VALUE 4294967297`, `DELETE FILE F RETRY WN TIMES` against an external holder (FileShare.None, released after 1.5 s) -> '00' in 1332 ms, file deleted (before: '62' in 51 ms, one re-attempt). The literal `RETRY 4294967297 TIMES` compiles (was CS0221) - the golden compiles it. RetryLoop's GR1 count stays pinned by the unit AttemptCount test; interval zero is DOC-A.1-165.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.9.3-2",
@@ -33473,10 +33473,10 @@
   "rule-digest": "8ca5eaeaca77",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#RetrySeconds; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RetryLoop",
-  "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
+  "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4; conformance:2002/pb1033_integer_operand_full_value",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1163 (also PB1033) (registrar 14c). cite.py --check 14.7.9.3 \"The implementor shall specify the maximum meaningful value of arithmetic-expression-2\" -> OK 2); --check 14.7.9.3 \"an implicit COMPUTE statement without the ROUNDED phrase\" -> OK 2). Determination DOC-A.1-166: 9(1)V9(0), maximum meaningful value 0, no retries in the (zero-length) period; RetrySeconds truncates via Align(...,0) and RetryLoop makes no further attempt for Seconds — letter-conformant to GR2 (the standard sets no floor on the maximum meaningful value). Probe: `DELETE FILE F RETRY FOR 30 SECONDS` against an external holder -> '62' in 47 ms. PARTIAL because (1) `RETRY FOR 4294967297 SECONDS` (literal) crashes the backend with CS0221 — GR2 says a value above the maximum meaningful value is CLAMPED, so this is legal source that must compile (same (int) narrowing mechanism, kb/Work PB1033); (2) the determination's stated GROUND — 'every lock is held by a connector of the executing run unit, so no positive timeout could change the outcome' (CONFORMANCE.md DOC-A.1-166, FILES_DESIGN D8, FileRegistry.RetryLoop doc) — is falsified since PB860: DeleteFile/Open consult HostFile.IsHeldByAnother / IsSharingRefusal for OTHER run units, and the probe shows `RETRY 100000000 TIMES` succeeding ('00') where `RETRY FOR 30 SECONDS` fails ('62') on the same holder. The determination remains the owner's to keep or revise; its justification text is wrong. [editions as adjudicated: 2002, 2014, 2023 (the RETRY phrase is a COBOL-2002 facility; 2023 Annex E lists no change to 14.7.9)]",
+  "notes": "kb/Work PB1163 (the PB1033 half landed w59b). cite.py --check 14.7.9.3 \"The implementor shall specify the maximum meaningful value of arithmetic-expression-2\" -> OK 2). FIXED by PB1033: `RETRY FOR 4294967297 SECONDS` (literal) compiled to CS0221; the amount now narrows through the saturating RuntimeApi.HostInt64 and compiles (the golden compiles it), and GR2's clamp to the DOC-A.1-166 maximum meaningful value of 0 applies to the value. STILL PARTIAL for kb/Work PB1163 alone: DOC-A.1-166's stated GROUND ('every lock is held by a connector of the executing run unit') is falsified since PB860 (DeleteFile/Open consult other run units), measured on the same holder: RETRY 100000000 TIMES -> '00', RETRY FOR 30 SECONDS -> '62'. The determination is the owner's to keep or revise.",
   "state": "GAP"
  },
  {
@@ -33506,7 +33506,7 @@
   "test-ref": "unit:CobolFileLockTests.RetryLoop_AttemptCount_FollowsGR1AndGR4",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1033 (registrar 14c). cite.py --check 14.7.9.3 \"If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero\" -> OK 4) a); --check 14.7.9.3 \"the statement is successful and the results are as if the file sharing or record operation conflict had never occurred\" -> OK 4) b). Verified: the discipline engages only on a first-digit '5'/'6' status (IsConflict; non-conflict '35' passes through untouched — conformance:2002/pb142_retry_open_sharing OPN35*); a) no phrase / zero / negative -> no further attempt and the conflict's own §9.1.13 status (unit AttemptCount + RetryLoop_LandsTheConflictsOwnStatus_ByClass, conformance:2023/pb142_retry_conflict_class_ec); b) success on a re-attempt returns the attempt's own success — probed end-to-end cross-run-unit (`DELETE FILE F RETRY 100000000 TIMES` -> '00', file deleted). PARTIAL because GR4a screens the NARROWED int, not 'the result of the evaluation of arithmetic-expression-1 or -2': a positive expression >= 2^31 (e.g. WN = 2147483648) casts to a negative int and is screened as GR4a 'negative' (no retries) — the PB1033 narrowing; and b)'s 'as specified in General rules 1, 2, or 3' inherits the GR3 FOREVER divergence. WRITE's '53'/'54' bypass of RetryLoop is open kb/Work PB707 (behaviour-identical). [editions as adjudicated: 2002, 2014, 2023 (the RETRY phrase is a COBOL-2002 facility; 2023 Annex E lists no change to 14.7.9)]",
+  "notes": "kb/Work PB1163 (the PB1033 half landed w59b). cite.py --check 14.7.9.3 \"If the RETRY phrase is not specified or the result of the evaluation of arithmetic-expression-1 or arithmetic-expression-2 is negative or zero\" -> OK 4) a). FIXED by PB1033: GR4 a) now screens the evaluated value - the amount is a long saturated from the Int128 landing, so a positive amount >= 2^31 (WN = 2147483648) is no longer cast negative and screened as 'negative'; RetryLoop's counter is a long. STILL PARTIAL: b)'s 'as specified in General rules 1, 2, or 3' inherits the GR3 FOREVER divergence (row GR-14.7.9.3-3, kb/Work PB1163); WRITE's '53'/'54' bypass is kb/Work PB707 (behaviour-identical).",
   "state": "GAP"
  },
  {
@@ -37746,13 +37746,13 @@
   "ordinal": 2,
   "subject": "GO TO statement",
   "rule-digest": "e4067afb4728",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending",
-  "test-ref": "conformance:2002/pb395_goto_depending_incompatible; conformance:negative/pb395-turn-data-incompatible-below-2002",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#BindGoTo; src/Cobol.Net.Compiler/CodeGen/Verbs/ControlFlowEmitter.cs#EmitGoToDepending; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#EcWrap; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.Image.cs#ParseImageSending; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt32; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#Position32",
+  "test-ref": "conformance:2002/pb395_goto_depending_incompatible; conformance:negative/pb395-turn-data-incompatible-below-2002; conformance:2002/pb1033_integer_operand_full_value",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work/PB1033 (open) - registrar 14f re-verdict 2026-09-24 CONFORMS -> PARTIAL: GO TO DEPENDING ON with G PIC 9(10) VALUE 4294967297 goes to P1 (int narrowing at emit) where GR2 falls through; re-run by registrar 14f on 071ff04ea: LT / WENT-P1. PRIOR CONFORMS notes: kb/Work/PB395.md - all three halves now measured by ONE golden. (a) Value-driven transfer: the emitter writes a 1-based switch over the target pcs, so 1 -> procedure-name-1 ... n -> procedure-name-n. (b) 'anything other than the positive or unsigned integers 1 through n' -> no transfer, control passes to the next statement (the golden's 0 case falls through). (c) The EC-DATA-INCOMPATIBLE sentence: the selector is read through the CHECKED sending decode (CobolNum.ParseImageSending under ExceptionState.DataIncompatibleChecking), so a REDEFINES window holding 'AB' raises the FATAL condition and the declarative's RESUME AT NEXT STATEMENT resumes after the GO TO. That half was ABSENT when this row was first adjudicated - EC-DATA-INCOMPATIBLE was armed by a statement-KIND test (`node is BoundMove`) where 14.6.13.2 rule 2 hangs it on a sending-operand REFERENCE - and was fixed by the PB230/PB589 landing (1c81864a3, 2026-09-05), which moved the arming to the ambient per-statement gate and built the raise sites at the decode chokepoints. This row was never re-verdicted after it and carried no golden for the 14.6.13.2 leg; both are repaired here.",
-  "state": "GAP"
+  "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.9.17.4 \"control is transferred to procedure-name-1, etc., depending on the value of identifier-1 being 1, 2\" -> OK 2); --check 14.9.17.4 \"no transfer occurs\" -> OK 2). The selector is read through the ONE integer landing (Align(...,0)) and narrowed to the switch's int through RuntimeApi.HostInt32 = CobolNum.Position32, which SATURATES: a value past int stays outside 1..n and falls through. The former (int) cast wrapped G PIC 9(10) VALUE 4294967297 to 1 and went to P1 (measured on df452130e: WENT-P1; after: FELL-THROUGH). conformance:2002/pb1033_integer_operand_full_value pins the fall-through for 4294967297 and the transfer for 2; pb395_goto_depending_incompatible keeps the value 0 / EC-DATA-INCOMPATIBLE halves (both halves measured by the PRIOR CONFORMS record, kb/Work PB395).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.18.3-1",
@@ -47138,10 +47138,10 @@
   "rule-digest": "365022f65013",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/Cobol.Net.Runtime/Control/RunUnit.cs#ExitStatus",
-  "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+  "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.StatusBeyondTheHostExitCode_IsClampedNeverWrapped",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1178 (registrar 14c). cite.py --check 14.9.42.4 '... the operating system will indicate an error termination of the run unit if such a capability exists within the operating system' -> OK GR2. The process exit code IS the OS error-termination capability. 'STOP RUN WITH ERROR.' -> exit 1 (p2; test InlineData). But ERROR with a value collapses into the value: 'WITH ERROR STATUS 0.' exits 0 (p7), 'WITH ERROR STATUS \"ABEND\"' / SPACE exit 0 (pinned by StopGobackExitCodeTests), and 'WITH ERROR STATUS 4294967296.' exits 0 (p9) because the RunUnit.ExitStatus setter does Environment.ExitCode = (int)value - an unchecked wrap - so the OS indicates NORMAL termination although ERROR was written and the capability exists. The 0/'ABEND' collapse is the published CONFORMANCE.md item-192 determination ('GR5's value phrase overrides' - a precedence GR2/GR5 do not state); the (int) wrap is NOT covered by it (it says 'the integer value ... becomes the exit code'). No-value half verified -> PARTIAL; see finding. [editions as adjudicated: 2002, 2014, 2023 (the ERROR phrase is edition-gated COBOLNET0900 at 85)]",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1178 (narrowing half landed w59b). cite.py --check 14.9.42.4 \"the operating system will indicate an error termination of the run unit if such a capability exists\" -> OK 2). FIXED: a large STATUS value no longer WRAPS onto exit 0 (STOP RUN WITH ERROR STATUS 4294967296 now exits 2147483647, was 0). STILL PARTIAL on an owner determination: docs/CONFORMANCE.md item 192's value-wins precedence (GnuCOBOL-surveyed, rule-1 precedence) makes WITH ERROR STATUS 0 / \"ABEND\" / SPACE exit 0, so the OS reports NORMAL for an ERROR phrase - GR2 and GR5 both apply and the standard states no precedence. Whether ERROR with a value that maps to 0 must still exit nonzero is the owner's call (named in the w59b report).",
   "state": "GAP"
  },
  {
@@ -47155,8 +47155,8 @@
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/Cobol.Net.Runtime/Control/RunUnit.cs#ExitStatus",
   "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
   "derivation": "",
-  "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1178 (registrar 14c). GR3 (same shape as GR2, cite-checked with GR2's clause). 'STOP RUN WITH NORMAL.' -> exit 0 (p3; test InlineData). Mirror of GR2: 'WITH NORMAL STATUS 7.' exits 7 (the test pins it) and 'WITH NORMAL STATUS WS-X' (PIC X(3) '12A') exits 12 (p8) - a nonzero exit code, i.e. the OS indicates ERROR termination although NORMAL was written. Same published item-192 precedence (value overrides the indication), which the spec does not state. No-value half verified, value half conflicts -> PARTIAL; same finding as GR2. [editions as adjudicated: 2002, 2014, 2023 (status phrase absent in 1985)]",
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1178 (narrowing half landed w59b). The NORMAL twin of GR-14.9.42.4-2: the wrap is fixed, and WITH NORMAL STATUS 7 exits 7 under item 192's value-wins precedence - the same open owner determination (GR3 vs GR5).",
   "state": "GAP"
  },
  {
@@ -47181,13 +47181,13 @@
   "ordinal": 5,
   "subject": "STOP statement",
   "rule-digest": "e765da523762",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#StatusOperand; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#StatusNum; src/Cobol.Net.Runtime/Control/RunUnit.cs#SetExitStatus",
-  "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#ExitStatus; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs#StatusNum; src/Cobol.Net.Runtime/Control/RunUnit.cs#ExitStatus; src/Cobol.Net.Runtime/Control/RunUnit.cs#SetExitStatus; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ControlFlowBinder.cs#StatusOperand",
+  "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode; conformance-test:StopGobackExitCodeTests.StatusBeyondTheHostExitCode_IsClampedNeverWrapped",
   "derivation": "",
-  "editions": "2002, 2014, 2023",
-  "notes": "kb/Work PB1178 (registrar 14c). cite.py --check 14.9.42.4 'literal-1 or the contents of the data item referenced by identifier-1 are passed to the operating system' -> OK GR5. Value passed: literal 16 -> 16, 5 -> 5, identifier X(3) '12A' -> 12 per item 192's digit decode (p4/p5/p8; StopGobackExitCodeTests covers literal, identifier, non-numeric, figurative, ref-mod and group shapes). The implementor constraint is documented (CONFORMANCE.md item 192, Annex A required item) but the documentation is contradicted at the int32 boundary: RunUnit.ExitStatus is long and flushes Environment.ExitCode = (int)value, so STATUS 4294967296 exits 0 (p9) and any value beyond int32 wraps silently; the published constraint states no range (nor that Linux keeps only the low 8 bits). STATUS -2 compiles to SetExitStatus(-2L) (p14), OS-reported code not verified. Core half conforms, constraint documentation incomplete/contradicted -> PARTIAL; see finding.",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1178 landed (w59b). cite.py --check 14.9.42.4 \"passed to the operating system\" -> OK 5); --check 14.9.42.4 \"Any constraints on the value\" -> OK 5). The value is passed: the status operand lands through Align(...,0) and reaches RunUnit.ExitStatus through the saturating RuntimeApi.HostInt64, and the setter hands Environment.ExitCode CobolNum.Position32(value) - CLAMPED to the Int32 exit code, never wrapped. The constraint GR5 leaves to the implementor is documented in docs/CONFORMANCE.md item 192 (clamp range; a POSIX host's own low-8-bit report). Measured: STOP RUN WITH ERROR STATUS 4294967296 and a 9(20) item of 2^64+3 exit 2147483647 on Windows (before: 0 and -1/3).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.42.4-6",
@@ -47421,13 +47421,13 @@
   "ordinal": 4,
   "subject": "STRING statement",
   "rule-digest": "d248ee552efa",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/Cobol.Net.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
-  "test-ref": "conformance-test:StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitString; src/Cobol.Net.Compiler/CodeGen/Roslyn/RuntimeApi.cs#HostInt64; src/Cobol.Net.Runtime/Verbs/CobolStringOps.cs#StringTransfer",
+  "test-ref": "conformance-test:StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned; conformance:2002/pb1033_integer_operand_full_value",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1033 (registrar 14c). GR4: identifier-4 shall be > 0 at the start of execution - a requirement on the program whose run-time consequence is GR8 (a pointer < 1 before a character move is an overflow). The emitter initializes the working pointer from the POINTER item's VALUE (NumericRenderer.Align(AsNum(p0),0)) and the kernel checks pointer < 1 before each move. Probes gr8.cob D (P=-3 -> D-OV, receiver untouched, P unchanged '0L'); the SpecPinned test (P=0 -> OVERFLOW, receiver ABCDEF, P 0000) derives its expected output from GR8/GR6/GR7. Edge: with P<1 and zero characters to move no overflow arises - consistent with GR8's 'before each move of a character'. || REFUTED: DIVERGES — StringEmitter.EmitString reads identifier-4's starting value with an UNCHECKED C# (long) cast of the aligned decimal (`long __strPtrN = (long)(PHI);`). A POINTER item allowed by SR7 (a PIC 9(20)..9(31) integer; legal at 2002+) whose value is above long.MaxValue wraps. The rule requires the value at the start of execution to be the value used. With value 18446744073709551619 (2^64+3) the pointer wraps to 3: the characters are written at position 3, NOT ON OVERFLOW runs, and the pointer is written back as 5. GR4 + GR8 require an overflow with no transfer (the value is greater than the 10 positions of OUT1), and GR6 requires the pointer to be left unchanged. The existing SpecPinned test covers only P=0. UNSTRING (StringEmitter line ~110) builds its pointer the same way and is a sibling. [editions as adjudicated: 2023 text (ISO/IEC 1989:2023 §14.9.43); Annex E lists no STRING change 2014->2023; the earlier-edition edge is not derivable in-repo (no 2002/2014 text)]",
-  "state": "GAP"
+  "notes": "kb/Work PB1033 landed (w59b). cite.py --check 14.9.43.4 \"if the value associated with the data item referenced by identifier-4 is either less than one or exceeds\" -> OK 8); --check 14.9.43.4 \"is changed during execution of the STRING statement only by the behavior specified above\" -> OK 6). The starting pointer is the POINTER item's VALUE narrowed through the saturating RuntimeApi.HostInt64 (CobolNum.Position), so a 9(20) pointer of 2^64+3 stays past the receiver: GR8 overflow before the first move, no transfer, ON OVERFLOW; and the pointer item is stored back only when a character moved (GR6), so it keeps its exact value. Before: the (long) cast wrapped it to 3, wrote at position 3, ran NOT ON OVERFLOW and stored P = 5. The UNSTRING twin (GR15 a) pointer, GR14 tally) is fixed the same way and pinned by the same golden; the P<1 half stays pinned by StringUnstringDifferentialTests.String_PointerBelowOne_OverflowsWithoutTransfer_SpecPinned.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.43.4-5",

@@ -256,21 +256,23 @@ internal sealed class SetEmitter(EmitContext ctx, NumericRenderer num, Arithmeti
     /// gone. Both of this method's callers land first (<see cref="EmitSetTo"/>, and
     /// <c>ControlFlowEmitter.InitVaryingTarget</c> for PERFORM VARYING's FROM, which §13.18.38.4 GR2 names
     /// alongside SET); <c>SetIndexStoreLandingTests</c> is the drift test that keeps that true for the next
-    /// caller.</para></summary>
+    /// caller. The landing hands back a range-checked <c>long</c>, so an index target stores it AS IS — no
+    /// narrowing, and never a C# cast (kb/Work PB1033: a cast here would wrap anything that bypassed the
+    /// landing; without one, a caller that did bypass it fails to compile instead).</para></summary>
     public void StoreSetTarget(BoundSetTarget t, NumX value)
     {
         switch (t)
         {
             case SetIndexTarget ix:
-                ctx.Writer.Line($"{ix.IndexField} = (long)({NumericRenderer.Align(value, 0)});");
+                ctx.Writer.Line($"{ix.IndexField} = {NumericRenderer.Align(value, 0)};");
                 break;
             case SetPlaceTarget { Place: var p } when p.Item.Pic is { Usage: Usage.Index }:
                 // A WINDOWED index data item (Tier-B / image-stored — the Step D arm-1 dissolution) stores
                 // its 8 occurrence-number bytes (the R40 pin); a native one takes the raw long unchanged
                 // (§14.9.39 GR2b). The raw arm against a window was CS1503 in generated code.
                 ctx.Writer.Line(PlaceRenderer.Write(p, p.Item.StoreAsImage
-                    ? RuntimeApi.NumFormatImage($"(long)({NumericRenderer.Align(value, 0)})", p.Item.ProfileName)
-                    : $"(long)({NumericRenderer.Align(value, 0)})"));
+                    ? RuntimeApi.NumFormatImage(NumericRenderer.Align(value, 0), p.Item.ProfileName)
+                    : NumericRenderer.Align(value, 0)));
                 break;
             case SetPlaceTarget { Place: var p }:
                 arith.StoreArith(p, value, CobolRounding.Truncation);

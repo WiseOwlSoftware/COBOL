@@ -686,7 +686,7 @@ public sealed class FileRegistry
         DeleteFile(name, FileRetryKind.None, 0, overridden);
 
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 / §14.7.9) and the GR18 OVERRIDE flag.</summary>
-    public string DeleteFile(string name, FileRetryKind retryKind, int retryAmount, bool overridden = false)
+    public string DeleteFile(string name, FileRetryKind retryKind, long retryAmount, bool overridden = false)
     {
         var c = Require(name);
         // (a DELETE FILE accesses the connector — FUNCTION EXCEPTION-FILE r2a, §15.28.4 — recorded by the status
@@ -878,7 +878,7 @@ public sealed class FileRegistry
     /// <summary>OPEN with an explicit SHARING override and/or a RETRY phrase (§14.9.27) — the emitter's entry
     /// point when the OPEN statement itself carries a sharing/retry phrase.</summary>
     public void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
+        FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
         LinagePage? page)
     {
         // A sharing/retry phrase on the OPEN makes the connector a record-locking participant even without a
@@ -909,7 +909,7 @@ public sealed class FileRegistry
     /// (kb/Work PB317). The overlay is self-guarding: §14.9.27.4 GR25 a) owns an unsuccessful open's status, so
     /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
     private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
-        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
+        FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
         LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
@@ -1186,7 +1186,7 @@ public sealed class FileRegistry
     /// statements' "unchanged" rules (§14.9.30.4 GR10 a)/d), §14.9.35.4 GR14, §14.9.10.4 GR6 b)) true by
     /// construction rather than by repair.</para></summary>
     private string? ConflictOnLockedRecord(string name, PhysicalFileTable.State st, string recId,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount)
     {
         if (ignoringLock) return null;                                       // §14.9.30.4 GR12
         if (!PhysicalFileTable.IsLockedByOther(st, name, recId)) return null;
@@ -1305,7 +1305,7 @@ public sealed class FileRegistry
     /// answered '51', precisely the status GR22 says cannot arise (kb/Work PB340).</para>
     /// </summary>
     public string ReadShared(string name, bool previous, FileRecordLock phrase, bool advancingOnLock,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
     {
         image = "";
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
@@ -1387,7 +1387,7 @@ public sealed class FileRegistry
     /// <para>ADVANCING ON LOCK is not in the Format-2 general format at all (§14.9.30.2) and §14.9.30.3 SR6 bars
     /// it under ACCESS MODE RANDOM, so this entry carries no advancing-on-lock argument.</para></summary>
     public string ReadKeyedShared(string name, int keyIndex, string keyedRecordImage, FileRecordLock phrase,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
     {
         image = "";
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
@@ -1419,7 +1419,7 @@ public sealed class FileRegistry
     /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
     /// so the first attempt decides. Returns the I-O status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount, LinagePage? page, WriteAdvance advance = default)
+        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default)
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
@@ -1443,7 +1443,7 @@ public sealed class FileRegistry
     /// → RETRY re-checks, else 51 with the record NOT rewritten, the record area unaffected and the FPI unchanged
     /// — GR11a-c/GR14), then the GR12 lock actions. Returns the I-O status.</summary>
     public string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount)
+        FileRetryKind retryKind, long retryAmount)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
@@ -1489,7 +1489,7 @@ public sealed class FileRegistry
     /// on "record locks are in effect", but a connector for which locks are not effective HOLDS none, so the
     /// unconditional releases are correct by vacuity. The conflict CHECK is never disabled (§9.1.16 — a locked
     /// record is inaccessible to another connector regardless of that connector's own lock mode).</summary>
-    public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
+    public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
@@ -1588,13 +1588,13 @@ public sealed class FileRegistry
     /// runs, so no positive timeout could change the outcome.</para>
     /// <para>Every landing goes through <see cref="ExhaustionStatus"/> — the status is a function of the
     /// conflict's own class, NEVER a literal at a call site.</para></summary>
-    public static string RetryLoop(Func<string> attempt, FileRetryKind kind, int amount)
+    public static string RetryLoop(Func<string> attempt, FileRetryKind kind, long amount)
     {
         string s = attempt();
         if (!IsConflict(s)) return s;   // GR4 — success, or an unsuccessful status that is not a conflict
         if (kind == FileRetryKind.Times)
             // GR1 — n further attempts after the initial failure; a zero or negative n makes none (GR4a).
-            for (int i = 0; i < amount && IsConflict(s); i++) s = attempt();
+            for (long i = 0; i < amount && IsConflict(s); i++) s = attempt();
         else if (kind == FileRetryKind.Forever)
             // GR3 — "until the input-output operation has been completed". A conflict here is held by a
             // connector of this run unit, which cannot release while this statement executes, so one attempt

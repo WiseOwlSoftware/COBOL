@@ -203,10 +203,10 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
         {
             { Real: true } => RuntimeApi.ContinueAfter(x.Expr, check),
             { Dec: true } => RuntimeApi.ContinueAfterExact($"({x.Expr}).ToDouble()",
-                $"(long)({x.Expr}).ToUnscaled(0, CobolRounding.Truncation)", check),
-            { Scale: 0 } => RuntimeApi.ContinueAfterExact($"(double)({x.Expr})", $"(long)({x.Expr})", check),
+                RuntimeApi.HostInt64($"({x.Expr}).ToUnscaled(0, CobolRounding.Truncation)"), check),
+            { Scale: 0 } => RuntimeApi.ContinueAfterExact($"(double)({x.Expr})", RuntimeApi.HostInt64(x.Expr), check),
             _ => RuntimeApi.ContinueAfterExact(NumericRenderer.Real(x),
-                "(long)" + RuntimeApi.NumRescale(x.Expr, x.Scale.ToString(), "0", CobolRounding.Truncation), check),
+                RuntimeApi.HostInt64(RuntimeApi.NumRescale(x.Expr, x.Scale.ToString(), "0", CobolRounding.Truncation)), check),
         };
         if (!n.CheckLessThanZero)
         {

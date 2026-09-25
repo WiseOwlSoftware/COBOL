@@ -91,9 +91,12 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // as-if PICTURE 1(m) length, the same units RefModPlace.Category and the write-side pad already use.
         if (target is RefModPlace rm)
         {
+            // The ONE ref-mod narrowing (RuntimeApi.RefModStart / RefModLength — saturating, kb/Work PB1033); the
+            // omitted-length width is computed in `long` so a saturated start cannot overflow it, and floored at
+            // zero — the slice write below raises EC-BOUND-REF-MOD for that start (§8.4.3.3.4 item 5c).
             string len = rm.Length is { } l
-                ? $"(int)({l})"
-                : $"{rm.Inner.Item.OperandPic?.Length ?? rm.Inner.Item.ImageWidth} - (int)({rm.Start}) + 1";
+                ? RuntimeApi.RefModLength(l)
+                : $"(int)System.Math.Max(0L, {rm.Inner.Item.OperandPic?.Length ?? rm.Inner.Item.ImageWidth} - (long){RuntimeApi.RefModStart(rm.Start)} + 1)";
             w.Line(PlaceRenderer.Write(target, $"AcceptSource.Device({len})"));
             return;
         }

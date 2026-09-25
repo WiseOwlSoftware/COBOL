@@ -62,8 +62,8 @@ public sealed partial class DataBinder
                 if (ph.CAPACITY() is not null && ph.dataReference() is { } capRef)
                     capName = CapacityRegisterName(capRef, where);
                 else if (ph.INITIALIZED() is not null) initialized = true;
-                else if (ph.FROM() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int fv)) fromCap = fv;
-                else if (ph.TO() is not null && int.TryParse(ph.integerLiteral()?.GetText(), out int tv)) toCap = tv;
+                else if (ph.FROM() is not null && ph.integerLiteral() is { } fl) fromCap = CobolNet.Validation.IntegerOperandRules.HostValue(fl);
+                else if (ph.TO() is not null && ph.integerLiteral() is { } tl) toCap = CobolNet.Validation.IntegerOperandRules.HostValue(tl);
             }
             var dyn = new OccursSpec
             {

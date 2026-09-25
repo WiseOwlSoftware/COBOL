@@ -52,6 +52,7 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                     __ins1 = CobolInspect.Replace(__ins1, new int[] { CobolInspect.ReplaceAll }, new string?[] { "L" }, new string?[] { "*" }, new string?[] { null }, new string?[] { null }, false);
                     WS_TXT = __ins1;
                     long __strPtr0 = 1;
+                    long __strPtr00 = __strPtr0;
                     bool __strOvf0 = false;
                     string __strInto0 = WS_OUT;
                     __strInto0 = CobolStringOps.StringTransfer(__strInto0, "A", null, ref __strPtr0, ref __strOvf0);
@@ -61,7 +62,8 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                     string[] __unsDel1 = { " " };
                     bool[] __unsAll1 = { false };
                     long __unsPtr1 = 1;
-                    long __unsTly1 = 0;
+                    long __unsPtr1__0 = __unsPtr1;
+                    Int128 __unsTly1 = 0;
                     bool __unsOvf1 = false;
                     if (__unsPtr1 < 1 || __unsPtr1 > __unsSrc1.Length)
                     {

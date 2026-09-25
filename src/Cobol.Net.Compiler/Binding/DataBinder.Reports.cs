@@ -804,7 +804,7 @@ public sealed partial class DataBinder
             else if (clause.reportPageClause() is { } page)
             {
                 model.Paged = true;
-                model.PageLimit = int.Parse(page.integerLiteral().GetText());
+                model.PageLimit = CobolNet.Validation.IntegerOperandRules.HostValue(page.integerLiteral());
                 // §13.18.39.2 prints each phrase in its own bracket with no ellipsis; SR4 licenses any ORDER,
                 // never a repeat — `HEADING 1 HEADING 2` used to keep the last value silently (COBOLNET2423).
                 var subs = page.reportPageSubclause();
@@ -818,7 +818,7 @@ public sealed partial class DataBinder
                     "the PAGE clause's FOOTING phrase", "13.18.39.2");
                 foreach (var sub in subs)
                 {
-                    int v = int.Parse(sub.integerLiteral().GetText());
+                    int v = CobolNet.Validation.IntegerOperandRules.HostValue(sub.integerLiteral());
                     if (sub.HEADING() is not null) { model.Heading = v; heading = true; }
                     else if (sub.FIRST() is not null) { model.FirstDetail = v; firstDetail = true; }
                     else if (sub.LAST() is not null) { model.LastDetail = v; lastDetail = true; }
@@ -899,7 +899,7 @@ public sealed partial class DataBinder
                 ? new ReportNextGroup(ReportNextGroupKind.NextPage, 0, ngc.RESET() is not null)
                 : new ReportNextGroup(ngc.reportRelativeSign() is not null
                     ? ReportNextGroupKind.Relative : ReportNextGroupKind.Absolute,
-                    LineInteger(ngc.integerLiteral()));
+                    CobolNet.Validation.IntegerOperandRules.HostValue(ngc.integerLiteral()));
             g.NextGroup = ng;
             string where = $"RD '{model.Name}' group '{g.Name ?? "FILLER"}' ({ReportGroupTypeWords(g.Kind)})";
             void Violation(string rule) =>
@@ -1034,7 +1034,7 @@ public sealed partial class DataBinder
                     bool absolute = op.integerLiteral() is not null && op.reportRelativeSign() is null;
                     if (op.integerLiteral() is { } lit)
                     {
-                        if (LineInteger(lit) > model.VerticalLimit)
+                        if (CobolNet.Validation.IntegerOperandRules.HostValue(lit) > model.VerticalLimit)
                             Violation($"{(absolute ? "integer-1" : "integer-2")} {lit.GetText()} exceeds {model.VerticalLimitWords}"
                                 + "; neither integer-1 nor integer-2 shall exceed the page limit, or 9999 if the report "
                                 + "is not divided into pages (ISO §13.18.35.3 SR3)");
@@ -1355,7 +1355,7 @@ public sealed partial class DataBinder
                 continue;
             }
             // c) "The occurrences of integer-1, if present, shall be in ascending numerical order."
-            int v = int.Parse(lit.GetText());
+            int v = CobolNet.Validation.IntegerOperandRules.HostValue(lit);
             if (lastAbsolute > int.MinValue && v <= lastAbsolute)
                 Edition.Error(DiagnosticCatalog.ReportLineClauseRule, $"RD '{model.Name}': in a multiple LINE clause the "
                     + $"occurrences of integer-1 shall be in ascending numerical order — {v} follows "
@@ -1406,7 +1406,7 @@ public sealed partial class DataBinder
         var bounds = oc.occursBound();
         bool hasTo = oc.TO() is not null;
         var depending = oc.dataReference();
-        int? step = oc.occursStepPhrase() is { } sp && int.TryParse(sp.integerLiteral().GetText(), out int s3) ? s3 : null;
+        int? step = oc.occursStepPhrase() is { } sp ? CobolNet.Validation.IntegerOperandRules.HostValue(sp.integerLiteral()) : null;
         int max = OccursBoundValue(bounds[^1], where) ?? 0;
         int min = hasTo ? OccursBoundValue(bounds[0], where) ?? 0 : 0;
 
@@ -1658,7 +1658,7 @@ public sealed partial class DataBinder
                 }
                 else if (clause.reportColumnClause() is { } cc)
                     foreach (var op in cc.reportColumnOperand())
-                        columns.Add(new ReportColumnSpec(op.reportRelativeSign() is not null, int.Parse(op.integerLiteral().GetText())));
+                        columns.Add(new ReportColumnSpec(op.reportRelativeSign() is not null, CobolNet.Validation.IntegerOperandRules.HostValue(op.integerLiteral())));
                 else if (clause.reportSourceClause() is { } sc)
                 {
                     // Every written operand of the clause (§13.18.53.2's ellipsis) — the SR6 count below reads
@@ -1721,7 +1721,7 @@ public sealed partial class DataBinder
                                 "ISO §13.18.40.3 SR37 — locale-name-1 shall be specified in the LOCALE clause in the SPECIAL-NAMES paragraph");
                             if (sym is not null) locale = new LocaleRef(sym);
                         }
-                        int size = int.TryParse(rlp.integerLiteral().GetText(), out int sz) && sz > 0 ? sz : 1;
+                        int size = Math.Max(1, CobolNet.Validation.IntegerOperandRules.HostValue(rlp.integerLiteral()));
                         reportLocale = new LocaleEditSpec(locale, size, "");
                     }
                 }
@@ -2097,7 +2097,7 @@ public sealed partial class DataBinder
     {
         bool nextPage = groupFirstLine && op.NEXT() is not null;
         bool relative = op.reportRelativeSign() is not null || op.integerLiteral() is null;
-        int value = op.integerLiteral() is { } lit ? LineInteger(lit) : BareNextPageInterval;
+        int value = op.integerLiteral() is { } lit ? CobolNet.Validation.IntegerOperandRules.HostValue(lit) : BareNextPageInterval;
         int shift = st.Shift(ReportRepetitionAxis.Vertical);
         bool anchored = st.Repetitions.Exists(
             r => r.Spec.Axis == ReportRepetitionAxis.Vertical && r.Spec.Step is not null);
@@ -2131,13 +2131,6 @@ public sealed partial class DataBinder
     /// <summary>The integer-2 a LATER occurrence of a repeated bare <c>ON NEXT PAGE</c> operand places by — the
     /// next line (see the determination on <see cref="RepeatedLine"/>). The first occurrence never reads it.</summary>
     private const int BareNextPageInterval = 1;
-
-    /// <summary>A LINE or NEXT GROUP clause integer as written. A literal too large for an <c>int</c> saturates
-    /// rather than throwing: it already exceeds every limit §13.18.35.3 SR3 / §13.18.37.3 SR1 admit
-    /// (<see cref="ReportModel.VerticalLimit"/>), and <see cref="ScreenReportLineClauses"/> /
-    /// <c>BindNextGroupClauses</c> report it there.</summary>
-    private static int LineInteger(Core.IntegerLiteralContext lit) =>
-        int.TryParse(lit.GetText(), out int v) ? v : int.MaxValue;
 
     /// <summary>True when any entry in <c>[start, end)</c> carries a LINE clause with an ABSOLUTE operand
     /// (ISO §13.18.38.3 SR25a/SR25b).</summary>
@@ -2195,7 +2188,7 @@ public sealed partial class DataBinder
                 foreach (var op in lc.reportLineOperand())
                 {
                     if (op.integerLiteral() is not { } lit) continue;
-                    int v = int.Parse(lit.GetText());
+                    int v = CobolNet.Validation.IntegerOperandRules.HostValue(lit);
                     if (op.reportRelativeSign() is not null)
                     {
                         anyRelative = true;

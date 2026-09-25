@@ -32,10 +32,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
     {
         var w = ctx.Writer;
         int id = ctx.Names.NextStrUnstr();
-        string ptr = $"__strPtr{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
+        string ptr = $"__strPtr{id}", ptr0 = $"__strPtr0{id}", ovf = $"__strOvf{id}", acc = $"__strInto{id}";
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0)});"   // GR4 — the user's initial value (by VALUE — kb/Work PB86)
+            ? $"long {ptr} = {RuntimeApi.HostInt64(NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0))};"   // GR4 — the user's initial value (by VALUE — kb/Work PB86; saturating — PB1033)
             : $"long {ptr} = 1;");                                                    // GR5 — implicit pointer of 1
+        w.Line($"long {ptr0} = {ptr};");   // the starting pointer: GR6 changes the POINTER item only when a character moves
         w.Line($"bool {ovf} = false;");
         // ⚖ A DYNAMIC-LENGTH identifier-3 (kb/Work PB871; DETERMINATION D-DL2, docs/CONFORMANCE.md §3): GR6 and
         // GR8 are written over "the number of character positions in the data item referenced by identifier-3",
@@ -48,12 +49,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
         // Place.DenotedItem is the ONE "whole item" question (§8.4.3.3.4 GR5; kb/Work PB602): a reference-modified
         // identifier-3 denotes no item, and §8.5.1.10.4 makes it a fixed-length item of the current length.
         bool dynInto = s.Into.DenotedItem is { IsDynamicLength: true };
-        string old = $"__strOld{id}", ptr0 = $"__strPtr0{id}";
+        string old = $"__strOld{id}";
         if (dynInto)
         {
             w.Line($"string {old} = {ReadImage(s.Into)};");
             w.Line($"string {acc} = {old}.PadRight({ReceivingStore.DynamicReceivingSize(s.Into.Item)});");
-            w.Line($"long {ptr0} = {ptr};");
         }
         else
             w.Line($"string {acc} = {ReadImage(s.Into)};");
@@ -72,7 +72,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
                 $"{acc}.Substring(0, {ptr} != {ptr0} ? System.Math.Max({old}.Length, (int)({ptr} - 1)) : {old}.Length)", "")));
         else
             WriteImage(s.Into, acc);
-        if (s.Pointer is { } p) arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
+        // GR6: the pointer item changes only as characters move. Storing it back unconditionally re-wrote an
+        // unchanged pointer through its host carrier — a saturated value past long (kb/Work PB1033) — so it is
+        // stored only when it moved, and a pointer that overflowed before any transfer keeps its exact value.
+        if (s.Pointer is { } p)
+            using (w.Block($"if ({ptr} != {ptr0})"))
+                arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
         EmitOverflow(ovf, "EC-OVERFLOW-STRING", s.OnOverflow, s.NotOnOverflow);   // GR8b
     }
 
@@ -108,11 +113,12 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             w.Line($"bool[] {alls} = System.Array.Empty<bool>();");
         }
         w.Line(s.Pointer is { } p0
-            ? $"long {ptr} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0)});"   // GR11a / GR12 — user-initialized (by VALUE — kb/Work PB86)
+            ? $"long {ptr} = {RuntimeApi.HostInt64(NumericRenderer.Align(num.AsNum(new BoundFieldOperand(p0), ReceiverContext.None), 0))};"   // GR11a / GR12 — user-initialized (by VALUE — kb/Work PB86; saturating — PB1033)
             : $"long {ptr} = 1;");                                                    // GR11a — leftmost position
+        w.Line($"long {ptr}__0 = {ptr};");
         w.Line(s.Tallying is { } t0
-            ? $"long {tly} = (long)({NumericRenderer.Align(num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None), 0)});"   // GR14 — adds to the current value (by VALUE — kb/Work PB86)
-            : $"long {tly} = 0;");
+            ? $"Int128 {tly} = {NumericRenderer.Align(num.AsNum(new BoundFieldOperand(t0), ReceiverContext.None), 0)};"   // GR14 — adds to the current value (by VALUE — kb/Work PB86), EXACT: a count is summed, never narrowed (PB1033)
+            : $"Int128 {tly} = 0;");
         w.Line($"bool {ovf} = false;");
         using (w.Block($"if ({ptr} < 1 || {ptr} > {src}.Length)"))
             w.Line($"{ovf} = true;");                                                 // GR15a; GR16a terminates — no transfer
@@ -161,7 +167,11 @@ internal sealed class StringEmitter(EmitContext ctx, NumericRenderer num, Arithm
             }
             w.Line($"if ({ptr} <= {src}.Length) {ovf} = true;   // unexamined characters remain (ISO §14.9.48.4 GR15b)");
         }
-        if (s.Pointer is { } p) arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);     // GR13
+        // GR13 — stored only when the pointer moved (the STRING twin's reason: kb/Work PB1033), so a pointer that
+        // was out of range before any examination keeps its exact value.
+        if (s.Pointer is { } p)
+            using (w.Block($"if ({ptr} != {ptr}__0)"))
+                arith.StoreArith(p, new NumX(ptr, 0), CobolRounding.Truncation);
         if (s.Tallying is { } t) arith.StoreArith(t, new NumX(tly, 0), CobolRounding.Truncation);    // GR14
         EmitOverflow(ovf, "EC-OVERFLOW-UNSTRING", s.OnOverflow, s.NotOnOverflow);   // GR16b
     }

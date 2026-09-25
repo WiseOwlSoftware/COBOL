@@ -89,7 +89,7 @@ internal static class BooleanRenderer
             // The count is a numeric operand rendered as an integer (m=0 implementor choice — a fractional count
             // truncates, ISO §8.8.2 rule 8 "repeat until iterations == K"); the runtime kernel guards k ≤ 0 / k ≥ N.
             RuntimeApi.BoolShift(s.Kind, s.Operand.Accept(this),
-                $"(long)({NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)})");
+                RuntimeApi.HostInt64(NumericRenderer.Align(num.Render(s.Count, ReceiverContext.None, sending), 0)));
     }
 
     /// <summary>A boolean value expression as read for a relation operand — the same '0'/'1' string form.</summary>

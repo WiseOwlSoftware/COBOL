@@ -5033,6 +5033,20 @@ public static class DiagnosticCatalog
         + "(§13.18.38.3 SR16 / SR28), RECORD integer-2 / integer-4 (§13.18.43.3 SR7 / SR8), WRITE ADVANCING "
         + "(§14.9.51.3 SR15).",
         "ISO §5.5 1)");
+
+    /// <summary>COBOLNET2427 — an <c>integer-n</c> the compiler binds into its model (a table size, a record or
+    /// block size, a LINAGE or PAGE line count, a report LINE or COLUMN, an ordinal) exceeds 2,147,483,647, this
+    /// implementation's limit. Screened once, pre-bind, by <c>Validation/IntegerOperandPass</c> for EVERY
+    /// <c>integerLiteral</c> except the statement counts carried to run time at full value (PERFORM TIMES,
+    /// WRITE ADVANCING). Before it, the report writer's and LINAGE's <c>int.Parse</c> took the compiler down with
+    /// an unhandled <c>OverflowException</c> (kb/Work PB1058).</summary>
+    public static readonly DiagnosticDescriptor IntegerOperandBeyondLimit = new(
+        "COBOLNET2427", "integer-operand-beyond-limit", EditionSeverity.Error,
+        "An integer-n operand exceeds this implementation's limit of 2,147,483,647 for an integer that sizes, "
+        + "counts or positions something the compiler lays out. ISO §4.5: 'Translation may be unsuccessful due to "
+        + "factors other than lack of conformance of a compilation group', and its NOTE names 'the limits of an "
+        + "implementation'. The limit is documented in docs/CONFORMANCE.md §3 'Integer operands and host carriers'.",
+        "ISO §4.5");
     /// <summary>§14.9.16.3 SR3/SR4, §14.9.21.3 SR2, §14.9.46.3 SR2 — a contained program's GENERATE, INITIATE or
     /// TERMINATE names a GLOBAL report (§13.18.27.3 SR1 e)) of a containing program whose file description entry
     /// is not GLOBAL (kb/Work PB369). The report is visible; the statement drives output to its file, which the

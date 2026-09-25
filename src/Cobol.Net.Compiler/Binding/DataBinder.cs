@@ -1687,13 +1687,13 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             // The fixed Format-1 RECORD CONTAINS n (ISO §13.18.43): captured for the report-file line width
             // (COBOLNET_REPORT_WRITER_DESIGN §4); a record-bearing FD's width still comes from its records.
-            if (rc.integerLiteral() is { Length: > 0 } fixedLits && int.TryParse(fixedLits[0].GetText(), out int n0))
+            if (rc.integerLiteral() is { Length: > 0 } fixedLits && CobolNet.Validation.IntegerOperandRules.HostValue(fixedLits[0]) is var n0)
                 file.RecordContains = n0;
             return;
         }
         var lits = rc.integerLiteral();
-        int? lo = lits.Length > 0 ? int.Parse(lits[0].GetText()) : null;
-        int? hi = lits.Length > 1 ? int.Parse(lits[1].GetText()) : null;
+        int? lo = lits.Length > 0 ? CobolNet.Validation.IntegerOperandRules.HostValue(lits[0]) : null;
+        int? hi = lits.Length > 1 ? CobolNet.Validation.IntegerOperandRules.HostValue(lits[1]) : null;
         if (rc.TO() is not null && lits.Length == 1) { hi = lo; lo = null; }
         string? dep = null;
         IReadOnlyList<string> depQuals = [];
@@ -1737,7 +1737,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 // A literal operand keeps its cursor too: §13.18.34.3 SR3 reports AT integer-2 (ResolveLinage).
                 using var lit = Edition.At(i);
-                return new LinageOperand(int.Parse(i.GetText()), null) { At = Edition.Cursor };
+                return new LinageOperand(CobolNet.Validation.IntegerOperandRules.HostValue(i), null) { At = Edition.Cursor };
             }
             var (name, quals) = ClauseDataName(d!, "LINAGE clause operand");
             using var _ = Edition.At(d!);
@@ -3991,7 +3991,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                         // (Validation/IntegerOperandPass, COBOLNET2386 — kb/Work PB859); only a value too large for
                         // any character count is this clause's own to report.
                         bool zero = lp.integerLiteral().GetText().AsSpan().Trim('0').IsEmpty;
-                        int size = int.TryParse(lp.integerLiteral().GetText(), out int sz) && sz > 0 ? sz : 0;
+                        int size = CobolNet.Validation.IntegerOperandRules.HostValue(lp.integerLiteral());
                         if (size == 0 && !zero)
                             Edition.Error(DiagnosticCatalog.PictureLocaleFormat2Violation,
                                 $"data item '{cobolName ?? "FILLER"}': SIZE IS {lp.integerLiteral().GetText()} — "

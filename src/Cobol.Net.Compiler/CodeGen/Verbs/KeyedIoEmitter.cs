@@ -380,7 +380,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         else if (file.Organization == FileOrganization.Relative)
         {
             // §14.9.41 GR9/GR10 — numeric comparison against the RELATIVE KEY item's value (typed read).
-            string rrn = $"(long)({NumericRenderer.Align(num.FieldNum(sta.Operand!), 0)})";
+            string rrn = RuntimeApi.HostInt64(NumericRenderer.Align(num.FieldNum(sta.Operand!), 0));
             w.Line($"var {st} = {RuntimeApi.FileStartRelative(name, CsLiteral(sta.Op), rrn)};");
         }
         else
@@ -444,6 +444,6 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
     private string? Rrn(FileModel file)
     {
         if (file.RelativeKeyItem is not { } rk || refs.ResolveItem(rk) is not { } place) return null;
-        return $"(long)({NumericRenderer.Align(num.FieldNum(place), 0)})";
+        return RuntimeApi.HostInt64(NumericRenderer.Align(num.FieldNum(place), 0));
     }
 }

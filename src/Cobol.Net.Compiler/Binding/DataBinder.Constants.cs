@@ -385,7 +385,7 @@ public sealed partial class DataBinder
     private int? OccursBoundValue(Core.OccursBoundContext bound, string where)
     {
         if (bound.integerLiteral() is { } il)
-            return int.TryParse(il.GetText(), out int n) ? n : null;
+            return CobolNet.Validation.IntegerOperandRules.HostValue(il);
         string word = bound.cobolWord().GetText();
         if (_constants.TryGetValue(word, out var k))
         {

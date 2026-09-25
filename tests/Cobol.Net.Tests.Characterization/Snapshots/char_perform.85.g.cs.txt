@@ -42,7 +42,7 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
             {
                 case 0:   // MAIN-PARA
                 {
-                    long __n1 = 3;
+                    long __n1 = 3L;
                     for (long __i1 = 0; __i1 < __n1; __i1++)
                     {
                         T = (long)(CobolNum.Store(((Int128)(T) + (1L)), 0, _P_1, CobolRounding.Truncation));

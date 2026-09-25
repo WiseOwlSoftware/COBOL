@@ -97,11 +97,16 @@ public sealed class RunUnit
     /// Default 0 (a status-free run unit never writes this field, so <c>Environment.ExitCode</c> keeps its 0
     /// default and the generated <c>Main</c> stays scaffolding-free — the zero-scaffolding invariant, DESIGN §18.16).
     /// The future RETURN-CODE special register writes this SAME field (singular-pattern — one exit-code source AND
-    /// one flush, never two).</summary>
+    /// one flush, never two).
+    /// <para>The host exit code is a 32-bit integer, so the status is CLAMPED to that range through the one
+    /// saturating narrowing (<see cref="CobolNum.Position32"/>), never wrapped: a bare <c>(int)</c> turned
+    /// <c>STOP RUN WITH ERROR STATUS 4294967296</c> into exit 0 — a NORMAL termination for an ERROR phrase
+    /// (kb/Work PB1178). docs/CONFORMANCE.md item 192 documents the range (and a POSIX host's own low-8-bit
+    /// report).</para></summary>
     public long ExitStatus
     {
         get => _exitStatus;
-        set { _exitStatus = value; Environment.ExitCode = (int)value; }
+        set { _exitStatus = value; Environment.ExitCode = CobolNum.Position32(value); }
     }
 
     /// <summary>The emitted-surface shim STOP RUN / GOBACK write (kept name-stable over <see cref="Current"/>,

@@ -17,6 +17,7 @@
   "pb422-all-multichar-compare-numeric",
   "pb349-sort-flow-turn-at-85",
   "pb1006-source-format-false-path-below-2002",
+  "pb1058-integer-operand-beyond-limit",
   "pb1002-unpaged-next-page",
   "pb1002-line-beyond-page-limit",
   "pb1002-unpaged-absolute-line",

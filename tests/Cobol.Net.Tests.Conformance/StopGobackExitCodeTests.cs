@@ -30,6 +30,38 @@ public sealed class StopGobackExitCodeTests
             {proc}
         """;
 
+    /// <summary>
+    /// ⛔ A STATUS VALUE PAST THE HOST'S 32-BIT EXIT CODE IS CLAMPED, NEVER WRAPPED (kb/Work PB1178). The value
+    /// used to reach <c>Environment.ExitCode</c> through a bare <c>(int)</c> of a <c>long</c> (itself a bare
+    /// <c>(long)</c> of the integer landing), so <c>STOP RUN WITH ERROR STATUS 4294967296</c> (2^32) exited 0 — the
+    /// operating system reported a NORMAL termination for an ERROR phrase (§14.9.42.4 GR2) because the value wrapped.
+    /// docs/CONFORMANCE.md item 192 documents the range: the value saturates to [-2^31, 2^31 - 1], and a POSIX host
+    /// then reports its low 8 bits (so 2^31 - 1 exits 255 there). The 9(20) arm is 2^64 + 3, which a 64-bit wrap
+    /// made 3.
+    /// </summary>
+    [Theory]
+    [InlineData("STOP RUN WITH ERROR STATUS 4294967296.", int.MaxValue)]
+    [InlineData("STOP RUN WITH ERROR STATUS WS-WIDE.", int.MaxValue)]
+    [InlineData("STOP RUN WITH ERROR STATUS -4294967297.", int.MinValue)]
+    [InlineData("GOBACK WITH ERROR STATUS 4294967296.", int.MaxValue)]
+    public void StatusBeyondTheHostExitCode_IsClampedNeverWrapped(string proc, int clamped)
+    {
+        string source = $"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. SGCLAMP.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-WIDE PIC 9(20) VALUE 18446744073709551619.
+            PROCEDURE DIVISION.
+            MAIN.
+                DISPLAY "ran".
+                {proc}
+            """;
+        var (exit, stdout, detail) = new CobolNetCompiler(2023).CompileAndRunExit(source);
+        Assert.True(stdout == "ran", detail);
+        Assert.Equal(OperatingSystem.IsWindows() ? clamped : clamped & 0xFF, exit);
+    }
+
     [Theory]
     // STOP RUN — §14.9.42.4 GR5 (value passed) wins over the ERROR/NORMAL indication (GR2/GR3).
     [InlineData("STOP RUN WITH ERROR STATUS 42.", 42)]     // GR5: the value is passed

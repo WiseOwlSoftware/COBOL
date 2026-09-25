@@ -38,8 +38,10 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         int id = ctx.Names.NextDep();
         // The selector "shall reference a numeric elementary data item that is an integer" (§14.9.17.3 SR1) — read
         // through the ONE integer landing so a P-scaled or
-        // unsigned-wide item selects by VALUE (kb/Work PB86's sweep of raw integer-identifier reads).
-        w.Line($"int __dep{id} = (int)({NumericRenderer.Align(num.AsNum(d.Selector, ReceiverContext.None), 0)});");
+        // unsigned-wide item selects by VALUE (kb/Work PB86's sweep of raw integer-identifier reads) — and narrowed through
+        // the SATURATING HostInt32, so a value past `int` stays outside 1..n and falls through (GR2; kb/Work PB1033: a
+        // cast wrapped 4294967297 to 1 and went to procedure-name-1).
+        w.Line($"int __dep{id} = {RuntimeApi.HostInt32(NumericRenderer.Align(num.AsNum(d.Selector, ReceiverContext.None), 0))};");
         // X3.23-1985 USE FOR DEBUGGING (VCR 7.17): an in-range GO TO … DEPENDING transfer is DEBUG-CONTENTS SPACES,
         // DEBUG-LINE the GO TO DEPENDING statement's own line.
         string cause = dispatch.DebugActive ? $" __dbgCause = DebugCause.Transfer; __dbgLine = {d.SourceLine};" : "";
@@ -474,15 +476,17 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         return num.RenderOperandLike(w.Inner);
     }
 
-    /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once): a literal verbatim; an
+    /// <summary>The TIMES count as a C# <c>long</c> (§14.9.28.4 GR7 — determined once), narrowed only through the
+    /// saturating <c>RuntimeApi.HostInt64</c> / <c>HostInt64Literal</c> (kb/Work PB1033 — a cast wrapped 2^64 + 1 to ONE
+    /// iteration, and a 20-digit literal was CS1021): a literal folded at compile time; an
     /// error operand loud; every other operand — an integer data item (a P-scaled or unsigned-wide read included),
     /// a function-identifier's result (kb/Work PB86: it used to fall to a `_ => "1"` default and run the body
     /// ONCE) — through the ONE integer landing, <see cref="NumericRenderer.Align"/> at scale 0.</summary>
     private string CountExpr(BoundOperand count) => count switch
     {
-        BoundNumericLiteral n => n.Text,
+        BoundNumericLiteral n => RuntimeApi.HostInt64Literal(n.Text),
         BoundOperandError e => LoudValue("long", e.Feature),
-        _ => $"(long)({NumericRenderer.Align(num.AsNum(count, ReceiverContext.None), 0)})",
+        _ => RuntimeApi.HostInt64(NumericRenderer.Align(num.AsNum(count, ReceiverContext.None), 0)),
     };
 
 

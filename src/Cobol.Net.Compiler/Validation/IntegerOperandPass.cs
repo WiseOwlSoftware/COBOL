@@ -72,6 +72,18 @@ internal sealed class IntegerOperandPass(IDiagnosticSink sink) : CursorFollowing
                 + "and nonzero unless otherwise specified in the associated rules\", and no rule of this format "
                 + "permits zero here", where, DiagnosticCatalog.IntegerOperandZero.IsoSection));
         }
+        if (IntegerOperandRules.BeyondHostLimit(ctx))
+        {
+            string where = IntegerOperandRules.ConstructName(ctx);
+            Sink.Report(new EditionDiagnostic(DiagnosticCatalog.IntegerOperandBeyondLimit.Code, EditionSeverity.Error,
+                DiagnosticCatalog.IntegerOperandBeyondLimit.Id,
+                $"{where}: the integer operand {text} exceeds this implementation's limit of "
+                + $"{IntegerOperandRules.HostLimit:N0} for an integer-n that sizes, counts or positions something the "
+                + "compiler lays out (docs/CONFORMANCE.md §3 'Integer operands and host carriers'). ISO §4.5: "
+                + "\"Translation may be unsuccessful due to factors other than lack of conformance of a compilation "
+                + "group\" — the limits of an implementation", where,
+                DiagnosticCatalog.IntegerOperandBeyondLimit.IsoSection));
+        }
         return base.VisitChildren(ctx);
     }
 }
@@ -184,6 +196,47 @@ internal static class IntegerOperandRules
             ? IntegerSlot.Zero("ISO §13.18.35.3 SR3")
             : IntegerSlot.Default;
 
+    /// <summary>The largest <c>integer-n</c> value the compiler binds into its own model — an <see cref="int"/>,
+    /// because every such operand sizes, counts or positions something the compiler lays out in a .NET object
+    /// (a table, a record, a page, a line, a character set), and none of those can exceed it.</summary>
+    internal const int HostLimit = int.MaxValue;
+
+    /// <summary>⛔ The grammar rules whose <c>integer-n</c> is NOT bound into the compiler's model as an
+    /// <see cref="int"/>, because its value is meaningful at any magnitude and is carried at full width:
+    /// <list type="bullet">
+    /// <item>a statement's repeat count (§14.9.28 PERFORM integer-1 TIMES) and line count (§14.9.51 WRITE
+    /// ADVANCING integer-1 LINES), carried to run time through the one narrowing
+    /// <c>CobolNet.Runtime.HostInteger</c> (kb/Work PB1033);</item>
+    /// <item>the DYNAMIC LENGTH clause's LIMIT integer-1, read as an <see cref="Int128"/> and bounded by
+    /// §8.5.1.10.1 ("The maximum size of a dynamic-length elementary item is smallest of") against the implementor maximum (kb/Work PB463).</item>
+    /// </list>
+    /// Every other rule's operand is bound through <see cref="HostValue"/>. A rule added here must read its
+    /// operand wide; <c>IntegerOperandSlotDriftTests</c> holds the set.</summary>
+    internal static readonly IReadOnlySet<Type> FullValueSlots = new HashSet<Type>
+    {
+        typeof(Core.PerformTimesContext),
+        typeof(Core.WriteBeforeAfterContext),
+        typeof(Core.DynamicLengthClauseContext),
+    };
+
+    /// <summary>True when <paramref name="operand"/> is bound into the compiler's model (it is not one of
+    /// <see cref="FullValueSlots"/>) and its value exceeds <see cref="HostLimit"/> — the one question
+    /// <see cref="IntegerOperandPass"/> asks before any binder reads the value (kb/Work PB1058).</summary>
+    internal static bool BeyondHostLimit(Core.IntegerLiteralContext operand) =>
+        !(operand.Parent is ParserRuleContext owner && FullValueSlots.Contains(owner.GetType()))
+        && !int.TryParse(operand.GetText(), System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out _);
+
+    /// <summary>⛔ THE ONE READER of an <c>integer-n</c> the binder keeps in its model (kb/Work PB1058). A value
+    /// beyond <see cref="HostLimit"/> has already been reported by <see cref="IntegerOperandPass"/> (it runs
+    /// pre-bind), so this returns <see cref="HostLimit"/> for it — a value past every range rule the binder then
+    /// screens — rather than throwing: an <c>int.Parse</c> here used to take the whole compiler down with an
+    /// unhandled <see cref="OverflowException"/> on <c>PAGE LIMIT 77777777777</c>, <c>COLUMN 77777777777</c>
+    /// and <c>LINAGE 77777777777</c>.</summary>
+    internal static int HostValue(Core.IntegerLiteralContext operand) =>
+        int.TryParse(operand.GetText(), System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out int v) ? v : HostLimit;
+
     /// <summary>The slot of <paramref name="operand"/>, from the grammar rule that spells it. A rule the table
     /// does not name takes §5.5 1)'s default — the drift test keeps that from being silent.</summary>
     internal static IntegerSlot Classify(Core.IntegerLiteralContext operand) =>
@@ -196,7 +249,9 @@ internal static class IntegerOperandRules
     internal static string ConstructName(Core.IntegerLiteralContext operand)
     {
         var owner = operand.Parent as ParserRuleContext;
-        if (owner is Core.OccursBoundContext) owner = owner.Parent as ParserRuleContext;
+        // An OCCURS bound, a report LINE or COLUMN operand is one operand of a larger clause: name the clause.
+        if (owner is Core.OccursBoundContext or Core.ReportLineOperandContext or Core.ReportColumnOperandContext)
+            owner = owner.Parent as ParserRuleContext;
         if (owner is null) return "integer operand";
         string text = string.Join(' ', Tokens(owner));
         return text.Length <= 60 ? text : text[..57] + "...";

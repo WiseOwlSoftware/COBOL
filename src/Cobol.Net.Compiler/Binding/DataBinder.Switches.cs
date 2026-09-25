@@ -1810,7 +1810,7 @@ public sealed partial class DataBinder
             for (int i = 0; i < names.Length; i++)
             {
                 string symName = names[i].GetText();
-                if (!int.TryParse(ords[i].GetText(), out int ordinal)) continue;
+                int ordinal = CobolNet.Validation.IntegerOperandRules.HostValue(ords[i]);
                 string? value = inSet is not null ? inSet.CharAt(ordinal)
                     : ordinal >= 1 && ordinal <= 65536 ? ((char)(ordinal - 1)).ToString() : null;
                 if (value is null)

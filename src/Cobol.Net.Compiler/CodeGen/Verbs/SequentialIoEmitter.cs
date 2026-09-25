@@ -298,11 +298,9 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         if (op is null) return absent;
         if (op.Literal is { } lit) return lit.ToString();
         if (op.Item is { } item && refs.ResolveItem(item) is { } p)
-        {
-            var nx = num.FieldNum(p);
-            return nx.Scale == 0 ? $"(int)({nx.Expr})"
-                : $"(int){RuntimeApi.NumRescale(nx.Expr, $"{nx.Scale}", "0", CobolRounding.Truncation)}";
-        }
+            // The integer landing (a P-scaled or unsigned-wide item by VALUE), then the ONE saturating narrowing
+            // (kb/Work PB1033) — a bare `(int)` wrapped a 10-digit LINAGE value back into a small page.
+            return RuntimeApi.HostInt32(NumericRenderer.Align(num.FieldNum(p), 0));
         return LoudValue("int", $"LINAGE operand '{op.DataName}' is not resolvable to storage (ISO §13.18.34.3 SR2)");
     }
 
@@ -380,15 +378,17 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         _ => ("FileRetryKind.Times", RetryTimes(retry.Amount)),
     };
 
-    /// <summary>§14.7.9.3 GR1 — the n-TIMES count, ROUNDED UP to the next whole number.</summary>
+    /// <summary>§14.7.9.3 GR1 — the n-TIMES count, ROUNDED UP to the next whole number, as a <c>long</c> through the
+    /// saturating <c>RuntimeApi.HostInt64</c> (kb/Work PB1033: an <c>(int)</c> cast made 4294967297 ONE re-attempt, turned
+    /// [2^31, 2^32) negative — which GR4 a) then screened as "negative" — and was CS0221 on a literal).</summary>
     private string RetryTimes(BoundExpr? amount) =>
         amount is null ? "0"
-        : $"(int)({NumericRenderer.AlignRoundedUp(num.Render(amount, ReceiverContext.None))})";
+        : RuntimeApi.HostInt64(NumericRenderer.AlignRoundedUp(num.Render(amount, ReceiverContext.None)));
 
     /// <summary>§14.7.9.3 GR2 — the timeout period, truncated to the implementor's m (= 0).</summary>
     private string RetrySeconds(BoundExpr? amount) =>
         amount is null ? "0"
-        : $"(int)({NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0)})";
+        : RuntimeApi.HostInt64(NumericRenderer.Align(num.Render(amount, ReceiverContext.None), 0));
 
     /// <summary>Map a bound lock-RETENTION phrase (§14.9.30.2 bracket 2) to the runtime <c>FileRecordLock</c>
     /// enum member (Phase 4d). IGNORING LOCK is NOT here — it is bracket 1 and travels as its own bool argument
@@ -596,7 +596,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// writes the record's own size (GR13b/c — on a varying file the runtime takes the image's length; on a
     /// fixed file it pads to the record width).</summary>
     public string? VaryingLengthArg(FileModel file) =>
-        VaryingDepending(file) is { } dep ? $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}" : null;
+        VaryingDepending(file) is { } dep ? RuntimeApi.HostInt32(RuntimeApi.TableOcc(PlaceRenderer.Read(dep))) : null;
 
     /// <summary>After a SUCCESSFUL read of a RECORD VARYING … DEPENDING file, store the just-read record's length
     /// into the DEPENDING item (ISO §13.18.43 GR15; GR12 — an unsuccessful READ leaves it unchanged, so the call
@@ -818,13 +818,16 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         ctx.Writer.Line(PlaceRenderer.Write(place, status));
     }
 
-    /// <summary>The C# <c>int</c> expression for an ADVANCING line count (a literal or a numeric data-name).</summary>
+    /// <summary>The C# <c>int</c> expression for an ADVANCING line count (a literal or a numeric data-name), narrowed
+    /// only through the saturating <c>RuntimeApi.HostInt32</c> / <c>HostInt32Literal</c> (kb/Work PB1033): a cast wrapped
+    /// a 10-digit count, and a literal past <c>int</c> was CS0221. A count past the carrier advances
+    /// 2,147,483,647 lines — docs/CONFORMANCE.md §3 "Integer operands and host carriers".</summary>
     private string LinesExpr(BoundOperand lines) => lines switch
     {
-        BoundNumericLiteral n => $"(int)({n.Text})",
+        BoundNumericLiteral n => RuntimeApi.HostInt32Literal(n.Text),
         BoundOperandError e => LoudValue("int", e.Feature),
         // An integer identifier (§14.9.47.3 SR — identifier-2 an integer item) reads by VALUE through the ONE integer
         // landing (kb/Work PB86's sweep: the raw read mis-counted a P-scaled item; the `_ => "1"` default was a swallow).
-        _ => $"(int)({NumericRenderer.Align(num.AsNum(lines, ReceiverContext.None), 0)})",
+        _ => RuntimeApi.HostInt32(NumericRenderer.Align(num.AsNum(lines, ReceiverContext.None), 0)),
     };
 }

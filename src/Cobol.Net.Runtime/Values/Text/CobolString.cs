@@ -69,6 +69,25 @@ public static class CobolString
     /// length-omitted ref-mod and by the INVOKE §14.8.2.2 rule-1 prefix splice.</summary>
     public const int OmittedRefModLength = int.MinValue;
 
+    /// <summary>A SPECIFIED reference-modifier length narrowed to the runtime <c>int</c>: the saturating
+    /// <see cref="CobolNum.Position32"/> (kb/Work PB1033), floored one above <see cref="OmittedRefModLength"/> so
+    /// a hugely negative specified length can never saturate ONTO the omitted sentinel and be read as "to the
+    /// end" — it stays a negative length, which item 5c rejects.</summary>
+    public static int SpecifiedRefModLength(Int128 length) =>
+        Math.Max(CobolNum.Position32(length), OmittedRefModLength + 1);
+
+    /// <summary>⛔ THE ONE §8.4.3.3.4 item 5c range test, shared by the read (<see cref="RefMod"/>) and the write
+    /// (<see cref="SpliceInto"/>) — they were two copies. "leftmost … shall be 1..size; a SPECIFIED length shall
+    /// be a positive nonzero integer, with leftmost+length-1 &lt;= size." The last conjunct is written as
+    /// <c>length &gt; size - leftmost + 1</c>: the natural <c>leftmost + length - 1 &gt; size</c> OVERFLOWS an
+    /// <c>int</c> for a length near <c>int.MaxValue</c> (a saturated one included) and wraps to a negative sum
+    /// that passes the test (kb/Work PB1033). <paramref name="leftmost"/> is already within 1..size when it is
+    /// evaluated, so the rewritten form cannot overflow.</summary>
+    private static bool RefModOutOfRange(int leftmost, int length, int size, bool omitted, bool allowZeroLength) =>
+        leftmost < 1 || leftmost > size
+        || (!omitted && length < 0) || (length == 0 && !allowZeroLength)
+        || (length > 0 && length > size - leftmost + 1);
+
     /// <summary>A SCALED reference-modifier leftmost-position or length (ISO §8.4.3.3.4 rule 5)c); fix-queue
     /// PB41): "If the evaluation of leftmost-position or length results in a non-integer value, a zero value, or a
     /// value that references a position outside the area of identifier-1, the EC-BOUND-REF-MOD exception condition
@@ -122,9 +141,7 @@ public static class CobolString
         // §7.3.23, <paramref name="allowZeroLength"/>, relaxes ONLY the zero case, C14), with leftmost+length-1 <= size.
         // For the OMITTED (to-the-end) form only the leftmost is range-checked. A violation raises EC-BOUND-REF-MOD
         // (fatal) ONLY when checking is on; checking off falls through to the lenient clamp below (byte-identical).
-        if (leftmost < 1 || leftmost > size
-            || (!omitted && length < 0) || (length == 0 && !allowZeroLength)
-            || (length > 0 && leftmost + length - 1 > size))
+        if (RefModOutOfRange(leftmost, length, size, omitted, allowZeroLength))
             ExceptionState.RefModError(
                 $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
                 + $"{size}-position item (ISO §8.4.3.3.4 item 5c)");
@@ -156,9 +173,7 @@ public static class CobolString
         // allowed only under REF-MOD-ZERO-LENGTH (§7.3.23), a negative specified length never is (C14); an
         // out-of-range leftmost/length still raises regardless of the directive. The OMITTED form range-checks only
         // the leftmost.
-        if (leftmost < 1 || leftmost > size
-            || (!omitted && length < 0) || (length == 0 && !allowZeroLength)
-            || (length > 0 && leftmost + length - 1 > size))
+        if (RefModOutOfRange(leftmost, length, size, omitted, allowZeroLength))
             ExceptionState.RefModError(
                 $"reference modification ({leftmost}:{(omitted ? "" : length.ToString())}) out of range for a "
                 + $"{size}-position receiver (ISO §8.4.3.3.4 item 5c)");

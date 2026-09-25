@@ -38,6 +38,16 @@ public class Violations
     public bool ConditionCategory(FakeItem item) =>
         item.Pic?.Category == 1;                                   // cobolnet-condition-category-from-raw-picture
 
+    // An integer-n read with a throwing / silently-failing parse instead of IntegerOperandRules.HostValue.
+    public int IntegerOperand(FakeLiteral lit) =>
+        int.Parse(lit.integerLiteral().GetText());                 // cobolnet-integer-n-parsed-outside-host-value
+
+    // A COBOL integer value narrowed with a C# cast, which wraps, instead of RuntimeApi.HostInt32 / HostInt64.
+    public string Selector(string sel) =>
+        $"int d = (int)({NumericRenderer.Align(sel, 0)});";        // cobolnet-integer-value-cast-narrowed
+
+    public sealed class FakeLiteral { public FakeLiteral integerLiteral() => this; public string GetText() => "1"; }
+    private static class NumericRenderer { public static string Align(string s, int scale) => s; }
     public sealed class FakePic { public int Category; }
     public sealed class FakeItem { public FakePic? Pic; public FakePic? OperandPic; }
 }

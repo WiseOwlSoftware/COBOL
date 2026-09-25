@@ -560,6 +560,27 @@ public static partial class CobolNum
     public static long Position(UInt128 value) =>
         value > (UInt128)long.MaxValue ? long.MaxValue : (long)value;
 
+    /// <summary>The <see cref="Position(Int128)"/> narrowing to an <c>int</c> — for the consumers whose host
+    /// parameter is an <c>int</c>: a reference-modifier position or length, a GO TO … DEPENDING selector, an
+    /// ADVANCING or LINAGE line count, an OCCURS DEPENDING current count (kb/Work PB1033). The same rule, the same
+    /// reason: those consumers used to take a bare <c>(int)(…)</c> of the integer landing, and a C# cast WRAPS —
+    /// <c>GO TO P1 P2 DEPENDING ON G</c> with <c>G = 4294967297</c> went to P1 where ISO §14.9.17.4 GR2 transfers
+    /// nowhere, and a leftmost position of 4294967297 read position 1 where §8.4.3.3.4 5) c) raises
+    /// EC-BOUND-REF-MOD. Saturation is the out-of-range answer at every one of them, because every range they
+    /// test lies strictly inside the carrier: no item, record, page or table in this implementation has
+    /// <c>int.MaxValue</c> positions, so a saturated value is still out of range; and the sign survives, so a
+    /// negative value stays negative. A VALUE a consumer keeps (an ADVANCING count) is bounded at the carrier —
+    /// docs/CONFORMANCE.md §3 "Integer operands and host carriers" documents it.</summary>
+    public static int Position32(Int128 value) => int.CreateSaturating(value);
+
+    /// <summary>A COBOL integer LITERAL's value, for the emitter to fold a literal through <see cref="Position(Int128)"/>
+    /// / <see cref="Position32"/> at COMPILE time, so a literal and a data item holding the same value can never
+    /// narrow differently. A fixed-point literal has at most 31 digits (ISO §8.3.3.3.2) and 10^31 &lt; 2^127, so
+    /// every legal integer literal is exact here.</summary>
+    public static Int128 IntegerLiteralValue(string literal) =>
+        Int128.Parse(literal, System.Globalization.NumberStyles.AllowLeadingSign,
+            System.Globalization.CultureInfo.InvariantCulture);
+
     /// <summary>An unscaled/scale pair rendered as its plain decimal VALUE — for the diagnostic text of the two
     /// position conditions, so the message names the value the program computed (2.5) and never its storage (25).</summary>
     public static string PlainValue(Int128 unscaled, int scale)

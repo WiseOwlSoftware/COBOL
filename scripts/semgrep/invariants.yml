@@ -150,3 +150,34 @@ rules:
     # `Pic` reached as a member, in any of the three C# spellings (`x.Pic?.`, `x.Pic.`, `x.Pic is { ... }`). The
     # negative lookbehind is what keeps `OperandPic` - the CORRECT reader - from matching its own suffix.
     pattern-regex: '(?<![A-Za-z0-9_])Pic(\?\.|\.|\s+is\s+\{)'
+  # -- One integer-n reader in the binder (kb/Work PB1058) ------------------------------------------------------
+  - id: cobolnet-integer-n-parsed-outside-host-value
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      kb/Work PB1058 - an integer-n literal is read into the binder's model through ONE reader,
+      Validation.IntegerOperandRules.HostValue, which the pre-bind IntegerOperandPass pairs with the COBOLNET2427
+      implementation-limit screen (ISO 4.5). An int.Parse here took the whole compiler down with an unhandled
+      OverflowException on PAGE LIMIT / COLUMN / LINAGE 77777777777; an int.TryParse silently dropped the clause
+      (OCCURS 77777777777 compiled clean). Read the operand through HostValue.
+    paths:
+      include:
+        - "src/Cobol.Net.Compiler/Binding/"
+    # The accessor form only: a local holding an IntegerLiteralContext has no spelling a regex can tell from any
+    # other literal (`lit.GetText()` is also the CURRENCY SIGN literal's), so those sites are held by review and by
+    # the pre-bind screen, which makes a throwing parse unreachable only if the reader is HostValue.
+    pattern-regex: '\b(?:int|long)\.(?:Try)?Parse\([^;\n]*integerLiteral\(\)(?:\[[^\]]*\])?(?:\?)?\.GetText\(\)'
+  # -- One narrowing of a COBOL integer value to a host int / long (kb/Work PB1033) ----------------------------
+  - id: cobolnet-integer-value-cast-narrowed
+    languages: [csharp]
+    severity: ERROR
+    message: >-
+      kb/Work PB1033 - a COBOL integer value (up to 31 digits, through the integer landing NumericRenderer.Align)
+      is narrowed to a host int or long through RuntimeApi.HostInt32 / HostInt64 (the runtime's saturating
+      CobolNum.Position32 / Position), never a C# cast: a cast WRAPS, so GO TO ... DEPENDING ON 4294967297 went to
+      procedure-name-1 (ISO 14.9.17.4 GR2 transfers nowhere) and a ref-mod start of 4294967297 read position 1
+      (8.4.3.3.4 GR5 c raises EC-BOUND-REF-MOD).
+    paths:
+      include:
+        - "src/Cobol.Net.Compiler/CodeGen/"
+    pattern-regex: '\((?:int|long)\)\s*\(\{\s*(?:NumericRenderer\.)?Align(?:RoundedUp)?\('

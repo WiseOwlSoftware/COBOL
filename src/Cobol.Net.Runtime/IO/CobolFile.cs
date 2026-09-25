@@ -237,7 +237,7 @@ public static class CobolFile
     /// carries the independent per-file-name TAPE PHRASE, which a sharing-phrase OPEN may also write
     /// (§14.9.27.2 prints both in one general format).</summary>
     public static void OpenShared(string name, FileOpenMode mode, bool hasSharingOverride, FileSharing sharingOverride,
-        FileRetryKind retryKind, int retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic, LinagePage? page)
+        FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic, LinagePage? page)
         => _reg.OpenShared(name, mode, hasSharingOverride, sharingOverride, retryKind, retryAmount, tape,
             assign, assignDynamic, page);
 
@@ -247,7 +247,7 @@ public static class CobolFile
     /// <paramref name="ignoringLock"/> the INDEPENDENT IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).
     /// A Format-1 read of any organization uses <see cref="ReadShared"/> instead.</summary>
     public static string ReadKeyedShared(string name, int keyIndex, string keyedRecordImage, FileRecordLock phrase,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
         => _reg.ReadKeyedShared(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>The ONE governed FORMAT-1 READ — sequential, relative and indexed (§9.1.16 / §14.9.30.4 GR9–GR12
@@ -256,7 +256,7 @@ public static class CobolFile
     /// <paramref name="advancingOnLock"/> and <paramref name="ignoringLock"/> are two alternatives of the SAME
     /// printed bracket, so at most one is ever true; <paramref name="phrase"/> is the other bracket.</summary>
     public static string ReadShared(string name, bool previous, FileRecordLock phrase, bool advancingOnLock,
-        bool ignoringLock, FileRetryKind retryKind, int retryAmount, out string image)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
         => _reg.ReadShared(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
 
     /// <summary>⛔ THE ONE WRITE ENTRY THE EMITTER RENDERS, every organization and every print-control shape
@@ -264,21 +264,21 @@ public static class CobolFile
     /// see <see cref="WriteAdvanceKind"/> for why a WRITE's presentation shape may not pick its own entry
     /// (kb/Work PB683).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount, LinagePage? page, WriteAdvance advance = default)
+        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default)
         => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, int retryAmount)
+        FileRetryKind retryKind, long retryAmount)
         => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount);
 
     /// <summary>Governed DELETE RECORD for a sharing-active connector (§14.9.10 GR6/GR7).</summary>
-    public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, int retryAmount)
+    public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount)
         => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount);
 
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' file-sharing conflict re-attempt) and
     /// the GR18 OVERRIDE flag.</summary>
-    public static string DeleteFile(string name, FileRetryKind retryKind, int retryAmount, bool overridden = false)
+    public static string DeleteFile(string name, FileRetryKind retryKind, long retryAmount, bool overridden = false)
         => _reg.DeleteFile(name, retryKind, retryAmount, overridden);
 
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1).</summary>
@@ -297,7 +297,7 @@ public static class CobolFile
     public static void ReleaseSingle(string name, string recId) => _reg.ReleaseSingle(name, recId);
 
     /// <summary>Evaluate an attempt under the RETRY discipline (§14.7.9).</summary>
-    public static string RetryLoop(Func<string> attempt, FileRetryKind kind, int amount)
+    public static string RetryLoop(Func<string> attempt, FileRetryKind kind, long amount)
         => FileRegistry.RetryLoop(attempt, kind, amount);
 
     /// <summary>ISO §14.9.27.4 Table 19 — is an OPEN request unsuccessful against ONE connector already open on

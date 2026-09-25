@@ -59,6 +59,35 @@ public sealed class IntegerOperandSlotDriftTests
         }
     }
 
+    /// <summary>The host-limit screen's exemption set (kb/Work PB1058) names grammar rules that are classified here
+    /// too — a rule dropped from the grammar cannot linger in the exemption and silently exempt nothing.</summary>
+    [Fact]
+    public void EveryFullValueSlot_IsAClassifiedRule()
+    {
+        Assert.NotEmpty(IntegerOperandRules.FullValueSlots);
+        var stale = IntegerOperandRules.FullValueSlots.Where(t => !IntegerOperandRules.Slots.ContainsKey(t))
+            .Select(t => t.Name).ToArray();
+        Assert.True(stale.Length == 0, "FullValueSlots names rule(s) IntegerOperandRules.Slots does not: "
+            + string.Join(", ", stale));
+    }
+
+    /// <summary>⛔ The ONE binder reader never throws (kb/Work PB1058): a value past the host limit — up to the
+    /// 31-digit literal maximum, §8.3.3.3.2 — reads as the limit, which the pre-bind screen has already reported.
+    /// <c>int.Parse</c> at this position took the compiler down with an unhandled <c>OverflowException</c>.</summary>
+    [Theory]
+    [InlineData("2147483647", 2147483647)]
+    [InlineData("2147483648", int.MaxValue)]
+    [InlineData("77777777777", int.MaxValue)]
+    [InlineData("9999999999999999999999999999999", int.MaxValue)]
+    [InlineData("0000000000000000000000000000012", 12)]
+    public void HostValue_SaturatesAtTheLimit(string digits, int expected)
+    {
+        var tree = new CobolParserCore.IntegerLiteralContext(null, 0);
+        tree.AddChild(new Antlr4.Runtime.Tree.TerminalNodeImpl(new Antlr4.Runtime.CommonToken(CobolParserCore.INTEGERLIT, digits)));
+        Assert.Equal(expected, IntegerOperandRules.HostValue(tree));
+        Assert.Equal(expected == int.MaxValue && digits != "2147483647", IntegerOperandRules.BeyondHostLimit(tree));
+    }
+
     private static System.Collections.Generic.IEnumerable<IntegerSlot> ExceptionSlots() =>
         IntegerOperandRules.Slots.Values
             .Select(c => { try { return c(null!, null!); } catch (Exception) { return IntegerSlot.Default; } })

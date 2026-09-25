@@ -806,7 +806,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// admits no other), and <c>Visit(BoundFieldOperand)</c> and <c>Visit(BoundNumRef)</c> are the same
     /// <c>FieldNum(Place)</c> call.</para></summary>
     public string ExitStatus(TerminationStatus st) =>
-        st.Value is { } v ? $"(long)({Align(StatusNum(v), 0)})" : st.Error ? "1L" : "0L";
+        st.Value is { } v ? RuntimeApi.HostInt64(Align(StatusNum(v), 0)) : st.Error ? "1L" : "0L";
 
     /// <summary>The GR5 numeric interpretation of a status operand. A NUMERIC operand (an integer literal-1, a
     /// numeric identifier-1) renders through the ordinary numeric channel; a NON-NUMERIC literal-1 of ANY form

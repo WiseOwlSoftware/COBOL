@@ -820,18 +820,53 @@ internal static class RuntimeApi
     /// Distinct from −1 so a specified negative length raises EC-BOUND-REF-MOD (review C14).</summary>
     public static string OmittedRefModLength => $"{nameof(CobolString)}.{nameof(CobolString.OmittedRefModLength)}";
 
-    // The rendered ref-mod positions are `long`-valued COBOL expressions and the runtime takes `int`, so each is
-    // cast at the call site; an omitted length renders the distinct sentinel above rather than −1. Both rules live
-    // HERE and nowhere else: a ref-mod attaches to a storage PLACE (PlaceRenderer, readable and writable) and to a
-    // ref-modified FUNCTION RESULT (IntrinsicRenderer, read-only — §8.4.3.3.3 SR2), and the two must agree.
+    /// <summary>⛔ THE ONE EMIT of a COBOL integer VALUE narrowed to a host <c>int</c> (kb/Work PB1033): the
+    /// runtime's saturating <see cref="CobolNum.Position32"/>, never a C# <c>(int)</c> cast, which WRAPS a value
+    /// past the carrier back into range. <paramref name="integerExpr"/> is an integer-valued expression — the
+    /// integer landing <c>NumericRenderer.Align(…, 0)</c> or a scale-0 field read. An expression that is already
+    /// an <c>int</c> literal is emitted as written.</summary>
+    public static string HostInt32(string integerExpr) =>
+        int.TryParse(integerExpr, System.Globalization.NumberStyles.AllowLeadingSign,
+            System.Globalization.CultureInfo.InvariantCulture, out _)
+            ? integerExpr
+            : $"{nameof(CobolNum)}.{nameof(CobolNum.Position32)}({integerExpr})";
 
-    /// <summary>The runtime <c>int</c> leftmost-position from a rendered start expression (§8.4.3.3.4 item 5b).</summary>
-    public static string RefModStart(string renderedStart) => $"(int)({renderedStart})";
+    /// <summary>The <see cref="HostInt32"/> twin for a host <c>long</c> — <see cref="CobolNum.Position(Int128)"/>,
+    /// the runtime's ONE saturating narrowing to <c>long</c>.</summary>
+    public static string HostInt64(string integerExpr) =>
+        $"{nameof(CobolNum)}.{nameof(CobolNum.Position)}((Int128)({integerExpr}))";
+
+    /// <summary>A COBOL integer LITERAL narrowed to a host <c>int</c> at COMPILE time, through the SAME
+    /// <see cref="CobolNum.Position32"/> the run-time narrowing uses — a C# <c>(int)(4294967297)</c> is not a
+    /// wrap but a backend error (CS0221), and a 20-digit literal is CS1021.</summary>
+    public static string HostInt32Literal(string literal) =>
+        CobolNum.Position32(CobolNum.IntegerLiteralValue(literal)).ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>The <see cref="HostInt32Literal"/> twin for a host <c>long</c>.</summary>
+    public static string HostInt64Literal(string literal) =>
+        CobolNum.Position(CobolNum.IntegerLiteralValue(literal)).ToString(System.Globalization.CultureInfo.InvariantCulture) + "L";
+
+    // The rendered ref-mod positions are integer-valued COBOL expressions and the runtime takes `int`, so each is
+    // narrowed at the call site through HostInt32; an omitted length renders the distinct sentinel above rather
+    // than −1. Both rules live HERE and nowhere else: a ref-mod attaches to a storage PLACE (PlaceRenderer,
+    // readable and writable), to a ref-modified FUNCTION RESULT (IntrinsicRenderer, read-only — §8.4.3.3.3 SR2)
+    // and to a ref-modified ACCEPT receiver's transfer width (AcceptDisplayEmitter), and they must agree.
+
+    /// <summary>The runtime <c>int</c> leftmost-position from a rendered start expression (§8.4.3.3.4 item 5b).
+    /// A value past the carrier saturates, so it stays out of range and raises EC-BOUND-REF-MOD (item 5c) rather
+    /// than wrapping onto a position inside the item (kb/Work PB1033).</summary>
+    public static string RefModStart(string renderedStart) => HostInt32(renderedStart);
 
     /// <summary>The runtime <c>int</c> length from a rendered length expression, or the OMITTED sentinel when the
-    /// "to the end" form was written (§8.4.3.3.4 item 5c).</summary>
+    /// "to the end" form was written (§8.4.3.3.4 item 5c). A specified length narrows through
+    /// <see cref="CobolString.SpecifiedRefModLength"/>, which saturates like <see cref="HostInt32"/> but can never
+    /// land on the omitted sentinel.</summary>
     public static string RefModLength(string? renderedLength) =>
-        renderedLength is null ? OmittedRefModLength : $"(int)({renderedLength})";
+        renderedLength is null ? OmittedRefModLength
+        : int.TryParse(renderedLength, System.Globalization.NumberStyles.None,
+            System.Globalization.CultureInfo.InvariantCulture, out _)
+            ? renderedLength
+            : $"{nameof(CobolString)}.{nameof(CobolString.SpecifiedRefModLength)}({renderedLength})";
 
     /// <summary>A reference-modification slice over an already-rendered VALUE, from the model's
     /// <see cref="RefModSpec"/>. The value form has no splice counterpart: §8.4.3.2.3 SR1 makes a
