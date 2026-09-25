@@ -26,7 +26,7 @@ BRIEFS = {
     'wf_lane3_refute.js': [r'claude-skills', r'args\.stopFile', r'GRACEFUL STOP', r"model: 'opus'"],
     'dispatch-spec-implementer.md': [r'claude-skills', r'BelowNormal', r'NEVER run the whole Conformance', r'\\STOP',
                                      r'tail -n \+1 -f', r'where\.py', r'semgrep/verify\.py', r'cite\.py --check',
-                                     r'Turn cap 220', r'code site'],
+                                     r'Turn cap 220', r'code site', r'RUN BY NAME'],
 }
 SPEC = BRIEFS['dispatch-spec-implementer.md'] + [r'reports\\w\d+[a-z]-PB\d+-report\.md']
 

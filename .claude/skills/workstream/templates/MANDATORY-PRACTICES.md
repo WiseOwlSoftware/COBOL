@@ -46,6 +46,7 @@ Each rule carries its reason and its measurement; do not drop a rule because its
 | I4 | One positive golden at the introducing edition + one negative below it; parser + emitter + golden + manifest in one commit. | Owner 2026-09-13 lever 3. |
 | I5 | Flip `status` + write `closes_rows` in the landing commit; `work.py check`; no lists anywhere. | CLAUDE.md rule 8. |
 | I6 | Report ≤ 60 lines per `implementer-report-template.md`. | Owner 2026-09-13 lever 4. |
+| I7 | **Every golden and negative you ADD runs BY NAME at your gate** (`DisplayName~<name>` term, or the corpus leg) and the report quotes its pass line; `Manifest_CoversEveryProgram` alone proves registration, not execution. | Train 60: a w59d negative shipped with no `.err` because its implementer's gate ran only the manifest test; the lander's whole-assembly gate caught it. |
 
 ## Lander (train)
 

@@ -50,6 +50,7 @@ GATE: your own tests + `~Drift|~EditionGate` + the Unit assembly, ALWAYS with `-
 Print a real verdict line; never leave a placeholder in the report.
 
 GOLDENS: one positive at the introducing edition + one negative below it, a copy per edition only where behaviour differs.
+Every golden/negative you ADD must RUN BY NAME at your gate (`DisplayName~<name>` or the corpus leg) — quote its pass line (MANDATORY-PRACTICES I7).
 Parser + emitter + golden + manifest entry in ONE commit.
 
 REGISTER: flip each note's `status` and write its `closes_rows` IN THE COMMIT THAT LANDS IT (with `closes_rows_reason:`
