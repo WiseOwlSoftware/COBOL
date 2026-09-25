@@ -31,7 +31,8 @@ $rc = 0
 # defect class no test can catch, the checks cost a second, and every baseline is zero. THREE of them: clause vs
 # the CONSTRUCT the comment names, a QUOTED fragment vs the clause it is filed under (kb/Work PB379), and —
 # over the other half of the same problem — a FROZEN evidence file's citation of the TREE, which no one may
-# repair by editing the record, so it must be marked `superseded_by` instead (kb/Work PB785).
+# repair by editing the record, so it must be marked `superseded_by` instead (kb/Work PB785). The same four also
+# gate CI's `audits` job on every push, docs-only included (kb/Work PB1574): this gate warns early, CI refuses.
 python scripts/spec/audit_code_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== CITATIONS: RED (see above) ==='; $rc = 1 }
 python scripts/spec/audit_doc_citations.py --check
@@ -76,13 +77,19 @@ $pop = $LASTEXITCODE
 # must not become a silent skip of the guard (feedback_green_gates_arent_evidence).
 if ($pop -ne 0 -and $pop -ne 3) { Write-Host "=== WAVE-LOCAL GATE: NOT RUN — the filter does not name what it claims, or the check itself could not run (rc=$pop, filter $Filter) ==="; exit 2 }
 $inert = if ($pop -eq 3) { ' — WITH INERT FILTER TERM(S), SEE ABOVE' } else { '' }
+# ⛔ WHAT A LEG PRINTS IS DECIDED IN ONE PLACE — scripts/test_leg_report.py (kb/Work PB1573). A GREEN leg prints its
+# verdict line; a RED one prints its COMPLETE output, untrimmed. This function used to keep only the lines matching
+# `error|[FAIL]|Passed!|Failed!`, the last 20 of them — which kept a failing test's name and its `Error Message:`
+# label and DROPPED the message and the stack, so every red arrived unattributable. The full log is always kept
+# under TestResults/build-local/ (git-ignored). The same reporter serves build-local.sh and guard-fast.sh.
+$legLogs = Join-Path (Get-Location) 'TestResults/build-local'
+New-Item -ItemType Directory -Force $legLogs | Out-Null
 function Leg([string]$name, [string[]]$testArgs) {
-    $out = & dotnet test @testArgs 2>&1 | ForEach-Object { "$_" }
+    $log = Join-Path $legLogs "$name.log"
+    & dotnet test @testArgs *> $log
     $legRc = $LASTEXITCODE
-    $out | Where-Object { $_ -match '^(Passed!|Failed!)|error|\[FAIL\]' } | Select-Object -Last 20 | ForEach-Object { Write-Host $_ }
-    $verdict = $out | Where-Object { $_ -match '^(Passed!|Failed!)' } | Select-Object -Last 1
-    if (-not $verdict) { Write-Host "${name}: NO VERDICT LINE — the filter matched no test (a run must assert its population)"; $legRc = 1 }
-    if ($legRc -ne 0) { $script:rc = 1 }
+    python scripts/test_leg_report.py --name $name --log $log --rc $legRc
+    if ($LASTEXITCODE -ne 0) { $script:rc = 1 }
 }
 Leg 'conformance'      @('tests/Cobol.Net.Tests.Conformance', '--no-build', '--filter', $Filter)
 Leg 'unit'             @('tests/Cobol.Net.Tests.Unit', '--no-build')

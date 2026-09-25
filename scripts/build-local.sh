@@ -25,9 +25,10 @@ RC=0
 # three over the ORDINAL inside a right clause (a general-format number, and a rule number paired with one; it
 # also MEASURES two more, printing a count under --check and the sites without it) — and
 # `audit_doc_citations` on one (a QUOTED fragment vs the clause it is filed under); both have a proven-zero
-# baseline and a `--self-test` proving each check still fails on a real defect. They need `specs/ISO_COBOL.md`
-# for the phantom check and say so loudly when the submodule is absent — which is why they live HERE and in
-# battery.sh, and not in CI, where the checkout is `submodules: false`.
+# baseline and a `--self-test` proving each check still fails on a real defect. They need `specs/ISO_COBOL.md`,
+# which is TRACKED in this repository (only the PDF is in the private submodule), so they also gate CI's `audits`
+# job on every push, docs-only pushes included (kb/Work PB1574) — this gate is the early warning, CI the refusal.
+# The four audits below are the SAME list, in the same order, in build-local.ps1, battery.sh PHASE -1 and CI.
 # ⛔ AND A THIRD, over the OTHER half of the same problem (kb/Work PB785). The two above ask whether a citation
 # of the STANDARD is right; `audit_evidence_supersession` asks whether a FROZEN evidence file's citation of the
 # TREE is still true — `docs/rearchitecture/evidence/*.json` is a record that is never edited to stay current
@@ -73,13 +74,17 @@ if [ "$POP" -ne 0 ] && [ "$POP" -ne 3 ]; then
     echo "=== WAVE-LOCAL GATE: NOT RUN — the filter does not name what it claims, or the check itself could not run (rc=$POP, filter $F) ==="; exit 2
 fi
 INERT=""; [ "$POP" -eq 3 ] && INERT=" — WITH INERT FILTER TERM(S), SEE ABOVE"
-leg() {   # leg <name> <dotnet test args…> — the verdict is the Passed!/Failed! line; none = the filter matched nothing = RED
+# ⛔ WHAT A LEG PRINTS IS DECIDED IN ONE PLACE — scripts/test_leg_report.py (kb/Work PB1573): a GREEN leg prints its
+# verdict line, a RED one its COMPLETE output, untrimmed; no verdict line (a filter that matched nothing) is RED.
+# This function used to keep the last 20 lines matching `error|[FAIL]|Passed!|Failed!` — a failing test's name
+# without its message or stack. The full log is always kept under TestResults/build-local/ (git-ignored).
+# (Same reporter as build-local.ps1 and guard-fast.sh — change it THERE, never here.)
+LEG_LOGS="TestResults/build-local"; mkdir -p "$LEG_LOGS"
+leg() {   # leg <name> <dotnet test args…>
     local name="$1"; shift
-    local out; out="$(dotnet test "$@" 2>&1)"; local rc=$?
-    printf '%s\n' "$out" | grep -E "^(Passed!|Failed!)|error|\[FAIL\]" | tail -20
-    local v; v="$(printf '%s\n' "$out" | grep -E "^(Passed!|Failed!)" | tail -1)"
-    if [ -z "$v" ]; then echo "$name: NO VERDICT LINE — the filter matched no test (a run must assert its population)"; rc=1; fi
-    [ "$rc" -eq 0 ] || RC=1
+    local log="$LEG_LOGS/$name.log"
+    dotnet test "$@" > "$log" 2>&1; local rc=$?
+    python scripts/test_leg_report.py --name "$name" --log "$log" --rc "$rc" || RC=1
 }
 leg conformance      tests/Cobol.Net.Tests.Conformance --no-build --filter "$F"
 leg unit             tests/Cobol.Net.Tests.Unit --no-build

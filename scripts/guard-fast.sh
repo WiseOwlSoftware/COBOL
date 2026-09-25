@@ -273,8 +273,12 @@ NIST_AUDIT=$?
 # (4) Wait for the .NET test runs.
 wait "$UNIT"; UNIT_RC=$?
 wait "$INT"; INT_RC=$?
-echo "=== Unit ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_unit.log" | tail -6
-echo "=== Integration ==="; grep -E "Passed!|Failed!|error|\[FAIL\]|Failed [A-Za-z]" "$TMP/gf_int.log" | tail -6
+# ⛔ THROUGH THE ONE LEG REPORTER (kb/Work PB1573): a red leg prints its COMPLETE log. This used to print the last
+# six lines matching `error|[FAIL]|Failed …` — a failing test's name without its message or stack — and in CI the
+# full log in $TMPDIR dies with the runner, so a legacy unit or integration red was unattributable there. A reporter
+# that cannot run (no python3) exits non-zero and turns the leg RED rather than silent.
+echo "=== Unit ==="; python3 scripts/test_leg_report.py --name unit --log "$TMP/gf_unit.log" --rc "$UNIT_RC" || UNIT_RC=1
+echo "=== Integration ==="; python3 scripts/test_leg_report.py --name integration --log "$TMP/gf_int.log" --rc "$INT_RC" || INT_RC=1
 
 # (5) Baseline-cleanliness check — ONE implementation, shared with guard.sh (scripts/guard-baselines.sh).
 # It used to be a hand-kept copy of guard.sh's loop ("parity with guard.sh"), and the copies drifted the moment

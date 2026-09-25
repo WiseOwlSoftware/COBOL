@@ -73,8 +73,8 @@ comments.
 
 ⚠ THE ORDINAL CHECKS NEED `specs/ISO_COBOL.md` — the catalog knows which rules it HARVESTED, which is not the
 same question as which rules the standard prints (it carries a `parse_gaps` count for that very reason), so the
-standard's own text is what every ordinal is resolved against and what vetoes a finding. Without the submodule
-they report SKIPPED, by name, exactly as PHANTOM does.
+standard's own text is what every ordinal is resolved against and what vetoes a finding. Without it `--check`
+REFUSES (exit 2), exactly as PHANTOM does — see the last note.
 
 ⚠ RULE AND SUBITEM GATE EVERYWHERE since kb/Work PB388's wave-48 prose sweep. Both are sound — each was
 confirmed against the standard's own rule markers — and on the day they were written they found 195 sites in 124
@@ -88,11 +88,12 @@ were correct citations whose construct was simply named two lines up (`// VALUE 
 (§13.18.63): WHEN SET TO FALSE …`) or in the rule name below (`valueClause`). Reading the block and the
 identifier takes the noise out without weakening the signal: all 28 real defects survive it.
 
-⚠ IT NEEDS `specs/ISO_COBOL.md` FOR THE PHANTOM CHECK ONLY. The clause universe is the standard's own headings;
-the catalog is derived and has a block only where a clause carries numbered rules, so it cannot answer "does
-this clause exist" without inventing phantoms of its own. With the private submodule absent (CI checks out with
-`submodules: false`) the phantom check reports SKIPPED — loudly, by name — and the other two still run, because
-`spec-rule-catalog.json` is committed.
+⚠ IT NEEDS `specs/ISO_COBOL.md` FOR PHANTOM AND THE ORDINAL FAMILY. The clause universe is the standard's own
+headings; the catalog is derived and has a block only where a clause carries numbered rules, so it cannot answer
+"does this clause exist" without inventing phantoms of its own. The Markdown standard is TRACKED in this
+repository (only the licensed PDF is in the private submodule), so a checkout without it is broken, and `--check`
+REFUSES with exit 2 rather than skip half its checks and print a green — it gates CI's `audits` job on every push
+(kb/Work PB1574), where a partial green would be read as a whole one.
 """
 from __future__ import annotations
 
@@ -1118,8 +1119,12 @@ def main() -> int:
         return self_test(subjects, own, universe, ordinals, tops, direct)
 
     if universe is None:
-        print("⚠ PHANTOM AND THE ORDINAL CHECKS SKIPPED — specs/ISO_COBOL.md is absent (the private submodule "
-              "is not checked out). SUBJECT and HEADER still run: spec-rule-catalog.json is committed.")
+        # ⛔ REFUSE, NEVER SKIP (kb/Work PB1574). `specs/ISO_COBOL.md` is TRACKED in this repository (only the PDF
+        # lives in the private submodule), so its absence means a broken checkout — and this audit now gates CI
+        # (`audits` job), where a skip of PHANTOM and the ordinal family would print a green over half the checks.
+        print("⛔ specs/ISO_COBOL.md is absent — it is tracked in this repository, so this checkout is broken. "
+              "PHANTOM and the ordinal checks cannot run, and the audit refuses rather than report a partial green.")
+        return 2
 
     findings = audit(subjects, own, universe, ordinals, tops, direct)
     gating = [f for f in findings if _gates(f)]

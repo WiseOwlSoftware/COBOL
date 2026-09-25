@@ -50,9 +50,10 @@ note() { echo "$1" | tee -a "$SUMMARY"; }
 # ⛔ PHASE -1: THE STATIC CITATION AUDITS. They take a second, they need no build, and they are the only gate
 # that can see a WRONG CLAUSE NUMBER — the defect CLAUDE.md rule 1 exists for, which no test can ever fail on
 # (`// MOVE (§14.9.24)` compiles perfectly; §14.9.24 is MERGE). Baseline is ZERO findings for ALL THREE; each
-# has a `--self-test` proving its checks still fail on a real defect. The first two need `specs/ISO_COBOL.md`
-# for the phantom check and announce a SKIP loudly if the private submodule is absent, so a green is never
-# green-by-absence; the third reads only the tree it checks against and asserts its own population instead.
+# has a `--self-test` proving its checks still fail on a real defect. The first two need `specs/ISO_COBOL.md`,
+# which is TRACKED here, and REFUSE when it is absent, so a green is never green-by-absence; the third reads only
+# the tree it checks against and asserts its own population instead. The same four also gate CI's `audits` job
+# on every push (kb/Work PB1574).
 #
 # ⛔ AND THERE ARE TWO OF THEM, BECAUSE ONE OF THEM RAN FOR MONTHS WITH NOBODY READING IT. `audit_code_citations`
 # (clause vs CONSTRUCT) sat in this leg while its sibling `audit_doc_citations` (quoted fragment vs the clause it
@@ -102,8 +103,10 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
     dotnet test tests/Cobol.Net.Tests.Unit --no-build --verbosity quiet \
         --logger "trx;LogFileName=unit.trx" --results-directory "$OUT" > "$OUT/unit.log" 2>&1 &
     P_UNIT=$!
+    # Every leg writes a TRX (kb/Work PB1573): at --verbosity quiet the console log carries only the verdict line,
+    # so the TRX is the ONLY record of a failing test's message and stack — and this leg used to have none.
     dotnet test tests/Cobol.Net.Tests.Characterization --no-build --verbosity quiet \
-        > "$OUT/characterization.log" 2>&1 &
+        --logger "trx;LogFileName=characterization.trx" --results-directory "$OUT" > "$OUT/characterization.log" 2>&1 &
     P_CHAR=$!
     wait $P_CONF; RC_CONF=$?
     wait $P_UNIT; RC_UNIT=$?

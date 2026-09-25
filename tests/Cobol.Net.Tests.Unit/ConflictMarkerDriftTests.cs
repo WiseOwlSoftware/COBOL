@@ -83,9 +83,16 @@ public sealed class ConflictMarkerDriftTests
     /// <summary>One marker line, named for the failure message.</summary>
     internal readonly record struct Offender(string Path, int Line, string Text);
 
+    /// <summary>
+    /// A tracked file the sweep could not open although it still exists — named with what is needed to attribute
+    /// the red without a re-run: the exception, and the file's attributes the moment after the open failed.
+    /// </summary>
+    internal readonly record struct Unreadable(string Path, string Error, string Attributes);
+
     /// <summary>What a sweep saw — the offenders AND the population it drew them from.</summary>
     internal sealed record SweepResult(
-        IReadOnlyList<Offender> Offenders, int FilesScanned, int FilesBinary, int FilesMissing);
+        IReadOnlyList<Offender> Offenders, int FilesScanned, int FilesBinary, int FilesMissing,
+        IReadOnlyList<Unreadable> FilesUnreadable);
 
     /// <summary>
     /// No file in the committed tree carries an unresolved merge conflict.
@@ -95,6 +102,7 @@ public sealed class ConflictMarkerDriftTests
     {
         SweepResult r = Sweep(TestRepo.Root, TrackedFiles.Value);
 
+        AssertEveryFileWasRead(r);
         Assert.True(r.Offenders.Count == 0,
             $"{r.Offenders.Count} unresolved merge-conflict marker line(s) in the COMMITTED tree "
             + $"({r.FilesScanned} text files scanned):"
@@ -122,6 +130,7 @@ public sealed class ConflictMarkerDriftTests
             + "enumeration is broken, so the conflict-marker sweep is scanning nothing.");
 
         SweepResult r = Sweep(TestRepo.Root, tracked);
+        AssertEveryFileWasRead(r);
         Assert.True(r.FilesScanned >= 1000,
             $"the sweep opened {tracked.Count} tracked path(s) but scanned only {r.FilesScanned} as text "
             + $"({r.FilesBinary} classified binary, {r.FilesMissing} absent from the working tree) — the "
@@ -207,6 +216,83 @@ public sealed class ConflictMarkerDriftTests
     }
 
     /// <summary>
+    /// ⛔ kb/Work/PB1583 — THE SWEEP IS A READER AMONG WRITERS. It runs beside the Conformance leg, a lander's
+    /// <c>git</c>, an editor and every other gate on the host, over a working tree any of them may be writing.
+    /// A read-only scan must therefore never be the handle that is refused: it opens with
+    /// <see cref="FileShare.ReadWrite"/> | <see cref="FileShare.Delete"/>, so a file another handle holds open
+    /// for writing (or for a rename) is still read. The retired <see cref="File.OpenRead(string)"/> asked for
+    /// <see cref="FileShare.Read"/>, which Windows refuses outright while any writer's handle is outstanding —
+    /// the open this test holds.
+    /// </summary>
+    [Fact]
+    public void TheSweepReadsAFileAnotherHandleIsWriting()
+    {
+        using var scratch = new Scratch();
+        scratch.Write("in-flight.txt", Ours + " HEAD\n" + Theirs + " origin/main\n");
+
+        using (new FileStream(Path.Combine(scratch.Root, "in-flight.txt"), FileMode.Open, FileAccess.Write,
+                   FileShare.ReadWrite | FileShare.Delete))
+        {
+            SweepResult r = Sweep(scratch.Root, ["in-flight.txt"]);
+
+            Assert.True(r.FilesUnreadable.Count == 0, Describe(r.FilesUnreadable));
+            Assert.Equal(1, r.FilesScanned);
+            Assert.Equal(new[] { 1, 2 }, r.Offenders.Select(o => o.Line).ToArray());
+        }
+    }
+
+    /// <summary>
+    /// ⭐ THE UNREADABLE ARM, FIRED. A file the sweep cannot open is REPORTED — path, exception, attributes —
+    /// never skipped, and never thrown past the files after it: golden lane #2's red (DEVLOG 1700) died on one
+    /// <c>.err</c> with no sweep result at all, so whether one file or a directory of them was refused was
+    /// unknowable. An exclusive handle is the plant; on a host whose share modes cannot refuse a reader
+    /// (<see cref="HostCapability.Sharing"/>, measured) the same file must instead be read.
+    /// </summary>
+    [Fact]
+    public void AFileTheSweepCannotOpenIsReportedNotSkipped()
+    {
+        using var scratch = new Scratch();
+        scratch.Write("locked.txt", "plain text\n");
+        scratch.Write("after.txt", Ours + " HEAD\n");
+
+        using (new FileStream(Path.Combine(scratch.Root, "locked.txt"), FileMode.Open, FileAccess.ReadWrite,
+                   FileShare.None))
+        {
+            SweepResult r = Sweep(scratch.Root, ["locked.txt", "after.txt"]);
+
+            // The file AFTER the unreadable one is still swept.
+            Assert.Equal(new[] { "after.txt" }, r.Offenders.Select(o => o.Path).ToArray());
+            if (HostCapability.Sharing.ExclusiveRefusesAnOutsideReader)
+            {
+                Unreadable u = Assert.Single(r.FilesUnreadable);
+                Assert.Equal("locked.txt", u.Path);
+                Assert.StartsWith(nameof(IOException), u.Error, StringComparison.Ordinal);
+                Assert.Equal(1, r.FilesScanned);
+            }
+            else
+            {
+                Assert.True(r.FilesUnreadable.Count == 0,
+                    $"{HostCapability.Sharing.Because}\n{Describe(r.FilesUnreadable)}");
+                Assert.Equal(2, r.FilesScanned);
+            }
+        }
+    }
+
+    /// <summary>
+    /// A sweep that could not read a file cannot say the file is clean: RED, naming each file, its exception
+    /// and its attributes, so the red is attributable from this message alone (kb/Work/PB1573's rule, applied
+    /// to the evidence this test produces).
+    /// </summary>
+    private static void AssertEveryFileWasRead(SweepResult r) =>
+        Assert.True(r.FilesUnreadable.Count == 0,
+            $"the conflict-marker sweep could not open {r.FilesUnreadable.Count} tracked file(s) that still "
+            + "exist, so it cannot say they carry no marker:" + Environment.NewLine + Describe(r.FilesUnreadable));
+
+    private static string Describe(IReadOnlyList<Unreadable> unreadable) =>
+        string.Join(Environment.NewLine,
+            unreadable.Take(50).Select(u => $"    {u.Path}: {u.Error} (attributes: {u.Attributes})"));
+
+    /// <summary>
     /// Scans <paramref name="relativePaths"/> under <paramref name="root"/> for unresolved merge markers.
     /// </summary>
     /// <remarks>
@@ -219,6 +305,7 @@ public sealed class ConflictMarkerDriftTests
     internal static SweepResult Sweep(string root, IEnumerable<string> relativePaths)
     {
         var hits = new List<Offender>();
+        var unreadable = new List<Unreadable>();
         int scanned = 0, binary = 0, missing = 0;
         byte[] buf = new byte[64 * 1024];
         var perFile = new List<(int Line, Marker Kind)>();
@@ -229,7 +316,27 @@ public sealed class ConflictMarkerDriftTests
             if (!File.Exists(full)) { missing++; continue; }
 
             perFile.Clear();
-            using (var s = File.OpenRead(full))
+            // ⛔ kb/Work/PB1583: share EVERYTHING — a read-only scan must never be the handle that refuses, and
+            // must never be refused because another process is writing or renaming the file. bufferSize 1
+            // turns FileStream's own buffer off; `buf` is the only one.
+            FileStream s;
+            try
+            {
+                s = new FileStream(full, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete,
+                    bufferSize: 1, FileOptions.SequentialScan);
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                // A file that VANISHED between the listing and the open is absent from the working tree — the
+                // `missing` population above, by the same rule. Anything still there is a file this sweep did
+                // not read, and is reported as such.
+                if (!File.Exists(full)) { missing++; continue; }
+                unreadable.Add(new Unreadable(rel.Replace('\\', '/'), $"{e.GetType().Name}: {e.Message}",
+                    File.GetAttributes(full).ToString()));
+                continue;
+            }
+
+            using (s)
             {
                 if (!ScanStream(s, buf, perFile)) { binary++; continue; }
             }
@@ -250,7 +357,7 @@ public sealed class ConflictMarkerDriftTests
             }
         }
 
-        return new SweepResult(hits, scanned, binary, missing);
+        return new SweepResult(hits, scanned, binary, missing, unreadable);
     }
 
     /// <summary>

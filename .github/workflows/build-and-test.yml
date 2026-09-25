@@ -6,8 +6,9 @@ name: Build and Test
 # no check at all and the protection blocks it FOREVER. `paths-ignore` and branch protection are therefore
 # mutually exclusive; measured 2026-09-06, the three docs-only pushes after train 21 produced NO run at all.
 # The saving the ignore list bought is kept, one layer down: the `changes` job below decides from the SAME path
-# list whether the MATRIX runs. A docs-only push still starts a run — but that run is `changes` + `ci-gate` and
-# finishes in seconds, so "docs-only pushes do not trigger CI/CD" holds in the sense that costs anything.
+# list whether the MATRIX runs. A docs-only push still starts a run — but that run is `changes` + `audits` +
+# `ci-gate` and finishes in about a minute, so "docs-only pushes do not trigger CI/CD" holds in the sense that
+# costs anything. (`audits` is never skipped: a docs-only push is exactly where a wrong citation arrives.)
 on:
   push:
     # `main` — the branch the protection guards, and the branch every instrument already reads
@@ -64,6 +65,10 @@ jobs:
       code: ${{ steps.decide.outputs.code }}
       verified: ${{ steps.decide.outputs.verified }}
       reason: ${{ steps.decide.outputs.reason }}
+      # What this push proposes to add is `base..sha` — the `audits` job's witness-loss check compares against it.
+      # Empty when no honest base exists (a non-push event, an unresolvable `before`); that check then falls back
+      # to its own default, the merge-base with origin/main.
+      base: ${{ steps.decide.outputs.base }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -88,11 +93,10 @@ jobs:
           # ⛔ THE DOC-ONLY LIST — exactly the set the retired `paths-ignore` block carried, and nothing else.
           IGNORE='^(DEVLOG\.md|PROMPT\.md|CLAUDE\.md|README\.md|docs/|kb/)'
           ZERO=0000000000000000000000000000000000000000
-          code=true; verified=false; reason=""
+          code=true; verified=false; reason=""; BASE=""
           if [ "$EVENT" != "push" ]; then
             reason="event=$EVENT — a pull_request / schedule / dispatch run is always the full matrix"
           else
-            BASE=""
             if [ -n "${BEFORE:-}" ] && [ "$BEFORE" != "$ZERO" ] \
                && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null \
                && git merge-base --is-ancestor "$BEFORE" "$SHA"; then
@@ -147,6 +151,7 @@ jobs:
             echo "code=$code"
             echo "verified=$verified"
             echo "reason=$reason"
+            echo "base=$BASE"
           } >> "$GITHUB_OUTPUT"
           echo "run_matrix=$run_matrix (code=$code verified=$verified): $reason"
           {
@@ -190,6 +195,58 @@ jobs:
             exit 1
           fi
           echo "drift: ci-gate needs all $((n - 1)) other jobs — $flat"
+
+  # ── ⛔ THE STATIC AUDITS — ON EVERY PUSH, DOCS-ONLY PUSHES INCLUDED (kb/Work/PB1574). A wrong clause number is
+  # the one defect class no test can fail on (`// MOVE (§14.9.24)` compiles; §14.9.24 is MERGE), so CLAUDE.md
+  # rule 1 is enforced by these scripts and nothing else — and until PB1574 they ran only in `scripts/build-local.*`
+  # and battery phase -1. Every commit that never ran build-local (a cloud registrar's, a golden lane's, any
+  # docs-only landing) therefore reached main unaudited: FOURTEEN wrong or unqualified clause numbers did, and every
+  # later wave-local verdict went RED on findings nobody in that wave had written. They run HERE, where `ci-gate`
+  # can refuse them, and NOT behind `run_matrix`: `kb/`, `docs/` and `CLAUDE.md` are exactly the doc-only paths,
+  # and they carry citations.
+  # They need no build and no submodule — `specs/ISO_COBOL.md` is tracked in this repository (the private
+  # submodule holds only the PDF) — and only the standard library of the runner's python3, which also runs their
+  # `--self-test`s inside the Unit leg (`CitationAuditSelfTestDriftTests`), proving each check can still fail.
+  # ONE STEP PER AUDIT, each `if: !cancelled()`, so one red never hides the others' verdicts.
+  # ⛔ This is the SAME list, in the same order, as `scripts/build-local.{ps1,sh}` and battery phase -1; the
+  # work-register check is added because a `kb/` edit is a docs-only push, and nothing else validates it there. ──
+  audits:
+    name: audits (citations · evidence supersession · witness loss · work register)
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: false
+          # The witness-loss audit reads the inventory AT THE BASE (`git show <base>:…`): full history, blobs
+          # fetched on demand — the same partial clone `changes` uses.
+          fetch-depth: 0
+          filter: blob:none
+      - name: Code citations — the clause vs the construct it names (audit_code_citations.py --check)
+        run: python3 scripts/spec/audit_code_citations.py --check
+      - name: Doc citations — a quoted fragment vs the clause it is filed under (audit_doc_citations.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_doc_citations.py --check
+      - name: Evidence supersession — a frozen record's claim the tree now contradicts (audit_evidence_supersession.py --check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/audit_evidence_supersession.py --check
+      - name: Witness loss — inventory evidence dropped since the base of this push (audit_witness_loss.py --check)
+        if: ${{ !cancelled() }}
+        shell: bash
+        env:
+          BASE: ${{ needs.changes.outputs.base }}
+        run: |
+          set -euo pipefail
+          # `base..sha` is what this push adds (the `changes` job's own decision); with no honest base the audit
+          # uses its default, the merge-base with origin/main — present, because the checkout is full-history.
+          if [ -n "${BASE:-}" ]; then
+            python3 scripts/spec/audit_witness_loss.py --check --base "$BASE"
+          else
+            python3 scripts/spec/audit_witness_loss.py --check
+          fi
+      - name: Work register — every kb/Work note well-formed (work.py check)
+        if: ${{ !cancelled() }}
+        run: python3 scripts/spec/work.py check
 
   # ── The authoritative NIST gate: the PARALLEL guard. guard-fast.sh runs exactly the checks scripts/guard.sh
   # does (build + unit + integration + the ~376 NIST CCVS-85 programs) but fans the NIST suite across the
@@ -670,7 +727,7 @@ jobs:
   ci-gate:
     name: ci-gate
     if: always()
-    needs: [changes, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, legacy-oracle]
+    needs: [changes, audits, guard, greenfield-conformance, greenfield-unit, windows-conformance, conformance-population, inv1-strong-2023, windows-build-test, legacy-oracle]
     runs-on: ubuntu-latest
     steps:
       - name: Verdict

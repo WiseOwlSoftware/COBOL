@@ -2099,9 +2099,13 @@ result. Run the long legs ONE AT A TIME.
   designator is written once and referred BACK to in the same sentence, so a finding is dropped when
   some clause the line ALREADY NAMES admits the ordinal. Measured: 209 findings without it, 170 with
   it, 54 under a join-only reading that would have discarded 116 real accusations. Wired into `scripts/build-local.{sh,ps1}`
-  before the build and `scripts/battery.sh` PHASE -1; deliberately NOT in CI, where `submodules: false`
-  makes the spec absent and PHANTOM would SKIP. **Its sibling `python scripts/spec/audit_doc_citations.py
-  --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same three seats and at the
+  before the build, `scripts/battery.sh` PHASE -1, and — since kb/Work PB1574 — CI's `audits` job, which
+  runs on EVERY push, docs-only pushes included, and is a `needs:` of `ci-gate`. `specs/ISO_COBOL.md` is tracked
+  in this repository, so the checkout needs no submodule, and `--check` REFUSES (exit 2) rather than skip
+  PHANTOM when the spec is absent. The `audits` job also runs
+  `audit_evidence_supersession`, `audit_witness_loss` (against the push's own base) and `work.py check`.
+  **Its sibling `python scripts/spec/audit_doc_citations.py
+  --check` (a QUOTED fragment vs the clause it is filed under) now sits in the same seats and at the
   same baseline — 516 citations checked, 469 correct, ZERO MISFILED and ZERO ELIDED, `--self-test`
   PASS.** Its ELIDED arm (kb/Work PB900) gates on a quotation that is the clause's own sentence with
   words dropped. ⛔ **Both audits' `--self-test` ran in NO gate until 2026-09-21** — only `--check`
