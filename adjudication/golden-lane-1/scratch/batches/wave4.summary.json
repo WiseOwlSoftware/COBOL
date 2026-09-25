@@ -1,0 +1,93 @@
+{
+ "wave": "wave4",
+ "slugs": {
+  "misc-p15": {
+   "landed": [
+    {
+     "rule_id": "GR-14.9.22.4-23",
+     "test_ref": "conformance:85/l1c15_inspect_converting_duplicate_first",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-11.6.3-2",
+     "test_ref": "conformance:negative/l1c15-interface-inherits-not-in-repository",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-11.6.3-3",
+     "test_ref": "conformance:negative/l1c15-interface-inherits-cyclic",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-8.4.3.1.3-11",
+     "test_ref": "conformance:85/l1c15_linage_counter_qualified",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.2.3.2-2",
+     "test_ref": "conformance:85/l1c15_initial_container_resets_nested",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "GR-11.6.4-2",
+     "kind": "convention",
+     "correction": "Expected .out lines are right (VIA ID/SPEAK/WALK/VIA IC/SPEAK/WALK/VIA IB/WALK/VIA IA/SPEAK), but the program relies on the implicit-NEW extension: line 49 INVOKE L1C15K \"NEW\" on a class with no INHERITS FROM BASE breaks \u00a714.9.23.3 SR3 (New is defined only by BASE, \u00a716.2.1). Fix: add CLASS BASE to L1C15K's REPOSITORY and write CLASS-ID. L1C15K INHERITS FROM BASE. (currently COBOLNET0821, so it is "
+    },
+    {
+     "rule_id": "SR-14.9.23.3-20",
+     "kind": "convention",
+     "correction": "Not otherwise legal (check d): line 29 INVOKE L1C15RK \"NEW\" on a class with no INHERITS FROM BASE violates \u00a714.9.23.3 SR3 regardless of the CONSTANT RECORD argument, so SR20 is not the only reason to reject. Fix: CLASS-ID. L1C15RK INHERITS FROM BASE. with REPOSITORY CLASS BASE (blocked, COBOLNET0821). Everything else is sound: the .err COBOLNET1548 matches \u00a713.18.15.3 SR2 via SR20, and 2002 2014 2"
+    },
+    {
+     "rule_id": "SR-14.9.23.3-22",
+     "kind": "convention",
+     "correction": "Not otherwise legal: line 28 INVOKE L1C15SK \"NEW\" on a class with no INHERITS FROM BASE (\u00a714.9.23.3 SR3; New only via BASE, \u00a716.2.1). Fix with INHERITS FROM BASE + REPOSITORY CLASS BASE (blocked, COBOLNET0821). The .err COBOLNET1548 and reject-at 2002 2014 2023 are otherwise right."
+    },
+    {
+     "rule_id": "GR-14.9.23.4-3",
+     "kind": "convention",
+     "correction": "The .out is spec-correct (IN FA=0002 FB=0001 FC=0003 / OUT FA=0201 FB=0102 FC=0003 / W=4242) and the rule is pinned by the swapped names, but line 45 INVOKE L1C15L \"NEW\" is illegal because class L1C15L does not inherit BASE (\u00a714.9.23.3 SR3, \u00a716.2.1). Fix: add REPOSITORY CLASS BASE to L1C15L and write CLASS-ID. L1C15L INHERITS FROM BASE. (blocked on COBOLNET0821)."
+    },
+    {
+     "rule_id": "DOC-A.1-101",
+     "kind": "expected-value",
+     "correction": "Line 3 is wrong. FUNCTION EXCEPTION-STATUS returns 'A 31-character, left-justified, alphanumeric character string ... all unused characters are alphanumeric spaces' (\u00a715.33.3 1), cite.py OK). DISPLAY therefore writes 'EC=EC-OO-METHOD' followed by 19 trailing spaces (34 characters). The .out has no trailing spaces, and it is not the last line, so the harness's whole-string TrimEnd does not hide the"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-14.9.22.4-18",
+     "why": "The rule's only consequence is 'the result of the execution of this statement is undefined' (see 14.6.10). An undefined result has no spec-derived expected value, so no golden can pin it; a golden would only freeze what this implementation happens to do. Adjudicator confirms a deterministic outcome "
+    },
+    {
+     "rule_id": "GR-14.9.22.4-21",
+     "why": "The rule's only consequence is 'the result of the execution of this statement is undefined' (see 14.6.10). An undefined result has no spec-derived expected value, so no golden can pin it; a golden would only freeze what this implementation happens to do. Adjudicator confirms a deterministic outcome "
+    }
+   ],
+   "other": [],
+   "deferred": [],
+   "split": [
+    {
+     "rule_id": "SR-11.6.3-2",
+     "dropped": [
+      "conformance:2002/l1c15_interface_inherits_multi_base"
+     ]
+    }
+   ]
+  }
+ },
+ "manifest_added": {
+  "85": [
+   "l1c15_inspect_converting_duplicate_first",
+   "l1c15_linage_counter_qualified",
+   "l1c15_initial_container_resets_nested"
+  ]
+ },
+ "negative_added": [
+  "l1c15-interface-inherits-not-in-repository",
+  "l1c15-interface-inherits-cyclic"
+ ]
+}

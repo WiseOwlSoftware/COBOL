@@ -126,3 +126,17 @@ Process: after a refuter, run `python3 scratch/integrate.py <wave> <slug…>` (p
 - **Defects:** kb/Work/PB1547 filed; kb/Work/PB1523 extended. The unverified leads are listed under "Totals at stop" above.
 - **Input files NOT started (25 files, 241 rows):** dns-witness, misc-p15, misc-p16, misc-p17, misc-p18, misc-p19, misc-p20, misc-p21, misc-p22, misc-p23, misc-p24, misc-p25, misc-p26, misc-p27, misc-p28, misc-p29, misc-p30, misc-p31, misc-p32, misc-p33, misc-p34, misc-p35, misc-p36, misc-p37, misc-p38. Inputs are in `scratch/in/`.
 - **Drafted but not landed:** every overturned or withheld row in waves 1–3. Its correction is in `scratch/reports/<slug>.refute.json` and its draft is in `scratch/out/<slug>/`.
+
+## Wave 4 (micro; misc-p15): landed 5 (GAP 1520 → 1515)
+- Landed: GR-14.9.22.4-23 (INSPECT CONVERTING duplicate, first occurrence wins), SR-8.4.3.1.3-11 (LINAGE-COUNTER qualified),
+  GR-14.6.2.3.2-2 (INITIAL resets nested programs), SR-11.6.3-2 and SR-11.6.3-3 (interface INHERITS negatives).
+- Not-closable: GR-14.9.22.4-18, GR-14.9.22.4-21 (the rule only makes the result undefined).
+- Overturned: 5 OO rows (GR-11.6.4-2, GR-14.9.23.4-3, SR-14.9.23.3-20, SR-14.9.23.3-22, DOC-A.1-101). DOC-A.1-101's
+  `.out` line 3 needs the 31-character EXCEPTION-STATUS width. The rest use `INVOKE <class> "NEW"` on a class with no
+  `INHERITS FROM BASE`, which is non-conforming source (§14.9.23.3 SR3; New is defined only in BASE).
+- ⚠ **Highest-value lead from this lane, still unfiled:** the refusal of `INHERITS FROM BASE` (COBOLNET0821) blocked 11 rows across misc-p6/p8/p9/p15.
+  The compiler also accepts `INVOKE … "NEW"` on a class with no BASE (existing goldens `oo_hello`,
+  `oo_ec_raise_object`, `l1_exit_raising_object_sending` depend on that). It needs a registrar note and a sweep.
+- Undone input files after wave 4: dns-witness and misc-p16 … misc-p38 (24 files, about 229 rows), in `scratch/in/`.
+- **Lane total: 111 rows witnessed; GAP 1627 → 1515.**
+- gate: Conformance filter 5572/5572 (all 5 new goldens ran by name), Unit filter 25/25.

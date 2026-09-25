@@ -202,7 +202,10 @@
   "l1c11_linage_counter_external_global",
   "l1c11_invalid_key_no_phrase_no_use",
   "l1c11_global_file_common_connector",
-  "l1c11_program_text_all_spaces"
+  "l1c11_program_text_all_spaces",
+  "l1c15_inspect_converting_duplicate_first",
+  "l1c15_linage_counter_qualified",
+  "l1c15_initial_container_resets_nested"
  ],
  "pending": []
 }
