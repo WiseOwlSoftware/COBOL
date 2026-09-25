@@ -1,0 +1,306 @@
+{
+ "slug": "misc-p3",
+ "rows": [
+  {
+   "rule_id": "DOC-A.1-26",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c03_multiple_encodings_per_file",
+   "files": [
+    "tests/conformance/85/l1c03_multiple_encodings_per_file.cob",
+    "tests/conformance/85/l1c03_multiple_encodings_per_file.out",
+    "tests/conformance/85/l1c03_enc16le.cpy",
+    "tests/conformance/85/l1c03_enc16be.cpy",
+    "tests/conformance/85/l1c03_enc32be.cpy"
+   ],
+   "edition_dir": "85",
+   "derivation": "Pins the documented choice (CONFORMANCE.md DOC-A.1-26: per-file encoding by BOM, no control functions, BOM not source text). UTF-8 no-BOM main COPYs UTF-16LE, UTF-16BE and UTF-32BE (+BOM) library texts, each declaring one item; each DISPLAY shows that item's VALUE (UTF-16-LE / UTF-16-BE / UTF-32-BE) then the main file's own UTF-8 item. Any other decoding yields NUL-interleaved text that does not compile.",
+   "citations": [
+    "cite.py --check 8.1.3.2 'If more than one encoding is permitted in a single compilation group, the implementor shall specify the control functions or other methods used for distinguishing between encodings' -> OK §8.1.3.2 2)",
+    "cite.py --check 8.1.3.2 'Any control functions used to switch between coded character sets are utilized in the compilation process and are not part of the syntax of the compilation group' -> OK §8.1.3.2 2)",
+    "cite.py --find 'if more than one encoding in a compilation group, control functions if any' -> §A.1 26)"
+   ],
+   "ran": "pass",
+   "notes": "Documented-choice golden (brief step 6). The three .cpy files are BINARY (NUL bytes, BOMs) and must be committed byte-exact; git's binary detection should keep autocrlf off them, but the director may want a `tests/conformance/85/l1c03_enc*.cpy -text` .gitattributes line. Also passes at --std 2023."
+  },
+  {
+   "rule_id": "SR-8.3.2.1-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c03_system_name_as_user_word",
+   "files": [
+    "tests/conformance/85/l1c03_system_name_as_user_word.cob",
+    "tests/conformance/85/l1c03_system_name_as_user_word.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "MYBOX (computer-name), SYSOUT (device-name), C01 (feature-name), SWITCH-1 (switch-name) are also data-names; CONSOLE is device-name and its own mnemonic-name; SYSIN (device-name) is a paragraph-name. Rule 4 makes all legal: DISPLAY of the four data-names -> 'MBSOC1S1'; UPON OUTDEV -> 'VIA OUTDEV'; UPON CONSOLE -> 'VIA CONSOLE'; PERFORM SYSIN -> 'PARA SYSIN'; MOVE to data-name SYSOUT then DISPLAY -> 'XY'.",
+   "citations": [
+    "cite.py --check 8.3.2.1 'A given word may be used as a system-name and as a user-defined word' -> OK §8.3.2.1 4)",
+    "cite.py --check 8.3.2.3.1 'a given system-name shall not belong to more than one of the following types' -> OK §8.3.2.3.1",
+    "cite.py --check 14.9.11.3 'Mnemonic-name-1 shall be specified in the SPECIAL-NAMES paragraph ... associated with an implementor-defined device-name' -> OK §14.9.11.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "CONSOLE/SYSOUT -> stdout per CONFORMANCE.md DOC-A.1-59 / DOC-A.1-189. Also passes at 2023."
+  },
+  {
+   "rule_id": "SR-8.3.2.2-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c03_level_number_as_procedure_name",
+   "files": [
+    "tests/conformance/85/l1c03_level_number_as_procedure_name.cob",
+    "tests/conformance/85/l1c03_level_number_as_procedure_name.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Level-numbers 01/05/77/88 are also procedure-names: sections 05 and 88, paragraphs 01 (in 05) and 77 (in 88). PERFORM 05 -> '01 RAN X=1'; PERFORM 01 -> '01 RAN X=2'; PERFORM 88 -> paragraph 77, N=1, level-88 X-TWO true -> '77 RAN N=1 X-TWO'; 'END'.",
+   "citations": [
+    "cite.py --check 8.3.2.2 'a level-number may be the same as a paragraph-name or a section-name' -> OK §8.3.2.2 2)",
+    "cite.py --check 8.3.2.2 'With the exception of section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic letter' -> OK §8.3.2.2 3)"
+   ],
+   "ran": "pass",
+   "notes": "No section-name and paragraph-name share a spelling (that would breach the one-type rule itself). Also passes at 2023."
+  },
+  {
+   "rule_id": "GR-7.3.10.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2023/l1c03_cobol_words_case_insensitive",
+   "files": [
+    "tests/conformance/2023/l1c03_cobol_words_case_insensitive.cob",
+    "tests/conformance/2023/l1c03_cobol_words_case_insensitive.out"
+   ],
+   "edition_dir": "2023",
+   "derivation": "Half 1 (literal content): EQUATE \"display\", SUBSTITUTE \"Move\", UNDEFINE \"add\" in lower/mixed case act on DISPLAY/MOVE/ADD, so ADD and MOVE are legal data-names. Half 2 (use): Show/sHoW are DISPLAY -> 'EQ-1','EQ-2'; PUTVAL/Putval are MOVE -> ADD=7, MOVE='OK'; SHOW ADD \" \" MOVE -> '7 OK'.",
+   "citations": [
+    "cite.py --check 7.3.10.4 'The content of each literal shall be processed as case-insensitive whenever the COBOL-WORDS directive is applied' -> OK §7.3.10.4 1)",
+    "cite.py --check 7.3.10.4 'Any use of an equated or substituted literal shall be case-insensitive when used syntactically as a COBOL word' -> OK §7.3.10.4 1)",
+    "cite.py --check 7.3.10.3 'shall be evaluated as case-insensitive' -> OK §7.3.10.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "First draft used \"assign\" as the SUBSTITUTE word; ASSIGN is a reserved word, which §7.3.10.3 SR4 forbids for literal-5 (compiler rejected it, correctly) - my program error, replaced by \"putval\". Header comment precedes the directives (SR1 only requires them before the first IDENTIFICATION DIVISION)."
+  },
+  {
+   "rule_id": "GR-7.3.10.4-6",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2023/l1c03_cobol_words_directing_unaffected",
+   "files": [
+    "tests/conformance/2023/l1c03_cobol_words_directing_unaffected.cob",
+    "tests/conformance/2023/l1c03_cobol_words_directing_unaffected.out",
+    "tests/conformance/2023/l1c03_cwbook.cpy"
+   ],
+   "edition_dir": "2023",
+   "derivation": "COPY, REPLACE, END-IF, SOURCE UNDEFINEd and IF SUBSTITUTEd by WHENIF; GR6 keeps COPY/REPLACE statements and >>IF/>>ELSE/>>END-IF/>>SOURCE directives working. DISPLAY CP-ITEM (exists only via COPY) -> 'COPIED'; DISPLAY OLDTXT (REPLACEd by \"REPLACED\") -> 'REPLACED'; >>IF L1C03VAR = 1 true -> 'DIRECTIVE IF TRUE' only; WHENIF 1 = 1 -> 'STATEMENT IF'; procedure division after >>SOURCE FORMAT IS FREE is column-1 free form (compiles only if the directive worked); 'END'.",
+   "citations": [
+    "cite.py --check 7.3.10.4 'A COBOL-WORDS directive does not affect any Compiler directing statements or Compiler directives' -> OK §7.3.10.4 6)",
+    "cite.py --check 7.2.2.2 'The compiler directing statements are the COPY statement and the REPLACE statement' -> OK §7.2.2.2",
+    "cite.py --check 7.3.10.4 'any syntax requiring the use of the COBOL word that is the content of literal-3 shall not be available' -> OK §7.3.10.4 3)",
+    "cite.py --check 7.3.10.4 'the COBOL word that is the content of literal-5 shall be used in any syntax where ...' -> OK §7.3.10.4 4)",
+    "cite.py --check 7.3.16.4 'If constant-conditional-expression-1 evaluates to TRUE, all lines of text-1 are included ...' -> OK §7.3.16.4 2)",
+    "cite.py --check 7.3.24.3 'shall be treated as fixed form if FIXED is specified, or as free form if FREE is specified' -> OK §7.3.24.3 1)"
+   ],
+   "ran": "pass",
+   "notes": "Ships a copybook tests/conformance/2023/l1c03_cwbook.cpy (ASCII, CRLF)."
+  },
+  {
+   "rule_id": "SR-12.4.5.7.3-5",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c03-file-collating-record-key-name-undeclared",
+   "files": [
+    "tests/conformance/negative/l1c03-file-collating-record-key-name-undeclared.cob",
+    "tests/conformance/negative/l1c03-file-collating-record-key-name-undeclared.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "COLLATING SEQUENCE OF PRIME-CODE IS REV where PRIME-CODE is no data-name anywhere (so not data-name-1) and no key clause declares a record-key-name of that spelling -> the record-key-name-1 reading violates SR5 -> reject at 2002/2014/2023 with COBOLNET1582 (DIAGNOSTICS.md: key-level name not a declared RECORD/ALTERNATE RECORD KEY, §12.4.5.7.3 SR3-SR8). Control variant 'OF KF-ALT' compiles.",
+   "citations": [
+    "cite.py --check 12.4.5.7.3 'Record-key-name-1 shall be a name specified as a record-key-name in an ALTERNATE RECORD KEY clause or in a RECORD KEY clause in the file control entry' -> OK §12.4.5.7.3 5)",
+    "cite.py --check 12.4.5.7.3 'Data-name-1 shall be a name specified as the data-name in an ALTERNATE RECORD KEY clause' -> OK §12.4.5.7.3 4)"
+   ],
+   "ran": "pass",
+   "notes": "Since record-key-name declaration (SOURCE IS) is Not claimed (COBOLNET1954), an undeclared word in the Format-2 slot is the only way to exercise the SR5 arm; the unit test FileCollatingSequenceSpecTests.KeyLevel_NameThatIsNotAKey_Diagnosed uses a non-key DATA-NAME (SR4 arm). Not reject-at 85: the clause is a 2002 introduction."
+  },
+  {
+   "rule_id": "SR-12.4.5.7.3-6",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c03-file-collating-key-subscripted",
+   "files": [
+    "tests/conformance/negative/l1c03-file-collating-key-subscripted.cob",
+    "tests/conformance/negative/l1c03-file-collating-key-subscripted.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "COLLATING SEQUENCE OF KF-KEY(1) IS REV (KF-KEY the prime key; the unsubscripted variant compiles at 2002/2014/2023) violates SR6 -> rejected at every edition having the clause. .err = \"COBOL0312: unexpected '('\".",
+   "citations": [
+    "cite.py --check 12.4.5.7.3 'Data-name-1 and record-key-name-1 shall not be subscripted' -> OK §12.4.5.7.3 6)",
+    "cite.py --check 12.4.5.12.3 'Data-name-1 and data-name-2 shall not be subject to any OCCURS clauses' -> OK §12.4.5.12.3 1)"
+   ],
+   "ran": "pass",
+   "notes": "CAVEAT for the director: the diagnostic is the generic parse error COBOL0312 (unexpected token in FILE-CONTROL), not a rule-named COBOLNET code - the grammar simply has no subscript position in Format 2, which is SR6's content. Corpus precedent exists for parse-code negatives (e.g. pb332-*.err = COBOL0001). A record key can never be in a table (§12.4.5.12.3 SR1), so no subscriptable key exists to isolate SR6 further."
+  },
+  {
+   "rule_id": "GR-12.4.5.7.4-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c03_file_collating_native_default",
+   "files": [
+    "tests/conformance/2002/l1c03_file_collating_native_default.cob",
+    "tests/conformance/2002/l1c03_file_collating_native_default.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "PROGRAM COLLATING SEQUENCE IS REV (Z..A) is in force (it governs relations/condition-names/CONTROL and sort-merge keys only, §12.3.6.4 GR11/GR13). File KF has only a key-level clause (OF KF-KEY IS REV), no alphabet-name-1; file NF has no clause. Records AM, MZ, ZA. KF by prime (REV, GR6) -> 'Z/A M/Z A/M'; KF by alternate via START >= SPACE (native, GR4) -> 'Z/A A/M M/Z'; NF by prime (native, GR4) -> 'A/M M/Z Z/A'.",
+   "citations": [
+    "cite.py --check 12.4.5.7.4 'If alphabet-name-1 is not specified in the file control entry, the native alphanumeric collating sequence applies to any record keys of class alphanumeric, whether primary or alternate' -> OK §12.4.5.7.4 4)",
+    "cite.py --check 12.4.5.7.4 'Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1' -> OK §12.4.5.7.4 6)",
+    "cite.py --check 9.1.8.2 'ascending based on the value of the key of reference according to the collating sequence of the physical file' -> OK §9.1.8.2",
+    "cite.py --check 14.9.41.4 'The key specified in the KEY phrase ... becomes the key of reference' -> OK §14.9.41.4 16)",
+    "cite.py --check 14.9.41.4 'according to the collating sequence of the file' -> OK §14.9.41.4 17)",
+    "cite.py --check 12.3.6.4 'are used to determine the truth value of any alphanumeric comparisons and national comparisons, respectively' -> OK §12.3.6.4 11)",
+    "cite.py --check 12.3.6.4 'are applied to alphanumeric and national sort or merge keys' -> OK §12.3.6.4 13)"
+   ],
+   "ran": "pass",
+   "notes": "Also passes at 2023."
+  },
+  {
+   "rule_id": "SR-13.18.14.3-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c03_report_column_synonyms_printable_size",
+   "files": [
+    "tests/conformance/2002/l1c03_report_column_synonyms_printable_size.cob",
+    "tests/conformance/2002/l1c03_report_column_synonyms_printable_size.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Report line 1: COLUMN 1 'A', COL 3 'B', COLS 5 'C', COLUMNS 7 'D', COL NUMBER IS 9 'E', COLUMN NUMBERS 11 'F' -> each at its own integer-1 (LEFT assumed, SR9) -> 'A B C D E F' (read back byte-wise as 'LINE 01 [...]').",
+   "citations": [
+    "cite.py --check 13.18.14.3 'COLUMN, COL, COLUMNS, and COLS are synonyms' -> OK §13.18.14.3 (rule 1.)",
+    "cite.py --check 13.18.14.3 'If any of the operands is absolute and neither LEFT, CENTER, nor RIGHT is specified, LEFT is assumed' -> OK §13.18.14.3 9)",
+    "cite.py --check 13.18.35.4 'If the first LINE NUMBER clause of the report group is relative and the report is not divided into pages ...' -> OK §13.18.35.4 5) 5. c)"
+   ],
+   "ran": "pass",
+   "notes": "Row editions say '85' only, but COL/COLS/COLUMNS are 2002 introductions (at 85 only COLUMN exists and the compiler refuses COL with COBOLNET0900 per the adjudicator) - the golden is therefore in 2002; the row's editions field looks like a registrar slip worth re-checking. Shares its program with GR-13.18.14.4-3 (line 1 pins SR1)."
+  },
+  {
+   "rule_id": "GR-13.18.14.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c03_report_column_absent_not_printed",
+   "files": [
+    "tests/conformance/85/l1c03_report_column_absent_not_printed.cob",
+    "tests/conformance/85/l1c03_report_column_absent_not_printed.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Unpaged RD, one detail group of four relative lines -> physical lines 1-4. Line 1: COLUMN 1 'ONE', an entry SOURCE WS-HID ('HIDE') with no COLUMN (not printed, GR1), COLUMN 5 'TWO' -> 'ONE TWO' (col 4 space, GR10). Line 3: only subordinate lacks COLUMN -> blank. Pinned by LINE 01 and LINE 03.",
+   "citations": [
+    "cite.py --check 13.18.14.4 'The COLUMN clause defines one or more printable items. If a COLUMN clause is not specified, the items are not printed' -> OK §13.18.14.4 1)",
+    "cite.py --check 13.18.14.4 'Any unoccupied columns in each print line are filled with space characters' -> OK §13.18.14.4 10)",
+    "cite.py --check 13.18.39.4 'If integer-1 is not specified, the report consists of a single page of indefinite length' -> OK §13.18.39.4 2) a)",
+    "cite.py --check 13.18.35.3 'If the report is not divided into pages, all its LINE clauses shall be relative' -> OK §13.18.35.3 5)",
+    "cite.py --check 13.18.35.4 '... report group's first line number is obtained by adding integer-2 ...' -> OK §13.18.35.4 5) 5. c)",
+    "cite.py --check 13.18.35.4 'Any unoccupied lines on the page result in a blank line' -> OK §13.18.35.4 7)"
+   ],
+   "ran": "pass",
+   "notes": "Shares its program with GR-13.18.14.4-11. Also passes at 2023."
+  },
+  {
+   "rule_id": "GR-13.18.14.4-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c03_report_column_synonyms_printable_size",
+   "files": [
+    "tests/conformance/2002/l1c03_report_column_synonyms_printable_size.cob",
+    "tests/conformance/2002/l1c03_report_column_synonyms_printable_size.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Each item followed by COLUMN PLUS 1 '|' (GR8/GR9: '|' lands one column past the prior item's rightmost column = printable-size). Line 2: PIC 9(3)V99=12.34 -> '01234' (5, V prints none); PIC S999 SIGN LEADING SEPARATE=-12 -> '-012' (4); PIC -ZZ9.99=-12.34 -> '- 12.34' (7); VALUE \"ABC\" no PICTURE -> 'ABC' (3) => '01234|-012|- 12.34|ABC|'. Line 3: PIC X(4) VALUE \"PQ\" -> size 4 from the PICTURE not 2 from the literal => 'PQ  |'.",
+   "citations": [
+    "cite.py --check 13.18.14.4 'The printable-size of a printable item is the number of columns required for printing the characters described by the item' -> OK §13.18.14.4 3)",
+    "cite.py --check 13.18.14.4 'in the absence of a PICTURE clause, the literal specified in the VALUE clause' -> OK §13.18.14.4 3)",
+    "cite.py --check 13.18.14.4 'The position of the item...' -> OK §13.18.14.4 8)",
+    "cite.py --check 13.18.14.4 'The rightmost column position of each printable item becomes the new value of the horizontal counter' -> OK §13.18.14.4 9)"
+   ],
+   "ran": "pass",
+   "notes": "Edition 2002 not 85: the only clean observable of printable-size is the horizontal counter via COLUMN PLUS (a 2002 introduction); at 85 only absolute COLUMN NUMBER IS exists. A COLUMN RIGHT/CENTER leg was dropped: the alignment phrase has no grammar (known open defect kb/Work PB1220, a different rule) - not a new defect. Also passes at 2023."
+  },
+  {
+   "rule_id": "GR-13.18.14.4-11",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c03_report_column_absent_not_printed",
+   "files": [
+    "tests/conformance/85/l1c03_report_column_absent_not_printed.cob",
+    "tests/conformance/85/l1c03_report_column_absent_not_printed.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Line 2 is a LINE entry with no subordinate entry -> blank ('LINE 02 [        ]'); line 3 is a LINE entry whose only subordinate defines no printable item (no COLUMN) -> blank; 'THREE' then lands on line 4, not 2 or 3.",
+   "citations": [
+    "cite.py --check 13.18.14.4 'If an entry containing a LINE clause has no subordinate entry defining a printable item, the resultant report line will be blank' -> OK §13.18.14.4 11)",
+    "cite.py --check 13.18.35.4 'the new line number is determined by adding integer-2 to the report's LINE-COUNTER' (subsequent relative LINE) -> OK §13.18.35.4 7) b)"
+   ],
+   "ran": "pass",
+   "notes": "Shares its program with GR-13.18.14.4-1."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c03_system_name_as_user_word",
+   "l1c03_level_number_as_procedure_name",
+   "l1c03_multiple_encodings_per_file",
+   "l1c03_report_column_absent_not_printed"
+  ],
+  "2002": [
+   "l1c03_file_collating_native_default",
+   "l1c03_report_column_synonyms_printable_size"
+  ],
+  "2014": [],
+  "2023": [
+   "l1c03_cobol_words_case_insensitive",
+   "l1c03_cobol_words_directing_unaffected"
+  ]
+ },
+ "negative_manifest_entries": [
+  "l1c03-file-collating-record-key-name-undeclared",
+  "l1c03-file-collating-key-subscripted"
+ ],
+ "records": [
+  {
+   "rule-id": "DOC-A.1-26",
+   "test-ref": "conformance:85/l1c03_multiple_encodings_per_file"
+  },
+  {
+   "rule-id": "SR-8.3.2.1-4",
+   "test-ref": "conformance:85/l1c03_system_name_as_user_word"
+  },
+  {
+   "rule-id": "SR-8.3.2.2-2",
+   "test-ref": "conformance:85/l1c03_level_number_as_procedure_name"
+  },
+  {
+   "rule-id": "GR-7.3.10.4-1",
+   "test-ref": "conformance:2023/l1c03_cobol_words_case_insensitive"
+  },
+  {
+   "rule-id": "GR-7.3.10.4-6",
+   "test-ref": "conformance:2023/l1c03_cobol_words_directing_unaffected"
+  },
+  {
+   "rule-id": "SR-12.4.5.7.3-5",
+   "test-ref": "conformance:negative/l1c03-file-collating-record-key-name-undeclared"
+  },
+  {
+   "rule-id": "SR-12.4.5.7.3-6",
+   "test-ref": "conformance:negative/l1c03-file-collating-key-subscripted"
+  },
+  {
+   "rule-id": "GR-12.4.5.7.4-4",
+   "test-ref": "conformance:2002/l1c03_file_collating_native_default"
+  },
+  {
+   "rule-id": "SR-13.18.14.3-1",
+   "test-ref": "conformance:2002/l1c03_report_column_synonyms_printable_size"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-1",
+   "test-ref": "conformance:85/l1c03_report_column_absent_not_printed"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-3",
+   "test-ref": "conformance:2002/l1c03_report_column_synonyms_printable_size"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-11",
+   "test-ref": "conformance:85/l1c03_report_column_absent_not_printed"
+  }
+ ],
+ "defects": [],
+ "deferred": [],
+ "notes": "Non-.cob support files to ship: tests/conformance/85/l1c03_enc16le.cpy, l1c03_enc16be.cpy, l1c03_enc32be.cpy (BINARY, byte-exact) and tests/conformance/2023/l1c03_cwbook.cpy. All .cob/.out/.err are CRLF UTF-8 no BOM, <=72 columns. PROGRAM-IDs L1C03A-H, J, K unused elsewhere in the corpus."
+}

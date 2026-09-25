@@ -1,0 +1,479 @@
+{
+ "wave": "wave1",
+ "slugs": {
+  "misc-p1": {
+   "landed": [
+    {
+     "rule_id": "DOC-A.1-8",
+     "test_ref": "conformance:85/l1c01_native_ordinal_positions; conformance:2002/l1c01_native_ordinal_positions_wide",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.6.4-4",
+     "test_ref": "conformance:85/l1c01_alt_key_duplicates; conformance:2002/l1c01_alt_key_equality_collating",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-11.9.5.1",
+     "test_ref": "conformance:2014/l1c01_arithmetic_clause_forms; conformance:negative/l1c01-arithmetic-two-alternatives; conformance:negative/l1c01-arithmetic-no-alternative",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.8.2-3",
+     "test_ref": "conformance:85/l1c01_move_implied_point",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.8.2-5",
+     "test_ref": "conformance:85/l1c01_move_edited_truncation",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-6",
+     "test_ref": "conformance:85/l1c01_group_start_coincident; conformance:2002/l1c01_group_start_typed_national_bit",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-8.3.3.2.3-2",
+     "test_ref": "conformance:85/l1c01_alnum_literal_characters",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-8.3.3.2.3-4",
+     "test_ref": "conformance:85/l1c01_alnum_literal_characters",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "SR-13.18.2.3-4",
+     "kind": "convention",
+     "correction": "COBOLNET1542 is SHARED by the SR2, SR3 and SR4 placement checks (DataBinder.AnyLengthValidateUnit), so the bare-code .err files do not assert THIS rule's violation. Concretely, for the -unreferenced leg a regression that classified the FUNCTION-ID as a contained program would reject M under SR3 with the same code 1542, and the test would still pass. The harness is a case-insensitive substring matc"
+    },
+    {
+     "rule_id": "SR-8.8.4.12.3-2",
+     "kind": "does-not-exercise-rule",
+     "correction": "`IF A = B AND NOT NOT C` is rejected by the \u00a78.8.4.12.2 GENERAL FORMAT before any implied insertion happens. After the logical operator, the format admits exactly ONE slot {NOT | simple-relational-operator | extended-relational-operator} and then object-1, so two NOTs followed by a bare object (where 'NOT C' is not a relational operator and C is not a condition-name) match no alternative. The writ"
+    }
+   ],
+   "defect": [],
+   "not-closable": [],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p2": {
+   "landed": [
+    {
+     "rule_id": "FMT-13.18.10.2",
+     "test_ref": "conformance:2002/l1c02_block_contains_forms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.18.10.4-1",
+     "test_ref": "conformance:2002/l1c02_block_contains_forms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.18.10.4-2",
+     "test_ref": "conformance:2002/l1c02_block_contains_forms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-8.3.3.4.2",
+     "test_ref": "conformance:2002/l1c02_boolean_literal_forms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.9.3-1",
+     "test_ref": "conformance:2002/l1c02_call_convention_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-21",
+     "test_ref": "conformance:2002/l1c02_char_locale_tie",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "DOC-A.1-16",
+     "kind": "does-not-exercise-rule",
+     "correction": "The documented determination (CONFORMANCE.md DOC-A.1-16) is specifically 'not located -> EC-PROGRAM-NOT-FOUND (GR3b)'. The golden observes only that ON EXCEPTION is taken, but \u00a714.9.4.4 GR3h 1) sends EVERY EC-PROGRAM condition to ON EXCEPTION, and none of the three targets (Cobol.Net.Runtime, System.Runtime, Antlr4.Runtime.Standard) has a callable COBOL entry, so an implementation that DID locate "
+    },
+    {
+     "rule_id": "SR-11.3.3-4",
+     "kind": "convention",
+     "correction": "COBOLNET0820 is a SHARED OO structural code (duplicate class, END CLASS/METHOD mismatch, INHERITS cycle), so the .err 'COBOLNET0820' is satisfied by a regression that rejects this group for a different 0820 reason; the .err does not assert this rule's violation. The harness is a case-insensitive substring match and the corpus already uses message-bearing .err files for shared codes (e.g. 'COBOLNET"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-13.18.10.4-3",
+     "why": "Nothing observable. The CHARACTERS arm is at least compiled/run by l1c02_block_contains_forms (FB, FC), but that pins the format, not the unit."
+    },
+    {
+     "rule_id": "GR-13.18.10.4-4",
+     "why": "Nothing to DISPLAY. The TO arm compiles in l1c02_block_contains_forms (FC, FD2)."
+    },
+    {
+     "rule_id": "GR-7.3.9.3-3",
+     "why": "Implementor latitude with nothing to DISPLAY."
+    },
+    {
+     "rule_id": "GR-8.1.3.2-5",
+     "why": "No observable; documenting 'substitute graphics: none' belongs to DOC-A.1-25."
+    }
+   ],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p3": {
+   "landed": [
+    {
+     "rule_id": "SR-8.3.2.1-4",
+     "test_ref": "conformance:85/l1c03_system_name_as_user_word",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-8.3.2.2-2",
+     "test_ref": "conformance:85/l1c03_level_number_as_procedure_name",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.10.4-1",
+     "test_ref": "conformance:2023/l1c03_cobol_words_case_insensitive",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.10.4-6",
+     "test_ref": "conformance:2023/l1c03_cobol_words_directing_unaffected",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.7.4-4",
+     "test_ref": "conformance:2002/l1c03_file_collating_native_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-13.18.14.3-1",
+     "test_ref": "conformance:2002/l1c03_report_column_synonyms_printable_size",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.18.14.4-1",
+     "test_ref": "conformance:85/l1c03_report_column_absent_not_printed",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.18.14.4-3",
+     "test_ref": "conformance:2002/l1c03_report_column_synonyms_printable_size",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.18.14.4-11",
+     "test_ref": "conformance:85/l1c03_report_column_absent_not_printed",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "DOC-A.1-26",
+     "kind": "editions",
+     "correction": "Output (UTF-16-LE / UTF-16-BE / UTF-32-BE / UTF-8) re-derived from the decoded .cpy bytes and the CONFORMANCE.md DOC-A.1-26 choice and is correct; citations OK (\u00a78.1.3.2 2), \u00a7A.1 26)). But the program uses the COPY literal-1 form (COPY \"l1c03_enc16le.cpy\".), which is not in COBOL-85 (the 1985 COPY is COPY text-name-1 [OF|IN library-name-1]; literal-1 is a 2002 introduction), and no existing 85 gol"
+    },
+    {
+     "rule_id": "SR-12.4.5.7.3-5",
+     "kind": "does-not-exercise-rule",
+     "correction": "PRIME-CODE is defined NOWHERE in the program, so the source is rejected as an undefined reference whichever Format-2 reading is taken; it breaks SR4 (data-name-1 reading) just as much as SR5. An implementation that never checks SR5 (e.g. one that accepts a record-key-name declared in a DIFFERENT file control entry, SR5's real content) still rejects this program, so the negative cannot tell SR5 enf"
+    },
+    {
+     "rule_id": "SR-12.4.5.7.3-6",
+     "kind": "does-not-exercise-rule",
+     "correction": "KF-KEY is not subject to any OCCURS clause, so KF-KEY(1) is already illegal by \u00a78.4.2.3.3 3) ('the number of subscripts shall equal the number of OCCURS clauses', cite.py OK) regardless of SR6, so SR6 is not the only reason to reject. The .err is the generic parse error COBOL0312 \"unexpected '('\", which does not name this rule's violation. The writer concedes (via \u00a712.4.5.12.3 1)) that no subscrip"
+    }
+   ],
+   "defect": [],
+   "not-closable": [],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p4": {
+   "landed": [
+    {
+     "rule_id": "SR-13.18.15.3-1",
+     "test_ref": "conformance:negative/l1c04-constant-record-linkage; conformance:negative/l1c04-constant-record-file-section; conformance:2002/l1c04_constant_record_ws_ls",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.1.2-2",
+     "test_ref": "conformance:2002/l1c04_national_uniform_bytes",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.5.2.12-1",
+     "test_ref": "conformance:85/l1c04_numeric_category_bwz; conformance:negative/l1c04-bwz-not-numeric-operand",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.5.2.8-1",
+     "test_ref": "conformance:85/l1c04_index_category_implicit; conformance:negative/l1c04-implicit-index-move-target",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.7.6-3",
+     "test_ref": "conformance:85/l1c04_corr_arith_numeric_pairs",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.7.6-5",
+     "test_ref": "conformance:85/l1c04_corr_occurs_redefines_subordinate",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.7.7-1",
+     "test_ref": "conformance:85/l1c04_arith_mixed_descriptions",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.7.7-4",
+     "test_ref": "conformance:85/l1c04_arith_multiple_receivers",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "GR-13.18.16.4-6",
+     "kind": "does-not-exercise-rule",
+     "correction": "The program is illegal on its own under \u00a713.18.16.3 SR5 (checked: 'The entry specified by data-name-1 shall not have an occurs-depending table subordinate to it' -> OK \u00a713.18.16.3 5)). CT OCCURS 0 TO 5 DEPENDING ON NN is subordinate to CG. The .err code COBOLNET1699 is the SR5 arm (report-control-operand-shape), as the writer says. An implementation that ignores GR6 completely still rejects this s"
+    },
+    {
+     "rule_id": "GR-7.2.3.4-11",
+     "kind": "editions",
+     "correction": "The 85 golden writes 'COPY l1c04_copy_spacing'. Its text-name is a user-defined word that contains UNDERSCORES. The underscore is a COBOL-2002 word character: constructs.json user-word-underscore-2002 (\u00a78.3.2.1) says the '85 set is hyphen-only. So the program uses a construct that does not exist in 85 and cannot sit in tests/conformance/85. The compiler accepts it only because the COPY text-name b"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-7.2.3.4-4",
+     "why": "A golden showing COPY ... SUPPRESS still copies the text would pin GR6, not GR4. The adjudicator's separate finding still stands and was not re-probed here: a REPLACING phrase after SUPPRESS is silently dropped because the COPY phrase parse is positional. It is filed under GR8/GR6."
+    },
+    {
+     "rule_id": "GR-7.2.3.4-5",
+     "why": "Pure listing semantics. Nothing can be DISPLAYed."
+    }
+   ],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p5": {
+   "landed": [
+    {
+     "rule_id": "GR-8.5.1.4-1",
+     "test_ref": "conformance:2002/l1c05_composite_sequence_positions",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.5.1.4-2",
+     "test_ref": "conformance:2002/l1c05_surrogate_halves_positions",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-32",
+     "test_ref": "conformance:85/l1c05_coded_character_values; conformance:2002/l1c05_coded_character_values_national",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.3.8.2.3-L2.1",
+     "test_ref": "conformance:2002/l1c05_oo_returning_only_same_class; conformance:negative/l1c05-oo-returning-only-dropped; conformance:negative/l1c05-oo-returning-only-subclass",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.3.8.2.3-4",
+     "test_ref": "conformance:negative/l1c05-oo-returning-absent-in-impl; conformance:negative/l1c05-oo-returning-extra-in-impl",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.3.8.2.3-7",
+     "test_ref": "conformance:2002/l1c05_oo_strong_type_same_type; conformance:negative/l1c05-oo-strong-type-other-name; conformance:negative/l1c05-oo-strong-type-vs-plain-group; conformance:negative/l1c05-oo-strong-type-returning-other",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-7.3.8.2-2",
+     "test_ref": "conformance:2002/l1c05_cce_arith_expression; conformance:negative/l1c05-cce-arith-exponentiation; conformance:negative/l1c05-cce-arith-division-by-zero; conformance:negative/l1c05-cce-arith-nonnumeric-operand",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-7.3.8.2-3",
+     "test_ref": "conformance:2002/l1c05_cce_boolean_expression; conformance:negative/l1c05-cce-boolean-alnum-operand; conformance:negative/l1c05-cce-boolean-numeric-operand",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.10.4-4",
+     "test_ref": "conformance:2002/l1c05_constant_expr_truncated_integer",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "DOC-A.1-29",
+     "kind": "editions",
+     "correction": "The mode is implementor-defined only from 2023. Annex E.2 item 6 says: 'The mode of arithmetic used in evaluating compile-time arithmetic expressions and the handling of intermediate results is now explicitly implementor defined.' Its justification adds: 'The previous COBOL Standard required the use of an arithmetic mode that is no longer supported.' So at 2002 and 2014 the spec prescribed the mod"
+    },
+    {
+     "rule_id": "SR-7.3.3-9",
+     "kind": "does-not-exercise-rule",
+     "correction": "SR9 only reserves the word IMP for the implementor and makes an IMP directive's syntax implementor-defined. Nothing in it requires '>>IMP SOMETHING' to be rejected; an implementation that defines IMP conforms and would accept it. The golden instead pins the generic 'unknown directive word is a syntax error' behavior. Its .err, COBOL0001, is the generic parse error ('unexpected >'), not a diagnosti"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-7.3.4-4",
+     "why": "Vacuous for this implementation; Annex A.1 item 30 is owed only upon support for IMP."
+    }
+   ],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p6": {
+   "landed": [
+    {
+     "rule_id": "DOC-A.1-43",
+     "test_ref": "conformance:85/l1c06_currency_non_cobol_equivalence_85; conformance:2002/l1c06_currency_non_cobol_symbols; conformance:negative/l1c06-currency-non-cobol-equivalent-rebound",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-44",
+     "test_ref": "conformance:2002/l1c06_currency_non_cobol_symbols; conformance:negative/l1c06-currency-long-s-prohibited",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-7.3.11.3-4",
+     "test_ref": "conformance:negative/l1c06-define-boolean-numeric-operand",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.11.4-3",
+     "test_ref": "conformance:2002/l1c06_define_override_rebinds",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.11.4-8",
+     "test_ref": "conformance:2002/l1c06_define_literal_categories",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.5.1.9.1-2",
+     "test_ref": "conformance:2014/l1c06_dyn_table_unlimited_capacity",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-11.9.7.4-2",
+     "test_ref": "conformance:2014/l1c06_entry_convention_oo; conformance:2014/pb232_entry_convention_cobol",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "GR-11.9.7.4-4",
+     "kind": "does-not-exercise-rule",
+     "correction": "Drop conformance:2014/l1c06_entry_convention_oo from GR-11.9.7.4-4 and leave the row a GAP (test-needed, vacuous while COBOL is the only convention, PB298). GR4 a) and b) say a no-clause class or interface INHERITS its convention from the first class or interface in its INHERITS clause. COBOL.NET has only one convention (DOC-A.1-64), so an implementation that ignored INHERITS and used c) (default "
+    }
+   ],
+   "defect": [
+    "SR-8.4.3.11.3-5"
+   ],
+   "not-closable": [
+    {
+     "rule_id": "GR-7.3.12.4-4",
+     "why": "No observable: COBOL.NET produces no source listing, and per GR2 its documented disposition (CONFORMANCE.md \u00a77.3 recognized-and-ignored set) consumes >>DISPLAY with no transfer at all (probe: '>>DISPLAY \"ONE\" \"TWO\" 3' and '>>DISPLAY \"X\" UPON LISTING' at --std 2023 compile and print only the runtime "
+    },
+    {
+     "rule_id": "GR-7.3.12.4-6",
+     "why": "No observable: COBOL.NET produces no source listing, and per GR2 its documented disposition (CONFORMANCE.md \u00a77.3 recognized-and-ignored set) consumes >>DISPLAY with no transfer at all (probe: '>>DISPLAY \"ONE\" \"TWO\" 3' and '>>DISPLAY \"X\" UPON LISTING' at --std 2023 compile and print only the runtime "
+    }
+   ],
+   "other": [],
+   "deferred": []
+  }
+ },
+ "manifest_added": {
+  "85": [
+   "l1c01_native_ordinal_positions",
+   "l1c01_alt_key_duplicates",
+   "l1c01_move_implied_point",
+   "l1c01_move_edited_truncation",
+   "l1c01_group_start_coincident",
+   "l1c01_alnum_literal_characters",
+   "l1c03_system_name_as_user_word",
+   "l1c03_level_number_as_procedure_name",
+   "l1c03_report_column_absent_not_printed",
+   "l1c04_numeric_category_bwz",
+   "l1c04_index_category_implicit",
+   "l1c04_corr_arith_numeric_pairs",
+   "l1c04_corr_occurs_redefines_subordinate",
+   "l1c04_arith_mixed_descriptions",
+   "l1c04_arith_multiple_receivers",
+   "l1c05_coded_character_values",
+   "l1c06_currency_non_cobol_equivalence_85"
+  ],
+  "2002": [
+   "l1c01_native_ordinal_positions_wide",
+   "l1c01_alt_key_equality_collating",
+   "l1c01_group_start_typed_national_bit",
+   "l1c02_block_contains_forms",
+   "l1c02_boolean_literal_forms",
+   "l1c02_call_convention_default",
+   "l1c02_char_locale_tie",
+   "l1c03_file_collating_native_default",
+   "l1c03_report_column_synonyms_printable_size",
+   "l1c04_constant_record_ws_ls",
+   "l1c04_national_uniform_bytes",
+   "l1c05_composite_sequence_positions",
+   "l1c05_surrogate_halves_positions",
+   "l1c05_coded_character_values_national",
+   "l1c05_oo_returning_only_same_class",
+   "l1c05_oo_strong_type_same_type",
+   "l1c05_cce_arith_expression",
+   "l1c05_cce_boolean_expression",
+   "l1c05_constant_expr_truncated_integer",
+   "l1c06_currency_non_cobol_symbols",
+   "l1c06_define_override_rebinds",
+   "l1c06_define_literal_categories"
+  ],
+  "2014": [
+   "l1c01_arithmetic_clause_forms",
+   "l1c06_dyn_table_unlimited_capacity",
+   "l1c06_entry_convention_oo"
+  ],
+  "2023": [
+   "l1c03_cobol_words_case_insensitive",
+   "l1c03_cobol_words_directing_unaffected"
+  ]
+ },
+ "negative_added": [
+  "l1c01-arithmetic-two-alternatives",
+  "l1c01-arithmetic-no-alternative",
+  "l1c04-constant-record-linkage",
+  "l1c04-constant-record-file-section",
+  "l1c04-bwz-not-numeric-operand",
+  "l1c04-implicit-index-move-target",
+  "l1c05-oo-returning-only-dropped",
+  "l1c05-oo-returning-only-subclass",
+  "l1c05-oo-returning-absent-in-impl",
+  "l1c05-oo-returning-extra-in-impl",
+  "l1c05-oo-strong-type-other-name",
+  "l1c05-oo-strong-type-vs-plain-group",
+  "l1c05-oo-strong-type-returning-other",
+  "l1c05-cce-arith-exponentiation",
+  "l1c05-cce-arith-division-by-zero",
+  "l1c05-cce-arith-nonnumeric-operand",
+  "l1c05-cce-boolean-alnum-operand",
+  "l1c05-cce-boolean-numeric-operand",
+  "l1c06-currency-non-cobol-equivalent-rebound",
+  "l1c06-currency-long-s-prohibited",
+  "l1c06-define-boolean-numeric-operand"
+ ]
+}

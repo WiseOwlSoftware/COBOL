@@ -1,0 +1,191 @@
+{
+ "slug": "misc-p14",
+ "family": "misc",
+ "row-count": 12,
+ "subjects": [
+  "INSPECT statement"
+ ],
+ "existing-goldens-by-subject": {
+  "INSPECT statement": [
+   "tests/conformance/2002/pb856_inspect_national_identifier_operands.cob",
+   "tests/conformance/2002/pb881_constant_record_sending_roles.cob",
+   "tests/conformance/2023/da5_group_verbs_comp_leaf.cob",
+   "tests/conformance/2023/inspect_backward.cob",
+   "tests/conformance/2023/inspect_keyword_omitted_function.cob",
+   "tests/conformance/2023/l1_returned_value_length_limit.cob",
+   "tests/conformance/2023/pb10_function_identifier_sending.cob",
+   "tests/conformance/2023/pb45_function_in_sending_operands.cob",
+   "tests/conformance/2023/pb63_exception_location_procedure_field.cob",
+   "tests/conformance/2023/pb70_group_reference_modification.cob",
+   "tests/conformance/2023/pb79_group_usage_national.cob",
+   "tests/conformance/85/pb1029_refusal_neighbours.cob",
+   "tests/conformance/85/pb429_page_counter_receiving.cob",
+   "tests/conformance/negative/da7-inspect-binary-operand.cob",
+   "tests/conformance/negative/inspect-converting-alphabet.cob",
+   "tests/conformance/negative/inspect-kof-replacing.cob",
+   "tests/conformance/negative/pb10-inspect-fn-converting.cob",
+   "tests/conformance/negative/pb10-inspect-fn-replacing.cob",
+   "tests/conformance/negative/pb10-inspect-fn-tallying-replacing.cob",
+   "tests/conformance/negative/pb1029-inspect-numeric-literal.cob",
+   "tests/conformance/negative/pb856-inspect-identifier1-bit-group.cob",
+   "tests/conformance/negative/pb856-inspect-operand-binary-usage.cob",
+   "tests/conformance/negative/pb881-inspect-replacing-constant-record.cob",
+   "tests/conformance/negative/pb909-inspect-replacing-trailing.cob",
+   "tests/conformance/negative/pb980-inspect-national-mix.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "GR-14.9.22.4-1",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit; src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs#AsString; src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#EmitStore",
+   "adjudicator-notes": "Rule: 'For purposes of determining its length, identifier-1 is treated as a sending data item.' (cite.py --check 14.9.22.4 -> OK 14.9.22.4 1)). The emitter reads identifier-1 ONCE through the sending image reader OperandText.AsString (an ODO group reads its current-count extent, the GR8 sending slice; EmitStore's OdoGroupPlace arm splices back over exactly that extent). Probe E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/inspect-p2/p3.cob: 01 G. 05 E PIC X OCCURS 0 TO 5 DEPENDING ON CNT, G='AAAAA', CNT=2: TALLYING N FOR ALL 'A' -> 02 (only the live 2 positions), REPLACING ALL 'A' BY 'B' then CNT=5 -> 'BBAAA' (positions past the count untouched). Matches the sending-length rule. No spec-derived test pins it (OdoDifferentialTests is a legacy differential). || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "For purposes of determining its length, identifier-1 is treated as a sending data item."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L2.1",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"If neither LEADING nor FIRST is specified; or\" (GR8 a) 1.). ALL / CHARACTERS operands match whenever the characters are equal (TallyAll/ReplaceAll arms, isMatch only). Probes: ALL counts in misc.cob and l22.cob (C1=01) correct. || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "If neither LEADING nor FIRST is specified; or"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L3.1",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "INSPECT statement",
+   "editions": "2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Region; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Convert",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"from the character position immediately to the left of the leftmost character position of the first occurrence of literal-2\" -> OK GR9 c) 1. With BACKWARD the text and delimiter are reversed and Region applies AFTER in that frame: the first occurrence in scan direction (the rightmost) and the region is everything to its left down to the leftmost character. Probe misc.cob: INSPECT BACKWARD 'A12C21D12EF' TALLYING ALL \"12\" AFTER \"C\" -> 1 (only 'A12' eligible). conformance:2023/inspect_backward covers BEFORE only, so this row has no covering test.",
+   "rule-text": "If BACKWARD is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles that involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the left of the leftmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the leftmost character position of the data item referenced by identifier-1, else"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L3.2",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Region",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"is never eligible to participate in the comparison operation\" -> OK GR9 c) 2. Region: AFTER found -> start just past the first occurrence's rightmost character, to the end; not found -> an empty region (start=end), so the operand never matches; computed once before the first cycle. The rule's 'This is the character position at which literal-1 ... is first eligible' definition is correctly produced here; its consumer (LEADING anchoring) is defective and is recorded under GR-14.9.22.4-L2.2. || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles that involve that portion of the content of the data item referenced by identifier-1 from the character position immediately to the right of the rightmost character position of the first occurrence of literal-2 within the content of the data item referenced by identifier-1 to the rightmost character position of the data item referenced by identifier-1. This is the character position at which literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching. The position of this first occurrence is determined before the first cycle of the comparison operation described in General rule 8 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase is never eligible to participate in the comparison operation."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L2.3",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"This implied character is considered always to match the leftmost character\" -> OK GR8 e); GR8 a) 3. FIRST. FIRST: live flag cleared at its first match, so only the leftmost (BACKWARD: rightmost — probe ABABABxy) occurrence is replaced, each FIRST phrase independently. 8b: no match -> pos+1, restart at the first operand; 8c: a match advances past the matched characters (BACKWARD: to the left, via the reversed frame; NOTE 2 matching direction preserved by pattern reversal); 8d: loop ends when pos reaches the end; 8e: CHARACTERS matches one character without comparison. Probes misc.cob confirm. || editions as adjudicated: 1985, 2002, 2014, 2023 (BACKWARD/NOTE 2 arms 2023)",
+   "rule-text": "If the FIRST adjective applies to literal-1 and literal-1 is the first occurrence as defined in General rule 17. b) If no match occurs in the comparison of the first literal-1, the comparison is repeated with each successive literal-1, if any, until either a match is found or there is no next successive literal-1. When there is no next successive literal-1, the character position in the data item referenced by identifier-1 immediately to the right, or if BACKWARD is specified to the left, of the leftmost character position considered in the last comparison cycle is considered as the leftmost character position, and the comparison cycle begins again with the first literal-1. NOTE 2 The keyword BACKWARD specifies only the direction of the scan, not the direction of the matching. Matching always takes place starting at the leftmost character at the current character position as specified in General rule 8 with the leftmost position of the characters being tallied or replaced. c) Whenever a match occurs, tallying or replacing takes place as described in General rules 12 and 15. The character position in the data item referenced by identifier-1 immediately to the right of the rightmost character position that participated in the match or, if BACKWARD is specified, the character position in the data item referenced by identifier-1 immediately to the left of the leftmost character position that participated in the match is now considered to be the leftmost character position of the data item referenced by identifier-1, and the comparison cycle starts again with the first literal-1. d) If BACKWARD was not specified the comparison operation continues until the rightmost character position of the data item referenced by identifier-1 has participated in a match or has been considered as the leftmost character position otherwise if BACKWARD has been specified, the comparison operation continues until the leftmost character position of the data item referenced by identifier-1 has participated in a match or has been considered as the rightmost character position. When this occurs, inspection is terminated. e) If the CHARACTERS phrase is specified, an implied one character operand participates in the cycle described in General rules 8a through 8d above as if it had been specified by literal-1, except that no comparison to the content of the data item referenced by identifier-1 takes place. This implied character is considered always to match the leftmost character of the content of the data item referenced by identifier-1 participating in the current comparison cycle."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-5",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 5,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#OperandTextOf; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#InspectCharOperandOf",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"apply equally to the content of the data item referenced by identifier-3\" -> OK GR5. An identifier operand is bound as BoundFieldOperand and read as its FULL raw image at run time (no trimming), then passed exactly like a literal to Tally/Replace/Convert. Probe misc.cob: PAT PIC X(2) 'A ' over Q 'A A AA' TALLYING ALL PAT -> 2 (the trailing space participates). || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "In General rules 6 through 21, all references to literal-1, literal-2, literal-3, literal-4, or literal-5 apply equally to the content of the data item referenced by identifier-3, identifier-4, identifier-5, identifier-6, or identifier-7 respectively."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-7",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 7,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace; src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)\" -> OK GR7. Tally counts per matched occurrence and the emitter ADDs each count into its counter; Replace copies literal-3 over each match. Probes misc.cob / l22.cob confirm counts and replacements (the definition of 'properly matched' for LEADING is the GR8a-2 row, adjudicated separately). || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "During inspection of the content of the data item referenced by identifier-1, each properly matched occurrence of literal-1 is tallied (format 1) or replaced by literal-3 (format 2)."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-8",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 8,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"This implied character is considered always to match the leftmost character\" -> OK GR8. GR8a lead-in: operands are one flattened list in source order across all counters (BindPhraseOperands) and tried k=0..n-1 at each position; the pattern compares contiguous characters from the current position (pos+len within the region); BACKWARD starts at the rightmost via the reversed frame. The three match conditions are the L2.1-L2.3 rows. Legacy-differential test Tally_SharedCycle_EarlierAllStarvesLeading does not close the row. || editions as adjudicated: 1985, 2002, 2014, 2023 (BACKWARD arm 2023)",
+   "rule-text": "The comparison operation to determine the occurrence of literal-1 to be tallied or to be replaced, occurs as follows: a) The operands of the TALLYING or REPLACING phrase are considered in the order they are specified in the INSPECT statement from left to right. The first literal-1 is compared to an equal number of contiguous characters, starting with the leftmost character position, or, if BACKWARD is specified, the rightmost character position in the data item referenced by identifier-1. Literal-1 matches that portion of the content of the data item referenced by identifier-1 if they are equal, character for character and:"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-9",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 9,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Region; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
+   "adjudicator-notes": "cite.py --check 14.9.22.4 \"is first eligible to participate in matching at the leftmost character position\" -> OK GR9 a). a) no delimiter or a zero-length delimiter (Length 0 test) -> whole item. b) BEFORE: first occurrence searched from the eligible start, computed once before the first cycle (Region), not-found -> as if absent; an ineligible operand is skipped (not a match) and ALL/LEADING require the whole pattern within the region. c) is rows L3.1/L3.2. Region sizing verified by probe (C2=01, NOTE-1 example). The 'first eligible' point defined here is mis-consumed by LEADING — see GR-14.9.22.4-L2.2. InspectDifferentialTests.Tally_Regions_* is legacy-differential. || editions as adjudicated: 1985, 2002, 2014, 2023 (zero-length identifier-4 clause 2014+)",
+   "rule-text": "The comparison operation defined in General rule 8 is restricted by the BEFORE and AFTER phrase as follows: a) If neither the BEFORE nor AFTER phrase is specified or identifier-4 references a zero-length item, literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as described in General rule 8. Literal-1 or the implied operand of the CHARACTERS phrase is first eligible to participate in matching at the leftmost character position, or, if BACKWARD is specified, at the rightmost character position of identifier-1. b) If the BEFORE phrase is specified, the associated literal-1 or the implied operand of the CHARACTERS phrase participates only in those comparison cycles that involve that portion of the content of the data item referenced by identifier-1 the first character position that is eligible to participate up to, but not including, the first occurrence encountered of literal-2 within the content of the data item referenced by identifier-1. The position of this first occurrence is determined before the first cycle of the comparison operation described in General rule 8 is begun. If, on any comparison cycle, literal-1 or the implied operand of the CHARACTERS phrase is not eligible to participate, it is considered not to match the content of the data item referenced by identifier-1. If there is no occurrence of literal-2 within the content of the data item referenced by identifier-1, its associated literal-1 or the implied operand of the CHARACTERS phrase participates in the comparison operation as though the BEFORE phrase had not been specified. c) If the AFTER phrase is specified:"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-11",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 11,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+   "adjudicator-notes": "Rule: 'The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement.' (cite.py --check 14.9.22.4 -> OK 11)). The emitter stores counter := counter + __cnt[k] per operand through ArithmeticEmitter.StoreArith (never a MOVE 0). Probe p1.cob T5: N5 PIC 99 VALUE 5, 'AAB' TALLYING N5 FOR ALL \"A\" -> 07. No spec-derived test pins a non-zero starting counter. || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "The content of the data item referenced by identifier-2 is not initialized by the execution of the INSPECT statement."
+  },
+  {
+   "rule-id": "GR-14.9.22.4-13",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 13,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/InspectEmitter.cs#Emit",
+   "adjudicator-notes": "Rule: identifier-1/3/4 overlapping identifier-2 -> 'the result of the execution of this statement is undefined' (cite.py --check 14.9.22.4 -> OK 13)). An undefined result imposes no requirement; the implementation is deterministic (identifier-1 and every operand image are snapshotted before any counter store, InspectEmitter.Emit) and neither crashes nor rejects the source. Conforms by construction; nothing to test. || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "If identifier-1, identifier-3, or identifier-4 occupies the same storage area as identifier-2, the result of the execution of this statement is undefined, even if they are defined by the same data description entry. (See 14.6.10, Overlapping operands.)"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-16",
+   "section": "14.9.22.4",
+   "kind": "GR",
+   "ordinal": 16,
+   "subject": "INSPECT statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InspectBinder.cs#BindPhraseOperands",
+   "adjudicator-notes": "Rule: 'The ALL, FIRST, and LEADING phrases are transitive across the operands that follow them until another ALL, FIRST, or LEADING phrase is encountered.' (cite.py --check 14.9.22.4 -> OK 16)). InspectBinder keeps 'last' across replacing items and a bare pair inherits it; the replacing-phrase has BY between operands so the parse cannot mis-end the list (unlike GR10's tallying list). Probe p1.cob T10 'ABAB' REPLACING FIRST \"A\" BY \"X\" \"B\" BY \"Y\" -> 'XYAB' (each FIRST operand replaces its own leftmost occurrence). Covering test Replace_First_EachSuccessivePhraseReplacesOneOccurrence is a legacy differential (does not qualify). || editions as adjudicated: 1985, 2002, 2014, 2023",
+   "rule-text": "The ALL, FIRST, and LEADING phrases are transitive across the operands that follow them until another ALL, FIRST, or LEADING phrase is encountered."
+  }
+ ]
+}

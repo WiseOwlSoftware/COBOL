@@ -1,0 +1,154 @@
+{
+ "slug": "misc-p29",
+ "family": "misc",
+ "row-count": 8,
+ "subjects": [
+  "SORT statement",
+  "SOURCE-COMPUTER paragraph"
+ ],
+ "existing-goldens-by-subject": {
+  "SORT statement": [
+   "tests/conformance/2002/oo_method_sort.cob",
+   "tests/conformance/2002/pb1018_table_sort_qualified_keys.cob",
+   "tests/conformance/2002/pb101_alphabet_locale_pcs.cob",
+   "tests/conformance/2002/pb230_incompatible_sending_sweep.cob",
+   "tests/conformance/2002/pb337_into_receiver_admissible.cob",
+   "tests/conformance/2002/pb339_into_current_record.cob",
+   "tests/conformance/2002/pb348_from_into_move_rules.cob",
+   "tests/conformance/2002/pb348_release_from_figurative_image.cob",
+   "tests/conformance/2002/pb349_sort_merge_flow_ec.cob",
+   "tests/conformance/2002/pb64t1_locale_declare.cob",
+   "tests/conformance/2002/pb64t1_sort_locale_snapshot.cob",
+   "tests/conformance/2002/pb678_table_sort_key_class.cob",
+   "tests/conformance/2002/pb704_sort_duplicates_in_order.cob",
+   "tests/conformance/2002/pb846_sort_table_occurs_keys.cob",
+   "tests/conformance/2002/pb993_sort_merge_transfer_termination.cob",
+   "tests/conformance/2002/sort_table_format2.cob",
+   "tests/conformance/2014/pb1025_key_after_dynamic_member.cob",
+   "tests/conformance/2014/pb337_into_receiver_admissible.cob",
+   "tests/conformance/2014/pb339_into_current_record.cob",
+   "tests/conformance/2014/pb348_from_into_move_rules.cob",
+   "tests/conformance/2014/pb348_release_from_figurative_image.cob",
+   "tests/conformance/2014/pb704_sort_duplicates_in_order.cob",
+   "tests/conformance/2014/pb981_fd_variable_length_records.cob",
+   "tests/conformance/2023/da5_table_sort_group_key.cob",
+   "tests/conformance/2023/l1_release_from_sender_available.cob"
+  ],
+  "SOURCE-COMPUTER paragraph": [
+   "tests/conformance/2002/oo_class_env.cob",
+   "tests/conformance/2023/pb78_object_computer_optional_name.cob",
+   "tests/conformance/2023/pb829_closed_formats_legal.cob",
+   "tests/conformance/85/pb830_computer_paragraph_clauses_85.cob",
+   "tests/conformance/85/wavef_dbg_proc.cob",
+   "tests/conformance/negative/debugging-mode.cob",
+   "tests/conformance/negative/pb830-source-computer-unrecognized-clause.cob",
+   "tests/conformance/negative/wavef-debug-removed-2002.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "SR-14.9.40.3-1",
+   "section": "14.9.40.3",
+   "kind": "SR",
+   "ordinal": 1,
+   "subject": "SORT statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating",
+   "adjudicator-notes": "cite.py --check 14.9.40.3 \"Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence\" OK (SR1). Per §12.3.7.4 GR7 Table 6 (cite.py --check 12.3.7.4 \"Relationship of alphabet-name to coded character set and collating sequence\" OK) EVERY alphanumeric-branch operand (LOCALE, NATIVE, STANDARD-1, STANDARD-2, code-name-1, literal phrase) references a collating sequence, so SR1 reduces to 'alphabet-name-1 is an alphanumeric alphabet'. SortBindCollating: alnumName not in ctx.Data.Alphabets -> COBOLNET0898 (national alphabet named -> 'shall reference ... ALPHANUMERIC'; undeclared -> 'not an alphabet-name'). PROBES --std 2023: c_ok1 (IS A-AN STANDARD-1) rc 0; c_ok2 (IS A-LOC LOCALE + N-NAT) rc 0; c_nat1 (IS N-NAT, a FOR NATIONAL alphabet in slot 1) rc 70 COBOLNET0898; c_nat1f (FOR ALPHANUMERIC IS N-NAT) rc 70 COBOLNET0898; c_unk1 (IS NOTALPHA, a data-name) rc 70 COBOLNET0898. Both spellings of the slot are screened by one path. Cosmetic: the national-in-slot-1 message cites '§14.9.40.3 SR2' where the violated rule is SR1 (SortBinder.cs line 587) — a wrong-clause cite of the PB996 family, reported in findings. No spec-derived negative golden pins SR1. [editions as adjudicated: 85, 2002, 2014, 2023 (the IS alphabet-name-1 form exists at 85; the FOR ALPHANUMERIC form is 2002+).]",
+   "rule-text": "Alphabet-name-1 shall reference an alphabet that defines an alphanumeric collating sequence."
+  },
+  {
+   "rule-id": "SR-14.9.40.3-2",
+   "section": "14.9.40.3",
+   "kind": "SR",
+   "ordinal": 2,
+   "subject": "SORT statement",
+   "editions": "2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindCollating; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitSortCollatingPhrase",
+   "adjudicator-notes": "cite.py --check 14.9.40.3 \"Alphabet-name-2 shall reference an alphabet that defines a national collating sequence\" OK (SR2). Table 6 (§12.3.7.4 GR7): of the national-branch operands UTF-8 and UTF-16 reference NO collating sequence; LOCALE, NATIVE, UCS-4, code-name-2, literal phrase do. SortBindCollating: natName not in NationalAlphabets -> COBOLNET0898 (alphanumeric alphabet or undeclared); def.HasCollatingSequence false -> COBOLNET0898. PROBES --std 2023: c_ok2 (IS A-LOC N-NAT) rc 0; c_ok3 (FOR NATIONAL N-NAT FOR ALPHANUMERIC A-AN) rc 0; c_nloc (IS A-AN N-LOC, N-LOC FOR NATIONAL IS LOCALE) rc 0; c_an2 (alphanumeric A-AN in slot 2) rc 70; c_u8 (N-U8 UTF-8) rc 70; c_u16f (FOR NATIONAL IS N-U16) rc 70; c_unk2 (data-name) rc 70 — all COBOLNET0898. Edition gate is recognition-fired (VisitSortCollatingPhrase -> COBOLNET0872), pinned by conformance:negative/pb678-sort-collating-for-forms-at-85 (which pins the EDITION gate, not SR2's class check — hence not claimed as test-ref). Cosmetic: the UTF message says 'only NATIVE, UCS-4, and literal-phrase national alphabets may collate', omitting LOCALE and code-name-2 which Table 6 also marks Y (LOCALE is in fact accepted, probe c_nloc) — message text only. [editions as adjudicated: 2002, 2014, 2023 (alphabet-name-2 / FOR NATIONAL are the 2002 national class; below 2002 the surface is gated COBOLNET0872, sort-collating-national-2002).]",
+   "rule-text": "Alphabet-name-2 shall reference an alphabet that defines a national collating sequence."
+  },
+  {
+   "rule-id": "SR-14.9.40.3-4",
+   "section": "14.9.40.3",
+   "kind": "SR",
+   "ordinal": 4,
+   "subject": "SORT statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#BindSort; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindFile; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortBindTable",
+   "adjudicator-notes": "cite.py --check 14.9.40.3 \"File-name-1 shall be described in a sort-merge file description entry in the data division\" OK (SR4). BindSort splits on ctx.Data.FilesByName: a declared file that is not IsSortMerge -> COBOLNET1757 'is not described in a sort-merge description entry (ISO §14.9.40.3 SR4 ...)' at bind time (SortBindFile lines 53-58); a name that is neither a file nor an OCCURS table -> COBOLNET1757 naming SR4/SR13 (SortBindTable lines 147-153). PROBE s4fd --std 2023: `SORT IN1 ASCENDING I1 USING OU1 GIVING OU1` with IN1 an FD -> rc 70 COBOLNET1757 SR4; control s8ok (SD operand) rc 0. No spec-derived negative golden pins SR4. [editions as adjudicated: 85, 2002, 2014, 2023 (Format 1).]",
+   "rule-text": "File-name-1 shall be described in a sort-merge file description entry in the data division."
+  },
+  {
+   "rule-id": "SR-14.9.40.3-7",
+   "section": "14.9.40.3",
+   "kind": "SR",
+   "ordinal": 7,
+   "subject": "SORT statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#sortInputProcedurePhrase; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#sortOutputProcedurePhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SortBinder.cs#SortRange",
+   "adjudicator-notes": "cite.py --check 14.9.40.3 \"The words THROUGH and THRU are equivalent\" OK (SR7). Both procedure phrases are `(INPUT|OUTPUT) PROCEDURE IS? procedureName ((THRU | THROUGH) procedureName)?` — one alternative, one parse node, and SortRange reads procedureName()[1] without looking at which token was written, so the two spellings cannot bind differently. PROBE fmt1.cob --std 2023: `INPUT PROCEDURE IS IP-1 THROUGH IP-2` + `OUTPUT PROCEDURE OP-1 THRU OP-2` ran and returned R7r,Q5q (both input paragraphs executed; the THRU output range reached OP-2's RETURN loop). conformance:2023/pb440_sort_procedure_range exercises only the THRU spelling, so it does not witness the equivalence; test-ref left empty. [editions as adjudicated: 85, 2002, 2014, 2023 (Format 1).]",
+   "rule-text": "The words THROUGH and THRU are equivalent."
+  },
+  {
+   "rule-id": "GR-14.9.40.4-4",
+   "section": "14.9.40.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "subject": "SORT statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/CobolSort.cs#Sort; src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#Sorted",
+   "adjudicator-notes": "Rule: 'If the DUPLICATES phrase is not specified and the contents of all the key data items ... are equal ..., the order of return of these records or the relative order of the contents of these table elements is undefined.' (cite.py --check 14.9.40.4 OK, GR4; also listed as undefined item 52 in Annex B). CobolSort.Sort breaks ties by release index (stable) and CobolTable.Sorted uses stable OrderBy regardless of the phrase; any order satisfies 'undefined', so the stable refinement conforms. Nothing observable to pin with a spec-derived expected value (the rule defines no result), hence no test-ref. [editions as adjudicated: 1985, 2002, 2014, 2023 (records); 2002, 2014, 2023 (table elements)]",
+   "rule-text": "If the DUPLICATES phrase is not specified and the contents of all the key data items associated with one record or table element are equal to the contents of the corresponding key data items associated with one or more other records or table elements, the order of return of these records or the relative order of the contents of these table elements is undefined."
+  },
+  {
+   "rule-id": "GR-14.9.40.4-6",
+   "section": "14.9.40.4",
+   "kind": "GR",
+   "ordinal": 6,
+   "subject": "SORT statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#ExecutingElementArgs",
+   "adjudicator-notes": "Rule: 'Additional rules affecting the execution of the SORT statement are given in 12.4.5, File control entry, General rules 3 and 4.' (cite.py --check 14.9.40.4 OK, GR6). 12.4.5.3 GR3: 'The association occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1' (cite.py --check 12.4.5.3 OK). Code: every implicit USING/GIVING OPEN renders seqIo.ExecutingElementArgs(file) -- the literal ASSIGN target (GR3 a) or the CURRENT content of the ASSIGN USING data item (GR3 b) evaluated at the SORT. PROBE out/probe/sort-statement-p2/passign.cob: ASSIGN USING FI-NAME / FO-NAME, names changed to passign-in2.dat / passign-out2.dat before the SORT; the SORT read passign-in2.dat and wrote passign-out2.dat (OUT=AAA, OUT=BBB), and no -in1/-out1 file was created. GR4's content/consistency rules are implementor-defined. The 'association cannot be made -> SORT unsuccessful' arm is the implicit OPEN's status path (pb714/pb837 goldens). No golden witnesses ASSIGN USING through a SORT (pb673_external_assign_executor exercises OPEN only), so test-ref is empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (the ASSIGN USING form of 12.4.5.3 GR3 b is a 2002 addition)]",
+   "rule-text": "Additional rules affecting the execution of the SORT statement are given in 12.4.5, File control entry, General rules 3 and 4."
+  },
+  {
+   "rule-id": "GR-12.3.5.4-2",
+   "section": "12.3.5.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "SOURCE-COMPUTER paragraph",
+   "editions": "2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindDeclarations",
+   "adjudicator-notes": "Rule: 'When the SOURCE-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including a SOURCE-COMPUTER paragraph, the computer on which the source unit is being compiled is the source computer.' (cite.py --check 12.3.5.4 -> OK §12.3.5.4 2)). The paragraph is optional in the grammar and the compiler has no source-computer-dependent behavior: no code consumes a source-computer identity (grep of src for computerName() finds only the OBJECT-COMPUTER gate at VersionConformancePass.cs:1468), so the source computer is always the compiling host — exactly the rule. The only paragraph-derived state (DebuggingModeDeclared) defaults to false when the paragraph is absent, which is the no-clause behavior. No dedicated spec-derived test; every golden omitting the paragraph exercises it implicitly. [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023]",
+   "rule-text": "When the SOURCE-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including a SOURCE-COMPUTER paragraph, the computer on which the source unit is being compiled is the source computer."
+  },
+  {
+   "rule-id": "GR-12.3.5.4-3",
+   "section": "12.3.5.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "subject": "SOURCE-COMPUTER paragraph",
+   "editions": "2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#sourceComputerParagraph",
+   "adjudicator-notes": "Rule: 'When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer.' (cite.py --check 12.3.5.4 -> OK §12.3.5.4 3)). Grammar: SOURCE_COMPUTER DOT ((computerName debuggingModeClause? unrecognizedClause?)? DOT)? — computer-name-1 optional, second period optional. Since computer-name-1 is never consumed, a name-less paragraph yields the compiling host as source computer, same as a named one. conformance:2023/pb78_object_computer_optional_name compiles a name-less 'SOURCE-COMPUTER.' but is a test of OBJECT-COMPUTER, so it is not cited as closing this row. Whether a name-less SOURCE-COMPUTER is correctly gated/accepted at 1985 was not verified here (outside this GR's content). [registrar 14a — editions as adjudicated: 1985, 2002, 2014, 2023 (name-less paragraph form per the 2023 format; the '85 format required computer-name, see the grammar comment)]",
+   "rule-text": "When the SOURCE-COMPUTER paragraph is specified, but computer-name-1 is not specified, the computer upon which the source unit is being compiled is the source computer."
+  }
+ ]
+}

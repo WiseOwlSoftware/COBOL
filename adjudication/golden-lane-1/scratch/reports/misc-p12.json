@@ -1,0 +1,323 @@
+{
+ "slug": "misc-p12",
+ "rows": [
+  {
+   "rule_id": "FMT-14.9.16.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c12_generate_detail_and_summary",
+   "files": [
+    "tests/conformance/85/l1c12_generate_detail_and_summary.cob",
+    "tests/conformance/85/l1c12_generate_detail_and_summary.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Both format alternatives written: GENERATE DE1 (data-name-1, a DETAIL group) and GENERATE R-1 (report-name-1, RD has CONTROL IS K1). Each produces its GR-defined output in the read-back report file ([DE1]/[DE2] from the data-name form; control groups only from the report-name form), so both alternatives parse, bind and run.",
+   "citations": [
+    "cite.py --check 14.9.16.2 \"GENERATE\" -> OK §14.9.16.2 (General format)",
+    "cite.py --check 14.9.16.3 \"Data-name-1 shall name a detail report group.\" -> OK §14.9.16.3 1)",
+    "cite.py --check 14.9.16.3 \"Report-name-1 may be used only if ... CONTROL clause.\" -> OK §14.9.16.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Shares one program with GR-14.9.16.4-2. Directory 85 (row editions include 85; nothing post-85 used). Also passes at --std 2023. Report output observed by re-reading the report file byte-wise (pattern of 2002/pb852_report_source_operand_parens)."
+  },
+  {
+   "rule_id": "SR-14.9.16.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c12-generate-report-name-no-control",
+   "files": [
+    "tests/conformance/negative/l1c12-generate-report-name-no-control.cob",
+    "tests/conformance/negative/l1c12-generate-report-name-no-control.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "RD R-1 has no CONTROL clause; GENERATE R-1 violates SR2, so the source must be rejected at every edition (Report Writer in all). Removing only the GENERATE R-1 line compiles and runs (verified), so SR2 is the only reason to reject.",
+   "citations": [
+    "cite.py --check 14.9.16.3 \"Report-name-1 may be used only if the referenced report description entry contains a CONTROL clause.\" -> OK §14.9.16.3 2) (Syntax rules)"
+   ],
+   "ran": "pass",
+   "notes": "Rejected at 85/2002/2014/2023. .err = 'COBOLNET0899: GENERATE R-1: the report-name form requires a CONTROL clause' (DiagnosticCatalog.ReportGenerateNeedsControl). The code is the recognized-not-implemented category (NotImplemented -> COBOLNET0899), i.e. an illegal program is reported as a compiler limitation; that code-category defect is already owned by kb/Work PB1028 (per adjudicator) and not re-reported. When PB1028 re-codes the diagnostic, this .err's code must follow; the message head is specific to SR2."
+  },
+  {
+   "rule_id": "GR-14.9.16.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c12_generate_detail_and_summary",
+   "files": [
+    "tests/conformance/85/l1c12_generate_detail_and_summary.cob",
+    "tests/conformance/85/l1c12_generate_detail_and_summary.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "K1=1 GENERATE R-1 (first GENERATE): GR4 c) CH1 printed, GR4 d) no detail => [CH1]. GENERATE DE1 => [DE1]. K1=2 GENERATE R-1: break, GR5 a) CF then CH => [CF],[CH2], GR5 b) no detail. GENERATE DE1 => [DE2]. GENERATE R-1 without break => nothing (a detail-printing implementation would add a second [DE2]). TERMINATE => final [CF].",
+   "citations": [
+    "cite.py --check 14.9.16.4 \"Execution of a GENERATE report-name-1 statement results in the same processing as for a GENERATE data-name statement for the same report, except that no detail is printed.\" -> OK §14.9.16.4 2)",
+    "cite.py --check 14.9.16.4 \"The specified detail is printed, unless summary reporting is specified.\" -> OK §14.9.16.4 4) a) [sub-item d); cite.py labels it 4) a)]",
+    "cite.py --check 14.9.16.4 \"each control heading is printed, wherever defined, in order from major to minor\" -> OK §14.9.16.4 4) a) [sub-item c)]",
+    "cite.py --check 14.9.16.4 \"each control footing and control heading is printed, if defined, up to the level of the control break\" -> OK §14.9.16.4 5) a)"
+   ],
+   "ran": "pass",
+   "notes": "The CF group carries only a literal so the expectation does not depend on the §13.18.16 prior-value rule. The 'summary report' sentence is definitional only."
+  },
+  {
+   "rule_id": "GR-13.18.27.4-3",
+   "disposition": "suspected-defect",
+   "test_ref": "",
+   "files": [
+    "tests/conformance/2002/l1c12_global_redefines_subject_group.cob",
+    "tests/conformance/2002/l1c12_global_redefines_subject_group.out",
+    "tests/conformance/negative/l1c12-global-redefines-object-not-global.cob",
+    "tests/conformance/negative/l1c12-global-redefines-object-not-global.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Positive (group form, PASSES): 01 WS-A PIC X(4) VALUE '1234'; 01 WS-B REDEFINES WS-A GLOBAL with WS-B1/WS-B2 PIC 99; contained L1C12H DISPLAYs WS-B and WS-B2 => IN:1234 34, MOVE 99 TO WS-B1 then container shows WS-A => OUT:9934. Negative (PASSES): same shape with the contained program referencing WS-A (the REDEFINES object, not global) => COBOLNET1639 'WS-A' is not defined at 2002/2014/2023. HELD (FAILS): elementary form 01 WS-A PIC X(4); 01 WS-B REDEFINES WS-A GLOBAL PIC X(4); contained program DISPLAYs WS-B => expected IN:ABCD / OUT:WXYZ, observed C# backend failure CS1061 (container has no field WS_B) + CS0120.",
+   "citations": [
+    "cite.py --check 13.18.27.4 \"If the GLOBAL clause is used in a data description entry that contains the REDEFINES clause, it is only the subject of that REDEFINES clause that possesses the global attribute.\" -> OK §13.18.27.4 3)",
+    "cite.py --check 13.18.27.4 \"All data-names subordinate to a global name are global names.\" -> OK §13.18.27.4 1)",
+    "cite.py --check 13.18.27.4 \"A statement in a program contained directly or indirectly ... without describing it again.\" -> OK §13.18.27.4 2)",
+    "cite.py --check 8.4.2.1 \"a statement shall contain a reference that uniquely identifies that resource\" -> OK §8.4.2.1"
+   ],
+   "ran": "mismatch",
+   "notes": "The row's CONFORMS verdict is suspect: a legal program (elementary REDEFINES subject carrying GLOBAL, referenced from a contained program) crashes the backend at every edition 2002/2014/2023. The group-subject form and the negative pass and are left in out/ as ready witnesses (conformance:2002/l1c12_global_redefines_subject_group; conformance:negative/l1c12-global-redefines-object-not-global) for when the defect lands; no record is emitted for this row. Directory 2002 = the row's lowest listed edition (adjudicator notes 1985 too); GOBACK used, a 2002 statement."
+  },
+  {
+   "rule_id": "FMT-13.18.28.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_group_indicate",
+   "files": [
+    "tests/conformance/2002/l1c12_group_indicate.cob",
+    "tests/conformance/2002/l1c12_group_indicate.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Both spellings written in one DETAIL group: COLUMN 1 SOURCE K1 GROUP INDICATE, COLUMN 4 VALUE 'HDR' GROUP (INDICATE omitted; only GROUP is underlined), COLUMN 8 SOURCE V plain. Per GR1 the indicated items print only on the first GENERATE after INITIATE (a) or a control break (c): [AA HDR 1], [       2], (K1 AA->BB break) [BB HDR 3], [       4]. A parse-only implementation or one that ignored the bare GROUP spelling would print HDR on every line.",
+   "citations": [
+    "cite.py --check 13.18.28.2 \"GROUP\" -> OK §13.18.28.2 (General format)",
+    "cite.py --check 13.18.28.3 \"The GROUP INDICATE clause may be specified only within a detail report group description, in an elementary entry that also contains a COLUMN clause and a SOURCE or VALUE clause.\" -> OK §13.18.28.3 1)",
+    "cite.py --check 13.18.28.4 \"The GROUP INDICATE clause has the same effect as a PRESENT WHEN clause ... after any of the following events.\" -> OK §13.18.28.4 1)"
+   ],
+   "ran": "pass",
+   "notes": "Directory 2002 = the row's lowest listed edition (adjudicator notes 1985 too). No PAGE clause, so event b) cannot occur. Incidental (not this row): an earlier draft re-INITIATEd the report after TERMINATE on the same open file and the next detail line was written onto the same physical line as the previous one ('[       4BB HDR 5]': the last line of the first cycle got no line terminator before the new cycle's first line). Removed from the golden; repro kept at /tmp/gl/held/misc-p12/incidental/l1c12_reinitiate_line_join.cob (+ .observed). Unadjudicated — see defects."
+  },
+  {
+   "rule_id": "FMT-12.4.5.5.1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic; conformance:2002/l1c12_access_mode_sequential_default",
+   "files": [
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.cob",
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.out",
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.cob",
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Spellings written: 'ACCESS MODE IS SEQUENTIAL', 'ACCESS RANDOM', 'ACCESS MODE IS RANDOM', 'ACCESS IS DYNAMIC', 'ACCESS MODE DYNAMIC' (random_dynamic) and 'ACCESS MODE IS RANDOM'/'ACCESS MODE IS DYNAMIC' (sequential_default builders). MODE and IS are optional words; each file's observed behaviour matches its written mode (random READ by key for RANDOM files, mixed random+NEXT for DYNAMIC, in-order read for SEQUENTIAL), so each spelling is honoured, not merely parsed.",
+   "citations": [
+    "cite.py --check 12.4.5.5.1 \"ACCESS\" -> OK §12.4.5.5.1 (General format)"
+   ],
+   "ran": "pass",
+   "notes": "No negative written for the missing-mode case (adjudicator saw COBOL0312, a generic parse code)."
+  },
+  {
+   "rule_id": "GR-12.4.5.5.3-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_access_mode_sequential_default",
+   "files": [
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.cob",
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "RL (relative, no ACCESS clause, RELATIVE KEY RK): RK set to 9 before the first READ; random access would return R9, the assumed sequential access returns ascending RRN => RL:R2 02 / RL:R5 05 / RL:R9 09 / RL:END. IY (indexed, no ACCESS clause): WRITE C3 then A1 => IY:00 21 (WRITE GR42 a) '21' applies only in sequential access; random/dynamic would accept A1).",
+   "citations": [
+    "cite.py --check 12.4.5.5.3 \"If the ACCESS MODE clause is not specified, sequential access is assumed.\" -> OK §12.4.5.5.3 1)",
+    "cite.py --check 14.9.51.4 \"When the write file connector is open for output or extend in the sequential access mode and the value of the prime record key is not greater than ... '21'.\" -> OK §14.9.51.4 42) [sub-item a)]"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "GR-12.4.5.5.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_access_mode_sequential_default",
+   "files": [
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.cob",
+    "tests/conformance/2002/l1c12_access_mode_sequential_default.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "a) SQ: OUTPUT writes S2,S1, EXTEND writes S0 => SQ:S2/SQ:S1/SQ:S0 (WRITE order). b) relative file built by an ACCESS RANDOM connector at RRN 5,2,9, read by the no-ACCESS connector => R2,R5,R9 with RK = 02,05,09 (READ GR25). c) indexed file built C1,A3,B2 by a DYNAMIC connector; plain READ on prime key => A3,B2,C1; START on the alternate key (>= LOW-VALUE) makes it the key of reference => C1,B2,A3.",
+   "citations": [
+    "cite.py -> OK §12.4.5.5.3 2) a)",
+    "cite.py -> OK §12.4.5.5.3 2) b)",
+    "cite.py -> OK §12.4.5.5.3 2) c)",
+    "cite.py --check 14.9.30.4 (READ GR25 relative key update) -> OK §14.9.30.4 25)"
+   ],
+   "ran": "pass",
+   "notes": "Two SELECTs share each physical relative/indexed file (a builder with RANDOM/DYNAMIC access and the reader with no ACCESS clause), so the sequential reader must reorder out-of-order writes."
+  },
+  {
+   "rule_id": "GR-12.4.5.5.3-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic",
+   "files": [
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.cob",
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "a) RLR ACCESS RANDOM: WRITE at RK1=5,2,9; READ RK1=9 => RLR:R9 00; RK1=3 => INVALID KEY RLR:INV 23. b) IXR ACCESS MODE IS RANDOM: WRITE C1,A3,B2; READ IXR-KEY='B' => IXR:B2 00; 'Z' => IXR:INV 23 (§9.1.13.5 3) a)).",
+   "citations": [
+    "cite.py -> OK §12.4.5.5.3 3) a)",
+    "cite.py -> OK §12.4.5.5.3 3) b)",
+    "cite.py --check 14.9.51.4 \"If the access mode of the write file connector is random or dynamic, prior to the execution of the WRITE statement the value of the relative key data item shall be initialized ...\" -> OK §14.9.51.4 29) [sub-item b)]",
+    "cite.py --check 9.1.13.5 \"an attempt is made to randomly access a record that does not exist in the physical file\" -> OK §9.1.13.5 3) a)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "GR-12.4.5.5.3-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic",
+   "files": [
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.cob",
+    "tests/conformance/2002/l1c12_access_mode_random_dynamic.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "IXD ACCESS IS DYNAMIC: out-of-order WRITEs C1,A3,B2 all 00 => IXD:W 00 00 00; random READ KEY IS IXD-KEY 'B' => IXD:B2; READ NEXT => IXD:C1; READ NEXT => IXD:END. RLD ACCESS MODE DYNAMIC on the RLR file: random READ RK2=2 => RLD:R2 02; READ NEXT => RLD:R5 05, RLD:R9 09 (sequential and random on one open).",
+   "citations": [
+    "cite.py --check 12.4.5.5.3 \"If the access mode is dynamic, records in the file may be accessed sequentially, randomly, or both.\" -> OK §12.4.5.5.3 4)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "DOC-A.1-95",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_hex_alphanumeric_every_group",
+   "files": [
+    "tests/conformance/2002/l1c12_hex_alphanumeric_every_group.cob",
+    "tests/conformance/2002/l1c12_hex_alphanumeric_every_group.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins the documented choice (CONFORMANCE.md DOC-A.1-95: every group hh is the character U+00hh, control codes included, no diagnostic, no EC): LENGTH(X\"80FF0041\")=4 => LEN:4; ORD of its chars 129 256 1 66 => ORD:129 256 001 066; edge groups 1F 7F 9F => ORD:032 128 160; X\"41\" = \"A\" => EQ-A; under >>TURN EC-ALL CHECKING ON, EXCEPTION-STATUS is spaces => NO-EC.",
+   "citations": [
+    "cite.py --check 8.3.3.2.4 \"The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists.\" -> OK §8.3.3.2.4 5)",
+    "cite.py -> OK §8.3.3.2.4 4)",
+    "cite.py -> OK §8.3.3.2.3 6)",
+    "cite.py -> OK §15.70.4 1)"
+   ],
+   "ran": "pass",
+   "notes": "ORD values assume the native collating sequence (ordinal = code + 1), as the documented row's own example does."
+  },
+  {
+   "rule_id": "DOC-A.1-97",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c12_hex_national_no_character",
+   "files": [
+    "tests/conformance/2002/l1c12_hex_national_no_character.cob",
+    "tests/conformance/2002/l1c12_hex_national_no_character.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins DOC-A.1-97 (each 4-digit group stored verbatim as a UTF-16 code unit, one position, no diagnostic/EC; ORD = code+1; comparison by code unit; unpaired surrogate DISPLAYs as U+FFFD): LENGTH(NX\"D800\")=1, LENGTH(NX\"D800DC00\")=2 => LEN:1 2; ORD of D800 FFFF 0041 => ORD:55297 65536 00066; pair halves => ORD:55297 56321; NX\"FFFF\" > NX\"D800\" => GT; DISPLAY of lone DC00 => [U+FFFD]; EC-ALL checked => NO-EC.",
+   "citations": [
+    "cite.py --check 8.3.3.5.4 \"The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists.\" -> OK §8.3.3.5.4 5)",
+    "cite.py -> OK §8.3.3.5.3 5)",
+    "cite.py -> OK §15.70.4 2)"
+   ],
+   "ran": "pass",
+   "notes": "The .out line 5 contains the UTF-8 bytes EF BF BD between brackets; confirm the corpus runner reads .out as UTF-8."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c12_generate_detail_and_summary"
+  ],
+  "2002": [
+   "l1c12_group_indicate",
+   "l1c12_access_mode_sequential_default",
+   "l1c12_access_mode_random_dynamic",
+   "l1c12_hex_alphanumeric_every_group",
+   "l1c12_hex_national_no_character",
+   "l1c12_global_redefines_subject_group"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c12-generate-report-name-no-control",
+  "l1c12-global-redefines-object-not-global"
+ ],
+ "records": [
+  {
+   "rule-id": "FMT-14.9.16.2",
+   "test-ref": "conformance:85/l1c12_generate_detail_and_summary"
+  },
+  {
+   "rule-id": "SR-14.9.16.3-2",
+   "test-ref": "conformance:negative/l1c12-generate-report-name-no-control"
+  },
+  {
+   "rule-id": "GR-14.9.16.4-2",
+   "test-ref": "conformance:85/l1c12_generate_detail_and_summary"
+  },
+  {
+   "rule-id": "FMT-13.18.28.2",
+   "test-ref": "conformance:2002/l1c12_group_indicate"
+  },
+  {
+   "rule-id": "FMT-12.4.5.5.1",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic; conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-1",
+   "test-ref": "conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-2",
+   "test-ref": "conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-3",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-4",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic"
+  },
+  {
+   "rule-id": "DOC-A.1-95",
+   "test-ref": "conformance:2002/l1c12_hex_alphanumeric_every_group"
+  },
+  {
+   "rule-id": "DOC-A.1-97",
+   "test-ref": "conformance:2002/l1c12_hex_national_no_character"
+  }
+ ],
+ "defects": [
+  {
+   "rule_ids": [
+    "GR-13.18.27.4-3"
+   ],
+   "mechanism": "GLOBAL on an elementary REDEFINES subject of the same shape: the contained program's bridge is emitted as 'ref __outer.WS_B' but the container has no WS_B member (the subject aliases WS_A's storage), and the contained body renders the reference as WS_A with no bridge -> Roslyn CS1061/CS0120. A group-subject REDEFINES works.",
+   "repro": "/tmp/gl/held/misc-p12/tests/conformance/2002/l1c12_global_redefines_subject.cob",
+   "std": "2002",
+   "rule_quote": "If the GLOBAL clause is used in a data description entry that contains the REDEFINES clause, it is only the subject of that REDEFINES clause that possesses the global attribute.",
+   "cite_line": "OK  §13.18.27.4 3)  (General rules)",
+   "expected": "IN:ABCD / OUT:WXYZ",
+   "observed": "error: backend compilation failed ... (65,48): error CS1061: '_PRG_L1C12C' does not contain a definition for 'WS_B' ... CS0120 ... '_PRG_L1C12C.WS_A' (exit 70; same at 2014 and 2023)",
+   "wrong_answer": false,
+   "crashes": true,
+   "rejects_legal_source": true,
+   "under_rejects": false,
+   "code_site": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs:180-191 (GlobalBridgesOf: a non-StringCanonical redefinition class falls to the Field arm, bridging g.CsName that the container never declares); emitted at src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs:328"
+  },
+  {
+   "rule_ids": [],
+   "mechanism": "INCIDENTAL, UNADJUDICATED, not a row of this input: after TERMINATE then a second INITIATE of the same report on the still-open file (no PAGE clause, LINE PLUS 1), the first line of the second cycle is written on the same physical line as the last line of the first cycle (the pending line terminator is never emitted at TERMINATE/INITIATE).",
+   "repro": "/tmp/gl/held/misc-p12/incidental/l1c12_reinitiate_line_join.cob",
+   "std": "2002",
+   "rule_quote": "",
+   "cite_line": "",
+   "expected": "[       4] and [BB HDR 5] on separate lines",
+   "observed": "[       4BB HDR 5]",
+   "wrong_answer": true,
+   "crashes": false,
+   "rejects_legal_source": false,
+   "under_rejects": false,
+   "code_site": "src/Cobol.Net.Runtime/IO/ReportWriter.cs (not located precisely)"
+  }
+ ],
+ "deferred": []
+}

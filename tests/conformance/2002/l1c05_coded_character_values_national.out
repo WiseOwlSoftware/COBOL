@@ -1,0 +1,9 @@
+NSPACE=033
+NQUOTE=035
+NZERO =049
+NFILL =033
+NB    =033
+N0    =049
+NC    =068
+NR    =083
+E     =070

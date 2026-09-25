@@ -631,7 +631,10 @@
   "pb441_f3_gr14_window_emit_gated",
   "pb595_turn_inside_format3_perform",
   "pb570_group_no_sign",
-  "pb921_numeric_edited_value_formats"
+  "pb921_numeric_edited_value_formats",
+  "l1c03_cobol_words_case_insensitive",
+  "l1c03_cobol_words_directing_unaffected",
+  "l1c09_external_assign_consistency"
  ],
  "pending": [
   "pb485_value_only_format1"

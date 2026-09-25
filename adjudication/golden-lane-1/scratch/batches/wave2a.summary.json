@@ -1,0 +1,82 @@
+{
+ "wave": "wave2a",
+ "slugs": {
+  "misc-p7": {
+   "landed": [
+    {
+     "rule_id": "SR-7.3.13.3-13",
+     "test_ref": "conformance:2002/l1c07_evaldir_thru_through",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-1",
+     "test_ref": "conformance:2002/l1c07_evaldir_copy_replace",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-2",
+     "test_ref": "conformance:2002/l1c07_evaldir_numeric_literal_operand",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-3",
+     "test_ref": "conformance:2002/l1c07_evaldir_boolean_operands",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-5",
+     "test_ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-6",
+     "test_ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-7",
+     "test_ref": "conformance:2002/l1c07_evaldir_alnum_equality",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-8",
+     "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-9",
+     "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-7.3.13.4-10",
+     "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "SR-7.3.13.3-8",
+     "kind": "expected-value",
+     "correction": "Program is not conforming source, so no stdout is defined for it. The omitted outer >>WHEN OTHER text-2 holds `>>EVALUATE 9` / `>>WHEN OTHER` / `>>END-EVALUATE` with NO `>>WHEN operand-2` phrase; \u00a77.3.13.2 Format 1 encloses `>> WHEN ... [text-1]` in braces with an ellipsis (required, one or more times; figure note says so), and \u00a77.2.1 (cite.py OK) requires 'compiler directives ... shall be syntact"
+    }
+   ],
+   "defect": [],
+   "not-closable": [],
+   "other": [],
+   "deferred": []
+  }
+ },
+ "manifest_added": {
+  "2002": [
+   "l1c07_evaldir_thru_through",
+   "l1c07_evaldir_copy_replace",
+   "l1c07_evaldir_numeric_literal_operand",
+   "l1c07_evaldir_boolean_operands",
+   "l1c07_evaldir_fmt1_other_nomatch",
+   "l1c07_evaldir_alnum_equality",
+   "l1c07_evaldir_fmt2_truth"
+  ]
+ },
+ "negative_added": []
+}

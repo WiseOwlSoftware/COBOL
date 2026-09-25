@@ -1,0 +1,193 @@
+{
+ "batch": "golden-lane-1-wave1",
+ "records": [
+  {
+   "rule-id": "DOC-A.1-8",
+   "test-ref": "conformance:85/l1c01_native_ordinal_positions; conformance:2002/l1c01_native_ordinal_positions_wide"
+  },
+  {
+   "rule-id": "GR-12.4.5.6.4-4",
+   "test-ref": "conformance:85/l1c01_alt_key_duplicates; conformance:2002/l1c01_alt_key_equality_collating"
+  },
+  {
+   "rule-id": "FMT-11.9.5.1",
+   "test-ref": "conformance:2014/l1c01_arithmetic_clause_forms; conformance:negative/l1c01-arithmetic-two-alternatives; conformance:negative/l1c01-arithmetic-no-alternative"
+  },
+  {
+   "rule-id": "GR-14.6.8.2-3",
+   "test-ref": "conformance:85/l1c01_move_implied_point"
+  },
+  {
+   "rule-id": "GR-14.6.8.2-5",
+   "test-ref": "conformance:85/l1c01_move_edited_truncation"
+  },
+  {
+   "rule-id": "DOC-A.1-6",
+   "test-ref": "conformance:85/l1c01_group_start_coincident; conformance:2002/l1c01_group_start_typed_national_bit"
+  },
+  {
+   "rule-id": "SR-8.3.3.2.3-2",
+   "test-ref": "conformance:85/l1c01_alnum_literal_characters"
+  },
+  {
+   "rule-id": "SR-8.3.3.2.3-4",
+   "test-ref": "conformance:85/l1c01_alnum_literal_characters"
+  },
+  {
+   "rule-id": "FMT-13.18.10.2",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "GR-13.18.10.4-1",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "GR-13.18.10.4-2",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "FMT-8.3.3.4.2",
+   "test-ref": "conformance:2002/l1c02_boolean_literal_forms"
+  },
+  {
+   "rule-id": "GR-7.3.9.3-1",
+   "test-ref": "conformance:2002/l1c02_call_convention_default"
+  },
+  {
+   "rule-id": "DOC-A.1-21",
+   "test-ref": "conformance:2002/l1c02_char_locale_tie"
+  },
+  {
+   "rule-id": "SR-8.3.2.1-4",
+   "test-ref": "conformance:85/l1c03_system_name_as_user_word"
+  },
+  {
+   "rule-id": "SR-8.3.2.2-2",
+   "test-ref": "conformance:85/l1c03_level_number_as_procedure_name"
+  },
+  {
+   "rule-id": "GR-7.3.10.4-1",
+   "test-ref": "conformance:2023/l1c03_cobol_words_case_insensitive"
+  },
+  {
+   "rule-id": "GR-7.3.10.4-6",
+   "test-ref": "conformance:2023/l1c03_cobol_words_directing_unaffected"
+  },
+  {
+   "rule-id": "GR-12.4.5.7.4-4",
+   "test-ref": "conformance:2002/l1c03_file_collating_native_default"
+  },
+  {
+   "rule-id": "SR-13.18.14.3-1",
+   "test-ref": "conformance:2002/l1c03_report_column_synonyms_printable_size"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-1",
+   "test-ref": "conformance:85/l1c03_report_column_absent_not_printed"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-3",
+   "test-ref": "conformance:2002/l1c03_report_column_synonyms_printable_size"
+  },
+  {
+   "rule-id": "GR-13.18.14.4-11",
+   "test-ref": "conformance:85/l1c03_report_column_absent_not_printed"
+  },
+  {
+   "rule-id": "SR-13.18.15.3-1",
+   "test-ref": "conformance:negative/l1c04-constant-record-linkage; conformance:negative/l1c04-constant-record-file-section; conformance:2002/l1c04_constant_record_ws_ls"
+  },
+  {
+   "rule-id": "GR-8.1.2-2",
+   "test-ref": "conformance:2002/l1c04_national_uniform_bytes"
+  },
+  {
+   "rule-id": "GR-8.5.2.12-1",
+   "test-ref": "conformance:85/l1c04_numeric_category_bwz; conformance:negative/l1c04-bwz-not-numeric-operand"
+  },
+  {
+   "rule-id": "GR-8.5.2.8-1",
+   "test-ref": "conformance:85/l1c04_index_category_implicit; conformance:negative/l1c04-implicit-index-move-target"
+  },
+  {
+   "rule-id": "GR-14.7.6-3",
+   "test-ref": "conformance:85/l1c04_corr_arith_numeric_pairs"
+  },
+  {
+   "rule-id": "GR-14.7.6-5",
+   "test-ref": "conformance:85/l1c04_corr_occurs_redefines_subordinate"
+  },
+  {
+   "rule-id": "GR-14.7.7-1",
+   "test-ref": "conformance:85/l1c04_arith_mixed_descriptions"
+  },
+  {
+   "rule-id": "GR-14.7.7-4",
+   "test-ref": "conformance:85/l1c04_arith_multiple_receivers"
+  },
+  {
+   "rule-id": "GR-8.5.1.4-1",
+   "test-ref": "conformance:2002/l1c05_composite_sequence_positions"
+  },
+  {
+   "rule-id": "GR-8.5.1.4-2",
+   "test-ref": "conformance:2002/l1c05_surrogate_halves_positions"
+  },
+  {
+   "rule-id": "DOC-A.1-32",
+   "test-ref": "conformance:85/l1c05_coded_character_values; conformance:2002/l1c05_coded_character_values_national"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-L2.1",
+   "test-ref": "conformance:2002/l1c05_oo_returning_only_same_class; conformance:negative/l1c05-oo-returning-only-dropped; conformance:negative/l1c05-oo-returning-only-subclass"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-4",
+   "test-ref": "conformance:negative/l1c05-oo-returning-absent-in-impl; conformance:negative/l1c05-oo-returning-extra-in-impl"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-7",
+   "test-ref": "conformance:2002/l1c05_oo_strong_type_same_type; conformance:negative/l1c05-oo-strong-type-other-name; conformance:negative/l1c05-oo-strong-type-vs-plain-group; conformance:negative/l1c05-oo-strong-type-returning-other"
+  },
+  {
+   "rule-id": "SR-7.3.8.2-2",
+   "test-ref": "conformance:2002/l1c05_cce_arith_expression; conformance:negative/l1c05-cce-arith-exponentiation; conformance:negative/l1c05-cce-arith-division-by-zero; conformance:negative/l1c05-cce-arith-nonnumeric-operand"
+  },
+  {
+   "rule-id": "SR-7.3.8.2-3",
+   "test-ref": "conformance:2002/l1c05_cce_boolean_expression; conformance:negative/l1c05-cce-boolean-alnum-operand; conformance:negative/l1c05-cce-boolean-numeric-operand"
+  },
+  {
+   "rule-id": "GR-13.10.4-4",
+   "test-ref": "conformance:2002/l1c05_constant_expr_truncated_integer"
+  },
+  {
+   "rule-id": "DOC-A.1-43",
+   "test-ref": "conformance:85/l1c06_currency_non_cobol_equivalence_85; conformance:2002/l1c06_currency_non_cobol_symbols; conformance:negative/l1c06-currency-non-cobol-equivalent-rebound"
+  },
+  {
+   "rule-id": "DOC-A.1-44",
+   "test-ref": "conformance:2002/l1c06_currency_non_cobol_symbols; conformance:negative/l1c06-currency-long-s-prohibited"
+  },
+  {
+   "rule-id": "SR-7.3.11.3-4",
+   "test-ref": "conformance:negative/l1c06-define-boolean-numeric-operand"
+  },
+  {
+   "rule-id": "GR-7.3.11.4-3",
+   "test-ref": "conformance:2002/l1c06_define_override_rebinds"
+  },
+  {
+   "rule-id": "GR-7.3.11.4-8",
+   "test-ref": "conformance:2002/l1c06_define_literal_categories"
+  },
+  {
+   "rule-id": "GR-8.5.1.9.1-2",
+   "test-ref": "conformance:2014/l1c06_dyn_table_unlimited_capacity"
+  },
+  {
+   "rule-id": "GR-11.9.7.4-2",
+   "test-ref": "conformance:2014/l1c06_entry_convention_oo; conformance:2014/pb232_entry_convention_cobol"
+  }
+ ]
+}

@@ -1,0 +1,256 @@
+{
+ "slug": "misc-p7",
+ "rows": [
+  {
+   "rule_id": "SR-7.3.13.3-8",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_nested_text",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_nested_text.cob",
+    "tests/conformance/2002/l1c07_evaldir_nested_text.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Outer >>EVALUATE 2 takes >>WHEN 2 whose multi-line text-1 prints W2-LINE-1/W2-LINE-2; that text-1 holds a nested (SR9 new) >>EVALUATE TRUE with only FALSE WHEN, so its WHEN OTHER text-2 (itself an >>IF 3 > 2 ... >>ELSE ... >>END-IF) yields INNER-OTHER-IF; text-1 continues W2-AFTER-INNER; a >>DEFINE inside the taken text-1 is processed so a later >>IF L1C07V IS DEFINED prints DEFINED-IN-TEXT; END. Outer WHEN 1 and WHEN OTHER (with a nested EVALUATE) omitted.",
+   "citations": [
+    "cite.py --check 7.3.13.3 \"Text-1 and text-2 may be any kind of source lines, including compiler directives. Text-1 and text-2 may consist of multiple lines.\" -> OK §7.3.13.3 8)",
+    "cite.py --check 7.3.13.3 \"A nested EVALUATE directive specified in text-1 or in text-2 is considered a new EVALUATE directive.\" -> OK §7.3.13.3 9)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "SR-7.3.13.3-13",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_thru_through",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_thru_through.cob",
+    "tests/conformance/2002/l1c07_evaldir_thru_through.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Four EVALUATE blocks, same ranges spelled THRU vs THROUGH: 5 in 5 THRU 9 -> A2-THRU; 5 in 5 THROUGH 9 -> B2-THROUGH; 9 in 9 THRU 12 (inclusive low end) -> C2-THRU-LOW-END; 4 in 1 THROUGH 4 (inclusive high end) -> D1-THROUGH-HIGH-END.",
+   "citations": [
+    "cite.py --check 7.3.13.3 \"The words THROUGH and THRU are equivalent.\" -> OK §7.3.13.3 13)",
+    "cite.py --check 7.3.13.4 \"a TRUE result is returned if the selection subject lies in the inclusive range\" -> OK §7.3.13.4 4) b)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_copy_replace",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_copy_replace.cob",
+    "tests/conformance/2002/l1c07_evaldir_copy_replace.out",
+    "tests/conformance/2002/l1c07cb.cpy"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Taken >>WHEN 1 text-1 holds REPLACE ==FOOTAG== BY ==\"GR1-REPLACE-OK\"== then DISPLAY FOOTAG -> GR1-REPLACE-OK; COPY l1c07cb REPLACING ==ZZTAG== BY ==\"GR1-COPY-OK\"== -> GR1-COPY-OK; after END-EVALUATE DISPLAY FOOTAG -> GR1-REPLACE-OK because the competing REPLACE in the omitted WHEN OTHER text-2 never enters the resultant text.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"Any text words in text-1 or text-2 that do not form a compiler directive line are subject to the matching and replacing rules of the COPY statement and the REPLACE statement.\" -> OK §7.3.13.4 1)",
+    "cite.py --check 7.3.13.4 \"All lines of text-1 associated with other WHEN phrases in that EVALUATE directive and all lines of text-2 associated with a WHEN OTHER phrase are omitted from the resultant text.\" -> OK §7.3.13.4 4) b) (GR4 closing paragraph)"
+   ],
+   "ran": "pass",
+   "notes": "Support copybook tests/conformance/2002/l1c07cb.cpy (one line: DISPLAY ZZTAG.) must be placed beside the .cob. Passes at 2002/2014/2023."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_numeric_literal_operand",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_numeric_literal_operand.cob",
+    "tests/conformance/2002/l1c07_evaldir_numeric_literal_operand.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Literal operands keep fractions (GR2); expressions truncate (7.3.6.3 GR3): subject 1.5 = WHEN 1.5 not 1 -> A-LIT-1.5; subject 1.5 + 0 -> 1 = WHEN 1 not 1.5 -> B-EXPR-TRUNC-1; subject 3 vs object 3.7 FALSE, vs 3.7 + 0 (->3) TRUE -> C-OBJ-EXPR-TRUNC; subject 1.5 not in 1 THRU 1.2, in 1.4 THRU 1.6 -> D-RANGE-LIT; -1.5 vs -1 FALSE, vs -1.5 TRUE -> E-SIGNED-LIT; 7 / 2 = 3.5 -> 3, not = 3.5, = 3 -> F-DIV-TRUNC-3.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If an operand of the EVALUATE directive consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression.\" -> OK §7.3.13.4 2)",
+    "cite.py --check 7.3.6.3 \"The final result of the arithmetic expression shall be truncated to the integer part of the value\" -> OK §7.3.6.3 3)",
+    "cite.py --check 7.3.13.4 \"a TRUE result is returned if the selection subject lies in the inclusive range\" -> OK §7.3.13.4 4) b)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_boolean_operands",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_boolean_operands.cob",
+    "tests/conformance/2002/l1c07_evaldir_boolean_operands.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Per 8.8.2 bitwise ops and precedence NOT>AND>XOR>OR: 1010 B-AND 0110 = 0010 -> A-AND-0010; B-NOT 1101 = 0010 -> B-NOT-0010; 1100 B-OR 1010 B-AND 0110 = 1100 OR 0010 = 1110 (left-to-right would be 0110) -> C-PRECEDENCE-1110; object 1100 B-XOR 1010 = 0110 = subject -> D-OBJECT-XOR-0110; 1100 B-OR 1010 B-XOR 1000 = 1100 OR 0010 = 1110 -> E-XOR-BEFORE-OR.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"Boolean-expression-1 and boolean-expression-2 are evaluated in accordance with 7.3.7, Compile-time boolean expressions.\" -> OK §7.3.13.4 3)",
+    "cite.py --check 7.3.7.3 \"The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2, Boolean expressions.\" -> OK §7.3.7.3 1)",
+    "cite.py --check 8.8.2 \"2nd — conjunction (B-AND)\" -> OK §8.8.2 7) b)",
+    "cite.py --check 8.8.2 \"4th — inclusive disjunction (B-OR)\" -> OK §8.8.2 7) b)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-5",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_fmt1_other_nomatch.cob",
+    "tests/conformance/2002/l1c07_evaldir_fmt1_other_nomatch.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Lines A-OTHER-LINE-1, A-OTHER-LINE-2 pin GR5: subject 5 matches neither WHEN 1 nor WHEN 2 THRU 4, so the multi-line WHEN OTHER text-2 is included and both text-1s omitted; A-AFTER is ordinary text after END-EVALUATE.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.\" -> OK §7.3.13.4 5)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-6",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_fmt1_other_nomatch.cob",
+    "tests/conformance/2002/l1c07_evaldir_fmt1_other_nomatch.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Line B-AFTER-NO-OTHER (and absence of B-WRONG-1/B-WRONG-2) pins GR6: subject 5, WHEN 1, WHEN 2, no WHEN OTHER -> all text-1 omitted; only the line after END-EVALUATE shows.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text.\" -> OK §7.3.13.4 6)"
+   ],
+   "ran": "pass",
+   "notes": "Shares l1c07_evaldir_fmt1_other_nomatch with GR5. Passes at 2002/2014/2023."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-7",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_alnum_equality",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_alnum_equality.cob",
+    "tests/conformance/2002/l1c07_evaldir_alnum_equality.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "\"ABC\" vs \"ABC \" unequal length (not equal), vs \"abc\" different encodings (not equal), vs \"ABC\" equal -> A-EXACT; \"AB \" vs \"AB\" unequal length so NOT equal (no space padding) -> WHEN OTHER B-UNEQUAL-LENGTH; N\"XY\" vs N\"XY \" not equal, vs N\"XY\" equal -> C-NATIONAL-EXACT.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If literal-1 is an alphanumeric or national literal, a character by character comparison for equality based on the binary value of each character's encoding is used. If the literals are of unequal length they are not equal.\" -> OK §7.3.13.4 7)"
+   ],
+   "ran": "pass",
+   "notes": "Passes at --std 2002, 2014 and 2023; --std 85 rejects >>EVALUATE (COBOLNET0900), so 2002 is the lowest edition."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-8",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.cob",
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Lines A-FIRST-TRUE-1/2 pin GR8: with L1C07VV defined as 3, WHEN L1C07VV > 5 FALSE, WHEN L1C07VV IS DEFINED AND L1C07VV = 3 TRUE (its text-1 included), the later also-TRUE WHEN 1 = 1 and WHEN OTHER omitted.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"For each WHEN phrase in turn, the constant-conditional-expression is evaluated in accordance with 7.3.8, Constant conditional expression.\" -> OK §7.3.13.4 8)",
+    "cite.py --check 7.3.8.4.4 \"A defined condition using the IS DEFINED syntax evaluates TRUE if compilation-variable-name-1 is currently defined.\" -> OK §7.3.8.4.4 1)"
+   ],
+   "ran": "pass",
+   "notes": "One program pins GR8/GR9/GR10. Passes at 2002/2014/2023."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-9",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.cob",
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Line B-OTHER pins GR9: WHEN L1C07NOPE IS DEFINED FALSE (never defined), WHEN \"X\" = \"Y\" FALSE -> WHEN OTHER text-2 included.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text.\" -> OK §7.3.13.4 5) (GR9 is word-for-word GR5; cite.py resolves the text to its first occurrence, 5)",
+    "cite.py --check 7.3.13.4 \"For each WHEN phrase in turn, the constant-conditional-expression is evaluated in accordance with 7.3.8, Constant conditional expression.\" -> OK §7.3.13.4 8)"
+   ],
+   "ran": "pass",
+   "notes": "GR9's wording is identical to GR5, so cite.py reports 5); the golden exercises the format-2 twin. Passes at 2002/2014/2023."
+  },
+  {
+   "rule_id": "GR-7.3.13.4-10",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c07_evaldir_fmt2_truth",
+   "files": [
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.cob",
+    "tests/conformance/2002/l1c07_evaldir_fmt2_truth.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Line C-AFTER-NO-OTHER (and absence of C-WRONG-*) pins GR10: WHEN 1 = 2 FALSE, WHEN L1C07VV NOT = 3 FALSE, no WHEN OTHER -> all text-1 omitted.",
+   "citations": [
+    "cite.py --check 7.3.13.4 \"If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text.\" -> OK §7.3.13.4 6) (GR10 is word-for-word GR6)"
+   ],
+   "ran": "pass",
+   "notes": "GR10's wording is identical to GR6, so cite.py reports 6). Passes at 2002/2014/2023."
+  }
+ ],
+ "manifest_entries": {
+  "85": [],
+  "2002": [
+   "l1c07_evaldir_alnum_equality",
+   "l1c07_evaldir_boolean_operands",
+   "l1c07_evaldir_copy_replace",
+   "l1c07_evaldir_fmt1_other_nomatch",
+   "l1c07_evaldir_fmt2_truth",
+   "l1c07_evaldir_nested_text",
+   "l1c07_evaldir_numeric_literal_operand",
+   "l1c07_evaldir_thru_through"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [],
+ "records": [
+  {
+   "rule-id": "SR-7.3.13.3-8",
+   "test-ref": "conformance:2002/l1c07_evaldir_nested_text"
+  },
+  {
+   "rule-id": "SR-7.3.13.3-13",
+   "test-ref": "conformance:2002/l1c07_evaldir_thru_through"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-1",
+   "test-ref": "conformance:2002/l1c07_evaldir_copy_replace"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-2",
+   "test-ref": "conformance:2002/l1c07_evaldir_numeric_literal_operand"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-3",
+   "test-ref": "conformance:2002/l1c07_evaldir_boolean_operands"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-5",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-6",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-7",
+   "test-ref": "conformance:2002/l1c07_evaldir_alnum_equality"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-8",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-9",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-10",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}

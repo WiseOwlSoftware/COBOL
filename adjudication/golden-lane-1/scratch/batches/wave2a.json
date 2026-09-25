@@ -1,0 +1,45 @@
+{
+ "batch": "golden-lane-1-wave2a",
+ "records": [
+  {
+   "rule-id": "SR-7.3.13.3-13",
+   "test-ref": "conformance:2002/l1c07_evaldir_thru_through"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-1",
+   "test-ref": "conformance:2002/l1c07_evaldir_copy_replace"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-2",
+   "test-ref": "conformance:2002/l1c07_evaldir_numeric_literal_operand"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-3",
+   "test-ref": "conformance:2002/l1c07_evaldir_boolean_operands"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-5",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-6",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt1_other_nomatch"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-7",
+   "test-ref": "conformance:2002/l1c07_evaldir_alnum_equality"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-8",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-9",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  },
+  {
+   "rule-id": "GR-7.3.13.4-10",
+   "test-ref": "conformance:2002/l1c07_evaldir_fmt2_truth"
+  }
+ ]
+}

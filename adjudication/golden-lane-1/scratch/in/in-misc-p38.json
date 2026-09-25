@@ -1,0 +1,83 @@
+{
+ "slug": "misc-p38",
+ "family": "misc",
+ "row-count": 3,
+ "subjects": [
+  "WRITE statement"
+ ],
+ "existing-goldens-by-subject": {
+  "WRITE statement": [
+   "tests/conformance/2002/ca17_indexed_rewrite_collating.cob",
+   "tests/conformance/2002/exception_file_n.cob",
+   "tests/conformance/2002/file_sharing_mutate.cob",
+   "tests/conformance/2002/file_sharing_seq.cob",
+   "tests/conformance/2002/io_status_04.cob",
+   "tests/conformance/2002/l1_use_sr14_bare_name_repeated.cob",
+   "tests/conformance/2002/l1_use_sr14_pair_twice_one_statement.cob",
+   "tests/conformance/2002/oo_external_file_shared.cob",
+   "tests/conformance/2002/oo_factory_file.cob",
+   "tests/conformance/2002/oo_method_sort.cob",
+   "tests/conformance/2002/oo_object_file.cob",
+   "tests/conformance/2002/oo_object_file_two_instances.cob",
+   "tests/conformance/2002/pb140_read_gate.cob",
+   "tests/conformance/2002/pb235_close_unit_locks.cob",
+   "tests/conformance/2002/pb316_open_group_scope.cob",
+   "tests/conformance/2002/pb318_open_extend_sequential_access.cob",
+   "tests/conformance/2002/pb319_sr8_antecedent.cob",
+   "tests/conformance/2002/pb321_table19_open_arbitration.cob",
+   "tests/conformance/2002/pb327_national_fd_record.cob",
+   "tests/conformance/2002/pb327_national_record_key.cob",
+   "tests/conformance/2002/pb334_read_previous_sequential.cob",
+   "tests/conformance/2002/pb337_into_receiver_admissible.cob",
+   "tests/conformance/2002/pb339_into_current_record.cob",
+   "tests/conformance/2002/pb340_advancing_on_lock_indexed.cob",
+   "tests/conformance/2002/pb343_read_previous_relative.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "GR-14.9.51.4-37",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 37,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'The data item specified as the prime record key shall be set by the runtime element to the desired value prior to the execution of the WRITE statement' -> OK 37)): the program sets the key before the WRITE. Code: EmitWrite passes the record area's current image (OperandText.RecordAreaImage), after any FROM move, and IndexedConnector.Write takes the prime key from that image with KeyOf at execution time. So the value the program placed there before the WRITE is exactly the key used, and nothing is cached from an earlier statement. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: WRITE K-REC FROM WS-KSRC ('K01DATA1') and then READ with key K01 gives 'K=[K01DATA1]'. This shows that the key set by the FROM phrase's implicit MOVE, before the release, is the key used. No test is aimed at this rule, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "The data item specified as the prime record key shall be set by the runtime element to the desired value prior to the execution of the WRITE statement."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-39",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 39,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'WRITE statements may release records to the operating environment through that connector in any order' -> OK 39)). Code: the '21' order test is guarded by `sequentialRelease`, which is Access == Sequential, so random and dynamic access skip it. `_lastWrittenPrime` is updated only on the sequential arm. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC I-O connector writes K05 (below every existing key) and then K47 (between existing keys), with 'D1 02' and 'D2 02' ('02' because alternate AA duplicates, which is correct). No golden is aimed at this rule; pb771_keyed_file_lock cites it only in passing, for lock behaviour. Test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "If the access mode of the write file connector is random or dynamic, WRITE statements may release records to the operating environment through that connector in any order."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-40",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 40,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#KeyedRec",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'If the DUPLICATES phrase is not specified and the alternate key value is non unique, the execution of the WRITE statement is unsuccessful' -> OK 40)). Code: for each alternate key, `exists && !_alts[i].Dups` gives '22' and the record is not added. With DUPLICATES, the record is added with a fresh release ordinal under every key (ReleaseOrdinals), so a sequential walk returns duplicates in the order they were written. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: FU (ALTERNATE U-ALT, no DUPLICATES): U01/ZZ gives 'U1 OK 00', U02/ZZ gives 'U2 INV 22', and a random READ by ZZ still returns U01. Through FX/FR (X-ALT WITH DUPLICATES): K20, K30, K40, K50 are written sequentially and K05, K47 dynamically, all with alternate key AA, and START KEY = R-ALT then READ NEXT walks K20, K30, K40, K50, K05, K47. That is the write order, not prime-key order. The '02' of §9.1.13.2 2c accompanies each duplicate. The '22' that a SUPPRESSED alternate key raises today is a GR41 defect, not this rule's. No spec-derived golden is aimed at the WRITE side (l1_read_alt_dup_walk is a READ GR26 golden), so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "When the ALTERNATE RECORD KEY clause is specified in the file control entry associated with the write file connector, the value of the alternate record key may be non unique only if the DUPLICATES phrase is specified for that data item. In this case the operating environment provides storage of records such that when records are accessed sequentially, the order of retrieval of those records is the order in which the operating environment actually writes the record into the physical file. If the DUPLICATES phrase is not specified and the alternate key value is non unique, the execution of the WRITE statement is unsuccessful, the invalid key condition exists, and the I-O status of the write file connector is set to '22'."
+  }
+ ]
+}

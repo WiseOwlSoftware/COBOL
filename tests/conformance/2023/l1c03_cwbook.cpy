@@ -1,0 +1,1 @@
+       01  CP-ITEM PIC X(6) VALUE "COPIED".

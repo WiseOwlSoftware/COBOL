@@ -1,0 +1,333 @@
+{
+ "slug": "misc-p11",
+ "rows": [
+  {
+   "rule_id": "SR-12.4.5.2-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_select_clause_any_order; conformance:negative/l1c11-select-not-first",
+   "files": [
+    "tests/conformance/85/l1c11_select_clause_any_order.cob",
+    "tests/conformance/85/l1c11_select_clause_any_order.out",
+    "tests/conformance/negative/l1c11-select-not-first.cob",
+    "tests/conformance/negative/l1c11-select-not-first.err"
+   ],
+   "edition_dir": "85",
+   "derivation": "Any-order half: F-IX writes FILE STATUS, RECORD KEY, ACCESS MODE, ORGANIZATION, ASSIGN (reverse of the printed order); each clause's effect is displayed: dup WRITE 22 into the FILE STATUS item (RECORD KEY + FILE STATUS honoured), random READ by key and READ NEXT in key order (DYNAMIC, INDEXED), missing key 23; F-SQ puts ASSIGN last and F-RD (printed order, same literal) reads its record back (ASSIGN honoured). SELECT-first half: negative whose entry starts with ASSIGN then SELECT; otherwise valid.",
+   "citations": [
+    "cite.py --check 12.4.5.2 'The SELECT clause shall be specified first in the file control entry. The clauses that follow the SELECT clause may appear in any order.' -> OK §12.4.5.2 1)"
+   ],
+   "ran": "pass",
+   "notes": "Negative .err is the generic parse diagnostic `COBOL0001: unexpected 'ASSIGN'` — acceptable because SR1's first half is a pure clause-order syntax rule. Rejected at 85/2002/2014/2023. Positive also passes at --std 2023."
+  },
+  {
+   "rule_id": "GR-12.4.5.3-6",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_key_native_collating_default; conformance:2002/l1c11_key_native_national_default",
+   "files": [
+    "tests/conformance/85/l1c11_key_native_collating_default.cob",
+    "tests/conformance/85/l1c11_key_native_collating_default.out",
+    "tests/conformance/2002/l1c11_key_native_national_default.cob",
+    "tests/conformance/2002/l1c11_key_native_national_default.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "a) 85: PROGRAM COLLATING SEQUENCE AL-R (ALPHABET 'a' 'Z' first, §12.3.7.4 7)2.) is shown active (IF 'aa' < '11' -> Y) but is not a file COLLATING SEQUENCE clause, so prime keys READ NEXT in native code-unit order (DOC-A.1-8): 11 BB ZZ aa (AL-R would give aa ZZ 11 BB); alternate key via START >= SPACES: alt 11<B1<Z1<a1 -> primes aa 11 ZZ BB. b) 2002: PIC N(2) prime+alternate keys, native national = code-unit order B<a<f<é: prime B1 a1 f1 é1; alternate B2<a2<f2<é2 -> a1 é1 B1 f1 (locale/case-folding orders would differ).",
+   "citations": [
+    "cite.py --check 12.4.5.3 'the collating sequence for alphanumeric record keys, both primary and alternate, is the native alphanumeric collating sequence' -> OK §12.4.5.3 6) a)",
+    "cite.py --check 12.4.5.3 'the collating sequence for national record keys, both primary and alternate, is the native national collating sequence' -> OK §12.4.5.3 6) b)",
+    "cite.py --check 9.1.8.2 'the order of sequential access when NEXT is specified or implied on a READ statement is ascending based on the value of the key of reference according to the collating sequence of the physical file' -> OK §9.1.8.2",
+    "cite.py --check 12.3.7.4 'Any characters of the native collating sequence that are not specified in the literal phrase shall assume a position in the collating sequence that is greater than that of the highest character specified in this literal phrase' -> OK §12.3.7.4 7) 2.",
+    "cite.py --check 12.3.6.4 'the initial alphanumeric program collating sequence is the collating sequence associated with alphabet-name-1' -> OK §12.3.6.4 9)"
+   ],
+   "ran": "pass",
+   "notes": "National half placed in 2002 (national data). The first national draft used STRING INTO a PIC N receiver and crashed at run time (side finding in defects, unrelated to this rule); the golden now DISPLAYs one line per record instead. Both pass at --std 2023 too."
+  },
+  {
+   "rule_id": "SR-13.4.5.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_fd_clause_any_order",
+   "files": [
+    "tests/conformance/85/l1c11_fd_clause_any_order.cob",
+    "tests/conformance/85/l1c11_fd_clause_any_order.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "FD F-PR writes RECORD, CODE-SET, IS GLOBAL, LINAGE, BLOCK in non-printed order. LINAGE observed via LINAGE-COUNTER: OPEN OUTPUT -> 1 (§13.18.34.4 7)d)), each WRITE without ADVANCING +1 (7)c)3.): 0001, 0002; GLOBAL observed by the contained program writing F-PR (compiles only if global) -> 0003, and main sees 0003.",
+   "citations": [
+    "cite.py --check 13.4.5.3 'The clauses that follow file-name-1 may appear in any order.' -> OK §13.4.5.3 2)",
+    "cite.py --check 13.18.34.4 'The value of LINAGE-COUNTER is automatically set to one at the time an OPEN statement with the OUTPUT phrase is executed for the associated file' -> OK §13.18.34.4 (printed 7) d); cite.py labels it '7) a)')",
+    "cite.py --check 13.18.34.4 'When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one' -> OK §13.18.34.4 (printed 7) c) 3.)"
+   ],
+   "ran": "pass",
+   "notes": "LINAGE-COUNTER is MOVEd to a PIC 9(4) item before DISPLAY (the adjudicator recorded a DISPLAY LINAGE-COUNTER run-time crash as a separate finding)."
+  },
+  {
+   "rule_id": "GR-13.4.5.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_external_fd_agreeing_entries",
+   "files": [
+    "tests/conformance/85/l1c11_external_fd_agreeing_entries.cob",
+    "tests/conformance/85/l1c11_external_fd_agreeing_entries.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Two separately compiled programs describe FD XF IS EXTERNAL with the same BLOCK CONTAINS (a), CODE-SET (b), LINAGE literal (c), record size 5..5 (d), no REPORT (e vacuous); FILE STATUS names one EXTERNAL item (§12.4.5.3 GR1 i). L1C11DX never OPENs XF, so its WRITE (00) and the continuous LINAGE-COUNTER 0001,0002 | 0002,0003 | 0004 prove one common connector (§9.1.5 1)); CLOSE 00.",
+   "citations": [
+    "cite.py --check 13.4.5.4 'all shall have a BLOCK CONTAINS clause specifying the same minimum and maximum size of the physical record' -> OK §13.4.5.4 2) a)",
+    "cite.py --check 13.4.5.4 'all shall have a CODE-SET clause specifying the same character set' -> OK §13.4.5.4 2) b)",
+    "cite.py --check 13.4.5.4 'If any of the file description entries has a LINAGE clause, all shall have a LINAGE clause specifying' -> OK §13.4.5.4 2) c)",
+    "cite.py --check 13.4.5.4 'All file description entries shall have the same smallest and largest record size' -> OK §13.4.5.4 2) 2. d)",
+    "cite.py --check 12.4.5.3 'The same specification of the FILE STATUS clause, where data-name-4 shall reference the same corresponding external data item' -> OK §12.4.5.3 1) i)",
+    "cite.py --check 9.1.5 'An external file connector may be referenced from any runtime element that describes that file connector' -> OK §9.1.5 1)"
+   ],
+   "ran": "pass",
+   "notes": "GR2 is a constraint on programs with no mandated detection (§4.2.2), so the witness is the conforming run unit working on one connector. Item e) (REPORT clause in all describers) is satisfied vacuously here (no REPORT clause); a report-writer run unit was not written because report line framing is a separate implementor-defined structure (GR-13.4.5.4-4). Director may judge whether e) needs its own witness."
+  },
+  {
+   "rule_id": "GR-13.4.5.4-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_linage_counter_external_global",
+   "files": [
+    "tests/conformance/85/l1c11_linage_counter_external_global.cob",
+    "tests/conformance/85/l1c11_linage_counter_external_global.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "GF GLOBAL LINAGE 20 in L1C11C; contained L1C11CG reads LINAGE-COUNTER OF GF = 0003 (main's 2 writes), writes, reads unqualified LINAGE-COUNTER = 0004, main sees 0004 (global name). XF EXTERNAL LINAGE 10 in L1C11C and separately compiled L1C11CX: CX reads 0002 (main's value), writes -> 0003, main sees 0003 (one external item).",
+   "citations": [
+    "cite.py --check 13.4.5.4 'the LINAGE-COUNTER data item is an external data item' -> OK §13.4.5.4 3)",
+    "cite.py --check 13.4.5.4 'LINAGE-COUNTER is a global name' -> OK §13.4.5.4 3)",
+    "cite.py --check 13.18.34.4 (7) d) and 7) c) 3. as above) -> OK"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "FMT-13.4.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c11_file_section_constant_typedef; conformance:negative/l1c11-file-section-entry-before-fd",
+   "files": [
+    "tests/conformance/2002/l1c11_file_section_constant_typedef.cob",
+    "tests/conformance/2002/l1c11_file_section_constant_typedef.out",
+    "tests/conformance/negative/l1c11-file-section-entry-before-fd.cob",
+    "tests/conformance/negative/l1c11-file-section-entry-before-fd.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "FD followed by constant, TYPEDEF, record, constant; SD followed by constant and record. K=07 09 11 (constants act as their literals, §13.10.4 1)); T=ABC LEN=3 (WS item TYPE T-3 PIC X(3)); F=HELLO (FD record written/read back); S=AAAAA, S=BBBBB (SD record sorted ascending). Negative: an 01 entry directly after FILE SECTION before any FD/SD is not admitted by the format.",
+   "citations": [
+    "cite.py --check 13.4.2 'constant-entry' -> OK §13.4.2 (General format)",
+    "cite.py --check 13.4.2 'type-declaration-entry' -> OK §13.4.2",
+    "cite.py --check 13.4.2 'sort-merge-file-description-entry' -> OK §13.4.2",
+    "cite.py --check 13.4.2 'file-description-entry' -> OK §13.4.2",
+    "cite.py --check 13.10.4 'the effect of specifying constant-name-1 in other than this entry is as if literal-1 or the text represented by compilation-variable-name-1 were written where constant-name-1 is written' -> OK §13.10.4 1)",
+    "cite.py --check 13.12 'A type declaration entry has no storage associated with it' -> OK §13.12"
+   ],
+   "ran": "pass",
+   "notes": "Positive in 2002 because constant and type-declaration entries enter at 2002 (the 85 FD/SD+record shape is exercised throughout the corpus). Negative .err is the generic parse code `COBOL0001: unexpected '01'` — acceptable: pure general-format rule. Rejected at all four editions."
+  },
+  {
+   "rule_id": "DOC-A.1-76",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c11_sharing_every_device_shareable",
+   "files": [
+    "tests/conformance/2002/l1c11_sharing_every_device_shareable.cob",
+    "tests/conformance/2002/l1c11_sharing_every_device_shareable.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins the documented choice (every device shareable; PRINTER and DISK name one file): OPEN OUTPUT via ASSIGN TO PRINTER (ALL OTHER) 00, concurrent OPEN EXTEND via ASSIGN TO DISK (ALL OTHER) 00 (§9.1.15 3)); NO OTHER OPEN while open 61 (§9.1.15 1), §9.1.13.9 1)); PRN01 written via PRINTER, DSK01 appended via DISK, NO OTHER alone 00 and reads PRN01, DSK01 from the one physical file.",
+   "citations": [
+    "cite.py --check 9.1.15 'The implementor shall specify which devices allow concurrent access to a physical file' -> OK §9.1.15",
+    "cite.py --check 9.1.15 'The sharing with all other mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or extend mode' -> OK §9.1.15 3)",
+    "cite.py --check 9.1.15 'Associating this file connector with the physical file will be unsuccessful if the physical file is currently open through other file connectors' -> OK §9.1.15 1)",
+    "cite.py --check 9.1.13.9 'I-O status = 61' -> OK §9.1.13.9 1)",
+    "cite.py --check 14.9.27.3 'the LOCK MODE clause shall be specified in the file control entry for file-name-1' -> OK §14.9.27.3 8)"
+   ],
+   "ran": "pass",
+   "notes": "First draft omitted LOCK MODE on the ALL OTHER entries and was correctly refused COBOLNET1512 (§14.9.27.3 SR8) — my slip, fixed. /dev/null (in the adjudicator probe) deliberately not used: not portable to the Windows runner."
+  },
+  {
+   "rule_id": "GR-9.1.14-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use; conformance:2002/l1c11_invalid_key_ec_set",
+   "files": [
+    "tests/conformance/85/l1c11_invalid_key_no_phrase_no_use.cob",
+    "tests/conformance/85/l1c11_invalid_key_no_phrase_no_use.out",
+    "tests/conformance/2002/l1c11_invalid_key_ec_set.cob",
+    "tests/conformance/2002/l1c11_invalid_key_ec_set.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Status half (85): dup-key WRITE 22 (§9.1.13.5 2)b)), READ/REWRITE/DELETE/START of absent key 23 (3)a)). EC half (2002, >>TURN EC-I-O-INVALID-KEY CHECKING ON): dup WRITE with INVALID KEY -> inside the phrase status 22 and FUNCTION EXCEPTION-STATUS = [EC-I-O-INVALID-KEY + 13 spaces] (31 chars, §15.33.3), USE not run (item 2); READ of absent key, no phrase -> USE AFTER STANDARD ERROR ON F-IX runs with status 23 and the same exception-name (item 3), then control to the end of the READ.",
+   "citations": [
+    "cite.py --check 9.1.14 'and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist' -> OK §9.1.14 1)",
+    "cite.py --check 9.1.14 'If the INVALID KEY phrase is specified in the input-output statement, any applicable exception processing statements are not executed, and control is transferred to the imperative-statement specified in the INVALID KEY phrase' -> OK §9.1.14 2)",
+    "cite.py --check 9.1.14 'If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed' -> OK §9.1.14 3)",
+    "cite.py --check 14.6.13.1.1 'the last exception status is set to indicate that exception condition' -> OK §14.6.13.1.1",
+    "cite.py --check 15.33.3 'A 31-character, left-justified, alphanumeric character string that is the exception-name' -> OK §15.33.3 1)",
+    "cite.py --check 9.1.13.5 'to write a record that would create a duplicate prime record key in a physical indexed file' -> OK §9.1.13.5 2) b)",
+    "cite.py --check 9.1.13.5 'an attempt is made to randomly access a record that does not exist in the physical file' -> OK §9.1.13.5 3) a)"
+   ],
+   "ran": "pass",
+   "notes": "The not-enabled branch is not pinned: informative text says some EC-I-O checks are enabled by default, so 'not enabled' has no single spec answer to DISPLAY. >>TURN starts in column 8."
+  },
+  {
+   "rule_id": "GR-9.1.14-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use",
+   "files": [
+    "tests/conformance/85/l1c11_invalid_key_no_phrase_no_use.cob",
+    "tests/conformance/85/l1c11_invalid_key_no_phrase_no_use.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Declarative-free, no exception-checking PERFORM (no applicable exception processing statement, §9.1.12): WRITE dup (22), READ, REWRITE, DELETE, START of absent key (23), each without phrase -> the DISPLAY after each runs (control to end of statement). Ignored half: WRITE K2 with INVALID KEY succeeds -> 'W2-INV' never printed, W2=00; READ K1 with INVALID/NOT INVALID -> only R-NOTINV, R-OK=00, R-VAL=K1ONE.",
+   "citations": [
+    "cite.py --check 9.1.14 'If the INVALID KEY phrase is not specified in the input-output statement and there are no applicable exception processing statements, control is transferred to the end of the input-output statement' -> OK §9.1.14 4)",
+    "cite.py --check 9.1.14 'If the invalid key condition does not exist after the execution of the input-output operation specified by an input-output statement, the INVALID KEY phrase is ignored, if specified' -> OK §9.1.14 4) (sentence after item 4)",
+    "cite.py --check 9.1.14 'If the I-O status indicates a successful completion, control is transferred to the end of the input-output statement or to the imperative-statement specified in the NOT INVALID KEY phrase if it is specified' -> OK §9.1.14 2) (second list)",
+    "cite.py --check 9.1.12 'Statements in a file-exception or exception-name format of a USE declarative' -> OK §9.1.12 2)"
+   ],
+   "ran": "pass",
+   "notes": "Shares its program with GR-9.1.14-1's status half."
+  },
+  {
+   "rule_id": "GR-9.1.5-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_global_file_common_connector",
+   "files": [
+    "tests/conformance/85/l1c11_global_file_common_connector.cob",
+    "tests/conformance/85/l1c11_global_file_common_connector.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "L1C11H (GF GLOBAL) contains L1C11HB (GB GLOBAL) contains L1C11HC. Only declarers OPEN/CLOSE. HB writes GF (00: containing program's global file), HC writes GF (00: indirectly containing program's) and GB (00: containing program's). HB reopens GB: B-01, C-01, EOF 10; H reopens GF: AAAA, BBBB, CCCC, EOF 10 - one common connector each.",
+   "citations": [
+    "cite.py --check 9.1.5 'both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program that directly or indirectly contains the containing program' -> OK §9.1.5 2)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "DOC-A.1-78",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c11_sharing_not_fixed_attribute",
+   "files": [
+    "tests/conformance/2002/l1c11_sharing_not_fixed_attribute.cob",
+    "tests/conformance/2002/l1c11_sharing_not_fixed_attribute.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins documented 'No': file created via NO OTHER connector (00) is then opened INPUT by two ALL OTHER connectors at once (00 00); NO OTHER while they are open 61; NO OTHER alone 00; ALL OTHER while NO OTHER open 61; file re-created via ALL OTHER (00) and then NO OTHER still opens alone (00) - the physical file keeps neither mode.",
+   "citations": [
+    "cite.py --check 9.1.6 'The implementor shall specify whether the ability to share a physical file is a fixed file attribute' -> OK §9.1.6",
+    "cite.py --check 9.1.15 'The sharing with all other mode allows concurrent access ...' -> OK §9.1.15 3)",
+    "cite.py --check 9.1.15 'Associating this file connector with the physical file will be unsuccessful if the physical file is currently open through other file connectors' -> OK §9.1.15 1)",
+    "cite.py --check 9.1.13.9 'I-O status = 61' -> OK §9.1.13.9 1)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "SR-6.3.4-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c11_program_text_all_spaces",
+   "files": [
+    "tests/conformance/85/l1c11_program_text_all_spaces.cob",
+    "tests/conformance/85/l1c11_program_text_all_spaces.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Lines with an all-space program-text area in five shapes (0 chars; 6 spaces; 7 spaces; seq no + spaces to col 72; seq no + spaces + text in cols 73-80) placed between divisions, between clauses of one data entry, between words of DISPLAY/ADD statements. A=[ABC], B=[12], SUM=[15] (ADD 3 split across such lines), BLANKS-OK.",
+   "citations": [
+    "cite.py --check 6.3.4 'All spaces' -> OK §6.3.4 3)",
+    "cite.py --check 6.3.6 'A blank line is one that contains only space characters between margin C and margin R. A blank line may be written as any line of a compilation group.' -> OK §6.3.6"
+   ],
+   "ran": "pass",
+   "notes": "DELIBERATE: the .cob has lines with trailing spaces to column 72 and two lines with text in columns 73-80 (identification area) - they ARE the test shapes; do not let a whitespace-trimming hook or editor strip them (the col-73 lines break the corpus 'nothing past column 72' convention on purpose). Blank lines inside a continued literal are deliberately NOT used (that is SR-6.3.5-1/2's known crash)."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c11_select_clause_any_order",
+   "l1c11_key_native_collating_default",
+   "l1c11_fd_clause_any_order",
+   "l1c11_external_fd_agreeing_entries",
+   "l1c11_linage_counter_external_global",
+   "l1c11_invalid_key_no_phrase_no_use",
+   "l1c11_global_file_common_connector",
+   "l1c11_program_text_all_spaces"
+  ],
+  "2002": [
+   "l1c11_key_native_national_default",
+   "l1c11_file_section_constant_typedef",
+   "l1c11_sharing_every_device_shareable",
+   "l1c11_invalid_key_ec_set",
+   "l1c11_sharing_not_fixed_attribute"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c11-select-not-first",
+  "l1c11-file-section-entry-before-fd"
+ ],
+ "records": [
+  {
+   "rule-id": "SR-12.4.5.2-1",
+   "test-ref": "conformance:85/l1c11_select_clause_any_order; conformance:negative/l1c11-select-not-first"
+  },
+  {
+   "rule-id": "GR-12.4.5.3-6",
+   "test-ref": "conformance:85/l1c11_key_native_collating_default; conformance:2002/l1c11_key_native_national_default"
+  },
+  {
+   "rule-id": "SR-13.4.5.3-2",
+   "test-ref": "conformance:85/l1c11_fd_clause_any_order"
+  },
+  {
+   "rule-id": "GR-13.4.5.4-2",
+   "test-ref": "conformance:85/l1c11_external_fd_agreeing_entries"
+  },
+  {
+   "rule-id": "GR-13.4.5.4-3",
+   "test-ref": "conformance:85/l1c11_linage_counter_external_global"
+  },
+  {
+   "rule-id": "FMT-13.4.2",
+   "test-ref": "conformance:2002/l1c11_file_section_constant_typedef; conformance:negative/l1c11-file-section-entry-before-fd"
+  },
+  {
+   "rule-id": "DOC-A.1-76",
+   "test-ref": "conformance:2002/l1c11_sharing_every_device_shareable"
+  },
+  {
+   "rule-id": "GR-9.1.14-1",
+   "test-ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use; conformance:2002/l1c11_invalid_key_ec_set"
+  },
+  {
+   "rule-id": "GR-9.1.14-4",
+   "test-ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use"
+  },
+  {
+   "rule-id": "GR-9.1.5-2",
+   "test-ref": "conformance:85/l1c11_global_file_common_connector"
+  },
+  {
+   "rule-id": "DOC-A.1-78",
+   "test-ref": "conformance:2002/l1c11_sharing_not_fixed_attribute"
+  },
+  {
+   "rule-id": "SR-6.3.4-3",
+   "test-ref": "conformance:85/l1c11_program_text_all_spaces"
+  }
+ ],
+ "defects": [
+  {
+   "rule_ids": [],
+   "mechanism": "SIDE FINDING (no row of this batch): STRING with a national (PIC N) receiver and all-national operands compiles but throws NotImplementedCobolFeatureException at run time ('STRING INTO receiver ... usage display required') although §14.9.43.3 SR1 admits usage national",
+   "repro": "/tmp/gl/held/misc-p11/side/l1c11_string_national_receiver.cob",
+   "std": "2002",
+   "rule_quote": "all identifiers, except identifier-4, shall be described implicitly or explicitly as usage display or national. If any one of literal-1, literal-2, identifier-1, identifier-2, or identifier-3 is of class national, then all shall be of class national.",
+   "cite_line": "OK §14.9.43.3 1) (Syntax rules)",
+   "expected": "[ABCD  ] P=05",
+   "observed": "Unhandled exception NotImplementedCobolFeatureException: STRING INTO receiver 'W-N' (usage display required, ISO §14.9.43.3 SR1)",
+   "wrong_answer": false,
+   "crashes": true,
+   "rejects_legal_source": true,
+   "under_rejects": false,
+   "code_site": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs:216 (LoudStmt arm for non-alphanumeric receivers; also mis-cites SR1 as requiring usage display)"
+  }
+ ],
+ "deferred": []
+}

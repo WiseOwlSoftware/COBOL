@@ -1,0 +1,191 @@
+{
+ "slug": "misc-p37",
+ "family": "misc",
+ "row-count": 12,
+ "subjects": [
+  "WRITE statement"
+ ],
+ "existing-goldens-by-subject": {
+  "WRITE statement": [
+   "tests/conformance/2002/ca17_indexed_rewrite_collating.cob",
+   "tests/conformance/2002/exception_file_n.cob",
+   "tests/conformance/2002/file_sharing_mutate.cob",
+   "tests/conformance/2002/file_sharing_seq.cob",
+   "tests/conformance/2002/io_status_04.cob",
+   "tests/conformance/2002/l1_use_sr14_bare_name_repeated.cob",
+   "tests/conformance/2002/l1_use_sr14_pair_twice_one_statement.cob",
+   "tests/conformance/2002/oo_external_file_shared.cob",
+   "tests/conformance/2002/oo_factory_file.cob",
+   "tests/conformance/2002/oo_method_sort.cob",
+   "tests/conformance/2002/oo_object_file.cob",
+   "tests/conformance/2002/oo_object_file_two_instances.cob",
+   "tests/conformance/2002/pb140_read_gate.cob",
+   "tests/conformance/2002/pb235_close_unit_locks.cob",
+   "tests/conformance/2002/pb316_open_group_scope.cob",
+   "tests/conformance/2002/pb318_open_extend_sequential_access.cob",
+   "tests/conformance/2002/pb319_sr8_antecedent.cob",
+   "tests/conformance/2002/pb321_table19_open_arbitration.cob",
+   "tests/conformance/2002/pb327_national_fd_record.cob",
+   "tests/conformance/2002/pb327_national_record_key.cob",
+   "tests/conformance/2002/pb334_read_previous_sequential.cob",
+   "tests/conformance/2002/pb337_into_receiver_admissible.cob",
+   "tests/conformance/2002/pb339_into_current_record.cob",
+   "tests/conformance/2002/pb340_advancing_on_lock_indexed.cob",
+   "tests/conformance/2002/pb343_read_previous_relative.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "SR-14.9.51.3-11",
+   "section": "14.9.51.3",
+   "kind": "SR",
+   "ordinal": 11,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Write; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase",
+   "adjudicator-notes": "SR11: 'If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function.' (--check OK). SR4 of the SAME clause is unconditional: 'If identifier-1 is a function-identifier, it shall reference an alphanumeric or national function.' (--check OK). Both are syntax rules a conforming WRITE must satisfy together, so the admitted set without FILE is their intersection {alphanumeric, national}; FromPhraseRules.Write enforces exactly that (COBOLNET1914). Probes: FUNCTION UPPER-CASE / CURRENT-DATE accepted (ws3fupper, ws3fcurdate); NUMVAL, INTEGER, LENGTH rejected 1914 (ws3fnumval/ws3fintf/ws3flength); NATIONAL-OF into a PIC N record accepted (ws4nat rc=0); BOOLEAN-OF-INTEGER into PIC 1(8) rejected 1914 citing SR4 (ws4boo). So every function SR11 forbids is rejected; a boolean function, which SR11 alone would admit, is refused by SR4 - the literal conjunctive reading, documented in the MoveBinder comment and pb348-write-from-integer-function's header. NOTE the tension: REWRITE's twin §14.9.35.3 SR9 admits boolean and has no SR4-style unconditional rule, so the WRITE text is internally inconsistent; no docs/CONFORMANCE.md determination records the SR4-over-SR11 reading (see dossier_gaps). No spec-derived test pins the SR11 no-FILE arm itself (the boolean rejection or the national acceptance), so test-ref is empty. [editions as adjudicated: 2002, 2014, 2023 for the boolean/national arms (boolean and national categories do not exist in 1985); the function-identifier-in-FROM restriction applies at every edition that admits a function-identifier]",
+   "rule-text": "If identifier-1 references a function and the FILE phrase is not specified, identifier-1 shall reference an alphanumeric, boolean, or national function."
+  },
+  {
+   "rule-id": "SR-14.9.51.3-20",
+   "section": "14.9.51.3",
+   "kind": "SR",
+   "ordinal": 20,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#writeAtEndOfPage; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+   "adjudicator-notes": "SR20: 'The words END-OF-PAGE and EOP are equivalent.' (--check OK). writeAtEndOfPage accepts (END_OF_PAGE | EOP) at every position and the binder never reads which token was used (PhraseBlocks.Split keys only on NOT). Probe ws1eop mixes `NOT AT EOP ... END-OF-PAGE ...` and `AT END-OF-PAGE ... NOT EOP ...` and both run with the same semantics; SR18/SR19 fire identically for either spelling (ws1pgeop uses EOP, ws1nolinn END-OF-PAGE). No golden writes the EOP spelling in code (only END-OF-PAGE), so test-ref is empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
+   "rule-text": "The words END-OF-PAGE and EOP are equivalent."
+  },
+  {
+   "rule-id": "SR-14.9.51.3-22",
+   "section": "14.9.51.3",
+   "kind": "SR",
+   "ordinal": 22,
+   "subject": "WRITE statement",
+   "editions": "2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+   "adjudicator-notes": "SR22: 'If automatic locking has been specified for the write file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.' (--check OK). CheckRecordLockPhrase is called BEFORE the sequential/keyed reroute, so both arms are covered: LOCK MODE AUTOMATIC + WRITE WITH LOCK -> COBOLNET1512 (ws2auto), + WITH NO LOCK -> 1512 (ws2auton), relative dynamic file + WITH NO LOCK -> 1512 (ws2autorel). MANUAL mode admits all four spellings (ws2lock). With no LOCK MODE clause the phrase is accepted (ws2nolm) - automatic locking has not been 'specified'. read-auto-with-lock is READ's twin; no test pins the WRITE arm, so test-ref is empty. [editions as adjudicated: 2002, 2014, 2023 (the lock phrases do not exist in 1985 - rejected there with COBOLNET0900)]",
+   "rule-text": "If automatic locking has been specified for the write file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-2",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "WRITE statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
+   "adjudicator-notes": "GR2: 'The file position indicator is not affected by the execution of a WRITE statement.' RelativeConnector.Write touches only _st/_lastSlot/_lastReleasedSlot (never the read position). PROBE E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/write-p2/pb.cob: relative DYNAMIC I-O, records 1..3, READ key 1, WRITE key 10 ('00'), READ NEXT -> R02 key 02 (spec: next existing after FPI=1 is 2); indexed DYNAMIC I-O, keys 01..03, READ 01, WRITE 09, READ NEXT -> 02A2. Both match. Sequential organization: WRITE is legal only in OUTPUT/EXTEND where no READ positioning exists. cite.py --check 14.9.51.4 'The file position indicator is not affected by the execution of a WRITE statement' -> OK rule 2. No existing spec-derived test pins the FPI across a keyed WRITE: test-needed.",
+   "rule-text": "The file position indicator is not affected by the execution of a WRITE statement."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-4",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 4,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindIoControl; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause' -> OK 4)). Half 1, 'no longer available': the standard leaves the content after release undefined, and the emitted WRITE neither clears nor preserves the area by rule; the typed field keeps its last value, as CONFORMANCE.md DOC-A.1-24 documents for CLOSE. So there is nothing to enforce. Half 2, 'also available as a record of other files in the same SAME RECORD AREA clause': BindIoControl makes the peer file's first record an implicit redefinition (RedefinitionKind.SameRecordArea) of the shared area. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob (SAME RECORD AREA FOR F1 F2): after WRITE R1 FROM 'HELLO', R2 shows '[HELLO   ]'; after MOVE 'ABCDEFGH' TO R1 and WRITE R1, R2-A|R2-B shows 'ABCD|EFGH'. Both halves are verified. The goldens pb235_same_record_area_close and l1_release_same_record_area cover CLOSE and RELEASE, not WRITE, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (SAME RECORD AREA and this rule are in every edition)]",
+   "rule-text": "The logical record released by the successful execution of the WRITE statement is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause. The logical record is also available as a record of other files referenced in the same SAME RECORD AREA clause as the associated output file, as well as the file associated with record-name-1."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-6",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 6,
+   "subject": "WRITE statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'The figurative constant SPACE when specified in the WRITE statement references one alphanumeric space character' -> OK 6)). The only place a figurative constant can appear in WRITE is literal-1 of the FROM phrase. With the FILE phrase it is forbidden (--check 14.9.51.3 'literal-1 shall be an alphanumeric, boolean, or national literal and shall not be a figurative constant' -> OK 7) b)), and the FILE phrase is declined anyway (A.4.13, COBOLNET1706). With record-name-1, GR5 a) makes it MOVE SPACE TO record-name-1, where one space character repeats to fill the receiving item. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: WRITE R1 FROM SPACE into PIC X(8) writes '[        ]' (8 spaces). The FROM literal is class-alphanumeric, not national, so for an alphanumeric record there is no difference between 'one alphanumeric space' and a national space. A national record under SPACE is not probed, but MOVE's figurative rule governs it. No test is aimed at this rule, so test-ref is empty.",
+   "rule-text": "The figurative constant SPACE when specified in the WRITE statement references one alphanumeric space character."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-9",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 9,
+   "subject": "WRITE statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'the information in the area referenced by identifier-1 is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description' -> OK 9)). Code: the FROM phrase emits only a MOVE that READS identifier-1, and the connector call receives a copy of the record-area image. Nothing writes back to identifier-1. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: after WRITE R1 FROM WS-SRC, WS-SRC shows '[HELLO]'; after the indexed WRITE K-REC FROM WS-KSRC, WS-KSRC shows '[K01DATA1]'. The record-area half ('not available except as specified by SAME RECORD AREA') is GR4's and is decided there. No test is aimed at this rule, so test-ref is empty.",
+   "rule-text": "After the successful execution of a WRITE statement, the information in the area referenced by identifier-1 is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description, even though the information in the area referenced by record-name-1 is not available except as specified by the SAME RECORD AREA clause as indicated in General rule 4."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-13",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 13,
+   "subject": "WRITE statement",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Write; src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored",
+   "adjudicator-notes": "GR13: 'the content of the bytes that extend outside the end of record-name-1 are undefined.' An undefined result imposes no observable requirement; the connector pads to the record width (Fit / FitRecord) and any content there is conforming. cite.py --check 14.9.51.4 'the content of the bytes that extend outside the end of record-name-1 are undefined' -> OK rule 13. Nothing to test.",
+   "rule-text": "When record-name-1 is specified, if the number of bytes to be written to the file is greater than the number of bytes in record-name-1, the content of the bytes that extend outside the end of record-name-1 are undefined."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-16",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 16,
+   "subject": "WRITE statement",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#WriteShared",
+   "adjudicator-notes": "GR16: 'The RETRY phrase is used to control the behavior of the WRITE statement for files opened for file sharing for the case where resources needed to write a record are locked by another run unit. The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase.' (cite.py --check 14.9.51.4 -> OK rule 16). The antecedent is unpopulatable in this implementation: COBOLNET_FILES_DESIGN §14.7.9 GR2 determination (CONFORMANCE A.1 items 165/166) — every file and record lock is held by a connector of the executing run unit, and WRITE defines no record operation conflict. WriteShared therefore binds the RETRY phrase (grammar retryPhrase, GateRetryIntro 2002) and makes the first attempt decide. The one resource denial WriteShared CAN return, the §12.4.5.9 GR7 lock ceiling '53'/'54' from PreflightNewLock, bypasses RetryLoop — kb/Work PB707 (open) owns that as a where-the-rule-is-written defect, behaviour-identical today (no re-attempt within one run unit can clear the ceiling). No verdict-changing edge found.",
+   "rule-text": "The RETRY phrase is used to control the behavior of the WRITE statement for files opened for file sharing for the case where resources needed to write a record are locked by another run unit. The I-O status is set in accordance with the rules in 14.7.9, RETRY phrase."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-32",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 32,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/FileRegistry.cs#SetRelativeKey",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'the value of the relative key data item shall be initialized by the runtime element with the relative record number to be associated with the record that is to be written' -> OK 29); the same sentence is GR32's, rule 32). Code: for random or dynamic access, KeyedIoEmitter.EmitWrite stages the RELATIVE KEY item's typed value through FileSetRelativeKey. If that item cannot be resolved it emits a LOUD statement, not a silent write. RelativeConnector.Write's non-sequential arm then puts the record at _pendingKey. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). rel1.cob: I-O DYNAMIC, RKD=5 gives 'OK5 00', and the record reads back as 'R 0005 R005'; RKD=9999 gives 'OK9999 00'. The KeyedIoDifferentialTests relative-random case is pinned to the legacy oracle, so it does not qualify; no spec-derived golden targets this rule, and test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "When a relative file is opened in the I-O mode and the access mode is random or dynamic, records are to be inserted in the associated file. Prior to the execution of the WRITE statement, the value of the relative key data item shall be initialized by the runtime element with the relative record number to be associated with the record that is to be written. That record is then released to the operating environment by the execution of the WRITE statement."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-34",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 34,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#KeyOf",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'Successful execution of a WRITE statement causes the content of the record area to be released' -> OK 34)): the record is released, and the operating environment uses its record keys so that later access by any of them works. Code: IndexedConnector.Write appends a KeyedRec holding the whole record image with one release ordinal stamped under EVERY key. Every retrieval path (FindRandom, Ordered, START) derives the key from that image through KeyOf, so every declared key is an access path. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a record written through the DYNAMIC connector is found by the prime key ('RK47 d6') and walked under the alternate key ('A K47 d6'); U01 written RANDOM is found by the alternate key ('UZ U01'). No spec-derived golden is aimed at this rule, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "Successful execution of a WRITE statement causes the content of the record area to be released. The operating environment utilizes the contents of the record keys in such a way that subsequent access of the record may be made based upon any of these specified record keys."
+  },
+  {
+   "rule-id": "GR-14.9.51.4-36",
+   "section": "14.9.51.4",
+   "kind": "GR",
+   "ordinal": 36,
+   "subject": "WRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
+   "adjudicator-notes": "Rule (cite.py --check 14.9.51.4 'The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file' -> OK 36)). Code: `_recs.Any(r => KeyEq(KeyOf(r.Image, PrimeKey), prime, PrimeKey))` gives DuplicateKey '22', using collation-aware equality, and the record is not added. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC WRITE of K30, which the sequential connector wrote earlier, gives 'D3 INV 22' and runs INVALID KEY. The sequential-access equal-key case gets '21' first (GR42 a), which is the correct precedence: GR38's order test comes before existence. KeyedIoDifferentialTests.Indexed_RandomCrudByPrimeKey is legacy-pinned and does not qualify, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
+   "rule-text": "The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file."
+  }
+ ]
+}
