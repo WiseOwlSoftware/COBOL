@@ -1,0 +1,274 @@
+{
+ "slug": "misc-p1",
+ "rows": [
+  {
+   "rule_id": "DOC-A.1-8",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_native_ordinal_positions; conformance:2002/l1c01_native_ordinal_positions_wide",
+   "files": [
+    "tests/conformance/85/l1c01_native_ordinal_positions.cob",
+    "tests/conformance/85/l1c01_native_ordinal_positions.out",
+    "tests/conformance/2002/l1c01_native_ordinal_positions_wide.cob",
+    "tests/conformance/2002/l1c01_native_ordinal_positions_wide.out"
+   ],
+   "edition_dir": "85, 2002",
+   "derivation": "Pins the documented A.1 item 8 choice (CONFORMANCE.md DOC-A.1-8: ordinal = UTF-16 code unit + 1). With no PROGRAM COLLATING SEQUENCE the program collating sequence is native (§12.3.6.4 r10), and ORD returns the ordinal in it, lowest 1 (§15.70.1). 85: ORD(' ')=33, ORD('0')=49, ORD('A')=66, ORD('a')=98, ORD('~')=127, CHAR(66)='A', CHAR(49)='0', ORD(CHAR(98))=98. 2002 (needs X/N literals and CHAR-NATIONAL): ORD(X'00')=1, ORD(X'FF')=256, ORD('€')=8365 (the set is all 65,536 units), ORD(N'A')=66 and ORD(N'€')=8365 (same numbering in the national set), CHAR(8365)='€', CHAR-NATIONAL(66)=N'A'.",
+   "citations": [
+    "cite.py --check 12.3.7.4 \"The implementor shall define the order of characters within the native alphanumeric coded character set and the native national coded character set, associating each character with an ordinal position\" -> OK §12.3.7.4 6)",
+    "cite.py --check 12.3.6.4 \"When the PROGRAM COLLATING SEQUENCE clause is not specified ...\" -> OK §12.3.6.4 10)",
+    "cite.py --check 15.70.1 \"The ORD function returns an integer value that is the ordinal position of argument-1 in the program collating sequence. The lowest ordinal position is 1.\" -> OK §15.70.1",
+    "cite.py --check 15.15.4 \"The returned value shall be the character in the alphanumeric program collating sequence having the ordinal position specified by argument-1\" -> OK §15.15.4 1)",
+    "cite.py --check 15.16.4 \"The returned value is the character in the national program collating sequence having the ordinal position specified by argument-1\" -> OK §15.16.4 1)"
+   ],
+   "ran": "pass",
+   "notes": "The row's rule text says GR6; cite.py confirms 'shall define the order ... ordinal position' is §12.3.7.4 6). HIGH-VALUE (PB1093, open) deliberately not exercised."
+  },
+  {
+   "rule_id": "GR-12.4.5.6.4-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_alt_key_duplicates; conformance:2002/l1c01_alt_key_equality_collating",
+   "files": [
+    "tests/conformance/85/l1c01_alt_key_duplicates.cob",
+    "tests/conformance/85/l1c01_alt_key_duplicates.out",
+    "tests/conformance/2002/l1c01_alt_key_equality_collating.cob",
+    "tests/conformance/2002/l1c01_alt_key_equality_collating.out"
+   ],
+   "edition_dir": "85, 2002",
+   "derivation": "Both halves of r4. 85 (uniqueness): unique AK1 + AK2 WITH DUPLICATES. W1 00; W2 repeats AK1 -> INVALID KEY, '22' (§14.9.51.4 r42 c); W3 repeats AK2 only -> '02' (§9.1.13.2 2 c); W4 AK1 differs in one position -> 00; REWRITE of 0004 changing AK1 to an existing value -> INVALID KEY '22' (§14.9.35.4 r25 c); sequential read by prime key returns 0001, 0003, 0004 with 0004 unchanged. 2002 (collating half; key-level COLLATING SEQUENCE OF is 2002): ALPHABET FOLD \"A\" ALSO \"a\" \"B\" ALSO \"b\" on AK1, native on AK2, neither with DUPLICATES. aB vs Ab equal under FOLD -> '22'; Ac vs Ab differ -> 00; AK2 aB/AB vs Ab differ natively -> 00.",
+   "citations": [
+    "cite.py --check 12.4.5.6.4 \"If the DUPLICATES phrase is not specified, the value of the associated alternate record key shall not be equal to the value of the same alternate record key in another record in the physical file\" -> OK §12.4.5.6.4 4)",
+    "cite.py --check 12.4.5.6.4 \"The equality or inequality is based on the collating sequence used for the file according to the rules for a relation condition\" -> OK §12.4.5.6.4 4)",
+    "cite.py --check 14.9.51.4 \"When an alternate record key of the record to be written does not allow duplicates ... set to '22'\" -> OK §14.9.51.4 42)",
+    "cite.py --check 14.9.35.4 \"When an alternate record key of the record to be replaced does not allow duplicates ... set to '22'\" -> OK §14.9.35.4 25)",
+    "cite.py --check 9.1.13.2 \"For a REWRITE or WRITE statement, the record just written created a duplicate key value for at least one alternate record key for which duplicates are allowed\" -> OK §9.1.13.2 2)",
+    "cite.py --check 12.4.5.7.4 \"Alphabet-name-3 applies to record keys identified by data-name-1 or record-key-name-1\" -> OK §12.4.5.7.4 6)",
+    "cite.py --check 12.3.7.4 \"ALSO\" -> OK §12.3.7.4 7)"
+   ],
+   "ran": "pass",
+   "notes": "Data files L1C01C.DAT / L1C01D.DAT, created by OPEN OUTPUT each run."
+  },
+  {
+   "rule_id": "SR-13.18.2.3-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c01-any-length-function-returning; conformance:negative/l1c01-any-length-function-unreferenced",
+   "files": [
+    "tests/conformance/negative/l1c01-any-length-function-returning.cob",
+    "tests/conformance/negative/l1c01-any-length-function-returning.err",
+    "tests/conformance/negative/l1c01-any-length-function-unreferenced.cob",
+    "tests/conformance/negative/l1c01-any-length-function-unreferenced.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "SR4 requires, in a FUNCTION, the ANY LENGTH subject to be a BY REFERENCE formal parameter. Leg 1: the item is the function's RETURNING item (legal for a contained program by SR3 b), illegal for a function). Leg 2: the item is not in the header at all. SR1 (PIC X) and SR2 (level-1 elementary LINKAGE entry of a function) hold, so SR4 is the only violation. Rejected with COBOLNET1542 at 2002/2014/2023 (functions and ANY LENGTH are 2002+).",
+   "citations": [
+    "cite.py --check 13.18.2.3 \"If the source element containing the ANY LENGTH clause is a function, the subject of the entry shall be referenced in its procedure division header as a formal parameter with the BY REFERENCE phrase\" -> OK §13.18.2.3 4)"
+   ],
+   "ran": "pass",
+   "notes": "COBOLNET1542 is shared by the SR2/SR3/SR4 placement checks in DataBinder.AnyLengthValidateUnit; the observed message is the SR4 text. A third leg (BY VALUE formal) was dropped: it also violates §14.2.2 SR2 (COBOLNET1553, BY VALUE needs a numeric/pointer class), so it would not be a single-rule negative. The positive (BY REFERENCE formal) leg is already conformance:2002/any_length_function."
+  },
+  {
+   "rule_id": "FMT-11.9.5.1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2014/l1c01_arithmetic_clause_forms; conformance:negative/l1c01-arithmetic-two-alternatives; conformance:negative/l1c01-arithmetic-no-alternative",
+   "files": [
+    "tests/conformance/2014/l1c01_arithmetic_clause_forms.cob",
+    "tests/conformance/2014/l1c01_arithmetic_clause_forms.out",
+    "tests/conformance/negative/l1c01-arithmetic-two-alternatives.cob",
+    "tests/conformance/negative/l1c01-arithmetic-two-alternatives.err",
+    "tests/conformance/negative/l1c01-arithmetic-no-alternative.cob",
+    "tests/conformance/negative/l1c01-arithmetic-no-alternative.err"
+   ],
+   "edition_dir": "2014",
+   "derivation": "Positive: one outer program with `ARITHMETIC NATIVE` (IS omitted) and three contained programs with `ARITHMETIC STANDARD-DECIMAL` (IS omitted), `ARITHMETIC IS STANDARD-DECIMAL`, `ARITHMETIC IS NATIVE`. Each computes SQRT(2) into 9V9(30). SD: sqrt(2) to 34 digits = 1.414213562373095048801688724209698 (next digit 0, so every rounding mode agrees) -> truncated 1414213562373095048801688724209. A binary64 (native) result differs from the 17th digit, so a clause ignored or misparsed changes the line. Native is implementor-defined, so only a 1E-6 window is pinned. Negatives: two alternatives (plain braces = exactly one) -> COBOL0307 at 2014/2023; no alternative -> COBOL0001 at 2002/2014/2023.",
+   "citations": [
+    "cite.py --check 11.9.5.1 \"STANDARD-DECIMAL\" -> OK §11.9.5.1 (General format)",
+    "cite.py --check 11.9.5.2 \"If the STANDARD-DECIMAL phrase is specified, the techniques used in handling arithmetic expressions, arithmetic statements, the SUM clause, and integer and numeric functions shall be as described for standard-decimal arithmetic\" -> OK §11.9.5.2 3)",
+    "cite.py --check 11.9.5.2 \"If the ARITHMETIC clause is not specified in this source element or a containing source element\" -> OK §11.9.5.2 4)",
+    "cite.py --check 15.84.4 \"When standard-decimal arithmetic is in effect, the returned value is the absolute value of the exact square root of argument-1 rounded to 34 digits\" -> OK §15.84.4 2)",
+    "cite.py --check 15.84.4 \"When native arithmetic is in effect, the returned value is the absolute value of the approximation of the square root\" -> OK §15.84.4 4)"
+   ],
+   "ran": "pass",
+   "notes": "Golden also passes at --std 2023. STANDARD-BINARY is not exercised: it is the documented processor-dependent decline (A.3 item 2, COBOLNET0806, already covered by negative/l1-divide-arithmetic-standard-binary). The negatives use the parse-error codes COBOL0307/COBOL0001; negatives in the corpus already use these codes (e.g. pb331-*, pb332-*)."
+  },
+  {
+   "rule_id": "SR-8.8.4.12.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c01-abbrev-relation-not-not",
+   "files": [
+    "tests/conformance/negative/l1c01-abbrev-relation-not-not.cob",
+    "tests/conformance/negative/l1c01-abbrev-relation-not-not.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "`IF A = B AND NOT NOT C`: by §8.8.4.12.4 GR1 the subject and operator are inserted, giving (A = B) AND NOT NOT (A = C). Table 5 lets NOT be followed only by a simple-condition or '(' (its NOTE: 'the pair NOT NOT is not permissible'), so the insertion result breaks Table 5. Everything else is valid (the control `A = B AND NOT C` compiles and runs), so rejection is owed at 85/2002/2014/2023; observed COBOL0001 at all four.",
+   "citations": [
+    "cite.py --check 8.8.4.12.3 \"The result of implied insertion shall comply with the rules of Table 5\" -> OK §8.8.4.12.3 2)",
+    "cite.py --check 8.8.4.12.4 \"The effect of using abbreviations is as if the last preceding stated subject were inserted in place of the omitted subject\" -> OK §8.8.4.12.4 1)",
+    "cite.py --check 8.8.4.11.3 \"the pair 'NOT (' is permissible while the pair 'NOT NOT' is not permissible\" -> OK §8.8.4.11.3"
+   ],
+   "ran": "pass",
+   "notes": "The adjudicator's second probe `A = B AND NOT NOT < C` was NOT used. It can be read as NOT followed by the extended operator 'NOT <', which expands to (A = B) AND NOT (A NOT < C), and that complies with Table 5. It is rejected by the general format (and by the §8.8.4.12.4 NOTE), not by SR2, so it would not be a single-rule witness."
+  },
+  {
+   "rule_id": "GR-14.6.8.2-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_move_implied_point",
+   "files": [
+    "tests/conformance/85/l1c01_move_implied_point.cob",
+    "tests/conformance/85/l1c01_move_implied_point.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Receivers with no V, '.' or P have their point after the rightmost digit (r3), and r4 aligns on it. 123.456 -> 9(5) = 00123; 9(3)V9(3) 987.654 -> 9(5) = 00987; 0.5 -> 99 = 00; 12345.9 -> 999 = 345 (high-order cut); 7.9 -> ZZ9 (edited, no point) = '  7'; 123.99 -> 9B99 = '1 23'. A point anywhere else would move the digits.",
+   "citations": [
+    "cite.py --check 14.6.8.2 \"If the data description of the receiving data item does not include an explicit decimal point specification, the data item is treated as if it had an assumed decimal point immediately following its rightmost digit\" -> OK §14.6.8.2 3)",
+    "cite.py --check 14.6.8.2 \"If the receiving operand is a fixed-point numeric item, the data is aligned by decimal point and is transferred to the receiving digits with zero fill or truncation on either end as required\" -> OK §14.6.8.2 4)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "GR-14.6.8.2-5",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_move_edited_truncation",
+   "files": [
+    "tests/conformance/85/l1c01_move_edited_truncation.cob",
+    "tests/conformance/85/l1c01_move_edited_truncation.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Covers the truncation half that the refuter found missing, at BOTH ends, plus zero fill. 999.99 <- 12345.678 = '345.67' (high 12 and low 8 cut); ZZ9.9 <- 1.99 = '  1.9' (low cut); 9999.99 <- 3.5 = '0003.50' (zero fill at both ends); ZZZ9.99 <- 3.5 = '   3.50'; $$$9 <- 12345 = '$345' (3 digit positions from the 2nd $, high cut, §13.18.40.5 r6); Z,ZZ9.99 <- 1234.567 = '1,234.56'; $$,$$9.99 <- 12.3 = '   $12.30' (the embedded ',' is part of the floating string and is blanked).",
+   "citations": [
+    "cite.py --check 14.6.8.2 \"If the receiving operand is a fixed-point numeric-edited item, further alignment, zero fill or truncation, and transfer of digits take place\" -> OK §14.6.8.2 5)",
+    "cite.py --check 13.18.40.5 \"Simple insertion editing results in the insertion character occupying the same character position in the edited item as the associated symbol\" -> OK §13.18.40.5 3)",
+    "cite.py --check 13.18.40.5 \"Special insertion editing results in the period character occupying the same character position in the edited item as the symbol\" -> OK §13.18.40.5 4)",
+    "cite.py --check 13.18.40.5 \"The second floating symbol represents the leftmost limit of the numeric data that may be stored in the item\" -> OK §13.18.40.5 6)",
+    "cite.py --check 13.18.40.5 \"If truncation occurs, the value of the data that is used for editing is the value after truncation as specified in 14.6.8\" -> OK §13.18.40.5 6)",
+    "cite.py --check 13.18.40.5 \"a single occurrence of the replacement character(s) is (are) placed into the character position(s) immediately preceding whichever of the following is encountered first\" -> OK §13.18.40.5 6)",
+    "cite.py --check 13.18.40.5 \"the corresponding replacement character is placed into any character position immediately preceding whichever of the following is encountered first\" -> OK §13.18.40.5 7)"
+   ],
+   "ran": "pass",
+   "notes": "Answers the refuter's objection to l1_picture_special_insertion (no truncation). It includes the refuter's two suggested cases: 999.99 <- 12345.678 and ZZ9.9 <- 1.99."
+  },
+  {
+   "rule_id": "DOC-A.1-6",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_group_start_coincident; conformance:2002/l1c01_group_start_typed_national_bit",
+   "files": [
+    "tests/conformance/85/l1c01_group_start_coincident.cob",
+    "tests/conformance/85/l1c01_group_start_coincident.out",
+    "tests/conformance/2002/l1c01_group_start_typed_national_bit.cob",
+    "tests/conformance/2002/l1c01_group_start_typed_national_bit.out"
+   ],
+   "edition_dir": "85, 2002",
+   "derivation": "Pins the documented choice (CONFORMANCE.md DOC-A.1-6: always coincident, no slack). 85: G = (9(4) COMP, X): LENGTH 3. Through a REDEFINES, G1 := 0 appears as LOW-VALUES in bytes 1-2 (true in either byte order) and G2 := 'Z' is byte 3. D = (X(2), 9(3)) <- 'XY123' gives D1=XY, D2=123, LENGTH 5. 2002: BYTE-LENGTH of strongly-typed (N, X) = 3, alphanumeric (N, X) = 3 (national = 2 bytes, item 33), (1(3) BIT, X) = 2 (the display item is on the next byte boundary, §8.5.1.6.1), strongly-typed (X(2), X(3)) = 5.",
+   "citations": [
+    "cite.py --check 8.5.1.6.1 \"The alignment of the start of an alphanumeric group item relative to the first item within that group is defined by the implementor\" -> OK §8.5.1.6.1",
+    "cite.py --check 8.5.1.6.5 \"The alignment of the start of a strongly-typed group item relative to the first item within that group is defined by the implementor\" -> OK §8.5.1.6.5",
+    "cite.py --check 8.5.1.6.1 \"Alignment of alphanumeric groups and of data items of usage display is at a natural alphanumeric character boundary and is coincident with a byte boundary\" -> OK §8.5.1.6.1"
+   ],
+   "ran": "pass",
+   "notes": "COMP byte order (a separate implementor item) is avoided by using the value 0. Strongly-typed groups are pinned only through BYTE-LENGTH, because a direct offset probe would need reference modification of a strongly-typed group."
+  },
+  {
+   "rule_id": "SR-8.3.3.2.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_alnum_literal_characters",
+   "files": [
+    "tests/conformance/85/l1c01_alnum_literal_characters.cob",
+    "tests/conformance/85/l1c01_alnum_literal_characters.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "A format 1 literal \"é中x\" (non-ASCII, including a CJK ideograph) is accepted and holds three characters (LENGTH 3). Its ordinals are 234 (U+00E9) and 20014 (U+4E2D) under the DOC-A.1-8 numbering, and it round-trips through MOVE/DISPLAY. Output lines 1-4 pin this rule.",
+   "citations": [
+    "cite.py --check 8.3.3.2.3 \"Character-1 may be any character in the coded character set that the implementor has chosen for source code representation\" -> OK §8.3.3.2.3 2)",
+    "cite.py --check 15.70.1 \"The ORD function returns an integer value that is the ordinal position of argument-1 in the program collating sequence\" -> OK §15.70.1"
+   ],
+   "ran": "pass",
+   "notes": "Shares its program with SR-8.3.3.2.3-4. The file is UTF-8 source. NOTE 1's optional UTF-8/mixed capability is not claimed and not tested. The 85 directory follows the row's editions list; the adjudicator noted that the 85/2002 edge cannot be derived in-repo."
+  },
+  {
+   "rule_id": "SR-8.3.3.2.3-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c01_alnum_literal_characters",
+   "files": [
+    "tests/conformance/85/l1c01_alnum_literal_characters.cob",
+    "tests/conformance/85/l1c01_alnum_literal_characters.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Only the opener's own symbol, in its own representation, doubles (r3/r4). \"A＂＂B\" (U+FF02 FULLWIDTH QUOTATION MARK x2) is 4 ordinary characters, with char 2 at ordinal 65283. \"A\"\"B\" is 3 characters, with char 2 = '\"' (ordinal 35). \"A''B\" is 4 characters and 'A''B' is 3. Output lines 5-10 pin this rule.",
+   "citations": [
+    "cite.py --check 8.3.3.2.3 \"The two contiguous quotation symbols used to represent a single quotation symbol character shall be in the same coded character set representation as the opening quotation symbol\" -> OK §8.3.3.2.3 4)",
+    "cite.py --check 8.3.3.2.3 \"Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence\" -> OK §8.3.3.2.3 3)"
+   ],
+   "ran": "pass",
+   "notes": "This rule is satisfied by construction: no other representation of the quotation symbol is recognized as a delimiter, so no rejectable violation can be written. The positive witness shows that a foreign-representation pair is plain content."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c01_native_ordinal_positions",
+   "l1c01_alt_key_duplicates",
+   "l1c01_move_implied_point",
+   "l1c01_move_edited_truncation",
+   "l1c01_group_start_coincident",
+   "l1c01_alnum_literal_characters"
+  ],
+  "2002": [
+   "l1c01_native_ordinal_positions_wide",
+   "l1c01_alt_key_equality_collating",
+   "l1c01_group_start_typed_national_bit"
+  ],
+  "2014": [
+   "l1c01_arithmetic_clause_forms"
+  ],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c01-any-length-function-returning",
+  "l1c01-any-length-function-unreferenced",
+  "l1c01-arithmetic-two-alternatives",
+  "l1c01-arithmetic-no-alternative",
+  "l1c01-abbrev-relation-not-not"
+ ],
+ "records": [
+  {
+   "rule-id": "DOC-A.1-8",
+   "test-ref": "conformance:85/l1c01_native_ordinal_positions; conformance:2002/l1c01_native_ordinal_positions_wide"
+  },
+  {
+   "rule-id": "GR-12.4.5.6.4-4",
+   "test-ref": "conformance:85/l1c01_alt_key_duplicates; conformance:2002/l1c01_alt_key_equality_collating"
+  },
+  {
+   "rule-id": "SR-13.18.2.3-4",
+   "test-ref": "conformance:negative/l1c01-any-length-function-returning; conformance:negative/l1c01-any-length-function-unreferenced"
+  },
+  {
+   "rule-id": "FMT-11.9.5.1",
+   "test-ref": "conformance:2014/l1c01_arithmetic_clause_forms; conformance:negative/l1c01-arithmetic-two-alternatives; conformance:negative/l1c01-arithmetic-no-alternative"
+  },
+  {
+   "rule-id": "SR-8.8.4.12.3-2",
+   "test-ref": "conformance:negative/l1c01-abbrev-relation-not-not"
+  },
+  {
+   "rule-id": "GR-14.6.8.2-3",
+   "test-ref": "conformance:85/l1c01_move_implied_point"
+  },
+  {
+   "rule-id": "GR-14.6.8.2-5",
+   "test-ref": "conformance:85/l1c01_move_edited_truncation"
+  },
+  {
+   "rule-id": "DOC-A.1-6",
+   "test-ref": "conformance:85/l1c01_group_start_coincident; conformance:2002/l1c01_group_start_typed_national_bit"
+  },
+  {
+   "rule-id": "SR-8.3.3.2.3-2",
+   "test-ref": "conformance:85/l1c01_alnum_literal_characters"
+  },
+  {
+   "rule-id": "SR-8.3.3.2.3-4",
+   "test-ref": "conformance:85/l1c01_alnum_literal_characters"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}

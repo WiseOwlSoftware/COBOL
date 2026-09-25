@@ -1,0 +1,267 @@
+{
+ "slug": "misc-p2",
+ "rows": [
+  {
+   "rule_id": "FMT-13.18.10.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_block_contains_forms",
+   "files": [
+    "tests/conformance/2002/l1c02_block_contains_forms.cob",
+    "tests/conformance/2002/l1c02_block_contains_forms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Five sequential FDs cover every arm of the format: FA 'BLOCK CONTAINS 2 RECORDS', FB 'BLOCK 100' (no CONTAINS, no unit word = CHARACTERS), FC 'BLOCK CONTAINS 10 TO 100 CHARACTERS', FD2 'BLOCK 10 TO 20 RECORDS' (SR1 integer-2>integer-1 met), FE no clause. All legal so the program compiles; per the documented inert claim (A.3 5) each file written with three 8-char records reads them back in order then AT END -> lines FA=..0001,..0002,..0003,END etc.",
+   "citations": [
+    "cite.py --check 13.18.10.2 \"BLOCK CONTAINS\" -> OK §13.18.10.2 (General format)",
+    "cite.py --check 13.18.10.1 \"The BLOCK CONTAINS clause specifies the size of a physical record.\" -> OK §13.18.10.1",
+    "cite.py --check 13.18.10.3 \"If integer-1 is specified, integer-2 shall be greater than integer-1.\" -> OK §13.18.10.3 1)",
+    "cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5)"
+   ],
+   "ran": "pass",
+   "notes": "Lines FA..FD2 pin the format (compiling each arm is the observable). Also passes at --std 85 (the clause exists unchanged in 85; row editions start at 2002, so the golden is filed in 2002). Trailing spaces in the DISPLAY of a PIC X(40) line are ignored by the runner."
+  },
+  {
+   "rule_id": "GR-13.18.10.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_block_contains_forms",
+   "files": [
+    "tests/conformance/2002/l1c02_block_contains_forms.cob",
+    "tests/conformance/2002/l1c02_block_contains_forms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "GR1 condition a) holds in the managed I-O model (one logical record per physical record), so the clause is not required: FD FE omits it and must compile and work -> FE=EEEE0001,EEEE0002,EEEE0003,END.",
+   "citations": [
+    "cite.py --check 13.18.10.4 \"This clause is required except when one or more of the following conditions exist\" -> OK §13.18.10.4 1)",
+    "cite.py --check 13.18.10.4 \"A physical record contains one and only one complete logical record.\" -> OK §13.18.10.4 1) a)",
+    "cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5)"
+   ],
+   "ran": "pass",
+   "notes": "Shares l1c02_block_contains_forms; line FE pins it."
+  },
+  {
+   "rule_id": "GR-13.18.10.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_block_contains_forms",
+   "files": [
+    "tests/conformance/2002/l1c02_block_contains_forms.cob",
+    "tests/conformance/2002/l1c02_block_contains_forms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "None of GR2's situations a)-c) exists (no spanning, no padding, no grouping), so the RECORDS phrase is permitted: FDs FA and FD2 use it and must compile and read back correctly -> FA=..., FD2=... lines.",
+   "citations": [
+    "cite.py --check 13.18.10.4 \"The size of a physical record may be stated in terms of records unless one or more of the following situations exists, in which case the RECORDS phrase shall not be used\" -> OK §13.18.10.4 2)",
+    "cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5)"
+   ],
+   "ran": "pass",
+   "notes": "Shares l1c02_block_contains_forms; lines FA and FD2 pin it (the permissive branch; the prohibition branch is unreachable because the situations never arise)."
+  },
+  {
+   "rule_id": "GR-13.18.10.4-3",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "GR3 defines the UNIT of a CHARACTERS physical-record size (bytes). The physical-record size has no effect in this implementation (A.3 item 5; CONFORMANCE.md A.3 row 5 'Claimed (inert)'), so no program output can depend on the unit.",
+   "citations": [
+    "cite.py --check 13.18.10.4 \"If the CHARACTERS phrase is specified, the physical record size is specified in terms of the number of bytes\" -> OK §13.18.10.4 3)",
+    "cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5)"
+   ],
+   "ran": "n/a",
+   "notes": "Nothing observable. The CHARACTERS arm is at least compiled/run by l1c02_block_contains_forms (FB, FC), but that pins the format, not the unit."
+  },
+  {
+   "rule_id": "GR-13.18.10.4-4",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "GR4 gives integer-2 (alone) as exact size, and integer-1/integer-2 as min/max physical-record size. Under the documented inert claim no runtime behaviour reads either; the only compile-time consequence (ordering) is SR1, a separate row.",
+   "citations": [
+    "cite.py --check 13.18.10.4 \"If integer-1 is not specified, integer-2 represents the exact size of the physical record.\" -> OK §13.18.10.4 4)",
+    "cite.py --check A.3 \"The BLOCK CONTAINS clause has no effect if the operating environment does not support the required features\" -> OK §A.3 5)"
+   ],
+   "ran": "n/a",
+   "notes": "Nothing to DISPLAY. The TO arm compiles in l1c02_block_contains_forms (FC, FD2)."
+  },
+  {
+   "rule_id": "FMT-8.3.3.4.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_boolean_literal_forms",
+   "files": [
+    "tests/conformance/2002/l1c02_boolean_literal_forms.cob",
+    "tests/conformance/2002/l1c02_boolean_literal_forms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Receivers sized exactly to each literal. B\"0101\"->Q1=[0101]; B'0110'->A1=[0110] (GR1/GR3); BX\"A5\"->QX=[10100101]; BX'3C'->AX=[00111100] (GR5/GR6); VALUE B'1'->VQ=[1]; VALUE BX'F'->VX=[1111]. B\"\", B'', BX\"\", BX'' are zero-length (GR4/GR7) and MOVE treats a boolean zero-length literal as ZERO (§14.9.25.4 GR3) over a B\"1111\" preset -> Z1..Z4=[0000].",
+   "citations": [
+    "cite.py --check 8.3.3.4.2 \"hexadecimal-boolean\" -> OK §8.3.3.4.2",
+    "cite.py --check 8.3.3.4.4 \"The separators that delimit the boolean literal are not included in the value of the boolean literal.\" -> OK §8.3.3.4.4 1)",
+    "cite.py --check 8.3.3.4.4 \"the value of a boolean literal is the value of the sequence of occurrences of boolean-character-1\" -> OK §8.3.3.4.4 3)",
+    "cite.py --check 8.3.3.4.4 \"If boolean-character-1 is not specified, the literal is a zero-length literal.\" -> OK §8.3.3.4.4 4)",
+    "cite.py --check 8.3.3.4.4 \"Each hexadecimal digit has the following boolean equivalent value\" -> OK §8.3.3.4.4 5)",
+    "cite.py --check 8.3.3.4.4 \"replacing the leading BX\\\" separator with the B\\\" separator\" -> OK §8.3.3.4.4 6)",
+    "cite.py --check 8.3.3.4.4 \"If hexadecimal-digit-1 is not specified, the literal is a zero-length literal.\" -> OK §8.3.3.4.4 7)",
+    "cite.py --check 8.3.3.1 \"The hexadecimal digits are the basic digits '0' through '9' and the basic letters 'A' through 'F'.\" -> OK §8.3.3.1 (initially tried under 8.3.3.3: FAIL; re-derived with --find)",
+    "cite.py --check 14.9.25.4 \"If literal-1 is a boolean zero-length literal and the receiving operand is other than a dynamic-length elementary item, literal-1 is treated as if it were the figurative constant ZERO.\" -> OK §14.9.25.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "Row editions list 85 but boolean literals are a 2002 introduction (COBOLNET0900 at 85), so 2002 dir. Apostrophe spellings of both formats were previously unpinned. Doc drift noted by adjudicator (CobolLexer.g4 comments say BX deferred / [01]+) remains, not in scope."
+  },
+  {
+   "rule_id": "DOC-A.1-16",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c02_call_non_cobol_not_located",
+   "files": [
+    "tests/conformance/85/l1c02_call_non_cobol_not_located.cob",
+    "tests/conformance/85/l1c02_call_non_cobol_not_located.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Pins the documented determination (CONFORMANCE.md DOC-A.1-16): a non-COBOL target is not located -> GR3b EC-PROGRAM-NOT-FOUND -> GR3h 1 ON EXCEPTION. CALL \"Cobol.Net.Runtime\" (non-COBOL .NET assembly always present beside the program), CALL identifier 'System.Runtime', CALL \"Antlr4.Runtime.Standard\" -> T1/T2/T3=NOT-LOCATED. Control: CALL \"L1C02F\" (COBOL program of the run unit) -> SUB, then GR3i NOT ON EXCEPTION -> T4=CALLED.",
+   "citations": [
+    "cite.py --check A.1 \"CALL statement (calling a non-COBOL program). This item is required.\" -> OK §A.1 16)",
+    "cite.py --check 14.9.4.4 \"If the called program is a COBOL program, its execution is described in 14.2, Procedure division structure; otherwise the execution is defined by the implementor.\" -> OK §14.9.4.4 3) [g]",
+    "cite.py --check 14.9.4.4 \"If the program cannot be located or identifier-1 references a zero-length item, the EC-PROGRAM-NOT-FOUND exception condition is set to exist.\" -> OK §14.9.4.4 3) [b]",
+    "cite.py --check 14.9.4.4 \"If the exception condition is any of the EC-PROGRAM or EC-EXTERNAL exception conditions and an ON EXCEPTION phrase is specified in the CALL statement, control is transferred to imperative-statement-1.\" -> OK §14.9.4.4 3) [h]",
+    "cite.py --check 14.9.4.4 \"otherwise, control is transferred to the end of the CALL statement or, if the NOT ON EXCEPTION phrase is specified, to imperative-statement-2.\" -> OK §14.9.4.4 3) [i]"
+   ],
+   "ran": "pass",
+   "notes": "Pins a documented choice ('The same at every edition'); also passes at --std 2023 apart from the COBOLNET0903 ARCHAIC warning on EXIT PROGRAM (stderr), which is why the golden lives in 85 only. cite.py resolves GR3 sub-items only to '3)'; the letter is given in brackets. T1 is discriminating in any environment (the runtime dll must be present to run); T3 depends on Antlr4 dll beside the compiler (present in bin/Debug)."
+  },
+  {
+   "rule_id": "GR-7.3.9.3-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_call_convention_default",
+   "files": [
+    "tests/conformance/2002/l1c02_call_convention_default.cob",
+    "tests/conformance/2002/l1c02_call_convention_default.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "No >>CALL-CONVENTION in source, so GR1 applies COBOL; under GR2a/§8.3.2.2 2a the CALL/CANCEL literal is a COBOL word whose basic letters are case-insensitive (§8.1.3.2 3a), so \"l1c02d\", \"L1C02D\", \"L1c02D\" all map to PROGRAM-ID L1C02D whatever the implementor's mapping. Sub counts activations: CALL lower -> SUB-COUNT=1; CALL upper -> 2 (same program, state kept); CANCEL \"l1c02d\" cancels it (GR2 covers CANCEL) so the next CALL \"L1c02D\" finds it in initial state (§14.9.5.4 GR3) -> SUB-COUNT=1. A literal (case-sensitive) mapping would print NOT-FOUND lines or SUB-COUNT=3.",
+   "citations": [
+    "cite.py --check 7.3.9.3 \"The default for the CALL-CONVENTION directive is '>>CALL-CONVENTION COBOL'.\" -> OK §7.3.9.3 1)",
+    "cite.py --check 7.3.9.3 \"CALL statements, CANCEL statements\" -> OK §7.3.9.3 2)",
+    "cite.py --check 7.3.9.3 \"When COBOL is specified, that program-name or method-name is treated as a COBOL word that maps to the externalized name\" -> OK §7.3.9.3 2) a)",
+    "cite.py --check 8.3.2.2 \"When the COBOL call convention is implied or COBOL is specified in the CALL-CONVENTION compiler directive, the program-name is treated as a COBOL word\" -> OK §8.3.2.2 2) a)",
+    "cite.py --check 8.1.3.2 \"COBOL basic letters appearing elsewhere within the compilation group are treated in a case-insensitive manner.\" -> OK §8.1.3.2 3) a)",
+    "cite.py --check 14.9.5.4 \"If the program referenced by a successfully executed CANCEL statement in a run unit is subsequently called in that run unit, that program is in its initial state.\" -> OK §14.9.5.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "Side observation (not a verdict issue): CONFORMANCE.md DOC-A.1-16 and DOC-A.1-143 say 'There is no CALL-CONVENTION directive', while the directive IS recognized-and-ignored (CONFORMANCE.md line ~510) — doc wording drift."
+  },
+  {
+   "rule_id": "GR-7.3.9.3-3",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "Permissive ('may also be used by the implementor'): grants latitude, imposes no obligation. COBOL.NET uses one .NET managed calling convention and takes no linkage details from the directive (CONFORMANCE.md recognized-and-ignored directives). Declining the latitude has no observable.",
+   "citations": [
+    "cite.py --check 7.3.9.3 \"The CALL-CONVENTION directive may also be used by the implementor to determine other details\" -> OK §7.3.9.3 3)"
+   ],
+   "ran": "n/a",
+   "notes": "Implementor latitude with nothing to DISPLAY."
+  },
+  {
+   "rule_id": "DOC-A.1-21",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c02_char_locale_tie",
+   "files": [
+    "tests/conformance/2002/l1c02_char_locale_tie.cob",
+    "tests/conformance/2002/l1c02_char_locale_tie.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Alphanumeric twin of l1_char_national_locale_tie. PCS = ALPHABET LOC IS LOCALE. ORD(X\"00\")=ORD(X\"01\")=ORD(X\"1F\")=1 (O00/O01/O1F=001) shows the undefined-order tie (r2 branch 2) is reached. Documented determination (DOC-A.1-21): the lowest-coded member is returned, CHAR(1)=X\"00\"; read through a BINARY-CHAR UNSIGNED REDEFINES (1-byte unsigned binary, DOC-A.1-207) -> C1=000; a second invocation returns the same character (r2 last sentence) -> C2=000. Returning X\"01\"/X\"1F\" would give 001/031.",
+   "citations": [
+    "cite.py --check A.1 \"CHAR function (which one of the multiple characters is returned). This item is required.\" -> OK §A.1 21)",
+    "cite.py --check 15.15.4 \"If the order of multiple characters having the same position is undefined, the implementor shall define which of those multiple characters is returned\" -> OK §15.15.4 2)",
+    "cite.py --check 15.15.4 \"every invocation of the CHAR function shall return the same character.\" -> OK §15.15.4 2)",
+    "cite.py --check 12.3.7.4 \"When the LOCALE phrase is specified, the collating sequence identified is defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current\" -> OK §12.3.7.4 7)",
+    "cite.py --check 15.70.1 \"The ORD function returns an integer value that is the ordinal position of argument-1 in the program collating sequence.\" -> OK §15.70.1"
+   ],
+   "ran": "pass",
+   "notes": "Verified stable under LC_ALL/LANG = C, en_US.UTF-8, de_DE.UTF-8. CONFORMANCE.md row DOC-A.1-21 'Pinned-by' is '—'; this golden can fill it."
+  },
+  {
+   "rule_id": "SR-11.3.3-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c02-inherits-cycle",
+   "files": [
+    "tests/conformance/negative/l1c02-inherits-cycle.cob",
+    "tests/conformance/negative/l1c02-inherits-cycle.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "Three classes, H INHERITS J, J INHERITS I, I INHERITS H: every INHERITS operand is in its REPOSITORY (SR2), none is self (SR3), FINAL (SR5) or repeated (SR7); each operand inherits from the declaring class only INDIRECTLY, so SR4's indirect arm alone requires rejection. Control (J's INHERITS removed) compiles clean.",
+   "citations": [
+    "cite.py --check 11.3.3 \"Object-class-name-2 shall not inherit from object-class-name-1 directly or indirectly.\" -> OK §11.3.3 4)",
+    "cite.py --check 11.3.3 \"Object-class-name-2 shall be the name of a class specified in the REPOSITORY paragraph of this source element.\" -> OK §11.3.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Rejected at 2002/2014/2023 with 'error COBOLNET0820: class 'L1C02H': the INHERITS chain is cyclic through 'L1C02H' (ISO §11.3.2 — ...)'. COBOLNET0820 is a shared OO structural code (duplicate class, END CLASS/METHOD mismatch, cycle); .err holds the code only. The message cites §11.3.2 rather than §11.3.3 SR4 (adjudicator finding inherits-cycle-citation, still present). 85 not listed: OO does not exist there, so rejection would be for another reason."
+  },
+  {
+   "rule_id": "GR-8.1.3.2-5",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "A permission conditioned on a missing graphic ('When an implementation does not provide a graphic representation ... substitute graphics may be specified'). Source is decoded to UTF-16, which represents every COBOL character, so the antecedent is false and no substitute graphic exists to observe.",
+   "citations": [
+    "cite.py --check 8.1.3.2 \"substitute graphics may be specified by the implementor to replace the characters not represented\" -> OK §8.1.3.2 5)"
+   ],
+   "ran": "n/a",
+   "notes": "No observable; documenting 'substitute graphics: none' belongs to DOC-A.1-25."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c02_call_non_cobol_not_located"
+  ],
+  "2002": [
+   "l1c02_block_contains_forms",
+   "l1c02_boolean_literal_forms",
+   "l1c02_call_convention_default",
+   "l1c02_char_locale_tie"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c02-inherits-cycle"
+ ],
+ "records": [
+  {
+   "rule-id": "FMT-13.18.10.2",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "GR-13.18.10.4-1",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "GR-13.18.10.4-2",
+   "test-ref": "conformance:2002/l1c02_block_contains_forms"
+  },
+  {
+   "rule-id": "FMT-8.3.3.4.2",
+   "test-ref": "conformance:2002/l1c02_boolean_literal_forms"
+  },
+  {
+   "rule-id": "DOC-A.1-16",
+   "test-ref": "conformance:85/l1c02_call_non_cobol_not_located"
+  },
+  {
+   "rule-id": "GR-7.3.9.3-1",
+   "test-ref": "conformance:2002/l1c02_call_convention_default"
+  },
+  {
+   "rule-id": "DOC-A.1-21",
+   "test-ref": "conformance:2002/l1c02_char_locale_tie"
+  },
+  {
+   "rule-id": "SR-11.3.3-4",
+   "test-ref": "conformance:negative/l1c02-inherits-cycle"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}

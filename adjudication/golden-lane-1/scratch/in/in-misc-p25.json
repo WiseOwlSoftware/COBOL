@@ -1,0 +1,191 @@
+{
+ "slug": "misc-p25",
+ "family": "misc",
+ "row-count": 12,
+ "subjects": [
+  "REWRITE statement"
+ ],
+ "existing-goldens-by-subject": {
+  "REWRITE statement": [
+   "tests/conformance/2002/ca17_indexed_rewrite_collating.cob",
+   "tests/conformance/2002/file_sharing_mutate.cob",
+   "tests/conformance/2002/file_sharing_seq.cob",
+   "tests/conformance/2002/pb334_read_previous_sequential.cob",
+   "tests/conformance/2002/pb348_from_into_move_rules.cob",
+   "tests/conformance/2002/pb753_shared_read_coherence.cob",
+   "tests/conformance/2014/pb334_read_previous_sequential.cob",
+   "tests/conformance/2014/pb348_from_into_move_rules.cob",
+   "tests/conformance/2023/l1_rewrite_alt_key_order.cob",
+   "tests/conformance/2023/l1_rewrite_alt_key_suppress.cob",
+   "tests/conformance/2023/l1_table20_indexed.cob",
+   "tests/conformance/2023/l1_table20_seq_relative.cob",
+   "tests/conformance/2023/pb329_line_sequential_charset_2023.cob",
+   "tests/conformance/2023/pb334_read_previous_sequential.cob",
+   "tests/conformance/2023/pb347_record_name_identity.cob",
+   "tests/conformance/2023/pb348_from_into_move_rules.cob",
+   "tests/conformance/2023/pb753_shared_read_coherence.cob",
+   "tests/conformance/85/a413_declined_phrase_positive_control.cob",
+   "tests/conformance/85/l1_open_not_open_statements.cob",
+   "tests/conformance/85/pb348_from_into_move_rules.cob",
+   "tests/conformance/negative/a413-rewrite-file-declined.cob",
+   "tests/conformance/negative/apply-commit-rewrite-lock.cob",
+   "tests/conformance/negative/pb331-rewrite-ignoring-lock.cob",
+   "tests/conformance/negative/pb347-rewrite-refmod-record.cob",
+   "tests/conformance/negative/pb347-rewrite-subordinate-item.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "FMT-14.9.35.2",
+   "section": "14.9.35.2",
+   "kind": "FMT",
+   "ordinal": 0,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#rewriteStatement; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#rewriteFrom; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#recordLockPhrase; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#rewriteInvalidKeyPhrase; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#retryPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#DeclinedFilePhrase",
+   "adjudicator-notes": "General format: REWRITE {record-name-1 | FILE file-name-1} [RECORD] [FROM {identifier-1|literal-1}] [retry-phrase] [WITH LOCK | WITH NO LOCK] [|INVALID KEY| |NOT INVALID KEY| with choice indicators] [END-REWRITE]. Grammar rewriteStatement = REWRITE (recordName | FILE fileName) RECORD? rewriteFrom? retryPhrase? recordLockPhrase? rewriteInvalidKeyPhrase? END_REWRITE? - same order, same optionality; rewriteFrom admits dataReference / functionCall / inlineMethodInvocation (identifier-1) and literal; recordLockPhrase = WITH? NO LOCK | WITH? LOCK (WITH not underlined, one of two); rewriteInvalidKeyPhrase admits either phrase alone or both in either order (5.2.6.4 choice indicators). Probe pl.cob: `REWRITE R1 RECORD FROM \"KEY1DATA01\" RETRY 3 TIMES WITH NO LOCK NOT INVALID KEY .. INVALID KEY .. END-REWRITE`, `REWRITE R1 NO LOCK`, `RETRY FOR 2 SECONDS LOCK`, `RETRY FOREVER` all compile clean at 2023; pm.cob (FROM identifier + both key phrases) compiles at --std 85. The FILE file-name-1 alternative is PARSED and declined by name (COBOLNET1706, Annex A.4.13 Not claimed per docs/CONFORMANCE.md) - owner decision, landed as kb/Work PB282 which owns SR-14.9.35.3-7/8/10/11/12 and GR-14.9.35.4-9. cite.py --check 14.9.35.2 \"retry-phrase is described in 14.7.9\" -> OK. No spec-derived positive golden exercises every phrase combination, so test-ref empty. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text; retry-phrase and the LOCK bracket are later additions than 1985 (not derivable from the 2023 text)]",
+   "rule-text": "<pre style=\"line-height:1\"> ╭ record-name-1 ╮ ┌ ╭ identifier-1 ╮ ┐ <u>REWRITE</u> ┤ ├ RECORD │ <u>FROM</u> ┤ ├ │ ╰ <u>FILE</u> file-name-1 ╯ └ ╰ literal-1 ╯ ┘ [ retry-phrase ] ┌ WITH <u>LOCK</u> ┐ │ │ └ WITH <u>NO</u> <u>LOCK</u> ┘ ┌ │ <u>INVALID</u> KEY imperative-statement-1 │ ┐ │ │ │ │ └ │ <u>NOT</u> <u>INVALID</u> KEY imperative-statement-2 │ ┘ [ <u>END-REWRITE</u> ] </pre> > **Figure notes (REWRITE statement general format syntax diagram).** `REWRITE`, `FILE`, `FROM`, `LOCK`, `NO`, `INVALID`, `NOT`, and `END-REWRITE` are underlined in the printed standard (required words). `RECORD`, `WITH`, and `KEY` are **not** underlined — they are optional words. `retry-phrase` is described in 14.7.9, RETRY phrase. > ⚠ **The INVALID KEY group is enclosed in CHOICE INDICATORS** (the pair of `|` bars just inside its brackets). Per 5.2.6.4, brackets enclosing choice indicators mean **zero or more** of the enclosed alternatives may be specified, each at most once, **in any order** — so a REWRITE statement may carry the `INVALID KEY` phrase alone, the `NOT INVALID KEY` phrase alone, **both** (in either order), or neither. The `WITH LOCK` / `WITH NO LOCK` bracket has **no** choice indicators: at most one of those two phrases may be specified. where retry-phrase is described in 14.7.9, RETRY phrase <a id=\"section-14-9-35-3\"></a>"
+  },
+  {
+   "rule-id": "SR-14.9.35.3-4",
+   "section": "14.9.35.3",
+   "kind": "SR",
+   "ordinal": 4,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#ScreenLockPhraseAgainstAutomatic; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+   "adjudicator-notes": "\"If automatic locking has been specified for the rewrite file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.\" BindRewrite calls CheckRecordLockPhrase before the organization reroute, so every organization is screened; ScreenLockPhraseAgainstAutomatic raises COBOLNET1512 when file.LockMode is AUTOMATIC. 'Specified' = the LOCK MODE AUTOMATIC clause: the implementor default when the clause is omitted (12.4.5.9.4 GR1 b) 2.) is no record locking (docs/PHASE4_RECONCILIATION.md), so no implicit automatic mode exists to check. Probe pg.cob (INDEXED, LOCK MODE IS AUTOMATIC): `REWRITE R1 WITH NO LOCK` and `REWRITE R1 WITH LOCK` each -> error COBOLNET1512 citing 14.9.35.3 SR4; ph.cob (LOCK MODE MANUAL) compiles clean. cite.py --check 14.9.35.3 SR4 / 12.4.5.9.4 GR1 b) 2. -> OK. No REWRITE negative fixture found in tests/conformance/negative, so test-ref empty. [editions as adjudicated: 2023 and 2014 (Annex E lists no 2014->2023 change); the record-locking facility it belongs to is post-1985 - the exact introducing edition is not derivable from the 2023 text]",
+   "rule-text": "If automatic locking has been specified for the rewrite file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified."
+  },
+  {
+   "rule-id": "SR-14.9.35.3-6",
+   "section": "14.9.35.3",
+   "kind": "SR",
+   "ordinal": 6,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#BindFromPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs#Rewrite; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs#BindRewrite; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindRewrite",
+   "adjudicator-notes": "\"If record-name-1 is specified, identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand.\" Both REWRITE arms bind the FROM phrase through MoveBinder.BindFromPhrase(FromPhraseRules.Rewrite, record, ...), which builds the implicit MOVE at bind time and runs the MOVE validity screens against record-name-1. Probe pi.cob (01 R1 PIC 9(5), `REWRITE R1 FROM WA` with WA PIC A(5)) -> error COBOLNET0819 citing 14.9.35.3 SR6 / Table 16; pk.cob `REWRITE R1 FROM FUNCTION NATIONAL-OF(\"ab\")` into an alphanumeric X(8) record -> COBOLNET0819 (national to alphanumeric invalid). pb348_from_into_move_rules pins the positive equivalence. No REWRITE-specific negative fixture (the pb348 invalid-move-sender negatives are RELEASE/WRITE), so test-ref empty. cite.py --check 14.9.35.3 SR6 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+   "rule-text": "If record-name-1 is specified, identifier-1 or literal-1 shall be valid as a sending operand in a MOVE statement specifying record-name-1 as the receiving operand."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-L2.1",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#RewriteShared; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#ReleaseSingle",
+   "adjudicator-notes": "Rule (GR12 a) 1.): single record locking - a lock this connector holds on the record being replaced 'is released at completion unless the WITH LOCK phrase is specified'. cite.py --check 14.9.35.4 -> OK 12). RewriteShared, after a successful ('0x') RewriteAnyOrg, calls PhysicalFileTable.ReleaseSingle on the target when `!meta.Multiple || phrase == WithNoLock` and phrase != WithLock. Probe probe/rewrite-statement-p2/p4.cob (relative random, LOCK MODE MANUAL single, observer connector Q): READ 1 WITH LOCK, REWRITE (no phrase) -> S1-Q1=00 (released); READ 1 WITH LOCK, REWRITE WITH LOCK -> S2-Q1=51 (kept). No spec-derived golden pins the release-at-completion arm for REWRITE -> test-needed. [editions as adjudicated: 2002, 2014, 2023 (record locking; not a 1985 facility)]",
+   "rule-text": "If that file connector holds a record lock on the record to be logically replaced, that lock is released at completion unless the WITH LOCK phrase is specified."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-L2.2",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "REWRITE statement",
+   "editions": "2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#RewriteShared; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord",
+   "adjudicator-notes": "Rule: GR12 a) 2. a single-locking lock on a DIFFERENT record is released at the beginning; b) multiple locking - the replaced record's lock is released at completion only with WITH NO LOCK; c) WITH LOCK sets the lock at completion. cite.py --check 14.9.35.4 -> OK 12) b). RewriteShared calls ReleasePriorRecordLocks(meta, st, name, target) before the operation, then at success LockRecord for WithLock (gated on LocksEffective) or ReleaseSingle for single / multiple+WITH NO LOCK. Probe probe/rewrite-statement-p2/p4.cob: a) 2. P holds lock on 1, REWRITEs record 2 -> S3-Q1=00, S3-Q2=00; b) multiple connector M locks 1 and 2, REWRITE 1 (no phrase) -> S4-Q1=51 kept, REWRITE 2 WITH NO LOCK -> S4-Q2=00 released while S4-Q1b=51 stays; c) M REWRITE 3 WITH LOCK -> S6-Q3=51. conformance:2002/file_sharing_seq pins c) only (REWA WITH LOCK then REWB51=51); a) 2. and b) are probe-verified only -> test-ref left empty (test-needed for the uncovered arms). [editions as adjudicated: 2002, 2014, 2023 (record locking)]",
+   "rule-text": "If that file connector holds a record lock on a record other than the one to be logically replaced, that lock is released at the beginning. b) If multiple record locking is specified for the rewrite file connector, and a record lock is associated with the record to be logically replaced, that record lock is released at completion only when the WITH NO LOCK phrase is specified and the record to be logically replaced was already locked by that file connector. c) If the WITH LOCK phrase is specified, the record lock associated with the record to be replaced is set at completion."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-8",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 8,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/MoveBinder.cs",
+   "adjudicator-notes": "Rule: 'The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character.' cite.py --check 14.9.35.4 -> OK 8). With record-name-1, GR7 makes the FROM a MOVE, and MOVE of a one-character alphanumeric space to the record space-fills it, which is what the bound implicit MOVE of the figurative produces. Probe probe/rewrite-statement-p2/p2.cob: `REWRITE F1-REC FROM SPACE` -> FROMSP=00 F1=[      ], read back [      ]. The FILE-phrase context where the one-character length would matter is barred by SR10 b) (no figurative with FILE) and A.4.13 is declined (PB282, landed). No spec-derived golden -> test-needed. [editions as adjudicated: every edition whose REWRITE general format admits literal-1 (2002, 2014, 2023)]",
+   "rule-text": "The figurative constant SPACE when specified in the REWRITE statement references one alphanumeric space character."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-10",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 10,
+   "subject": "REWRITE statement",
+   "editions": "2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitRewrite; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitRewrite",
+   "adjudicator-notes": "\"After the execution of the REWRITE statement is complete, the information in the area referenced by identifier-1 is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description ...\" The emitters only READ identifier-1 (the bound implicit MOVE, GR7 a)) and never store into it; the runtime receives a string image. Probe pa.cob: after `REWRITE R2 FROM W20` W20 still displays YYYYYYYYYYYYYYYYYYYY. The subordinate case is 'not available' = unspecified content, which any behaviour satisfies. cite.py --check 14.9.35.4 GR10 -> OK. No spec-derived test pins it. [editions as adjudicated: 2023 (clarified in 2023 per Annex E.3.3 item 41: identifier-1 subordinate to the FD is not available); the availability of a non-subordinate identifier-1 is unchanged in 2014]",
+   "rule-text": "After the execution of the REWRITE statement is complete, the information in the area referenced by identifier‑1 is available, provided that identifier‑1 is not one or part of one of the record descriptions subordinate to the file‑description, even though the information in the area referenced by record‑name‑1 is not available except as specified for the SAME RECORD AREA clause as indicated in General rule 6."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-12",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 12,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#RewriteShared; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ReleasePriorRecordLocks; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#ReleaseSingle",
+   "adjudicator-notes": "GR12 a) 1./2., b), c). RewriteShared: ReleasePriorRecordLocks(meta, st, name, target) runs first and, only for single locking (returns early when meta.Multiple), releases every lock the connector holds EXCEPT one on the target - a) 2. 'released at the beginning'. After a successful (status '0x') rewrite: WITH LOCK and locks effective -> LockRecord (c) 'set at completion'; else if single locking OR WITH NO LOCK -> ReleaseSingle, which removes the lock only when THIS connector owns it - a) 1. (released unless WITH LOCK) and b) (multiple: released only with WITH NO LOCK and only if already locked by this connector). Multiple locking without a phrase keeps the lock (b). Default lock mode is 'no locking' (implementor choice under 12.4.5.9.4 GR1 b) 2., docs/PHASE4_RECONCILIATION.md), so for a clause-less connector the releases are vacuous. Read, not probed with two run units; no spec-derived test asserts the REWRITE-specific release/set, so test-ref empty. cite.py --check 14.9.35.4 GR12 \"that lock is released at completion unless the WITH LOCK phrase is specified\" -> OK. [editions as adjudicated: 2023 and 2014 (Annex E lists no 2014->2023 change); the record-locking facility it belongs to is post-1985 - the exact introducing edition is not derivable from the 2023 text]",
+   "rule-text": "If record locks are in effect, the following actions take place at the beginning or at the successful completion of the execution of the REWRITE statement: a) If single record locking is specified for the rewrite file connector:"
+  },
+  {
+   "rule-id": "GR-14.9.35.4-13",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 13,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OverwriteInPlace; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Rewrite",
+   "adjudicator-notes": "\"The file position indicator in the rewrite file connector is not affected by the execution of a REWRITE statement.\" Sequential: OverwriteInPlace saves stream.Position, writes at the last-read anchor and seeks back, leaving the reader's position; relative: Put at _lastSlot/_pendingKey, no position change; indexed: position held as key+ordinal values, Rewrite does not touch them. Probe pa.cob: READ(rec 2) / successful REWRITE / READ delivers record 3 (CCCCCCCCCC); pd.cob: READ key 1 then READ NEXT delivers key 2 after two REWRITEs. cite.py --check 14.9.35.4 GR13 -> OK. No spec-derived test. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+   "rule-text": "The file position indicator in the rewrite file connector is not affected by the execution of a REWRITE statement."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-14",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 14,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RewriteShared",
+   "adjudicator-notes": "\"If the execution of the REWRITE statement is unsuccessful, no logical record updating takes place, the content of the record area is unaffected, and the I-O status ... is updated as indicated in General rules 2, 5, 11, 16, 17, 20, 21, 22, 23, and 25.\" Every unsuccessful path returns BEFORE the physical write (49/43/44/71 before OverwriteInPlace; 23/44 before _st.Put; indexed validates 21/23/22 in a separate pass before any Stamp or Image assignment; 51 before RewriteAnyOrg), and no REWRITE path stores into the record area (the FROM MOVE precedes the REWRITE per GR7 and is not undone, which GR7's equivalence requires). Probe pb.cob: three 44/43 REWRITEs leave the file byte-identical (F1..F3 unchanged); pd.cob: 44/23 leave records intact. Transfer of control follows 9.1.12/9.1.14 (see GR19). The mechanism conforms; the two cases where the runtime FAILS TO RECOGNISE an unsuccessful condition (and so does update) are the GR16/GR17 findings, recorded on those rows. cite.py --check 14.9.35.4 GR14 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+   "rule-text": "If the execution of the REWRITE statement is unsuccessful, no logical record updating takes place, the content of the record area is unaffected, and the I-O status in the rewrite file connector is updated as indicated in General rules 2, 5, 11, 16, 17, 20, 21, 22, 23, and 25. The transfer of control depends on other clauses and the value of I-O status as described in 9.1.12, Input-output exception processing, 9.1.13, I-O status, and 9.1.14, Invalid key condition."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-15",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 15,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Rewrite",
+   "adjudicator-notes": "\"When record-name-1 is specified, if the number of bytes to be written to the file is greater than the number of bytes in record-name-1, the content of the bytes that extend outside the end of record-name-1 are undefined.\" The runtime pads a short image to the record width (Fit / FitRecord - spaces, or national-space pairs for a national area); any content satisfies 'undefined'. For the RECORD-SEQUENTIAL organization this rule is overridden by GR16 (a shorter record-name-1 is unsuccessful), which is where the fixed-length defect is recorded. cite.py --check 14.9.35.4 GR15 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+   "rule-text": "When record-name-1 is specified, if the number of bytes to be written to the file is greater than the number of bytes in record-name-1, the content of the bytes that extend outside the end of record-name-1 are undefined."
+  },
+  {
+   "rule-id": "GR-14.9.35.4-18",
+   "section": "14.9.35.4",
+   "kind": "GR",
+   "ordinal": 18,
+   "subject": "REWRITE statement",
+   "editions": "85,2002,2014,2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Rewrite; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Rewrite",
+   "adjudicator-notes": "\"The number of bytes in the record ... may differ from the number of bytes in the record being replaced.\" (RELATIVE AND INDEXED FILES.) Relative and indexed Rewrite have no equality test against the replaced record; Stored bounds only by VaryMin/VaryMax (GR20). Probe pd.cob (RELATIVE DYNAMIC, RECORD VARYING 5 TO 20 DEPENDING ON LN): a 10-byte record 1 rewritten at LN=15 -> 00, re-read LN=0015 with the 15-char content. Indexed read, not probed. cite.py --check 14.9.35.4 GR18 -> OK. [editions as adjudicated: 2023; ISO 1989:2023 Annex E lists no 2014->2023 change to this rule (E.3.3 item 41 touches GR10 only), so 2014 identically; the 1985/2002 wording is not derivable from the 2023 text]",
+   "rule-text": "The number of bytes in the record referenced by identifier-1, the runtime representation of literal-1, or the record referenced by record-name-1 may differ from the number of bytes in the record being replaced."
+  }
+ ]
+}

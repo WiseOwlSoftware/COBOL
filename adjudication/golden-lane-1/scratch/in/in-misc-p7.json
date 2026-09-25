@@ -1,0 +1,179 @@
+{
+ "slug": "misc-p7",
+ "family": "misc",
+ "row-count": 11,
+ "subjects": [
+  "EVALUATE directive"
+ ],
+ "existing-goldens-by-subject": {
+  "EVALUATE directive": [
+   "tests/conformance/2002/arith_standard.cob",
+   "tests/conformance/2002/ca8_float_sign_format2.cob",
+   "tests/conformance/2002/directive_expressions.cob",
+   "tests/conformance/2002/l1_day_to_yyyyddd_format.cob",
+   "tests/conformance/2002/l1_test_numval_f_class_screen.cob",
+   "tests/conformance/2002/l1_windowing_omitted_arg3.cob",
+   "tests/conformance/2002/l1_year_to_yyyy_defaults_and_sum_window.cob",
+   "tests/conformance/2002/literal_concat.cob",
+   "tests/conformance/2002/pb1001_line_next_page.cob",
+   "tests/conformance/2002/pb1006_source_format_in_false_path.cob",
+   "tests/conformance/2002/pb119_windowing_float_args.cob",
+   "tests/conformance/2002/pb120_when_compiled_contained.cob",
+   "tests/conformance/2002/pb230_incompatible_boolean_sending.cob",
+   "tests/conformance/2002/pb230_incompatible_sending_sweep.cob",
+   "tests/conformance/2002/pb327_national_record_key.cob",
+   "tests/conformance/2002/pb355_start_length_past_operand.cob",
+   "tests/conformance/2002/pb357_start_length_not_integer.cob",
+   "tests/conformance/2002/pb394_evaluate_function_subscript_subject.cob",
+   "tests/conformance/2002/pb394_sending_value_evaluated_once.cob",
+   "tests/conformance/2002/pb395_goto_depending_incompatible.cob",
+   "tests/conformance/2002/pb395_subtract_incompatible_sender.cob",
+   "tests/conformance/2002/pb398_evaluate_partial_expression.cob",
+   "tests/conformance/2002/pb398_range_in_alphabet.cob",
+   "tests/conformance/2002/pb399_format3_relation_legal_shapes.cob",
+   "tests/conformance/2002/pb400_evaluate_boolean_sr6_pair.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "SR-7.3.13.3-8",
+   "section": "7.3.13.3",
+   "kind": "SR",
+   "ordinal": 8,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+   "adjudicator-notes": "cite.py --check 7.3.13.3 \"Text-1 and text-2 may be any kind of source lines, including compiler directives.\" OK. Text lines are accumulated per frame, directives inside text are dispatched on the shared stack. Probe J: >>EVALUATE 2 / >>WHEN 2 containing a nested >>EVALUATE TRUE whose >>WHEN OTHER contains >>IF 3 > 2 ... >>END-IF -> prints `IN-OTHER-IF | W2` (spec-correct); multi-line text-1 works (directive_expressions). Nested EVALUATE via copybook in text-1 (probe U) -> `CPY-W2`. No spec-derived golden for the nesting. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, absent from 1985; Annex E E.2 item 8 shows the EVALUATE directive already in the previous standard)",
+   "rule-text": "Text-1 and text-2 may be any kind of source lines, including compiler directives. Text-1 and text-2 may consist of multiple lines."
+  },
+  {
+   "rule-id": "SR-7.3.13.3-13",
+   "section": "7.3.13.3",
+   "kind": "SR",
+   "ordinal": 13,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#FindRangeWord; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#SplitRange",
+   "adjudicator-notes": "cite.py --check 7.3.13.3 \"The words THROUGH and THRU are equivalent.\" OK. FindRangeWord matches either word, case-insensitive, whole-word, outside string literals. Probe K: `>>EVALUATE 5` with `>>WHEN 1 THRU 4` / `>>WHEN 5 THROUGH 9` -> B, and `>>WHEN 5 THRU 9` -> C (both spellings select identically). directive_expressions uses only THROUGH; tests/conformance/2023/l1_evaluate_thru_through_equivalent is the §14.9.13 STATEMENT, not this directive -- no covering test. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, absent from 1985; Annex E E.2 item 8 shows the EVALUATE directive already in the previous standard)",
+   "rule-text": "The words THROUGH and THRU are equivalent."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-1",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Flush",
+   "adjudicator-notes": "GR1 (cite.py --check 7.3.13.4 OK): text-1/text-2 are not part of the directive line, and their non-directive text words are subject to COPY/REPLACE matching. Render() consumes only lines starting '>>' as directives; every other emitting line is accumulated into a block and Flush() runs CopyProcessor.ExpandCopiesOneLevel on it, and REPLACE acts downstream on the resultant text; omitted lines are blanked. Probe p2.cob: REPLACE ==FOOTAG== BY ==\"GR1-REPLACE-OK\"== then text-1 'DISPLAY FOOTAG' and 'COPY cb1 REPLACING ==ZZTAG== BY ==\"GR1-COPY-OK\"==' inside a taken >>WHEN -> printed GR1-REPLACE-OK, GR1-COPY-OK; a REPLACE statement inside the omitted WHEN OTHER text did not act (its pseudo-text word stayed undefined, COBOLNET1639), and a nested >>IF inside text-1 was processed as a directive, not as text words. Both halves verified. No spec-derived golden exercises COPY/REPLACE inside >>EVALUATE text. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "Text-1 and text-2 are not part of the EVALUATE compiler directive line. Any text words in text-1 or text-2 that do not form a compiler directive line are subject to the matching and replacing rules of the COPY statement and the REPLACE statement."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-2",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen; src/Cobol.Net.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateArithmeticOperand",
+   "adjudicator-notes": "GR2 (cite.py --check 7.3.13.4 OK): a single numeric literal operand is a literal, not an arithmetic-expression, so it escapes the 7.3.6.3 GR3 integer truncation (cite.py OK). EvaluateArithmeticOperand's SoleNumericLiteral probe (shared SoleOperand.NumericLiteral descent) keeps the literal's fractional value; a genuine expression is decimal.Truncate'd. Probes: >>EVALUATE 1.5 / >>WHEN 1 not taken, >>WHEN 1.5 taken; >>EVALUATE 1.5 + 0 matches >>WHEN 1 (truncated expression); signed -1.5 vs -1 FALSE / vs -1.5 TRUE; subject 1.5 not in 1 THRU 1.2, in 1.4 THRU 1.6; subject 3 vs object 3.7 FALSE but vs 3.7 + 0 TRUE; 7 / 2 matches 3. Verified for subject, object and both range ends. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If an operand of the EVALUATE directive consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-3",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 3,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateBoolean; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#MatchWhen",
+   "adjudicator-notes": "GR3 (cite.py --check 7.3.13.4 OK): boolean-expression-1/-2 evaluated per 7.3.7 (-> 8.8.2). EvaluateOperand routes a booleanExpression operand through EvaluateBoolean = the ONE BooleanExpressionResolver, leaves restricted to boolean literals / boolean compilation variables per 7.3.7.2 SR1. Probes: >>EVALUATE B\"1010\" B-AND B\"0110\" matched >>WHEN B\"0010\" (not B\"0001\"); >>EVALUATE B-NOT B\"1101\" matched B\"0010\". Subject- and object-side boolean operands both evaluated. The unit ConditionalCompilationDefineTests boolean case covers >>DEFINE, not >>EVALUATE, so test-ref empty. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "Boolean-expression-1 and boolean-expression-2 are evaluated in accordance with 7.3.7, Compile-time boolean expressions."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-5",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 5,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+   "adjudicator-notes": "GR5 (cite.py --check 7.3.13.4 5) OK): if no WHEN is TRUE, text-2 of WHEN OTHER is included and all WHEN text-1 omitted. Render's WHEN-OTHER arm: Emitting = ParentActive && !BranchTaken. Probes: >>EVALUATE 5 / WHEN 1 / WHEN OTHER -> GR5-OK only; a matched WHEN suppresses OTHER (GR4 probes); a nested EVALUATE's OTHER inside an omitted enclosing WHEN stays omitted (p2 NEST). No golden takes the WHEN OTHER branch of a Format-1 >>EVALUATE (directive_expressions takes MID, pb725 takes THREE), so test-ref empty. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text. All lines of text-1 associated with other WHEN phrases are omitted from the resultant text."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-6",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 6,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+   "adjudicator-notes": "GR6 (cite.py --check 7.3.13.4 6) OK; E.2 item 8 made it a conjunction): END-EVALUATE reached with no TRUE WHEN AND no WHEN OTHER -> all text-1 omitted. The frame starts Emitting=false, each unmatched WHEN sets Emitting=false, END-EVALUATE pops the frame so following text emits per the parent. Probe: >>EVALUATE 5 / WHEN 1 / WHEN 2 / END-EVALUATE -> neither emitted; the line after END-EVALUATE emitted. CONFORMANCE.md determination (E.2 item 8) agrees. No spec-derived golden exercises the no-match/no-OTHER case. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-7",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 7,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Expressions/CtValue.cs#RelationalEquals; src/Cobol.Net.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#NonNumericOperand",
+   "adjudicator-notes": "GR7 (cite.py --check 7.3.13.4 7) OK; same rule as 7.3.8.3 GR2, cite OK): alphanumeric/national literal subject -> binary per-character equality, unequal lengths unequal. RelationalEquals is string.Equals(Ordinal) on CobolLiteral.Decode'd text. Probes: \"ABC\" vs \"ABC \" FALSE, vs \"abc\" FALSE, vs \"ABC\" TRUE; N\"XY\" vs N\"XY \" FALSE, vs N\"XY\" TRUE; X\"41\" vs \"A\" TRUE (same encoding). Both halves verified for both classes. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If literal-1 is an alphanumeric or national literal, a character by character comparison for equality based on the binary value of each character's encoding is used. If the literals are of unequal length they are not equal."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-8",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 8,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/Cobol.Net.Frontend/Expressions/CompileTimeExpressionEvaluator.cs#EvaluateCce",
+   "adjudicator-notes": "GR8 (cite.py --check 7.3.13.4 8) OK): Format 2 - each WHEN's constant-conditional-expression evaluated per 7.3.8 in turn; first TRUE included, others and WHEN OTHER omitted. >>EVALUATE TRUE sets TruthForm (inline comment stripped by CompilerDirectiveLine; '>>EVALUATE TRUE *> c' probed); each WHEN runs EvaluateCceText, the same cce evaluator as >>IF. Probe: >>DEFINE VV AS 3; WHEN VV > 5 FALSE; WHEN VV IS DEFINED AND VV = 3 TRUE (emitted); a later WHEN 1 = 1 and WHEN OTHER omitted. No spec-derived golden for Format 2 (the SpecFixTests cases are in the legacy CobolSharp.Tests.Integration project). Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "For each WHEN phrase in turn, the constant-conditional-expression is evaluated in accordance with 7.3.8, Constant conditional expression. If a WHEN phrase evaluates to TRUE, all lines of text-1 associated with that WHEN phrase are included in the resultant text. All lines of text-1 associated with other WHEN phrases of that EVALUATE directive and all lines of text-2 associated with a WHEN OTHER phrase are omitted from the resultant text."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-9",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 9,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+   "adjudicator-notes": "GR9 (FORMAT 2 twin of GR5, same wording; cite.py --check 7.3.13.4 5) text OK): Format 2 with no TRUE WHEN includes WHEN OTHER text-2. The same Render WHEN-OTHER arm serves both formats. Probe: >>EVALUATE TRUE / WHEN NOPE IS DEFINED (FALSE) / WHEN OTHER -> GR9-OK only. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If no WHEN phrase evaluates to TRUE, all lines of text-2 associated with the WHEN OTHER phrase, if specified, are included in the resultant text. All lines of text-1 associated with other WHEN phrases are omitted from the resultant text."
+  },
+  {
+   "rule-id": "GR-7.3.13.4-10",
+   "section": "7.3.13.4",
+   "kind": "GR",
+   "ordinal": 10,
+   "subject": "EVALUATE directive",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render",
+   "adjudicator-notes": "GR10 (FORMAT 2 twin of GR6; E.2 item 8): END-EVALUATE with no TRUE WHEN and no OTHER omits all text-1. Probe: >>EVALUATE TRUE / WHEN 1 = 2 / END-EVALUATE -> nothing emitted, the following line emitted. Same mechanism as GR6. No spec-derived golden. Probe dir out/probe/evaldir2 (pinned cobol.exe, --std 2023; p1 re-run at --std 2002 and 2014 with identical output; --std 85 rejects >>EVALUATE with COBOLNET0900). || editions (adjudicator): 2002, 2014, 2023 (the 7.3 directive facility is absent from 1985; Annex E.2 item 8 records the 2023 rewording of GR6/GR10 only)",
+   "rule-text": "If the END-EVALUATE phrase is reached without any WHEN phrase evaluating to TRUE, and without encountering a WHEN OTHER phrase, all lines of text-1 associated with all WHEN phrases are omitted from the resultant text."
+  }
+ ]
+}

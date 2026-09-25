@@ -1,0 +1,143 @@
+{
+ "slug": "misc-p22",
+ "family": "misc",
+ "row-count": 8,
+ "subjects": [
+  "Procedure division structure"
+ ],
+ "existing-goldens-by-subject": {
+  "Procedure division structure": [
+   "tests/conformance/2002/_pending_oo/oo_hello.cob",
+   "tests/conformance/2002/address_of_qualified.cob",
+   "tests/conformance/2002/allocate_initialized.cob",
+   "tests/conformance/2002/alphabet_national.cob",
+   "tests/conformance/2002/any_length_contained.cob",
+   "tests/conformance/2002/any_length_function.cob",
+   "tests/conformance/2002/apos_class.cob",
+   "tests/conformance/2002/arith_standard.cob",
+   "tests/conformance/2002/based_pointer.cob",
+   "tests/conformance/2002/binary_usage.cob",
+   "tests/conformance/2002/boolean_data.cob",
+   "tests/conformance/2002/boolean_ops.cob",
+   "tests/conformance/2002/ca17_indexed_rewrite_collating.cob",
+   "tests/conformance/2002/ca26_char_unicode_pcs.cob",
+   "tests/conformance/2002/ca36_search_range_dispatch.cob",
+   "tests/conformance/2002/ca3_figurative_display_pcs.cob",
+   "tests/conformance/2002/ca6_binary_operand_composite.cob",
+   "tests/conformance/2002/ca8_float_sign_format2.cob",
+   "tests/conformance/2002/char_national.cob",
+   "tests/conformance/2002/comp1_comp2.cob",
+   "tests/conformance/2002/conditional_compilation.cob",
+   "tests/conformance/2002/constant_entry.cob",
+   "tests/conformance/2002/constant_record.cob",
+   "tests/conformance/2002/da1_alphabet_hex_thru.cob",
+   "tests/conformance/2002/directive_expressions.cob"
+  ]
+ },
+ "conventions": {
+  "positive-golden": "tests/conformance/<edition>/<name>.cob + <name>.out; the directory selects --std. First line a comment `*> ISO §<clause> <rule> — <what is exercised>`. Unique PROGRAM-ID per program (a stale same-named assembly is served otherwise). Deterministic output only. Do NOT edit any manifest.json — return the entry; the director registers it.",
+  "negative-golden": "tests/conformance/negative/<name>.cob + <name>.err (the expected diagnostic substring, e.g. COBOLNET1560). FIRST line of the .cob MUST be `*> reject-at: <year> [<year> ...]`. Do NOT edit the negative manifest — return the entry.",
+  "test-ref-forms": "conformance:<edition>/<case> (positive, spec-derived) · conformance:negative/<case> · unit:<Class>.<Method> · conformance-test:<Class>.<Method>. nist:/characterization: and any *_MatchesLegacy method are NOT spec-derived and cannot close a row.",
+  "compiler": "src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe <file.cob> --std <85|2002|2014|2023> --run  (run in a scratch dir; never dotnet build/test — the tree is shared and a guard refuses builds while a fleet is live).",
+  "citation-check": "python scripts/spec/cite.py --check <clause> \"<quoted text>\"  — every § you cite, no exceptions.",
+  "record-shape": "{'rule-id','verdict','code-location','test-ref','editions','notes'} — strings only; editions as \"85,2002,2014,2023\"."
+ },
+ "rows": [
+  {
+   "rule-id": "SR-14.2.2-4",
+   "section": "14.2.2",
+   "kind": "SR",
+   "ordinal": 4,
+   "subject": "Procedure division structure",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/Cobol.Net.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitReturningClause",
+   "adjudicator-notes": "§14.2.2 SR4 (cite.py --check 14.2.2 \"The RETURNING phrase may be specified in a method definition, a program definition, or a program prototype\" -> OK §14.2.2 4)). A permission with three arms, all probed: program definition RETURNING delivers 123 to CALL ... RETURNING (b2/sr4_prog.cob -> R=123); program prototype `PROGRAM-ID. PP4 IS PROTOTYPE.` with RETURNING compiles (b2/sr4_pgmproto.cob); method RETURNING delivers the value through INVOKE and inline invocation (b5/gr2_oo.cob). No existing spec-derived test names all three arms (goback_returning rides an implementor extension); left test-needed. || editions as adjudicated: 2002, 2014, 2023 (PROCEDURE DIVISION RETURNING is a COBOL-2002 introduction; ConstructRegistry procedure-returning-2002)",
+   "rule-text": "The RETURNING phrase may be specified in a method definition, a program definition, or a program prototype."
+  },
+  {
+   "rule-id": "SR-14.2.2-11",
+   "section": "14.2.2",
+   "kind": "SR",
+   "ordinal": 11,
+   "subject": "Procedure division structure",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/PrototypeUnitRules.cs#ScreenBody",
+   "adjudicator-notes": "§14.2.2 SR11 (cite.py --check 14.2.2 \"A procedure division in a method prototype shall contain only a procedure division header\" -> OK §14.2.2 11)). Probe b2/sr11_ifacebody.cob: an interface method with a DISPLAY statement -> COBOLNET2272 'a prototype's procedure division shall contain only a procedure division header' (cites §10.6.2 SR4 f), the parallel rule). Header-only interface method compiles (b2/sr13_ifacestmts.cob). ExitPlacementContextDriftTests pins 2272 only for the PROGRAM prototype, not the method prototype - test-needed. || editions as adjudicated: 2002, 2014, 2023 (method prototypes / interfaces are COBOL-2002 OO)",
+   "rule-text": "A procedure division in a method prototype shall contain only a procedure division header."
+  },
+  {
+   "rule-id": "SR-14.2.2-12",
+   "section": "14.2.2",
+   "kind": "SR",
+   "ordinal": 12,
+   "subject": "Procedure division structure",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#methodDefinition; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#procedureDivision",
+   "adjudicator-notes": "§14.2.2 SR12 (cite.py --check 14.2.2 \"Format 3 may be specified in a source element if and only if that source element is a factory definition, an instance definition, or an interface definition, but not in a method definition\" -> OK §14.2.2 12)). Structural: Format 3 (PROCEDURE DIVISION. methodDefinition*) exists only in the CobolOO.g4 FACTORY / OBJECT / INTERFACE productions; a method's procedureDivision is the Format 1/2 rule. Probes: a METHOD-ID nested inside a method's PD (b2/sr12_nested_method.cob) and inside a PROGRAM's PD (b2/sr12_prog_method.cob) are both refused (COBOL0001 parse errors - loud, though not a rule-naming diagnostic). Interface/object Format 3 accepted (b5/gr2_oo.cob, b2/sr13_ifacestmts.cob).",
+   "rule-text": "Format 3 may be specified in a source element if and only if that source element is a factory definition, an instance definition, or an interface definition, but not in a method definition."
+  },
+  {
+   "rule-id": "SR-14.2.2-13",
+   "section": "14.2.2",
+   "kind": "SR",
+   "ordinal": 13,
+   "subject": "Procedure division structure",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4",
+   "adjudicator-notes": "§14.2.2 SR13 (A procedure division in an interface/instance/factory definition not in a method definition shall be object-oriented format). The CobolOO.g4 productions for FACTORY, OBJECT and INTERFACE admit only `PROCEDURE DIVISION DOT methodDefinition*`. Probes: OBJECT PD with a DISPLAY statement (b2/sr13_objstmts.cob), OBJECT `PROCEDURE DIVISION USING A.` (sr13_objusing.cob) and FACTORY `PROCEDURE DIVISION RETURNING A.` (sr13_factreturning.cob) all refused at parse (COBOL0001/0307 - loud, parse-level wording).",
+   "rule-text": "A procedure division in an interface definition, an instance definition, or a factory definition that is not in a method definition shall be an object-oriented format procedure division."
+  },
+  {
+   "rule-id": "GR-14.2.3-1",
+   "section": "14.2.3",
+   "kind": "GR",
+   "ordinal": 1,
+   "subject": "Procedure division structure",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/ProcedureTableBuilder.cs; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs",
+   "adjudicator-notes": "§14.2.3 GR1 (cite.py --check 14.2.3 \"Execution begins with the first statement of the procedure division, excluding declaratives\" -> OK §14.2.3 1)). ProcedureTableBuilder orders DECLARATIVES first and DispatchEmitter starts at the first NONdeclarative procedure. Probes: gr1.cob (DECLARATIVES then M SECTION with an unnamed leading sentence) prints FIRST/SECOND/THIRD with no DECL; fmt2_ok.cob (sentences before first paragraph) executes the header-following sentence first; fall-through order across sections/paragraphs is presentation order. pb367 golden (spec-derived output) runs the main section first behind a DECLARATIVES block. || REFUTED: CONFORMS (test-ref must be empty) — The behaviour holds. Execution skips the declaratives and starts at the first statement: the adjudicator's gr1/fmt2_ok probes, plus mine, where the first statement sits in the second paragraph of the first section and, separately, after an empty first section. The cited test-ref does not close this row, though. pb367_use_procedure_is_the_section derives its expected output from 14.9.49.3 SR1, 14.4.2, 14.6.3, 14.9.14.4 and 14.9.33.4, and never from 14.2.3 GR1. It pins USE-procedure extent, and GR1 is only incidental to its first line. A test that is not derived from this rule's text cannot close the row. Keep CONFORMS, untested.",
+   "rule-text": "Execution begins with the first statement of the procedure division, excluding declaratives. Statements are then executed in the order in which they are presented for compilation, except where the rules indicate some other order."
+  },
+  {
+   "rule-id": "GR-14.2.3-2",
+   "section": "14.2.3",
+   "kind": "GR",
+   "ordinal": 2,
+   "subject": "Procedure division structure",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/Cobol.Net.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData; src/Cobol.Net.Compiler/Binding/Bound/BoundCall.cs",
+   "adjudicator-notes": "§14.2.3 GR2 (positional correspondence; five argument sources). Probed with names chosen to CONTRADICT position: CALL 'SUB9' USING Y X into formals X Y -> callee sees BBBAAA and its store to its first formal lands in the caller's Y (b2/gr2_pos.cob); inline invocation O::\"CAT\"(B, A) -> BBBAAA and INVOKE O \"CAT\" USING A B -> AAABBB (b5/gr2_oo.cob); function reference FR6(A) delivers (b4/gr6_func.cob); implicit SET property method via MOVE B TO P OF O -> P=BBB (b5/gr2_oo.cob). The conformance delegation to 14.8.2/14.8.3 is owned by those clauses' rows. No single existing test pins position-vs-name - test-needed. || editions as adjudicated: 85, 2002, 2014, 2023 (CALL arm 85; INVOKE / inline invocation / function reference / property SET arms 2002+)",
+   "rule-text": "The USING phrase identifies the formal parameters used by the function, method, or program for any arguments passed to it. The arguments passed from the activating element are: — the arguments specified in the USING phrase of a CALL statement — the arguments specified in the USING phrase of an INVOKE statement — the arguments specified in an inline invocation of a method — the arguments specified in a function reference — the argument defined by the rules of an object-property for invocation of an implicit SET property method. The correspondence between the arguments and the formal parameters is established on a positional basis. The conformance requirements for formal parameters and returning items are specified in 14.8.2, Parameters and 14.8.3, Returning items."
+  },
+  {
+   "rule-id": "GR-14.2.3-5",
+   "section": "14.2.3",
+   "kind": "GR",
+   "ordinal": 5,
+   "subject": "Procedure division structure",
+   "editions": "85, 2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage; src/Cobol.Net.Compiler/Binding/DataBinder.Oo.cs#OoBindMethodData",
+   "adjudicator-notes": "§14.2.3 GR5 'Data-name-1 is a formal parameter for the function, method, or program.' Definitional: every USING data-name-1 becomes a LinkageFormal (program/function) or OoFormal (method) at its position; probes gr2_pos / gr2_oo / gr6_func show each is bound to its argument. The defective EDGES of which data-name-1 are admissible belong to SR-14.2.2-1.",
+   "rule-text": "Data-name-1 is a formal parameter for the function, method, or program."
+  },
+  {
+   "rule-id": "GR-14.2.3-7",
+   "section": "14.2.3",
+   "kind": "GR",
+   "ordinal": 7,
+   "subject": "Procedure division structure",
+   "editions": "2002, 2014, 2023",
+   "verdict": "CONFORMS",
+   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Linkage.cs#CallBindLinkage",
+   "adjudicator-notes": "§14.2.3 GR7 (cite.py --check 14.2.3 \"The initial value of the returning item, data-name-2, is undefined\" -> OK §14.2.3 7)). Undefined behaviour imposes no requirement; the returning item binds as an ordinary LINKAGE item without a VALUE-driven initial state, and nothing observable can contradict it. No test can be spec-derived for an undefined value.",
+   "rule-text": "The initial value of the returning item, data-name-2, is undefined."
+  }
+ ]
+}

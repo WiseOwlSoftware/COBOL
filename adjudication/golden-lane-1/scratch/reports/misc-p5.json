@@ -1,0 +1,328 @@
+{
+ "slug": "misc-p5",
+ "rows": [
+  {
+   "rule_id": "DOC-A.1-29",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_compile_time_arith_mode; conformance:negative/l1c05-ct-arith-intermediate-overflow",
+   "files": [
+    "tests/conformance/2002/l1c05_compile_time_arith_mode.cob",
+    "tests/conformance/2002/l1c05_compile_time_arith_mode.out",
+    "tests/conformance/negative/l1c05-ct-arith-intermediate-overflow.cob",
+    "tests/conformance/negative/l1c05-ct-arith-intermediate-overflow.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins the documented mode (CONFORMANCE.md DOC-A.1-29: System.Decimal, exact within 28-29 digits, round-half-even beyond, no truncating division, final GR3 truncation; one evaluator for CONSTANT AS and >>DEFINE/>>IF). D1 2/3*3 -> 2 (truncating division would be 1); D2 100/7*7 -> 100 (99); D3 1/3*3 -> 0; T1 5E-28/2*1E28 -> 2 (tie-to-even; half-up 3); T2 15E-28/2*1E28 -> 8 (truncation 7); >>DEFINE D1V AS 2/3*3 then >>IF D1V = 2 selected. Negative: 28 nines * 10 exceeds the documented intermediate range -> COBOLNET1547, never wrapped.",
+   "citations": [
+    "cite.py --check 7.3.6.3 \"The implementor shall define and document which mode of arithmetic is to be used when evaluating compile-time arithmetic\" -> OK §7.3.6.3 2)",
+    "cite.py --check 7.3.6.2 \"They shall also document which intermediate rounding method is used\" -> OK §7.3.6.2 2)",
+    "cite.py --check 7.3.6.2 \"The implementor shall define and document any rules restricting the precision and/or magnitude and/or range of permissible values for the intermediate results\" -> OK §7.3.6.2 2)",
+    "cite.py --check 7.3.6.3 \"The final result of the arithmetic expression shall be truncated to the integer part of the value\" -> OK §7.3.6.3 3)",
+    "cite.py --check 7.3.6.1 \"A compile-time arithmetic expression may be specified in the DEFINE and EVALUATE directives, in a constant conditional expression, and in a constant entry\" -> OK §7.3.6.1"
+   ],
+   "ran": "pass",
+   "notes": "Golden pins a documented implementor choice (CONFORMANCE.md row DOC-A.1-29). Adjudicator's warning stands: the older CONFORMANCE.md section-3 bullet 'Compile-time arithmetic mode' (kb/Work PB1369) contradicts this row and should be replaced with a pointer to the row."
+  },
+  {
+   "rule_id": "SR-7.3.3-9",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c05-imp-directive-not-defined",
+   "files": [
+    "tests/conformance/negative/l1c05-imp-directive-not-defined.cob",
+    "tests/conformance/negative/l1c05-imp-directive-not-defined.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "COBOL.NET defines no IMP directive, so no implementor syntax rule admits >>IMP, and SR6 admits a compiler-instruction only 'as specified in the syntax of each directive': '>>IMP SOMETHING' (column 8, fixed form) is not a directive and must be rejected at 2002/2014/2023. Control: the same file with '>>LISTING ON' in that position compiles and runs.",
+   "citations": [
+    "cite.py --check 7.3.3 \"The compiler-directive word 'IMP' is reserved for use by the implementor. If the implementor defines the IMP directive, the syntax rules for that directive shall be implementor-defined.\" -> OK §7.3.3 9)",
+    "cite.py --check 7.3.3 \"Compiler-instruction is composed of compiler-directive words, system-names, and user-defined words as specified in the syntax of each directive\" -> OK §7.3.3 6)"
+   ],
+   "ran": "pass",
+   "notes": "The .err is COBOL0001 (generic 'unexpected >' syntax error, the same code used by 10 existing negatives), NOT a COBOLNETnnnn code specific to this rule: the compiler has no dedicated 'unknown directive word' diagnostic. The director should decide whether a generic-syntax witness is acceptable; if not, move this row to not-closable. >>DEFINE IMP AS 1 being accepted is the SR-7.3.3-7 / 7.3.11.3 SR1 defect the adjudicator already charged elsewhere, not re-filed here."
+  },
+  {
+   "rule_id": "GR-7.3.4-4",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "Conditional on an implementor-defined IMP directive. COBOL.NET defines none (witnessed by conformance:negative/l1c05-imp-directive-not-defined under SR-7.3.3-9), so there are no IMP general rules and nothing that runs.",
+   "citations": [
+    "cite.py --check 7.3.4 \"If the implementor defines the IMP directive, the general rules for that directive shall be implementor-defined.\" -> OK §7.3.4 4)"
+   ],
+   "ran": "n/a",
+   "notes": "Vacuous for this implementation; Annex A.1 item 30 is owed only upon support for IMP."
+  },
+  {
+   "rule_id": "GR-8.5.1.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_composite_sequence_positions",
+   "files": [
+    "tests/conformance/2002/l1c05_composite_sequence_positions.cob",
+    "tests/conformance/2002/l1c05_composite_sequence_positions.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "NX\"00650301\" (e + U+0301 combining acute) is 2 positions: LENGTH=2; in PIC N(3) (1:1)=U+0065, (2:1)=U+0301, (3:1)=space; INSPECT FOR CHARACTERS BEFORE INITIAL space = 2; MOVE to PIC N(1) keeps only the base; REVERSE = 0301 0065.",
+   "citations": [
+    "cite.py --check 8.5.1.4 \"The non-combining character and the following combining characters of a composite sequence defined in ISO/IEC 10646 are each treated as a single character position.\" -> OK §8.5.1.4 1)",
+    "cite.py --check 8.5.1.4 \"The following processing limitations shall apply when ISO/IEC 10646 is chosen as a computer's coded character set\" -> OK §8.5.1.4"
+   ],
+   "ran": "pass",
+   "notes": "Directory 2002: national data and NX literals do not exist at 85 (the row lists 85, but the adjudicator notes the rule is vacuous there, since X3.23-1985 has no ISO/IEC 10646 set). The row also applies at 2014/2023; the 2002 golden is the lowest edition."
+  },
+  {
+   "rule_id": "GR-8.5.1.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_surrogate_halves_positions",
+   "files": [
+    "tests/conformance/2002/l1c05_surrogate_halves_positions.cob",
+    "tests/conformance/2002/l1c05_surrogate_halves_positions.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "U+1F600 = D83D DE00 is 2 positions: LENGTH(NX\"D83DDE00\")=2; PIC N(4) VALUE NX\"0061D83DDE000062\" has (2:1)=D83D, (3:1)=DE00, (4:1)='b'; INSPECT FOR CHARACTERS = 4; MOVE the pair to PIC N(1) keeps the lone high half; REVERSE = DE00 D83D.",
+   "citations": [
+    "cite.py --check 8.5.1.4 \"The high-half 2 octets and the low-half 2 octets of a four-octet sequence defined in the UTF-16 format of ISO/IEC 10646 are each treated as a single character position.\" -> OK §8.5.1.4 2)",
+    "cite.py --check 8.5.1.4 \"Each two-octet code element of UTF-16 is treated in COBOL as though it were itself a character\" -> OK §8.5.1.4 2)"
+   ],
+   "ran": "pass",
+   "notes": "Directory 2002, for the same reason as GR-8.5.1.4-1."
+  },
+  {
+   "rule_id": "DOC-A.1-32",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c05_coded_character_values; conformance:2002/l1c05_coded_character_values_national",
+   "files": [
+    "tests/conformance/85/l1c05_coded_character_values.cob",
+    "tests/conformance/85/l1c05_coded_character_values.out",
+    "tests/conformance/2002/l1c05_coded_character_values_national.cob",
+    "tests/conformance/2002/l1c05_coded_character_values_national.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Pins the documented values (CONFORMANCE.md DOC-A.1-32) through FUNCTION ORD = code unit + 1 (DOC-A.1-8, no PROGRAM COLLATING SEQUENCE). 85: SPACE 033, QUOTE 035, ZERO 049, space fill 033, B 033, 0 049, digit 9 058, Z-suppressed space 033, C 068, R 083, D 069, DB's B 067, - 046, + 044, * 043, / 048, comma 045, period 047, $ 037. 2002: the national SPACE/QUOTE/ZERO/fill/B/0/C/R give the same ordinals, and the floating-point editing E is 070.",
+   "citations": [
+    "cite.py --check 8.1.2 \"The implementor shall specify one and only one alphanumeric coded character value\" -> OK §8.1.2 3)",
+    "cite.py --check 8.1.2 \"The implementor shall specify one and only one national coded character value associated with each of the following COBOL elements\" -> OK §8.1.2 3)",
+    "cite.py --check 15.70.4 \"the returned value is the ordinal position of argument-1 in the current alphanumeric program collating sequence\" -> OK §15.70.4 1)",
+    "cite.py --check 15.70.4 \"If the class of argument-1 is national, the returned value is the ordinal position of argument-1 in the current national program collating sequence\" -> OK §15.70.4 2)"
+   ],
+   "ran": "pass",
+   "notes": "The two goldens depend on two documented choices: item 32 (the values) and item 8 (ORD = code unit + 1). The editing E needs floating-point editing, a 2002 feature, so it is in the 2002 file. The adjudicator's side finding (CONVERT ANY of a national numeric-edited item) was not re-probed."
+  },
+  {
+   "rule_id": "GR-9.3.8.2.3-L2.1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_oo_returning_only_same_class; conformance:negative/l1c05-oo-returning-only-dropped; conformance:negative/l1c05-oo-returning-only-subclass",
+   "files": [
+    "tests/conformance/2002/l1c05_oo_returning_only_same_class.cob",
+    "tests/conformance/2002/l1c05_oo_returning_only_same_class.out",
+    "tests/conformance/negative/l1c05-oo-returning-only-dropped.cob",
+    "tests/conformance/negative/l1c05-oo-returning-only-dropped.err",
+    "tests/conformance/negative/l1c05-oo-returning-only-subclass.cob",
+    "tests/conformance/negative/l1c05-oo-returning-only-subclass.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "The interface prototype GETX returns OBJECT REFERENCE X ONLY. With an implementation that also returns X ONLY (the ONLY phrase and the same name), it conforms: it compiles, runs and prints SPEAK-L1C05RX. With an implementation returning X without ONLY, it does not conform (COBOLNET0841). With an implementation returning Y ONLY, where Y INHERITS X, it does not conform either: the name is not the same, and rule c) 2., which admits a subclass, applies only without ONLY (COBOLNET0841).",
+   "citations": [
+    "cite.py --check 9.3.8.2.3 \"If the returning item in interface-2 is described with the ONLY phrase, the returning item in interface-1 shall be described with the ONLY phrase and the same object-class-name\" -> OK §9.3.8.2.3 5) 2. c)",
+    "cite.py --check 11.8.3 \"Each method prototype in each implemented interface shall be such that the object interface of this class conforms to all implemented interfaces\" -> OK §11.8.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Cosmetic only: the 0841 message for both negatives cites '(ISO §9.3.8.2.3 rules 5a/5c2)' and §14.9.39.3 SR12 a)1. The rule actually applied is 5 c) 1. The verdict is right; only the rule the message names is wrong (OoConformance.cs ObjectRefAssignmentMismatch)."
+  },
+  {
+   "rule_id": "GR-9.3.8.2.3-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c05-oo-returning-absent-in-impl; conformance:negative/l1c05-oo-returning-extra-in-impl",
+   "files": [
+    "tests/conformance/negative/l1c05-oo-returning-absent-in-impl.cob",
+    "tests/conformance/negative/l1c05-oo-returning-absent-in-impl.err",
+    "tests/conformance/negative/l1c05-oo-returning-extra-in-impl.cob",
+    "tests/conformance/negative/l1c05-oo-returning-extra-in-impl.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "The interface and the implementing class declare ADDV with the same BY REFERENCE PIC 9(4) formal. The only difference is RETURNING: the prototype has it and the implementation lacks it, or the other way round. Either way presence differs, so the class does not conform (§11.8.3 SR2) and each is rejected with COBOLNET0841 at 2002, 2014 and 2023. Control: RETURNING on both sides compiles. The admitting case is already covered by conformance:2002/oo_interface_conformance.",
+   "citations": [
+    "cite.py --check 9.3.8.2.3 \"The presence or absence of the procedure division RETURNING phrase is the same\" -> OK §9.3.8.2.3 4)",
+    "cite.py --check 11.8.3 \"Each method prototype in each implemented interface shall be such that the object interface of this class conforms to all implemented interfaces\" -> OK §11.8.3 2)"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "GR-9.3.8.2.3-7",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_oo_strong_type_same_type; conformance:negative/l1c05-oo-strong-type-other-name; conformance:negative/l1c05-oo-strong-type-vs-plain-group; conformance:negative/l1c05-oo-strong-type-returning-other",
+   "files": [
+    "tests/conformance/2002/l1c05_oo_strong_type_same_type.cob",
+    "tests/conformance/2002/l1c05_oo_strong_type_same_type.out",
+    "tests/conformance/negative/l1c05-oo-strong-type-other-name.cob",
+    "tests/conformance/negative/l1c05-oo-strong-type-other-name.err",
+    "tests/conformance/negative/l1c05-oo-strong-type-vs-plain-group.cob",
+    "tests/conformance/negative/l1c05-oo-strong-type-vs-plain-group.err",
+    "tests/conformance/negative/l1c05-oo-strong-type-returning-other.cob",
+    "tests/conformance/negative/l1c05-oo-strong-type-returning-other.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "The prototype and the implementation each declare an equivalent TYPEDEF TT STRONG in their linkage section (§8.5.3.1). With the formal and returning item both of type TT, it conforms and runs: GOT=ABCD, RET=WXYZ. It does not conform (COBOLNET0841) when the formal is type TU, a strong type with the identical layout but another type-name. That case is distinctive to rule 7, since a non-strong group would pass rule 3. It also does not conform when the formal is a plain group of the same width, or when the RETURNING item is type TU.",
+   "citations": [
+    "cite.py --check 9.3.8.2.3 \"If either of the corresponding formal parameters or returning items in interface-1 or interface-2 is a strongly-typed group item, both are of the same type\" -> OK §9.3.8.2.3 7)",
+    "cite.py --check 8.5.3.1 \"Two type declarations are considered equivalent when they have the same type-name, both have the same presence or absence of the EXTERNAL clause and the STRONG phrase\" -> OK §8.5.3.1",
+    "cite.py --check 10.6.2 \"The data division may contain only a linkage section\" -> OK §10.6.2 4) e)",
+    "cite.py --check 11.8.3 \"Each method prototype in each implemented interface shall be such that the object interface of this class conforms to all implemented interfaces\" -> OK §11.8.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Cosmetic only: the formal-parameter message ends with '(ISO §9.3.8.2.3 rules 2/3 ... identical descriptions)' and the RETURNING message ends with '(rule 6)', although each also names rule 7. The verdicts are right."
+  },
+  {
+   "rule_id": "SR-7.3.8.2-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_cce_arith_expression; conformance:negative/l1c05-cce-arith-exponentiation; conformance:negative/l1c05-cce-arith-division-by-zero; conformance:negative/l1c05-cce-arith-nonnumeric-operand",
+   "files": [
+    "tests/conformance/2002/l1c05_cce_arith_expression.cob",
+    "tests/conformance/2002/l1c05_cce_arith_expression.out",
+    "tests/conformance/negative/l1c05-cce-arith-exponentiation.cob",
+    "tests/conformance/negative/l1c05-cce-arith-exponentiation.err",
+    "tests/conformance/negative/l1c05-cce-arith-division-by-zero.cob",
+    "tests/conformance/negative/l1c05-cce-arith-division-by-zero.err",
+    "tests/conformance/negative/l1c05-cce-arith-nonnumeric-operand.cob",
+    "tests/conformance/negative/l1c05-cce-arith-nonnumeric-operand.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Admitting half: >>IF 7 / 2 = 3 is TRUE (3.5 truncates to 3, GR3). >>IF 1.5 + 0 = 1 is TRUE. >>IF 1 + 2 * 3 = 7 is TRUE (§8.8.1 precedence). >>IF -7 / 2 < -3 is FALSE (the integer part toward zero is -3; INTEGER would give -4). Rejecting halves, COBOLNET1619 at 2002, 2014 and 2023: SR1a '2 ** 2 = 4', SR1c '1 / 0 = 1', SR1b '\"1\" + 1 = 2'. Control: each negative with '1 + 1 = 2' compiles and selects.",
+   "citations": [
+    "cite.py --check 7.3.8.2 \"An arithmetic expression in a constant conditional expression shall be formed in accordance with 7.3.6\" -> OK §7.3.8.2 2)",
+    "cite.py --check 7.3.6.2 \"The exponentiation operator shall not be specified\" -> OK §7.3.6.2 1) a)",
+    "cite.py --check 7.3.6.2 \"All operands shall be fixed-point numeric literals or arithmetic expressions in which all operands are fixed-point numeric literals\" -> OK §7.3.6.2 1) b)",
+    "cite.py --check 7.3.6.2 \"The expression shall be specified in such a way that a division by zero cannot occur\" -> OK §7.3.6.2 1) c)",
+    "cite.py --check 7.3.6.3 \"The final result of the arithmetic expression shall be truncated to the integer part of the value\" -> OK §7.3.6.3 3)"
+   ],
+   "ran": "pass",
+   "notes": "The first drafts put >> at column 7, the fixed-form indicator area. That is illegal under §7.3.3 SR3 (cite OK §7.3.3 3): 'in the program-text area'. Once the header was wrapped to 72 columns, the file auto-detected as fixed and gave COBOL0001, so the drafts were moved to column 8 (a slip in my program, not a compiler defect). Hygiene note for the corpus: existing 2002/directive_expressions.cob also puts its directives at column 7. It passes only because its 115-character comment line makes the documented format auto-detection (ReferenceFormatProcessor.IsFixedForm) choose free form."
+  },
+  {
+   "rule_id": "SR-7.3.8.2-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_cce_boolean_expression; conformance:negative/l1c05-cce-boolean-alnum-operand; conformance:negative/l1c05-cce-boolean-numeric-operand",
+   "files": [
+    "tests/conformance/2002/l1c05_cce_boolean_expression.cob",
+    "tests/conformance/2002/l1c05_cce_boolean_expression.out",
+    "tests/conformance/negative/l1c05-cce-boolean-alnum-operand.cob",
+    "tests/conformance/negative/l1c05-cce-boolean-alnum-operand.err",
+    "tests/conformance/negative/l1c05-cce-boolean-numeric-operand.cob",
+    "tests/conformance/negative/l1c05-cce-boolean-numeric-operand.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Admitting half (§8.8.2 evaluation): B\"1\" B-XOR B\"1\" = B\"0\" is TRUE. B\"1\" = B\"1\" B-AND B\"0\" is FALSE. B\"1100\" B-OR B\"0011\" = B\"1111\" is TRUE. B-NOT B\"0\" B-AND B\"0\" = B\"0\" is TRUE because B-NOT binds first. B\"1\" B-OR B\"1\" B-XOR B\"1\" = B\"1\" is TRUE because XOR binds before OR; left to right would give FALSE. Rejecting half, COBOLNET1619 at 2002, 2014 and 2023: an alphanumeric \"1\" or a numeric 1 as a B-AND operand. Control: '1 + 1 = 2' compiles.",
+   "citations": [
+    "cite.py --check 7.3.8.2 \"A boolean expression in a constant conditional expression shall be formed in accordance with 7.3.7\" -> OK §7.3.8.2 3)",
+    "cite.py --check 7.3.7.2 \"all operands shall be boolean literals or boolean expressions in which all operands are boolean literals\" -> OK §7.3.7.2 1)",
+    "cite.py --check 7.3.7.3 \"The order of precedence and the rules for evaluation of compile-time boolean expressions are shown in 8.8.2\" -> OK §7.3.7.3 1)",
+    "cite.py --check 8.8.2 \"1st — negation (B-NOT)\" -> OK §8.8.2 7) b)",
+    "cite.py --check 8.8.2 \"3rd — exclusive disjunction (B-XOR)\" -> OK §8.8.2 7) b)"
+   ],
+   "ran": "pass",
+   "notes": "Directives are at column 8; see the SR-7.3.8.2-2 notes."
+  },
+  {
+   "rule_id": "GR-13.10.4-4",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c05_constant_expr_truncated_integer",
+   "files": [
+    "tests/conformance/2002/l1c05_constant_expr_truncated_integer.cob",
+    "tests/conformance/2002/l1c05_constant_expr_truncated_integer.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Displayed through PIC -9.9, so a surviving fraction would show: AS 7 / 2 gives 3 (HALF= 3.0). AS -7 / 2 gives -3, the integer part toward zero (NEG=-3.0). AS 0.5 + 0.6 gives 1 (SUM= 1.0). AS 0.4 * 2 gives 0, truncated not rounded (MUL= 0.0). Contrast: AS 0.5, a single literal under SR1, keeps 0.5. Integer: PIC X(K-HALF) is X(3), so [ABC]. OCCURS K-HALF gives LENGTH 6. Numeric: 10*K-HALF+K-NEG = 27.",
+   "citations": [
+    "cite.py --check 13.10.4 \"If arithmetic-expression-1 is specified, it is evaluated in accordance with 7.3.6\" -> OK §13.10.4 4)",
+    "cite.py --check 7.3.6.3 \"The final result of the arithmetic expression shall be truncated to the integer part of the value\" -> OK §7.3.6.3 3)",
+    "cite.py --check 13.10.3 \"If the operand of the constant entry consists of a single numeric literal, that operand is treated as a literal, not as an arithmetic-expression\" -> OK §13.10.3 1)",
+    "cite.py --check 13.10.3 \"If constant-name-1 is an integer, it may also be used to specify repetition in a picture character-string\" -> OK §13.10.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Covers the branch the refuter found unpinned in constant_entry: the truncation and the integer use of an arithmetic constant."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c05_coded_character_values"
+  ],
+  "2002": [
+   "l1c05_constant_expr_truncated_integer",
+   "l1c05_compile_time_arith_mode",
+   "l1c05_cce_arith_expression",
+   "l1c05_cce_boolean_expression",
+   "l1c05_composite_sequence_positions",
+   "l1c05_surrogate_halves_positions",
+   "l1c05_coded_character_values_national",
+   "l1c05_oo_returning_only_same_class",
+   "l1c05_oo_strong_type_same_type"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c05-ct-arith-intermediate-overflow",
+  "l1c05-cce-arith-exponentiation",
+  "l1c05-cce-arith-division-by-zero",
+  "l1c05-cce-arith-nonnumeric-operand",
+  "l1c05-cce-boolean-alnum-operand",
+  "l1c05-cce-boolean-numeric-operand",
+  "l1c05-imp-directive-not-defined",
+  "l1c05-oo-returning-absent-in-impl",
+  "l1c05-oo-returning-extra-in-impl",
+  "l1c05-oo-returning-only-dropped",
+  "l1c05-oo-returning-only-subclass",
+  "l1c05-oo-strong-type-other-name",
+  "l1c05-oo-strong-type-vs-plain-group",
+  "l1c05-oo-strong-type-returning-other"
+ ],
+ "records": [
+  {
+   "rule-id": "DOC-A.1-29",
+   "test-ref": "conformance:2002/l1c05_compile_time_arith_mode; conformance:negative/l1c05-ct-arith-intermediate-overflow"
+  },
+  {
+   "rule-id": "SR-7.3.3-9",
+   "test-ref": "conformance:negative/l1c05-imp-directive-not-defined"
+  },
+  {
+   "rule-id": "GR-8.5.1.4-1",
+   "test-ref": "conformance:2002/l1c05_composite_sequence_positions"
+  },
+  {
+   "rule-id": "GR-8.5.1.4-2",
+   "test-ref": "conformance:2002/l1c05_surrogate_halves_positions"
+  },
+  {
+   "rule-id": "DOC-A.1-32",
+   "test-ref": "conformance:85/l1c05_coded_character_values; conformance:2002/l1c05_coded_character_values_national"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-L2.1",
+   "test-ref": "conformance:2002/l1c05_oo_returning_only_same_class; conformance:negative/l1c05-oo-returning-only-dropped; conformance:negative/l1c05-oo-returning-only-subclass"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-4",
+   "test-ref": "conformance:negative/l1c05-oo-returning-absent-in-impl; conformance:negative/l1c05-oo-returning-extra-in-impl"
+  },
+  {
+   "rule-id": "GR-9.3.8.2.3-7",
+   "test-ref": "conformance:2002/l1c05_oo_strong_type_same_type; conformance:negative/l1c05-oo-strong-type-other-name; conformance:negative/l1c05-oo-strong-type-vs-plain-group; conformance:negative/l1c05-oo-strong-type-returning-other"
+  },
+  {
+   "rule-id": "SR-7.3.8.2-2",
+   "test-ref": "conformance:2002/l1c05_cce_arith_expression; conformance:negative/l1c05-cce-arith-exponentiation; conformance:negative/l1c05-cce-arith-division-by-zero; conformance:negative/l1c05-cce-arith-nonnumeric-operand"
+  },
+  {
+   "rule-id": "SR-7.3.8.2-3",
+   "test-ref": "conformance:2002/l1c05_cce_boolean_expression; conformance:negative/l1c05-cce-boolean-alnum-operand; conformance:negative/l1c05-cce-boolean-numeric-operand"
+  },
+  {
+   "rule-id": "GR-13.10.4-4",
+   "test-ref": "conformance:2002/l1c05_constant_expr_truncated_integer"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}
