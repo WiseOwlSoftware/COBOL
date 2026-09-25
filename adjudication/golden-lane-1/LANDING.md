@@ -158,3 +158,30 @@ Run locally against the pinned compiler `E:\wt\gl2-pin` (DEVLOG 1694); landed by
 - misc-p22: landed 7; not-closable GR-14.2.3-7.
 - The overturned and held drafts stay in the lane directory, not in the tree. Their corrections are in
   `<GL>/reports/<slug>.refute.json`.
+
+## Golden lane #2 — batch 2 (local; misc-p23…p32): landed 78 (GAP 1453 → 1375)
+
+Landed by DEVLOG 1698. 44 positive goldens (85 +28, 2002 +14, 2014 +2, plus the copybook `2002/l1c24ca.cpy`) and 26
+negatives; GR-12.3.7.4-6 recorded on the existing `l1c01_native_ordinal_positions` goldens.
+- ⚠ **New integrate.py hazard:** it drops EVERY ref named by ANY overturned verdict, so a golden overturned for one
+  row (does-not-exercise) is lost for its upheld siblings. Run it on a lane copy whose single-row overturns have
+  `test_ref` blanked when the refuter says the program itself is valid. This batch did that for
+  p26 SR-8.7.5.2-1 (`85/l1c26_relational_operator_spellings` lands for SR3/5/7/8/10) and p28 GR-12.4.6.4.4-1
+  (`85/l1c28_same_area_mixed_org` lands for SR-12.4.6.4.3-4 only).
+- misc-p23: landed 9; overturned GR-8.4.3.13.4-3 (non-conforming: the REPOSITORY names programs defined later, §12.3.8.3
+  SR14, so the positive and both negatives need `IS PROTOTYPE` definitions first) and SR-8.4.2.2.1-5 (needs the X.B.CNT
+  twin); not-closable SR-8.4.3.13.3-4.
+- misc-p24: landed 10.
+- misc-p25: landed 8; overturned FMT-14.9.35.2 (citation: §14.7.9.3 4) lead-in, not 4) a)), GR-14.9.35.4-8
+  (not discriminating), GR-14.9.35.4-14 (drop the fatal legs U1/U2, PB322 E); not-closable GR-14.9.35.4-15.
+- misc-p26: landed 11; overturned SR-8.7.5.2-1 (witness = PB1034's future negative).
+- misc-p27: landed 7; overturned GR-8.4.3.15.4-5 (DUMMY needs an LC=12 leg) and SR-13.15.3-4 (header provenance:
+  PB372, not PB1246); not-closable SR-13.8.3-1, GR-13.18.49.4-4, DOC-A.1-169.
+- misc-p28: landed 3; GR-12.4.6.4.4-1 unobservable (stays GAP); not-closable GR-12.4.6.4.4-5, GR-8.4.3.8.4-1/-3.
+- misc-p29: landed 5; not-closable GR-14.9.40.4-4, GR-12.3.5.4-2/-3.
+- misc-p30: landed 8; suspected defects SR-12.3.7.3-L7.5, GR-12.3.7.4-L2.2 (PB1557, PB1558).
+- misc-p31: landed 8 (the four scope-termination rows with the orchestrator's §14.9.19.3 1) citation fix);
+  `85/l1c31_string_delimited_omitted` HELD (PB1567); SR-8.8.4.3.3-1 NOT landed — the refuter returned no verdict for
+  `negative/l1c31-simple-boolean-condition-length-8`; not-closable GR-14.9.43.4-10.
+- misc-p32: landed 9; not-closable SR-8.4.2.3.3-7.
+- DOC-A.1-148, -182, -186, -198 are named in `docs/CONFORMANCE.md` §7 `Pinned by`.
