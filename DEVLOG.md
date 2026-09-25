@@ -13,6 +13,17 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1687 — 2026-09-24 17:23 PDT — Ledger trend point 138a8724 (ledger v70); cloud golden lane #1 started
+
+**What.** The Conformance Ledger regenerated at the doc-rows-1 landing `138a8724c` (GAP 1627 · closed 2721 · DNS 386)
+and published as v70; `gen_ledger.py` appended the point to `ledger-trend.json` (82 points). The owner authorized
+overrunning today's plan allowance to exhaust the remaining cloud credit (~$96) on significant COBOL work: a fresh
+credit-billed cloud orchestrator (session_01NEXbLrn1FYhz3CpJvSuNr6, both repos) now runs **golden lane #1** on
+`claude/golden-lane-1` — spec-derived goldens for the 393 CONFORMS-untested + 4 witness-owed DOCUMENTED-NON-SUPPORT
+rows, waves of ≤ 6 writers with a refuter per batch, expected output derived from the spec before the compiler runs,
+compiler/spec disagreements filed as defects rather than goldens, integrated and pushed per wave; this session lands
+each wave via push-main and stops the lane before the credit runs out.
+
 ## Entry 1686 — 2026-09-24 17:09 PDT — Cloud doc-rows-1 lands: 67 Annex A.1 determination rows written, 68 held rows recorded (GAP 1652 → 1627); PB1537 renumbered PB1546
 
 **What.** Owner decision on PB1535: option (c) — the 126 A.1 rows stay verdict-less until their §7 determination rows
