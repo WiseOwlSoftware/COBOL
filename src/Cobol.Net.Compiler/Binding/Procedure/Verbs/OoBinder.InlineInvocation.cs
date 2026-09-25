@@ -70,8 +70,8 @@ internal sealed class InvocationSite
     public required IReadOnlyList<InvocationArg> Args { get; init; }
 
     /// <summary>Whether an argument PHRASE was written at all (INVOKE's USING, or the inline form's
-    /// parenthesised list). Distinct from an empty <see cref="Args"/>: §16.2.1's predefined NEW rejects the
-    /// phrase, not merely a non-empty one.</summary>
+    /// parenthesised list). Distinct from an empty <see cref="Args"/>: the standard class BASE's methods (ISO §16.2
+    /// — no USING phrase in either header) reject the phrase, not merely a non-empty one.</summary>
     public required bool ArgsWritten { get; init; }
 
     /// <summary>INVOKE's written RETURNING identifier; null for the inline form.</summary>
@@ -240,26 +240,4 @@ internal sealed partial class OoBinder
     /// class dispatch and the LENGTH fold).</summary>
     public BoundOperand OoInlineInvocationOperand(Core.InlineMethodInvocationContext imi) =>
         IntrinsicBinder.OperandOf(OoBindInlineInvocation(imi));
-
-    /// <summary><c>class-name-1 :: "NEW"</c> — §16.2.1's predefined factory method through the inline form.
-    /// The created object is an instance of EXACTLY <paramref name="cls"/> (§16.2.1.2 GR1; the factory object
-    /// is NAMED here, not polymorphic), so GR1 b)'s "same description, class, and category as the RETURNING
-    /// parameter" is the object-class-name description with ONLY — the same sending description
-    /// <c>OoBindClassInvoke</c> adjudicates the written-RETURNING form against.</summary>
-    private BoundStatement OoBindImplicitNew(InvocationSite site, OoClassSymbol cls)
-    {
-        var model = new DataItem
-        {
-            Level = 1,
-            CobolName = "__NEW-" + cls.Name,
-            CsName = NamingConvention.ImplicitNewTempName(cls.Name),
-            Pic = PicInfo.ObjectReferenceItem(
-                ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true)),
-        };
-        var temp = ctx.Data.OoCreateInvocationTemp(model, "NEW");
-        if (ctx.Refs.ResolveItem(temp) is not { } tempPlace)
-            return new BoundUnsupported($"{cls.Name} :: \"NEW\" (result temporary)");
-        site.ImplicitReturningPlace = tempPlace;
-        return new BoundInvoke(InvokeForm.New, cls.CsName, null, null, tempPlace);
-    }
 }

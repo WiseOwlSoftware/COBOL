@@ -17,16 +17,21 @@
       *> invoker's own EC-ALL declarative, which no condition raised inside
       *> a method may select.
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB1010EX.
+       CLASS-ID. PB1010EX INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        OBJECT.
        END OBJECT.
        END CLASS PB1010EX.
 
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB1010C.
+       CLASS-ID. PB1010C INHERITS FROM BASE.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
+           CLASS BASE
            CLASS PB1010EX.
        OBJECT.
        ENVIRONMENT DIVISION.

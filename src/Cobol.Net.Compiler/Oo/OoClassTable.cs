@@ -36,14 +36,30 @@ public sealed class OoClassTable
 
     /// <summary>The interface named <paramref name="name"/>, or null (case-insensitive, §8.3.2.2).</summary>
     public OoInterfaceSymbol? FindInterface(string name) => _ifaceByName.TryGetValue(name, out var i) ? i : null;
-    /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive).</summary>
-    public OoClassSymbol? Find(string name) => _byName.TryGetValue(name, out var c) ? c : null;
+    /// <summary>The class named <paramref name="name"/>, or null (COBOL class names are case-insensitive). A class
+    /// DEFINED in the compilation group wins; otherwise the name may be the standard class BASE (ISO §16.1), whose
+    /// information the implementation's external repository always holds (§12.3.8.3 SR6 b) — the §12.3.8.4 GR6
+    /// implementor-defined choice, documented at <see cref="OoStandardClasses"/>. This is the group-wide table, NOT
+    /// the question "may this source element name it": that is <see cref="OoNameResolution"/>'s, and the standard
+    /// class is as subject to it as any other (§8.4.6.4 — a REPOSITORY entry is still required).</summary>
+    public OoClassSymbol? Find(string name) =>
+        _byName.TryGetValue(name, out var c) ? c
+        : string.Equals(name, OoStandardClasses.BaseName, StringComparison.OrdinalIgnoreCase) ? StandardBase
+        : null;
 
     /// <summary>The class whose EXTERNALIZED name (its CLASS-ID's <c>AS literal-1</c>, or its name) is
     /// <paramref name="externalized"/> — what a REPOSITORY class-specifier's <c>AS literal-1</c> names (ISO §12.3.8.4
-    /// GR2; kb/Work PB974). Compared as the group's other externalized names are (case-insensitive).</summary>
+    /// GR2; kb/Work PB974). Compared as the group's other externalized names are (case-insensitive). The standard
+    /// class BASE is externalized as its own name, and answers only when no definition of the group claims it —
+    /// the same precedence as <see cref="Find"/>.</summary>
     public OoClassSymbol? FindByExternalizedName(string externalized) =>
-        _classes.FirstOrDefault(c => string.Equals(c.ExternalizedName, externalized, StringComparison.OrdinalIgnoreCase));
+        _classes.FirstOrDefault(c => string.Equals(c.ExternalizedName, externalized, StringComparison.OrdinalIgnoreCase))
+        ?? (string.Equals(externalized, StandardBase.ExternalizedName, StringComparison.OrdinalIgnoreCase)
+            ? StandardBase : null);
+
+    /// <summary>This compilation group's symbol for the standard class BASE (ISO §16; <see cref="OoStandardClasses"/>).
+    /// Never in <see cref="Classes"/>: it has no source, binds nothing and emits nothing.</summary>
+    public OoClassSymbol StandardBase { get; } = OoStandardClasses.BuildBase();
 
     /// <summary>The interface twin of <see cref="FindByExternalizedName"/> (literal-2).</summary>
     public OoInterfaceSymbol? FindInterfaceByExternalizedName(string externalized) =>

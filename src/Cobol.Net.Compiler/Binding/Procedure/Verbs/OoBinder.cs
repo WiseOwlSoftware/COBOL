@@ -217,46 +217,6 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} may be specified only within a method definition "
                     + "(ISO §8.4.3.8.3 SR1 — the predefined object references of the current object)");
             }
-            // In a FACTORY method, SELF|SUPER "NEW" is the ACTIVE-CLASS creation (§16.2.1.2 GR1 — the
-            // BaseFactoryInterface's New): bind InvokeForm.NewSelf → `this.__New()` (covariant per class;
-            // SUPER restricts the METHOD SEARCH, GR3, but the found method IS the predefined New whose
-            // behavior is active-class creation on the SAME runtime factory — the equivalence is deliberate).
-            if (host.OoInFactory && string.Equals(methodName, "NEW", StringComparison.OrdinalIgnoreCase))
-            {
-                if (site.ArgsWritten)
-                {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                        "INVOKE SELF/SUPER \"NEW\": the predefined NEW method takes no USING arguments "
-                        + "(ISO §16.2.1)");
-                }
-                if (site.ReturningRef is not { } nrRef)
-                {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                        "INVOKE SELF/SUPER \"NEW\" without RETURNING — the created object would be lost "
-                        + "(ISO §16.2.1/§14.9.23.4 GR8)");
-                }
-                if (host.Expr.ResolveReceiving(nrRef) is not { } nret)
-                    return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
-                if (nret.Item.Pic is not { Category: PicCategory.ObjectReference } nrp)
-                {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': the receiving item shall "
-                        + "be a USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8)");
-                }
-                // §16.2.1.2 GR1: New "returns a reference to the created object", and through SELF|SUPER the
-                // creating factory object is polymorphic (§14.9.23.3 SR4f), so the created object is of the
-                // ACTIVE class — the containing class or a subclass of it. That IS the §13.18.60.2 ACTIVE-CLASS
-                // description, so the delivery is adjudicated as one (kb/Work PB389): a plain object-class-name
-                // sender could not deliver into an ACTIVE-CLASS receiver at all, which is the one receiver
-                // shape the covariant creation exists to fill.
-                if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses,
-                        PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ActiveClass(cur.Name)), nrp) is { } nwerr)
-                {
-                    return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                        $"INVOKE SELF/SUPER \"NEW\" RETURNING '{nrRef.GetText()}': {nwerr} (ISO §14.8)");
-                }
-                return new BoundInvoke(InvokeForm.NewSelf, cur.CsName, null, null, nret);
-            }
             OoClassSymbol searchRoot;
             if (!isSuper)
                 searchRoot = cur;   // GR2 — resolve on the current class's chain; dispatch on the RUNTIME class
@@ -275,13 +235,29 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             var sm = host.OoInFactory ? searchRoot.FindFactoryMethod(methodName) : searchRoot.FindMethod(methodName);
             if (sm is null)
             {
+                if (host.OoInFactory && IsStandardNew(methodName))
+                    return NewWithoutBase($"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\"", searchRoot,
+                        isSuper
+                            ? "§14.9.23.3 SR4 h) — literal-1 shall name a method contained in the factory interface "
+                              + "of a class inherited by the class containing the INVOKE statement"
+                            : "§14.9.23.3 SR4 f) — literal-1 shall name a method contained in the factory interface "
+                              + "of the class containing the INVOKE statement");
                 return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
                     $"INVOKE {(isSuper ? "SUPER" : "SELF")} \"{methodName}\": class '{searchRoot.Name}' (and "
                     + $"its inheritance chain) does not define a{(host.OoInFactory ? " factory" : "n instance")} "
                     + "method named '" + methodName + "' "
                     + "(ISO §14.9.23.3 SR4f–SR4i — the SELF/SUPER method-name placement rules)");
             }
-            return OoBindResolvedInvoke(site, sm, isSuper ? InvokeForm.Super : InvokeForm.Self, null);
+            var selfForm = isSuper ? InvokeForm.Super : InvokeForm.Self;
+            // A method of the standard class BASE through SELF/SUPER: the object it runs on is the current object,
+            // whose class is the containing class or a subclass of it — exactly the §13.18.60.2 ACTIVE-CLASS
+            // description, and exactly what §16.2's `active-class` returning items mean. So New in a factory method
+            // creates the ACTIVE class (§16.2.1.2 GR1 through the polymorphic factory, SR4 f); SUPER restricts the
+            // SEARCH (§8.4.3.8.4 GR3), and the method found is still BASE's, running on the same object.
+            if (sm.Standard is not StandardMethod.None)
+                return OoBindStandardInvoke(site, sm, selfForm, receiver: null, receiverClass: null,
+                    ObjectRefDescriptor.ActiveClass(cur.Name, factory: false));
+            return OoBindResolvedInvoke(site, sm, selfForm, null);
         }
         if (target.dataReference() is not { } dref)
         {
@@ -309,64 +285,97 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
     }
 
-    /// <summary><c>INVOKE class-name-1 …</c>: the predefined NEW (§16.2.1) → the generated ctor; any other
-    /// method through a class-name is a FACTORY invocation (§11.4) — a later slice.</summary>
+    /// <summary><c>INVOKE class-name-1 "m" …</c>: §14.9.23.3 SR3 — "The value of literal-1 shall be the name of a
+    /// method defined in the factory interface of object-class-name-1". Resolution walks the INHERITS chain over
+    /// the factory rosters (§9.3.6), which is also how the standard class BASE's New is found: it is in the factory
+    /// interface of exactly the classes that inherit BASE (§16.2; §9.3.9), and in no other (kb/Work PB1548).</summary>
     private BoundStatement OoBindClassInvoke(InvocationSite site, OoClassSymbol cls, string method)
     {
-        if (!string.Equals(method, "NEW", StringComparison.OrdinalIgnoreCase))
+        if (cls.FindFactoryMethod(method) is { } fm)
         {
-            // §14.9.23.3 SR3: literal-1 names a method of the FACTORY interface of class-name-1 — resolution
-            // walks the INHERITS chain over the factory rosters (§9.3.6); the lookup failure is the
-            // compile-time analog of EC-OO-METHOD (GR7b).
-            if (cls.FindFactoryMethod(method) is { } fm)
-            {
-                var bound = OoBindResolvedInvoke(site, fm, InvokeForm.Factory, null);
-                return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
-            }
-            return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
-                $"INVOKE {cls.Name} \"{method}\": class '{cls.Name}' (and its inheritance chain) does not "
-                + "define a FACTORY method named '" + method + "' (ISO §14.9.23.3 SR3 — literal-1 shall name "
-                + "a method of the factory interface; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
+            // §16.2.1.2 GR1: New invoked on the factory object NAMED here creates an instance object of EXACTLY cls
+            // (the factory object is not polymorphic through a class-name), so the result is described ONLY.
+            if (fm.Standard is not StandardMethod.None)
+                return OoBindStandardInvoke(site, fm, InvokeForm.New, receiver: null, cls,
+                    ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true));
+            var bound = OoBindResolvedInvoke(site, fm, InvokeForm.Factory, null);
+            return bound is BoundInvoke bi ? bi with { ClassCsName = cls.CsName } : bound;
         }
+        if (IsStandardNew(method))
+            return NewWithoutBase($"INVOKE {cls.Name} \"{method}\"", cls,
+                "§14.9.23.3 SR3 — literal-1 shall name a method defined in the factory interface of object-class-name-1");
+        return BoundRejected.Report(ctx.Edition, "COBOLNET0825",
+            $"INVOKE {cls.Name} \"{method}\": class '{cls.Name}' (and its inheritance chain) does not "
+            + "define a FACTORY method named '" + method + "' (ISO §14.9.23.3 SR3 — literal-1 shall name "
+            + "a method of the factory interface; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b)");
+    }
+
+    /// <summary>True when <paramref name="method"/> names BaseFactoryInterface's New (§16.2; method-names compare
+    /// case-insensitively, §8.3.2.2) — the one name whose absence from a factory interface has its own diagnostic,
+    /// because until kb/Work PB1548 this compiler treated New as predefined for every class.</summary>
+    private static bool IsStandardNew(string method) =>
+        string.Equals(method, OoStandardClasses.NewMethodName, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>COBOLNET2448: New named through a factory object whose class does not inherit the standard class
+    /// BASE. <paramref name="rule"/> is the §14.9.23.3 rule the receiver form is governed by (SR3, SR4 a/c/f/h).</summary>
+    private BoundStatement NewWithoutBase(string where, OoClassSymbol cls, string rule) =>
+        BoundRejected.Report(ctx.Edition, DiagnosticCatalog.NewWithoutBase,
+            $"{where}: class '{cls.Name}' does not inherit from the standard class BASE, so its factory interface "
+            + "has no method New — New belongs to BASE's factory interface, BaseFactoryInterface (ISO §16.2), and a "
+            + "class has it only through INHERITS (§9.3.9); write `INHERITS FROM BASE` in its CLASS-ID paragraph "
+            + $"(or in a superclass's) with `CLASS BASE` in that class's REPOSITORY paragraph (ISO {rule})");
+
+    /// <summary>Bind an invocation of a method of the standard class BASE (ISO §16.2) — New or FactoryObject. Their
+    /// §16.2 signatures take no parameters and return an item described with ACTIVE-CLASS (New: <c>object reference
+    /// active-class</c>; FactoryObject: <c>object reference factory of active-class</c>), whose class is the class of
+    /// the object the method runs on. So the RESULT's description is the receiver's own class view with the
+    /// FACTORY phrase the method implies: <paramref name="classView"/> is that view (the named class, exactly for a
+    /// class-name; the declared class or ACTIVE-CLASS of a typed reference, or of SELF/SUPER), and New's result is its
+    /// instance description, FactoryObject's its factory description. That description is then delivered by the
+    /// §14.8.3.3 rule-1 SET conformance every other RETURNING takes.</summary>
+    private BoundStatement OoBindStandardInvoke(InvocationSite site, OoMethodSymbol m, InvokeForm form,
+        Place? receiver, OoClassSymbol? receiverClass, ObjectRefDescriptor classView)
+    {
+        string verb = $"{site.Verb} \"{m.Name}\"";
         if (site.ArgsWritten)
-        {
             return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                $"INVOKE {cls.Name} \"NEW\": the predefined NEW method takes no USING arguments "
-                + "(ISO §16.2.1 — its only result is the new object reference)");
-        }
+                $"{verb}: the method {m.Name} of the standard class BASE takes no arguments (ISO §16.2 — its "
+                + "procedure division header has no USING phrase; §14.8.2.1)");
+        // §8.4.3.4.3 SR4: "The data item referenced in the RETURNING phrase of the invoked method's procedure division
+        // header shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase" — and §16.2
+        // describes BOTH of BASE's returning items with ACTIVE-CLASS, so neither is inline-invocable.
+        if (site.ReturningImplicit)
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.InlineInvocationReturningShape,
+                $"the inline method invocation of \"{m.Name}\": the returning item of the standard class BASE's "
+                + $"{m.Name} ('{m.Binding!.Returning!.CobolName}') is described with the ACTIVE-CLASS phrase (ISO §16.2; "
+                + "§8.4.3.4.3 SR4) — use the INVOKE statement with a RETURNING identifier");
         if (site.ReturningRef is not { } retRef)
-        {
-            // The INLINE form's returning item is IMPLICIT (§14.8 — "a returning item is implicitly
-            // specified in the activating element when a function or inline method invocation is
-            // referenced"), so NEW delivers into the §8.4.3.4.4 GR1 c) temporary instead.
-            if (site.ReturningImplicit)
-                return OoBindImplicitNew(site, cls);
             return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                $"INVOKE {cls.Name} \"NEW\" without RETURNING — the created object would be lost; NEW's "
-                + "result is delivered only through the RETURNING identifier (ISO §16.2.1/§14.9.23.4 GR8)");
-        }
+                $"{verb} without RETURNING — the method {m.Name} of the standard class BASE returns an object "
+                + "reference, and the INVOKE shall specify RETURNING to receive it (ISO §16.2; §14.9.23.4 GR8)");
         if (host.Expr.ResolveReceiving(retRef) is not { } ret)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (ret.Item.Pic is not { Category: PicCategory.ObjectReference } retPic)
-        {
             return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': the receiving item shall be a "
-                + "USAGE OBJECT REFERENCE data item (ISO §14.9.23.4 GR8 / §14.8 conformance)");
-        }
-        // Receiver conformance (§14.8.3.3 rule 1 — the RETURNING delivery follows the SET rules): the ONE
-        // OoConformance.ObjectRefAssignmentMismatch table. §16.2.1.2 GR1 makes the created object an instance
-        // object of EXACTLY cls (the factory object is NAMED here, not polymorphic), so the sending
-        // description carries ONLY — which is what lets it deliver into an ONLY receiver, SR12 a)1.
-        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses,
-                PicInfo.ObjectReferenceItem(ObjectRefDescriptor.ObjectClass(cls.Name, factory: false, only: true)),
-                retPic) is { } werr)
-        {
+                $"{verb} RETURNING '{retRef.GetText()}': the receiving item shall be a USAGE OBJECT REFERENCE data "
+                + "item (ISO §14.9.23.4 GR8 / §14.8.3.3)");
+        var result = classView with { Factory = m.Standard is StandardMethod.FactoryObject };
+        if (OoConformance.ObjectRefAssignmentMismatch(host.OoClasses, PicInfo.ObjectReferenceItem(result), retPic)
+            is { } err)
             return BoundRejected.Report(ctx.Edition, "COBOLNET0826",
-                $"INVOKE {cls.Name} \"NEW\" RETURNING '{retRef.GetText()}': {werr} (ISO §14.8)");
-        }
-        return new BoundInvoke(InvokeForm.New, cls.CsName, null, null, ret);
+                $"{verb} RETURNING '{retRef.GetText()}': {err} (ISO §14.8.3.3 rule 1)");
+        return m.Standard switch
+        {
+            // Every New form renders through the ONE runtime body (OoEmitter.EmitNew): the class-name form names
+            // the factory by class, a FACTORY OF reference is the receiver, SELF/SUPER is `this`.
+            StandardMethod.New => new BoundInvoke(
+                form is InvokeForm.Self or InvokeForm.Super ? InvokeForm.NewSelf : InvokeForm.New,
+                receiverClass?.CsName, receiver, null, ret),
+            // FactoryObject is an ordinary instance call on the runtime BASE's virtual member (a COBOL override
+            // adopts its CsName), so the Instance/Self/Super rendering and its GR5 null guard apply unchanged.
+            _ => new BoundInvoke(form, null, receiver, m.CsName, ret, [], m.Binding!.Returning, m.Owner.CsName),
+        };
     }
-
     /// <summary><c>INVOKE identifier-1 "method" …</c>: virtual dispatch through a TYPED object reference; the
     /// method resolves over the declared class's hierarchy at COMPILE time (§14.9.23.3 SR4 a)/b) — for the typed
     /// path a lookup failure is a compile-time diagnostic, the static analog of EC-OO-METHOD, GR7b).</summary>
@@ -414,6 +423,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // axis of its own description — a FACTORY-OF reference holds the factory object (§13.18.60.4 GR22 d)1.a.)
         // and therefore resolves the FACTORY roster (§14.9.23.3 SR4b/SR4c). Both arms of ONE dispatch.
         var m = rdesc.Factory ? cls.FindFactoryMethod(method) : cls.FindMethod(method);
+        if (m is null && rdesc.Factory && IsStandardNew(method))
+            return NewWithoutBase($"INVOKE '{receiver.Item.CobolName}' \"{method}\"", cls,
+                rdesc.Kind is ObjectRefKind.ActiveClass
+                    ? "§14.9.23.3 SR4 c) — literal-1 shall name a method contained in the factory interface of the "
+                      + "class containing the INVOKE statement"
+                    : "§14.9.23.3 SR4 a) — literal-1 shall name a method contained in the factory interface of that "
+                      + "object-class-name");
         if (m is null)
         {
             string other = rdesc.Factory ? "an INSTANCE" : "a FACTORY";
@@ -428,6 +444,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + method + $"' (ISO §14.9.23.3 SR4 {(rdesc.Factory ? "a)" : "b)")} — compile-time "
                 + $"for a typed receiver; the runtime analog is EC-OO-METHOD, §14.9.23.4 GR7b){hint}");
         }
+        // A method of the standard class BASE through a typed reference: the object it runs on is described by the
+        // receiver itself (its class, ONLY or not, or ACTIVE-CLASS), which is what §16.2's `active-class` means for
+        // it — New through a FACTORY OF reference creates an object of the class that factory belongs to.
+        if (m.Standard is not StandardMethod.None)
+            return OoBindStandardInvoke(site, m, InvokeForm.Instance, receiver, cls, rdesc with { Factory = false });
         var bound = OoBindResolvedInvoke(site, m, InvokeForm.Instance, receiver);
         // A factory-object receiver's argument PROFILES live in the FACTORY singleton type, not the instance
         // class — the same qualification InvokeForm.Factory gets by appending the suffix at emit time.

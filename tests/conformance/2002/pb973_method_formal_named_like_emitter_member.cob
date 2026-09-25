@@ -16,7 +16,11 @@
       *> TOTAL: SETN 7; ADDV +8 (W's value at the call) = 15; MIX + INV
       *> (2) + PROP (3) = 20, then MOVE TOTAL TO PROP makes C = 020.
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB973BOX.
+       CLASS-ID. PB973BOX INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        OBJECT.
        DATA DIVISION.
        WORKING-STORAGE SECTION.

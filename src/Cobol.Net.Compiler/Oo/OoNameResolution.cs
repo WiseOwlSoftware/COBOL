@@ -81,23 +81,28 @@ public static class OoNameResolution
         // Defined in the group but out of scope vs. not defined at all — name the actual condition (the old
         // 0859 named neither: it said "does not name a class of the compilation group", which was BOTH the
         // wrong set and, for an interface operand, the wrong rule).
-        bool definedInGroup = want switch
-        {
-            Want.Class => table?.Find(name) is not null,
-            Want.Interface => table?.FindInterface(name) is not null,
-            _ => table?.Find(name) is not null || table?.FindInterface(name) is not null,
-        };
+        var cls = want is Want.Class or Want.Either ? table?.Find(name) : null;
+        bool definedInGroup = cls is not null
+            || (want is Want.Interface or Want.Either && table?.FindInterface(name) is not null);
         string kind = want switch
         {
             Want.Class => "a class",
             Want.Interface => "an interface",
             _ => "a class or interface",
         };
-        edition.Error(code, definedInGroup
-            ? $"{where} '{name}': {kind} of that name is defined in this compilation group, but it is not the "
-              + "name of the containing class or interface definition and is not declared in the REPOSITORY "
-              + $"paragraph of this source element or a containing one ({ruleCitation}; ISO §8.4.6.4)"
-            : $"{where} '{name}': no such {kind} is defined in this compilation group ({ruleCitation})");
+        string notDeclared = "it is not the name of the containing class or interface definition and is not "
+            + "declared in the REPOSITORY paragraph of this source element or a containing one "
+            + $"({ruleCitation}; ISO §8.4.6.4)";
+        edition.Error(code,
+            cls is { IsStandard: true }
+                // The standard class is reached exactly like a written one — through a REPOSITORY class-specifier
+                // (§12.3.8.3 SR6 b): name the missing entry, which is the whole fix.
+                ? $"{where} '{name}': '{name}' is the standard class BASE (ISO §16.1), but {notDeclared} — "
+                  + $"add `CLASS {name}` to the REPOSITORY paragraph"
+            : definedInGroup
+                ? $"{where} '{name}': {kind} of that name is defined in this compilation group, but {notDeclared}"
+            : $"{where} '{name}': no {kind[(kind.IndexOf(' ') + 1)..]} of that name is defined in this compilation "
+              + $"group ({ruleCitation})");
         return default;
     }
 

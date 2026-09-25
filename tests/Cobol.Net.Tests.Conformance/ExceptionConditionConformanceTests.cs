@@ -890,7 +890,11 @@ public sealed class ExceptionConditionConformanceTests
 
             >>TURN EC-OO-UNIVERSAL CHECKING OFF
             IDENTIFICATION DIVISION.
-            CLASS-ID. CUNIVN.
+            CLASS-ID. CUNIVN INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -1228,7 +1232,11 @@ public sealed class ExceptionConditionConformanceTests
 
             >>TURN EC-USER CHECKING OFF
             IDENTIFICATION DIVISION.
-            CLASS-ID. ECT408FC.
+            CLASS-ID. ECT408FC INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -2007,7 +2015,11 @@ public sealed class ExceptionConditionConformanceTests
             GOBACK.
         END PROGRAM P892K.
         IDENTIFICATION DIVISION.
-        CLASS-ID. K892.
+        CLASS-ID. K892 INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.

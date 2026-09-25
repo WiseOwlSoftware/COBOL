@@ -66,7 +66,11 @@ public sealed class OoPortedTests
     /// argument into per-instance BAL and delivers BAL through RETURNING.</summary>
     private static string AccClass(string cls) => $@"
        IDENTIFICATION DIVISION.
-       CLASS-ID. {cls}.
+       CLASS-ID. {cls} INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        DATA DIVISION.
@@ -172,7 +176,11 @@ public sealed class OoPortedTests
            STOP RUN.
        END PROGRAM OOIDXP9.
        IDENTIFICATION DIVISION.
-       CLASS-ID. CLBP9.
+       CLASS-ID. CLBP9 INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.
@@ -239,7 +247,11 @@ public sealed class OoPortedTests
            STOP RUN.
        END PROGRAM OOSECP9.
        IDENTIFICATION DIVISION.
-       CLASS-ID. CLKP9.
+       CLASS-ID. CLKP9 INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.
@@ -289,7 +301,11 @@ public sealed class OoPortedTests
            STOP RUN.
        END PROGRAM OOMPP9.
        IDENTIFICATION DIVISION.
-       CLASS-ID. CALCP9.
+       CLASS-ID. CALCP9 INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.

@@ -33,8 +33,9 @@ public sealed class OoNameResolutionDriftTests
         new(StringComparer.Ordinal)
     {
         [Path.Combine("Oo", "OoNameResolution.cs")] =
-            (6, "the funnel itself — the scoped Lookup's two, plus the four group-wide defined-anywhere tests "
-                + "that decide WHICH failure message to print"),
+            (4, "the funnel itself — the scoped Lookup's two, plus the two group-wide defined-anywhere tests "
+                + "that decide WHICH failure message to print (including whether the name is the standard class "
+                + "BASE, kb/Work PB1548)"),
         [Path.Combine("Oo", "OoConformance.cs")] =
             (10, "§9.3.8.2.3 / §14.9.39.3 conformance over the recv/send names of an ALREADY-BUILT "
                 + "ObjectRefDescriptor — scope-checked through this funnel at the data description entry "

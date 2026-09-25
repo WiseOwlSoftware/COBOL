@@ -9,7 +9,7 @@ namespace CobolNet.Compiler.Oo;
 /// <summary>One class of the pass-1 table: identity, base link, and the method roster (name → symbol,
 /// case-insensitive per §8.3.2.2). <see cref="CsName"/> is the emitted C# type name — the SAME mapping
 /// <c>PicInfo.ClrType</c> applies to a typed object reference's declared class (Sanitize + uppercase).</summary>
-public sealed class OoClassSymbol(string name, string csName, CobolParserCore.ClassDefinitionContext ctx)
+public sealed class OoClassSymbol(string name, string csName, CobolParserCore.ClassDefinitionContext? ctx)
 {
     public string Name { get; } = name;
     /// <summary>The name externalized to the operating environment (ISO §11.3.4 GR1: "literal-1, if
@@ -21,7 +21,17 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
     /// object-class-name to a C# type with no access to this table. kb/Work PB303.</summary>
     public string ExternalizedName { get; init; } = name;
     public string CsName { get; } = csName;
-    public CobolParserCore.ClassDefinitionContext Ctx { get; } = ctx;
+    /// <summary>The CLASS-ID definition this symbol was built from. Every class of the compilation group has one;
+    /// the STANDARD class (<see cref="IsStandard"/>) does not, and reading this on it is a loud internal error rather
+    /// than a null the caller forgot to test — no consumer of a group class's source should ever reach the standard
+    /// class, because it is never in <see cref="OoClassTable.Classes"/>.</summary>
+    public CobolParserCore.ClassDefinitionContext Ctx => ctx
+        ?? throw new InvalidOperationException(
+            $"class '{Name}' is the standard class of ISO §16 and has no source definition");
+
+    /// <summary>True for the standard class BASE (ISO/IEC 1989:2023 §16.1: "A standard class BASE shall be provided
+    /// by the implementation"), built by <see cref="OoStandardClasses"/> and never for a CLASS-ID of the group.</summary>
+    public bool IsStandard => ctx is null;
     /// <summary>The FIRST (and, in v1, only permitted) INHERITS base-class name — null for a root class.</summary>
     public string? BaseName { get; init; }
 
@@ -117,6 +127,21 @@ public sealed class OoClassSymbol(string name, string csName, CobolParserCore.Cl
             if (c._methods.TryGetValue(name, out var m))
                 return m;
         return null;
+    }
+
+    /// <summary>True when the standard class BASE is this class or one of its superclasses — i.e. the class has
+    /// BASE's life-cycle methods, New in its factory interface and FactoryObject in its object interface (ISO §16.2;
+    /// §9.3.9). The emitter derives the class's two C# halves from the runtime BASE pair exactly when this holds.</summary>
+    public bool InheritsStandardBase
+    {
+        get
+        {
+            var seen = new HashSet<OoClassSymbol>();
+            for (OoClassSymbol? c = this; c is not null && seen.Add(c); c = c.Base)
+                if (c.IsStandard)
+                    return true;
+            return false;
+        }
     }
 
     /// <summary>True when <paramref name="other"/> is this class or one of its superclasses — the object-view /

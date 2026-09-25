@@ -766,6 +766,21 @@ public sealed class ExceptionEngine
     public void OoArgOmittedError(string detail)
         => FatalIfEnabled(OoArgOmittedChecking, "EC-OO-ARG-OMITTED", detail);
 
+    /// <summary>True while EC-OO-RESOURCE checking is enabled (fatal).</summary>
+    public bool OoResourceChecking
+    {
+        get => _checking.OoResource;
+        set => _checking.OoResource = value;
+    }
+
+    /// <summary>Raise EC-OO-RESOURCE (§16.2.1.2 GR2: "If resources needed to create a new object are not
+    /// available, the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set
+    /// to exist and is propagated back to the runtime element that invoked the New method"; Table 13 Fatal) when
+    /// checking is enabled; otherwise return, and the NULL reference the standard class BASE's New returns stands
+    /// (kb/Work PB1524).</summary>
+    public void OoResourceError(string detail)
+        => FatalIfEnabled(OoResourceChecking, "EC-OO-RESOURCE", detail);
+
     // ── EC-OO-UNIVERSAL: the ACTIVATOR half of the §14.9.23.4 GR7c "enabled in both" gate ─────────────────────
 
     /// <summary>True while the currently-executing INVOKE has EC-OO-UNIVERSAL checking enabled in the ACTIVATING
@@ -1517,6 +1532,16 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.OoArgOmittedError"/>
     public static void OoArgOmittedError(string detail) => E.OoArgOmittedError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.OoResourceChecking"/>
+    public static bool OoResourceChecking
+    {
+        get => E.OoResourceChecking;
+        set => E.OoResourceChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.OoResourceError"/>
+    public static void OoResourceError(string detail) => E.OoResourceError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.BoundOdoChecking"/>
     public static bool BoundOdoChecking

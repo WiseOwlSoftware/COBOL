@@ -16,8 +16,10 @@ using Core = CobolParserCore;
 /// <summary>An INVOKE's resolved call form (OO deep-dive D1/D5 — the binder chooses; both backends render).</summary>
 public enum InvokeForm
 {
-    /// <summary><c>INVOKE Class "NEW" RETURNING obj</c> → <c>obj = new Class()</c> (§16.2.1 — the predefined
-    /// NEW factory; the generated public ctor chains base then VALUE-initializes, deep-dive D4).</summary>
+    /// <summary>The standard class BASE's New (ISO §16.2.1) on a NAMED factory object: <c>INVOKE Class "New"
+    /// RETURNING obj</c> (<see cref="BoundInvoke.ClassCsName"/> — the class's factory singleton) or through a FACTORY OF
+    /// reference (<see cref="BoundInvoke.Receiver"/>). Both render <c>obj = (T)factory.__New()</c>: the runtime
+    /// BASE__FACTORY's one body, whose covariant <c>__Create</c> is the generated constructor (deep-dive D4).</summary>
     New,
     /// <summary><c>INVOKE obj "M" …</c> → <c>RequireNonNull(obj).M(…)</c> — virtual dispatch on the runtime
     /// class (§9.3.6) behind the §14.9.23.4 GR5 null guard.</summary>
@@ -33,8 +35,8 @@ public enum InvokeForm
     /// method through the class's factory singleton (§11.4/§9.3.6; brief D11 — never null, no guard;
     /// virtual, so an inherited factory override dispatches).</summary>
     Factory,
-    /// <summary><c>INVOKE SELF|SUPER "NEW" RETURNING r</c> inside a FACTORY method → <c>r = this.__New()</c>
-    /// (§16.2.1.2 GR1 ACTIVE-CLASS creation: the covariant per-class <c>__New</c> override makes an inherited
+    /// <summary><c>INVOKE SELF|SUPER "New" RETURNING r</c> inside a FACTORY method → <c>r = (T)this.__New()</c>
+    /// (§16.2.1.2 GR1 ACTIVE-CLASS creation: the covariant per-class <c>__Create</c> override makes an inherited
     /// factory MAKE create the RUNTIME factory's class — the canonical factory pattern).</summary>
     NewSelf,
 }

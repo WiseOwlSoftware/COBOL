@@ -1649,6 +1649,13 @@ internal static class RuntimeApi
     public static string ObjRequireNonNull(string receiver) =>
         $"{nameof(CobolObject)}.{nameof(CobolObject.RequireNonNull)}({receiver})";
 
+    /// <summary>The checked narrowing of an object reference delivered back across a UNIVERSAL invocation into a
+    /// receiving item of CLR type <paramref name="clrType"/> (no trailing <c>?</c>) — see
+    /// <see cref="CobolObject.NarrowUniversal{T}"/>.</summary>
+    public static string ObjNarrowUniversal(string clrType, string box, string what) =>
+        $"{nameof(CobolObject)}.{nameof(CobolObject.NarrowUniversal)}<{clrType}>({box}, "
+        + $"{Microsoft.CodeAnalysis.CSharp.SymbolDisplay.FormatLiteral(what, quote: true)})";
+
     /// <summary>An object-reference value AS AN EXCEPTION OBJECT — the <c>CobolObject?</c> the runtime's
     /// exception-object slots take (<c>ExceptionState.SetObject</c> for RAISE identifier-1, §14.9.29.4;
     /// <c>SetPropagatingObject</c> for GOBACK/EXIT RAISING identifier-1, §14.9.18.4 GR1 b) 2.). An

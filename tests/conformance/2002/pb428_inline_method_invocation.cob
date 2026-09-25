@@ -18,7 +18,10 @@
       *>   6 chained           §8.4.3.1.3 SR1 — identifier is defined recursively, so the temporary of one
       *>                       invocation is identifier-1 of the next: MAKE yields a fresh ACC, GETNAME
       *>                       yields "ACCOUNT ".
-      *>   7 class-name        §8.4.3.4.2's object-class-name-1 arm + §16.2.1 predefined NEW.
+      *>   7 class-name        §8.4.3.4.2's object-class-name-1 arm, through the factory method OPENACC
+      *>                       (whose SELF "New" creates the account). New ITSELF is not inline-invocable:
+      *>                       §16.2 describes its RETURNING item with ACTIVE-CLASS, which §8.4.3.4.3 SR4
+      *>                       excludes (negative pb1548-inline-new-active-class; kb/Work PB1548).
       *>   8 relation          §8.8.4.2.1 over two alphanumeric operands of equal size (§8.8.4.2.3 rule 2).
       *>   9 nested argument   the argument is itself Format 4; §14.8.2.3.3 rule 2d (MOVE rules) governs the
       *>                       crossing, because the GR1 c) temporary is not a data item defined in any of
@@ -52,7 +55,7 @@
            DISPLAY "5=" W3.
            MOVE F1 :: "MAKE" :: "GETNAME" TO W.
            DISPLAY "6=" W.
-           MOVE PB428ACC :: "NEW" :: "GETNAME" TO W.
+           MOVE PB428ACC :: "OPENACC" :: "GETNAME" TO W.
            DISPLAY "7=" W.
            IF A1 :: "GETNAME" = "ACCOUNT " THEN
                DISPLAY "8=YES"
@@ -65,7 +68,23 @@
        END PROGRAM PB428IMI.
 
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB428ACC.
+       CLASS-ID. PB428ACC INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
+       IDENTIFICATION DIVISION.
+       FACTORY.
+       PROCEDURE DIVISION.
+       METHOD-ID. OPENACC.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LK-NEW USAGE OBJECT REFERENCE PB428ACC.
+       PROCEDURE DIVISION RETURNING LK-NEW.
+       MAIN.
+           INVOKE SELF "NEW" RETURNING LK-NEW.
+       END METHOD OPENACC.
+       END FACTORY.
        IDENTIFICATION DIVISION.
        OBJECT.
        DATA DIVISION.
@@ -103,10 +122,11 @@
        END CLASS PB428ACC.
 
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB428FAC.
+       CLASS-ID. PB428FAC INHERITS FROM BASE.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        REPOSITORY.
+           CLASS BASE
            CLASS PB428ACC.
        IDENTIFICATION DIVISION.
        OBJECT.

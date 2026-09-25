@@ -36,7 +36,11 @@ public sealed class OoSpineTests
         END PROGRAM {{pid}}.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. {{cls}}.
+        CLASS-ID. {{cls}} INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.
@@ -317,7 +321,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP13.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. OSPC13.
+            CLASS-ID. OSPC13 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             END CLASS OSPC13.
 
             IDENTIFICATION DIVISION.
@@ -592,7 +600,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP17.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. OSPC17.
+            CLASS-ID. OSPC17 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -646,7 +658,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP18.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. OSPC18.
+            CLASS-ID. OSPC18 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -682,7 +698,11 @@ public sealed class OoSpineTests
     {
         const string cls = """
             IDENTIFICATION DIVISION.
-            CLASS-ID. {C}.
+            CLASS-ID. {C} INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -795,7 +815,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP23.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. OSPC23.
+            CLASS-ID. OSPC23 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -854,7 +878,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP24.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CH24A.
+            CLASS-ID. CH24A INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -931,7 +959,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP25.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. BASE25.
+            CLASS-ID. BASE25 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -994,7 +1026,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP26.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. BASE26.
+            CLASS-ID. BASE26 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -1088,15 +1124,22 @@ public sealed class OoSpineTests
             END OBJECT.
             END CLASS S27.
             """), "COBOLNET0829");
-        EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP28", "OSPC28", """
-                INVOKE OSPC28 "NEW" RETURNING T.
-            """, """
+        // SUPER in a ROOT class: written without the DriverAndClass helper, whose class inherits the standard class
+        // BASE (kb/Work PB1548) — a class that INHERITS FROM BASE is not a root, and its SUPER searches BASE.
+        EditionHarness.AssertHasDiagnostic(ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. OSPC28.
+            IDENTIFICATION DIVISION.
+            OBJECT.
+            PROCEDURE DIVISION.
             METHOD-ID. M1.
             PROCEDURE DIVISION.
             MAIN.
                 INVOKE SUPER "M1".
             END METHOD M1.
-            """)), "COBOLNET0827");
+            END OBJECT.
+            END CLASS OSPC28.
+            """), "COBOLNET0827");
         EditionHarness.AssertHasDiagnostic(ErrorsOf("""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. OOSP29.
@@ -1156,7 +1199,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP30.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. ANI30.
+            CLASS-ID. ANI30 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -1186,10 +1233,11 @@ public sealed class OoSpineTests
             END CLASS DOG30.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. MAK30.
+            CLASS-ID. MAK30 INHERITS FROM BASE.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
+                CLASS BASE
                 CLASS DOG30.
             IDENTIFICATION DIVISION.
             OBJECT.
@@ -1238,7 +1286,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP31.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. ANI31.
+            CLASS-ID. ANI31 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -1268,10 +1320,11 @@ public sealed class OoSpineTests
             END CLASS DOG31.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. FAC31.
+            CLASS-ID. FAC31 INHERITS FROM BASE.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
+                CLASS BASE
                 CLASS ANI31.
             IDENTIFICATION DIVISION.
             OBJECT.
@@ -1530,7 +1583,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP36.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. OSPC36.
+            CLASS-ID. OSPC36 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             FACTORY.
             PROCEDURE DIVISION.
@@ -1690,7 +1747,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP43.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. BAS43.
+            CLASS-ID. BAS43 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -1890,10 +1951,11 @@ public sealed class OoSpineTests
             {{SpeakerInterface}}
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CSPK54.
+            CLASS-ID. CSPK54 INHERITS FROM BASE.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
+                CLASS BASE
                 INTERFACE ISPK50.
             IDENTIFICATION DIVISION.
             OBJECT. IMPLEMENTS ISPK50.
@@ -2042,7 +2104,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP56.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CPRP56.
+            CLASS-ID. CPRP56 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -2129,7 +2195,11 @@ public sealed class OoSpineTests
             END PROGRAM OOSP60.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CSPK60.
+            CLASS-ID. CSPK60 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             END CLASS CSPK60.
             """), "COBOLNET0826");
 
@@ -2162,7 +2232,11 @@ public sealed class OoSpineTests
             "    DISPLAY BAL OF A.") + """
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CPRR61.
+            CLASS-ID. CPRR61 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -2180,7 +2254,11 @@ public sealed class OoSpineTests
             "    MOVE BAL OF A TO W.") + """
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CPRR62.
+            CLASS-ID. CPRR62 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -2199,7 +2277,11 @@ public sealed class OoSpineTests
         string cls = """
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CPRR63.
+            CLASS-ID. CPRR63 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             DATA DIVISION.
@@ -2251,7 +2333,11 @@ public sealed class OoSpineTests
         END PROGRAM {{pid}}.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. CUH4A.
+        CLASS-ID. CUH4A INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.
@@ -2267,7 +2353,11 @@ public sealed class OoSpineTests
         END CLASS CUH4A.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. CUH8B.
+        CLASS-ID. CUH8B INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.
@@ -2418,7 +2508,11 @@ public sealed class OoSpineTests
         END PROGRAM {{pid}}.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. CEOX1.
+        CLASS-ID. CEOX1 INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         END CLASS CEOX1.
 
         IDENTIFICATION DIVISION.
@@ -2472,14 +2566,19 @@ public sealed class OoSpineTests
             END PROGRAM OOEC11.
 
             IDENTIFICATION DIVISION.
-            CLASS-ID. CEOY1.
-            END CLASS CEOY1.
-
-            IDENTIFICATION DIVISION.
-            CLASS-ID. CEOY2.
+            CLASS-ID. CEOY1 INHERITS FROM BASE.
             ENVIRONMENT DIVISION.
             CONFIGURATION SECTION.
             REPOSITORY.
+                CLASS BASE.
+            END CLASS CEOY1.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. CEOY2 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE
                 CLASS CEOY1.
             IDENTIFICATION DIVISION.
             OBJECT.

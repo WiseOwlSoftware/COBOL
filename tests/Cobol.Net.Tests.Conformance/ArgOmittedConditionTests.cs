@@ -18,7 +18,11 @@ public sealed class ArgOmittedConditionTests
     private static string Method(string id, string turn, string body) => $$"""
         {{turn}}
                IDENTIFICATION DIVISION.
-               CLASS-ID. C{{id}}.
+               CLASS-ID. C{{id}} INHERITS FROM BASE.
+               ENVIRONMENT DIVISION.
+               CONFIGURATION SECTION.
+               REPOSITORY.
+                   CLASS BASE.
                OBJECT.
                PROCEDURE DIVISION.
                METHOD-ID. SHOW.

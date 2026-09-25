@@ -6501,13 +6501,13 @@
   "ordinal": 4,
   "subject": "Inline method invocation",
   "rule-digest": "7b79aad692d6",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindImplicitNew; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke",
-  "test-ref": "conformance:negative/pb428-inline-invocation-returning-active-class",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindStandardInvoke",
+  "test-ref": "conformance:negative/pb428-inline-invocation-returning-active-class; conformance:negative/pb1548-inline-new-active-class",
   "derivation": "",
-  "editions": "2002, 2014, 2023, 85",
-  "notes": "kb/Work PB1428 (registrar 15b). cite.py --check 8.4.3.4.3 'shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase' OK. A user method whose RETURNING is ACTIVE-CLASS -> COBOLNET2140 (negative fixture). ANY LENGTH arm has code (retModel.IsAnyLength -> 2140) but is shadowed: an ANY LENGTH RETURNING item is staged loud at COBOLNET0899 before binding (probe p5_anylength) - rejected either way, SR4 arm itself unexercised. DEFECT: the predefined NEW is bound by OoBindImplicitNew, which never applies SR4 and fabricates an 'object-class-name ONLY' temp. §16.2 BaseFactoryInterface declares New's RETURNING item as '01 outObject usage object reference active-class' (cite.py --check 16.2 OK), so `CLASS-NAME :: \"NEW\"` violates SR4 and shall be rejected; the compiler accepts and runs it, and golden conformance:2002/pb428_inline_method_invocation case 7 (`MOVE PB428ACC :: \"NEW\" :: \"GETNAME\" TO W` -> 7=ACCOUNT) pins non-conforming source as legal. SELF :: \"NEW\" in a factory method is rejected, but by COBOLNET0826 'INVOKE SELF/SUPER NEW without RETURNING' (probe p17_selfnewchain), a wrong reason. Wrinkle for the fixer: the fixture class does not INHERIT BASE; this compiler nonetheless models every class's NEW as §16.2.1's New (it cites §16.2.1 and binds SELF NEW with an ActiveClass description), so SR4 governs. || editions as written by the adjudicator: 2002, 2014, 2023 (OO facility; §8.4.3.4 absent from 85)",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work PB1428, LANDED (wave 59 with PB1548). Rule: 'The data item referenced in the RETURNING phrase of the invoked method's procedure division header shall not be described with the ANY LENGTH clause or with the ACTIVE-CLASS phrase.' (cite.py --check 8.4.3.4.3 -> OK §8.4.3.4.3 4)). The DIVERGES was the predefined NEW: OoBindImplicitNew synthesized an 'object-class-name ONLY' temp for `class :: \"NEW\"` and never applied SR4. New is now the standard class BASE's method with its §16.2 signature ('01 outObject usage object reference active-class', cite.py --check 16.2 OK), and every method of BASE invoked inline is refused COBOLNET2140 in OoBindStandardInvoke (both §16.2 returning items are ACTIVE-CLASS) - witnessed by negative pb1548-inline-new-active-class; a user method whose RETURNING is ACTIVE-CLASS stays COBOLNET2140 (pb428-inline-invocation-returning-active-class). The ANY LENGTH arm is checked in OoBindResolvedInvoke but an ANY LENGTH RETURNING item is refused earlier (COBOLNET0899 staging), so no program violating SR4 is accepted. Golden 2002/pb428_inline_method_invocation step 7 (which relied on the accepted `PB428ACC :: \"NEW\"`) now invokes a factory method. retired-witness: src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.InlineInvocation.cs#OoBindImplicitNew (deleted by kb/Work PB1548/PB1428: the inline New no longer binds through a synthesized ONLY temp; it is refused by SR4 in OoBinder.OoBindStandardInvoke)",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.4.4-1",
@@ -6893,11 +6893,11 @@
   "rule-digest": "4ca41aab5dfb",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundOo.cs#InvokeForm; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c28_self_super_invoking_object",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (--check 8.4.3.8.4 'both reference the object that was used to invoke the method' -> OK §8.4.3.8.4 1)). SELF renders `this.M()` and SUPER `base.M()` (InvokeForm.Self/Super) on the SAME C# receiver `this`, so both reference the invoking object. Probe probe/self-and-super/PGR3.cob (A.M does INVOKE SELF \"N\"; C.M does INVOKE SUPER \"M\"; object of class C) prints C.M / A.M / C.N / B.N at --std 2002: the SUPER-invoked base body's SELF is still the C object. conformance:2002/oo_self covers the SELF half (shared per-instance N) only; the SUPER half is probe-verified, so no single spec-derived test closes both halves - test-ref left empty. [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.8.4-2",
@@ -6923,11 +6923,11 @@
   "rule-digest": "7f91b61c5f8d",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindByReceiver; src/Cobol.Net.Compiler/Binding/Bound/BoundOo.cs#InvokeForm",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c28_self_super_invoking_object",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (--check 8.4.3.8.4 'ignores all the methods defined in the class containing the invocation' -> OK §8.4.3.8.4 3)). For SUPER, searchRoot = cur.Base and the call renders non-virtual `base.M()`, ignoring the containing class and its subclasses; SUPER in a root class -> COBOLNET0827. oo_super: DOG.SPEAK override INVOKE SUPER \"SPEAK\" prints ANIMAL then DOG (no recursion). Probe probe/self-and-super/PGR3.cob: C INHERITS B INHERITS A, B has no M; C.M's INVOKE SUPER \"M\" runs A.M (skips C, finds grandparent), and C.N's SUPER \"N\" runs B.N not C.N - output C.M/A.M/C.N/B.N as derived. || REFUTED: CONFORMS with test-ref emptied: oo_super pins only the 'ignore the containing class' half; the 'and all the methods defined in any subclass of that class' half and the grandparent skip are probe-verified only — The behaviour conforms. I probed the half nobody had tried. In RSUB.cob, B.X does INVOKE SUPER \"M\" on a C object while both B and C override M, and it prints A.M. The factory flavor (INVOKE SUPER \"FM\" from B's factory, run on the C factory) prints A.FM. So base.M() is non-virtual and ignores the subclass overrides, as GR3 requires. The adjudicator's PGR3 never exercised this half: no SUPER there runs from a class that has an overriding subclass. The cited golden oo_super is only two levels deep (DOG over ANIMAL, invoked on a DOG). It cannot tell a non-virtual base call apart from a virtual one, and it has no subclass. Closing the row on it over-claims what it proves. This is the same reasoning the adjudicator used to leave GR1's test-ref empty. [editions as adjudicated: 2002, 2014, 2023 (OO predefined object references; absent from COBOL-85)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.4.3.8.4-4",
@@ -39203,7 +39203,7 @@
   "rule-digest": "7813447cfa0a",
   "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindClassInvoke",
-  "test-ref": "conformance:2002/oo_factory",
+  "test-ref": "conformance:2002/oo_factory; conformance:negative/pb1548-new-without-base",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "OWNED BY kb/Work PB1136 (open). Rule: 'If object-class-name-1 is specified, literal-1 shall be specified. The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1.' (--check OK §14.9.23.3 3)). OoBindClassInvoke resolves non-NEW literal-1 via cls.FindFactoryMethod (walks INHERITS); a miss is COBOLNET0825 citing SR3 (probe pbn7: INVOKE BASEC \"FRUN\" where FRUN is a SUBC factory method -> 0825). Positive: INVOKE SUBC \"FRUN\" runs (probe pb2), predefined NEW binds the ctor. First half: INVOKE CP2 MA (identifier-2 with a class-name) is rejected (probe pa5) - but by the resolver's COBOLNET1639 \"'CP2' is not defined\", which is false (CP2 is in the REPOSITORY); the program is correctly refused, the diagnostic misnames the cause (recorded in finding F9). oo_factory golden exercises the factory-interface resolution positively. || REFUTED: PARTIAL — Neither half of the rule is enforced as a rule. (1) 'Literal-1 shall be specified' with class-name-1: INVOKE CP2 MA is refused only because the identifier-2 branch resolves CP2 as a data item. The resolver's COBOLNET1639 then falsely says 'CP2' is not defined, although CP2 is in the REPOSITORY and is a class. No code tests the class-name-1 plus identifier-2 shape. (2) 'The value of literal-1 shall be the name of a method defined in the factory interface': OoBindClassInvoke short-circuits \"NEW\" before any factory-interface lookup. A class with no INHERITS clause has no BaseFactoryInterface New (§11.3.4 GR2, §16.2), yet INVOKE CQ \"NEW\" is accepted. The same compiler's SR4 a) arm (INVOKE F \"NEW\" through FACTORY OF CQ) says CQ's factory interface has no NEW. So the two arms disagree about one interface, and INHERITS BASE itself fails (COBOLNET0821). The FindFactoryMethod path for non-NEW names is correct, and the oo_factory golden pins it. || editions as adjudicated: 2002, 2014, 2023 (INVOKE and the OO module are a COBOL-2002 introduction; Annex E lists no 2014->2023 change to this rule, so the 2023 text is also the 2014 text)",
@@ -57021,13 +57021,13 @@
   "ordinal": 1,
   "subject": "New method",
   "rule-digest": "333d4aa5226c",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundOo.cs#InvokeForm; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs",
-  "test-ref": "conformance:2002/oo_instance_data",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/BASE.cs#__New; src/Cobol.Net.Compiler/Oo/OoStandardClasses.cs#BuildBase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindStandardInvoke; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitNew",
+  "test-ref": "conformance:2002/oo_instance_data; conformance:2002/pb1548_standard_class_base; unit:StandardClassBaseNewResourceTests.New_CreatesTheFactorysClass_AndFactoryObjectReturnsThatFactory",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Rule: 'The New method allocates storage for an object, initializes its instance data in accordance with 14.6.2.4, Initial state of object data, and returns a reference to the created object.' (cite.py --check 16.2.1.2 -> OK §16.2.1.2 1)). §16.1 lets an implementation provide 'alternative root classes' (cite.py --check 16.1 'an implementation may provide alternative root classes' -> OK §16.1) and COBOL.NET's implicit root supplies a predefined NEW on every class: InvokeForm.New renders obj = new Class() (generated ctor chains base then VALUE-initializes), InvokeForm.NewSelf renders this.__New() for SELF|SUPER \"NEW\" in a factory (covariant, OoEmitter ~l.311/995), and class::\"NEW\" goes through OoBinder.InlineInvocation. VERIFIED (probe/new2.cob at --std 2002 and 2023): the returned reference is non-NULL; two NEWs yield independent storage (B1 mutated to 'XYZ 099', B2 still '--- 007'); object data takes its VALUE ('---', 007) and an OBJECT REFERENCE with no VALUE is NULL; pinned by conformance:2002/oo_instance_data (---/---/XYZ), oo_factory and pb428_inline_method_invocation exercise the NewSelf/inline forms. NOT VERIFIED / NOT REACHABLE: (1) the New of the standard BASE class itself - `CLASS-ID. X INHERITS FROM BASE` is refused COBOLNET0821 (re-probed probe/base1.cob at --std 2023), owned by kb/Work PB1506 (open; names this row as one its implementer claims); (2) the internal-file-connector and collating-sequence components of §14.6.2.4 for object data were not probed. Two halves, one verified -> PARTIAL. No new defect beyond PB1506. || Owning note: kb/Work/PB1506.",
-  "state": "GAP"
+  "notes": "kb/Work PB1506 + PB1548, LANDED (wave 59). Rule: 'The New method allocates storage for an object, initializes its instance data in accordance with 14.6.2.4, Initial state of object data, and returns a reference to the created object.' (cite.py --check 16.2.1.2 -> OK §16.2.1.2 1)). New is BaseFactoryInterface's method (§16.2, cite.py OK), provided by the standard class BASE (§16.1 'A standard class BASE shall be provided by the implementation', cite.py OK) and present in a class's factory interface only through INHERITS (§9.3.9 'The subclass has all the methods defined for the inherited class definition', cite.py OK). The earlier PARTIAL read §16.1's 'alternative root classes' as licensing a NEW on every class with no INHERITS; it does not — an alternative root class is still a class a program names and inherits, and a class with no INHERITS clause has only the factory methods it defines, so INVOKE root-class \"NEW\" violates §14.9.23.3 SR3 (now COBOLNET2448). Implementation: OoStandardClasses.BuildBase gives each group a BASE symbol whose factory roster holds New with its §16.2 signature; the runtime BASE__FACTORY.__New is the ONE body every New form reaches (class-name, FACTORY OF reference, SELF/SUPER in a factory method, universal __CobolInvoke), creating through the covariant __Create override = the generated ctor (base first, then VALUE-init). pb1548_standard_class_base derives nine lines from GR1/§9.3.14.3 (object of the factory's RUNTIME class, VALUE-initialized NAME).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-16.2.1.2-2",
@@ -57036,13 +57036,13 @@
   "ordinal": 2,
   "subject": "New method",
   "rule-digest": "726cc1a5aece",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/BoundOo.cs#InvokeForm; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/BASE.cs#__New; src/Cobol.Net.Runtime/Exceptions/ExceptionState.cs#OoResourceError; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitNew",
+  "test-ref": "unit:StandardClassBaseNewResourceTests.New_WhenResourcesAreUnavailable_AndCheckingIsOn_RaisesEcOoResource; unit:StandardClassBaseNewResourceTests.New_WhenResourcesAreUnavailable_AndCheckingIsOff_ReturnsNull",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Rule: 'If resources needed to create a new object are not available, the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method.' (cite.py --check 16.2.1.2 'the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist' -> OK §16.2.1.2 2)). Code: EC-OO-RESOURCE exists only as a catalog entry (ExceptionCatalog.cs:171, L3 Fatal); grep over src finds NO raise site. NEW renders a bare C# `new Class()` / `__New() => new Class()` (BoundOo InvokeForm.New / OoEmitter ~l.314) with no OutOfMemoryException handler, so resource exhaustion escapes as an unhandled .NET exception instead of NULL + EC-OO-RESOURCE. The planned slice (docs/COBOLNET_OO_SLICE_BRIEFS.md l.248 'EC-OO (EC-OO-RESOURCE on New per §16.2.1 GR2 ...)') never landed. Contrast: CobolPtr.cs:211 already maps OutOfMemoryException to NULL + a condition for ALLOCATE - the precedent the fix should reuse. Not probed (resource exhaustion is not reproducible in a golden); decided by code reading. No kb/Work note owns EC-OO-RESOURCE (grep 'OO-RESOURCE' kb/Work -> none) - NEW finding, see findings.json 'ec-oo-resource-never-raised'. The BASE-class half is kb/Work PB1506's. || Owning note: kb/Work/PB1524.",
-  "state": "GAP"
+  "notes": "kb/Work PB1524, LANDED (wave 59). Rule: 'If resources needed to create a new object are not available, the returned object reference is set to NULL, and the EC-OO-RESOURCE exception condition is set to exist and is propagated back to the runtime element that invoked the New method.' (cite.py --check 16.2.1.2 -> OK §16.2.1.2 2)). BASE__FACTORY.__New catches the allocation failure of __Create (the one resource a managed object's creation can lack) and raises EC-OO-RESOURCE through ExceptionState.OoResourceError — FatalIfEnabled over the new OoResourceChecking flag, which EcEmitter's gate table sets for EC-OO-RESOURCE — and otherwise returns NULL. Every emitted New site stores NULL into the receiving item before the call (OoEmitter.EmitNew), so the item is NULL on both legs, including when the raised condition is handled by a declarative. Witnessed through the creation seam (a golden cannot exhaust memory).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-16.2.2.2-1",
@@ -57051,13 +57051,13 @@
   "ordinal": 1,
   "subject": "FactoryObject method",
   "rule-digest": "d5a82ce87551",
-  "verdict": "NOT-IMPLEMENTED",
-  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build; src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Lookup",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/Control/BASE.cs#FACTORYOBJECT; src/Cobol.Net.Compiler/Oo/OoStandardClasses.cs#BuildBase; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs#EmitClassUnit; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindStandardInvoke",
+  "test-ref": "conformance:2002/pb1548_standard_class_base; conformance-test:StandardClassBaseTests.FactoryObject_Override_AndUniversalNew_IntoAConformingTypedReceiver; unit:StandardClassBaseNewResourceTests.New_CreatesTheFactorysClass_AndFactoryObjectReturnsThatFactory",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Rule: 'When invoked on an instance object, the FactoryObject method determines the class of the object and returns a reference to the factory object associated with that class.' (cite.py --check 16.2.2.2 -> OK §16.2.2.2 1)). The FactoryObject method belongs to BaseInterface (§16.2), the object interface of the standard BASE class, which is not provided: `INHERITS FROM BASE` is refused COBOLNET0821 (probe/base1.cob --std 2023), and no class carries a predefined FactoryObject - `INVOKE B1 \"FactoryObject\" RETURNING F1` (F1 USAGE OBJECT REFERENCE FACTORY OF BOX) is refused COBOLNET0825 'class BOX (and its inheritance chain) does not define an instance method named FactoryObject' at 2002/2014/2023 (probe/new1.cob). grep -ri FactoryObject over src/ and tests/ -> zero hits. The facility is absent -> NOT-IMPLEMENTED. Owning note: kb/Work PB1506 (open, MAJOR, rejects-legal-source: BASE / BaseFactoryInterface / BaseInterface absent; names GR-16.2.2.2-1 as a row its implementer claims) - cited, not re-reported. The planned slice docs/COBOLNET_OO_SLICE_BRIEFS.md l.248 ('§16.2.2 FactoryObject') never landed. || Owning note: kb/Work/PB1506.",
-  "state": "GAP"
+  "notes": "kb/Work PB1506, LANDED (wave 59). Rule: 'When invoked on an instance object, the FactoryObject method determines the class of the object and returns a reference to the factory object associated with that class.' (cite.py --check 16.2.2.2 -> OK §16.2.2.2 1)). The runtime BASE.FACTORYOBJECT() returns __FactoryOfClass, which every emitted BASE-derived class overrides with its own factory singleton, so the most-derived override is the runtime class's factory. pb1548_standard_class_base: an object of D held in an A-typed reference answers D's factory (line 3 'D-FACTORY'), SELF \"FactoryObject\" in an inherited method likewise (line 7), and through a reference described BASE into a universal item (line 8). Not FINAL (§16.2 declares no FINAL), so a subclass may OVERRIDE it and redefining it without OVERRIDE is §11.7.3 SR4a's COBOLNET0837 (StandardClassBaseTests).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-5.2",

@@ -100,7 +100,11 @@ public sealed class RaisingPhraseTupleTests
                 EXIT PROGRAM RAISING F.
             END PROGRAM {{pid}}.
             IDENTIFICATION DIVISION.
-            CLASS-ID. C{{pid}}.
+            CLASS-ID. C{{pid}} INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             END CLASS C{{pid}}.
             """;
 

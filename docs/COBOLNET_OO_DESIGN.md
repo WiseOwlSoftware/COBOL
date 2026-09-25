@@ -21,7 +21,7 @@
 > §9.3.8.2 signature checks via the shared DescriptionMismatch rule) and SELF/SUPER (D5: `this.M(…)`
 > virtual GR2 / `base.M(…)` non-virtual GR3).
 > FACTORY (§11.4) is realized as per-class factory SINGLETON classes (`FOO__FACTORY : BASE__FACTORY |
-> CobolObject` with `__Instance` + a covariant `__New` — §8.6.4 per-class copies of inherited factory
+> CobolObject` with `__Instance` + a covariant `__Create` when the class inherits BASE — §8.6.4 per-class copies of inherited factory
 > data, SELF-in-factory polymorphism SR4f/GR2, §9.3.6 chain resolution; `INVOKE Class "M"` →
 > `CLS__FACTORY.__Instance.M(…)`). OVERRIDE / [IS] FINAL enforce strict §11.7 SR4a/SR3 + the FINAL
 > family and drive the total D7 modifier table. INTERFACE-ID + IMPLEMENTS + PROPERTY declarations and
@@ -38,9 +38,9 @@
 
 OO COBOL → idiomatic .NET classes, designed fresh for the C#-native (Roslyn) target. The byte-model legacy kept its whole data engine and only swapped `ldsfld State`→`ldfld State`; the C#-native target instead emits ONE real C# class per CLASS-ID (the driver PROGRAM stays the static `Program` class), instance fields per OBJECT data item, real C# methods per METHOD-ID, and INVOKE → real C# `new`/`obj.M(...)`/`base.M(...)`. This is a major simplification: the one thing the byte model needed Mono.Cecil two-pass resolution for (cross-type method/type binding, virtual dispatch, parameter-conformance checks) Roslyn now gives for free — the residual "two-pass" belongs to the BINDER: pass-1 builds the class/method symbol table (class → method-name → {param modes, return}), pass-2 binds bodies, so each BoundInvoke carries its resolved call form (new/virtual/base/static/dynamic) and per-arg marshal mode (ref/value/copy) as bound-tree facts; BOTH backends (Roslyn primary, future CIL — G4 `ICodeGenBackend`) only render those facts, and the C# compiler merely re-resolves what the binder already validated.
 
-TYPE-EMISSION MODEL: every CLASS-ID Foo → `public class Foo : CobolObject` (or `: Base`); a `CobolObject` runtime base hosts universal/dynamic dispatch + NULL/IS semantics reflection-free (rejected: derive from System.Object → universal dispatch then needs reflection). The "emit fields+paragraphs+statements into a type" routine is parameterized by (type, instance-vs-static, storage-source), so a driver program and a class emit their members on the SAME statement/PC-dispatch machinery. STORAGE SCOPES (two counterintuitive): OBJECT-para WORKING-STORAGE → INSTANCE fields; METHOD WORKING-STORAGE → STATIC fields (pre-2023 editions ONLY — **ILLEGAL in 2023 per §13.5.3 SR 1, see Spec corrections #1**; where legal: method WS persists across activations, shared across instances — NOT per-instance); METHOD LOCAL-STORAGE → C# locals (re-init each call); LINKAGE → method parameters; method-local names SHADOW object data (§11.7 GR5). The predefined NEW = the ctor: chain base ctor first (C# default, matches COBOL base-then-derived init), then VALUE-init this class's instance fields. FACTORY → a REAL sibling singleton class per CLASS-ID (`FOO__FACTORY : BASE__FACTORY | CobolObject` with `__Instance` + a covariant `__New` — NOT C# statics: §8.6.4 gives every class its OWN copy of inherited factory data, SELF-in-factory is polymorphic per §14.9.23.3 SR4f + §8.4.3.8 GR2, and §9.3.6 factory resolution walks INHERITS — three facts statics cannot satisfy).
+TYPE-EMISSION MODEL: every CLASS-ID Foo → `public class Foo : CobolObject` (or `: Base`; the standard class BASE is the runtime `BASE`, D4); a `CobolObject` runtime base hosts universal/dynamic dispatch + NULL/IS semantics reflection-free (rejected: derive from System.Object → universal dispatch then needs reflection). The "emit fields+paragraphs+statements into a type" routine is parameterized by (type, instance-vs-static, storage-source), so a driver program and a class emit their members on the SAME statement/PC-dispatch machinery. STORAGE SCOPES (two counterintuitive): OBJECT-para WORKING-STORAGE → INSTANCE fields; METHOD WORKING-STORAGE → STATIC fields (pre-2023 editions ONLY — **ILLEGAL in 2023 per §13.5.3 SR 1, see Spec corrections #1**; where legal: method WS persists across activations, shared across instances — NOT per-instance); METHOD LOCAL-STORAGE → C# locals (re-init each call); LINKAGE → method parameters; method-local names SHADOW object data (§11.7 GR5). New (the standard class BASE's factory method, D4) creates through the ctor: chain base ctor first (C# default, matches COBOL base-then-derived init), then VALUE-init this class's instance fields. FACTORY → a REAL sibling singleton class per CLASS-ID (`FOO__FACTORY : BASE__FACTORY | CobolObject` with `__Instance` + a covariant `__Create` when FOO inherits BASE — NOT C# statics: §8.6.4 gives every class its OWN copy of inherited factory data, SELF-in-factory is polymorphic per §14.9.23.3 SR4f + §8.4.3.8 GR2, and §9.3.6 factory resolution walks INHERITS — three facts statics cannot satisfy).
 
-INVOKE RESOLUTION (each grounded in a conformance .cob): `Class "NEW" RETURNING o`→`o=new Class()`; `obj "M" USING.. RETURNING..`→`obj.M(args)` virtual; `SELF "M"`→`this.M()` (virtual, §8.4.3.8 GR2 — runtime-class dispatch); `SUPER "M"`→`base.M()`; `Class "M"`(non-NEW)→static call. Dynamic/universal (method-name is a data item, or receiver is a universal `CobolObject?`) cannot be a static C# call → a virtual `__CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning)` on CobolObject whose body is a switch over the class's methods (reflection-free, AOT/WASM-safe); typed-literal INVOKE stays the fast path. INVOKE on a real .NET object (interop) is deferred — §14.9.23.4 GR2b makes non-COBOL INVOKE implementor-defined.
+INVOKE RESOLUTION (each grounded in a conformance .cob): `Class "New" RETURNING o`→`o=(C?)C__FACTORY.__Instance.__New()` (only when C inherits the standard class BASE — D4); `obj "M" USING.. RETURNING..`→`obj.M(args)` virtual; `SELF "M"`→`this.M()` (virtual, §8.4.3.8 GR2 — runtime-class dispatch); `SUPER "M"`→`base.M()`; `Class "M"`(non-NEW)→static call. Dynamic/universal (method-name is a data item, or receiver is a universal `CobolObject?`) cannot be a static C# call → a virtual `__CobolInvoke(string name, CobolInvokeArg[] args, CobolInvokeArg? returning)` on CobolObject whose body is a switch over the class's methods (reflection-free, AOT/WASM-safe); typed-literal INVOKE stays the fast path. INVOKE on a real .NET object (interop) is deferred — §14.9.23.4 GR2b makes non-COBOL INVOKE implementor-defined.
 
 METHOD ATTRS map cleanly because COBOL forbids implicit hiding: instance methods → `virtual` by default (§9.3.6 runtime-class dispatch); OVERRIDE→`override`; FINAL→`sealed override`; §11.7 SR4a (redefining a base signature without OVERRIDE is an ERROR) means we NEVER emit C# `new`/hiding. (ABSTRACT is NOT ISO — vendor extension only; dropped from the ISO surface. **Spec corrections #4.**)
 
@@ -55,7 +55,7 @@ early) + `OoConformance` (the §9.3.8.2/§9.3.11 validator; `ValidateImplements`
 `AdapterPair` list, threaded via `BoundCompilation.OoAdapters` to the interface emitter) + `OoDriver` (the
 bind bodies: interface prototype data, class OBJECT/FACTORY halves + signatures, method-body rosters — owned
 and sequenced by `BinderDriver.Bind`; the former emitter-hosted `IOoBindHost` seam is DELETED) +
-`NamingConvention` (the ONE home for `__GET_`/`__SET_`, `__FACTORY`/`__Instance`/`__New`, the
+`NamingConvention` (the ONE home for `__GET_`/`__SET_`, `__FACTORY`/`__Instance`, the
 `::EXT::`/`::INST::`/`::FACT::` file-key bands — the runtime's `::EXT::` recognition is the documented wire
 contract — and EVERY synthesized C# name that embeds a user-defined word: each such family carries a NON-EMPTY
 tag (`__formal_` for a method formal's `ref` parameter, `__addr_`, `__fkey_`, `__cap_`, `__dbg_`, `__new_`,
@@ -83,7 +83,7 @@ scoping fixed (`DataBinder.EnvDivisions`, outermost-first — a half's own env n
 
 ## Version gating (G1 — four compilers in one)
 
-The ENTIRE OO subsystem (CLASS-ID/FACTORY/OBJECT/METHOD-ID, INVOKE, USAGE OBJECT REFERENCE, SELF/SUPER, the predefined NEW, INTERFACE-ID/IMPLEMENTS, SET … TO object-reference, repository CLASS entries) is introduced in COBOL-2002 and present in 2014/2023. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Concretely:
+The ENTIRE OO subsystem (CLASS-ID/FACTORY/OBJECT/METHOD-ID, INVOKE, USAGE OBJECT REFERENCE, SELF/SUPER, the standard class BASE (New / FactoryObject), INTERFACE-ID/IMPLEMENTS, SET … TO object-reference, repository CLASS entries) is introduced in COBOL-2002 and present in 2014/2023. Every edition-varying construct carries TWO co-equal obligations: (1) the complete per-edition ISO-spec behavior in every edition that HAS it; (2) the correct DIAGNOSTIC in every edition that LACKS it (not-yet-introduced or removed). Tests (NIST etc.) only VERIFY; they never SCOPE. Concretely:
 1. `--std 2002|2014|2023` → the full per-edition spec behavior designed in this doc.
 2. `--std 85` → every OO construct is REJECTED with a specific edition diagnostic (e.g. "CLASS-ID requires COBOL-2002 or later; compiling as COBOL-1985"), NOT a generic syntax error. The live grammar already gates the parse with `{is2002()}?` predicates (CobolParserCore.g4: classDefinition in compilationGroup, the repository CLASS entry, invokeStatement, PD returningClause, BY VALUE args, SET-to-objectReference, GOBACK RETURNING); a diagnostic pass must map each gated rule to its versioned diagnostic so the version test matrix's negative corpus (`docs/VERSION_TEST_MATRIX_DESIGN.md` — the (construct × edition) matrix; Phase 0 done) can assert it.
 3. Edition deltas WITHIN OO (2002→2014→2023) are gated by DialectLevel per `docs/VERSION_CHANGE_REFERENCE.md` (the 130-row edition-change checklist — 2002→2023 deltas ONLY; OO's own 2002 introduction has NO row there and derives from the 2002 standard) (e.g. row 97: FLAG-02 flagging of EC-PROGRAM TURN in elements that invoke methods, 2002→2014; row 15: external-item conformance-check ECs, 2014→2023) — never hard-coded to 2023.
@@ -97,7 +97,7 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **Rejected alternatives.** Port the legacy per-instance-ProgramState model (instance `State` byte field + `ldarg.0;ldfld State`) — rejected by the OWNER-LOCKED no-byte-substrate rule and because it throws away Roslyn's free type-checking. Emit via Mono.Cecil like legacy — rejected: re-introduces the manual cross-type MethodDefinition registry the source target eliminates.
 
-### D2. Introduce a `CobolObject` runtime base class; every emitted COBOL class is `class Foo : CobolObject` (or `: Base` when it INHERITS, whose own root is CobolObject).
+### D2. Introduce a `CobolObject` runtime base class; every emitted COBOL class is `class Foo : CobolObject` (or `: Base` when it INHERITS, whose own root is CobolObject — for the standard class BASE, the runtime `BASE : CobolObject`, D4).
 
 **Rationale.** Gives a single reflection-free home for universal/dynamic dispatch (`__CobolInvoke`), object-identity/NULL/`IS class` semantics, and a future EC-OO surface — AOT/WASM-safe (no Type.GetType, no reflection).
 
@@ -115,13 +115,38 @@ Positive conformance tests live in `tests/conformance/2002/oo_*.cob`; the reject
 
 **BASED data and ADDRESS OF targets in class data (kb/Work PB956).** §13.16.3 SR16 admits the BASED clause in the working-storage, local-storage and linkage sections, which a factory, an instance and a method definition all have, so a class's data is pointer-backed exactly like a program's: the ONE cell-backing forcer (`DataBinder.ForceStringCanonical`) re-bases each BASED root and each record named by a `SET … TO ADDRESS OF x` sender, and ONE renderer (`OoEmitter.EmitPointerBackings`, shared with `ProgramEmitter`) declares the implicit pointer + deref cell + backing, or the addressable `StorageCell` + backing, in the type-half that owns the forest. Two class-unit specifics: (1) the ADDRESS-OF pre-scan walks each bound METHOD's procedure division (`DataBinder.OoBoundMethods` — the synthetic class unit has none of its own) and resolves every head in the method's own scope (§11.7.4 GR5); (2) the member's STORAGE DURATION follows its section per D3 — object/factory WS → an instance member of that type-half; method WS → a `static` member (`StaticBasedBridgeAddrs` / `StaticAddressableCells`, §8.6.4 static items); method LOCAL-STORAGE / non-formal LINKAGE → a per-ACTIVATION member: `EmitMethod` saves the activator's value, starts the activation fresh (a NULL pointer, §13.18.5.4 GR2; a new cell seeded with the record's initial image, §8.6.4) and restores it in the activation's `finally`, so a recursive INVOKE on the same object neither inherits nor clobbers its caller's address. They are members rather than C# locals because the method's dispatch is a local function and C# cannot capture a `ref` local (the backing is a `ref string` bridge). A method formal / RETURNING item named by `ADDRESS OF` IS forced like any other method LINKAGE root (kb/Work PB1019, method arm — §8.4.3.11.3 SR1 admits a linkage-section item): its per-activation cell is seeded with the initial image, a PRESENT formal's argument is copied into it at entry and copied back out at exit, and the RETURNING item is delivered from it — through ONE composer, `OoEmitter.MethodBoundaryValue` (copy-out and RETURNING) and its inverse `MethodCellFormalStore` (copy-in). A cell-backed item crosses as its IMAGE when `OoCrossingType` says `string` (a group, or an elementary item stored as its image), else as its typed value read through its window. Because the crossing is a boundary copy, the program path's boundary-copy limitation (COBOLNET_INTERPROGRAM_DESIGN) applies: the address is the method cell's, not the invoker's argument's. The INVOKE site decodes a string-carried numeric RETURNING result through the receiver's own byte form (`NumericImagePlace`, §14.8.3.3 — same PICTURE and USAGE), the same decode its BY REFERENCE copy-out always used. A PROPERTY accessor reads and writes its subject through the subject's PLACE, so a subject whose record is cell-backed (or a Tier-B REDEFINES window) has no field of its own and still works; §13.16.3 SR21 (PROPERTY × BASED / TYPEDEF, COBOLNET2333) is asked of the entry's own clauses.
 
-### D4. The predefined NEW factory = the generated public ctor: base ctor chains first, then VALUE-initialize this class's own instance fields.
+### D4. New is the STANDARD CLASS BASE's factory method (§16.2 BaseFactoryInterface), not a method every class has; its creation step is the generated public ctor: base ctor chains first, then VALUE-initialize this class's own instance fields.
 
-**Rationale.** C# already runs base-then-derived ctor order, which matches COBOL initialize-inherited-then-own-data; §16.2.1 NEW is the built-in factory needing no explicit FACTORY METHOD-ID.
+**The standard class BASE (§16; kb/Work PB1548 / PB1506 / PB1524).** §16.1: "A standard class BASE shall be provided
+by the implementation. It may be used as the root of a class hierarchy to provide standard object life-cycle
+function. This use is not required". Its implementation is the runtime pair `CobolNet.Runtime.BASE` (object half —
+BaseInterface's `FactoryObject`, §16.2.2.2 GR1, a virtual `FACTORYOBJECT()` returning the abstract
+`__FactoryOfClass` every BASE-derived class overrides with its own singleton) and `BASE__FACTORY` (factory half —
+BaseFactoryInterface's `New`: the ONE non-virtual body `__New()` wrapping the covariant abstract `__Create()` every
+BASE-derived factory overrides with `new C()`; an `OutOfMemoryException` there is §16.2.1.2 GR2 — NULL, plus
+EC-OO-RESOURCE through `ExceptionState.OoResourceError` when checking for it is enabled). The names are the
+emitted-type convention for the class-name BASE (sanitize + uppercase, + `__FACTORY`), so `INHERITS FROM BASE`,
+`USAGE OBJECT REFERENCE BASE` and `FACTORY OF BASE` need no special case in the emitter.
+In the binder, `OoStandardClasses.BuildBase` gives every compilation group an `OoClassSymbol` for BASE (`IsStandard`,
+never in `OoClassTable.Classes`, no source) whose factory roster holds New and whose instance roster holds
+FactoryObject, each with its §16.2 signature as a real `OoMethodBinding` (`StandardMethod` marks them). It is reached
+exactly like any class — through a REPOSITORY class-specifier (§8.4.6.4; §11.3.3 SR2; §12.3.8.3 SR6 b) — and
+`OoClassTable.Find` answers BASE with it only when no class of the group is DEFINED under that name (the §12.3.8.4
+GR6 implementor-defined choice). Methods then join a subclass's interfaces by ordinary §9.3.9 inheritance, so
+`INVOKE C "New"` resolves only when C inherits BASE; a class that does not has NO New, and naming it through any
+receiver form is COBOLNET2448 citing the governing §14.9.23.3 rule (SR3 class-name, SR4 a/c FACTORY OF, SR4 f/h
+SELF/SUPER). New and FactoryObject are not inline-invocable: §16.2 describes both returning items with ACTIVE-CLASS,
+which §8.4.3.4.3 SR4 excludes (COBOLNET2140). An invocation of either binds through `OoBinder.OoBindStandardInvoke`,
+whose result description is the receiver's own class view (the named class ONLY for a class-name; the declared class
+or ACTIVE-CLASS of a reference; ACTIVE-CLASS for SELF/SUPER) — that is what §16.2's `active-class` means for it.
+
+**Rationale.** C# already runs base-then-derived ctor order, which matches COBOL initialize-inherited-then-own-data;
+§16.2.1.2 GR1's "allocates storage for an object, initializes its instance data in accordance with 14.6.2.4" is
+exactly `new C()`.
 
 **Rejected alternatives.** A separate static `NEW()` factory method calling a parameterless ctor + an Initialize method (the legacy InitializeState shape) — rejected: redundant in C#; the ctor IS the initializer and field initializers + ctor body cover VALUE.
 
-### D5. INVOKE call-form table: Class "NEW" RETURNING o → `o=new Class()`; obj "M" → `obj.M(args)` (virtual); SELF "M" → `this.M()`; SUPER "M" → `base.M()`; Class "M" (non-NEW) → static call; dynamic/universal → `recv.__CobolInvoke(name,args)`.
+### D5. INVOKE call-form table: Class "New" RETURNING o → `o = null; o = (C?)C__FACTORY.__Instance.__New()` (a FACTORY OF reference or SELF/SUPER in a factory method name the factory instead); obj "M" → `obj.M(args)` (virtual); SELF "M" → `this.M()`; SUPER "M" → `base.M()`; Class "M" (non-New) → the factory singleton's virtual member; dynamic/universal → `recv.__CobolInvoke(name,args)`, whose object-reference deliveries narrow through `CobolObject.NarrowUniversal` (a non-conforming class is EC-OO-UNIVERSAL, §14.9.23.4 GR7c).
 
 **Rationale.** Direct, idiomatic, statically-resolved (AOT-safe) for the literal-method 90% path; matches §9.3.6 (object→instance/factory resolution, SUPER restricted search), §8.4.3.8 (SELF virtual on runtime class, SUPER non-virtual).
 
@@ -201,7 +226,7 @@ BY VALUE args stage 0828 pending the unparsed header BY-phrases; cross-float CON
 
 **CORRECTION (Spec corrections #4).** ABSTRACT is NOT ISO (zero occurrences in the whole spec; CLASS-ID modifiers are only AS/FINAL/INHERITS/USING, :12742-12744; method attributes only OVERRIDE and [IS] FINAL, :12798-12821). ABSTRACT (and STATIC/visibility attributes) are vendor extensions — out of the ISO surface; FACTORY methods emit as `virtual`/`override` members of the FACTORY SINGLETON class (§11.4; brief D11 — NOT C# statics: SELF-in-factory dispatches on the runtime factory, SR4f/GR2), never via a method attribute. If a vendor-dialect ABSTRACT is ever wanted it is a dialect-gated extension, never default 2023 surface.
 
-**Implementation (OVERRIDE/FINAL).** The attributes are live: `METHOD-ID … [OVERRIDE] [IS FINAL]` + `CLASS-ID … [IS FINAL]` parse (spec order; the OVERRIDE token via the XOR-recipe — user word at 85, 0901 ≥2002), and STRICT §11.7 is enforced at pass-1: SR4a redefinition-without-OVERRIDE = **0837** through the ONE `EditionContext.Removed` policy seam (error strict; warning + the name-match inference under `--permissive` — the documented migration leniency); SR3 OVERRIDE-without-a-base-method = **0838**; the FINAL-violation family (override of a FINAL method, GR3; INHERITS FROM a FINAL class, §11.3 GR3) = **0839**. Both rosters (instance + factory) take identical rules. Emission is the TOTAL D7 table: override → `override` (`sealed override` when itself FINAL in a non-sealed class); FINAL root method or ANY fresh slot in a FINAL class → NON-virtual; FINAL class → `sealed` (both type halves — and a sealed factory's root `__New` is non-virtual: a `virtual` member in a `sealed` type is Roslyn **CS0549** on emitted code, the trap the table exists for, guarded by the oo_override_final golden). SR2/SR8 (no attributes in method PROTOTYPES) is enforced by the interface machinery (see below).
+**Implementation (OVERRIDE/FINAL).** The attributes are live: `METHOD-ID … [OVERRIDE] [IS FINAL]` + `CLASS-ID … [IS FINAL]` parse (spec order; the OVERRIDE token via the XOR-recipe — user word at 85, 0901 ≥2002), and STRICT §11.7 is enforced at pass-1: SR4a redefinition-without-OVERRIDE = **0837** through the ONE `EditionContext.Removed` policy seam (error strict; warning + the name-match inference under `--permissive` — the documented migration leniency); SR3 OVERRIDE-without-a-base-method = **0838**; the FINAL-violation family (override of a FINAL method, GR3; INHERITS FROM a FINAL class, §11.3 GR3) = **0839**. Both rosters (instance + factory) take identical rules. Emission is the TOTAL D7 table: override → `override` (`sealed override` when itself FINAL in a non-sealed class); FINAL root method or ANY fresh slot in a FINAL class → NON-virtual; FINAL class → `sealed` (both type halves — the generated `__Create` of a sealed factory is an `override`, never a fresh `virtual`: a `virtual` member in a `sealed` type is Roslyn **CS0549** on emitted code, the trap the table exists for, guarded by the oo_override_final golden). SR2/SR8 (no attributes in method PROTOTYPES) is enforced by the interface machinery (see below).
 
 **Implementation (INTERFACE-ID / IMPLEMENTS / PROPERTY).** INTERFACE-ID (§11.5/§11.6) is live end-to-end.
 GRAMMAR: `interfaceDefinition` ({is2002()}? in compilationGroup; INTERFACE_ID token; interface INHERITS
@@ -367,14 +392,17 @@ clone must re-point, where the re-parse builds them correctly by construction th
 ## C# mapping
 
 TYPE + NEW + DISPLAY (from oo_hello.cob):
-  CLASS-ID. GREETER. / OBJECT. / 01 MSG PIC X(13) VALUE "HELLO, WORLD!". / METHOD-ID. SAYHELLO. ... DISPLAY MSG.
+  CLASS-ID. GREETER INHERITS FROM BASE. / REPOSITORY. CLASS BASE. / OBJECT. / 01 MSG PIC X(13) VALUE "HELLO, WORLD!".
+  / METHOD-ID. SAYHELLO. ... DISPLAY MSG.
   →
-    public class GREETER : CobolObject {
+    public class GREETER : BASE {
         private string _MSG = CobolString.Store("HELLO, WORLD!", 13);  // instance field (OBJECT WS), VALUE-init in ctor
         public GREETER() { /* base() first; then VALUE inits */ _MSG = CobolString.Store("HELLO, WORLD!", 13); }
+        protected override BASE__FACTORY __FactoryOfClass => GREETER__FACTORY.__Instance;   // FactoryObject
         public virtual void SAYHELLO() { System.Console.WriteLine(_MSG); }
     }
-  Driver: INVOKE GREETER "NEW" RETURNING G  →  G = new GREETER();
+    public class GREETER__FACTORY : BASE__FACTORY { … protected override GREETER __Create() => new GREETER(); }
+  Driver: INVOKE GREETER "NEW" RETURNING G  →  G = null; G = (GREETER?)GREETER__FACTORY.__Instance.__New();
           INVOKE G "SAYHELLO"               →  G.SAYHELLO();
 
 LINKAGE (ref/returning) + per-instance state (from oo_method_args.cob):
@@ -605,7 +633,7 @@ OO binding lives in `CSharpEmitter.Oo.cs`: `OoClassUnit` (the ClassUnit counterp
 `BindDeclarations`/`BindResolve`, so signatures exist before ANY body binds regardless of source order —
 then `OoBindClassBody`; class FILE SECTION staged 0899). OO emission lives in `CodeGen/Verbs/OoEmitter.cs`: `OoEmitter.EmitClassUnit` — the SAME per-unit
 emitter-state switch as the program-class emitter renders `public class FOO : CobolObject` with FieldEmitter
-INSTANCE fields (VALUE → field initializers; the implicit public ctor IS the predefined NEW — D4) and
+INSTANCE fields (VALUE → field initializers; the implicit public ctor IS New's creation step — D4) and
 method-WS STATIC fields (D3).
 **Dispatcher realization:**
 each METHOD-ID emits as `public virtual <ret> M(ref …)` whose paragraphs render inside a LOCAL FUNCTION
@@ -615,7 +643,7 @@ code address the method's LINKAGE/LOCAL-STORAGE C# LOCALS by capture (a `ref` pa
 hence the param→local copy-in/copy-out at the method boundary); captures lower to by-ref frames (zero
 allocation), and recursion (methods are implicitly RECURSIVE, :12032) is reentrant because every activation
 owns fresh locals. Falling past the slice's last paragraph returns (trap #4); `__N` stays one class-level
-const. INVOKE renders in `OoEmitter.EmitInvoke`: NEW → `place.Write("new FOO()")`; instance → the D6 marshaling
+const. INVOKE renders in `OoEmitter.EmitInvoke`: New → `OoEmitter.EmitNew` (the factory's `__New()`, D4/D5); instance → the D6 marshaling
 around `CobolObject.RequireNonNull(recv).M(…)` (GR5; see the D6 implementation note). Classes emit before programs
 (source order; Roslyn needs no depth sort — the legacy Cecil ordering is obsolete); a class-only compilation
 unit emits classes + an empty Main.
@@ -635,7 +663,7 @@ The per-unit emitter machinery this builds on emits one `internal sealed class _
 - §9.3.6 Method invocation (object→instance vs factory resolution; SUPER restricted search; match-rule 3c BY REFERENCE same class/category → typed `ref` is conformant)
 - §14.9.23 INVOKE statement (general format USING BY REFERENCE/CONTENT/VALUE/OMITTED + RETURNING; SR4 method-name lookup by receiver kind; SR6 universal ref forbids BY CONTENT/VALUE; SR7 identifier-2 method-name only for universal; GR5 null→EC-OO-NULL; GR6 default arg-passing; GR7b not-found→EC-OO-METHOD; GR8 RETURNING)
 - §9.3.5.3 (method resolution signature + parametric polymorphism is OPTIONAL)
-- §16.2.1 predefined NEW factory method (no explicit FACTORY needed to construct)
+- §16.1 / §16.2 the standard class BASE — New (§16.2.1, BaseFactoryInterface) and FactoryObject (§16.2.2, BaseInterface), present only in a class that inherits BASE (D4)
 - §13.18.60.4 USAGE OBJECT REFERENCE (typed vs universal object references)
 - §14.9.23.4 GR2b non-COBOL INVOKE is implementor-defined (basis for deferring .NET-object interop INVOKE)
 

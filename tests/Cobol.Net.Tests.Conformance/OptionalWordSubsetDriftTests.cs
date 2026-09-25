@@ -576,7 +576,11 @@ public sealed class OptionalWordSubsetDriftTests
            END PROGRAM OPWR.
 
            IDENTIFICATION DIVISION.
-           CLASS-ID. OPWRC.
+           CLASS-ID. OPWRC INHERITS FROM BASE.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               CLASS BASE.
            IDENTIFICATION DIVISION.
            OBJECT.
            PROCEDURE DIVISION.
@@ -623,7 +627,11 @@ public sealed class OptionalWordSubsetDriftTests
            END PROGRAM OPWS.
 
            IDENTIFICATION DIVISION.
-           CLASS-ID. OPWSB.
+           CLASS-ID. OPWSB INHERITS FROM BASE.
+           ENVIRONMENT DIVISION.
+           CONFIGURATION SECTION.
+           REPOSITORY.
+               CLASS BASE.
            IDENTIFICATION DIVISION.
            OBJECT.
            PROCEDURE DIVISION.

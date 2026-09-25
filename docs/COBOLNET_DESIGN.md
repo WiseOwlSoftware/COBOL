@@ -997,8 +997,9 @@ members/methods + static data.
 
 ### 10.3 INVOKE + attributes
 
-`Class "NEW" RETURNING o`→`o = new Class()` (the predefined NEW = the generated ctor: base ctor first, then VALUE-init
-own instance fields); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M()` (virtual — runtime-class dispatch,
+`Class "New" RETURNING o`→`o = (C?)C__FACTORY.__Instance.__New()` (New is the standard class BASE's factory method,
+§16.2 — present only in a class that INHERITS FROM BASE, COBOLNET2448 otherwise; its creation step is the generated
+ctor: base ctor first, then VALUE-init own instance fields — OO deep-dive D4); `obj "M"`→`obj.M(args)` (virtual); `SELF "M"`→`this.M()` (virtual — runtime-class dispatch,
 §8.4.3.8 GR2); `SUPER "M"`→`base.M()`; `Class "M"` (non-NEW)→static call; dynamic/universal (method-name in a data
 item, or a universal `object?` receiver)→`recv.__CobolInvoke(name, args)` (a per-class switch — reflection-free).
 Instance methods are `virtual` by default (COBOL forbids implicit hiding, §11.7 SR4a → never emit C# `new`); OVERRIDE→

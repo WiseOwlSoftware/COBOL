@@ -49,6 +49,23 @@ public abstract class CobolObject
         receiver ?? throw new CobolFatalException("EC-OO-NULL",
             "INVOKE: the object reference used as the receiver is null (ISO §14.9.23.4 GR5)");
 
+    /// <summary>Deliver an object reference that crossed a UNIVERSAL invocation (D10) into a receiving item of type
+    /// <typeparamref name="T"/>. The delivery follows the SET rules (§14.8.3.3 rule 1), and through a universal
+    /// receiver the class of the object is a RUNTIME fact: a method written in COBOL is admitted only when its
+    /// descriptor equals the caller's (so this always succeeds for it), but the standard class BASE's New and
+    /// FactoryObject return ACTIVE-CLASS results (§16.2) whose class is the receiver's own, which only the object
+    /// can answer. A non-conforming object is §14.9.23.4 GR7c's EC-OO-UNIVERSAL when the activator checks for it,
+    /// and otherwise still cannot proceed into typed code (<see cref="CobolImplementorFatalException"/>) — never an
+    /// unchecked cast's InvalidCastException.</summary>
+    public static T? NarrowUniversal<T>(object? value, string what) where T : class
+    {
+        if (value is null or T) return (T?)value;
+        string detail = $"{what}: the object delivered is of class '{value.GetType().Name}', which does not conform "
+            + $"to the receiving item's class '{typeof(T).Name}' (ISO §14.9.23.4 GR7c; §14.8.3.3 rule 1)";
+        if (ExceptionState.OoUniversalChecking) throw new CobolFatalException("EC-OO-UNIVERSAL", detail);
+        throw new CobolImplementorFatalException(detail);
+    }
+
     // ── Per-object instance-file connectors (M2-OO-1i, ISO §9.1.4) ──────────────────────────────────────────
     // An OBJECT-paragraph (non-EXTERNAL) file connector belongs to the object instance: it is minted per object
     // (CobolFile.MintInstanceKey), registered in the emitted ctor, tracked here, and implicitly CLOSED when the

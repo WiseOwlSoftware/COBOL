@@ -13,7 +13,11 @@
       *> a group, and an overriding method that addresses the formals
       *> its base method does not.
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB1019BA.
+       CLASS-ID. PB1019BA INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        OBJECT.
        PROCEDURE DIVISION.
        METHOD-ID. BUMP.

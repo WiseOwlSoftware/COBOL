@@ -14,7 +14,11 @@
        *> side tests naturally cover.
 
        IDENTIFICATION DIVISION.
-       CLASS-ID. PB303CZ AS "".
+       CLASS-ID. PB303CZ AS "" INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.

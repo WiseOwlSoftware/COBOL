@@ -290,6 +290,13 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 return $"{protoRet} {a.Iface.CsName}.{a.Proto.CsName}({protoSig}) => this.{a.Impl.CsName}({args});   // covariant-return adapter (§9.3.8.2.3 5c2)";
             })
             .ToList();
+        // §16.2.2.2 GR1 — FactoryObject "determines the class of the object": the runtime BASE reads it from this
+        // override, and the most-derived class's override is the runtime class's factory. Only a class that has
+        // BASE's object interface has one (§16.1: "This use is not required").
+        bool lifeCycle = cls.Symbol.InheritsStandardBase;
+        if (lifeCycle)
+            instExtras.Add($"protected override BASE__FACTORY __FactoryOfClass => {cls.Symbol.FactoryCsName}."
+                + $"{NamingConvention.FactoryInstanceField};   // FactoryObject (ISO §16.2.2.2 GR1)");
         EmitTypeHalf(cls.Name, cls.CsName, instBase,
             cls.Data, cls.Refs, cls.Bound, cls.Symbol.Methods, w,
             headerExtras: instExtras.Count > 0 ? instExtras : null,
@@ -304,16 +311,18 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         var extras = new List<string>
         {
             // The singleton (§9.3.14.2 "created before it is first referenced" — .NET static-readonly type
-            // initialization satisfies it exactly). A derived factory needs `new` to shadow the base's.
-            $"public {(cls.Symbol.Base is not null ? "new " : "")}static readonly {cls.Symbol.FactoryCsName} __Instance = new();",
-            // The predefined New as a COVARIANT virtual (§16.2.1.2 GR1 ACTIVE-CLASS creation — an inherited
-            // factory MAKE reached via INVOKE DOG "…" creates a DOG through the runtime override). A FINAL
-            // class's factory is SEALED: its root __New emits NON-virtual (a virtual member in a sealed type
-            // is Roslyn CS0549 on emitted code — the same trap the method-modifier table guards).
-            cls.Symbol.Base is not null
-                ? $"public override {cls.CsName} __New() => new {cls.CsName}();"
-                : $"public {(cls.Symbol.IsFinal ? "" : "virtual ")}{cls.CsName} __New() => new {cls.CsName}();",
+            // initialization satisfies it exactly). A factory whose superclass is a COBOL class needs `new` to
+            // shadow that class's singleton; the runtime BASE__FACTORY declares none, so there is nothing to hide.
+            $"public {(cls.Symbol.Base is { IsStandard: false } ? "new " : "")}static readonly {cls.Symbol.FactoryCsName} "
+                + $"{NamingConvention.FactoryInstanceField} = new();",
         };
+        // New's creation step (§16.2.1.2 GR1), exactly when the class has BaseFactoryInterface through INHERITS
+        // (§16.2; §9.3.9): a covariant override of BASE__FACTORY.__Create, so New invoked on a subclass's factory —
+        // or through SELF in an inherited factory method — creates the RUNTIME factory's class. The generated
+        // constructor IS the initialization (deep-dive D4); BASE__FACTORY.__New wraps it with GR2's
+        // resource-failure leg. A class that does not inherit BASE has no New at all (kb/Work PB1548).
+        if (lifeCycle)
+            extras.Add($"protected override {cls.CsName} __Create() => new {cls.CsName}();   // New (ISO §16.2.1.2 GR1)");
         EmitTypeHalf(cls.Name, cls.Symbol.FactoryCsName, facBase,
             cls.FactoryData, cls.FactoryRefs, cls.FactoryBound, cls.Symbol.FactoryMethods, w, extras,
             sealedType: cls.Symbol.IsFinal);
@@ -632,7 +641,9 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         : OoUnivNativeBoxOverImage(p.Item) ? PlaceRenderer.Write(p, NumericRenderer.ImageOfCarrier($"({p.Item.Pic!.ClrType}){box}!", p.Item))   // kb/Work PB187
         : OoStringCarried(p.Item) ? PlaceRenderer.Write(p, $"(string){box}!")
         : OoUnivImageBridged(p.Item) ? PlaceRenderer.Write(new NumericImagePlace(p), $"(string){box}!")
-        : p.Item.Pic is { Category: PicCategory.ObjectReference } pic ? PlaceRenderer.Write(p, $"({pic.ClrType}){box}")
+        : p.Item.Pic is { Category: PicCategory.ObjectReference } pic
+            ? PlaceRenderer.Write(p, RuntimeApi.ObjNarrowUniversal(pic.ClrType.TrimEnd('?'), box,
+                $"INVOKE (universal) delivery into '{p.Item.CobolName}'"))
         : PlaceRenderer.Write(p, $"({p.Item.ElementType}){box}!");
 
     /// <summary>
@@ -984,16 +995,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         switch (inv.Form)
         {
             case InvokeForm.New:
-                // §16.2.1 — the predefined NEW: the generated ctor allocates + VALUE-initializes (D4); the
-                // reference is delivered through RETURNING (§14.9.23.4 GR8).
-                w.Line(PlaceRenderer.Write(inv.Returning!, $"new {inv.ClassCsName}()") + "   // INVOKE … \"NEW\" RETURNING (§16.2.1)");
-                return;
             case InvokeForm.NewSelf:
-                // §16.2.1.2 GR1 — ACTIVE-CLASS creation in a factory method: the covariant __New override on
-                // the RUNTIME factory creates the runtime class (SUPER "NEW" deliberately identical — the
-                // restricted search finds the same predefined New, GR3/GR1).
-                w.Line(PlaceRenderer.Write(inv.Returning!, "this.__New()")
-                    + "   // INVOKE SELF|SUPER \"NEW\" (§16.2.1 — active-class creation via the covariant __New)");
+                EmitNew(inv);
                 return;
             case InvokeForm.Instance:
             case InvokeForm.Self:
@@ -1005,6 +1008,36 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(LoudStmt($"INVOKE call form '{inv.Form}'"));
                 return;
         }
+    }
+
+    /// <summary>Every invocation of the standard class BASE's New (ISO §16.2.1) — through a class-name (§14.9.23.3
+    /// SR3), a FACTORY OF reference (§14.9.23.3 SR4 a/c) or SELF/SUPER in a factory method (§14.9.23.3 SR4 f/h) —
+    /// reaches the ONE body <c>BASE__FACTORY.__New</c> on the factory object the form names, so
+    /// §16.2.1.2 GR1 (creation of the factory's RUNTIME class through its covariant <c>__Create</c>) and GR2 (NULL +
+    /// EC-OO-RESOURCE when the object cannot be created) hold identically for all of them. The receiving item is
+    /// set to NULL before the call because GR2 says "the returned object reference is set to NULL" and
+    /// EC-OO-RESOURCE, when checking for it is enabled, is raised from inside New — before any value could be
+    /// delivered. The result is narrowed to the receiving item's type: the binder's §14.8.3.3 check proved it
+    /// conforms, and New's declared result is <c>BASE</c>.</summary>
+    private void EmitNew(BoundInvoke inv)
+    {
+        var w = Ctx.Writer;
+        var ret = inv.Returning!;
+        string factory;
+        if (inv.Form is InvokeForm.NewSelf)
+            factory = "this";   // SELF|SUPER in a factory method: the RUNTIME factory (§14.9.23.3 SR4 f/h; GR3 finds the same New)
+        else if (inv.Receiver is { } recv)
+        {
+            // A FACTORY OF reference: GR5's null-receiver test comes first, and "execution of the INVOKE statement
+            // is terminated" there, so the receiving item is untouched when it raises.
+            factory = $"__nf{Ctx.Names.NextStoreTmp()}";
+            w.Line($"var {factory} = {RuntimeApi.ObjRequireNonNull(PlaceRenderer.Read(recv))};   // §14.9.23.4 GR5");
+        }
+        else
+            factory = $"{inv.ClassCsName}{NamingConvention.FactorySuffix}.{NamingConvention.FactoryInstanceField}";
+        w.Line(PlaceRenderer.Write(ret, "null") + "   // §16.2.1.2 GR2 — NULL unless New creates the object");
+        w.Line(PlaceRenderer.Write(ret, $"({ret.Item.Pic!.ClrType}){factory}.{OoStandardClasses.NewCsName}()")
+            + "   // INVOKE … \"New\" (ISO §16.2.1.2)");
     }
 
     /// <summary>The instance-call marshaling (D6; §14.9.23.4 GR6/GR7a/GR8): every formal is a <c>ref</c>
@@ -1289,6 +1322,12 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                 w.Line(CallEmitter.CallStringWrite(inv.Returning, tmp));
             else if (recv is RefModPlace)
                 w.Line(PlaceRenderer.Write(recv, tmp));
+            else if (recv.Item.Pic is { Category: PicCategory.ObjectReference } orp)
+                // An object reference delivers "as if a SET statement were performed" (§14.8.3.3 rule 1), and the
+                // binder proved the SET conformance — including the one sender whose C# type is WIDER than its
+                // COBOL description: an ACTIVE-CLASS result, such as the standard class BASE's FactoryObject,
+                // whose runtime member returns CobolObject (ISO §16.2). The narrowing is therefore total.
+                w.Line(PlaceRenderer.Write(recv, $"({orp.ClrType}){tmp}"));
             else if (retString == OoStringCarried(recv.Item))
                 // ANY LENGTH at the delivery boundary (ISO §14.8.3.3 rules 4/5; §13.18.2 GR1): a varying-length
                 // SENDER delivers width-fitted into a fixed receiver (rule 5 — its length "considered to match");

@@ -58,7 +58,7 @@ public static class NamingConvention
     public static readonly IReadOnlyList<string> CobolWordDerivedPrefixes =
     [
         FormalParameterPrefix, AddressCarrierPrefix, InstanceFileKeyPrefix, CapacityRegisterPrefix,
-        DebugRegisterPrefix, ImplicitNewTempPrefix, SumCounterPrefix, "__GET_", "__SET_",
+        DebugRegisterPrefix, SumCounterPrefix, "__GET_", "__SET_",
     ];
 
     /// <summary>A method formal's C# <c>ref</c> parameter (the carrier; the body reads the capturable LOCAL
@@ -72,8 +72,6 @@ public static class NamingConvention
     public const string CapacityRegisterPrefix = "__cap_";
     /// <summary>A DEBUG-ITEM register.</summary>
     public const string DebugRegisterPrefix = "__dbg_";
-    /// <summary>The implicit NEW temp of an inline object-class invocation.</summary>
-    public const string ImplicitNewTempPrefix = "__new_";
     /// <summary>A report SUM counter register.</summary>
     public const string SumCounterPrefix = "__sum_";
 
@@ -93,9 +91,6 @@ public static class NamingConvention
 
     /// <summary>A DEBUG-ITEM register name (<c>DEBUG-ITEM</c>, <c>DEBUG-LINE</c>, …).</summary>
     public static string DebugRegisterName(string registerWord) => DebugRegisterPrefix + DataItem.Sanitize(registerWord);
-
-    /// <summary>The implicit NEW temp of an inline invocation on object class <paramref name="className"/>.</summary>
-    public static string ImplicitNewTempName(string className) => ImplicitNewTempPrefix + DataItem.Sanitize(className);
 
     /// <summary>A report SUM counter register (report-name + the entry's ordinal in the RD).</summary>
     public static string SumCounterName(string reportName, int ordinal) =>

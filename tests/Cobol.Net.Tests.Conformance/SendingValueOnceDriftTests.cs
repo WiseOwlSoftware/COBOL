@@ -230,7 +230,11 @@ public sealed class SendingValueOnceDriftTests
                 STOP RUN.
             END PROGRAM {pid}.
             IDENTIFICATION DIVISION.
-            CLASS-ID. {pid}C.
+            CLASS-ID. {pid}C INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.

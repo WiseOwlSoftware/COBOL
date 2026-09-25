@@ -19,7 +19,11 @@
       *> found to override"). The positive twin is
       *> 2014/w59h_vlg_override_signature.
        IDENTIFICATION DIVISION.
-       CLASS-ID. W59HNB.
+       CLASS-ID. W59HNB INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.

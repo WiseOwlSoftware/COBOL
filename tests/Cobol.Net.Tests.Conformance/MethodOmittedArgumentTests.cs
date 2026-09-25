@@ -30,7 +30,11 @@ public sealed class MethodOmittedArgumentTests
 
     private const string TakeClass = """
             IDENTIFICATION DIVISION.
-            CLASS-ID. {0}.
+            CLASS-ID. {0} INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -130,7 +134,11 @@ public sealed class MethodOmittedArgumentTests
                 STOP RUN.
             END PROGRAM MOA3.
             IDENTIFICATION DIVISION.
-            CLASS-ID. CMOA3.
+            CLASS-ID. CMOA3 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.
@@ -243,7 +251,11 @@ public sealed class MethodOmittedArgumentTests
                 STOP RUN.
             END PROGRAM MOA6.
             IDENTIFICATION DIVISION.
-            CLASS-ID. CMOA6.
+            CLASS-ID. CMOA6 INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.

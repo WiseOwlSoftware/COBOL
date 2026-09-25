@@ -323,7 +323,11 @@ public sealed class DispatcherTransferIdiomDriftTests
         END PROGRAM XFERDRIFTOO.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. XFERDC.
+        CLASS-ID. XFERDC INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.

@@ -72,6 +72,13 @@ public sealed record OoMethodSymbol(
     public char Accessor { get; init; }
     public string? PropertyName { get; init; }
 
+    /// <summary>Which method of the standard class BASE this is (ISO §16.2 — its factory interface's New, its
+    /// object interface's FactoryObject), or <see cref="StandardMethod.None"/> for every method written in the
+    /// compilation group. A standard method has no METHOD-ID in source (its <see cref="Ctx"/> is null, like a
+    /// synthesized PROPERTY accessor's) and no COBOL body: the runtime class <c>CobolNet.Runtime.BASE</c> is its
+    /// implementation, so an invocation site binds it through its own form rather than the user-method tail.</summary>
+    public StandardMethod Standard { get; init; }
+
     /// <summary>The method's own OPTIONS paragraph folded over the class channel's model (§10.6.1 method
     /// skeleton / §11.9.4 GR1; kb/Work PB135) — null when the method writes none. BindMethodRoster swaps it
     /// in around THIS method's body bind.</summary>

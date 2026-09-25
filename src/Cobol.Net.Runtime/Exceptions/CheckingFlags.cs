@@ -97,6 +97,10 @@ public struct CheckingFlags
     /// <summary>EC-OO-ARG-OMITTED — the same reference in an INVOKED METHOD (§14.9.23.4 GR10; kb/Work PB971).</summary>
     public bool OoArgOmitted;
 
+    /// <summary>EC-OO-RESOURCE — the standard class BASE's New could not obtain the resources to create an object
+    /// (§16.2.1.2 GR2; kb/Work PB1524).</summary>
+    public bool OoResource;
+
     /// <summary>EC-BOUND-SUBSCRIPT — a subscript below 1 or above the highest permissible occurrence number
     /// (§8.4.2.3.4 GR2).</summary>
     public bool BoundSubscript;

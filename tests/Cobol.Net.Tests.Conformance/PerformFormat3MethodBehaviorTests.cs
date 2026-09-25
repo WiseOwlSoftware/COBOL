@@ -39,7 +39,11 @@ public sealed class PerformFormat3MethodBehaviorTests
             STOP RUN.
         END PROGRAM F3MDRV.
         IDENTIFICATION DIVISION.
-        CLASS-ID. F3MCLS.
+        CLASS-ID. F3MCLS INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         PROCEDURE DIVISION.
@@ -279,7 +283,11 @@ public sealed class PerformFormat3MethodBehaviorTests
                 STOP RUN.
             END PROGRAM F3XDRV.
             IDENTIFICATION DIVISION.
-            CLASS-ID. F3XCLS.
+            CLASS-ID. F3XCLS INHERITS FROM BASE.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS BASE.
             IDENTIFICATION DIVISION.
             OBJECT.
             PROCEDURE DIVISION.

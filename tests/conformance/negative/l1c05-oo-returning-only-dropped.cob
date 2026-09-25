@@ -22,7 +22,11 @@
       *>   Everything else is identical to the admitted
       *>   conformance:2002/l1c05_oo_returning_only_same_class.
        IDENTIFICATION DIVISION.
-       CLASS-ID. L1C05SX.
+       CLASS-ID. L1C05SX INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.

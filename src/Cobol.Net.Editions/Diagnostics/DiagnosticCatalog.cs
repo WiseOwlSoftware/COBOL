@@ -5205,6 +5205,20 @@ public static class DiagnosticCatalog
         "A PICTURE character-string ending in ',' or '.' is not followed immediately by the separator period.",
         "ISO §13.18.40.3 SR7 · §8.3.5 rules 2–3");
 
+    /// <summary>An invocation of the method New through a factory object whose class does not inherit the standard
+    /// class BASE (kb/Work PB1548). New is not predefined for every class: §16.2 puts it in BaseFactoryInterface,
+    /// "the factory interface of the BASE class", §9.3.9 gives a subclass "all the methods defined for the inherited
+    /// class definition", and §9.3.14.3 says "An instance object is created as the result of the NEW method being
+    /// invoked on a factory object". So a class with no INHERITS FROM BASE (directly or through a superclass) has no
+    /// New, and naming it is the violation of whichever §14.9.23.3 rule governs the receiver: SR3 for a class-name,
+    /// §14.9.23.3 SR4 a)/c) for a FACTORY OF / FACTORY OF ACTIVE-CLASS reference, §14.9.23.3 SR4 f)/h) for SELF/SUPER in
+    /// a factory method. One descriptor for every arm, so a new receiver form cannot reintroduce the
+    /// predefined-for-everyone reading.</summary>
+    public static readonly DiagnosticDescriptor NewWithoutBase = new(
+        "COBOLNET2448", "new-without-base", EditionSeverity.Error,
+        "INVOKE of the method New on a class that does not inherit from the standard class BASE.",
+        "ISO §14.9.23.3 SR3/SR4 · §16.2 · §9.3.14.3");
+
     /// <summary>Every descriptor declared above (reflected, so a new field is picked up automatically by the
     /// <c>docs/DIAGNOSTICS.md</c> generator and the drift test — no hand-maintained list to forget).</summary>
     public static IReadOnlyList<DiagnosticDescriptor> All { get; } = typeof(DiagnosticCatalog)

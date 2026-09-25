@@ -3,6 +3,8 @@
  "enabled": [
   "pb1549-set-program-address-at-85",
   "pb1557-symbolic-ordinal-too-long",
+  "pb1548-new-without-base",
+  "pb1548-inline-new-active-class",
   "pb567-condition-name-misqualified",
   "pb1066-perform-when-define-below-2023",
   "pb589-bool-refmod-width-below-2002",

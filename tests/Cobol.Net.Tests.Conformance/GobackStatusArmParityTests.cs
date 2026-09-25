@@ -61,7 +61,11 @@ public sealed class GobackStatusArmParityTests
         END PROGRAM PB411ARMM.
 
         IDENTIFICATION DIVISION.
-        CLASS-ID. CB411A.
+        CLASS-ID. CB411A INHERITS FROM BASE.
+        ENVIRONMENT DIVISION.
+        CONFIGURATION SECTION.
+        REPOSITORY.
+            CLASS BASE.
         IDENTIFICATION DIVISION.
         OBJECT.
         DATA DIVISION.

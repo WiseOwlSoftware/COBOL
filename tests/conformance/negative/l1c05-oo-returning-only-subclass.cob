@@ -22,7 +22,11 @@
       *>   admits a subclass, applies only WITHOUT ONLY), so it does not
       *>   conform and §11.8.3 SR2 is violated: COBOLNET0841.
        IDENTIFICATION DIVISION.
-       CLASS-ID. L1C05TX.
+       CLASS-ID. L1C05TX INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
        IDENTIFICATION DIVISION.
        OBJECT.
        PROCEDURE DIVISION.

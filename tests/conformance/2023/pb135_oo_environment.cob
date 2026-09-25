@@ -7,7 +7,7 @@
       *> legal source) while the SWITCH map from the SAME rule resolved. Derived: CLS-EVEN=0002,
       *> MTH-AWAY=0003.
        IDENTIFICATION DIVISION.
-       CLASS-ID. CPB135.
+       CLASS-ID. CPB135 INHERITS FROM BASE.
        OPTIONS.
            DEFAULT ROUNDED MODE IS NEAREST-EVEN.
        ENVIRONMENT DIVISION.
@@ -15,6 +15,7 @@
        SPECIAL-NAMES.
            SYSOUT IS MYCONSOLE.
        REPOSITORY.
+           CLASS BASE
            CLASS CPB135.
        IDENTIFICATION DIVISION.
        OBJECT.
