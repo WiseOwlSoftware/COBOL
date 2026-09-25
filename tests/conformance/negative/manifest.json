@@ -1535,7 +1535,9 @@
   "l1c13-if-directive-cce-split",
   "l1c13-if-directive-mid-line",
   "l1c13-if-directive-text1-same-line",
-  "l1c13-initiate-multi-in-exception-perform"
+  "l1c13-initiate-multi-in-exception-perform",
+  "l1c15-interface-inherits-not-in-repository",
+  "l1c15-interface-inherits-cyclic"
  ],
  "pending": []
 }

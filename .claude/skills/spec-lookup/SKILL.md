@@ -3,6 +3,8 @@ name: spec-lookup
 description: Use BEFORE implementing, debugging, or adjudicating any COBOL semantics, syntax, output, or "is this a bug" question - derives the expected behavior from the ISO spec and produces a citable section/rule before any code is read or written.
 ---
 
+> **Generic base:** [`spec-oracle`](https://github.com/BrentRector/claude-skills/blob/main/skills/spec-oracle/SKILL.md) in [BrentRector/claude-skills](https://github.com/BrentRector/claude-skills) — the reusable discipline, with the owner's bar in its sibling `engineering-standards`. THIS skill is the COBOL.NET application of it and wins on conflict.
+
 # Spec lookup
 
 **Order of operations is the whole point.** Derive the expected result from the spec and write down the citation

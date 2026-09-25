@@ -5918,11 +5918,11 @@
   "rule-digest": "e99598e64e46",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#dataReference; src/Cobol.Net.Compiler/Binding/Procedure/ExpressionBinder.cs#LinageFileOf",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c15_linage_counter_qualified",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "SR11 (cite.py --check 8.4.3.1.3 11) OK): qualified-linage-counter is defined in 8.4.2.2 (LINAGE-COUNTER [ {OF|IN} file-name ]). Grammar arm `LINAGE_COUNTER ((OF | IN) cobolWord)?`; LinageFileOf resolves the file. Probe l5.cob (--std 85): two LINAGE files, 3 and 1 WRITEs: MOVE LINAGE-COUNTER OF F1 / IN F2 -> 04 / 02 (each file's own counter). The run-time abort of this identifier in string contexts is recorded against FMT-8.4.3.1.2 (it is the operand binding, not the qualification this rule defines). Probes under out/probe/ident with the pinned cobol.exe. [code-location note: (LINAGE_COUNTER arm)] || editions as written by the adjudicator: 1985, 2002, 2014, 2023",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.1.3-12",
@@ -12428,11 +12428,11 @@
   "rule-digest": "96959660dd15",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build; src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Resolve",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c15-interface-inherits-not-in-repository",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "Rule (cite.py --check 11.6.3 OK, SR 2): 'Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element.' Code: each INHERITS name goes through OoNameResolution.Resolve(Want.Interface) whose scope is the REPOSITORY of the referring source element (ancestor walk, §8.4.6.4). Probes (--std 2002): probe/interface-id-paragraph/sr2_norepo.cob (N2B INHERITS FROM N2A, N2A defined but not in N2B's REPOSITORY) -> COBOLNET0840 '...not declared in the REPOSITORY paragraph of this source element... (ISO §11.6.3 SR2; ISO §8.4.6.4)'; sr2_undefined.cob (NOSUCH in REPOSITORY, never defined) -> COBOLNET0840; sr2_classname.cob (a CLASS name in REPOSITORY named in INHERITS) -> COBOLNET0840 (Want.Interface excludes classes). The §8.4.6.4 containing-definition exception lets an interface name itself, which SR3 then rejects (sr3_self). Positive: pos.cob compiles. Minor wording nit only ('no such an interface'). No existing spec-derived golden for the INHERITS arm -> test-needed. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; interface definitions are rejected COBOLNET0900 at 85)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.6.3-3",
@@ -12443,11 +12443,11 @@
   "rule-digest": "d028eca868fb",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c15-interface-inherits-cyclic",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "Rule (cite.py --check 11.6.3 OK, SR 3): 'Interface-name-2 shall not inherit directly or indirectly from interface-name-1.' Code: after resolution, a DFS from each interface over Inherits reports COBOLNET0840 'the INHERITS graph is cyclic (ISO §11.6.3 SR3)' when it reaches itself. Probes (--std 2002): probe/interface-id-paragraph/sr3_self.cob (A INHERITS A) -> 0840; sr3_cycle.cob (A->B->A) -> 0840 on both; sr3_indirect.cob (A->C->B->A, three-deep) -> 0840 on all three. Acyclic diamond-free multi-base pos.cob compiles. No existing spec-derived test -> test-needed. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO facility, introduced by ISO/IEC 1989:2002; interface definitions are rejected COBOLNET0900 at 85)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.6.3-4",
@@ -31778,11 +31778,11 @@
   "rule-digest": "45aee69372f3",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelContained; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CancelNode; src/Cobol.Net.Compiler/CodeGen/DataDivision/RecordStructEmitter.cs#__ResetStatics",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c15_initial_container_resets_nested",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "Rule (cite.py --check 14.6.2.3.2 OK, case 2): static data is placed in initial state 'The first time the program in which it is described is activated after the execution of an activating statement referencing a program that possesses the initial attribute and directly or indirectly contains the program.' Code: ProgramTable.CallProgram, for n.Initial, creates a fresh instance and runs CancelContained(n) (every contained program recursively through CancelNode: instance dropped, static WS reset via StaticReset=__ResetStatics, internal connectors closed); the §14.9.18 GR2 implicit CANCEL at the INITIAL program's return does the same. The reset is applied eagerly at the container's activation rather than lazily at the containee's next activation - observationally identical because a containee is reachable only inside its container's activation. Probe probe/is3/p3.cob (INITIAL P3OUT > P3MID (non-recursive, WS M VALUE 0, internal file F) > P3IN (WS I VALUE 0)): second CALL P3OUT prints 'MID M=01 OPEN FS=00' / 'IN I=01' again - the INDIRECTLY contained P3IN is reset and P3MID's connector is in no open mode (reopen 00). Golden pb154_cancel_cascade pins the DIRECT half (RECURSIVE containee A returns to 0001 on the second CALL OUTER154); the INDIRECT half is probe-verified only (a spec-derived golden for the two-level case would harden the row). || REFUTED: CONFORMS with EMPTY test-ref (behaviour verified on legal source by probe; the cited golden is not a valid witness) — The behaviour holds on legal source: re-ran probe/is3/p3.cob with the pinned cobol.exe (INITIAL P3OUT > P3MID (file F, M VALUE 0) > P3IN): the second CALL P3OUT prints MID M=01 OPEN FS=00 / IN I=01 again. I also tried to break the eager CancelContained with a live containee (R RECURSIVE > I INITIAL > Q, Q CALLs R, R re-CALLs I while Q is active, which would throw EC-PROGRAM-CANCEL-ACTIVE). That source is illegal under 11.10.3 SR5, so the attack does not apply. The test-ref does not hold up: pb154_cancel_cascade pins the 'direct half' with INNERA154 RECURSIVE contained in OUTER154 INITIAL. 11.10.3 SR6 forbids that, so the golden's expected A=0001 comes from non-conforming source and is not spec-derived. The pinned compiler accepts that source without a diagnostic. BinderDriver.cs:412-415 checks only a unit's own INITIAL+RECURSIVE pair (COBOLNET0886), and its comment at ~427 wrongly calls an INITIAL containee of a recursive container legal. That is an under-reject defect with no kb/Work note found (grep of the pin's kb/Work for 11.10.3 SR5/SR6 found only PB899, about 0886). || editions as adjudicated: 85, 2002, 2014, 2023 (INITIAL attribute and contained programs exist at every edition; no Annex E change)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.2.3.2-3",
@@ -39158,11 +39158,11 @@
   "rule-digest": "cf0d2effc8a1",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Convert",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c15_inspect_converting_duplicate_first",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "cite.py --check 14.9.22.4 \"the first occurrence of the character is used for replacement\" -> OK GR23. Convert maps via fromSet.IndexOf(ch) — the first occurrence wins. Probe misc.cob: V='abcabc' CONVERTING \"aab\" TO \"XYZ\" -> XZcXZc (a->X by first occurrence, b->Z). InspectDifferentialTests.Convert_DuplicateFromCharacter_FirstOccurrenceWins is AssertSameAsLegacy (legacy differential) and does not close the row. || editions as adjudicated: 1985, 2002, 2014, 2023",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.23.3-1",

@@ -1,0 +1,10 @@
+PASS 1
+E M=01
+E FS=00
+F I=01
+PASS 2
+E M=01
+E FS=00
+F I=01
+G K=01
+G K=02

@@ -1,0 +1,25 @@
+{
+ "batch": "golden-lane-1-wave4",
+ "records": [
+  {
+   "rule-id": "GR-14.9.22.4-23",
+   "test-ref": "conformance:85/l1c15_inspect_converting_duplicate_first"
+  },
+  {
+   "rule-id": "SR-11.6.3-2",
+   "test-ref": "conformance:negative/l1c15-interface-inherits-not-in-repository"
+  },
+  {
+   "rule-id": "SR-11.6.3-3",
+   "test-ref": "conformance:negative/l1c15-interface-inherits-cyclic"
+  },
+  {
+   "rule-id": "SR-8.4.3.1.3-11",
+   "test-ref": "conformance:85/l1c15_linage_counter_qualified"
+  },
+  {
+   "rule-id": "GR-14.6.2.3.2-2",
+   "test-ref": "conformance:85/l1c15_initial_container_resets_nested"
+  }
+ ]
+}
