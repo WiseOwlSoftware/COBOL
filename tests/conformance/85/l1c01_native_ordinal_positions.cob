@@ -1,4 +1,4 @@
-      *> ISO §12.3.7.4 r6 — native ordinal positions (A.1 item 8)
+      *> ISO §12.3.7.4 r6 (SPECIAL-NAMES) — native ordinal positions
       *> THE RULE (A.1 item 8; documented choice: docs/CONFORMANCE.md
       *> row DOC-A.1-8, "ordinal = UTF-16 code unit + 1"):
       *>   cite.py --check 12.3.7.4 "The implementor shall define the

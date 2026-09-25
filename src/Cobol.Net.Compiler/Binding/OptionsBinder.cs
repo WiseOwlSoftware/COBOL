@@ -65,8 +65,8 @@ internal static class OptionsBinder
             return m with { EntryConvention = EntryConventionOf(ec, edition) };
         if (c.floatBinaryClause()?.endiannessPhrase() is { } fb)
             return m with { FloatBinaryEndianness = FloatFormatPhrase.Endianness(fb) };
-        if (c.floatDecimalClause()?.floatDecimalEncoding() is { } fd)
-            return ApplyFloatDecimal(m, fd);
+        if (c.floatDecimalClause() is { } fdc)
+            return DeclineFloatDecimal(m, fdc, edition);
         if (c.intermediateRoundingClause()?.intermediateRoundingMode() is { } ir)
             return m with { IntermediateRounding = RoundingModes.MapIntermediate(ir) };
         if (c.optionsInitializeClause() is { } init)
@@ -163,15 +163,21 @@ internal static class OptionsBinder
             : ArithmeticMode.Native;
     }
 
-    // The token → enum mapping is FloatFormatPhrase (OptionsModel.cs) — ONE definition shared by §11.9.8, §11.9.9
-    // and the USAGE clause's per-item phrases (§13.18.60.2), exactly as the grammar shares one
-    // encodingPhrase/endiannessPhrase rule pair across all three (kb/Work PB174).
-    private static OptionsModel ApplyFloatDecimal(OptionsModel m, Core.FloatDecimalEncodingContext fd)
+    /// <summary>The FLOAT-DECIMAL clause (ISO §11.9.9) — DECLINED, accepted inert with the §4.2.6 ¶3 warning
+    /// (COBOLNET2424, kb/Work R43). Annex A.3 item 13 makes the clause dependent "both on the capabilities of the
+    /// processor and on support for the standard decimal floating-point usages", and FLOAT-DECIMAL-16/-34 are not
+    /// provided (A.3 item 19, refused COBOLNET1564 in <c>PictureAnalyzer.ParseUsage</c>). Every rule the clause
+    /// states implies a phrase for "any data item described with a standard decimal floating-point usage"
+    /// (§11.9.9.3 SR1-SR6), and no such item can exist, so the model records NOTHING: the two fields this method
+    /// used to fill were read by nobody (kb/Work PB298), which is what an inert clause's model looks like when it
+    /// is honest about it.</summary>
+    private static OptionsModel DeclineFloatDecimal(OptionsModel m, Core.FloatDecimalClauseContext clause,
+        EditionContext? edition)
     {
-        FloatEncoding encoding = fd.encodingPhrase() is { } e ? FloatFormatPhrase.Encoding(e) : m.FloatDecimalEncoding;
-        FloatEndianness endianness = fd.endiannessPhrase() is { } ep
-            ? FloatFormatPhrase.Endianness(ep) : m.FloatDecimalEndianness;
-        return m with { FloatDecimalEncoding = encoding, FloatDecimalEndianness = endianness };
+        if (edition is null) return m;
+        using var _ = edition.At(clause);
+        edition.Declined(DiagnosticCatalog.FloatDecimalClauseUnsupported);
+        return m;
     }
 
     private static OptionsInitialize InitializeOf(Core.OptionsInitializeClauseContext init, EditionContext? edition)

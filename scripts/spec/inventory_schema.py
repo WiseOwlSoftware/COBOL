@@ -152,6 +152,19 @@ XREF_CITATION = re.compile(r"[(;]\s*(\d+(?:\.\d+)*)\s*,")
 #: uses it both as the MINUS-sign glyph and as a clause-range separator ("13.16–13.18").
 HYPHENS = {0x2010: "-", 0x2011: "-"}
 
+#: ⛔ A NOTE IS NOT PART OF THE RULE, SO A PREDICATE NEVER SEES ONE. The standard's Introduction states it in its
+#: verbal-forms paragraph (unnumbered, so `cite.py` cannot address it — `--find` reports no numbered clause):
+#: "Information marked as 'NOTE' is intended to assist the understanding or use of the document." A NOTE creates
+#: no requirement, so it can neither SELECT a rule into a determination nor EXCLUDE one from it. The catalog
+#: keeps the NOTE inside the rule's text, and before kb/Work R43 (2026-09-24) the selectors read it: §11.9.5.2
+#: GR2 — "If the STANDARD-BINARY phrase is specified, the techniques used … shall be as described for
+#: standard-binary arithmetic" — sat outside `standard-binary-only` because its NOTE 1 encourages implementors to
+#: support STANDARD-DECIMAL, and that informative sentence tripped the mixed-rule exclusion (kb/Work PB1517).
+#: MEASURED when the cut landed: across every selector and all 233 catalog rules that carry a NOTE, cutting the
+#: text at the first NOTE changed exactly that one row. The cut runs to the END of the text because the catalog
+#: joins a rule's paragraphs with spaces and a NOTE is printed after the requirement it annotates.
+NOTE_MARK = re.compile(r"\bNOTE(?:\s+\d+)?\s+(?=[A-Z(])")
+
 
 def section_matches(prefix: str, section: str) -> bool:
     """Does `section` fall under `prefix`, COMPONENT-WISE?
@@ -311,6 +324,12 @@ class DerivedSelector:
       · `xref-sections`  a clause citation inside the rule's text — how an Annex A.1 documentation obligation
         names the clause that creates it. Derived from the clause numbers, so adding a module clause extends the
         A.1 arm for free instead of silently not extending it.
+      · `excludes-pattern` a TEXT exclusion scoped to ONE arm — the per-arm twin of the entry-level
+        `excludes-patterns`, which drop a rule whatever arm took it. It exists because A.4.10's item-1 arm must
+        not stamp the SUPPORTED item 2 (`interface-name`, kb/Work PB285) while its item-3 arm must reach
+        GR-9.3.6-L5.2, whose exact-match criteria name "an interface-name" (kb/Work R43 / PB1519): one exclusion
+        was right for one arm and wrong for the other, and a global list cannot say that. Negative, so it is not
+        in POSITIVE.
       · `kinds` / `excludes-kinds` the rule's KIND, per arm. A general-format diagram (kind FMT) is evidence
         about a CLAUSE, never about one of its formats, so the TEXT axis must not select one: without this,
         FMT-14.9.1.2 and FMT-14.9.11.2 — the ACCEPT and DISPLAY formats, both PARTIAL, both carrying the
@@ -328,10 +347,20 @@ class DerivedSelector:
         selector about determinations has nowhere else to look. An item with NO §7 row is not selected — nothing
         has been determined about it yet, and a MISSING determination is not a NEGATIVE one
         (`feedback_verdict_evidence_invariant`).
+      · `lead-in`       the sentence that INTRODUCES the printed list a rule is an item of — how the standard
+        scopes a list's items when the items themselves carry no vocabulary. §9.3.6's exact-match criteria
+        (GR-9.3.6-L5.1 … L5.3) say only "the same class and category", "the same … PICTURE … clauses"; what makes
+        them exact-match criteria is the sentence ending GR-9.3.6-L3.7, "the following criteria are considered an
+        exact match:". A list's lead-in is the catalog rule immediately BEFORE its first item (the catalog keeps
+        the standard's order, and a list is its `kind`-`section`-`sublist` triple), so a nested list that
+        interrupts an outer one does not change the outer list's lead-in. A plain rule (sublist 1) has none.
+        Added for kb/Work R43 / PB1519.
+
+    ⛔ EVERY TEXT AXIS READS THE NORMATIVE TEXT — the rule with its NOTEs cut off (`NOTE_MARK`). See there.
     """
 
     #: The arm fields that NARROW the catalog. An arm carrying none of them selects all 4,311 rules.
-    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix")
+    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in")
 
     def __init__(self, name: str, raw: dict[str, Any], register: dict[str, str] | None = None) -> None:
         self.name = name
@@ -358,6 +387,9 @@ class DerivedSelector:
                 "excludes-kinds": set(arm.get("excludes-kinds", [])),
                 "requirement": set(arm.get("requirement", [])),
                 "determination-prefix": [p.casefold() for p in arm.get("determination-prefix", [])],
+                "lead-in": re.compile(arm["lead-in"], re.IGNORECASE) if "lead-in" in arm else None,
+                "excludes-pattern": (re.compile(arm["excludes-pattern"], re.IGNORECASE)
+                                     if "excludes-pattern" in arm else None),
             })
 
     @property
@@ -366,10 +398,33 @@ class DerivedSelector:
 
     @staticmethod
     def text_of(rule: dict[str, Any]) -> str:
-        """The rule text a predicate is matched against — hyphen-normalised. See HYPHENS."""
-        return rule.get("text", "").translate(HYPHENS)
+        """The rule text a predicate is matched against — hyphen-normalised (HYPHENS) and NOTE-free (NOTE_MARK)."""
+        text = rule.get("text", "").translate(HYPHENS)
+        note = NOTE_MARK.search(text)
+        return text[: note.start()] if note else text
 
-    def _arm_selects(self, arm: dict[str, Any], rule: dict[str, Any]) -> bool:
+    @classmethod
+    def lead_ins(cls, rules: list[dict[str, Any]]) -> dict[str, str]:
+        """`{rule-id -> the normative text of the sentence introducing the list the rule is an item of}`.
+
+        A list is its `kind`-`section`-`sublist` triple and its lead-in is the rule immediately before its FIRST
+        item, so an inner list that interrupts an outer one leaves the outer list's lead-in alone. A plain rule
+        (sublist 1) is an item of no list and gets ''. See the class docstring's `lead-in` entry.
+        """
+        out: dict[str, str] = {}
+        first: dict[tuple[str, str, int], str] = {}
+        previous = ""
+        for r in rules:
+            sub = int(r.get("sublist", 1) or 1)
+            if sub > 1:
+                key = (r.get("kind", ""), r.get("section", ""), sub)
+                out[r["id"]] = first.setdefault(key, previous)
+            else:
+                out[r["id"]] = ""
+            previous = cls.text_of(r)
+        return out
+
+    def _arm_selects(self, arm: dict[str, Any], rule: dict[str, Any], lead_in: str = "") -> bool:
         kind = rule.get("kind", "")
         if arm["kinds"] and kind not in arm["kinds"]:
             return False
@@ -392,14 +447,19 @@ class DerivedSelector:
                 return False
         if arm["pattern"] is not None and not arm["pattern"].search(text):
             return False
+        if arm["excludes-pattern"] is not None and arm["excludes-pattern"].search(text):
+            return False
+        if arm["lead-in"] is not None and not (lead_in and arm["lead-in"].search(lead_in)):
+            return False
         return True
 
     def select(self, rules: list[dict[str, Any]]) -> list[str]:
+        lead = self.lead_ins(rules) if any(a["lead-in"] is not None for a in self.arms) else {}
         out = []
         for r in rules:
             if any(x.search(self.text_of(r)) for x in self.excludes):
                 continue
-            if any(self._arm_selects(a, r) for a in self.arms):
+            if any(self._arm_selects(a, r, lead.get(r["id"], "")) for a in self.arms):
                 out.append(r["id"])
         return out
 

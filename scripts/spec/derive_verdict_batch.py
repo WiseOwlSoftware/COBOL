@@ -121,6 +121,78 @@ def self_test() -> int:
             print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
             rc = 1
 
+    # ── kb/Work R43 (2026-09-24): the LEAD-IN axis and the NOTE cut. Neither can be falsified against the live
+    # catalog by the drift test alone — the lead-in arm selects the three §9.3.6 exact-match criteria whichever
+    # way a nested list is handled, and only one live row carries a NOTE that matters — so both are driven here.
+    listed = [
+        {"id": "GR-1.1-1", "kind": "GR", "section": "1.1", "sublist": 1,
+         "text": "Rule A. For each parameter the following criteria are considered an exact match:"},
+        {"id": "GR-1.1-L2.1", "kind": "GR", "section": "1.1", "sublist": 2, "text": "criterion one, with a list:"},
+        {"id": "GR-1.1-L3.1", "kind": "GR", "section": "1.1", "sublist": 3, "text": "an inner item"},
+        {"id": "GR-1.1-L2.2", "kind": "GR", "section": "1.1", "sublist": 2, "text": "criterion two"},
+        {"id": "GR-1.1-2", "kind": "GR", "section": "1.1", "sublist": 1,
+         "text": "Rule B names a widget. NOTE 1 Implementors are encouraged to support a gadget."},
+    ]
+    lead_cases = [
+        ("the LEAD-IN axis selects a list's items by the sentence that introduces them",
+         {"verdict": "X", "arms": [{"lead-in": "considered an exact match:"}]}, ["GR-1.1-L2.1", "GR-1.1-L2.2"]),
+        ("a nested list does not inherit its parent list's lead-in",
+         {"verdict": "X", "arms": [{"lead-in": "with a list:"}]}, ["GR-1.1-L3.1"]),
+        ("a NOTE cannot EXCLUDE a rule",
+         {"verdict": "X", "arms": [{"pattern": "widget"}], "excludes-patterns": ["gadget"]}, ["GR-1.1-2"]),
+        ("a NOTE cannot SELECT a rule",
+         {"verdict": "X", "arms": [{"pattern": "gadget"}]}, []),
+        ("an arm's OWN exclusion does not reach its sibling arm",
+         {"verdict": "X", "arms": [{"pattern": "criterion", "excludes-pattern": "two"},
+                                   {"lead-in": "considered an exact match:"}]},
+         ["GR-1.1-L2.1", "GR-1.1-L2.2"]),
+        ("…and it does drop what its own arm took",
+         {"verdict": "X", "arms": [{"pattern": "criterion", "excludes-pattern": "two"}]}, ["GR-1.1-L2.1"]),
+    ]
+    for name, raw, want in lead_cases:
+        got = DerivedSelector("self-test", raw, register).select(listed)
+        if got == want:
+            print(f"  ok: {name}")
+        else:
+            print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
+            rc = 1
+
+    # ── kb/Work PB1536 Q1 / R43 item 3: the CONDITIONALLY-REQUIRED class. Its selector (`a1-condition-absent`)
+    # is the optional selector's twin over a different requirement value and a different opening; the live data
+    # cannot separate the two axes (every 'Condition absent.' row is conditional), so they are driven here.
+    conditional = rules + [
+        {"id": "DOC-A.1-5", "kind": "DOC", "section": "A.1", "requirement": "conditionally required",
+         "text": "cond, absent"},
+        {"id": "DOC-A.1-6", "kind": "DOC", "section": "A.1", "requirement": "conditionally required",
+         "text": "cond, present"},
+    ]
+    cond_register = {**register,
+                     "DOC-A.1-5": "**Condition absent.** no non-COBOL program can be called",
+                     "DOC-A.1-6": "**Provided.** a .NET host activator is recognized",
+                     # a REQUIRED item written 'Condition absent' is a defect in prose, never a derived row
+                     "DOC-A.1-2": "**Condition absent.** a required item cannot be conditional"}
+    cond_entry = {"verdict": "DOCUMENTED-NON-SUPPORT",
+                  "arms": [{"kinds": ["DOC"], "requirement": ["conditionally required"],
+                            "determination-prefix": ["Condition absent"]}]}
+    cond_cases = [
+        ("control: a CONDITIONAL item §7 records as 'Condition absent.' is selected", cond_entry, ["DOC-A.1-5"]),
+        ("the REQUIREMENT axis keeps the REQUIRED item out",
+         {**cond_entry, "arms": [{"kinds": ["DOC"], "determination-prefix": ["Condition absent"]}]},
+         ["DOC-A.1-2", "DOC-A.1-5"]),
+        ("the DETERMINATION axis keeps the conditional item whose condition HOLDS out",
+         {**cond_entry, "arms": [{"kinds": ["DOC"], "requirement": ["conditionally required"]}]},
+         ["DOC-A.1-5", "DOC-A.1-6"]),
+        ("the optional selector's opening does not reach a conditional item",
+         entry, ["DOC-A.1-1"]),
+    ]
+    for name, raw, want in cond_cases:
+        got = DerivedSelector("self-test", raw, cond_register).select(conditional)
+        if got == want:
+            print(f"  ok: {name}")
+        else:
+            print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
+            rc = 1
+
     # An arm with no positive field selects the entire catalog; the constructor refuses it. Driven because the
     # guard's own field list grew by two here, and a guard that forgot one would be silently permissive.
     try:

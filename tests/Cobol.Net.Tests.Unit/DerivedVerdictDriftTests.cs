@@ -30,7 +30,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class DerivedVerdictDriftTests
 {
-    private sealed record Rule(string Id, string Section, string Kind, string Text, string Requirement);
+    private sealed record Rule(string Id, string Section, string Kind, string Text, string Requirement, int Sublist);
 
     /// <summary>⛔ The transcription spells a COBOL operand name's hyphen two ways. 29 catalog rules carry
     /// U+2011 NON-BREAKING HYPHEN where the rest carry ASCII '-' — SR-13.18.14.3-12 reads "Identifier‑1 shall be
@@ -40,6 +40,42 @@ public sealed class DerivedVerdictDriftTests
     /// reads the text; the Python side does the same in <c>DerivedSelector.text_of</c>. U+2013 EN DASH is left
     /// alone — the standard uses it as the MINUS glyph AND as a clause-range separator ("13.16–13.18").</summary>
     private static string Normalize(string text) => text.Replace('‐', '-').Replace('‑', '-');
+
+    /// <summary>⛔ A NOTE is not part of the rule, so no predicate sees one — the standard's Introduction
+    /// (unnumbered, verbal-forms paragraph): "Information marked as 'NOTE' is intended to assist the understanding
+    /// or use of the document." It kept §11.9.5.2 GR2 out of <c>standard-binary-only</c> until kb/Work R43: its
+    /// NOTE 1 encourages STANDARD-DECIMAL support and tripped the mixed-rule exclusion (PB1517). The Python twin
+    /// is <c>inventory_schema.NOTE_MARK</c>; measured when it landed, the cut changed exactly that one row.</summary>
+    private static readonly Regex NoteMark = new(@"\bNOTE(?:\s+\d+)?\s+(?=[A-Z(])", RegexOptions.Compiled);
+
+    private static string Normative(string text)
+    {
+        var note = NoteMark.Match(text);
+        return note.Success ? text[..note.Index] : text;
+    }
+
+    /// <summary>The sentence introducing the printed list each rule is an item of — the <c>lead-in</c> arm field
+    /// (kb/Work R43 / PB1519; Python twin <c>DerivedSelector.lead_ins</c>). A list is its kind-section-sublist
+    /// triple and its lead-in is the rule immediately BEFORE its first item, so an inner list interrupting an
+    /// outer one leaves the outer list's lead-in alone; a plain rule (sublist 1) has none.</summary>
+    private static Dictionary<string, string> LeadIns(List<Rule> rules)
+    {
+        var first = new Dictionary<(string, string, int), string>();
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        string previous = "";
+        foreach (var r in rules)
+        {
+            if (r.Sublist > 1)
+            {
+                var key = (r.Kind, r.Section, r.Sublist);
+                if (!first.TryGetValue(key, out var lead)) first[key] = lead = previous;
+                map[r.Id] = lead;
+            }
+            else map[r.Id] = "";
+            previous = r.Text;
+        }
+        return map;
+    }
 
     /// <summary>⛔ A clause number is a dotted PATH, not a string, and this is the one rule that must never be a
     /// raw <c>StartsWith</c>. Both engines used one until 2026-09-02, under which §13.18.30 falls inside
@@ -75,11 +111,13 @@ public sealed class DerivedVerdictDriftTests
             .Select(r => new Rule(r.GetProperty("id").GetString()!,
                                   r.TryGetProperty("section", out var s) ? s.GetString() ?? "" : "",
                                   r.TryGetProperty("kind", out var k) ? k.GetString() ?? "" : "",
-                                  Normalize(r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : ""),
+                                  Normative(Normalize(r.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "")),
                                   // The A.1 REQUIREMENT CLASS the standard states in the item's own sentence
                                   // ("This item is optional."), parsed out of Annex A.1 by
                                   // extract_rule_catalog.py. Only DOC rules carry it.
-                                  r.TryGetProperty("requirement", out var q) ? q.GetString() ?? "" : ""))];
+                                  r.TryGetProperty("requirement", out var q) ? q.GetString() ?? "" : "",
+                                  r.TryGetProperty("sublist", out var l) && l.ValueKind == JsonValueKind.Number
+                                      ? l.GetInt32() : 1))];
     }
 
     private static Dictionary<string, JsonElement> Inventory()
@@ -138,16 +176,25 @@ public sealed class DerivedVerdictDriftTests
             requirement: Strings(a, "requirement"),
             determination: Strings(a, "determination-prefix"),
             pattern: a.TryGetProperty("pattern", out var p)
-                ? new Regex(p.GetString()!, RegexOptions.IgnoreCase) : null)).ToList();
+                ? new Regex(p.GetString()!, RegexOptions.IgnoreCase) : null,
+            leadIn: a.TryGetProperty("lead-in", out var li)
+                ? new Regex(li.GetString()!, RegexOptions.IgnoreCase) : null,
+            // The per-arm twin of `excludes-patterns` (Python: `excludes-pattern`). kb/Work R43 / PB1519: A.4.10's
+            // item-1 arm must not stamp the supported item 2 (`interface-name`), while its item-3 arm must reach
+            // GR-9.3.6-L5.2, whose exact-match criteria name "an interface-name".
+            notPattern: a.TryGetProperty("excludes-pattern", out var np)
+                ? new Regex(np.GetString()!, RegexOptions.IgnoreCase) : null)).ToList();
 
         Assert.All(arms, a => Assert.True(
             a.sections.Count + a.xrefs.Count + a.kinds.Count + a.requirement.Count + a.determination.Count > 0
-            || a.pattern is not null,
+            || a.pattern is not null || a.leadIn is not null,
             $"derived-verdicts.{name}: an arm with no positive field selects the entire catalog"));
 
         var determinations = ConformanceRegister.Determinations;
+        var catalog = Catalog();
+        var leadIns = arms.Any(a => a.leadIn is not null) ? LeadIns(catalog) : [];
         var ids = new List<string>();
-        foreach (var r in Catalog())
+        foreach (var r in catalog)
         {
             if (excludes.Any(x => x.IsMatch(r.Text))) continue;
             foreach (var a in arms)
@@ -172,6 +219,10 @@ public sealed class DerivedVerdictDriftTests
                     && !XrefCitation.Matches(r.Text).Any(m => a.xrefs.Any(p => SectionMatches(p, m.Groups[1].Value))))
                     continue;
                 if (a.pattern is not null && !a.pattern.IsMatch(r.Text)) continue;
+                if (a.notPattern is not null && a.notPattern.IsMatch(r.Text)) continue;
+                if (a.leadIn is not null
+                    && !(leadIns.TryGetValue(r.Id, out var lead) && lead.Length > 0 && a.leadIn.IsMatch(lead)))
+                    continue;
                 ids.Add(r.Id);
                 break;
             }
@@ -239,6 +290,22 @@ public sealed class DerivedVerdictDriftTests
         AssertHeldAtTheDerivedVerdict("validate-only",
             "Annex A.4.14 VALIDATE is Not claimed (CONFORMANCE.md §5, §4 item 3)");
 
+    [Fact]
+    public void NoAsynchronousMessagingConditionedRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("mcs-only",
+            "Annex A.3 item 4 asynchronous messaging is Not claimed (CONFORMANCE.md §2 row 4, §4 item 1; kb/Work R43)");
+
+    [Fact]
+    public void NoUnprovidedFloatingPointFormatRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("float-formats-not-provided",
+            "FLOAT-BINARY-128 and the standard decimal floating-point usages are not provided (CONFORMANCE.md §2 "
+            + "rows 13, 17, 19; kb/Work R43)");
+
+    [Fact]
+    public void NoRecordKeySourceFormRow_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("record-key-source-only",
+            "the record-key SOURCE form, Annex A.3 item 40, is Not claimed (CONFORMANCE.md §2 row 40; kb/Work R43)");
+
     /// <summary>The one selector that is NOT a module decline: an owner ADJUDICATION common to a whole class of
     /// rows. It also drifts by a route none of the others can — a new §7 determination — and that is deliberate:
     /// writing "Not provided." into §7 for an optional item turns this red until the batch is re-run, which is
@@ -248,6 +315,16 @@ public sealed class DerivedVerdictDriftTests
         AssertHeldAtTheDerivedVerdict("a1-optional-not-provided",
             "an A.1-OPTIONAL element docs/CONFORMANCE.md §7 records as 'Not provided.' is documented "
             + "non-support (owner, kb/Work PB280 Q1, 2026-09-02)");
+
+    /// <summary>The optional selector's twin over A.1's OTHER conditioned class (kb/Work PB1536 Q1, owner decision
+    /// R43 item 3): a CONDITIONALLY-REQUIRED element whose §7 cell opens "Condition absent." is documented
+    /// non-support, contingent on the capability staying absent. It drifts by the same route — a §7 row written
+    /// "Condition absent." turns this red until the batch is re-run.</summary>
+    [Fact]
+    public void NoConditionAbsentA1Row_Diverges() =>
+        AssertHeldAtTheDerivedVerdict("a1-condition-absent",
+            "an A.1-CONDITIONALLY-REQUIRED element whose condition docs/CONFORMANCE.md §7 records as absent is "
+            + "documented non-support (owner, kb/Work R43 item 3, 2026-09-24)");
 
     // ── The engine ────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -314,6 +391,13 @@ public sealed class DerivedVerdictDriftTests
         // And the rule whose only "standard decimal" is a USAGE must still be IN — dropping it was the bug in
         // the second draft of this predicate.
         Assert.Contains("AR-15.43.3-3", ids);
+
+        // ⛔ A NOTE CANNOT EXCLUDE A RULE (kb/Work R43 / PB1517). §11.9.5.2 GR2 IS the mode; only its NOTE 1 —
+        // "Implementors are strongly encouraged to provide support for the STANDARD-DECIMAL phrase" — mentions
+        // standard-decimal, and until the NOTE cut that informative sentence tripped the mixed-rule exclusion.
+        Assert.Contains("GR-11.9.5.2-2", ids);
+        // …while a rule whose NORMATIVE text names both modes still keeps its own verdict.
+        Assert.DoesNotContain("GR-14.7.7-3", ids);
     }
 
     [Fact]
@@ -347,6 +431,16 @@ public sealed class DerivedVerdictDriftTests
         // the text arm and a supported statement has just been documented as unsupported.
         Assert.DoesNotContain("FMT-14.9.1.2", ids);
         Assert.DoesNotContain("FMT-14.9.11.2", ids);
+
+        // THE ON EXCEPTION OPERAND ARM (kb/Work R43 / PB1151). The exception phrases exist only in the screen
+        // formats, and the band's rules never say "screen" — a text-only predicate dropped all five ACCEPT rows.
+        foreach (string id in (string[])["GR-14.9.1.4-24", "GR-14.9.1.4-L2.1", "GR-14.9.1.4-L2.2",
+                                         "GR-14.9.1.4-L3.1", "GR-14.9.1.4-L3.2", "GR-14.9.11.4-17",
+                                         "GR-14.9.11.4-18", "GR-14.9.11.4-L2.1", "GR-14.9.11.4-L2.2"])
+            Assert.Contains(id, ids);
+        // …and the device/temporal rules of the same two clauses stay out: GR1 of each is ordinary surface.
+        Assert.DoesNotContain("GR-14.9.1.4-1", ids);
+        Assert.DoesNotContain("GR-14.9.11.4-1", ids);
 
         // The COLUMN/LINE format-1 (report-writer) rules must stay out — the clause is shared.
         Assert.DoesNotContain("GR-13.18.14.4-1", ids);
@@ -387,6 +481,10 @@ public sealed class DerivedVerdictDriftTests
         Assert.Contains("GR-14.6.11-1", ids);
         // The closest call in the set — see the entry's $selector for why "separately" settles it.
         Assert.Contains("SR-12.4.6.3.3-10", ids);
+        // The APPLY COMMIT clause is refused by name whole, so its general format is declined with it (kb/Work
+        // R43 / PB1099 Q2); the COMMIT/ROLLBACK statements are accepted inert and their formats stay OUT.
+        Assert.Contains("FMT-12.4.6.3.2", ids);
+        Assert.DoesNotContain("FMT-14.9.36.2", ids);
 
         // ⛔ FOUR ROWS THAT ARE IMPLEMENTED AND GOLDEN-COVERED (kb/Work PB137). If any returns, an exclusion was
         // dropped and shipped code is being documented as unsupported.
@@ -394,11 +492,10 @@ public sealed class DerivedVerdictDriftTests
             Assert.DoesNotContain(id, ids);
         // PB259 holds this one open as a genuine adjudication.
         Assert.DoesNotContain("GR-14.9.7.4-2", ids);
-        // How a GENERAL FORMAT records under an unclaimed module is PB259's open question, and FMT-14.9.36.2
-        // would be wrong as non-support anyway — ROLLBACK IS a recognized statement in the shipped grammar.
-        // Excluded by KIND, not by matching "^<pre": that rendering proxy leaks on 56 of 322 FMT rows.
+        // FMT-14.9.36.2 would be wrong as non-support — ROLLBACK IS a recognized, accepted-inert statement in the
+        // shipped grammar. Excluded by KIND on the statement arm, not by matching "^<pre": that rendering proxy
+        // leaks on 56 of 322 FMT rows. (The REFUSED clause's own format, FMT-12.4.6.3.2, is in — asserted above.)
         Assert.DoesNotContain("FMT-14.9.36.2", ids);
-        Assert.DoesNotContain("FMT-12.4.6.3.2", ids);
         // ⛔ AND THE SCOPE STOPS AT THE MODULE'S OWN CLAUSES. These name APPLY COMMIT only as an antecedent; with
         // the module absent they are VACUOUSLY SATISFIED, which is not the same fact as unsupported, and their
         // verdicts speak about UNLOCK / sharing / LOCK MODE — facilities A.4.7 CLAIMS.
@@ -413,7 +510,7 @@ public sealed class DerivedVerdictDriftTests
     public void TheFormatSelectWhenSelector_IsStillSharp()
     {
         var (ids, _) = Select("format-select-when-only");
-        Assert.InRange(ids.Count, 30, 55);   // 37 when it landed
+        Assert.InRange(ids.Count, 30, 55);   // 37 when it landed; 39 with the selection arm (R43)
 
         // The TEXT arm must stay live — a clause-only predicate drops all three.
         foreach (string id in (string[])["SR-13.4.5.3-6", "GR-13.18.13.4-5", "SR-14.9.27.3-9"])
@@ -432,11 +529,13 @@ public sealed class DerivedVerdictDriftTests
         // The CODE-SET no-SELECT-WHEN branches are the behaviour WITHOUT the module, implemented today in
         // DataBinder.BindCodeSetClause. Excluding on the word CODE-SET would have dropped three of the module's
         // OWN rules instead, because excludes apply to every arm — which is why the pattern is narrow.
-        foreach (string id in (string[])["SR-13.18.13.3-3", "GR-13.18.13.4-3", "GR-13.18.13.4-4"])
+        foreach (string id in (string[])["SR-13.18.13.3-3", "GR-13.18.13.4-3"])
             Assert.DoesNotContain(id, ids);
-        // The sharpest near-miss: I-O status 45 is arguably unreachable without the module, but that is a
-        // three-clause deduction over text naming CODE-SET, so it wants a one-row owner adjudication.
-        Assert.DoesNotContain("GR-9.1.13.7-5", ids);
+        // THE SELECTION ARM (kb/Work R43): a record description entry being SELECTED is SELECT WHEN's own
+        // mechanism. I-O status 45 has no producer without it (PB1518), and CODE-SET GR4 is declined jointly
+        // with A.4.13 — its FILE-phrase branch is the only other content it has (PB1255).
+        Assert.Contains("GR-9.1.13.7-5", ids);
+        Assert.Contains("GR-13.18.13.4-4", ids);
         // One name in a list of several — content survives entirely.
         foreach (string id in (string[])["GR-13.18.49.4-1", "GR-13.18.57.4-1", "SR-13.16.3-13", "GR-14.9.24.4-2"])
             Assert.DoesNotContain(id, ids);
@@ -446,7 +545,7 @@ public sealed class DerivedVerdictDriftTests
     public void TheOoOptionalItemsSelector_IsStillSharp()
     {
         var (ids, _) = Select("oo-optional-items-only");
-        Assert.InRange(ids.Count, 2, 8);   // 3 when it landed
+        Assert.InRange(ids.Count, 4, 12);   // 3 when it landed; 6 with item 3's exact-match criteria (R43)
 
         foreach (string id in (string[])["SR-8.4.3.8.3-5", "SR-11.3.3-7", "GR-11.3.4-4"])
             Assert.Contains(id, ids);
@@ -464,11 +563,74 @@ public sealed class DerivedVerdictDriftTests
         // Mixed blocks keep their own verdicts: SR-11.3.3-6's second sentence has a satisfiable antecedent in a
         // LINEAR chain, and GR-9.3.6-L5.3 absorbs the overload tie-break — the sharpest trap for a widening.
         Assert.DoesNotContain("SR-11.3.3-6", ids);
-        Assert.DoesNotContain("GR-9.3.6-L5.3", ids);
+        // ITEM 3 (kb/Work R43 / PB1519): §9.3.6's exact-match criteria, reached by the sentence that introduces
+        // them — they carry no vocabulary of their own. L5.2 names "an interface-name", so the item-2 exclusion
+        // must stay on the ITEM-1 arm (`excludes-pattern`); as a global exclusion it silently dropped L5.2.
+        foreach (string id in (string[])["GR-9.3.6-L5.1", "GR-9.3.6-L5.2", "GR-9.3.6-L5.3"])
+            Assert.Contains(id, ids);
+        // The introducing rule is half live (its MOVE-sender sentence), so R43 item 2 gives it the live verdict.
+        Assert.DoesNotContain("GR-9.3.6-L3.7", ids);
+        Assert.DoesNotContain("GR-9.3.5.3-7", ids);
         // The pattern is anchored to "in an INHERITS clause"; an unanchored "appear more than once" draft
         // dragged in the SUM clause and the procedure division header. Measured, not imagined.
         Assert.DoesNotContain("SR-13.18.54.3-1", ids);
         Assert.DoesNotContain("SR-14.2.2-1", ids);
+    }
+
+    [Fact]
+    public void TheMcsSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("mcs-only");
+        Assert.InRange(ids.Count, 20, 40);   // 28 when it landed (kb/Work R43)
+        // Both statements, general formats included — §4.2.6 ¶3 releases the declined syntax.
+        foreach (string id in (string[])["FMT-14.9.31.2", "FMT-14.9.38.2", "SR-14.9.31.3-3", "GR-14.9.38.4-8"])
+            Assert.Contains(id, ids);
+        // The message-tag class and protocol stated from elsewhere.
+        foreach (string id in (string[])["GR-8.4.3.10.4-4", "GR-8.8.4.2.1-9", "GR-14.6.11-7", "DOC-A.1-212"])
+            Assert.Contains(id, ids);
+        // ⛔ THE CLASS LIST. Message-tag inside an enumeration of classes constrains the others too, which are
+        // live: SR-8.8.4.2.3-5's object/pointer halves are verified, GR-13.18.63.4-4 initializes every class.
+        foreach (string id in (string[])["SR-8.8.4.2.3-5", "GR-13.18.63.4-4", "SR-13.16.3-10", "SR-14.9.11.3-1"])
+            Assert.DoesNotContain(id, ids);
+        // A text arm never takes a general format: USAGE's and INITIALIZE's formats list MESSAGE-TAG among others.
+        Assert.DoesNotContain("FMT-13.18.60.2", ids);
+        Assert.DoesNotContain("FMT-14.9.20.2", ids);
+    }
+
+    [Fact]
+    public void TheFloatFormatsSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("float-formats-not-provided");
+        Assert.InRange(ids.Count, 8, 20);   // 11 when it landed (kb/Work R43)
+        foreach (string id in (string[])["GR-13.18.60.4-16", "GR-13.18.60.4-17", "GR-13.18.60.4-18",
+                                         "GR-13.18.60.4-20", "SR-11.9.9.3-1", "SR-11.9.9.3-6", "DOC-A.1-47"])
+            Assert.Contains(id, ids);
+        // ⛔ HALF-DECLINED RULES KEEP THE LIVE HALF'S VERDICT (R43 item 2): the numeric-category usage list and
+        // the endianness rule name the PROVIDED binary floats too, and DOC-A.1-48 documents their default.
+        foreach (string id in (string[])["GR-8.5.2.12-2", "GR-13.18.60.4-19", "DOC-A.1-48"])
+            Assert.DoesNotContain(id, ids);
+        // decimal128 is ALSO the standard-decimal arithmetic intermediate format, which IS provided.
+        Assert.DoesNotContain("GR-8.8.1.5.2-2", ids);
+        // One row, one determination: these two are standard-binary-only's.
+        Assert.DoesNotContain("AR-15.43.3-3", ids);
+        Assert.DoesNotContain("AR-15.58.3-3", ids);
+    }
+
+    [Fact]
+    public void TheRecordKeySourceSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("record-key-source-only");
+        Assert.InRange(ids.Count, 3, 10);   // 5 when it landed (kb/Work R43)
+        foreach (string id in (string[])["SR-12.4.5.6.3-6", "GR-12.4.5.6.4-2", "SR-12.4.5.12.3-5",
+                                         "GR-12.4.5.12.4-2", "SR-14.9.41.3-7"])
+            Assert.Contains(id, ids);
+        // "data-name-1 or record-key-name-1" constrains the plain key too — each arm's own exclusion.
+        Assert.DoesNotContain("GR-12.4.5.6.4-6", ids);
+        Assert.DoesNotContain("SR-14.9.41.3-6", ids);
+        Assert.DoesNotContain("GR-12.4.5.12.4-4", ids);
+        // Each general format prints both key forms.
+        Assert.DoesNotContain("FMT-12.4.5.12.2", ids);
+        Assert.DoesNotContain("FMT-12.4.5.6.2", ids);
     }
 
     [Fact]
@@ -607,6 +769,46 @@ public sealed class DerivedVerdictDriftTests
             Assert.DoesNotContain(id, ids);
     }
 
+    [Fact]
+    public void TheA1ConditionAbsentSelector_IsStillSharp()
+    {
+        var (ids, _) = Select("a1-condition-absent");
+        Assert.InRange(ids.Count, 1, 27);   // 12 when it landed; the ceiling is A.1's 27 conditional items
+
+        // The rows the owner's answer settled (kb/Work PB1536 Q1): the non-COBOL-program family, the IMP directive,
+        // the single character set and encoding, the hex-digit mapping, RECORD DELIMITER feature-name-1, the lock
+        // status and the listing controls. All twelve were BLANK when the selector landed.
+        foreach (string id in (string[])["DOC-A.1-13", "DOC-A.1-15", "DOC-A.1-30", "DOC-A.1-34", "DOC-A.1-37",
+                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-149", "DOC-A.1-152",
+                     "DOC-A.1-200"])
+            Assert.Contains(id, ids);
+
+        // ⛔ EVERY SELECTED ROW IS A CONDITIONAL ITEM WHOSE §7 CELL OPENS "Condition absent." — asserted rather than
+        // trusted, because a widened predicate would still contain the twelve above and stay green.
+        var byId = Catalog().ToDictionary(r => r.Id, r => r, StringComparer.Ordinal);
+        foreach (string id in ids)
+        {
+            Assert.Equal("conditionally required", byId[id].Requirement);
+            Assert.StartsWith("Condition absent",
+                ConformanceRegister.Plain(ConformanceRegister.Determinations[id]), StringComparison.OrdinalIgnoreCase);
+        }
+
+        // A conditional item whose condition HOLDS keeps its positive determination and stays out: item 65 (a
+        // .NET host activator exists, so EXIT/GOBACK into a non-COBOL runtime element is determined).
+        Assert.Equal("conditionally required", byId["DOC-A.1-65"].Requirement);
+        Assert.True(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-65"));
+        Assert.DoesNotContain("DOC-A.1-65", ids);
+        // A conditional item with NO §7 row stays out — item 36 waits on kb/Work PB547, which disputes whether its
+        // condition is absent. A MISSING determination is not a NEGATIVE one.
+        Assert.Equal("conditionally required", byId["DOC-A.1-36"].Requirement);
+        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-36"),
+            "item 36 is the anchor for 'conditional, but undetermined' — if §7 has grown a row for it, another "
+            + "undetermined conditional item must take its place here");
+        Assert.DoesNotContain("DOC-A.1-36", ids);
+        // …and the optional item the same witness pins (143) belongs to the OPTIONAL selector, not to this one.
+        Assert.DoesNotContain("DOC-A.1-143", ids);
+    }
+
     /// <summary>⛔ THE REGISTER IS REALLY BEING READ, asserted before anything above is believed. A parser that
     /// silently returned nothing would leave <c>determination-prefix</c> matching nothing at all — an
     /// UNDER-selection, the direction that keeps every other fact in this file green
@@ -661,6 +863,12 @@ public sealed class DerivedVerdictDriftTests
                      "a determination that merely CONTAINS the phrase is not one that begins with it",
                      "the emphasis strip is real",
                      "an arm with only negative fields is refused",
+                     // kb/Work R43: the lead-in axis, the NOTE cut and the per-arm exclusion.
+                     "the LEAD-IN axis selects a list's items by the sentence that introduces them",
+                     "a nested list does not inherit its parent list's lead-in",
+                     "a NOTE cannot EXCLUDE a rule",
+                     "a NOTE cannot SELECT a rule",
+                     "an arm's OWN exclusion does not reach its sibling arm",
                  })
         {
             Assert.Contains(mustDrive, r.Stdout, StringComparison.Ordinal);

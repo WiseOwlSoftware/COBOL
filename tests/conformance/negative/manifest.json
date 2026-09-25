@@ -1407,6 +1407,8 @@
   "pb450-set-format7-restricted-sender-second-receiver",
   "pb453-set-message-tag-format17",
   "pb563-validate-value-format5-no-connective",
+  "w59-invoke-returning-narrower-receiver",
+  "w59-relation-object-vs-pointer",
   "pb441-f3-perform-below-2023",
   "pb395-turn-data-incompatible-below-2002",
   "pb433-perform-range-straddles-declaratives",
@@ -1608,7 +1610,9 @@
   "l1c34-type-same-as-ancestor",
   "l1c34-strong-type-currency-string-differs",
   "l1c37-write-auto-with-lock",
-  "l1c37-write-auto-with-no-lock"
+  "l1c37-write-auto-with-no-lock",
+  "w59h-imp-directive-undefined",
+  "w59h-vlg-override-fixed-group"
  ],
  "pending": []
 }

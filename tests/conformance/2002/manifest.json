@@ -486,7 +486,9 @@
   "l1c33_turn_within_statement",
   "l1c34_type_subject_based",
   "l1c34_typedef_format_spellings",
-  "l1c34_strong_type_currency_string_match"
+  "l1c34_strong_type_currency_string_match",
+  "w59h_non_cobol_names_not_found",
+  "w59h_listing_stage_inert"
   ],
   "pending": []
 }

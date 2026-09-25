@@ -34,7 +34,13 @@ $ErrorActionPreference = 'Stop'
 $repo   = Split-Path $PSScriptRoot -Parent
 $rrWar  = Join-Path $repo 'tools/rr/rr.war'
 $grmDir = Join-Path $repo 'src/Cobol.Net.Frontend/Grammar/Core'
-$outDir = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) 'cobolnet-grammar-check' }
+# ⛔ A -Check run writes to its OWN directory. It used to be the FIXED %TEMP%\cobolnet-grammar-check, shared by
+# every run on the host — and the Unit assembly's GrammarDiagramGeneratorDriftTests runs this script from EVERY
+# worktree's gate, so two concurrent gates raced: one run's opening Remove-Item deleted the directory under the
+# other's WriteAllText ("Could not find a part of the path '…\cobolnet-grammar-check\CobolOO.md'"), exit 1, and
+# the drift test went red with a message build-local's line filter then dropped. Measured 2026-09-24 (wave 59 H):
+# four concurrent -Check runs, three exited 1 that way. A per-run GUID directory makes the runs independent.
+$outDir = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("cobolnet-grammar-check-" + [guid]::NewGuid().ToString('N')) }
           else        { Join-Path $repo 'kb/Grammar' }
 
 if (-not (Test-Path $rrWar)) { Write-Error "missing vendored railroad tool: $rrWar"; exit 1 }

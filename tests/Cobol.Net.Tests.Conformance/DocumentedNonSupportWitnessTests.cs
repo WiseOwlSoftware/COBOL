@@ -41,13 +41,17 @@ namespace CobolNet.Tests.Conformance;
 /// OPTIONAL and additionally OBSOLETE (§4.2.13; Annex F.2 item 5): §4.2.7 requires only that the decline be
 /// identified in user documentation, so COBOLNET1580 is this implementation's own stronger posture — and a
 /// posture that is documented but unmeasured is exactly what these rows owe. kb/Work PB261 owns the
-/// commit/rollback debt.</para>
+/// commit/rollback debt. Asynchronous messaging (Annex A.3 item 4) and the OPTIONS FLOAT-DECIMAL clause (A.3
+/// item 13) are processor-dependent too, so their warnings (COBOLNET1578, COBOLNET2424) are §4.2.6 ¶3
+/// obligations; kb/Work R43 made the rows conditioned solely on them derived verdicts that these facts witness.</para>
 /// </summary>
 public sealed class DocumentedNonSupportWitnessTests
 {
     private const string CommitNonSupport = "COBOLNET1579";     // COMMIT/ROLLBACK — A.3 items 6-7 / §4.2.6 ¶3
     private const string ValidateNonSupport = "COBOLNET1580";   // VALIDATE — A.4.14 / §4.2.7 / F.2 item 5
     private const string RecordDelimiterNonSupport = "COBOLNET1778";   // RECORD DELIMITER — A.3 item 26 + A.1 item 150
+    private const string McsNonSupport = "COBOLNET1578";               // SEND/RECEIVE — A.3 item 4 / §4.2.6 ¶3
+    private const string FloatDecimalClauseNonSupport = "COBOLNET2424"; // OPTIONS FLOAT-DECIMAL — A.3 items 13, 19
 
     /// <summary>The corpus golden's source text — the witness and the corpus run the SAME file.</summary>
     private static string Golden(string edition, string name) =>
@@ -161,6 +165,66 @@ public sealed class DocumentedNonSupportWitnessTests
             .ToList();
         Assert.Equal(3, raised.Count);
         Assert.DoesNotContain(raised, w => w.Contains("on file 'F4'", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>ASYNCHRONOUS MESSAGING → COBOLNET1578, ONCE PER STATEMENT (kb/Work R43 / PB1198). Annex A.3
+    /// item 4 makes the facility processor-dependent ("dependent on the capability of a processor to allow run
+    /// units to communicate with each other") and §4.2.6 ¶3 makes the compile-time warning mandatory for a
+    /// declined one. The facility has TWO statements, RECEIVE (§14.9.31) and SEND (§14.9.38), and until this test
+    /// only the SEND site was asserted anywhere (GobackGeneralFormatTests) — so the count, not the code, is the
+    /// assertion: a decline wired into one statement's binder arm and not the other would still produce one
+    /// COBOLNET1578 (feedback_two_arm_dispatch). The facility is a COBOL-2023 introduction; below it both words
+    /// are ordinary user-defined words (negative/user-word-receive).
+    /// <para>The golden's <c>.out</c> pins the INERT half: with no message I-O neither ON EXCEPTION nor NOT ON
+    /// EXCEPTION runs, where a conforming facility runs exactly one of them at each statement (§14.9.31.4 GR4/GR5,
+    /// §14.9.38.4 GR2/GR3).</para></summary>
+    [Fact]
+    public void McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec()
+    {
+        string source = Golden("2023", "w59_mcs_facility_witness");
+        var (ok, errors, warnings) = EditionHarness.CompileFull(source, 2023);
+        Assert.True(ok, $"an ACCEPT-INERT declined facility must still COMPILE: {string.Join("\n", errors)}");
+        Assert.Equal(2, warnings.Count(w => w.Contains(McsNonSupport, StringComparison.Ordinal)));
+    }
+
+    /// <summary>The OPTIONS FLOAT-DECIMAL clause → COBOLNET2424 (kb/Work R43 / PB579). Annex A.3 item 13 makes
+    /// the clause processor-dependent and dependent on the standard decimal floating-point usages, which are not
+    /// provided (item 19); §4.2.6 ¶3 compels the warning. It is the decline that LEAKED — the clause compiled
+    /// with no diagnostic at all at 2014 and 2023 until this change. The complement is asserted too: the same
+    /// program with the claimed FLOAT-BINARY clause in its place draws no COBOLNET2424, so the warning is about
+    /// the declined clause and not about the OPTIONS paragraph.</summary>
+    [Theory]
+    [InlineData(2014)]
+    [InlineData(2023)]
+    public void FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec(int edition)
+    {
+        string source = Golden("2014", "w59_float_decimal_clause_witness");
+        AssertRecognizedAndNamed(source, FloatDecimalClauseNonSupport, edition);
+
+        string claimed = source.Replace("FLOAT-DECIMAL DEFAULT IS BINARY-ENCODING HIGH-ORDER-RIGHT.",
+            "FLOAT-BINARY DEFAULT IS HIGH-ORDER-LEFT.", StringComparison.Ordinal);
+        Assert.NotEqual(source, claimed);
+        var (ok, errors, warnings) = EditionHarness.CompileFull(claimed, edition);
+        Assert.True(ok, string.Join("\n", errors));
+        Assert.DoesNotContain(warnings, w => w.Contains(FloatDecimalClauseNonSupport, StringComparison.Ordinal));
+    }
+
+    /// <summary>EVERY legal spelling of the declined FLOAT-DECIMAL clause reaches the COBOLNET2424 warning — never a
+    /// parse error (kb/Work PB1508, wave 59 H; owner decision R43 item 5: a decline that diagnoses legal source
+    /// wrongly is a leak). §11.9.9.2's phrases are enclosed in CHOICE INDICATORS, and §5.2.6.4 says "The
+    /// alternatives may be specified in any order": the endianness-first order was refused with an anonymous
+    /// COBOL0307 by a second, ORDERED copy of the USAGE clause's phrase group.</summary>
+    [Theory]
+    [InlineData("FLOAT-DECIMAL IS HIGH-ORDER-RIGHT DECIMAL-ENCODING.")]
+    [InlineData("FLOAT-DECIMAL DEFAULT HIGH-ORDER-LEFT BINARY-ENCODING.")]
+    [InlineData("FLOAT-DECIMAL IS DECIMAL-ENCODING.")]
+    [InlineData("FLOAT-DECIMAL HIGH-ORDER-LEFT.")]
+    public void FloatDecimalClause_EveryPhraseOrder_ReachesTheWarning_NotAParseError(string clause)
+    {
+        string source = Golden("2014", "w59_float_decimal_clause_witness")
+            .Replace("FLOAT-DECIMAL DEFAULT IS BINARY-ENCODING HIGH-ORDER-RIGHT.", clause, StringComparison.Ordinal);
+        Assert.Contains(clause, source, StringComparison.Ordinal);
+        AssertRecognizedAndNamed(source, FloatDecimalClauseNonSupport, 2014, 2023);
     }
 
     /// <summary>One arm of the RECORD DELIMITER decline, at one edition: the source COMPILES (accept-inert) and

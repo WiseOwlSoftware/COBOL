@@ -22,11 +22,11 @@
   "subject": "A conforming implementation",
   "rule-digest": "ed79131aaa70",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#ApplyFloatDecimal; src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindCommitRollback; src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
   "test-ref": "conformance-test:DocumentedNonSupportWitnessTests.CommitRollbackFacility_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.ValidateFacility_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterStandard1_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule: 'language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is not required for conformance to this Working Draft International Standard, and standard support for that element is not claimed by the implementor;' (cite.py --check 4.2.10 'and standard support for that element is not claimed by the implementor' -> OK §4.2.10 2)). Definitional class; its obligations are §4.2.10's documentation + warning paragraphs (GR-4.2.10-3). Members in this implementation = the ACCEPT-INERT declined elements (docs/CONFORMANCE.md §1/§4): SEND/RECEIVE (COBOLNET1578), COMMIT/ROLLBACK (1579, StatementBinder.BindCommitRollback), VALIDATE statement (1580), RECORD DELIMITER (1778, witness conformance:2023/pb292_record_delimiter_witness + the DocumentedNonSupportWitnessTests methods in test-ref) - each documented in CONFORMANCE §2/§4/§5 AND flagged by a named compile-time warning: VERIFIED by the doc rows and the witness. NOT MET for two members: (1) the OPTIONS FLOAT-DECIMAL clause (A.3 item 13, Not claimed) binds inert with NO warning (probe/fd.cob compiles clean at 2014/2023) - owned by kb/Work PB298 (Registrar-15d extension); (2) the EC-MCS-* exception-names are accepted against a facility with no setting sites, which CONFORMANCE §4 item 1 itself flags as owed - MCS witness debt, kb/Work PB1198/PB374. Most members verified, two not -> PARTIAL. No new mechanism beyond those notes (the general absence of an EXTENSION warning is reported under GR-4.2.10-1/-3). || Owning note: kb/Work/PB298.",
+  "notes": "Rule: 'language elements defined in this Working Draft International Standard for which different functionality is implemented, where that language element is not required for conformance to this Working Draft International Standard, and standard support for that element is not claimed by the implementor;' (cite.py --check 4.2.10 'and standard support for that element is not claimed by the implementor' -> OK §4.2.10 2)). Definitional class; its obligations are §4.2.10's documentation + warning paragraphs (GR-4.2.10-3). Members in this implementation = the ACCEPT-INERT declined elements (docs/CONFORMANCE.md §1/§4): SEND/RECEIVE (COBOLNET1578), COMMIT/ROLLBACK (1579, StatementBinder.BindCommitRollback), VALIDATE statement (1580), RECORD DELIMITER (1778, witness conformance:2023/pb292_record_delimiter_witness + the DocumentedNonSupportWitnessTests methods in test-ref) - each documented in CONFORMANCE §2/§4/§5 AND flagged by a named compile-time warning: VERIFIED by the doc rows and the witness. NOT MET for two members: (1) the OPTIONS FLOAT-DECIMAL clause (A.3 item 13, Not claimed) binds inert with NO warning (probe/fd.cob compiles clean at 2014/2023) - owned by kb/Work PB298 (Registrar-15d extension); (2) the EC-MCS-* exception-names are accepted against a facility with no setting sites, which CONFORMANCE §4 item 1 itself flags as owed - MCS witness debt, kb/Work PB1198/PB374. Most members verified, two not -> PARTIAL. No new mechanism beyond those notes (the general absence of an EXTENSION warning is reported under GR-4.2.10-1/-3). || Owning note: kb/Work/PB298. retired-witness: src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#ApplyFloatDecimal (kb/Work R43 (wave 59): the FLOAT-DECIMAL clause is declined and accepted inert with COBOLNET2424; ApplyFloatDecimal, which stored the phrases into two OptionsModel fields nothing read, was replaced by DeclineFloatDecimal)",
   "state": "GAP"
  },
  {
@@ -51,13 +51,13 @@
   "ordinal": 1,
   "subject": "Conformance to this Working Draft International Standard",
   "rule-digest": "66f39c077c76",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CompilerDriver.cs#Compile",
   "test-ref": "",
-  "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "derivation": "docs/CONFORMANCE.md#DRV-GR-4.4-1",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9): a rule that DEFINES a property of the USER's program and imposes no compiler obligation closes by a documented derivation. §4.4 1) (cite.py --check 4.4 'is composed of one or more runtime modules, each resulting from a successful compilation of a conforming compilation unit' → OK 1)) defines the conforming run unit; its subject is the user's run unit, it contains no 'shall', and every obligation it alludes to is a separate inventory row. docs/CONFORMANCE.md §8 DRV-GR-4.4-1, arm `definitional`.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-4.4-2",
@@ -66,13 +66,13 @@
   "ordinal": 2,
   "subject": "Conformance to this Working Draft International Standard",
   "rule-digest": "2c0e91aa796d",
-  "verdict": "",
-  "code-location": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CompilerDriver.cs#Compile",
   "test-ref": "",
-  "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "derivation": "docs/CONFORMANCE.md#DRV-GR-4.4-2",
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9). §4.4 2) (cite.py --check 4.4 'complies with the explicitly stated provisions and specifications of standard COBOL with respect to the runtime behavior of that run unit' → OK 2)) and its paragraph ('The results of violating the formats or rules of standard COBOL are undefined unless otherwise specified' → OK 2)) classify the USER's run unit; none says what an implementation shall do. The runtime behaviour it refers to is verified row by row by the rules it points at, and the undefined situations are Annex A.2's (closed by the undefined-A.2 arm). docs/CONFORMANCE.md §8 DRV-GR-4.4-2, arm `definitional`.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-5.5-1",
@@ -7161,13 +7161,13 @@
   "ordinal": 4,
   "subject": "NULL address pointer and message tag content",
   "rule-digest": "32002337e8b2",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+  "test-ref": "conformance:negative/pb487-message-tag-usage",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-8.4.3.11.3-1",
@@ -8391,13 +8391,13 @@
   "ordinal": 2,
   "subject": "Class and category of data items and literals",
   "rule-digest": "c73af0e7e9a0",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#BinaryItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#FloatItem; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
-  "test-ref": "",
+  "test-ref": "conformance:2014/w59_numeric_category_usages",
   "derivation": "",
   "editions": "2002, 2014, 2023, 85",
-  "notes": "kb/Work PB579 (registrar 15b). Rule (cite.py --check 8.5.2.12 OK 2)). PicInfo.BinaryItem and PicInfo.FloatItem both construct PicCategory.Numeric. Probe p1.cob (2023): BINARY-CHAR, -SHORT, -LONG, -DOUBLE, FLOAT-SHORT, -LONG, -EXTENDED, FLOAT-BINARY-32, -64 all admitted as ADD operands (sum 45.00 correct), HIGHEST-ALGEBRAIC(BINARY-CHAR) = 127, MAX(INTEGER(7.5), BINARY-SHORT) = 7, and the class conditions BC IS NEAREST-TO-ZERO / F32 IS IN-ARITHMETIC-RANGE / BL IS NUMERIC compile and answer (f15-f17) — all category-numeric consumers. FLOAT-BINARY-128, FLOAT-DECIMAL-16 and FLOAT-DECIMAL-34 are REFUSED by name (COBOLNET1564): these are Annex A.3 processor-dependent elements (items 17 and 19) which docs/CONFORMANCE.md §5 already records as Partial (item 17, binary128 not provided) and Not claimed (item 19), with the refusal as the witnessed posture — an existing documented determination, not one chosen here, so no category exists to verify for those three and no owner decision is owed by this row. No existing spec-derived test pins the category of this whole usage list (l1_usage_fixed_width_lengths pins LENGTHS, pb2_float_argument_exact_family the float half only) -> test-needed. || REFUTED: PARTIAL — The rule names twelve usages. Three of them (FLOAT-BINARY-128, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34) are refused by name (COBOLNET1564), so no item of those usages exists to be category numeric. The adjudicator said that non-support is an already-settled determination that owes no owner decision. That is wrong: kb/Work/PB579 (kind: decision, status: owner) is the OPEN owner decision on exactly this refusal, and its sibling rows GR-13.18.60.4-16..20 are recorded NOT-IMPLEMENTED pending it. docs/CONFORMANCE.md A.3 item 17 itself says 'Partial'. DOCUMENTED-NON-SUPPORT is not the adjudicator's to take, so a rule verified for 9 of its 12 usages is PARTIAL, and PB579 owns the rest. The supported nine do conform: re-verified at 2002 and 2023. || editions as written by the adjudicator: 2002 (binary-char/-short/-long/-double, float-short/-long/-extended), 2014 (float-binary-32/-64/-128, float-decimal-16/-34), 2023; not 85",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (FLOAT-BINARY-128, FLOAT-DECIMAL-16/-34, A.3 items 17/19, refused COBOLNET1564) is non-support. The nine provided usages are held to category numeric by ADD, the NUMERIC class condition and MAX. || kb/Work PB579 (registrar 15b). Rule (cite.py --check 8.5.2.12 OK 2)). PicInfo.BinaryItem and PicInfo.FloatItem both construct PicCategory.Numeric. Probe p1.cob (2023): BINARY-CHAR, -SHORT, -LONG, -DOUBLE, FLOAT-SHORT, -LONG, -EXTENDED, FLOAT-BINARY-32, -64 all admitted as ADD operands (sum 45.00 correct), HIGHEST-ALGEBRAIC(BINARY-CHAR) = 127, MAX(INTEGER(7.5), BINARY-SHORT) = 7, and the class conditions BC IS NEAREST-TO-ZERO / F32 IS IN-ARITHMETIC-RANGE / BL IS NUMERIC compile and answer (f15-f17) — all category-numeric consumers. FLOAT-BINARY-128, FLOAT-DECIMAL-16 and FLOAT-DECIMAL-34 are REFUSED by name (COBOLNET1564): these are Annex A.3 processor-dependent elements (items 17 and 19) which docs/CONFORMANCE.md §5 already records as Partial (item 17, binary128 not provided) and Not claimed (item 19), with the refusal as the witnessed posture — an existing documented determination, not one chosen here, so no category exists to verify for those three and no owner decision is owed by this row. No existing spec-derived test pins the category of this whole usage list (l1_usage_fixed_width_lengths pins LENGTHS, pb2_float_argument_exact_family the float half only) -> test-needed. || REFUTED: PARTIAL — The rule names twelve usages. Three of them (FLOAT-BINARY-128, FLOAT-DECIMAL-16, FLOAT-DECIMAL-34) are refused by name (COBOLNET1564), so no item of those usages exists to be category numeric. The adjudicator said that non-support is an already-settled determination that owes no owner decision. That is wrong: kb/Work/PB579 (kind: decision, status: owner) is the OPEN owner decision on exactly this refusal, and its sibling rows GR-13.18.60.4-16..20 are recorded NOT-IMPLEMENTED pending it. docs/CONFORMANCE.md A.3 item 17 itself says 'Partial'. DOCUMENTED-NON-SUPPORT is not the adjudicator's to take, so a rule verified for 9 of its 12 usages is PARTIAL, and PB579 owns the rest. The supported nine do conform: re-verified at 2002 and 2023. || editions as written by the adjudicator: 2002 (binary-char/-short/-long/-double, float-short/-long/-extended), 2014 (float-binary-32/-64/-128, float-decimal-16/-34), 2023; not 85",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.5.2.12-3",
@@ -9576,13 +9576,13 @@
   "ordinal": 9,
   "subject": "Simple relation conditions",
   "rule-digest": "7d451a663125",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+  "test-ref": "conformance:negative/pb487-message-tag-usage",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.8.4.2.1-10",
@@ -9711,13 +9711,13 @@
   "ordinal": 5,
   "subject": "Simple relation conditions",
   "rule-digest": "d81e97c82b66",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Validation/StatementValidation.cs#CheckFormat3Relation",
-  "test-ref": "conformance:negative/pb399-pointer-relation-category-mix",
+  "test-ref": "conformance:negative/pb399-pointer-relation-category-mix; conformance:negative/w59-relation-object-vs-pointer",
   "derivation": "",
   "editions": "2002, 2014, 2023",
-  "notes": "kb/Work PB1198 (registrar 15c). SR5 (cite.py OK). Object and pointer halves verified: object vs numeric refused 0868 'shall be of class message-tag, object or pointer'; object vs pointer refused 0868 'not of the same category'; POINTER vs PROGRAM-POINTER refused 0869; NULL exempt (correct — it is not identifier-3/-4). The message-tag half cannot be exercised: USAGE MESSAGE-TAG is refused COBOLNET1943 (declined MCS, CONFORMANCE.md §5 item 1), so the rule's third class is unverified — PARTIAL by the two-halves rule, not a defect.",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (message-tag, Annex A.3 item 4, USAGE MESSAGE-TAG refused COBOLNET1943) is non-support. Live halves witnessed: object vs pointer refused COBOLNET0868 (w59-relation-object-vs-pointer), pointer vs program-pointer refused (pb399-pointer-relation-category-mix). || kb/Work PB1198 (registrar 15c). SR5 (cite.py OK). Object and pointer halves verified: object vs numeric refused 0868 'shall be of class message-tag, object or pointer'; object vs pointer refused 0868 'not of the same category'; POINTER vs PROGRAM-POINTER refused 0869; NULL exempt (correct — it is not identifier-3/-4). The message-tag half cannot be exercised: USAGE MESSAGE-TAG is refused COBOLNET1943 (declined MCS, CONFORMANCE.md §5 item 1), so the rule's third class is unverified — PARTIAL by the two-halves rule, not a defect.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.8.4.2.7-1",
@@ -10851,13 +10851,13 @@
   "ordinal": 5,
   "subject": "I-O status",
   "rule-digest": "e6a847685c78",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.1.13.7-6",
@@ -11331,13 +11331,13 @@
   "ordinal": 7,
   "subject": "Polymorphism",
   "rule-digest": "630a7c4c8c27",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build; src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch",
-  "test-ref": "conformance:negative/oo-parametric-polymorphism",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoConformance.cs#DescriptionMismatch; src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
+  "test-ref": "conformance:negative/oo-parametric-polymorphism; conformance:2014/w59h_vlg_override_signature; conformance:negative/w59h-vlg-override-fixed-group",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1519: CONTEXT (applies to every 9.3.5.3 row): the seven items define the METHOD RESOLUTION SIGNATURE. The feature that DISTINGUISHES methods by it (overloading) is optional -- cite.py OK 9.3.5.3 7) 'Parametric polymorphism is an optional feature' -- and is NOT claimed (docs/CONFORMANCE.md 5 A.4.10 item 3; refused COBOLNET0822 in OoClassTable.Build, both instance and factory arms). But the signature is consumed by MANDATORY rules: cite.py OK 8.4.6.5 'The methods declared in an object class definition shall have unique method resolution signatures', OK 11.7.3 3) 'If the OVERRIDE phrase is specified, there shall be a method with the same method resolution signature', OK 11.7.3 9) (conformance of an inherited/implemented same-named method). inventory-schema.json derived-verdicts.oo-optional-items-only deliberately EXCLUDES these rows and asks for per-row adjudication, so no selector covers them. COBOL.NET's signature is the degenerate one (the NAME: roster key ExternalizedName) and the remaining components are enforced as SR9 conformance by OoConformance.ValidateOverrideSignatures -> MethodConformanceMismatches -> DescriptionMismatch (COBOLNET0829); for any program that does not overload, a component is conforming iff that comparator rejects every override the component distinguishes. Probes: out/probe/polymorphism/p*.cob, pinned cobol.exe, --std 2023 default. Rule: cite.py OK 9.3.5.3 7) 'If the parameter is a variable-length group, sufficient information to determine if this group would match the group is specified in the invoke statement.' plus OK 7) 'Parametric polymorphism is an optional feature ... When parametric polymorphism is provided, the manner of method resolution may be as defined in 9.3.6 ... or ...'. HALF 2 (the optional-feature licence): the OWNER's disposition already exists -- docs/CONFORMANCE.md 5 A.4.10 item 3 Not claimed, 2 row 45 N/A (PB285 landed) -- implemented as the COBOLNET0822 refusal (OoClassTable.Build, instance + factory arms) and witnessed by conformance:negative/oo-parametric-polymorphism (two METHOD-ID SHOW, PIC 9(4) vs PIC X(4) -> 0822, reject-at 2002 2014 2023). Not mine to re-decide; COBOLNET0822 still has no DiagnosticCatalog descriptor (open kb/Work PB745 owns that). HALF 1 (variable-length group information): DescriptionMismatch routes a variable-length group pair through VariableLengthCompatibility.Mismatch (8.5.1.12) and then strict width equality in override/prototype pair mode; read, NOT probed. Two halves, one verified -> PARTIAL. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (the OO module, and with it the method resolution signature, is a COBOL-2002 introduction -- Annex D.19.5.4.3 describes parametric polymorphism as part of the OO facility; none before 2002) || Code sites (adjudicator, verbatim): src/Cobol.Net.Compiler/Oo/OoClassTable.cs#OoClassTable.Build; src/Cobol.Net.Compiler/Oo/OoConformance.cs#OoConformance.DescriptionMismatch (VariableLengthCompatibility.Mismatch arm)",
-  "state": "GAP"
+  "notes": "kb/Work PB1519 / R43 item 2 (owner, 2026-09-24): a rule half inside a declined facility takes its LIVE half's verdict. §9.3.5.3 7) (cite.py --check 9.3.5.3 'If the parameter is a variable-length group, sufficient information to determine if this group would match the group is specified in the invoke statement.' → OK 7)). HALF 2 (the optional parametric-polymorphism licence) is declined — A.4.10 item 3 Not claimed, COBOLNET0822, conformance:negative/oo-parametric-polymorphism. HALF 1 (the variable-length-group component of the signature) is consumed by the MANDATORY override rule §11.7.3 SR3 ('If the OVERRIDE phrase is specified, there shall be a method with the same method resolution signature' → OK 3)) and is now VERIFIED, not read: the same variable-length group formal overrides (w59h_vlg_override_signature, SUB P=PP T1=aa T2=bb); an element-length change is refused COBOLNET0829 (8.5.1.12.3 matching); and a FIXED group opposite a variable-length one — compatible under 8.5.1.12 but a different signature — is refused COBOLNET0829 (negative/w59h-vlg-override-fixed-group). That last shape was a DEFECT found by this probe: OoConformance.DescriptionMismatch's pair mode accepted it on the collapsed width and Roslyn failed (CS0115); fixed in wave 59 H. At 2002 the component is vacuous: a variable-length group needs DYNAMIC LENGTH or OCCURS DYNAMIC, both COBOL-2014 constructs.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.6-1",
@@ -11601,13 +11601,13 @@
   "ordinal": 7,
   "subject": "Objects",
   "rule-digest": "05bf97df1436",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindResolvedInvoke",
-  "test-ref": "",
+  "test-ref": "conformance:negative/w59-invoke-returning-narrower-receiver",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB1519: Rule (§9.3.6 match rule 7, cite.py OK §9.3.6 7)), two sentences: (1) a non-object/pointer/index returning item needs a method returning item that may be a MOVE sender into it; (2) 'Additionally, for each parameter that is passed by value or by content, and for the returning item, the following criteria are considered an exact match:' - the lead-in to the exact-match criteria (rows GR-9.3.6-L5.1..L5.3). Half (1) verified: OoBindResolvedInvoke applies §14.8.3.3's identical-description rule (OoConformanceError) which is STRICTER than MOVE-ability and is independently required of every activation by §14.8.3.3 ('the receiving operand shall have the same ... PICTURE ... clauses', cite.py OK §14.8.3.3) - probes R1/R2 (PIC 9(5) method RETURNING into PIC 9(7) / 9(3)) correctly refused COBOLNET0828; the missing/extra RETURNING pairings are refused COBOLNET0828 too. Half (2) only matters when more than one candidate can match, i.e. under parametric polymorphism (§9.3.5.3), which CONFORMANCE.md A.4.10 item 3 / §2 row 45 declares NOT claimed (overloading refused COBOLNET0822; the resolution signature is the method NAME). Two halves, one verified -> PARTIAL. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO method invocation, §9.3.6, is introduced by ISO 2002; absent from X3.23-1985)",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (the lead-in of the exact-match criteria, parametric polymorphism, A.4.10 item 3) is non-support. The first sentence is enforced through §14.8.3.3's stricter identical-description rule (COBOLNET0828). || kb/Work PB1519: Rule (§9.3.6 match rule 7, cite.py OK §9.3.6 7)), two sentences: (1) a non-object/pointer/index returning item needs a method returning item that may be a MOVE sender into it; (2) 'Additionally, for each parameter that is passed by value or by content, and for the returning item, the following criteria are considered an exact match:' - the lead-in to the exact-match criteria (rows GR-9.3.6-L5.1..L5.3). Half (1) verified: OoBindResolvedInvoke applies §14.8.3.3's identical-description rule (OoConformanceError) which is STRICTER than MOVE-ability and is independently required of every activation by §14.8.3.3 ('the receiving operand shall have the same ... PICTURE ... clauses', cite.py OK §14.8.3.3) - probes R1/R2 (PIC 9(5) method RETURNING into PIC 9(7) / 9(3)) correctly refused COBOLNET0828; the missing/extra RETURNING pairings are refused COBOLNET0828 too. Half (2) only matters when more than one candidate can match, i.e. under parametric polymorphism (§9.3.5.3), which CONFORMANCE.md A.4.10 item 3 / §2 row 45 declares NOT claimed (overloading refused COBOLNET0822; the resolution signature is the method NAME). Two halves, one verified -> PARTIAL. || Editions (adjudicator, verbatim): 2002, 2014, 2023 (OO method invocation, §9.3.6, is introduced by ISO 2002; absent from X3.23-1985)",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.6-L5.1",
@@ -11616,13 +11616,13 @@
   "ordinal": 1,
   "subject": "Objects",
   "rule-digest": "16b4a482bec8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
+  "test-ref": "conformance:negative/oo-parametric-polymorphism",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.6-L5.2",
@@ -11631,13 +11631,13 @@
   "ordinal": 2,
   "subject": "Objects",
   "rule-digest": "09649e4fbc01",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
+  "test-ref": "conformance:negative/oo-parametric-polymorphism",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.6-L5.3",
@@ -11646,13 +11646,13 @@
   "ordinal": 3,
   "subject": "Objects",
   "rule-digest": "365ed551cd62",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build",
+  "test-ref": "conformance:negative/oo-parametric-polymorphism",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.10 | Object orientation optional items | Partial' — item 1 (CLASS-ID INHERITS repetition of object-class-name-2) and item 3 (parametric polymorphism) are NOT claimed; item 2 (INTERFACE-ID INHERITS repetition of interface-name-2) IS supported and enforced. That row was corrected on 2026-09-02 (kb/Work PB285) because it had said 'Not claimed' of all three while the compiler ships item 2. Licence for the declined two: §4.2.7 + A.4.1; item 1 is refused COBOLNET0849 at pass-1 (src/Cobol.Net.Compiler/Oo/OoClassTable.cs#Build). ⚠ §4 carries no A.4.10 item, so the §5 row is the whole of the §4.2.7 user documentation.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.3.8.2.3-1",
@@ -12921,13 +12921,13 @@
   "ordinal": 2,
   "subject": "ARITHMETIC clause",
   "rule-digest": "04883ca3f3de",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#ArithmeticOf",
+  "test-ref": "unit:ArithmeticModeScreenDriftTests.StandardBinary_IsDeclinedInEveryUnitKind_PinnedToSpec; unit:ArithmeticModeScreenDriftTests.StandardBinary_PerEditionDiagnostics_AreDistinct_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work PB198 — ARITHMETIC IS STANDARD-BINARY is declined (owner protocol 2026-08-30); docs/CONFORMANCE.md §2 row 2.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-11.9.5.2-3",
@@ -13116,13 +13116,13 @@
   "ordinal": 1,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "d1a075da4729",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-2",
@@ -13131,13 +13131,13 @@
   "ordinal": 2,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "0290c63794e0",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-3",
@@ -13146,13 +13146,13 @@
   "ordinal": 3,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "ab61118b0dbf",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-4",
@@ -13161,13 +13161,13 @@
   "ordinal": 4,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "6ebb61dbf6fb",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-5",
@@ -13176,13 +13176,13 @@
   "ordinal": 5,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "78947b8f69d9",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.9.3-6",
@@ -13191,13 +13191,13 @@
   "ordinal": 6,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "4bd95a62925e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.9.10.3-1",
@@ -16086,13 +16086,13 @@
   "ordinal": 6,
   "subject": "ALTERNATE RECORD KEY clause",
   "rule-digest": "cd9e8a84503c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource",
+  "test-ref": "conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.6.3-7",
@@ -16131,13 +16131,13 @@
   "ordinal": 2,
   "subject": "ALTERNATE RECORD KEY clause",
   "rule-digest": "8fdeadb9c07c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource",
+  "test-ref": "conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.6.4-3",
@@ -16911,13 +16911,13 @@
   "ordinal": 5,
   "subject": "RECORD KEY clause",
   "rule-digest": "cd9e8a84503c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource",
+  "test-ref": "conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.12.4-1",
@@ -16941,13 +16941,13 @@
   "ordinal": 2,
   "subject": "RECORD KEY clause",
   "rule-digest": "8fdeadb9c07c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#DeclineRecordKeySource",
+  "test-ref": "conformance:negative/pb358-record-key-source; conformance:negative/pb358-alternate-key-source",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.12.4-3",
@@ -16971,13 +16971,13 @@
   "ordinal": 4,
   "subject": "RECORD KEY clause",
   "rule-digest": "982798d51c6d",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/RecordLayout.cs#KeyWindowOf; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RegisterIndexed; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/KeyedIoBinder.cs",
   "test-ref": "conformance:2002/pb354_start_generic_key_ok",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1099: cite.py --check 12.4.5.12.4 \"are implicitly referenced as keys for all other record description entries of that file\" -> OK GR4. The prime key is registered as a BYTE WINDOW (offset,length) over the file's shared record area (KeyedIoEmitter, 'THE KEY WINDOW IS IN BYTES', kb/Work PB327; FileRegistry.RegisterIndexed), so every record description entry of the FD is keyed at those positions by construction; the key need be described in only one record (first sentence). Probe gr4.cob (2023): FD with 01 R (R-KEY = bytes 2-3) and 01 S (no key described): records WRITTEN THROUGH S are indexed on bytes 2-3 - 'QZZ111' 00, 'XAA222' 00, then R with R-KEY 'ZZ' -> 22 (duplicate of the S-written key), 'QZY444' 00; READ KEY IS R-KEY='ZZ' returns the S-written 'QZZ111'; START >= LOW-VALUES + READ NEXT walks AA, ZY, ZZ (byte-position order). Covering test: conformance:2002/pb354_start_generic_key_ok case K2 STARTs by an item at the prime key's identical byte positions in a SECOND record description and its expected record is derived from this GR (and §14.9.41.3 SR6 a). || REFUTED: PARTIAL — The data-name-1 half is verified and holds in every shape probed, but the rule names 'data-name-1 OR data-name-2'. The data-name-2 half (the SOURCE key form) is refused by COBOLNET1954 as the Annex A.3 item 40 decline. That is the same unresolved question the adjudicator itself classed NEEDS-OWNER-DECISION on FMT, GR2 and SR5. Two halves with only one verified makes this PARTIAL, not CONFORMS. Whether the data-name-2 half is DOCUMENTED-NON-SUPPORT is for the owner (PB260/PB261/PB281-PB283-style decline owners, PB358), not this row.",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (data-name-2, the record-key SOURCE form, A.3 item 40, refused COBOLNET1954) is non-support. The data-name-1 half is witnessed by pb354_start_generic_key_ok, whose key is described in one of three record description entries. || kb/Work PB1099: cite.py --check 12.4.5.12.4 \"are implicitly referenced as keys for all other record description entries of that file\" -> OK GR4. The prime key is registered as a BYTE WINDOW (offset,length) over the file's shared record area (KeyedIoEmitter, 'THE KEY WINDOW IS IN BYTES', kb/Work PB327; FileRegistry.RegisterIndexed), so every record description entry of the FD is keyed at those positions by construction; the key need be described in only one record (first sentence). Probe gr4.cob (2023): FD with 01 R (R-KEY = bytes 2-3) and 01 S (no key described): records WRITTEN THROUGH S are indexed on bytes 2-3 - 'QZZ111' 00, 'XAA222' 00, then R with R-KEY 'ZZ' -> 22 (duplicate of the S-written key), 'QZY444' 00; READ KEY IS R-KEY='ZZ' returns the S-written 'QZZ111'; START >= LOW-VALUES + READ NEXT walks AA, ZY, ZZ (byte-position order). Covering test: conformance:2002/pb354_start_generic_key_ok case K2 STARTs by an item at the prime key's identical byte positions in a SECOND record description and its expected record is derived from this GR (and §14.9.41.3 SR6 a). || REFUTED: PARTIAL — The data-name-1 half is verified and holds in every shape probed, but the rule names 'data-name-1 OR data-name-2'. The data-name-2 half (the SOURCE key form) is refused by COBOLNET1954 as the Annex A.3 item 40 decline. That is the same unresolved question the adjudicator itself classed NEEDS-OWNER-DECISION on FMT, GR2 and SR5. Two halves with only one verified makes this PARTIAL, not CONFORMS. Whether the data-name-2 half is DOCUMENTED-NON-SUPPORT is for the owner (PB260/PB261/PB281-PB283-style decline owners, PB358), not this row.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.13.3-1",
@@ -20361,13 +20361,13 @@
   "ordinal": 4,
   "subject": "CODE-SET clause",
   "rule-digest": "75531b5c744e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#FormatSelectWhenUnclaimed; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry",
+  "test-ref": "conformance:negative/a48-select-when-condition-name; conformance:negative/a48-select-when-other; conformance:negative/a413-rewrite-file-declined",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.8 | FORMAT and SELECT WHEN file handling | Not claimed'. Licence: §4.2.7 for an OPTIONAL element + A.4.1. ⚠ §4 has NO item for this module — its four facility items are MCS, commit/rollback, VALIDATE and screen handling — so the §5 row IS the whole of the §4.2.7 user documentation and this string must not invent a §4 reference.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.13.4-5",
@@ -29316,12 +29316,12 @@
   "ordinal": 21,
   "subject": "USAGE clause",
   "rule-digest": "219f0f5f3ef4",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#CheckMessageTagExclusivity",
-  "test-ref": "conformance:negative/pb544-message-tag-usage-exclusive",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#MessageTagUsageUnsupported",
+  "test-ref": "conformance:negative/pb544-message-tag-usage-exclusive; conformance:negative/pb487-message-tag-usage",
   "derivation": "",
   "editions": "2023",
-  "notes": "kb/Work PB544 LANDED. 'If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry' (cite.py --check OK) had NO SUBJECT, twice over. First the phrase did not parse at all -- that half landed with kb/Work PB487, which put MESSAGE_TAG into `usageKeyword` and turned the bare parse error into the named Annex A.3 item-4 decline COBOLNET1943. What remained was measured on this worktree's own build: `01 M USAGE MESSAGE-TAG USAGE DISPLAY PIC X(3).` compiled with NO DIAGNOSTIC AT ALL, not even the decline, because the binder kept a single `usageText` that each successive USAGE clause OVERWROTE -- so the entry bound as a plain DISPLAY item and the rule's subject, the SET of usage clauses in the entry, did not exist. The fix is that structure: BindEntry now keeps the clause LIST and CheckMessageTagExclusivity reads it, raising COBOLNET2158 BEFORE and INDEPENDENTLY of the decline (a declined usage still has syntax rules over it), in either written order. || ⚠ NO EDITION GATE ON THE SCREEN, deliberately, and the witness pins 2023 ONLY: below 2023 MESSAGE-TAG is an ordinary user-defined word and the edition-correct answer is the introduction gate, but that routing is broken for the WHOLE MESSAGE-TAG surface (COBOLNET1943 itself fires at 2002 and 2014, contradicting its own message text) and is one mechanism with one fix, registered separately. A golden that also pinned 2002 would freeze that defect (feedback green_test_can_hold_a_gap_open). || ⚠ ALSO STILL OPEN and NOT this rule's: a repeated USAGE clause with no message-tag arm (`USAGE DISPLAY USAGE BINARY`) is accepted silently with the last clause winning. 13.16.2 Format 1 prints `[ usage-clause ]` once, so that is a WIDER rule about clause repetition in a closed general format; the clause list added here is the structure it will be enforced from.",
+  "notes": "kb/Work R43 item 1 (owner, 2026-09-24): wholly inside a declined facility → DOCUMENTED-NON-SUPPORT. §13.18.60.3 SR21 (cite.py --check 13.18.60.3 'If MESSAGE-TAG is specified, no other usage clauses shall be specified in the data description entry' → OK 21)) constrains the MESSAGE-TAG usage, which belongs to the asynchronous messaging facility docs/CONFORMANCE.md §2 Annex A.3 row 4 declines; USAGE MESSAGE-TAG is refused by name in both spellings (COBOLNET1943, conformance:negative/pb487-message-tag-usage). The exclusivity check PB544 landed still runs and stays witnessed (conformance:negative/pb544-message-tag-usage-exclusive); the verdict records that the rule's subject cannot appear in an accepted program (orchestrator decision, wave 59 H).",
   "state": "OK"
  },
  {
@@ -29556,13 +29556,13 @@
   "ordinal": 16,
   "subject": "USAGE clause",
   "rule-digest": "ad99c196d90f",
-  "verdict": "NOT-IMPLEMENTED",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
-  "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564",
+  "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:negative/pb174-float-decimal-encoding-nonsupport",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB579 — USAGE FLOAT-BINARY-128 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 binary128 and .NET has no IEEE binary128 type, so ParseUsage rejects the usage LOUD with COBOLNET1564 naming Annex A.3 item 17 (probe p15 at --std 2023; the grammar's usageKeyword and the 2014 introduction gate both carry the member so the reject is never a parse error at the wrong stage, and a double-backed approximation - which would be non-conforming against a PINNED format - is never emitted). The ground is spec-sanctioned: A.3 item 17 makes FLOAT-BINARY-32/-64/-128 processor-dependent and §4.2.6 says \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\", with the absence to be specified in the implementor's documentation - which docs/CONFORMANCE.md §2 row 17 does (\"Partial - binary32→float, binary64→double claimed; binary128 not\"). ⛔ THE DOCUMENTED-NON-SUPPORT VERDICT IS THE OWNER'S, NEVER AN AGENT'S (D13), so this row is recorded NOT-IMPLEMENTED: an owner decision converting it needs no new evidence - the witness the schema requires (a test proving we diagnose rather than silently miscompile) already exists and is named in test-ref. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOLNET1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-BINARY-128 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 binary128 and .NET has no IEEE binary128 type, so ParseUsage rejects the usage LOUD with COBOLNET1564 naming Annex A.3 item 17 (probe p15 at --std 2023; the grammar's usageKeyword and the 2014 introduction gate both carry the member so the reject is never a parse error at the wrong stage, and a double-backed approximation - which would be non-conforming against a PINNED format - is never emitted). The ground is spec-sanctioned: A.3 item 17 makes FLOAT-BINARY-32/-64/-128 processor-dependent and §4.2.6 says \"Language elements that pertain to specific processor-dependent elements for which support is not claimed need not be implemented\", with the absence to be specified in the implementor's documentation - which docs/CONFORMANCE.md §2 row 17 does (\"Partial - binary32→float, binary64→double claimed; binary128 not\"). ⛔ THE DOCUMENTED-NON-SUPPORT VERDICT IS THE OWNER'S, NEVER AN AGENT'S (D13), so this row is recorded NOT-IMPLEMENTED: an owner decision converting it needs no new evidence - the witness the schema requires (a test proving we diagnose rather than silently miscompile) already exists and is named in test-ref. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-17",
@@ -29571,13 +29571,13 @@
   "ordinal": 17,
   "subject": "USAGE clause",
   "rule-digest": "19acbe25f2bf",
-  "verdict": "NOT-IMPLEMENTED",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
   "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:negative/pb174-float-decimal-encoding-nonsupport",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB579 — USAGE FLOAT-DECIMAL-16 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 decimal64; .NET's System.Decimal is a different format entirely, so ParseUsage rejects LOUD with COBOLNET1564 naming Annex A.3 item 19 (probe p16 at --std 2023). The grammar DOES parse the usage and its bracketed encoding/endianness tail (kb/Work PB174), deliberately, so that legal 2014+ source such as `USAGE FLOAT-DECIMAL-16 BINARY-ENCODING` is refused by the honest diagnostic - the non-support of the usage - rather than by a raw parse error at the wrong stage; conformance:negative/pb174-float-decimal-encoding-nonsupport pins exactly that stage choice. Licence: A.3 item 19 (processor-dependent) plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19 (\"Not claimed\"). ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); NOT-IMPLEMENTED is what an agent may record. The witness the conversion would need already exists. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOLNET1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-DECIMAL-16 is NOT PROVIDED. The rule pins the format to ISO/IEC 60559:2020 decimal64; .NET's System.Decimal is a different format entirely, so ParseUsage rejects LOUD with COBOLNET1564 naming Annex A.3 item 19 (probe p16 at --std 2023). The grammar DOES parse the usage and its bracketed encoding/endianness tail (kb/Work PB174), deliberately, so that legal 2014+ source such as `USAGE FLOAT-DECIMAL-16 BINARY-ENCODING` is refused by the honest diagnostic - the non-support of the usage - rather than by a raw parse error at the wrong stage; conformance:negative/pb174-float-decimal-encoding-nonsupport pins exactly that stage choice. Licence: A.3 item 19 (processor-dependent) plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19 (\"Not claimed\"). ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); NOT-IMPLEMENTED is what an agent may record. The witness the conversion would need already exists. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-18",
@@ -29586,13 +29586,13 @@
   "ordinal": 18,
   "subject": "USAGE clause",
   "rule-digest": "09467bff62f5",
-  "verdict": "NOT-IMPLEMENTED",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
-  "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564",
+  "test-ref": "conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:negative/pb174-float-decimal-encoding-nonsupport",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB579 — USAGE FLOAT-DECIMAL-34 is NOT PROVIDED - the decimal128 twin of GR17. ParseUsage rejects LOUD with COBOLNET1564 naming Annex A.3 item 19 (probe p17 at --std 2023, and probe p21 shows the same reject for `FLOAT-DECIMAL-34 HIGH-ORDER-RIGHT DECIMAL-ENCODING`, i.e. the tail parses and the usage is what is refused). Licence: A.3 item 19 plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19. ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); recorded NOT-IMPLEMENTED here, with the witness already on disk. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOLNET1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — USAGE FLOAT-DECIMAL-34 is NOT PROVIDED - the decimal128 twin of GR17. ParseUsage rejects LOUD with COBOLNET1564 naming Annex A.3 item 19 (probe p17 at --std 2023, and probe p21 shows the same reject for `FLOAT-DECIMAL-34 HIGH-ORDER-RIGHT DECIMAL-ENCODING`, i.e. the tail parses and the usage is what is refused). Licence: A.3 item 19 plus §4.2.6, documented at docs/CONFORMANCE.md §2 row 19. ⛔ DOCUMENTED-NON-SUPPORT is the owner's verdict (D13); recorded NOT-IMPLEMENTED here, with the witness already on disk. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#PictureAnalyzer.ParseUsage",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-19",
@@ -29601,13 +29601,13 @@
   "ordinal": 19,
   "subject": "USAGE clause",
   "rule-digest": "5088c9904d8b",
-  "verdict": "PARTIAL",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#FloatItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#UsageFamilies; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#floatFormatPhrase; docs/CONFORMANCE.md#DOC-A.1-48",
   "test-ref": "conformance:2023/pb174_float_item_endianness; conformance:2023/pb174_float_item_endianness_default; conformance:negative/pb174-endianness-phrase-on-comp1",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB579 — a) b) and c) CONFORM for the standard BINARY floating-point usages, measured on the BYTES rather than on a self-inverse round trip. Probe p29 (--std 2023) puts 1.0 in three FLOAT-BINARY-32 items and reads each group's image with FUNCTION ORD: HIGH-ORDER-LEFT gives 64 129 1 1 (0x3F 0x80 0x00 0x00 - big-endian, a), HIGH-ORDER-RIGHT gives 1 1 129 64 (little-endian, b), and no phrase gives big-endian. Probe p30 adds an `OPTIONS. FLOAT-BINARY IS HIGH-ORDER-RIGHT.` paragraph: the phrase-less item becomes little-endian and an item writing HIGH-ORDER-LEFT stays big-endian - c), and the precedence is §11.9.8.3 SR2/SR3's own wording (\"in which an endianness-phrase is not specified\"), not a preference. The no-OPTIONS default is HIGH-ORDER-LEFT, the documented choice at docs/CONFORMANCE.md §7 item 48 (§11.9.8.3 SR1 leaves it to the implementor). The phrase is refused where the general format does not print it (COBOLNET1716 on FLOAT-LONG - probe p19) and a repeat is refused (COBOLNET1718); the whole phrase is COBOL-2014-gated (COBOLNET0900 at 85/2002 - probe p47). Derivation is centralized: UsageFamilies.IsStandardBinaryFloat / IsStandardDecimalFloat write §3.166/§3.167 down once, PicInfo.FloatItem applies GR19a/b once. PARTIAL FOR TWO REASONS, both of them the reach of the rule rather than its logic: d) - the implied phrase for the standard DECIMAL floating-point usages via §11.9.9 - can never execute, because FLOAT-DECIMAL-16/-34 are not provided (rows GR17/GR18, Annex A.3 item 19), and a) and b) are likewise unreachable for FLOAT-BINARY-128 (row GR16, A.3 item 17), so of the five usages §3.166/§3.167 name only two ever reach GR19's effect. kb/Work PB174 landed the per-item phrase and is closed. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DataBinder.BindEntry; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.FloatItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#UsageFamilies; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#floatFormatPhrase; docs/CONFORMANCE.md#DOC-A.1-48",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (the implied phrase for the standard DECIMAL floating-point usages, and binary128 — A.3 items 17/19) is non-support. a)-c) for FLOAT-BINARY-32/-64 measured on the bytes by the existing goldens. || kb/Work PB579 — a) b) and c) CONFORM for the standard BINARY floating-point usages, measured on the BYTES rather than on a self-inverse round trip. Probe p29 (--std 2023) puts 1.0 in three FLOAT-BINARY-32 items and reads each group's image with FUNCTION ORD: HIGH-ORDER-LEFT gives 64 129 1 1 (0x3F 0x80 0x00 0x00 - big-endian, a), HIGH-ORDER-RIGHT gives 1 1 129 64 (little-endian, b), and no phrase gives big-endian. Probe p30 adds an `OPTIONS. FLOAT-BINARY IS HIGH-ORDER-RIGHT.` paragraph: the phrase-less item becomes little-endian and an item writing HIGH-ORDER-LEFT stays big-endian - c), and the precedence is §11.9.8.3 SR2/SR3's own wording (\"in which an endianness-phrase is not specified\"), not a preference. The no-OPTIONS default is HIGH-ORDER-LEFT, the documented choice at docs/CONFORMANCE.md §7 item 48 (§11.9.8.3 SR1 leaves it to the implementor). The phrase is refused where the general format does not print it (COBOLNET1716 on FLOAT-LONG - probe p19) and a repeat is refused (COBOLNET1718); the whole phrase is COBOL-2014-gated (COBOLNET0900 at 85/2002 - probe p47). Derivation is centralized: UsageFamilies.IsStandardBinaryFloat / IsStandardDecimalFloat write §3.166/§3.167 down once, PicInfo.FloatItem applies GR19a/b once. PARTIAL FOR TWO REASONS, both of them the reach of the rule rather than its logic: d) - the implied phrase for the standard DECIMAL floating-point usages via §11.9.9 - can never execute, because FLOAT-DECIMAL-16/-34 are not provided (rows GR17/GR18, Annex A.3 item 19), and a) and b) are likewise unreachable for FLOAT-BINARY-128 (row GR16, A.3 item 17), so of the five usages §3.166/§3.167 name only two ever reach GR19's effect. kb/Work PB174 landed the per-item phrase and is closed. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DataBinder.BindEntry; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#PicInfo.FloatItem; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#UsageFamilies; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#floatFormatPhrase; docs/CONFORMANCE.md#DOC-A.1-48",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-20",
@@ -29616,13 +29616,13 @@
   "ordinal": 20,
   "subject": "USAGE clause",
   "rule-digest": "19cec5fcc99f",
-  "verdict": "NOT-IMPLEMENTED",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#encodingPhrase",
-  "test-ref": "conformance:negative/pb174-encoding-phrase-on-float-binary; conformance:negative/pb174-float-decimal-encoding-nonsupport",
+  "test-ref": "conformance:negative/pb174-encoding-phrase-on-float-binary; conformance:negative/pb174-float-decimal-encoding-nonsupport; conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB579 — Nothing in this rule can execute. a) and b) give BINARY-ENCODING and DECIMAL-ENCODING their meaning \"in a data item described with any standard decimal floating-point usage\", and c) defers the unstated case to §11.9.9 - all three are conditioned on the standard DECIMAL floating-point usages, which are NOT PROVIDED (FLOAT-DECIMAL-16/-34, rows GR17/GR18, rejected COBOLNET1564 under Annex A.3 item 19). What EXISTS is the syntax and the applicability screen, deliberately and no further: CobolData.g4's `floatFormatPhrase*` parses the bracketed choice-indicator group in either order (§5.2.6.4), DataBinder.BindEntry rejects an encoding-phrase on anything but FLOAT-DECIMAL-16/-34 with COBOLNET1717 citing GR20a (probe p20: `USAGE FLOAT-BINARY-32 BINARY-ENCODING`) and rejects a repeat with COBOLNET1718 - and the surviving value is then NOT carried onto PicInfo, which the binder's own comment records as a measured choice (\"a field nothing reads is a lookup nothing has ever contradicted\"). So there is no encoding to implement until the usages land. Annex A.3 item 20 makes the encoding-phrase itself processor-dependent and §4.2.6 licenses the absence; docs/CONFORMANCE.md §2 row 20-21 records it as N/A because item 19 is not claimed. ⛔ Converting this row to DOCUMENTED-NON-SUPPORT is an owner decision (D13), not an agent's - and it should be taken together with GR17/GR18, since it is derivative of them. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DataBinder.BindEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#encodingPhrase",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — the owner answered kb/Work PB579 Q1 for the whole class: a rule wholly inside a declined processor-dependent element closes as DOCUMENTED-NON-SUPPORT once the compiler correctly refuses it. Refused by name, COBOLNET1564 (Annex A.3 items 17/19/20, §4.2.6). Held by derived-verdicts.float-formats-not-provided. || kb/Work PB579 — Nothing in this rule can execute. a) and b) give BINARY-ENCODING and DECIMAL-ENCODING their meaning \"in a data item described with any standard decimal floating-point usage\", and c) defers the unstated case to §11.9.9 - all three are conditioned on the standard DECIMAL floating-point usages, which are NOT PROVIDED (FLOAT-DECIMAL-16/-34, rows GR17/GR18, rejected COBOLNET1564 under Annex A.3 item 19). What EXISTS is the syntax and the applicability screen, deliberately and no further: CobolData.g4's `floatFormatPhrase*` parses the bracketed choice-indicator group in either order (§5.2.6.4), DataBinder.BindEntry rejects an encoding-phrase on anything but FLOAT-DECIMAL-16/-34 with COBOLNET1717 citing GR20a (probe p20: `USAGE FLOAT-BINARY-32 BINARY-ENCODING`) and rejects a repeat with COBOLNET1718 - and the surviving value is then NOT carried onto PicInfo, which the binder's own comment records as a measured choice (\"a field nothing reads is a lookup nothing has ever contradicted\"). So there is no encoding to implement until the usages land. Annex A.3 item 20 makes the encoding-phrase itself processor-dependent and §4.2.6 licenses the absence; docs/CONFORMANCE.md §2 row 20-21 records it as N/A because item 19 is not claimed. ⛔ Converting this row to DOCUMENTED-NON-SUPPORT is an owner decision (D13), not an agent's - and it should be taken together with GR17/GR18, since it is derivative of them. || code sites, verbatim from the adjudication: src/Cobol.Net.Compiler/Binding/DataBinder.cs#DataBinder.BindEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#encodingPhrase",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.60.4-21",
@@ -32481,13 +32481,13 @@
   "ordinal": 7,
   "subject": "Execution",
   "rule-digest": "948c89d61156",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.2-1",
@@ -33396,13 +33396,13 @@
   "ordinal": 3,
   "subject": "Common phrases and features for statements",
   "rule-digest": "30982b8d242a",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#ArithmeticOf",
+  "test-ref": "conformance:2014/w59_rounded_final_transfer_only",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (standard-binary arithmetic, A.3 item 2, COBOLNET0806) is non-support. Under standard-decimal the ROUNDED phrase reaches only the final transfer: 1/3*3 ROUNDED -> 1.0, unrounded -> 0.9, 2/3*3 ROUNDED -> 2.0. || ",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.7.7-4",
@@ -34281,13 +34281,13 @@
   "ordinal": 24,
   "subject": "ACCEPT statement",
   "rule-digest": "159f5ac22728",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+  "test-ref": "conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-25",
@@ -34311,13 +34311,13 @@
   "ordinal": 1,
   "subject": "ACCEPT statement",
   "rule-digest": "d899c0a14f5d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+  "test-ref": "conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-L2.2",
@@ -34326,13 +34326,13 @@
   "ordinal": 2,
   "subject": "ACCEPT statement",
   "rule-digest": "c160c596cf0d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+  "test-ref": "conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-L3.1",
@@ -34341,13 +34341,13 @@
   "ordinal": 1,
   "subject": "ACCEPT statement",
   "rule-digest": "856949eeaeba",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+  "test-ref": "conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.1.4-L3.2",
@@ -34356,13 +34356,13 @@
   "ordinal": 2,
   "subject": "ACCEPT statement",
   "rule-digest": "70558918e505",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/AcceptDisplayBinder.cs#ScreenFormatOf",
+  "test-ref": "conformance:negative/a42-accept-screen-positioned",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.2 | ACCEPT/DISPLAY screen handling | Not claimed' + §4 item 4 ('Screen handling (§13.9, optional §4.2.7): the SCREEN SECTION, ACCEPT/DISPLAY format-3 (screen), and the EC-SCREEN family. Not provided.'). Licence: §4.2.7 for an OPTIONAL element. kb/Work PB260 owns the witness debt for the whole selected set.",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.2.3-1",
@@ -42561,12 +42561,12 @@
   "ordinal": 23,
   "subject": "READ statement",
   "rule-digest": "46b58531e530",
-  "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Read; src/Cobol.Net.Runtime/IO/FileRegistry.cs#CloseReelUnit",
-  "test-ref": "",
-  "derivation": "docs/CONFORMANCE.md#DRV-GR-14.9.30.4-23",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+  "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind",
+  "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Rule text validated (cite.py --check 14.9.30.4 \"a reel/unit swap occurs and the current volume pointer is updated\" => OK 23)). CONFORMS VACUOUSLY, and the vacuity is spec-anchored, not asserted: §9.1.11's 'current volume pointer' is 'a conceptual entity … of the CURRENT PHYSICAL VOLUME of a sequential file', and §14.9.6.4 itself contemplates 'the last or ONLY unit for the physical file', in which case 'there is no unit swap'. COBOL.NET's medium is single-volume mass storage: one ASSIGN target resolves to one host path, SequentialConnector holds one StreamReader over it, and RecordFraming reads one store — so the end of the only unit IS the logical end of the file and GR23's antecedent ('the logical end of the file has not been reached') can never hold. The medium disposition is already owner-documented in docs/CONFORMANCE.md §2 (A.3 item 26 'Reel-device delimiter; mass-storage model only'; items 28–30 'REEL/UNIT accepted (mass-storage no-op); tape positioning inert'; items 33–34 'WITH NO REWIND inert (no reel device)'), and FileRegistry.CloseReelUnit is the matching no-op that sets '07'. Nothing in this implementation can recognize an end of reel/unit distinct from an end of file, so no swap is owed. ⚠ Doc-traceability nit (not a defect row): no comment at the READ sites records that GR23 is medium-vacuous, so a future multi-volume/tape backend would inherit the omission silently. || EDITIONS AS ADJUDICATED: 1985 · 2002 · 2014 · 2023",
+  "notes": "kb/Work R43 item 3 (owner, 2026-09-24): a rule whose trigger can only arise through an unsupported capability closes as DOCUMENTED-NON-SUPPORT, CONTINGENT: re-adjudicate if the capability is ever added. §14.9.30.4 GR23 (cite.py --check 14.9.30.4 'a reel/unit swap occurs and the current volume pointer is updated' → OK 23)) is the READ twin of §14.9.51.4 GR24 (WRITE), already recorded DOCUMENTED-NON-SUPPORT on the same ground: its trigger — an end of reel/unit recognized before the logical end of file — exists only for a multi-reel/unit physical file, which no COBOL.NET connector is (every connector answers the non-reel/unit category, CloseTable14.PhysicalFileCategory; docs/CONFORMANCE.md §2 A.3 items 26, 28–30, 33–34). One disposition for both twins (orchestrator, wave 59 H); its §8 derivation DRV-GR-14.9.30.4-23 is retired in the same change set.",
   "state": "OK"
  },
  {
@@ -42711,13 +42711,13 @@
   "ordinal": 1,
   "subject": "RECEIVE statement",
   "rule-digest": "c5afc84271be",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.31.3-2",
@@ -42726,13 +42726,13 @@
   "ordinal": 2,
   "subject": "RECEIVE statement",
   "rule-digest": "f1b2645358fb",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.31.3-3",
@@ -42741,13 +42741,13 @@
   "ordinal": 3,
   "subject": "RECEIVE statement",
   "rule-digest": "40780f1cf5a4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.31.4-1",
@@ -42756,13 +42756,13 @@
   "ordinal": 1,
   "subject": "RECEIVE statement",
   "rule-digest": "19f285540fee",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.31.4-2",
@@ -42771,13 +42771,13 @@
   "ordinal": 2,
   "subject": "RECEIVE statement",
   "rule-digest": "6889f9f215d7",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.31.4-3",
@@ -42786,13 +42786,13 @@
   "ordinal": 3,
   "subject": "RECEIVE statement",
   "rule-digest": "72eaca70284c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.31.4-4",
@@ -42801,13 +42801,13 @@
   "ordinal": 4,
   "subject": "RECEIVE statement",
   "rule-digest": "e037e264cd0e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.31.4-5",
@@ -42816,13 +42816,13 @@
   "ordinal": 5,
   "subject": "RECEIVE statement",
   "rule-digest": "7aba294d1e65",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.32.3-1",
@@ -44376,13 +44376,13 @@
   "ordinal": 1,
   "subject": "SEND statement",
   "rule-digest": "ba0f711fdd17",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.38.3-2",
@@ -44391,13 +44391,13 @@
   "ordinal": 2,
   "subject": "SEND statement",
   "rule-digest": "5df4729d999d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.38.3-3",
@@ -44406,13 +44406,13 @@
   "ordinal": 3,
   "subject": "SEND statement",
   "rule-digest": "713ed7706629",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.38.3-4",
@@ -44421,13 +44421,13 @@
   "ordinal": 4,
   "subject": "SEND statement",
   "rule-digest": "90cc5c41950e",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-1",
@@ -44436,13 +44436,13 @@
   "ordinal": 1,
   "subject": "SEND statement",
   "rule-digest": "d55458b0d1e1",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-2",
@@ -44451,13 +44451,13 @@
   "ordinal": 2,
   "subject": "SEND statement",
   "rule-digest": "afb3bf7d24af",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-3",
@@ -44466,13 +44466,13 @@
   "ordinal": 3,
   "subject": "SEND statement",
   "rule-digest": "6df07e5f9c47",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-4",
@@ -44481,13 +44481,13 @@
   "ordinal": 4,
   "subject": "SEND statement",
   "rule-digest": "b84124db2629",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-5",
@@ -44496,13 +44496,13 @@
   "ordinal": 5,
   "subject": "SEND statement",
   "rule-digest": "4ec102ef9fcf",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-6",
@@ -44511,13 +44511,13 @@
   "ordinal": 6,
   "subject": "SEND statement",
   "rule-digest": "7337ce773703",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-7",
@@ -44526,13 +44526,13 @@
   "ordinal": 7,
   "subject": "SEND statement",
   "rule-digest": "772c4155ad4b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.38.4-8",
@@ -44541,13 +44541,13 @@
   "ordinal": 8,
   "subject": "SEND statement",
   "rule-digest": "2e7440074eb4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.39.3-1",
@@ -49791,13 +49791,13 @@
   "ordinal": 24,
   "subject": "WRITE statement",
   "rule-digest": "418f10bf64c9",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Runtime/IO/CloseTable14.cs#PhysicalFileCategory",
+  "test-ref": "unit:CloseTable14Tests.Category_PlacesEverySupportedConnectorKind",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "85,2002,2014,2023",
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 3: a rule whose trigger can only arise through an unsupported capability closes as DOCUMENTED-NON-SUPPORT, CONTINGENT: re-adjudicate if the capability is ever added (kb/Work PB1198 Q2). §14.9.51.4 GR24's reel/unit swap needs an end of reel/unit recognized inside a multi-volume physical file; COBOL.NET provides no reel or unit medium (docs/CONFORMANCE.md §2 A.3 items 26, 28-30, 33-34; A.1 item 24), and the witness pins that every connector kind reports a non-unit or mass-storage category (§14.9.6.4 GR2 (a)/(d)), so no WRITE can recognize an end of unit. The READ twin GR-14.9.30.4-23 was closed earlier by an owner-signed §8 derivation.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-25",
@@ -58116,13 +58116,13 @@
   "ordinal": 0,
   "subject": "FLOAT-DECIMAL clause",
   "rule-digest": "371d3c918b2f",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#floatDecimalClause; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#floatDecimalEncoding; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#encodingPhrase; src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#ApplyFloatDecimal; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitFloatDecimalClause",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#floatDecimalClause",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_EveryPhraseOrder_ReachesTheWarning_NotAParseError",
   "derivation": "",
   "editions": "2014,2023",
-  "notes": "kb/Work PB1508 (also PB298): Rule: FLOAT-DECIMAL [DEFAULT] [IS] { | encoding-phrase | endianness-phrase | } - braces enclosing CHOICE INDICATORS, confirmed on the printed PDF page 305 by scripts/spec/figure_geometry.py (two bar stems at y=606.54, 'CHOICE INDICATORS (5.2.6.4)'). §5.2.6.4: 'When enclosed by braces, one or more of the alternatives ... shall be specified, but any single alternative shall be specified only once ... The alternatives may be specified in any order' (cite.py --check 5.2.6.4 'The alternatives may be specified in any order' -> OK). Grammar floatDecimalEncoding = encodingPhrase endiannessPhrase? | endiannessPhrase: accepts encoding alone, endianness alone, encoding-then-endianness, refuses a repeat, but REJECTS the legal endianness-then-encoding order. Probes (pinned cobol.exe, --std 2023): 'FLOAT-DECIMAL DEFAULT IS BINARY-ENCODING HIGH-ORDER-LEFT' -> compiles, runs OK; 'FLOAT-DECIMAL HIGH-ORDER-LEFT' -> OK; 'FLOAT-DECIMAL DEFAULT DECIMAL-ENCODING' -> OK; 'FLOAT-DECIMAL IS HIGH-ORDER-RIGHT DECIMAL-ENCODING' -> error COBOL0307 unexpected 'DECIMAL-ENCODING' (legal source rejected as a raw parse error); 'FLOAT-DECIMAL BINARY-ENCODING DECIMAL-ENCODING' -> COBOL0307 (correct reject, 'only once'); --std 2002 -> COBOLNET0900 (correct gate); --std 2014 -> OK. The USAGE clause's twin group (CobolData.g4 floatFormatPhrase*) already accepts either order - the two-arm shape. SECOND DIVERGENCE: the clause is a processor-dependent element CONFORMANCE.md §2 A.3 row 13 declares Not claimed, yet every accepted form compiles with NO diagnostic, while §4.2.6 requires 'An implementation shall provide a warning mechanism at compile time to indicate use of syntactically-detectable processor-dependent language elements not supported by that implementation' (cite.py --check 4.2.6 -> OK). DOC-A.1-48 says 'the clause binds and is inert' - inert acceptance is a legitimate posture (cf. RECORD DELIMITER COBOLNET1778 accept-inert Warning) but only WITH the warning. Two defects, one row: DIVERGES. No existing test covers the clause's syntax (the dossier's two negatives are USAGE-clause fixtures). || Editions (adjudicator, verbatim): 2014, 2023 (the OPTIONS FLOAT-DECIMAL clause is a COBOL-2014 addition to the 2002 OPTIONS paragraph; the 2023 Annex E lists no change to it)",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 1 (owner, 2026-09-24): wholly inside a declined facility → DOCUMENTED-NON-SUPPORT. §11.9.9.2 is the general format of the OPTIONS paragraph's FLOAT-DECIMAL clause, which docs/CONFORMANCE.md §2 Annex A.3 row 13 declines (Not claimed): the clause is accepted inert with the §4.2.6 warning COBOLNET2424 (OptionsBinder.DeclineFloatDecimal), and §4.2.6 frees the implementation from diagnosing syntax errors inside unsupported syntax (cite.py --check 4.2.6 'not required to diagnose syntax errors within this unsupported syntax' → OK). The earlier DIVERGES (kb/Work PB1508 / PB298: the choice-indicator shape of the clause's format) was a finding about the internals of a declined clause; recorded by batch, not by the float-formats selector, because a derived selector never overwrites an adjudicated verdict (orchestrator decision, wave 59 H).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-11.9.10.2",
@@ -58416,13 +58416,13 @@
   "ordinal": 0,
   "subject": "RECORD KEY clause",
   "rule-digest": "dc0639616e62",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#recordKeyClause; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#recordKeySourcePhrase",
+  "test-ref": "conformance:2002/pb354_start_generic_key_ok; conformance:negative/pb358-record-key-source-optional-words",
   "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "editions": "2002,2014,2023",
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely — item 2: a rule HALF inside a declined facility takes its LIVE half's verdict; the declined half (the record-key-name-1 SOURCE alternative, A.3 item 40) parses and is refused by name (COBOLNET1954). The data-name-1 alternative matches the grammar's recordKeyClause. || ",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.4.5.13.2",
@@ -58491,13 +58491,13 @@
   "ordinal": 0,
   "subject": "APPLY COMMIT clause",
   "rule-digest": "c33bfc2bf469",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Validation/DeclinedFacilityPass.cs#VisitApplyCommitClause",
+  "test-ref": "conformance:negative/declined-apply-commit",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. docs/CONFORMANCE.md §5 Annex A.4 row 'A.4.3 | Commit and rollback | Not claimed' + §4 item 2, which enumerates the COMMIT and ROLLBACK statements, the APPLY COMMIT clause (§12.4.6.3) and the EC-FLOW-APPLY-COMMIT / EC-FLOW-COMMIT / EC-FLOW-ROLLBACK conditions. Licence: §4.2.7 for an OPTIONAL element, corroborated by §4.2.6 processor-dependence (A.3 items 6-7). kb/Work PB261 owns the witness debt.",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.4.6.4.2",
@@ -60171,13 +60171,13 @@
   "ordinal": 0,
   "subject": "RECEIVE statement",
   "rule-digest": "054116a054bf",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-14.9.32.2",
@@ -60276,13 +60276,13 @@
   "ordinal": 0,
   "subject": "SEND statement",
   "rule-digest": "4d8511905600",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/Bound/StatementBinder.cs#BindUnsupportedFacility",
+  "test-ref": "conformance:2023/w59_mcs_facility_witness; conformance-test:DocumentedNonSupportWitnessTests.McsFacility_NamedNonSupportWarning_AtBothStatements_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "FMT-14.9.39.2",
@@ -62076,13 +62076,13 @@
   "ordinal": 13,
   "subject": "CALL statement (rules for program-name formation for a non-COBOL program)",
   "rule-digest": "90379881f43d",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-13; src/Cobol.Net.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+  "test-ref": "conformance:2002/w59h_non_cobol_names_not_found",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-14",
@@ -62106,13 +62106,13 @@
   "ordinal": 15,
   "subject": "CALL statement (rules for locating a non-COBOL program)",
   "rule-digest": "d8242174314c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-15; src/Cobol.Net.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+  "test-ref": "conformance:2002/w59h_non_cobol_names_not_found",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-16",
@@ -62331,13 +62331,13 @@
   "ordinal": 30,
   "subject": "Compiler directives, compiler directive IMP (syntax rules and general rules)",
   "rule-digest": "79ebe97912b8",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-30; src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#IsDirective",
+  "test-ref": "conformance:negative/w59h-imp-directive-undefined",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-31",
@@ -62391,13 +62391,13 @@
   "ordinal": 34,
   "subject": "Computer's coded character set (for literals, correspondence between compile-time and runtime character sets, when conve",
   "rule-digest": "2e67caf2e203",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-34; src/Cobol.Net.Frontend/Pipeline/CompilationInputs.cs#ReadAllText; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Ord",
+  "test-ref": "conformance:2002/l1c01_native_ordinal_positions_wide",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-35",
@@ -62436,13 +62436,13 @@
   "ordinal": 37,
   "subject": "Computer's coded character set (when more than one encoding, the mechanism for selecting encoding for runtime)",
   "rule-digest": "568903bf3c16",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-37; src/Cobol.Net.Runtime/Intrinsics/CobolIntrinsics.Text.cs#Repertoire",
+  "test-ref": "conformance:2002/l1c01_native_ordinal_positions_wide",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-38",
@@ -62586,13 +62586,13 @@
   "ordinal": 47,
   "subject": "Default encoding specifications (for standard decimal floating-point usages)",
   "rule-digest": "7abb85e4c762",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/OptionsBinder.cs#DeclineFloatDecimal; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+  "test-ref": "conformance:2014/w59_float_decimal_clause_witness; conformance-test:DocumentedNonSupportWitnessTests.FloatDecimalClause_NamedNonSupportWarning_PinnedToSpec; conformance-test:FloatFamilyTests.ProcessorDependent_Rejected1564; conformance:negative/pb174-float-decimal-encoding-nonsupport",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.ApplyFloatDecimal).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-48",
@@ -63201,13 +63201,13 @@
   "ordinal": 88,
   "subject": "Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified)",
   "rule-digest": "1957b2747788",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-88; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram",
+  "test-ref": "conformance:2002/w59h_non_cobol_names_not_found",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-89",
@@ -63321,13 +63321,13 @@
   "ordinal": 96,
   "subject": "Hexadecimal alphanumeric literals (mapping when characters not multiples of four bits)",
   "rule-digest": "29a079c2fe01",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-96; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHex",
+  "test-ref": "conformance:2002/l1c12_hex_alphanumeric_every_group; conformance:negative/r03-hex-literal-digit-grouping",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-97",
@@ -63351,13 +63351,13 @@
   "ordinal": 98,
   "subject": "Hexadecimal national literals (mapping when characters not multiples of four bits)",
   "rule-digest": "ed7cafd27fdb",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-98; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexGroups",
+  "test-ref": "conformance:2002/l1c12_hex_national_no_character; conformance:negative/r03-hex-literal-digit-grouping",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-99",
@@ -64011,13 +64011,13 @@
   "ordinal": 142,
   "subject": "Program-address identifier (relation between address and non-COBOL program)",
   "rule-digest": "8f70288f814b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-142; src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#EntryOfOperand",
+  "test-ref": "conformance:2002/w59h_non_cobol_names_not_found",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-143",
@@ -64028,11 +64028,11 @@
   "rule-digest": "76dee6f0f168",
   "verdict": "DOCUMENTED-NON-SUPPORT",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-143; src/Cobol.Net.Runtime/Control/ProgramTable.cs#ProbeSiblingModule; src/Cobol.Net.Runtime/Control/ProgramTable.cs#EntryOf",
-  "test-ref": "",
+  "test-ref": "conformance:2002/w59h_non_cobol_names_not_found",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Derived: a1-optional-not-provided (kb/Work PB280 Q1 — an A.1-OPTIONAL item whose §7 row opens 'Not provided.' is DOCUMENTED-NON-SUPPORT). Determination evidence (PB1522 step 3): A.1-143 is OPTIONAL, so owner decision kb/Work PB280 Q1 governs: a 'Not provided.' row, which the derived selector a1-optional-not-provided turns into DOCUMENTED-NON-SUPPORT (kb/Work PB1536 also lists 143, but its Q1 concerns CONDITIONALLY-required items; 143's class is optional). §8.3.2.2.21 (cite.py OK) leaves the formation rules to the implementor 'for a non-COBOL program'. Probe probe/nc.cob --std 2023: CALL \"Antlr4.Runtime.Standard\" and CALL \"System.Console\" take ON EXCEPTION; SET PP TO ADDRESS OF PROGRAM \"System.Console\" -> NULL. ProgramTable.ProbeSiblingModule requires a COBOL.NET registrar. No golden pins the non-provision.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-144",
@@ -64116,13 +64116,13 @@
   "ordinal": 149,
   "subject": "RECORD DELIMITER clause (consistency rules when used with external file connectors)",
   "rule-digest": "4ab2c554dbab",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-149; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileControl; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#RecordDelimiterUnsupported",
+  "test-ref": "conformance:2023/pb292_record_delimiter_witness; conformance-test:DocumentedNonSupportWitnessTests.RecordDelimiterFeatureName_NamedNonSupportWarning_PinnedToSpec",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-150",
@@ -64161,13 +64161,13 @@
   "ordinal": 152,
   "subject": "Record locking (circumstances other than a locked logical record that return a locked record status)",
   "rule-digest": "3fb47b7adfa6",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-152; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord",
+  "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:2002/pb669_lock_visibility_plain_connector",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-153",
@@ -64881,13 +64881,13 @@
   "ordinal": 200,
   "subject": "Text manipulation (stage of processing the LISTING and PAGE directives and the SUPPRESS phrase of COPY)",
   "rule-digest": "55f26ac1553c",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-200; src/Cobol.Net.Frontend/Preprocessor/DirectiveStateRegistry.cs#ListingDirective2002; src/Cobol.Net.Frontend/Preprocessor/CopyProcessor.cs#ResolveOneCopy",
+  "test-ref": "conformance:2002/w59h_listing_stage_inert; conformance:2002/pb725_directive_facility",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness.",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-201",
@@ -65061,13 +65061,13 @@
   "ordinal": 212,
   "subject": "USAGE MESSAGE-TAG (size and contents)",
   "rule-digest": "94766873531b",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
+  "verdict": "DOCUMENTED-NON-SUPPORT",
+  "code-location": "src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#ParseUsage",
+  "test-ref": "conformance:negative/pb487-message-tag-usage",
   "derivation": "",
   "editions": "",
-  "notes": "",
-  "state": "GAP"
+  "notes": "kb/Work R43 (owner, 2026-09-24): an unsupported facility is unsupported entirely. kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-213",

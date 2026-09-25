@@ -1,4 +1,4 @@
-      *> ISO §12.3.7.4 r6 — native ordinals across both native sets
+      *> ISO §12.3.7.4 r6 (SPECIAL-NAMES) — ordinals, both native sets
       *> THE RULE (A.1 item 8; documented choice: docs/CONFORMANCE.md
       *> row DOC-A.1-8, "ordinal = UTF-16 code unit + 1" in BOTH the
       *> alphanumeric and the national native sets):

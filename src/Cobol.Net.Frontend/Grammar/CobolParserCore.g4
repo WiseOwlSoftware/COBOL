@@ -297,14 +297,16 @@ floatBinaryClause
     : FLOAT_BINARY DEFAULT? IS? endiannessPhrase
     ;
 
-// §11.9.9 — FLOAT-DECIMAL [DEFAULT] IS [encoding-phrase] [endianness-phrase] (at least one phrase).
+// §11.9.9 — FLOAT-DECIMAL [DEFAULT] IS { | encoding-phrase | endianness-phrase | }: the braces enclose CHOICE
+// INDICATORS (printed folio 305, confirmed by figure_geometry.py — kb/Work PB1508), so per §5.2.6.4 at least one
+// alternative is written and "The alternatives may be specified in any order". That is exactly the USAGE clause's
+// group, so the clause reuses its ONE rule, floatFormatPhrase (Core/CobolData.g4), instead of a second, ORDERED
+// copy that refused the legal endianness-first spelling with a raw parse error (the two-arm defect PB174 left:
+// it fixed the USAGE arm only). The clause is DECLINED whole — COBOLNET2424 (OptionsBinder.DeclineFloatDecimal,
+// docs/CONFORMANCE.md §2 row 13; kb/Work R43) — so every legal spelling must reach that warning, and §4.2.6 frees
+// the implementation from diagnosing a repeated phrase inside the unsupported syntax.
 floatDecimalClause
-    : FLOAT_DECIMAL DEFAULT? IS? floatDecimalEncoding
-    ;
-
-floatDecimalEncoding
-    : encodingPhrase endiannessPhrase?
-    | endiannessPhrase
+    : FLOAT_DECIMAL DEFAULT? IS? floatFormatPhrase+
     ;
 
 // encodingPhrase / endiannessPhrase are DEFINED in the imported Core/CobolData.g4, beside the USAGE clause that

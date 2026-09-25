@@ -277,9 +277,13 @@ public static class OoConformance
     /// wave): ONE descriptor string per description, computed at BIND time on both sides of a universal
     /// crossing; the generated <c>__CobolInvoke</c> switch compares for STRING EQUALITY and raises
     /// EC-OO-UNIVERSAL on mismatch (ISO §14.9.23.4 GR7c — §14.8.2/§14.8.3 conformance through a universal
-    /// receiver is checked at runtime, §9.3.8.2.1 NOTE). Locked invariant (unit-tested): descriptor
-    /// equality ⇔ <see cref="DescriptionMismatch"/> == null over every carried category — derived NEXT TO
-    /// the one mismatch function so the two projections cannot drift (feedback_one_mechanism_per_job).
+    /// receiver is checked at runtime, §9.3.8.2.1 NOTE). Intended invariant: descriptor equality ⇔
+    /// <see cref="DescriptionMismatch"/> == null over every carried category — derived NEXT TO the one mismatch
+    /// function so the two projections cannot drift (feedback_one_mechanism_per_job). ⚠ No unit test enumerates
+    /// the categories (this comment used to say one did; none has ever existed): each axis is held only by the
+    /// goldens that exercise it, and the variable-length-group axis DID drift — the comparator accepted, in pair
+    /// mode, a pair whose descriptors ("V:" versus "S:") differ, until kb/Work PB1519
+    /// (negative/w59h-vlg-override-fixed-group).
     /// Deliberate strictness deltas, both LOUD-fail directions (AS-BUILT notes): equality cannot express
     /// §14.8.2.2 rule 1's by-ref group-PREFIX leniency (a smaller formal group raises EC-OO-UNIVERSAL
     /// through universal where the TYPED path accepts a prefix), and JUSTIFIED is encoded on alphanumeric
@@ -429,6 +433,22 @@ public static class OoConformance
                         : null;
                 }
                 if (anyLengthActivationRelax) return null;
+                // ⛔ PAIR MODE — override / implements / prototype SIGNATURE equality (kb/Work PB1519, wave 59 H).
+                // §9.3.5.3 item 7 makes the variable-length-group information PART OF THE METHOD RESOLUTION
+                // SIGNATURE ("If the parameter is a variable-length group, sufficient information to determine if
+                // this group would match the group is specified in the invoke statement"), and §11.7.3 SR3 demands
+                // the SAME signature of an override. A fixed-length group carries no such information, so it is a
+                // different signature from a variable-length group even when §8.5.1.12 would call the two
+                // COMPATIBLE and their collapsed widths agree. Measured before this arm: a base formal
+                // `05 T PIC X(2) OCCURS DYNAMIC …` overridden by `05 T PIC X(2) OCCURS 1.` passed the width compare
+                // below and died in Roslyn (CS0115, "no suitable method found to override"), because the C#
+                // projection — ConformanceDescriptor's "V:" versus "S:" — already told the two apart: this arm
+                // restores the invariant that the descriptor and this comparator agree.
+                if (VariableLengthCompatibility.IsVariableLength(formal) != VariableLengthCompatibility.IsVariableLength(arg))
+                    return $"one is a variable-length group and the other a fixed-length group (the formal is "
+                        + $"{(VariableLengthCompatibility.IsVariableLength(formal) ? "variable" : "fixed")}-length) — "
+                        + "ISO §9.3.5.3 item 7 makes a variable-length group's matching information part of the "
+                        + "method resolution signature, so the two signatures differ";
             }
             // §14.8.2.2 rule 1 (BY REFERENCE): the formal may be SMALLER than (a prefix of) the argument —
             // the callee sees the leading formal-width character positions; the tail survives write-back.

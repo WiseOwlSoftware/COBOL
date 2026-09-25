@@ -906,7 +906,10 @@ public sealed class SpecTraceabilityInventoryDriftTests
     {
         string[] population =
         [
-            "DOC-A.1-19", "GR-14.9.11.4-11", "GR-14.9.30.4-20", "GR-14.9.30.4-23", "GR-14.9.30.4-3",
+            // ⚙ GR-14.9.30.4-23 LEFT on 2026-09-24 (wave 59 H, kb/Work R43 item 3): the READ reel-swap rule takes
+            // its WRITE twin GR-14.9.51.4-24's disposition — DOCUMENTED-NON-SUPPORT, because its trigger exists
+            // only for a multi-reel/unit file no connector is — and its §8 derivation was retired with it.
+            "DOC-A.1-19", "GR-14.9.11.4-11", "GR-14.9.30.4-20", "GR-14.9.30.4-3",
             "GR-14.9.34.4-2", "GR-14.9.5.4-11", "RV-15.50.4-9",
             // ⚙ The NINTH, added deliberately (kb/Work PB235, 2026-09-05) — this edit is the point of the list.
             // §14.9.6.4 GR3 symbol e's unit-media branch 1. Its antecedent needs a physical file in §14.9.6.4
@@ -941,6 +944,12 @@ public sealed class SpecTraceabilityInventoryDriftTests
             // and the row is re-adjudicated by construction. docs/CONFORMANCE.md §8 DRV-RV-15.4.1-4 carries the
             // enumeration itself so the argument is re-checkable rather than believed.
             "RV-15.4.1-4",
+            // ⚙ The FOURTEENTH and FIFTEENTH, added deliberately (owner decision kb/Work R43 item 4, 2026-09-24,
+            // extending PB386; answers PB468 Q9) — the first rows of the NEW `definitional` arm. §4.4 1) and 2)
+            // DEFINE the conforming run unit, a property of the USER's program: their subject is the run unit,
+            // they contain no "shall", and every obligation they allude to is its own inventory row. They are the
+            // only such rows in the catalog (§4.3, the conforming compilation group, has none).
+            "GR-4.4-1", "GR-4.4-2",
         ];
 
         var s = LoadSchema();

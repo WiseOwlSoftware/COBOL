@@ -37,11 +37,9 @@ public sealed record OptionsModel
     /// implementor default applies).</summary>
     public FloatEndianness FloatBinaryEndianness { get; init; } = FloatEndianness.Unspecified;
 
-    /// <summary>FLOAT-DECIMAL clause encoding (§11.9.9). <see cref="FloatEncoding.Unspecified"/> when absent.</summary>
-    public FloatEncoding FloatDecimalEncoding { get; init; } = FloatEncoding.Unspecified;
-
-    /// <summary>FLOAT-DECIMAL clause endianness (§11.9.9). <see cref="FloatEndianness.Unspecified"/> when absent.</summary>
-    public FloatEndianness FloatDecimalEndianness { get; init; } = FloatEndianness.Unspecified;
+    // No FLOAT-DECIMAL clause fields (§11.9.9): the clause is declined and accepted inert (COBOLNET2424,
+    // OptionsBinder.DeclineFloatDecimal) because the standard decimal floating-point usages it configures are not
+    // provided (Annex A.3 items 13 and 19).
 
     /// <summary>INTERMEDIATE ROUNDING clause (§11.9.11) — rounding for intermediate results under standard
     /// arithmetic. Default <see cref="CobolRounding.NearestAwayFromZero"/> when absent (§11.9.11.2 r3a).</summary>

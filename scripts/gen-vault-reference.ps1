@@ -34,7 +34,10 @@ $sections = @(
     [pscustomobject]@{ Name = 'Frontend'; Dir = 'src/Cobol.Net.Frontend';               Recurse = $true;  Exclude = $null }
 )
 
-$outRoot = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) 'cobolnet-vault-ref-check' }
+# ⛔ A -Check run writes to its OWN directory — the twin of gen-grammar-diagrams.ps1's fix (wave 59 H): a FIXED
+# %TEMP% path is shared by every concurrent gate on the host (VaultReferenceGeneratorDriftTests runs this from each
+# worktree's Unit leg), and one run's opening Remove-Item deletes the directory under another's WriteAllText.
+$outRoot = if ($Check) { Join-Path ([System.IO.Path]::GetTempPath()) ("cobolnet-vault-ref-check-" + [guid]::NewGuid().ToString('N')) }
            else        { Join-Path $repo 'kb/Reference' }
 
 # Modifiers are OPTIONAL (a top-level type may be modifier-less = internal; nested types are real too). The

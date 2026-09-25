@@ -5161,6 +5161,26 @@ public static class DiagnosticCatalog
         + "written in any order (§13.14.3 SR2, §13.18.39.3 SR4) does not let any of them be written twice. Delete "
         + "the repeated clause or phrase.",
         "ISO §5.2.6.2 · §5.2.7");
+
+    /// <summary>COBOLNET2424 — the OPTIONS paragraph's FLOAT-DECIMAL clause (§11.9.9), the §4.2.6 ¶3 warning a
+    /// declined processor-dependent element owes. Annex A.3 item 13 makes the clause dependent "both on the
+    /// capabilities of the processor and on support for the standard decimal floating-point usages", and neither
+    /// FLOAT-DECIMAL-16 nor FLOAT-DECIMAL-34 is provided (A.3 item 19, COBOLNET1564). The clause was accepted with
+    /// NO diagnostic until kb/Work R43 (2026-09-24) — a decline that leaked, which R43 item 5 makes a defect rather
+    /// than a row to sign. ACCEPTED INERT rather than refused, the COBOLNET1778 precedent: every rule the clause
+    /// states (§11.9.9.3 SR1-SR6) implies a phrase "for the USAGE clause in the data description entry of any data
+    /// item described with a standard decimal floating-point usage", and no such item can be declared, so no
+    /// program-visible value can change.</summary>
+    public static readonly DiagnosticDescriptor FloatDecimalClauseUnsupported = new(
+        "COBOLNET2424", "float-decimal-clause-unsupported", EditionSeverity.Warning,
+        "The FLOAT-DECIMAL clause of the OPTIONS paragraph (ISO §11.9.9) is a processor-dependent element "
+        + "(§4.2.6; Annex A.3 item 13) that is not supported: it sets the default encoding and endianness of the "
+        + "standard decimal floating-point usages, and FLOAT-DECIMAL-16 and FLOAT-DECIMAL-34 are not provided "
+        + "(Annex A.3 item 19). The clause is accepted and has no effect, because no data item it could apply to "
+        + "can be declared. See docs/CONFORMANCE.md §2 row 13.",
+        "ISO §4.2.6 ¶3 / Annex A.3 items 13 and 19 / §11.9.9", RecognizedNotImplemented,
+        Annex: DeclinedAnnex.A3);
+
     /// <summary>A general format that prints ONE figurative spelling as a KEYWORD was written with a sibling
     /// spelling — <c>BLANK WHEN ZEROS</c>, <c>IF X IS ZEROES</c>, <c>INITIALIZE ALL TO BINARY ZERO</c>. ZERO,
     /// ZEROS and ZEROES (and each singular/plural figurative pair) are distinct §8.9 reserved words,

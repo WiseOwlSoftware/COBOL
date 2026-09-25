@@ -171,9 +171,11 @@
       "rebuilds the inventory and is its own landing.",
       "",
       "Rows this costs today, all still open: SR-13.18.41.3-1 · SR-13.18.63.3-36 · SR-13.18.63.3-38 ·",
-      "SR-13.18.63.3-39 · GR-13.18.63.4-24 (A.4.14), and SR-14.9.1.3-5 · SR-14.9.11.3-3 · GR-14.9.11.4-12 ·",
-      "GR-14.9.11.4-17 · GR-14.9.11.4-18 · GR-14.9.11.4-L2.1 · GR-14.9.11.4-L2.2 (A.4.2, which carry hand",
-      "DOCUMENTED-NON-SUPPORT verdicts from kb/Work PB260 that the drift test cannot hold)."
+      "SR-13.18.63.3-39 · GR-13.18.63.4-24 (A.4.14), and SR-14.9.1.3-5 · SR-14.9.11.3-3 · GR-14.9.11.4-12",
+      "(A.4.2, which carry hand DOCUMENTED-NON-SUPPORT verdicts from kb/Work PB260 that the drift test cannot",
+      "hold). The ON EXCEPTION band of ACCEPT and DISPLAY left this list on 2026-09-24 (kb/Work R43 / PB1151): the",
+      "phrase is an OPERAND that exists only in the screen formats, so screen-handling-only's operand arm reaches",
+      "it without the band."
     ],
     "standard-binary-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
@@ -198,7 +200,15 @@
         "Measured 2026-08-31: 16 rules are solely conditioned on the mode (10 by text, 6 by clause), carrying four",
         "different verdicts before this determination. The mixed rules keep their own — they have reachable content",
         "under a mode we DO support, and stamping them would over-claim. Re-measured unchanged at 16 on 2026-09-02",
-        "when the entry was restated in the `arms` shape."
+        "when the entry was restated in the `arms` shape.",
+        "",
+        "⚖ 17 SINCE kb/Work R43 (2026-09-24), AND THE SEVENTEENTH WAS HELD OUT BY A NOTE. GR-11.9.5.2-2 — 'If the",
+        "STANDARD-BINARY phrase is specified, the techniques used in handling arithmetic expressions … shall be as",
+        "described for standard-binary arithmetic in 8.8.1.4' — is the mode and nothing else, and it sat outside this",
+        "selector only because its NOTE 1 ('Implementors are strongly encouraged to provide support for the",
+        "STANDARD-DECIMAL phrase') matched the standard-decimal exclusion (kb/Work PB1517). A NOTE creates no",
+        "requirement, so both engines now read NOTE-free text (inventory_schema.NOTE_MARK); measured across every",
+        "selector and all 233 catalog rules carrying a NOTE, the cut moved this one row and no other."
       ],
       "arms": [
         {
@@ -338,6 +348,14 @@
           "pattern": "\\bMINUS\\b|\\bidentifier-1\\b"
         },
         {
+          "$arm": "operand — ON EXCEPTION / NOT ON EXCEPTION and imperative-statement-1/-2 exist ONLY in the screen formats (§14.9.1.2 ACCEPT format 3, §14.9.11.2 DISPLAY format 2): the device and temporal formats print neither, and §14.9.1.4's EC-DATA-INCOMPATIBLE is set only by GR21's screen-item check. kb/Work R43 / PB1151 — the ON EXCEPTION band of both statements (GR-14.9.1.4-24, -L2.1, -L2.2, -L3.1, -L3.2 and DISPLAY's GR-14.9.11.4-17, -18, -L2.1, -L2.2) carries no screen vocabulary at all",
+          "sections": [
+            "14.9.1.4",
+            "14.9.11.4"
+          ],
+          "pattern": "\\bON EXCEPTION\\b|\\bimperative-statement-[12]\\b|\\bEC-DATA-INCOMPATIBLE\\b"
+        },
+        {
           "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO a declined A.4.2 clause is withdrawn by A.1's preamble; keyed on the clause arm, like format-select-when-only's",
           "xref-sections": [
             "9.2",
@@ -475,6 +493,15 @@
           "pattern": "active APPLY COMMIT clauses\\b"
         },
         {
+          "$arm": "general format of the REFUSED clause — kb/Work R43 / PB1099 Q2. The APPLY COMMIT clause is refused by name whole (COBOLNET1709), so its format FMT-12.4.6.3.2 is declined with it. The COMMIT and ROLLBACK statement formats stay OUT: those statements are accepted inert, which is their complete behaviour with no active APPLY COMMIT clause (§14.9.7.4 GR1, §14.9.36.4 GR1), so their grammar is live surface",
+          "sections": [
+            "12.4.6.3"
+          ],
+          "kinds": [
+            "FMT"
+          ]
+        },
+        {
           "$arm": "Annex A.1 — owner decision R42 (2026-09-24): an obligation whose cross-reference points INTO the declined module (§9.1.18 Commit and rollback, or its three clauses) is withdrawn by A.1's preamble",
           "xref-sections": [
             "9.1.18",
@@ -526,8 +553,19 @@
         "⛔ THERE IS NO MATCHING 'SELECT WHEN IS SPECIFIED' ARM, ON PURPOSE. The symmetric phrasing appears in the",
         "CODE-SET clause exclusively in its NEGATED form — 'no SELECT WHEN clauses are specified' (SR-13.18.13.3-3)",
         "and 'do not contain a SELECT WHEN clause' (GR-13.18.13.4-3) — the branch describing what happens WITHOUT",
-        "the module, which is live code today (DataBinder.BindCodeSetClause). Its one positive form,",
-        "GR-13.18.13.4-4, keeps content for a file with no record description entries at all.",
+        "the module, which is live code today (DataBinder.BindCodeSetClause).",
+        "",
+        "⚖ THE SELECTION ARM (kb/Work R43, 2026-09-24) — record-description SELECTION is the SELECT WHEN mechanism,",
+        "so 'a record description entry is/was selected' reaches the two rules that speak of it from outside the",
+        "module's clauses. GR-9.1.13.7-5 (I-O status 45, 'no record description entry was selected for processing')",
+        "has no producer while A.4.8 is declined (PB1518). GR-13.18.13.4-4 (PB1255) is declined JOINTLY: its a)",
+        "is SELECT WHEN selection (A.4.8), its b) — 'If there are no record description entries associated with the",
+        "file, the record description used for conversion is the description of the identifier or literal specified",
+        "in the FROM phrase of a WRITE or REWRITE statement specifying the FILE phrase' — is A.4.13, also Not",
+        "claimed, and its c)/d) speak of 'the selected record description entry', which only a) or b) creates. The",
+        "earlier reading that it 'keeps content for a file with no record description entries' was a real clause",
+        "answering a different question: that content IS the FILE phrase's FROM operand. The row is stamped here",
+        "because selection is its first and defining branch; one row, one determination (NoTwoSelectors).",
         "",
         "THE A.1 ARM is `xref-sections`, keyed on the SAME clause numbers as the clause arm. DOC-A.1-84, -85 and",
         "-173 are Annex A.1 documentation obligations whose cross-reference points INTO a declined clause",
@@ -550,13 +588,8 @@
         "`kinds: [DOC]` is what holds them out.",
         "",
         "SEVENTEEN NEAR-MISSES, the selector's complement, recorded as data because a predicate is evidence only",
-        "about what it RETURNED. GR-9.1.13.7-5 (I-O status 45) is the SHARPEST and wants a one-row owner",
-        "adjudication rather than a text pattern: its text reads 'selected for processing with the FORMAT clause or",
-        "the CODE-SET clause', naming supported surface, and although status 45 is arguably unreachable without the",
-        "module — only two rules in 4,311 mention 'record identification', and §13.18.51.4 GR4 is the only one that",
-        "SETS the condition — that is a three-clause deduction, and reachability is measured, not deduced. The rest:",
-        "SR-13.18.13.3-3, GR-13.18.13.4-3, GR-13.18.13.4-4 (the CODE-SET no-SELECT-WHEN branches, implemented",
-        "today); GR-13.18.43.4-2 (RECORD sizing); SR-13.18.44.3-3 (REDEFINES, two arms); GR-13.18.49.4-1 (SAME AS),",
+        "about what it RETURNED (GR-9.1.13.7-5 and GR-13.18.13.4-4 were two more until the selection arm):",
+        "SR-13.18.13.3-3, GR-13.18.13.4-3 (the CODE-SET no-SELECT-WHEN branches, implemented today); GR-13.18.43.4-2 (RECORD sizing); SR-13.18.44.3-3 (REDEFINES, two arms); GR-13.18.49.4-1 (SAME AS),",
         "GR-13.18.57.4-1 (TYPE) and SR-13.16.3-13 (CONSTANT RECORD) — one name in a list of several;",
         "GR-14.9.35.4-20 / GR-14.9.51.4-14 (a qualifier on a measurement, not the rule's condition);",
         "GR-14.9.24.4-2/-13, GR-14.9.40.4-7/-16 (MERGE/SORT, where sub-item a) is the whole rule); FMT-13.4.5.2 and",
@@ -576,6 +609,13 @@
         {
           "$arm": "text — rules elsewhere governed entirely by 'if a FORMAT clause is specified'",
           "pattern": "\\bif\\s+(?:a|the)\\s+FORMAT\\s+clause\\s+is\\s+(?:also\\s+)?specified\\b",
+          "excludes-kinds": [
+            "FMT"
+          ]
+        },
+        {
+          "$arm": "selection — a record description entry being SELECTED is what SELECT WHEN does (§13.18.51); kb/Work R43 / PB1518 (I-O status 45) and PB1255 (CODE-SET GR4, jointly with A.4.13 — see $selector)",
+          "pattern": "\\brecord description entry\\s+(?:is|was)\\s+selected\\b",
           "excludes-kinds": [
             "FMT"
           ]
@@ -626,14 +666,24 @@
         "optionality to the FEATURE and grants latitude over the RESOLUTION ALGORITHM, never over whether the",
         "signature exists. COBOL.NET implements a DEGENERATE signature — the method NAME alone, enforced by",
         "COBOLNET0822 — so those seven rows want per-row adjudication (arguably DIVERGES against §11.7.3 SR3),",
-        "never this stamp. Item 3 therefore contributes ZERO rows, and that is a finding rather than an oversight.",
+        "never this stamp.",
+        "",
+        "⚖ ITEM 3 DOES CONTRIBUTE ROWS — §9.3.6's EXACT-MATCH criteria (kb/Work R43, 2026-09-24; PB1519). Exact",
+        "versus inexact only RANKS candidates: resolution steps 1-2 bind an exact match and steps 3-4 a non-exact",
+        "one, and the tie-break prefers 'the method that has the greatest number of parameters that match exactly'.",
+        "With parametric polymorphism refused (COBOLNET0822) and every override held to the overridden method's",
+        "signature (§11.7.3), each name reaches exactly one candidate description, which steps 1-2 and 3-4 bind",
+        "identically — so no conforming program can observe the criteria. They carry no vocabulary of their own",
+        "('the same class and category'), so the arm keys on the sentence that INTRODUCES them (`lead-in`). The",
+        "rule that introduces them, GR-9.3.6-L3.7, stays OUT: its first sentence (the returning item may be a MOVE",
+        "sender) is live and verified, and R43 item 2 gives a half-declined rule its live half's verdict.",
         "",
         "The pattern is anchored to 'in an INHERITS clause': an unanchored 'appear more than once' draft dragged in",
         "the SUM clause SR-13.18.54.3-1 and the procedure-division-header SR-14.2.2-1 — measured, not imagined.",
-        "Two mixed blocks stay OUT and must not be left blank: SR-11.3.3-6 (sentence 1 is solely conditioned;",
-        "sentence 2 has a satisfiable antecedent in a LINEAR chain A→B→C→D) and the overload TIE-BREAK paragraph",
-        "absorbed into GR-9.3.6-L5.3 — the sharpest trap for a future widening, so it is named here rather than",
-        "left unguarded. §9.3.6's steps 3-5 are the non-exact-match arm, which binds a SINGLE method of the name.",
+        "One mixed block stays OUT and must not be left blank: SR-11.3.3-6 (sentence 1 is solely conditioned;",
+        "sentence 2 has a satisfiable antecedent in a LINEAR chain A→B→C→D). The overload tie-break absorbed into",
+        "GR-9.3.6-L5.3 was named here as a trap until R43; it is overload content through and through, and the",
+        "item-3 arm now takes it with the criteria it ranks.",
         "",
         "MEASURED 2026-09-02: the pattern catches 4 of 4,311; `interface-name` drops 1; 3 are selected, all blank.",
         "Each turns solely on a plurality of class bases: SR-8.4.3.8.3-5 ('more than one object-class-name' makes",
@@ -643,13 +693,19 @@
       ],
       "arms": [
         {
-          "$arm": "text — a plurality of CLASS-side INHERITS bases (item 1). Item 3 yields no rows; see $selector.",
-          "pattern": "(more than one object-class-name|more than once in an INHERITS clause|inherited more than once)"
+          "$arm": "text — a plurality of CLASS-side INHERITS bases (item 1); the interface-name exclusion is THIS arm's (item 2 is supported, kb/Work PB285)",
+          "pattern": "(more than one object-class-name|more than once in an INHERITS clause|inherited more than once)",
+          "excludes-pattern": "interface-name"
+        },
+        {
+          "$arm": "item 3 — the EXACT-MATCH criteria of §9.3.6, keyed on the sentence that introduces them ('the following criteria are considered an exact match:', GR-9.3.6-L3.7). kb/Work R43 / PB1519",
+          "sections": [
+            "9.3.6"
+          ],
+          "lead-in": "\\bconsidered an exact match\\b"
         }
       ],
-      "excludes-patterns": [
-        "interface-name"
-      ]
+      "excludes-patterns": []
     },
     "rewrite-write-file-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
@@ -694,8 +750,8 @@
         "supported rules unsupported.",
         "",
         "Rules that MENTION the module but keep their own verdict, because content survives: the SELECT WHEN family",
-        "(GR-13.18.51.4-1/-2/-5, DOC-A.1-173) also covers READ statements and belongs to A.4.8; GR-13.18.13.4-4 also",
-        "drives ordinary CODE-SET conversion; SR-13.4.5.3-3's other two sub-items still bind; the two general-format",
+        "(GR-13.18.51.4-1/-2/-5, DOC-A.1-173) also covers READ statements and belongs to A.4.8, as does",
+        "GR-13.18.13.4-4 (format-select-when-only's selection arm, which records the joint decline); SR-13.4.5.3-3's other two sub-items still bind; the two general-format",
         "figures still carry the record-name-1 alternative; and every 'file-name-1 or the file-name associated with",
         "record-name-1' rule is both arms at once. No EC- or §9.1.13 status rule is solely FILE-phrase conditioned.",
         "",
@@ -823,6 +879,137 @@
         "a sending item is processed in a VALIDATE statement"
       ]
     },
+    "mcs-only": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 4 'Asynchronous messaging (MCS) facility | Not claimed' + §4 item 1. Licence: §4.2.6 — a processor-dependent element whose support is not claimed 'need not be implemented', with the §4.2.6 compile-time warning COBOLNET1578 at every SEND/RECEIVE and the refusals COBOLNET1943 (USAGE MESSAGE-TAG) and COBOLNET2205 (SET format 17).",
+      "$selector": [
+        "A rule is SOLELY conditioned on the MCS facility when it lives in the facility's own statements — §14.9.31",
+        "RECEIVE and §14.9.38 SEND, general formats included, because §4.2.6 ¶3 releases their syntax ('it is not",
+        "required to diagnose syntax errors within this unsupported syntax') and the grammar recognizes both only to",
+        "warn — or when its content is the MESSAGE-TAG class or the message server protocol stated from elsewhere:",
+        "the null message-tag content (GR-8.4.3.10.4-4), a message-tag comparison (GR-8.8.4.2.1-9), the USAGE",
+        "MESSAGE-TAG clause, the implicit SEND at run-unit termination for an active message (GR-14.6.11-7), and",
+        "Annex A.1 item 212 (USAGE MESSAGE-TAG size and contents — withdrawn by A.1's preamble exactly as R42",
+        "withdrew the declined A.4 modules' items).",
+        "",
+        "⛔ THE EXCLUSION IS THE CLASS LIST. Most rules that say 'message-tag' say it inside an enumeration — 'of",
+        "class index, message-tag, object, or pointer' — and every such rule constrains the OTHER classes too, which",
+        "are live. The exclusion drops message-tag written next to another class name, in either order; measured,",
+        "it is what holds out SR-8.8.4.2.3-5 (object/pointer halves verified, so R43 item 2 gives it CONFORMS) and",
+        "GR-13.18.63.4-4 (VALUE initialization, CONFORMS). SR-13.18.60.3-21 ('If MESSAGE-TAG is specified, no other",
+        "usage clauses shall be specified') stays out because no arm names a bare MESSAGE-TAG phrase: it is",
+        "enforced independently of the decline and carries CONFORMS on its own negative golden.",
+        "",
+        "MEASURED 2026-09-24: 28 selected — 22 by the statement clauses, 6 by text (2 already DOCUMENTED-NON-SUPPORT:",
+        "GR-13.18.60.4-9, SR-14.9.39.3-35). Every other selected row was blank."
+      ],
+      "arms": [
+        {
+          "$arm": "clause — the facility's own two statements, general formats included (§4.2.6 ¶3)",
+          "sections": [
+            "14.9.31",
+            "14.9.38"
+          ]
+        },
+        {
+          "$arm": "text — the MESSAGE-TAG class and the message-server protocol stated inside a shared clause; never a general format",
+          "pattern": "\\b(?:class|category) message-tag\\b|\\bmessage-tag data items?\\b|\\bassociated with a message-tag\\b|\\bUSAGE MESSAGE-TAG\\b|\\bMESSAGE-TAG clause\\b|\\bEC-MCS\\b|\\bactive messages?\\b|\\bmessage servers?\\b",
+          "excludes-kinds": [
+            "FMT"
+          ]
+        }
+      ],
+      "excludes-patterns": [
+        "\\bmessage-tag,\\s*(?:or\\s+|and\\s+)?(?:class\\s+)?(?:object|pointer|index|boolean|numeric|national|alphanumeric|alphabetic)\\b|\\b(?:object|pointer|index|boolean|numeric|national|alphanumeric|alphabetic|data-pointer|function-pointer|program-pointer),\\s*(?:or\\s+|and\\s+)?(?:class\\s+)?message-tag\\b|\\b(?:or|and)\\s+(?:class\\s+)?message-tag\\b"
+      ]
+    },
+    "float-formats-not-provided": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 rows 13 (FLOAT-DECIMAL clause, Not claimed), 17 (FLOAT-BINARY-128 — binary128 not provided), 19 (FLOAT-DECIMAL-16/-34, Not claimed) and 20-21 (the encoding phrase, N/A with item 19). Licence: §4.2.6. The usages are refused by name (COBOLNET1564, PictureAnalyzer.ParseUsage) and the OPTIONS FLOAT-DECIMAL clause draws the §4.2.6 warning COBOLNET2424 (OptionsBinder.DeclineFloatDecimal).",
+      "$selector": [
+        "A rule is SOLELY conditioned on the unprovided floating-point formats when its content is FLOAT-BINARY-128",
+        "or the standard DECIMAL floating-point usages (FLOAT-DECIMAL-16/-34), their encoding phrase, or the OPTIONS",
+        "paragraph's FLOAT-DECIMAL clause (§11.9.9) that sets defaults for those usages alone. .NET has no",
+        "ISO/IEC 60559 binary128, decimal64 or decimal128 type, and the formats are PINNED by the rules (§13.18.60.4",
+        "GR16-18), so an approximation would be a wrong answer rather than a partial one.",
+        "",
+        "⛔ THE HALF-DECLINED RULES STAY OUT, AND THE EXCLUSIONS ARE WHAT HOLD THEM. R43 item 2 gives a rule whose",
+        "other half is live the LIVE half's verdict: GR-8.5.2.12-2 (twelve usages are numeric — nine are provided),",
+        "GR-13.18.60.4-19 (the endianness phrases for EVERY standard floating-point usage — FLOAT-BINARY-32/-64 are",
+        "provided) and DOC-A.1-48 (the endianness default, FLOAT-BINARY half documented). They name a provided",
+        "binary float or the whole 'standard floating-point usages' class, which is what the first two exclusions",
+        "read. AR-15.43.3-3 / AR-15.58.3-3 are standard-binary-only's (the third exclusion keeps one row, one",
+        "determination). FMT-11.9.9.2, the clause's own general format, is excluded by KIND: kb/Work PB1508 holds it",
+        "open as a grammar finding, and a derived selector does not overwrite an adjudicated verdict.",
+        "",
+        "MEASURED 2026-09-24: 11 selected (6 by the §11.9.9 clause, 5 by text), none carrying a conflicting verdict",
+        "— GR-13.18.60.4-16/-17/-18/-20 move from NOT-IMPLEMENTED, which R43 retires for a declined element."
+      ],
+      "arms": [
+        {
+          "$arm": "clause — the OPTIONS FLOAT-DECIMAL clause (A.3 item 13); its general format is PB1508's",
+          "sections": [
+            "11.9.9"
+          ],
+          "excludes-kinds": [
+            "FMT"
+          ]
+        },
+        {
+          "$arm": "text — the unprovided usages and their encoding phrase (A.3 items 17, 19, 20), plus A.1 item 47",
+          "pattern": "\\bFLOAT-BINARY-128\\b|\\bFLOAT-DECIMAL-(?:16|34)\\b|\\bstandard decimal floating-point\\b|\\b(?:BINARY|DECIMAL)-ENCODING\\b",
+          "excludes-kinds": [
+            "FMT"
+          ]
+        }
+      ],
+      "excludes-patterns": [
+        "\\bfloat-binary-(?:32|64)\\b",
+        "\\bstandard floating-point usages?\\b",
+        "standard[-\\s]binary\\s+arithmetic"
+      ]
+    },
+    "record-key-source-only": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
+      "$selector": [
+        "A rule is SOLELY conditioned on the record-key SOURCE form when its subject is record-key-name-1 inside the",
+        "two clauses that define it (§12.4.5.6 ALTERNATE RECORD KEY, §12.4.5.12 RECORD KEY) — record-key-name-1 is",
+        "its own name class (§8.3.2.2.24) and exists only in that form — or when it requires the SOURCE phrase from",
+        "a consuming statement (START SR7).",
+        "",
+        "⛔ A RULE NAMING BOTH KEY FORMS STAYS OUT (each arm's own exclusion): 'data-name-1 or record-key-name-1'",
+        "constrains the plain key too, which is live — GR-12.4.5.6.4-6 (key suppression, DIVERGES on its own",
+        "finding), SR-14.9.41.3-6 (START's key operand, CONFORMS). The two general formats are excluded by KIND:",
+        "each prints both key forms, and R43 item 2 gives FMT-12.4.5.12.2 its data-name-1 arm's verdict.",
+        "",
+        "MEASURED 2026-09-24: 5 selected — the two class/category rules, the two concatenation rules and START SR7",
+        "(already DOCUMENTED-NON-SUPPORT)."
+      ],
+      "arms": [
+        {
+          "$arm": "operand — record-key-name-1 inside the two clauses that define it",
+          "sections": [
+            "12.4.5.6",
+            "12.4.5.12"
+          ],
+          "pattern": "\\brecord-key-name-1\\b",
+          "excludes-pattern": "\\bdata-name-1\\b",
+          "excludes-kinds": [
+            "FMT"
+          ]
+        },
+        {
+          "$arm": "text — a consuming statement that requires the SOURCE form",
+          "pattern": "\\bSOURCE phrase (?:in|of) the (?:ALTERNATE )?RECORD KEY\\b",
+          "excludes-pattern": "\\bdata-name-1\\b",
+          "excludes-kinds": [
+            "FMT"
+          ]
+        }
+      ],
+      "excludes-patterns": []
+    },
     "a1-optional-not-provided": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
       "decision": "kb/Work PB280 Q1 — OWNER DECISION 2026-09-02. An Annex A.1 item the standard marks OPTIONAL, whose docs/CONFORMANCE.md §7 determination records the element as 'Not provided.', closes as DOCUMENTED-NON-SUPPORT. Licence: A.1's own preamble, which conditions the documentation duty on provision — 'Optional: The element may be provided at the implementor's option.' and 'Documentation required: If the element is provided by the implementor, the implementor's user documentation shall document the element or shall reference other documentation that fulfills this requirement.' (both cite.py --check A.1 → OK) — plus §4.2.7 ('An implementor shall identify in user documentation the optional language elements for which that implementor claims support', cite.py --check OK), which this verdict's own `meaning` already names as its second ground. ⛔ The §7 row STAYS and is the row's evidence: unlike an item an A.4 module WITHDREW, a not-provided optional element has a determination — the record of the non-provision — so the row carries its computed anchor and its witness is held to §7's `Pinned by` like any other.",
@@ -888,6 +1075,45 @@
           ],
           "determination-prefix": [
             "Not provided"
+          ]
+        }
+      ],
+      "excludes-patterns": []
+    },
+    "a1-condition-absent": {
+      "verdict": "DOCUMENTED-NON-SUPPORT",
+      "decision": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence.",
+      "$selector": [
+        "The twin of `a1-optional-not-provided`, over the other requirement class A.1's preamble conditions: an AND-gate",
+        "over two authorities, each a fact somebody else wrote down —",
+        "  • the STANDARD classifies the item as conditionally required — `requirement` = 'conditionally required',",
+        "    parsed by extract_rule_catalog.py out of the item's own words ('This item is conditionally required' /",
+        "    'This item is conditional'); and",
+        "  • THIS IMPLEMENTOR has determined the condition is absent — the §7 cell opens with 'Condition absent',",
+        "    the register's fixed opening for exactly that answer.",
+        "⛔ WHY IT IS A SEPARATE SELECTOR AND NOT A SECOND ARM OF THE OPTIONAL ONE: the two rest on different owner",
+        "decisions (PB280 Q1 vs R43 item 3) and the `decision` a row's notes cite must be the one that licenses IT.",
+        "⛔ WHY THE REQUIREMENT CLASS IS LOAD-BEARING: a REQUIRED item whose cell said 'Condition absent' would be a",
+        "conformance defect written as prose (the standard owes it unconditionally), and a conditionally-required",
+        "item whose condition HOLDS (items 65, 120, 141: a .NET host activator exists) carries a positive",
+        "determination instead. Both stay out; the engine's self-test drives each axis against fabricated data.",
+        "MEASURED 2026-09-24 (kb/Work PB1536): 12 selected of 222 A.1 items — DOC-A.1-13, -15, -30, -34, -37, -88,",
+        "-96, -98, -142, -149, -152, -200. All twelve were BLANK (their adjudication was held for this question), so",
+        "the selector overwrote no adjudicated row. The other conditionally-required items without a determination",
+        "(36, 38, 46, 116, 167) are owned by open notes that dispute whether their condition is absent (PB547,",
+        "PB1253, PB1149) and are not selected until §7 says so."
+      ],
+      "arms": [
+        {
+          "$arm": "the standard says CONDITIONALLY REQUIRED and this register says the CONDITION IS ABSENT",
+          "kinds": [
+            "DOC"
+          ],
+          "requirement": [
+            "conditionally required"
+          ],
+          "determination-prefix": [
+            "Condition absent"
           ]
         }
       ],
@@ -1134,6 +1360,11 @@
         "names-pattern": "^([A-Za-z]+-[A-Za-z0-9.]+-[A-Za-z0-9.]+)$",
         "check": "rule-exists",
         "meaning": "The rule's consequent is byte-identical to another rule's for every argument the two admit, so no conforming program can distinguish them. A REVIEWED ARGUMENT: the Names cell must be a rule-id that EXISTS in the catalog and is not this row's own."
+      },
+      "definitional": {
+        "names-pattern": "^defines .{20,}$",
+        "check": "stated",
+        "meaning": "kb/Work R43 item 4 (owner, 2026-09-24, extending PB386; answers PB468 Q9): the rule DEFINES a property of the USER's program (a conforming run unit, §4.4) and imposes no obligation on the implementation, so no program can observe it apart from the rules that DO oblige the implementation. A REVIEWED ARGUMENT: the Names cell must open 'defines' and state the property and whose it is; a rule whose subject is the implementation or the implementor is never this arm."
       }
     }
   }
