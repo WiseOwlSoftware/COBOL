@@ -17,18 +17,21 @@
       *>            root/Spanish order would put "öre" before "zebra" (o + umlaut).
       *>   BACK   — SET LOCALE LC_COLLATE TO USER-DEFAULT restores the root order (14.9.39.4 GR23b).
       *> Non-ASCII appears only inside literals (UTF-8 source); every DISPLAY is ASCII.
+      *> CLAUSE ORDER: the 12.3.7.2 format prints alphabet-name-clause BEFORE the LOCALE clause, and 5.2.1
+      *> requires that sequence, so SWE's locale-name-2 is a FORWARD reference. This program used to write the
+      *> LOCALE clauses first — non-conforming source, and the only order the compiler accepted (kb/Work PB1558).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB64T1DECL.
        ENVIRONMENT DIVISION.
        CONFIGURATION SECTION.
        OBJECT-COMPUTER. X PROGRAM COLLATING SEQUENCE IS CUR.
        SPECIAL-NAMES.
+           ALPHABET CUR IS LOCALE
+           ALPHABET SWE IS LOCALE SV
            LOCALE ES1 IS "es_ES.UTF-8"
            LOCALE ES2 IS es_ES
            LOCALE ES3 IS "es-ES"
-           LOCALE SV IS sv_SE
-           ALPHABET CUR IS LOCALE
-           ALPHABET SWE IS LOCALE SV.
+           LOCALE SV IS sv_SE.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT SORT-FILE ASSIGN TO "PB64T1DECL.SRT".

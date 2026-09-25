@@ -68,6 +68,41 @@ public sealed class CodedCharacterSetTests
         Assert.Equal("B", natSet.CharAt(3 + 66 - 1));        // code 66: 65 specified codes below it... position = 2 + (66 - 1)
     }
 
+    /// <summary>kb/Work PB1557 — an alphabet that specifies EVERY native character (legal: §12.3.7.3 SR14 b4/c4
+    /// bound the count by the native set's size with "shall not exceed") has 65,536 positions, one more than a
+    /// 16-bit counter holds. The builders counted it in one and handed <see cref="CollatingTable.Build"/> a
+    /// NextFree of 0, so the table claimed no specified block and every ordinal of its set "did not exist". The
+    /// count is an <c>int</c> now, and Build REFUSES a count that disagrees with the positions it is given, so a
+    /// builder that miscounts fails in the compiler, never in a user's program.</summary>
+    [Fact]
+    public void Build_FullRepertoire_HasEveryOrdinal_AndRefusesAMiscount()
+    {
+        // ALPHABET … IS 65536 THRU 1: native code unit c (ordinal c+1) at position 65535 − c.
+        var pos = new Dictionary<char, int>(CollatingTable.Repertoire);
+        var order = new List<char>(CollatingTable.Repertoire);
+        for (int c = CollatingTable.Repertoire - 1; c >= 0; c--)
+        {
+            pos[(char)c] = CollatingTable.Repertoire - 1 - c;
+            order.Add((char)c);
+        }
+        var table = CollatingTable.Build(pos, order, order, CollatingTable.Repertoire, national: true);
+        Assert.Equal(CollatingTable.Repertoire, table.NextFree);
+
+        var set = new CodedCharacterSet("literal-phrase", National: true, table);
+        Assert.Equal(((char)0xFFFF).ToString(), set.CharAt(1));                   // position 0
+        Assert.Equal(((char)0xFFBE).ToString(), set.CharAt(66));                  // native ordinal 65537 − 66
+        Assert.Equal("\0", set.CharAt(CollatingTable.Repertoire));                // position 65535
+        Assert.Null(set.CharAt(CollatingTable.Repertoire + 1));
+
+        // The runtime carrier reads the same count: CHAR(66) → U+FFBE and ORD of it → 66 (§15.15.4 r1 / §15.70.1).
+        var runtime = table.Collation(national: true);
+        Assert.Equal(0xFFBE, runtime.CharAt(65));
+        Assert.Equal(65, runtime.Weight((char)0xFFBE));
+
+        // The wrapped count the 16-bit builder used to pass is refused, not tabulated.
+        Assert.Throws<ArgumentOutOfRangeException>(() => CollatingTable.Build(pos, order, order, 0, national: true));
+    }
+
     /// <summary>The runtime membership kinds (§8.8.4.4.4 GR3 a — kb/Work PB109): Ascii = the 128 ISO 646 characters;
     /// ScalarValues = well-formed UTF-16 (an unpaired surrogate is not a character of UCS-4/UTF-8); AllNative is total;
     /// a zero-length operand is FALSE (GR1).</summary>

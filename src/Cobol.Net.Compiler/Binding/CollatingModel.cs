@@ -65,12 +65,31 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// <param name="nextFree">The first position after the specified block.</param>
     /// <param name="national">Which native repertoire the unspecified tail sits in — it decides only where
     /// <see cref="Extremes"/> starts looking for GR8's character.</param>
-    public static CollatingTable Build(Dictionary<char, ushort> pos, List<char> specOrder, List<char> repByPos,
-        ushort nextFree, bool national)
+    /// <remarks>⛔ POSITIONS AND COUNTS ARE <see cref="int"/> HERE, AND ONLY THE STORED ARRAYS ARE 16-BIT (kb/Work
+    /// PB1557). A position is 0 … <see cref="Repertoire"/> − 1, which a <see cref="ushort"/> holds; the COUNT of
+    /// positions is 0 … <see cref="Repertoire"/>, which it does not. An alphabet that specifies every native
+    /// character — legal, since §12.3.7.3 SR14 b4/c4 bound the count by the native set's size, "<i>shall not
+    /// exceed</i>" — has <paramref name="nextFree"/> = 65,536, and the builders used to count it in a
+    /// <see cref="ushort"/> that wrapped to 0: the table then claimed no specified block at all, so CHAR/ORD read
+    /// the wrong characters and every ordinal of its coded character set "did not exist". The invariants are
+    /// asserted, not assumed, so a builder that miscounts fails HERE rather than in a user's program.</remarks>
+    public static CollatingTable Build(Dictionary<char, int> pos, List<char> specOrder, List<char> repByPos,
+        int nextFree, bool national)
     {
+        if (nextFree is < 0 or > Repertoire || repByPos.Count != nextFree)
+            throw new ArgumentOutOfRangeException(nameof(nextFree), nextFree,
+                $"a collating table has 0 … {Repertoire} specified positions, one representative per position "
+                + $"({repByPos.Count} representatives given)");
         char[] codes = [.. pos.Keys.Order()];
         var positions = new ushort[codes.Length];
-        for (int i = 0; i < codes.Length; i++) positions[i] = pos[codes[i]];
+        for (int i = 0; i < codes.Length; i++)
+        {
+            int p = pos[codes[i]];
+            if (p < 0 || p >= nextFree)
+                throw new ArgumentOutOfRangeException(nameof(pos), p,
+                    $"U+{(int)codes[i]:X4} is at position {p}, outside the specified block 0 … {nextFree - 1}");
+            positions[i] = (ushort)p;
+        }
         var (high, low) = Extremes(pos, specOrder, positions, national);
         return new CollatingTable([.. codes.Select(c => (ushort)c)], positions,
             [.. repByPos.Select(c => (ushort)c)], nextFree, high, low);
@@ -113,7 +132,7 @@ public sealed record CollatingTable(ushort[] Codes, ushort[] Positions, ushort[]
     /// GR8's own tie rule over the specified positions, giving the native character the code page puts at its
     /// HIGHEST code unit. That is the answer an EBCDIC programmer expects (HIGH-VALUE is X'FF' on the
     /// medium).</para></summary>
-    private static (char High, char Low) Extremes(Dictionary<char, ushort> pos, List<char> specOrder,
+    private static (char High, char Low) Extremes(Dictionary<char, int> pos, List<char> specOrder,
         ushort[] positions, bool national)
     {
         char low = specOrder[0];

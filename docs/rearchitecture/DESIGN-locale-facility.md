@@ -501,6 +501,12 @@ silently dropped — it is the standing justification for the fast path.
   second boolean, `HasCodedCharacterSet`, and the two SR checks read it. One flag pair, two SRs, no new
   mechanism.
 - §12.3.7.3 SR24 (`--check` OK): "*Locale-name-2 shall be a locale-name defined by the LOCALE clause*".
+  ⛔ **locale-name-2 is a FORWARD reference in every conforming program**: the §12.3.7.2 format prints
+  alphabet-name-clause BEFORE the LOCALE clause, and §5.2.1 (`--check` OK) requires "*the sequence given in the
+  general format*". So the SPECIAL-NAMES binder resolves it in DEPENDENCY order, not source order: the walk binds
+  every clause that references no paragraph name (LOCALE among them), then every ALPHABET clause, then CLASS /
+  SYMBOLIC CHARACTERS and the OBJECT-COMPUTER clauses (`DataBinder.SwitchBindSpecialNames`; kb/Work PB1558 —
+  it used to bind ALPHABET in source order and refuse the format order with COBOLNET1664).
 - §12.3.7.4 GR7e (`--check` OK): "*When the LOCALE phrase is specified, the collating sequence identified is
   defined by the locale referenced by locale-name-2 when specified, otherwise by the locale that is current at
   the time the collating sequence is used at runtime*" — i.e. the alphabet holds a `LocaleRef`, and a

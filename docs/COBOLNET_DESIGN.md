@@ -2062,7 +2062,9 @@ identical stdout). The remaining items below stand as the mechanical defaults (o
     integer literal is the ordinal IN THAT SET (GR12 a; SR17 b2's range is that set's), a non-numeric literal the
     character itself (GR12 b), THROUGH the native-contiguous range between the two resolved characters; both CLASS
     and SYMBOLIC CHARACTERS bind AFTER the SPECIAL-NAMES walk (the clauses are order-free; the ALPHABET they name may
-    follow them — the `ResolveProgramCollating` shape). (c) The class condition `identifier IS alphabet-name-1`
+    follow them — the `ResolveProgramCollating` shape). The walk is DEPENDENCY-ordered throughout: ALPHABET itself
+    binds after the paragraph's other clauses, because its `IS LOCALE locale-name-2` names a LOCALE clause the
+    §12.3.7.2 format prints AFTER it (kb/Work PB1558). (c) The class condition `identifier IS alphabet-name-1`
     (§8.8.4.4.4 GR3 a — kb/Work PB109): `BoundCodedSetClassCondition` → `CobolClass.IsInCodedSet(s, kind)` — STANDARD-1/2
     ⇒ every code unit ≤ U+007F; NATIVE / a literal phrase ⇒ every native character (TRUE for any content — GR7 k4 puts
     the whole native set in the code set); the national sets ⇒ well-formed UTF-16 (an unpaired surrogate is not a

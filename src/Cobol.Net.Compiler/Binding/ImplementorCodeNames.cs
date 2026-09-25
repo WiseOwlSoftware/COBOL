@@ -158,7 +158,7 @@ public static class ImplementorCodeNames
     {
         var page = Encoding.GetEncoding(codePage);
         char[] toNative = page.GetChars([.. Enumerable.Range(0, 256).Select(b => (byte)b)]);
-        var pos = new Dictionary<char, ushort>(256);
+        var pos = new Dictionary<char, int>(256);
         var order = new List<char>(256);
         var repByPos = new List<char>(256);
         for (int unit = 0; unit < toNative.Length; unit++)
@@ -166,7 +166,7 @@ public static class ImplementorCodeNames
             // A registered single-byte page is a bijection, so no code unit can collide; the guard states the
             // requirement rather than trusting it (a page that is not one cannot define a collating sequence,
             // because two native characters would share a position without an ALSO phrase saying so).
-            if (!pos.TryAdd(toNative[unit], (ushort)unit))
+            if (!pos.TryAdd(toNative[unit], unit))
                 throw new InvalidOperationException(
                     $"code page {codePage} maps two code units to U+{(int)toNative[unit]:X4}: it cannot define "
                     + "a collating sequence (ISO §12.3.7.4 GR7 i)");
@@ -174,6 +174,6 @@ public static class ImplementorCodeNames
             repByPos.Add(toNative[unit]);
         }
         return new ImplementorCodeName(name, National: false, toNative.Length,
-            CollatingTable.Build(pos, order, repByPos, (ushort)toNative.Length, national: false), toNative);
+            CollatingTable.Build(pos, order, repByPos, toNative.Length, national: false), toNative);
     }
 }

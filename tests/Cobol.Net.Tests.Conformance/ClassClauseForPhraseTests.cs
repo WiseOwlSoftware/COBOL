@@ -39,6 +39,19 @@ public sealed class ClassClauseForPhraseTests
         EditionHarness.AssertHasDiagnostic(errors, expected);
     }
 
+    /// <summary>§12.3.7.3 SR17 d) — "<i>Alphabet-name-4 shall not reference an alphabet specified with the LOCALE
+    /// phrase.</i>" Both classes (the national arm is the one row SR-12.3.7.3-L7.5 lumps with c5): a LOCALE alphabet
+    /// defines a collating sequence and no coded character set (§12.3.7.4 GR7 Table 6), so the ONE coded-set resolver
+    /// refuses it by SR17 d's name.</summary>
+    [Theory]
+    [InlineData("PB1557D", "ALPHABET LA IS LOCALE\n    CLASS CL IS 1 THRU 3 IN LA.", "COBOLNET1669: CLASS CL … IN LA: the alphabet 'LA' is associated with a locale")]
+    [InlineData("PB1557DN", "ALPHABET LN FOR NATIONAL IS LOCALE\n    CLASS CN FOR NATIONAL IS 1 THRU 3 IN LN.", "COBOLNET1669: CLASS CN … IN LN: the alphabet 'LN' is associated with a locale")]
+    public void InLocaleAlphabet_IsSR17d(string pid, string clauses, string expected)
+    {
+        Rejects(pid, clauses, expected);
+        Rejects(pid + "R", clauses, "ISO §12.3.7.3 SR17 d");
+    }
+
     /// <summary>§12.3.7.3 SR17 b) 1. / c) 1. — "When the IN phrase is specified, alphabet-name-4 shall reference an
     /// alphabet that defines an alphanumeric / a national character set". SR17 a) implies ALPHANUMERIC when no FOR
     /// phrase is written, so the unmarked class takes the b arm.</summary>
@@ -56,6 +69,10 @@ public sealed class ClassClauseForPhraseTests
     [InlineData("PB976C2S", "CLASS C9 FOR NATIONAL IS +65.", "(ISO §12.3.7.3 SR17 c2)")]
     [InlineData("PB976B2R", "CLASS C9 IS 1 THRU 129 IN S1.", "the ordinal 129 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §12.3.7.3 SR17 b2")]
     [InlineData("PB976C2R", "CLASS C9 FOR NATIONAL IS 65537.", "(ISO §12.3.7.3 SR17 c2)")]
+    // kb/Work PB1557's sibling: an integer too long for an `int` is still an INTEGER, held to the ordinal rule — it
+    // used to fail int.TryParse and be reported under SR17 b3, the NONINTEGER literal's class rule.
+    [InlineData("PB1557B2L", "CLASS C9 IS 12345678901.", "COBOLNET1671: CLASS C9: the ordinal 12345678901 does not exist in the native alphanumeric character set")]
+    [InlineData("PB1557B2I", "CLASS C9 IS 1 THRU 99999999999999999999 IN S1.", "the ordinal 99999999999999999999 does not exist in the character set referenced by the IN alphabet (STANDARD-1, 128 characters) — ISO §12.3.7.3 SR17 b2")]
     public void Ordinal_IsSR17_2(string pid, string clause, string expected) => Rejects(pid, clause, expected);
 
     /// <summary>§12.3.7.3 SR17 b) 3. / c) 3. — "Each noninteger literal shall be an alphanumeric / a national

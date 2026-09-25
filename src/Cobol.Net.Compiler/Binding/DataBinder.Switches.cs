@@ -754,6 +754,20 @@ public sealed partial class DataBinder
                 .Select(e => e.symbolicCharactersClause()).OfType<Core.SymbolicCharactersClauseContext>()
                 .SelectMany(sc => sc.symbolicCharacterEntry()).SelectMany(e => e.cobolWord())
                 .Select(w => w.GetText()).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            // ⛔ DEPENDENCY ORDER, NEVER SOURCE ORDER (kb/Work PB1558). A clause that REFERENCES a name another clause
+            // of this paragraph DECLARES binds after every declaring clause, whatever the source order:
+            //   1. the walk below — the clauses that reference no paragraph name (LOCALE declares locale-names,
+            //      ORDER TABLE ordering-names, the dynamic-length-structure clause its names, …);
+            //   2. ALPHABET — references locale-names (§12.3.7.3 SR24 "Locale-name-2 shall be a locale-name defined
+            //      by the LOCALE clause") and, syntactically, symbolic-character names (SR11 — read above);
+            //   3. after the whole configuration section, CLASS / SYMBOLIC CHARACTERS (their IN alphabet-name) and
+            //      the OBJECT-COMPUTER clauses (PROGRAM COLLATING SEQUENCE's alphabets, CHARACTER CLASSIFICATION's
+            //      locale-names).
+            // The general format itself PRINTS alphabet-name-clause BEFORE the LOCALE clause (§12.3.7.2; §5.2.1
+            // "shall be written in the compilation group in the sequence given in the general format"), so an
+            // ALPHABET … IS LOCALE locale-name-2 is a FORWARD reference in every conforming program — and binding
+            // ALPHABET in source order refused every one of them with COBOLNET1664 "no LOCALE clause is in scope".
+            var alphabetClauses = new List<Core.AlphabetClauseContext>();
             foreach (var entry in sn.specialNameEntry())
             {
                 using var _ = Edition.At(entry);
@@ -763,7 +777,7 @@ public sealed partial class DataBinder
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
                 if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls, ownDls); continue; }
-                if (entry.alphabetClause() is { } alpha) { AlphabetBind(alpha); continue; }
+                if (entry.alphabetClause() is { } alpha) { alphabetClauses.Add(alpha); continue; }
                 // CLASS and SYMBOLIC CHARACTERS bind AFTER the walk (kb/Work PB110): their IN alphabet-name may be
                 // declared by a LATER ALPHABET clause of the same paragraph (the clauses are order-free — the
                 // ResolveProgramCollating shape).
@@ -779,6 +793,11 @@ public sealed partial class DataBinder
                 if (entry.cursorClause() is { } curs) { ScreenFacility.ReportCursorClause(Edition, curs); continue; }
                 if (entry.crtStatusClause() is { } crt) { ScreenFacility.ReportCrtStatusClause(Edition, crt); continue; }
                 if (entry.implementorSwitchEntry() is { } sw) BindImplementorNameEntry(sw);
+            }
+            foreach (var alpha in alphabetClauses)                        // phase 2 — every locale-name is declared
+            {
+                using var _ = Edition.At(alpha);
+                AlphabetBind(alpha);
             }
         }
         // The PCS resolves AFTER the walk (OBJECT-COMPUTER precedes SPECIAL-NAMES in source, §12.3.6 GR9); only
@@ -1155,8 +1174,8 @@ public sealed partial class DataBinder
             // (§12.3.7.4 GR7e; §12.3.6.4 GR11/GR12): the runtime LocaleCollation over the derived CLDR/UCA engine (kb/Work
             // PB101 — the T3 arm; determination L5 makes one locale sequence serve both classes). Table 6 row LOCALE: a
             // collating sequence, NOT a coded character set — CODE-SET / SYMBOLIC … IN / CLASS … IN may not name it
-            // (§12.3.7.3 SR16g/SR17d); those three alphabet references are inert in this compiler today (no binder
-            // resolves them), so there is no name check to extend yet — recorded here so the check lands with them.
+            // (§12.3.7.3 SR16g/SR17d); the ONE coded-set resolver (CodedCharacterSetOf) refuses it for all three with
+            // COBOLNET1669, because AlphabetDef.CodedSet is null for this arm.
             // `IS LOCALE locale-name-2` (§12.3.7.3 SR24: "locale-name-2 shall be a locale-name defined by the LOCALE clause")
             // — the NAMED form (T1): the sequence of THAT locale, whose external identification the symbol carries and
             // whose availability is decided at use (EC-LOCALE-MISSING). An undeclared name is COBOLNET1664 and the
@@ -1292,10 +1311,13 @@ public sealed partial class DataBinder
     {
         var rules = LiteralPhraseRules.Alphabet(name, national);
         string what = rules.What;
-        var pos = new Dictionary<char, ushort>();
+        var pos = new Dictionary<char, int>();
         var specOrder = new List<char>();       // every specified character in source order (the GR8/GR9 tie rules)
         var repByPos = new List<char>();        // per position: the FIRST character DEFINED there (§15.15.4 r2 / GR7 k6)
-        ushort next = 0;
+        // ⛔ An int, never a ushort (kb/Work PB1557): the position COUNT reaches 65,536 when the phrase specifies
+        // every native character (SR14 b4/c4's bound is "shall not exceed", so equal is legal), one past what a
+        // 16-bit counter holds — it wrapped to 0 and the whole table lost its specified block.
+        int next = 0;
         void Assign(char c, bool advance)
         {
             if (pos.ContainsKey(c))
@@ -1392,10 +1414,9 @@ public sealed partial class DataBinder
     /// -pair recognition, so the supplementary-plane codepoint/code-unit divergence is unreachable; the
     /// correspondence is the BMP identity, implementor item 188); UTF-8/UTF-16 — coded character sets ONLY
     /// (GR7 g/h + Table 6: no collating sequence); a literal phrase — the sparse national collating table
-    /// (GR7 k over the native national set). STANDARD-1/STANDARD-2 and LOCALE are not in the national branch's
-    /// format (STANDARD-1/2 are alphanumeric-branch-only; the LOCALE phrase has no compiler surface — the locale
-    /// subsystem is unimplemented and the word fails loud at parse). Unknown words are code-name-2 — the
-    /// implementor supports none (§12.3.7.3 SR15).</summary>
+    /// (GR7 k over the native national set). STANDARD-1/STANDARD-2 are not in the national branch's format
+    /// (alphanumeric-branch-only); the LOCALE phrase is, and <see cref="AlphabetBind"/> binds it for both branches
+    /// before reaching here. Unknown words are code-name-2 — the implementor supports none (§12.3.7.3 SR15).</summary>
     private void AlphabetBindNational(string name, Core.AlphabetDefinitionContext def)
     {
         if (def.NATIVE() is not null)
@@ -1530,28 +1551,32 @@ public sealed partial class DataBinder
                         + "(ISO §12.3.7.3 SR11)");
                     return null;
                 }
-                if (int.TryParse(text, out int ordinal))
+                if (lit.numericLiteral() is { } numeric && IntegerLiteralDigits(numeric) is ({ } digits, var signed))
                 {
                     // The ordinal rule, BOTH halves of one sentence: "shall be an UNSIGNED INTEGER **and** shall
-                    // have a value within the range …". ⛔ int.TryParse accepts a leading sign, so the unsigned half
-                    // has to be asked separately — otherwise `+5` reads as ordinal 5 and only a NEGATIVE value is
-                    // caught, by the range half, which is a different rule answering for this one.
-                    if (text[0] is '+' or '-')
+                    // have a value within the range …". ⛔ WHICH RULE is decided by the literal's FORM — an integer
+                    // literal is held to the ordinal rule whatever its value — never by whether its text fits an
+                    // `int` (kb/Work PB1557's sibling): `int.TryParse` failed on an 11-digit ordinal and sent it to
+                    // the CLASS rule below, which reported "each noninteger literal shall be an alphanumeric
+                    // literal" for a literal that is an integer. A NONINTEGER numeric literal (1.5) is not an
+                    // integer, so it is the class rule's noninteger literal and falls through to it (kb/Work PB770).
+                    if (signed)
                     {
                         Edition.Error(r.Code, $"{r.What}: {text} — each numeric literal shall be an UNSIGNED integer "
                             + $"(ISO §12.3.7.3 {r.Rule(r.OrdinalItem)})");
                         return null;
                     }
+                    int ordinal = OrdinalValue(digits);
                     if (r.InSet is { } inSet)
                     {
                         if (inSet.CharAt(ordinal) is { } ch) return ch;
-                        Edition.Error(r.Code, $"{r.What}: the ordinal {ordinal} does not exist in the character set "
+                        Edition.Error(r.Code, $"{r.What}: the ordinal {text} does not exist in the character set "
                             + $"referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters) — ISO "
                             + $"§12.3.7.3 {r.Rule(r.OrdinalItem)}");
                         return null;
                     }
                     if (ordinal is >= 1 and <= CollatingTable.Repertoire) return ((char)(ordinal - 1)).ToString();
-                    Edition.Error(r.Code, $"{r.What}: the ordinal {ordinal} does not exist in the native "
+                    Edition.Error(r.Code, $"{r.What}: the ordinal {text} does not exist in the native "
                         + $"{(r.National ? "national" : "alphanumeric")} character set ({CollatingTable.Repertoire} "
                         + "characters) — each numeric literal shall be an unsigned integer with a value from one "
                         + $"through the maximum number of characters in that set (ISO §12.3.7.3 {r.Rule(r.OrdinalItem)})");
@@ -1585,6 +1610,42 @@ public sealed partial class DataBinder
                 return null;
         }
         return null;
+    }
+
+    /// <summary>The digits and sign of a numeric literal that is an INTEGER — a fixed-point integer core with an
+    /// optional sign (§8.3.3.3.2) — or null for a noninteger one (decimal, floating-point). The SPECIAL-NAMES
+    /// ordinal rule (ISO §12.3.7.3 SR14 b1/c1, SR17 b2/c2) is asked of the PARSE, not of the text:
+    /// <c>int.TryParse</c> accepts a sign and FAILS on an integer too long for an <c>int</c>, so it answered
+    /// "is this an integer?" and "what is its value?" as one question and got the first wrong whenever the second
+    /// overflowed.</summary>
+    private static (string Digits, bool Signed)? IntegerLiteralDigits(Core.NumericLiteralContext numeric)
+    {
+        if (numeric.signedNumericLiteral() is not { } s || s.numericLiteralCore() is not { ChildCount: 1 } core)
+            return null;
+        bool separateSign = s.PLUS() is not null || s.MINUS() is not null;
+        if (core.INTEGERLIT() is [{ } unsigned]) return (unsigned.GetText(), separateSign);
+        // A sign-adjacent literal (a FUNCTION-argument lexer region) is one token whose first character is the sign.
+        if (core.SIGNED_INTEGERLIT() is { } adjacent) return (adjacent.GetText()[1..], true);
+        return null;
+    }
+
+    /// <summary>⛔ THE ONE reading of a SPECIAL-NAMES ORDINAL — an unsigned integer literal naming a 1-based
+    /// position in a character set (ISO §12.3.7.3 SR14 b1/c1 and SR17 b2/c2 for the ALPHABET and CLASS literal
+    /// phrases; SYMBOLIC CHARACTERS integer-1, SR16 e/f, is an integer-n and is read by the one integer-n reader
+    /// <c>IntegerOperandRules.HostValue</c>, which saturates the same way). The value SATURATES at <see cref="int.MaxValue"/>:
+    /// every character set here has far fewer ordinals than that (the largest, UCS-4, has 0x110000 − 0x800), so a
+    /// saturated value is out of range exactly when the literal is, and the caller's range check needs no second
+    /// path. The caller quotes the literal's own TEXT in its diagnostic, never the saturated number.
+    /// <para>⛔ kb/Work PB1557's sibling: both ordinal sites read the ordinal with <c>int.TryParse</c>, and a literal
+    /// too long for an <c>int</c> fell out of the ordinal rule — into the literal-class rule for a literal phrase,
+    /// and into a silent <c>continue</c> that bound nothing for SYMBOLIC CHARACTERS.</para></summary>
+    /// <param name="digits">The literal's digits — ASCII decimal digits only, as <c>INTEGERLIT</c> lexes them.</param>
+    private static int OrdinalValue(string digits)
+    {
+        var significant = digits.AsSpan().TrimStart('0');
+        return significant.Length == 0 ? 0
+            : significant.Length > 9 ? int.MaxValue          // ≥ 10^9 — out of range of every set, whatever it is
+            : int.Parse(significant, System.Globalization.CultureInfo.InvariantCulture);
     }
 
     /// <summary>A figurative constant that names no character (NULL, and ALL NULL) — never an operand of these
@@ -1810,14 +1871,21 @@ public sealed partial class DataBinder
             for (int i = 0; i < names.Length; i++)
             {
                 string symName = names[i].GetText();
+                // integer-1 is an INTEGERLIT — unsigned digits by the grammar (§5.5 1)) — so only its magnitude can
+                // be wrong. ⛔ It used to be read with `int.TryParse` and a failure `continue`d: an ordinal too long
+                // for an int bound NOTHING and drew NO diagnostic, and the name then surfaced as "not defined" at
+                // its first use (kb/Work PB1557's sibling). It is an integer-n, so it is read by THE ONE integer-n
+                // reader, which saturates at int.MaxValue exactly as OrdinalValue does for the literal phrases —
+                // a saturated value is out of range of every character set, so the SR16 check below reports it.
+                string ordText = ords[i].GetText();
                 int ordinal = CobolNet.Validation.IntegerOperandRules.HostValue(ords[i]);
                 string? value = inSet is not null ? inSet.CharAt(ordinal)
-                    : ordinal >= 1 && ordinal <= 65536 ? ((char)(ordinal - 1)).ToString() : null;
+                    : ordinal is >= 1 and <= CollatingTable.Repertoire ? ((char)(ordinal - 1)).ToString() : null;
                 if (value is null)
                 {
                     Edition.Error(DiagnosticCatalog.SymbolicCharactersViolation, $"SYMBOLIC CHARACTERS {symName} IS "
-                        + $"{ordinal}: the ordinal position does not exist in the "
-                        + $"{(inSet is not null ? $"character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters)" : "native character set (65 536 characters)")}"
+                        + $"{ordText}: the ordinal position does not exist in the "
+                        + $"{(inSet is not null ? $"character set referenced by the IN alphabet ({inSet.Phrase}, {inSet.OrdinalCount} characters)" : $"native character set ({CollatingTable.Repertoire} characters)")}"
                         + $" — ISO §12.3.7.3 SR16 {(national ? "f" : "e")}{(inSet is not null ? "1" : "2")}");
                     continue;
                 }

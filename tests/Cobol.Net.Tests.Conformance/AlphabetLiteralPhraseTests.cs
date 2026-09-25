@@ -49,6 +49,9 @@ public sealed class AlphabetLiteralPhraseTests
     [Theory]
     [InlineData("PB770C1A", "0", "the ordinal 0 does not exist in the native national character set")]
     [InlineData("PB770C1B", "65537", "the ordinal 65537 does not exist in the native national character set")]
+    // kb/Work PB1557's sibling: an ordinal too long for an `int` is still an integer under c1 — it used to fail
+    // int.TryParse and be reported under c2, the NONINTEGER literal's class rule.
+    [InlineData("PB1557C1L", "12345678901", "the ordinal 12345678901 does not exist in the native national character set")]
     public void NationalOrdinal_OutsideTheNativeSet_IsSR14c1(string pid, string ordinal, string expected)
     {
         Rejects(pid, $"ALPHABET NALF FOR NATIONAL IS {ordinal} THRU 5.", expected);
