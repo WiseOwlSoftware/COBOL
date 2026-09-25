@@ -496,30 +496,36 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     /// <list type="bullet">
     ///   <item><see cref="ExactIntake.Sdidi"/> — the substitute is wrong only past binary64's RANGE, which only an
     ///         SDIDI reaches (10^±6144, §8.8.1.5.2: a floating-point literal, a product past the Int128 window);
-    ///         a scaled operand is inside it, where binary64's RELATIVE error is the ordinary approximation.
-    ///         <c>Log</c> / <c>Log10</c> — §15.55.4 r1 / §15.56.4 r1: log10(10^−400) is −400 (every decimal128
-    ///         value's logarithm is a normal binary64, |log10| ≤ 6176), not log10(+0.0) = −∞. <c>Sqrt</c> (the native
-    ///         arm; the standard modes are <c>SqrtDec</c>'s) — §15.84.4 r4: the root of 10^−400 is the representable
-    ///         10^−200.</item>
-    ///   <item><see cref="ExactIntake.EveryExact"/> — the substitute is wrong wherever it is INEXACT at magnitude:
-    ///         <c>Sin</c> / <c>Cos</c> / <c>Tan</c> (§15.82.4 r1 / §15.20.4 r1 / §15.89.4 r1) pay the narrowing as an
-    ///         ABSOLUTE error, about |x|·2^−53 — a whole period once |x| passes ~10^16, which a 17-digit scaled item
-    ///         already reaches — so every exact operand, scaled or SDIDI, is reduced modulo 2π exactly from 2π up:
-    ///         sin(1.0E40) answered +0.6468 where sin(10^40) is −0.5696, and sin(10^400) computed sin(+∞) = NaN,
-    ///         which RAISED EC-ARGUMENT-FUNCTION on an argument §15.82.3 restricts only to class numeric.</item>
+    ///         a scaled operand is inside it, where the body's bounded condition number keeps binary64's RELATIVE
+    ///         error the ordinary approximation. <c>Sqrt</c> (the native arm; the standard modes are
+    ///         <c>SqrtDec</c>'s) — §15.84.4 r4: the root of 10^−400 is the representable 10^−200.</item>
+    ///   <item><see cref="ExactIntake.EveryExact"/> — the body is ILL-CONDITIONED somewhere in its domain (its
+    ///         condition number |x·f′(x)/f(x)| is unbounded, or reaches hundreds), so even the RELATIVE error of a
+    ///         scaled operand's binary64 is amplified into the result, and every exact operand, scaled or SDIDI, is
+    ///         taken exactly (kb/Work PB1041). <c>Sin</c> / <c>Cos</c> / <c>Tan</c> (§15.82.4 r1 / §15.20.4 r1 /
+    ///         §15.89.4 r1) at every multiple of π/2 and at magnitude — reduced to a quadrant and residue on the
+    ///         exact carrier: SIN(3.14159265358979323) answered 1.22·10^−16 where the value is 8.46·10^−18,
+    ///         sin(1.0E40) answered +0.6468 where sin(10^40) is −0.5696, and sin(10^400) computed sin(+∞) = NaN;
+    ///         <c>Log</c> / <c>Log10</c> (§15.55.4 r1 / §15.56.4 r1) at 1 (LOG(1 + 10^−26) answered 0) and past the
+    ///         range (log10(10^−400) is −400, not log10(+0.0) = −∞); <c>Acos</c> / <c>Asin</c> (§15.8.4 r1 /
+    ///         §15.10.4 r1) at ±1 (ACOS(1 − 10^−26) answered 0, not 1.414·10^−13); <c>Exp</c> / <c>Exp10</c>
+    ///         (§15.34.1 / §15.35.1 — condition number |x|: 150 ulps at EXP(700.12…)).</item>
     /// </list>
-    /// <para>Not members, each because the substitute's result IS the approximation: EXP / EXP10 (an argument past
-    /// binary64 means a result past it, and one below it has e^x = 1 to every binary64 digit), ATAN (π/2 at ±∞),
-    /// ACOS / ASIN (the §15.8.3 / §15.10.3 domain [−1, +1] is inside binary64 — the ONE screen rejects the rest).
-    /// A float operand IS its binary64 and keeps the double body.</para>
+    /// <para>Not members, each because its condition number is bounded by a constant on the whole domain, so the
+    /// substitute's result IS the approximation: ATAN (≤ 1), and SQRT for a scaled operand (½). A float operand IS
+    /// its binary64 and keeps the double body. <c>WholeRangeBodiesDriftTests</c> pins the runtime overload each
+    /// member needs and the values each arm owes.</para>
     /// <para>⛔ A domain member still passes the ONE argument-domain screen (§15.3 rule 14; kb/Work PB952): its
     /// operand is <c>CobolIntrinsics.DomainDecAdmitted</c>, <c>DomainDec</c>'s predicate returning the admitted
     /// carrier instead of its binary64, so the rule is decided in one place on either lane.</para>
     /// </remarks>
     internal static readonly FrozenDictionary<string, ExactIntake> WholeRangeBodies = new Dictionary<string, ExactIntake>
     {
-        ["Log"] = ExactIntake.Sdidi, ["Log10"] = ExactIntake.Sdidi, ["Sqrt"] = ExactIntake.Sdidi,
+        ["Sqrt"] = ExactIntake.Sdidi,
         ["Sin"] = ExactIntake.EveryExact, ["Cos"] = ExactIntake.EveryExact, ["Tan"] = ExactIntake.EveryExact,
+        ["Log"] = ExactIntake.EveryExact, ["Log10"] = ExactIntake.EveryExact,
+        ["Acos"] = ExactIntake.EveryExact, ["Asin"] = ExactIntake.EveryExact,
+        ["Exp"] = ExactIntake.EveryExact, ["Exp10"] = ExactIntake.EveryExact,
     }.ToFrozenDictionary(StringComparer.Ordinal);
 
     /// <summary>Which exact carriers a <see cref="WholeRangeBodies"/> member takes unnarrowed.</summary>
@@ -527,8 +533,8 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     {
         /// <summary>An SDIDI operand only — the narrowing is wrong only past binary64's range.</summary>
         Sdidi,
-        /// <summary>A scaled operand too (lifted exactly by <c>CobolDec.From</c>) — the narrowing is an absolute
-        /// error.</summary>
+        /// <summary>A scaled operand too (lifted exactly by <c>CobolDec.From</c>) — the body is ill-conditioned
+        /// somewhere, so the narrowing's relative error is amplified into the result.</summary>
         EveryExact,
     }
 

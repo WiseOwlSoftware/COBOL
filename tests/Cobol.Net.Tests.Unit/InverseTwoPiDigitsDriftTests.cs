@@ -7,13 +7,13 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ <c>CobolIntrinsics.InverseTwoPiDigits</c> is the ONE wide datum behind SIN / COS / TAN of an SDIDI argument
-/// (kb/Work PB999): the runtime reduces modulo 2π on the Int128 fixed point by reading windows of this digit string
-/// (COBOLNET_DESIGN §1.2 invariant 2 keeps <c>BigInteger</c> out of the runtime), so a wrong digit is a wrong sine
-/// for every argument whose reduction reads it. The constant is re-derived here independently — 1/(2π) by Machin's
-/// formula over a <c>BigInteger</c> fixed point, a test-only type — and its length is pinned to the SDIDI's range
-/// (ISO §8.8.1.5.2: the largest magnitude is 9.999…E+6144, so a significand digit sits at 10^6144 at most and its
-/// window reads 37 places past it).
+/// ⛔ <c>CobolIntrinsics.InverseTwoPiDigits</c> is the ONE wide datum behind SIN / COS / TAN of an exact argument
+/// (kb/Work PB999, PB1041): the runtime reduces to a quadrant and residue on the Int128 fixed point by reading
+/// limbs of this digit string (COBOLNET_DESIGN §1.2 invariant 2 keeps <c>BigInteger</c> out of the runtime), so a
+/// wrong digit is a wrong sine for every argument whose reduction reads it. The constant is re-derived here
+/// independently — 1/(2π) by Machin's formula over a <c>BigInteger</c> fixed point, a test-only type — and its
+/// length is pinned to the SDIDI's range (ISO §8.8.1.5.2: the largest magnitude is 9.999…E+6144, so a significand
+/// digit sits at 10^6144 at most and the reduction reads <c>CobolIntrinsics.ReductionPlaces</c> places past it).
 /// </summary>
 public sealed class InverseTwoPiDigitsDriftTests
 {
@@ -23,7 +23,7 @@ public sealed class InverseTwoPiDigitsDriftTests
     public void TheDigitString_CoversEveryPlaceAnSdidiDigitCanOccupy()
     {
         string d = CobolIntrinsics.InverseTwoPiDigits;
-        Assert.True(d.Length >= TopPlace + CobolIntrinsics.Window, $"{d.Length} digits cannot serve a window at 10^{TopPlace}");
+        Assert.True(d.Length >= TopPlace + CobolIntrinsics.ReductionPlaces, $"{d.Length} digits cannot serve a reduction at 10^{TopPlace}");
         Assert.All(d, c => Assert.InRange(c, '0', '9'));
     }
 

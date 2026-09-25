@@ -530,36 +530,57 @@ C#), by `FloatIntegerArgumentPermissiveTests.Pb635FindString_UnderPermissive_Kee
 four LAST × ANYCASE combinations over one float argument-3, plus the fixed-point control), and by the negative
 `pb635-find-string-float-skip`.
 
-### A whole-range float body takes an SDIDI argument UNNARROWED, through the one domain screen (PB999).
+### An exact-intake float body takes an exact argument UNNARROWED, through the one domain screen (PB999, PB1041).
 
 §15.4.1 licenses the RETURNED value of the binary64 family as an implementor-defined approximation; it does not
-license answering for a different ARGUMENT. An SDIDI (a floating-point literal, a product past the Int128 window, a
-float-decimal item) reaches 10^±6144 (§8.8.1.5.2) and binary64 stops near 10^±308, so the float lane's
-`ToDouble`-before-the-body answered `FUNCTION LOG10(1.0E-200 * 1.0E-200)` with log10(+0.0) = −∞ → 0 where §15.56.4
-r1 requires −400, SQRT(10^−400) with 0, and SIN/COS/TAN(10^400) with sin(+∞) = NaN — which RAISED
-EC-ARGUMENT-FUNCTION on an argument §15.82.3 / §15.20.3 / §15.89.3 restrict only to class numeric. The declared set
-`IntrinsicRenderer.WholeRangeBodies` names the bodies whose result for the narrowed substitute is not an
-approximation of the result for the real argument, each with the carriers it takes exactly (`ExactIntake`): `Log`,
-`Log10`, `Sqrt` take an SDIDI (`Sdidi` — only past binary64's RANGE is the substitute wrong, and only an SDIDI gets
-there); `Sin`, `Cos`, `Tan` take every exact operand (`EveryExact` — the narrowing is an ABSOLUTE error on a periodic
-body, a whole period once |x| passes ~10^16, which a 17-digit scaled item already reaches, so a scaled operand is
-lifted exactly by `CobolDec.From`). For such an operand `FloatBody`'s default arm (`LeadArg` → `ExactArg`) passes the
-`CobolDec` itself to the runtime's `CobolDec` overload. LOG /
-LOG10 / SQRT compute from the decimal's exponent off the normal binary64 range; SIN / COS / TAN reduce the argument
-modulo 2π EXACTLY from |x| ≥ 2π up (`CobolIntrinsics.ReduceTwoPi`, a decimal Payne–Hanek reduction on the
-Int128 fixed point: each significand digit dⱼ at place n contributes dⱼ·frac(10^n/2π), read as a 37-place window of
-the constant digit string `InverseTwoPiDigits` — 6200 places of 1/(2π), enough for the SDIDI's top place 10^6144
-plus the window, re-derived by `InverseTwoPiDigitsDriftTests`; no arbitrary-precision type, COBOLNET_DESIGN §1.2
-invariant 2) — a periodic body pays the
-narrowing as an ABSOLUTE error, a whole period once |x| passes ~10^16, so `SIN(1.0E40)` answered +0.6468 where
-sin(10^40) is −0.5696. Everywhere else the overloads ARE the double bodies. ⛔ The domain members (LOG, LOG10,
-SQRT) are still screened by the ONE §15.3 rule 14 screen (PB952): their operand is
+license answering for a different ARGUMENT. The argument is the exact value a scaled item or an SDIDI holds, and a
+body that narrows it to binary64 first is wrong wherever the function AMPLIFIES the narrowing error: past binary64's
+RANGE (an SDIDI — a floating-point literal, a product past the Int128 window, a float-decimal item — reaches
+10^±6144, §8.8.1.5.2), and wherever the body is ILL-CONDITIONED, its condition number |x·f′(x)/f(x)| unbounded on the
+domain. Measured before the fix: `FUNCTION LOG10(1.0E-200 * 1.0E-200)` answered log10(+0.0) = −∞ → 0 where §15.56.4
+r1 requires −400; SIN(10^400) computed sin(+∞) = NaN and RAISED EC-ARGUMENT-FUNCTION on an argument §15.82.3
+restricts only to class numeric; SIN(3.14159265358979323) answered 1.22·10^−16 (the sine of π's binary64) where the
+value is 8.46·10^−18; TAN(1.570796326794896619231321691639) answered 1.6·10^16 for 1.33·10^30; LOG(1 + 10^−26)
+answered 0; ACOS(1 − 10^−26) answered 0 for 1.414·10^−13; EXP(700.1234567890123456789) was 150 ulps off.
+
+The declared set `IntrinsicRenderer.WholeRangeBodies` names the bodies that take an exact argument, each with the
+carriers it takes that way (`ExactIntake`): `Sqrt` takes an SDIDI only (`Sdidi` — its condition number is ½, so only
+past binary64's RANGE is the substitute wrong); `Sin`, `Cos`, `Tan`, `Log`, `Log10`, `Acos`, `Asin`, `Exp`, `Exp10`
+take every exact operand (`EveryExact` — ill-conditioned somewhere, so a scaled operand is lifted exactly by
+`CobolDec.From` too). For such an operand `FloatBody`'s default arm (`LeadArg` → `ExactArg`) passes the `CobolDec`
+itself to the runtime's `CobolDec` overload, which forms ON THE EXACT CARRIER the quantity the function is well
+conditioned in and narrows only that:
+
+- **SIN / COS / TAN** — the quadrant q and residue r of |x| = q·π/2 + r, r ∈ [−π/4, π/4]
+  (`CobolIntrinsics.ReduceQuarterTurns`, a decimal Payne–Hanek reduction on the Int128 fixed point: |x|/2π ≡ Sig·g
+  (mod 1) with g = frac(10^Exp/2π), read as nine base-10^18 limbs — 162 places — of the constant digit string
+  `InverseTwoPiDigits`, 6320 places of 1/(2π), enough for the SDIDI's top place 10^6144 plus the reduction,
+  re-derived by `InverseTwoPiDigitsDriftTests`; no arbitrary-precision type, COBOLNET_DESIGN §1.2 invariant 2). The
+  reduction's error is under 2·10^−124 turns, some 80 digits below the smallest residue a 34-digit decimal is
+  expected to reach, and r reaches the body as a double-double, so sin / cos / ±tan / −cot of it carries binary64's
+  relative precision. |x| ≤ π/4 is the double body unchanged.
+- **LOG / LOG10** — ln(1 + u) of the exact u = x − 1 within ½ of 1 (Kahan's log1p formulation); ln Sig + Exp·ln 10
+  off the normal binary64 range.
+- **ACOS / ASIN** — 2·asin(√((1 − |x|)/2)) over the exact 1 − |x| past |x| = ½ (π minus it, or π/2 minus it, with the
+  constants as double-doubles).
+- **EXP / EXP10** — e^i · e^f over the integer part i and the exact fraction f = x − i, for 1 ≤ |x| ≤ 1000 (400 for
+  EXP10; beyond, the result is outside binary64 whatever the digits).
+- **SQRT** — the root on the exact carrier (`CobolDec.Sqrt`) off the normal binary64 range.
+
+Not members, each because its condition number is bounded by a constant on the whole domain, so the substitute's
+result IS the approximation: ATAN (≤ 1), and SQRT for a scaled operand. ⛔ The domain members (LOG, LOG10, SQRT,
+ACOS, ASIN) are still screened by the ONE §15.3 rule 14 screen (PB952): their operand is
 `CobolIntrinsics.DomainDecAdmitted`, `DomainDec`'s own predicate (`AdmitsDec`) returning the admitted carrier —
 `null` for a rejected argument, which the body turns into the NaN every rejected argument becomes — so no body
-carries a domain test. Not members, each because the substitute's result IS the approximation: EXP / EXP10, ATAN,
-ACOS / ASIN (their domain is inside binary64). A float operand IS its binary64 and keeps the double body, as a
-scaled operand of a `Sdidi` member does. Pinned by `tests/conformance/2002/pb999_log_trig_decimal_range`, and the
-rate-side twin (PRESENT-VALUE's exact discount base, above) by `tests/conformance/85/pb1000_present_value_rate_near_minus_one`.
+carries a domain test. A float operand IS its binary64 and keeps the double body, as a scaled operand of a `Sdidi`
+member does. `WholeRangeBodiesDriftTests` pins each member's runtime overload and every arm's value against an
+independent 140-digit oracle. Pinned by `tests/conformance/2002/pb999_log_trig_decimal_range`,
+`tests/conformance/85/pb1041_trig_log_arc_exact_argument` and `tests/conformance/2002/pb1041_exp_and_wide_exact_argument`,
+and the rate-side twin (PRESENT-VALUE's exact discount base, above) by
+`tests/conformance/85/pb1000_present_value_rate_near_minus_one`. ANNUITY's twin is a BODY fix, not an intake one
+(PB1310): its §15.9.4 1) b) denominator 1 − (1 + rate)^−n is evaluated as −expm1(−n·log1p(rate))
+(`CobolIntrinsics.ExpMinusOne` / `LogOnePlus`, Kahan's formulations), because forming 1 + rate in binary64 is exactly
+1.0 for any rate below 2^−53 — a COMP-2 rate included — and ANNUITY(1E-17 12) stored 0 for 1/12.
 
 ### An intrinsic-function-name the REPOSITORY identifies is not a user-defined word (PB65, §8.3.2.1 rule 5).
 

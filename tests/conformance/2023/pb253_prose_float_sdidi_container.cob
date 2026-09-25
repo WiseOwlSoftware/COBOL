@@ -18,6 +18,9 @@
       *> runtime element so long as the value and order of the arguments, the collating sequence, and the
       *> locale are unchanged" — before the fix the MOVE channel landed 16331239353195368.96 and the
       *> arithmetic-receiver channel 16331239353195370.00 for the SAME call.
+      *> NEARHALF is pi/2 to 30 places, so its tangent is the reciprocal of NEARHALF - pi/2 = -7.51E-31:
+      *> 1.3308E+30, which B1 / B2 hold in 31 integer digits (kb/Work PB1041 - the body used to answer
+      *> for NEARHALF's binary64, 1.63E+16, and a receiver sized for THAT value truncated the real one).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB253S3.
        OPTIONS.
@@ -28,8 +31,8 @@
        01 NEARHALF PIC S9V9(30) VALUE 1.570796326794896619231321691639.
        01 T1       PIC SV9(20).
        01 T2       PIC SV9(20).
-       01 B1       PIC S9(24)V9(2).
-       01 B2       PIC S9(24)V9(2).
+       01 B1       PIC S9(31).
+       01 B2       PIC S9(31).
        PROCEDURE DIVISION.
        MAIN.
            DISPLAY "SIN-T=" FUNCTION SIN(TINY)

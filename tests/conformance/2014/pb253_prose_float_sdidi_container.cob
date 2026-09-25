@@ -31,6 +31,9 @@
       *> — two returned values for one function and one argument in one run.
       *> RANDOM's seeded form restarts the sequence (15.75.3), so two seeded references share an argument and
       *> owe the same returned value in both channels.
+      *> NEARHALF is pi/2 to 30 places, so its tangent is the reciprocal of NEARHALF - pi/2 = -7.51E-31:
+      *> 1.3308E+30, which B1 / B2 hold in 31 integer digits (kb/Work PB1041 - the body used to answer
+      *> for NEARHALF's binary64, 1.63E+16, and a receiver sized for THAT value truncated the real one).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB253SD.
        OPTIONS.
@@ -41,8 +44,8 @@
        01 NEARHALF PIC S9V9(30) VALUE 1.570796326794896619231321691639.
        01 T1       PIC SV9(20).
        01 T2       PIC SV9(20).
-       01 B1       PIC S9(24)V9(2).
-       01 B2       PIC S9(24)V9(2).
+       01 B1       PIC S9(31).
+       01 B2       PIC S9(31).
        01 FL       USAGE COMP-2.
        PROCEDURE DIVISION.
        MAIN.

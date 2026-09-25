@@ -153,31 +153,66 @@ public static partial class CobolIntrinsics
     public static double Log(double x) => Math.Log(x);       // §15.55 — domain: the screen (§15.55.3 r2)
     public static double Log10(double x) => Math.Log10(x);   // §15.56 — domain: the screen (§15.56.3 r2)
 
-    // ── The WHOLE-RANGE bodies: an SDIDI argument taken UNNARROWED (kb/Work PB999) ───────────────────────────────
-    // ⛔ AN ARGUMENT OUTSIDE BINARY64'S RANGE IS STILL A LEGAL ARGUMENT. The SDIDI (a floating-point literal, a
-    // product past the Int128 window, a float-decimal item) reaches 10^±6144; binary64 stops near 10^±308. The
-    // family narrowed every argument with ToDouble BEFORE the body, so `FUNCTION LOG10(1.0E-200 * 1.0E-200)` computed
-    // log10(+0.0) = −∞ and answered the §15.3 default 0 where §15.56.4 r1 requires "the approximation of the
-    // logarithm to the base 10 of argument-1", −400; LOG10(10^400) computed log10(+∞); SQRT(10^−400) answered 0,
-    // not 10^−200; and SIN/COS/TAN(10^400) computed sin(+∞) = NaN and RAISED EC-ARGUMENT-FUNCTION on an argument
-    // §15.82 / §15.20 / §15.89 do not restrict at all. The overloads below take the CobolDec itself (the domain
-    // rows through the ONE screen, DomainDecAdmitted, whose null is a rejected argument) and compute from the
-    // decimal's own exponent and significand whenever the value is not a normal binary64 (LOG / LOG10 / SQRT), or
-    // reduce it modulo 2π exactly whenever it is at least 2π in magnitude (SIN / COS / TAN — narrowing a periodic
-    // argument costs an ABSOLUTE error, a whole period by 10^16: sin(1.0E40) answered +0.6468 where sin(10^40) is
-    // −0.5696); elsewhere they ARE the double bodies above, ulp for ulp.
+    // ── The EXACT-INTAKE bodies: an exact argument taken UNNARROWED (kb/Work PB999, PB1041) ─────────────────────
+    // ⛔ THE RETURNED VALUE IS AN APPROXIMATION OF THE FUNCTION OF ARGUMENT-1, NOT OF ITS BINARY64. §15.4.1 licenses
+    // the approximation of the RESULT; the argument is the exact value a scaled item or an SDIDI holds, and a body
+    // that narrows it first answers for a different argument wherever the function AMPLIFIES the narrowing error:
+    //   · past binary64's RANGE (the SDIDI reaches 10^±6144): LOG10(10^−400) computed log10(+0.0) = −∞, SQRT(10^−400)
+    //     answered 0, SIN(10^400) computed sin(+∞) = NaN and RAISED EC-ARGUMENT-FUNCTION on a legal argument;
+    //   · where the body is ILL-CONDITIONED — its relative error per unit of argument relative error, |x·f′(x)/f(x)|,
+    //     is unbounded on the domain: sin / cos / tan at every multiple of π/2 (SIN(3.14159265358979323) answered
+    //     1.22·10^−16 where the value is 8.46·10^−18), LOG / LOG10 at 1 (LOG(1.00000000000000000000000001) answered
+    //     0, not 10^−26), ACOS / ASIN at ±1 (ACOS(0.99999999999999999999999999) answered 0, not 1.414·10^−13), and
+    //     EXP / EXP10, whose condition number |x| reaches 709 (EXP(700.1234567890123456789) was 150 ulps off).
+    // So each overload below takes the CobolDec itself (a domain row through the ONE screen, DomainDecAdmitted,
+    // whose null is a rejected argument) and forms, on the EXACT carrier, the quantity the function is well
+    // conditioned in — the quadrant and residue about the nearest multiple of π/2, x − 1, 1 − |x|, the integer and
+    // fraction parts of x, or the decimal's own exponent — and narrows only that. Where no amplification exists
+    // (|x| ≤ π/4 for the periodic trio, |x − 1| ≥ ½ for LOG, |x| ≤ ½ for ACOS / ASIN, |x| &lt; 1 for EXP) the
+    // overload IS the double body above, ulp for ulp. Not members, each because its condition number is bounded by
+    // a constant on the whole domain: ATAN (≤ 1) and SQRT inside binary64's range (½; SQRT takes an SDIDI only, for
+    // the range). IntrinsicRenderer.WholeRangeBodies is the renderer's half of this set.
 
-    /// <summary>§15.55 LOG of an SDIDI argument: ln(Sig·10^Exp) = ln Sig + Exp·ln 10 off the normal binary64 range
-    /// (|result| ≥ ~700 there, so the sum loses nothing to cancellation). <c>null</c> = rejected by §15.55.3 r2.</summary>
+    /// <summary>§15.55 LOG of an exact argument: ln(Sig·10^Exp) = ln Sig + Exp·ln 10 off the normal binary64 range
+    /// (|result| ≥ ~700 there, so the sum loses nothing to cancellation), and ln(1 + u) of the EXACT u = x − 1 near 1
+    /// (<see cref="LogOnePlus"/>), where ln is ill-conditioned. <c>null</c> = rejected by §15.55.3 r2.</summary>
     public static double Log(CobolDec? x) =>
         x is not { } v ? double.NaN
+        : NearOne(v, out double u) ? LogOnePlus(u)
         : v.ToDouble() is var d && double.IsNormal(d) ? Math.Log(d) : Math.Log((double)v.Sig) + v.Exp * Ln10;
 
-    /// <summary>§15.56 LOG10 of an SDIDI argument: log10(Sig·10^Exp) = log10 Sig + Exp off the normal binary64
-    /// range. <c>null</c> = rejected by §15.56.3 r2.</summary>
+    /// <summary>§15.56 LOG10 of an exact argument: log10 Sig + Exp off the normal binary64 range, and log10(1 + u)
+    /// of the EXACT u = x − 1 near 1. <c>null</c> = rejected by §15.56.3 r2.</summary>
     public static double Log10(CobolDec? x) =>
         x is not { } v ? double.NaN
+        : NearOne(v, out double u) ? Log10OnePlus(u)
         : v.ToDouble() is var d && double.IsNormal(d) ? Math.Log10(d) : Math.Log10((double)v.Sig) + v.Exp;
+
+    /// <summary>Whether x lies within ½ of 1 — where ln x ≈ x − 1 and the logarithm's condition number 1/|ln x| is
+    /// unbounded — and, if so, <paramref name="u"/> = x − 1 formed on the EXACT carrier (one 34-digit rounding at
+    /// most, far below binary64's) and only then narrowed.</summary>
+    private static bool NearOne(CobolDec v, out double u)
+    {
+        u = 0;
+        if (!(Math.Abs(v.ToDouble() - 1) < 0.5)) return false;
+        u = CobolDec.Sub(v, OneDec, CobolRounding.NearestEven).ToDouble();
+        return true;
+    }
+
+    /// <summary>ln(1 + u) for a u that carries binary64's RELATIVE precision (Kahan's formulation: w = 1 + u rounds,
+    /// and ln w · u / (w − 1) cancels that rounding exactly, since w − 1 is exact).</summary>
+    private static double LogOnePlus(double u)
+    {
+        double w = 1 + u;
+        return w == 1 ? u : Math.Log(w) * (u / (w - 1));
+    }
+
+    /// <summary>log10(1 + u) — <see cref="LogOnePlus"/>'s formulation over log10.</summary>
+    private static double Log10OnePlus(double u)
+    {
+        double w = 1 + u;
+        return w == 1 ? u * Log10E : Math.Log10(w) * (u / (w - 1));
+    }
 
     /// <summary>§15.84 SQRT of an SDIDI argument under NATIVE arithmetic (§15.84.4 r4; the standard modes take
     /// <see cref="SqrtDec"/>). Off the normal binary64 range the root is taken on the exact carrier
@@ -188,37 +223,127 @@ public static partial class CobolIntrinsics
         : v.ToDouble() is var d && (v.Sig == 0 || double.IsNormal(d)) ? Sqrt(d)
         : CobolDec.Sqrt(v, CobolRounding.NearestEven).ToDouble();
 
-    /// <summary>§15.82 SIN of an SDIDI argument, reduced modulo 2π on the EXACT carrier (<see cref="PeriodicArg"/>):
-    /// sin(10^400) is an ordinary value in [−1, +1], not sin(+∞), and sin(10^40) is sin of 10^40, not of the
-    /// binary64 nearest it.</summary>
-    public static double Sin(CobolDec x) => Math.Sin(PeriodicArg(x));
-
-    /// <summary>§15.20 COS of an SDIDI argument (<see cref="PeriodicArg"/>).</summary>
-    public static double Cos(CobolDec x) => Math.Cos(PeriodicArg(x));
-
-    /// <summary>§15.89 TAN of an SDIDI argument (<see cref="PeriodicArg"/>).</summary>
-    public static double Tan(CobolDec x) => Math.Tan(PeriodicArg(x));
-
-    /// <summary>The binary64 a periodic body computes on for an SDIDI argument: the argument itself below 2π in
-    /// magnitude (its conversion error is then relative, and the body's result carries it as an ordinary
-    /// approximation), otherwise ±(|x| reduced modulo 2π EXACTLY, <see cref="ReduceTwoPi"/>). Past 2π the conversion
-    /// error is ABSOLUTE — about |x|·2^−53, a whole period once |x| passes ~10^16 — so narrowing first answers for
-    /// a different argument, and past binary64's range it answers for +∞ (NaN, which raised EC-ARGUMENT-FUNCTION on
-    /// a legal argument).</summary>
-    private static double PeriodicArg(CobolDec x)
+    /// <summary>§15.8 ACOS of an exact argument: past |x| = ½ it is 2·asin(√((1 − |x|)/2)) (π minus that for a
+    /// negative x) over the EXACT 1 − |x| — at ±1 the arccosine is ill-conditioned, and ACOS(1 − 10^−26) is
+    /// 1.414·10^−13, where the arccosine of its binary64, 1.0, is 0. <c>null</c> = rejected by §15.8.3 r2.</summary>
+    public static double Acos(CobolDec? x)
     {
-        double d = x.ToDouble();
-        if (Math.Abs(d) < TwoPiDouble) return d;
-        double r = ReduceTwoPi(x);
-        return x.Sig < 0 ? -r : r;
+        if (x is not { } v) return double.NaN;
+        double d = v.ToDouble();
+        if (Math.Abs(d) <= 0.5) return Math.Acos(d);
+        double fromOne = AcosOfMagnitude(v);
+        return v.Sig > 0 ? fromOne : (PiHi - fromOne) + PiLo;
     }
 
-    private const double TwoPiDouble = 2 * Math.PI;
+    /// <summary>§15.10 ASIN of an exact argument: past |x| = ½ it is ±(π/2 − arccos |x|) over the EXACT 1 − |x|
+    /// (<see cref="AcosOfMagnitude"/>). <c>null</c> = rejected by §15.10.3 r2.</summary>
+    public static double Asin(CobolDec? x)
+    {
+        if (x is not { } v) return double.NaN;
+        double d = v.ToDouble();
+        if (Math.Abs(d) <= 0.5) return Math.Asin(d);
+        double r = (HalfPiHi - AcosOfMagnitude(v)) + HalfPiLo;
+        return v.Sig > 0 ? r : -r;
+    }
+
+    /// <summary>arccos |x| for ½ &lt; |x| ≤ 1 as 2·asin(√((1 − |x|)/2)), with 1 − |x| formed on the EXACT carrier —
+    /// the half-angle identity, well conditioned in 1 − |x| where arccos is not in x.</summary>
+    private static double AcosOfMagnitude(CobolDec v)
+    {
+        double fromOne = CobolDec.Sub(OneDec, v with { Sig = Int128.Abs(v.Sig) }, CobolRounding.NearestEven).ToDouble();
+        return 2 * Math.Asin(Math.Sqrt(fromOne / 2));
+    }
+
+    /// <summary>§15.82 SIN of an exact argument: sin(q·π/2 + r) by quadrant over the residue r formed EXACTLY
+    /// (<see cref="ReduceQuarterTurns"/>) — sin(10^400) is an ordinary value in [−1, +1], not sin(+∞), sin(10^40) is
+    /// sin of 10^40, not of the binary64 nearest it, and sin(3.14159265358979323) is the 8.46·10^−18 its residue
+    /// makes it.</summary>
+    public static double Sin(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (Math.Abs(d) <= QuarterPi) return Math.Sin(d);
+        var (q, hi, lo) = ReduceQuarterTurns(x);
+        double v = (q & 1) == 0 ? SinDd(hi, lo) : CosDd(hi, lo);
+        return (q >= 2) != (x.Sig < 0) ? -v : v;                       // sin(x + π) = −sin x; sin is odd
+    }
+
+    /// <summary>§15.20 COS of an exact argument (<see cref="ReduceQuarterTurns"/>).</summary>
+    public static double Cos(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (Math.Abs(d) <= QuarterPi) return Math.Cos(d);
+        var (q, hi, lo) = ReduceQuarterTurns(x);
+        return q switch                                                  // cos is even: |x| decides
+        {
+            0 => CosDd(hi, lo),
+            1 => -SinDd(hi, lo),
+            2 => -CosDd(hi, lo),
+            _ => SinDd(hi, lo),
+        };
+    }
+
+    /// <summary>§15.89 TAN of an exact argument: tan r in an even quadrant, −cot r in an odd one — TAN of an argument
+    /// just below π/2 is the reciprocal of its residue, not tan of the binary64 nearest π/2
+    /// (<see cref="ReduceQuarterTurns"/>).</summary>
+    public static double Tan(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (Math.Abs(d) <= QuarterPi) return Math.Tan(d);
+        var (q, hi, lo) = ReduceQuarterTurns(x);
+        double t = Math.Tan(hi);
+        t += lo * (1 + t * t);                                           // tan(hi + lo) to first order in lo
+        double v = (q & 1) == 0 ? t : -1 / t;
+        return x.Sig < 0 ? -v : v;                                       // tan is odd
+    }
+
+    /// <summary>sin(hi + lo) to first order in lo (|lo| ≤ 2^−53·|hi|).</summary>
+    private static double SinDd(double hi, double lo) => Math.Sin(hi) + lo * Math.Cos(hi);
+
+    /// <summary>cos(hi + lo) to first order in lo.</summary>
+    private static double CosDd(double hi, double lo) => Math.Cos(hi) - lo * Math.Sin(hi);
+
+    private const double QuarterPi = Math.PI / 4;
+
+    /// <summary>π as a double-double.</summary>
+    private const double PiHi = Math.PI, PiLo = 1.2246467991473532e-16;
 
     /// <summary>ln 10, correctly rounded.</summary>
     private const double Ln10 = 2.302585092994045684017991454684364208;
+
+    /// <summary>log10 e, correctly rounded.</summary>
+    private const double Log10E = 0.4342944819032518276511289189166051;
+
     public static double Exp(double x) => Math.Exp(x);       // §15.34 — e ** argument (COBOL-2002+)
     public static double Exp10(double x) => Math.Pow(10, x); // §15.35 — 10 ** argument (COBOL-2002+)
+
+    /// <summary>§15.34 EXP of an exact argument: e^i · e^f over x's integer part i and its EXACT fraction f = x − i.
+    /// EXP's condition number is |x|, so the narrowed argument's error of |x|·2^−53 was a RELATIVE result error of
+    /// the same size — 150 ulps at x ≈ 700 — while i is exact in binary64 and f is below 1. Below |x| = 1 nothing is
+    /// amplified and the overload IS the double body; past |x| = 1000 the result is outside binary64 whatever the
+    /// argument's digits.</summary>
+    public static double Exp(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (!(Math.Abs(d) is >= 1 and <= 1000)) return Math.Exp(d);
+        double i = Math.Truncate(d);
+        return Math.Exp(i) * Math.Exp(FractionAfter(x, i));
+    }
+
+    /// <summary>§15.35 EXP10 of an exact argument: 10^i · 10^f, as <see cref="Exp(CobolDec)"/> (condition number
+    /// |x|·ln 10).</summary>
+    public static double Exp10(CobolDec x)
+    {
+        double d = x.ToDouble();
+        if (!(Math.Abs(d) is >= 1 and <= 400)) return Math.Pow(10, d);
+        double i = Math.Truncate(d);
+        return Math.Pow(10, i) * Math.Pow(10, FractionAfter(x, i));
+    }
+
+    /// <summary>x − <paramref name="integer"/>, formed on the EXACT carrier and then narrowed. <paramref name="integer"/>
+    /// is the truncated binary64 of x, so the difference is below 1 in magnitude (a binary64 that rounded up to the
+    /// next integer leaves a small negative fraction, which is as good).</summary>
+    private static double FractionAfter(CobolDec x, double integer) =>
+        CobolDec.Sub(x, CobolDec.From((Int128)integer, 0), CobolRounding.NearestEven).ToDouble();
 
     /// <summary>E (§15.27, COBOL-2002+): the value of e — 2.718281828459045235360287… approximated in double.</summary>
     public static double E() => Math.E;
@@ -244,9 +369,24 @@ public static partial class CobolIntrinsics
     /// <summary>ANNUITY (§15.9.4): rate 0 ⇒ <c>1 / periods</c> (rule 1); else
     /// <c>rate / (1 − (1 + rate)^(−periods))</c> (rule 2). Domain: §15.9.3 r2 (rate ≥ 0) and r3
     /// (periods a positive integer — integrality is the upstream IntArg latitude; positivity is checked here).</summary>
+    /// <remarks>⛔ THE DENOMINATOR IS −expm1(−periods · ln(1 + rate)), NEVER 1 − Math.Pow(1 + rate, −periods)
+    /// (kb/Work PB1310). The two are the same number, but the second forms 1 + rate in binary64 FIRST, which is
+    /// exactly 1.0 for every rate below 2^−53: ANNUITY(1E−17, 12) divided by 0 and stored 0 where the value is
+    /// 1/12 + 13/24·rate. <see cref="LogOnePlus"/> and <see cref="ExpMinusOne"/> carry the rate at its own relative
+    /// precision, so the result is the ordinary §15.4.1 approximation for every legal rate.</remarks>
     public static double Annuity(double rate, double periods) =>
         periods <= 0 ? AnnuityDomain(rate, periods)          // r2 (rate ≥ 0) is the screen's (kb/Work PB952)
-        : rate == 0 ? 1d / periods : rate / (1 - Math.Pow(1 + rate, -periods));
+        : rate == 0 ? 1d / periods : rate / -ExpMinusOne(-periods * LogOnePlus(rate));
+
+    /// <summary>e^y − 1 for a y that carries binary64's RELATIVE precision (Kahan's formulation: u = e^y rounds, and
+    /// (u − 1)·y / ln u cancels that rounding) — the <see cref="LogOnePlus"/> twin.</summary>
+    private static double ExpMinusOne(double y)
+    {
+        double u = Math.Exp(y);
+        if (u == 1) return y;
+        double um1 = u - 1;
+        return um1 == -1 || double.IsPositiveInfinity(u) ? um1 : um1 * y / Math.Log(u);
+    }
 
     /// <summary>PRESENT-VALUE (§15.74.4): <c>Σ amountᵢ / (1 + rate)^i</c>, i = 1..n, over the DISCOUNT BASE
     /// <c>1 + rate</c> — which the caller forms on the rate's exact carrier (<see cref="PresentValueBase(CobolDec?)"/>)
