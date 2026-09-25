@@ -98,3 +98,10 @@ Overturned rows stay CONFORMS-but-untested; the refuter's exact correction is in
 
 Process: after a refuter, run `python3 scratch/integrate.py <wave> <slug…>` (paths are /tmp/gl; adjust) → strip CR → `record_verdicts.py --dry-run` then apply → gate (`scratch/gate.sh`) → name any new DOC-A.1 witness in CONFORMANCE.md §7 `Pinned by` (AnnexA1RegisterDriftTests). ⚠ integrate.py keys refuter verdicts by rule-id; a row with several goldens and split verdicts must be checked by hand.
 - gate (p9/p10/p12): Conformance filter 5548/5548 with all 21 new goldens run by name; Unit filter 25/25 after naming DOC-A.1-72/74/95/97 witnesses in CONFORMANCE.md §7 Pinned by.
+
+## Wave 3 (owner-authorized, small)
+
+### misc-p11: landed 10, overturned 2 (GAP 1538 → 1528)
+- overturned SR-13.4.5.3-2 (convention): The expected output (OPEN=00 LC=0001 / MAIN-W=00 LC=0002 / SUB-W=00 LC=0003 / AFTER-SUB LC=0003) is correct, and the clause numbers 13.18.34.4 7) d) and 7) c) 3. are the PRINTED ones. But header lines 16 and 20 record th
+- overturned GR-13.4.5.4-2 (does-not-exercise-rule): GR2 only constrains PROGRAMS: every FD of one external connector 'shall obey' a)-e). The writer concedes it has no mandated detection (§4.2.2). Everything the golden prints comes from §9.1.5 1) (one external connector: D
+- gate: Conformance filter 5560/5560 (all 13 new goldens ran by name), Unit filter 25/25 after naming DOC-A.1-76/78 in CONFORMANCE.md §7 Pinned by.

@@ -293,11 +293,11 @@
   "rule-digest": "07ad05ede69f",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ConvertFixedToFree",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_program_text_all_spaces",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (§6.3.4 3): \"All spaces.\" cite.py --check 6.3.4 \"All spaces\" -> OK §6.3.4 3). Code: a line shorter than 7 columns becomes an empty output line (AppendLine()). A line whose program-text area is all spaces goes through the default arm: StripInlineComment, then TrimEnd, which gives an empty line. Probe ffp15 has blank lines of 0 characters, 6 spaces, 7 characters, and a sequence number followed by 66 spaces, placed between division headers and inside the PROCEDURE DIVISION. It compiles and prints BLANKS-OK. The all-spaces line breaks only when it falls between the parts of a continued literal (ffp2 crash). That is §6.3.5's interspersing rule and is recorded under SR-6.3.5-1 and SR-6.3.5-2 (finding F1). No spec-derived test targets this row; SourceFormatTests.FixedSegment_TrailingBlankLine_Preserved is a §6.5 line-count test. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 || Code sites (adjudicator, verbatim): src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ConvertFixedToFree (line.Length < SourceAreaStart arm; default arm with an all-space program-text area)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-6.3.5-1",
@@ -10388,11 +10388,11 @@
   "rule-digest": "83dbd5f05dcc",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/BinderDriver.cs; src/Cobol.Net.Runtime/Control/RunUnit.cs#RunUnit",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_global_file_common_connector",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (9.1.5 item 2): \"both programs may refer to a common file connector by referring to an associated global file-name either in the containing program or in any program that directly or indirectly contains the containing program\" [cite.py --check PASS 9.1.5]. Probe E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p915\\g1.cob (2023) / g85.cob (85, EXIT PROGRAM): A declares FD GF GLOBAL, OPENs OUTPUT, writes AAAA, CALLs contained B which WRITEs BBBB (B-W 00) and CALLs C (contained in B, i.e. INDIRECTLY contained in A) which WRITEs CCCC (C-W 00); A CLOSEs, reopens and reads R=AAAA R=BBBB R=CCCC then EOF 10. Same at 85 and 2023 — one common connector across direct and indirect containment. TEST-NEEDED: conformance:85/pb369_global_file_use_selection references the global file-name from B and C but each OPEN fails (35), so it never demonstrates the connector is COMMON; tests/CobolSharp.Tests.Integration/SpecFixTests.NestedProgram_ReadsContainingGlobalIndexedFile_SharesConnector exercises the LEGACY compiler and does not qualify. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (nested programs + GLOBAL are COBOL-85; no Annex E change) || Code sites (adjudicator, verbatim): src/Cobol.Net.Compiler/Binding/BinderDriver.cs (containers' GLOBAL FDs merged into FilesByName); src/Cobol.Net.Runtime/Control/RunUnit.cs#RunUnit",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.1.11-1",
@@ -11048,11 +11048,11 @@
   "rule-digest": "b8080cf5262e",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use; conformance:2002/l1c11_invalid_key_ec_set",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (9.1.14 first list item 1): status set to the invalid key value (9.1.13.5) \"and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist\" [cite.py --check PASS 9.1.14]. Two halves, both verified. Status: E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob at 85/2023 — duplicate WRITE 22, READ/DELETE/START/REWRITE of a missing key 23, each visible in FILE STATUS inside the phrase and after the statement. EC: __IoCheckEc calls ExceptionState.SetIo before the INVALID KEY short-circuit, so the condition exists even when the phrase is written: E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k5.cob (>>TURN EC-I-O-INVALID-KEY CHECKING ON) at 2002/2014/2023: FUNCTION EXCEPTION-STATUS inside the INVALID KEY imperative = EC-I-O-INVALID-KEY and inside the USE declarative = EC-I-O-INVALID-KEY; E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k3.cob T6 same inside an exception-checking PERFORM. TEST-NEEDED: the status half is covered by conformance:2023/l1_delete_invalid_key_transfer, but no spec-derived test asserts EC-I-O-INVALID-KEY is set (grep of tests/ finds none). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 for the I-O status half; the EC-I-O-INVALID-KEY half 2002+ (exception conditions and >>TURN) || Code sites (adjudicator, verbatim): src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs (status-first shape: store status then hook then branch); src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc (ExceptionState.SetIo BEFORE the phrase short-circuits)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.1.14-2",
@@ -11093,11 +11093,11 @@
   "rule-digest": "fad5ee590e9d",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule text (item 4 + the opening sentence of the not-exists paragraph): \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end of the input-output statement\" and \"If the invalid key condition does not exist ... the INVALID KEY phrase is ignored, if specified\" [cite.py --check PASS 9.1.14]. Two halves, both verified. (a) no phrase, no applicable statement: a declarative-free unit emits no hook (EmitUseHook returns when !UseDecls and no EC mask) and no branch, so control falls to the next statement — probe E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k6.cob at 85 and 2023 (declarative-free, duplicate-key WRITE with no phrase: NEXT-STMT 22) and k2.cob T5 (the USE ON I-O tier does not apply to a closed file: T5-END 48 with no DECL line). (b) phrase ignored when no invalid key: EmitInvalid runs the INVALID KEY imperative on '2x' only — l1_delete_invalid_key_transfer arm B (NOTINV=00, no INV-B) and arm D ('49' with INVALID KEY written: INV-D absent); probe k1.cob T4/T5. TEST-NEEDED for half (a): every spec-derived 9.1.14 golden carries a USE declarative or writes the phrase; none pins the no-phrase, no-applicable-statement case. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change for these sentences)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.1.14-L2.1",
@@ -15593,11 +15593,11 @@
   "rule-digest": "9fc0462a5f6c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#fileControlClauseGroup; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#fileControlClauses",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_select_clause_any_order; conformance:negative/l1c11-select-not-first",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule: 'The SELECT clause shall be specified first in the file control entry. The clauses that follow the SELECT clause may appear in any order.' (cite.py --check 12.4.5.2 -> OK §12.4.5.2 1)). Code: fileControlClauseGroup is `SELECT OPTIONAL? (fileName | reservedGatedWord) fileControlClauses* DOT`, and fileControlClauses is a flat alternation (assign, relative key, organization, access mode, record key, record delimiter, alternate key, file status, reserve, padding, sharing, lock mode, collating, unrecognizedClause) so both halves hold structurally: SELECT is the only possible entry opener and every following clause is order-free (ASSIGN included). Probes (pinned cobol.exe, --std 2023): probe/fce/sr1order (SELECT F1 ORGANIZATION ... ACCESS MODE ... ASSIGN TO last) compiles and runs 'OK' exit 0; probe/fce/sr1nosel (`ASSIGN TO \"a.dat\" SELECT F1.`) is refused COBOL0001 unexpected 'ASSIGN'. No spec-derived test pins the any-order half by name; test-needed. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the rule is stated for ALL FORMATS of the file control entry; no Annex E row touches it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-12.4.5.2-2",
@@ -15863,11 +15863,11 @@
   "rule-digest": "a728ff4e6f3c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ResolveFileCollating; src/Cobol.Net.Runtime/IO/IndexedConnector.cs",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_key_native_collating_default; conformance:2002/l1c11_key_native_national_default",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule: 'If no COLLATING SEQUENCE clause is specified: a) the collating sequence for alphanumeric record keys, both primary and alternate, is the native alphanumeric collating sequence; b) the collating sequence for national record keys, both primary and alternate, is the native national collating sequence.' (cite.py --check 12.4.5.3 -> OK 6) a)). Code: ResolveFileCollating falls through to native (null weights = ordinal) when no Format-1/Format-2 clause names the key (GR4/GR5 of §12.4.5.7.4 per its doc). Probes (--std 2023): probe/fce/gr6nat_x (alphanumeric prime key, no clause) walks 11, AA, BB, ZZ, aa = native ordinal; probe/fce/gr6pcs_x (same + OBJECT-COMPUTER PROGRAM COLLATING SEQUENCE IS REV) walks the SAME native order - the program collating sequence does not leak into key order; probe/fce/gr6nat_n (PIC N(2) prime key) walks native national order; alternate keys: probe/fce/gr6alt_x2 (alphanumeric alternate, PROGRAM COLLATING SEQUENCE REV, START >= spaces) walks 11, AA, BB, ZZ, aa, and probe/fce/gr6alt_n (national alternate) likewise. All four quadrants (primary/alternate x alphanumeric/national) verified. No spec-derived golden pins the no-clause default by name; test-needed. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 per the clause text; b) (national record keys) applies where national data exists (2002+)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-12.4.5.3-7",
@@ -17783,11 +17783,11 @@
   "rule-digest": "b92add9fa69e",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindLinageClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c11_linage_counter_external_global",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "Rule: 'If the file description entry for a sequential file contains the LINAGE clause and the EXTERNAL clause, the LINAGE-COUNTER data item is an external data item. If ... the GLOBAL clause, LINAGE-COUNTER is a global name.' (cite.py --check 13.4.5.4 'the LINAGE-COUNTER data item is an external data item' and 'LINAGE-COUNTER is a global name' -> OK §13.4.5.4 3)). Probe probe/fde/gr3/gr3b.cob (2023) and gr3_85.cob (--std 85): outer program FD GF IS GLOBAL LINAGE 20 writes 2 lines, contained program reads LINAGE-COUNTER OF GF = 0003 and unqualified LINAGE-COUNTER after its own WRITE = 0004 (global name resolves in the containee); FD XF IS EXTERNAL LINAGE 20 in two separate programs: main after 3 writes = 0004, called program sees 0004, writes, sees 0005, main after return sees 0005 (one run-unit LINAGE-COUNTER). Both halves verified at 2023 and 85. ⚠ Separate crash found while probing (finding 5): DISPLAY LINAGE-COUNTER [OF f] throws NotImplementedCobolFeatureException 'computed expression in a string context' at run time — a DISPLAY operand defect, not this rule's semantics (MOVE LINAGE-COUNTER is correct). || Editions (adjudicator): 85, 2002, 2014, 2023 (the file description entry and this rule exist in every edition; no Annex E item touches 13.4.5) || Code sites (adjudicator detail): src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindLinageClause; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection (fileGlobalExternalClause arm: IsExternal / IsGlobal)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.4.5.4-4",
@@ -58538,11 +58538,11 @@
   "rule-digest": "30cd0a649abb",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#fileSection; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#fileDescriptionEntry; src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#sortMergeDescriptionEntry; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindFileSection",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c11_file_section_constant_typedef; conformance:negative/l1c11-file-section-entry-before-fd",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "cite.py --check 13.4.2 'constant-entry' -> OK §13.4.2 (General format). Format: FILE SECTION. [ { file-description-entry [constant-entry | record-description-entry | type-declaration-entry] ... } | { sort-merge-file-description-entry { constant-entry | record-description-entry | type-declaration-entry } ... } ] ... Grammar: `fileSection : FILE SECTION DOT (fileDescriptionEntry | sortMergeDescriptionEntry)*`, each entry `FD|SD fileName clauses? DOT dataDescriptionEntry*` where dataDescriptionEntry carries record, constant (01 ... CONSTANT) and TYPEDEF entries. Verified by probe: p1.cob FD with 01 K1 CONSTANT AS 7, 01 T1 TYPEDEF PIC X(3), a record, a trailing constant, then SD with a constant + record, WS item TYPE T1 -> runs K1=7 K2=9 K3=11 W1=ABC at 2002/2014/2023; at 85 the constant and TYPEDEF entries draw COBOLNET0900 (edition gate, correct). p2.cob empty FILE SECTION (outer brackets = optional) compiles and runs at 2023 and 85. p3.cob a level-01 before any FD/SD -> COBOL0001 (not admitted by the format; rejected). FD with zero entries is admitted by the bracket (subject to §13.4.5.3 SR3, a different row; PB345 landed). SD braces (at least one entry) are enforced through §13.4.6.3 SR2 COBOLNET1837 (conformance:negative/pb345-sd-no-record), which is stricter (a record is required) and is SR2's row, not this one. No spec-derived golden writes a constant or type-declaration entry inside the FILE SECTION, so test-ref empty (test-needed). || Editions (adjudicator): FILE SECTION header with FD/SD + record-description entries at 85, 2002, 2014, 2023; the constant-entry and type-declaration-entry alternatives 2002, 2014, 2023 (introduced with the constant entry / TYPEDEF at 2002)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.4.5.2",
@@ -63023,11 +63023,11 @@
   "rule-digest": "3d8ee41f1a8b",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-76; src/Cobol.Net.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#PhysicalFileTable",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c11_sharing_every_device_shareable",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "§9.1.15 (cite.py OK: 'The implementor shall specify which devices allow concurrent access to a physical file'); §14.9.27.4 21) (cite.py OK) 'effective only for files that are shareable'. grep shareable/device in Cobol.Net.Runtime: no device predicate; every connector is arbitrated. Probe /tmp/adj/doc/doc-w1-s3/probe/d76.cob: ASSIGN PRINTER \"d76.prt\" OUTPUT 00 plus ASSIGN DISK \"d76.prt\" EXTEND 00 concurrently (ALL OTHER), both writes land; two ALL OTHER EXTEND on /dev/null 00/00, NO OTHER on it while they are open 61, alone 00. sh78.cob confirms the regular-file arbitration. The cross-run-unit lock strength on Linux/macOS is kb/Work/PB833 (open) and the clause-less default is kb/Work/PB322 A (open). Neither is stated as settled in the row. Row closes PB322 determination B for item 76.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-77",
@@ -63053,11 +63053,11 @@
   "rule-digest": "daceb9949177",
   "verdict": "CONFORMS",
   "code-location": "docs/CONFORMANCE.md#DOC-A.1-78; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RegisterSharing; src/Cobol.Net.Runtime/IO/FileRegistry.cs#SharedOpenAttempt",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c11_sharing_not_fixed_attribute",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "§9.1.6 (cite.py OK: 'The implementor shall specify whether the ability to share a physical file is a fixed file attribute'). The answer NO was previously written only inside the DOC-A.1-129 row; this row files it under its own key. Probe /tmp/adj/doc/doc-w1-s3/probe/sh78.cob (one path, F1 SHARING WITH NO OTHER, F2/F3 SHARING WITH ALL OTHER LOCK MODE MANUAL): OPEN OUTPUT F1 00; OPEN INPUT F2 while F1 open 61; after CLOSE, F2 and F3 INPUT together 00/00; F1 INPUT while they are open 61; F1 alone 00. No spec-derived test pins the not-carried-by-the-file answer; test-ref empty. Owning note: kb/Work/PB1534 (item 78).",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "DOC-A.1-79",

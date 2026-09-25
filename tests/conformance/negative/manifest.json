@@ -1529,7 +1529,9 @@
   "l1c09-factory-implements-not-in-class-repository",
   "l1c09-factory-implements-nonconforming-method",
   "l1c10-file-control-no-period",
-  "l1c10-quote-bounds-literal"
+  "l1c10-quote-bounds-literal",
+  "l1c11-select-not-first",
+  "l1c11-file-section-entry-before-fd"
  ],
  "pending": []
 }
