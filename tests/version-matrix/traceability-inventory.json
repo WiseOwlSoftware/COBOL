@@ -57060,21 +57060,6 @@
   "state": "OK"
  },
  {
-  "rule-id": "FMT-5.2",
-  "section": "5.2",
-  "kind": "FMT",
-  "ordinal": 0,
-  "subject": "Description techniques",
-  "rule-digest": "594b60db0ec4",
-  "verdict": "",
-  "code-location": "",
-  "test-ref": "",
-  "derivation": "",
-  "editions": "",
-  "notes": "",
-  "state": "GAP"
- },
- {
   "rule-id": "FMT-7.2.3.2",
   "section": "7.2.3.2",
   "kind": "FMT",
@@ -61550,13 +61535,13 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "REVERSE function",
-  "rule-digest": "b53d8e471d77",
+  "rule-digest": "a892b2daf323",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionCall; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionArgList; src/Cobol.Net.Frontend/Grammar/Core/CobolExpressions.g4#functionName; src/Cobol.Net.Compiler/Binding/IntrinsicCatalog.cs#Build; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/IntrinsicBinder.cs#BindIntrinsicCore",
   "test-ref": "conformance-test:IntrinsicFunctionDifferentialTests.StringFamily_PinnedToSpec; nist:IF134A",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Printed folio 908 (PDF page 938) re-rendered and read independently: the format is `FUNCTION REVERSE ( argument-1 )` with FUNCTION and REVERSE both UNDERLINED (required), one unbracketed required operand, no optional phrase. Grammar: functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? ; REVERSE is NOT a lexer token (only REVERSE_VIDEO and REVERSED are - grep-verified over Grammar/) so it arrives as IDENTIFIER through functionName. The catalog row is Fixed 1..1 and the arity gate was re-run live against the built CLI: `FUNCTION REVERSE` (no parens) -> COBOLNET1504 '1 argument(s); 0 given'; `FUNCTION REVERSE()` -> COBOLNET1504 '0 given'; `FUNCTION REVERSE(W-A W-B)` -> COBOLNET1504 '2 given'; `FUNCTION REVERSE(OMITTED)` -> COBOLNET1544 (8.4.3.2.3 SR7, cite-checked). The parens being syntactically optional in the grammar is harmless: the shape is still REJECTED, at bind time rather than parse time. ⚠ TRANSCRIPTION DEFECT (the prior draft asserted 'the transcription is faithful' - that claim is WITHDRAWN as false): specs/ISO_COBOL.md 15.78.2 renders the general format as BARE MARKDOWN TEXT, with no <pre style=\"line-height:1\"> wrapper and no <u> markup, while every neighbour checked (15.75.2 RANDOM, 15.76.2 RANGE, 15.77.2 REM, 15.79.2 SECONDS-FROM-FORMATTED-TIME, 15.80.2 SECONDS-PAST-MIDNIGHT) carries both. The required-word underlining the printed page shows is therefore LOST in the transcription. The verdict is unaffected - this format has no optional element, so nothing required-vs-optional turns on the underlining, and the compiler requires both words - but the defect is real and propagating: the Phase-B extractor's rule text for FMT-15.78.2 swallowed the trailing `<a id=\"section-15-78-3\"></a>` anchor precisely BECAUSE there is no <pre> block to bound it. Repair 15.78.2 to the <pre>/<u> form of its neighbours. ⚠ Test coverage is POSITIVE-ONLY: both test-refs write the correct one-argument format (StringFamily_PinnedToSpec has an InlineData `MOVE FUNCTION REVERSE(\"abc 12\") TO T.`; IF134A carries 109 REVERSE references, e.g. `MOVE FUNCTION REVERSE(\"figure\") TO WS-ANUM.`), so acceptance is pinned, but NO test pins the four rejection shapes above - they were verified by hand. A negative golden for arity 0/2 and OMITTED is test-needed.",
+  "notes": "Printed folio 908 (PDF page 938) re-rendered and read independently: the format is `FUNCTION REVERSE ( argument-1 )` with FUNCTION and REVERSE both UNDERLINED (required), one unbracketed required operand, no optional phrase. Grammar: functionCall : FUNCTION functionName (LPAREN functionArgList? RPAREN)? ; REVERSE is NOT a lexer token (only REVERSE_VIDEO and REVERSED are - grep-verified over Grammar/) so it arrives as IDENTIFIER through functionName. The catalog row is Fixed 1..1 and the arity gate was re-run live against the built CLI: `FUNCTION REVERSE` (no parens) -> COBOLNET1504 '1 argument(s); 0 given'; `FUNCTION REVERSE()` -> COBOLNET1504 '0 given'; `FUNCTION REVERSE(W-A W-B)` -> COBOLNET1504 '2 given'; `FUNCTION REVERSE(OMITTED)` -> COBOLNET1544 (8.4.3.2.3 SR7, cite-checked). The parens being syntactically optional in the grammar is harmless: the shape is still REJECTED, at bind time rather than parse time. TRANSCRIPTION REPAIRED (wave 60, kb/Work PB1536): specs/ISO_COBOL.md 15.78.2 had rendered this format as bare Markdown text with no <pre style=\"line-height:1\"> block and no <u> markup, unlike every neighbour; printed folio 908 (PDF page 938) was re-rendered and the format restored as <pre>`<u>FUNCTION</u> <u>REVERSE</u> ( argument-1 )`</pre>. The rule-digest changed with that markup only - the format's content (two required words, one required operand) is unchanged, so this verdict is RESTATED, not re-derived. The repair is what the new CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel gate holds. ⚠ Test coverage is POSITIVE-ONLY: both test-refs write the correct one-argument format (StringFamily_PinnedToSpec has an InlineData `MOVE FUNCTION REVERSE(\"abc 12\") TO T.`; IF134A carries 109 REVERSE references, e.g. `MOVE FUNCTION REVERSE(\"figure\") TO WS-ANUM.`), so acceptance is pinned, but NO test pins the four rejection shapes above - they were verified by hand. A negative golden for arity 0/2 and OMITTED is test-needed.",
   "state": "OK"
  },
  {

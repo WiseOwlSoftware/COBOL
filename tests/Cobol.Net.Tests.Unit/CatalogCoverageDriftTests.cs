@@ -103,7 +103,35 @@ public sealed class CatalogCoverageDriftTests
         return counts;
     }
 
-    // ── the two predicates, over injectable inputs so the fabricated-input test can reach them ─────────
+    /// <summary>Every FMT (general-format) row of the catalog, as (id, text).</summary>
+    private static List<(string Id, string Text)> CatalogFmtRows()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(
+            TestRepo.Docs("rearchitecture", "spec-rule-catalog.json")));
+        var rows = new List<(string, string)>();
+        foreach (var rule in doc.RootElement.GetProperty("rules").EnumerateArray())
+        {
+            if (rule.GetProperty("kind").GetString() == "FMT")
+            {
+                rows.Add((rule.GetProperty("id").GetString()!, rule.GetProperty("text").GetString()!));
+            }
+        }
+
+        Assert.True(rows.Count >= 300,
+            $"only {rows.Count} FMT rows in spec-rule-catalog.json — the general-format scan has stopped finding "
+            + "the diagrams; regenerate the catalog before trusting the general-format gate");
+        return rows;
+    }
+
+    /// <summary>A general-format DIAGRAM as the transcription writes one (<c>&lt;pre&gt;</c> today; the fenced
+    /// and <c>$$</c> forms are earlier renderings).</summary>
+    private static readonly Regex FmtDiagram = new(@"<pre\b|```|\$\$", RegexOptions.Compiled);
+
+    /// <summary>The numbered-and-named label of one format of a multi-format construct (§5.2.1: "the general
+    /// format is separated into multiple formats that are numbered and named").</summary>
+    private static readonly Regex FmtLabel = new(@"\bFormat\s+\d+", RegexOptions.Compiled);
+
+    // ── the predicates, over injectable inputs so the fabricated-input test can reach them ─────────────
 
     /// <summary>Every unnumbered, non-structural heading, with the numbered clause it sits inside.</summary>
     private static List<(int Line, string Clause, string Text)> InteriorHeadings(string[] lines)
@@ -184,6 +212,12 @@ public sealed class CatalogCoverageDriftTests
         return counts;
     }
 
+    /// <summary>The FMT rows that carry neither a diagram nor a Format label — a row with nothing a grammar rule
+    /// could be verified against.</summary>
+    private static List<string> UndrawnFmtRows(IEnumerable<(string Id, string Text)> rows) =>
+        [.. rows.Where(r => !FmtDiagram.IsMatch(r.Text) && !FmtLabel.IsMatch(r.Text))
+                .Select(r => $"{r.Id}: {(r.Text.Length > 80 ? r.Text[..80] + "…" : r.Text)}")];
+
     private static List<string> Disagreements(Dictionary<string, int> printed, Dictionary<string, int> held) =>
         [.. held.Where(kv => printed.GetValueOrDefault(kv.Key, 0) != kv.Value)
                 .OrderBy(kv => kv.Key, StringComparer.Ordinal)
@@ -223,7 +257,25 @@ public sealed class CatalogCoverageDriftTests
             + string.Join("\n  ", interior.Select(h => $"line {h.Line} in §{h.Clause}: {h.Text}")));
     }
 
-    /// <summary>⛔ Both predicates fired against inputs built to break them. Without this, a refactor that made
+    /// <summary>⛔ AN FMT ROW IS A FORMAT THE STANDARD PRINTS (kb/Work PB1536 Q2). The extractor used to emit
+    /// one for any heading titled "General formats", and §5.2 — the description-techniques clause ABOUT general
+    /// formats, whose body is only its sub-clause §5.2.1 — manufactured FMT-5.2: a permanent GAP row whose text
+    /// was a bare anchor. A row with neither a diagram nor a Format label is that shape again, or a format whose
+    /// diagram the transcription lost (§15.78.2 REVERSE printed as bare text until wave 60) — either way nothing
+    /// a grammar rule can be verified against. Measured over the WRITTEN catalog, not the extractor's code.</summary>
+    [Fact]
+    public void EveryFmtRow_CarriesADiagramOrAFormatLabel()
+    {
+        var undrawn = UndrawnFmtRows(CatalogFmtRows());
+        Assert.True(undrawn.Count == 0,
+            "spec-rule-catalog.json holds general-format (FMT) rows with no diagram and no Format label. A "
+            + "heading titled 'General format(s)' that is a PARENT clause (its body is its own sub-clauses) is not "
+            + "a construct's format and must not be a row; a LEAF format clause without a diagram lost it in "
+            + "transcription — render the printed page and restore the <pre>/<u> block, then regenerate the "
+            + "catalog (python scripts/spec/extract_rule_catalog.py):\n  " + string.Join("\n  ", undrawn));
+    }
+
+    /// <summary>⛔ Every predicate fired against inputs built to break it. Without this, a refactor that made
     /// either scrape return nothing would leave two permanently-green assertions over an empty set.</summary>
     [Fact]
     public void TheseChecks_ActuallyFail_OnAFabricatedSpec()
@@ -271,5 +323,16 @@ public sealed class CatalogCoverageDriftTests
         ];
         Assert.Equal(1, PrintedOrdinalsByClause(intoAnnex)["16.2.2.2"]);
         Assert.Empty(InteriorHeadings(intoAnnex));
+
+        // PB1536 Q2: the row §5.2's heading manufactured (its text was only the anchor of §5.2.1) is reported; a
+        // drawn format and a labelled multi-format construct are not.
+        var undrawn = UndrawnFmtRows(
+        [
+            ("FMT-5.2", "<a id=\"section-5-2-1\"></a>"),
+            ("FMT-15.78.2", "<pre style=\"line-height:1\"> <u>FUNCTION</u> <u>REVERSE</u> ( argument-1 ) </pre>"),
+            ("FMT-7.2.4.2", "Format 1 (replacing): == pseudo-text-1 =="),
+        ]);
+        Assert.Single(undrawn);
+        Assert.StartsWith("FMT-5.2:", undrawn[0], StringComparison.Ordinal);
     }
 }

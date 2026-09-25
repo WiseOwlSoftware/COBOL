@@ -33078,7 +33078,9 @@ The type of the function depends on the argument type as follows:
 <a id="section-15-78-2"></a>
 #### 15.78.2 General format
 
-FUNCTION REVERSE ( argument-1 )
+<pre style="line-height:1">
+<u>FUNCTION</u> <u>REVERSE</u> ( argument-1 )
+</pre>
 
 <a id="section-15-78-3"></a>
 #### 15.78.3 Argument rule

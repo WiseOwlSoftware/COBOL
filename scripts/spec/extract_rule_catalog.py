@@ -49,6 +49,13 @@ HEADING = re.compile(r"^#{2,6}\s+(?P<num>\d+(?:\.\d+)*)\s+(?P<title>.+?)\s*$")
 PAGE = re.compile(r"^##\s+Page\s+(\d+)\s*$")
 # Any markdown heading — used to CLOSE a rule block (see the loop). Annex headings carry no section number.
 ANY_HEADING = re.compile(r"^#{1,6}\s+\S")
+# A GENERAL-FORMAT DIAGRAM in the transcription. Every diagram is a `<pre style="line-height:1">` block today; the
+# fenced (also inside a `>` blockquote, as §7.3.23.2 still is) and `$$` forms are the transcription's earlier
+# renderings. Keying `has_diagram` on those two alone left it False on all 322 FMT rows once the diagrams moved to
+# <pre> — a field that could never report the one thing it names (kb/Work PB1536).
+FMT_DIAGRAM = re.compile(r"<pre\b|^[\s>]*```|\$\$", re.M)
+# The numbered-and-named format label of a multi-format construct ("Format 1 (replacing):"), §5.2.1.
+FMT_LABEL = re.compile(r"^\s*Format\s+\d+", re.M)
 # PAGE-BREAK FURNITURE. At every printed page boundary the transcription injects a running header, and it is
 # emitted AS A HEADING — inside rule blocks. Treating it as a block terminator truncates every rule block that
 # spans a page break (it cost 896 rules when first tried). Skip it instead. Three transcribed shapes, the same
@@ -560,30 +567,54 @@ def main() -> int:
     # (a dropped choice-indicator bar makes legal source look illegal). They carry no numbered ordinals, so the
     # rule scan never saw them and the denominator omitted all 320. Each becomes one FMT row: the unit of
     # "verify this diagram against the grammar rule that implements it".
-    fmt_sections: list[tuple[str, int, int]] = []   # (section, heading-line, page)
-    page = 0
+    #
+    # ⛔ A ROW IS A FORMAT THE CLAUSE PRINTS, NOT A HEADING THAT SAYS "General formats" (kb/Work PB1536 Q2). The
+    # scan used to emit a row for ANY heading so titled, and §5.2 — the description-techniques clause ABOUT
+    # general formats, whose only body is its own sub-clause §5.2.1 — manufactured FMT-5.2: a GAP row whose
+    # "text" was a bare anchor, which no grammar rule could ever implement. So a candidate heading yields a row
+    # only when its body carries what §5.2.1 says a general format IS: a diagram, or the numbered-and-named
+    # "Format N" labels of a multi-format construct ("the general format is separated into multiple formats that
+    # are numbered and named" — cite.py --check 5.2.1 → OK). A candidate without either is one of two shapes,
+    # and they are told apart structurally rather than by a list of section numbers:
+    #   · a PARENT clause — its next numbered heading is its own sub-clause (§5.2 → §5.2.1): the clause is a
+    #     topic, not a construct's format. Skipped, and printed, so the exclusion is an observation.
+    #   · a LEAF whose diagram the TRANSCRIPTION LOST (§15.78.2 REVERSE printed its format as bare text until
+    #     wave 60): still a row — dropping it would shrink the denominator silently — and a LOUD self-check
+    #     failure (`--check` exits 1), because the grammar cannot be verified against a diagram that is not there.
+    # `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the same bar over the written
+    # catalog, independently of this code.
+    fmt_sections: list[tuple[str, int]] = []   # (section, heading-line)
+    numbered_at: list[tuple[int, str]] = []    # every numbered heading, in order — to see a candidate's next one
     for i, line in enumerate(lines):
-        if m := PAGE.match(line):
-            page = int(m.group(1))
-            continue
-        if (m := HEADING.match(line)) and not line.lstrip().startswith("["):
+        if (m := HEADING.match(line)) and not line.lstrip().startswith("[") and not PAGE.match(line):
+            numbered_at.append((i, m.group("num")))
             if re.fullmatch(r"general formats?\.?", m.group("title").strip(), re.I):
-                fmt_sections.append((m.group("num"), i, page))
+                fmt_sections.append((m.group("num"), i))
+    next_numbered = {at: nxt for (at, _), (_, nxt) in zip(numbered_at, numbered_at[1:])}
 
-    for sec, at, pg in fmt_sections:
+    fmt_parents: list[str] = []     # candidate headings that are clauses ABOUT formats, not a construct's format
+    fmt_undrawn: list[str] = []     # leaf format clauses whose transcription carries no diagram — a repair
+    for sec, at in fmt_sections:
         body: list[str] = []
         for line in lines[at + 1:]:
             if ANY_HEADING.match(line) and not RUNNING_HEADER.match(line) and not PAGE.match(line):
                 break
             body.append(line)
         text = "\n".join(body).strip()
+        has_diagram = bool(FMT_DIAGRAM.search(text))
+        labels = len(FMT_LABEL.findall(text))
+        if not has_diagram and not labels:
+            if next_numbered.get(at, "").startswith(sec + "."):
+                fmt_parents.append(sec)
+                continue
+            fmt_undrawn.append(sec)
         rules.append({
             "id": f"FMT-{sec}", "section": sec, "kind": "FMT", "ordinal": 0, "sublist": 1,
             "subject": subject_for(sec, titles),
             # How many numbered Formats the section declares — Format 1 / Format 2 usually map to DIFFERENT
             # grammar alternatives, so this is a size signal for the verification work, not decoration.
-            "formats": len(re.findall(r"^\s*Format\s+\d+", text, re.M)) or 1,
-            "has_diagram": bool(re.search(r"^\s*```|\$\$", text, re.M)),
+            "formats": labels or 1,
+            "has_diagram": has_diagram,
             "has_figure_notes": "Figure notes" in text,
             "text": re.sub(r"\s+", " ", text)[:4000],
         })
@@ -833,9 +864,23 @@ def main() -> int:
     else:
         print("      ✓ matches the committed manifest exactly — no clause has silently left the denominator")
 
+    # The general-format bar (kb/Work PB1536 Q2) — see the FMT scan above.
+    for sec in fmt_parents:
+        print(f"\n· §{sec} '{titles.get(sec, '?')}' is titled 'General format(s)' but is a PARENT clause (its body is"
+              " its own sub-clauses, no diagram, no Format label) — a clause ABOUT formats, not a construct's format;"
+              " no FMT row")
+    if fmt_undrawn:
+        print(f"\n⛔ {len(fmt_undrawn)} general-format clause(s) whose transcription carries NO DIAGRAM and no Format "
+              "label — the diagram was lost in transcription. Render the printed page and restore it as a "
+              '<pre style="line-height:1"> block with <u> on the required words:')
+        for sec in fmt_undrawn:
+            print(f"      §{sec}  ({subject_for(sec, titles)})")
+    else:
+        print("✓ every general-format row carries a diagram or a Format label")
+
     if args.check:
         return 1 if (gaps or unrecognised or added or removed or changed or unexplained
-                     or heading_labels or flattened_tails) else 0
+                     or heading_labels or flattened_tails or fmt_undrawn) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({

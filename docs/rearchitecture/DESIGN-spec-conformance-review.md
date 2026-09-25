@@ -97,6 +97,13 @@ are numbered under "Syntax rules" / "General rules" headings per section, so ext
 critic** cross-checks the catalog against the spec's TOC + section numbering, because an OMITTED rule is silent false
 confidence. Orchestrated: fan out over the §-clauses; loop-until-dry.
 
+**A general-format (FMT) row is a format the clause PRINTS, not a heading that says "General format(s)"** (kb/Work
+PB1536): a candidate heading yields a row only when its body carries a diagram or the "Format N" labels §5.2.1 gives a
+multi-format construct. A candidate with neither is a PARENT clause about formats (§5.2 itself — skipped and printed)
+or a leaf whose diagram the transcription lost (a loud `--check` failure: restore the `<pre>`/`<u>` block from the
+rendered page). `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the bar over the written
+catalog.
+
 ### Phase B — map + verify (the numerator)
 For each rule (batched by statement/clause), an agent: **(1)** reads the rule + general format; **(2)** LOCATES the
 implementing code (binder/emitter/runtime) — the traceability link; **(3)** VERIFIES conformance across the applicable
