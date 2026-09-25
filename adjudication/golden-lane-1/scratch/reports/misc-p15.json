@@ -1,0 +1,268 @@
+{
+ "slug": "misc-p15",
+ "rows": [
+  {
+   "rule_id": "GR-14.9.22.4-18",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "",
+   "citations": [
+    "cite.py --check 14.9.22.4 'the result of the execution of this statement is undefined, even if they are defined by the same data description entry' -> OK §14.9.22.4 (same wording in GR13/18/21)"
+   ],
+   "ran": "n/a",
+   "notes": "The rule's only consequence is 'the result of the execution of this statement is undefined' (see 14.6.10). An undefined result has no spec-derived expected value, so no golden can pin it; a golden would only freeze what this implementation happens to do. Adjudicator confirms a deterministic outcome and no crash."
+  },
+  {
+   "rule_id": "GR-14.9.22.4-21",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "",
+   "citations": [
+    "cite.py --check 14.9.22.4 'the result of the execution of this statement is undefined, even if they are defined by the same data description entry' -> OK §14.9.22.4 (same wording in GR13/18/21)"
+   ],
+   "ran": "n/a",
+   "notes": "The rule's only consequence is 'the result of the execution of this statement is undefined' (see 14.6.10). An undefined result has no spec-derived expected value, so no golden can pin it; a golden would only freeze what this implementation happens to do. Adjudicator confirms a deterministic outcome and no crash."
+  },
+  {
+   "rule_id": "GR-14.9.22.4-23",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c15_inspect_converting_duplicate_first",
+   "files": [
+    "tests/conformance/85/l1c15_inspect_converting_duplicate_first.cob",
+    "tests/conformance/85/l1c15_inspect_converting_duplicate_first.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "L1: 'abcabc' CONVERTING 'aab' TO 'XYZ' -> first 'a' pairs with X, b->Z -> XZcXZc (last-occurrence would be YZcYZc). L2: identifier-6 arm FROMS='bab' TOS='123' -> b->1 (first), a->2 -> 21c21c (last would be 23c23c).",
+   "citations": [
+    "cite.py --check 14.9.22.4 'the first occurrence of the character is used for replacement' -> OK §14.9.22.4 23)"
+   ],
+   "ran": "pass",
+   "notes": "Covers both literal-4 and identifier-6 arms."
+  },
+  {
+   "rule_id": "SR-11.6.3-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c15-interface-inherits-not-in-repository; conformance:2002/l1c15_interface_inherits_multi_base",
+   "files": [
+    "tests/conformance/negative/l1c15-interface-inherits-not-in-repository.cob",
+    "tests/conformance/negative/l1c15-interface-inherits-not-in-repository.err",
+    "tests/conformance/2002/l1c15_interface_inherits_multi_base.cob",
+    "tests/conformance/2002/l1c15_interface_inherits_multi_base.out"
+   ],
+   "edition_dir": "negative",
+   "derivation": "Negative: L1C15PB INHERITS FROM L1C15PA, which is defined in the compilation group but not in PB's REPOSITORY -> reject. Control (PA added to REPOSITORY) compiles. Positive arm: multi_base golden names every INHERITS interface in the inheriting interface's REPOSITORY and compiles/runs.",
+   "citations": [
+    "cite.py --check 11.6.3 'Interface-name-2 shall be the name of an interface specified in the REPOSITORY paragraph of this source element' -> OK §11.6.3 2)"
+   ],
+   "ran": "pass",
+   "notes": ".err = COBOLNET0840 + message head naming the interface/INHERITS name; message cites §11.6.3 SR2. Rejected at 2002/2014/2023 (85 has no interfaces)."
+  },
+  {
+   "rule_id": "SR-11.6.3-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:negative/l1c15-interface-inherits-cyclic",
+   "files": [
+    "tests/conformance/negative/l1c15-interface-inherits-cyclic.cob",
+    "tests/conformance/negative/l1c15-interface-inherits-cyclic.err"
+   ],
+   "edition_dir": "negative",
+   "derivation": "Indirect cycle QA->QB->QA, each INHERITS name in its own REPOSITORY (SR2 met) -> reject with 'INHERITS graph is cyclic'. Control (cycle broken) compiles.",
+   "citations": [
+    "cite.py --check 11.6.3 'Interface-name-2 shall not inherit directly or indirectly from interface-name-1' -> OK §11.6.3 3)"
+   ],
+   "ran": "pass",
+   "notes": "COBOLNET0840 is shared by many interface checks, so .err carries the message head 'interface 'L1C15QA': the INHERITS graph is cyclic'."
+  },
+  {
+   "rule_id": "GR-11.6.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c15_interface_inherits_multi_base",
+   "files": [
+    "tests/conformance/2002/l1c15_interface_inherits_multi_base.cob",
+    "tests/conformance/2002/l1c15_interface_inherits_multi_base.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "IC INHERITS FROM IA IB (two bases, no own methods); ID INHERITS IC (transitive). Via ID ref: SPEAK, WALK (inherited-of-inherited per 9.3.10); via IC: SPEAK, WALK; SET IB/IA refs from IC/ID (derived conforms) -> WALK / SPEAK.",
+   "citations": [
+    "cite.py --check 11.6.4 'The INHERITS clause specifies the names of interfaces that are inherited by interface-name-1 according to 9.3.10' -> OK §11.6.4 2)",
+    "cite.py --check 9.3.10 'The inheriting interface has all the method specifications defined for the inherited interface definition or definitions, including any method specifications that the inherited definition or definitions inherited' -> OK §9.3.10"
+   ],
+   "ran": "pass",
+   "notes": ""
+  },
+  {
+   "rule_id": "SR-14.9.23.3-20",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c15_invoke_positional_receiving; conformance:negative/l1c15-invoke-using-constant-record",
+   "files": [
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.cob",
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.out",
+    "tests/conformance/negative/l1c15-invoke-using-constant-record.cob",
+    "tests/conformance/negative/l1c15-invoke-using-constant-record.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Positive: BY REFERENCE arguments FB FA are written by the method (caller FA=0201 FB=0102); BY CONTENT FC unchanged (0003). Negative: BY REFERENCE of a CONSTANT RECORD item -> COBOLNET1548 (13.18.15.3 SR2 applies because SR20 makes it a receiving operand); control without CONSTANT RECORD compiles.",
+   "citations": [
+    "cite.py --check 14.9.23.3 'If identifier-3 does not reference an address-identifier, identifier-3 is a receiving operand' -> OK §14.9.23.3 20)",
+    "cite.py --check 13.18.15.3 'Neither the data item described by the subject of the entry nor any data item subordinate to the subject of the entry shall be specified as a receiving data item' -> OK §13.18.15.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "CONSTANT RECORD (a WS data item, so SR9 holds) used rather than a constant-name, which would violate SR9 instead. Reject-at 2002 2014 2023 (CONSTANT RECORD is 2002)."
+  },
+  {
+   "rule_id": "SR-14.9.23.3-22",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c15_invoke_positional_receiving; conformance:negative/l1c15-invoke-returning-constant-record",
+   "files": [
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.cob",
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.out",
+    "tests/conformance/negative/l1c15-invoke-returning-constant-record.cob",
+    "tests/conformance/negative/l1c15-invoke-returning-constant-record.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Positive: RETURNING W receives 4242 -> 'W=4242'. Negative: RETURNING a CONSTANT RECORD item -> COBOLNET1548.",
+   "citations": [
+    "cite.py --check 14.9.23.3 'Identifier-4 is a receiving operand' -> OK §14.9.23.3 22)",
+    "cite.py --check 13.18.15.3 'Neither the data item described by the subject of the entry ... shall be specified as a receiving data item' -> OK §13.18.15.3 2)"
+   ],
+   "ran": "pass",
+   "notes": "Known cosmetic (adjudicator): a redundant second COBOLNET0828 'not resolvable to storage' follows the 1548 on the RETURNING arm; the .err pins only the 1548 line."
+  },
+  {
+   "rule_id": "GR-14.9.23.4-3",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c15_invoke_positional_receiving",
+   "files": [
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.cob",
+    "tests/conformance/2002/l1c15_invoke_positional_receiving.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Caller items named FB FA (same names as the formals, opposite order) passed USING FB FA; positional binding gives 'IN FA=0002 FB=0001 FC=0003' (by-name would give FA=0001 FB=0002); write-back lands positionally: 'OUT FA=0201 FB=0102 FC=0003'.",
+   "citations": [
+    "cite.py --check 14.9.23.4 'This correspondence is positional and not by name equivalence' -> OK §14.9.23.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "Shares the program with SR20/SR22."
+  },
+  {
+   "rule_id": "DOC-A.1-101",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c15_invoke_non_cobol_member_ec_oo_method",
+   "files": [
+    "tests/conformance/2002/l1c15_invoke_non_cobol_member_ec_oo_method.cob",
+    "tests/conformance/2002/l1c15_invoke_non_cobol_member_ec_oo_method.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Universal object reference, method name in a data item: 'HI' (COBOL method) runs -> HI, C1 DONE; 'ToString' (a .NET member, not COBOL-declared) -> documented determination EC-OO-METHOD caught by USE declarative -> EC=EC-OO-METHOD, then RESUME -> C2 DONE.",
+   "citations": [
+    "cite.py --check 14.9.23.4 'If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined' -> OK §14.9.23.4 2)",
+    "cite.py --check 14.9.23.4 'If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist' -> OK §14.9.23.4 7)"
+   ],
+   "ran": "pass",
+   "notes": "Pins the documented choice in docs/CONFORMANCE.md DOC-A.1-101 (universal-receiver arm) via >>TURN EC-OO-METHOD CHECKING ON + FUNCTION EXCEPTION-STATUS. The typed-receiver arm (COBOLNET0825) and REPOSITORY .NET class arm (COBOLNET0823) are not pinned by this golden."
+  },
+  {
+   "rule_id": "SR-8.4.3.1.3-11",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c15_linage_counter_qualified",
+   "files": [
+    "tests/conformance/85/l1c15_linage_counter_qualified.cob",
+    "tests/conformance/85/l1c15_linage_counter_qualified.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Two LINAGE files (SR8 forces qualification). After OPEN OUTPUT both counters 1 (GR7d) -> O1 01 01; F1 3 WRITEs, F2 1 WRITE without ADVANCING (+1 each, GR7c3) -> W1 04 02, read via LINAGE-COUNTER OF F1 / IN F2.",
+   "citations": [
+    "cite.py --check 8.4.3.1.3 'Qualified-linage-counter-1 is defined in 8.4.2.2, Qualification' -> OK §8.4.3.1.3 11)",
+    "cite.py --check 8.4.2.2.3 'LINAGE-COUNTER shall be qualified if more than one file description entry containing a LINAGE clause may be referenced within the source element' -> OK §8.4.2.2.3 8)",
+    "cite.py --check 13.18.34.4 'A separate LINAGE-COUNTER is supplied for each file ...' / 'automatically set to one at the time an OPEN statement with the OUTPUT phrase is executed' / 'When the ADVANCING phrase of the WRITE statement is not specified, the LINAGE-COUNTER is incremented by the value one' -> OK §13.18.34.4 7)"
+   ],
+   "ran": "pass",
+   "notes": "Counters are MOVEd to PIC 99 items (the adjudicator notes a separate run-time abort when LINAGE-COUNTER is used in string contexts, owned by FMT-8.4.3.1.2)."
+  },
+  {
+   "rule_id": "GR-14.6.2.3.2-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c15_initial_container_resets_nested",
+   "files": [
+    "tests/conformance/85/l1c15_initial_container_resets_nested.cob",
+    "tests/conformance/85/l1c15_initial_container_resets_nested.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "L1C15D INITIAL contains E (M VALUE 0, internal file FE opened, never closed) which contains F (I VALUE 0). Both CALLs of D print E M=01 / E FS=00 / F I=01 (last-used would give 02 / 41 / 02). Control G (not contained in an initial program) prints K=01 then K=02 (last-used, §14.6.2.3.3).",
+   "citations": [
+    "cite.py --check 14.6.2.3.2 'possesses the initial attribute and directly or indirectly contains the program' -> OK §14.6.2.3.2 2)",
+    "cite.py --check 14.6.2.3.3 'Static data is in the last-used state except when it is in the initial state as defined above' -> OK §14.6.2.3.3"
+   ],
+   "ran": "pass",
+   "notes": "Legal source: no RECURSIVE program anywhere (avoids the 11.10.3 SR5/SR6 problem the refuter found in pb154_cancel_cascade). Pins both the direct (E) and the indirect (F) halves plus the file-connector reset."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c15_inspect_converting_duplicate_first",
+   "l1c15_linage_counter_qualified",
+   "l1c15_initial_container_resets_nested"
+  ],
+  "2002": [
+   "l1c15_interface_inherits_multi_base",
+   "l1c15_invoke_positional_receiving",
+   "l1c15_invoke_non_cobol_member_ec_oo_method"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c15-interface-inherits-not-in-repository",
+  "l1c15-interface-inherits-cyclic",
+  "l1c15-invoke-using-constant-record",
+  "l1c15-invoke-returning-constant-record"
+ ],
+ "records": [
+  {
+   "rule-id": "GR-14.9.22.4-23",
+   "test-ref": "conformance:85/l1c15_inspect_converting_duplicate_first"
+  },
+  {
+   "rule-id": "SR-11.6.3-2",
+   "test-ref": "conformance:negative/l1c15-interface-inherits-not-in-repository; conformance:2002/l1c15_interface_inherits_multi_base"
+  },
+  {
+   "rule-id": "SR-11.6.3-3",
+   "test-ref": "conformance:negative/l1c15-interface-inherits-cyclic"
+  },
+  {
+   "rule-id": "GR-11.6.4-2",
+   "test-ref": "conformance:2002/l1c15_interface_inherits_multi_base"
+  },
+  {
+   "rule-id": "SR-14.9.23.3-20",
+   "test-ref": "conformance:2002/l1c15_invoke_positional_receiving; conformance:negative/l1c15-invoke-using-constant-record"
+  },
+  {
+   "rule-id": "SR-14.9.23.3-22",
+   "test-ref": "conformance:2002/l1c15_invoke_positional_receiving; conformance:negative/l1c15-invoke-returning-constant-record"
+  },
+  {
+   "rule-id": "GR-14.9.23.4-3",
+   "test-ref": "conformance:2002/l1c15_invoke_positional_receiving"
+  },
+  {
+   "rule-id": "DOC-A.1-101",
+   "test-ref": "conformance:2002/l1c15_invoke_non_cobol_member_ec_oo_method"
+  },
+  {
+   "rule-id": "SR-8.4.3.1.3-11",
+   "test-ref": "conformance:85/l1c15_linage_counter_qualified"
+  },
+  {
+   "rule-id": "GR-14.6.2.3.2-2",
+   "test-ref": "conformance:85/l1c15_initial_container_resets_nested"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}
