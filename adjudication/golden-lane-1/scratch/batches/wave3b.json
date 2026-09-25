@@ -1,0 +1,37 @@
+{
+ "batch": "golden-lane-1-wave3b",
+ "records": [
+  {
+   "rule-id": "GR-9.1.13.8-3",
+   "test-ref": "conformance:2002/l1c13_run_unit_lock_max_53"
+  },
+  {
+   "rule-id": "SR-7.3.16.3-1",
+   "test-ref": "conformance:negative/l1c13-if-directive-cce-split; conformance:negative/l1c13-if-directive-mid-line"
+  },
+  {
+   "rule-id": "SR-7.3.16.3-2",
+   "test-ref": "conformance:negative/l1c13-if-directive-text1-same-line"
+  },
+  {
+   "rule-id": "SR-7.3.16.3-6",
+   "test-ref": "conformance:2002/l1c13_if_directive_multiline_texts"
+  },
+  {
+   "rule-id": "SR-14.9.21.3-3",
+   "test-ref": "conformance:negative/l1c13-initiate-multi-in-exception-perform"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L3.1",
+   "test-ref": "conformance:2023/l1c14_inspect_backward_after"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-L2.3",
+   "test-ref": "conformance:2023/l1c14_inspect_backward_after"
+  },
+  {
+   "rule-id": "GR-14.9.22.4-8",
+   "test-ref": "conformance:2023/l1c14_inspect_backward_after"
+  }
+ ]
+}

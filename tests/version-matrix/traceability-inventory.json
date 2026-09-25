@@ -2993,11 +2993,11 @@
   "rule-digest": "457d9e854da7",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#SplitDirective",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c13-if-directive-cce-split; conformance:negative/l1c13-if-directive-mid-line",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "SR1 (cite.py --check 7.3.16.3 OK): '>>IF conditional-expression-1 shall begin on a new line and shall be specified entirely on that line.' Render recognizes a directive only when the TRIMMED line starts with '>>' (begin on a new line; §7.3.3 SR2 allows leading spaces); the cce is exactly the operand of that one line, fragment-parsed by DirectiveExpressionFragment.ParseCce. Probe p16: 'DISPLAY \"A\" >>IF V = 1' mid-line -> COBOL0307 (rejected). p17: '>>IF V =' with '1' on the next line -> COBOLNET1619 malformed 'V =' (rejected, the cce is not continued onto the next line). Both halves verified. No spec-derived negative test located. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, incl. conditional compilation, is absent from COBOL-85; the pinned compiler gates >>IF at --std 85 with COBOLNET0900, probe p01)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-7.3.16.3-2",
@@ -3008,11 +3008,11 @@
   "rule-digest": "6d311a146838",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#EvaluateCceText",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c13-if-directive-text1-same-line",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "SR2 (cite.py --check 7.3.16.3 OK): 'Text-1 shall begin on a new line.' Text written after the cce on the >>IF line is part of the directive operand, and the cce fragment parse rejects it: probe p06 '>>IF V = 1 DISPLAY \"A\"' -> COBOLNET1619 \">>IF: malformed compile-time expression 'V = 1 DISPLAY \"A\"'\". Text on following lines is text-1 (p01). No spec-derived negative test located. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, incl. conditional compilation, is absent from COBOL-85; the pinned compiler gates >>IF at --std 85 with COBOLNET0900, probe p01)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-7.3.16.3-3",
@@ -3068,11 +3068,11 @@
   "rule-digest": "80bea5a0e341",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Render; src/Cobol.Net.Frontend/Preprocessor/ConditionalCompilationProcessor.cs#Frame",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c13_if_directive_multiline_texts",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "SR6 (cite.py --check 7.3.16.3 OK): 'Text-1 and text-2 may be any kind of source lines, including compiler directives. Text-1 and text-2 may consist of multiple lines.' Render treats every non-directive line as text (block/omitted) and every directive line in a branch through the same switch with ParentActive frames. Probes: p08 nested >>IF/>>ELSE/>>END-IF and a >>DEFINE inside text-1 (N-TT, Z5 correct); p20 non-COBOL garbage, a missing-copybook COPY and >>SOURCE FORMAT FREE in the omitted text-1, and >>TURN + a multi-line DISPLAY in text-2 -> compiles, prints OK1 OK2. The pb1006 golden derives its expected output from §7.2.1 Step 1 and §7.3.16.4 GR2/GR3 with a directive in the false path. || REFUTED: CONFORMS with test-ref EMPTY. The implementation conforms, but pb1006_source_format_in_false_path does not pin SR6: it pins §7.2.1 Step 1 (SOURCE FORMAT processed in the false path) and §7.3.16.4 GR2/GR3, and every text-1/text-2 in it is a single line, so the 'Text-1 and text-2 may consist of multiple lines' half is never exercised. A golden with multi-line texts carrying nested directives (IF, EVALUATE, DEFINE) in both branches would close the row. — Behaviour conforms and survived attack. Probe t2 put a nested >>EVALUATE, a nested IF/ELSE/END-IF and a >>DEFINE in an omitted multi-line text-1, and a nested EVALUATE with WHEN OTHER, >>PAGE, >>DEFINE, a nested IF and a two-line DISPLAY in an included text-2. The output was exactly G1 G2: the omitted DEFINE took no effect and the included one did. The false path also tolerated an unterminated literal, an invalid column-7 indicator, a continued literal and an incomplete COPY REPLACING (u1-u4). The refutation is the test-ref only. The cited golden is spec-derived, but for a different rule and branch set, and it leaves SR6's multiple-lines half unpinned, so it cannot close this row. || editions (adjudicator): 2002, 2014, 2023 (the §7.3 compiler-directive facility, incl. conditional compilation, is absent from COBOL-85; the pinned compiler gates >>IF at --std 85 with COBOLNET0900, probe p01)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-7.3.16.3-7",
@@ -10958,11 +10958,11 @@
   "rule-digest": "29eb3c8e0530",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#TotalRunUnitLocks",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c13_run_unit_lock_max_53",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "§9.1.13.8 3) '53' when a statement requests a record lock and the run unit holds the implementation maximum (cite.py --check OK §9.1.13.8 3)). RunUnitLockMax = 255 summed over every physical file's RecordLocks (TotalRunUnitLocks), tested after the per-connector ceiling in both LockRecord and PreflightNewLock (the order when both apply is §9.1.13.1 latitude). Probe lock53/lk53.cob (18 connectors on one relative file, LOCK MODE MANUAL MULTIPLE, each READ WITH LOCK on 15 records): connectors 1-17 get 255 locks, connector 18's every READ WITH LOCK -> 53. No spec-derived golden reaches the run-unit ceiling (pb338_read_lock_limit_position reaches only '54'). kb/Work PB707 (open) is about where WRITE/REWRITE preflight returns 53/54 relative to RetryLoop; the behaviour is identical. || Editions (adjudicator, verbatim): 2002/2014/2023",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-9.1.13.8-4",
@@ -38528,11 +38528,11 @@
   "rule-digest": "c498b6d18cd3",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c13-initiate-multi-in-exception-perform",
   "derivation": "",
   "editions": "2023",
   "notes": "Rule: 'An INITIATE statement that specifies more than one report-name-1 shall not be specified in an exception checking PERFORM statement.' (cite.py --check 14.9.21.3 -> OK §14.9.21.3 3)). CODE: over region B (imperative-statement-1 + every WHEN / WHEN OTHER / WHEN COMMON body + FINALLY) every descendant InitiateStatementContext with reportName().Length > 1 -> error COBOLNET1605. PROBES s1-s6 (2023): multi-name INITIATE in imperative-statement-1 (s1), a WHEN body (s2), FINALLY (s3), nested inside IF + inline PERFORM (s4), WHEN OTHER / WHEN COMMON (s6) -> COBOLNET1605 each; two single-name INITIATEs (s5) and a multi-name INITIATE AFTER END-PERFORM (s2, s6) accepted and run. The rule counts operands, which is what the check counts. Hygiene only: COBOLNET1605 (and siblings 1606/1607/1612/1613) is a raw string code absent from docs/DIAGNOSTICS.md and DiagnosticCatalog, and it is reported at the PERFORM's position rather than the INITIATE's - see dossier_gaps. No test references COBOLNET1605 - test-needed (negative). [code-location note: B INITIATE check, COBOLNET1605)] || editions as adjudicated: 2023 only (the exception-checking PERFORM, Format 3, is new in 2023 - Annex E 'PERFORM Statement. An exception checking variant of this statement has been added.')",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.21.4-1",
@@ -38858,11 +38858,11 @@
   "rule-digest": "aea19a9c68ed",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1c14_inspect_backward_after",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "cite.py --check 14.9.22.4 \"This implied character is considered always to match the leftmost character\" -> OK GR8. GR8a lead-in: operands are one flattened list in source order across all counters (BindPhraseOperands) and tried k=0..n-1 at each position; the pattern compares contiguous characters from the current position (pos+len within the region); BACKWARD starts at the rightmost via the reversed frame. The three match conditions are the L2.1-L2.3 rows. Legacy-differential test Tally_SharedCycle_EarlierAllStarvesLeading does not close the row. || editions as adjudicated: 1985, 2002, 2014, 2023 (BACKWARD arm 2023)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.22.4-L2.1",
@@ -38903,11 +38903,11 @@
   "rule-digest": "f7563fcdfbd9",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1c14_inspect_backward_after",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "cite.py --check 14.9.22.4 \"This implied character is considered always to match the leftmost character\" -> OK GR8 e); GR8 a) 3. FIRST. FIRST: live flag cleared at its first match, so only the leftmost (BACKWARD: rightmost — probe ABABABxy) occurrence is replaced, each FIRST phrase independently. 8b: no match -> pos+1, restart at the first operand; 8c: a match advances past the matched characters (BACKWARD: to the left, via the reversed frame; NOTE 2 matching direction preserved by pattern reversal); 8d: loop ends when pos reaches the end; 8e: CHARACTERS matches one character without comparison. Probes misc.cob confirm. || editions as adjudicated: 1985, 2002, 2014, 2023 (BACKWARD/NOTE 2 arms 2023)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.22.4-9",
@@ -38933,11 +38933,11 @@
   "rule-digest": "79b946003bbf",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Region; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Tally; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Replace; src/Cobol.Net.Runtime/Verbs/CobolInspect.cs#Convert",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1c14_inspect_backward_after",
   "derivation": "",
   "editions": "2023",
   "notes": "cite.py --check 14.9.22.4 \"from the character position immediately to the left of the leftmost character position of the first occurrence of literal-2\" -> OK GR9 c) 1. With BACKWARD the text and delimiter are reversed and Region applies AFTER in that frame: the first occurrence in scan direction (the rightmost) and the region is everything to its left down to the leftmost character. Probe misc.cob: INSPECT BACKWARD 'A12C21D12EF' TALLYING ALL \"12\" AFTER \"C\" -> 1 (only 'A12' eligible). conformance:2023/inspect_backward covers BEFORE only, so this row has no covering test.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.22.4-L3.2",

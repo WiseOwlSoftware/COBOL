@@ -634,7 +634,8 @@
   "pb921_numeric_edited_value_formats",
   "l1c03_cobol_words_case_insensitive",
   "l1c03_cobol_words_directing_unaffected",
-  "l1c09_external_assign_consistency"
+  "l1c09_external_assign_consistency",
+  "l1c14_inspect_backward_after"
  ],
  "pending": [
   "pb485_value_only_format1"

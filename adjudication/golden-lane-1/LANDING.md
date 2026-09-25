@@ -105,3 +105,24 @@ Process: after a refuter, run `python3 scratch/integrate.py <wave> <slug…>` (p
 - overturned SR-13.4.5.3-2 (convention): The expected output (OPEN=00 LC=0001 / MAIN-W=00 LC=0002 / SUB-W=00 LC=0003 / AFTER-SUB LC=0003) is correct, and the clause numbers 13.18.34.4 7) d) and 7) c) 3. are the PRINTED ones. But header lines 16 and 20 record th
 - overturned GR-13.4.5.4-2 (does-not-exercise-rule): GR2 only constrains PROGRAMS: every FD of one external connector 'shall obey' a)-e). The writer concedes it has no mandated detection (§4.2.2). Everything the golden prints comes from §9.1.5 1) (one external connector: D
 - gate: Conformance filter 5560/5560 (all 13 new goldens ran by name), Unit filter 25/25 after naming DOC-A.1-76/78 in CONFORMANCE.md §7 Pinned by.
+
+### misc-p13 + misc-p14: landed 8 (GAP 1528 → 1520)
+- misc-p13: landed 5, overturned/withheld 1, not-closable 1
+  - GR-14.9.21.4-5 (editions): The only construct that forces the 2023 directory is ORGANIZATION IS LINE SEQUENTIAL on F-BACK. Line sequential organization is new in 2023 (the ISO 2023 new-features list at specs/ISO_COBOL.md:1105 h
+- misc-p14: landed 3, overturned/withheld 8, not-closable 1
+  - GR-14.9.22.4-1 (does-not-exercise-rule): CNT, the DEPENDING ON object, is OUTSIDE group G, so §13.18.38.4 GR8a governs G's length. GR8a gives the length from the current CNT whether G is a sending or a receiving operand. Only GR8b, with the 
+  - GR-14.9.22.4-L2.1 (split): all refs overturned
+  - GR-14.9.22.4-L3.2 (split): all refs overturned
+  - GR-14.9.22.4-5 (does-not-exercise-rule): GR5 maps literal-1..5 onto identifier-3..7. The golden pins identifier-3 (I1), identifier-4 (I3) and identifier-5 (I2). It never uses identifier-6 or identifier-7, the CONVERTING operands that GR20 re
+  - GR-14.9.22.4-7 (split): all refs overturned
+  - GR-14.9.22.4-9 (does-not-exercise-rule): GR9a has two arms: 'neither BEFORE nor AFTER' and 'identifier-4 references a zero-length item'. The writer's own notes say the zero-length identifier-4 arm (2014+) is not exercised, so the 2014 and 20
+  - GR-14.9.22.4-11 (split): all refs overturned
+  - GR-14.9.22.4-16 (does-not-exercise-rule): GR16 makes ALL, FIRST and LEADING transitive. R1-R4 pin FIRST and ALL, and the ALL/FIRST ending of each other's reach, but no operand follows a LEADING. An implementation where a bare operand after LE
+- ⚠ Conservative withholding: when the refuter overturned `85/l1c14_inspect_comparison_cycle` for NOT pinning GR5/GR16 (does-not-exercise-rule), integrate.py withheld that golden from every row, including the rows the refuter UPHELD on it (L2.1, L3.2, GR7, GR11 — the 'split' entries above). Those four rows can land from the snapshot with no rewrite: land the golden as it stands for the upheld rows only. `85/l1c14_inspect_before_after_regions` was withheld the same way.
+- gate: Conformance filter 5567/5567 (all 7 new goldens ran by name), Unit filter 25/25.
+
+## Final state at owner stop (wave 3 done)
+- **Rows witnessed: 106**: wave 1 = 47, wave 2 = 41, wave 3 = 18. **GAP 1627 → 1520.**
+- **Defects:** kb/Work/PB1547 filed; kb/Work/PB1523 extended. The unverified leads are listed under "Totals at stop" above.
+- **Input files NOT started (25 files, 241 rows):** dns-witness, misc-p15, misc-p16, misc-p17, misc-p18, misc-p19, misc-p20, misc-p21, misc-p22, misc-p23, misc-p24, misc-p25, misc-p26, misc-p27, misc-p28, misc-p29, misc-p30, misc-p31, misc-p32, misc-p33, misc-p34, misc-p35, misc-p36, misc-p37, misc-p38. Inputs are in `scratch/in/`.
+- **Drafted but not landed:** every overturned or withheld row in waves 1–3. Its correction is in `scratch/reports/<slug>.refute.json` and its draft is in `scratch/out/<slug>/`.
