@@ -1,0 +1,294 @@
+{
+ "slug": "misc-p10",
+ "rows": [
+  {
+   "rule_id": "FMT-12.4.4.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_file_control_no_entries; conformance:2002/l1c10_file_control_two_entries; conformance:negative/l1c10-file-control-no-period",
+   "files": [
+    "tests/conformance/2002/l1c10_file_control_no_entries.cob",
+    "tests/conformance/2002/l1c10_file_control_no_entries.out",
+    "tests/conformance/2002/l1c10_file_control_two_entries.cob",
+    "tests/conformance/2002/l1c10_file_control_two_entries.out",
+    "tests/conformance/negative/l1c10-file-control-no-period.cob",
+    "tests/conformance/negative/l1c10-file-control-no-period.err"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Format 'FILE-CONTROL. [ file-control-entry ] ...': brackets -> zero entries legal (FC-EMPTY=OK); ellipsis -> two SELECT entries each declare their own file (F1=AAAA, F2=BBBB read back through each); the period is unbracketed so 'FILE-CONTROL' without it is rejected (negative, 85 2002 2014 2023).",
+   "citations": [
+    "cite.py --check 12.4.4.2 \"file-control-entry\" -> OK §12.4.4.2 (General format)",
+    "cite.py --check 12.4.2 \"file-control-paragraph\" -> OK §12.4.2 (General format)",
+    "cite.py --check 12.4.5 \"The file control entry declares the relevant physical attributes of a file\" -> OK §12.4.5 (File control entry)"
+   ],
+   "ran": "pass",
+   "notes": "Negative .err is the generic parse code COBOL0307 ('missing token before 'SELECT'') - acceptable because this is a pure general-format rule (missing required separator period). Row editions are 2002+; the negative also lists 85 because the X3.23-1985 format writes the same period (compiler rejects at 85 too). Positives placed in 2002 (row's lowest edition)."
+  },
+  {
+   "rule_id": "GR-7.3.14.4-2",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "",
+   "citations": [
+    "cite.py --check 7.3.14.4 \"If ON is explicitly or implicitly specified for an option, the warning mechanism is enabled for that option for all text that follows\" -> OK §7.3.14.4 2)"
+   ],
+   "ran": "n/a",
+   "notes": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectation golden form in tests/conformance. Needs a unit/conformance-test (e.g. FlagDirectiveTests Compile_* asserting COBOLNET1620 present/absent per site), which is outside this lane (repo read-only). Probe (--std 2014, /tmp/gl/run/misc-p10/fl.cob): CLOSE WITH NO REWIND before any directive -> no warning (GR5); after '>>FLAG-02 I-O-STATUS-07' (implicit ON) -> COBOLNET1620 at 16,12 (GR2); after '>>FLAG-02 I-O-STATUS-07 OFF' -> none (GR3). Behaviour consistent with the CONFORMS verdict."
+  },
+  {
+   "rule_id": "GR-7.3.14.4-3",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "",
+   "citations": [
+    "cite.py --check 7.3.14.4 \"If OFF is specified, flagging for the selected option or options is disabled\" -> OK §7.3.14.4 3)"
+   ],
+   "ran": "n/a",
+   "notes": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectation golden form in tests/conformance. Needs a unit/conformance-test (e.g. FlagDirectiveTests Compile_* asserting COBOLNET1620 present/absent per site), which is outside this lane (repo read-only). Probe (--std 2014, /tmp/gl/run/misc-p10/fl.cob): CLOSE WITH NO REWIND before any directive -> no warning (GR5); after '>>FLAG-02 I-O-STATUS-07' (implicit ON) -> COBOLNET1620 at 16,12 (GR2); after '>>FLAG-02 I-O-STATUS-07 OFF' -> none (GR3). Behaviour consistent with the CONFORMS verdict."
+  },
+  {
+   "rule_id": "GR-7.3.14.4-5",
+   "disposition": "not-closable",
+   "test_ref": "",
+   "files": [],
+   "edition_dir": "",
+   "derivation": "",
+   "citations": [
+    "cite.py --check 7.3.14.4 \"If the FLAG-02 directive is not specified, the default for all options is off\" -> OK §7.3.14.4 5)"
+   ],
+   "ran": "n/a",
+   "notes": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectation golden form in tests/conformance. Needs a unit/conformance-test (e.g. FlagDirectiveTests Compile_* asserting COBOLNET1620 present/absent per site), which is outside this lane (repo read-only). Probe (--std 2014, /tmp/gl/run/misc-p10/fl.cob): CLOSE WITH NO REWIND before any directive -> no warning (GR5); after '>>FLAG-02 I-O-STATUS-07' (implicit ON) -> COBOLNET1620 at 16,12 (GR2); after '>>FLAG-02 I-O-STATUS-07 OFF' -> none (GR3). Behaviour consistent with the CONFORMS verdict."
+  },
+  {
+   "rule_id": "FMT-14.9.15.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+   "files": [
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.cob",
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Format 'FREE { data-name-1 } ...': three FREE statements with 3/2/2 operands compile and each operand is processed (see GR rows). S1 FREE P N Q (P,Q alias one ALLOCATEd area, N NULL): P a) released+NULL, N b) no action, Q c) EC (storage no longer currently allocated) -> EC1 + 'S1 P=NULL N=NULL Q=SAME'; reverse order would free via Q and raise on P, so it pins GR2's order. S2 FREE R P (R = ADDRESS OF WORKING-STORAGE): R c) EC, unchanged; nonfatal so resume at next implicit FREE: P a) NULL -> EC2 + 'S2 R=SAME P=NULL'. S3 FREE Q P (Q = allocation UP BY 1, not the start): EC3, Q unchanged, P NULL. END K=3 (b) raised nothing). T fields are PIC X(8) so 'NULL'/'SAME' carry 4 inner pad spaces.",
+   "citations": [
+    "cite.py --check 14.9.15.2 \"FREE\" -> OK §14.9.15.2 (General format)",
+    "cite.py --check 14.9.15.4 \"identifies the start of storage that is currently allocated by an ALLOCATE statement\" -> OK §14.9.15.4 1) a)",
+    "cite.py --check 14.9.15.4 \"...contains the predefined address NULL, no action is taken for that operand\" -> OK §14.9.15.4 1) b)",
+    "cite.py --check 14.9.15.4 \"otherwise, the EC-STORAGE-NOT-ALLOC exception condition is set to exist\" -> OK §14.9.15.4 1) c)",
+    "cite.py --check 14.9.15.4 \"processing resumes at the next implicit FREE statement, if any\" -> OK §14.9.15.4 2)",
+    "cite.py --check 14.6.13.1.4 \"If execution of the declarative completes normally, execution continues as specified in the rules for normal execution\" -> OK §14.6.13.1.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "Shared program with GR-14.9.15.4-1 and -2. FREE is 2002+ so 2002 dir."
+  },
+  {
+   "rule_id": "GR-14.9.15.4-1",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+   "files": [
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.cob",
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Arm a): P NULL in S1/S2/S3. Arm b): N in S1 raises nothing (K ends at 3, one per c) site). Arm c): three distinct c) sites - storage already released through an alias (S1 Q), storage never ALLOCATEd (S2 R), pointer not at the start of allocated storage (S3 Q) - each EC-STORAGE-NOT-ALLOC with the operand unchanged. S1 FREE P N Q (P,Q alias one ALLOCATEd area, N NULL): P a) released+NULL, N b) no action, Q c) EC (storage no longer currently allocated) -> EC1 + 'S1 P=NULL N=NULL Q=SAME'; reverse order would free via Q and raise on P, so it pins GR2's order. S2 FREE R P (R = ADDRESS OF WORKING-STORAGE): R c) EC, unchanged; nonfatal so resume at next implicit FREE: P a) NULL -> EC2 + 'S2 R=SAME P=NULL'. S3 FREE Q P (Q = allocation UP BY 1, not the start): EC3, Q unchanged, P NULL. END K=3 (b) raised nothing). T fields are PIC X(8) so 'NULL'/'SAME' carry 4 inner pad spaces.",
+   "citations": [
+    "cite.py --check 14.9.15.2 \"FREE\" -> OK §14.9.15.2 (General format)",
+    "cite.py --check 14.9.15.4 \"identifies the start of storage that is currently allocated by an ALLOCATE statement\" -> OK §14.9.15.4 1) a)",
+    "cite.py --check 14.9.15.4 \"...contains the predefined address NULL, no action is taken for that operand\" -> OK §14.9.15.4 1) b)",
+    "cite.py --check 14.9.15.4 \"otherwise, the EC-STORAGE-NOT-ALLOC exception condition is set to exist\" -> OK §14.9.15.4 1) c)",
+    "cite.py --check 14.9.15.4 \"processing resumes at the next implicit FREE statement, if any\" -> OK §14.9.15.4 2)",
+    "cite.py --check 14.6.13.1.4 \"If execution of the declarative completes normally, execution continues as specified in the rules for normal execution\" -> OK §14.6.13.1.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "Checking is ON (>>TURN EC-STORAGE-NOT-ALLOC CHECKING ON) so c) is observed via the USE declarative + FUNCTION EXCEPTION-STATUS."
+  },
+  {
+   "rule_id": "GR-14.9.15.4-2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+   "files": [
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.cob",
+    "tests/conformance/2002/l1c10_free_multi_operand_arms.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Order: S1's alias pair yields P=NULL/Q=SAME only under source order. Nonfatal resumption: S2 and S3 raise on the first operand and the second operand is still freed (P=NULL); after the last implicit FREE processing reaches the next statement (DISPLAY lines follow). S1 FREE P N Q (P,Q alias one ALLOCATEd area, N NULL): P a) released+NULL, N b) no action, Q c) EC (storage no longer currently allocated) -> EC1 + 'S1 P=NULL N=NULL Q=SAME'; reverse order would free via Q and raise on P, so it pins GR2's order. S2 FREE R P (R = ADDRESS OF WORKING-STORAGE): R c) EC, unchanged; nonfatal so resume at next implicit FREE: P a) NULL -> EC2 + 'S2 R=SAME P=NULL'. S3 FREE Q P (Q = allocation UP BY 1, not the start): EC3, Q unchanged, P NULL. END K=3 (b) raised nothing). T fields are PIC X(8) so 'NULL'/'SAME' carry 4 inner pad spaces.",
+   "citations": [
+    "cite.py --check 14.9.15.2 \"FREE\" -> OK §14.9.15.2 (General format)",
+    "cite.py --check 14.9.15.4 \"identifies the start of storage that is currently allocated by an ALLOCATE statement\" -> OK §14.9.15.4 1) a)",
+    "cite.py --check 14.9.15.4 \"...contains the predefined address NULL, no action is taken for that operand\" -> OK §14.9.15.4 1) b)",
+    "cite.py --check 14.9.15.4 \"otherwise, the EC-STORAGE-NOT-ALLOC exception condition is set to exist\" -> OK §14.9.15.4 1) c)",
+    "cite.py --check 14.9.15.4 \"processing resumes at the next implicit FREE statement, if any\" -> OK §14.9.15.4 2)",
+    "cite.py --check 14.6.13.1.4 \"If execution of the declarative completes normally, execution continues as specified in the rules for normal execution\" -> OK §14.6.13.1.4 3)"
+   ],
+   "ran": "pass",
+   "notes": "The fatal-EC half of GR2 (resume after a fatal EC whose declarative RESUMEs) is not exercised: FREE's own condition is nonfatal, and a fatal one needs a STRONG-typedef subscripted pointer operand; the adjudicator's probe f7 covered it. The nonfatal and ordering sentences are pinned."
+  },
+  {
+   "rule_id": "FMT-11.5.2",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_function_id_prototype_as_and_is",
+   "files": [
+    "tests/conformance/2002/l1c10_function_id_prototype_as_and_is.cob",
+    "tests/conformance/2002/l1c10_function_id_prototype_as_and_is.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Format 2 with AS literal-1 ('FUNCTION-ID. L1C10SQ AS \"L1C10SQX\" IS PROTOTYPE.') and with the optional word IS omitted ('FUNCTION-ID. L1C10CU PROTOTYPE.', IS not underlined -> §5.2.3 optional) both compile; Format 1 with AS defines L1C10SQ; activation through the REPOSITORY specifiers (12.3.8.4 GR11 b)) gives SQ=000049 (7*7) and CU=000343 (7*7*7).",
+   "citations": [
+    "cite.py --check 11.5.2 \"Format 2 (prototype)\" -> OK §11.5.2 (General format)",
+    "cite.py --check 11.5.2 \"Format 1 (definition)\" -> OK §11.5.2 (General format)",
+    "cite.py --check 5.2.3 \"Optional words are reserved words or context-sensitive words. They are shown in uppercase and not underlined in general formats\" -> OK §5.2.3",
+    "cite.py --check 11.5.4 \"literal-1, if specified, is the name of the function prototype that is externalized to the operating environment\" -> OK §11.5.4 2)",
+    "cite.py --check 12.3.8.4 \"if the externalized name of the function prototype is the externalized name of a function prototype definition specified in the same compilation group\" -> OK §12.3.8.4 11) b)"
+   ],
+   "ran": "pass",
+   "notes": "Fills the two arms the adjudicator found uncovered (Format 2 WITH AS; IS omitted). Prototype and definition share name and AS literal so the golden does not depend on how an AS-literal/name mismatch resolves (that is 11.5.4 GR2 / 12.3.8.4, not this FMT row). Format 1 +/-AS and Format 2 without AS remain covered by pb303_as_externalized_name / udf_invocation / udf_prototype."
+  },
+  {
+   "rule_id": "DOC-A.1-69",
+   "disposition": "new-golden",
+   "test_ref": "conformance:2002/l1c10_fatal_ec_runtime_detection",
+   "files": [
+    "tests/conformance/2002/l1c10_fatal_ec_runtime_detection.cob",
+    "tests/conformance/2002/l1c10_fatal_ec_runtime_detection.out"
+   ],
+   "edition_dir": "2002",
+   "derivation": "Pins the CONFORMANCE.md DOC-A.1-69 determination: constant out-of-range subscript E(6), constant ref-mod X(7:2), literal zero divisor 1/0, SQRT(-1), and STANDARD-COMPARE on an unavailable ORDER TABLE all COMPILE (only warning COBOLNET1662 for the ORDER TABLE) and raise their fatal ECs at run time: declarative (USE EC-ALL, RESUME AT NEXT STATEMENT) prints 1=EC-BOUND-SUBSCRIPT 2=EC-BOUND-REF-MOD 3=EC-SIZE-ZERO-DIVIDE 4=EC-ARGUMENT-FUNCTION 5=EC-ORDER-NOT-SUPPORTED; after >>TURN EC-ORDER-NOT-SUPPORTED CHECKING OFF the same call executes and the program continues (OFF-CONTINUED: code always produced); END K=5.",
+   "citations": [
+    "cite.py --check 14.6.13.1.3 \"It is implementor-defined which fatal exception conditions, if any, are detected at compile time\" -> OK §14.6.13.1.3 8)",
+    "cite.py --check 14.6.13.1.3 \"If execution of the declarative completes normally the execution of the run unit is terminated abnormally\" -> OK §14.6.13.1.3 5)",
+    "cite.py --check 14.9.33.4 \"control is transferred to an implicit CONTINUE statement\" -> OK §14.9.33.4 2)",
+    "cite.py --check 8.4.2.3.4 \"is greater than the highest permissible occurrence number, the EC-BOUND-SUBSCRIPT exception condition is set to exist\" -> OK §8.4.2.3.4 2)",
+    "cite.py --check 8.4.3.3.4 \"a value that references a position outside the area of identifier-1, the EC-BOUND-REF-MOD exception condition is set to exist\" -> OK §8.4.3.3.4 5) c)",
+    "cite.py --check 14.7.5 \"if the divisor in a divide operation or the DIVIDE statement is zero, the EC-SIZE-ZERO-DIVIDE exception condition is set to exist\" -> OK §14.7.5 2)",
+    "cite.py --check 15.3 \"the EC-ARGUMENT-FUNCTION exception condition is set to exist\" -> OK §15.3 14)",
+    "cite.py --check 15.85.4 \"If the cultural ordering table is not available on the processor\" -> OK §15.85.4 2)",
+    "cite.py --check 7.3.25.4 \"If the OFF phrase is specified, checking for the exception condition associated with exception-name-1 is disabled\" -> OK §7.3.25.4 8)"
+   ],
+   "ran": "pass",
+   "notes": "VOLUNTARY row; the golden pins the DOCUMENTED choice (runtime detection, code always produced), not an outcome every implementation shares. Related existing goldens pb101_ec_order_not_supported and ec_bound_ref_mod each cover one leg with checking ON only. The COBOLNET1662 warning itself is not observable by the corpus runner (compile warnings are not compared)."
+  },
+  {
+   "rule_id": "GR-8.3.3.6.4-5",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values",
+   "files": [
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.cob",
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.out",
+    "tests/conformance/2002/l1c10_figurative_code_values.cob",
+    "tests/conformance/2002/l1c10_figurative_code_values.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "85 golden: MOVE SPACE to X(3) -> 'SP=[   ]' (GR2 fill + GR5 space), DISPLAY SPACE -> 'SP1=[ ]' (GR3 b one char), X3 = \"   \" -> SPEQ=Y, ORD of SPACE equals ORD of literal \" \" (033 033). 2002 golden: SPACE = X\"202020\" (AN-SP=Y) and national NX\"002000200020\" (NA-SP=Y).",
+   "citations": [
+    "cite.py --check 8.3.3.6.4 \"The space format represents one or more of the character space\" -> OK §8.3.3.6.4 5)",
+    "cite.py --check 8.3.3.6.4 \"...the string of characters is repeated character by character...\" -> OK §8.3.3.6.4 2)",
+    "cite.py --check 8.3.3.6.4 \"When a figurative constant is other than ALL literal-1, the length of the string is one character\" -> OK §8.3.3.6.4 3)",
+    "cite.py --check 15.70.4 \"...current alphanumeric program collating sequence\" -> OK §15.70.4 1)"
+   ],
+   "ran": "pass",
+   "notes": "Lines SP=, SP1=, SPEQ=, and ORD first two values pin GR5 (85); AN-SP / NA-SP in the 2002 golden pin the code value."
+  },
+  {
+   "rule_id": "GR-8.3.3.6.4-8",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:negative/l1c10-quote-bounds-literal",
+   "files": [
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.cob",
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.out",
+    "tests/conformance/negative/l1c10-quote-bounds-literal.cob",
+    "tests/conformance/negative/l1c10-quote-bounds-literal.err"
+   ],
+   "edition_dir": "85",
+   "derivation": "First sentence: MOVE QUOTE to X(3) -> 'QT=[\"\"\"]', DISPLAY QUOTE -> 'QT1=[\"]', X3 = \"\"\"\"\"\"\"\" (8.3.3.5.3 SR3: content three '\"') -> QTEQ=Y, ORD 035. Second sentence ('QUOTE ... shall not be used ... to bound a literal'): negative VALUE QUOTE ABC QUOTE is rejected at 85/2002/2014/2023 because ABC is then a bare word, not a literal; the same item with VALUE \"ABC\" compiles and runs (probe).",
+   "citations": [
+    "cite.py --check 8.3.3.6.4 \"The word QUOTE or QUOTES shall not be used in place of a quotation symbol to bound a literal\" -> OK §8.3.3.6.4 8)",
+    "cite.py --check 8.3.3.5.3 \"Two contiguous quotation symbol characters matching the quotation symbol used in the opening delimiter represent a single occurrence\" -> OK §8.3.3.5.3 3)",
+    "cite.py --check 13.18.63.2 \"literal-1\" -> OK §13.18.63.2 (General formats)"
+   ],
+   "ran": "pass",
+   "notes": "Negative .err = 'COBOLNET1639: data item 'W': the VALUE operand 'ABC' is not a literal' - the code's meaning (a VALUE operand that is not a literal) is exactly the consequence of QUOTE not bounding a literal; message head only, stopping before the clause citations. The compiler also emits COBOLNET1585 (more than one literal). The 2002 golden's NA-QT/AN-QT lines also pin the quote code value."
+  },
+  {
+   "rule_id": "DOC-A.1-74",
+   "disposition": "new-golden",
+   "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values",
+   "files": [
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.cob",
+    "tests/conformance/85/l1c10_figurative_space_quote_zero_chars.out",
+    "tests/conformance/2002/l1c10_figurative_code_values.cob",
+    "tests/conformance/2002/l1c10_figurative_code_values.out"
+   ],
+   "edition_dir": "85",
+   "derivation": "Pins the CONFORMANCE.md DOC-A.1-74 values: 85 golden - ZERO/SPACE/QUOTE are the characters '0', space, '\"' (ZR/SP/QT lines) and ORD 049/033/035; 2002 golden - alphanumeric images X\"20\"/X\"30\"/X\"22\" (8.3.3.2.4 GR4 bit configuration) and national code units NX\"0020\"/NX\"0030\"/NX\"0022\" (8.3.3.5.4 GR4; GR1 national context) all true, ORD for PIC X and PIC N both 033 049 035.",
+   "citations": [
+    "cite.py --check 8.3.3.6.4 \"the character value representation of the figurative constant ZERO (ZEROS, ZEROES), SPACE (SPACES), and QUOTE (QUOTES) is the value of the character '0', space, and '\\\"', respectively\" -> OK §8.3.3.6.4 1)",
+    "cite.py --check 8.3.3.2.4 \"...each of which has the bit configuration specified by one occurrence of hex-character-sequence-1\" -> OK §8.3.3.2.4 4)",
+    "cite.py --check 8.3.3.5.4 \"shall be a string of national characters, each of which has the bit configuration...\" -> OK §8.3.3.5.4 4)",
+    "cite.py --check 15.70.4 (alphanumeric / national) -> OK §15.70.4 1) / 2)"
+   ],
+   "ran": "pass",
+   "notes": "Two editions: hex/national literals and PIC N need 2002, so the national + code-value half is a 2002 golden; the character-identity half runs at 85 (FUNCTION ORD accepted at --std 85 as in other 85 goldens)."
+  }
+ ],
+ "manifest_entries": {
+  "85": [
+   "l1c10_figurative_space_quote_zero_chars"
+  ],
+  "2002": [
+   "l1c10_file_control_no_entries",
+   "l1c10_file_control_two_entries",
+   "l1c10_free_multi_operand_arms",
+   "l1c10_function_id_prototype_as_and_is",
+   "l1c10_fatal_ec_runtime_detection",
+   "l1c10_figurative_code_values"
+  ],
+  "2014": [],
+  "2023": []
+ },
+ "negative_manifest_entries": [
+  "l1c10-file-control-no-period",
+  "l1c10-quote-bounds-literal"
+ ],
+ "records": [
+  {
+   "rule-id": "FMT-12.4.4.2",
+   "test-ref": "conformance:2002/l1c10_file_control_no_entries; conformance:2002/l1c10_file_control_two_entries; conformance:negative/l1c10-file-control-no-period"
+  },
+  {
+   "rule-id": "FMT-14.9.15.2",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "GR-14.9.15.4-1",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "GR-14.9.15.4-2",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "FMT-11.5.2",
+   "test-ref": "conformance:2002/l1c10_function_id_prototype_as_and_is"
+  },
+  {
+   "rule-id": "DOC-A.1-69",
+   "test-ref": "conformance:2002/l1c10_fatal_ec_runtime_detection"
+  },
+  {
+   "rule-id": "GR-8.3.3.6.4-5",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values"
+  },
+  {
+   "rule-id": "GR-8.3.3.6.4-8",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:negative/l1c10-quote-bounds-literal"
+  },
+  {
+   "rule-id": "DOC-A.1-74",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values"
+  }
+ ],
+ "defects": [],
+ "deferred": []
+}

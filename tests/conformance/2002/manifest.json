@@ -421,7 +421,14 @@
   "l1c05_constant_expr_truncated_integer",
   "l1c06_currency_non_cobol_symbols",
   "l1c06_define_override_rebinds",
-  "l1c06_define_literal_categories"
+  "l1c06_define_literal_categories",
+  "l1c07_evaldir_thru_through",
+  "l1c07_evaldir_copy_replace",
+  "l1c07_evaldir_numeric_literal_operand",
+  "l1c07_evaldir_boolean_operands",
+  "l1c07_evaldir_fmt1_other_nomatch",
+  "l1c07_evaldir_alnum_equality",
+  "l1c07_evaldir_fmt2_truth"
   ],
   "pending": []
 }

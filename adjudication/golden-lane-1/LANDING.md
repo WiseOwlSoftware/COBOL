@@ -56,3 +56,9 @@ Overturned rows stay CONFORMS-but-untested; the refuter's exact correction is in
 - Unit `SpecTraceabilityInventory|DefectiveRowCoverage|Manifest|AnnexA1Register`: first run 1 red —
   `AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names` (the new DOC-A.1-6/8/21/32/43/44 witnesses
   were not yet in docs/CONFORMANCE.md §7 `Pinned by`); fixed by naming them there → Passed 25/25.
+
+## Wave 2 (misc-p7..p12) — landing incrementally
+
+### misc-p7: landed 10, overturned 1 (GAP 1580 → 1570)
+- overturned SR-7.3.13.3-8 (expected-value): Program is not conforming source, so no stdout is defined for it. The omitted outer >>WHEN OTHER text-2 holds `>>EVALUATE 9` / `>>WHEN OTHER` / `>>END-EVALUATE` with NO `>>WHEN operand-2` phrase; §7.3.13.2 Format 1 encloses `>> WHEN ... [text-1]` in braces with an ellipsis (required, one or more tim
+- gate: Conformance filter 5518/5518 (7 new goldens ran by name), Unit filter 25/25.
