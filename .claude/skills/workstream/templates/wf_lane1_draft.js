@@ -141,7 +141,7 @@ implementation (no NIST/legacy provenance, no "observed" values); (f) check dete
 dispositions, open the golden and confirm the quoted lines pin the rule. Every overturn in this project's history
 was a DOWNGRADE; an all-upheld report is a red flag — say what you did to break it. Default to refuted when
 uncertain. Corrections must be exact (the line, the value, the reason).`,
-    { label: `refute:${slug}`, phase: 'Refute', model: 'opus', schema: REFUTE_OUT }).then(r => ({ w, r })) : null,
+    { label: `refute:${slug}`, phase: 'Refute', model: 'opus', agentType: 'cobol-refuter', schema: REFUTE_OUT }).then(r => ({ w, r })) : null,
 
   (x, slug) => {
     if (!x || !x.r) return x

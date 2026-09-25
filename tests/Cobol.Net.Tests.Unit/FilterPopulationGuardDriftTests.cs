@@ -101,8 +101,12 @@ public sealed class FilterPopulationGuardDriftTests
         foreach (string file in Directory.EnumerateFiles(TestRepo.Scripts(), "*", SearchOption.AllDirectories))
         {
             string rel = "scripts/" + Path.GetRelativePath(TestRepo.Scripts(), file).Replace('\\', '/');
-            // __pycache__ holds compiled BUILD OUTPUT, and the guard is exempt from its own rule.
-            if (rel.Contains("__pycache__", StringComparison.Ordinal) || rel.EndsWith(Guard, StringComparison.Ordinal))
+            // __pycache__ holds compiled BUILD OUTPUT, and the guard is exempt from its own rule. So is scripts/hooks/:
+            // a Claude Code hook RECEIVES a command as data and decides whether to allow it — the PreToolUse guard
+            // (forbidden_commands.py, kb/Work R49) is itself a filtered-test rule and quotes `dotnet test --filter`
+            // shapes to recognize them — and never runs a test; the hooks that run anything are named in settings.json.
+            if (rel.Contains("__pycache__", StringComparison.Ordinal) || rel.EndsWith(Guard, StringComparison.Ordinal)
+                || rel.StartsWith("scripts/hooks/", StringComparison.Ordinal))
                 continue;
 
             string code = CodeOnly(File.ReadAllText(file));

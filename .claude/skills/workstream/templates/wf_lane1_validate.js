@@ -68,7 +68,7 @@ from the rule, classification = suspected-compiler-defect with a repro_note (min
 cite.py --check line, expected vs observed); if you can show the draft misread the rule, classification =
 draft-error and say exactly what the rule requires (you still do not edit the draft). Environment problems (missing
 exe, timeouts) are 'environment'. Return every draft, including passes.`,
-  { label: `validate:${slug}`, phase: 'Validate', model: 'opus', schema: OUT })))
+  { label: `validate:${slug}`, phase: 'Validate', model: 'opus', agentType: 'cobol-adjudicator', schema: OUT })))
   rs.forEach(r => { if (r) res.push(r) })
   log(`Validate: ${Math.min(i + N, FILES.length)}/${FILES.length}`)
 }

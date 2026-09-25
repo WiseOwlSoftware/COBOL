@@ -48,6 +48,15 @@ Reading its output:
 - **`invent`** — the traceability inventory GAP count is the P14 burn-down metric. "not built yet" means the
   denominator does not exist and no conformance percentage can be quoted.
 
+## 3b. Act on the TOOLING block (kb/Work R49) — the same hook prints it after the probe
+
+`scripts/hooks/tooling_check.py` checks every adopted capability instead of assuming it: the Workflow opt-in, the
+role agents (`.claude/agents/`, selected with `agentType`), the guard hook, the telemetry sink, the C# LSP and the
+weekly `/skill-doctor` review. Each line is `OK`, `REPAIRED` (fixed automatically, no permission needed), `N/A`, or
+**`ASK-OWNER`** — ⛔ **ask the owner about every `ASK-OWNER` line NOW, one bare AskUserQuestion each; never skip one**
+(owner 2026-09-25: permission-gated features must trigger a query, not silently go unused). Rerun it by hand with
+`python scripts/hooks/tooling_check.py`.
+
 ## 4. Confirm the battery baseline before changing code
 
 Plan §0 "Gates" carries the last known-green counts. If the last session ended mid-batch, re-confirm green before

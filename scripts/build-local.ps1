@@ -42,6 +42,11 @@ if ($LASTEXITCODE -ne 0) { Write-Host '=== EVIDENCE SUPERSESSION: RED (see above
 # The drift-rule index (docs/DRIFT_RULES.md) is GENERATED from every *DriftTests summary — stale = red.
 python scripts/spec/drift_rules.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== DRIFT RULES INDEX: RED (run python scripts/spec/drift_rules.py) ==='; $rc = 1 }
+# The PreToolUse guard hook (git stash / direct push to main / heredoc escapes / bare test filters) proves itself.
+python scripts/hooks/test_forbidden_commands.py
+if ($LASTEXITCODE -ne 0) { Write-Host '=== GUARD HOOK SELF-TEST: RED ==='; $rc = 1 }
+python scripts/hooks/test_readonly_repo.py
+if ($LASTEXITCODE -ne 0) { Write-Host '=== READ-ONLY HOOK SELF-TEST: RED ==='; $rc = 1 }
 # ⛔ The inventory's WITNESS COUNT (kb/Work PB959) — the axis the resolution drift test deliberately does not
 # measure: RED on any code-location/test-ref lost since the merge-base with main without a retirement mark.
 python scripts/spec/audit_witness_loss.py --check

@@ -81,10 +81,21 @@ def probe() -> str:
         return f"session-probe failed: {exc}"
 
 
+def tooling() -> str:
+    # R49: every adopted capability is checked at session start; what needs the owner becomes a question, not a skip.
+    try:
+        sys.dont_write_bytecode = True   # no __pycache__ litter in the tree on every session start
+        sys.path.insert(0, str(pathlib.Path(__file__).parent))
+        import tooling_check
+        return "\n\n" + tooling_check.check()
+    except Exception as exc:  # noqa: BLE001 - a hook must never break the session
+        return f"\n\nTOOLING check failed: {exc} — ASK-OWNER: run python scripts/hooks/tooling_check.py and report"
+
+
 text = init_cloud_submodules() + (
     "Mechanical live state (scripts/session-probe.ps1). Plan §0 is the live-state SSOT; "
     "this is the computed half.\n\n" + probe()
-)
+) + tooling()
 json.dump(
     {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": text}},
     sys.stdout,

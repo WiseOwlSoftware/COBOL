@@ -23,7 +23,10 @@ description: Use BEFORE dispatching any fleet, lander, implementer or adjudicati
 The orchestrator (the session model) dispatches, reconciles, gates and commits; every other job — probe, implement,
 validate, adversarial review, land — is a subagent on the latest Opus: `~/.claude/settings.json` sets
 `CLAUDE_CODE_SUBAGENT_MODEL` to the ALIAS `opus` (Opus 5.5 since 2026-09-22 — never pin a dated id), and every
-workflow passes `model: 'opus'`.
+workflow passes `model: 'opus'`. ⭐ **Fleets run through the Workflow tool on a STANDING owner opt-in (2026-09-25)**, and
+every `agent()` names its role's `agentType` from `.claude/agents/` (`cobol-implementer` · `cobol-lander` ·
+`cobol-refuter` · `cobol-adjudicator` · `cobol-clerk`), which fixes that role's effort, turn cap, 1-hour prompt cache
+and — for the read-only roles — a hook that refuses writes inside any git tree (MANDATORY-PRACTICES O4, P12).
 
 ## 1. Checkpoint to disk, never to a transcript
 

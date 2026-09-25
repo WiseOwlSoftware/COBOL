@@ -102,7 +102,7 @@ cobol.exe when reading cannot decide); assign the verdict; name an EXISTING spec
 empty. Cluster defective rows by MECHANISM into findings (one register-ready paragraph per mechanism, with a repro and
 the spec-derived expected result); write the findings to ${OUT}/findings-${slug}.json as you go too.
 When every rule is decided, also write the whole structured result to ${OUT}/out-${slug}.json and return it.`,
-  { label: `adjudicate:${slug}`, phase: 'Adjudicate', model: 'opus', schema: ADJ_OUT }))
+  { label: `adjudicate:${slug}`, phase: 'Adjudicate', model: 'opus', agentType: 'cobol-adjudicator', schema: ADJ_OUT }))
 
 phase('Refute')
 const items = adjudicated.map((a, i) => ({ a, slug: FILES[i] })).filter(x => x.a)
@@ -125,7 +125,7 @@ the citation through cite.py. Default to refuted when uncertain and name the cor
 YOUR CHECKPOINT FILE: ${OUT}/refute-${x.slug}.jsonl — one verdict object (the schema's verdicts item) per line, appended
 the moment each rule is decided; read-and-skip first.
 Input rows: ${IN}/in-${x.slug}.json. CONFORMS records to attack: ${JSON.stringify(closing).slice(0, 50000)}`,
-      { label: `refute:${x.slug}`, phase: 'Refute', model: 'opus', schema: REF_OUT })
+      { label: `refute:${x.slug}`, phase: 'Refute', model: 'opus', agentType: 'cobol-refuter', schema: REF_OUT })
   }))
   results.forEach((r, j) => { if (r) refutations.set(chunk[j].slug, r) })
   log(`Refute: ${Math.min(i + REFUTE_CONCURRENCY, toRefute.length)}/${toRefute.length} done`)

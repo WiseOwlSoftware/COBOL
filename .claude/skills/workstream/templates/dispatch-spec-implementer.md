@@ -14,6 +14,7 @@ exists) — do not re-survey the codebase: orientation (grep/read) was 46 % of e
 Do not re-derive what the notes measured, but DO re-run every probe on your own build.
 ⛔ DRIFT RULES (MANDATORY-PRACTICES P11): before editing any file run `python scripts/spec/drift_rules.py <files>` and
 honor every SPECIFIC rule it prints — the drift tests will enforce them at your gate anyway.
+C# NAVIGATION (P13): find definitions, references and callers with the LSP tool (goToDefinition / findReferences / incomingCalls on the .cs file) before grepping; grep stays right for text, COBOL, docs and generated files.
 
 {body}
 

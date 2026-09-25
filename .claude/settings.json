@@ -5,7 +5,6 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet clean:*)",
       "Bash(git checkout:*)",
-      "Bash(git stash:*)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
@@ -17,6 +16,14 @@
       "\\tmp",
       "e:\\tmp",
       "C:\\Users\\brent\\AppData\\Local\\Temp"
+    ],
+    "deny": [
+      "Bash(git stash push:*)",
+      "Bash(git stash pop:*)",
+      "Bash(git stash apply:*)",
+      "Bash(git stash drop:*)",
+      "Bash(git push origin HEAD:main)",
+      "Bash(git push origin main)"
     ]
   },
   "hooks": {
@@ -39,6 +46,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/forbidden_commands.py\"",
+            "timeout": 30
+          },
+          {
+            "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/devlog_staged.py\"",
             "if": "Bash(git commit*)",
             "timeout": 30
@@ -54,6 +66,11 @@
       {
         "matcher": "PowerShell",
         "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/forbidden_commands.py\"",
+            "timeout": 30
+          },
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/scripts/hooks/fleet_active_build.py\"",

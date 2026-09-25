@@ -81,7 +81,7 @@ across the applicable editions and the adversarial edges the text implies (probe
 cannot decide); assign the verdict; name an EXISTING spec-derived covering test or leave test-ref empty. Cluster defective
 rows by MECHANISM into findings (register-ready paragraph each, with repro + spec-derived expected result); write them to
 ${OUT}/findings-${slug}.json as you go. When done, write the whole structured result to ${OUT}/out-${slug}.json and return it.`,
-  { label: `adjudicate:${slug}`, phase: 'Adjudicate', model: 'opus', schema: ADJ_OUT })))
+  { label: `adjudicate:${slug}`, phase: 'Adjudicate', model: 'opus', agentType: 'cobol-adjudicator', schema: ADJ_OUT })))
   rs.forEach(r => { if (r) adj.push(r) })
   log(`Adjudicate: ${Math.min(i + N, MISSING.length)}/${MISSING.length}`)
 }
@@ -103,7 +103,7 @@ in ${PIN}; probe with the pinned cobol.exe when reading cannot decide (edge valu
 rule names); check the cited test-ref really pins THIS rule's branch and is spec-derived; re-run the citation through
 cite.py. Default to refuted when uncertain and name the corrected verdict.
 YOUR CHECKPOINT FILE: ${OUT}/refute-${slug}.jsonl (one verdict object per line; read-and-skip first).`,
-    { label: `refute:${slug}`, phase: 'Refute', model: 'opus', schema: REF_OUT })))
+    { label: `refute:${slug}`, phase: 'Refute', model: 'opus', agentType: 'cobol-refuter', schema: REF_OUT })))
   rs.forEach((r, j) => results.push({ slug: chunk[j], refutation: r }))
   log(`Refute: ${Math.min(i + N, FILES.length)}/${FILES.length}`)
 }
