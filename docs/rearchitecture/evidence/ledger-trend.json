@@ -757,6 +757,24 @@
       "dns": 386,
       "label": "DEVLOG 1695, plan §0, LANDIN",
       "battery": null
+    },
+    {
+      "sha": "5360450b",
+      "date": "2026-09-25",
+      "gap": 1375,
+      "closed": 2973,
+      "dns": 386,
+      "label": "Register: PB1568-PB1579; MAN",
+      "battery": null
+    },
+    {
+      "sha": "ab810eb9",
+      "date": "2026-09-25",
+      "gap": 1254,
+      "closed": 3094,
+      "dns": 455,
+      "label": "Train 62: DEVLOG 1702 + plan",
+      "battery": null
     }
   ]
 }
