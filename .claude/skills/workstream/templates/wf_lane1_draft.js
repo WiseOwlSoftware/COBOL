@@ -126,7 +126,7 @@ Return the manifest entries (per edition directory) and negative entries you nee
 record_verdicts.py record per row that would close: {"rule-id","verdict","code-location","test-ref","editions",
 "notes"} — verdict unchanged from the input, test-ref your new/existing ref, editions from the row, notes a
 one-line derivation pointer. Strings only.`,
-    { label: `write:${slug}`, phase: 'Write', model: 'opus', schema: WRITER_OUT }),
+    { label: `write:${slug}`, phase: 'Write', model: 'opus', agentType: 'cobol-adjudicator', schema: WRITER_OUT }),
 
   (w, slug) => w ? agent(`${COMMON}
 
@@ -155,7 +155,7 @@ ${SCRATCH}/out/${slug}/REPORT.json (start from the writer's report below). Refus
 from the spec text that the refuter is wrong — then say exactly why, with cite.py --check output.
 Writer report: ${JSON.stringify(x.w).slice(0, 40000)}
 Corrections: ${JSON.stringify(bad)}`,
-      { label: `fix:${slug}`, phase: 'Fix', model: 'opus', schema: FIX_OUT }).then(f => ({ ...x, f }))
+      { label: `fix:${slug}`, phase: 'Fix', model: 'opus', agentType: 'cobol-adjudicator', schema: FIX_OUT }).then(f => ({ ...x, f }))
   },
 )
 

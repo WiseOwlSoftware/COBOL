@@ -16,6 +16,12 @@ REPO = pathlib.Path(r"E:\CobolSharp")
 OUT = pathlib.Path(__file__).resolve().parent / "in"
 OUT.mkdir(parents=True, exist_ok=True)
 MAX = 14
+# ⛔ Every slug carries a LANE PREFIX (argv[1], e.g. gl2). Lane 2 (2026-09-25) reused lane 1's bare slugs, and the
+# misc-p2 writer drafted golden-lane-1's misc-p2 rows from the repo's adjudication/golden-lane-1/scratch/in/ copy
+# instead of its own input: 12 foreign drafts, 0 of its 13 rows. A slug must be unique across every lane ever run.
+if len(sys.argv) < 2 or not re.fullmatch(r"[a-z][a-z0-9]*", sys.argv[1]):
+    sys.exit("usage: build_lane1_inputs.py <lane-prefix>   (e.g. gl3 — unique per lane; slugs become <prefix>-<family>)")
+LANE = sys.argv[1]
 
 cat = {r["id"]: r for r in json.loads((REPO / "docs/rearchitecture/spec-rule-catalog.json").read_text(encoding="utf-8"))["rules"]}
 inv = json.loads((REPO / "tests/version-matrix/traceability-inventory.json").read_text(encoding="utf-8"))
@@ -133,7 +139,7 @@ for fam, rows in sorted(groups.items()):
     # The witness group is ONE task (two owning notes, one licence) — never split it by subject.
     parts = [rows] if fam == "dns-witness" else split(rows, MAX)
     for i, part in enumerate(parts):
-        slug = fam if len(parts) == 1 else f"{fam}-p{i + 1}"
+        slug = f"{LANE}-{fam}" if len(parts) == 1 else f"{LANE}-{fam}-p{i + 1}"
         subjects = sorted({r["subject"] for r in part})
         payload = {
             "slug": slug, "family": fam, "row-count": len(part), "subjects": subjects,
