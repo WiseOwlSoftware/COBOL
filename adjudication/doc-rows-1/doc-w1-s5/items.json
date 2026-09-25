@@ -1,0 +1,296 @@
+[
+ {
+  "item": 128,
+  "rule-id": "DOC-A.1-128",
+  "a1_subject": "OCCURS clause (range of values allowed in the index)",
+  "a1_text": "OCCURS clause (range of values allowed in the index). This item is required. This item shall be documented in the implementor's user documentation. (13.18.38, OCCURS clause, General rule 2)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-128",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-128; src/Cobol.Net.Runtime/Values/Tables/CobolIndex.cs#MinIndex; src/Cobol.Net.Runtime/Values/Tables/CobolIndex.cs#TryAmount; src/Cobol.Net.Runtime/Values/Tables/CobolIndex.cs#CobolIndex.Augment; src/Cobol.Net.Runtime/Values/Tables/CobolDynTable.cs#MaxOccurrences",
+   "test-ref": "conformance:2023/pb459_set_index_amount_guards; conformance:2023/pb459_set_index_amount_ec; conformance:2002/pb459_set_index_range_ec; conformance:85/pb459_set_index_overflow_unchanged",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: 'OCCURS clause (range of values allowed in the index)... shall be documented' (13.18.38 GR2). CONFORMANCE.md line 1598 DOC-A.1-128: 'The full signed 64-bit interval, -9 223 372 036 854 775 808 through +9 223 372 036 854 775 807' (CobolIndex.MinIndex/MaxIndex = long.MinValue/MaxValue). Code agrees: MinIndex/MaxIndex consts; TryAmount/Augment reject out-of-range results leaving index unchanged; MaxOccurrences 2^30-1 so (1-n)..(2n) is contained. Probe: SET KX TO -3 -> -3, 0 -> 0, 10 (beyond 5-occurrence table) -> 10 (no raise, as documented), 9223372036854775807 -> kept, round trip via USAGE INDEX item preserved, SET KX UP BY 1 at max -> unchanged. cite: OK \u00a713.18.38.4 2) 'The implementor shall specify the rules for the range of values allowed in the index defined by index-name-1.' Owners PB459/PB465 landed/linked. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 130,
+  "rule-id": "DOC-A.1-130",
+  "a1_subject": "OPEN statement with OUTPUT phrase (positioning of the output file with regard to physical page boundaries)",
+  "a1_text": "OPEN statement with OUTPUT phrase (positioning of the output file with regard to physical page boundaries). This item is required. This item shall be documented in the implementor's user documentation. (14.9.27, OPEN statement, General rule 18)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-130",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-130; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenWriter; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#EmitLineSequentialRecord",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 130 'OPEN statement with OUTPUT phrase (positioning of the output file with regard to physical page boundaries). This item is required. This item shall be documented... (14.9.27, OPEN statement, General rule 18)' (cite.py --check A.1 -> OK \u00a7A.1 130)). \u00a714.9.27.4 GR18: 'If physical pages have meaning for the file, the positioning of the output medium with respect to physical page boundaries is implementor-defined following the successful execution of the OPEN statement, whether or not the LINAGE clause is specified' (cite.py --check 14.9.27.4 -> OK \u00a714.9.27.4 18)). Code has an answer, undefined in the documentation: OPEN OUTPUT creates an empty file with the medium at offset 0 (no form feed, no margin written at OPEN); a LINAGE file's LINAGE-COUNTER is 1 at OPEN completion and its TOP margin lines are emitted before the first record. Probe pg.cob (--std 2023; LINAGE 5 FOOTING 4 TOP 2 BOTTOM 1 plus a plain line-sequential G): after OPEN OUTPUT, LINAGE-COUNTER = 0001; OPEN/CLOSE with no WRITE leaves both files 0 bytes; one WRITE gives pg1 = '\\r\\n\\r\\nAAA\\r\\n' (the 2 TOP lines, then the record) and G's WRITE AFTER ADVANCING PAGE gives '\\fBBB\\r\\n' (OPEN positioned at the top of a page, so the first page advance emits a form feed). CONFORMANCE.md: NO '| DOC-A.1-130 |' row and no statement of OPEN OUTPUT page positioning -> DIVERGES (harm silent). Not re-reported: owning note kb/Work PB322 (open; determination 'D. OPEN OUTPUT and physical page boundaries - A.1 item 130 ... A behaviour exists ... and is nowhere DEFINED'; inventory_rows include GR-14.9.27.4-18). Incidental: the first probe spelling DISPLAY \"LC=\" LINAGE-COUNTER OF F aborted with NotImplementedCobolFeatureException 'computed expression in a string context' - already owned by kb/Work PB1318 (open), not re-reported. Umbrella A11. Editions: OPEN OUTPUT / LINAGE exist in every edition (the LINE SEQUENTIAL probe file is 2023-only; record-sequential shares OpenWriter). || Owning note: kb/Work/PB322, PB1535."
+  }
+ },
+ {
+  "item": 131,
+  "rule-id": "DOC-A.1-131",
+  "a1_subject": "OPEN statement without the SHARING phrase and no SHARING clause in the file control entry (definition of sharing mode es",
+  "a1_text": "OPEN statement without the SHARING phrase and no SHARING clause in the file control entry (definition of sharing mode established for each file connector). This item is required. This item shall be documented in the implementor's user documentation. (14.9.27, OPEN statement, General rule 23)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-131",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-131; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Conflicts",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 131 'OPEN statement without the SHARING phrase and no SHARING clause in the file control entry (definition of sharing mode established for each file connector). This item is required. This item shall be documented... (14.9.27, OPEN statement, General rule 23)' (cite.py --check A.1 -> OK \u00a7A.1 131)). \u00a714.9.27.4 GR23: 'If neither a SHARING phrase on the OPEN statement nor a SHARING clause in the file control entry is specified, the implementor shall define the sharing mode that is established for each file connector.' (cite.py --check 14.9.27.4 -> OK \u00a714.9.27.4 23)). Code: FileRegistry.ImplementorDefaultSharing = null ('the same undetermined implementor default a clause-less connector has'); arbitration then admits every combination - probe sh.cob (--std 2023; three clause-less SELECTs on one path): OPEN INPUT A 00, OPEN INPUT B 00, OPEN I-O C 00 while A and B are open, then OPEN I-O A 00 and OPEN I-O B 00 concurrently - only an ALL OTHER-like mode admits that sequence. So a behaviour is fixed but no mode is DEFINED, and CONFORMANCE.md has NO '| DOC-A.1-131 |' row (the A.4.7 row claims file sharing without stating the default) -> DIVERGES (harm silent). Not NEEDS-OWNER-DECISION: A.4.7 is Claimed. Not re-reported: owning note kb/Work PB322 (open; determination 'A. File sharing - the default mode when unspecified. Annex A.1 item 77 and item 131 both make it required'; inventory_rows include GR-14.9.27.4-23) and its 85 twin kb/Work PB670; same mechanism as wave-1 DOC-A.1-77. Umbrella A11. Editions: SHARING is 2002+. || Owning note: kb/Work/PB322, PB1535."
+  }
+ },
+ {
+  "item": 132,
+  "rule-id": "DOC-A.1-132",
+  "a1_subject": "MODULE-NAME Function, (Which type of dynamic length elementary item is used as the returned value)",
+  "a1_text": "MODULE-NAME Function, (Which type of dynamic length elementary item is used as the returned value). This item is conditionally required because it is conditioned upon the implementor supporting more than one type of dynamic length elementary item. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (15.65, MODULE-NAME function, Returned value, rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-132",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-132; docs/CONFORMANCE.md#DOC-A.1-133; src/Cobol.Net.Runtime/Control/ModuleStack.cs#ModuleStack",
+   "test-ref": "",
+   "editions": "2023",
+   "notes": "Rule: A.1 item 132 'MODULE-NAME Function, (Which type of dynamic length elementary item is used as the returned value). This item is conditionally required because it is conditioned upon the implementor supporting more than one type of dynamic length elementary item. This item, if provided by the implementor, shall be documented... (15.65, MODULE-NAME function, Returned value, rule 1)' (cite.py --check A.1 -> OK \u00a7A.1 132)). \u00a715.65.4 r1: 'If the implementation supports more than one type of dynamic length elementary items, then the implementor shall document which type is used.' (cite.py --check 15.65.4 -> OK \u00a715.65.4 1)). CONDITION HOLDS: COBOL.NET supports dynamic-length items of class alphanumeric AND national (DOC-A.1-62: 'for every dynamic-length elementary item, alphanumeric or national'), in the default native-string form and in DYNAMIC LENGTH STRUCTURE PREFIXED / DELIMITED forms (\u00a73 D-DL3), so more than one type exists and the choice must be documented. Code: FUNCTION MODULE-NAME compiles to CobolModule.Name(k), a System.String (the native, unstructured dynamic-length alphanumeric carrier); probe mn.cob (--std 2023): [MNPROG] LENGTH 6, ACTIVATING in main [ ] LENGTH 1 - no trailing spaces, r1's single-space exception. CONFORMANCE.md: NO '| DOC-A.1-132 |' row. The substance appears OFF-KEY in the neighbouring row DOC-A.1-133 ('A dynamic-length alphanumeric item with no trailing spaces', filed as item 133 = the length/trailing-spaces question and marked 'documented voluntarily'), which names the class but not which of the supported dynamic-length types (native / PREFIXED / DELIMITED structure) the value is, and which the register cannot see as item 132 - exactly \u00a77's misfiling hazard -> DIVERGES (harm silent). Mechanical fix: a DOC-A.1-132 row stating 'an alphanumeric dynamic-length item with no dynamic-length structure (the native string carrier)', pinned by ModuleStackInvariantTests. Editions: FUNCTION MODULE-NAME is a 2023 introduction (Annex E.3.3 item 28; VERSION_CHANGE_REFERENCE row 71), so the item exists at 2023 only. Owning note: none (grep 'item 132' / 'DOC-A.1-132': none); umbrella kb/Work A11 / PB160. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 138,
+  "rule-id": "DOC-A.1-138",
+  "a1_subject": "Parameterized classes and interfaces (when expanded)",
+  "a1_text": "Parameterized classes and interfaces (when expanded). This item is required. This item need not be documented in the implementor's user documentation. (Clause 7, Compiler directing facility)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-138",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-138; src/Cobol.Net.Compiler/Oo/OoExpansion.cs#OoExpansion; src/Cobol.Net.Compiler/Binding/BinderDriver.cs",
+   "test-ref": "conformance:2002/pb759_parameterized_class",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 138 'Parameterized classes and interfaces (when expanded). This item is required. This item need not be documented in the implementor's user documentation. (Clause 7, Compiler directing facility)' (cite.py --check A.1 -> OK \u00a7A.1 138)). The operative text is \u00a77.1: 'The manner and time of expansion of parameterized classes and parameterized interfaces is defined by the implementor, except that it occurs after the text manipulation stage of processing.' (cite.py --check 7.1 -> OK \u00a77.1). No documentation obligation, so part (a) is waived (no '| DOC-A.1-138 |' row; the manner is written voluntarily in OoExpansion's header and the OO deep-dive D12, kb/Work PB759). Part (b), the only hard constraint - expansion AFTER text manipulation: OoExpansion.Expand is called from BinderDriver (line ~332) on the parse tree of the already-preprocessed source (COPY/REPLACE/directives are finished before parsing), and each expansion re-parses the parameterized definition's own post-manipulation tokens with every formal replaced by its actual (\u00a712.3.8.4 GR5) and the header renamed - so the time is 'at bind time of the compilation group, after text manipulation', and the manner is token substitution into an ordinary class (never a CLR generic). Identity per \u00a79.3.12 (one class per (definition, actuals) triple; COBOLNET2240 on a conflicting reuse). Pinned: conformance:2002/pb759_parameterized_class (a class USING ELEM expanded over two actuals, INHERITS-by-formal, an interface expanded in two source elements under one name, an expansion of an expansion; separate factory counters COUNT 1/2/1/1). Caveat for the refuter: the golden pins the MANNER (substitution semantics) and not a text-manipulation interaction directly; the after-text-manipulation ordering is verified structurally (parse precedes bind), not by a REPLACE-over-a-formal probe. Editions: parameterized classes are OO, 2002+. Owning note: kb/Work PB759 (landed). No open note. || Owning note: kb/Work/PB1535."
+  }
+ },
+ {
+  "item": 139,
+  "rule-id": "DOC-A.1-139",
+  "a1_subject": "PERFORM statement (whether location information is available when the LOCATION phrase is not specified)",
+  "a1_text": "PERFORM statement (whether location information is available when the LOCATION phrase is not specified). This item is required. This item shall be documented in the implementor's user documentation. (14.9.28, PERFORM statement General rule 14)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-139",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-139; docs/CONFORMANCE.md#DOC-A.1-204",
+   "test-ref": "",
+   "editions": "2023",
+   "notes": "Rule: A.1 item 139 'PERFORM statement (whether location information is available when the LOCATION phrase is not specified). This item is required. This item shall be documented... (14.9.28, PERFORM statement General rule 14)' (cite.py --check A.1 -> OK \u00a7A.1 139)). \u00a714.9.28.4 GR14: '... an implicit TURN directive for exception-name-1 or exception-name-2 is assumed before the first statement in imperative-statement-1. If LOCATION is specified, that implicit TURN directive contains LOCATION.' (cite.py --check 14.9.28.4 -> OK \u00a714.9.28.4 14)), which reads through to \u00a77.3.25.4 GR7 'If the LOCATION phrase is not specified, the implementor shall specify whether this information is made available or not.' (cite.py --check 7.3.25.4 -> OK \u00a77.3.25.4 7)). The SUBSTANCE is documented and pinned, but under the TURN item's key: CONFORMANCE.md '| DOC-A.1-204 |' states 'COBOL.NET does NOT make it available ... The determination is uniform across both mechanisms whose LOCATION option GR7 governs - the explicit >>TURN ... and the implicit TURN directive \u00a714.9.28.4 GR14 supplies for a PERFORM WHEN phrase', pinned by conformance:2023/l1_exception_no_location_arms (LEG B = the PERFORM leg: B-L=[ ], B-LL=1, B-N=[ ], B-T=63 spaces) and 2023/exception_statement_ambient. Probe pl.cob (--std 2023): PERFORM ... RAISE EXCEPTION EC-USER-X1 WHEN EC-USER-X1 -> EXCEPTION-LOCATION '[ ]'; PERFORM WITH LOCATION -> '[PL; ; 10]' - behaviour matches the determination. There is NO '| DOC-A.1-139 |' row, so the inventory's computed anchor docs/CONFORMANCE.md#DOC-A.1-139 does not resolve and audit_annex_a1.py counts 139 open. PARTIAL (not CONFORMS: no determination under exactly this item; not DIVERGES: nothing is undocumented in substance). Test-ref left empty until a DOC-A.1-139 row exists whose Pinned-by cell can name conformance:2023/l1_exception_no_location_arms. Mechanical fix: a DOC-A.1-139 row (or a DRV-/cross-reference row per \u00a77's key discipline) pointing at the same determination. Owning note: none (grep 'item 139' / 'DOC-A.1-139': none); umbrella kb/Work A11. Editions: the exception-checking PERFORM (format 3) is a 2023 introduction (Annex E.3.3 item 36; ConstructRegistry perform-exception-checking-2023), so the item exists at 2023 only. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 141,
+  "rule-id": "DOC-A.1-141",
+  "a1_subject": "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element (rest",
+  "a1_text": "Procedure division header rules when either the activating or the activated runtime element is not a COBOL element (restrictions and mechanisms for all supported language products with details such as the matching of parameters, data type representation, returning of a value, and omission of parameters). This item is conditionally required because it is conditioned upon support for a language other than COBOL. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (Clause 14, Procedure division, General rule 13)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-141",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-141; src/Cobol.Net.Runtime/Control/CallAbi.cs#CobolArg; src/Cobol.Net.Runtime/Control/CallAbi.cs#Call; src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#CallProgram",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 141 'Procedure division header rules when either the activating or the activated runtime element is not a COBOL element (restrictions and mechanisms for all supported language products with details such as the matching of parameters, data type representation, returning of a value, and omission of parameters). This item is conditionally required because it is conditioned upon support for a language other than COBOL. This item, if provided by the implementor, shall be documented... (Clause 14, Procedure division, General rule 13)' (cite.py --check A.1 -> OK \u00a7A.1 141)). The operative rule is \u00a714.2.3 GR13: 'When either the activating or the activated runtime element is other than a COBOL runtime element, the implementor shall specify the restrictions and mechanisms for all supported language products.' (cite.py --check 14.2.3 -> OK \u00a714.2.3 13); the Annex's bare 'Clause 14 ... General rule 13' is \u00a714.2.3). CONDITION HOLDS: CONFORMANCE.md \u00a73's 'Return to a NON-COBOL activating runtime element' bullet declares a .NET host that activates a generated program a supported non-COBOL activator (so .NET languages are a supported 'language product' on the activating side; the activated side is empty - no CALL-CONVENTION, DOC-A.1-19). Code fixes the mechanism: the host enters through ProgramRegistry.CallProgram(name, callerPath, CobolArg[] args, CobolArg? returning, ...) where each CobolArg(CobolPassMode Mode, ManagedPointer Carrier, NumProfile? Num, int[]? Layout) carries the pass mode, a managed carrier and a numeric profile - parameter matching is positional (\u00a714.2.3 GR2), representation is the COBOL.NET native carrier, RETURNING goes through the returning carrier. CONFORMANCE.md: NO '| DOC-A.1-141 |' row; only the RETURN-of-a-value half is stated (the \u00a73 bullet), and parameter matching, data-type representation and parameter omission for a host activator are specified nowhere -> DIVERGES (harm silent). Not re-reported: owning note kb/Work PB1149 (open; '\u00a714.2.3 GR13's implementor specification for non-COBOL activating/activated elements is incomplete ... states nothing about parameter matching, data-type representation or parameter omission'; inventory_rows GR-14.2.3-13). Sibling for the linkage half: kb/Work PB1253 (item 116). Umbrella A11. Editions: the host ABI is edition-independent. || Owning note: kb/Work/PB1149, PB1535."
+  }
+ },
+ {
+  "item": 142,
+  "rule-id": "DOC-A.1-142",
+  "a1_subject": "Program-address identifier (relation between address and non-COBOL program)",
+  "a1_text": "Program-address identifier (relation between address and non-COBOL program). This item is conditionally required because it is conditioned upon support of non-COBOL programs. This item shall be documented in the implementor's user documentation. (8.4.3.13, Program-address-identifier, General rule 2)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-142",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-142; src/Cobol.Net.Runtime/Control/ProgramTable.cs#EntryOf; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SetBinder.cs#BindProgramAddressOperand",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 142 'Program-address identifier (relation between address and non-COBOL program). This item is conditionally required because it is conditioned upon support of non-COBOL programs. This item shall be documented... (8.4.3.13.3, Program-address-identifier, General rule 2)' (cite.py --check A.1 -> OK \u00a7A.1 142)). \u00a78.4.3.13.4 GR2: 'The program may be written in COBOL or in another language for which the implementor has declared support. ... For a non-COBOL program, the relation between the address and the associated program is defined by the implementor.' (cite.py --check 8.4.3.13.4 \"For a non-COBOL program\" -> OK \u00a78.4.3.13.4 2)). The FACILITY IS ABSENT: COBOL.NET declares support for no language other than COBOL as a program TARGET (no \u00a77.3.9 CALL-CONVENTION; CONFORMANCE.md DOC-A.1-19 'no non-COBOL program can be declared'); EntryOf resolves only registered COBOL.NET outermost units. Probe pa.cob (--std 2023, with the foreign .NET assembly Antlr4.Runtime.Standard.dll beside the program): SET PP TO ADDRESS OF PROGRAM \"Antlr4.Runtime.Standard\" -> PP = NULL ('FOREIGN-NULL'), while ADDRESS OF PROGRAM \"PA\" -> set ('SELF-SET'). So the condition 'support of non-COBOL programs' is not met and the obligation is un-incurred under the A.1 preamble ('Conditionally required: If the associated feature or language element is implemented then this element is also required'). NOT-IMPLEMENTED records that the non-COBOL arm does not exist; there is NO '| DOC-A.1-142 |' disposition row saying so, and no derived-verdicts selector reaches an un-incurred CONDITIONALLY-REQUIRED A.1 item (a1-optional-not-provided is keyed to requirement 'optional'), so audit_annex_a1.py counts 142 open - the wave-1 'un-incurred A.1 items have no disposition path' mechanism (adj-a1-w1-s1 findings; DOC-A.1-13/15). Owning notes: umbrella kb/Work A11 ('or explicitly dispositioned (N/A ...)'); the batch campaign kb/Work PB1522. The COBOL half of GR2 is the separate row GR-8.4.3.13.4-2 (test-needed). Editions: the program-address identifier is 2002+ (--std 85 draws COBOLNET0900 per that row's adjudication). || Owning note: kb/Work/PB1536, PB1535."
+  }
+ },
+ {
+  "item": 143,
+  "rule-id": "DOC-A.1-143",
+  "a1_subject": "Program-name (formation rules for a non-COBOL program)",
+  "a1_text": "Program-name (formation rules for a non-COBOL program). This item is optional. This item if provided by the implementor, shall be documented in the implementor's user documentation. (8.3.2.2.21, Program-name)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-143",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-143; src/Cobol.Net.Runtime/Control/ProgramTable.cs#ProbeSiblingModule",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 143 'Program-name (formation rules for a non-COBOL program). This item is optional. This item if provided by the implementor, shall be documented... (8.3.2.2.21, Program-name)' (cite.py --check A.1 -> OK \u00a7A.1 143)). \u00a78.3.2.2.21: 'For a non-COBOL program, the rules for formation of the program-name are defined by the implementor.' (cite.py --check 8.3.2.2.21 -> OK \u00a78.3.2.2.21). NOT PROVIDED: no non-COBOL program can be named - there is no CALL-CONVENTION directive and no program prototype for a foreign program (CONFORMANCE.md DOC-A.1-19 'no non-COBOL program can be declared'); a CALL / ADDRESS OF PROGRAM literal resolves only to a registered COBOL.NET unit (ProgramTable.ProbeSiblingModule requires a __CobolModule.Register() registrar, else EC-PROGRAM-NOT-FOUND - wave-1 probes of CALL \"Antlr4.Runtime.Standard\"; this batch's pa.cob: ADDRESS OF PROGRAM \"Antlr4.Runtime.Standard\" -> NULL). The element is OPTIONAL, so non-provision is legitimate, but CONFORMANCE.md has NO '| DOC-A.1-143 |' row reading 'Not provided.' - which is exactly what owner decision kb/Work PB280 Q1 requires for an optional item we do not provide, and what the inventory's derived-verdicts.a1-optional-not-provided selector keys on to stamp DOCUMENTED-NON-SUPPORT. Until that row is written the item is NOT-IMPLEMENTED (silent: audit_annex_a1.py counts it open). Mechanical fix: file '| DOC-A.1-143 | ... | Not provided. ...' (cf. item 127's row). Sibling rows: DOC-A.1-13 (CALL, program-name formation for a non-COBOL program - conditionally required, wave 1 PARTIAL). Owning note: none item-specific (grep 'item 143' / 'DOC-A.1-143': none); umbrella kb/Work A11 / PB280. Editions: program-name exists in every edition. || Owning note: kb/Work/PB1536, PB1535."
+  }
+ },
+ {
+  "item": 146,
+  "rule-id": "DOC-A.1-146",
+  "a1_subject": "RECORD clause (calculations to derive size of records on storage medium)",
+  "a1_text": "RECORD clause (calculations to derive size of records on storage medium). This item is required. This item shall be documented in the implementor's user documentation. (13.18.43, RECORD clause, General rule 2)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-146",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-146; src/Cobol.Net.Runtime/IO/RecordFraming.cs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRecordClause",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 146 (cite.py --check A.1 'RECORD clause (calculations to derive size of records on storage medium)' -> OK \u00a7A.1 146): required + documented. \u00a713.18.43.4 GR2 'The implementor shall specify the calculations necessary for the user to derive the size for records on the storage medium' (cite.py --check 13.18.43.4 -> OK 2)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-146 row (audit_annex_a1.py does not list 146). The only related text is DOC-A.1-151 (4-byte LE length prefix for variable-length record sequential/relative/indexed; line delimiters for LINE SEQUENTIAL), which answers GR5 of \u00a712.4.5.11 for VARIABLE records only and states no calculation for fixed-length files, nor for CODE-SET's effect (GR2 names CODE-SET and FORMAT as factors). Probe probe/rec/p1.cob: fixed FD F1 (01 X(5)) writes two unframed 5-byte records (10-byte file); implicit Format 1 F4 (X(5)+X(10)) pads every record to 10 bytes unframed; Format 3 F3 writes 4-byte-prefixed frames (0x05000000 'ABCDE' ...). So the calculation is fixed in code (fixed: record size; variable: 4 + record size) but not documented. Harm silent. Owning note kb/Work PB1278 (open, claims item 146) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1278, PB1535."
+  }
+ },
+ {
+  "item": 147,
+  "rule-id": "DOC-A.1-147",
+  "a1_subject": "RECORD clause (implicit RECORD clause if RECORD clause is not specified)",
+  "a1_text": "RECORD clause (implicit RECORD clause if RECORD clause is not specified). This item is required. This item shall be documented in the implementor's user documentation. (13.18.43, RECORD clause, General rule 5)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-147",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-147; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#ImpliesVariableFormat; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#VaryMax; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#VaryMin",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 147 (cite.py --check A.1 'RECORD clause (implicit RECORD clause if RECORD clause is not specified)' -> OK \u00a7A.1 147): required + documented. \u00a713.18.43.4 GR5 'This implicit RECORD clause is defined by the implementor' (cite.py --check 13.18.43.4 -> OK 5)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-147 row. A determination exists only in prose outside the register: \u00a73 D-FRA (iv) ('the implicit RECORD clause ... is Format 2 when a record is variable-length ... and Format 1 otherwise'), which audit_annex_a1.py does not count and no inventory anchor resolves to. Code: FileModel.ImpliesVariableFormat = Varying is null && RecordContains is null && any variable-length record; else implied Format 1 at the largest record. Probe probe/rec/p1.cob F4 (01 X(5), 01 X(10), no RECORD clause): both records written as 10 bytes, consistent with GR5 a). Edges NOT conforming per kb/Work PB1276 (row GR-13.18.43.4-5 PARTIAL: implied Format 2 minimum inherits the GR8 national byte-count defect) and PB322 determination F (a RECORD-clause-less SD releases at record-name-1's own size) \u2014 cited, not re-reported. Harm silent (the missing \u00a77 row). No kb/Work note claims DOC-A.1-147 (PB1278 claims 146/148 only; PB1276 mentions item 147 but its inventory_rows do not include it) \u2014 NEW finding, clustered with PB1278. || Owning note: kb/Work/PB1278, PB1535."
+  }
+ },
+ {
+  "item": 148,
+  "rule-id": "DOC-A.1-148",
+  "a1_subject": "RECORD clause (whether fixed or variable records produced for fixed-or-variable-length format)",
+  "a1_text": "RECORD clause (whether fixed or variable records produced for fixed-or-variable-length format). This item is required. This item shall be documented in the implementor's user documentation. (13.18.43, RECORD clause, General rule 17)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-148",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-148; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRecordClause; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#RecordSizeVaries",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 148 (cite.py --check A.1 -> OK \u00a7A.1 148): required + documented. \u00a713.18.43.4 GR17 'It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records' (cite.py --check 13.18.43.4 -> OK 17)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-148 row, and no prose elsewhere states the choice. Code answers VARIABLE: probe probe/rec/p1.cob FD F3 RECORD CONTAINS 5 TO 10 CHARACTERS writes a 5-byte and a 10-byte record as two 4-byte-length-prefixed frames (0x05 00 00 00 'ABCDE' 0x0A 00 00 00 'ABCDEFGHIJ'), i.e. variable-length. Behaviour is fixed but undocumented => DIVERGES, harm silent. Same framing re-probed at --std 85 (identical bytes). Owning note kb/Work PB1278 (open, claims item 148) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1278, PB1535."
+  }
+ },
+ {
+  "item": 153,
+  "rule-id": "DOC-A.1-153",
+  "a1_subject": "Record locking (default mode when unspecified by user)",
+  "a1_text": "Record locking (default mode when unspecified by user). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5.9, LOCK MODE clause, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-153",
+   "verdict": "DIVERGES",
+   "code-location": "src/Cobol.Net.Runtime/IO/FileRegistry.cs#ImplementorDefaultShare; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs; docs/CONFORMANCE.md#DOC-A.1-153",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: 'Record locking (default mode when unspecified by user)... shall be documented' (12.4.5.9 GR1). CONFORMANCE.md: NO DOC-A.1-153 row (A.4.7 row only claims SHARING/LOCK MODE/RETRY). Code MAKES the determination: FileRegistry.ImplementorDefaultShare = (sharing null, FileLockMode.None) - 'no record locking', the third option GR1 b) 2. names - and its xmldoc explains it, but the user documentation does not state it. Owner: kb/Work PB1092 ('no DOC-A.1-153/154/155 rows') under A11. cite: OK \u00a712.4.5.9.4 1) b) 2. '...the type of record locking for that opening of a shared file associated with that file connector is defined by the implementor.' Editions: record locking introduced 2002. || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs (LockKind.None default) | docs/CONFORMANCE.md#DOC-A.1-153 (absent)"
+  }
+ },
+ {
+  "item": 154,
+  "rule-id": "DOC-A.1-154",
+  "a1_subject": "Record locking (maximum number allowed for a run unit)",
+  "a1_text": "Record locking (maximum number allowed for a run unit). This item is required and shall be at least 255. This item shall be documented in the implementor's user documentation. (12.4.5.9, LOCK MODE clause, General rule 7).",
+  "staged_record": {
+   "rule-id": "DOC-A.1-154",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-154; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#RunUnitLockMax; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#PreflightNewLock",
+   "test-ref": "unit:CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 154 (cite.py --check A.1 -> OK \u00a7A.1 154): required, at least 255, documented. \u00a712.4.5.9.4 GR7 (A.1 writes '12.4.5.9, LOCK MODE clause, General rule 7'): 'The implementor shall specify the maximum number of record locks that may be held by a run unit; that maximum shall be at least 255' (cite.py --check 12.4.5.9.4 -> OK 7)). Code: PhysicalFileTable.RunUnitLockMax = 255; LockRecord and PreflightNewLock return 53 (RunUnitLockLimit) when TotalRunUnitLocks() >= 255 (the table is one instance per FileRegistry, i.e. per run unit). The value meets the >= 255 floor and the 'unsuccessful ... I-O status that indicates that condition' half returns 53. Pinned by unit:CobolFileLockTests.RunUnitLockLimit_256thRunUnitLock_Is53. BUT docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-154 row, and grep of CONFORMANCE.md for '255'/'53'/lock ceiling finds no statement of the run-unit maximum anywhere => the required documentation is absent: DIVERGES, harm silent. No kb/Work note claims item 154 (PB707 is about the RETRY path of 53/54, inventory_rows []; PB671 is citation labels) \u2014 NEW finding. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 155,
+  "rule-id": "DOC-A.1-155",
+  "a1_subject": "Record locks (maximum number allowed for a file connector)",
+  "a1_text": "Record locks (maximum number allowed for a file connector). This item is required and shall be at least 15. This item shall be documented in the implementor's user documentation. (12.4.5.9, LOCK MODE clause, General rule 7)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-155",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-155; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#ConnectorLockMax; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord",
+   "test-ref": "unit:CobolFileLockTests.ConnectorLockLimit_16thRecord_Is54",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 155 (cite.py --check A.1 -> OK \u00a7A.1 155): required, at least 15, documented. \u00a712.4.5.9.4 GR7: 'The implementor shall specify the maximum number of record locks that may be held by a file connector; that maximum shall be at least 15' (cite.py --check 12.4.5.9.4 -> OK 7)). Code: PhysicalFileTable.ConnectorLockMax = 15; LockRecord / PreflightNewLock count the locks the connector name holds on the physical file and return 54 (ConnectorLockLimit) at the 16th. Meets the >= 15 floor; pinned by unit:CobolFileLockTests.ConnectorLockLimit_16thRecord_Is54. docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-155 row and no statement of the per-connector maximum anywhere => DIVERGES, harm silent. No kb/Work note claims item 155 \u2014 NEW finding (same mechanism as DOC-A.1-154). || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 156,
+  "rule-id": "DOC-A.1-156",
+  "a1_subject": "Reference format (control characters in a free-form line)",
+  "a1_text": "Reference format (control characters in a free-form line). This item is required. This item shall be documented in the implementor's user documentation. (Clause 6, Reference format, rule 3b)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-156",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-156; src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 156 (cite.py --check A.1 -> OK \u00a7A.1 156): required + documented (A.1 cites 'Clause 6, Reference format, rule 3b'). \u00a76.1: 'The implementor shall specify any control characters that terminate a free-form line' (cite.py --check 6.1 -> OK \u00a76.1 b)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-156 row (the only reference-format row is DOC-A.1-158, margin R) and no prose elsewhere names the free-form line terminators. Code: NormalizeToFreeFormMapped splits the source on '\\n' and each free-form segment line is TrimEnd('\\r') (ReferenceFormatProcessor.cs:108/172), so LF terminates a line and a CR immediately before it is dropped; no other control character (FF, VT, lone CR) is a terminator. A fixed answer exists but is undocumented => DIVERGES, harm silent. Editions: free-form reference format exists from 2002 (Annex E). Owning note kb/Work PB1496 (open; its title names item 156 and its fixer owes the DOC-A.1-156 row) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1496, PB1535."
+  }
+ },
+ {
+  "item": 157,
+  "rule-id": "DOC-A.1-157",
+  "a1_subject": "Reference format (meaning of lines and character positions in free-form and fixed-form format)",
+  "a1_text": "Reference format (meaning of lines and character positions in free-form and fixed-form format). This item is required. This item shall be documented in the implementor's user documentation. (Clause 6, Reference format, rule 1c)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-157",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-157; src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#NormalizeToFreeFormMapped; src/Cobol.Net.Frontend/Preprocessor/ReferenceFormatProcessor.cs#ConvertFixedToFreeMapped",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 157 (cite.py --check A.1 -> OK \u00a7A.1 157): required + documented (A.1 cites 'Clause 6, Reference format, rule 1c'). \u00a76.1: 'The implementor shall specify the meaning of lines and character positions' (cite.py --check 6.1 -> OK \u00a76.1 c)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-157 row; DOC-A.1-158 fixes only margin R (col 72) and does not say what a line or a character position IS (record vs LF-delimited line, one UTF-16 code unit vs byte per position, whether a short fixed-form record is padded to margin R). Code: a line is an LF-delimited segment of the decoded source text (CR trimmed); a character position is one char of that string; a fixed-form line's program-text area is line[7..] truncated to 65 but NEVER padded to margin R \u2014 which kb/Work PB1491 measures as a wrong answer for a continued literal (GnuCOBOL/IBM pad) \u2014 and a free-form line over the \u00a76.1 a) 255-position maximum is accepted silently (kb/Work PB1496). Undocumented, with an edge in dispute => DIVERGES, harm silent. Owning notes kb/Work PB1496 (open; its fixer owes the DOC-A.1-157 row) and PB1491 (open; the padding behaviour the row must state) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1491, PB1535."
+  }
+ },
+ {
+  "item": 159,
+  "rule-id": "DOC-A.1-159",
+  "a1_subject": "Report file (record structure)",
+  "a1_text": "Report file (record structure). This item is required. This item shall be documented in the implementor's user documentation. (13.4.5, File description entry, General rule 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-159",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-159; src/Cobol.Net.Runtime/IO/ReportWriter.cs; src/Cobol.Net.Runtime/IO/SequentialConnector.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitFileRegistration",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 159 (cite.py --check A.1 -> OK \u00a7A.1 159): required + documented. \u00a713.4.5.4 GR4: 'The report writer logical record structure of the file associated with file-name-1 is defined by the implementor.' (cite.py --check 13.4.5.4 -> OK 4)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-159 row; the \u00a75 A.4.11 row describes the RW nucleus, not the file's record structure. Code/probe: probe/rw/r1.cob (FD RPTF REPORT IS RPT, two GENERATEs of a 1-line DETAIL) writes 'ABCD\\r\\nABCD\\r\\n' \u2014 each print line is CRLF-delimited text through the sequential connector's advancing writer (SequentialConnector NewLine=\"\\r\\n\"), no length prefix, whatever ORGANIZATION. The structure is fixed but undocumented => DIVERGES, harm silent. Owning note kb/Work PB1253 (open; title names item 159, fixer owes the DOC-A.1-159 row) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1253, PB1535."
+  }
+ },
+ {
+  "item": 160,
+  "rule-id": "DOC-A.1-160",
+  "a1_subject": "Report writer printable item (fixed correspondence between columns and national characters)",
+  "a1_text": "Report writer printable item (fixed correspondence between columns and national characters). This item is required. This item shall be documented in the implementor's user documentation. (13.18.14, COLUMN clause, General rule 2)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-160",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-160; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#DisplayTextWidth; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitFieldPlacements",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 160 (cite.py --check A.1 -> OK \u00a7A.1 160): required + documented. \u00a713.18.14.4 GR2: 'There is a fixed correspondence, specified by the implementor, between a column and a character in a national character set.' (cite.py --check 13.18.14.4 -> OK 2)). docs/CONFORMANCE.md \u00a77 has NO DOC-A.1-160 row and no other statement of the column/national-character correspondence. Behaviour: ONE column per national character position (one UTF-16 code unit) \u2014 probe/rw/r1.cob `05 COLUMN 1 PIC N(2) VALUE N\"AB\"` then `COLUMN PLUS 1 PIC X(2)` prints 'ABCD' (the N item occupies columns 1-2, the next starts at 3). Fixed but undocumented => DIVERGES, harm silent. Editions: national (PIC N) exists from 2002. Owning note kb/Work PB1253 (open; title names item 160) \u2014 cited, not re-reported. || Owning note: kb/Work/PB1253, PB1535."
+  }
+ },
+ {
+  "item": 164,
+  "rule-id": "DOC-A.1-164",
+  "a1_subject": "RESERVE clause (number of input-output areas, if not specified)",
+  "a1_text": "RESERVE clause (number of input-output areas, if not specified). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5.14, RESERVE clause, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-164",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-164; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#fileReserveClause; src/Cobol.Net.Compiler/Validation/IntegerOperandPass.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: 'RESERVE clause (number of input-output areas, if not specified)... shall be documented' (12.4.5.14 GR1). CONFORMANCE.md: NO DOC-A.1-164 row, no RESERVE determination anywhere. Code: fileReserveClause parsed, integer-1 checked nonzero, then read by nothing - no FileModel field, no runtime notion of I-O areas, so there is neither a default to document nor an honoured integer-1. Already owned by kb/Work PB643 (open; claims GR-12.4.5.14.3-1 NOT-IMPLEMENTED and prescribes the A.1-style row). cite: OK \u00a712.4.5.14.3 1) 'If the RESERVE clause is not specified, the number of input-output areas allocated is specified by the implementor.' Annex E (2014->2023) records no change for this item; facility editions per the clause's facility (not the code) || Owning note: kb/Work/PB643, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/Validation/IntegerOperandPass.cs (FileReserveClauseContext=Nonzero only) | src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs (RESERVE 'not modeled by FileModel')"
+  }
+ },
+ {
+  "item": 167,
+  "rule-id": "DOC-A.1-167",
+  "a1_subject": "Run unit (relationship and interaction with non-COBOL components)",
+  "a1_text": "Run unit (relationship and interaction with non-COBOL components). This item is conditionally required because it is conditioned upon support for non-COBOL modules. This item shall be documented in the implementor's user documentation. (14.6.1, Run unit organization).",
+  "staged_record": {
+   "rule-id": "DOC-A.1-167",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-167; src/Cobol.Net.Runtime/Control/CallAbi.cs; src/Cobol.Net.Runtime/Control/RunUnit.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 167 (cite.py --check A.1 -> OK \u00a7A.1 167): conditionally required, 'conditioned upon support for non-COBOL modules', and 'shall be documented'. \u00a714.6.1: 'A run unit may additionally contain runtime modules and data storage areas derived from the compilation of compilation units written in languages other than COBOL; in this case the requirements for the relationship and interaction between the COBOL and the non-COBOL modules are defined by the implementor.' (cite.py --check 14.6.1 -> OK). The CONDITION IS MET: docs/CONFORMANCE.md itself names a supported non-COBOL component \u2014 a .NET host that invokes a generated program class directly instead of entering through ProgramTable.RunMain (\u00a73 bullet on \u00a714.9.18.4 GR1 a), ~line 450) \u2014 and DOC-A.1-19 (CANCEL of a non-COBOL program: no effect) / DOC-A.1-134 (MODULE-NAME of a non-COBOL module) answer neighbouring single questions. But there is NO DOC-A.1-167 row stating the run-unit relationship itself: whether a .NET host shares one RunUnit (RunUnit.Current / ResetCurrent) across activations, how its storage and switches/locale relate to the run unit, what a host must do to start/end a run unit, and whether a CALL can reach a non-COBOL module (the \u00a73 bullet says it cannot \u2014 no CALL-CONVENTION). Scattered partial answers, no determination under this item => DIVERGES, harm silent. No kb/Work note claims item 167 (PB1149 owns \u00a714.2.3 GR13 non-COBOL activator restrictions + \u00a714.9.23.4 GR2 b); PB1253 owns item 116; PB1069 owns run-unit state scoping) \u2014 NEW finding, clustered with PB1149. || Owning note: kb/Work/PB1149, PB1535."
+  }
+ }
+]

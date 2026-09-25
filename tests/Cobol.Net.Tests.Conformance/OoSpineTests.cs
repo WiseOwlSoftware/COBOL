@@ -279,7 +279,7 @@ public sealed class OoSpineTests
             + string.Join("\n", knownErrors));
     }
 
-    /// <summary>§14.9.23.3 SR4d — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
+    /// <summary>§14.9.23.3 SR4 b) — for a TYPED receiver an unknown method is a COMPILE-time diagnostic (the
     /// static analog of EC-OO-METHOD, GR7b).</summary>
     [Fact]
     public void InvokeUnknownMethod_0825()

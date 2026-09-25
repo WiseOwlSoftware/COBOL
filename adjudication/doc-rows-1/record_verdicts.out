@@ -1,0 +1,25 @@
+records        : 68 across 1 batch file(s)
+rows changed   : 68
+witnesses      : +58 test-ref, +215 code-location added; 0 retired, 0 re-sited
+    CONFORMS                    51 — 24 closed the GAP, 27 still test-needed
+    PARTIAL                     12
+    DOCUMENTED-NON-SUPPORT       5 — 1 closed the GAP, 4 still test-needed
+
+  ⓘ 31 CONFORMS-but-untested row(s) — verdict recorded, row still open until a SPEC-DERIVED test covers it (a NIST golden or a *_MatchesLegacy differential does not):
+       DOC-A.1-6
+       DOC-A.1-7
+       DOC-A.1-8
+       DOC-A.1-16
+       DOC-A.1-21
+       DOC-A.1-26
+       DOC-A.1-29
+       DOC-A.1-32
+       DOC-A.1-43
+       DOC-A.1-44
+
+GAP            : 1652 → 1627  (+25 closed of 4348)
+
+wrote tests/version-matrix/traceability-inventory.json
+⛔ NOW RUN THE GATE — it is what checks that these references actually resolve:
+    python scripts/filter_population.py --filter "FullyQualifiedName~SpecTraceabilityInventory" --filtered tests/Cobol.Net.Tests.Unit --allow-build
+    dotnet test tests/Cobol.Net.Tests.Unit --filter "FullyQualifiedName~SpecTraceabilityInventory"

@@ -1,0 +1,296 @@
+[
+ {
+  "item": 67,
+  "rule-id": "DOC-A.1-67",
+  "a1_subject": "External repository information (other information beyond the required information)",
+  "a1_text": "External repository information (other information beyond the required information). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.13, External repository)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-67",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-67; src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindDeclarations; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#ProgramPrototypesOf; src/Cobol.Net.Compiler/Binding/BinderDriver.cs#UserFunctionsOf; src/Cobol.Net.Compiler/Oo/OoNameResolution.cs#Resolve",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 67: 'External repository information (other information beyond the required information). This item is optional. This item, if provided by the implementor, shall be documented' (8.13). \u00a78.13 lists '\u2014 any other information that the implementor requires' among the repository's contents; cite.py --check 8.13 'any other information that the implementor requires' -> OK \u00a78.13. No external repository exists at all (PB1086), so no additional information is stored; there is no '| DOC-A.1-67 |' row, and in particular no 'Not provided.' row, which is the register's own mechanism (owner decision kb/Work/PB280 Q1) for an optional element that is not provided \u2014 so the inventory's a1-optional-not-provided selector cannot fire. Recording the non-provision as DOCUMENTED-NON-SUPPORT is not an adjudicator's call; the facility is absent -> NOT-IMPLEMENTED, and it resolves with the owner answer to kb/Work/PB1099 Q3 (owning note kb/Work/PB1086). || Owning note: kb/Work/PB1086, PB1535."
+  }
+ },
+ {
+  "item": 68,
+  "rule-id": "DOC-A.1-68",
+  "a1_subject": "Externalized names (formation and mapping rules)",
+  "a1_text": "Externalized names (formation and mapping rules). This item is required. This item shall be documented in the implementor's user documentation. (7.3.9, CALL-CONVENTION directive, General rules 2a and 2b; 8.3.2.2, User-defined words)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-68",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-68; src/Cobol.Net.Runtime/Control/ProgramTable.cs#_byPath; src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#Register; src/Cobol.Net.Frontend/Preprocessor/DirectiveStateRegistry.cs#DirectiveStateRegistry",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "A.1 item 68: 'Externalized names (formation and mapping rules). This item is required. This item shall be documented' (7.3.9 GR2a/2b; 8.3.2.2). \u00a78.3.2.2 2) a): the program-name is 'treated as a COBOL word that maps to the externalized name of the program, applying the same implementor-defined mapping rules as for a program-name for which no AS phrase is specified' (cite.py --check 8.3.2.2 -> OK \u00a78.3.2.2 2) a)); \u00a77.3.9.3 GR2 b): under call-convention-name-1 the name 'maps to the externalized name ... in a manner defined by the implementor' (--check 7.3.9.3 -> OK \u00a77.3.9.3 2) b)). No '| DOC-A.1-68 |' row and no formation/mapping determination anywhere in CONFORMANCE.md (DOC-A.1-135/163 touch reported names and AS only). The code DOES fix a rule: the externalized name is the declared spelling verbatim (probe ext.cob: PROGRAM-ID. sub-p. -> ProgramRegistry.Register(\"sub-p\",...); PROGRAM-ID. MainP. -> \"MainP\") and resolution is case-insensitive ordinal (CALL \"sub-p\" and CALL \"SUB-P\" both reach it; ProgramTable._byPath OrdinalIgnoreCase); a >>CALL-CONVENTION with any word is consumed and the COBOL-word mapping still applies. Behavior fixed, required determination missing -> DIVERGES (silent). Owning note: kb/Work/PB1383 (open; states 'A.1 item 68 (required) has no row'). || Owning note: kb/Work/PB1383, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Control/ProgramTable.cs#ProgramTable._byPath (StringComparer.OrdinalIgnoreCase) | src/Cobol.Net.Frontend/Preprocessor/DirectiveStateRegistry.cs#DirectiveStateRegistry(Constructs.CallConventionDirective2002)"
+  }
+ },
+ {
+  "item": 69,
+  "rule-id": "DOC-A.1-69",
+  "a1_subject": "Fatal exception condition (whether detected at compile time, circumstances under which detected)",
+  "a1_text": "Fatal exception condition (whether detected at compile time, circumstances under which detected). This item is optional. This item if provided by the implementor, does not have to be included in the implementor's user documentation. (14.6.13.1.3, Fatal exception conditions)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-69",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-69; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcEmitter",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 69: 'Fatal exception condition (whether detected at compile time, circumstances under which detected). This item is optional. This item if provided by the implementor, does not have to be included in the implementor's user documentation.' (14.6.13.1.3). \u00a714.6.13.1.3 (closing paragraph): 'If checking is not enabled for a fatal exception condition and the exception condition is detected by the compiler, the implementor is not required to produce executable code. It is implementor-defined which fatal exception conditions, if any, are detected at compile time, and the circumstances under which they are detected.' cite.py --check 14.6.13.1.3 'It is implementor-defined which fatal exception conditions, if any, are detected at compile time...' -> OK. No documentation duty. Determination as implemented: NONE are detected at compile time (the 'if any' arm) \u2014 executable code is always produced and every fatal condition is a runtime raise site. Probe fx.cob (OCCURS 5, constant E(6), COMPUTE X = 1 / Z with Z=0): without checking it compiles and runs (START / X=0 / DIV X=0 \u2014 the GR8 checking-off continuation); with >>TURN EC-ALL CHECKING ON it compiles and terminates at run time with EC-BOUND-SUBSCRIPT (fatal) \u2014 the compiler never withholds code, so no enabled-checking program is rejected. Exercising none of an optional latitude is conforming. No spec-derived test pins 'no compile-time detection' specifically -> empty test-ref (legitimate). Editions: exception conditions / checking are 2002+ (at 85 the latitude has no counterpart). || REFUTER UPHELD: Verdict and empty test-ref stand; the adjudicator's stated determination does not, and it must not be copied anywhere. A.1 69: 'Fatal exception condition (whether detected at compile time, circumstances under which detected). This item is optional. This item if provided by the implementor, does not have to be included in the implementor's user documentation.' (cite.py --check A.1 -> 'OK \u00a7A.1 69)'). \u00a714.6.13.1.3: 'If checking is not enabled for a fatal exception condition and the exception condition is detected by the compiler, the implementor is not required to produce executable code. It is implementor-defined which fatal exception conditions, if any, are detected at compile time' (cite.py --check 14.6.13.1.3 -> 'OK \u00a714.6.13.1.3 8)'; cite.py files this paragraph under item 8, not as a separate closing paragraph). The item is optional and need not be documented, so no DOC-A.1-69 row is needed, and there is none. The one hard constraint is the other way round: code may be withheld ONLY when checking is NOT enabled. Probes under /tmp/adj/refute-probe, each with >>TURN EC-ALL CHECKING ON: COMPUTE X = 10 / 0, DIVIDE 0 INTO X, MOVE 1 TO E(6) and E(0) (OCCURS 5), MOVE S(0:1) and S(4:5) (PIC X(5)), FUNCTION SQRT(-1), LOG(0), CHAR(0), DATE-OF-INTEGER(0), NUMVAL(\"ABC\"), FACTORIAL(-1), INTEGER-OF-DATE(20231345), 0 ** -1. Every one compiles and ends at run time with the right fatal EC (EC-SIZE-ZERO-DIVIDE, EC-BOUND-SUBSCRIPT, EC-BOUND-REF-MOD, EC-ARGUMENT-FUNCTION, EC-SIZE-EXPONENTIATION). None is rejected at compile time. With checking off (fx69_off.cob), all of them run on to the end. \u00a78.4.2.3.4 GR2 and \u00a78.4.3.3.4 5b/5c are GENERAL rules, so constant out-of-range subscripts and ref-mods are not syntax errors, and accepting them is correct. REFUTATION OF THE NOTES: the claim that 'NONE are detected at compile time' is FALSE. ord.cob (ORDER TABLE OT IS \"BOGUS-TABLE\" + FUNCTION STANDARD-COMPARE) prints compile-time 'warning COBOLNET1662: ... Every FUNCTION STANDARD-COMPARE reference to OT will set EC-ORDER-NOT-SUPPORTED at run time'. That warning comes from DiagnosticCatalog.cs OrderTableUnresolved, EditionSeverity.Warning, and EC-ORDER-NOT-SUPPORTED is Fatal in Table 13. The program still ran and terminated with EC-ORDER-NOT-SUPPORTED (fatal), because \u00a715.85.4 2) says 'the EC-ORDER-NOT-SUPPORTED exception condition is set to exist' (cite.py -> OK \u00a715.85.4 2)). So at least one fatal condition IS detected at compile time, and code is still produced. That is conforming, since detection is optional and code is never withheld. The accurate determination is: 'compile-time detection is reported as a warning at most (for example COBOLNET1662 for EC-ORDER-NOT-SUPPORTED); executable code is always produced, whether or not checking is enabled'. The compile-time Errors that name run-time ECs (COBOLNET1688/1736 EC-PROGRAM-ARG-MISMATCH with AS NESTED; COBOLNET2113) enforce SYNTAX rules (\u00a714.9.4.3 SR19/21/25; \u00a714.9.39.3 SR30/34), not this latitude. No spec-derived test pins this item, so the empty test-ref is right. || Owning note: kb/Work/PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EcEmitter (fatal conditions always emitted as runtime raise sites | RAISE with checking off -> CobolFatalException, \u00a714.6.13.1.3 #8)"
+  }
+ },
+ {
+  "item": 72,
+  "rule-id": "DOC-A.1-72",
+  "a1_subject": "FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors)",
+  "a1_text": "FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors). This item is required. This item shall be documented in the implementor's user documentation. (12.4.5, File control entry, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-72",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-72",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 72: 'FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors). This item is required. This item shall be documented' (12.4.5 GR1). \u00a712.4.5.3 GR1 b): 'A consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause. The implementor shall specify the consistency rules for data-name-1, device-name-1, and literal-1.' cite.py --check 12.4.5.3 'A consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause' -> OK \u00a712.4.5.3 1) b). Row present: CONFORMANCE.md line 1607 '| DOC-A.1-72 |' \u2014 rule is textual sameness of the clause (same device-name/literal target, same data-name-1 spelling incl. qualifiers, case-insensitive), a difference raises EC-EXTERNAL-FILE-MISMATCH, storage for data-name-1 stays per element (GR3 b executor). Probes (two programs, one EXTERNAL FD, checking on in both): ASSIGN 'a-dat' vs 'b-dat' -> SUB=[EC-EXTERNAL-FILE-MISMATCH]; 'Data.txt' vs 'data.txt' -> NO-CONDITION (case-insensitive, as stated); USING FNAME vs FNAME -> NO-CONDITION; FNAME vs FNAMEB -> mismatch; fname vs FNAME -> NO-CONDITION. All five match the determination. Test: pb673_external_assign_executor pins the same-spelling/separate-storage/executor half from \u00a712.4.5.3 GR3 b); the difference-raises arm for the ASSIGN target is probe-verified only (ec_external_file_mismatch pins an ORGANIZATION difference, GR1 e), not ASSIGN). Owning notes: kb/Work/PB673 (landed); PB685 (open) owns item 71, not this row. || REFUTED (CONFORMS -> PARTIAL): Owning note for the textual-sameness divergence: none (new; findings.json). A.1 72: 'FILE-CONTROL entry, ASSIGN clause (consistency rules for external file connectors). This item is required' and it shall be documented (cite.py -> OK \u00a7A.1 72)). \u00a712.4.5.3 1) b): 'A consistent specification for data-name-1, device-name-1, and literal-1 in the ASSIGN clause' (cite.py -> OK \u00a712.4.5.3 1) b)). The docs/CONFORMANCE.md row exists (line 1607). It states: 'COBOL.NET's rule is TEXTUAL SAMENESS OF THE CLAUSE ... every corresponding entry shall write the same device-name/literal target and the same data-name-1 spelling (qualifiers included), compared case-insensitively \u2014 and nothing more.' The implementation does NOT compare the clause text. The fingerprint (OoEmitter.cs EmitExternalDescribes, 'ASSIGN={f.AssignTarget.ToUpperInvariant()}|USING=...') compares FileModel.AssignTarget. That value is AssignTargetRule.Resolve's output: the device-class word (DISK/PRINTER) is DROPPED, and a literal is decoded to its bare text, so it matches an identically spelled device-name. Probes under /tmp/adj/refute-probe (gen72.py: MAINP CALLs SUBP, both with >>TURN EC-EXTERNAL-FILE-MISMATCH CHECKING ON, one EXTERNAL FD): c1 ASSIGN TO DISK \"xa.dat\" vs ASSIGN TO \"xa.dat\" -> NO-CONDITION; c7 ASSIGN TO PRINTER \"xa.dat\" vs ASSIGN TO DISK \"xa.dat\" -> NO-CONDITION; c2 device-name XADAT vs literal \"XADAT\" -> NO-CONDITION; c3 xadat vs \"XaDat\" -> NO-CONDITION. In each pair the clauses differ textually and the documented rule says they should mismatch. These cases agree with the documented rule: c4 USING FNAME OF G vs USING FNAME -> EC-EXTERNAL-FILE-MISMATCH (qualifiers included); c5 FNAME IN G vs FNAME OF G -> NO-CONDITION (normalized); c6 TO \"xa.dat\" USING FNAME vs bare USING FNAME -> mismatch. The enforced rule is a defensible consistency rule, but it is not the one documented: the published determination is inaccurate on the device-class prefix and on device-name versus literal. PRINTER vs DISK being consistent is a substantive rule a user cannot infer from the doc. Hence PARTIAL: either the row must say 'the same file-naming operand (\u00a712.4.5.2 SR5 target as resolved by the DOC-A.1-71 rule; a leading device class is not compared; device-name and literal of the same spelling are the same target)', or the fingerprint must carry the written clause. Also note: case-insensitive literal comparison makes 'Data.txt' and 'data.txt' consistent, yet on a case-sensitive host each source unit's OPEN associates a different physical file (\u00a712.4.5.3 3) a): 'associated with a physical file identified by the specification of device-name-1 or the value of literal-1 in the source unit' -> OK \u00a712.4.5.3 3) a)). This is documented, so it is not a defect, but the row should say so. TEST-REF: pb673_external_assign_executor has NO >>TURN, so checking is off, WantsExternalDescribes() is false, and the fingerprint is never compared. It pins the GR3 b) executor association (the \u00a712.4.5.3 3) b) half), not the GR1 b) consistency rule. ec_external_file_mismatch pins ORGANIZATION (GR1 e). No test pins item 72, so the test-ref must be emptied. || Owning note: kb/Work/PB1530, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime (ExternalTable / FileConnector.Associate, SelectFingerprint via ExternalStore.Describe)"
+  }
+ },
+ {
+  "item": 74,
+  "rule-id": "DOC-A.1-74",
+  "a1_subject": "Figurative constant values (representation of zero, space, and quote)",
+  "a1_text": "Figurative constant values (representation of zero, space, and quote). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.6, Figurative constant values)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-74",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-74",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: 'Figurative constant values (representation of zero, space, and quote)... shall be documented' (8.3.3.6). CONFORMANCE.md: NO DOC-A.1-74 row. Code/probe: FUNCTION ORD(SPACE)=33, ORD(ZERO)=49, ORD(QUOTE)=35 (i.e. U+0020/U+0030/U+0022, 1-based ordinal); MOVE QUOTES to PIC N -> ORD 35 - one representation in both sets (UTF-16 code units), undocumented. Owner: kb/Work PB1397 (claims item 74). cite: OK \u00a78.3.3.6.4 1) 'The implementor shall specify the unique representation of ZERO, SPACE, and QUOTE in the computer's alphanumeric and national coded character sets.' Annex E (2014->2023) records no change for this item; facility editions per the clause's facility (not the code) || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md#DOC-A.1-74 (absent) | src/Cobol.Net.Compiler (figurative constant rendering)"
+  }
+ },
+ {
+  "item": 75,
+  "rule-id": "DOC-A.1-75",
+  "a1_subject": "File sharing (interaction with other facilities and languages)",
+  "a1_text": "File sharing (interaction with other facilities and languages). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (9.1.15, Sharing mode)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-75",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-75; src/Cobol.Net.Runtime/IO/FileSupport.cs; src/Cobol.Net.Runtime/IO/Sharing/FileLockPosture.cs#FileLockPosture; docs/COBOLNET_FILES_DESIGN.md",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 75: 'File sharing (interaction with other facilities and languages). This item is optional. This item, if provided by the implementor, shall be documented' (9.1.15). \u00a79.1.15: 'Other facilities may specify some degree of file sharing, however, their interaction with COBOL file sharing is defined by the implementor.' cite.py --check 9.1.15 -> OK \u00a79.1.15. The element IS provided: the runtime expresses each connector's sharing posture as a HOST share mode (FileShare.None / Read / ReadWrite, which .NET implements with flock(LOCK_NB) on Unix and share modes on Windows \u2014 FileSupport.cs:268-298, FileLockPosture), and COBOLNET_FILES_DESIGN.md:704-705 says outright 'a host share mode is the only thing a process can say to another run unit' \u2014 so another process/language holding the file interacts with COBOL sharing in a fixed way. No '| DOC-A.1-75 |' row and CONFORMANCE.md never states it (A.4.7 row says only 'SHARING/LOCK MODE/RETRY on every organization'); the design doc is not the user documentation. Provided but undocumented -> DIVERGES (silent). Not owned by any note (PB322 covers items 52/76/77/109/130/131, not 75) \u2014 reported in findings.json. || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/IO/FileSupport.cs#FileSupport (host FileShare modes: ReadWrite data streams, FileShare.None/Read posture probes \u2014 flock(LOCK_NB) on Unix) | docs/COBOLNET_FILES_DESIGN.md (lines ~700-710)"
+  }
+ },
+ {
+  "item": 76,
+  "rule-id": "DOC-A.1-76",
+  "a1_subject": "File sharing (which devices allow concurrent access to the file)",
+  "a1_text": "File sharing (which devices allow concurrent access to the file). This item is required. This item shall be documented in the implementor's user documentation. (9.1.15, Sharing mode)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-76",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-76; src/Cobol.Net.Runtime/IO/FileRegistry.cs#SharedOpenAttempt; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#PhysicalFileTable",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 76: 'File sharing (which devices allow concurrent access to the file). This item is required. This item shall be documented' (9.1.15). \u00a79.1.15: 'A shared physical file shall reside on a device that allows concurrent access to the file. The implementor shall specify which devices allow concurrent access to a physical file.' cite.py --check 9.1.15 'The implementor shall specify which devices allow concurrent access to a physical file.' -> OK \u00a79.1.15. No '| DOC-A.1-76 |' row and no statement anywhere in CONFORMANCE.md. The code fixes an answer: every physical file is a host file-system file and every one is arbitrated as shareable (no device distinction exists; probe sh.cob \u2014 one path, three connectors, SHARING ALL OTHER + LOCK MODE MANUAL: create 00, two concurrent INPUT opens 00/00). Behavior fixed, required determination missing -> DIVERGES (silent). Owning note: kb/Work/PB322 (open) determination B ('Which devices allow concurrent access \u2014 A.1 items 52 and 76 ... Absent'). || Owning note: kb/Work/PB322, PB1535."
+  }
+ },
+ {
+  "item": 77,
+  "rule-id": "DOC-A.1-77",
+  "a1_subject": "File sharing (default mode when unspecified)",
+  "a1_text": "File sharing (default mode when unspecified). This item is required. This item shall be documented in the implementor's user documentation. (9.1.3, File connector; 9.1.15, Sharing mode; 14.9.27, OPEN statement, General rule 23)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-77",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-77; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ImplementorDefaultSharing; src/Cobol.Net.Runtime/IO/FileRegistry.cs#Conflicts",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 77: 'File sharing (default mode when unspecified). This item is required. This item shall be documented' (9.1.3; 9.1.15; 14.9.27 GR23). \u00a79.1.15: 'If no specification is made in either location, the implementor defines the sharing mode in which the file is opened; the implementor-defined sharing mode may be one of the modes specified in this Working Draft International Standard or may be a mode completely specified by the implementor.' cite.py --check 9.1.15 -> OK \u00a79.1.15. No '| DOC-A.1-77 |' row. Code: FileRegistry.ImplementorDefaultSharing = null ('UNDETERMINED ... owner-facing determination tracked as kb/Work PB322'); Conflicts arbitrates it by 'a conflict is reported only where EVERY candidate ... yields Unsuccessful open' \u2014 in effect the most permissive (ALL OTHER-like) answer. Probe df.cob (three clause-less SELECTs on one path): OPEN INPUT 00, second OPEN INPUT 00, OPEN I-O of a third 00 \u2014 only ALL OTHER admits that sequence. The behavior is fixed but undeclared and undocumented, and the PHASE4 reconciliation doc records a contrary 'NO OTHER' choice (per PB322). -> DIVERGES (silent). Owning notes: kb/Work/PB322 (open, determination A) and kb/Work/PB670 (open, the 1985 posture of the same arbitration). Not NEEDS-OWNER-DECISION: CONFORMANCE.md \u00a75 row A.4.7 CLAIMS file sharing. || Owning note: kb/Work/PB322, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/IO/FileRegistry.cs#FileRegistry.ImplementorDefaultSharing (= null)"
+  }
+ },
+ {
+  "item": 78,
+  "rule-id": "DOC-A.1-78",
+  "a1_subject": "Fixed file attribute (whether the ability to share a file is a fixed file attribute)",
+  "a1_text": "Fixed file attribute (whether the ability to share a file is a fixed file attribute). This item is required. This item shall be documented in the implementor's user documentation. (9.1.6, Fixed file attributes)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-78",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-78; docs/CONFORMANCE.md#DOC-A.1-129; src/Cobol.Net.Runtime/IO/FileRegistry.cs#RegisterSharing",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 78: 'Fixed file attribute (whether the ability to share a file is a fixed file attribute). This item is required. This item shall be documented' (9.1.6). \u00a79.1.6: 'The implementor shall specify whether the ability to share a physical file is a fixed file attribute.' cite.py --check 9.1.6 -> OK \u00a79.1.6. The determination EXISTS but is filed inside the DOC-A.1-129 row (line 1610: '\u00a79.1.6's own last-sentence obligation ... is answered NO: a sharing mode is established per FILE CONNECTOR by the SHARING clause or the OPEN's SHARING phrase (\u00a714.9.27.4 GR21\u2013GR23)'), not under a '| DOC-A.1-78 |' key, so the inventory's computed anchor docs/CONFORMANCE.md#DOC-A.1-78 resolves to nothing. Behavior matches the answer: probe sh.cob creates sh1.dat through a SHARING WITH NO OTHER connector (00), closes, then reopens it through two SHARING WITH ALL OTHER LOCK MODE MANUAL connectors concurrently (00, 00) \u2014 the creating connector's sharing mode is not carried by the file. (First probe without LOCK MODE was correctly refused COBOLNET1512 per \u00a714.9.27.3 SR8.) Substance right and verified, register key missing, no spec-derived test -> PARTIAL. Umbrella owner: kb/Work/PB160 (register campaign). || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md#DOC-A.1-129 (the \u00a79.1.6 answer 'NO' is written inside item 129's row) | src/Cobol.Net.Runtime/IO/FileRegistry.cs#FileRegistry.RegisterSharing (sharing per connector, established at OPEN)"
+  }
+ },
+ {
+  "item": 79,
+  "rule-id": "DOC-A.1-79",
+  "a1_subject": "FLAG-02 directive (warning mechanism)",
+  "a1_text": "FLAG-02 directive (warning mechanism). This item is required. This item shall be documented in the implementor's user documentation. (7.3.14, FLAG-02 directive, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-79",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-79; src/Cobol.Net.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/Cobol.Net.Frontend/Preprocessor/FlagDirective.cs#All; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#Flag02Warning; docs/DIAGNOSTICS.md#COBOLNET1620",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "A.1 item 79: 'FLAG-02 directive (warning mechanism). This item is required. This item shall be documented' (7.3.14 GR1). \u00a77.3.14.4 GR1: 'The implementor shall provide a warning mechanism that flags the incompatibilities potentially affecting existing programs for the selected option, where the incompatibility is between the specifications in ISO/IEC 1989:2002, and ISO/IEC 1989:2014.' cite.py --check 7.3.14.4 -> OK \u00a77.3.14.4 1). The mechanism exists: FlagConformancePass emits Warning COBOLNET1620 per flagged construct (probe fl.cob: '>>FLAG-02 I-O-STATUS-07' + CLOSE F WITH NO REWIND -> 'warning COBOLNET1620: a CLOSE with the WITH NO REWIND or UNIT phrase (I-O status 07 behaviour, 2002<->2014) \u2014 flagged by >>FLAG-02 I-O-STATUS-07'; directive gated below 2014 with COBOLNET0900, obsolete-warned at 2023 with COBOLNET0903), and docs/DIAGNOSTICS.md:108 lists COBOLNET1620. But there is no '| DOC-A.1-79 |' row, and the user documentation that IS the conformance statement says the opposite \u2014 CONFORMANCE.md:527-529: 'the migration / obsolescence diagnostics they request are a separate REMAINING Wave-D item \u2014 the flags are not yet emitted.' Wrongly documented determination -> DIVERGES (silent). Owning notes: kb/Work/PB1369 (open; its line 114 names this stale sentence), kb/Work/PB1376 (open; FLAG-02 b warnings unlocated/collapsed), kb/Work/PB1375 (open; FLAG-02 b/d/f detector populations). || Owning note: kb/Work/PB1369, PB1376, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md (line 527-529)"
+  }
+ },
+ {
+  "item": 80,
+  "rule-id": "DOC-A.1-80",
+  "a1_subject": "FLAG-14 directive (warning mechanism)",
+  "a1_text": "FLAG-14 directive (warning mechanism). This item is required. This item shall be documented in the implementor's user documentation. (7.3.15, FLAG-14 directive, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-80",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-80; src/Cobol.Net.Compiler/Validation/FlagConformancePass.cs#FlagConformancePass; src/Cobol.Net.Frontend/Preprocessor/FlagDirective.cs#All; src/Cobol.Net.Editions/Diagnostics/DiagnosticCatalog.cs#Flag14Warning; docs/DIAGNOSTICS.md#COBOLNET1621",
+   "test-ref": "",
+   "editions": "2023",
+   "notes": "A.1 item 80: 'FLAG-14 directive (warning mechanism). This item is required. This item shall be documented' (7.3.15 GR1). \u00a77.3.15.4 GR1: 'The implementor shall provide a warning mechanism that flags the incompatibilities potentially affecting existing programs for the selected option, where the incompatibility is between the specifications in ISO/IEC 1989:2014, and this Working Draft International Standard.' cite.py --check 7.3.15.4 -> OK \u00a77.3.15.4 1). Mechanism exists (Warning COBOLNET1621, listed at docs/DIAGNOSTICS.md:109; directive gated to 2023 \u2014 COBOLNET0900 at --std 2002). No '| DOC-A.1-80 |' row, and CONFORMANCE.md:527-529 states 'the flags are not yet emitted' \u2014 wrong. Probe fl.cob also shows an option miss: '>>FLAG-14 COMPILE-TIME-ARITHMETIC-EXPRESSIONS ON' + '01 K CONSTANT AS 2 / 3 * 3.' emits NO COBOLNET1621 (the constant entry's arithmetic-expression-1 is a compile-time arithmetic expression, \u00a77.3.6.1) \u2014 already owned by kb/Work/PB1375 (open, FLAG-14 b 'only directive fragments are scanned, never the constant entry'). Wrongly documented + detector gaps -> DIVERGES (silent). Owning notes: kb/Work/PB1369 (stale sentence), kb/Work/PB1375. || Owning note: kb/Work/PB1369, PB1375, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md (line 527-529)"
+  }
+ },
+ {
+  "item": 81,
+  "rule-id": "DOC-A.1-81",
+  "a1_subject": "Floating-point numeric item (alignment when used as a receiving operand)",
+  "a1_text": "Floating-point numeric item (alignment when used as a receiving operand). This item is required. This alignment does not have to be documented in the implementor's user documentation. (14.6.8.3, Floating-point numeric receiving data items, rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-81",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-81; src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter; src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#CobolFloat",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "A.1 item 81: 'Floating-point numeric item (alignment when used as a receiving operand). This item is required. This alignment does not have to be documented' (14.6.8.3 rule 1). \u00a714.6.8.3 rule 1: 'If the receiving data item is described with a FLOAT-SHORT, FLOAT-LONG, or FLOAT-EXTENDED usage, the implementor specifies any exception conditions that might be set to exist during data conversion. If no fatal exception conditions have been set to exist during data conversion, the content of the receiving operand is set to the algebraic value of the sending operand.' cite.py --check 14.6.8.3 'the content of the receiving operand is set to the algebraic value of the sending operand' -> OK \u00a714.6.8.3 1). NOTE: the 2023 rule text no longer uses the word 'alignment' (the Annex item title is carried from an earlier edition); read as how the sending value is fitted into the float receiver. No documentation duty (a voluntary determination exists anyway in CONFORMANCE.md \u00a73 'EC-DATA-NOT-FINITE / EC-DATA-OVERFLOW applied to EVERY floating-point usage': ISO/IEC 60559 round-to-nearest conversion, \u00b1Infinity over range / zero under range with checking off, EC-DATA-OVERFLOW with checking on; FLOAT-EXTENDED maps to double like FLOAT-LONG, \u00a75 row 22). Probe fp.cob: MOVE 123.45678 -> FS/FL/FE 123.45678 each; MOVE 123456789012345678 -> FS 1.2345679E+17, FL/FE 1.2345678901234568E+17 (nearest representable = the algebraic value as held); COMPUTE FL = 1/3 -> 0.3333333333333333. Test pb271_float_receiver_overflow is spec-derived and pins the rule-1 store behaviour for FLOAT-SHORT/-LONG/-EXTENDED receivers (its header cites \u00a714.6.8.3 rule 1) in the out-of-range arm; the in-range nearest-value arm is probe-verified. Editions: FLOAT-SHORT/-LONG/-EXTENDED are 2002+. || REFUTED (CONFORMS -> PARTIAL): Owning note: kb/Work/PB1110 (open \u2014 binary32 double rounding). A.1 81: 'Floating-point numeric item (alignment when used as a receiving operand). This item is required. This alignment does not have to be documented' (cite.py -> OK \u00a7A.1 81)). \u00a714.6.8.3 1): 'the content of the receiving operand is set to the algebraic value of the sending operand' (cite.py -> OK \u00a714.6.8.3 1)). No documentation duty. The voluntary determination in CONFORMANCE.md \u00a73 (lines ~592-619) says 'COBOL.NET performs the ISO/IEC 60559 conversion and keeps its result', that is, correct round-to-nearest. DEFECT FOUND \u2014 DOUBLE ROUNDING on the FLOAT-SHORT receiver. CobolFloat.StoreChecked(CobolDec, single) does 'double r = src.ToDouble()' and then narrows with (float); StoreSingleChecked(double) does '(float)src'. So a decimal sender is rounded twice, decimal->binary64->binary32. Probe /tmp/adj/refute-probe/fp81.cob: the sender is 1.000000059604644775390625000001, which is 1 + 2^-24 + 1E-30, strictly above the midpoint between 1 and 1+2^-23 (python Fraction check: x>mid True). The nearest binary32 is therefore 1.00000011920928955. For MOVE literal, MOVE PIC 9V9(30) data item, COMPUTE FS = literal, and the negative case, every 'FS->FL' shows 1 (or -1), at --std 2023 and 2002. The stored value is the binary32 FARTHER from the algebraic value, so the result is neither 'the algebraic value' as nearly as representable nor the documented 60559 conversion. The same code path also hits FLOAT-BINARY-32 (fb32.cob gives the same 1 results), where \u00a714.6.8.3 2) mandates conversion 'in a manner consistent with the specifications of ISO/IEC 60559:2020, Clauses 3 and 5' (cite.py -> OK \u00a714.6.8.3 2)). That is a hard sibling defect for its own row and needs a kb/Work note. These cases behave correctly: 0.1 -> 0.10000000149011612; 1.0E-50 -> 0 with no EC (checking off); 1.0E-40 -> subnormal 9.99994610111476E-41; -0.0 and ZERO -> 0; the out-of-range arm is as determined. Hence PARTIAL rather than CONFORMS. TEST-REF: the pb271_float_receiver_overflow header itself says 'the value below is a DETERMINATION and not a derivation'. It pins the \u00a714.9.25.4 GR6 d)4.a out-of-range, content-undefined arm under checking off. It does not pin the in-range fitting ('alignment') of a value into a FLOAT-SHORT/-LONG/-EXTENDED receiver from spec-derived expectations, so the test-ref must be emptied. || Owning note: kb/Work/PB1110, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/CodeGen/Verbs/MoveEmitter.cs#MoveEmitter (float receiver store)"
+  }
+ },
+ {
+  "item": 88,
+  "rule-id": "DOC-A.1-88",
+  "a1_subject": "Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified)",
+  "a1_text": "Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified). This item is conditionally required because it is conditioned upon support for calling non-COBOL functions. This item shall be documented in the implementor's user documentation. (8.4.3.2, Function-identifier, General rule 6d)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-88",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-88; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 88) 'Function-identifier (execution of a non-COBOL function when a function-prototype-name is specified). This item is conditionally required because it is conditioned upon support for calling non-COBOL functions. This item shall be documented' -> \u00a78.4.3.2.4 GR6 d) '... if function-prototype-name-1 or function-pointer-name-1 is specified and the function to be activated is not a COBOL function, the execution is defined by the implementor.' (A.1 cites 8.4.3.2 GR6d; the rule is in 8.4.3.2.4.) Code: non-COBOL functions are not supported \u2014 the only locate universe is the run-unit ProgramTable of COBOL units, so a prototype naming an external function (probe p88: FUNCTION-ID EXTF AS \"strlen\" IS PROTOTYPE, MOVE FUNCTION EXTF(X)) ends 'abnormal run-unit termination: FUNCTION strlen ... could not be located (ISO \u00a78.4.3.2.4 GR6b \u2014 EC-FUNCTION-NOT-FOUND)', exit 1, with or without checking. So the condition of the item does not arise and it is vacuous. PARTIAL: no \u00a77 row records that vacuity for the PROTOTYPE arm; the nearest statement is DOC-A.1-210 (function-POINTER allowable languages: COBOL only) and the \u00a73 non-COBOL-activator bullet (no CALL-CONVENTION, so no non-COBOL CALL target), neither of which names function-prototype activation; the register counts item 88 as in scope (not a derived-verdict exclusion). No owning note (grep item 88: none). Editions: 2023 text; FUNCTION-ID/prototypes are not flagged new in Annex E (so 2014 too); 2002 by the inventory's convention, not derivable from this text. cite.py --check 8.4.3.2.4 'is not a COBOL function, the execution is defined by the implementor' -> OK \u00a78.4.3.2.4 6). || Owning note: kb/Work/PB1536, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram (function locate, notFoundEc EC-FUNCTION-NOT-FOUND) | docs/CONFORMANCE.md DOC-A.1-210 (ALLOWABLE LANGUAGES: COBOL only)"
+  }
+ },
+ {
+  "item": 89,
+  "rule-id": "DOC-A.1-89",
+  "a1_subject": "Function-identifier (object time resources that are checked)",
+  "a1_text": "Function-identifier (object time resources that are checked). This item is required. This item shall be documented in the implementor's user documentation. (8.4.3.2, Function-identifier, General rule 6c)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-89",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-89; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs; src/Cobol.Net.Runtime/Control/ProgramTable.cs#CallProgram",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 89) 'Function-identifier (object time resources that are checked). This item is required. This item shall be documented' -> \u00a78.4.3.2.4 GR6 c) 'If the function is located but the resources necessary to execute the function are not available, the EC-PROGRAM-RESOURCES exception condition is set to exist ... The runtime resources that are checked in order to determine the availability of the function for execution are defined by the implementor.' CONFORMANCE.md: no DOC-A.1-89 row. Code: EC-PROGRAM-RESOURCES is catalogued but has no raise site for a function activation (the checked set is de facto EMPTY and stated nowhere). OWNING NOTE: kb/Work/PB1422 (open; title names 'Annex A.1 item 89 ... has no DOC row'; inventory row GR-8.4.3.2.4-6) \u2014 referenced, not re-reported. cite.py --check 8.4.3.2.4 'The runtime resources that are checked in order to determine the availability of the function for execution are defined by the implementor' -> OK \u00a78.4.3.2.4 6). || Owning note: kb/Work/PB1422, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs (EC-PROGRAM-RESOURCES row, no raise site)"
+  }
+ },
+ {
+  "item": 94,
+  "rule-id": "DOC-A.1-94",
+  "a1_subject": "GOBACK statement (values in the STATUS phrase)",
+  "a1_text": "GOBACK statement (values in the STATUS phrase). Any constraints on the value in the data item or value of the literal in the STATUS phrase are defined by the implementor. This item is required. This item shall be documented in the implementor's user documentation. (14.9.18.3, GOBACK statement, General rule 10)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-94",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-94; src/Cobol.Net.Runtime/Control/RunUnit.cs#ExitStatus; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/CallBinder.cs#DecodeGobackPhrases",
+   "test-ref": "conformance-test:StopGobackExitCodeTests.TerminationStatus_SetsProcessExitCode",
+   "editions": "2023",
+   "notes": "Rule: A.1 94) 'GOBACK statement (values in the STATUS phrase). Any constraints on the value in the data item or value of the literal in the STATUS phrase are defined by the implementor. This item is required. This item shall be documented' (Annex cites 14.9.18.3 GR10; the rule is \u00a714.9.18.4 GR10 in this text). CONFORMANCE.md: NO '| DOC-A.1-94 |' row in \u00a77 (audit_annex_a1.py lists none; inventory row GAP). The substance IS written in \u00a73's 'STOP RUN / GOBACK termination status' bullet, which labels itself 'Annex A required items 192/193' (192 = the combined STOP-and-GOBACK constraint item, also undocumented as a \u00a77 row) and says 'A main-program GOBACK (\u00a714.9.18.4 GR3) uses the same mapping': integer value -> process exit code, non-numeric operand digit-decoded, host low-8-bit clamp. Behaviour matches the prose (probe at pin: GOBACK WITH ERROR STATUS S(=42) exit 42; NORMAL STATUS \"ABEND\" exit 0; GOBACK ERROR exit 1; NORMAL STATUS 300 exit 44 = 300 mod 256). PARTIAL only because the determination is not registered under item 94 (the register/inventory mechanism cannot see it); no owning note found (grep DOC-A.1-94 / item 94 in kb/Work: none; PB169 owns the landed behaviour). Edition: Annex E.3 item 32 'The GOBACK statement now allows the same status phrase as the STOP statement' -> 2023 only. cite.py --check 14.9.18.4 'Any constraints on the value of literal-1 or the contents of the data item referenced by identifier-2 are defined by the implementor' -> OK \u00a714.9.18.4 10); cite.py --check A.1 'Any constraints on the value in the data item or value of the literal in the STATUS phrase are defined by the implementor' -> OK \u00a7A.1 94). || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md \u00a73 'STOP RUN / GOBACK termination status' bullet (line ~415)"
+  }
+ },
+ {
+  "item": 95,
+  "rule-id": "DOC-A.1-95",
+  "a1_subject": "Hexadecimal alphanumeric literals (mapping for non-existing corresponding character)",
+  "a1_text": "Hexadecimal alphanumeric literals (mapping for non-existing corresponding character). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.2, Alphanumeric literals, General rule 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-95",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-95; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHex; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexGroups",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 95) 'Hexadecimal alphanumeric literals (mapping for non-existing corresponding character). This item is required. This item shall be documented' -> \u00a78.3.3.2.4 GR5 'The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists.' CONFORMANCE.md: no '| DOC-A.1-95 |' row (audit_annex_a1.py: absent; inventory GAP), and no \u00a73 prose states it. Code FIXES a behaviour: DecodeHex maps each 2-digit group verbatim to the UTF-16 code unit U+0000-U+00FF, no diagnostic, no exception (probe at pin: X\"80FF\" -> ORD 129/256, i.e. stored as U+0080/U+00FF; the C1-control range U+0080-U+009F is stored as-is). A fixed-but-undocumented determination = DIVERGES, harm silent. OWNING NOTE: kb/Work/PB1397 (open) already names item 95 in its title ('item 95 (hex-character-sequence with no cor...') \u2014 referenced, not re-reported. Editions: GR5 present in 2023; Annex E lists no change to it, so 2014 carries the same rule (earlier editions not derivable from this text). cite.py --check 8.3.3.2.4 'The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists' -> OK \u00a78.3.3.2.4 5). || Owning note: kb/Work/PB1397, PB1535."
+  }
+ },
+ {
+  "item": 96,
+  "rule-id": "DOC-A.1-96",
+  "a1_subject": "Hexadecimal alphanumeric literals (mapping when characters not multiples of four bits)",
+  "a1_text": "Hexadecimal alphanumeric literals (mapping when characters not multiples of four bits). This item is conditionally required because it is conditioned upon a computer's coded character set with characters that are not multiples of four bits. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.3.3.2, Alphanumeric literals, General rule 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-96",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-96; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHex",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 96) 'Hexadecimal alphanumeric literals (mapping when characters not multiples of four bits). This item is conditionally required because it is conditioned upon a computer's coded character set with characters that are not multiples of four bits. This item, if provided by the implementor, shall be documented' -> \u00a78.3.3.2.4 GR5 second sentence 'The implementor also defines the mapping of each hex-character-sequence-1 to a character, when the characters do not occupy a multiple of four bits.' Code: an alphanumeric character position is one UTF-16 code unit (16 bits, the D-N1 substrate; DecodeHex builds char[] from 2-digit groups; odd digit counts are COBOLNET1635 citing \u00a78.3.3.2.3 r6 \u2014 probe X\"8\" rejected), so the condition does not arise and the item is vacuous. PARTIAL, not CONFORMS: the vacuity rests on a character-width determination (items 12/33 family) that is itself not in \u00a77, and the register counts item 96 among its 195 in-scope obligations (audit_annex_a1.py excludes only 84/85/86/173) while carrying no row that states the vacuity \u2014 the project's own convention for a vacuous conditional item is an explicit row (cf. DOC-A.1-185 'VACUOUS - there is no code-name-2'). No owning note found (grep item 96 / DOC-A.1-96: none; nearest is PB1397, which notes 'characters occupy 16 bits ... the second sentence's mapping is not triggered'). cite.py --check 8.3.3.2.4 'when the characters do not occupy a multiple of four bits' -> OK \u00a78.3.3.2.4 5). || Owning note: kb/Work/PB1536, PB1535."
+  }
+ },
+ {
+  "item": 97,
+  "rule-id": "DOC-A.1-97",
+  "a1_subject": "Hexadecimal national literals (mapping for non-existing corresponding character)",
+  "a1_text": "Hexadecimal national literals (mapping for non-existing corresponding character). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.5, National literals, General rule 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-97",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-97; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexGroups",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 97) 'Hexadecimal national literals (mapping for non-existing corresponding character). This item is required. This item shall be documented' -> \u00a78.3.3.5.4 GR5 'The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists.' CONFORMANCE.md: no '| DOC-A.1-97 |' row; no prose elsewhere. Code fixes the behaviour: DecodeHexGroups(...,4) stores each 4-digit group verbatim as a UTF-16 code unit, so a group with no corresponding character (unpaired surrogate U+D800, noncharacter U+FFFF) is kept unchanged with no diagnostic/exception (probe at pin: LENGTH(NX\"D800\")=1; ORD of NX\"D800\" = 55297, of NX\"FFFF\" = 65536). Undocumented fixed determination = DIVERGES (silent). OWNING NOTE: kb/Work/PB160 (open; Registrar 15c paragraph names item 97 and GR-8.3.3.5.4-5) \u2014 referenced, not re-reported. cite.py --check 8.3.3.5.4 'The implementor defines the result of specifying a hex-character-sequence-1 for which no corresponding character in that coded character set exists' -> OK \u00a78.3.3.5.4 5). || Owning note: kb/Work/PB160, PB1535."
+  }
+ },
+ {
+  "item": 98,
+  "rule-id": "DOC-A.1-98",
+  "a1_subject": "Hexadecimal national literals (mapping when characters not multiples of four bits)",
+  "a1_text": "Hexadecimal national literals (mapping when characters not multiples of four bits). This item is conditionally required because it is conditioned upon a computer's coded character set with characters that are not multiples of four bits. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (8.3.3.5, National literals, General rule 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-98",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-98; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#DecodeHexGroups",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 98) 'Hexadecimal national literals (mapping when characters not multiples of four bits). This item is conditionally required ... conditioned upon a computer's coded character set with characters that are not multiples of four bits. This item, if provided by the implementor, shall be documented' -> \u00a78.3.3.5.4 GR5 second sentence. Code: a national character is one UTF-16 code unit (16 bits; DecodeHexGroups perChar=4), so the condition never arises and the item is vacuous in behaviour. PARTIAL for the same reason as DOC-A.1-96: the register counts it in scope (not excluded by audit_annex_a1.py's derived-verdicts) and no row records the vacuity; the national 4-digits-per-character determination (item 122, D-N1) is itself undocumented per PB160's Registrar 15c paragraph. No owning note names item 98; PB160 covers the neighbouring item 97/122 rows. cite.py --check 8.3.3.5.4 'when the characters do not occupy a multiple of four bits' -> OK \u00a78.3.3.5.4 5). || Owning note: kb/Work/PB1536, PB1535."
+  }
+ },
+ {
+  "item": 99,
+  "rule-id": "DOC-A.1-99",
+  "a1_subject": "Implementor-defined exception conditions, EC-IMP-xxx (specification and meaning of xxx)",
+  "a1_text": "Implementor-defined exception conditions, EC-IMP-xxx (specification and meaning of xxx). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (Table 13, Exception-names and exception conditions)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-99",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-99; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#TryGet; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#EcFatality.Imp",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 99) 'Implementor-defined exception conditions, EC-IMP-xxx (specification and meaning of xxx). This item is optional. This item, if provided by the implementor, shall be documented' -> \u00a714.6.13.1.6 Table 13 row 'EC-IMP-*suffix* (implementor specifies *suffix*) | Imp | Level-3 implementor-defined exception condition'. CONFORMANCE.md: no DOC-A.1-99 row, no statement of any EC-IMP suffix nor that none is provided. Code: ExceptionCatalog accepts EC-IMP-<any valid suffix> as an open family (like EC-USER-*), level 3, parent EC-IMP, fatality Imp which this implementation treats as FATAL; the runtime raises no EC-IMP-* itself. Probe p99 (>>TURN EC-ALL CHECKING ON; RAISE EXCEPTION EC-IMP-WIBBLE): compiles, 'abnormal run-unit termination: EC-IMP-WIBBLE (fatal): raised by RAISE and not resumed', exit 1. So the implementation DOES make a determination \u2014 every suffix is a valid name, meaning 'a user-raisable fatal condition the runtime never sets' \u2014 and it is undocumented => DIVERGES (silent). And if the intended answer is 'not provided', accepting an arbitrary EC-IMP-suffix is an under-rejection: Table 13 makes the suffix set the implementor's to SPECIFY, so a suffix never specified names no exception condition. No owning note (grep item 99 / EC-IMP-suffix in kb/Work: none). cite.py --check 14.6.13.1.6 'EC-IMP-*suffix* (implementor specifies *suffix*)' -> OK \u00a714.6.13.1.6; 'Level-3 implementor-defined exception condition' -> OK. || Owning note: kb/Work/PB1531, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#TryGet (EC-IMP- open-suffix arm, line ~250)"
+  }
+ },
+ {
+  "item": 100,
+  "rule-id": "DOC-A.1-100",
+  "a1_subject": "Implementor-defined level-2 exception conditions, EC-level-2-IMP (specification and meaning of the specified level-2 exc",
+  "a1_text": "Implementor-defined level-2 exception conditions, EC-level-2-IMP (specification and meaning of the specified level-2 exception condition). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (Table 13, Exception-names and exception conditions)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-100",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-100; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs; src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#CobolCallException; src/Cobol.Net.Runtime/Control/ProgramTable.cs",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 100) 'Implementor-defined level-2 exception conditions, EC-level-2-IMP (specification and meaning of the specified level-2 exception condition). This item is optional. This item, if provided by the implementor, shall be documented' -> \u00a714.6.13.1.6 Table 13 rows such as 'EC-PROGRAM-IMP | Imp | Implementor-defined inter-program communication exception'. CONFORMANCE.md: no DOC-A.1-100 row; the only mention is 'EC-LOCALE-IMP is reserved' in the A.4.9 locale note. Code PROVIDES one: CobolCallException's constructor defaults ecName to \"EC-PROGRAM-IMP\" (listed in ProgramRegistry.CarriedNames as 'the ctor default'), and exactly one raise site uses that default \u2014 ProgramTable.cs ~518 'internal: contained program ... activated while its container is not instantiated'. Every EC-*-IMP row carries EcFatality.Imp, which the catalog documents in a code comment as 'this implementation treats every raised EC-*-IMP as fatal'. Probe p99b: RAISE EXCEPTION EC-PROGRAM-IMP under checking -> 'EC-PROGRAM-IMP (fatal)', exit 1. The meaning of the one provided level-2 IMP condition and the Imp->fatal determination are stated only in code comments => DIVERGES (silent). EcBinder's EC-RAISING-IMP is a compile-time placeholder after a diagnosed error, never raised. No owning note (grep item 100: none). cite.py --check 14.6.13.1.6 'EC-PROGRAM-IMP' -> OK \u00a714.6.13.1.6. || Owning note: kb/Work/PB1531, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs (L3 EC-*-IMP rows, EcFatality.Imp) | src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#CobolCallException (default ecName EC-PROGRAM-IMP) | src/Cobol.Net.Runtime/Control/ProgramTable.cs (line ~518, contained-program invariant)"
+  }
+ }
+]

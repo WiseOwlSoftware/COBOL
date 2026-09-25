@@ -588,11 +588,16 @@ public sealed class DerivedVerdictDriftTests
         }
 
         // A DOC row §7 does not carry at all must stay out: nothing has been determined about it, and a MISSING
-        // determination is not a NEGATIVE one. Item 7 is A.1-optional and has no §7 row.
-        Assert.DoesNotContain("DOC-A.1-7", ids);
-        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-7"),
-            "item 7 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
+        // determination is not a NEGATIVE one. Item 67 (the REPOSITORY paragraph's conventions) is A.1-optional
+        // and has no §7 row — it waits on owner decision kb/Work PB1099 Q3. Item 7 held this anchor until
+        // 2026-09-24, when kb/Work PB1522 step 3 wrote its 'Not provided.' row; the selector took it with no
+        // edit to the predicate, which is asserted below so the move is visible rather than silent.
+        Assert.DoesNotContain("DOC-A.1-67", ids);
+        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-67"),
+            "item 67 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
             + "assertion's subject moved and another optional item with no determination must take its place");
+        Assert.Equal("optional", byId["DOC-A.1-67"].Requirement);
+        Assert.Contains("DOC-A.1-7", ids);
         // A REQUIRED item with a determination stays out — item 19's is positive, so this is the pair working
         // together rather than either axis alone. The axes are separated in the engine's own self-test.
         Assert.DoesNotContain("DOC-A.1-19", ids);

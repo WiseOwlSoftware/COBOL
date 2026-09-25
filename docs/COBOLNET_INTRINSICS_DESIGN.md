@@ -595,7 +595,7 @@ record `Bind` takes → `BindSession` / `DataBinder.LeapSecond` → the renderer
 TEST-FORMATTED-DATETIME, INTEGER-OF-FORMATTED-DATE, FORMATTED-TIME, FORMATTED-DATETIME and COMBINED-DATETIME. Under
 ON: a seconds subfield may be 60 (§15.3.3.3 — `Analyze`'s field range), standard numeric time form is bounded at
 86,401 (§7.3.17.4 GR4 — `SecondsOutOfStandardForm`), and 86,400.x is presented as 23:59:60.x. The REPORTED side
-(GR2/GR4's "may a 60 / a value ≥ 86,400 be returned") stays the implementor's "never" (A.1 item 112 — the .NET clock
+(GR2/GR4's "may a 60 / a value ≥ 86,400 be returned") stays the implementor's "never" (A.1 items 111 and 112 — the .NET clock
 has no leap seconds). SR1 (not within a compilation unit) is COBOLNET1650 — the one obligation only that stage can
 see; the OPERAND (§7.3.17.2's ON/OFF, with ON un-underlined so a bare directive selects it) is checked with every
 other directive's, as COBOLNET1911 off the row's `directiveOperand` column (kb/Work PB794), and below 2002 the

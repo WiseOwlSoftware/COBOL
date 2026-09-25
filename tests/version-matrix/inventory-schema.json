@@ -36,7 +36,7 @@
     "CONFORMS": {
       "resolves": true,
       "requires": ["code-location"],
-      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question AND the item is one the standard REQUIRES. ⛔ Where the item is OPTIONAL and the determination opens 'Not provided.', the verdict is DOCUMENTED-NON-SUPPORT — owner decision, kb/Work PB280 Q1, 2026-09-02, applied as the `a1-optional-not-provided` derived selector rather than row by row (items 127 and 150 today, up to 30 as the register fills; item 206 was one of the first two until owner decision Q30, 2026-09-09 — kb/Work PB592 — found the element IS provided, so its cell now opens 'Provided' and the row carries an adjudicated CONFORMS). The question was open here until then and no agent was permitted to answer it."
+      "meaning": "The implementation was read and agrees with the spec text across every applicable edition. Closes the row only once a SPEC-DERIVED test covers it; until then the row is CONFORMS-but-untested and stays a GAP. On a kind-DOC row the 'implementation' read is the DETERMINATION: docs/CONFORMANCE.md §7 states what this implementor-defined element does, and the compiler does it. ⚠ A determination that READS negative is still CONFORMS where the not-providing is itself the implementor's answer to A.1's question AND the item is one the standard REQUIRES. ⛔ Where the item is OPTIONAL and the determination opens 'Not provided.', the verdict is DOCUMENTED-NON-SUPPORT — owner decision, kb/Work PB280 Q1, 2026-09-02, applied as the `a1-optional-not-provided` derived selector rather than row by row (items 7, 64, 106, 127, 143, 150, 193 and 196 on 2026-09-24, up to 30 as the register fills; item 206 was one of the first two until owner decision Q30, 2026-09-09 — kb/Work PB592 — found the element IS provided, so its cell now opens 'Provided' and the row carries an adjudicated CONFORMS). The question was open here until then and no agent was permitted to answer it."
     },
     "DOCUMENTED-NON-SUPPORT": {
       "resolves": true,
@@ -870,7 +870,12 @@
         "optional determinations now separate that axis against the live register. The other 25 optional items are",
         "not selected because nothing has been determined about them, which is the honest state and not a gap in",
         "the predicate — as each is determined, this selector picks it up with no edit here, and the drift test",
-        "turns RED until the batch is re-run."
+        "turns RED until the batch is re-run.",
+        "",
+        "⚠ RE-MEASURED 2026-09-24 (kb/Work PB1522 step 3): 8 selected of 4,348 — DOC-A.1-7, -64, -106, -127, -143,",
+        "-150, -193, -196. The five new ones (7, 106, 143, 193, 196) arrived as §7 'Not provided.' rows and were",
+        "recorded by the step-3 batch with this selector's verdict; the drift test's 'optional but undetermined'",
+        "anchor moved from item 7 to item 67 accordingly."
       ],
       "arms": [
         {

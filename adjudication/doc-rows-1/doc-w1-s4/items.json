@@ -1,0 +1,296 @@
+[
+ {
+  "item": 101,
+  "rule-id": "DOC-A.1-101",
+  "a1_subject": "INVOKE statement (behavior when invoking a non-COBOL method)",
+  "a1_text": "INVOKE statement (behavior when invoking a non-COBOL method). This item is required. This item shall be documented in the implementor's user documentation. (14.9.23, INVOKE statement, General rule 2b)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-101",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-101; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs; src/Cobol.Net.Runtime/Control/CobolObject.cs#__CobolInvoke",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 101) 'INVOKE statement (behavior when invoking a non-COBOL method). This item is required. This item shall be documented' -> \u00a714.9.23.4 GR2 b) 'If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined.' (and GR7 e) '... otherwise, the execution is defined by the implementor'). REQUIRED, not conditional \u2014 a behaviour must be stated. CONFORMANCE.md: no DOC-A.1-101 row; no prose on non-COBOL methods (the \u00a73 non-COBOL bullet covers only a non-COBOL ACTIVATOR of a program). Code fixes a behaviour: only classes defined in the compilation group are resolvable, and CobolObject.__CobolInvoke dispatches over COBOL-declared methods only. Probe p101 (REPOSITORY. CLASS SB AS \"System.Text.StringBuilder\". 01 O USAGE OBJECT REFERENCE SB. INVOKE SB \"NEW\" RETURNING O): compile-time 'COBOLNET0813 ... no such a class or interface is defined in this compilation group' and 'COBOLNET0823 INVOKE: SB is neither a resolvable data item nor a class this source element may reference', exit 70. So the implementor determination is 'a non-COBOL method cannot be invoked \u2014 rejected at compile time', and it is undocumented => DIVERGES (silent). SIDE OBSERVATION (not adjudicated here): refusing a REPOSITORY class that is not defined in the same compilation group may itself over-reject (\u00a712.3.8 external repository) \u2014 belongs to the REPOSITORY rows. No owning note (grep item 101: none). cite.py --check 14.9.23.4 'If the method to be invoked is a non-COBOL method, the behavior of the INVOKE statement is implementor-defined' -> OK \u00a714.9.23.4 2). || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs (COBOLNET0823/COBOLNET0813)"
+  }
+ },
+ {
+  "item": 102,
+  "rule-id": "DOC-A.1-102",
+  "a1_subject": "INVOKE statement (runtime resources that are checked)",
+  "a1_text": "INVOKE statement (runtime resources that are checked). This item is required. This item shall be documented in the implementor's user documentation. (14.9.23, INVOKE statement, General rule 7e)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-102",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-102; src/Cobol.Net.Runtime/Control/CobolObject.cs#__CobolInvoke; src/Cobol.Net.Compiler/CodeGen/Verbs/OoEmitter.cs",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 102) 'INVOKE statement (runtime resources that are checked). This item is required. This item shall be documented ... (14.9.23, INVOKE statement, General rule 7e)'. \u26a0 CITATION DRIFT IN THE ANNEX: the resource sentence is GR7 b), not 7 e): \u00a714.9.23.4 7) b) 'If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist' (7 e is the transfer-of-control rule). CONFORMANCE.md: no DOC-A.1-102 row. Code: EC-OO-METHOD is raised ONLY for method-not-found (CobolObject.__CobolInvoke default arm, 'does not implement a method named'); no resource of any kind is checked before invocation, so the checked set is de facto empty and undocumented => DIVERGES (silent, under-rejects). Owning note: kb/Work/PB1422 names 'INVOKE (A.1 item 102) should be swept the same way' as a sibling of item 89 but does not claim GR-14.9.23.4-7 in inventory_rows \u2014 referenced as the owning cluster; the CALL twin (item 14) is the third sibling. cite.py --check 14.9.23.4 'If the method is not found or the resources necessary to execute the method are not available, the EC-OO-METHOD exception condition is set to exist' -> OK \u00a714.9.23.4 7); cite.py --check A.1 'INVOKE statement (runtime resources that are checked)' -> OK \u00a7A.1 102). || Owning note: kb/Work/PB1422, PB1535."
+  }
+ },
+ {
+  "item": 103,
+  "rule-id": "DOC-A.1-103",
+  "a1_subject": "I-O status (action taken for fatal exception conditions)",
+  "a1_text": "I-O status (action taken for fatal exception conditions). This item is required. This item shall be documented in the implementor's user documentation. (9.1.13, I-O status)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-103",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-103; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#IsFatalIoStatus; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#__IoCheckEc; src/Cobol.Net.Runtime/IO/FileStatus.cs#LineRecordInvalidChar",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 103) 'I-O status (action taken for fatal exception conditions). This item is required. This item shall be documented' -> \u00a79.1.13.1 'If the value of the I-O status for an input-output operation indicates a fatal exception condition, the implementor determines what action is taken ... The implementor may either continue or terminate the execution of the run unit.' CONFORMANCE.md: NO '| DOC-A.1-103 |' row; the only statement of the action is a parenthetical inside the SORT/MERGE implicit-transfer bullet of \u00a73 ('if the implementor continues the run unit (COBOL.NET does, with checking off)'), plus \u00a72 row 44 'Nonzero process exit on an unresumed fatal exception condition'. Code fixes a two-arm determination (probes at pin): checking OFF (default) -> execution CONTINUES after a fatal status even with no FILE STATUS and no USE (f2: OPEN INPUT absent non-optional file = '35', READ = '47', both continue, exit 0; f6: line-sequential WRITE of X\"01\" = '71' continues, exit 0); checking ON (>>TURN EC-I-O / EC-ALL CHECKING ON) -> 'abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 35', exit 1. 9x is defined fatal (IsFatalIoStatus). DIVERGES (silent): the determination is made in code but not registered, and the in-code documentation CONTRADICTS the default arm: FileStatus.cs LineRecordInvalidChar's summary says 'a program without a FILE STATUS item or a USE declarative terminates here rather than writing a corrupt line' \u2014 measured false in a default build (f6 continues, exit 0). Related open note kb/Work/PB1512 (host IOException on READ/WRITE escapes as an unhandled .NET crash instead of '30' + the item-103 action) \u2014 referenced, not re-reported; no note owns the documentation half -> new finding. Editions: \u00a79.1.13.1 is not listed in Annex E as changed. cite.py --check 9.1.13.1 'The implementor may either continue or terminate the execution of the run unit' -> OK \u00a79.1.13.1 (General). || Owning note: kb/Work/PB1512, PB1535."
+  }
+ },
+ {
+  "item": 104,
+  "rule-id": "DOC-A.1-104",
+  "a1_subject": "I-O status (if more than one value applies)",
+  "a1_text": "I-O status (if more than one value applies). This item is required. The internal procedure employed by the implementor does not have to be documented in the implementor's user documentation. (9.1.13, I-O status)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-104",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-104; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenCore; src/Cobol.Net.Runtime/IO/FileConnector.cs#SequentialReadGuard",
+   "test-ref": "conformance:2023/pb317_open_no_rewind",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 104) 'I-O status (if more than one value applies). This item is required. The internal procedure employed by the implementor does not have to be documented' -> \u00a79.1.13.1 'If more than one value applies, the implementor determines which of the applicable values to place in the I-O status.' Not a documentation obligation (audit_annex_a1.py register: documented=False), so absence of a \u00a77 row is correct. Behaviour: every connector verb computes exactly one status through a fixed code order, and where two values genuinely both apply the choice is made deliberately and is even documented voluntarily: CONFORMANCE.md \u00a73 bullet \"I-O status '07' vs '05' on one OPEN\" (kb/Work PB317) \u2014 OPEN INPUT ... WITH NO REWIND of an absent OPTIONAL file reports '07'. Probe at pin: golden 2023/pb317_open_no_rewind re-run, output identical to .out (OPT-ABSENT=07). The test pins a case where two values apply (05 per \u00a79.1.13.2 4a and 07 per \u00a714.9.27.4 GR11) and the implementor's pick. No owning note needed. cite.py --check 9.1.13.1 'If more than one value applies, the implementor determines which of the applicable values to place in the I-O status' -> OK \u00a79.1.13.1 (General). || Owning note: kb/Work/PB1535."
+  }
+ },
+ {
+  "item": 105,
+  "rule-id": "DOC-A.1-105",
+  "a1_subject": "I-O status, permanent error (technique for error correction)",
+  "a1_text": "I-O status, permanent error (technique for error correction). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (9.1.13, I-O status)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-105",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-105; src/Cobol.Net.Runtime/IO/FileConnector.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 105) 'I-O status, permanent error (technique for error correction). This item is optional. This item, if provided by the implementor, shall be documented' -> \u00a79.1.13.1 'The permanent error condition remains in effect for all subsequent input-output operations on the file unless an implementor-defined technique is invoked to correct the permanent error condition.' CONFORMANCE.md: no DOC-A.1-105 row and no statement that no technique is provided. Code: no correction technique exists, and no sticky permanent-error state exists for one to clear (grep FileConnector/FileRegistry: the only persisted per-connector error state is the \u00a714.9.30 GR21 '46' poison). Facility absent => NOT-IMPLEMENTED; the project precedent for an optional item not provided is a \u00a77 row stating non-provision and a DOCUMENTED-NON-SUPPORT verdict (DOC-A.1-64, -127, -150), which is the owner's to choose, not the adjudicator's. UNVERIFIED EDGE noted, not filed: whether a '3x' on one statement must make later statements on the same connector also '3x' ('remains in effect'); probe f1 shows OPEN '35' followed by READ '47'. No owning note (grep item 105 / DOC-A.1-105: none). cite.py --check 9.1.13.1 'unless an implementor-defined technique is invoked to correct the permanent error condition' -> OK \u00a79.1.13.1 (General). || Owning note: kb/Work/PB1534, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/IO/FileConnector.cs (no permanent-error state or correction technique)"
+  }
+ },
+ {
+  "item": 106,
+  "rule-id": "DOC-A.1-106",
+  "a1_subject": "I-O status 0x (value of x)",
+  "a1_text": "I-O status 0x (value of x). This item is optional. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (9.1.13.3, Implementor-defined successful completion)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-106",
+   "verdict": "NOT-IMPLEMENTED",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-106; src/Cobol.Net.Runtime/IO/FileStatus.cs#FileStatusCode",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 106) 'I-O status 0x (value of x). This item is optional. This item, if provided by the implementor, shall be documented' -> \u00a79.1.13.3 1) 'I-O status = 0x. An implementor-defined condition exists. The value of x is specified by the implementor and may be any of the uppercase letters A through M or lowercase letters a through m'. Code: FileStatusCode defines no 0x value (grep for \"0[A-Ma-m]\" over src/Cobol.Net.Runtime and Compiler finds only C# numeric suffixes 0L/0d/0f/0m, none an I-O status); the one implementor-defined status is '90' (DOC-A.1-110). CONFORMANCE.md: no DOC-A.1-106 row and no statement that no 0x value is provided (contrast DOC-A.1-110's 'exactly ONE implementor-defined I-O status: 90', which implies but does not state it for the 0x class). Facility absent => NOT-IMPLEMENTED; recording non-provision (the DOC-A.1-64/-150 DOCUMENTED-NON-SUPPORT precedent) is the owner's call. Also unanswered: the Annex E NOTE latitude ('It is implementor dependent whether or not upper and lower case versions of letters in this context are equivalent', E.2 item 17, 2023) \u2014 vacuous while no 0x exists. No owning note. cite.py --check 9.1.13.3 'The value of x is specified by the implementor' -> OK \u00a79.1.13.3 1). || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 107,
+  "rule-id": "DOC-A.1-107",
+  "a1_subject": "I-O status 24 (manner in which the boundaries of a file are defined)",
+  "a1_text": "I-O status 24 (manner in which the boundaries of a file are defined). This item is required. This item shall be documented in the implementor's user documentation. (9.1.13.5, Invalid key condition with unsuccessful completion)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-107",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-107; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/FileStatus.cs#BoundaryViolation",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 107) 'I-O status 24 (manner in which the boundaries of a file are defined). This item is required. This item shall be documented' -> \u00a79.1.13.5 4) 'I-O status = 24. An attempt is made to write outside the externally-defined boundaries of a physical relative or indexed file. The implementor specifies the manner in which these boundaries are defined.' CONFORMANCE.md: no DOC-A.1-107 row. Code: RelativeConnector.Write returns '24' only when the RRN's digits exceed the relative key (a key-width test, not an externally-defined file boundary); IndexedConnector.Write has no boundary test. OWNING NOTE: kb/Work/PB1192 (open, MAJOR, wrong_answer+crashes) names 'docs/CONFORMANCE.md \u00a77 (missing DOC-A.1-107, DOC-A.1-108)' and the missing boundary model \u2014 referenced, not re-reported. cite.py --check 9.1.13.5 'The implementor specifies the manner in which these boundaries are defined' -> OK \u00a79.1.13.5 4). || Owning note: kb/Work/PB1192, PB1535."
+  }
+ },
+ {
+  "item": 108,
+  "rule-id": "DOC-A.1-108",
+  "a1_subject": "I-O status 34 (manner in which the boundaries of a file are defined)",
+  "a1_text": "I-O status 34 (manner in which the boundaries of a file are defined). This item is required. This item shall be documented in the implementor's user documentation. (9.1.13.6, Permanent error condition with unsuccessful completion)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-108",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-108; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#Write; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/FileStatus.cs#PermanentBoundary",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 108) 'I-O status 34 (manner in which the boundaries of a file are defined). This item is required. This item shall be documented' -> \u00a79.1.13.6 3) 'I-O status = 34. A permanent error exists because of a boundary violation; an attempt is made to write outside the externally-defined boundaries of a physical sequential file. The implementor specifies the manner in which these boundaries are defined.' CONFORMANCE.md: no DOC-A.1-108 row. Code: FileStatus.PermanentBoundary '34' is produced only by RelativeConnector for a random WRITE with key < 1 (a \u00a714.9.51 GR29b case), never for a physical SEQUENTIAL file, which has no boundary model and whose WRITE path has no IOException catch (device-full cannot become '34'). OWNING NOTE: kb/Work/PB1192 (open, MAJOR; names the missing DOC-A.1-107/-108 rows and the absent boundary model; inventory rows GR-9.1.13.6-3/-4) \u2014 referenced, not re-reported. Sibling: kb/Work/PB1512 (sequential WRITE IOException escapes). cite.py --check 9.1.13.6 'The implementor specifies the manner in which these boundaries are defined' -> OK \u00a79.1.13.6 3). || Owning note: kb/Work/PB1192, PB1535."
+  }
+ },
+ {
+  "item": 111,
+  "rule-id": "DOC-A.1-111",
+  "a1_subject": "LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds",
+  "a1_text": "LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds that may be reported). This item is required. This item shall be documented in the implementor's user documentation. (7.3.17, LEAP-SECOND directive, General rule 2; 14.9.1, ACCEPT statement, General rule 11; 15.21, CURRENT-DATE function, Returned value rule 1; 15.99, WHEN-COMPILED function, Returned value rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-111",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-111; src/Cobol.Net.Runtime/IO/AcceptSource.cs#Time; src/Cobol.Net.Frontend/Preprocessor/LeapSecondDirectiveProcessor.cs",
+   "test-ref": "",
+   "editions": "2014,2023",
+   "notes": "Rule: A.1 111) 'LEAP-SECOND directive (whether a value greater than 59 seconds may be reported and, if so, the maximum number of seconds that may be reported). This item is required. This item shall be documented' -> \u00a77.3.17.4 GR2 'When ON is specified or implied, the implementor defines whether a value greater than 59 may be reported in the seconds position of the value returned from: ...' (ACCEPT GR11, CURRENT-DATE r1, WHEN-COMPILED r1). CONFORMANCE.md: no '| DOC-A.1-111 |' row. The determination IS written, but MISNUMBERED: the \u00a73 directives bullet says '>>LEAP-SECOND (\u00a77.3.17) \u2014 the REPORTED side only: the .NET clock never reports a 60th second (A.1 item 112)' \u2014 item 112 is the >= 86,400 standard-numeric-time item (its own \u00a77 row exists); the seconds-position question is item 111. Behaviour matches the prose by reading: every reported time derives from System.DateTime (AcceptSource.Time = Hour*1000000 + Minute*10000 + Second*100 + ms/10, DateTime.Second is 0..59), so no seconds value > 59 is ever reported under ON or OFF. PARTIAL: substance present, not registered under item 111, filed under the wrong item number, and no test pins the reported side (not forceable on a host clock). OWNING NOTE: kb/Work/PB1369 (open) \u2014 its bullet 'CONFORMANCE.md (~line 523) and LeapSecondDirectiveProcessor's summary cite the never-report-second-60 determination (\u00a77.3.17.4 GR2) as A.1 item 112; the adjudicator reads it as item 111, which has no DOC-A.1-111 row'; PB191 (landed) also records item 111 as still open. Referenced, not re-reported. Editions: Annex E lists no LEAP-SECOND change, so 2014 carries the directive too. cite.py --check 7.3.17.4 'the implementor defines whether a value greater than 59 may be reported in the seconds position' -> OK \u00a77.3.17.4 2). || Owning note: kb/Work/PB1369, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): docs/CONFORMANCE.md \u00a73 directives bullet (~line 523)"
+  }
+ },
+ {
+  "item": 113,
+  "rule-id": "DOC-A.1-113",
+  "a1_subject": "Life cycle for objects (timing and algorithm for taking part in continued execution)",
+  "a1_text": "Life cycle for objects (timing and algorithm for taking part in continued execution). This item is required. This item need not be documented in the implementor's user documentation. (9.3.14.3, Life cycle for instance objects)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-113",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-113; src/Cobol.Net.Runtime/Control/CobolObject.cs#CobolObject; src/Cobol.Net.Runtime/IO/CobolFile.cs#EnqueueInstanceClose; src/Cobol.Net.Runtime/Control/RunUnit.cs#Current",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 113) 'Life cycle for objects (timing and algorithm for taking part in continued execution). This item is required. This item need not be documented in the implementor's user documentation.' -> \u00a79.3.14.3 'An instance object is destroyed either when it is determined that the object cannot take part in the continued execution of the run unit, or when the run unit terminates, whichever occurs first. The timing and algorithm for the mechanism that determines whether or not an instance object can take part in the continued execution of the run unit is implementor-defined.' Documentation not required (audit register documented=False), so the absent \u00a77 row is correct. Behaviour: a COBOL object is a managed .NET instance deriving CobolObject; reachability is decided by the .NET tracing garbage collector (the NOTE's 'garbage collection'), timing nondeterministic as the rule permits; the only object-owned resource with observable destruction (a per-object instance file, \u00a79.1.4) is closed by a re-armed finalizer on collection, with CobolFile.CloseAll() at run-unit termination as the 'whichever occurs first' backstop. Probe at pin: conformance golden 2002/oo_object_file_two_instances re-run, output identical. Empty test-ref: no spec-derived test pins collection timing (it is implementor-defined and nondeterministic, so no test can). No owning note. cite.py --check 9.3.14.3 'The timing and algorithm for the mechanism that determines whether or not an instance object can take part in the continued execution of the run unit is implementor-defined' -> OK \u00a79.3.14.3. || REFUTER OVERTURN (CONFORMS -> PARTIAL): Doc: A.1 item 113 need not be documented (specs/ISO_COBOL.md:34452). cite.py: 'OK \u00a79.3.14.3 (Life cycle for instance objects) The timing and algorithm ... is implementor-defined.'; 'OK \u00a79.1.4 (Open mode) \u2014 For file connectors in an object when the object is deleted.' The adjudicator's mechanism ('per-object instance files are closed by a re-armed finalizer') is DEAD CODE. ~CobolObject (src/Cobol.Net.Runtime/Control/CobolObject.cs) calls CobolFile.EnqueueInstanceClose \u2192 `_reg => RunUnit.Current.Files` (CobolFile.cs:17), and RunUnit.Current is `_current.Value ??= new RunUnit()` over an AsyncLocal (RunUnit.cs). The GC finalizer thread does not carry the mutator's ExecutionContext, so it MINTS AN ORPHAN RunUnit and enqueues there; FileRegistry.DrainPendingObjectCloses on the real run unit never sees the key. Proof harness /tmp/adj/refute/h/P.cs (references the built Cobol.Net.Runtime.dll; subclass calls __TrackInstanceFile, GC.Collect+WaitForPendingFinalizers): output 'finalizer-thread ambient: a DIFFERENT (orphan) RunUnit; orphan pending=1' / 'main-run-unit pending closes after GC = 0'. COBOL-observable: /tmp/adj/refute/gc2.cob (--std 2002): loop {NEW WCLS; method W does OPEN OUTPUT of its instance file gc.dat + WRITE (no CLOSE); SET A TO NULL; 1,500,000 throwaway NEW JCLS} \u2192 'K=00000002 OPEN-OUTPUT=61' \u2014 the second object's OPEN is refused as a sharing conflict by the first, unreachable object's connector, and stays refused forever. /tmp/adj/refute/gc1.cob: after dropping the writer and ~4M allocations, main OPEN INPUT of gc.dat \u2192 READ=10 (the record 'AAA' never flushed; the connector was never closed). So an object the runtime HAS determined cannot take part (its finalizer ran) is never destroyed as COBOL observes destruction (\u00a79.1.4's implicit CLOSE 'when the object is deleted') until run-unit end, and FileRegistry keeps every minted per-object connector (and its OS handle) alive for the life of the run unit \u2014 unbounded growth for programs creating file-owning objects. \u00a79.3.14.3 sentence 1 requires destruction 'when it is determined'; the \u00a79.1.4 NOTE licenses GC delay, not a close that can never happen. Run-unit-end CloseAll still closes them (the 'whichever occurs first' backstop holds), and file-less objects are reclaimed correctly by the GC \u2014 hence PARTIAL, not DIVERGES. Tests: test-ref empty; golden 2002/oo_object_file_two_instances only covers explicitly CLOSEd/live objects and cannot see this. No kb/Work note found for the orphan-RunUnit finalizer (grep 'AsyncLocal|orphan|finalizer' over kb/Work) \u2014 needs a new defect note (areas runtime/oo + runtime/io; sibling sweep: any other finalizer/threadpool callback reaching RunUnit.Current). Static registries otherwise checked: CobolSort.Files, PointerImage.s_nameBases, collation caches hold no object references; PointerImage.s_areaBases is a ConditionalWeakTable. || Owning note: kb/Work/PB1532, PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Runtime/Control/CobolObject.cs#CobolObject (GC.SuppressFinalize / __TrackInstanceFile / finalizer) | .NET garbage collector | src/Cobol.Net.Runtime/Control/RunUnit.cs#Current (AsyncLocal)"
+  }
+ },
+ {
+  "item": 114,
+  "rule-id": "DOC-A.1-114",
+  "a1_subject": "Line delimiter, specification of",
+  "a1_text": "Line delimiter, specification of. This item is required. This item shall be documented in the implementor's user documentation. (9.1.13.2, Successful completion, I-O Status = 06, 12.4.5.10, ORGANIZATION clause, General rule 2)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-114",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-114; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#OpenWriter; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ReadPhysicalLine",
+   "test-ref": "",
+   "editions": "2023",
+   "notes": "Rule: A.1 item 114 'Line delimiter, specification of. This item is required. This item shall be documented in the implementor's user documentation. (9.1.13.2 ... I-O Status = 06, 12.4.5.10, ORGANIZATION clause, General rule 2)' (cite.py --check A.1 \"Line delimiter, specification of\" -> OK \u00a7A.1 114)). Operative text \u00a712.4.5.10.3 GR2: 'Each record in a line sequential file is terminated by an implementor-defined line delimiter' (cite.py --check 12.4.5.10.3 -> OK \u00a712.4.5.10.3 2); NB the Annex's '12.4.5.10' alone FAILS --check, the rule sits in the General rules subclause .3). CONFORMANCE.md: NO '| DOC-A.1-114 |' row. The only mention is off-key inside DOC-A.1-115 (the character-set row): 'the two line delimiters CR U+000D and LF U+000A' - which names the characters excluded from the set but does not state the delimiter a WRITE emits nor the READ-side recognition rule. Code fixes both halves: OpenWriter builds the write handle with NewLine = \"\\r\\n\" (every WRITE ends the record with CR LF); ReadPhysicalLine accepts LF, lone CR, or CR LF as the terminator, and a final line with no terminator ends at EOF. Probes: ls1.cob (--std 2023) writes 'AB' and 'CDE' -> od shows 'A B \\r \\n C D E \\r \\n'; ls2.cob reading 'AAAAAAAA\\rBB\\nCC' with PIC X(5) -> [AAAAA] 06, [AAA  ] 00, [BB   ] 00, [CC   ] 00, then 10 - so lone CR, lone LF and EOF all delimit and the \u00a79.1.13.2 '06' arm fires on the over-length line. The behaviour is settled and plausible, but the required documentation under its own key is absent -> DIVERGES (harm silent). Editions: ORGANIZATION LINE SEQUENTIAL is a 2023 introduction (per DOC-A.1-115's own ONE EDITION paragraph). No spec-derived test pins the delimiter bytes. Owning note: none item-specific (grep 'item 114' / 'DOC-A.1-114' / 'line delimiter' in kb/Work: only unrelated hits); umbrella kb/Work A11 and the register campaign kb/Work PB160. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 116,
+  "rule-id": "DOC-A.1-116",
+  "a1_subject": "Linkage section (whether access to linkage section items is meaningful when called from a non-COBOL program)",
+  "a1_text": "Linkage section (whether access to linkage section items is meaningful when called from a non-COBOL program). This item is conditionally required because it is conditioned upon support for calling a COBOL program from a non-COBOL program. This item, if provided by the implementor, shall be documented in the implementor's user documentation. (13.7, Linkage section)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-116",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-116; src/Cobol.Net.Runtime/Control/CallAbi.cs#Call; src/Cobol.Net.Runtime/Control/CallAbi.cs#Activate; src/Cobol.Net.Runtime/Control/ProgramRegistry.cs#CallProgram; src/Cobol.Net.Compiler/CodeGen/ProgramEmitter.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 116 'Linkage section (whether access to linkage section items is meaningful when called from a non-COBOL program). This item is conditionally required because it is conditioned upon support for calling a COBOL program from a non-COBOL program. This item, if provided by the implementor, shall be documented... (13.7, Linkage section)' (cite.py --check A.1 -> OK \u00a7A.1 116)). Operative text \u00a713.7.4 GR3: 'If a program is activated by a non-COBOL runtime element, the implementor defines whether access to formal parameters and the returning item is guaranteed' (cite.py --check 13.7.4 \"the implementor defines whether access to formal parameters and the returning item is guaranteed\" -> OK \u00a713.7.4 3)); GR5's non-COBOL-activator sentence (initial value of linkage items) is its twin. The CONDITION HOLDS: CONFORMANCE.md \u00a73's 'Return to a NON-COBOL activating runtime element' bullet (kb/Work PB408) declares a .NET host activating a generated program to be a supported non-COBOL activator, and the public entry ProgramRegistry.CallProgram(name, callerPath, CobolArg[] args, CobolArg? returning, ...) maps a host's CobolArg[] positionally onto the LINKAGE formals exactly as ICobolProgram.Call does for a COBOL caller, while ICobolProgram.Activate leaves linkage UNBOUND (ProgramEmitter's UNBOUND seed, \u00a713.7.4 GR3). So a determination exists in code (access guaranteed when the host passes args through CallProgram; unbound under Activate) but CONFORMANCE.md has NO '| DOC-A.1-116 |' row and the \u00a73 bullet says nothing about linkage access -> DIVERGES (harm silent). Not re-reported: owning note kb/Work PB1253 (open, 'linkage-section' finding: 'Write DOC-A.1-116 ... item 116 also needs the behaviour DECIDED for ICobolProgram.Call/Activate entered without a COBOL caller'). Umbrella kb/Work A11. No spec-derived test drives a non-COBOL activator. Editions: LINKAGE SECTION and the non-COBOL-activator rule exist in every edition; the host ABI is edition-independent. || Owning note: kb/Work/PB1253, PB1535."
+  }
+ },
+ {
+  "item": 117,
+  "rule-id": "DOC-A.1-117",
+  "a1_subject": "Listings (whether and when produced by the compiler, effect of logical conversion)",
+  "a1_text": "Listings (whether and when produced by the compiler, effect of logical conversion). This item is required. This item shall be documented in the implementor's user documentation. (6.5, Logical conversion; Clause 7, Compiler directing facility; 7.3.18, LISTING directive, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-117",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-117; src/Cobol.Net.Frontend/Preprocessor/DirectiveStateRegistry.cs; src/Cobol.Net.Cli/Program.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 117 'Listings (whether and when produced by the compiler, effect of logical conversion). This item is required. This item shall be documented... (6.5, Logical conversion; Clause 7...; 7.3.18, LISTING directive, General rule 1)' (cite.py --check A.1 -> OK \u00a7A.1 117)). \u00a77.3.18.3 GR1 'Whether the compiler produces a source listing is implementor-defined. If the compiler does not produce a source listing, the LISTING directive shall be ignored.' (cite.py --check 7.3.18.3 -> OK \u00a77.3.18.3 1); NB the Annex's '7.3.18 ... General rule 1' lives in subclause .3). \u00a76.5 'The implementor shall define the effect on the source listing, if any, of logical conversion.' (cite.py --check 6.5 -> OK \u00a76.5 9)). Code: COBOL.NET produces NO source listing - the CLI (cobol --help) has no listing option and no listing writer exists in src; >>LISTING is recognized and held as NONE HELD in DirectiveStateRegistry citing \u00a77.3.18.3 GR1; probe lst.cob (>>LISTING OFF / >>PAGE / >>LISTING ON, --std 2023) compiles clean and prints HI. So 'whether' = never, 'when' = never, and the logical-conversion effect is vacuous - a coherent determination. CONFORMANCE.md: NO '| DOC-A.1-117 |' row; the no-listing fact appears only off-key in \u00a73's recognized-and-inert directive prose ('>>LISTING / >>PAGE (\u00a77.3.18 / \u00a77.3.19) - no source listing is produced'), which the register/audit_annex_a1.py cannot see and which does not state the \u00a76.5 half -> DIVERGES (harm silent). Not re-reported: owning note kb/Work PB1496 (open; 'write DOC-A.1-156, DOC-A.1-157 and DOC-A.1-117 rows'); also named in kb/Work PB1369 (open) and PB1067. Umbrella A11. Editions: 'whether a listing is produced' applies to every edition; the LISTING directive itself is 2002+ (ConstructRegistry listing-directive-2002). || Owning note: kb/Work/PB1496, PB1535."
+  }
+ },
+ {
+  "item": 118,
+  "rule-id": "DOC-A.1-118",
+  "a1_subject": "Locale specification (how user and system defaults defined; at least one user and one system default)",
+  "a1_text": "Locale specification (how user and system defaults defined; at least one user and one system default). This item is required. This item need not be documented in the implementor's user documentation. The implementor may specify that the user locale and the system locale are the same locale. (8.2, Locales)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-118",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-118; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleState; src/Cobol.Net.Runtime/Control/LocaleState.cs#Determine; src/Cobol.Net.Runtime/Control/RuntimeConfig.cs#All",
+   "test-ref": "unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist; unit:LocaleStateTests.Activation_CopiesTheUserDefault_IntoEveryCategory_AndALaterUserDefaultChangeDoesNotMoveThem; conformance:2002/pb64t1_set_locale_categories",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 118 'Locale specification (how user and system defaults defined; at least one user and one system default). This item is required. This item need not be documented in the implementor's user documentation. The implementor may specify that the user locale and the system locale are the same locale. (8.2, Locales)' (cite.py --check A.1 -> OK \u00a7A.1 118)). \u00a78.2.1: 'The implementor shall specify the manner in which the user default locale is defined and shall provide at least one user default locale for use in computing environments that do not provide a user default locale' and the SYSTEM twin (both cite.py --check 8.2.1 -> OK \u00a78.2.1). No documentation obligation, so part (a) is waived (there is no '| DOC-A.1-118 |' row; the manner IS nevertheless written voluntarily: CONFORMANCE.md \u00a74 A.4.9 locale paragraph 'the user default from COBOL_USER_LOCALE (else the process culture, else the root)', RuntimeConfig.All's COBOL_USER_LOCALE / COBOL_SYSTEM_LOCALE entries, DESIGN-locale-facility \u00a74.3 table, DETERMINATION L2 = owner decision Q2). Part (b), the behaviour: LocaleState() sets UserDefault = Determine(COBOL_USER_LOCALE, CultureInfo.CurrentCulture) and SystemDefault = Determine(COBOL_SYSTEM_LOCALE, CultureInfo.InstalledUICulture); Determine returns the env value, else the culture name, else '' (the root) when the host has no culture data - so at least one user and one system default ALWAYS exist, including environments that supply none. SystemDefault has no setter (\u00a78.2.1 'The capability of setting the system default locale from COBOL is not provided'). Probe loc.cob (--std 2023; SET LOCALE LC_ALL TO SYSTEM-DEFAULT / USER-DEFAULT then FUNCTION LOCALE-DATE): env COBOL_USER_LOCALE=de-DE COBOL_SYSTEM_LOCALE=fr-FR -> SYS 24/09/2026, USR 24.09.2026 (two distinct defaults, each honoured); env unset + DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1 -> both 09/24/2026, no exception, rc 0 (the root fallback). Tests: the unit test SetFromSystemDefault asserts CurrentLocale == SystemDefault; pb64t1_set_locale_categories runs SYSDEF/USERDEF arms under the harness's pinned INVARIANT defaults. Caveat for the refuter: no test pins the unset-env culture fallback arm (it is host-dependent by design); verified by probe only. Editions: the locale facility (A.4.9) is 2002+. Owning note: none (grep item 118: none); design owner kb/Work PB64 (landed T1). || Owning note: kb/Work/PB1535."
+  }
+ },
+ {
+  "item": 119,
+  "rule-id": "DOC-A.1-119",
+  "a1_subject": "Locale specification (manner of implementation)",
+  "a1_text": "Locale specification (manner of implementation). This item is required because at least one default locale is required. This item does not have to be documented in the implementor's user documentation. (8.2, Locales)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-119",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-119; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleState; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleIdentification.IsAvailable; src/Cobol.Net.Runtime/Globalization/LocaleFacts.cs#LocaleFacts; src/Cobol.Net.Runtime/Collation/Locale/LocaleManager.cs",
+   "test-ref": "conformance:2002/pb64t1_set_locale_categories; conformance:2014/pb64t4_locale_functions; unit:LocaleStateTests.Set_SwitchesOnlyTheNamedCategories_AndTheyPersist",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 119 'Locale specification (manner of implementation). This item is required because at least one default locale is required. This item does not have to be documented in the implementor's user documentation. (8.2, Locales)' (cite.py --check A.1 -> OK \u00a7A.1 119)). \u00a78.2.1: 'The format and implementation of locales may differ from those specifications provided that logically-equivalent functionality is supported.' and 'If the operating environment does not supply a default locale, it is implementor-defined.' (both cite.py --check 8.2.1 -> OK \u00a78.2.1). No documentation obligation, so part (a) is waived (no '| DOC-A.1-119 |' row; the manner is nevertheless described voluntarily in CONFORMANCE.md \u00a74's A.4.9 locale paragraph and docs/rearchitecture/DESIGN-locale-facility.md). Part (b): a locale IS implemented and a default always exists - locales are identified by BCP 47/CLDR tags normalized by LocaleIdentification (availability = CollationEngine.IsKnownLocale), with per-category state in LocaleState (LC_COLLATE, LC_CTYPE, LC_MESSAGES, LC_MONETARY, LC_NUMERIC, LC_TIME), collation from COBOL.NET's own derived CLDR 48 / UCA 17 tables and the LC_MONETARY/LC_NUMERIC/LC_TIME facts read once per locale by LocaleFacts from the nearest predefined .NET culture; the root locale ('') is the implementor-supplied default when the environment supplies none (LocaleState.Determine). A.4.9 is CLAIMED WHOLE in CONFORMANCE.md \u00a74. Probe loc.cob: SET LOCALE to SYSTEM-DEFAULT / USER-DEFAULT + LOCALE-DATE works with env-named defaults (fr-FR / de-DE formats differ) and with invariant globalization and no env (root, rc 0). Editions: 2002+ (the locale facility). Owning note: none (grep item 119: none); design owner kb/Work PB64. || Owning note: kb/Work/PB1535."
+  }
+ },
+ {
+  "item": 120,
+  "rule-id": "DOC-A.1-120",
+  "a1_subject": "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL)",
+  "a1_text": "Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL). This item is conditionally required because it is conditioned upon support for activation of non-COBOL runtime modules. This item, if provided, shall be documented in the implementor's user documentation. (8.2, Locales)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-120",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-120; src/Cobol.Net.Runtime/Control/LocaleState.cs#LocaleState; src/Cobol.Net.Runtime/Collation/Locale/LocaleConfig.cs#DefaultLocale; src/Cobol.Net.Runtime/Collation/CollationRuntime.cs",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 120 'Locale switch (whether a switch by a non-COBOL runtime module is recognized by COBOL). This item is conditionally required because it is conditioned upon support for activation of non-COBOL runtime modules. This item, if provided, shall be documented... (8.2, Locales)' (cite.py --check A.1 -> OK \u00a7A.1 120)). \u00a78.2.1: 'It is implementor-defined whether, and for which locale categories, a switch of current locale by a non-COBOL runtime module is utilized by COBOL.' (cite.py --check 8.2.1 -> OK \u00a78.2.1). CONDITION: COBOL.NET cannot CALL a non-COBOL program (DOC-A.1-19 / \u00a73), but CONFORMANCE.md \u00a73 declares a .NET host activating a generated program a supported non-COBOL activator (kb/Work PB408), and that host is a non-COBOL runtime module in the run unit that can switch Thread.CurrentCulture - so the question arises and the item is taken as incurred (same reading wave 1 applied to DOC-A.1-65). Code fixes the answer: DETERMINATION L3 (docs/rearchitecture/DESIGN-locale-facility.md \u00a74.3: 'COBOL.NET never observes a foreign switch - LocaleState is authoritative and is read from CultureInfo once, at run-unit activation'); LocaleState() reads CurrentCulture/InstalledUICulture once and nothing in src/Cobol.Net.Runtime re-reads CurrentCulture during a run unit (grep: only LocaleState's ctor and LocaleConfig.DefaultLocale, the latter used by CollationRuntime only when RunUnit.TryCurrent is null, i.e. outside any run unit). So the answer is 'no category is utilized'. CONFORMANCE.md: NO '| DOC-A.1-120 |' row, and the \u00a74 A.4.9 locale paragraph says the defaults are read at activation but never states the foreign-switch rule; the only statement is in the design doc, which is not the user documentation -> DIVERGES (harm silent). Not probed with a host that switches culture mid-run-unit (requires building a separate .NET host; the brief forbids builds on this VM) - verified by reading. Editions: 2002+ (locales). Owning note: none item-specific (grep 'item 120' / 'DOC-A.1-120': none); umbrella kb/Work A11 / PB160; design owner PB64. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 121,
+  "rule-id": "DOC-A.1-121",
+  "a1_subject": "METHOD-ID paragraph (actual method-name used when PROPERTY phrase is specified)",
+  "a1_text": "METHOD-ID paragraph (actual method-name used when PROPERTY phrase is specified). This item is required. This item shall be documented in the implementor's user documentation. (11.7, METHOD-ID paragraph, General rule 1)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-121",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-121; src/Cobol.Net.Compiler/Oo/NamingConvention.cs#GetAccessorName; src/Cobol.Net.Compiler/Oo/NamingConvention.cs#SetAccessorName",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 121 'METHOD-ID paragraph (actual method-name used when PROPERTY phrase is specified). This item is required. This item shall be documented... (11.7, METHOD-ID paragraph, General rule 1)' (cite.py --check A.1 -> OK \u00a7A.1 121)). \u00a711.7.4 GR1 a): 'If the PROPERTY clause is specified, the name is implementor-defined.' (cite.py --check 11.7.4 -> OK \u00a711.7.4 1) a)). Code fixes the name: NamingConvention.GetAccessorName = '__GET_' + DataItem.Sanitize(P).ToUpperInvariant(), SetAccessorName = '__SET_' + the same (P the property-name); OO property goldens (2002/oo_property_methods, oo_property_ref, oo_property_explicit_ref, oo_property_factory_ref) exercise property GET/SET through these names but none asserts the actual name as the user-visible value. CONFORMANCE.md: NO '| DOC-A.1-121 |' row and no mention of __GET_/__SET_ anywhere in the file - the name is stated only in a code comment -> DIVERGES (harm silent). Not re-reported: owning note kb/Work PB1520 (open; inventory_rows [DOC-A.1-121]; 'Write the DOC-A.1-121 row ... __GET_<P> / __SET_<P> ... and what that name means for a caller outside COBOL'). Umbrella A11. Editions: METHOD-ID PROPERTY is OO, 2002+. || Owning note: kb/Work/PB1520, PB1535."
+  }
+ },
+ {
+  "item": 122,
+  "rule-id": "DOC-A.1-122",
+  "a1_subject": "National literals (number of hexadecimal digits that map to a national character)",
+  "a1_text": "National literals (number of hexadecimal digits that map to a national character). This item is required. This item shall be documented in the implementor's user documentation. (8.3.3.5, National literals, Syntax rule 5)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-122",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-122; src/Cobol.Net.Frontend/Common/CobolLiteral.cs#HexGroupViolation",
+   "test-ref": "",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: A.1 item 122 'National literals (number of hexadecimal digits that map to a national character). This item is required. This item shall be documented... (8.3.3.5, National literals, Syntax rule 5)' (cite.py --check A.1 -> OK \u00a7A.1 122)). \u00a78.3.3.5.3 SR5: 'Each hex-character-sequence-1 shall consist of the number of hexadecimal digits that the implementor has specified as the number of hexadecimal digits that map to a national character.' (cite.py --check 8.3.3.5.3 -> OK \u00a78.3.3.5.3 5); the Annex's '8.3.3.5' is the parent). Code fixes the number at FOUR (one UTF-16 code unit, determination D-N1): CobolLiteral.HexGroupViolation reports COBOLNET1635 for a digit count that is not a multiple of 4, and the decoder maps each 4-digit group to one national character. Probes nx1.cob at --std 2002/2014/2023: VALUE NX\"004100420043\" -> 'ABC', LENGTH(NX\"00410042\") = 2; nx2.cob NX\"414\" -> 'error COBOLNET1635: ... has 3 hexadecimal digit(s), which is not a whole number of 4-digit groups - \u00a78.3.3.5.3 r5 requires each hexadecimal character sequence to be 4 digits'. CONFORMANCE.md: NO '| DOC-A.1-122 |' row and no statement of the digit count anywhere in the file (grep NX\" / 'four hex' / '4 hex': nothing) - the value lives only in the diagnostic text and code -> DIVERGES (harm silent). Owning note: the gap is already recorded in kb/Work PB160 (open register-campaign note; 'Registrar 15c: two more A.1 documentation rows are missing - item 97 ... and item 122 (digits per national character = 4, D-N1)'); the SR5 syntax row's own note is kb/Work PB1393 (open). Umbrella A11. Editions: NX literals are 2002+. || Owning note: kb/Work/PB160, PB1535."
+  }
+ },
+ {
+  "item": 124,
+  "rule-id": "DOC-A.1-124",
+  "a1_subject": "Native arithmetic (when an operand or arithmetic expression is an integer)",
+  "a1_text": "Native arithmetic (when an operand or arithmetic expression is an integer). This item is required. This item shall be documented in the implementor's user documentation. (5.5, Integer operands)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-124",
+   "verdict": "DIVERGES",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-124; src/Cobol.Net.Runtime/Values/Numeric/CobolNum.cs#HasFraction; src/Cobol.Net.Runtime/Values/Tables/CobolTable.cs#OccScaled; src/Cobol.Net.Runtime/Values/Tables/CobolIndex.cs; src/Cobol.Net.Runtime/Values/Text/CobolString.cs",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 124 'Native arithmetic (when an operand or arithmetic expression is an integer). This item is required. This item shall be documented... (5.5, Integer operands)' (cite.py --check A.1 -> OK \u00a7A.1 124)). \u00a75.5 3) a): 'If native arithmetic is in effect, the implementor shall define when the operand represents an integer.' (cite.py --check 5.5 -> OK \u00a75.5 3) a)). Native arithmetic is COBOL.NET's default mode. Code fixes a determination at every runtime integer test: the operand is an integer iff its exact value has no nonzero fractional digit - CobolNum.HasFraction(unscaled, scale) on the scaled-Int128 native intermediate (DOC-A.1-123), used by the subscript test (CobolTable.OccScaled -> EC-BOUND-SUBSCRIPT 'is not an integer (ISO 8.4.2.3.4 GR1b)'), reference modification (CobolString), SET index/amount (CobolIndex: 'A NaN or an infinity is not an integer'), and a floating-point operand of integral value counts as an integer. Probes int1.cob / int2.cob (--std 2023): E(I / 2) and S(I / 2:1) with I=4 -> 'W B'; COMP-2 F = 2.0 as subscript / refmod -> 'W B' (integral float accepted); I=5 with >>TURN EC-BOUND CHECKING ON -> 'EC-BOUND-SUBSCRIPT (fatal): subscript value 2.500000000 is not an integer'; with checking off the 2.5 subscript silently selects element 2 (no EXCEPTION-STATUS) - an undocumented consequence of the same determination. At compile time the \u00a75.5 2) static screen is separate (COBOLNET1627 refuses FACTORIAL(I / 2) and FACTORIAL(COMP-2) outright). CONFORMANCE.md: NO '| DOC-A.1-124 |' row; DOC-A.1-123 (the native intermediate) states the representation but never says when a value represents an integer -> DIVERGES (harm silent). Owning note: none (grep 'item 124' / 'DOC-A.1-124' / '\u00a75.5 3': none); umbrella kb/Work A11 / PB160. Editions: native arithmetic and runtime integer operands exist in every edition. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ },
+ {
+  "item": 125,
+  "rule-id": "DOC-A.1-125",
+  "a1_subject": "NULL (value of NULL)",
+  "a1_text": "NULL (value of NULL). This item is required. This item need not be documented in the implementor's user documentation. (8.4.3.7, NULL object reference, General rule 1; 8.4.3.10, NULL address pointer and message tag content, General rules 1, 2, and 3)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-125",
+   "verdict": "CONFORMS",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-125; src/Cobol.Net.Runtime/Control/CobolPtr.cs#CobolPtr; src/Cobol.Net.Runtime/Control/ProgramPointer.cs#Null; src/Cobol.Net.Runtime/Control/FunctionPointer.cs#FunctionPointer; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/InitializeBinder.cs; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs",
+   "test-ref": "conformance:2002/pb557_pointer_class_initial_value_is_null; conformance:2023/pb452_function_address_runtime",
+   "editions": "2002,2014,2023",
+   "notes": "Rule: 'NULL (value of NULL). This item is required. This item need not be documented...' (8.4.3.7 GR1; 8.4.3.10 GR1-3). Documentation NOT required, so (a) is vacuous; CONFORMANCE.md has no row and needs none. Behaviour: object ref NULL = CLR null (never references an object); data-pointer/program-pointer/function-pointer NULL = each readonly struct's default, distinct from any real address. Probe: DP initial = NULL, SET DP TO ADDRESS OF X -> NOT = NULL, SET DP TO NULL -> = NULL, NULL=NULL, PP initial NULL. pb557 golden asserts P NOT = NULL after ADDRESS OF (the 'guaranteed not to represent the address of any data item' half). GR4 message-tag NULL: USAGE MESSAGE-TAG is the declined MCS facility (CONFORMANCE \u00a74 item 1, COBOLNET1943) - outside the claim. cite: OK \u00a78.4.3.7.4 1) '...a unique value defined by the implementor such that it is guaranteed to never reference an object'; OK \u00a78.4.3.10.4 1) 'The null data address is an implementor-defined value that is guaranteed not to represent the address of any data item'; OK \u00a7A.1 125). Editions: pointers/object refs introduced 2002. || Owning note: kb/Work/PB1535. || code-location commentary (registrar-normalized, kb/Work PB1522): src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs (MESSAGE-TAG refused COBOLNET1943)"
+  }
+ },
+ {
+  "item": 126,
+  "rule-id": "DOC-A.1-126",
+  "a1_subject": "OBJECT-COMPUTER paragraph (default object computer)",
+  "a1_text": "OBJECT-COMPUTER paragraph (default object computer). This item is required. This item shall be documented in the implementor's user documentation. (12.3.6, OBJECT-COMPUTER paragraph, General rules 3 and 4)",
+  "staged_record": {
+   "rule-id": "DOC-A.1-126",
+   "verdict": "PARTIAL",
+   "code-location": "docs/CONFORMANCE.md#DOC-A.1-126; docs/CONFORMANCE.md#DOC-A.1-127",
+   "test-ref": "",
+   "editions": "85,2002,2014,2023",
+   "notes": "Rule: A.1 item 126 'OBJECT-COMPUTER paragraph (default object computer). This item is required. This item shall be documented... (12.3.6, OBJECT-COMPUTER paragraph, General rules 3 and 4)' (cite.py --check A.1 -> OK \u00a7A.1 126)). \u00a712.3.6.4 GR3 'When the OBJECT-COMPUTER paragraph is specified, but computer-name-1 is not specified, the object computer is defined by the implementor.' and GR4 'When the OBJECT-COMPUTER paragraph is not specified and the source unit is not contained within a source unit including an OBJECT-COMPUTER paragraph, the object computer is defined by the implementor.' (cite.py --check 12.3.6.4 -> OK \u00a712.3.6.4 3) and 4); the Annex's '12.3.6' is the parent). The SUBSTANCE is written and pinned, but under the NEIGHBOURING key: CONFORMANCE.md's '| DOC-A.1-127 |' row (computer-name, GR2, optional, 'Not provided.') says 'there is ONE object computer, the .NET runtime the program is compiled for, whether the name is present, absent (\u00a712.3.6.4 GR3), or the paragraph is omitted (GR4)', and conformance:2023/pb373_object_computer_name_inert (PART 1: WISE-OWL-9000 / ACME-4381 / no name / no paragraph -> OTHER-NAME=SAME, NO-NAME=SAME, NO-PARAGRAPH=SAME, CONTROL=DIFFER) asserts exactly that invariance. There is NO '| DOC-A.1-126 |' row, so the inventory's computed anchor docs/CONFORMANCE.md#DOC-A.1-126 does not resolve and audit_annex_a1.py counts item 126 open - the \u00a77 misfiling hazard in its mildest form (the determination is right, the key is wrong). Behaviour matches the stated determination (the pinned golden). PARTIAL rather than CONFORMS: requirement (a) 'a determination for exactly this item exists' fails; rather than DIVERGES: nothing is undocumented in substance. The test-ref is left empty because the \u00a77 'Pinned by' cell must agree with a DOC-A.1-126 row that does not exist; once the row is filed, conformance:2023/pb373_object_computer_name_inert is its pin. Mechanical fix: split a DOC-A.1-126 row out of DOC-A.1-127 (GR3/GR4 -> 126; GR2 'Not provided' stays 127). Owning note: none (grep 'item 126' / 'DOC-A.1-126': none); umbrella kb/Work A11. Editions: OBJECT-COMPUTER exists in every edition. || Owning note: kb/Work/PB1534, PB1535."
+  }
+ }
+]
