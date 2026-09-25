@@ -27926,11 +27926,11 @@ FORMAT 1
    d) A key data item shall not be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item or an item subordinate to a dynamic-capacity table.
 
 
-e) If file-name-1 has more than one record description, then the data items identified by key data-names need be described in only one of the record descriptions. The same byte positions that are referenced by a key data-name in one record description entry are taken as the key in all records of the file.
+   e) If file-name-1 has more than one record description, then the data items identified by key data-names need be described in only one of the record descriptions. The same byte positions that are referenced by a key data-name in one record description entry are taken as the key in all records of the file.
 
-f) None of the data items identified by key data-names may be described by an entry that either contains an OCCURS clause or is subordinate to an entry that contains an OCCURS clause.
+   f) None of the data items identified by key data-names may be described by an entry that either contains an OCCURS clause or is subordinate to an entry that contains an OCCURS clause.
 
-g) If the file referenced by file-name-1 contains variable-length records, all the data items identified by key data-names shall be contained within the first x bytes of the record, where x is the number of bytes of the minimum record size for the file referenced by file-name-1.
+   g) If the file referenced by file-name-1 contains variable-length records, all the data items identified by key data-names shall be contained within the first x bytes of the record, where x is the number of bytes of the minimum record size for the file referenced by file-name-1.
 
 7\) The words THROUGH and THRU are equivalent.
 
