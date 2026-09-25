@@ -1525,7 +1525,7 @@ warn-inert from refuse — are the code-side counterpart; keep the two in sync. 
 > which is why the row stays here rather than being withdrawn the way the four items above are. The verdict is
 > applied by a predicate, not row by row: `inventory-schema.json` → `derived-verdicts.a1-optional-not-provided`
 > selects on the requirement class plus this cell's opening words, so writing `Not provided.` into an optional
-> item's row turns the drift gate red until the batch is re-run. Items **7**, **106**, **127**, **143**, **150**, **193** and **196** today. Item **206** LEFT the set on
+> item's row turns the drift gate red until the batch is re-run. Items **7**, **64**, **106**, **127**, **143**, **150**, **193** and **196** today. Item **206** LEFT the set on
 > 2026-09-09, which is this paragraph's own promise running forwards: owner decision Q30 (kb/Work PB592) replaced its
 > cell with a `Provided` determination, the selector stopped selecting it, and the row was re-verdicted CONFORMS by
 > a batch.
