@@ -462,7 +462,21 @@
   "l1c21_property_clause_format",
   "l1c21_method_name_signature",
   "l1c22_returning_three_arms",
-  "l1c22_positional_formals_oo_func"
+  "l1c22_positional_formals_oo_func",
+  "l1c23_program_address_outermost",
+  "l1c23_raise_identifier_sending",
+  "l1c24_replace_source_text_is_cc_group",
+  "l1c24_repository_self_class_specifier",
+  "l1c24_repository_self_interface_specifier",
+  "l1c24_repository_self_program_specifier",
+  "l1c25_rewrite_record_lock_release",
+  "l1c26_relational_operator_not_equal_symbol",
+  "l1c27_same_as_group_hierarchy_past_49",
+  "l1c29_sort_assign_using_at_sort",
+  "l1c30_national_count_at_native_bound",
+  "l1c30_alphabet_implied_alphanumeric",
+  "l1c31_string_operand_roles",
+  "l1c32_relation_national_mixed"
   ],
   "pending": []
 }

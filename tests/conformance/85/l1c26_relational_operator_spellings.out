@@ -1,0 +1,22 @@
+GT >                       TFF
+GT IS >                    TFF
+GT GREATER THAN            TFF
+GT IS GREATER              TFF
+LT <                       FFT
+LT IS <                    FFT
+LT LESS THAN               FFT
+LT IS LESS                 FFT
+EQ =                       FTF
+EQ IS =                    FTF
+EQ EQUAL TO                FTF
+EQ IS EQUAL                FTF
+NE NOT =                   TFT
+NE IS NOT =                TFT
+NE NOT EQUAL               TFT
+NE IS NOT EQUAL TO         TFT
+LE <=                      FTT
+LE IS <=                   FTT
+LE LESS THAN OR EQUAL TO   FTT
+LE IS LESS OR EQUAL        FTT
+AB > X AND < 9             TFF
+AB = X OR > X              TTF

@@ -140,7 +140,9 @@
   "l1c19_multiply_standard_decimal",
   "l1c20_capacity_register_set_and_read",
   "l1c20_occurs_dynamic_clauses_per_occurrence",
-  "l1c20_move_dyn_table_superfluous"
+  "l1c20_move_dyn_table_superfluous",
+  "l1c25_rewrite_from_item_available",
+  "l1c32_sign_condition_format2"
  ],
  "pending": []
 }

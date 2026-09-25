@@ -1,0 +1,6 @@
+NE NOT EQUAL    TFT
+NE <>           TFT
+NE IS <>        TFT
+AB <> X AND 9   TFT
+AB <> X OR 5    TFT
+NOT A <> X      FTF
