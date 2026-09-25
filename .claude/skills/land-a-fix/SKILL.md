@@ -3,6 +3,8 @@ name: land-a-fix
 description: Use when landing a conformance fix-queue item or any spec-derived fix - the complete loop from spec citation through golden, manifest registration, gate, DEVLOG, commit and push. Invoke it when starting a CA/V queue item or any "fix this bug" task.
 ---
 
+> **Generic base:** [`engineering-standards`](https://github.com/BrentRector/claude-skills/blob/main/skills/engineering-standards/SKILL.md) + [`dotnet-engineering`](https://github.com/BrentRector/claude-skills/blob/main/skills/dotnet-engineering/SKILL.md) + [`variant-analysis`](https://github.com/BrentRector/claude-skills/blob/main/skills/variant-analysis/SKILL.md) in [BrentRector/claude-skills](https://github.com/BrentRector/claude-skills) — the reusable discipline, with the owner's bar in its sibling `engineering-standards`. THIS skill is the COBOL.NET application of it and wins on conflict.
+
 # Land a fix
 
 > ⛔ **ONE WORK REGISTER: `kb/Work/`.** `python scripts/spec/work.py next` answers "what now"; `kb/Work.base` is the view. **Keep it current in the SAME change set as the work**, and **never start a list, table, tracker or "remaining work" section anywhere else** — five registers accumulated by 2026-08-04 and three each claimed to be canonical (CLAUDE.md rule 8).

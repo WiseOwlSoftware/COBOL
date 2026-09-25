@@ -36,6 +36,11 @@ reproduces is re-verdicted and reported DISCHARGED with the evidence — a real 
 ⛔ CITATIONS: `python scripts/spec/cite.py --check <clause> "<text>"` for EVERY § you write into code, a golden or the
 report — including the ones the notes carry. A citation you did not --check is not a citation.
 
+⛔ PUBLIC SKILLS (MANDATORY-PRACTICES P10): before work read E:\claude-skills\skills\engineering-standards\SKILL.md,
+dotnet-engineering\SKILL.md and spec-oracle\SKILL.md; for the sibling sweep apply variant-analysis\SKILL.md (+ roslyn-analysis
+for compiler-fact queries); before the report SELF-REVIEW your diff against E:\claude-skills\agents\pr-test-analyzer.md,
+silent-failure-hunter.md and comment-analyzer.md (+ type-design-analyzer.md if you add/reshape a type). Project rules win on conflict.
+
 ⛔ SIBLING SWEEP (CLAUDE.md rule 4): every bug is a pattern. Which ARM of the dispatch did you fix, and where is the other?
 
 GATE: your own tests + `~Drift|~EditionGate` + the Unit assembly, ALWAYS with `-Priority BelowNormal`. A shared seam

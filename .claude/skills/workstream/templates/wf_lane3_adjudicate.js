@@ -58,6 +58,7 @@ const REF_OUT = {
 
 const STOP = args.stopFile || ''
 const COMMON = `
+⛔ PUBLIC SKILLS (MANDATORY-PRACTICES P10): read E:\\claude-skills\\skills\\spec-compliance-audit\\SKILL.md and E:\\claude-skills\\skills\\spec-oracle\\SKILL.md first; the project's spec-lookup skill and this prompt win on conflict.
 ${STOP ? `⛔ GRACEFUL STOP (MANDATORY-PRACTICES P3): before EACH rule check for the file ${STOP}; if it exists, make sure every decided rule is
 in your checkpoint file and return at once with what is decided (summary starting "STOPPED"). Never start a probe once it exists.
 ` : ''}You work in the COBOL.NET project. SOURCE OF TRUTH FOR CODE: the PINNED worktree ${PIN} (read-only snapshot, so verdicts

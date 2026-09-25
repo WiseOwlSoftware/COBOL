@@ -16,15 +16,15 @@ POINTER = 'MANDATORY-PRACTICES.md'
 # role → (file, required patterns). Every brief must point at the practices file; the patterns are the practices
 # that are cheapest to lose silently.
 BRIEFS = {
-    'fix-lane-implementer-brief.md': [POINTER, r'BelowNormal', r'whole Conformance'],
-    'implementer-brief.md': [POINTER, r'BelowNormal', r'whole Conformance'],
-    'lander-train-brief.md': [POINTER, r'STOP', r'tail -n \+1 -f', r'(?i)pipelin', r'push-main'],
-    'lander-brief.md': [POINTER, r'push-main'],
-    'golden-lander-brief.md': [POINTER, r'push-main'],
-    'registrar-brief.md': [POINTER, r'code site'],
-    'wf_lane3_adjudicate.js': [r'args\.stopFile', r'GRACEFUL STOP', r'CHECKPOINT PER RULE', r"model: 'opus'"],
-    'wf_lane3_refute.js': [r'args\.stopFile', r'GRACEFUL STOP', r"model: 'opus'"],
-    'dispatch-spec-implementer.md': [r'BelowNormal', r'NEVER run the whole Conformance', r'\\STOP',
+    'fix-lane-implementer-brief.md': [r'claude-skills', POINTER, r'BelowNormal', r'whole Conformance'],
+    'implementer-brief.md': [r'claude-skills', POINTER, r'BelowNormal', r'whole Conformance'],
+    'lander-train-brief.md': [r'claude-skills', POINTER, r'STOP', r'tail -n \+1 -f', r'(?i)pipelin', r'push-main'],
+    'lander-brief.md': [r'claude-skills', POINTER, r'push-main'],
+    'golden-lander-brief.md': [r'claude-skills', POINTER, r'push-main'],
+    'registrar-brief.md': [r'claude-skills', POINTER, r'code site'],
+    'wf_lane3_adjudicate.js': [r'claude-skills', r'args\.stopFile', r'GRACEFUL STOP', r'CHECKPOINT PER RULE', r"model: 'opus'"],
+    'wf_lane3_refute.js': [r'claude-skills', r'args\.stopFile', r'GRACEFUL STOP', r"model: 'opus'"],
+    'dispatch-spec-implementer.md': [r'claude-skills', r'BelowNormal', r'NEVER run the whole Conformance', r'\\STOP',
                                      r'tail -n \+1 -f', r'where\.py', r'semgrep/verify\.py', r'cite\.py --check',
                                      r'Turn cap 220', r'code site'],
 }

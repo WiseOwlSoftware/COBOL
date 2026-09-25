@@ -1,4 +1,5 @@
 ⛔ FIRST read `E:\CobolSharp\.claude\skills\workstream\templates\MANDATORY-PRACTICES.md` WHOLE — its rules for your role and for all roles bind you and override anything older below.
+⛔ PUBLIC SKILLS (MANDATORY-PRACTICES P10): apply the `Lander` rows of the "Public skills by role" table — read those files from `E:\claude-skills` (skills/<name>/SKILL.md, agents/<name>.md); project rules win on conflict.
 
 PIPELINED LANDING (MANDATORY-PRACTICES L3): you may be dispatched while the previous train is still in CI. Merge and gate on current origin/main; before push-main BLOCK until the previous train's head is an ancestor of origin/main, then rebase, and re-gate ONLY if the rebase had conflicts outside docs/kb/DEVLOG — CI proves the composition. Your gate runs at Normal priority (implementers run BelowNormal so you win the cores).
 

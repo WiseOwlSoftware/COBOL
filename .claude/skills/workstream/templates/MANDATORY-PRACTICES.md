@@ -21,6 +21,20 @@ Each rule carries its reason and its measurement; do not drop a rule because its
 | P7 | **Every lead you report carries its repro path and its code site (file:line)**, so the registrar and the next implementer do not re-discover them. | The same fact was being found three times: implementer → registrar re-probe → implementer re-probe. |
 | P8 | **Citations through `cite.py --check`**; ids and diagnostic codes only from the orchestrator's allocation; reports at `{SCRATCH}\reports\<wave-slug>-<lead>-report.md` (wave-prefixed). | Inherited-citation defects (CA10); five id collisions in one day; train 48 found reports overwritten. |
 | P9 | **`python scripts/semgrep/verify.py` may not increase any count.** | Train 57 dropped PB999 for +20 BigInteger hits nobody reported. |
+| P10 | **Apply the public skills for your role** (table below): read each named `SKILL.md` / agent file from the local clone `E:\claude-skills` (https://github.com/BrentRector/claude-skills) at the step it names. The project's own skill and this file WIN on conflict; the public skill supplies the method, never a looser bar. | Owner 2026-09-24: "apply all of our new relevant skills" — the generalized bar was published but no dispatched agent read it. |
+
+## Public skills by role (P10) — `E:\claude-skills\skills\<name>\SKILL.md`, `E:\claude-skills\agents\<name>.md`
+
+| Role | Read before work | Apply at |
+|---|---|---|
+| Implementer / finisher | `engineering-standards`, `dotnet-engineering`, `spec-oracle` (the project's `spec-lookup` wins) | design + code; the root-cause and re-architecture rules are CLAUDE.md rules 4–5 in generic form |
+| Implementer / finisher | `variant-analysis`, `roslyn-analysis` | the SIBLING SWEEP after each defect is confirmed — name the mechanism, query every arm and every place the rule is written; report the sweep so a zero is evidence |
+| Implementer / finisher | agents `pr-test-analyzer`, `silent-failure-hunter`, `comment-analyzer`, `type-design-analyzer` (the last only when the diff adds or reshapes a type) | SELF-REVIEW of your own diff before the report: run each file as a checklist; fix what it finds or list it in the report with its failure scenario |
+| Registrar | `variant-analysis` | clustering leads by mechanism (R3) |
+| Adjudicator / refuter | `spec-compliance-audit`, `spec-oracle` | verdict vocabulary, checked citations, the refuter on every closing verdict |
+| Lander | `test-gate` (the project's `gate` wins), agent `silent-failure-hunter` | reading every leg's verdict line; a filter that matched nothing is a red |
+| Reviewer | `review` (the project's `review` wins), all four agents | the four dimensions + adversarial verification |
+| Orchestrator | `agent-fleet` (this skill's base), `claude-cloud-sessions` | dispatch, budget, cloud billing |
 
 ## Implementer / finisher
 
