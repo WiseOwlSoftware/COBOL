@@ -185,3 +185,47 @@ negatives; GR-12.3.7.4-6 recorded on the existing `l1c01_native_ordinal_position
   `negative/l1c31-simple-boolean-condition-length-8`; not-closable GR-14.9.43.4-10.
 - misc-p32: landed 9; not-closable SR-8.4.2.3.3-7.
 - DOC-A.1-148, -182, -186, -198 are named in `docs/CONFORMANCE.md` §7 `Pinned by`.
+
+## Golden lane #2 — batch 3 (local; misc-p33, p34, p35, p37, p38): landed 30 (GAP 1375 → 1345)
+
+Landed by DEVLOG 1700. misc-p36 recorded nothing: all 7 rows (GR-8.5.1.11.3-1…-3, -5…-7, DOC-A.1-220) are not closable,
+because §8.5.1.11.3 is permissive. The refuters were not run on it.
+- misc-p33: landed 7. This includes GR-7.3.25.4-5 on `2002/l1c33_turn_within_statement`, which moved from
+  kb/Work/PB963 `inventory_rows` to `closes_rows`. PB963 stays open for -6 and -8.
+- misc-p34: landed 6. **GR-13.18.57.4-2 overturned** (`2002/l1c34_type_group_hierarchy`, not in the tree). Its d) arm is
+  observable for bit data, and the compiler gets it wrong (kb/Work/PB1569, wrong answer). The row is re-verdicted
+  CONFORMS → PARTIAL and claimed by PB1569. Not closable: SR-13.18.57.3-11 (the probe hits the COBOLNET0899 limitation),
+  SR-13.18.58.3-3 (subsumed), GR-13.18.58.4-2 (documentation-level).
+- misc-p35: landed 7; not closable GR-14.9.48.4-18 (undefined result).
+- misc-p37: landed 7. **GR-14.9.51.4-34 overturned** (`85/l1c37_indexed_every_key_path`): the `.out`'s 2nd/3rd READ NEXT
+  lines are governed by §14.9.30.4 GR21 e), the PB1555 arm. Not closable: SR-14.9.51.3-11, GR-14.9.51.4-6, -13 and -16
+  (-16 needs two run units; the lock bypass is PB707).
+- misc-p38: landed 3.
+- Hand check: all 30 records carry only refuter-judged refs (every writer ref was judged; no split rows). No
+  `C3 82 C2 A7` bytes, no CR, no BOM in the 62 copied files. PROGRAM-IDs are unique. Each negative's line 1 is
+  `*> reject-at:`. No DOC-A.1 row landed, so `docs/CONFORMANCE.md` §7 is unchanged.
+- gate: Conformance, whole assembly: 8707/8707. All 31 new cases (25 positives + 6 negatives) ran by name.
+  Unit: 29190/29190. Characterization: 33/33.
+
+## Golden lane #2 — totals
+
+Batches 1–3 witnessed **165 rows**: 57 (DEVLOG 1695), 78 (DEVLOG 1698) and 30 (DEVLOG 1700). The GAP went 1515 → 1345;
+train 60 accounts for the other 5. `<GL>` is the lane directory named in LANE-STATE.md; each overturned draft is in
+`<GL>/out/<slug>/`, and its correction is in the refute.json named below. What remains, for a fixer:
+- dns-witness: DOC-A.1-143, DOC-A.1-196 (overturned; also PB1549) — `<GL>/reports/dns-witness.refute.json`.
+- misc-p17: GR-12.4.5.9.4-1 held on PB322 A — `<GL>/reports/misc-p17.refute.json`.
+- misc-p18: SR-11.7.3-2 (OVERRIDE in an interface) — `<GL>/reports/misc-p18.refute.json`.
+- misc-p19: DOC-A.1-132 (does not exercise); SR-8.4.3.7.3-1 held on PB1551 — `<GL>/reports/misc-p19.refute.json`.
+- misc-p20: `negative/l1c20-property-of-null` held on PB1551 (its row landed on the other negative) — `<GL>/reports/misc-p20.refute.json`.
+- misc-p23: GR-8.4.3.13.4-3 (needs `IS PROTOTYPE` definitions), SR-8.4.2.2.1-5 (needs the X.B.CNT twin) — `<GL>/reports/misc-p23.refute.json`.
+- misc-p25: FMT-14.9.35.2 (citation), GR-14.9.35.4-8 (not discriminating), GR-14.9.35.4-14 (drop U1/U2, PB322 E) — `<GL>/reports/misc-p25.refute.json`.
+- misc-p26: SR-8.7.5.2-1 (the witness is PB1034's future negative) — `<GL>/reports/misc-p26.refute.json`.
+- misc-p27: GR-8.4.3.15.4-5 (DUMMY needs an LC=12 leg), SR-13.15.3-4 (header provenance) — `<GL>/reports/misc-p27.refute.json`.
+- misc-p28: GR-12.4.6.4.4-1 (unobservable) — `<GL>/reports/misc-p28.refute.json`.
+- misc-p30: SR-12.3.7.3-L7.5, GR-12.3.7.4-L2.2 (defects PB1557, PB1558) — `<GL>/reports/misc-p30.refute.json`.
+- misc-p31: SR-14.9.43.3-9 (`85/l1c31_string_delimited_omitted` held on PB1567); SR-8.8.4.3.3-1 (no refuter verdict for
+  `negative/l1c31-simple-boolean-condition-length-8`; re-refute) — `<GL>/reports/misc-p31.refute.json`.
+- misc-p34: GR-13.18.57.4-2 (PARTIAL on PB1569; add the d) leg `BLR=02`) — `<GL>/reports/misc-p34.refute.json`.
+- misc-p37: GR-14.9.51.4-34 (the PB1555 arm) — `<GL>/reports/misc-p37.refute.json`.
+- The not-closable rows of every slug stay GAP. They need a derivation, a unit test, or a runner capability; each
+  batch section above lists them.
