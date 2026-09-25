@@ -15,7 +15,7 @@ Each rule carries its reason and its measurement; do not drop a rule because its
 | P1 | **Opus 5.5 via the `opus` alias** (`CLAUDE_CODE_SUBAGENT_MODEL=opus`, `model: 'opus'` on every agent). Never a dated id. | Owner 2026-09-22 (DEVLOG 1635). |
 | P2 | **Never end your turn while a background job runs.** Start it to a log, then BLOCK: `timeout 580 bash -c 'tail -n +1 -f <log> \| grep -m1 "<verdict>"'`, re-issued until the verdict prints. push-main: append `echo PUSH-MAIN-EXIT=$?` and block on it. | Wave 45: five implementers + a lander returned "gate PENDING", every gate killed. |
 | P3 | **Graceful STOP.** Before each new step check `{SCRATCH}\STOP`; if present: checkpoint-commit, STATUS.md NEXT, report, return SPLIT / landed=false. Never start a build or gate once STOP exists (a lander that has STARTED push-main finishes it). | Owner 2026-09-22: no job may be killed by a quota limit. |
-| P4 | **Checkpoint to disk**: WIP commit after every mechanism/step + `STATUS.md` (DONE / NEXT / BLOCKED / GATE / batch paths / codes). Never `git stash` (shared across worktrees). | Session kills cost at most one step. |
+| P4 | **Checkpoint to disk**: WIP commit after every mechanism/step + `STATUS.md` (DONE / NEXT / BLOCKED / GATE / batch paths / codes). Never `git stash` (shared across worktrees) — and never `git rebase --autostash` / `git pull --autostash`, which stash implicitly (train 64, 2026-09-25). | Session kills cost at most one step. |
 | P5 | **Turn caps**: read-only 160, implementer 220, one landing per lander transcript. At the cap: checkpoint and SPLIT, never extend. | tokens ≈ 0.115·T + 0.00031·T² (n = 239). |
 | P6 | **Start from the code sites** — the note's file:line, or `python scripts/spec/where.py <clause> [rule]` (every rule is cited in code, so the citations ARE the index). Do not re-survey a subsystem. | Waves 45–57: grep/find/sed/Read = **46 %** of all implementer tokens — the largest single cost. |
 | P7 | **Every lead you report carries its repro path and its code site (file:line)**, so the registrar and the next implementer do not re-discover them. | The same fact was being found three times: implementer → registrar re-probe → implementer re-probe. |
@@ -40,7 +40,7 @@ Each rule carries its reason and its measurement; do not drop a rule because its
 
 | # | Practice | Why |
 |---|---|---|
-| I1 | Gate = own tests + `~Drift\|~EditionGate` + Unit, **always `-Priority BelowNormal`**; a shared seam (.g4, MOVE, reference resolver, EC emitter) adds `~CorpusRunner\|~Nist`. | Lander's whole-assembly leg went 9.6 → 30.6 min when implementers competed at Normal. |
+| I1 | Gate = own tests + `~Drift\|~EditionGate` + Unit, **always `-Priority BelowNormal`**; a shared seam (.g4, MOVE, reference resolver, EC emitter) adds `~CorpusRunner\|~Nist`. **A change that REJECTS source it used to accept (a new diagnostic, a tightened rule) also adds `~VersionMatrix`** — the construct samples in constructs.json compile at every edition. | Lander's whole-assembly leg went 9.6 → 30.6 min when implementers competed at Normal. |
 | I2 | **Never run the whole Conformance assembly.** | Seventeen implementers running it tripled the lander's gate time. |
 | I3 | Re-probe every note on your own build first; a non-reproducing note is DISCHARGED with evidence. | Wave 42: three stale notes. |
 | I4 | One positive golden at the introducing edition + one negative below it; parser + emitter + golden + manifest in one commit. | Owner 2026-09-13 lever 3. |
