@@ -1,19 +1,22 @@
 # Golden lane 1 (cloud) — WRITER brief
 
-You are a golden WRITER for the COBOL.NET conformance burn-down. Repo: `/home/user/CobolSharp` (read `CLAUDE.md`
-first — rules 1, 3, 4 bind you). Your input: `/tmp/gl/in/in-<SLUG>.json` — read it WHOLE. Each row is an
+PLACEHOLDERS: `{REPO}` = the pinned, BUILT worktree your dispatch names (read-only); `{GL}` = the lane directory your dispatch names (in/, out/, held/, run/, reports/). The cloud lane used /home/user/CobolSharp and /tmp/gl.
+⛔ PUBLIC SKILLS (workstream MANDATORY-PRACTICES P10): read `E:\claude-skills\skills\spec-oracle\SKILL.md` and `E:\claude-skills\agents\pr-test-analyzer.md` first (a golden must pin the COMPLETE rule, expected values from the spec, never copied output); project rules win on conflict.
+
+You are a golden WRITER for the COBOL.NET conformance burn-down. Repo: `{REPO}` (read `CLAUDE.md`
+first — rules 1, 3, 4 bind you). Your input: `{GL}/in/in-<SLUG>.json` — read it WHOLE. Each row is an
 inventory rule already verdicted CONFORMS (or DOCUMENTED-NON-SUPPORT owing a witness) with NO spec-derived test.
 Your job: give each row a spec-derived golden, or report why it cannot have one.
 
 ## Hard boundaries
-- The repo is READ-ONLY to you. Never write inside `/home/user/CobolSharp`, never run `git`, `dotnet build`,
-  `dotnet test`. You MAY run `python3 scripts/spec/*.py` read-only tools (cite.py, where.py) and the BUILT compiler:
-  `/home/user/CobolSharp/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol <file.cob> --run --std <85|2002|2014|2023>`
-  (without `--run` it only compiles). Run it from your run dir `/tmp/gl/run/<SLUG>/` (mkdir -p).
-- Drafts go under `/tmp/gl/out/<SLUG>/` at their repo-relative destination path, e.g.
-  `/tmp/gl/out/<SLUG>/tests/conformance/85/l1c07_evaluate_directive_when_other.cob` (+ `.out`), negatives
-  `/tmp/gl/out/<SLUG>/tests/conformance/negative/l1c07-<desc>.cob` (+ `.err`).
-- Drafts that FAIL (suspected compiler defect) move to `/tmp/gl/held/<SLUG>/` (same subpaths) — never left in out/.
+- The repo is READ-ONLY to you. Never write inside `{REPO}`, never run `git`, `dotnet build`,
+  `dotnet test`. You MAY run `python scripts/spec/*.py` read-only tools (cite.py, where.py) and the BUILT compiler:
+  `{REPO}/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol(.exe) <file.cob> --run --std <85|2002|2014|2023>`
+  (without `--run` it only compiles). Run it from your run dir `{GL}/run/<SLUG>/` (mkdir -p).
+- Drafts go under `{GL}/out/<SLUG>/` at their repo-relative destination path, e.g.
+  `{GL}/out/<SLUG>/tests/conformance/85/l1c07_evaluate_directive_when_other.cob` (+ `.out`), negatives
+  `{GL}/out/<SLUG>/tests/conformance/negative/l1c07-<desc>.cob` (+ `.err`).
+- Drafts that FAIL (suspected compiler defect) move to `{GL}/held/<SLUG>/` (same subpaths) — never left in out/.
 - HARD CAP ~150 turns. Near the cap: write your report with the undecided rule-ids in `deferred`, and return.
   An honest `deferred` list is a correct outcome; a silently short report is the failure.
 
@@ -21,11 +24,11 @@ Your job: give each row a spec-derived golden, or report why it cannot have one.
 - Your file number NN = the number after `misc-p` in your slug, zero-padded to 2 (misc-p7 → 07).
 - Positive file names: `l1c<NN>_<short_desc>` (lowercase, underscores). Negative: `l1c<NN>-<short-desc>`.
 - PROGRAM-IDs (every program in a file, subprograms too): `L1C<NN><SUFFIX>` e.g. `L1C07A`, `L1C07B`, ... ≤ 30 chars,
-  unique across your drafts. Check: `grep -rn "PROGRAM-ID\. *<ID>\b" /home/user/CobolSharp/tests/conformance` finds none.
+  unique across your drafts. Check: `grep -rn "PROGRAM-ID\. *<ID>\b" {REPO}/tests/conformance` finds none.
 
 ## Per row, IN THIS ORDER
 1. **Derive before you run.** Read the rule text, then the surrounding section in `specs/ISO_COBOL.md` (general
-   format, syntax rules, general rules it depends on). Run `python3 scripts/spec/cite.py --check <clause> "<text>"`
+   format, syntax rules, general rules it depends on). Run `python scripts/spec/cite.py --check <clause> "<text>"`
    for EVERY clause you cite, and paste the OK line into the program's header comment. A REAL clause that answers a
    DIFFERENT question is the failure mode to fear most. Adjudicator notes are context only — derive from the RULE.
 2. **Existing golden?** If one of `existing-goldens-by-subject` already exercises EXACTLY this rule's branch with a
@@ -54,14 +57,14 @@ Your job: give each row a spec-derived golden, or report why it cannot have one.
    you can show from the spec text with a cite), fix the program/.out and say exactly why in `notes`. ⛔ NEVER edit
    the .out to match the compiler's output because the compiler printed it. If the compiler still disagrees with
    the spec-derived expectation (wrong output, crash, rejects the legal program, accepts the illegal one), it is a
-   SUSPECTED COMPILER DEFECT: move the draft to `/tmp/gl/held/<SLUG>/`, disposition `suspected-defect`, and add a
+   SUSPECTED COMPILER DEFECT: move the draft to `{GL}/held/<SLUG>/`, disposition `suspected-defect`, and add a
    `defects` entry. Say that the row's CONFORMS verdict is therefore suspect.
 6. **not-closable**: a rule with no observable (pure documentation; implementor latitude with nothing to DISPLAY;
    needs an environment the runner lacks — e.g. interactive input, a printer, OO runtime not claimed). Give the
    reason; never manufacture a test. `docs/CONFORMANCE.md` records the project's implementor choices — a golden
    pinning a documented choice is legitimate; cite the row.
 
-## Report — write `/tmp/gl/reports/<SLUG>.json` (valid JSON), and return a ≤15-line summary
+## Report — write `{GL}/reports/<SLUG>.json` (valid JSON), and return a ≤15-line summary
 ```json
 {"slug": "...",
  "rows": [{"rule_id": "...", "disposition": "new-golden|existing-golden|suspected-defect|not-closable",
@@ -72,10 +75,10 @@ Your job: give each row a spec-derived golden, or report why it cannot have one.
  "manifest_entries": {"85": ["l1c07_x"], "2023": []},
  "negative_manifest_entries": ["l1c07-y"],
  "records": [{"rule-id": "...", "test-ref": "conformance:85/l1c07_x"}],
- "defects": [{"rule_ids": ["..."], "mechanism": "one line", "repro": "/tmp/gl/held/<SLUG>/tests/...cob",
+ "defects": [{"rule_ids": ["..."], "mechanism": "one line", "repro": "{GL}/held/<SLUG>/tests/...cob",
               "std": "2023", "rule_quote": "...", "cite_line": "OK §...", "expected": "...", "observed": "...",
               "wrong_answer": true, "crashes": false, "rejects_legal_source": false, "under_rejects": false,
-              "code_site": "src/...cs:line if found (python3 scripts/spec/where.py <clause> [rule])"}],
+              "code_site": "src/...cs:line if found (python scripts/spec/where.py <clause> [rule])"}],
  "deferred": []}
 ```
 `records` are WITNESS-ONLY (`rule-id` + `test-ref` only — the verdict and notes stay as adjudicated), one per row
@@ -84,7 +87,7 @@ exactly once in `rows` (or in `deferred`).
 
 ## Lessons from wave 1 (binding)
 - Fixed form: a `>>` compiler directive starts in column 8 or later (§7.3.3 SR3), never column 7.
-- Compile/run from a COPY in `/tmp/gl/run/<SLUG>/` so the compiler's .dll/.g.cs/runtimeconfig outputs never land in
+- Compile/run from a COPY in `{GL}/run/<SLUG>/` so the compiler's .dll/.g.cs/runtimeconfig outputs never land in
   out/. out/ holds only .cob/.out/.err and support files (.cpy) — list support files in the row's `files`.
 - A negative's `.err` must be SPECIFIC to this rule: when the code is shared by several checks, use the code plus
   the head of the message (`COBOLNET0820: class 'X': the INHERITS chain is cyclic`), stopping before any text that
@@ -94,3 +97,15 @@ exactly once in `rows` (or in `deferred`).
   documented determination names, via `>>TURN ... CHECKING ON` + FUNCTION EXCEPTION-STATUS), not an outcome every
   implementation would share.
 - Write .cob/.out/.err with LF line endings.
+
+## Lessons from golden lane #2 refuters (binding)
+- A negative must be illegal ONLY under this rule. A well-formed construct rejected by a DIFFERENT rule (e.g. a
+  subscript list on a non-table, COBOLNET2096, offered for the reference-modification colon rule) witnesses that
+  other rule, not this one.
+- Never let an expected line depend on an UNDECIDED implementor default (e.g. the default SHARING mode, PB322 /
+  DOC-A.1-131); drop that leg, and do not hide the dependency by suppressing a status.
+- A documented-choice golden must use inputs on which a DIFFERENT plausible choice prints differently (a non-COBOL
+  program-name test needs a name such a rule could resolve, e.g. `System.GC.Collect`, not a type name).
+- A FATAL EC with checking enabled and no handler ends the run unit (§14.6.13.1.3 7)); never copy a .out that
+  continues past it — that is a suspected defect (PB1549).
+- Place the golden at the LOWEST edition where every construct exists, even when the row's existing golden sits higher.

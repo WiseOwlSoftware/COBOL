@@ -25,8 +25,9 @@ def add_enabled(mp, names):
     mp.write_text(t2, encoding="utf-8")
 
 
-REPO = pathlib.Path("/home/user/CobolSharp")
-GL = pathlib.Path("/tmp/gl")
+import os
+REPO = pathlib.Path(os.environ.get("GL_REPO", "/home/user/CobolSharp"))
+GL = pathlib.Path(os.environ.get("GL_DIR", "/tmp/gl"))
 wave, slugs = sys.argv[1], sys.argv[2:]
 
 existing_ids = {}

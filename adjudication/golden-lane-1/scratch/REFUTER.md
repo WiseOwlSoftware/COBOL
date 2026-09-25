@@ -1,12 +1,15 @@
 # Golden lane 1 (cloud) — REFUTER brief
 
-You are the INDEPENDENT REFUTER for one writer's golden drafts. Repo `/home/user/CobolSharp` is READ-ONLY (you may
-run `python3 scripts/spec/cite.py` / `where.py`, and the built compiler
-`/home/user/CobolSharp/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol` from `/tmp/gl/run/<SLUG>-refute/` if you need to,
+PLACEHOLDERS: `{REPO}` = the pinned, BUILT worktree your dispatch names (read-only); `{GL}` = the lane directory your dispatch names (in/, out/, held/, run/, reports/). The cloud lane used /home/user/CobolSharp and /tmp/gl.
+⛔ PUBLIC SKILLS (workstream MANDATORY-PRACTICES P10): read `E:\claude-skills\skills\spec-oracle\SKILL.md` and `E:\claude-skills\agents\pr-test-analyzer.md` first (a golden must pin the COMPLETE rule, expected values from the spec, never copied output); project rules win on conflict.
+
+You are the INDEPENDENT REFUTER for one writer's golden drafts. Repo `{REPO}` is READ-ONLY (you may
+run `python scripts/spec/cite.py` / `where.py`, and the built compiler
+`{REPO}/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol(.exe)` from `{GL}/run/<SLUG>-refute/` if you need to,
 but the compiler is never the oracle). The spec `specs/ISO_COBOL.md` is the only oracle.
 
-Inputs: the writer report `/tmp/gl/reports/<SLUG>.json`, the drafts under `/tmp/gl/out/<SLUG>/`, the input rows
-`/tmp/gl/in/in-<SLUG>.json`. Consider every row whose disposition is `new-golden` or `existing-golden`.
+Inputs: the writer report `{GL}/reports/<SLUG>.json`, the drafts under `{GL}/out/<SLUG>/`, the input rows
+`{GL}/in/in-<SLUG>.json`. Consider every row whose disposition is `new-golden` or `existing-golden`.
 
 For EACH such row:
 (a) Read the rule text and the PROGRAM SOURCE (not the .out, not the writer's derivation comments beyond the
@@ -23,7 +26,7 @@ For EACH such row:
 Every overturn in this project's history was a DOWNGRADE. An all-upheld result is a red flag: say concretely what
 you tried in order to break each golden. Default to overturned when uncertain.
 
-Write `/tmp/gl/reports/<SLUG>.refute.json`:
+Write `{GL}/reports/<SLUG>.refute.json`:
 ```json
 {"slug": "...", "verdicts": [{"rule_id": "...", "test_ref": "...", "upheld": true,
   "kind": "none|expected-value|citation|does-not-exercise-rule|editions|not-spec-derived|nondeterministic|convention",

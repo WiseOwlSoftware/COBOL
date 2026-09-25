@@ -10,7 +10,7 @@
       *> and discarded: SECONDS-FROM-FORMATTED-TIME("hhmmss", "235960") answered
       *> 0 (the EC-ARGUMENT-FUNCTION default) and killed the run unit under
       *> checking. The reported side (a 60 from CURRENT-DATE etc.) is the
-      *> implementor's and stays "never" (docs/CONFORMANCE.md A.1 item 112).
+      *> implementor's and stays "never" (docs/CONFORMANCE.md A.1 item 111).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB65LEAPON.
        DATA DIVISION.
