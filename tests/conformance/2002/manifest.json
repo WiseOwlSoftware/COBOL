@@ -4,6 +4,8 @@
   "pb1033_integer_operand_full_value",
   "pb1549_set_program_address_fatal_resume",
   "pb589_bool_refmod_width",
+  "l1c34_type_group_hierarchy",
+  "pb1569_type_subject_level1_bit_alignment",
   "pb460_set_program_pointer_effect",
   "pb548_set_restricted_pointer_plain",
   "pb349_sort_merge_flow_ec",

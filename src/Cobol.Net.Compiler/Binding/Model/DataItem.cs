@@ -570,6 +570,26 @@ public sealed class DataItem
         "ALIGNED (ISO §13.18.1) is the OTHER alignment clause — the same §13.18.57.4 GR1 'alignment' exclusion as SYNCHRONIZED, and §13.18.49.4 GR1 excludes neither. §13.18.1.3 SR1 admits it on a bit group or an elementary bit item, so a TYPEDEF member can carry it")]
     public bool IsAligned { get; set; }
 
+    /// <summary>The subject of a TYPE clause whose type-name describes a GROUP item — ISO §13.18.57.4 GR2 d): "the
+    /// subject of the entry is aligned as though it were a level 1 item" (kb/Work PB1569). Set by
+    /// <c>DataBinder.ExpandType</c>, the one place the TYPE clause takes effect.
+    /// <para>The only placement the standard gives a level-1 item that a subordinate does not have is bit alignment:
+    /// §8.5.1.6.3 — "a level 1 bit group are at the first bit of a byte", where a same-level successor of a bit item
+    /// would otherwise go "at the next bit position in storage". Every other item already starts on a byte, and
+    /// COBOL.NET inserts no word-boundary slack for any level (§8.5.1.6.4 leaves that to the runtime module), so
+    /// the flag is read at exactly ONE site — <see cref="BitLayout.SharesByteWith"/>, the placement predicate the
+    /// extent walk, the offset walk, the REDEFINES class walk and the image RUNS all derive from. It aligns the
+    /// SUBJECT's first bit, not each occurrence: ALIGNED's own rule for a multiple-occurrence item (§13.18.1.4
+    /// GR2) has no counterpart in §13.18.57.4 GR2 d), so an array-of-type keeps §8.5.1.6.3's successive-bit
+    /// stride.</para>
+    /// <para>Classified <see cref="DescriptionCopyKind.Alignment"/>: it is the effect of the TYPE clause in
+    /// data-name-1's description, so a SAME AS copy (§13.18.49.4 GR1 — "as though the data description identified
+    /// by data-name-1 had been coded in place") and a reproduced TYPEDEF member carry it; a TYPE subject does not
+    /// inherit its template's (GR1 excludes alignment) and is given its own by GR2 d) instead.</para></summary>
+    [DescriptionCopy(DescriptionCopyKind.Alignment,
+        "ISO §13.18.57.4 GR2 d) — the TYPE clause's level-1 alignment of a group-typed subject; SAME AS (§13.18.49.4 GR1) copies data-name-1's description, TYPE clause included, and GR1 of the TYPE clause excludes the template's alignment")]
+    public bool AlignedAsLevelOne { get; set; }
+
     /// <summary>True for an ANY LENGTH elementary level-1 LINKAGE entry (ISO §13.18.2 — the item's length varies
     /// at runtime and is the length of the corresponding argument of the activating element, GR1; PICTURE is
     /// exactly one 'X', 'N', or '1', SR1). Set by <c>DataBinder.BindEntry</c> after the SR1/§13.16.3-SR17 shape

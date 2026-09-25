@@ -685,6 +685,8 @@ marks every DESCENDANT of a redefines class `IsCanonical = false`, so that walk 
 of a Tier-B canonical — the exact group the seed exists for. What the two composers share is the LAW, not the
 field list, which is why the extraction is a run MAP and not a common walk.
 
+⛔ A run CONTINUES only where `BitLayout.SharesByteWith` — the placement predicate the extent walk (`ExtentBits`), the offset walk (`StartBitWithin`) and the REDEFINES class walk (`AssignClassOffsets`) read — says the member shares its predecessor's byte. A run packs its members' carriers back to back, so a member those walks start on a fresh byte must LEAD a new run: an ALIGNED member (§13.18.1.4 GR1), and a group-typed TYPE subject, which §13.18.57.4 GR2 d) aligns "as though it were a level 1 item" and §8.5.1.6.3 therefore puts at the first bit of a byte (`DataItem.AlignedAsLevelOne`, set by `ExpandType`; carried by a SAME AS copy of such a subject, since §13.18.49.4 GR1 re-states data-name-1's description, TYPE clause included). A run scan that tested only "same level" packed `05 F PIC 1 USAGE BIT. 05 G PIC 1 USAGE BIT ALIGNED.` into ONE byte while `FUNCTION BYTE-LENGTH` counted two (kb/Work PB1569).
+
 #### A boolean item's VALUE has ONE carrier answer, and the USAGE decision is separate (kb/Work PB584)
 
 `ValueInitializer.BooleanCarrierOf` is the ONE reader of a boolean item's VALUE clause — its declared boolean
@@ -1325,8 +1327,11 @@ on a group superordinate to a TYPE subject). The 15xx TYPEDEF band spans **1529�
 
 **RISKS flagged:** `OccursSpec` sharing on clone (verify it holds NAMES re-resolved by `OdoResolve`, not cached
 resolved items); `INDEXED BY` in a TYPEDEF used ≥2× — RESOLVED (kb/Work PB919: per-declaration index cells); method/OO-scope
-typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up); STRONG group
-alignment (GR2d/§8.5.1.6.5) is D6/SYNC domain, out of scope.
+typedefs are program/global-scope-first (the `OoRootOwner` parallel forest → staged loud follow-up). §13.18.57.4
+GR2 d) (a group-typed subject "is aligned as though it were a level 1 item") is carried by
+`DataItem.AlignedAsLevelOne` into the one bit-placement predicate `BitLayout.SharesByteWith` — bit alignment is the
+only level-1 placement COBOL.NET has, since it inserts no word-boundary slack at any level (§8.5.1.6.4; kb/Work
+PB1569).
 
 ### D18. A FUNCTION-IDENTIFIER in a subscript or reference-modification position materializes into a COMPILER TEMP hoisted as a statement pre-op — never a new arm on `RenderSegment`, and never an early `BoundExpr` carrier migration.
 

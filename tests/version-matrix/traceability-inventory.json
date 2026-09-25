@@ -19448,7 +19448,7 @@
   "rule-digest": "3c6ea25945e4",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
-  "test-ref": "conformance:2002/pb487_aligned_bit_layout",
+  "test-ref": "conformance:2002/pb487_aligned_bit_layout; conformance:2002/pb1569_type_subject_level1_bit_alignment",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "'aligned on the first bit of the first available byte boundary. Implicit filler bits may be generated ... as described in 8.5.1.6.3.' One conjunct on THE one placement predicate: an ALIGNED subject never shares its predecessor's byte, and the round-up every caller already performs does the rest. The predicate was previously written out THREE times - BitLayout.ExtentBits, BitLayout.StartBitWithin and DataBinder.AssignClassOffsets - and is now a single method all three call, so an item's OFFSET, the group's EXTENT and a REDEFINES view of it cannot disagree. Golden derivation: 05 B1 PIC 1(4) BIT. 05 B2 PIC 1(4) BIT ALIGNED. occupies 12 bits padded by rule 4 to 16, so FUNCTION LENGTH is 2 where without ALIGNED it is 1 - measured 2.",
@@ -28731,13 +28731,13 @@
   "ordinal": 2,
   "subject": "TYPE clause",
   "rule-digest": "c5e2b6c73923",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CloneItem",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CloneItem; src/Cobol.Net.Compiler/Binding/Model/BitLayout.cs#SharesByteWith",
+  "test-ref": "conformance:2002/l1c34_type_group_hierarchy; conformance:2002/pb1569_type_subject_level1_bit_alignment",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "PARTIAL (golden lane #2 batch 3, 2026-09-24): a)-c) hold -- CloneItem reproduces each subordinate's name, entry description and hierarchy recursively, and a group TYPE subject at level 49 composes (probe t6 of the earlier adjudication). d) does NOT hold for bit data: kb/Work/PB1569 (wrong answer) -- for `01 BT TYPEDEF GROUP-USAGE BIT` (two 1-bit items) and `01 R. 05 F PIC 1 USAGE BIT. 05 S TYPE BT.`, FUNCTION BYTE-LENGTH(R) is 01 where 'the subject of the entry is aligned as though it were a level 1 item' (GR2 d), with the level-1 bit alignment of 8.5.1.6.3) requires 02. The earlier note's 'no observable divergence' for d) held for SYNCHRONIZED slack only. The misc-p34 a)-c) golden `2002/l1c34_type_group_hierarchy` was overturned by its refuter and is NOT in the tree; it lands with a d) leg (BLR=02) when PB1569 is fixed. Evidence: <GL>/reports/misc-p34.refute.json, repro <GL>/run/misc-p34-refute/f.cob. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPE Format 1 / TYPEDEF family is a COBOL-2002 introduction)",
-  "state": "GAP"
+  "notes": "Rule (cite.py --check 13.18.57.4 \"the subject of the entry is aligned as though it were a level 1 item\" -> OK §13.18.57.4 2) d)). a) CloneItem reproduces each subordinate with its name, full entry description (CopyEntryDescription scope Entry), OCCURS, REDEFINES, INDEXED BY and 88s; b)/c) the hierarchy is carried structurally and TYPE clones level-verbatim, so a level-49 subject's members sit past 49 and a level-05 subject's 05/10 members stay below it (l1c34_type_group_hierarchy: LX=09, D2=34, LR2=11). d) the only level-1 placement this implementation has is bit alignment (§8.5.1.6.3 \"a level 1 bit group are at the first bit of a byte\" -> OK; no word-boundary slack at any level, §8.5.1.6.4): ExpandType sets DataItem.AlignedAsLevelOne for a group type and BitLayout.SharesByteWith — the one predicate the extent, offset, REDEFINES-class and image-run walks read — never lets that subject share its predecessor's byte (kb/Work PB1569). Pinned: BLR3=02 in l1c34_type_group_hierarchy; pb1569_type_subject_level1_bit_alignment adds the member image (RV), the elementary-type control (no GR2: shares the byte, BLE=01), a byte-aligned control (BLK=02), a SAME AS of a TYPE subject (carries d), BLR2=02) and a SAME AS of a plain level-1 bit group (no d), BLR3=01).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.57.4-3",

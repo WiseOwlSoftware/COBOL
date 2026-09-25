@@ -2783,6 +2783,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // rejected. TypeName also anchors the §8.5.3 same-type test (see DataItem.TypeAnchor).
         item.TypeName = typeName;
         item.StrongType = template.TypedefStrong;
+        // §13.18.57.4 GR2 d): a GROUP type's subject "is aligned as though it were a level 1 item" — so a bit
+        // group typed after a same-level bit item starts at the first bit of a byte (§8.5.1.6.3), not inside the
+        // predecessor's byte (kb/Work PB1569). An ELEMENTARY type has no GR2, and its subject is placed by
+        // §8.5.1.6.3 exactly as written in place. Read by BitLayout.SharesByteWith, the one placement predicate.
+        item.AlignedAsLevelOne = template.IsGroup;
 
         // An EXTERNAL type declaration's effect lands on its REFERENCES (ISO §13.18.22; P10 Step 16 — the
         // former COBOLNET1534 stage is lifted): GR2 — a data description containing an external type shall be
@@ -2956,6 +2961,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         {
             to.Synchronized |= from.Synchronized;                   // SYNCHRONIZED (§13.18.55)
             to.IsAligned |= from.IsAligned;                         // ALIGNED (§13.18.1)
+            to.AlignedAsLevelOne |= from.AlignedAsLevelOne;         // a TYPE clause's GR2 d) (§13.18.57.4)
         }
         to.OwnUsage ??= from.OwnUsage;
         // The WITH NO SIGN phrase is PART OF the USAGE clause (§13.18.60.2 prints it inside the PACKED-DECIMAL

@@ -54,9 +54,14 @@ internal static class BitLayout
     /// of bits as described in 8.5.1.6.3." So an ALIGNED item NEVER shares a byte with its predecessor — one
     /// conjunct, and the round-up both callers already perform does the rest. <b>GR3</b> ("when an ALIGNED clause
     /// is not specified, bit data items are aligned in accordance with 8.5.1.6.3") is the false arm, unchanged.</para>
+    ///
+    /// <para><b>§13.18.57.4 GR2 d)</b>: a TYPE subject whose type describes a group "is aligned as though it were a
+    /// level 1 item", and §8.5.1.6.3 puts "a level 1 bit group … at the first bit of a byte" — the second conjunct
+    /// (<see cref="DataItem.AlignedAsLevelOne"/>; kb/Work PB1569).</para>
     /// </summary>
     public static bool SharesByteWith(DataItem? prev, DataItem c) =>
         !c.IsAligned                                            // §13.18.1.4 GR1 — an ALIGNED subject never shares
+        && !c.AlignedAsLevelOne                                 // §13.18.57.4 GR2 d) — nor does a group-typed subject
         && IsBitItem(c) && prev is not null && IsBitItem(prev)   // §8.5.1.6.3 rules 1 and 2 — both sides bit items…
         && prev.Level == c.Level;                                // …"of the same level"
 
@@ -69,7 +74,13 @@ internal static class BitLayout
     /// SEED — the only composer a Tier-B REDEFINES group ever reaches — did not, so a MIXED bit/character group's
     /// seed padded each bit member to its own byte and every following member shifted (kb/Work PB584). One law,
     /// one computation, two composers.</para>
-    /// <para>A REDEFINING sibling is never a run member: it overlays storage its target already placed.</para></summary>
+    /// <para>A REDEFINING sibling is never a run member: it overlays storage its target already placed.</para>
+    /// <para>⛔ A run CONTINUES only where <see cref="SharesByteWith"/> says the member shares its predecessor's
+    /// byte — the same predicate the extent and offset walks read. The run's image packs its members' carriers
+    /// back to back, so a member the placement walks start on a fresh byte (an ALIGNED one, §13.18.1.4 GR1; a
+    /// group-typed TYPE subject, §13.18.57.4 GR2 d)) must LEAD a new run: continuing the run on a same-level test
+    /// alone packed <c>05 F PIC 1 USAGE BIT. 05 G PIC 1 USAGE BIT ALIGNED.</c> into ONE byte while
+    /// <c>FUNCTION BYTE-LENGTH</c> — the extent walk — counted two (kb/Work PB1569's sibling sweep).</para></summary>
     public static BitRunMap RunsOf(IEnumerable<DataItem> siblings)
     {
         var list = siblings as IList<DataItem> ?? siblings.ToList();
@@ -90,7 +101,7 @@ internal static class BitLayout
             var run = new List<DataItem> { list[i] };
             for (int j = i + 1; j < list.Count && RunMember(list[j])
                                 && list[j].RedefinesTargetName is null
-                                && list[j].Level == list[i].Level; j++)
+                                && SharesByteWith(list[j - 1], list[j]); j++)
                 run.Add(list[j]);
             foreach (var m in run) inRun.Add(m);
             start[list[i]] = run;
