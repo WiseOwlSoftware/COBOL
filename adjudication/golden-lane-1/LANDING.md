@@ -50,3 +50,9 @@ GAP 1627 → 1580 (+47 rows closed; witness-only records, `scratch/` batches). G
 - suspected defect SR-8.4.3.11.3-5 → kb/Work/PB1547
 
 Overturned rows stay CONFORMS-but-untested; the refuter's exact correction is in `scratch/reports/<slug>.refute.json` (a follow-up writer can apply it). Not-closable rows stay GAP and need a registrar decision (derivation / DNS), not a golden.
+
+### Wave 1 gate (this VM, after integration)
+- Conformance `Corpus|Negative|Intrinsic|VersionMatrix`: Passed 5511/5511 (base 5446); all 65 new goldens named in the trx, 0 failed outcomes.
+- Unit `SpecTraceabilityInventory|DefectiveRowCoverage|Manifest|AnnexA1Register`: first run 1 red —
+  `AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names` (the new DOC-A.1-6/8/21/32/43/44 witnesses
+  were not yet in docs/CONFORMANCE.md §7 `Pinned by`); fixed by naming them there → Passed 25/25.
