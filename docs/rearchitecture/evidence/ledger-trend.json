@@ -775,6 +775,15 @@
       "dns": 455,
       "label": "Train 62: DEVLOG 1702 + plan",
       "battery": null
+    },
+    {
+      "sha": "d4aa22c9",
+      "date": "2026-09-25",
+      "gap": 1241,
+      "closed": 3106,
+      "dns": 456,
+      "label": "Register: PB1590 (DeepNestin",
+      "battery": null
     }
   ]
 }
