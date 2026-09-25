@@ -1,0 +1,8 @@
+T1 T=08 [AABBCC]
+T2 T=02 [AABBzzzz]
+T3 T=09 [ABCDzz]
+T4 OVF
+T4 T=04 [zzzz]
+T5 OVF
+T5 T=02 [A B ]
+T6 T=03 [ABCDEFG  ]

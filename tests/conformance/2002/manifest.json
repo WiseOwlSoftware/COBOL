@@ -476,7 +476,13 @@
   "l1c30_national_count_at_native_bound",
   "l1c30_alphabet_implied_alphanumeric",
   "l1c31_string_operand_roles",
-  "l1c32_relation_national_mixed"
+  "l1c32_relation_national_mixed",
+  "l1c33_terminate_resume_next_implicit",
+  "l1c33_turn_level2_file_name",
+  "l1c33_turn_within_statement",
+  "l1c34_type_subject_based",
+  "l1c34_typedef_format_spellings",
+  "l1c34_strong_type_currency_string_match"
   ],
   "pending": []
 }

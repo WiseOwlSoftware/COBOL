@@ -1599,7 +1599,13 @@
   "l1c29-sort-file-not-sd",
   "l1c31-suppress-outside-use-before-reporting",
   "l1c32-relation-boolean-literal",
-  "l1c32-system-name-all-digits"
+  "l1c32-system-name-all-digits",
+  "l1c33-terminate-multi-in-exc-perform",
+  "l1c34-type-same-as-subject",
+  "l1c34-type-same-as-ancestor",
+  "l1c34-strong-type-currency-string-differs",
+  "l1c37-write-auto-with-lock",
+  "l1c37-write-auto-with-no-lock"
  ],
  "pending": []
 }

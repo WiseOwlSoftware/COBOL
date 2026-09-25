@@ -637,7 +637,9 @@
   "l1c03_cobol_words_directing_unaffected",
   "l1c09_external_assign_consistency",
   "l1c14_inspect_backward_after",
-  "l1c16_report_lines_synonym"
+  "l1c16_report_lines_synonym",
+  "l1c33_terminate_single_in_exc_perform",
+  "l1c33_turn_io_warning_explicit_only"
  ],
  "pending": [
   "pb485_value_only_format1"

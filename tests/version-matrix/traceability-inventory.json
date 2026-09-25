@@ -3893,11 +3893,11 @@
   "rule-digest": "7b69221fe585",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/Cobol.Net.Compiler/Binding/TurnState.cs#Fold",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c33_turn_level2_file_name; conformance:2023/l1c33_turn_io_warning_explicit_only",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "cite.py --check 7.3.25.4 \"the effect is as if file-name-1 were specified for each of these exception-names\" OK. Level-2 half: DirectiveCovers -> TryGet(level-2) && UnderLevel2(level3); WARNING excluded. File-name half: the Fold keeps the (EC-I-O, F1) event and matches it only for a query naming F1. Probes: TRNF1 '>>TURN EC-I-O F1 CHECKING ON' -> READ F2 AT END: status spaces, READ F1 AT END: EC-I-O-AT-END (expected per GR3 second sentence); TRNO2 '>>TURN EC-I-O CHECKING ON' does not enable EC-I-O-WARNING (status 05 -> spaces). Both halves verified. Test-ref left empty: conformance-test:ExceptionConditionConformanceTests.Turn_Level2_CoversItsChildren and unit:TurnStateTests.Level2_EnablesItsChildrenOnly witness the first sentence only; no spec-derived test witnesses the level-2 + file-name-1 sentence (test-needed). || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.25.4-4",
@@ -3908,11 +3908,11 @@
   "rule-digest": "b4be462de137",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs#DirectiveCovers; src/Cobol.Net.Compiler/Binding/TurnState.cs#WithImplicitEnable",
-  "test-ref": "",
+  "test-ref": "conformance:2023/l1c33_turn_io_warning_explicit_only",
   "derivation": "",
   "editions": "2023",
   "notes": "cite.py --check 7.3.25.4 \"may be turned on only by specifying it explicitly within a TURN directive\" OK. TURN half (probes via OPEN INPUT of a missing OPTIONAL file, status 05): TRNO1 EC-ALL ON -> not raised; TRNO2 EC-I-O ON -> not raised; TRNO3 EC-I-O-WARNING ON -> EC-I-O-WARNING; TRNO4 then EC-ALL OFF -> still raised; TRNO5 then EC-I-O OFF -> still raised; TRNO6 then EC-I-O-WARNING OFF -> not raised. PERFORM half: TRNQ1 'PERFORM OPEN INPUT F2 WHEN EC-I-O-WARNING ...' -> the WHEN runs with EC-I-O-WARNING; after END-PERFORM a second OPEN (status 05) does not raise it (status stays the EC-USER-X raised between); TRNQ2 WHEN EC-I-O and TRNQ3 WHEN EC-ALL do not enable it. All four halves verified. Test-ref empty: unit:TurnStateTests.EcAll_DoesNotEnableIoWarning witnesses only the TURN on/EC-ALL arm; the WHEN-phrase and end-of-PERFORM arms have no spec-derived witness. SIBLING DEFECT FOUND WHILE PROBING (not this rule's): a SUCCESSFUL READ with a nonzero status never calls the EC hook, so EC-I-O-WARNING is never raised by READ even when explicitly enabled — see findings (§9.1.13.1). || editions (adjudicator): 2023 (EC-I-O-WARNING and the exception-checking PERFORM are COBOL-2023 additions, Annex E)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.25.4-5",
@@ -3923,11 +3923,11 @@
   "rule-digest": "8fd1a00844a5",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/TurnState.cs#After; src/Cobol.Net.Frontend/Preprocessor/TurnDirectiveProcessor.cs#Process",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c33_turn_within_statement",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "cite.py --check 7.3.25.4 \"the TURN directive does not apply to any phrase of that statement\" OK. Enablement is keyed on the statement's START line with strict eventLine < statementLine (directive lines are blanked, line-count preserving). Probe TRNG5: 'ADD 1 TO A' / '>>TURN EC-SIZE CHECKING ON' / 'ON SIZE ERROR DISPLAY ... ADD 1 TO B ON SIZE ERROR DISPLAY ...' -> P1 [spaces] (the ADD whose phrase follows the TURN is NOT checked) and P2 [EC-SIZE-TRUNCATION] (the nested ADD inside the phrase, a succeeding statement, IS checked). TRNG5B: OFF written inside an IF disables the nested ADD and the ADD after END-IF (both spaces). Both sentences verified. kb/Work PB963 (open) owns this row's witness debt — test-ref left empty; unit:TurnStateTests.Directive_AppliesToSucceedingStatementsOnly covers only the strict-line half. || editions (adjudicator): 2002, 2014, 2023 (the TURN directive is a COBOL-2002 introduction; §7.3 compiler directives)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-7.3.25.4-6",
@@ -8513,11 +8513,11 @@
   "rule-digest": "40d110d9e58b",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs#SameAnalyzedProfile; src/Cobol.Net.Compiler/Binding/Model/StrongTypeModel.cs#EquivalentTypeDeclarations; src/Cobol.Net.Compiler/Binding/PictureAnalyzer.cs#CanonicalCurrencyMask; src/Cobol.Net.Compiler/Binding/Model/PicInfo.cs#CurrencyString",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c34_strong_type_currency_string_match; conformance:negative/l1c34-strong-type-currency-string-differs",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "Rule (cite.py --check 8.5.3.1 'Currency symbols match if and only if the corresponding currency strings are the same' -> OK §8.5.3.1 1)). Code: PictureAnalyzer canonicalizes every currency SYMBOL in the mask to '$' and records the currency STRING in PicInfo.CurrencyString (null when the string is '$'); StrongTypeModel.SameAnalyzedProfile compares the PicInfo record (canonical EditMask + CurrencyString), so the match is by string, not by symbol - exactly the rule. The only cross-configuration site is two SEPARATE outermost source elements (§12.3.7.4 GR1 makes a contained unit inherit the container's currency signs), reached through a program-prototype CALL whose strongly-typed formal runs OoConformance.StrongTypeMismatch -> StrongTypeModel.SameType. Probes (pinned cobol.exe, E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2\\out\\probe\\types): TPD caller default currency 'PIC $$9' vs callee CURRENCY SIGN IS \"$\" WITH PICTURE SYMBOL \"U\" 'PIC UU9' (different symbols, same string) -> compiles and runs 'OK' (expected: match, conforms); TPE caller '$'->\"$\" vs callee CURRENCY SIGN IS \"#\" WITH PICTURE SYMBOL \"$\" both 'PIC $$9' (same symbol, different strings) -> COBOLNET1688 strongly-typed argument not of the same type (expected: no match, conforms). Both directions verified. No existing spec-derived test exercises the currency exception (grep of tests/ for TYPEDEF together with CURRENCY SIGN finds none) -> test-ref empty. [editions as adjudicated: 2002, 2014, 2023 (§8.5.3.1 types: TYPEDEF/TYPE/STRONG exist from 2002; the ALIGNED item of the clause list is a 2023 change per Annex E.2 item 2; the LOCALE-phrase half applies only where PICTURE format 2 (§13.18.40.2) exists - Annex E of the 2023 text does not date that phrase)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-8.5.3.1-2",
@@ -28478,11 +28478,11 @@
   "rule-digest": "1c045e6c963a",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandSameAs; src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CloneItem",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c34-type-same-as-subject; conformance:negative/l1c34-type-same-as-ancestor",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "'The description of any data item subordinate to type-name-1 shall not contain a SAME AS clause that references the subject of this entry or any group item to which this entry is subordinate.' No TYPE-side screen is written for SR1; it is enforced through the SAME AS expansion's §13.18.49.3 SR3 ancestor walk, which runs over the TYPE clone (the clone makes the SAME AS entry subordinate to the TYPE subject, so SR1's two referents are exactly SR3's). Probes: `01 T TYPEDEF. 05 A SAME AS REC.` + `01 REC. 05 X TYPE T.` -> COBOLNET1557; `05 A SAME AS Y` + `01 Y TYPE T.` (the subject itself) -> COBOLNET1557; grandparent through two levels -> COBOLNET1557; legal control (SAME AS an unrelated item) compiles and DISPLAY Y prints 'WXYZ12'. Same verdict at --std 2002. The diagnostic cites §13.18.49.3 SR3 rather than §13.18.57.3 SR1 and says 'a group item' even for the subject-itself case — a labeling nuance, not a wrong verdict. No spec-derived test targets the TYPE-side shape; test-needed. cite.py --check 13.18.57.3 and 13.18.49.3 SR3 text OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023 unless noted) || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): Format 1: COBOL-2002, 2014, 2023 (the TYPEDEF/TYPE family; absent from COBOL-85; Annex E lists no 2014->2023 change to §13.18.57). Not edition-gated beyond the clause's own introduction gate.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.57.3-2",
@@ -28598,11 +28598,11 @@
   "rule-digest": "6ed254b899a1",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#reportGroupType; src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#GroupKindOf",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c34_report_type_abbreviations",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "'RH is an abbreviation for REPORT HEADING. ... RF is an abbreviation for REPORT FOOTING.' reportGroupType pairs each full spelling with its abbreviation as one alternative; GroupKindOf maps both to the same ReportGroupKindModel. Probe fmt_abbrev_all (RH/PH/CH/DE/CF/PF/RF) and fmt_fullwords_all (all full spellings) compile and print the identical report. cite.py --check 13.18.57.3 'RH is an abbreviation for REPORT HEADING.' OK. No spec-derived test pinning the equivalence located. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023) || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): Format 2 (report writer): COBOL-85 optional Report Writer module; ISO 2023 optional language element A.4.11; 2002/2014 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d); Annex E lists no 2014->2023 change to the TYPE clause",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.57.3-10",
@@ -28703,11 +28703,11 @@
   "rule-digest": "f03c35935d36",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.Reports.cs#ResolveReports",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c34_report_without_detail",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "'If no GENERATE data-name statements are specified in the procedure division, the report description need not contain a DETAIL.' A permission: no code demands a DETAIL. Probe sr16_no_detail_ok (CONTROL IS CX, only TYPE CF CX, GENERATE R1) compiles and prints the footing 'FFF' at TERMINATE. The converse (GENERATE data-name naming a non-DETAIL) is rejected by §14.9.16.3 SR1 (probe sr16_gen_dataname_no_detail), which is GENERATE's rule, not this one. cite.py --check OK. probes under out13/probe/type-clause-p1/ (pinned adj-d1 cobol.exe, --std 2023) || Editions (adjudicator's statement, normalized to 85,2002,2014,2023 by registrar 14e): Format 2 (report writer): COBOL-85 optional Report Writer module; ISO 2023 optional language element A.4.11; 2002/2014 availability not derivable from the 2023 text (VERSION_CHANGE_REFERENCE row 130d); Annex E lists no 2014->2023 change to the TYPE clause",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.57.4-1",
@@ -28731,12 +28731,12 @@
   "ordinal": 2,
   "subject": "TYPE clause",
   "rule-digest": "c5e2b6c73923",
-  "verdict": "CONFORMS",
+  "verdict": "PARTIAL",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#ExpandType; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CloneItem",
   "test-ref": "",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Rule (cite.py --check 13.18.57.4 \"level-numbers in the resulting hierarchy may exceed 49\" -> OK; \"the subject of the entry is aligned as though it were a level 1 item\" -> OK). a) CloneItem reproduces each subordinate with its name, full entry description (CopyEntryDescription scope Entry), OCCURS, REDEFINES, INDEXED BY and 88s, recursively -> same names/descriptions/hierarchy (probe t1: C OF B OF X addressable, qualified). b)/c) the hierarchy is carried structurally (Parent/Children), and TYPE passes levelDelta 0 (level-verbatim clone); nothing downstream reads a clone's level-number for hierarchy, so the 'adjusted if necessary' effect holds: probe t6 (E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/type-clause-p2/t6.cob) places a group TYPE subject at level 49 (children written 05/10) and composes ACC / C OF X = CC / LENGTH(B OF X) = 2, i.e. the result hierarchy below level 49 is accepted, as GR2c permits. d) alignment: this compiler inserts no slack bytes for SYNCHRONIZED (probe t7: a TYPEDEF with `05 A PIC X. 05 B BINARY-LONG SYNC.` measures 5 both as an 01 and as an 05 subject, and the identical inline group measures 5) -- alignment/slack is implementor-defined (13.18.55), so 'aligned as though it were a level 1 item' has no observable divergence; the TypeSubject scope withholds the template entry's own SYNC/ALIGNED, consistent with GR1's alignment exclusion. No existing spec-derived golden exercises a non-level-1 group subject's renumbering (typedef_weak_group covers a) at level 1 only), so test-ref is empty. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPE Format 1 / TYPEDEF family is a COBOL-2002 introduction per the project's constructs row type-clause-2002; Annex E records no 2014->2023 change to 13.18.57.4 Format 1)",
+  "notes": "PARTIAL (golden lane #2 batch 3, 2026-09-24): a)-c) hold -- CloneItem reproduces each subordinate's name, entry description and hierarchy recursively, and a group TYPE subject at level 49 composes (probe t6 of the earlier adjudication). d) does NOT hold for bit data: kb/Work/PB1569 (wrong answer) -- for `01 BT TYPEDEF GROUP-USAGE BIT` (two 1-bit items) and `01 R. 05 F PIC 1 USAGE BIT. 05 S TYPE BT.`, FUNCTION BYTE-LENGTH(R) is 01 where 'the subject of the entry is aligned as though it were a level 1 item' (GR2 d), with the level-1 bit alignment of 8.5.1.6.3) requires 02. The earlier note's 'no observable divergence' for d) held for SYNCHRONIZED slack only. The misc-p34 a)-c) golden `2002/l1c34_type_group_hierarchy` was overturned by its refuter and is NOT in the tree; it lands with a d) leg (BLR=02) when PB1569 is fixed. Evidence: <GL>/reports/misc-p34.refute.json, repro <GL>/run/misc-p34-refute/f.cob. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPE Format 1 / TYPEDEF family is a COBOL-2002 introduction)",
   "state": "GAP"
  },
  {
@@ -28763,11 +28763,11 @@
   "rule-digest": "5e752c606109",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindEntry; src/Cobol.Net.Compiler/Binding/Model/DataItem.cs#IsBased; src/Cobol.Net.Compiler/Binding/DataBinder.cs#CopyEntryDescription",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c34_type_subject_based",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "Rule (cite.py --check 13.18.57.4 \"that BASED clause applies and any BASED clause specified in the description of type-name-1 is ignored for this entry\" -> OK). Both halves hold: the subject's own BASED is set at BindEntry (item.IsBased = isBased) and is never overwritten by the copy (IsBased is DescriptionCopyKind.None); probe t3 (E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/type-clause-p2/t3.cob): `01 T TYPEDEF PIC X(5). 01 X TYPE T BASED. ... SET ADDRESS OF X TO ADDRESS OF Y. DISPLAY X.` -> HELLO, correct. The template's BASED is ignored for such an entry (never copied). NOTE the same None classification is WRONG for the complementary case the rule does not govern -- a subject WITHOUT its own BASED over a BASED template must become based under GR1 / 13.18.58.4 GR3; that divergence is recorded on GR-13.18.57.4-1, not here. pb513_type_entry_composition writes BASED beside TYPE but never references the item, so it does not observe 'applies'; test-ref empty. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPE Format 1 / TYPEDEF family is a COBOL-2002 introduction per the project's constructs row type-clause-2002; Annex E records no 2014->2023 change to 13.18.57.4 Format 1)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.57.4-5",
@@ -47798,11 +47798,11 @@
   "rule-digest": "60b4bb467c69",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.ExceptionPerform.cs#CheckCrossStatementBans",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c33-terminate-multi-in-exc-perform; conformance:2023/l1c33_terminate_single_in_exc_perform",
   "derivation": "",
   "editions": "2023",
   "notes": "cite.py --check 14.9.46.3 \"shall not be specified in an exception checking PERFORM statement\" -> OK §14.9.46.3 3). CheckCrossStatementBans scans region B (imperative-statement-1 plus every WHEN/FINALLY body — the whole PERFORM) for terminateStatement with reportName().Length > 1 -> COBOLNET1606. The ban counts report-name OCCURRENCES, matching the rule's 'specifies more than one report-name'. Probed out/probe/terminate-statement: s1.cob (TERMINATE R-A R-B in imperative-statement-1, WHEN EC-ALL) -> COBOLNET1606; s2.cob (in the WHEN body) -> COBOLNET1606; s3.cob (two single-name TERMINATEs in imperative-statement-1) compiles and runs (OK). At --std 2014 the PERFORM itself is refused by COBOLNET0900 (s4.cob). No negative golden for COBOLNET1606 exists (grep tests/conformance/negative). [editions as adjudicated: 2023 (the exception-checking PERFORM is new in 2023 — VERSION_CHANGE_REFERENCE row 79, Annex E.3.3 item 36)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.46.4-1",
@@ -47858,11 +47858,11 @@
   "rule-digest": "075a352448fb",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate; src/Cobol.Net.Compiler/CodeGen/Verbs/ReportWriterEmitter.cs#EmitTerminate",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c33_terminate_multi_order_no_close; conformance:2002/l1c33_terminate_resume_next_implicit",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "cite.py --check 14.9.46.4 \"processing resumes at the next implicit TERMINATE statement\" -> OK §14.9.46.4 4). BindTerminate builds one BoundTerminate per report-name in written order inside a BoundImplicitSeries (the PB419 per-implicit-statement boundary mechanism; ImplicitStatementSeriesDriftTests enumerates TERMINATE). Both sentences probed: out/probe/terminate-statement/p2.cob, TERMINATE R-C R-B R-A with R-A and R-C active and R-B never initiated, >>TURN EC-REPORT-INACTIVE CHECKING ON and a USE AFTER EC-REPORT-INACTIVE declarative doing RESUME AT NEXT STATEMENT: output HANDLED-I, AFTER; R-C's file carries RFC and R-A's carries RFA — R-C terminated first, the R-B implicit TERMINATE raised, processing resumed at the NEXT implicit TERMINATE (R-A), not after the whole statement. No spec-derived golden pins either sentence for TERMINATE. [editions as adjudicated: sentence 1: 1985 (Report Writer module), 2002, 2014, 2023; sentence 2 (RESUME NEXT STATEMENT): 2002, 2014, 2023]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.46.4-5",
@@ -47888,11 +47888,11 @@
   "rule-digest": "08b8d0342275",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/ReportWriter.cs#TerminateCore",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c33_terminate_multi_order_no_close",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "cite.py --check 14.9.46.4 \"does not close the file associated with report-name-1\" -> OK §14.9.46.4 6). TerminateCore touches no connector state (only `_active`/`_started`); the file is closed by the program's own CLOSE. Probed out/probe/terminate-statement/p1.cob: after TERMINATE (twice) a CLOSE of the report file returns FILE STATUS 00 (a closed file would give 42), and a second INITIATE on the same still-open file succeeds; p3.cob likewise CLOSE FS=00. Terminate_Gr2 CLOSEs after TERMINATE but asserts no status, so it does not pin this rule. [editions as adjudicated: 1985 (Report Writer module), 2002, 2014, 2023]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.47.3-1",
@@ -48098,11 +48098,11 @@
   "rule-digest": "9da4fc1dc5f0",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/Cobol.Net.Compiler/Binding/Bound/BoundTree.cs#UnstringInto; src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#unstringIntoTarget",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_receiving_operands",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "Rule: \"The data item referenced by identifier-4 is the receiving operand for data. The data item referenced by identifier-5 is the receiving operand for delimiters.\" (cite.py --check 14.9.48.3 OK). Code: BindUnstring resolves identifier-4 (drefs[0]) and identifier-5 (DELIMITER IN) through host.Expr.ResolveReceiving — the receiving chokepoint — and binds each store as a MOVE into it (ImplicitMovePhrase.UnstringInto / UnstringDelimiterIn). Probes: a constant-name as DELIMITER IN (u9const.cob) -> COBOLNET1548 (§13.10.4 GR1); a function-identifier as INTO (u9func.cob) and a literal as INTO (u9lit.cob) are refused at parse; DELIMITER IN receives the matched delimiter (ufmtrev.cob B=[,   ]). No spec-derived test pins the receiving designation for UNSTRING INTO/DELIMITER IN specifically (pb429_page_counter_receiving covers identifier-7, a different operand), so test-ref is empty.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.48.3-10",
@@ -48128,11 +48128,11 @@
   "rule-digest": "55b7063f400a",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/StringUnstringBinder.cs#BindUnstring; src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring; src/Cobol.Net.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_or_operands_equal",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR1 'All references to identifier-2 and literal-1 apply equally to identifier-3 and literal-2' (cite.py --check 14.9.48.4 'apply equally to identifier-3 and literal-2' -> OK 14.9.48.4 1)). The binder folds every DELIMITED BY / OR item through ONE loop (dp.unstringDelimiterItem()) into one List<BoundUnstringDelimiter>; the emitter renders one string[]/bool[] pair and the kernel treats every index alike (GR9 zero-length skip, GR7 ALL flag, GR10 scan). No code distinguishes the first delimiter from the OR'd ones, so every rule over identifier-2/literal-1 applies to identifier-3/literal-2 by construction. Probe p2 T1/T2/T3 exercised OR'd literals with ALL on the second position: correct. No spec-derived test names this rule.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-2",
@@ -48203,11 +48203,11 @@
   "rule-digest": "4edaa936367c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_tallying_accessed",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR6 'incremented by 1 for each occurrence of the data item referenced by identifier-4 accessed during the UNSTRING operation' (cite.py --check -> OK 14.9.48.4 6)). EmitUnstring '{tly} += 1' once per receiver whose UnstringExtract returned >= 0 (acted upon), none for a receiver skipped on sender exhaustion. Probe p2 T3 (3 receivers) 5 -> 08; p1 GR9A 0 -> 03, GR9B 0 -> 02. Only legacy-differential tests cover it -> test-ref empty. Companion of GR14.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-7",
@@ -48248,11 +48248,11 @@
   "rule-digest": "6f5e0c0e7853",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolStringOps.cs#UnstringExtract; src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_multichar_delimiter; conformance:2014/l1c35_unstring_zero_length_delimiter",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "GR9 four sentences (cite.py --check -> OK 14.9.48.4 9)). (1) each operand one delimiter - one array entry each. (2) multi-character delimiter only contiguous and in order - IndexOf(del, pos, Ordinal); probe p2 T2 \"AB\" matched only at 'AB'. (3) 'If the data item referenced by identifier-2 or identifier-3 is a zero-length item, that delimiter is ignored' - kernel 'if (del.Length == 0) continue'; probe p1 GR9A DELIMITED BY WS-Z (dynamic-length, \"\") OR \",\" over 'AB,,CD;EF' -> [AB  ][    ][CD;E] P=10 T=03 (the \",\" delimiter alone). (4) all identifiers zero-length and no literal -> as if DELIMITED absent: kernel anyDelim=false uses receiverSize, and the emitter supplies the real size (sizeCanGovern when every delimiter is a field/computed operand); probe p1 GR9B DELIMITED BY WS-Z INTO A1 A2 -> [AB,,][CD;E] P=09 + OVF (F unexamined), exactly the no-DELIMITED result. No spec-derived test pins sentences 3/4 -> test-ref empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the two zero-length sentences are 2014+: zero-length items are post-2002)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-10",
@@ -48263,11 +48263,11 @@
   "rule-digest": "bc53c66e242b",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Verbs/CobolStringOps.cs#UnstringExtract",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_or_delimiter_sequence",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR10: OR condition; 'No character(s) in the sending field shall be considered a part of more than one delimiter' and 'Each delimiter is applied to the sending field in the sequence specified' (cite.py --check 14.9.48.4 -> OK 10)). Kernel: for each non-empty delimiter IndexOf(del, pos); the earliest position wins, a same-position tie keeps the first listed (strict <); the matched characters are consumed once (pointer = pos+extractLen+consumed+1), so no character belongs to two delimiters. Probe p2 over 'XABYAAAZ,,Q ': DELIMITED BY \"A\" OR \"AB\" -> A1 [X] D1 [A] C1 01, A2 [BY] D2 [A] C2 02; DELIMITED BY \"AB\" OR \"A\" -> [X][AB]01 [Y][A]01 - both the spec-derived values. Existing StringUnstringDifferentialTests.Unstring_OrDelimiters_EarliestWins_TieGoesToFirstListed is AssertSameAsLegacy (legacy differential) so it does NOT close the row; test-ref empty.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-11",
@@ -48323,11 +48323,11 @@
   "rule-digest": "27e0c2bbd4fc",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitUnstring",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_tallying_accessed",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR14 'value at the beginning of the execution of the statement plus a value equal to the number of identifier-4 receiving data items accessed' (cite.py --check -> OK 14.9.48.4 14)). EmitUnstring: tly initialized from the TALLYING item's current value, += 1 inside the 'if (cnt >= 0)' acted-upon block only (a receiver skipped because the sender was exhausted, GR11g, is not accessed), stored back after the loop. Probe p2 T3: 5 + 3 receivers = 08; p2 T4 (GR15a overflow): 0 -> 00 (no receiver accessed). The only covering test (StringUnstringDifferentialTests.Unstring_DelimiterIn_CountIn_TallyingAddsToCurrentValue) is legacy-differential -> test-ref empty.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-15",
@@ -48368,11 +48368,11 @@
   "rule-digest": "12676253d3df",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/StringEmitter.cs#EmitOverflow",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c35_unstring_not_on_overflow",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR17 'the ON OVERFLOW phrase, if specified, is ignored and control is transferred to the end of the UNSTRING statement or, if the NOT ON OVERFLOW phrase is specified, to imperative-statement-2' (cite.py --check -> OK 14.9.48.4 17)). EmitOverflow: 'if (!flag)' runs the NOT list; the ON list only under 'if (flag)'; pointer/tally are stored before the dispatch (so imperative-statement-2 sees the completed values). Probe p2 T6 (P=12, one char examined, no overflow) -> 'T6 NOVF'. The UNSTRING NOT-ON path is pinned only by the legacy-differential Unstring_SourceExhausted_IsNotOverflow_RemainingReceiversUntouched; phrase_order_overflow pins NOT-ON only for STRING -> test-ref empty.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.48.4-18",
@@ -49403,11 +49403,11 @@
   "rule-digest": "d65a807b027c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolIO.g4#writeAtEndOfPage; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_write_eop_spelling",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "SR20: 'The words END-OF-PAGE and EOP are equivalent.' (--check OK). writeAtEndOfPage accepts (END_OF_PAGE | EOP) at every position and the binder never reads which token was used (PhraseBlocks.Split keys only on NOT). Probe ws1eop mixes `NOT AT EOP ... END-OF-PAGE ...` and `AT END-OF-PAGE ... NOT EOP ...` and both run with the same semantics; SR18/SR19 fire identically for either spelling (ws1pgeop uses EOP, ws1nolinn END-OF-PAGE). No golden writes the EOP spelling in code (only END-OF-PAGE), so test-ref is empty. [editions as adjudicated: 1985, 2002, 2014, 2023 (base WRITE statement; the 2023 text records no change to this rule in Annex E)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-14.9.51.3-21",
@@ -49433,11 +49433,11 @@
   "rule-digest": "29af532c5dad",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/FileLockBinder.cs#CheckRecordLockPhrase; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/SequentialIoBinder.cs#BindWrite",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c37-write-auto-with-lock; conformance:negative/l1c37-write-auto-with-no-lock",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "SR22: 'If automatic locking has been specified for the write file, neither the WITH LOCK phrase nor the WITH NO LOCK phrase shall be specified.' (--check OK). CheckRecordLockPhrase is called BEFORE the sequential/keyed reroute, so both arms are covered: LOCK MODE AUTOMATIC + WRITE WITH LOCK -> COBOLNET1512 (ws2auto), + WITH NO LOCK -> 1512 (ws2auton), relative dynamic file + WITH NO LOCK -> 1512 (ws2autorel). MANUAL mode admits all four spellings (ws2lock). With no LOCK MODE clause the phrase is accepted (ws2nolm) - automatic locking has not been 'specified'. read-auto-with-lock is READ's twin; no test pins the WRITE arm, so test-ref is empty. [editions as adjudicated: 2002, 2014, 2023 (the lock phrases do not exist in 1985 - rejected there with COBOLNET0900)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-1",
@@ -49463,11 +49463,11 @@
   "rule-digest": "f9eda5730f43",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_write_keeps_fpi",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "GR2: 'The file position indicator is not affected by the execution of a WRITE statement.' RelativeConnector.Write touches only _st/_lastSlot/_lastReleasedSlot (never the read position). PROBE E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out/probe/write-p2/pb.cob: relative DYNAMIC I-O, records 1..3, READ key 1, WRITE key 10 ('00'), READ NEXT -> R02 key 02 (spec: next existing after FPI=1 is 2); indexed DYNAMIC I-O, keys 01..03, READ 01, WRITE 09, READ NEXT -> 02A2. Both match. Sequential organization: WRITE is legal only in OUTPUT/EXTEND where no READ positioning exists. cite.py --check 14.9.51.4 'The file position indicator is not affected by the execution of a WRITE statement' -> OK rule 2. No existing spec-derived test pins the FPI across a keyed WRITE: test-needed.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-3",
@@ -49493,11 +49493,11 @@
   "rule-digest": "a3197285de01",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindIoControl; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#SameRecordAreaPeers; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_write_same_record_area",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'is no longer available in the record area unless the file-name associated with record-name-1 is specified in a SAME RECORD AREA clause' -> OK 4)). Half 1, 'no longer available': the standard leaves the content after release undefined, and the emitted WRITE neither clears nor preserves the area by rule; the typed field keeps its last value, as CONFORMANCE.md DOC-A.1-24 documents for CLOSE. So there is nothing to enforce. Half 2, 'also available as a record of other files in the same SAME RECORD AREA clause': BindIoControl makes the peer file's first record an implicit redefinition (RedefinitionKind.SameRecordArea) of the shared area. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob (SAME RECORD AREA FOR F1 F2): after WRITE R1 FROM 'HELLO', R2 shows '[HELLO   ]'; after MOVE 'ABCDEFGH' TO R1 and WRITE R1, R2-A|R2-B shows 'ABCD|EFGH'. Both halves are verified. The goldens pb235_same_record_area_close and l1_release_same_record_area cover CLOSE and RELEASE, not WRITE, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (SAME RECORD AREA and this rule are in every edition)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-5",
@@ -49568,11 +49568,11 @@
   "rule-digest": "9c171fee870c",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitWrite; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_write_same_record_area",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'the information in the area referenced by identifier-1 is available, provided that identifier-1 is not one or part of one of the record descriptions subordinate to the file-description' -> OK 9)). Code: the FROM phrase emits only a MOVE that READS identifier-1, and the connector call receives a copy of the record-area image. Nothing writes back to identifier-1. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: after WRITE R1 FROM WS-SRC, WS-SRC shows '[HELLO]'; after the indexed WRITE K-REC FROM WS-KSRC, WS-KSRC shows '[K01DATA1]'. The record-area half ('not available except as specified by SAME RECORD AREA') is GR4's and is decided there. No test is aimed at this rule, so test-ref is empty.",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-10",
@@ -49913,11 +49913,11 @@
   "rule-digest": "ef49f2cf00dd",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite; src/Cobol.Net.Runtime/IO/RelativeConnector.cs#Write; src/Cobol.Net.Runtime/IO/FileRegistry.cs#SetRelativeKey",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_relative_io_insert",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'the value of the relative key data item shall be initialized by the runtime element with the relative record number to be associated with the record that is to be written' -> OK 29); the same sentence is GR32's, rule 32). Code: for random or dynamic access, KeyedIoEmitter.EmitWrite stages the RELATIVE KEY item's typed value through FileSetRelativeKey. If that item cannot be resolved it emits a LOUD statement, not a silent write. RelativeConnector.Write's non-sequential arm then puts the record at _pendingKey. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). rel1.cob: I-O DYNAMIC, RKD=5 gives 'OK5 00', and the record reads back as 'R 0005 R005'; RKD=9999 gives 'OK9999 00'. The KeyedIoDifferentialTests relative-random case is pinned to the legacy oracle, so it does not qualify; no spec-derived golden targets this rule, and test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-33",
@@ -49973,11 +49973,11 @@
   "rule-digest": "40378f8922bf",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c37_indexed_dup_prime_key",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'The value of the prime record key shall not be equal to the value of the prime record key of any record existing in the file' -> OK 36)). Code: `_recs.Any(r => KeyEq(KeyOf(r.Image, PrimeKey), prime, PrimeKey))` gives DuplicateKey '22', using collation-aware equality, and the record is not added. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC WRITE of K30, which the sequential connector wrote earlier, gives 'D3 INV 22' and runs INVALID KEY. The sequential-access equal-key case gets '21' first (GR42 a), which is the correct precedence: GR38's order test comes before existence. KeyedIoDifferentialTests.Indexed_RandomCrudByPrimeKey is legacy-pinned and does not qualify, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-37",
@@ -49988,11 +49988,11 @@
   "rule-digest": "ed017955abdc",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs#EmitWrite",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c38_write_key_any_order",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'The data item specified as the prime record key shall be set by the runtime element to the desired value prior to the execution of the WRITE statement' -> OK 37)): the program sets the key before the WRITE. Code: EmitWrite passes the record area's current image (OperandText.RecordAreaImage), after any FROM move, and IndexedConnector.Write takes the prime key from that image with KeyOf at execution time. So the value the program placed there before the WRITE is exactly the key used, and nothing is cached from an earlier statement. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). from1.cob: WRITE K-REC FROM WS-KSRC ('K01DATA1') and then READ with key K01 gives 'K=[K01DATA1]'. This shows that the key set by the FROM phrase's implicit MOVE, before the release, is the key used. No test is aimed at this rule, so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-38",
@@ -50018,11 +50018,11 @@
   "rule-digest": "87df86349418",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c38_write_key_any_order",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'WRITE statements may release records to the operating environment through that connector in any order' -> OK 39)). Code: the '21' order test is guarded by `sequentialRelease`, which is Access == Sequential, so random and dynamic access skip it. `_lastWrittenPrime` is updated only on the sequential arm. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: a DYNAMIC I-O connector writes K05 (below every existing key) and then K47 (between existing keys), with 'D1 02' and 'D2 02' ('02' because alternate AA duplicates, which is correct). No golden is aimed at this rule; pb771_keyed_file_lock cites it only in passing, for lock behaviour. Test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-40",
@@ -50033,11 +50033,11 @@
   "rule-digest": "2ad780e17de6",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/IndexedConnector.cs#Write; src/Cobol.Net.Runtime/IO/KeyedStoreTable.cs#KeyedRec",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c38_write_alt_key_dup_order",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule (cite.py --check 14.9.51.4 'If the DUPLICATES phrase is not specified and the alternate key value is non unique, the execution of the WRITE statement is unsuccessful' -> OK 40)). Code: for each alternate key, `exists && !_alts[i].Dups` gives '22' and the record is not added. With DUPLICATES, the record is added with a fresh release ordinal under every key (ReleaseOrdinals), so a sequential walk returns duplicates in the order they were written. Probe dir: out/probe/write-statement-p3/ (pinned adj-d1 cobol.exe). idx1.cob: FU (ALTERNATE U-ALT, no DUPLICATES): U01/ZZ gives 'U1 OK 00', U02/ZZ gives 'U2 INV 22', and a random READ by ZZ still returns U01. Through FX/FR (X-ALT WITH DUPLICATES): K20, K30, K40, K50 are written sequentially and K05, K47 dynamically, all with alternate key AA, and START KEY = R-ALT then READ NEXT walks K20, K30, K40, K50, K05, K47. That is the write order, not prime-key order. The '02' of §9.1.13.2 2c accompanies each duplicate. The '22' that a SUPPRESSED alternate key raises today is a GR41 defect, not this rule's. No spec-derived golden is aimed at the WRITE side (l1_read_alt_dup_walk is a READ GR26 golden), so test-ref is empty. [editions as adjudicated: 85, 2002, 2014, 2023 (the rule is in every edition's relative/indexed WRITE text; Annex E records no 2014->2023 change to it)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.51.4-41",
@@ -59588,11 +59588,11 @@
   "rule-digest": "14ee29114801",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#typedefClause; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#VisitTypedefClause",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c34_typedef_format_spellings",
   "derivation": "",
   "editions": "2002,2014,2023",
   "notes": "Format 'IS TYPEDEF [ STRONG ]' (cite.py --check 13.18.58.2 \"TYPEDEF\" OK; printed as IS <u>TYPEDEF</u> [ <u>STRONG</u> ]). Grammar typedefClause: IS? TYPEDEF STRONG? -- IS optional (not underlined), TYPEDEF required, STRONG optional: exact. Probe E:/Temp/claude/E--CobolSharp/a700c052-f9e4-4942-84ff-a13c7505d6ec/scratchpad/adj-d1/out13/probe/typedef-clause/td11fmt.cob (T1 IS TYPEDEF / T2 TYPEDEF STRONG / T3 IS TYPEDEF STRONG) compiles and prints '123' at --std 2002, 2014 and 2023; at --std 85 each TYPEDEF is COBOLNET0900. td22nois (TYPEDEF IS EXTERNAL) accepted. No spec-derived golden exercises the IS spelling of TYPEDEF positively (typedef_strong_ok writes 'TYPEDEF STRONG' only), so test-ref is empty. Observation outside this row: '01 T PIC X TYPEDEF.' (td23order) is accepted although §13.16.3 SR4 requires the TYPEDEF clause to immediately follow the entry-name clause -- that is row SR-13.16.3-4, not this one. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (TYPEDEF [STRONG] is a COBOL-2002 introduction; Annex E carries no 2014/2023 change row for TYPEDEF or STRONG; only STRONG+EXTERNAL is new in 2023, E.3.3 item 20)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "FMT-13.18.59.2",
@@ -60398,11 +60398,11 @@
   "rule-digest": "bd652ab188af",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolReportWriter.g4#terminateStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/ReportWriterBinder.cs#BindTerminate",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c33_terminate_multi_order_no_close",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Format `TERMINATE { report-name-1 } ...` (cite.py --check 14.9.46.2 \"TERMINATE\" -> OK §14.9.46.2 General format). Grammar `terminateStatement : TERMINATE reportName+ ;` admits one-or-more report-names, ungated (Core grammar); BindTerminate resolves each name (SR1 COBOLNET1757 on an unknown one). Probed: single-report TERMINATE compiles and runs at --std 85, 2002, 2023 (out/probe/terminate-statement/q85.cob, q2002.cob, p1.cob); three-name `TERMINATE R-C R-B R-A` compiles and runs at 2023 (p2.cob). No spec-derived test targets the general format itself; Terminate_Gr2/ControlBreak tests exercise only the one-name form. [editions as adjudicated: 1985 (Report Writer module), 2002, 2014, 2023]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "FMT-14.9.47.2",

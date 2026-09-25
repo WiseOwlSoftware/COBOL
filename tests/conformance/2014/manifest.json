@@ -142,7 +142,8 @@
   "l1c20_occurs_dynamic_clauses_per_occurrence",
   "l1c20_move_dyn_table_superfluous",
   "l1c25_rewrite_from_item_available",
-  "l1c32_sign_condition_format2"
+  "l1c32_sign_condition_format2",
+  "l1c35_unstring_zero_length_delimiter"
  ],
  "pending": []
 }

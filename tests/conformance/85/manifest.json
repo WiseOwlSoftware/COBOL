@@ -251,7 +251,23 @@
   "l1c32_index_name_relation",
   "l1c32_sign_condition_format1",
   "l1c32_subscript_qualified_names",
-  "l1c32_system_name_formation"
+  "l1c32_system_name_formation",
+  "l1c33_terminate_multi_order_no_close",
+  "l1c34_report_type_abbreviations",
+  "l1c34_report_without_detail",
+  "l1c35_unstring_receiving_operands",
+  "l1c35_unstring_or_operands_equal",
+  "l1c35_unstring_tallying_accessed",
+  "l1c35_unstring_multichar_delimiter",
+  "l1c35_unstring_or_delimiter_sequence",
+  "l1c35_unstring_not_on_overflow",
+  "l1c37_write_eop_spelling",
+  "l1c37_write_keeps_fpi",
+  "l1c37_write_same_record_area",
+  "l1c37_relative_io_insert",
+  "l1c37_indexed_dup_prime_key",
+  "l1c38_write_key_any_order",
+  "l1c38_write_alt_key_dup_order"
  ],
  "pending": []
 }
