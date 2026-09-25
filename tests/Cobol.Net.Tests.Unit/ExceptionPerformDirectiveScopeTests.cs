@@ -166,7 +166,7 @@ public sealed class ExceptionPerformDirectiveScopeTests
                    >>REF-MOD-ZERO-LENGTH ON
                    >>FLAG-14 READ-PREVIOUS ON
                        DISPLAY "X"
-            """, withImplicitOps: false);
+            """);
         int pop = Line("X");
         var replayed = d.WithStackOps([
             new DirectiveStackOp(1, DirectiveStackKind.Push, null),
@@ -201,9 +201,9 @@ public sealed class ExceptionPerformDirectiveScopeTests
         Array.FindIndex(_lines!, l => l.Contains($"DISPLAY \"{marker}\"", StringComparison.Ordinal)) + 1 is var n and > 0
             ? n : throw new InvalidOperationException($"no DISPLAY \"{marker}\"");
 
-    /// <summary>Parse <paramref name="body"/> as a 2023 procedure division and return its directive results with
-    /// the binder's GR14 implicit ops applied — exactly what <c>BinderDriver.Bind</c> folds.</summary>
-    private static DirectiveResults Bound(string body, bool withImplicitOps = true)
+    /// <summary>Parse <paramref name="body"/> as a 2023 procedure division and return its directive results — with
+    /// the front end's GR14 implicit ops already applied, exactly what <c>BinderDriver.Bind</c> folds.</summary>
+    private static DirectiveResults Bound(string body)
     {
         string source = """
                    IDENTIFICATION DIVISION.
@@ -220,9 +220,7 @@ public sealed class ExceptionPerformDirectiveScopeTests
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics));
             Assert.NotNull(tree);
             _lines = File.ReadAllLines(path);
-            return withImplicitOps
-                ? frontend.Directives.WithStackOps(ExceptionPerformDirectiveScope.ImplicitOps(tree))
-                : frontend.Directives;
+            return frontend.Directives;
         }
         finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
     }

@@ -197,7 +197,8 @@ public sealed class DirectiveEventLog<T>
 /// over the other through <see cref="DirectiveStateStack"/> — never patched. That is what lets a later phase add
 /// the PUSH/POP ops only it can see (<see cref="WithStackOps"/>): §14.9.28.4 GR14's implicit PUSH ALL / POP ALL
 /// around an exception-checking PERFORM's handlers are placed by the PARSE TREE, after every frontend stage has
-/// run, and they pair with the explicit ops on the same stacks (kb/Work PB1004).</para>
+/// run, and they pair with the explicit ops on the same stacks (kb/Work PB1004; the conditional-compilation
+/// driver, which runs before any parse, receives the same ops by re-running — kb/Work PB1066).</para>
 /// </summary>
 public sealed class DirectiveTimeline<T> : IReadOnlyList<T>
 {

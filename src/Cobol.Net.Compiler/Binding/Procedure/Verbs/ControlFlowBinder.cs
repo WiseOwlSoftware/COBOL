@@ -419,7 +419,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             CheckInlineHeadCardinality(p);
             // Format 3 (exception-checking, §14.9.28.2 Format 3) — any WHEN phrase, or a [WITH] LOCATION head,
             // marks the inline PERFORM as exception-checking. Everything else is a Format-2 inline PERFORM.
-            if (IsFormat3(p))
+            if (PerformFormat.IsFormat3(p))
                 return BindExceptionPerform(p);
             // §14.9.28.2 Format 2. imperative-statement-1 binds INSIDE the enclosing-construct frame, so an
             // EXIT PERFORM written in it can see the PERFORM that gives it meaning (§14.9.14.3 SR8 / §14.9.14.4
@@ -475,14 +475,6 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
         return new BoundOutOfLinePerform(range, BindPerformControl(p), ctx.SourceLine(p), entersDeclarative);
     }
 
-    /// <summary>An inline PERFORM is Format 3 (exception-checking) iff it carries any WHEN phrase (ordinary /
-    /// OTHER / COMMON), a FINALLY phrase, or a [WITH] LOCATION head (§14.9.28.2 Format 3). The ONE discriminator —
-    /// the binder (here) and the COBOLNET0900 introduction gate (<c>VersionConformancePass.VisitPerformStatement</c>)
-    /// share it, so the 0899↔0900 hand-off cannot drift (DEVLOG-724-class hazard).</summary>
-    internal static bool IsFormat3(Core.PerformStatementContext p) =>
-        p.performWhenPhrase().Length > 0 || p.performWhenOther() is not null
-        || p.performWhenCommon() is not null || p.performFinally() is not null
-        || p.performInlineHead()?.performLocationPhrase() is not null;
 
     /// <summary>Bind a Format-3 (exception-checking) PERFORM (ISO §14.9.28 Format 3) — delegated to the EC binder,
     /// which owns the WHEN-operand resolution, the GR14 TurnState overlay, and the §14.9.28.3 syntax rules /

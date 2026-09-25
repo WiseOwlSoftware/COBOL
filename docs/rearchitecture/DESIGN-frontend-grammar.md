@@ -752,15 +752,33 @@ code:
 
 * **The implicit PUSH ALL / POP ALL of §14.9.28.4 GR14** ("An implicit PUSH ALL followed by TURN OFF ALL is
   assumed at the end of imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit
-  POP ALL …") go through THIS mechanism (kb/Work PB1004). Only the parse tree can place them, so the binder collects
-  them before binding (`ExceptionPerformDirectiveScope.ImplicitOps`: PUSH at imperative-statement-1's last line,
-  POP at the END-PERFORM line, token order on a shared line) and `DirectiveResults.WithStackOps` replays them with
-  the written ops into EVERY event timeline — so a TURN, REF-MOD-ZERO-LENGTH or FLAG-02/14 written in a WHEN or
-  FINALLY phrase is revoked at END-PERFORM, and one written in imperative-statement-1 (before the PUSH) survives.
-  `ExceptionPerformDirectiveScopeTests` holds the drift test that every `DirectiveTimeline<T>` member is replayed.
-  The TURN OFF ALL half is `TurnState.WithAllDisabledFrom` (the handler floor) in `EcBinder`. The pre-parse states —
-  SOURCE FORMAT in the normalizer, DEFINE and the frontend-inline FLAG options in the conditional-compilation
-  driver — are fixed before any parse tree exists and do not see these two ops.
+  POP ALL …") go through THIS mechanism (kb/Work PB1004, PB1066). Only the parse tree can place them, so the FRONT
+  END collects them after the parse (`ExceptionPerformDirectiveScope.ImplicitOps`, in `Frontend.Preprocessor`: PUSH
+  at imperative-statement-1's last line, POP at the END-PERFORM line, token order on a shared line; the Format-3
+  test is `Frontend.Parsing.PerformFormat.IsFormat3`, the one discriminator the binder and the edition gate also
+  ask) and delivers them to BOTH places pushable state lives:
+  - **the post-COPY line-scoped timelines** — `DirectiveResults.WithStackOps` replays them with the written ops into
+    EVERY event timeline, so a TURN, REF-MOD-ZERO-LENGTH or FLAG-02/14 written in a WHEN or FINALLY phrase is
+    revoked at END-PERFORM, and one written in imperative-statement-1 (before the PUSH) survives. `Frontend.Directives`
+    carries the replayed timelines; the binder folds them as given. `ExceptionPerformDirectiveScopeTests` holds the
+    drift test that every `DirectiveTimeline<T>` member is replayed.
+  - **the conditional-compilation driver's state** — the compilation-variable table (§7.3.22.4 GR3: "all instances
+    of that directive are pushed") and the frontend-inline FLAG options. The driver runs BEFORE the parse, so
+    `Frontend.Parse` is a FIXED POINT: `ConditionalCompilationProcessor.Manipulate` returns the resultant text with
+    every directive ENCOUNTER (its resultant line and whether it changed the driver's state), the parse places the
+    ops, `ConditionalCompilationResult.KeyImplicitOps` keys each op to the first directive encounter on a later line
+    and drops every PUSH/POP pair that encloses no state change, and the text manipulation re-runs with that program
+    (the driver applies a keyed op immediately before its encounter, through its own `DirectiveStateStack`) until
+    the parse places the program it was run with. An ordinary source — no DEFINE, FLAG or PUSH/POP inside a handler
+    — converges on the first pass with no re-run. Each pass settles at least one more encounter (an op changes only
+    the text after the first directive whose state it changes), and a pass that does not parse is final. Only the
+    converged pass's diagnostics are reported. The encounter lines are exact across COPY (the driver tracks the
+    output-frame line at which each copybook's expansion is spliced — `ExpandCopiesOneLevel` hands the splice
+    offset to the callback) and across REPLACE (`CopyProcessor.ReplaceLineMap` runs the REPLACE pass over
+    line-index origins; a line REPLACE removed or joined maps to where that text now starts).
+  The TURN OFF ALL half is `TurnState.WithAllDisabledFrom` (the handler floor) in `EcBinder`. The one pre-parse state
+  the implicit ops do not reach is SOURCE FORMAT, held by the normalizer, which runs before the conditional-compilation
+  driver and COPY.
 * **Where the ALL form may be written** (§7.3.22.3 SR3 / §7.3.20.3 SR3: "only in a compilation unit, between clauses
   in divisions other than the procedure division, and between statements in the procedure division") is decided by
   `Validation/PushPopAllPlacementPass` from the directive sites (`DirectiveSite.AllForm`) and the parse tree: the

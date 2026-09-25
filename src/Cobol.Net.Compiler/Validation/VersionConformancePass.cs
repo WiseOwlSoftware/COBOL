@@ -805,9 +805,9 @@ internal sealed class VersionConformancePass
         /// occurrence names its edition even though it binds to a BoundExceptionPerform.</summary>
         public override object? VisitPerformStatement(CobolParserCore.PerformStatementContext ctx)
         {
-            // The ONE Format-3 discriminator, shared with the binder (ControlFlowBinder.IsFormat3), so the
+            // The ONE Format-3 discriminator, shared with the binder (PerformFormat.IsFormat3), so the
             // COBOLNET0900 gate here and the COBOLNET0899 staged-reject there cannot drift apart.
-            if (Binding.Procedure.ControlFlowBinder.IsFormat3(ctx))
+            if (PerformFormat.IsFormat3(ctx))
                 _p.Check(Constructs.PerformExceptionChecking2023, "the Format-3 (exception-checking) PERFORM");
             return base.VisitChildren(ctx);
         }

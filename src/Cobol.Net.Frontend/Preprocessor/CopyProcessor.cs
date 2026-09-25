@@ -163,6 +163,32 @@ public sealed class CopyProcessor(
         return w.Finish();
     }
 
+    /// <summary>Where each line of <paramref name="text"/> lands in the text <see cref="ApplyReplaceStatements(MappedText, DiagnosticBag?, string)"/>
+    /// makes of it: element <c>i</c> is the 0-based RESULTANT line holding input line <c>i</c> (kb/Work PB1066). A
+    /// kept line maps to itself shifted by the lines REPLACE removed above it; a line REPLACE removed (a REPLACE
+    /// statement's own) or joined into a replacement maps to the resultant line where that text now starts — the
+    /// replacement's first line, which takes the origin of the line its match started on. The identity when the
+    /// text holds no REPLACE statement. The same pass run over line-index origins, without diagnostics, so it can
+    /// never disagree with the real one.</summary>
+    internal static int[] ReplaceLineMap(string text)
+    {
+        var inputOrigins = MappedText.Identity(text, "").Lines;   // origin Line = 1-based input line
+        var map = new int[inputOrigins.Length];
+        if (FindKeywordAtLineStart(text, 0, "REPLACE") < 0)
+        {
+            for (int i = 0; i < map.Length; i++) map[i] = i;
+            return map;
+        }
+        var resultant = ApplyReplaceStatements(new MappedText(text, inputOrigins)).Lines;
+        int j = 0;
+        for (int i = 0; i < map.Length; i++)
+        {
+            while (j + 1 < resultant.Length && resultant[j + 1].Line - 1 <= i) j++;
+            map[i] = j;
+        }
+        return map;
+    }
+
     /// <summary>A COBOL text-word (ISO §7.3.2) with its span in the source string.</summary>
     private readonly record struct TextWord(string Value, int Start, int End);
 
@@ -457,14 +483,17 @@ public sealed class CopyProcessor(
     internal string ExpandCopiesOneLevel(string text, HashSet<string> alreadyIncluded, int depth,
         Func<string, int, string> expandCopybook)
         => ExpandCopiesOneLevel(MappedText.Identity(text, _sourceName), alreadyIncluded, depth,
-            (m, d) => MappedText.Identity(expandCopybook(m.Text, d), m.Lines[0].File)).Text;
+            (m, d, _) => MappedText.Identity(expandCopybook(m.Text, d), m.Lines[0].File)).Text;
 
     /// <summary>The MAPPED one-level expansion (kb/Work PB82): the text before a COPY keeps its origins, the
     /// incorporated copybook's lines carry the copybook's, and the framing newlines belong to the COPY statement's
     /// own line — so a diagnostic or EXCEPTION-LOCATION inside copied text names the copybook file and line, and
-    /// one after the COPY names the main source's own line, not the resultant ordinal.</summary>
+    /// one after the COPY names the main source's own line, not the resultant ordinal.
+    /// <para><paramref name="expandCopybook"/> receives the copybook, its depth, and the 0-based line piece of the
+    /// RETURNED text at which the copybook's expansion begins — the one fact the merged driver needs to place a
+    /// directive met inside the copybook in the resultant line frame (kb/Work PB1066).</para></summary>
     internal MappedText ExpandCopiesOneLevel(MappedText mapped, HashSet<string> alreadyIncluded, int depth,
-        Func<MappedText, int, MappedText> expandCopybook)
+        Func<MappedText, int, int, MappedText> expandCopybook)
     {
         string text = mapped.Text;
         if (depth > MaxCopyDepth)
@@ -489,8 +518,8 @@ public sealed class CopyProcessor(
             var one = ResolveOneCopy(mapped, copyIdx, alreadyIncluded, out int afterCopy);
             if (one.Outcome == CopyOutcome.Found)
             {
-                var processed = expandCopybook(one.Mapped!, depth + 1);   // CC + nested COPY on the copybook
                 w.NewLine(copyLine);
+                var processed = expandCopybook(one.Mapped!, depth + 1, w.LineCount);   // CC + nested COPY on the copybook
                 w.AppendMapped(processed);
                 w.NewLine(copyLine);
                 alreadyIncluded.Remove(one.CopybookPath!);

@@ -4,6 +4,7 @@ using System.Globalization;
 using CobolNet.Binding.Bound;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
+using CobolNet.Frontend.Parsing;
 
 namespace CobolNet.Binding.Procedure;
 
@@ -48,7 +49,7 @@ internal sealed partial class ControlFlowBinder
         var options = head.performOptions();
         if (options.Length == 0) return;   // a [WITH] LOCATION head — Format 3's own, screened by COBOLNET1597
 
-        if (IsFormat3(p))
+        if (PerformFormat.IsFormat3(p))
         {
             ctx.Edition.Error(DiagnosticCatalog.PerformFormat3LoopControlPhrase,
                 $"an exception-checking (Format-3) PERFORM carries the loop-control phrase "

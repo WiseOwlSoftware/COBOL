@@ -41,13 +41,10 @@ internal sealed class BinderDriver
     {
         BindPipeline.ValidateFullChainOnce();   // the startup DAG assert over resolve prefix + group tail
         // The frontend's directive outputs travel as ONE record (kb/Work PB65); absent ⇒ every directive's default.
+        // §14.9.28.4 GR14's implicit PUSH ALL / POP ALL around every exception-checking PERFORM's handlers are
+        // already replayed into every event timeline: the front end places them, because the conditional-compilation
+        // driver's state needs them too (kb/Work PB1004, PB1066 — Frontend.Parse).
         directives ??= Frontend.Preprocessor.DirectiveResults.None;
-        // §14.9.28.4 GR14's implicit PUSH ALL / POP ALL around every exception-checking PERFORM's handlers, placed
-        // by the parse tree and replayed with the written >>PUSH / >>POP through the one directive-state stack, so
-        // EVERY line-scoped directive state is restored at END-PERFORM, not only TURN (kb/Work PB1004). Skipped
-        // (no tree walk) when the source has no line-scoped directive to restore.
-        if (directives.HasLineScopedEvents())
-            directives = directives.WithStackOps(ExceptionPerformDirectiveScope.ImplicitOps(tree));
         var turnEvents = directives.TurnEvents;
         var refModZlEvents = directives.RefModZeroLengthEvents;
         var flagEvents = directives.FlagEvents;

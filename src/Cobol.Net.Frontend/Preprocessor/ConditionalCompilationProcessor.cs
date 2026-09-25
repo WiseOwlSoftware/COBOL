@@ -53,7 +53,7 @@ public static class ConditionalCompilationProcessor
         DiagnosticBag? diagnostics = null, string? sourcePath = null, int dialectLevel = 2023,
         bool permissive = false)
         => new Run(leaveDirectives, diagnostics, sourcePath, copy: null, sourceDir: null,
-                dialectLevel, permissive, inputs: null)
+                dialectLevel, permissive, inputs: null, implicitOps: [])
             .Render(text);
 
     /// <summary>
@@ -78,11 +78,30 @@ public static class ConditionalCompilationProcessor
     public static MappedText ProcessWithCopyMapped(MappedText text, string sourceDir, CopyProcessor copyProcessor,
         IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
         bool permissive = false, CompilationInputs? inputs = null)
+        => Manipulate(text, sourceDir, copyProcessor, leaveDirectives, diagnostics, sourcePath, dialectLevel,
+            permissive, inputs, implicitOps: []).Text;
+
+    /// <summary>The mapped driver with its DIRECTIVE ENCOUNTERS (kb/Work PB1066): the resultant text, plus — for
+    /// every <c>&gt;&gt;</c> line the driver met, in encounter order — the resultant line it ended on and whether it
+    /// changed the state this driver holds. <paramref name="implicitOps"/> is the §14.9.28.4 GR14 implicit PUSH ALL /
+    /// POP ALL program a PREVIOUS run's parse placed (<see cref="ConditionalCompilationResult.KeyImplicitOps"/>),
+    /// each applied immediately before the directive encounter it is keyed to; empty on the first run.</summary>
+    public static ConditionalCompilationResult Manipulate(MappedText text, string sourceDir, CopyProcessor copyProcessor,
+        IReadOnlySet<string>? leaveDirectives, DiagnosticBag? diagnostics, string? sourcePath, int dialectLevel,
+        bool permissive, CompilationInputs? inputs, IReadOnlyList<KeyedDirectiveOp> implicitOps)
     {
         copyProcessor.RegisterSourceDir(sourceDir);
-        var expanded = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
-            dialectLevel, permissive, inputs).Render(text);
-        return CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
+        var run = new Run(leaveDirectives, diagnostics, sourcePath, copyProcessor, sourceDir,
+            dialectLevel, permissive, inputs, implicitOps);
+        var expanded = run.Render(text);
+        var resultant = CopyProcessor.ApplyReplaceStatements(expanded, diagnostics, sourcePath ?? "<source>");   // Step 3 — REPLACE over the expanded compilation group
+        if (run.Encounters.Count == 0) return new ConditionalCompilationResult(resultant, []);
+        // Each encounter's line in the driver's OUTPUT frame, carried through REPLACE (which may drop and join lines)
+        // to the RESULTANT frame the parser's tokens use.
+        int[] resultantLine = CopyProcessor.ReplaceLineMap(expanded.Text);
+        var encounters = run.Encounters
+            .Select(e => new DirectiveEncounter(resultantLine[e.Line] + 1, e.ChangesState)).ToArray();
+        return new ConditionalCompilationResult(resultant, encounters);
     }
 
     /// <summary>
@@ -112,6 +131,19 @@ public static class ConditionalCompilationProcessor
         private readonly CopyProcessor? _copy;
         private readonly HashSet<string> _alreadyIncluded = new(StringComparer.OrdinalIgnoreCase);
         private int _depth;
+        // kb/Work PB1066 — the §14.9.28.4 GR14 implicit-op program, keyed to directive encounters, and the
+        // encounters themselves (Line = 0-based line in THIS run's output frame). _renderBase is the output-frame line
+        // at which the Render now running begins (0 for the source; a copybook's is its splice point), and
+        // _flushBase the output-frame line at which the block now being COPY-expanded begins.
+        private readonly IReadOnlyList<KeyedDirectiveOp> _implicitOps;
+        private int _nextImplicitOp;
+        private readonly List<DirectiveEncounter> _encounters = [];
+        private int _renderBase;
+        private int _flushBase;
+
+        /// <summary>Every <c>&gt;&gt;</c> line met, in encounter order; <see cref="DirectiveEncounter.Line"/> is the
+        /// 0-based line of this run's OUTPUT frame.</summary>
+        public IReadOnlyList<DirectiveEncounter> Encounters => _encounters;
 
         // The targeted edition. TWO rules read it: the §8.3.2.1 word-length ceiling for >>DEFINE names (a
         // compilation-variable-name never reaches the tree-walk funnel, so this stage enforces it itself —
@@ -127,8 +159,9 @@ public static class ConditionalCompilationProcessor
 
         public Run(IReadOnlySet<string>? leaveDirectives,
             DiagnosticBag? diagnostics, string? sourcePath, CopyProcessor? copy, string? sourceDir,
-            int dialectLevel, bool permissive, CompilationInputs? inputs)
+            int dialectLevel, bool permissive, CompilationInputs? inputs, IReadOnlyList<KeyedDirectiveOp> implicitOps)
         {
+            _implicitOps = implicitOps;
             _inputs = inputs ?? new CompilationInputs();
             _leave = leaveDirectives ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             _dialectLevel = dialectLevel;
@@ -175,6 +208,7 @@ public static class ConditionalCompilationProcessor
                 var blockText = new MappedText(string.Join('\n', block), blockOrigins.ToArray());
                 block.Clear();
                 blockOrigins.Clear();
+                _flushBase = _renderBase + output.Count;
                 MappedText expanded = _copy is null
                     ? blockText
                     : _copy.ExpandCopiesOneLevel(blockText, _alreadyIncluded, _depth, RenderCopybook);
@@ -201,6 +235,12 @@ public static class ConditionalCompilationProcessor
                 // following directive's condition + emitting state see them (ISO §7.2.1 Step-2 encounter order).
                 Flush();
                 _diag.At = origin;   // Flush may have re-anchored _diag.At inside a copybook; restore for this line
+                // §14.9.28.4 GR14 (kb/Work PB1066): an implicit PUSH ALL / POP ALL a previous parse placed before THIS
+                // directive acts on the state here first, exactly as a written >>PUSH ALL / >>POP ALL would.
+                int encounter = _encounters.Count;
+                while (_nextImplicitOp < _implicitOps.Count && _implicitOps[_nextImplicitOp].BeforeDirective <= encounter)
+                    _directiveState.Apply(_implicitOps[_nextImplicitOp++].Op);
+                bool changesState = false;
                 bool emitting = _stack.Count == 0 || _stack.Peek().Emitting;
                 var (keyword, rest) = SplitDirective(trimmed);
                 // ── THE edition gate for EVERY compiler directive (kb/Work PB725) ────────────────────────
@@ -295,6 +335,7 @@ public static class ConditionalCompilationProcessor
                         break;
                     case "DEFINE":
                         if (emitting) ApplyDefine(rest, _defines, _evaluator, _diag, _dialectLevel, _inputs);   // a DEFINE in an omitted branch has no effect
+                        changesState = emitting;
                         break;
                     default:
                         // A >> directive other than the conditional-compilation set handled above. Its edition
@@ -302,7 +343,11 @@ public static class ConditionalCompilationProcessor
                         // A PUSH/POP acts on this stage's share of the directive state where it is met — in an
                         // emitting branch only, like every other directive (kb/Work PB941) — and its line then
                         // takes the ordinary disposition below (left for DirectiveSiteProcessor).
-                        if (emitting && DirectiveStackOp.TryParse(line, 0, out var stackOp)) _directiveState.Apply(stackOp);
+                        if (emitting && DirectiveStackOp.TryParse(line, 0, out var stackOp))
+                        {
+                            _directiveState.Apply(stackOp);
+                            changesState = true;
+                        }
                         if (!emitting) emit = "";
                         else if (_leave.Contains(keyword))
                         {
@@ -313,7 +358,10 @@ public static class ConditionalCompilationProcessor
                             {
                                 var which = keyword == "FLAG-02" ? FlagDirective.Flag02 : FlagDirective.Flag14;
                                 if (FlagDirectiveLine.TryParse(which, rest, out var flagOpts, out bool flagOn, out _))
+                                {
                                     _flagScan.Apply(which, flagOpts, flagOn);
+                                    changesState = true;
+                                }
                             }
                             emit = line;
                         }
@@ -324,6 +372,7 @@ public static class ConditionalCompilationProcessor
                         else emit = CompilerDirectiveCatalog.IsDirective(keyword) ? "" : line;
                         break;
                 }
+                _encounters.Add(new DirectiveEncounter(_renderBase + output.Count, changesState));
                 output.Add(emit);
                 outputOrigins.Add(origin);
             }
@@ -335,13 +384,16 @@ public static class ConditionalCompilationProcessor
         /// <summary>Expand one incorporated copybook through the SAME driver at <paramref name="depth"/> — its own
         /// directives + nested COPY are processed with this run's shared state; the depth is restored on return so
         /// the SR1/depth guards stay accurate across sibling copybooks. The copybook's text carries ITS origins
-        /// (its path and physical lines — kb/Work PB82).</summary>
-        private MappedText RenderCopybook(MappedText copybookText, int depth)
+        /// (its path and physical lines — kb/Work PB82). <paramref name="lineOffset"/> is the line of the block's
+        /// expansion at which the copybook is spliced, so a directive inside it is recorded at its output-frame
+        /// line (kb/Work PB1066).</summary>
+        private MappedText RenderCopybook(MappedText copybookText, int depth, int lineOffset)
         {
-            int saved = _depth;
+            (int savedDepth, int savedRenderBase, int savedFlushBase) = (_depth, _renderBase, _flushBase);
             _depth = depth;
+            _renderBase = _flushBase + lineOffset;   // the copybook's first line in the output frame (kb/Work PB1066)
             var result = Render(copybookText);
-            _depth = saved;
+            (_depth, _renderBase, _flushBase) = (savedDepth, savedRenderBase, savedFlushBase);
             return result;
         }
     }

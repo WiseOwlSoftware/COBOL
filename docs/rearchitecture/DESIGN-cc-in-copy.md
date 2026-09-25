@@ -88,7 +88,10 @@ output line piece takes the origin of the FIRST content written into it. The sta
   line's newline and REOPENS its origin, so the joined line keeps its head line's number; a discarded
   `>>SOURCE FORMAT` directive line keeps its slot;
 - the CC driver's `Render(MappedText)`: an omitted or directive line keeps its own origin (a blank output line), a
-  block keeps its lines', a copybook expansion the copybook's (through `RenderCopybook(MappedText, depth)`);
+  block keeps its lines', a copybook expansion the copybook's (through `RenderCopybook(MappedText, depth,
+  lineOffset)` — the offset is where `ExpandCopiesOneLevel` splices the expansion, which lets the driver name the
+  output-frame line of every directive it meets, the DIRECTIVE ENCOUNTERS the §14.9.28.4 GR14 fixed point keys its
+  implicit PUSH ALL / POP ALL to; `DESIGN-frontend-grammar.md`, kb/Work PB1066);
 - `CopyProcessor.ExpandCopiesOneLevel(MappedText)`: the text before a COPY keeps its origins, the two framing
   newlines belong to the COPY statement's own line, the incorporated text carries the copybook's path and physical
   lines (`NormalizeCopybookMapped` — a fixed-form member's continuation joins are tracked exactly like the main
@@ -96,7 +99,8 @@ output line piece takes the origin of the FIRST content written into it. The sta
   origin of the position they are looking at, never at an ordinal of the text being processed;
 - `ApplyReplaceStatements(MappedText)` / `ApplyReplacements(MappedText)`: a REPLACE statement's own lines vanish
   from the resultant text; kept text keeps its origins, a replacement's text takes the origin of the line its
-  match started on.
+  match started on. `ReplaceLineMap` is the same pass over line-index origins: where each input line lands in the
+  resultant text (the directive encounters' resultant lines, kb/Work PB1066).
 
 `Frontend.Preprocess` returns the final `MappedText`, publishes `Frontend.LineMap` (`SourceLineMap`: resultant
 line → origin; `Locate` is the ONE conversion to a 0-based `SourceLocation`), asserts every later stage (NIST

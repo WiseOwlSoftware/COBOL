@@ -127,6 +127,10 @@ public sealed class OriginWriter
     private SourceOrigin? _current;    // the origin of the piece being written (null until content arrives)
     private SourceOrigin _last;        // the last origin seen — a bare newline on an empty piece takes it
 
+    /// <summary>The number of line pieces completed so far — the 0-based index of the piece the next content opens
+    /// when the current piece is empty (just after a newline).</summary>
+    public int LineCount => _lines.Count;
+
     /// <summary>Append <paramref name="s"/>, whose k-th line piece originates at <paramref name="pieceOrigin"/>(k).
     /// Bulk-appends piece by piece (the whole compilation unit flows through here — never char by char).</summary>
     public void Append(ReadOnlySpan<char> s, Func<int, SourceOrigin> pieceOrigin)

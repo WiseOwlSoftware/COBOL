@@ -71,39 +71,39 @@ public sealed class Frontend
     /// <summary>The <c>&gt;&gt;TURN</c> directive events of the LAST parsed source (ISO §7.3.25), anchored to
     /// 1-based lines of the final preprocessed text (so token <c>Start.Line</c> is directly comparable — the
     /// compile-time TurnState's basis, deep-dive D10). Empty when the source has no TURN directives.</summary>
-    public DirectiveTimeline<TurnEvent> TurnEvents { get; private set; } = DirectiveTimeline<TurnEvent>.Empty;
+    public DirectiveTimeline<TurnEvent> TurnEvents => Directives.TurnEvents;
 
     /// <summary>The frontend's <c>&gt;&gt;REF-MOD-ZERO-LENGTH</c> directive events (ISO §7.3.23) — they build the
     /// group's compile-time <see cref="Binding.RefModZeroLengthState"/> (the per-line zero-length allowance fold).</summary>
-    public DirectiveTimeline<RefModZeroLengthEvent> RefModZeroLengthEvents { get; private set; } =
-        DirectiveTimeline<RefModZeroLengthEvent>.Empty;
+    public DirectiveTimeline<RefModZeroLengthEvent> RefModZeroLengthEvents => Directives.RefModZeroLengthEvents;
 
     /// <summary>The frontend's <c>&gt;&gt;FLAG-02</c> / <c>&gt;&gt;FLAG-14</c> directive events (ISO §7.3.14 /
     /// §7.3.15) — they build the group's compile-time <see cref="Binding.FlagState"/> (the per-line per-option
     /// migration-flag fold that <c>FlagConformancePass</c> queries). Empty when the source has no FLAG directives.</summary>
-    public DirectiveTimeline<FlagEvent> FlagEvents { get; private set; } = DirectiveTimeline<FlagEvent>.Empty;
+    public DirectiveTimeline<FlagEvent> FlagEvents => Directives.FlagEvents;
 
     /// <summary>The frontend's <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10) — the per-group
     /// reserved/context-sensitive/intrinsic word-table modification the post-lex <c>CobolWordsRewriter</c>
     /// applies to the token stream and the compiler's composed <c>ReservedWordSet</c> / intrinsic resolution
     /// consult. <see cref="CobolWordsMap.Empty"/> when the source has no COBOL-WORDS directive.</summary>
-    public CobolWordsMap CobolWordsMap { get; private set; } = CobolWordsMap.Empty;
+    public CobolWordsMap CobolWordsMap => Directives.CobolWordsMap;
 
     /// <summary>The frontend's <c>&gt;&gt;LEAP-SECOND</c> state (ISO §7.3.17) — true when ON is in effect for the
     /// compilation group (kb/Work PB65): a formatted-time argument may carry a 60 in its seconds subfield
     /// (§15.3.3.3) and standard numeric time form is bounded at 86,401 (§7.3.17.4 GR4).</summary>
-    public bool LeapSecondOn { get; private set; }
+    public bool LeapSecondOn => Directives.LeapSecondOn;
 
     /// <summary>The POSITION-RULED directive sites of the LAST parsed source (ISO §7.3.20.3 SR4, §7.3.22.3 SR4,
     /// §7.3.25.3 SR5): WHERE each <c>&gt;&gt;TURN</c> / <c>&gt;&gt;PUSH</c> / <c>&gt;&gt;POP</c> was written, in
     /// the final line frame, for the ONE lexical-containment predicate that decides all three bans (owner
     /// decision D20; kb/Work PB595).</summary>
-    public IReadOnlyList<DirectiveSite> DirectiveSites { get; private set; } = [];
+    public IReadOnlyList<DirectiveSite> DirectiveSites => Directives.DirectiveSites;
 
     /// <summary>EVERY directive-derived fact the binder consumes, as ONE record (kb/Work PB65 — the fifth
-    /// positional parameter on <c>Bind</c> was the growing-list shape). Reflects the LAST parsed source.</summary>
-    public DirectiveResults Directives =>
-        new(TurnEvents, RefModZeroLengthEvents, FlagEvents, CobolWordsMap, LeapSecondOn, DirectiveSites);
+    /// positional parameter on <c>Bind</c> was the growing-list shape). Reflects the LAST parsed source, with
+    /// §14.9.28.4 GR14's implicit PUSH ALL / POP ALL already replayed into every event timeline (kb/Work PB1004,
+    /// PB1066 — the front end places them, because the conditional-compilation driver's state needs them too).</summary>
+    public DirectiveResults Directives { get; private set; } = DirectiveResults.None;
 
     /// <summary>
     /// Preprocess and parse a COBOL source file. Returns the parse tree, or <see langword="null"/> if a fatal
@@ -111,9 +111,43 @@ public sealed class Frontend
     /// </summary>
     public CobolParserCore.CompilationUnitContext? Parse(string sourcePath, DiagnosticBag diagnostics)
     {
-        var processed = Preprocess(sourcePath, diagnostics);
-        LineMap = new SourceLineMap(processed.Lines);
-        return LexAndParse(processed.Text, sourcePath, diagnostics);
+        var normalized = Normalize(sourcePath, diagnostics);
+
+        // ISO §14.9.28.4 GR14 (kb/Work PB1004, PB1066): "An implicit PUSH ALL … is assumed at the end of
+        // imperative-statement-1. Immediately preceding the END PERFORM phrase, there is an implicit POP ALL". Only
+        // the PARSE can place the two ops, yet the conditional-compilation driver — which runs before it — holds
+        // directive state they restore (the compilation-variable table, the frontend-inline FLAG options), so a
+        // >>DEFINE written in a WHEN phrase would outlive END-PERFORM. The text manipulation therefore re-runs with
+        // the ops the previous parse placed, keyed to its directive encounters, until the parse places the same
+        // program it was run with. KeyImplicitOps keeps only brackets that enclose a state change, so an ordinary
+        // source converges on the FIRST pass. Convergence: the ops of a pass change only the text AFTER the first
+        // directive whose state they change, so each pass settles at least one more directive encounter.
+        IReadOnlyList<KeyedDirectiveOp> implicitOps = [];
+        for (int pass = 1; ; pass++)
+        {
+            // Every stage from the driver on reports into THIS pass's bag; only the converged pass's diagnostics
+            // are the compilation's (a DEFINE's SR2 redefinition or a FLAG warning depends on the state in effect).
+            var passDiagnostics = new DiagnosticBag();
+            var (processed, directives, encounters) = Preprocess(normalized, sourcePath, passDiagnostics, implicitOps);
+            LineMap = new SourceLineMap(processed.Lines);
+            var tree = LexAndParse(processed.Text, sourcePath, directives.CobolWordsMap, passDiagnostics);
+            bool mayMatter = directives.HasLineScopedEvents() || encounters.Directives.Any(e => e.ChangesState);
+            var ops = tree is null || !mayMatter ? [] : ExceptionPerformDirectiveScope.ImplicitOps(tree);
+            var keyed = encounters.KeyImplicitOps(ops);
+            // A pass that did not parse is final: its syntax errors are the compilation's answer, and with no tree
+            // there are no ops to converge on.
+            if (tree is null || keyed.SequenceEqual(implicitOps))
+            {
+                foreach (var d in passDiagnostics.Diagnostics) diagnostics.Add(d);
+                Directives = directives.WithStackOps(ops);
+                return tree;
+            }
+            if (pass > encounters.Directives.Count + 1)
+                throw new InvalidOperationException(
+                    "the §14.9.28.4 GR14 implicit-op fixed point did not converge (kb/Work PB1066) — each pass must "
+                    + "settle at least one more directive encounter");
+            implicitOps = keyed;
+        }
     }
 
     /// <summary>
@@ -121,10 +155,9 @@ public sealed class Frontend
     /// compilation (<c>&gt;&gt;DEFINE/IF/…</c>) → COPY expansion → NIST placeholder substitution. Each stage is a
     /// no-op on source that does not use it, so an ordinary program passes through essentially unchanged.
     /// </summary>
-    private MappedText Preprocess(string sourcePath, DiagnosticBag diagnostics)
+    private MappedText Normalize(string sourcePath, DiagnosticBag diagnostics)
     {
         string raw = Inputs.ReadAllText(sourcePath);
-        string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
         // The archive-marker strip is line-count preserving (markers become blank lines), so the origin map the
         // normalizer builds below still names the physical lines of the file on disk.
@@ -132,7 +165,17 @@ public sealed class Frontend
         // The edition-aware overload carries the fixed-form continuation gates (VCR rows 2/94, W3): only the
         // column-aware pass can see the col-7 indicator, so the per-edition obligations emit HERE. Mapped (kb/Work
         // PB82): a fixed-form continuation JOINS physical lines, and the map records which line each output came from.
-        var mapped = ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, DialectLevel, Permissive, diagnostics, sourcePath);
+        return ReferenceFormatProcessor.NormalizeToFreeFormMapped(raw, DialectLevel, Permissive, diagnostics, sourcePath);
+    }
+
+    /// <summary>The text manipulation and directive stages after normalization — repeatable, because the
+    /// §14.9.28.4 GR14 implicit-op program (<paramref name="implicitOps"/>) comes from a parse of their own output
+    /// (<see cref="Parse"/>). Returns the resultant text, the directive results (WITHOUT the implicit ops, which the
+    /// caller replays once the program has converged), and the driver's directive encounters.</summary>
+    private (MappedText Text, DirectiveResults Directives, ConditionalCompilationResult Encounters) Preprocess(
+        MappedText normalized, string sourcePath, DiagnosticBag diagnostics, IReadOnlyList<KeyedDirectiveOp> implicitOps)
+    {
+        string sourceDir = Path.GetDirectoryName(Path.GetFullPath(sourcePath)) ?? ".";
 
         // The MERGED text-manipulation driver (ISO §7.2.1) — conditional compilation INTERLEAVED with COPY, so a
         // >>DEFINE/>>IF/>>EVALUATE INSIDE a copybook is processed (the CC-before-COPY split could not see them), while
@@ -141,9 +184,9 @@ public sealed class Frontend
         // COPY runs BEFORE NIST substitution so placeholders inside copied library text are substituted.
         var copy = new CopyProcessor(_copySearchPaths, diagnostics, sourcePath, strict: false,
             dialectLevel: DialectLevel, permissive: Permissive, inputs: Inputs);
-        mapped = ConditionalCompilationProcessor.ProcessWithCopyMapped(mapped, sourceDir, copy, LeftDirectives,
-            diagnostics: diagnostics, sourcePath: sourcePath, dialectLevel: DialectLevel, permissive: Permissive,
-            inputs: Inputs);
+        var manipulated = ConditionalCompilationProcessor.Manipulate(normalized, sourceDir, copy, LeftDirectives,
+            diagnostics, sourcePath, DialectLevel, Permissive, Inputs, implicitOps);
+        var mapped = manipulated.Text;
 
         // From here on the text is in its FINAL line frame: every stage below is line-count preserving (asserted),
         // so `mapped.Lines` stays the origin of each resultant line and the directive stages' event lines are the
@@ -167,7 +210,7 @@ public sealed class Frontend
         // the line frame and cannot name the resultant line a directive ended on — recording each as a
         // DirectiveStackOp every stage below replays over the state it holds, and warning (COBOLNET2297) for an
         // unsuccessful named POP (§7.3.20 / §7.3.22; kb/Work PB941). Line-count preserving.
-        (text, DirectiveSites, var stackOps) = DirectiveSiteProcessor.Process(text, diagnostics, sourcePath, lineMap);
+        (text, var directiveSites, var stackOps) = DirectiveSiteProcessor.Process(text, diagnostics, sourcePath, lineMap);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "DirectiveSiteProcessor changed the line count — every directive site would misanchor (hazard H3)");
@@ -175,7 +218,7 @@ public sealed class Frontend
         // >>TURN directive collection runs LAST — after COPY (so copybook TURNs are seen) and after the
         // line-count-neutral NIST substitution — on the FINAL text, so each TurnEvent.Line is directly
         // comparable to the parser tokens' Start.Line (the TurnState anchor, deep-dive D10 / hazard H3).
-        (text, TurnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap, stackOps);
+        (text, var turnEvents) = TurnDirectiveProcessor.Process(text, DialectLevel, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "TurnDirectiveProcessor changed the line count — TURN scoping would silently misanchor (hazard H3)");
@@ -190,7 +233,7 @@ public sealed class Frontend
         // >>REF-MOD-ZERO-LENGTH (ISO §7.3.23): recognize + edition-gate + collect the per-line zero-length toggle
         // events on the FINAL text (each event line is directly comparable to a ref-mod token's Start.Line — the
         // >>TURN anchoring discipline). Line-count preserving like the two stages above.
-        (text, RefModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text, stackOps);
+        (text, var refModZeroLengthEvents) = RefModZeroLengthDirectiveProcessor.Process(text, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "RefModZeroLengthDirectiveProcessor changed the line count (hazard H3)");
@@ -198,7 +241,7 @@ public sealed class Frontend
         // >>FLAG-02 / >>FLAG-14 (ISO §7.3.14 / §7.3.15): collect the per-option ON/OFF toggle events on the FINAL
         // text (each event line is directly comparable to a flagged construct's token Start.Line — the >>TURN
         // anchoring discipline). Line-count preserving like the stages above.
-        (text, FlagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
+        (text, var flagEvents) = FlagDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "FlagDirectiveProcessor changed the line count (hazard H3)");
@@ -206,19 +249,21 @@ public sealed class Frontend
         // >>COBOL-WORDS (ISO §7.3.10): parse the per-group reserved/context/intrinsic word-table modification into
         // the CobolWordsMap (the post-lex rewriter + composed ReservedWordSet consume it), edition-gate the
         // directive word, and enforce SR1/SR2/SR5. Line-count preserving like the stages above.
-        (text, CobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
+        (text, var cobolWordsMap) = CobolWordsDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "CobolWordsDirectiveProcessor changed the line count (hazard H3)");
 
         // >>LEAP-SECOND (ISO §7.3.17): the ONE compilation-group ON/OFF fact the §15.3 date/time consumers read
         // (kb/Work PB65 — it used to be consumed and discarded). Line-count preserving like the stages above.
-        (text, LeapSecondOn) = LeapSecondDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
+        (text, var leapSecondOn) = LeapSecondDirectiveProcessor.Process(text, diagnostics, sourcePath, lineMap, stackOps);
         if (CountLines(text) != linesBefore)
             throw new InvalidOperationException(
                 "LeapSecondDirectiveProcessor changed the line count (hazard H3)");
 
-        return new MappedText(text, mapped.Lines);   // the constructor re-asserts the line-count invariant
+        return (new MappedText(text, mapped.Lines),   // the constructor re-asserts the line-count invariant
+            new DirectiveResults(turnEvents, refModZeroLengthEvents, flagEvents, cobolWordsMap, leapSecondOn, directiveSites),
+            manipulated);
     }
 
     /// <summary>The ISO §7.3 directive keywords the merged text-manipulation driver LEAVES in the text for the
@@ -248,14 +293,15 @@ public sealed class Frontend
     /// failure. The <c>ZERO</c>→<c>ZERO_ARITH</c> token rewrite runs between lexing and parsing to avoid an
     /// exponential-prediction ambiguity. Returns <see langword="null"/> if any syntax error was reported.
     /// </summary>
-    private CobolParserCore.CompilationUnitContext? LexAndParse(string text, string sourcePath, DiagnosticBag diagnostics)
+    private CobolParserCore.CompilationUnitContext? LexAndParse(string text, string sourcePath, CobolWordsMap cobolWordsMap,
+        DiagnosticBag diagnostics)
     {
         var lexer = new CobolLexer(new AntlrInputStream(text));
         // >>COBOL-WORDS (ISO §7.3.10.4 GR3/GR4): a de-reserved word (UNDEFINE/SUBSTITUTE) may be used as a
         // SUBSCRIPTED data name; the lexer must open SUBSCRIPT mode at its following '(' even though the word is
         // still lexed as its keyword token (the retype below runs post-lex, after the '(' decision is frozen).
         // Set BEFORE any tokenization (ZeroTokenRewriter.Fill). A no-op when no de-reserved word is a keyword token.
-        var retypes = TokenRetypes.None with { CobolWords = CobolWordsMap };
+        var retypes = TokenRetypes.None with { CobolWords = cobolWordsMap };
         retypes.PrimeLexer(lexer);
         var tokens = new CommonTokenStream(lexer);
         ZeroTokenRewriter.Rewrite(tokens);
@@ -284,7 +330,7 @@ public sealed class Frontend
         var parser = new CobolParserCore(tokens)
         {
             Edition = EditionInfo.Of(DialectLevel, Permissive),
-            CobolWords = CobolWordsMap,
+            CobolWords = cobolWordsMap,
         };
 
         // ⛔ THE TOKEN-LEVEL §8.9 GATE (kb/Work PB655): the ONE loop both front ends share —
