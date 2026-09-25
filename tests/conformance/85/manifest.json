@@ -190,7 +190,9 @@
   "l1c04_arith_mixed_descriptions",
   "l1c04_arith_multiple_receivers",
   "l1c05_coded_character_values",
-  "l1c06_currency_non_cobol_equivalence_85"
+  "l1c06_currency_non_cobol_equivalence_85",
+  "l1c08_end_marker_closes_unit",
+  "l1c08_environment_division_shapes"
  ],
  "pending": []
 }

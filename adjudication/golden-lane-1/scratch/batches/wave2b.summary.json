@@ -1,0 +1,78 @@
+{
+ "wave": "wave2b",
+ "slugs": {
+  "misc-p8": {
+   "landed": [
+    {
+     "rule_id": "GR-10.7.4-1",
+     "test_ref": "conformance:85/l1c08_end_marker_closes_unit",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-13.18.20.3-1",
+     "test_ref": "conformance:negative/l1c08-entry-name-qualified; conformance:negative/l1c08-entry-name-subscripted",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-12.2.1",
+     "test_ref": "conformance:85/l1c08_environment_division_shapes; conformance:negative/l1c08-env-division-section-order",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.13.2-3",
+     "test_ref": "conformance:2014/l1c08_data_not_finite_standard_float",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.13.1.2-2",
+     "test_ref": "conformance:2002/l1c08_declarative_indirect_stop_run",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.13.1.4-4",
+     "test_ref": "conformance:2002/l1c08_nonfatal_enabled_no_handler",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "GR-8.4.3.6.4-1",
+     "kind": "not-spec-derived",
+     "correction": "The program is not conforming source, so under the spec there is no expected stdout. `INVOKE L1C08EOC \"NEW\" RETURNING E` violates \u00a714.9.23.3 SR3 (\"The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1\"). `CLASS-ID. L1C08EOC.` has no INHERITS clause, so it inherits nothing (\u00a711.3.4 GR2, \u00a79.3.9) and its factory interface has no New method. New i"
+    },
+    {
+     "rule_id": "GR-8.4.3.6.4-2",
+     "kind": "not-spec-derived",
+     "correction": "Same program as GR1 and the same defect: `INVOKE L1C08EOC \"NEW\"` on a class with no INHERITS FROM BASE breaks \u00a714.9.23.3 SR3, so the source is illegal and no stdout can be derived from the spec. Once the class is `INHERITS FROM BASE` and the compiler supports BASE, the SUB-SAME/SUB-NULL derivation is sound. It is a real cross-program witness that separates one register per run unit from per-progra"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "DOC-A.1-65",
+     "why": "Needs a non-COBOL activating element (a .NET host calling ProgramRegistry.CallProgram). The conformance runner only compiles and runs COBOL sources, so it cannot drive this. A unit/integration test with a C# host would be the right witness."
+    }
+   ],
+   "other": [],
+   "deferred": []
+  }
+ },
+ "manifest_added": {
+  "85": [
+   "l1c08_end_marker_closes_unit",
+   "l1c08_environment_division_shapes"
+  ],
+  "2014": [
+   "l1c08_data_not_finite_standard_float"
+  ],
+  "2002": [
+   "l1c08_declarative_indirect_stop_run",
+   "l1c08_nonfatal_enabled_no_handler"
+  ]
+ },
+ "negative_added": [
+  "l1c08-entry-name-qualified",
+  "l1c08-entry-name-subscripted",
+  "l1c08-env-division-section-order"
+ ]
+}

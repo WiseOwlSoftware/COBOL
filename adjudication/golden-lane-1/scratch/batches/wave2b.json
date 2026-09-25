@@ -1,0 +1,29 @@
+{
+ "batch": "golden-lane-1-wave2b",
+ "records": [
+  {
+   "rule-id": "GR-10.7.4-1",
+   "test-ref": "conformance:85/l1c08_end_marker_closes_unit"
+  },
+  {
+   "rule-id": "SR-13.18.20.3-1",
+   "test-ref": "conformance:negative/l1c08-entry-name-qualified; conformance:negative/l1c08-entry-name-subscripted"
+  },
+  {
+   "rule-id": "FMT-12.2.1",
+   "test-ref": "conformance:85/l1c08_environment_division_shapes; conformance:negative/l1c08-env-division-section-order"
+  },
+  {
+   "rule-id": "GR-14.6.13.2-3",
+   "test-ref": "conformance:2014/l1c08_data_not_finite_standard_float"
+  },
+  {
+   "rule-id": "GR-14.6.13.1.2-2",
+   "test-ref": "conformance:2002/l1c08_declarative_indirect_stop_run"
+  },
+  {
+   "rule-id": "GR-14.6.13.1.4-4",
+   "test-ref": "conformance:2002/l1c08_nonfatal_enabled_no_handler"
+  }
+ ]
+}

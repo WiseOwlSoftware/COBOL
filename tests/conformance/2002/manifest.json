@@ -428,7 +428,9 @@
   "l1c07_evaldir_boolean_operands",
   "l1c07_evaldir_fmt1_other_nomatch",
   "l1c07_evaldir_alnum_equality",
-  "l1c07_evaldir_fmt2_truth"
+  "l1c07_evaldir_fmt2_truth",
+  "l1c08_declarative_indirect_stop_run",
+  "l1c08_nonfatal_enabled_no_handler"
   ],
   "pending": []
 }

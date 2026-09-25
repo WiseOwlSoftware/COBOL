@@ -62,3 +62,11 @@ Overturned rows stay CONFORMS-but-untested; the refuter's exact correction is in
 ### misc-p7: landed 10, overturned 1 (GAP 1580 → 1570)
 - overturned SR-7.3.13.3-8 (expected-value): Program is not conforming source, so no stdout is defined for it. The omitted outer >>WHEN OTHER text-2 holds `>>EVALUATE 9` / `>>WHEN OTHER` / `>>END-EVALUATE` with NO `>>WHEN operand-2` phrase; §7.3.13.2 Format 1 encloses `>> WHEN ... [text-1]` in braces with an ellipsis (required, one or more tim
 - gate: Conformance filter 5518/5518 (7 new goldens ran by name), Unit filter 25/25.
+
+### misc-p8: landed 6, overturned 2, not-closable 1 (GAP 1570 → 1564)
+- overturned GR-8.4.3.6.4-1 (not-spec-derived): The program is not conforming source, so under the spec there is no expected stdout. `INVOKE L1C08EOC "NEW" RETURNING E` violates §14.9.23.3 SR3 ("The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1"). `
+- overturned GR-8.4.3.6.4-2 (not-spec-derived): Same program as GR1 and the same defect: `INVOKE L1C08EOC "NEW"` on a class with no INHERITS FROM BASE breaks §14.9.23.3 SR3, so the source is illegal and no stdout can be derived from the spec. Once the class is `INHERITS FROM BASE` and the compiler supports 
+  Lead for the registrar: the refuter reports the compiler refuses `INHERITS FROM BASE` (COBOLNET0821, BASE not provided) and accepts `INVOKE <class> "NEW"` on a class with no INHERITS (also in existing goldens `l1_exit_raising_object_sending`, `oo_ec_raise_object`) — not verified or filed here.
+- not-closable DOC-A.1-65: Needs a non-COBOL activating element (a .NET host calling ProgramRegistry.CallProgram). The conformance runner only compiles and runs COBOL sources, so it cannot drive this. A unit/integration test wi
+- gate: Conformance filter 5526/5526, Unit filter 25/25.
+- misc-p12 suspected defect GR-13.18.27.4-3 = existing kb/Work/PB1523 (GLOBAL REDEFINES backend crash); repro appended there, no new note.

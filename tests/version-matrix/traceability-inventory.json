@@ -12068,11 +12068,11 @@
   "rule-digest": "dc7f88d18ec1",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#programUnit; src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#nestedProgram; src/Cobol.Net.Frontend/Grammar/Core/CobolOO.g4#classDefinition",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c08_end_marker_closes_unit",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "cite.py: OK §10.7.4 '1) An end marker indicates the end of the specified source unit.' The grammar closes a unit at its end marker: nestedProgram requires endProgramHeader, and classDefinition, factory, object, method and interface each end in their own END. p4 shows a unit contained in another and closed by END PROGRAM running as the nested program. In a program that breaks SR3 (p3), the marker closes the innermost open unit whatever name it gives. That is the SR3 under-reject and does not change what a conforming program means. No spec-derived test covers this directly. || Editions (adjudicator, verbatim): 1985+ (program); 2002+ (OO/function units)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-11.3.3-1",
@@ -21458,11 +21458,11 @@
   "rule-digest": "f52cd027dea2",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#dataName",
-  "test-ref": "",
+  "test-ref": "conformance:negative/l1c08-entry-name-qualified; conformance:negative/l1c08-entry-name-subscripted",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
   "notes": "\"Data-name-1 shall not be qualified or subscripted.\" (cite.py --check 13.18.20.3 OK, rule 1). dataName is a single cobolWord/FILLER token with no qualifier or subscript alternative, so the declaration slot cannot carry either: probe/entry-name-clause/p4.cob `05 A OF G PIC X(3).` -> COBOL0001 near 'OF'; p5.cob `05 A(1) PIC X(3).` -> COBOL0001 near '('. Report group name (cobolWord) likewise. Rejection is a generic parse error, not a named diagnostic — acceptable for a syntax rule. No spec-derived negative test pins it. || Editions (adjudicator): 85, 2002, 2014, 2023 (the clause's own text; Annex E records no change to the entry-name clause)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.20.3-2",
@@ -32513,11 +32513,11 @@
   "rule-digest": "8d79b7d051f3",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitRunUseBody",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c08_declarative_indirect_stop_run",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "Rule: §14.6.13.1.2 2) (cite.py --check 14.6.13.1.2 \"Any directly or indirectly activated runtime element terminates the run unit\" -> OK 2)). A run-unit termination inside a CALLed element unwinds as the runtime's stop signal through __RunUse's try/finally, so no -1 ('completed normally') is ever returned and no continuation after the raising statement happens. Probe n5 (out/probe/exc-normal): RAISE EC-USER-X (checked) -> USE AFTER EC declarative CALLs EXN5B which executes STOP RUN -> output 'DECL-START / B-STOPS', exit 0; neither DECL-END nor AFTER-RAISE is displayed. No existing spec-derived test found that activates a terminating element from within a declarative (test-needed). || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.3-1",
@@ -32693,11 +32693,11 @@
   "rule-digest": "7cb7ee44378b",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitRaise; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitOverflow; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
-  "test-ref": "",
+  "test-ref": "conformance:2002/l1c08_nonfatal_enabled_no_handler",
   "derivation": "",
   "editions": "2002, 2014, 2023",
   "notes": "Rule: §14.6.13.1.4 4) (cite.py --check 14.6.13.1.4 \"Execution of the statement continues as specified in the rules for that statement\" -> OK 4)). With checking enabled and no phrase / WHEN / USE applying, a nonfatal condition continues per the statement's rules: EmitRaise (nonfatal: no throw after a -3 dispatch), EmitOverflow (no throw), __IoCheckEc (successful arm returns -1; nonfatal unsuccessful families fall through without the fatal throw). Probe out/probe/exc-nonfatal/g4: >>TURN EC-I-O-WARNING ON, no handler, indexed WRITE yielding '02' with NOT INVALID KEY -> 'NOTINV2 02 / AFTER 02' (the WRITE's own §9.1.14 successful-completion rule applies), exit 0. No existing test asserts the enabled-no-handler continuation specifically (test-needed). || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.5-1",
@@ -32828,11 +32828,11 @@
   "rule-digest": "e34b803d0e81",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/Values/Numeric/CobolFloat.cs#Sending; src/Cobol.Net.Compiler/CodeGen/Emit/SendingRef.cs#FloatChecked; src/Cobol.Net.Compiler/CodeGen/Emit/NumericRenderer.cs; src/Cobol.Net.Compiler/CodeGen/Emit/OperandText.cs; src/Cobol.Net.Compiler/CodeGen/Emit/ConditionRenderer.cs; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2014/l1c08_data_not_finite_standard_float",
   "derivation": "",
   "editions": "2014, 2023",
   "notes": "Rule text: cite.py --check 14.6.13.2 'the sending and receiving items in a MOVE statement are defined with the same standard floating-point usage specification, with the exception of endianness' -> OK §14.6.13.2 3). Four exemptions: class condition, sign condition, same-usage MOVE (endianness aside), VALIDATE. MEASURED (probe out/probe/ecinc/r3.cob, FLOAT-BINARY-64 HIGH-ORDER-LEFT leaf planted with NaN bytes X\"7FF8000000000000\" via REDEFINES, >>TURN EC-DATA-NOT-FINITE CHECKING ON, at 2023 and 2014): DISPLAY F, ADD 1 TO F, MOVE F TO S9(5), IF F > 0, MOVE F TO FLOAT-BINARY-32, MOVE F TO FLOAT-LONG (a different usage), COMPUTE N = F * 0 with +Inf -> all RAISED; IF F POSITIVE (sign) exempt; IF F IS FLOAT-NOT-A-NUMBER (class) exempt, true; MOVE F TO FLOAT-BINARY-64 HIGH-ORDER-LEFT (same usage) and MOVE F TO FLOAT-BINARY-64 HIGH-ORDER-RIGHT (same usage, other endianness) exempt, and both receivers then test NaN (verbatim transfer). SendingRefRules.FloatChecked is the four-entry exclusion list. FLOAT-DECIMAL-16/34 are refused at compile time (COBOLNET1564, Annex A.3 item 19 processor-dependent, documented) so that half is unreachable by any accepted program; VALIDATE is A.4.14 Not claimed (PB283), its exemption vacuous. CONFORMANCE.md's documented extension of the raise to every float usage (COMP-1/COMP-2/FLOAT-SHORT/LONG) is implementor latitude outside this rule. No spec-derived golden covers a STANDARD float usage: conformance:2023/ec_data_not_finite uses COMP-2/COMP-1 (the extension), so test-ref is left empty (test-needed). [code-location note: (FloatSending chokepoints); code-location note: (FloatDisplay/FloatSending); code-location note: (sign-condition exemption); code-location note: (ambient EC-DATA-NOT-FINITE gate)] || editions as adjudicated: 2014, 2023 (standard floating-point usages FLOAT-BINARY-32/64/128 and FLOAT-DECIMAL-16/34 are 2014 introductions)",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.2-4",
@@ -58178,11 +58178,11 @@
   "rule-digest": "5d1240009e4e",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/CobolParserCore.g4#environmentDivision; src/Cobol.Net.Compiler/Binding/DataBinder.cs#EnvDivisions",
-  "test-ref": "",
+  "test-ref": "conformance:85/l1c08_environment_division_shapes; conformance:negative/l1c08-env-division-section-order",
   "derivation": "",
   "editions": "85,2002,2014,2023",
   "notes": "Rule §12.2.1: 'ENVIRONMENT DIVISION.' (both words underlined, period required) followed by '[ configuration-section ]' then '[ input-output-section ]' -- both optional, in that order. Grammar environmentDivision = ENVIRONMENT DIVISION DOT configurationSection? inputOutputSection? matches exactly (no binder/validation pass narrows it; ClosedFormatPass line 132 only names the node). Probed with pinned cobol.exe at --std 85/2002/2014/2023: empty division, CONFIGURATION only, INPUT-OUTPUT only, both in order, empty section headers alone -> all compile and run correctly; INPUT-OUTPUT before CONFIGURATION -> COBOL0001 unexpected 'CONFIGURATION' (correct rejection, order is fixed by the format); header without period -> COBOL0307 (correct). cite.py --check 12.2.1 '[ configuration-section ]' -> OK; '[ input-output-section ]' -> OK. No spec-derived test targets this format (order rejection has no negative golden) -> test-ref empty = test-needed. Probes: out/probe/env-div/{A,B,C,D,E,G,H,N}.cob. [registrar 14a — editions as adjudicated: 85, 2002, 2014, 2023 (the §12.2.1 format carries no edition gating; unchanged across editions)]",
-  "state": "GAP"
+  "state": "OK"
  },
  {
   "rule-id": "FMT-12.3.2",

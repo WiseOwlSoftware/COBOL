@@ -1521,7 +1521,10 @@
   "l1c05-cce-boolean-numeric-operand",
   "l1c06-currency-non-cobol-equivalent-rebound",
   "l1c06-currency-long-s-prohibited",
-  "l1c06-define-boolean-numeric-operand"
+  "l1c06-define-boolean-numeric-operand",
+  "l1c08-entry-name-qualified",
+  "l1c08-entry-name-subscripted",
+  "l1c08-env-division-section-order"
  ],
  "pending": []
 }
