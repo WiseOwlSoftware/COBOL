@@ -37,7 +37,7 @@ emitter never mutates the binder's model · one canonical mechanism per job, no 
 neutrality: no C# text, Roslyn syntax, mangled identifier or format literal in a bound node or `Place`.
 
 ### 2. Full code review
-Correctness against the CITED ISO rule — does the code implement the rule it names, or a convenient paraphrase? ·
+Run `python scripts/spec/drift_rules.py <each changed file>` and check the change against every SPECIFIC rule it prints (a diff that breaks one is a finding even if its test was edited to pass) · Correctness against the CITED ISO rule — does the code implement the rule it names, or a convenient paraphrase? ·
 sibling/paired functions agree · error handling: loud failure, never a silent no-op or swallowed exception ·
 comment and doc accuracy (a comment that lies is worse than none) · idiomatic modern C# · every implemented rule
 carries its exact §/GR · ⛔ **no fixed time limit in a test**: a test that compares a stopwatch reading

@@ -39,6 +39,9 @@ python scripts/spec/audit_doc_citations.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== DOC CITATIONS: RED (see above) ==='; $rc = 1 }
 python scripts/spec/audit_evidence_supersession.py --check
 if ($LASTEXITCODE -ne 0) { Write-Host '=== EVIDENCE SUPERSESSION: RED (see above) ==='; $rc = 1 }
+# The drift-rule index (docs/DRIFT_RULES.md) is GENERATED from every *DriftTests summary — stale = red.
+python scripts/spec/drift_rules.py --check
+if ($LASTEXITCODE -ne 0) { Write-Host '=== DRIFT RULES INDEX: RED (run python scripts/spec/drift_rules.py) ==='; $rc = 1 }
 # ⛔ The inventory's WITNESS COUNT (kb/Work PB959) — the axis the resolution drift test deliberately does not
 # measure: RED on any code-location/test-ref lost since the merge-base with main without a retirement mark.
 python scripts/spec/audit_witness_loss.py --check

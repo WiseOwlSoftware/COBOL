@@ -38,6 +38,8 @@ RC=0
 python scripts/spec/audit_code_citations.py --check || { echo "=== CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_doc_citations.py --check || { echo "=== DOC CITATIONS: RED (see above) ==="; RC=1; }
 python scripts/spec/audit_evidence_supersession.py --check || { echo "=== EVIDENCE SUPERSESSION: RED (see above) ==="; RC=1; }
+# The drift-rule index (docs/DRIFT_RULES.md) is GENERATED from every *DriftTests summary — stale = red.
+python scripts/spec/drift_rules.py --check || { echo "=== DRIFT RULES INDEX: RED (run python scripts/spec/drift_rules.py) ==="; RC=1; }
 # ⛔ The inventory's WITNESS COUNT (kb/Work PB959) — the axis the resolution drift test deliberately does not
 # measure: RED on any code-location/test-ref lost since the merge-base with main without a retirement mark.
 python scripts/spec/audit_witness_loss.py --check || { echo "=== WITNESS LOSS: RED (see above) ==="; RC=1; }

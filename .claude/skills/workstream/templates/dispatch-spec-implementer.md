@@ -12,6 +12,8 @@ THE GROUP IS ONE ROOT: {root}. Read every note first — {files} — they carry 
 probes and the CODE SITES. ⛔ START FROM THE NOTE'S CODE SITES (and `python scripts/spec/where.py <clause>` when it
 exists) — do not re-survey the codebase: orientation (grep/read) was 46 % of every implementer's tokens in waves 45–57.
 Do not re-derive what the notes measured, but DO re-run every probe on your own build.
+⛔ DRIFT RULES (MANDATORY-PRACTICES P11): before editing any file run `python scripts/spec/drift_rules.py <files>` and
+honor every SPECIFIC rule it prints — the drift tests will enforce them at your gate anyway.
 
 {body}
 
