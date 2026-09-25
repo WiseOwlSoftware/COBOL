@@ -131,7 +131,10 @@
   "pb981_fd_variable_length_records",
   "pb1025_key_after_dynamic_member",
   "pb232_entry_convention_cobol",
-  "pb1026_external_out_of_line_records"
+  "pb1026_external_out_of_line_records",
+  "l1c01_arithmetic_clause_forms",
+  "l1c06_dyn_table_unlimited_capacity",
+  "l1c06_entry_convention_oo"
  ],
  "pending": []
 }
