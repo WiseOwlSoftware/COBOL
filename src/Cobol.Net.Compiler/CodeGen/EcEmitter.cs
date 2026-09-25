@@ -354,6 +354,14 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-FLOW-RELEASE", "FlowReleaseChecking"),             // §14.9.32.4 GR1 — RELEASE outside its SORT's input procedure
         ("EC-FLOW-RETURN", "FlowReturnChecking"),               // §14.9.34.4 GR1 — RETURN outside its SORT/MERGE's output procedure
         ("EC-SORT-MERGE-RETURN", "SortMergeReturnChecking"),    // §14.9.34.4 GR3 — RETURN after the at end condition in the same output procedure
+        // The sort-merge STATEMENT conditions (kb/Work PB1036). Before these rows the four names were catalog
+        // entries with no flag and no raise site, so `>>TURN EC-SORT-MERGE CHECKING ON` wired nothing and a SORT
+        // … GIVING an open file ran on with its declarative silent. Each rides a flag CobolSort consults at the
+        // point its rule names; when the SORT/MERGE itself raised it, VerbDisposes hands the disposition to the verb.
+        ("EC-SORT-MERGE-ACTIVE", "SortMergeActiveChecking"),    // §14.9.40.4 GR10/GR13, §14.9.24.4 GR8 — a SORT/MERGE/RELEASE/RETURN a running procedure may not execute
+        ("EC-SORT-MERGE-FILE-OPEN", "SortMergeFileOpenChecking"),// §14.9.40.4 GR9, §14.9.24.4 GR7/GR12 — a USING/GIVING file already open
+        ("EC-SORT-MERGE-RELEASE", "SortMergeReleaseChecking"),  // §13.18.43.4 GR14/GR19, §14.9.40.4 GR12 b), §14.9.24.4 GR7 b) — record size outside the SD's range
+        ("EC-SORT-MERGE-SEQUENCE", "SortMergeSequenceChecking"),// §14.9.24.4 GR6 — a MERGE USING file out of KEY order
         // The Report Writer's four statement-precondition conditions (kb/Work PB326). Each rides a flag its
         // runtime raise site in CobolReport consults; each is Table 13 Fatal, and each leaves the verb
         // unexecuted whether or not the raise happens (the standard states every lenient outcome outright).
@@ -422,11 +430,26 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
                 w.Line($"ExceptionState.Set({ecExpr}, true);");
                 w.Line($"int __r{id} = {EcDispatchExpr(ecExpr, "\"\"")};");
                 w.Line(dispatch.ResumeTransfer($"__r{id}"));
-                w.Line($"if (__r{id} != -2) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
+                // §14.6.13.1.3 2): a condition the SORT/MERGE statement raised itself is the verb's to dispose of —
+                // the statement is terminated and execution continues after it (VerbDisposes; kb/Work PB1036).
+                string verbRule = VerbDisposes(ec.Inner) ? $" && !__af{id}.RaisedBySortMerge" : "";
+                w.Line($"if (__r{id} != -2{verbRule}) {{ __af{id}.Dispatched = true; throw; }}   // fatal, unresumed → abnormal termination (§14.6.13.1.3 #5/#7); enclosing guards let it pass");
             }
         }
         return false;   // conservative: the catch can resume past an inner transfer
     }
+
+    /// <summary>⛔ §14.6.13.1.3 2) — "If the executed statement is a MERGE or SORT statement, then the rules for
+    /// those statements apply" — precedes the declarative-then-terminate of 5) and the run-unit termination of 7).
+    /// True for a SORT or MERGE statement's guard, whose catch then disposes of every condition the runtime marked
+    /// <c>RaisedBySortMerge</c> by the verb: the applicable declarative runs, the statement is terminated and
+    /// execution continues after it — the reading <c>__IoCheckEc(…, __verbRule: true)</c> applies to the implicit
+    /// transfers' I-O statuses (docs/CONFORMANCE.md §3 D-SMA; kb/Work PB993). The mark, not the exception-name,
+    /// decides, because the rule keys on the statement that EXECUTED: <c>CobolSort</c> sets it on whatever its
+    /// statement entries raise (an EC-SORT-MERGE-* condition, an EC-LOCALE-* one from a locale-collated key), while a
+    /// condition from a statement of an input or output procedure — or the same EC-SORT-MERGE names raised by a
+    /// RELEASE or RETURN — arrives unmarked and keeps 5)/7).</summary>
+    internal static bool VerbDisposes(BoundStatement inner) => inner is BoundSort or BoundMerge;
 
     // ── RAISE (§14.9.29) ─────────────────────────────────────────────────────────────────────────────────────
 

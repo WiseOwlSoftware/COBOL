@@ -240,7 +240,7 @@ public sealed class CollationKeyCacheTests
         string[] records = ["ölm  ", "zed  ", "åsa  ", "abc  ", "ärlig", "Zoe  ", "øre  ", "aa   ", "ÅSA  ", "zed  "];
         const string name = "SD-CACHE-TEST";
         CobolSort.Init(name, seq, national: null);   // §14.6.6 r5 — Init IS the statement-start snapshot
-        foreach (var r in records) CobolSort.Release(name, r);
+        foreach (var r in records) CobolSort.Release(name, r, 0, 0, int.MaxValue);
         var keys = new[] { new CobolSort.Key(0, 5, Descending: false, Class: CobolSort.KeyClass.Alphanumeric, default) };
         var before = CollationKeyCache.For(seq.Resolve()).Misses;
         CobolSort.Sort(name, keys, duplicatesInOrder: true);

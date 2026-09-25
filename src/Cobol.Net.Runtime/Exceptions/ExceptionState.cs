@@ -840,6 +840,61 @@ public sealed class ExceptionEngine
     public void SortMergeReturnError(string detail) =>
         FatalIfEnabled(SortMergeReturnChecking, "EC-SORT-MERGE-RETURN", detail);
 
+    // ──── THE SORT-MERGE STATEMENT conditions (kb/Work PB1036) ──────────────────────────────────────────────
+    //
+    // All four are Table 13 FATAL and each is raised by CobolSort at the point its rule names. When the statement
+    // that raised one is the SORT or MERGE itself, §14.6.13.1.3 2) hands the disposition to that verb's rules —
+    // the statement is terminated and execution continues after it (EcEmitter's statement guard). With checking
+    // OFF nothing is raised (§14.6.13.1.1) and the statement proceeds as CobolSort documents for each.
+
+    /// <summary>True while the currently-executing statement has EC-SORT-MERGE-ACTIVE checking enabled (fatal).</summary>
+    public bool SortMergeActiveChecking
+    {
+        get => _checking.SortMergeActive;
+        set => _checking.SortMergeActive = value;
+    }
+
+    /// <summary>Raise EC-SORT-MERGE-ACTIVE (§14.9.40.4 GR10 / GR13, §14.9.24.4 GR8; Table 13 Fatal) when checking
+    /// is enabled; otherwise return.</summary>
+    public void SortMergeActiveError(string detail) =>
+        FatalIfEnabled(SortMergeActiveChecking, "EC-SORT-MERGE-ACTIVE", detail);
+
+    /// <summary>True while the currently-executing statement has EC-SORT-MERGE-FILE-OPEN checking enabled (fatal).</summary>
+    public bool SortMergeFileOpenChecking
+    {
+        get => _checking.SortMergeFileOpen;
+        set => _checking.SortMergeFileOpen = value;
+    }
+
+    /// <summary>Raise EC-SORT-MERGE-FILE-OPEN (§14.9.40.4 GR9, §14.9.24.4 GR7 / GR12; Table 13 Fatal) when
+    /// checking is enabled; otherwise return.</summary>
+    public void SortMergeFileOpenError(string detail) =>
+        FatalIfEnabled(SortMergeFileOpenChecking, "EC-SORT-MERGE-FILE-OPEN", detail);
+
+    /// <summary>True while the currently-executing statement has EC-SORT-MERGE-RELEASE checking enabled (fatal).</summary>
+    public bool SortMergeReleaseChecking
+    {
+        get => _checking.SortMergeRelease;
+        set => _checking.SortMergeRelease = value;
+    }
+
+    /// <summary>Raise EC-SORT-MERGE-RELEASE (§13.18.43.4 GR14 b) / GR19 b), §14.9.40.4 GR12 b), §14.9.24.4
+    /// GR7 b); Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void SortMergeReleaseError(string detail) =>
+        FatalIfEnabled(SortMergeReleaseChecking, "EC-SORT-MERGE-RELEASE", detail);
+
+    /// <summary>True while the currently-executing statement has EC-SORT-MERGE-SEQUENCE checking enabled (fatal).</summary>
+    public bool SortMergeSequenceChecking
+    {
+        get => _checking.SortMergeSequence;
+        set => _checking.SortMergeSequence = value;
+    }
+
+    /// <summary>Raise EC-SORT-MERGE-SEQUENCE (§14.9.24.4 GR6; Table 13 Fatal) when checking is enabled;
+    /// otherwise return.</summary>
+    public void SortMergeSequenceError(string detail) =>
+        FatalIfEnabled(SortMergeSequenceChecking, "EC-SORT-MERGE-SEQUENCE", detail);
+
     // ──── THE REPORT WRITER's four statement-precondition conditions (kb/Work PB326) ───────────────
     //
     // All four are Table 13 FATAL and all four are LENIENT with checking off, and -- as with EC-FLOW-SEARCH above
@@ -1529,6 +1584,46 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.SortMergeReturnError"/>
     public static void SortMergeReturnError(string detail) => E.SortMergeReturnError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeActiveChecking"/>
+    public static bool SortMergeActiveChecking
+    {
+        get => E.SortMergeActiveChecking;
+        set => E.SortMergeActiveChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeActiveError"/>
+    public static void SortMergeActiveError(string detail) => E.SortMergeActiveError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeFileOpenChecking"/>
+    public static bool SortMergeFileOpenChecking
+    {
+        get => E.SortMergeFileOpenChecking;
+        set => E.SortMergeFileOpenChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeFileOpenError"/>
+    public static void SortMergeFileOpenError(string detail) => E.SortMergeFileOpenError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeReleaseChecking"/>
+    public static bool SortMergeReleaseChecking
+    {
+        get => E.SortMergeReleaseChecking;
+        set => E.SortMergeReleaseChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeReleaseError"/>
+    public static void SortMergeReleaseError(string detail) => E.SortMergeReleaseError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeSequenceChecking"/>
+    public static bool SortMergeSequenceChecking
+    {
+        get => E.SortMergeSequenceChecking;
+        set => E.SortMergeSequenceChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.SortMergeSequenceError"/>
+    public static void SortMergeSequenceError(string detail) => E.SortMergeSequenceError(detail);
 
     /// <inheritdoc cref="ExceptionEngine.FlowReportChecking"/>
     public static bool FlowReportChecking

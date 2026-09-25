@@ -6,6 +6,7 @@
   "pb460_set_program_pointer_effect",
   "pb548_set_restricted_pointer_plain",
   "pb349_sort_merge_flow_ec",
+  "pb1036_sort_merge_statement_ec",
   "pb1006_source_format_in_false_path",
   "pb1001_line_next_page",
   "pb1017_repository_identical_repeats",

@@ -41,9 +41,9 @@ public sealed class SortNumericKeyLaneTests
         var seven = new byte[16];
         seven[15] = 7;
         CobolSort.Init(name);
-        CobolSort.Release(name, Rec(Enumerable.Repeat((byte)0xFF, 16).ToArray(), "ALL"));   // 2^128 - 1
-        CobolSort.Release(name, Rec(seven, "SEV"));
-        CobolSort.Release(name, Rec(Enumerable.Repeat((byte)0x80, 16).ToArray(), "HI8"));   // >= 2^127
+        CobolSort.Release(name, Rec(Enumerable.Repeat((byte)0xFF, 16).ToArray(), "ALL"), 0, 0, int.MaxValue);   // 2^128 - 1
+        CobolSort.Release(name, Rec(seven, "SEV"), 0, 0, int.MaxValue);
+        CobolSort.Release(name, Rec(Enumerable.Repeat((byte)0x80, 16).ToArray(), "HI8"), 0, 0, int.MaxValue);   // >= 2^127
         var keys = new[] { new CobolSort.Key(0, 16, descending, CobolSort.KeyClass.Numeric, Binary(16, signed: false)) };
         CobolSort.Sort(name, keys, duplicatesInOrder: true);
         var order = new List<string>();

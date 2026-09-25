@@ -94,6 +94,22 @@ public static class CobolSort
     /// phase — a USE declarative that runs from an implicit transfer is not in the range of either procedure.</summary>
     private enum ProcedurePhase { None, Input, Output }
 
+    /// <summary>⛔ THE SORT/MERGE STATEMENT'S OWN RAISES ARE MARKED HERE (kb/Work PB1036). The five entries the
+    /// statement itself executes — <see cref="Init(string, CobolCollation?, CobolCollation?)"/>, <see cref="FileNotOpen"/>,
+    /// the implicit <see cref="Release(string, string, int, int, int)"/>, <see cref="Sort"/> and <see cref="Merge"/> —
+    /// run their bodies under this exception FILTER, which sets <see cref="CobolFatalException.RaisedBySortMerge"/>
+    /// and declines the catch, so the condition unwinds with its stack intact. ISO §14.6.13.1.3 2) ("If the
+    /// executed statement is a MERGE or SORT statement, then the rules for those statements apply") keys on the
+    /// statement that EXECUTED, and only this code knows it: an EC-SORT-MERGE-* condition, but equally an
+    /// EC-LOCALE-* condition a locale-collated key raises while the sequence phase compares records. The RELEASE and
+    /// RETURN statement entries are deliberately not marked — the executed statement there is the RELEASE or the
+    /// RETURN — and neither is anything raised by a statement of an input or output procedure.</summary>
+    private static bool RaisedByTheStatement(CobolFatalException e)
+    {
+        e.RaisedBySortMerge = true;
+        return false;
+    }
+
     private static readonly Dictionary<string, Store> Files = new(StringComparer.OrdinalIgnoreCase);
 
     private static Store Get(string name)
@@ -112,9 +128,24 @@ public static class CobolSort
     /// statement has no effect on the processing of that SORT or MERGE statement" — a SET LOCALE in an INPUT
     /// PROCEDURE must not move the sequence the sort phase uses), and <see cref="Sort"/> / <see cref="Merge"/> use
     /// the snapshots. §14.9.40.4 GR5 determines the two SEPARATELY: <paramref name="collation"/> applies to key
-    /// data items of class alphabetic and alphanumeric, <paramref name="national"/> to those of class national.</summary>
+    /// data items of class alphabetic and alphanumeric, <paramref name="national"/> to those of class national.
+    /// <para>⛔ EC-SORT-MERGE-ACTIVE is tested HERE, before the store is touched (kb/Work PB1036): §14.9.40.4 GR10
+    /// ("If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT
+    /// statements, the EC-SORT-MERGE-ACTIVE exception condition is set to exist"), GR13 and §14.9.24.4 GR8 (the
+    /// output procedure's MERGE, RELEASE or format 1 SORT) all forbid a SORT/MERGE while any procedure of an
+    /// executing SORT/MERGE runs — whatever file it names. A raise therefore leaves an enclosing statement on the
+    /// same file intact. With checking off the results are undefined (GR10) and the statement runs.</para></summary>
     public static void Init(string name, CobolCollation? collation, CobolCollation? national)
     {
+        try { InitCore(name, collation, national); }
+        catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
+    }
+
+    private static void InitCore(string name, CobolCollation? collation, CobolCollation? national)
+    {
+        if (ExceptionState.SortMergeActiveChecking && AnyProcedureRunning(ProcedurePhase.Input, ProcedurePhase.Output))
+            ExceptionState.SortMergeActiveError($"SORT/MERGE on {name}: executed within the range of an input or "
+                + "output procedure of an executing SORT/MERGE statement (ISO §14.9.40.4 GR10 / GR13, §14.9.24.4 GR8)");
         var f = Get(name);
         f.Records.Clear();
         f.StreamStarts.Clear();
@@ -143,17 +174,61 @@ public static class CobolSort
     /// is set to exist." The test precedes the release, so a raise leaves the record unreleased; with checking off
     /// nothing is raised (§14.6.13.1.1) and the record is released as GR2 describes — a store with no executing
     /// SORT is discarded by the next <see cref="Init(string, CobolCollation?, CobolCollation?)"/>. The implicit
-    /// USING transfer (§14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).</summary>
+    /// USING transfer (§14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).
+    /// <para>Two more tests precede the release (kb/Work PB1036). <b>EC-SORT-MERGE-ACTIVE</b>: a RELEASE within
+    /// the range of any executing output procedure (§14.9.40.4 GR13, §14.9.24.4 GR8). ⚠ DETERMINATION: the same
+    /// RELEASE also fails GR1, and §14.6.13.1.1 leaves which one is set to exist undefined ("if more than one
+    /// exception is detected during the execution of a statement, the one that is set to exist is undefined");
+    /// -ACTIVE, the rule written for exactly this range, is tested first, and GR1's general "any other time" only
+    /// when -ACTIVE is not raised (docs/CONFORMANCE.md §3 D-SMA). <b>EC-SORT-MERGE-RELEASE</b>: the record's
+    /// size — <paramref name="size"/>, the §13.18.43.4 GR13 a) DEPENDING ON value, else the image's own length
+    /// (GR13 b)/c)) — outside <paramref name="min"/>..<paramref name="max"/>: "If a RELEASE statement is being
+    /// executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE
+    /// statement is unsuccessful" (§13.18.43.4 GR14 b) / GR19 b)), so a raise releases nothing. The record is
+    /// sliced to <paramref name="size"/> HERE, after the test, never by an emitted reference modification — a
+    /// DEPENDING ON value past the record area would otherwise raise EC-BOUND-REF-MOD, a condition no rule of the
+    /// RELEASE names. With checking off the record releases at <paramref name="size"/> exactly as the lenient
+    /// reference modification sliced it before (<see cref="Released"/>).</para></summary>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is released
     /// (determination D-FRA (v); kb/Work PB1053) — it travels with the record through the sort, as a file frame
     /// carries it.</param>
-    public static void ReleaseStatement(string name, string image, RecordExtents? extents = null)
+    public static void ReleaseStatement(string name, string image, int min, int max, int? size = null,
+        RecordExtents? extents = null)
     {
+        if (ExceptionState.SortMergeActiveChecking && AnyProcedureRunning(ProcedurePhase.Output))
+            ExceptionState.SortMergeActiveError($"RELEASE for sort file {name}: executed within the range of an "
+                + "output procedure of an executing SORT/MERGE statement (ISO §14.9.40.4 GR13, §14.9.24.4 GR8)");
         if (!Files.TryGetValue(name, out var f) || f.Phase != ProcedurePhase.Input)
             ExceptionState.FlowReleaseError($"RELEASE for sort file {name}: not within the range of an input "
                 + "procedure being executed by a SORT statement that references it (ISO §14.9.32.4 GR1)");
+        image ??= "";
+        int bytes = size ?? image.Length;
+        if (bytes < min || bytes > max)
+            ExceptionState.SortMergeReleaseError($"RELEASE for sort file {name}: a {bytes}-byte record is outside "
+                + $"the record range {min} to {max} (ISO §13.18.43.4 GR14 b) / GR19 b))");
         if (f is null) return;   // no SORT executing: there is no sort file to release to — never a stranded store
-        f.Records.Add(new StoredFrame(image ?? "", extents));
+        f.Records.Add(new StoredFrame(size is { } s ? Released(image, s) : image, extents));
+    }
+
+    /// <summary>The record area image at the §13.18.43.4 GR13 a) length <paramref name="size"/> — the lenient
+    /// reference modification <c>(1:size)</c> this slicing replaced, kept byte-identical for checking off: a
+    /// negative size is the whole area, zero is the zero-length record, and a size past the area space-extends.</summary>
+    private static string Released(string image, int size) =>
+        size < 0 ? image
+        : size == 0 ? ""
+        : size <= image.Length ? image[..size]
+        : image.PadRight(size);
+
+    /// <summary>Is a procedure of an executing SORT/MERGE statement — in one of <paramref name="phases"/> —
+    /// running? The -ACTIVE rules (§14.9.40.4 GR10 / GR13, §14.9.24.4 GR8) name "the range of the input
+    /// procedure" / "the range of the output procedure" of ANY executing statement, not only of the file the
+    /// offending statement names. Asked only while EC-SORT-MERGE-ACTIVE checking is enabled.</summary>
+    private static bool AnyProcedureRunning(params ReadOnlySpan<ProcedurePhase> phases)
+    {
+        foreach (var store in Files.Values)
+            if (phases.Contains(store.Phase))
+                return true;
+        return false;
     }
 
     /// <summary>The RETURN STATEMENT (ISO §14.9.34.4). GR1: a RETURN "may be executed only when it is within the
@@ -163,9 +238,15 @@ public static class CobolSort
     /// the current output procedure. If such a RETURN statement is executed, the EC-SORT-MERGE-RETURN exception
     /// condition is set to exist and the results of the execution of the RETURN statement are undefined." Both
     /// tests precede the retrieval; with checking off the store's deterministic answer stands (at end again, or
-    /// at end for a file with no executing statement). The implicit GIVING transfer uses <see cref="Return"/>.</summary>
+    /// at end for a file with no executing statement). The implicit GIVING transfer uses <see cref="Return"/>.
+    /// <para>EC-SORT-MERGE-ACTIVE is tested first (kb/Work PB1036): a RETURN within the range of any executing
+    /// input procedure (§14.9.40.4 GR10), the same determination as <see cref="ReleaseStatement"/>'s — the rule
+    /// written for that range wins over GR1's general "any other time" (docs/CONFORMANCE.md §3 D-SMA).</para></summary>
     public static bool ReturnStatement(string name, out string image)
     {
+        if (ExceptionState.SortMergeActiveChecking && AnyProcedureRunning(ProcedurePhase.Input))
+            ExceptionState.SortMergeActiveError($"RETURN for sort-merge file {name}: executed within the range of "
+                + "an input procedure of an executing SORT statement (ISO §14.9.40.4 GR10)");
         if (!Files.TryGetValue(name, out var f) || f.Phase != ProcedurePhase.Output)
             ExceptionState.FlowReturnError($"RETURN for sort-merge file {name}: not within the range of an output "
                 + "procedure being executed by a MERGE or SORT statement that references it (ISO §14.9.34.4 GR1)");
@@ -191,17 +272,62 @@ public static class CobolSort
     }
 
     /// <summary>RELEASE one record image at its released length (ISO §14.9.32 GR2; §14.9.40 GR12b for the implicit
-    /// USING release) — the UNCHECKED primitive: the RELEASE statement's §14.9.32.4 GR1 test lives in
-    /// <see cref="ReleaseStatement"/>. Seam: a record size outside the SD's record range is EC-SORT-MERGE-RELEASE
-    /// (§14.9.40 GR12b), which has no raise site yet, so the store accepts the record as written.</summary>
-    public static void Release(string name, string image, RecordExtents? extents = null) =>
+    /// USING release) — the RELEASE STATEMENT's §14.9.32.4 GR1 test lives in <see cref="ReleaseStatement"/>, and
+    /// this implicit release is not a RELEASE statement. Its one test is the size rule of §14.9.40.4 GR12 b) /
+    /// §14.9.24.4 GR7 b) (kb/Work PB1036): "If the size of the record read from the file referenced by file-name-2
+    /// is larger than the largest record allowed in the file description entry for file-name-1, the
+    /// EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the SORT statement is
+    /// terminated", and the smaller-than-smallest twin when file-name-1 has variable-length records — so the
+    /// caller passes <paramref name="min"/> 0 for a fixed-length sort-merge file. <paramref name="readSize"/> is
+    /// the size the record had when it was READ, not the image's length after the fixed-length fit. A raise
+    /// releases nothing and the SORT/MERGE statement's guard terminates the statement (§14.6.13.1.3 2)); with
+    /// checking off the store accepts the record as the transfer shaped it. <paramref name="extents"/> is the
+    /// record's EXTENT TABLE when a variable-length group record is released (D-FRA (v); kb/Work PB1053).</summary>
+    public static void Release(string name, string image, int readSize, int min, int max, RecordExtents? extents = null)
+    {
+        try { ReleaseCore(name, image, readSize, min, max, extents); }
+        catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
+    }
+
+    private static void ReleaseCore(string name, string image, int readSize, int min, int max, RecordExtents? extents)
+    {
+        if (readSize < min || readSize > max)
+            ExceptionState.SortMergeReleaseError($"implicit release to sort-merge file {name}: a {readSize}-byte "
+                + $"record is outside the record range {min} to {max} (ISO §14.9.40.4 GR12 b), §14.9.24.4 GR7 b))");
         Get(name).Records.Add(new StoredFrame(image ?? "", extents));
+    }
+
+    /// <summary>The EC-SORT-MERGE-FILE-OPEN test for one USING or GIVING file (kb/Work PB1036), rendered where the
+    /// rule places it: SORT at the start of the phase that processes the file — §14.9.40.4 GR9 a) "If the file
+    /// referenced by file-name-2 is in an open mode when this phase commences" and its GR9 c) twin for
+    /// file-name-3 — and MERGE for every USING and GIVING file "at the start of execution of the MERGE
+    /// statement" (§14.9.24.4 GR7 / GR12). The test precedes the implicit OPEN, so a raise leaves the program's
+    /// own connector exactly as it was. With checking off the results are undefined (SORT GR9) and the transfer
+    /// proceeds: its implicit OPEN answers '41', which the transfer rule disposes of (kb/Work PB993).</summary>
+    public static void FileNotOpen(string name, string file)
+    {
+        try { FileNotOpenCore(name, file); }
+        catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
+    }
+
+    private static void FileNotOpenCore(string name, string file)
+    {
+        if (CobolFile.OpenModeIfOpen(file) is { } mode)
+            ExceptionState.SortMergeFileOpenError($"SORT/MERGE on {name}: the USING/GIVING file {file} is open "
+                + $"({mode}) (ISO §14.9.40.4 GR9, §14.9.24.4 GR7 / GR12)");
+    }
 
     /// <summary>The sequence phase (ISO §14.9.40 GR9b): a STABLE key sort. Stability realizes GR3's DUPLICATES IN
     /// ORDER (equal keys keep USING-file / RELEASE order — the buffer holds them in exactly that order); without
     /// the phrase the relative order is undefined (GR4), so the stable result is conformant there too —
     /// <paramref name="duplicatesInOrder"/> is accepted for the call-site's traceability.</summary>
     public static void Sort(string name, Key[] keys, bool duplicatesInOrder)
+    {
+        try { SortCore(name, keys, duplicatesInOrder); }
+        catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
+    }
+
+    private static void SortCore(string name, Key[] keys, bool duplicatesInOrder)
     {
         _ = duplicatesInOrder;   // stability is unconditional — GR3 satisfied, GR4 (undefined) safely refined
         var f = Get(name);
@@ -224,10 +350,23 @@ public static class CobolSort
 
     /// <summary>The merge operation (ISO §14.9.24 GR1): a k-way merge of the pre-sorted USING streams. Equal keys
     /// take the record from the EARLIEST stream first, and within one stream the records keep their file order —
-    /// exactly GR4a/GR4b. Seam: input NOT ordered per the KEY phrases is EC-SORT-MERGE-SEQUENCE (GR6 — Fatal,
-    /// files closed, result undefined); checking is OFF by default (COBOLNET_DESIGN §18.16), and the k-way merge
-    /// then yields a deterministic stream-merge order, conformant within "undefined".</summary>
+    /// exactly GR4a/GR4b.
+    /// <para>EC-SORT-MERGE-SEQUENCE (kb/Work PB1036): §14.9.24.4 GR6 — "If the records in the file referenced by
+    /// file-name-2 and file-name-3 are not ordered as described in the ASCENDING or DESCENDING KEY clauses and the
+    /// collating sequence associated with the MERGE statement, the EC-SORT-MERGE-SEQUENCE exception condition is
+    /// set to exist, all files associated with the MERGE statement are closed, and the results of the merge
+    /// operation are undefined." Each stream is checked against the SAME key columns the merge compares with, so
+    /// "ordered" means exactly what the merge assumes. The raise precedes the merge; every USING file was closed by
+    /// its implicit CLOSE before this phase and no GIVING file is opened until after it, so "all files … are
+    /// closed" already holds. With checking off the scan is skipped and the k-way merge yields a deterministic
+    /// stream-merge order, conformant within "undefined".</para></summary>
     public static void Merge(string name, Key[] keys)
+    {
+        try { MergeCore(name, keys); }
+        catch (CobolFatalException e) when (RaisedByTheStatement(e)) { }
+    }
+
+    private static void MergeCore(string name, Key[] keys)
     {
         var f = Get(name);
         int streams = f.StreamStarts.Count;
@@ -240,6 +379,15 @@ public static class CobolSort
         }
         var merged = new List<StoredFrame>(f.Records.Count);
         var columns = KeyColumns.Build(f.Records, keys, f.Collation, f.NatCollation);
+        if (ExceptionState.SortMergeSequenceChecking)
+            for (int s = 0; s < streams; s++)
+                for (int i = pos[s] + 1; i < end[s]; i++)
+                    if (columns.Compare(i - 1, i) > 0)
+                    {
+                        ExceptionState.SortMergeSequenceError($"MERGE on {name}: record {i - pos[s] + 1} of USING "
+                            + $"file {s + 1} is out of KEY order (ISO §14.9.24.4 GR6)");
+                        break;
+                    }
         while (true)
         {
             int best = -1;

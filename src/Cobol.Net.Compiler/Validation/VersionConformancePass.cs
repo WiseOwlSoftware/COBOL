@@ -177,7 +177,8 @@ internal sealed class VersionConformancePass
     /// allowed it with conflicting rules; SORT already disallowed it). A bind-time cross-pass over the paragraph-pc
     /// ranges — a paragraph's pc IS its index in <see cref="BoundProgram.Paragraphs"/>, the same pc space as the
     /// SORT/MERGE procedure ranges (<c>SortRange</c> → the ProcedureTable). Below 2023 the runtime
-    /// EC-SORT-MERGE-ACTIVE seam is the (checking-off) net, so this fires only at ≥2023.</summary>
+    /// EC-SORT-MERGE-ACTIVE raise (CobolSort.Init, when checking is enabled — kb/Work PB1036) is the dynamic net,
+    /// so this fires only at ≥2023.</summary>
     private void GateMergeInSortMergeProc(BoundProgram prog)
     {
         if (_edition.Year < 2023) return;

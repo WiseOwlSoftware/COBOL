@@ -843,8 +843,27 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   EC-SORT-MERGE-RETURN, each a `FatalAmbientGates` row whose `QueryFor` arm is the bound RELEASE / RETURN node —
   while the implicit USING release and GIVING return keep the unchecked `Release` / `Return` primitives, because
   each verb's GR1 governs the statement the program writes. With checking off nothing is raised and the statement
-  proceeds (a RELEASE with no SORT executing has no store to release to). EC-SORT-MERGE-ACTIVE (§14.9.40.4
-  GR10/GR13, §14.9.24.4 GR8) has no raise site yet; "a statement is already executing" is this same store state.
+  proceeds (a RELEASE with no SORT executing has no store to release to).
+- **The sort-merge STATEMENT conditions are raised by the store too (kb/Work PB1036).** EC-SORT-MERGE-ACTIVE reads
+  the same phase: `Init` raises it while ANY store is in a procedure phase (§14.9.40.4 GR10/GR13, §14.9.24.4 GR8 —
+  before the store is touched, so an enclosing statement on the same file survives), `ReleaseStatement` while one is
+  in an output phase and `ReturnStatement` while one is in an input phase, ahead of the EC-FLOW-* test
+  (docs/CONFORMANCE.md §3 D-SMA). EC-SORT-MERGE-FILE-OPEN is `FileNotOpen`, emitted per file where the rule places it
+  — SORT at the start of phase a) for USING and of phase c) for GIVING (§14.9.40.4 GR9), MERGE at statement start for
+  both (§14.9.24.4 GR7/GR12) — and only when the name is enabled there. EC-SORT-MERGE-RELEASE is the record-range
+  test of `ReleaseStatement` (§13.18.43.4 GR14 b)/GR19 b), which also slices the DEPENDING ON size itself so no
+  reference modification can raise EC-BOUND-REF-MOD first) and of the implicit `Release` (§14.9.40.4 GR12 b),
+  §14.9.24.4 GR7 b) — the READ size against the SD's range, min 0 for a fixed SD). EC-SORT-MERGE-SEQUENCE is a
+  per-stream scan in `Merge` over the SAME key columns the merge compares with, run only while enabled
+  (§14.9.24.4 GR6). The statement's body after `Init` is a `try … finally { Close }`, so every way out — including
+  a raise the guard disposes of after the unwind — releases the store. `EcBinder.QueryFor`'s SORT/MERGE arms ask
+  these names AND the EC-I-O family per USING/GIVING file, which is what arms the implicit transfers'
+  `__IoCheckEc` hooks. The disposition is `EcEmitter.VerbDisposes`: a condition the SORT/MERGE statement itself
+  raised is disposed of by the verb (§14.6.13.1.3 2) — declarative, then the statement ends, the run unit
+  continues). "Itself" is MARKED by the store: `Init`, `FileNotOpen`, the implicit `Release`, `Sort` and `Merge` run
+  under an exception filter that sets `CobolFatalException.RaisedBySortMerge` (an EC-LOCALE-* from a locale-collated
+  key included), and the SORT/MERGE guard re-throws only unmarked conditions — a RELEASE or RETURN statement's raise
+  and a procedure statement's keep the general fatal disposition.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
   its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor

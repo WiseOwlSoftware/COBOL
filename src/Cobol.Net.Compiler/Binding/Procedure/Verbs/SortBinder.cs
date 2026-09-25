@@ -316,8 +316,8 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // VCR 27 (2014→2023): a MERGE newly PROHIBITED inside another MERGE's output procedure / a file-SORT's input
         // or output procedure (§14.9.24; Annex E.2 item 20) is the ≥2023 static diagnostic COBOLNET1572 — a
         // procedure-range cross-pass in VersionConformancePass.GateMergeInSortMergeProc (the paragraph-pc ranges are
-        // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE seam in CobolSort
-        // covers the dynamic case (checking OFF per COBOLNET_DESIGN §18.16).
+        // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE raise in
+        // CobolSort.Init covers the dynamic case when checking is enabled (kb/Work PB1036).
         return new BoundMerge(file, width, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file));
     }
 

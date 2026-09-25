@@ -27,7 +27,7 @@ public sealed record BoundSortMergeKey(
 /// <summary>The RECORD IS VARYING model of an SD/FD bound for the sort verbs (ISO §13.18.43): the resolved
 /// DEPENDING ON place — RELEASE takes each record's length from it (GR13a), RETURN restores each returned record's
 /// length into it (GR15) — and the min/max record sizes (the EC-SORT-MERGE-RELEASE bounds, §14.9.40 GR12b;
-/// EC checking is OFF by default per COBOLNET_DESIGN §18.16, the bounds are carried for the seam).
+/// §13.18.43.4 GR14 b) / GR19 b) for the RELEASE statement — tested by CobolSort, kb/Work PB1036).
 /// <paramref name="Depending"/> is null for a variable-length SD/FD with no DEPENDING phrase (RECORD m TO n —
 /// GR13b/c: each record then releases/writes at its own size; there is no length register to restore).</summary>
 public sealed record SortVaryingInfo(Place? Depending, int Min, int Max);

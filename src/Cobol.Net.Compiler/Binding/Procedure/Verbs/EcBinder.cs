@@ -351,6 +351,18 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
     /// (<see cref="ExceptionCatalog.IoMaskNames"/>; the emitter's per-statement mask bits).</summary>
     private static readonly string[] IoNames = ExceptionCatalog.IoMaskNames;
 
+    /// <summary>The conditions a format 1 SORT with an INPUT PROCEDURE raises itself (kb/Work PB1036): -ACTIVE
+    /// (a nested SORT, §14.9.40.4 GR10 / GR13) and -FILE-OPEN (a GIVING file, or a USING file, open when its
+    /// phase commences — §14.9.40.4 GR9).</summary>
+    private static readonly string[] SortProcedureNames = ["EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-FILE-OPEN"];
+
+    /// <summary>…and one with a USING phrase, whose implicit release also raises -RELEASE (§14.9.40.4 GR12 b)).</summary>
+    private static readonly string[] SortUsingNames = [.. SortProcedureNames, "EC-SORT-MERGE-RELEASE"];
+
+    /// <summary>The conditions a MERGE raises itself (kb/Work PB1036): -ACTIVE (§14.9.24.4 GR8), -FILE-OPEN
+    /// (GR7 / GR12), -RELEASE (GR7 b)) and -SEQUENCE (GR6).</summary>
+    private static readonly string[] MergeNames = [.. SortUsingNames, "EC-SORT-MERGE-SEQUENCE"];
+
     /// <summary>The OO fatal conditions an INVOKE raises (§14.9.23.4 GR5 EC-OO-NULL, GR7b EC-OO-METHOD).
     /// A PRECISE per-node gate, not an ambient tail one: an INVOKE is a distinguishable bound node, so the guard
     /// binds only on an actual INVOKE under <c>&gt;&gt;TURN EC-OO-* CHECKING ON</c>.</summary>
@@ -562,11 +574,34 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
                 // RELEASE / RETURN statement entries, reached from exactly these bound nodes — the implicit USING
                 // release and GIVING return use the unchecked primitives, because GR1 of each verb governs the
                 // STATEMENT the program writes. Without these arms the names reached no statement's enabled set.
+                // PB1036 adds the sort-merge STATEMENT conditions each verb's own rules name: RELEASE's record
+                // size (§13.18.43.4 GR14 b) / GR19 b)) and the -ACTIVE rule for a RELEASE in an output procedure
+                // / a RETURN in an input procedure (§14.9.40.4 GR10 / GR13, §14.9.24.4 GR8).
                 case BoundRelease:
-                    Query(["EC-FLOW-RELEASE"]);
+                    Query(["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]);
                     break;
                 case BoundReturn:
-                    Query(["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN"]);
+                    Query(["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN", "EC-SORT-MERGE-ACTIVE"]);
+                    break;
+                // The SORT / MERGE statements themselves (kb/Work PB1036). PRECISE: every raise is CobolSort's, at
+                // the point the verb's rule names — -ACTIVE at statement start (a nested SORT/MERGE, §14.9.40.4
+                // GR10 / GR13, §14.9.24.4 GR8), -FILE-OPEN before each USING / GIVING transfer (§14.9.40.4 GR9,
+                // §14.9.24.4 GR7 / GR12), -RELEASE in the implicit USING release (§14.9.40.4 GR12 b), §14.9.24.4
+                // GR7 b)), and MERGE's -SEQUENCE (§14.9.24.4 GR6). A name the statement's shape cannot raise is not
+                // asked (a SORT with no USING releases nothing implicitly).
+                // ⛔ AND THE EC-I-O FAMILY PER USING / GIVING FILE: the implicit transfers perform as-if OPEN / READ /
+                // WRITE / CLOSE statements "such that any applicable USE procedures are executed" (§14.9.40.4
+                // GR12 / GR15, §14.9.24.4 GR7 / GR12), and each renders SequentialIoEmitter.EmitUseHook, whose
+                // EC-I-O raise reads THIS statement's per-file mask. With no arm here the mask was always 0, so
+                // `>>TURN EC-I-O CHECKING ON` over a SORT USING a missing file ran no EC-I-O declarative and set
+                // no EXCEPTION-STATUS, and PB993's `__verbRule` disposition was unreachable (kb/Work PB1036).
+                case BoundSort so:
+                    Query(so.Using.Count > 0 ? SortUsingNames : SortProcedureNames);
+                    foreach (var f in so.Using.Concat(so.Giving)) Query(IoNames, f);
+                    break;
+                case BoundMerge mg:
+                    Query(MergeNames);
+                    foreach (var f in mg.Using.Concat(mg.Giving)) Query(IoNames, f);
                     break;
                 case BoundGenerate:
                     Query(GenerateNames);

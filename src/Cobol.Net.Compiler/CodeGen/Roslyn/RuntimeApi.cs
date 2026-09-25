@@ -1279,14 +1279,25 @@ internal static class RuntimeApi
     public static string SortInit(string sd, string weights, string natWeights) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights}, {natWeights})";
 
-    /// <summary>RELEASE one record image — <c>CobolSort.Release</c>.</summary>
-    public static string SortRelease(string sd, string image, string? extents = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}{(extents is null ? "" : $", {extents}")})";
+    /// <summary>The implicit USING release of one record image — <c>CobolSort.Release</c>, with the size the
+    /// record had when READ and the sort-merge file's record range (the EC-SORT-MERGE-RELEASE test, §14.9.40.4
+    /// GR12 b) / §14.9.24.4 GR7 b)), and the record's EXTENT TABLE when a variable-length group record is released
+    /// (D-FRA (v); kb/Work PB1053).</summary>
+    public static string SortRelease(string sd, string image, string readSize, int min, int max, string? extents = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}, {readSize}, {min}, {max}{(extents is null ? "" : $", extents: {extents}")})";
+
+    /// <summary>The EC-SORT-MERGE-FILE-OPEN test for one USING/GIVING file — <c>CobolSort.FileNotOpen</c>
+    /// (§14.9.40.4 GR9, §14.9.24.4 GR7 / GR12).</summary>
+    public static string SortFileNotOpen(string sd, string file) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.FileNotOpen)}({sd}, {file})";
 
     /// <summary>The RELEASE STATEMENT — <c>CobolSort.ReleaseStatement</c> (§14.9.32.4 GR1's phase test, then GR2).
-    /// The implicit USING release (§14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.</summary>
-    public static string SortReleaseStatement(string sd, string image, string? extents = null) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}{(extents is null ? "" : $", {extents}")})";
+    /// The implicit USING release (§14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.
+    /// <paramref name="min"/>..<paramref name="max"/> is the record range §13.18.43.4 GR14 / GR19 test,
+    /// <paramref name="size"/> the GR13 a) DEPENDING ON value (null: the image's own length, GR13 b)/c)) and
+    /// <paramref name="extents"/> the record's extent table (D-FRA (v); kb/Work PB1053).</summary>
+    public static string SortReleaseStatement(string sd, string image, int min, int max, string? size = null, string? extents = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}, {min}, {max}{(size is null ? "" : $", size: {size}")}{(extents is null ? "" : $", extents: {extents}")})";
 
     /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§14.9.34.4 GR1 + GR3's phase and at-end
     /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>

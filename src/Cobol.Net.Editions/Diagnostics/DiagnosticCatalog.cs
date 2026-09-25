@@ -1497,7 +1497,7 @@ public static class DiagnosticCatalog
         "At COBOL-2023 a MERGE statement is prohibited in the output procedure of another MERGE, or the input or "
         + "output procedure of a file-format SORT (the prior standard allowed it with conflicting rules; SORT "
         + "already disallowed it). A bind-time procedure-range cross-pass rejects it at --std 2023; below 2023 the "
-        + "runtime EC-SORT-MERGE-ACTIVE seam is the checking-off dynamic net.",
+        + "runtime EC-SORT-MERGE-ACTIVE raise (CobolSort, when checking is enabled) is the dynamic net.",
         "ISO §14.9.24 / Annex E.2 item 20 (VCR row 27)");
     public static readonly DiagnosticDescriptor ExceptionFileArgumentNotFile = new(
         "COBOLNET1574", "exception-file-argument-not-file", EditionSeverity.Error,

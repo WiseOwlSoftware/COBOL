@@ -557,6 +557,28 @@ of an unsupported facility.
   followed by a USE that completes normally BYPASSES that file — the other GIVING files are still written), GR12 b)
   (any WRITE exception continues only after a USE that completes normally) and both verbs' write-boundary paragraph
   (the file is closed and the statement goes on). (kb/Work PB993; golden `2002/pb993_sort_merge_transfer_termination`.)
+- **D-SMA — the sort-merge STATEMENT exception conditions (§14.9.40.4 GR9, GR10, GR12 b), GR13; §14.9.24.4 GR6,
+  GR7, GR8, GR12; §13.18.43.4 GR14 b), GR19 b); §14.6.13.1.1; §14.6.13.1.3 2))**: three readings. **(a) Which
+  condition a statement raises when it detects two.** A RETURN inside an executing input procedure fails both
+  §14.9.40.4 GR10 (EC-SORT-MERGE-ACTIVE) and §14.9.34.4 GR1 (EC-FLOW-RETURN, "any other time"); a RELEASE inside an
+  output procedure fails GR13 / MERGE GR8 and §14.9.32.4 GR1. §14.6.13.1.1: "if more than one exception is detected
+  during the execution of a statement, the one that is set to exist is undefined". COBOL.NET raises
+  **EC-SORT-MERGE-ACTIVE** when it is enabled — the rule written for exactly that range — and the EC-FLOW-* name only
+  when it is not; a RELEASE's record-range test (EC-SORT-MERGE-RELEASE) comes last.
+  **(b) The disposition when the SORT or MERGE itself raises a condition** (EC-SORT-MERGE-FILE-OPEN,
+  -SEQUENCE, -RELEASE of the implicit USING release, -ACTIVE at a nested SORT/MERGE — and any other fatal condition
+  its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §14.6.13.1.3 2) hands it to the verb, and
+  each verb rule says the statement terminates (MERGE GR6/GR7/GR12, SORT GR12 b)) or its results are undefined (SORT
+  GR9, GR10, GR13). The applicable declarative runs, the statement is terminated, and the run unit continues — the
+  reading the implicit-transfer determination above applies to I-O statuses. A terminated statement performs none of
+  its remaining implicit functions (that determination's (d)), so a USING file whose over-long record raised
+  -RELEASE is still open afterwards. The same names raised by a RELEASE or RETURN statement keep the general fatal
+  disposition (§14.6.13.1.3 5)/7)), since the executed statement is not a SORT or MERGE. **(c) With checking off**
+  nothing is raised (§14.6.13.1.1) and the statement proceeds: an open USING/GIVING file meets its implicit OPEN's
+  '41', an out-of-range record is released as shaped (a DEPENDING ON size slices or space-extends the record area as
+  the lenient reference modification `(1:size)` would), an out-of-order MERGE input merges in stream order, and a
+  nested SORT/MERGE runs. Every one of those results is "undefined" in its rule. (kb/Work PB1036; golden
+  `2002/pb1036_sort_merge_statement_ec`.)
 - **Compile-time arithmetic mode (§7.3.6.2 SR2 / §7.3.6.3 GR2 — Annex E.2 item 6; the required §4.2.16 implementor
   documentation)**: this determination is A.1 item 29 in §7 — .NET `System.Decimal` for every compile-time
   arithmetic expression (constant entries and directive operands alike), round-half-even intermediate rounding, a

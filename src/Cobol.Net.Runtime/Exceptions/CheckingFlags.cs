@@ -150,6 +150,24 @@ public struct CheckingFlags
     /// condition for its file has occurred (§14.9.34.4 GR3; kb/Work PB349).</summary>
     public bool SortMergeReturn;
 
+    /// <summary>EC-SORT-MERGE-ACTIVE — a MERGE, RETURN or format 1 SORT executed within the range of a SORT's
+    /// input procedure, or a MERGE, RELEASE or format 1 SORT within the range of a SORT/MERGE output procedure
+    /// (§14.9.40.4 GR10 / GR13, §14.9.24.4 GR8; kb/Work PB1036).</summary>
+    public bool SortMergeActive;
+
+    /// <summary>EC-SORT-MERGE-FILE-OPEN — a USING or GIVING file in an open mode when its SORT phase commences
+    /// or when the MERGE statement starts (§14.9.40.4 GR9, §14.9.24.4 GR7 / GR12; kb/Work PB1036).</summary>
+    public bool SortMergeFileOpen;
+
+    /// <summary>EC-SORT-MERGE-RELEASE — a released record's size outside the sort-merge file's record range, by
+    /// a RELEASE statement (§13.18.43.4 GR14 b) / GR19 b)) or by the implicit USING release (§14.9.40.4 GR12 b),
+    /// §14.9.24.4 GR7 b); kb/Work PB1036).</summary>
+    public bool SortMergeRelease;
+
+    /// <summary>EC-SORT-MERGE-SEQUENCE — a MERGE USING file whose records are not ordered as the KEY phrases
+    /// and the statement's collating sequence describe (§14.9.24.4 GR6; kb/Work PB1036).</summary>
+    public bool SortMergeSequence;
+
     /// <summary>EC-REPORT-ACTIVE — an INITIATE of a report that is already in the active state
     /// (§14.9.21.4 GR2).</summary>
     public bool ReportActive;

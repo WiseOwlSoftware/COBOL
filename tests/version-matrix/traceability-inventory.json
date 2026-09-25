@@ -26316,13 +26316,13 @@
   "ordinal": 14,
   "subject": "RECORD clause",
   "rule-digest": "d956a629e464",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/CobolSort.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/CobolSort.cs; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitRelease",
+  "test-ref": "conformance:2002/pb1036_sort_merge_statement_ec; conformance:negative/pb1036-sort-merge-turn-at-85; unit:SortMergeStatementEcTests.ReleaseStatement_SizeOutsideTheRange_IsUnsuccessful_AndLenientWhenUnchecked",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Owned by kb/Work PB1036. cite.py --check 13.18.43.4 GR14 b) OK. a) CONFORMS: WRITE L=3/21 and REWRITE L=30 below/above FROM 5 TO 20 answer 44 unsuccessful (probe/record-clause/p4.cob), and with `>>TURN EC-I-O CHECKING ON` the run unit reports 'EC-I-O-LOGIC-ERROR (fatal): I-O status 44' (p4b.cob). b) DIVERGES: an SD `RECORD IS VARYING IN SIZE FROM 2 TO 20 DEPENDING ON L` RELEASE with L=1 is accepted and the record is RETURNed ('C', p6.cob), EXCEPTION-STATUS blank; expected unsuccessful RELEASE + EC-SORT-MERGE-RELEASE. OWNED by kb/Work PB1036 (OPEN, claims this row: the sort-merge exception family has no raise site) - not re-reported. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (the exception-condition wording; 85 had only the I-O status)",
-  "state": "GAP"
+  "notes": "cite.py --check 13.18.43.4 \"If a RELEASE statement is being executed, the EC-SORT-MERGE-RELEASE exception condition is set to exist and the execution of the RELEASE statement is unsuccessful\" -> OK 14). a) CONFORMS as adjudicated (WRITE/REWRITE 44 + EC-I-O-LOGIC-ERROR). b) now CONFORMS: CobolSort.ReleaseStatement tests the GR13 size (the DEPENDING ON value, else the image length) against integer-2..integer-3 BEFORE releasing and raises EC-SORT-MERGE-RELEASE, the record unreleased; the runtime slices the DEPENDING size itself so no EC-BOUND-REF-MOD precedes it. Golden case F (VLEN 9 outside 2 TO 5 -> RS=EC-SORT-MERGE-RELEASE; VLEN 3 -> nothing), unit pins the unsuccessful release and the unchecked byte-identical slice. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.43.4-15",
@@ -26391,13 +26391,13 @@
   "ordinal": 19,
   "subject": "RECORD clause",
   "rule-digest": "f903a04fd0c9",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/CobolSort.cs",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Runtime/IO/FileConnector.cs#Stored; src/Cobol.Net.Runtime/IO/CobolSort.cs; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RecordRange",
+  "test-ref": "conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.ReleaseStatement_SizeOutsideTheRange_IsUnsuccessful_AndLenientWhenUnchecked",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Owned by kb/Work PB1036. cite.py --check 13.18.43.4 GR19. a) CONFORMS: Format 3 `RECORD CONTAINS 5 TO 20` over an ODO record, WRITE of 4 bytes and 24 bytes answer 44 unsuccessful (probe/record-clause/p4.cob F3 N2/N22), 12 bytes 00; EC-I-O-LOGIC-ERROR raised under checking (p4b.cob). b) RELEASE outside integer-4/5 is not refused - the same missing raise site as GR14 b); OWNED by kb/Work PB1036 (OPEN, claims GR-13.18.43.4-19) - not re-reported. || Editions (adjudicator's statement, normalized to 2002,2014,2023 by registrar 14e): 2002, 2014, 2023 (exception-condition wording)",
-  "state": "GAP"
+  "notes": "cite.py --check 13.18.43.4 \"If the number of bytes in the logical record to be written is less than integer-4 or greater than integer-5\" -> OK 19). a) CONFORMS as adjudicated. b) now CONFORMS: a Format 3 SD (RECORD CONTAINS 5 TO 20 over an ODO record) is variable-length (D-FRA) and its VaryMin/VaryMax reach ReleaseStatement; probe w59c/p/sf3.cob: S1-N 0 (4 bytes) -> DECL EC-SORT-MERGE-RELEASE, S1-N 8 (12 bytes) -> nothing. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "SR-13.18.44.3-1",
@@ -32541,13 +32541,13 @@
   "ordinal": 2,
   "subject": "Exception conditions",
   "rule-digest": "6a1eeb0efce2",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor",
-  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#VerbDisposes; src/Cobol.Net.Runtime/IO/CobolSort.cs#RaisedByTheStatement; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/EcBinder.cs#QueryFor",
+  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.TheStatementsOwnRaise_IsMarked_TheReleaseStatementsIsNot",
   "derivation": "",
   "editions": "2002, 2014, 2023",
-  "notes": "OWNED BY kb/Work PB1036 (open). Rule: §14.6.13.1.3 2) (cite.py --check 14.6.13.1.3 \"If the executed statement is a MERGE or SORT statement, then the rules for those statements apply\" -> OK 2)). Code: the SORT/MERGE implicit OPEN/READ/WRITE transfers call __IoCheckEc with __verbRule=true, which suppresses the run-unit termination (#5/#7) and hands the fatal disposition to SortEmitter.EmitDisposition over the RuleFor table (terminate the statement / bypass the file / continue, per §14.9.40.4 GR12/GR15/GR17 and §14.9.24.4 GR7/GR12). The golden pins nine legs including leg 9 (checking enabled, the verb's rule still wins), expected values derived from the verb rules. PARTIAL because the rule's other population - fatal conditions the SORT/MERGE statement itself raises (the EC-SORT-MERGE-* family: FILE-OPEN / SEQUENCE / ACTIVE / RELEASE) - has NO raise site, so the disposition for them is unverifiable; that gap is owned by the open register note PB1036 (with drift-test note PB1037) and is not re-reported here. || editions as adjudicated: 2002, 2014, 2023 (EC model introduced by ISO 2002)",
-  "state": "GAP"
+  "notes": "cite.py --check 14.6.13.1.3 \"If the executed statement is a MERGE or SORT statement, then the rules for those statements apply\" -> OK 2). The population the adjudicator found unverifiable now exists and is disposed of by the verb (kb/Work PB1036): CobolSort marks every fatal condition its SORT/MERGE statement entries raise (Init, FileNotOpen, the implicit Release, Sort, Merge - an exception FILTER that sets CobolFatalException.RaisedBySortMerge and declines the catch), and the SORT/MERGE statement guard (EcEmitter.VerbDisposes) runs the declarative and then terminates the statement instead of re-throwing, for a marked condition only. The rule keys on the statement that EXECUTED, so the mark - not the exception-name - decides: an EC-LOCALE-* raised by a locale-collated key during the sequence phase is marked (the filter wraps Sort/Merge; not separately witnessed), while the same EC-SORT-MERGE-ACTIVE raised by a RELEASE statement, or anything raised by a statement of a procedure range, stays unmarked and keeps 5)/7) (unit TheStatementsOwnRaise_IsMarked_TheReleaseStatementsIsNot). Golden cases A, B, C, E, G: the D-V declarative completes NORMALLY and control still returns after the statement. The EC-I-O half is reachable at last: EcBinder.QueryFor asks the EC-I-O family per USING/GIVING file, arming the __IoCheckEc(__verbRule: true) hooks that had a zero mask before (golden case H: IO=EC-I-O-PERMANENT-ERROR, then H US=35). docs/CONFORMANCE.md §3 D-SMA (b).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.6.13.1.3-3",
@@ -39951,13 +39951,13 @@
   "ordinal": 6,
   "subject": "MERGE statement",
   "rule-digest": "dfe2634e832e",
-  "verdict": "DIVERGES",
+  "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Runtime/IO/CobolSort.cs#Merge; src/Cobol.Net.Runtime/Exceptions/ExceptionCatalog.cs",
-  "test-ref": "",
+  "test-ref": "conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Merge_AnOutOfOrderStream_RaisesSequence_OnlyWhenChecked",
   "derivation": "",
   "editions": "2002, 2014, 2023",
-  "notes": "OWNED BY kb/Work PB1036 (open). Rule: 'If the records in the file referenced by file-name-2 and file-name-3 are not ordered as described in the ASCENDING or DESCENDING KEY clauses and the collating sequence associated with the MERGE statement, the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed, and the results of the merge operation are undefined.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 6)). Code: CobolSort.Merge is a plain k-way merge with no order check ('Seam' comment); EC-SORT-MERGE-SEQUENCE is registered in ExceptionCatalog (L3, Fatal) and raised nowhere (grep of src: no raise site). With checking off the undefined result is conformant; with checking on it is not. Probe probe/merge-p2/m4.cob (`>>TURN EC-ALL CHECKING ON`, USING I1 {CCC, AAA} unordered, I2 {BBB}, USE AFTER EXCEPTION CONDITION EC-SORT-MERGE): records BBB, CCC, AAA returned, declarative never ran, FUNCTION EXCEPTION-STATUS after the statement is spaces; spec-derived expected: EC-SORT-MERGE-SEQUENCE set (declarative runs, EXCEPTION-STATUS = 'EC-SORT-MERGE-SEQUENCE'), files closed. OWNED by open kb/Work PB1036 (inventory_rows includes GR-14.9.24.4-6) - not re-filed. || editions as adjudicated: 2002, 2014, 2023 for the exception condition (EC-SORT-MERGE-SEQUENCE belongs to the 2002 exception-condition model); the ordering precondition itself is 85+",
-  "state": "GAP"
+  "notes": "cite.py --check 14.9.24.4 \"the EC-SORT-MERGE-SEQUENCE exception condition is set to exist, all files associated with the MERGE statement are closed\" -> OK 6). CobolSort.Merge scans each USING stream with the SAME key columns the merge compares with and raises EC-SORT-MERGE-SEQUENCE before merging; every USING file was closed by its implicit CLOSE and no GIVING file is open yet, so \"all files ... are closed\" holds. Golden case C (M-A = BBB, AAA) -> SM=EC-SORT-MERGE-SEQUENCE, the output procedure never runs; re-probe of merge-p2/m4 shape (w59c/p/mseq.cob) -> DECL EC-SORT-MERGE-SEQUENCE. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.24.4-7",
@@ -39966,13 +39966,13 @@
   "ordinal": 7,
   "subject": "MERGE statement",
   "rule-digest": "d935b6023524",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor",
-  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_merge_using_sharing_read_only; conformance:2023/pb837_sort_implicit_io_status",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Runtime/IO/CobolSort.cs#FileNotOpen; src/Cobol.Net.Runtime/IO/CobolSort.cs#Release",
+  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_merge_using_sharing_read_only; conformance:2023/pb837_sort_implicit_io_status; conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.ImplicitRelease_TestsTheReadSize",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "PARTIAL (kb/Work PB993, w55c). MERGE USING: a) the conditional SHARING WITH READ ONLY as-if OPEN (PB714); 'If a nonfatal exception condition exists as a result of the execution of the implicit OPEN statement, the MERGE statement is terminated unless there is an applicable USE procedure that completes normally' - the hooks answer whether a procedure ran and completed normally, and SortEmitter.RuleFor terminates otherwise (pb993 legs 4, 5); a fatal OPEN or READ terminates by 9.1.13.1; b) the as-if READ per record with its own hook (PB837); c) the as-if CLOSE, whose nonfatal status continues with or without a USE procedure. RESIDUAL: the opening sentence's EC-SORT-MERGE-FILE-OPEN (a USING file already open at the start of the MERGE) and b)'s EC-SORT-MERGE-RELEASE are never raised (measured by w55c: an open file gets the OPEN's own '41' and no EC-SORT-MERGE condition; lead, kb/Work PB1036).",
-  "state": "GAP"
+  "notes": "PB993/PB714/PB837 legs as adjudicated (w55c). The RESIDUAL is closed by kb/Work PB1036: the opening sentence's EC-SORT-MERGE-FILE-OPEN is CobolSort.FileNotOpen, emitted for every USING and GIVING file at the start of the MERGE (golden case B: M-A open -> SM=EC-SORT-MERGE-FILE-OPEN, the MERGE terminates), and b)'s EC-SORT-MERGE-RELEASE is the implicit Release's test of the READ size against the SD range (the shared EmitInputFile arm; golden case G on the SORT twin, unit ImplicitRelease_TestsTheReadSize). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.24.4-L2.1",
@@ -40011,13 +40011,13 @@
   "ordinal": 8,
   "subject": "MERGE statement",
   "rule-digest": "89428c1df43c",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc; src/Cobol.Net.Runtime/IO/CobolSort.cs#Init",
+  "test-ref": "conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact",
   "derivation": "",
   "editions": "85, 2002, 2014, 2023",
-  "notes": "OWNED BY kb/Work PB1036 (open). Rule: the output procedure may be any procedure selecting/modifying/copying records RETURNed in merged order; its range is dynamic (all statements executed by transfer of control, plus declaratives run from it); 'The range of the output procedure shall not cause the execution of any MERGE, RELEASE, or the file format of the SORT statement. ... If this rule is violated, the EC-SORT-MERGE-ACTIVE exception condition is set to exist and the results of the merge operation are undefined.' (cite.py --check 14.9.24.4 -> OK §14.9.24.4 8)). First half CONFORMS: the procedure runs as a bounded dispatch with RETURN legal (EnterProcedure output phase) - probe m1.cob. Second half DIVERGES: EC-SORT-MERGE-ACTIVE is registered (ExceptionCatalog L3 Fatal) and raised nowhere. Probe probe/merge-p2/m5.cob at --std 2014 with `>>TURN EC-ALL CHECKING ON`: a MERGE executed inside the outer MERGE's output procedure runs to completion ('IN OUT-G'), EXCEPTION-STATUS stays spaces and the USE AFTER EC-SORT-MERGE declarative never runs; expected EC-SORT-MERGE-ACTIVE. A RELEASE in the range raises only RELEASE's own EC-FLOW-RELEASE (§14.9.32.4 GR1, CobolSort.ReleaseStatement), not this rule's EC-SORT-MERGE-ACTIVE. The static 2023 gate (COBOLNET1572) is lexical/span-based (open kb/Work PB812 owns its inverted-range hole). OWNED by open kb/Work PB1036 (inventory_rows includes GR-14.9.24.4-8) - not re-filed. || editions as adjudicated: 85, 2002, 2014, 2023 for the output-procedure range; the EC-SORT-MERGE-ACTIVE consequence from 2002 (exception-condition model); at 2023 a MERGE lexically in the range is also SR1-prohibited (Annex E.2 item 20, COBOLNET1572 - part 1)",
-  "state": "GAP"
+  "notes": "cite.py --check 14.9.24.4 \"The range of the output procedure shall not cause the execution of any MERGE, RELEASE, or the file format of the SORT statement\" -> OK 8). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE while ANY store is in a procedure phase (a MERGE or format 1 SORT from the range - the phase is dynamic, so a declarative run from the range counts), before touching a store; ReleaseStatement raises it while any store is in the output phase, AHEAD of EC-FLOW-RELEASE (docs/CONFORMANCE.md §3 D-SMA (a)). At 2023 COBOLNET1572 also rejects a MERGE lexically in the range. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.24.4-9",
@@ -40072,11 +40072,11 @@
   "subject": "MERGE statement",
   "rule-digest": "35599ecced8e",
   "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor",
-  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_merge_using_sharing_read_only",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitMerge; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Runtime/IO/CobolSort.cs#FileNotOpen",
+  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_merge_using_sharing_read_only; conformance:2002/pb1036_sort_merge_statement_ec",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "PARTIAL (kb/Work PB993, w55c). MERGE GIVING, every file-name-4 receiving the whole merged result: a) 'If a fatal exception condition exists as a result of this implicit OPEN statement and there is an applicable USE procedure that completes normally, processing for the file connector that caused the exception condition is bypassed' - the file's WRITE loop and CLOSE are skipped and the next GIVING file is written (pb993 leg 6); without such a procedure the default terminates (leg 7); a nonfatal OPEN is processed as if the exception did not exist; b) 'If an exception condition exists as a result of this implicit WRITE statement and there is an applicable USE procedure that completes normally, the MERGE continues execution, otherwise the MERGE statement is terminated' (leg 8; pb714 merge leg 2); the boundary write closes the file as in c). RESIDUAL: the EC-SORT-MERGE-FILE-OPEN sentence (a GIVING file already open) is never raised (lead), and a RELATIVE GIVING file is refused, so b)'s relative-key sequence is unimplemented (kb/Work PB994). Residual owned by kb/Work PB1036.",
+  "notes": "PB993/PB714 legs as adjudicated (w55c). The EC-SORT-MERGE-FILE-OPEN sentence is closed by kb/Work PB1036: CobolSort.FileNotOpen is emitted for every GIVING file at the start of the MERGE and raises before any implicit OPEN (golden case B shape; the SORT twin, case A, prints A GS=00 - the program's own connector untouched). RESIDUAL, NOT PB1036's: a RELATIVE GIVING file is refused, so b)'s relative-key sequence is unimplemented (kb/Work PB994).",
   "state": "GAP"
  },
  {
@@ -46356,13 +46356,13 @@
   "ordinal": 9,
   "subject": "SORT statement",
   "rule-digest": "45071729a244",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile",
-  "test-ref": "conformance:2023/pb837_sort_implicit_io_status",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitGivingFile; src/Cobol.Net.Runtime/IO/CobolSort.cs#FileNotOpen",
+  "test-ref": "conformance:2023/pb837_sort_implicit_io_status; conformance:2002/pb1036_sort_merge_statement_ec",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1036 (registrar 14c). Rule: three phases a) records made available (RELEASE in the input procedure / implicit READ+RELEASE for USING; 'If the file referenced by file-name-2 is in an open mode when this phase commences, the EC-SORT-MERGE-FILE-OPEN exception condition is set to exist'; file-name-2 not open when the phase ends), b) sequencing with no processing of file-name-2/-3, c) sorted records to file-name-3 or RETURN (same EC sentence for file-name-3; file-name-3 not open afterwards) (cite.py --check 14.9.40.4 OK, GR9 -- the tool labels the b)/c) paragraphs '9) a)' because the transcription does not indent them). Phase structure verified: EmitSort emits release -> SortSort -> return in that order; USING ends with the implicit CLOSE, GIVING with the implicit CLOSE (pb837, pb714, pb440). NOT met: neither EC-SORT-MERGE-FILE-OPEN sentence has a raise site (grep of src: the condition appears only in ExceptionCatalog) -- owned by open kb/Work PB1036, whose title names 'EC-SORT-MERGE-FILE-OPEN (a USING/GIVING file already open)'; ⚠ PB1036's inventory_rows list GR10/GR12/GR13 but not this row, so it should also claim GR-14.9.40.4-9. [editions as adjudicated: 1985, 2002, 2014, 2023 (the EC-SORT-MERGE-FILE-OPEN sentences 2002+)]",
-  "state": "GAP"
+  "notes": "Phase structure verified as adjudicated (pb837, pb714, pb440). Both EC-SORT-MERGE-FILE-OPEN sentences now have their raise site (kb/Work PB1036): SortEmitter.EmitSort emits CobolSort.FileNotOpen for the USING files when phase a) commences and for the GIVING files when phase c) commences (after the sequence phase, so a GIVING file the input procedure opened is caught), each before the implicit OPEN. Golden case A (G-OUT open when phase c) commences) -> SM=EC-SORT-MERGE-FILE-OPEN, A GS=00; the note's repro fopen.cob now prints DECL EC-SORT-MERGE-FILE-OPEN / AFTER GS=00. Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-10",
@@ -46371,13 +46371,13 @@
   "ordinal": 10,
   "subject": "SORT statement",
   "rule-digest": "8c09d12806d9",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReturnStatement; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReturnStatement; src/Cobol.Net.Compiler/Validation/VersionConformancePass.cs#GateMergeInSortMergeProc; src/Cobol.Net.Runtime/IO/CobolSort.cs#Init",
+  "test-ref": "conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1036 (registrar 14c). Rule: the input procedure's range includes every statement executed by transfer of control and every declarative executed from it; 'If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements, the EC-SORT-MERGE-ACTIVE exception condition is set to exist and the results of the execution of the SORT statement are undefined.' (cite.py --check 14.9.40.4 OK, GR10). The range half conforms (a bounded dynamic dispatch). The EC half has NO raise site: EC-SORT-MERGE-ACTIVE appears only in ExceptionCatalog (grep); a RETURN in the input procedure raises only RETURN's own EC-FLOW-RETURN (CobolSort.ReturnStatement's phase test), and the 2023 static COBOLNET1572 gate approximates the range as a numeric pc span. Owned by open kb/Work PB1036 (inventory_rows include this row) and PB812 (inverted-range escape of COBOLNET1572); not re-reported as a new finding. [editions as adjudicated: 1985, 2002, 2014, 2023 (EC-SORT-MERGE-ACTIVE 2002+; the MERGE prohibition is the 2023 change E.2 item 20)]",
-  "state": "GAP"
+  "notes": "cite.py --check 14.9.40.4 \"If the range of the input procedure causes the execution of any MERGE, RETURN, or format 1 SORT statements\" -> OK 10). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE for a MERGE or format 1 SORT executed while a procedure phase runs (before touching a store, so the enclosing SORT survives - golden case E: SM=EC-SORT-MERGE-ACTIVE, E-IN, then R=AAA R=BBB from the outer sort), and ReturnStatement raises it while any store is in the INPUT phase, ahead of EC-FLOW-RETURN (D-SMA (a); unit Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-11",
@@ -46401,13 +46401,13 @@
   "ordinal": 12,
   "subject": "SORT statement",
   "rule-digest": "1802fc7870c4",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen",
-  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_sort_using_sharing_read_only; conformance:2023/pb837_sort_implicit_io_status; conformance:2023/pb367b_sort_use_not_normal; conformance:negative/pb993-sort-merge-transfer-termination-below-2002",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitInputFile; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#RuleFor; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitDisposition; src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitImplicitOpen; src/Cobol.Net.Runtime/IO/CobolSort.cs#Release",
+  "test-ref": "conformance:2002/pb993_sort_merge_transfer_termination; conformance:2023/pb714_sort_using_sharing_read_only; conformance:2023/pb837_sort_implicit_io_status; conformance:2023/pb367b_sort_use_not_normal; conformance:negative/pb993-sort-merge-transfer-termination-below-2002; conformance:2002/pb1036_sort_merge_statement_ec; unit:SortMergeStatementEcTests.ImplicitRelease_TestsTheReadSize",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "PARTIAL (kb/Work PB993, w55c). SORT USING: a) the as-if OPEN INPUT carries SHARING WITH READ ONLY exactly when the file-control entry has the ALL phrase (PB714); a nonfatal status continues with or without a USE procedure; b) each record obtained by the governed as-if READ NEXT IGNORING LOCK AT END, its failure offered to the USE procedure with its own status (PB837), and a FATAL status - of the OPEN or the READ - terminates the SORT ('If a fatal exception condition exists for file-name-1, the SORT is terminated', read as the USING file: the sort file has no I-O status) through SortEmitter.RuleFor; c) the as-if CLOSE with its own hook. Varying records release at their read size. RESIDUAL: b)'s EC-SORT-MERGE-RELEASE (a record larger/smaller than the SD's record range sets the condition and terminates the SORT) is never raised - the runtime store takes the record (kb/Work PB1036, filed by registrar #13 from the w55c lead).",
-  "state": "GAP"
+  "notes": "PB993/PB714/PB837 legs as adjudicated (w55c). The RESIDUAL is closed by kb/Work PB1036: the implicit USING release passes the size the record had when READ (CobolFile.LastReadLength) and the SD range (VaryMin..VaryMax, else 0..record width - the smaller-than-smallest test applies only to a variable-length SD) to CobolSort.Release, which raises EC-SORT-MERGE-RELEASE; the SORT/MERGE guard then terminates the statement (§14.6.13.1.3 2)). Golden case G: W5's 5-byte record into the 3-byte SF -> RS=EC-SORT-MERGE-RELEASE, the output procedure never runs, W5 still open (G WS=00, determination (d)). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-13",
@@ -46416,13 +46416,13 @@
   "ordinal": 13,
   "subject": "SORT statement",
   "rule-digest": "4c4c6e20da78",
-  "verdict": "DIVERGES",
-  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/CodeGen/Verbs/SortEmitter.cs#EmitSort; src/Cobol.Net.Runtime/IO/CobolSort.cs#ReleaseStatement; src/Cobol.Net.Runtime/IO/CobolSort.cs#Init",
+  "test-ref": "unit:SortMergeStatementEcTests.Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing; unit:SortMergeStatementEcTests.Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact; conformance:2002/pb1036_sort_merge_statement_ec",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "kb/Work PB1036 (registrar 14c). Rule: the output procedure's range (dynamic, incl. declaratives) and 'If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement, the EC-SORT-MERGE-ACTIVE exception condition is set to exist and the results of the execution of the SORT statement are undefined.' (cite.py --check 14.9.40.4 OK, GR13). The range half conforms (bounded dispatch; RETURN supplies records in sorted order). The EC half has no raise site (a RELEASE here raises only RELEASE's own EC-FLOW-RELEASE via CobolSort.ReleaseStatement's phase test). Owned by open kb/Work PB1036 (inventory_rows include this row); not re-reported. [editions as adjudicated: 1985, 2002, 2014, 2023 (EC-SORT-MERGE-ACTIVE 2002+)]",
-  "state": "GAP"
+  "notes": "cite.py --check 14.9.40.4 \"If the range of the output procedure causes the execution of any MERGE, RELEASE, or format 1 SORT statement\" -> OK 13). The range half CONFORMS as adjudicated. The EC half now CONFORMS: CobolSort.Init raises EC-SORT-MERGE-ACTIVE for a MERGE or format 1 SORT while any procedure phase (input or output) runs, and ReleaseStatement raises it while any store is in the OUTPUT phase, ahead of EC-FLOW-RELEASE (D-SMA (a)). Wired by kb/Work PB1036 (w59c): FatalAmbientGates row + CheckingFlags field + ExceptionEngine helper; EcBinder.QueryFor asks the name at the SORT/MERGE/RELEASE/RETURN node; the golden raises it under >>TURN ... CHECKING ON with a USE AFTER EXCEPTION CONDITION declarative; checking off keeps the pre-PB1036 lenient behaviour (docs/CONFORMANCE.md §3 D-SMA (c)).",
+  "state": "OK"
  },
  {
   "rule-id": "GR-14.9.40.4-14",

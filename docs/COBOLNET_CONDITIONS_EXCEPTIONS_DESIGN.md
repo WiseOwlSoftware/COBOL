@@ -647,12 +647,18 @@ while a format 1 SORT statement is active does not complete normally, the SORT s
 `SequentialIoEmitter.EmitUseHook` takes the enclosing statement's end label for exactly those call sites and jumps
 to it on the RESUME-AT-NEXT-STATEMENT action (§14.6.13.1.2 #1 is what makes a RESUME a completion that is not
 normal); the RESUME-AT-procedure-name action already leaves through `__pc`, and every other not-normal completion
-(GOBACK / EXIT PROGRAM / STOP / a fatal condition) unwinds by its own signal. The label sits before the sort
-store's release, so a terminated SORT statement is not a leaked sort. The same label is where a procedure that DID
+(GOBACK / EXIT PROGRAM / STOP / a fatal condition) unwinds by its own signal. The label sits inside the statement body whose `finally` releases the sort store, so a terminated SORT statement is not a leaked sort. The same label is where a procedure that DID
 complete normally lands when the verb's own rule terminates the statement: §14.6.13.1.3 2) ("If the executed
 statement is a MERGE or SORT statement, then the rules for those statements apply") precedes 5)/7), so these
 sites call `__IoCheckEc(…, __verbRule: true)`, which skips the fatal throw, and dispose of the status from
-`SortEmitter.RuleFor` (kb/Work PB993; `COBOLNET_FILES_DESIGN.md`, the implicit-transfer section).
+`SortEmitter.RuleFor` (kb/Work PB993; `COBOLNET_FILES_DESIGN.md`, the implicit-transfer section). The conditions the statement raises itself take the same rule from the statement guard: a SORT/MERGE
+statement asks the EC-SORT-MERGE names it can raise (and the EC-I-O family per USING/GIVING file, which is what arms
+the hooks above), `CobolSort`'s statement entries MARK what they raise (`CobolFatalException.RaisedBySortMerge`, set
+by an exception filter that declines the catch), and `EcEmitter.VerbDisposes` makes the SORT/MERGE catch run the
+declarative and then fall out of the statement for a marked condition instead of re-throwing — the store is released
+by the statement body's `finally`. The mark, not the name, decides, because 2) keys on the statement that executed: a
+RELEASE or RETURN statement's EC-SORT-MERGE-ACTIVE, and anything a procedure statement raises, keep 5)/7)
+(kb/Work PB1036; `docs/CONFORMANCE.md` §3 D-SMA).
 
 **The re-entrancy guard IS the EC-FLOW-USE raise site (kb/Work PB368).** §14.9.49.4 GR2 (ALL FORMATS) is one
 sentence and its whole normative content is a RAISE: *"During the execution of a USE procedure, if a statement

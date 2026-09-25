@@ -200,9 +200,9 @@ public sealed class LocaleStateTests
             // And CobolSort takes the snapshot at Init — a switch between Init and Sort has no effect.
             ru.Locale.SetFromSystemDefault(LocaleCategorySet.All);
             CobolSort.Init("SNAP-TEST", LocaleCollation.Current, national: null);
-            CobolSort.Release("SNAP-TEST", "nz");
+            CobolSort.Release("SNAP-TEST", "nz", 0, 0, int.MaxValue);
             ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
-            CobolSort.Release("SNAP-TEST", "ñu");
+            CobolSort.Release("SNAP-TEST", "ñu", 0, 0, int.MaxValue);
             CobolSort.Sort("SNAP-TEST", [new CobolSort.Key(0, 2, false, CobolSort.KeyClass.Alphanumeric, default)], false);
             Assert.True(CobolSort.Return("SNAP-TEST", out string? first));
             Assert.Equal("ñu", first);                                                        // root order: ñu before nz

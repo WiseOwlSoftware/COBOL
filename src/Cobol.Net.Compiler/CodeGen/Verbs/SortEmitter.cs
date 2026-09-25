@@ -21,7 +21,7 @@ using static CobolNet.CodeGen.Emit.EmitText;
 /// typed comparer (COBOLNET_DESIGN §8.2).
 /// </summary>
 internal sealed class SortEmitter(EmitContext ctx,
-    SequentialIoEmitter seqIo, MoveEmitter move, ArithmeticEmitter arith)
+    SequentialIoEmitter seqIo, MoveEmitter move, ArithmeticEmitter arith, EcEmitter ec)
 {
     /// <summary>The statement dispatcher — property-wired by <see cref="UnitEmitters"/> (the RETURN AT END /
     /// NOT AT END phrase bodies nest arbitrary statement lists, a cyclic edge no ctor order can satisfy).</summary>
@@ -38,38 +38,82 @@ internal sealed class SortEmitter(EmitContext ctx,
         string sd = FileKeyExpr(so.File);
         var tx = new Transfer(TerminationLabel(), merge: false);
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
-
-        // Phase a — release (GR9a). USING/GIVING files must not be open when their phase starts (GR9a/GR9c —
-        // EC-SORT-MERGE-FILE-OPEN; EC checking OFF by default, COBOLNET_DESIGN §18.16 — seam in CobolSort).
-        if (so.Using.Count > 0)
-            foreach (var input in so.Using)
-                EmitInputFile(input, sd, so.RecordWidth, so.Varying is not null, tx);
-        else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
+        using (StatementBody(sd))
         {
-            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: false)};   // §14.9.32.4 GR1 — RELEASE is legal from here to the sequence phase");
-            Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+            // Phase a — release (GR9a). A USING file must not be open when the phase commences (GR9 —
+            // EC-SORT-MERGE-FILE-OPEN, tested by the runtime before any implicit OPEN; kb/Work PB1036).
+            EmitFilesNotOpen(sd, so.Using);
+            if (so.Using.Count > 0)
+                foreach (var input in so.Using)
+                    EmitInputFile(input, sd, so.RecordWidth, so.Varying, tx);
+            else if (so.InputProcedure is { IsEmpty: false } ip)   // an EMPTY procedure releases nothing (kb/Work PB440)
+            {
+                w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: false)};   // §14.9.32.4 GR1 — RELEASE is legal from here to the sequence phase");
+                Statements.EmitProcedureRange(ip, "   // INPUT PROCEDURE (GR11 — the bounded return IS the inserted return mechanism)");
+            }
+
+            // Phase b — sequence (GR9b).
+            w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
+
+            // Phase c — return (GR9c). A GIVING file must not be open when THIS phase commences — the input
+            // procedure may have opened it, so the test is here and not at statement start (GR9; kb/Work PB1036).
+            EmitFilesNotOpen(sd, so.Giving);
+            if (so.Giving.Count > 0)
+                foreach (var output in so.Giving)
+                    EmitGivingFile(output, sd, tx);
+            else if (so.OutputProcedure is { IsEmpty: false } op)
+            {
+                w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
+                Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+            }
+
+            // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
+            // transfers and the phases after them — terminating the statement is not abandoning the run unit. It
+            // is also where every FATAL implicit-transfer status lands (RuleFor — §9.1.13.1's "control is
+            // transferred to the end of the statement", kb/Work PB993), so any SORT with a USING or GIVING file
+            // jumps here; one with only procedures emits no label. The store's release is StatementBody's finally.
+            if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
         }
+    }
 
-        // Phase b — sequence (GR9b).
-        w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
+    /// <summary>⛔ THE SORT/MERGE STATEMENT'S BODY: everything after <c>Init</c>, with the store's release in a
+    /// <c>finally</c> (kb/Work PB1036). Every way out of an executing SORT/MERGE must end it — the phases'
+    /// normal end, the GR17 / PB993 termination label, a RESUME AT procedure-name that leaves through <c>__pc</c>,
+    /// and a fatal EC-SORT-MERGE-* condition the runtime raises mid-statement, which the statement guard disposes
+    /// of AFTER the stack has unwound past this point (§14.6.13.1.3 2)). A store left behind would still hold its
+    /// procedure phase, and the next SORT/MERGE would read it as "a procedure of an executing statement is
+    /// running" — an EC-SORT-MERGE-ACTIVE raised against a program that did nothing wrong. <c>Init</c> stays
+    /// OUTSIDE the <c>try</c>: its -ACTIVE raise happens before this statement owns a store, and releasing one
+    /// then would discard an enclosing statement's store on the same file.</summary>
+    private FinallyScope StatementBody(string sd)
+    {
+        var w = ctx.Writer;
+        w.Line("try");
+        w.Line("{");
+        w.Indent();
+        return new FinallyScope(w, $"{RuntimeApi.SortClose(sd)};", "the statement ends — whichever way it ends");
+    }
 
-        // Phase c — return (GR9c).
-        if (so.Giving.Count > 0)
-            foreach (var output in so.Giving)
-                EmitGivingFile(output, sd, tx);
-        else if (so.OutputProcedure is { IsEmpty: false } op)
+    /// <summary>The emitted-text scope <see cref="StatementBody"/> hands out: disposing it closes the <c>try</c>
+    /// block and emits its one-line <c>finally</c>.</summary>
+    private readonly struct FinallyScope(CodeWriter w, string finallyLine, string comment) : IDisposable
+    {
+        public void Dispose()
         {
-            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
-            Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR14 — RETURNs request the next sorted record)");
+            w.Outdent();
+            w.Line("}");
+            w.Line($"finally {{ {finallyLine} }}   // {comment}");
         }
+    }
 
-        // §14.9.40.4 GR17's landing point: "the SORT statement is terminated" skips the REMAINING implicit
-        // transfers and the phases after them, but still releases the sort store — terminating the statement is
-        // not abandoning the run unit. It is also where every FATAL implicit-transfer status lands (RuleFor —
-        // §9.1.13.1's "control is transferred to the end of the statement", kb/Work PB993), so any SORT with a
-        // USING or GIVING file jumps here; one with only procedures emits no label.
-        if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
-        w.Line($"{RuntimeApi.SortClose(sd)};");
+    /// <summary>The EC-SORT-MERGE-FILE-OPEN tests for <paramref name="files"/> (§14.9.40.4 GR9, §14.9.24.4 GR7 /
+    /// GR12; kb/Work PB1036) — emitted only where the condition is enabled at this statement (§14.6.13.1.1: with
+    /// checking off nothing is raised, so the checking-off output carries no test at all).</summary>
+    private void EmitFilesNotOpen(string sd, IReadOnlyList<FileModel> files)
+    {
+        if (!ec.EnabledHere("EC-SORT-MERGE-FILE-OPEN")) return;
+        foreach (var file in files)
+            ctx.Writer.Line($"{RuntimeApi.SortFileNotOpen(sd, FileKeyExpr(file))};   // §14.9.40.4 GR9 / §14.9.24.4 GR7, GR12 — EC-SORT-MERGE-FILE-OPEN");
     }
 
     /// <summary>The end-of-statement label a USE procedure that did not complete normally jumps to — SORT's
@@ -81,34 +125,39 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// <summary>MERGE (ISO §14.9.24): obtain every USING file's records via the implicit OPEN INPUT / READ / CLOSE
     /// (GR7), k-way-merge the pre-sorted streams — equal keys keep USING-file order, all of one file before the
     /// next (GR4) — then write the FULL merged result to every GIVING file (GR12) or run the OUTPUT PROCEDURE
-    /// (GR8/GR9). Unordered input is GR6's EC-SORT-MERGE-SEQUENCE (checking OFF, COBOLNET_DESIGN §18.16 — seam in
-    /// the runtime's <c>Merge</c>).</summary>
+    /// (GR8/GR9). Unordered input is GR6's EC-SORT-MERGE-SEQUENCE, raised by the runtime's <c>Merge</c> when
+    /// checking is enabled (kb/Work PB1036).</summary>
     public void EmitMerge(BoundMerge mg)
     {
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
         var tx = new Transfer(TerminationLabel(), merge: true);
         w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
-        foreach (var input in mg.Using)
+        using (StatementBody(sd))
         {
-            w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
-            EmitInputFile(input, sd, mg.RecordWidth, mg.Varying is not null, tx);
+            // GR7 / GR12: "At the start of execution of the MERGE statement" no USING or GIVING file may be open —
+            // one test point for both, unlike SORT's per-phase GR9 (kb/Work PB1036).
+            EmitFilesNotOpen(sd, [.. mg.Using, .. mg.Giving]);
+            foreach (var input in mg.Using)
+            {
+                w.Line($"{RuntimeApi.SortNextInput(sd)};   // a new pre-sorted USING stream (GR4 — file order breaks ties)");
+                EmitInputFile(input, sd, mg.RecordWidth, mg.Varying, tx);
+            }
+            w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's; GR6's sequence test");
+            if (mg.Giving.Count > 0)
+                foreach (var output in mg.Giving)
+                    EmitGivingFile(output, sd, tx);   // GR12 — each file-name-4 receives the WHOLE merged result
+            else if (mg.OutputProcedure is { IsEmpty: false } op)
+            {
+                w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
+                Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
+            }
+            // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
+            // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised
+            // inside an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole
+            // statement here rather than falling into the next USING stream.
+            if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
         }
-        w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's");
-        if (mg.Giving.Count > 0)
-            foreach (var output in mg.Giving)
-                EmitGivingFile(output, sd, tx);   // GR12 — each file-name-4 receives the WHOLE merged result
-        else if (mg.OutputProcedure is { IsEmpty: false } op)
-        {
-            w.Line($"{RuntimeApi.SortEnterProcedure(sd, output: true)};   // §14.9.34.4 GR1 — RETURN is legal until the statement ends");
-            Statements.EmitProcedureRange(op, "   // OUTPUT PROCEDURE (GR9)");
-        }
-        // MERGE has no GR17 of its own — only SORT's rule names the statement's termination — but the LANDING
-        // rule is the same one: §14.9.33.4 GR2 a) 1. makes the applicable statement of a condition raised inside
-        // an implicit transfer the MERGE itself, so a RESUME AT NEXT STATEMENT leaves the whole statement here
-        // rather than falling into the next USING stream.
-        if (tx.Terminable) w.Line($"{tx.EndLabel}: ;");
-        w.Line($"{RuntimeApi.SortClose(sd)};");
     }
 
     /// <summary>The implicit USING transfer for one input file (SORT GR12 / MERGE GR7): OPEN INPUT, READ-loop
@@ -117,7 +166,7 @@ internal sealed class SortEmitter(EmitContext ctx,
     /// file's failed OPEN makes the first READ unsuccessful — never a spin). Each of the three as-if statements
     /// stores its own status and offers it to its own USE hook (kb/Work PB837); the file's FILE STATUS item then
     /// holds the final (CLOSE) status, the only value visible after the statement.</summary>
-    private void EmitInputFile(FileModel input, string sdLit, int sdWidth, bool varying, Transfer tx)
+    private void EmitInputFile(FileModel input, string sdLit, int sdWidth, SortVaryingInfo? varying, Transfer tx)
     {
         var w = ctx.Writer;
         string f = FileKeyExpr(input);
@@ -142,18 +191,20 @@ internal sealed class SortEmitter(EmitContext ctx,
         // statement-written direction — this loop renders no READ statement of the program's (kb/Work PB334).
         using (w.Block($"while ({RuntimeApi.FileReadSharedOk(f, "false", "FileRecordLock.None", "false", "true", "FileRetryKind.None", "0", tmp)})"))
         {
-            // GR12b: a record larger/smaller than the SD's record range ⇒ EC-SORT-MERGE-RELEASE (checking OFF,
-            // §18.16). Fixed SD: the short record space-fills right to the fixed length (GR7c/MERGE GR2c — the
-            // Store pad); varying SD: each record releases at the size it was READ (GR12b — LastReadLength is
-            // the frame length on a varying input file, the record width on a fixed one; Read pads the area).
-            // The varying arm releases the CURRENT RECORD itself (FileConnector.CurrentRecord — the area image
-            // sliced to LastReadLength whenever the record fits the area, and the whole record when a
-            // variable-length record reaches past the character area, determination D-FRA, kb/Work PB981).
-            // The varying arm releases the current record WITH the extent table it was read with (D-FRA (v);
-            // kb/Work PB1053), so a variable-length record crosses the sort exactly as it crossed the file.
-            w.Line(varying
-                ? $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.FileCurrentRecord(f), RuntimeApi.FileCurrentRecordExtents(f))};"
-                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
+            // GR12 b) / MERGE GR7 b): a record READ larger than the SD's largest record — or, for a
+            // variable-length SD, smaller than its smallest — is EC-SORT-MERGE-RELEASE, tested by the runtime
+            // against the size the record had when READ (LastReadLength: the frame length on a varying input
+            // file, the record width on a fixed one); a fixed SD passes min 0 (kb/Work PB1036). Fixed SD: the
+            // short record space-fills right to the fixed length (GR7c/MERGE GR2c — the Store pad); varying SD:
+            // each record releases at the size it was READ (GR12b; Read pads the area). The varying arm releases
+            // the CURRENT RECORD itself (FileConnector.CurrentRecord — the area image sliced to LastReadLength
+            // whenever the record fits the area, and the whole record when a variable-length record reaches past
+            // the character area, determination D-FRA, kb/Work PB981), WITH the extent table it was read with
+            // (D-FRA (v); kb/Work PB1053), so a variable-length record crosses the sort exactly as it crossed the file.
+            var (min, max) = RecordRange(varying, sdWidth);
+            w.Line(varying is not null
+                ? $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.FileCurrentRecord(f), RuntimeApi.FileLastReadLength(f), min, max, RuntimeApi.FileCurrentRecordExtents(f))};"
+                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.StrStore(tmp, $"{sdWidth}"), RuntimeApi.FileLastReadLength(f), min, max)};");
         }
         // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
         // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of
@@ -427,19 +478,31 @@ internal sealed class SortEmitter(EmitContext ctx,
         if (rl.FromMove is { } fromMove) move.Emit(fromMove);   // GR4 a) — the BOUND implicit MOVE (PB348)
         string sd = FileKeyExpr(rl.File);
         string image = OperandText.RecordAreaImage(rl.Record);   // THE ONE record-area channel (kb/Work PB327)
+        // §13.18.43.4 GR14 b) / GR19 b): a size outside the record range is EC-SORT-MERGE-RELEASE and the RELEASE
+        // is unsuccessful — the runtime's test, before the release (kb/Work PB1036).
+        var (min, max) = RecordRange(rl.Varying, rl.RecordWidth);
         if (rl.Varying is { Depending: { } dep })
         {
             // §13.18.43 GR13a: the released record's length = the RECORD VARYING DEPENDING ON item's current value.
-            // Out-of-range lengths are EC-SORT-MERGE-RELEASE (GR14b; checking OFF, §18.16).
-            w.Line($"{RuntimeApi.SortReleaseStatement(sd, RuntimeApi.StrRefMod(image, "1", RuntimeApi.HostInt32(RuntimeApi.TableOcc(PlaceRenderer.Read(dep)))))};");
+            // The runtime slices the area to it AFTER the range test — an emitted reference modification would
+            // raise EC-BOUND-REF-MOD for a value past the area, a condition no RELEASE rule names.
+            w.Line($"{RuntimeApi.SortReleaseStatement(sd, image, min, max, $"(int){RuntimeApi.TableOcc(PlaceRenderer.Read(dep))}")};");
             return;
         }
         // GR13b/c (no DEPENDING — incl. a varying m-TO-n SD): the named record's own size; the image renders at
         // exactly that width, so the release carries it — with the record's extent table when it is a
         // variable-length group (D-FRA (v); kb/Work PB1053; the DEPENDING arm above sends a record cut to another
         // length, which no table describes). The STATEMENT entry: §14.9.32.4 GR1's phase test.
-        w.Line($"{RuntimeApi.SortReleaseStatement(sd, image, OperandText.RecordAreaExtents(rl.Record))};");
+        w.Line($"{RuntimeApi.SortReleaseStatement(sd, image, min, max, extents: OperandText.RecordAreaExtents(rl.Record))};");
     }
+
+    /// <summary>The record range the EC-SORT-MERGE-RELEASE tests use (kb/Work PB1036): a variable-length
+    /// sort-merge file's smallest and largest record (§13.18.43.4 GR14 / GR19 — integer-2..integer-3 or
+    /// integer-4..integer-5, defaulted per GR9/GR10 by <c>FileModel.VaryMin</c>/<c>VaryMax</c>), else 0 and the
+    /// fixed record width — §14.9.40.4 GR12 b)'s smaller-than-smallest test applies only "If file-name-1 is
+    /// specified with variable-length records".</summary>
+    private static (int Min, int Max) RecordRange(SortVaryingInfo? varying, int recordWidth) =>
+        varying is { } v ? (v.Min, v.Max) : (0, recordWidth);
 
     /// <summary>RETURN (ISO §14.9.34): pull the next record in key order into the SD record area (GR3); a varying
     /// SD restores the returned record's length into the DEPENDING item (§13.18.43 GR15); INTO then MOVEs the
