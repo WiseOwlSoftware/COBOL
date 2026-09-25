@@ -192,7 +192,11 @@
   "l1c05_coded_character_values",
   "l1c06_currency_non_cobol_equivalence_85",
   "l1c08_end_marker_closes_unit",
-  "l1c08_environment_division_shapes"
+  "l1c08_environment_division_shapes",
+  "l1c09_overlap_same_entry",
+  "l1c09_sort_merge_procedure_transfer",
+  "l1c10_figurative_space_quote_zero_chars",
+  "l1c12_generate_detail_and_summary"
  ],
  "pending": []
 }

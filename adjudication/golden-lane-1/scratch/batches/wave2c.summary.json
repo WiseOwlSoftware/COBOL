@@ -1,0 +1,242 @@
+{
+ "wave": "wave2c",
+ "slugs": {
+  "misc-p9": {
+   "landed": [
+    {
+     "rule_id": "GR-14.6.10-2",
+     "test_ref": "conformance:85/l1c09_overlap_same_entry",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.3-2",
+     "test_ref": "conformance:85/l1c09_sort_merge_procedure_transfer",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.4-2",
+     "test_ref": "conformance:2002/l1c09_item_ident_func_subscript",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.6.4-4",
+     "test_ref": "conformance:2002/l1c09_item_ident_func_subscript",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-8.8.2-4",
+     "test_ref": "conformance:negative/l1c09-boolean-both-all-literals",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-11.4.3-1",
+     "test_ref": "conformance:negative/l1c09-factory-implements-not-in-class-repository",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-11.4.3-2",
+     "test_ref": "conformance:negative/l1c09-factory-implements-missing-method; conformance:negative/l1c09-factory-implements-nonconforming-method",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-72",
+     "test_ref": "conformance:2023/l1c09_external_assign_consistency",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "GR-14.6.3-3",
+     "kind": "editions",
+     "correction": "(1) Subprogram L1C09V has a PROCEDURE DIVISION with no paragraph at all. That is not legal 1985 source: the ANSI X3.23-1985 procedure division format requires at least one section or paragraph ({paragraph-name. [sentence]...}...). A body with no procedure division statements at all arrives with ISO 1989:2002, the edition that states the implicit-GOBACK sentence \u00a714.6.3 now carries. So the 85 golde"
+    },
+    {
+     "rule_id": "GR-14.6.4-3",
+     "kind": "convention",
+     "correction": "The program is not conforming source. 'INVOKE L1C09C \"NEW\" RETURNING S' breaks \u00a714.9.23.3 SR3: 'The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1'. L1C09C has no INHERITS clause and no FACTORY paragraph, so its factory interface has no NEW. In the standard, NEW is a method of the BASE class only (\u00a716.2, \u00a716.2.1), and no rule makes a class "
+    },
+    {
+     "rule_id": "GR-14.6.4-5",
+     "kind": "convention",
+     "correction": "Same program as GR-14.6.4-3, with the same defect: 'INVOKE L1C09C \"NEW\"' on a class with no INHERITS FROM BASE breaks \u00a714.9.23.3 SR3, because NEW belongs to the factory interface of BASE only (\u00a716.2.1). Fix: INHERITS FROM BASE plus CLASS BASE in the class REPOSITORY. The .out stays the same."
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-14.6.10-1",
+     "why": "Undefined-result rule, the same treatment as DRV-GR-14.9.20.4-9 in CONFORMANCE.md \u00a78. CONFORMS-but-untested is the correct end state."
+    }
+   ],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p10": {
+   "landed": [
+    {
+     "rule_id": "FMT-12.4.4.2",
+     "test_ref": "conformance:2002/l1c10_file_control_no_entries; conformance:2002/l1c10_file_control_two_entries; conformance:negative/l1c10-file-control-no-period",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-14.9.15.2",
+     "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.9.15.4-1",
+     "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.9.15.4-2",
+     "test_ref": "conformance:2002/l1c10_free_multi_operand_arms",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-11.5.2",
+     "test_ref": "conformance:2002/l1c10_function_id_prototype_as_and_is",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.3.3.6.4-5",
+     "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-8.3.3.6.4-8",
+     "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:negative/l1c10-quote-bounds-literal",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-74",
+     "test_ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "DOC-A.1-69",
+     "kind": "does-not-exercise-rule",
+     "correction": "The expected stdout is correct, but it does not pin the documented determination. Lines 1-5 (EC-BOUND-SUBSCRIPT ... EC-ORDER-NOT-SUPPORTED) run with checking ENABLED. \u00a714.6.13.1.3 5)/7) and the unnumbered paragraph after 8) then require EVERY conforming implementation to produce code and raise the condition at run time. Only unchecked fatal conditions get the no-code latitude. So these lines print"
+    }
+   ],
+   "defect": [],
+   "not-closable": [
+    {
+     "rule_id": "GR-7.3.14.4-2",
+     "why": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectat"
+    },
+    {
+     "rule_id": "GR-7.3.14.4-3",
+     "why": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectat"
+    },
+    {
+     "rule_id": "GR-7.3.14.4-5",
+     "why": "Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile success + run stdout only; negatives require the compile to FAIL (Assert.False(ok)), and a warning never fails it. There is no warning-expectat"
+    }
+   ],
+   "other": [],
+   "deferred": []
+  },
+  "misc-p12": {
+   "landed": [
+    {
+     "rule_id": "FMT-14.9.16.2",
+     "test_ref": "conformance:85/l1c12_generate_detail_and_summary",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-14.9.16.4-2",
+     "test_ref": "conformance:85/l1c12_generate_detail_and_summary",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-13.18.28.2",
+     "test_ref": "conformance:2002/l1c12_group_indicate",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-12.4.5.5.1",
+     "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic; conformance:2002/l1c12_access_mode_sequential_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.5.3-1",
+     "test_ref": "conformance:2002/l1c12_access_mode_sequential_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.5.3-2",
+     "test_ref": "conformance:2002/l1c12_access_mode_sequential_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.5.3-3",
+     "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.5.3-4",
+     "test_ref": "conformance:2002/l1c12_access_mode_random_dynamic",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-95",
+     "test_ref": "conformance:2002/l1c12_hex_alphanumeric_every_group",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-97",
+     "test_ref": "conformance:2002/l1c12_hex_national_no_character",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "SR-14.9.16.3-2",
+     "kind": "convention",
+     "correction": "The .err pins COBOLNET0899, which is the 'recognized but not implemented' code (DiagnosticCatalog: ReportGenerateNeedsControl is declared under NotImplemented). That code means a compiler limitation, not an SR2 violation, so the golden asserts the known kb/Work PB1028 defect as expected behaviour and breaks when PB1028 re-codes it. The program itself is correct: it is otherwise legal, and reject-a"
+    }
+   ],
+   "defect": [
+    "GR-13.18.27.4-3"
+   ],
+   "not-closable": [],
+   "other": [],
+   "deferred": []
+  }
+ },
+ "manifest_added": {
+  "85": [
+   "l1c09_overlap_same_entry",
+   "l1c09_sort_merge_procedure_transfer",
+   "l1c10_figurative_space_quote_zero_chars",
+   "l1c12_generate_detail_and_summary"
+  ],
+  "2002": [
+   "l1c09_item_ident_func_subscript",
+   "l1c10_file_control_no_entries",
+   "l1c10_file_control_two_entries",
+   "l1c10_free_multi_operand_arms",
+   "l1c10_function_id_prototype_as_and_is",
+   "l1c10_figurative_code_values",
+   "l1c12_group_indicate",
+   "l1c12_access_mode_random_dynamic",
+   "l1c12_access_mode_sequential_default",
+   "l1c12_hex_alphanumeric_every_group",
+   "l1c12_hex_national_no_character"
+  ],
+  "2023": [
+   "l1c09_external_assign_consistency"
+  ]
+ },
+ "negative_added": [
+  "l1c09-boolean-both-all-literals",
+  "l1c09-factory-implements-not-in-class-repository",
+  "l1c09-factory-implements-missing-method",
+  "l1c09-factory-implements-nonconforming-method",
+  "l1c10-file-control-no-period",
+  "l1c10-quote-bounds-literal"
+ ]
+}

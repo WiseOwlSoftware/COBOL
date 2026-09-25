@@ -1524,7 +1524,12 @@
   "l1c06-define-boolean-numeric-operand",
   "l1c08-entry-name-qualified",
   "l1c08-entry-name-subscripted",
-  "l1c08-env-division-section-order"
+  "l1c08-env-division-section-order",
+  "l1c09-boolean-both-all-literals",
+  "l1c09-factory-implements-not-in-class-repository",
+  "l1c09-factory-implements-nonconforming-method",
+  "l1c10-file-control-no-period",
+  "l1c10-quote-bounds-literal"
  ],
  "pending": []
 }

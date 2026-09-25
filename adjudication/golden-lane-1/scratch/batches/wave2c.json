@@ -1,0 +1,109 @@
+{
+ "batch": "golden-lane-1-wave2c",
+ "records": [
+  {
+   "rule-id": "GR-14.6.10-2",
+   "test-ref": "conformance:85/l1c09_overlap_same_entry"
+  },
+  {
+   "rule-id": "GR-14.6.3-2",
+   "test-ref": "conformance:85/l1c09_sort_merge_procedure_transfer"
+  },
+  {
+   "rule-id": "GR-14.6.4-2",
+   "test-ref": "conformance:2002/l1c09_item_ident_func_subscript"
+  },
+  {
+   "rule-id": "GR-14.6.4-4",
+   "test-ref": "conformance:2002/l1c09_item_ident_func_subscript"
+  },
+  {
+   "rule-id": "SR-8.8.2-4",
+   "test-ref": "conformance:negative/l1c09-boolean-both-all-literals"
+  },
+  {
+   "rule-id": "SR-11.4.3-1",
+   "test-ref": "conformance:negative/l1c09-factory-implements-not-in-class-repository"
+  },
+  {
+   "rule-id": "SR-11.4.3-2",
+   "test-ref": "conformance:negative/l1c09-factory-implements-nonconforming-method"
+  },
+  {
+   "rule-id": "DOC-A.1-72",
+   "test-ref": "conformance:2023/l1c09_external_assign_consistency"
+  },
+  {
+   "rule-id": "FMT-12.4.4.2",
+   "test-ref": "conformance:2002/l1c10_file_control_no_entries; conformance:2002/l1c10_file_control_two_entries; conformance:negative/l1c10-file-control-no-period"
+  },
+  {
+   "rule-id": "FMT-14.9.15.2",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "GR-14.9.15.4-1",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "GR-14.9.15.4-2",
+   "test-ref": "conformance:2002/l1c10_free_multi_operand_arms"
+  },
+  {
+   "rule-id": "FMT-11.5.2",
+   "test-ref": "conformance:2002/l1c10_function_id_prototype_as_and_is"
+  },
+  {
+   "rule-id": "GR-8.3.3.6.4-5",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values"
+  },
+  {
+   "rule-id": "GR-8.3.3.6.4-8",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:negative/l1c10-quote-bounds-literal"
+  },
+  {
+   "rule-id": "DOC-A.1-74",
+   "test-ref": "conformance:85/l1c10_figurative_space_quote_zero_chars; conformance:2002/l1c10_figurative_code_values"
+  },
+  {
+   "rule-id": "FMT-14.9.16.2",
+   "test-ref": "conformance:85/l1c12_generate_detail_and_summary"
+  },
+  {
+   "rule-id": "GR-14.9.16.4-2",
+   "test-ref": "conformance:85/l1c12_generate_detail_and_summary"
+  },
+  {
+   "rule-id": "FMT-13.18.28.2",
+   "test-ref": "conformance:2002/l1c12_group_indicate"
+  },
+  {
+   "rule-id": "FMT-12.4.5.5.1",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic; conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-1",
+   "test-ref": "conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-2",
+   "test-ref": "conformance:2002/l1c12_access_mode_sequential_default"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-3",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic"
+  },
+  {
+   "rule-id": "GR-12.4.5.5.3-4",
+   "test-ref": "conformance:2002/l1c12_access_mode_random_dynamic"
+  },
+  {
+   "rule-id": "DOC-A.1-95",
+   "test-ref": "conformance:2002/l1c12_hex_alphanumeric_every_group"
+  },
+  {
+   "rule-id": "DOC-A.1-97",
+   "test-ref": "conformance:2002/l1c12_hex_national_no_character"
+  }
+ ]
+}

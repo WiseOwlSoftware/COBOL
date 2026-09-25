@@ -430,7 +430,18 @@
   "l1c07_evaldir_alnum_equality",
   "l1c07_evaldir_fmt2_truth",
   "l1c08_declarative_indirect_stop_run",
-  "l1c08_nonfatal_enabled_no_handler"
+  "l1c08_nonfatal_enabled_no_handler",
+  "l1c09_item_ident_func_subscript",
+  "l1c10_file_control_no_entries",
+  "l1c10_file_control_two_entries",
+  "l1c10_free_multi_operand_arms",
+  "l1c10_function_id_prototype_as_and_is",
+  "l1c10_figurative_code_values",
+  "l1c12_group_indicate",
+  "l1c12_access_mode_random_dynamic",
+  "l1c12_access_mode_sequential_default",
+  "l1c12_hex_alphanumeric_every_group",
+  "l1c12_hex_national_no_character"
   ],
   "pending": []
 }

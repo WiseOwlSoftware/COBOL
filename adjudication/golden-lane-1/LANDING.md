@@ -70,3 +70,31 @@ Overturned rows stay CONFORMS-but-untested; the refuter's exact correction is in
 - not-closable DOC-A.1-65: Needs a non-COBOL activating element (a .NET host calling ProgramRegistry.CallProgram). The conformance runner only compiles and runs COBOL sources, so it cannot drive this. A unit/integration test wi
 - gate: Conformance filter 5526/5526, Unit filter 25/25.
 - misc-p12 suspected defect GR-13.18.27.4-3 = existing kb/Work/PB1523 (GLOBAL REDEFINES backend crash); repro appended there, no new note.
+
+### misc-p9 / misc-p10 / misc-p12: landed 25 rows (GAP 1564 → 1538)
+- misc-p9: landed 8, overturned 3, suspected defect 0, not-closable 1
+  - overturned GR-14.6.3-3 (editions): (1) Subprogram L1C09V has a PROCEDURE DIVISION with no paragraph at all. That is not legal 1985 source: the ANSI X3.23-1985 procedure division format requires at least one section or paragraph ({paragraph-name. [sentence
+  - overturned GR-14.6.4-3 (convention): The program is not conforming source. 'INVOKE L1C09C "NEW" RETURNING S' breaks §14.9.23.3 SR3: 'The value of literal-1 shall be the name of a method defined in the factory interface of object-class-name-1'. L1C09C has no
+  - overturned GR-14.6.4-5 (convention): Same program as GR-14.6.4-3, with the same defect: 'INVOKE L1C09C "NEW"' on a class with no INHERITS FROM BASE breaks §14.9.23.3 SR3, because NEW belongs to the factory interface of BASE only (§16.2.1). Fix: INHERITS FRO
+  - not-closable GR-14.6.10-1: Undefined-result rule, the same treatment as DRV-GR-14.9.20.4-9 in CONFORMANCE.md §8. CONFORMS-but-untested is the correct end state.
+- misc-p10: landed 8, overturned 1, suspected defect 0, not-closable 3
+  - overturned DOC-A.1-69 (does-not-exercise-rule): The expected stdout is correct, but it does not pin the documented determination. Lines 1-5 (EC-BOUND-SUBSCRIPT ... EC-ORDER-NOT-SUPPORTED) run with checking ENABLED. §14.6.13.1.3 5)/7) and the unnumbered paragraph after
+  - not-closable GR-7.3.14.4-2: Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile suc
+  - not-closable GR-7.3.14.4-3: Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile suc
+  - not-closable GR-7.3.14.4-5: Not closable by a conformance golden: the rule's only observable is a compile-time WARNING (COBOLNET1620). CorpusRunnerTests positive goldens assert compile suc
+- misc-p12: landed 10, overturned 1, suspected defect 1, not-closable 0
+  - overturned SR-14.9.16.3-2 (convention): The .err pins COBOLNET0899, which is the 'recognized but not implemented' code (DiagnosticCatalog: ReportGenerateNeedsControl is declared under NotImplemented). That code means a compiler limitation, not an SR2 violation
+- SR-11.4.3-2: the refuter overturned `negative/l1c09-factory-implements-missing-method` (a second reason to reject: INVOKE NEW without INHERITS FROM BASE) and upheld `-nonconforming-method`; the row's witness is only the upheld negative and the overturned one was removed from the tree (integrate.py keyed verdicts by rule-id; fixed by hand).
+- misc-p12 GR-13.18.27.4-3 → existing kb/Work/PB1523 (see above).
+
+## Totals at stop (owner STOP, budget)
+- Rows witnessed: 47 (wave 1) + 10 (p7) + 6 (p8) + 25 (p9/p10/p12) = **88**. GAP 1627 → **1538**.
+- Defects: **kb/Work/PB1547** filed (ADDRESS OF receiving operand → COBOLNET0901, not SR5); **PB1523** extended with a new repro. Unfiled leads for the registrar: INVOKE "NEW" accepted on a class without INHERITS FROM BASE and `INHERITS FROM BASE` refused (COBOLNET0821) — misc-p8/p9 refuters; national STRING receiver crashes at run time with NotImplementedCobolFeatureException (`StringEmitter.cs:216`, repro `scratch/held/misc-p11/side/`) — misc-p11 writer; re-INITIATE after TERMINATE joins lines (`scratch/held/misc-p12/incidental/`) — unverified; the Pinned-by gap noted by writers for existing 2002/directive_expressions (directives in column 7).
+
+## Drafted but NOT integrated (finish from the pushed snapshot `scratch/`)
+- **misc-p11** (12 rows, writer reports all 13 positives + 2 negatives passing): `scratch/reports/misc-p11.json`, drafts `scratch/out/misc-p11/`. Its refuter was stopped by the owner STOP — it needs a refuter, then `scratch/integrate.py wave3 misc-p11`.
+- **Overturned rows from waves 1–2** (about 23 rows): each refuter correction is exact in `scratch/reports/<slug>.refute.json`; most are mechanical (a more specific `.err`, a different edition directory, `INHERITS FROM BASE`). Apply the correction, re-run, re-refute.
+- **Not started:** misc-p13 … misc-p38 and dns-witness (inputs in `scratch/in/`, 250+ rows).
+
+Process: after a refuter, run `python3 scratch/integrate.py <wave> <slug…>` (paths are /tmp/gl; adjust) → strip CR → `record_verdicts.py --dry-run` then apply → gate (`scratch/gate.sh`) → name any new DOC-A.1 witness in CONFORMANCE.md §7 `Pinned by` (AnnexA1RegisterDriftTests). ⚠ integrate.py keys refuter verdicts by rule-id; a row with several goldens and split verdicts must be checked by hand.
+- gate (p9/p10/p12): Conformance filter 5548/5548 with all 21 new goldens run by name; Unit filter 25/25 after naming DOC-A.1-72/74/95/97 witnesses in CONFORMANCE.md §7 Pinned by.
