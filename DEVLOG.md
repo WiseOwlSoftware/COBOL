@@ -13,6 +13,19 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1691 — 2026-09-24 19:06 PDT — Ledger trend point 226c5b6d (GAP 1515); public skills repo 1.1 with tailored community picks
+
+**Ledger.** Regenerated at `226c5b6d` (GAP 1515 · closed 2833 · DNS 386) and published; `ledger-trend.json` gains the point
+(83 points). Today's arc on the chart: GAP 1664 → 1515 on the cloud credit.
+
+**Skills repo 1.1** (https://github.com/BrentRector/claude-skills): the survey's top picks tailored in — `variant-analysis`
+and `spec-compliance-audit` (from trailofbits/skills, kept CC-BY-SA 4.0 per directory), four review specialist agents
+(from Anthropic's pr-review-toolkit, Apache-2.0 with NOTICE), `dotnet-engineering` (from dotnet/skills, MIT; the three
+upstream-only details — BenchmarkDotNet `--apples`, MTP `--minimum-expected-tests`, `ZeroTests = 8` — verified against
+source), and `roslyn-analysis` (approach from glennawatson/CSharpAgentSkills, MIT — all three upstream skills FAILED
+vetting with reproduced defects, e.g. a rewriter that commented out declarations and an inspector that could execute the
+inspected assembly, so every helper was rewritten and run on scratch inputs). 10 skills, 4 agents.
+
 ## Entry 1690 — 2026-09-24 18:53 PDT — Golden lane #1 wave 4 lands (GAP 1520 → 1515, lane total 111 rows); PB1548 filed; public skills repo BrentRector/claude-skills
 
 **Golden lane wave 4.** A micro wave on the last ~$11 of cloud credit (one writer, one refuter, draft snapshot pushed
