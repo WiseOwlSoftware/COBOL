@@ -135,7 +135,11 @@
   "l1c01_arithmetic_clause_forms",
   "l1c06_dyn_table_unlimited_capacity",
   "l1c06_entry_convention_oo",
-  "l1c08_data_not_finite_standard_float"
+  "l1c08_data_not_finite_standard_float",
+  "l1c19_multiply_standard_decimal",
+  "l1c20_capacity_register_set_and_read",
+  "l1c20_occurs_dynamic_clauses_per_occurrence",
+  "l1c20_move_dyn_table_superfluous"
  ],
  "pending": []
 }

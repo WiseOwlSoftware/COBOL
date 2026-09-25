@@ -635,7 +635,8 @@
   "l1c03_cobol_words_case_insensitive",
   "l1c03_cobol_words_directing_unaffected",
   "l1c09_external_assign_consistency",
-  "l1c14_inspect_backward_after"
+  "l1c14_inspect_backward_after",
+  "l1c16_report_lines_synonym"
  ],
  "pending": [
   "pb485_value_only_format1"

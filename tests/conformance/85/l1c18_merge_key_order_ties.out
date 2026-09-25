@@ -1,0 +1,26 @@
+M1 THRU
+A  9 Z F1-1
+A  9 Z F2-1
+A  9 Z F2-2
+A  9 Z F3-1
+A  9 Y F3-2
+A  5 Q F1-2
+A  1 Z F2-3
+A -3 X F1-3
+B  5 A F1-4
+B  5 A F3-3
+B  5 A F3-4
+COUNT=11
+M2 THROUGH
+A  9 Z F1-1
+A  9 Z F2-1
+A  9 Z F2-2
+A  9 Z F3-1
+A  9 Y F3-2
+A  5 Q F1-2
+A  1 Z F2-3
+A -3 X F1-3
+B  5 A F1-4
+B  5 A F3-3
+B  5 A F3-4
+COUNT=11

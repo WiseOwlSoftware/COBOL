@@ -1,0 +1,4 @@
+SHORT J1 [   AB] J2 [   AB] J3 [   AB]
+SHORT J4 [   AB] N5 [AB   ] N6 [AB   ]
+LONG  J1 [CDEFG] J2 [CDEFG] J3 [CDEFG]
+LONG  J4 [CDEFG] N5 [ABCDE] N6 [ABCDE]

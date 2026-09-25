@@ -448,7 +448,19 @@
   "l1c11_invalid_key_ec_set",
   "l1c11_sharing_not_fixed_attribute",
   "l1c13_run_unit_lock_max_53",
-  "l1c13_if_directive_multiline_texts"
+  "l1c13_if_directive_multiline_texts",
+  "l1c16_justified_omitted_national_boolean",
+  "l1c17_lock_mode_no_other_inert",
+  "l1c17_lock_mode_manual_explicit_only",
+  "l1c17_linkage_based_access",
+  "l1c19_national_literal_quotes_class",
+  "l1c19_native_collating_default",
+  "l1c21_page_directive_comment_text",
+  "l1c21_propagate_default_off",
+  "l1c21_property_clause_format",
+  "l1c21_method_name_signature",
+  "l1c22_returning_three_arms",
+  "l1c22_positional_formals_oo_func"
   ],
   "pending": []
 }

@@ -205,7 +205,24 @@
   "l1c11_program_text_all_spaces",
   "l1c15_inspect_converting_duplicate_first",
   "l1c15_linage_counter_qualified",
-  "l1c15_initial_container_resets_nested"
+  "l1c15_initial_container_resets_nested",
+  "l1c40_no_automatic_alignment",
+  "l1c16_io_section_paragraphs",
+  "l1c16_justified_spellings",
+  "l1c17_separator_spaces",
+  "l1c17_parentheses_balanced",
+  "l1c17_colon_separator",
+  "l1c17_linkage_index_separate",
+  "l1c18_merge_key_order_ties",
+  "l1c18_merge_assign_using_association",
+  "l1c20_occurs_clauses_per_occurrence",
+  "l1c20_odo_record_varying_no_depending",
+  "l1c20_page_clause_defaults",
+  "l1c21_common_program_visibility",
+  "l1c21_initial_program_state",
+  "l1c22_pd_exec_order_sections",
+  "l1c22_pd_exec_order_nosections",
+  "l1c22_call_positional_formals"
  ],
  "pending": []
 }
