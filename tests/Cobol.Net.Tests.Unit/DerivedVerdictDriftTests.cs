@@ -750,14 +750,19 @@ public sealed class DerivedVerdictDriftTests
         }
 
         // A DOC row §7 does not carry at all must stay out: nothing has been determined about it, and a MISSING
-        // determination is not a NEGATIVE one. Item 67 (the REPOSITORY paragraph's conventions) is A.1-optional
-        // and has no §7 row — it waits on owner decision kb/Work PB1099 Q3. Item 7 held this anchor until
-        // 2026-09-24, when kb/Work PB1522 step 3 wrote its 'Not provided.' row; the selector took it with no
-        // edit to the predicate, which is asserted below so the move is visible rather than silent.
-        Assert.DoesNotContain("DOC-A.1-67", ids);
-        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-67"),
-            "item 67 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
+        // determination is not a NEGATIVE one. Item 85 (FORMAT clause exclusions — A.1-optional, withdrawn with
+        // the unclaimed A.4.8) is the anchor now: since doc-rows-2 (2026-09-25) every optional item that CAN
+        // arise has a §7 row. Item 7 held this anchor until 2026-09-24, when kb/Work PB1522 step 3 wrote its
+        // 'Not provided.' row and the selector took it with no edit to the predicate; item 67 held it until
+        // 2026-09-25, when doc-rows-2 wrote its R44-only row — which opens with the determination, not "Not
+        // provided", so the selector does NOT take it. Both moves are asserted below so they are visible.
+        Assert.DoesNotContain("DOC-A.1-85", ids);
+        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-85"),
+            "item 85 is the anchor for 'optional, but undetermined' — if §7 has grown a row for it, this "
             + "assertion's subject moved and another optional item with no determination must take its place");
+        Assert.Equal("optional", byId["DOC-A.1-85"].Requirement);
+        Assert.DoesNotContain("DOC-A.1-67", ids);
+        Assert.True(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-67"));
         Assert.Equal("optional", byId["DOC-A.1-67"].Requirement);
         Assert.Contains("DOC-A.1-7", ids);
         // A REQUIRED item with a determination stays out — item 19's is positive, so this is the pair working
@@ -798,12 +803,13 @@ public sealed class DerivedVerdictDriftTests
         Assert.Equal("conditionally required", byId["DOC-A.1-65"].Requirement);
         Assert.True(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-65"));
         Assert.DoesNotContain("DOC-A.1-65", ids);
-        // A conditional item with NO §7 row stays out — item 36 waits on kb/Work PB547, which disputes whether its
-        // condition is absent. A MISSING determination is not a NEGATIVE one.
+        // Item 36 was the anchor for 'conditional, but undetermined' (a MISSING determination is not a NEGATIVE
+        // one) until doc-rows-2 (2026-09-25) wrote its row: the condition HOLDS (one UTF-16 set serves both
+        // classes), so it is a second positive-determination case and stays out. Since then EVERY conditional A.1
+        // item has a §7 row, so the undetermined axis has no live anchor in this file; the selector engine's own
+        // self-test keeps it (a blank determination never matches a determination-prefix).
         Assert.Equal("conditionally required", byId["DOC-A.1-36"].Requirement);
-        Assert.False(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-36"),
-            "item 36 is the anchor for 'conditional, but undetermined' — if §7 has grown a row for it, another "
-            + "undetermined conditional item must take its place here");
+        Assert.True(ConformanceRegister.Determinations.ContainsKey("DOC-A.1-36"));
         Assert.DoesNotContain("DOC-A.1-36", ids);
         // …and the optional item the same witness pins (143) belongs to the OPTIONAL selector, not to this one.
         Assert.DoesNotContain("DOC-A.1-143", ids);
