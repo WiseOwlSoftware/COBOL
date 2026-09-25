@@ -41,7 +41,12 @@ for slug in slugs:
     rep = json.loads((GL / f"reports/{slug}.json").read_text())
     ref_p = GL / f"reports/{slug}.refute.json"
     ref = json.loads(ref_p.read_text()) if ref_p.exists() else {"verdicts": []}
-    upheld = {v["rule_id"]: v for v in ref["verdicts"]}
+    upheld, bad_refs = {}, set()
+    for v in ref["verdicts"]:
+        if not v.get("upheld"):
+            bad_refs.update(x.strip() for x in (v.get("test_ref") or "").split(";") if x.strip())
+        if v.get("upheld") or v["rule_id"] not in upheld:
+            upheld[v["rule_id"]] = v   # any upheld verdict keeps the row; overturned refs are dropped below
     s = {"landed": [], "overturned": [], "defect": [], "not-closable": [], "other": [], "deferred": rep.get("deferred", [])}
     for row in rep["rows"]:
         rid, disp = row["rule_id"], row["disposition"]
@@ -55,6 +60,15 @@ for slug in slugs:
         if not v or not v.get("upheld"):
             s["overturned"].append({"rule_id": rid, "kind": (v or {}).get("kind", "NO-REFUTER-VERDICT"),
                                     "correction": (v or {}).get("correction", "")[:400]}); continue
+        refs = [x.strip() for x in row["test_ref"].split(";") if x.strip()]
+        if any(r in bad_refs for r in refs):
+            keep = [r for r in refs if r not in bad_refs]
+            if not keep:
+                s["overturned"].append({"rule_id": rid, "kind": "split", "correction": "all refs overturned"}); continue
+            bad_cases = {r.split("/")[-1] for r in refs if r in bad_refs}
+            row = dict(row, test_ref="; ".join(keep),
+                       files=[f for f in row.get("files", []) if pathlib.Path(f).stem not in bad_cases])
+            s.setdefault("split", []).append({"rule_id": rid, "dropped": sorted(set(refs) - set(keep))})
         if disp == "new-golden" and row.get("ran") != "pass":
             s["other"].append({"rule_id": rid, "disposition": "new-golden-not-pass:" + str(row.get("ran"))}); continue
         ok = True

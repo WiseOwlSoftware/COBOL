@@ -441,7 +441,14 @@
   "l1c12_access_mode_random_dynamic",
   "l1c12_access_mode_sequential_default",
   "l1c12_hex_alphanumeric_every_group",
-  "l1c12_hex_national_no_character"
+  "l1c12_hex_national_no_character",
+  "l1c11_key_native_national_default",
+  "l1c11_file_section_constant_typedef",
+  "l1c11_sharing_every_device_shareable",
+  "l1c11_invalid_key_ec_set",
+  "l1c11_sharing_not_fixed_attribute",
+  "l1c13_run_unit_lock_max_53",
+  "l1c13_if_directive_multiline_texts"
   ],
   "pending": []
 }

@@ -1,0 +1,96 @@
+{
+ "wave": "wave3a",
+ "slugs": {
+  "misc-p11": {
+   "landed": [
+    {
+     "rule_id": "SR-12.4.5.2-1",
+     "test_ref": "conformance:85/l1c11_select_clause_any_order; conformance:negative/l1c11-select-not-first",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-12.4.5.3-6",
+     "test_ref": "conformance:85/l1c11_key_native_collating_default; conformance:2002/l1c11_key_native_national_default",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-13.4.5.4-3",
+     "test_ref": "conformance:85/l1c11_linage_counter_external_global",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "FMT-13.4.2",
+     "test_ref": "conformance:2002/l1c11_file_section_constant_typedef; conformance:negative/l1c11-file-section-entry-before-fd",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-76",
+     "test_ref": "conformance:2002/l1c11_sharing_every_device_shareable",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.1.14-1",
+     "test_ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use; conformance:2002/l1c11_invalid_key_ec_set",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.1.14-4",
+     "test_ref": "conformance:85/l1c11_invalid_key_no_phrase_no_use",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "GR-9.1.5-2",
+     "test_ref": "conformance:85/l1c11_global_file_common_connector",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "DOC-A.1-78",
+     "test_ref": "conformance:2002/l1c11_sharing_not_fixed_attribute",
+     "disposition": "new-golden"
+    },
+    {
+     "rule_id": "SR-6.3.4-3",
+     "test_ref": "conformance:85/l1c11_program_text_all_spaces",
+     "disposition": "new-golden"
+    }
+   ],
+   "overturned": [
+    {
+     "rule_id": "SR-13.4.5.3-2",
+     "kind": "convention",
+     "correction": "The expected output (OPEN=00 LC=0001 / MAIN-W=00 LC=0002 / SUB-W=00 LC=0003 / AFTER-SUB LC=0003) is correct, and the clause numbers 13.18.34.4 7) d) and 7) c) 3. are the PRINTED ones. But header lines 16 and 20 record them as cite.py's output ('-> OK  \u00a713.18.34.4 7) d)', '-> OK  \u00a713.18.34.4 7) c) 3.'). cite.py --check actually prints '\u00a713.18.34.4 7) a)' for both. That makes the header a false reco"
+    },
+    {
+     "rule_id": "GR-13.4.5.4-2",
+     "kind": "does-not-exercise-rule",
+     "correction": "GR2 only constrains PROGRAMS: every FD of one external connector 'shall obey' a)-e). The writer concedes it has no mandated detection (\u00a74.2.2). Everything the golden prints comes from \u00a79.1.5 1) (one external connector: DX's WRITE without OPEN gives 00) and from GR-13.4.5.4-3 (external LINAGE-COUNTER 0001,0002 | 0002,0003 | 0004). An implementation with no notion of GR2 at all, neither checking nor"
+    }
+   ],
+   "defect": [],
+   "not-closable": [],
+   "other": [],
+   "deferred": []
+  }
+ },
+ "manifest_added": {
+  "85": [
+   "l1c11_select_clause_any_order",
+   "l1c11_key_native_collating_default",
+   "l1c11_linage_counter_external_global",
+   "l1c11_invalid_key_no_phrase_no_use",
+   "l1c11_global_file_common_connector",
+   "l1c11_program_text_all_spaces"
+  ],
+  "2002": [
+   "l1c11_key_native_national_default",
+   "l1c11_file_section_constant_typedef",
+   "l1c11_sharing_every_device_shareable",
+   "l1c11_invalid_key_ec_set",
+   "l1c11_sharing_not_fixed_attribute"
+  ]
+ },
+ "negative_added": [
+  "l1c11-select-not-first",
+  "l1c11-file-section-entry-before-fd"
+ ]
+}

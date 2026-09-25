@@ -1529,7 +1529,13 @@
   "l1c09-factory-implements-not-in-class-repository",
   "l1c09-factory-implements-nonconforming-method",
   "l1c10-file-control-no-period",
-  "l1c10-quote-bounds-literal"
+  "l1c10-quote-bounds-literal",
+  "l1c11-select-not-first",
+  "l1c11-file-section-entry-before-fd",
+  "l1c13-if-directive-cce-split",
+  "l1c13-if-directive-mid-line",
+  "l1c13-if-directive-text1-same-line",
+  "l1c13-initiate-multi-in-exception-perform"
  ],
  "pending": []
 }

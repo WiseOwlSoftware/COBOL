@@ -196,7 +196,13 @@
   "l1c09_overlap_same_entry",
   "l1c09_sort_merge_procedure_transfer",
   "l1c10_figurative_space_quote_zero_chars",
-  "l1c12_generate_detail_and_summary"
+  "l1c12_generate_detail_and_summary",
+  "l1c11_select_clause_any_order",
+  "l1c11_key_native_collating_default",
+  "l1c11_linage_counter_external_global",
+  "l1c11_invalid_key_no_phrase_no_use",
+  "l1c11_global_file_common_connector",
+  "l1c11_program_text_all_spaces"
  ],
  "pending": []
 }
