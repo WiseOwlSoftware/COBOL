@@ -747,7 +747,8 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     }
 
     /// <summary>Store a read record image into the FD record area: a character-image group distributes via FromImage;
-    /// an elementary / view record takes the image padded to its width.</summary>
+    /// an elementary record decodes the image into its own representation through
+    /// <see cref="ReceivingStore.StorageArea"/> (kb/Work PB1556).</summary>
     public void EmitImageInto(Place record, string imageExpr)
     {
         var w = ctx.Writer;
@@ -769,18 +770,18 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
                 $"record area '{record.Item.CobolName}' read"));
             return;
         }
-        // ⛔ AN ELEMENTARY NATIONAL RECORD AREA DECODES ITS BYTE PAIRS (kb/Work PB327) — the receiving twin of
-        // OperandText.RecordAreaImage's national arm, through the ONE inverse CobolBits.NatReadWindow. It is NOT
-        // fitted to the byte width first: NatReadWindow fills a position the image is too short to hold with the
-        // NATIONAL space, which is precisely §14.9.30.4 GR15's "If the record-area associated with file-name-1 is
-        // specified implicitly or explicitly as national, a trailing space is defined to be the national space
-        // character" — a byte-level space pad would have manufactured U+2020 instead.
-        if (Binding.Model.NationalWindow.PositionsOf(record.Item) is { } natPositions)
-        {
-            w.Line(PlaceRenderer.Write(record, RuntimeApi.NatReadWindow(imageExpr, "0", $"{natPositions}")));
-            return;
-        }
-        w.Line(PlaceRenderer.Write(record, RuntimeApi.StrStore(imageExpr, $"{record.Item.Pic?.Length ?? record.Item.ImageWidth}")));
+        // ⛔ AN ELEMENTARY RECORD AREA DECODES ITS STORAGE BYTES (kb/Work PB1556) — the receiving inverse of
+        // OperandText.RecordAreaImage, arm for arm, through THE ONE elementary storage-area store: a record
+        // description entry may be a single elementary item of ANY usage, and §14.9.30.4 GR13 c) / §14.9.34.4
+        // GR3 make the record "available in the record area" — its bytes, whatever the item's representation.
+        // The area is fitted to the record's BYTE extent (§14.9.30.4 GR14/GR15 measure a record in bytes).
+        // ⛔ A NATIONAL record area is NOT fitted first (kb/Work PB327): NatReadWindow fills a position the image
+        // is too short to hold with the NATIONAL space, which is precisely §14.9.30.4 GR15's "If the record-area
+        // associated with file-name-1 is specified implicitly or explicitly as national, a trailing space is
+        // defined to be the national space character" — a byte-level space pad would manufacture U+2020 instead.
+        var item = record.Item;
+        string area = item.Pic is { Usage: Usage.National } ? imageExpr : RuntimeApi.StrStore(imageExpr, $"{item.ByteWidth}");
+        w.Line(ReceivingStore.StorageArea(record, area, ReceivingStore.StoragePositions(record)));
     }
 
     /// <summary>After an I/O verb, store the file's two-character I-O status into its FILE STATUS item (ISO §9.1.13),

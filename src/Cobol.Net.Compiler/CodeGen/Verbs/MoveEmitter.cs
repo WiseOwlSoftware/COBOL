@@ -184,11 +184,11 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// into a numeric-edited or alphanumeric-edited mask (F1-38 / F1-20, F1-36; GR5 editing applies only to valid
     /// ELEMENTARY moves), NO de-editing. Alignment is §14.6.8 alphanumeric: left-justified, right space-fill /
     /// right truncation — and the receiver's JUSTIFIED still applies ("exactly as if … elementary move";
-    /// §13.18.32 attaches to the receiver). The raw image is then deposited by the receiver's STORAGE shape:
-    /// string-backed receivers store the width-fitted image directly; a native typed numeric receiver deposits
-    /// then decodes through the ONE storage-form bridge (<c>StoreDisplay</c> — the deterministic zoned
-    /// decode of possibly-incompatible content that §14.6.13.2 permits; EC-DATA-INCOMPATIBLE is a later EC
-    /// slice). A float receiver has no character image — loud (§1.4, the Tier-C island rule).</summary>
+    /// §13.18.32 attaches to the receiver). The width-fitted area is then decoded into the receiver's own
+    /// representation by THE ONE elementary storage-area store (<see cref="ReceivingStore.StorageArea"/> — the
+    /// same decode a READ into an elementary record area rides, kb/Work PB1556): string-backed receivers take
+    /// the bytes as they are; a native numeric receiver decodes them in its OWN byte form (zoned, radix-2, BCD or
+    /// IEEE), deterministically for possibly-incompatible content as §14.6.13.2 permits.</summary>
     private void EmitGroupToElementaryMove(Place target, BoundOperand source)
     {
         var item = target.Item;
@@ -228,27 +228,14 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // carrier's current length, in its own positions).
         // ReceivingStore.AnyLengthWidth is the ONE spelling of an ANY LENGTH receiver's width (kb/Work PB979).
         string len = item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : "";
-        bool national = item.Pic is { Usage: Usage.National };
-        bool bit = item.Pic is { Usage: Usage.Bit };
-        string positions = item.IsAnyLength ? len : $"{(bit ? item.Pic!.Length : item.ImageWidth)}";
         string gw = !item.IsAnyLength ? $"{item.ByteWidth}"
-            : national ? $"({len} * {RuntimeApi.BytesPerNational})"
-            : bit ? $"(({len} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})"
+            : item.Pic is { Usage: Usage.National } ? $"({len} * {RuntimeApi.BytesPerNational})"
+            : item.Pic is { Usage: Usage.Bit } ? $"(({len} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})"
             : len;
         string area = ReceivingStore.Characters(item, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"), gw);
-        string image = national ? RuntimeApi.NatReadWindow(area, "0", positions)
-            : bit ? RuntimeApi.BitsUnpack(area, positions)
-            : area;
-        // A native typed numeric receiver (long/Int128 backing) needs the decode half of the bridge — never a
-        // usage-DISPLAY one, which this move's kind promotes to its image (UsageCollectionPass → StorageFormPass,
-        // kb/Work PB992), so only a BINARY/PACKED/national receiver takes this arm (kb/Work PB970); every
-        // string-backed shape — alphanumeric [edited], numeric-edited, StoreAsImage numeric, a Tier-B
-        // RedefViewPlace char window, a NumericImagePlace (its Write IS the decode) — stores the image as-is.
-        bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
-            && target is not RedefViewPlace and not NumericImagePlace;
-        ctx.Writer.Line(nativeNumeric
-            ? PlaceRenderer.Write(target, RuntimeApi.NumStoreDisplay(image, item.ProfileName, PlaceRenderer.Read(target)))
-            : PlaceRenderer.Write(target, image));
+        // The receiver's representation is decoded FROM the area's bytes by THE ONE elementary storage-area
+        // store — the same decode a READ into an elementary record area rides (kb/Work PB1556).
+        ctx.Writer.Line(ReceivingStore.StorageArea(target, area, ReceivingStore.StoragePositions(target)));
     }
 
     /// <summary>MOVE into a whole group (alphanumeric semantics, ISO §14.9.25.4 MOVE GR4 — no conversion, filled without

@@ -619,9 +619,11 @@ consumer asks it (`OperandText.FieldAsString`, `NumericRenderer.FieldNumCore`, t
 decoder used to read every group through the image alone, so a national group into `PIC 9(3)` decoded UTF-16BE
 bytes as digits. GR4's group move into an ELEMENTARY receiver (`MoveEmitter.EmitGroupToElementaryMove`) fits the
 sending image to the receiver's STORAGE width (`DataItem.ByteWidth`) and decodes the receiver's representation
-from it — a USAGE NATIONAL receiver's two bytes per position (D-N1), a USAGE BIT receiver's packed bits — because
-GR4 forbids "conversion of data from one form of internal representation to another"; the sending characters are
-never re-encoded into it. And the §13.18.38.4 GR8 current extent (`OdoModel.WrapGroup`) computes its
+from it — a USAGE NATIONAL receiver's two bytes per position (D-N1), a USAGE BIT receiver's packed bits, a native
+numeric receiver's zoned / radix-2 / BCD / IEEE bytes in its OWN byte form — because GR4 forbids "conversion of data
+from one form of internal representation to another"; the sending characters are never re-encoded into it. The
+decode is `ReceivingStore.StorageArea`, the receiving inverse of `OperandText.AsStorageImage`, shared with the
+READ / RETURN store into an elementary record area (kb/Work PB1556). And the §13.18.38.4 GR8 current extent (`OdoModel.WrapGroup`) computes its
 per-occurrence stride on the same PHYSICAL basis as the group total it is subtracted from
 (`RecordLayout.PhysicalOccurrenceWidth`); a character-width stride against a byte-width total made a zero-count
 national table send half its maximum image.

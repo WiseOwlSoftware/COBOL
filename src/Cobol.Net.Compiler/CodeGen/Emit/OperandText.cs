@@ -259,9 +259,26 @@ internal static class OperandText
         // the RedefViewPlace window, the OdoGroupPlace §13.18.38 GR8 current-extent slice (the arm this site
         // used to spell itself, one line above), the capability guard, and the plain struct image.
         if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, context, transfer);
+        // ⛔ USAGE NATIONAL IS A SERIALIZATION OF THE CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7 —
+        // the group codec's AsImageOf composes the same way, kb/Work PB646). The category decides what the
+        // item's CHARACTERS are — for category national its carrier, for the national-form NUMERIC of
+        // §13.18.60.3 SR12 the zoned digit run FormatImage writes — and the usage decides only that each
+        // character occupies two bytes, UTF-16BE (D-N1). A national arm keyed on the CATEGORY alone sent a
+        // national-form numeric as one byte per digit (kb/Work PB1556: `01 R PIC 9(3) USAGE NATIONAL` wrote
+        // `37 38 39 20 20 20` into its 6-byte record).
+        if (ElementaryCharacterImage(p) is not { } chars)
+            return EmitText.LoudValue("string", TierCIsland.Reason(p.Item, context));
+        return p.Item.Pic is { Usage: Usage.National } ? RuntimeApi.NatBytes(chars) : chars;
+    }
+
+    /// <summary>An elementary item's storage in its OWN character alphabet — <see cref="AsStorageImage"/>
+    /// serializes it (a national item's characters become byte pairs; every other item's are its bytes already).
+    /// Null for a shape with no storage image (pointer/object — the Tier-C island).</summary>
+    private static string? ElementaryCharacterImage(Place p)
+    {
         return p.Item.Pic switch
         {
-            { Category: PicCategory.National } => RuntimeApi.NatBytes(PlaceRenderer.Read(p)),
+            { Category: PicCategory.National } => PlaceRenderer.Read(p),
             // A USAGE BIT leaf packs its own carrier (an elementary operand is a run of one — §8.5.1.6.3's
             // shared-byte runs exist only INSIDE a group image, which the group arm above owns).
             { Category: PicCategory.Boolean, Usage: Usage.Bit } pic =>
@@ -284,7 +301,7 @@ internal static class OperandText
                 RuntimeApi.NumFormatImageFloat(PlaceRenderer.Read(p), p.Item.ProfileName, p.Item.Pic!.IsSingle),
             { HasImageByteForm: true } =>
                 RuntimeApi.NumFormatImage(PlaceRenderer.Read(p), p.Item.ProfileName),
-            _ => EmitText.LoudValue("string", TierCIsland.Reason(p.Item, context)),
+            _ => null,
         };
     }
 

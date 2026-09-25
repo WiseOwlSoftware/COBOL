@@ -50,6 +50,47 @@ internal static class ReceivingStore
     /// the size it stores cannot disagree about the same receiver (kb/Work PB979).</summary>
     public static string AnyLengthWidth(Place target) => $"{PlaceRenderer.Read(target)}.Length";
 
+    /// <summary>⛔ THE ELEMENTARY STORAGE-AREA STORE — the receiving inverse of
+    /// <see cref="Emit.OperandText.AsStorageImage"/>, arm for arm (kb/Work PB1556). Every transfer that deposits
+    /// an item's STORAGE bytes into an elementary receiving area without converting the representation asks it:
+    /// a GROUP MOVE into an elementary receiver (ISO §14.9.25.4 GR4 — "there is no conversion of data from one
+    /// form of internal representation to another") and a READ / RETURN that makes the record available in an
+    /// ELEMENTARY record area (§14.9.30.4 GR13 c); §14.9.34.4 GR3). <paramref name="area"/> is the receiving
+    /// area's bytes, already fitted by the caller's own rule (a MOVE's alphanumeric fill, a READ's GR15 record
+    /// fill); <paramref name="positions"/> is the receiver's position count in its own units. The receiver's
+    /// representation is DECODED FROM the bytes: a NATIONAL item's UTF-16BE pairs through the ONE inverse
+    /// <c>CobolBits.NatReadWindow</c> (D-N1), a USAGE BIT item's packed bits through <c>CobolBits.Unpack</c>, and
+    /// a NATIVE numeric carrier (zoned, radix-2, BCD, IEEE — any byte form, including the national-form numeric
+    /// of §13.18.60.3 SR12, whose decoded characters are its zoned digit run) through
+    /// <see cref="Emit.NumericRenderer.CarrierOfImage"/>, the ONE crossing decode. Every string-backed shape —
+    /// alphanumeric [edited], numeric-edited, display boolean, a StoreAsImage numeric, a Tier-B view or a
+    /// numeric image place (whose Write IS the decode) — stores the characters as they are.
+    /// <para>It used to be written twice and right neither time: the MOVE arm decoded a BINARY / PACKED receiver
+    /// with the ZONED parser (<c>StoreDisplay</c>, so the bytes 00 07 moved into <c>PIC 9(4) COMP</c> read as 0)
+    /// and a float receiver did not compile (CS1503); the READ arm handled only the national and character
+    /// shapes, so an elementary numeric record did not compile at all (CS0029).</para></summary>
+    public static string StorageArea(Place target, string area, string positions)
+    {
+        var item = target.Item;
+        string chars = item.Pic switch
+        {
+            { Usage: Usage.National } => RuntimeApi.NatReadWindow(area, "0", positions),
+            { Usage: Usage.Bit } => RuntimeApi.BitsUnpack(area, positions),
+            _ => area,
+        };
+        bool nativeNumeric = item.Pic is { Category: PicCategory.Numeric } && !item.StoreAsImage
+            && target is not RedefViewPlace and not NumericImagePlace;
+        return PlaceRenderer.Write(target, nativeNumeric ? Emit.NumericRenderer.CarrierOfImage(chars, item) : chars);
+    }
+
+    /// <summary>The receiver's position count in its OWN units for <see cref="StorageArea"/> — national character
+    /// positions (<see cref="NationalWindow.PositionsOf"/>), boolean BIT positions (the PICTURE length), else its
+    /// character positions; an ANY LENGTH receiver's comes from its carrier at run time (§13.18.2.4 GR1 b).</summary>
+    public static string StoragePositions(Place target) =>
+        target.Item.IsAnyLength ? AnyLengthWidth(target)
+        : target.Item.Pic is { Usage: Usage.Bit } bitPic ? $"{bitPic.Length}"
+        : $"{NationalWindow.PositionsOf(target.Item) ?? target.Item.ImageWidth}";
+
     /// <summary>The SIZE of a receiving operand in CHARACTER POSITIONS at execution — a C# int expression, because an
     /// ANY LENGTH receiver's size is its carrier's (ISO §13.18.2.4 GR1 b), "n is the length of the corresponding
     /// argument or returning item of the activating runtime element") and so is not known to the binder. It is the
