@@ -11,7 +11,8 @@
       *> statement that was executing when control was transferred to
       *> the exception processing procedure unless general rules
       *> associated with the applicable statement specify otherwise"
-      *> (cite.py: OK  §14.9.33.4 2) a)); GR4 is that "otherwise".
+      *> (cite.py: OK  §14.9.33.4 2) a)).
+      *> §14.9.46.4 GR4 is that "otherwise".
       *> §14.9.49.4 GR8 (cite.py: OK  §14.9.49.4 8)) makes each report
       *> footing's production visible through USE BEFORE REPORTING.
       *> DERIVATION. R-A and R-C are active and have had a GENERATE;

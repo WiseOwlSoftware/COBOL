@@ -54,8 +54,8 @@
       *> slots 7 and 9 are empty. VARYING 5 TO 20. DECL counts USE runs.
       *> Derivation of every expected line:
       *>  C1 RK=7 (empty), both phrases: GR21 -> invalid key, '23';
-      *>     9.1.14 2) -> INVALID arm, declarative NOT run; GR14 ->
-      *>     record area unaffected:
+      *>     9.1.14 2) -> INVALID arm, declarative NOT run;
+      *>     §14.9.35.4 GR14 -> record area unaffected:
       *>     "C1 ST=23 DECL=0 REC=XXXXXXXXXX ARM=INVALID"
       *>  C2 RK=1 (present), LN=12, both phrases: GR21 -> slot 1
       *>     replaced, '00'; 9.1.14 (second list) 2) -> NOT INVALID arm:
