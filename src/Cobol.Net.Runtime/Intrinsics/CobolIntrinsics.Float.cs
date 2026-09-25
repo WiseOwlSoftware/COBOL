@@ -12,9 +12,8 @@ namespace CobolNet.Runtime;
 /// arithmetic expressions, so the value is implementor-defined in EVERY mode (§15.4.1 last paragraph), and a
 /// double result entering a standard-decimal expression converts through the one §8.8.1.5.2 r1 operand
 /// conversion (<c>CobolDec.FromDouble</c>). ANNUITY / PRESENT-VALUE / VARIANCE / STANDARD-DEVIATION carry
-/// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — those four are staged LOUD
-/// under the standard modes at bind time (COBOLNET0899 'arithmetic-standard-intrinsic', IntrinsicBinder) until
-/// CobolDec evaluations land.</para>
+/// EAEs with inexact divisions that §15.4.1 r1 requires be evaluated in SDIDI form — under the standard modes they
+/// never reach this file: <c>IntrinsicRenderer.RenderDec</c> evaluates them on their <c>…Dec</c> bodies.</para>
 /// </summary>
 public static partial class CobolIntrinsics
 {
@@ -313,20 +312,62 @@ public static partial class CobolIntrinsics
     /// <summary>log10 e, correctly rounded.</summary>
     private const double Log10E = 0.4342944819032518276511289189166051;
 
-    public static double Exp(double x) => Math.Exp(x);       // §15.34 — e ** argument (COBOL-2002+)
-    public static double Exp10(double x) => Math.Pow(10, x); // §15.35 — 10 ** argument (COBOL-2002+)
+    // ── THE RANGE OF THE RETURNED VALUE (kb/Work PB1566) ────────────────────────────────────────────────────────
+    // ⛔ A RESULT PAST BINARY64 IS THE SIZE ERROR CONDITION, NEVER ±Infinity OR A FLUSHED ZERO. Under native
+    // arithmetic "the characteristics and representation of the returned value are defined by the implementor"
+    // (§15.4.1), and COBOL.NET's determination is that this family's returned value IS a binary64 (CONFORMANCE.md
+    // DOC-A.1-92) — so binary64's range is the range of the native intermediate the value is formed in. §14.7.5
+    // case 5 makes a value outside that range the size error condition when "the implementor defines that the
+    // range of values allowed for the intermediate data item is to be checked", which COBOL.NET defines
+    // (DOC-A.1-179), and the no-phrase rule 3 names the condition: "farther from zero or nearer to zero than is
+    // allowed for the intermediate data item" — EC-SIZE-OVERFLOW or EC-SIZE-UNDERFLOW. That is the FACTORIAL
+    // precedent on the other native carrier (CobolIntrinsics.Factorial: 34! past the Int128 intermediate), and
+    // the standard modes already answer the same way past decimal128 (§8.8.1.5.2 r2, CobolDec). EXP(1000) was
+    // printed "Infinity" and EXP(−1000) stored 0 with NOT ON SIZE ERROR taken. "Nearer to zero than allowed" is a
+    // nonzero value that ROUNDS to zero: a subnormal is a binary64 value (IEC 60559 gradual underflow), not an
+    // underflow. A NON-FINITE argument is not an arithmetic operation leaving the range — a COMP-2 already holding
+    // ±Infinity or NaN keeps its DOC-A.1-70 disposition — so only a finite argument's result is checked.
+
+    /// <summary>The ONE range check of a float-family returned value the body KNOWS to be nonzero or not
+    /// (<paramref name="nonzero"/>): ±∞ is EC-SIZE-OVERFLOW, a nonzero value rounded to zero is EC-SIZE-UNDERFLOW
+    /// (§14.7.5 case 5 / no-phrase rule 3), each the <see cref="CobolSizeError"/> the statement's SIZE ERROR phrase
+    /// or EC-SIZE checking takes.</summary>
+    private static double InBinary64Range(double r, bool nonzero, string function)
+    {
+        if (double.IsInfinity(r))
+            throw new CobolSizeError($"FUNCTION {function}: the returned value is farther from zero than the binary64 "
+                + "intermediate allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-92)", "EC-SIZE-OVERFLOW");
+        if (r == 0 && nonzero)
+            throw new CobolSizeError($"FUNCTION {function}: the nonzero returned value is nearer to zero than the "
+                + "binary64 intermediate allows (ISO §14.7.5 case 5; CONFORMANCE.md DOC-A.1-92)", "EC-SIZE-UNDERFLOW");
+        return r;
+    }
+
+    /// <summary>An EXACT returned value narrowed to the family's binary64, range-checked against its own value
+    /// (<see cref="InBinary64Range"/>) — the one narrowing of an SDIDI-evaluated body.</summary>
+    private static double NarrowResult(CobolDec v, string function) =>
+        InBinary64Range(v.ToDouble(), v.Sig != 0, function);
+
+    /// <summary>§15.34 EXP of a floating argument — e^x is never zero, so a finite argument's zero is an underflow.</summary>
+    public static double Exp(double x) =>                      // §15.34 — e ** argument (COBOL-2002+)
+        double.IsFinite(x) ? InBinary64Range(Math.Exp(x), nonzero: true, "EXP") : Math.Exp(x);
+
+    /// <summary>§15.35 EXP10 of a floating argument — as <see cref="Exp(double)"/>.</summary>
+    public static double Exp10(double x) =>                    // §15.35 — 10 ** argument (COBOL-2002+)
+        double.IsFinite(x) ? InBinary64Range(Math.Pow(10, x), nonzero: true, "EXP10") : Math.Pow(10, x);
 
     /// <summary>§15.34 EXP of an exact argument: e^i · e^f over x's integer part i and its EXACT fraction f = x − i.
     /// EXP's condition number is |x|, so the narrowed argument's error of |x|·2^−53 was a RELATIVE result error of
     /// the same size — 150 ulps at x ≈ 700 — while i is exact in binary64 and f is below 1. Below |x| = 1 nothing is
     /// amplified and the overload IS the double body; past |x| = 1000 the result is outside binary64 whatever the
-    /// argument's digits.</summary>
+    /// argument's digits, which <see cref="InBinary64Range"/> makes the size error condition (kb/Work PB1566) — an
+    /// SDIDI argument past binary64's own range narrows to ±∞ and lands there too, correctly.</summary>
     public static double Exp(CobolDec x)
     {
         double d = x.ToDouble();
-        if (!(Math.Abs(d) is >= 1 and <= 1000)) return Math.Exp(d);
+        if (!(Math.Abs(d) is >= 1 and <= 1000)) return InBinary64Range(Math.Exp(d), nonzero: true, "EXP");
         double i = Math.Truncate(d);
-        return Math.Exp(i) * Math.Exp(FractionAfter(x, i));
+        return InBinary64Range(Math.Exp(i) * Math.Exp(FractionAfter(x, i)), nonzero: true, "EXP");
     }
 
     /// <summary>§15.35 EXP10 of an exact argument: 10^i · 10^f, as <see cref="Exp(CobolDec)"/> (condition number
@@ -334,9 +375,9 @@ public static partial class CobolIntrinsics
     public static double Exp10(CobolDec x)
     {
         double d = x.ToDouble();
-        if (!(Math.Abs(d) is >= 1 and <= 400)) return Math.Pow(10, d);
+        if (!(Math.Abs(d) is >= 1 and <= 400)) return InBinary64Range(Math.Pow(10, d), nonzero: true, "EXP10");
         double i = Math.Truncate(d);
-        return Math.Pow(10, i) * Math.Pow(10, FractionAfter(x, i));
+        return InBinary64Range(Math.Pow(10, i) * Math.Pow(10, FractionAfter(x, i)), nonzero: true, "EXP10");
     }
 
     /// <summary>x − <paramref name="integer"/>, formed on the EXACT carrier and then narrowed. <paramref name="integer"/>
@@ -440,6 +481,48 @@ public static partial class CobolIntrinsics
     {
         RequireArguments(xs.Length, "STANDARD-DEVIATION");
         return Sqrt(Variance(xs));
+    }
+
+    // ── The VARIADIC exact-intake bodies (kb/Work PB1565) ─────────────────────────────────────────────────────
+    // ⛔ THE ARGUMENT LIST IS NOT NARROWED BEFORE IT CANCELS. The exact-intake rule above holds for a LIST too:
+    // §15.4.1 licenses an approximation of the RETURNED value of the equivalent arithmetic expression, not of each
+    // argument, and these three EAEs subtract arguments from one another — §15.98.4's deviations
+    // argument-1ᵢ − FUNCTION MEAN (argument-list), §15.86.4's SQRT over them, §15.74.4's Σ of signed amounts — so
+    // narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001
+    // 100000000000000002) answered 0 where the value is 0.25, STANDARD-DEVIATION 0 where it is 0.5, and
+    // PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 where it is 1. The binary64 bodies above stay for a
+    // list with a FLOATING argument, whose EAE is evaluated in binary64 (CONFORMANCE.md DOC-A.1-92, the exact
+    // family's determination for the same case). An all-exact list is lifted exactly into the SDIDI and the EAE is
+    // evaluated there by the ONE Dec body of each function (VarianceDec / StdDevDec / PresentValueDec — the
+    // standard modes' bodies, in the native intermediate rounding mode), and only the RESULT is narrowed, once,
+    // range-checked (NarrowResult). An SDIDI argument under native already reaches those Dec bodies through
+    // IntrinsicRenderer's native Dec arm; this is the fixed-point list's arm of the same evaluation.
+
+    /// <summary>§15.98 VARIANCE of an all-exact argument list: §15.98.4's EAE on the SDIDI, then narrowed.</summary>
+    public static double Variance(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "VARIANCE");            // §15.3 — at least one argument (kb/Work PB257)
+        return NarrowResult(VarianceDec(mode, xs), "VARIANCE");
+    }
+
+    /// <summary>§15.86 STANDARD-DEVIATION of an all-exact argument list: §15.86.4 r1's
+    /// <c>(FUNCTION SQRT (FUNCTION VARIANCE (argument-list)))</c> on the SDIDI (<see cref="StdDevDec"/>), then
+    /// narrowed.</summary>
+    public static double StandardDeviation(CobolRounding mode, params CobolDec[] xs)
+    {
+        RequireArguments(xs.Length, "STANDARD-DEVIATION");
+        return NarrowResult(StdDevDec(mode, xs), "STANDARD-DEVIATION");
+    }
+
+    /// <summary>§15.74 PRESENT-VALUE of an all-exact argument list: §15.74.4's Σ amountᵢ / (1 + rate)^i on the SDIDI
+    /// (<see cref="PresentValueDec"/>), then narrowed. §15.74.3 r2 is decided where every SDIDI evaluation of this
+    /// function decides it — <see cref="PresentValueDec"/>'s exact compare against −1, through the ONE
+    /// <see cref="PresentValueDomain"/> raise site, whose §15.3 default 0 comes back unchanged — so a leading
+    /// table(ALL) rate needs no nullable element inside the enumerated <c>CobolDec[]</c>.</summary>
+    public static double PresentValue(CobolRounding mode, CobolDec rate, params CobolDec[] amounts)
+    {
+        RequireArguments(amounts.Length, "PRESENT-VALUE");
+        return NarrowResult(PresentValueDec(mode, rate, amounts), "PRESENT-VALUE");
     }
 
     // ── RANDOM (ISO §15.75) ────────────────────────────────────────────────────────────────────────────────────

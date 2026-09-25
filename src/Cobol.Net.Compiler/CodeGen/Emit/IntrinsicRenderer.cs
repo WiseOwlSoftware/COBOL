@@ -475,6 +475,14 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         // two exact-carrier twins do (kb/Work PB620): §15.17.3 r2's bound is §7.3.17.4 GR4/GR5's, so a screen
         // that could not see the directive would admit 86 400.5 on one carrier and refuse it on another.
         "CombinedDatetimeReal" => RuntimeApi.Intrinsic(method, $"{Dbl(ic, 0)}, {Dbl(ic, 1)}{LeapSecondFlag}"),
+        // A variadic body whose EAE CANCELS across its list takes an all-exact list UNNARROWED (kb/Work PB1565 —
+        // see ExactListBodies): the SDIDI evaluation in the native intermediate rounding mode, narrowed once.
+        // PRESENT-VALUE's rate leads unscreened, exactly as on RenderDec's arm: the SDIDI body decides §15.74.3 r2
+        // on the exact rate itself (PresentValueDec), so a leading table(ALL) stays one CobolDec[] enumeration.
+        "PresentValue" when !AnyRealArgument(ic) =>
+            LeadThenTail(ic, method, $"{num.IntermediateMode}, ", "CobolDec", DecOf),
+        _ when ExactListBodies.Contains(method) && !AnyRealArgument(ic) =>
+            RuntimeApi.Intrinsic(method, $"{num.IntermediateMode}, {DecArgList(ic)}"),
         // PRESENT-VALUE (§15.74.2 `argument-1 { argument-2 } …`): the rate leads, the amounts are the params tail.
         // The lead is the DISCOUNT BASE 1 + rate, formed on the rate's exact carrier after the ONE screen
         // (kb/Work PB1000 — see PresentValueBase).
@@ -527,6 +535,29 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
         ["Acos"] = ExactIntake.EveryExact, ["Asin"] = ExactIntake.EveryExact,
         ["Exp"] = ExactIntake.EveryExact, ["Exp10"] = ExactIntake.EveryExact,
     }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    /// <summary>
+    /// The VARIADIC binary64-family bodies that take an all-exact argument LIST unnarrowed — a runtime overload
+    /// <c>(CobolRounding mode, …CobolDec…)</c> in <c>CobolIntrinsics.Float.cs</c> that evaluates the function's
+    /// equivalent arithmetic expression on the SDIDI and narrows only the result (kb/Work PB1565): the list arm of
+    /// <see cref="WholeRangeBodies"/>.
+    /// </summary>
+    /// <remarks>
+    /// <para>Each member's EAE SUBTRACTS its arguments from one another, so narrowing each exact argument first is
+    /// not an approximation of the returned value — its low digits cancel away: <c>Variance</c> (§15.98.4 r1, the
+    /// deviations from FUNCTION MEAN: VARIANCE(100000000000000001 100000000000000002) answered 0, not 0.25),
+    /// <c>StandardDeviation</c> (§15.86.4 r1, SQRT of that: 0, not 0.5), <c>PresentValue</c> (§15.74.4 r1, a Σ of
+    /// signed amounts: PRESENT-VALUE(0 100000000000000001 −100000000000000000) answered 0, not 1).</para>
+    /// <para>A list with a FLOATING argument keeps the binary64 body — its EAE is evaluated in binary64, the
+    /// determination CONFORMANCE.md DOC-A.1-92 states for the exact family's floating arm. An SDIDI argument is
+    /// already claimed by <c>RenderNum</c>'s native Dec arm before the float family is reached.
+    /// <c>WholeRangeBodiesDriftTests</c> pins the overload each member needs and that EVERY variadic float-family
+    /// catalog row is a member, so a new variadic float function cannot silently take the narrowing arm.</para>
+    /// </remarks>
+    internal static readonly FrozenSet<string> ExactListBodies = new[]
+    {
+        "Variance", "StandardDeviation", "PresentValue",
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>Which exact carriers a <see cref="WholeRangeBodies"/> member takes unnarrowed.</summary>
     internal enum ExactIntake

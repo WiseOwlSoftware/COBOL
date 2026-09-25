@@ -564,7 +564,7 @@ conditioned in and narrows only that:
 - **ACOS / ASIN** — 2·asin(√((1 − |x|)/2)) over the exact 1 − |x| past |x| = ½ (π minus it, or π/2 minus it, with the
   constants as double-doubles).
 - **EXP / EXP10** — e^i · e^f over the integer part i and the exact fraction f = x − i, for 1 ≤ |x| ≤ 1000 (400 for
-  EXP10; beyond, the result is outside binary64 whatever the digits).
+  EXP10; beyond, the result is outside binary64 whatever the digits — the size error condition, below).
 - **SQRT** — the root on the exact carrier (`CobolDec.Sqrt`) off the normal binary64 range.
 
 Not members, each because its condition number is bounded by a constant on the whole domain, so the substitute's
@@ -581,6 +581,34 @@ and the rate-side twin (PRESENT-VALUE's exact discount base, above) by
 (PB1310): its §15.9.4 1) b) denominator 1 − (1 + rate)^−n is evaluated as −expm1(−n·log1p(rate))
 (`CobolIntrinsics.ExpMinusOne` / `LogOnePlus`, Kahan's formulations), because forming 1 + rate in binary64 is exactly
 1.0 for any rate below 2^−53 — a COMP-2 rate included — and ANNUITY(1E-17 12) stored 0 for 1/12.
+
+**The VARIADIC arm: an all-exact argument LIST is not narrowed before it cancels (PB1565).** The same licence reads
+the same way for a list: VARIANCE (§15.98.4 r1 — deviations from FUNCTION MEAN), STANDARD-DEVIATION (§15.86.4 r1 —
+SQRT of that) and PRESENT-VALUE (§15.74.4 r1 — a Σ of signed amounts) SUBTRACT their arguments from one another, so
+narrowing each exact argument first cancels its low digits away: VARIANCE(100000000000000001 100000000000000002)
+answered 0 for 0.25, STANDARD-DEVIATION 0 for 0.5, PRESENT-VALUE(0 100000000000000001 −100000000000000000) 0 for 1.
+The declared set `IntrinsicRenderer.ExactListBodies` names them; for a list with NO floating argument `FloatBody`
+passes every argument lifted exactly (`DecArgList` / `DecOf`, table(ALL) enumerations included) to the runtime's
+`(CobolRounding mode, …CobolDec…)` overload, which evaluates the EAE on the SDIDI with the function's ONE Dec body
+(`VarianceDec` / `StdDevDec` / `PresentValueDec`, in the native intermediate rounding mode) and narrows only the
+result. PRESENT-VALUE's §15.74.3 r2 is then decided where every SDIDI evaluation of it decides it —
+`PresentValueDec`'s exact compare through the one `PresentValueDomain` raise site — which is also what lets a
+leading table(ALL) rate stay one `CobolDec[]` enumeration. A list with a floating argument keeps the binary64
+body (its EAE is evaluated in binary64, CONFORMANCE.md DOC-A.1-92); an SDIDI argument was already routed to the
+Dec bodies by `RenderNum`'s native Dec arm (PB69). `WholeRangeBodiesDriftTests` requires every variadic Float
+catalog row to be a member and pins each overload. Pinned by `tests/conformance/85/pb1565_variadic_exact_argument_list`.
+
+**The RANGE of the returned value: past binary64 is the size error condition (PB1566).** Under native arithmetic the
+family's returned value IS a binary64 (CONFORMANCE.md DOC-A.1-92), so binary64's range is the range of the native
+intermediate it is formed in, and §14.7.5 case 5 — checked, DOC-A.1-179 — makes a value outside it the size error
+condition: EC-SIZE-OVERFLOW when "farther from zero", EC-SIZE-UNDERFLOW when a nonzero value is "nearer to zero than
+is allowed for the intermediate data item" (the no-phrase rule 3). `CobolIntrinsics.InBinary64Range` is the one
+check, raising `CobolSizeError` exactly as FACTORIAL does past the Int128 intermediate: EXP / EXP10 on every carrier
+(e^x is never zero, so a finite argument's zero result is an underflow; a subnormal is in range; a non-finite
+ARGUMENT keeps its DOC-A.1-70 disposition), and every `ExactListBodies` result through `NarrowResult`, which knows
+the exact value. EXP(1000) used to print `Infinity` and `COMPUTE F = FUNCTION EXP(-1000) ON SIZE ERROR` took NOT ON
+SIZE ERROR. Under a standard mode the SDIDI's own range answers the same way (§8.8.1.5.2 r2). Pinned by
+`tests/conformance/2002/pb1566_exp_result_range`.
 
 ### An intrinsic-function-name the REPOSITORY identifies is not a user-defined word (PB65, §8.3.2.1 rule 5).
 

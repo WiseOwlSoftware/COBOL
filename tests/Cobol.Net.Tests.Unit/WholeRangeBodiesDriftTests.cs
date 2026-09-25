@@ -5,6 +5,7 @@ using CobolNet.Binding;
 using CobolNet.CodeGen.Emit;
 using CobolNet.Runtime;
 using CobolNet.Runtime.Exceptions;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -170,6 +171,80 @@ public sealed class WholeRangeBodiesDriftTests
         double actual = CobolIntrinsics.Annuity(rate, periods);
         double ulp = Math.BitIncrement(expected) - expected;
         Assert.True(Math.Abs(actual - expected) <= 2 * ulp, $"ANNUITY({rate:R} {periods}) = {actual:R}, oracle {expected:R}");
+    }
+
+    /// <summary>⛔ The VARIADIC arm of the exact intake (kb/Work PB1565): every variadic Float catalog row is an
+    /// <see cref="IntrinsicRenderer.ExactListBodies"/> member — so a new variadic float function cannot silently
+    /// take the narrowing body — and every member has the <c>(CobolRounding, …CobolDec…)</c> overload the renderer
+    /// emits, PRESENT-VALUE's rate leading the amounts.</summary>
+    [Fact]
+    public void EveryVariadicFloatRow_IsAnExactListBody_WithTheListOverload()
+    {
+        string src = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "Binding", "IntrinsicCatalog.cs"));
+        var row = new System.Text.RegularExpressions.Regex(
+            "Add\\(new\\(\"(?<n>[A-Z0-9-]+)\",\\s*IntrinsicType\\.\\w+,\\s*IntrinsicArity\\.(?<arity>\\w+),\\s*[-\\w]+,"
+            + "\\s*[-\\w.]+,\\s*\"[^\"]*\",\\s*\"(?<m>\\w*)\",\\s*IntrinsicBind\\.\\w+,\\s*(?<float>true|false),");
+        var rows = row.Matches(src).ToList();
+        Assert.True(rows.Count >= 79, $"only {rows.Count} catalog rows parsed — the Add(new(...)) shape changed; fix the regex.");
+        var variadicFloat = rows
+            .Where(m => m.Groups["float"].Value == "true" && m.Groups["arity"].Value == "Variadic")
+            .Select(m => m.Groups["m"].Value)
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.Equal(variadicFloat.Order(StringComparer.Ordinal), IntrinsicRenderer.ExactListBodies.Order(StringComparer.Ordinal));
+
+        foreach (string method in IntrinsicRenderer.ExactListBodies)
+        {
+            Type[] want = method == "PresentValue"
+                ? [typeof(CobolRounding), typeof(CobolDec), typeof(CobolDec[])]
+                : [typeof(CobolRounding), typeof(CobolDec[])];
+            var overload = typeof(CobolIntrinsics).GetMethod(method, BindingFlags.Public | BindingFlags.Static, want);
+            Assert.True(overload is not null && overload.ReturnType == typeof(double),
+                $"{method}: no public static double {method}({string.Join(", ", want.Select(t => t.Name))})");
+        }
+    }
+
+    private static CobolDec D(string sig, int exp = 0) => new(Int128.Parse(sig), exp);
+
+    /// <summary>The list bodies answer for the EXACT arguments (Python <c>decimal</c> at 80 digits): the narrowing
+    /// body cancelled every one of these to 0.</summary>
+    [Fact]
+    public void ExactListBodies_DoNotCancelTheArgumentsLowDigits()
+    {
+        var mode = CobolRounding.NearestEven;
+        CobolDec a = D("100000000000000001"), b = D("100000000000000002");
+        Assert.Equal(0.0, CobolIntrinsics.Variance(a.ToDouble(), b.ToDouble()));      // the narrowing body
+        Assert.Equal(0.25, CobolIntrinsics.Variance(mode, a, b));
+        Assert.Equal(0.5, CobolIntrinsics.StandardDeviation(mode, a, b));
+        Assert.Equal(1.0, CobolIntrinsics.PresentValue(mode, D("0"), a, D("-100000000000000000")));
+        Assert.Equal(2.0, CobolIntrinsics.PresentValue(mode, D("5", -1), D("300000000000000003"), D("-450000000000000000")));
+        UnderChecking(false, () =>                                                     // a rejected rate: the §15.3 default
+            Assert.Equal(0.0, CobolIntrinsics.PresentValue(mode, D("-1"), a)));
+        Assert.Equal(1.5555555555555556, CobolIntrinsics.Variance(mode, D("1"), D("2"), D("4")));   // 14/9
+    }
+
+    /// <summary>⛔ A returned value outside binary64 is the size error condition (kb/Work PB1566; ISO §14.7.5 case
+    /// 5 under CONFORMANCE.md DOC-A.1-179): ±∞ is EC-SIZE-OVERFLOW, a nonzero value rounded to zero
+    /// EC-SIZE-UNDERFLOW — on the exact arm, the floating arm and a list body's narrowed result alike. A subnormal is
+    /// in range, and a non-finite ARGUMENT keeps its own disposition.</summary>
+    [Fact]
+    public void AResultOutsideBinary64_IsTheSizeErrorCondition()
+    {
+        static string Ec(Action body) => Assert.Throws<CobolSizeError>(body).EcName;
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp(D("1000"))));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.Exp(D("-1000"))));
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp(D("7098", -1))));      // inside the split arm
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp(Pow10(400))));         // SDIDI past binary64
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp10(D("400"))));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.Exp10(D("-400"))));
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.Exp(1000.0)));
+        Assert.Equal("EC-SIZE-UNDERFLOW", Ec(() => CobolIntrinsics.Exp10(-400.0)));
+        var twenty = Enumerable.Repeat(D("1"), 20).ToArray();                                   // Σ 10^20i, i ≤ 20
+        Assert.Equal("EC-SIZE-OVERFLOW", Ec(() => CobolIntrinsics.PresentValue(
+            CobolRounding.NearestEven, D("-99999999999999999999", -20), twenty)));
+        Assert.True(CobolIntrinsics.Exp(D("-740")) > 0);                                       // subnormal: in range
+        Assert.Equal(8.218407461554972e+307, CobolIntrinsics.Exp(D("709")), 8e+293);
+        Assert.True(double.IsPositiveInfinity(CobolIntrinsics.Exp(double.PositiveInfinity)));  // non-finite argument
+        Assert.Equal(0.0, CobolIntrinsics.Exp(double.NegativeInfinity));
     }
 
     [Fact]

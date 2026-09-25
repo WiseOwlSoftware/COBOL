@@ -26,6 +26,7 @@
   "pb653_nested_float_operand",
   "pb1000_present_value_rate_near_minus_one",
   "pb1041_trig_log_arc_exact_argument",
+  "pb1565_variadic_exact_argument_list",
   "pb429_page_counter_receiving",
   "pb484_report_line_placement",
   "pb571_class_condition_one_table",
