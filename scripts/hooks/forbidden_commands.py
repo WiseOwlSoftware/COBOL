@@ -22,6 +22,10 @@ import re
 import sys
 
 
+# the harness reads hook stderr as UTF-8; Windows would otherwise encode it in the console code page (an em dash arrived
+# mangled in the first live block, 2026-09-25)
+sys.stderr.reconfigure(encoding="utf-8")
+
 def block(reason: str) -> None:
     sys.stderr.write("BLOCKED by scripts/hooks/forbidden_commands.py: " + reason + "\n")
     sys.exit(2)

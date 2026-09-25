@@ -17,6 +17,10 @@ try:
 except Exception:  # noqa: BLE001
     sys.exit(0)
 
+# the harness reads hook stderr as UTF-8; Windows would otherwise encode it in the console code page (an em dash arrived
+# mangled in the first live block, 2026-09-25)
+sys.stderr.reconfigure(encoding="utf-8")
+
 target = (data.get("tool_input") or {}).get("file_path") or (data.get("tool_input") or {}).get("notebook_path")
 if not target:
     sys.exit(0)

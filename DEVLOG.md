@@ -13,6 +13,16 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1712 — 2026-09-25 13:39 PDT — Guard hooks write UTF-8 stderr (first live block arrived mangled)
+
+R49's role agents were proven live after the registry reload: a `cobol-refuter` smoke agent's Write into
+`E:\CobolSharp\docs` was BLOCKED by `readonly_repo.py` and its Write into the scratchpad succeeded. The block
+message's em dash reached the agent mangled: Python on Windows encodes stderr in the console code page, while the
+harness reads hook stderr as UTF-8. Both guard hooks (`readonly_repo.py`, `forbidden_commands.py` — the sibling with
+the same em-dash messages) now `sys.stderr.reconfigure(encoding="utf-8")`; the bytes were checked (E2 80 94) and
+both self-tests stay green (21/21, 4/4). Also: push-main's second invocation for Entry 1711 reported REFUSED only
+because the first, backgrounded with `&` and believed dead, had already landed e105e0833 on a green ci-gate.
+
 ## Entry 1711 — 2026-09-25 13:14 PDT — Claude tooling adoption (R49): guard hooks, role agents, telemetry, lander review
 
 The owner answered the twelve ranked tooling recommendations (kb/Work R49): a STANDING Workflow opt-in; hooks, a longer
