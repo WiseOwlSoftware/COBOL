@@ -559,6 +559,11 @@ public sealed class FileRegistry
     /// (<see cref="FileConnector.CurrentRecord"/>); "" for an unknown name.</summary>
     public string CurrentRecord(string name) => _files.TryGetValue(name, out var c) ? c.CurrentRecord : "";
 
+    /// <summary>The EXTENT TABLE the current record was sent with (<see cref="FileConnector.CurrentRecordExtents"/>;
+    /// determination D-FRA (v), kb/Work PB1053); null for an unknown name or a record that carries none.</summary>
+    public RecordExtents? CurrentRecordExtents(string name) =>
+        _files.TryGetValue(name, out var c) ? c.CurrentRecordExtents : null;
+
     /// <summary>The open-mode view for USE-declarative mode scoping (ISO §14.9.49.4 GR6b–e); −1 unknown/closed.</summary>
     public int OpenModeOf(string name) => _files.TryGetValue(name, out var c) ? c.OpenModeView : -1;
 
@@ -601,10 +606,10 @@ public sealed class FileRegistry
 
     /// <summary>DELETE RECORD (§14.9.10 F1); for indexed random/dynamic the prime key is sliced from
     /// <paramref name="keyedRecordImage"/> (GR3) — relative uses the staged relative key (GR4).</summary>
-    public string DeleteRecord(string name, string keyedRecordImage) => Require(name) switch
+    public string DeleteRecord(string name, string keyedRecordImage, RecordExtents? areaExtents = null) => Require(name) switch
     {
         RelativeConnector r => r.Delete(),
-        IndexedConnector ix => ix.Delete(keyedRecordImage),
+        IndexedConnector ix => ix.Delete(keyedRecordImage, areaExtents),
         // §14.9.10.3 SR2 restricts DELETE RECORD to relative/indexed at BIND time — reaching here with a
         // sequential connector is a compiler defect (the old '30'-without-SetStatus arm left the FILE STATUS
         // item reading its stale value while the statement's own branch local held '30' — kb/Work PB140).
@@ -638,13 +643,14 @@ public sealed class FileRegistry
 
     /// <summary>Random keyed READ (§14.9.30 F2): indexed slices the key value from
     /// <paramref name="keyedRecordImage"/> (GR30–GR32); relative uses the staged relative key (GR29).</summary>
-    public string ReadKeyed(string name, int keyIndex, string keyedRecordImage, out string image)
+    public string ReadKeyed(string name, int keyIndex, string keyedRecordImage, out string image,
+        RecordExtents? areaExtents = null)
     {
         image = "";
         return Require(name) switch
         {
             RelativeConnector r => r.ReadRandom(out image),
-            IndexedConnector ix => ix.ReadRandom(keyIndex, keyedRecordImage, out image),
+            IndexedConnector ix => ix.ReadRandom(keyIndex, keyedRecordImage, out image, areaExtents),
             var other => throw MisroutedVerb("keyed READ", name, other),
         };
     }
@@ -657,8 +663,9 @@ public sealed class FileRegistry
     /// <summary>START on an indexed file (§14.9.41 GR13–GR17) — a leftmost-length partial-key comparison whose
     /// search key is sliced out of <paramref name="keyedRecordImage"/>, the RECORD AREA (GR17 a); kb/Work
     /// PB355), exactly as the random READ's and DELETE's key values are.</summary>
-    public string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length) =>
-        Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, keyedRecordImage, length)
+    public string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length,
+        RecordExtents? areaExtents = null) =>
+        Require(name) is IndexedConnector ix ? ix.Start(keyIndex, op, keyedRecordImage, length, areaExtents)
         : throw MisroutedVerb("START (indexed)", name, Require(name));
 
     /// <summary>START FIRST/LAST (COBOL-2002+), on EVERY organization — the standard writes the rule three
@@ -1387,14 +1394,14 @@ public sealed class FileRegistry
     /// <para>ADVANCING ON LOCK is not in the Format-2 general format at all (§14.9.30.2) and §14.9.30.3 SR6 bars
     /// it under ACCESS MODE RANDOM, so this entry carries no advancing-on-lock argument.</para></summary>
     public string ReadKeyedShared(string name, int keyIndex, string keyedRecordImage, FileRecordLock phrase,
-        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image, RecordExtents? areaExtents = null)
     {
         image = "";
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — on EXECUTION
-        string peek = NoRecordIsLocked(st) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage);
+        string peek = NoRecordIsLocked(st) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage, areaExtents);
         if (peek.Length > 0)
         {
             if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
@@ -1405,7 +1412,7 @@ public sealed class FileRegistry
                 return predenied;
             }
         }
-        string status = ReadKeyed(name, keyIndex, keyedRecordImage, out image);
+        string status = ReadKeyed(name, keyIndex, keyedRecordImage, out image, areaExtents);
         if (status.Length == 0 || status[0] != '0') return status;   // invalid key (§9.1.14) or a mode failure
         if (!RecordLocksGovern(meta, st, name)) return status;   // no lock on the file and none to set
         string recId = c.LastReadRecordId;
@@ -1419,7 +1426,8 @@ public sealed class FileRegistry
     /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
     /// so the first attempt decides. Returns the I-O status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default)
+        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default,
+        RecordExtents? extents = null)
     {
         _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
@@ -1432,7 +1440,7 @@ public sealed class FileRegistry
             string pf = _physical.PreflightNewLock(st, name);   // §12.4.5.9 GR7 — the statement fails BEFORE the write (§14.9.51 GR15)
             if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
         }
-        string status = WriteAnyOrg(c, image, length, page, advance);
+        string status = WriteAnyOrg(c, image, length, page, advance, extents);
         if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
             _physical.LockRecord(st, name, recId);   // GR11 — the just-released record's lock is set
         return status;
@@ -1443,7 +1451,7 @@ public sealed class FileRegistry
     /// → RETRY re-checks, else 51 with the record NOT rewritten, the record area unaffected and the FPI unchanged
     /// — GR11a-c/GR14), then the GR12 lock actions. Returns the I-O status.</summary>
     public string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount)
+        FileRetryKind retryKind, long retryAmount, RecordExtents? extents = null)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
@@ -1451,7 +1459,7 @@ public sealed class FileRegistry
         // The record identity costs an allocation on the keyed organizations, so it is taken only when some
         // §9.1.16 question can have a non-trivial answer; with no lock on the file and none to set, every arm
         // below is a no-op whatever the target is (kb/Work PB669).
-        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(image) : "";
+        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(image, extents) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.35.4 GR12 a) 2. — released at the beginning
         if (target.Length > 0)
         {
@@ -1468,7 +1476,7 @@ public sealed class FileRegistry
                 if (pf != FileStatusCode.Success) { c.SetStatus(pf); return pf; }
             }
         }
-        string status = RewriteAnyOrg(c, image, length);
+        string status = RewriteAnyOrg(c, image, length, extents);
         if (status.Length > 0 && status[0] == '0' && target.Length > 0)
         {
             if (phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name))
@@ -1489,20 +1497,21 @@ public sealed class FileRegistry
     /// on "record locks are in effect", but a connector for which locks are not effective HOLDS none, so the
     /// unconditional releases are correct by vacuity. The conflict CHECK is never disabled (§9.1.16 — a locked
     /// record is inaccessible to another connector regardless of that connector's own lock mode).</summary>
-    public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount)
+    public string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount,
+        RecordExtents? areaExtents = null)
     {
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
-        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(keyedRecordImage) : "";
+        string target = RecordLocksGovern(meta, st, name) ? c.MutationTargetRecordId(keyedRecordImage, areaExtents) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.10.4 GR7 a) 2. — released at the beginning
         if (target.Length > 0
             // §14.9.10.4 GR6 — the ONE conflict check; GR6 b)/c) then leave the record present and the record
             // area unaffected, which holds because nothing has been committed yet.
             && ConflictOnLockedRecord(name, st, target, ignoringLock: false, retryKind, retryAmount) is { } conflict)
             return conflict;
-        string status = DeleteRecord(name, keyedRecordImage);
+        string status = DeleteRecord(name, keyedRecordImage, areaExtents);
         if (status.Length > 0 && status[0] == '0' && target.Length > 0)
             PhysicalFileTable.ReleaseSingle(st, name, target);   // GR7a1/GR7b — the deleted record's lock releases at completion
         return status;
@@ -1513,26 +1522,28 @@ public sealed class FileRegistry
     /// makes). <paramref name="advance"/> reaches only the sequential arm: §14.9.51.3 SR2/SR3 put the ADVANCING
     /// phrase in Format 1 alone, which SR3 restricts to the sequential organization, so the binder screens a
     /// keyed WRITE that carries one and those arms cannot see a non-<c>None</c> kind.</summary>
+    /// <para><paramref name="extents"/> — the record's EXTENT TABLE (determination D-FRA (v); kb/Work PB1053) —
+    /// rides every arm that frames a record; a print-control WRITE sends a line, which carries none.</para>
     private static string WriteAnyOrg(FileConnector c, string image, int length, LinagePage? page,
-        WriteAdvance advance) => c switch
+        WriteAdvance advance, RecordExtents? extents) => c switch
     {
         SequentialConnector f => advance.Kind is WriteAdvanceKind.None
-            ? f.Write(image, length, page)
+            ? f.Write(image, length, page, extents)
             // §14.9.51.4 GR25 e)/f) — ONE advance, placed by the statement's words; the combined COBOL-2023
             // BEFORE AFTER form arrives as Before, because GR25 f) puts its advance after the presentation
             // exactly as GR25 e) does (kb/Work PB712 deleted the third, two-amount arm).
             : f.WriteAdvancing(image, advance.Lines, advance.Kind == WriteAdvanceKind.Before, page),
-        RelativeConnector r => r.Write(image, length),
-        IndexedConnector ix => ix.Write(image, length),
+        RelativeConnector r => r.Write(image, length, extents),
+        IndexedConnector ix => ix.Write(image, length, extents),
         _ => FileStatusCode.PermanentError,
     };
 
     /// <summary>The plain REWRITE body over any organization (the governed entry's operation half).</summary>
-    private static string RewriteAnyOrg(FileConnector c, string image, int length) => c switch
+    private static string RewriteAnyOrg(FileConnector c, string image, int length, RecordExtents? extents) => c switch
     {
-        SequentialConnector f => f.Rewrite(image, length),
-        RelativeConnector r => r.Rewrite(image, length),
-        IndexedConnector ix => ix.Rewrite(image, length),
+        SequentialConnector f => f.Rewrite(image, length, extents),
+        RelativeConnector r => r.Rewrite(image, length, extents),
+        IndexedConnector ix => ix.Rewrite(image, length, extents),
         _ => FileStatusCode.PermanentError,
     };
 

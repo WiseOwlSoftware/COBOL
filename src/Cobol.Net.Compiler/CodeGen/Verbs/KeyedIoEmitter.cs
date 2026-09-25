@@ -166,13 +166,14 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 // BEFORE it, for EVERY connector — §9.1.16's inaccessibility is not conditioned on the
                 // reading connector's own LOCK MODE clause (kb/Work PB669).
                 string keyImage = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
+                string? keyExtents = area is not null ? OperandText.RecordAreaExtents(area) : null;
                 var (retryKind, retryAmount) = SeqIo.RenderRetry(rd.Retry);
-                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img)};");
+                w.Line($"var {st} = {RuntimeApi.FileReadKeyedShared(name, rd.KeyIndex, keyImage, SequentialIoEmitter.RuntimeRecordLock(rd.Lock), rd.IgnoringLock ? "true" : "false", retryKind, retryAmount, img, keyExtents)};");
                 break;
         }
         using (w.Block($"if ({IoStatusClass.Successful(st)})"))
         {
-            SeqIo.EmitRecordAreaStore(file, area, img, RuntimeApi.FileCurrentRecord(name));
+            SeqIo.EmitRecordAreaStore(file, area, img, RuntimeApi.FileCurrentRecord(name), RuntimeApi.FileCurrentRecordExtents(name));
             SeqIo.EmitReadLengthStore(file);   // §13.18.43 GR15 — the just-read length into DEPENDING
             // §14.9.30 GR25 — a sequential READ of a relative file MOVEs the RRN of the record made available
             // into the RELATIVE KEY data item (MOVE rules — the canonical numeric store path).
@@ -242,7 +243,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // The LINAGE page rides the governed entry through the SAME helper the sequential surface uses; for a
         // keyed FD it renders `null` because ISO §13.4.5.2 Format 2 (relative-or-indexed) carries no
         // linage-clause — derived from the file model, never a hand-written null here (kb/Work PB673).
-        w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount, SeqIo.LinageArg(file))};");
+        w.Line($"var {st} = {RuntimeApi.FileWriteShared(name, wimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(wr.Lock), retryKind, retryAmount, SeqIo.LinageArg(file), areaExtents: OperandText.RecordAreaExtents(wr.Record))};");
         // §14.9.51 GR29a/GR30 — sequential access (incl. EXTEND): the released RRN is MOVEd into the RELATIVE KEY
         // item during execution of the WRITE.
         if (file.Organization == FileOrganization.Relative && file.AccessMode == FileAccessMode.Sequential
@@ -281,7 +282,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // runtime body (§13.18.43 GR13a / §14.9.35 GR20) governs every connector, opted in or not (kb/Work PB669).
         var (retryKind, retryAmount) = SeqIo.RenderRetry(rw.Retry);
         string lenArg = SeqIo.VaryingLengthArg(file) ?? "-1";
-        w.Line($"var {st} = {RuntimeApi.FileRewriteShared(name, rimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
+        w.Line($"var {st} = {RuntimeApi.FileRewriteShared(name, rimg, lenArg, SequentialIoEmitter.RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordAreaExtents(rw.Record))};");
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, rw.InvalidKey);
@@ -311,6 +312,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // truncate the splice — RL106A's 56/102-char pair left a stale tail).
         Place? area = refs.RecordArea(file);
         string image = area is not null ? OperandText.RecordAreaImage(area) : "\"\"";
+        string? areaExtents = area is not null ? OperandText.RecordAreaExtents(area) : null;
         int id = ctx.Names.NextKeyedSeq();
         string st = $"__kst{id}";
         // §9.1.16/§14.9.10 GR6-GR7 (P10 Step 8): EVERY DELETE routes through the governed entry — a record
@@ -318,7 +320,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // PB683): the runtime governs the removal for EVERY connector, opted in or not (kb/Work PB669) — which
         // is what stops a clause-less connector DELETING a record another one holds locked.
         var (retryKind, retryAmount) = SeqIo.RenderRetry(del.Retry);
-        w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount)};");
+        w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: del.InvalidKey?.Invalid is not null);
         SeqIo.EmitInvalid(st, del.InvalidKey);
@@ -424,7 +426,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 : RuntimeApi.StartKeyLengthWidth(sta.Operand!.Item.ByteWidth);
             string areaImage = refs.RecordArea(file) is { } ar
                 ? OperandText.RecordAreaImage(ar) : "\"\"";   // THE ONE record-area channel (kb/Work PB327)
-            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len)};");
+            string? areaExtents = refs.RecordArea(file) is { } extentArea
+                ? OperandText.RecordAreaExtents(extentArea) : null;   // its extent table (D-FRA (v); kb/Work PB1053)
+            w.Line($"var {st} = {RuntimeApi.FileStartIndexed(name, sta.KeyIndex, CsLiteral(sta.Op), areaImage, len, areaExtents)};");
         }
         SeqIo.EmitStoreFileStatus(file);
         SeqIo.EmitUseHook(file, invalidKeyHandled: sta.InvalidKey?.Invalid is not null);

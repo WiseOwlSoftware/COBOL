@@ -121,19 +121,32 @@ public sealed class StorageCell
         return sb.ToString();
     }
 
-    /// <summary>Make a contiguous image the group's content — the inverse of <see cref="ContiguousAt"/> by the ONE
-    /// take step (<c>CobolVarGroup.FromContiguous</c>, determination D-FRA): each dynamic-length item takes as many
-    /// characters as the image holds beyond the fixed material still to come, up to its maximum size.</summary>
+    /// <summary>The EXTENT TABLE of that contiguous image (determination D-FRA (v); kb/Work PB1053): each
+    /// dynamic-length item's fixed-run position <paramref name="dynFixedAt"/> and its current length — what a WRITE /
+    /// REWRITE / RELEASE of the group sends beside <see cref="ContiguousAt"/>, the declared group's
+    /// <c>CurrentExtents()</c> composed from the cell.</summary>
+    public RecordExtents ContiguousExtentsAt(int dynBase, ReadOnlySpan<int> dynFixedAt)
+    {
+        var lengths = new int[dynFixedAt.Length];
+        for (int k = 0; k < lengths.Length; k++) lengths[k] = DynAt(dynBase + k).Length;
+        return new RecordExtents(dynFixedAt.ToArray(), lengths);
+    }
+
+    /// <summary>Make a contiguous image the group's content — the inverse of <see cref="ContiguousAt"/>, through the
+    /// ONE decomposition (<see cref="CobolContiguousLayout.Decompose"/>, determination D-FRA): by the image's own
+    /// <paramref name="extents"/> when they describe it (a record read back with its extent table — D-FRA (v),
+    /// kb/Work PB1053), otherwise by the take step, each dynamic-length item taking as many characters as the image
+    /// holds beyond the fixed material still to come, up to its maximum size.</summary>
     public void StoreContiguousAt(int fixedAt, int fixedWidth, int dynBase, ReadOnlySpan<int> dynFixedAt,
-                                  ReadOnlySpan<int> dynMax, string image)
+                                  ReadOnlySpan<int> dynMax, string image, RecordExtents? extents = null)
     {
         // Unit 1 per component: a dynamic-length item contributes its content character for character, the same
         // unit a declared group's generated layout gives it (GroupImageCodec.ContiguousLayout).
         var ones = new int[dynFixedAt.Length];
         var max = new long[dynMax.Length];
         for (int k = 0; k < ones.Length; k++) { ones[k] = 1; max[k] = dynMax[k]; }
-        StoreVarGroupAt(fixedAt, fixedWidth, dynBase, dynMax,
-            CobolVarGroup.FromContiguous(image ?? "", fixedWidth, dynFixedAt.ToArray(), ones, max));
+        var layout = new CobolContiguousLayout(fixedWidth, dynFixedAt.ToArray(), ones, max);
+        StoreVarGroupAt(fixedAt, fixedWidth, dynBase, dynMax, layout.Decompose(image ?? "", extents));
     }
 
     private string FixedRun(int fixedAt, int fixedWidth) =>

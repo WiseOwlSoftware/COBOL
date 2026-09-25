@@ -428,9 +428,11 @@ public abstract class FileConnector
     /// §14.9.30.4 GR29's relative record number, or GR32's first record matching the key of reference —
     /// computed WITHOUT establishing the key of reference (GR10 d): <i>"The key of reference for indexed files
     /// is unchanged"</i>. "" when no such record exists, which is the invalid-key condition and carries no lock.
-    /// <paramref name="recordImage"/> supplies the key slice for an indexed read (GR32).</summary>
-    public virtual string PeekRandomReadRecordId(int keyIndex, string recordImage)
-    { _ = keyIndex; _ = recordImage; return ""; }
+    /// <paramref name="recordImage"/> supplies the key slice for an indexed read (GR32);
+    /// <paramref name="recordExtents"/> is that record area's EXTENT TABLE when it is a variable-length group
+    /// (determination D-FRA (v); kb/Work PB1053) — what locates a key its variable-length members precede.</summary>
+    public virtual string PeekRandomReadRecordId(int keyIndex, string recordImage, RecordExtents? recordExtents)
+    { _ = keyIndex; _ = recordImage; _ = recordExtents; return ""; }
 
     /// <summary>ISO §14.9.30.4 GR18 — <i>"Unless otherwise specified, at the completion of any unsuccessful
     /// execution of a READ statement, the content of the associated record area is undefined, the key of
@@ -502,11 +504,20 @@ public abstract class FileConnector
 
     /// <summary>The ONE writer of <see cref="LastReadLength"/> and <see cref="CurrentRecord"/>: every
     /// organization's successful READ reports the record it made available here.</summary>
-    protected void NoteRecordRead(string record)
+    protected void NoteRecordRead(string record, RecordExtents? extents)
     {
         CurrentRecord = record;
+        CurrentRecordExtents = extents;
         LastReadLength = record.Length;
     }
+
+    /// <summary>The EXTENT TABLE the current record was sent with (determination D-FRA (v); kb/Work PB1053) —
+    /// where each variable-length component of the variable-length group that wrote it ended — or null when the
+    /// record carries none (it was written through a record with no variable-length components, or the
+    /// organization frames no table — a LINE SEQUENTIAL line, a fixed-length block). An out-of-line
+    /// variable-length group record decomposes <see cref="CurrentRecord"/> by it. Written only through
+    /// <see cref="NoteRecordRead"/>, beside the record it describes.</summary>
+    public RecordExtents? CurrentRecordExtents { get; private set; }
 
     /// <summary>The maximum size specified by the record description entries, when it EXCEEDS the record area's
     /// character width — ISO §14.9.30.4 GR14/GR15's truncation bound ("the record is truncated on the right to
@@ -530,8 +541,9 @@ public abstract class FileConnector
 
     /// <summary>The lock identity of the record a REWRITE/DELETE executed NOW would target (§14.9.35 GR11 /
     /// §14.9.10 GR6 — the pre-operation conflict check; <paramref name="recordImage"/> supplies the key slice
-    /// for an indexed random/dynamic target, §14.9.35 GR23 / §14.9.10 GR3).</summary>
-    public virtual string MutationTargetRecordId(string recordImage) => "";
+    /// for an indexed random/dynamic target, §14.9.35 GR23 / §14.9.10 GR3, and <paramref name="recordExtents"/> the
+    /// record area's EXTENT TABLE — D-FRA (v), kb/Work PB1053).</summary>
+    public virtual string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) => "";
 
     /// <summary>The lock identity of the record released by the most recent successful WRITE (§14.9.51 GR11 —
     /// the WITH LOCK acquisition target).</summary>
@@ -826,4 +838,12 @@ public abstract class FileConnector
         if (len < VaryMin || len > VaryMax) return null;
         return image.Length == len ? image : image.Length > len ? image[..len] : image.PadRight(len, ' ');
     }
+
+    /// <summary>A record about to be stored, with the EXTENT TABLE it was sent with (determination D-FRA (v);
+    /// kb/Work PB1053) when <paramref name="stored"/> is still the image that table describes. A record
+    /// <see cref="Stored"/> truncated or padded (a RECORD VARYING DEPENDING length, a fixed-length record width)
+    /// is no longer the image the variable-length group composed, so it is stored without one — a table that
+    /// misdescribed it would place a key, or split the record, at characters that are not there.</summary>
+    private protected static StoredFrame Framed(string stored, string image, RecordExtents? extents) =>
+        new(stored, stored.Length == image.Length ? extents : null);
 }

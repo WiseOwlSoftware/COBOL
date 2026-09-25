@@ -503,7 +503,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // Status lands on the connector either way.
         var (retryKind, retryAmount) = RenderRetry(wr.Retry);
         string lenArg = VaryingLengthArg(wr.File) ?? "-1";
-        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr))};");
+        w.Line($"{RuntimeApi.FileWriteShared(name, image, lenArg, RuntimeRecordLock(wr.Lock), retryKind, retryAmount, LinageArg(wr.File), AdvanceArg(wr), OperandText.RecordAreaExtents(wr.Record))};");
         // The §9.1.14 status SNAPSHOT for a --permissive INVALID KEY phrase (kb/Work PB691). Taken HERE, before
         // the FILE STATUS store and the USE hook, for the same reason the end-of-page flag is read in the `if`
         // header below: a declarative or a phrase body may operate on this same connector and move its status.
@@ -637,7 +637,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         string readCall = EmitReadSharedCall(rd, name, tmp);
         using (w.Block($"if ({readCall})"))
         {
-            EmitRecordAreaStore(rd.File, area, tmp, RuntimeApi.FileCurrentRecord(name));
+            EmitRecordAreaStore(rd.File, area, tmp, RuntimeApi.FileCurrentRecord(name), RuntimeApi.FileCurrentRecordExtents(name));
             EmitReadLengthStore(rd.File);   // §13.18.43 GR15 — the just-read length into DEPENDING
             EmitStoreFileStatus(rd.File);
             // READ … INTO is READ then MOVE THE CURRENT RECORD to the target (ISO §14.9.30.4 GR4 b)) — the
@@ -680,7 +680,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         // connector, opted in or not (kb/Work PB669). The status lands on the connector either way.
         var (retryKind, retryAmount) = RenderRetry(rw.Retry);
         string rwLenArg = VaryingLengthArg(rw.File) ?? "-1";
-        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount)};");
+        w.Line($"{RuntimeApi.FileRewriteShared(FileKeyExpr(rw.File), image, rwLenArg, RuntimeRecordLock(rw.Lock), retryKind, retryAmount, OperandText.RecordAreaExtents(rw.Record))};");
         // The §9.1.14 status snapshot for a --permissive INVALID KEY phrase, taken before the status store and
         // the USE hook — the WRITE arm above carries the full reasoning (kb/Work PB691).
         string? rst = null;
@@ -700,19 +700,21 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// kb/Work PB981): the CHARACTER half — <paramref name="area"/>, the largest character-window record, whose
     /// view spans the shared backing — takes the area image <paramref name="areaImage"/>; each OUT-OF-LINE
     /// record (<see cref="FileModel.OutOfLineRecords"/>, or the area itself when every record is out of line)
-    /// takes the CURRENT RECORD <paramref name="currentRecord"/> at its own length, through
+    /// takes the CURRENT RECORD <paramref name="currentRecord"/> at its own length, with the extent table it was
+    /// sent with (<paramref name="currentExtents"/> — D-FRA (v), kb/Work PB1053), through
     /// <see cref="EmitOutOfLineInto"/>. Every READ organization and the sort RETURN route here, so no transfer
     /// can reach one half of the area and not the other.</summary>
-    public void EmitRecordAreaStore(FileModel file, Place? area, string areaImage, string currentRecord)
+    public void EmitRecordAreaStore(FileModel file, Place? area, string areaImage, string currentRecord,
+        string currentExtents)
     {
         if (area is not null)
         {
-            if (FileModel.IsOutOfLineRecord(area.Item)) EmitOutOfLineInto(area, currentRecord);
+            if (FileModel.IsOutOfLineRecord(area.Item)) EmitOutOfLineInto(area, currentRecord, currentExtents);
             else EmitImageInto(area, areaImage);
         }
         foreach (var record in file.OutOfLineRecords)
             if (refs.ResolveItem(record) is { } place)
-                EmitOutOfLineInto(place, currentRecord);
+                EmitOutOfLineInto(place, currentRecord, currentExtents);
     }
 
     /// <summary>Make the current record available in ONE out-of-line record (D-FRA; kb/Work PB981) — the
@@ -722,13 +724,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// "the new value becomes the content of the item", truncated on the right at its maximum; a NATIONAL one
     /// decodes the record's byte pairs first, the inverse of its NatBytes image); a pointer-class record has no
     /// character image, so the record does not reach it and its value is unchanged.</summary>
-    private void EmitOutOfLineInto(Place record, string currentRecord)
+    private void EmitOutOfLineInto(Place record, string currentRecord, string currentExtents)
     {
         var w = ctx.Writer;
         var item = record.Item;
         if (item.IsGroup)
         {
-            w.Line(PlaceRenderer.WriteVarGroupContiguous(record, currentRecord, $"record area '{item.CobolName}' read"));
+            w.Line(PlaceRenderer.WriteVarGroupContiguous(record, currentRecord, currentExtents,
+                $"record area '{item.CobolName}' read"));
             return;
         }
         if (item.IsDynamicLength)

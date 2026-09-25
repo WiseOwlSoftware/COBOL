@@ -54,18 +54,24 @@ public static class CobolSort
     public readonly record struct Key(int Offset, int Length, bool Descending, KeyClass Class, NumProfile Profile,
         CobolContiguousLayout? Layout = null)
     {
-        /// <summary>The key's first byte position in <paramref name="image"/>.</summary>
-        public int At(string image) => Layout is { } l ? l.Position(image, Offset) : Offset;
+        /// <summary>The key's first byte position in <paramref name="image"/> — located through the record's own
+        /// EXTENT TABLE when it was released with one that describes it (D-FRA (v); kb/Work PB1053), exactly where a
+        /// RETURN of the record decomposes it.</summary>
+        public int At(string image, RecordExtents? extents = null) =>
+            Layout is { } l ? l.Position(image, Offset, extents) : Offset;
     }
 
     /// <summary>The per-SD store: released images (in release order — the stability anchor GR3 requires), the
     /// USING stream boundaries for MERGE, and the return cursor.</summary>
     private sealed class Store
     {
-        public readonly List<string> Records = [];
+        /// <summary>Each released record with the extent table it was released with (D-FRA (v); kb/Work PB1053).</summary>
+        public readonly List<StoredFrame> Records = [];
         public readonly List<int> StreamStarts = [];   // MERGE: index where each USING file's records begin
         public int Cursor;
         public int LastReturnedLength;
+        /// <summary>The extent table of the most recently RETURNed record — null when it carries none.</summary>
+        public RecordExtents? LastReturnedExtents;
         /// <summary>The ALPHANUMERIC collating sequence snapshotted at statement start (ISO §14.6.6 r5) — see
         /// <see cref="Init(string, CobolCollation?, CobolCollation?)"/>.</summary>
         public CobolCollation? Collation;
@@ -114,6 +120,7 @@ public static class CobolSort
         f.StreamStarts.Clear();
         f.Cursor = 0;
         f.LastReturnedLength = 0;
+        f.LastReturnedExtents = null;
         f.Collation = collation?.Snapshot();
         f.NatCollation = national?.Snapshot();
         f.Phase = ProcedurePhase.None;
@@ -137,13 +144,16 @@ public static class CobolSort
     /// nothing is raised (§14.6.13.1.1) and the record is released as GR2 describes — a store with no executing
     /// SORT is discarded by the next <see cref="Init(string, CobolCollation?, CobolCollation?)"/>. The implicit
     /// USING transfer (§14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).</summary>
-    public static void ReleaseStatement(string name, string image)
+    /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is released
+    /// (determination D-FRA (v); kb/Work PB1053) — it travels with the record through the sort, as a file frame
+    /// carries it.</param>
+    public static void ReleaseStatement(string name, string image, RecordExtents? extents = null)
     {
         if (!Files.TryGetValue(name, out var f) || f.Phase != ProcedurePhase.Input)
             ExceptionState.FlowReleaseError($"RELEASE for sort file {name}: not within the range of an input "
                 + "procedure being executed by a SORT statement that references it (ISO §14.9.32.4 GR1)");
         if (f is null) return;   // no SORT executing: there is no sort file to release to — never a stranded store
-        f.Records.Add(image ?? "");
+        f.Records.Add(new StoredFrame(image ?? "", extents));
     }
 
     /// <summary>The RETURN STATEMENT (ISO §14.9.34.4). GR1: a RETURN "may be executed only when it is within the
@@ -184,7 +194,8 @@ public static class CobolSort
     /// USING release) — the UNCHECKED primitive: the RELEASE statement's §14.9.32.4 GR1 test lives in
     /// <see cref="ReleaseStatement"/>. Seam: a record size outside the SD's record range is EC-SORT-MERGE-RELEASE
     /// (§14.9.40 GR12b), which has no raise site yet, so the store accepts the record as written.</summary>
-    public static void Release(string name, string image) => Get(name).Records.Add(image ?? "");
+    public static void Release(string name, string image, RecordExtents? extents = null) =>
+        Get(name).Records.Add(new StoredFrame(image ?? "", extents));
 
     /// <summary>The sequence phase (ISO §14.9.40 GR9b): a STABLE key sort. Stability realizes GR3's DUPLICATES IN
     /// ORDER (equal keys keep USING-file / RELEASE order — the buffer holds them in exactly that order); without
@@ -204,7 +215,7 @@ public static class CobolSort
             int c = columns.Compare(x, y);
             return c != 0 ? c : x - y;   // tie → original (release) order: the stable sort
         });
-        var sorted = new List<string>(n);
+        var sorted = new List<StoredFrame>(n);
         foreach (int i in idx) sorted.Add(f.Records[i]);
         f.Records.Clear();
         f.Records.AddRange(sorted);
@@ -227,7 +238,7 @@ public static class CobolSort
             pos[s] = f.StreamStarts[s];
             end[s] = s + 1 < streams ? f.StreamStarts[s + 1] : f.Records.Count;
         }
-        var merged = new List<string>(f.Records.Count);
+        var merged = new List<StoredFrame>(f.Records.Count);
         var columns = KeyColumns.Build(f.Records, keys, f.Collation, f.NatCollation);
         while (true)
         {
@@ -258,16 +269,24 @@ public static class CobolSort
         {
             image = "";
             f.LastReturnedLength = 0;
+            f.LastReturnedExtents = null;
             return false;   // at end — the record area's content is undefined (GR3); the caller leaves it as-is
         }
-        image = f.Records[f.Cursor++];
+        var returned = f.Records[f.Cursor++];
+        image = returned.Image;
         f.LastReturnedLength = image.Length;
+        f.LastReturnedExtents = returned.Extents;
         return true;
     }
 
     /// <summary>The length of the most recently RETURNed record — the value a varying SD's RECORD VARYING
     /// DEPENDING ON item receives (ISO §13.18.43 GR15: each returned record restores its own length).</summary>
     public static int LastReturnedLength(string name) => Get(name).LastReturnedLength;
+
+    /// <summary>The EXTENT TABLE the most recently RETURNed record was released with (docs/CONFORMANCE.md §3 D-FRA
+    /// (v); kb/Work PB1053) — what an out-of-line variable-length group record decomposes it by, and what the
+    /// implicit GIVING WRITE frames it with. Null when the record carries none.</summary>
+    public static RecordExtents? LastReturnedExtents(string name) => Get(name).LastReturnedExtents;
 
     /// <summary>Rewind the return cursor to the first record — emitted before EACH GIVING file's write-out, so
     /// every file-name-3/-4 receives the FULL sorted/merged result (ISO §14.9.40 GR15 / §14.9.24 GR12).</summary>
@@ -328,7 +347,7 @@ public static class CobolSort
             _seq = seq;
         }
 
-        public static KeyColumns Build(List<string> records, Key[] keys, CobolCollation? collation, CobolCollation? national)
+        public static KeyColumns Build(List<StoredFrame> records, Key[] keys, CobolCollation? collation, CobolCollation? national)
         {
             int n = records.Count;
             var numeric = new Int128[]?[keys.Length];
@@ -424,18 +443,19 @@ public static class CobolSort
     /// operand") while the record image stores two bytes per position (§13.18.60.4 GR8; D-N1), so comparing the
     /// raw window would weigh BYTES — and the high byte of every Latin national character is U+0000, which is how
     /// a national key silently compared EQUAL across whole records before kb/Work PB678.</summary>
-    private static string Operand(string image, in Key k) =>
+    private static string Operand(StoredFrame record, in Key k) =>
         k.Class is KeyClass.National
-            ? CobolBits.NatReadWindow(image ?? "", k.At(image ?? ""), k.Length / CobolBits.BytesPerNational)
-            : Slice(image, k);
+            ? CobolBits.NatReadWindow(record.Image ?? "", k.At(record.Image ?? "", record.Extents),
+                k.Length / CobolBits.BytesPerNational)
+            : Slice(record, k);
 
     /// <summary>The key's character window of a record image. A record shorter than the window (a varying record
     /// — §14.9.40.3 SR6g requires keys within the MINIMUM size, so a conforming program never hits this; the
     /// lenient path space-extends, matching the §8.8.4.2.1 shorter-operand rule) is padded with spaces.</summary>
-    private static string Slice(string image, in Key k)
+    private static string Slice(StoredFrame record, in Key k)
     {
-        image ??= "";
-        int at = k.At(image);
+        string image = record.Image ?? "";
+        int at = k.At(image, record.Extents);
         int needed = at + k.Length;
         if (image.Length < needed) image = image.PadRight(needed);
         return image.Substring(at, k.Length);
@@ -452,5 +472,5 @@ public static class CobolSort
     /// the codec's loud invariant break rather than yielding an invented ordering; float keys and UNSIGNED 16-byte
     /// binary keys (<see cref="NumProfile.ImageExceedsInt128"/>, kb/Work PB186) take their own lanes in
     /// <see cref="KeyColumns.Build"/>, never this one.</summary>
-    private static Int128 NumericKey(string image, in Key k) => CobolNum.ParseImage(Slice(image, k), k.Profile);
+    private static Int128 NumericKey(StoredFrame record, in Key k) => CobolNum.ParseImage(Slice(record, k), k.Profile);
 }

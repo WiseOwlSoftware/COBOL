@@ -63,7 +63,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     {
         string body = StartKeyPhraseBody(source);
         return body.Length > 0
-            && body.Contains("AreaKey(keyedRecordImage, keyIndex)[..compareLength]", StringComparison.Ordinal)
+            && body.Contains("AreaKey(keyedRecordImage, areaExtents, keyIndex)[..compareLength]", StringComparison.Ordinal)
             && !body.Contains("PadRight", StringComparison.Ordinal)
             && !body.Contains("PadLeft", StringComparison.Ordinal);
     }
@@ -104,7 +104,7 @@ public sealed class StartTemporaryKeyAreaDriftTests
     public void IndexedStart_BuildsTheTemporaryArea_FromTheRecordArea()
     {
         Assert.True(StartCutsTheTemporaryAreaOutOfTheRecordArea(IndexedConnectorSource()),
-            "IndexedConnector.Start must build its search key as AreaKey(keyedRecordImage, keyIndex) "
+            "IndexedConnector.Start must build its search key as AreaKey(keyedRecordImage, areaExtents, keyIndex) "
             + "truncated to compareLength, and must pad nothing. ISO §14.9.41.4 GR17 a) — \"The specified key is "
             + "set up by moving the relevant parts of the record area into a temporary data area\" — sources it "
             + "from the RECORD AREA at GR16's key of reference; padding data-name-1's own content to the GR17 b) "

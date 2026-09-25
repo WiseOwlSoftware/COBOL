@@ -130,6 +130,7 @@
   "pb969_function_pointer_empty_arguments",
   "pb981_fd_variable_length_records",
   "pb1025_key_after_dynamic_member",
+  "pb1053_dynamic_members_both_sides",
   "pb232_entry_convention_cobol",
   "pb1026_external_out_of_line_records",
   "l1c01_arithmetic_clause_forms",

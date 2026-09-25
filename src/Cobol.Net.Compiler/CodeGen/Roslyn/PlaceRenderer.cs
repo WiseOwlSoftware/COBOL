@@ -458,15 +458,33 @@ internal static class PlaceRenderer
         _ => $"{Read(group)}.CurrentImage()",
     };
 
-    /// <summary>The inverse of <see cref="VarGroupCurrentImage"/> — a record read into a variable-length
-    /// record, decomposed by the generated <c>FromContiguousImage</c> (the ONE split rule,
-    /// <c>CobolVarGroup.FromContiguous</c>; determination D-FRA, kb/Work PB981).</summary>
-    public static string WriteVarGroupContiguous(Place group, string record, string context) => group switch
+    /// <summary>The EXTENT TABLE that travels beside <see cref="VarGroupCurrentImage"/> (determination D-FRA (v);
+    /// kb/Work PB1053): where each variable-length component of the group ends in that image — the generated
+    /// <c>CurrentExtents()</c>, or the cell's composition of the same table. Arm for arm the twin of
+    /// <see cref="VarGroupCurrentImage"/>, so a record is never sent with a table computed from another shape than
+    /// its image; a group whose image is the loud Tier-C island sends none (the statement is already loud).</summary>
+    public static string VarGroupCurrentExtents(Place group) => group switch
     {
-        OdoGroupPlace o => WriteVarGroupContiguous(o.Inner, record, context),
-        RedefViewPlace { Coding: VarGroupWindow } v => Write(v, record),   // the cell decomposition (kb/Work PB1026)
+        OdoGroupPlace o => VarGroupCurrentExtents(o.Inner),
+        RedefViewPlace { Coding: VarGroupWindow g } => RuntimeApi.CellVarContiguousExtents(
+            RenderPath(g.Cell, AccessDir.Sending), g.DynBase, g.DynFixedAt),
+        _ when !group.Item.CurrentExtentImageCapable => "null",
+        _ => $"{Read(group)}.CurrentExtents()",
+    };
+
+    /// <summary>The inverse of <see cref="VarGroupCurrentImage"/> — a record read into a variable-length
+    /// record, decomposed by the generated <c>FromContiguousImage</c> (the ONE decomposition,
+    /// <c>CobolContiguousLayout.Decompose</c>; determination D-FRA, kb/Work PB981) by the record's own
+    /// <paramref name="extents"/> when they describe it (D-FRA (v), kb/Work PB1053) and by the take step
+    /// otherwise.</summary>
+    public static string WriteVarGroupContiguous(Place group, string record, string extents, string context) => group switch
+    {
+        OdoGroupPlace o => WriteVarGroupContiguous(o.Inner, record, extents, context),
+        // the cell decomposition (kb/Work PB1026) — the same rule, over the cell's dynamic slots
+        RedefViewPlace { Coding: VarGroupWindow g } v => $"{RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Sending),
+            $"(int)({v.OffsetExpr})", v.Width, g.DynBase, g.DynFixedAt, g.DynMax, record, extents)};",
         _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
-        _ => $"{Read(group)}.FromContiguousImage({record});",
+        _ => $"{Read(group)}.FromContiguousImage({record}, {extents});",
     };
 
     /// <summary>⛔ THE ONE READER OF A GROUP OPERAND'S IMAGE IN A <b>SENDING</b> CONTEXT — <see cref="GroupImage"/>,

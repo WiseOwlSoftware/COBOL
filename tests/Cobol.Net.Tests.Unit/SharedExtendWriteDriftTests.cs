@@ -297,10 +297,10 @@ public sealed class SharedExtendWriteDriftTests
     {
         var st = new RelativeStore();
         Assert.Equal(0, st.Highest);
-        st.Put(3, "c");
-        st.Put(1, "a");
+        st.Put(3, new StoredFrame("c", null));
+        st.Put(1, new StoredFrame("a", null));
         Assert.Equal(3, st.Highest);
-        st.Put(7, "g");
+        st.Put(7, new StoredFrame("g", null));
         Assert.Equal(7, st.Highest);
         Assert.True(st.Remove(7));
         Assert.Equal(3, st.Highest);        // re-derived, not left at 7

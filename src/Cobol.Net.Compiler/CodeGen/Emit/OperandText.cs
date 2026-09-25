@@ -151,10 +151,27 @@ internal static class OperandText
     /// and a POINTER-CLASS record the zero-length image — it has no character image (A.1 items 210/216), so there
     /// is nothing of it for a file to carry.</para></summary>
     public static string RecordAreaImage(Place record) =>
-        record.Item.IsGroup && FileModel.IsVariableLengthRecord(record.Item)
+        IsVarGroupRecord(record)
             ? PlaceRenderer.VarGroupCurrentImage(record, "record-area image of")
         : record.Item.IsElementary && SlotWindow.CarriedBySlot(record.Item) ? "\"\""
         : AsStorageImage(record, "record-area image of");
+
+    /// <summary>⛔ THE EXTENT TABLE that travels beside <see cref="RecordAreaImage"/> (docs/CONFORMANCE.md §3
+    /// determination D-FRA (v); kb/Work PB1053), or null when the record has none to send. A VARIABLE-LENGTH GROUP
+    /// record's image is its contiguous composition (§8.5.1.11.2), which carries no marker of where a dynamic member
+    /// ends, so it is sent with the table that says so (<see cref="PlaceRenderer.VarGroupCurrentExtents"/>); every
+    /// other record — a character-window record, a dynamic-length elementary record (its image IS its one
+    /// component), a pointer record — has nothing to describe. Decided by the SAME predicate as the image's own
+    /// arm, so an image and its table can never come from different shapes. Every emitter that hands a record-area
+    /// image to the runtime (WRITE, REWRITE, RELEASE, and the keyed READ / START / DELETE whose key the record's
+    /// members may precede) passes this beside it.</summary>
+    public static string? RecordAreaExtents(Place record) =>
+        IsVarGroupRecord(record) ? PlaceRenderer.VarGroupCurrentExtents(record) : null;
+
+    /// <summary>Is <paramref name="record"/> a variable-length GROUP record — the one arm of
+    /// <see cref="RecordAreaImage"/> and <see cref="RecordAreaExtents"/> whose image is a contiguous composition.</summary>
+    private static bool IsVarGroupRecord(Place record) =>
+        record.Item.IsGroup && FileModel.IsVariableLengthRecord(record.Item);
 
     /// <summary>THE CURRENT RECORD's character image — the sending operand of a <c>READ … INTO</c> /
     /// <c>RETURN … INTO</c> implicit MOVE (ISO §14.9.30.4 GR4 b) / §14.9.34.4 GR5 b): the record area's image

@@ -808,7 +808,8 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   ONE comparison policy shared by indexed files AND SORT. *(Rejected: the legacy Latin-1 byte-string sorted-dictionary
   trick — silently mis-orders COMP/COMP-3/signed keys, whose on-disk image is not order-preserving.)*
 - **Stores:** sequential = `StreamReader/Writer` (line-sequential) or `FileStream` + a 4-byte little-endian length
-  prefix (varying); relative = sorted dict `int slot → byte image` with `0xFF` gaps; indexed = sorted dict
+  prefix (varying) — a variable-length group record's frame also carries its extent table, COBOLNET_FILES_DESIGN
+  D27 / CONFORMANCE.md §3 D-FRA (v); relative = sorted dict `int slot → byte image` with `0xFF` gaps; indexed = sorted dict
   `CobolKey → byte image` (sole source of truth, alternates derived on demand + a PER-KEY release ordinal for
   duplicate ordering). The in-memory PAYLOAD is the serialized image (exactly the form persisted on CLOSE; bounded
   memory), deserialized to the typed record only on hand-back. *(This is owner-flagged — §15 Q-file-2.)*

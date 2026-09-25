@@ -1038,8 +1038,14 @@ internal static class RuntimeApi
     /// file position indicator and the key of reference to be UNCHANGED on a record operation conflict, which a
     /// post-read adjustment cannot deliver (kb/Work PB338).</summary>
     public static string FileReadKeyedShared(string name, int keyIndex, string keyImage, string lockRef,
-        string ignoringLock, string retryKind, string retryAmount, string imgVar) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedShared)}({name}, {keyIndex}, {keyImage}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar})";
+        string ignoringLock, string retryKind, string retryAmount, string imgVar, string? areaExtents = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.ReadKeyedShared)}({name}, {keyIndex}, {keyImage}, {lockRef}, {ignoringLock}, {retryKind}, {retryAmount}, out var {imgVar}{AreaExtentsArg(areaExtents)})";
+
+    /// <summary>⛔ THE ONE SPELLING of the record area's EXTENT TABLE argument (determination D-FRA (v); kb/Work
+    /// PB1053) on every <c>CobolFile</c> entry that takes a record-area image: a NAMED trailing argument, so it can
+    /// follow whichever optional arguments an entry has; nothing at all when the record is not a variable-length
+    /// group (<see cref="Emit.OperandText.RecordAreaExtents"/> answered null).</summary>
+    private static string AreaExtentsArg(string? areaExtents) => areaExtents is null ? "" : $", areaExtents: {areaExtents}";
 
     /// <summary>The ONE governed FORMAT-1 READ, every organization (§9.1.16 / §14.9.30.4 GR9–GR12 + the GR22
     /// ADVANCING ON LOCK skip-scan) — <c>CobolFile.ReadShared</c> (I-O status result, out image). Both READ
@@ -1061,16 +1067,18 @@ internal static class RuntimeApi
     /// ADVANCING phrases as a <c>WriteAdvance</c> descriptor (omitted = none), never a separate entry
     /// (kb/Work PB683).</summary>
     public static string FileWriteShared(string name, string image, string lenArg, string lockRef, string retryKind,
-        string retryAmount, string pageArg, string? advance = null) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg}{(advance is null ? "" : $", {advance}")})";
+        string retryAmount, string pageArg, string? advance = null, string? areaExtents = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.WriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}, {pageArg}{(advance is null ? "" : $", {advance}")}{AreaExtentsArg(areaExtents)})";
 
     /// <summary>Governed REWRITE for a sharing-active file, any organization (§14.9.35 GR11/GR12) — <c>CobolFile.RewriteShared</c>.</summary>
-    public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount})";
+    public static string FileRewriteShared(string name, string image, string lenArg, string lockRef, string retryKind, string retryAmount,
+        string? areaExtents = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RewriteShared)}({name}, {image}, {lenArg}, {lockRef}, {retryKind}, {retryAmount}{AreaExtentsArg(areaExtents)})";
 
     /// <summary>Governed DELETE RECORD for a sharing-active file (§14.9.10 GR6/GR7) — <c>CobolFile.DeleteShared</c>.</summary>
-    public static string FileDeleteShared(string name, string areaImage, string retryKind, string retryAmount) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteShared)}({name}, {areaImage}, {retryKind}, {retryAmount})";
+    public static string FileDeleteShared(string name, string areaImage, string retryKind, string retryAmount,
+        string? areaExtents = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.DeleteShared)}({name}, {areaImage}, {retryKind}, {retryAmount}{AreaExtentsArg(areaExtents)})";
 
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' re-attempt) — <c>CobolFile.DeleteFile</c>.</summary>
     public static string FileDeleteFileRetry(string name, string retryKind, string retryAmount, string overridden) =>
@@ -1100,8 +1108,9 @@ internal static class RuntimeApi
     /// <param name="len">A <see cref="StartKeyLength"/> expression (<see cref="StartKeyLengthScaled"/> /
     /// <see cref="StartKeyLengthReal"/> / <see cref="StartKeyLengthWidth"/>) — never a pre-narrowed <c>int</c>
     /// (kb/Work PB357).</param>
-    public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string recordAreaImage, string len) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {recordAreaImage}, {len})";
+    public static string FileStartIndexed(string name, int keyIndex, string opLiteral, string recordAreaImage, string len,
+        string? areaExtents = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.StartIndexed)}({name}, {keyIndex}, {opLiteral}, {recordAreaImage}, {len}{AreaExtentsArg(areaExtents)})";
 
     /// <summary>START WITH LENGTH arithmetic-expression-1 on the exact fixed-point lane (§14.9.41.4 GR14 —
     /// <c>StartKeyLength.OfScaled</c>): the scaled <c>Int128</c> and its scale travel intact, so the connector's
@@ -1258,6 +1267,11 @@ internal static class RuntimeApi
     public static string FileCurrentRecord(string name) =>
         $"{nameof(CobolFile)}.{nameof(CobolFile.CurrentRecord)}({name})";
 
+    /// <summary>The extent table the current record was sent with — <c>CobolFile.CurrentRecordExtents</c>
+    /// (determination D-FRA (v); kb/Work PB1053).</summary>
+    public static string FileCurrentRecordExtents(string name) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.CurrentRecordExtents)}({name})";
+
     // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
 
     /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c> — with the statement's collating sequence,
@@ -1266,13 +1280,13 @@ internal static class RuntimeApi
         $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights}, {natWeights})";
 
     /// <summary>RELEASE one record image — <c>CobolSort.Release</c>.</summary>
-    public static string SortRelease(string sd, string image) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image})";
+    public static string SortRelease(string sd, string image, string? extents = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Release)}({sd}, {image}{(extents is null ? "" : $", {extents}")})";
 
     /// <summary>The RELEASE STATEMENT — <c>CobolSort.ReleaseStatement</c> (§14.9.32.4 GR1's phase test, then GR2).
     /// The implicit USING release (§14.9.40.4 GR12 b) renders <see cref="SortRelease"/> instead.</summary>
-    public static string SortReleaseStatement(string sd, string image) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image})";
+    public static string SortReleaseStatement(string sd, string image, string? extents = null) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.ReleaseStatement)}({sd}, {image}{(extents is null ? "" : $", {extents}")})";
 
     /// <summary>The RETURN STATEMENT — <c>CobolSort.ReturnStatement</c> (§14.9.34.4 GR1 + GR3's phase and at-end
     /// tests, then GR3's retrieval). The implicit GIVING return renders <see cref="SortReturn"/> instead.</summary>
@@ -1308,6 +1322,11 @@ internal static class RuntimeApi
     /// <summary>The just-returned record's length (§13.18.43 GR15) — <c>CobolSort.LastReturnedLength</c>.</summary>
     public static string SortLastReturnedLength(string sd) =>
         $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedLength)}({sd})";
+
+    /// <summary>The just-returned record's extent table — <c>CobolSort.LastReturnedExtents</c> (determination D-FRA
+    /// (v); kb/Work PB1053).</summary>
+    public static string SortLastReturnedExtents(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.LastReturnedExtents)}({sd})";
 
     /// <summary>The <c>CobolSort.Key[]</c> array literal over per-key "new(…)" element fragments.</summary>
     public static string SortKeyArray(IEnumerable<string> keyElements) =>
@@ -1596,9 +1615,15 @@ internal static class RuntimeApi
 
     /// <summary>Make a contiguous image a cell-backed variable-length group's content — <c>StorageCell.StoreContiguousAt</c>.</summary>
     public static string CellVarStoreContiguous(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase,
-                                                IEnumerable<int> dynFixedAt, IEnumerable<int> dynMax, string imageExpr) =>
+                                                IEnumerable<int> dynFixedAt, IEnumerable<int> dynMax, string imageExpr,
+                                                string? extentsExpr = null) =>
         $"{cellExpr}.{nameof(StorageCell.StoreContiguousAt)}({fixedAtExpr}, {fixedWidth}, {dynBase}, "
-        + $"{IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {imageExpr})";
+        + $"{IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {imageExpr}{(extentsExpr is null ? "" : $", {extentsExpr}")})";
+
+    /// <summary>A cell-backed variable-length group's EXTENT TABLE — <c>StorageCell.ContiguousExtentsAt</c>
+    /// (determination D-FRA (v); kb/Work PB1053).</summary>
+    public static string CellVarContiguousExtents(string cellExpr, int dynBase, IEnumerable<int> dynFixedAt) =>
+        $"{cellExpr}.{nameof(StorageCell.ContiguousExtentsAt)}({dynBase}, {IntSpan(dynFixedAt)})";
 
     /// <summary>A cell-backed variable-length group's §8.5.1.12 component carrier — <c>StorageCell.VarGroupAt</c>.</summary>
     public static string CellVarCarrier(string cellExpr, string fixedAtExpr, int fixedWidth, int dynBase, int dynCount) =>

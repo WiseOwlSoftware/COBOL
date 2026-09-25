@@ -85,16 +85,37 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   area image as before; each out-of-line record takes the CURRENT RECORD at its own length
   (`FileConnector.CurrentRecord`, written only through `NoteRecordRead` beside `LastReadLength`; a RETURN's
   returned image is already that). A variable-length group decomposes it through its generated
-  `FromContiguousImage` → the ONE split rule `CobolVarGroup.FromContiguous` (each dynamic component, left to right,
+  `FromContiguousImage(record, extents)` → `CobolContiguousLayout.Decompose` → the ONE split rule
+  `CobolVarGroup.FromContiguous` — by the record's own EXTENT TABLE (below) when it describes the record, otherwise
+  by the take step (each dynamic component, left to right,
   takes as many whole units as the record holds beyond the fixed material still to come, up to its maximum; in a
   file record the components are dynamic-length items only, since a dynamic-capacity table "may be defined in any
   place, other than the file section", §8.5.1.9.1 3), and the rule's element-unit arm serves the generic
   carrier — the
   exact inverse of the composer for one variable-length member, the earlier component taking the excess for
-  several); a dynamic-length record takes the record as its content (§8.5.1.10.4); a pointer record is not reached.
+  several when the record carries no extent table); a dynamic-length record takes the record as its content
+  (§8.5.1.10.4); a pointer record is not reached.
 - **WRITE / REWRITE / RELEASE** send `OperandText.RecordAreaImage`, whose out-of-line arms are the contiguous
   `CurrentImage()` of a variable-length group (`PlaceRenderer.VarGroupCurrentImage`), a dynamic-length record's
   content, and the zero-length image of a pointer record.
+- **THE EXTENT TABLE** (kb/Work PB1053; CONFORMANCE.md §3 D-FRA (v)). With two or more variable-length components
+  the contiguous image cannot be inverted, so a variable-length group record is sent beside
+  `OperandText.RecordAreaExtents` — the generated `CurrentExtents()` (`CobolContiguousLayout.ExtentsOf` over
+  `AsVarImage()`), or `StorageCell.ContiguousExtentsAt` for a cell-backed group, arm for arm the twin of the image
+  (`PlaceRenderer.VarGroupCurrentExtents`). It is a `RecordExtents` (each component's fixed-run offset and current
+  length) passed as the named `areaExtents` argument of `CobolFile.WriteShared` / `RewriteShared` /
+  `ReadKeyedShared` / `StartIndexed` / `DeleteShared` and of `CobolSort.Release` / `ReleaseStatement`. It is framing,
+  never record data (§12.4.5.11.4 GR1): `RecordFraming` writes it after a frame's length word, flagged by bit 31 of
+  that word, in both the stream shape (a RECORD VARYING record-sequential file) and the store shape (relative and
+  indexed — `StoredFrame`); the sort store and `KeyedRec` hold it beside the record; a READ / RETURN hands it back
+  as `FileConnector.CurrentRecordExtents` / `CobolSort.LastReturnedExtents`, written only through `NoteRecordRead`.
+  `CobolContiguousLayout` honours it only when `RecordExtents.Describes` accepts it — the receiving group's
+  components at the same fixed-run offsets (§8.5.1.12.2) and the record exactly the characters it describes — so a
+  record written through another description, cut to another length, or held where no frame exists (a LINE
+  SEQUENTIAL line, a fixed-length block) is split by the take step. `Position` reads the SAME two sources, so
+  `IndexedConnector.KeyOf` / `AreaKey` and `CobolSort.Key.At` find a key where the decomposition puts it. A
+  sequential in-place REWRITE keeps the frame's size (§14.9.35.4 GR16): it replaces a table of the same component
+  count and otherwise writes `RecordFraming.VoidExtents` (offsets -1, corresponding to no layout).
 - **The implied RECORD clause** (§13.18.43.4 GR5, implementor-defined) is Format 2 exactly when a record is
   variable-length (`FileModel.ImpliesVariableFormat`; `RecordSizeVaries` is the one question every registration
   and `SortBinder.SortVaryingOf` ask). `MaxRecordSize` counts a dynamic-length item at its maximum size and a
@@ -109,7 +130,8 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   §14.9.24.3 SR4 g), COBOLNET0874), the `FileControlKeyRules` rows for §12.4.5.12.3 SR4 and §12.4.5.6.3 SR5
   (COBOLNET0863) and `KeyedIoEmitter.KeyWindow`. At run time the record type's ONE `CobolContiguousLayout`
   (emitted beside `FromContiguousImage` as the static `__contiguous`, exposed through `__Contiguous`) serves both
-  the decomposition and `Position` — the same take step (`CobolVarGroup.ContiguousTake`) — so `CobolSort.Key` and
+  the decomposition and `Position` — the record's extent table, else the same take step
+  (`CobolVarGroup.ContiguousTake`) — so `CobolSort.Key` and
   `IndexedConnector.KeyOf` find a key exactly where a READ / RETURN puts it. An indexed connector with such a key
   (`_layoutKeys`) takes every key from the record AS WRITTEN (`AreaKey`; the WRITE / REWRITE frame), never from an
   image fitted to the area width, because truncation would move the key.
@@ -129,7 +151,10 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
 cell with managed slots for a pointer record (the pointer still has no character image to send, and a dynamic
 member still has no fixed window); give a dynamic-length member a length prefix in the record (that is the
 DYNAMIC LENGTH STRUCTURE clause's job, §8.5.1.10.2, which is not claimed — COBOLNET1562 — and the contiguous
-procedural view of §8.5.1.11.2 would then not be what the file holds).
+procedural view of §8.5.1.11.2 would then not be what the file holds; the extent table carries the same lengths in
+the FRAME instead, outside the record); refuse at bind a record whose layout the take step cannot invert (legal
+source); the take step alone for every record (not invertible with two or more variable-length components — kb/Work
+PB1053).
 
 ### D6. SORT and MERGE: the SD record is a typed struct; the sort store holds serialized images ordered by the same CobolKey policy; SORT key offsets are computed into the deterministic serialized image at compile time. Format-2 in-place table SORT operates on the typed array directly.
 

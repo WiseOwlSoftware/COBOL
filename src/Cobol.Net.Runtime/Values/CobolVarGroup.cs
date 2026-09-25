@@ -246,23 +246,33 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
     }
 
     /// <summary>⛔ A FILE RECORD'S CONTIGUOUS IMAGE, DECOMPOSED — the READ / RETURN half of a variable-length
-    /// record (docs/CONFORMANCE.md §3 determination D-FRA; kb/Work PB981). A WRITE sends the record "as though
-    /// it were in fact contiguous with its neighbors" (ISO §8.5.1.11.2) — the group's <c>CurrentImage()</c> —
-    /// so a record read back carries no marker of where a dynamic member ends. This is the ONE rule that finds
-    /// it: walking the components left to right, each takes as many whole units (one character of a
-    /// dynamic-length item, one element of a dynamic-capacity table) as the record holds beyond the FIXED
-    /// material still to come, up to its maximum; the fixed material then lands at its own positions. It is the
-    /// exact inverse of the composer whenever at most one component is non-empty — in particular for every
-    /// record with ONE variable-length member, wherever it sits — and with several, the EARLIER component takes
-    /// the excess (the determination's stated reading).
+    /// record (docs/CONFORMANCE.md §3 determination D-FRA; kb/Work PB981, PB1053). A WRITE sends the record "as
+    /// though it were in fact contiguous with its neighbors" (ISO §8.5.1.11.2) — the group's <c>CurrentImage()</c>
+    /// — so the characters alone carry no marker of where a dynamic member ends. Two sources can say where:
+    /// <list type="bullet">
+    /// <item><paramref name="recorded"/> — the record's own EXTENT TABLE's lengths (<see cref="RecordExtents"/>,
+    /// D-FRA (v)), which the caller passes only after <see cref="RecordExtents.Describes"/> accepted it for THIS
+    /// record and layout: component k takes exactly the characters it had when the record was sent, so the split is
+    /// the exact inverse of the composer for every layout, however many components it has;</item>
+    /// <item>otherwise the ONE TAKE STEP (<see cref="ContiguousTake"/>): walking the components left to right, each
+    /// takes as many whole units (one character of a dynamic-length item, one element of a dynamic-capacity table)
+    /// as the record holds beyond the FIXED material still to come, up to its maximum — exact for a record with ONE
+    /// variable-length member, wherever it sits; with several, the EARLIER component takes the excess (the
+    /// determination's reading for a record that carries no extent table).</item>
+    /// </list>
+    /// The fixed material then lands at its own positions.
     /// <para><paramref name="fixedAt"/>[k] is component k's offset in the FIXED run (the §8.5.1.12.3
     /// zero-length accounting <see cref="Fixed"/> uses), <paramref name="unit"/>[k] its unit width in
     /// characters, <paramref name="maxUnits"/>[k] its maximum size in units (§8.5.1.10.1's maximum size / the
     /// table's maximum capacity). A record SHORTER than the fixed run leaves every component empty and the
-    /// fixed run short — <c>FromVarImage</c> space-fills it, as §14.9.30.4 GR15 fills a short line.</para></summary>
-    public static CobolVarGroup FromContiguous(string record, int fixedTotal, int[] fixedAt, int[] unit, long[] maxUnits)
+    /// fixed run short — <c>FromVarImage</c> space-fills it, as §14.9.30.4 GR15 fills a short line. A recorded
+    /// component longer than the receiving item's maximum is carried whole here and truncated on the right by
+    /// the item's own receiving store (§8.5.1.10.4 — "If the maximum length is reached, the value is truncated on
+    /// the right as necessary").</para></summary>
+    public static CobolVarGroup FromContiguous(string record, int fixedTotal, IReadOnlyList<int> fixedAt,
+        IReadOnlyList<int> unit, IReadOnlyList<long> maxUnits, IReadOnlyList<int>? recorded = null)
     {
-        var dyn = new string[fixedAt.Length];
+        var dyn = new string[fixedAt.Count];
         var fixedRun = new System.Text.StringBuilder(fixedTotal);
         long excess = Math.Max(0, record.Length - fixedTotal);
         int pos = 0, fpos = 0;
@@ -272,7 +282,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic)
             fixedRun.Append(Slice(record, pos, lead));
             pos += lead;
             fpos = fixedAt[k];
-            int take = ContiguousTake(ref excess, unit[k], maxUnits[k]);
+            int take = recorded is not null ? recorded[k] : ContiguousTake(ref excess, unit[k], maxUnits[k]);
             dyn[k] = Slice(record, pos, take);
             pos += take;
         }

@@ -24,7 +24,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image — the ATTACHED store's,
     /// READ-ONLY. Every mutation goes through the store's own Put/Remove/Clear, which maintain its
     /// high-water mark; there is deliberately no second way to change it (kb/Work PB739).</summary>
-    private IReadOnlyDictionary<long, string> _slots => _st.Slots;
+    private IReadOnlyDictionary<long, StoredFrame> _slots => _st.Slots;
 
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
@@ -58,7 +58,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>  (sequential access targets the last-read slot, §14.9.35.4 GR5 / §14.9.10.4 GR2;
     /// random/dynamic the slot named by the RELATIVE KEY item, §14.9.35.4 GR21 / §14.9.10.4 GR4 — the
     /// ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
-    public override string MutationTargetRecordId(string recordImage) => Access == KeyedAccess.Sequential
+    public override string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) => Access == KeyedAccess.Sequential
         ? LastReadRecordId
         : _pendingKey > 0 ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
@@ -295,7 +295,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <see cref="SetPendingKey"/>; a slot that does not exist is the invalid key condition and holds no lock.
     /// <paramref name="keyIndex"/> and <paramref name="recordImage"/> are the indexed organization's key
     /// selectors and carry nothing here (GR29 names only the RELATIVE KEY item).</remarks>
-    public override string PeekRandomReadRecordId(int keyIndex, string recordImage)
+    public override string PeekRandomReadRecordId(int keyIndex, string recordImage, RecordExtents? recordExtents)
     {
         _ = keyIndex; _ = recordImage;
         return ReadOpenModeGuard() is null && !OptionalAbsent && _slots.ContainsKey(_pendingKey)
@@ -325,8 +325,9 @@ public sealed class RelativeConnector : KeyedConnector
         }
         _fpi = s; _fpiValid = true; _inclusive = false;   // GR21 rule f + rule c's exclusive bound
         _lastSlot = s;
-        NoteRecordRead(_slots[s]);   // §13.18.43 GR15 — the stored frame length
-        image = Fit(_slots[s]);
+        var read = _slots[s];
+        NoteRecordRead(read.Image, read.Extents);   // §13.18.43 GR15 — the stored frame length
+        image = Fit(read.Image);
         return ReadSucceeded(FileStatusCode.Success);
     }
 
@@ -337,15 +338,15 @@ public sealed class RelativeConnector : KeyedConnector
         image = new string(' ', RecordWidth);
         if (ReadOpenModeGuard() is { } notOpen) return Status = notOpen;                  // '47' §14.9.30.4 GR2
         if (RandomReadAbsentOptionalGuard() is { } absent) return Status = absent;        // '23' §9.1.13.5 3 b)
-        if (!_slots.TryGetValue(_pendingKey, out string? rec))
+        if (!_slots.TryGetValue(_pendingKey, out StoredFrame rec))
         {
             LastReadUnsuccessful = true;
             return Status = FileStatusCode.RecordNotFound;                 // '23' §9.1.13.5 3a
         }
         _fpi = _pendingKey; _fpiValid = true; _inclusive = false;
         _lastSlot = _pendingKey;
-        NoteRecordRead(rec);         // §13.18.43 GR15 — the stored frame length
-        image = Fit(rec);
+        NoteRecordRead(rec.Image, rec.Extents);   // §13.18.43 GR15 — the stored frame length
+        image = Fit(rec.Image);
         return ReadSucceeded(FileStatusCode.Success);
     }
 
@@ -355,7 +356,9 @@ public sealed class RelativeConnector : KeyedConnector
     /// highest+1); RRN digit overflow of the key item → invalid key '24' (GR29a/GR33c). Random/dynamic writes the
     /// slot staged in the key item: occupied → '22' (GR33a), key &lt; 1 → permanent error '34' (GR29b). Open-mode
     /// legality per §9.1.13.7 item 8 ('48').</summary>
-    public string Write(string image, int length = -1)
+    /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
+    /// (determination D-FRA (v); kb/Work PB1053), stored and persisted with it.</param>
+    public string Write(string image, int length = -1, RecordExtents? extents = null)
     {
         // §14.9.51.4 GR29 a) "If the access mode of the write file connector is sequential…" vs. GR29 b)
         // "If the access mode … is random or dynamic…": the ACCESS MODE alone selects the release rule
@@ -373,7 +376,7 @@ public sealed class RelativeConnector : KeyedConnector
                 return Status = FileStatusCode.BoundaryViolation;          // '24' §14.9.51 GR29a
             if (Stored(image, length) is not { } seqRec)
                 return Status = FileStatusCode.RecordSizeViolation;        // '44' §13.18.43 GR14a
-            _st.Put(slot, seqRec);
+            _st.Put(slot, Framed(seqRec, image, extents));
             _lastReleasedSlot = slot;
             _lastSlot = slot;                                              // GR29a — MOVEd back into the key item
             return Status = FileStatusCode.Success;
@@ -387,7 +390,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (_slots.ContainsKey(key)) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51 GR33a
         if (Stored(image, length) is not { } rec)
             return Status = FileStatusCode.RecordSizeViolation;            // '44' §13.18.43 GR14a
-        _st.Put(key, rec);
+        _st.Put(key, Framed(rec, image, extents));
         _lastSlot = key;
         return Status = FileStatusCode.Success;
     }
@@ -414,7 +417,9 @@ public sealed class RelativeConnector : KeyedConnector
     /// <summary>REWRITE (§14.9.35): open mode must be I-O ('49', §9.1.13.7 item 9). Sequential access replaces
     /// the prior READ's record (no prior successful READ → '43', GR5); random/dynamic replaces the slot named by
     /// the key item (absent → '23', GR21). The FPI is unaffected (GR13).</summary>
-    public string Rewrite(string image, int length = -1)
+    /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053) — a relative record is
+    /// replaced whole (GR18), so its table is replaced with it.</param>
+    public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
     {
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
@@ -424,13 +429,13 @@ public sealed class RelativeConnector : KeyedConnector
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43'
             if (Stored(image, length) is not { } seqRec)
                 return Status = FileStatusCode.RecordSizeViolation;                             // '44' GR20
-            _st.Put(_lastSlot, seqRec);
+            _st.Put(_lastSlot, Framed(seqRec, image, extents));
             return Status = FileStatusCode.Success;
         }
         if (!_slots.ContainsKey(_pendingKey)) return Status = FileStatusCode.RecordNotFound;    // '23' GR21
         if (Stored(image, length) is not { } rec)
             return Status = FileStatusCode.RecordSizeViolation;                                 // '44' GR20
-        _st.Put(_pendingKey, rec);
+        _st.Put(_pendingKey, Framed(rec, image, extents));
         return Status = FileStatusCode.Success;
     }
 
@@ -526,7 +531,7 @@ public sealed class RelativeConnector : KeyedConnector
     {
         if (Store is not { } fs) return;   // an absent OPTIONAL file holds no physical store to rewrite
         long max = _st.Highest;
-        var frames = new string?[max];
+        var frames = new StoredFrame?[max];
         foreach (var (slot, rec) in _slots) frames[slot - 1] = rec;
         RecordFraming.WriteStore(fs, DeclaredAttributes, frames, CodeSet);
     }

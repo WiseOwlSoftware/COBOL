@@ -149,9 +149,11 @@ internal sealed class SortEmitter(EmitContext ctx,
             // The varying arm releases the CURRENT RECORD itself (FileConnector.CurrentRecord — the area image
             // sliced to LastReadLength whenever the record fits the area, and the whole record when a
             // variable-length record reaches past the character area, determination D-FRA, kb/Work PB981).
-            w.Line($"{RuntimeApi.SortRelease(sdLit, varying
-                ? RuntimeApi.FileCurrentRecord(f)
-                : RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
+            // The varying arm releases the current record WITH the extent table it was read with (D-FRA (v);
+            // kb/Work PB1053), so a variable-length record crosses the sort exactly as it crossed the file.
+            w.Line(varying
+                ? $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.FileCurrentRecord(f), RuntimeApi.FileCurrentRecordExtents(f))};"
+                : $"{RuntimeApi.SortRelease(sdLit, RuntimeApi.StrStore(tmp, $"{sdWidth}"))};");
         }
         // ⛔ TWO as-if statements, TWO statuses, TWO hooks (kb/Work PB837). The loop above exits ONLY on an
         // unsuccessful retrieval, so the connector's status here IS that retrieval's — the as-if READ of
@@ -201,7 +203,8 @@ internal sealed class SortEmitter(EmitContext ctx,
             // record locks, so the governed body's release/acquire discipline is vacuous here — but the routing
             // decision is not the emitter's to make, and the runtime is where the open mode is known.
             string ws = $"__srw{ctx.Names.NextSort()}";
-            w.Line($"string {ws} = {RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output))};   // implicit WRITE without optional phrases (GR15b)");
+            // The returned record is written with the extent table it was released with (D-FRA (v); kb/Work PB1053).
+            w.Line($"string {ws} = {RuntimeApi.FileWriteShared(f, tmp, "-1", "FileRecordLock.None", "FileRetryKind.None", "0", seqIo.LinageArg(output), areaExtents: RuntimeApi.SortLastReturnedExtents(sdLit))};   // implicit WRITE without optional phrases (GR15b)");
             // ⛔ EACH as-if WRITE owes its OWN hook (kb/Work PB837, the GIVING twin of the USING retrieval): GR15's
             // closing paragraph performs the implicit functions "such that any associated USE AFTER
             // EXCEPTION/ERROR procedures are executed", and the write has no phrase that could take precedence
@@ -432,8 +435,10 @@ internal sealed class SortEmitter(EmitContext ctx,
             return;
         }
         // GR13b/c (no DEPENDING — incl. a varying m-TO-n SD): the named record's own size; the image renders at
-        // exactly that width, so the release carries it. The STATEMENT entry: §14.9.32.4 GR1's phase test.
-        w.Line($"{RuntimeApi.SortReleaseStatement(sd, image)};");
+        // exactly that width, so the release carries it — with the record's extent table when it is a
+        // variable-length group (D-FRA (v); kb/Work PB1053; the DEPENDING arm above sends a record cut to another
+        // length, which no table describes). The STATEMENT entry: §14.9.32.4 GR1's phase test.
+        w.Line($"{RuntimeApi.SortReleaseStatement(sd, image, OperandText.RecordAreaExtents(rl.Record))};");
     }
 
     /// <summary>RETURN (ISO §14.9.34): pull the next record in key order into the SD record area (GR3); a varying
@@ -451,7 +456,7 @@ internal sealed class SortEmitter(EmitContext ctx,
         using (w.Block($"if ({RuntimeApi.SortReturnStatement(sd, tmp)})"))
         {
             // GR3 — made available in the record area: the returned record IS the current record, at its own length.
-            seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp);
+            seqIo.EmitRecordAreaStore(rt.File, rt.RecordArea, tmp, tmp, RuntimeApi.SortLastReturnedExtents(sd));
             if (rt.Varying is { Depending: { } dep })   // §13.18.43 GR15 — the length restored into DEPENDING
                 arith.StoreArith(dep, new NumX(RuntimeApi.SortLastReturnedLength(sd), 0), CobolRounding.Truncation);
             // GR5 b) — RETURN then MOVE THE CURRENT RECORD → identifier-1, the move BOUND by

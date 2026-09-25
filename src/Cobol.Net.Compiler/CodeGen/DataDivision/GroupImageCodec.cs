@@ -425,7 +425,11 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 layout.Select(l => l.Unit), layout.Select(l => l.MaxUnits)) + ";");
         w.Line($"public readonly CobolContiguousLayout {RuntimeApi.ContiguousLayoutProperty} => "
             + $"{RuntimeApi.ContiguousLayoutField};");
-        w.Line($"public void FromContiguousImage(string __r) => FromVarImage({RuntimeApi.ContiguousLayoutField}.Decompose(__r));");
+        // ⛔ THE EXTENT TABLE (D-FRA (v); kb/Work PB1053): the WRITE / REWRITE / RELEASE side sends where each
+        // component of CurrentImage() ends, and the READ / RETURN side decomposes by it when it describes the record
+        // received — so every layout round-trips, however many variable-length members flank a fixed one.
+        w.Line($"public readonly RecordExtents CurrentExtents() => {RuntimeApi.ContiguousLayoutField}.ExtentsOf(AsVarImage());");
+        w.Line($"public void FromContiguousImage(string __r, RecordExtents? __e) => FromVarImage({RuntimeApi.ContiguousLayoutField}.Decompose(__r, __e));");
         using (w.Block("public void FromVarImage(CobolVarGroup __v)"))
         {
             w.Line($"string __s = {RuntimeApi.StrStore("__v.Fixed", $"{totalFixed}")};");

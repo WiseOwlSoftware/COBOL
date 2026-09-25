@@ -81,7 +81,7 @@ public sealed class StartKeyOfReferenceDriftTests
         string body = MemberBody(source, sig);
         return body.Contains("_positioner = 'S'", StringComparison.Ordinal)
             && body.Contains("_refKey = keyOfReference;", StringComparison.Ordinal)
-            && body.Contains("KeyOf(found.Image, keyOfReference)", StringComparison.Ordinal);
+            && body.Contains("KeyOf(found, keyOfReference)", StringComparison.Ordinal);
     }
 
     /// <summary>True when START FIRST/LAST decides the key of reference itself — GR18/GR19's "set to the primary
@@ -160,7 +160,7 @@ public sealed class StartKeyOfReferenceDriftTests
                 public string Start(int keyIndex, string op, string operand, int compareLength)
                 {
                     _refKey = keyIndex;
-                    _fpiKey = KeyOf(found.Image, keyIndex);
+                    _fpiKey = KeyOf(found, keyIndex);
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }
@@ -186,7 +186,7 @@ public sealed class StartKeyOfReferenceDriftTests
                 public string Start(int keyIndex, string op, string operand, int compareLength)
                 {
                     _refKey = keyIndex;
-                    _fpiKey = KeyOf(found.Image, keyIndex);
+                    _fpiKey = KeyOf(found, keyIndex);
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }
@@ -200,7 +200,7 @@ public sealed class StartKeyOfReferenceDriftTests
                 private string StartSucceeded(int keyOfReference, KeyedRec found)
                 {
                     _refKey = keyOfReference;
-                    _fpiKey = KeyOf(found.Image, keyOfReference);
+                    _fpiKey = KeyOf(found, keyOfReference);
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }
@@ -219,7 +219,7 @@ public sealed class StartKeyOfReferenceDriftTests
 
                 private string StartSucceeded(int keyOfReference, KeyedRec found)
                 {
-                    _fpiKey = KeyOf(found.Image, _refKey);
+                    _fpiKey = KeyOf(found, _refKey);
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }

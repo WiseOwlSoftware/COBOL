@@ -41,6 +41,10 @@ public sealed class SequentialConnector : FileConnector
     // deriving the block start from it corrupted the rewrite target (IX106A REWRITE-TEST-GF-02).
     private long _lastReadBlockStart = -1;
     private long _readOffset;
+    // The component count of the EXTENT TABLE the last-read VARYING frame carried (determination D-FRA (v);
+    // kb/Work PB1053), -1 when it carried none. The table sits immediately before _lastReadBlockStart, so an in-place
+    // REWRITE can replace it with the record's new table — or void it — without changing the frame's size.
+    private int _lastReadTableCount = -1;
     // §14.9.30 GR15 / NOTE 3: the unread tail of an over-length LINE-SEQUENTIAL record — the file position indicator
     // "next unread character in the record". The next READ returns this (chunked to the record width) before reading a
     // new physical line, so a program using the GR15 multi-read pattern sees the whole logical line, not silent loss.
@@ -155,7 +159,7 @@ public sealed class SequentialConnector : FileConnector
         _readOrdinal > 0 ? _readOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
     /// <inheritdoc/>  (a sequential REWRITE replaces the record obtained by the last successful READ, §14.9.35)
-    public override string MutationTargetRecordId(string recordImage) => LastReadRecordId;
+    public override string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) => LastReadRecordId;
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => _writeOrdinal > 0
@@ -796,6 +800,7 @@ public sealed class SequentialConnector : FileConnector
         _printControl = false;
         _lineOpen = false;
         _lastReadBlockStart = -1;
+        _lastReadTableCount = -1;
         _readOffset = 0;
         _lineRemainder = null;
         _lineByteOffset = 0;
@@ -996,7 +1001,10 @@ public sealed class SequentialConnector : FileConnector
     /// <paramref name="length"/> bytes (the DEPENDING item's content, §13.18.43 GR13a) or the image's own length
     /// (GR13b/c), failing with '44' outside the declared bounds (GR14). Valid only when open OUTPUT/EXTEND
     /// (else 48).</summary>
-    public string Write(string image, int length, LinagePage? page)
+    /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
+    /// (determination D-FRA (v); kb/Work PB1053) — framed beside a RECORD VARYING record-sequential record, and
+    /// carried by no other shape (a line has no frame).</param>
+    public string Write(string image, int length, LinagePage? page, RecordExtents? extents = null)
     {
         _endOfPage = null;   // an end-of-page condition is the CURRENT write's or none (§14.9.51.4 GR27)
         if (!IsOpen || _writer is null) return Status = FileStatusCode.WriteNotOpenForOutput;
@@ -1030,7 +1038,14 @@ public sealed class SequentialConnector : FileConnector
             if (len < VaryMin || len > VaryMax)
                 return Status = FileStatusCode.RecordSizeViolation;   // '44' §13.18.43 GR14a
             if (_lineSequential) { if (!EmitLineSequentialRecord(TrimRecordEnd(FitRecord(image, len)), page)) return LinageViolationStatus(); }
-            else { RecordFraming.WritePrefix(_writer, len); EmitRecord(FitRecord(image, len)); }
+            else
+            {
+                // The table describes the image the group composed; a record sent at another length (GR13 a) is
+                // not that image, so it goes without one rather than with a table that would misdescribe it.
+                string record = FitRecord(image, len);
+                RecordFraming.WriteFrameHead(_writer, len, Framed(record, image, extents).Extents);
+                EmitRecord(record);
+            }
         }
         else if (_lineSequential) { if (!EmitLineSequentialRecord(TrimRecordEnd(image), page)) return LinageViolationStatus(); }
         else EmitRecord(Fit(image));
@@ -1230,18 +1245,18 @@ public sealed class SequentialConnector : FileConnector
                 _lineRemainder = null;
                 _lastReadLinePartial = true;   // a served remainder is only PART of its physical line (§14.9.35 GR17a)
             }
-            else if (NextFrame(out _) is { } physical) line = physical;
+            else if (NextFrame(out _, out _) is { } physical) line = physical;
             else { LastReadUnsuccessful = true; Status = FileStatusCode.AtEnd; return false; }
             // The bound is the maximum size the RECORD DESCRIPTIONS specify (GR15's own words), which is the
             // record area's width except for a variable-length record (MaxRecordSize — kb/Work PB981).
             if (line.Length > MaxRecordSize)
             {
                 _lineRemainder = line[MaxRecordSize..];
-                NoteRecordRead(line[..MaxRecordSize]);
+                NoteRecordRead(line[..MaxRecordSize], null);   // a line carries no extent table
                 image = Fit(CurrentRecord);
                 lineTooLong = true;
             }
-            else { NoteRecordRead(line); image = Fit(line); }   // §14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
+            else { NoteRecordRead(line, null); image = Fit(line); }   // §14.9.30.4 GR15 fill — national-aware (kb/Work PB327)
             // §14.9.30.4 GR16: "If the execution of the READ statement is successful but the record area
             // contains one or more characters not in the implementor-defined character set for a line
             // sequential file, the I-O status in the read file connector is set to '09'" (§9.1.13.2 item 7).
@@ -1251,9 +1266,9 @@ public sealed class SequentialConnector : FileConnector
             // ('06') read; the status arbitration below follows that order (kb/Work PB329).
             lineBadChar = RecordAreaOutsideLineCharacterSet(image);
         }
-        else if (NextFrame(out _) is { } data)
+        else if (NextFrame(out _, out RecordExtents? extents) is { } data)
         {
-            NoteRecordRead(data);
+            NoteRecordRead(data, extents);
             image = Fit(data);   // §14.9.30.4 GR14/GR15 fill — national-aware (kb/Work PB327)
             // A VARYING record outside the file's min/max is §14.9.30 GR14's '04'. Fixed-length record
             // sequential: min == max == RecordWidth, so a partial (short) final record is '04' too; a
@@ -1319,9 +1334,12 @@ public sealed class SequentialConnector : FileConnector
     /// NATIVE one, so every rule above it — the record-area fill, the line sequential character-set test, START's
     /// key scan — reads native characters, which is what those rules are written about (kb/Work PB793).</para>
     /// </summary>
-    private string? NextFrame(out long frameStart)
+    /// <param name="extents">The EXTENT TABLE a RECORD VARYING frame carried (D-FRA (v); kb/Work PB1053); null for
+    /// every other frame.</param>
+    private string? NextFrame(out long frameStart, out RecordExtents? extents)
     {
         EnsureReaderCoherent();   // kb/Work PB753 — a sibling's release since the buffer was filled
+        extents = null;
         if (_lineSequential)
         {
             frameStart = _lineByteOffset;
@@ -1342,11 +1360,25 @@ public sealed class SequentialConnector : FileConnector
             // Length-framed record: 4-byte LE prefix + payload (see the framing note at the field declarations).
             var pre = new char[4];
             if (FillChars(pre, 4) < 4) return null;
-            int len = RecordFraming.PrefixLength(pre);
+            int len = RecordFraming.PrefixLength(pre, out bool tableFollows);
+            int head = 4;
+            _lastReadTableCount = -1;
+            if (tableFollows)
+            {
+                // The frame's EXTENT TABLE (RecordFraming's class summary): a count, then 8 characters per
+                // component. A table torn by the end of the file ends the data, as a torn payload does.
+                if (FillChars(pre, 4) < 4) return null;
+                int count = RecordFraming.ExtentCount(pre);
+                var table = new char[8 * count];
+                if (FillChars(table, table.Length) < table.Length) return null;
+                extents = RecordFraming.ExtentTableFromChars(table);
+                _lastReadTableCount = count;
+                head += 4 + table.Length;
+            }
             var vbuf = new char[len];
             int vn = FillChars(vbuf, len);
-            _lastReadBlockStart = _reader!.BaseStream.CanSeek ? _readOffset + 4 : -1;
-            _readOffset += 4 + vn;
+            _lastReadBlockStart = _reader!.BaseStream.CanSeek ? _readOffset + head : -1;
+            _readOffset += head + vn;
             return FromMedium(new string(vbuf, 0, vn));
         }
         var buf = new char[RecordWidth];
@@ -1405,7 +1437,11 @@ public sealed class SequentialConnector : FileConnector
     /// the rewritten record's length (<paramref name="length"/> = the DEPENDING item's content, GR13a, or the
     /// image's own length, GR13b/c) must lie within the declared bounds (GR20 → '44') AND — record sequential —
     /// equal the size of the record being replaced (GR16 → '44'; the in-place frame cannot change size).</summary>
-    public string Rewrite(string image, int length = -1)
+    /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053). The frame keeps its
+    /// size (GR16), so it replaces the table the replaced frame carried only when it has as many components; a
+    /// frame whose table cannot take it has that table VOIDED (it would otherwise describe the replaced record),
+    /// and a frame that carried none stays without one — the record then reads back by the take step.</param>
+    public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
     {
         if (!IsOpen || Mode != FileOpenMode.IO) return Status = FileStatusCode.DeleteRewriteNotOpenForIO;
         if (!PrevOpWasSuccessfulRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
@@ -1415,7 +1451,14 @@ public sealed class SequentialConnector : FileConnector
         if (IsVarying && len != LastReadLength)
             return Status = FileStatusCode.RecordSizeViolation;       // '44' §14.9.35 GR16 (record sequential)
         if (!_lineSequential && _lastReadBlockStart >= 0 && _reader is { BaseStream: { CanSeek: true, CanWrite: true } stream })
-            return OverwriteInPlace(stream, _lastReadBlockStart, FitRecord(image, len));
+        {
+            string record = FitRecord(image, len);
+            if (_lastReadTableCount < 0) return OverwriteInPlace(stream, _lastReadBlockStart, record);
+            RecordExtents? replacing = Framed(record, image, extents).Extents;
+            string table = RecordFraming.ExtentTableChars(replacing is not null && replacing.Count == _lastReadTableCount
+                ? replacing : RecordFraming.VoidExtents(_lastReadTableCount));
+            return OverwriteInPlace(stream, _lastReadBlockStart - table.Length, table, record);
+        }
         if (_lineSequential && _lastLineStart >= 0 && _reader is { BaseStream: { CanSeek: true, CanWrite: true } lstream })
         {
             // §14.9.35.4 GR17 (line-sequential REWRITE): (a) a preceding partial ('06') read ⇒ '44'; (d) a record
@@ -1451,10 +1494,21 @@ public sealed class SequentialConnector : FileConnector
     /// <para>The base stream is left where it was found. It is the buffer-fill boundary of the
     /// <see cref="StreamReader"/> above it, not the file position indicator, so restoring it is what keeps
     /// THIS connector's own buffered characters valid across its own REWRITE.</para></summary>
-    private string OverwriteInPlace(Stream stream, long anchor, string content)
+    private string OverwriteInPlace(Stream stream, long anchor, string content) =>
+        OverwriteInPlace(stream, anchor, "", content);
+
+    /// <summary><see cref="OverwriteInPlace(Stream, long, string)"/> with a FRAME part ahead of the record: the
+    /// replacing record's extent table (D-FRA (v); kb/Work PB1053), which is framing, not data of the record, so it
+    /// goes to the medium as it is and is never converted to the file's coded character set.</summary>
+    private string OverwriteInPlace(Stream stream, long anchor, string framing, string content)
     {
         long resume = stream.Position;
         stream.Seek(anchor, SeekOrigin.Begin);
+        if (framing.Length > 0)
+        {
+            byte[] head = Encoding.Latin1.GetBytes(framing);
+            stream.Write(head, 0, head.Length);
+        }
         // ⛔ The REWRITE arm's §13.18.13.4 GR6 b boundary, for the same reason EmitRecord is the WRITE arm's:
         // `content` is the record's data in the NATIVE character set, and what goes on the medium is the file's
         // coded character set. Being the ONE in-place overwrite makes this the one place either arm converts.
@@ -1500,7 +1554,7 @@ public sealed class SequentialConnector : FileConnector
         // physical lines. FIRST stops at the first frame; LAST walks to end-of-data remembering the last one.
         SeekToRecord(0, 0);
         long foundStart = -1, foundOrdinal = 0, seen = 0;
-        while (NextFrame(out long frameStart) is not null)
+        while (NextFrame(out long frameStart, out _) is not null)
         {
             seen++;
             foundStart = frameStart;
@@ -1539,6 +1593,7 @@ public sealed class SequentialConnector : FileConnector
         _lineByteOffset = byteOffset;
         _lineRemainder = null;
         _lastReadBlockStart = -1;
+        _lastReadTableCount = -1;
         _lastLineStart = -1;
         _lastLineBytes = 0;
         _lastReadLinePartial = false;

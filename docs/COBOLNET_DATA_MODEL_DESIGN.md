@@ -452,7 +452,8 @@ content-validation half is separately answered by the declined A.4.14 facility (
   (`GroupImageCodec.CellDynSeeds` → `StorageCell.SeedDyn`, §8.6.4). Two codings carry it: `Place.DynSlotWindow`
   (the leaf — `StorageCell.DynAt` / `SetDynAt`) and `Place.VarGroupWindow` (a group over such leaves, which reads
   and writes as its CONTIGUOUS image, §8.5.1.11.2 — `StorageCell.ContiguousAt` / `StoreContiguousAt`, the D-FRA
-  take step — and crosses a variable-length MOVE / boundary as its `CobolVarGroup` carrier —
+  decomposition by the record's extent table else the take step, with `ContiguousExtentsAt` the table a WRITE sends
+  beside it — and crosses a variable-length MOVE / boundary as its `CobolVarGroup` carrier —
   `VarGroupAt` / `StoreVarGroupAt`). Both derive from `Place.CellWindowCoding`, the one base every re-anchoring
   consumer reads. **Refused** (`DataBinder.VariableLengthCellResidueOf`): a dynamic-length item inside a table
   element (no slot per occurrence) and a dynamic-capacity table — exactly the shapes a declared group's

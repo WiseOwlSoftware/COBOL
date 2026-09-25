@@ -150,6 +150,11 @@ public static class CobolFile
     /// OUT-OF-LINE record of the area receives (docs/CONFORMANCE.md §3 D-FRA; kb/Work PB981).</summary>
     public static string CurrentRecord(string name) => _reg.CurrentRecord(name);
 
+    /// <summary>The EXTENT TABLE <see cref="CurrentRecord"/> was sent with — where each variable-length component of
+    /// the variable-length group that wrote it ended (docs/CONFORMANCE.md §3 D-FRA (v); kb/Work PB1053); null when
+    /// the record carries none. An out-of-line variable-length group record decomposes the current record by it.</summary>
+    public static RecordExtents? CurrentRecordExtents(string name) => _reg.CurrentRecordExtents(name);
+
     /// <summary>The file's current FILE STATUS two-character code (ISO §9.1.13). "00" for an unknown name.</summary>
     public static string Status(string name) => _reg.Status(name);
 
@@ -205,8 +210,9 @@ public static class CobolFile
 
     /// <summary>START on an indexed file (§14.9.41 GR13–GR17); <paramref name="keyedRecordImage"/> is the RECORD
     /// AREA, which GR17 a) makes the source of the search key (kb/Work PB355).</summary>
-    public static string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length)
-        => _reg.StartIndexed(name, keyIndex, op, keyedRecordImage, length);
+    public static string StartIndexed(string name, int keyIndex, string op, string keyedRecordImage, StartKeyLength length,
+        RecordExtents? areaExtents = null)
+        => _reg.StartIndexed(name, keyIndex, op, keyedRecordImage, length, areaExtents);
 
     /// <summary>START FIRST/LAST (COBOL-2002+; §14.9.41 GR11/GR12), either keyed organization.</summary>
     public static string StartFirstLast(string name, bool last) => _reg.StartFirstLast(name, last);
@@ -246,9 +252,13 @@ public static class CobolFile
     /// <paramref name="phrase"/> is the RETENTION bracket (WITH LOCK / WITH NO LOCK) and
     /// <paramref name="ignoringLock"/> the INDEPENDENT IGNORING LOCK phrase (§14.9.30.2's other bracket, GR12).
     /// A Format-1 read of any organization uses <see cref="ReadShared"/> instead.</summary>
+    /// <para><paramref name="areaExtents"/> — here and on every entry below that takes a record-area image — is the
+    /// record area's EXTENT TABLE when the record is a variable-length group (D-FRA (v); kb/Work PB1053): what
+    /// frames the written record, and what locates a key the record's variable-length members precede.</para>
     public static string ReadKeyedShared(string name, int keyIndex, string keyedRecordImage, FileRecordLock phrase,
-        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
-        => _reg.ReadKeyedShared(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image);
+        bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image, RecordExtents? areaExtents = null)
+        => _reg.ReadKeyedShared(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image,
+            areaExtents);
 
     /// <summary>The ONE governed FORMAT-1 READ — sequential, relative and indexed (§9.1.16 / §14.9.30.4 GR9–GR12
     /// and the GR22 ADVANCING ON LOCK skip-scan). Returns the I-O status; a record was made available iff it
@@ -264,17 +274,19 @@ public static class CobolFile
     /// see <see cref="WriteAdvanceKind"/> for why a WRITE's presentation shape may not pick its own entry
     /// (kb/Work PB683).</summary>
     public static string WriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default)
-        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance);
+        FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default,
+        RecordExtents? areaExtents = null)
+        => _reg.WriteShared(name, image, length, phrase, retryKind, retryAmount, page, advance, areaExtents);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12).</summary>
     public static string RewriteShared(string name, string image, int length, FileRecordLock phrase,
-        FileRetryKind retryKind, long retryAmount)
-        => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount);
+        FileRetryKind retryKind, long retryAmount, RecordExtents? areaExtents = null)
+        => _reg.RewriteShared(name, image, length, phrase, retryKind, retryAmount, areaExtents);
 
     /// <summary>Governed DELETE RECORD for a sharing-active connector (§14.9.10 GR6/GR7).</summary>
-    public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount)
-        => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount);
+    public static string DeleteShared(string name, string keyedRecordImage, FileRetryKind retryKind, long retryAmount,
+        RecordExtents? areaExtents = null)
+        => _reg.DeleteShared(name, keyedRecordImage, retryKind, retryAmount, areaExtents);
 
     /// <summary>DELETE FILE with a RETRY phrase (§14.9.10 GR15 — the '62' file-sharing conflict re-attempt) and
     /// the GR18 OVERRIDE flag.</summary>

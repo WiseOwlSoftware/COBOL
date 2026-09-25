@@ -80,19 +80,20 @@ internal sealed class KeyedStoreTable
 /// removal OF the maximum pays a scan, and only then.</para></summary>
 internal sealed class RelativeStore
 {
-    private readonly SortedDictionary<long, string> _slots = new();
+    private readonly SortedDictionary<long, StoredFrame> _slots = new();
 
-    /// <summary>The records, in ascending RRN order. Read-only by construction — see the type summary.</summary>
-    public IReadOnlyDictionary<long, string> Slots => _slots;
+    /// <summary>The records, in ascending RRN order, each with the extent table it was released with (if any —
+    /// D-FRA (v), kb/Work PB1053). Read-only by construction — see the type summary.</summary>
+    public IReadOnlyDictionary<long, StoredFrame> Slots => _slots;
 
     /// <summary>The highest relative record number existing in the physical file (0 when it holds none) —
     /// §14.9.51.4 GR29 a)'s "the highest relative record number existing in the physical file".</summary>
     public long Highest { get; private set; }
 
     /// <summary>Release or replace the record at <paramref name="rrn"/>.</summary>
-    public void Put(long rrn, string image)
+    public void Put(long rrn, StoredFrame record)
     {
-        _slots[rrn] = image;
+        _slots[rrn] = record;
         if (rrn > Highest) Highest = rrn;
     }
 
@@ -129,6 +130,9 @@ internal sealed class RelativeStore
 internal sealed class KeyedRec
 {
     public string Image = "";
+    /// <summary>The EXTENT TABLE the record was released with (determination D-FRA (v); kb/Work PB1053) — null when
+    /// the record carries none. Replaced with <see cref="Image"/>, never apart from it.</summary>
+    public RecordExtents? Extents;
     public long[] Ordinals = [];
 }
 
