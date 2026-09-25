@@ -140,3 +140,21 @@ Process: after a refuter, run `python3 scratch/integrate.py <wave> <slug…>` (p
 - Undone input files after wave 4: dns-witness and misc-p16 … misc-p38 (24 files, about 229 rows), in `scratch/in/`.
 - **Lane total: 111 rows witnessed; GAP 1627 → 1515.**
 - gate: Conformance filter 5572/5572 (all 5 new goldens ran by name), Unit filter 25/25.
+
+## Golden lane #2 — batch 1 (local; dns-witness, misc-p16…p22): landed 57 (GAP 1515 → 1458)
+
+Run locally against the pinned compiler `E:\wt\gl2-pin` (DEVLOG 1694); landed by DEVLOG 1695.
+- dns-witness: landed 1 (DOC-A.1-7 on `85/l1c40_no_automatic_alignment` only); overturned DOC-A.1-143, DOC-A.1-196;
+  not-closable DOC-A.1-106 (needs a unit test).
+- misc-p16: landed 5; not-closable 7 (GR-7.3.17.4-2/-3, DOC-A.1-111, GR-7.3.18.3-2…-5).
+- misc-p17: landed 10 (SR-8.3.5-7 on its positive only; `negative/l1c17-refmod-colon-missing` dropped);
+  held GR-12.4.5.9.4-1 (`2002/l1c17_lock_mode_omitted_branches`: its b) 2. leg depends on PB322 A, and the row may not
+  close even without it); not-closable GR-12.4.5.9.4-2.
+- misc-p18: landed 8; overturned SR-11.7.3-2; not-closable DOC-A.1-118, GR-14.9.24.4-10/-11.
+- misc-p19: landed 9; overturned DOC-A.1-132; held SR-8.4.3.7.3-1 (`negative/l1c19-null-as-receiving-operand`, PB1551).
+- misc-p20: landed 10 (SR-8.4.3.9.3-2 on `negative/l1c20-property-of-universal-reference` only;
+  `negative/l1c20-property-of-null` held, PB1551); not-closable GR-9.3.6-L3.2.
+- misc-p21: landed 7; not-closable GR-7.3.19.4-2.
+- misc-p22: landed 7; not-closable GR-14.2.3-7.
+- The overturned and held drafts stay in the lane directory, not in the tree. Their corrections are in
+  `<GL>/reports/<slug>.refute.json`.
