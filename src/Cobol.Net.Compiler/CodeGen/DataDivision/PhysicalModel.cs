@@ -74,13 +74,30 @@ internal sealed class PhysicalModel(EmitContext ctx)
         // is proportional to the source the emitter writes for that table anyway.
         var key = (owner, owner.ContainsTableValue ? subs : default);
         if (_physCache.TryGetValue(key, out var cached)) return cached;
+        ListBuilds++;
         var list = BuildPhysicals(owner.Children, subs).ToList();
         _physCache[key] = list;
         return list;
     }
 
     /// <summary>The memoized physical fields of the top-level (01/77) forest.</summary>
-    public IReadOnlyList<Physical> RootPhysicals() => _rootPhysCache ??= BuildPhysicals(ctx.Data.Roots, default).ToList();
+    public IReadOnlyList<Physical> RootPhysicals()
+    {
+        if (_rootPhysCache is null) { ListBuilds++; _rootPhysCache = BuildPhysicals(ctx.Data.Roots, default).ToList(); }
+        return _rootPhysCache;
+    }
+
+    /// <summary>How many physical-field lists this model has BUILT — the work the memo bounds. With the memo it is one
+    /// per group (plus one per occurrence tuple on a table-VALUE spine) plus one for the root forest, i.e. linear in the
+    /// DATA DIVISION; the DEVLOG 502 regression (width and init recomputing each other) roughly doubles it per nesting
+    /// level. A deterministic measure of the growth rate, read by <c>DeepNestingTests</c> (kb/Work PB1590) instead of a
+    /// wall-clock ceiling that a loaded CI runner turned red twice.</summary>
+    internal int ListBuilds { get; private set; }
+
+    /// <summary>Test seam (kb/Work PB1590): when set, receives each model a <see cref="DataEmitter"/> creates. An
+    /// <see cref="AsyncLocal{T}"/>, so only the test's own compilation reports to it — the Unit assembly compiles in
+    /// parallel, and a process-global hook would hear every other test's models.</summary>
+    internal static readonly AsyncLocal<Action<PhysicalModel>?> Observer = new();
 
     /// <summary>The physical fields a run of sibling items emits: skip REDEFINES views; substitute a Tier-B class's ONE
     /// string backing (emitted once, at the canonical) for the whole class; a Tier-A view forwards to its canonical's

@@ -1,6 +1,5 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Diagnostics;
 using CobolNet.Runtime;
 using Xunit;
 
@@ -17,11 +16,8 @@ public sealed class CobolTimingTests
     [Fact]
     public void NaNInterval_CheckingOff_NoSuspension_NoReport()
     {
-        var sw = Stopwatch.StartNew();
-        bool raised = CobolTiming.ContinueAfter(double.NaN, checkLessThanZero: false);
-        sw.Stop();
-        Assert.False(raised);
-        Assert.True(sw.ElapsedMilliseconds < 500, $"NaN interval suspended {sw.ElapsedMilliseconds} ms");
+        var suspensions = Observe(() => Assert.False(CobolTiming.ContinueAfter(double.NaN, checkLessThanZero: false)));
+        Assert.Empty(suspensions);   // no suspension at all — observed, not timed (kb/Work PB1590)
     }
 
     [Fact]
@@ -52,10 +48,25 @@ public sealed class CobolTimingTests
         // 0.99999999999999999 (17 nines) converts to exactly 1.0 in binary64 — the sign value — while the
         // exact truncation the emitter computes in the value's own domain is 0 (GR1's implicit COMPUTE
         // without ROUNDED). The suspension must follow the EXACT value.
-        var sw = Stopwatch.StartNew();
-        bool raised = CobolTiming.ContinueAfterExact(1.0, truncatedSeconds: 0, checkLessThanZero: true);
-        sw.Stop();
-        Assert.False(raised);
-        Assert.True(sw.ElapsedMilliseconds < 500, $"a truncated-zero interval suspended {sw.ElapsedMilliseconds} ms");
+        var suspensions = Observe(() => Assert.False(CobolTiming.ContinueAfterExact(1.0, truncatedSeconds: 0, checkLessThanZero: true)));
+        Assert.Empty(suspensions);   // the EXACT truncation (0) decides — no suspension, observed not timed
+    }
+
+    [Fact]
+    public void PositiveInterval_SuspendsForItsTruncatedSeconds()
+    {
+        // The observer's control arm: a real interval IS reported, so an empty list above means "did not suspend",
+        // not "the seam is disconnected".
+        var suspensions = Observe(() => Assert.False(CobolTiming.ContinueAfter(2.9, checkLessThanZero: true)));
+        Assert.Equal([2000], suspensions);   // GR1: truncated toward zero, no ROUNDED
+    }
+
+    /// <summary>Run <paramref name="act"/> with CONTINUE AFTER's suspension REPORTED instead of performed.</summary>
+    private static List<int> Observe(Action act)
+    {
+        var seen = new List<int>();
+        CobolTiming.SuspensionObserver.Value = seen.Add;
+        try { act(); } finally { CobolTiming.SuspensionObserver.Value = null; }
+        return seen;
     }
 }

@@ -212,15 +212,30 @@ public sealed class PictureCompositionTests
     /// symbol. This pins the difference: the quadratic form takes minutes on these inputs and the linear one
     /// milliseconds, so the bound is generous and still cannot be met by an accidental regression.
     /// </summary>
+    /// <para>⛔ It measures the GROWTH RATE, never an absolute time (kb/Work PB1590's rule — a fixed ceiling on a loaded
+    /// CI runner fails with no code change): the same five shapes at 3 000 and at 30 000 symbols, the best of three
+    /// runs each, and the ratio of the two. Linear work scales ~10x; the quadratic pair walk scales ~100x; the bound
+    /// sits between them, and load that slows both sizes alike cannot move a ratio.</para>
     [Fact]
     public void ALargeRepeatExpandedPicture_CostsLinearTime()
     {
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        foreach (string picture in new[] { "X(30000)", "9(30000)", "Z(30000)", "$(30000)", "9(20000)V9(9000)" })
-            Diagnose(picture);
-        sw.Stop();
-        Assert.True(sw.Elapsed < TimeSpan.FromSeconds(5),
-            $"the §13.18.40.6 Table 10 walk took {sw.Elapsed.TotalSeconds:F1}s over five repeat-expanded "
-            + "pictures — it is quadratic in the symbol count again");
+        double small = BestOfThreeTicks(3_000), large = BestOfThreeTicks(30_000);
+        double growth = large / Math.Max(small, 1);
+        Assert.True(growth < 30,
+            $"tenfold more symbols cost {growth:F0}x the work in the §13.18.40.6 Table 10 walk (linear is ~10x, "
+            + "quadratic ~100x) — it is quadratic in the symbol count again");
+    }
+
+    private long BestOfThreeTicks(int n)
+    {
+        string[] pictures = [$"X({n})", $"9({n})", $"Z({n})", $"$({n})", $"9({n * 2 / 3})V9({n * 3 / 10})"];
+        long best = long.MaxValue;
+        for (int run = 0; run < 3; run++)
+        {
+            long start = System.Diagnostics.Stopwatch.GetTimestamp();
+            foreach (string picture in pictures) Diagnose(picture);
+            best = Math.Min(best, System.Diagnostics.Stopwatch.GetTimestamp() - start);
+        }
+        return best;
     }
 }

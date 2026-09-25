@@ -343,7 +343,8 @@ public sealed class CldrLocaleLoaderTests(ITestOutputHelper output)
         var sw = Stopwatch.StartNew();
         var zh = L("zh");
         output.WriteLine($"zh built in {sw.ElapsedMilliseconds} ms: {CollationEngine.ResolveLocale("zh").Cldr}; notes: {string.Join(" | ", CollationEngine.ResolveLocale("zh").Notes)}; unsupported: {string.Join(" | ", CollationEngine.ResolveLocale("zh").Unsupported)}");
-        Assert.True(sw.ElapsedMilliseconds < 20_000, $"zh took {sw.ElapsedMilliseconds} ms");
+        // No wall-clock ceiling (kb/Work PB1590): a loaded CI runner breaches any fixed limit; the build time is
+        // reported above for a human to read, and the orderings below are the property under test.
         Less(zh, "丁", "一");                                   // pinyin: dīng < yī (code point order says the reverse)
         Less(zh, "一", "a");                                    // [reorder Hani Bopo]: Han before Latin
         Less(zh, "1", "一");

@@ -40,7 +40,11 @@ neutrality: no C# text, Roslyn syntax, mangled identifier or format literal in a
 Correctness against the CITED ISO rule — does the code implement the rule it names, or a convenient paraphrase? ·
 sibling/paired functions agree · error handling: loud failure, never a silent no-op or swallowed exception ·
 comment and doc accuracy (a comment that lies is worse than none) · idiomatic modern C# · every implemented rule
-carries its exact §/GR.
+carries its exact §/GR · ⛔ **no fixed time limit in a test**: a test that compares a stopwatch reading
+(`Elapsed`, `TotalSeconds`, `ElapsedMilliseconds`) against a ceiling is a finding — it measures the CI host, not the
+code, and a loaded runner turns it red with no regression (`DeepNestingTests` failed twice that way; kb/Work PB1590).
+Require the property instead: a work count through a test seam, an observed effect instead of a real sleep, completion,
+or a growth RATIO of two readings in the same run. `NoWallClockAssertionDriftTests` enforces it mechanically.
 
 ### 3. Performance
 Hot paths and allocation behavior · data-structure fit · compile throughput · `Span<T>`/`ReadOnlySpan<T>` where a

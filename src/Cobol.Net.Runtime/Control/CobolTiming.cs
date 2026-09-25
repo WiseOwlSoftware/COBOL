@@ -68,6 +68,14 @@ public static class CobolTiming
     private static void SleepTruncated(long secs)
     {
         if (secs <= 0) return;                                      // GR1 - no suspension for a zero interval
-        System.Threading.Thread.Sleep((int)System.Math.Min(secs, MaxSeconds) * 1000);
+        int ms = (int)System.Math.Min(secs, MaxSeconds) * 1000;
+        if (SuspensionObserver.Value is { } observe) { observe(ms); return; }
+        System.Threading.Thread.Sleep(ms);
     }
+
+    /// <summary>Test seam (kb/Work PB1590): when set, a suspension is REPORTED (its length in milliseconds) instead
+    /// of performed, so a test asserts WHETHER and HOW LONG the run unit would suspend without timing a real sleep
+    /// with a stopwatch — a wall-clock ceiling a loaded CI runner can breach. An <see cref="System.Threading.AsyncLocal{T}"/>,
+    /// so only the calling test's own flow observes.</summary>
+    internal static readonly System.Threading.AsyncLocal<System.Action<int>?> SuspensionObserver = new();
 }

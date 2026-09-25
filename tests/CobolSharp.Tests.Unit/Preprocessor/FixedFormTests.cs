@@ -46,7 +46,7 @@ public class FixedFormTests
         string result = ReferenceFormatProcessor.ConvertFixedToFree(sb.ToString());
         sw.Stop();
 
-        Assert.True(sw.ElapsedMilliseconds < 1000, $"Conversion took {sw.ElapsedMilliseconds}ms");
+        // No wall-clock ceiling (kb/Work PB1590) — completion is the property; a loaded runner breaches any fixed limit.
         Assert.Contains("DISPLAY", result);
     }
 
@@ -68,7 +68,8 @@ public class FixedFormTests
         var sw = System.Diagnostics.Stopwatch.StartNew();
         string result = processor.Process(sb.ToString(), ".");
         sw.Stop();
+        Assert.Contains("STOP RUN", result);
 
-        Assert.True(sw.ElapsedMilliseconds < 1000, $"COPY processing took {sw.ElapsedMilliseconds}ms");
+        // No wall-clock ceiling (kb/Work PB1590) — completion is the property; a loaded runner breaches any fixed limit.
     }
 }

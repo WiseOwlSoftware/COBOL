@@ -22,6 +22,7 @@ internal sealed class DataEmitter
     public DataEmitter(EmitContext ctx)
     {
         var phys = new PhysicalModel(ctx);
+        PhysicalModel.Observer.Value?.Invoke(phys);
         _values = new ValueInitializer(ctx);
         var slicer = new GroupValueSlicer(ctx, phys);
         _codec = new GroupImageCodec(ctx, phys, _values);
