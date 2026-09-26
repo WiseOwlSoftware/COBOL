@@ -53,9 +53,11 @@ def check():
     if CLOUD:
         add("N/A", "telemetry sink", "cloud session")
     else:
-        env = load(REPO / ".claude" / "settings.local.json").get("env", {})
+        # Claude Code IGNORES telemetry-enabling variables in project settings files (they may only turn it off),
+        # so the switch lives in the USER settings, ~/.claude/settings.json.
+        env = load(HOME / ".claude" / "settings.json").get("env", {})
         if env.get("CLAUDE_CODE_ENABLE_TELEMETRY") != "1":
-            add("ASK-OWNER", "telemetry", "not enabled in .claude/settings.local.json on this machine — ask to enable "
+            add("ASK-OWNER", "telemetry", "not enabled in ~/.claude/settings.json on this machine — ask to enable "
                 "(CLAUDE_CODE_ENABLE_TELEMETRY=1, OTLP http/json → 127.0.0.1:4318); effective from the next session")
         else:
             sink = REPO / "scripts" / "telemetry" / "otlp_sink.py"

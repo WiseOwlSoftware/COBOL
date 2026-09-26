@@ -7,7 +7,8 @@ hand-kept usage tally. Claude Code exports with
     CLAUDE_CODE_ENABLE_TELEMETRY=1  OTEL_METRICS_EXPORTER=otlp  OTEL_LOGS_EXPORTER=otlp
     OTEL_EXPORTER_OTLP_PROTOCOL=http/json  OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4318
 
-(set per machine in .claude/settings.local.json) and this process appends every POSTed body, one JSON line per export,
+(set per machine in the USER settings ~/.claude/settings.json; Claude Code ignores telemetry-enabling variables in
+project settings files) and this process appends every POSTed body, one JSON line per export,
 to ~/.claude/telemetry/<UTC date>.jsonl. `python scripts/telemetry/usage_report.py` summarizes it.
 
     python scripts/telemetry/otlp_sink.py --ensure   # start detached unless something already listens (SessionStart)

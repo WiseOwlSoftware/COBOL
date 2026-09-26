@@ -13,6 +13,20 @@ and lessons learned — intended as source material for a series of articles.
 > `2026-06-09 13:01 PDT`). The time gives the per-day granularity older entries lack, so same-day entries are always
 > ordered/renumber-able. (Entries 001–511 predate this rule — many are undated and none have a time; left as-is.)
 
+## Entry 1714 — 2026-09-25 17:20 PDT — Telemetry enablement moves to user settings (project settings are ignored)
+
+Claude Code's system diagnostics reported that it IGNORES `CLAUDE_CODE_ENABLE_TELEMETRY`, `OTEL_METRICS_EXPORTER`,
+`OTEL_LOGS_EXPORTER`, `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_EXPORTER_OTLP_ENDPOINT` in `.claude/settings.local.json`:
+a project's settings files may only turn telemetry OFF. The R49 telemetry adoption (commit e105e0833) had placed the
+switch there, so no telemetry was ever exported, while `tooling_check.py` read that same file and reported the sink
+"OK" — a green check that measured the configuration it expected, not the configuration Claude Code honors.
+
+Root-cause fix: the five variables now live in the user settings `~/.claude/settings.json` (per machine, untracked);
+`.claude/settings.local.json` is reverted to permissions only. `scripts/hooks/tooling_check.py` now reads the telemetry
+switch from `~/.claude/settings.json`, so its ASK-OWNER line points at the file Claude Code actually reads.
+`scripts/telemetry/otlp_sink.py` docstring and `kb/Work/R49.md` row 5 updated to name the user settings. Effective from
+the next session (env is read at startup).
+
 ## Entry 1713 — 2026-09-25 16:07 PDT — Golden lane 2 tooling: lane-unique slugs (PB1591), read-only writer/fixer roles
 
 Golden lane 2 (the 117 CONFORMS-test-needed rows + 3 DNS witnesses, 120 rows in 11 files) drafted and validated on a
