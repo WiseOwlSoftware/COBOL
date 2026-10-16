@@ -104,6 +104,12 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   major bump no longer touches the snapshots (four earlier finishers each re-recorded all 14 for one bump, to 3, 4, 5
   and 6; an emitter stamping any other version still diffs, and `TheEmittedRecord_StatesTheVersionsThisRuntimeDeclares` pins the exact text).
   DESIGN-test-build-ci.md gate 3 says so.
+- Landing finisher (merge-queue bounce, `merge_conflict` with PR #139): PB2099's .NET host surface reached main at
+  major 6 with its own re-pin (a `callerPath` nullability relaxation on `CallProgram` and `Cancel`, which kept the
+  major; its boundary-layout re-pin covers the host-entry classes). The two sides touch disjoint lines of
+  `PublicAPI.Shipped.txt`, which merged cleanly; this branch's removed members still raise the combined surface to
+  major 7, the boundary hash is main's (this branch never moves it), and the test recomputed the combined runtime
+  surface hash (E13EE8199764F780).
 
 **Self-review.** Architecture: one key shape, one capture, one lookup, one gate; no C# text in a bound node.
 Code: each cited rule re-read for the operand it names (data-name-1 vs data-name-2, record-key-name-1). Performance:
