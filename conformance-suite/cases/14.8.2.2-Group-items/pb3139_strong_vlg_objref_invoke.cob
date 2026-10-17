@@ -58,7 +58,7 @@
        METHOD-ID. TAKEG.
        DATA DIVISION.
        LOCAL-STORAGE SECTION.
-       01 K PIC X.
+       01 K PIC Z.
        01 D PIC X(3).
        LINKAGE SECTION.
        01 LG TYPE T.
@@ -110,7 +110,7 @@
        01 G TYPE T.
        01 H TYPE T.
        01 O USAGE OBJECT REFERENCE P3139K.
-       01 K PIC X.
+       01 K PIC Z.
        01 D PIC X(3).
        PROCEDURE DIVISION.
            INVOKE P3139K "NEW" RETURNING O

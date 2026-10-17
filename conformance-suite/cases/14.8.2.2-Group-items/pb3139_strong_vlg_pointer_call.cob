@@ -107,7 +107,7 @@
        01 X PIC X(4) VALUE "DATA".
        01 W PIC X(4) VALUE "WWWW".
        01 B PIC X(4) BASED.
-       01 K PIC X.
+       01 K PIC Z.
        01 D PIC X(2).
        PROCEDURE DIVISION.
            MOVE "hello" TO TA OF G
@@ -150,7 +150,7 @@
           05 TN PIC 9(2).
        01 Y PIC X(4) VALUE "YYYY".
        01 C TYPE TG.
-       01 K PIC X.
+       01 K PIC Z.
        01 D PIC X(2).
        LINKAGE SECTION.
        01 LK-G TYPE TG.
