@@ -975,6 +975,30 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   under an exception filter that sets `CobolFatalException.RaisedBySortMerge` (an EC-LOCALE-* from a locale-collated
   key included), and the SORT/MERGE guard re-throws only unmarked conditions — a RELEASE or RETURN statement's raise
   and a procedure statement's keep the general fatal disposition.
+- **The sort-merge store is an EXTERNAL MERGE SORT in BOUNDED MEMORY (kb/Work PB3339; `IO/SortWork.cs`).** ⛔ A store
+  never holds a whole file: its memory is bounded by a limit independent of the input's size (`COBOLNET_SORT_MEMORY`,
+  default 128 MiB, GnuCOBOL's `COB_SORT_MEMORY` default; docs/CONFORMANCE.md §3 D-SWK), and what exceeds it lives in
+  temporary RUN files (`COBOLNET_SORT_TMPDIR`, else the host temporary directory). `Init` takes the statement's key
+  descriptors as well as its two GR5 sequences, so the store can order records while the release phase runs. The
+  release phase fills one in-memory CHUNK, each record charged its resident estimate (its image, frame and extent
+  table, and the decoded key columns the chunk's sort builds); when the next record would pass the limit, a SORT
+  sorts the chunk stably (the one `SortKeyColumns` comparison, a tie broken by release order) and writes it as a run,
+  and a MERGE appends each USING stream's part of the chunk to that stream's run (a USING file is already ordered,
+  §14.9.24.4 GR6). Runs of one level are merged F at a time into one run of the next level (the fan-in F is the limit
+  over four 64 KiB read buffers, between 2 and 16), and only CONSECUTIVE runs are ever merged, so the run list stays in
+  release order. The sequence phase (`Sort` / `Merge`) sorts or merges in memory when nothing was written, so a file
+  that fits pays no disk cost; otherwise the last chunk is written too, runs are merged until at most F remain, and the
+  return phase is a k-way merge of them. ⛔ ONE ORDERING RULE for every merge: the lowest key, and on equal keys the
+  EARLIEST run. Runs are in release order (SORT) or input-file order (MERGE) and each is stable, so the result keeps
+  §14.9.40.4 GR3 a)/b) (DUPLICATES IN ORDER) and §14.9.24.4 GR4 a)/b). RETURN and the GIVING transfer read the merge
+  cursor; `Rewind` restarts it, so each GIVING file still receives the whole result. A run file holds each record's
+  UTF-16 code units exactly and its extent table with the record type's layout (interned per statement), so a run
+  round-trips every image, HIGH-VALUE U+FFFF and a lone surrogate included. The files are opened delete-on-close on
+  Windows and unlinked at creation elsewhere, so none outlives its handle, and `Close` (the statement's `finally`)
+  releases every one: `SortWork` registers each file in ONE owner set before its first record is written and a merge
+  closes its inputs only after its output is complete, so a failure at any point leaves every open file in the set. The incremental sequencing runs under the statement's own mark, so a condition it raises while
+  a RELEASE or RETURN statement executes (an EC-LOCALE-* from a locale-collated key) is still the SORT's or MERGE's
+  (§14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
   its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor
