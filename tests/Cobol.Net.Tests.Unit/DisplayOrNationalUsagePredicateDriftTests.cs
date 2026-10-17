@@ -27,7 +27,7 @@ namespace CobolNet.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class DisplayOrNationalUsagePredicateDriftTests
 {
-    private static string Code(params string[] segments) => StripComments(File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", .. segments)));
+    private static string Code(params string[] segments) => StripComments(File.ReadAllText(TestRepo.Src(["Cobol.Net.Compiler", .. segments])));
 
     private static string StripComments(string s) =>
         Regex.Replace(Regex.Replace(s, @"/\*.*?\*/", " ", RegexOptions.Singleline), @"//[^\n]*", " ");
