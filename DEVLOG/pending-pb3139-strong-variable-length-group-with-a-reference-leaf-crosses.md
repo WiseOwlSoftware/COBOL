@@ -1,4 +1,6 @@
-## PB3139 — a strongly-typed variable-length group with a reference leaf crosses as its area and its leaf vector
+## PB3139 and PB3342 — a strongly-typed variable-length group with a reference leaf crosses as its area and its leaf vector; one C# name per method slot
+
+### PB3139 — the COBOL boundary and the MOVE (the host entry remains, SPLIT)
 
 **Re-probe** (fresh Debug build of main 0b8557338, repros in `E:/COBOL-coord/scratch/w1106c/`): a strong type holding
 `PIC X DYNAMIC LENGTH`, `USAGE POINTER` and `PIC 9(2)` passed to a program-prototype CALL drew COBOLNET1688 on the CALL
@@ -20,19 +22,54 @@ keeps the area's `Shape`) and RETURNING (`StoreReturnArea`) deliver them; a slot
 read-only view instead of an eager image read; the leaf vector carries a dynamic-capacity table as its current
 occurrences, `RecordStructEmitter` emitting an instance `WithLeaves` (replacing the static `OfLeaves`) that recreates the
 receiver's own table (`CobolDynTable.Recreated`) and `PlaceRenderer.CellLeaves` / `CellLeavesStore` doing the same for a
-cell-backed group (`ViewCursor.AtElementCell`); `MoveEmitter` asks the leaf vector before GR9's composer. The shipped
-runtime surface changed, so the runtime major is 8 (`RuntimeAbiPinDriftTests` re-pinned, characterization snapshots).
-Docs: COBOLNET_OO_DESIGN (the leaf vector and the program ABI's area, whose "not yet carried" paragraph was stale since
-PB1940), DOC-A.1-141 in CONFORMANCE.md and DESIGN-external-repository §4.3 (the host restriction's reason).
+cell-backed group (`ViewCursor.AtElementCell`); `MoveEmitter` asks the leaf vector before GR9's composer (keeping main's
+PB3261 sender-first `Ordered` form). Docs: COBOLNET_OO_DESIGN (the leaf vector and the program ABI's area), DOC-A.1-141 in
+CONFORMANCE.md and DESIGN-external-repository §4.3 (the host restriction's reason).
 
-**Goldens:** `tests/conformance/2014/pb3139_strong_vlg_pointer_call` (CALL BY REFERENCE / BY CONTENT / RETURNING, a
-user-defined function's result, MOVE between a cell-backed formal and a record struct; a pointer in a dynamic-capacity
-table's element), `pb3139_strong_vlg_objref_invoke` (INVOKE BY REFERENCE / BY CONTENT / RETURNING; an object reference in
-a table element), negative `pb3139-strong-vlg-pointer-at-2002` (reject-at 85 2002, COBOLNET0900). Expected values derived
-from the rules above in each golden's header.
+**Carried onto main 4016a67cb (w1111b).** w1106c's three commits were cherry-picked; main's PB3177 had moved
+`tests/conformance/` into `conformance-suite/`, so the goldens were re-filed with their metadata blocks:
+`cases/14.8.2.2-Group-items/pb3139_strong_vlg_pointer_call` (CALL BY REFERENCE / BY CONTENT / RETURNING, a user-defined
+function's result, MOVE between a cell-backed formal and a record struct; a pointer in a dynamic-capacity table's
+element) and `pb3139_strong_vlg_objref_invoke` (INVOKE BY REFERENCE / BY CONTENT / RETURNING; an object reference in a
+table element), both `rules: [SR-14.8.2.2-2, GR-14.9.25.4-9]`, accepted at 2014 and 2023 (re-probed: MATCH at both); the
+portability lint's numeric DISPLAYs now go through a `PIC Z` / `PIC X` holder (the capacity counter is binary, and
+§14.9.25.3 SR8 admits only a numeric receiver for it). The negative `cases/13.18.19-DYNAMIC-LENGTH/pb3139-strong-vlg-pointer-at-2002`
+refuses at 85 and 2002 with COBOLNET0900 (`wiseowl/diagnostics.json`). Main had already raised the runtime major to 8
+(PB1099), and this branch changes shipped members (`CopyArea`, `StoreArea`, `ContentRecord`, `StoreReturnArea`, and
+PB3342's `BASE.__FactoryObject`), so the major is 9 and `RuntimeAbiPinDriftTests` re-pins the measured surface hash.
 
-**Rows:** none claimed by the note (closes_rows_reason stays: no inventory row).
+**Rows:** none claimed by the note. **Remaining (SPLIT):** the .NET host entry still withholds a unit with such a formal
+(`PublishedRecordEmitter.Renders`, PB3273's restriction): the published record composes no area holding components beside
+slots. The note's Progress section names the steps and the design constraint found here (a host-built dynamic-capacity
+table must carry its description's element seed).
 
-**Remaining (SPLIT):** the .NET host entry still withholds a unit with such a formal (PB3273's restriction,
-`PublishedRecordEmitter.Renders`): the published record composes no area holding components beside slots. The note's
-Progress section names the steps.
+### PB3342 — one C# name per method slot (COBOLNET4213 retired)
+
+**Re-probe** (this branch's build): a class `M3342` overriding `K3342B`'s method `M3342` drew COBOLNET4213, the
+"implementation restriction" inherited from C#'s CS0542. **Sibling sweep:** a class `N3342` implementing an interface
+prototype `N3342` compiled through the binder and failed in Roslyn (CS0535: the class's own method had been renamed
+alone, kb/Work PB975, while the prototype kept the plain name); a class `FACTORYOBJECT` overriding BASE's FactoryObject
+(§16.2 does not declare it FINAL) drew 4213 against the runtime member `FACTORYOBJECT()`; an interface `Q3342` with a
+prototype `Q3342`, and a factory method spelled like its class, were measured too.
+
+**Rule** (each `cite.py --check` OK): §8.3.2.2 "Within a source element" (one word as two types is barred only there),
+§10.5 "A source element is a source unit excluding any contained source units", §8.4.6.1 "independent of the use of these
+user-defined words by other source elements", §11.7.3 rule 3), §9.3.6 ("it is the class of the actual object referenced at
+runtime that is used in resolving a method invocation to a particular method implementation"). The source is legal.
+
+**Fix (one rule, one place).** `OoClassTable.NameMethodSlots`, at the end of `ResolveOverrides` and before any INVOKE
+binds: every method C# requires to share one member name is one SLOT (an override chain joined with every interface
+prototype a member implements, found by the roster key `ValidateImplements` uses), named once from its first
+non-overriding method's word (a standard method's runtime name), and renamed to `NamingConvention.ClassNamedMethodName`
+when any type declaring a member of it (instance class, factory class, interface) spells that name. `AddMethods`' own-name
+rename is deleted (it was the one-member case). `BASE.FACTORYOBJECT()` is `BASE.__FactoryObject()`, as `New` is `__New`.
+COBOLNET4213 `OverrideNamedLikeItsClass` is deleted with a retirement comment; COBOLNET_OO_DESIGN item 5 describes slots
+(its stale "0820 restriction" sentence replaced).
+
+**Goldens:** `cases/9.3.6-Method-invocation/pb3342_slot_named_like_its_class` (`rules: [GR-9.3.6-1, SR-11.7.3-3]`, MATCH at
+2002, 2014 and 2023) and the negative `pb3342-slot-named-like-its-class-at-85` (COBOLNET0900). **Rows:** none
+(`closes_rows: []`, reason recorded; SR-11.7.3-3 and GR-9.3.6-1 were already CONFORMS).
+
+**Self-review:** architecture — one naming rule for every slot, in the class table that owns the slots; code — the slot
+union reads the same roster key the conformance check pairs by; duplication — the AddMethods special case is gone;
+performance — one pass over the rosters per compilation group. Codes: none of COBOLNET4244-4246 used.
