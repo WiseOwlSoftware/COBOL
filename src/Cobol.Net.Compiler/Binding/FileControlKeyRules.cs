@@ -12,10 +12,12 @@ namespace CobolNet.Binding;
 /// (indexed), a RELATIVE KEY to Format 2 (relative).</summary>
 internal enum FileKeyRole
 {
-    /// <summary>RECORD KEY IS data-name-1 (ISO §12.4.5.12) — Format 1, exactly one per entry.</summary>
+    /// <summary>RECORD KEY IS data-name-1, or record-key-name-1 SOURCE IS data-name-2 … (ISO §12.4.5.12) — Format 1,
+    /// exactly one clause per entry.</summary>
     PrimeRecordKey,
 
-    /// <summary>ALTERNATE RECORD KEY IS data-name-1 (ISO §12.4.5.6) — Format 1, zero or more per entry.</summary>
+    /// <summary>ALTERNATE RECORD KEY IS data-name-1, or record-key-name-1 SOURCE IS data-name-2 … (ISO §12.4.5.6) —
+    /// Format 1, zero or more clauses per entry.</summary>
     AlternateRecordKey,
 
     /// <summary>RELATIVE KEY IS data-name-1 (ISO §12.4.5.13) — Format 2, at most one per entry.</summary>
@@ -93,15 +95,15 @@ internal readonly record struct FileKeyOperand(
     /// <summary>The operand as a message names it: data-name-1, or <c>record-key-name-1 SOURCE … data-name-2</c>.</summary>
     public string Written => Source is null ? $"'{Name}'" : $"'{Source.Name}' SOURCE operand '{Name}'";
 
-    /// <summary>§12.4.5.12.3 SR2 / §12.4.5.6.3 SR2's last sentence — "All occurrences of data-name-2 shall be of the
-    /// same category" — broken by this data-name-2 when its category differs from the FIRST data-name-2's (the one
-    /// record-key-name-1 takes its class and category from, SR5 / SR6). Only an operand both of whose items are of a
-    /// category SR2 admits is compared: SR2's own category row speaks about any other.</summary>
     /// <summary>The first data-name-2 as a message names it — the operand the same-category rows compare against:
     /// its name and what it is, or the bare phrase on an operand that carries no SOURCE phrase.</summary>
     public string FirstSourceFace => Source?.Operands[0] is { Item: { } first } op
         ? $"'{op.Name}' is {ItemCategory.Face(first)}" : "the first data-name-2 is of another category";
 
+    /// <summary>§12.4.5.12.3 SR2 / §12.4.5.6.3 SR2's last sentence — "All occurrences of data-name-2 shall be of the
+    /// same category" — broken by this data-name-2 when its category differs from the FIRST data-name-2's (the one
+    /// record-key-name-1 takes its class and category from, SR5 / SR6). Only an operand both of whose items are of a
+    /// category SR2 admits is compared: SR2's own category row speaks about any other.</summary>
     public bool CategoryDiffersFromFirstSource =>
         Source is not null && SourceIndex > 0 && Item is { } mine && Source.Operands[0].Item is { } first
         && ItemCategory.IsAlphanumericOrNational(mine) && ItemCategory.IsAlphanumericOrNational(first)
@@ -781,9 +783,6 @@ internal static class FileControlKeyRules
     private static readonly FileKeyRole[] Roles =
         [FileKeyRole.PrimeRecordKey, FileKeyRole.AlternateRecordKey, FileKeyRole.RelativeKey, FileKeyRole.Entry];
 
-    /// <summary>The operands a role contributes to the entry. The prime and relative roles always contribute
-    /// EXACTLY ONE — with a null name when the clause is absent, which is what lets an absence rule and an
-    /// operand rule be the same kind of row.</summary>
     /// <summary>One operand per data-name-2 of a SOURCE phrase (kb/Work PB1099 Q1), in the order specified; the
     /// SUPPRESS WHEN operand rides the first only, so SR7 is asked once per clause.</summary>
     private static IEnumerable<FileKeyOperand> SourceOperands(FileKeyRole role, string face, RecordKeySource source,
@@ -797,6 +796,11 @@ internal static class FileControlKeyRules
         }
     }
 
+    /// <summary>The operands a role contributes to the entry. A RECORD KEY or ALTERNATE RECORD KEY clause written
+    /// with a SOURCE phrase contributes one operand per data-name-2 (<see cref="SourceOperands"/>), so a rule about
+    /// the CLAUSE rather than the operand tests <see cref="FileKeyOperand.IsClauseHead"/> or it reports once per
+    /// data-name-2. Otherwise the prime and relative roles contribute EXACTLY ONE operand, with a null name when the
+    /// clause is absent, which is what lets an absence rule and an operand rule be the same kind of row.</summary>
     private static IEnumerable<FileKeyOperand> Operands(FileModel file, FileKeyRole role)
     {
         switch (role)

@@ -128,6 +128,15 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   directly, and its `directory` row is red under the first filter. The merge of origin/main 0b8557338 met main's PB3167
   at runtime major 7 beside this branch's 7, so the merged surface goes to major 8 (surface hash `F40DEAD1CAB1B902`,
   measured by the pin test). Main's PB3173 editions paragraphs are kept on the four rows whose notes this branch rewrote.
+- Review finisher (w1106a round 2, branch review R1-1): the first branch review's R1-4 was never answered, because its
+  round-1 finisher fixed R1-1 to R1-3 only. Two summaries in `FileControlKeyRules.cs` were displaced when new
+  members were inserted above them. `Operands`' summary sat stacked on `SourceOperands`, and it still said the prime
+  role contributes EXACTLY ONE operand, which the SOURCE form made false. The SR2 same-category summary sat on
+  `FirstSourceFace`, so `CategoryDiffersFromFirstSource` had none. Each summary is back on its member. `Operands` now
+  states the per-data-name-2 contract and that a clause-level row tests `IsClauseHead`. The `PrimeRecordKey` and
+  `AlternateRecordKey` role summaries name the SOURCE form. A scan for doc-comment runs with two `<summary>` blocks
+  found these two as the only ones the branch added. About 56 older ones across `src` and `tests` are left for a
+  tree-wide pass with its own drift test.
 
 **Self-review.** Architecture: one key shape, one capture, one lookup, one gate; no C# text in a bound node.
 Code: each cited rule re-read for the operand it names (data-name-1 vs data-name-2, record-key-name-1). Performance:
