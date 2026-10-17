@@ -136,3 +136,7 @@ the Mythos session); Windows and Linux gates GREEN.
   was merged field by field with both sides re-spelled through the maps: only the six fields PB370 changed (on
   GR-14.9.25.4-1 and GR-14.9.49.4-11) differ from the branch. `CONFORMANCE.md` took main's one changed line, swept.
   The tools are deleted again; `generate.py --check`: 5,242 tests, none refused.
+- *Re-gate.* Run 20261017T185121Z-69abfb: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`
+  (Conformance 13,879/17,294 with the four PB370 suite rows passed, Unit 33,480/33,929, Characterization 5/36). The
+  planner left three of `NulByteDriftTests`' four facts to leg 2; all four passed when run alone on the same build.
+  LINUX GATE: the lander's (batched gating).
