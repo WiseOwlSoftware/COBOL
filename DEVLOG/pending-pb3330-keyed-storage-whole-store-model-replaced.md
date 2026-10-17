@@ -43,4 +43,18 @@ discarded another's completed statements). The corrected §2.2.1 derives the com
 §9.1.17 and Annex D.2.5 and a source survey (GnuCOBOL unlocks only; Micro Focus Fileshare rolls back one program's
 transaction), and the notes were swept to it.
 
+The review's round 2 found seven more, three of them contradictions the round-1 fixes had introduced, and the owner chose a
+finisher again ("Fable today"). The corrected promotion had never rewritten the work slot, so every OPEN after a CLOSE
+rejected it and reclaimed the committed tree's own leaves; a rejected history's generations could be stamped again, so a
+lost write could pass the stamp check; an INPUT reader of a crashed file walked the tree its OPEN had rejected; a record a
+transaction changed without reading it stayed unlocked, so ROLLBACK still overwrote another run unit's change (the harm
+round 1 had half fixed); a rollback could re-insert a unique alternate key value another run unit had taken; the group
+split regressed a READ ONLY relative writer between two landings; and the deletion list deleted a predicate four sequential
+callers need. §2.2.1 now has the retirement statement after every promotion, a generation ceiling and a fence at every
+writable OPEN (no (page, generation) pair is ever written twice), coherence that follows page 2 from the adopted meta,
+transaction locks on every changed record and every freed unique key value (derived from §9.1.16, §12.4.5.9.4 GR4,
+§14.9.51.4 GR11, §14.9.10.4 GR7 and D.2.5, with the commit posture exempt from the lock ceilings), the coherence condition
+in the first per-statement-writing group, and §2.2.1.15, a table of every structure's writers and readers for the next
+reviewer.
+
 Notes and docs only. No code change.
