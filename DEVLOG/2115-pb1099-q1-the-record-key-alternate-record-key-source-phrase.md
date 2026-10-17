@@ -138,6 +138,15 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   found these two as the only ones the branch added. About 56 older ones across `src` and `tests` are left for a
   tree-wide pass with its own drift test.
 
+**The suite move (finisher, w1106a).** PB3177 slice S2 landed first and deleted `tests/conformance/`, so the
+merge re-homed this branch's corpus by the recipe in kb/Work PB3177 "Landed". The S2 converter was restored from
+c9a1ffdb2 and moved the three programs to `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source`,
+`conformance:cases/14.9.41-START/pb1099_record_key_source_national` and
+`conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`. The negative's refusal (85,
+COBOLNET0900) went to `wiseowl/diagnostics.json`. The five retired pb358 refusals were deleted at their suite paths.
+The inventory was merged field by field through the S2 map with no field conflicts, and the witness-loss audit is
+GREEN: 0 unexcused, 30 retired. The converter, sweep and map were then deleted again.
+
 **Self-review.** Architecture: one key shape, one capture, one lookup, one gate; no C# text in a bound node.
 Code: each cited rule re-read for the operand it names (data-name-1 vs data-name-2, record-key-name-1). Performance:
 the one-window key keeps its single-slice path; only a multi-window key allocates its concatenation. Duplication:
