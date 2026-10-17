@@ -104,3 +104,20 @@ it fails and names the six untraced rules; on the fix it passes. The same stale 
 swept out of four comments (CobolSort.AssociationMade, FileConnector.AssociationFailure, SequentialIoEmitter,
 OoEmitter). The round-4 gate 20261017T224009Z-ffb38d: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN` (Conformance 11,585 · Unit 33,591 · Characterization 5 cases ran in leg 1, the new witness among them).
+
+**Landing finisher (one Linux red, fixed).** enqueue.py's Linux gate on 8ec9dc01c ran the whole conformance
+population and failed one case, `RunUnitTerminationTests.MainModuleRefusedAtRegistration_RaisesAbnormalTerminationSurface`,
+in its own setup: it patches the module's recorded runtime version in the compiled assembly's user-string heap and
+built the skewed text as `Major + 1`, so this branch's runtime move from major 8 to 9 made it "10.0.0.0" (16 UTF-16
+bytes) over "9.0.0.0" (14); a heap entry cannot change its length. The Windows leg 1 never ran the case (batched
+gating). The root was that each skew witness spelled its own other-major. `RuntimeAbi.Skew` refuses a different
+major in either direction, so `tests/_shared/RuntimeVersionSkew.cs` is now the one place a test makes one:
+`OtherMajorOf` takes the next major, or the previous one when the next would gain a digit (9 -> 8, 99 -> 98), and
+keeps every other component, so the text keeps its length for every major. The byte-patch witness,
+`ModuleRegistrationHostTests` and `ModuleRegistrationTests` use it. The sweep found one more gap:
+`TheVersionSkewRule_IsTheMajorAndTheCallAbi` witnessed only the newer-major arm, and only as `NotNull`, which an
+unparsable text also satisfies. It now asserts "different major" for `Major + 1`, `Major - 1` and the helper's
+value, and a theory pins `OtherMajorOf` over majors 0, 8, 9, 10, 99 and 100. No other test or tool patches a
+recorded version or assumes its length. The finisher gate 20261017T232004Z-91b8e5: `=== BUILD-LOCAL GATE: LEG 1
+ONLY (batched gating, PB2515): GREEN` (Conformance 11,419 · Unit 33,596 · Characterization 5 cases ran in leg 1,
+the new theory among them).
