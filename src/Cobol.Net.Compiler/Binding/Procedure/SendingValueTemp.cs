@@ -39,10 +39,13 @@ namespace CobolNet.Binding.Procedure;
 ///     the temp is a RUN-TIME-LENGTH item — see below.</item>
 ///   <item><b>A function-identifier</b> — §15.4: "The evaluation of a function produces a returned value in a
 ///     temporary elementary data item", and §15.4.1: "When native arithmetic is in effect, the characteristics
-///     and representation of the returned value are defined by the implementor". A NUMERIC result lands in the
-///     same §15.4 temporary description this compiler already provides for a function-bearing subscript
-///     (<see cref="FunctionValuePic"/>); an alphanumeric / national / boolean result has a run-time length and
-///     lands in a run-time-length item.</item>
+///     and representation of the returned value are defined by the implementor". A NUMERIC result lands in an
+///     item DESCRIBED FOR ITS VALUE AND ITS RECEIVERS (<see cref="IntermediatePic"/>, kb/Work PB3268) — a binary64
+///     for the float family, the widest receiver's fixed-point description otherwise — and never in the fixed
+///     S9(21)V9(9) of <see cref="FunctionValuePic"/>, which describes the returned-value item <c>FUNCTION
+///     LENGTH</c> measures: that cut a receiver's fraction digits past 9 off a value `MOVE FUNCTION PI TO Q1`
+///     keeps. An alphanumeric / national / boolean result has a
+///     run-time length and lands in a run-time-length item.</item>
 /// </list>
 ///
 /// <para><b>The run-time-length carrier</b> is a dynamic-length elementary item (§8.5.1.10), because
@@ -75,18 +78,29 @@ namespace CobolNet.Binding.Procedure;
 /// </summary>
 internal sealed class SendingValueTemp(BinderContext ctx)
 {
-    /// <summary>The §15.4 temporary's description for a NUMERIC function-identifier value — THE SAME shape
-    /// <c>StatementBinder.BindPositionTemporary</c> gives the §15.4 temporary of a function-bearing
-    /// subscript, written once here so the two cannot drift. §15.4.1: "When native arithmetic is in effect, the
+    /// <summary>The §15.4 temporary's description for a NUMERIC function-identifier value (a function-bearing
+    /// subscript's temporary is a different item — <c>StatementBinder.SegmentTempPic</c>, the saturated integer
+    /// POSITION, kb/Work PB1890). §15.4.1: "When native arithmetic is in effect, the
     /// characteristics and representation of the returned value are defined by the implementor."
     /// <para>21 integer digits × 9 fraction digits — 30 total, so the item takes the <c>Int128</c> wide tier
-    /// (<c>PicInfo.IsWide</c>, &gt;18 digits); the fraction is carried because a scale-0 temp would TRUNCATE,
-    /// turning a legal non-integer result into a different value. 9 is also the working scale an intrinsic renders
-    /// at when no receiver widens it (<c>ReceiverContext</c>), so for every receiver of scale ≤ 9 and at most 21
-    /// integer digits the materialized value is bit-identical to the un-hoisted render; a MOVE whose receivers take
-    /// more digits than that freezes the value in a WIDER temporary (<see cref="ReturnedValuePicFor"/>).</para></summary>
+    /// (<c>PicInfo.IsWide</c>, &gt;18 digits) and no function value a program can consume overflows it; the
+    /// fraction is carried because a scale-0 temp would TRUNCATE, turning a legal non-integer result into a
+    /// different value. 9 is also the working scale an intrinsic renders at when no receiver widens it
+    /// (<c>ReceiverContext</c>).</para>
+    /// <para>⛔ IT IS THE RETURNED-VALUE ITEM'S DESCRIPTION (DOC-A.1-92: what <c>FUNCTION LENGTH</c> measures, what
+    /// IN-ARITHMETIC-RANGE tests) AND NOT THE INTERMEDIATE THAT
+    /// CARRIES A VALUE TO ITS RECEIVERS: that item is described for the value and its receivers
+    /// (<see cref="IntermediatePic"/>, kb/Work PB3268), because a receiver of more than 9 fraction digits is owed
+    /// the digits a single-receiver MOVE stores.</para></summary>
     internal static readonly PicInfo FunctionValuePic =
-        new(PicCategory.Numeric, Usage.Display, Length: 30, Digits: 30, Scale: 9, Signed: true);
+        new(PicCategory.Numeric, Usage.Display, Length: ReturnedIntegerDigits + ReturnedFractionDigits,
+            Digits: ReturnedIntegerDigits + ReturnedFractionDigits, Scale: ReturnedFractionDigits, Signed: true);
+
+    /// <summary>The integer digits of <see cref="FunctionValuePic"/>.</summary>
+    private const int ReturnedIntegerDigits = 21;
+
+    /// <summary>The fraction digits of <see cref="FunctionValuePic"/>.</summary>
+    private const int ReturnedFractionDigits = 9;
 
     /// <summary>The §15.4 temporary's description for an INTEGER function's returned value (§15.2 item 5 — "no
     /// digits to the right of the decimal point"): the same 30-digit wide tier as <see cref="FunctionValuePic"/>,
@@ -99,48 +113,228 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// temporary elementary data item"; §8.4.3.2.1 — the function-identifier "references the unique data item that
     /// results from the evaluation of a function"): <see cref="IntegerFunctionValuePic"/> for an INTEGER function
     /// (§15.2 item 5, resolved per call by the ONE <see cref="IntrinsicResultType"/> reader), otherwise
-    /// <see cref="FunctionValuePic"/>. The statement hoist that stores the value (<see cref="OfComputed"/>) and the
-    /// LENGTH / BYTE-LENGTH folds that measure it (<c>IntrinsicBinder.FunctionResultLength</c>, kb/Work PB1398) both
-    /// read it here, so the item a function's value is STORED in and the item its length is ASKED OF cannot be two
-    /// different items.</summary>
+    /// <see cref="FunctionValuePic"/>. The LENGTH / BYTE-LENGTH folds that measure the item
+    /// (<c>IntrinsicBinder.FunctionResultLength</c>, kb/Work PB1398) and the IN-ARITHMETIC-RANGE extremes
+    /// (<c>AlgebraicRange.OfFunctionReturnedValue</c>) read it here, so the item the value is ASKED ABOUT cannot be
+    /// two different items. The intermediate a statement STORES the value in to hand it to several uses is
+    /// <see cref="IntermediatePic"/>'s.</summary>
     internal static PicInfo NumericReturnedValuePic(BoundOperand c) =>
         IntrinsicResultType.IsIntegerOperand(c) ? IntegerFunctionValuePic : FunctionValuePic;
 
-    /// <summary>⛔ THE TEMPORARY A MOVE FREEZES A NUMERIC FUNCTION'S VALUE INTO KEEPS EVERY DIGIT ITS RECEIVERS TAKE
-    /// (kb/Work PB370). §14.9.25.4 GR1's equivalence — <c>MOVE a TO temp</c> / <c>MOVE temp TO b</c> — is exact
-    /// only if <c>MOVE temp TO b</c> stores what <c>MOVE a TO b</c> stores, and the un-frozen MOVE renders the
-    /// function at the RECEIVER's scale when that is wider than the working scale 9 (<c>ReceiverContext</c>). A
-    /// scale-9 temporary therefore truncated <c>MOVE FUNCTION PI TO S (I)</c> into a <c>PIC 9V9(12)</c> receiver to
-    /// 3.141592653000 where the un-frozen statement stores 3.141592653589 — and the same for every receiver of a
-    /// multi-receiver MOVE; and a 21-integer-digit temporary dropped the high-order digits a receiver with more
-    /// integer positions holds. <paramref name="reach"/> decides (<see cref="ReceivingReach"/>'s summary has the
-    /// rule): a floating-point set takes its floating-point description (<see cref="ReceivingReach.Floating"/>); an
-    /// all-fixed-point set takes exactly its receivers' widest integer digits and scale
-    /// (<see cref="ReceivingReach.FixedPointOnly"/>), since each receiver truncates a sub-range of them, unless those
-    /// digits pass the 38-digit carrier, where a non-integer value takes <see cref="ReceivingReach.BeyondCarrier"/>;
-    /// any other set takes the larger of <see cref="NumericReturnedValuePic"/>'s and <paramref name="reach"/>'s. An
-    /// INTEGER function keeps scale 0 (§15.2 item 5), and the scale is capped so the whole value still fits the
-    /// 38-digit <c>Int128</c> carrier — the cap <c>ReceiverContext.WorkingScale</c> applies to the un-frozen landing,
-    /// for the same reason. <see cref="NumericReturnedValuePic"/> stays the description of the returned value itself, which
-    /// the LENGTH fold measures.</summary>
-    private static PicInfo ReturnedValuePicFor(BoundOperand c, ReceivingReach reach)
+    /// <summary>How a materialized value is going to be read — the one fact, besides the function itself, that
+    /// decides the description of a NUMERIC function's intermediate (<see cref="IntermediatePic"/>). The default is a
+    /// VALUE operand (an EVALUATE subject, a frozen function argument).</summary>
+    /// <param name="Receivers">The items the value is about to be moved to (the MOVE's receiving operands), or null.</param>
+    /// <param name="AsText">True when the value will be read as TEXT in a character formal (an INVOKE argument), the one
+    /// consumer whose characters come from the intermediate's own scale (DOC-A.1-92).</param>
+    internal readonly record struct ValueUse(IReadOnlyList<Place>? Receivers = null, bool AsText = false)
     {
-        // ⛔ A FLOATING-POINT SET TAKES A FLOATING-POINT INTERMEDIATE (kb/Work PB370): no scaled integer carries a
-        // binary64 receiver's value, so a FLOAT-LONG F (I) stored 3.141592653 for FUNCTION PI where the un-frozen
-        // MOVE stores 3.141592653589793 — and no binary64 carries a 21-digit floating-point edited receiver's.
-        if (reach.Floating is { } floating) return floating;
-        var pic = NumericReturnedValuePic(c);
-        if (pic.Scale != 0 && reach.BeyondCarrier is { } beyondCarrier) return beyondCarrier;
-        int ownIntegerDigits = reach.FixedPointOnly ? 0 : pic.Digits - pic.Scale;
-        int ownScale = reach.FixedPointOnly ? 0 : pic.Scale;
-        int integerDigits = Math.Min(ReceivingReach.CarrierDigits, Math.Max(ownIntegerDigits, reach.IntegerDigits));
-        int scale = pic.Scale == 0 ? 0
-            : Math.Min(Math.Max(ownScale, reach.Scale), ReceivingReach.CarrierDigits - integerDigits);
-        // An INTEGER function moved only to all-fraction receivers (PIC V99) keeps one integer digit: a numeric item
-        // has at least one digit position, and those receivers store zero whatever the integer digits hold.
-        if (integerDigits + scale == 0) integerDigits = 1;
-        int digits = integerDigits + scale;
-        return digits == pic.Digits && scale == pic.Scale ? pic : pic with { Length = digits, Digits = digits, Scale = scale };
+        /// <summary>The value is moved to <paramref name="receivers"/> (§14.9.25.4 GR1).</summary>
+        public static ValueUse MovedTo(IReadOnlyList<Place> receivers) => new(receivers);
+
+        /// <summary>The value is passed to a character formal and read as its literal-form text.</summary>
+        public static readonly ValueUse Text = new(null, AsText: true);
+    }
+
+    /// <summary>The intermediate result item of a NUMERIC function whose value is a binary64: a COMP-2 item, the SAME
+    /// carrier the float family's returned value has wherever no fixed-point scale governs the render
+    /// (<c>ReceiverContext.FloatLanding</c>), so a store into it and a store from it lose nothing the function's own
+    /// value did not. USAGE FLOAT-LONG is "held in a floating-point format suitable for the machine" (§13.18.60.4 GR13);
+    /// this compiler's format is the IEEE binary64 that GR15's FLOAT-BINARY-64 names.</summary>
+    internal static readonly PicInfo Binary64ReturnedValuePic = PicInfo.FloatItem(Usage.FloatLong);
+
+    /// <summary>⛔ THE ONE DESCRIPTION OF THE INTERMEDIATE RESULT ITEM THAT HOLDS A NUMERIC FUNCTION'S VALUE FOR ITS
+    /// USES (kb/Work PB3268). It is a different item from the §15.4 returned-value item whose SIZE
+    /// <c>FUNCTION LENGTH</c> asks (<see cref="NumericReturnedValuePic"/>, DOC-A.1-92's S9(21)V9(9)): §14.9.25.4 GR1's
+    /// equivalence — "MOVE a TO temp / MOVE temp TO b / MOVE temp TO c" — makes the intermediate an item "provided by
+    /// the implementor" whose job is to hand EVERY receiver the value `MOVE a TO that receiver` would, and §15.4.1's
+    /// "the returned value is the same for all instances of a given function" forbids a function's value depending
+    /// on how many receivers its MOVE names. The scale-9 description did exactly that: `MOVE FUNCTION PI TO Q1 Q2`
+    /// (PIC 9V9(15)) stored 3.141592653000000 where `MOVE FUNCTION PI TO Q3` stores 3.141592653589793.
+    /// <para>The carrier follows the value, in the order the renderer chooses it:</para>
+    /// <list type="number">
+    ///   <item>an INTEGER function (§15.2 item 5) read as TEXT — <see cref="IntegerFunctionValuePic"/> (its image is
+    ///     DOC-A.1-92's);</item>
+    ///   <item>a function the renderer returns as a BINARY64 (<see cref="FunctionValueLane.ReturnsBinary64"/>, asked of
+    ///     the call and its ARGUMENTS' carriers — a floating-point literal argument takes a function with an SDIDI body
+    ///     off the float lane, a binary64 argument puts any numeric-argument function onto it) —
+    ///     <see cref="Binary64ReturnedValuePic"/>, so the store into the intermediate quantizes NOTHING and each
+    ///     receiver's own transfer (the ONE float landing) quantizes once, at ITS scale;</item>
+    ///   <item>any function whose every receiver is a floating-point item of ONE binary format
+    ///     (<see cref="SharedFloatFormatPic"/>) — an item of that format, so the store into it is the one conversion each
+    ///     receiver's single-receiver MOVE makes; a binary32 set never takes a binary64, which would round an exact value
+    ///     twice (review R2-1). ⛔ AN INTEGER FUNCTION IS ASKED BOTH OF THESE, BEFORE ITS SCALE-0 ITEM (kb/Work PB3268,
+    ///     review R1-1): §15.2 item 5 fixes the value's type, never its magnitude, so INTEGER of a COMP-2 holding 1.5E50
+    ///     (<c>FloorReal</c>, a binary64) or INTEGER(1.5E40) into COMP-2 receivers is a 41- or 51-digit integer no
+    ///     38-digit fixed item holds, and the integer item stored 9.99906754673275E+37 (or 0) where `MOVE … TO C3`
+    ///     stores the value whole;</item>
+    ///   <item>any function whose every receiver is floating-point and at least one a floating-point numeric-edited item
+    ///     (<see cref="FloatEditedSet"/>) — the 36-digit decimal <see cref="WidestFloatEditedPic"/> (kb/Work PB370);</item>
+    ///   <item>any other INTEGER function — <see cref="IntegerIntermediatePic"/>, the carrier's whole width at scale 0;</item>
+    ///   <item>otherwise a fixed-point item described by the receivers (<see cref="ShapedPic"/>, the 36-digit decimal
+    ///     item when every receiver is fixed-point and their digits pass the carrier), or, when no
+    ///     receiver is known (an EVALUATE subject, an argument frozen for §8.4.3.2.4 GR2's order),
+    ///     <see cref="ValueOperandPic"/>.</item>
+    /// </list></summary>
+    private PicInfo IntermediatePic(BoundOperand c, ValueUse use)
+    {
+        bool integer = IntrinsicResultType.IsIntegerOperand(c);
+        if (integer && use.AsText) return IntegerFunctionValuePic;
+        var receivers = use.Receivers;
+        if (c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic))
+            return Binary64ReturnedValuePic;
+        if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
+        if (FloatEditedSet(receivers)) return WidestFloatEditedPic();
+        if (integer) return IntegerIntermediatePic;
+        return receivers is { Count: > 0 } ? ShapedPic(receivers) : use.AsText ? FunctionValuePic : ValueOperandPic;
+    }
+
+    /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
+    /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
+    private const string WidestFloatEditedPicture = "+9.9(35)E+9999";
+
+    /// <summary>⛔ THE DECIMAL INTERMEDIATE OF A VALUE THAT IS NOT A BINARY64, FOR RECEIVERS NO FIXED-POINT WINDOW
+    /// SERVES (kb/Work PB370, merged into PB3268's one description): the widest floating-point numeric-edited item,
+    /// <see cref="WidestFloatEditedPicture"/>, analyzed through the one PICTURE analyzer. It holds any decimal value of
+    /// at most 36 significant digits wherever its point falls, and a receiver that takes it TRUNCATES it — an edited
+    /// receiver to its own significand (§14.6.8.4 2), a fixed-point one to its own digit positions (§14.6.8.2 4) — and
+    /// truncating to 36 digits first changes nothing. Two sets take it: every receiver floating-point with at least one
+    /// floating-point numeric-edited item (<see cref="FloatEditedSet"/>: a binary64 intermediate cut
+    /// <c>MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO D (I)</c> into <c>PIC +9.9(20)E+99</c> to 17 digits),
+    /// and every receiver fixed-point with more digit positions between them than the 38-digit carrier holds
+    /// (<see cref="ShapedPic"/>: a <c>PIC 9(31)</c> beside a <c>PIC V9(28)</c>, where capping the scale cut the
+    /// fraction receiver).</summary>
+    private PicInfo WidestFloatEditedPic() =>
+        PictureAnalyzer.Analyze(WidestFloatEditedPicture, Usage.Display, ctx.Edition,
+            "the intermediate a MOVE freezes a function's value into");
+
+    /// <summary>A floating-point item (<see cref="PicInfo.IsFloat"/>) or a floating-point numeric-edited item
+    /// (<see cref="PicInfo.IsFloatEdited"/>, design D21): a receiver with no fixed fraction scale.</summary>
+    private static bool IsFloatingPoint(PicInfo? pic) => pic is { IsFloat: true } or { IsFloatEdited: true };
+
+    /// <summary>True when every one of <paramref name="receivers"/> is floating-point (<see cref="IsFloatingPoint"/>) and
+    /// at least one is a floating-point numeric-edited item: the set <see cref="WidestFloatEditedPic"/> serves.</summary>
+    private static bool FloatEditedSet(IReadOnlyList<Place>? receivers) =>
+        receivers is { Count: > 0 }
+        && receivers.All(r => r.DenotedItem is not null && IsFloatingPoint(r.Item.OperandPic))
+        && receivers.Any(r => r.Item.OperandPic is { IsFloatEdited: true });
+
+    /// <summary>The intermediate result item of a NUMERIC function whose value lands only in BINARY32 receivers (COMP-1,
+    /// FLOAT-SHORT, FLOAT-BINARY-32 — <see cref="PicInfo.IsSingle"/>): a binary32 item, so the store into it is the ONE
+    /// correctly rounded conversion `MOVE … TO that receiver` makes and each receiver's store from it is an identity.</summary>
+    private static readonly PicInfo Binary32IntermediatePic = PicInfo.FloatItem(Usage.FloatShort);
+
+    /// <summary>The floating-point intermediate for a value whose EVERY receiver is a floating-point item of ONE binary
+    /// format: <see cref="Binary32IntermediatePic"/> when all are binary32, <see cref="Binary64ReturnedValuePic"/> when all
+    /// are binary64; otherwise null. ⛔ THE FORMAT IS THE RECEIVERS' OWN, NEVER "ANY FLOAT" (kb/Work PB3268, review R2-1):
+    /// an exact value held on a binary64 and then narrowed to a binary32 receiver is rounded TWICE — a value a hair off a
+    /// binary32 midpoint lands ON it in binary64 and the narrowing ties to even, the double rounding ISO §14.6.8.3 rule 2
+    /// ("in a manner consistent with the specifications of ISO/IEC 60559:2020") and kb/Work PB1110 forbid. A binary32
+    /// receiver BESIDE a binary64 one has no one float format that converts once for both, so that set takes the exact
+    /// fixed-point carrier (<see cref="IntegerIntermediatePic"/>, or <see cref="ValueOperandPic"/> through
+    /// <see cref="ShapedPic"/>) and its documented range.</summary>
+    private static PicInfo? SharedFloatFormatPic(IReadOnlyList<Place>? receivers)
+    {
+        if (receivers is not { Count: > 0 }) return null;
+        bool? single = null;
+        foreach (var receiver in receivers)
+        {
+            if (receiver.DenotedItem is null || receiver.Item.OperandPic is not { IsFloat: true } pic) return null;
+            if (single is { } s && s != pic.IsSingle) return null;
+            single = pic.IsSingle;
+        }
+        return single is true ? Binary32IntermediatePic : Binary64ReturnedValuePic;
+    }
+
+    /// <summary>The intermediate of an INTEGER function's value (§15.2 item 5 — "no digits to the right of the decimal
+    /// point") for every use but text: the whole <c>Int128</c> carrier at scale 0. The returned-value item's 30 digits
+    /// (<see cref="IntegerFunctionValuePic"/>) are what <c>FUNCTION LENGTH</c> measures, not a bound on the value: INTEGER
+    /// of a PIC S9(31) item, or SUM over PIC 9(31) elements, is a 31-digit integer that `MOVE … TO R3` stores whole into a
+    /// PIC S9(31) receiver, so the intermediate of `MOVE … TO R1 R2` dropped its leading digit (kb/Work PB3268: §14.9.25.4
+    /// GR1's temp is "an intermediate result item provided by the implementor", and it must hand each receiver the value
+    /// the single-receiver MOVE does).</summary>
+    private static readonly PicInfo IntegerIntermediatePic =
+        new(PicCategory.Numeric, Usage.Display, Length: PicInfo.ScaledCarrierDigits, Digits: PicInfo.ScaledCarrierDigits,
+            Scale: 0, Signed: true);
+
+    /// <summary>The fixed-point intermediate of a NUMERIC, non-binary64 function value that is read as a VALUE
+    /// operand — an EVALUATE subject compared with its WHEN objects, an argument frozen for §8.4.3.2.4 GR2's order —
+    /// where no receiver bounds the digits a comparison or the consuming function will ask of it: the widest scaled
+    /// item the carrier holds with <see cref="FunctionValuePic"/>'s 21 integer digits, so `EVALUATE FUNCTION
+    /// NUMVAL("1.23456789012") WHEN 1 WHEN 1.23456789012` compares the exact value the un-hoisted
+    /// `IF FUNCTION NUMVAL("1.23456789012") = 1.23456789012` does.</summary>
+    private static readonly PicInfo ValueOperandPic =
+        new(PicCategory.Numeric, Usage.Display, Length: PicInfo.ScaledCarrierDigits, Digits: PicInfo.ScaledCarrierDigits,
+            Scale: PicInfo.ScaledCarrierDigits - ReturnedIntegerDigits, Signed: true);
+
+    /// <summary>The integer digits a floating-point receiver asks of a fixed-point intermediate (an implementor choice
+    /// under §15.4.1; <see cref="ShapedPic"/>): 12, leaving 26 fraction digits.</summary>
+    private const int FloatWindowIntegerDigits = 12;
+
+    /// <summary>The fixed-point intermediate for a value that lands in <paramref name="receivers"/>: the WIDEST
+    /// receiver's description (§14.9.25.4 GR1's `MOVE a TO temp` with temp described as the largest receiver, so
+    /// every other receiver's store is a MOVE of a value the widest one already truncated the same way). A
+    /// numeric or numeric-edited receiver contributes its fraction scale (<c>PicInfo.ReceiverScale</c>, the ONE
+    /// rule) and integer digit positions; a receiver with no numeric scale (a character or boolean one, reachable only
+    /// under --permissive for a NUMERIC function, Table 16) contributes the <see cref="FunctionValuePic"/> description
+    /// its text image has always been written from. The fraction is capped so the item stays on the <c>Int128</c>
+    /// carrier (<see cref="PicInfo.ScaledCarrierDigits"/>); integer digits keep priority, because an under-counted
+    /// integer part is a wrong value and an under-counted fraction a truncated one (the order
+    /// <c>ReceiverContext.WorkingScale</c> keeps). ⛔ When EVERY receiver is fixed-point and their digits together pass
+    /// that carrier, no fixed-point window is exact for all of them, and the set takes the 36-digit decimal
+    /// <see cref="WidestFloatEditedPic"/> instead (kb/Work PB370). A floating-point numeric-edited receiver counts as a
+    /// floating-point one here (<see cref="IsFloatingPoint"/>).
+    /// <para>⚠ A FLOATING-POINT RECEIVER BESIDE A FIXED-POINT ONE IS THE CARRIER'S LIMIT (kb/Work PB3268, review R1-2). A
+    /// binary64 receiver holds ~17 significant digits at ANY magnitude (1E-20 and 1E+30 alike), which no fixed-point
+    /// split of 38 digits holds. It is reached here only for a value that is NOT a binary64 (a binary64 value takes
+    /// <see cref="Binary64ReturnedValuePic"/>, and every receiver lands from it at its own scale), i.e. an exact or SDIDI
+    /// value; the float receiver takes what the fixed-point receivers leave of the 38 digits, with
+    /// <see cref="FloatWindowIntegerDigits"/> integer digits at least (so a value from 1E-9 to 1E+12 keeps the 17
+    /// significant digits a binary64 holds), and a fixed-point receiver never loses a fraction digit to a float one. An
+    /// exact value outside that window reaches the float receiver cut. An SDIDI-carried intermediate item is the
+    /// redesign that removes the limit (the same one the values past the <c>Int128</c> carrier need).</para></summary>
+    private PicInfo ShapedPic(IReadOnlyList<Place> receivers)
+    {
+        bool sized = false, anyFloat = false, anyFixed = false, anyText = false;
+        var fixedPoint = new List<PicInfo>();
+        foreach (var receiver in receivers)
+        {
+            // A reference-modified receiver is the elementary ALPHANUMERIC unique data item of §8.4.3.3.4 GR6, never
+            // the numeric item under it; an index or object receiver has no description to size by.
+            bool slice = receiver.DenotedItem is null;
+            var pic = slice ? null : receiver.Item.OperandPic;
+            if (!slice && pic is null) continue;
+            sized = true;
+            anyFixed |= !IsFloatingPoint(pic);
+            // A floating-point numeric-edited receiver has no fixed fraction scale (design D21): it asks of the
+            // fixed-point intermediate what a floating-point item does (kb/Work PB370).
+            if (IsFloatingPoint(pic)) anyFloat = true;
+            else if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited }) fixedPoint.Add(pic);
+            else anyText = true;
+        }
+        // The fixed-point receivers' widest scale and integer digits: the ONE fold of what a set of resultants holds.
+        var (scale, integer) = PicInfo.WidestReceiving(fixedPoint);
+        bool allFixedPoint = !anyFloat && !anyText;
+        if (anyText) { scale = Math.Max(scale, ReturnedFractionDigits); integer = Math.Max(integer, ReturnedIntegerDigits); }
+        // Every receiver fixed-point, and their digit positions together past the carrier: no fixed-point window is
+        // exact for all of them, and the 36-digit decimal intermediate is (kb/Work PB370's beyond-the-carrier set;
+        // an INTEGER function never reaches here, IntermediatePic gives it the carrier at scale 0).
+        if (sized && allFixedPoint && integer + scale > PicInfo.ScaledCarrierDigits) return WidestFloatEditedPic();
+        // No receiver had a description to size by (an index or object receiver is not a numeric MOVE receiver, so this
+        // is unreachable from a legal MOVE): the value operand's item, never a one-digit guess. Nor does a set whose
+        // every receiver is floating-point, of BOTH binary formats (one format takes its own float item,
+        // SharedFloatFormatPic): no receiver bounds the digits, which is the value operand's case — 21 integer digits,
+        // so no magnitude the S9(21)V9(9) returned-value item holds is cut (kb/Work PB3268, review R2-1).
+        if (!sized || !anyFixed) return ValueOperandPic;
+        integer = Math.Clamp(integer, 1, PicInfo.ScaledCarrierDigits);
+        scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - integer);
+        if (anyFloat)
+        {
+            integer = Math.Max(integer, Math.Min(FloatWindowIntegerDigits, PicInfo.ScaledCarrierDigits - scale));
+            scale = Math.Max(scale, PicInfo.ScaledCarrierDigits - integer);
+        }
+        int digits = integer + scale;
+        return new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: true);
     }
 
     /// <summary>Materialize <paramref name="op"/>'s value into the implementor's intermediate result item and
@@ -158,17 +352,15 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// activations it reads) and BEFORE those the statement's LATER operands registered — §14.6.4's left-to-right
     /// order, which a receiving operand's function-bearing subscript would otherwise overtake (kb/Work PB370).
     /// <see langword="null"/> appends, for a caller whose later operands register nothing.</param>
-    /// <param name="reach">What the operands the frozen value is moved to can hold (a MOVE's receivers,
-    /// <see cref="ReceivingReach.Of"/>): a numeric function's temporary keeps at least that many fraction and integer
-    /// digits, or is floating-point (or floating-point edited) for a floating-point set (<see cref="ReturnedValuePicFor"/>). Default (no
-    /// digits, fixed-point) for a caller with no such receiver.</param>
-    internal Place? Materialize(BoundOperand op, string tag, int? at = null, ReceivingReach reach = default) =>
-        Positioned(at, () => Freeze(op, tag, reach));
+    /// <param name="use">How the value will be read (<see cref="ValueUse"/>); a NUMERIC function's intermediate is
+    /// described FOR it (<see cref="IntermediatePic"/>). Defaults to a VALUE operand.</param>
+    internal Place? Materialize(BoundOperand op, string tag, int? at = null, ValueUse use = default) =>
+        Positioned(at, () => Freeze(op, tag, use));
 
     /// <summary>The body of <see cref="Materialize"/>: the intermediate and its stores, appended.</summary>
-    private Place? Freeze(BoundOperand op, string tag, ReceivingReach reach)
+    private Place? Freeze(BoundOperand op, string tag, ValueUse use)
     {
-        if (Model(op, reach) is not { } model) return null;
+        if (Model(op, use) is not { } model) return null;
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__SENDVAL-", "__sendval", tag);
         // ⛔ GR1's OTHER sentence, for a group whose extent is decided at run time: "The length of the data item
         // referenced by identifier-1 is evaluated only once, immediately before the data is moved to the first of
@@ -363,7 +555,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <summary>⛔ THE ONE description derivation — every <see cref="BoundOperand"/> leaf is named, so a leaf
     /// added tomorrow is a COMPILE error here rather than a silent fall-through to "no hoist" (the
     /// feedback_a_dead_lookup_is_also_unverified shape: a default arm that quietly means "correct as it is").</summary>
-    private TempModel? Model(BoundOperand op, ReceivingReach reach) => op switch
+    private TempModel? Model(BoundOperand op, ValueUse use) => op switch
     {
         // §8.3.3.6.4 GR2 sizes a figurative / ALL "literal" from the RECEIVER, and §14.9.25.4 GR1's antecedent
         // names neither; a literal's value cannot change. No description of their own ⇒ no intermediate.
@@ -376,7 +568,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         BoundAddressOperand => null,
         BoundFieldOperand f => OfPlace(f.Place),
         BoundCurrentRecord cr => OfPlace(cr.Area),
-        BoundComputedOperand c => OfComputed(c, reach),
+        BoundComputedOperand c => OfComputed(c, use),
         // Every leaf of the hierarchy is named above; the arm exists because C# cannot prove a public abstract
         // record's leaf set is closed. It is LOUD rather than a silent "no hoist", which would let a new operand
         // form inherit the very defect this class removes (feedback_a_dead_lookup_is_also_unverified).
@@ -426,11 +618,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         return new TempModel(item, DynLimit: 0);
     }
 
-    /// <summary>The §15.4 temporary of a function-identifier's returned value. A NUMERIC result takes the
-    /// <see cref="FunctionValuePic"/> shape §15.4.1 leaves to the implementor; an alphanumeric / national /
+    /// <summary>The intermediate result item of a function-identifier's returned value. A NUMERIC result takes the
+    /// description <see cref="IntermediatePic"/> derives (§15.4.1 leaves it to the implementor); an alphanumeric / national /
     /// boolean result has a run-time length (FUNCTION TRIM's is its argument's content, CONCAT's the sum of its
     /// arguments') and takes the §8.5.1.10.4 carrier.</summary>
-    private TempModel? OfComputed(BoundComputedOperand c, ReceivingReach reach)
+    private TempModel? OfComputed(BoundComputedOperand c, ValueUse use)
     {
         // §15.2 classifies every function; the bound node carries the call's RESOLVED category
         // (BoundIntrinsicCall.ResultCategory — never the declared column, for the twenty argument-typed rows).
@@ -447,7 +639,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // `MOVE FUNCTION INTEGER(N) TO A B` stored 0000 in both where `MOVE FUNCTION INTEGER(N) TO A` stores 3.
         if (cat is PicCategory.Numeric)
             return new TempModel(
-                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = ReturnedValuePicFor(c, reach) },
+                new DataItem { Level = 1, CobolName = "__SENDVAL-FN", CsName = "__sendvalFn", Pic = IntermediatePic(c, use) },
                 DynLimit: 0, FunctionValue: true);
         return CharacterCarrier("__SENDVAL-FNS", "__sendvalFns", cat, CharacterUsage(cat), FunctionTextLimit);
     }
