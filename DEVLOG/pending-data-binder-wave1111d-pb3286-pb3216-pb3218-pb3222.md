@@ -30,4 +30,19 @@ declaration of any kind in `UserWordKinds.DeclaredUnqualifiable` (and a switch's
 descriptor, COBOLNET4250 (8.4.2.1). COBOLNET1665 is retired; its golden and docs name 4250. Mnemonic names join the set
 (the sweep). A drift test fails when a SPECIAL-NAMES kind is declared without joining the set. Four goldens.
 
+**PB3192 — not fixed here.** The fifth note of the group (a method's TYPEDEF is class-wide, a method constant's LENGTH OF
+resolves against the object) re-probed true and is the OO method-scope restructuring: method names register class-wide
+during the method's bind and move into its scope only afterwards, so it is a mechanism of its own. The note carries the
+measured root, a third symptom found on the way (a method's TYPE clone leaks its subordinate names to a sibling method)
+and the design; it stays open for a finisher.
+
+Self-review (pr-test-analyzer, silent-failure-hunter, comment-analyzer lenses on the diff): the two fail-open arms are
+deliberate and named (an undecidable class admits a BY VALUE formal, as the argument side does; a contained head with
+several global candidates claims nothing, as the BY REFERENCE arm always did); every added golden names the leg that can
+fail; one tool-written file came out CRLF (the line-endings audit caught it before any leg ran) and one message
+("a alphabet-name") was reworded before it shipped.
+
+Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261017T222631Z-6eab63); the semgrep
+baseline for `cobolnet-raw-diagnostic-code-literal` went 245 to 244 and was locked in.
+
 Codes: COBOLNET4250 used; 4251 and 4252 returned.
