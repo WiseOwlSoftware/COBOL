@@ -1,4 +1,4 @@
-## PB3237: DELETE FILE ran its NOT ON EXCEPTION imperative after a USE declarative had handled the EC-I-O-WARNING its '05' raised
+## Entry 2163 — 2026-10-17 16:20 PDT — PB3237: DELETE FILE ran its NOT ON EXCEPTION imperative after a USE declarative had handled the EC-I-O-WARNING its '05' raised
 
 kb/Work/PB3237 (an R2 duplication finding). `DELETE FILE` of an absent file is successful with status '05' (ISO 14.9.10.4 GR14), and with `>>TURN EC-I-O-WARNING CHECKING ON` that status raises EC-I-O-WARNING (9.1.13.1). A USE declarative, or a PERFORM WHEN phrase, that handles it must stop the statement's NOT phrase from running ("the imperative-statement in that phrase is not executed", 14.6.13.1.4 2)/3), both checked with `cite.py --check`). kb/Work PB1120 had gated every other I-O NOT phrase on the hook's `UseHookResult.NotPhraseGate`; `KeyedIoEmitter.EmitDeleteFile` discarded the hook result and carried its own copy of the phrase-pair dispatch (a bare `else` / `Successful(st)`).
 
@@ -17,3 +17,4 @@ Branch review round 1 (R1-1, test-coverage): the first guard only checked that a
 Gate (first run 20261017T222844Z-6be823, before the review round): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 11,680/17,329, Unit 33,562/33,936, Characterization 5/36 cases ran; the three new goldens and `NotPhraseGateDriftTests` passed in leg 1. `semgrep/verify.py` PASS with no rule's count raised.
 
 Gate after the review round (run 20261017T225000Z-0fb282; its first run 20261017T224309Z-8c74f0 was RED only on HostWitnessTraitDriftTests, the widened guard being a tree-wide sweep that needed its Sweep trait): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` — Conformance 11,507/17,329, Unit 33,571/33,938, Characterization 5/36 cases ran; the three `NotPhraseGateDriftTests` guards passed in leg 1. `semgrep/verify.py` PASS.
+
