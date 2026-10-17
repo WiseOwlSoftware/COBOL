@@ -878,9 +878,6 @@ public sealed partial class DataBinder
         var classClauses = new List<Core.ClassDefinitionClauseContext>();
         var symbolicClauses = new List<Core.SymbolicCharactersClauseContext>();
         var currencyClauses = new List<Core.CurrencySignClauseContext>();
-        // The names THIS source element declares — a containing element's inherited names may be re-declared
-        // (§8.4.6.1: each source element "may use identical user-defined words"), its own may not (§8.4.2.1).
-        var ownDls = new HashSet<string>(CobolNames.Comparer);
         foreach (var para in program.environmentDivision()?.configurationSection()?.configurationParagraph() ?? [])
         {
             // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (ISO §12.3.6 — the 85 single-name IS form, the 2002
@@ -935,7 +932,7 @@ public sealed partial class DataBinder
                 // (PB25 → T0), and before that a raw parse error at the clause's own literal.
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
-                if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls, ownDls); continue; }
+                if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls); continue; }
                 if (entry.alphabetClause() is { } alpha) { alphabetClauses.Add(alpha); continue; }
                 // CLASS and SYMBOLIC CHARACTERS bind AFTER the walk (kb/Work PB110): their IN alphabet-name may be
                 // declared by a LATER ALPHABET clause of the same paragraph (the clauses are order-free — the
@@ -992,8 +989,15 @@ public sealed partial class DataBinder
         using (Edition.At(sw))   // §8.3.2.2 — the entry's user-defined words, through the one funnel (kb/Work PB1083)
         {
             if (e.Mnemonic is { } mnemonic) DeclareUserWord(mnemonic, UserWordKind.MnemonicName);
-            if (e.OnCondition is { } onName) DeclareUserWord(onName, UserWordKind.ConditionName);
-            if (e.OffCondition is { } offName) DeclareUserWord(offName, UserWordKind.ConditionName);
+            // A switch's condition-name is referenced unqualified only (§12.3.7.4 GR2), so a second declaration of one is
+            // §8.4.2.1's ambiguity — asked beside the funnel because ConditionName is also the level-88 type, which
+            // qualification tells apart (kb/Work PB3216, UserWordKinds.DeclaredUnqualifiable).
+            foreach (var condition in new[] { e.OnCondition, e.OffCondition })
+                if (condition is { } conditionName)
+                {
+                    DeclareUserWord(conditionName, UserWordKind.ConditionName);
+                    CheckUnqualifiableDeclaration(conditionName, UserWordKind.ConditionName);
+                }
         }
         if (e.Unavailable is { } why)
         {
@@ -1114,7 +1118,7 @@ public sealed partial class DataBinder
     /// §12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative
     /// constant" nor a zero-length literal (the grammar admits any literal, so both are checked here); a locale-name
-    /// declared twice is COBOLNET1665 (§8.3.2.2 — a user-defined word of one type is unique within its scope). §12.3.7.4
+    /// declared twice is COBOLNET4250, asked by the declaration funnel (§8.4.2.1; kb/Work PB3216). §12.3.7.4
     /// GR5 — the implementor specifies the allowable content: DETERMINATION L1, a locale tag, POSIX spellings normalized
     /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
@@ -1138,12 +1142,9 @@ public sealed partial class DataBinder
             if (!TryClauseTextLiteral(written4, $"LOCALE {name} IS {spelling}", "literal-4", out external)) return;
         }
         else external = words[1].GetText();
-        var symbol = new LocaleSymbol(name, external, fromLiteral);
-        if (!Locales.TryAdd(name, symbol))
-        {
-            Edition.Error("COBOLNET1665", $"LOCALE {name}: the locale-name is already declared in this SPECIAL-NAMES paragraph "
-                + $"(as {(Locales.TryPeek(name, out var first) ? first : null)}); a user-defined word is unique within its scope (ISO §8.3.2.2 / §12.3.7.2)");
-        }
+        // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
+        // PB3216); the first stands, as every registry keeps it.
+        Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
@@ -1246,9 +1247,10 @@ public sealed partial class DataBinder
     /// (§5.2.6.4, through the one reader <see cref="ChoiceIndicators.AtMostOnce{T}"/>) — or is the
     /// physical-structure-name-1 alternative, whose allowable names §12.3.7.3 SR32 leaves to the implementor and
     /// this implementor provides NONE of (docs/CONFORMANCE.md §3 D-DL3), so that alternative is refused by name.
-    /// A second declaration of one name in the same source element is refused too: every reference to it would
-    /// fail §8.4.2.1's "a reference that uniquely identifies that resource".</summary>
-    private void DynamicLengthStructureBind(Core.DynamicLengthStructureClauseContext dls, HashSet<string> ownNames)
+    /// A second declaration of one name in the same source element is refused by the declaration funnel
+    /// (<see cref="DeclareUserWord"/>, kb/Work PB3216): every reference to it would fail §8.4.2.1's "a reference that
+    /// uniquely identifies that resource". A containing element's inherited names may be re-declared (§8.4.6.1).</summary>
+    private void DynamicLengthStructureBind(Core.DynamicLengthStructureClauseContext dls)
     {
         if (dls.cobolWord() is not { } nameCtx || dls.dynamicLengthLayout() is not { } layout) return;   // a parse error already
         string name = nameCtx.GetText();
@@ -1280,14 +1282,10 @@ public sealed partial class DataBinder
                 };
             declared = new DynamicLengthStructure(name, prefix, Delimited: delimited is not null, null);
         }
-        if (!ownNames.Add(name))
-        {
-            using var _ = Edition.At(nameCtx);
-            Edition.Error(DiagnosticCatalog.DynamicLengthStructureInvalid,
-                $"{where}: the dynamic-length-structure-name '{name}' is already declared in this SPECIAL-NAMES "
-                + "paragraph, so no reference to it could uniquely identify one layout (ISO §8.4.2.1)");
-            return;
-        }
+        // A second declaration of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
+        // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
+        // by this element's first (§8.4.6.1), since the census counts this element's own declarations alone.
+        if (WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
         DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
     }
 

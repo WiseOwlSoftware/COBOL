@@ -2659,11 +2659,11 @@ public static class DiagnosticCatalog
         + "(PICTURE §13.18.40.3 SR37; LOCALE-COMPARE / -DATE / -TIME / UPPER-CASE / LOWER-CASE; CHARACTER CLASSIFICATION "
         + "§12.3.6.3 SR3). Declare it: LOCALE locale-name IS external-locale-name | literal.",
         "ISO §12.3.7.3 SR24 / §14.9.39.3 SR26 / §12.3.7.4 GR1");
-    public static readonly DiagnosticDescriptor LocaleNameDuplicate = new(
-        "COBOLNET1665", "locale-name-duplicate", EditionSeverity.Error,
-        "The same locale-name is declared by more than one SPECIAL-NAMES LOCALE clause of one paragraph. A user-defined "
-        + "word of one type is unique within its scope (ISO §8.3.2.2); the LOCALE clause is repeatable (§12.3.7.2) so "
-        + "several LOCALES may be declared, each under its own name.", "ISO §8.3.2.2 / §12.3.7.2");
+    // ⛔ `LocaleNameDuplicate` (COBOLNET1665, `locale-name-duplicate`) LIVED HERE AND IS GONE (kb/Work PB3216), and this
+    // comment stands where it did so it is not re-added. It refused a second LOCALE clause of one locale-name; the
+    // ALPHABET, CLASS and switch condition-name registries dropped the same shape silently, and the DYNAMIC LENGTH
+    // STRUCTURE clause kept a private refusal. All of them are now ONE rule at the declaration funnel,
+    // SpecialNameDeclaredTwice (COBOLNET4250). The id is retired, never reallocated.
     public static readonly DiagnosticDescriptor SetLocaleCategories = new(
         "COBOLNET1666", "set-locale-categories", EditionSeverity.Error,
         "The first operand of SET LOCALE (ISO §14.9.39.2 format 11) is malformed: a category is specified more than "
@@ -2989,6 +2989,20 @@ public static class DiagnosticCatalog
         + "level-number that matches a paragraph-name or section-name, and the one group of constant-name, "
         + "data-name, property-name, record-key-name and record-name. Rename one of the declarations.",
         "ISO §8.3.2.2");
+
+    /// <summary>COBOLNET4250 — a SECOND declaration, in one source element, of a name that cannot be qualified (kb/Work
+    /// PB3216): an alphabet-name, a class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a
+    /// mnemonic-name or a switch's condition-name. §8.4.2.1: "In order to use a resource, a statement shall contain a
+    /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
+    /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
+    /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
+    public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
+        "COBOLNET4250", "special-name-declared-twice", EditionSeverity.Error,
+        "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
+        + "dynamic-length-structure-name, mnemonic-name or a switch's condition-name — is declared a second time in one "
+        + "source element. ISO §8.4.2.1: \"In order to use a resource, a statement shall contain a reference that "
+        + "uniquely identifies that resource\"; no qualifier can tell the two declarations apart. Rename one of them.",
+        "ISO §8.4.2.1");
 
     /// <summary>COBOLNET2693 — a user-defined word with no letter (kb/Work PB1403). §8.3.2.2: "With the exception of
     /// section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic
