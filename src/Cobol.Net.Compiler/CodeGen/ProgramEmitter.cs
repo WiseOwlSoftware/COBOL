@@ -784,7 +784,7 @@ internal sealed class ProgramEmitter
         // DataBinder.PtrBindBasedAndAddressables claims both onto cells).
         if (ret.DenotedItem is { } leafGroup && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(leafGroup)
             && CallEmitter.AreaOf(ret, _atoms) is { } area)
-            return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth);
+            return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth, CellComponents.PerOccurrence(leafGroup));
         string? atoms = CallEmitter.BoundaryAtoms(ret, _atoms);
         if (CallEmitter.CallPlaceIsVarGroup(ret))
             return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupBoundaryImage(ret, "RETURNING item"), atoms!);
