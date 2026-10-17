@@ -1,4 +1,4 @@
-## UNSTRING DELIMITED BY a bare symbolic character is one occurrence; STRING refuses a bit group under the one usage predicate
+## Entry 2161 — 2026-10-17 15:47 PDT — UNSTRING DELIMITED BY a bare symbolic character is one occurrence; STRING refuses a bit group under the one usage predicate
 
 Wave 1111 group F fixed two R2 findings in the STRING/UNSTRING binder (kb/Work PB3226, PB3228). Both inventory rows they touch were already CONFORMS, so no row closes; each row gains the witnesses for the case its verdict had hidden.
 
@@ -9,3 +9,4 @@ Wave 1111 group F fixed two R2 findings in the STRING/UNSTRING binder (kb/Work P
 No diagnostic code was used; the three codes allocated (COBOLNET4256-4258) are returned. Self-review against the silent-failure and comment lenses found nothing further; the other `Usage.Display or Usage.National` sites in the tree (`ControlFlowBinder`, `IntrinsicBinder`, `ClassConditionModel`) ask different rules (numeric items, function arguments) through `UsageOf` already and were left alone.
 
 Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run TestResults/build-local/20261017T221454Z-8322ae; Conformance 11,603/17,342, Unit 33,587/33,938, Characterization 5/36 ran). `semgrep/verify.py` PASS, no rule count up. The Linux gate is the landing's.
+
