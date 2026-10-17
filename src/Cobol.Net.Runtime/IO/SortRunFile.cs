@@ -158,8 +158,15 @@ internal sealed class SortRunFile : IDisposable
         catch (Exception e) when (IsHostFailure(e)) { throw Failure(_directory, "read", e); }
     }
 
-    /// <summary>Close the handle, which deletes the file (<see cref="HostFile.CreateSortWork"/>).</summary>
-    public void Dispose() => _fs.Dispose();
+    /// <summary>Close the handle, which deletes the file (<see cref="HostFile.CreateSortWork"/>). A run being written
+    /// when its statement ended still holds unflushed bytes; the close discards the run, so a failure to flush them (a
+    /// full volume — the very failure that may have ended the statement) loses nothing and must not replace the
+    /// exception the statement is ending with. The handle is released either way.</summary>
+    public void Dispose()
+    {
+        try { _fs.Dispose(); }
+        catch (IOException) { }   // the run's bytes are being discarded with the file: nothing is lost
+    }
 
     /// <summary>The host failures a work file can meet — every one becomes <see cref="Failure"/>.</summary>
     private static bool IsHostFailure(Exception e) =>
