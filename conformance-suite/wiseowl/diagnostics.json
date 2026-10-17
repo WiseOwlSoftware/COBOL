@@ -13257,6 +13257,27 @@
   ],
   "expect": "constant-name 'N', which substitutes the literal 5"
  },
+ "pb3218-alphabet-zero-length-concatenation": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1906: ALPHABET AZ"
+ },
+ "pb3218-class-through-zero-length-concatenation": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1671: CLASS CT"
+ },
+ "pb3218-class-zero-length-concatenation": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1671: CLASS CZ"
+ },
  "pb3219-decimal-comma-float-two-points": {
   "refuse-at": [
    "2002",
