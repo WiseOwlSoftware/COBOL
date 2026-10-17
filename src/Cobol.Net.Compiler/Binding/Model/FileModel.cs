@@ -688,8 +688,8 @@ public sealed class FileModel
     /// that sum with the variable-length members filled in, never a second layout.
     /// <para>⛔ IT IS <see cref="DataItem.ByteWidth"/> PLUS THE DYNAMIC-LENGTH LEAVES, NEVER A RE-SUMMATION OF THE
     /// OTHER LEAVES (kb/Work PB3253, the PB1277 shape): <see cref="DataItem.ByteWidth"/> already lays a bit-bearing
-    /// subtree out by the one §8.5.1.6.3 walk (GR4's "the entire byte in which that data item ends") and counts a
-    /// dynamic-length leaf as zero bytes, so the maximum is that fixed part plus, for every dynamic-length leaf at
+    /// subtree out by the one §8.5.1.6.3 walk (§13.18.43.4 GR4: "the entire byte in which that data item ends") and
+    /// counts a dynamic-length leaf as zero bytes, so the maximum is that fixed part plus, for every dynamic-length leaf at
     /// or beneath <paramref name="item"/> that is not a redefinition, its maximum extent
     /// (<see cref="DynamicLeafMaximum"/>) times the occurrence counts between the leaf and the item
     /// (<see cref="DynamicLeafSum"/>). The arm that summed each child's own <c>ByteWidth</c> gave every bit leaf a
