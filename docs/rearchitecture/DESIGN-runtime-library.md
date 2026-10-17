@@ -998,7 +998,9 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      - the PROMOTION SOURCE: W validates, its base is below G and its generation equals G — the promotion copied W into C and
        its retirement never landed; W's ledger IS C's ledger and nothing is abandoned;
      - FOREIGN: anything else — W torn; a base below G with another generation (a fence landed and its retirement did not:
-       W is the slot that fence superseded); a base above G (damage). Nothing of W is trusted or reclaimed;
+       W is the slot that fence superseded, and C carries the ledger the retirement will retire); a base above G (damage).
+       Nothing of W is trusted or reclaimed — when W was a rejected DESCENDANT the fence superseded, its never-committed pages
+       leak, bounded by the checkpoint, like an unreadable ledger's;
   3. a DESCENDANT whose `fresh` pages all verify (R3, each against the ledger's generation) is ADOPTED — the file as the last
      completed statement left it, which is what a process death leaves (the operating environment keeps what was handed to
      it) and what a power loss leaves when every write reached the medium; a DESCENDANT with a page that fails is REJECTED
@@ -1290,7 +1292,8 @@ every crash scenario is deterministic and runs on every host without a VM:
   write's page number; the test walks both trees after each statement);
 - R2: the ledger lists exactly the pages allocated since promotion, with their last generation and state; a `released` page is
   reused only by a statement later than the one that released it; a statement never allocates after it starts writing the
-  ledger (the medium's write order);
+  ledger (the medium's write order); the 4 097th statement after a promotion promotes before it stamps (the ceiling), and a
+  ledger past 1 024 pages promotes at the next statement;
 - R3: a page served at an older version under a stamped pointer is refused as torn by the next read of it, in a statement
   ('30') and at OPEN (the work slot rejected); and the corollary — the medium's write log never records one (page,
   generation) pair twice, across a rejection and a restart (finding R2-2's scenario: a fresh page of statement 105 reclaimed
@@ -1375,6 +1378,28 @@ the rest of page-granular coherence (`StoreTable`, DOC-A.1-75, the whole-store b
 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks; PB3338 the compiler's APPLY COMMIT.
 Same-file work is sequenced by `blocked_by`, and every group lands green on its own: no landing between two groups leaves main
 with a sharing mode the engine writes under and the mutex does not cover.
+
+**2.2.1.15 Who writes what, who reads what (the round-2 consistency pass, 2026-10-17).** Every persistent structure of the
+format and every in-memory state the rules depend on, its writers (the rule, the moment, the mutex) and its readers (and what
+each reader relies on). A change to any rule above is checked against this table; a row with a reader no writer serves, or a
+writer no reader expects, is a design defect.
+
+| Structure | Written by | Read by |
+|---|---|---|
+| **Committed slots, pages 0 and 1** (one is the committed meta C, the other the slot the next promotion takes) | R5 only: every promotion — CLOSE, `CloseAll`, COMMIT, the checkpoint (R2's ceiling or 1 024 ledger pages), R6's fence — writes the slot that does NOT hold C, after a data sync and before a second sync; an ordinary promotion copies the work meta with `committed generation` := its generation, the fence copies the ADOPTED meta with generation and `committed generation` := G + 4 097. Under the exclusive mutex for a coherent connector; a NO OTHER connector has nobody to exclude. | R6 at OPEN (the higher valid generation is C; `MetaPage.Describes` for the fixed attributes reads the same two pages); 2.2.1.7 never (a live statement reads page 2 only). Readers rely on: a slot that validates names a tree whose every page is durable (R5's first sync) and untouched since (R1, R4). |
+| **Work slot, page 2** | Every statement that changes the file (the retirement included), LAST, after its data, FREE-tree and ledger pages, with generation := the one it read + 1 and `committed generation` := its base; `OPEN OUTPUT`/creation writes the initial three pages. Under the exclusive mutex (coherent) or none (NO OTHER). Never by a promotion's slot write itself and never by an INPUT connector. | R6 at OPEN (classified DESCENDANT / PROMOTION SOURCE / FOREIGN by base and generation against C's G); 2.2.1.7 at every coherent statement (one read; adopted when its generation differs from the one last seen). Readers rely on: a page 2 written while the mutex was held names a complete tree (the statement's pages landed first), and a torn page 2 fails its checksum. |
+| **`generation`** (in page 2 and the slots) | Each statement: +1 over the page 2 it read; the fence: G + 4 097; a promotion copies it. | 2.2.1.7's comparison with the generation last seen; R6's classification; R3's stamps are drawn from it. Relies on: R2's ceiling (no history stamps above its base + 4 096) and the fence (every history starts above the superseded one), so no (page, generation) pair repeats. |
+| **`committed generation`** (the base) | A promotion sets it to its generation in the slot; the retirement copies the promotion's generation into page 2; every later statement copies page 2's. | R6 (DESCENDANT = base equals G); the ledger's meaning (pages allocated since the base). |
+| **`release mint`, `transaction mint`, `page count`** | The statement that mints an ordinal, begins a transaction or grows the file, in page 2; promotions copy them. | WRITE/REWRITE (the next ordinal), the first change under commit control (the next transaction id), allocation (growth). A rejected history's values are discarded with it: an ordinal re-minted orders only the live tree, a transaction id re-minted has a free liveness byte. |
+| **Root pointers** (prime/record tree, alternate trees, FREE, LEDGER, TRANSACTIONS) | The statement that path-copies that tree, in page 2; promotions copy them. | Every tree walk, through R3's stamp check. |
+| **The LEDGER tree** | Every statement, path-copied, written after its data and FREE-tree pages from the reservation (R2); the retirement writes the post-promotion ledger (the promoted ledger's fresh entries dropped, its released/freed/own pages gone to the FREE tree, its own new pages fresh). | R6 step 3 (every `fresh` page verified before a DESCENDANT is adopted); the retirement (what to move); the allocator (released pages); R4 (freed pages quarantined). Relies on: the ledger root in the meta the reader holds names a ledger whose own pages verify by stamp. |
+| **The FREE tree** | The retirement (adds the retired pages and, at a fence after a rejection, the rejected ledger's never-committed pages); an allocation that takes a batch of its lowest pages (path-copied by the taking statement). | The allocator, after the in-memory ledger's released pages and before growth. Relies on: a page in the committed FREE tree is referenced by no slot's tree (the older committed slot is dead once a promotion's second sync completed, R5). |
+| **Data pages** (internal, leaf, overflow) | The statement that changes them, always to a page neither slot's tree references (R1), stamped with the statement's generation, before page 2. | Every statement through stamped pointers (R3: checksum, `self`, generation); R6 through the ledger's `fresh` list. |
+| **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (the entry removed, the UNDO pages released), ROLLBACK and the dead-transaction step (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK and R6 step 5 (which transactions exist, whose owner is dead by the liveness byte). Relies on: a before-image exists for every change that completed (same statement) and the transaction's locks kept every identity and unique value it will restore. |
+| **The transaction-liveness byte** (2^62 + 2^61 + id mod 2^60) | Taken exclusively through the owner's writable handle when the transaction begins; given back at COMMIT, ROLLBACK and by the operating environment when the owner dies. | R6 step 5 and `CloseAll` (held = alive). |
+| **The record-lock region** (2^62 + 2^60; a record identity or, under commit control, a freed unique key value) | READ under automatic locking; WRITE, REWRITE and DELETE under commit control (the record's identity; the unique values freed); released by UNLOCK/CLOSE for explicit postures and ONLY by COMMIT, ROLLBACK and termination for the commit posture; published through the holder's handle. | READ, REWRITE, DELETE and (new) WRITE of every other connector, at DOC-A.1-104's point of their order; `IGNORING LOCK` bypasses it for READ. No ceiling for the commit posture (DOC-A.1-154/155 rewritten by PB3337). |
+| **The store mutex and the Table 19 column bytes** | Unchanged (PB2660, PB833): taken for every statement and the OPEN of a coherent connector, exclusive through a writable handle and shared through a reader's. | The same. |
+| **The page cache and the generation last seen** (in memory, one `PagedStore` per physical file per run unit) | The cache: filled by reads, DROPPED by 2.2.1.7 when page 2 changed; the generation last seen: set at OPEN (page 2's, adopted or not) and at every adoption of page 2 and every own statement. | Every statement of every connector of the run unit on that file. Relies on: within the run unit there is one store, so a sibling's change is visible instantly. |
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
