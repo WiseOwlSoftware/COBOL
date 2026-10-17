@@ -1186,10 +1186,9 @@ public sealed partial class DataBinder
                 return false;
             }
             text = constant.Text;
-            return SecondHalfOfSr11(text);
+            return Sr11ZeroLength(IsZeroLengthConstant(constant));
         }
         var lit = (Core.LiteralContext)written;
-        string raw = lit.GetText();
         var nn = lit.nonNumericLiteral();
         if (nn?.predefinedNull() is not null)
         {
@@ -1205,45 +1204,34 @@ public sealed partial class DataBinder
                 $"{operand} shall specify neither a symbolic-character figurative constant nor a zero-length literal");
             if (SpecialNamesFigurative(fig, slot) is not { } figurative) return false;
             text = figurative;
+            return Sr11ZeroLength(text.Length == 0);
         }
         // §8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value,
         // [usable] anywhere a literal of that class may be used", so `IS "ISO " & "14651_2020_TABLE1"` is legal
         // here and folds to the one literal SR10 then classes. Refusing it would reject conforming source.
-        else if (nn?.concatenationExpression() is { } cat)
+        // ⛔ THE ONE DECODE (kb/Work PB3218): the literal's class is OperandLiteralClass's (a concatenation's by the
+        // §8.8.3.3 GR1 fold, a plain literal's by its prefix) and its characters LiteralCharsOf's — the pair the
+        // ALPHABET / CLASS operands decode through — where this screen kept an inline copy of both. A figurative
+        // HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes (§12.3.7.4 GR10 — one pair for both
+        // classes, owner R52) and SR11 forbids a symbolic-character operand in literal-9 (the posture this screen
+        // gives literal-4 as well). SR10: CobolLiteral.ClassOf answers from the PREFIX, so a plain literal admits both
+        // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal, §8.3.3.2) and
+        // refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
+        var literalClass = OperandLiteralClass(lit);
+        if (literalClass is not (LiteralClass.Alphanumeric or LiteralClass.National))
         {
-            // A figurative HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes
-            // (§12.3.7.4 GR10 — one pair for both classes, owner R52) and SR11 forbids a
-            // symbolic-character operand in literal-9 (the posture this screen gives literal-4 as well).
-            var folded = ConcatFolder.Fold(cat, Edition, LiteralEnvironment.SpecialNames(this,
-                refusesSymbolicCharacters: true));
-            if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
-            {
-                Report($"{what}: {operand} shall be an alphanumeric "
-                    + "or national literal (ISO §12.3.7.3 SR10); this concatenation expression is class "
-                    + $"{folded.Category} (§8.8.3.3 GR1/GR3)");
-                return false;
-            }
-            text = folded.Value;
+            Report($"{what}: {operand} shall be an alphanumeric or national literal (ISO §12.3.7.3 SR10)"
+                + (nn?.concatenationExpression() is not null
+                    ? $"; this concatenation expression is class {literalClass} (§8.8.3.3 GR1/GR3)" : ""));
+            return false;
         }
-        else
-        {
-            // SR10 — alphanumeric or national. CobolLiteral.ClassOf answers from the PREFIX, so it admits both
-            // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal,
-            // §8.3.3.2) and refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
-            if (CobolLiteral.ClassOf(raw) is not (LiteralClass.Alphanumeric or LiteralClass.National))
-            {
-                Report($"{what}: {operand} shall be an alphanumeric or "
-                    + "national literal (ISO §12.3.7.3 SR10)");
-                return false;
-            }
-            text = CobolLiteral.Decode(raw);
-        }
-        return SecondHalfOfSr11(text);
+        text = LiteralCharsOf(lit, sr11: true);
+        return Sr11ZeroLength(IsZeroLengthOperand(lit));
 
-        // SR11's SECOND half.
-        bool SecondHalfOfSr11(string decoded)
+        // SR11's SECOND half, asked of the answer the ONE predicate gives (IsZeroLengthOperand / IsZeroLengthConstant).
+        bool Sr11ZeroLength(bool zeroLength)
         {
-            if (decoded.Length > 0) return true;
+            if (!zeroLength) return true;
             Report($"{what}: {operand} shall specify neither a "
                 + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
             return false;
@@ -1769,11 +1757,12 @@ public sealed partial class DataBinder
                 }
                 // §12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
                 // constant nor a zero-length literal" (a symbolic character is no literal token here, so only the
-                // second half can be written).
-                if (CobolLiteral.IsZeroLength(text))
+                // second half can be written). Asked of the literal AS DECODED (IsZeroLengthOperand, kb/Work PB3218): a
+                // concatenation of zero-length literals IS one (§8.8.3.3 GR2) though its tokens are not.
+                if (IsZeroLengthOperand(lit))
                 {
-                    Edition.Error(r.Code, $"{r.What}: {text} — an operand shall not be a zero-length literal "
-                        + "(ISO §12.3.7.3 SR11)");
+                    Edition.Error(r.Code, $"{r.What}: {ConcatFolder.Spelling(lit)} — an operand shall not be a zero-length "
+                        + "literal (ISO §12.3.7.3 SR11)");
                     return null;
                 }
                 // ⛔ WHICH RULE is decided by the literal's FORM — an integer literal is held to the ordinal rule
@@ -1799,7 +1788,7 @@ public sealed partial class DataBinder
                 string spec = $"{w.GetText()} (the constant-name for {k.StandsFor})";
                 if (k.Category is PicCategory.Numeric && k.IntegerText is { } integer)
                     return Ordinal(integer.TrimStart('-'), k.Text.StartsWith('+') || k.Text.StartsWith('-'), spec);
-                if (k.Category is not PicCategory.Numeric && k.Text.Length == 0)
+                if (IsZeroLengthConstant(k))
                 {
                     Edition.Error(r.Code, $"{r.What}: {spec} — an operand shall not be a zero-length literal "
                         + "(ISO §12.3.7.3 SR11)");
@@ -1987,6 +1976,29 @@ public sealed partial class DataBinder
             };
         return CobolLiteral.ClassOf(lit.GetText());
     }
+
+    /// <summary>⛔ THE ONE QUESTION "IS THIS SPECIAL-NAMES LITERAL OPERAND ZERO-LENGTH?" (ISO §12.3.7.3 SR11 — literal-1
+    /// … literal-6 and literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
+    /// literal"; kb/Work PB3218). It is asked of the literal AS DECODED, never of its tokens: §8.8.3.3 GR2 makes a
+    /// concatenation of zero-length literals a zero-length literal, and GR3 makes any concatenation expression usable
+    /// "anywhere a literal of that class may be used", so <c>"" &amp; ""</c> is the zero-length literal SR11 bars. The
+    /// ALPHABET / CLASS operands (<see cref="LiteralPhraseOperand"/>) tested the raw token (not zero-length as written)
+    /// while the LOCALE / ORDER TABLE literals (<see cref="TryClauseTextLiteral"/>) tested the folded value, so
+    /// <c>ALPHABET AZ IS "" &amp; ""</c> compiled clean beside the LOCALE clause's refusal of the same operand. A plain
+    /// token is asked structurally (<see cref="CobolLiteral.IsZeroLength"/> — a malformed hexadecimal literal decodes to
+    /// nothing too and is LiteralScreen's COBOLNET1635, not SR11), a concatenation through the fold's diagnostic-free
+    /// walk (the reporting fold is <see cref="LiteralCharsOf"/>'s).</summary>
+    private bool IsZeroLengthOperand(Core.LiteralContext lit) =>
+        lit.nonNumericLiteral()?.concatenationExpression() is { } ce
+            ? ConcatFolder.Peek(ce, LiteralEnvironment.SpecialNames(this, refusesSymbolicCharacters: true)).Value.Length == 0
+            : CobolLiteral.IsZeroLength(lit.GetText());
+
+    /// <summary>The constant-name arm of <see cref="IsZeroLengthOperand"/>: a constant-name is "as if literal-1 … were
+    /// written" (§13.10.4 GR1), so a nonnumeric constant whose literal-1 is zero-length is the zero-length literal SR11
+    /// bars. The same structural test <c>ConcatFolder</c> takes of a constant operand (its re-quoted
+    /// <see cref="ConstantDef.RawText"/>).</summary>
+    private static bool IsZeroLengthConstant(ConstantDef constant) =>
+        constant.Category is not PicCategory.Numeric && CobolLiteral.IsZeroLength(constant.RawText);
 
     /// <summary>⛔ THE ONE §12.3.7.4 GR10 mapping of a figurative constant written INSIDE the SPECIAL-NAMES
     /// paragraph to the character it names: "<i>When specified as literals in the SPECIAL-NAMES paragraph, the
