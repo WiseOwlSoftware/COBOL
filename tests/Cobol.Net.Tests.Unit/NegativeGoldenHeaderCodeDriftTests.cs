@@ -11,19 +11,20 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ A NEGATIVE GOLDEN'S HEADER THAT STATES ITS EXPECTED DIAGNOSTIC NAMES A CODE ITS <c>.err</c> PINS (kb/Work PB1784,
-/// branch review R1-1).
+/// ⛔ A REFUSED PROGRAM'S HEADER THAT STATES ITS EXPECTED DIAGNOSTIC NAMES A CODE ITS REFUSAL PINS (kb/Work PB1784,
+/// branch review R1-1): the leading comments of every conformance-suite program WiseOwl refuses, against the
+/// <c>expect</c> of its entry in <c>conformance-suite/wiseowl/diagnostics.json</c>.
 /// <para><b>What happened.</b> kb/Work PB1784 gave each OO definition rule its own descriptor: the OVERRIDE / FINAL
 /// prototype rules left COBOLNET0840 for COBOLNET4212, the interface INHERITS cycle left it for COBOLNET2791, and the
 /// GOBACK / EXIT RAISING operand rule left COBOLNET0849 for COBOLNET4211. The <c>.err</c> files were re-pinned, and the
 /// gate stayed green, but five golden headers still said <c>Expected: COBOLNET0840</c>, <c>Diagnostic COBOLNET0840</c>
 /// or <c>-&gt; COBOLNET0849</c>. Nothing reads a header, so a reader of the golden was told the wrong diagnostic and
 /// nothing could notice.</para>
-/// <para><b>The rule.</b> In the leading comment block of every negative golden whose <c>.err</c> pins at least one
+/// <para><b>The rule.</b> In the leading comment block of every refused program whose refusal pins at least one
 /// <c>COBOLNETnnnn</c> code, every code the header STATES as the expectation — written after <c>Expected</c>,
-/// <c>Diagnostic</c> or <c>-&gt;</c> — is one the <c>.err</c> pins. A code named any other way (a history sentence, a
-/// sibling rule's code, the code a fix replaced) is prose and is not read. A <c>.err</c> that pins only message text
-/// carries no code to compare, so its golden is not asked.</para>
+/// <c>Diagnostic</c> or <c>-&gt;</c> — is one the refusal pins. A code named any other way (a history sentence, a
+/// sibling rule's code, the code a fix replaced) is prose and is not read. A refusal that pins only message text
+/// carries no code to compare, so its program is not asked.</para>
 /// </summary>
 public sealed class NegativeGoldenHeaderCodeDriftTests
 {
@@ -72,29 +73,28 @@ public sealed class NegativeGoldenHeaderCodeDriftTests
             ["      *> Expected: COBOLNET4212; before kb/Work PB1784 it was COBOLNET0840."], pinned));
     }
 
-    /// <summary>Every negative golden whose <c>.err</c> pins a code states only pinned codes in its header.</summary>
+    /// <summary>Every refused program whose expectation pins a code states only pinned codes in its header. The
+    /// refusals are the conformance suite's (<c>conformance-suite/wiseowl/diagnostics.json</c>, read through the
+    /// generator's manifest, <see cref="SuiteManifest"/>; kb/Work PB3177 moved the former
+    /// <c>tests/conformance/negative</c> goldens there, each <c>.err</c> becoming its refusal's <c>expect</c>).</summary>
     [Fact]
     public void EveryStatedExpectation_IsAPinnedCode()
     {
-        string dir = TestRepo.Tests("conformance", "negative");
         var stale = new List<string>();
         int asked = 0;
-        foreach (string cob in Directory.EnumerateFiles(dir, "*.cob").Order(System.StringComparer.Ordinal))
+        foreach (SuiteRefusal refusal in SuiteManifest.Manifest.Refusals.Values.OrderBy(r => r.Id, System.StringComparer.Ordinal))
         {
-            string err = Path.ChangeExtension(cob, ".err");
-            if (!File.Exists(err))
-                continue;
-            var pinned = AnyCode.Matches(File.ReadAllText(err)).Select(m => m.Value).ToHashSet();
+            var pinned = AnyCode.Matches(refusal.Expect).Select(m => m.Value).ToHashSet();
             if (pinned.Count == 0)
                 continue;
             asked++;
-            foreach (string code in StaleStatedCodes(File.ReadLines(cob), pinned))
-                stale.Add($"{Path.GetFileName(cob)}: the header states {code}; the .err pins "
+            foreach (string code in StaleStatedCodes(File.ReadLines(Path.Combine(SuiteManifest.Root, refusal.Source)), pinned))
+                stale.Add($"{refusal.Source}: the header states {code}; its refusal pins "
                     + string.Join(", ", pinned.Order(System.StringComparer.Ordinal)));
         }
 
-        Assert.True(asked > 0, "no negative golden pins a code: the sweep read nothing");
-        Assert.True(stale.Count == 0, "a negative golden's header states a code its .err does not pin — correct the "
+        Assert.True(asked > 0, "no refusal pins a code: the sweep read nothing");
+        Assert.True(stale.Count == 0, "a refused program's header states a code its refusal does not pin — correct the "
             + "header to the rule's current code:\n" + string.Join("\n", stale));
     }
 }
