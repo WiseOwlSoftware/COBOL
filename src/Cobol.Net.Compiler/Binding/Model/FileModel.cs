@@ -686,6 +686,15 @@ public sealed class FileModel
     /// item contributes its MAXIMUM size (§8.5.1.10.1 — <see cref="DataItem.DynMaxSize"/> characters, two bytes
     /// each when national, D-N1). Every other member is <see cref="DataItem.ByteWidth"/>'s own sum, so this is
     /// that sum with the variable-length members filled in, never a second layout.
+    /// <para>⛔ IT IS <see cref="DataItem.ByteWidth"/> PLUS THE DYNAMIC-LENGTH LEAVES, NEVER A RE-SUMMATION OF THE
+    /// OTHER LEAVES (kb/Work PB3253, the PB1277 shape): <see cref="DataItem.ByteWidth"/> already lays a bit-bearing
+    /// subtree out by the one §8.5.1.6.3 walk (§13.18.43.4 GR4: "the entire byte in which that data item ends") and
+    /// counts a dynamic-length leaf as zero bytes, so the maximum is that fixed part plus, for every dynamic-length leaf at
+    /// or beneath <paramref name="item"/> that is not a redefinition, its maximum extent
+    /// (<see cref="DynamicLeafMaximum"/>) times the occurrence counts between the leaf and the item
+    /// (<see cref="DynamicLeafSum"/>). The arm that summed each child's own <c>ByteWidth</c> gave every bit leaf a
+    /// byte of its own, so two <c>PIC 1(3) USAGE BIT</c> items beside a dynamic-length item had minimum 1 and
+    /// maximum 12 and a legal <c>RECORD CONTAINS 11</c> was refused.</para>
     /// <para>⛔ A DYNAMIC-LENGTH ELEMENTARY ITEM IS THE ONLY VARIABLE-LENGTH MEMBER A RECORD CAN HOLD, so this
     /// walk has no dynamic-capacity-table arm (kb/Work PB1604, discharged): a dynamic-capacity table "may be
     /// defined in any place, other than the file section" (§8.5.1.9.1 3)), and COBOLNET1526
@@ -696,9 +705,33 @@ public sealed class FileModel
     /// (§8.5.1.9.1, DOC-A.1-60), never its TO phrase, which is only the EXPECTED capacity and "may be exceeded
     /// with a nonfatal exception".</para></summary>
     internal static long MaxDynamicExtent(DataItem item) =>
-        item.IsDynamicLength ? (long)item.DynMaxSize * (item.Pic?.BytesPerPosition ?? 1) + StructureOverhead(item)
-        : item.IsElementary || !CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(item) ? (long)item.ByteWidth * (item.Occurs ?? 1)
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(MaxDynamicExtent) * (item.Occurs ?? 1);
+        ((long)item.ByteWidth + DynamicLeafSum(item, static leaf => DynamicLeafMaximum(leaf))) * (item.Occurs ?? 1);
+
+    /// <summary>A dynamic-length item's MAXIMUM extent in a record image: its maximum size in bytes (§8.5.1.10.1 —
+    /// <see cref="DataItem.DynMaxSize"/> character positions of <see cref="PicInfo.BytesPerPosition"/> bytes each)
+    /// plus its dynamic length structure (<see cref="StructureOverhead"/>).</summary>
+    private static long DynamicLeafMaximum(DataItem leaf) =>
+        (long)leaf.DynMaxSize * (leaf.Pic?.BytesPerPosition ?? 1) + StructureOverhead(leaf);
+
+    /// <summary>⛔ THE ONE WALK OVER THE DYNAMIC-LENGTH LEAVES OF A RECORD DESCRIPTION (kb/Work PB3253): the sum of
+    /// <paramref name="leafExtent"/> over every dynamic-length item at or beneath <paramref name="item"/> that is not
+    /// a redefinition (a redefining entry overlays its target and adds no storage, §13.18.44), each leaf counted once
+    /// per occurrence of every table between it and <paramref name="item"/> — the child's own occurrence count,
+    /// never <paramref name="item"/>'s, which is the caller's to apply: <see cref="DataItem.Occurs"/> (the maximum)
+    /// or, <paramref name="atMinimum"/>, <see cref="DataItem.MinimumOccurrences"/>. It is the variable part both
+    /// GR8 sums add to <see cref="DataItem.ByteWidth"/>: <see cref="MaxDynamicExtent"/> with each leaf's maximum
+    /// extent at the maximum occurrence counts, <see cref="MinExtent"/> with each leaf's structure overhead alone
+    /// (the data itself is zero bytes at its minimum, §8.5.1.10.1) at the minimum counts.</summary>
+    private static long DynamicLeafSum(DataItem item, Func<DataItem, long> leafExtent, bool atMinimum = false) =>
+        item.IsDynamicLength ? leafExtent(item)
+        : item.IsGroup ? item.Children.Where(c => c.RedefinesTargetName is null)
+            .Sum(c => DynamicLeafSum(c, leafExtent, atMinimum) * (atMinimum ? c.MinimumOccurrences : c.Occurs ?? 1))
+        : 0;
+
+    /// <summary>The structure overhead of every dynamic-length item at or beneath <paramref name="item"/> that is
+    /// not a redefinition, at the minimum occurrence counts — <see cref="MinExtent"/>'s variable part.</summary>
+    private static long MinimumStructureOverhead(DataItem item) =>
+        DynamicLeafSum(item, static leaf => StructureOverhead(leaf), atMinimum: true);
 
     /// <summary>⛔ THE ONE READER OF THE DYNAMIC LENGTH STRUCTURE A DYNAMIC-LENGTH ITEM OCCUPIES IN A RECORD IMAGE
     /// (ISO §12.3.7.4 GR18 length field, GR19 delimiter; docs/CONFORMANCE.md §3 D-DL3; kb/Work PB1094): the runtime
@@ -731,12 +764,6 @@ public sealed class FileModel
     internal static bool CarriesStructure(DataItem record) =>
         record.IsDynamicLength ? StructureOf(record) is not null
         : record.IsGroup && record.Children.Any(c => c.RedefinesTargetName is null && CarriesStructure(c));
-
-    /// <summary>The structure overhead of every dynamic-length item at or beneath <paramref name="item"/> that is
-    /// not a redefinition — the minimum-size twin of <see cref="MaxDynamicExtent"/>'s per-leaf term.</summary>
-    private static long StructureOverheadBeneath(DataItem item) =>
-        item.IsElementary ? StructureOverhead(item)
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(StructureOverheadBeneath);
 
     /// <summary>⛔ THE ONE "does this record have a fixed character window?" predicate — D-FRA
     /// (docs/CONFORMANCE.md §3, kb/Work PB981). A record description that is a dynamic-length elementary item,
@@ -813,7 +840,9 @@ public sealed class FileModel
     internal static int MinRecordSize(DataItem item) => (int)Math.Min(int.MaxValue, MinExtent(item));
 
     /// <summary>GR8 a)'s summation, per occurrence of <paramref name="item"/> (a parent multiplies by the item's
-    /// own <see cref="DataItem.MinimumOccurrences"/>). Three arms:
+    /// own <see cref="DataItem.MinimumOccurrences"/>). Three arms, the first two adding
+    /// <see cref="MinimumStructureOverhead"/> (a dynamic-length item is zero bytes at its minimum, but its length
+    /// field and delimiter are not, <see cref="StructureOverhead"/>):
     /// <list type="bullet">
     ///   <item>no table varies beneath the item — its <see cref="DataItem.ByteWidth"/>, the fixed GR8 sum;</item>
     ///   <item>a bit-bearing subtree over an occurs-depending table — the §8.5.1.6.3 placement of that table (the
@@ -823,11 +852,12 @@ public sealed class FileModel
     ///   <item>otherwise the sum over the non-redefining children, each at its minimum occurrence count.</item>
     /// </list></summary>
     private static long MinExtent(DataItem item) =>
-        item.IsElementary || !HasVaryingTableBeneath(item) ? item.ByteWidth + StructureOverheadBeneath(item)
+        item.IsElementary || !HasVaryingTableBeneath(item)
+            ? item.ByteWidth + MinimumStructureOverhead(item)
         : item.HasBitDescendant && OdoModel.TableUnder(item) is { OccursSpec: { } os } table
                 && BitLayout.StartBitOf(item, table) is >= 0 and var start
             ? BitLayout.Characters(start
-                + BitLayout.TableBits(table, os.Min))
+                + BitLayout.TableBits(table, os.Min)) + MinimumStructureOverhead(item)
         : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => MinExtent(c) * c.MinimumOccurrences);
 
     /// <summary>Whether an occurs-depending table — the one table in a record whose occurrence count varies —
