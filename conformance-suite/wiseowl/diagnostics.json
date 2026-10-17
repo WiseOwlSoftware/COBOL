@@ -13332,6 +13332,13 @@
   ],
   "expect": "COBOLNET0862"
  },
+ "pb3253-record-contains-bits-beside-dynamic-one-over": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2010"
+ },
  "pb3254-merge-in-inverted-section-sort-procedure": {
   "refuse-at": [
    "2023"
