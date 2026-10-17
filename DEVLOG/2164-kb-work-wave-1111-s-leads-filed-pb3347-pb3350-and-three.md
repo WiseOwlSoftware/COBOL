@@ -1,4 +1,4 @@
-## kb/Work: wave 1111's leads filed (PB3347-PB3350 and three addenda)
+## Entry 2164 — 2026-10-17 16:32 PDT — kb/Work: wave 1111's leads filed (PB3347-PB3350 and three addenda)
 
 The enqueue unit's leads from the wave-1111 reports (A, C, D, H) are on the register. Each was grepped against kb/Work by
 member and symptom first; no code changed.
@@ -16,3 +16,4 @@ Addenda: PB1322 gets the measurement (108 distinct CS1574 in `Cobol.Net.Compiler
 PB3192 gets its third symptom (a method's TYPE clone registers its subordinate names class-wide, `q1.cob`); PB3260 gets the
 second report-header symptom (the `(HEAD <sha> when cut)` parenthetical read as the report's HEAD) and its code sites.
 PB3351 was allocated and not used: lead 7 was an addendum to PB3260, whose fix shape already names the mechanism.
+
