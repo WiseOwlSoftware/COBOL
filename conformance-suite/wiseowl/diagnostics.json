@@ -13738,6 +13738,12 @@
   ],
   "expect": "COBOLNET1720"
  },
+ "pb3342-slot-named-like-its-class-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb337-assign-using-strong-group": {
   "refuse-at": [
    "2002",

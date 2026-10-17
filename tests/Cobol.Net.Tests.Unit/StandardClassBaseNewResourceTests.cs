@@ -32,7 +32,7 @@ public sealed class StandardClassBaseNewResourceTests
     {
         // New's result is the universal object type (it crosses as §16.2's ACTIVE-CLASS returning item, kb/Work PB1582).
         var made = Assert.IsType<Thing>(ThingFactory.Instance.__New());
-        Assert.Same(ThingFactory.Instance, made.FACTORYOBJECT());   // §16.2.2.2 GR1
+        Assert.Same(ThingFactory.Instance, made.__FactoryObject());   // §16.2.2.2 GR1
     }
 
     [Fact]
