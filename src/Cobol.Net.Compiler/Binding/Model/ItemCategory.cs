@@ -237,9 +237,9 @@ public static class ItemCategory
     /// the standard states NO usage for it (a variable-length group, §8.5.1.12.1: "not equivalent to an
     /// alphanumeric data item"). A rule that REFUSES (STRING SR1) rejects what the standard names and never what
     /// it cannot classify, which is why the two nulls are one answer here; a rule that must ADMIT positively
-    /// asks <see cref="IsDisplayOrNationalUsage"/>. A leaf stored as a character image (the post-bind
-    /// <c>StoreAsImage</c> form) is a DISPLAY or NATIONAL numeric by construction, so no storage-form exemption is
-    /// asked: a storage form is not a usage.
+    /// asks <see cref="IsDisplayOrNationalUsage"/>. No storage-form exemption is asked: a storage form is not a
+    /// usage (a Tier-B BINARY or PACKED leaf is stored as a character image too, its <c>Pic.Usage</c> unchanged),
+    /// and the post-bind <c>StoreAsImage</c> flag is not yet computed when procedure binding runs.
     /// </summary>
     public static DataItem? UsageOutsideDisplayOrNational(DataItem item)
     {
