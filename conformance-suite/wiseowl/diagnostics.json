@@ -4263,6 +4263,12 @@
   ],
   "expect": "COBOLNET1671"
  },
+ "pb1099-record-key-source-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "(21,30): error COBOLNET0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause"
+ },
  "pb11-format-kind-chimera": {
   "refuse-at": [
    "2014",
@@ -13954,51 +13960,6 @@
    "2023"
   ],
   "expect": "START on 'IXF': 'IX-LONG' is neither a record key of the file nor an item that begins at the leftmost character position of one within a record of that file"
- },
- "pb358-alternate-key-source": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE IS F-K2 F-D)"
- },
- "pb358-alternate-key-source-duplicates": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE IS F-K2)"
- },
- "pb358-alternate-key-source-optional-words": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE F-K2)"
- },
- "pb358-record-key-source": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the RECORD KEY clause on file 'F-IX' (F-COMPOSITE SOURCE IS F-K1 F-K2)"
- },
- "pb358-record-key-source-optional-words": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the RECORD KEY clause on file 'F-IX' (F-COMPOSITE SOURCE F-K1)"
  },
  "pb361-use-outside-declaratives": {
   "refuse-at": [
