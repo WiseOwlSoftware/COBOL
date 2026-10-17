@@ -326,8 +326,8 @@ public static class CobolSort
     /// <summary>⛔ THE SORT/MERGE STATEMENT'S OWN ASSOCIATION (§12.4.5.3 GR3; kb/Work PB1097): <i>"The association
     /// occurs at the time of execution of an OPEN, SORT, or MERGE statement that referenced file-name-1"</i>, and
     /// when the content of data-name-1 is not consistent <i>"the OPEN, SORT, or MERGE statement is unsuccessful"</i>.
-    /// A sort-merge file is the in-memory sort store (§13.4.6), never a host connector, so nothing else asks the
-    /// question for it; the rule is <see cref="FileConnector.AssociationFailure"/>, the very one every OPEN
+    /// A sort-merge file (§13.4.6) is the statement's <see cref="SortWork"/> (memory, spilling to anonymous temporary
+    /// run files: docs/CONFORMANCE.md §3 D-SWK), never a host connector, so nothing else asks the question for it; the rule is <see cref="FileConnector.AssociationFailure"/>, the very one every OPEN
     /// applies (DOC-A.1-73). <see langword="false"/> = the association cannot be made: the statement is
     /// unsuccessful, which §3.176 defines as an attempt that "does not result in the execution of all the
     /// operations specified by that statement" — the emitted statement leaves before any phase runs. The sort-merge

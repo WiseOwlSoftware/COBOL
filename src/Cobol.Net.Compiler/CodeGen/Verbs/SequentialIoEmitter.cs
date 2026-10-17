@@ -201,7 +201,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         foreach (var file in ctx.Data.Files)
         {
-            if (file.IsSortMerge) continue;   // an SD is the in-memory sort store (ISO §13.4.6) — never a host file
+            if (file.IsSortMerge) continue;   // an SD is the runtime's sort work (ISO §13.4.6; D-SWK) — never a host file
             // ⛔ THE RECORD-LESS ARM IS DECIDED ONCE, ABOVE THE ORGANIZATION SPLIT (kb/Work PB345). It used to be
             // asked TWICE and answered differently — here it registered only a REPORT file, and
             // KeyedIoEmitter.EmitRegistration returned outright — so a legal record-description-less FD

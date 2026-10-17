@@ -83,3 +83,23 @@ class holding the witness a tree-wide sweep, and that class lacked the `Sweep` t
 class, so SortWorkBoundDriftTests keeps only the store's specific rules. The re-gate 20261017T221618Z-42bd2c:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,579 · Unit 33,577 ·
 Characterization 5 cases ran in leg 1, the new witness among them).
+
+**Branch review, round 4 (one finding, fixed).** R1-1 (review w1111c): the round-1 sibling sweep re-sited only the
+five inventory rows whose `#Member` anchors broke. The rows whose anchors still resolved kept evidence about code
+that no longer exists, because the mechanism moved into SortWork.cs behind them. GR-14.9.24.4-1 said `CobolSort.Merge`
+"k-way merges all streams into f.Records", GR-14.9.24.4-4 said "Merge picks the head with STRICT less-than",
+GR-14.9.24.4-6 said "CobolSort.Merge scans each USING stream", and GR-14.9.40.4-3 / -4 said `CobolSort.Sort` "ties on
+the buffer index". Both members are now thin calls into `SortWork.Sequence`, and no row named SortWork.cs.
+Ten rows are restated through `record_verdicts.py` (batch `w1111c-pb3339-sortwork-trace`: +17 code-location and +9
+test-ref witnesses, none retired, GAP 58 -> 58): GR-14.9.24.4-1, -4, -5, -6, -12, -14 and GR-14.9.40.4-3, -4, -9, -15.
+Each now names the SortWork member that carries the rule (`Sequence`, `SequenceMerge`, `WriteStreamChunks`,
+`NextStream`, `CheckOrder`, `OrderViolations`, `SortedOrder`, `Cascade`, `Rewind`, `SortMergeCursor`) and the spill
+witnesses (SortWorkBoundTests, SortWorkSpillConformanceTests), and its notes describe the bounded store.
+GR-14.9.24.4-4 also drops a stale "test-needed": the row's own golden and the spill tests cover it. Every quoted rule
+text was re-checked with `cite.py --check` (14.9.24.4 1), 4) a), 6), 12); 14.9.40.4 3) b), 9), 15): all OK). The
+regression witness is `SortWorkTraceabilityDriftTests.EveryStatementRuleSortWorkCites_IsARowThatNamesSortWork`: every
+`§14.9.24.4 GRn` / `§14.9.40.4 GRn` that SortWork.cs cites must be a row whose code-location names
+`SortWork.cs#<member>`, so a rule the file takes on later is held without editing the test. On the reviewed inventory
+it fails and names the six untraced rules; on the fix it passes. The same stale claim, "the in-memory sort store", was
+swept out of four comments (CobolSort.AssociationMade, FileConnector.AssociationFailure, SequentialIoEmitter,
+OoEmitter).
