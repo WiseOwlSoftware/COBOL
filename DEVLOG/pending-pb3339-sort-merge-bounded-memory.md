@@ -102,4 +102,5 @@ regression witness is `SortWorkTraceabilityDriftTests.EveryStatementRuleSortWork
 `SortWork.cs#<member>`, so a rule the file takes on later is held without editing the test. On the reviewed inventory
 it fails and names the six untraced rules; on the fix it passes. The same stale claim, "the in-memory sort store", was
 swept out of four comments (CobolSort.AssociationMade, FileConnector.AssociationFailure, SequentialIoEmitter,
-OoEmitter).
+OoEmitter). The round-4 gate 20261017T224009Z-ffb38d: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+GREEN` (Conformance 11,585 · Unit 33,591 · Characterization 5 cases ran in leg 1, the new witness among them).
