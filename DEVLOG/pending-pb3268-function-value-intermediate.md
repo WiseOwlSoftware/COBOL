@@ -33,8 +33,8 @@ subscript temp as S9(21)V9(9).
 COMP-3, COMP-5, numeric-edited, 9(25), V9(20) and S9(30)V9) compares `MOVE f TO R1 R2` with `MOVE f TO R3`: BAD=0 in both
 modes after the fix. Reference-modified character receivers (`--permissive`) and RANDOM (one draw) agree too.
 
-**Goldens.** `85/pb3268_function_value_one_evaluation`, `2002/pb3268_function_value_pi_and_wide_integers`,
-`2023/pb3268_function_value_float_receivers`, `2023/pb3268_function_value_standard_decimal`, each derived from the rule and
+**Goldens.** `cases/_unassigned/pb3268_function_value_one_evaluation`, `cases/_unassigned/pb3268_function_value_pi_and_wide_integers`,
+`cases/_unassigned/pb3268_function_value_float_receivers`, `cases/_unassigned/pb3268_function_value_standard_decimal`, each derived from the rule and
 the true decimal expansions of PI, E and SQRT(2); no negative, since the change rejects no source. The drift test
 `FunctionValueIntermediateDriftTests` holds the carrier over every `Float: true` catalog row (native: `double`; decimal
 engine: not `double`) and that only the three readers of the returned-value item ask for `FunctionValuePic`; it reuses
@@ -70,7 +70,7 @@ function's binary64 value. The fix is `FunctionValueLane`: the renderer's functi
 added tomorrow is a compile error there as in `NumericRenderer`), following `CombineCore` and `Power` for the arithmetic
 around a float; `NumericLiteral.TryGetIntegerValue` is the one reader of "is this literal an integer value" now shared with
 `NumericRenderer`'s exact-power arm. The list it restates - the functions with an SDIDI body under native arithmetic - is
-pinned to `RenderDec`'s switch by `FunctionValueLaneDriftTests`; the golden `2023/pb3268_function_value_lane_matrix` is the
+pinned to `RenderDec`'s switch by `FunctionValueLaneDriftTests`; the golden `cases/_unassigned/pb3268_function_value_lane_matrix` is the
 whole prediction against the renderer's actual answer: 353 cells of function x argument shape x receiver set, each a
 multi-receiver MOVE compared with the single-receiver one (BAD=0000), plus the VARIANCE and ANNUITY readbacks (7/450 and
 0.1331/0.331 truncated at 25 places) and the 1E+30 and 1E-20 COMP-2 cases. (2) A floating-point receiver beside a
@@ -94,7 +94,7 @@ ask. (2) A binary64 or fractional operand at a §15.3 type-6 position is already
 lane predicates, so `AtPosition` does the same in the prediction (`COMBINED-DATETIME` of a COMP-2 date, permissive only).
 (3) The `Selections` citation said "the content of" for ORD-MAX / ORD-MIN (§15.71.4 / §15.72.4 return an ordinal number)
 and for MEDIAN (§15.61.1; §15.61.4 r2 makes an even count the arithmetic mean); corrected in the code, the renderer
-comment and the intrinsics design doc. Goldens: `2023/pb3268_function_value_nested_lane` (derived from the equivalent
+comment and the intrinsics design doc. Goldens: `cases/_unassigned/pb3268_function_value_nested_lane` (derived from the equivalent
 arithmetic expressions with exact decimals: 7/450, 0.1/(1-1.1^-3), sqrt(7/450)); the permissive witness is a unit test,
 since strict conformance rejects the float at a type-6 position. Residual: a computed expression as the direct argument of
 a nested wide cross-aligning call has a digit bound only the renderer's arithmetic knows.
@@ -116,7 +116,7 @@ intermediate: an INTEGER function's intermediate was the returned-value item's S
 R2` (N31, R PIC S9(31)) dropped the leading digit of a 31-digit value the single MOVE stores whole. The intermediate of an
 integer value is now the carrier's 38 digits at scale 0 (`SendingValueTemp.IntegerIntermediatePic`; the 30-digit item stays
 what `FUNCTION LENGTH` measures and the text image a character formal reads). Witness:
-`2023/pb3268_function_value_integer_nested` (INTEGER and INTEGER-PART of 1.5E0 and a wide integer SUM nested in ANNUITY,
+`cases/_unassigned/pb3268_function_value_integer_nested` (INTEGER and INTEGER-PART of 1.5E0 and a wide integer SUM nested in ANNUITY,
 8/7 and 1/3 truncated to 25 places, and the 31-digit INTEGER and SUM stored whole; prints BAD=0000).
 
 **Review round 4 (w1108b finisher).** Two findings on the round-3 head `75b34dce4`. R1-1: `SendingValueTemp.IntermediatePic`
@@ -127,7 +127,7 @@ stores 1.5E+50, INTEGER-PART likewise, and `MOVE FUNCTION INTEGER(1.5E40) TO C1 
 `E:\COBOL-coord\scratch\w1108\w1108b\r1big.cbl`). §15.2 item 5 fixes the type, never the magnitude (OK §15.2 5)), so the
 binary64 / all-float question now comes first for every function and the integer item answers only what is left; the text
 use keeps the returned-value item's 30-digit image (DOC-A.1-92). EVALUATE / IF over INTEGER(F) and a fixed-point receiver
-beside a float one agreed before and after (`r1evl.cbl`). Witness `2023/pb3268_function_value_integer_float` (INTEGER and
+beside a float one agreed before and after (`r1evl.cbl`). Witness `cases/_unassigned/pb3268_function_value_integer_float` (INTEGER and
 INTEGER-PART of a FLOAT-LONG 1.5E50, INTEGER(1.5E40), INTEGER(-2.5E0) beside a fixed receiver; BAD=0003 on the round-3
 build, BAD=0000 now). R1-2: the lane (`CobolNet.Binding.Procedure`, compiler.binding) imported `CobolNet.CodeGen.Emit`
 (`IntrinsicRenderer.CrossAlignedNativeArms`, `EmitText.UnscaledLit`) and the renderer imported the lane
@@ -156,6 +156,23 @@ unchanged). A mixed set takes the exact fixed-point carrier: an INTEGER function
 receiver bounds the digits, so no magnitude the returned-value item's S9(21)V9(9) holds is cut (the 12-integer-digit float
 window stored 573326295040 for a 19-digit NUMVAL into a COMP-1 beside a COMP-2, `r2\mixnum.cbl`). After: every line of
 both probes agrees with the one-receiver store; `COMPUTE C1 C2 = X` storing 2**60 is the no-ROUNDED truncation PB1110
-adjudicated, not this defect. Witnesses: `2023/pb3268_function_value_binary32_receivers` (BAD=0007 on the round-4 build,
+adjudicated, not this defect. Witnesses: `cases/_unassigned/pb3268_function_value_binary32_receivers` (BAD=0007 on the round-4 build,
 BAD=0000 now) and `FunctionValueIntermediateDriftTests.AnAllFloatReceiverSet_HoldsTheValueInTheReceiversOwnBinaryFormat`
 (the intermediate's C# type for all-binary32, all-binary64 and mixed sets, and for a float-family value).
+
+**The landing stop (finisher).** The landing's Linux unit leg failed
+`AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names`: DOC-A.1-92's new prose named `DOC-A.1-81`, a
+register row key, so the token appeared twice in `docs/CONFORMANCE.md` for one row; prose cites "A.1 item 81". The
+Windows leg 1 never ran the test: it reads `CONFORMANCE.md` through `audit_annex_a1.py`, so neither its summary nor its
+literals named the file and `drift_rules.py` did not list it for `docs/CONFORMANCE.md` (its summary now does), and with no
+impact map recorded the planner has no tier that runs the drift tests governing a changed file. Then main landed PB370
+(`ReceivingReach`, a second sizing of the same intermediate) and PB3177 S2 (the corpus move). The merge keeps ONE
+description, `SendingValueTemp.IntermediatePic`: PB370's two shapes it lacked, a floating-point set holding a
+floating-point numeric-edited receiver and an all-fixed-point set past the 38-digit carrier, now take the 36-digit
+decimal `+9.9(35)E+9999` there, a floating-point edited receiver beside fixed-point ones counts as floating-point, the
+fixed-point fold is `PicInfo.WidestReceiving`, and `ReceivingReach` is deleted with every caller changed; PB370's
+`Positioned` freeze order is kept as it landed. Both sides' goldens pass on the merged build
+(`pb370_move_function_value_digits`, `pb370_move_first_condition`, `pb370_move_property_receiver_order` and all nine
+PB3268 goldens). The nine PB3268 programs were re-homed by the restored S2 converter into `cases/_unassigned/` and the
+citations swept; row GR-14.9.25.4-1's code-location retires `ReturnedValuePicFor` and `ReceivingReach.Of` (batch
+PB3268-finisher-one-intermediate).
