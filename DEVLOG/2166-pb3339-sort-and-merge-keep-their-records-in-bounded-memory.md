@@ -1,4 +1,4 @@
-## PB3339: SORT and MERGE keep their records in bounded memory, with sorted runs on temporary files
+## Entry 2166 — 2026-10-17 16:49 PDT — PB3339: SORT and MERGE keep their records in bounded memory, with sorted runs on temporary files
 
 The owner, on PB3330's keyed files (2026-10-17): "Reading the entire file into memory as a design requirement is a fatal
 flaw, IMO". The operator swept the runtime for the same pattern. The sequential organizations stream through their
@@ -121,3 +121,4 @@ value, and a theory pins `OtherMajorOf` over majors 0, 8, 9, 10, 99 and 100. No 
 recorded version or assumes its length. The finisher gate 20261017T232004Z-91b8e5: `=== BUILD-LOCAL GATE: LEG 1
 ONLY (batched gating, PB2515): GREEN` (Conformance 11,419 · Unit 33,596 · Characterization 5 cases ran in leg 1,
 the new theory among them).
+
