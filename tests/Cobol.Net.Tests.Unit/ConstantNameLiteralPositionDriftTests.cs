@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Concurrent;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Tree;
@@ -25,8 +24,8 @@ namespace CobolNet.Tests.Unit;
 /// <list type="bullet">
 /// <item>every literal reference that sits in a block offering no word alternative is a position a constant-name cannot
 /// be written in, and must be argued in <see cref="NotAConstantPosition"/> as a position no constant-name can stand in;</item>
-/// <item>every literal reference that sits beside a word alternative is a SLOT, and an enabled positive golden of the
-/// conformance corpus must write a declared constant-name in that slot's word arm (it compiles strict and matches its
+/// <item>every literal reference that sits beside a word alternative is a SLOT, and an accepted test of the
+/// conformance suite must write a declared constant-name in that slot's word arm (it compiles strict and matches its
 /// output, so the binder arm admitted the word as the literal), or the slot is argued in <see cref="Unwitnessed"/>.</item>
 /// </list>
 /// The integer positions are held by the same rule elsewhere (<see cref="IntegerOperandSlotDriftTests"/>: an
@@ -150,8 +149,8 @@ public sealed class ConstantNameLiteralPositionDriftTests
         Assert.All(NotAConstantPosition.Keys.Concat(Unwitnessed.Keys), r => Assert.Contains(Grammar.ContextName(r), contexts));
     }
 
-    /// <summary>For each slot rule, the first enabled 2002+ positive golden whose parse writes a declared constant-name in
-    /// one of that rule's word arms.</summary>
+    /// <summary>For each slot rule, the first conformance-suite test accepted at a 2002+ edition whose parse writes a
+    /// declared constant-name in one of that rule's word arms.</summary>
     private static ConcurrentDictionary<string, string> CorpusWitnesses(HashSet<string> slotRules, out int parsed)
     {
         var slotTypes = typeof(CobolParserCore).GetNestedTypes()
@@ -160,15 +159,17 @@ public sealed class ConstantNameLiteralPositionDriftTests
         var literalTypes = typeof(CobolParserCore).GetNestedTypes()
             .Where(t => Carriers.Contains(Grammar.RuleName(t.Name))).ToHashSet();
         var witnesses = new ConcurrentDictionary<string, string>(StringComparer.Ordinal);
+        // The suite's accepted tests at each 2002+ edition, as the generator's manifest states them (the one reader of
+        // the test headers, SuiteManifest): a missing program is the manifest's red, never a test this scan skips.
         var programs = new List<(string Path, int Year)>();
-        foreach (int year in new[] { 2002, 2014, 2023 })
+        foreach (var (edition, tests) in SuiteManifest.Manifest.Editions)
         {
-            string dir = TestRepo.Tests("conformance", year.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            using var manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(dir, "manifest.json")));
-            foreach (var name in manifest.RootElement.GetProperty("enabled").EnumerateArray())
+            int year = int.Parse(edition, System.Globalization.CultureInfo.InvariantCulture);
+            if (year < 2002) continue;
+            foreach (SuiteTest test in tests.Values.Where(t => t.Expect == "accept"))
             {
-                string path = Path.Combine(dir, name.GetString() + ".cob");
-                if (File.Exists(path) && File.ReadAllText(path).Contains("CONSTANT", StringComparison.OrdinalIgnoreCase))
+                string path = Path.Combine(SuiteManifest.Root, test.Source);
+                if (File.ReadAllText(path).Contains("CONSTANT", StringComparison.OrdinalIgnoreCase))
                     programs.Add((path, year));
             }
         }

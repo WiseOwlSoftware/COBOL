@@ -25,7 +25,7 @@ public enum PicCategory
     /// national leaf: the D-N2 refusal went when kb/Work PB231 collapsed the byte-window carriage gate into ONE
     /// predicate, and a national leaf on either side of a REDEFINES
     /// class is a MOVE receiver like its DISPLAY twin (§13.18.60.4 GR2 — kb/Work PB572, pinned by
-    /// <c>conformance:2002/pb572_national_redefines_receiver</c>).</summary>
+    /// <c>conformance:cases/13.18.60-USAGE/pb572_national_redefines_receiver</c>).</summary>
     National,
     /// <summary>Boolean (<c>PIC 1</c>, optionally <c>USAGE BIT</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — LIVE
     /// (Phase 4a track (a)): one alphanumeric character '0'/'1' per boolean position (the §13.18.40.4 GR14 R14
@@ -700,6 +700,25 @@ public sealed record PicInfo(
         : this is { Category: PicCategory.NumericEdited, EditMask: { } mask }
             ? CobolNet.Runtime.CobolEdit.MaskScale(mask, EditingRules as CobolNet.Runtime.CobolEdit.EditRule[], '$', DecimalPointIsComma)
         : Scale;
+
+    /// <summary>⛔ THE ONE FOLD OF "WHAT A SET OF RESULTANTS CAN HOLD" (kb/Work PB2694, PB370): the widest
+    /// <see cref="ReceiverScale"/> and the widest INTEGER digit-position count (<see cref="DigitPositions"/> less the
+    /// scale — over-counting is safe, under-counting is not) over <paramref name="pics"/>, so one value rendered or
+    /// frozen for the set loses no digit any receiver can hold. A null PICTURE (an index, an object) contributes
+    /// nothing. <c>ReceiverContext.OfSet</c> builds an arithmetic statement's context from it, and
+    /// <c>ReceivingReach.Of</c> sizes the fixed-point intermediate a MOVE freezes a numeric function's value into
+    /// from it (over the fixed-point receivers only — a floating-point one has no scale to fold).</summary>
+    public static (int Scale, int IntegerDigits) WidestReceiving(IEnumerable<PicInfo?> pics)
+    {
+        int scale = 0, integerDigits = 0;
+        foreach (var pic in pics)
+        {
+            int s = pic?.ReceiverScale() ?? 0;
+            scale = Math.Max(scale, s);
+            integerDigits = Math.Max(integerDigits, pic is null ? 0 : Math.Max(0, pic.DigitPositions - s));
+        }
+        return (scale, integerDigits);
+    }
 
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the FULL §13.18.60.2 description —
     /// kind × FACTORY × ONLY × name (<see cref="ObjectRefDescriptor"/>). Null for every other category.

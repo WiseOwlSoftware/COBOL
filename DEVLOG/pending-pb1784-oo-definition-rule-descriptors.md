@@ -67,10 +67,10 @@ The test `OverrideFinal_0838_0839` is renamed `OverrideFinal_0838_0839_FinalBase
 test-refs. Each of those rows records the old name as a `retired-witness:`, the witness-loss audit's form for a
 rename; the first re-gate went RED on that audit before the mark was added. The GR-11.3.4-3 probe was re-run on this build (`CLASS-ID. FC INHERITS FB.` with FB FINAL gives
 COBOLNET2791 citing §11.3.3 SR5 / §11.3.4 GR3 at 2002, 2014 and 2023). The root was that nothing reads a golden's
-header, so a new drift test over `tests/conformance/negative`, `NegativeGoldenHeaderCodeDriftTests`, now checks it
+header, so a new drift test over the negative goldens, `NegativeGoldenHeaderCodeDriftTests`, now checks it
 (a directory below the sweep depth, so it carries no `Sweep` trait; the second re-gate went RED on
 `HostWitnessTraitDriftTests` while it did): a code a header states after
-`Expected`, `Diagnostic` or `->` must be one its `.err` pins. It checks 85 goldens. On the reviewed head it reports
+`Expected`, `Diagnostic` or `->` must be one its `.err` pins (since the re-homing below, its refusal's `expect`). On the reviewed head it reports
 five of the seven stale headers; the other two named the code in prose. A built-in fixture proves the detector trips.
 The review finisher's gate, run `20261017T113417Z-7025a0` on `f84c138f0`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
 gating, PB2515): GREEN`, with Conformance 6,246/11,953, Unit 33,517/33,927 and Characterization 5/36 run and no
@@ -104,3 +104,17 @@ never used, and the Linux gate's clone reads its objects through alternates on t
 16-24 s on a quiet host. `--check` now partitions the tree's paths only, the shard writer reads only the domain files'
 blobs, and the glob regexes are cached: 23.7 s down to 0.22 s in the WSL clone, 6.3 s down to 0.54 s on Windows, with
 byte-identical shard output. kb/Work PB2882 records it.
+
+**Re-homed onto PB3177 slice S2 (finisher, 2026-10-17).** S2 landed first (main `fb006c1de`) and deleted
+`tests/conformance/`, so the branch's goldens moved to the suite by the recipe of kb/Work PB3177 § Landed. The six
+programs the branch changed only in their comments merged into their suite files by rename (one, `pb1502-interface-
+inherits-same-name-twice`, by hand: main's re-spelled `conformance:cases/...` citation with the branch's COBOLNET2791).
+The seven re-pinned `.err` files became their refusals' `expect` in `conformance-suite/wiseowl/diagnostics.json`, each
+checked first to equal the merge base's `.err` (no position shift). The three new negatives were put back at their old
+paths (git had dropped them, unconverted, into `cases/_unassigned/`) and converted by the restored `convert_s2.py`:
+all three to `cases/_unassigned/` (no inventory row cites them) with their refusals. The inventory was merged field by
+field: three `test-ref` fields both sides changed took the branch's renamed C# witnesses and main's re-spelled
+`conformance:` refs. Both sweeps (the S2 map and this conversion's) rewrote nothing, and no line the branch adds names
+`tests/conformance/`. `NegativeGoldenHeaderCodeDriftTests` now reads the suite's refusals through the generator's
+manifest (2,207 of 2,762 refusals pin a code); a planted stale header turns it red by name. The tools were deleted
+again; `generate.py` reads 5,245 tests, none refused.
