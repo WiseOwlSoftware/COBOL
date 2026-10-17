@@ -71,7 +71,7 @@ A reader following the doc would write a call that does not compile, and would n
 statement's key descriptors. Both places now name `CobolSort.Init(name, keys, collation, national)`, and the snapshot
 paragraph says why the keys moved there: the bounded store orders a run whenever the release phase fills its memory
 limit, and `SortWork` holds the keys and both snapshots for the whole statement. The witness is
-`SortWorkBoundDriftTests.EveryDocCallOfTheSortRuntime_NamesAShippedShape`. It reads every backquoted `CobolSort.<Member>(args)`
+`SortRuntimeDocShapeDriftTests.EveryDocCallOfTheSortRuntime_NamesAShippedShape`, a tree-wide sweep with its own class. It reads every backquoted `CobolSort.<Member>(args)`
 call in `docs/` and requires a public CobolSort member that takes it. That means the right arity, and an argument
 spelled as one of the member's parameter names must stand at that parameter's position. Position matters because the
 removed three-argument spelling has an arity the new Init still accepts. On the reviewed doc text the test fails and
