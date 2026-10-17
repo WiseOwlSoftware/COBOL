@@ -208,8 +208,8 @@ formal (group / REDEFINED / addressed) is described as a BASED item whose per-ac
 the argument's area; only an argument with no area gives it a fresh cell, filled from the carrier and, BY REFERENCE, stored
 back at return. A variable-length group formal is an area formal too (kb/Work PB2094): it is laid over an argument of the
 same storage, its components numbered from the area's component ordinal (`CellPointer.DynBase`), and a fresh area is its
-own seeded cell filled through the component carrier. A strongly-typed group with an object-reference or pointer leaf
-(`OoClassTable.LeafCarried` — no character image) crosses as its LEAF VECTOR; where one side lives in a cell (an area
+own seeded cell filled through the component carrier. A strongly-typed group with an object-reference or pointer leaf, fixed or variable-length
+(`OoClassTable.LeafCarried` — no character image; kb/Work PB3139) crosses as its LEAF VECTOR; where one side lives in a cell (an area
 formal, or a group claimed onto a cell because it is passed BY REFERENCE) the vector is composed and distributed member by
 member through `PlaceCursor` (`PlaceRenderer.GroupLeaves` / `WriteGroupLeaves`), in its record struct's field order, so
 the managed slots cross whole (no REDEFINES can sit inside such a type, §13.18.44.3 SR14). The
@@ -272,16 +272,22 @@ a subordinate object reference to a strong type declaration, and §14.8.2.2 / §
 formal (the two returning items) to be "of the same type". Such a group crosses a typed INVOKE as `object?[]`, the
 vector of its record struct's PHYSICAL fields (`OoClassTable.LeafCarried` selects it, ahead of `StringCarried`, in
 `OoCrossingType`; `RecordStructEmitter.EmitLeafMethods` gives that struct and every struct nested in it `AsLeaves()` and
-a static `OfLeaves`; `PlaceRenderer.GroupLeaves` / `WriteGroupLeaves` are the one reader and writer): an elementary
+an instance `WithLeaves`; `PlaceRenderer.GroupLeaves` / `WriteGroupLeaves` are the one reader and writer): an elementary
 field by value (an object reference as the reference), a fixed table as a copy of its array, a nested group by its own
-vector. BY REFERENCE copies back, BY CONTENT does not, RETURNING delivers it. **Why a field-wise copy and not one
+vector, a dynamic-length item as its current content and a dynamic-capacity table as its current occurrences in its
+element's form (kb/Work PB3139). `WithLeaves` is an instance method because a dynamic-capacity table is recreated in the
+RECEIVER's description (§14.6.9.2; `CobolDynTable.Recreated`): its minimum, expected capacity and element seeds are the
+receiving table's, which a vector cannot carry. BY REFERENCE copies back, BY CONTENT does not, RETURNING delivers it, and
+a group MOVE between two groups of the type is the same vector (§14.9.25.3 SR2). **Why a field-wise copy and not one
 emitted struct per type declaration:** every `TYPE T` clone has its own `private record struct`, and two EQUIVALENT
 type declarations in two source elements (§8.5.3.1 — the program's `T` and the class's `T`) are two C# types that cannot
 see each other, so a shared struct would serve only the same-element case and the cross-element case would still need a
 conversion; the vector is the one carrier that works between any two of them, and it changes no other emission.
-**Not yet carried:** the program ABI (CALL / user function, `CobolArg`): `ParameterConformance.CheckArgument` /
-`ReturningCarrierResidue` refuse it at compile time (COBOLNET1688 / the RETURNING code) naming the carrier, after the rule
-has admitted it. Universal dispatch carries it (kb/Work PB480): the caller boxes the same leaf vector, and the
+**The program ABI** (CALL / user function, `CobolArg`) carries such a group as its cell AREA (kb/Work PB1940): BY
+REFERENCE the argument's own, BY CONTENT a detached copy (`CobolArgAdapt.ContentRecord`), RETURNING a store into the
+receiver's area (`CobolArgAdapt.StoreReturnArea`); a variable-length one's components ride the same area
+(`StorageCell.CopyArea` / `StoreArea`, kb/Work PB3139). `ParameterConformance.CheckArgument` /
+`ReturningCarrierResidue` refuse only storage no cell claim reaches, naming the carrier, after the rule has admitted it. Universal dispatch carries it (kb/Work PB480): the caller boxes the same leaf vector, and the
 run-time relations admit only an argument of the same type (§8.5.2.1 category = type-name, §8.5.3.1 identity).
 
 **Tier-C posture at the method boundary.** A NON-strong group with a pointer leaf, or a variable-length group
