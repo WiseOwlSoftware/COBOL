@@ -273,6 +273,22 @@ public sealed class CobolDynTable<T>
     /// the current capacity is unchanged.</summary>
     public void InitializeAll() { for (int i = 0; i < _count; i++) _store[i] = _seedAt(i + 1); }
 
+    /// <summary>⛔ A DETACHED COPY OF THE TABLE (kb/Work PB3139): the same description — its FROM minimum, its TO expected
+    /// capacity, its seeds and its INITIALIZED recipe — at the same current capacity, each occurrence copied by
+    /// <paramref name="copyElement"/>, so no store through the copy reaches this table. It is the dynamic-capacity table
+    /// component of a detached area (<see cref="StorageCell.CopyArea(long, int, int, int)"/>: ISO §14.2.3 GR9's record "as if
+    /// this record does not occupy the same storage area as the argument") and of a RETURNING delivery into the receiver's
+    /// area. No SEARCH of the copy is in progress.</summary>
+    public CobolDynTable<T> CopyOf(Func<T, T> copyElement)
+    {
+        var copy = (CobolDynTable<T>)MemberwiseClone();
+        copy._store = new T[_store.Length];
+        for (int i = 0; i < _count; i++) copy._store[i] = copyElement(_store[i]);
+        copy._searching = 0;
+        copy._scratch = default!;
+        return copy;
+    }
+
     /// <summary>The table's CURRENT-EXTENT character image: every occurrence up to the current capacity,
     /// rendered by <paramref name="imageOf"/> and concatenated in occurrence order (kb/Work PB164 — the
     /// §14.9.11.4 GR7 documented DISPLAY format for a variable-length group renders each dynamic-capacity

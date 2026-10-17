@@ -216,7 +216,7 @@ public sealed class OoClassTable
     /// It is tested BEFORE <see cref="StringCarried"/>, which is true of every group.</summary>
     public static bool LeafCarried(DataItem item) =>
         item.IsGroup && !item.BoundaryImageCapable && !item.CurrentExtentImageCapable
-        && !VariableLengthCompatibility.IsVariableLength(item) && StrongTypeModel.IsStrongGroup(item);
+        && StrongTypeModel.IsStrongGroup(item);
 
     /// <summary>The §11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
     /// everything an inherited CLASS implements (transitively, cycle-safe).</summary>
