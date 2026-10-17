@@ -99,7 +99,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (set.setContentStatement() is { } sc) return BindSetContent(sc);   // F15 numeric-content (2014; kb/Work PB452)
         if (set.setEntryStatement() is { } se) return BindSetEntry(se);   // F9 + §8.4.3.13 ENTRY sender (P10 Step 7)
         if (set.setSizeStatement() is { } ss)
-            return BindSetSize(ss.setReceivingIdentifier().dataReference(), ss.arithmeticExpression());   // F16 explicit SIZE OF (2023)
+            return BindSetSize(ss.setReceivingIdentifier().dataReference(), ss.arithmeticExpression(), explicitSizeOf: true);   // F16 explicit SIZE OF (2023)
         if (set.setToValueStatement() is { } tv) return BindSetTo(tv);
         if (set.setIndexStatement() is { } ud) return BindSetUpDown(ud);
         if (set.setBooleanStatement() is { } b) return BindSetCondition(b);
@@ -807,28 +807,32 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (drefs.Length < 1)
             return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.StatementFormatShape, "SET … TO ADDRESS OF FUNCTION with no receiving operand (ISO §14.9.39.2)");
         var targets = new List<Place>(drefs.Length);
-        string? receiverProto = null;
-        for (int i = 0; i < drefs.Length; i++)
+        foreach (var dref in drefs)
         {
-            if (host.Expr.ResolveReceiving(drefs[i]) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
+            if (host.Expr.ResolveReceiving(dref) is not { } tp || tp.Item.Pic?.Category is not PicCategory.FunctionPointer)
             {
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PointerOperandShape,
-                    $"SET '{drefs[i].GetText()}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
+                    $"SET '{dref.GetText()}': the receiving operand of SET … TO ADDRESS OF FUNCTION shall be "
                     + "USAGE FUNCTION-POINTER (ISO §14.9.39.3 SR20 / §8.4.3.12.4 GR1)");
             }
             targets.Add(tp);
-            // SR20 applies to the receivers among themselves too — identifier-13 is ONE sender, so two receivers
-            // restricted to differently-signed prototypes cannot both conform to it.
-            if (i == 0) receiverProto = tp.Item.Pic?.RestrictedPrototypeName;
-            else if (!SameFunctionPrototypeSignature(receiverProto, tp.Item.Pic?.RestrictedPrototypeName))
-            {
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{targets[0].Item.CobolName}' '{tp.Item.CobolName}' TO ADDRESS OF FUNCTION: the receiving "
-                    + $"function-pointers are restricted to function-prototypes '{receiverProto}' and "
-                    + $"'{tp.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one sender "
-                    + "cannot satisfy both (ISO §14.9.39.3 SR20)");
-            }
         }
+        // ⛔ SR20 IS ASKED OF EVERY RECEIVER, NEVER OF A REPRESENTATIVE ONE (kb/Work PB3224) — see the program twin.
+        // SR20 applies to the receivers among themselves too — identifier-13 is ONE sender, so two receivers
+        // restricted to differently-signed prototypes cannot both conform to it.
+        if (ReceiversDisagreeing(targets, FunctionSignatureOf) is { } clash)
+        {
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
+                $"SET '{clash.A.Item.CobolName}' '{clash.B.Item.CobolName}' TO ADDRESS OF FUNCTION: the receiving "
+                + $"function-pointers are restricted to function-prototypes '{clash.A.Item.Pic?.RestrictedPrototypeName}' "
+                + $"and '{clash.B.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one "
+                + "sender cannot satisfy both (ISO §14.9.39.3 SR20)");
+        }
+        // §14.9.39.4 GR14's run-time screen compares the stored address with ONE signature. The receivers agree
+        // (the pair test above), so any receiver with a compile-time signature states it; with none, the screen is
+        // suppressed (ExpectedFormalsOf).
+        int expectedFormals = ExpectedFormalsOf(
+            targets.Select(t => t.Item.Pic?.RestrictedPrototypeName).FirstOrDefault(n => FunctionSignatureOf(n) is not null));
 
         // The receiving operands AS WRITTEN — every echo of the statement below names them (kb/Work PB388).
         string written = SetFormatSelection.Written(drefs);
@@ -841,7 +845,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             if (AddressNameOfIdentifier(idSyntax, $"SET {written} TO ADDRESS OF FUNCTION {DataBinder.WrittenText(idSyntax)}",
                     DiagnosticCatalog.FunctionAddressOperand, "8.4.3.12.3 SR1") is not { } idName)
                 return BoundRejected.Reported(ctx.Edition);
-            return new BoundSetFunctionAddress(targets, idName.Literal, idName.Place, ExpectedFormalsOf(receiverProto));
+            return new BoundSetFunctionAddress(targets, idName.Literal, idName.Place, expectedFormals);
         }
         var operand = fai.dataReference();
         string word = operand.GetText();
@@ -852,11 +856,13 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (isPrototypeName)
         {
             // GR3 makes the sender a function-pointer restricted to this prototype, so SR20's compare is the
-            // same one the pointer-to-pointer arm runs — one rule, one helper.
-            if (!SameFunctionPrototypeSignature(receiverProto, word))
+            // same one the pointer-to-pointer arm runs — one rule, one helper, asked of EVERY receiver.
+            foreach (var t in targets)
             {
+                string? receiverProto = t.Item.Pic?.RestrictedPrototypeName;
+                if (SameFunctionPrototypeSignature(receiverProto, word)) continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{targets[0].Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
+                    $"SET '{t.Item.CobolName}' TO ADDRESS OF FUNCTION {word}: the receiving function-pointer "
                     + $"is restricted to function-prototype '{receiverProto}' and the function-address-identifier has "
                     + $"the characteristics of a function-pointer restricted to '{word}' (ISO §8.4.3.12.4 GR3), and "
                     + "the two do not have the same signature (ISO §14.9.39.3 SR20)");
@@ -866,7 +872,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             // word otherwise) — so the bound node carries the externalized spelling, never the source word
             // (kb/Work PB303, the same drift the CALL/ENTRY paths were fixed for).
             string externalized = host.UserFunctions?.TryGetValue(word, out var proto) == true ? proto.Externalized : word;
-            return new BoundSetFunctionAddress(targets, externalized, null, ExpectedFormalsOf(receiverProto));
+            return new BoundSetFunctionAddress(targets, externalized, null, expectedFormals);
         }
         // The IDENTIFIER arm (§8.4.3.12.3 SR1): "Identifier-1 shall be of category alphanumeric or national."
         // A DEFERRED shape is the resolver's to announce; only a word that identifies nothing earns SR2's reading.
@@ -881,7 +887,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         if (!ScreenAddressName(namePlace, $"SET {written} TO ADDRESS OF FUNCTION {word}", word,
                 DiagnosticCatalog.FunctionAddressOperand, "8.4.3.12.3 SR1"))
             return BoundRejected.Reported(ctx.Edition);
-        return new BoundSetFunctionAddress(targets, null, namePlace, ExpectedFormalsOf(receiverProto));
+        return new BoundSetFunctionAddress(targets, null, namePlace, expectedFormals);
     }
 
     /// <summary>⛔ THE ONE §8.4.3.12.3 SR1 / §8.4.3.13.3 SR1 SCREEN — "Identifier-1 shall be of category alphanumeric
@@ -1071,32 +1077,34 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         // helpers this arm delegates to take it as a parameter rather than re-eliding it (kb/Work PB388).
         string written = SetFormatSelection.Written(drefs);
 
-        // §14.9.39.3 SR22's condition is the RECEIVER being restricted; the restriction the SENDER carries is
-        // §8.4.3.13.4 GR3's — the prototype arm only. Captured before the arms so both can answer it.
-        string? receiverProto = targets[0].Item.Pic?.RestrictedPrototypeName;
-        foreach (var t in targets)
-            if (!PrototypeSignatures.Same(host.ProgramSignatureOf(receiverProto),
-                                          host.ProgramSignatureOf(t.Item.Pic?.RestrictedPrototypeName)))
-            {
-                // SR22 binds the receivers to ONE sender, so two receivers restricted to differently-signed
-                // prototypes cannot both conform to it — the SR20 argument on the function twin, verbatim.
-                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{targets[0].Item.CobolName}' '{t.Item.CobolName}' TO ADDRESS OF PROGRAM: the "
-                    + $"receiving program-pointers are restricted to program-prototypes '{receiverProto}' and "
-                    + $"'{t.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one "
-                    + "sender cannot satisfy both (ISO §14.9.39.3 SR22)");
-            }
+        // ⛔ SR22 IS ASKED OF EVERY RECEIVER, NEVER OF A REPRESENTATIVE ONE (kb/Work PB3224). Its condition is the
+        // RECEIVER being restricted, and identifier-7 is a `{ } ...` list: each restricted receiver is compared with
+        // the sender on its own, so the verdict cannot depend on which receiver was written first. (The first
+        // receiver used to stand for the list; an unrestricted one made every compare vacuous, and
+        // `SET UPP RP TO ADDRESS OF PROGRAM OTHER` compiled while `SET RP UPP TO ...` drew COBOLNET1959.)
+        // SR22 also binds the receivers to ONE sender, so two receivers restricted to differently-signed
+        // prototypes cannot both conform to it — the SR20 argument on the function twin, verbatim.
+        if (ReceiversDisagreeing(targets, host.ProgramSignatureOf) is { } clash)
+        {
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
+                $"SET '{clash.A.Item.CobolName}' '{clash.B.Item.CobolName}' TO ADDRESS OF PROGRAM: the receiving "
+                + $"program-pointers are restricted to program-prototypes '{clash.A.Item.Pic?.RestrictedPrototypeName}' "
+                + $"and '{clash.B.Item.Pic?.RestrictedPrototypeName}', which do not have the same signature, so one "
+                + "sender cannot satisfy both (ISO §14.9.39.3 SR22)");
+        }
 
         if (BindProgramAddressOperand(pai, $"SET {written} TO") is not { } operand) return BoundRejected.Reported(ctx.Edition);
         if (operand.Prototype is { } word)
         {
-            // GR3: this identifier is a program-pointer RESTRICTED to `word`. SR22 then requires the
+            // GR3: this identifier is a program-pointer RESTRICTED to `word`. SR22 then requires each restricted
             // receiver's prototype to have the same signature — an unrestricted receiver meets no condition.
-            if (receiverProto is not null
-                && !PrototypeSignatures.Same(host.ProgramSignatureOf(receiverProto), host.ProgramSignatureOf(word)))
+            foreach (var t in targets)
             {
+                if (t.Item.Pic?.RestrictedPrototypeName is not { } receiverProto
+                    || PrototypeSignatures.Same(host.ProgramSignatureOf(receiverProto), host.ProgramSignatureOf(word)))
+                    continue;
                 return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.PrototypePointerSignature,
-                    $"SET '{targets[0].Item.CobolName}' TO ADDRESS OF PROGRAM {word}: the receiving "
+                    $"SET '{t.Item.CobolName}' TO ADDRESS OF PROGRAM {word}: the receiving "
                     + $"program-pointer is restricted to program-prototype '{receiverProto}' and the "
                     + $"program-address-identifier has the characteristics of a program-pointer restricted to "
                     + $"'{word}' (ISO §8.4.3.13.4 GR3), and the two do not have the same signature "
@@ -1107,7 +1115,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         string senderWhat = operand.NamePlace is null
             ? $"literal \"{operand.NameLiteral}\""
             : $"identifier '{operandRef?.GetText() ?? DataBinder.WrittenText((ParserRuleContext?)pai.functionCall() ?? pai.inlineMethodInvocation()!)}'";
-        return RestrictedReceiverNeedsPrototype(receiverProto, senderWhat, written)
+        return RestrictedReceiverNeedsPrototype(targets, senderWhat, written)
             ? BoundRejected.Reported(ctx.Edition)
             : new BoundSetEntry(targets, operand.NameLiteral, operand.NamePlace);
     }
@@ -1199,9 +1207,12 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// witness that loads a restricted program-pointer through it. §13.18.60.4 GR25's content obligation on a
     /// restricted program-pointer is a separate question about the EXTENSION's own discipline, registered as
     /// its own mechanism.</para></summary>
-    private bool RestrictedReceiverNeedsPrototype(string? receiverProto, string senderWhat, string written)
+    private bool RestrictedReceiverNeedsPrototype(IReadOnlyList<Place> receivers, string senderWhat, string written)
     {
-        if (receiverProto is null) return false;
+        // The FIRST restricted receiver is named; one is enough to refuse, and which one is named is the only thing
+        // the order of the list decides (kb/Work PB3224).
+        if (receivers.Select(r => r.Item.Pic?.RestrictedPrototypeName).FirstOrDefault(n => n is not null) is not { } receiverProto)
+            return false;
         ctx.Edition.Error(DiagnosticCatalog.PrototypePointerSignature,
             $"SET {written} TO ADDRESS OF PROGRAM {senderWhat}: the receiving program-pointer is restricted to "
             + $"program-prototype '{receiverProto}', and only the program-prototype-name-1 arm of a "
@@ -1209,6 +1220,25 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             + "is associated with no program-prototype, so the two cannot have the same signature "
             + "(ISO §14.9.39.3 SR22)");
         return true;
+    }
+
+    /// <summary>⛔ SR20 / SR22 AMONG THE RECEIVERS OF ONE ADDRESS SENDER, ORDER-FREE (kb/Work PB3224). The standard
+    /// binds every receiver to the ONE sender's signature, so two receivers restricted to prototypes of different
+    /// signatures cannot both conform to it, whatever the sender. Every PAIR is compared (not each receiver against
+    /// the first): <see cref="PrototypeSignatures.Same"/> conforms whenever either side has no compile-time signature,
+    /// which is not transitive, so a representative with none — or an unrestricted one — would hide a clash between the
+    /// rest. Returns the first disagreeing pair in source order, or null.</summary>
+    /// <param name="signatureOf">The prototype name → compile-time signature lookup of the carrier (program or
+    /// function), null for a name with none.</param>
+    private static (Place A, Place B)? ReceiversDisagreeing(IReadOnlyList<Place> receivers,
+                                                            Func<string?, CalleeSignature?> signatureOf)
+    {
+        for (int i = 0; i < receivers.Count; i++)
+            for (int j = i + 1; j < receivers.Count; j++)
+                if (!PrototypeSignatures.Same(signatureOf(receivers[i].Item.Pic?.RestrictedPrototypeName),
+                                              signatureOf(receivers[j].Item.Pic?.RestrictedPrototypeName)))
+                    return (receivers[i], receivers[j]);
+        return null;
     }
 
     /// <summary><c>SET receivers… TO value</c>. ⛔ THE FORMAT IS SELECTED ONCE, FROM EVERY RECEIVING OPERAND
@@ -1233,9 +1263,9 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         switch (SetFormatSelection.Select(kinds, SetDirections.To, out _))
         {
             case SetFormat.F14:   // OCCURS DYNAMIC capacity change (data-model D9)
-                return BindSetCapacity(recvs, amount, SetCapacityKind.To);
+                return BindSetCapacity(recvs, kinds, amount, SetCapacityKind.To);
             case SetFormat.F16:   // the SIZE-OF-absent bare form; the explicit form enters at BindSetSize
-                return BindSetSize(recvs, amount);
+                return BindSetSize(recvs, kinds, amount);
             case SetFormat.F17:
                 return BindMessageTagSet(recvs, senderText);
             case null:
@@ -1400,7 +1430,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             case SetFormat.F10:   // data-pointer arithmetic — PtrBinder screens EVERY operand against SR23
                 return host.Ptr.BindSetUpDown(ud);
             case SetFormat.F14:
-                return BindSetCapacity(recvs, amount, down ? SetCapacityKind.DownBy : SetCapacityKind.UpBy);
+                return BindSetCapacity(recvs, kinds, amount, down ? SetCapacityKind.DownBy : SetCapacityKind.UpBy);
             case SetFormat.F2 when !exact:   // an index-name mixed with something Format 2 does not admit
                 _fmt.ReportNotAdmitted(recvs, kinds, SetFormat.F2);
                 return BoundRejected.Reported(ctx.Edition);
@@ -1422,20 +1452,34 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// <summary>SET Format 14 (ISO §14.9.39.2; OCCURS DYNAMIC, data-model D9) — <c>SET data-name-2
     /// {TO | UP BY | DOWN BY} {integer-1 | arithmetic-expression-4}</c> changes the table's current capacity.
     /// Reached only when <see cref="SetFormatSelection"/> has already selected Format 14 from the whole receiving
-    /// list, so the only receiver rule left is the format's CARDINALITY: <c>SET data-name-2</c> is printed
-    /// WITHOUT an ellipsis, so the register is the sole receiver (COBOLNET1524).
+    /// list, so the only receiver rules left are SR29 and the format's CARDINALITY: <c>SET data-name-2</c> is printed
+    /// WITHOUT an ellipsis, so the register is the sole receiver. ⛔ BOTH ARE ASKED OF THE WHOLE LIST BEFORE ANY
+    /// RECEIVER IS READ (kb/Work PB3225): the selection picks this format as the nearest row for a list holding a
+    /// register in ANY position, so a leading non-register used to be read as "the register could not be
+    /// addressed" — a not-implemented warning and a run-unit abort for source the standard refuses — while the
+    /// same operands in the other order drew the cardinality error. The verdict is the list's, never its order's.
     /// <para>⛔ THE LITERAL ALTERNATIVE IS SCREENED HERE (§14.9.39.3 SR30; kb/Work PB458). Only the
     /// arithmetic-expression alternative is left to §14.9.39.4 GR29/GR30's run-time condition and clamp; integer-1
     /// is a SYNTAX rule and its violation is a refusal. SR30's capacity bounds are conditioned on the SET's own
     /// TO alternative — UP BY / DOWN BY write a DELTA, which "not less than the minimum capacity" cannot be
     /// about — so those two take the nonnegative half alone.</para></summary>
     private BoundStatement BindSetCapacity(
-        IReadOnlyList<Core.DataReferenceContext> targets, Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
+        IReadOnlyList<Core.DataReferenceContext> targets, IReadOnlyList<SetOperandKind> kinds,
+        Core.ArithmeticExpressionContext amount, SetCapacityKind kind)
     {
+        // §14.9.39.3 SR29 and the format's one-operand brace, over the whole list (kb/Work PB3225) — before any
+        // receiver is read, as BindSetSize does for Format 16.
+        if (targets.Count != 1)
+        {
+            _fmt.ReportNotSoleReceiver(targets, kinds, SetFormat.F14);
+            return BoundRejected.Reported(ctx.Edition);
+        }
         // A PURE capacity-register peek (NOT refs.Resolve, which would route an OO `prop OF obj` first target through
-        // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7).
-        if (targets.Count == 0 || ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap)
-            return new BoundUnsupported("SET capacity-register — the register could not be addressed");
+        // the property hook and enqueue a spurious pending op — OCCURS DYNAMIC review #7). The selection classified
+        // this very reference as a CAPACITY register through the same peek, so a miss is a broken invariant.
+        if (ctx.Refs.CapacityRegisterFor(targets[0]) is not { } cap)
+            throw new InvalidOperationException(
+                $"SET Format 14 was selected for '{targets[0].GetText()}', which is not a CAPACITY register (kb/Work PB3225)");
         // The target NAMES a register but breaks one of its reference rules (§13.18.38.3 SR30/SR31, §8.4.2.2.3 SR4,
         // §8.4.3.3.3 SR1; kb/Work PB457). This is still SET Format 14 — SetFormatSelection chose the format from the
         // receiving list, and a CAPACITY register is what this receiver IS — so the format is CONSUMED here and the
@@ -1454,12 +1498,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
             place = resolved;
         }
         else place = cap.Place;
-        if (targets.Count > 1)
-        {
-            return BoundRejected.Report(ctx.Edition, "COBOLNET1524",
-                $"SET '{cap.Register.CobolName}' {SetCapacityKinds.Text(kind)}: a dynamic-table CAPACITY register "
-                + "is the sole receiver of a SET Format 14 statement (ISO §14.9.39; §13.18.38 Format 4)");
-        }
 
         if (SetLiteralAmount.Of(amount) is { } integer1)
         {
@@ -1485,16 +1523,6 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
         return new BoundSetCapacity(place.Table, host.Expr.BindIndexWindowExpr(amount), kind);
     }
 
-    /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
-    /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023
-    /// introduction gate is on the <see cref="BoundSetSize"/> node (VersionConformancePass semantic arm), covering
-    /// both the explicit SIZE OF form and the bare re-routed form. Whether EC-STORAGE-NOT-AVAIL checking is enabled
-    /// at this statement is NOT captured here: §14.9.39.4 GR37/GR38's nonfatal condition rides the ambient
-    /// (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair the EcBinder already adds to every statement in a
-    /// checking-on region, which is also what carries it into the §14.6.13.1.4 #3 selection (kb/Work PB367b).</summary>
-    private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount) =>
-        BindSetSize([dref], amount, explicitSizeOf: true);
-
     /// <summary>⛔ BOTH ARMS OF FORMAT 16 ARE ONE BIND (kb/Work PB458). <c>[ SIZE OF ]</c> is a bracket, so
     /// <c>SET SIZE OF D TO n</c> and <c>SET D TO n</c> are the SAME format with the same rules — and the
     /// SIZE-OF-absent arm used to be a separate peek that refused to resolve anything carrying a
@@ -1506,15 +1534,29 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
     /// the format is selected before either arm is entered, so no peek is needed to keep a speculative resolve
     /// off the OO property hook.</summary>
     private BoundStatement BindSetSize(IReadOnlyList<Core.DataReferenceContext> targets,
-                                       Core.ArithmeticExpressionContext amount, bool explicitSizeOf = false)
+                                       IReadOnlyList<SetOperandKind> kinds, Core.ArithmeticExpressionContext amount)
     {
         // §14.9.39.2 Format 16 prints ONE data-name-3, with no ellipsis: a second receiver is no Format 16.
         if (targets.Count != 1)
         {
-            _fmt.ReportNotAdmittedCardinality(targets, SetFormat.F16);
+            _fmt.ReportNotSoleReceiver(targets, kinds, SetFormat.F16);
             return BoundRejected.Reported(ctx.Edition);
         }
-        var dref = targets[0];
+        return BindSetSize(targets[0], amount, explicitSizeOf: false);
+    }
+
+    /// <summary>SET [SIZE OF] data-name-3 TO n (ISO §14.9.39 Format 16, COBOL-2023): set the current length of a
+    /// dynamic-length elementary item. data-name-3 shall itself be dynamic-length (SR33 → COBOLNET1568). The 2023
+    /// introduction gate is on the <see cref="BoundSetSize"/> node (VersionConformancePass semantic arm), covering
+    /// both the explicit SIZE OF form and the bare re-routed form. Whether EC-STORAGE-NOT-AVAIL checking is enabled
+    /// at this statement is NOT captured here: §14.9.39.4 GR37/GR38's nonfatal condition rides the ambient
+    /// (EC-STORAGE-NOT-AVAIL → StorageNotAvailChecking) pair the EcBinder already adds to every statement in a
+    /// checking-on region, which is also what carries it into the §14.6.13.1.4 #3 selection (kb/Work PB367b).
+    /// <para>This is the bind over the SOLE receiver, reached directly by the explicit <c>SIZE OF</c> arm (the
+    /// grammar admits exactly one receiver there) and by the bare arm once its list is known to be one.</para></summary>
+    private BoundStatement BindSetSize(Core.DataReferenceContext dref, Core.ArithmeticExpressionContext amount,
+                                       bool explicitSizeOf)
+    {
         if (host.Expr.ResolveReceiving(dref) is not { } p)
             return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         if (!p.Item.IsDynamicLength)
