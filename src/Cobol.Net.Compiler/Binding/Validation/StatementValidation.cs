@@ -929,11 +929,12 @@ internal sealed class StatementValidation(DataBinder data)
     /// <summary>⛔ THE ONE ELEMENTARY ARM OF INSPECT'S USAGE RULES (kb/Work PB856). ISO §14.9.22.3 SR1 and SR2 end in
     /// the same words — "an elementary item described implicitly or explicitly as usage display or national" — and
     /// SR2 used to be read as its DISPLAY half only, so a national identifier operand was refused while the
-    /// diagnostic quoted the rule that admits it. Both rules read this predicate; usage through the ONE §8.5.2.1
-    /// reader (<see cref="ItemCategory.UsageOf"/>), so an item inside a GROUP-USAGE NATIONAL group answers its
-    /// implicit usage.</summary>
+    /// diagnostic quoted the rule that admits it. Both rules read this predicate; the usage half is the ONE
+    /// "described implicitly or explicitly as usage display or national" predicate
+    /// (<see cref="ItemCategory.IsDisplayOrNationalUsage"/>, which STRING SR1 asks too; kb/Work PB3228), so an item
+    /// inside a GROUP-USAGE NATIONAL group answers its implicit usage.</summary>
     internal static bool IsInspectElementaryCharacterItem(DataItem item) =>
-        !ItemCategory.IsGroupItem(item) && ItemCategory.UsageOf(item) is Usage.Display or Usage.National;
+        !ItemCategory.IsGroupItem(item) && ItemCategory.IsDisplayOrNationalUsage(item);
 
     /// <summary>ISO §14.9.22.3 SR1 — identifier-1 "shall reference either an alphanumeric or national group item or
     /// an elementary item described implicitly or explicitly as usage display or national": the group kinds by
