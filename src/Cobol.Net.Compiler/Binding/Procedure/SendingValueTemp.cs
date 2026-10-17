@@ -168,8 +168,11 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     ///     (<c>FloorReal</c>, a binary64) or INTEGER(1.5E40) into COMP-2 receivers is a 41- or 51-digit integer no
     ///     38-digit fixed item holds, and the integer item stored 9.99906754673275E+37 (or 0) where `MOVE … TO C3`
     ///     stores the value whole;</item>
+    ///   <item>any function whose every receiver is floating-point and at least one a floating-point numeric-edited item
+    ///     (<see cref="FloatEditedSet"/>) — the 36-digit decimal <see cref="WidestFloatEditedPic"/> (kb/Work PB370);</item>
     ///   <item>any other INTEGER function — <see cref="IntegerIntermediatePic"/>, the carrier's whole width at scale 0;</item>
-    ///   <item>otherwise a fixed-point item described by the receivers (<see cref="ShapedPic"/>), or, when no
+    ///   <item>otherwise a fixed-point item described by the receivers (<see cref="ShapedPic"/>, the 36-digit decimal
+    ///     item when every receiver is fixed-point and their digits pass the carrier), or, when no
     ///     receiver is known (an EVALUATE subject, an argument frozen for §8.4.3.2.4 GR2's order),
     ///     <see cref="ValueOperandPic"/>.</item>
     /// </list></summary>
@@ -181,9 +184,40 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic))
             return Binary64ReturnedValuePic;
         if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
+        if (FloatEditedSet(receivers)) return WidestFloatEditedPic();
         if (integer) return IntegerIntermediatePic;
         return receivers is { Count: > 0 } ? ShapedPic(receivers) : use.AsText ? FunctionValuePic : ValueOperandPic;
     }
+
+    /// <summary>The widest floating-point numeric-edited PICTURE (kb/Work PB370): §13.18.40.3 SR15's 36 significand
+    /// digits and §13.18.40.4 GR13 b)'s four exponent digits, the point after the first digit.</summary>
+    private const string WidestFloatEditedPicture = "+9.9(35)E+9999";
+
+    /// <summary>⛔ THE DECIMAL INTERMEDIATE OF A VALUE THAT IS NOT A BINARY64, FOR RECEIVERS NO FIXED-POINT WINDOW
+    /// SERVES (kb/Work PB370, merged into PB3268's one description): the widest floating-point numeric-edited item,
+    /// <see cref="WidestFloatEditedPicture"/>, analyzed through the one PICTURE analyzer. It holds any decimal value of
+    /// at most 36 significant digits wherever its point falls, and a receiver that takes it TRUNCATES it — an edited
+    /// receiver to its own significand (§14.6.8.4 2), a fixed-point one to its own digit positions (§14.6.8.2 4) — and
+    /// truncating to 36 digits first changes nothing. Two sets take it: every receiver floating-point with at least one
+    /// floating-point numeric-edited item (<see cref="FloatEditedSet"/>: a binary64 intermediate cut
+    /// <c>MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO D (I)</c> into <c>PIC +9.9(20)E+99</c> to 17 digits),
+    /// and every receiver fixed-point with more digit positions between them than the 38-digit carrier holds
+    /// (<see cref="ShapedPic"/>: a <c>PIC 9(31)</c> beside a <c>PIC V9(28)</c>, where capping the scale cut the
+    /// fraction receiver).</summary>
+    private PicInfo WidestFloatEditedPic() =>
+        PictureAnalyzer.Analyze(WidestFloatEditedPicture, Usage.Display, ctx.Edition,
+            "the intermediate a MOVE freezes a function's value into");
+
+    /// <summary>A floating-point item (<see cref="PicInfo.IsFloat"/>) or a floating-point numeric-edited item
+    /// (<see cref="PicInfo.IsFloatEdited"/>, design D21): a receiver with no fixed fraction scale.</summary>
+    private static bool IsFloatingPoint(PicInfo? pic) => pic is { IsFloat: true } or { IsFloatEdited: true };
+
+    /// <summary>True when every one of <paramref name="receivers"/> is floating-point (<see cref="IsFloatingPoint"/>) and
+    /// at least one is a floating-point numeric-edited item: the set <see cref="WidestFloatEditedPic"/> serves.</summary>
+    private static bool FloatEditedSet(IReadOnlyList<Place>? receivers) =>
+        receivers is { Count: > 0 }
+        && receivers.All(r => r.DenotedItem is not null && IsFloatingPoint(r.Item.OperandPic))
+        && receivers.Any(r => r.Item.OperandPic is { IsFloatEdited: true });
 
     /// <summary>The intermediate result item of a NUMERIC function whose value lands only in BINARY32 receivers (COMP-1,
     /// FLOAT-SHORT, FLOAT-BINARY-32 — <see cref="PicInfo.IsSingle"/>): a binary32 item, so the store into it is the ONE
@@ -246,7 +280,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// its text image has always been written from. The fraction is capped so the item stays on the <c>Int128</c>
     /// carrier (<see cref="PicInfo.ScaledCarrierDigits"/>); integer digits keep priority, because an under-counted
     /// integer part is a wrong value and an under-counted fraction a truncated one (the order
-    /// <c>ReceiverContext.WorkingScale</c> keeps).
+    /// <c>ReceiverContext.WorkingScale</c> keeps). ⛔ When EVERY receiver is fixed-point and their digits together pass
+    /// that carrier, no fixed-point window is exact for all of them, and the set takes the 36-digit decimal
+    /// <see cref="WidestFloatEditedPic"/> instead (kb/Work PB370). A floating-point numeric-edited receiver counts as a
+    /// floating-point one here (<see cref="IsFloatingPoint"/>).
     /// <para>⚠ A FLOATING-POINT RECEIVER BESIDE A FIXED-POINT ONE IS THE CARRIER'S LIMIT (kb/Work PB3268, review R1-2). A
     /// binary64 receiver holds ~17 significant digits at ANY magnitude (1E-20 and 1E+30 alike), which no fixed-point
     /// split of 38 digits holds. It is reached here only for a value that is NOT a binary64 (a binary64 value takes
@@ -256,10 +293,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// significant digits a binary64 holds), and a fixed-point receiver never loses a fraction digit to a float one. An
     /// exact value outside that window reaches the float receiver cut. An SDIDI-carried intermediate item is the
     /// redesign that removes the limit (the same one the values past the <c>Int128</c> carrier need).</para></summary>
-    private static PicInfo ShapedPic(IReadOnlyList<Place> receivers)
+    private PicInfo ShapedPic(IReadOnlyList<Place> receivers)
     {
-        int scale = 0, integer = 0;
-        bool sized = false, anyFloat = false, anyFixed = false;
+        bool sized = false, anyFloat = false, anyFixed = false, anyText = false;
+        var fixedPoint = new List<PicInfo>();
         foreach (var receiver in receivers)
         {
             // A reference-modified receiver is the elementary ALPHANUMERIC unique data item of §8.4.3.3.4 GR6, never
@@ -268,17 +305,21 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             var pic = slice ? null : receiver.Item.OperandPic;
             if (!slice && pic is null) continue;
             sized = true;
-            anyFixed |= pic is not { IsFloat: true };
-            if (pic is null) { scale = Math.Max(scale, ReturnedFractionDigits); integer = Math.Max(integer, ReturnedIntegerDigits); }
-            else if (pic.IsFloat) anyFloat = true;
-            else if (pic.Category is PicCategory.Numeric or PicCategory.NumericEdited)
-            {
-                int s = pic.ReceiverScale();
-                scale = Math.Max(scale, s);
-                integer = Math.Max(integer, Math.Max(0, pic.DigitPositions - s));
-            }
-            else { scale = Math.Max(scale, ReturnedFractionDigits); integer = Math.Max(integer, ReturnedIntegerDigits); }
+            anyFixed |= !IsFloatingPoint(pic);
+            // A floating-point numeric-edited receiver has no fixed fraction scale (design D21): it asks of the
+            // fixed-point intermediate what a floating-point item does (kb/Work PB370).
+            if (IsFloatingPoint(pic)) anyFloat = true;
+            else if (pic is { Category: PicCategory.Numeric or PicCategory.NumericEdited }) fixedPoint.Add(pic);
+            else anyText = true;
         }
+        // The fixed-point receivers' widest scale and integer digits: the ONE fold of what a set of resultants holds.
+        var (scale, integer) = PicInfo.WidestReceiving(fixedPoint);
+        bool allFixedPoint = !anyFloat && !anyText;
+        if (anyText) { scale = Math.Max(scale, ReturnedFractionDigits); integer = Math.Max(integer, ReturnedIntegerDigits); }
+        // Every receiver fixed-point, and their digit positions together past the carrier: no fixed-point window is
+        // exact for all of them, and the 36-digit decimal intermediate is (kb/Work PB370's beyond-the-carrier set;
+        // an INTEGER function never reaches here, IntermediatePic gives it the carrier at scale 0).
+        if (sized && allFixedPoint && integer + scale > PicInfo.ScaledCarrierDigits) return WidestFloatEditedPic();
         // No receiver had a description to size by (an index or object receiver is not a numeric MOVE receiver, so this
         // is unreachable from a legal MOVE): the value operand's item, never a one-digit guess. Nor does a set whose
         // every receiver is floating-point, of BOTH binary formats (one format takes its own float item,
@@ -306,9 +347,18 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// statement" (§14.9.13.4 GR3) are the same position in the generated code.</summary>
     /// <param name="op">The sending operand / selection subject to freeze.</param>
     /// <param name="tag">A short source tag for the temp's synthesized names (diagnostics and readability only).</param>
+    /// <param name="at">Where on the pending list the freeze belongs: the count of pre-ops registered when the
+    /// operand finished binding, so the value is frozen AFTER its own pre-ops (the function-bearing subscripts and
+    /// activations it reads) and BEFORE those the statement's LATER operands registered — §14.6.4's left-to-right
+    /// order, which a receiving operand's function-bearing subscript would otherwise overtake (kb/Work PB370).
+    /// <see langword="null"/> appends, for a caller whose later operands register nothing.</param>
     /// <param name="use">How the value will be read (<see cref="ValueUse"/>); a NUMERIC function's intermediate is
     /// described FOR it (<see cref="IntermediatePic"/>). Defaults to a VALUE operand.</param>
-    internal Place? Materialize(BoundOperand op, string tag, ValueUse use = default)
+    internal Place? Materialize(BoundOperand op, string tag, int? at = null, ValueUse use = default) =>
+        Positioned(at, () => Freeze(op, tag, use));
+
+    /// <summary>The body of <see cref="Materialize"/>: the intermediate and its stores, appended.</summary>
+    private Place? Freeze(BoundOperand op, string tag, ValueUse use)
     {
         if (Model(op, use) is not { } model) return null;
         var temp = ctx.Data.CreateCompilerTemp(model.Item, "__SENDVAL-", "__sendval", tag);
@@ -340,6 +390,27 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // then compared a value that never arrived, so it took WHEN OTHER. The identity copy of an index data item into
         // its own class-index clone is the SET it names.
         ctx.Data.PendingPreOps.Add(IdentityStore(op, model.Item, place));
+        return place;
+    }
+
+    /// <summary>⛔ THE ONE PLACEMENT OF A FREEZE ON THE PENDING LIST: run <paramref name="register"/>, then move every
+    /// pre-op it registered (the identity copy, and the occurs-depending control-value copy before it when there is
+    /// one), in their own order, to <paramref name="at"/> — the position the frozen operand's evaluation owns, ahead
+    /// of the pre-ops a LATER operand of the statement registered (§14.6.4's left-to-right order). A later function
+    /// argument (<c>ArgumentOrder</c>, §8.4.3.2.4 GR2) and a MOVE's receiving operand (§14.9.25.4 GR1, kb/Work PB370)
+    /// are the two such later operands. <see langword="null"/>, or a position at the end, leaves the steps where they
+    /// were registered; a freeze that answers <see langword="null"/> moves nothing.</summary>
+    private Place? Positioned(int? at, Func<Place?> register)
+    {
+        var pending = ctx.Data.PendingPreOps;
+        int mark = pending.Count;
+        var place = register();
+        if (place is not null && at is { } position && position < mark)
+        {
+            var steps = pending.GetRange(mark, pending.Count - mark);
+            pending.RemoveRange(mark, steps.Count);
+            pending.InsertRange(position, steps);
+        }
         return place;
     }
 
@@ -414,7 +485,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// in the argument list (§8.4.3.2.4 GR2) and not after a later argument's activation changed an item it reads.
     /// The store is COMPUTE Format 2's own (<see cref="BoundComputeBoolean"/>), the channel a boolean expression has
     /// and <see cref="Materialize"/> deliberately does not reach. Null when the item cannot be resolved.</summary>
-    internal Place? MaterializeBoolean(BoundBoolExpr expr, int positions, string tag)
+    internal Place? MaterializeBoolean(BoundBoolExpr expr, int positions, string tag, int? at = null) =>
+        Positioned(at, () => FreezeBoolean(expr, positions, tag));
+
+    private Place? FreezeBoolean(BoundBoolExpr expr, int positions, string tag)
     {
         var model = new DataItem
         {
