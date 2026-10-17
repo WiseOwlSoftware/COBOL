@@ -117,7 +117,7 @@ public static class CobolSort
     /// the active SORT when ANY USE procedure invoked while it is active does not complete normally
     /// (<see cref="AfterUseProcedure"/>; kb/Work PB1177), and the procedure may be another element's — a CALLed program's
     /// or a containing program's GLOBAL one — whatever declaratives the SORT's own scope has. A MERGE registers none — its
-    /// rules (§14.9.24.4) carry no such sentence. <see cref="Init(string, CobolCollation?, CobolCollation?)"/> clears
+    /// rules (§14.9.24.4) carry no such sentence. <see cref="Init(string, Key[], CobolCollation?, CobolCollation?)"/> clears
     /// the registration, so a store reused by the next statement on the file starts with none.</summary>
     public static void RegisterFormat1Sort(string name, object? useScope) =>
         Get(name).Format1 = new Format1SortRegistration(useScope, Stores.NextOrdinal());
@@ -195,7 +195,7 @@ public static class CobolSort
     /// associated with record-name-1. If it is executed at any other time, the EC-FLOW-RELEASE exception condition
     /// is set to exist." The test precedes the release, so a raise leaves the record unreleased; with checking off
     /// nothing is raised (§14.6.13.1.1) and the record is released as GR2 describes — a store with no executing
-    /// SORT is discarded by the next <see cref="Init(string, CobolCollation?, CobolCollation?)"/>. The implicit
+    /// SORT is discarded by the next <see cref="Init(string, Key[], CobolCollation?, CobolCollation?)"/>. The implicit
     /// USING transfer (§14.9.40.4 GR12 b) is not a RELEASE statement and uses <see cref="Release"/> (kb/Work PB349).
     /// <para>Two more tests precede the release (kb/Work PB1036). <b>EC-SORT-MERGE-ACTIVE</b>: a RELEASE within
     /// the range of any executing output procedure (§14.9.40.4 GR13, §14.9.24.4 GR8). ⚠ DETERMINATION: the same

@@ -46,6 +46,14 @@ internal sealed class SortWork : IDisposable
     private readonly List<StoredFrame> _chunk = [];
     private long _chunkBytes;
 
+    /// <summary>⛔ THE ONE OWNER of every temporary file this statement has created and not yet closed (kb/Work PB3339
+    /// review R1-1). <see cref="NewRun"/> registers a file BEFORE anything is written to it and <see cref="Close"/> is
+    /// the only way one is closed early, so a work-file failure at ANY point — a run being written, a cascade's output,
+    /// a merge whose inputs have already left <see cref="_runs"/> or <see cref="_streams"/> — leaves every open file
+    /// here for <see cref="Dispose"/> (the statement's <c>finally</c>). The run lists and the cursors only REFER to
+    /// files; none of them closes one.</summary>
+    private readonly HashSet<SortRunFile> _files = [];
+
     /// <summary>SORT: the sealed runs on disk, in release order, each with its merge level.</summary>
     private readonly List<(SortRunFile Run, int Level)> _runs = [];
 
@@ -77,7 +85,7 @@ internal sealed class SortWork : IDisposable
     public int RunsWritten { get; private set; }
 
     /// <summary>How many temporary files the statement holds open now.</summary>
-    public int OpenRunFiles => _runs.Count + _streams.Count(s => s.Run is not null) + (_output?.OpenRunFiles ?? 0);
+    public int OpenRunFiles => _files.Count;
 
     /// <summary>The resident estimate of <paramref name="frame"/>: its characters (two bytes each), its frame and extent
     /// table, and its decoded keys.</summary>
@@ -139,14 +147,14 @@ internal sealed class SortWork : IDisposable
     /// <summary>Restart the return phase at the first record (each GIVING file receives the whole result).</summary>
     public void Rewind() => _output?.Restart();
 
-    /// <summary>Close every temporary file (each deletes itself) and drop the records.</summary>
+    /// <summary>Close every temporary file the statement still holds (each deletes itself, <see cref="_files"/>) and drop
+    /// the records — after a normal end and after a failure alike.</summary>
     public void Dispose()
     {
-        _output?.Dispose();
         _output = null;
-        foreach (var (run, _) in _runs) run.Dispose();
+        foreach (var file in _files) file.Dispose();
+        _files.Clear();
         _runs.Clear();
-        foreach (var stream in _streams) stream.Run?.Dispose();
         _streams.Clear();
         _chunk.Clear();
         _chunkBytes = 0;
@@ -217,12 +225,14 @@ internal sealed class SortWork : IDisposable
         _runs.Add((merged, level));
     }
 
-    /// <summary>The k-way merge of <paramref name="inputs"/> (in run order) written as one new run; the inputs are closed.</summary>
+    /// <summary>The k-way merge of <paramref name="inputs"/> (in run order) written as one new run; the inputs are closed
+    /// once it is complete. A failure part-way leaves the inputs and the output in <see cref="_files"/>.</summary>
     private SortRunFile MergeInto(SortRunFile[] inputs)
     {
         var output = NewRun();
-        using (var cursor = new SortMergeCursor([.. inputs.Select(SortRun.OnDisk)], _keys, _collation, _national))
-            while (cursor.Next(out StoredFrame frame)) output.Append(frame);
+        var cursor = new SortMergeCursor([.. inputs.Select(SortRun.OnDisk)], _keys, _collation, _national);
+        while (cursor.Next(out StoredFrame frame)) output.Append(frame);
+        foreach (var input in inputs) Close(input);
         return output;
     }
 
@@ -271,7 +281,7 @@ internal sealed class SortWork : IDisposable
         Seal();
         while (_runs.Count > _memory.FanIn) MergeLastRuns(_memory.FanIn, _runs[^1].Level + 1);
         var runs = _runs.Select(r => SortRun.OnDisk(r.Run)).ToArray();
-        _runs.Clear();   // the cursor owns them now
+        _runs.Clear();   // the cursor reads them now; _files still owns them
         _output = new SortMergeCursor(runs, _keys, _collation, _national);
     }
 
@@ -292,7 +302,7 @@ internal sealed class SortWork : IDisposable
         var runs = new List<SortRunFile>();
         foreach (var stream in _streams)
             if (stream.Run is { } run) runs.Add(run);
-        _streams.Clear();   // the runs move to the merge
+        _streams.Clear();   // the runs move to the merge; _files still owns them
         // More streams than one merge reads: merge the last F, consecutive, into one — in-order streams merge exactly;
         // an out-of-order one (GR6 unchecked) merges within "undefined".
         while (runs.Count > _memory.FanIn)
@@ -305,10 +315,19 @@ internal sealed class SortWork : IDisposable
         _output = new SortMergeCursor([.. runs.Select(SortRun.OnDisk)], _keys, _collation, _national);
     }
 
+    /// <summary>A new temporary run, registered in <see cref="_files"/> before its first record is written.</summary>
     private SortRunFile NewRun()
     {
+        var run = SortRunFile.Create(_memory.Directory, _layouts);
+        _files.Add(run);
         RunsWritten++;
-        return SortRunFile.Create(_memory.Directory, _layouts);
+        return run;
+    }
+
+    /// <summary>Close <paramref name="run"/> now (its records have been merged into another run): the only early close.</summary>
+    private void Close(SortRunFile run)
+    {
+        if (_files.Remove(run)) run.Dispose();
     }
 
     /// <summary>One MERGE USING stream: where its records begin in the current chunk (-1 once they have all left it),
@@ -324,7 +343,7 @@ internal sealed class SortWork : IDisposable
 
 /// <summary>One run a <see cref="SortMergeCursor"/> reads: a slice of the in-memory chunk (in an index order, or in
 /// place), or a run file (kb/Work PB3339).</summary>
-internal sealed class SortRun : IDisposable
+internal sealed class SortRun
 {
     private readonly List<StoredFrame>? _records;
     private readonly int[]? _order;
@@ -348,11 +367,8 @@ internal sealed class SortRun : IDisposable
     public static SortRun InMemory(List<StoredFrame> records, int[]? order, int start, int end) =>
         new(records, order, start, end, null);
 
-    /// <summary>A run file — owned, and closed, by the run.</summary>
+    /// <summary>A run file, read through the run; <see cref="SortWork"/> owns it and closes it.</summary>
     public static SortRun OnDisk(SortRunFile file) => new(null, null, 0, 0, file);
-
-    /// <summary>Is this run a temporary file?</summary>
-    public bool OnDiskFile => _file is not null;
 
     public void Restart()
     {
@@ -372,8 +388,6 @@ internal sealed class SortRun : IDisposable
         frame = _records![_order is null ? i : _order[i]];
         return true;
     }
-
-    public void Dispose() => _file?.Dispose();
 }
 
 /// <summary>⛔ THE ONE MERGE of a SORT/MERGE statement's runs (kb/Work PB3339) — the cascade, the consolidation and the
@@ -381,7 +395,7 @@ internal sealed class SortRun : IDisposable
 /// once; <see cref="Next"/> takes the lowest head, and a STRICT less-than keeps an equal head from displacing an
 /// earlier run's (§14.9.24.4 GR4 a), and §14.9.40.4 GR3 for runs in release order). One run is read straight through,
 /// with no key decoded at all.</summary>
-internal sealed class SortMergeCursor : IDisposable
+internal sealed class SortMergeCursor
 {
     private readonly SortRun[] _runs;
     private readonly SortKeyColumns? _heads;
@@ -396,9 +410,6 @@ internal sealed class SortMergeCursor : IDisposable
         if (runs.Length > 1) _heads = new SortKeyColumns(keys, collation, national, runs.Length);
         Prime();
     }
-
-    /// <summary>How many temporary files the cursor's runs hold open.</summary>
-    public int OpenRunFiles => _runs.Count(r => r.OnDiskFile);
 
     /// <summary>Start again at every run's first record.</summary>
     public void Restart()
@@ -439,10 +450,5 @@ internal sealed class SortMergeCursor : IDisposable
         frame = _head[best];
         Advance(best);
         return true;
-    }
-
-    public void Dispose()
-    {
-        foreach (var run in _runs) run.Dispose();
     }
 }
