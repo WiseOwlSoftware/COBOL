@@ -78,3 +78,8 @@ removed three-argument spelling has an arity the new Init still accepts. On the 
 names both stale calls; on the fixed text it passes. The same kind of check over every runtime type's prose calls in
 `docs/` is wider than this branch. A rough survey finds about 14 suspect calls in other subsystems' docs, and they are
 reported as a lead rather than fixed here.
+The first round-3 gate (20261017T220947Z-2fa2b0) was RED on HostWitnessTraitDriftTests: reading `docs/` made the
+class holding the witness a tree-wide sweep, and that class lacked the `Sweep` trait. The witness moved to its own
+class, so SortWorkBoundDriftTests keeps only the store's specific rules. The re-gate 20261017T221618Z-42bd2c:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,579 · Unit 33,577 ·
+Characterization 5 cases ran in leg 1, the new witness among them).
