@@ -44,3 +44,19 @@ and at the default; both print the spec-derived lines and leave the work directo
 **Rows.** None claimed, none closed (`closes_rows_reason` in the note).
 
 **Gate.** The first gate (20261017T200110Z-58386c) was RED on SpecTraceabilityInventoryDriftTests: five inventory rows (GR-14.9.24.4-3/-5, GR-14.9.40.4-2/-5/-8) named the comparison's old home in CobolSort.cs, and batch w1110a-pb3339-key-columns-moved moved them to SortKeyColumns.cs (5 retired with reasons, GAP 58 to 58). The re-gate 20261017T201827Z-e715fb: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 3,872 · Unit 33,562 · Characterization 5 cases ran in leg 1; leg 2 left to CI).
+
+**Branch review, round 1 (two findings, both fixed).** R1-1: a run file was owned by whichever list or cursor held
+it at the moment, so a failure in the windows between those owners leaked it until a GC finalized its stream: the
+cascade's output in `MergeInto` (created, not yet in the run list), a new run in `WriteSortedChunk`, and the stream
+runs `SequenceMerge` had already cleared from its list before merging them. The fix gives every open run file ONE
+owner, `SortWork._files`. `NewRun` registers a file before its first record is written, `MergeInto` closes its inputs
+only after its output is complete, and the run lists, `SortRun` and `SortMergeCursor` only refer to files, with
+neither of the last two disposable any more. `Dispose` closes the set, and `OpenRunFiles` is its count. Two new
+witnesses inject a failure that only a merge of two runs can meet, through a collation that throws when it compares
+two sentinel keys each released into a different chunk: a SORT failing in a cascade and a MERGE failing while it
+merges three spilled streams. On the reviewed code they fail with 1 and 2 files still open; with the fix every file
+is closed at `Close`. The sibling: `WorkDirectoryIsEmpty` was vacuous on Linux, where a run file is unlinked when it is
+created. It now counts the `/proc/self/fd` links that name the test's directory, so every "leaves no file" assertion
+in `SortWorkBoundTests` has force on both hosts. R1-2: two crefs in CobolSort.cs still named the removed
+`Init(string, CobolCollation?, CobolCollation?)`. Both now name `Init(string, Key[], CobolCollation?, CobolCollation?)`.
+A runtime build with XML documentation on shows no unresolved cref left in the sort files.

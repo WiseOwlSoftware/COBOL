@@ -899,7 +899,9 @@ of an unsupported facility.
   nothing. **(b) The temporary files** are created in `COBOLNET_SORT_TMPDIR`, or in the host's temporary directory
   when it is unset (`TMPDIR` on Linux and macOS, `TMP` / `TEMP` on Windows). Each is deleted when its handle closes
   (Windows) or unlinked as soon as it is created (Linux, macOS), so none survives the statement, the run unit or a
-  killed process, and the statement's end closes every one. **(c) The ordering does not depend on the limit**: a run
+  killed process, and the statement's end closes every one, whether it ends normally or by a failure part-way
+  through writing or merging a run (one owner, `SortWork._files`, holds each file from its creation to its close).
+  **(c) The ordering does not depend on the limit**: a run
   is a stable sort, and every merge takes the lowest key and, on equal keys, the record of the earliest run, so
   equal keys are returned in input-file and release order (§14.9.40.4 GR3 a), b) DUPLICATES IN ORDER; without the
   phrase the order GR4 leaves undefined is the same one) and a MERGE keeps §14.9.24.4 GR4 a), b). With

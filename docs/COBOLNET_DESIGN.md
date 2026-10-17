@@ -995,7 +995,8 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   UTF-16 code units exactly and its extent table with the record type's layout (interned per statement), so a run
   round-trips every image, HIGH-VALUE U+FFFF and a lone surrogate included. The files are opened delete-on-close on
   Windows and unlinked at creation elsewhere, so none outlives its handle, and `Close` (the statement's `finally`)
-  releases every one. The incremental sequencing runs under the statement's own mark, so a condition it raises while
+  releases every one: `SortWork` registers each file in ONE owner set before its first record is written and a merge
+  closes its inputs only after its output is complete, so a failure at any point leaves every open file in the set. The incremental sequencing runs under the statement's own mark, so a condition it raises while
   a RELEASE or RETURN statement executes (an EC-LOCALE-* from a locale-collated key) is still the SORT's or MERGE's
   (§14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable

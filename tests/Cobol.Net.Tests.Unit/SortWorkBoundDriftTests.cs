@@ -60,4 +60,30 @@ public sealed class SortWorkBoundDriftTests
         int grow = body.IndexOf("_chunk.Add(", StringComparison.Ordinal);
         Assert.True(test >= 0 && grow > test, "SortWork.Add grows the chunk without first sealing it at the limit");
     }
+
+    /// <summary>⛔ EVERY TEMPORARY RUN FILE HAS ONE OWNER FROM ITS CREATION TO ITS CLOSE — <c>SortWork._files</c> (kb/Work
+    /// PB3339 review R1-1; docs/CONFORMANCE.md §3 D-SWK (b)). When a run list or a cursor owned the files they held, a
+    /// failure between two owners (a cascade's output not yet listed, streams already cleared for their merge) left a
+    /// file open after the statement ended. So: one creation site, which registers the file; no disposable reader of
+    /// runs; and in SortWork only the two closes of the owner set.</summary>
+    [Fact]
+    public void EveryRunFile_IsOwnedByTheOneSetFromCreationToClose()
+    {
+        var runtimeIo = Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Runtime", "IO"), "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.EndsWith("SortRunFile.cs", StringComparison.Ordinal))
+            .Select(f => (File: Path.GetFileName(f), Count: Regex.Matches(File.ReadAllText(f), @"SortRunFile\.Create\(").Count))
+            .Where(x => x.Count > 0)
+            .ToList();
+        Assert.Equal(new[] { ("SortWork.cs", 1) }, runtimeIo);
+        string src = File.ReadAllText(TestRepo.Src("Cobol.Net.Runtime", "IO", "SortWork.cs"));
+        var newRun = Regex.Match(src, @"private SortRunFile NewRun\(\)\s*\{(?<body>.*?)\n    \}", RegexOptions.Singleline);
+        Assert.True(newRun.Success, "SortWork.NewRun is not where this test looks for it");
+        string body = newRun.Groups["body"].Value;
+        int create = body.IndexOf("SortRunFile.Create(", StringComparison.Ordinal);
+        int register = body.IndexOf("_files.Add(", StringComparison.Ordinal);
+        Assert.True(create >= 0 && register > create, "SortWork.NewRun hands out a run file it has not registered in _files");
+        Assert.False(typeof(IDisposable).IsAssignableFrom(typeof(SortRun)), "SortRun closes files: a second owner");
+        Assert.False(typeof(IDisposable).IsAssignableFrom(typeof(SortMergeCursor)), "SortMergeCursor closes files: a second owner");
+        Assert.Equal(2, Regex.Matches(src, @"\.Dispose\(\)").Count);   // Close's run.Dispose() and Dispose's file.Dispose()
+    }
 }

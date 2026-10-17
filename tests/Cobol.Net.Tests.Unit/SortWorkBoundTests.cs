@@ -47,7 +47,47 @@ public sealed class SortWorkBoundTests : IDisposable
 
     private static SortWork WorkOf(string sd) => RunUnit.Current.SortFiles.Get(sd).Work;
 
-    private bool WorkDirectoryIsEmpty() => !Directory.EnumerateFileSystemEntries(_dir).Any();
+    /// <summary>How many of this test's temporary run files the process still holds open. On Windows a run file is
+    /// delete-on-close, so an open one is still listed in the work directory; on Linux it is unlinked as soon as it is
+    /// created (<c>HostFile.CreateSortWork</c>), so the directory is always empty and an open one is seen only as a
+    /// <c>/proc/self/fd</c> link naming it.</summary>
+    private int WorkFilesHeldOpen()
+    {
+        if (!OperatingSystem.IsLinux()) return Directory.EnumerateFileSystemEntries(_dir).Count();
+        int held = 0;
+        foreach (string fd in Directory.EnumerateFileSystemEntries("/proc/self/fd"))
+        {
+            string? target;
+            try { target = new FileInfo(fd).LinkTarget; }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { continue; }   // closed since listed
+            if (target?.StartsWith(_dir + Path.DirectorySeparatorChar, StringComparison.Ordinal) == true) held++;
+        }
+        return held;
+    }
+
+    private bool WorkDirectoryIsEmpty() => WorkFilesHeldOpen() == 0;
+
+    /// <summary>The ordinal sequence, except that comparing the two sentinel keys fails the way a work file does
+    /// (D-SWK (d)). Each sentinel is released into a different chunk, so no chunk's own sort compares them: only a
+    /// merge of two runs does, part-way through writing its output.</summary>
+    private sealed class FailingCollation(string a, string b) : CobolCollation
+    {
+        public const string Message = "injected work-file failure";
+
+        public override int Compare(string? left, string? right) =>
+            (left == a && right == b) || (left == b && right == a)
+                ? throw new CobolImplementorFatalException(Message)
+                : string.CompareOrdinal(left, right);
+
+        public override int Weight(char c) => c;
+        public override int PositionCount => char.MaxValue + 1;
+        public override int CharAt(long position) => position is >= 0 and <= char.MaxValue ? (int)position : -1;
+        public override char HighValue => char.MaxValue;
+        public override char LowValue => char.MinValue;
+    }
+
+    /// <summary>A record whose key is <paramref name="key"/>, shaped like <see cref="Records"/>' and above all of them.</summary>
+    private static string Sentinel(string key) => $"{key}9999999{new string('x', 24)}";
 
     private static List<string> Drain(string sd)
     {
@@ -210,6 +250,82 @@ public sealed class SortWorkBoundTests : IDisposable
             }
         });
         Assert.True(WorkDirectoryIsEmpty());
+    }
+
+    /// <summary>D-SWK (b) on a failure: a SORT that fails while a cascade merges two runs into a third (the output
+    /// created, the inputs about to leave the run list) still closes every temporary file at the statement's end —
+    /// the review's R1-1, where the cascade's output belonged to nothing and stayed open after the close.</summary>
+    [Fact]
+    public void ASortFailingInACascadeMerge_ClosesEveryWorkFile_AtTheStatementsEnd()
+    {
+        const string sd = "PB3339-FAIL-SORT";
+        string first = Sentinel("ZZZ1"), second = Sentinel("ZZZ2");
+        InRunUnit(() =>
+        {
+            CobolSort.Init(sd, AlnumKey, new FailingCollation("ZZZ1", "ZZZ2"));
+            var work = WorkOf(sd);
+            try
+            {
+                CobolSort.Release(sd, first, first.Length, 0, first.Length);   // into the first chunk
+                var e = Assert.Throws<CobolImplementorFatalException>(() =>
+                {
+                    bool released = false;
+                    foreach (var r in Records(20_000, seed: 6))
+                    {
+                        CobolSort.Release(sd, r, r.Length, 0, r.Length);
+                        if (released || work.RunsWritten != 1) continue;
+                        CobolSort.Release(sd, second, second.Length, 0, second.Length);   // into the second chunk
+                        released = true;
+                    }
+                });
+                Assert.Equal(FailingCollation.Message, e.Message);
+                Assert.Equal(3, work.RunsWritten);   // two level-0 runs and the cascade's output, part-written
+                Assert.Equal(3, WorkFilesHeldOpen());
+            }
+            finally
+            {
+                CobolSort.Close(sd);   // the statement's finally
+            }
+            Assert.Equal(0, work.OpenRunFiles);
+            Assert.Equal(0, WorkFilesHeldOpen());
+        });
+    }
+
+    /// <summary>D-SWK (b) on a failure in a MERGE's sequence phase: three USING streams on disk, more than one merge
+    /// reads (F = 2 at the floor limit), so the last two are merged first — after the streams have left the stream list
+    /// — and that merge fails. Every stream's run and the merge's output are still closed at the statement's end.</summary>
+    [Fact]
+    public void AMergeFailingWhileItMergesStreams_ClosesEveryWorkFile_AtTheStatementsEnd()
+    {
+        const string sd = "PB3339-FAIL-MERGE";
+        var streams = Enumerable.Range(0, 3).Select(s => Records(6_000, seed: 30 + s)
+            .OrderBy(r => r[..4], StringComparer.Ordinal).ToList()).ToList();
+        streams[1].Add(Sentinel("ZZZ1"));   // each stream stays in KEY order (§14.9.24.4 GR6)
+        streams[2].Add(Sentinel("ZZZ2"));
+        InRunUnit(() =>
+        {
+            CobolSort.Init(sd, AlnumKey, new FailingCollation("ZZZ1", "ZZZ2"));
+            var work = WorkOf(sd);
+            try
+            {
+                foreach (var stream in streams)
+                {
+                    CobolSort.NextInput(sd);
+                    foreach (var r in stream) CobolSort.Release(sd, r, r.Length, 0, r.Length);
+                }
+                Assert.Equal(3, work.OpenRunFiles);   // every stream spilled to its own run
+                var e = Assert.Throws<CobolImplementorFatalException>(() => CobolSort.Merge(sd));
+                Assert.Equal(FailingCollation.Message, e.Message);
+                Assert.Equal(4, work.RunsWritten);   // the three streams and the merge's output, part-written
+                Assert.Equal(4, WorkFilesHeldOpen());
+            }
+            finally
+            {
+                CobolSort.Close(sd);
+            }
+            Assert.Equal(0, work.OpenRunFiles);
+            Assert.Equal(0, WorkFilesHeldOpen());
+        });
     }
 
     /// <summary>A run file keeps every record exactly: the whole UTF-16 repertoire (HIGH-VALUE U+FFFF, a lone surrogate,

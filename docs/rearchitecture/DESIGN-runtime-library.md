@@ -722,7 +722,10 @@ the store for the statement's life:
   `Rewind` restarts it for each GIVING file.
 - **Run files** are a fifth `HostFile` role (`HostFile.CreateSortWork`, `IO/FileSupport.cs`): a new file in the work
   directory, delete-on-close on Windows and unlinked at creation elsewhere, one handle per run, read back through the
-  same handle (`SortRunFile`). A record is its character count, its extent table (with an interned layout index,
+  same handle (`SortRunFile`). `SortWork._files` is the ONE owner of every open run file: `NewRun` registers a file
+  before its first record is written, a merge closes its inputs (`SortWork.Close`) only once its output is complete,
+  and the run lists and `SortMergeCursor` only refer to files, so `SortWork.Dispose` (the statement's `finally`)
+  closes every one after a failure as after a normal end. A record is its character count, its extent table (with an interned layout index,
   since `RecordExtents.Layout` is an object the fixed form of a GIVING file needs), then its UTF-16 code units
   unconverted — private to the process, so no file coded character set applies. An I/O failure of a work file is an
   implementor-defined fatal stop (`CobolImplementorFatalException`) naming the directory and the host's reason.
