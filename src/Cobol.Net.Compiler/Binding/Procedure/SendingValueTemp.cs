@@ -163,13 +163,17 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     ///   <item>any function whose every receiver is a floating-point item of ONE binary format
     ///     (<see cref="SharedFloatFormatPic"/>) — an item of that format, so the store into it is the one conversion each
     ///     receiver's single-receiver MOVE makes; a binary32 set never takes a binary64, which would round an exact value
-    ///     twice (review R2-1). ⛔ AN INTEGER FUNCTION IS ASKED BOTH OF THESE, BEFORE ITS SCALE-0 ITEM (kb/Work PB3268,
-    ///     review R1-1): §15.2 item 5 fixes the value's type, never its magnitude, so INTEGER of a COMP-2 holding 1.5E50
+    ///     twice (review R2-1);</item>
+    ///   <item>any function whose every receiver is a numeric or numeric-edited item and at least one floating-point — a
+    ///     floating-point numeric-edited item, a binary32 beside a binary64, a floating-point item beside a fixed-point
+    ///     one (<see cref="FloatingPointNumericSet"/>) — the 36-digit decimal floating-point
+    ///     <see cref="WidestFloatEditedPic"/> (kb/Work PB370; PB3268 review R1-1, R1-2): no binary format converts once
+    ///     for every such receiver, and no fixed-point window holds a floating-point receiver's range.
+    ///     ⛔ AN INTEGER FUNCTION IS ASKED ALL THREE OF THESE BEFORE ITS SCALE-0 ITEM (kb/Work PB3268, review R1-1):
+    ///     §15.2 item 5 fixes the value's type, never its magnitude, so INTEGER of a COMP-2 holding 1.5E50
     ///     (<c>FloorReal</c>, a binary64) or INTEGER(1.5E40) into COMP-2 receivers is a 41- or 51-digit integer no
     ///     38-digit fixed item holds, and the integer item stored 9.99906754673275E+37 (or 0) where `MOVE … TO C3`
     ///     stores the value whole;</item>
-    ///   <item>any function whose every receiver is floating-point and at least one a floating-point numeric-edited item
-    ///     (<see cref="FloatEditedSet"/>) — the 36-digit decimal <see cref="WidestFloatEditedPic"/> (kb/Work PB370);</item>
     ///   <item>any other INTEGER function — <see cref="IntegerIntermediatePic"/>, the carrier's whole width at scale 0;</item>
     ///   <item>otherwise a fixed-point item described by the receivers (<see cref="ShapedPic"/>, the 36-digit decimal
     ///     item when every receiver is fixed-point and their digits pass the carrier), or, when no
@@ -184,7 +188,7 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         if (c is BoundComputedOperand { Expr: BoundIntrinsicCall call } && FunctionValueLane.ReturnsBinary64(call, ctx.Data.Options.Arithmetic))
             return Binary64ReturnedValuePic;
         if (SharedFloatFormatPic(receivers) is { } floatPic) return floatPic;
-        if (FloatEditedSet(receivers)) return WidestFloatEditedPic();
+        if (FloatingPointNumericSet(receivers)) return WidestFloatEditedPic();
         if (integer) return IntegerIntermediatePic;
         return receivers is { Count: > 0 } ? ShapedPic(receivers) : use.AsText ? FunctionValuePic : ValueOperandPic;
     }
@@ -198,9 +202,10 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// <see cref="WidestFloatEditedPicture"/>, analyzed through the one PICTURE analyzer. It holds any decimal value of
     /// at most 36 significant digits wherever its point falls, and a receiver that takes it TRUNCATES it — an edited
     /// receiver to its own significand (§14.6.8.4 2), a fixed-point one to its own digit positions (§14.6.8.2 4) — and
-    /// truncating to 36 digits first changes nothing. Two sets take it: every receiver floating-point with at least one
-    /// floating-point numeric-edited item (<see cref="FloatEditedSet"/>: a binary64 intermediate cut
-    /// <c>MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO D (I)</c> into <c>PIC +9.9(20)E+99</c> to 17 digits),
+    /// truncating to 36 digits first changes nothing. Two sets take it: every receiver numeric with at least one
+    /// floating-point and no one binary format serving them all (<see cref="FloatingPointNumericSet"/>: a binary64
+    /// intermediate cut <c>MOVE FUNCTION NUMVAL ("1.2345678901234567890123") TO D (I)</c> into <c>PIC +9.9(20)E+99</c> to
+    /// 17 digits, and a fixed-point window cut a FLOAT-LONG beside a PIC S9(3)V99 to 12 integer digits),
     /// and every receiver fixed-point with more digit positions between them than the 38-digit carrier holds
     /// (<see cref="ShapedPic"/>: a <c>PIC 9(31)</c> beside a <c>PIC V9(28)</c>, where capping the scale cut the
     /// fraction receiver).</summary>
@@ -212,12 +217,23 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// (<see cref="PicInfo.IsFloatEdited"/>, design D21): a receiver with no fixed fraction scale.</summary>
     private static bool IsFloatingPoint(PicInfo? pic) => pic is { IsFloat: true } or { IsFloatEdited: true };
 
-    /// <summary>True when every one of <paramref name="receivers"/> is floating-point (<see cref="IsFloatingPoint"/>) and
-    /// at least one is a floating-point numeric-edited item: the set <see cref="WidestFloatEditedPic"/> serves.</summary>
-    private static bool FloatEditedSet(IReadOnlyList<Place>? receivers) =>
+    /// <summary>True when every one of <paramref name="receivers"/> is a numeric or numeric-edited item, floating-point
+    /// or fixed-point (never a character, boolean or reference-modified receiver, whose text image is written from the
+    /// returned-value item's literal form), and at least one is floating-point (<see cref="IsFloatingPoint"/>): the set
+    /// <see cref="WidestFloatEditedPic"/> serves once <see cref="SharedFloatFormatPic"/> has answered the sets of ONE
+    /// binary format. A floating-point receiver keeps its significant digits at ANY magnitude, so no fixed-point split of
+    /// the 38-digit carrier is exact for it: <c>MOVE FUNCTION NUMVAL ("1234567890123456.5") TO S C</c> (S PIC S9(3)V99,
+    /// C FLOAT-LONG) cut C to 567890123456.5 through a 12-integer-digit window, and <c>MOVE FUNCTION NUMVAL
+    /// ("0.000000000000000000001234") TO H F</c> (FLOAT-SHORT, FLOAT-LONG) stored 0 in both through the S9(21)V9(17)
+    /// value-operand item (kb/Work PB3268 review R1-1, R1-2). The decimal floating-point item holds every value the exact
+    /// lanes produce (an SDIDI's 34 digits, NUMVAL's 31) whole, so each receiver's store from it is the one conversion its
+    /// single-receiver MOVE makes; an exact value of 37 or 38 significant digits, which only the <c>Int128</c> scaled
+    /// lane carries, is cut to 36 — the carrier limit kb/Work PB3268 records.</summary>
+    private static bool FloatingPointNumericSet(IReadOnlyList<Place>? receivers) =>
         receivers is { Count: > 0 }
-        && receivers.All(r => r.DenotedItem is not null && IsFloatingPoint(r.Item.OperandPic))
-        && receivers.Any(r => r.Item.OperandPic is { IsFloatEdited: true });
+        && receivers.All(r => r.DenotedItem is not null
+            && r.Item.OperandPic is { Category: PicCategory.Numeric or PicCategory.NumericEdited })
+        && receivers.Any(r => IsFloatingPoint(r.Item.OperandPic));
 
     /// <summary>The intermediate result item of a NUMERIC function whose value lands only in BINARY32 receivers (COMP-1,
     /// FLOAT-SHORT, FLOAT-BINARY-32 — <see cref="PicInfo.IsSingle"/>): a binary32 item, so the store into it is the ONE
@@ -267,10 +283,6 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         new(PicCategory.Numeric, Usage.Display, Length: PicInfo.ScaledCarrierDigits, Digits: PicInfo.ScaledCarrierDigits,
             Scale: PicInfo.ScaledCarrierDigits - ReturnedIntegerDigits, Signed: true);
 
-    /// <summary>The integer digits a floating-point receiver asks of a fixed-point intermediate (an implementor choice
-    /// under §15.4.1; <see cref="ShapedPic"/>): 12, leaving 26 fraction digits.</summary>
-    private const int FloatWindowIntegerDigits = 12;
-
     /// <summary>The fixed-point intermediate for a value that lands in <paramref name="receivers"/>: the WIDEST
     /// receiver's description (§14.9.25.4 GR1's `MOVE a TO temp` with temp described as the largest receiver, so
     /// every other receiver's store is a MOVE of a value the widest one already truncated the same way). A
@@ -282,20 +294,16 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// integer part is a wrong value and an under-counted fraction a truncated one (the order
     /// <c>ReceiverContext.WorkingScale</c> keeps). ⛔ When EVERY receiver is fixed-point and their digits together pass
     /// that carrier, no fixed-point window is exact for all of them, and the set takes the 36-digit decimal
-    /// <see cref="WidestFloatEditedPic"/> instead (kb/Work PB370). A floating-point numeric-edited receiver counts as a
-    /// floating-point one here (<see cref="IsFloatingPoint"/>).
-    /// <para>⚠ A FLOATING-POINT RECEIVER BESIDE A FIXED-POINT ONE IS THE CARRIER'S LIMIT (kb/Work PB3268, review R1-2). A
-    /// binary64 receiver holds ~17 significant digits at ANY magnitude (1E-20 and 1E+30 alike), which no fixed-point
-    /// split of 38 digits holds. It is reached here only for a value that is NOT a binary64 (a binary64 value takes
-    /// <see cref="Binary64ReturnedValuePic"/>, and every receiver lands from it at its own scale), i.e. an exact or SDIDI
-    /// value; the float receiver takes what the fixed-point receivers leave of the 38 digits, with
-    /// <see cref="FloatWindowIntegerDigits"/> integer digits at least (so a value from 1E-9 to 1E+12 keeps the 17
-    /// significant digits a binary64 holds), and a fixed-point receiver never loses a fraction digit to a float one. An
-    /// exact value outside that window reaches the float receiver cut. An SDIDI-carried intermediate item is the
-    /// redesign that removes the limit (the same one the values past the <c>Int128</c> carrier need).</para></summary>
+    /// <see cref="WidestFloatEditedPic"/> instead (kb/Work PB370).
+    /// <para>A floating-point receiver (a floating-point item or numeric-edited item, <see cref="IsFloatingPoint"/>)
+    /// reaches here only BESIDE a character, boolean or reference-modified receiver (under --permissive): every set of
+    /// numeric receivers with a floating-point one among them took its own binary format or the 36-digit decimal
+    /// floating-point item first (<see cref="SharedFloatFormatPic"/>, <see cref="FloatingPointNumericSet"/>, kb/Work
+    /// PB3268 review R1-1, R1-2). Beside the text receiver's 21 integer digits it takes the fraction digits the
+    /// carrier has left.</para></summary>
     private PicInfo ShapedPic(IReadOnlyList<Place> receivers)
     {
-        bool sized = false, anyFloat = false, anyFixed = false, anyText = false;
+        bool sized = false, anyFloat = false, anyText = false;
         var fixedPoint = new List<PicInfo>();
         foreach (var receiver in receivers)
         {
@@ -305,7 +313,6 @@ internal sealed class SendingValueTemp(BinderContext ctx)
             var pic = slice ? null : receiver.Item.OperandPic;
             if (!slice && pic is null) continue;
             sized = true;
-            anyFixed |= !IsFloatingPoint(pic);
             // A floating-point numeric-edited receiver has no fixed fraction scale (design D21): it asks of the
             // fixed-point intermediate what a floating-point item does (kb/Work PB370).
             if (IsFloatingPoint(pic)) anyFloat = true;
@@ -321,18 +328,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
         // an INTEGER function never reaches here, IntermediatePic gives it the carrier at scale 0).
         if (sized && allFixedPoint && integer + scale > PicInfo.ScaledCarrierDigits) return WidestFloatEditedPic();
         // No receiver had a description to size by (an index or object receiver is not a numeric MOVE receiver, so this
-        // is unreachable from a legal MOVE): the value operand's item, never a one-digit guess. Nor does a set whose
-        // every receiver is floating-point, of BOTH binary formats (one format takes its own float item,
-        // SharedFloatFormatPic): no receiver bounds the digits, which is the value operand's case — 21 integer digits,
-        // so no magnitude the S9(21)V9(9) returned-value item holds is cut (kb/Work PB3268, review R2-1).
-        if (!sized || !anyFixed) return ValueOperandPic;
+        // is unreachable from a legal MOVE): the value operand's item, never a one-digit guess.
+        if (!sized) return ValueOperandPic;
         integer = Math.Clamp(integer, 1, PicInfo.ScaledCarrierDigits);
         scale = Math.Min(scale, PicInfo.ScaledCarrierDigits - integer);
-        if (anyFloat)
-        {
-            integer = Math.Max(integer, Math.Min(FloatWindowIntegerDigits, PicInfo.ScaledCarrierDigits - scale));
-            scale = Math.Max(scale, PicInfo.ScaledCarrierDigits - integer);
-        }
+        // A floating-point receiver beside a text one (above): the fraction digits the carrier has left.
+        if (anyFloat) scale = PicInfo.ScaledCarrierDigits - integer;
         int digits = integer + scale;
         return new PicInfo(PicCategory.Numeric, Usage.Display, Length: digits, Digits: digits, Scale: scale, Signed: true);
     }
