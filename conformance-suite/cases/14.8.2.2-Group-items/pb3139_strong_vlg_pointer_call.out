@@ -1,0 +1,8 @@
+SUB [hello] 05 2 cd WWWW
+COPY 2 ab WWWW
+CON [hello] 05 2 abcd
+RET [ret-val] 05 2 ab YYYY
+SUB [hello] 05 2 cd WWWW
+COPY 2 ab WWWW
+REF [world!] 06 3 abcdef
+FUN [fun] 1 zz FFFF
