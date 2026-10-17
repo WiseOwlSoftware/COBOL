@@ -382,6 +382,16 @@ sequential arms. It lives on the sequential emitter because that class is the de
 common services `KeyedIo` consumes (status store, USE hook, image splice, RETRY renders); a second copy on the
 keyed side is exactly how the sequential WRITE came to have no branch at all.
 
+**One phrase / NOT-phrase pair renderer, with the gate (kb/Work PB3237, PB1120).** `EmitInvalid` and DELETE FILE's
+`ON EXCEPTION` / `NOT ON EXCEPTION` pair both render through `SequentialIoEmitter.EmitPhrasePair(phraseCond, phrase,
+notPhrase, successCond, hook)`, and a lone NOT phrase (READ's NOT AT END, WRITE's NOT END-OF-PAGE) through
+`EmitNotPhrase(hook, body)`. Each takes the statement's `UseHookResult` WHOLE, never its `NotPhraseGate` string (no
+nullable parameter, no default), because §14.6.13.1.4 2)/3) skips a NOT phrase once a WHEN phrase or USE declarative
+has handled the EC-I-O-WARNING a successful completion raised, and a caller with no hook to pass does not compile.
+DELETE FILE had its own copy of the pair dispatch with no gate. `NotPhraseGateDriftTests` closes what the type leaves
+open: a NOT-phrase read in the I-O emitters must reach a renderer, every renderer call must pass the `hook` variable,
+and a `UseHookResult` may be built (`new` or `default`) only inside `EmitUseHook`.
+
 **One code, six rules.** `COBOLNET1720` serves all six, on the `COBOLNET1694` precedent: the *shape* is one
 rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
 §/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
