@@ -1,4 +1,4 @@
-## PB3253: a variable-length record's GR8 b) maximum is the laid-out record plus its dynamic-length leaves
+## Entry 2160 — 2026-10-17 15:32 PDT — PB3253: a variable-length record's GR8 b) maximum is the laid-out record plus its dynamic-length leaves
 
 `FileModel.MaxDynamicExtent` summed each non-redefining child's own `ByteWidth` for a record with a dynamic-length member,
 so two same-level `PIC 1(3) USAGE BIT` items each counted a byte where the one 8.5.1.6.3 walk shares one. The record
@@ -26,3 +26,4 @@ Self-review (architecture, full code, performance, duplication): one walk (`Dyna
 copy of the occurrence-count product; the leaf extent is a static lambda (no per-call allocation beyond the existing LINQ); the
 doc citation filed under §8.5.1.6.3 that the doc-citation audit caught is now filed under §13.18.43.4 GR4. Gate:
 `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261017T221318Z-3907f6); Linux gate: the lander's.
+
