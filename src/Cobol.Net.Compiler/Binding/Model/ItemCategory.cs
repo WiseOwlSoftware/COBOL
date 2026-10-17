@@ -211,6 +211,49 @@ public static class ItemCategory
     public static Usage? UsageOf(DataItem item) =>
         item.OperandPic?.Usage ?? (IsAlphanumericGroup(item) ? Usage.Display : null);
 
+    /// <summary>
+    /// ⛔ THE ONE PREDICATE FOR <i>"described implicitly or explicitly as usage display or national"</i> — the
+    /// sentence ISO §14.9.43.3 SR1 (STRING: "all identifiers, except identifier-4, shall be described implicitly or
+    /// explicitly as usage display or national") and §14.9.22.3 SR1/SR2 (INSPECT: "an elementary item described
+    /// implicitly or explicitly as usage display or national") state in the same words (kb/Work PB3228). It reads
+    /// the usage through <see cref="UsageOf"/>, the one reader, so a bit group answers usage bit
+    /// (§13.18.29.4 GR1 b), a national group usage national (GR2 b) and an alphanumeric group display
+    /// (§8.5.2.1); only the STRONGLY-TYPED group, whose class and category are its type-name and which the
+    /// standard gives no usage, is read off the elementary items it is made of
+    /// (<see cref="UsageOutsideDisplayOrNational"/>). Asked of a rule that also requires an ELEMENTARY item
+    /// (INSPECT SR2), the caller adds the group exclusion; it is not part of the usage sentence.
+    /// </summary>
+    public static bool IsDisplayOrNationalUsage(DataItem item) =>
+        GroupKindsOf(item).HasFlag(GroupKinds.StronglyTyped)
+            ? UsageOutsideDisplayOrNational(item) is null
+            : UsageOf(item) is Usage.Display or Usage.National;
+
+    /// <summary>
+    /// The item whose usage keeps <paramref name="item"/> from being <i>"described implicitly or explicitly as
+    /// usage display or national"</i> (<see cref="IsDisplayOrNationalUsage"/>) — the item itself when its usage
+    /// (<see cref="UsageOf"/>) is another one (a COMP item, a pointer, a bit group), the first leaf beneath it
+    /// when it is a strongly-typed group (declaration order, REDEFINES views excluded: they occupy no storage of
+    /// their own) holding one — and <see langword="null"/> when it is described as display or national, OR when
+    /// the standard states NO usage for it (a variable-length group, §8.5.1.12.1: "not equivalent to an
+    /// alphanumeric data item"). A rule that REFUSES (STRING SR1) rejects what the standard names and never what
+    /// it cannot classify, which is why the two nulls are one answer here; a rule that must ADMIT positively
+    /// asks <see cref="IsDisplayOrNationalUsage"/>. No storage-form exemption is asked: a storage form is not a
+    /// usage (a Tier-B BINARY or PACKED leaf is stored as a character image too, its <c>Pic.Usage</c> unchanged),
+    /// and the post-bind <c>StoreAsImage</c> flag is not yet computed when procedure binding runs.
+    /// </summary>
+    public static DataItem? UsageOutsideDisplayOrNational(DataItem item)
+    {
+        if (!GroupKindsOf(item).HasFlag(GroupKinds.StronglyTyped))
+            return UsageOf(item) is { } usage && usage is not (Usage.Display or Usage.National) ? item : null;
+        foreach (var child in item.Children.Where(c => c.RedefinesTargetName is null))
+        {
+            var outside = child.IsGroup ? UsageOutsideDisplayOrNational(child)
+                : child.Pic is { Usage: not (Usage.Display or Usage.National) } ? child : null;
+            if (outside is not null) return outside;
+        }
+        return null;
+    }
+
     /// <summary>ONE walk for both predicates — the two rules differ only in whether category national is in the
     /// admitted set, and writing the walk twice is how the alphabetic and group arms would come to disagree.</summary>
     private static bool Admits(DataItem item, bool national) => Admits(Table16Operand.Of(item), item, national);

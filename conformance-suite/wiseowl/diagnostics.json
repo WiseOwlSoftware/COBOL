@@ -13337,6 +13337,30 @@
   ],
   "expect": "COBOLNET2112"
  },
+ "pb3228-string-bit-group-delimiter": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3228-string-bit-group-receiver": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
+ "pb3228-string-bit-group-sender": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1626"
+ },
  "pb3232-sum-counter-beside-data-item": {
   "refuse-at": [
    "85",
@@ -13397,6 +13421,13 @@
    "2023"
   ],
   "expect": "COBOLNET0862"
+ },
+ "pb3253-record-contains-bits-beside-dynamic-one-over": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2010"
  },
  "pb3254-merge-in-inverted-section-sort-procedure": {
   "refuse-at": [
