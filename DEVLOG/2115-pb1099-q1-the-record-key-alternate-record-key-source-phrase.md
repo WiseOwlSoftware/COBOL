@@ -110,6 +110,14 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   `PublicAPI.Shipped.txt`, which merged cleanly; this branch's removed members still raise the combined surface to
   major 7, the boundary hash is main's (this branch never moves it), and the test recomputed the combined runtime
   surface hash (E13EE8199764F780).
+- Landing finisher (Linux gate red, exit 5 on `a9bc43263`): `RegionLocksDriftTests.TwoWaitingHoldsBothGetTheByteInTurn(kind:
+  LockFiles)` answered `[Unavailable, Ok]`. It was main's, not this branch's: 2 of 160 stressed WSL runs failed at the head and
+  4 of 160 at origin/main, and the diff never reaches `IO/Sharing`. Root cause (kb/Work PB3313, measured): a lock directory a
+  sibling had just made, removed by the sibling's CLOSE between .NET's `mkdir` (`EEXIST`) and its own existence check, made
+  `Directory.CreateDirectory` throw out of `SidecarLockFiles.Publish` into `Hold`'s `catch (IOException)`. All 14 non-Ok
+  rounds of 24,000 in a first-chance harness were that `EEXIST`. `HostFile.CreateLockDirectory` now reads `EEXIST` with
+  nothing left at the name as the closing-sibling race and lets `Publish` retry it, as .NET answers it on Windows: 0 of
+  24,000 after the fix.
 
 **Self-review.** Architecture: one key shape, one capture, one lookup, one gate; no C# text in a bound node.
 Code: each cited rule re-read for the operand it names (data-name-1 vs data-name-2, record-key-name-1). Performance:

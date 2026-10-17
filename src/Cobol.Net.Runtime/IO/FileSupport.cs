@@ -424,14 +424,26 @@ public static class HostFile
     /// make a second user who may write the physical file's directory unable to publish into the lock directory, and
     /// that user's OPEN would be granted where §9.1.15 2) requires the refusal. Only the creator applies the mode, and
     /// only to a directory it created; a directory that exists is the first holder's and is left as it is. Windows has
-    /// no such mode.</summary>
+    /// no such mode.
+    /// <para>⛔ A DIRECTORY THAT VANISHES UNDER THE CREATION IS THE CLOSING-SIBLING RACE, NOT A HOST FAILURE (kb/Work
+    /// PB3313). The last holder's CLOSE removes the empty directory (<see cref="SidecarLockFiles.RetireDirectory"/>), and an
+    /// <c>rmdir</c> can land between .NET's <c>mkdir</c>, answered <c>EEXIST</c> because a sibling had just made the
+    /// directory, and .NET's own check that the name is a directory: .NET then throws the <c>EEXIST</c> as an
+    /// <see cref="IOException"/>, which every caller reads as a lock directory the host cannot hold, so a WAITING region
+    /// hold answered <see cref="RegionLockResult.Unavailable"/> and the store mutex went untaken (14 of 24,000
+    /// two-endpoint rounds under CPU load on Linux). Here it returns with no directory, as .NET itself answers the same
+    /// race on Windows, and the publication that follows meets the missing directory and publishes again
+    /// (<see cref="SidecarLockFiles.Publish"/>). Only <c>EEXIST</c> with nothing left at the name is that race; any other
+    /// failure still throws. No test can freeze .NET between its two calls, so the witness is the repetition one,
+    /// <c>RegionLocksDriftTests.TwoWaitingHoldsBothGetTheByteInTurn</c>.</para></summary>
     internal static void CreateLockDirectory(string directory)
     {
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
         try { _ = File.GetUnixFileMode(directory); return; }                // exists: another holder's
         catch (FileNotFoundException) { }
         catch (DirectoryNotFoundException) { }
-        Directory.CreateDirectory(directory);
+        try { Directory.CreateDirectory(directory); }
+        catch (IOException e) when (e.HResult == UnixAlreadyExists && !Path.Exists(directory)) { return; }   // a sibling's CLOSE removed it mid-creation
         try
         {
             const UnixFileMode shared = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
@@ -455,6 +467,10 @@ public static class HostFile
 
     /// <summary><c>EWOULDBLOCK</c> (= <c>EAGAIN</c>) on this Unix host — 11 on Linux, 35 on the BSD family.</summary>
     private static readonly int UnixWouldBlock = OperatingSystem.IsLinux() || OperatingSystem.IsAndroid() ? 11 : 35;
+
+    /// <summary><c>EEXIST</c> on every Unix host — 17 on Linux and on the BSD family alike — which .NET surfaces as the
+    /// raw errno in <see cref="Exception.HResult"/>.</summary>
+    private const int UnixAlreadyExists = 17;
 
     /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A WRITE FAILURE AS THE MEDIUM'S BOUNDARY (kb/Work PB1192): did
     /// the operating environment refuse to store bytes because the medium is full, a quota is exhausted, or the
