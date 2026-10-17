@@ -13271,6 +13271,22 @@
   ],
   "expect": "COBOLNET1596"
  },
+ "pb3222-by-value-formal-index": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1553"
+ },
+ "pb3222-by-value-formal-type-alphanumeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1553"
+ },
  "pb3228-string-bit-group-delimiter": {
   "refuse-at": [
    "2002",

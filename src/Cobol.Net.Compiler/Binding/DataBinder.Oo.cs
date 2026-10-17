@@ -465,7 +465,11 @@ public sealed partial class DataBinder
             else if (header.AdmitFormal(pname, item))
             {
                 if (optional && byValue) header.OptionalNeedsByReference(pname);   // §14.2.1: OPTIONAL is a BY REFERENCE word
-                if (byValue) header.ByValueClass(pname, item);                      // §14.2.2 SR2
+                if (byValue)
+                {
+                    CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
+                    header.ByValueClass(pname, item); // §14.2.2 SR2
+                }
                 // ⛔ A RESIDENT formal's every reference reads and writes its argument's storage through the method-local
                 // carrier (ISO §14.2.3 GR8; kb/Work PB2087, the method arm of CallBindLinkage's rule): its C# path IS
                 // `{CarrierLocal}.Value`, and no local of its own is declared.
