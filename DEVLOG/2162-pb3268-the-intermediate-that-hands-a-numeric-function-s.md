@@ -1,4 +1,4 @@
-## PB3268 - the intermediate that hands a numeric function's value to several receivers is described for the value, not as the returned-value item
+## Entry 2162 — 2026-10-17 16:06 PDT — PB3268 - the intermediate that hands a numeric function's value to several receivers is described for the value, not as the returned-value item
 
 **What was wrong.** `MOVE FUNCTION PI TO Q1 Q2` (`PIC 9V9(15)`) stored 3141592653000000 in both receivers while
 `MOVE FUNCTION PI TO Q3` stored 3141592653589793. ISO §14.9.25.4 GR1 writes a function-identifier's single evaluation as
@@ -211,3 +211,4 @@ the exact fixed-point carrier. Since round 6, `IntermediatePic` asks `FloatingPo
 the branch adds resolves to a defined member, which a `GenerateDocumentationFile` build of `Cobol.Net.Compiler` confirmed
 (no CS1574 in a file the branch changed). The repository does not build documentation files, so CS1574 never fails a
 build. Main already carries about 108 distinct dangling crefs. That is a tree-wide change, left for its own landing.
+
