@@ -126,7 +126,8 @@ public sealed partial class DataBinder
         }
 
         // The addressed names: this unit's own procedure division(s), plus — kb/Work PB1009 — every CONTAINED
-        // program's, restricted to this unit's GLOBAL names. §13.18.27.4 GR2 lets a contained program reference
+        // program's, restricted to this unit's GLOBAL names (ResolveStorageClaimHead resolves a contained head among
+        // them alone, kb/Work PB3286). §13.18.27.4 GR2 lets a contained program reference
         // a global name "without describing it again", and the storage it references is THIS unit's, so the
         // decision that the storage must be addressable belongs here, where the storage is declared. (A name the
         // contained program also declares locally shadows the global one; forcing the global's cell anyway is
@@ -141,7 +142,7 @@ public sealed partial class DataBinder
             // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
             // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and is invisible to the
             // unit-wide maps, which OoScopeSubtree emptied of it), exactly as the SET bind will resolve it.
-            DataItem? hit = PtrResolveAddressOfTarget(name, quals, method);
+            DataItem? hit = ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: true);
             if (hit is null)
                 continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text
             DataItem root = hit;
@@ -181,7 +182,7 @@ public sealed partial class DataBinder
                 .Select(t => (t.Name, t.Qualifiers, t.Invoke, t.SlotsOnly, Method: (OoMethodSymbol?)null, Contained: true)));
         foreach (var (name, quals, invoke, slotsOnly, method, contained) in operands)
         {
-            if (ResolveByReferenceOperand(name, quals, method) is not { } hit) continue;
+            if (ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: false) is not { } hit) continue;
             // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS CROSSES ONLY AS AN AREA (kb/Work PB1940): a strongly-typed group
             // with an object-reference or pointer leaf has no character image, so its BY CONTENT record (§14.2.3 GR9) is
             // a detached copy of its area and a CALL's RETURNING delivery (§14.6.5) is a store into its receiver's area.
@@ -236,14 +237,29 @@ public sealed partial class DataBinder
         _ptrAddressableBackings.Add((cls.BackingCsName, cell, cls.Canonical, cls.Width));
     }
 
-    /// <summary>Resolve one scanned BY REFERENCE operand in the scope its statement binds in — the owning METHOD's
-    /// (§11.7.4 GR5) when <paramref name="method"/> is set, else the unit's — or null when it names nothing or is
-    /// ambiguous: the statement's bind reports both (§8.4.2.2.3 SR1); a storage claim never guesses between candidates.</summary>
-    private DataItem? ResolveByReferenceOperand(string name, List<string> quals, OoMethodSymbol? method)
+    /// <summary>⛔ THE ONE RESOLUTION OF A SCANNED STORAGE-CLAIM HEAD (an <c>ADDRESS OF</c> head or a BY REFERENCE operand;
+    /// kb/Work PB3286) in the scope its statement will bind in: the owning METHOD's (§11.7.4 GR5) when
+    /// <paramref name="method"/> is set, else the unit's. Null when it names nothing, or is ambiguous and
+    /// <paramref name="firstOfSeveral"/> is false: the statement's bind reports both (§8.4.2.2.3 SR1), and a storage
+    /// claim never guesses between candidates — except where the SET bind's own permissive reading takes the first
+    /// declared survivor (the ADDRESS OF arm, whose mis-force is loud-caught at that bind's cell check).
+    /// <para>⛔ A CONTAINED program's head is resolved among this unit's GLOBAL names alone. §13.18.27.4 GR2 lets it
+    /// "reference that name without describing it again", and §8.4.6.2.1 admits a local name only in the source element
+    /// that declares it, so a container's LOCAL record that shares a name with a GLOBAL one is not a candidate: asking
+    /// the whole container scope took the local one (candidate 0, or one of two) and dropped it as not global, so the
+    /// global record was never put on a cell and the contained <c>SET P TO ADDRESS OF X</c> was refused with a reason
+    /// that was false. A qualified head resolves through the one §8.4.2.2 qualification machinery, which the written
+    /// qualifiers already narrow to the record they name.</para></summary>
+    private DataItem? ResolveStorageClaimHead(string name, List<string> quals, OoMethodSymbol? method, bool contained,
+        bool firstOfSeveral)
     {
         var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
         if (quals.Count == 0)
-            return Symbols.TryResolveUnqualified(name, scope, out var candidates) && candidates.Count == 1 ? candidates[0] : null;
+        {
+            if (!Symbols.TryResolveUnqualified(name, scope, out var candidates)) return null;
+            if (contained) candidates = candidates.FindAll(c => CallGlobalRoots.Contains(c.Root));
+            return candidates.Count == 1 || (firstOfSeveral && candidates.Count > 0) ? candidates[0] : null;
+        }
         var saved = ActiveMethodScope;
         ActiveMethodScope = method?.DataScope;
         try { return new ReferenceResolver(this).FindItem(name, quals); }
@@ -325,19 +341,6 @@ public sealed partial class DataBinder
                 if (suffix.qualification() is { } q) quals.Add(q.cobolWord().GetText());
             return (head.GetText(), quals);
         }
-    }
-
-    /// <summary>Resolve one scanned <c>ADDRESS OF</c> head in the scope its statement will bind in: the owning
-    /// METHOD's (§11.7.4 GR5) when <paramref name="method"/> is set, else the unit's.</summary>
-    private DataItem? PtrResolveAddressOfTarget(string name, List<string> quals, OoMethodSymbol? method)
-    {
-        var scope = method is null ? Model.Scope.Program : new Model.Scope(method.DataScope);
-        if (quals.Count == 0)
-            return Symbols.TryResolveUnqualified(name, scope, out var candidates) && candidates.Count > 0 ? candidates[0] : null;
-        var saved = ActiveMethodScope;
-        ActiveMethodScope = method?.DataScope;
-        try { return new ReferenceResolver(this).FindItem(name, quals); }
-        finally { ActiveMethodScope = saved; }
     }
 
     /// <summary>Collect the data-names taken by every §8.4.3.11 DATA-ADDRESS-IDENTIFIER in the procedure
