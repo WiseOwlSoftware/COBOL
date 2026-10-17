@@ -1,4 +1,4 @@
-## PB1784 + PB745: one DiagnosticCatalog descriptor per OO definition rule
+## Entry 2154 — 2026-10-17 13:39 PDT — PB1784 + PB745: one DiagnosticCatalog descriptor per OO definition rule
 
 Wave 1108, group A, the FINISH of the kb/Work PB1784 analysis. Its decomposition table had landed through
 its child notes; the re-probe on `62d0dca6a` ran every child's goldens and negatives on this build (PB1020, PB1062,
@@ -118,3 +118,4 @@ field: three `test-ref` fields both sides changed took the branch's renamed C# w
 `tests/conformance/`. `NegativeGoldenHeaderCodeDriftTests` now reads the suite's refusals through the generator's
 manifest (2,207 of 2,762 refusals pin a code); a planted stale header turns it red by name. The tools were deleted
 again; `generate.py` reads 5,245 tests, none refused.
+
