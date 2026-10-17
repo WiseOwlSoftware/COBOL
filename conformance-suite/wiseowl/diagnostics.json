@@ -13257,6 +13257,38 @@
   ],
   "expect": "constant-name 'N', which substitutes the literal 5"
  },
+ "pb3216-alphabet-name-declared-twice": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4250"
+ },
+ "pb3216-class-name-declared-twice": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4250"
+ },
+ "pb3216-mnemonic-name-declared-twice": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4250"
+ },
+ "pb3216-switch-condition-declared-twice": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4250"
+ },
  "pb3218-alphabet-zero-length-concatenation": {
   "refuse-at": [
    "2014",
@@ -17892,7 +17924,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET1665"
+  "expect": "COBOLNET4250"
  },
  "pb64t1-locale-name-undeclared": {
   "refuse-at": [

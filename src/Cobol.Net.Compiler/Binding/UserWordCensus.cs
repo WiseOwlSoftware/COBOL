@@ -48,6 +48,28 @@ internal sealed class UserWordCensus
         + "exceptions are a compilation-variable-name, a level-number that matches a paragraph-name or "
         + "section-name, and the constant-name / data-name / property-name / record-key-name / record-name group";
 
+    private readonly Dictionary<(string Word, UserWordKind Kind), int> _unqualifiedDeclarations = new(UnqualifiedKey.Instance);
+
+    private sealed class UnqualifiedKey : IEqualityComparer<(string Word, UserWordKind Kind)>
+    {
+        public static readonly UnqualifiedKey Instance = new();
+        public bool Equals((string Word, UserWordKind Kind) a, (string Word, UserWordKind Kind) b) =>
+            a.Kind == b.Kind && CobolNames.Comparer.Equals(a.Word, b.Word);
+        public int GetHashCode((string Word, UserWordKind Kind) k) => HashCode.Combine(CobolNames.Comparer.GetHashCode(k.Word), k.Kind);
+    }
+
+    /// <summary>Record one declaration of a word that can be referenced only unqualified
+    /// (<see cref="UserWordKinds.DeclaredUnqualifiable"/>, a switch's condition-name; kb/Work PB3216) and return how
+    /// many this source element has now declared: 1 for the first, more for a repeat that
+    /// <c>DataBinder.DeclareUserWord</c> refuses (ISO §8.4.2.1).</summary>
+    public int DeclareUnqualified(string word, UserWordKind kind) =>
+        _unqualifiedDeclarations[(word, kind)] = _unqualifiedDeclarations.GetValueOrDefault((word, kind)) + 1;
+
+    /// <summary>How many unqualifiable declarations of <paramref name="word"/> as <paramref name="kind"/> this source
+    /// element has made.</summary>
+    public int UnqualifiedDeclarations(string word, UserWordKind kind) =>
+        _unqualifiedDeclarations.GetValueOrDefault((word, kind));
+
     /// <summary>True when <paramref name="word"/> was first recorded in this source element as
     /// <paramref name="kind"/>.</summary>
     public bool IsDeclaredAs(string word, UserWordKind kind) =>
