@@ -68,6 +68,16 @@ public sealed class RecordSizeModelTests
         + "           05 T PIC N(2) OCCURS 1 TO 3 TIMES DEPENDING ON K.", 6, 14)]
     [InlineData("       01  R1.\r\n           05 A PIC X(1).\r\n"
         + "           05 T PIC 1(3) USAGE BIT OCCURS 1 TO 4 TIMES DEPENDING ON K.", 2, 3)]
+    // kb/Work PB3253 — the VARIABLE-LENGTH record: GR8 b)'s maximum is ByteWidth (bits laid out by the one
+    // §8.5.1.6.3 walk, a dynamic-length leaf zero bytes) plus each dynamic-length leaf's maximum, the same fixed part
+    // MinRecordSize starts from — never a re-summation giving every bit leaf a byte of its own.
+    [InlineData("       01  R1.\r\n           05 B1 PIC 1(3) USAGE BIT.\r\n           05 B2 PIC 1(3) USAGE BIT.\r\n"
+        + "           05 D PIC X DYNAMIC LENGTH LIMIT 10.", 1, 11)]
+    [InlineData("       01  R1.\r\n           05 B1 PIC 1(3) USAGE BIT.\r\n           05 D PIC X DYNAMIC LENGTH LIMIT 10.\r\n"
+        + "           05 B2 PIC 1(3) USAGE BIT.", 2, 12)]
+    [InlineData("       01  R1.\r\n           05 T OCCURS 3.\r\n               10 B PIC 1(3) USAGE BIT.\r\n"
+        + "               10 D PIC X DYNAMIC LENGTH LIMIT 5.", 3, 18)]
+    [InlineData("       01  R1.\r\n           05 A PIC X(2).\r\n           05 N PIC N DYNAMIC LENGTH LIMIT 4.", 2, 10)]
     public void UnstatedRange_IsTheRecordsByteSize(string record, int min, int max)
     {
         var file = Single("       FD  F1 RECORD IS VARYING IN SIZE.\r\n" + record);
@@ -75,14 +85,39 @@ public sealed class RecordSizeModelTests
         Assert.Equal(max, file.VaryMax);
     }
 
+    /// <summary>A dynamic length structure inside a table is counted once per occurrence at both ends (§12.3.7.4
+    /// GR18 / GR19: every occurrence of the item is delimited): a three-occurrence table of a 10-character DELIMITED
+    /// item is 3 x (10 + 1) = 33 bytes at most and 3 x (0 + 1) = 3 at least (kb/Work PB3253 — the minimum counted
+    /// the structure of a table's item once).
+    /// <para>The same under an occurs-depending bit table, whose minimum is laid out in BITS (the bit-bearing arm of
+    /// <c>MinExtent</c>), which left the structure out altogether: a bit item, a DELIMITED item (zero bytes of data
+    /// and a one-byte delimiter at its minimum) and a bit table of 1 TO 4 elements is 1 + 1 + 1 = 3 bytes at least
+    /// (the table starts the byte after the non-bit item) and 1 + 11 + 2 = 14 at most; a table of elements that each
+    /// hold a bit item and a DELIMITED item is 1 + 1 = 2 bytes at least and 4 x (1 + 11) = 48 at most.</para></summary>
+    [Theory]
+    [InlineData("           05 T OCCURS 3.\r\n               10 D PIC X DYNAMIC LENGTH DS-DELIM LIMIT 10.", 3, 33)]
+    [InlineData("           05 B1 PIC 1(3) USAGE BIT.\r\n           05 D PIC X DYNAMIC LENGTH DS-DELIM LIMIT 10.\r\n"
+        + "           05 T PIC 1(3) USAGE BIT OCCURS 1 TO 4 TIMES DEPENDING ON K.", 3, 14)]
+    [InlineData("           05 T OCCURS 1 TO 4 TIMES DEPENDING ON K.\r\n               10 B PIC 1(3) USAGE BIT.\r\n"
+        + "               10 D PIC X DYNAMIC LENGTH DS-DELIM LIMIT 10.", 2, 48)]
+    public void DynamicLengthStructure_IsCountedPerOccurrenceAtBothEnds(string members, int min, int max)
+    {
+        var file = Single("       FD  F1 RECORD IS VARYING IN SIZE.\r\n       01  R1.\r\n" + members,
+            specialNames: "       CONFIGURATION SECTION.\r\n       SPECIAL-NAMES.\r\n"
+                + "           DYNAMIC LENGTH STRUCTURE DS-DELIM IS DELIMITED.\r\n");
+        Assert.Equal(min, file.VaryMin);
+        Assert.Equal(max, file.VaryMax);
+    }
+
     /// <summary>Binds <paramref name="fileSection"/> and returns its one file. ⛔ The source must bind CLEAN, binder
     /// errors included: a size measured on source the compile refuses is not a record size (kb/Work PB1604 — e.g.
     /// a dynamic-capacity table under an FD record, which COBOLNET1526 refuses per §8.5.1.9.1 3)).</summary>
-    private static FileModel Single(string fileSection)
+    private static FileModel Single(string fileSection, string specialNames = "")
     {
         string src = "       IDENTIFICATION DIVISION.\r\n"
             + "       PROGRAM-ID. RECSIZE.\r\n"
             + "       ENVIRONMENT DIVISION.\r\n"
+            + specialNames
             + "       INPUT-OUTPUT SECTION.\r\n"
             + "       FILE-CONTROL.\r\n"
             + "           SELECT F1 ASSIGN TO \"recsize.dat\".\r\n"
