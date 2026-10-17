@@ -1,4 +1,4 @@
-## kb/Work PB3325 gains a second instance; PB3345 retired as its duplicate
+## Entry 2158 — 2026-10-17 14:52 PDT — kb/Work PB3325 gains a second instance; PB3345 retired as its duplicate
 
 The operator filed kb/Work PB3345 on 2026-10-17. On that day the attended session's rolling wave (wave 1110, PB3339)
 stamped `FINDINGS 2` on its implementer's branch. The wave's own review finisher then worked in a new worktree that had
@@ -10,3 +10,4 @@ dispatch ledger. PB3345 is retired unlanded. Its evidence and four readings are 
 instance". The fourth reading is the file-set partition's "the hold decided those" exemption, which assumes the
 ledger holds every live dispatch. PB3325's fix shape now names that premise and a self-test for both shapes. Notes only;
 no source change.
+
