@@ -1076,7 +1076,9 @@ bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 +
 — stays, held through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files
 of `SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
 `RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (the comment on `HostRegionLocks` is rewritten with
-the constant). **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one byte per transaction id (`TransactionLivenessByte`
+the constant). **Added: one identity KIND in the record region** — a unique alternate key VALUE a transaction freed (2.2.1.10:
+the key's index and the value's channel bytes), hashed by `RecordLockByte` and tabled by `PhysicalFileTable` exactly as a
+record identity, so no second lock class exists. **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one byte per transaction id (`TransactionLivenessByte`
 = base + (id mod 2^60)), held EXCLUSIVELY through the owner's writable handle for the life of the transaction** (2.2.1.10): the
 operating environment releases it with the handle when the owner dies, and the lock-file host already deletes a dead holder's
 file (`SidecarLockFiles`: *"delete it when its holder is dead"*), so "is this transaction's owner alive" is one test of one
@@ -1161,12 +1163,56 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   the record — and removes the transaction's entry; then the record locks are released (§9.1.16: *"A ROLLBACK statement
   releases all record locks for files subject to commit and rollback"*), the kept handles of connectors closed since the last
   COMMIT are released, and the §9.1.15 last sentence's case (a file not open at the previous commit and opened since) releases
-  its file lock. A record another run unit changed meanwhile is restored over that change: that is D.2.5's named
-  inconsistency, and the record locks are what a program uses to prevent it (a READ locks, §12.4.5.9.4 GR4 *"Records are
-  locked when any READ statement is executed"*; a WRITE under automatic locking does not, which is why D.2.5 speaks of *"a
-  record written or updated by the current run unit"*). The lock classes are unchanged (2.2.1.8). A ROLLBACK needs no
+  its file lock. No other connector can have changed a record the rollback restores, or taken a unique key value it
+  re-inserts, because the transaction's locks (the next two bullets) held them; `ApplyUndo` therefore runs no uniqueness check
+  and no lock test of its own, and a momentary double entry under a unique key inside the one statement (K1 restored under X
+  before the transaction's own K2 with X is removed) is invisible, since the statement is atomic. A ROLLBACK needs no
   promotion: if its statement is lost to a power loss, the committed state still carries the transaction and the next OPEN
   rolls it back again; the operation is idempotent.
+- **Every record a transaction changes is locked by the connector that changed it, read or not, until COMMIT, ROLLBACK or
+  termination** (finding R2-3, derived 2026-10-17). §9.1.16 makes commit control *"an implicit LOCK MODE IS AUTOMATIC WITH
+  LOCK ON MULTIPLE RECORDS"* whose locks only COMMIT and ROLLBACK release; §12.4.5.9.4 GR4 locks on READ (*"Records are
+  locked when any READ statement is executed"*); §14.9.51.4 GR11 sets the lock at a WRITE when *"the WITH LOCK phrase is
+  specified or implied"* and names no implier, so what implies it is the implementor's; §14.9.10.4 GR7 releases a deleted
+  record's lock only *"if record locks are in effect and the file is not subject to an active APPLY COMMIT clause"*, and its
+  NOTE says that for such connectors *"file and record locking persists"* — a lock on a DELETED record can only exist to hold
+  its identity for the rollback; §9.1.17's unit of work is *"protected from the activity of other run units that wish to
+  access any of the same records and data"*; and Annex D.2.5 says *"It is possible for another run unit to read a record
+  written or updated by the current run unit"* only with IGNORING LOCK — a written record is a locked record — and that *"As
+  locks on records are not released until there is a commit or a rollback, other run units may not prevent the current run
+  unit from doing what it needs to do with them in the course of a rollback or commit"*. Table A.1's "WRITE, automatic: no
+  lock" governs the non-commit case by its own preamble. *The first correction read D.2.5 backwards: the inconsistency it
+  names is a record another run unit READ ignoring the lock, not one it changed, and the design let a ROLLBACK restore a
+  before-image over another run unit's completed WRITE of the same key — the harm finding R1-2 had named, half fixed.* Where
+  the words leave the implier open, the precedence of CLAUDE.md rule 1: GnuCOBOL 3.2 has no commit control (`cob_commit` and
+  `cob_rollback` unlock, `indexed_write` locks only on `COB_WRITE_LOCK`, `libcob/fileio.c` 3811-3818, 6866-6883) — nothing;
+  Micro Focus Fileshare locks every record a transaction updates until its COMMIT or ROLLBACK (the survey above). So: commit
+  control IMPLIES WITH LOCK for WRITE (GR11); REWRITE and DELETE lock the record they change whether or not a READ locked it
+  first; DELETE's lock is on the deleted record's IDENTITY (prime key bytes or relative record number), which stays in the
+  run unit's lock table and the published region after the record is gone, so another connector's WRITE of a record with that
+  identity answers '51'. The WRITE statement gains the lock test REWRITE and DELETE already have, placed where DOC-A.1-104
+  places theirs: after the invalid-key conditions, which ignore locks (§14.9.51.4 GR33, GR42), and before the record is
+  touched; the RETRY phrase applies (GR16: *"for the case where resources needed to write a record are locked by another run
+  unit"*). The connector's own re-lock is idempotent (GR8).
+- **A unique alternate key value a transaction's change frees is locked too** (finding R2-4). A REWRITE that changes a key
+  declared without DUPLICATES from X to Y, and a DELETE of a record whose such key is X, lock the VALUE X — identity = the
+  key's index and X's channel bytes, hashed into the record region by `RecordLockByte` exactly as a record identity is and
+  compared exactly within the run unit — until COMMIT, ROLLBACK or termination; a WRITE or REWRITE through any other
+  connector, in this run unit or another, that would insert X answers '51' at the same point of its order as the record lock
+  above (RETRY applies); the transaction's own connector holds the lock and proceeds. Without it the rollback's re-insertion
+  of X beside a record another run unit wrote with X would leave two records under a unique key, a state no statement can
+  create and every later alternate-key check answers wrongly against (the review's scenario). The value lock is §9.1.16's
+  *"circumstances other than a locked logical record that result in the return of a locked record status"*, which the
+  implementor may specify; DOC-A.1-152 names it and the deleted-identity lock (PB3337). Keys WITH DUPLICATES need no lock.
+- **The lock ceilings do not apply to the implicit commit posture.** DOC-A.1-154 and DOC-A.1-155 (255 per run unit and 15
+  per connector, `PhysicalFileTable.RunUnitLockMax`/`ConnectorLockMax`, the standard's minima) stay for every explicit
+  posture; a connector under commit control holds one lock per record it changed or read since its last COMMIT, which D.2.5's
+  deferred batch commits (*"they may be deferred by using a data-item to count the transactions processed"*) make unbounded by
+  design, and §12.4.5.9.4 GR7 lets the implementor set the maximum. GnuCOBOL 3.2 imposes none of its own (one `DB_LOCK` per
+  file, `lock_record`; no 53 or 54 anywhere). The determination (PB3337 rewrites both rows): for the commit posture the
+  maximum is the host's, each lock costing one published region byte (one `LockFileEx` range, one OFD lock, or one lock file
+  on the lock-file host), and the standard's own warning applies — *"Making the frequency of commits too low will affect the
+  ability of other run units to run concurrently"*.
 - **Abnormal termination** (§9.1.18.5: *"When a run unit terminates abnormally, all file changes made since the previous commit
   or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT clauses."*)
   is two mechanisms. Where the runtime still runs — a fatal exception condition (§14.6.13.1.3 item 8: *"if there is a fatal
@@ -1185,8 +1231,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
   contradiction was between that rule and PB3337's brief; both now say the same thing).
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
-  registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338), and the locks are
-  released only by COMMIT, ROLLBACK and termination.
+  registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4),
+  WRITE, REWRITE and DELETE lock the record they change and the unique key values they free (the two bullets above), and the
+  locks are released only by COMMIT, ROLLBACK and termination. A record the transaction changed is therefore readable by
+  another connector only IGNORING LOCK (§9.1.16), which is D.2.5's one tolerated inconsistency.
 - **A second connector of the SAME run unit** on the same physical file that no APPLY COMMIT names (§12.4.6.3.4 GR2 forbids only
   the same CONNECTOR being half-covered) changes records without before-images; the run unit's ROLLBACK restores only what its
   covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
@@ -1211,8 +1259,8 @@ statement at most), and u = the UNDO tree's depth for a connector under commit c
 | OPEN (any mode, file present) | 3 + the ledger's `fresh` pages (after a CLOSE: the retirement's own, ≤ 5; after a death: ≤ 1 024) + the transactions tree (≤ 2) | INPUT handle: 0. Writable handle: the fence, 1 (a committed slot) + its retirement (≤ 2 ledger + 3 free tree + 1 meta); a dead transaction's rollback: its own statement. OUTPUT: 3 | writable: 2; INPUT: 0 |
 | READ by key / by RRN | ≤ d + overflow pages of the record (+ 1 meta read when the mutex is held) | 0 | 0 |
 | READ NEXT / PREVIOUS | ≤ 1 (+ d when the cursor crosses a leaf; + d for an alternate key's prime lookup) | 0 | 0 |
-| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta); under commit control + u + the before-image's overflow pages | 0 |
-| WRITE / REWRITE / DELETE (relative) | ≤ d | ≤ d + 5; under commit control + u + overflow | 0 |
+| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta); under commit control + u + the before-image's overflow pages (and one published lock per record and per freed unique key value: a host lock, no page) | 0 |
+| WRITE / REWRITE / DELETE (relative) | ≤ d | ≤ d + 5; under commit control + u + overflow (and one published lock per record) | 0 |
 | a promotion (CLOSE or checkpoint; COMMIT; normal termination; the fence at OPEN) | ≤ 2 (the ledger) + 3 (the free tree's path) | 1 (a committed slot) + the retirement (≤ 2 ledger + 3 free tree + 1 meta) | 2 (CLOSE: 3) |
 | COMMIT, per file with a transaction | ≤ 2 | the transaction's removal (≤ 2 + 2 + 1) + the promotion | 2 |
 | ROLLBACK, per file with a transaction | the UNDO tree + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + 2 + 1, in one statement | 0 |
@@ -1279,7 +1327,14 @@ every crash scenario is deterministic and runs on every host without a VM:
   including composite keys, overflow values and splits and merges at every level;
 - the transaction: two run units on one file, each under APPLY COMMIT, interleaving WRITE, REWRITE and DELETE on disjoint
   records; A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; A's COMMIT then B's ROLLBACK
-  restores B's; a run unit that CLOSEs and then ROLLBACKs restores the state at its last COMMIT.
+  restores B's; a run unit that CLOSEs and then ROLLBACKs restores the state at its last COMMIT;
+- the transaction's locks (findings R2-3 and R2-4): A under APPLY COMMIT DELETEs K5 without a READ, B (not under commit
+  control) WRITEs a record with prime key K5 → '51', and after A's ROLLBACK the file holds A's K5 as it was at A's last
+  COMMIT; A WRITEs K1, B's READ K1 → '51' and READ IGNORING LOCK → the record, B's REWRITE K1 → '51'; A REWRITEs K1's unique
+  alternate key from X to Y, B WRITEs K2 with X → '51', B WRITEs K2 with Y → '22'; A DELETEs K1 (unique key X), B WRITEs K2
+  with X → '51', A ROLLBACKs → K1 reads back under X and K2 does not exist; the same four with B in the same run unit through
+  a connector no APPLY COMMIT names; A's COMMIT releases every lock and B's refused statements then succeed; a transaction of
+  300 changed records answers no '53' or '54'.
 
 **2.2.1.13 What the design deletes and what it keeps (CLAUDE.md rule 4: no wrapper, no shim, no reader of the old format).**
 Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
@@ -1289,8 +1344,15 @@ Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `Decode
 `ReadGeneration`, `Reload`, `Fill`, `PersistFrames`, `ReleaseMint`, `StoreHolds`, `_storeHeaderBytes`, `HostFaultObserver` and
 `HostFaultPoint`; `KeyedStore.Version`/`PersistedVersion`/`Generation`/`VersionAtEntry`; `RelativeStore` and `IndexedStore` as
 in-memory record maps (their names may survive as the two tree-handle views, their maps may not); `KeyedStoreTable` as the
-store of records; `FileLockPosture.AdmitsAnotherWriter` and `KeyedConnector._coherent`'s derivation from it (replaced by
-`AdmitsAnotherRunUnit`, 2.2.1.7). Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
+store of records; `KeyedConnector._coherent`'s derivation from `FileLockPosture.AdmitsAnotherWriter` — the keyed connector
+asks `AdmitsAnotherRunUnit` (2.2.1.7), a new predicate beside the old one. `AdmitsAnotherWriter` itself STAYS (finding R2-7):
+its four callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
+`SequentialConnector.ReleaseRecord` (the per-record flush), `EnsureReaderCoherent` (the reader's re-seek) and the EXTEND
+ordinal count — ask exactly "may another WRITER exist", the sequential organization's question, and moving them to the run-unit
+predicate would turn every `SHARING WITH READ ONLY` sequential load into one flush per record for nothing. The rule is a
+property of the ENGINE, not of the posture: a per-statement-writing engine must serialize against any other run unit, a
+streaming writer only against another writer; so the predicate each connector asks follows the engine it drives, and the
+whole-store engine's last caller leaves with PB3335. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
 `ReadStreamFrame`, `FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
 the sequential connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock
 class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Complete`/`Dispose`), `FileRegistry`'s statement
@@ -1304,10 +1366,15 @@ today.
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
 crash matrix; PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
-relative half of DOC-A.1-107); PB3334 INDEXED on the engine (the trees, the ordinals, the collations, the indexed half of
-DOC-A.1-107); PB3335 the deletion of the whole-store model and page-granular coherence (the cache drop, `StoreTable`, DOC-A.1-75,
-the whole-store ban); PB3336 the performance witnesses of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the
-runtime; PB3338 the compiler's APPLY COMMIT. Same-file work is sequenced by `blocked_by`.
+relative half of DOC-A.1-107 — and, because it is the first connector that writes at every statement, the coherence
+condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
+while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
+PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits); PB3334 INDEXED on the engine
+(the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
+the rest of page-granular coherence (`StoreTable`, DOC-A.1-75, the whole-store ban); PB3336 the performance witnesses of
+2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks; PB3338 the compiler's APPLY COMMIT.
+Same-file work is sequenced by `blocked_by`, and every group lands green on its own: no landing between two groups leaves main
+with a sharing mode the engine writes under and the mutex does not cover.
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
