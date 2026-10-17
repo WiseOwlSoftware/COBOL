@@ -95,3 +95,12 @@ The round-2 finisher's gate, run `20261017T115300Z-00d321` on `00a3735e5`: `=== 
 gating, PB2515): GREEN`, with Conformance 8,201/11,964, Unit 33,529/33,932 and Characterization 5/36 run and no
 failure. `EveryTestRef_ResolvesToARealTest` was again left to leg 2, so it was run directly: 1/1 passed (red 1/1 on
 the reviewed inventory).
+
+**The landing's Linux gate (finisher, 2026-10-17).** `enqueue.py land` stopped on `03acffdaa`: the Linux gate's Unit
+leg failed one test, `ArchReviewFleetDriftTests.TheSubsystemTable_PartitionsTheCommittedTree_AndTheDesignBlockIsCurrent`,
+as a harness non-observation (`r2_subsystems.py --check` timed out at the harness's 120 s budget twice). The branch
+never touched the script; the cause was in it. The check read every blob of the tree (about 200 MB) to count lines it
+never used, and the Linux gate's clone reads its objects through alternates on the Windows checkout, where that took
+16-24 s on a quiet host. `--check` now partitions the tree's paths only, the shard writer reads only the domain files'
+blobs, and the glob regexes are cached: 23.7 s down to 0.22 s in the WSL clone, 6.3 s down to 0.54 s on Windows, with
+byte-identical shard output. kb/Work PB2882 records it.
