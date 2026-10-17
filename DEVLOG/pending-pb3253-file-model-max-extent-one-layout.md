@@ -21,3 +21,8 @@ Goldens: `pb3253_record_contains_bits_beside_dynamic` (accept 2014; writes two r
 them back, `101 011 D=[HELLO]` and `000 110 D=[]`) and `pb3253-record-contains-bits-beside-dynamic-one-over` (`RECORD CONTAINS 10`,
 refused COBOLNET2010 at 2014 and 2023). `RecordSizeModelTests` gains four range cases and three structure cases, with values
 derived from 13.18.43.4 GR4/GR8 and 12.3.7.4 GR18/GR19. No inventory row was claimed or closed (`closes_rows: []`).
+
+Self-review (architecture, full code, performance, duplication): one walk (`DynamicLeafSum`) now serves both GR8 ends, so no second
+copy of the occurrence-count product; the leaf extent is a static lambda (no per-call allocation beyond the existing LINQ); the
+doc citation filed under §8.5.1.6.3 that the doc-citation audit caught is now filed under §13.18.43.4 GR4. Gate:
+`LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261017T221318Z-3907f6); Linux gate: the lander's.
