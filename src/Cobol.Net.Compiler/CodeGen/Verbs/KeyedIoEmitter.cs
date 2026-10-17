@@ -401,17 +401,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
         // `if (OnException is null)` skip left EXCEPTION-STATUS stale inside imperative-statement-3
         // (kb/Work PB141).
-        SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
+        var hook = SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
-        // completion (GR14) and takes the NOT ON EXCEPTION path.
-        if (df.OnException is { } on)
-        {
-            using (w.Block($"if ({IoStatusClass.Unsuccessful(st)})")) Statements.EmitStatementList(on);
-            if (df.NotOnException is { } not)
-                using (w.Block("else")) Statements.EmitStatementList(not);
-        }
-        else if (df.NotOnException is { } not)
-            using (w.Block($"if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
+        // completion (GR14) and takes the NOT ON EXCEPTION path — unless a USE declarative (or a WHEN phrase) has
+        // handled the EC-I-O-WARNING that '05' raised, when "the imperative-statement in that phrase is not
+        // executed" (§14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
+        SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
+            IoStatusClass.Successful(st), hook.NotPhraseGate);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────

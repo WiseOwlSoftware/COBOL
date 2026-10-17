@@ -590,16 +590,30 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     public void EmitInvalid(string st, KeyedInvalidKey? ik, string? notGate = null)
     {
         if (ik is null) return;
+        EmitPhrasePair(IoStatusClass.InvalidKey(st), ik.Invalid, ik.NotInvalid, IoStatusClass.Successful(st), notGate);
+    }
+
+    /// <summary>⛔ THE ONE RENDERING OF AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR (kb/Work PB3237,
+    /// PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
+    /// <paramref name="successCond"/> AND <paramref name="notGate"/> — the <see cref="UseHookResult.NotPhraseGate"/>
+    /// of the statement's hook, because "If a conditional phrase with a NOT phrase is specified in the interrupted
+    /// statement, the imperative-statement in that phrase is not executed" once a WHEN phrase or a USE declarative
+    /// has handled the nonfatal condition a successful completion raised (§14.6.13.1.4 2)/3)). The INVALID KEY pair
+    /// (<see cref="EmitInvalid"/>) and the DELETE FILE ON EXCEPTION pair (<c>KeyedIoEmitter.EmitDeleteFile</c>)
+    /// both render through it, so a NOT phrase cannot have a gate in one pair and none in the other.</summary>
+    internal void EmitPhrasePair(string phraseCond, IReadOnlyList<BoundStatement>? phrase,
+        IReadOnlyList<BoundStatement>? notPhrase, string successCond, string? notGate)
+    {
         var w = ctx.Writer;
-        string success = notGate is null ? IoStatusClass.Successful(st) : $"{IoStatusClass.Successful(st)} && {notGate}";
-        if (ik.Invalid is { } inv)
+        string success = notGate is null ? successCond : $"{successCond} && {notGate}";
+        if (phrase is not null)
         {
-            using (w.Block($"if ({IoStatusClass.InvalidKey(st)})")) Statements.EmitStatementList(inv);
-            if (ik.NotInvalid is { } not)
-                using (w.Block($"else if ({success})")) Statements.EmitStatementList(not);
+            using (w.Block($"if ({phraseCond})")) Statements.EmitStatementList(phrase);
+            if (notPhrase is not null)
+                using (w.Block($"else if ({success})")) Statements.EmitStatementList(notPhrase);
         }
-        else if (ik.NotInvalid is { } not)
-            using (w.Block($"if ({success})")) Statements.EmitStatementList(not);
+        else if (notPhrase is not null)
+            using (w.Block($"if ({success})")) Statements.EmitStatementList(notPhrase);
     }
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.51): a FROM operand first MOVEs into the record area,
