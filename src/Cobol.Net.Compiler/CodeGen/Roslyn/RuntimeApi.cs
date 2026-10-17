@@ -1653,10 +1653,11 @@ internal static class RuntimeApi
 
     // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
 
-    /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c> — with the statement's collating sequence,
-    /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on it).</summary>
-    public static string SortInit(string sd, string weights, string natWeights) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights}, {natWeights})";
+    /// <summary>Initialize the per-SD store — <c>CobolSort.Init</c> — with the statement's key descriptors (the store
+    /// orders runs while the release phase fills its memory limit, kb/Work PB3339) and its two collating sequences,
+    /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on them).</summary>
+    public static string SortInit(string sd, string keys, string weights, string natWeights) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {keys}, {weights}, {natWeights})";
 
     /// <summary>Register the statement as the run unit's active format 1 SORT, with its scope's declaratives (or
     /// <c>null</c>), for §14.9.40.4 GR17 — <c>CobolSort.RegisterFormat1Sort</c> (kb/Work PB1177; <c>EcEmitter.SortUseScope</c>).</summary>
@@ -1726,13 +1727,13 @@ internal static class RuntimeApi
     public static string SortTerminationSignalType { get; } =
         $"global::CobolNet.Runtime.Exceptions.{nameof(Runtime.Exceptions.SortTerminationSignal)}";
 
-    /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8).</summary>
-    public static string SortSort(string sd, string keys, string dupsInOrder) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {dupsInOrder})";
+    /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8; the keys are <see cref="SortInit"/>'s).</summary>
+    public static string SortSort(string sd, string dupsInOrder) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {dupsInOrder})";
 
-    /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties).</summary>
-    public static string SortMerge(string sd, string keys) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd}, {keys})";
+    /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties; the keys are <see cref="SortInit"/>'s).</summary>
+    public static string SortMerge(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd})";
 
     /// <summary>Open a new pre-sorted USING stream — <c>CobolSort.NextInput</c>.</summary>
     public static string SortNextInput(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.NextInput)}({sd})";
