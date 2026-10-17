@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -22,7 +23,7 @@ public sealed class ModuleRegistrationTests
         public void CloseFiles() { }
     }
 
-    private static readonly string Current = RuntimeAbi.Version.ToString();
+    private static readonly string Current = RuntimeVersionSkew.Current;
 
     /// <summary>A module registrar body registering one outermost program per name, as the emitted <c>Register()</c>
     /// does; <paramref name="runs"/> counts how often it runs.</summary>
@@ -56,7 +57,7 @@ public sealed class ModuleRegistrationTests
     {
         var table = new RunUnit().Programs;
         int runs = 0;
-        var other = new Version(RuntimeAbi.Version.Major + 1, 0, 0, 0).ToString();
+        var other = RuntimeVersionSkew.OtherMajor;
         var e = Assert.Throws<CobolCallException>(() =>
             table.RegisterModule("Cobol.B.__CobolModule", other, RuntimeAbi.CallAbi, Registrar(table, () => runs++, ("P2097B", false))));
         Assert.Equal("EC-PROGRAM-NOT-FOUND", e.EcName);
@@ -187,8 +188,29 @@ public sealed class ModuleRegistrationTests
     public void TheVersionSkewRule_IsTheMajorAndTheCallAbi()
     {
         Assert.Null(RuntimeAbi.Skew(Current, RuntimeAbi.CallAbi));
-        Assert.NotNull(RuntimeAbi.Skew($"{RuntimeAbi.Version.Major + 1}.0.0.0", RuntimeAbi.CallAbi));
+        // A different major is refused in EITHER direction, and refused as a major (not as an unparsable text).
+        Assert.Contains("different major", RuntimeAbi.Skew($"{RuntimeAbi.Version.Major + 1}.0.0.0", RuntimeAbi.CallAbi));
+        Assert.Contains("different major", RuntimeAbi.Skew($"{RuntimeAbi.Version.Major - 1}.0.0.0", RuntimeAbi.CallAbi));
+        Assert.Contains("different major", RuntimeAbi.Skew(RuntimeVersionSkew.OtherMajor, RuntimeAbi.CallAbi));
         Assert.NotNull(RuntimeAbi.Skew(Current, RuntimeAbi.CallAbi + 1));
         Assert.NotNull(RuntimeAbi.Skew("not a version", RuntimeAbi.CallAbi));
+    }
+
+    /// <summary>The skew witnesses' version of another major (<see cref="RuntimeVersionSkew.OtherMajorOf"/>) is a
+    /// different major of the same text length for every major shape, including the all-nines majors where the next
+    /// major gains a digit: the conformance witness patches it over the text a compiled module recorded.</summary>
+    [Theory]
+    [InlineData("0.0.0.0", "1.0.0.0")]
+    [InlineData("8.0.0.0", "9.0.0.0")]
+    [InlineData("9.0.0.0", "8.0.0.0")]
+    [InlineData("10.0.0.0", "11.0.0.0")]
+    [InlineData("99.1.2.3", "98.1.2.3")]
+    [InlineData("100.0.0.0", "101.0.0.0")]
+    public void TheSkewWitnessesOtherMajor_KeepsTheTextLength(string recorded, string expected)
+    {
+        string other = RuntimeVersionSkew.OtherMajorOf(recorded);
+        Assert.Equal(expected, other);
+        Assert.Equal(recorded.Length, other.Length);
+        Assert.NotEqual(Version.Parse(recorded).Major, Version.Parse(other).Major);
     }
 }

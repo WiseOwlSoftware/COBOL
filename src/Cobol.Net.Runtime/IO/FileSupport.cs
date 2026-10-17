@@ -612,6 +612,28 @@ public static class HostFile
     public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
         new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
 
+    /// <summary>⛔ THE FIFTH ROLE: a SORT/MERGE statement's temporary RUN file (kb/Work PB3339; docs/CONFORMANCE.md §3
+    /// D-SWK) — a NEW file in <paramref name="directory"/> that no COBOL file connector names and no other handle may
+    /// share, written and read back through this one handle (<see cref="SortRunFile"/>). It never outlives the handle:
+    /// on Windows it is opened <see cref="FileOptions.DeleteOnClose"/>, which the operating environment honours when
+    /// the process is killed too; elsewhere it is unlinked at once, so its storage goes when the handle closes. The
+    /// caller turns an I-O failure here into its own fatal stop (the directory is named in the message).</summary>
+    /// <param name="directory">The work directory (<see cref="SortMemory.Directory"/>).</param>
+    /// <param name="bufferBytes">The handle's buffer size.</param>
+    internal static FileStream CreateSortWork(string directory, int bufferBytes)
+    {
+        string path = Path.Combine(directory, $"cobolnet-sort-{Environment.ProcessId}-{Guid.NewGuid():N}.tmp");
+        bool windows = OperatingSystem.IsWindows();
+        var fs = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, bufferBytes,
+            windows ? FileOptions.DeleteOnClose : FileOptions.None);
+        if (!windows)
+        {
+            try { File.Delete(path); }   // the open handle keeps the storage until it closes
+            catch { fs.Dispose(); throw; }
+        }
+        return fs;
+    }
+
     /// <summary>A file connector's own long-lived WRITE stream — the third role, and the one .NET does not
     /// have. <c>FileMode.Append</c> is not the host's atomic append: it seeks to the end ONCE, at open, and
     /// every later write goes at that stream's own position (and <c>FileMode.Create</c> anchors at zero). That
