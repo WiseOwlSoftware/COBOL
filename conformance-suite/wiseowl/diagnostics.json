@@ -13068,6 +13068,13 @@
   ],
   "expect": "COBOLNET2423"
  },
+ "pb3139-strong-vlg-pointer-at-2002": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3147-area-a-item-in-area-b-85": {
   "refuse-at": [
    "85"

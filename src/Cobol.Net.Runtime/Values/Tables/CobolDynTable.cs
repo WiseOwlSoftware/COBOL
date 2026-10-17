@@ -289,6 +289,17 @@ public sealed class CobolDynTable<T>
         return copy;
     }
 
+    /// <summary>A NEW table of this description recreated from <paramref name="parts"/> (<see cref="Recreate{TPart}"/>,
+    /// ISO §14.6.9.2), leaving this one unchanged — the dynamic-capacity table member of a strongly-typed group's leaf
+    /// vector stored into a record struct (kb/Work PB3139), whose store builds a new value rather than mutating the
+    /// storage it was read from.</summary>
+    public CobolDynTable<T> Recreated<TPart>(IReadOnlyList<TPart> parts, TPart blank, Func<T, TPart, T> store)
+    {
+        var copy = CopyOf(static e => e);
+        copy.Recreate(parts, blank, store);
+        return copy;
+    }
+
     /// <summary>The table's CURRENT-EXTENT character image: every occurrence up to the current capacity,
     /// rendered by <paramref name="imageOf"/> and concatenated in occurrence order (kb/Work PB164 — the
     /// §14.9.11.4 GR7 documented DISPLAY format for a variable-length group renders each dynamic-capacity

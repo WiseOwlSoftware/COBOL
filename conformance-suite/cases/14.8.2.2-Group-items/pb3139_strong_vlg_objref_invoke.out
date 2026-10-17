@@ -1,0 +1,8 @@
+LX=ABC N2=042 D=[abc] C=2 X2=bb
+TA:SET
+REF:XYZ N1=007 D=[longer] C=3 X3=cc
+LX=DEF N2=042 D=[longer] C=3 X2=bb
+TA:SET
+CON:DEF D=[longer] C=3
+RET:RET D=[rd] C=1 X1=rr
+SAMEOBJ
