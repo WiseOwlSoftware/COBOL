@@ -170,9 +170,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>A NOT phrase's body, behind <see cref="UseHookResult.NotPhraseGate"/> when the statement's hook can
     /// interrupt a successful completion (kb/Work PB1120) — else the bare list, so a build with no enabled EC-I-O
-    /// name emits byte-identical text.</summary>
-    internal void EmitNotPhrase(string? gate, IReadOnlyList<BoundStatement> body)
+    /// name emits byte-identical text. It takes the whole <paramref name="hook"/>, never its gate string: a caller
+    /// with no hook to pass cannot render a NOT phrase here, so the gate cannot be dropped on the way
+    /// (kb/Work PB3237, review round 1).</summary>
+    internal void EmitNotPhrase(UseHookResult hook, IReadOnlyList<BoundStatement> body)
     {
+        string? gate = hook.NotPhraseGate;
         if (gate is null) { Statements.EmitStatementList(body); return; }
         using (ctx.Writer.Block($"if ({gate})")) Statements.EmitStatementList(body);
     }
@@ -587,19 +590,33 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// ONLY on successful completion (<c>'0x'</c>, §9.1.14 final rule item 2). On a sequential-organization file
     /// no '2x' status is reachable at all (§9.1.13.5 items 1–4 all name a relative or indexed file), so the
     /// INVALID arm renders as a branch that provably never fires — dead, never silently rerouted.</summary>
-    public void EmitInvalid(string st, KeyedInvalidKey? ik, string? notGate = null)
+    internal void EmitInvalid(string st, KeyedInvalidKey? ik, UseHookResult hook)
     {
         if (ik is null) return;
+        EmitPhrasePair(IoStatusClass.InvalidKey(st), ik.Invalid, ik.NotInvalid, IoStatusClass.Successful(st), hook);
+    }
+
+    /// <summary>⛔ THE ONE RENDERING OF AN I-O STATEMENT'S CONDITIONAL-PHRASE / NOT-PHRASE PAIR (kb/Work PB3237,
+    /// PB1120): the phrase runs on <paramref name="phraseCond"/> and the NOT phrase on
+    /// <paramref name="successCond"/> AND the <see cref="UseHookResult.NotPhraseGate"/> of the statement's
+    /// <paramref name="hook"/> (taken whole, so the gate cannot be dropped or defaulted), because "If a conditional phrase with a NOT phrase is specified in the interrupted
+    /// statement, the imperative-statement in that phrase is not executed" once a WHEN phrase or a USE declarative
+    /// has handled the nonfatal condition a successful completion raised (§14.6.13.1.4 2)/3)). The INVALID KEY pair
+    /// (<see cref="EmitInvalid"/>) and the DELETE FILE ON EXCEPTION pair (<c>KeyedIoEmitter.EmitDeleteFile</c>)
+    /// both render through it, so a NOT phrase cannot have a gate in one pair and none in the other.</summary>
+    internal void EmitPhrasePair(string phraseCond, IReadOnlyList<BoundStatement>? phrase,
+        IReadOnlyList<BoundStatement>? notPhrase, string successCond, UseHookResult hook)
+    {
         var w = ctx.Writer;
-        string success = notGate is null ? IoStatusClass.Successful(st) : $"{IoStatusClass.Successful(st)} && {notGate}";
-        if (ik.Invalid is { } inv)
+        string success = hook.NotPhraseGate is { } gate ? $"{successCond} && {gate}" : successCond;
+        if (phrase is not null)
         {
-            using (w.Block($"if ({IoStatusClass.InvalidKey(st)})")) Statements.EmitStatementList(inv);
-            if (ik.NotInvalid is { } not)
-                using (w.Block($"else if ({success})")) Statements.EmitStatementList(not);
+            using (w.Block($"if ({phraseCond})")) Statements.EmitStatementList(phrase);
+            if (notPhrase is not null)
+                using (w.Block($"else if ({success})")) Statements.EmitStatementList(notPhrase);
         }
-        else if (ik.NotInvalid is { } not)
-            using (w.Block($"if ({success})")) Statements.EmitStatementList(not);
+        else if (notPhrase is not null)
+            using (w.Block($"if ({success})")) Statements.EmitStatementList(notPhrase);
     }
 
     /// <summary>WRITE record [FROM x] [ADVANCING …] (ISO §14.9.51): a FROM operand first MOVEs into the record area,
@@ -677,12 +694,12 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             }
             if (wr.NotAtEop is { } not)
                 using (w.Block($"else if ({IoStatusClass.Successful(wst!)})"))
-                    EmitNotPhrase(hook.NotPhraseGate, not);
+                    EmitNotPhrase(hook, not);
         }
         // The forbidden-but-tolerated INVALID KEY pair, through THE ONE §9.1.14 renderer the keyed arm uses.
         // Last, after the END-OF-PAGE branches: both are end-of-statement phrase transfers, and GR27b's EOP
         // imperative belongs to the WRITE's own general rules while §9.1.14 is the outer transfer contract.
-        if (wst is not null) EmitInvalid(wst, wr.InvalidKey, hook.NotPhraseGate);
+        if (wst is not null) EmitInvalid(wst, wr.InvalidKey, hook);
     }
 
     /// <summary>The ADVANCING phrase of ONE WRITE statement as the runtime's <c>WriteAdvance</c> descriptor
@@ -820,14 +837,14 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
             // move is BOUND (kb/Work PB348), its sender the record sliced to the §13.18.43.4 GR16 byte count
             // through the ONE builder the keyed READ and the sort RETURN also use (kb/Work PB339).
             if (rd.IntoMove is { } intoMove) move.Emit(intoMove);
-            if (rd.NotAtEnd is { } not) EmitNotPhrase(hook.NotPhraseGate, not);
+            if (rd.NotAtEnd is { } not) EmitNotPhrase(hook, not);
             // §14.9.30.4 GR13c — on a successful READ "control is transferred to the end of the READ statement,
             // or, if the NOT AT END phrase or NOT INVALID KEY phrase is specified, to imperative-statement-2".
             // The phrase is never conforming source on this arm (Format 1 has no INVALID KEY bracket — the
             // binder reports COBOLNET1720), so this renders only under --permissive, where the bind stands and
             // the block has to MEAN something rather than vanish. There is deliberately NO invalid-key arm: a
             // sequential-organization READ raises no '2x' status (§9.1.13.5), so the condition cannot exist.
-            if (rd.InvalidKey?.NotInvalid is { } notInvalid) EmitNotPhrase(hook.NotPhraseGate, notInvalid);
+            if (rd.InvalidKey?.NotInvalid is { } notInvalid) EmitNotPhrase(hook, notInvalid);
         }
         using (w.Block("else"))
         {
@@ -872,7 +889,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
         }
         EmitStoreFileStatus(rw.File);
         var hook = EmitUseHook(rw.File, "REWRITE");   // invalidKeyHandled stays false: no '2x' status is reachable here (§9.1.13.5)
-        if (rst is not null) EmitInvalid(rst, rw.InvalidKey, hook.NotPhraseGate);
+        if (rst is not null) EmitInvalid(rst, rw.InvalidKey, hook);
     }
 
     /// <summary>⛔ THE ONE RECORD-AREA STORE of a READ / RETURN — "the record is made available in the record

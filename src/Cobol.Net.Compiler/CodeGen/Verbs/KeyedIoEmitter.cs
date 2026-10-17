@@ -242,8 +242,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
                 if (into) move.Emit(rd.IntoMove!);
-                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook.NotPhraseGate, nae);                  // §14.9.30 — NOT AT END on success
-                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook.NotPhraseGate, nik);    // §9.1.14 — success only
+                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
+                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
@@ -294,7 +294,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "WRITE", invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, wr.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, wr.InvalidKey, hook);
     }
 
     // ── REWRITE (ISO §14.9.35) ─────────────────────────────────────────────────────────────────────────────────
@@ -331,7 +331,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         SeqIo.EndReleasedRecord(file, rw.Record, released, lenArg, RuntimeApi.FileStatus(name));
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "REWRITE", invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, rw.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, rw.InvalidKey, hook);
     }
 
     // ── DELETE RECORD / DELETE FILE (ISO §14.9.10) ─────────────────────────────────────────────────────────────
@@ -369,7 +369,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "DELETE", invalidKeyHandled: del.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, del.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, del.InvalidKey, hook);
     }
 
     public void EmitDeleteFile(BoundKeyedDeleteFile df)
@@ -401,17 +401,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
         // `if (OnException is null)` skip left EXCEPTION-STATUS stale inside imperative-statement-3
         // (kb/Work PB141).
-        SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
+        var hook = SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
-        // completion (GR14) and takes the NOT ON EXCEPTION path.
-        if (df.OnException is { } on)
-        {
-            using (w.Block($"if ({IoStatusClass.Unsuccessful(st)})")) Statements.EmitStatementList(on);
-            if (df.NotOnException is { } not)
-                using (w.Block("else")) Statements.EmitStatementList(not);
-        }
-        else if (df.NotOnException is { } not)
-            using (w.Block($"if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
+        // completion (GR14) and takes the NOT ON EXCEPTION path — unless a USE declarative (or a WHEN phrase) has
+        // handled the EC-I-O-WARNING that '05' raised, when "the imperative-statement in that phrase is not
+        // executed" (§14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
+        SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
+            IoStatusClass.Successful(st), hook);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────
@@ -480,7 +476,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, sta.InvalidKey, hook.NotPhraseGate);   // §14.9.41 GR6 — transfer per §9.1.14
+        SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §14.9.41 GR6 — transfer per §9.1.14
     }
 
     /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane
