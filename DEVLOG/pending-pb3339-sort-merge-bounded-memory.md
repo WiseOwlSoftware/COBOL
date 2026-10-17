@@ -59,4 +59,6 @@ is closed at `Close`. The sibling: `WorkDirectoryIsEmpty` was vacuous on Linux, 
 created. It now counts the `/proc/self/fd` links that name the test's directory, so every "leaves no file" assertion
 in `SortWorkBoundTests` has force on both hosts. R1-2: two crefs in CobolSort.cs still named the removed
 `Init(string, CobolCollation?, CobolCollation?)`. Both now name `Init(string, Key[], CobolCollation?, CobolCollation?)`.
-A runtime build with XML documentation on shows no unresolved cref left in the sort files.
+A runtime build with XML documentation on shows no unresolved cref left in the sort files. The finisher's gate
+20261017T205734Z-8b53d4: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,921 ·
+Unit 33,575 · Characterization 5 cases ran in leg 1, the two new witnesses and the drift test among them).
