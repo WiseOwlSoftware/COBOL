@@ -597,8 +597,11 @@ reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a f
 an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
 a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
 §14.6.8.3 rule 2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
-holding 1.5E50 is a 51-digit integer no fixed item holds, review R1-1); a binary32 receiver beside a binary64 one takes
-the exact fixed-point carrier below (`ValueOperandPic` for a non-integer value, no receiver bounding its digits); otherwise, for an INTEGER function, the whole 38-digit carrier at scale 0 (`IntegerIntermediatePic`: a 31-digit
+holding 1.5E50 is a 51-digit integer no fixed item holds, review R1-1); any other set of numeric receivers with a floating-point one
+among them (a binary32 beside a binary64, a floating-point item beside a fixed-point one) takes the 36-digit decimal
+floating-point item below, an INTEGER function's value included (`FloatingPointNumericSet`, review round 3 R1-1/R1-2: a
+fixed-point window cut a FLOAT-LONG beside a `PIC S9(3)V99` to 12 integer digits, and `ValueOperandPic` stored 1.234E-21
+as 0 in a FLOAT-SHORT and a FLOAT-LONG); otherwise, for an INTEGER function, the whole 38-digit carrier at scale 0 (`IntegerIntermediatePic`: a 31-digit
 integer reaches every receiver whole). The `double` is chosen for a value the
 renderer returns as a binary64 (`FunctionValueLane.ReturnsBinary64`: the §15.4.1 float family and any numeric-argument
 function given a binary64 argument, under native arithmetic, unless a floating-point LITERAL argument takes a function
@@ -611,7 +614,7 @@ an INTEGER function included: INTEGER(1.5E0) is FloorDec's SDIDI value, and only
 bodies return an exact integer, are exact, `FunctionValueLane.NativeSdidiBodiesWithExactResult`) — each receiver's own
 float landing then quantizes once, at its own scale —
 the 36-digit decimal `+9.9(35)E+9999` (`WidestFloatEditedPic`, kb/Work PB370) for a value whose every receiver is
-floating-point with a floating-point numeric-edited one among them, or whose every receiver is fixed-point with more
+numeric with a floating-point one among them that no one binary format serves, or whose every receiver is fixed-point with more
 digits between them than the 38-digit carrier holds; the WIDEST receiver's fixed-point description for a MOVE's other
 values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 `MOVE a TO temp` with temp described
 as the largest receiver), 21 integer + 17 fraction digits for a value read as
