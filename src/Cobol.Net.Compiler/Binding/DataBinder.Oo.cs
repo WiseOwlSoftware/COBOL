@@ -370,11 +370,6 @@ public sealed partial class DataBinder
         // for every OO definition kind (kb/Work PB1076). A method references the class's files via §11.7.4 GR5.
         OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
 
-        // §10.6.1's method skeleton prints [options-paragraph] (kb/Work PB135): fold it over the class
-        // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind.
-        if (m.Ctx.optionsParagraph() is { } mo)
-            m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options);
-
         var dd = m.Ctx.dataDivision();
         using (EnterMethodDeclarations(m.DataScope))
         {
@@ -385,11 +380,18 @@ public sealed partial class DataBinder
             using (Edition.At(m.Ctx))
                 DeclareUserWord(m.PropertyName ?? m.Name,
                     m.PropertyName is null ? UserWordKind.MethodName : UserWordKind.PropertyName);
+            // The method's constant entries are declared before its OPTIONS paragraph and its sections bind, so one may be
+            // referenced before the entry that defines it (kb/Work PB1231); BindRemainingConstants below binds what
+            // nothing needed.
+            if (dd is not null) DeclareDataEntries(dd);
+            // §10.6.1's method skeleton prints [options-paragraph] (kb/Work PB135): fold it over the class
+            // channel's model per §11.9.4 GR1; the roster swaps it in around this method's body bind. Bound inside the
+            // method's scope, after its constant entries are declared: the INITIALIZE clause's literal-1 may be one of
+            // its constant-names, or one of its object's (§13.10.3 SR2, §8.4.6.2.2; kb/Work PB780).
+            if (m.Ctx.optionsParagraph() is { } mo)
+                m.MethodOptions = OptionsBinder.BindParagraph(mo, Edition, Options, FindConstant);
             if (dd is not null)
             {
-                // The method's constant entries are declared before its sections bind, so one may be referenced before
-                // the entry that defines it (kb/Work PB1231); BindRemainingConstants below binds what nothing needed.
-                DeclareDataEntries(dd);
                 // The sections a method definition may not carry — FILE, WORKING-STORAGE, REPORT, SCREEN (§13.4.3,
                 // §13.5.3, §13.8.3, §13.9.3 SR1) — are judged once, at EVERY edition, by the one DATA-division placement
                 // table (kb/Work PB1251, PB1308 decision R62). A method's own data division is LOCAL-STORAGE (§13.6.3) and
@@ -650,6 +652,39 @@ public sealed partial class DataBinder
         /// receiver in turn, so the accessors go around THIS receiver (<c>BoundReceiverBrackets</c>, kb/Work PB2078)
         /// instead of around the whole statement.</summary>
         public bool Interleaved { get; set; }
+
+        /// <summary>Identifier-3 when a RECEIVING use of this property evaluates it into the identified-object
+        /// temporary, so that the GET and the SET reach the one object identified (§14.6.4; §8.4.3.9.4 GR3; kb/Work
+        /// PB2078): identifier-3 written as an object-reference data item and invoked on as an instance. Null when the
+        /// accessors invoke on identifier-3 as it stands: a FACTORY OF or class receiver, or a computed object, whose
+        /// evaluation is the <see cref="Prelude"/>.</summary>
+        public Place? IdentifiedReceiver =>
+            Form == Bound.InvokeForm.Instance && Receiver is { Item: { IsCompilerTemp: false, Pic.ObjectRef: not null } }
+                ? Receiver : null;
+
+        /// <summary>Whether a use of the property whose store polarity is <paramref name="kind"/> invokes the GET before
+        /// the statement stores it (§8.4.3.9.4 GR1 for a sending use and GR3 for a read-modify-write one; for a part store,
+        /// §14.9.43.4 GR7 and §8.4.3.3.4 GR5, the GET supplies the kept positions where the class has one, kb/Work PB2618).</summary>
+        public bool GetsBefore(Bound.StoreKind kind) =>
+            kind is Bound.StoreKind.None or Bound.StoreKind.ReadWrite || (kind == Bound.StoreKind.WriteInPart && Get is not null);
+    }
+
+    /// <summary>⛔ DOES IDENTIFYING THIS RECEIVER EVALUATE ANYTHING WHEN ITS ACCESSORS OPEN? (kb/Work PB370). A claimed
+    /// object-property receiver (<see cref="OoClaimInterleavedReceiver"/>) has its bracket opened just before its store
+    /// (<c>ReceiverBracketEmitter.Receive</c>): identifier-3's <see cref="OoPendingPropertyOp.Prelude"/>, its evaluation
+    /// into the identified-object temporary, and the GET of a part store (<c>OoBinder.OoWrapPropertyOps</c>, which builds
+    /// those steps from the same three members). True when any of them evaluates something at run time, so a statement
+    /// whose rules evaluate its sending operand first (§14.9.25.4 GR1) knows the bracket would overtake it. A receiver
+    /// that is no claimed property opens nothing.</summary>
+    internal bool OoReceiverOpensAtRunTime(Place receiver, Bound.StoreKind kind)
+    {
+        foreach (var op in OoPendingPropertyOps)
+            if (ReferenceEquals(op.Temp, receiver.Item))
+                return op.Interleaved
+                    && (op.Prelude.Count > 0
+                        || op.IdentifiedReceiver is { } identified && CobolNet.CodeGen.PlaceIdentification.IdentifiesAtRunTime(identified)
+                        || op.GetsBefore(kind));
+        return false;
     }
 
     /// <summary>⛔ THE ONE CLAIM A RECEIVER-PLACING BINDER MAKES (kb/Work PB2078): each of <paramref name="receivers"/> is a
