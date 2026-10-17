@@ -137,7 +137,9 @@ is tracked tooling with a self-test, so the next batch is a command, never a bri
   it is written; this block is rendered from it (`--write-design`), and `--check` fails when the block differs or
   when the sets do not PARTITION the reviewed code (a file in no subsystem is a hole, a file in two an overlap). The
   drift test `ArchReviewFleetDriftTests` runs the check on the committed tree, so a new folder no subsystem owns is
-  red until the table owns it. At 8be230068: 1,511 files (the root scripts and the agent role files included), 0 holes, 0 overlaps. The runtime's collation, Unicode and
+  red until the table owns it. The check reads the tree's paths only, never a blob (kb/Work PB2882: reading every
+  blob to count lines it never used ran past the test harness's 120 s budget in the Linux gate); only the shards
+  read lines, and only the domain files'. At 8be230068: 1,511 files (the root scripts and the agent role files included), 0 holes, 0 overlaps. The runtime's collation, Unicode and
   globalization code is a seventeenth subsystem, and the source generator belongs to the bound tree it generates for.
 <!-- r2-subsystems:begin -->
 | Subsystem (`key`) | Files: include | except |

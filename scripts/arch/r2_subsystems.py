@@ -17,11 +17,14 @@ WHAT.
     alternatives). A domain file belongs to a subsystem when it matches one of its includes and none of its excludes.
   * THE PARTITION CHECK — every domain file belongs to EXACTLY one subsystem: a file in none is a HOLE, a file in two
     an OVERLAP, and either fails the run (exit 1). The drift test runs it on the committed tree, so a new folder no
-    subsystem owns is red until the table owns it.
+    subsystem owns is red until the table owns it. The check reads the tree's PATHS only (`git ls-tree`), never a blob:
+    counting the lines of every blob of the tree, which the check never used, read about 200 MB per run, and through
+    the Linux gate's object alternates on the Windows checkout (`/mnt/e`) that took 16-24 s on a quiet host and past
+    the test harness's 120 s per-process budget twice under a landing gate's load (kb/Work PB2882).
   * SHARDS — each subsystem's files, sorted by path, packed greedily into shards of at most `--max-lines` physical
     lines (default 6,000), balanced (the fewest shards the cap allows, each about the subsystem's lines divided by
     that count, with 15 % slack); a single file larger than the cap is its own shard. Lines are the blob's physical lines at
-    the pinned commit: the census `lines` column is per TYPE and a partial type's files fall in different shards, so
+    the pinned commit, read for the domain files only: the census `lines` column is per TYPE and a partial type's files fall in different shards, so
     a file-level size is the only one that adds up. Each shard carries the census god-class rows whose files it holds.
   * THE DESIGN RENDER — design §3 R2's subsystem table is rendered from TABLE (`--render-design`) between the markers
     `<!-- r2-subsystems:begin -->` and `<!-- r2-subsystems:end -->`; `--check` fails when the document differs.
@@ -38,6 +41,7 @@ The last line printed is the verdict: `=== R2 SUBSYSTEMS: ... ===`.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import re
 import subprocess
@@ -110,6 +114,7 @@ TABLE = [
 
 
 # ── globs ────────────────────────────────────────────────────────────────────────────────────────────────────────
+@functools.lru_cache(maxsize=None)
 def glob_re(glob: str) -> re.Pattern:
     """`**/` any folders (zero or more), `**` at the end anything, `*` within one name, `{a,b}` alternatives."""
     out, i = [], 0
@@ -192,9 +197,9 @@ def shard(sets, lines, max_lines=MAX_LINES, table=TABLE):
 
 
 # ── the tree ─────────────────────────────────────────────────────────────────────────────────────────────────────
-def tree_lines(commit: str, repo: Path = REPO):
-    """-> {path: physical line count} for every blob in the commit's tree (submodules are commits, not blobs)."""
-    ls = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "-z", commit], capture_output=True, check=True).stdout
+def tree_blobs(commit: str, repo: Path = REPO):
+    """-> {path: blob oid} for every blob in the commit's tree (submodules are commits, not blobs); reads no blob."""
+    ls =subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "-z", commit], capture_output=True, check=True).stdout
     blobs = {}
     for rec in ls.decode("utf-8").split("\0"):
         if not rec:
@@ -203,10 +208,16 @@ def tree_lines(commit: str, repo: Path = REPO):
         _, typ, oid = meta.split()
         if typ == "blob":
             blobs[path] = oid
-    out = {}
+    return blobs
+
+
+def tree_lines(blobs, repo: Path = REPO):
+    """-> {path: physical line count} for exactly the blobs of `blobs` ({path: oid}, a subset of `tree_blobs`), each
+    distinct blob read once."""
     if not blobs:
-        return out
-    proc = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(blobs.values()).encode() + b"\n",
+        return {}
+    oids = list(dict.fromkeys(blobs.values()))
+    proc = subprocess.run(["git", "-C", str(repo), "cat-file", "--batch"], input="\n".join(oids).encode() + b"\n",
                           capture_output=True, check=True).stdout
     pos, by_oid = 0, {}
     while pos < len(proc):
@@ -232,9 +243,10 @@ def census_god_classes(commit: str, repo: Path = REPO):
 
 
 def measure(commit: str, max_lines=MAX_LINES, repo: Path = REPO):
-    lines = tree_lines(commit, repo)
-    files, skipped = domain(lines)
+    blobs = tree_blobs(commit, repo)
+    files, skipped = domain(blobs)
     sets, holes, overlaps = partition(files)
+    lines = tree_lines({p: blobs[p] for p in files}, repo)
     shards = shard(sets, lines, max_lines)
     gods, census = census_god_classes(commit, repo)
     for s in shards:
@@ -329,9 +341,20 @@ def self_test():
         Path(tmp, "b.txt").write_bytes(b"")
         subprocess.run(["git", "-C", tmp, "add", "-A"], check=True)
         subprocess.run(["git", "-C", tmp, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "t"], check=True)
-        arm("physical lines are read from the commit's blobs", tree_lines("HEAD", Path(tmp)) == {"a.txt": 3, "b.txt": 0})
+        blobs = tree_blobs("HEAD", Path(tmp))
+        arm("physical lines are read from the commit's blobs", tree_lines(blobs, Path(tmp)) == {"a.txt": 3, "b.txt": 0})
+        arm("only the blobs asked for are read", tree_lines({"a.txt": blobs["a.txt"]}, Path(tmp)) == {"a.txt": 3})
     print("=== R2 SUBSYSTEMS SELF-TEST: %s ===" % ("PASS" if ok else "FAIL"))
     return 0 if ok else 1
+
+
+def report_partition(holes, overlaps) -> bool:
+    """Print each HOLE and OVERLAP; -> whether there is any (the table is then not a partition)."""
+    for p in holes:
+        print("HOLE     " + p)
+    for p, ks in overlaps.items():
+        print("OVERLAP  %s  %s" % (p, ", ".join(ks)))
+    return bool(holes or overlaps)
 
 
 def main():
@@ -355,23 +378,23 @@ def main():
         write_design()
         print("=== R2 SUBSYSTEMS: design block rewritten ===")
         return 0
-    m = measure(a.commit, a.max_lines)
-    for k, v in m["subsystems"].items():
-        print("%-22s %5d files %7d lines  %d shard(s)" % (k, v["files"], v["lines"], len(v["shards"])))
-    for p in m["holes"]:
-        print("HOLE     " + p)
-    for p, ks in m["overlaps"].items():
-        print("OVERLAP  %s  %s" % (p, ", ".join(ks)))
-    bad = bool(m["holes"] or m["overlaps"])
-    if a.check:
+    if a.check:   # the partition reads the tree's paths only, never a blob (the module docstring, kb/Work PB2882)
+        files, _ = domain(tree_blobs(a.commit))
+        sets, holes, overlaps = partition(files)
+        for k, v in sets.items():
+            print("%-22s %5d files" % (k, len(v)))
+        bad = report_partition(holes, overlaps)
         design_ok = check_design()
         if not design_ok:
             print("DESIGN   %s's block between %s and %s differs from the table: run --write-design" % (DESIGN, BEGIN, END))
         print("=== R2 SUBSYSTEMS: %s (%d domain files, %d holes, %d overlaps, design %s) ===" % (
-            "FAIL" if bad or not design_ok else "PASS", m["domain_files"], len(m["holes"]), len(m["overlaps"]),
+            "FAIL" if bad or not design_ok else "PASS", len(files), len(holes), len(overlaps),
             "current" if design_ok else "STALE"))
         return 1 if bad or not design_ok else 0
-    if bad:
+    m = measure(a.commit, a.max_lines)
+    for k, v in m["subsystems"].items():
+        print("%-22s %5d files %7d lines  %d shard(s)" % (k, v["files"], v["lines"], len(v["shards"])))
+    if report_partition(m["holes"], m["overlaps"]):
         print("=== R2 SUBSYSTEMS: FAIL (not a partition; no shards written) ===")
         return 1
     a.out.mkdir(parents=True, exist_ok=True)
