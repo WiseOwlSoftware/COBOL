@@ -24,14 +24,23 @@ from a survey read at the sources (GnuCOBOL 3.2's `fileio.c`, Berkeley DB's refe
 Vision, Informix C-ISAM) and a measured prototype (a 4 KiB write 7-8 µs, an fsync 2.9-3.1 ms, today's 64 MiB whole-store
 persist 77-92 ms per changing statement). It decides one paged data file of 4 KiB pages (store format 5, no sidecar), B+
 trees for the prime key, each alternate key as (key, release ordinal) composites and the relative record number, with the
-PB2754 frame codec as the leaf value; shadow paging with a generation ledger for crash consistency (a committed meta slot
-never overwritten, fresh pages rewritten in place, freed pages quarantined until promotion, a bounded verification at OPEN,
-no log and no rebuild utility); coherence across run units by one meta-page read and a cache drop under the existing
-statement mutex; the locks unchanged; the boundary as the host's file size capped at 2^32 pages; COMMIT and ROLLBACK as the
-ledger's promotion, discard and adoption rule; and count-based performance witnesses. Every citation passed `cite.py --check`
-(one inherited quote was re-derived from §12.4.5.6.4 to §14.9.30.4 GR21 c)). The work is filed as kb/Work PB3331-PB3338,
-sequenced by `blocked_by`; PB3330 lands with the last of them, and it carries one owner question (the RELATIVE O(1) bar
-against one engine). The DOC-A.1-107 and DOC-A.1-75 rows are marked as the groups' targets and still describe the current
-compiler.
+PB2754 frame codec as the leaf value; shadow paging with a generation ledger and stamped pointers for crash consistency (no
+page either meta slot references is ever overwritten, every pointer carries its page's generation, two committed slots
+written alternately, freed pages quarantined until promotion, a bounded verification at OPEN under the store mutex, no log
+and no rebuild utility); coherence across run units by one meta-page read and a cache drop under the existing statement
+mutex, for every sharing mode but NO OTHER; the locks unchanged plus one transaction-liveness byte region; the boundary as
+the host's file size capped at 2^32 pages; COMMIT and ROLLBACK as per-run-unit transactions with record-level before-images
+kept in the file; and count-based performance witnesses. Every citation passed `cite.py --check` (one inherited quote was
+re-derived from §12.4.5.6.4 to §14.9.30.4 GR21 c)). The work is filed as kb/Work PB3331-PB3338, sequenced by `blocked_by`;
+PB3330 lands with the last of them, and it carries one owner question (the RELATIVE O(1) bar against one engine). The
+DOC-A.1-107 and DOC-A.1-75 rows are marked as the groups' targets and still describe the current compiler.
+
+The branch review (round 1) found five findings, three high, and the owner chose a finisher the same day ("Fable today").
+The first draft had rewritten a fresh page in place (a process death mid-statement then lost every statement since the last
+promotion), overwritten the committed meta slot in place (a torn promotion had no outcome), run crash recovery at every OPEN
+including on a file another run unit held open, and made COMMIT and ROLLBACK whole-file operations (one run unit's ROLLBACK
+discarded another's completed statements). The corrected §2.2.1 derives the commit scope from §14.9.7.1, §14.9.36.4 GR3,
+§9.1.17 and Annex D.2.5 and a source survey (GnuCOBOL unlocks only; Micro Focus Fileshare rolls back one program's
+transaction), and the notes were swept to it.
 
 Notes and docs only. No code change.
