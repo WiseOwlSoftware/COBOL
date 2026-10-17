@@ -76,24 +76,32 @@ public sealed class FunctionValueIntermediateDriftTests : CobolNetTestBase
     /// <summary>⛔ AN EXACT VALUE WHOSE EVERY RECEIVER IS FLOATING-POINT IS HELD IN THE RECEIVERS' OWN BINARY FORMAT, AND A
     /// BINARY32 SET NEVER ON A BINARY64 (kb/Work PB3268, review R2-1). ISO §14.6.8.3 rule 2 converts the value to a
     /// binary32 receiver "in a manner consistent with the specifications of ISO/IEC 60559" — one rounding; a binary64
-    /// intermediate narrowed into a binary32 receiver is two (kb/Work PB1110). A binary32 receiver beside a binary64 one
-    /// has no float format that converts once for both, so that set is held on a fixed-point (exact) item. A
-    /// float-family function's value IS a binary64 and is held on one whatever its receivers.</summary>
+    /// intermediate narrowed into a binary32 receiver is two (kb/Work PB1110). A binary32 receiver beside a binary64 one,
+    /// and a floating-point receiver beside a fixed-point one, have no float format that converts once for both and no
+    /// fixed-point window that holds the float receiver's range, so those sets are held on the 36-digit decimal
+    /// floating-point item (a <c>string</c> field; kb/Work PB3268 review round 3, R1-1 and R1-2: a 12-integer-digit
+    /// window cut a FLOAT-LONG beside a PIC S9(3)V99, and an S9(21)V9(17) item stored 1.234E-21 as 0). A set of
+    /// fixed-point receivers keeps its fixed-point item. A float-family function's value IS a binary64 and is held on
+    /// one whatever its receivers.</summary>
     [Theory]
-    [InlineData("FVIB01", "FUNCTION NUMVAL(\"1.5\")", "FLOAT-BINARY-32", "FLOAT-SHORT", "float")]
-    [InlineData("FVIB02", "FUNCTION INTEGER(7.5)", "FLOAT-BINARY-32", "FLOAT-SHORT", "float")]
-    [InlineData("FVIB03", "FUNCTION NUMVAL(\"1.5\")", "FLOAT-LONG", "FLOAT-BINARY-64", "double")]
-    [InlineData("FVIB04", "FUNCTION NUMVAL(\"1.5\")", "FLOAT-BINARY-32", "FLOAT-LONG", "Int128")]
-    [InlineData("FVIB05", "FUNCTION INTEGER(7.5)", "FLOAT-SHORT", "FLOAT-LONG", "Int128")]
-    [InlineData("FVIB06", "FUNCTION SQRT(2)", "FLOAT-BINARY-32", "FLOAT-SHORT", "double")]
-    public void AnAllFloatReceiverSet_HoldsTheValueInTheReceiversOwnBinaryFormat(
-        string programId, string reference, string usage1, string usage2, string expected)
+    [InlineData("FVIB01", "FUNCTION NUMVAL(\"1.5\")", "USAGE FLOAT-BINARY-32", "USAGE FLOAT-SHORT", "float")]
+    [InlineData("FVIB02", "FUNCTION INTEGER(7.5)", "USAGE FLOAT-BINARY-32", "USAGE FLOAT-SHORT", "float")]
+    [InlineData("FVIB03", "FUNCTION NUMVAL(\"1.5\")", "USAGE FLOAT-LONG", "USAGE FLOAT-BINARY-64", "double")]
+    [InlineData("FVIB04", "FUNCTION NUMVAL(\"1.5\")", "USAGE FLOAT-BINARY-32", "USAGE FLOAT-LONG", "string")]
+    [InlineData("FVIB05", "FUNCTION INTEGER(7.5)", "USAGE FLOAT-SHORT", "USAGE FLOAT-LONG", "string")]
+    [InlineData("FVIB06", "FUNCTION SQRT(2)", "USAGE FLOAT-BINARY-32", "USAGE FLOAT-SHORT", "double")]
+    [InlineData("FVIB07", "FUNCTION NUMVAL(\"1.5\")", "PIC S9(3)V99", "USAGE FLOAT-LONG", "string")]
+    [InlineData("FVIB08", "FUNCTION INTEGER(7.5)", "PIC S9(3)", "USAGE FLOAT-SHORT", "string")]
+    [InlineData("FVIB09", "FUNCTION NUMVAL(\"1.5\")", "PIC S9(3)V99", "PIC S9(5)V9", "long")]
+    public void AFloatReceiverSet_HoldsTheValueInOneFormatThatConvertsOnceForEveryReceiver(
+        string programId, string reference, string clause1, string clause2, string expected)
     {
         string types = IntermediateTypes(Compile(programId, reference, standardDecimal: false,
-            receivers: $"       01 Q1 USAGE {usage1}.\n       01 Q2 USAGE {usage2}.\n"));
+            receivers: $"       01 Q1 {clause1}.\n       01 Q2 {clause2}.\n"));
         Assert.True(types == expected,
-            $"ISO §14.6.8.3 rule 2 / §14.9.25.4 GR1 — MOVE {reference} TO Q1 ({usage1}) Q2 ({usage2}): the intermediate is "
-            + $"[{types}], expected [{expected}] (kb/Work PB3268 review R2-1: a binary32 receiver is owed one rounding)");
+            $"ISO §14.6.8.3 rule 2 / §14.9.25.4 GR1 — MOVE {reference} TO Q1 ({clause1}) Q2 ({clause2}): the intermediate is "
+            + $"[{types}], expected [{expected}] (kb/Work PB3268 review R2-1, R1-1, R1-2: each receiver is owed the one "
+            + "conversion its single-receiver MOVE makes)");
     }
 
     [Fact]
