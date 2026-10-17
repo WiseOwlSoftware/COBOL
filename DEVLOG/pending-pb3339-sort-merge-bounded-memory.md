@@ -62,3 +62,19 @@ in `SortWorkBoundTests` has force on both hosts. R1-2: two crefs in CobolSort.cs
 A runtime build with XML documentation on shows no unresolved cref left in the sort files. The finisher's gate
 20261017T205734Z-8b53d4: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,921 ·
 Unit 33,575 · Characterization 5 cases ran in leg 1, the two new witnesses and the drift test among them).
+
+**Branch review, round 3 (one finding, fixed).** R3-1: round 1's R1-2 sweep grepped for the cref spelling of the
+removed `Init(string, CobolCollation?, CobolCollation?)` and missed the prose spelling. So DESIGN-locale-facility.md,
+the deep-dive rule 2 says to implement from, still told its reader in two places (the SORT/MERGE locale snapshot
+paragraph and the T1 landing row) that both sequences are snapshotted by `CobolSort.Init(name, collation, national)`.
+A reader following the doc would write a call that does not compile, and would never learn that Init now takes the
+statement's key descriptors. Both places now name `CobolSort.Init(name, keys, collation, national)`, and the snapshot
+paragraph says why the keys moved there: the bounded store orders a run whenever the release phase fills its memory
+limit, and `SortWork` holds the keys and both snapshots for the whole statement. The witness is
+`SortWorkBoundDriftTests.EveryDocCallOfTheSortRuntime_NamesAShippedShape`. It reads every backquoted `CobolSort.<Member>(args)`
+call in `docs/` and requires a public CobolSort member that takes it. That means the right arity, and an argument
+spelled as one of the member's parameter names must stand at that parameter's position. Position matters because the
+removed three-argument spelling has an arity the new Init still accepts. On the reviewed doc text the test fails and
+names both stale calls; on the fixed text it passes. The same kind of check over every runtime type's prose calls in
+`docs/` is wider than this branch. A rough survey finds about 14 suspect calls in other subsystems' docs, and they are
+reported as a lead rather than fixed here.
