@@ -40,13 +40,13 @@ public sealed class SortFileRunUnitScopeTests
 
         var a = Task.Run(() => RunUnit.Run(unit =>
         {
-            CobolSort.Init(sd);
+            CobolSort.Init(sd, OneCharKey);
             CobolSort.EnterProcedure(sd, output: false);         // run unit A is inside an input procedure
             CobolSort.ReleaseStatement(sd, "A2", 0, 2);
             aInInput.Set();
             bDone.Wait();
             CobolSort.ReleaseStatement(sd, "A1", 0, 2);
-            CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: true);
+            CobolSort.Sort(sd, duplicatesInOrder: true);
             Assert.Equal(["A1", "A2"], Drain(sd));                // never B's "B1"/"B2"
             CobolSort.Close(sd);
         }));
@@ -56,11 +56,11 @@ public sealed class SortFileRunUnitScopeTests
             ExceptionState.SortMergeActiveChecking = true;
             try
             {
-                CobolSort.Init(sd);                               // would be -ACTIVE if A's phase were visible
+                CobolSort.Init(sd, OneCharKey);                               // would be -ACTIVE if A's phase were visible
                 CobolSort.EnterProcedure(sd, output: false);
                 CobolSort.ReleaseStatement(sd, "B2", 0, 2);
                 CobolSort.ReleaseStatement(sd, "B1", 0, 2);
-                CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: true);
+                CobolSort.Sort(sd, duplicatesInOrder: true);
                 bSorted = Drain(sd);
                 CobolSort.Close(sd);
             }
@@ -82,7 +82,7 @@ public sealed class SortFileRunUnitScopeTests
         const string sd = "PB1570-ABANDONED";
         RunUnit.Run(unit =>
         {
-            CobolSort.Init(sd);
+            CobolSort.Init(sd, OneCharKey);
             CobolSort.EnterProcedure(sd, output: false);
             CobolSort.ReleaseStatement(sd, "X", 0, 1);
             // run unit ends with the statement still executing
@@ -91,7 +91,7 @@ public sealed class SortFileRunUnitScopeTests
         {
             ExceptionState.SortMergeActiveChecking = true;
             ExceptionState.FlowReleaseChecking = true;
-            CobolSort.Init("PB1570-OTHER");                       // no -ACTIVE: the first run unit's phase is gone
+            CobolSort.Init("PB1570-OTHER", OneCharKey);                       // no -ACTIVE: the first run unit's phase is gone
             CobolSort.Close("PB1570-OTHER");
             Assert.Equal("EC-FLOW-RELEASE",
                 Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, "Y", 0, 1)).EcName);
