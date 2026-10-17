@@ -29,7 +29,7 @@ run, the one rule that yields §14.9.40.4 GR3 a)/b) and §14.9.24.4 GR4 a)/b). `
 code units unconverted and its extent table with an interned layout index, so U+FFFF, a lone surrogate and the
 `RecordExtents.Layout` object survive a run. The key comparison moved unchanged to `SortKeyColumns`, now slot-based.
 `CobolSort.Init` takes the keys (the store must order runs during the release phase), so `Sort` and `Merge` dropped
-theirs; that changes the shipped surface, so the runtime major went 7 to 8 and the ABI pin was re-pinned. GR6's MERGE
+theirs; that changes the shipped surface, so the runtime major went to 9 (over PB1099's 8, which main took first) and the ABI pin was re-pinned over both surfaces. GR6's MERGE
 check runs as records arrive and `Merge` raises it before merging. Sequencing triggered by a RELEASE or RETURN runs
 under the statement's `RaisedBySortMerge` mark (§14.6.13.1.3 2)).
 

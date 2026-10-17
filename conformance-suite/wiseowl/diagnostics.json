@@ -2475,7 +2475,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0840: interface 'L1C15QA': the INHERITS graph is cyclic"
+  "expect": "COBOLNET2791: interface 'L1C15QA': the INHERITS graph is cyclic"
  },
  "l1c15-interface-inherits-not-in-repository": {
   "refuse-at": [
@@ -2568,7 +2568,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0840: interface 'L1C18GI', method 'PING': OVERRIDE/FINAL may not appear in a method PROTOTYPE"
+  "expect": "COBOLNET4212: interface 'L1C18GI', method 'PING': the FINAL clause shall not be specified in a method prototype (ISO \u00a711.7.3 SR8)"
  },
  "l1c19-multiply-alphanumeric-literal": {
   "refuse-at": [
@@ -3029,7 +3029,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0840: interface 'L1M7OVI', method 'PING': OVERRIDE/FINAL may not appear in a method PROTOTYPE"
+  "expect": "COBOLNET4212: interface 'L1M7OVI', method 'PING': the OVERRIDE phrase shall not be specified in a method prototype (ISO \u00a711.7.3 SR2)"
  },
  "l1m7-null-receiving-operand": {
   "refuse-at": [
@@ -4262,6 +4262,12 @@
    "2023"
   ],
   "expect": "COBOLNET1671"
+ },
+ "pb1099-record-key-source-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "(21,30): error COBOLNET0900: the SOURCE phrase of the RECORD KEY or ALTERNATE RECORD KEY clause"
  },
  "pb11-format-kind-chimera": {
   "refuse-at": [
@@ -9079,7 +9085,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0840"
+  "expect": "COBOLNET2791"
  },
  "pb1502-interface-prototype-contradicts-inherited": {
   "refuse-at": [
@@ -9151,7 +9157,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0839"
+  "expect": "COBOLNET2791"
  },
  "pb1505-parameterized-class-inherits-itself": {
   "refuse-at": [
@@ -10392,6 +10398,30 @@
    "85"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb1784-class-inherits-into-cycle": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2791: class 'P1784C': INHERITS FROM 'P1784B', which inherits from 'P1784C'"
+ },
+ "pb1784-interface-duplicate-prototype": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0822: interface 'I1784P': a second method prototype named 'PING'"
+ },
+ "pb1784-interface-inherits-unresolved-twice": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2791: interface 'I1784Q': INHERITS FROM names 'I1784Z' more than once"
  },
  "pb179-redefines-pointer-subject": {
   "refuse-at": [
@@ -13930,51 +13960,6 @@
    "2023"
   ],
   "expect": "START on 'IXF': 'IX-LONG' is neither a record key of the file nor an item that begins at the leftmost character position of one within a record of that file"
- },
- "pb358-alternate-key-source": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE IS F-K2 F-D)"
- },
- "pb358-alternate-key-source-duplicates": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE IS F-K2)"
- },
- "pb358-alternate-key-source-optional-words": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the ALTERNATE RECORD KEY clause on file 'F-IX' (F-ALT SOURCE F-K2)"
- },
- "pb358-record-key-source": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the RECORD KEY clause on file 'F-IX' (F-COMPOSITE SOURCE IS F-K1 F-K2)"
- },
- "pb358-record-key-source-optional-words": {
-  "refuse-at": [
-   "85",
-   "2002",
-   "2014",
-   "2023"
-  ],
-  "expect": "COBOLNET1954: the RECORD KEY clause on file 'F-IX' (F-COMPOSITE SOURCE F-K1)"
  },
  "pb361-use-outside-declaratives": {
   "refuse-at": [
@@ -19406,7 +19391,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0849"
+  "expect": "COBOLNET4211"
  },
  "pb815-raising-factory-presence-mismatch": {
   "refuse-at": [
@@ -19414,7 +19399,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0849"
+  "expect": "COBOLNET4211"
  },
  "pb816-set-up-by-strong-restricted-pointer": {
   "refuse-at": [
