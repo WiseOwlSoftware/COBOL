@@ -13271,6 +13271,72 @@
   ],
   "expect": "COBOLNET1596"
  },
+ "pb3224-set-function-address-external-first": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb3224-set-program-address-unrestricted-first-identifier": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb3224-set-program-address-unrestricted-first-literal": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb3224-set-program-address-unrestricted-first-prototype": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1959"
+ },
+ "pb3225-set-capacity-register-first-index-down-by": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2112"
+ },
+ "pb3225-set-capacity-register-first-integer": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2112"
+ },
+ "pb3225-set-capacity-register-second-index-up-by": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2112"
+ },
+ "pb3225-set-capacity-register-second-integer": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2112"
+ },
+ "pb3225-set-capacity-two-registers": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2112"
+ },
  "pb3232-sum-counter-beside-data-item": {
   "refuse-at": [
    "85",

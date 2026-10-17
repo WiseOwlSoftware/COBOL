@@ -380,7 +380,9 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
     /// own binder screens only what it can resolve (Format 2's index-names, Format 14's and Format 16's single
     /// receiver). The carrier formats report their own SR through their own binder instead, which is why this is
     /// not called for them.</summary>
-    public void ReportNotAdmitted(IReadOnlyList<Core.DataReferenceContext> receivers,
+    /// <returns>True when a receiver was reported (the FIRST the brace does not admit); false when the brace admits
+    /// them all and nothing was reported.</returns>
+    public bool ReportNotAdmitted(IReadOnlyList<Core.DataReferenceContext> receivers,
                                   IReadOnlyList<SetOperandKind> kinds, SetFormat format)
     {
         var row = Formats.First(f => f.Format == format);
@@ -390,15 +392,23 @@ internal sealed class SetFormatSelection(BinderContext ctx, StatementBinder host
             ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
                 $"SET '{receivers[i].GetText()}': {row.Brace}, and '{receivers[i].GetText()}' is "
                 + $"{Describe(kinds[i])} ({row.Rule})");
-            return;
+            return true;
         }
+        return false;
     }
 
-    /// <summary>COBOLNET2112 for a format whose printed receiving operand carries NO ellipsis — Format 14's
-    /// <c>data-name-2</c> and Format 16's <c>data-name-3</c> are each ONE operand (§14.9.39.2), so a second
-    /// receiver means the statement is not that format either.</summary>
-    public void ReportNotAdmittedCardinality(IReadOnlyList<Core.DataReferenceContext> receivers, SetFormat format)
+    /// <summary>COBOLNET2112 for a receiving list that is not the SOLE receiver of a format whose printed receiving
+    /// operand carries NO ellipsis — Format 14's <c>data-name-2</c> and Format 16's <c>data-name-3</c> are each ONE
+    /// operand (§14.9.39.2), so a second receiver means the statement is not that format either.
+    /// <para>⛔ ORDER-FREE (kb/Work PB3225). The selection chose this format as the NEAREST row for any list that
+    /// holds one of its operands, in any position, so the list may also hold operands the format does not admit
+    /// at all. The verdict never depends on where they stand: an operand the brace does not admit is named first
+    /// (the syntax rule the program broke — SR29 / SR33), and only a list of admitted operands is refused for its
+    /// count.</para></summary>
+    public void ReportNotSoleReceiver(IReadOnlyList<Core.DataReferenceContext> receivers,
+                                      IReadOnlyList<SetOperandKind> kinds, SetFormat format)
     {
+        if (ReportNotAdmitted(receivers, kinds, format)) return;
         var row = Formats.First(f => f.Format == format);
         ctx.Edition.Error(DiagnosticCatalog.SetNoFormatAdmitsReceiver,
             $"SET {Written(receivers)}: {row.Brace} — ONE operand, "
