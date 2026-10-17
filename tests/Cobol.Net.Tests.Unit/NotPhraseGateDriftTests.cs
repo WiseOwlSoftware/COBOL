@@ -17,7 +17,9 @@ namespace CobolNet.Tests.Unit;
 /// FILE's NOT ON EXCEPTION on <c>Successful(status)</c> alone. These guards close what the type system leaves open:
 /// a NOT phrase read that bypasses the renderers, a renderer call that passes anything but the statement's
 /// <c>hook</c> variable, and a <c>UseHookResult</c> built anywhere but <c>EmitUseHook</c> (a hand-made
-/// <c>new UseHookResult(false, null)</c> or <c>default</c> is the dropped hook again, spelled to compile).</summary>
+/// <c>new UseHookResult(false, null)</c> or <c>default</c> is the dropped hook again, spelled to compile). The
+/// construction guard walks the whole compiler project, so the class is a tree-wide sweep (kb/Work PB3022).</summary>
+[Trait("Sweep", "tree")]
 public sealed class NotPhraseGateDriftTests
 {
     private static readonly Regex NotPhraseRead = new(@"\b(NotOnException|NotInvalid|NotAtEnd|NotAtEop)\b(?!\s+is\s+(not\s+)?null)", RegexOptions.Compiled);
