@@ -200,3 +200,14 @@ a floating-point edited receiver beside a fixed one) and `FunctionValueIntermedi
 (FVIB04/05 now the decimal item, FVIB07/08 a float beside a fixed receiver, FVIB09 an all-fixed set kept on its fixed-point item).
 Residual (DOC-A.1-92): an exact value of 37 or 38 significant digits, which only the `Int128` scaled lane carries, is cut to
 36 beside a floating-point receiver.
+
+**Review round 7 (w1111a review finisher, findings R1-1 and R1-2 on `d01ea644f`).** Both findings were comment
+defects, and both were real. R1-1: the `StandardValueFixedByRule` remarks in `IntrinsicRenderer.cs` named
+`FunctionValueLane.ValueFixedByDefinition`. No such member exists. The predicate is
+`IntrinsicCarrierRules.ValueFixedByDefinition`, and the renderer may not reach `CobolNet.Binding.Procedure`. The cref now
+names the real member. R1-2: the `SharedFloatFormatPic` summary still said a binary32 receiver beside a binary64 one takes
+the exact fixed-point carrier. Since round 6, `IntermediatePic` asks `FloatingPointNumericSet` before its INTEGER and
+`ShapedPic` arms, so that set takes the 36-digit decimal `WidestFloatEditedPic`. The summary now says so. Sweep: every cref
+the branch adds resolves to a defined member, which a `GenerateDocumentationFile` build of `Cobol.Net.Compiler` confirmed
+(no CS1574 in a file the branch changed). The repository does not build documentation files, so CS1574 never fails a
+build. Main already carries about 108 distinct dangling crefs. That is a tree-wide change, left for its own landing.

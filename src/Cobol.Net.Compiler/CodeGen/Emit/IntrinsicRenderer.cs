@@ -1081,7 +1081,7 @@ internal sealed class IntrinsicRenderer(EmitContext ctx, NumericRenderer num)
     ///         SDIDI. Their argument is a string, so the carrier question never arises; before this arm the
     ///         standard-mode value rode the native Int128 projection at the item-92 working scale
     ///         (fix-queue PB60, RV-15.67.4-1a). ⛔ For NUMVAL and NUMVAL-C the MODE is not part of the
-    ///         question at all (kb/Work PB251): <see cref="FunctionValueLane.ValueFixedByDefinition"/> routes them to
+    ///         question at all (kb/Work PB251): <see cref="IntrinsicCarrierRules.ValueFixedByDefinition"/> routes them to
     ///         <see cref="RenderDec"/> BEFORE the arithmetic-mode dispatch, so that arm precedes this
     ///         set; they are listed here because a string argument makes <c>AnyDecOrRealRaw</c> false
     ///         and the early-out would otherwise return null under native. NUMVAL-F is standard-mode
