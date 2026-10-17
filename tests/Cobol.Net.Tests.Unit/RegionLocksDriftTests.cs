@@ -210,6 +210,31 @@ public sealed class RegionLocksDriftTests
 
     // ── The lock-file host's own facts ──────────────────────────────────────────────────────────────────────
 
+    /// <summary>What a Unix lock-directory creation does with <c>EEXIST</c> (kb/Work PB3313): the closing-sibling race has
+    /// TWO arms, a sibling's CLOSE removed the directory .NET's <c>mkdir</c> met (nothing at the name) and a sibling's next
+    /// publication made it again after that CLOSE (a directory at the name), and both are answered as success, as .NET
+    /// answers them on Windows; only a FILE at the name keeps the failure, and so does any other errno. The race itself
+    /// lies between two calls inside .NET that no test can hold apart, so the decision is asked directly, of the four
+    /// states the name can be in when .NET throws (branch review R3-1: the directory-again arm used to throw, and
+    /// <see cref="TwoWaitingHoldsBothGetTheByteInTurn"/> cannot reach it).</summary>
+    [Theory]
+    [InlineData("nothing", 17, true)]
+    [InlineData("directory", 17, true)]
+    [InlineData("file", 17, false)]
+    [InlineData("nothing", 13, false)]
+    public void ALockDirectoryEexist_IsTheClosingSiblingRace_UnlessAFileHoldsTheName(string atTheName, int errno, bool race)
+    {
+        string parent = Directory.CreateTempSubdirectory("pb3313-").FullName;
+        try
+        {
+            string name = Path.Combine(parent, "lockdir");
+            if (atTheName == "directory") Directory.CreateDirectory(name);
+            if (atTheName == "file") File.WriteAllText(name, "");
+            Assert.Equal(race, HostFile.IsClosingSiblingRace(new IOException("mkdir", errno), name));
+        }
+        finally { Directory.Delete(parent, recursive: true); }
+    }
+
     /// <summary>The names are a contract between run units (two runtime versions must find each other): a held byte is a
     /// file of the physical file's lock directory named <c>r</c>, the byte as 16 hex digits, the mode, and a GUID; the
     /// directory goes with its last file.</summary>
