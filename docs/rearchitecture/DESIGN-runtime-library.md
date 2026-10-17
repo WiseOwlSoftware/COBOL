@@ -768,14 +768,16 @@ and a bounded checkpoint (2.2.1.6). Power loss between two sync points loses at 
 never tears the file, which is Berkeley DB's `DB_TXN_WRITE_NOSYNC` contract ("transactions exhibit the ACI ... properties, but
 not D") made explicit in the format rather than in a flag.
 
-**2.2.1.3 The decisions, in one place.**
+**2.2.1.3 The decisions, in one place.** (Decisions 4, 5 and 7 and the rules they name were corrected on 2026-10-17 by the
+owner-approved finisher of the round-1 review; 2.2.1.6, 2.2.1.7 and 2.2.1.10 carry each finding's evidence.)
 
 1. **ONE paged file, no sidecar, one engine.** The data file IS the store (owner 2026-09-07, kb/Work PB802: "No sidecar of any
-   type"). It is a sequence of 4 KiB pages; page 0 and page 1 are the two META pages; every other page is a B+ tree page, an
-   overflow page or a free page. RELATIVE and INDEXED are the same engine with different KEY ORDERS and a different number of
-   trees; every sharing mode runs the same statement path. There is no small-file path, no in-memory path and no reader of
-   store format 4: a format-4 file is `StoreFormat.Foreign` and its OPEN answers '39' exactly as a format-3 file does today
-   (CLAUDE.md rule 4; the version byte after the magic moves from 4 to 5, so the existing `Foreign` arm already answers it).
+   type"). It is a sequence of 4 KiB pages; pages 0, 1 and 2 are the three META pages (two COMMITTED slots and the WORK slot,
+   2.2.1.6); every other page is a B+ tree page, an overflow page or a free page. RELATIVE and INDEXED are the same engine with
+   different KEY ORDERS and a different number of trees; every sharing mode runs the same statement path. There is no small-file
+   path, no in-memory path and no reader of store format 4: a format-4 file is `StoreFormat.Foreign` and its OPEN answers '39'
+   exactly as a format-3 file does today (CLAUDE.md rule 4; the version byte after the magic moves from 4 to 5, so the existing
+   `Foreign` arm already answers it).
 2. **The page size is 4 096 bytes**, the host's I/O block (Berkeley DB's default rule; `HostFile.InputOutputAreaBytes` is
    already 4 096) and the size the measurements were taken at. It is a format constant, not a per-file choice: one size makes
    every page computation static, and a record larger than a page's payload goes to overflow pages (2.2.1.4), so no record
@@ -784,24 +786,33 @@ not D") made explicit in the format rather than in a flag.
    key ((alternate key, release ordinal) → prime key). RELATIVE: one tree (relative record number → the record's frame).
    The leaf entry's value is the ONE frame shape `RecordFraming.EncodeFrameHead`/`ReadFrame` already define (length word,
    extent table, an indexed record's ordinal vector, payload), so the frame codec of kb/Work PB2754 stays the one codec and the
-   store-level shape around it (`ComposeStore`, `DecodeStore`, the gap tag, the composed image) is deleted.
-4. **Crash consistency is SHADOW PAGING with a GENERATION LEDGER, not a log** (2.2.1.6): a page the COMMITTED meta references
-   is never overwritten; a statement writes its changed pages to fresh pages (or in place when the page is itself fresh since
-   the committed generation), then the WORK meta; a sync point promotes the work meta to the committed slot. Rollback is free
-   (the committed meta is the rollback target), recovery is a bounded verification at OPEN (no replay, no rebuild utility), and
-   the two things a crash can do — lose the statements since the last sync, or nothing — are the only two things it can do.
-5. **Coherence across run units stays the PB2660 statement mutex, at PAGE granularity** (2.2.1.7): a coherent statement reads
-   ONE page (the work meta) to learn the generation and, when it moved, DROPS its page cache; it then reads only the pages it
-   touches. Nothing reloads and nothing persists whole. Record locks, the lock-presence byte, the store mutex and the Table 19
-   columns keep their bytes, their hosts and their observable behaviour (2.2.1.8).
+   store-level shape around it (`ComposeStore`, `DecodeStore`, the gap tag, the composed image) is deleted. The FREE tree, the
+   LEDGER tree, the TRANSACTIONS tree and every UNDO tree (2.2.1.10) are the same engine.
+4. **Crash consistency is SHADOW PAGING with a GENERATION LEDGER and STAMPED POINTERS, not a log** (2.2.1.6): no page that
+   either the COMMITTED meta or the WORK meta references is ever overwritten; a statement writes every page it changes to a
+   page neither references (path copying to the root, every statement), then the WORK meta; every pointer carries the
+   generation of the page it names, so a stale or torn page is recognized the moment it is read; a sync point promotes the
+   work meta into the committed slot holding the older generation, so a torn promotion leaves the other slot intact. Rollback
+   of a run unit's transaction is a record-level undo (2.2.1.10); recovery is a bounded verification at OPEN (no replay, no
+   rebuild utility); and the three things a crash can do — lose nothing, lose the statements since the last sync, or (a
+   transaction's owner dying) have that transaction rolled back — are the only three things it can do.
+5. **Coherence across run units stays the PB2660 statement mutex, at PAGE granularity, for every sharing mode that admits
+   another run unit's connector** (2.2.1.7): a coherent statement reads ONE page (the work meta) to learn the generation and,
+   when it moved, DROPS its page cache; it then reads only the pages it touches. Nothing reloads and nothing persists whole.
+   Record locks, the lock-presence byte, the store mutex and the Table 19 columns keep their bytes, their hosts and their
+   observable behaviour (2.2.1.8); one byte region is added, the transaction-liveness bytes of 2.2.1.10.
 6. **The boundary of a relative or indexed file is the host's** (2.2.1.9): a WRITE or REWRITE answers '24' only when the
    record would take the store past the format's 2^32 pages or past a maximum file size the host REPORTS (`EFBIG`,
    `ERROR_FILE_TOO_LARGE`); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
    previous statement left it, never at a later CLOSE.
-7. **APPLY COMMIT, COMMIT and ROLLBACK are the ledger's sync point, discard and adoption rule** (2.2.1.10), plus the lock
-   releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's and is its own group (PB3338).
+7. **APPLY COMMIT, COMMIT and ROLLBACK are per-run-unit TRANSACTIONS with record-level before-images kept in the file**
+   (2.2.1.10): a COMMIT makes the run unit's own changes durable (a promotion) and forgets its before-images; a ROLLBACK
+   re-applies them, touching no other run unit's records; a run unit that dies has its transaction rolled back by the next OPEN
+   that can write the file. Plus the lock releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's
+   and is its own group (PB3338).
 
-**2.2.1.4 The on-disk format (store format 5).** All integers little-endian, as format 4's were.
+**2.2.1.4 The on-disk format (store format 5).** All integers little-endian, as format 4's were. A POINTER is 12 bytes: page
+number (4) + the generation of the write it names (8), 2.2.1.6 R3.
 
 ```
 PAGE (4 096 bytes; every page)
@@ -809,13 +820,13 @@ PAGE (4 096 bytes; every page)
    1   1  flags         kind-specific (a leaf's bit 0: rightmost; an overflow's bit 0: last of its chain)
    2   2  entries       entry count (I, L); payload bytes (O)
    4   4  checksum      CRC-32C of bytes 8..4095, the one torn-page detector (2.2.1.6 R6)
-   8   8  generation    the generation that last wrote this page (2.2.1.6 R2)
+   8   8  generation    the generation that last wrote this page (2.2.1.6 R2, R3)
   16   4  self          this page's number (a page read from the wrong offset is a torn read)
   20   4  next          O: the next overflow page of the chain; L: the right sibling (0 = none); I, M: 0
   24   8  reserved      0
   32  ..  body
 
-META (page 0 = the COMMITTED slot, page 1 = the WORK slot; 2.2.1.6)
+META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 = the WORK slot; 2.2.1.6)
   32   8  magic "CBNFSTR" + format version 5          (the same first eight bytes as format 4, so a format-4 file is Foreign)
   40   1  organization  'R' relative · 'I' indexed
   41   1  record type   'F' fixed · 'V' varying
@@ -824,22 +835,26 @@ META (page 0 = the COMMITTED slot, page 1 = the WORK slot; 2.2.1.6)
   52   8  generation    the coherence stamp (2.2.1.7); one more per statement that changed the file
   60   8  release mint  an indexed store's next release ordinal (kb/Work PB2693); 0 relative
   68   8  page count    pages in the file (the allocation frontier)
-  76   4  root[0]       the prime tree (indexed) or the record-number tree (relative)
-  80   4  free root     the FREE tree (page number → nothing), the same B+ tree engine
-  84   4  ledger root   the LEDGER tree (2.2.1.6): page number → (generation of last write, state)
-  88   8  committed generation   the generation the COMMITTED slot carries (the rollback target; equal to `generation` in that slot)
-  96   1  flags         bit 0 UNDER COMMIT CONTROL (an active APPLY COMMIT clause covered the last OPEN, 2.2.1.10)
-                        bit 1 CLEAN CLOSE (the last writer closed every connector and synced)
-  97   ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
+  76   8  transaction mint   the next transaction id (2.2.1.10)
+  84  12  root[0]       POINTER to the prime tree (indexed) or the record-number tree (relative)
+  96  12  free root     POINTER to the FREE tree (page number → nothing), the same B+ tree engine
+ 108  12  ledger root   POINTER to the LEDGER tree (2.2.1.6): page number → (generation of last write, state)
+ 120  12  transactions root  POINTER to the TRANSACTIONS tree (2.2.1.10): transaction id → POINTER to its UNDO tree
+ 132   8  committed generation   the generation of the promotion this slot's tree descends from (in a committed slot,
+                        its own generation; in the work slot, the ledger's base: every ledger entry is later than it)
+ 140   1  flags         bit 0 CLEAN CLOSE (the last writer closed every connector and synced)
+ 141  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
            code-unit count + UTF-16 code units, kb/Work PB1602) collation-length(1) collation(ASCII fingerprint), then
-           root[k+1](4), the alternate tree of key k
-   ..  the per-key descriptors are bounded by the page: 4 064 bytes hold at least 60 keys of 64-byte descriptors; a
+           root[k+1](12), the POINTER to the alternate tree of key k
+   ..  the per-key descriptors are bounded by the page: 3 955 bytes hold at least 50 keys of 64-byte descriptors; a
        declaration past the page's capacity is refused at the OPEN with '39' (DOC-A.1-129 names the limit)
 
-INTERNAL (I)   body: entries × { key length(2), key bytes, child page(4) } ascending, plus a leftmost child page(4) at 32
+INTERNAL (I)   body: a leftmost child POINTER(12) at 32, then entries × { key length(2), key bytes, child POINTER(12) } ascending
 LEAF (L)       body: entries × { key length(2), value length(4), key bytes, value bytes } ascending;
-               a value whose length word has bit 31 set is an OVERFLOW REFERENCE: 4 bytes first-overflow-page + 4 bytes total
-OVERFLOW (O)   body: up to 4 064 payload bytes, chained by `next`
+               a value whose length word has bit 31 set is an OVERFLOW REFERENCE: a POINTER(12) to the first overflow page +
+               4 bytes total length; each overflow page's `next` is paired with the next page's generation in its own body's
+               first 8 bytes (so the chain is stamped like every other pointer)
+OVERFLOW (O)   body: 8 bytes next-page generation, then up to 4 056 payload bytes, chained by `next`
 FREE (F)       body: unused (a free page keeps its header so a stale read is recognizable)
 ```
 
@@ -868,16 +883,19 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   (a quarter of the body, Berkeley DB's `page_size / (minkeys × 2)` with two keys per page) and otherwise an overflow reference;
   the frame is read from the chain. So the maximum record size is the host's, not the page's. Keys are bounded by the leaf: a
   key longer than 1 016 bytes is refused at the OPEN with '39' as a fixed-attribute conflict the format cannot hold (DOC-A.1-129).
-- **Free space.** A freed page enters the LEDGER as `freed at generation G` and moves to the FREE tree at the next promotion
-  (2.2.1.6 R4); an allocation takes the lowest page of the FREE tree, else the page at `page count` (the file grows). The file
-  never shrinks of its own accord; `OPEN OUTPUT` creates a new two-page store (§14.9.27.4 GR18, *"After the creation of the
-  file, the file contains no records"*) through the connector's own handle with `RandomAccess.SetLength` to two pages, which
-  is the one truncation (today's `Persist` truncation, moved).
-- **What the pages prove at a glance.** With 12-byte internal entries (an 8-byte relative key) a page fans out 330 ways; a
-  3-level tree covers 36 million relative records, 4 levels 12 billion. With 40-byte prime keys an internal page holds 90
-  entries and a leaf 16 records of 200 bytes: 3 levels cover 130 000 records, 4 levels 11 million, 5 levels a billion. Every
-  level but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in the steady state and
-  O(log n) only cold (2.2.1.11).
+- **Free space.** A page leaves a tree in one of two ways and the LEDGER (2.2.1.6 R2) records which: a page the COMMITTED tree
+  references is `freed` and quarantined until the promotion that makes its freeing durable (R4); a page allocated since the
+  committed generation is `released` and reusable by any LATER statement (R1 keeps the work meta's own tree intact). At a
+  promotion the freed and released pages move to the FREE tree. An allocation takes a released page, else the lowest page of
+  the FREE tree, else the page at `page count` (the file grows). The file never shrinks of its own accord; `OPEN OUTPUT`
+  creates a new three-page store (§14.9.27.4 GR18, *"After the creation of the file, the file contains no records"*) through
+  the connector's own handle with `RandomAccess.SetLength` to three pages, which is the one truncation (today's `Persist`
+  truncation, moved).
+- **What the pages prove at a glance.** With 22-byte internal entries (an 8-byte relative key and a 12-byte pointer) a page
+  fans out 184 ways; a 3-level tree covers 6 million relative records, 4 levels 1.1 billion. With 40-byte prime keys an
+  internal page holds 75 entries and a leaf 16 records of 200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5
+  levels 500 million. Every level but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in
+  the steady state and O(log n) only cold (2.2.1.11).
 
 **2.2.1.5 The code set and the character set.** The frame payload and the key bytes are the channel bytes of today's
 `FileCharacterSet.ToChannel` + `Medium.GetBytes` (one byte per character position; a character with no byte image is refused at
@@ -890,86 +908,126 @@ another ('39', §14.9.27.4 GR10 — *"The implementor defines which of the fixed
 execution of the OPEN statement"*), exactly as today, because an index ordered under one sequence cannot be searched under
 another.
 
-**2.2.1.6 Crash consistency: the generation ledger.** The whole scheme is six rules; each has a drift test (2.2.1.12).
+**2.2.1.6 Crash consistency: the generation ledger.** The whole scheme is six rules; each has a drift test (2.2.1.12). The
+round-1 review (2026-10-17) found the first draft's R3 (a fresh page rewritten in place) and R5 (page 0 overwritten in place)
+broke the bar, and the rules below are the corrected ones; the two findings and their evidence are under R1 and R5.
 
-- **R1 — a page the COMMITTED meta references is never written.** The committed slot (page 0) names a tree whose every page was
-  synced to the medium at the promotion that wrote it. A statement that changes such a page allocates a fresh page, writes the
-  new content there and re-points the parent, up to the root (path copying; the root's new number goes into the WORK meta).
-- **R2 — every page written since the committed generation is in the LEDGER with the generation of its last write and its
-  state (`fresh` = allocated since, `freed` = released since).** The ledger is a small B+ tree of the same engine whose root is
-  in the work meta; it is rewritten by the statement that changes it, so the work meta and the ledger always agree.
-- **R3 — a FRESH page may be rewritten in place.** It is not referenced by the committed meta (R1 is about the committed tree),
-  so overwriting it cannot damage the recoverable state; the ledger entry's generation moves with each write. This is what makes
-  a sequential bulk load cost ONE leaf write per WRITE: the rightmost leaf is fresh after its first change and stays fresh until
-  the next promotion, so the path is copied once per promotion interval, not once per statement.
+- **R1 — a page that EITHER slot's tree references is never written.** The committed slot names a tree whose every page was
+  synced to the medium at the promotion that wrote it; the work slot names the tree of the last COMPLETED statement. A
+  statement that changes a page allocates another page, writes the new content there and re-points the parent, up to the root
+  (path copying; the root's new pointer goes into the WORK meta). This holds for every tree, the ledger included. *The first
+  draft rewrote in place a page allocated since the committed generation (its "R3") on the ground that the committed tree does
+  not reference it; the review's scenario (finding R1-1) is decisive: 3 000 sequential WRITEs with no promotion, then a death
+  during WRITE 3 001 after the rightmost leaf was rewritten in place and before the work meta — the work meta of statement
+  3 000 names that leaf at generation 3 000, the page says 3 001, R6 rejects the work slot and adopts the committed one, and
+  3 000 WRITEs that answered '00' are gone. Writing in place anything the last completed statement references cannot meet the
+  bar, so nothing referenced is ever written.* The price is one path copy per tree per statement (2.2.1.11): a sequential
+  relative WRITE writes d + 3 pages instead of 3, 50 µs instead of 25 at the measured 8 µs a page.
+- **R2 — every page allocated since the committed generation is in the LEDGER with the generation of its last write and its
+  state: `fresh` (referenced by the work tree), `released` (allocated since, no longer referenced; reusable by any statement
+  later than the one that released it), `freed` (a committed page released since; quarantined, R4).** The ledger is a small
+  B+ tree of the same engine whose root pointer is in the work meta; it is path-copied by the statement that changes it, like
+  every tree, so the work meta and the ledger always agree. The ledger does not list its own pages: they are verified through
+  their stamped pointers (R3) when the ledger is walked. **Allocation never happens while the ledger is being written:** a
+  statement reserves its pages first — the released pages the in-memory ledger offers, then one batch of the lowest FREE-tree
+  pages sized to the statement's bound (2.2.1.11), then growth — writes its data and free-tree pages, and writes the ledger
+  LAST from the reservation; a reserved page the statement did not use is recorded as `released`, never lost.
+- **R3 — every POINTER is STAMPED with the generation of the write it names, and a read through a pointer verifies the page:
+  its checksum, its `self`, and its generation equal to the stamp.** A page that is torn, lost (the medium shows an older
+  version of the same page number, which a released-then-reused page makes possible) or stale is therefore recognized at the
+  moment it is read, in every statement and not only at OPEN, and answered as §9.1.13.6 item 1's '30'. Stamping is what lets
+  R6's verification trust the ledger's own pages and what makes a reused page safe.
 - **R4 — a FREED page is not reused before the promotion that makes its freeing durable.** Until then the committed meta
-  references it, and R1 forbids writing it. At promotion the ledger's `freed` pages move to the FREE tree and its `fresh` pages
-  leave the ledger (they are now committed pages, R1 applies).
+  references it, and R1 forbids writing it. At promotion the ledger's `freed` and `released` pages move to the FREE tree and
+  its `fresh` pages leave the ledger (they are now committed pages, R1 applies); the ledger's own pages are released with it.
 - **R5 — a SYNC POINT (promotion) is: sync the data file (`FileStream.Flush(true)` on the connector's own handle) → write the
-  work meta's content to the committed slot with `committed generation` = its generation → sync again.** Two syncs make the meta
-  copy strictly after the pages it names. For a file NOT under commit control a promotion happens at CLOSE, at the run unit's
-  implicit CLOSE of every open file (`FileRegistry.CloseAll`) and as a CHECKPOINT whenever the ledger holds more than 1 024
-  pages or 4 096 statements have run since the last promotion. For a file UNDER commit control the only promotions are
-  COMMIT and the run unit's normal termination (§9.1.18.5 *"When a run unit terminates normally, all file changes are
-  permanently committed"*): a CLOSE of such a file writes the work meta and keeps the handle but does NOT promote, because a
-  ROLLBACK after that CLOSE must still restore the state at the last COMMIT (§14.9.36.4 GR3), which a promotion at CLOSE
-  would have advanced. The checkpoint bounds R6's verification at
-  4 MiB of reads (about 20 ms at the measured 12-15 µs a page) and costs, at the measured 3 ms per sync pair, under 2 µs per
-  statement amortized; it is never taken for a file under commit control, whose only promotions are the standard's.
-- **R6 — the ADOPTION RULE at OPEN decides which meta is the file.** Read page 0 and page 1 (two reads; the whole of what an
-  OPEN reads besides the verification below), validate each slot's checksum; then:
-  - adopt the WORK slot if its generation is above the committed slot's, its UNDER COMMIT CONTROL bit is clear, and every page
-    the ledger lists as `fresh` validates (its checksum, its `self`, and its page generation equals the ledger's) — that is the
-    file as the last completed statement left it, which is what a process death leaves (the operating environment keeps what was
-    handed to it) and what a power loss leaves when every write reached the medium;
-  - otherwise adopt the COMMITTED slot: the `fresh` pages are free (they were never committed), the `freed` pages are live again
-    (R4 kept them intact), and the work slot is rewritten from the committed one. A power loss that tore a fresh page or lost a
-    write lands here, and so does any file whose last writer ran under commit control and did not COMMIT (2.2.1.10): §9.1.18.5
-    *"When a run unit terminates abnormally, all file changes made since the previous commit or, if none, the beginning of the
-    run unit are rolled back for all files for which there are active APPLY COMMIT clauses."*
-  Neither outcome is torn, because the committed tree's pages were synced before the meta that names them (R5) and nothing wrote
-  them since (R1, R4), and a work tree is adopted only when every page it changed is verified present and whole.
-- **A statement is atomic by the same rules.** Its page writes land on fresh pages or in place on fresh pages; the work meta is
-  written LAST. A host refusal part-way (a full medium, a handle the host revoked) leaves the work meta naming the previous
-  statement's tree; the statement drops the cache and answers '30' (§9.1.13.6 item 1, *"A permanent error exists and no further
-  information is available concerning the input-output operation"*), and §9.1.13.1's permanent error is in effect from there —
-  the behaviour `CompleteStatement` and `Enter` give a refused persist and a refused reload today, now for every connector.
+  work meta's content, with `committed generation` = its generation, to the COMMITTED SLOT THAT HOLDS THE LOWER GENERATION →
+  sync again.** Two syncs make the meta copy strictly after the pages it names, and alternating the slots makes the one write
+  the scheme depends on survivable: a promotion whose slot write is torn leaves the other committed slot whole and the work
+  slot, synced by the first sync, naming the state the promotion was making durable (finding R1-4; the first draft overwrote
+  page 0 in place and gave a torn page 0 no outcome). Promotions happen for EVERY file, under commit control or not: at CLOSE,
+  at the run unit's implicit CLOSE of every open file (`FileRegistry.CloseAll`), at COMMIT (2.2.1.10), and as a CHECKPOINT
+  whenever the ledger holds more than 1 024 pages or 4 096 statements have run since the last promotion. A promotion never
+  changes what a ROLLBACK restores, because the rollback target is the run unit's before-images (2.2.1.10), not the committed
+  slot — which is why no file needs the first draft's "no promotion under commit control" and its unbounded ledger. The
+  checkpoint bounds R6's verification at 4 MiB of reads (about 20 ms at the measured 12-15 µs a page) and costs, at the
+  measured 3 ms per sync pair, under 2 µs per statement amortized.
+- **R6 — the ADOPTION RULE at OPEN decides which meta is the file, and runs UNDER THE STORE MUTEX** (2.2.1.7: exclusive
+  through a writable handle, shared through a reader's). Read pages 0, 1 and 2 (three reads; the whole of what an OPEN reads
+  besides the verification below) and validate each slot's checksum; then:
+  - the COMMITTED meta is the valid committed slot with the higher generation; if neither validates, the OPEN is unsuccessful
+    with '30' (§9.1.13.6 item 1): the file is damaged beyond what the format can repair, and nothing is written;
+  - adopt the WORK slot if it validates, its `committed generation` equals the committed meta's generation, its generation is
+    not below it, and every page the ledger lists as `fresh` verifies (R3, against the ledger's generation) — that is the
+    file as the last completed statement left it, which is what a process death leaves (the operating environment keeps what
+    was handed to it) and what a power loss leaves when every write reached the medium;
+  - otherwise adopt the COMMITTED meta: the `fresh` and `released` pages are free (they were never committed), the `freed`
+    pages are live again (R4 kept them intact). A connector with a writable handle rewrites the work slot from the committed
+    meta, reclaiming the abandoned ledger's pages into the FREE tree when that ledger is readable (its first statement); an
+    INPUT connector adopts in memory and writes nothing. A power loss that tore a fresh page or lost a write lands here.
+  - then, for either outcome, the TRANSACTIONS tree is read and every transaction whose owner is dead is rolled back by a
+    writable connector (2.2.1.10); a transaction whose owner is alive is left exactly as it stands.
+  Neither outcome is torn, because the committed tree's pages were synced before the meta that names them (R5) and nothing
+  wrote them since (R1, R4), and a work tree is adopted only when every page it changed is verified present and whole.
+  **R6 never runs recovery on a live file** (finding R1-3): a live holder's statements run under the mutex and write their
+  pages before their meta, so at any instant the mutex is free the work slot names a complete, present tree and the second
+  branch cannot be taken; the first draft's "under commit control, adopt the committed slot" branch — the one that rewrote a
+  live file's work slot from the committed one when a second run unit opened it — no longer exists, because commit control
+  is a transaction in the TRANSACTIONS tree, not a property of the file. 2.2.1.12's matrix has the two-run-unit OPEN as a
+  row.
+- **A statement is atomic by the same rules.** Its page writes land only on pages no slot references; the work meta is
+  written LAST. A death or a host refusal part-way (a full medium, a handle the host revoked) leaves the work meta naming the
+  previous statement's tree, whose pages were never touched (R1); the statement drops the cache and answers '30' (§9.1.13.6
+  item 1, *"A permanent error exists and no further information is available concerning the input-output operation"*), and
+  §9.1.13.1's permanent error is in effect from there — the behaviour `CompleteStatement` and `Enter` give a refused persist
+  and a refused reload today, now for every connector.
 - **Why not a write-ahead log.** A log is a second file (a sidecar, refused by PB802) or a region inside this one that needs
-  its own wrap-around, checkpointing and replay; shadow paging needs none of those, gives ROLLBACK for free, and its recovery
-  reads only the pages the ledger names. The price is R4's growth between promotions, bounded by the checkpoint for ordinary
-  files and by the program's own COMMIT frequency for files under commit control — the price every shadow-paging store pays.
+  its own wrap-around, checkpointing and replay; shadow paging needs none of those, and its recovery reads only the pages the
+  ledger names. The price is R4's growth between promotions, bounded by the checkpoint for every file — the price every
+  shadow-paging store pays.
 
 **2.2.1.7 Coherence across run units, at page granularity (the successor of the PB2660 bullets above).** The three pieces keep
 their places; what each does changes:
 
 - **The generation lives in the WORK meta** (offset 52), stamped by every statement that changed the file (one more than the
-  generation it read). A connector whose file lock admits another writer (`FileLockPosture.AdmitsAnotherWriter`, `SHARING WITH
-  ALL OTHER`) still runs every record statement inside the store mutex (`HostRegionLocks.StoreMutexByte`, exclusive through a
-  writable handle, shared through a reader's), still enters by reading the generation — now ONE page read of page 1 — and when
-  it moved, DROPS the run unit's page cache for the file instead of reloading anything. The statement then reads the pages it
-  touches: O(log n), the same count as an unshared statement plus the one meta read. `Complete` writes the statement's dirty
-  pages and the work meta before the mutex is given back, so the statement is one step to every other run unit, as before.
-- **A connector whose lock admits no other writer** (every other posture; Table 19 refuses a foreign writer's OPEN in every run
-  unit, kb/Work PB833) runs the same statement path with no mutex and no generation read: dirty pages are written at the end
-  of each statement all the same (the bar: *the file is in the state after its last completed statement*), and the cache is
-  never dropped. The whole-store "loaded at OPEN, persisted at CLOSE" branch is gone, so there is ONE statement path.
+  generation it read). **A connector whose sharing mode admits ANY other run unit's connector — every mode but `SHARING WITH NO
+  OTHER`** (`FileLockPosture.AdmitsAnotherRunUnit`, the successor of `AdmitsAnotherWriter`) — runs every record statement, and
+  its OPEN's adoption rule (R6), inside the store mutex (`HostRegionLocks.StoreMutexByte`, exclusive through a writable handle,
+  shared through a reader's), enters by reading the generation — ONE page read of page 2 — and when it moved, DROPS the run
+  unit's page cache for the file instead of reloading anything. The statement then reads the pages it touches: O(log n), the
+  same count as an unshared statement plus the one meta read. `Complete` writes the statement's dirty pages and the work meta
+  before the mutex is given back, so the statement is one step to every other run unit, as before. *Why not only the ALL
+  OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the INPUT reader Table
+  19 admits beside it (§9.1.15 2), *"restricts concurrent access to a physical file through file connectors other than this
+  one, to input mode"*; the table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing with read only` /
+  `I-O` is *Normal open*) sees one image per CLOSE; an engine that writes at every statement must put that writer's statements
+  under the mutex too, or the reader meets a half-written path. One condition, one path.
+- **A `SHARING WITH NO OTHER` connector** (Table 19 refuses every other opener in every run unit, kb/Work PB833) runs the same
+  statement path with no mutex and no generation read: dirty pages are written at the end of each statement all the same (the
+  bar: *the file is in the state after its last completed statement*), and the cache is never dropped. The whole-store
+  "loaded at OPEN, persisted at CLOSE" branch is gone, so there is ONE statement path.
 - **Within a run unit** the successor of `KeyedStoreTable` is a table of OPEN STORES per physical file (`StoreTable`): one
   `PagedStore` — the handle's page I/O, the page cache, the ledger and the trees — attached by every connector of the run unit
   over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach` on the last CLOSE), so a sibling's mutation is
   visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`.
 - **Published record locks** are unchanged (2.2.1.8).
 
-**2.2.1.8 Where the locks live.** Nowhere new. The region map of `HostRegionLocks` — the five Table 19 column bytes at 2^62,
-the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 + 0x101, the hashed record region at 2^62 + 2^60 — stays, held
-through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files of
-`SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
+**2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
+bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 + 0x101, the hashed record region at 2^62 + 2^60
+— stays, held through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files
+of `SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
 `RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (the comment on `HostRegionLocks` is rewritten with
-the constant). `PhysicalFileTable` (the run unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), the
-presence-byte shortcut, the publish-then-test discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait
-outside the mutex (`WaitOutsideStatement`) keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged
-in intent over the new engine (its `KeyedStoreReloadFailureDriftTests` sibling becomes the adoption-rule and refused-page-write
-witnesses of 2.2.1.12). The §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page
-read and write goes through that handle positionally (`RandomAccess`), so no second handle is ever taken.
+the constant). **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one byte per transaction id (`TransactionLivenessByte`
+= base + (id mod 2^60)), held EXCLUSIVELY through the owner's writable handle for the life of the transaction** (2.2.1.10): the
+operating environment releases it with the handle when the owner dies, and the lock-file host already deletes a dead holder's
+file (`SidecarLockFiles`: *"delete it when its holder is dead"*), so "is this transaction's owner alive" is one test of one
+byte on every host, by the same primitive and with the same liveness the record locks have. `PhysicalFileTable` (the run
+unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), the presence-byte shortcut, the publish-then-test
+discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait outside the mutex (`WaitOutsideStatement`)
+keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged in intent over the new engine (its
+`KeyedStoreReloadFailureDriftTests` sibling becomes the adoption-rule and refused-page-write witnesses of 2.2.1.12). The
+§9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
+that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
 **2.2.1.9 The size limit, and the new DOC-A.1-107 text (to replace the row when PB3333/PB3334 land).** *"The boundary of a
 physical relative or indexed file is the host file system's maximum file size, capped by the format at 2^32 pages of 4 096
@@ -986,116 +1044,198 @@ tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, 
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
 `IndexedStore.RecordBytes` are deleted with the model that needed them. The store header's bytes stay the file's §9.1.6 fixed
 file attributes (*"A physical file has several attributes that apply to the file at the time it is created and cannot be changed
-throughout the lifetime of the file"*), read by `FixedAttributeConflict` from page 0 through `HostFile.OpenAuxiliary` as today
-(the read of one page, not of a variable-length header), and `SequentialConnector`'s "a keyed store opened through a sequential
-description is not a conflict" keeps its answer through the same reader.
+throughout the lifetime of the file"*), read by `FixedAttributeConflict` from the committed meta through `HostFile.OpenAuxiliary`
+as today (the read of two pages, not of a variable-length header), and `SequentialConnector`'s "a keyed store opened through a
+sequential description is not a conflict" keeps its answer through the same reader.
 
-**2.2.1.10 APPLY COMMIT, COMMIT and ROLLBACK on the ledger.** The facility is declined today at bind
+**2.2.1.10 APPLY COMMIT, COMMIT and ROLLBACK: per-run-unit transactions on the ledger.** The facility is declined today at bind
 (`DeclinedFacilityPass.VisitApplyCommitClause`, Annex A.4.3 item 2) and COMMIT and ROLLBACK are CONTINUE
 (`conformance:2023/pb137_commit_inert`, §14.9.7.4 GR1 / §14.9.36.4 GR1). PB3330's bar builds them on the engine, so the decline
 is reversed by its groups: the runtime half (PB3337) and the compiler half (PB3338).
 
-- **UNDER COMMIT CONTROL** is a bit in the meta (offset 96, bit 0), set by an OPEN through a connector covered by an active APPLY
-  COMMIT clause (§12.4.6.3.4 GR1: *"This clause specifies that the files and data-items listed are to be subject to the commit
-  and rollback facility."*; GR5 defines active) and cleared by the COMMIT (or the normal termination) after which no connector
-  under commit control holds the file. While it is set, the only promotions are COMMIT and normal termination (R5: a CLOSE
-  writes the work meta, keeps the handle and promotes nothing), and R6 adopts the committed slot at
-  the next OPEN whatever the work slot says — which is §9.1.18.5's rollback of an abnormal termination, obtained by writing
-  nothing at the termination (there is no process-exit handler to rely on) rather than by undoing anything.
+- **The scope the standard requires (finding R1-2, derived 2026-10-17).** §14.9.7.1: the COMMIT statement *"makes permanent all
+  changes to all files subject to active APPLY COMMIT clauses in the run unit"*; §14.9.36.4 GR3: ROLLBACK restores those files
+  *"to the state they were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT
+  statements had previously been executed"*. Read alone, "the state they were in" could mean the whole file; the clauses
+  around it settle that it means the run unit's own changes. §9.1.17 defines the unit of work the facility protects as one
+  whose *"files and data are protected from the activity of other run units that wish to access any of the same records and
+  data"* — the same RECORDS, through record locks (§9.1.16's implicit multiple-record locking), which is how Annex D.2.5
+  describes concurrent run units with their own units of work on one file and names the one leak: *"in the event of a
+  rollback, that record would then be inconsistent with what was used by the other run unit"* — the record this run unit
+  changed, not the other run unit's work. A ROLLBACK that discarded another run unit's completed statements, or a COMMIT that
+  made another run unit's uncommitted changes permanent so its later ROLLBACK could not restore them, would contradict all
+  three. Where the words leave latitude the precedence of CLAUDE.md rule 1 was applied from sources: GnuCOBOL 3.2's
+  `cob_commit` and `cob_rollback` (`libcob/fileio.c` 6861-6883) only call `cob_file_unlock` on every open file — no file state
+  is committed or restored, so GnuCOBOL has nothing on scope; Micro Focus (Fileshare, "Database Integrity" and "The COMMIT
+  Statement", microfocus.com/documentation/reuze/60d/{fsdbse,lhpdf808}.htm, read 2026-10-17) scopes a transaction to the
+  program's own updates — it starts at that program's first WRITE, REWRITE or DELETE after OPEN, COMMIT or ROLLBACK, a
+  ROLLBACK returns the files "to the state they were in before the transaction started", every record a transaction updates
+  is locked until its COMMIT or ROLLBACK, and the server rolls back the pending transaction of a client that dies or times
+  out; IBM has no COBOL verb (CICS SYNCPOINT and DFSMStvs commit a unit of recovery, likewise the task's own updates). So the
+  scope is the RUN UNIT's changes through connectors under its active APPLY COMMIT clauses, and nothing else is touched.
+- **A TRANSACTION is one run unit's open unit of work on one physical file.** It begins at the first WRITE, REWRITE or DELETE
+  the run unit executes through a connector under commit control on that file (a read-only run unit has nothing to undo and no
+  entry), takes the next `transaction mint` value as its id, takes its liveness byte (2.2.1.8) exclusively through that
+  connector's handle, and is an entry of the TRANSACTIONS tree: id → the POINTER to its UNDO tree. The UNDO tree is keyed by
+  the record's identity (the prime key bytes, or the 8-byte relative record number) and holds the record's BEFORE-IMAGE as of
+  the run unit's last COMMIT (or the start of the run unit): the whole frame, ordinal vector included, or an ABSENT marker for
+  a record the transaction created. Every WRITE, REWRITE and DELETE through a connector under commit control inserts the
+  before-image under the record's identity unless an entry already exists (the first image is the one to restore; later
+  changes to the same record do not replace it). The UNDO tree is written by the same statement that changes the record, under
+  R1-R3, so it is exactly as crash-consistent as the data: a statement that completed has its before-image; one that did not
+  has neither its change nor its image.
 - **COMMIT** (§14.9.7.4 GR3: *"The execution of the COMMIT statement permanently applies any changes made to the files specified
-  in all the active APPLY COMMIT clauses and releases all record locks associated with those files."*) = a promotion of every
-  open store under commit control, then `PhysicalFileTable.ReleaseAllForConnector` for each such connector; GR4's file locks of
-  files closed and not reopened since are released here too, which means a CLOSE of a connector under commit control KEEPS its
-  handle (the §9.1.15 file lock: *"except where the file is subject to an active APPLY COMMIT clause ... the file lock is removed
-  by the COMMIT statement"*) until the next COMMIT or ROLLBACK and promotes then.
-- **ROLLBACK** (§14.9.36.4 GR3: *"All files and data-items referenced in active APPLY COMMIT clauses are restored to the state
-  they were in at the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously
-  been executed."*) = for every store under commit control: drop the cache, copy the committed slot over the work slot, and treat
-  the ledger as R6's second branch does (fresh pages free, freed pages live); then release the record locks. No page of data is
-  read or written: the rollback target was never overwritten (R1, R4).
+  in all the active APPLY COMMIT clauses and releases all record locks associated with those files."*) = for every physical file
+  on which this run unit has a transaction: one statement that removes the transaction's entry and releases its UNDO tree's
+  pages, then a promotion (R5: the run unit's changes become durable), then the liveness byte is given back; then
+  `PhysicalFileTable.ReleaseAllForConnector` for each connector under commit control (§9.1.16: *"A COMMIT statement releases
+  all record locks for files subject to commit and rollback"*); GR4's file locks of files closed and not reopened since are
+  released here too, which means a CLOSE of a connector under commit control KEEPS its handle (§9.1.15: *"the file lock is
+  removed by the COMMIT statement"*) until the next COMMIT or ROLLBACK. The promotion also makes any OTHER run unit's
+  uncommitted changes on that file durable on the medium — harmlessly, because that run unit's UNDO tree is on the medium with
+  them, and its ROLLBACK or its death restores them from it (the case finding R1-2 named: B under APPLY COMMIT writes K2, A
+  COMMITs, B's later ROLLBACK still restores the state at B's last COMMIT).
+- **ROLLBACK** (§14.9.36.4 GR3) = for every physical file on which this run unit has a transaction: ONE statement (one
+  generation, atomic under 2.2.1.6) that re-applies every before-image of the UNDO tree — a frame is written back under its
+  identity with its OLD ordinals (the alternate trees' composite entries are rebuilt from the frame's ordinal vector, so the
+  duplicate order of §14.9.35.4 GR24 is the one at the last COMMIT; the release mint only ever grows), an ABSENT marker deletes
+  the record — and removes the transaction's entry; then the record locks are released (§9.1.16: *"A ROLLBACK statement
+  releases all record locks for files subject to commit and rollback"*), the kept handles of connectors closed since the last
+  COMMIT are released, and the §9.1.15 last sentence's case (a file not open at the previous commit and opened since) releases
+  its file lock. A record another run unit changed meanwhile is restored over that change: that is D.2.5's named
+  inconsistency, and the record locks are what a program uses to prevent it (a READ locks, §12.4.5.9.4 GR4 *"Records are
+  locked when any READ statement is executed"*; a WRITE under automatic locking does not, which is why D.2.5 speaks of *"a
+  record written or updated by the current run unit"*). The lock classes are unchanged (2.2.1.8). A ROLLBACK needs no
+  promotion: if its statement is lost to a power loss, the committed state still carries the transaction and the next OPEN
+  rolls it back again; the operation is idempotent.
+- **Abnormal termination** (§9.1.18.5: *"When a run unit terminates abnormally, all file changes made since the previous commit
+  or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT clauses."*)
+  is two mechanisms. Where the runtime still runs — a fatal exception condition (§14.6.13.1.3 item 8: *"if there is a fatal
+  exception condition for a file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed
+  unconditionally"*) and §14.6.12's termination path (*"If commit and rollback is in effect, a rollback is executed. This
+  rollback differs from user specified rollbacks in that only files and not any of the data items"* are restored) — the
+  runtime element's abnormal-termination path executes the file-only ROLLBACK above before it exits (the compiler half, PB3338,
+  routes both). Where it does not (a kill, an out-of-memory failure, a power loss), the transaction's liveness byte is freed by
+  the operating environment, and the next OPEN of the file through a connector with a writable handle rolls back every
+  transaction whose byte is not held (R6's last step, under the mutex), whether or not other run units hold the file open — a
+  dead transaction's records are nobody's. Between the death and that OPEN, a connector opened INPUT (no writable handle: it
+  can neither take the mutex exclusively on Linux nor write on any host) reads the file as it stands, dead transaction
+  included — D.2.5's "possible for another run unit to read a record written or updated by the current run unit", for a run
+  unit that no longer exists. DOC-A.1-75 (PB3335) and the commit row (PB3338) state this determination.
+- **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
+  writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
+  contradiction was between that rule and PB3337's brief; both now say the same thing).
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
   registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338), and the locks are
   released only by COMMIT, ROLLBACK and termination.
+- **A second connector of the SAME run unit** on the same physical file that no APPLY COMMIT names (§12.4.6.3.4 GR2 forbids only
+  the same CONNECTOR being half-covered) changes records without before-images; the run unit's ROLLBACK restores only what its
+  covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
+  independent file connectors that are not specified in APPLY COMMIT clauses"* describes.
 - **The compiler half** (PB3338): accept the I-O-CONTROL APPLY COMMIT clause (§12.4.6.3.3 syntax rules 1-11; the period rule
   `ParagraphPeriods` already prints), register each listed file connector and data item with the run unit, emit COMMIT and
-  ROLLBACK as registry calls, and save at COMMIT / restore at ROLLBACK the listed data items, the file status items and the
-  LINAGE and RECORD clause items (§14.9.7.4 GR5, §14.9.36.4 GR3's second sentence), with EC-FLOW-COMMIT / EC-FLOW-ROLLBACK /
-  EC-FLOW-APPLY-COMMIT where §9.1.18.7 raises them (the catalog already lists them). Sequential files under APPLY COMMIT
-  (§9.1.18.2 admits *"any type of file on a mass storage device"*) are a further note beyond PB3338: the sequential organization
-  has no ledger, and its commit facility is a separate design.
+  ROLLBACK as registry calls, route the fatal-exception and abnormal-termination paths to the file-only rollback, and save at
+  COMMIT / restore at ROLLBACK the listed data items, the file status items and the LINAGE and RECORD clause items (§14.9.7.4
+  GR5, §14.9.36.4 GR3's second sentence), with EC-FLOW-COMMIT / EC-FLOW-ROLLBACK / EC-FLOW-APPLY-COMMIT where §9.1.18.7 raises
+  them (the catalog already lists them). Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
+  storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
+  that must give a sequential transaction the same scope.
 
 **2.2.1.11 Performance targets, and how a test measures them without a clock.** `PagedStore` counts its page reads, page
 writes and syncs per statement (`IoCounters`, internal), and every witness asserts COUNTS, because a wall-clock test is a flake
 generator (the repository's rule) and because a count is the thing the bar states. With d = the tree's depth (2.2.1.4 gives the
-formulas):
+formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries), the free-tree batch ≤ 2 pages (taken once per
+statement at most), and u = the UNDO tree's depth for a connector under commit control:
 
 | Statement | Pages read | Pages written | Syncs |
 |---|---|---|---|
-| OPEN (any mode, file present) | 2 + ledger `fresh` pages (≤ 1 024; 0 after a clean close) | 0 (OUTPUT: 2) | 0 |
-| READ by key / by RRN | ≤ d + overflow pages of the record (+ 1 meta read under ALL OTHER) | 0 | 0 |
+| OPEN (any mode, file present) | 3 + ledger `fresh` pages (≤ 1 024; 0 after a clean close) + the transactions tree (≤ 2) | 0 (OUTPUT: 3; a recovery or a dead transaction's rollback: its own statement) | 0 |
+| READ by key / by RRN | ≤ d + overflow pages of the record (+ 1 meta read when the mutex is held) | 0 | 0 |
 | READ NEXT / PREVIOUS | ≤ 1 (+ d when the cursor crosses a leaf; + d for an alternate key's prime lookup) | 0 | 0 |
-| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d | ≤ (k + 1) × d + ledger + 1 meta; ≤ k + 3 in a sequential load (R3) | 0 |
-| WRITE / REWRITE / DELETE (relative) | ≤ d | ≤ d + ledger + 1 meta; ≤ 3 in a sequential load (R3) | 0 |
-| a promotion (CLOSE or checkpoint of a file not under commit control; COMMIT or normal termination of one under it) | 0 | 1 (the committed slot) | 2 |
-| CLOSE of a file under commit control | 0 | 1 (the work meta) | 0 |
+| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta); under commit control + u + the before-image's overflow pages | 0 |
+| WRITE / REWRITE / DELETE (relative) | ≤ d | ≤ d + 5; under commit control + u + overflow | 0 |
+| a promotion (CLOSE or checkpoint; COMMIT; normal termination) | 0 | 1 (a committed slot) | 2 |
+| COMMIT, per file with a transaction | ≤ 2 | the transaction's removal (≤ 2 + 2 + 1) + the promotion | 2 |
+| ROLLBACK, per file with a transaction | the UNDO tree + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + 2 + 1, in one statement | 0 |
 
 The witnesses: (a) **linearity** — a load of N and of 4N records through `NO OTHER` and through `ALL OTHER`, sequential and
 random keys, asserts that the pages written per statement differ by at most the depth growth (an integer ≤ 1 between those
 sizes) and that no statement wrote more than the table's bound; (b) **OPEN reads the header** — opening a store of 4N records
-reads ≤ 2 pages after a clean close; (c) **random READ is O(log n)** — 1 000 random READs on the 4N store read ≤ d + 1 pages
+reads ≤ 3 pages after a clean close; (c) **random READ is O(log n)** — 1 000 random READs on the 4N store read ≤ d + 1 pages
 each, with the cache cold (`PagedStore` offers a `DropCache` seam for the witness); (d) **no whole-store I/O exists** — a
 tree-wide drift test (`[Trait("Sweep", "tree")]`) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
-`Runtime/IO` (the shape `ReadImage` has today). For the record, the prototype's wall-clock arithmetic: a million-record
-sequential load is about 3 page writes a statement at 8 µs, some 25 s of I/O before the tree's own work; the same load through
-today's `ALL OTHER` path is 10^6 × O(file) and does not finish.
+`Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
+m changed records writes ≤ m × ((k + 1) × d) + 3 pages and leaves every record of another run unit byte-identical. For the
+record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
+8 µs, some 50 s of I/O before the tree's own work; the same load through today's `ALL OTHER` path is 10^6 × O(file) and does
+not finish.
 
 **2.2.1.12 The format's drift tests (each invariant pinned by one).** `PagedStore` is written over an `IPageMedium` — the
 production medium is `RandomAccess` on the connector's `SafeFileHandle`; the test medium is an in-memory page array that
 records which writes were SYNCED and can be asked to *lose every unsynced write* (a power loss) or to *keep them* (a process
-death) and to *tear* one named page — so every crash scenario is deterministic and runs on every host without a VM:
-- R1: no write ever targets a page the committed meta's tree references (the medium records every write's page number; the
-  test walks the committed tree after each statement);
-- R2/R3: the ledger lists exactly the pages written since promotion, with their last generation; a fresh page is rewritten in
-  place (the sequential-load write count);
+death), to *tear* one named page, and to *serve an older version* of one named page (a lost write over a reused page) — so
+every crash scenario is deterministic and runs on every host without a VM:
+- R1: no write ever targets a page that the committed meta's tree OR the work meta's tree references (the medium records every
+  write's page number; the test walks both trees after each statement);
+- R2: the ledger lists exactly the pages allocated since promotion, with their last generation and state; a `released` page is
+  reused only by a statement later than the one that released it; a statement never allocates after it starts writing the
+  ledger (the medium's write order);
+- R3: a page served at an older version under a stamped pointer is refused as torn by the next read of it, in a statement
+  ('30') and at OPEN (the work slot rejected);
 - R4: a page freed at generation G is not allocated before the promotion of G;
-- R5: the committed slot's pages are all synced before the slot is written (the medium's sync log orders them);
-- R6: the adoption matrix — {process death, power loss with every write durable, power loss losing the last k writes, a torn
-  fresh page, a torn meta slot} × {not under commit control, under commit control} → {work adopted = last completed statement,
-  committed adopted = last promotion}, and the file reads back a consistent tree in every cell;
+- R5: the committed slot's pages are all synced before the slot is written (the medium's sync log orders them), and two
+  consecutive promotions write different slots;
+- R6: the adoption matrix — rows {process death after a completed statement; process death MID-statement (after some of its
+  page writes, before its meta); power loss with every write durable; power loss losing the last k writes; a torn fresh page;
+  a torn work slot; a torn committed slot (the one the promotion was writing); both committed slots torn; an OPEN by a second
+  run unit while the first holds the file; an OPEN by a third run unit after one of two holders died} × columns {no
+  transaction; a transaction open at the crash} → the expected cell: the work slot (= the last completed statement) for the
+  first three rows and for the second-run-unit row (nothing rewritten, nothing rolled back while the owner's liveness byte is
+  held); the work slot for the torn-committed-slot row (the other committed slot is the committed meta, and the work slot,
+  synced before the tear, verifies); the committed meta (= the last promotion) for the lost-writes row unless every listed
+  page verifies, and for the torn-fresh-page and torn-work-slot rows; '30' at the OPEN for both committed slots torn; and in
+  the transaction column, after the adoption, every before-image of the dead owner re-applied by the first writable OPEN
+  (the third-run-unit row: by that OPEN, with the live holder's own records untouched) and left in place by an INPUT OPEN —
+  with the file reading back a consistent tree in every cell;
 - the statement's atomicity: a medium that refuses the n-th write of a statement leaves the file at the previous statement
   and the statement at '30';
-- the layout: a golden hex dump of an empty relative store and of an empty indexed store with two keys (the meta page byte for
-  byte), and the page checksum detecting a single flipped bit in every page kind;
+- the layout: a golden hex dump of an empty relative store and of an empty indexed store with two keys (the three meta pages
+  byte for byte), and the page checksum detecting a single flipped bit in every page kind;
 - the engine's tree: a property test of insert/delete/seek/next/prev against a `SortedDictionary` model under every key order,
-  including composite keys, overflow values and splits and merges at every level.
+  including composite keys, overflow values and splits and merges at every level;
+- the transaction: two run units on one file, each under APPLY COMMIT, interleaving WRITE, REWRITE and DELETE on disjoint
+  records; A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; A's COMMIT then B's ROLLBACK
+  restores B's; a run unit that CLOSEs and then ROLLBACKs restores the state at its last COMMIT.
 
 **2.2.1.13 What the design deletes and what it keeps (CLAUDE.md rule 4: no wrapper, no shim, no reader of the old format).**
 Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
-`ReadHeader`'s stream walk (replaced by the one-page meta read), `GapTag`/`GapBytes`/`EncodeGap`, `ImageMedium`,
+`ReadHeader`'s stream walk (replaced by the meta-page reads), `GapTag`/`GapBytes`/`EncodeGap`, `ImageMedium`,
 `MaxStoreBytes`, `HeaderBytes`, `OrdinalSlots`, `FrameBytes(StoredFrame)` and the boundary arithmetic; `KeyedConnector.Load`,
 `Persist`, `PersistIfChanged`, `PersistIsReachable`, `ReadImage`, `ReadThroughAreas`, `WriteThroughAreas`, `ReadAt`,
 `ReadGeneration`, `Reload`, `Fill`, `PersistFrames`, `ReleaseMint`, `StoreHolds`, `_storeHeaderBytes`, `HostFaultObserver` and
 `HostFaultPoint`; `KeyedStore.Version`/`PersistedVersion`/`Generation`/`VersionAtEntry`; `RelativeStore` and `IndexedStore` as
 in-memory record maps (their names may survive as the two tree-handle views, their maps may not); `KeyedStoreTable` as the
-store of records. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`, `ReadStreamFrame`,
-`FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec — the sequential
-connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock class,
-`PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Complete`/`Dispose`), `FileRegistry`'s statement wrapping, every
-status the organizations answer and the order they answer it in (DOC-A.1-104). The input-output areas of §12.4.5.14.3 GR1
-(*"If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of integer-1"*) become
-the page cache's floor: the cache for a physical file holds at least the attached connectors' areas (one page each) and at
-least the engine's working set (d + 3 pages), with the run unit's default of 256 pages (1 MiB) above both; a RESERVE larger than
-the default enlarges the cache, and `HostFile.InputOutputAreaBuffer` sizes it in the one place it sizes today.
+store of records; `FileLockPosture.AdmitsAnotherWriter` and `KeyedConnector._coherent`'s derivation from it (replaced by
+`AdmitsAnotherRunUnit`, 2.2.1.7). Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
+`ReadStreamFrame`, `FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
+the sequential connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock
+class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Complete`/`Dispose`), `FileRegistry`'s statement
+wrapping, every status the organizations answer and the order they answer it in (DOC-A.1-104). The input-output areas of
+§12.4.5.14.3 GR1 (*"If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of
+integer-1"*) become the page cache's floor: the cache for a physical file holds at least the attached connectors' areas (one
+page each) and at least the engine's working set (d + 3 pages), with the run unit's default of 256 pages (1 MiB) above both; a
+RESERVE larger than the default enlarges the cache, and `HostFile.InputOutputAreaBuffer` sizes it in the one place it sizes
+today.
 
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
 crash matrix; PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
 relative half of DOC-A.1-107); PB3334 INDEXED on the engine (the trees, the ordinals, the collations, the indexed half of
 DOC-A.1-107); PB3335 the deletion of the whole-store model and page-granular coherence (the cache drop, `StoreTable`, DOC-A.1-75,
-the whole-store ban); PB3336 the performance witnesses of 2.2.1.11; PB3337 COMMIT and ROLLBACK in the runtime; PB3338 the
-compiler's APPLY COMMIT. Same-file work is sequenced by `blocked_by`.
+the whole-store ban); PB3336 the performance witnesses of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the
+runtime; PB3338 the compiler's APPLY COMMIT. Same-file work is sequenced by `blocked_by`.
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
