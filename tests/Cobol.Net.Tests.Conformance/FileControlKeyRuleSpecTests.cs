@@ -471,7 +471,7 @@ public sealed class FileControlKeyRuleSpecTests
     //    SOURCE phrase processor-dependent and this implementation PROVIDES it (owner rule R65): the key is "the
     //    concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2 / §12.4.5.6.4
     //    GR2). It is a post-1985 form (VCR row 7.36, provisional 2002 edge, COBOLNET0900 at 85). The run-time
-    //    behaviour is pinned by conformance 2002/pb1099_record_key_source; what lives HERE is the compile-time
+    //    behaviour is pinned by conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source; what lives HERE is the compile-time
     //    rule set the phrase brings with it — each stated of data-name-2 as well as data-name-1 — and the
     //    complement each of them must not reach.
     private static readonly int[] SourceEditions = [2002, 2014, 2023];
