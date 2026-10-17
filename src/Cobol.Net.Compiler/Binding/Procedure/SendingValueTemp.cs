@@ -246,9 +246,12 @@ internal sealed class SendingValueTemp(BinderContext ctx)
     /// an exact value held on a binary64 and then narrowed to a binary32 receiver is rounded TWICE — a value a hair off a
     /// binary32 midpoint lands ON it in binary64 and the narrowing ties to even, the double rounding ISO §14.6.8.3 rule 2
     /// ("in a manner consistent with the specifications of ISO/IEC 60559:2020") and kb/Work PB1110 forbid. A binary32
-    /// receiver BESIDE a binary64 one has no one float format that converts once for both, so that set takes the exact
-    /// fixed-point carrier (<see cref="IntegerIntermediatePic"/>, or <see cref="ValueOperandPic"/> through
-    /// <see cref="ShapedPic"/>) and its documented range.</summary>
+    /// receiver BESIDE a binary64 one has no one float format that converts once for both, so this returns null and
+    /// <see cref="IntermediatePic"/> asks <see cref="FloatingPointNumericSet"/> next, BEFORE its INTEGER and
+    /// <see cref="ShapedPic"/> arms: that set takes the 36-digit decimal floating-point <see cref="WidestFloatEditedPic"/>
+    /// (kb/Work PB3268 review R1-2), and each binary receiver rounds the exact decimal value once, as its
+    /// single-receiver MOVE does. No fixed-point item serves it: the S9(21)V9(17) value-operand item stored 1.234E-21
+    /// as 0.</summary>
     private static PicInfo? SharedFloatFormatPic(IReadOnlyList<Place>? receivers)
     {
         if (receivers is not { Count: > 0 }) return null;
