@@ -7,7 +7,9 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE GATE THAT RUNS THE ANNEX A.1 REGISTER AUDIT — <c>scripts/spec/audit_annex_a1.py</c>.
+/// ⛔ THE GATE THAT RUNS THE ANNEX A.1 REGISTER AUDIT — <c>scripts/spec/audit_annex_a1.py</c> over the register in
+/// <c>docs/CONFORMANCE.md</c> §7: every DOC-A.1 row is filed under the A.1 item it names, and a row key appears in
+/// that file only as the key of its row (prose cites "A.1 item N").
 /// </summary>
 /// <remarks>
 /// <para>
