@@ -341,7 +341,7 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
 
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
     {
-        var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector
+        var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once

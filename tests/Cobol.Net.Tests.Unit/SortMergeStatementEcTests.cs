@@ -33,7 +33,7 @@ public sealed class SortMergeStatementEcTests
     public void Return_InAnInputProcedure_RaisesActive_BeforeFlowReturn()
     {
         const string sd = "PB1036-UNIT-RET";
-        CobolSort.Init(sd);
+        CobolSort.Init(sd, OneCharKey);
         CobolSort.EnterProcedure(sd, output: false);
         try
         {
@@ -57,8 +57,8 @@ public sealed class SortMergeStatementEcTests
     public void Release_InAnOutputProcedure_RaisesActive_BeforeFlowRelease_AndReleasesNothing()
     {
         const string sd = "PB1036-UNIT-REL";
-        CobolSort.Init(sd);
-        CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: false);
+        CobolSort.Init(sd, OneCharKey);
+        CobolSort.Sort(sd, duplicatesInOrder: false);
         CobolSort.EnterProcedure(sd, output: true);
         try
         {
@@ -85,7 +85,7 @@ public sealed class SortMergeStatementEcTests
     public void ReleaseStatement_SizeOutsideTheRange_IsUnsuccessful_AndLenientWhenUnchecked()
     {
         const string sd = "PB1036-UNIT-SIZE";
-        CobolSort.Init(sd);
+        CobolSort.Init(sd, OneCharKey);
         CobolSort.EnterProcedure(sd, output: false);
         try
         {
@@ -96,7 +96,7 @@ public sealed class SortMergeStatementEcTests
             ExceptionState.SortMergeReleaseChecking = false;
             CobolSort.ReleaseStatement(sd, "CCCCC", 2, 5, size: 7);          // unchecked: space-extended to 7
             CobolSort.ReleaseStatement(sd, "DDDDD", 2, 5, size: -1);         // unchecked: a negative size is the whole area
-            CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: false);
+            CobolSort.Sort(sd, duplicatesInOrder: false);
             Assert.Equal(["BBB", "CCCCC  ", "DDDDD"], Drain(sd));
         }
         finally
@@ -112,7 +112,7 @@ public sealed class SortMergeStatementEcTests
     public void ImplicitRelease_TestsTheReadSize()
     {
         const string sd = "PB1036-UNIT-IMPL";
-        CobolSort.Init(sd);
+        CobolSort.Init(sd, OneCharKey);
         try
         {
             ExceptionState.SortMergeReleaseChecking = true;
@@ -121,7 +121,7 @@ public sealed class SortMergeStatementEcTests
             CobolSort.Release(sd, "ABC", readSize: 3, min: 0, max: 3);
             ExceptionState.SortMergeReleaseChecking = false;
             CobolSort.Release(sd, "XYZ", readSize: 5, min: 0, max: 3);        // unchecked: accepted as shaped
-            CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: false);
+            CobolSort.Sort(sd, duplicatesInOrder: false);
             Assert.Equal(["ABC", "XYZ"], Drain(sd));
         }
         finally
@@ -137,15 +137,15 @@ public sealed class SortMergeStatementEcTests
     public void Init_WhileAProcedureRuns_RaisesActive_AndLeavesTheEnclosingStoreIntact()
     {
         const string sd = "PB1036-UNIT-ACT";
-        CobolSort.Init(sd);
+        CobolSort.Init(sd, OneCharKey);
         CobolSort.EnterProcedure(sd, output: false);
         CobolSort.ReleaseStatement(sd, "Q", 0, 1);
         try
         {
             ExceptionState.SortMergeActiveChecking = true;
-            Assert.Equal("EC-SORT-MERGE-ACTIVE", RaisedBy(() => CobolSort.Init(sd)));
+            Assert.Equal("EC-SORT-MERGE-ACTIVE", RaisedBy(() => CobolSort.Init(sd, OneCharKey)));
             ExceptionState.SortMergeActiveChecking = false;
-            CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: false);
+            CobolSort.Sort(sd, duplicatesInOrder: false);
             Assert.Equal(["Q"], Drain(sd));
         }
         finally
@@ -163,7 +163,7 @@ public sealed class SortMergeStatementEcTests
         const string sd = "PB1036-UNIT-SEQ";
         static void Load(string name, params string[][] streams)
         {
-            CobolSort.Init(name);
+            CobolSort.Init(name, OneCharKey);
             foreach (var stream in streams)
             {
                 CobolSort.NextInput(name);
@@ -174,13 +174,13 @@ public sealed class SortMergeStatementEcTests
         {
             ExceptionState.SortMergeSequenceChecking = true;
             Load(sd, ["A", "C"], ["B"]);
-            CobolSort.Merge(sd, OneCharKey);                                   // ordered: no raise
+            CobolSort.Merge(sd);                                   // ordered: no raise
             Assert.Equal(["A", "B", "C"], Drain(sd));
             Load(sd, ["A", "C"], ["D", "B"]);
-            Assert.Equal("EC-SORT-MERGE-SEQUENCE", RaisedBy(() => CobolSort.Merge(sd, OneCharKey)));
+            Assert.Equal("EC-SORT-MERGE-SEQUENCE", RaisedBy(() => CobolSort.Merge(sd)));
             ExceptionState.SortMergeSequenceChecking = false;
             Load(sd, ["A", "C"], ["D", "B"]);
-            CobolSort.Merge(sd, OneCharKey);                                   // unchecked: undefined, no raise
+            CobolSort.Merge(sd);                                   // unchecked: undefined, no raise
             Assert.Equal(4, Drain(sd).Count);
         }
         finally
@@ -214,13 +214,13 @@ public sealed class SortMergeStatementEcTests
     public void TheStatementsOwnRaise_IsMarked_TheReleaseStatementsIsNot()
     {
         const string sd = "PB1036-UNIT-MARK";
-        CobolSort.Init(sd);
-        CobolSort.Sort(sd, OneCharKey, duplicatesInOrder: false);
+        CobolSort.Init(sd, OneCharKey);
+        CobolSort.Sort(sd, duplicatesInOrder: false);
         CobolSort.EnterProcedure(sd, output: true);
         try
         {
             ExceptionState.SortMergeActiveChecking = true;
-            Assert.True(Assert.Throws<CobolFatalException>(() => CobolSort.Init("PB1036-UNIT-MARK-2")).RaisedBySortMerge);
+            Assert.True(Assert.Throws<CobolFatalException>(() => CobolSort.Init("PB1036-UNIT-MARK-2", OneCharKey)).RaisedBySortMerge);
             Assert.False(Assert.Throws<CobolFatalException>(() => CobolSort.ReleaseStatement(sd, "X", 0, 1)).RaisedBySortMerge);
         }
         finally

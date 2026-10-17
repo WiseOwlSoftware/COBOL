@@ -110,6 +110,16 @@ public static class RuntimeConfig
             "OFF | 0 | FALSE | NO (case-insensitive) = the key table is not validated; unset or anything else = it is; read once per run unit (FileRegistry.Reset)",
             typeof(FileRegistry), "IO/FileRegistry.cs"),
 
+        // ── sort-merge store (IO/SortMemory.cs — the bounded memory and temporary runs, kb/Work PB3339) ──
+        new(SortMemory.MemoryVariable, "files",
+            "the most memory one SORT or MERGE statement keeps its records in (docs/CONFORMANCE.md §3 D-SWK; GnuCOBOL's COB_SORT_MEMORY) — what exceeds it is written as sorted runs to temporary files and merged",
+            "a byte count with an optional K | M | G suffix (powers of 1024, case-insensitive), at least 64K; unset or not a size = 128M; read once per run unit",
+            typeof(SortMemory), "IO/SortMemory.cs"),
+        new(SortMemory.DirectoryVariable, "files",
+            "the directory a SORT or MERGE statement creates its temporary run files in (docs/CONFORMANCE.md §3 D-SWK); each file deletes itself when its handle closes",
+            "a directory path; unset or blank = the host's temporary directory (TMPDIR on Linux and macOS, TMP / TEMP on Windows); read once per run unit",
+            typeof(SortMemory), "IO/SortMemory.cs"),
+
         // ── external switches (Control/SwitchStore.cs — the ONE computed family) ──
         new(SwitchStore.Prefix + "<SWITCH-NAME>", "switches",
             "the initial status of an implementor-defined external switch named in SPECIAL-NAMES (ISO/IEC 1989:2023 §12.3.7.4 GR4, implementor-defined item 191): SWITCH-1 reads COBOL_SWITCH_1 (hyphens become underscores, upper-cased; SwitchStore.VariableNameFor)",
