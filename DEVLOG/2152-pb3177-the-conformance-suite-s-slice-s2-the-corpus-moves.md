@@ -1,4 +1,4 @@
-## PB3177: the conformance suite's slice S2, the corpus moves into the suite
+## Entry 2152 — 2026-10-17 12:35 PDT — PB3177: the conformance suite's slice S2, the corpus moves into the suite
 
 kb/Work PB3177, slice S2 of the conformance-suite campaign (docs/rearchitecture/DESIGN-conformance-suite.md §6 step 1,
 §13 S2). Built on the branch of its predecessors S0b-S1c (PB3173-PB3176), which land through it.
@@ -140,3 +140,4 @@ the Mythos session); Windows and Linux gates GREEN.
   (Conformance 13,879/17,294 with the four PB370 suite rows passed, Unit 33,480/33,929, Characterization 5/36). The
   planner left three of `NulByteDriftTests`' four facts to leg 2; all four passed when run alone on the same build.
   LINUX GATE: the lander's (batched gating).
+
