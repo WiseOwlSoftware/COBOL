@@ -221,7 +221,17 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
                           + "reference data items of category alphanumeric or national, ISO §14.9.48.3 SR2)"
                         : $"UNSTRING delimiter '{delimText}' is a {badDelim} literal (literal-1 and literal-2 shall be "
                           + "literals of the category alphanumeric or national, ISO §14.9.48.3 SR1)");
-                if (v is BoundAllLiteral allLit) { v = new BoundStringLiteral(allLit.Literal) { Category = allLit.Category }; all = true; }
+                // ⛔ A FIGURATIVE ALL-LITERAL IS THE ALL PHRASE ONLY WHEN THE WORD ALL IS WRITTEN (kb/Work PB3226). The grammar
+                // reads `DELIMITED BY ALL "0"` as the ALL figurative (BeginsWithAll), and SR1 forbids that figurative here, so
+                // the binder reads it as the ALL phrase over the plain literal. A BARE symbolic-character is the same
+                // BoundAllLiteral without the word (BeginsWithAll false, §12.3.7.4 GR11; kb/Work PB110): it is ONE
+                // occurrence of its character, and GR7's collapse of contiguous delimiters belongs to the ALL phrase
+                // alone, so two contiguous ones leave a receiving area space-/zero-filled (GR8).
+                if (v is BoundAllLiteral allLit)
+                {
+                    v = new BoundStringLiteral(allLit.Literal) { Category = allLit.Category };
+                    all |= allLit.BeginsWithAll;
+                }
                 delims.Add(new BoundUnstringDelimiter(v, all));
             }
 
@@ -432,6 +442,7 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     /// <para>An ALPHANUMERIC or NATIONAL GROUP is EXEMPT: §8.5.2.1 treats an alphanumeric group as usage display,
     /// and §14.9.43.4 GR3a defines the transfer "in accordance with the MOVE statement rules for
     /// alphanumeric-to-alphanumeric moves", which admit a group — including one holding a BINARY/PACKED leaf (V59).
+    /// A BIT group is NOT: §13.18.29.4 GR1 b) makes it an elementary item of usage bit (kb/Work PB3228).
     /// A STRONGLY-TYPED group is NOT: its class is its type-name and nothing gives it a usage, so SR1 reads the
     /// usage off its elementary items and refuses one holding a leaf that is neither display nor national
     /// (kb/Work PB244).</para>
@@ -444,44 +455,34 @@ internal sealed class StringUnstringBinder(BinderContext ctx, StatementBinder ho
     private static string? Sr1Offence(BoundOperand op) => op switch
     {
         BoundNumericLiteral => "is a numeric literal; SR1 admits only alphanumeric, boolean and national literals",
-        BoundFieldOperand { Place: { } p } when !p.Item.IsGroup && p.DenotedItem is not null
-            && !p.Item.StoreAsImage && p.Item.Pic is { } pic
-            && pic.Usage is not (Usage.Display or Usage.National) =>
-            $"is an elementary item of USAGE {pic.Usage}, which has no character image; SR1 requires every "
-            + "identifier except the POINTER to be usage display or national",
-        // ⛔ A STRONGLY-TYPED GROUP HAS NO USAGE OF ITS OWN (kb/Work PB244): §8.5.2.1 gives "an alphanumeric group
-        // item" the usage of display ("is treated as though it had a usage of display") and a national group its
-        // class national, but the class AND category of a strongly-typed group are its type-name, so SR1's
-        // "described implicitly or explicitly as usage display or national" can only be read off the elementary
-        // items it is made of. A strong group holding a POINTER / OBJECT REFERENCE / BINARY ... leaf is therefore
-        // not described as usage display, and was compiled and then aborted at run time in the Tier-C whole-group
-        // island ("whole-group image ... with a pointer/object-class leaf"). The strong group whose every leaf is
-        // display or national satisfies the sentence and keeps working.
-        BoundFieldOperand { Place: { } p } when p.DenotedItem is not null && StrongTypeModel.IsStrongGroup(p.Item)
-            && FirstLeafOutsideDisplayOrNational(p.Item) is { } leaf =>
-            $"is a strongly-typed group item holding '{leaf.CobolName ?? leaf.CsName}' of USAGE {leaf.Pic!.Usage}, "
-            + "which has no character image; SR1 requires every identifier except the POINTER to be usage display "
-            + "or national, and a strongly-typed group's usage is that of the elementary items it is made of "
-            + "(§8.5.2.1 gives only an alphanumeric group the usage of display)",
+        // ⛔ THE USAGE HALF IS THE ONE PREDICATE (kb/Work PB3228, with INSPECT SR1/SR2: ItemCategory.IsDisplayOrNationalUsage).
+        // This arm used to re-derive it from `Pic.Usage` guarded by !IsGroup, so a BIT GROUP — §13.18.29.4 GR1 b) "treated
+        // as though it were an elementary data item of usage bit" — fell to `_ => null` and compiled clean, where INSPECT
+        // refused the same group under the word-identical sentence. Every shape is read by ItemCategory: an elementary
+        // item, a bit or national group by its as-if usage, an alphanumeric group as display (§8.5.2.1), and a
+        // STRONGLY-TYPED group (kb/Work PB244) — whose class and category are its type-name and which the standard gives
+        // no usage — by the elementary items it is made of: one holding a POINTER / OBJECT REFERENCE / BINARY ... leaf was
+        // compiled and then aborted at run time in the Tier-C whole-group island.
+        BoundFieldOperand { Place: { } p } when p.DenotedItem is not null
+            && ItemCategory.UsageOutsideDisplayOrNational(p.Item) is { } outside =>
+            UsageOffence(p.Item, outside),
         _ => null,
     };
 
-    /// <summary>The first elementary item beneath <paramref name="group"/> (declaration order, REDEFINES views
-    /// excluded: they occupy no storage of their own) whose usage is neither display nor national — null when the
-    /// group is made wholly of character-form items. A leaf stored as a character image (<c>StoreAsImage</c>) is a
-    /// DISPLAY or NATIONAL numeric by construction and passes.</summary>
-    private static DataItem? FirstLeafOutsideDisplayOrNational(DataItem group)
+    /// <summary>The phrase naming WHICH item keeps <paramref name="operand"/> from SR1's usage sentence: the operand
+    /// itself (an elementary item, or a bit group that is one by §13.18.29.4 GR1 b)) or the leaf a strongly-typed group
+    /// holds. <paramref name="outside"/> comes from <see cref="ItemCategory.UsageOutsideDisplayOrNational"/>.</summary>
+    private static string UsageOffence(DataItem operand, DataItem outside)
     {
-        foreach (var c in group.Children.Where(c => c.RedefinesTargetName is null))
-        {
-            if (c.IsGroup)
-            {
-                if (FirstLeafOutsideDisplayOrNational(c) is { } inner) return inner;
-            }
-            else if (!c.StoreAsImage && c.Pic is { } pic && pic.Usage is not (Usage.Display or Usage.National))
-                return c;
-        }
-        return null;
+        string usage = ItemCategory.UsageOf(outside)?.ToString() ?? "(none)";
+        const string requirement = "which has no character image; SR1 requires every identifier except the POINTER to be usage display or national";
+        if (!ReferenceEquals(outside, operand))
+            return $"is a strongly-typed group item holding '{outside.CobolName ?? outside.CsName}' of USAGE {usage}, "
+                + requirement + ", and a strongly-typed group's usage is that of the elementary items it is made of "
+                + "(§8.5.2.1 gives only an alphanumeric group the usage of display)";
+        return outside.IsGroup
+            ? $"is a bit group item, an elementary item of USAGE {usage} (ISO §13.18.29.4 GR1), " + requirement
+            : $"is an elementary item of USAGE {usage}, " + requirement;
     }
 
     /// <summary>The ONE report site for SR1's FIRST sentence (ISO §14.9.43.3 — the usage / literal-kind rule) — so
