@@ -42,3 +42,5 @@ record field in the sort-merge types but the three bounded ones and a chunk add 
 and at the default; both print the spec-derived lines and leave the work directory empty.
 
 **Rows.** None claimed, none closed (`closes_rows_reason` in the note).
+
+**Gate.** The first gate (20261017T200110Z-58386c) was RED on SpecTraceabilityInventoryDriftTests: five inventory rows (GR-14.9.24.4-3/-5, GR-14.9.40.4-2/-5/-8) named the comparison's old home in CobolSort.cs, and batch w1110a-pb3339-key-columns-moved moved them to SortKeyColumns.cs (5 retired with reasons, GAP 58 to 58). The re-gate 20261017T201827Z-e715fb: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 3,872 · Unit 33,562 · Characterization 5 cases ran in leg 1; leg 2 left to CI).
