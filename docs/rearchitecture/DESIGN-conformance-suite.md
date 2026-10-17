@@ -509,9 +509,11 @@ hold the status, this section the scope. Every slice ships its own tests and dri
   **As built:** a one-time converter (on the branch for review, deleted with its sweep and map by the branch's own
   commit after the quiet point's final merge of main, so the branch review sees the deletion and the lander adds
   nothing but a clean merge; should that merge still bring a file under `tests/conformance/`, the generator audit
-  refuses it and a finisher restores the three from the branch's history, at c9a1ffdb2) moved 5,219 programs into 5,110 tests of `cases/` and 109 of `wiseowl/cases/`, 2,752 refusals into
-  `wiseowl/diagnostics.json`, two compile options into `wiseowl/options.json`, and rewrote the inventory's 7,920
-  citations; a sweep rewrote the other files' citations, the moved tests' own comments included. No map
+  refuses it and a finisher restores the three from the branch's history, at c9a1ffdb2, re-runs them and deletes them
+  again, as it did once for PB370's four) moved 5,236 programs (2,478 positive, 2,758 negative; the first run's 5,219
+  and three re-runs' 17) into 5,127 tests of `cases/` and 109 of `wiseowl/cases/`, 2,758 refusals into
+  `wiseowl/diagnostics.json`, two compile options into `wiseowl/options.json`, and rewrote the inventory's citations
+  (7,920 at the first run); a sweep rewrote the other files' citations, the moved tests' own comments included. No map
   survives the move, because none is needed: the witness-loss audit reads a moved test's identity from git's
   rename record across the change (`audit_witness_loss.respellings`; `inventory_schema.witness_losses` excuses a
   lost reference whose new spelling the row cites as RE-SPELLED), so the history walk stays right and a clause

@@ -117,3 +117,22 @@ tree), Unit 33,501/33,923, Characterization 5/36; leg 2 is CI's. LINUX GATE: the
   tools from c9a1ffdb2. The design's As built and the note now say this.
 - *Re-gate.* Run 20261017T122308Z-801c3a: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`
   (Conformance 13,910/17,290, Unit 33,539/33,928, Characterization 5/36). LINUX GATE: the lander's (batched gating).
+
+**The landing stop.** The hand landing stopped at its Linux gate on one unit red,
+`NulByteDriftTests.TheSweepActuallyReadsTheTrackedTextTree`: the NUL sweep was rooted at `src/` and `tests/`, so with
+the corpus moved it read 2,783 text files against its 5,000 floor. Its `Trees` gained `conformance-suite/` (94da4cc02,
+the Mythos session); Windows and Linux gates GREEN.
+
+**Review round 3 (wave 1109 A finisher).** One finding, and main moved under the branch.
+- *R1-1: the NUL sweep's stated scope lagged its enforced one.* The class summary (which `drift_rules.py` prints as the
+  file's rule) and the fact's summary still said `src/` or `tests/`. Both now name `conformance-suite/`, the `Trees`
+  summary says why, and `TheSweepFiresOnAPlantedNul` plants a NUL in a suite golden (reported) and the same bytes under
+  `docs/` (out of scope), so the scope itself is witnessed.
+- *PB370 landed first* (main 37c866e0f) with four programs under `tests/conformance/`. Git's directory-rename detection
+  dropped them, unconverted, into `cases/_unassigned/`; they went back to their old paths and the converter and sweep,
+  restored from c9a1ffdb2, re-ran on the merged tree: `pb370_move_first_condition` and
+  `pb370_move_function_value_digits` under `cases/14.9.25-MOVE/`, the uncited `pb370_move_property_receiver_order` and
+  the negative `pb370-move-first-condition-below-2002` (COBOLNET0900 at 85) under `cases/_unassigned/`. The inventory
+  was merged field by field with both sides re-spelled through the maps: only the six fields PB370 changed (on
+  GR-14.9.25.4-1 and GR-14.9.49.4-11) differ from the branch. `CONFORMANCE.md` took main's one changed line, swept.
+  The tools are deleted again; `generate.py --check`: 5,242 tests, none refused.
