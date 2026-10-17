@@ -28,7 +28,7 @@ public sealed class SortUseTerminationTests
     public void OwnDeclarative_NotNormal_TerminatesTheSortWithItsAction(int action) => RunUnit.Run(_ =>
     {
         object scope = new bool[2];
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
         try
         {
@@ -56,7 +56,7 @@ public sealed class SortUseTerminationTests
         RunUnit.Run(_ =>
         {
             object callee = new bool[1];
-            CobolSort.Init(Sd);
+            CobolSort.Init(Sd, []);
             CobolSort.RegisterFormat1Sort(Sd, sortHasDeclaratives ? new bool[1] : null);
             CobolSort.EnterProcedure(Sd, output: false);
             try
@@ -73,7 +73,7 @@ public sealed class SortUseTerminationTests
     public void NormalCompletion_ReturnsTheAction() => RunUnit.Run(_ =>
     {
         object scope = new bool[1], callee = new bool[1];
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
         CobolSort.EnterProcedure(Sd, output: false);
         Assert.Equal(DispatchResult.Normal, CobolSort.AfterUseProcedure(scope, DispatchResult.Normal));
@@ -88,14 +88,14 @@ public sealed class SortUseTerminationTests
     public void EndedSortsAndMerges_AreNotTerminated() => RunUnit.Run(_ =>
     {
         object scope = new bool[1];
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
         CobolSort.Close(Sd);
         Assert.Equal(DispatchResult.ResumeNext, CobolSort.AfterUseProcedure(scope, DispatchResult.ResumeNext));
 
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
-        CobolSort.Init(Sd);   // the next statement on the same file, a MERGE: it registers nothing, and Init cleared the last
+        CobolSort.Init(Sd, []);   // the next statement on the same file, a MERGE: it registers nothing, and Init cleared the last
         CobolSort.EnterProcedure(Sd, output: true);
         Assert.Equal(DispatchResult.NotNormal, CobolSort.AfterUseProcedure(scope, DispatchResult.NotNormal));
         CobolSort.Close(Sd);
@@ -110,7 +110,7 @@ public sealed class SortUseTerminationTests
     public void ExitFromAUseProcedure_TerminatesAnotherElementsSortAtTheActivationsReturn() => RunUnit.Run(_ =>
     {
         object scope = new bool[1], callee = new bool[1];
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
         CobolSort.EnterProcedure(Sd, output: false);
         try
@@ -138,9 +138,9 @@ public sealed class SortUseTerminationTests
     {
         const string inner = "PB1177-INNER";
         object scope = new bool[1];
-        CobolSort.Init(Sd);
+        CobolSort.Init(Sd, []);
         CobolSort.RegisterFormat1Sort(Sd, scope);
-        CobolSort.Init(inner);
+        CobolSort.Init(inner, []);
         CobolSort.RegisterFormat1Sort(inner, scope);
         Assert.Equal(inner, Assert.Throws<SortTerminationSignal>(() => CobolSort.AfterUseProcedure(scope, DispatchResult.NotNormal)).File);
         CobolSort.Close(inner);
