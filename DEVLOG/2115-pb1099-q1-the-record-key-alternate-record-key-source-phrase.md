@@ -119,6 +119,15 @@ COBOLNET_FILES_DESIGN.md "THE SECOND KEY FORM" and D10 (format version 5), the g
   nothing left at the name as the closing-sibling race and lets `Publish` retry it, as .NET answers it on Windows. After the
   fix the harness met no `EEXIST` in 248,000 rounds. One hold still answered `Unavailable`, by a rarer mechanism: all eight
   `Publish` attempts failed to create their pending file. That one is not yet root-caused and is kb/Work PB3314 (open).
+- Review finisher (w1106a, branch review R3-1): the PB3313 filter answered only one arm of the race. When the sibling's
+  next publication makes the directory again after its CLOSE, `Path.Exists` is true when the filter looks, so the
+  `EEXIST` still escaped into `Hold`'s `catch (IOException)`. .NET on Windows fails an existing name only when a FILE is
+  there, so the decision is now `HostFile.IsClosingSiblingRace`: `EEXIST` with the name empty or a directory is the race,
+  and a file there, a name the host will not describe, or another errno keeps the failure.
+  `RegionLocksDriftTests.ALockDirectoryEexist_IsTheClosingSiblingRace_UnlessAFileHoldsTheName` asks all four states
+  directly, and its `directory` row is red under the first filter. The merge of origin/main 0b8557338 met main's PB3167
+  at runtime major 7 beside this branch's 7, so the merged surface goes to major 8 (surface hash `F40DEAD1CAB1B902`,
+  measured by the pin test). Main's PB3173 editions paragraphs are kept on the four rows whose notes this branch rewrote.
 
 **Self-review.** Architecture: one key shape, one capture, one lookup, one gate; no C# text in a bound node.
 Code: each cited rule re-read for the operand it names (data-name-1 vs data-name-2, record-key-name-1). Performance:

@@ -425,17 +425,17 @@ public static class HostFile
     /// that user's OPEN would be granted where §9.1.15 2) requires the refusal. Only the creator applies the mode, and
     /// only to a directory it created; a directory that exists is the first holder's and is left as it is. Windows has
     /// no such mode.
-    /// <para>⛔ A DIRECTORY THAT VANISHES UNDER THE CREATION IS THE CLOSING-SIBLING RACE, NOT A HOST FAILURE (kb/Work
-    /// PB3313). The last holder's CLOSE removes the empty directory (<see cref="SidecarLockFiles.RetireDirectory"/>), and an
-    /// <c>rmdir</c> can land between .NET's <c>mkdir</c>, answered <c>EEXIST</c> because a sibling had just made the
-    /// directory, and .NET's own check that the name is a directory: .NET then throws the <c>EEXIST</c> as an
-    /// <see cref="IOException"/>, which every caller reads as a lock directory the host cannot hold, so a WAITING region
-    /// hold answered <see cref="RegionLockResult.Unavailable"/> and the store mutex went untaken (14 of 24,000
-    /// two-endpoint rounds under CPU load on Linux). Here it returns with no directory, as .NET itself answers the same
-    /// race on Windows, and the publication that follows meets the missing directory and publishes again
-    /// (<see cref="SidecarLockFiles.Publish"/>). Only <c>EEXIST</c> with nothing left at the name is that race; any other
-    /// failure still throws. No test can freeze .NET between its two calls, so the witness is the repetition one,
-    /// <c>RegionLocksDriftTests.TwoWaitingHoldsBothGetTheByteInTurn</c>.</para></summary>
+    /// <para>⛔ <c>EEXIST</c> FROM THE CREATION IS THE CLOSING-SIBLING RACE, NOT A HOST FAILURE, UNLESS A FILE HOLDS THE
+    /// NAME (kb/Work PB3313; <see cref="IsClosingSiblingRace"/>). The last holder's CLOSE removes the empty directory
+    /// (<see cref="SidecarLockFiles.RetireDirectory"/>), and an <c>rmdir</c> can land between .NET's <c>mkdir</c>,
+    /// answered <c>EEXIST</c> because a sibling had just made the directory, and .NET's own check that the name is a
+    /// directory: .NET then throws the <c>EEXIST</c> as an <see cref="IOException"/>, which every caller reads as a lock
+    /// directory the host cannot hold, so a WAITING region hold answered <see cref="RegionLockResult.Unavailable"/> and the
+    /// store mutex went untaken (14 of 24,000 two-endpoint rounds under CPU load on Linux). Here it returns, as .NET itself
+    /// answers the same race on Windows, which fails an existing name only when a FILE is there: with nothing left at the
+    /// name, the publication that follows meets the missing directory and publishes again
+    /// (<see cref="SidecarLockFiles.Publish"/>); with a directory there again (a sibling's next publication made it after
+    /// the CLOSE), it is another holder's, as at the first probe above.</para></summary>
     internal static void CreateLockDirectory(string directory)
     {
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
@@ -443,7 +443,7 @@ public static class HostFile
         catch (FileNotFoundException) { }
         catch (DirectoryNotFoundException) { }
         try { Directory.CreateDirectory(directory); }
-        catch (IOException e) when (e.HResult == UnixAlreadyExists && !Path.Exists(directory)) { return; }   // a sibling's CLOSE removed it mid-creation
+        catch (IOException e) when (IsClosingSiblingRace(e, directory)) { return; }
         try
         {
             const UnixFileMode shared = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
@@ -455,6 +455,21 @@ public static class HostFile
         catch (IOException) { }                   // the directory is gone again: the publisher's retry creates it
     }
 
+    /// <summary>Is <paramref name="failure"/>, thrown by a Unix <see cref="Directory.CreateDirectory(string)"/> of
+    /// <paramref name="directory"/>, the closing-sibling race (<see cref="CreateLockDirectory"/>, kb/Work PB3313)? It is
+    /// when the failure is <c>EEXIST</c> and no FILE holds the name now: the name is empty (a sibling's CLOSE removed the
+    /// directory .NET's <c>mkdir</c> met) or a directory again (a sibling's next publication made it after that CLOSE).
+    /// Both arms are the race, and .NET on Windows answers both as success; only a file at the name, or a name the host
+    /// will not describe, is the host refusing the lock directory, and the <c>EEXIST</c> stands.</summary>
+    internal static bool IsClosingSiblingRace(IOException failure, string directory)
+    {
+        if (failure.HResult != UnixAlreadyExists) return false;
+        try { return (File.GetAttributes(directory) & FileAttributes.Directory) != 0; }   // made again: another holder's
+        catch (FileNotFoundException) { return true; }                                     // removed: publish creates it again
+        catch (DirectoryNotFoundException) { return true; }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
 
     /// <summary>Are this host's share modes MANDATORY and PER-ACCESS — a handle opened with <see cref="FileShare.Read"/>
     /// refuses an outside writer, and one opened <see cref="FileShare.None"/> refuses every other handle? That is
