@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -113,7 +114,7 @@ public sealed class ModuleRegistrationHostTests
                 STOP RUN.
             END PROGRAM P2097VM.
             """;
-        string other = $"{CobolNet.Runtime.RuntimeAbi.Version.Major + 1}.0.0.0";
+        string other = RuntimeVersionSkew.OtherMajor;
         // A module that records a runtime major this runtime is not: the probe refuses it before invoking its registrar.
         string library = $$"""
             [assembly: CobolNet.Runtime.Repository.CobolRepository({{CobolNet.Runtime.Repository.CobolRepositoryAttribute.CurrentSchemaVersion}}, "{{other}}", {{CobolNet.Runtime.RuntimeAbi.CallAbi}}, Registrar = "Cobol.P2097VS.__CobolModule")]
