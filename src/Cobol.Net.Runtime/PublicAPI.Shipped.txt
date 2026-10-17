@@ -3471,20 +3471,19 @@ static CobolNet.Runtime.IO.CobolSort.Close(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.EnterProcedure(string! name, bool output) -> void
 static CobolNet.Runtime.IO.CobolSort.FileNotOpen(string! name, string! file) -> void
 static CobolNet.Runtime.IO.CobolSort.FillTo(string! image, int width, bool national, CobolNet.Runtime.RecordExtents? extents = null) -> string!
-static CobolNet.Runtime.IO.CobolSort.Init(string! name) -> void
-static CobolNet.Runtime.IO.CobolSort.Init(string! name, CobolNet.Runtime.CobolCollation? collation, CobolNet.Runtime.CobolCollation? national) -> void
+static CobolNet.Runtime.IO.CobolSort.Init(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys, CobolNet.Runtime.CobolCollation? collation = null, CobolNet.Runtime.CobolCollation? national = null) -> void
 static CobolNet.Runtime.IO.CobolSort.Key.operator !=(CobolNet.Runtime.IO.CobolSort.Key left, CobolNet.Runtime.IO.CobolSort.Key right) -> bool
 static CobolNet.Runtime.IO.CobolSort.Key.operator ==(CobolNet.Runtime.IO.CobolSort.Key left, CobolNet.Runtime.IO.CobolSort.Key right) -> bool
 static CobolNet.Runtime.IO.CobolSort.LastReturnedExtents(string! name) -> CobolNet.Runtime.RecordExtents?
 static CobolNet.Runtime.IO.CobolSort.LastReturnedLength(string! name) -> int
-static CobolNet.Runtime.IO.CobolSort.Merge(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys) -> void
+static CobolNet.Runtime.IO.CobolSort.Merge(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.NextInput(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, CobolNet.Runtime.RecordExtents? extents = null) -> void
 static CobolNet.Runtime.IO.CobolSort.ReleaseStatement(string! name, string! image, int min, int max, int? size = null, CobolNet.Runtime.RecordExtents? extents = null) -> bool
 static CobolNet.Runtime.IO.CobolSort.Return(string! name, out string! image) -> bool
 static CobolNet.Runtime.IO.CobolSort.ReturnStatement(string! name, out string! image) -> bool
 static CobolNet.Runtime.IO.CobolSort.Rewind(string! name) -> void
-static CobolNet.Runtime.IO.CobolSort.Sort(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys, bool duplicatesInOrder) -> void
+static CobolNet.Runtime.IO.CobolSort.Sort(string! name, bool duplicatesInOrder) -> void
 static CobolNet.Runtime.IO.FileCharacterSet.FromChannel(string! channel, CobolNet.Runtime.IO.CodeSetConversion? codeSet) -> string!
 static CobolNet.Runtime.IO.FileCharacterSet.HasCharacterWithoutByteImage(System.ReadOnlySpan<char> record) -> bool
 static CobolNet.Runtime.IO.FileCharacterSet.Medium.get -> System.Text.Encoding!
