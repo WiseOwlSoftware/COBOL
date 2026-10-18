@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// <param name="Report">The report, normalized (<see cref="NistRunner.Normalize"/>).</param>
 /// <param name="Detail">Compile/run diagnostics when <paramref name="Ok"/> is false, else the run's stderr.</param>
 /// <param name="Written">Every file the program itself wrote besides its report, name → bytes, plus its stdout
-/// when it also wrote a print file (<see cref="NistOutputs.StdoutName"/>). When the run EXITED NON-ZERO (the
+/// beside a print file (<see cref="NistOutputs.StdoutName"/>). When the run EXITED NON-ZERO (the
 /// abnormal termination a <c>TERMINATES</c> row declares) there is no report to separate out, so it holds EVERY
 /// file the run wrote, the print file among them, and the stdout whenever it printed anything: the files an
 /// abnormal end leaves are graded as fully as a normal end's (kb/Work PB804; campaign PB3353).</param>
@@ -133,9 +133,10 @@ internal static class NistRunner
 /// </summary>
 internal static class NistOutputs
 {
-    /// <summary>The name a program's console output carries among its written files, when it ALSO wrote a print
-    /// file (a DISPLAY-only program's stdout is its report instead). Parentheses cannot begin a file name a COBOL
-    /// ASSIGN produces.</summary>
+    /// <summary>The name a program's console output carries among its written files: beside a print file, and after an
+    /// abnormal end (no report is separated out, so a TERMINATES program that only DISPLAYed has one too). A run
+    /// that ended normally and wrote no print file has its console output as the report instead. Parentheses cannot
+    /// begin a file name a COBOL ASSIGN produces.</summary>
     internal const string StdoutName = "(stdout)";
 
     /// <summary>Set to <c>1</c> to re-capture the goldens instead of grading against them
@@ -221,7 +222,8 @@ internal static class NistOutputs
         name == StdoutName ? Encoding.UTF8.GetBytes(StdoutBasis(Encoding.UTF8.GetString(bytes))) : Canonical(bytes);
 
     /// <summary>Compare what a program wrote with its goldens in <paramref name="goldenDir"/>; every problem, empty
-    /// when the two sets are equal and every file is identical in its <see cref="Canonical"/> form.</summary>
+    /// when the two sets are equal and every file is identical in its <see cref="Comparable"/> form (the console on
+    /// the acceptance basis, every other file in its <see cref="Canonical"/> form).</summary>
     internal static IReadOnlyList<string> Grade(IReadOnlyDictionary<string, byte[]> written, string goldenDir)
     {
         var problems = new List<string>();
