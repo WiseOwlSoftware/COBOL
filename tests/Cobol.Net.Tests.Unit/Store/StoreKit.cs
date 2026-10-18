@@ -8,14 +8,15 @@ using Xunit;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>The page layer's test caller: a two-level tree of its own over a <see cref="PagedFile"/> (kb/Work PB3332's
-/// B+ tree does not exist yet), written the way every tree of the engine is written — PATH COPYING to the root
-/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.6 R1) — and an AUDITOR that walks the slots' trees from the raw
-/// medium, never through the engine, to check R1 and R2 after the fact.
-/// <para>The tree: the prime root is an INTERNAL page whose body is <c>entries</c> × {record id (4), child POINTER (12)}
-/// ascending; a child is a LEAF page whose body is {record id (4), blob POINTER (12), text length (2), UTF-8 text}; a blob
-/// is a chain of OVERFLOW pages in <see cref="PageChain"/>'s layout (8 bytes of the next page's generation, then
-/// payload). A record whose blob has k pages makes one statement allocate k + 2 pages.</para></summary>
+/// <summary>The page layer's test caller and its AUDITOR (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12).
+/// <para>The caller writes records into the store's prime tree — the engine's own <see cref="BTree"/> (kb/Work PB3332)
+/// under the ordinal order, keyed by the record id (4 bytes big-endian) — one statement per record the way every
+/// connector will (PB3333): the coherent entry, the edit in memory, <see cref="PagedFile.Begin"/> sized to exactly the
+/// pages the edit will flush, the flush, the root, the completion. A record's value is its text (UTF-8, after a 2-byte
+/// length); a record of <c>blobPages</c> k &gt; 0 pads its value to k overflow pages' payload, so its statement writes k
+/// overflow pages beside the tree's path.</para>
+/// <para>The auditor walks the slots' trees from the RAW medium with its own decoder of 2.2.1.4's INTERNAL, LEAF and
+/// OVERFLOW layouts, never through the engine, to check R1 and R2 after the fact.</para></summary>
 internal static class StoreKit
 {
     /// <summary>A RELATIVE file's attributes (no keys).</summary>
@@ -46,79 +47,38 @@ internal static class StoreKit
         return (handle, status, store);
     }
 
-    // ── The test tree's statements ──────────────────────────────────────────────────────────────────────────────
+    // ── The test caller's statements ────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>WRITE or REWRITE record <paramref name="id"/> as <paramref name="text"/> with a blob of
-    /// <paramref name="blobPages"/> pages: one statement.</summary>
+    /// <summary>WRITE or REWRITE record <paramref name="id"/> as <paramref name="text"/>, its value padded to
+    /// <paramref name="blobPages"/> overflow pages: one statement.</summary>
     public static StoreStatus Put(PagedFile store, int id, string text, int blobPages = 0)
     {
-        if (store.Begin(blobPages + 2, out var st) != StoreStatus.Ok) return StoreStatus.PermanentError;
-        if (ReadRoot(store, out var children) != PageCheck.Whole)
-        {
-            st!.Abandon();
-            return StoreStatus.PermanentError;
-        }
-        var blob = PagePointer.None;
-        for (int i = blobPages - 1; i >= 0; i--)
-        {
-            var body = new byte[PageHeader.BodyBytes];
-            BinaryPrimitives.WriteUInt64LittleEndian(body, blob.Generation);
-            Encoding.UTF8.GetBytes($"{text}#{i}").CopyTo(body, 8);
-            blob = st!.Write(PageKind.Overflow, body, flags: blob.IsNone ? (byte)1 : (byte)0, next: blob.Page);
-        }
-        var leaf = new byte[PageHeader.BodyBytes];
-        BinaryPrimitives.WriteInt32LittleEndian(leaf, id);
-        blob.Write(leaf.AsSpan(4));
-        var utf8 = Encoding.UTF8.GetBytes(text);
-        BinaryPrimitives.WriteUInt16LittleEndian(leaf.AsSpan(16), (ushort)utf8.Length);
-        utf8.CopyTo(leaf, 18);
-        var leafPointer = st!.Write(PageKind.Leaf, leaf);
-        if (children.TryGetValue(id, out var old) && !ReleaseRecord(store, st, old))
-        {
-            st.Abandon();   // a torn read inside the statement: '30', nothing it wrote is reachable
-            return StoreStatus.PermanentError;
-        }
-        children[id] = leafPointer;
-        return ReplaceRoot(store, st, children);
+        if (store.Enter() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var tree = Prime(store);
+        if (tree.Put(Key(id), Value(text, blobPages)) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        return Commit(store, tree);
     }
 
-    /// <summary>DELETE record <paramref name="id"/>: one statement.</summary>
+    /// <summary>DELETE record <paramref name="id"/>: one statement ('30' when it does not exist: the test asks only for
+    /// records it wrote).</summary>
     public static StoreStatus Delete(PagedFile store, int id)
     {
-        if (store.Begin(1, out var st) != StoreStatus.Ok) return StoreStatus.PermanentError;
-        if (ReadRoot(store, out var children) != PageCheck.Whole || !children.Remove(id, out var old))
-        {
-            st!.Abandon();
-            return StoreStatus.PermanentError;
-        }
-        if (!ReleaseRecord(store, st!, old))
-        {
-            st!.Abandon();
-            return StoreStatus.PermanentError;
-        }
-        return ReplaceRoot(store, st!, children);
+        if (store.Enter() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var tree = Prime(store);
+        if (tree.Delete(Key(id), out bool deleted) != StoreStatus.Ok || !deleted) return StoreStatus.PermanentError;
+        return Commit(store, tree);
     }
 
     /// <summary>Every record the store's tree holds, read through stamped pointers; null when a page is torn ('30').</summary>
     public static SortedDictionary<int, string>? ReadAll(PagedFile store)
     {
-        if (ReadRoot(store, out var children) != PageCheck.Whole) return null;
         var records = new SortedDictionary<int, string>();
-        var page = new byte[PageHeader.PageSize];
-        foreach (var (id, child) in children)
+        if (Prime(store).First(out var cursor) != StoreStatus.Ok) return null;
+        while (cursor.HasCurrent)
         {
-            if (store.Read(child, page) != PageCheck.Whole) return null;
-            int length = BinaryPrimitives.ReadUInt16LittleEndian(page.AsSpan(PageHeader.Bytes + 16));
-            records[id] = Encoding.UTF8.GetString(page, PageHeader.Bytes + 18, length);
-            var blob = PagePointer.Read(page.AsSpan(PageHeader.Bytes + 4));
-            var blobPage = new byte[PageHeader.PageSize];
-            while (!blob.IsNone)
-            {
-                if (store.Read(blob, blobPage) != PageCheck.Whole) return null;
-                var h = PageHeader.Decode(blobPage);
-                blob = (h.Flags & 1) != 0 ? PagePointer.None
-                    : new PagePointer(h.Next, BinaryPrimitives.ReadUInt64LittleEndian(blobPage.AsSpan(PageHeader.Bytes)));
-            }
+            if (cursor.ReadValue(out var value) != StoreStatus.Ok) return null;
+            records[(int)KeyOrders.PageOf(cursor.Key)] = Text(value);
+            if (cursor.Next() != StoreStatus.Ok) return null;
         }
         return records;
     }
@@ -127,59 +87,34 @@ internal static class StoreKit
     public static string Show(PagedFile store) =>
         ReadAll(store) is { } r ? string.Concat(r.Select(kv => $"{kv.Key}={kv.Value};")) : "TORN";
 
-    private static PageCheck ReadRoot(PagedFile store, out SortedDictionary<int, PagePointer> children)
+    /// <summary>The store's prime tree as its meta names it.</summary>
+    public static BTree Prime(PagedFile store) => new(store, KeyOrders.Ordinal, store.Meta.PrimeRoot);
+
+    /// <summary>The key of record <paramref name="id"/>.</summary>
+    public static byte[] Key(int id) => KeyOrders.PageKey((uint)id);
+
+    /// <summary>The value of a record of <paramref name="text"/> padded to <paramref name="blobPages"/> overflow pages.</summary>
+    public static byte[] Value(string text, int blobPages)
     {
-        children = [];
-        var root = store.Meta.PrimeRoot;
-        if (root.IsNone) return PageCheck.Whole;
-        var page = new byte[PageHeader.PageSize];
-        var check = store.Read(root, page);
-        if (check != PageCheck.Whole) return check;
-        int entries = PageHeader.Decode(page).Entries;
-        for (int i = 0; i < entries; i++)
-        {
-            int at = PageHeader.Bytes + 16 * i;
-            children[BinaryPrimitives.ReadInt32LittleEndian(page.AsSpan(at))] = PagePointer.Read(page.AsSpan(at + 4));
-        }
-        return PageCheck.Whole;
+        var utf8 = Encoding.UTF8.GetBytes(text);
+        var value = new byte[blobPages == 0 ? 2 + utf8.Length : blobPages * OverflowChain.PayloadBytes];
+        BinaryPrimitives.WriteUInt16LittleEndian(value, (ushort)utf8.Length);
+        utf8.CopyTo(value, 2);
+        return value;
     }
 
-    /// <summary>Release a record's leaf and blob pages; false when one of them reads torn.</summary>
-    private static bool ReleaseRecord(PagedFile store, PageStatement st, PagePointer leaf)
-    {
-        var page = new byte[PageHeader.PageSize];
-        if (store.Read(leaf, page) != PageCheck.Whole) return false;
-        var blob = PagePointer.Read(page.AsSpan(PageHeader.Bytes + 4));
-        st.Release(leaf);
-        while (!blob.IsNone)
-        {
-            if (store.Read(blob, page) != PageCheck.Whole) return false;
-            st.Release(blob);
-            var h = PageHeader.Decode(page);
-            blob = (h.Flags & 1) != 0 ? PagePointer.None
-                : new PagePointer(h.Next, BinaryPrimitives.ReadUInt64LittleEndian(page.AsSpan(PageHeader.Bytes)));
-        }
-        return true;
-    }
+    private static string Text(byte[] value) =>
+        Encoding.UTF8.GetString(value, 2, BinaryPrimitives.ReadUInt16LittleEndian(value));
 
-    private static StoreStatus ReplaceRoot(PagedFile store, PageStatement st, SortedDictionary<int, PagePointer> children)
+    /// <summary>The statement of a pending edit of the prime tree: begun at exactly the pages the edit will write (the
+    /// entry already run), flushed, its root set, completed.</summary>
+    public static StoreStatus Commit(PagedFile store, BTree tree)
     {
-        if (!store.Meta.PrimeRoot.IsNone) st.Release(store.Meta.PrimeRoot);
-        if (children.Count == 0)
-        {
-            st.SetPrimeRoot(PagePointer.None);
-            return st.Complete();
-        }
-        var body = new byte[PageHeader.BodyBytes];
-        int i = 0;
-        foreach (var (id, child) in children)
-        {
-            BinaryPrimitives.WriteInt32LittleEndian(body.AsSpan(16 * i), id);
-            child.Write(body.AsSpan(16 * i + 4));
-            i++;
-        }
-        st.SetPrimeRoot(st.Write(PageKind.Internal, body, entries: (ushort)children.Count));
-        return st.Complete();
+        if (store.Begin(tree.PagesToWrite, out var st, entered: true) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var flushed = tree.Flush(st!, out var root);
+        st!.SetPrimeRoot(root);
+        var completed = st.Complete();
+        return flushed == StoreStatus.Ok ? completed : StoreStatus.PermanentError;
     }
 
     // ── The auditor: the slots' trees, walked from the raw medium ──────────────────────────────────────────────
@@ -190,53 +125,95 @@ internal static class StoreKit
         MetaPage.Decode(medium.SnapshotAt(MetaPage.SlotB, seq), MetaPage.SlotB),
         MetaPage.Decode(medium.SnapshotAt(MetaPage.WorkSlot, seq), MetaPage.WorkSlot));
 
-    /// <summary>Every page the trees of <paramref name="meta"/> reference (the prime tree with its blobs, the FREE
-    /// chain, the LEDGER chain), read from the medium as it stood after write <paramref name="seq"/>; a page that does
-    /// not verify ends that branch of the walk.</summary>
-    public static HashSet<uint> Referenced(MemoryPageMedium medium, MetaPage? meta, long seq, out HashSet<uint> ledgerChain)
+    /// <summary>Every page the trees of <paramref name="meta"/> reference (the prime tree with its overflow chains, the
+    /// FREE tree, the LEDGER tree — whose own pages are also <paramref name="ledgerPages"/>), read from the medium as it
+    /// stood after write <paramref name="seq"/>; a page that does not verify ends that branch of the walk.</summary>
+    public static HashSet<uint> Referenced(MemoryPageMedium medium, MetaPage? meta, long seq, out HashSet<uint> ledgerPages)
     {
         var pages = new HashSet<uint>();
-        ledgerChain = [];
+        ledgerPages = [];
         if (meta is null) return pages;
-        WalkChain(medium, meta.FreeRoot, seq, pages);
-        WalkChain(medium, meta.LedgerRoot, seq, ledgerChain);
-        pages.UnionWith(ledgerChain);
-        if (Verified(medium, meta.PrimeRoot, seq) is { } root)
-        {
-            pages.Add(meta.PrimeRoot.Page);
-            int entries = PageHeader.Decode(root).Entries;
-            for (int i = 0; i < entries; i++)
-            {
-                var child = PagePointer.Read(root.AsSpan(PageHeader.Bytes + 16 * i + 4));
-                if (Verified(medium, child, seq) is not { } leaf) continue;
-                pages.Add(child.Page);
-                WalkChain(medium, PagePointer.Read(leaf.AsSpan(PageHeader.Bytes + 4)), seq, pages);
-            }
-        }
+        WalkTree(medium, meta.FreeRoot, seq, pages, null);
+        WalkTree(medium, meta.LedgerRoot, seq, ledgerPages, null);
+        pages.UnionWith(ledgerPages);
+        WalkTree(medium, meta.PrimeRoot, seq, pages, null);
         return pages;
     }
 
-    /// <summary>The ledger page 2's meta names, decoded from the raw chain (the auditor's own reading).</summary>
-    public static Ledger? LedgerOf(MemoryPageMedium medium, MetaPage meta, long seq)
+    /// <summary>The ledger <paramref name="meta"/> names, decoded from the raw tree (the auditor's own reading); null when
+    /// a page of it does not verify.</summary>
+    public static SortedDictionary<uint, LedgerEntry>? LedgerOf(MemoryPageMedium medium, MetaPage meta, long seq)
     {
-        var check = PageChain.Read(meta.LedgerRoot, (p, page) =>
-        {
-            medium.SnapshotAt(p.Page, seq).CopyTo(page, 0);
-            return PageHeader.Check(page, p.Page, p.Generation);
-        }, out var payload, out _);
-        return check == PageCheck.Whole ? Ledger.Decode(payload) : null;
+        var entries = new SortedDictionary<uint, LedgerEntry>();
+        bool whole = WalkTree(medium, meta.LedgerRoot, seq, [], (key, value) =>
+            entries.Add(BinaryPrimitives.ReadUInt32BigEndian(key),
+                new LedgerEntry(BinaryPrimitives.ReadUInt64LittleEndian(value!), (LedgerState)value![8])));
+        return whole ? entries : null;
     }
 
-    private static void WalkChain(MemoryPageMedium medium, PagePointer head, long seq, HashSet<uint> into)
+    /// <summary>The pages of <paramref name="ledger"/> in <paramref name="state"/>, ascending.</summary>
+    public static uint[] Pages(IReadOnlyDictionary<uint, LedgerEntry> ledger, LedgerState state) =>
+        ledger.Where(e => e.Value.State == state).Select(e => e.Key).Order().ToArray();
+
+    /// <summary>Walk the tree at <paramref name="root"/> by 2.2.1.4's layouts — INTERNAL: the leftmost child POINTER, then
+    /// per key {key length (2), key, child POINTER}; LEAF: per entry {key length (2), value length (4; bit 31: an
+    /// OVERFLOW reference of a head POINTER and a total length), key, value} — adding every verified page, the overflow
+    /// chains' included, to <paramref name="into"/> and handing each leaf entry to <paramref name="entry"/> (an overflow
+    /// value as null); false when a page did not verify.</summary>
+    private static bool WalkTree(MemoryPageMedium medium, PagePointer root, long seq, HashSet<uint> into, Action<byte[], byte[]?>? entry)
+    {
+        if (root.IsNone) return true;
+        if (Verified(medium, root, seq) is not { } page) return false;
+        into.Add(root.Page);
+        var h = PageHeader.Decode(page);
+        var body = page.AsSpan(PageHeader.Bytes);
+        bool whole = true;
+        if (h.Kind == PageKind.Internal)
+        {
+            whole &= WalkTree(medium, PagePointer.Read(body), seq, into, entry);
+            int at = PagePointer.Bytes;
+            for (int i = 0; i < h.Entries; i++)
+            {
+                at += 2 + BinaryPrimitives.ReadUInt16LittleEndian(body[at..]);
+                whole &= WalkTree(medium, PagePointer.Read(body[at..]), seq, into, entry);
+                at += PagePointer.Bytes;
+            }
+            return whole;
+        }
+        Assert.Equal(PageKind.Leaf, h.Kind);
+        int offset = 0;
+        for (int i = 0; i < h.Entries; i++)
+        {
+            int keyLength = BinaryPrimitives.ReadUInt16LittleEndian(body[offset..]);
+            uint word = BinaryPrimitives.ReadUInt32LittleEndian(body[(offset + 2)..]);
+            offset += 6;
+            var key = body.Slice(offset, keyLength).ToArray();
+            offset += keyLength;
+            int stored = (int)(word & 0x7FFF_FFFF);
+            if ((word & 0x8000_0000) != 0)
+            {
+                Assert.Equal(16, stored);
+                whole &= WalkChain(medium, PagePointer.Read(body[offset..]), seq, into);
+                entry?.Invoke(key, null);
+            }
+            else entry?.Invoke(key, body.Slice(offset, stored).ToArray());
+            offset += stored;
+        }
+        return whole;
+    }
+
+    private static bool WalkChain(MemoryPageMedium medium, PagePointer head, long seq, HashSet<uint> into)
     {
         var at = head;
-        while (!at.IsNone && Verified(medium, at, seq) is { } page)
+        while (!at.IsNone)
         {
+            if (Verified(medium, at, seq) is not { } page) return false;
             into.Add(at.Page);
             var h = PageHeader.Decode(page);
             at = (h.Flags & 1) != 0 ? PagePointer.None
                 : new PagePointer(h.Next, BinaryPrimitives.ReadUInt64LittleEndian(page.AsSpan(PageHeader.Bytes)));
         }
+        return true;
     }
 
     private static byte[]? Verified(MemoryPageMedium medium, PagePointer pointer, long seq)
@@ -263,7 +240,7 @@ internal static class StoreKit
     }
 
     /// <summary>R2 on the medium as it stands: page 2's ledger lists as FRESH exactly the pages its tree references that
-    /// the committed tree does not (its own chain excluded), each with the generation of its last write; RELEASED pages
+    /// the committed tree does not (its own pages excluded), each with the generation of its last write; RELEASED pages
     /// are referenced by neither tree; FREED pages only by the committed one.</summary>
     public static void AssertR2(MemoryPageMedium medium)
     {
@@ -272,16 +249,16 @@ internal static class StoreKit
         Assert.NotNull(work);
         var committed = MetaPage.Committed(a, b)?.Meta;
         var inCommitted = Referenced(medium, committed, seq, out _);
-        var inWork = Referenced(medium, work, seq, out var ownChain);
+        var inWork = Referenced(medium, work, seq, out var ownPages);
         var ledger = LedgerOf(medium, work!, seq);
         Assert.NotNull(ledger);
-        var expectedFresh = inWork.Except(inCommitted).Except(ownChain).Order().ToArray();
-        Assert.Equal(expectedFresh, ledger!.Pages(LedgerState.Fresh).ToArray());
+        var expectedFresh = inWork.Except(inCommitted).Except(ownPages).Order().ToArray();
+        Assert.Equal(expectedFresh, Pages(ledger!, LedgerState.Fresh));
         foreach (var p in expectedFresh)
-            Assert.Equal(PageHeader.Decode(medium.SnapshotAt(p, seq)).Generation, ledger.Entries[p].Generation);
-        foreach (var p in ledger.Pages(LedgerState.Released))
+            Assert.Equal(PageHeader.Decode(medium.SnapshotAt(p, seq)).Generation, ledger[p].Generation);
+        foreach (var p in Pages(ledger, LedgerState.Released))
             Assert.False(inWork.Contains(p) || inCommitted.Contains(p), $"R2: released page {p} is referenced");
-        foreach (var p in ledger.Pages(LedgerState.Freed))
+        foreach (var p in Pages(ledger, LedgerState.Freed))
             Assert.True(inCommitted.Contains(p) && !inWork.Contains(p), $"R2: freed page {p} is not a committed page the work tree released");
     }
 

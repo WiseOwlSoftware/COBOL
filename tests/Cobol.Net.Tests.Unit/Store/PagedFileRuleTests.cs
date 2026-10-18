@@ -448,12 +448,13 @@ public sealed class PagedFileRuleTests
         return handle.WritesPerformed - before;
     }
 
+    /// <summary>The leaf of a store whose tree holds a record or two: its prime tree's root (a one-level B+ tree).</summary>
     private static uint LeafOf(PagedFile store, MemoryPageMedium medium)
     {
         var page = new byte[PageHeader.PageSize];
         Assert.Equal(PageCheck.Whole, store.Read(store.Meta.PrimeRoot, page));
-        var child = PagePointer.Read(page.AsSpan(PageHeader.Bytes + 4));
-        Assert.True(medium.PageCount > child.Page);
-        return child.Page;
+        Assert.Equal(PageKind.Leaf, PageHeader.Decode(page).Kind);
+        Assert.True(medium.PageCount > store.Meta.PrimeRoot.Page);
+        return store.Meta.PrimeRoot.Page;
     }
 }
