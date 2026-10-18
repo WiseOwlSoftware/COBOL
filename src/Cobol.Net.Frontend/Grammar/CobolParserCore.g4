@@ -550,8 +550,16 @@ programPrototypeName
 // clause). Everything else after the name is the error production, refused BY NAME by ClosedFormatPass
 // (COBOLNET1970). It used to be `computerAttributes : ~DOT+`, an UNGATED token sink that accepted
 // `SOURCE-COMPUTER. IBM-370 WIBBLE WOBBLE.` at every edition in silence.
+// ⛔ THE SECOND PERIOD IS A PUNCTUATION SUPERSET (kb/Work PB3370): `DOT?` even after a computer-name, and the period
+// §12.3.5.3 SR1 does not let go is refused BY NAME by ClosedFormatPass through ParagraphPeriods (COBOLNET3408). It is
+// what makes the optional name's prediction COMMIT: when the name's paragraph and the configuration section's error
+// production both fail at the same token (`SOURCE-COMPUTER. XYZ GLOBAL.` — XYZ is a computer-name or an unrecognized
+// paragraph, and GLOBAL fits neither), ANTLR's error-time prediction takes the lowest alternative that has already
+// LEFT the rule, and with a required period only the exit alternative had: XYZ was read as a configuration paragraph
+// and GLOBAL drew a bare COBOL0307. With the period optional the name's alternative leaves the rule too, so it wins,
+// and CobolErrorStrategy names GLOBAL in THIS format (COBOLNET1970). objectComputerParagraph is the same shape.
 sourceComputerParagraph
-    : SOURCE_COMPUTER DOT ((computerName debuggingModeClause? unrecognizedClause?)? DOT)?
+    : SOURCE_COMPUTER DOT (computerName debuggingModeClause? unrecognizedClause?)? DOT?
     ;
 
 // X3.23-1985 `WITH DEBUGGING MODE` (the '85 debug facility's compile-time switch; WITH is not underlined). Obsolete at
@@ -583,8 +591,11 @@ debuggingModeClause
 // `OBJECT-COMPUTER. CLASSIFICATION IS SYSTEM-DEFAULT.` binds CLASSIFICATION as the computer name and the rest
 // is mis-read. The predicate is LEFT-EDGE (it steers the enter/skip decision of the optional group);
 // mid-alternative it would let the group be entered and then throw.
+// ⛔ THE SECOND PERIOD IS A PUNCTUATION SUPERSET (kb/Work PB3370), sourceComputerParagraph's reason: with it required,
+// `OBJECT-COMPUTER. XYZ GLOBAL.` read XYZ as an unrecognized configuration paragraph. §12.3.6.3 SR4 lets it go only
+// when neither the name nor a clause is written; ClosedFormatPass refuses it otherwise (COBOLNET3408).
 objectComputerParagraph
-    : OBJECT_COMPUTER DOT (({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT)?
+    : OBJECT_COMPUTER DOT ({!objectComputerClauseAhead()}? computerName)? objectComputerClause* DOT?
     ;
 
 objectComputerClause
