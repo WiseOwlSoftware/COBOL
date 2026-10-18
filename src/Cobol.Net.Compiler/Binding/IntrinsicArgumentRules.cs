@@ -495,8 +495,30 @@ internal static class IntrinsicArgumentRules
     /// (<paramref name="cls"/>, from <see cref="ClassOf"/> or a screen-specific reading of it): a field operand that
     /// denotes a strongly-typed group names its type-name; every other operand names <paramref name="cls"/>.</summary>
     internal static string ClassNameOf(BoundOperand op, CobolClass cls) =>
-        (op is BoundFieldOperand { Place: { DenotedItem: not null } p } ? StrongGroupClassName(p.Item) : null)
-            ?? Name(cls);
+        (StrongGroupOf(op) is { } group ? StrongGroupClassName(group) : null) ?? Name(cls);
+
+    /// <summary>⛔ "OF THE SAME CLASS" FOR TWO OPERANDS OUTSIDE A FUNCTION ARGUMENT (kb/Work PB3355) — the identity a
+    /// pair rule worded in CLASS asks (§14.9.13.3 SR4's range-expression, "The two operands in a range-expression
+    /// shall be of the same class"). <paramref name="ca"/> and <paramref name="cb"/> are the lattice's answers
+    /// (<see cref="ClassOf"/>, projected through <see cref="TableTwoClass"/> where the rule says class), and they
+    /// are NOT enough: for a strongly-typed group the lattice answers ALPHANUMERIC — §15.3 item 2's reading of a
+    /// function ARGUMENT — while §8.5.2.1 makes its class the type-name, so comparing the answers called a strongly
+    /// typed group "the same class" as any alphanumeric item and as a strongly-typed group of another type. A
+    /// strongly-typed group is of the class of another operand only when that operand is a strongly-typed group of
+    /// the same type (§8.5.3.3; the type identity the relation checkpoint asks too).</summary>
+    internal static bool SameClass(BoundOperand a, CobolClass ca, BoundOperand b, CobolClass cb) =>
+        (StrongGroupOf(a), StrongGroupOf(b)) switch
+        {
+            (null, null) => ca == cb,
+            ({ } ga, { } gb) => StrongTypeModel.SameType(ga, gb),
+            _ => false,
+        };
+
+    /// <summary>The strongly-typed group an operand denotes, or null — a whole data item (a reference-modified view
+    /// denotes none, §8.4.3.3.4 GR6: it is an elementary alphanumeric item).</summary>
+    private static DataItem? StrongGroupOf(BoundOperand op) =>
+        op is BoundFieldOperand { Place: { DenotedItem: not null, Item: { } item } } && StrongTypeModel.IsStrongGroup(item)
+            ? item : null;
 
     /// <summary>§8.5.2.1's class of a strongly-typed group item — its type-name — spelled for a diagnostic, or null
     /// when <paramref name="item"/> is not a strongly-typed group.</summary>

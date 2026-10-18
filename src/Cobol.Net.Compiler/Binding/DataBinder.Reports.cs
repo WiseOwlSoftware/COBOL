@@ -1372,9 +1372,12 @@ public sealed partial class DataBinder
         // (GR2) — an integer-literal position and length, as the CONTROL operand's ref-mod requires.
         var codeSfx = ReferenceResolver.ReadOperandSuffixes(code.Reference!);
         bool codeRefMod = codeSfx.RefMods > 0;
-        var itemClass = IntrinsicArgumentRules.ClassOfItem(item);
-        string? why = !codeRefMod && (itemClass is not { } cls || IntrinsicArgumentRules.TableTwoClass(cls) != CobolClass.Alphanumeric)
-                ? $"is not an alphanumeric data item (it is of {(itemClass is { } ic ? IntrinsicArgumentRules.Name(ic) : "unknown")} class)"
+        // ⛔ "AN ALPHANUMERIC DATA ITEM" IS THE CATEGORY (§8.5.2.1: a class or category named in the rules of COBOL
+        // "refers to the category unless class is specifically indicated"), so it asks the ONE category reader every
+        // rule so worded asks (ASSIGN USING, FILE STATUS, the record keys) — never the class lattice, whose
+        // alphanumeric answer for a strongly-typed group is §15.3 item 2's reading of a function ARGUMENT (kb/Work PB3355).
+        string? why = !codeRefMod && !ItemCategory.IsAlphanumeric(item)
+                ? $"is not an alphanumeric data item (it is {ItemCategory.Face(item)})"
             : codeRefMod && (codeSfx.RefMods > 1 || codeSfx.NonLiteral || codeSfx.BeyondHostLimit || codeSfx.Start is null)
                 ? "is reference-modified with a leftmost-position or length that is not a single integer literal, so the "
                   + "characters it occupies in every logical record (§13.18.12.4 GR2) are not a fixed number"
