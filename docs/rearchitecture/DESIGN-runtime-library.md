@@ -1695,7 +1695,7 @@ after a CLOSE reads ≤ 3 + 7 pages (the three slots, the retirement's ledger an
 whatever N, and writes nothing through an INPUT handle and ≤ 8 pages (the fence's claim, slot and retirement) through a
 writable one; (c) **random READ is O(log n)** — 1 000 random READs on the 4N store read ≤ d + 1 pages
 each, with the cache cold (`PagedStore` offers a `DropCache` seam for the witness); (d) **no whole-store I/O exists** — a
-tree-wide drift test (`[Trait("Sweep", "tree")]`) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
+drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after

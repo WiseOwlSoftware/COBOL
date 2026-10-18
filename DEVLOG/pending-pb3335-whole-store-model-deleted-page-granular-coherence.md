@@ -51,7 +51,7 @@ coherent entry are removed; they existed only for the whole-store image's single
 - The predicate per engine: the keyed store asks `AdmitsAnotherRunUnit`, while `AdmitsAnotherWriter`'s callers are kept
   and a READ ONLY sequential writer still buffers.
 
-`WholeStoreBanDriftTests` (`[Trait("Sweep", "tree")]`, witness (d)) checks three things: positional host I/O only in
+`WholeStoreBanDriftTests` (witness (d); it reads `Runtime/IO`, so `drift_rules.py` files it as a specific rule of those files, not a tree-wide sweep, and it carries no `Sweep` trait) checks three things: positional host I/O only in
 `IO/Store/` and one page per call, no pooled buffer sized by a length, and no survivor of 2.2.1.13's deletion list. It was
 shown red on a planted violation. `FrameDecoderDriftTests` has a new case for the leaf value being exactly one frame;
 `RecordExtentsTests` goes through `EncodeFrame`/`DecodeFrame`; `FileBoundaryTests.MaxStoreBytes_*` is deleted; and the
