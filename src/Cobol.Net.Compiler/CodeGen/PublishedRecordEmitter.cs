@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
+using CobolNet.Runtime;
 using static CobolNet.CodeGen.Emit.EmitText;
 
 namespace CobolNet.CodeGen;
@@ -33,22 +34,21 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// DEPENDING ON table is held (its storage is the maximum allocation, ISO §8.5.1.8, the image the CALL lane's text
     /// crossing carries), and so is a pointer or object reference (its managed slot, <see cref="HoldsSlots"/>). A
     /// VARIABLE-LENGTH group (<see cref="HoldsComponents"/>) whenever the CALL lane carries it — its current extent
-    /// composes (<see cref="DataItem.CurrentExtentImageCapable"/>, the gate of every §8.5.1.12 carrier) — as the CALL
-    /// lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>). One shape is the GR13 restriction
-    /// DESIGN-external-repository §4.3 states (ISO §14.2.3 13): a group holding BOTH a variable-length component and a
-    /// pointer or object-reference member. ⛔ <b>THE RESTRICTION IS THIS EMITTER'S</b> (kb/Work PB3273, PB3139):
-    /// the COBOL boundary carries that group only as a strongly-typed group's cell AREA that holds its references and its
-    /// variable-length components together (kb/Work PB3139: <c>OoClassTable.LeafCarried</c>, <c>StorageCell.CopyArea</c>),
-    /// and this emitter composes no such area — its slot form (<see cref="HoldsSlots"/>, <c>__Area</c>) has no component and
-    /// its variable-length form (<c>CobolVarGroup</c>) no slot for a reference — so an entry's argument would reach the
-    /// activated program's formal without an area, whose copy-in of that description is the Tier-C loud
-    /// (<c>TierCIsland</c>). The <see cref="HoldsSlots"/> conjunct is implied today by
-    /// <see cref="DataItem.CurrentExtentImageCapable"/> (a reference leaf is no member of its law), and it STAYS as the
-    /// guard: this emitter must compose the area's components beside its slots before the restriction lifts, or a record
-    /// would silently drop its references. <c>HostEntryShapeDriftTests</c> pins both halves.</summary>
+    /// composes (<see cref="DataItem.CurrentExtentAreaCapable"/>, the gate of every §8.5.1.12 carrier, with a reference
+    /// leaf a fixed placeholder) — as the CALL lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>)
+    /// or, when it also holds a pointer or object reference, as the CALL lane's cell AREA holding the references and the
+    /// components together (<see cref="EmitArea"/>).
+    /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §14.2.3 13) obliges the implementor to STATE
+    /// restrictions, not to have one): a group holding BOTH a variable-length component and a pointer or object-reference
+    /// member once published no entry, because the COBOL boundary had no crossing form for it (kb/Work PB3139 gave it one:
+    /// <c>OoClassTable.LeafCarried</c>, <c>StorageCell.CopyArea</c>) and this emitter composed no such area. The record now
+    /// builds the area itself — the description's own fresh cell (<c>DataEmitter.FreshArea</c>, so the tables it holds are
+    /// the description's), the variable-length carrier distributed into it (<c>StorageCell.StoreVarGroupAt</c>), each
+    /// reference in its managed slot (<c>__PutSlots</c>, a dynamic-capacity table's element cells included) — and reads it
+    /// back by the same walk (<c>__TryGetArea</c>). <c>HostEntryShapeDriftTests</c> pins the entry.</para></summary>
     internal static bool Renders(DataItem group) =>
         group.IsGroup && DataItem.DescendantsOf(group).Where(Occupies).All(d => !d.IsAnyLength)
-        && (!HoldsComponents(group) || (group.CurrentExtentImageCapable && !HoldsSlots(group)));
+        && (!HoldsComponents(group) || group.CurrentExtentAreaCapable);
 
     /// <summary>Whether <paramref name="item"/> is or holds a §8.5.1.12 VARIABLE-LENGTH COMPONENT — a dynamic-length
     /// elementary item or a dynamic-capacity table (<see cref="CellComponents"/>, the data model's one enumeration of
@@ -213,14 +213,10 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             if (HoldsSlots(group))
             {
                 // A record whose pointer or object-reference members ride managed slots (§4.3's last table row): its
-                // storage is the CALL lane's cell area (kb/Work PB2087) — the image, and each reference in its slot.
-                using (w.Block("internal readonly StorageCell __Area(string __parameter)"))
-                {
-                    w.Line("var __c = new StorageCell { Ref = __Land(__parameter) };");
-                    w.Line("__PutSlots(__c, 0);");
-                    w.Line("return __c;");
-                }
-                using (w.Block("internal readonly void __PutSlots(StorageCell __c, int __at)"))
+                // storage is the CALL lane's cell area (kb/Work PB2087) — the image, each reference in its slot and, for
+                // a variable-length record, its components in the cell's component slots (kb/Work PB3273).
+                if (ReferenceEquals(group, root)) EmitArea(group, name, variable, width, w);
+                using (w.Block($"internal readonly void __PutSlots(StorageCell __c, int __at{(variable ? ", int __dyn" : "")})"))
                     foreach (var m in members.Where(m => HoldsSlots(m.Item))) EmitPutSlots(group, m, w);
             }
             using (w.Block($"internal static bool __TryGet(string __s, StorageCell? __c, int __at, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
@@ -238,6 +234,50 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                 Emit(root, m.Item, m.Record!, w);
             }
         }
+    }
+
+    /// <summary>⛔ THE CELL AREA OF A PUBLISHED RECORD HOLDING REFERENCES (DESIGN-external-repository §4.3's last host-type
+    /// row; kb/Work PB2087, PB3273): the storage the CALL lane passes a group whose pointers and object references ride
+    /// managed slots, and the one the activated program's formal is laid over (ISO §14.2.3 8): "operates as if the formal
+    /// parameter occupies the same storage area as the argument"). <c>__Area</c> builds it and <c>__TryGetArea</c> reads it
+    /// back, at the published ROOT only.
+    /// <para>A record with no variable-length component is the landed image with each reference in its slot
+    /// (<c>__PutSlots</c>). A VARIABLE-LENGTH record also holds its components in the cell's component slots
+    /// (<c>StorageCell.DynAt</c> / <c>DynTableAt</c>, numbered from zero in the scope), and these are composed, never
+    /// re-derived: the cell starts as the DESCRIPTION'S fresh cell (<paramref name="variable"/>'s <c>__fresh</c>, the
+    /// factory <c>DataEmitter.FreshArea</c> states for the formal — its dynamic-capacity tables present at their FROM
+    /// capacity with the element recipe a later statement creates occurrences from, §8.5.1.9.5), the record's carrier
+    /// (<c>__Var</c>, the one landing of every component) is distributed into it (<c>StorageCell.StoreVarGroupAt</c>, the
+    /// store a formal's copy-in makes), and the references are set on top (<c>__PutSlots</c>), a dynamic-capacity table's
+    /// element cells included, because a reference is no part of the carrier. Reading is the inverse walk: the cell's
+    /// carrier (<c>StorageCell.VarGroupAt</c>) decoded as the carrier-only record decodes it, with each reference read from
+    /// its slot (<c>__TryGet</c>'s <c>__c</c>).</para></summary>
+    private static void EmitArea(DataItem group, string name, bool variable, int width, CodeWriter w)
+    {
+        if (!variable)
+        {
+            using (w.Block("internal readonly StorageCell __Area(string __parameter)"))
+            {
+                w.Line("var __c = new StorageCell { Ref = __Land(__parameter) };");
+                w.Line("__PutSlots(__c, 0);");
+                w.Line("return __c;");
+            }
+            using (w.Block($"internal static bool __TryGetArea(StorageCell __c, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
+                w.Line("return __TryGet(__c.Ref, __c, 0, __name, ref __bad, out __r);");
+            return;
+        }
+        var shape = CellComponents.ShapeOf(group, CellComponents.InLayout)!;
+        using (w.Block("internal readonly StorageCell __Area(string __parameter, global::System.Func<StorageCell> __fresh)"))
+        {
+            w.Line("var __c = __fresh();");
+            w.Line(RuntimeApi.CellVarStoreCarrier("__c", "0", width, "0", shape.DynFixedAt, shape.DynMax, shape.DynTable, default,
+                "0", "__Var(__parameter)", shape.Elems ?? [], storage: false) + ";");
+            w.Line("__PutSlots(__c, 0, 0);");
+            w.Line("return __c;");
+        }
+        using (w.Block($"internal static bool __TryGetArea(StorageCell __c, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
+            w.Line($"return __TryGet({RuntimeApi.CellVarCarrier("__c", "0", width, "0", shape.DynFixedAt, shape.DynTable, default, "0", shape.Elems ?? [])}, "
+                + "__c, __name, ref __bad, out __r);");
     }
 
     /// <summary>The image of a record the host constructed, before its members are landed: spaces, the content a group
@@ -315,7 +355,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     {
         using (w.Block("internal readonly void __PutDyn(string[] __d, CobolVarGroup[]?[]? __e, int __dyn, string __parameter, string __path)"))
             foreach (var m in members.Where(m => m.Holds)) EmitPutDyn(m, w);
-        using (w.Block($"internal static bool __TryGetDyn(CobolVarGroup __v, int __dyn, string __name, ref global::System.FormatException? __bad, ref {name} __r)"))
+        using (w.Block($"internal static bool __TryGetDyn(CobolVarGroup __v, StorageCell? __c, int __dyn, string __name, ref global::System.FormatException? __bad, ref {name} __r)"))
         {
             w.Line("bool __ok = true;");
             foreach (var m in members.Where(m => m.Holds)) EmitGetDyn(m, w);
@@ -340,13 +380,14 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             w.Line("return new CobolVarGroup(__run, __d, __e);");
         }
         w.Line("/// <summary>The record a carrier holds, every numeric member decoded by the class test NUMERIC; false, with the "
-            + "first refusal in __bad, when one fails it.</summary>");
-        using (w.Block($"internal static bool __TryGet(CobolVarGroup __v, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
+            + "first refusal in __bad, when one fails it. <c>__c</c> is the cell the carrier was read from when the record "
+            + "holds references (they are no part of a carrier), else null.</summary>");
+        using (w.Block($"internal static bool __TryGet(CobolVarGroup __v, StorageCell? __c, string __name, ref global::System.FormatException? __bad, out {name} __r)"))
         {
             w.Line($"bool __ok = __TryGet({RuntimeApi.VarGroupWindowOf(RuntimeApi.VarGroupFixed("__v"), BlankImage(group, width), at, tables)}, "
-                + "null, 0, __name, ref __bad, out __r);");
+                + "__c, 0, __name, ref __bad, out __r);");
             w.Line("__r.__var = __v;");
-            w.Line("return __TryGetDyn(__v, 0, __name, ref __bad, ref __r) && __ok;");
+            w.Line("return __TryGetDyn(__v, __c, 0, __name, ref __bad, ref __r) && __ok;");
         }
     }
 
@@ -380,8 +421,11 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                 w.Line($"var __s = new global::System.Text.StringBuilder(__a.Length * {elementWidth});");
                 w.Line(m.Record is not null
                     ? $"for (int __i = 0; __i < __a.Length; __i++) __s.Append(__a[__i].__Land(__parameter, {each} + \".\"));"
-                    : $"for (int __i = 0; __i < __a.Length; __i++) {{ var __b = new char[{elementWidth}]; "
-                        + $"{PutLeaf(m.Item, m.Type, "__a[__i]", "0", each)} __s.Append(__b); }}");
+                    // A table of references: an occurrence's image is its reserved positions (the value rides the element cell's slot, __PutSlots).
+                    : SlotWindow.CarriedBySlot(m.Item)
+                        ? $"__s.Append(' ', __a.Length * {elementWidth});"
+                        : $"for (int __i = 0; __i < __a.Length; __i++) {{ var __b = new char[{elementWidth}]; "
+                            + $"{PutLeaf(m.Item, m.Type, "__a[__i]", "0", each)} __s.Append(__b); }}");
                 w.Line($"__d[{at}] = __s.ToString();");
             }
             return;
@@ -416,19 +460,25 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                     ? $"var __o = {RuntimeApi.VarGroupElementCarriersAt("__v", at)};"
                     : $"var __o = {RuntimeApi.VarGroupOccurrences(RuntimeApi.VarGroupDyn("__v", at), m.Item.ByteWidth)};");
                 w.Line($"__r.{m.Name} = new {m.Element}[__o.Length];");
+                // An element holding references is read from its ELEMENT CELL (a scope of its own): the carrier holds no
+                // reference (kb/Work PB3273).
+                bool cells = HoldsSlots(m.Item);
+                string cell = cells ? "__ec[__i]" : "null";
+                if (cells)
+                    w.Line($"var __ec = __c!.{nameof(StorageCell.DynTableAt)}({at}, {MinimumCapacity(m.Item)}, {m.Item.ByteWidth}).CurrentOccurrences;");
                 string body = m.Record is not null
-                    ? $"{{ if ({m.Record}.__TryGet(__o[__i]{(nested ? "" : ", null, 0")}, {each} + \".\", ref __bad, out var __g)) "
+                    ? $"{{ if ({m.Record}.__TryGet(__o[__i], {cell}{(nested ? "" : ", 0")}, {each} + \".\", ref __bad, out var __g)) "
                         + $"__r.{m.Name}[__i] = __g; else __ok = false; }}"
-                    : $"{{ var __s = __o[__i]; {GetLeaf(m.Item, m.Type, $"__r.{m.Name}[__i]", "0", each)} }}";
+                    : $"{{ var __s = __o[__i]; {GetLeaf(m.Item, m.Type, $"__r.{m.Name}[__i]", "0", each, cell)} }}";
                 w.Line($"for (int __i = 0; __i < __o.Length; __i++) {body}");
             }
             return;
         }
         w.Line(m.Occurs == 0
-            ? $"{{ var __g = __r.{m.Name}; if (!{m.Record}.__TryGetDyn(__v, {at}, {name} + \".\", ref __bad, ref __g)) __ok = false; "
+            ? $"{{ var __g = __r.{m.Name}; if (!{m.Record}.__TryGetDyn(__v, __c, {at}, {name} + \".\", ref __bad, ref __g)) __ok = false; "
                 + $"__r.{m.Name} = __g; }}"
             : $"if (__r.{m.Name} is {{ }} __t{m.Ordinal}) for (int __i = 0; __i < __t{m.Ordinal}.Length; __i++) "
-                + $"if (!{m.Record}.__TryGetDyn(__v, {at} + __i * {CellComponents.PerOccurrence(m.Item)}, {each} + \".\", "
+                + $"if (!{m.Record}.__TryGetDyn(__v, __c, {at} + __i * {CellComponents.PerOccurrence(m.Item)}, {each} + \".\", "
                 + $"ref __bad, ref __t{m.Ordinal}[__i])) __ok = false;");
     }
 
@@ -438,13 +488,31 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// The image walk (<c>__Put</c>) has already required every table to have its occurrences.</summary>
     private static void EmitPutSlots(DataItem group, Member m, CodeWriter w)
     {
-        string Put(string value, string at) => m.Record is not null
-            ? $"{value}.__PutSlots(__c, {at});"
-            : RuntimeApi.PtrSlotWrite("__c", $"({at}) / 8", m.Item.Pic!.ClrType,
-                m.Item.Pic.Category is PicCategory.Pointer ? $"{value} ?? ManagedPointer.Null" : value) + ";";
+        string Value(string value, string cell, string at) => RuntimeApi.PtrSlotWrite(cell, $"({at}) / 8", m.Item.Pic!.ClrType,
+            m.Item.Pic.Category is PicCategory.Pointer ? $"{value} ?? ManagedPointer.Null" : value) + ";";
+        if (m.Item.IsDynamicTable)
+        {
+            // A dynamic-capacity table whose elements hold references: each ELEMENT CELL is a scope of its own (its slots are
+            // numbered and offset from zero), and holds the element's references. The table is the one the carrier's store
+            // formed (__Area), at the array's length.
+            string element = ComponentsOf(m.Item).Count > 0 ? "0, 0" : "0";   // the element's own scope: numbered from zero
+            using (w.Block(""))
+            {
+                w.Line($"var __t = __c.{nameof(StorageCell.DynTableAt)}(__dyn + {m.Ordinal}, {MinimumCapacity(m.Item)}, {m.Item.ByteWidth}).CurrentOccurrences;");
+                w.Line($"for (int __i = 0; __i < {m.Name}.Length; __i++) "
+                    + (m.Record is not null ? $"{m.Name}[__i].__PutSlots(__t[__i], {element});" : Value($"{m.Name}[__i]", "__t[__i]", "0")));
+            }
+            return;
+        }
+        // A nested record's components are numbered within the same scope, past this member's ordinal (one occurrence's
+        // worth per occurrence of a fixed table), exactly as the carrier numbers them (__PutDyn).
+        string Put(string value, string at, string dyn) => m.Record is not null
+            ? $"{value}.__PutSlots(__c, {at}{(HoldsComponents(m.Item) ? $", __dyn + {m.Ordinal}{dyn}" : "")});"
+            : Value(value, "__c", at);
         w.Line(m.Occurs == 0
-            ? Put(m.Name, Position(group, m, false))
-            : $"for (int __i = 0; __i < {m.Name}.Length; __i++) {Put($"{m.Name}[__i]", Position(group, m, true))}");
+            ? Put(m.Name, Position(group, m, false), "")
+            : $"for (int __i = 0; __i < {m.Name}.Length; __i++) "
+                + Put($"{m.Name}[__i]", Position(group, m, true), $" + __i * {CellComponents.PerOccurrence(m.Item)}"));
     }
 
     private void EmitPut(DataItem root, DataItem group, Member m, CodeWriter w)
@@ -548,14 +616,16 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
 
     /// <summary>One elementary member decoded from the image <c>__s</c> at bit position <paramref name="at"/>: a numeric
     /// item by the one validity rule (a failure clears <c>__ok</c>), every other item as its storage holds it.</summary>
-    private string GetLeaf(DataItem leaf, HostType type, string target, string at, string name)
+    private string GetLeaf(DataItem leaf, HostType type, string target, string at, string name, string cell = "__c")
     {
         PicInfo pic = leaf.Pic!;
         // A pointer or object reference is its managed slot's value (CobolPtr.SlotRead, the read every description of
         // the area makes); an image alone (FromImage) holds no reference, so the member keeps its null state.
+        // <paramref name="cell"/> is the cell that holds it: the record's scope, or an element cell of a dynamic-capacity
+        // table of references (kb/Work PB3273).
         if (SlotWindow.CarriedBySlot(leaf))
-            return $"{target} = __c is null ? {pic.DefaultInitializer} : "
-                + $"{RuntimeApi.PtrSlotRead("__c", $"({at}) / 8", pic.ClrType, pic.DefaultInitializer)};";
+            return $"{target} = {cell} is null ? {pic.DefaultInitializer} : "
+                + $"{RuntimeApi.PtrSlotRead(cell, $"({at}) / 8", pic.ClrType, pic.DefaultInitializer)};";
         string bytes = $"({at}) / 8";
         string chars = Characters(leaf, $"__s.Substring({bytes}, {leaf.ByteWidth})");
         return type.Kind switch
