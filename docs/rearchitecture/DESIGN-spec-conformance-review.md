@@ -361,6 +361,23 @@ left every gate green. `scripts/spec/audit_witness_loss.py --check` (run by `bui
 retirement mark or a re-site; `--history` replays the file's git history under the merge rule and
 `--restore-batch` emits the witness-only batch owing back what the old overwrite silently removed.
 
+**A symbol must be in the code, and the prose is read too (kb/Work PB762).** One predicate,
+`SpecTraceabilityInventoryDriftTests.SymbolResolves`, decides whether a `#Symbol` still exists, for a `code-location`
+and for a `path#Symbol` spelling in a row's `notes`: the symbol must be in the file's CODE (a C# file's tokens, so a
+comment, a doc comment and a disabled region do not count but a string literal does; a grammar file's text without its
+comments; any other file's whole text), and in a C# file a dotted symbol is a qualified name, so each segment must be
+an identifier of the file. The old whole-body word search let `FileRegistry.cs#ReadLockGovern` resolve on three
+CONFORMS rows for as long as a comment narrated the method's removal, and left `notes`, the field a reader opens to
+learn why a row has its verdict, unread: a rename re-pointed the field the gate checks and five rows then
+contradicted themselves, a dated erratum stapled beneath prose that still described the dead method. The prose is
+`notes` up to the first `retired-witness:` mark (the schema's `notes.retired-witness-mark`, read by both engines); a
+mark is history by construction and may name a symbol that is gone. The writer's half is a shape rule decidable from
+the record and the row (`inventory_schema.retired_symbols_left_in_prose`): once a witness is retired its symbol may not
+appear in the prose unless the row still cites it at another file, so the history of the change goes in the
+retirement's reason and the prose describes the code as it is. What no resolver can read is a BARE identifier in old
+prose: it also narrates history and the standard's own words, so a stale bare name is caught only at the next
+retirement, and the rows that predate the rule are a measured residue (kb/Work PB762).
+
 **The five parts, and why each is where it is.**
 
 | part | file | owns |
