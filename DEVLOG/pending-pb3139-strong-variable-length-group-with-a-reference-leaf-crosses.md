@@ -82,3 +82,7 @@ performance — one pass over the rosters per compilation group. Codes: none of 
 
 **Gate** (w1114a, at 8b57d399d, run `20261018T034820Z-37ceab`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN ===`; the four goldens and both refusals ran in leg 1 and passed. Codes: none of COBOLNET4274-4276 used.
+
+**Branch review round 1** (kb/Work PB3027): one finding, R1-1 — `OoClassTable.LeafCarried`'s summary still named the
+deleted static `OfLeaves`; it now names the sender's `AsLeaves` and the receiver's instance `WithLeaves` and why the
+store is an instance one (§14.6.9.2). `git grep OfLeaves` over src, tests, docs and scripts finds no other stale use.
