@@ -11,7 +11,7 @@ namespace CobolNet.Runtime.IO.Store;
 internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
 {
     /// <inheritdoc/>
-    public long PageCount => RandomAccess.GetLength(handle) / PageHeader.PageSize;
+    public long Length => RandomAccess.GetLength(handle);
 
     /// <inheritdoc/>
     public void Read(uint page, Span<byte> destination)
@@ -29,14 +29,27 @@ internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
     }
 
     /// <inheritdoc/>
-    public void Write(uint page, ReadOnlySpan<byte> source) =>
-        RandomAccess.Write(handle, source[..PageHeader.PageSize], Offset(page));
+    /// <remarks>The host's "the file cannot grow further" is the medium contract's <see cref="MediumSizeLimitException"/>
+    /// (asked of <see cref="HostFile.IsFileSizeLimit"/>, the one place the host's codes are read); every other refusal
+    /// travels as the host raised it.</remarks>
+    public void Write(uint page, ReadOnlySpan<byte> source)
+    {
+        try { RandomAccess.Write(handle, source[..PageHeader.PageSize], Offset(page)); }
+        catch (IOException e) when (HostFile.IsFileSizeLimit(e)) { throw Refusal(e); }
+    }
+
+    /// <summary>What this medium hands the page layer for the host's refusal <paramref name="host"/> of a page write: the
+    /// contract's <see cref="MediumSizeLimitException"/> when the host said the file cannot grow further
+    /// (<see cref="HostFile.IsFileSizeLimit"/>), else the refusal as the host raised it. A fault-injecting test medium
+    /// above this one raises a host code through it, so the code is read in this one place.</summary>
+    internal static IOException Refusal(IOException host) =>
+        HostFile.IsFileSizeLimit(host) ? new MediumSizeLimitException(host.Message, host) : host;
 
     /// <inheritdoc/>
     public void Sync() => RandomAccess.FlushToDisk(handle);
 
     /// <inheritdoc/>
-    public void SetPageCount(long pages) => RandomAccess.SetLength(handle, pages * PageHeader.PageSize);
+    public void SetLength(long bytes) => RandomAccess.SetLength(handle, bytes);
 
     private static long Offset(uint page) => (long)page * PageHeader.PageSize;
 }

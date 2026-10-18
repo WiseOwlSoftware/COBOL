@@ -67,14 +67,21 @@ public sealed class PendingStoreCases
             "as the table: '51' on B's records with RETRY; either order durable for A, restored for B; B never completes a COMMIT A was told failed; A rolls B back before its own statement or at its lock test"),
         new("2.2.1.17 round 4", "a lock holder's death at every point of another run unit's statement", "PB3337",
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
-        // The core groups' rows run where their paths are. (PB3333's — the relative statements, their coherence, the lock
-        // test beside the publication and the tree's COBOL surface for a relative file — in RelativeEngineTests and, over
-        // the engine, CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; PB3334's — the INDEXED connector's statements
-        // across run units with their alternate keys, ordinals and '02' look-ahead, and START over the trees — in
-        // IndexedEngineTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
-        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; PB3335's — the connectors'
-        // coherence, StoreTable's attach and detach, the cache dropped on adoption, a reader's entry, the crashed-file
-        // reader of R6's last row — in StoreCoherenceTests.) What is left is the held transaction slice's.
+        // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
+        // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the torn page's '30' through a compiled program,
+        // with and without a USE procedure and a FILE STATUS clause and the phrases ignored, in the Conformance project's
+        // RelativeEnginePermanentErrorWitnessTests; the phrases taken and not taken for '22', '23', '24' and '10' in the
+        // relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5- and 9.1.14-, pb1192_relative_write_boundary_85
+        // among them. PB3334's — the INDEXED connector's statements across run units with their alternate keys, ordinals
+        // and '02' look-ahead, START over the trees, the refusals and deaths at every write of every statement, OPEN and
+        // CLOSE included, and the boundary at a WRITE, a REWRITE and a DELETE — run in IndexedEngineTests,
+        // FileBoundaryTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
+        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; the torn page's '30' and the
+        // boundary's '24' through a compiled program, in every USE and FILE STATUS combination, in
+        // IndexedEnginePermanentErrorWitnessTests. PB3335's — the connectors' coherence, StoreTable's attach and detach, the
+        // cache dropped on adoption, a reader's entry, the crashed-file reader of R6's last row — in StoreCoherenceTests.)
+        // What is left is the held transaction slice's.
     ];
 
     [Fact]

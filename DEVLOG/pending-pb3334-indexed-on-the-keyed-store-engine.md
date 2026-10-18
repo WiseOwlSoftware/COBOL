@@ -60,3 +60,23 @@ one key comparison mechanism (the key orders), one frame codec, one boundary map
 `StoreStatus` maps to '24'/'30' or a READ/START `Unsuccessful`.
 
 **Gate.** Run `TestResults/build-local/20261018T170109Z-82a5d9` (gated at `ac19595c5`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,235/17,605 · Unit 33,858/34,267 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. The first gate (`20261018T165843Z-bc88d9`) was RED on one CITATIONS phantom (a design-section reference split across a doc-comment line, `KeyedStoreTable.cs`), fixed. The golden passed in leg 1 at 2002 and 2023; the 32 `IndexedEngineTests` cases passed. Semgrep verify PASS (one count down, not this branch's). LINUX GATE: the lander's (batched gating).
+
+**Review round 1 (wave 1118 review finisher, branch `worktree-wf_14a1e62b-326-26`).** Four findings, all fixed. R1-2 first:
+the branch carried PB3331-PB3333 at their implementer heads, so it merged the reviewed PB3331+PB3332 link
+`worktree-wf_a49f0036-841-7` (14398a0e2) and PB3333's reviewed head `worktree-wf_14a1e62b-326-20` (7f5d2dcf8). The engine side
+came from -841-7 (`IPageMedium.Length`/`SetLength`, `StatementBound`, the key length on `WeightedKeyOrder`,
+`MediumSizeLimitException` replacing PB3333's first-cut `IsFileTooLarge`; `HandlePageMedium.Refusal` became the one place a host
+code becomes the contract's exception, which the fault-injecting test media raise through). PB3333's connector fixes were
+re-applied to this branch's single lifecycle: `KeyedConnector.Enter` passes the hold's exclusivity to `PagedFile.Enter`, and
+R1-1's split, `KeyedConnector.RecordWriteFailed` ('24' for a record WRITE or REWRITE) beside `Failed` ('30' otherwise), now
+serves both organizations, so the indexed DELETE at the host's boundary is '30' with no invalid key condition. -841-7's new
+page-layer tests count medium reads, so they now drop PB3333's page cache before measuring; its refused-read matrix's CLOSE path
+is PB3333's sync-only CLOSE and reads nothing; PB3333's refused OPEN OUTPUT case expects GR25's undo. R1-3: the indexed CLOSE
+promotion, OPEN fence and OPEN OUTPUT creation are refused at every write and sync, and each OPEN is killed after every write.
+R1-4: `IndexedEnginePermanentErrorWitnessTests` runs ten compiled programs over a torn file and over a file at its boundary.
+They run in every USE x FILE STATUS combination with checking off and on, and every expected line comes from §9.1.14,
+§14.9.30.4 GR13/GR24 and DOC-A.1-103. The boundary file is measured, not assumed: the fewest pages below 2^32 that let the OPEN
+I-O's fence complete. That measurement showed a fence reserves its bound and so fails a few pages short of the format's end,
+which design 2.2.1.9 now states.
+
+Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `57b0af458`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).

@@ -321,7 +321,7 @@ public sealed class RelativeConnector : KeyedConnector
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var written = _st.Insert(slot, frame, Entered, out bool inserted);
-        if (Failed(written) is { } refused) return Status = refused;       // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
+        if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
@@ -382,7 +382,7 @@ public sealed class RelativeConnector : KeyedConnector
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var replaced = _st.Replace(slot, frame, Entered, out bool done);
-        if (Failed(replaced) is { } refused) return Status = refused;      // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
@@ -401,7 +401,7 @@ public sealed class RelativeConnector : KeyedConnector
         long slot = sequential ? _lastSlot : _pendingKey;
         if (slot < 1) return Status = FileStatusCode.RecordNotFound;
         var deleted = _st.Delete(slot, Entered, out bool done);
-        if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1
+        if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 

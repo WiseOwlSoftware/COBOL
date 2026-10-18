@@ -3,6 +3,7 @@
 using System.Text;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
+using CobolNet.Runtime.IO.Store;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -30,6 +31,10 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     private string Host(string name) => Path.Combine(_dir, name);
+
+    /// <summary>Whether a write of <paramref name="page"/> grows the file: the page at or past the medium's end in bytes —
+    /// the writes a full medium and a file at its maximum size refuse.</summary>
+    private static bool Grows(IPageMedium medium, uint page) => (long)page * PageHeader.PageSize >= medium.Length;
 
     private static readonly char Euro = (char)0x20AC;
     private static readonly char EAcute = (char)0x00E9;
@@ -207,7 +212,7 @@ public sealed class FileBoundaryTests : IDisposable
             : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
         bool refusing = false;
         KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
-            write: page => refusing && page >= inner.PageCount ? new IOException("refused by the host", hresult) : null);
+            write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
         try
         {
             var c = Indexed(host);
@@ -290,7 +295,7 @@ public sealed class FileBoundaryTests : IDisposable
         // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
         // size both do; the pages already in the file (page 2 among them) are written as ever.
         KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
-            write: page => refusing && page >= inner.PageCount ? new IOException("refused by the host", hresult) : null);
+            write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
         try
         {
             var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
@@ -308,6 +313,117 @@ public sealed class FileBoundaryTests : IDisposable
         }
         finally { KeyedStore.MediumObserver.Value = null; }
         Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
+    }
+
+    /// <summary>⛔ THE BOUNDARY'S '24' IS A RECORD WRITE'S ALONE (review finding R1-1 of kb/Work PB3333). §9.1.13.5 item 4's
+    /// invalid key condition is <i>"An attempt is made to write outside the externally-defined boundaries of a physical
+    /// relative or indexed file"</i>, and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write
+    /// pages the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's '30'
+    /// (<i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
+    /// never '24' with the INVALID KEY branch taken; so is an OPEN OUTPUT whose creation the host refuses to grow the file
+    /// for. Both leave the file as it was: the DELETE's record is still there at the next OPEN.</summary>
+    [Fact]
+    public void RelativeDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
+        bool refusing = false;
+        int refused = 0;
+        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || !Grows(inner, page)) return null;
+                refused++;
+                return HandlePageMedium.Refusal(new IOException("refused by the host", tooLarge));
+            });
+        try
+        {
+            var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            string created = Host("refuse-create.dat");
+            var o = new RelativeConnector(created, 4, KeyedAccess.Random, 4);
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { RelativeStore.MediumObserver.Value = null; }
+        Assert.Equal(["1=AAAA"], Records(host));
+    }
+
+    /// <summary>⛔ THE INDEXED SIBLING OF THE RELATIVE CASE ABOVE (review finding R1-1 of kb/Work PB3334): the boundary's
+    /// '24' is a record WRITE's or REWRITE's alone in an indexed file too (<c>KeyedConnector.RecordWriteFailed</c>, the one
+    /// mapping both organizations share). A DELETE whose copy-on-write pages — the prime entry's leaf and the alternate
+    /// entry's — the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's
+    /// '30', never §9.1.13.5 item 4's '24' with the INVALID KEY branch taken (§14.9.10.4 gives DELETE the invalid key
+    /// condition only for a record the file does not contain), and the permanent error stays in effect (§9.1.13.1); an
+    /// OPEN OUTPUT whose creation the host refuses to grow the file for is '30' as well. The file is unchanged by both:
+    /// the record the DELETE named is still there under the prime key AND the alternate key at the next OPEN.</summary>
+    [Fact]
+    public void IndexedDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("ix-refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
+        bool refusing = false;
+        int refused = 0;
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || !Grows(inner, page)) return null;
+                refused++;
+                return HandlePageMedium.Refusal(new IOException("refused by the host", tooLarge));
+            });
+        try
+        {
+            var c = Indexed(host);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            Assert.Equal(FileStatusCode.Success, c.Write("K001AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Write("K002BBBB"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K001    "));
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K002    "));   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            var o = Indexed(Host("ix-refuse-create.dat"));
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        var r = Indexed(host);
+        Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K001    ", out string byPrime));
+        Assert.Equal("K001AAAA", byPrime);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(0, "    AAAA", out string byAlternate));
+        Assert.Equal("K001AAAA", byAlternate);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K002    ", out _));
+        Assert.Equal(FileStatusCode.Success, r.Close());
+
+        static IndexedConnector Indexed(string host)
+        {
+            var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)]);
+            c.AddAlternateKey([new(4, 4)], duplicates: false);
+            return c;
+        }
     }
 
     /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector

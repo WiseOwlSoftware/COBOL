@@ -17,6 +17,10 @@ internal sealed class PageArrayMedium
 {
     private readonly List<byte[]?> _pages = [];
 
+    /// <summary>The file's length in BYTES (<see cref="IPageMedium.Length"/>): a write past the end extends it to the end of
+    /// the page written, a truncation sets it exactly.</summary>
+    private long _length;
+
     /// <summary>A new view for one run unit's store.</summary>
     public View Open() => new(this);
 
@@ -35,7 +39,7 @@ internal sealed class PageArrayMedium
         /// <summary>The run unit dies now.</summary>
         public void Die() => Dead = true;
 
-        public long PageCount => file._pages.Count;
+        public long Length => file._length;
 
         public void Read(uint page, Span<byte> destination)
         {
@@ -50,15 +54,21 @@ internal sealed class PageArrayMedium
             if (RefuseWrite?.Invoke(page) is { } refusal) throw refusal;
             while (file._pages.Count <= page) file._pages.Add(null);
             file._pages[(int)page] = source[..PageHeader.PageSize].ToArray();
+            file._length = Math.Max(file._length, ((long)page + 1) * PageHeader.PageSize);
         }
 
         public void Sync() { }
 
-        public void SetPageCount(long pages)
+        public void SetLength(long bytes)
         {
             if (Dead) return;
-            if (pages < file._pages.Count) file._pages.RemoveRange((int)pages, file._pages.Count - (int)pages);
+            int pages = (int)((bytes + PageHeader.PageSize - 1) / PageHeader.PageSize);
+            if (pages < file._pages.Count) file._pages.RemoveRange(pages, file._pages.Count - pages);
             while (file._pages.Count < pages) file._pages.Add(null);
+            // The bytes cut off are gone: a partial last page reads zeros past the new length.
+            if (bytes % PageHeader.PageSize is var tail and > 0 && file._pages[pages - 1] is { } last)
+                last.AsSpan((int)tail).Clear();
+            file._length = bytes;
         }
     }
 }
