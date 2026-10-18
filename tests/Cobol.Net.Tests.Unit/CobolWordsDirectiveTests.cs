@@ -301,7 +301,7 @@ public sealed class CobolWordsDirectiveTests
     [Fact] // GR5 — RESERVE makes a fresh word reject when used as a user-defined word.
     public void Compose_Reserve_RejectsTheNewWord()
     {
-        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Reserve, null, "ZZBAR", 0)]);
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Reserve, null, "ZZBAR", default)]);
         Assert.True(ReservedWordSet.Compose(map).RejectsAt("ZZBAR", 2023));
         Assert.False(ReservedWordSet.Default.RejectsAt("ZZBAR", 2023));   // not reserved without the directive
     }
@@ -310,7 +310,7 @@ public sealed class CobolWordsDirectiveTests
     public void Compose_Undefine_SuppressesABaseReservedWord()
     {
         Assert.True(ReservedWordSet.Default.RejectsAt("ACCEPT", 2023));   // ACCEPT is high-confidence reserved
-        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "ACCEPT", null, 0)]);
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "ACCEPT", null, default)]);
         Assert.False(ReservedWordSet.Compose(map).RejectsAt("ACCEPT", 2023));
     }
 
@@ -422,7 +422,7 @@ public sealed class CobolWordsDirectiveTests
     [Fact] // UNDEFINE of a keyword contributes its token type to the types the lexer retypes to IDENTIFIER.
     public void DeReservedTokenTypes_IncludesTheUndefinedKeyword()
     {
-        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "MOVE", null, 0)]);
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Undefine, "MOVE", null, default)]);
         CobolKeywordTokens.TryTokenType("MOVE", out int moveType);
         Assert.Contains(moveType, CobolWordsRewriter.DeReservedTokenTypes(map));
     }
