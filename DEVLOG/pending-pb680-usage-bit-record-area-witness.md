@@ -30,3 +30,13 @@ rule row the goldens touch (GR-13.18.60.4-5) belongs to PB573 and stays PARTIAL 
 **Measured on the way, not changed.** The byte 0xFF in a `PIC X` item orders as 65536 whether it came from a file,
 from `X"FF"` or from `HIGH-VALUE` (the runtime's HIGH-VALUES character is U+FFFF); the goldens use no byte above
 0xF0, so none of their numbers depends on that convention.
+
+**Branch review round 1 (three findings, all test-side).** The exceptions golden now also drives the invalid key
+half: a RELATIVE file and an INDEXED file whose record area is a USAGE BIT item answer 22 (duplicate WRITE, 9.1.13.5
+item 2), 23 (random READ, REWRITE and START of an absent key, 9.1.13.5 item 3), each with and without the INVALID
+KEY phrase, so a USE declarative counter shows the phrase displacing the declarative (9.1.14 items 2 and 3); after an
+unsuccessful WRITE or REWRITE the bit record area still shows the value moved to it (14.9.51.4 GR15, 14.9.35.4
+GR14), the file keeps its original records, and READ NEXT past the last record is AT END, 10. The same compiler
+answered every leg on the first run, so no source changed. The io golden no longer claims GR-13.18.33.4-3 (every FD
+there has one level-1 record, so it never witnessed implicit redefinition), and the exceptions header now labels the
+at-end READ X10, the READ after it X10B and the declarative count X13.
