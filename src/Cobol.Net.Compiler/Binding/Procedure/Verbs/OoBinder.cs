@@ -501,8 +501,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         // shall be a numeric literal" — the ONE predicate CALL's SR23 asks (kb/Work PB1631).
         if (arg.ByValueWritten && arg.Literal is { } byValueLit && !CallBinder.ByValueLiteralAdmitted(byValueLit))
         {
-            ctx.Edition.Error("COBOLNET0828", $"{subject} BY VALUE {ConcatFolder.Spelling(byValueLit)}: literal-2 shall be "
-                + "a numeric literal when the BY VALUE phrase is specified (ISO §14.9.23.3 SR16)");
+            ReportByValueLiteral(subject, ConcatFolder.Spelling(byValueLit));
             return false;
         }
         var (_, nonNumCtx, _, dref, boolCtx, arithCtx) = ConditionBinder.ReduceArgument(arg.Literal, arg.Ref, arg.Bool, arg.Arith);
@@ -513,9 +512,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             if (arg.ByValueWritten && !alias.IsNumeric)
             {
-                ctx.Edition.Error("COBOLNET0828", $"{subject} BY VALUE {alias.Word}: the argument is the "
-                    + $"{alias.Described}, and literal-2 shall be a numeric literal when the BY VALUE phrase is specified "
-                    + "(ISO §14.9.23.3 SR16)");
+                ReportByValueLiteral(subject, $"{alias.Word} (the {alias.Described})");
                 return false;
             }
             return ZeroLengthLiteralAdmitted(host.Expr.AliasOperand(alias), alias.Word, subject);
@@ -528,8 +525,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (place is null) return false;   // reported by the resolver or the receiving chokepoint
             if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
             {
-                ctx.Edition.Error("COBOLNET0828", $"{subject} BY REFERENCE '{dref.GetText()}' references OBJECT data — "
-                    + "factory/instance working-storage may not cross an INVOKE by reference (ISO §14.9.23.3 SR 10)");
+                ReportObjectDataByReference(subject, dref.GetText(), "pass it BY CONTENT");
                 return false;
             }
             if (byReference)
@@ -559,6 +555,24 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         }
         return true;   // a numeric literal-2 (SR16 asked above)
     }
+
+    /// <summary>§14.9.23.3 SR16 — "If literal-2 or its corresponding formal parameter is specified with the BY VALUE
+    /// phrase, literal-2 shall be a numeric literal" — reported for <paramref name="literal"/> as written (a constant-name
+    /// or symbolic-character names what it stands for). One code on every receiver: the typed lane and the NULL
+    /// receiver's screen (a universal receiver refuses BY VALUE outright, SR6).</summary>
+    private void ReportByValueLiteral(string subject, string literal) =>
+        ctx.Edition.Error(DiagnosticCatalog.InvokeByValueLiteralNotNumeric,
+            $"{subject}: BY VALUE {literal}: literal-2 shall be a numeric literal when it or its corresponding formal "
+            + "parameter is specified with the BY VALUE phrase (ISO §14.9.23.3 SR16)");
+
+    /// <summary>§14.9.23.3 SR10 — "Identifier-3 shall not reference a data item defined in the file or working-storage
+    /// section of a factory or instance object" — reported for the argument <paramref name="written"/> on every receiver:
+    /// an explicit BY REFERENCE through a typed receiver or NULL (where <paramref name="remedy"/> is BY CONTENT), and any
+    /// argument through a universal one, which SR6 makes BY REFERENCE.</summary>
+    private void ReportObjectDataByReference(string subject, string written, string remedy) =>
+        ctx.Edition.Error(DiagnosticCatalog.InvokeObjectDataByReference,
+            $"{subject}: the BY REFERENCE argument '{written}' is OBJECT (factory/instance) data, which may not cross "
+            + $"an INVOKE by reference (ISO §14.9.23.3 SR10); {remedy}");
 
     /// <summary>§14.9.23.3 SR17 — "Literal-2 shall not be a zero-length literal" — over a literal-2 already mapped by the
     /// one literal mapping; asked by the typed lane's literal arm and the NULL receiver's screen. False having
@@ -1078,8 +1092,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // which is identifier-5 rather than literal-2 (§8.4.3.1.3 SR7) and whose class §14.9.23.3 SR15 admits.
             if (arg.Literal is { } byValueLit && !CallBinder.ByValueLiteralAdmitted(byValueLit))
             {
-                Err($"BY VALUE {ConcatFolder.Spelling(byValueLit)}: literal-2 shall be a numeric literal when the BY VALUE phrase is "
-                    + "specified (ISO §14.9.23.3 SR16)");
+                ReportByValueLiteral($"{verb} \"{methodName}\"", ConcatFolder.Spelling(byValueLit));
                 return null;
             }
             if (arg.ByValueWritten && !byValue)
@@ -1220,9 +1233,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // written literal is asked above (only a numeric constant-name satisfies it).
             if (byValue && !alias.IsNumeric)
             {
-                Err($"BY VALUE {alias.Word}: the argument is the {alias.Described}, and literal-2 shall be a numeric "
-                    + "literal when it or its corresponding formal parameter is specified with the BY VALUE phrase "
-                    + "(ISO §14.9.23.3 SR16)");
+                ReportByValueLiteral($"{verb} \"{methodName}\"", $"{alias.Word} (the {alias.Described})");
                 return null;
             }
             literal2 = host.Expr.AliasOperand(alias);
@@ -1329,9 +1340,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT (GR6a2, above).
             if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
             {
-                Err($"BY REFERENCE argument '{argText}' references OBJECT data — factory/instance "
-                    + "working-storage may not cross an INVOKE by reference (ISO §14.9.23.3 SR 10); pass it "
-                    + "BY CONTENT");
+                ReportObjectDataByReference($"{verb} \"{methodName}\"", argText, "pass it BY CONTENT");
                 return null;
             }
             // SR9 over the resolved identifier-3 and SR12's byte-alignment proof — the screens CALL's SR3/SR6 run,
@@ -1621,10 +1630,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!ActiveClassSubordinateAdmitted(p, "INVOKE USING argument")) return BoundRejected.Reported(ctx.Edition);
             if (ctx.Data.OoIsObjectData(p.Item))
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
-                    $"INVOKE through a universal object reference: '{p.Item.CobolName}' is OBJECT "
-                    + "(factory/instance) data — it may not cross BY REFERENCE (ISO §14.9.23.3 SR10), and "
-                    + "the universal path has no BY CONTENT fallback (SR6)");
+                ReportObjectDataByReference("INVOKE through a universal object reference", DataBinder.WrittenText(dref),
+                    "the universal path has no BY CONTENT fallback (SR6)");
+                return BoundRejected.Reported(ctx.Edition);
             }
             // A REFERENCE-MODIFIED argument is the unique data item §8.4.3.3.4 GR5/GR6 create, never the description of
             // the item it windows (it used to cross under identifier-1's whole description).

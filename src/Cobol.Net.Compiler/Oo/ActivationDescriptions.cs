@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 
+using System.Globalization;
 using CobolNet.Binding;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
@@ -329,7 +330,7 @@ public static class ActivationDescriptions
             : (ClausesOf(item, p, p.Clause?.Key ?? "", Invariant(p.Length)), phrases);
     }
 
-    private static string Invariant(int n) => n.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private static string Invariant(int n) => n.ToString(CultureInfo.InvariantCulture);
 
     /// <summary><see cref="ActivationDescription.AnyLengthClauses"/>: the <see cref="ElementaryClauses"/> of
     /// <paramref name="item"/> as if it were described with the ANY LENGTH clause — §13.18.2.3 SR1's one-symbol PICTURE,
@@ -347,16 +348,19 @@ public static class ActivationDescriptions
 
     /// <summary>The one spelling of ISO §9.3.6 match rule 3 e)'s clause identity of <paramref name="item"/> described
     /// by <paramref name="p"/> (its own PICTURE, or a bit / national group's as-if one), given the PICTURE and LENGTH
-    /// texts.</summary>
+    /// texts. ⛔ Invariant culture throughout: the key is compiled into the program and compared ordinally with a key
+    /// another compilation built, and a negative <see cref="PicInfo.Scale"/> (<c>PIC 99P</c>) printed U+2212 under sv-SE
+    /// (kb/Work PB3257).</summary>
     private static string ClausesOf(DataItem item, PicInfo p, string picture, string length)
     {
-        string locale = p.LocaleEdit is { } le ? $"|LOCALE {(le.Locale.IsCurrent ? "-" : "N")} SIZE {le.Size} {le.Picture}" : "";
+        string locale = p.LocaleEdit is { } le
+            ? string.Create(CultureInfo.InvariantCulture, $"|LOCALE {(le.Locale.IsCurrent ? "-" : "N")} SIZE {le.Size} {le.Picture}") : "";
         string dynamic = item.IsDynamicLength
-            ? $"|DYNAMIC LENGTH {item.DynMaxSize} {CobolNames.Fold(item.DynStructure?.Name ?? "")}" : "";
-        return $"USAGE {p.Usage}|SIGN {(p.Signed ? "S" : "U")} {p.SignKind}|DIGITS {p.Digits}.{p.Scale}"
-            + $"|LENGTH {length}"
+            ? string.Create(CultureInfo.InvariantCulture, $"|DYNAMIC LENGTH {item.DynMaxSize} {CobolNames.Fold(item.DynStructure?.Name ?? "")}") : "";
+        return string.Create(CultureInfo.InvariantCulture,
+            $"USAGE {p.Usage}|SIGN {(p.Signed ? "S" : "U")} {p.SignKind}|DIGITS {p.Digits}.{p.Scale}|LENGTH {length}"
             + $"|{(item.BlankWhenZero ? "BLANK WHEN ZERO" : "-")}|{(item.Justified ? "JUSTIFIED" : "-")}"
-            + $"|{(item.IsAligned ? "ALIGNED" : "-")}{dynamic}|PICTURE {picture}{locale}";
+            + $"|{(item.IsAligned ? "ALIGNED" : "-")}{dynamic}|PICTURE {picture}{locale}");
     }
 
     /// <summary>⛔ The reader's spelling of the clauses <see cref="ClausesOf"/> keys, one phrase per clause
@@ -380,7 +384,8 @@ public static class ActivationDescriptions
             phrases.Add("DYNAMIC LENGTH" + (item.DynStructure?.Name is { } structure ? " " + structure : "")
                 + (item.DynMaxSize != CobolDynString.MaxLength ? " LIMIT " + Invariant(item.DynMaxSize) : ""));
         if (p.LocaleEdit is { } le)
-            phrases.Add($"LOCALE{(le.Locale.Named is { } named ? " " + named.External : "")} SIZE {le.Size}");
+            phrases.Add(string.Create(CultureInfo.InvariantCulture,
+                $"LOCALE{(le.Locale.Named is { } named ? " " + named.External : "")} SIZE {le.Size}"));
         return [.. phrases];
     }
 

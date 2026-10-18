@@ -3794,7 +3794,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET0828"
+  "expect": "COBOLNET4268"
  },
  "pb1051-implements-by-reference-vs-prototype-by-value": {
   "refuse-at": [
