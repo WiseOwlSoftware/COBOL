@@ -137,3 +137,13 @@ STATUS item holds '30', the run continues under either clause and ends abnormall
 covers the CLOSE or when checking is enabled with no USE procedure, and the next OPEN is '00'. The records survive a
 refused promotion; after a refused re-adoption the sibling keeps reading, and the next OPEN I-O fences. All 20 cases are
 red with both arms of `KeyedConnector.CloseCore` disabled.
+
+The round-2 gates. CI's Linux legs at `ffc17d2d0` were RED on one unit case,
+`AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names`. The inventory's DOC-A.1-103 row named the new
+case and the register's Pinned by cell did not, so the cell now names it (`d2530f7d2`). The conformance and guard legs were
+GREEN at that head, because PB3334's re-captured goldens came in with the merge. At `d2530f7d2` the Windows run
+`20261018T232911Z-0220c3` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's
+whole-population run: Conformance 6,574 · Unit 569 · Characterization 31 — Conformance 11,245/17,819 · Unit 33,844/34,413
+· Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`, and the 20 new cases passed in leg 1. CI's Linux
+legs printed `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD
+d2530f7d2) ===`.
