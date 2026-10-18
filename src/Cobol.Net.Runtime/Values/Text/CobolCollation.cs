@@ -92,9 +92,10 @@ public abstract class CobolCollation
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;
 
-    /// <summary>This sequence frozen for one statement (ISO §14.6.6 r5 — a SORT/MERGE keeps the collating sequence in
-    /// effect when it began; a locale switch during its execution has no effect on it): a table sequence is already
-    /// immutable and returns itself; the current-locale LOCALE sequence returns itself bound to the locale current NOW.</summary>
+    /// <summary>This sequence frozen for one statement or one open file (ISO §14.6.6 r5 — a SORT/MERGE keeps the
+    /// collating sequence in effect when it began; a locale switch during its execution has no effect on it — and
+    /// §12.4.5.7.4 GR1, an indexed file's key sequence is a fixed file attribute): a table sequence is already immutable
+    /// and returns itself; a LOCALE sequence returns itself bound to the locale current NOW and to ONE collator.</summary>
     public virtual CobolCollation Snapshot() => this;
 
     /// <summary>Membership of <paramref name="read"/> in the THROUGH range [<paramref name="lo"/>, <paramref name="hi"/>]

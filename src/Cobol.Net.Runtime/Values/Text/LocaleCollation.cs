@@ -42,6 +42,14 @@ public sealed class LocaleCollation : CobolCollation
 
     private readonly string? _localeTag;
 
+    /// <summary>True for a <see cref="Snapshot"/>: the sequence resolves its collator ONCE, at its first use, and keeps
+    /// it (<see cref="_pinned"/>).</summary>
+    private readonly bool _pins;
+
+    /// <summary>A snapshot's collator, set by its first <see cref="Resolve"/>; null before it and for every sequence that
+    /// is not a snapshot.</summary>
+    private Collator? _pinned;
+
     /// <summary>The <c>IS LOCALE</c> phrase without a locale-name: the run unit's current LC_COLLATE locale at each use.</summary>
     public static LocaleCollation Current { get; } = new(null);
 
@@ -49,9 +57,12 @@ public sealed class LocaleCollation : CobolCollation
     /// a locale like any other, e.g. <c>LOCALE INV IS "INVARIANT"</c> — or an ORDER TABLE locale tag); NULL = the
     /// current locale at each use. ⚠ "" and null differ: a sequence bound to the root stays the root after a SET
     /// LOCALE; the current-locale form follows it.</summary>
-    public LocaleCollation(string? localeTag)
+    public LocaleCollation(string? localeTag) : this(localeTag, pins: false) { }
+
+    private LocaleCollation(string? localeTag, bool pins)
     {
         _localeTag = localeTag?.Trim();
+        _pins = pins;
     }
 
     /// <summary>The bound locale tag, or null for "the current locale at each use".</summary>
@@ -60,8 +71,17 @@ public sealed class LocaleCollation : CobolCollation
     /// <summary>The collator this sequence uses right now (re-resolved per use for the current-locale form). A NAMED
     /// locale that is not available in this operating environment is EC-LOCALE-MISSING at the point of use (§8.2.1;
     /// DESIGN-locale-facility L1 item 4 — availability is a run-time property, the compiler never resolved it);
-    /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).</summary>
+    /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).
+    /// <para>A <see cref="Snapshot"/> resolves at its first use and answers that collator from then on, so every key it
+    /// builds comes from ONE collator: the engine's caches can be dropped between two uses (<c>LocaleManager.ClearCache</c>,
+    /// which makes the next resolution a new collator), and <see cref="CollationKey.CompareTo"/> refuses keys of two.</para></summary>
     public Collator Resolve()
+    {
+        if (_pins) return _pinned ?? Interlocked.CompareExchange(ref _pinned, ResolveNow(), null) ?? _pinned;
+        return ResolveNow();
+    }
+
+    private Collator ResolveNow()
     {
         if (_localeTag is { } tag)
         {
@@ -73,11 +93,13 @@ public sealed class LocaleCollation : CobolCollation
     }
 
     /// <summary>§14.6.6 r5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
-    /// processing of that SORT or MERGE statement": the current-locale form frozen to the locale current NOW (the
-    /// statement's start; a SET LOCALE in the input procedure must not move the sort's sequence); a named form is
-    /// already fixed and returns itself.</summary>
+    /// processing of that SORT or MERGE statement" — and §12.4.5.7.4 GR1 — "Each collating sequence is a fixed file
+    /// attribute": the sequence frozen for one statement or one open file. The current-locale form is bound to the
+    /// locale current NOW (a SET LOCALE in the input procedure, or between two statements on the open file, must not
+    /// move the order), and either form PINS its collator at its first use (<see cref="Resolve"/>), so the keys of one
+    /// statement or one open file are all one collator's. A snapshot is its own snapshot.</summary>
     public override CobolCollation Snapshot() =>
-        _localeTag is null ? new LocaleCollation(RunUnit.Current.Locale.Current(LocaleCategory.Collate)) : this;
+        _pins ? this : new LocaleCollation(_localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Collate), pins: true);
 
     /// <inheritdoc/>
     public override int Compare(string? left, string? right)
