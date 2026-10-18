@@ -230,6 +230,7 @@ internal static class UsageCollectionPass
             Channel(n.Returning);
             return false;
         }
+        public bool Visit(BoundInvokeNull n) => false;   // §14.9.23.4 GR5: nothing crosses, nothing is delivered
         public bool Visit(BoundGoToDepending n) { Op(n.Selector); return false; }
         public bool Visit(BoundGoback n) { P(n.ReturningSource); return false; }   // GOBACK RETURNING group ≡ a whole-group MOVE source
         public bool Visit(BoundSetTo n) { foreach (var t in n.Targets) SetT(t); return false; }
