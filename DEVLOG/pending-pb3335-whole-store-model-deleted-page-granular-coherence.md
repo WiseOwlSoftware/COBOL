@@ -117,3 +117,23 @@ red of the conformance and guard legs is one of the 37 INDEXED NIST programs who
 differs from its format-5 golden. That is review w1118-a4 R2-1, on -26's reviewed head `7e585e723`, and it is fixed on
 PB3334's round-2 finisher branch (`worktree-wf_14a1e62b-326-32` at `d633581e9`), which lands before this branch; the
 landing's merge of origin/main brings the re-captured goldens in.
+
+**Finisher (round 2).** Two jobs: merge PB3334's reviewed head before it lands, and add the test that review lead R2-L1
+asked for. The branch merged `worktree-wf_14a1e62b-326-32` at `d633581e9` (PB3334's round-2 finisher, with the 37
+re-captured INDEXED written-file goldens that were the reds of this branch's Linux legs), then origin/main. Eight files
+conflicted, and every resolution keeps both sides. The runtime hunks were doc comments and one blank line. The
+`PagedFile.Enter` rule (`_writable && exclusive`) and `_fenceOwed` are unchanged. In `FileBoundaryTests`, -32's only change
+was the loss, at its own merge `d745abaab`, of PB3333's REWRITE leg of the host-refusal theory, which main carries; this
+branch keeps the leg. The inventory's four boundary rows keep this branch's text and take -32's witnesses through one
+`record_verdicts.py` batch (GAP 66 → 66).
+
+R2-L1: no compiled program checked a keyed CLOSE that answers '30'. `KeyedClosePermanentErrorWitnessTests` now has 20
+cases. They cover both organizations, both refusals (the CLOSE's promotion, and the INPUT sibling's re-adoption) and
+every USE × FILE STATUS combination, plus a FILE STATUS clause alone with EC-I-O checking enabled. The refusal comes from
+the fault-injecting medium, which is per async flow, so the program runs in the test's own process through its generated
+.NET host entry, and its BY REFERENCE formal carries its trace back. The expected values come from §14.9.6.4 GR4,
+§9.1.13.6 1), §9.1.13.1 with DOC-A.1-103, and GR8 with the connector's open-mode rule: the USE procedure runs, the FILE
+STATUS item holds '30', the run continues under either clause and ends abnormally with EC-I-O-PERMANENT-ERROR when neither
+covers the CLOSE or when checking is enabled with no USE procedure, and the next OPEN is '00'. The records survive a
+refused promotion; after a refused re-adoption the sibling keeps reading, and the next OPEN I-O fences. All 20 cases are
+red with both arms of `KeyedConnector.CloseCore` disabled.
