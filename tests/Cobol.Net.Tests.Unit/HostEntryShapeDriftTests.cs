@@ -126,7 +126,7 @@ public sealed class HostEntryShapeDriftTests : CobolNetTestBase
                     || (s is TryStatementSyntax t && t.Catches.Count == 0 && t.Finally is not null
                         && t.Block.Statements.Count == 1 && t.Block.Statements[0].ToString().StartsWith("ProgramRegistry.CallProgram(", StringComparison.Ordinal))
                     || text.StartsWith("{ if (HostLanding.TryDecode(", StringComparison.Ordinal)
-                    || System.Text.RegularExpressions.Regex.IsMatch(text, @"^\{ if \(\w+_Record\.__TryGet\(")
+                    || System.Text.RegularExpressions.Regex.IsMatch(text, @"^\{ if \(\w+_Record\.__TryGet(Area)?\(")
                     || System.Text.RegularExpressions.Regex.IsMatch(text, @"^\S+ __hres = default;$")
                     || text == "if (__hbad is not null) throw __hbad;"
                     || text == "return __hres;";
@@ -135,7 +135,7 @@ public sealed class HostEntryShapeDriftTests : CobolNetTestBase
             // A finally holds only decodes: the validity decode or the storage's own value.
             foreach (var fin in call.Body.DescendantNodes().OfType<FinallyClauseSyntax>())
                 Assert.All(fin.Block.Statements, s => Assert.Matches(
-                    @"^(\{ if \(HostLanding\.TryDecode\(|\{ if \(\w+_Record\.__TryGet\(|if \(__hc\d+ is not null\) \{ |\w+ = __hc\d+\.Value;)", s.ToString()));
+                    @"^(\{ if \(HostLanding\.TryDecode\(|\{ if \(\w+_Record\.__TryGet(Area)?\(|if \(__hc\d+ is not null\) \{ |\w+ = __hc\d+\.Value;)", s.ToString()));
             var cancel = entry.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Cancel");
             Assert.StartsWith("ProgramRegistry.Cancel(", cancel.ExpressionBody!.Expression.ToString());
         }
@@ -223,8 +223,8 @@ public sealed class HostEntryShapeDriftTests : CobolNetTestBase
             "HostLanding.RequireCapacity(", r.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "__PutDyn").Body!.ToString()));
     }
 
-    /// <summary>A strongly-typed group holding BOTH a dynamic-length item and a pointer, beside two units that publish.</summary>
-    private const string RestrictionFixture = """
+    /// <summary>A strongly-typed group holding BOTH a dynamic-length item and a pointer, beside two units that publish a plain entry.</summary>
+    private const string AreaFixture = """
                IDENTIFICATION DIVISION.
                PROGRAM-ID. H3MAIN.
                PROCEDURE DIVISION.
@@ -254,29 +254,53 @@ public sealed class HostEntryShapeDriftTests : CobolNetTestBase
                END PROGRAM H3BOTH.
                """;
 
-    /// <summary>⛔ THE §14.2.3 13) RESTRICTION IS THE BOUNDARY'S (DESIGN-external-repository §4.3, DOC-A.1-141; kb/Work
-    /// PB3273). A unit one of whose group formals holds both a variable-length component (§8.5.1.12.1) and a pointer or
-    /// object-reference member publishes NO entry — the other units of the group still do — because the COBOL boundary
-    /// carries that group only as its storage AREA holding its references and its components together (kb/Work PB3139),
-    /// which no published record composes: an entry's argument would reach the activated program's formal without an area,
-    /// whose copy-in of that description is the Tier-C loud. The second half is the pin: the day the formal's copy-in
-    /// loses that loud this test is red, and the restriction (<c>PublishedRecordEmitter.Renders</c>) is to be lifted
-    /// together with the record's composition of the area's components beside its slots, never left standing and never
-    /// lifted alone.</summary>
+    /// <summary>⛔ A GROUP HOLDING A VARIABLE-LENGTH COMPONENT AND A REFERENCE HAS ITS ENTRY, AS THE DESCRIPTION'S OWN CELL AREA
+    /// (DESIGN-external-repository §4.3; kb/Work PB3273). ISO §14.2.3 13) obliges the implementor to STATE the restrictions
+    /// of a non-COBOL activator, and this one once stood only because the published record composed no area: the COBOL
+    /// boundary carries such a group as a cell area holding its references and its components together (kb/Work PB3139), and
+    /// the activated program's formal is laid over an area only when it states the group's shape. So the record must (1)
+    /// build its area from the DESCRIPTION'S fresh cell (<c>DataEmitter.FreshArea</c>, the factory the program's own area
+    /// formal takes — its tables present with their element recipe, §8.5.1.9.5 — never a second recipe written in the
+    /// record), (2) distribute the carrier its other form composes into that cell (<c>StoreVarGroupAt</c>, the store a
+    /// formal's copy-in makes) and set the references on top (<c>__PutSlots</c>), (3) state the area WITH the group's atoms
+    /// and first component (<c>Shape</c>, <c>DynBase</c>), and (4) read the area back by the inverse walk
+    /// (<c>__TryGetArea</c>). The test is red when any part is dropped.</summary>
     [Fact]
-    public void AGroupHoldingAComponentAndAReference_PublishesNoEntry_WhileTheBoundaryHasNoFormForIt()
+    public void AGroupHoldingAComponentAndAReference_PublishesItsEntry_AsTheDescriptionsOwnCellArea()
     {
-        var (ok, stdout, detail) = CompileAndRun(RestrictionFixture, dialectLevel: 2023);
+        var (ok, stdout, detail) = CompileAndRun(AreaFixture, dialectLevel: 2023);
         Assert.True(ok, detail);
         Assert.Equal("MAIN", stdout);
-        string generated = File.ReadAllText(Path.Combine(TempDir, "prog.g.cs"));
-        var root = CSharpSyntaxTree.ParseText(generated).GetRoot();
+        var root = CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(TempDir, "prog.g.cs"))).GetRoot();
         var entries = root.DescendantNodes().OfType<ClassDeclarationSyntax>()
             .Where(c => c.Members.OfType<MethodDeclarationSyntax>().Any(m => m.Identifier.Text == "Call")
                         && c.Modifiers.Any(SyntaxKind.StaticKeyword))
-            .Select(c => c.Identifier.Text).Order().ToArray();
-        Assert.Equal(["H3MAIN", "H3OK"], entries);
-        Assert.Contains("variable-length group image of 'L-B' with a pointer/object-class leaf", generated);
+            .ToList();
+        Assert.Equal(["H3BOTH", "H3MAIN", "H3OK"], entries.Select(c => c.Identifier.Text).Order().ToArray());
+        var both = entries.Single(c => c.Identifier.Text == "H3BOTH");
+
+        // (1) the description's own fresh cell, a field of the entry that names its record's `_P_` profile
+        var seed = both.Members.OfType<FieldDeclarationSyntax>().Single(f => f.Declaration.Variables.Any(v => v.Identifier.Text == "__hs0"));
+        Assert.Equal("global::System.Func<StorageCell>", seed.Declaration.Type.ToString());
+        string factory = seed.Declaration.Variables.Single().Initializer!.Value.ToString();
+        Assert.StartsWith("static () => new StorageCell { Ref = ", factory);
+        Assert.Contains("PointerImage.NullImage", factory);
+        Assert.Contains(both.Members.OfType<FieldDeclarationSyntax>(), f => f.Declaration.Variables.Any(v => factory.Contains(v.Identifier.Text) && v.Identifier.Text.StartsWith("_P_", StringComparison.Ordinal)));
+
+        // (2) the area: fresh cell, the carrier distributed into it, then the references
+        var record = both.DescendantNodes().OfType<RecordDeclarationSyntax>().Single(r => r.Identifier.Text == "L_B_Record");
+        string area = record.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "__Area").Body!.ToString().Replace("\r", "");
+        Assert.Matches(@"var __c = __fresh\(\);\s*__c\.StoreVarGroupAt\(.*__Var\(__parameter\).*\);\s*__PutSlots\(__c, 0, 0\);\s*return __c;", area);
+
+        // (3) the argument states the area's shape and first component, and is passed the fresh cell
+        string call = both.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "Call").Body!.ToString();
+        Assert.Contains("var __hc0 = L_B.__Area(\"L_B\", __hs0);", call);
+        Assert.Contains("Area: new CellPointer(__hc0, 0) { DynBase = (int)(0), Shape = __GroupAtoms.", call);
+
+        // (4) the area read back, the carrier by the cell's own walk and each reference from its slot
+        string back = record.Members.OfType<MethodDeclarationSyntax>().Single(m => m.Identifier.Text == "__TryGetArea").Body!.ToString();
+        Assert.Contains("__c.VarGroupAt(", back);
+        Assert.Contains("L_B_Record.__TryGetArea(__hc0,", call);
     }
 
     /// <summary>⛔ ONE RENDERER (DESIGN-external-repository §17.3): what a host entry's argument states for §14.9.4.4 3) d) —
