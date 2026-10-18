@@ -68,3 +68,4 @@ taken. (4) The CLOSE's promotion and the OPEN's fence and creation had no refusa
 now refuse every write and sync and kill after every write. (5) Three refused-statement rows of 2.2.1.16 still said the
 CLOSE promotes after a refused first statement; they now say it only syncs, and the new OPEN cases corrected two more rows
 (an unfinished creation leaves a file the next OPEN adopts as empty, not '30'). (6) A misquoted §9.1.13.5 item 4 was fixed.
+The review round's gate, run `TestResults/build-local/20261018T175021Z-266291`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,261/17,682 · Unit 33,887/34,247 · Characterization 5/36 in leg 1); every new case and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS.
