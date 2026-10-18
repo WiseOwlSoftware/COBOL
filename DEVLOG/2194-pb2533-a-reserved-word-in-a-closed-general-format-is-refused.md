@@ -1,4 +1,4 @@
-## PB2533: a reserved word in a closed general format is refused by name, at the parse layer, from the same table
+## Entry 2194 — 2026-10-18 03:50 PDT — PB2533: a reserved word in a closed general format is refused by name, at the parse layer, from the same table
 
 **The defect.** Ten closed general formats end their alternative list in the `unrecognizedClause` error production,
 and `ClosedFormatPass` refuses whatever it recognized by name (COBOLNET1941 / 1970 / 1971). The production begins at
@@ -48,3 +48,4 @@ predates this change. `ClosedFormatReservedWordTests` pins each format, one diag
 missing period, a header out of order, a malformed RECORD clause). `ClosedFormatDriftTests` holds every rule that
 calls the production to a `ByRuleIndex` entry. No inventory row was defective (the sources were already refused), so
 `closes_rows: []` with its reason.
+
