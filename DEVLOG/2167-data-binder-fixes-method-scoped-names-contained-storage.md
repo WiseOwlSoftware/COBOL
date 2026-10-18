@@ -1,4 +1,4 @@
-## Data binder fixes: method-scoped names, contained storage claims, SPECIAL-NAMES redeclaration, one SR11 zero-length test, BY VALUE formal class
+## Entry 2167 — 2026-10-17 18:10 PDT — Data binder fixes: method-scoped names, contained storage claims, SPECIAL-NAMES redeclaration, one SR11 zero-length test, BY VALUE formal class
 
 Waves 1111 group D and 1112 group A, one root: `src/Cobol.Net.Compiler/Binding/DataBinder*.cs` and its screens. Five notes
 landed (PB3222, PB3218, PB3286, PB3216 in wave 1111; PB3192 in wave 1112, which cherry-picked wave 1111's unlanded commits
@@ -77,3 +77,4 @@ Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20
 baseline for `cobolnet-raw-diagnostic-code-literal` went 245 to 244 and was locked in.
 
 Codes: COBOLNET4250 used; 4251 and 4252 returned.
+
