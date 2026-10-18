@@ -58,3 +58,5 @@ outside the externally-defined boundaries of a physical relative or indexed file
 is a seek; a sequential READ re-seeks from values (warm-cache page lookups) so it survives any interleaved change. Duplication:
 one key comparison mechanism (the key orders), one frame codec, one boundary mapping (`Failed`). Silent failures: every
 `StoreStatus` maps to '24'/'30' or a READ/START `Unsuccessful`.
+
+**Gate.** Run `TestResults/build-local/20261018T170109Z-82a5d9` (gated at `ac19595c5`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,235/17,605 · Unit 33,858/34,267 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. The first gate (`20261018T165843Z-bc88d9`) was RED on one CITATIONS phantom (a design-section reference split across a doc-comment line, `KeyedStoreTable.cs`), fixed. The golden passed in leg 1 at 2002 and 2023; the 32 `IndexedEngineTests` cases passed. Semgrep verify PASS (one count down, not this branch's). LINUX GATE: the lander's (batched gating).
