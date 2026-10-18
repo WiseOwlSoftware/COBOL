@@ -142,7 +142,7 @@ internal abstract class KeyedStore
     {
         _coherent = coherent;
         if (File is { } live && (live.Writable || !writable)) return StoreStatus.Ok;
-        if (File is null && _medium.PageCount == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
+        if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
         var status = PagedFile.Open(_medium, writable, coherent, out var opened, _cachePages);
         if (status == StoreStatus.Ok) File = opened;
         return status;
@@ -204,9 +204,8 @@ internal abstract class KeyedStore
             Discard(change.Trees);
             return change.Status;
         }
-        int pages = 0;
-        foreach (var t in change.Trees) pages += t.Tree.PagesToWrite;
-        var status = file.Begin(pages, out var statement, ordinals: ordinals, entered: true);
+        var status = file.Begin(StatementBound.Of([.. change.Trees.Select(t => t.Tree)]), out var statement,
+            ordinals: ordinals, entered: true);
         if (status != StoreStatus.Ok)
         {
             Discard(change.Trees);

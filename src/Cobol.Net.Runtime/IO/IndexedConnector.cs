@@ -215,9 +215,10 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <summary>The key order a key's collating sequence selects (2.2.1.4): ORDINAL bytes for the native sequence over
     /// the native character set, WEIGHTED (decode, then the sequence — §12.4.5.7.4) for a declared sequence or a CODE-SET
-    /// conversion, whose channel byte order is the coded set's.</summary>
-    private IKeyOrder KeyOrder(CobolCollation? collation) =>
-        collation is null && CodeSet is null ? KeyOrders.Ordinal : new WeightedKeyOrder(CodeSet, collation);
+    /// conversion, whose channel byte order is the coded set's. <paramref name="keyLength"/> is the key's length in
+    /// character positions, the record key a START's partial key is a prefix of (§14.9.41.4 GR14).</summary>
+    private IKeyOrder KeyOrder(CobolCollation? collation, int keyLength) =>
+        collation is null && CodeSet is null ? KeyOrders.Ordinal : new WeightedKeyOrder(CodeSet, collation, keyLength);
 
     // ── OPEN (ISO §14.9.27; the arms are KeyedConnector.OpenCore's) ─────────────────────────────────────────────
 
@@ -231,8 +232,8 @@ public sealed class IndexedConnector : KeyedConnector
         _lastWrittenPrime = null;
         _lastReadPrime = null;
         _lastWrittenPrimeId = null;
-        var alternates = _alts.Select(a => KeyOrder(a.Collation)).ToArray();
-        _orders = new IndexedKeyOrders(KeyOrder(_primeCollation), alternates,
+        var alternates = _alts.Select(a => KeyOrder(a.Collation, a.Len)).ToArray();
+        _orders = new IndexedKeyOrders(KeyOrder(_primeCollation, _primeLen), alternates,
             [.. alternates.Select(order => (IKeyOrder)new CompositeKeyOrder(order))]);
         _suppress = [.. _alts.Select(a => a.Suppress is { } value ? KeyBytes(value) : null)];
     }
@@ -572,7 +573,7 @@ public sealed class IndexedConnector : KeyedConnector
         // release order in the physical file).
         var released = _st.Release(Entered, _orders, prime,
             ordinal => FrameOf(framed, ReleaseOrdinals(ordinal)), alternates, out bool done);
-        if (Failed(released) is { } refused) return Status = refused;      // '24' §14.9.51.4 GR42 d) / '30' §9.1.13.6 1)
+        if (RecordWriteFailed(released) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR42 d) / '30' §9.1.13.6 1)
         if (!done) return Status = FileStatusCode.DuplicateKey;            // '22' — the tree declined (GR42 b))
         if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
         _lastWrittenPrimeId = prime;   // §9.1.16 lock identity of the record just released (§14.9.51 GR11)
@@ -655,7 +656,7 @@ public sealed class IndexedConnector : KeyedConnector
                 if (key + 1 < ordinals.Length) ordinals[key + 1] = (long)ordinal;   // GR24 b)
             return FrameOf(framed, ordinals);
         }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done);
-        if (Failed(replaced) is { } refused) return Status = refused;      // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         if (!done) return Status = FileStatusCode.RecordNotFound;
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
     }
@@ -687,7 +688,7 @@ public sealed class IndexedConnector : KeyedConnector
             if (AlternateValue(target.Image, target.Extents, i) is { } value)
                 entries.Add((i, CompositeKeyOrder.Compose(value, OrdinalOf(target, i))));
         var removed = _st.Remove(Entered, _orders, prime, entries, out bool done);
-        if (Failed(removed) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1
+        if (Failed(removed) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
