@@ -54,4 +54,13 @@ member index for this tree, so `member_index.py --current` recorded one into the
 6573141bf007, the same C# tree as origin/main 3f3e0514a). It then planned 8 groups for 1.76 points: PB762, PB1515, PB3314,
 PB2849, PB674, PB996, PB1925 and PB2533.
 
+**Branch review, round 1 (two findings, both register-only).** R1-1: PB2777's re-scoping branch landed (PR #204) with its
+`cluster` still `["PB1754"]`, so `plan_wave.py --cluster PB3353` could never plan the one SORT/MERGE capacity note the lead
+waits on. PB2777's `cluster` is now `["PB1754", "PB3353"]`; `work.py next --cluster PB3353` lists it and the plan dry run
+(`--budget-points 40`) offers it as group A, a finisher on `scripts/arch/perf_baseline.py`. R1-2: the sequencing edge "PB3337
+and PB3338 need PB284 first" lived only in PB284's closing paragraph and the registrar's report, not in the end state the
+design branch's landing follows. PB3353's end state gains item 4: PB3337 gains `PB284` in `blocked_by` (PB3338 inherits it
+through PB3337) and the check at that landing is `work.py next --cluster PB3330`. The notes cannot carry the edge on main,
+because PB3337 and PB3338 exist only on the design branch.
+
 Notes only: no change under `src/` or `tests/`.
