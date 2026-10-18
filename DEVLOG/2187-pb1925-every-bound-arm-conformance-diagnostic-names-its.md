@@ -1,4 +1,4 @@
-## PB1925: every bound-arm conformance diagnostic names its statement, not only the SORT and MERGE ones
+## Entry 2187 — 2026-10-18 01:44 PDT — PB1925: every bound-arm conformance diagnostic names its statement, not only the SORT and MERGE ones
 
 kb/Work PB1925 said the placement diagnostics COBOLNET2700 and COBOLNET1572 carry no source position because the
 conformance pass builds them from bound nodes, which have no span. Re-probed on a fresh build, those two print
@@ -36,3 +36,4 @@ is the one required positional member, filled by the directive stage, so no prod
 Two new cases (printable and non-printable SUM entry) pin the SUM arm.
 
 Branch review rounds 2 and 3. Round 2 corrected the register (the landing map and kb/Work PB2034 no longer name the deleted CobolWordsOp.Line). Round 3 found that PB2034 still claimed the reserved-word, word-length and word-character diagnostics print bare: they sit inside ParseArm, whose sink cursor follows the walk, so they already print file(line,col) (probed: a 41-character data name under --std 85 and COMMIT as a data name under --std 2023). PB2034 now names only what still prints bare, each re-probed with --source-format free: the report-section RD rules, external-file consistency 1573/1575/1624, the OO header rules 2648/1542/1643 and OptionsBinder COBOLNET0806, so the next implementer starts from real work.
+
