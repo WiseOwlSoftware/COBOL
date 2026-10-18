@@ -265,9 +265,10 @@ public sealed class RegionLocksDriftTests
     /// MID-<c>rmdir</c>: on Linux, for as long as the remover is off the CPU, the name still answers <c>stat</c> while
     /// every creation inside it is <c>ENOENT</c>. Each publication must still end published: <c>null</c> is a host that
     /// cannot hold the lock, and the waiting hold that reads it answers <see cref="RegionLockResult.Unavailable"/> with
-    /// the store mutex untaken. The window cannot be held open on demand, so the witness is repetition with the host
-    /// oversubscribed (spinning threads beside the sibling, which is what leaves a remover off the CPU mid-call): it was
-    /// red in most runs with eight immediate tries and is green with the paced schedule.</summary>
+    /// the store mutex untaken. The window cannot be held open on demand, so this is the contract under the load that opens
+    /// it (spinning threads beside the sibling leave a remover off the CPU mid-call), a repetition witness that holds
+    /// the host to publishing; <see cref="ARepeatedLostPublicationRaceIsPacedByTime_NotRetriedAtOnce"/> pins the fix
+    /// itself, because a window of ONE publication in 500,000 is not one a test can wait for.</summary>
     [Fact]
     public void EveryPublicationSucceeds_BesideASiblingThatClosesAndReopensTheLockDirectory_OnAnOversubscribedHost()
     {

@@ -102,7 +102,9 @@ internal static class SidecarLockFiles
     internal static bool IsRetired(string name) => name.StartsWith(RetiredPrefix, StringComparison.Ordinal);
 
     /// <summary>Create, lock, verify and name this holder's file, or null when the host cannot hold the lock here.
-    /// <paramref name="finalName"/> maps the publication's unique id to the file's published name. Throws what a file
+    /// <paramref name="finalName"/> maps the publication's unique id to the file's published name. A lost race (a
+    /// vanished directory or pending file) publishes again, paced by <see cref="RetryPauseCeiling"/> because a
+    /// directory mid-<c>rmdir</c> refuses creation for milliseconds (kb/Work PB3314). Throws what a file
     /// operation throws for a directory the process may not write; the caller maps it.</summary>
     internal static LockFileHolder? Publish(string directory, Func<Guid, string> finalName)
     {
