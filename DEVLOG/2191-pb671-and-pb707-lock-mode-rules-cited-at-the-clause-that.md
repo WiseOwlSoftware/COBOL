@@ -1,4 +1,4 @@
-## PB671 and PB707: LOCK MODE rules cited at the clause that holds them, and the record-lock ceiling judged by the one RETRY loop
+## Entry 2191 — 2026-10-18 03:28 PDT — PB671 and PB707: LOCK MODE rules cited at the clause that holds them, and the record-lock ceiling judged by the one RETRY loop
 
 Two process-only notes of the file I/O campaign (kb/Work PB3353), one group because they edit the same runtime lock code.
 
@@ -39,3 +39,4 @@ statement, like `ConflictOnLockedRecord` beside it; the ceiling is now judged in
 (PB2759 is unblocked).
 
 Branch review R1-1: the class summary claimed that every constant names every statement that sets it, but 05, 41 and 42 named only OPEN or CLOSE (the standard lists DELETE FILE for 05 and 41, UNLOCK for 42). Fixed at the claim and the three summaries: the class summary now says the cited section 9.1.13 item is the authority for the statements, and 05, 41 and 42 name them. FileStatusCodeDocDriftTests reads each item back from the standard and requires the summary of 05, 37, 41, 42 and 43 to name every statement it lists, and forbids the exhaustive claim.
+
