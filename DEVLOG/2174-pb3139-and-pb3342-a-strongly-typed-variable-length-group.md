@@ -1,4 +1,4 @@
-## PB3139 and PB3342 — a strongly-typed variable-length group with a reference leaf crosses as its area and its leaf vector; one C# name per method slot
+## Entry 2174 — 2026-10-17 21:29 PDT — PB3139 and PB3342 — a strongly-typed variable-length group with a reference leaf crosses as its area and its leaf vector; one C# name per method slot
 
 ### PB3139 — the COBOL boundary and the MOVE (landed; the host entry is PB3273's)
 
@@ -88,3 +88,4 @@ deleted static `OfLeaves`; it now names the sender's `AsLeaves` and the receiver
 store is an instance one (§14.6.9.2). `git grep OfLeaves` over src, tests, docs and scripts finds no other stale use.
 Re-gate (review finisher, at 5caf3e852, run `20261018T040904Z-45bc9a`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
 PB2515): GREEN ===`; the goldens and refusals ran in leg 1 and passed.
+
