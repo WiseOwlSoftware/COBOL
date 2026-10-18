@@ -1618,7 +1618,8 @@ tree-wide drift test (`[Trait("Sweep", "tree")]`) asserts that `src/Cobol.Net.Ru
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
-m changed records writes ≤ m × ((k + 1) × d) + 3 pages and leaves every record of another run unit byte-identical.
+m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + 3 pages (the ROLLBACK row above)
+and leaves every record of another run unit byte-identical.
 Witnesses (a) to (d) are PB3336's; (e) needs the transaction runtime and lands with it, in PB3337. For the
 record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
 8 µs, some 50 s of I/O before the tree's own work; the same load through today's `ALL OTHER` path is 10^6 × O(file) and does
