@@ -1,4 +1,4 @@
-## PB762: the inventory gate resolved symbols against comments and never read a row's prose
+## Entry 2180 — 2026-10-17 23:55 PDT — PB762: the inventory gate resolved symbols against comments and never read a row's prose
 
 **What the note said.** Seven traceability-inventory rows narrate `ReadLockGovern` and `ApplyReadLockDiscipline`, which
 no longer exist, and nothing measures it because `SpecTraceabilityInventoryDriftTests` reads `code-location` and not
@@ -42,3 +42,4 @@ citations in the touched prose were each re-run through `cite.py --check`; no be
 this tree 89 rows keep a retired symbol in their prose with no live citation of it; the writer's rule stops the next
 one and the residue needs each sentence read. This landing touches no SORT or file I/O behaviour, so the owner's
 success-and-exception test requirement has nothing to add here.
+
