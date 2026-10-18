@@ -378,7 +378,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
 
     /// <summary>Emit the RECORD-LOCKING registration for a file that declares a SHARING and/or LOCK MODE clause
     /// (Phase 4d M2-FILE-1) — it routes the file's READs through record-lock governance (§9.1.16) and records the
-    /// SHARING clause's mode. Files with neither clause emit nothing: they have no LOCK MODE, so §12.4.5.9 GR1
+    /// SHARING clause's mode. Files with neither clause emit nothing: they have no LOCK MODE, so §12.4.5.9.4 GR1
     /// sets no record locks for them. They are NOT outside the sharing arbitration — every OPEN is arbitrated
     /// against ISO §14.9.27.4 Table 19 by <c>FileRegistry.SharedOpenAttempt</c> whether this call is emitted or
     /// not (kb/Work PB321).
@@ -1191,7 +1191,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         BoundNumericLiteral n => RuntimeApi.HostInt32Literal(n.Text),
         BoundOperandError e => LoudValue("int", e.Feature),
-        // An integer identifier (§14.9.47.3 SR — identifier-2 an integer item) reads by VALUE through the ONE integer
+        // An integer identifier (§14.9.51.3 SR14 — identifier-2 an integer data item) reads by VALUE through the ONE integer
         // landing (kb/Work PB86's sweep: the raw read mis-counted a P-scaled item; the `_ => "1"` default was a swallow).
         _ => RuntimeApi.HostInt32(NumericRenderer.Align(num.AsNum(lines, ReceiverContext.None), 0)),
     };
