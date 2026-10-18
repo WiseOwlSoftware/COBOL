@@ -1231,16 +1231,19 @@ internal sealed class StatementValidation(DataBinder data)
 
     /// <summary>§13.4.6.3 SR3/SR4 — a sort-merge (SD) file-name may be referenced ONLY by SORT / MERGE /
     /// RELEASE / RETURN (and a SORT/MERGE USING/GIVING). Every other input-output statement rejects at BIND
-    /// time; the old posture was a patchwork — a bind error at UNLOCK, a runtime loud stage at
-    /// OPEN/WRITE/READ/REWRITE, and NOTHING at CLOSE / DELETE / DELETE FILE, where the statement then ran
-    /// against an UNREGISTERED connector and the fail-open registry reported the SUCCESSFUL '00' (kb/Work
-    /// PB140). Returns the message (for the caller's BoundUnsupported placeholder), or null for a non-SD
-    /// file.</summary>
-    public string? ScreenSortMergeFile(FileModel file, string verb)
+    /// time; the old posture was a patchwork — a bind error at UNLOCK (its own copy, folded in here by kb/Work
+    /// PB700), a runtime loud stage at OPEN/WRITE/READ/REWRITE, and NOTHING at CLOSE / DELETE / DELETE FILE,
+    /// where the statement then ran against an UNREGISTERED connector and the fail-open registry reported the
+    /// SUCCESSFUL '00' (kb/Work PB140). <paramref name="verbRule"/> is the verb's OWN restatement of the rule
+    /// where its clause carries one (UNLOCK: §14.9.47.3 SR1, "File-name-1 shall not refer to a sort file or a
+    /// merge file."), named beside §13.4.6.3 so the message cites both. Returns the message (for the caller's
+    /// BoundUnsupported placeholder), or null for a non-SD file.</summary>
+    public string? ScreenSortMergeFile(FileModel file, string verb, string? verbRule = null)
     {
         if (!file.IsSortMerge) return null;
         string msg = $"{verb} may not name the sort-merge file '{file.CobolName}' — an SD file-name may "
-            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6.3 SR3/SR4)";
+            + "appear only in SORT/MERGE/RELEASE/RETURN (ISO §13.4.6.3 SR3/SR4"
+            + (verbRule is null ? ")" : $"; {verbRule})");
         data.Edition.Error(DiagnosticCatalog.SortMergeFileInIoStatement, msg);
         return msg;
     }
