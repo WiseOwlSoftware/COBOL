@@ -10616,7 +10616,7 @@
   "test-ref": "conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "",
+  "notes": "§9.1.13.7 7) '47' for READ or START on a connector not open input or I-O (cite.py --check OK §9.1.13.7 7)). ReadOpenModeGuard `!IsOpen || Mode is Output or Extend -> '47'`, used by all sequential and random READ paths; StartOpenModeGuard is the one START copy for all three organizations and also applies §14.9.41.4 GR7 (so kb/Work PB359, still status open, describes a shape the pinned tree no longer has; its rows are §14.9.41.4, not this one). Probe logic4x/p1.cob: READ on a never-opened file, READ open OUTPUT, READ open EXTEND -> 47; START on a closed indexed file -> 47. conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and l1_table20_indexed pin the READ/START cells in output and extend. || Editions (adjudicator, verbatim): 1985/2002/2014/2023",
   "state": "OK"
  },
  {
@@ -10781,7 +10781,7 @@
   "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_no_phrase_no_use; conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_ec_set; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "",
+  "notes": "Rule (9.1.14 first list item 1): status set to the invalid key value (9.1.13.5) \"and, if enabled, the EC-I-O-INVALID-KEY exception condition is set to exist\" [cite.py --check PASS 9.1.14]. Two halves, both verified. Status: E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob at 85/2023 — duplicate WRITE 22, READ/DELETE/START/REWRITE of a missing key 23, each visible in FILE STATUS inside the phrase and after the statement. EC: __IoCheckEc calls ExceptionState.SetIo before the INVALID KEY short-circuit, so the condition exists even when the phrase is written: E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k5.cob (>>TURN EC-I-O-INVALID-KEY CHECKING ON) at 2002/2014/2023: FUNCTION EXCEPTION-STATUS inside the INVALID KEY imperative = EC-I-O-INVALID-KEY and inside the USE declarative = EC-I-O-INVALID-KEY; E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k3.cob T6 same inside an exception-checking PERFORM. TEST-NEEDED: the status half is covered by conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer, but no spec-derived test asserts EC-I-O-INVALID-KEY is set (grep of tests/ finds none). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 for the I-O status half; the EC-I-O-INVALID-KEY half 2002+ (exception conditions and >>TURN) || Code sites (adjudicator, verbatim): src/Cobol.Net.Compiler/CodeGen/Verbs/KeyedIoEmitter.cs (status-first shape: store status then hook then branch); src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook; src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc (ExceptionState.SetIo BEFORE the phrase short-circuits)",
   "state": "OK"
  },
  {
@@ -10796,7 +10796,7 @@
   "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "",
+  "notes": "Rule (9.1.14 item 2): \"If the INVALID KEY phrase is specified in the input-output statement, any applicable exception processing statements are not executed, and control is transferred to the imperative-statement specified in the INVALID KEY phrase\" [cite.py --check PASS 9.1.14]. The hook receives invalidKeyHandled and returns before any declarative/WHEN for a '2x' status; EmitInvalid then runs the imperative on '2x' only. Covering test l1_delete_invalid_key_transfer arm A (INV=23, no D= line). Probes: E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob/k2.cob T1 at 85 and 2023 (T1-INV 22, no DECL line, then T1-END); k3.cob T6 — inside a PERFORM with a matching WHEN EC-I-O-INVALID-KEY the INVALID KEY imperative runs and the WHEN does not (both 9.1.12 list items suppressed). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (the exception-checking PERFORM leg 2023 only) || Code sites (adjudicator, verbatim): src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitInvalid; src/Cobol.Net.Compiler/CodeGen/Verbs/SequentialIoEmitter.cs#EmitUseHook (invalidKeyHandled); src/Cobol.Net.Compiler/CodeGen/DispatchEmitter.cs#EmitUseMachinery (__IoCheck __invKey short-circuit); src/Cobol.Net.Compiler/CodeGen/EcEmitter.cs#EmitIoCheckEc",
   "state": "OK"
  },
  {
@@ -10811,7 +10811,7 @@
   "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1_delete_invalid_key_transfer; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "",
+  "notes": "Rule (9.1.14 item 3): \"If the INVALID KEY phrase is not specified in the input-output statement, any applicable exception processing statements are executed\" then end of statement [cite.py --check PASS 9.1.14]; Annex E.2 item 19 a) \"any declarative that specified INPUT, OUTPUT, I-O, or EXTEND would not have been executed. It will now be executed\" [cite.py --check PASS E.2]. Covering test l1_delete_invalid_key_transfer arm C (D=23, NOT INVALID KEY not taken, C=23). Open-mode tier at all four editions: conformance:{85,2002,2014,2023}/pb344_use_mode_invalid_key C1 (DECL-IO then C1=22). Probes E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k1.cob (USE ON F) and k2.cob (USE ON I-O) T2 at 85/2023: DECL then T2-END 22; k3.cob T7/T8 (a PERFORM WHEN is the applicable statement and preempts the USE; control then continues after the WRITE per 14.9.28.4 GR20 nonfatal). || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (Annex E.2 item 19 a) open-mode reach applied at every edition — PB344 determination; PERFORM WHEN leg 2023 only)",
   "state": "OK"
  },
  {
@@ -10826,7 +10826,7 @@
   "test-ref": "conformance:cases/9.1.14-Invalid-key-condition/l1c11_invalid_key_no_phrase_no_use; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "",
+  "notes": "Rule text (item 4 + the opening sentence of the not-exists paragraph): \"If the INVALID KEY phrase is not specified ... and there are no applicable exception processing statements, control is transferred to the end of the input-output statement\" and \"If the invalid key condition does not exist ... the INVALID KEY phrase is ignored, if specified\" [cite.py --check PASS 9.1.14]. Two halves, both verified. (a) no phrase, no applicable statement: a declarative-free unit emits no hook (EmitUseHook returns when !UseDecls and no EC mask) and no branch, so control falls to the next statement — probe E:\\Temp\\claude\\E--CobolSharp\\a700c052-f9e4-4942-84ff-a13c7505d6ec\\scratchpad\\adj-d2b\\out\\probe\\p914\\k6.cob at 85 and 2023 (declarative-free, duplicate-key WRITE with no phrase: NEXT-STMT 22) and k2.cob T5 (the USE ON I-O tier does not apply to a closed file: T5-END 48 with no DECL line). (b) phrase ignored when no invalid key: EmitInvalid runs the INVALID KEY imperative on '2x' only — l1_delete_invalid_key_transfer arm B (NOTINV=00, no INV-B) and arm D ('49' with INVALID KEY written: INV-D absent); probe k1.cob T4/T5. TEST-NEEDED for half (a): every spec-derived 9.1.14 golden carries a USE declarative or writes the phrase; none pins the no-phrase, no-applicable-statement case. || Editions (adjudicator, verbatim): 1985, 2002, 2014, 2023 (no Annex E change for these sentences)",
   "state": "OK"
  },
  {
@@ -44786,7 +44786,7 @@
   "test-ref": "conformance:cases/14.9.41-START/l1_start_first_last_relative; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870-start-first-last-relative-85; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "",
+  "notes": "On a relative file sparse at RRN 3/7/9, START FIRST positions at 0003 - the first EXISTING record, not RRN 1 - and on a file with no records takes INVALID KEY with '23'. || editions widened from 2014,2023 to 2002,2014,2023 (kb/Work PB870): FIRST and LAST are ONE construct, start-first-last-2002 (tests/version-matrix/constructs.json, COBOLNET0900; docs/VERSION_CHANGE_REFERENCE.md row 7.38), which the gate refuses below 2002 on every organization, and the RELATIVE twin compiles and runs identically at 2002 (accepted at 2002 and 2023 by l1_start_first_last_relative); the INDEXED twins GR18/GR19 and the SEQUENTIAL twins GR20/GR21 already carry 2002,2014,2023, and no rule of 14.9.41.4 makes the RELATIVE arm later. Below 2002: pb870-start-first-last-relative-85 (COBOLNET0900). Abnormal and exception arms (47 on an OUTPUT-mode and on a closed file, 23 with INVALID KEY and without it and the USE procedure, the absent OPTIONAL file, GR7 read back as 46, a file no USE covers): pb870_start_first_last_relative_exceptions.",
   "state": "OK"
  },
  {
@@ -44801,7 +44801,7 @@
   "test-ref": "conformance:cases/14.9.41-START/l1_start_first_last_relative; conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions; conformance:cases/14.9.41-START/pb870-start-first-last-relative-85; conformance:cases/14.9.41-START/pb870_start_first_last_relative_ecio_checked; conformance:cases/14.9.41-START/pb870_start_first_last_relative_nofs_nouse",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "",
+  "notes": "On the same sparse file START LAST positions at 0009 - the last EXISTING record, not the record count - and on a file with no records takes INVALID KEY with '23'. || editions widened from 2014,2023 to 2002,2014,2023 (kb/Work PB870): FIRST and LAST are ONE construct, start-first-last-2002 (tests/version-matrix/constructs.json, COBOLNET0900; docs/VERSION_CHANGE_REFERENCE.md row 7.38), which the gate refuses below 2002 on every organization, and the RELATIVE twin compiles and runs identically at 2002 (accepted at 2002 and 2023 by l1_start_first_last_relative); the INDEXED twins GR18/GR19 and the SEQUENTIAL twins GR20/GR21 already carry 2002,2014,2023, and no rule of 14.9.41.4 makes the RELATIVE arm later. Below 2002: pb870-start-first-last-relative-85 (COBOLNET0900). Abnormal and exception arms (47 on an OUTPUT-mode and on a closed file, 23 with INVALID KEY and without it and the USE procedure, the absent OPTIONAL file, GR7 read back as 46, a file no USE covers): pb870_start_first_last_relative_exceptions.",
   "state": "OK"
  },
  {
