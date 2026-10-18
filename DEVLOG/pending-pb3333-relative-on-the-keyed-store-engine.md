@@ -51,3 +51,5 @@ and torn-page '30'. The PB3333 rows of `PendingStoreCases` are now these cases.
 **Register and docs.** Batch `pb3333-relative-engine-witnesses` re-pointed nine inventory rows' witnesses (GAP 66 → 66, none
 re-verdicted). DOC-A.1-107 and the relative half of DOC-A.1-75 were rewritten. PB3333 and PB2755 are landed and PB3334 is
 unblocked.
+
+**Gate.** Run `TestResults/build-local/20261018T154127Z-564f1b` (gated at `c91f4eaad`; two earlier runs were RED and fixed: four design-section references the citation audit read as ISO clauses, and the host trait the concurrent witness needs): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,233/17,570 · Unit 33,837/34,215 · Characterization 5/36 in leg 1; leg 2 left to CI). The 24 `RelativeEngineTests` cases and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS. The Linux gate is the lander's (batched gating).
