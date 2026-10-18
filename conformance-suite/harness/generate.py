@@ -708,6 +708,7 @@ def check_cases(reader: Reader) -> None:
                 if e not in window:
                     reader.refuse(rel, 1, f"accepted at {e}, where the construct {c} does not exist (constructs.json: "
                                           f"{', '.join(window) or 'no edition'})")
+        _check_band_against_constructs(reader, case, known, windows)
         if case.flag is not None:
             _check_flag(reader, case, known, windows, by_id)
         elif case.control is not None:
@@ -760,6 +761,35 @@ def check_cases(reader: Reader) -> None:
         if case.flag is not None and case.test_id not in inputs.diagnostics:
             reader.refuse(case.path, 1, "a flagged test needs an entry in wiseowl/diagnostics.json: the editions at "
                                         "which WiseOwl COBOL refuses it and what it reports (§4, §9)")
+
+
+def _check_band_against_constructs(reader: Reader, case: Case, known: list[str],
+                                   windows: dict[str, list[str]]) -> None:
+    """A rule's band does not begin after the construct its witness is written in, unless the row says why.
+
+    A test names, in `constructs`, the registry rows its program uses (§3.1), and in `rules` the rows it witnesses:
+    the program is the construct's use, so the rule it witnesses exists at the construct's introduction (kb/Work PB870:
+    START FIRST/LAST on a RELATIVE file was dated 2014 and its INDEXED and SEQUENTIAL twins 2002, one registry row
+    for all three). A band that begins later than EVERY construct the test names is a conservative guess nothing had
+    contradicted, or a rule that really arrived later than its construct; the row's `notes` name the construct when
+    it is the second, which is the stated difference this check accepts.
+    """
+    inputs = reader.inputs
+    if not windows:
+        return
+    latest = max(inputs.constructs[c][0] for c in windows)
+    for r in known:
+        band = inputs.band(r)
+        if not band or int(band[0]) <= latest:
+            continue
+        notes = inputs.rows[r].get("notes", "")
+        if any(c in notes for c in windows):
+            continue
+        reader.refuse(case.path, 1, f"{r} begins at {band[0]} (its band is {inputs.rows[r]['editions']}), after the "
+                                    f"introduction ({latest}) of the construct this test is written in "
+                                    f"({', '.join(sorted(windows))}): widen the band to the construct's, or, if the rule "
+                                    f"arrived later than the construct, name the construct in the row's notes and say "
+                                    f"why (kb/Work PB870)")
 
 
 def _check_flag(reader: Reader, case: Case, known: list[str], windows: dict[str, list[str]],
@@ -1107,9 +1137,9 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
     schema = inventory_schema.load_schema()
 
     def row(rule_id: str, section: str, kind: str, editions: str, verdict: str = "CONFORMS", test_ref: str = "",
-            derivation: str = "") -> dict[str, Any]:
+            derivation: str = "", notes: str = "n") -> dict[str, Any]:
         return {"rule-id": rule_id, "section": section, "kind": kind, "editions": editions, "verdict": verdict,
-                "test-ref": test_ref, "derivation": derivation, "code-location": "src/x.cs", "notes": "n"}
+                "test-ref": test_ref, "derivation": derivation, "code-location": "src/x.cs", "notes": notes}
 
     rows = {r["rule-id"]: r for r in (
         row("GR-1.1.1-1", "1.1.1", "GR", "85,2002,2014,2023"),
@@ -1124,9 +1154,10 @@ def _planted_inputs(diagnostics: dict[str, dict[str, Any]] | None = None) -> Inp
         row("DOC-A.1-9", "1.1.1", "DOC", "85,2002,2014,2023"),
         row("DOC-A.1-10", "1.1.1", "DOC", "85,2002,2014,2023"),
         row("RV-2.2.2-1", "2.2.2", "RV", "85,2002,2014,2023"),
+        row("GR-1.1.1-6", "1.1.1", "GR", "2002,2014,2023", notes="arrived 2002 though c-old is older: n"),
     )}
     return Inputs(
-        schema=schema, rows=rows, constructs={"c-2002": (2002, None), "c-gone-2002": (85, 2002)},
+        schema=schema, rows=rows, constructs={"c-2002": (2002, None), "c-gone-2002": (85, 2002), "c-old": (85, None)},
         requirable=frozenset({"A.4.11", "A.3-2"}), implementor_defined={9: ("one", "two")},
         diagnostics=diagnostics if diagnostics is not None else {
             "flagged": {"refuse-at": ["85", "2002", "2014", "2023"], "expect": "X1"},
@@ -1172,6 +1203,9 @@ def self_test() -> int:
                                                     "constructs: [c-2002]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/per-edition.out": "a\n",
         "cases/1.1.1-Rule/per-edition.2023.out": "b\n",
+        "cases/1.1.1-Rule/stated-late.cob": _fixed(["id: stated-late", "rules: [GR-1.1.1-6]", "accept: [2002]",
+                                                    "constructs: [c-old]", "source-format: fixed"], _PROGRAM),
+        "cases/1.1.1-Rule/stated-late.out": "x\n",
         "cases/1.1.1-Rule/valued.cob": _fixed(["id: valued", "rules: [DOC-A.1-9]", "accept: [85, 2002, 2014, 2023]",
                                                "implementor-defined: [9]", "source-format: fixed"], _PROGRAM),
         "cases/1.1.1-Rule/valued.9=one.out": "1\n",
@@ -1263,7 +1297,7 @@ def self_test() -> int:
                                                          "derivation": 1, "wiseowl-only": 1, "none": 3}
                   and r85["rows"] == 10 and r85["observable"] == 8, r85)
             check("arm: a row not in the edition's band is not counted there (GR-1.1.1-2, SR-1.1.1-2 are 2002 on)",
-                  report["2002"]["rows"] == 12, report["2002"])
+                  report["2002"]["rows"] == 13, report["2002"])
         shutil.rmtree(root / "suites", ignore_errors=True)
         rc_check, _ = generate(root, inputs, [], None)
         check("arm: --check writes nothing", rc_check == 0 and not (root / "suites").exists())
@@ -1310,6 +1344,9 @@ def self_test() -> int:
         "construct": ("cases/1.1.1-Rule/construct.cob",
                       _fixed(["id: construct", "rules: [GR-1.1.1-1]", "accept: [85, 2002]", "constructs: [c-2002]",
                               "source-format: fixed"], _PROGRAM), "the construct c-2002 does not exist"),
+        "late band": ("cases/1.1.1-Rule/late-band.cob",
+                      _fixed(["id: late-band", "rules: [GR-1.1.1-2]", "accept: [2002]", "constructs: [c-old]",
+                              "source-format: fixed"], _PROGRAM), "GR-1.1.1-2 begins at 2002"),
         "removed": ("cases/1.1.1-Rule/removed.cob",
                     _fixed(["id: removed", "rules: [GR-1.1.1-1]", "accept: [85, 2002]", "constructs: [c-gone-2002]",
                             "source-format: fixed"], _PROGRAM), "accepted at 2002, where the construct c-gone-2002"),
@@ -1469,7 +1506,8 @@ def self_test() -> int:
         "cases/1.1.1-Rule/orphan.out": "x\n",
         "cases/1.1.1-Rule/no-header.out": "x\n",
     }
-    for name in ("wrong-name", "unknown-rule", "no-format", "band", "construct", "removed", "what", "copy-undeclared",
+    for name in ("wrong-name", "unknown-rule", "no-format", "band", "construct", "late-band", "removed", "what",
+                 "copy-undeclared",
                  "lint-numeric", "lint-function", "lint-numlit", "lint-upon", "lint-margin", "a1-unknown", "needs",
                  "misfiled", "norules", "mismatch", "field", "unsorted", "runtime", "stray"):
         base[f"cases/1.1.1-Rule/{name}.out"] = "x\n"

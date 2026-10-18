@@ -62,14 +62,14 @@
   },
   {
    "id": "start-first-last-2002",
-   "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002",
+   "description": "START ... FIRST/LAST positioning, ISO §14.9.41 — introduced 2002 (provisional edge, derived: VCR row 7.38). ONE construct for every organization: the general format prints one phrase, so GR11/GR12 (RELATIVE), GR18/GR19 (INDEXED) and GR20/GR21 (SEQUENTIAL) of §14.9.41.4 carry one edition band (kb/Work PB870)",
    "display": "START FIRST/LAST",
    "diagnosticCode": "COBOLNET0900",
    "citation": "ISO §14.9.41",
    "introducedIn": 2002,
    "removedIn": null,
    "expectDiagnostic": "COBOLNET0900",
-   "vcr": "2002 introduction (derive from the 2002 standard)",
+   "vcr": "START FIRST/LAST (post-85; provisional 2002 edge); VCR row 7.38",
    "source": "IDENTIFICATION DIVISION.\nPROGRAM-ID. SF.\nENVIRONMENT DIVISION.\nINPUT-OUTPUT SECTION.\nFILE-CONTROL.\n    SELECT F ASSIGN TO \"vmsf\" ORGANIZATION IS RELATIVE\n        ACCESS MODE IS DYNAMIC RELATIVE KEY IS W-K.\nDATA DIVISION.\nFILE SECTION.\nFD F.\n01 R PIC X(10).\nWORKING-STORAGE SECTION.\n01 W-K PIC 9(4).\nPROCEDURE DIVISION.\nMAIN.\n    OPEN I-O F.\n    START F FIRST INVALID KEY DISPLAY \"E\".\n    CLOSE F.\n    STOP RUN.\n"
   },
   {
