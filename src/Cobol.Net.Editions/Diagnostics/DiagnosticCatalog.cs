@@ -5591,7 +5591,170 @@ public static class DiagnosticCatalog
         + "FINALLY phrase early.",
         "ISO §14.9.28.4 GR16");
 
-    /// <summary>COBOLNET2954 — the UNTIL EXIT phrase is specified in a PERFORM statement that also carries the
+    // ── THE EXCEPTION-CHECKING (FORMAT-3) PERFORM'S SYNTAX RULES, COBOLNET1597-1617 (kb/Work PB1154) ───────────────
+    // The family was emitted as bare string literals (the semgrep rule cobolnet-raw-diagnostic-code-literal's
+    // baseline) and so had no catalogue row, no docs/DIAGNOSTICS.md entry and no suppress key. Every one is an
+    // ERROR at every edition the Format-3 PERFORM exists (COBOL-2023; the introduction gate is COBOLNET0900), reported
+    // by EcBinder (EcBinder.ExceptionPerform.cs, EcBinder.cs) or ControlFlowBinder.BindExit, and positioned at the
+    // OFFENDING statement or WHEN item rather than at the PERFORM that contains it.
+
+    /// <summary>COBOLNET1597 — a Format-3 PERFORM with no WHEN phrase: the WHEN phrase is a required brace group of the
+    /// Format-3 general format (§14.9.28.2), so WHEN OTHER, WHEN COMMON or FINALLY alone is not a Format-3 PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformWhenRequired = new(
+        "COBOLNET1597", "exception-perform-when-required", EditionSeverity.Error,
+        "An exception-checking (Format-3) PERFORM specifies no WHEN phrase. The Format-3 general format "
+        + "(§14.9.28.2) requires at least one WHEN phrase; WHEN OTHER, WHEN COMMON and FINALLY are admitted only "
+        + "after one.",
+        "ISO §14.9.28.2 Format 3");
+
+    /// <summary>COBOLNET1599 — §14.9.28.3 SR14: a file-name is specified more than once across the WHEN phrases of
+    /// one Format-3 PERFORM unless every instance is paired with an exception-name.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformFileNameRepeated = new(
+        "COBOLNET1599", "exception-perform-file-name-repeated", EditionSeverity.Error,
+        "A file-name is specified more than once in the WHEN phrases of one exception-checking PERFORM without every "
+        + "instance being paired with an exception-name. §14.9.28.3 SR14: \"If file-name-1 or file-name-2 is "
+        + "specified in a WHEN phrase, it shall not be specified more than once in any of the WHEN phrases within "
+        + "the scope of a format 3 PERFORM statement unless all such instances are specified in conjunction with an "
+        + "exception-name.\"",
+        "ISO §14.9.28.3 SR14");
+
+    /// <summary>COBOLNET1600 — §14.9.28.3 SR15: an exception-name repeats within one Format-3 PERFORM only in
+    /// conjunction with different file-names.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformExceptionNameRepeated = new(
+        "COBOLNET1600", "exception-perform-exception-name-repeated", EditionSeverity.Error,
+        "An exception-name is specified more than once in one exception-checking PERFORM without a different "
+        + "file-name for each instance. §14.9.28.3 SR15: \"All instances of an exception-name shall be specified "
+        + "only once in a format 3 PERFORM statement unless done so in conjunction with different file-names.\"",
+        "ISO §14.9.28.3 SR15");
+
+    /// <summary>COBOLNET1601 — §14.9.28.3 SR16: a WHEN phrase pairs a FILE operand with an exception-name that is not
+    /// an EC-I-O name.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformFilePairingNotIo = new(
+        "COBOLNET1601", "exception-perform-file-pairing-not-io", EditionSeverity.Error,
+        "A WHEN phrase pairs an exception-name with FILE file-name-2 but the exception-name does not begin EC-I-O. "
+        + "§14.9.28.3 SR16: \"If file-name-2 is specified, exception-name-2 shall begin with the COBOL characters "
+        + "'EC-I-O'.\"",
+        "ISO §14.9.28.3 SR16");
+
+    /// <summary>COBOLNET1604 — §14.9.14.3 SR8, second sentence: EXIT PERFORM CYCLE within an exception-checking
+    /// PERFORM (an exception-checking PERFORM is not a loop, so there is no cycle to take).</summary>
+    public static readonly DiagnosticDescriptor ExitPerformCycleInExceptionPerform = new(
+        "COBOLNET1604", "exit-perform-cycle-in-exception-perform", EditionSeverity.Error,
+        "An EXIT PERFORM statement with the CYCLE phrase is specified within an exception-checking PERFORM. "
+        + "§14.9.14.3 SR8: \"The CYCLE phrase shall not be specified within an exception-checking PERFORM "
+        + "statement.\"",
+        "ISO §14.9.14.3 SR8");
+
+    /// <summary>COBOLNET1605 — §14.9.21.3 SR3: an INITIATE naming more than one report-name within an
+    /// exception-checking PERFORM (an unsuccessful implicit INITIATE would abandon the rest).</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformInitiateMultiReport = new(
+        "COBOLNET1605", "exception-perform-initiate-multi-report", EditionSeverity.Error,
+        "An INITIATE statement that names more than one report-name is specified within an exception-checking "
+        + "PERFORM. §14.9.21.3 SR3: \"An INITIATE statement that specifies more than one report-name-1 shall not "
+        + "be specified in an exception checking PERFORM statement.\"",
+        "ISO §14.9.21.3 SR3");
+
+    /// <summary>COBOLNET1606 — §14.9.46.3 SR3: a TERMINATE naming more than one report-name within an
+    /// exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformTerminateMultiReport = new(
+        "COBOLNET1606", "exception-perform-terminate-multi-report", EditionSeverity.Error,
+        "A TERMINATE statement that names more than one report-name is specified within an exception-checking "
+        + "PERFORM. §14.9.46.3 SR3: \"A TERMINATE statement that specifies more than one report-name shall not be "
+        + "specified in an exception checking PERFORM statement.\"",
+        "ISO §14.9.46.3 SR3");
+
+    /// <summary>COBOLNET1607 — §14.9.50.3 SR6: a VALIDATE naming more than one identifier within an
+    /// exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformValidateMultiIdentifier = new(
+        "COBOLNET1607", "exception-perform-validate-multi-identifier", EditionSeverity.Error,
+        "A VALIDATE statement that names more than one identifier is specified within an exception-checking "
+        + "PERFORM. §14.9.50.3 SR6: \"A VALIDATE statement that specifies more than one identifier shall not be "
+        + "specified in an exception-checking PERFORM statement.\"",
+        "ISO §14.9.50.3 SR6");
+
+    /// <summary>COBOLNET1608 — §14.9.17.3 SR3: a GO TO anywhere in a WHEN phrase (WHEN, WHEN OTHER, WHEN COMMON) of an
+    /// exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformGoToInWhen = new(
+        "COBOLNET1608", "exception-perform-go-to-in-when", EditionSeverity.Error,
+        "A GO TO statement is specified in a WHEN phrase of an exception-checking PERFORM. §14.9.17.3 SR3: \"A GO "
+        + "TO statement shall not be specified in a WHEN phrase of an exception-checking PERFORM statement.\"",
+        "ISO §14.9.17.3 SR3");
+
+    /// <summary>COBOLNET1610 — §14.9.33.3 SR1, second sentence: a RESUME in a WHEN phrase of an exception-checking
+    /// PERFORM that does not specify NEXT STATEMENT (RESUME AT procedure-name is a declarative's form).</summary>
+    public static readonly DiagnosticDescriptor ResumeInWhenNotNextStatement = new(
+        "COBOLNET1610", "resume-in-when-not-next-statement", EditionSeverity.Error,
+        "A RESUME statement in a WHEN phrase of an exception-checking PERFORM does not specify NEXT STATEMENT. "
+        + "§14.9.33.3 SR1: \"The RESUME statement may be specified only in a declarative or in an imperative "
+        + "statement in a WHEN phrase of an exception-checking PERFORM statement. In the latter case, the NEXT "
+        + "STATEMENT phrase shall be specified.\"",
+        "ISO §14.9.33.3 SR1");
+
+    /// <summary>COBOLNET1611 — §14.9.29.3 SR4: a RAISE in imperative-statement-2 to -5 of an exception-checking
+    /// PERFORM (it is legal only in imperative-statement-1).</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformRaiseOutsideImp1 = new(
+        "COBOLNET1611", "exception-perform-raise-outside-imp1", EditionSeverity.Error,
+        "A RAISE statement is specified in a WHEN, WHEN OTHER, WHEN COMMON or FINALLY phrase of an "
+        + "exception-checking PERFORM. §14.9.29.3 SR4: \"Within an exception-checking PERFORM statement, the RAISE "
+        + "statement shall not be specified in any imperative statement other than imperative-statement-1.\"",
+        "ISO §14.9.29.3 SR4");
+
+    /// <summary>COBOLNET1612 — §14.9.6.3 SR3: a CLOSE naming more than one file-name in imperative-statement-1 of an
+    /// exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformCloseMultiFile = new(
+        "COBOLNET1612", "exception-perform-close-multi-file", EditionSeverity.Error,
+        "A CLOSE statement that names more than one file-name is specified in imperative-statement-1 of an "
+        + "exception-checking PERFORM. §14.9.6.3 SR3: \"A CLOSE statement that specifies more than one file-name "
+        + "shall not be specified in imperative-statement-1 in an exception-checking PERFORM statement.\"",
+        "ISO §14.9.6.3 SR3");
+
+    /// <summary>COBOLNET1613 — §14.9.10.3 SR4: a DELETE FILE naming more than one file-name in imperative-statement-1
+    /// of an exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformDeleteFileMulti = new(
+        "COBOLNET1613", "exception-perform-delete-file-multi", EditionSeverity.Error,
+        "A DELETE FILE statement that names more than one file-name is specified in imperative-statement-1 of an "
+        + "exception-checking PERFORM. §14.9.10.3 SR4: \"A DELETE FILE statement that specifies more than one "
+        + "file-name shall not be specified in imperative-statement-1 in an exception-checking PERFORM "
+        + "statement.\"",
+        "ISO §14.9.10.3 SR4");
+
+    /// <summary>COBOLNET1614 — §14.9.20.3 SR2: an INITIALIZE naming more than one identifier-1 in
+    /// imperative-statement-1 of an exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformInitializeMulti = new(
+        "COBOLNET1614", "exception-perform-initialize-multi", EditionSeverity.Error,
+        "An INITIALIZE statement that names more than one identifier-1 is specified in imperative-statement-1 of an "
+        + "exception-checking PERFORM. §14.9.20.3 SR2: \"Identifier-1 shall be specified only once if the INITIALIZE "
+        + "statement is specified in imperative-statement-1 of an exception-checking PERFORM statement.\"",
+        "ISO §14.9.20.3 SR2");
+
+    /// <summary>COBOLNET1615 — §14.9.24.3 SR1: a MERGE in imperative-statement-1 of an exception-checking PERFORM
+    /// (its other two regions are COBOLNET2700 and COBOLNET1572).</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformMerge = new(
+        "COBOLNET1615", "exception-perform-merge", EditionSeverity.Error,
+        "A MERGE statement is specified in imperative-statement-1 of an exception-checking PERFORM. §14.9.24.3 SR1: "
+        + "\"A MERGE statement may appear anywhere in the procedure division except in imperative-statement-1 of an "
+        + "exception-checking PERFORM statement …\"",
+        "ISO §14.9.24.3 SR1");
+
+    /// <summary>COBOLNET1616 — §14.9.27.3 SR3: an OPEN naming more than one file-name in imperative-statement-1 of an
+    /// exception-checking PERFORM.</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformOpenMulti = new(
+        "COBOLNET1616", "exception-perform-open-multi", EditionSeverity.Error,
+        "An OPEN statement that names more than one file-name is specified in imperative-statement-1 of an "
+        + "exception-checking PERFORM. §14.9.27.3 SR3: \"An OPEN statement that specifies file-name-1 more than once "
+        + "shall not be specified in imperative-statement-1 of an exception-checking PERFORM statement.\"",
+        "ISO §14.9.27.3 SR3");
+
+    /// <summary>COBOLNET1617 — §14.9.40.3 SR3: a file-format SORT in imperative-statement-1 of an exception-checking
+    /// PERFORM (its declarative and SORT/MERGE-procedure regions are COBOLNET2700).</summary>
+    public static readonly DiagnosticDescriptor ExceptionPerformFileSort = new(
+        "COBOLNET1617", "exception-perform-file-sort", EditionSeverity.Error,
+        "A file-format SORT statement is specified in imperative-statement-1 of an exception-checking PERFORM. "
+        + "§14.9.40.3 SR3: \"A SORT statement shall not appear in imperative-statement-1 of an exception-checking "
+        + "PERFORM statement, in an input or output procedure, or in a declarative procedure.\"",
+        "ISO §14.9.40.3 SR3");
+
+    /// <summary>COBOLNET2954— the UNTIL EXIT phrase is specified in a PERFORM statement that also carries the
     /// VARYING phrase or a written TEST BEFORE / TEST AFTER phrase, or in a PERFORM that is UNDER one (in its range:
     /// lexically inside an inline PERFORM's imperative-statement-1, or in a procedure the PERFORM's range reaches
     /// through an out-of-line PERFORM, a SORT/MERGE procedure or an exception-checking PERFORM handler). §14.9.28.3

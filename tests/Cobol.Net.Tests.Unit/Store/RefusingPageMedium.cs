@@ -17,13 +17,13 @@ internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception
     /// <summary>The page writes handed to the inner medium so far.</summary>
     public int Writes { get; private set; }
 
+    /// <summary>The page reads made through the inner medium so far.</summary>
+    public int Reads { get; private set; }
+
     /// <summary>A medium that refuses its <paramref name="refuseAt"/>-th write or sync (counted together, from the
     /// medium's creation, as <paramref name="seen"/> reads the count) with a host <see cref="IOException"/>, and calls
     /// <paramref name="count"/> for every write and sync handed to it: the seam of 2.2.1.16's refused OPEN and CLOSE rows
     /// through a connector (both organizations' engine tests).</summary>
-    /// <summary>The page reads made through the inner medium so far.</summary>
-    public int Reads { get; private set; }
-
     public static RefusingPageMedium AtOperation(IPageMedium inner, Func<int> refuseAt, Action count, Func<int> seen)
     {
         IOException? Next()

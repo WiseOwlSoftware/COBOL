@@ -540,7 +540,7 @@ public sealed class BTreeShapeTests
                     SeekRelation.LessOrEqual => keys.FindLastIndex(k => order.ComparePrefix(k, probe) <= 0),
                     _ => keys.FindLastIndex(k => order.ComparePrefix(k, probe) < 0),
                 };
-                store.DropCache();   // cold: the store's page cache (2.2.1.13) holds every page this store wrote
+                store.DropCache();   // cold (2.2.1.11 witness (c)'s seam): the seek's own reads, not the page cache's
                 long before = store.Counters.PagesRead;
                 Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out var cursor, prefix: true));
                 int read = (int)(store.Counters.PagesRead - before);
@@ -551,7 +551,7 @@ public sealed class BTreeShapeTests
             }
         }
         Assert.True(widest < levels[^1], $"a seek read {widest} pages of a tree of {levels[^1]} leaves");
-        // The answer above the last key is the invalid key condition, read in the depth (the reviewer's scenario).
+        // The answer above the last key is the invalid key condition, read in the depth (the reviewer's scenario), cold.
         store.DropCache();
         long last = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(Latin1("zzzzzz"), SeekRelation.GreaterThan, out var none, prefix: true));

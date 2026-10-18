@@ -96,7 +96,6 @@ internal sealed class PagedFile
     private PageStatement? _active;
     private readonly PageCache _cache;
 
-
     /// <summary>This store completed a statement since its last promotion (its OPEN's fence included): a CLOSE owes a
     /// promotion only then.</summary>
     private bool _changedSincePromotion;
