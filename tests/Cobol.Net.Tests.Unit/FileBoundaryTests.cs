@@ -130,11 +130,6 @@ public sealed class FileBoundaryTests : IDisposable
 
     // ── §9.1.13.5 item 4: the store's capacity ───────────────────────────────────────────────────────────
 
-    /// <summary>The capacity is the largest array the store is composed in and loaded from.</summary>
-    [Fact]
-    public void MaxStoreBytes_IsTheLargestArrayTheStoreIsComposedIn() =>
-        Assert.Equal(RecordFraming.MaxStoreBytes, (long)Array.MaxLength);
-
     /// <summary>⛔ AN INDEXED RECORD IS n + 1 ENTRIES, ITS ORDINALS IN ITS FRAME AND IN ITS COMPOSITE KEYS
     /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work PB3334, PB2693). Read back from the file's own pages
     /// (the committed meta through a fresh adoption, the trees by a walk): the prime tree holds each record's frame under

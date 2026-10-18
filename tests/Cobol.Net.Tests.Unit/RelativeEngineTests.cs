@@ -476,9 +476,7 @@ public sealed class RelativeEngineTests
         string host = Tmp("format5");
         try
         {
-            var declared = new RelativeConnector(host, 8, KeyedAccess.Random, 4).DeclaredAttributes;
-            using (var image = RecordFraming.ComposeStore(declared, [new StoredFrame("0001AAAA", null)], generation: 1, releaseMint: 0))
-                File.WriteAllBytes(host, image.ToArray());
+            File.WriteAllBytes(host, WholeStoreFile.Bytes('R', 5, "0001AAAA"));
             byte[] before = File.ReadAllBytes(host);
             var c = new RelativeConnector(host, 8, KeyedAccess.Random, 4);
             Assert.Equal("39", c.Open(FileOpenMode.IO));

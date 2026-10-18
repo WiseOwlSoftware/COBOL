@@ -64,6 +64,15 @@ internal sealed class PagedFile
     /// <summary>R5's ledger checkpoint: a ledger past this many pages promotes at the next statement.</summary>
     public const int LedgerCheckpoint = 1024;
 
+    /// <summary>⛔ THE FORMAT'S BOUNDARY (2.2.1.9; docs/CONFORMANCE.md DOC-A.1-107): a page number is 32 bits, so a store
+    /// holds at most 2^32 pages — <see cref="MaxFileBytes"/> bytes. A statement whose pages would pass it answers '24'
+    /// (§14.9.51.4 GR33 b) and GR42 d)), as the host's own refusal to grow the file does.</summary>
+    public const long MaxPages = 1L << 32;
+
+    /// <summary>The largest file the format can describe: <see cref="MaxPages"/> pages of
+    /// <see cref="PageHeader.PageSize"/> bytes, 2^44.</summary>
+    public const long MaxFileBytes = MaxPages * PageHeader.PageSize;
+
     private readonly IPageMedium _medium;
     private readonly bool _writable;
     private readonly bool _coherent;
@@ -563,7 +572,7 @@ internal sealed class PagedFile
         foreach (uint p in fromFree.Take(need - reserved.Count)) reserved.Add((p, PageOrigin.Free));
         for (ulong p = pageCount; reserved.Count < need; p++)
         {
-            if (p > uint.MaxValue) return StoreStatus.Boundary;   // the format's 2^32 pages (2.2.1.9): '24'
+            if (p >= MaxPages) return StoreStatus.Boundary;   // the format's 2^32 pages (2.2.1.9): '24'
             reserved.Add(((uint)p, PageOrigin.Growth));
         }
         reservation = new Reservation(reserved, pageCount);
