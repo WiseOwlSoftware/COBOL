@@ -64,13 +64,20 @@ witnesses() {
     # scratch dir, so writing ./wt001a.txt here is exactly what a NIST program does.
     cat > "$BIN/dotnet" <<'SHIM'
 #!/bin/bash
+t="${1%.dll}"; lt="$(echo "$t" | tr '[:upper:]' '[:lower:]')"      # the program being run: WT001A.dll -> wt001a.txt
 case "${WITNESS_CASE:-}" in
     absent)    : ;;                                            # produced nothing at all
-    empty)     : > ./wt001a.txt ;;                             # produced a 0-byte report
-    correct)   cp "$WITNESS_GOLDEN" ./wt001a.txt ;;
-    wrong)     sed 's/PASS/FAIL/' "$WITNESS_GOLDEN" > ./wt001a.txt ;;
-    stdout)    cat "$WITNESS_GOLDEN" ;;                        # DISPLAY-only: the report arrives on stdout
+    empty)     : > "./$lt.txt" ;;                              # produced a 0-byte report
+    correct)   cp "$WITNESS_VALID/$t.txt" "./$lt.txt" ;;
+    wrong)     sed 's/PASS/FAIL/' "$WITNESS_VALID/$t.txt" > "./$lt.txt" ;;
+    stdout)    cat "$WITNESS_VALID/$t.txt" ;;                  # DISPLAY-only: the report arrives on stdout
 esac
+# kb/Work PB804: the OTHER files a program writes (WITNESS_FILES="name=content|name=content" — WT001A only, so a second program
+# of the group can be shown NOT to have written them) and a line of console output beside a print file.
+if [ "$t" = "WT001A" ] && [ -n "${WITNESS_FILES:-}" ]; then
+    IFS="|"; for kv in $WITNESS_FILES; do printf '%s' "${kv#*=}" > "./${kv%%=*}"; done
+fi
+if [ "$t" = "WT001A" ] && [ -n "${WITNESS_STDOUT:-}" ]; then printf '%s\n' "$WITNESS_STDOUT"; fi
 if [ -n "${WITNESS_STDERR:-}" ]; then echo "$WITNESS_STDERR" >&2; fi
 exit "${WITNESS_RC:-0}"
 SHIM
@@ -88,12 +95,14 @@ SHIM
     run_case() {
         local case_name="$1" wrc="$2" werr="$3" wdiff="$4" dll="${5:-yes}"
         rm -rf "$FR/tests/nist/output"; mkdir -p "$FR/tests/nist/output"
-        if [ "$dll" = "yes" ]; then printf 'stub\n' > "$FR/tests/nist/output/WT001A.dll"; fi
+        if [ "$dll" = "yes" ]; then
+            local prog; for prog in ${WITNESS_GROUP:-WT001A}; do printf 'stub\n' > "$FR/tests/nist/output/$prog.dll"; done
+        fi
         GUARD_FORENSICS="$d/forensics" \
         PATH="$BIN:$PATH" \
         WITNESS_CASE="$case_name" WITNESS_RC="$wrc" WITNESS_STDERR="$werr" WITNESS_DIFF_RC="$wdiff" \
-        WITNESS_GOLDEN="$FR/tests/nist/valid/WT001A.txt" \
-            bash "$GROUP_RUNNER" "$FR" gW "WT001A" 2>>"$d/stderr.txt"
+        WITNESS_VALID="$FR/tests/nist/valid" \
+            bash "$GROUP_RUNNER" "$FR" gW "${WITNESS_GROUP:-WT001A}" 2>>"$d/stderr.txt"
     }
     # compile_case CRC CLOG_TEXT -> the compile arm, with no .dll at all
     compile_case() {
@@ -159,6 +168,65 @@ SHIM
          "WT001A: MATCH" "$(run_case correct 0 '' '')"
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
         > "$FR/tests/nist/valid/WT001A.txt"
+
+    # ── THE WRITTEN-FILES ARM (kb/Work PB804). The report is ONE file of the run; every other file the program
+    #    WRITES — created or modified since just before it ran — is compared byte-for-byte with
+    #    tests/nist/valid-files/<TEST>/, and the two sets must be equal. Each case below is one way that can be wrong,
+    #    and the first is the control that proves the arm does not turn every program red. NistWrittenFilesTests is
+    #    the C# arm's twin of these cases (NistOutputs.Grade). ──
+    local VF="$FR/tests/nist/valid-files/WT001A"
+    gold() { rm -rf "$VF"; if [ "$#" -gt 0 ]; then mkdir -p "$VF"; for kv in "$@"; do printf '%s' "${kv#*=}" > "$VF/${kv%%=*}"; done; fi; }
+    gold "xxxxx049.txt=DETAIL LINE  COLUMN 20"
+    want "files control: a second file equal to its golden is a MATCH" \
+         "WT001A: MATCH" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 20" run_case correct 0 '' '')"
+    want "a second file with ONE byte different is a REGRESSION even though the report matches (the PB792 shape)" \
+         "WT001A: DIFF — REGRESSION! (the report matched but 1 written file(s) do not match tests/nist/valid-files/WT001A: xxxxx049.txt differs" \
+         "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 21" run_case correct 0 '' '')"
+    want "a second file that is a byte LONGER than its golden is a REGRESSION" \
+         "xxxxx049.txt differs" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 20 " run_case correct 0 '' '')"
+    want "a second file that is a byte SHORTER than its golden is a REGRESSION" \
+         "xxxxx049.txt differs" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 2" run_case correct 0 '' '')"
+    want "a golden the program no longer writes is a REGRESSION" \
+         "xxxxx049.txt not written" "$(run_case correct 0 '' '')"
+    want "a file written with NO golden is a REGRESSION" \
+         "tf021.txt has no golden" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 20|tf021.txt=AB" run_case correct 0 '' '')"
+    rm -rf "$d/forensics"
+    out="$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 21" run_case correct 0 '' '')"
+    if grep -q "xxxxx049.txt: differs from its golden" "$d/forensics/WT001A/files.problems" 2>/dev/null; then
+        echo "  ok: a written-files regression preserves the list of problems as evidence"
+    else
+        echo "  WITNESS FAILED: a written-files regression kept no files.problems evidence in $d/forensics"
+        ls -R "$d/forensics" 2>&1 | sed 's/^/      /'; rc=1
+    fi
+    gold
+    want "files control: no second file and no golden directory is a MATCH" \
+         "WT001A: MATCH" "$(run_case correct 0 '' '')"
+    want "a program that writes a file when nothing is expected is a REGRESSION (no golden directory at all)" \
+         "tf021.txt has no golden" "$(WITNESS_FILES="tf021.txt=AB" run_case correct 0 '' '')"
+    # The program's console output beside its print file is a written file too, named (stdout).
+    gold "(stdout)=HELLO"
+    want "stdout control: console output equal to its golden is a MATCH" \
+         "WT001A: MATCH" "$(WITNESS_STDOUT="HELLO" run_case correct 0 '' '')"
+    want "stdout is graded on the acceptance basis: trailing spaces are not a difference" \
+         "WT001A: MATCH" "$(WITNESS_STDOUT="HELLO   " run_case correct 0 '' '')"
+    want "console output that differs from its golden is a REGRESSION" \
+         "(stdout) differs" "$(WITNESS_STDOUT="HOLA" run_case correct 0 '' '')"
+    want "console output with no golden is a REGRESSION" \
+         "(stdout) has no golden" "$(gold; WITNESS_STDOUT="HELLO" run_case correct 0 '' '')"
+    gold "(stdout)=HELLO"
+    want "a (stdout) golden for a program that printed nothing is a REGRESSION" \
+         "(stdout) not written" "$(run_case correct 0 '' '')"
+    gold
+    # A file an EARLIER program of the group wrote, and this one did not touch, is not this one's output: the
+    # group (a producer/consumer chain) shares a directory, and the marker is taken just before each program runs.
+    printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
+        > "$FR/tests/nist/valid/WT002A.txt"
+    gold "tf021.txt=AB"
+    want "a chain member that leaves its predecessor's file alone is graded on its own writes only" \
+         "WT002A: MATCH" \
+         "$(WITNESS_GROUP="WT001A WT002A" WITNESS_FILES="tf021.txt=AB" run_case correct 0 '' '')"
+    gold
+    rm -f "$FR/tests/nist/valid/WT002A.txt"
 
     # ── THE COMPILE ARM — unchanged rules, re-witnessed because they now run from the shared library. ──
     want "no .dll and no exit status is a COMPILE NO-VERDICT" \

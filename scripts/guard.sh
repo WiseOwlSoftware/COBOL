@@ -37,6 +37,7 @@ echo "  run-scoped work dir: $GUARD_WORK"
 mkdir -p "$GUARD_WORK/output"
 cp -r tests/nist/programs "$GUARD_WORK/programs"
 cp -r tests/nist/valid    "$GUARD_WORK/valid"
+cp -r tests/nist/valid-files "$GUARD_WORK/valid-files"    # the goldens of every OTHER file a program writes (kb/Work PB804)
 [ -d tests/nist/copylib ] && cp -r tests/nist/copylib "$GUARD_WORK/copylib"
 [ -d tests/nist/data ]    && cp -r tests/nist/data    "$GUARD_WORK/data"
 cp -r "$GUARD_CLI_BIN" "$GUARD_WORK/cli"
@@ -49,6 +50,7 @@ guard_assert_compiler_identity "$CLI"
 NIST_OUT="$GUARD_WORK/output"
 NIST_PROGS="$GUARD_WORK/programs"
 NIST_VALID="$GUARD_WORK/valid"
+NIST_VALID_FILES="$GUARD_WORK/valid-files"
 NIST_DATA="$GUARD_WORK/data"
 cleanup_guard_work() { if [ "$GUARD_KEEP" != "1" ]; then rm -rf "$GUARD_WORK"; fi; }
 trap cleanup_guard_work EXIT
@@ -183,6 +185,7 @@ GUARD_FORENSICS="${GUARD_FORENSICS:-${TMPDIR:-/tmp}/nist-forensics.$$}"
 . "$(dirname "$0")/guard-verdict.sh"
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 CMPDIR="$GUARD_WORK/compare"
+STREAMS="$GUARD_WORK/streams"; mkdir -p "$CMPDIR" "$STREAMS"
 VERDICTS="$GUARD_WORK/verdicts.txt"; : > "$VERDICTS"
 v() { echo "  $1: $2"; echo "$1: $2" >> "$VERDICTS"; }     # one verdict line, echoed AND recorded
 
@@ -213,10 +216,14 @@ for test in $NIST_TESTS; do
     # Run in the output directory; capture stdout for DISPLAY-only tests
     # Pipe NIST data file to stdin when available (for ACCEPT tests)
     outfile=$(echo "$test" | tr '[:upper:]' '[:lower:]').txt
-    stdoutfile="$NIST_OUT/${test}-stdout.txt"
-    errfile="$NIST_OUT/${test}-stderr.txt"
+    # The program's stdout and stderr are kept OUTSIDE the run directory: the written-files arm (kb/Work PB804) grades
+    # what the program wrote INTO it, and the shell's own redirections are not the program's output.
+    stdoutfile="$STREAMS/${test}-stdout.txt"
+    errfile="$STREAMS/${test}-stderr.txt"
+    marker="$CMPDIR/run.marker"
     datafile="$NIST_DATA/$test.dat"
     rrc=0
+    : > "$marker"     # what the program WRITES is what is newer than this (guard_files_apply); after the compile
     if [ -f "$datafile" ]; then
         (cd $NIST_OUT && timeout -k 5 "$RUN_TIMEOUT" dotnet "$test.dll" 2>"$errfile") < "$datafile" > "$stdoutfile" || rrc=$?
     else
@@ -241,7 +248,7 @@ for test in $NIST_TESTS; do
         v "$test" "$GUARD_VERDICT"
         if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
         if [ "$GUARD_CLASS" != "match" ]; then
-            guard_preserve "$test" "$GUARD_VERDICT" "$NIST_OUT/$outfile" "$NIST_OUT/print-file.txt" "$stdoutfile" "$errfile"
+            guard_preserve "$test" "$GUARD_VERDICT" "$NIST_OUT/$outfile" "$stdoutfile" "$errfile"
         fi
         continue
     fi
@@ -249,13 +256,15 @@ for test in $NIST_TESTS; do
     # RUN + COMPARE arms — normalization, candidate resolution (outfile, print-file, stdout), the FAIL*/footer
     # rules and the evidence rules all live in scripts/guard-verdict.sh, which guard-run-group.sh calls too.
     guard_output_verdict "$test" "$validfile" "$rrc" "$errfile" "$RUN_TIMEOUT" "$CMPDIR" \
-        "$NIST_OUT/$outfile" "$NIST_OUT/print-file.txt" "$stdoutfile"
+        "$(guard_report_file "$NIST_OUT" "$outfile" "$stdoutfile")"
+    # ⛔ AND EVERY OTHER FILE THE PROGRAM WROTE (kb/Work PB804), once the report matched.
+    guard_files_apply "$test" "$NIST_VALID_FILES/$test" "$NIST_OUT" "$marker" "$outfile" "$stdoutfile" "$CMPDIR/files.problems"
     v "$test" "$GUARD_VERDICT"
     if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
     if [ "$GUARD_CLASS" != "match" ]; then
         guard_preserve "$test" "$GUARD_VERDICT" \
-            "$NIST_OUT/$outfile" "$NIST_OUT/print-file.txt" "$stdoutfile" "$errfile" \
-            "$CMPDIR/expected.norm" "$CMPDIR/actual.norm"
+            "$NIST_OUT/$outfile" "$stdoutfile" "$errfile" \
+            "$CMPDIR/expected.norm" "$CMPDIR/actual.norm" "$CMPDIR/files.problems"
     fi
 done
 
