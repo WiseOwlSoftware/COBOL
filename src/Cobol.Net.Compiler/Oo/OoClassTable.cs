@@ -207,8 +207,9 @@ public sealed class OoClassTable
     /// <summary>⛔ THE LEAF-VECTOR CROSSING FORM (kb/Work PB1116): a strongly-typed group with NO boundary character
     /// image — §13.18.60.3 confines a subordinate object reference to a strong type declaration, so this is every
     /// strong group holding an object-reference (or class-pointer) leaf. It crosses an activation boundary as the
-    /// <c>object?[]</c> of its record struct's physical fields (<c>AsLeaves</c> / <c>OfLeaves</c>, emitted by
-    /// <c>RecordStructEmitter</c>): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
+    /// <c>object?[]</c> of its record struct's physical fields, made by the sender's <c>AsLeaves</c> and stored by the
+    /// RECEIVER's instance <c>WithLeaves</c> (both emitted by <c>RecordStructEmitter</c>; an instance store, because a
+    /// dynamic-capacity table is recreated in the receiver's own description): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
     /// type", decided before any carrier is chosen), so their fields correspond one to one, while their C# record
     /// structs are distinct (every TYPE clone has its own, and two equivalent type declarations in two source elements
     /// are two types) — a field-wise copy through a neutral vector is the one carrier that works between any two of
