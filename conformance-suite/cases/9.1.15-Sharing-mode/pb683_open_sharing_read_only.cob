@@ -38,7 +38,7 @@
       *> Each leg is one physical file with two connectors.  A carries the
       *> clauses (SHARING WITH ALL OTHER needs a LOCK MODE clause by
       *> §14.9.27.3 SR8) and locks the first record with an explicit WITH
-      *> LOCK phrase, legal under MANUAL locking (§12.4.5.9 GR5).  B and C
+      *> LOCK phrase, legal under MANUAL locking (§12.4.5.9.4 GR5).  B and C
       *> carry NO sharing or locking clause at all and become sharing
       *> participants only through their own OPEN statement.  Table 19
       *> permits the opens: A is INPUT, and §9.1.15 item 2 refuses a READ
