@@ -52,14 +52,25 @@
       *> the old '00' was the hole. GR20's assertion is untouched: the two
       *> forms still agree, now at '61'.
       *>
-      *> KNOWN WEAKENING, recorded rather than hidden: with every open
-      *> arbitrated, parts (1) and (2) no longer DISCRIMINATE a leak of
-      *> F-E's RETRY phrase into F-SEED's group. A leaked retry would
-      *> route F-SEED through the phrase-bearing entry, which registers it
-      *> with the same UNDETERMINED sharing mode an unregistered connector
-      *> already arbitrates under, so no printed status moves. Parts (3)
+      *> WHAT PARTS (1) AND (2) PIN, AND WHERE THE RETRY PHRASE'S SCOPE IS
+      *> ASSERTED INSTEAD (kb/Work PB675): with every open arbitrated,
+      *> parts (1) and (2) do not DISCRIMINATE a leak of F-E's RETRY
+      *> phrase into F-SEED's group, and nothing a COBOL program can print
+      *> does. A leaked retry would route F-SEED through the
+      *> phrase-bearing runtime entry, which registers it with the same
+      *> UNDETERMINED sharing mode and the same no-lock posture an
+      *> unregistered connector already arbitrates under, and a RETRY
+      *> phrase changes no status within one run unit (every form lands
+      *> the conflict's own '61', as the case pb142_retry_conflict_class_ec
+      *> shows). Parts (1) and (2) therefore pin only GR20's equivalence of
+      *> the two written forms. The scope of the retry-phrase, like that of
+      *> the sharing-phrase, is asserted on the bound tree, where the
+      *> defect lived, by OpenGroupScopeDriftTests (unit): its theory binds
+      *> multi-group OPEN statements and requires each file-name's entry to
+      *> carry the retry-phrase and sharing-phrase of its own group only.
+      *> Parts (3)
       *> and (4) (the SHARING phrase) and part (5) (SR8, at compile time)
-      *> still discriminate their leaks.
+      *> still discriminate their leaks here.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
@@ -122,13 +133,11 @@
       *> ------------------------------------------------------------
       *> (1) THE RETRY PHRASE is nested in the same repeated group as the
       *> sharing phrase, so it is scoped the same way. Its leak is not a
-      *> status of its own - it is that a file in a group carrying NO
-      *> phrase gets treated as a file-sharing participant, which changes
-      *> what LATER opens arbitrate against and so escapes the statement.
-      *> GR20's reference form first: F-SEED, whose group carries no
-      *> phrase and whose file control entry specifies no sharing, then a
-      *> retry group on F-E, then an OPEN of the no-other connector F-A
-      *> while F-SEED is still open.
+      *> status of its own (see the header: the scope assertion is the
+      *> unit witness's), so this part pins GR20's reference form only:
+      *> F-SEED, whose group carries no phrase and whose file control
+      *> entry specifies no sharing, then a retry group on F-E, then an
+      *> OPEN of the no-other connector F-A while F-SEED is still open.
            OPEN INPUT F-SEED.
            OPEN INPUT RETRY 2 TIMES F-E.
            CLOSE F-E.
@@ -140,7 +149,8 @@
       *> three statuses to match (1) exactly: F-SEED's group carries
       *> neither phrase, so by GR23 its sharing stays whatever its file
       *> control entry gives it - which is what (1) measured - and F-E's
-      *> RETRY phrase shall not reach it.
+      *> RETRY phrase shall not reach it (asserted on the bound tree by
+      *> the unit witness named in the header).
            OPEN INPUT F-SEED INPUT RETRY 2 TIMES F-E.
            CLOSE F-E.
            OPEN INPUT F-A.

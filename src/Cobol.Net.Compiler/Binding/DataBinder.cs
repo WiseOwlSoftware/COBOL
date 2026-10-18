@@ -1428,7 +1428,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 Edition.Error(DiagnosticCatalog.ReserveOnLineSequentialFile, $"file '{name}': the RESERVE clause "
                     + $"({WrittenText(reserveAt)}) may not be specified for a LINE SEQUENTIAL file (ISO §12.4.5.2 SR12)");
             }
-            // §12.4.5.9 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
+            // §12.4.5.9.3 SR2: WITH LOCK ON MULTIPLE RECORDS shall not be specified for a sequentially-accessed
             // or sequential-organization file. The organization half is `FileModel.IsSequential` — the ONE
             // spelling of "this file has sequential organization" (§12.4.5.10.3 GR2/GR3/GR6), shared with the
             // §12.4.5.5.2 SR2 screen above and with every verb-side reroute, rather than a second open-coded
