@@ -4631,6 +4631,22 @@
   ],
   "expect": "identifier-1 is a UNIVERSAL object reference (ISO \u00a714.9.23.3 SR7)"
  },
+ "pb1136-invoke-null-by-value-alphanumeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2741"
+ },
+ "pb1136-invoke-null-identifier-2": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "identifier-2 (a method name held in a data item) is permitted only when identifier-1 is a UNIVERSAL object reference (ISO \u00a714.9.23.3 SR7)"
+ },
  "pb1136-invoke-receiver-not-object-reference": {
   "refuse-at": [
    "2002",

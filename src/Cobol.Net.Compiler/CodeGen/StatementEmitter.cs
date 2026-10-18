@@ -371,6 +371,7 @@ internal sealed class StatementEmitter : IBoundStatementVisitor<bool>
     // ── OO: INVOKE / SET object ref (ISO §14.9.23/§14.9.39; deep-dive D5/D8/D10) ─────────────────────────────
     public bool Visit(BoundInvoke n) { _oo.EmitInvoke(n); return false; }                 // §14.9.23
     public bool Visit(BoundInvokeUniversal n) { _oo.EmitUniversalInvoke(n); return false; }   // D10 universal dispatch (GR7c)
+    public bool Visit(BoundInvokeNull n) { _oo.EmitNullInvoke(n); return false; }          // INVOKE NULL → EC-OO-NULL (§14.9.23.4 GR5)
     public bool Visit(BoundSetObjectRef n) { _oo.EmitSetObjectRef(n); return false; }      // SET F5 (§14.9.39; D-U7)
     public bool Visit(BoundObjectView n) { _oo.EmitObjectView(n); return false; }          // object-view pre-op (§8.4.3.5; kb/Work PB1425)
     public bool Visit(BoundSelfReference n) { _oo.EmitSelfReference(n); return false; }    // SELF as an identifier operand (§8.4.3.8; kb/Work PB1425)
