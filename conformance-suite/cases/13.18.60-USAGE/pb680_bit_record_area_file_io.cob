@@ -17,7 +17,7 @@
       *>
       *> HOW EACH LEG CAN FAIL. Every bit item below is WRITTEN through a connector whose record is the bit item,
       *> then READ through a SECOND connector on the same physical file whose record is plain PIC X, so the
-      *> expected number is the ORD (ordinal position, 15.67; 'A' is 66) of a byte computed from the bits by hand:
+      *> expected number is the ORD (ordinal position, 15.70.1; 'A' is 66) of a byte computed from the bits by hand:
       *> a sender that put the carrier characters on the file would read back ORD 49 or 50 ('1' or '0'), and one
       *> that wrote the wrong width would fail the AT END that follows the last record (9.1.13.4 item 1).
       *> The bit connector then reads the file back and must show the bits it wrote, and the same bits must come
@@ -30,7 +30,6 @@
       *>   S4  "Z" = 0x5A (ORD 91) then 10100101 = 0xA5 (ORD 166); "a" = 0x61 (ORD 98) then 00000001 = 0x01 (ORD 2)
       *>   S5  "Z" then 101 + 00000 = 0xA0 -> ORD 91,161 (the trailing partial byte of an alphanumeric group record
       *>       is padded to an integral number of characters by 8.5.1.6.3's last placement rule)
-      *>   S6  LINE SEQUENTIAL carries the byte of 01000010 = 0x42 = 'B' -> ORD 67
       *>   S7  SORT moves whole records: ascending on the alphanumeric key (a boolean item is not a legal key,
       *>       14.9.40.3 SR6 c) leaves A,B,C and each record's key byte equals its bit byte, so the ORDs are
       *>       66,66 / 67,67 / 68,68; the procedure form RELEASEs and RETURNs the same records, descending: C,B,A.
@@ -59,10 +58,6 @@
            SELECT FG3 ASSIGN TO "pb680_s5.dat" ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS ST-B.
            SELECT FG3X ASSIGN TO "pb680_s5.dat" ORGANIZATION IS SEQUENTIAL
-               FILE STATUS IS ST-X.
-           SELECT FL ASSIGN TO "pb680_s6.dat" ORGANIZATION IS LINE SEQUENTIAL
-               FILE STATUS IS ST-B.
-           SELECT FLX ASSIGN TO "pb680_s6.dat" ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS ST-X.
            SELECT SI ASSIGN TO "pb680_s7i.dat" ORGANIZATION IS SEQUENTIAL
                FILE STATUS IS ST-B.
@@ -109,10 +104,6 @@
           05 G3B PIC 1(3) USAGE BIT.
        FD FG3X.
        01 G3XR PIC X(2).
-       FD FL.
-       01 LR PIC 1(8) USAGE BIT.
-       FD FLX.
-       01 LXR PIC X(1).
        FD SI.
        01 SIR.
           05 SIK PIC X.
@@ -258,19 +249,6 @@
            READ FG3.
            DISPLAY "S5-B1=" G3A "[" G3B "]".
            CLOSE FG3.
-      *> ===== S6 - LINE SEQUENTIAL =====
-           OPEN OUTPUT FL.
-           MOVE B"01000010" TO LR.
-           WRITE LR.
-           CLOSE FL.
-           OPEN INPUT FLX.
-           READ FLX.
-           DISPLAY "S6-X1=" FUNCTION ORD(LXR).
-           CLOSE FLX.
-           OPEN INPUT FL.
-           READ FL.
-           DISPLAY "S6-B1=[" LR "]".
-           CLOSE FL.
       *> ===== S7 - SORT: USING/GIVING, then INPUT/OUTPUT PROCEDURE =====
            OPEN OUTPUT SI.
            MOVE "C" TO SIK.

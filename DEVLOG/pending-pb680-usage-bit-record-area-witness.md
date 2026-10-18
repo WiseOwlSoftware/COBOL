@@ -15,6 +15,8 @@ by COBOLNET1757 (14.9.40.3 SR6 c), so the sort legs key on an alphanumeric leaf 
 shape through a bit-record connector and reads it back through a `PIC X` connector, so the expected numbers are the
 ORDs of bytes computed by hand from the bits (high-order bit first, 8.5.1.6.3), and through the bit connector, so
 the values round-trip; RELATIVE and INDEXED, whose physical layout is the implementor's, are observed by value.
+LINE SEQUENTIAL is its own golden (`pb680_bit_record_area_line_sequential`, accepted at 2023 only): the first gate
+caught the organization's edition gate (COBOLNET0900 below 2023) when it sat in the 2002-2023 program.
 `pb680_bit_record_area_file_exceptions` is the abnormal half (the owner's 2026-10-17 requirement that file I/O tests
 cover exception paths as fully as success): a 16-bit record read from a one-byte file is I-O status 04
 (9.1.13.2 item 3), then 10, 47, 48, 42, 41, 46 and 35 each from its 9.1.13.x item, and a USE declarative runs for an
