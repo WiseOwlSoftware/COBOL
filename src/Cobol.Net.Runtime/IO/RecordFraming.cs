@@ -22,6 +22,12 @@ internal enum StoreFormat
     /// It is not a store this processor can interpret, so GR10's answer is '39': LOUD, where reading it as
     /// frames would be a silent misread.</summary>
     Foreign,
+
+    /// <summary>A PAGED store (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of
+    /// whose three meta pages carries this format's magic but neither COMMITTED slot validates: the store's own format,
+    /// damaged beyond what it can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it
+    /// with §9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1). Only <c>Store.MetaPage.Describes</c> answers it.</summary>
+    Damaged,
 }
 
 /// <summary>One record as it travels with its EXTENT TABLE (determination D-FRA (v); kb/Work PB1053) — between a
@@ -29,8 +35,8 @@ internal enum StoreFormat
 /// variable-length group that sent it had them, where each variable-length component ended. The table is framing
 /// information, never part of the record (§12.4.5.11.4 GR1).
 /// <para><paramref name="Ordinals"/> is an INDEXED record's release-ordinal vector (the prime key's slot first, then
-/// one per alternate key — <c>KeyedRec.Ordinals</c>): the §14.9.30.4 GR26 order of its duplicates under every key,
-/// carried in the store so a reload keeps it (kb/Work PB2693). Null for every other frame.</para></summary>
+/// one per alternate key, as the prime tree of <c>IndexedStore</c> holds it): the §14.9.30.4 GR26 order of its duplicates
+/// under every key, carried with the record (kb/Work PB2693, PB3334). Null for every other frame.</para></summary>
 internal readonly record struct StoredFrame(string Image, RecordExtents? Extents, long[]? Ordinals = null);
 
 /// <summary>What <see cref="RecordFraming.ReadFrame"/> found at a frame boundary.</summary>
@@ -201,7 +207,8 @@ internal static class RecordFraming
     private const int FixedHeaderBytes = 36;
 
     /// <summary>The offset of the RELEASE MINT in the fixed header, 8 bytes little-endian: an indexed store's next
-    /// release ordinal (<c>IndexedStore.NextOrdinal</c>), so the run unit that writes next — this one after a CLOSE
+    /// release ordinal (the whole-store format's; the keyed store engine keeps it in the meta page,
+    /// <c>PagedFile.ReleaseMint</c>), so the run unit that writes next — this one after a CLOSE
     /// and OPEN, or another one sharing the file — releases its record AFTER every record already in the file
     /// (§14.9.30.4 GR26). Zero for a relative store, which has no release order.</summary>
     private const int ReleaseMintOffset = 28;
@@ -313,27 +320,53 @@ internal static class RecordFraming
                 + "relative or indexed file");
         var composed = new MemoryStream((int)size);
         WriteHeader(composed, attributes, generation, releaseMint);
-        // One head buffer for the whole compose, grown only for a frame whose extent table outgrows it.
-        byte[] head = new byte[FrameHeadBytes(null, slots) + 64];
+        byte[] gap = new byte[GapBytes];
+        EncodeGap(gap);
         foreach (StoredFrame? stored in frames)
         {
             if (stored is not { } frame)
             {
-                EncodeGap(head);
-                composed.Write(head, 0, GapBytes);
+                composed.Write(gap, 0, GapBytes);
                 continue;
             }
-            // The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any
-            // record holding a character with no byte image ('91'), so an exception here is a missed refusal —
-            // loud, raised before the file is truncated — never a silent '?'.
-            byte[] payload = FileCharacterSet.Medium.GetBytes(FileCharacterSet.ToChannel(frame.Image, codeSet));
-            int headBytes = (int)FrameHeadBytes(frame.Extents, slots);
-            if (headBytes > head.Length) head = new byte[headBytes];
-            EncodeFrameHead(head, payload.Length, frame.Extents, frame.Ordinals);
-            composed.Write(head, 0, headBytes);
-            composed.Write(payload, 0, payload.Length);
+            composed.Write(EncodeFrame(frame, slots, codeSet));
         }
         return composed;
+    }
+
+    /// <summary>⛔ ONE RECORD'S FRAME AS BYTES — its head (<see cref="EncodeFrameHead"/>) and its payload in the file's
+    /// channel character set — the value a keyed store engine's leaf entry holds (docs/rearchitecture/DESIGN-runtime-library.md
+    /// section 2.2.1.3, decision 3: <i>"The leaf entry's value is the ONE frame shape"</i>) and the frame a whole store is composed
+    /// of. The payload is converted by the file's §13.18.13 CODE-SET (<paramref name="codeSet"/>, null for the native
+    /// character set); the head is the §9.1.7.2 information this processor adds and is never converted (2.2.1.5).
+    /// <para>The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any record
+    /// holding a character with no byte image ('91'), so an exception here is a missed refusal — loud, raised before the
+    /// file is touched — never a silent '?'.</para></summary>
+    /// <exception cref="InvalidOperationException">The frame carries a number of release ordinals other than
+    /// <paramref name="ordinalSlots"/>.</exception>
+    public static byte[] EncodeFrame(StoredFrame frame, int ordinalSlots, CodeSetConversion? codeSet)
+    {
+        if ((frame.Ordinals?.Length ?? 0) != ordinalSlots)
+            throw new InvalidOperationException($"a frame carries {frame.Ordinals?.Length ?? 0} release ordinals where "
+                + $"its store's key count makes it {ordinalSlots}");
+        byte[] payload = FileCharacterSet.Medium.GetBytes(FileCharacterSet.ToChannel(frame.Image, codeSet));
+        int headBytes = (int)FrameHeadBytes(frame.Extents, ordinalSlots);
+        var value = new byte[headBytes + payload.Length];
+        EncodeFrameHead(value, payload.Length, frame.Extents, frame.Ordinals);
+        payload.CopyTo(value, headBytes);
+        return value;
+    }
+
+    /// <summary>The record a keyed store engine's leaf value holds (<see cref="EncodeFrame"/>'s inverse), decoded by the
+    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§13.18.13.4 GR6 a)); null
+    /// when the value is not exactly one record's frame — a value this writer cannot have produced, which its reader
+    /// answers as the torn page it is ('30', §9.1.13.6 item 1).</summary>
+    public static StoredFrame? DecodeFrame(byte[] value, int ordinalSlots, CodeSetConversion? codeSet)
+    {
+        var medium = new ImageMedium(value, value.Length, 0);
+        return ReadFrame(ref medium, ordinalSlots, out FrameHead head) == FrameKind.Record && medium.At == value.Length
+            ? new StoredFrame(FileCharacterSet.FromChannel(medium.Payload!, codeSet), head.Extents, head.Ordinals)
+            : null;
     }
 
     /// <summary>Decode a whole store image: one entry per frame, null for a gap. A torn tail ends the store.
@@ -460,31 +493,64 @@ internal static class RecordFraming
         BinaryPrimitives.WriteUInt64LittleEndian(head.AsSpan(GenerationOffset), generation);
         BinaryPrimitives.WriteInt64LittleEndian(head.AsSpan(ReleaseMintOffset), releaseMint);
         fs.Write(head, 0, head.Length);
-        Span<byte> word = stackalloc byte[4];
         foreach (var k in a.Keys)
+            WriteKeyDescriptor(fs, k);
+    }
+
+    /// <summary>Write one key's descriptor — its segment count and (offset, length) windows, its DUPLICATES flag, its
+    /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §9.1.6 fixed attributes, shared by
+    /// this header and the paged store's meta page (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md
+    /// 2.2.1.4), so the two formats cannot record a key differently. <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
+    internal static void WriteKeyDescriptor(Stream fs, FixedFileAttributes.KeyDescriptor k)
+    {
+        Span<byte> word = stackalloc byte[4];
+        BinaryPrimitives.WriteInt32LittleEndian(word, k.Segments.Count);
+        fs.Write(word);
+        foreach (var s in k.Segments)
         {
-            BinaryPrimitives.WriteInt32LittleEndian(word, k.Segments.Count);
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Offset);
             fs.Write(word);
-            foreach (var s in k.Segments)
-            {
-                BinaryPrimitives.WriteInt32LittleEndian(word, s.Offset);
-                fs.Write(word);
-                BinaryPrimitives.WriteInt32LittleEndian(word, s.Length);
-                fs.Write(word);
-            }
-            fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
-            // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
-            // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
-            // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The header records what the
-            // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
-            // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
-            // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
-            // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.
-            WriteCodeUnits(fs, k.Suppress);
-            byte[] collation = Encoding.ASCII.GetBytes(k.Collation);
-            fs.WriteByte((byte)collation.Length);
-            fs.Write(collation, 0, collation.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Length);
+            fs.Write(word);
         }
+        fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
+        // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
+        // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
+        // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The header records what the
+        // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
+        // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
+        // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
+        // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.
+        WriteCodeUnits(fs, k.Suppress);
+        byte[] collation = Encoding.ASCII.GetBytes(k.Collation);
+        fs.WriteByte((byte)collation.Length);
+        fs.Write(collation, 0, collation.Length);
+    }
+
+    /// <summary>The inverse of <see cref="WriteKeyDescriptor"/> from the stream's current position; null when the bytes
+    /// end inside the descriptor or are not one this build writes.</summary>
+    internal static FixedFileAttributes.KeyDescriptor? ReadKeyDescriptor(Stream fs)
+    {
+        var word = new byte[4];
+        if (!FillExactly(fs, word)) return null;
+        int segmentCount = BinaryPrimitives.ReadInt32LittleEndian(word);
+        if (segmentCount < 1 || segmentCount > MaxKeySegments) return null;
+        var segments = new KeySegment[segmentCount];
+        for (int s = 0; s < segmentCount; s++)
+        {
+            if (!FillExactly(fs, word)) return null;
+            int off = BinaryPrimitives.ReadInt32LittleEndian(word);
+            if (!FillExactly(fs, word)) return null;
+            segments[s] = new KeySegment(off, BinaryPrimitives.ReadInt32LittleEndian(word));
+        }
+        int dup = fs.ReadByte();
+        if (dup < 0) return null;
+        if (!ReadCodeUnits(fs, out string? suppress)) return null;
+        int collLen = fs.ReadByte();
+        if (collLen < 0) return null;
+        var coll = new byte[collLen];
+        if (!FillExactly(fs, coll)) return null;
+        return new FixedFileAttributes.KeyDescriptor(segments, dup != 0, suppress, Encoding.ASCII.GetString(coll));
     }
 
     /// <summary>Write an optional string as a little-endian Int32 code-unit count biased by one (0 = absent), then
@@ -540,28 +606,10 @@ internal static class RecordFraming
         if (min < 0 || max < 0) return null;
         int count = BinaryPrimitives.ReadUInt16LittleEndian(head.AsSpan(18));
         var keys = new List<FixedFileAttributes.KeyDescriptor>(count);
-        var word = new byte[4];
         for (int i = 0; i < count; i++)
         {
-            if (!FillExactly(fs, word)) return null;
-            int segmentCount = BinaryPrimitives.ReadInt32LittleEndian(word);
-            if (segmentCount < 1 || segmentCount > MaxKeySegments) return null;
-            var segments = new KeySegment[segmentCount];
-            for (int s = 0; s < segmentCount; s++)
-            {
-                if (!FillExactly(fs, word)) return null;
-                int off = BinaryPrimitives.ReadInt32LittleEndian(word);
-                if (!FillExactly(fs, word)) return null;
-                segments[s] = new KeySegment(off, BinaryPrimitives.ReadInt32LittleEndian(word));
-            }
-            int dup = fs.ReadByte();
-            if (dup < 0) return null;
-            if (!ReadCodeUnits(fs, out string? suppress)) return null;
-            int collLen = fs.ReadByte();
-            if (collLen < 0) return null;
-            var coll = new byte[collLen];
-            if (!FillExactly(fs, coll)) return null;
-            keys.Add(new FixedFileAttributes.KeyDescriptor(segments, dup != 0, suppress, Encoding.ASCII.GetString(coll)));
+            if (ReadKeyDescriptor(fs) is not { } key) return null;
+            keys.Add(key);
         }
         return new FixedFileAttributes(org, head[9] == (byte)'V', min, max, keys);
     }
