@@ -530,30 +530,6 @@ public sealed class RelativeEngineTests
 
     // ── 2.2.1.16's OPEN and CLOSE rows through the connector (review finding R1-4) ───────────────────────────────────
 
-    /// <summary>A refusing medium whose <paramref name="refuseAt"/>-th write or sync (counted together, from the medium's
-    /// creation) is refused; <paramref name="seen"/> counts every write and sync handed to it.</summary>
-    private static RefusingPageMedium Refusing(IPageMedium inner, Func<int> refuseAt, Action count, Func<int> seen) =>
-        new(inner,
-            write: _ => Next(refuseAt, count, seen),
-            sync: () => Next(refuseAt, count, seen));
-
-    private static IOException? Next(Func<int> refuseAt, Action count, Func<int> seen)
-    {
-        bool refuse = seen() == refuseAt();
-        count();
-        return refuse ? new IOException("refused by the host") : null;
-    }
-
-    /// <summary>Whether page 2 of the file carries PROMOTING, read beside the run units that hold it open.</summary>
-    private static bool PageTwoPromoting(string host)
-    {
-        using var stream = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-        var page = new byte[PageHeader.PageSize];
-        stream.Position = MetaPage.WorkSlot * (long)PageHeader.PageSize;
-        stream.ReadExactly(page);
-        return MetaPage.Decode(page, MetaPage.WorkSlot) is { Promoting: true };
-    }
-
     public static TheoryData<FileSharing> Sharings() => [FileSharing.AllOther, FileSharing.ReadOnly, FileSharing.NoOther];
 
     /// <summary>2.2.1.16's refused table, "A promotion (CLOSE ...)" before and after the slot write, through the connector:
@@ -576,7 +552,7 @@ public sealed class RelativeEngineTests
             try
             {
                 Seed(host);
-                RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
@@ -630,7 +606,7 @@ public sealed class RelativeEngineTests
         {
             Seed(host);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => -1, () => seen++, () => seen);
+            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
@@ -656,7 +632,7 @@ public sealed class RelativeEngineTests
         {
             Seed(host);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => -1, () => seen++, () => seen);
+            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
@@ -681,13 +657,13 @@ public sealed class RelativeEngineTests
         return data;
     }
 
-    /// <summary>The records the next OPEN reads after an OPEN of the seeded file that did not complete: the fence of an
-    /// <c>OPEN I-O</c> or <c>OPEN EXTEND</c> changes no record (2.2.1.16, "The fence"), so the seeded records; an
-    /// <c>OPEN OUTPUT</c> that truncated the file holds none (2.2.1.16, "<c>OPEN OUTPUT</c>": §14.9.27.4 GR18's file
-    /// <i>"contains no records"</i> either way, a file of no bytes and a store whose committed slot landed alike), and
-    /// one that wrote nothing at all left the seeded store.</summary>
-    private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool truncated) =>
-        mode == FileOpenMode.Output && truncated ? [] : Before;
+    /// <summary>The records the next OPEN reads after an OPEN of the seeded file that a process death cut short: the fence
+    /// of an <c>OPEN I-O</c> or <c>OPEN EXTEND</c> changes no record (2.2.1.16, "The fence"), so the seeded records; an
+    /// <c>OPEN OUTPUT</c> whose creation's commit write — its FIRST write, the empty meta into the slot not holding the
+    /// previous committed meta (PagedFile.Create) — was handed over holds none (2.2.1.16's creation rows: §14.9.27.4
+    /// GR18's file <i>"contains no records"</i>), and one that died before it left the seeded store.</summary>
+    private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool committed) =>
+        mode == FileOpenMode.Output && committed ? [] : Before;
 
     /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and the two <c>OPEN OUTPUT</c> rows (at any
     /// write or sync but the last sync; at its last sync), through the connector: a host refusal of EVERY write and sync
@@ -710,7 +686,7 @@ public sealed class RelativeEngineTests
             {
                 Seed(host);
                 var a = new FileRegistry();
-                RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
                     Register(a, "A", host, sharing);
@@ -751,8 +727,8 @@ public sealed class RelativeEngineTests
     /// <summary>2.2.1.16's crash points of an OPEN through the connector: a process death after EVERY write of the fence
     /// of an <c>OPEN I-O</c> or <c>OPEN EXTEND</c>, or of an <c>OPEN OUTPUT</c>'s creation, leaves a file the next run
     /// unit's OPEN adopts ('00'), with the records the table's rows name: the seeded ones after a fence (it changes no
-    /// record), none after a creation that truncated the file, and the seeded ones after a creation that died before its
-    /// truncation.</summary>
+    /// record), none after a creation whose commit write was handed over, and the seeded ones after a creation that died
+    /// before it.</summary>
     [Theory]
     [MemberData(nameof(Opens))]
     public void A_death_after_every_write_of_the_OPEN_leaves_a_file_the_next_OPEN_adopts(FileOpenMode mode, FileSharing sharing)
@@ -775,8 +751,8 @@ public sealed class RelativeEngineTests
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
                 a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
-                // DyingPageMedium drops the truncation too once dead, so a creation that died at write 0 truncated nothing.
-                Assert.Equal(AfterAnUnfinishedOpen(mode, truncated: i > 0), Records(host));
+                // A creation that died at write 0 never handed over its commit write; from write 1 on it had.
+                Assert.Equal(AfterAnUnfinishedOpen(mode, committed: i > 0), Records(host));
             }
             finally
             {
@@ -817,7 +793,7 @@ public sealed class RelativeEngineTests
 
             int refuseAt = int.MaxValue, seen = 0;
             var y = new FileRegistry();
-            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
                 Register(y, "Y", host, FileSharing.AllOther);
@@ -830,18 +806,18 @@ public sealed class RelativeEngineTests
             refuseAt = seen + 2;
             y.Close("Y");
             Assert.Equal("30", y.Status("Y"));
-            Assert.True(PageTwoPromoting(host), "the refused promotion left PROMOTING on page 2");
+            Assert.True(StoreKit.PageTwoPromoting(host), "the refused promotion left PROMOTING on page 2");
 
             int before = xWrites;
             Assert.Equal("00", ReadKey(x, "XI", 3, out string image));
             Assert.Equal("0003CCCC", image);
             Assert.Equal(before, xWrites);                        // the shared entry wrote nothing
-            Assert.True(PageTwoPromoting(host), "the INPUT connector left the flag to an exclusive entry");
+            Assert.True(StoreKit.PageTwoPromoting(host), "the INPUT connector left the flag to an exclusive entry");
 
             Assert.Equal("00", ReadKey(x, "XO", 3, out image));   // the exclusive entry resolves it (R5's restart rule)
             Assert.Equal("0003CCCC", image);
             Assert.True(xWrites > before, "the I-O connector's entry ran the promotion again");
-            Assert.False(PageTwoPromoting(host), "the promotion completed");
+            Assert.False(StoreKit.PageTwoPromoting(host), "the promotion completed");
             x.Close("XI");
             x.Close("XO");
             Assert.Equal("00", x.Status("XO"));

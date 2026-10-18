@@ -369,6 +369,68 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(["1=AAAA"], Records(host));
     }
 
+    /// <summary>⛔ THE INDEXED SIBLING OF THE RELATIVE CASE ABOVE (review finding R1-1 of kb/Work PB3334): the boundary's
+    /// '24' is a record WRITE's or REWRITE's alone in an indexed file too (<c>KeyedConnector.RecordWriteFailed</c>, the one
+    /// mapping both organizations share). A DELETE whose copy-on-write pages — the prime entry's leaf and the alternate
+    /// entry's — the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's
+    /// '30', never §9.1.13.5 item 4's '24' with the INVALID KEY branch taken (§14.9.10.4 gives DELETE the invalid key
+    /// condition only for a record the file does not contain), and the permanent error stays in effect (§9.1.13.1); an
+    /// OPEN OUTPUT whose creation the host refuses to grow the file for is '30' as well. The file is unchanged by both:
+    /// the record the DELETE named is still there under the prime key AND the alternate key at the next OPEN.</summary>
+    [Fact]
+    public void IndexedDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("ix-refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
+        bool refusing = false;
+        int refused = 0;
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || !Grows(inner, page)) return null;
+                refused++;
+                return HandlePageMedium.Refusal(new IOException("refused by the host", tooLarge));
+            });
+        try
+        {
+            var c = Indexed(host);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            Assert.Equal(FileStatusCode.Success, c.Write("K001AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Write("K002BBBB"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K001    "));
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K002    "));   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            var o = Indexed(Host("ix-refuse-create.dat"));
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        var r = Indexed(host);
+        Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K001    ", out string byPrime));
+        Assert.Equal("K001AAAA", byPrime);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(0, "    AAAA", out string byAlternate));
+        Assert.Equal("K001AAAA", byAlternate);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K002    ", out _));
+        Assert.Equal(FileStatusCode.Success, r.Close());
+
+        static IndexedConnector Indexed(string host)
+        {
+            var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)]);
+            c.AddAlternateKey([new(4, 4)], duplicates: false);
+            return c;
+        }
+    }
+
     /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector
     /// (the next OPEN).</summary>
     private static List<string> Records(string host)
