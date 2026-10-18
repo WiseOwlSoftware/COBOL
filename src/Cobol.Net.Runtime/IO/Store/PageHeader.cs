@@ -18,8 +18,8 @@ internal enum PageKind : byte
     /// <summary>A B+ tree leaf page (kb/Work PB3332).</summary>
     Leaf = (byte)'L',
 
-    /// <summary>A page of a chain: 8 bytes of the next page's generation, then payload, chained by
-    /// <see cref="PageHeader.Next"/> (<see cref="PageChain"/>).</summary>
+    /// <summary>A page of an overflow value's chain: 8 bytes of the next page's generation, then payload, chained by
+    /// <see cref="PageHeader.Next"/> (<see cref="OverflowChain"/>).</summary>
     Overflow = (byte)'O',
 
     /// <summary>A page no tree references; it keeps its header so a stale read of it is recognizable.</summary>

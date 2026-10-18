@@ -66,3 +66,28 @@ auditor's raw decoder is the format's independent second reading by design.
 (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,273 · Unit 312 ·
 Characterization 31 … — Conformance 11,275/17,548 · Unit 33,873/34,185 · Characterization 5/36 cases ran (skipped 0) in
 1 of 2 leg(s) …`. The Linux gate is the landing's (batched gating).
+
+**Branch review, round 1 (three findings, the review finisher in worktree-wf_14a1e62b-326-16).**
+- R1-1, a wrong answer for a legal record: the reservation sized the LEDGER from the pages a statement RESERVES, but a
+  statement that drops a committed overflow chain adds one `freed` entry per page of it during the flush. A DELETE of
+  a 4 MB record (1 000 overflow pages) threw `InvalidOperationException` out of `PageStatement.Complete`, and every
+  retry met the same chain. `Begin` now takes a `StatementBound` (pages written, pages released), read off the pending
+  edits by `StatementBound.Of(trees)` so no caller counts by hand; `Reserve` adds the FREE tree's own superseded pages,
+  and `Ledger.WriteBound` counts one change per release with a level-by-level bound for the entries a write adds.
+  Cases: 1 000- and 2 069-page records deleted and shortened, committed and not, then CLOSEd into the FREE tree; the
+  1 000-page DELETE killed, killed just after and refused at each of its writes.
+- R1-2, a cursor stepping through a node changed in place: a cursor detected a change by comparing the root, which a
+  second edit of a node the pending edit already copied leaves equal, so it returned an entry twice or skipped one. The
+  tree now carries a change counter (edit, flush, discard, adoption); `ReadValue` after a change looks the value up by
+  key and refuses a deleted current entry loudly. Cases: the review's two probes, Replace/Delete/Discard under a
+  cursor, and a seeded model walk of more than 1 000 steps forward and backward with edits and flushes between steps.
+- R1-3, PB3331's review fixes missing from the branch that lands it: worktree-wf_14a1e62b-326-10 merged and re-derived
+  on the tree (11 conflict hunks in `PagedFile.cs`): the boundary answered by the tree's `Reserve` before the claim; a
+  refused read told from damage at the resident ledger's load (`BTree.LoadResident`/`Ledger.Load` return the
+  `PageCheck`), so R6 step 3 never rejects a descendant for a refusal; refused-read cases at every tree read point (a
+  statement's entry and ledger adoption, path fetches, the overflow supersede, the FREE batch; a scan; an OPEN of a
+  descendant). PB3331's round-3 finding R3-1 is answered here too: the creation case runs a sub-page previous file
+  (1 000 bytes) and its length classes are described by the page each ends in.
+- Mutations, each red and then reverted: the root comparison (3 cursor cases red), the releases left out of the bound
+  (5), a refused read at OPEN taken as damage (3, PB3331's fence case among them). A dangling `PageChain` cref in
+  `PageHeader.cs` was fixed on the way.
