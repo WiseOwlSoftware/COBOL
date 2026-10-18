@@ -1,4 +1,4 @@
-## kb/Work PB1563: what a READ of a LINE SEQUENTIAL line does with two dynamic-length members is derived and documented (D-FRA (x)), and a REWRITE of such a record no longer answers '44'
+## Entry 2208 — 2026-10-18 07:37 PDT — kb/Work PB1563: what a READ of a LINE SEQUENTIAL line does with two dynamic-length members is derived and documented (D-FRA (x)), and a REWRITE of such a record no longer answers '44'
 
 PB1563 asked what the standard requires READ to do with a line when the record holds two or more dynamic-length
 members and the line, being plain text, cannot carry the PB1053 extent table. The re-probe on this build reproduced
@@ -52,3 +52,4 @@ golden. The round-1 code and the exceptions golden were first gated RED (run 202
 conformance-suite audit refused the new golden because it was filed under 12.4.5.10 without a rule of that clause, so
 the rule GR-12.4.5.10.3-2 was added. The re-gate (run 20261018T135714Z-9538c7) read `=== BUILD-LOCAL GATE: LEG 1 ONLY
 (batched gating, PB2515): GREEN` and ran the exceptions golden and `LineSequentialDynamicMembersAbnormalTests`.
+
