@@ -68,7 +68,10 @@ MANDATORY-PRACTICES I10): the rolling wave dispatches ONE read-only `cobol-revie
 and a session dispatches one by hand for a branch it finished itself or one `python scripts/prune_worktrees.py --brief`
 lists WAITING FOR REVIEW. The landing step never reviews and never fixes. The prompt gives the branch, its worktree, its
 head, the implementer's report, the findings file (`<scratch>\review-w<wave>-<letter>.jsonl`; any path without a
-space for a hand dispatch), the reviewer label and the round. Run every command against the branch's worktree
+space for a hand dispatch), the reviewer label and the round. A wave's prompt also names the group's DISPATCH SPEC
+(`<scratch>\msg-w<wave>-<letter>.txt`) and, for a campaign, the owner's STANDING REQUIREMENTS (kb/Work PB3359; the bullets of
+the campaign lead note's `## Standing requirements`): read the spec, because the branch is reviewed against everything
+the implementer was told, and a branch that lacks a requirement is a finding (category `requirement`), not a CLEAN. Run every command against the branch's worktree
 (`git -C <worktree> …`, `python <worktree>\scripts\…`) and name the tool `RF` below for
 `python <worktree>\scripts\orchestrator\review_findings.py`:
 
