@@ -1090,5 +1090,69 @@
    "shape": "single-list",
    "why": "NOT-RULES 2026-08-08 (owner decision batch, fix-queue PB29; reader+refuter batch). REFUTER OVERTURN (reader said rules/GR). Re-read all 4 items (ordinals verified) plus the full clause frame. The clause opens: 'Table 21, Table of functions, summarizes the functions that are available.' - a SUMMARY - and closes: 'The Value returned column gives a synopsis of the value returned; additional details are specified in the definition of the function.' The items are typographic reading conventions for that summary table - item 4: 'Commas are used only to separate an argument from the next argument in the argument list.' - and impose no requirement, permission, or prohibition on programs or processors; no COBOL processor can obey or violate them. Decisive kind argument from 5.3.1: 'Except for intrinsic functions, rules are categorized as syntax rules and general rules. Intrinsic functions have argument rules and returned value rules instead.' - an admitted rule must be SR, GR, AR, or RV, and these items are NONE: not 5.3.2 SR (nothing about how COBOL source may be written), not 5.3.3 GR (a general rule defines 'the meaning or relationship of meanings of an element or set of elements ... the semantics of the statement and the effect that it has on either execution or compilation' - table-notation glyphs are not language elements and have no effect on execution or compilation), and the reader's own verdict already conceded not-AR/RV ('they constrain no argument a program passes and define no returned value'). The reader's 'their content lives nowhere else' point cuts the other way: what lives here is only a compression scheme; the facts the notation encodes (each function's argument types and positions) live normatively in the per-function Argument rules of 15.7 onward, exactly the 'normative content lives elsewhere' test - the same ground on which the same reader put 15.1 at not-rules ('state no requirement, permission, or prohibition on programs or processors'). Admitting these four items would put typographic apparatus in the conformance denominator. Corrected to not-rules."
   }
+ },
+ "paragraph-blocks": {
+  "_comment": [
+   "PROSE CONCEPT CLAUSES admitted to the denominator as ONE ROW PER NORMATIVE PARAGRAPH (kb/Work PB284 part 3; the",
+   "row shape PB479 proposed: id <kind>-<clause>-p<n>, field shape='paragraph'). Distinct from `blocks` above: those",
+   "carry an ascending 'N)' list the numbered scan does not harvest; these carry NO numbered rule at all, so no",
+   "marker and no 'General rules' heading ever opened them and the clause was invisible to every completeness guard.",
+   "A NOTE stays inside the paragraph it follows (informative; every predicate cuts it at NOTE_MARK), a list item or",
+   "a paragraph cut by a page break joins the paragraph it belongs to (extract_rule_catalog.py prose_paragraphs).",
+   "kind is SR or GR per 5.3.1; `kinds` re-types single paragraphs by number. Admitting a clause is a DENOMINATOR",
+   "change (the denominator defines v1.0, D13): read the clause, give its kind and the reason, and never admit",
+   "wholesale - kb/Work PB479 owns the measurement of the rest of the standard's unnumbered prose."
+  ],
+  "9.1.16": {
+   "title": "Record locking",
+   "kind": "GR",
+   "kinds": {
+    "6": "SR"
+   },
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3, for PB3330's engine groups). Nine paragraphs of running prose, no numbered rule: the two locking modes and who sets and releases a lock (p1-p3), what a locked record denies another file connector and the IGNORING LOCK exception (p4), when CLOSE, COMMIT and ROLLBACK release locks (p5, p7, p8), and the implementor's latitude to return a locked status for other circumstances (p9). Kind GR per 5.3.3 ('A general rule defines or clarifies the meaning or relationship of meanings of an element or set of elements', cite.py --check OK) for all but p6: 'For files subject to commit and rollback the LOCK clause and the UNLOCK statement shall not be specified' restricts what may be WRITTEN, which 5.3.2 gives to syntax rules ('define or clarify the order in which words or elements may be written to form larger elements', --check OK), so p6 is SR."
+  },
+  "9.1.17": {
+   "title": "Logical unit of work",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). One paragraph defining a logical unit of work and stating that the files and data it touches are protected from other run units for its duration - the unit COMMIT and ROLLBACK delimit (9.1.18.1 names it). Kind GR per 5.3.3: it defines the meaning of an element and constrains execution, not the written form."
+  },
+  "9.1.18.1": {
+   "title": "General",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). The commit and rollback facility's statement of purpose: run units commit all changes made to files at multiple stages, a rollback restores files and the data items named by APPLY COMMIT to the state after the previous commit or the start of the run unit. Kind GR per 5.3.3 (defines the meaning and effect of the facility)."
+  },
+  "9.1.18.2": {
+   "title": "Files and data items to be included",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). Which files and data items the facility covers: APPLY COMMIT names them, any mass-storage file except sort-merge and report writer files may be specified, and runtime elements' APPLY COMMIT clauses are activated when invoked and stay active until the element is canceled or restored to its initial state AND a COMMIT or ROLLBACK has run. Kind GR per 5.3.3 (scope and lifetime of an effect)."
+  },
+  "9.1.18.3": {
+   "title": "Committing changes to files",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). What COMMIT does: permanently commits the changes, saves the related file status settings and the data items referenced by the linage and record clauses, saves the data items named on active APPLY COMMIT clauses for a later rollback, and releases all record locks. Kind GR per 5.3.3."
+  },
+  "9.1.18.4": {
+   "title": "Rolling back changes to files and data items",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). What ROLLBACK does: restores files and data items to the state at the previous COMMIT (or the start of the run unit), restores file status settings and the linage and record data items, does NOT restore data items of runtime elements canceled since the previous COMMIT unless the external-item exception holds, and releases all record locks. Kind GR per 5.3.3."
+  },
+  "9.1.18.5": {
+   "title": "Run unit termination",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). Normal termination commits all file changes permanently; abnormal termination rolls back every file with an active APPLY COMMIT clause to the previous commit or the start; in both cases all file and record locks are released. Kind GR per 5.3.3. This is the paragraph a crashed or killed run unit's recovery (PB3330's dead-owner rule) is derived from."
+  },
+  "9.1.18.6": {
+   "title": "Object orientation",
+   "kind": "GR",
+   "kinds": {
+    "1": "SR"
+   },
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). APPLY COMMIT clauses, COMMIT and ROLLBACK are 'not permitted in factory and object classes, nor in any of their methods nor in any runtime elements that they invoke', and 'Data items containing object references are not permitted in APPLY COMMIT clauses': both restrict what may be WRITTEN, so the paragraph is SR per 5.3.2 (--check OK on the phrase quoted in 9.1.16's entry)."
+  },
+  "9.1.18.7": {
+   "title": "Exception conditions",
+   "kind": "GR",
+   "why": "ADMITTED 2026-10-17 (kb/Work PB284 part 3). Paragraph 1 raises EC-FLOW-APPLY when an APPLY COMMIT clause is attempted to be activated in a runtime element invoked by a recursive runtime element or under the control of MERGE or SORT; paragraph 2 raises EC-FLOW-COMMIT and EC-FLOW-ROLLBACK when COMMIT or ROLLBACK is attempted while a merge or file sort is active or under a recursive runtime element. Kind GR per 5.3.3 (an effect at execution). This is the clause Annex A.4.3 item 1 cross-references and the only place EC-FLOW-APPLY is SET."
+  }
  }
 }

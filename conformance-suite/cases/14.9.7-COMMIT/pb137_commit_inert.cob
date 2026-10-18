@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb137_commit_inert
-*> rules: [GR-14.9.7.4-1, GR-14.9.36.4-1, GR-14.9.36.4-7, FMT-14.9.36.2]
+*> rules: [GR-14.9.7.4-1, GR-14.9.36.4-1, GR-14.9.36.4-7, FMT-14.9.7.2, FMT-14.9.36.2]
 *> accept: [2023]
 *> source-format: free
 *> portable: unverified

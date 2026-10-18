@@ -442,12 +442,21 @@ class DerivedSelector:
         the standard's order, and a list is its `kind`-`section`-`sublist` triple), so a nested list that
         interrupts an outer one does not change the outer list's lead-in. A plain rule (sublist 1) has none.
         Added for kb/Work R43 / PB1519.
+      · `formats`       the FORMAT NUMBERS of the band a rule is printed under (the catalog's `band-formats`,
+        kb/Work PB284) — the standard's THIRD way of scoping a rule, beside its clause and its words. ACCEPT
+        format 3 and DISPLAY format 2 are the screen formats, VALUE format 5 and PRESENT WHEN format 2 the
+        validation ones, and the rules under them often say nothing that names the module ('General rule 18
+        applies.'). SOLELY: a rule is selected only when every format its band names is one the arm names, since a
+        rule under 'FORMATS 1 AND 2' also holds for format 1. The numbers are the CLAUSE's own, so an arm that
+        names `formats` without `sections` is refused. Operand names stay a separate mechanism (§14.9.1.3 prints no
+        band at all): neither subsumes the other.
 
     ⛔ EVERY TEXT AXIS READS THE NORMATIVE TEXT — the rule with its NOTEs cut off (`NOTE_MARK`). See there.
     """
 
     #: The arm fields that NARROW the catalog. An arm carrying none of them selects all 4,311 rules.
-    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in")
+    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in",
+                "formats")
 
     def __init__(self, name: str, raw: dict[str, Any], register: dict[str, str] | None = None) -> None:
         self.name = name
@@ -466,8 +475,15 @@ class DerivedSelector:
                 # An arm with only NEGATIVE fields selects the whole catalog. Refusing it here is cheap; the
                 # alternative is a 4,311-row batch that validates perfectly and is entirely wrong.
                 raise SystemExit(f"derived-verdicts.{name} arm[{i}]: no positive field — it would select every rule")
+            if "formats" in arm and not arm.get("sections"):
+                # A format number is the CLAUSE's own ("FORMAT 2" of PRESENT WHEN is not ACCEPT's), so an arm that
+                # names formats without the clause that numbers them would select the same-numbered band of every
+                # multi-format clause in the standard.
+                raise SystemExit(f"derived-verdicts.{name} arm[{i}]: `formats` without `sections` — format numbers "
+                                 "belong to a clause")
             self.arms.append({
                 "sections": list(arm.get("sections", [])),
+                "formats": set(arm.get("formats", [])),
                 "xref-sections": list(arm.get("xref-sections", [])),
                 "pattern": re.compile(arm["pattern"], re.IGNORECASE) if "pattern" in arm else None,
                 "kinds": set(arm.get("kinds", [])),
@@ -527,6 +543,12 @@ class DerivedSelector:
                 return False
         if arm["sections"] and not any(section_matches(p, rule.get("section", "")) for p in arm["sections"]):
             return False
+        if arm["formats"]:
+            # SOLELY: a rule printed under "FORMATS 1 AND 2" also holds for format 1, which a selector naming only
+            # format 2 must not take. A rule under no format band names no format and is never selected.
+            printed = set(rule.get("band-formats", []))
+            if not printed or not printed <= arm["formats"]:
+                return False
         text = self.text_of(rule)
         if arm["xref-sections"]:
             cited = XREF_CITATION.findall(text)
