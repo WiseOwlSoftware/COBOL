@@ -42,4 +42,13 @@ succeeds once the lock moved, and a SORT whose USING file is absent ('35') or wh
 golden, so `LineSequentialDynamicMembersAbnormalTests` asserts the exit code, stdout and stderr for READ '46', REWRITE
 '43' and '71' and the SORT's '35'. D-FRA (x) no longer claims more than the witnesses cover.
 
-Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T133019Z-4ac93f).
+Branch review round 2 raised two more findings. R2-1: the round-1 commit had also committed three unrelated local
+harness edits to the tracked `.claude/settings.local.json` (a `Bash(cd *)` allow rule, a one-off orient.py allow rule, a
+skillOverrides block); the file is restored to main's content. R2-2: this entry cited a gate that predates the round-1
+work, which is corrected below.
+
+Gates: the implementer's gate (run 20261018T133019Z-4ac93f) predates the round-1 work and verified only the first
+golden. The round-1 code and the exceptions golden were first gated RED (run 20261018T135554Z-9aeb89): the
+conformance-suite audit refused the new golden because it was filed under 12.4.5.10 without a rule of that clause, so
+the rule GR-12.4.5.10.3-2 was added. The re-gate (run 20261018T135714Z-9538c7) read `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN` and ran the exceptions golden and `LineSequentialDynamicMembersAbnormalTests`.
