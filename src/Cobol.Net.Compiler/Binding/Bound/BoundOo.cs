@@ -156,6 +156,17 @@ public sealed record BoundInvokeUniversal(
 
 }
 
+/// <summary>An INVOKE whose identifier-1 is the predefined object reference NULL (ISO §14.9.23; kb/Work PB1136). It is
+/// legal source: §14.9.23.3 SR1 asks only that identifier-1 be an object reference, and §8.4.3.7.3 SR2 describes NULL
+/// as "class object and category object reference" and "not a universal object reference", so no method roster exists
+/// to select from (SR4 a)–i) each name a description NULL does not have) and no formal exists for an argument to
+/// conform to. Its meaning is §14.9.23.4 GR5 — "If identifier-1 is null, the EC-OO-NULL exception condition is set to
+/// exist and execution of the INVOKE statement is terminated" — so the node carries no arguments and no returning item:
+/// the binder screened them by the syntax rules that read no method, and nothing is ever passed or delivered. The
+/// activations an argument carries still run ahead of the node, since §14.9.23.4 GR7 a) evaluates the arguments with
+/// identifier-1 at the beginning of the statement (see <c>OoBinder.OoBindNullInvoke</c>).</summary>
+public sealed record BoundInvokeNull : BoundStatement;
+
 /// <summary>One universal-dispatch argument: the storage and its description (kb/Work PB480).</summary>
 public sealed record BoundUniversalArg(Place? Source, CobolNet.Runtime.ActivationDescription Description)
 {

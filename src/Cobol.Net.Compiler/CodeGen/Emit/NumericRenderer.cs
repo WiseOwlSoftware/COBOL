@@ -344,17 +344,11 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     {
         // `BoundNumLiteral` is the ONE literal shape an arithmetic expression's operands take — the operand-level
         // `BoundNumericLiteral` never reaches a `BoundPower`.
-        string? text = x is BoundNumLiteral l ? l.Text : null;
-        if (text is null || !CobolNet.Common.NumericLiteral.TryParseExact(text, out Int128 sig, out int exp10))
-            return null;
-        while (exp10 < 0 && sig % 10 == 0) { sig /= 10; exp10++; }   // trailing zeros are notation, not scale
-        if (exp10 < 0) return null;                                   // a genuinely non-integer value
-        for (int i = 0; i < exp10; i++)
-        {
-            if (Int128.Abs(sig) > Int128.MaxValue / 10) return null;   // past the exact arm's own carrier
-            sig *= 10;
-        }
-        return sig;
+        // (The value test is NumericLiteral.TryGetIntegerValue — the bind-time lane prediction FunctionValueLane asks the
+        // same question of the same literal, kb/Work PB3268.)
+        return x is BoundNumLiteral l && CobolNet.Common.NumericLiteral.TryGetIntegerValue(l.Text, out Int128 value)
+            ? value
+            : null;
     }
 
     public NumX Visit(BoundIntrinsicCall n) => Intrinsics.RenderNum(n);   // FUNCTION call (ISO §15)
@@ -853,7 +847,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         operands evaluated once) — the exact 256-bit product is rounded ONCE to the resultant's scale with the
     ///         resultant's own mode
     ///         (<c>CobolDec.MulAtScale</c>, the multiplicative twin of the outermost division). It does not matter how
-    ///         wide the resultant is: a 16-byte COMP-5 item owns a 38-digit container (§13.18.60.4 GR12), where an
+    ///         wide the resultant is: a 16-byte COMP-5 item owns a 38-digit container (DOC-A.1-208, kb/Work R10), where an
     ///         SDIDI product keeps 34 and the receiver's ROUNDED phrase — PROHIBITED included — would never see the tail
     ///         (kb/Work PB1143's review finding N1: <c>E * F</c> of two 20-digit operands into <c>PIC S9(31) COMP-5</c>
     ///         stored …5370000 for …5361999). A product past the Int128 carrier at that scale is the size error

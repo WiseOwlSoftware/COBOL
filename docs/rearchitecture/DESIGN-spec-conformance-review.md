@@ -361,6 +361,23 @@ left every gate green. `scripts/spec/audit_witness_loss.py --check` (run by `bui
 retirement mark or a re-site; `--history` replays the file's git history under the merge rule and
 `--restore-batch` emits the witness-only batch owing back what the old overwrite silently removed.
 
+**A symbol must be in the code, and the prose is read too (kb/Work PB762).** One predicate,
+`SpecTraceabilityInventoryDriftTests.SymbolResolves`, decides whether a `#Symbol` still exists, for a `code-location`
+and for a `path#Symbol` spelling in a row's `notes`: the symbol must be in the file's CODE (a C# file's tokens, so a
+comment, a doc comment and a disabled region do not count but a string literal does; a grammar file's text without its
+comments; any other file's whole text), and in a C# file a dotted symbol is a qualified name, so each segment must be
+an identifier of the file. The old whole-body word search let `FileRegistry.cs#ReadLockGovern` resolve on three
+CONFORMS rows for as long as a comment narrated the method's removal, and left `notes`, the field a reader opens to
+learn why a row has its verdict, unread: a rename re-pointed the field the gate checks and five rows then
+contradicted themselves, a dated erratum stapled beneath prose that still described the dead method. The prose is
+`notes` up to the first `retired-witness:` mark (the schema's `notes.retired-witness-mark`, read by both engines); a
+mark is history by construction and may name a symbol that is gone. The writer's half is a shape rule decidable from
+the record and the row (`inventory_schema.retired_symbols_left_in_prose`): once a witness is retired its symbol may not
+appear in the prose unless the row still cites it at another file, so the history of the change goes in the
+retirement's reason and the prose describes the code as it is. What no resolver can read is a BARE identifier in old
+prose: it also narrates history and the standard's own words, so a stale bare name is caught only at the next
+retirement, and the rows that predate the rule are a measured residue (kb/Work PB762).
+
 **The five parts, and why each is where it is.**
 
 | part | file | owns |
@@ -497,16 +514,27 @@ non-conformance as if the owner had licensed it.
    **witness**: a negative case showing the construct is refused, by name. The 2026-09-02 A.4 landing stamped
    **308 rows** and moved the GAP by **zero**, which is the correct and expected outcome; the PB280 Q1 landing
    stamped **2** and moved it by zero for the same reason (their witness debt was `kb/Work/PB373`, DISCHARGED
-   2026-09-09 — item 127 on `conformance:2023/pb373_object_computer_name_inert`, and item 206 by leaving the
+   2026-09-09 — item 127 on `conformance:cases/A.1-Implementor-defined-language-element-list/pb373_object_computer_name_inert`, and item 206 by leaving the
    selector altogether when owner decision Q30 / `kb/Work/PB592` found the element IS provided, closing CONFORMS
-   on `conformance:2002/pb592_binary_usage_range_bounds`).
+   on `conformance:cases/A.1-Implementor-defined-language-element-list/pb592_binary_usage_range_bounds`).
 
-**What a selector cannot reach is recorded, not silently dropped** (`feedback_measure_the_selectors_complement`).
-The standard also scopes rules by the printed **FORMAT band**, and the catalog does not carry it —
-`extract_rule_catalog.py` glues the heading onto the preceding rule's text — so twelve rules that *are* solely
-conditioned stay outside the predicate and are named in the schema's `$format-band-residue` and in kb/Work PB284.
-Reaching them by regex would be a hand list in regex clothing; the repair is the extractor, and a denominator
-change rebuilds the inventory and is its own landing.
+**The printed FORMAT band is a catalog field, and a selector arm reads it** (kb/Work PB284). The standard scopes a
+rule three ways — by clause, by words, and by the group label printed above it ("FORMAT 2", "SEQUENTIAL FILES",
+"ALL FORMATS"). `extract_rule_catalog.py` carries the third as `band` (the label as printed) and `band-formats` (the
+format numbers it names) on every SR/GR row printed under one, and no longer lets the label leak into the text
+before it. The `formats` arm field selects a rule whose `band-formats` is a non-empty SUBSET of the arm's numbers —
+solely, because a rule under "FORMATS 1 AND 2" also holds for format 1 — and is only legal beside `sections`, since a
+format number is its clause's own (PRESENT WHEN's FORMAT 2 is not ACCEPT's). The operand arm stays: §14.9.1.3 prints no
+band at all and SR-14.9.1.3-5 is scoped by the names `identifier-3` / `identifier-4`; neither mechanism subsumes the
+other. The eight rows this reached (five in `validate-only`, three in `screen-handling-only`) are the ones
+the old `$format-band-residue` block recorded as unreachable.
+
+**Prose concept clauses are rows too** (kb/Work PB284 part 3, PB479). A clause whose rules are running prose with no
+numbered marker (§9.1.16 record locking, §9.1.17, §9.1.18.x commit and rollback) was invisible to the numbered scan
+and to every completeness guard. The manifest's `paragraph-blocks` key admits such a clause, with its rule kind and
+the reason, and the extractor emits one row per normative paragraph (`GR-9.1.16-p1`, field `shape: paragraph`).
+`audit_catalog_coverage.py` holds each admitted clause to the same standard as a numbered one: the rows' text is the
+clause's text, sentence for sentence.
 
 **What the gate actually enforces** (eleven facts, and it is proven able to fail — see below): the inventory covers
 the catalog exactly, no row contradicts its catalog entry, every verdict is in the vocabulary, every stored `state`

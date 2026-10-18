@@ -74,7 +74,9 @@ BRIEFS = {
                            # PB3027 (I10): a DONE branch is reviewed on the branch by one read-only reviewer, findings go
                            # to a review finisher, and only a branch reviewed CLEAN reaches a train
                            r"agentType: 'cobol-reviewer'", r'review_findings\.py', r"r\.review === 'CLEAN'",
-                           r'REVIEW FINISHER', r'REVIEW_FIX_ROUNDS'],
+                           r'REVIEW FINISHER', r'REVIEW_FIX_ROUNDS',
+                           # PB3359: a campaign's standing requirements and the group's dispatch spec reach the reviewer
+                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it'],
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
@@ -159,6 +161,27 @@ def same_file_without_successor(groups_path):
     return found
 
 
+def specs_missing_requirements(groups_path, specs):
+    """The (spec name, requirement) pairs where a rendered spec lacks a requirement the groups file declares (kb/Work
+    PB3359). A group's `requirements` is {campaign lead: [requirement]}, the lead notes' `## Standing requirements`
+    (plan_wave.group_requirements) of every campaign the group's notes belong to: the owner's instructions that the
+    group must meet, which reach an implementer only through its spec. A spec is matched to its group by the name
+    `msg-w<wave>-<letter>.txt` (make_dispatch_specs.py's), so a group's requirement is checked in its OWN spec only.
+    Whitespace is compared collapsed, as the planner collapses it. A group with none declares none."""
+    doc = json.loads(groups_path.read_text(encoding='utf-8'))
+    found = []
+    for s in specs:
+        path = pathlib.Path(s)
+        text = ' '.join(path.read_text(encoding='utf-8').split()) if path.exists() else ''
+        m = re.fullmatch(r'msg-w[^-]+-([a-z0-9]+)\.txt', path.name)
+        for g in doc.get('groups', []):
+            if m and g.get('letter', '').lower() != m.group(1):
+                continue
+            for reqs in (g.get('requirements') or {}).values():
+                found += [(path.name, r) for r in reqs if ' '.join(r.split()) not in text]
+    return found
+
+
 # PB1699: the generic fleet scripts and base skills are CONSUMED from the pinned public submodule, never copied or
 # wrapped. Four ways that silently rots: the pin moves and the overlays still name the old version; `.agent-fleet.json`
 # carries a key no script accepts (it would be ignored); a brief names a submodule script that is not there; or a
@@ -237,6 +260,12 @@ def main():
         else:
             print(f'ok       {gp.name}')
     specs = [a for a in sys.argv[1:] if not a.endswith('.json')]
+    for gp in groups_files:
+        lacking = specs_missing_requirements(gp, specs)
+        if lacking:
+            bad += 1
+            print(f'FAIL     {gp.name}: standing campaign requirements missing from rendered specs (kb/Work PB3359): '
+                  + '; '.join(f'{n}: {r[:80]}' for n, r in lacking))
     if len(sys.argv) > 1:
         targets = [(pathlib.Path(a), SPEC) for a in specs]
     else:

@@ -878,9 +878,6 @@ public sealed partial class DataBinder
         var classClauses = new List<Core.ClassDefinitionClauseContext>();
         var symbolicClauses = new List<Core.SymbolicCharactersClauseContext>();
         var currencyClauses = new List<Core.CurrencySignClauseContext>();
-        // The names THIS source element declares — a containing element's inherited names may be re-declared
-        // (§8.4.6.1: each source element "may use identical user-defined words"), its own may not (§8.4.2.1).
-        var ownDls = new HashSet<string>(CobolNames.Comparer);
         foreach (var para in program.environmentDivision()?.configurationSection()?.configurationParagraph() ?? [])
         {
             // OBJECT-COMPUTER … PROGRAM COLLATING SEQUENCE (ISO §12.3.6 — the 85 single-name IS form, the 2002
@@ -935,7 +932,7 @@ public sealed partial class DataBinder
                 // (PB25 → T0), and before that a raw parse error at the clause's own literal.
                 if (entry.localeClause() is { } loc) { LocaleBind(loc); continue; }
                 if (entry.orderTableClause() is { } ot) { OrderTableBind(ot); continue; }
-                if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls, ownDls); continue; }
+                if (entry.dynamicLengthStructureClause() is { } dls) { DynamicLengthStructureBind(dls); continue; }
                 if (entry.alphabetClause() is { } alpha) { alphabetClauses.Add(alpha); continue; }
                 // CLASS and SYMBOLIC CHARACTERS bind AFTER the walk (kb/Work PB110): their IN alphabet-name may be
                 // declared by a LATER ALPHABET clause of the same paragraph (the clauses are order-free — the
@@ -992,8 +989,15 @@ public sealed partial class DataBinder
         using (Edition.At(sw))   // §8.3.2.2 — the entry's user-defined words, through the one funnel (kb/Work PB1083)
         {
             if (e.Mnemonic is { } mnemonic) DeclareUserWord(mnemonic, UserWordKind.MnemonicName);
-            if (e.OnCondition is { } onName) DeclareUserWord(onName, UserWordKind.ConditionName);
-            if (e.OffCondition is { } offName) DeclareUserWord(offName, UserWordKind.ConditionName);
+            // A switch's condition-name is referenced unqualified only (§12.3.7.4 GR2), so a second declaration of one is
+            // §8.4.2.1's ambiguity — asked beside the funnel because ConditionName is also the level-88 type, which
+            // qualification tells apart (kb/Work PB3216, UserWordKinds.DeclaredUnqualifiable).
+            foreach (var condition in new[] { e.OnCondition, e.OffCondition })
+                if (condition is { } conditionName)
+                {
+                    DeclareUserWord(conditionName, UserWordKind.ConditionName);
+                    CheckUnqualifiableDeclaration(conditionName, UserWordKind.ConditionName);
+                }
         }
         if (e.Unavailable is { } why)
         {
@@ -1114,7 +1118,7 @@ public sealed partial class DataBinder
     /// §12.3.7.2; DESIGN-locale-facility §4.1, T1): declare the locale-name with its external identification. §12.3.7.3
     /// SR10 — literal-4 "shall be alphanumeric or national"; SR11 — "shall not be a symbolic-character figurative
     /// constant" nor a zero-length literal (the grammar admits any literal, so both are checked here); a locale-name
-    /// declared twice is COBOLNET1665 (§8.3.2.2 — a user-defined word of one type is unique within its scope). §12.3.7.4
+    /// declared twice is COBOLNET4250, asked by the declaration funnel (§8.4.2.1; kb/Work PB3216). §12.3.7.4
     /// GR5 — the implementor specifies the allowable content: DETERMINATION L1, a locale tag, POSIX spellings normalized
     /// (<see cref="LocaleSymbol.Tag"/>); availability is NOT checked here (§8.1.5 — run time; L1 item 4).</summary>
     private void LocaleBind(Core.LocaleClauseContext loc)
@@ -1138,12 +1142,9 @@ public sealed partial class DataBinder
             if (!TryClauseTextLiteral(written4, $"LOCALE {name} IS {spelling}", "literal-4", out external)) return;
         }
         else external = words[1].GetText();
-        var symbol = new LocaleSymbol(name, external, fromLiteral);
-        if (!Locales.TryAdd(name, symbol))
-        {
-            Edition.Error("COBOLNET1665", $"LOCALE {name}: the locale-name is already declared in this SPECIAL-NAMES paragraph "
-                + $"(as {(Locales.TryPeek(name, out var first) ? first : null)}); a user-defined word is unique within its scope (ISO §8.3.2.2 / §12.3.7.2)");
-        }
+        // A second LOCALE of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
+        // PB3216); the first stands, as every registry keeps it.
+        Locales.TryAdd(name, new LocaleSymbol(name, external, fromLiteral));
     }
 
     /// <summary>Resolve a locale-name reference (ISO §12.3.7.3 SR24 for the ALPHABET clause; §14.9.39.3 SR26 for SET
@@ -1186,10 +1187,9 @@ public sealed partial class DataBinder
                 return false;
             }
             text = constant.Text;
-            return SecondHalfOfSr11(text);
+            return Sr11ZeroLength(IsZeroLengthConstant(constant));
         }
         var lit = (Core.LiteralContext)written;
-        string raw = lit.GetText();
         var nn = lit.nonNumericLiteral();
         if (nn?.predefinedNull() is not null)
         {
@@ -1205,45 +1205,34 @@ public sealed partial class DataBinder
                 $"{operand} shall specify neither a symbolic-character figurative constant nor a zero-length literal");
             if (SpecialNamesFigurative(fig, slot) is not { } figurative) return false;
             text = figurative;
+            return Sr11ZeroLength(text.Length == 0);
         }
         // §8.8.3.3 GR3 makes a concatenation expression "equivalent to a literal of the same class and value,
         // [usable] anywhere a literal of that class may be used", so `IS "ISO " & "14651_2020_TABLE1"` is legal
         // here and folds to the one literal SR10 then classes. Refusing it would reject conforming source.
-        else if (nn?.concatenationExpression() is { } cat)
+        // ⛔ THE ONE DECODE (kb/Work PB3218): the literal's class is OperandLiteralClass's (a concatenation's by the
+        // §8.8.3.3 GR1 fold, a plain literal's by its prefix) and its characters LiteralCharsOf's — the pair the
+        // ALPHABET / CLASS operands decode through — where this screen kept an inline copy of both. A figurative
+        // HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes (§12.3.7.4 GR10 — one pair for both
+        // classes, owner R52) and SR11 forbids a symbolic-character operand in literal-9 (the posture this screen
+        // gives literal-4 as well). SR10: CobolLiteral.ClassOf answers from the PREFIX, so a plain literal admits both
+        // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal, §8.3.3.2) and
+        // refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
+        var literalClass = OperandLiteralClass(lit);
+        if (literalClass is not (LiteralClass.Alphanumeric or LiteralClass.National))
         {
-            // A figurative HIGH-/LOW-VALUE written INSIDE SPECIAL-NAMES takes the NATIVE extremes
-            // (§12.3.7.4 GR10 — one pair for both classes, owner R52) and SR11 forbids a
-            // symbolic-character operand in literal-9 (the posture this screen gives literal-4 as well).
-            var folded = ConcatFolder.Fold(cat, Edition, LiteralEnvironment.SpecialNames(this,
-                refusesSymbolicCharacters: true));
-            if (folded.Category is not (PicCategory.Alphanumeric or PicCategory.National))
-            {
-                Report($"{what}: {operand} shall be an alphanumeric "
-                    + "or national literal (ISO §12.3.7.3 SR10); this concatenation expression is class "
-                    + $"{folded.Category} (§8.8.3.3 GR1/GR3)");
-                return false;
-            }
-            text = folded.Value;
+            Report($"{what}: {operand} shall be an alphanumeric or national literal (ISO §12.3.7.3 SR10)"
+                + (nn?.concatenationExpression() is not null
+                    ? $"; this concatenation expression is class {literalClass} (§8.8.3.3 GR1/GR3)" : ""));
+            return false;
         }
-        else
-        {
-            // SR10 — alphanumeric or national. CobolLiteral.ClassOf answers from the PREFIX, so it admits both
-            // quoting forms and both hexadecimal spellings (X"…" is one FORM of an alphanumeric literal,
-            // §8.3.3.2) and refuses a boolean one; a NUMERIC literal is not a quoted literal and lands here too.
-            if (CobolLiteral.ClassOf(raw) is not (LiteralClass.Alphanumeric or LiteralClass.National))
-            {
-                Report($"{what}: {operand} shall be an alphanumeric or "
-                    + "national literal (ISO §12.3.7.3 SR10)");
-                return false;
-            }
-            text = CobolLiteral.Decode(raw);
-        }
-        return SecondHalfOfSr11(text);
+        text = LiteralCharsOf(lit, sr11: true);
+        return Sr11ZeroLength(IsZeroLengthOperand(lit));
 
-        // SR11's SECOND half.
-        bool SecondHalfOfSr11(string decoded)
+        // SR11's SECOND half, asked of the answer the ONE predicate gives (IsZeroLengthOperand / IsZeroLengthConstant).
+        bool Sr11ZeroLength(bool zeroLength)
         {
-            if (decoded.Length > 0) return true;
+            if (!zeroLength) return true;
             Report($"{what}: {operand} shall specify neither a "
                 + "symbolic-character figurative constant nor a zero-length literal (ISO §12.3.7.3 SR11)");
             return false;
@@ -1258,9 +1247,10 @@ public sealed partial class DataBinder
     /// (§5.2.6.4, through the one reader <see cref="ChoiceIndicators.AtMostOnce{T}"/>) — or is the
     /// physical-structure-name-1 alternative, whose allowable names §12.3.7.3 SR32 leaves to the implementor and
     /// this implementor provides NONE of (docs/CONFORMANCE.md §3 D-DL3), so that alternative is refused by name.
-    /// A second declaration of one name in the same source element is refused too: every reference to it would
-    /// fail §8.4.2.1's "a reference that uniquely identifies that resource".</summary>
-    private void DynamicLengthStructureBind(Core.DynamicLengthStructureClauseContext dls, HashSet<string> ownNames)
+    /// A second declaration of one name in the same source element is refused by the declaration funnel
+    /// (<see cref="DeclareUserWord"/>, kb/Work PB3216): every reference to it would fail §8.4.2.1's "a reference that
+    /// uniquely identifies that resource". A containing element's inherited names may be re-declared (§8.4.6.1).</summary>
+    private void DynamicLengthStructureBind(Core.DynamicLengthStructureClauseContext dls)
     {
         if (dls.cobolWord() is not { } nameCtx || dls.dynamicLengthLayout() is not { } layout) return;   // a parse error already
         string name = nameCtx.GetText();
@@ -1292,14 +1282,10 @@ public sealed partial class DataBinder
                 };
             declared = new DynamicLengthStructure(name, prefix, Delimited: delimited is not null, null);
         }
-        if (!ownNames.Add(name))
-        {
-            using var _ = Edition.At(nameCtx);
-            Edition.Error(DiagnosticCatalog.DynamicLengthStructureInvalid,
-                $"{where}: the dynamic-length-structure-name '{name}' is already declared in this SPECIAL-NAMES "
-                + "paragraph, so no reference to it could uniquely identify one layout (ISO §8.4.2.1)");
-            return;
-        }
+        // A second declaration of one name was refused by the declaration funnel (DeclareUserWord, ISO §8.4.2.1; kb/Work
+        // PB3216): the first stands, so a repeat sets nothing — and an INHERITED same-named structure is still replaced
+        // by this element's first (§8.4.6.1), since the census counts this element's own declarations alone.
+        if (WordCensus.UnqualifiedDeclarations(name, UserWordKind.DynamicLengthStructureName) > 1) return;
         DynamicLengthStructures.Set(name, declared);   // replaces an INHERITED same-named structure (§8.4.6.1)
     }
 
@@ -1769,11 +1755,12 @@ public sealed partial class DataBinder
                 }
                 // §12.3.7.3 SR11 — literal-1 … literal-6 "shall specify neither a symbolic-character figurative
                 // constant nor a zero-length literal" (a symbolic character is no literal token here, so only the
-                // second half can be written).
-                if (CobolLiteral.IsZeroLength(text))
+                // second half can be written). Asked of the literal AS DECODED (IsZeroLengthOperand, kb/Work PB3218): a
+                // concatenation of zero-length literals IS one (§8.8.3.3 GR2) though its tokens are not.
+                if (IsZeroLengthOperand(lit))
                 {
-                    Edition.Error(r.Code, $"{r.What}: {text} — an operand shall not be a zero-length literal "
-                        + "(ISO §12.3.7.3 SR11)");
+                    Edition.Error(r.Code, $"{r.What}: {ConcatFolder.Spelling(lit)} — an operand shall not be a zero-length "
+                        + "literal (ISO §12.3.7.3 SR11)");
                     return null;
                 }
                 // ⛔ WHICH RULE is decided by the literal's FORM — an integer literal is held to the ordinal rule
@@ -1799,7 +1786,7 @@ public sealed partial class DataBinder
                 string spec = $"{w.GetText()} (the constant-name for {k.StandsFor})";
                 if (k.Category is PicCategory.Numeric && k.IntegerText is { } integer)
                     return Ordinal(integer.TrimStart('-'), k.Text.StartsWith('+') || k.Text.StartsWith('-'), spec);
-                if (k.Category is not PicCategory.Numeric && k.Text.Length == 0)
+                if (IsZeroLengthConstant(k))
                 {
                     Edition.Error(r.Code, $"{r.What}: {spec} — an operand shall not be a zero-length literal "
                         + "(ISO §12.3.7.3 SR11)");
@@ -1988,6 +1975,29 @@ public sealed partial class DataBinder
         return CobolLiteral.ClassOf(lit.GetText());
     }
 
+    /// <summary>⛔ THE ONE QUESTION "IS THIS SPECIAL-NAMES LITERAL OPERAND ZERO-LENGTH?" (ISO §12.3.7.3 SR11 — literal-1
+    /// … literal-6 and literal-9 "shall specify neither a symbolic-character figurative constant nor a zero-length
+    /// literal"; kb/Work PB3218). It is asked of the literal AS DECODED, never of its tokens: §8.8.3.3 GR2 makes a
+    /// concatenation of zero-length literals a zero-length literal, and GR3 makes any concatenation expression usable
+    /// "anywhere a literal of that class may be used", so <c>"" &amp; ""</c> is the zero-length literal SR11 bars. The
+    /// ALPHABET / CLASS operands (<see cref="LiteralPhraseOperand"/>) tested the raw token (not zero-length as written)
+    /// while the LOCALE / ORDER TABLE literals (<see cref="TryClauseTextLiteral"/>) tested the folded value, so
+    /// <c>ALPHABET AZ IS "" &amp; ""</c> compiled clean beside the LOCALE clause's refusal of the same operand. A plain
+    /// token is asked structurally (<see cref="CobolLiteral.IsZeroLength"/> — a malformed hexadecimal literal decodes to
+    /// nothing too and is LiteralScreen's COBOLNET1635, not SR11), a concatenation through the fold's diagnostic-free
+    /// walk (the reporting fold is <see cref="LiteralCharsOf"/>'s).</summary>
+    private bool IsZeroLengthOperand(Core.LiteralContext lit) =>
+        lit.nonNumericLiteral()?.concatenationExpression() is { } ce
+            ? ConcatFolder.Peek(ce, LiteralEnvironment.SpecialNames(this, refusesSymbolicCharacters: true)).Value.Length == 0
+            : CobolLiteral.IsZeroLength(lit.GetText());
+
+    /// <summary>The constant-name arm of <see cref="IsZeroLengthOperand"/>: a constant-name is "as if literal-1 … were
+    /// written" (§13.10.4 GR1), so a nonnumeric constant whose literal-1 is zero-length is the zero-length literal SR11
+    /// bars. The same structural test <c>ConcatFolder</c> takes of a constant operand (its re-quoted
+    /// <see cref="ConstantDef.RawText"/>).</summary>
+    private static bool IsZeroLengthConstant(ConstantDef constant) =>
+        constant.Category is not PicCategory.Numeric && CobolLiteral.IsZeroLength(constant.RawText);
+
     /// <summary>⛔ THE ONE §12.3.7.4 GR10 mapping of a figurative constant written INSIDE the SPECIAL-NAMES
     /// paragraph to the character it names: "<i>When specified as literals in the SPECIAL-NAMES paragraph, the
     /// figurative constants HIGH-VALUE and LOW-VALUE are associated with those characters having the highest and
@@ -2061,7 +2071,7 @@ public sealed partial class DataBinder
     /// the SPELLING of whatever it was handed, which is how <c>ALPHABET X IS SPACE</c> positioned S, P, A, C, E
     /// (PB770 fixed that arm) and <c>CURRENCY SIGN IS SPACE PICTURE SYMBOL "#"</c> bound the currency string "SPACE"
     /// (the other caller). Both callers screen the operand's class first (<see cref="LiteralPhraseOperand"/>,
-    /// <see cref="CurrencyTextLiteral"/>), so what reaches here is a quoted literal — hexadecimal included, which
+    /// <see cref="CurrencyOperandOf"/>), so what reaches here is a quoted literal — hexadecimal included, which
     /// <see cref="CobolLiteral.Decode"/> decodes itself — or a concatenation expression, and anything else is a caller
     /// that skipped its screen: a defect to find at once, never a value to invent.</para></summary>
     private string LiteralCharsOf(Core.LiteralContext lit, bool sr11)

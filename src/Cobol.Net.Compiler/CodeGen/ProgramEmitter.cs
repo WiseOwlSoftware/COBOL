@@ -784,7 +784,7 @@ internal sealed class ProgramEmitter
         // DataBinder.PtrBindBasedAndAddressables claims both onto cells).
         if (ret.DenotedItem is { } leafGroup && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(leafGroup)
             && CallEmitter.AreaOf(ret, _atoms) is { } area)
-            return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth);
+            return RuntimeApi.ArgAdaptStoreReturnArea("__ret", area, leafGroup.ByteWidth, CellComponents.PerOccurrence(leafGroup));
         string? atoms = CallEmitter.BoundaryAtoms(ret, _atoms);
         if (CallEmitter.CallPlaceIsVarGroup(ret))
             return RuntimeApi.ArgAdaptStoreReturn("__ret", PlaceRenderer.VarGroupBoundaryImage(ret, "RETURNING item"), atoms!);
@@ -804,7 +804,7 @@ internal sealed class ProgramEmitter
 
     /// <summary>Emit the module registrar + the run-unit entry wrapper (<see cref="EmitModuleRegistrar"/>, then
     /// <c>Main</c>). <c>Main</c> runs the first program as main and performs the §14.6.11 implicit CLOSE at run-unit
-    /// termination; STOP RUN unwinds to here (§14.9.43); a main-program GOBACK already returned normally through its
+    /// termination; STOP RUN unwinds to here (§14.9.42.4 GR1); a main-program GOBACK already returned normally through its
     /// activation entry.</summary>
     private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles, ModuleNamespace ns)
     {

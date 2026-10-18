@@ -107,7 +107,7 @@ public static class CobolWordsDirectiveProcessor
             // where the region closes.
 
             int directiveLine = i + 1;   // resultant, 1-based: the frame the DEFINE events carry
-            if (TryParseOption(operand, i, diagnostics, loc, name => definitions.DefinitionAt(name, directiveLine), out var op))
+            if (TryParseOption(operand, new DiagnosticCursor(directiveLine, at), diagnostics, loc, name => definitions.DefinitionAt(name, directiveLine), out var op))
             {
                 // SR5 — every literal's content across all directives is unique.
                 foreach (string w in Words(op))
@@ -139,7 +139,7 @@ public static class CobolWordsDirectiveProcessor
     /// <para><paramref name="definitionOf"/> reads the DEFINE timeline for a compilation-variable-name in a literal
     /// slot; null is the SYNTAX-ONLY parse of <see cref="CheckOperand"/>, where such a name is accepted by its shape
     /// and no word is looked up.</para></summary>
-    private static bool TryParseOption(string operand, int line, DiagnosticBag diag, SourceLocation loc,
+    private static bool TryParseOption(string operand, DiagnosticCursor at, DiagnosticBag diag, SourceLocation loc,
         Func<string, CompilationVariableEvent?>? definitionOf, out CobolWordsOp op)
     {
         op = null!;
@@ -165,13 +165,13 @@ public static class CobolWordsDirectiveProcessor
         switch (CobolNames.UpperFold(kw.Text))
         {
             case "EQUATE":   // EQUATE literal-1 WITH literal-2
-                return TryBinary(toks, "WITH", CobolWordsAction.Equate, line, diag, loc, definitionOf, out op);
+                return TryBinary(toks, "WITH", CobolWordsAction.Equate, at, diag, loc, definitionOf, out op);
             case "SUBSTITUTE":   // SUBSTITUTE literal-4 BY literal-5
-                return TryBinary(toks, "BY", CobolWordsAction.Substitute, line, diag, loc, definitionOf, out op);
+                return TryBinary(toks, "BY", CobolWordsAction.Substitute, at, diag, loc, definitionOf, out op);
             case "UNDEFINE":   // UNDEFINE literal-3
-                return TryUnary(toks, CobolWordsAction.Undefine, isExisting: true, line, diag, loc, definitionOf, out op);
+                return TryUnary(toks, CobolWordsAction.Undefine, isExisting: true, at, diag, loc, definitionOf, out op);
             case "RESERVE":   // RESERVE literal-6
-                return TryUnary(toks, CobolWordsAction.Reserve, isExisting: false, line, diag, loc, definitionOf, out op);
+                return TryUnary(toks, CobolWordsAction.Reserve, isExisting: false, at, diag, loc, definitionOf, out op);
             default:
                 Invalid(diag, loc,
                     $"'{kw.Text}' is not a >>COBOL-WORDS option — expected EQUATE, UNDEFINE, SUBSTITUTE, or RESERVE (ISO §7.3.10.2)");
@@ -180,7 +180,7 @@ public static class CobolWordsDirectiveProcessor
     }
 
     /// <summary>EQUATE/SUBSTITUTE: <c>KW literal-a JOIN literal-b</c> (the existing word then the fresh word).</summary>
-    private static bool TryBinary(IReadOnlyList<Tok> toks, string join, CobolWordsAction action, int line,
+    private static bool TryBinary(IReadOnlyList<Tok> toks, string join, CobolWordsAction action, DiagnosticCursor at,
         DiagnosticBag diag, SourceLocation loc, Func<string, CompilationVariableEvent?>? definitionOf, out CobolWordsOp op)
     {
         op = null!;
@@ -193,12 +193,12 @@ public static class CobolWordsDirectiveProcessor
         if (!Literal(toks[1], diag, loc, "the existing word", definitionOf, out string existing, out _)) return false;
         if (!Literal(toks[3], diag, loc, "the new word", definitionOf, out string @new, out bool newIsWritten)) return false;
         if (newIsWritten && !UserWord(@new, diag, loc)) return false;
-        op = new CobolWordsOp(action, existing, @new, line);
+        op = new CobolWordsOp(action, existing, @new, at);
         return true;
     }
 
     /// <summary>UNDEFINE/RESERVE: <c>KW literal</c>.</summary>
-    private static bool TryUnary(IReadOnlyList<Tok> toks, CobolWordsAction action, bool isExisting, int line,
+    private static bool TryUnary(IReadOnlyList<Tok> toks, CobolWordsAction action, bool isExisting, DiagnosticCursor at,
         DiagnosticBag diag, SourceLocation loc, Func<string, CompilationVariableEvent?>? definitionOf, out CobolWordsOp op)
     {
         op = null!;
@@ -212,8 +212,8 @@ public static class CobolWordsDirectiveProcessor
         // RESERVE's operand is a fresh user word (SR4 §8.3.2.2 form); UNDEFINE's is an existing word (no form check).
         if (!isExisting && isWritten && !UserWord(word, diag, loc)) return false;
         op = isExisting
-            ? new CobolWordsOp(action, word, null, line)
-            : new CobolWordsOp(action, null, word, line);
+            ? new CobolWordsOp(action, word, null, at)
+            : new CobolWordsOp(action, null, word, at);
         return true;
     }
 
@@ -314,7 +314,7 @@ public static class CobolWordsDirectiveProcessor
     /// fresh word, its user-word shape (SR4). Nothing is applied and nothing is looked up — SR3/SR4's word categories,
     /// SR5's uniqueness and the DEFINE timeline belong to the directive that is compiled. Reports COBOLNET1623.</summary>
     internal static void CheckOperand(string operand, DiagnosticBag diagnostics, SourceLocation loc) =>
-        TryParseOption(operand, 0, diagnostics, loc, definitionOf: null, out _);
+        TryParseOption(operand, default, diagnostics, loc, definitionOf: null, out _);
 
     private static void Invalid(DiagnosticBag diag, SourceLocation loc, string message) =>
         diag.ReportError(DiagnosticCatalog.CobolWordsDirectiveInvalid.Code, message, loc, default);

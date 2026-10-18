@@ -324,9 +324,10 @@ been permitted by use of the compiler directive REF-MOD-ZERO-LENGTH" (outside su
 EC-BOUND-REF-MOD instead of producing a zero-length item), and item 6 admits "an intrinsic function that returns
 a zero-length value", which a NUMERIC function never is — §15.4 puts its returned value in a temporary
 elementary data item with at least one digit position. Freezing on the shape alone was a wrong answer rather
-than a wasted temp: a numeric function sender was re-described into `SendingValueTemp.FunctionValuePic` (21
-integer + 9 fraction digits), narrower than a standard-decimal or floating-point result, so `MOVE FUNCTION E`
-into a 31-digit item re-rounded (kb/Work PB425 finisher).
+than a wasted temp: a numeric function sender was re-described into a fixed S9(21)V9(9) item, narrower than a
+standard-decimal or floating-point result, so `MOVE FUNCTION E` into a 31-digit item re-rounded (kb/Work PB425
+finisher; the numeric intermediate is now described for its value, kb/Work PB3268, but a numeric function still
+never needs the freeze).
 
 **GR4's elementary-vs-group decision is ONE predicate asked of BOTH operands** — `MoveClassifier.IsGroupPlace`,
 read by `IsGroupSender` for the sending side and by `Kind` for the receiving one, because GR4 states one rule
@@ -590,8 +591,37 @@ The materializer creates that intermediate result item through `DataBinder.Creat
 synthesized-temp constructor) with the **operand's own description**, so the store into it is an identity move
 and the equivalence is exact: a data item clones its description (§8.4.3.3.4 GR6's "unique data item" when
 reference-modified, carried by a run-time-length item per §8.5.1.10.4), and a function-identifier takes §15.4's
-"temporary elementary data item" — the same `FunctionValuePic` the §15.4 subscript temp uses, written once, or
-`IntegerFunctionValuePic` (scale 0) for an INTEGER function (§15.2 item 5). A NUMERIC function's temporary is flagged
+"temporary elementary data item" as the item `SendingValueTemp.IntermediatePic` describes FOR THE VALUE AND ITS USE
+(kb/Work PB3268): for an INTEGER function (§15.2 item 5) read as text in a character formal, the returned-value item's
+30-digit `IntegerFunctionValuePic`; for any numeric or integer function a `double` when the value is a binary64, and
+an item of the receivers' own binary format when every receiver is floating-point of ONE format (`SharedFloatFormatPic`:
+a `float` for an all-binary32 set, since a binary64 narrowed into a binary32 rounds an exact value twice, ISO
+§14.6.8.3 rule 2 and kb/Work PB1110, review R2-1; a `double` for an all-binary64 set: an INTEGER of a FLOAT-LONG
+holding 1.5E50 is a 51-digit integer no fixed item holds, review R1-1); any other set of numeric receivers with a floating-point one
+among them (a binary32 beside a binary64, a floating-point item beside a fixed-point one) takes the 36-digit decimal
+floating-point item below, an INTEGER function's value included (`FloatingPointNumericSet`, review round 3 R1-1/R1-2: a
+fixed-point window cut a FLOAT-LONG beside a `PIC S9(3)V99` to 12 integer digits, and `ValueOperandPic` stored 1.234E-21
+as 0 in a FLOAT-SHORT and a FLOAT-LONG); otherwise, for an INTEGER function, the whole 38-digit carrier at scale 0 (`IntegerIntermediatePic`: a 31-digit
+integer reaches every receiver whole). The `double` is chosen for a value the
+renderer returns as a binary64 (`FunctionValueLane.ReturnsBinary64`: the §15.4.1 float family and any numeric-argument
+function given a binary64 argument, under native arithmetic, unless a floating-point LITERAL argument takes a function
+with an SDIDI body onto the SDIDI; the argument carriers are read by a visitor over the same generated visitor
+interfaces `NumericRenderer` implements; the rules it shares with the renderer — the cross-aligned arms, the
+value-fixed-by-definition pair, the carrier-escape bound — are `IntrinsicCarrierRules` in `compiler.bound`, and a
+literal's digit bound is `NumericLiteral.TryUnscaledParts` / `UnscaledDigitBound` in `frontend.common`, so neither layer
+reaches the other, DESIGN-architecture-review.md §8.1; and a NESTED call is classified by the carrier the renderer's arm returns it on,
+an INTEGER function included: INTEGER(1.5E0) is FloorDec's SDIDI value, and only SIGN / ORD-MAX / ORD-MIN, whose SDIDI
+bodies return an exact integer, are exact, `FunctionValueLane.NativeSdidiBodiesWithExactResult`) — each receiver's own
+float landing then quantizes once, at its own scale —
+the 36-digit decimal `+9.9(35)E+9999` (`WidestFloatEditedPic`, kb/Work PB370) for a value whose every receiver is
+numeric with a floating-point one among them that no one binary format serves, or whose every receiver is fixed-point with more
+digits between them than the 38-digit carrier holds; the WIDEST receiver's fixed-point description for a MOVE's other
+values (`ValueUse.MovedTo`, `ShapedPic` over `PicInfo.WidestReceiving`: the GR1 `MOVE a TO temp` with temp described
+as the largest receiver), 21 integer + 17 fraction digits for a value read as
+an operand (an EVALUATE subject, a frozen argument), and the returned-value item's S9(21)V9(9) only for a value read as
+text in a character formal. It is not the fixed S9(21)V9(9) (`FunctionValuePic`) the returned-value item has for
+`FUNCTION LENGTH`: that description cut `MOVE FUNCTION PI TO Q1 Q2` (PIC 9V9(15)) to 3.141592653000000 where `MOVE
+FUNCTION PI TO Q3` stores 3.141592653589793. A NUMERIC function's temporary is flagged
 `DataItem.FunctionValueSeparator` (the decimal separator its literal form is written with, PB2507: the materializing unit's), and `OperandText`'s field image renders a flagged item in DOC-A.1-92's literal
 form — so `MOVE temp TO b` stores in a CHARACTER receiver what `MOVE a TO b` stores (kb/Work PB1007: the
 unflagged 30-digit description moved as zero-padded digits, `MOVE FUNCTION INTEGER(N) TO A B` storing `0000`).
@@ -614,6 +644,35 @@ sentence — "The length of the data item referenced by identifier-1 is evaluate
 data is moved to the first of the receiving operands" — and without it `MOVE ODO-G TO N, Z` re-read the length
 AFTER storing into `N` and sent one character to the second receiver. A DYNAMIC-LENGTH elementary sender is
 frozen by §8.5.1.10.4's own carrier.
+
+**The ORDER of the two identifications has two halves** (kb/Work PB3261, PB370). GR1 evaluates identifier-1's
+reference modifier, subscript or function-identifier "immediately before data is moved to the first of the receiving
+operands" and identifies identifier-2 "immediately before the data is moved to the respective data item" — the
+sender first, as §14.6.4's left-to-right order has it, and §14.9.49.4 GR11 ("the first one that occurs in the order
+of evaluation") makes the order observable. The STORE half is the emitter's: a ref-returning
+`CobolTable.At(T, Occ(I)) = <sender>` identifies its left operand before it evaluates its right, so each store renders
+through `PlaceIdentification.SenderFirst`, which evaluates the sending value into a local first whenever both sides
+identify at run time (`PlaceIdentification.IdentifiesAtRunTime`, which also counts a literal subscript into an
+occurs-depending or OCCURS DYNAMIC table: §13.18.38.4 GR7's bound test rides the table step, so `MOVE N (I) TO O (1)`
+raised the receiver's EC-BOUND-ODO first). The PRE-OP half is the binder's: a receiver's function-bearing subscript or
+user-function activation is a pre-op that runs before the statement, which no store order can reach, so when the
+receiver registered one and the sender identifies at run time `MoveBinder.BindMoveOf` freezes the sender at N = 1 as
+well. An OBJECT-PROPERTY receiver is the same arm in another form: its identifier-3's pre-ops move into its accessor
+bracket (`OoPendingPropertyOp.Prelude`), which `ReceiverBracketEmitter.Receive` opens just before the store, together
+with identifier-3's evaluation into the identified-object temporary and the GET of a part store, so
+`DataBinder.OoReceiverOpensAtRunTime` asks whether that bracket evaluates anything and the binder freezes on it too
+(`MOVE X (1:L) TO P OF R (I)` raised R's EC-BOUND-SUBSCRIPT first; golden `2002/pb370_move_property_receiver_order`).
+The bracket's steps and that question read the same `OoPendingPropertyOp` members (`IdentifiedReceiver`,
+`GetsBefore`). The freeze is placed on the pending list at the point the sender finished binding
+(`SendingValueTemp.Positioned`, the one placement `ArgumentOrder` uses for a function argument too), so it also
+precedes a receiver's pre-ops at N > 1. A NUMERIC function-identifier's temporary is described for the MOVE's receivers by the ONE description of the
+intermediate, `SendingValueTemp.IntermediatePic` (above; kb/Work PB3268, which PB370's receiver-shaped sizing merged
+into): the fixed 30-digit, scale-9 description stored `MOVE FUNCTION PI TO S1 S2` into `PIC 9V9(12)` as
+3.141592653000 where the single-receiver MOVE stores 3.141592653589. PB370 contributed two shapes to it: a set of
+floating-point receivers holding a floating-point numeric-edited one, and an all-fixed-point set whose digits pass the
+38-digit carrier (a `PIC 9(31)` beside a `PIC V9(28)`), both held on the widest floating-point edited item
+`+9.9(35)E+9999` (§13.18.40.3 SR15, §13.18.40.4 GR13 b), a 36-digit decimal every receiver truncates (§14.6.8.4 2,
+§14.6.8.2 4); golden `2002/pb370_move_function_value_digits` pins every shape against its single-receiver twin.
 
 **The intermediate's CAPACITY is counted in §8.4.3.3.4 GR5 positions, not in characters.** GR5 a) fixes the unit —
 "If the usage of identifier-1 is bit, positions used in evaluation are bit positions; otherwise, positions used

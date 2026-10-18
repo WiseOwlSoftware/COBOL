@@ -12,7 +12,7 @@ namespace CobolNet.Tests.Conformance;
 /// TRAPS reproduced as day-one tests (each was a REAL caught legacy bug — traps #1/#4/#10 run here or in the
 /// enabled 2002 corpus), the D8 control-flow contract (method GOBACK vs STOP RUN vs EXIT METHOD), and the OO
 /// diagnostic band (COBOLNET0813/0820–0827). Two-object independence (trap #1) runs as the ENABLED corpus
-/// programs oo_instance_data / oo_object_group (CorpusRunnerTests byte-compares them).
+/// programs oo_instance_data / oo_object_group (ConformanceSuiteTests byte-compares them).
 /// </summary>
 public sealed class OoSpineTests
 {
@@ -129,7 +129,7 @@ public sealed class OoSpineTests
         Assert.Contains("§3.164", e, StringComparison.Ordinal);
     }
 
-    // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.43) ───────────
+    // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.42.4 GR1) ───────────
 
     /// <summary>GOBACK in a method terminates the METHOD only (§14.9.18.4 GR4; D8): the INVOKE site continues.
     /// The GOBACK sits inside an out-of-line PERFORM, so the MethodReturn signal must unwind the NESTED
@@ -159,7 +159,7 @@ public sealed class OoSpineTests
         Assert.Equal("IN-DEEP\nDRIVER-CONTINUES", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§14.9.43) — it must NOT be caught at the
+    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§14.9.42.4 GR1) — it must NOT be caught at the
     /// method boundary as if it were a method return (the D8 anti-conflation fact).</summary>
     [Fact]
     public void StopRun_InsideMethod_TerminatesRunUnit()
@@ -764,8 +764,10 @@ public sealed class OoSpineTests
 
     /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
-    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time 0828. A driver WS argument
-    /// (SR 9) crosses BY REFERENCE and the callee's write IS visible.</summary>
+    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269 on every receiver: a typed
+    /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which §14.9.23.3 SR6
+    /// makes even a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
+    /// visible.</summary>
     [Fact]
     public void ObjectData_AutoContent_Sr10()
     {
@@ -784,11 +786,13 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             METHOD-ID. RUNIT.
             DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 LU USAGE OBJECT REFERENCE.
             LINKAGE SECTION.
             01 LK-SELF USAGE OBJECT REFERENCE {C}.
             PROCEDURE DIVISION USING LK-SELF.
             MAIN.
-                INVOKE LK-SELF "BUMP" USING {REF}OD.
+                INVOKE {RECV} "BUMP" USING {REF}OD.
                 DISPLAY "OD=" OD.
             END METHOD RUNIT.
             METHOD-ID. BUMP.
@@ -823,14 +827,18 @@ public sealed class OoSpineTests
             END PROGRAM {P}.
 
             """;
-        var (ok, stdout, detail) = CompileAndRun(
-            (drv + cls).Replace("{P}", "OOSP19").Replace("{C}", "OSPC19").Replace("{REF}", ""));
+        string Program(string p, string c, string receiver, string byReference) =>
+            (drv + cls).Replace("{P}", p).Replace("{C}", c).Replace("{RECV}", receiver).Replace("{REF}", byReference);
+        var (ok, stdout, detail) = CompileAndRun(Program("OOSP19", "OSPC19", "LK-SELF", ""));
         Assert.True(ok, detail);
         // OD unchanged (auto-CONTENT — SR 10); the driver's WS item updated (BY REFERENCE — SR 9).
         Assert.Equal("OD=05\nWN=06", CutRunner.Normalize(stdout));
-        EditionHarness.AssertHasDiagnostic(ErrorsOf(
-            (drv + cls).Replace("{P}", "OOSP20").Replace("{C}", "OSPC20").Replace("{REF}", "BY REFERENCE ")),
-            "COBOLNET0828");
+        // SR10's own code on every receiver lane (kb/Work PB1136): typed, NULL, and universal (bare = BY REFERENCE, SR6).
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20", "OSPC20", "LK-SELF", "BY REFERENCE ")),
+            "COBOLNET4269");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20N", "OSPC20N", "NULL", "BY REFERENCE ")),
+            "COBOLNET4269");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20U", "OSPC20U", "LU", "")), "COBOLNET4269");
     }
 
     /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
@@ -1294,6 +1302,53 @@ public sealed class OoSpineTests
             """), "COBOLNET2791");
     }
 
+    /// <summary>§11.3.3 SR4 is a rule of EVERY class on a cycle and of no class that merely inherits into one (kb/Work
+    /// PB1784): with A30 → B30 ⇄ C30, B30 and C30 each break it and A30 breaks nothing. The cycle walk used to cut the
+    /// links as it went, so it reported A30 and never reached C30. A class named like an interface is ONE §8.3.2.2
+    /// report (COBOLNET0820), not that report plus a duplicate-class one.</summary>
+    [Fact]
+    public void InheritsCycle_ReportsEachMember_AndNotTheClassLeadingIntoIt()
+    {
+        var errors = ErrorsOf("""
+            IDENTIFICATION DIVISION.
+            CLASS-ID. A30 INHERITS FROM B30.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS B30.
+            END CLASS A30.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. B30 INHERITS FROM C30.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS C30.
+            END CLASS B30.
+
+            IDENTIFICATION DIVISION.
+            CLASS-ID. C30 INHERITS FROM B30.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            REPOSITORY.
+                CLASS B30.
+            END CLASS C30.
+
+            IDENTIFICATION DIVISION.
+            INTERFACE-ID. D30.
+            END INTERFACE D30.
+            IDENTIFICATION DIVISION.
+            CLASS-ID. D30.
+            END CLASS D30.
+            """);
+        Assert.Single(errors, e => e.Contains("COBOLNET2791: class 'B30'", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("COBOLNET2791: class 'C30'", StringComparison.Ordinal));
+        Assert.DoesNotContain(errors, e => e.Contains("class 'A30'", StringComparison.Ordinal));
+        Assert.Single(errors, e => e.Contains("'D30'", StringComparison.Ordinal));
+        Assert.Contains(errors, e => e.Contains("COBOLNET0820: 'D30' is defined as both a class and an interface",
+            StringComparison.Ordinal));
+    }
+
     // ── The 3a/3b adversarial-review fixes (workflow find→verify, DEVLOG 603) ───────────────────────────────
 
     /// <summary>§14.8.3.3 rule 1 — RETURNING delivery follows SET rules: a method returning a SUBCLASS object
@@ -1690,7 +1745,7 @@ public sealed class OoSpineTests
     /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §11.7.3
     /// SR4 a) 0837 (kb/Work PB1582); INVOKE class-name
     /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
-    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (0828).</summary>
+    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOLNET4269).</summary>
     [Fact]
     public void Factory_DualRoster_AndDiagnosticBand()
     {
@@ -1818,7 +1873,7 @@ public sealed class OoSpineTests
             END METHOD DRIVE.
             END FACTORY.
             END CLASS OSPC40.
-            """), "COBOLNET0828");
+            """), "COBOLNET4269");   // SR10's own code (kb/Work PB1136); FW and LN otherwise conform
     }
 
     /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§8.9 reserves it only from 2002) — the continuity
@@ -1925,10 +1980,12 @@ public sealed class OoSpineTests
         EditionHarness.AssertHasDiagnostic(warnsPerm, "COBOLNET0837");
     }
 
-    /// <summary>§11.7 SR3 — OVERRIDE with no matching superclass method (incl. no INHERITS at all) is 0838;
-    /// §11.7 GR3 / §11.3 GR3 — overriding a FINAL method and inheriting a FINAL class are the 0839 family.</summary>
+    /// <summary>§11.7.3 SR3 first sentence — OVERRIDE with no matching superclass method (incl. no INHERITS at all)
+    /// is 0838; its second sentence and §11.7.4 GR3 — overriding a FINAL method — is 0839; §11.3.3 SR5 / §11.3.4
+    /// GR3 — inheriting a FINAL class — is the INHERITS clause's rule, 2791. One descriptor per rule (kb/Work
+    /// PB1784).</summary>
     [Fact]
-    public void OverrideFinal_0838_0839()
+    public void OverrideFinal_0838_0839_FinalBase_2791()
     {
         EditionHarness.AssertHasDiagnostic(ErrorsOf(DriverAndClass("OOSP44", "OSPC44", """
                 INVOKE OSPC44 "NEW" RETURNING T.
@@ -1976,7 +2033,7 @@ public sealed class OoSpineTests
             REPOSITORY.
                 CLASS BAS46.
             END CLASS SUB46.
-            """), "COBOLNET0839");
+            """), "COBOLNET2791");   // a FINAL superclass is §11.3.3 SR5, the INHERITS clause's rule (kb/Work PB1784)
     }
 
     /// <summary>OVERRIDE is a legal USER word at COBOL-85 (§8.9 reserves it from 2002) — the continuity
@@ -2875,13 +2932,13 @@ public sealed class OoSpineTests
     public void RaiseObject_BindViolations(string stmt, string code)
         => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC13", "", stmt)), code);
 
-    /// <summary>The 0849 band (§14.9.18.3 SR4): a UNIVERSAL identifier (SR4d) and a declared class missing
-    /// from the PD-header RAISING list (SR4a).</summary>
+    /// <summary>The §14.9.18.3 SR4 band, COBOLNET4211 (split off the A.4.10 decline COBOLNET0849, kb/Work PB745): a
+    /// UNIVERSAL identifier (SR4d) and a declared class missing from the PD-header RAISING list (SR4a).</summary>
     [Theory]
     [InlineData("    GOBACK RAISING U.")]
     [InlineData("    GOBACK RAISING E.")]
-    public void GobackRaising_BindViolations_0849(string stmt)
-        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOLNET0849");
+    public void GobackRaising_BindViolations_4211(string stmt)
+        => EditionHarness.AssertHasDiagnostic(ErrorsOf(EcOoDriver("OOEC14", "", stmt)), "COBOLNET4211");
 
     /// <summary>§14.2.2 SR7 — a header RAISING exception-name shall be level-3 EC-USER (0858).</summary>
     [Fact]
@@ -2915,7 +2972,7 @@ public sealed class OoSpineTests
             """,
             "    CONTINUE.")), "COBOLNET0859");
 
-    /// <summary>§8.8.4.2.1 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
+    /// <summary>§8.8.4.2.2 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
     [Theory]
     [InlineData("IF U > G DISPLAY \"X\" END-IF.")]
     [InlineData("IF U = N4 DISPLAY \"X\" END-IF.")]

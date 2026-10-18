@@ -2270,10 +2270,11 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
     /// AR-15.14.3-1). Returns the type's template item, or null when the word is not a type-name. An own data-name
     /// of the same spelling cannot exist beside an own type-name (one user-word namespace); but a data-name VISIBLE
     /// here wins over an INHERITED global type-name (§8.4.6.2.1 3 a — a name declared in the referencing element is
-    /// the one referenced; kb/Work PB1303), which is why the guard asks <c>ByName</c> first.</summary>
+    /// the one referenced; kb/Work PB1303), which is why the guard resolves the data-name first — in the statement's
+    /// scope, so inside a METHOD its own declarations of either kind come first (§11.7.4 GR5; kb/Work PB3192).</summary>
     private DataItem? TypeNameArgument(Core.FunctionArgumentContext a) =>
-        KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Data.ByName.ContainsKey(w)
-            && ctx.Data.TryFindTypeDecl(w, out var t) ? t : null;
+        KeywordWordOf(a) is { } w && a.fnArgPhraseWord() is null && !ctx.Symbols.TryResolve(w, ctx.ActiveScope, out _)
+            && ctx.Data.TryFindTypeDecl(w, ctx.ActiveScope, out var t) ? t : null;
 
     /// <summary>
     /// FUNCTION LENGTH (§15.50.2) — argument-1 plus the optional PHYSICAL keyword.

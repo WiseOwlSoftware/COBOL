@@ -31,7 +31,7 @@ public static class CsNames
     [
         // written by the emitter (RecordStructEmitter.EmitLeafMethods; GroupImageCodec)
         "AsImage", "FromImage", "AsBits", "FromBits", "AsNat", "FromNat", "CurrentImage", "AsVarImage", "FromVarImage",
-        "CurrentExtents", "FromContiguousImage", "AsLeaves", "OfLeaves",
+        "CurrentExtents", "FromContiguousImage", "AsLeaves", "WithLeaves",
         // synthesized by C# for a record struct (and the operators' metadata names)
         "Equals", "GetHashCode", "ToString", "PrintMembers", "Deconstruct", "EqualityContract",
         "op_Equality", "op_Inequality",

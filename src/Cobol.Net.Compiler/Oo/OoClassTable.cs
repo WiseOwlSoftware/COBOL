@@ -31,7 +31,7 @@ public sealed class OoClassTable
 
     /// <summary>All interfaces in source order (§11.6 — emitted as C# interfaces BEFORE the classes, purely
     /// for readability; Roslyn needs no ordering). Interfaces and classes share ONE name namespace
-    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is 0840).</summary>
+    /// (<see cref="_ifaceByName"/> is checked against <see cref="_byName"/> at Build — a collision is COBOLNET0820, §8.3.2.2).</summary>
     public IReadOnlyList<OoInterfaceSymbol> Interfaces => _interfaces;
     private readonly List<OoInterfaceSymbol> _interfaces = [];
 
@@ -207,16 +207,24 @@ public sealed class OoClassTable
     /// <summary>⛔ THE LEAF-VECTOR CROSSING FORM (kb/Work PB1116): a strongly-typed group with NO boundary character
     /// image — §13.18.60.3 confines a subordinate object reference to a strong type declaration, so this is every
     /// strong group holding an object-reference (or class-pointer) leaf. It crosses an activation boundary as the
-    /// <c>object?[]</c> of its record struct's physical fields (<c>AsLeaves</c> / <c>OfLeaves</c>, emitted by
-    /// <c>RecordStructEmitter</c>): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
+    /// <c>object?[]</c> of its record struct's physical fields, made by the sender's <c>AsLeaves</c> and stored by the
+    /// RECEIVER's instance <c>WithLeaves</c> (both emitted by <c>RecordStructEmitter</c>; an instance store, because a
+    /// dynamic-capacity table is recreated in the receiver's own description): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
     /// type", decided before any carrier is chosen), so their fields correspond one to one, while their C# record
     /// structs are distinct (every TYPE clone has its own, and two equivalent type declarations in two source elements
     /// are two types) — a field-wise copy through a neutral vector is the one carrier that works between any two of
-    /// them. An object reference is copied as a reference. A variable-length strong group keeps the §8.5.1.12 carrier.
+    /// them. An object reference is copied as a reference.
+    /// <para>⛔ A VARIABLE-LENGTH STRONG GROUP IS IN WHEN IT HAS NO OTHER FORM (kb/Work PB3139). One whose current extent
+    /// composes crosses on its §8.5.1.12 carrier (<see cref="DataItem.BoundaryImageCapable"/> excludes it here); one that
+    /// holds a reference leaf has no such carrier — a pointer or object reference is no member of
+    /// <c>DataItem.CurrentExtentComposes</c>'s law — and nothing in §8.5.1.12.1 bars a strong group from being
+    /// variable-length, so §14.8.2.2 rule 2's "both shall be of the same type" makes this vector its crossing too: a
+    /// dynamic-length member rides it as its current content and a dynamic-capacity table as its current occurrences, each
+    /// in its element's form, recreated in the receiver's description (§14.6.9.2). Excluding the shape refused legal
+    /// source (COBOLNET1688 on the CALL, COBOLNET1513 on the prototype) and staged a group MOVE of it loud.</para>
     /// It is tested BEFORE <see cref="StringCarried"/>, which is true of every group.</summary>
     public static bool LeafCarried(DataItem item) =>
-        item.IsGroup && !item.BoundaryImageCapable && !item.CurrentExtentImageCapable
-        && !VariableLengthCompatibility.IsVariableLength(item) && StrongTypeModel.IsStrongGroup(item);
+        item.IsGroup && !item.BoundaryImageCapable && StrongTypeModel.IsStrongGroup(item);
 
     /// <summary>The §11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
     /// everything an inherited CLASS implements (transitively, cycle-safe).</summary>
@@ -337,15 +345,16 @@ public sealed class OoClassTable
 
     /// <summary>
     /// Build the table from the group's class definitions (pass-1: identity + roster only — no data or statement
-    /// binding). Structural diagnostics raised here, each per its ISO rule: duplicate class name / emitted-type
-    /// collision (COBOLNET0820), unknown INHERITS base (§11.3.3 SR2 —
-    /// COBOLNET0821, never silently a root class), the INHERITS clause's own rules §11.3.3 SR3 / SR4 / SR7
-    /// (COBOLNET2791) and SR5 (0839) — over every class definition, the parameterized ones
-    /// (<paramref name="parameterizedClasses"/>, kept out of the table) included — duplicate method name within a class (COBOLNET0822 — the
-    /// unique-name restriction, deep-dive D9: parametric polymorphism, ISO §9.3.5.3, is the OPTIONAL Annex
-    /// A.4.10 item 3 whose support this implementation does not claim).
-    /// INHERITS emission itself is a later port slice (3a) — a KNOWN base still 0899s until it lands, but the
-    /// base link is recorded so method lookup walks the chain from day one.
+    /// binding). Structural diagnostics raised here, each through its own <c>DiagnosticCatalog</c> descriptor (one
+    /// rule, one code — kb/Work PB1784): a class or interface name declared twice (§8.4.6.4 / §8.3.2.2,
+    /// <c>OoDefinitionNameNotUnique</c>); an INHERITS or IMPLEMENTS name that resolves to nothing in scope (§11.3.3 SR2
+    /// <c>InheritedClassNotInScope</c> — never silently a root class — and §11.6.3 SR2 / §11.4.3 SR1 / §11.8.3 SR1
+    /// <c>InterfaceNameNotInScope</c>); the INHERITS clauses' own rules, §11.3.3 SR3 / SR4 / SR5 / SR7 and §11.6.3 SR3
+    /// / SR6 (<c>InheritsClauseRule</c>), over every class and interface definition, the parameterized ones
+    /// (<paramref name="parameterizedClasses"/>, kept out of the table) included; OVERRIDE / FINAL in a prototype
+    /// (§11.7.3 SR2 / SR8); and the two declined Annex A.4.10 items — multiple class inheritance (item 1) and a
+    /// method-name defined twice in one definition (item 3: parametric polymorphism, ISO §9.3.5.3, whose support this
+    /// implementation does not claim, deep-dive D9).
     /// <para>⚠ The three §12063 citations that stood here and at the two COBOLNET0822 emit sites were NOT
     /// clause numbers — ISO/IEC 1989:2023 has no §12063; the number was a stray line anchor, recorded as
     /// finding 44 of <c>docs/rearchitecture/DESIGN-SPEC-RECONCILIATION.md</c>. Re-derived and
@@ -400,9 +409,9 @@ public sealed class OoClassTable
             if (table._ifaceByName.ContainsKey(iname) || table._byName.ContainsKey(iname)
                 || !usedCsNames.Add(icsName))
             {
-                edition.Error("COBOLNET0840",
-                    $"duplicate interface definition '{iname}' — interface and class names share one "
-                    + "namespace and shall be unique in the compilation group (ISO §8.3.2.2/§11.6)");
+                edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
+                    $"duplicate interface definition '{iname}' — interface definitions within a compilation group "
+                    + "shall have unique interface-names (ISO §8.4.6.4)");
                 continue;
             }
             table._ifaceByName.Add(iname, isym);
@@ -446,10 +455,14 @@ public sealed class OoClassTable
                     ?? m.methodPropertySelector()?.propertyName()?.GetText() ?? "?";
                 using var atPrototype = edition.At(m);
                 var pd = m.procedureDivision();
-                if (m.OVERRIDE() is not null || m.FINAL() is not null)
-                    edition.Error("COBOLNET0840",
-                        $"interface '{iname}', method '{pname}': OVERRIDE/FINAL may not appear in a method "
-                        + "PROTOTYPE (ISO §11.7.3 SR2/SR8)");
+                if (m.OVERRIDE() is not null)
+                    edition.Error(DiagnosticCatalog.MethodPrototypeOverrideOrFinal,
+                        $"interface '{iname}', method '{pname}': the OVERRIDE phrase shall not be specified in a "
+                        + "method prototype (ISO §11.7.3 SR2)");
+                if (m.FINAL() is not null)
+                    edition.Error(DiagnosticCatalog.MethodPrototypeOverrideOrFinal,
+                        $"interface '{iname}', method '{pname}': the FINAL clause shall not be specified in a "
+                        + "method prototype (ISO §11.7.3 SR8)");
                 // §10.6.2 SR4 a)-f) — the ONE prototype-body screen every prototype kind shares (kb/Work PB894).
                 // This arm used to carry its own two of the six restrictions, with the data division checked
                 // against three of its five non-linkage sections.
@@ -477,8 +490,8 @@ public sealed class OoClassTable
                         "METHOD-ID", "ISO §11.7.3 SR1"),
                 };
                 if (!isym.TryAddPrototype(proto))
-                    edition.Error("COBOLNET0840",
-                        $"interface '{iname}': duplicate method prototype '{pname}' (v1 unique-name rule, D9)");
+                    edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
+                        $"interface '{iname}': a second method prototype named '{pname}'");
             }
         }
         // Interface INHERITS resolution + cycle check (§11.6.3 SR2/SR3/SR6). The INHERITS clause of a PARAMETERIZED
@@ -496,16 +509,21 @@ public sealed class OoClassTable
             {
                 string inh = inhCtx.GetText();
                 using var atInherits = edition.At(inhCtx);
+                // SR6 is asked of the written list before any name resolves, as the class twin's SR7 is
+                // (ScreenInheritsNames): a repeated name that resolves to nothing is the repetition, reported once.
+                if (!writtenNames.Add(inh))
+                {
+                    edition.Error(DiagnosticCatalog.InheritsClauseRule,
+                        $"interface '{isym.Name}': INHERITS FROM names '{inh}' more than once; a given interface-name "
+                        + "shall not appear more than once in an INHERITS clause (ISO §11.6.3 SR6)");
+                    continue;
+                }
                 // §11.6.3 SR2: "Interface-name-2 shall be the name of an interface specified in the REPOSITORY
                 // paragraph of this source element" — the class-INHERITS rule's twin, same funnel (PB365).
                 if (OoNameResolution.Resolve(table, edition, isym.Ctx, inh, OoNameResolution.Want.Interface,
-                        $"interface '{isym.Name}': INHERITS FROM", "COBOLNET0840",
-                        "ISO §11.6.3 SR2").Interface is not { } b)
-                    continue;
-                if (!writtenNames.Add(inh))
-                    edition.Error("COBOLNET0840",
-                        $"interface '{isym.Name}': duplicate INHERITS FROM '{inh}' (ISO §11.6.3 SR6)");
-                else if (!isym.Inherits.Contains(b))
+                        $"interface '{isym.Name}': INHERITS FROM", DiagnosticCatalog.InterfaceNameNotInScope.Code,
+                        "ISO §11.6.3 SR2").Interface is { } b
+                    && !isym.Inherits.Contains(b))
                     isym.Inherits.Add(b);   // an alias of a base already inherited adds nothing (one C# base)
             }
         }
@@ -521,8 +539,9 @@ public sealed class OoClassTable
                 {
                     if (ReferenceEquals(b, isym))
                     {
-                        edition.Error("COBOLNET0840",
-                            $"interface '{isym.Name}': the INHERITS graph is cyclic (ISO §11.6.3 SR3)");
+                        edition.Error(DiagnosticCatalog.InheritsClauseRule,
+                            $"interface '{isym.Name}': the INHERITS graph is cyclic; interface-name-2 shall not "
+                            + "inherit directly or indirectly from interface-name-1 (ISO §11.6.3 SR3)");
                         stack.Clear();
                         break;
                     }
@@ -561,16 +580,21 @@ public sealed class OoClassTable
             var sym = NewClassSymbol(ctx);
             string csName = sym.CsName;
             ScreenInheritsNames(id, name, edition);
+            // A class named like an interface is ONE report, not two: the interface already holds the emitted name, so
+            // the duplicate-class arm below would also have fired on the same definition.
             if (table._ifaceByName.ContainsKey(name))
-                edition.Error("COBOLNET0840",
-                    $"'{name}' is defined as both a class and an interface — one name namespace "
-                    + "(ISO §8.3.2.2)");
+            {
+                edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
+                    $"'{name}' is defined as both a class and an interface — two kinds of entity cannot share one "
+                    + "externalized name (ISO §8.3.2.2)");
+                continue;
+            }
             if (!table._byName.TryAdd(name, sym) || !usedCsNames.Add(csName))
             {
-                edition.Error("COBOLNET0820",
-                    $"duplicate class definition '{name}' — a class-name shall be unique within the compilation "
-                    + "group (ISO §8.3.2.2/§11.3; class names compare case-insensitively and map to one emitted "
-                    + "type)");
+                edition.Error(DiagnosticCatalog.OoDefinitionNameNotUnique,
+                    $"duplicate class definition '{name}' — object class definitions within a compilation group shall "
+                    + "have unique object-class-names (ISO §8.4.6.4; class names compare case-insensitively and map to "
+                    + "one emitted type)");
                 continue;
             }
             // The factory class's name is a NamingConvention prefix family no class-name spells (kb/Work PB2921), so it
@@ -607,7 +631,7 @@ public sealed class OoClassTable
         void AddMethods(OoClassSymbol sym)
         {
             var ctx = sym.Ctx;
-            string name = sym.Name, csName = sym.CsName;
+            string name = sym.Name;
             foreach (var m in ctx.objectParagraph()?.methodDefinition() ?? [])
             {
                 using var atMethod = edition.At(m);
@@ -618,15 +642,9 @@ public sealed class OoClassTable
                         : NamingConvention.SetAccessorName(sel.propertyName().GetText()))
                     : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
+                // The word's own spelling; a method named like a type that declares its slot is renamed by the one
+                // slot-naming rule (NameMethodSlots, kb/Work PB975 / PB3342), once every slot is known.
                 string mcs = sel is not null ? methodName : DataItem.WordIdentifier(methodName);
-                // CS0542 guard: a C# member may not be named like its enclosing type — a METHOD-ID named like
-                // its CLASS-ID is legal COBOL, so the SYMBOL renames. Derivation (kb/Work PB975): §8.3.2.2 bars
-                // one word as two types of user-defined word only "Within a source element"; §10.4 makes a method
-                // a source unit "directly contained within" its factory/instance definition, and §10.5 "A source
-                // element is a source unit excluding any contained source units" — so the method-name and the
-                // class-name sit in DIFFERENT source elements, which §8.4.6.1 lets "use identical user-defined
-                // words ... independent of the use of these user-defined words by other source elements".
-                if (mcs == csName) mcs = NamingConvention.ClassNamedMethodName(mcs);
                 var method = new OoMethodSymbol(
                     methodName,
                     HasUsing: pd?.usingClause() is not null,
@@ -642,11 +660,8 @@ public sealed class OoClassTable
                 // §11.7.3 SR6/SR7 (the accessor's header shape) are asked of the BOUND header, by
                 // DataBinder.OoBindMethodData — the parameter count and the ACTIVE-CLASS descriptor (kb/Work PB1503).
                 if (!sym.TryAddMethod(method))
-                    edition.Error("COBOLNET0822",
-                        $"class '{name}': duplicate method name '{methodName}' — method names shall be unique "
-                        + "within a class in this implementation (OO deep-dive D9). Overloading by method "
-                        + "resolution signature is PARAMETRIC POLYMORPHISM (ISO §9.3.5.3), an OPTIONAL element "
-                        + "(Annex A.4.10 item 3; §9.3.5.3 rule 7) whose support WiseOwl COBOL does not claim");
+                    edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
+                        $"class '{name}': a second method named '{methodName}' (OO deep-dive D9)");
             }
 
             // FACTORY methods (§11.4) — a SEPARATE roster/interface (§9.3.6: an instance method and a
@@ -679,12 +694,8 @@ public sealed class OoClassTable
                   ExternalizedName = Externalized(m.externalizedNamePhrase(), methodName,
                       "METHOD-ID", "ISO §11.7.3 SR1") };
                 if (!sym.TryAddFactoryMethod(method))
-                    edition.Error("COBOLNET0822",
-                        $"class '{name}': duplicate factory method name '{methodName}' — method names shall "
-                        + "be unique within the factory definition in this implementation (OO deep-dive D9). "
-                        + "Overloading by method resolution signature is PARAMETRIC POLYMORPHISM (ISO "
-                        + "§9.3.5.3), an OPTIONAL element (Annex A.4.10 item 3) whose support WiseOwl COBOL does "
-                        + "not claim — the factory arm carried NO citation at all before this");
+                    edition.Declined(DiagnosticCatalog.ParametricPolymorphismDeclined,
+                        $"class '{name}': a second factory method named '{methodName}' (OO deep-dive D9)");
             }
         }
 
@@ -697,36 +708,47 @@ public sealed class OoClassTable
             // paragraph of this source element" — an INSTANCE of §8.4.6.4, so it resolves through the ONE
             // funnel and NOT through this table's group-wide Find (kb/Work PB365).
             if (OoNameResolution.Resolve(table, edition, sym.Ctx, baseName, OoNameResolution.Want.Class,
-                    $"class '{sym.Name}': INHERITS FROM", "COBOLNET0821", "ISO §11.3.3 SR2").Class
+                    $"class '{sym.Name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
+                    "ISO §11.3.3 SR2").Class
                 is { } baseSym)
             {
                 sym.Base = baseSym;
                 if (baseSym.IsFinal)
-                    edition.Error("COBOLNET0839",
-                        $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL — a FINAL "
-                        + "class shall not be a superclass (ISO §11.3.3 SR5 / §11.3.4 GR3)");
+                    edition.Error(DiagnosticCatalog.InheritsClauseRule,
+                        $"class '{sym.Name}': INHERITS FROM '{baseName}', which is declared FINAL; object-class-name-2 "
+                        + "shall not be the name of a class defined with the FINAL clause (ISO §11.3.3 SR5 / §11.3.4 GR3)");
             }
         }
 
         // §11.3.3 SR3 / SR4 over the RESOLVED links (an AS-literal alias of the class's own name is still itself), and
         // a cycle would emit circular C# base declarations — so the link is CUT and downstream chain walks stay finite.
+        // Every class ON a cycle breaks SR4 (each one's object-class-name-2 inherits from it), and one that merely
+        // inherits INTO a cycle breaks nothing: so the cycle members are found first, over the uncut links, and only
+        // then reported and cut — cutting while walking left the later members of a cycle unreported and reported the
+        // class that led into it.
+        var onCycle = new List<(OoClassSymbol Sym, List<string> Chain)>();
         foreach (var sym in table._classes)
         {
-            using var atClass = edition.At(sym.Ctx.classIdParagraph().className(1));   // the INHERITS name (a linked class has one)
             var seen = new HashSet<OoClassSymbol> { sym };
+            var chain = new List<string>();
             for (OoClassSymbol? b = sym.Base; b is not null; b = b.Base)
-                if (!seen.Add(b))
-                {
-                    edition.Error(DiagnosticCatalog.ClassInheritsRule, ReferenceEquals(sym.Base, sym)
-                        ? $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}' names the class itself; object-class-name-2 "
-                          + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)"
-                        : $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}', which inherits from '{sym.Name}' (the chain "
-                          + $"returns through '{b.Name}'); object-class-name-2 shall not inherit from object-class-name-1 "
-                          + "directly or indirectly (ISO §11.3.3 SR4)");
-                    sym.Base = null;
-                    break;
-                }
+            {
+                chain.Add(b.Name);
+                if (ReferenceEquals(b, sym)) { onCycle.Add((sym, chain)); break; }
+                if (!seen.Add(b)) break;   // a cycle that does not pass through sym: its own members report it
+            }
         }
+        foreach (var (sym, chain) in onCycle)
+        {
+            using var atClass = edition.At(sym.Ctx.classIdParagraph().className(1));   // the INHERITS name (a linked class has one)
+            edition.Error(DiagnosticCatalog.InheritsClauseRule, chain.Count == 1
+                ? $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}' names the class itself; object-class-name-2 "
+                  + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)"
+                : $"class '{sym.Name}': INHERITS FROM '{sym.BaseName}', which inherits from '{sym.Name}' (the chain "
+                  + $"{string.Join(" -> ", chain)}); object-class-name-2 shall not inherit from object-class-name-1 "
+                  + "directly or indirectly (ISO §11.3.3 SR4)");
+        }
+        foreach (var (sym, _) in onCycle) sym.Base = null;
 
         // The PARAMETERIZED class definitions (kb/Work PB1505). OoExpansion keeps each out of the table — it is a
         // skeleton, and its expansions are the classes — but it is a class definition all the same, and §11.3.3's rules
@@ -763,21 +785,22 @@ public sealed class OoClassTable
             using var atBase = edition.At(baseCtx);
             if (CobolNames.Same(baseName, name))
             {
-                edition.Error(DiagnosticCatalog.ClassInheritsRule,
+                edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"parameterized class '{name}': INHERITS FROM '{baseName}' names the class itself; object-class-name-2 "
                     + "shall not be the name of the class declared by this class definition (ISO §11.3.3 SR3)");
                 continue;
             }
             var resolvedBase = OoNameResolution.Resolve(table, edition, skeleton, baseName, OoNameResolution.Want.Class,
-                $"parameterized class '{name}': INHERITS FROM", "COBOLNET0821", "ISO §11.3.3 SR2").Class;
+                $"parameterized class '{name}': INHERITS FROM", DiagnosticCatalog.InheritedClassNotInScope.Code,
+                "ISO §11.3.3 SR2").Class;
             // A written class is the skeleton's superclass exactly as it is an ordinary class's (§9.3.9): the search
             // SUPER starts and the methods SELF inherits are its, whether or not anything expands the definition (kb/Work
             // PB2937 — the skeleton's bodies bind as themselves). A FINAL one is refused and not inherited, as below.
             if (sym is not null && resolvedBase is { IsFinal: false }) sym.Base = resolvedBase;
             if (resolvedBase is { IsFinal: true })
-                edition.Error("COBOLNET0839",
-                    $"parameterized class '{name}': INHERITS FROM '{baseName}', which is declared FINAL — a FINAL class "
-                    + "shall not be a superclass (ISO §11.3.3 SR5 / §11.3.4 GR3)");
+                edition.Error(DiagnosticCatalog.InheritsClauseRule,
+                    $"parameterized class '{name}': INHERITS FROM '{baseName}', which is declared FINAL; object-class-name-2 "
+                    + "shall not be the name of a class defined with the FINAL clause (ISO §11.3.3 SR5 / §11.3.4 GR3)");
         }
 
         // OVERRIDE / FINAL resolution is NOT done here: a roster is complete only once its class's data has bound,
@@ -809,7 +832,7 @@ public sealed class OoClassTable
                     // §12.3.3 SR3 forbids a REPOSITORY inside either paragraph.
                     if (OoNameResolution.Resolve(table, edition, sym.Ctx, iref.GetText(),
                             OoNameResolution.Want.Interface, $"class '{sym.Name}' ({where}): IMPLEMENTS",
-                            "COBOLNET0840", citation).Interface is { } isym)
+                            DiagnosticCatalog.InterfaceNameNotInScope.Code, citation).Interface is { } isym)
                     {
                         // A REPEATED interface-name is legal and changes nothing (kb/Work PB946): §11.8.2/§11.4.2
                         // print `IMPLEMENTS { interface-name-1 } …`, §11.8.3/§11.4.3 have exactly two syntax rules
@@ -828,7 +851,7 @@ public sealed class OoClassTable
     /// <summary>The rules on the WRITTEN object-class-name-2 list of a CLASS-ID's INHERITS clause, asked of every class
     /// definition (a parameterized one included): ISO §11.3.3 SR7 — "A given class name shall not appear more than once
     /// in an INHERITS clause" (kb/Work PB1020) — first, then the declined multiple inheritance (Annex A.4.10 item 1,
-    /// COBOLNET0849) over the DISTINCT names, so <c>INHERITS FROM B B</c> reports the rule it breaks and not the
+    /// <c>MultipleInheritanceDeclined</c>) over the DISTINCT names, so <c>INHERITS FROM B B</c> reports the rule it breaks and not the
     /// restriction. The names compare as written words (§8.3.2.2 — case-insensitively), the reading the interface twin
     /// (§11.6.3 SR6, kb/Work PB1502) takes.</summary>
     private static void ScreenInheritsNames(Core.ClassIdParagraphContext id, string name, EditionContext edition)
@@ -840,7 +863,7 @@ public sealed class OoClassTable
             if (distinct.Any(d => CobolNames.Same(d, w)))
             {
                 using var _ = edition.At(written);
-                edition.Error(DiagnosticCatalog.ClassInheritsRule,
+                edition.Error(DiagnosticCatalog.InheritsClauseRule,
                     $"class '{name}': INHERITS FROM names '{w}' more than once; a given class name shall not appear more "
                     + "than once in an INHERITS clause (ISO §11.3.3 SR7)");
                 continue;
@@ -848,14 +871,12 @@ public sealed class OoClassTable
             distinct.Add(w);
         }
         if (distinct.Count > 1)
-            // §11.3.2 permits several INHERITS bases; WiseOwl COBOL restricts to SINGLE inheritance and rejects the rest
-            // LOUDLY (SSOT §18 #18; Annex A.4.10 item 1 — multiple inheritance, not claimed). Silently compiling against
-            // only the first base was the R9 silent-miscompile.
+            // §11.3.2 permits several INHERITS bases; WiseOwl COBOL restricts to SINGLE inheritance and refuses the rest
+            // by name through the ONE declined-element seam (SSOT §18 #18; Annex A.4.10 item 1 — multiple inheritance,
+            // not claimed). Silently compiling against only the first base was the R9 silent-miscompile.
             using (edition.At(id.className(2)))
-                edition.Error("COBOLNET0849",
-                    $"class '{name}': INHERITS FROM {distinct.Count} base classes ({string.Join(", ", distinct)}) — "
-                    + "WiseOwl COBOL v1 supports single inheritance only; multiple inheritance is rejected "
-                    + "(ISO §11.3.2; SSOT §18 #18 / A.4.10)");
+                edition.Declined(DiagnosticCatalog.MultipleInheritanceDeclined,
+                    $"class '{name}': INHERITS FROM {distinct.Count} base classes ({string.Join(", ", distinct)})");
     }
 
     /// <summary>
@@ -874,8 +895,8 @@ public sealed class OoClassTable
     /// superclass shall not be defined with the FINAL clause"); a name match WITHOUT the attribute is the §11.7.3
     /// SR4 a) 0837 via EditionContext.Removed (error strict; warning + the pre-wave inference under --permissive — the
     /// documented migration leniency), and the override is STILL marked so 0829 signature messages stay coherent;
-    /// OVERRIDE with NO matching base method is the SR3 0838. The override adopts the base slot's CsName (C# requires
-    /// the exact member name; the class-name collision corner stays 0820). A PROPERTY clause's own accessors carry
+    /// OVERRIDE with NO matching base method is the SR3 0838. The override and the method it overrides are one slot, which
+    /// <see cref="NameMethodSlots"/> names once every override is marked (C# requires the exact member name). A PROPERTY clause's own accessors carry
     /// no OVERRIDE (its implicit METHOD-ID has none), so a clause accessor that meets a superclass method of its name
     /// is §13.18.42.3 SR4 — asked here too, by property-name, since SR4 bars the name whichever accessors either side
     /// defines.</para>
@@ -890,6 +911,7 @@ public sealed class OoClassTable
             ScreenInheritedPropertyNames(sym, factory: false, edition);
             ScreenInheritedPropertyNames(sym, factory: true, edition);
         }
+        NameMethodSlots();
     }
 
     /// <summary>ISO §13.18.42.3 SR4: "The data-name for the subject of the entry shall not be the same as a
@@ -929,7 +951,7 @@ public sealed class OoClassTable
             if (baseM is null)
             {
                 if (m.HasOverride)
-                    edition.Error("COBOLNET0838",
+                    edition.Error(DiagnosticCatalog.OverrideWithoutInheritedMethod,
                         $"class '{sym.Name}': {kind}method '{m.SourceName}' specifies OVERRIDE but no "
                         + "superclass defines a method with that name"
                         + (sym.Base is null ? " (the class has no INHERITS clause)" : "")
@@ -937,23 +959,85 @@ public sealed class OoClassTable
                 continue;
             }
             if (!m.HasOverride)
-                edition.Removed("COBOLNET0837",
+                edition.Removed(DiagnosticCatalog.RedefinitionWithoutOverride.Code,
                     $"class '{sym.Name}': {kind}method '{m.SourceName}' redefines a method inherited from "
                     + $"'{baseM.Owner.Name}' without the OVERRIDE attribute (ISO §11.7.3 SR4a — an "
                     + "inherited method may be redefined only with OVERRIDE; add OVERRIDE to the "
                     + "METHOD-ID paragraph)");
             if (baseM.IsFinal)
-                edition.Error("COBOLNET0839",
+                edition.Error(DiagnosticCatalog.FinalMethodOverridden,
                     $"class '{sym.Name}': {kind}method '{m.SourceName}' overrides '{baseM.Owner.Name}'."
                     + $"'{baseM.SourceName}', which is declared FINAL — a FINAL method shall not be "
                     + "overridden (ISO §11.7.3 SR3 / §11.7.4 GR3)");
             m.OverrideOf = baseM;
-            m.CsName = baseM.CsName;
-            if (m.CsName == sym.CsName)
-                edition.Error("COBOLNET0820",
-                    $"class '{sym.Name}': the inherited method '{m.SourceName}' collides with the class's "
-                    + "own emitted type name (implementation restriction — rename the class or the "
-                    + "method; §8.3.2.2 externalized-name mapping)");
+        }
+    }
+
+    /// <summary>⛔ ONE C# MEMBER NAME PER METHOD SLOT, NEVER THE NAME OF A TYPE THAT DECLARES IT (kb/Work PB975, PB3342).
+    /// Every method that C# requires to share one member name is one SLOT: an override and the method it overrides
+    /// (C# overrides by name; §11.7.3 SR3 pairs them by method resolution signature), and a class's method and every
+    /// interface prototype it implements (C# implements implicitly by name; §9.3.11 pairs them by the roster key, the
+    /// externalized name, which <see cref="OoConformance.ValidateImplements"/> asks through the same
+    /// <see cref="OoClassSymbol.FindMethod"/>). A slot is named once, from the word of its first non-overriding method
+    /// in source order (a standard method's runtime name when the slot holds one), and every member takes that name.
+    /// <para>The name a slot cannot take is the name of a type that declares one of its members — the instance class,
+    /// the factory class or the interface — because a C# member may not be named like its enclosing type (CS0542).
+    /// Such a slot takes <see cref="NamingConvention.ClassNamedMethodName"/>, a prefix family no user word and no type
+    /// spells. The COBOL is legal: §8.3.2.2 bars one word as two types of user-defined word only "Within a source
+    /// element"; §10.5 "A source element is a source unit excluding any contained source units", so a method-name (a
+    /// METHOD-ID's own source element) and the object-class-name or interface-name of a definition containing it sit in
+    /// different source elements, and an override or an implementation of a method spelled like the class keeps the
+    /// legality of the method it overrides or implements. Before this rule a class's OWN method was renamed alone
+    /// (kb/Work PB975), so an override of an inherited method spelled like the class was refused (COBOLNET4213, retired)
+    /// and an implementation of a prototype spelled like the class failed in Roslyn (CS0535).</para>
+    /// <para>Run once every override is marked (<see cref="ResolveOverrides"/>), before any procedure binds an INVOKE
+    /// (<c>OoBinder</c> reads <see cref="OoMethodSymbol.CsName"/>).</para></summary>
+    private void NameMethodSlots()
+    {
+        var parent = new Dictionary<OoMethodSymbol, OoMethodSymbol>(ReferenceEqualityComparer.Instance);
+        var enclosing = new Dictionary<OoMethodSymbol, string>(ReferenceEqualityComparer.Instance);
+        var order = new List<OoMethodSymbol>();
+        void Add(OoMethodSymbol m, string type)
+        {
+            if (parent.TryAdd(m, m)) order.Add(m);
+            enclosing.TryAdd(m, type);
+        }
+        OoMethodSymbol Root(OoMethodSymbol m)
+        {
+            while (!ReferenceEquals(parent[m], m)) m = parent[m] = parent[parent[m]];
+            return m;
+        }
+        void Join(OoMethodSymbol a, OoMethodSymbol b) => parent[Root(a)] = Root(b);
+
+        foreach (var iface in _interfaces)
+            foreach (var proto in iface.Prototypes) Add(proto, iface.CsName);
+        foreach (var cls in _classes)
+        {
+            foreach (var m in cls.Methods) Add(m, cls.CsName);
+            foreach (var m in cls.FactoryMethods) Add(m, cls.FactoryCsName);
+        }
+        foreach (var cls in _classes)
+            foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
+                if (m.OverrideOf is { } baseM)
+                {
+                    Add(baseM, baseM.Owner is { } o ? (baseM.IsFactory ? o.FactoryCsName : o.CsName) : "");
+                    Join(m, baseM);
+                }
+        foreach (var cls in _classes)
+            foreach (bool factory in new[] { false, true })
+                foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
+                    if ((factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName)) is { } impl
+                        && parent.ContainsKey(impl) && parent.ContainsKey(proto))
+                        Join(impl, proto);
+
+        foreach (var slot in order.GroupBy(Root, ReferenceEqualityComparer.Instance))
+        {
+            var members = slot.ToList();
+            string name = members.FirstOrDefault(m => m.Standard is not StandardMethod.None)?.CsName
+                ?? members.First(m => m.OverrideOf is null).CsName;
+            if (members.Any(m => enclosing[m] == name)) name = NamingConvention.ClassNamedMethodName(name);
+            foreach (var m in members)
+                if (m.Standard is StandardMethod.None) m.CsName = name;
         }
     }
 }

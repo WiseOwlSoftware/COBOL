@@ -445,11 +445,14 @@ public static class CobolArgAdapt
     /// <summary>⛔ THE BY CONTENT RECORD OF A GROUP WHOSE VALUES RIDE MANAGED SLOTS (kb/Work PB1940; ISO §14.2.3 GR9 — "as if
     /// the record in the linkage section were allocated by the activating runtime element … and as if this record does
     /// not occupy the same storage area as the argument"): a detached copy of the <paramref name="width"/> positions of
-    /// <paramref name="area"/>, its references included (<see cref="StorageCell.CopyArea"/>). Null when there is no live
+    /// <paramref name="area"/>, its references included (<see cref="StorageCell.CopyArea"/>), and — for a variable-length
+    /// group (kb/Work PB3139) — its <paramref name="components"/> components from the area's
+    /// <see cref="CellPointer.DynBase"/>, which the record holds from ordinal zero and states the area's
+    /// <see cref="CellPointer.Shape"/> for, so the formal of the same type is laid over it. Null when there is no live
     /// area to copy (an omitted formal forwarded on), so the formal takes a fresh one.</summary>
-    public static CellPointer? ContentRecord(CellPointer? area, int width) =>
+    public static CellPointer? ContentRecord(CellPointer? area, int width, int components) =>
         area is { } a && a.Generation == a.Cell.Generation && a.Offset >= 0 && a.Offset <= (long)a.Cell.Ref.Length - width
-            ? new CellPointer(a.Cell.CopyArea(a.Offset, width), 0)
+            ? new CellPointer(a.Cell.CopyArea(a.Offset, width, a.DynBase, components), 0) { Shape = a.Shape }
             : null;
 
     /// <summary>⛔ THE RETURNING DELIVERY OF A GROUP WHOSE VALUES RIDE MANAGED SLOTS (kb/Work PB1940): ISO §14.6.5 — the
@@ -458,8 +461,10 @@ public static class CobolArgAdapt
     /// references of the <paramref name="width"/> positions of the returning item's own area <paramref name="source"/>. The
     /// two are of the same type (§14.8.3.2), so the positions correspond one to one. No receiver, no delivery; a
     /// receiver that states no area cannot hold the references, and §14.9.4.4 GR3 d) answers the non-conforming pair
-    /// with EC-PROGRAM-ARG-MISMATCH — never a silent character image without them.</summary>
-    public static void StoreReturnArea(CobolArg? ret, CellPointer source, int width)
+    /// with EC-PROGRAM-ARG-MISMATCH — never a silent character image without them. A variable-length group's
+    /// <paramref name="components"/> components travel with its positions (kb/Work PB3139), from the returning item's
+    /// <see cref="CellPointer.DynBase"/> to the receiver area's.</summary>
+    public static void StoreReturnArea(CobolArg? ret, CellPointer source, int width, int components)
     {
         if (ret is not { } r || r.Carrier.IsNull) return;
         if (r.Area is not { } a || a.Generation != a.Cell.Generation || a.Offset < 0 || a.Offset > (long)a.Cell.Ref.Length - width)
@@ -467,7 +472,7 @@ public static class CobolArgAdapt
                 "RETURNING delivery: the receiver of a strongly-typed group with an object-reference or pointer leaf states "
                 + "no storage area to hold its references — ISO §14.6.5; §14.9.4.4 GR3d — EC-PROGRAM-ARG-MISMATCH",
                 "EC-PROGRAM-ARG-MISMATCH");
-        a.Cell.StoreArea(a.Offset, source.Cell.CopyArea(source.Offset, width));
+        a.Cell.StoreArea(a.Offset, source.Cell.CopyArea(source.Offset, width, source.DynBase, components), a.DynBase, components);
     }
 
     /// <summary>The ONE area decision behind <see cref="Area(CobolArg[], int, int, bool, GroupAtom[], Func{StorageCell})"/>,
@@ -835,7 +840,7 @@ public static class CobolArgAdapt
     /// routed here either: §14.8.2.2 2) makes that pairing a MOVE, which a pointer cannot send. Nor is a formal of
     /// any length but the pointer's 8 (<paramref name="formalWidth"/>; negative = ANY LENGTH, whose length rule
     /// 2c "considered to match"): rule 1's same-length requirement is the pairing's whole conformance, and its
-    /// violation is §14.9.4.4 GR3 d)'s EC-PROGRAM-ARG-MISMATCH (conformance:2002/pb615_unreadable_argument_carrier).
+    /// violation is §14.9.4.4 GR3 d)'s EC-PROGRAM-ARG-MISMATCH (conformance:cases/_unassigned/pb615_unreadable_argument_carrier).
     /// Returns <paramref name="args"/> itself (no allocation) whenever the argument is anything else.</para></summary>
     /// <summary>The cheap pre-test for <see cref="WithPointerContent"/>: a BY CONTENT argument on a class-pointer
     /// slot. Asked first so the common (non-pointer) crossing never computes the formal's image width.</summary>

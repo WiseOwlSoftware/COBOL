@@ -89,13 +89,10 @@ internal readonly record struct ReceiverContext(
     /// before it five emit sites each spelled this out again and none carried the floating-point edited flag).</summary>
     public static ReceiverContext OfSet(IReadOnlyList<PicInfo?> pics, bool inSizeError)
     {
-        int scale = 0, integerDigits = 0;
+        var (scale, integerDigits) = PicInfo.WidestReceiving(pics);
         bool allFloat = true, anyFloatEdited = false;
         foreach (var pic in pics)
         {
-            int s = pic?.ReceiverScale() ?? 0;
-            scale = Math.Max(scale, s);
-            integerDigits = Math.Max(integerDigits, pic is null ? 0 : Math.Max(0, pic.DigitPositions - s));
             allFloat &= pic is { IsFloat: true };
             anyFloatEdited |= pic is { IsFloatEdited: true };
         }
@@ -105,7 +102,7 @@ internal readonly record struct ReceiverContext(
 
     /// <summary>Decimal digits the <c>Int128</c> intermediate carrier holds:<c>Int128.MaxValue</c> ≈ 1.7014×10³⁸,
     /// so any value below 10³⁸ is representable (numeric design D1 — the "Int128 escape boundary").</summary>
-    public const int IntermediateDigits = 38;
+    public const int IntermediateDigits = PicInfo.ScaledCarrierDigits;
 
     /// <summary>The float floor: a receiver-less or coarse-scaled context still quantizes a transcendental to at
     /// least 9 fraction digits, which is what makes <c>SQRT(2)</c> useful at scale 0 (deep-dive D1).</summary>

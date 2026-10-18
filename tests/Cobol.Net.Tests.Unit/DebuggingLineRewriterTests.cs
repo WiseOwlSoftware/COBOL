@@ -128,7 +128,7 @@ public sealed class DebuggingLineRewriterTests
     [Fact]
     public void ASynonymOfSourceComputer_StillDeclaresTheMode()
     {
-        var words = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "SOURCE-COMPUTER", "MACHINE", 0)]);
+        var words = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "SOURCE-COMPUTER", "MACHINE", default)]);
         var tokens = Rewritten(["PROGRAM-ID. P.", "MACHINE. IBM-PC WITH DEBUGGING MODE.", D("DISPLAY VIAMACHINE."), "STOP RUN."],
             words: words);
         AssertSource(tokens, "VIAMACHINE");
@@ -137,7 +137,7 @@ public sealed class DebuggingLineRewriterTests
     [Fact]
     public void ASynonymOfProgramId_BoundsTheSourceUnit_SoASiblingDoesNotInheritTheClause()
     {
-        var words = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "PROGRAM-ID", "PGM-NAME", 0)]);
+        var words = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "PROGRAM-ID", "PGM-NAME", default)]);
         var tokens = Rewritten([
             "PGM-NAME. FIRST.", "SOURCE-COMPUTER. IBM-PC WITH DEBUGGING MODE.", D("DISPLAY FIRSTLINE."), "END PROGRAM FIRST.",
             "PGM-NAME. SECOND.", D("DISPLAY SECONDLINE."), "END PROGRAM SECOND."], words: words);

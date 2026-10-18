@@ -77,10 +77,12 @@ public sealed record PictureClauseIdentity(string CharacterString, string? Curre
     /// <summary>The identity as one key, for the universal-dispatch activation description
     /// (<c>ActivationDescriptions.ElementaryClauses</c>) — equal keys ⇔ the same PICTURE clause. The character-string
     /// holds picture symbols only (never '|'), the currency string is length-prefixed and the free-text editing rules
-    /// come last, so no two identities share a key.</summary>
-    public string Key =>
+    /// come last, so no two identities share a key. Invariant culture: the key is compiled into the program and
+    /// compared ordinally with another compilation's, and the absent currency string's <c>-1</c> printed U+2212 under
+    /// sv-SE (kb/Work PB3257).</summary>
+    public string Key => string.Create(System.Globalization.CultureInfo.InvariantCulture,
         $"{CharacterString}|{CurrencyString?.Length ?? -1}:{CurrencyString}|"
-        + $"{(DecimalPointIsComma is { } d ? (d ? "C" : "P") : "-")}|{Editing}";
+        + $"{(DecimalPointIsComma is { } d ? (d ? "C" : "P") : "-")}|{Editing}");
 
     /// <summary>The identity as a reader spells it, one phrase per fact (<c>ActivationDescription.ClausePhrases</c>,
     /// never compared — <see cref="Key"/> is): the PICTURE clause, a run of four or more of one symbol written with

@@ -47,7 +47,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
         // containing program's GLOBAL one, may be the one that does not complete normally whatever this scope declares —
         // or another USE procedure running within any of them. So EVERY format 1 SORT registers and lands.
         string? useScope = ec.SortUseScope;
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(so.Keys), WeightsExpr(so.Collating), NatWeightsExpr(so.Collating))};   // SORT {so.File.CobolName} (ISO §14.9.40.4; the keys, and BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         using (StatementBody(sd, TerminationLanding(sd, ownDeclaratives: useScope is not null)))
         {
             w.Line($"{RuntimeApi.SortRegisterFormat1Sort(sd, useScope ?? "null")};   // §14.9.40.4 GR17 — the active format 1 SORT, terminated when a USE procedure invoked while it is active does not complete normally");
@@ -68,7 +68,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
             }
 
             // Phase b — sequence (GR9b).
-            w.Line($"{RuntimeApi.SortSort(sd, KeysExpr(so.Keys), so.DuplicatesInOrder ? "true" : "false")};   // the GR5 sequences are the Init snapshot's (§14.6.6 r5)");
+            w.Line($"{RuntimeApi.SortSort(sd, so.DuplicatesInOrder ? "true" : "false")};   // the keys and the GR5 sequences are Init's (§14.6.6 r5)");
 
             // Phase c — return (GR9c). A GIVING file must not be open when THIS phase commences — the input
             // procedure may have opened it, so the test is here and not at statement start (GR9; kb/Work PB1036).
@@ -195,7 +195,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
         var w = ctx.Writer;
         string sd = FileKeyExpr(mg.File);
         var tx = new Transfer(TerminationLabel(), merge: true);
-        w.Line($"{RuntimeApi.SortInit(sd, WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24.4; BOTH GR5 sequences snapshotted — §14.6.6 r5)");
+        w.Line($"{RuntimeApi.SortInit(sd, KeysExpr(mg.Keys), WeightsExpr(mg.Collating), NatWeightsExpr(mg.Collating))};   // MERGE {mg.File.CobolName} (ISO §14.9.24.4; the keys, and BOTH GR5 sequences snapshotted — §14.6.6 r5)");
         using (StatementBody(sd))
         {
             EmitAssociation(mg.File, tx);   // §12.4.5.3 GR3 — at the time of execution, before any phase (kb/Work PB1097)
@@ -214,7 +214,7 @@ internal sealed class SortEmitter(EmitContext ctx, ReferenceResolver refs, Dispa
                 EmitInputFile(input, sd, mg.File.RecordWidth, mg.Varying, tx);
                 if (!closeAfterOutputProcedure) EmitInputClose(input, tx);
             }
-            w.Line($"{RuntimeApi.SortMerge(sd, KeysExpr(mg.Keys))};   // the GR5 sequences are the Init snapshot's; GR6's sequence test");
+            w.Line($"{RuntimeApi.SortMerge(sd)};   // the keys and the GR5 sequences are Init's; GR6's sequence test");
             if (mg.Giving.Count > 0)
                 foreach (var output in mg.Giving)
                     EmitGivingFile(output, sd, tx);   // GR12 — each file-name-4 receives the WHOLE merged result

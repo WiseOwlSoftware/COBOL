@@ -9,6 +9,7 @@ waits (blockers in two chains, the owner, a frontier model), and work.py check's
 Run: python scripts/orchestrator/test_plan_wave.py   (no build, no git; the campaign section needs the
 tools/claude-skills submodule, and its absence is a FAIL)."""
 import dataclasses
+import os
 import pathlib
 import re
 import subprocess
@@ -297,6 +298,55 @@ check("drain: a SPLIT whose branch landed left only unstarted work", "never star
 check("drain: the clusters' notes wait, counted", ("PB2" in pd["drain_not_started"], "PB4" in pd["drain_not_started"]),
       (True, True))
 check("an unseen lead's branch with a finisher is no judgment row", pd["unlanded_without_note"], [])
+# kb/Work PB3311 hole 1: a FINDINGS report's branch with a live owner of its OWN (prune_worktrees.owned: a resumed
+# branch whose tip moved past the reviewed head, a live agent's worktree, a dispatch out) is being finished: no second
+# finisher, in either mode, for an open note (PB7, branch wf_dr-2) and an unseen lead (PB79, wf_dr-5) alike, with the
+# reason named. The same plan with neither branch owned (nobody working on it: the stamp covers the tip) plans both.
+for drain in (False, True):
+    for owned, planned in (({"worktree-wf_dr-2", "worktree-wf_dr-5"}, False), (set(), True)):
+        pf1 = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+                      budget_points=100, drain=drain, carrier=DR_CARRIER.get, owned=owned)
+        check(f"{'drain' if drain else 'normal'}: a FINDINGS branch {'not ' if planned else ''}owned "
+              f"{'plans' if planned else 'waits, no'} finisher (PB3311)",
+              [(any(i in g.notes for g in pf1["groups"]), "IN FLIGHT" in pf1["waiting"].get(i, ""))
+               for i in ("PB7", "PB79")], [(planned, not planned)] * 2)
+        if not planned:
+            check(f"{'drain' if drain else 'normal'}: the waiting reason names the branch and the answers in progress",
+                  all(w in pf1["waiting"].get("PB7", "") for w in ("worktree-wf_dr-2", "being answered")), True)
+    # a SPLIT report's branch IN FLIGHT is a different arm (kb/Work PB2974): untouched by this rule
+    pf2 = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+                  budget_points=100, drain=False, carrier=DR_CARRIER.get, owned={"worktree-wf_dr-3"})
+    check("a SPLIT report's branch IN FLIGHT is the SPLIT arm's (PB2974), not this rule's",
+          any("PB6" in g.notes for g in pf2["groups"]), True)
+# PB3311 review R1-1: the survey reads a FINDINGS branch IN FLIGHT ALSO when a carrier merely contains it
+# (prune_worktrees.contained: it lands through that branch), and that says nothing about who answers ITS findings. The
+# survey as plan_wave.main reads it, end to end: wf_dr-5 (PB79's FINDINGS branch, DECISION by lifecycle) is an ancestor
+# of wf_dr-2 (PB7's branch, the carrier). With the carrier locked by a live agent (IN FLIGHT, owned) PB7 waits and the
+# carried PB79 still gets its R1-2 finisher, its pred naming the carrier; with the carrier finished (WAITING TO LAND)
+# both are planned. Before the fix the bare state made PB79 wait on an answer nobody was writing.
+import prune_worktrees  # noqa: E402
+_dr_tips = {"worktree-wf_dr-2": "2020202bb", "worktree-wf_dr-5": "6060606ff"}
+_dr_rep = {r.lead: r for r in prune_worktrees.report_index(DR, lambda _i: False)}
+_git_saved = prune_worktrees.git
+prune_worktrees.git = lambda *a, **_k: _Shown(0 if a == ("merge-base", "--is-ancestor", "6060606ff", "2020202bb") else 1)
+try:
+    for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", True)):
+        rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
+                                    tip=_dr_tips[b])
+                for b, lead, st in (("worktree-wf_dr-2", "PB7", carrier_state), ("worktree-wf_dr-5", "PB79", "DECISION"))]
+        prune_worktrees.contained(rows)
+        survey_owned = prune_worktrees.owned(rows)
+        pr = pw.plan(dr_notes, CLUSTERS, HALF, dr_reports, lambda b: DR_CLASS.get(b, "ABSENT"), DR_UNLANDED, RULES,
+                     budget_points=100, carrier=DR_CARRIER.get, owned=survey_owned)
+        g79 = next((g for g in pr["groups"] if g.notes == ["PB79"]), None)
+        check(f"R1-1: a FINDINGS branch contained in a {carrier_state} carrier reads IN FLIGHT, is not owned, and gets "
+              f"its finisher naming the carrier; the carrier's own note {'is planned' if pb7_planned else 'waits'}",
+              (rows[1].state, rows[1].carrier, "worktree-wf_dr-5" in survey_owned, "PB79" in pr["waiting"],
+               bool(g79) and "contained in worktree-wf_dr-2" in g79.pred,
+               any("PB7" in g.notes for g in pr["groups"]), "being answered" in pr["waiting"].get("PB7", "")),
+              ("IN FLIGHT", "worktree-wf_dr-2", False, False, True, pb7_planned, not pb7_planned))
+finally:
+    prune_worktrees.git = _git_saved
 pn = dr_plan(False)
 check("every mode: an unseen lead's FINDINGS gets its finisher", any(g.notes == ["PB77"] for g in pn["groups"]), True)
 # R1-2: PB79's branch is contained in worktree-wf_dr-2, PB7's DONE branch, whose report never answers PB79's findings:
@@ -403,7 +453,6 @@ check("a branch naming no lead is a judgment row, its non-lead ids never planned
       ("worktree-wf_dr-8" in pj["unlanded_without_note"], any("PB4242" in g.notes for g in pj["groups"])), (True, False))
 # ...and unlanded_branch_notes itself keeps every id the subjects name: it once kept only the open notes, so a
 # superseded FINDINGS branch naming only its unseen lead (owner-task: PB77) reached plan() empty, a judgment row.
-import prune_worktrees  # noqa: E402
 _saved = (prune_worktrees.main_names, prune_worktrees.classify, prune_worktrees.git)
 _subjects = {"owner-task": "PB77: an owner task\nPB77: answer review R1-1", "worktree-wf_x": "PB2, PB11: fix"}
 prune_worktrees.main_names = lambda: set()
@@ -572,6 +621,99 @@ if fc:
     cp2 = pw.plan(cnotes, copen, chalf, [], lambda b: "ABSENT", {}, RULES, budget_points=only_b * 1.5, deps=cdeps)
     check("a dependent is never chosen without its blocker's group",
           all(g.after in {c.letter for c in cp2["groups"]} for g in cp2["groups"] if g.after), True)
+
+# 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
+#     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
+#     requirement lived only in a wave unit's hand edit of groups.json, and the reviewer never saw it.
+REQ_NOTE = ("# PB950\n\nprose\n\n## Standing requirements\n\nintro line, no bullet\n\n"
+            "- First requirement, with commas, and a 'quote'.\n"
+            "- Second requirement wraps\n  over two lines.\n\n## Next section\n\n- not a requirement\n")
+check("campaign_requirements: the bullets of the section, wrapped ones joined, the next heading ends it",
+      pw.campaign_requirements(REQ_NOTE),
+      ["First requirement, with commas, and a 'quote'.", "Second requirement wraps over two lines."])
+check("campaign_requirements: CRLF reads the same", pw.campaign_requirements(REQ_NOTE.replace("\n", "\r\n")),
+      pw.campaign_requirements(REQ_NOTE))
+check("campaign_requirements: a note with no such section has none", pw.campaign_requirements("# PB1\n\n- a bullet\n"), [])
+REQS = pw.campaign_requirements(REQ_NOTE)
+# A group is bound by the campaigns its NOTES belong to (group_requirements), never by the planning mode (review R1-1):
+# a fix-lane wave that plans a campaign member, or a campaign finisher, carries the requirement as a --cluster wave does.
+RQDIR = TMP / "req-notes"
+RQDIR.mkdir()
+(RQDIR / "PB950.md").write_text(REQ_NOTE, encoding="utf-8", newline="\n")
+(RQDIR / "PB951.md").write_text("# PB951\n\n## Standing requirements\n\n- Second campaign's own rule.\n", encoding="utf-8", newline="\n")
+(RQDIR / "PB952.md").write_text("# PB952\n\nno standing requirements here\n", encoding="utf-8", newline="\n")
+rg, rg_other = p["groups"][0], p["groups"][1]
+member_of = {rg.notes[0]: ["PB950", "PB951"], rg_other.notes[0]: ["PB952"]}
+bound = pw.group_requirements([rg, rg_other], member_of, RQDIR)
+check("a group is bound by every campaign its notes belong to, one that holds the section", bound[0], {"PB950": REQS, "PB951": ["Second campaign's own rule."]})
+check("a member of a campaign whose lead note has no section is bound by nothing", bound[1], {})
+check("a note naming no campaign (no cluster, a scalar cluster, an unknown note) is bound by nothing",
+      pw.group_requirements([rg], {rg.notes[0]: "PB950"}, RQDIR) + pw.group_requirements([rg], {}, RQDIR), [{}, {}])
+check("a campaign lead naming no note file binds nothing", pw.group_requirements([rg], {rg.notes[0]: ["PB999"]}, RQDIR), [{}])
+check("`always` (the campaign a --cluster wave runs) binds every group, before the notes' own, once",
+      pw.group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
+      [{"PB950": REQS, "PB951": ["Second campaign's own rule."]}, {"PB950": REQS}])
+rj = pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003", bound[0])
+check("a requirement reaches the group's spec body, one OWNER REQUIREMENT sentence each, per campaign",
+      (all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS),
+       "OWNER REQUIREMENT (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, 3))
+check("the group entry carries its requirements for the practices check and the reviewer", rj["requirements"], bound[0])
+check("a plan with no campaign requirements says none",
+      ("OWNER REQUIREMENT" in pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"],
+       pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["requirements"]), (False, {}))
+rspec = TMP / "msg-w77-req.txt"
+rspec.write_text(mds.render(CFG77, rj), encoding="utf-8", newline="\n")
+rfile = TMP / "req-groups.json"
+rfile.write_text(JSON.dumps(dict(CFG77, groups=[rj])), encoding="utf-8", newline="\n")
+check("the rendered spec carries every requirement (check_practices.py finds none missing)",
+      check_practices.specs_missing_requirements(rfile, [rspec]), [])
+nospec = TMP / "msg-w77-req-without.txt"
+nospec.write_text(mds.render(CFG77, gjson[0]), encoding="utf-8", newline="\n")
+check("a spec rendered without them is refused, naming each requirement",
+      check_practices.specs_missing_requirements(rfile, [nospec]),
+      [(nospec.name, r) for r in REQS + ["Second campaign's own rule."]])
+check("a groups file that declares none refuses nothing", check_practices.specs_missing_requirements(gfile, [nospec]), [])
+# a spec named for another group is checked against THAT group's requirements only (make_dispatch_specs.py's name)
+other_j = dict(pw.as_group_json(rg_other, "77", notes, "COBOLNET0004-COBOLNET0006"), letter="Z")
+rj_named = dict(rj, letter="Y")
+mfile = TMP / "req-groups-two.json"
+mfile.write_text(JSON.dumps(dict(CFG77, groups=[rj_named, other_j])), encoding="utf-8", newline="\n")
+yspec = TMP / "msg-w77-y.txt"
+yspec.write_text(mds.render(CFG77, rj_named), encoding="utf-8", newline="\n")
+zspec = TMP / "msg-w77-z.txt"
+zspec.write_text(mds.render(CFG77, other_j), encoding="utf-8", newline="\n")
+check("each spec is checked against its own group's requirements, not every group's",
+      check_practices.specs_missing_requirements(mfile, [yspec, zspec]), [])
+real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
+check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
+      [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
+# the lead note the operator reads says what the planner does: binding by membership (review R2-1), never by the --cluster mode
+lead_text = (coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8")
+check("the PB3353 note states the membership rule the planner implements, not the superseded --cluster-only rule",
+      ("plan_wave.group_requirements" in lead_text, "Read by `plan_wave.py --cluster" in lead_text), (True, False))
+# a fix-lane plan reaches them through the notes' cluster lists: PB3353's members are bound outside a --cluster wave
+real_items = work.load()
+member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3353" in i["cluster"] and i["id"] != "PB3353")
+fg = pw.Group(kind="cluster", notes=[member], file="", files=[], letter="Q", model="sonnet", why_model="default")
+check("a real PB3353 member planned by a fix-lane wave (no --cluster) is bound by the owner's requirement",
+      pw.group_requirements([fg], {i.get("id"): i.get("cluster") for i in real_items}, coord.REPO / "kb" / "Work"),
+      [{"PB3353": real_reqs}])
+# the planner writes them per group into groups.json and the args file, and the rolling wave reads them into the
+# REVIEWER's prompt and names the group's dispatch spec there: the halves are pinned in source, since the workflow has
+# no process API to run here
+PW_SRC = (HERE / "plan_wave.py").read_text(encoding="utf-8")
+WF_SRC = (coord.REPO / ".claude" / "skills" / "workstream" / "templates" / "wf_rolling_wave.js").read_text(encoding="utf-8")
+REVIEW_FN = WF_SRC[WF_SRC.index("function reviewBranch("):WF_SRC.index("function fixFindings(")]
+check("plan_wave.py binds groups by their notes' campaigns, never by the planning mode",
+      ("group_requirements(p[\"groups\"]" in PW_SRC, "campaign_requirements(lead_note" in PW_SRC), (True, False))
+check("plan_wave.py carries each group's requirements into the args file",
+      '"after", "requirements")' in PW_SRC, True)
+check("wf_rolling_wave.js reads the group's requirements into the reviewer prompt",
+      ("g.requirements" in WF_SRC, "args.requirements" in WF_SRC), (True, False))
+check("the branch reviewer's prompt carries the requirements and names the group's dispatch spec",
+      ("reviewerRequirements(g)" in REVIEW_FN, "msg-w${W}-${g.letter.toLowerCase()}.txt" in REVIEW_FN), (True, True))
+check("the review finisher is pointed at the same dispatch spec (its body carries the requirements)",
+      "msg-w${W}-${g.letter.toLowerCase()}.txt" in WF_SRC[WF_SRC.index("function fixFindings("):], True)
 
 # 9b. plan() alone: a dependent whose blockers sit in two chains (they did not merge: over the cap) waits, and so does
 #     one whose blocker is planned in no group; a dependent on one blocker becomes its chain's successor
@@ -778,10 +920,56 @@ check("a recorded group is in flight before its agent edits a file, until its no
       ({f for fs in pw.inflight_file_sets(coord_dir=HL, terminal=lambda i: False, with_git=False).values() for f in fs}
        >= {"src/Hand.cs", "src/More.cs"},
        pw.inflight_file_sets(coord_dir=HL, terminal=lambda i: True, with_git=False)), (True, {}))
+HL_REPORTS = TMP / "reports-hl"
+HL_REPORTS.mkdir()
+
+
+def hl_report(name, status, when=None, sub=""):
+    """A real report file (the answered rule reads its mtime), `when` seconds since the epoch or now."""
+    path = HL_REPORTS / sub / name
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(f"Status: {status}\n# {name}\n**branch:** `worktree-wf_hl`\n\n## X\n", encoding="utf-8", newline="\n")
+    if when is not None:
+        os.utime(path, (when, when))
+    return pw.parse_report(path)
+
+
+HL_AT = {g["letter"]: g["at"] for g in LG}
 check("an ANSWERED group (its report exists, SPLIT residue included) holds no declared file, for every reader (PB2795)",
       {f for fs in pw.inflight_file_sets(coord_dir=HL, terminal=lambda i: False, with_git=False,
-                                         reports=[dataclasses.replace(FIN, slug="w1061B", status="SPLIT")]).values()
+                                         reports=[hl_report("w1061b-PB963-report.md", "SPLIT", HL_AT["B"] + 60)]).values()
        for f in fs} & {"src/B.cs", "src/Hand.cs"}, {"src/Hand.cs"})
+# kb/Work PB3311 hole 2 (with PB3152's second-predicate witness): ONE predicate (`answers`) says "a dispatch returned"
+# for the notes' hold AND the group's file set: the group's OWN report (its slug), written at or after the dispatch.
+# A reviewer's stamp on ANOTHER dispatch's report names the same note and bumps its mtime past the dispatch, and a
+# header that merely mentions the note says nothing about it: neither answers (the dispatch is the review finisher
+# `w1101ar1` of PB3198, whose original report `w1101a` the branch reviewer re-stamped after the dispatch).
+RV = TMP / "coord-review"
+RV.mkdir()
+pw.record_dispatch(RV, "1101", [{"letter": "AR1", "notes": ["PB3198"], "files": ["src/Review.cs"]}], lambda i: False)
+RV_AT = coord.read_json(RV / pw.DISPATCH_LEDGER, {})["groups"][0]["at"]
+
+
+def rv_state(*reports):
+    held = pw.held_by_dispatch(RV, list(reports), lambda i: False)
+    files = {f for fs in pw.inflight_file_sets(coord_dir=RV, terminal=lambda i: False, with_git=False,
+                                               reports=list(reports)).values() for f in fs}
+    return held, files
+
+
+STAMPED = hl_report("w1101a-PB3198-report.md", "DONE", RV_AT + 600)           # the reviewed report, stamped after
+MENTION = hl_report("w1102z-PB3203-report.md", "DONE", RV_AT + 600)           # its header names PB3198 below
+MENTION.ids.append("PB3198")
+EARLIER = hl_report("w1101ar1-PB3198-report.md", "DONE", RV_AT - 3600, "earlier")      # an earlier dispatch's, reused slug
+RETURNED = hl_report("w1101ar1-PB3198-report.md", "DONE", RV_AT + 900)        # the review finisher's own report
+HELD = ({"PB3198": "dispatch w1101ar1"}, {"src/Review.cs"})
+check("a reviewer's stamp on another dispatch's report, a header that mentions the note, and an earlier dispatch's "
+      "report of the slug answer nothing: held and in flight by both readers (PB3311)",
+      (rv_state(STAMPED), rv_state(MENTION), rv_state(EARLIER)), (HELD, HELD, HELD))
+check("the group's own report written since the dispatch answers it for both readers (PB3311)",
+      rv_state(STAMPED, RETURNED), ({}, set()))
+check("a report whose file is gone answers nothing (the safe side of a double dispatch)",
+      rv_state(dataclasses.replace(RETURNED, path=HL_REPORTS / "gone-PB3198-report.md")), HELD)
 pw.record_dispatch(HL, "1062", [], lambda i: i == "PB962")
 check("an entry whose notes all landed is dropped at the next record",
       [g["wave"] for g in coord.read_json(HL / pw.DISPATCH_LEDGER, {})["groups"]], ["1061", "1061"])

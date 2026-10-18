@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit;
 /// is dynamic or random, the file connector is not open in the I-O or output mode"</i> → '48'. That state is
 /// UNREACHABLE from conforming source (§14.9.27.3 SR2 confines the EXTEND phrase to sequential access), so no
 /// conformance golden can reach it: the reachable cells of Table 20 ride
-/// conformance:2023/l1_table20_seq_relative and conformance:2023/l1_table20_indexed, and these four facts reach
+/// conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative and conformance:cases/14.9.27-OPEN/l1_table20_indexed, and these four facts reach
 /// the arm they cannot.
 ///
 /// They are the regression net for kb/Work PB325: both keyed connectors opened their WRITE with
@@ -49,7 +49,7 @@ public sealed class Table20WriteOpenModeTests
     {
         var reg = new FileRegistry();
         string host = Tmp("idx");
-        reg.RegisterIndexed("F", host, 8, false, access, 0, 4, -1, -1);
+        reg.RegisterIndexed("F", host, 8, false, access, [new(0, 4)], -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K001AAAA", -1));
         reg.Close("F");
@@ -71,7 +71,7 @@ public sealed class Table20WriteOpenModeTests
     private static int CountIndexed(string host)
     {
         var reg = new FileRegistry();
-        reg.RegisterIndexed("C", host, 8, false, SeqAccess, 0, 4, -1, -1);
+        reg.RegisterIndexed("C", host, 8, false, SeqAccess, [new(0, 4)], -1, -1);
         reg.OpenStatic("C", FileOpenMode.Input);
         int n = 0;
         while (reg.ReadKeyedNext("C", out _) == FileStatusCode.Success) n++;

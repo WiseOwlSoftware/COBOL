@@ -285,8 +285,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
     /// location, k) each alternate key's description, relative location, DUPLICATES and SUPPRESS WHEN phrase (and so
     /// their number), l) sharing mode, m) lock mode. h) RELATIVE KEY and i) FILE STATUS are the §14.8.4.2 external-item
     /// references the descriptor carries beside it (<c>RelativeKeyRef</c> / <c>FileStatusRef</c>). The split-key
-    /// <c>SOURCE IS</c> operands of j)/k) (data-name-6 / data-name-3) never reach here — the form is declined
-    /// (Annex A.3 item 40, kb/Work PB358). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
+    /// <c>SOURCE IS</c> operands of j)/k) ("each data-name-6" / "each data-name-3") enter as the record-key-name
+    /// followed by each operand's own entry in order (kb/Work PB1099). Every segment is built from the bound <see cref="FileModel"/>; kb/Work
     /// PB1079 measured c), d), g), j)'s and k)'s descriptions and locations, and k)'s SUPPRESS WHEN missing from it,
     /// so a mismatch in any of them ran the activated program with no condition.</summary>
     internal static string SelectFingerprint(FileModel f)
@@ -300,6 +300,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             : $"{CobolNames.UpperFold(name)}@{RecordLayout.OffsetOf(item)?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "?"}"
               + $":{(item.IsGroup ? "G" : "E")}{item.ByteWidth}:"
               + (ActivationDescriptions.Of(item, classes: null) is { } d ? $"{d.Category}/{d.Clauses}/{d.Positions}" : "-");
+        // j)/k) "each data-name-6" / "each data-name-3": a SOURCE-form key is its record-key-name and every operand's
+        // entry in the order specified, since that order IS the key (§12.4.5.12.4 GR2).
+        static string ClauseKey(string name, RecordKeySource? source, DataItem? item) => source is null
+            ? KeyEntry(name, item)
+            : $"{CobolNames.UpperFold(source.Name)}=SOURCE[{string.Join("+", source.Operands.Select(o => KeyEntry(o.Name, o.Item)))}]";
         // k) "the same SUPPRESS WHEN phrase" — the operand as the literal position read it (form, class, characters,
         // figurative kind), so `SUPPRESS WHEN "XX"` and `SUPPRESS WHEN SPACE` differ and an absent phrase is empty.
         static string Suppress(SuppressWhenOperand? s) => s is null ? ""
@@ -311,8 +316,8 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         // The operand is matched by the key ITEM the binder resolved it to (kb/Work PB1075 — a qualified operand).
         string KeyPosition(CollatingKeyOperand k)
         {
-            if (k.Key is not null && ReferenceEquals(f.RecordKeyItem, k.Key)) return "P";
-            int i = k.Key is null ? -1 : f.AlternateKeyNames.FindIndex(a => ReferenceEquals(a.Item, k.Key));
+            if (k.Key is not null && ReferenceEquals(f.PrimeKey, k.Key)) return "P";
+            int i = k.Key is null ? -1 : f.AlternateKeys.FindIndex(a => ReferenceEquals(a.Key, k.Key));
             return i >= 0 ? $"A{i}" : CobolNames.UpperFold(k.Name);
         }
         string fileColl = f.FileLevelCollating is { } fc ? $"{(fc.Alnum is { } an ? CobolNames.UpperFold(an) : null)}/{(fc.Nat is { } nn ? CobolNames.UpperFold(nn) : null)}" : "";
@@ -329,14 +334,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             // phrase (the clause is declined accept-inert, kb/Work PB292, so the written phrase is all there is).
             + $"|DELIM={f.RecordDelimiter}|RESERVE={f.ReserveAreas}"
             + $"|ORG={f.Organization}|ACC={f.AccessMode}|COLL={fileColl};{keyColl}"
-            + $"|KEY={(f.RecordKeyName is { } rk ? KeyEntry(rk, f.RecordKeyItem) : "")}"
-            + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{KeyEntry(a.Name, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))}"
+            + $"|KEY={(f.RecordKeyName is { } rk ? ClauseKey(rk, f.RecordKeySource, f.PrimeKey?.Item) : "")}"
+            + $"|ALT={string.Join(",", f.AlternateKeyNames.Select(a => $"{ClauseKey(a.Name, a.Source, a.Item)}:{a.Duplicates}:{Suppress(a.SuppressWhen)}"))}"
             + $"|SHARE={f.Sharing}|LOCK={(f.LockMode is { } lm ? $"{lm.Kind},{lm.Multiple}" : "")}";
     }
 
     private void EmitFileMembers(string csName, DataBinder data, BoundProgram bound, CodeWriter w)
     {
-        var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the in-memory sort store, never a host connector
+        var hostFiles = data.Files.Where(f => !f.IsSortMerge).ToList();   // an SD is the runtime's sort work, never a host connector
         if (hostFiles.Count == 0) return;
         w.Line();
         // A per-object minted-key field for each instance file (§9.1.4 — one connector per object): initialized once
@@ -838,6 +843,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
             w.Line(OoUnivCallerWrite(ret, $"__ur{id}!.Value", argumentView: false) + "   // RETURNING delivery (§14.9.23.4 GR8)");
         EmitInvocationReturned(u);   // the universal path returns identically (D-EO6)
     }
+
+    /// <summary>INVOKE NULL (kb/Work PB1136): identifier-1 is the predefined NULL object reference, so §14.9.23.4 GR5 sets
+    /// EC-OO-NULL and terminates the statement. It is raised by the ONE null-receiver guard every instance dispatch goes
+    /// through (<c>CobolObject.RequireNonNull</c>) — the same fatal, unconditional raise an INVOKE through a data item
+    /// holding NULL takes, inside the same statement guard (the EC-OO-NULL row of <c>EcBinder.NodeKindRaises</c>), so a
+    /// USE declarative on EC-OO-NULL receives it exactly as it does that one.</summary>
+    public void EmitNullInvoke(BoundInvokeNull n) =>
+        Ctx.Writer.Line($"{RuntimeApi.ObjRequireNonNull("(CobolObject?)null")};   // INVOKE NULL → EC-OO-NULL (§14.9.23.4 GR5)");
 
     /// <summary>SET Format 5 (D-U7; §14.9.39 GR9/GR10): copy the ONE sender reference into each target in
     /// order. The cast renders total: conformance was bind-checked (0867), and C# reference conversions

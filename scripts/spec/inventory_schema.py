@@ -25,7 +25,10 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
                  Checked HERE, at record time, so a malformed batch never reaches the inventory.
   · REFERENCE  — the code-location symbol still exists, the test-ref names a test that is really on disk.
                  Checked ONLY by the C# battery gate, because it must keep holding as the tree changes underneath
-                 an already-recorded row. Re-checking it here would be the same rule in two places.
+                 an already-recorded row. Re-checking it here would be the same rule in two places. That covers a
+                 `path#Symbol` spelled in a row's `notes` prose too (kb/Work PB762); the one thing this side adds is
+                 a SHAPE rule about the record: retiring a witness may not leave its symbol in the prose
+                 (`retired_symbols_left_in_prose`).
 """
 from __future__ import annotations
 
@@ -33,7 +36,7 @@ import json
 import pathlib
 import re
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from typing import Any, NamedTuple
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
@@ -68,13 +71,61 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
 WITNESS_FIELDS = ("code-location", "test-ref")
 CODE_LOCATION_RESITES_ON_READJUDICATION = True
-RETIRED_WITNESS_MARK = "retired-witness:"
+#: The mark `record_verdicts.merged` appends to a row's `notes` for each retired witness. It is DATA, the schema's
+#: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
+#: tell a row's PROSE from the history the writer appended after it, and two spellings of the mark would be two
+#: definitions of where the one ends and the other begins.
+RETIRED_WITNESS_MARK: str = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["notes"]["retired-witness-mark"]
 _RETIRED_RE = re.compile(re.escape(RETIRED_WITNESS_MARK) + r"\s*(\S+)")
 
 
 def retired_witnesses(notes: str) -> set[str]:
     """The witnesses a row's `notes` records as deliberately RETIRED — see `WITNESS_FIELDS`."""
     return {m.rstrip(".,;)") for m in _RETIRED_RE.findall(notes or "")}
+
+
+def prose_of(notes: str) -> str:
+    """A row's `notes` without the retired-witness marks the writer appended: its PROSE (kb/Work PB762).
+
+    The writer only ever APPENDS a mark (`record_verdicts.merged`), so the prose is everything before the first
+    one. A retired symbol is allowed to be gone from the tree and is named in its mark for exactly that reason;
+    the prose is the part a reader takes for the present state of the code.
+    """
+    notes = notes or ""
+    at = notes.find(RETIRED_WITNESS_MARK)
+    return (notes if at < 0 else notes[:at]).rstrip()
+
+
+def symbol_of(ref: str) -> str | None:
+    """The identifier a code-location witness names, or None for a bare path. In a C# file a dotted symbol is a
+    qualified name (the gate resolves each segment, `SymbolResolves`) and the identifier is its LAST segment:
+    `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`, `Foo.cs#Type.Member` gives `Member`. In any other
+    file the fragment is a literal anchor and stays whole (`docs/CONFORMANCE.md#DOC-A.1-19`)."""
+    path, _, fragment = ref.partition("#")
+    if not fragment:
+        return None
+    if not path.endswith(".cs"):
+        return fragment
+    return next((seg for seg in reversed(fragment.split(".")) if seg), None)
+
+
+def retired_symbols_left_in_prose(after_notes: str, retired: Iterable[str], live_locations: Iterable[str]) -> list[str]:
+    """The retired witnesses whose symbol the row's PROSE still names after a write, symbol the row no longer cites.
+
+    ⛔ THE SHAPE OF kb/Work PB762, decided from the record and the row alone (no tree): a landing renamed
+    `ReadLockGovern`, retired its witness and APPENDED a dated erratum, and the prose above the erratum kept
+    describing the method in the present tense, so five rows contradicted themselves for six weeks. Prose is the
+    PRESENT state of the code; history belongs in the retirement's reason, which the writer files behind the
+    retired-witness mark. So once a symbol is retired, the prose (the notes before the first mark) may not name it.
+    A symbol the row still cites (`live_locations`: it MOVED to another file, so the prose stays true) is exempt, and
+    so is a witness with no `#Symbol`. Rewriting the prose in some other way does not excuse it: the erratum that
+    sat beside the stale sentence is exactly the shape this refuses.
+    """
+    prose = prose_of(after_notes)
+    still_cited = {s for loc in live_locations if (s := symbol_of(loc))}
+    return [ref for ref in sorted(retired)
+            if (sym := symbol_of(ref)) and sym not in still_cited
+            and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", prose)]
 
 
 def resites(field: str, before_verdict: str, after_verdict: str) -> bool:
@@ -90,10 +141,11 @@ class WitnessLoss(NamedTuple):
     ref: str
     retired: bool   # the AFTER row's notes record it as a deliberate retirement
     resited: bool   # a re-adjudication's code-location, which the write rule REPLACES (see `resites`)
+    respelled: bool = False   # the SAME test file under its new name, which the AFTER row cites (`witness_losses`)
 
     @property
     def excused(self) -> bool:
-        return self.retired or self.resited
+        return self.retired or self.resited or self.respelled
 
 
 def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
@@ -129,19 +181,28 @@ def witness_shape_error(field: str, ref: str, schema: "Schema") -> str | None:
     return None
 
 
-def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema") -> list[WitnessLoss]:
+def witness_losses(before: dict[str, Any], after: dict[str, Any], schema: "Schema",
+                   respelled: Mapping[str, str] | None = None) -> list[WitnessLoss]:
     """Every witness `before` carried that `after` does not — THE one definition of a narrowing (kb/Work PB959).
 
     Read by the writer (`record_verdicts.py`, at record time) and by the auditor (`audit_witness_loss.py`, over a
     diff or the whole git history), so the two cannot come to disagree about what counts as losing evidence.
+
+    A witness is the TEST, not its spelling. `respelled` maps a `before` test-ref to the test-ref that names the
+    same file after the change moved it (the auditor reads it from git's rename record across the change,
+    `audit_witness_loss.respellings`); a lost reference whose new spelling `after` carries is the same witness,
+    excused as RE-SPELLED. The conformance suite's move (kb/Work PB3177) re-spelled 7,920 references at once, and
+    a clause pass that moves a test to another clause folder re-spells it again.
     """
     retired = retired_witnesses(after.get("notes", ""))
+    respelled = respelled or {}
     out: list[WitnessLoss] = []
     for field in WITNESS_FIELDS:
         sep = schema.code_location_sep if field == "code-location" else schema.test_ref_sep
         kept = set(schema.split(after.get(field, "") or "", sep))
         resited = resites(field, before.get("verdict", ""), after.get("verdict", ""))
-        out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited)
+        out += [WitnessLoss(before.get("rule-id", ""), field, ref, ref in retired, resited,
+                            field == "test-ref" and respelled.get(ref) in kept)
                 for ref in schema.split(before.get(field, "") or "", sep) if ref not in kept]
     return out
 
@@ -381,12 +442,21 @@ class DerivedSelector:
         the standard's order, and a list is its `kind`-`section`-`sublist` triple), so a nested list that
         interrupts an outer one does not change the outer list's lead-in. A plain rule (sublist 1) has none.
         Added for kb/Work R43 / PB1519.
+      · `formats`       the FORMAT NUMBERS of the band a rule is printed under (the catalog's `band-formats`,
+        kb/Work PB284) — the standard's THIRD way of scoping a rule, beside its clause and its words. ACCEPT
+        format 3 and DISPLAY format 2 are the screen formats, VALUE format 5 and PRESENT WHEN format 2 the
+        validation ones, and the rules under them often say nothing that names the module ('General rule 18
+        applies.'). SOLELY: a rule is selected only when every format its band names is one the arm names, since a
+        rule under 'FORMATS 1 AND 2' also holds for format 1. The numbers are the CLAUSE's own, so an arm that
+        names `formats` without `sections` is refused. Operand names stay a separate mechanism (§14.9.1.3 prints no
+        band at all): neither subsumes the other.
 
     ⛔ EVERY TEXT AXIS READS THE NORMATIVE TEXT — the rule with its NOTEs cut off (`NOTE_MARK`). See there.
     """
 
     #: The arm fields that NARROW the catalog. An arm carrying none of them selects all 4,311 rules.
-    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in")
+    POSITIVE = ("sections", "pattern", "xref-sections", "kinds", "requirement", "determination-prefix", "lead-in",
+                "formats")
 
     def __init__(self, name: str, raw: dict[str, Any], register: dict[str, str] | None = None) -> None:
         self.name = name
@@ -405,8 +475,15 @@ class DerivedSelector:
                 # An arm with only NEGATIVE fields selects the whole catalog. Refusing it here is cheap; the
                 # alternative is a 4,311-row batch that validates perfectly and is entirely wrong.
                 raise SystemExit(f"derived-verdicts.{name} arm[{i}]: no positive field — it would select every rule")
+            if "formats" in arm and not arm.get("sections"):
+                # A format number is the CLAUSE's own ("FORMAT 2" of PRESENT WHEN is not ACCEPT's), so an arm that
+                # names formats without the clause that numbers them would select the same-numbered band of every
+                # multi-format clause in the standard.
+                raise SystemExit(f"derived-verdicts.{name} arm[{i}]: `formats` without `sections` — format numbers "
+                                 "belong to a clause")
             self.arms.append({
                 "sections": list(arm.get("sections", [])),
+                "formats": set(arm.get("formats", [])),
                 "xref-sections": list(arm.get("xref-sections", [])),
                 "pattern": re.compile(arm["pattern"], re.IGNORECASE) if "pattern" in arm else None,
                 "kinds": set(arm.get("kinds", [])),
@@ -466,6 +543,12 @@ class DerivedSelector:
                 return False
         if arm["sections"] and not any(section_matches(p, rule.get("section", "")) for p in arm["sections"]):
             return False
+        if arm["formats"]:
+            # SOLELY: a rule printed under "FORMATS 1 AND 2" also holds for format 1, which a selector naming only
+            # format 2 must not take. A rule under no format band names no format and is never selected.
+            printed = set(rule.get("band-formats", []))
+            if not printed or not printed <= arm["formats"]:
+                return False
         text = self.text_of(rule)
         if arm["xref-sections"]:
             cited = XREF_CITATION.findall(text)
@@ -890,6 +973,27 @@ class Schema:
 
     def split(self, value: str, sep: str) -> list[str]:
         return [p for p in (p.strip() for p in value.split(sep.strip())) if p]
+
+    def ref_path(self, ref: str) -> str | None:
+        """The repository file a test-ref names, from its form's `path-template`; None for a form that names no
+        file (an xUnit method) or an unknown form."""
+        scheme, colon, body = ref.partition(":")
+        template = self.test_ref_forms.get(scheme, {}).get("path-template")
+        return template.format(body.strip()) if colon and body.strip() and template else None
+
+    def ref_for_path(self, path: str) -> str | None:
+        """The test-ref that names the repository file `path`, `ref_path`'s inverse; None when no form names it."""
+        for scheme, form in self.test_ref_forms.items():
+            head, _, tail = (form.get("path-template") or "").partition("{0}")
+            if head and path.startswith(head) and path.endswith(tail) and len(path) > len(head) + len(tail):
+                return f"{scheme}:{path[len(head):len(path) - len(tail)]}"
+        return None
+
+    @property
+    def ref_roots(self) -> list[str]:
+        """The directories the file-backed test-ref forms name: a git pathspec for their files (`ref_path`)."""
+        return sorted({(form.get("path-template") or "").partition("{0}")[0].rpartition("/")[0]
+                       for form in self.test_ref_forms.values() if form.get("path-template")} - {""})
 
     def spell_editions(self, names: Iterable[str]) -> str:
         """The ONE spelling of an `editions` field that names `names` — THE writer of the spelling.

@@ -350,6 +350,22 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// pointer/object-class leaf stays the genuine Tier-C byte-island (deferred, loud).</summary>
     private void EmitGroupMove(Place target, BoundOperand source, bool senderFirst)
     {
+        // ⛔ TWO STRONGLY-TYPED GROUPS OF ONE TYPE WITH AN OBJECT-REFERENCE OR POINTER LEAF (kb/Work PB1940): they have no
+        // character image, and §14.9.25.3 SR2 makes the sender "a group item of the same type", so their subordinates
+        // correspond one to one and the move is the leaf vector — every reference SET, every other item its content —
+        // through the ONE composer, which reads and writes a record struct and a group in a storage cell alike (a
+        // cell-backed operand: an area formal, a group passed BY REFERENCE, a function's result temporary).
+        // It precedes GR9's composer (kb/Work PB3139): a VARIABLE-LENGTH strong group with a reference leaf has no
+        // current-extent carrier, and two groups of one type are GR9 a)'s "groups of equal length" whose every position,
+        // dynamic-length item and table corresponds — the vector moves each one (a dynamic-capacity table as its
+        // occurrences, §14.6.9.2), so the binder's element moves, which skip a pair of identical descriptions, add none.
+        if (CobolNet.Compiler.Oo.OoClassTable.LeafCarried(target.Item)
+            && source is BoundFieldOperand { Place: var sendPlace } && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(sendPlace.Item))
+        {
+            ctx.Writer.Line(Ordered(senderFirst, source, target, PlaceRenderer.GroupLeaves(sendPlace),
+                v => PlaceRenderer.WriteGroupLeaves(target, v)));
+            return;
+        }
         // ⛔ ISO §14.9.25.4 GR9 GOVERNS FIRST (kb/Work PB393) — "If both the sending operand and the receiving
         // data item are group items and one or both is a variable-length group, the following rules apply".
         // GR4's plain group move is explicitly the OTHER case ("Any move that is not an elementary move, AND
@@ -358,19 +374,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // AlignedLeafPairs, which for two identically-laid-out variable-length groups produced the RIGHT answer
         // by accident and thereby hid the hole (the shape a first test covers).
         if (VariableLengthGroupMove(target, source, senderFirst)) return;
-        // ⛔ TWO STRONGLY-TYPED GROUPS OF ONE TYPE WITH AN OBJECT-REFERENCE OR POINTER LEAF (kb/Work PB1940): they have no
-        // character image, and §14.9.25.3 SR2 makes the sender "a group item of the same type", so their subordinates
-        // correspond one to one and the
-        // move is the leaf vector — every reference SET, every other item its content — through the ONE composer, which
-        // reads and writes a record struct and a group in a storage cell alike (a cell-backed operand: an area formal, a
-        // group passed BY REFERENCE, a function's result temporary).
-        if (CobolNet.Compiler.Oo.OoClassTable.LeafCarried(target.Item)
-            && source is BoundFieldOperand { Place: var sendPlace } && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(sendPlace.Item))
-        {
-            ctx.Writer.Line(Ordered(senderFirst, source, target, PlaceRenderer.GroupLeaves(sendPlace),
-                v => PlaceRenderer.WriteGroupLeaves(target, v)));
-            return;
-        }
         if (!target.Item.IsCharacterImage)
         {
             // A group MOVE is a content copy of the underlying representation, without conversion (ISO

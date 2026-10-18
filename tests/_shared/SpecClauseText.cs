@@ -26,6 +26,17 @@ internal static class SpecClauseText
     private static readonly Regex Heading =
         new(@"^#{2,6}\s+([0-9]+(?:\.[0-9]+)*|[A-Z](?:\.[0-9]+)+)(\s|$)", RegexOptions.Compiled);
 
+    /// <summary>⛔ THE ONE SPELLING of a general-format heading's title, both nouns and both numbers (kb/Work PB284):
+    /// the standard heads 321 clauses "General format(s)", one "General forms" (§14.9.7.2) and one "General format."
+    /// with a period (§7.3.23.2). Four drift guards each wrote <c>General formats?</c> privately and all four skipped
+    /// the other two. Compose a pattern from this; the Python reader of the same question is
+    /// <c>scripts/spec/spec_headings.py</c>, and <c>CatalogCoverageDriftTests</c> fails when either is re-typed.</summary>
+    public const string GeneralFormatNoun = @"General\s+form(?:at)?s?\.?";
+
+    /// <summary>A numbered general-format heading line in the transcription: capture <c>num</c> is the clause.</summary>
+    public static readonly Regex GeneralFormatHeading =
+        new(@"^#+\s+(?<num>\d+(?:\.\d+)*)\s+" + GeneralFormatNoun + @"\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     /// <summary>One printed, numbered rule: the transcription escapes the delimiter (<c>1\)</c>) so Markdown does
     /// not eat it as a list, and both forms are matched.</summary>
     private static readonly Regex Numbered = new(@"^(\d+)\\?\)\s+(.*)$", RegexOptions.Compiled);

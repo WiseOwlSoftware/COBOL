@@ -155,28 +155,6 @@
       "U+2013 EN DASH is left alone — the standard uses it both as the MINUS-sign glyph and as a clause-range",
       "separator ('13.16–13.18')."
     ],
-    "$format-band-residue": [
-      "⛔ A THIRD SCOPING MECHANISM EXISTS IN THE STANDARD AND NEITHER ENGINE CAN SEE IT: the printed FORMAT band.",
-      "§13.18.35.3 syntax rules 11 and 12 are printed under a 'FORMAT 2' heading and are screen-only; §13.18.63.3",
-      "syntax rules 36, 38 and 39 and §13.18.64.4 general rule 24 sit under 'FORMAT 5' and are VALIDATE-only;",
-      "SR-13.18.41.3-1 is the single rule under PRESENT WHEN's 'FORMAT 2' (validation) band. Several of them are",
-      "text-silent outright — GR-13.18.63.4-24 reads, in full, 'General rule 18 applies.'",
-      "",
-      "THE CATALOG DOES NOT CARRY THE BAND. `extract_rule_catalog.py` GLUES the heading onto the PRECEDING rule's",
-      "text ('… is 88. FORMAT 5'), so the scope is lost AND the text a predicate reads is polluted — 176 rules",
-      "carry a stray 'FORMAT n'. So there is no `formats` field to key an arm on, and a regex that reached these",
-      "rows would be a hand list in regex clothing. Where a scoped arm CAN reach them on a real operand name it",
-      "does (the COLUMN/LINE MINUS + identifier-1 arm, and §12.3.7.3's data-name arm). The rest are left to",
-      "explicit adjudication and are named in kb/Work PB284, which owns the extractor repair: a denominator change",
-      "rebuilds the inventory and is its own landing.",
-      "",
-      "Rows this costs today, all still open: SR-13.18.41.3-1 · SR-13.18.63.3-36 · SR-13.18.63.3-38 ·",
-      "SR-13.18.63.3-39 · GR-13.18.63.4-24 (A.4.14), and SR-14.9.1.3-5 · SR-14.9.11.3-3 · GR-14.9.11.4-12",
-      "(A.4.2, which carry hand DOCUMENTED-NON-SUPPORT verdicts from kb/Work PB260 that the drift test cannot",
-      "hold). The ON EXCEPTION band of ACCEPT and DISPLAY left this list on 2026-09-24 (kb/Work R43 / PB1151): the",
-      "phrase is an OPERAND that exists only in the screen formats, so screen-handling-only's operand arm reaches",
-      "it without the band."
-    ],
     "standard-binary-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
       "decision": "kb/Work PB198 — ARITHMETIC IS STANDARD-BINARY is declined (owner protocol 2026-08-30); docs/CONFORMANCE.md §2 row 2.",
@@ -296,7 +274,18 @@
         "MEASURED 2026-09-02: 156 of 4,311 rules (110 by clause, 97 by text, 3 by the §12.3.7 operand arm, 6 by the",
         "COLUMN/LINE operand arm; the arms overlap). 149 are blank and 7 already carry DOCUMENTED-NON-SUPPORT, so",
         "the selector FLIPS NOTHING; not one CONFORMS / PARTIAL / DIVERGES / NOT-IMPLEMENTED / NEEDS-OWNER-DECISION",
-        "row is touched. See $format-band-residue for the seven rows this shape cannot hold."
+        "row is touched.",
+        "",
+        "THE FORMAT-BAND ARMS (kb/Work PB284). The standard scopes a rule a THIRD way, by the FORMAT label printed",
+        "above it, and the catalog now carries that label (`band`, and its numbers as `band-formats`) instead of",
+        "gluing it onto the preceding rule's text. ACCEPT format 3 and DISPLAY format 2 are the screen formats, so",
+        "`sections` + `formats` reaches SR-14.9.11.3-3 ('Identifier-2 and identifier-3 shall be unsigned integer data",
+        "items') and GR-14.9.11.4-12 although neither says 'screen'. The numbers are the clause's own, which is why",
+        "the engine refuses `formats` without `sections`. §14.9.1.3 prints NO band on its syntax rules, so SR-14.9.1.3-5",
+        "('Identifier-3 and identifier-4 shall be unsigned integer data items') is reached by its OPERAND NAMES — the",
+        "LINE and COLUMN operands of format 3. Neither mechanism subsumes the other, so both stay.",
+        "Measured with the catalog rebuilt for PB284: 184 selected (181 + those three), all three blank or already",
+        "DOCUMENTED-NON-SUPPORT, none CONFORMS / PARTIAL / DIVERGES."
       ],
       "arms": [
         {
@@ -323,6 +312,31 @@
             "13.18.59",
             "13.18.61"
           ]
+        },
+        {
+          "$arm": "format band — ACCEPT format 3 (§14.9.1) IS the screen format; format 1 is the device and format 2 the temporal ACCEPT, both supported, which is why the number must be paired with the clause",
+          "sections": [
+            "14.9.1"
+          ],
+          "formats": [
+            3
+          ]
+        },
+        {
+          "$arm": "format band — DISPLAY format 2 (§14.9.11) IS the screen format; its rules need not say 'screen' (SR-14.9.11.3-3 is 'Identifier-2 and identifier-3 shall be unsigned integer data items', GR-14.9.11.4-12 'Column and line number positions are specified in terms of alphanumeric character positions')",
+          "sections": [
+            "14.9.11"
+          ],
+          "formats": [
+            2
+          ]
+        },
+        {
+          "$arm": "operand — ACCEPT's identifier-3 and identifier-4 are the screen format's LINE and COLUMN operands; §14.9.1.3 prints no format band at all (SR-14.9.1.3-5), so only the operand name scopes it",
+          "sections": [
+            "14.9.1.3"
+          ],
+          "pattern": "\\bidentifier-[34]\\b"
         },
         {
           "$arm": "text — screen vocabulary inside a SHARED clause; never a general format",
@@ -439,7 +453,7 @@
         "  • 'no active APPLY COMMIT clause' — GR-14.9.7.4-1 / GR-14.9.36.4-1 are conditioned on the module's",
         "    ABSENCE ('it has the same effect as a CONTINUE statement'). That is the TOTAL behaviour under the",
         "    decline, it is implemented, and GR-14.9.7.4-1 already carries CONFORMS/OK on",
-        "    conformance:2023/pb137_commit_inert.",
+        "    conformance:cases/14.9.7-COMMIT/pb137_commit_inert.",
         "  • 'This statement shall not be specified' — SR-14.9.7.3-1/-2 and SR-14.9.36.3-1/-2, landed by kb/Work",
         "    PB137 as a bind-time COBOLNET1690 rejection with three negative goldens. ⚠ Note what the word",
         "    'statement' is doing: §12.4.6.3.3 SR5/SR6 read 'This CLAUSE shall not be specified …' and stay IN,",
@@ -453,7 +467,7 @@
         "item 1), A.4.1 makes a module's exception conditions optional with it, and §14.6.13.1.1 does not require a",
         "level-3 condition of an unimplemented element to be raised. Nothing survives: the STATIC reach is the",
         "SR1/SR2 COBOLNET1690 rejection (excluded above by its own words), and the DYNAMIC reach is GR1's CONTINUE,",
-        "pinned by conformance:2023/pb259_commit_rollback_under_sort and pb259_commit_rollback_recursive.",
+        "pinned by conformance:wiseowl/cases/14.9.7-COMMIT/pb259_commit_rollback_under_sort and pb259_commit_rollback_recursive.",
         "",
         "⚠ THE CLOSEST CALL IN THE SET, recorded because a re-deriver will challenge it. SR-12.4.6.3.3-10 ('No data",
         "items referenced by the FILE STATUS clause, the LINAGE clause, the RECORD clause, or separately specified",
@@ -469,10 +483,20 @@
         "alternative is unreachable rather than unverified, so FMT-14.9.1.2 and FMT-14.9.11.2 are CONFORMS), and",
         "FMT-14.9.36.2 would be WRONG as non-support: ROLLBACK is a recognized statement in the shipped grammar, so the grammar matches the",
         "printed format. ⚠ The '<pre' proxy leaked — 56 of 322 FMT rows do not match it — and it looked safe here",
-        "only because FMT-14.9.7.2 is MISSING FROM THE CATALOG (kb/Work PB284): §14.9.7.2 is headed 'General forms',",
-        "the only such heading against 282 'General format' ones, and its format is an inline backtick rather than a",
-        "<pre> block. Had it been extracted, the proxy would have stamped COMMIT's format and left ROLLBACK's alone",
-        "— a split decided by transcription markup.",
+        "only because FMT-14.9.7.2 was MISSING FROM THE CATALOG (kb/Work PB284, repaired): §14.9.7.2 is headed",
+        "'General forms', the only such heading against 321 'General format(s)' ones, and its format was an inline",
+        "backtick rather than a <pre> block. Had it been extracted then, the proxy would have stamped COMMIT's",
+        "format and left ROLLBACK's alone — a split decided by transcription markup. FMT-14.9.7.2 is now a row and",
+        "CONFORMS beside FMT-14.9.36.2, which is what the KIND exclusion is for.",
+        "",
+        "THE PROSE CONCEPT CLAUSES (kb/Work PB284 part 3). §9.1.18 is Annex A.4.3 item 1 whole ('Commit and Rollback",
+        "9.1.18'), so its rows (9.1.18.1-.7, one per paragraph) are the module's OWN clause and take the clause arm.",
+        "§9.1.17 (the logical unit of work) is not listed, but A.4.1 ¶2 makes 'other rules ... also optional, even if",
+        "not explicitly listed', and the definition's only referent is §9.1.18.1: nothing in it survives the",
+        "module's absence. §9.1.16 is the CLAIMED record-locking clause, so only its two paragraphs whose whole",
+        "content is COMMIT or ROLLBACK ('A COMMIT statement releases all record locks ...') are in, by their opening",
+        "words; the locking paragraphs and the LOCK/UNLOCK prohibition (p6, which SR-12.4.5.9.3-1 and SR-14.9.47.3-2",
+        "already carry as CONFORMS) stay out for the reason the fourteen antecedent rules above do.",
         "",
         "⚖ DOC-A.1-28 ('Commit and rollback (interaction with other facilities and languages)', cross-reference",
         "§9.1.18) used to be listed with those antecedent rules. Owner decision R42 (2026-09-24) withdraws it: its",
@@ -495,6 +519,20 @@
           "excludes-kinds": [
             "FMT"
           ]
+        },
+        {
+          "$arm": "clause — the facility's concept clauses §9.1.18 (Annex A.4.3 item 1) and §9.1.17 (the logical unit of work it delimits); prose paragraph rows, kb/Work PB284",
+          "sections": [
+            "9.1.17",
+            "9.1.18"
+          ]
+        },
+        {
+          "$arm": "paragraph — the two §9.1.16 paragraphs whose whole content is the COMMIT or ROLLBACK statement's effect on locks; the rest of the clause is the CLAIMED record-locking facility",
+          "sections": [
+            "9.1.16"
+          ],
+          "pattern": "^A (?:COMMIT|ROLLBACK) statement releases all record locks"
         },
         {
           "$arm": "text — the facility's own functionality stated inside a mandatory clause; note the PLURAL",
@@ -842,7 +880,7 @@
         "So the clause arm gains 13.18.11 and the 'CLASS clause takes effect' exclusion is REMOVED — it existed only",
         "to hold the question open. Measured, that adds §13.18.11's six rows (SR-13.18.11.3-1, GR-13.18.11.4-1..-4,",
         "FMT-13.18.11.2) and nothing else; all six were blank, so no adjudicated row changes. Their witness is",
-        "conformance:negative/declined-validate-class, landed in the same change set — the clause was, until then,",
+        "conformance:wiseowl/cases/13.18.11-CLASS/declined-validate-class, landed in the same change set — the clause was, until then,",
         "the one member of the group drawing a bare 'COBOL0307: unexpected CLASS' instead of a named refusal.",
         "⚠ CLASS IS NOT LIKE ITS SIBLINGS IN ONE RESPECT, and a re-deriver will trip on it: the other clause words",
         "are user-defined words below 2002 (§8.9), but CLASS is RESERVED AT ALL FOUR EDITIONS (measured against",
@@ -860,8 +898,13 @@
         "MEASURED 2026-09-03, after §13.18.11 joined: 81 selected of 4,311. 75 already carry this verdict and the",
         "6 to stamp are exactly §13.18.11's rows, so the selector still changes NO adjudicated row — the widening",
         "is provably confined to the clause the decision names. (Before: 75 selected — 57 by clause, 18 by text,",
-        "16 text-only — of which 74 blank and 1, GR-13.18.40.4-19, already at the verdict.) Five further rules are",
-        "solely conditioned and unreachable by this shape; see $format-band-residue."
+        "16 text-only — of which 74 blank and 1, GR-13.18.40.4-19, already at the verdict.)",
+        "",
+        "THE FORMAT-BAND ARMS (kb/Work PB284) reach the five rules no clause or text arm could: SR-13.18.63.3-36/-38/-39",
+        "and GR-13.18.63.4-24 sit under the VALUE clause's printed FORMAT 5 and say only 'Syntax rules 10, 11, 13 ...",
+        "above apply' / 'General rule 18 applies', and SR-13.18.41.3-1 is the single rule under PRESENT WHEN's FORMAT 2",
+        "(validation; FORMAT 1 is the Report Writer clause A.4.11 shares). The catalog carries the printed band as a",
+        "field, so `sections` + `formats` selects them. All five already carried DOCUMENTED-NON-SUPPORT by hand."
       ],
       "arms": [
         {
@@ -873,6 +916,24 @@
             "13.18.31",
             "13.18.62",
             "14.9.50"
+          ]
+        },
+        {
+          "$arm": "format band — the VALUE clause's FORMAT 5 (§13.18.63, 'VALID/INVALID' content validation): printed rules whose text is 'Syntax rules 10, 11, 13 ... above apply' or 'General rule 18 applies' carry no VALIDATE vocabulary at all",
+          "sections": [
+            "13.18.63"
+          ],
+          "formats": [
+            5
+          ]
+        },
+        {
+          "$arm": "format band — PRESENT WHEN's FORMAT 2 (§13.18.41, validation); FORMAT 1 is the Report Writer clause A.4.11 lists too and §5 records as PARTIAL, so only the band tells the two apart",
+          "sections": [
+            "13.18.41"
+          ],
+          "formats": [
+            2
           ]
         },
         {
@@ -975,47 +1036,6 @@
         "\\bstandard floating-point usages?\\b",
         "standard[-\\s]binary\\s+arithmetic"
       ]
-    },
-    "record-key-source-only": {
-      "verdict": "DOCUMENTED-NON-SUPPORT",
-      "decision": "kb/Work R43 (owner, 2026-09-24) over docs/CONFORMANCE.md §2 Annex A.3 row 40 'SOURCE phrase of RECORD KEY / ALTERNATE RECORD KEY | Not claimed'. Licence: §4.2.6 ¶3's closing sentence ('The implementor is not required to produce executable code when unsupported processor-dependent language elements are used'); refused by name, COBOLNET1954 (DataBinder.DeclineRecordKeySource), on both clauses at every edition.",
-      "$selector": [
-        "A rule is SOLELY conditioned on the record-key SOURCE form when its subject is record-key-name-1 inside the",
-        "two clauses that define it (§12.4.5.6 ALTERNATE RECORD KEY, §12.4.5.12 RECORD KEY) — record-key-name-1 is",
-        "its own name class (§8.3.2.2.24) and exists only in that form — or when it requires the SOURCE phrase from",
-        "a consuming statement (START SR7).",
-        "",
-        "⛔ A RULE NAMING BOTH KEY FORMS STAYS OUT (each arm's own exclusion): 'data-name-1 or record-key-name-1'",
-        "constrains the plain key too, which is live — GR-12.4.5.6.4-6 (key suppression, DIVERGES on its own",
-        "finding), SR-14.9.41.3-6 (START's key operand, CONFORMS). The two general formats are excluded by KIND:",
-        "each prints both key forms, and R43 item 2 gives FMT-12.4.5.12.2 its data-name-1 arm's verdict.",
-        "",
-        "MEASURED 2026-09-24: 5 selected — the two class/category rules, the two concatenation rules and START SR7",
-        "(already DOCUMENTED-NON-SUPPORT)."
-      ],
-      "arms": [
-        {
-          "$arm": "operand — record-key-name-1 inside the two clauses that define it",
-          "sections": [
-            "12.4.5.6",
-            "12.4.5.12"
-          ],
-          "pattern": "\\brecord-key-name-1\\b",
-          "excludes-pattern": "\\bdata-name-1\\b",
-          "excludes-kinds": [
-            "FMT"
-          ]
-        },
-        {
-          "$arm": "text — a consuming statement that requires the SOURCE form",
-          "pattern": "\\bSOURCE phrase (?:in|of) the (?:ALTERNATE )?RECORD KEY\\b",
-          "excludes-pattern": "\\bdata-name-1\\b",
-          "excludes-kinds": [
-            "FMT"
-          ]
-        }
-      ],
-      "excludes-patterns": []
     },
     "a1-optional-not-provided": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
@@ -1257,9 +1277,39 @@
       "answer when a row needs it is to re-key §2 the way §7 was re-keyed, not to widen this pattern. §3 and §4 are",
       "prose lists with no keys at all."
     ],
+    "$symbol-resolution-comment": [
+      "HOW THE GATE RESOLVES '#Symbol' (kb/Work PB762) — ONE predicate, `SpecTraceabilityInventoryDriftTests.SymbolResolves`,",
+      "asked of a `code-location` here and of a `path#Symbol` spelling in a row's `notes` (see `notes`): the file exists and",
+      "every dot-separated segment of the symbol is in the file's CODE. For a C# file the code is its TOKENS, so a",
+      "comment, a doc comment and a disabled region are not code (a string literal is: a construct id or a diagnostic",
+      "code is legitimately anchored in the string that carries it); for a grammar file it is the text with its // and",
+      "/* */ comments removed; for any other file it is the whole text. The word search used to run over the whole body,",
+      "which is why `FileRegistry.cs#ReadLockGovern` resolved on three CONFORMS rows for as long as a comment narrated",
+      "the method's removal: a witness that names a thing the code no longer holds passed because prose said so."
+    ],
     "anchored-files": {
       "docs/CONFORMANCE.md": "^(DOC-A\\.1-[0-9]+|4\\.2\\.16|A\\.4\\.[0-9]+)$"
     }
+  },
+
+  "notes": {
+    "$comment": [
+      "A row's `notes` is the forensic prose a reader opens to learn why the row has its verdict, and it is the one",
+      "adjudicated field a gate used to read not at all (kb/Work PB762: a landing renamed `ReadLockGovern`, re-pointed",
+      "`code-location` because a gate makes it, and left seven rows' prose narrating the dead symbol in the present",
+      "tense). Two rules now read it, in the two places the architecture assigns:",
+      "  · BATTERY time (`SpecTraceabilityInventoryDriftTests.EveryNotesLocation_ResolvesInTheTree`): every",
+      "    `<repo-relative-path>#<Symbol>` spelling in a row's PROSE must resolve exactly as a `code-location` does.",
+      "    The PROSE is `notes` up to the first retired-witness mark; the marks the writer appends after it are",
+      "    HISTORY by construction, and a retired symbol is allowed to be gone.",
+      "  · RECORD time (`record_verdicts.validate`): once a witness is retired, the row's PROSE may not name its",
+      "    symbol (the history of the retirement is its `retire-reason`, filed behind the mark). A symbol the row still",
+      "    cites at another file is exempt: it MOVED, and the prose stays true.",
+      "A BARE identifier in old prose is not read by the battery gate, because prose also narrates history and the",
+      "standard's own words and no resolver can tell a stale name from a deliberate one; the record-time rule is what",
+      "stops the next one, and the rows that predate it are measured in kb/Work PB762."
+    ],
+    "retired-witness-mark": "retired-witness:"
   },
 
   "test-ref": {
@@ -1297,8 +1347,8 @@
     "disqualifying-method-patterns": ["MatchesLegacy$", "MatchesGnuCobol$", "MatchesOracle$"],
     "forms": {
       "conformance": {
-        "syntax": "conformance:<edition>/<case>   where edition is 85 | 2002 | 2014 | 2023 | negative",
-        "path-template": "tests/conformance/{0}.cob",
+        "syntax": "conformance:<tree>/<clause folder>/<id>   a conformance-suite test, where tree is cases | wiseowl/cases (docs/rearchitecture/DESIGN-conformance-suite.md §4)",
+        "path-template": "conformance-suite/{0}.cob",
         "spec-derived": true
       },
       "nist": {

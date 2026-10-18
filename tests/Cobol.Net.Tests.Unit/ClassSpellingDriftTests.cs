@@ -57,6 +57,60 @@ public sealed class ClassSpellingDriftTests
         Assert.Contains("IntrinsicArgumentRules.ClassNameOf(p)", text);
     }
 
+    // Name(…) over ClassOfItem's answer, inline or through a class local, in one interpolation hole.
+    private static readonly Regex ItemClassThroughName = new(
+        @"ClassOfItem\([^()]*\)\s*is\s*\{\s*\}\s*\w+\s*\?\s*(?:IntrinsicArgumentRules\.)?Name\(|Name\(\s*(?:IntrinsicArgumentRules\.)?ClassOfItem\(",
+        RegexOptions.CultureInvariant);
+
+    /// <summary>⛔ A DIAGNOSTIC THAT NAMES THE CLASS OF A DATA ITEM OR AN OPERAND ASKS <c>ClassNameOf</c> (kb/Work PB3192
+    /// review R1-1). <c>ClassOfItem</c> answers "alphanumeric" for a strongly-typed group — §15.3 item 2's reading of a
+    /// function ARGUMENT — while §8.5.2.1 makes its class the type-name everywhere else; the procedure-header BY VALUE
+    /// screen (COBOLNET1553) spelled <c>Name(ClassOfItem(item))</c> and told the user a strongly-typed formal was of
+    /// class alphanumeric. Every BY VALUE class screen (header formal, CALL, INVOKE, user function) and the
+    /// operand-class exclusion screen names the class through the family; no source spells Name over ClassOfItem.</summary>
+    [Fact]
+    public void AClassScreenOverAnItemOrOperand_NamesTheClassThroughClassNameOf()
+    {
+        string root = TestRepo.Src(["Cobol.Net.Compiler"]);
+        var offenders = Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories)
+            .Where(f => !f.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}"))
+            .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, line, i)))
+            // the family's own body is the one place that composes Name over ClassOfItem, after the strong-group arm
+            .Where(t => ItemClassThroughName.IsMatch(t.line) && !t.line.Contains("StrongGroupClassName(", StringComparison.Ordinal))
+            .Select(t => $"{Path.GetRelativePath(root, t.f)}:{t.i + 1}: {t.line.Trim()}")
+            .ToList();
+        Assert.True(offenders.Count == 0,
+            "name an item's class through IntrinsicArgumentRules.ClassNameOf (kb/Work PB3192 R1-1):\n"
+            + string.Join("\n", offenders));
+
+        (string[] path, string member)[] screens =
+        [
+            (["Binding", "ProcedureHeaderScreen.cs"], "public void ByValueClass"),
+            (["Binding", "Procedure", "Verbs", "CallBinder.cs"], "private void ValueClassScreen"),
+            (["Binding", "Procedure", "Verbs", "OoBinder.cs"], "InvokeByValueOperandClass"),
+            (["Binding", "Procedure", "Verbs", "UdfBinder.cs"], "COBOLNET1554"),
+            (["Binding", "Procedure", "ExpressionBinder.cs"], "OperandClassExcluded"),
+        ];
+        foreach (var (path, member) in screens)
+        {
+            string text = File.ReadAllText(TestRepo.Src(["Cobol.Net.Compiler", .. path]));
+            int at = text.IndexOf(member, StringComparison.Ordinal);
+            Assert.True(at >= 0, $"{string.Join('/', path)}: anchor '{member}' not found");
+            int window = text.IndexOf("IntrinsicArgumentRules.ClassNameOf(", at, StringComparison.Ordinal);
+            Assert.True(window >= 0 && window - at < 1200,
+                $"{string.Join('/', path)}: the class screen at '{member}' names its class without ClassNameOf");
+        }
+    }
+
+    [Theory]
+    [InlineData("$\"{(IntrinsicArgumentRules.ClassOfItem(item) is { } cls ? IntrinsicArgumentRules.Name(cls) : \"unknown\")} \"", true)]
+    [InlineData("$\"is of class {IntrinsicArgumentRules.Name(IntrinsicArgumentRules.ClassOfItem(item)!.Value)}\"", true)]
+    [InlineData("$\"is of class {IntrinsicArgumentRules.ClassNameOf(item)}\"", false)]
+    [InlineData("var cls = IntrinsicArgumentRules.ClassOfItem(item);", false)]
+    public void TheItemClassPattern_CatchesTheFormsItWasWrittenIn(string text, bool offends)
+        => Assert.Equal(offends, ItemClassThroughName.IsMatch(text));
+
     // The universal claim ISO §8.5.2.1 refutes, in the two shapes it was written. (1) Stated of any group: "a group is
     // class alphanumeric", "A group item (class alphanumeric, …)", "a group is class and category alphanumeric", "a
     // group is category alphanumeric". (2) Inferred from groupness within one clause: "(G) is a group item and so of
@@ -99,7 +153,7 @@ public sealed class ClassSpellingDriftTests
             || f.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}");
         var files = Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories)
             .Concat(Directory.EnumerateFiles(TestRepo.Tests(), "*.cs", SearchOption.AllDirectories))
-            .Concat(Directory.EnumerateFiles(TestRepo.Tests(["conformance"]), "*.cob", SearchOption.AllDirectories))
+            .Concat(Directory.EnumerateFiles(TestRepo.Suite(), "*.cob", SearchOption.AllDirectories))
             .Where(f => !Built(f) && Path.GetFullPath(f) != self);
         var offenders = files
             .SelectMany(f =>

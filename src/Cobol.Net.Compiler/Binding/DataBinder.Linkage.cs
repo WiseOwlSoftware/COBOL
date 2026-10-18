@@ -461,6 +461,7 @@ public sealed partial class DataBinder
                 // reference copy CobolArgAdapt.SlotValue performs (kb/Work PB663). The FLOATING-POINT usage is the
                 // same COMPUTE on the float lane — landed by FloatResultant into a detached float cell
                 // (CobolArgAdapt.NumValue; kb/Work PB1114).
+                CompleteDescriptionAhead(item);   // a TYPE-typed formal has no class until its subject is composed (kb/Work PB3222)
                 header.ByValueClass(pname, item);   // the class set is the header screen's, shared with the method arm (PB1051)
             }
 

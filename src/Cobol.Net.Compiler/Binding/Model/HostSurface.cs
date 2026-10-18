@@ -49,7 +49,7 @@ public readonly record struct HostType(HostTypeKind Kind, string? CsType);
 /// <para>⛔ <b>DECODING NEVER NARROWS:</b> the host type of a description holds EVERY value its storage can hold, so a
 /// write-back never has a value it cannot return. A fixed-point item's storage holds what its capacity discipline
 /// admits — a DISPLAY, PACKED or plain COMPUTATIONAL item its PICTURE's digits, a binary item whose truncation is by
-/// capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) its whole container (ISO §13.18.60.4 12); kb/Work R10) —
+/// capacity (COMP-5, BINARY-CHAR … BINARY-DOUBLE) its whole container (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10) —
 /// <see cref="PicInfo.UnscaledDigitBound"/>, the one statement of that bound. The one storage no exact .NET type holds,
 /// an UNSIGNED 16-byte container with a scale (a 19- or more-digit COMP-5 PICTURE with V or P positions), takes
 /// <see cref="CobolDec"/> under a stated GR13 restriction: content of 2^127 units or more is refused by the validity

@@ -25,7 +25,7 @@ public enum PicCategory
     /// national leaf: the D-N2 refusal went when kb/Work PB231 collapsed the byte-window carriage gate into ONE
     /// predicate, and a national leaf on either side of a REDEFINES
     /// class is a MOVE receiver like its DISPLAY twin (§13.18.60.4 GR2 — kb/Work PB572, pinned by
-    /// <c>conformance:2002/pb572_national_redefines_receiver</c>).</summary>
+    /// <c>conformance:cases/13.18.60-USAGE/pb572_national_redefines_receiver</c>).</summary>
     National,
     /// <summary>Boolean (<c>PIC 1</c>, optionally <c>USAGE BIT</c>, ISO §8.5.2.5 / §13.18.40.4 GR8) — LIVE
     /// (Phase 4a track (a)): one alphanumeric character '0'/'1' per boolean position (the §13.18.40.4 GR14 R14
@@ -561,6 +561,13 @@ public sealed record PicInfo(
     /// (numeric design D1 / SSOT §18 #4). ≤18 digits stay hardware-native <see cref="long"/>.</summary>
     public bool IsWide => Category is PicCategory.Numeric && !IsFloat && Digits > 18;
 
+    /// <summary>The most decimal digits a scaled fixed-point value holds on the <see cref="Int128"/> carrier
+    /// (<c>Int128.MaxValue</c> ≈ 1.7×10³⁸, so every 38-digit magnitude fits) — the numeric engine's intermediate
+    /// width (<c>ReceiverContext.IntermediateDigits</c>) and the widest item a compiler-synthesized intermediate may
+    /// be described as (<c>SendingValueTemp</c>). One number, so an intermediate item and the engine that stores
+    /// into it cannot disagree about where the carrier ends.</summary>
+    public const int ScaledCarrierDigits = 38;
+
     /// <summary>
     /// ⛔ THE ONE "is this the description of an INTEGER DATA ITEM?" primitive (ISO §5.5 2)b)2., kb/Work PB248).
     /// The standard's own definition of the term is a CONJUNCTION of three conditions, and every screen in this
@@ -643,7 +650,7 @@ public sealed record PicInfo(
 
     /// <summary>True for an UNSIGNED BinaryCapacity item whose 16-byte container range [0, 2^128) exceeds every
     /// signed carrier — its CLR carrier is <see cref="UInt128"/> (kb/Work R10, owner decision 2026-08-07: the item
-    /// owns its full container range, ISO §13.18.60.4 GR12). Reads of such an item enter the numeric renderer on
+    /// owns its full container range, DOC-A.1-208). Reads of such an item enter the numeric renderer on
     /// the unsigned-wide lane (<c>NumX.U</c>), whose value paths keep the full range and whose arithmetic funnel
     /// is <c>CobolNum.Widen</c>.</summary>
     public bool IsUnsignedWideBinary => Category is PicCategory.Numeric && !Signed
@@ -659,7 +666,7 @@ public sealed record PicInfo(
     /// <summary>⛔ AN UPPER BOUND ON THE DECIMAL DIGITS OF THIS ITEM'S UNSCALED VALUE — the fact the native renderer's
     /// carrier decisions are made on (<c>NumX.Digits</c>; kb/Work PB1143 / PB621). A DISPLAY / PACKED / plain
     /// COMPUTATIONAL item holds at most <see cref="Digits"/>; a BinaryCapacity (COMP-5, BINARY-CHAR … -DOUBLE) item
-    /// owns its whole container range (§13.18.60.4 GR12) — values past the PICTURE's digits are legal — so its bound
+    /// owns its whole container range (§13.18.60.4 GR12 / DOC-A.1-208) — values past the PICTURE's digits are legal — so its bound
     /// is the container's: 2^(8w−1) &lt; 10^3 / 10^5 / 10^10 / 10^19 for the signed 1/2/4/8-byte widths, one more
     /// digit unsigned at 8 bytes (2^64 &lt; 1.85·10^19), and the 16-byte container 39 digits (2^127 ≈ 1.7·10^38 — the
     /// Int128 engine's own magnitude; its unsigned-wide lane funnels through <c>CobolNum.Widen</c>, loud beyond
@@ -700,6 +707,25 @@ public sealed record PicInfo(
         : this is { Category: PicCategory.NumericEdited, EditMask: { } mask }
             ? CobolNet.Runtime.CobolEdit.MaskScale(mask, EditingRules as CobolNet.Runtime.CobolEdit.EditRule[], '$', DecimalPointIsComma)
         : Scale;
+
+    /// <summary>⛔ THE ONE FOLD OF "WHAT A SET OF RESULTANTS CAN HOLD" (kb/Work PB2694, PB370): the widest
+    /// <see cref="ReceiverScale"/> and the widest INTEGER digit-position count (<see cref="DigitPositions"/> less the
+    /// scale — over-counting is safe, under-counting is not) over <paramref name="pics"/>, so one value rendered or
+    /// frozen for the set loses no digit any receiver can hold. A null PICTURE (an index, an object) contributes
+    /// nothing. <c>ReceiverContext.OfSet</c> builds an arithmetic statement's context from it, and
+    /// <c>SendingValueTemp.ShapedPic</c> sizes the fixed-point intermediate a MOVE freezes a numeric function's value into
+    /// from it (over the fixed-point receivers only — a floating-point one has no scale to fold).</summary>
+    public static (int Scale, int IntegerDigits) WidestReceiving(IEnumerable<PicInfo?> pics)
+    {
+        int scale = 0, integerDigits = 0;
+        foreach (var pic in pics)
+        {
+            int s = pic?.ReceiverScale() ?? 0;
+            scale = Math.Max(scale, s);
+            integerDigits = Math.Max(integerDigits, pic is null ? 0 : Math.Max(0, pic.DigitPositions - s));
+        }
+        return (scale, integerDigits);
+    }
 
     /// <summary>For a <see cref="PicCategory.ObjectReference"/> item: the FULL §13.18.60.2 description —
     /// kind × FACTORY × ONLY × name (<see cref="ObjectRefDescriptor"/>). Null for every other category.
@@ -841,7 +867,7 @@ public sealed record PicInfo(
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
-        // ⛔ An UNSIGNED BinaryCapacity item owns its full container range (ISO §13.18.60.4 GR12; kb/Work R10,
+        // ⛔ An UNSIGNED BinaryCapacity item owns its full container range (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10,
         // owner decision 2026-08-07), so its carrier is the container's own unsigned CLR type wherever a signed
         // carrier cannot hold that range: an 8-byte container holds [0, 2^64) → ulong (long tops out at 2^63−1 —
         // the F75 fold/storage disagreement), a 16-byte container holds [0, 2^128) → UInt128. Containers of

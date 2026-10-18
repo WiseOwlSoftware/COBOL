@@ -752,7 +752,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private string ContentRecordArgument(BoundCallArg a, Place p) =>
         a.Mode is CobolPassMode.Content && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(p.Item)
         && ArgumentArea(p) is var area && area != "null"
-            ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth)}"
+            ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth, CellComponents.PerOccurrence(p.Item))}"
             : "";
 
     /// <summary>The RETURNING item's <c>CobolArg</c> (kb/Work PB962/PB965): the same BY REFERENCE carrier an
@@ -904,7 +904,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // ⛔ The snapshot READS the operand, so when the operand is a forwarded formal the read has to be
             // guarded: a reference to an omitted formal raises its *-ARG-OMITTED (kb/Work PB971), and GR12 says this
             // reference form does not. The guard also carries the omission on, per GR1c.
-            string snapshot = CrossingOf(p) switch
+            // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS crosses BY CONTENT as its detached record (ContentRecordArgument,
+            // kb/Work PB1940), which the formal of the same type is laid over; its carrier is read only by a formal that
+            // cannot be, so it is a VIEW, read when (if ever) it is asked for — a variable-length one has no character
+            // image at all (kb/Work PB3139), and an eager snapshot of it staged that loud on every CALL.
+            string contentRecord = ContentRecordArgument(a, p);
+            string snapshot = contentRecord != "" ? RuntimeApi.ReadOnlyTextView(CallContentRead(p)) : CrossingOf(p) switch
             {
                 CallCrossing.VarGroup => RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupBoundaryImage(p, "CALL argument")),
                 CallCrossing.Text => $"ManagedPointer<string>.Cell({CallContentRead(p)})",
@@ -914,7 +919,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // pointer. A SET between two items of the same category IS this copy (kb/Work PB663).
                 _ => $"ManagedPointer<{CallCellCarrier(p)}>.Cell({PlaceRenderer.Read(p)})",
             };
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {meta}{ContentRecordArgument(a, p)})";
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {meta}{contentRecord})";
         }
         switch (a.Value)
         {
@@ -1167,7 +1172,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
 
     /// <summary>⛔ THE ONE numeric-LITERAL argument carrier build, for every notation and every pass mode
     /// (kb/Work PB263 + PB264). A numeric literal argument crosses as the <c>(unscaled value, scale)</c> pair
-    /// that <see cref="EmitText.TryUnscaledParts"/> derives EXACTLY from the literal — its §8.3.3.3.2 rule-4
+    /// that <see cref="NumericLiteral.TryUnscaledParts"/> derives EXACTLY from the literal — its §8.3.3.3.2 rule-4
     /// value for the fixed-point form, its §8.3.3.3.3 rule-5 value ("the algebraic product of the value of its
     /// significand and the quantity derived by raising ten to the power of the exponent") for the
     /// floating-point form — so the two notations of one value cross identically, and the callee's own
@@ -1185,7 +1190,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
         // would decompose the literal a SECOND time and take only half of the result, leaving the rendered
         // expression and the cell type derived independently again — which is the precise shape of the defect
         // this method exists to remove.
-        if (!TryUnscaledParts(literalText, out string unscaled, out int scale))
+        if (!NumericLiteral.TryUnscaledParts(literalText, out string unscaled, out int scale))
             // Not a canonical numeric literal — the binder has already diagnosed it (COBOLNET1661 for an
             // out-of-range exponent, the §8.3.3.3.3 SR2/SR3 form checks otherwise). Stage loud rather than
             // emit a cell whose type cannot be derived; never a silent value.
