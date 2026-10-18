@@ -51,5 +51,14 @@ the ceiling, the '51' after a successful lock) so a vacuous pass is impossible; 
 goldens overwrite their members with junk before every READ; no test uses a wall clock; the comments were reread against the cited
 text and `cite.py --check` ran on every clause number written. Nothing was found to fix in `src/`.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T215443Z-d36544): the nine new
+**Branch review round 1 (two findings, both exception-path breadth, both fixed with goldens).** R1-1: the report-file OPEN had
+'00', '41' and '42' but not '35' and '05'; the new golden `14.9.27-OPEN/pb1880_report_file_optional_open_extend` opens an absent
+OPTIONAL report file EXTEND ('05', file created, §9.1.13.2 item 4 a), a plain '00' on the second OPEN, and an absent non-OPTIONAL
+one ('35', §9.1.13.6 item 5, then CLOSE '42'), so a dropped or inverted optional argument in the RegisterReport arm now fails a
+program, not only an emitted-text test. R1-2: `pb1880_odo_read_34_exception_paths` gains a sequential file with FILE STATUS and an
+AT END / NOT AT END pair and a relative file with an INVALID KEY / NOT INVALID KEY pair: the '34' (and the continuing '34' after
+a legal record) runs neither phrase and reaches the status item. No source changed.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T215443Z-d36544, before the review
+round; the review finisher's re-gate is named in the report): the nine original new
 conformance cases, 13 + 8 + 2 new unit cases passed in leg 1; the Linux gate is the landing's.

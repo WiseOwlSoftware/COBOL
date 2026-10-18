@@ -20,11 +20,17 @@
       *>       condition, §9.1.13.4): the status is fatal (§9.1.13.1: a status beginning with 3 is a fatal exception
       *>       condition) and nothing is equipped to see it, so the run unit terminates abnormally at that READ - the
       *>       line "NOT REACHED" is never displayed.
+      *>   SP  a FILE STATUS clause and an AT END / NOT AT END pair (no USE procedure) on the sequential file; RP the same
+      *>       with an INVALID KEY / NOT INVALID KEY pair on the RELATIVE file. A '34' is neither the at end condition
+      *>       (§9.1.13.4) nor the invalid key condition (§9.1.13.5), so the FILE STATUS clause sees it, execution
+      *>       continues after the READ, and NEITHER phrase of either pair runs (the AT END and INVALID KEY phrases are
+      *>       for their own conditions, §14.9.30.4 GR13): a '34' that reached the AT END or INVALID KEY imperative would
+      *>       print an "SPn AE" / "RPn IK" line.
       *> In every unsuccessful READ the NOT AT END (or NOT INVALID KEY) phrase is ignored (§9.1.13.1: "Any NOT AT END or
       *> NOT INVALID KEY phrase specified for that statement is ignored").
       *> WHY EACH LEG CAN FAIL: a '34' that skipped the declarative would print no USE line; one that ran the NOT AT END
       *> phrase would print an NAE line for the failing READ; one that let the run unit continue at EN would print
-      *> NOT REACHED; one that forgot the condition in effect would run the declarative only once per file.
+      *> NOT REACHED; one that took the AT END or INVALID KEY phrase for a '34' would print SP2 AE or RP2 IK; one that forgot the condition in effect would run the declarative only once per file.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1880EX.
        ENVIRONMENT DIVISION.
@@ -38,6 +44,11 @@
                ORGANIZATION IS SEQUENTIAL.
            SELECT EW ASSIGN TO "pb1880ex.dat"
                ORGANIZATION IS SEQUENTIAL.
+           SELECT SP ASSIGN TO "pb1880ex.dat"
+               ORGANIZATION IS SEQUENTIAL FILE STATUS IS FSP.
+           SELECT RP ASSIGN TO "pb1880exr.dat"
+               ORGANIZATION IS RELATIVE ACCESS MODE IS RANDOM
+               RELATIVE KEY IS RKP FILE STATUS IS FSR.
            SELECT RU ASSIGN TO "pb1880exr.dat"
                ORGANIZATION IS RELATIVE ACCESS MODE IS RANDOM
                RELATIVE KEY IS RKU.
@@ -60,6 +71,14 @@
            05 EN-T PIC X OCCURS 1 TO 10 TIMES DEPENDING ON EN-N.
        FD  EW.
        01  EW-R PIC X(12).
+       FD  SP.
+       01  SP-R.
+           05 SP-N PIC 99.
+           05 SP-T PIC X OCCURS 1 TO 10 TIMES DEPENDING ON SP-N.
+       FD  RP.
+       01  RP-R.
+           05 RP-N PIC 99.
+           05 RP-T PIC X OCCURS 1 TO 10 TIMES DEPENDING ON RP-N.
        FD  RU.
        01  RU-R.
            05 RU-N PIC 99.
@@ -68,6 +87,9 @@
        01  RW-R PIC X(12).
        WORKING-STORAGE SECTION.
        01  FSB PIC XX.
+       01  FSP PIC XX.
+       01  FSR PIC XX.
+       01  RKP PIC 9.
        01  RKU PIC 9.
        01  RKW PIC 9.
        PROCEDURE DIVISION.
@@ -125,6 +147,25 @@
            MOVE 1 TO RKU.
            READ RU NOT INVALID KEY DISPLAY "RU3 NIK" END-READ.
            CLOSE RU.
+           OPEN INPUT SP.
+           READ SP AT END DISPLAY "SP1 AE" NOT AT END DISPLAY "SP1 NAE N=" SP-N END-READ.
+           DISPLAY "SP1 " FSP.
+           READ SP AT END DISPLAY "SP2 AE" NOT AT END DISPLAY "SP2 NAE" END-READ.
+           DISPLAY "SP2 " FSP.
+           READ SP AT END DISPLAY "SP3 AE" NOT AT END DISPLAY "SP3 NAE" END-READ.
+           DISPLAY "SP3 " FSP.
+           CLOSE SP.
+           OPEN INPUT RP.
+           MOVE 1 TO RKP.
+           READ RP INVALID KEY DISPLAY "RP1 IK" NOT INVALID KEY DISPLAY "RP1 NIK N=" RP-N END-READ.
+           DISPLAY "RP1 " FSR.
+           MOVE 2 TO RKP.
+           READ RP INVALID KEY DISPLAY "RP2 IK" NOT INVALID KEY DISPLAY "RP2 NIK" END-READ.
+           DISPLAY "RP2 " FSR.
+           MOVE 1 TO RKP.
+           READ RP INVALID KEY DISPLAY "RP3 IK" NOT INVALID KEY DISPLAY "RP3 NIK" END-READ.
+           DISPLAY "RP3 " FSR.
+           CLOSE RP.
            OPEN INPUT EN.
            READ EN AT END DISPLAY "EN AT END" NOT AT END DISPLAY "EN1 NAE N=" EN-N END-READ.
            READ EN AT END DISPLAY "EN AT END" NOT AT END DISPLAY "EN2 NAE" END-READ.
