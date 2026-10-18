@@ -2958,7 +2958,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected '12345'"
+  "expect": "COBOL0308: unexpected '12345'"
  },
  "l1c33-terminate-multi-in-exc-perform": {
   "refuse-at": [
