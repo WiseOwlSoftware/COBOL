@@ -54,3 +54,15 @@ missed, so the second level's fan-out check was added.
 
 **Rows.** None: no connector calls the tree yet (PB3333 is the first), so `closes_rows: []` with its reason; PB3333 is
 unblocked.
+
+**Self-review.** Architecture: the tree knows pages only through `PagedFile.Read` and an `IPageSink`; the reservation
+and every R-rule stay in `PagedFile`, the ledger's settling in `Ledger`. Full code: every cited rule re-checked with
+`cite.py --check` (the START prefix is GR17 b) to e), not the b) the note carried; the alphabet rule is §12.3.7.4 GR7
+k) 3.; the native key order §12.4.5.7.4 GR4). Performance: one write per changed node per statement, reads only on the
+walked path, the ledger resident. Duplication: one node codec, one overflow-chain codec, one statement path; the test
+auditor's raw decoder is the format's independent second reading by design.
+
+**Gate.** Run `20261018T142837Z-cf7664`, all 93 Store cases in leg 1 and passed: `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,273 · Unit 312 ·
+Characterization 31 … — Conformance 11,275/17,548 · Unit 33,873/34,185 · Characterization 5/36 cases ran (skipped 0) in
+1 of 2 leg(s) …`. The Linux gate is the landing's (batched gating).
