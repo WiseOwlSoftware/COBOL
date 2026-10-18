@@ -60,7 +60,8 @@ demonstration: `NC215A` printed a wrong answer (PB741) that `NistDifferentialTes
   see §3.10's grouping row. Verdicts are checked ABSOLUTELY by `guard-nist-audit.sh` against the manifest, which is a
   stronger check than `guard-verify.sh`'s diff against the serial guard (that one is relative: it cannot see the
   two guards deviating together).
-- `scripts/guard-run-group.sh` — one group, serial, in its own scratch dir; owns the per-test EVIDENCE RULES.
+- `scripts/guard-run-group.sh` — one group, serial, in its own scratch dir; runs the per-test EVIDENCE RULES, which
+  `guard-verdict.sh` holds, among them the written-files arm (§3.2.1).
 - `scripts/guard-nist-audit.sh` — the population/manifest/expectation audit, consumed by BOTH guards.
 - `scripts/guard-verify.sh` — the serial↔parallel equivalence proof. ⚠ Its verdict filter had once silently omitted
   a verdict word, dropping 11 programs from both sides; the vocabulary is complete now and an unrecognized
@@ -69,7 +70,8 @@ demonstration: `NC215A` printed a wrong answer (PB741) that `NistDifferentialTes
   (no Roslyn), fails on any `BREAKS`. THIS one drives the greenfield CLI.
 
 **NIST is measured twice, by two different paths, and they are ONE POPULATION.** `NistDifferentialTests`
-(6 partitions) drives `CompilerDriver` IN-PROCESS over the 349 green∪divergent rows on both OSes;
+(6 partitions) drives `CompilerDriver` IN-PROCESS over the 364 green∪divergent rows on both OSes (kb/Work PB804 made the
+15 programs that have a golden and that only the guard ran green rows too);
 `guard-fast.sh` drives the `cobol` CLI as a separate process over the whole 376-program in-scope corpus from
 bash on Linux. Neither subsumes the other — one covers the library API and Windows, the other covers the
 shipped exe, the CCVS chain-isolation model and the compile+run health of the golden-less programs — and both
@@ -257,6 +259,45 @@ IX999Z  IX     pending        -                                        none     
   `scripts/guard*.sh`, so the next such list cannot be a different variable and go unseen.
 
 This kills smell #3 and makes "add a green program" a one-line manifest edit.
+
+#### 3.2.1 The written-file goldens: the net grades EVERYTHING a CCVS program writes (kb/Work PB804)
+`tests/nist/valid/<TEST>.txt` is the program's REPORT: its print file (`<test>.txt` in the run directory), or its
+stdout when it has none — the whole discovery rule, with no "first `*.txt`" or `print-file.txt` guess. The report is
+one file of the run, and the differential used to read only it: RW104A's report-writer output (`xxxxx049.txt`) lost a
+field's COLUMN under `--permissive` (PB792) while `rw104a.txt` stayed byte-identical, and the battery was green over it.
+
+So **every file the program WROTE** — created or modified since just before it ran, which excludes the compiler's
+artefacts and a chain predecessor's files — plus its console output when it also wrote a print file (`(stdout)`) is
+compared with `tests/nist/valid-files/<TEST>/<file>`, and the two sets must be EQUAL: a file written with no golden,
+a golden no longer written and one different byte are each red. 150 programs write one or more: the sequential,
+relative and indexed files of the SQ/RL/IX/ST/SM/IC families, the OBSQ chain, the RW report files. The next
+program that writes a second file is graded with no change anywhere.
+- **Two arms, one rule.** `NistRunner`/`NistOutputs` (`tests/Cobol.Net.Tests.Conformance/NistRunner.cs`, graded by
+  `NistDifferentialTests`) and `guard-verdict.sh#guard_files_apply` (called by `guard.sh` and `guard-run-group.sh`, so
+  CI's `guard` job grades the same files). `NistWrittenFilesTests` and the `guard-verify.sh --witnesses` cases are the
+  twins that make every way of being wrong red; each was shown RED against the code before it.
+- **Bytes, not text.** The files are compared byte-for-byte (`-text` in `.gitattributes`): a sequential or relative
+  file has no line terminator, an indexed store is binary. They pin WiseOwl COBOL's own file format (the standard
+  leaves the storage layout to the implementor, ISO §13.18.43.4 GR2); the standard-defined content is what the CCVS
+  program reads back and reports in its print file. Two exceptions, each because the HOST decides the bytes: a TEXT
+  file (only tab, line feed, form feed, carriage return and printable ASCII) is compared with each CR LF taken as LF,
+  because a line sequential file ends its records with the host's newline (DOC-A.1-114; ISO §12.4.5.10.3 GR2, "an
+  implementor-defined line delimiter") — RW101A to RW104A's report files are CR LF on Windows and LF on Linux, and the
+  goldens hold LF — while a lone CR is record data and still counts, and a BINARY file is never normalized, so a
+  newline translation in a record file is a difference. And `(stdout)` is compared on the acceptance basis (the
+  console's line ends are the host's too: carriage returns dropped, per-line trailing spaces stripped, trailing
+  newlines ignored, and a console of only blanks printed nothing and is no written file). `NistOutputs.Canonical`,
+  `NistOutputs.StdoutBasis` and `guard-verdict.sh#guard_canonical_into` are the one rule in its two arms.
+  `guard_files_apply` has its own failure modes, each a `FILES NO-VERDICT` and never a pass or a difference: a missing
+  run directory or marker, a `find` that fails, a canonicalization that fails (`guard-verify.sh` drives each through the
+  function with the failing step shimmed, beside the control with nothing failing).
+- **The population includes the 15 guard-asserted `pending` rows.** `OBSQ1A` and `SQ106A` … `SQ227A` have a golden and
+  were run by the guard only; the first Linux run of the written-files arm failed on them for having no golden to
+  grade against, and the differential now runs them as green rows (they match on both hosts).
+- **Re-capture** after a deliberate format change: `COBOLNET_UPDATE_NIST_FILES=1 dotnet test … --filter
+  NistDifferentialTests`, then review `git diff tests/nist/valid-files` — the same discipline as
+  `COBOLNET_UPDATE_SNAPSHOTS`.
+- **A `TERMINATES` row is graded for files too** (review round 1 of PB804; the owner's PB3353 requirement that the abnormal paths are covered as fully as the success paths). Its run ends abnormally by declaration, and what it had written by then — the closed data files, the print file, the console output — is graded with the same rule: a run that exits non-zero has NO report to separate out, so `NistRunner` returns every file it wrote (print file included) and its console output whenever it printed anything (`NistRunResult.Written`), and `guard_files_apply` is called with an empty report name on the termination arm. ST146A is the witness: `xxxxx014.txt` (SQ-FS1, closed before the end), `xxxxx015.txt` and its partial `st146a.txt` have goldens. `NC401M` terminates before it writes any file, so it has no directory.
 
 ### 3.3 The characterization harness (`Cobol.Net.Tests.Characterization`)
 The behavior-neutrality proof the rearchitecture needs. Structure:
