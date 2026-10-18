@@ -59,6 +59,8 @@ import pathlib
 import re
 import sys
 
+from spec_headings import GENERAL_FORMAT_PRINTED   # THE one spelling of the heading (kb/Work PB284)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
@@ -237,7 +239,7 @@ def main() -> int:
         # that separates figures from prose cannot separate them from a reserved-word TABLE — those are
         # all-uppercase too, and their grid rules are geometrically identical to choice-indicator bars. That is
         # why an unfiltered run reported 113 of 251 pages disagreeing: it was auditing the word lists.
-        if "General format" not in page.get_text():
+        if not GENERAL_FORMAT_PRINTED.search(page.get_text()):
             continue
         bands = format_bands(page)
         if not bands:

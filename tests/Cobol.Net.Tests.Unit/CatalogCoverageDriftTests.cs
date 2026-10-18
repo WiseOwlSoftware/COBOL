@@ -283,11 +283,6 @@ public sealed class CatalogCoverageDriftTests
             + "catalog (python scripts/spec/extract_rule_catalog.py):\n  " + string.Join("\n  ", undrawn));
     }
 
-    /// <summary>A clause heading that names a construct's general format in EITHER spelling: the standard heads
-    /// 321 clauses "General format(s)" and exactly one "General forms" (§14.9.7.2, COMMIT).</summary>
-    private static readonly Regex GeneralFormatTitle =
-        new(@"^#{2,6}\s+(?<num>\d+(?:\.\d+)*)\s+General\s+form(?:at)?s?\.?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
     /// <summary>The clauses whose heading is a general-format heading in either spelling AND whose own body (to the
     /// next heading) carries a diagram or a Format label — a format the clause PRINTS (§5.2.1).</summary>
     private static List<string> PrintedGeneralFormats(string[] lines)
@@ -295,7 +290,7 @@ public sealed class CatalogCoverageDriftTests
         var found = new List<string>();
         for (int i = 0; i < lines.Length; i++)
         {
-            var m = GeneralFormatTitle.Match(lines[i]);
+            var m = SpecClauseText.GeneralFormatHeading.Match(lines[i]);
             if (!m.Success)
             {
                 continue;
@@ -322,6 +317,55 @@ public sealed class CatalogCoverageDriftTests
         using var doc = JsonDocument.Parse(File.ReadAllText(
             TestRepo.Docs("rearchitecture", "spec-rule-catalog.json")));
         return [.. doc.RootElement.GetProperty("rules").EnumerateArray().Select(r => r.Clone())];
+    }
+
+    /// <summary>A line that WRITES the general-format heading as a pattern: a regex literal or a substring test
+    /// spelling the words itself. The words are built from parts so this file is not its own offender (it is also
+    /// excluded by name, as the one reader allowed to talk about the pattern).</summary>
+    private static readonly Regex HeadingWordsSpelledOut =
+        new(@"[Gg]eneral(?:\\s[+*]?|\s)\(?\??:?form", RegexOptions.Compiled);
+
+    private static readonly Regex PatternContext =
+        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(|\bcompile\(|\bnew\(@""|\bRegex\b|@""|[""']General format[""']\s+(?:not\s+)?in\b",
+            RegexOptions.Compiled);
+
+    /// <summary>⛔ ONE RULE, ONE PLACE: NO SCRIPT AND NO TEST SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work PB284,
+    /// branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
+    /// sibling copies of the heading regex kept keying on "format" alone: the figure sweep located 0 figures for
+    /// §14.9.7.2 and answered CHECK: clean, and was equally blind to §7.3.23.2 ("General format." with a period).
+    /// The Python readers import <c>spec_headings.py</c>; the C# guards compose <c>SpecClauseText.GeneralFormatNoun</c>
+    /// (the two are held to the same clause set by <c>spec_headings.py --self-test</c>). A pattern written anywhere
+    /// else is a copy that will miss the next spelling.</summary>
+    [Fact]
+    public void NoScriptOrTest_SpellsTheGeneralFormatHeadingItself()
+    {
+        string[] owners = ["scripts/spec/spec_headings.py", "tests/_shared/SpecClauseText.cs",
+                           "tests/Cobol.Net.Tests.Unit/CatalogCoverageDriftTests.cs"];
+        var offenders = new List<string>();
+        int scanned = 0;
+        foreach (string path in TrackedTree.Files())
+        {
+            bool py = path.StartsWith("scripts/", StringComparison.Ordinal) && path.EndsWith(".py", StringComparison.Ordinal);
+            bool cs = (path.StartsWith("tests/", StringComparison.Ordinal) || path.StartsWith("src/", StringComparison.Ordinal))
+                      && path.EndsWith(".cs", StringComparison.Ordinal);
+            if ((!py && !cs) || owners.Contains(path, StringComparer.Ordinal)) continue;
+            scanned++;
+            string[] lines = File.ReadAllLines(TestRepo.At(path));
+            for (int i = 0; i < lines.Length; i++)
+            {
+                string t = lines[i].TrimStart();
+                if (t.StartsWith('#') || t.StartsWith("//")) continue;
+                if (HeadingWordsSpelledOut.IsMatch(lines[i]) && PatternContext.IsMatch(lines[i])
+                    || (py && Regex.IsMatch(lines[i], "[\"']General format[\"']\\s+(?:not\\s+)?in\\b")))
+                    offenders.Add($"{path}:{i + 1}: {t.Trim()}");
+            }
+        }
+        Assert.True(scanned > 100, $"only {scanned} script/test sources scanned — the sweep reads nothing");
+        Assert.True(offenders.Count == 0,
+            "a script or test writes the general-format heading pattern itself. Import scripts/spec/spec_headings.py "
+            + "(GENERAL_FORMAT_TITLE / GENERAL_FORMAT_PRINTED) or compose SpecClauseText.GeneralFormatNoun / "
+            + "GeneralFormatHeading, so the one clause headed 'General forms' (14.9.7.2) and the one headed "
+            + "'General format.' (7.3.23.2) are never skipped again:\n  " + string.Join("\n  ", offenders));
     }
 
     /// <summary>⛔ EVERY GENERAL FORMAT THE TRANSCRIPTION PRINTS HAS ITS ROW, WHATEVER THE HEADING SAYS (kb/Work

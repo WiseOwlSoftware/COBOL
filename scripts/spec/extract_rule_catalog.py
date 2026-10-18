@@ -37,6 +37,7 @@ import sys
 from collections import Counter
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 from cite import CORRECTION_NOTE  # noqa: E402  — ONE definition of what an editorial correction note looks like
 # The PRINTED level of every sub-list, measured on the PDF (kb/Work PB55) — the key and the opening-item rule are
 # the measuring tool's own, so the recorder and this checker cannot disagree about what a sub-list is.
@@ -230,11 +231,9 @@ def kind_of(title: str) -> str | None:
     return KINDS.get(canonical_title(title))
 
 
-#: The title of a clause that PRINTS a construct's general format. ⛔ BOTH NOUNS, SINGULAR AND PLURAL (kb/Work PB284):
-#: the standard heads 321 clauses "General format(s)" and exactly ONE "General forms" (§14.9.7.2, the COMMIT
-#: statement). The scan once keyed on the word "format" alone and the one clause that spelled it otherwise was
-#: absent from the denominator, silently — no parse gap, no unrecognised heading, nothing.
-GENERAL_FORMAT_TITLE = re.compile(r"general\s+(?:formats?|forms?)\.?", re.IGNORECASE)
+#: The title of a clause that PRINTS a construct's general format is `spec_headings.GENERAL_FORMAT_TITLE`: THE one
+#: definition, shared with every script that asks the question (kb/Work PB284: the sibling copies kept missing the
+#: one clause, §14.9.7.2, that spells the noun "General forms").
 
 #: A clause title that only INTRODUCES its construct and carries no block of its own ("14.9.7.1 General").
 INTRO_TITLE = re.compile(r"general\.?", re.IGNORECASE)
@@ -1054,7 +1053,7 @@ def main() -> int:
     if unrecognised_general:
         print(f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows —")
         print("   a spelling variant of 'General format(s)' or 'General rules' is ABSENT FROM THE DENOMINATOR, and absent")
-        print("   silently (kb/Work PB284: §14.9.7.2 'General forms' was exactly this). Resolve each in GENERAL_FORMAT_TITLE")
+        print("   silently (kb/Work PB284: §14.9.7.2 'General forms' was exactly this). Resolve each in spec_headings.GENERAL_FORMAT_TITLE")
         print("   or KINDS, or correct the transcription:")
         for num, title in unrecognised_general:
             print(f"      §{num}  '{title}'")

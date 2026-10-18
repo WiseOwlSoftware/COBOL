@@ -35,9 +35,26 @@ rows joined their selectors: five in `validate-only`, three in `screen-handling-
 prints no band). All eight already carried DOCUMENTED-NON-SUPPORT by hand, so no verdict moved. `$format-band-residue` is deleted
 and `DESIGN-spec-conformance-review.md` states the mechanism.
 
-**Rows.** Catalog 4,195 → 4,214 (+18 paragraph rows, +FMT-14.9.7.2); GAP 75 → 67 after the batch `pb284-new-rows` (8 CONFORMS
-closed at birth, 11 DNS awaiting witnesses). Editions: record locking 2002,2014,2023 on its decided siblings; commit and
+**Rows.** Catalog 4,195 → 4,214 (+18 paragraph rows, +FMT-14.9.7.2); GAP 56 → 67 on main's inventory (counted: origin/main at `fbe2d15a7` has 4,195 rows and 56 GAP; this branch 4,214 and 67) after
+the batch `pb284-new-rows`: the landing RAISES the burn-down GAP by 11, because the 11 new DOCUMENTED-NON-SUPPORT rows wait for
+module witnesses, while 8 new rows were CONFORMS at birth. (An earlier draft said 75 → 67; 75 was an intermediate count of the
+working tree that never existed on main.) Editions: record locking 2002,2014,2023 on its decided siblings; commit and
 rollback 2023 (E.3.2 item 2, `cite.py --check` OK).
+
+**Branch review round 1: the heading rule had seven copies (R1-1).** Fixing the extractor's title left the same blind spot in
+its siblings: `sweep_figures.py` (`MD_GENERAL_FORMAT`), `render_figure.py` (`GENERAL_FORMAT`), `audit_grammar_optional_words.py`,
+`audit_figure_structure.py` (a substring test, `"General format" in page text`) and the C# guards `PrintedFormatAlternative`,
+`RequiredFormatPhrase` and `IntrinsicRepeatedArgument`. Re-probed: `sweep_figures.py --check --clause 14.9.7.2` reported
+`figures generated: 0 / CHECK: clean` for the figure this branch hand-placed. Measuring the whole sweep before and after found a
+SECOND clause the copies had never seen: §7.3.23.2 is headed "General format." (period), and its figure was a hand-fenced
+blockquote that had never been compared with the printed page; the sweep now locates it (486 figures against 484) and it was
+DRIFTED from the generated form, so it is regenerated (`<pre>` with the printed underlining of REF-MOD-ZERO-LENGTH and OFF; the
+figure notes are kept). The root fix is one definition per language: `scripts/spec/spec_headings.py`
+(`GENERAL_FORMAT_TITLE`, `GENERAL_FORMAT_PRINTED`) imported by all five Python readers, and `SpecClauseText.GeneralFormatNoun` /
+`GeneralFormatHeading` composed by all four C# guards; the 322 clauses are the same set in both (`spec_headings.py --self-test`
+reads the C# constant and compares), and `CatalogCoverageDriftTests.NoScriptOrTest_SpellsTheGeneralFormatHeadingItself` fails
+when any script or test writes the pattern itself again. The sweep after the change: 486 figures, 0 words-differ, 1 documented
+correction kept.
 
 **Side finding, not widened.** 315 of 322 FMT rows carry a stray `<a id=…>` anchor in their text (the FMT scan does not skip
 page furniture); repairing it changes 315 `rule-digest` values under live verdicts, so it is its own landing.
