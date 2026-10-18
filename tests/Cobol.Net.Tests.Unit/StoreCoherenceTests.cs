@@ -102,10 +102,11 @@ public sealed class StoreCoherenceTests
 
     /// <summary>Run <paramref name="open"/> with every store it makes over a <see cref="RefusingPageMedium"/>, and return the
     /// last one made (the run unit's medium on the file).</summary>
-    private static RefusingPageMedium Observed(Action open, Func<uint, Exception?>? write = null, Func<uint, Exception?>? read = null)
+    private static RefusingPageMedium Observed(Action open, Func<uint, Exception?>? write = null, Func<uint, Exception?>? read = null,
+        Func<Exception?>? sync = null)
     {
         RefusingPageMedium? medium = null;
-        KeyedStore.MediumObserver.Value = inner => medium = new RefusingPageMedium(inner, write, read: read);
+        KeyedStore.MediumObserver.Value = inner => medium = new RefusingPageMedium(inner, write, sync, read);
         try { open(); }
         finally { KeyedStore.MediumObserver.Value = null; }
         return medium!;
@@ -448,6 +449,183 @@ public sealed class StoreCoherenceTests
             r.Close("R");
             Assert.Equal("00", e.Status("E"));
             Assert.Equal("00", r.Status("R"));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>Another run unit, D, over <paramref name="host"/>: it opens I-O, completes a WRITE of record 3 (page 2
+    /// names it) and dies before its CLOSE; page 2 is then torn, as a death in the middle of its next page 2 write leaves
+    /// it (2.2.1.16: "page 2 torn → FOREIGN → C"). Its committed meta C is its OPEN's fence: records 1 and 2.</summary>
+    private static void DieOverTheFile(string host, Org org)
+    {
+        var d = new FileRegistry();
+        Register(d, "D", host, org);
+        DyingPageMedium? dying = null;
+        KeyedStore.MediumObserver.Value = inner => dying = new DyingPageMedium(inner);
+        try { d.OpenStatic("D", FileOpenMode.IO); }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        Assert.Equal("00", d.Status("D"));
+        Assert.Equal("00", Write(d, "D", org, 3, "CCCC"));
+        dying!.DieAfter = dying.Writes;   // the process dies here: nothing it hands over afterwards lands
+        d.Close("D");                     // gives the dead run unit's handle back (the operating environment would)
+        TearWorkMeta(host);
+    }
+
+    /// <summary>The READER is the entry, not the store (2.2.1.7; PB3335 review lead R1-L1). Run unit A has A1 I-O and A2
+    /// INPUT open on the file, both <c>SHARING WITH ALL OTHER</c>, so A's one store is writable; D completes a WRITE and
+    /// dies, and page 2 is torn. A2's READ holds the mutex SHARED and writes nothing: a page 2 that does not validate
+    /// under a live store leaves a reader on the tree it holds, since nothing it can follow moved, so it answers '00' from
+    /// records 1 and 2, as another run unit's reader would, statement after statement. A1's next statement is an
+    /// EXCLUSIVE entry of a writable store, which cannot know what another run unit completed: '30' (§9.1.13.6 item 1,
+    /// <i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
+    /// which remains in effect for A1's later statements (§9.1.13.1, <i>"The permanent error condition remains in effect
+    /// for all subsequent input-output operations on the file"</i>) and not for A2, whose file connector met none.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_input_readers_entry_beside_its_writable_sibling_keeps_its_tree_over_a_torn_page_2(Org org)
+    {
+        string host = Tmp($"torn-sibling-{org}");
+        try
+        {
+            Seed(host, org, 2);
+            var a = new FileRegistry();
+            Register(a, "A1", host, org);
+            Register(a, "A2", host, org);
+            var aMedium = Observed(() => a.OpenStatic("A1", FileOpenMode.IO));
+            a.OpenStatic("A2", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("A1"));
+            Assert.Equal("00", a.Status("A2"));
+            DieOverTheFile(host, org);
+
+            int before = aMedium.Writes;
+            for (int pass = 0; pass < 2; pass++)
+            {
+                Assert.Equal("00", Read(a, "A2", org, 1, out string one));
+                Assert.Equal(Rec(1, "AAAA"), one);
+                Assert.Equal("23", Read(a, "A2", org, 3, out _));   // D's record: never in the tree A holds
+            }
+            Assert.Equal(before, aMedium.Writes);                     // a reader's entry writes nothing
+
+            Assert.Equal("30", Read(a, "A1", org, 1, out _));
+            Assert.Equal("30", Read(a, "A1", org, 2, out _));        // §9.1.13.1: in effect for A1's later statements
+            Assert.Equal("00", Read(a, "A2", org, 2, out string two));
+            Assert.Equal(Rec(2, "AAAA"), two);
+
+            a.Close("A2");
+            a.Close("A1");
+            Assert.Equal("00", a.Status("A2"));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>A page 2 the medium REFUSES to read is '30' to a reader's entry too (2.2.1.16's refused READ row: <i>"a
+    /// refused read is no verdict on the page"</i>; §9.1.13.6 item 1; PB3335 review lead R1-L1), through the
+    /// fault-injecting medium of 2.2.1.12. A2, the INPUT connector beside the writable sibling A1, READs while the host
+    /// refuses page 2: '30', and the permanent error remains in effect for A2's next READ after the medium recovers
+    /// (§9.1.13.1). A1's file connector met none: its READ and WRITE answer '00', and the next run unit reads the
+    /// record A1 wrote.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_input_readers_entry_beside_its_writable_sibling_answers_30_to_a_refused_page_2_read(Org org)
+    {
+        string host = Tmp($"refused-entry-{org}");
+        try
+        {
+            Seed(host, org, 2);
+            var a = new FileRegistry();
+            Register(a, "A1", host, org);
+            Register(a, "A2", host, org);
+            bool refusing = false;
+            int refused = 0;
+            Observed(() => a.OpenStatic("A1", FileOpenMode.IO), read: page =>
+            {
+                if (!refusing || page != MetaPage.WorkSlot) return null;
+                refused++;
+                return new IOException("refused by the host (test)");
+            });
+            a.OpenStatic("A2", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("A2"));
+
+            refusing = true;
+            Assert.Equal("30", Read(a, "A2", org, 1, out _));
+            refusing = false;
+            Assert.True(refused > 0, "the reader's entry read page 2, and the host refused it");
+            Assert.Equal("30", Read(a, "A2", org, 2, out _));        // §9.1.13.1: in effect, nothing touched
+
+            Assert.Equal("00", Read(a, "A1", org, 1, out string one));
+            Assert.Equal(Rec(1, "AAAA"), one);
+            Assert.Equal("00", Write(a, "A1", org, 3, "CCCC"));
+            a.Close("A2");
+            a.Close("A1");
+            Assert.Equal("00", a.Status("A1"));
+
+            var r = new FileRegistry();
+            Register(r, "R", host, org, sharing: null);
+            r.OpenStatic("R", FileOpenMode.Input);
+            Assert.Equal("00", Read(r, "R", org, 3, out string three));
+            Assert.Equal(Rec(3, "CCCC"), three);
+            r.Close("R");
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The reader's re-adoption at the writer's CLOSE, REFUSED (PB3335 review lead R1-L2; 2.2.1.16's re-adoption
+    /// row). A1 (I-O) closes while its INPUT sibling A2 stays, and the host refuses the reads of the re-adoption (2.2.1.7:
+    /// pages 0 to 2): the CLOSE answers '30' (§9.1.13.6 item 1) and A1 is closed; A2 keeps reading the trees the store
+    /// holds. The store's writable state no longer has a fence behind it: D then dies over the file and tears page 2,
+    /// and A3's <c>OPEN I-O</c> in the same run unit must FENCE (2.2.1.6 R6: the torn page 2 is FOREIGN, the committed
+    /// meta C is adopted) rather than take the store as a live writable one: its WRITE answers '00', D's uncommitted
+    /// record is in no tree ('23'), and A2 reads A3's record after it.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_refused_re_adoption_at_the_writers_close_is_30_and_the_next_writable_open_fences(Org org)
+    {
+        string host = Tmp($"refused-readopt-{org}");
+        try
+        {
+            Seed(host, org, 2);
+            var a = new FileRegistry();
+            Register(a, "A1", host, org);
+            Register(a, "A2", host, org);
+            Register(a, "A3", host, org);
+            bool refusing = false;
+            int refused = 0;
+            var aMedium = Observed(() => a.OpenStatic("A1", FileOpenMode.IO), read: _ =>
+            {
+                if (!refusing) return null;
+                refused++;
+                return new IOException("refused by the host (test)");
+            });
+            a.OpenStatic("A2", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("A1"));
+            Assert.Equal("00", a.Status("A2"));
+
+            int writes = aMedium.Writes;
+            refusing = true;
+            a.Close("A1");                   // no statement since its OPEN's fence: the CLOSE only syncs, then re-adopts
+            refusing = false;
+            Assert.Equal("30", a.Status("A1"));
+            Assert.True(refused > 0, "the re-adoption read pages, and the host refused them");
+            Assert.Equal(writes, aMedium.Writes);   // no promotion ran: the '30' is the re-adoption's
+            Assert.Equal("00", Read(a, "A2", org, 1, out string one));
+            Assert.Equal(Rec(1, "AAAA"), one);
+
+            DieOverTheFile(host, org);
+            Assert.Equal("00", Read(a, "A2", org, 2, out string two));   // a reader keeps its tree over the torn page 2
+            Assert.Equal(Rec(2, "AAAA"), two);
+
+            a.OpenStatic("A3", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("A3"));
+            Assert.True(aMedium.Writes > writes, "A3's OPEN fenced the file");
+            Assert.Equal("00", Write(a, "A3", org, 4, "DDDD"));
+            Assert.Equal("23", Read(a, "A3", org, 3, out _));   // D's crashed record: not in the committed tree
+            Assert.Equal("00", Read(a, "A2", org, 4, out string four));
+            Assert.Equal(Rec(4, "DDDD"), four);
+
+            a.Close("A3");
+            a.Close("A2");
+            Assert.Equal("00", a.Status("A3"));
+            Assert.Equal("00", a.Status("A2"));
         }
         finally { TryDelete(host); }
     }
