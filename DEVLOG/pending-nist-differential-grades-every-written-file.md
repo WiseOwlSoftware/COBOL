@@ -32,6 +32,12 @@ full runs gave identical bytes for every file. No program produces `print-file.t
   line delimiter of a line sequential file is the host's, DOC-A.1-114 and ISO 12.4.5.10.3 GR2, and the report-writer
   files are CR LF on Windows and LF on Linux) and `(stdout)`. A binary file is never normalized. A deliberate format
   change re-captures with `COBOLNET_UPDATE_NIST_FILES=1`, the way `COBOLNET_UPDATE_SNAPSHOTS` does.
+- 95 of the goldens hold a NUL (an indexed or relative store's header and slots, a variable-length record's length
+  prefix, a COMP field), and each is named for the file the program wrote, `<name>.txt`. `NulByteDriftTests` sweeps
+  `.txt` as text, so its exemption list now takes a directory key, and `tests/nist/valid-files/` is one, with its
+  reason. An entry is still dropped when nothing it covers holds a NUL, and a directory whose name only starts with the
+  key's is still swept. The landing's Linux unit leg found the 95 (finisher): the Windows leg 1 never ran the sweep,
+  because its recorded time is over the tier-0c cost cap (kb/Work PB3112).
 
 **What the first Linux run found.** The Linux gate (conformance and guard legs) ran the new arm on the first commit
 and went red twice, both real. RW101A to RW104A wrote LF where the Windows-captured goldens held CR LF: byte-exact
