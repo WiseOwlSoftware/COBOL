@@ -1527,9 +1527,14 @@ whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
 **Hardening (current invariants).** A whole-GROUP receiving MOVE into a group nested BELOW the dynamic level routes
 through `ReceivingPath` (`RefReceiving`) via a `DynTablePlace` arm in `EmitGroupMove`, so it grows rather than
 silently losing an out-of-capacity write. `CorrEligible` gates on `!IsTable` (not `Occurs is null`) so CORRESPONDING
-never emits member access on a `CobolDynTable<T>` field (§14.7.6 rule 4). SEARCH of a dynamic table nested under a
-fixed OCCURS (`TablePath` null) fails LOUD rather than scanning ZERO occurrences (a subscripted-capacity path is a
-later increment). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
+never emits member access on a `CobolDynTable<T>` field (§14.7.6 rule 4). SEARCH and SEARCH ALL of a dynamic table
+nested under other tables are bounded by ONE enclosing occurrence's current capacity (§8.5.1.9.1, §8.5.1.9.2): identifier-1
+writes one subscript per enclosing table (§14.9.37.3 SR2, SR3; §8.4.2.1 — the statement must identify the instance whose
+capacity bounds it; kb/Work PB3365), `SearchBinder.Identifier1` reads them through `ReferenceResolver.ReadTableSubjectSubscripts`
+(`TableSubject.Search`) and builds the table's path with `BuildTablePath(table, subscripts)`, and the emitter reads that
+`CobolDynTable` into one local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. The bare
+spelling (`SEARCH EP`) is refused COBOLNET2075 — a fixed or occurs-depending table has ONE bound for every occurrence of
+its enclosing tables, a dynamic table has one per occurrence. OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
 OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
 spurious pending op).

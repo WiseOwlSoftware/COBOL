@@ -13801,6 +13801,13 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3365-search-nested-dynamic-no-occurrence": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2075"
+ },
  "pb337-assign-using-strong-group": {
   "refuse-at": [
    "2002",
