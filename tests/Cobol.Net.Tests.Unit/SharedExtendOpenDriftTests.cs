@@ -122,7 +122,7 @@ public sealed class SharedExtendOpenDriftTests
     }
 
     /// <summary>The subset of <see cref="SequentialShapes"/> whose connector carries a LOCK MODE clause, so
-    /// §12.4.5.9 GR1 puts record locking in effect and the write ordinal has an observable
+    /// §12.4.5.9.4 GR3 gives the clause its effects, so record locking is in effect and the write ordinal has an observable
     /// (<see cref="SharedExtend_WriteOrdinalContinuesTheExistingRecords"/> says why).</summary>
     public static TheoryData<Framing, Spelling> LockBearingSequentialShapes()
     {
@@ -186,7 +186,7 @@ public sealed class SharedExtendOpenDriftTests
     /// <para>A green here with a broken seed is impossible in the direction that matters: a base of 0 would lock
     /// ordinal 1, which the assertions below reject explicitly rather than by omission.</para>
     /// <para>⛔ ONLY THE TWO LOCK-MODE-BEARING SPELLINGS APPEAR, and the omission is a fact about the standard
-    /// rather than a convenience: §12.4.5.9 GR1 makes a connector with no LOCK MODE clause take the implementor
+    /// rather than a convenience: §12.4.5.9.4 GR1 b) 2. makes a connector with no LOCK MODE clause take the implementor
     /// default, which for WiseOwl COBOL is no record locking, so a <see cref="Spelling.OpenPhrase"/> connector sets
     /// no lock and its write ordinal has no observable at all. Asserting over it would assert the absence of a
     /// lock that the standard never asked for. Its OPEN and its append are still covered, by
