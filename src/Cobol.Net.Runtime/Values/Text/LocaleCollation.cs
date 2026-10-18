@@ -107,6 +107,56 @@ public sealed class LocaleCollation : CobolCollation
         return CollationKeyCache.For(Resolve()).GetKey(trimmed);
     }
 
+    /// <summary>⛔ The prefix shape of a stored key (<see cref="CobolCollation.PrefixShapeOf"/>) over the operand
+    /// §8.8.4.2.11 compares — <i>"trailing spaces are truncated from the operands except that an operand consisting of
+    /// all spaces is truncated to a single space"</i> — so a key's padding never counts: a truncation that reaches into
+    /// it leaves the whole trimmed key, whose weights are all the order's. A tailoring with a contraction that holds a
+    /// space would let the trimming of a truncation change the mapping before it, so under one the shape is the key's
+    /// whole length, which gives every partial key the empty bound: GR17's walk as written.</summary>
+    internal override PrefixShape PrefixShapeOf(string value)
+    {
+        var collator = Resolve();
+        return PadOf(collator).InContraction ? new PrefixShape(value.Length, 0) : collator.PrefixShapeOf(TrimForLocale(value.AsSpan()));
+    }
+
+    /// <summary>⛔ The bound of a partial key (<see cref="CobolCollation.PrimaryBound"/>): the first level-1 weights of the
+    /// prefix's own key, at most <paramref name="margin"/>, and none from the first one that weighs less than a space
+    /// on. That cut is what the trimming asks: a stored key's truncation that ends in spaces of the key's interior loses
+    /// them to §8.8.4.2.11, so its weights are the stored key's up to them and then the prefix-shorter ones; the
+    /// stored key's own space weights then meet the bound, and a bound weight below a space's would order such a key
+    /// ABOVE the bound while its truncation (a proper prefix of the probe at level 1) is below the probe.</summary>
+    internal override int[] PrimaryBound(string prefix, int margin)
+    {
+        if (margin <= 0) return [];
+        var primary = KeyOf(prefix).Level(1);
+        int floor = PadOf(Resolve()).Floor, n = Math.Min(margin, primary.Length);
+        for (int i = 0; i < n; i++)
+            if (primary[i] < floor)
+            {
+                n = i;
+                break;
+            }
+        return primary[..n].ToArray();
+    }
+
+    /// <inheritdoc/>
+    internal override int ComparePrimary(string value, int[] bound)
+    {
+        if (bound.Length == 0) return 0;
+        var primary = KeyOf(value).Level(1);
+        return primary[..Math.Min(primary.Length, bound.Length)].SequenceCompareTo(bound);
+    }
+
+    private static readonly ConcurrentDictionary<Collator, Pad> s_pads = new();
+
+    private static Pad PadOf(Collator collator) => s_pads.GetOrAdd(collator, static c => new Pad(
+        c.Table.Contractions().Any(x => x.CodePoints.Contains(' ')),
+        c.GetKey(" ").Primary.DefaultIfEmpty(0).Max()));
+
+    /// <summary>What the §8.8.4.2.11 trimming needs to know of one collator's SPACE: whether a contraction holds one,
+    /// and the largest level-1 weight a space has (0 when it has none, as under shifted variables).</summary>
+    private sealed record Pad(bool InContraction, int Floor);
+
     /// <summary>§8.8.4.2.11 sentence 1: trailing spaces off; an all-space operand becomes ONE space; "" stays "".
     /// A SPAN, so a fixed-width (space-padded) operand costs no substring per comparison.</summary>
     internal static ReadOnlySpan<char> TrimForLocale(ReadOnlySpan<char> s)

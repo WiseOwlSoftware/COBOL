@@ -41,31 +41,39 @@ internal static class Normalizer
 
     /// <summary>The NFD of <paramref name="text"/> under the table's Unicode data. Unpaired surrogates pass through
     /// as themselves.</summary>
-    public static string ToNfd(ReadOnlySpan<char> text, CollationTable table)
+    public static string ToNfd(ReadOnlySpan<char> text, CollationTable table) => ToNfd(text, table, origin: null);
+
+    /// <summary>The NFD of <paramref name="text"/>, and in <paramref name="origin"/> (when given) the char index of
+    /// <paramref name="text"/> each char of the result came from: a character's decomposition all comes from it, and the
+    /// canonical reordering carries each origin with its mark — what a caller needs to map a position of the walked text
+    /// back to the text it was given (<see cref="Collator.PrefixShapeOf"/>).</summary>
+    public static string ToNfd(ReadOnlySpan<char> text, CollationTable table, List<int>? origin)
     {
         var cps = new List<int>(text.Length + 8);
         var ccc = new List<byte>(text.Length + 8);
+        var from = origin is null ? null : new List<int>(text.Length + 8);   // kept only for a caller that maps back
         for (int i = 0; i < text.Length; i++)
         {
             char c = text[i];
-            int cp = c;
+            int cp = c, at = i;
             if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
                 cp = char.ConvertToUtf32(c, text[++i]);
             if (CollationTable.IsHangulSyllable(cp))
             {
                 int n = CollationTable.DecomposeHangul(cp, out int l, out int v, out int t);
-                cps.Add(l); ccc.Add(0);
-                cps.Add(v); ccc.Add(0);
-                if (n == 3) { cps.Add(t); ccc.Add(0); }
+                cps.Add(l); ccc.Add(0); from?.Add(at);
+                cps.Add(v); ccc.Add(0); from?.Add(at);
+                if (n == 3) { cps.Add(t); ccc.Add(0); from?.Add(at); }
             }
             else if (table.TryGetCanonicalDecomposition(cp, out var d))
             {
-                foreach (int x in d) { cps.Add(x); ccc.Add((byte)table.CombiningClass(x)); }
+                foreach (int x in d) { cps.Add(x); ccc.Add((byte)table.CombiningClass(x)); from?.Add(at); }
             }
             else
             {
                 cps.Add(cp);
                 ccc.Add((byte)table.CombiningClass(cp));
+                from?.Add(at);
             }
         }
         // Canonical Ordering Algorithm: stable insertion sort of every run of non-starters by combining class.
@@ -78,14 +86,19 @@ internal static class Normalizer
             {
                 (cps[j], cps[j - 1]) = (cps[j - 1], cps[j]);
                 (ccc[j], ccc[j - 1]) = (ccc[j - 1], ccc[j]);
+                if (from is not null) (from[j], from[j - 1]) = (from[j - 1], from[j]);
                 j--;
             }
         }
         var sb = new StringBuilder(cps.Count + 4);
-        foreach (int cp in cps)
+        for (int k = 0; k < cps.Count; k++)
         {
+            int cp = cps[k];
             if (cp is >= 0xD800 and <= 0xDFFF) sb.Append((char)cp);      // an unpaired surrogate stays what it was
             else sb.Append(char.ConvertFromUtf32(cp));
+            if (from is null) continue;
+            origin!.Add(from[k]);
+            if (cp > 0xFFFF) origin.Add(from[k]);                          // both units of a surrogate pair
         }
         return sb.ToString();
     }

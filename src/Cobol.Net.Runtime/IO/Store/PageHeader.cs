@@ -54,8 +54,10 @@ internal enum PageCheck
 /// the page, the page's own number and the next page of its chain. (The first draft of 2.2.1.4 checksummed bytes 8..4095
 /// only, which left the kind, flags and entry count unprotected: a flipped bit in a leaf's entry count passed the check and
 /// mis-sized the page. The layout golden flips every bit of every page kind.) One encoder (<see cref="Encode"/> + <see cref="Seal"/>) and one decoder (<see cref="Decode"/>
-/// + <see cref="Check"/>).</summary>
-internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Entries, ulong Generation, uint Self, uint Next)
+/// + <see cref="Check"/>). A tree page's <see cref="Marks"/> (bytes 24..27) are its tree's high-water marks on the tree's
+/// ROOT and zeros on every other page; bytes 28..31 are reserved, 0.</summary>
+internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Entries, ulong Generation, uint Self, uint Next,
+    TreeMarks Marks = default)
 {
     /// <summary>The page size, a format constant (2.2.1.3 decision 2): the host's I/O block, the size the costs of
     /// 2.2.1.2 were measured at, and <c>HostFile.InputOutputAreaBytes</c>.</summary>
@@ -79,8 +81,11 @@ internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Ent
     private const int GenerationOffset = 8;
     private const int SelfOffset = 16;
     private const int NextOffset = 20;
+    private const int DeficitOffset = 24;
+    private const int OverhangOffset = 26;
+    private const int ReservedOffset = 28;
 
-    /// <summary>Write the header's fields into <paramref name="page"/> (the reserved bytes 24..31 zero, the checksum left
+    /// <summary>Write the header's fields into <paramref name="page"/> (the reserved bytes 28..31 zero, the checksum left
     /// for <see cref="Seal"/>, which runs once the body is in place).</summary>
     public void Encode(Span<byte> page)
     {
@@ -90,7 +95,9 @@ internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Ent
         BinaryPrimitives.WriteUInt64LittleEndian(page[GenerationOffset..], Generation);
         BinaryPrimitives.WriteUInt32LittleEndian(page[SelfOffset..], Self);
         BinaryPrimitives.WriteUInt32LittleEndian(page[NextOffset..], Next);
-        page[24..Bytes].Clear();
+        BinaryPrimitives.WriteUInt16LittleEndian(page[DeficitOffset..], Marks.Deficit);
+        BinaryPrimitives.WriteUInt16LittleEndian(page[OverhangOffset..], Marks.Overhang);
+        page[ReservedOffset..Bytes].Clear();
     }
 
     /// <summary>Stamp the checksum of a fully composed page.</summary>
@@ -104,7 +111,8 @@ internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Ent
         BinaryPrimitives.ReadUInt16LittleEndian(page[EntriesOffset..]),
         BinaryPrimitives.ReadUInt64LittleEndian(page[GenerationOffset..]),
         BinaryPrimitives.ReadUInt32LittleEndian(page[SelfOffset..]),
-        BinaryPrimitives.ReadUInt32LittleEndian(page[NextOffset..]));
+        BinaryPrimitives.ReadUInt32LittleEndian(page[NextOffset..]),
+        new TreeMarks(BinaryPrimitives.ReadUInt16LittleEndian(page[DeficitOffset..]), BinaryPrimitives.ReadUInt16LittleEndian(page[OverhangOffset..])));
 
     /// <summary>2.2.1.6 R3's verification of <paramref name="page"/>, read from page number <paramref name="self"/>
     /// through a pointer stamped <paramref name="stamp"/>.</summary>

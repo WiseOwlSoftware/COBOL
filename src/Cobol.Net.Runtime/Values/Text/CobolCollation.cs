@@ -64,6 +64,25 @@ public abstract class CobolCollation
     /// binary search only over a standard comparison. Abstract, so every arm states its shape.</summary>
     internal abstract bool UsesStandardComparison { get; }
 
+    /// <summary>⛔ THE PRIMARY-LEVEL BOUND OF A PARTIAL KEY, part 1 (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4;
+    /// the keyed store's START under a sequence that is not compared position by position): the
+    /// <see cref="Collation.PrefixShape"/> of a stored key under this sequence's operand rule, which the store keeps as its
+    /// tree's high-water marks. Asked only when <see cref="UsesStandardComparison"/> is false — a standard comparison's
+    /// prefixes are themselves one run of its order — and the default, no deficit and no overhang, goes with
+    /// <see cref="PrimaryBound"/>'s empty bound: the sequential search of §14.9.41.4 GR17 c) and d) as written.</summary>
+    internal virtual Collation.PrefixShape PrefixShapeOf(string value) => default;
+
+    /// <summary>Part 2: the bound of a partial key <paramref name="prefix"/> — the first level-1 weights of the prefix that
+    /// every stored key's truncation to the prefix's length shares with the stored key itself, at most
+    /// <paramref name="margin"/> of them (the prefix's length less the tree's marks). Empty: no bound, every entry is a
+    /// candidate.</summary>
+    internal virtual int[] PrimaryBound(string prefix, int margin) => [];
+
+    /// <summary>Part 3: <paramref name="value"/>'s leading level-1 weights, as many as <paramref name="bound"/> holds,
+    /// against it — negative, zero or positive, a shorter run of weights below a longer one it begins; monotone in this
+    /// sequence's order. 0 against an empty bound.</summary>
+    internal virtual int ComparePrimary(string value, int[] bound) => 0;
+
     /// <summary>The materialized key of <paramref name="value"/> under this sequence (its operand rule applied), or
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;
