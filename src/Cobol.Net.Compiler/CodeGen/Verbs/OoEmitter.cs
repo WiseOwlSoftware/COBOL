@@ -844,6 +844,14 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
         EmitInvocationReturned(u);   // the universal path returns identically (D-EO6)
     }
 
+    /// <summary>INVOKE NULL (kb/Work PB1136): identifier-1 is the predefined NULL object reference, so §14.9.23.4 GR5 sets
+    /// EC-OO-NULL and terminates the statement. It is raised by the ONE null-receiver guard every instance dispatch goes
+    /// through (<c>CobolObject.RequireNonNull</c>) — the same fatal, unconditional raise an INVOKE through a data item
+    /// holding NULL takes, inside the same statement guard (the EC-OO-NULL row of <c>EcBinder.NodeKindRaises</c>), so a
+    /// USE declarative on EC-OO-NULL receives it exactly as it does that one.</summary>
+    public void EmitNullInvoke(BoundInvokeNull n) =>
+        Ctx.Writer.Line($"{RuntimeApi.ObjRequireNonNull("(CobolObject?)null")};   // INVOKE NULL → EC-OO-NULL (§14.9.23.4 GR5)");
+
     /// <summary>SET Format 5 (D-U7; §14.9.39 GR9/GR10): copy the ONE sender reference into each target in
     /// order. The cast renders total: conformance was bind-checked (0867), and C# reference conversions
     /// cover the widening directions (typed→universal, subclass→base, null, this).</summary>
