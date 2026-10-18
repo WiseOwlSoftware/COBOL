@@ -1,4 +1,4 @@
-## PB675: the OPEN statement's RETRY-phrase scope is asserted on the bound tree, because no program can print a leak any more
+## Entry 2198 — 2026-10-18 04:17 PDT — PB675: the OPEN statement's RETRY-phrase scope is asserted on the bound tree, because no program can print a leak any more
 
 `conformance:cases/14.9.27-OPEN/pb316_open_group_scope` parts (1) and (2) were written (PB316) to catch one group's RETRY
 phrase leaking into its sibling file-name. Since PB321 arbitrates every OPEN against Table 19, they stopped doing that.
@@ -33,3 +33,4 @@ No compiler or runtime source changed. Self-review: the test's fixture declares 
 deletes its temp source, asserts the bind produced no diagnostics and the expected entry count (so a dropped group or a
 statement that stopped binding cannot read as a pass), and uses `FileModel.SelectName` because `CobolName` is
 program-qualified at emission.
+
