@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb680_bit_record_area_file_io
-*> rules: [GR-13.18.60.4-5, GR-13.18.33.4-3, GR-9.1.13.4-1]
+*> rules: [GR-13.18.60.4-5, GR-9.1.13.4-1]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
