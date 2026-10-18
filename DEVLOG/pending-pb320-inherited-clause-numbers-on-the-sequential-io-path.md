@@ -21,3 +21,9 @@ reports 99 sites, none of them defects. Adding either would have been a gate tha
 
 No inventory row closes (`closes_rows: []`, with the reason in the note). The change is comments and documents only;
 no golden applies. Gate: the one gate, leg 1.
+
+Review round 1 found an eighth site, in the file this entry repairs: the summary of `SequentialConnector.WriteCore` cited
+WRITE at `§14.9.46` (TERMINATE; WRITE is `§14.9.51`), the very cross-wiring whose banner this entry deletes. Fixed. The
+sweep for WRITE beside `§14.9.46` found two siblings that cite it for WRITE's rules: `FileIoDifferentialTests` (the SQ207M
+mnemonic test, now `§14.9.51.4` GR25d and GR4) and the SQ207M note in `tests/nist/corpus.tsv`. Each cite was
+`cite.py --check`ed; comments and a note column only.
