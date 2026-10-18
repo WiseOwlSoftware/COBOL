@@ -1789,6 +1789,21 @@ of an unsupported facility.
   `conformance:cases/_unassigned/pb2690-initialized-created-occurrences-below-2014`,
   `conformance:cases/_unassigned/pb2690-store-of-shown-image-grows-capacity-below-2014`.
 
+- **D-SRCH-DYN — which enclosing occurrence bounds a SEARCH of a dynamic-capacity table nested under other tables**
+  (kb/Work PB3365). The scan of a SEARCH or SEARCH ALL ends at the table's "highest permissible occurrence number"
+  (§14.9.37.4 GR4, GR9), which for a dynamic-capacity table is its current capacity (§8.5.1.9.1), and each occurrence of an
+  enclosing table holds a capacity of its own (§8.5.1.9.2). The standard names the enclosing occurrence only by §14.9.37.4
+  GR1 ("The subscript that is used to determine the occurrence of each superordinate table to search is specified by the
+  user in the WHEN phrases") and by §14.9.37.3 SR2, which lets identifier-1 write the enclosing subscripts. **WiseOwl COBOL
+  bounds the scan by the occurrence identifier-1 names when it writes every enclosing subscript, otherwise by the
+  occurrence the FIRST WHEN-phrase reference to the table (or to an item within it), in source order, subscripts; a
+  nested dynamic-capacity table that neither names is refused (COBOLNET2075).** The enclosing subscripts are evaluated
+  once, when the statement begins; the standard leaves a table referenced at two different enclosing occurrences in its
+  WHEN phrases undefined. A fixed or occurs-depending table needs no such choice: its bound is the same for every
+  occurrence of its enclosing tables. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
+  `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
+  `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
+
 ### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)
 
 Annex A.2 lists situations whose results the standard leaves undefined, and §4.4 2) says that "A COBOL run unit that

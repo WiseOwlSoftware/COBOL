@@ -203,7 +203,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // KEY arm (ScreenDataNameShape) and SEARCH ALL's data-name-1 ask, refused before the subscripts are read.
         if (!DataBinder.ScreenReferenceModifier(operand, "SORT table subject", ctx.Edition))
             return BoundRejected.Reported(ctx.Edition);
-        if (ctx.Refs.ReadTableSubjectSubscripts(operand, table, out var outer) is { } subjectAnswer)
+        if (ctx.Refs.ReadTableSubjectSubscripts(operand, table, ReferenceResolver.TableSubject.Sort, out var outer) is { } subjectAnswer)
             return subjectAnswer.Refusal(ctx.Edition);
         // WHERE the elements live (kb/Work PB1175 / PB1055): a table inside a REDEFINES class, a record area shared by
         // several 01s, or a BASED / EXTERNAL record has NO element array — its elements are windows over the one
