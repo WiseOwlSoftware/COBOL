@@ -3011,7 +3011,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             // The class SPELLED by the one Table-2 spelling (kb/Work PB1400): `ToString().ToLowerInvariant()` of the
             // enum printed a numeric-edited subscript as "class numericediteddeediting".
             : $"item '{name}' of class "
-              + $"{(IntrinsicArgumentRules.ClassOfItem(item) is { } cls ? IntrinsicArgumentRules.Name(cls) : "unknown")} "
+              + $"{IntrinsicArgumentRules.ClassNameOf(item)} "
               + "(ISO §8.5.2.1 Table 2)";
         string where = position == SegmentPosition.Subscript
             ? "a subscript is arithmetic-expression-1 (ISO §8.4.2.3.2)"

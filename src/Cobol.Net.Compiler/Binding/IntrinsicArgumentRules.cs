@@ -478,12 +478,32 @@ internal static class IntrinsicArgumentRules
     /// type-name specified in the TYPE clause" — while <see cref="ClassOfItem"/> answers ALPHANUMERIC for it on
     /// §15.3 item 2's ARGUMENT-position reading. A diagnostic outside a function argument names §8.5.2.1's class.
     /// A strongly-typed SUBORDINATE group (§8.5.3.1: "subordinate to a group item described with the TYPE clause")
-    /// writes no TYPE clause of its own, so it names the type of the nearest TYPE clause it is typed by.</para></summary>
+    /// writes no TYPE clause of its own, so it names the type of the nearest TYPE clause it is typed by.</para>
+    /// <para>Three overloads, one reading (kb/Work PB3192 review R1-1): a caller holding a <see cref="Place"/>, a
+    /// resolved <see cref="DataItem"/> (a procedure-header formal) or an operand whose class its screen already
+    /// computed asks THIS family, never <see cref="Name"/> over <see cref="ClassOfItem"/> — that pair states
+    /// "alphanumeric" for a strongly-typed group outside a function argument (<c>ClassSpellingDriftTests</c>).</para></summary>
     internal static string ClassNameOf(Place p) =>
-        p.DenotedItem is not null && StrongTypeModel.IsStrongGroup(p.Item)
-            && StrongTypeModel.TypeAnchor(p.Item)?.TypeName is { } typeName
+        (p.DenotedItem is not null ? StrongGroupClassName(p.Item) : null)
+            ?? (ClassOfPlace(p) is { } cls ? Name(cls) : "unknown");
+
+    /// <summary><see cref="ClassNameOf(Place)"/> for a caller holding only the resolved data item.</summary>
+    internal static string ClassNameOf(DataItem item) =>
+        StrongGroupClassName(item) ?? (ClassOfItem(item) is { } cls ? Name(cls) : "unknown");
+
+    /// <summary><see cref="ClassNameOf(Place)"/> for an operand whose screen already holds its class
+    /// (<paramref name="cls"/>, from <see cref="ClassOf"/> or a screen-specific reading of it): a field operand that
+    /// denotes a strongly-typed group names its type-name; every other operand names <paramref name="cls"/>.</summary>
+    internal static string ClassNameOf(BoundOperand op, CobolClass cls) =>
+        (op is BoundFieldOperand { Place: { DenotedItem: not null } p } ? StrongGroupClassName(p.Item) : null)
+            ?? Name(cls);
+
+    /// <summary>§8.5.2.1's class of a strongly-typed group item — its type-name — spelled for a diagnostic, or null
+    /// when <paramref name="item"/> is not a strongly-typed group.</summary>
+    private static string? StrongGroupClassName(DataItem item) =>
+        StrongTypeModel.IsStrongGroup(item) && StrongTypeModel.TypeAnchor(item)?.TypeName is { } typeName
             ? $"{typeName}, the type-name of a strongly-typed group item"
-            : ClassOfPlace(p) is { } cls ? Name(cls) : "unknown";
+            : null;
 
     /// <summary>The ISO §8.5.2.1 Table-2 class of a DATA ITEM — the half of <see cref="ClassOfPlace"/> that does
     /// not need a <see cref="Place"/>, so a caller holding only the resolved item asks the SAME table.

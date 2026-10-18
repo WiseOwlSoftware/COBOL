@@ -75,14 +75,23 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     /// numeric, message-tag, object, or pointer." The class numeric (fixed-point or floating-point) and the managed
     /// classes (object and the three pointer categories) are the carried legs of the §14.2.3 GR10 detached value copy;
     /// class message-tag is the MCS module (not modeled, so undeclarable). Asked of every BY VALUE formal by BOTH
-    /// header arms — the program/function arm and the method arm (kb/Work PB1051) — so the class set is written once.</summary>
+    /// header arms — the program/function arm and the method arm (kb/Work PB1051) — so the class set is written once.
+    /// <para>⛔ THE CLASS IS ASKED OF THE ONE TABLE-2 CLASSIFIER (kb/Work PB3222), never spelled as a PicCategory list:
+    /// <see cref="IntrinsicArgumentRules.ClassOfItem"/> is ISO §8.5.2.1's class of a data item, the same answer the
+    /// argument side takes (<c>CallBinder.ValueClassScreen</c>, §14.9.4.3 SR22; <c>UdfBinder</c>'s function-argument screen). The list
+    /// this replaced read the STORAGE category, and a USAGE INDEX item carries category numeric for its storage model
+    /// (<c>PicInfo.IndexItem</c>) while Table 2 puts it in class index, so an index formal passed as BY VALUE; it also
+    /// re-diagnosed a recovery profile (no class) that every other screen over the table fails open on.</para>
+    /// <para>The refusal names the class through <see cref="IntrinsicArgumentRules.ClassNameOf(DataItem)"/>: a
+    /// strongly-typed group is refused because its class is its type-name (§8.5.2.1), and the message says so rather
+    /// than the "alphanumeric" <see cref="IntrinsicArgumentRules.ClassOfItem"/> answers for a function argument.</para></summary>
     public void ByValueClass(string written, DataItem item)
     {
-        if (!(item.IsElementary && item.Pic?.Category is PicCategory.Numeric or PicCategory.Pointer
-                or PicCategory.ProgramPointer or PicCategory.FunctionPointer or PicCategory.ObjectReference))
-            edition.Error("COBOLNET1553",
-                $"{where}: BY VALUE formal parameter '{written}' shall be of class numeric, message-tag, object, "
-                + "or pointer (ISO §14.2.2 SR2)");
+        var cls = IntrinsicArgumentRules.ClassOfItem(item);
+        if (cls is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+        edition.Error("COBOLNET1553",
+            $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
+            + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");
     }
 
     /// <summary>§14.2.1's using-phrase prints OPTIONAL only inside the BY REFERENCE alternative
