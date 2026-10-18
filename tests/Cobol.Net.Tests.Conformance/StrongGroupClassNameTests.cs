@@ -9,7 +9,8 @@ namespace CobolNet.Tests.Conformance;
 /// review R1-1). ISO §8.5.2.1: "Both the class and the category of a strongly-typed group item are the type-name
 /// specified in the TYPE clause". The refusal of a strongly-typed group passed or received BY VALUE is right (§14.2.2
 /// SR2 admits a formal of class numeric, message-tag, object or pointer; §14.9.4.3 SR22 and §8.4.3.2.3 SR10 an argument
-/// of class numeric, object or pointer); the reason it
+/// of class numeric, object or pointer; §14.9.23.3 SR15 an INVOKE identifier-5 "of class message-tag, numeric, object or
+/// pointer", through a typed receiver and through the predefined NULL alike, kb/Work PB1136); the reason it
 /// gave was not: each screen spelled <c>IntrinsicArgumentRules.Name</c> over <c>ClassOfItem</c> / <c>ClassOf</c>, which
 /// answer "alphanumeric" for a strongly-typed group on §15.3 item 2's FUNCTION-ARGUMENT reading, so the user was told
 /// the formal or argument was "of class alphanumeric". Each screen now asks <c>IntrinsicArgumentRules.ClassNameOf</c>
@@ -86,11 +87,68 @@ public sealed class StrongGroupClassNameTests
        END PROGRAM SGCNMAIN.
 """;
 
+    private const string InvokeTypedArgument = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SGCNINV.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS SGCNCLS.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 ST TYPEDEF STRONG.
+          05 F PIC 9.
+       01 G TYPE ST.
+       01 O USAGE OBJECT REFERENCE SGCNCLS.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE SGCNCLS "NEW" RETURNING O.
+           INVOKE O "M" USING BY VALUE G.
+           STOP RUN.
+       END PROGRAM SGCNINV.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. SGCNCLS INHERITS FROM BASE.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS BASE.
+       IDENTIFICATION DIVISION.
+       OBJECT.
+       PROCEDURE DIVISION.
+       METHOD-ID. M.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 LN PIC S9(4) COMP-5.
+       PROCEDURE DIVISION USING BY VALUE LN.
+           CONTINUE.
+       END METHOD M.
+       END OBJECT.
+       END CLASS SGCNCLS.
+""";
+
+    private const string InvokeNullArgument = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SGCNNUL.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 ST TYPEDEF STRONG.
+          05 F PIC 9.
+       01 G TYPE ST.
+       PROCEDURE DIVISION.
+       MAIN.
+           INVOKE NULL "PING" USING BY VALUE G.
+           STOP RUN.
+       END PROGRAM SGCNNUL.
+""";
+
     private static readonly Dictionary<string, (string Source, string Code)> Screens = new()
     {
         ["header-formal"] = (HeaderFormal, "COBOLNET1553"),          // §14.2.2 SR2
         ["call-argument"] = (CallArgument, "COBOLNET1628"),          // §14.9.4.3 SR22
         ["function-argument"] = (FunctionArgument, "COBOLNET1554"),  // §8.4.3.2.3 SR10
+        ["invoke-typed-argument"] = (InvokeTypedArgument, "COBOLNET2741"),  // §14.9.23.3 SR15, the typed lane
+        ["invoke-null-argument"] = (InvokeNullArgument, "COBOLNET2741"),    // §14.9.23.3 SR15, the NULL receiver's screen
     };
 
     public static TheoryData<int, string> Cases()

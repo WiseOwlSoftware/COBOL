@@ -50,3 +50,9 @@ boolean-expression-1 and identifier-1, -2, -3 and -5 together at the beginning o
 hoists an argument's activations (an inline invocation, a user-defined function, an object view) ahead of it, so they run
 before EC-OO-NULL is raised, which GR7 a) allows. The comment and `BoundInvokeNull`'s now state that order, and
 pb1136_invoke_null_receiver gains an `O :: "GETV"` argument whose EVALUATED line, printed before HANDLED, pins it.
+
+Merging main at the landing (PR #202, kb/Work PB3192 review R1-1) conflicted in `OoBinder.cs`: main had made INVOKE's
+inline SR15 BY VALUE screen name the class through `IntrinsicArgumentRules.ClassNameOf`, so a strongly-typed group is
+named by its type-name (ISO §8.5.2.1), while this branch had moved that screen into `ByValueClassAdmitted`, shared by the
+typed lane and the NULL receiver. The helper now asks `ClassNameOf`, so both lanes carry main's spelling, and
+`StrongGroupClassNameTests` gains the two INVOKE screens (typed receiver, NULL) at 2002/2014/2023.
