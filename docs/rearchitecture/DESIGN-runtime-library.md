@@ -1269,9 +1269,17 @@ their places; what each does changes:
   tree whose liveness byte is free is rolled back before the statement proceeds (finding R3-1); and the statement's own lock
   tests read the HOLDINGS tree, where a holding whose owner died AFTER this entry's probe is rolled back at the test itself
   (finding R4-1), so the entry's probe need not be the last word. The statement then reads the pages it touches: O(log n),
-  the same count as an unshared statement plus the one meta read. `Complete` writes the
-  statement's dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run
-  unit, as before. *Why not
+  the same count as an unshared statement plus the one meta read. The record statement's own page statement writes its
+  dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run unit, as
+  before: each WRITE, REWRITE or DELETE is ONE statement of the page layer — the tree edited in memory, `PagedFile.Begin`
+  sized to exactly the pages the edit writes, the flush, page 2 last (`RelativeStore.Change`, kb/Work PB3333) — run inside
+  the registry's statement and so inside the mutex, and `StoreStatement.Complete` has nothing left to write (the engine's
+  `CompleteStore` answers the status as it stands). *Measured correction (PB3333): the first text put the writes at
+  `StoreStatement.Complete`; the verb knows its pages and its status ('24' for the boundary, '30' for a refusal) at the
+  write, and answering them there keeps one terminal per verb.* A CLOSE PROMOTES only when its store completed a
+  statement since its last promotion (its OPEN's fence included) and otherwise only syncs, so a connector that changed
+  nothing never fails its CLOSE over a page 2 another run unit's death left torn (PB3333, the relative rows of
+  `KeyedStoreReloadFailureDriftTests`). *Why not
   only the ALL OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the
   INPUT reader Table 19 admits beside it (§9.1.15 2), *"restricts concurrent access to a physical file through file connectors
   other than this one, to input mode"*; the table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing
@@ -1293,7 +1301,14 @@ their places; what each does changes:
 - **Within a run unit** the successor of `KeyedStoreTable` is a table of OPEN STORES per physical file (`StoreTable`): one
   `PagedStore` — the handle's page I/O, the page cache, the ledger and the trees — attached by every connector of the run unit
   over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach` on the last CLOSE), so a sibling's mutation is
-  visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`.
+  visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`. *As built for RELATIVE
+  (kb/Work PB3333):* `KeyedStoreTable` keeps its attach contract and its entry for a relative file is a `RelativeStore` —
+  the run unit's page I/O (`Store.RunUnitPageMedium`: the attached connectors' own handles, each its §9.1.15 file lock, a
+  writable one used whenever one is attached, so no second handle is ever taken), one `PagedFile` (the pages, the page cache
+  `Store.PageCache`, the ledger, the counters) and the record-number tree; `PagedStore`'s role is those two together. A
+  store opened through no writable handle is opened again — and so FENCED — when a writable sibling attaches, and opened
+  again as a reader's (R6 in memory) when its last writable connector detaches, so no reader's statement writes through
+  a handle that cannot.
 - **Published record locks** are unchanged (2.2.1.8).
 
 **2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
@@ -1846,7 +1861,11 @@ set the FREE tree, and its model, shape and crash cases beside the page layer's)
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
-PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits); PB3334 INDEXED on the engine
+PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits; in the tree: `RelativeConnector`
+over `RelativeStore` in `KeyedStoreTable.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
+`KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
+`IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
+`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `RelativeStore.MediumObserver`); PB3334 INDEXED on the engine
 (the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
 the rest of page-granular coherence (`StoreTable`, the rest of DOC-A.1-75, the whole-store ban); PB3336 the performance
 witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and

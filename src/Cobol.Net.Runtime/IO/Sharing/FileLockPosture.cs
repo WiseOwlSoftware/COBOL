@@ -104,7 +104,7 @@ public static class FileLockPosture
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit ANY other run unit's connector — reader or
     /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§9.1.15 1),
-    /// <i>"The sharing with no other mode provides exclusive access to a physical file"</i>). The predicate an engine
+    /// <i>"The sharing with no other mode specifies exclusive access to a physical file"</i>). The predicate an engine
     /// that writes the file AT EVERY STATEMENT needs (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work
     /// PB3333): such a writer must serialize against the INPUT reader that §9.1.15 2) admits beside a
     /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. It does NOT replace

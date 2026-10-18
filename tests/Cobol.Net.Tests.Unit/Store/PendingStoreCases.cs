@@ -66,11 +66,9 @@ public sealed class PendingStoreCases
             "as the table: '51' on B's records with RETRY; either order durable for A, restored for B; B never completes a COMMIT A was told failed; A rolls B back before its own statement or at its lock test"),
         new("2.2.1.17 round 4", "a lock holder's death at every point of another run unit's statement", "PB3337",
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
-        // The later core groups' paths.
-        new("2.2.1.17", "A's lock test (READ, WRITE, REWRITE, DELETE) ∥ B's lock publication", "PB3333",
-            "the record-lock region, publish-then-test (PB2660): '51' with RETRY outside the statement"),
-        new("2.2.1.17", "A's statement ∥ B's statement through the RELATIVE connector under every sharing mode but NO OTHER", "PB3333",
-            "the coherence condition of 2.2.1.7 (AdmitsAnotherRunUnit with the mutex); every I-O status the statement answers, the exception ones included ('30' for a refused write or sync, '51' for a held record), AT END / INVALID KEY taken and not taken, with and without USE and FILE STATUS"),
+        // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
+        // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows.)
         new("2.2.1.17", "A's statement ∥ B's statement through the INDEXED connector: alternate keys, ordinals, collations", "PB3334",
             "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
@@ -78,14 +76,6 @@ public sealed class PendingStoreCases
         // The B+ tree's COBOL surface (kb/Work PB3332 built the tree; its statements are the connectors').
         new("2.2.1.12 tree", "START with each relational operator over the tree's seek, a full key and a partial key, the key found and not found", "PB3334",
             "§14.9.41.4 GR17 c) to e): the first record satisfying the comparison (LESS and its kin: the last, the file searched in reverse) becomes the position, '00' with NOT INVALID KEY; none satisfies it: '23' with INVALID KEY taken; each with and without a USE declarative and a FILE STATUS item"),
-        new("2.2.1.12 tree", "READ NEXT / READ PREVIOUS stepping off the tree's last / first entry, and across leaves another run unit split", "PB3333",
-            "AT END taken with '10' at the edge and NOT AT END on every entry before; a cursor whose tree another run unit changed re-seeks from its key after the coherent entry (BTree.Adopt) and returns the next record of the new tree"),
-        new("2.2.1.12 tree", "WRITE of a present RELATIVE record number or prime key: the tree's Insert declines", "PB3333",
-            "'22' with INVALID KEY taken and the file unchanged; absent: '00' with NOT INVALID KEY"),
-        new("2.2.1.12 tree", "READ, REWRITE and DELETE by a key the tree does not hold", "PB3333",
-            "'23' with INVALID KEY taken; present: '00' with NOT INVALID KEY"),
-        new("2.2.1.12 tree", "a record statement whose tree read meets a torn or stale page (R3)", "PB3333",
-            "'30' (§9.1.13.6 item 1) at the statement, the file unchanged, the connector in §9.1.13.1's permanent error; EC-I-O-PERMANENT-ERROR with and without a USE declarative and a FILE STATUS item, execution continuing or terminating as the spec rule says"),
     ];
 
     [Fact]
@@ -94,7 +84,7 @@ public sealed class PendingStoreCases
         Assert.NotEmpty(Rows);
         Assert.All(Rows, row =>
         {
-            Assert.Contains(row.Owner, new[] { "PB3333", "PB3334", "PB3335", "PB3337" });
+            Assert.Contains(row.Owner, new[] { "PB3334", "PB3335", "PB3337" });
             Assert.StartsWith("2.2.1.1", row.Section);
             Assert.False(string.IsNullOrWhiteSpace(row.Row));
             Assert.False(string.IsNullOrWhiteSpace(row.Expected));
