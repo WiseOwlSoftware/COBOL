@@ -84,3 +84,19 @@ paths it reads, and `Runtime/IO` is specific, so the trait went and the docs now
 6,438 · Unit 358 · Characterization 31 — Conformance 11,241/17,679 · Unit 33,930/34,288 · Characterization 5/36 cases ran
 (skipped 0) in 1 of 2 leg(s) ===`. Every `StoreCoherenceTests` and `WholeStoreBanDriftTests` case ran in leg 1 and passed.
 LINUX GATE: the lander's (batched gating). Semgrep verify: PASS (one rule went 244 → 243, not this branch's).
+
+**Finisher (round 1).** The branch had merged PB3334 at its unreviewed implementer head (kb/Work PB3380), so the finisher
+merged the reviewed heads, `worktree-wf_14a1e62b-326-26` at `7e585e723` and then `worktree-wf_14a1e62b-326-20` at
+`46934aa87`. The merged side won where it answers a review finding. Its `PagedFile.Enter(exclusive)` fixed the same
+shared-mutex defect as this branch (A3 review R1-2), so its PROMOTING rule stands. Its `FormatPages` replaces this branch's
+`MaxPages` and `MaxFileBytes`. `KeyedStoreTable.cs` stays deleted, and -26's host-refusal seam in `FileBoundaryTests`
+carries the PB3333 side's REWRITE leg. Four inventory rows named members that no longer exist; one `record_verdicts.py`
+batch retired them (GAP 66 → 66).
+
+The review's two leads were fixed with their cases, as the owner's standing rule on file I/O tests requires. R1-L1: a torn
+page 2 under the SHARED entry of an INPUT connector beside its writable sibling keeps the tree it holds ('00'), and only the
+exclusive entry answers '30'. 2.2.1.7 now says the reader is the entry, not the store. The fault-injecting medium can
+refuse a read, and a refused page-2 read is '30'. R1-L2: a refused re-adoption at the last writable connector's CLOSE was
+answered '00' and left a writable store with no fence behind it, so the next `OPEN I-O` skipped R6's fence. The CLOSE now
+answers '30' and the store's fence is owed. 2.2.1.16 gains the row. The torn-page case and the re-adoption case were red
+on the unfixed code; the refused-read case witnesses behaviour that was right but untested.
