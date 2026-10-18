@@ -46,5 +46,26 @@ test, silent-failure and comment lenses found nothing further; the one thing lef
 look-behind in `EveryEmittedCode_IsACatalogDescriptor`, which would flag the remaining 228 raw sites at once and is
 a campaign of its own.
 
+Branch review, round 1 (two findings, both fixed). First, the one-column-late cursor fix was incomplete: the expression
+formation pass positioned COBOLNET1719 (a stacked unary sign, a stacked B-NOT, a compound shift count) at
+`token.Column + 1` in three places, the same defect fixed for COBOLNET2927 and COBOLNET2158. The pass now uses
+`Sink.At(token)`. `ExpressionFormationPositionTests` asserts the three at the column of their offending token, with
+legal twins (the test fails against the old code: it printed column 20 for a sign at column 19), and
+`DiagnosticCursorColumnDriftTests` forbids adding 1 to a `Column` anywhere under `src/` (the one exemption is
+`SourceLocation.ToString`, which renders a 0-based record and is not a cursor). Second, the abnormal I-O paths the
+campaign requires were not all covered. `PerformFormat3IoConflictAndSortTests` adds 42 cases: lock contention under a
+RETRY phrase (OPEN OUTPUT answers 61, DELETE FILE answers 62, ISO 9.1.13.9) delivered to a WHEN, to the file-paired WHEN,
+to the USE declarative, to nothing (EC-I-O-FILE-SHARING is nonfatal, the run goes on) and with checking off; OPEN 39 (a
+fixed-attribute conflict) and 37 (a read-only file, with the host's ability to refuse measured through
+`HostCapability`), both fatal; an OPTIONAL file's successful 05 (EC-I-O-WARNING, only when enabled); CLOSE 42 and DELETE
+FILE 41 with a USE declarative and with no FILE STATUS; AT END and INVALID KEY with and without their own phrase (the
+phrase wins, ISO 9.1.13.1); and the SORT and MERGE statements around the PERFORM: a table SORT in imperative-statement-1,
+a file SORT or MERGE in a WHEN phrase with the USING file absent (35, the SORT terminated, the run unit goes on, no GIVING
+file created), absent with no FILE STATUS and no USE (fatal), a USING file open (EC-SORT-MERGE-FILE-OPEN) and a USING
+file out of key order (EC-SORT-MERGE-SEQUENCE). Two things the tests showed that I had guessed wrong, both the
+compiler being right: a USE declarative for a file still runs with checking off (ISO 14.9.49.4 GR6 does not condition it
+on a TURN directive), and a WHEN body binds under TURN OFF ALL (14.9.28.4 GR14), so the SORT-MERGE conditions are raised
+inside it only after a `>>TURN EC-SORT-MERGE CHECKING ON` written in the body. No compiler defect turned up.
+
 Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,257 of 17,595, Unit 33,777 of
 34,093, Characterization 5 of 36 ran; the 47 added Conformance cases and the new Unit drift test passed in leg 1).
