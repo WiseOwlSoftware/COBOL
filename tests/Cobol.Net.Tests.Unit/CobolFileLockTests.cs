@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// The COBOL-2002 file-sharing / record-locking registry (Phase 4d M2-FILE-1; ISO/IEC 1989:2023 §9.1.15/§9.1.16
-/// / §12.4.5.9 / §14.9.27 / §14.9.47 / §14.7.9). End-to-end behavior (OPEN 61, WITH LOCK 51, RETRY, IGNORING
+/// / §12.4.5.9.4 / §14.9.27 / §14.9.47 / §14.7.9). End-to-end behavior (OPEN 61, WITH LOCK 51, RETRY, IGNORING
 /// LOCK, UNLOCK, AUTOMATIC auto-lock) rides the <c>file_sharing</c> golden; these lock the
 /// <c>CobolFile.Locks</c> primitives the emitter wires to: the record-lock grant/deny, the 53/54 ceilings, the
 /// Table-19 open-conflict classifier, and the single-run-unit RETRY loop.
@@ -34,11 +34,11 @@ public sealed class CobolFileLockTests
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "1"));
         Assert.True(CobolFile.IsLockedByOther("CB", "1"));
         Assert.Equal(FileStatusCode.RecordLocked, CobolFile.LockRecord("CB", "1"));   // 51 — another connector holds it
-        Assert.False(CobolFile.IsLockedByOther("CA", "1"));                            // GR8: not "other" to its own owner
+        Assert.False(CobolFile.IsLockedByOther("CA", "1"));                            // §9.1.16: a locked record may be re-accessed by its own holder, so not "other"
     }
 
     [Fact]
-    public void SelfRelock_IsIdempotent_GR8()
+    public void SelfRelock_IsIdempotent()
     {
         TwoConnectorsOneFile("CA", "CB", "lk-self.dat");
         Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", "7"));
@@ -154,6 +154,23 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.DeleteFileSharing, FileStatusCode.DeleteFileSharing)]
+    // ── RECORD OPERATION conflict, §9.1.13.8 items 3/4 ('54' connector / '53' run-unit lock maximum — the
+    //    §12.4.5.9.4 GR7 ceiling, kb/Work PB707): the class's own status under every form. Only a '51' under FOREVER
+    //    is the deadlock; a ceiling is no lock another connector holds, so FOREVER lands '54'/'53' unchanged.
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]     // GR4a
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]    // GR4a
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]     // GR1
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]   // GR4a
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]  // GR2 clamp
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.ConnectorLockLimit, FileStatusCode.ConnectorLockLimit)]   // GR3, no '52'
+    [InlineData(FileRetryKind.None, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]
+    [InlineData(FileRetryKind.Times, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]        // GR4a
+    [InlineData(FileRetryKind.Times, -3, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]       // GR4a
+    [InlineData(FileRetryKind.Times, 2, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]        // GR1
+    [InlineData(FileRetryKind.Seconds, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]      // GR4a
+    [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]     // GR2 clamp
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RunUnitLockLimit, FileStatusCode.RunUnitLockLimit)]      // GR3, no '52'
     // ── NOT A CONFLICT AT ALL: §14.7.9.3 GR4 scopes the whole discipline to the two conflict conditions, so an
     //    OPEN's '35' (or any other unsuccessful status) is the statement's own answer and RETRY cannot touch it.
     [InlineData(FileRetryKind.None, 0, FileStatusCode.FileNotFound, FileStatusCode.FileNotFound)]
@@ -175,6 +192,9 @@ public sealed class CobolFileLockTests
     [InlineData(FileRetryKind.Seconds, -5, FileStatusCode.RecordLocked, 1)]  // GR4a — negative: likewise
     [InlineData(FileRetryKind.Seconds, 30, FileStatusCode.RecordLocked, 1)]  // GR2 — zero-length clamped period
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.RecordLocked, 2)]   // GR3 — one re-check, then the deadlock
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.ConnectorLockLimit, 4)]   // GR4 + §9.1.13.8 item 4: a '5x' IS a conflict — GR1's n re-attempts
+    [InlineData(FileRetryKind.Times, 3, FileStatusCode.RunUnitLockLimit, 4)]     // GR4 + §9.1.13.8 item 3
+    [InlineData(FileRetryKind.Forever, 0, FileStatusCode.ConnectorLockLimit, 2)] // GR3 — one re-check, no holder that can release
     [InlineData(FileRetryKind.Times, 3, FileStatusCode.FileNotFound, 1)]     // GR4 — not a conflict: no retry
     [InlineData(FileRetryKind.Forever, 0, FileStatusCode.FileNotFound, 1)]   // GR4 — not a conflict: no retry
     public void RetryLoop_AttemptCount_FollowsGR1AndGR4(
@@ -363,11 +383,64 @@ public sealed class CobolFileLockTests
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "BBBBB", -1, FileRecordLock.WithLock, FileRetryKind.None, 0, page: null));
         Assert.True(CobolFile.IsLockedByOther("WB", "2"));
-        // §14.9.51 GR10 / §12.4.5.9 GR6 — single locking: the next WRITE releases the prior lock.
+        // §14.9.51 GR10 / §12.4.5.9.4 GR6 — single locking: the next WRITE releases the prior lock.
         CobolFile.SetRelativeKey("WA", 3);
         Assert.Equal(FileStatusCode.Success,
             CobolFile.WriteShared("WA", "CCCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
         Assert.False(CobolFile.IsLockedByOther("WB", "2"));
+    }
+
+    /// <summary>⛔ THE RECORD-LOCK CEILING IS A RECORD OPERATION CONFLICT, SO THE STATEMENT'S RETRY PHRASE GOVERNS IT
+    /// ON EVERY VERB THAT CAN REQUEST A NEW LOCK (kb/Work PB707). §12.4.5.9.4 GR7 refuses the statement that would
+    /// exceed a limit (<c>cite.py --check 12.4.5.9.4 "Any I-O statement that attempts to obtain a record lock that
+    /// would exceed either limit is unsuccessful"</c> → OK), §9.1.13.8 item 4 names the status '54' under the
+    /// heading "Record operation conflict condition with unsuccessful completion", and §14.7.9.3 GR4 engages on any
+    /// such condition. The count is the connector's own, so no re-attempt lowers it and every form lands the
+    /// ceiling's own status — what changes is WHERE the rule is judged, which <c>RecordLockCeilingRetryDriftTests</c>
+    /// pins. WRITE, REWRITE and READ each run the connector at its fifteenth lock asking for a sixteenth: '54', the
+    /// record neither stored nor rewritten, under every RETRY form including FOREVER (which must neither hang nor
+    /// become the deadlock '52', a '51'-only landing).</summary>
+    [Theory]
+    [InlineData(FileRetryKind.None, 0)]
+    [InlineData(FileRetryKind.Times, 3)]
+    [InlineData(FileRetryKind.Seconds, 30)]
+    [InlineData(FileRetryKind.Forever, 0)]
+    public void LockCeiling_OnWriteRewriteAndRead_LandsTheCeilingsOwnStatus_UnderEveryRetryForm(FileRetryKind kind, int amount)
+    {
+        const string host = "lk-ceiling-retry.dat";
+        CobolFile.Init();
+        CobolFile.RegisterRelative("CA", host, 8, false, Random, 4);
+        CobolFile.RegisterSharing("CA", FileSharing.AllOther, FileLockMode.Manual, true);   // MULTIPLE — many locks
+        for (int i = 1; i <= 15; i++)
+            Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", i.ToString()));   // GR7: the connector maximum
+        CobolFile.OpenOutput("CA", host, assignDynamic: false, page: null);
+        CobolFile.SetRelativeKey("CA", 16);
+        // WRITE ... WITH LOCK RETRY: the sixteenth lock is refused and the record is not stored.
+        Assert.Equal(FileStatusCode.ConnectorLockLimit,
+            CobolFile.WriteShared("CA", "AAAAA", -1, FileRecordLock.WithLock, kind, amount, page: null));
+        Assert.Equal(FileStatusCode.ConnectorLockLimit, CobolFile.Status("CA"));
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.WriteShared("CA", "AAAAA", -1, FileRecordLock.None, kind, amount, page: null));   // no new lock: stored
+        CobolFile.Close("CA");
+        CobolFile.OpenIO("CA", host, assignDynamic: false, page: null);
+        for (int i = 1; i <= 15; i++)   // the CLOSE above released every lock (§9.1.16): take the connector maximum again
+            Assert.Equal(FileStatusCode.Success, CobolFile.LockRecord("CA", i.ToString()));
+        CobolFile.SetRelativeKey("CA", 16);
+        // READ ... WITH LOCK RETRY: the lock is refused and no record is made available.
+        Assert.Equal(FileStatusCode.ConnectorLockLimit,
+            CobolFile.ReadKeyedShared("CA", -1, "", FileRecordLock.WithLock, false, kind, amount, out string denied));
+        Assert.Equal("", denied);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("CA", -1, "", FileRecordLock.None, false, kind, amount, out string read));   // a READ that locks nothing
+        Assert.Equal("AAAAA", read.TrimEnd());
+        // REWRITE ... WITH LOCK RETRY: refused, and the stored record is unchanged.
+        Assert.Equal(FileStatusCode.ConnectorLockLimit,
+            CobolFile.RewriteShared("CA", "BBBBB", -1, FileRecordLock.WithLock, kind, amount));
+        CobolFile.SetRelativeKey("CA", 16);
+        Assert.Equal(FileStatusCode.Success,
+            CobolFile.ReadKeyedShared("CA", -1, "", FileRecordLock.None, false, kind, amount, out string kept));
+        Assert.Equal("AAAAA", kept.TrimEnd());
+        CobolFile.Close("CA");
     }
 
     [Fact]
