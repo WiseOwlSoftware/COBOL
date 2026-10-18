@@ -1,4 +1,4 @@
-## PB3330: the owner rules the keyed organizations' whole-store model unacceptable
+## Entry 2201 — 2026-10-18 04:54 PDT — PB3330: the owner rules the keyed organizations' whole-store model unacceptable
 
 The operator explained PB1636's last unsigned derivation and quoted the design doc's recorded weak spot: under
 `SHARING WITH ALL OTHER`, every changing statement rewrites the whole indexed or relative file, so a bulk load there is
@@ -110,3 +110,4 @@ same landing that changes the relative mutex rule. Four test paths were left fro
 dead-owner test still described round 3's region locks; both are corrected.
 
 Notes and docs only. No code change.
+
