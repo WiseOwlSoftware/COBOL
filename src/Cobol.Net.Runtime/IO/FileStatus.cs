@@ -2,9 +2,13 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Runtime.IO;
 
-/// <summary>The ISO/IEC 1989:2023 §9.1.13 I-O status codes the sequential connector reports (a focused subset of the
-/// full table — the codes a sequential file can produce). The two-character code is stored into the FILE STATUS
-/// data item after each I/O verb and steers the AT END / declarative branches.</summary>
+/// <summary>The ISO/IEC 1989:2023 §9.1.13 I-O status vocabulary this runtime produces, for EVERY organization: the
+/// successful completions (§9.1.13.2, §9.1.13.3), the at end, invalid key, permanent error, logic error, record
+/// operation conflict, file sharing conflict and record content conditions (§9.1.13.4 to §9.1.13.10) and the
+/// implementor-defined 9x values (§9.1.13.11). Each constant's summary cites the §9.1.13 item that defines it, and
+/// that item is the authority for WHICH statements set the status; the summaries of 05, 37, 41, 42, 43, 53 and 54
+/// also list those statements, and the others may name only the leading one. The two-character code is stored into the FILE STATUS data item after each I/O verb and steers the AT END /
+/// declarative branches.</summary>
 public static class FileStatusCode
 {
     /// <summary>00 — successful completion.</summary>
@@ -26,7 +30,9 @@ public static class FileStatusCode
     /// execution of the READ statement is successful", so it also lands on a truncated ('06') read: '09' is the
     /// status a bad character produces whether or not the line was over-length (kb/Work PB329).</summary>
     public const string LineRecordInvalidCharRead = "09";
-    /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
+    /// <summary>05 — successful completion, §9.1.13.2 item 4: an OPEN of an OPTIONAL file whose physical file is not
+    /// present (created on OUTPUT/EXTEND/I-O, EOF on INPUT) (a), or a DELETE FILE whose referenced file is not
+    /// available (b; §14.9.10.4 GR14).</summary>
     public const string OptionalFileNotFound = "05";
     /// <summary>07 — ISO §9.1.13.2 item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
     /// statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND
@@ -48,7 +54,9 @@ public static class FileStatusCode
     public const string AssignNotConsistent = "31";
     /// <summary>35 — OPEN INPUT/I-O/EXTEND on a non-optional file that is not present.</summary>
     public const string FileNotFound = "35";
-    /// <summary>37 — OPEN failed: insufficient access permission.</summary>
+    /// <summary>37 — a permanent error from insufficient access permission (§9.1.13.6 item 6): an OPEN of a file the
+    /// process cannot open in the requested mode (a), or a DELETE FILE of a present file whose deletion the process
+    /// has no authority for or whose storage medium does not allow (§14.9.10.4 GR16, GR17).</summary>
     public const string PermissionDenied = "37";
     /// <summary>Classify a DELETE FILE IOException (ISO §14.9.10.4 GR17 vs §9.1.13.6 item 1): a storage medium
     /// that does not allow deletion — a write-protected volume (Windows ERROR_WRITE_PROTECT, HResult
@@ -76,11 +84,15 @@ public static class FileStatusCode
     /// and compares it through <see cref="FixedFileAttributes.Conflicts"/>. DELETE FILE's own §14.9.10.4
     /// GR18 leg is separately (and emptily) defined at <c>FileRegistry.ValidateFixedFileAttributes</c>.</summary>
     public const string FixedAttributeConflict = "39";
-    /// <summary>41 — OPEN attempted on an already-open file.</summary>
+    /// <summary>41 — a logic error, §9.1.13.7 item 1: an OPEN or a DELETE FILE attempted for a file connector in an
+    /// open mode (§14.9.10.4 GR13 for DELETE FILE).</summary>
     public const string FileAlreadyOpen = "41";
-    /// <summary>42 — CLOSE attempted on a file that is not open.</summary>
+    /// <summary>42 — a logic error, §9.1.13.7 item 2: a CLOSE or an UNLOCK attempted for a file connector that is not
+    /// in an open mode.</summary>
     public const string FileNotOpen = "42";
-    /// <summary>43 — no successful READ immediately preceded a sequential REWRITE.</summary>
+    /// <summary>43 — a DELETE RECORD or REWRITE on a mass storage file in the sequential access mode whose immediately
+    /// preceding operation on the file connector was not a successfully executed READ (§9.1.13.7 item 3), on every
+    /// organization.</summary>
     public const string NoSuccessfulReadBeforeDeleteRewrite = "43";
     /// <summary>46 — no valid next record for a sequential READ (a prior READ was unsuccessful, no reposition).</summary>
     public const string NoValidNextRecord = "46";
@@ -151,9 +163,11 @@ public static class FileStatusCode
     /// EC-I-O-RECORD-OPERATION instead of EC-I-O-FILE-SHARING (§9.1.13.1). See
     /// <c>FileRegistry.ExhaustionStatus</c>, the ONE place the landing is decided.</para></summary>
     public const string Deadlock = "52";
-    /// <summary>53 — the maximum number of record locks for the run unit has been exceeded (§9.1.13.8 item 3).</summary>
+    /// <summary>53 — a READ, WRITE or REWRITE that requests a record lock was refused because the run unit holds the
+    /// maximum number of locks (§9.1.13.8 item 3; §12.4.5.9.4 GR7).</summary>
     public const string RunUnitLockLimit = "53";
-    /// <summary>54 — the maximum number of record locks for this file connector has been exceeded (§9.1.13.8 item 4).</summary>
+    /// <summary>54 — a READ, WRITE or REWRITE that requests a record lock was refused because this file connector holds
+    /// the maximum number of locks (§9.1.13.8 item 4; §12.4.5.9.4 GR7).</summary>
     public const string ConnectorLockLimit = "54";
     /// <summary>'90' — ⛔ THE FIRST OF THE TWO IMPLEMENTOR-DEFINED I-O STATUSES THIS COMPILER DEFINES (the other is
     /// <see cref="CharacterWithoutByteImage"/>'s '91'; ISO §9.1.13.11 item 1:
