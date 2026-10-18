@@ -48,7 +48,10 @@ semantics).
   walkers with `using var _ = sink.At(ctx)` — `StatementBinder.BindStatement` per statement (nested statements
   restore), `DataBinder.BindEntries` per entry (+ the FD/SD/SELECT/I-O-CONTROL/SPECIAL-NAMES/OBJECT-COMPUTER/RD/
   USING loops), `ProcedureTableBuilder` per declarative section / procedure unit, the post-build model passes at
-  `DataItem.DeclaredAt` (captured from the cursor when the item is bound), and the two parse-tree passes through
+  `DataItem.DeclaredAt` (captured from the cursor when the item is bound; a TYPE / SAME AS copy carries its template
+  member's, so a fault of PLACEMENT born at the reference — the file-section ban on a dynamic-capacity table, the OCCURS
+  DEPENDING ON placement rules, the seven-subscript limit — is positioned at `DataItem.ReferenceSite`, the entry that wrote
+  the clause, kb/Work PB1629), and the two parse-tree passes through
   `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). A pass that runs AFTER the
   bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
   rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the

@@ -181,10 +181,12 @@ public sealed partial class DataBinder
 
             foreach (var sub in Subordinates(item))
             {
-                // Anchor at the offending entry — except where that entry is a CLONE of a type declaration's
-                // member: its DeclaredAt points into the TYPEDEF, which is legal on its own, and the violation
-                // exists only at the reference site that added the VALUE. Anchor there instead.
-                using var _ = Edition.At(StrongTypeModel.TypeAnchor(sub) == item ? item : sub);
+                // Anchor at the offending entry — except where that entry is a CLONE of a type declaration's (or a
+                // SAME AS target's) member: its DeclaredAt points into the declaration, which is legal on its own,
+                // and the violation exists only at the reference site that added the VALUE. Anchor there instead —
+                // the ONE answer is DataItem.ReferenceSite (kb/Work PB1629), which this site used to ask of the TYPE
+                // clause alone, so a SAME AS copy was still positioned at its source.
+                using var _ = Edition.At(sub.ReferenceSite);
                 string name = sub.CobolName ?? "FILLER";
 
                 // SR14 conjunct 1 — no JUSTIFIED, no SYNCHRONIZED anywhere in the subtree. (Unlike the usage

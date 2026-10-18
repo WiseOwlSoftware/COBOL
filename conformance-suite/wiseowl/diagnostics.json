@@ -5887,6 +5887,33 @@
   ],
   "expect": "COBOLNET2646"
  },
+ "pb1629-type-table-needs-eight-subscripts": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2646"
+ },
+ "pb1629-type-dynamic-table-in-file-section": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1526"
+ },
+ "pb1629-same-as-dynamic-table-in-file-section": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1526"
+ },
  "pb1261-depending-in-sibling-fd-record": {
   "refuse-at": [
    "85",
