@@ -86,3 +86,8 @@ the FINALLY. `CobolNetCompiler.CompileAndRun` gained an optional environment arg
 
 Gate (after review round 1): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,282 of 17,643, Unit 33,759 of
 34,095, Characterization 5 of 36 ran; the 47 Conformance cases added before the review and the 48 added after it (42 + 6) and both new Unit drift tests passed in leg 1, none failed).
+
+Gate (after review round 2, the branch's seven commits cherry-picked onto main `6fb6a20f8`): `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN` (Conformance 11,444 of 17,775, Unit 33,767 of 34,110, Characterization 5 of 36 ran; all 89
+`PerformFormat3*` cases, both `PerformFormat3SortWorkFileFailureTests` cases and the ten refusal goldens passed in leg 1, none
+failed).
