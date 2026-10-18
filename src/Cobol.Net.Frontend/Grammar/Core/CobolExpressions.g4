@@ -35,7 +35,8 @@ unrecognizedClause
     ;
 
 // The word-run matcher `unrecognizedClause` is built on. Kept as its own rule because the diagnostic quotes the
-// FIRST token of the run (`ClosedFormatPass` reads the context's start token) and the whole run as written.
+// run's OPENING item (`ClosedFormatPass` reads `residueOpening`: a word, or a literal of one or more tokens) and the
+// whole run as written.
 // ⚠ It never begins at a RESERVED word: a run that could open with one would compete with every named alternative of
 // its list (a malformed `RECORD` clause would be read as a foreign word) and, in the paragraph lists, with the
 // headers that follow them. A reserved word the format does not print is refused BY NAME all the same — by
@@ -58,11 +59,35 @@ unrecognizedClause
 // integer stays: an IDENTIFIER-led `FOO 12` is one run, and the text-predicated OBJECT-COMPUTER clause
 // `SEGMENT-LIMIT IS? integer` relies on that — without a viable residue reading of its shape, a word that is not
 // SEGMENT-LIMIT fails the clause's predicate at the decision's first token (NoViableAlt at `FOO`, not a refusal).
-// ⚠ THE TAIL IS TOKENS, NOT THE `literal` RULE (kb/Work PB3373). A figurative constant is a RESERVED word, and in the
-// run it read `OBJECT-COMPUTER. XYZ ZERO.` as one run `XYZ ZERO` (XYZ misreported as a clause) where the parse layer
-// names ZERO in the format; a concatenation, a comma decimal and a sign operator end the run the same way.
+// ⚠ THE RUN HOLDS EVERY LITERAL BUT THE RESERVED WORDS (kb/Work PB3373). A figurative constant (and NULL) is a
+// RESERVED word, and with the whole `literal` rule in the run `OBJECT-COMPUTER. XYZ ZERO.` read as one run `XYZ ZERO`
+// (XYZ misreported as a clause) where the parse layer names ZERO in the format. Every other literal shape stays in the
+// run, the multi-token ones included, or the run would end inside a literal at a bare parse error with a false "a
+// period may be missing" (`01 A PIC X FOO -1.`, `FOO "A" & "B"`): a sign-led numeric literal (ISO §8.3.3.3.2 2), "If a
+// sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT outside the list
+// and argument regions), a DECIMAL-POINT IS COMMA literal, and a concatenation (§8.8.3.3 3), "equivalent to a literal"),
+// whose `&` continues the run with the operand after it. The OPENING excludes what the tail may hold but the left edge
+// may not: the unsigned integer and the integer-led comma decimal (the level-number, above), and the `&`, whose operand
+// belongs to the literal before it. It holds no bare leading-comma decimal (`,5`) either, whose only spelling is
+// numericLiteralCore's predicated alternative, which the opening does not copy. No FIRST set of the run holds a
+// reserved word, so the parse layer's 0g arm still sees every one (a reserved word after `&` is the operand's).
 genericClause
-    : (IDENTIFIER | residueLiteral) (IDENTIFIER | residueLiteral | INTEGERLIT)*
+    : residueOpening residueItem*
+    ;
+
+// What the run opens with: a word, a one-token literal but the unsigned integer, or a sign-led numeric literal.
+residueOpening
+    : IDENTIFIER
+    | residueLiteral
+    | (PLUS | MINUS) numericLiteralCore
+    ;
+
+// What continues the run: a word, any literal but a figurative constant and NULL, or a concatenation's `& operand`.
+residueItem
+    : IDENTIFIER
+    | residueNonNumericLiteral
+    | signedNumericLiteral
+    | AMPERSAND concatOperand
     ;
 
 // Every literal that is ONE token by itself except the unsigned integer (above): the single-token alternatives of
@@ -70,15 +95,21 @@ genericClause
 // literal token added to either rule fails the build until it is decided here. CobolErrorStrategy reads this rule
 // (plus INTEGERLIT) as its one set of literal tokens.
 residueLiteral
-    : STRINGLIT
-    | NATLIT
-    | BOOLLIT
-    | HEXLIT
+    : residueNonNumericLiteral
     | DECIMALLIT
     | FLOATLIT
     | COMMA_FLOATLIT
     | SIGNED_DECIMALLIT
     | SIGNED_INTEGERLIT
+    ;
+
+// The single-token alternatives of nonNumericLiteral: the run's tail takes the numeric ones through
+// signedNumericLiteral, which holds every numeric shape the opening's tokens hold.
+residueNonNumericLiteral
+    : STRINGLIT
+    | NATLIT
+    | BOOLLIT
+    | HEXLIT
     ;
 
 // =========================

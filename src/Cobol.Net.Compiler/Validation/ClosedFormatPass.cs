@@ -7,6 +7,7 @@ using CobolNet.Binding.Passes;       // GroupBindContext
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
 using CobolNet.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
 using CobolNet.Frontend.Generated;   // CobolParserCore
+using CobolNet.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
 
 namespace CobolNet.Validation;
 
@@ -201,13 +202,14 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// wording and code are the row's (<see cref="ClosedFormat.Refusal"/>, <see cref="ClosedFormat.Diagnostic"/>),
     /// shared with the parse layer's refusal of a RESERVED word or an unsigned integer at the same position
     /// (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373), which the production cannot take. The word quoted is the
-    /// run's FIRST token, a word or a literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c> quotes "LIT").</summary>
+    /// run's OPENING item as written, a word or a whole literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c>
+    /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign).</summary>
     public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx)
     {
         var format = ClosedFormats.Of(ctx.Parent?.GetType());
         // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
         // silent return here is precisely the defect this pass exists to end.
-        string word = ctx.Start.Text;
+        string word = ctx.genericClause()?.residueOpening() is { } opening ? WrittenSource.Of(opening) : ctx.GetText();
         if (format is null)
         {
             _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,
