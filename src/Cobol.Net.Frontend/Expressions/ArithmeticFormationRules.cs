@@ -190,7 +190,8 @@ public static class ArithmeticFormationRules
     /// stream indices, never on <c>GetText()</c>, which concatenates a node's tokens with the whitespace stripped
     /// so <c>- 5</c> and <c>-5</c> read back alike. <see cref="SignIsPartOfLiteral"/> asks it of an arithmetic
     /// operand; <c>LiteralScreen</c> asks it of every signed literal slot (<c>signedNumericLiteral</c>,
-    /// <c>signedIntegerLiteral</c>) and <c>SignedIntegerLiteral.Read</c> of the one it reads (kb/Work PB1445).</summary>
+    /// <c>signedIntegerLiteral</c>, the error production's <c>residueOpening</c>) and <c>SignedIntegerLiteral.Read</c> of the
+    /// one it reads (kb/Work PB1445, PB3373).</summary>
     public static bool SignAbuts(IToken sign, IToken first) =>
         first.Line == sign.Line && first.StartIndex == sign.StopIndex + 1;
 

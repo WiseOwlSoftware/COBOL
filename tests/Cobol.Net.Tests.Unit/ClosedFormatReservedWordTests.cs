@@ -90,11 +90,11 @@ public sealed class ClosedFormatReservedWordTests
     };
 
     /// <summary>⛔ A LITERAL IN A CLOSED GENERAL FORMAT IS REFUSED BY NAME, IN ITS OWN FORMAT (kb/Work PB3373). The
-    /// error production opens at a one-token literal as it does at a word, so the literal is the run ClosedFormatPass
-    /// quotes; after a computer-name the name's reading wins, where the run used to be readable only as XYZ's (the
-    /// note's repro: <c>SOURCE-COMPUTER. XYZ "LIT".</c> reported XYZ as a CONFIGURATION SECTION paragraph). The
-    /// unsigned integer, which the production never opens with, is refused by the parse layer from the same row.
-    /// One case per format, a literal of each one-token class among them, each the ONLY diagnostic.</summary>
+    /// error production opens at a one-token or sign-led literal as it does at a word, so the literal is the run
+    /// ClosedFormatPass quotes; after a computer-name the name's reading wins, where the run used to be readable only
+    /// as XYZ's (the note's repro: <c>SOURCE-COMPUTER. XYZ "LIT".</c> reported XYZ as a CONFIGURATION SECTION
+    /// paragraph). The unsigned integer, which the production never opens with, is refused by the parse layer from the
+    /// same row. One case per format, a literal of each class among them, each the ONLY diagnostic.</summary>
     public static TheoryData<string, string, string, string> LiteralResidue() => new()
     {
         { "source-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ \"LIT\".\n" + Proc,
@@ -124,7 +124,65 @@ public sealed class ClosedFormatReservedWordTests
           "COBOLNET1970", "'\"LIT\"' is not a clause of the sort-merge file description entry for 'SF'" },
         { "data-entry", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X \"A\".\n" + Proc,
           "COBOLNET1941", "'\"A\"' is not a clause of the data description entry for 'W-X'" },
+        // A LITERAL OF MORE THAN ONE TOKEN is a literal too (kb/Work PB3373, review finding R1-1): a sign-led numeric
+        // literal (ISO §8.3.3.3.2 2), MINUS INTEGERLIT outside the list regions), a concatenation expression (§8.8.3.3
+        // 3)) and a DECIMAL-POINT IS COMMA literal. The run opens at a sign-led one and continues through all three,
+        // where it used to end at the sign, the `&` or the comma with a bare parse error and a false missing period.
+        { "source-computer-signed-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ +1.5.\n" + Proc,
+          "COBOLNET1970", "'+1.5' is not a clause of the SOURCE-COMPUTER paragraph" },
+        { "source-computer-concatenation-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ \"A\" & \"B\".\n" + Proc,
+          "COBOLNET1970", "'\"A\"' is not a clause of the SOURCE-COMPUTER paragraph" },
+        { "object-computer-signed-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ -1.\n" + Proc,
+          "COBOLNET1970", "'-1' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "object-computer-signed-without-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. -1.\n" + Proc,
+          "COBOLNET1970", "'-1' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "object-computer-signed-in-run", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ FOO -1 \"A\" & ZERO.\n" + Proc,
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "data-entry-signed-opening", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X -1.\n" + Proc,
+          "COBOLNET1941", "'-1' is not a clause of the data description entry for 'W-X'" },
+        { "data-entry-signed-in-run", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO -1.\n" + Proc,
+          "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
+        { "data-entry-concatenation-in-run", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO \"A\" & \"B\".\n" + Proc,
+          "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
+        { "data-entry-comma-decimal-in-run", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA.\n"
+            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO 1,5.\n" + Proc,
+          "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
+        { "fd-signed-in-run", Head + Select + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF FOO +2.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'FOO' is not a clause of the file description entry for 'SF'" },
+        { "select-signed-in-run", Head + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\"\n"
+            + "               ORGANIZATION IS SEQUENTIAL FOO +2.\n       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'FOO' is not a clause of the file control entry for 'SF'" },
     };
+
+    /// <summary>A sign-led literal after a clause that takes another word (kb/Work PB3373, review finding R1-1):
+    /// <c>FOO BAR</c> is an implementor-name clause's shape and <c>ASSIGN TO "f.dat" FOO</c> an ASSIGN operand list, so
+    /// the clause keeps them (loop continuation, the lower alternative, as for a one-token literal) and the run opens at
+    /// the sign-led literal, which is refused by name — never the bare parse error with a false missing period it drew
+    /// while the run could not hold a sign.</summary>
+    [Theory]
+    [InlineData("special-names", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           FOO BAR -1.\n",
+        "COBOLNET1970: '-1' is not a clause of the SPECIAL-NAMES paragraph")]
+    [InlineData("select", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\" FOO +2.\n"
+        + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n",
+        "COBOLNET1970: '+2' is not a clause of the file control entry for 'SF'")]
+    public void SignedLiteralAfterAWordTakingClause_IsRefusedByName(string name, string body, string refusal)
+    {
+        var errors = Compile(Head + body + Proc);
+        Assert.True(errors.Any(e => e.Contains("error " + refusal)), $"[{name}] no refusal by name:\n{string.Join("\n", errors)}");
+        Assert.DoesNotContain(errors, e => e.Contains("period may be missing") || e.Contains("COBOL0001"));
+    }
+
+    /// <summary>A sign SEPARATED from its digits at the run's opening is screened as it is in every other signed literal
+    /// slot (COBOLNET2155, ISO §8.3.3.3.2 2) — the run's tail holds <c>signedNumericLiteral</c>, which LiteralScreen
+    /// already screened), and the run is still refused once, quoting the literal as written.</summary>
+    [Fact]
+    public void SeparatedSignAtTheOpening_IsScreenedAndRefused()
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ - 1.\n" + Proc);
+        Assert.True(errors.Count == 2, $"expected the sign screen and the refusal, got:\n{string.Join("\n", errors)}");
+        Assert.Contains(errors, e => e.Contains("error COBOLNET2155: "));
+        Assert.Contains(errors, e => e.Contains("error COBOLNET1970: '- 1' is not a clause of the SOURCE-COMPUTER paragraph"));
+    }
 
     [Theory]
     [MemberData(nameof(LiteralResidue))]

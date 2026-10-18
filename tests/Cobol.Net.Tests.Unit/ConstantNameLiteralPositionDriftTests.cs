@@ -68,6 +68,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["stopStatement"] = "STOP literal is the X3.23-1985 Format 2 (stop-literal-removed-2002): " + Removed2002,
         ["entryStatement"] = "ISO/IEC 1989 defines no ENTRY statement; StatementBinder refuses it whole, so no operand binds",
         ["residueLiteral"] = ErrorProduction,
+        ["residueNonNumericLiteral"] = ErrorProduction,
     };
 
     /// <summary>The error production's word run and its literal tokens (kb/Work PB3373) are no format: ClosedFormatPass
@@ -81,7 +82,7 @@ public sealed class ConstantNameLiteralPositionDriftTests
     {
         ["compileTimeOperand"] = "a compiler directive's operand (>>DEFINE, >>IF), which ISO §13.10.3 SR2 excepts: \"Except in "
             + "a compiler directive\"",
-        ["genericClause"] = ErrorProduction,
+        ["residueItem"] = ErrorProduction,
         ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §8.3.2.2), never a "
             + "literal",
         ["assignTarget"] = PB2500,
