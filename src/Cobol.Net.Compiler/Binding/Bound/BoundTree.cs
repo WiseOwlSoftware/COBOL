@@ -889,6 +889,19 @@ public abstract record BoundStatement
     /// Set at exactly two places — <c>UdfBinder.DrainPending</c> and <c>OoBinder.OoWrapPropertyOps</c> — never by a
     /// construction site remembering to.</summary>
     public bool OperandEvaluation { get; init; }
+
+    /// <summary>⛔ WHERE THE STATEMENT IS WRITTEN — ON EVERY STATEMENT NODE, STAMPED BY THE ONE FUNNEL (kb/Work PB1925,
+    /// CLAUDE.md rule 5). A rule asked AFTER binding, from the bound tree (every gate of
+    /// <c>VersionConformancePass</c>'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement rules, the SET and MOVE
+    /// edition gates), has no parse tree to read a position off, and a bound node carries no span; it used to be that
+    /// three nodes (<c>BoundSort</c>, <c>BoundMerge</c>, <c>BoundCommitRollback</c>) each remembered to capture the
+    /// binder's cursor, and every other bound-arm diagnostic printed with no line and column. The position is now a
+    /// property of the base node, set once by <c>StatementBinder.BindStatement</c> — the one place every statement the
+    /// grammar accepted passes through, which already positions the diagnostic cursor (kb/Work PB82) — so a NEW
+    /// statement node, and a NEW gate over one, inherits it by construction. Unset for a node the binder synthesised
+    /// (an implicit-series member, a pre-op, a wrapper): the walker that reads it leaves the enclosing statement's
+    /// position standing (<c>DiagnosticCursorExtensions.At</c>).</summary>
+    public CobolNet.Editions.DiagnosticCursor At { get; internal set; }
 }
 
 /// <summary>⛔ A DEFERRAL, AND NOTHING ELSE: a statement whose construct WiseOwl COBOL HAS NOT BUILT. The backend
@@ -1499,11 +1512,7 @@ public sealed record BoundImplicitSeries(IReadOnlyList<BoundStatement> Members) 
 /// CONTINUE-equivalent — but the node carries its IDENTITY, so §14.9.7.3/§14.9.36.3 SR2's SORT/MERGE
 /// procedure ban is enforceable in the cross-pass where the old payload-free BoundNop made the statement
 /// indistinguishable from CONTINUE forever.</summary>
-public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement
-{
-    /// <summary>The statement's source position (as <see cref="BoundSort.At"/>; kb/Work PB812).</summary>
-    public CobolNet.Editions.DiagnosticCursor At { get; init; }
-}
+public sealed record BoundCommitRollback(bool IsCommit) : BoundStatement;
 
 /// <summary><c>NEXT SENTENCE</c> (ISO §14.9.19.4 GR4 in an IF's THEN phrase and GR6 in its ELSE phrase — ONE
 /// node for both, since the two rules state the same transfer and nothing downstream may diverge on the arm; also

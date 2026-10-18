@@ -1,0 +1,15 @@
+before
+E(1) len 9 3THREE3ZY
+E(2) len 6 1ONE1Q
+E(3) len 5 2TWO2
+N 2 T AB
+after
+E(1) len 6 1ONE1Q
+E(2) len 5 2TWO2
+E(3) len 9 3THREE3ZY
+N 2 T AB
+after N=7
+E(1) len 9 3THREE3ZY
+E(2) len 5 2TWO2
+E(3) len 6 1ONE1Q
+N 2 T AB
