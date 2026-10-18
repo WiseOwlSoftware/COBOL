@@ -730,8 +730,5 @@ internal sealed partial class BTree
     }
 
     /// <summary>A page read through a stamped pointer did not verify; caught at the tree's surface and answered '30'.</summary>
-    private sealed class TornPage(PageCheck check) : Exception($"a page read through a stamped pointer was {check}")
-    {
-        public PageCheck Check { get; } = check;
-    }
+    private sealed class TornPage(PageCheck check) : Exception($"a page read through a stamped pointer was {check}");
 }
