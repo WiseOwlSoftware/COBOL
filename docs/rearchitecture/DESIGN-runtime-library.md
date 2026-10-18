@@ -804,7 +804,8 @@ attempt's fate can let it be issued twice.)
    issues an identifier a dead or refused attempt drew (findings R3-4, R4-2, R4-3); every writable OPEN FENCES the
    generation (a promotion of the adopted state 4 097 generations up), so no
    generation a dead history may have stamped is ever stamped again; and a promotion is restartable from the PROMOTING flag
-   its claim sets. Rollback of a run unit's transaction is a record-level undo (2.2.1.10); recovery is a bounded verification
+   its claim sets — completed when its slot landed, otherwise run again (a checkpoint) or unwound (a COMMIT), the slot
+   being the one durable write that decides it. Rollback of a run unit's transaction is a record-level undo (2.2.1.10); recovery is a bounded verification
    at OPEN (no replay, no rebuild utility); and the three things a crash can do — lose nothing, lose the statements since the
    last sync, or (a transaction's owner dying) have that transaction rolled back — are the only three things it can do.
 5. **Coherence across run units stays the PB2660 statement mutex, at PAGE granularity, for every sharing mode that admits
@@ -819,8 +820,9 @@ attempt's fate can let it be issued twice.)
    `ERROR_FILE_TOO_LARGE`); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
    previous statement left it, never at a later CLOSE.
 7. **APPLY COMMIT, COMMIT and ROLLBACK are per-run-unit TRANSACTIONS with record-level before-images kept in the file**
-   (2.2.1.10): a COMMIT makes the run unit's own changes durable (a promotion) and forgets its before-images; a ROLLBACK
-   re-applies them, touching no other run unit's records; a run unit that dies has its transaction rolled back by the FIRST
+   (2.2.1.10): a COMMIT is a promotion whose one durable write carries the transaction's id and whose retirement forgets its
+   before-images, so a COMMIT reported failed has committed nothing and one reported successful is durable (round 4's
+   self-attack); a ROLLBACK re-applies the before-images, touching no other run unit's records; a run unit that dies has its transaction rolled back by the FIRST
    statement any connector with a writable handle runs on the file afterwards — a record statement's coherent entry or an
    OPEN, under the mutex, before that statement touches anything (2.2.1.10, finding R3-1). Every record a transaction changes
    and every unique alternate key value its change frees is a HOLDING of the transaction, written INTO THE FILE (the
@@ -873,13 +875,17 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
                         coherent statement that finds it set under the mutex completes the promotion; the other bits 0
                         (the first draft's CLEAN CLOSE bit is gone: a writable OPEN fences whether or not the last close
                         was clean, R6, so no bit need prove one)
- 149  12  holdings root POINTER to the HOLDINGS tree (2.2.1.10; finding R4-1): (kind, identity) → transaction id — every
+ 149   8  committing    the transaction id a COMMIT's promotion commits (2.2.1.10; round 4's self-attack): set by that
+                        promotion's claim, carried into the committed slot by its slot write — the one durable write that
+                        decides the COMMIT — and cleared by the retirement that removes the entry; a fence copies it from
+                        the committed meta it adopts; 0 otherwise. Meaningful in a committed slot; in page 2 it is a claim
+ 157  12  holdings root POINTER to the HOLDINGS tree (2.2.1.10; finding R4-1): (kind, identity) → transaction id — every
                         record identity and every unique key value an open transaction holds, kept in the file so that a
                         dead owner's locks survive its handle
- 161  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
+ 169  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
            code-unit count + UTF-16 code units, kb/Work PB1602) collation-length(1) collation(ASCII fingerprint), then
            root[k+1](12), the POINTER to the alternate tree of key k
-   ..  the per-key descriptors are bounded by the page: 3 935 bytes hold at least 50 keys of 64-byte descriptors; a
+   ..  the per-key descriptors are bounded by the page: 3 927 bytes hold at least 50 keys of 64-byte descriptors; a
        declaration past the page's capacity is refused at the OPEN with '39' (DOC-A.1-129 names the limit)
 
 INTERNAL (I)   body: a leftmost child POINTER(12) at 32, then entries × { key length(2), key bytes, child POINTER(12) } ascending
@@ -1009,14 +1015,22 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   Two syncs make the meta copy strictly after the pages it names, and alternating the slots makes the one write the scheme
   depends on survivable: a promotion whose slot write is torn leaves the other committed slot whole and the work slot, synced
   by the first sync, naming the state the promotion was making durable (finding R1-4; the first draft overwrote page 0 in
-  place and gave a torn page 0 no outcome). **A promotion is RESTARTABLE from its flag:** the promoter holds the mutex from the
-  claim to the retirement's page 2, so a coherent statement that finds PROMOTING set under the mutex knows the promoter died
-  part-way, and page 2 — written last by the statement before the promotion, untouched by it but for the claim and the flag —
-  is still exactly the state being promoted; the statement runs R5 again from page 2 (a slot that already names page 2's
-  generation is left as it is; the syncs are not skipped, since the dead promoter may have died before its second one; the
-  retirement claims above the dead retirement's claim, so its pages are stamped afresh) and only then proceeds with its own
-  work. R6 needs no flag: it classifies the same states by base and generation (a DESCENDANT whose promotion never reached a
-  slot, or the PROMOTION SOURCE).
+  place and gave a torn page 0 no outcome). **A promotion is RESTARTABLE from its flag, and the slot decides how:** the
+  promoter holds the mutex from the claim to the retirement's page 2, so a coherent statement that finds PROMOTING set under
+  the mutex knows the promoter died part-way or was REFUSED part-way (a refused promotion answers '30' and leaves the flag;
+  round 4's self-attack), and page 2 — written last by the statement before the promotion, untouched by it but for the
+  claim and the flag — is still exactly the state being promoted. The statement reads both slots. A slot that names page
+  2's generation means the promotion LANDED, and the statement completes it: the syncs are not skipped, since the dead
+  promoter may have died before its second one, and the retirement claims above the dead retirement's claim, so its pages
+  are stamped afresh — a retirement that removes the transaction `committing` names, if any. No slot names it and
+  `committing` is 0: the statement runs R5 from the claim — a checkpoint or a CLOSE is harmless when repeated. No slot
+  names it and `committing` is a transaction t: the promotion was a COMMIT that did not land, and the statement UNWINDS
+  it — page 2 := the same content with PROMOTING clear and `committing` 0, nothing else written — so that t is an ordinary
+  active transaction again, intact with its UNDO tree and its holdings: its owner, alive, was told the COMMIT failed and is
+  rolling back (§14.6.13.1.3 item 8) or retrying; dead, it is rolled back by the dead-owner step, which runs next. Only
+  then does the statement proceed with its own work. R6 needs no flag: it classifies the same states by base and
+  generation (a DESCENDANT whose promotion never reached a slot, or the PROMOTION SOURCE), and its fence applies the same
+  rule to `committing` (step 4).
   **The retirement statement** (finding R2-1) is an ordinary statement — one generation (its claim, 2.2.1.7), R1-R3, page 2
   written last — that moves the promoted ledger's `released` and `freed` pages into the FREE tree (path-copying the FREE tree:
   its new pages are `fresh` in the new ledger, the FREE-tree pages it replaced `freed`), drops the `fresh` entries (committed
@@ -1061,7 +1075,10 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      are reclaimable when its ledger is readable; the PROMOTION SOURCE and a FOREIGN W give C as well;
   4. a connector with a writable handle then FENCES (finding R2-2): a promotion (R5) of the ADOPTED meta at generation
      F = G + 4 097 — above every stamp a history based on G can have issued, R2 — into the slot that does not hold C, with
-     its claim (page 2 := the adopted meta at generation F, PROMOTING set: an INPUT connector that held C in memory adopts
+     its claim (page 2 := the adopted meta at generation F, PROMOTING set, `committing` = C's when C is adopted and 0 when
+     W is — a nonzero `committing` in a DESCENDANT W is a COMMIT's claim that never landed, and this fence unwinds it as R5's
+     restart rule does; a nonzero one in C is a COMMIT whose slot landed and whose retirement did not, and this fence's
+     retirement finishes it: an INPUT connector that held C in memory adopts
      the same tree from page 2 at that moment, and a later OPEN classifies that page 2 as a DESCENDANT of C with the fence
      unlanded, or as the PROMOTION SOURCE once the slot landed) and its two syncs, then the retirement statement on base F (its generation is its claim, F + 1 or above), which also moves a
      rejected DESCENDANT's `fresh` and `released` pages, and that ledger's own pages (read by the walk; no slot references
@@ -1073,7 +1090,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      the file first. A connector with an INPUT handle adopts in memory, writes nothing, and reads through 2.2.1.7's rule,
      which keeps the adopted meta's roots until page 2 changes (finding R2-5);
   5. then the DEAD-OWNER step of 2.2.1.10: the TRANSACTIONS tree is read and every transaction whose owner is dead is rolled
-     back by a writable connector; a transaction whose owner is alive is left exactly as it stands. The same step runs at the
+     back by a writable connector; a transaction whose owner is alive is left exactly as it stands. A COMMIT the fence
+     finished (step 4) has no entry left to probe. The same step runs at the
      coherent entry of EVERY later statement through a writable handle (2.2.1.7; finding R3-1), so an OPEN is one of its
      occasions, not the only one.
   Neither outcome is torn, because the committed tree's pages were synced before the meta that names them (R5) and nothing
@@ -1122,8 +1140,10 @@ their places; what each does changes:
   run unit's page cache for the file instead of reloading anything. **`stamp mint`** above the generation last seen (finding
   R3-4): a statement of another run unit claimed that generation and never completed — it died, or a host refusal answered
   it '30' — and its pages may lie on the medium under that stamp, so the store's next claim is `stamp mint` + 1; the trees did
-  not move, and nothing is dropped. **PROMOTING** set: the promoter died between its claim and its retirement's page 2, and
-  the statement completes the promotion first (R5 is restartable). Then a statement that CHANGES the file CLAIMS, in the
+  not move, and nothing is dropped. **PROMOTING** set: the promoter died or was refused between its claim and its
+  retirement's page 2, and the statement resolves it first — completes a promotion whose slot landed, runs an unlanded
+  checkpoint again, unwinds an unlanded COMMIT (R5's restart rule) — before the dead-owner step, so a COMMIT's fate is
+  settled before its transaction is probed. Then a statement that CHANGES the file CLAIMS, in the
   store's memory first and then on page 2: it writes page 2 once more with `stamp mint` = its generation and `transaction
   mint` and `release mint` advanced past every id and ordinal it will mint (a first change under commit control has
   already DRAWN its id by taking the id's byte, 2.2.1.10), the roots, base and `generation` unchanged (page 2 still names
@@ -1259,12 +1279,25 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   moment the change is, and they outlive the owner's handle.
 - **COMMIT** (§14.9.7.4 GR3: *"The execution of the COMMIT statement permanently applies any changes made to the files specified
   in all the active APPLY COMMIT clauses and releases all record locks associated with those files."*) = for every physical file
-  on which this run unit has a transaction: one statement that removes the transaction's entry and releases its UNDO tree's
-  pages, then a promotion (R5: the run unit's changes become durable), then the liveness byte is given back; then
-  `PhysicalFileTable.ReleaseAllForConnector` for each connector under commit control (§9.1.16: *"A COMMIT statement releases
-  all record locks for files subject to commit and rollback"*); GR4's file locks of files closed and not reopened since are
-  released here too, which means a CLOSE of a connector under commit control KEEPS its handle (§9.1.15: *"the file lock is
-  removed by the COMMIT statement"*) until the next COMMIT or ROLLBACK. The promotion also makes any OTHER run unit's
+  on which this run unit has a transaction: a promotion (R5) whose claim carries `committing` = the transaction's id and whose
+  RETIREMENT removes the transaction's entry and its holdings and releases its UNDO tree's pages; then the liveness byte is
+  given back; then `PhysicalFileTable.ReleaseAllForConnector` for each connector under commit control (§9.1.16: *"A COMMIT
+  statement releases all record locks for files subject to commit and rollback"*); GR4's file locks of files closed and not
+  reopened since are released here too, which means a CLOSE of a connector under commit control KEEPS its handle (§9.1.15:
+  *"the file lock is removed by the COMMIT statement"*) until the next COMMIT or ROLLBACK. **The COMMIT is decided by the
+  promotion's one durable write, the slot write and the sync after it.** Before it, a refusal (the claim, sync 1 or the slot
+  write) leaves the transaction exactly as it was — the claim is unwound by R5's restart rule, at the next entry of any
+  connector, this run unit's ROLLBACK included — and the COMMIT is unsuccessful, which for a file under an active APPLY
+  COMMIT is §14.6.13.1.3 item 8's fatal condition: *"a ROLLBACK statement is executed unconditionally"*, and it restores
+  from the intact UNDO tree. After it, the transaction is committed whatever becomes of the retirement — a dead or refused
+  retirement is completed by the next entry, whose restart finds the slot landed and removes the entry `committing` names;
+  a power loss that loses it leaves the PROMOTION SOURCE, and R6's fence retires it — and the COMMIT reports success. A
+  live run unit therefore never holds a COMMIT that failed with a transaction it cannot roll back, nor one that succeeded
+  with changes a power loss can undo. *Round 4's self-attack: the round-3 COMMIT ran a removal statement first and
+  promoted second, so a promotion refused after a landed removal (a medium that refuses an in-place write, or a revoked
+  handle) reported failure with the transaction already gone, and the fatal path's ROLLBACK restored nothing; the reverse
+  order reported success with the removal unsynced, which a power loss undid. A decision that is reported once must be
+  made by one durable write, so the slot write carries it.* The promotion also makes any OTHER run unit's
   uncommitted changes on that file durable on the medium — harmlessly, because that run unit's UNDO tree is on the medium with
   them, and its ROLLBACK or its death restores them from it (the case finding R1-2 named: B under APPLY COMMIT writes K2, A
   COMMITs, B's later ROLLBACK still restores the state at B's last COMMIT).
@@ -1337,8 +1370,9 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   under commit control: proceed (GR8). An entry of any other transaction — another run unit's, or this run unit's through a
   connector no APPLY COMMIT names: probe its owner's liveness byte NOW. Held: the owner lives, '51', RETRY applies. Free: the
   owner died, and the transaction is rolled back HERE — the ROLLBACK statement above, run by the testing connector under
-  the mutex it holds, before its own change — and the test runs again against the restored state (a WRITE of an identity
-  the rollback re-created now answers '22'; a value it re-inserted, '22' under that key). The result does not depend on the
+  the mutex it holds, before its own change — and the statement's conditions are evaluated again from the invalid-key
+  conditions on, against the restored state (a WRITE of an identity the rollback re-created now answers '22'; a value it
+  re-inserted, '22' under that key). The result does not depend on the
   instant the death fell: before this statement's entry (the entry's step rolled it back), between the entry and the test
   (the test does), or after the test (the owner was alive at the test, so the holding was its — '51' — or the identity was
   nobody's and stays outside every rollback). The order in which the operating environment releases a dead handle's locks
@@ -1442,7 +1476,7 @@ for a thousand open holdings), read only when page 2's holdings root is not empt
 | WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d + h × (1 + the unique values inserted), when holdings exist | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta) + 1 (the claim, under the mutex only); under commit control + u + h (the holdings' path copy) + the before-image's overflow pages | 0 |
 | WRITE / REWRITE / DELETE (relative) | ≤ d + h when holdings exist | ≤ d + 5 (+ 1 claim under the mutex); under commit control + u + h + overflow | 0 |
 | a promotion (CLOSE or checkpoint; COMMIT; normal termination; the fence at OPEN) | 2 (both committed slots) + ≤ 2 (the ledger) + 3 (the free tree's path) | 1 (the claim with PROMOTING) + 1 (a committed slot) + the retirement (≤ 2 ledger + 3 free tree + 1 meta) | 2 (CLOSE: 3) |
-| COMMIT, per file with a transaction | ≤ 2 + the UNDO tree (its holdings to remove) | the transaction's removal (≤ 2 + the HOLDINGS pages its entries sit on + 2 + 1) + the promotion | 2 |
+| COMMIT, per file with a transaction | ≤ 2 + the UNDO tree (its holdings to remove) | the promotion, whose retirement also removes the entry and its holdings and releases the UNDO tree (+ ≤ 2 + the HOLDINGS pages its entries sit on) | 2 |
 | ROLLBACK, per file with a transaction | the UNDO tree + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + the HOLDINGS pages its entries sit on + 2 + 1, in one statement | 0 |
 
 The witnesses: (a) **linearity** — a load of N and of 4N records through `NO OTHER` and through `ALL OTHER`, sequential and
@@ -1495,7 +1529,15 @@ every crash scenario is deterministic and runs on every host without a VM:
   promotion's generation as its base and PROMOTING clear — before any further statement (the medium's write order); the
   restart: the promoter dies after each of its claim, its first sync, its slot write and its second sync, and after some of
   the retirement's page writes, and another live run unit's next statement completes the promotion (both slots and page 2
-  then name it, the retirement's pages are stamped above the dead retirement's claim) before its own work;
+  then name it, the retirement's pages are stamped above the dead retirement's claim) before its own work; the same with
+  the promoter REFUSED at each point instead of killed (round 4): a checkpoint or CLOSE promotion is completed by the next
+  entry whatever the point; a COMMIT refused before its slot write is UNWOUND by the next entry — another run unit's
+  statement, or the owner's own ROLLBACK, which then restores every before-image — and its transaction, UNDO tree and
+  holdings are intact until then; a COMMIT refused after its slot write reports success, and the next entry completes its
+  retirement; the owner killed in either state is rolled back in the first and left committed in the second; a power loss
+  at each point gives the same two outcomes through R6 (a DESCENDANT with the flag: the fence unwinds; the PROMOTION
+  SOURCE: the fence finishes); and in no run is a COMMIT reported failed with its transaction gone, or reported
+  successful and then rolled back;
 - R6: the adoption matrix — rows {a CLOSE then an OPEN; process death after a completed statement; process death
   MID-statement (after some of its page writes, before its meta); process death between a promotion's slot write and its
   retirement's page 2; a fence landed and its retirement did not; power loss with every write durable; power loss losing the
@@ -1607,10 +1649,11 @@ writer no reader expects, is a design defect.
 | Structure | Written by | Read by |
 |---|---|---|
 | **Committed slots, pages 0 and 1** (one is the committed meta C, the other the slot the next promotion takes) | R5 only: every promotion — CLOSE, `CloseAll`, COMMIT, the checkpoint (R2's ceiling or 1 024 ledger pages), R6's fence — writes the slot that does NOT hold C, after a data sync and before a second sync; an ordinary promotion copies the work meta with `committed generation` := its generation, the fence copies the ADOPTED meta with generation and `committed generation` := G + 4 097. Under the exclusive mutex for a coherent connector; a NO OTHER connector has nobody to exclude. | R6 at OPEN (the higher valid generation is C; `MetaPage.Describes` for the fixed attributes reads the same two pages); 2.2.1.7 never (a live statement reads page 2 only). Readers rely on: a slot that validates names a tree whose every page is durable (R5's first sync) and untouched since (R1, R4). |
-| **Work slot, page 2** | Every statement that changes the file (the retirement included), TWICE under the mutex: the CLAIM before its first page write (`stamp mint` := its generation, everything else as read; a promotion's claim also sets PROMOTING, and the fence's claim rewrites page 2 to the adopted meta at generation F) and the completion LAST, after its data, FREE-tree and ledger pages, with generation := its claim and `committed generation` := its base (PROMOTING clear); a NO OTHER connector writes only the completion; `OPEN OUTPUT`/creation writes the initial three pages. Under the exclusive mutex (coherent) or none (NO OTHER). Never by a promotion's slot write itself and never by an INPUT connector. | R6 at OPEN (classified DESCENDANT / PROMOTION SOURCE / FOREIGN by base and generation against C's G; the mint and the flag play no part); 2.2.1.7 at every coherent statement (one read; the roots adopted when `generation` differs from the one last seen, the next claim raised when `stamp mint` is above it, the promotion completed when PROMOTING is set). Readers rely on: a page 2 written while the mutex was held names a complete tree (a claim changes no root; a completion's pages landed first), and a torn page 2 fails its checksum. |
+| **Work slot, page 2** | Every statement that changes the file (the retirement included), TWICE under the mutex: the CLAIM before its first page write (`stamp mint` := its generation, the other mints advanced past what it will mint, everything else as read; a promotion's claim also sets PROMOTING, a COMMIT's sets `committing`, and the fence's claim rewrites page 2 to the adopted meta at generation F) and the completion LAST, after its data, FREE-tree and ledger pages, with generation := its claim and `committed generation` := its base (PROMOTING clear); a NO OTHER connector writes only the completion; `OPEN OUTPUT`/creation writes the initial three pages. Under the exclusive mutex (coherent) or none (NO OTHER). Never by a promotion's slot write itself and never by an INPUT connector. | R6 at OPEN (classified DESCENDANT / PROMOTION SOURCE / FOREIGN by base and generation against C's G; the mint and the flag play no part); 2.2.1.7 at every coherent statement (one read; the roots adopted when `generation` differs from the one last seen, the next claim raised when `stamp mint` is above it, the promotion completed when PROMOTING is set). Readers rely on: a page 2 written while the mutex was held names a complete tree (a claim changes no root; a completion's pages landed first), and a torn page 2 fails its checksum. |
 | **`generation`** (in page 2 and the slots) | Each completed statement: its claim; the fence: G + 4 097; a promotion copies it. | 2.2.1.7's comparison with the generation last seen; R6's classification; R3's stamps are drawn from it. Relies on: R2's ceiling (no history claims above its base + 4 096) and the fence (every history starts above the superseded one), so no (page, generation) pair repeats. |
 | **`stamp mint`** (page 2 only; finding R3-4) | The claim of every changing statement under the mutex, before its first page write: one above the highest of the generation last seen, the mint and the store's own last claim (finding R4-3; a NO OTHER connector's claim is the memory alone); the completion and every promotion copy the claimed value. | 2.2.1.7 at every coherent writer's entry (a mint above the generation last seen means a dead or refused attempt stamped pages under it; the next claim goes above). Relies on: the claim landing before any page carries its stamp (the write order within one statement, under the mutex), and the memory keeping a refused claim for the connector that made it. |
-| **PROMOTING** (page 2's flags bit 0) | Set by a promotion's claim; cleared by its retirement's page 2 (R5). | 2.2.1.7 at every coherent writer's entry (set under a free mutex = the promoter died: R5 is run again from page 2). Relies on: the promoter holding the mutex from the claim to the retirement's page 2, so nobody else wrote page 2 in between. |
+| **PROMOTING** (page 2's flags bit 0) | Set by a promotion's claim; cleared by its retirement's page 2 (R5) or by an unwind (an unlanded COMMIT's claim; round 4). | 2.2.1.7 at every coherent writer's entry and R6 at OPEN (set under a free mutex = the promoter died or was refused: both slots are read; landed → completed, unlanded → run again or, for a COMMIT, unwound). Relies on: the promoter holding the mutex from the claim to the retirement's page 2 while it runs, so nobody else wrote page 2 in between; a promoter that answered '30' released it with the flag set, and the slots say what it had done. |
+| **`committing`** (page 2 and the slots; round 4's self-attack) | A COMMIT's claim sets it to the transaction's id; the slot write carries it; the fence's claim copies the adopted C's (0 for an adopted W); the retirement that removes the entry clears it; an unwind clears it; every other page 2 copies it as read (0 in the steady state). | R5's restart rule and R6 step 4 (an unlanded COMMIT's claim is unwound; a landed one's retirement removes the entry it names). Relies on: it is meaningful only in a committed slot — in page 2 it is a claim — and an entry whose owner is dead is rolled back unless the committed slot names it, which the restart resolves before the dead-owner step probes anything. |
 | **`committed generation`** (the base) | A promotion sets it to its generation in the slot; the retirement copies the promotion's generation into page 2; every later statement copies page 2's. | R6 (DESCENDANT = base equals G); the ledger's meaning (pages allocated since the base). |
 | **`release mint`, `transaction mint`** | The CLAIM of the statement that mints an ordinal or begins a transaction (in the store's memory; on page 2 under the mutex, before its first page write; finding R4-2) and its completion; promotions copy them. | WRITE/REWRITE (the next ordinal), the first change under commit control (the next transaction id, DRAWN by taking its byte; a held byte is skipped). A rejected history's values are discarded with it: an ordinal re-minted orders only the live tree; a transaction id is never written without its byte having been taken first, so a stranger's held byte is skipped, never contended. |
 | **`page count`** | The statement that grows the file, in its completion; promotions copy it. | Allocation (growth). A page written past it by a dead or refused statement is reached by nothing and reused by the next growth. |
@@ -1618,8 +1661,8 @@ writer no reader expects, is a design defect.
 | **The LEDGER tree** | Every statement, path-copied, written after its data and FREE-tree pages from the reservation (R2); the retirement writes the post-promotion ledger (the promoted ledger's fresh entries dropped, its released and freed pages gone to the FREE tree, the promoted ledger's own pages `freed` — the committed slot references them until the next promotion, R4; finding R3-2 — and the retirement's own new pages fresh). | R6 step 3 (every `fresh` page verified before a DESCENDANT is adopted); the retirement (what to move); the allocator (released pages); R4 (freed pages quarantined). Relies on: the ledger root in the meta the reader holds names a ledger whose own pages verify by stamp. |
 | **The FREE tree** | The retirement (adds the retired pages and, at a fence after a rejection, the rejected ledger's never-committed pages); an allocation that takes a batch of its lowest pages (path-copied by the taking statement). | The allocator, after the in-memory ledger's released pages and before growth. Relies on: a page in the committed FREE tree is referenced by no slot's tree (the older committed slot is dead once a promotion's second sync completed, R5). |
 | **Data pages** (internal, leaf, overflow) | The statement that changes them, always to a page neither slot's tree references (R1), stamped with the statement's generation, before page 2. | Every statement through stamped pointers (R3: checksum, `self`, generation); R6 through the ledger's `fresh` list. |
-| **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (the entry removed, the UNDO pages released), ROLLBACK and the dead-owner rollback (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK, and the dead-owner step at every writable connector's coherent entry and at R6 step 5 (which transactions exist, whose owner is dead by the liveness byte; read only when page 2's transactions root is not empty). Relies on: a before-image exists for every change that completed (same statement); every identity and unique value a rollback restores is a holding in the file (the next row), so no writer passes it while the owner lives and none after its death without the rollback running first (findings R3-1, R4-1). |
-| **The HOLDINGS tree** (finding R4-1): (kind R record identity / V unique key value, bytes) → transaction id | The statement that changes a record under commit control (its identity and every unique value it frees, in the same statement as the change and the before-image); COMMIT, ROLLBACK and the dead-owner rollback remove the transaction's entries in their statement. Path-copied like every tree; its root in the meta page. | The lock test of READ (not IGNORING LOCK), WRITE, REWRITE and DELETE of every connector, under the mutex, when page 2's holdings root is not empty: own transaction → proceed; another's → its owner's byte probed at the test ('51' held; free → rolled back there, then the test again). Relies on: a holding is written by the same statement as the change it protects, and is removed only by the statement that restores or commits it — so the set of identities a rollback touches IS the set the test refuses, whatever the operating environment did with the owner's handle. |
+| **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (its promotion's retirement removes the entry and releases the UNDO pages, after the slot write that decided it), ROLLBACK and the dead-owner rollback (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK, and the dead-owner step at every writable connector's coherent entry and at R6 step 5 (which transactions exist, whose owner is dead by the liveness byte; read only when page 2's transactions root is not empty). Relies on: a before-image exists for every change that completed (same statement); every identity and unique value a rollback restores is a holding in the file (the next row), so no writer passes it while the owner lives and none after its death without the rollback running first (findings R3-1, R4-1). |
+| **The HOLDINGS tree** (finding R4-1): (kind R record identity / V unique key value, bytes) → transaction id | The statement that changes a record under commit control (its identity and every unique value it frees, in the same statement as the change and the before-image); COMMIT's retirement, ROLLBACK and the dead-owner rollback remove the transaction's entries in their statement. Path-copied like every tree; its root in the meta page. | The lock test of READ (not IGNORING LOCK), WRITE, REWRITE and DELETE of every connector, under the mutex, when page 2's holdings root is not empty: own transaction → proceed; another's → its owner's byte probed at the test ('51' held; free → rolled back there, then the test again). Relies on: a holding is written by the same statement as the change it protects, and is removed only by the statement that restores or commits it — so the set of identities a rollback touches IS the set the test refuses, whatever the operating environment did with the owner's handle. |
 | **The transaction-liveness byte** (2^62 + 2^61 + id mod 2^60) | Taken exclusively through the owner's writable handle when the transaction is DRAWN — before its id is claimed and before the entry is written, in the same statement; a held byte is skipped and the next id tried; given back at COMMIT after the entry's removal and its promotion, at ROLLBACK after its statement, by a first change refused before its page 2 (no entry carries the id), and by the operating environment when the owner dies. | The dead-owner step (every writable coherent entry, R6 step 5), the lock test that meets another transaction's holding (finding R4-1), the drawing of an id and `CloseAll` (held = alive; a run unit probes only other run units' transactions). Relies on: a transaction visible in the tree has its byte held by a live owner or by nobody, never by a stranger — the byte was taken before the id was claimed or written, and a held byte is never drawn (finding R4-2). |
 | **The record-lock region** (2^62 + 2^60; a record identity) | READ under automatic locking (the commit posture's READ locks included); the explicit postures as today; released by UNLOCK/CLOSE for explicit postures and ONLY by COMMIT, ROLLBACK and termination for the commit posture; published through the holder's handle. A change under commit control publishes nothing here: its lock is its holding (the row above; finding R4-1). | READ, REWRITE, DELETE and (new) WRITE of every other connector, at DOC-A.1-104's point of their order, beside the HOLDINGS lookup; `IGNORING LOCK` bypasses both for READ. No ceiling for the commit posture's READ locks (DOC-A.1-154/155 rewritten by PB3337). Relies on: nothing a rollback restores is protected here, so a lock lost with a dead handle protects nothing that outlives it. |
 | **The store mutex and the Table 19 column bytes** | Unchanged (PB2660, PB833): taken for every statement and the OPEN of a coherent connector, exclusive through a writable handle and shared through a reader's. | The same. |
@@ -1647,15 +1690,42 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | during the retirement, before its page 2 | retirement pages on no-slot pages, stamped with its claim | next writer: R5 restarted — the retirement claims above the dead claim and stamps its pages afresh; OPEN: the PROMOTION SOURCE, C adopted, its fence re-runs the retirement from C's ledger (whose own pages R4 kept, finding R3-2) | the promoted state is durable and whole; the retirement's pages were reached by nothing |
 | | after the retirement's page 2 (flag clear, base = the promotion) | complete; CLOSE's third sync may be unlanded (power loss: the retirement's few pages → the PROMOTION SOURCE, as above) | none / OPEN as above | — |
 | The fence (R6 step 4; a promotion of the ADOPTED meta at F) | the same six points | the claim rewrote page 2 to the adopted meta at F (C's content after a rejection), so page 2 no longer holds a rejected slot from the moment the fence began | the next OPEN: before the slot landed, a DESCENDANT of C with generation F (its `fresh` pages are C's own, present) and a fence at the same F (harmless when repeated; the retirement claims above the dead one's mint); after it, the PROMOTION SOURCE. A live INPUT reader adopts page 2 when its generation becomes F — the same tree it held | the fence changes no record; the superseded history's stamps lie below F (R2) and are never reissued |
-| COMMIT (2.2.1.10): the removal statement → the promotion → the byte and locks given back | before the removal's page 2 | the transaction entry and the UNDO tree stand; the owner is dead (the byte free) | the dead-owner step (next writer or OPEN) rolls it back | the COMMIT never completed; §9.1.18.5's rollback applies |
-| | after the removal's page 2, before the promotion's slot write | the entry is gone; the changes are the last completed statement's, not yet durable against power loss | process death: nothing (committed in effect; the next OPEN adopts W and fences, making it durable). Power loss: W adopted (committed) or rejected (C still carries the entry → the dead-owner step rolls back) | an unacknowledged COMMIT — the run unit died inside it and never saw its result — lands whole or not at all, never partly: the removal statement is atomic and the rollback is idempotent; the standard fixes the outcome only of a completed COMMIT (§14.9.7.4 GR3) and of an abnormal termination after the "previous commit" (§9.1.18.5) |
-| | after the promotion, before the byte is given back | durable; the byte is freed by the handle's close | nothing (no entry to roll back; the step probes only entries) | — |
+| COMMIT (2.2.1.10; round 4): the promotion with `committing` = t — the claim → sync 1 → the slot write → sync 2 → the retirement that removes t's entry and holdings → the byte and READ locks given back | before the claim | the entry, the UNDO tree and the holdings stand; the owner is dead (the byte free) | the dead-owner step (next writer or OPEN) rolls it back | the COMMIT never began; §9.1.18.5's rollback applies |
+| | after the claim, before the slot write (before or after sync 1) | page 2 flagged with `committing` = t; the slots unchanged; the entry stands | next writer: the restart rule finds no slot naming page 2's generation and `committing` = t → UNWINDS the claim, then the dead-owner step rolls t back; OPEN: W is a DESCENDANT with the flag → the fence writes `committing` 0, step 5 rolls t back. Power loss: the same, or page 2 torn → FOREIGN → C (which carries the entry → rolled back) | the one durable write never happened, so the COMMIT is "not at all": the run unit never saw a result, and §9.1.18.5's "rolled back" is the outcome |
+| | after the slot write, before sync 2 | the slot names page 2's generation with `committing` = t (in the operating environment's cache); the entry stands in both trees | next writer: the restart finds the slot landed → completes (syncs, the retirement removes t); OPEN: the PROMOTION SOURCE → C (`committing` = t) → the fence's retirement removes t. Power loss: the slot survived → as OPEN above; the slot torn or absent → the other slot is C, W (the claim) a DESCENDANT with the flag → unwound and rolled back | whole or not at all, decided by the slot alone (the same durable write that decides every promotion, R1-4); either outcome is a consistent tree and the standard fixes neither for a run unit that died inside its COMMIT |
+| | after sync 2, before the retirement's page 2 | durable with `committing` = t; the entry stands; the owner may have been told success or died first | next writer: completes the retirement (removes t); OPEN: PROMOTION SOURCE → fence → retirement removes t | committed: the durable write landed and nothing rolls back an entry the committed slot names (R5's restart rule, the `committing` row of 2.2.1.15) |
+| | after the retirement's page 2, before the byte is given back | complete; the byte is freed by the handle's close | nothing (no entry to roll back; the step probes only entries) | — |
 | ROLLBACK (one statement), and the dead-owner step (the same statement run by another run unit) | before its page 2 | the entry and the UNDO tree stand; some restored frames on no-slot pages | the dead-owner step redoes it (idempotent); a live run unit refused mid-way ('30') is in §9.1.13.1's permanent error with its transaction intact | nothing of the half rollback is reachable (R1) |
 | | after its page 2 | the records are as at the last COMMIT, the entry and its holdings gone; the READ locks go with the handle | none | the state is a completed statement's |
 | A transaction's first change (the byte taken, then one statement: the entry, the UNDO tree, the record) | before page 2 | no entry; the byte went with the handle | nothing | the change is invisible; an entry is never visible without its byte having been taken first |
 | `OPEN OUTPUT` (creation: `SetLength` to three pages, then pages 0, 1, 2) | before all three pages landed | fewer than three valid meta pages | the next OPEN other than OUTPUT answers '30' (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
 | Growth (a write at `page count`) | between the write and page 2 | the file is longer than `page count` | the next growth writes the same pages | pages past `page count` are reached by nothing |
 | Every sync point, power loss between two | — | the unsynced statements, or some of them | R3 refuses a lost or torn page at its read; R6 falls back to C when W fails | 2.2.1.2's contract: at most the statements since the last sync are lost, and never a torn state |
+
+**Every statement REFUSED part-way, and every continuer (the round-4 self-attack, 2026-10-17).** A host refusal — a full
+medium, a quota, a revoked handle — at the n-th write of each path that writes, the run unit ALIVE afterwards (in §9.1.13.1's
+permanent error for a record statement, DOC-A.1-105: every later statement on that connector replays the status and touches
+nothing, until CLOSE); then the SAME connector's next statement, its CLOSE and the next OPEN, and ANOTHER connector's next
+statement. A refusal differs from a death in exactly two things — the run unit keeps its memory and its handle, and it is told
+— and every row is decided by the claim in memory (R4-3), the drawn byte (R4-2), the holdings in the file (R4-1) or the
+slot (`committing`).
+
+| Path refused at | The file after the refusal | The same connector's next statement · its CLOSE · the next OPEN | Another connector's next statement |
+|---|---|---|---|
+| A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: promotes, its claim above the memory, and retires; the condition ends · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
+| A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: promotion claims above (memory and page 2 agree), the refused pages stay allocatable (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
+| A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3) · OPEN: the fence | none exists |
+| A transaction's first change, at any page | as the row above; the byte given back; no entry, no holdings | '30' · the fatal condition's unconditional ROLLBACK (§14.6.13.1.3 item 8) finds no transaction · CLOSE / OPEN as above | draws the next id from the claimed mint; a byte still held is skipped (finding R4-2) |
+| ROLLBACK, at any page | the entry, the UNDO tree and the holdings stand; restored frames on no-slot pages | '30' · the unconditional ROLLBACK is refused again while the medium refuses, and the run unit terminates (item 8): the dead-owner step restores when the medium allows · CLOSE: promotes the state with the entry, keeps the handle · OPEN: R6 step 5 | its lock tests meet the holdings: '51' while the owner lives; rolled back at the test or the entry once it is dead |
+| COMMIT, at its claim, sync 1 or its slot write | the claim with `committing` = t may stand (flag set), the slot does not; the transaction intact; the COMMIT unsuccessful | the unconditional ROLLBACK: its entry unwinds the claim (no slot, `committing` = its own) and restores from the intact UNDO tree · CLOSE: its promotion's entry unwinds first · OPEN: a DESCENDANT with the flag → the fence writes `committing` 0; step 5 rolls t back if its owner is dead | its entry unwinds the claim (R5's restart rule) and proceeds; t stands, held by its live owner |
+| COMMIT, at sync 2 | a sync failure: the slot write was handed to the operating environment, the medium's state unknown | '30'; the COMMIT reports failure and the file's state is what R6 finds (the atomicity bullet's sync rule): the slot survived → committed and finished by the fence; lost → unwound and rolled back | its entry resolves the flag by the slots as they are now |
+| COMMIT, in its retirement | the slot names page 2's generation with `committing` = t: committed; the flag stays; the COMMIT reports success | its entry completes the retirement (removes t) · CLOSE: the same · OPEN: the PROMOTION SOURCE → C → the fence's retirement removes t | its entry completes the retirement |
+| A promotion (CLOSE, checkpoint, `CloseAll`), before the slot write | the flag set, `committing` 0; the slots unchanged | CLOSE: answers '30' and the connector is closed (a CLOSE ends the condition itself) · a checkpoint: the statement that needed it answers '30' before its own claim; its next entry runs the promotion again · OPEN: a DESCENDANT with the flag → the fence | its entry runs the promotion again (harmless when repeated) |
+| A promotion, after the slot write (sync 2 or the retirement) | landed | its entry completes the retirement · OPEN: the PROMOTION SOURCE → the fence completes it | its entry completes the retirement |
+| The fence (R6 step 4), at any point | the OPEN is unsuccessful ('30'); the connector is left closed (DOC-A.1-105) | the next OPEN: before the slot landed, a DESCENDANT of C at F with the flag (the fence runs again); after it, the PROMOTION SOURCE (the fence completes it) | the same at its OPEN; a live INPUT reader follows page 2's `generation` only |
+| The dead-owner rollback run at A's entry, at any page | B's entry stands; A's statement answers '30' | A: '30' replayed · CLOSE · OPEN as a record statement | the next writer's entry redoes it (idempotent) |
+| `OPEN OUTPUT`, before its three pages | fewer than three valid meta pages | the next OPEN but OUTPUT: '30'; OPEN OUTPUT recreates | the same |
+| Any path, a sync failure | the medium's state unknown | '30', permanent error; R3 and R6 decide the state at the next read or OPEN, never a torn one | the same |
 
 **2.2.1.17 Every two-run-unit interleaving over one file (the round-3 self-attack, 2026-10-17).** A and B are run units
 with the file open; the column "ordered by" names the mutex or lock that serializes the pair and "outcome" the state each
@@ -1683,7 +1753,28 @@ unit exists. Two connectors of ONE run unit share one `PagedStore` and are seria
 | A's writable OPEN ∥ B's writable OPEN (recovery ∥ recovery) | the exclusive mutex | the second R6 reads the slots and page 2 fresh under the mutex: C = the first's fence F, W = its retirement (a DESCENDANT); it adopts and fences again at F + 4 097 (harmless) |
 | A's writable OPEN ∥ B's INPUT OPEN of a crashed file | shared vs exclusive | B before A: B adopts C in memory and follows page 2 from A's fence claim (generation F = the same tree), never the rejected tree (R2-5); A before B: B reads A's fenced state |
 | A's lock test (READ, WRITE, REWRITE, DELETE) ∥ B's lock publication | the record-lock region, publish-then-test (PB2660, unchanged) | '51' with RETRY outside the statement, as today |
-| Both run units' statements ∥ page 2's three fields | the mutex | a `generation` change is a complete tree (adopt); a `stamp mint` change alone is a dead attempt (claim above, keep the cache); PROMOTING is a dead promotion (complete it); an INPUT connector acts on `generation` only |
+| Both run units' statements ∥ page 2's fields | the mutex | a `generation` change is a complete tree (adopt); a `stamp mint` change alone is a dead or refused attempt (claim above, keep the cache); PROMOTING is a dead or refused promotion (resolve it by the slots and `committing`: complete, run again or unwind); an INPUT connector acts on `generation` only |
+
+**A lock holder's death at every point of ANOTHER run unit's statement (the round-4 self-attack, 2026-10-17).** B owns a
+transaction with holdings on K5 (deleted) and the unique value X (freed), is idle and holds no mutex, so its kill can land at
+any instant of A's statement. A is any writer (under commit control or not) running WRITE K5, WRITE K7 with X, or WRITE K9
+(an identity B does not hold). The one rule: a holding is a page of the file and a rollback touches holdings only (finding
+R4-1), so A's change can be reached by B's rollback only through a holding, and every holding A meets is decided at A's own
+test by B's byte at that instant.
+
+| B dies ... | Ordered by | Outcome |
+|---|---|---|
+| before A's entry | the mutex + B's byte at the entry | A's entry rolls B back; K5 → '22', K7/X → '22', K9 → '00' |
+| after A's entry probe found B alive, before A's lock tests | B's holdings in the file + B's byte at the test | A's holdings lookup meets B's holding and probes B then: free → B rolled back inside A's statement, A's conditions evaluated again from the invalid-key conditions on: K5 → '22', K7/X → '22'; K9 meets no holding → '00' |
+| between A's region test and its holdings lookup, or between two of A's lookups (a WRITE with several unique values) | the same | the first lookup that finds B dead rolls B back and A's conditions are evaluated again from the start; the region's release order plays no part, since no holding is in the region |
+| after A's test found B alive ('51' answered for K5 or X) | the next entry's probe | A's statement changed nothing; the next entry (A's RETRY re-entry, or any writer) rolls B back; A's retry → '22' |
+| after A's test met no holding of B's (K9) — before A's claim, during A's writes, after A's page 2 | nothing needed | K9 is nobody's: B's rollback, whenever it runs, restores K5 and re-inserts X and touches K9 never; A's '00' stands |
+| while A draws a transaction id (A's own first change) | the claimed `transaction mint` | A draws from page 2's mint upward, above every id ever written; B's freed byte is never re-drawn (finding R4-2) |
+| B held a READ lock only (the region, §12.4.5.9.4 GR4) | the region | the lock goes with the handle; nothing restores a READ, so A's REWRITE of that record proceeds |
+| B's COMMIT was refused before its slot write (the flag set, `committing` = B's id) ∥ A's entry | the mutex + the slots | A's entry unwinds the claim; B alive: A's tests meet B's holdings → '51'; B dead: A's dead-owner step rolls B back |
+| B's COMMIT landed and its retirement was refused ∥ A's entry | the mutex + the slots | A's entry completes the retirement: B's entry and holdings gone, B's changes committed; A's tests meet nothing of B's |
+| B's first change was refused ∥ A's first change | the claimed mint + the byte | A draws the next id with no wait and no refusal (finding R4-2) |
+| A rolls B back at its test ∥ C's INPUT statement | the mutex (C shared, A exclusive) | C waits; after A's page 2, C adopts page 2 and reads the restored state |
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
