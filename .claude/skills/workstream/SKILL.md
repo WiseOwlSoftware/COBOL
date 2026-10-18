@@ -114,7 +114,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   dependent notes become successors, `after:`, of the groups holding their blockers), and
   `pwsh scripts/orchestrator/orchestrate.ps1 -Cluster <lead>` alternates its waves with fix-lane waves until every
   note naming it has landed. Never hand-write a `groups.json` for a campaign; a note that needs Fable or Mythos is
-  held for the owner's per-dispatch approval and dispatched by the attended session.
+  held for the owner's per-dispatch approval and dispatched by the attended session. An owner instruction every group of
+  the campaign must meet goes in the lead note's `## Standing requirements` section (a bullet each, kb/Work PB3359):
+  the planner puts it in every spec, the args file and the branch reviewer's prompt; never hand-edit it into `groups.json`.
 - **Why.** Orientation was ~46 % of every implementer's tokens (waves 45–57): a successor pays the file's context
   once, not once per cluster. It is a FRESH agent, not a longer transcript, because of the quadratic cost law above:
   the cap exists because the sixth defect in one transcript costs more than a new agent, and the successor keeps the
