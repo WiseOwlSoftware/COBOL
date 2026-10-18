@@ -33,6 +33,21 @@ public sealed class FrameDecoderDriftTests
         "ReadFrame", "ReadExtentTable", "EncodeFrameHead", "EncodeGap",
     };
 
+    /// <summary>The paged keyed store's OWN field decoders (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work
+    /// PB3331), by file and member: the page header's <c>self</c>, <c>next</c> and checksum, a POINTER's page number, and
+    /// the interim LEDGER and FREE payloads' page numbers. They are a second FORMAT's fixed fields, not a frame word: a
+    /// frame the paged store carries in a leaf value is decoded by <c>RecordFraming.ReadFrame</c> like every other
+    /// (kb/Work PB3333). Each home must still exist, so a moved or deleted one (kb/Work PB3332 replaces the two interim
+    /// payloads) is a red here rather than a silently widened exemption.</summary>
+    private static readonly HashSet<(string File, string Member)> PageLayoutHomes =
+    [
+        ("PageHeader.cs", "Decode"),
+        ("PageHeader.cs", "ChecksumHolds"),
+        ("PagePointer.cs", "Read"),
+        ("Ledger.cs", "Decode"),
+        ("PageChain.cs", "DecodePageSet"),
+    ];
+
     /// <summary>Every member that reads frames, by file — the selector's population, so the reach test measures
     /// something only while it still finds them (feedback_measure_the_selectors_complement).</summary>
     private static readonly (string File, string[] Methods)[] FrameReaders =
@@ -54,6 +69,7 @@ public sealed class FrameDecoderDriftTests
     {
         var offenders = new List<string>();
         int homesSeen = 0;
+        var pageHomesSeen = new HashSet<(string, string)>();
         foreach (var (file, source) in IoSources())
         {
             var root = CSharpSyntaxTree.ParseText(source).GetRoot();
@@ -67,6 +83,11 @@ public sealed class FrameDecoderDriftTests
                 if (!spellsWord && !decodesWord) continue;
                 string? member = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault()?.Identifier.Text;
                 if (member is not null && FrameWordHomes.Contains(member)) { homesSeen++; continue; }
+                if (decodesWord && member is not null && PageLayoutHomes.Contains((file, member)))
+                {
+                    pageHomesSeen.Add((file, member));
+                    continue;
+                }
                 int line = node.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 offenders.Add($"{file}:{line} ({member ?? "outside a method"}): {node}");
             }
@@ -74,6 +95,9 @@ public sealed class FrameDecoderDriftTests
 
         Assert.True(homesSeen >= 4, $"The sweep found the frame word in only {homesSeen} places inside its homes — "
             + "the decoder or the encoder moved, and this test no longer measures anything.");
+        Assert.True(pageHomesSeen.SetEquals(PageLayoutHomes), "A paged-store field decoder named in "
+            + $"{nameof(PageLayoutHomes)} no longer decodes a 32-bit word: "
+            + string.Join(", ", PageLayoutHomes.Except(pageHomesSeen)) + " — remove it from the list.");
         Assert.True(offenders.Count == 0,
             "The frame word is decoded or spelled outside RecordFraming.ReadFrame / EncodeFrameHead (kb/Work PB2754). "
             + "A second decoder is a second answer to what a gap and a torn tail are — call ReadFrame through an "
