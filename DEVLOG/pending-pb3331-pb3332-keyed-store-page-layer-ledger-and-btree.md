@@ -232,3 +232,5 @@ Characterization 31 … — Conformance 11,275/17,548 · Unit 33,873/34,185 · C
 - Mutations, each red and then reverted: the root comparison (3 cursor cases red), the releases left out of the bound
   (5), a refused read at OPEN taken as damage (3, PB3331's fence case among them). A dangling `PageChain` cref in
   `PageHeader.cs` was fixed on the way.
+
+**The landing gate (wave 1122, group A, the review finisher resumed).** The branch was resumed at 2d38a9173, merged with origin/main 6fb6a20f8 (clean), and its two pending entries folded into this one. Every round's findings were re-verified against the code (review-w1118-a2.jsonl R1-1..R1-3, review-w1118-a.jsonl R1-1..R1-5, R2-1, R2-2, R3-1, and the loop's review of worktree-wf_14a1e62b-326-3, whose R1-1..R1-7 restate them). Run `20261018T165332Z-bc0116`, 131 Store cases in leg 1 and passed: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,294 · Unit 336 · Characterization 31 … — Conformance 11,383/17,677 · Unit 33,902/34,238 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) …`. The Linux gate is the landing's (batched gating).
