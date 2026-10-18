@@ -24,10 +24,6 @@ records (`BoundExpr`, `BoundOperand`, `BoundBoolExpr`, `BoundCondition`, `BoundS
 column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]]) or the structure
 ([[kb/Diagrams/IR Node Hierarchy]]).
 
-> **Doc-comment fidelity:** the source's own citations for `BoundOpen` (comment says §14.9.25 = MOVE) and `BoundWrite`
-> (comment says §14.9.46 = TERMINATE) are cross-wired in the code comments; the canonical §14.9.27 (OPEN) / §14.9.51
-> (WRITE) are used here.
-
 ## Program structure
 
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
@@ -163,7 +159,7 @@ column links either the per-node flows ([[kb/Diagrams/IR-to-Semantic-to-Runtime-
 | IR Node | Purpose | Related Spec Construct (ISO §) | Semantic Rule | Compiler Phase | Diagram |
 |---|---|---|---|---|---|
 | `BoundOpen` | OPEN files with modes | §14.9.27 | 1:1 FileOpenMode; SHARING/RETRY overrides | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
-| `BoundClose` | CLOSE files [LOCK\|REEL/UNIT] | §14.9.7 | REEL/UNIT no-op on disk | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
+| `BoundClose` | CLOSE files [LOCK\|REEL/UNIT] | §14.9.6 | REEL/UNIT no-op on disk | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundRead` | Sequential READ [INTO][AT END] | §14.9.30 | status-first shape; AT END branch | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundWrite` | WRITE record [FROM][ADVANCING] | §14.9.51 | GR25 advancing; GR27/28 END-OF-PAGE (LINAGE) | Bind→Emit | [[kb/Diagrams/IR-to-Semantic-to-Runtime-Flow]] |
 | `BoundAdvancing` | WRITE ADVANCING phrase | §14.9.51 | BEFORE/AFTER, PAGE, n LINES | Bind | [[kb/Diagrams/IR Node Hierarchy]] |
