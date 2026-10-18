@@ -29,29 +29,30 @@
       *> record area is unaffected".
       *>
       *> The implementor's determination (docs/CONFORMANCE.md
-      *> DOC-A.1-107): the boundary of a relative file is its store's
-      *> capacity, 2 147 483 591 bytes (Array.MaxLength), counting a
-      *> 4-byte tag for EVERY empty slot below the highest relative
-      *> record number; the highest relative record number permitted
-      *> is 2 147 483 647.
+      *> DOC-A.1-107, kb/Work PB3333): the boundary of a relative file
+      *> is the host file system's maximum file size, capped at 2^32
+      *> pages of 4 096 bytes; an empty slot costs nothing (a record
+      *> is one entry of a B+ tree keyed by its number); the highest
+      *> relative record number permitted is 2 147 483 647.
       *>
       *> Why each leg can fail:
-      *>  K600M - RRN 600 000 000 needs 599 999 999 empty-slot tags,
-      *>          about 2.4 GB: outside the boundary, so '24' and the
-      *>          INVALID KEY branch, AT the WRITE. The defect wrote
-      *>          '00' and then failed at CLOSE (and at a larger key
-      *>          killed the run unit there with OverflowException).
+      *>  K600M - RRN 600 000 000 is inside the key's range and costs
+      *>          one leaf entry: '00' and the NOT INVALID KEY branch.
+      *>          The whole-store format answered '24' here (its image
+      *>          counted a tag per empty slot, about 2.4 GB), and the
+      *>          defect before it wrote '00' and failed at CLOSE.
       *>  K5    - an in-bounds key: '00', NOT INVALID KEY.
-      *>  CLOSE1- the store holds ONE record; the CLOSE persists it.
+      *>  CLOSE1- the store holds TWO records; nothing is owed at the
+      *>          CLOSE but the promotion of what the WRITEs wrote.
       *>  K3E9  - RRN 3 000 000 000 is above the highest permitted
       *>          number: '34' (GR29 b), which is a permanent error,
       *>          NOT the invalid key condition, so neither branch
       *>          runs. The CLOSE that follows ends the condition
       *>          (Annex A.1 item 105) and completes normally.
-      *>  READ1/READ2 - GR15's "does not take place": the only record
-      *>          in the file is RRN 5; a released 600M or 3E9 record
-      *>          would be read next instead of the at-end '10'.
-      *>          RVR still holds FIVE after K3E9 (record area
+      *>  READ1-3 - GR15's "does not take place": the file holds RRN 5
+      *>          and RRN 600 000 000 in ascending order, then the
+      *>          at-end '10'; a released 3E9 record would be read
+      *>          instead. RVR still holds FIVE after K3E9 (record area
       *>          unaffected) and is overwritten by the READ.
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
@@ -100,6 +101,8 @@
            READ RV NEXT RECORD AT END DISPLAY "READ1 AT END".
            DISPLAY "READ1=" FS " " RK " " RVR.
            READ RV NEXT RECORD AT END DISPLAY "READ2 AT END".
-           DISPLAY "READ2=" FS.
+           DISPLAY "READ2=" FS " " RK " " RVR.
+           READ RV NEXT RECORD AT END DISPLAY "READ3 AT END".
+           DISPLAY "READ3=" FS.
            CLOSE RV.
            STOP RUN.
