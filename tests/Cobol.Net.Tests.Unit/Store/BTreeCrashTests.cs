@@ -213,8 +213,11 @@ public sealed class BTreeCrashTests
     {
         // READ NEXT's walk (a cursor's leaf crossings and the overflow values it reads) refused at each read: '30', the
         // store unchanged and readable at the next scan.
+        // Every scan runs COLD: the store's page cache (2.2.1.13) holds the pages this store wrote, and a read the cache
+        // serves never reaches the medium to be refused.
         var (medium, handle, a, _) = NewScene(coherent: false);
         string before = Show(BaseRecords());
+        a.DropCache();
         int start = handle.ReadsPerformed;
         Assert.Equal(before, StoreKit.Show(a));
         int reads = handle.ReadsPerformed - start;
@@ -222,6 +225,7 @@ public sealed class BTreeCrashTests
         long mark = medium.LastSeq;
         for (int n = 1; n <= reads; n++)
         {
+            a.DropCache();
             handle.FaultAtRead(n, Fault.Refuse);
             Assert.True(StoreKit.ReadAll(a) is null, $"refused at read {n} of {reads}");
             handle.Heal();

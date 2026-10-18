@@ -14,7 +14,7 @@ internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception
     /// <summary>The page writes handed to the inner medium so far.</summary>
     public int Writes { get; private set; }
 
-    public long PageCount => inner.PageCount;
+    public long Length => inner.Length;
 
     public void Read(uint page, Span<byte> destination) => inner.Read(page, destination);
 
@@ -31,5 +31,5 @@ internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception
         inner.Sync();
     }
 
-    public void SetPageCount(long pages) => inner.SetPageCount(pages);
+    public void SetLength(long bytes) => inner.SetLength(bytes);
 }

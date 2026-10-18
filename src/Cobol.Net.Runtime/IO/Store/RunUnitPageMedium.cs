@@ -49,7 +49,7 @@ internal sealed class RunUnitPageMedium : IPageMedium
         _through ?? throw new InvalidOperationException("no connector of the run unit holds the physical file open");
 
     /// <inheritdoc/>
-    public long PageCount => Through.PageCount;
+    public long Length => Through.Length;
 
     /// <inheritdoc/>
     public void Read(uint page, Span<byte> destination) => Through.Read(page, destination);
@@ -61,5 +61,5 @@ internal sealed class RunUnitPageMedium : IPageMedium
     public void Sync() => Through.Sync();
 
     /// <inheritdoc/>
-    public void SetPageCount(long pages) => Through.SetPageCount(pages);
+    public void SetLength(long bytes) => Through.SetLength(bytes);
 }

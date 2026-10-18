@@ -1298,7 +1298,13 @@ their places; what each does changes:
   not move, and nothing is dropped. **PROMOTING** set: the promoter died or was refused between its claim and its
   retirement's page 2, and the statement resolves it first — completes a promotion whose slot landed, runs an unlanded
   checkpoint again, unwinds an unlanded COMMIT (R5's restart rule) — before the dead-owner step, so a COMMIT's fate is
-  settled before its transaction is probed. Then a statement that CHANGES the file CLAIMS, in the
+  settled before its transaction is probed. ⛔ Only an EXCLUSIVE entry resolves it: an INPUT connector of a run unit whose
+  writable sibling opened the store enters that writable store under its own SHARED hold (a read-only handle cannot hold
+  the mutex exclusive), adopts page 2 as a writer does, and leaves the flag to the next exclusive entry or the CLOSE
+  (`PagedFile.Enter(exclusive)`), since two run units' readers resolving it under shared holds would claim from the same
+  mints and write the same slot and page 2 interleaved, breaking R1. *Measured correction (PB3333 review, finding R1-2;
+  `RelativeEngineTests.An_input_connector_beside_its_writable_sibling_reads_a_promoting_page_2_and_writes_nothing`).*
+  Then a statement that CHANGES the file CLAIMS, in the
   store's memory first and then on page 2: it writes page 2 once more with `stamp mint` = its generation and `transaction
   mint` and `release mint` advanced past every id and ordinal it will mint (a first change under commit control has
   already DRAWN its id by taking the id's byte, 2.2.1.10), the roots, base and `generation` unchanged (page 2 still names
@@ -1383,7 +1389,9 @@ physical relative or indexed file is the host file system's maximum file size, c
 bytes (16 TiB). A WRITE or REWRITE whose record would take the store past that boundary is unsuccessful with I-O status '24'
 (§14.9.51.4 GR33 b) relative, GR42 d) indexed; the invalid key condition exists, the INVALID KEY phrase runs, no record is
 released and the file is unchanged); the host's answer that the file cannot grow further (`EFBIG`, `ERROR_FILE_TOO_LARGE`) is the
-same boundary. A medium with no room for the statement's pages (`ENOSPC`, `EDQUOT`, `ERROR_DISK_FULL`, `ERROR_HANDLE_DISK_FULL`,
+same boundary. The '24' is a record WRITE's or REWRITE's alone: a DELETE, an OPEN or a CLOSE whose pages meet the boundary
+answers §9.1.13.6 item 1's '30', since §9.1.13.5 item 4's condition is an attempt to write a record outside the boundaries and
+§14.9.10.4 gives DELETE none. A medium with no room for the statement's pages (`ENOSPC`, `EDQUOT`, `ERROR_DISK_FULL`, `ERROR_HANDLE_DISK_FULL`,
 `ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §9.1.13.6 item 1's '30' and leaves the file as the previous
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
@@ -2011,9 +2019,9 @@ slot (`committing`).
 
 | Path refused at | The file after the refusal | The same connector's next statement · its CLOSE · the next OPEN | Another connector's next statement |
 |---|---|---|---|
-| A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: promotes, its claim above the memory, and retires; the condition ends · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
-| A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: promotion claims above (memory and page 2 agree), the refused pages stay allocatable (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
-| A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3) · OPEN: the fence | none exists |
+| A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: when a statement completed since the store's last promotion, promotes, its claim above the memory, and retires; when none did, only syncs (2.2.1.7), since the wasted claim reached no page; the condition ends either way · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
+| A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above (memory and page 2 agree); when none did, only syncs (2.2.1.7), and page 2's raised mints serve the next claim; the refused pages stay allocatable either way (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
+| A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3); when none did, only syncs (2.2.1.7): page 2 is that promotion's retirement, no retirement runs, and the next OPEN's fence lies above the refused pages' stamps (R2's ceiling), as after a death · OPEN: the fence | none exists |
 | A transaction's first change, at any page | as the row above; the byte given back; no entry, no holdings | '30' · the fatal condition's unconditional ROLLBACK (§14.6.13.1.3 item 8) finds no transaction · CLOSE / OPEN as above | draws the next id from the claimed mint; a byte still held is skipped (finding R4-2) |
 | ROLLBACK, at any page | the entry, the UNDO tree and the holdings stand; restored frames on no-slot pages | '30' · the unconditional ROLLBACK is refused again while the medium refuses, and the run unit terminates (item 8): the dead-owner step restores when the medium allows · CLOSE: promotes the state with the entry, keeps the handle · OPEN: R6 step 5 | its lock tests meet the holdings: '51' while the owner lives; rolled back at the test or the entry once it is dead |
 | COMMIT, at its claim, sync 1 or its slot write | the claim with `committing` = t may stand (flag set), the slot does not; the transaction intact; the COMMIT unsuccessful | the unconditional ROLLBACK: its entry unwinds the claim (no slot, `committing` = its own) and restores from the intact UNDO tree · CLOSE: its promotion's entry unwinds first · OPEN: a DESCENDANT with the flag → the fence writes `committing` 0; step 5 rolls t back if its owner is dead | its entry unwinds the claim (R5's restart rule) and proceeds; t stands, held by its live owner |
