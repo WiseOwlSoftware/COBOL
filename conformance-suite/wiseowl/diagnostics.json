@@ -20189,6 +20189,12 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb870-start-first-last-relative-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "START FIRST/LAST requires COBOL-2002 (targeting COBOL-85)"
+ },
  "pb871-dynamic-length-receiver-2002": {
   "refuse-at": [
    "85",
