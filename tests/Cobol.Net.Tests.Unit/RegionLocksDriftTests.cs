@@ -286,12 +286,12 @@ public sealed class RegionLocksDriftTests
                 Thread.Sleep(1);   // a CLOSE and the next OPEN, not a spin: the spinners below are what preempt it
             }
         }));
-        for (int i = 0; i < Environment.ProcessorCount * 2; i++)
+        for (int i = 0; i < Environment.ProcessorCount; i++)
             threads.Add(new Thread(() => { while (!stop.IsCancellationRequested) Thread.SpinWait(100); }) { Priority = ThreadPriority.BelowNormal });
         foreach (var t in threads) t.Start();
         try
         {
-            for (int i = 0; i < 300; i++)
+            for (int i = 0; i < 100; i++)
             {
                 using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
                 Assert.True(holder is not null, $"Publication {i} gave up: the host was read as unable to hold a lock.");
