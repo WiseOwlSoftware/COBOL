@@ -24,10 +24,19 @@ public sealed class MixedUsageRecordImageDifferentialTests
     private static readonly CobolNetCompiler CobolNet = new();
 
     /// <summary>Spec-pinned assertion (memory feedback_use_the_spec): the expected output is derived by hand from
-    /// the cited general rules + the documented digit-image representation, not from an oracle run.</summary>
+    /// the cited general rules + the documented byte representation (COBOLNET_DESIGN §14.4), not from an oracle run.</summary>
     private static void AssertSpec(string source, string expected)
     {
         var (cok, cout, cdetail) = CobolNet.CompileAndRun(source);
+        Assert.True(cok, $"WiseOwl COBOL failed: {cdetail}");
+        Assert.Equal(CutRunner.Normalize(expected), cout);
+    }
+
+    /// <summary>The same assertion for a program that needs an edition above the harness default (a <c>&gt;&gt;TURN</c>
+    /// directive is COBOL-2002 and later).</summary>
+    private static void AssertSpecAt(int edition, string source, string expected)
+    {
+        var (cok, cout, cdetail) = EditionHarness.CompileAndRun(source, edition);
         Assert.True(cok, $"WiseOwl COBOL failed: {cdetail}");
         Assert.Equal(CutRunner.Normalize(expected), cout);
     }
@@ -164,6 +173,174 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "        MOVE P-KEY TO WS-ED DISPLAY \"K=\" WS-ED \" \" P-TXT"),
             "K=-300 N2\nK=-005 N1\nK=+003 P1");
 
+    // ── MERGE keys over signed BINARY/PACKED leaves, and the sequence-error path (ISO §14.9.24 GR4/GR6) ─────────
+
+    /// <summary>A MERGE program over two USING files, each written (ascending by <paramref name="keyPic"/>'s value)
+    /// by the program itself, merged on <paramref name="direction"/> KEY and returned through an output procedure.
+    /// <paramref name="turn"/> is a <c>&gt;&gt;TURN</c> directive line (or empty), <paramref name="declaratives"/> the
+    /// DECLARATIVES text (or empty — the program is then a with-sections one only when it has declaratives).</summary>
+    private static string MergeProgram(string id, string keyPic, string direction, string turn,
+        string declaratives, string writesA, string writesB) => $"""
+        {turn}
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {id}.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FA ASSIGN TO "{id}-A".
+            SELECT FB ASSIGN TO "{id}-B".
+            SELECT MF ASSIGN TO "{id}-WORK".
+        DATA DIVISION.
+        FILE SECTION.
+        FD FA.
+        01 A-REC.
+           05 A-KEY {keyPic}.
+           05 A-TXT PIC X(4).
+        FD FB.
+        01 B-REC.
+           05 B-KEY {keyPic}.
+           05 B-TXT PIC X(4).
+        SD MF.
+        01 M-REC.
+           05 M-KEY {keyPic}.
+           05 M-TXT PIC X(4).
+        WORKING-STORAGE SECTION.
+        01 WS-EOF PIC X VALUE "N".
+        01 WS-ED PIC +9(4).
+        PROCEDURE DIVISION.
+        {declaratives}
+        MAIN-SEC SECTION.
+        MAIN-1.
+            OPEN OUTPUT FA.
+        {writesA}
+            CLOSE FA.
+            OPEN OUTPUT FB.
+        {writesB}
+            CLOSE FB.
+            MERGE MF ON {direction} KEY M-KEY
+                USING FA FB
+                OUTPUT PROCEDURE IS DUMP-SEC.
+            DISPLAY "DONE".
+            STOP RUN.
+        DUMP-SEC SECTION.
+        DUMP-1.
+            RETURN MF AT END MOVE "Y" TO WS-EOF
+                NOT AT END
+                    MOVE M-KEY TO WS-ED
+                    DISPLAY "K=" WS-ED " " M-TXT
+            END-RETURN.
+            IF WS-EOF = "N" GO TO DUMP-1.
+        """;
+
+    /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§14.9.24.4 GR3 a) via
+    /// §8.8.4.2.4), negatives first: −8000 &lt; −20 &lt; −14 &lt; 0 &lt; +5 &lt; +99. The merge key window is decoded
+    /// through the key item's own profile, exactly as the SORT key is — a byte-wise compare would put every negative
+    /// (leading byte 0xFF) after every positive, SILENTLY.</summary>
+    [Fact]
+    public void Merge_SignedBinaryKey_Ascending_NegativesOrderAlgebraically()
+        => AssertSpec(MergeProgram("MXMRG1", "PIC S9(4) COMP", "ASCENDING", "", "",
+            """
+                MOVE -8000 TO A-KEY MOVE "A1  " TO A-TXT WRITE A-REC.
+                MOVE -14 TO A-KEY MOVE "A2  " TO A-TXT WRITE A-REC.
+                MOVE 5 TO A-KEY MOVE "A3  " TO A-TXT WRITE A-REC.
+            """,
+            """
+                MOVE -20 TO B-KEY MOVE "B1  " TO B-TXT WRITE B-REC.
+                MOVE 0 TO B-KEY MOVE "B2  " TO B-TXT WRITE B-REC.
+                MOVE 99 TO B-KEY MOVE "B3  " TO B-TXT WRITE B-REC.
+            """),
+            "K=-8000 A1\nK=-0020 B1\nK=-0014 A2\nK=+0000 B2\nK=+0005 A3\nK=+0099 B3\nDONE");
+
+    /// <summary>The DESCENDING direction over signed-PACKED (COMP-3) keys (GR3 b) — higher algebraic value first);
+    /// each USING file is itself in descending order, so no sequence error is in play.</summary>
+    [Fact]
+    public void Merge_SignedPackedKey_Descending_HighestFirst()
+        => AssertSpec(MergeProgram("MXMRG2", "PIC S9(4) COMP-3", "DESCENDING", "", "",
+            """
+                MOVE 700 TO A-KEY MOVE "A1  " TO A-TXT WRITE A-REC.
+                MOVE -3 TO A-KEY MOVE "A2  " TO A-TXT WRITE A-REC.
+                MOVE -900 TO A-KEY MOVE "A3  " TO A-TXT WRITE A-REC.
+            """,
+            """
+                MOVE 12 TO B-KEY MOVE "B1  " TO B-TXT WRITE B-REC.
+                MOVE -500 TO B-KEY MOVE "B2  " TO B-TXT WRITE B-REC.
+            """),
+            "K=+0700 A1\nK=+0012 B1\nK=-0003 A2\nK=-0500 B2\nK=-0900 A3\nDONE");
+
+    /// <summary>EC-SORT-MERGE-SEQUENCE (§14.9.24.4 GR6) is judged on the same algebraic order, in BOTH directions.
+    /// FA holds −14 then +5: ascending by VALUE although its bytes (0xFFF2, 0x0005) descend, so the checked MERGE
+    /// raises nothing and completes. FB holds +5 then −14: out of key order by value, so the checked MERGE raises
+    /// EC-SORT-MERGE-SEQUENCE, the declarative runs, all files of the statement are closed and the results are
+    /// undefined (the statement is terminated — the run unit continues, docs/CONFORMANCE.md §3 D-SMA). The
+    /// abnormal path is as much part of the keys' design as the ordering: a byte-wise sequence scan would
+    /// reverse both verdicts.</summary>
+    [Fact]
+    public void Merge_SignedBinaryKey_SequenceCheck_IsAlgebraic_BothVerdicts()
+        => AssertSpecAt(2023, """
+            >>TURN EC-SORT-MERGE-SEQUENCE CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. MXMRG3.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT FA ASSIGN TO "MXMRG3-A".
+                SELECT FB ASSIGN TO "MXMRG3-B".
+                SELECT FC ASSIGN TO "MXMRG3-C".
+                SELECT MF ASSIGN TO "MXMRG3-WORK".
+            DATA DIVISION.
+            FILE SECTION.
+            FD FA.
+            01 A-REC.
+               05 A-KEY PIC S9(4) COMP.
+            FD FB.
+            01 B-REC.
+               05 B-KEY PIC S9(4) COMP.
+            FD FC.
+            01 C-REC.
+               05 C-KEY PIC S9(4) COMP.
+            SD MF.
+            01 M-REC.
+               05 M-KEY PIC S9(4) COMP.
+            WORKING-STORAGE SECTION.
+            01 WS-EOF PIC X VALUE "N".
+            01 WS-ED PIC +9(4).
+            PROCEDURE DIVISION.
+            DECLARATIVES.
+            D-SEQ SECTION.
+                USE AFTER EXCEPTION CONDITION EC-SORT-MERGE-SEQUENCE.
+            D-SEQ-1.
+                DISPLAY "EC=" FUNCTION EXCEPTION-STATUS.
+            END DECLARATIVES.
+            MAIN-SEC SECTION.
+            MAIN-1.
+                OPEN OUTPUT FA.
+                MOVE -14 TO A-KEY WRITE A-REC.
+                MOVE 5 TO A-KEY WRITE A-REC.
+                CLOSE FA.
+                OPEN OUTPUT FB.
+                MOVE 5 TO B-KEY WRITE B-REC.
+                MOVE -14 TO B-KEY WRITE B-REC.
+                CLOSE FB.
+                OPEN OUTPUT FC.
+                MOVE -3 TO C-KEY WRITE C-REC.
+                CLOSE FC.
+                MERGE MF ON ASCENDING KEY M-KEY USING FA FC OUTPUT PROCEDURE IS DUMP-SEC.
+                DISPLAY "FIRST-DONE".
+                MOVE "N" TO WS-EOF.
+                MERGE MF ON ASCENDING KEY M-KEY USING FB FC OUTPUT PROCEDURE IS DUMP-SEC.
+                DISPLAY "SECOND-DONE".
+                STOP RUN.
+            DUMP-SEC SECTION.
+            DUMP-1.
+                RETURN MF AT END MOVE "Y" TO WS-EOF
+                    NOT AT END
+                        MOVE M-KEY TO WS-ED
+                        DISPLAY "K=" WS-ED
+                END-RETURN.
+                IF WS-EOF = "N" GO TO DUMP-1.
+            """,
+            "K=-0014\nK=-0003\nK=+0005\nFIRST-DONE\nEC=EC-SORT-MERGE-SEQUENCE\nSECOND-DONE");
+
     // ── RELEASE/RETURN round trip (ISO §14.9.32 GR2 / §14.9.34 GR3 — the record area carries the image) ──────
 
     /// <summary>RELEASE then RETURN round-trips signed COMP values EXACTLY — ±0 and ±max at 2/6/8 digits (the
@@ -197,7 +374,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "ROW1 OK\nROW2 OK");
 
-    // ── Whole-group MOVE / compare over the digit-image representation (§14.9.25.4 GR4 / §8.8.4.2.1) ─────────
+    // ── Whole-group MOVE / compare over the byte-image representation (§14.9.25.4 GR4 / §8.8.4.2.1) ─────────
 
     /// <summary>A NON-ALIGNED mixed-group MOVE (3 source leaves → 4 receiver leaves — the ST127A 10→11 shape) is a
     /// positional representation copy "without consideration for the individual elementary or group items" (§14.9.25.4 GR4):
@@ -331,7 +508,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
 
     /// <summary>SAME RECORD AREA makes the named files' record areas ONE storage area — "equivalent to an implicit
     /// redefinition of the area, with records aligned on the leftmost byte position" (§12.4.6.4.4 GR2). With a COMP
-    /// leaf the class is Tier B under the digit-image representation: a store through one record's leaf is visible
+    /// leaf the class is Tier B under the byte-image representation: a store through one record's leaf is visible
     /// through the other record's same-offset leaf, character image and algebraic value alike.</summary>
     [Fact]
     public void SameRecordArea_WithCompLeaf_RecordsShareOneArea()
