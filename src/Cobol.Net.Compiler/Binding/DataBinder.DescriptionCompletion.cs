@@ -74,7 +74,7 @@ public sealed partial class DataBinder
         // §13.18.57.4 GR3 makes a type declaration's implied PICTURE part of the description a TYPE clause copies, so
         // the declarations this subtree may copy own theirs first — the pipeline's order (SynthesizeImpliedPictures
         // before ExpandTypes). A declaration whose description is still open is not complete and copies nothing yet.
-        foreach (var declaration in TypeDecls.Values.Where(t => !IsDescriptionOpen(t)))
+        foreach (var declaration in AllTypeDecls().Where(t => !IsDescriptionOpen(t)).ToList())
             SynthesizeImpliedPicturesUnder(declaration);
         SynthesizeImpliedPicturesUnder(item);
         // ExpandTypes' order: every TYPE clause, then every SAME AS clause (a SAME AS source copies its expanded TYPE).
@@ -104,11 +104,11 @@ public sealed partial class DataBinder
     /// has not reached it — a TYPE clause expanded ahead of the pipeline (<see cref="CompleteDescriptionAhead"/>) may
     /// name one declared later, which §13.18.57 permits — and give it its §13.16.3 SR9 implied PICTUREs, which it must
     /// own before it is copied. False when nothing was bound; after the walk nothing is described later, so in the
-    /// pipeline this is a no-op.</summary>
-    private bool BindLaterTypeDeclaration(string typeName)
+    /// pipeline this is a no-op. <paramref name="scope"/> is the element whose TYPE clause names it (kb/Work PB3192).</summary>
+    private bool BindLaterTypeDeclaration(string typeName, Model.Scope scope)
     {
         if (!IsDescribedLater(typeName) || !BindLaterRecords(typeName)) return false;
-        if (TryFindTypeDecl(typeName, out var declaration)) SynthesizeImpliedPicturesUnder(declaration);
+        if (TryFindTypeDecl(typeName, scope, out var declaration)) SynthesizeImpliedPicturesUnder(declaration);
         return true;
     }
 }

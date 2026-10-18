@@ -99,11 +99,11 @@ public sealed class DynamicLengthTests
 
     /// <summary>§12.3.7.3 SR32 — the implementor specifies the physical-structure-names, and WiseOwl COBOL specifies
     /// none (docs/CONFORMANCE.md §3 D-DL3): the alternative is refused by name, COBOLNET2257. A second declaration of
-    /// one name in the paragraph is COBOLNET2257 too (§8.4.2.1), and a repeated PREFIXED phrase is the
-    /// choice-indicator rule (§5.2.6.4, COBOLNET2104).</summary>
+    /// one name in the paragraph is the declaration funnel's COBOLNET4250 (§8.4.2.1; kb/Work PB3216), and a repeated
+    /// PREFIXED phrase is the choice-indicator rule (§5.2.6.4, COBOLNET2104).</summary>
     [Theory]
     [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS VARSTRING.", "COBOLNET2257")]
-    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED\n    DYNAMIC LENGTH STRUCTURE S1 IS DELIMITED.", "COBOLNET2257")]
+    [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED\n    DYNAMIC LENGTH STRUCTURE S1 IS DELIMITED.", "COBOLNET4250")]
     [InlineData("    DYNAMIC LENGTH STRUCTURE S1 IS PREFIXED SIGNED PREFIXED.", "COBOLNET2104")]
     public void StructureClause_Refused(string specialNames, string code)
     {

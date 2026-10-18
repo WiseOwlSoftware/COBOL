@@ -405,7 +405,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // §14.9.4.3 SR22 over the RESOLVED item — the same screen the keyword-less BY VALUE
                     // argument runs. It no longer has to unwrap a BoundComputedOperand to recover the
                     // identifier-ness GR8 says was never lost.
-                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(vp)), vdref.GetText());
+                    ValueClassScreen(new BoundFieldOperand(vp), vdref.GetText());
                     args.Add(new BoundCallArg(CobolPassMode.Value, vp, null));
                 }
                 else if (vArith is { } vsole && IsSoleIdentifierExpression(vsole))
@@ -414,7 +414,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // PB1930): a SENDING temporary of ITS OWN class, which SR22 screens as it screens any identifier-4
                     // (a function returning an object reference or a pointer crosses BY VALUE).
                     var soleOperand = ExpressionOperand(vsole);
-                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(soleOperand), DataBinder.WrittenText(vsole));
+                    ValueClassScreen(soleOperand, DataBinder.WrittenText(vsole));
                     args.Add(OperandArg(soleOperand, CobolPassMode.Value));
                 }
                 else if (vArith is { } vomit && ConditionBinder.SoleDataReference(vomit) is { } vomitRef
@@ -422,7 +422,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 {
                     // the same identifier with the word FUNCTION omitted (§8.4.3.2.3 SR2) -- it parses as a data reference
                     var omittedOperand = IntrinsicBinder.OperandOf(vomitFn);
-                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(omittedOperand), DataBinder.WrittenText(vomit));
+                    ValueClassScreen(omittedOperand, DataBinder.WrittenText(vomit));
                     args.Add(OperandArg(omittedOperand, CobolPassMode.Value));
                 }
                 else if (vArith is { } vax)
@@ -434,7 +434,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // arithmetic expressions and a "digit-decoding extension" — the right verdict quoting the
                     // wrong rule.
                     var byValueOperand = new BoundComputedOperand(host.Expr.BindByValueExpr(vax));
-                    CheckByValueClass(vax.GetText(), byValueOperand);
+                    ValueClassScreen(byValueOperand, vax.GetText());
                     args.Add(new BoundCallArg(CobolPassMode.Value, null, byValueOperand));
                 }
                 else
@@ -525,7 +525,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 // PARAMETER is specified with a BY VALUE phrase" — the formal-derived Value mode (GR9 b))
                 // must meet the same class screen the explicit BY VALUE arm runs.
                 if (bareMode is CobolPassMode.Value)
-                    ValueClassScreen(IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(bp)), bare.GetText());
+                    ValueClassScreen(new BoundFieldOperand(bp), bare.GetText());
                 args.Add(new BoundCallArg(bareMode, bp, null));
             }
             // §14.9.4.2 Format 2's keyword-less non-identifier arguments (kb/Work PB130): literal-2,
@@ -643,7 +643,7 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     + "data item defined in the file, working-storage, local-storage, or linkage section (ISO §14.9.4.3 SR3), "
                     + "so it can cross only BY CONTENT");
             var temporaryMode = formatTwo ? Gr9BareLiteralMode(calleeFormals, args.Count) : CobolPassMode.Content;
-            if (temporaryMode is CobolPassMode.Value) ValueClassScreen(IntrinsicArgumentRules.ClassOf(operand), text);
+            if (temporaryMode is CobolPassMode.Value) ValueClassScreen(operand, text);
             args.Add(OperandArg(operand, temporaryMode));
             return null;
         }
@@ -1075,28 +1075,6 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
         Core.RaisingPhraseContext? Raising,
         TerminationStatus? Status);
 
-    /// <summary>
-    /// ISO §14.9.4.3 SR22 — a BY VALUE operand "shall be of class numeric, object, or pointer".
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// Strict-reject with the leniency dialect-gated, the disposition DA6 established for the sibling §8.8.1.1
-    /// question. GnuCOBOL accepts an alphanumeric operand as an extension and silently assumes BY CONTENT — a
-    /// DIFFERENT passing mode from the one written, which is why accepting it quietly is the wrong kindness: the
-    /// callee would receive an address where the source said value.
-    /// </para>
-    /// <para>
-    /// ⚠ Fail-open on an undecidable class, exactly as the intrinsic screen does: a false reject turns legal
-    /// COBOL away, a missed one leaves a rule unenforced, and only the first is forbidden outright.
-    /// </para>
-    /// </remarks>
-    private void CheckByValueClass(string what, BoundComputedOperand operand)
-    {
-        // ⛔ CLASSIFY THE UNDERLYING REFERENCE, NOT THE WRAPPER — ParameterConformance.ValueArgumentClass unwraps a
-        // bare identifier (BoundNumRef) and an index-name (BoundIndexRef, class index — kb/Work PB132). It is the
-        // SAME class answer the function-identifier's §8.4.3.2.3 SR10 screen asks (kb/Work PB1418).
-        ValueClassScreen(ParameterConformance.ValueArgumentClass(operand), what);
-    }
 
     /// <summary>⛔ THE ONE answer to "may this literal-position operand cross BY VALUE?" — CALL §14.9.4.3 SR23 and
     /// its INVOKE twin §14.9.23.3 SR16 are the same sentence ("If literal-2 or its corresponding formal parameter
@@ -1160,12 +1138,35 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             + "with the BY VALUE phrase");
     }
 
-    /// <summary>The §14.9.4.3 SR22 class screen, shared by the EXPLICIT BY VALUE arm and the Format-2
-    /// bare argument whose FORMAL is BY VALUE (kb/Work PB132 — the two arms each ran half the rule).</summary>
-    private void ValueClassScreen(CobolClass? actual, string what)
+    /// <summary>
+    /// ISO §14.9.4.3 SR22 — a BY VALUE operand "shall be of class numeric, object, or pointer": the ONE class screen,
+    /// shared by the EXPLICIT BY VALUE arm and the Format-2 bare argument whose FORMAL is BY VALUE (kb/Work PB132 —
+    /// the two arms each ran half the rule).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ⛔ CLASSIFY THE UNDERLYING REFERENCE, NOT THE WRAPPER — <see cref="ParameterConformance.ValueArgumentClass"/>
+    /// unwraps a bare identifier (BoundNumRef) and an index-name (BoundIndexRef, class index — kb/Work PB132). It is
+    /// the SAME class answer the function-identifier's §8.4.3.2.3 SR10 screen asks (kb/Work PB1418), and every arm
+    /// asks it, so no arm classifies by its own reading. The refusal names the class through
+    /// <c>IntrinsicArgumentRules.ClassNameOf</c>: a strongly-typed group's class is its type-name (§8.5.2.1).
+    /// </para>
+    /// <para>
+    /// Strict-reject with the leniency dialect-gated, the disposition DA6 established for the sibling §8.8.1.1
+    /// question. GnuCOBOL accepts an alphanumeric operand as an extension and silently assumes BY CONTENT — a
+    /// DIFFERENT passing mode from the one written, which is why accepting it quietly is the wrong kindness: the
+    /// callee would receive an address where the source said value.
+    /// </para>
+    /// <para>
+    /// ⚠ Fail-open on an undecidable class, exactly as the intrinsic screen does: a false reject turns legal
+    /// COBOL away, a missed one leaves a rule unenforced, and only the first is forbidden outright.
+    /// </para>
+    /// </remarks>
+    private void ValueClassScreen(BoundOperand operand, string what)
     {
-        if (actual is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
-        string rule = $"CALL … USING BY VALUE operand '{what}' is of class {IntrinsicArgumentRules.Name(actual.Value)}; "
+        if (ParameterConformance.ValueArgumentClass(operand) is not { } actual
+            || actual is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
+        string rule = $"CALL … USING BY VALUE operand '{what}' is of class {IntrinsicArgumentRules.ClassNameOf(operand, actual)}; "
             + "ISO §14.9.4.3 SR22 admits only class numeric, object or pointer by value";
         if (ctx.Edition.Permissive)
             ctx.Edition.Warning(DiagnosticCatalog.CallByValueOperandClass, $"{rule}; accepted under --permissive");
