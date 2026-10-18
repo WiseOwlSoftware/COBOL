@@ -80,3 +80,19 @@ I-O's fence complete. That measurement showed a fence reserves its bound and so 
 which design 2.2.1.9 now states.
 
 Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `57b0af458`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).
+
+**Review round 2 (wave 1118, review finisher on branch `worktree-wf_14a1e62b-326-32`).** One finding, R2-1 (critical): 67
+NIST programs failed `NistProgram_MatchesGolden` on the written-file check, and the round-1 gate never ran them (all 72 IX
+and RL rows sat in its leg 2). The 30 RL programs failed because the branch did not carry A3's re-captured relative
+goldens; merging PB3333's landing tip `worktree-wf_14a1e62b-326-20` (2f5b26d36, at d745abaab) brought them in, with its
+stamped DEVLOG 2220. The 37 IX programs failed because the branch moves INDEXED onto the paged store (meta-page format 6)
+while `tests/nist/valid-files` still held the format-5 whole store. At 56c69829c their 41 written files were re-captured
+through `COBOLNET_UPDATE_NIST_FILES=1`, and the CCVS reports, which read every record back, still match. Seven of those
+files are new: IX114A-IX120A only OPEN I-O and CLOSE IX113A's `tf024.txt`, and the harness grades every file whose
+last-write time changed during the run (`NistRunner.Written`). The whole store left an unchanged file untouched, while the
+engine's writable OPEN writes its fence (DESIGN-runtime-library 2.2.1.6, R6), so those files are now written and need goldens.
+The sibling in the same blind spot was `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`: four
+rows (GR-9.1.13.5-4, GR-14.9.51.4-33, GR-14.9.51.4-42, DOC-A.1-107) named the deleted `PagedFile.IsFileTooLarge`. A
+`record_verdicts` batch re-witnessed them on the engine's boundary mechanism (no verdict changed; GAP 66 → 66), and
+`FileStatusCode.BoundaryViolation`'s summary no longer names `MaxStoreBytes`. The 72 IX/RL programs passed in two runs and
+`NistDifferentialTests|NistWrittenFilesTests` passed 378 of 378.
