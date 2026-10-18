@@ -68,4 +68,4 @@ on a TURN directive), and a WHEN body binds under TURN OFF ALL (14.9.28.4 GR14),
 inside it only after a `>>TURN EC-SORT-MERGE CHECKING ON` written in the body. No compiler defect turned up.
 
 Gate (after review round 1): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,282 of 17,643, Unit 33,759 of
-34,095, Characterization 5 of 36 ran; the 47 refusal goldens and 48 new Conformance tests (42 + 6) and both new Unit drift tests passed in leg 1, none failed).
+34,095, Characterization 5 of 36 ran; the 47 Conformance cases added before the review and the 48 added after it (42 + 6) and both new Unit drift tests passed in leg 1, none failed).
