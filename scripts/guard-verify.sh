@@ -75,7 +75,7 @@ esac
 # kb/Work PB804: the OTHER files a program writes (WITNESS_FILES="name=content|name=content" — WT001A only, so a second program
 # of the group can be shown NOT to have written them) and a line of console output beside a print file.
 if [ "$t" = "WT001A" ] && [ -n "${WITNESS_FILES:-}" ]; then
-    IFS="|"; for kv in $WITNESS_FILES; do printf '%s' "${kv#*=}" > "./${kv%%=*}"; done
+    IFS="|"; for kv in $WITNESS_FILES; do printf '%b' "${kv#*=}" > "./${kv%%=*}"; done
 fi
 if [ "$t" = "WT001A" ] && [ -n "${WITNESS_STDOUT:-}" ]; then printf '%s\n' "$WITNESS_STDOUT"; fi
 if [ -n "${WITNESS_STDERR:-}" ]; then echo "$WITNESS_STDERR" >&2; fi
@@ -175,7 +175,7 @@ SHIM
     #    and the first is the control that proves the arm does not turn every program red. NistWrittenFilesTests is
     #    the C# arm's twin of these cases (NistOutputs.Grade). ──
     local VF="$FR/tests/nist/valid-files/WT001A"
-    gold() { rm -rf "$VF"; if [ "$#" -gt 0 ]; then mkdir -p "$VF"; for kv in "$@"; do printf '%s' "${kv#*=}" > "$VF/${kv%%=*}"; done; fi; }
+    gold() { rm -rf "$VF"; if [ "$#" -gt 0 ]; then mkdir -p "$VF"; for kv in "$@"; do printf '%b' "${kv#*=}" > "$VF/${kv%%=*}"; done; fi; }
     gold "xxxxx049.txt=DETAIL LINE  COLUMN 20"
     want "files control: a second file equal to its golden is a MATCH" \
          "WT001A: MATCH" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 20" run_case correct 0 '' '')"
@@ -186,6 +186,20 @@ SHIM
          "xxxxx049.txt differs" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 20 " run_case correct 0 '' '')"
     want "a second file that is a byte SHORTER than its golden is a REGRESSION" \
          "xxxxx049.txt differs" "$(WITNESS_FILES="xxxxx049.txt=DETAIL LINE  COLUMN 2" run_case correct 0 '' '')"
+    # The host newline: a line sequential file ends its records with CR LF on Windows and LF on Linux (DOC-A.1-114), so
+    # in a TEXT file CR LF is not a difference (a lone CR is record data); in a BINARY file it is. The contents are
+    # printf %b escapes (a CR cannot travel through the environment of this host's bash).
+    gold 'xxxxx049.txt=LINE 1\nLINE 2\n'
+    want "a TEXT file written with the host newline (CR LF) equals a golden written with LF" \
+         "WT001A: MATCH" "$(WITNESS_FILES='xxxxx049.txt=LINE 1\r\nLINE 2\r\n' run_case correct 0 '' '')"
+    want "a TEXT file whose lone CR the golden lacks is a REGRESSION (a lone CR is data)" \
+         "xxxxx049.txt differs" "$(WITNESS_FILES='xxxxx049.txt=LINE 1\rLINE 2\n' run_case correct 0 '' '')"
+    gold 'xxxxx049.txt=AB\002\nC'
+    want "a BINARY file with a translated newline (LF written as CR LF) is a REGRESSION" \
+         "xxxxx049.txt differs" "$(WITNESS_FILES='xxxxx049.txt=AB\002\r\nC' run_case correct 0 '' '')"
+    want "a BINARY file equal to its golden is a MATCH" \
+         "WT001A: MATCH" "$(WITNESS_FILES='xxxxx049.txt=AB\002\nC' run_case correct 0 '' '')"
+    gold "xxxxx049.txt=DETAIL LINE  COLUMN 20"
     want "a golden the program no longer writes is a REGRESSION" \
          "xxxxx049.txt not written" "$(run_case correct 0 '' '')"
     want "a file written with NO golden is a REGRESSION" \

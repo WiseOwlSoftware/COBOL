@@ -106,11 +106,11 @@ internal static class NistRunner
 /// print file — had that file neither read nor kept. PB792 hid for a battery cycle behind exactly that: RW104A lost a
 /// report field's COLUMN under <c>--permissive</c> while <c>rw104a.txt</c> stayed byte-identical to its golden.</para>
 /// <para>Now the files a run WROTE (created or modified since just before the program ran — the compiler's artefacts
-/// and a chain predecessor's files predate that point) are each compared BYTE-FOR-BYTE with
-/// <c>tests/nist/valid-files/&lt;TEST&gt;/&lt;file&gt;</c>, and the two sets must be EQUAL: a file written with no
-/// golden is red (capture it), and a golden the program no longer writes is red. The next program that writes a
-/// second file is graded with no change here. <c>scripts/guard-verdict.sh</c> (<c>guard_files_verdict</c>) is the
-/// shell guards' arm of the same rule, so CI's NIST leg grades the same files.</para>
+/// and a chain predecessor's files predate that point) are each compared BYTE-FOR-BYTE (<see cref="Canonical"/>: a
+/// text file's host newline aside) with <c>tests/nist/valid-files/&lt;TEST&gt;/&lt;file&gt;</c>, and the two sets must
+/// be EQUAL: a file written with no golden is red (capture it), and a golden the program no longer writes is red.
+/// The next program that writes a second file is graded with no change here. <c>scripts/guard-verdict.sh</c>
+/// (<c>guard_files_apply</c>) is the shell guards' arm of the same rule, so CI's NIST leg grades the same files.</para>
 /// <para>The expected bytes are the program's own output — the size and layout of records on the storage medium
 /// are the implementor's (ISO §13.18.43.4 GR2: "The size of records on physical storage media may be different due
 /// to control information required by the operating environment"), so these goldens pin WiseOwl COBOL's behavior,
@@ -159,8 +159,32 @@ internal static class NistOutputs
         return written;
     }
 
+    /// <summary>True for a file that holds only TEXT: horizontal tab, line feed, form feed, carriage return and the
+    /// printable ASCII characters. Anything else (a NUL, a binary field, a keyed store's header) is a binary file.</summary>
+    internal static bool IsText(ReadOnlySpan<byte> bytes)
+    {
+        foreach (byte b in bytes)
+            if (b is not (9 or 10 or 12 or 13) && (b < 32 || b > 126)) return false;
+        return true;
+    }
+
+    /// <summary>The form two files are compared in. A line sequential file ends each record with the HOST's newline
+    /// — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md DOC-A.1-114; ISO §12.4.5.10.3 GR2: "an implementor-defined
+    /// line delimiter") — so a TEXT file is compared with each CR LF taken as LF, and the goldens hold that form
+    /// (they read the same on both hosts). A CR not followed by LF is record data and stays. A binary file is
+    /// compared as written: a record file's bytes do not depend on the host, so a newline translation there is a
+    /// defect this must see. <c>scripts/guard-verdict.sh</c> (<c>guard_canonical_into</c>) is the same rule.</summary>
+    internal static byte[] Canonical(byte[] bytes)
+    {
+        if (!IsText(bytes) || Array.IndexOf(bytes, (byte)'\r') < 0) return bytes;
+        var canonical = new List<byte>(bytes.Length);
+        for (int i = 0; i < bytes.Length; i++)
+            if (!(bytes[i] == '\r' && i + 1 < bytes.Length && bytes[i + 1] == '\n')) canonical.Add(bytes[i]);
+        return canonical.ToArray();
+    }
+
     /// <summary>Compare what a program wrote with its goldens in <paramref name="goldenDir"/>; every problem, empty
-    /// when the two sets are equal and every file is byte-identical.</summary>
+    /// when the two sets are equal and every file is identical in its <see cref="Canonical"/> form.</summary>
     internal static IReadOnlyList<string> Grade(IReadOnlyDictionary<string, byte[]> written, string goldenDir)
     {
         var problems = new List<string>();
@@ -175,10 +199,11 @@ internal static class NistOutputs
                              $"review it and capture it ({UpdateVariable}=1)");
                 continue;
             }
-            byte[] want = File.ReadAllBytes(Path.Combine(goldenDir, name));
-            int at = FirstDifference(want, got);
+            byte[] want = Canonical(File.ReadAllBytes(Path.Combine(goldenDir, name)));
+            byte[] have = Canonical(got);
+            int at = FirstDifference(want, have);
             if (at >= 0)
-                problems.Add($"{name}: differs from its golden at byte {at} (golden {want.Length} bytes, written {got.Length} bytes)");
+                problems.Add($"{name}: differs from its golden at byte {at} (golden {want.Length} bytes, written {have.Length} bytes)");
         }
         foreach (string name in goldens.Order(StringComparer.Ordinal))
             if (!written.ContainsKey(name))
@@ -203,6 +228,6 @@ internal static class NistOutputs
         if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
         if (written.Count == 0) return;
         Directory.CreateDirectory(dir);
-        foreach (var (name, bytes) in written) File.WriteAllBytes(Path.Combine(dir, name), bytes);
+        foreach (var (name, bytes) in written) File.WriteAllBytes(Path.Combine(dir, name), Canonical(bytes));
     }
 }

@@ -60,6 +60,40 @@ public sealed class NistWrittenFilesTests
         finally { CutRunner.TryDelete(gold); }
     }
 
+    /// <summary>A line sequential file ends its records with the HOST's newline (DOC-A.1-114), so the same program
+    /// writes CR LF on Windows and LF on Linux: in a TEXT file that is not a difference, and a lone CR (record data) is.
+    /// In a BINARY file the bytes do not depend on the host, so a newline translation is a difference.</summary>
+    [Fact]
+    public void Grade_HostNewlineInATextFile_IsNotADifference_ButInABinaryFileOrAsALoneCrItIs()
+    {
+        string gold = GoldenDirOf(Files(("report.txt", "A\nB\n"), ("binary.dat", "A\u0001\nB"), ("lone.txt", "A\rB\n")));
+        try
+        {
+            // report.txt: CR LF against the golden's LF is not a difference. lone.txt: "A\rB\r\n" canonicalizes to
+            // "A\rB\n", the golden. binary.dat: the translated newline is the one difference.
+            var written = Files(("report.txt", "A\r\nB\r\n"), ("binary.dat", "A\u0001\r\nB"), ("lone.txt", "A\rB\r\n"));
+            string problem = Assert.Single(NistOutputs.Grade(written, gold));
+            Assert.StartsWith("binary.dat: differs from its golden at byte 2 ", problem);
+            // A lone CR is record data, so an LF in its place is a difference.
+            Assert.StartsWith("lone.txt: differs", Assert.Single(NistOutputs.Grade(
+                Files(("report.txt", "A\nB\n"), ("binary.dat", "A\u0001\nB"), ("lone.txt", "A\nB\n")), gold)));
+        }
+        finally { CutRunner.TryDelete(gold); }
+    }
+
+    [Fact]
+    public void Canonical_TextDropsTheCrOfEachCrLf_AndABinaryFileIsLeftAlone()
+    {
+        Assert.Equal("A\nB\r"u8.ToArray(), NistOutputs.Canonical("A\r\nB\r"u8.ToArray()));
+        Assert.Equal("A\r"u8.ToArray(), NistOutputs.Canonical("A\r"u8.ToArray()));
+        byte[] binary = [0x41, 0x00, 0x0D, 0x0A];
+        Assert.Same(binary, NistOutputs.Canonical(binary));
+        Assert.True(NistOutputs.IsText([]));
+        Assert.True(NistOutputs.IsText("TAB\there\f\r\n ~"u8));
+        Assert.False(NistOutputs.IsText([0x41, 0x7F]));
+        Assert.False(NistOutputs.IsText([0xC3, 0xA9]));
+    }
+
     [Fact]
     public void Grade_AFileWithNoGolden_IsAProblem()
     {
