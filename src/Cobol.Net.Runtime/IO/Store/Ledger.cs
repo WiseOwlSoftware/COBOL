@@ -22,7 +22,7 @@ internal enum LedgerState : byte
 /// <summary>One page's ledger entry: the generation of its last write and its state.</summary>
 internal readonly record struct LedgerEntry(ulong Generation, LedgerState State);
 
-/// <summary>The GENERATION LEDGER (§2.2.1.6 R2): every page allocated since the committed generation (the work meta's
+/// <summary>The GENERATION LEDGER (2.2.1.6 R2): every page allocated since the committed generation (the work meta's
 /// base), with the generation of its last write and its <see cref="LedgerState"/>, plus the committed pages released
 /// since (<see cref="LedgerState.Freed"/>). It does not list its own pages: they are verified through their stamped
 /// pointers when it is read. The in-memory map; <see cref="Encode"/> / <see cref="Decode"/> are its interim page

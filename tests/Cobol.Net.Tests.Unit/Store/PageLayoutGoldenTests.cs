@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit.Store;
 
 /// <summary>
 /// ⛔ THE PAGED STORE'S BYTES ARE THE LAYOUT OF docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4, AND EVERY PAGE
-/// IS VERIFIED BY ITS CHECKSUM, ITS SELF AND ITS STAMP (§2.2.1.6 R3; kb/Work PB3331). The expected bytes below are read
+/// IS VERIFIED BY ITS CHECKSUM, ITS SELF AND ITS STAMP (2.2.1.6 R3; kb/Work PB3331). The expected bytes below are read
 /// off the design's PAGE and META tables, offset by offset, never off the encoder: an empty relative store and an empty
 /// two-key indexed store (the three meta pages), the checksum detecting one flipped bit anywhere in every page kind,
 /// <c>self</c> catching a page read from the wrong offset and the stamp catching an older version of a page.
@@ -68,7 +68,7 @@ public sealed class PageLayoutGoldenTests
     }
 
     /// <summary>The checksum covers every byte but its own four, so ONE flipped bit anywhere else in a page of any kind
-    /// fails it — the kind, flags and entry-count bytes included (the correction to §2.2.1.4's "bytes 8..4095").</summary>
+    /// fails it — the kind, flags and entry-count bytes included (the correction to 2.2.1.4's "bytes 8..4095").</summary>
     [Theory]
     [InlineData(nameof(PageKind.Meta))]
     [InlineData(nameof(PageKind.Internal))]
@@ -150,7 +150,7 @@ public sealed class PageLayoutGoldenTests
     }
 
     /// <summary>The production medium: a store created, written, closed and reopened over a real file through
-    /// <see cref="HandlePageMedium"/>, then both committed slots torn — the OPEN answers '30' (§2.2.1.6 R6 step 1).</summary>
+    /// <see cref="HandlePageMedium"/>, then both committed slots torn — the OPEN answers '30' (2.2.1.6 R6 step 1).</summary>
     [Fact]
     public void A_store_round_trips_over_a_real_file_and_both_slots_torn_answers_30()
     {

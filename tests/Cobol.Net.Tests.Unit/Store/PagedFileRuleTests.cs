@@ -8,7 +8,7 @@ namespace CobolNet.Tests.Unit.Store;
 
 /// <summary>
 /// ⛔ THE SIX RULES OF THE GENERATION LEDGER HOLD ON EVERY WRITE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.6
-/// R1-R5 and §2.2.1.12's drift tests; kb/Work PB3331). Each case drives <see cref="PagedFile"/> over the deterministic
+/// R1-R5 and 2.2.1.12's drift tests; kb/Work PB3331). Each case drives <see cref="PagedFile"/> over the deterministic
 /// <see cref="MemoryPageMedium"/> and judges it from the medium's own log and pages (<see cref="StoreKit"/>'s auditor),
 /// never from the engine's account of itself; every expected value is the rule's text.
 /// </summary>
@@ -269,7 +269,7 @@ public sealed class PagedFileRuleTests
         handle.FaultAtWrite(2, Fault.Refuse);
         Assert.Equal(StoreStatus.PermanentError, StoreKit.Put(store, 2, "refused"));
         ulong refused = store.LastClaim;
-        // A second connector of the same run unit attaches to the same store (§2.2.1.7, "Within a run unit").
+        // A second connector of the same run unit attaches to the same store (2.2.1.7, "Within a run unit").
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 3, "c"));
         Assert.True(store.Meta.Generation > refused);
         StoreKit.AssertNoStampReused(medium);

@@ -14,7 +14,7 @@ internal enum StoreStatus
     PermanentError,
 }
 
-/// <summary>How the adoption rule classified the WORK slot at OPEN (§2.2.1.6 R6 step 2).</summary>
+/// <summary>How the adoption rule classified the WORK slot at OPEN (2.2.1.6 R6 step 2).</summary>
 internal enum WorkSlotClass
 {
     /// <summary>W validates and its base is the committed generation: the last completed statement of the history.</summary>
@@ -28,23 +28,23 @@ internal enum WorkSlotClass
     Foreign,
 }
 
-/// <summary>What the OPEN's adoption rule decided (§2.2.1.6 R6): the work slot's class, whether the work slot was
+/// <summary>What the OPEN's adoption rule decided (2.2.1.6 R6): the work slot's class, whether the work slot was
 /// adopted (a verified DESCENDANT) or the committed meta, and whether the OPEN fenced.</summary>
 internal readonly record struct Adoption(WorkSlotClass WorkSlot, bool WorkAdopted, bool Fenced);
 
-/// <summary>The page I/O a store performed (§2.2.1.11): pages read, pages written, syncs. Cumulative; a witness takes
+/// <summary>The page I/O a store performed (2.2.1.11): pages read, pages written, syncs. Cumulative; a witness takes
 /// the difference across a statement.</summary>
 internal readonly record struct IoCounters(long PagesRead, long PagesWritten, long Syncs);
 
-/// <summary>⛔ THE PAGE LAYER OF THE KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4-§2.2.1.7,
+/// <summary>⛔ THE PAGE LAYER OF THE KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4-2.2.1.7,
 /// kb/Work PB3331): pages over an <see cref="IPageMedium"/>, the three meta slots, stamped pointers, the generation
 /// ledger, the reservation, the CLAIM, promotion into the alternate committed slot with its retirement, the restart of a
-/// promotion from its PROMOTING flag, and the OPEN's adoption rule with its fence. Every rule of §2.2.1.6 (R1-R6) is
+/// promotion from its PROMOTING flag, and the OPEN's adoption rule with its fence. Every rule of 2.2.1.6 (R1-R6) is
 /// enforced here and nowhere else; the trees of kb/Work PB3332 and the connectors of PB3333/PB3334 are its callers.
 /// <para>A store is one run unit's view of one physical file. Two run units are two stores over one medium; the caller
-/// serializes them with the store mutex (§2.2.1.7) — a COHERENT store (every sharing mode but NO OTHER) runs every
+/// serializes them with the store mutex (2.2.1.7) — a COHERENT store (every sharing mode but NO OTHER) runs every
 /// statement and its OPEN inside it, and reads page 2 at each statement's entry.</para>
-/// <para>⛔ EVERY GENERATION IS CLAIMED BEFORE ANYTHING CARRIES IT (§2.2.1.6 R3's corollary): the store keeps the highest
+/// <para>⛔ EVERY GENERATION IS CLAIMED BEFORE ANYTHING CARRIES IT (2.2.1.6 R3's corollary): the store keeps the highest
 /// generation it has claimed or seen (<c>_stampMint</c>, with the two other mints), the next claim is one above it and
 /// above page 2's generation, and a coherent store writes the claim to page 2 before its first page write. A promotion
 /// promotes the work meta AT A FRESH CLAIM P — the fence at P = G + 4 097 — so every claim of the history a base P begins
@@ -68,7 +68,7 @@ internal sealed class PagedFile
     private List<PagePointer> _ledgerChain = [];
     private List<PagePointer> _freeChain = [];
 
-    /// <summary>Page 2's generation as this store last saw or wrote it (§2.2.1.7).</summary>
+    /// <summary>Page 2's generation as this store last saw or wrote it (2.2.1.7).</summary>
     private ulong _lastSeen;
 
     /// <summary>The highest generation claimed or seen — the own last claim and page 2's <c>stamp mint</c> alike.</summary>
@@ -138,7 +138,7 @@ internal sealed class PagedFile
         return StoreStatus.Ok;
     }
 
-    /// <summary>OPEN an existing store: §2.2.1.6 R6's ADOPTION RULE, run by the caller under the store mutex, and through
+    /// <summary>OPEN an existing store: 2.2.1.6 R6's ADOPTION RULE, run by the caller under the store mutex, and through
     /// a writable handle its FENCE. Pages 0, 1 and 2 are read and validated; the COMMITTED meta C is the valid committed
     /// slot with the higher generation G ('30' when neither validates, nothing written); the WORK slot is a DESCENDANT
     /// (base G), the PROMOTION SOURCE (base below G, generation G) or FOREIGN; a DESCENDANT whose every <c>fresh</c> page
@@ -197,7 +197,7 @@ internal sealed class PagedFile
 
     // ── The statement's entry ───────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>A statement's COHERENT ENTRY (§2.2.1.7), the whole of a READ's: page 2 is read — ONE page — and compared
+    /// <summary>A statement's COHERENT ENTRY (2.2.1.7), the whole of a READ's: page 2 is read — ONE page — and compared
     /// with what the store last saw there. A changed <c>generation</c> is another run unit's completed statement,
     /// retirement or fence: the store ADOPTS page 2 (its roots, its ledger) and drops its page cache. A writer also takes
     /// page 2's mints (a <c>stamp mint</c> above the generation is a dead or refused attempt: the next claim goes above
@@ -263,7 +263,7 @@ internal sealed class PagedFile
     /// tree pages it writes), minting <paramref name="ordinals"/> release ordinals and <paramref name="transactionIds"/>
     /// transaction ids. Its entry (<see cref="Enter"/>); the ceiling and the ledger checkpoint (a promotion first, R2 and
     /// R5); its CLAIM — in memory, and for a coherent store on page 2 with the roots, base and generation unchanged,
-    /// before its first page write (§2.2.1.7); and its RESERVATION — the ledger's <c>released</c> pages, then one batch of
+    /// before its first page write (2.2.1.7); and its RESERVATION — the ledger's <c>released</c> pages, then one batch of
     /// the lowest FREE pages, then growth, sized to the bound plus the FREE and LEDGER pages the statement rewrites, so
     /// nothing is allocated once the ledger is being written (R2).</summary>
     public StoreStatus Begin(int pageBound, out PageStatement? statement, int ordinals = 0, int transactionIds = 0)
@@ -289,7 +289,7 @@ internal sealed class PagedFile
     }
 
     /// <summary>Complete <paramref name="s"/>: the superseded ledger pages become <c>released</c>, the FREE and LEDGER
-    /// pages are written from the reservation, and page 2 LAST, with the claim as its generation (§2.2.1.6 R1-R3). A
+    /// pages are written from the reservation, and page 2 LAST, with the claim as its generation (2.2.1.6 R1-R3). A
     /// refusal anywhere leaves page 2 naming the previous statement's tree, untouched (R1), and the store's memory as it
     /// was but for the claim, which stays raised (finding R4-3).</summary>
     internal StoreStatus Complete(PageStatement s)
@@ -327,7 +327,7 @@ internal sealed class PagedFile
 
     // ── Reads ───────────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Read a page through a stamped pointer (§2.2.1.6 R3): <see cref="PageCheck.Whole"/> only when its checksum
+    /// <summary>Read a page through a stamped pointer (2.2.1.6 R3): <see cref="PageCheck.Whole"/> only when its checksum
     /// holds, its <c>self</c> is the page read and its generation is the stamp; a statement answers anything else as
     /// '30'.</summary>
     public PageCheck Read(PagePointer pointer, Span<byte> page)
@@ -338,7 +338,7 @@ internal sealed class PagedFile
 
     // ── Promotion ───────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>A CHECKPOINT promotion (§2.2.1.6 R5), after the statement's entry.</summary>
+    /// <summary>A CHECKPOINT promotion (2.2.1.6 R5), after the statement's entry.</summary>
     public StoreStatus Promote()
     {
         if (!_writable) throw new InvalidOperationException("an INPUT store promotes nothing");
@@ -377,7 +377,7 @@ internal sealed class PagedFile
         return Retire(claim, retirement, rejected);
     }
 
-    /// <summary>The RETIREMENT statement (§2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at
+    /// <summary>The RETIREMENT statement (2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at
     /// <paramref name="claim"/> on the base <paramref name="promoted"/>'s generation. The promoted ledger's
     /// <c>released</c> and <c>freed</c> pages move into the FREE set, its <c>fresh</c> entries are dropped (committed
     /// pages now), and the promoted ledger's own pages and the promoted FREE chain — referenced by the committed slot until
@@ -577,7 +577,7 @@ internal sealed class PagedFile
     }
 
     /// <summary>The next claim: one above the highest of the generation last seen, page 2's mint as last read and this
-    /// store's own last claim (§2.2.1.7).</summary>
+    /// store's own last claim (2.2.1.7).</summary>
     private ulong NextClaim() => Math.Max(_lastSeen, _stampMint) + 1;
 
     private ulong Claim() => _stampMint = NextClaim();
@@ -673,7 +673,7 @@ internal sealed class Reservation(List<(uint Page, PageOrigin Origin)> pages, ul
         .Select(p => (ulong)p.Page + 1).DefaultIfEmpty(pageCount).Max();
 }
 
-/// <summary>One statement that changes the file (§2.2.1.6): it writes its pages from its reservation, stamped with its
+/// <summary>One statement that changes the file (2.2.1.6): it writes its pages from its reservation, stamped with its
 /// claimed generation, releases the pages its tree stops referencing, sets its roots, and completes with page 2 LAST.
 /// A refused write makes every later write a no-op and the completion '30'; nothing the statement did is reachable
 /// (R1).</summary>

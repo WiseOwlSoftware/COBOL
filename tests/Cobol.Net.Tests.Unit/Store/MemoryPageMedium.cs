@@ -6,7 +6,7 @@ using CobolNet.Runtime.IO.Store;
 namespace CobolNet.Tests.Unit.Store;
 
 /// <summary>A process death injected by <see cref="MemoryPageMedium"/>: the run unit stops at that instant, keeping every
-/// write it handed over (§2.2.1.16: "a process death keeps every write handed to the operating environment, in order").
+/// write it handed over (2.2.1.16: "a process death keeps every write handed to the operating environment, in order").
 /// No production code catches it — it is not an <see cref="IOException"/> — so the store's memory dies with it.</summary>
 internal sealed class SimulatedDeath : Exception
 {
@@ -86,7 +86,7 @@ internal sealed class MemoryPageMedium
     public long LastSeq => _seq;
 
     /// <summary>A POWER LOSS: every write no sync made durable is lost, except those <paramref name="keep"/> keeps (an
-    /// unordered subset, §2.2.1.16's power-loss variant). With no predicate, every unsynced write is lost.</summary>
+    /// unordered subset, 2.2.1.16's power-loss variant). With no predicate, every unsynced write is lost.</summary>
     public void PowerLoss(Func<MediumWrite, bool>? keep = null)
     {
         var kept = _writes.Where(w => !w.Synced && keep is not null && keep(w)).Select(w => w.Seq).ToHashSet();

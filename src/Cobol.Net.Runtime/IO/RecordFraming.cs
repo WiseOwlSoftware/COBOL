@@ -26,7 +26,7 @@ internal enum StoreFormat
     /// <summary>A PAGED store (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of
     /// whose three meta pages carries this format's magic but neither COMMITTED slot validates: the store's own format,
     /// damaged beyond what it can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it
-    /// with §9.1.13.6 item 1's '30' (§2.2.1.6 R6 step 1). Only <c>Store.MetaPage.Describes</c> answers it.</summary>
+    /// with §9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1). Only <c>Store.MetaPage.Describes</c> answers it.</summary>
     Damaged,
 }
 
@@ -473,7 +473,7 @@ internal static class RecordFraming
     /// <summary>Write one key's descriptor — its segment count and (offset, length) windows, its DUPLICATES flag, its
     /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §9.1.6 fixed attributes, shared by
     /// this header and the paged store's meta page (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md
-    /// §2.2.1.4), so the two formats cannot record a key differently. <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
+    /// 2.2.1.4), so the two formats cannot record a key differently. <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
     internal static void WriteKeyDescriptor(Stream fs, FixedFileAttributes.KeyDescriptor k)
     {
         Span<byte> word = stackalloc byte[4];

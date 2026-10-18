@@ -5,7 +5,7 @@ using System.Buffers.Binary;
 namespace CobolNet.Runtime.IO.Store;
 
 /// <summary>A POINTER (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): a page number and the generation of the
-/// write it names (§2.2.1.6 R3), 12 bytes on the page. Page 0 is a committed meta slot and is never a tree page, so the
+/// write it names (2.2.1.6 R3), 12 bytes on the page. Page 0 is a committed meta slot and is never a tree page, so the
 /// pointer to page 0 is <see cref="None"/>.</summary>
 internal readonly record struct PagePointer(uint Page, ulong Generation)
 {

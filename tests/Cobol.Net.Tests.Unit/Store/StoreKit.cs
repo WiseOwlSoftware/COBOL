@@ -310,7 +310,7 @@ internal static class StoreKit
         }
     }
 
-    /// <summary>The fence's end state (§2.2.1.12 R6): both committed slots and page 2 name the adopted state — the
+    /// <summary>The fence's end state (2.2.1.12 R6): both committed slots and page 2 name the adopted state — the
     /// committed meta and page 2 carry the same roots, and page 2's base is the committed meta's generation.</summary>
     public static void AssertSlotsAndWorkAgree(MemoryPageMedium medium)
     {

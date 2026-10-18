@@ -6,7 +6,7 @@ namespace CobolNet.Runtime.IO.Store;
 
 /// <summary>A META page of the paged keyed store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): pages 0 and 1
 /// are the two COMMITTED slots, written alternately by promotions, and page 2 is the WORK slot, written by every
-/// statement that changes the file (§2.2.1.6, §2.2.1.15). One encoder (<see cref="Encode"/>) and one decoder
+/// statement that changes the file (2.2.1.6, 2.2.1.15). One encoder (<see cref="Encode"/>) and one decoder
 /// (<see cref="Decode"/>); <see cref="Describes"/> is the §14.9.27.4 GR10 read of the attributes the file records.
 /// <para>The layout after the 32-byte page header: the magic <c>CBNFSTR</c> and the format version, the §9.1.6
 /// attributes (organization, record type, minimum and maximum record size, key count), the coherence
@@ -47,7 +47,7 @@ internal sealed record MetaPage(
     /// <summary>The paged format's version, the byte after the magic. Version 5 is the WHOLE-STORE header of
     /// <see cref="RecordFraming"/> (its magic at offset 0, where a paged store has its page header), so the paged format
     /// takes 6 and a file of either is <see cref="StoreFormat.Foreign"/> to the other's reader: no reader of the old
-    /// format is kept (§2.2.1.3 decision 1).</summary>
+    /// format is kept (2.2.1.3 decision 1).</summary>
     public const byte FormatVersion = 6;
 
     private static ReadOnlySpan<byte> Magic => "CBNFSTR"u8;
@@ -75,7 +75,7 @@ internal sealed record MetaPage(
     /// <summary>Where the per-key descriptors begin.</summary>
     public const int KeysOffset = 169;
 
-    /// <summary>The flags byte's PROMOTING bit (§2.2.1.6 R5).</summary>
+    /// <summary>The flags byte's PROMOTING bit (2.2.1.6 R5).</summary>
     private const byte PromotingFlag = 0x01;
 
     /// <summary>The empty store's meta for <paramref name="attributes"/> — what creation writes to all three slots
@@ -91,7 +91,7 @@ internal sealed record MetaPage(
     public static int AlternateKeyCount(FixedFileAttributes attributes) => Math.Max(0, attributes.Keys.Count - 1);
 
     /// <summary>Whether the attributes' key descriptors fit the meta page. A declaration past the page's capacity is
-    /// refused at the OPEN with '39' (§2.2.1.4; DOC-A.1-129).</summary>
+    /// refused at the OPEN with '39' (2.2.1.4; DOC-A.1-129).</summary>
     public static bool Fits(FixedFileAttributes attributes) => KeyBytes(attributes) <= PageHeader.PageSize - KeysOffset;
 
     /// <summary>The page this meta is written as at slot <paramref name="self"/>, sealed.</summary>
@@ -140,7 +140,7 @@ internal sealed record MetaPage(
     }
 
     /// <summary>The meta <paramref name="page"/> holds as slot <paramref name="self"/>, or null when it does not
-    /// VALIDATE (§2.2.1.6 R6: its checksum, its kind, its <c>self</c>, the magic and version, and a layout this build
+    /// VALIDATE (2.2.1.6 R6: its checksum, its kind, its <c>self</c>, the magic and version, and a layout this build
     /// writes) — a torn, foreign or never-written slot.</summary>
     public static MetaPage? Decode(ReadOnlySpan<byte> page, uint self)
     {
@@ -199,7 +199,7 @@ internal sealed record MetaPage(
         && page[MagicOffset + Magic.Length] == FormatVersion;
 
     /// <summary>The COMMITTED meta among the decoded slots <paramref name="a"/> (page 0) and <paramref name="b"/>
-    /// (page 1): the valid slot with the higher generation (§2.2.1.6 R6 step 1), page 0 on a tie (creation writes both
+    /// (page 1): the valid slot with the higher generation (2.2.1.6 R6 step 1), page 0 on a tie (creation writes both
     /// at generation 0); null when neither validates.</summary>
     public static (MetaPage Meta, uint Slot)? Committed(MetaPage? a, MetaPage? b) => (a, b) switch
     {

@@ -26,7 +26,7 @@ internal enum PageKind : byte
     Free = (byte)'F',
 }
 
-/// <summary>What a read through a stamped <see cref="PagePointer"/> found (§2.2.1.6 R3): the page is WHOLE only when its
+/// <summary>What a read through a stamped <see cref="PagePointer"/> found (2.2.1.6 R3): the page is WHOLE only when its
 /// checksum holds, its <see cref="PageHeader.Self"/> is the page number read and its generation equals the pointer's
 /// stamp. Every other answer is a TORN read — torn, read from the wrong offset, or an older version of the page (a lost
 /// write over a reused page) — and is answered by the statement as §9.1.13.6 item 1's '30', never swallowed.</summary>
@@ -48,16 +48,16 @@ internal enum PageCheck
     Unreadable,
 }
 
-/// <summary>The 32-byte header every page of a keyed store carries (§2.2.1.4): kind, flags, entries, the CRC-32C checksum
+/// <summary>The 32-byte header every page of a keyed store carries (2.2.1.4): kind, flags, entries, the CRC-32C checksum
 /// of every other byte of the page — bytes 0..3 and 8..4095 (the ONE torn-page detector) — the generation that last wrote
-/// the page, the page's own number and the next page of its chain. (The first draft of §2.2.1.4 checksummed bytes 8..4095
+/// the page, the page's own number and the next page of its chain. (The first draft of 2.2.1.4 checksummed bytes 8..4095
 /// only, which left the kind, flags and entry count unprotected: a flipped bit in a leaf's entry count passed the check and
 /// mis-sized the page. The layout golden flips every bit of every page kind.) One encoder (<see cref="Encode"/> + <see cref="Seal"/>) and one decoder (<see cref="Decode"/>
 /// + <see cref="Check"/>).</summary>
 internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Entries, ulong Generation, uint Self, uint Next)
 {
-    /// <summary>The page size, a format constant (§2.2.1.3 decision 2): the host's I/O block, the size the costs of
-    /// §2.2.1.2 were measured at, and <c>HostFile.InputOutputAreaBytes</c>.</summary>
+    /// <summary>The page size, a format constant (2.2.1.3 decision 2): the host's I/O block, the size the costs of
+    /// 2.2.1.2 were measured at, and <c>HostFile.InputOutputAreaBytes</c>.</summary>
     public const int PageSize = HostFile.InputOutputAreaBytes;
 
     /// <summary>The header's size; the body starts here.</summary>
@@ -105,7 +105,7 @@ internal readonly record struct PageHeader(PageKind Kind, byte Flags, ushort Ent
         BinaryPrimitives.ReadUInt32LittleEndian(page[SelfOffset..]),
         BinaryPrimitives.ReadUInt32LittleEndian(page[NextOffset..]));
 
-    /// <summary>§2.2.1.6 R3's verification of <paramref name="page"/>, read from page number <paramref name="self"/>
+    /// <summary>2.2.1.6 R3's verification of <paramref name="page"/>, read from page number <paramref name="self"/>
     /// through a pointer stamped <paramref name="stamp"/>.</summary>
     public static PageCheck Check(ReadOnlySpan<byte> page, uint self, ulong stamp)
     {
