@@ -82,8 +82,8 @@ internal sealed class KeyedStoreTable
     public void Clear() => _byHost.Clear();
 }
 
-/// <summary>⭐ THE RUN UNIT'S HANDLE ON ONE PHYSICAL FILE'S KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md
-/// §2.2.1, kb/Work PB3333, PB3334): ONE paged store (<see cref="PagedFile"/>, its page cache, its ledger) opened through the
+/// <summary>⭐ THE RUN UNIT'S HANDLE ON ONE PHYSICAL FILE'S KEYED STORE ENGINE
+/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333, PB3334): ONE paged store (<see cref="PagedFile"/>, its page cache, its ledger) opened through the
 /// handles of the run unit's connectors on the file (<see cref="RunUnitPageMedium"/>), and its trees, which the
 /// organization's view names (<see cref="RelativeStore"/>: one tree keyed by the relative record number;
 /// <see cref="IndexedStore"/>: the prime tree and one tree per alternate key). Every connector of the run unit over the path
