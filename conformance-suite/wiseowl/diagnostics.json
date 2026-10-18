@@ -13801,6 +13801,54 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3355-call-target-alphanumeric-edited": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1681"
+ },
+ "pb3355-call-target-strong-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1681"
+ },
+ "pb3355-cancel-target-strong-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1696"
+ },
+ "pb3355-code-identifier-strong-group": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2713"
+ },
+ "pb3355-evaluate-range-strong-group-and-alphanumeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2107"
+ },
+ "pb3355-evaluate-range-strong-groups-of-two-types": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET2107"
+ },
  "pb3365-search-nested-dynamic-no-occurrence": {
   "refuse-at": [
    "2014",
