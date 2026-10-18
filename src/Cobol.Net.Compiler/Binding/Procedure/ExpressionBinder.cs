@@ -434,7 +434,7 @@ internal sealed class ExpressionBinder(BinderContext ctx, StatementBinder host)
     {
         if (IntrinsicArgumentRules.ClassOf(op) is not { } cls || !excluded.Contains(cls)) return false;
         ctx.Edition.Error(DiagnosticCatalog.OperandClassExcluded,
-            $"{where} operand '{sourceText}' is of class {IntrinsicArgumentRules.Name(cls)}, which the "
+            $"{where} operand '{sourceText}' is of class {IntrinsicArgumentRules.ClassNameOf(op, cls)}, which the "
             + $"statement's rules exclude — {cite}");
         return true;
     }

@@ -81,13 +81,16 @@ internal sealed class ProcedureHeaderScreen(EditionContext edition, string where
     /// argument side takes (<c>CallBinder.ValueClassScreen</c>, §14.9.4.3 SR22; <c>UdfBinder</c>'s function-argument screen). The list
     /// this replaced read the STORAGE category, and a USAGE INDEX item carries category numeric for its storage model
     /// (<c>PicInfo.IndexItem</c>) while Table 2 puts it in class index, so an index formal passed as BY VALUE; it also
-    /// re-diagnosed a recovery profile (no class) that every other screen over the table fails open on.</para></summary>
+    /// re-diagnosed a recovery profile (no class) that every other screen over the table fails open on.</para>
+    /// <para>The refusal names the class through <see cref="IntrinsicArgumentRules.ClassNameOf(DataItem)"/>: a
+    /// strongly-typed group is refused because its class is its type-name (§8.5.2.1), and the message says so rather
+    /// than the "alphanumeric" <see cref="IntrinsicArgumentRules.ClassOfItem"/> answers for a function argument.</para></summary>
     public void ByValueClass(string written, DataItem item)
     {
         var cls = IntrinsicArgumentRules.ClassOfItem(item);
         if (cls is null or CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer) return;
         edition.Error("COBOLNET1553",
-            $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.Name(cls.Value)}; it shall "
+            $"{where}: BY VALUE formal parameter '{written}' is of class {IntrinsicArgumentRules.ClassNameOf(item)}; it shall "
             + "be of class numeric, message-tag, object, or pointer (ISO §14.2.2 SR2)");
     }
 
