@@ -84,7 +84,7 @@ public static partial class CobolIntrinsics
 
     /// <summary>ABS (§15.7.4, COBOL-2014+): the absolute value, at the argument's own scale.</summary>
     /// <remarks>⛔ <see cref="Int128.MinValue"/> HAS NO REPRESENTABLE MAGNITUDE (kb/Work PB2698). A signed 16-byte binary
-    /// item holds −2^127 (its container, §13.18.60.4 GR12), <c>-v</c> on it wraps to itself, and the former
+    /// item holds −2^127 (its container, DOC-A.1-208), <c>-v</c> on it wraps to itself, and the former
     /// <c>v &lt; 0 ? -v : v</c> returned a NEGATIVE "absolute value" that a signed receiver then stored as garbage. The
     /// result 2^127 is past the native intermediate data item (a scaled <see cref="Int128"/>, DOC-A.1-123), so it is
     /// the size error condition like every other step that leaves the carrier — §14.7.5 rule 5 with the range CHECKED

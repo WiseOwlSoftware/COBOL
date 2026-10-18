@@ -105,7 +105,7 @@ public sealed class CobolDecWideLiftTests
     }
 
     // ── The UNSIGNED 16-byte landing (kb/Work PB2966) ─────────────────────────────────────────────────────────────
-    // An unsigned PIC 9(19) COMP-5 item owns [0, 2^128) (§13.18.60.4 GR12, cite.py --check OK 13.18.60.4 12)), so a
+    // An unsigned PIC 9(19) COMP-5 item owns [0, 2^128) (DOC-A.1-208, kb/Work R10), so a
     // standard-decimal result in [2^127, 2^128) is not "further from zero than permitted for the associated resultant
     // data item" (§14.7.5 case 3, cite.py --check OK 14.7.5 3)). The Int128 landing could not carry it.
 

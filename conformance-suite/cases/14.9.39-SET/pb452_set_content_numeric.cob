@@ -18,7 +18,7 @@
       *>   S9(4)V99  - a DigitCount item, 6 digit positions with scale 2, so the permitted magnitudes run
       *>               0.00 .. 9999.99 in steps of 0.01: farthest = 9999.99, nearest nonzero = 0.01.
       *>   9(4)V99   - the same digits, unsigned, so it holds no sign to set (GR32 c has nothing to apply).
-      *>   S9(4) COMP-5 - a BinaryCapacity item (13.18.60.4 GR12): the item owns its 2-byte container's whole
+      *>   S9(4) COMP-5 - a BinaryCapacity item (CONFORMANCE.md DOC-A.1-208): the item owns its 2-byte container's whole
       *>               two's-complement range -32768 .. 32767, so the two farthest-from-zero values differ in
       *>               MAGNITUDE and 14.9.39.3 SR31 a) makes the SIGN phrase mandatory (see the negative case
       *>               negative/pb452-set-content-sign-required).
@@ -72,7 +72,7 @@
       *> ITS OWN description (GR32 says "the content of identifier-14", per occurrence), so these two differ.
            SET CONTENT OF WS-SIGNED WS-SMALL TO FARTHEST-FROM-ZERO
            DISPLAY "J:" WS-SIGNED "/" WS-SMALL
-      *> A two's-complement container reaches one further down than up (13.18.60.4 GR12), which is why SR31 a)
+      *> A two's-complement container reaches one further down than up (CONFORMANCE.md DOC-A.1-208), which is why SR31 a)
       *> demands the SIGN phrase here. Shown through a wide separate-sign item so the printed value is the whole
       *> magnitude and not the 4 digit positions the receiver's own PICTURE would display.
            SET CONTENT OF WS-BINARY TO FARTHEST-FROM-ZERO SIGN POSITIVE
