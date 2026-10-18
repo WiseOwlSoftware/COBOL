@@ -1,4 +1,4 @@
-## PB804: the NIST differential grades every file a CCVS program writes, not the one it used to read
+## Entry 2212 — 2026-10-18 08:53 PDT — PB804: the NIST differential grades every file a CCVS program writes, not the one it used to read
 
 `NistDifferentialTests.RunNist` read exactly one string per program: the print file (`<test>.txt`), else the first
 `*.txt` in the run directory, else stdout. It normalized that string and deleted the run directory. Whatever else the
@@ -76,3 +76,4 @@ case was shown red against a mutant (checks removed, pipefail dropped) or the pr
 **Register.** kb/Work PB804 landed, `closes_rows: []` with its reason (a process-only defect, no inventory row).
 
 Review round 2 (R2-1): two doc comments still stated the pre-round-1 rules (`Grade` said every file is compared in its canonical form; `StdoutName` said the console counts only beside a print file). They now say the console is compared on the acceptance basis and is a written file beside a print file or after an abnormal end; the same wording is corrected in `guard-verdict.sh` and DESIGN-test-build-ci.md 3.2.1. Comment-only change.
+
