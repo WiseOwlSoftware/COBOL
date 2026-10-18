@@ -1,4 +1,4 @@
-## PB604: the CLOSE/OPEN medium determination is category (a) Non-unit, and two inventory rows stop calling it single-unit
+## Entry 2189 — 2026-10-18 02:46 PDT — PB604: the CLOSE/OPEN medium determination is category (a) Non-unit, and two inventory rows stop calling it single-unit
 
 kb/Work PB604 named two follow-ups to PB235's CLOSE landing. Both were prose in the traceability inventory; no compiler
 change was needed or made.
@@ -24,3 +24,4 @@ open; that sentence was re-recorded.
 
 **Rows.** No GAP moved (66 before and after): `closes_rows` is empty with its reason. The self-review looked for other rows
 that put a file in category (b) or (c) and for notes that cite a landed defect as open; the two above were the only hits.
+
