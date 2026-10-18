@@ -9,7 +9,7 @@
       *> multiplicand is stored as the new value of the data item referenced by identifier-2", and 14.7.4.3 applies
       *> the ROUNDED phrase to that ONE transfer: GR2 "If the ROUNDED phrase is not specified, execution is as if
       *> ROUNDED MODE IS TRUNCATION", PROHIBITED an inexact result is the size error EC-SIZE-TRUNCATION.
-      *> A 16-byte COMP-5 receiver owns a 38-digit container (13.18.60.4 GR12), so a product of two 20-digit
+      *> A 16-byte COMP-5 receiver owns a 38-digit container (CONFORMANCE.md DOC-A.1-208), so a product of two 20-digit
       *> operands (up to 40 digits, 38 here) can be held EXACTLY and every digit of it is the receiver's to round.
       *> The landing kept 34 digits of such a product, so PIC S9(31) COMP-5 stored ...5370000 for ...5361999 and
       *> ROUNDED MODE PROHIBITED raised nothing.  EVERY VALUE BELOW IS EXACT DECIMAL ARITHMETIC (hand-derived):

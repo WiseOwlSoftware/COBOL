@@ -6,7 +6,7 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// The BinaryCapacity truncation discipline (ISO §13.18.60.4 GR12 — COMP-5 / the BINARY-CHAR family): a store
+/// The BinaryCapacity truncation discipline (§13.18.60.4 GR12 for the BINARY-CHAR family, DOC-A.1-208 for COMP-5): a store
 /// bounds the value by the NATIVE two's-complement range of the item's byte width, not its digit count. Phase 4
 /// M2-DATA-1 implemented the previously-stubbed path in <see cref="CobolNum"/>. <c>Store</c> WRAPS an
 /// out-of-range value — the deterministic no-ON-SIZE-ERROR truncation, the width analog of high-order digit

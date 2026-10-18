@@ -847,7 +847,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         operands evaluated once) — the exact 256-bit product is rounded ONCE to the resultant's scale with the
     ///         resultant's own mode
     ///         (<c>CobolDec.MulAtScale</c>, the multiplicative twin of the outermost division). It does not matter how
-    ///         wide the resultant is: a 16-byte COMP-5 item owns a 38-digit container (§13.18.60.4 GR12), where an
+    ///         wide the resultant is: a 16-byte COMP-5 item owns a 38-digit container (DOC-A.1-208, kb/Work R10), where an
     ///         SDIDI product keeps 34 and the receiver's ROUNDED phrase — PROHIBITED included — would never see the tail
     ///         (kb/Work PB1143's review finding N1: <c>E * F</c> of two 20-digit operands into <c>PIC S9(31) COMP-5</c>
     ///         stored …5370000 for …5361999). A product past the Int128 carrier at that scale is the size error

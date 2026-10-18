@@ -30,7 +30,7 @@ public sealed class HostLandingTests
     };
 
     /// <summary>A binary item whose truncation is by capacity (BINARY-CHAR … BINARY-DOUBLE, COMP-5): its whole
-    /// <paramref name="bytes"/>-byte container (ISO §13.18.60.4 12); kb/Work R10).</summary>
+    /// <paramref name="bytes"/>-byte container (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10).</summary>
     private static NumProfile Capacity(int digits, int scale, bool signed, int bytes) => new()
     {
         Digits = digits, FractionDigits = scale, Signed = signed, SignKind = NumericSign.BinaryMinus,

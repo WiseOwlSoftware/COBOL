@@ -19,8 +19,8 @@
       *>   NEAREST-AWAY-FROM-ZERO (11.9.11).
       *>
       *>   S PIC S9(19) COMP-5 holds its whole 16-byte container
-      *>   (13.18.60.4 GR12 "The implementor may allow a wider range" ->
-      *>   cite.py OK 13.18.60.4 12)): here -2**127 =
+      *>   (CONFORMANCE.md DOC-A.1-208, the owner
+      *>   decision of kb/Work R10): here -2**127 =
       *>   -170141183460469231731687303715884105728, 39 digits.  As an
       *>   operand it is the SDIDI -1.701411834604692317316873037158841E+38
       *>   = -170141183460469231731687303715884100000 (the 5 dropped digits

@@ -4083,7 +4083,7 @@ public static class DiagnosticCatalog
         + "and negative extremes have DIFFERENT absolute values, the SIGN phrase shall be specified — a) for "
         + "FARTHEST-FROM-ZERO, b) for NEAREST-TO-ZERO. The rule exists because \"the value farthest away from "
         + "zero permitted by the specifications of identifier-14\" (GR32 a) is then ambiguous, and it bites "
-        + "exactly the two's-complement containers of §13.18.60.4 GR12: a PIC S9(4) COMP-5 item spans "
+        + "exactly the two's-complement containers (§13.18.60.4 GR12; COMP-5 by DOC-A.1-208): a PIC S9(4) COMP-5 item spans "
         + "−32768..32767, so FARTHEST-FROM-ZERO alone would have to choose between two different magnitudes. "
         + "Write SIGN POSITIVE or SIGN NEGATIVE. A DIGIT-COUNT item (PIC S9(4) DISPLAY, ±9999) is symmetric and "
         + "needs no phrase.",

@@ -153,7 +153,7 @@ public static partial class CobolNum
         Int128 v = Rescale(value, valueScale, receiver.FractionScale, mode);
 
         // BinaryCapacity (COMP-5 / BINARY-CHAR family): the SIZE ERROR boundary is the native two's-complement
-        // range of the byte width (ISO §13.18.60.4 GR12) — signed [-2^(bits-1), 2^(bits-1)), unsigned magnitude
+        // range of the byte width (§13.18.60.4 GR12 / DOC-A.1-208) — signed [-2^(bits-1), 2^(bits-1)), unsigned magnitude
         // [0, 2^bits) (§14.9.25.4 GR6d2b for the unsigned-magnitude rule).
         if (receiver.Truncation == NumericTruncation.BinaryCapacity)
         {
@@ -189,7 +189,7 @@ public static partial class CobolNum
     }
 
     /// <summary>Does this receiver's container hold a value past <see cref="Int128.MaxValue"/> — an UNSIGNED 16-byte
-    /// radix-2 item of the BinaryCapacity discipline (<see cref="NumProfile.ImageExceedsInt128"/>; ISO §13.18.60.4 GR12 gives
+    /// radix-2 item of the BinaryCapacity discipline (<see cref="NumProfile.ImageExceedsInt128"/>; DOC-A.1-208 gives
     /// the item its full container, kb/Work R10)? The ONE test the SDIDI landings ask for their unsigned arm.</summary>
     private static bool HoldsPastInt128(in NumProfile receiver) =>
         receiver.Truncation == NumericTruncation.BinaryCapacity && receiver.ImageExceedsInt128;
@@ -201,7 +201,7 @@ public static partial class CobolNum
         stored = 0;
         if (HoldsPastInt128(receiver))
         {
-            // The UNSIGNED 16-BYTE container (kb/Work PB2966): every magnitude below 2^128 is in its range (§13.18.60.4 GR12),
+            // The UNSIGNED 16-BYTE container (kb/Work PB2966): every magnitude below 2^128 is in its range (DOC-A.1-208),
             // so only the PROHIBITED-inexact transfer (§14.7.4.3 r7) and a value past every container fail.
             try { stored = unchecked((Int128)value.ToUnscaledMagnitude(receiver.FractionScale, mode, checkedTransfer: true)); }
             catch (CobolSizeError) { return false; }
@@ -271,7 +271,7 @@ public static partial class CobolNum
     /// storage width — the deterministic no-ON-SIZE-ERROR truncation for COMP-5 / the BINARY-CHAR family (the
     /// width analog of the DigitCount path's <c>%= 10^Digits</c>). A signed receiver folds by modulo 2^bits into
     /// [-2^(bits-1), 2^(bits-1)) (exactly a native sbyte/short/int/long cast); an unsigned receiver stores the
-    /// magnitude (ISO §14.9.25.4 GR6d2b) reduced modulo 2^bits into [0, 2^bits). ISO §13.18.60.4 GR12/GR21.
+    /// magnitude (ISO §14.9.25.4 GR6d2b) reduced modulo 2^bits into [0, 2^bits). §13.18.60.4 GR12/GR21 / DOC-A.1-208.
     /// <para>⛔ THE 16-BYTE TIER RETURNS CONTAINER BITS (kb/Work R10, F74). A C# <c>Int128</c> shift count is
     /// masked to 7 bits, so the old <c>1 &lt;&lt; 128</c> silently produced modulus 1 and every 16-byte store
     /// collapsed to 0. At bits = 128 the container range equals (unsigned: doubles) the <c>Int128</c> domain, so
@@ -294,7 +294,7 @@ public static partial class CobolNum
 
     /// <summary>Whether a value fits the native two's-complement range of a BinaryCapacity receiver's storage
     /// width — the SIZE ERROR test for COMP-5 / the BINARY-CHAR family: signed [-2^(bits-1), 2^(bits-1));
-    /// unsigned magnitude [0, 2^bits) (ISO §13.18.60.4 GR12; §14.9.25.4 GR6d2b for the unsigned-magnitude rule).
+    /// unsigned magnitude [0, 2^bits) (§13.18.60.4 GR12 / DOC-A.1-208; §14.9.25.4 GR6d2b for the unsigned-magnitude rule).
     /// At bits = 128 every <c>Int128</c> value is in range — signed because the domains coincide, unsigned
     /// because every magnitude ≤ 2^127 &lt; 2^128 (kb/Work R10, F74 — the shift-mask bug made this leg answer
     /// "[0, 1)" and the signed leg answer "never", so SIZE ERROR fired on every in-range 16-byte store).</summary>
@@ -317,7 +317,7 @@ public static partial class CobolNum
     private static Int128 BinaryMagnitude(Int128 value) => unchecked((Int128)CobolDec.UAbs(value));
 
     // ── The UNSIGNED WIDE lane (kb/Work R10 — owner decision 2026-08-07: unsigned COMP-5 carriers are
-    // ulong / UInt128, and the item owns its full container range, ISO §13.18.60.4 GR12). A value in
+    // ulong / UInt128, and the item owns its full container range, DOC-A.1-208). A value in
     // (Int128.MaxValue, 2^128) exists ONLY in a 16-byte unsigned BinaryCapacity item; it enters generated code
     // as a UInt128-typed expression (the item's field read, or the HIGHEST-ALGEBRAIC fold literal §15.43.4 r2),
     // and the EMITTER routes it here by the operand's static carrier (NumX.U) — the U-suffixed names are
