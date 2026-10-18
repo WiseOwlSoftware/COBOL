@@ -908,7 +908,7 @@ of an unsupported facility.
   this compiler's answer (a RETURN in an input procedure answers at end, a RELEASE in an output procedure is not
   kept) is deterministic. Golden
   `conformance:wiseowl/cases/14.9.40-SORT/pb1571_sort_merge_active_vs_flow` pins (a) at source level, with the EC-FLOW names
-  raised where -ACTIVE is not enabled and EC-SORT-MERGE-RETURN (GR3) unpre-empted.
+  raised where -ACTIVE is not enabled and EC-SORT-MERGE-RETURN (GR3) unpre-empted. The dispositions with no USE procedure (abnormal termination for a written RETURN/RELEASE, the inner SORT ended and the run unit continuing for a nested SORT) are pinned by `SortMergeActiveUndeclaredDispositionTests`.
   **(b) The disposition when the SORT or MERGE itself raises a condition** (EC-SORT-MERGE-FILE-OPEN,
   -SEQUENCE, -RELEASE of the implicit USING release, -ACTIVE at a nested SORT/MERGE — and any other fatal condition
   its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §14.6.13.1.3 2) hands it to the verb, and
