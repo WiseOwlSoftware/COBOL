@@ -1005,7 +1005,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
             BoundOperand right = ComparisonOperand(operands[1]);
             // §8.8.4.12.3 SR1 is decided HERE, on the relation's operand class, where the carry is seeded (PB1391).
             carry.BooleanRelation = IsBooleanClassOperand(subject) || IsBooleanClassOperand(right);
-            // ⛔ THE OBJECT-REFERENCE (§8.8.4.2.1 Format 3 / SR5) AND DATA-POINTER (§8.8.4.2.16) BANDS USED TO BE
+            // ⛔ THE OBJECT-REFERENCE (§8.8.4.2.2 Format 3 / §8.8.4.2.3 SR5) AND DATA-POINTER (§8.8.4.2.16) BANDS USED TO BE
             // WRITTEN HERE, in the relation arm, ABOVE the checkpoint (kb/Work PB399). They are now in
             // StatementValidation.CheckRelationalOperands, beside the class-boolean and strongly-typed-group
             // rules of the same §8.8.4.2 band, because a rule about what may be COMPARED belongs to the ONE
@@ -1336,7 +1336,7 @@ internal sealed class ConditionBinder(BinderContext ctx, StatementBinder host)
 
     /// <summary>The ONE <see cref="BoundRelational"/> construction checkpoint — the §8.8.4.2.2 boolean
     /// relation rules ride every site (IF / EVALUATE pairing + ranges / PERFORM UNTIL / SEARCH): a boolean
-    /// operand compares only with another boolean operand (§8.8.4.2.1 F1 SR2/SR3 exclude class boolean from
+    /// operand compares only with another boolean operand (§8.8.4.2.3 SR2/SR3, Format 1, exclude class boolean from
     /// the general relation — a class mix is 0844) and only for [in]equality (Format 2 — an ordering operator
     /// on boolean operands is 0844; an EVALUATE THRU range over a boolean subject trips the same check,
     /// §14.9.13.3 SR4). Figurative ZERO is boolean zeros by context (§8.3.3.6.4 GR4); every other figurative

@@ -968,7 +968,8 @@ public static class DiagnosticCatalog
         "COBOLNET1557", "same-as-cycle", EditionSeverity.Error,
         "A SAME AS reference is cyclic: neither data-name-1's description nor any subordinate of the subject "
         + "may directly or indirectly reference the subject or a group it is subordinate to, via SAME AS (SR3) "
-        + "or a TYPE clause (SR4).", "ISO §13.18.49.3 SR3/SR4");
+        + "or a TYPE clause (SR4; the TYPE clause's own statement of the cycle is §13.18.57.3 SR1).",
+        "ISO §13.18.49.3 SR3/SR4; §13.18.57.3 SR1");
 
     // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
     // ── COBOLNET1559 — the report-group PRESENT WHEN / VARYING / multiple-COLUMN syntax rules, one code for
