@@ -804,6 +804,22 @@ three shapes never reached.
 is materialized by `SendingValueTemp`; one folded to a literal is the compile-time name). The emitter reads every such
 name through `PtrEmitter.NameImage`, the operand's character image, because a group's `Read` is its record struct.
 
+**A strongly-typed group's class is its type-name outside a function argument (kb/Work PB3355, sibling of PB1901).**
+`IntrinsicArgumentRules.ClassOf` answers ALPHANUMERIC for a strongly-typed group, and that is §15.3 item 2's reading of a
+function ARGUMENT; §8.5.2.1 makes the class and the category of the group its type-name everywhere else, so a rule outside
+an argument position must not read the lattice's alphanumeric answer. Two shapes, two readers: a rule worded in a CATEGORY
+("Identifier-1 shall be defined as an alphanumeric or national data item" — CALL §14.9.4.3 SR1, CANCEL §14.9.5.3 SR1, the
+report CODE clause §13.18.12.3 SR2; §8.5.2.1: a class or category named in the rules "refers to the category unless class
+is specifically indicated") asks `ItemCategory.IsAlphanumericOrNational(Place)` / `IsAlphanumeric(DataItem)` and prints
+`ItemCategory.Face`; a PAIR rule worded in CLASS (EVALUATE's range-expression §14.9.13.3 SR4, "the same class") asks
+`IntrinsicArgumentRules.SameClass`, which takes a strongly-typed group to be of the class of another operand only when that
+operand is a strongly-typed group of the same type. The three screens used to ask the lattice (CALL and CANCEL accepted the
+group and read its character image as a program-name at run time; the range was refused only by the relation rule it lowers
+to). `StrongGroupClassScreenDriftTests` keeps `CobolClass.Alphanumeric` / `National` out of every Binding source that is not a
+function-argument position or a listed lattice consumer. Moving the CALL / CANCEL / CODE screens from class to category also
+refuses an alphanumeric-edited, numeric-edited, national-edited and variable-length-group target, which the rule's category
+wording excludes (the same reading ASSIGN USING and the record keys take, kb/Work PB850).
+
 **What this replaced, and why a table rather than a chain.** The nine formats each peeked at `receivers[0]` — and,
 in the TO direction, at the sender — in a fixed contract order, returning `null` to let the next candidate try.
 Three defects follow structurally from a scalar standing in for a set-valued question, and all three were
