@@ -1281,6 +1281,9 @@ public sealed class SequentialConnector : FileConnector
         if (!_lineSequential && RecordHasCharacterWithoutByteImage(image.AsSpan(0, Math.Min(image.Length, len))))
             return Status = FileStatusCode.CharacterWithoutByteImage;   // '91' §9.1.13.11 (DOC-A.1-110)
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        // A LINE SEQUENTIAL record goes out as its characters alone: a line is plain text (§12.4.5.10.3 GR2), so
+        // `extents` has nowhere to live and is deliberately not consulted by either line arm below — the READ splits
+        // the line by the take step (docs/CONFORMANCE.md §3 D-FRA (x); kb/Work PB1563).
         if (IsVarying)
         {
             if (_lineSequential) EmitRecordLine(TrimRecordEnd(FitRecord(image, len, national), national), national);
@@ -1576,7 +1579,13 @@ public sealed class SequentialConnector : FileConnector
             // remainder of an over-length line belongs to the READ that DELIVERS it, not to this one. GR16 is
             // stated after GR15 and asks only that the read be successful, so it also lands on a truncated
             // ('06') read; the status arbitration below follows that order (kb/Work PB329).
-            lineBadChar = RecordAreaOutsideLineCharacterSet(image, NationalRecordArea);
+            // ⛔ The delivered record area of a variable-length group is the WHOLE contiguous line (D-FRA (x)), not
+            // just its RecordWidth fixed run, so the set is asked of the delivered line at its own width: a control
+            // character in a dynamic member past the fixed run is '09', as the WRITE's GR23 and the REWRITE's GR17 d)
+            // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
+            // RecordWidth wide, so the fitted image is the same subject as before.
+            string delivered = lineTooLong ? CurrentRecord : line;
+            lineBadChar = RecordAreaOutsideLineCharacterSet(delivered.Length > RecordWidth ? delivered : image, NationalRecordArea);
         }
         else if (NextFrame(out _, out RecordExtents? extents) is { } data)
         {
@@ -1673,8 +1682,12 @@ public sealed class SequentialConnector : FileConnector
             _lastLineBytes = line.Length - bom;                   // the BYTES the record being replaced occupies
             string record = FromMedium(bom == 0 ? line : line[bom..]);
             // An over-length read transfers only part (GR17a) — measured in the record area's units, as the READ's
-            // own truncation is (§14.9.30.4 GR15; a UTF-8 line's characters, not its bytes).
-            _lastReadLinePartial = record.Length > RecordWidth;
+            // own truncation is (§14.9.30.4 GR15; a UTF-8 line's characters, not its bytes), and against the SAME
+            // bound: "the maximum size specified by the record description entries" (MaxRecordSize), which is wider
+            // than the character window for a variable-length group, whose dynamic members lie outside it (D-FRA;
+            // kb/Work PB1563 — RecordWidth called a whole 9-character line of a 3-character fixed run "partial", and
+            // the REWRITE of a record the READ delivered in full was '44').
+            _lastReadLinePartial = record.Length > MaxRecordSize;
             return record;
         }
         // The block start is the LOGICAL offset (characters consumed so far — 1:1 with bytes under Latin1),
