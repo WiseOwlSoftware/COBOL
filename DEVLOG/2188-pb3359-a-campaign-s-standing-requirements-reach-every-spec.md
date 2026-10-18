@@ -1,4 +1,4 @@
-## PB3359: a campaign's standing requirements reach every spec and the branch reviewer; PB3360 retired as a duplicate of PB3114
+## Entry 2188 — 2026-10-18 02:04 PDT — PB3359: a campaign's standing requirements reach every spec and the branch reviewer; PB3360 retired as a duplicate of PB3114
 
 The owner's 2026-10-17 ~22:25 requirement (SORT and file I/O tests cover the abnormal and exception paths as fully as the
 success paths) reached an implementer only because the wave-1115 unit edited groups.json by hand, and it never reached the
@@ -35,3 +35,4 @@ section 9a pins a real PB3353 member planned without `--cluster`. The golden `te
 `requirements` per group.
 
 Branch review R2 (wave 1116 B finisher, round 2): the campaign lead note kb/Work/PB3353.md still said its `## Standing requirements` section was read by `plan_wave.py --cluster PB3353`, the superseded mode rule, which would send a reader to hand-edit groups.json for a fix-lane member. The sentence now names `plan_wave.group_requirements` and the membership rule, and section 9a of `test_plan_wave.py` pins that the note says so.
+
