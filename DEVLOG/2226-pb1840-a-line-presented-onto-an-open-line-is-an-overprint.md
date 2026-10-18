@@ -1,4 +1,4 @@
-## PB1840: a line presented onto an open line is an overprint, not a continuation
+## Entry 2226 — 2026-10-18 16:18 PDT — PB1840: a line presented onto an open line is an overprint, not a continuation
 
 A BEFORE-placed record presented while an earlier write's line was still open (an AFTER write's, a plain WRITE's, a
 BEFORE ADVANCING 0's) was appended to that line's text: AFTER 1 "AAAA" then BEFORE 1 "BBBB" left `AAAABBBB`, and AFTER 1
@@ -51,3 +51,4 @@ END-OF-PAGE and NOT END-OF-PAGE phrases, with `USE AFTER EXCEPTION CONDITION EC-
 declaratives (checking enabled, as pb854), and with a declarative without FILE STATUS and with neither (GR27 e), the run
 continues). A first draft used the STANDARD ERROR declarative for the end-of-page writes and it never ran: a successful
 write reaches only the exception-condition declaratives, which is also the standard's design.
+
