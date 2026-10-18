@@ -41,4 +41,7 @@ rules. That is a noisy heuristic with a backlog, so it goes to the report as a l
 **Rows.** None: the note is process_only and every inventory row it touches was already OK, so `closes_rows: []` with
 a reason. **Self-review:** one table for the collating clauses, no second copy of a message; no behaviour change, no
 hot path touched. **Gate** (run 20261018T061112Z-1d9678): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
-PB2515): GREEN ===`, with every changed COBOLNET0898 / COBOLNET0844 negative passing in leg 1 at each edition.
+PB2515): GREEN ===`, with every changed COBOLNET0898 / COBOLNET0844 negative passing in leg 1 at each edition. The
+finisher's re-gate after the CONFORMANCE.md fix (run 20261018T074555Z-f11e76) read the same GREEN line; it again left
+`AnnexA1RegisterDriftTests` in leg 2, so that class ran on its own (3/3 passed) and `audit_annex_a1.py --check`
+reported no findings.
