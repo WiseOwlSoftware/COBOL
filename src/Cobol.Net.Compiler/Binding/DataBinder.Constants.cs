@@ -127,8 +127,10 @@ public sealed partial class DataBinder
         internal Dictionary<string, List<DeclaredConstant>> Declared { get; } = new(CobolNames.Comparer);
 
         /// <summary>The words a METHOD's data division defines as anything but a constant-name — its data-names,
-        /// condition-names and index-names. §11.7.4 GR5 makes each hide a constant of the same spelling in the
-        /// containing object or factory definition. Empty for the binder's own element, whose data-names cannot repeat
+        /// condition-names, index-names and type-names, but not the names inside a type declaration, which "may be
+        /// referenced only as subordinate items of groups defined using the type-name" (§13.18.58.4 GR1) and so hide
+        /// nothing (kb/Work PB3192). §11.7.4 GR5 makes each hide a word of the same spelling in the containing object or
+        /// factory definition, from before the entry that defines it binds (<see cref="OoMethodDataScope.Declares"/>). Empty for the binder's own element, whose data-names cannot repeat
         /// one of its own constant-names (§8.3.2.2) and whose containers' constants it shadows through
         /// <see cref="DropShadowedConstants"/>.</summary>
         internal HashSet<string> OtherWords { get; } = new(CobolNames.Comparer);
@@ -143,7 +145,7 @@ public sealed partial class DataBinder
     /// <summary>The METHOD whose constants a reference made now reads first: the method whose data division is being
     /// bound, else the method whose statements are (<see cref="ActiveMethodScope"/>); null at program, object,
     /// factory and interface level.</summary>
-    private ConstantScope? MethodConstants => (_bindingMethodScope ?? ActiveMethodScope)?.Constants;
+    private ConstantScope? MethodConstants => CurrentMethodScope?.Constants;
 
     /// <summary>⛔ THE ONE ANSWER TO "WHICH ELEMENT'S CONSTANT DOES <paramref name="name"/> NAME HERE?" (kb/Work PB3164;
     /// §11.7.4 GR5: "If a given user-defined word is defined in the data division of this method definition and in the
@@ -160,7 +162,7 @@ public sealed partial class DataBinder
         if (MethodConstants is { } method)
         {
             if (method.Declared.ContainsKey(name)) return method;
-            if (method.OtherWords.Contains(name) || ActiveMethodDeclares(name)) return null;
+            if (ActiveMethodDeclares(name)) return null;
         }
         return _constants;
     }
@@ -324,9 +326,13 @@ public sealed partial class DataBinder
     {
         if (scope is null) return;
         var method = _bindingMethodScope?.Constants;
+        bool inTypeDeclaration = false;   // the walk is inside a level-1 TYPEDEF entry's subordinate entries
         foreach (var node in Descendants(scope))
         {
             if (node is Core.ReportDescriptionEntryContext rd) DeclareReportEntries(rd);
+            if (node is Core.DataDescriptionEntryContext record && EntryLevel(record) is 1 or 77)
+                inTypeDeclaration = record.dataDescriptionBody()?.dataDescriptionClauses()?.dataDescriptionClause()
+                    .Any(static c => c.typedefClause() is not null) == true;
             switch (node)
             {
                 case Core.DataDescriptionEntryContext e when e.dataDescriptionBody()?.constantEntryBody() is { } b:
@@ -335,11 +341,13 @@ public sealed partial class DataBinder
                 case Core.ConstantEntryContext c when c.constantEntryBody() is { } b:
                     DeclareConstant(c, c.levelNumber(), c.dataName(), b);
                     break;
-                // A method's data-names, condition-names and index-names hide its object's constants (§11.7.4 GR5).
-                case Core.DataDescriptionEntryContext e when method is not null && e.dataName()?.GetText() is { } n:
+                // A method's data-names, condition-names, index-names and type-names hide its object's words (§11.7.4
+                // GR5); the names inside one of its type declarations hide nothing (§13.18.58.4 GR1).
+                case Core.DataDescriptionEntryContext e when method is not null && e.dataName()?.GetText() is { } n
+                        && !(inTypeDeclaration && EntryLevel(e) is not (1 or 77)):
                     method.OtherWords.Add(n);
                     break;
-                case Core.IndexNameListContext ix when method is not null:
+                case Core.IndexNameListContext ix when method is not null && !inTypeDeclaration:
                     foreach (var w in ix.cobolWord()) method.OtherWords.Add(w.GetText());
                     break;
             }

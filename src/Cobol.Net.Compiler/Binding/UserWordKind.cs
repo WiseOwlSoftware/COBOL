@@ -79,6 +79,19 @@ public static class UserWordKinds
         UserWordKind.SectionName, UserWordKind.ParagraphName, UserWordKind.LevelNumber,
     };
 
+    /// <summary>⛔ THE TYPES WHOSE EVERY DECLARATION CAN BE REFERENCED ONLY UNQUALIFIED, AS DATA (kb/Work PB3216): a
+    /// reference "shall contain a reference that uniquely identifies that resource" (ISO §8.4.2.1), and these words
+    /// have no qualifier (§8.4.2.2 qualifies data, condition, file-report and index names), so a SECOND declaration of
+    /// one in a source element leaves every reference to it ambiguous. <c>DataBinder.DeclareUserWord</c> refuses the
+    /// second under <c>COBOLNET4250</c>; a switch's condition-names (the <c>ConditionName</c> type is also the
+    /// level-88 entries', which qualification tells apart) ask the same check explicitly at their declaration. A new
+    /// SPECIAL-NAMES declaration kind joins this set and nothing else.</summary>
+    public static IReadOnlySet<UserWordKind> DeclaredUnqualifiable { get; } = new HashSet<UserWordKind>
+    {
+        UserWordKind.AlphabetName, UserWordKind.ClassName, UserWordKind.DynamicLengthStructureName,
+        UserWordKind.LocaleName, UserWordKind.MnemonicName, UserWordKind.OrderingName,
+    };
+
     /// <summary>⛔ THE ONE ANSWER to "may one word be used as BOTH of these types of user-defined word in a source
     /// element?" (ISO §8.3.2.2: "<i>a given user-defined word may be used as only one type of user-defined word</i>"
     /// with three exceptions): the same type (a word declared twice as one type is a uniqueness question,

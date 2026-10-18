@@ -84,7 +84,9 @@ index-name or register) spelled like a SYMBOLIC CHARACTERS name of the class is 
 the inherited symbolic after it binds (`DataBinder.DropShadowedConstants`), and a method's names hide it, and an
 object constant-name, at reference time (`DataBinder.ActiveMethodDeclares`; kb/Work PB3154 review R1-1). That method tier is
 `OoMethodDataScope.Declares`, which asks EVERY name index the method's scope holds (`ByName`, `Conditions`, `IndexNames`,
-`CapacityRegisters`, and the method's constant entries, `Constants`, kb/Work PB3164); `GlobalNameClassDriftTests.MethodDeclares_AsksEveryMethodNameIndex` finds those indexes by reflection (a `DataBinder.ConstantScope` counts as one: a method's `01 X CONSTANT AS 7` that it missed let `IF X` test the object's level-88 `X`, kb/Work PB3153 review round 3), so an
+`CapacityRegisters`, the method's type declarations, `TypeDecls`, kb/Work PB3192, and the method's constant entries, `Constants`,
+kb/Work PB3164), plus the words its data description entries declare before they bind (`Constants.OtherWords`, a type declaration's
+members excepted, §13.18.58.4 GR1); `GlobalNameClassDriftTests.MethodDeclares_AsksEveryMethodNameIndex` finds those indexes by reflection (a `DataBinder.ConstantScope` counts as one: a method's `01 X CONSTANT AS 7` that it missed let `IF X` test the object's level-88 `X`, kb/Work PB3153 review round 3), so an
 index added to the scope is asked too (kb/Work PB3165: when a method's registers moved into the method's own scope, a hand-written list
 kept asking the class's register index and the method's register stopped hiding the symbolic). Every `SymbolTable` lookup with a
 method tier asks the same predicate after its own name class's method index: `TryResolve`, `TryResolveCondition`, `IndexCandidates`
@@ -92,6 +94,16 @@ and `CapacityCandidates` each answer from the method when it declares the spelli
 it declares it in another, so a method's word hides the object's declaration of it whatever either's class (§11.7.4 GR5, §8.4.6.1;
 kb/Work PB3165 review R2-1). `GlobalNameClassDriftTests.EverySymbolTableMethodTier_AsksTheMethodsWholeDeclaration` holds every
 method-tiered member of `SymbolTable` to it.
+A method's names join the METHOD's scope as they are declared, never the class's (kb/Work PB3192): each record or type
+declaration a method's entry opens is the method's from that moment (`DataBinder.OoRootOwner`, written in `BindEntries`), and
+every registration — a data-name, its index-names, a condition-name, a type-name — asks `DataBinder.NameScopeOf` (the owner of
+the item's root) at the entry's bind and at a post-build TYPE / SAME AS copy alike. A reference the method's DATA division makes
+(a constant's `LENGTH OF` operand, a TYPE clause's type-name, a SAME AS operand) is answered from the method first, exactly as
+one its statements make: `DataBinder.ActiveScope` reads `CurrentMethodScope` (the statements' method, else the method whose data
+binds), and the post-build passes read `ScopeOf` of the entry's root. A method's type-name is a local name (§8.4.6.2.2;
+§13.18.27.3 SR4 bars GLOBAL there) found by `TryFindTypeDecl(name, scope)` before its object's, and `AllTypeDecls` walks every
+element's declarations for the whole-forest passes. The names used to join the class's maps and move after the method bound, so
+the method's own data division resolved against the object's names and a later TYPE copy's members leaked to sibling methods.
 
 ## Spec corrections
 
