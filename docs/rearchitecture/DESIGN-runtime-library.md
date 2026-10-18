@@ -888,7 +888,7 @@ number (4) + the generation of the write it names (8), 2.2.1.6 R3.
 ```
 PAGE (4 096 bytes; every page)
    0   1  kind          M meta · I internal · L leaf · O overflow · F free
-   1   1  flags         kind-specific (a leaf's bit 0: rightmost; an overflow's bit 0: last of its chain)
+   1   1  flags         kind-specific (an overflow's bit 0: last of its chain; I, L, M: 0)
    2   2  entries       entry count (I, L); payload bytes (O)
    4   4  checksum      CRC-32C of every other byte of the page — bytes 0..3 and 8..4095 — the one torn-page detector
                         (2.2.1.6 R3, R6). (The first draft covered bytes 8..4095 only and left kind, flags and entries
@@ -896,7 +896,7 @@ PAGE (4 096 bytes; every page)
                         every bit of every page kind.)
    8   8  generation    the generation that last wrote this page (2.2.1.6 R2, R3)
   16   4  self          this page's number (a page read from the wrong offset is a torn read)
-  20   4  next          O: the next overflow page of the chain; L: the right sibling (0 = none); I, M: 0
+  20   4  next          O: the next overflow page of the chain; I, L, M: 0 (no sibling pointers: see below)
   24   8  reserved      0
   32  ..  body
 
@@ -945,9 +945,10 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
 
 INTERNAL (I)   body: a leftmost child POINTER(12) at 32, then entries × { key length(2), key bytes, child POINTER(12) } ascending
 LEAF (L)       body: entries × { key length(2), value length(4), key bytes, value bytes } ascending;
-               a value whose length word has bit 31 set is an OVERFLOW REFERENCE: a POINTER(12) to the first overflow page +
-               4 bytes total length; each overflow page's `next` is paired with the next page's generation in its own body's
-               first 8 bytes (so the chain is stamped like every other pointer)
+               a value whose length word has bit 31 set is an OVERFLOW REFERENCE (its low bits 16, the reference's own
+               size): a POINTER(12) to the first overflow page + 4 bytes total length; each overflow page's `next` is paired
+               with the next page's generation in its own body's first 8 bytes (so the chain is stamped like every other
+               pointer)
 OVERFLOW (O)   body: 8 bytes next-page generation, then up to 4 056 payload bytes, chained by `next`
 FREE (F)       body: unused (a free page keeps its header so a stale read is recognizable)
 ```
@@ -957,7 +958,8 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   KEY ORDER chosen once per tree at OPEN (`IKeyOrder`): ORDINAL bytes for a native collating sequence, WEIGHTED (decode, then
   the key's `CobolCollation` as `IndexedConnector.KeyCompare` does today) for a declared one, NUMERIC for a relative record
   number (stored as 8 bytes big-endian, so ordinal byte order IS numeric order and the ordinal comparer serves), and COMPOSITE
-  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b)) is a
+  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b) sets its
+  length, c) and d) truncate each stored key to it, e) compares them by §8.8.4.2.7's equal-length rule) is a
   seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix.
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
   key whose value is not the key's SUPPRESS WHEN value (the §12.4.5.6.4 GR6 suppression; §14.9.30.4 GR21 c): such a record *"is not
@@ -973,10 +975,30 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   highest relative record number existing in the physical file"*) is the tree's last key; an empty slot costs nothing, so the
   sparse case of kb/Work PB1192 (one record at a key in the billions) is one leaf. START relational operators are seeks;
   READ NEXT / PREVIOUS are cursor steps.
-- **A record larger than a leaf can hold inline goes to overflow pages**: a leaf entry keeps at most 1 016 bytes of value inline
-  (a quarter of the body, Berkeley DB's `page_size / (minkeys × 2)` with two keys per page) and otherwise an overflow reference;
-  the frame is read from the chain. So the maximum record size is the host's, not the page's. Keys are bounded by the leaf: a
-  key longer than 1 016 bytes is refused at the OPEN with '39' as a fixed-attribute conflict the format cannot hold (DOC-A.1-129).
+- **A record larger than a leaf can hold inline goes to overflow pages**: a leaf entry keeps a value inline when the value is at
+  most 1 016 bytes (a quarter of the body, Berkeley DB's `page_size / (minkeys × 2)` with two keys per page) AND the whole entry
+  (6 + key + value bytes) is at most half a body, 2 032 bytes, and otherwise an overflow reference of 16 bytes; the frame is read
+  from the chain. The second condition is the measured correction (kb/Work PB3332): with the first alone a 1 016-byte key and a
+  1 016-byte value made a 2 038-byte entry, two of which do not share a page, so a split could not always make two pages; with
+  both, any two entries share a page and every split is a two-way split. So the maximum record size is the host's, not the
+  page's. Keys are bounded by the leaf: a key longer than 1 016 bytes is refused at the OPEN with '39' as a fixed-attribute
+  conflict the format cannot hold (DOC-A.1-129); the tree itself refuses one as its caller's defect (`BTree.MaxKeyBytes`).
+- **How the tree changes (kb/Work PB3332, `BTree`).** A statement's changes to a tree are made IN MEMORY first — the path to each
+  changed entry copied, nodes split, merged or rebalanced — and FLUSHED once: every changed node is written exactly once, children
+  before parents, to the statement's reserved pages, and every page the tree stopped referencing is handed to the ledger
+  (`released` or `freed`, R2). So R1 holds by construction, no (page, generation) pair is written twice however many changes a
+  statement makes to one tree (R3's corollary), and the number of pages a statement will write is known before it begins, which
+  sizes its reservation exactly. A node is split when it passes a page body — where the larger half is smallest, or, for an
+  APPEND above every key of the tree, just past what fitted before (Berkeley DB's rule at the right edge), so a sequential load
+  fills its pages — and is merged with a sibling, or borrows from one, when a change SHRANK it below a quarter of a body (a page
+  an append left small is left to fill). **There are no sibling pointers**: a leaf's `next` is 0, because path copying cannot
+  keep them — a rewritten leaf's left neighbour would still name the superseded page, and re-pointing it would copy every leaf
+  to its left, which R1 forbids doing in place. A cursor holds its root-to-leaf path and crosses leaves by climbing it to the
+  first ancestor with a further child (so READ NEXT reads ≤ 1 page within a parent and ≤ d − 1 across one, 2.2.1.11); a cursor
+  whose tree another statement replaced re-seeks from its current key (`BTree.Adopt` takes the root a coherent entry adopted,
+  2.2.1.7), so it never walks a superseded path whose pages may have been reused. A torn or stale page met by a read answers
+  '30' and discards the tree's pending edit. The LEDGER is a RESIDENT instance (every node in memory, read whole at each
+  adoption, R6 step 3 needing all of it anyway); every other tree reads the pages a walk needs.
 - **Free space.** A page leaves a tree in one of two ways and the LEDGER (2.2.1.6 R2) records which: a page the COMMITTED tree
   references is `freed` and quarantined until the promotion that makes its freeing durable (R4); a page allocated since the
   committed generation is `released` and reusable by any LATER statement (R1 keeps the work meta's own tree intact). At a
@@ -988,11 +1010,17 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   three meta pages until they are overwritten: a death between the truncation and the first write left the OLD store's
   committed slots valid over a file cut to three pages, and the next OPEN adopted a tree whose pages were gone. PB3331's
   creation cases kill the creation at every write and sync.)
-- **What the pages prove at a glance.** With 22-byte internal entries (an 8-byte relative key and a 12-byte pointer) a page
-  fans out 184 ways; a 3-level tree covers 6 million relative records, 4 levels 1.1 billion. With 40-byte prime keys an
-  internal page holds 75 entries and a leaf 16 records of 200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5
-  levels 500 million. Every level but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in
-  the steady state and O(log n) only cold (2.2.1.11).
+- **What the pages prove at a glance.** An internal page holds ⌊(4 064 − 12) / (2 + k + 12)⌋ keys of k bytes and one child
+  more; a leaf holds ⌊4 064 / (6 + k + v)⌋ entries of v-byte values. With 22-byte internal entries (an 8-byte relative key and a
+  12-byte pointer) a page holds 184 keys and 185 children, and a sequential load's append splits leave every internal page but
+  the rightmost of its level with 184; a leaf of 8-byte frames holds 184. So such a tree is 1 level to 184 records, 2 levels to
+  185 × 184 = 34 040, 3 levels to about 6.3 million and 4 to about 1.15 billion — the boundaries PB3332's shape test measures
+  (184 → 1 level, 185 → 2, 34 040 → 2, 34 041 → 3). A realistic 80-byte record frame gives 39 per leaf: 3 levels hold about
+  1.3 million records, 4 levels 245 million. With 40-byte prime keys an internal page holds 75 keys and a leaf 16 records of
+  200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5 levels 500 million. These are FULL pages, a sequential
+  load's; random inserts leave pages about two-thirds full on average, which costs a level only near a boundary. Every level
+  but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in the steady state and O(log n)
+  only cold (2.2.1.11).
 
 **2.2.1.5 The code set and the character set.** The frame payload and the key bytes are the channel bytes of today's
 `FileCharacterSet.ToChannel` + `Medium.GetBytes` (one byte per character position; a character with no byte image is refused at
@@ -1621,8 +1649,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
 **2.2.1.11 Performance targets, and how a test measures them without a clock.** `PagedStore` counts its page reads, page
 writes and syncs per statement (`IoCounters`, internal), and every witness asserts COUNTS, because a wall-clock test is a flake
 generator (the repository's rule) and because a count is the thing the bar states. With d = the tree's depth (2.2.1.4 gives the
-formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries), the free-tree batch ≤ 2 pages (taken once per
-statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
+formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries; PB3332's shape test measures at most 2 over 3 000
+one-record statements), the free-tree batch ≤ 2 pages (taken once per statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
 for a thousand open holdings), read only when page 2's holdings root is not empty:
 
 | Statement | Pages read | Pages written | Syncs |
@@ -1739,7 +1767,11 @@ every crash scenario is deterministic and runs on every host without a VM:
 - the layout: a golden hex dump of an empty relative store and of an empty indexed store with two keys (the three meta pages
   byte for byte), and the page checksum detecting a single flipped bit in every page kind;
 - the engine's tree: a property test of insert/delete/seek/next/prev against a `SortedDictionary` model under every key order,
-  including composite keys, overflow values and splits and merges at every level;
+  including composite keys, overflow values and splits and merges at every level (PB3332's `BTreeModelTests`, with the shape
+  and I/O counts of 2.2.1.4 and 2.2.1.11 in `BTreeShapeTests` and a tree statement killed, killed just after and refused at
+  each of its writes in `BTreeCrashTests`); a writer's coherent entry that adopts another run unit's page 2 reads the
+  LEDGER tree whole (it is resident: allocation needs its released pages, R6 step 3 its fresh ones), at most the
+  checkpoint's few pages;
 - the transaction: two run units on one file, each under APPLY COMMIT, interleaving WRITE, REWRITE and DELETE on disjoint
   records; A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; A's COMMIT then B's ROLLBACK
   restores B's; a run unit that CLOSEs and then ROLLBACKs restores the state at its last COMMIT; a first change under
@@ -1806,9 +1838,11 @@ today.
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
 crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
-`Ledger`, `PageChain`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
-`tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set are serialized as `PageChain` overflow chains until
-PB3332's tree replaces both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
+`Ledger`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
+`tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
+PB3332's tree replaced both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it
+(in the tree: `BTree`, `BTreeCursor`, `IKeyOrder`, `KeyOrders`, `OverflowChain`, with the LEDGER a resident tree and the FREE
+set the FREE tree, and its model, shape and crash cases beside the page layer's); PB3333 RELATIVE on the engine (its connector, its tests, the
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
