@@ -94,6 +94,13 @@ public sealed class CatalogCoverageDriftTests
                 continue;
             }
 
+            // A PROSE-PARAGRAPH row (kb/Work PB284 part 3) has no ordinal line in the transcription to count; its
+            // own gate is ProseClauses_AreHeldSentenceForSentence.
+            if (rule.TryGetProperty("shape", out var shape) && shape.GetString() == "paragraph")
+            {
+                continue;
+            }
+
             string section = rule.GetProperty("section").GetString()!;
             counts[section] = counts.TryGetValue(section, out int n) ? n + 1 : 1;
         }
@@ -276,6 +283,137 @@ public sealed class CatalogCoverageDriftTests
             + "catalog (python scripts/spec/extract_rule_catalog.py):\n  " + string.Join("\n  ", undrawn));
     }
 
+    /// <summary>A clause heading that names a construct's general format in EITHER spelling: the standard heads
+    /// 321 clauses "General format(s)" and exactly one "General forms" (§14.9.7.2, COMMIT).</summary>
+    private static readonly Regex GeneralFormatTitle =
+        new(@"^#{2,6}\s+(?<num>\d+(?:\.\d+)*)\s+General\s+form(?:at)?s?\.?\s*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>The clauses whose heading is a general-format heading in either spelling AND whose own body (to the
+    /// next heading) carries a diagram or a Format label — a format the clause PRINTS (§5.2.1).</summary>
+    private static List<string> PrintedGeneralFormats(string[] lines)
+    {
+        var found = new List<string>();
+        for (int i = 0; i < lines.Length; i++)
+        {
+            var m = GeneralFormatTitle.Match(lines[i]);
+            if (!m.Success)
+            {
+                continue;
+            }
+
+            var body = new List<string>();
+            for (int j = i + 1; j < lines.Length && !AnyHeading.IsMatch(lines[j]); j++)
+            {
+                body.Add(lines[j]);
+            }
+
+            string text = string.Join("\n", body);
+            if (FmtDiagram.IsMatch(text) || FmtLabel.IsMatch(text))
+            {
+                found.Add(m.Groups["num"].Value);
+            }
+        }
+
+        return found;
+    }
+
+    private static List<JsonElement> CatalogRows()
+    {
+        using var doc = JsonDocument.Parse(File.ReadAllText(
+            TestRepo.Docs("rearchitecture", "spec-rule-catalog.json")));
+        return [.. doc.RootElement.GetProperty("rules").EnumerateArray().Select(r => r.Clone())];
+    }
+
+    /// <summary>⛔ EVERY GENERAL FORMAT THE TRANSCRIPTION PRINTS HAS ITS ROW, WHATEVER THE HEADING SAYS (kb/Work
+    /// PB284). §14.9.7.2 is headed "General forms" — the one such heading in the standard — and the extractor, which
+    /// keyed on the word "format", never emitted FMT-14.9.7.2: no parse gap, no unrecognised heading, nothing. This
+    /// reads the headings straight from the transcription in BOTH spellings and holds the written catalog to them.
+    /// </summary>
+    [Fact]
+    public void EveryPrintedGeneralFormat_HasAnFmtRow_InEitherSpellingOfItsHeading()
+    {
+        var held = CatalogRows().Where(r => r.GetProperty("kind").GetString() == "FMT")
+            .Select(r => r.GetProperty("section").GetString()!).ToHashSet(StringComparer.Ordinal);
+        var missing = PrintedGeneralFormats(SpecLines()).Where(sec => !held.Contains(sec)).ToList();
+        Assert.True(missing.Count == 0,
+            "the transcription prints a general format under a 'General format(s)' / 'General forms' heading that "
+            + "the catalog has no FMT row for — the denominator is short by it (kb/Work PB284). Regenerate the catalog "
+            + "(python scripts/spec/extract_rule_catalog.py):\n  " + string.Join("\n  ", missing.Select(s => $"FMT-{s}")));
+        Assert.Contains("14.9.7.2", held);   // the one clause headed 'General forms'
+    }
+
+    /// <summary>⛔ A PROSE CONCEPT CLAUSE ADMITTED AS PARAGRAPH ROWS IS HELD SENTENCE FOR SENTENCE (kb/Work PB284
+    /// part 3). §9.1.16 (record locking), §9.1.17 and §9.1.18 (commit and rollback) state their rules as running
+    /// prose with no numbered marker, so the numbered scan never opened them and the burn-down was measured against
+    /// a denominator that did not hold the clause that SETS EC-FLOW-APPLY. The rows' text, in order, must be the
+    /// clause's body.</summary>
+    [Fact]
+    public void ProseClauses_AreHeldSentenceForSentence()
+    {
+        string[] clauses = ["9.1.16", "9.1.17", "9.1.18.1", "9.1.18.2", "9.1.18.3", "9.1.18.4", "9.1.18.5",
+                            "9.1.18.6", "9.1.18.7"];
+        var rows = CatalogRows().Where(r => r.TryGetProperty("shape", out var s) && s.GetString() == "paragraph")
+            .ToList();
+        var lines = SpecLines();
+        foreach (string clause in clauses)
+        {
+            var mine = rows.Where(r => r.GetProperty("section").GetString() == clause).ToList();
+            Assert.True(mine.Count > 0, $"§{clause} has no paragraph rows — the commit/rollback concept clauses left the denominator");
+            Assert.Equal(Enumerable.Range(1, mine.Count),
+                         mine.Select(r => r.GetProperty("ordinal").GetInt32()));
+
+            int at = Array.FindIndex(lines, l => Regex.IsMatch(l, @"^#{2,6}\s+" + Regex.Escape(clause) + @"\s"));
+            Assert.True(at >= 0, $"§{clause} heading not found in the transcription");
+            var body = new List<string>();
+            for (int j = at + 1; j < lines.Length && !AnyHeading.IsMatch(lines[j]); j++)
+            {
+                if (!Furniture.IsMatch(lines[j]))
+                {
+                    body.Add(lines[j]);
+                }
+            }
+
+            static string Squash(string s) => Regex.Replace(s.Replace("\\", ""), @"\s+", " ").Trim();
+            Assert.Equal(Squash(string.Join(" ", body)),
+                         Squash(string.Join(" ", mine.Select(r => r.GetProperty("text").GetString()!))));
+        }
+
+        // The sentence the whole group exists for: only §9.1.18.7 SETS EC-FLOW-APPLY.
+        Assert.Contains(rows, r => r.GetProperty("section").GetString() == "9.1.18.7"
+                                   && r.GetProperty("text").GetString()!.Contains("EC-FLOW-APPLY", StringComparison.Ordinal));
+        // §9.1.16 paragraph 6 forbids what may be WRITTEN, so it is a syntax rule (§5.3.2); the rest of the clause is general.
+        Assert.Contains(rows, r => r.GetProperty("id").GetString() == "SR-9.1.16-p6");
+    }
+
+    /// <summary>⛔ THE PRINTED FORMAT BAND IS A FIELD, AND THE RULE BEFORE IT IS NOT POLLUTED BY IT (kb/Work PB284).
+    /// The standard scopes a rule by the label printed above it ("FORMAT 2", "ALL FORMATS", "SEQUENTIAL FILES").
+    /// The extractor once glued the label onto the PRECEDING rule's text ("… is 88. FORMAT 5") and carried no scope;
+    /// now the label is <c>band</c>, its format numbers are <c>band-formats</c>, and no SR/GR text ends in one.</summary>
+    [Fact]
+    public void TheFormatBand_IsACatalogField_NeverGluedOntoARulesText()
+    {
+        var rows = CatalogRows();
+        var glued = rows.Where(r => r.GetProperty("kind").GetString() is "SR" or "GR")
+            .Where(r => Regex.IsMatch(r.GetProperty("text").GetString()!, @"\b(?:ALL )?FORMATS?(?: \d+(?:(?:,| AND|, AND) \d+)*)?\s*$"))
+            .Select(r => r.GetProperty("id").GetString()!).ToList();
+        Assert.True(glued.Count == 0, "a printed band label leaked into a rule's text:\n  " + string.Join("\n  ", glued));
+
+        static int[] Bands(JsonElement r) =>
+            r.TryGetProperty("band-formats", out var b) ? [.. b.EnumerateArray().Select(n => n.GetInt32())] : [];
+        var byId = rows.ToDictionary(r => r.GetProperty("id").GetString()!, StringComparer.Ordinal);
+        Assert.Equal([5], Bands(byId["SR-13.18.63.3-36"]));      // VALUE clause FORMAT 5 (validation)
+        Assert.Equal([2], Bands(byId["SR-13.18.41.3-1"]));       // PRESENT WHEN FORMAT 2 (validation)
+        Assert.Equal([2], Bands(byId["GR-14.9.11.4-12"]));       // DISPLAY FORMAT 2 (screen)
+        Assert.Equal([1, 2], Bands(byId["GR-13.18.41.4-1"]));    // "FORMATS 1 AND 2": a SUBSET test must see both
+        Assert.Empty(Bands(byId["SR-13.18.63.3-1"]));            // "ALL FORMATS": a band, but no format number
+        Assert.Equal("ALL FORMATS", byId["SR-13.18.63.3-1"].GetProperty("band").GetString());
+        Assert.False(byId["SR-14.9.1.3-5"].TryGetProperty("band", out _)); // §14.9.1.3 prints no band at all
+        // A band that is not about formats still scopes: WRITE's first sixteen rules are 'ALL FILES', the next 'SEQUENTIAL FILES'.
+        Assert.Equal("ALL FILES", byId["GR-14.9.51.4-1"].GetProperty("band").GetString());
+        Assert.Equal("SEQUENTIAL FILES", byId["GR-14.9.51.4-17"].GetProperty("band").GetString());
+        Assert.Empty(Bands(byId["GR-14.9.51.4-17"]));
+    }
+
     /// <summary>⛔ Every predicate fired against inputs built to break it. Without this, a refactor that made
     /// either scrape return nothing would leave two permanently-green assertions over an empty set.</summary>
     [Fact]
@@ -335,5 +473,23 @@ public sealed class CatalogCoverageDriftTests
         ]);
         Assert.Single(undrawn);
         Assert.StartsWith("FMT-5.2:", undrawn[0], StringComparison.Ordinal);
+
+        // PB284: a general format printed under the PLURAL heading is found, and so is the singular; a parent
+        // clause with no diagram is not; and the heading scan reads the BODY, so a diagram-less leaf is not a format.
+        string[] forms =
+        [
+            "##### 14.9.7.2 General forms",
+            "<pre style=\"line-height:1\">",
+            "<u>COMMIT</u>",
+            "</pre>",
+            "##### 14.9.7.3 Syntax rules",
+            "##### 14.9.36.2 General format",
+            "<pre style=\"line-height:1\">",
+            "<u>ROLLBACK</u>",
+            "</pre>",
+            "#### 5.2 General formats",
+            "##### 5.2.1 Description",
+        ];
+        Assert.Equal(["14.9.7.2", "14.9.36.2"], PrintedGeneralFormats(forms));
     }
 }

@@ -23084,7 +23084,9 @@ The COMMIT statement makes permanent all changes to all files subject to active 
 <a id="section-14-9-7-2"></a>
 ##### 14.9.7.2 General forms
 
-`COMMIT`
+<pre style="line-height:1">
+<u>COMMIT</u>
+</pre>
 
 <a id="section-14-9-7-3"></a>
 ##### 14.9.7.3 Syntax rules

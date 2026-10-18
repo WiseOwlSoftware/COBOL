@@ -501,12 +501,23 @@ non-conformance as if the owner had licensed it.
    selector altogether when owner decision Q30 / `kb/Work/PB592` found the element IS provided, closing CONFORMS
    on `conformance:cases/A.1-Implementor-defined-language-element-list/pb592_binary_usage_range_bounds`).
 
-**What a selector cannot reach is recorded, not silently dropped** (`feedback_measure_the_selectors_complement`).
-The standard also scopes rules by the printed **FORMAT band**, and the catalog does not carry it —
-`extract_rule_catalog.py` glues the heading onto the preceding rule's text — so twelve rules that *are* solely
-conditioned stay outside the predicate and are named in the schema's `$format-band-residue` and in kb/Work PB284.
-Reaching them by regex would be a hand list in regex clothing; the repair is the extractor, and a denominator
-change rebuilds the inventory and is its own landing.
+**The printed FORMAT band is a catalog field, and a selector arm reads it** (kb/Work PB284). The standard scopes a
+rule three ways — by clause, by words, and by the group label printed above it ("FORMAT 2", "SEQUENTIAL FILES",
+"ALL FORMATS"). `extract_rule_catalog.py` carries the third as `band` (the label as printed) and `band-formats` (the
+format numbers it names) on every SR/GR row printed under one, and no longer lets the label leak into the text
+before it. The `formats` arm field selects a rule whose `band-formats` is a non-empty SUBSET of the arm's numbers —
+solely, because a rule under "FORMATS 1 AND 2" also holds for format 1 — and is only legal beside `sections`, since a
+format number is its clause's own (PRESENT WHEN's FORMAT 2 is not ACCEPT's). The operand arm stays: §14.9.1.3 prints no
+band at all and SR-14.9.1.3-5 is scoped by the names `identifier-3` / `identifier-4`; neither mechanism subsumes the
+other. The eight rows this reached (five in `validate-only`, three in `screen-handling-only`) are the ones
+the old `$format-band-residue` block recorded as unreachable.
+
+**Prose concept clauses are rows too** (kb/Work PB284 part 3, PB479). A clause whose rules are running prose with no
+numbered marker (§9.1.16 record locking, §9.1.17, §9.1.18.x commit and rollback) was invisible to the numbered scan
+and to every completeness guard. The manifest's `paragraph-blocks` key admits such a clause, with its rule kind and
+the reason, and the extractor emits one row per normative paragraph (`GR-9.1.16-p1`, field `shape: paragraph`).
+`audit_catalog_coverage.py` holds each admitted clause to the same standard as a numbered one: the rows' text is the
+clause's text, sentence for sentence.
 
 **What the gate actually enforces** (eleven facts, and it is proven able to fail — see below): the inventory covers
 the catalog exactly, no row contradicts its catalog entry, every verdict is in the vocabulary, every stored `state`
