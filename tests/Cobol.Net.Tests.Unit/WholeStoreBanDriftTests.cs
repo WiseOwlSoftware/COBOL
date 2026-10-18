@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ NO STATEMENT READS OR WRITES THE WHOLE FILE: THE KEYED STORE IS READ AND WRITTEN ONE PAGE AT A TIME, IN ONE PLACE
-/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.11 witness (d) and §2.2.1.13; kb/Work PB3330, PB3335). The
+/// (DESIGN-runtime-library.md 2.2.1.11 witness (d) and 2.2.1.13, in docs/rearchitecture; kb/Work PB3330, PB3335). The
 /// owner's bar for the keyed store engine (PB3330): <i>"no statement reads or writes the whole file"</i>. Before the
 /// engine a keyed connector loaded the whole physical file into memory at OPEN and wrote it back whole at CLOSE (and,
 /// for a file another run unit could write, at every statement), so a statement on a large shared file cost O(file).

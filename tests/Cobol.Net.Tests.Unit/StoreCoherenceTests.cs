@@ -9,8 +9,8 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ COHERENCE ACROSS RUN UNITS AT PAGE GRANULARITY, THROUGH THE CONNECTORS (docs/rearchitecture/DESIGN-runtime-library.md
-/// §2.2.1.7; kb/Work PB3335). Within a run unit every connector over a physical file attaches to ONE store
+/// ⛔ COHERENCE ACROSS RUN UNITS AT PAGE GRANULARITY, THROUGH THE CONNECTORS (DESIGN-runtime-library.md 2.2.1.7, in
+/// docs/rearchitecture; kb/Work PB3335). Within a run unit every connector over a physical file attaches to ONE store
 /// (<see cref="StoreTable"/>), so a sibling's change is visible at once; across run units the FILE is the truth, and a
 /// coherent statement learns of another run unit's change by reading ONE page — page 2, the work meta — and, when its
 /// generation moved, adopts page 2 and DROPS the page cache instead of reloading anything. ISO §9.1.15 3), <i>"The sharing
@@ -32,6 +32,8 @@ namespace CobolNet.Tests.Unit;
 ///   <item>2.2.1.12's last R6 row: an <c>INPUT SHARING WITH ALL OTHER</c> reader that opened a crashed file (page 2 torn,
 ///   rejected) reads the committed tree, statement after statement, until a writable OPEN in another run unit fences the
 ///   file; from then on it reads page 2's tree, and the crashed statement's record is in neither.</item>
+///   <item>PB3330's quadratic case: two run units loading one file through <c>SHARING WITH ALL OTHER</c>, every statement
+///   meeting the other's change, write a bounded page count per statement however large the file grows.</item>
 ///   <item>The predicate each engine asks follows the engine (2.2.1.13, finding R2-7): the keyed store asks
 ///   <see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, and the sequential organization keeps
 ///   <see cref="FileLockPosture.AdmitsAnotherWriter"/>, so a <c>SHARING WITH READ ONLY</c> sequential writer still
@@ -191,6 +193,72 @@ public sealed class StoreCoherenceTests
             Assert.Equal("00", b.Status("B"));
         }
         finally { TryDelete(host); }
+    }
+
+    /// <summary>PB3330's quadratic case, gone: two run units loading ONE file through <c>SHARING WITH ALL OTHER</c>, their
+    /// WRITEs interleaved so every statement meets the other's change. Each statement adopts page 2 and writes only its own
+    /// pages — at most d + 5 + 1 (2.2.1.11's relative row, and the indexed row with no alternate key: (0 + 1) × d + 6; d ≤ 2
+    /// at 2 000 small records) — whatever the file's size: the last hundred statements cost
+    /// what the hundred after the first thousand did, give or take the depth growth. A statement that promotes first (R2's
+    /// ceiling) is the promotion row's and is told apart by its syncs. Every record of both run units is in the file.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void Two_run_units_loading_one_file_write_a_bounded_page_count_per_statement(Org org)
+    {
+        string host = Tmp($"load-{org}");
+        try
+        {
+            var a = new FileRegistry();
+            var b = new FileRegistry();
+            Register(a, "A", host, org);
+            Register(b, "B", host, org);
+            DyingPageMedium? aMedium = null, bMedium = null;
+            KeyedStore.MediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
+            try { a.OpenStatic("A", FileOpenMode.Output); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", a.Status("A"));
+            a.Close("A");
+            KeyedStore.MediumObserver.Value = inner => aMedium = new DyingPageMedium(inner);
+            try { a.OpenStatic("A", FileOpenMode.IO); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            KeyedStore.MediumObserver.Value = inner => bMedium = new DyingPageMedium(inner);
+            try { b.OpenStatic("B", FileOpenMode.IO); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", a.Status("A"));
+            Assert.Equal("00", b.Status("B"));
+
+            var writes = new List<int>();
+            for (int n = 1; n <= 2000; n++)
+            {
+                var (reg, name, medium) = n % 2 == 1 ? (a, "A", aMedium!) : (b, "B", bMedium!);
+                int before = medium.Writes, synced = medium.Syncs;
+                Assert.Equal("00", Write(reg, name, org, n, "LOAD"));
+                if (medium.Syncs == synced) writes.Add(medium.Writes - before);
+            }
+            const int bound = 2 + 5 + 1;
+            Assert.True(writes.Count > 1500, $"{writes.Count} statements promoted nothing");
+            Assert.True(writes.Max() <= bound, $"a WRITE wrote {writes.Max()} pages (bound {bound})");
+            Assert.True(writes[^100..].Average() <= writes[1000..1100].Average() + 1, "the per-statement cost grew with the file");
+
+            b.Close("B");
+            a.Close("A");
+            Assert.Equal("00", a.Status("A"));
+            Assert.Equal("00", b.Status("B"));
+            var check = new FileRegistry();
+            Register(check, "R", host, org, sharing: null);
+            check.OpenStatic("R", FileOpenMode.Input);
+            foreach (int n in new[] { 1, 2, 999, 1000, 1999, 2000 })
+            {
+                Assert.Equal("00", Read(check, "R", org, n, out string image));
+                Assert.Equal(Rec(n, "LOAD"), image);
+            }
+            check.Close("R");
+        }
+        finally
+        {
+            KeyedStore.MediumObserver.Value = null;
+            TryDelete(host);
+        }
     }
 
     /// <summary>Page 2 as the file holds it now.</summary>
