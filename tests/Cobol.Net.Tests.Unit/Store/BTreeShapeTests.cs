@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Text;
+using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
 using Xunit;
@@ -408,7 +410,67 @@ public sealed class BTreeShapeTests
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 9), CompositeKeyOrder.Compose("AC"u8, 1)) < 0);
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 1), CompositeKeyOrder.Compose("AB"u8, 2)) < 0);
         Assert.Equal(0, composite.ComparePrefix(CompositeKeyOrder.Compose("ABC"u8, 7), "AB"u8));
+        // PREFIX-CONSISTENT: every order that compares position by position (§8.8.4.2.7 1)); a LOCALE-BASED sequence
+        // (§8.8.4.2.11) is not, and neither is a composite key over one.
+        Assert.True(KeyOrders.Ordinal.PrefixConsistent);
+        Assert.True(reversed.PrefixConsistent);
+        Assert.True(decoded.PrefixConsistent);
+        Assert.True(composite.PrefixConsistent);
+        var locale = new WeightedKeyOrder(null, new LocaleCollation("root"));
+        Assert.False(locale.PrefixConsistent);
+        Assert.False(new CompositeKeyOrder(locale).PrefixConsistent);
+        // Why: "áa" is below "ab" (primary a,a < a,b), while its one-character prefix "á" is above "ab"'s "a" (secondary).
+        Assert.True(locale.Compare(Latin1("áa"), Latin1("ab")) < 0);
+        Assert.True(locale.ComparePrefix(Latin1("áa"), Latin1("á")) == 0);
+        Assert.True(locale.ComparePrefix(Latin1("ab"), Latin1("á")) < 0);
     }
+
+    /// <summary>⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH §14.9.41.4 GR17 STATES
+    /// (review w1122-a R1-1): <i>"the file is searched sequentially"</i> for EQUAL and the GREATER relations, <i>"in reverse
+    /// order"</i> for the LESS ones, each stored key truncated to the partial key's length. Under the root locale the keys
+    /// order "áa" &lt; "ab" &lt; "ác" &lt; "ad" while their one-character prefixes are á, a, á, a, so the qualifying entries
+    /// are not one run of the key order and a binary search answered "ác" for NOT LESS THAN "á" (GR17 c) takes "áa") and
+    /// "ab" for LESS THAN "á" (GR17 d) takes "ad").</summary>
+    [Fact]
+    public void A_START_prefix_under_a_locale_sequence_is_the_sequential_search_of_GR17()
+    {
+        var (_, _, store) = StoreKit.NewStore();
+        var order = new WeightedKeyOrder(null, new LocaleCollation("root"));
+        Assert.Equal(StoreStatus.Ok, store.Enter());
+        var tree = new BTree(store, order, store.Meta.PrimeRoot);
+        foreach (var key in new[] { "ad", "áa", "ác", "ab" })
+        {
+            Assert.Equal(StoreStatus.Ok, tree.Insert(Latin1(key), Latin1(key), out bool inserted));
+            Assert.True(inserted);
+        }
+        Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));
+        var read = new BTree(store, order, store.Meta.PrimeRoot);
+        Assert.Equal(StoreStatus.Ok, read.First(out var walk));
+        var inOrder = new List<string>();
+        for (; walk.HasCurrent; Assert.Equal(StoreStatus.Ok, walk.Next())) inOrder.Add(Encoding.Latin1.GetString(walk.Key));
+        Assert.Equal(new[] { "áa", "ab", "ác", "ad" }, inOrder);
+
+        string? Start(string prefix, SeekRelation relation)
+        {
+            Assert.Equal(StoreStatus.Ok, read.Seek(Latin1(prefix), relation, out var cursor, prefix: true));
+            return cursor.HasCurrent ? Encoding.Latin1.GetString(cursor.Key) : null;
+        }
+        Assert.Equal("áa", Start("á", SeekRelation.GreaterOrEqual));
+        Assert.Equal("áa", Start("á", SeekRelation.Equal));
+        Assert.Null(Start("á", SeekRelation.GreaterThan));          // no prefix is above "á": the invalid key condition
+        Assert.Equal("ad", Start("á", SeekRelation.LessThan));
+        Assert.Equal("ad", Start("á", SeekRelation.LessOrEqual));
+        Assert.Equal("ab", Start("a", SeekRelation.Equal));
+        Assert.Equal("áa", Start("a", SeekRelation.GreaterThan));
+        Assert.Equal("ad", Start("a", SeekRelation.LessOrEqual));
+        Assert.Null(Start("a", SeekRelation.LessThan));
+        // The cursor a search leaves steps on in key order, like any other (READ NEXT after the START).
+        Assert.Equal(StoreStatus.Ok, read.Seek(Latin1("á"), SeekRelation.GreaterOrEqual, out var after, prefix: true));
+        Assert.Equal(StoreStatus.Ok, after.Next());
+        Assert.Equal("ab", Encoding.Latin1.GetString(after.Key));
+    }
+
+    private static byte[] Latin1(string text) => Encoding.Latin1.GetBytes(text);
 
     [Fact]
     public void A_key_past_the_limit_is_the_callers_defect_and_a_long_key_with_a_long_value_overflows()

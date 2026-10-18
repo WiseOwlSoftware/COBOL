@@ -960,7 +960,14 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   number (stored as 8 bytes big-endian, so ordinal byte order IS numeric order and the ordinal comparer serves), and COMPOSITE
   for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b) sets its
   length, c) and d) truncate each stored key to it, e) compares them by §8.8.4.2.7's equal-length rule) is a
-  seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix.
+  seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix. GR17 c)
+  and d) define that seek as a SEQUENTIAL search (forward, or in reverse for the LESS relations), and the tree narrows it by
+  binary search only under a PREFIX-CONSISTENT order (`IKeyOrder.PrefixConsistent`: a key below another never has a greater
+  prefix), which every order that compares position by position is — the bytes, and a sequence under §8.8.4.2.7 1)'s
+  standard comparison (`CobolCollation.UsesStandardComparison`). A LOCALE-BASED sequence is not (§8.8.4.2.11, *"not
+  necessarily performed character-by-character"*: under the root locale "áa" < "ab" while "á" > "a"), so under it a START's
+  partial key walks the tree entry by entry in the search's direction, exactly as GR17 states and as
+  `IndexedConnector.Start` searches every key today (review w1122-a R1-1).
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
   key whose value is not the key's SUPPRESS WHEN value (the §12.4.5.6.4 GR6 suppression; §14.9.30.4 GR21 c): such a record *"is not
   considered to exist"* under that key), an entry (alternate key, ordinal) → prime key, every ordinal the one fresh mint value (§14.9.51.4 GR40). REWRITE
