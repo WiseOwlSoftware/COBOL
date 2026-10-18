@@ -1,4 +1,4 @@
-## PB3378-PB3380 filed, and the owner's SORT and file I/O test rule becomes MANDATORY-PRACTICES I11
+## Entry 2217 — 2026-10-18 12:06 PDT — PB3378-PB3380 filed, and the owner's SORT and file I/O test rule becomes MANDATORY-PRACTICES I11
 
 The operator files three orchestration defects found on 2026-10-18 between 08:20 and 09:30, and puts the owner's
 standing test rule into the skills.
@@ -27,3 +27,4 @@ standing test rule into the skills.
   sync with every fix).
 
 Checks: `check_practices.py` GREEN; `test_plan_wave.py` 239/239; `test_dispatch_guard.py` 23/23; `work.py check` clean.
+
