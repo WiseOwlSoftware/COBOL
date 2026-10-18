@@ -109,6 +109,43 @@ public sealed class DiagnosticRegistryDriftTests
             + string.Join(", ", offenders));
     }
 
+    /// <summary>⛔ THE EXCEPTION-CHECKING (FORMAT-3) PERFORM'S CODES ARE ALL CATALOG DESCRIPTORS (kb/Work PB1154). The
+    /// family COBOLNET1597-1617 was written as bare string literals at <c>ctx.Edition.Error("COBOLNET16nn", …)</c>, a
+    /// shape <see cref="EveryEmittedCode_IsACatalogDescriptor"/>'s regex cannot see (its look-behind skips a dotted
+    /// call), so the whole family had no catalogue row, no DIAGNOSTICS.md entry and no suppress key. This pins the
+    /// family two ways: no source file outside the catalogue writes one of its codes as a quoted literal, and every
+    /// code the binder emits has a descriptor (1598, 1602, 1603 and 1609 are reserved numbers no rule emits).</summary>
+    [Fact]
+    public void ExceptionCheckingPerformCodes_AreCatalogDescriptors()
+    {
+        var literal = new System.Text.RegularExpressions.Regex("\"COBOLNET(159[7-9]|160\\d|161[0-7])\"");
+        var offenders = new List<string>();
+        foreach (var file in Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.EndsWith("DiagnosticCatalog.cs", StringComparison.Ordinal)
+                || file.EndsWith(".g.cs", StringComparison.Ordinal)
+                || file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")) continue;
+            var lines = File.ReadAllLines(file);
+            for (int i = 0; i < lines.Length; i++)
+                if (!lines[i].TrimStart().StartsWith("//", StringComparison.Ordinal) && literal.IsMatch(lines[i]))
+                    offenders.Add($"{Path.GetFileName(file)}:{i + 1}");
+        }
+        Assert.True(offenders.Count == 0,
+            "bare COBOLNET1597-1617 literal(s) — reference the DiagnosticCatalog descriptor (kb/Work PB1154): "
+            + string.Join(", ", offenders));
+
+        string[] emitted =
+        [
+            "COBOLNET1597", "COBOLNET1599", "COBOLNET1600", "COBOLNET1601", "COBOLNET1604", "COBOLNET1605", "COBOLNET1606",
+            "COBOLNET1607", "COBOLNET1608", "COBOLNET1610", "COBOLNET1611", "COBOLNET1612", "COBOLNET1613", "COBOLNET1614",
+            "COBOLNET1615", "COBOLNET1616", "COBOLNET1617",
+        ];
+        var known = DiagnosticCatalog.All.Where(d => d.Severity == CobolNet.Editions.EditionSeverity.Error)
+            .Select(d => d.Code).ToHashSet(StringComparer.Ordinal);
+        Assert.All(emitted, code => Assert.True(known.Contains(code), $"{code} has no error-severity descriptor"));
+    }
+
     [Fact]
     public void DiagnosticsDoc_RendersTheWholeCatalogue()
     {
