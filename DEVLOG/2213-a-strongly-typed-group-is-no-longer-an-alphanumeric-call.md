@@ -1,4 +1,4 @@
-## A strongly-typed group is no longer an alphanumeric CALL / CANCEL / CODE operand, and the EVALUATE range asks the same-class identity (PB3355)
+## Entry 2213 — 2026-10-18 10:22 PDT — A strongly-typed group is no longer an alphanumeric CALL / CANCEL / CODE operand, and the EVALUATE range asks the same-class identity (PB3355)
 
 PB3355 reported that a strongly-typed group passes alphanumeric-class screens outside a function argument, because
 `IntrinsicArgumentRules.ClassOfItem` answers ALPHANUMERIC for it. That answer is ISO §15.3 item 2's reading of a function
@@ -36,3 +36,4 @@ for a strongly-typed operand (a second record description sharing the key's byte
 `src/Cobol.Net.Compiler/Binding`, a specific path (drift_rules.py SPECIFIC_DEPTH), so the trait was removed. Re-gate:
 `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T164851Z-074753); all 22 pb3355 conformance
 cases in `leg-1-Conformance.trx` Passed. `semgrep/verify.py` PASS, `cobolnet-raw-diagnostic-code-literal` 244 -> 243 (baseline updated).
+
