@@ -339,7 +339,7 @@ public static partial class CobolNum
     /// PICTURE clause" — expressed as the item's OWN capacity discipline, the same one
     /// <see cref="CobolNum.TryStore"/> bounds a store by. A <see cref="NumericTruncation.BinaryCapacity"/> item
     /// (COMP-5 / BINARY-CHAR..DOUBLE) takes its value range from its storage, not from a picture
-    /// (§13.18.60.4 GR12 — "the implementor may allow a wider range"), so every container value is in range.</summary>
+    /// (§13.18.60.4 GR12 "the implementor may allow a wider range" / DOC-A.1-208), so every container value is in range.</summary>
     private static bool InPictureRange(Int128 unscaled, in NumProfile item) =>
         item.Truncation == NumericTruncation.BinaryCapacity
         || CobolDec.UAbs(unscaled) < (UInt128)Pow10Wide(item.Digits);
@@ -388,7 +388,7 @@ public static partial class CobolNum
         for (int i = 0; i < take; i++) raw = (raw << 8) | StorageByte.ToByte(image![i]);
         // UNCHECKED: a 16-byte unsigned container value ≥ 2^127 has no Int128 image, and the reinterpretation is
         // exactly what ParseImageU128 converts back — an overflow throw here would be a wrong stage, not a
-        // diagnosis (the value is legal; §13.18.60.4 GR12 gives the item its full container range).
+        // diagnosis (the value is legal; DOC-A.1-208 gives the item its full container range).
         if (!item.Signed) return unchecked((Int128)raw);
         // Sign-extend from the pinned width: a set top bit is a negative two's-complement value.
         if (n >= 16) return unchecked((Int128)raw);

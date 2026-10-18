@@ -22,7 +22,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// range check: the value is carried as given. ⛔ A caller passes only an operand whose unscaled magnitude is
     /// known to be at most 34 digits (a literal, a ≤31-digit item, a count), or one that wants the exact wide carrier
     /// on purpose (the native lane's round-to-odd bodies). A STANDARD-DECIMAL operand that may hold more digits — a
-    /// 16-byte binary container owns 39 (§13.18.60.4 GR12 "The implementor may allow a wider range"; DOC-A.1-123) —
+    /// 16-byte binary container owns 39 (a 16-byte COMP-5 item's full container, DOC-A.1-208; DOC-A.1-123) —
     /// is converted by <see cref="FromParsed"/> /
     /// <see cref="FromUnsigned"/>, because §8.8.1.5.2 r1 ROUNDS it to the SDIDI's 34 digits (kb/Work PB2918).</summary>
     public static CobolDec From(Int128 unscaled, int scale) => new(unscaled, -scale);
@@ -655,7 +655,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// the multiplicative twin of <see cref="CobolNum.Divide"/>'s outermost division, so the receiver's ROUNDED phrase
     /// sees every digit of the product whatever width the receiver is. <see cref="MulToOdd"/> cannot do this job for a
     /// receiver that holds more than 32 digits: a 16-byte COMP-5 item owns a 38-digit container
-    /// (§13.18.60.4 GR12), and an SDIDI product keeps 34.
+    /// (DOC-A.1-208), and an SDIDI product keeps 34.
     /// <para>The two statement dispositions are <see cref="ToUnscaled"/>'s and <see cref="ToUnscaledChecked"/>'s, the final
     /// transfer's pair. <paramref name="checkedTransfer"/> — the statement is under ON SIZE ERROR / EC-SIZE checking —
     /// raises ROUNDED MODE IS PROHIBITED on an inexact product (§14.7.4.3 r7, EC-SIZE-TRUNCATION) and a product the
@@ -873,7 +873,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
 
     /// <summary>⛔ THE UNSIGNED 16-BYTE LANDING (kb/Work PB2966): the value's MAGNITUDE as an unscaled integer at
     /// <paramref name="scale"/> in <c>[0, 2^128)</c>, rounded with the receiver's <paramref name="mode"/> — the §14.7 final
-    /// transfer into an UNSIGNED 16-byte binary container, whose range (ISO §13.18.60.4 GR12, kb/Work R10: the item owns
+    /// transfer into an UNSIGNED 16-byte binary container, whose range (DOC-A.1-208, kb/Work R10: the item owns
     /// its full container) reaches past <see cref="Int128.MaxValue"/>, the ceiling of <see cref="ToUnscaled"/> and
     /// <see cref="ToUnscaledChecked"/>. Before this twin a standard-decimal result in <c>[2^127, 2^128)</c> that the receiver
     /// holds was §14.7.5 case 3's size error, and a no-phrase store kept the low-order DIGITS of it (§14.7.5 applies to "a
