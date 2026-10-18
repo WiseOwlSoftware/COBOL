@@ -1340,7 +1340,13 @@ their places; what each does changes:
   not move, and nothing is dropped. **PROMOTING** set: the promoter died or was refused between its claim and its
   retirement's page 2, and the statement resolves it first — completes a promotion whose slot landed, runs an unlanded
   checkpoint again, unwinds an unlanded COMMIT (R5's restart rule) — before the dead-owner step, so a COMMIT's fate is
-  settled before its transaction is probed. Then a statement that CHANGES the file CLAIMS, in the
+  settled before its transaction is probed. ⛔ Only an EXCLUSIVE entry resolves it: an INPUT connector of a run unit whose
+  writable sibling opened the store enters that writable store under its own SHARED hold (a read-only handle cannot hold
+  the mutex exclusive), adopts page 2 as a writer does, and leaves the flag to the next exclusive entry or the CLOSE
+  (`PagedFile.Enter(exclusive)`), since two run units' readers resolving it under shared holds would claim from the same
+  mints and write the same slot and page 2 interleaved, breaking R1. *Measured correction (PB3333 review, finding R1-2;
+  `RelativeEngineTests.An_input_connector_beside_its_writable_sibling_reads_a_promoting_page_2_and_writes_nothing`).*
+  Then a statement that CHANGES the file CLAIMS, in the
   store's memory first and then on page 2: it writes page 2 once more with `stamp mint` = its generation and `transaction
   mint` and `release mint` advanced past every id and ordinal it will mint (a first change under commit control has
   already DRAWN its id by taking the id's byte, 2.2.1.10), the roots, base and `generation` unchanged (page 2 still names
@@ -1357,9 +1363,17 @@ their places; what each does changes:
   tree whose liveness byte is free is rolled back before the statement proceeds (finding R3-1); and the statement's own lock
   tests read the HOLDINGS tree, where a holding whose owner died AFTER this entry's probe is rolled back at the test itself
   (finding R4-1), so the entry's probe need not be the last word. The statement then reads the pages it touches: O(log n),
-  the same count as an unshared statement plus the one meta read. `Complete` writes the
-  statement's dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run
-  unit, as before. *Why not
+  the same count as an unshared statement plus the one meta read. The record statement's own page statement writes its
+  dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run unit, as
+  before: each WRITE, REWRITE or DELETE is ONE statement of the page layer — the tree edited in memory, `PagedFile.Begin`
+  sized to exactly the pages the edit writes, the flush, page 2 last (`RelativeStore.Change`, kb/Work PB3333) — run inside
+  the registry's statement and so inside the mutex, and `StoreStatement.Complete` has nothing left to write (the engine's
+  `CompleteStore` answers the status as it stands). *Measured correction (PB3333): the first text put the writes at
+  `StoreStatement.Complete`; the verb knows its pages and its status ('24' for the boundary, '30' for a refusal) at the
+  write, and answering them there keeps one terminal per verb.* A CLOSE PROMOTES only when its store completed a
+  statement since its last promotion (its OPEN's fence included) and otherwise only syncs, so a connector that changed
+  nothing never fails its CLOSE over a page 2 another run unit's death left torn (PB3333, the relative rows of
+  `KeyedStoreReloadFailureDriftTests`). *Why not
   only the ALL OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the
   INPUT reader Table 19 admits beside it (§9.1.15 2), *"restricts concurrent access to a physical file through file connectors
   other than this one, to input mode"*; the table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing
@@ -1381,7 +1395,14 @@ their places; what each does changes:
 - **Within a run unit** the successor of `KeyedStoreTable` is a table of OPEN STORES per physical file (`StoreTable`): one
   `PagedStore` — the handle's page I/O, the page cache, the ledger and the trees — attached by every connector of the run unit
   over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach` on the last CLOSE), so a sibling's mutation is
-  visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`.
+  visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`. *As built for RELATIVE
+  (kb/Work PB3333):* `KeyedStoreTable` keeps its attach contract and its entry for a relative file is a `RelativeStore` —
+  the run unit's page I/O (`Store.RunUnitPageMedium`: the attached connectors' own handles, each its §9.1.15 file lock, a
+  writable one used whenever one is attached, so no second handle is ever taken), one `PagedFile` (the pages, the page cache
+  `Store.PageCache`, the ledger, the counters) and the record-number tree; `PagedStore`'s role is those two together. A
+  store opened through no writable handle is opened again — and so FENCED — when a writable sibling attaches, and opened
+  again as a reader's (R6 in memory) when its last writable connector detaches, so no reader's statement writes through
+  a handle that cannot.
 - **Published record locks** are unchanged (2.2.1.8).
 
 **2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
@@ -1410,7 +1431,9 @@ physical relative or indexed file is the host file system's maximum file size, c
 bytes (16 TiB). A WRITE or REWRITE whose record would take the store past that boundary is unsuccessful with I-O status '24'
 (§14.9.51.4 GR33 b) relative, GR42 d) indexed; the invalid key condition exists, the INVALID KEY phrase runs, no record is
 released and the file is unchanged); the host's answer that the file cannot grow further (`EFBIG`, `ERROR_FILE_TOO_LARGE`) is the
-same boundary. A medium with no room for the statement's pages (`ENOSPC`, `EDQUOT`, `ERROR_DISK_FULL`, `ERROR_HANDLE_DISK_FULL`,
+same boundary. The '24' is a record WRITE's or REWRITE's alone: a DELETE, an OPEN or a CLOSE whose pages meet the boundary
+answers §9.1.13.6 item 1's '30', since §9.1.13.5 item 4's condition is an attempt to write a record outside the boundaries and
+§14.9.10.4 gives DELETE none. A medium with no room for the statement's pages (`ENOSPC`, `EDQUOT`, `ERROR_DISK_FULL`, `ERROR_HANDLE_DISK_FULL`,
 `ERROR_DISK_QUOTA_EXCEEDED`) makes THAT statement unsuccessful with §9.1.13.6 item 1's '30' and leaves the file as the previous
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
@@ -1944,7 +1967,11 @@ set the FREE tree, and its model, shape and crash cases beside the page layer's)
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
-PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits); PB3334 INDEXED on the engine
+PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits; in the tree: `RelativeConnector`
+over `RelativeStore` in `KeyedStoreTable.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
+`KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
+`IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
+`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `RelativeStore.MediumObserver`); PB3334 INDEXED on the engine
 (the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
 the rest of page-granular coherence (`StoreTable`, the rest of DOC-A.1-75, the whole-store ban); PB3336 the performance
 witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and
@@ -2029,9 +2056,9 @@ slot (`committing`).
 
 | Path refused at | The file after the refusal | The same connector's next statement · its CLOSE · the next OPEN | Another connector's next statement |
 |---|---|---|---|
-| A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: promotes, its claim above the memory, and retires; the condition ends · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
-| A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: promotion claims above (memory and page 2 agree), the refused pages stay allocatable (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
-| A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3) · OPEN: the fence | none exists |
+| A changing statement (coherent), at its CLAIM write | nothing changed; page 2 = the previous statement; the memory's claim raised, wasted | '30' replayed, nothing touched · CLOSE: when a statement completed since the store's last promotion, promotes, its claim above the memory, and retires; when none did, only syncs (2.2.1.7), since the wasted claim reached no page; the condition ends either way · OPEN: the fence | its entry finds page 2 unchanged and claims from page 2; the wasted claim never reaches a page |
+| A changing statement (coherent), at a data, FREE-tree or ledger page | page 2 holds the claim (mints raised, roots unchanged); pages under the claim on no-slot pages; a drawn byte given back | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above (memory and page 2 agree); when none did, only syncs (2.2.1.7), and page 2's raised mints serve the next claim; the refused pages stay allocatable either way (the reservation never took effect) · OPEN: the fence | claims above `stamp mint` (finding R3-4); a first change draws above the claimed `transaction mint` (finding R4-2) |
+| A changing statement (NO OTHER), at any page | the memory's claim raised; page 2 unchanged | '30' · CLOSE: when a statement completed since the store's last promotion, the promotion claims above the memory and writes page 2 from it, so the retirement never re-stamps the refused pages (finding R4-3); when none did, only syncs (2.2.1.7): page 2 is that promotion's retirement, no retirement runs, and the next OPEN's fence lies above the refused pages' stamps (R2's ceiling), as after a death · OPEN: the fence | none exists |
 | A transaction's first change, at any page | as the row above; the byte given back; no entry, no holdings | '30' · the fatal condition's unconditional ROLLBACK (§14.6.13.1.3 item 8) finds no transaction · CLOSE / OPEN as above | draws the next id from the claimed mint; a byte still held is skipped (finding R4-2) |
 | ROLLBACK, at any page | the entry, the UNDO tree and the holdings stand; restored frames on no-slot pages | '30' · the unconditional ROLLBACK is refused again while the medium refuses, and the run unit terminates (item 8): the dead-owner step restores when the medium allows · CLOSE: promotes the state with the entry, keeps the handle · OPEN: R6 step 5 | its lock tests meet the holdings: '51' while the owner lives; rolled back at the test or the entry once it is dead |
 | COMMIT, at its claim, sync 1 or its slot write | the claim with `committing` = t may stand (flag set), the slot does not; the transaction intact; the COMMIT unsuccessful | the unconditional ROLLBACK: its entry unwinds the claim (no slot, `committing` = its own) and restores from the intact UNDO tree · CLOSE: its promotion's entry unwinds first · OPEN: a DESCENDANT with the flag → the fence writes `committing` 0; step 5 rolls t back if its owner is dead | its entry unwinds the claim (R5's restart rule) and proceeds; t stands, held by its live owner |

@@ -215,6 +215,7 @@ public sealed class BTreeCrashTests
         // store unchanged and readable at the next scan.
         var (medium, handle, a, _) = NewScene(coherent: false);
         string before = Show(BaseRecords());
+        a.DropCache();   // a COLD scan (the page cache, 2.2.1.13, would serve every page the scene wrote)
         int start = handle.ReadsPerformed;
         Assert.Equal(before, StoreKit.Show(a));
         int reads = handle.ReadsPerformed - start;
@@ -222,6 +223,7 @@ public sealed class BTreeCrashTests
         long mark = medium.LastSeq;
         for (int n = 1; n <= reads; n++)
         {
+            a.DropCache();
             handle.FaultAtRead(n, Fault.Refuse);
             Assert.True(StoreKit.ReadAll(a) is null, $"refused at read {n} of {reads}");
             handle.Heal();

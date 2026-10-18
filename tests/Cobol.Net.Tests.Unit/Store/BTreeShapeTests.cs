@@ -63,14 +63,19 @@ public sealed class BTreeShapeTests
         Assert.Equal(3, BTreeModelTests.AuditShape(medium, store.Meta.PrimeRoot, KeyOrders.Ordinal, out int entries, out _));
         Assert.Equal(LeafRecords * RootChildren + 1, entries);
 
-        // A READ by key reads exactly the depth, cold; a scan reads every page of the tree exactly once.
+        // A READ by key reads exactly the depth, cold (the page cache dropped, 2.2.1.11 witness (c)'s seam), and none
+        // warm; a scan reads every page of the tree exactly once.
         foreach (long key in new long[] { 1, 2, LeafRecords, 999, 17_001, LeafRecords * RootChildren + 1 })
         {
+            store.DropCache();
             long before = store.Counters.PagesRead;
             Assert.Equal(StoreStatus.Ok, StoreKit.Prime(store).TryGet(KeyOrders.RecordNumberKey((ulong)key), out var value));
             Assert.Equal(Frame(key), value);
             Assert.Equal(3, store.Counters.PagesRead - before);
+            Assert.Equal(StoreStatus.Ok, StoreKit.Prime(store).TryGet(KeyOrders.RecordNumberKey((ulong)key), out _));
+            Assert.Equal(3, store.Counters.PagesRead - before);   // warm: every page of the path from the cache
         }
+        store.DropCache();
         long scanFrom = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, StoreKit.Prime(store).First(out var cursor));
         long seen = 0;
@@ -104,6 +109,7 @@ public sealed class BTreeShapeTests
         Assert.Equal(StoreStatus.Ok, tree.Insert(KeyOrders.RecordNumberKey(1), big, out _));
         Assert.Equal(1 + 2, tree.PagesToWrite);
         Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));
+        store.DropCache();   // cold
         long before = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, StoreKit.Prime(store).TryGet(KeyOrders.RecordNumberKey(1), out var value));
         Assert.Equal(big, value);
@@ -170,6 +176,7 @@ public sealed class BTreeShapeTests
         Assert.True(medium.Writes.Count(w => w.Page == root.Page) > 1, "the test needs a reused internal page");
         Assert.Equal(PageKind.Internal, StoreKit.ReadNode(medium, root)!.Kind);
         medium.ServeOlder(root.Page);
+        store.DropCache();   // the store's page cache (2.2.1.13) holds the page as this store wrote it; the medium's version is what a COLD read meets
         var tree = StoreKit.Prime(store);
         Assert.Equal(StoreStatus.PermanentError, tree.TryGet(KeyOrders.RecordNumberKey(1), out _));
         Assert.Equal(StoreStatus.PermanentError, tree.First(out var cursor));
@@ -191,6 +198,7 @@ public sealed class BTreeShapeTests
         var head = StoreKit.ReadNode(medium, store.Meta.PrimeRoot)!.Values[0].Head;
         Assert.True(medium.Writes.Count(w => w.Page == head.Page) > 1, "the test needs a reused overflow page");
         medium.ServeOlder(head.Page);
+        store.DropCache();   // the store's page cache (2.2.1.13) holds the page as this store wrote it; the medium's version is what a COLD read meets
         Assert.Equal(StoreStatus.Ok, StoreKit.Prime(store).First(out var cursor));
         Assert.Equal(StoreStatus.PermanentError, cursor.ReadValue(out _));
         var tree = StoreKit.Prime(store);
@@ -532,6 +540,7 @@ public sealed class BTreeShapeTests
                     SeekRelation.LessOrEqual => keys.FindLastIndex(k => order.ComparePrefix(k, probe) <= 0),
                     _ => keys.FindLastIndex(k => order.ComparePrefix(k, probe) < 0),
                 };
+                store.DropCache();   // cold (2.2.1.11 witness (c)'s seam): the seek's own reads, not the page cache's
                 long before = store.Counters.PagesRead;
                 Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out var cursor, prefix: true));
                 int read = (int)(store.Counters.PagesRead - before);
@@ -542,7 +551,8 @@ public sealed class BTreeShapeTests
             }
         }
         Assert.True(widest < levels[^1], $"a seek read {widest} pages of a tree of {levels[^1]} leaves");
-        // The answer above the last key is the invalid key condition, read in the depth (the reviewer's scenario).
+        // The answer above the last key is the invalid key condition, read in the depth (the reviewer's scenario), cold.
+        store.DropCache();
         long last = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(Latin1("zzzzzz"), SeekRelation.GreaterThan, out var none, prefix: true));
         Assert.False(none.HasCurrent);

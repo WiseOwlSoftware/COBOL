@@ -133,6 +133,7 @@ public sealed class PagedFileRuleTests
         uint leaf = LeafOf(b!, medium);
         Assert.True(medium.Writes.Count(w => w.Page == leaf) > 1, "the test needs a reused page");
         medium.ServeOlder(leaf);
+        b!.DropCache();   // the store's page cache (2.2.1.13) holds the page as this store wrote it; the medium's version is what a COLD read meets
         Assert.Null(StoreKit.ReadAll(b!));                                     // '30' in a statement
         Assert.Equal(StoreStatus.PermanentError, StoreKit.Put(b!, 1, "w"));
         var (_, status, c) = StoreKit.OpenAs(medium, "C");

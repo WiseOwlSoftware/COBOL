@@ -94,12 +94,18 @@ internal sealed class PagedFile
     private bool _promotionPending;
 
     private PageStatement? _active;
+    private readonly PageCache _cache;
+
+    /// <summary>This store completed a statement since its last promotion (its OPEN's fence included): a CLOSE owes a
+    /// promotion only then.</summary>
+    private bool _changedSincePromotion;
     private long _reads, _writes, _syncs;
     private int _cacheEpoch;
     private Adoption _adoption;
 
-    private PagedFile(IPageMedium medium, bool writable, bool coherent, MetaPage meta)
+    private PagedFile(IPageMedium medium, bool writable, bool coherent, MetaPage meta, int cachePages)
     {
+        _cache = new PageCache(cachePages);
         _medium = medium;
         _writable = writable;
         _coherent = coherent;
@@ -156,12 +162,13 @@ internal sealed class PagedFile
     /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync; only a refused final
     /// sync — after the truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30'
     /// either way).</summary>
-    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store)
+    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store,
+        int cachePages = PageCache.DefaultPages)
     {
         if (!MetaPage.Fits(attributes))
             throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
         store = null;
-        var creator = new PagedFile(medium, writable: true, coherent, MetaPage.Empty(attributes));
+        var creator = new PagedFile(medium, writable: true, coherent, MetaPage.Empty(attributes), cachePages);
         long length;
         try { length = medium.Length; }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
@@ -222,7 +229,8 @@ internal sealed class PagedFile
     /// verifies is adopted, anything else gives C. A writable store then promotes the adopted meta at
     /// F = G + 4 097 (above every stamp a history based on G can have issued, R2) with its retirement, which also reclaims
     /// a rejected DESCENDANT's readable ledger; an INPUT store adopts in memory and writes nothing.</summary>
-    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, out PagedFile? store)
+    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, out PagedFile? store,
+        int cachePages = PageCache.DefaultPages)
     {
         store = null;
         var pages = new byte[MetaPage.MetaPages][];
@@ -236,7 +244,7 @@ internal sealed class PagedFile
         if (MetaPage.Committed(MetaPage.Decode(pages[MetaPage.SlotA], MetaPage.SlotA),
                 MetaPage.Decode(pages[MetaPage.SlotB], MetaPage.SlotB)) is not { Meta: var committed })
             return StoreStatus.PermanentError;
-        var opened = new PagedFile(medium, writable, coherent, committed) { _reads = MetaPage.MetaPages };
+        var opened = new PagedFile(medium, writable, coherent, committed, cachePages) { _reads = MetaPage.MetaPages };
         ulong g = committed.Generation;
         var workClass = work is null || work.Attributes.Conflicts(committed.Attributes) ? WorkSlotClass.Foreign
             : work.CommittedGeneration == g ? WorkSlotClass.Descendant
@@ -284,8 +292,15 @@ internal sealed class PagedFile
     /// retirement or fence: the store ADOPTS page 2 (its roots, its ledger) and drops its page cache. A writer also takes
     /// page 2's mints (a <c>stamp mint</c> above the generation is a dead or refused attempt: the next claim goes above
     /// it, nothing is dropped) and resolves a PROMOTING flag first (R5's restart rule). A NO OTHER store has nobody to
-    /// adopt from and reads page 2 only to resolve its own refused promotion.</summary>
-    public StoreStatus Enter()
+    /// adopt from and reads page 2 only to resolve its own refused promotion.
+    /// <para>⛔ ONLY AN EXCLUSIVE ENTRY WRITES. <paramref name="exclusive"/> is whether the caller's hold on the store mutex
+    /// excludes every other run unit (or none can exist). A writable store entered by its run unit's INPUT connector — the
+    /// store a writable sibling opened, entered under that reader's SHARED hold, because a read-only handle cannot take an
+    /// exclusive lock (2.2.1.7) — adopts page 2 as a writer does (the ledger and the mints are reads) but leaves a
+    /// PROMOTING flag to the next exclusive entry or the CLOSE (<see cref="_promotionPending"/>): two run units' readers
+    /// each resolving it under shared holds would claim from the same mints and write the same slot and page 2
+    /// interleaved, breaking R1. The tree page 2 names is a completed statement's either way, so the reader reads it.</para></summary>
+    public StoreStatus Enter(bool exclusive = true)
     {
         if (!_coherent && !_promotionPending) return StoreStatus.Ok;
         var page = new byte[PageHeader.PageSize];
@@ -301,13 +316,18 @@ internal sealed class PagedFile
             else if (Ledger.Load(this, work.LedgerRoot, out var ledger) != PageCheck.Whole) return StoreStatus.PermanentError;
             else SetState(work, ledger!);
             _lastSeen = work.Generation;
-            _cacheEpoch++;
+            DropCache();
         }
         if (!_writable) return StoreStatus.Ok;
         SeeMints(work);
         if (!work.Promoting)
         {
             _promotionPending = false;
+            return StoreStatus.Ok;
+        }
+        if (!exclusive)
+        {
+            _promotionPending = true;
             return StoreStatus.Ok;
         }
         return ResolvePromotion(work);
@@ -397,6 +417,7 @@ internal sealed class PagedFile
         if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return _lastRefusal;
         SetState(completed, s.Ledger);
         _lastSeen = completed.Generation;
+        _changedSincePromotion = true;
         return StoreStatus.Ok;
     }
 
@@ -414,12 +435,41 @@ internal sealed class PagedFile
 
     /// <summary>Read a page through a stamped pointer (2.2.1.6 R3): <see cref="PageCheck.Whole"/> only when its checksum
     /// holds, its <c>self</c> is the page read and its generation is the stamp; a statement answers anything else as
-    /// '30'.</summary>
+    /// '30'.
+    /// <para>A page the cache holds under the pointer's own <c>self</c> and generation is served from it (verified when
+    /// it entered); anything else is read from the medium, and a page that checks whole enters the cache.</para></summary>
     public PageCheck Read(PagePointer pointer, Span<byte> page)
     {
         if (pointer.IsNone) throw new ArgumentException("no page", nameof(pointer));
-        return TryReadRaw(pointer.Page, page) ? PageHeader.Check(page, pointer.Page, pointer.Generation) : PageCheck.Unreadable;
+        if (_cache.Get(pointer.Page) is { } cached && PageHeader.Decode(cached) is var head
+            && head.Self == pointer.Page && head.Generation == pointer.Generation)
+        {
+            cached.CopyTo(page);
+            return PageCheck.Whole;
+        }
+        if (!TryReadRaw(pointer.Page, page)) return PageCheck.Unreadable;
+        var check = PageHeader.Check(page, pointer.Page, pointer.Generation);
+        if (check == PageCheck.Whole) _cache.Put(pointer.Page, page[..PageHeader.PageSize].ToArray());
+        return check;
     }
+
+    /// <summary>Forget every cached page (2.2.1.7's drop when page 2 is adopted from another run unit; the cold-cache
+    /// seam of 2.2.1.11's witnesses).</summary>
+    public void DropCache()
+    {
+        _cache.Clear();
+        _cacheEpoch++;
+    }
+
+    /// <summary>Raise the page cache's capacity to at least <paramref name="pages"/> — the input-output areas of a
+    /// connector attached with a RESERVE clause (§12.4.5.14.3 GR1, 2.2.1.13).</summary>
+    public void ReserveCache(int pages) => _cache.Reserve(pages);
+
+    /// <summary>The pages the cache holds at most.</summary>
+    public int CacheCapacity => _cache.Capacity;
+
+    /// <summary>Whether the store was opened through a writable handle (it fenced, and it may change the file).</summary>
+    public bool Writable => _writable;
 
     // ── Promotion ───────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -432,11 +482,15 @@ internal sealed class PagedFile
     }
 
     /// <summary>CLOSE: through a writable handle a promotion, then one more sync, so a closed file's OPEN verifies the
-    /// retirement's few pages and nothing else (R5); through an INPUT handle nothing.</summary>
+    /// retirement's few pages and nothing else (R5); through an INPUT handle nothing. A store that completed no statement
+    /// since its last promotion (its OPEN's fence, or an earlier CLOSE of the run unit's) owes none: page 2 is already
+    /// the retirement of that promotion, and the sync alone makes it durable — so a connector that changed nothing never
+    /// fails its CLOSE over a page 2 another run unit left torn (kb/Work PB3333; §9.1.13.1's permanent error of the
+    /// statement that met it is that statement's, DOC-A.1-105).</summary>
     public StoreStatus Close()
     {
         if (!_writable) return StoreStatus.Ok;
-        if (Promote() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if ((_changedSincePromotion || _promotionPending) && Promote() != StoreStatus.Ok) return StoreStatus.PermanentError;
         return TrySync() ? StoreStatus.Ok : StoreStatus.PermanentError;
     }
 
@@ -459,7 +513,9 @@ internal sealed class PagedFile
         var slot = claim with { Promoting = false, CommittedGeneration = p };
         if (!TryWrite(target, slot.Encode(target))) return StoreStatus.PermanentError;
         if (!TrySync()) return StoreStatus.PermanentError;
-        return Retire(claim, retirement, rejected);
+        var retired = Retire(claim, retirement, rejected);
+        if (retired == StoreStatus.Ok) _changedSincePromotion = false;
+        return retired;
     }
 
     /// <summary>The RETIREMENT statement (2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at
@@ -691,6 +747,7 @@ internal sealed class PagedFile
         {
             _medium.Write(page, bytes);
             _writes++;
+            if (page >= MetaPage.MetaPages) _cache.Put(page, bytes);   // a page this store wrote is the page it reads
             return true;
         }
         catch (Exception e) when (IsRefusal(e))
