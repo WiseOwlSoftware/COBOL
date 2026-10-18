@@ -143,26 +143,51 @@ function settled(letter) {
 // HOW A PREDECESSOR'S REVIEW LOOP ENDED, as its successor (and the successor's reviewer) reads it: ONE reading, so the
 // implementer's note and the reviewer's scope never disagree (kb/Work PB3381 review R1-1).
 //   'clean'       reviewed CLEAN at its head: it lands on its own.
-//   'capped'      FINDINGS whose stamp still covers the result's head: the result IS the branch the last round reviewed
-//                 (`review_head`), because `reviewed()` ran out of rounds, or because its review finisher left no head
-//                 of its own (STALLED, a thrown call = NO-RESULT, a return with no new commit). Its report keeps that
-//                 round's `Review: FINDINGS` stamp at that head, so prune_worktrees.py carrying_findings holds any
-//                 branch that carries it: the findings belong to its next-wave finisher, the successor does not
-//                 answer them and its review does not record them again (review R2-1: deciding this from `finisher`
-//                 told a dead finisher's successor the opposite of what the survey does).
-//   'unanswered'  FINDINGS whose review finisher left a head of its OWN unfinished (SPLIT, BLOCKED, a DONE the finished
-//                 test refused): the result is the finisher's branch, past the stamped head, and the finisher rewrote
-//                 the one report for that branch with no Review line, so NO stamp holds anything: the successor
-//                 carries the findings unanswered, and only the successor's own review can keep them off main, so it
-//                 reviews the predecessor's content as its own and records again each of those findings that still
-//                 holds.
+//   'capped'      FINDINGS, and the FINDINGS FILE's last verdict (`p.last_verdict`, review_findings.py last-verdict)
+//                 is the round after the last finisher at the result's head: `reviewed()` ran out of rounds, no review
+//                 finisher followed that verdict, and the findings belong to its next-wave finisher; the successor
+//                 does not answer them and its review does not record them again.
+//   'unanswered'  FINDINGS whose last verdict a review finisher was dispatched to answer and did not (it came back
+//                 SPLIT, BLOCKED, STALLED, killed = NO-RESULT, a DONE the finished test refused; with a commit of its
+//                 own or none): that finisher rewrote the group's one report for its own branch with no Review line,
+//                 so no report shows the findings any more, and whatever it left half done is on the successor's
+//                 branch. The successor's review covers the predecessor's content as its own and records again each of
+//                 those findings that still holds. A last verdict that cannot be read reads 'unanswered' too.
 //   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
 //                 successor's, as its own.
-// The one fact that tells capped from unanswered is the survey's own (`covers(tip)`): does the last stamp cover the head.
+// In both FINDINGS cases prune_worktrees.py carrying_findings holds the successor: it reads the SAME findings file
+// through the same reader (review_findings.last_verdict), never the report's stamp, which the finisher removes
+// (review R3-1: deciding from the head or the stamp told the successor "prune_worktrees.py holds" while nothing did).
 function predecessorEnd(p) {
   if (p.review === 'CLEAN') return 'clean'
-  if (/^FINDINGS/.test(p.review || '')) return sameHead(p.head, p.review_head) ? 'capped' : 'unanswered'
-  return 'unreviewed'
+  if (!/^FINDINGS/.test(p.review || '')) return 'unreviewed'
+  const v = p.last_verdict
+  return v && v.unanswered && v.round > REVIEW_FIX_ROUNDS && sameHead(v.head, p.head) ? 'capped' : 'unanswered'
+}
+
+// THE ONE READER OF A GROUP'S FINDINGS FILE (kb/Work PB3381 review R3-1): `review_findings.py last-verdict`, run by
+// ONE mechanical cobol-locator (a workflow script has no process API; the finished test does the same), returning the
+// file's newest verdict {file, round, branch, head, verdict, blocking, unanswered}, or null when it gave no answer.
+const LAST_VERDICT_SCHEMA = {
+  type: 'object',
+  properties: { exit: { type: 'integer' }, line: { type: 'string', maxLength: 800 } },
+  required: ['exit', 'line'],
+}
+async function lastVerdict(g) {
+  let v = null
+  try {
+    v = await agent(
+      AUTH + `Run exactly ONE command, from the repository root E:\\COBOL, and nothing else: ` +
+      `python scripts/orchestrator/review_findings.py last-verdict "${findingsFile(g)}" ` +
+      `— then call StructuredOutput with its exit code as \`exit\` and its \`=== LAST VERDICT: \` line verbatim as \`line\`. ` +
+      `Read no file, judge nothing, retry nothing: an exit code other than 0 is an answer, not an error.`,
+      { label: `last-verdict-${g.letter}`, phase: 'Review', agentType: 'cobol-locator', schema: LAST_VERDICT_SCHEMA })
+  } catch (e) { v = null }
+  const m = v && v.exit === 0 && /^=== LAST VERDICT: (.*) ===$/.exec((v.line || '').trim())
+  let parsed = null
+  try { parsed = m ? JSON.parse(m[1]) : null } catch (e) { parsed = null }
+  if (!parsed) log(`${g.letter}: review_findings.py last-verdict gave no verdict (${v ? `exit ${v.exit}: ${v.line}` : 'no answer'}); its successor reads it unanswered`)
+  return parsed
 }
 
 function successorNote(g) {
@@ -180,10 +205,11 @@ function successorNote(g) {
     `Its notes are its own: never flip them or list them as yours. ` +
     {
       clean: `It was reviewed CLEAN and lands ON ITS OWN (the landing lane lands it now); your pull request merges on top of it. `,
-      capped: `Its review ended ${p.review}${p.finisher ? ` (its review finisher came back ${p.finisher} with no commit of its own, so that stamp still covers its head)` : ' at the round cap'}: those findings belong to group ${g.after}'s NEXT-WAVE FINISHER, not to you; do not fix or answer them. ` +
-        `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS). `,
-      unanswered: `Its review ended ${p.review} and its review finisher came back ${p.finisher}, unfinished: those findings (${findingsFile({ letter: g.after })}) are UNANSWERED, ` +
-        `and your branch carries them with whatever that finisher left half done. No stamp holds your branch for them: your own review covers the predecessor's commits as yours and records again each of those findings that still holds, ` +
+      capped: `Its review ended ${p.review} at the round cap: those findings belong to group ${g.after}'s NEXT-WAVE FINISHER, not to you; do not fix or answer them. ` +
+        `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS, read from ${findingsFile({ letter: g.after })}). `,
+      unanswered: `Its review ended ${p.review} and its review finisher came back ${p.finisher || 'without a verdict'} without answering them: those findings (${findingsFile({ letter: g.after })}) are UNANSWERED, ` +
+        `its report no longer shows them (the finisher rewrote it for its own branch), and your branch carries them with whatever that finisher left half done. ` +
+        `prune_worktrees.py holds your branch while that findings file's last verdict is FINDINGS at a head your branch contains, and your own review covers the predecessor's commits as yours and records again each of those findings that still holds, ` +
         `so read \`python scripts/orchestrator/review_findings.py show ${findingsFile({ letter: g.after })}\` and fix the ones your change reaches (I9). A branch of it that has not landed by your landing lands with yours. `,
       unreviewed: `Its review did not finish (${review}), so its commits on your branch are reviewed with yours, and a branch of it that has not landed by your landing lands with yours. `,
     }[predecessorEnd(p)]
@@ -210,18 +236,18 @@ function sameHead(a, b) { return !!a && !!b && (a.startsWith(b) || b.startsWith(
 
 // What round 1 of a SUCCESSOR's review leaves alone, by predecessorEnd: a predecessor reviewed CLEAN at its head was
 // reviewed, so its content is not re-opened (wave 1118: PB3332's reviewer restated its predecessor's findings); a
-// predecessor CAPPED at FINDINGS keeps its findings in its own file for its own finisher, and its stamp holds the
-// successor for them. Nothing else is left alone: an UNANSWERED predecessor's findings have no stamp holding them, so
-// the successor's reviewer records again each one that still holds (review R1-1: "do not record them again" there let
-// a successor reviewed CLEAN carry them to main), and an unreviewed predecessor is reviewed as this branch.
+// predecessor CAPPED at FINDINGS keeps its findings in its own file for its own finisher, and that file holds the
+// successor for them (prune_worktrees.py carrying_findings). Nothing else is left alone: an UNANSWERED predecessor's
+// findings are no longer in any report (its finisher rewrote it), so the successor's reviewer records again each one
+// that still holds (review R1-1, R3-1), and an unreviewed predecessor is reviewed as this branch.
 function predecessorScope(g) {
   const p = g.after ? byLetter[g.after] : null
   if (!p || !p.review || !(p.head && p.head !== p.base)) return ''
   const file = findingsFile({ letter: g.after })
   return {
     clean: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, which was reviewed CLEAN (${file}): that content is reviewed and is not re-opened unless this branch's own commits touch it. `,
-    capped: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review}${p.finisher ? `, stamped at that head (its review finisher came back ${p.finisher} with no commit of its own)` : ' at the round cap'}: those findings are recorded in ${file} and belong to its next-wave finisher; do not record them again here. `,
-    unanswered: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} and whose review finisher came back ${p.finisher}, unfinished: those findings (${file}) are UNANSWERED and no stamp holds this branch for them. ` +
+    capped: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} at the round cap: those findings are recorded in ${file} and belong to its next-wave finisher; do not record them again here. `,
+    unanswered: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} and whose review finisher came back ${p.finisher || 'without a verdict'} without answering them: those findings (${file}) are UNANSWERED, and the predecessor's report no longer shows them. ` +
       `Review the predecessor's commits as part of this branch (the whole origin/main...HEAD), read \`review_findings.py show ${file}\`, and record again here each of those findings that still holds on this head. `,
     unreviewed: '',
   }[predecessorEnd(p)]
@@ -318,8 +344,7 @@ async function reviewed(g, r) {
     if (v && Array.isArray(v.leads)) leads.push(...v.leads)
     reviews.push({ letter: g.letter, round, branch: cur.branch, head: cur.head, verdict, findings: v ? v.findings : null, leads: v && v.leads ? v.leads.length : 0 })
     log(`${g.letter}: review round ${round} of ${cur.branch}: ${verdict}${v && v.verdict === 'FINDINGS' ? ' ' + v.findings : ''}`)
-    // review_head: the head this round reviewed and stamped; predecessorEnd reads whether the result is still at it
-    const end = { review_rounds: round, review_leads: leads, review_head: cur.head }
+    const end = { review_rounds: round, review_leads: leads }
     if (verdict === 'CLEAN') return { ...cur, ...end, review: 'CLEAN' }
     if (verdict !== 'FINDINGS') return { ...cur, ...end, review: verdict }
     if (round > REVIEW_FIX_ROUNDS) {
@@ -381,6 +406,9 @@ async function worker() {
       // the branch review holds this group's slot: reviewing and answering findings are part of finishing it, for a
       // same-file predecessor too (its successor waits for it to settle, then merges the reviewed head)
       if (r.finished) r = await reviewed(g, r)
+      // a FINDINGS end is read back from its findings file, the source the survey's hold reads too, before a
+      // successor is told whose findings they are (predecessorEnd; kb/Work PB3381 review R3-1)
+      if (/^FINDINGS/.test(r.review || '') && queue.some(q => q.after === g.letter)) r = { ...r, last_verdict: await lastVerdict(g) }
     } catch (e) {
       r = { letter: g.letter, lead: g.lead, notes: g.notes, status: 'NO-RESULT', error: String(e && e.message || e) }
     } finally {

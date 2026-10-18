@@ -117,14 +117,18 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   predecessor reviewed CLEAN is ready at once and the landing lane lands it, the successor's pull request merging on
   top. The train-era hold (the predecessor "lands THROUGH the successor") saved nothing once every branch became its
   own pull request (kb/Work PB3023, PB3024) and only postponed: wave 1118's six-link chain had six groups DONE and
-  none landed in seven hours. A predecessor whose review ended FINDINGS at the cap keeps its findings for its own
-  next-wave finisher; its successor does not answer them and lands only after that finisher has landed it
-  (`prune_worktrees.py` reads it IN FLIGHT, waiting on the predecessor); so does one whose review finisher left no
-  head of its own (it died, or committed nothing), since that round's stamp still covers the head. A predecessor whose
-  review FINISHER left an unfinished head of its own leaves no stamp holding anything, so its successor's review
-  covers the predecessor's content and records again each finding that still holds (`wf_rolling_wave.js`
-  `predecessorEnd`, which decides by whether the last stamp covers the head, as the survey does). A successor may also follow a group in the
-  same technological area (a runtime file, then its emitter).
+  none landed in seven hours. Whether a branch carries a predecessor's UNANSWERED findings is read from ONE source,
+  the predecessor's FINDINGS FILE (its last verdict: FINDINGS with blocking findings at a head the branch contains),
+  through ONE reader, `review_findings.py last_verdict` (CLI `last-verdict`), which the wave's `predecessorEnd` and
+  `prune_worktrees.py carrying_findings` both call; never from a report stamp, because a review finisher rewrites the
+  group's one report for its own branch with no Review line whatever it returns (branch review R3-1). While that
+  verdict stands, the survey holds the successor (IN FLIGHT, `waits_on`) until the predecessor's own finisher has
+  answered them and landed it. A predecessor CAPPED at the round after its last finisher keeps them for that
+  next-wave finisher, and its successor neither answers them nor records them again; a predecessor whose review
+  finisher was sent to answer them and came back without doing so (SPLIT, BLOCKED, STALLED, killed, with or without a
+  commit) is UNANSWERED: its report no longer shows them, so the successor's review covers the predecessor's content
+  and records again each finding that still holds. A successor may also follow a group in the same technological
+  area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
   architecture review `PB1754`) runs from its notes' `cluster:` and `blocked_by:`:
