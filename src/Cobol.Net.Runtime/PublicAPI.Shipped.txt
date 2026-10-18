@@ -1570,7 +1570,6 @@ CobolNet.Runtime.IO.IndexedConnector
 CobolNet.Runtime.IO.IndexedConnector.AddAlternateKey(CobolNet.Runtime.IO.KeySegment[]! key, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
 CobolNet.Runtime.IO.IndexedConnector.Delete(string! keyedRecordImage, CobolNet.Runtime.RecordExtents? areaExtents = null) -> string!
 CobolNet.Runtime.IO.IndexedConnector.IndexedConnector(string! hostPath, int recordWidth, CobolNet.Runtime.IO.KeyedAccess access, CobolNet.Runtime.IO.KeySegment[]! primeKey, int varyMin = -1, int varyMax = -1, CobolNet.Runtime.CobolCollation? primeCollation = null) -> void
-CobolNet.Runtime.IO.IndexedConnector.LastReadPrime.get -> string?
 CobolNet.Runtime.IO.IndexedConnector.ReadNext(out string! image) -> string!
 CobolNet.Runtime.IO.IndexedConnector.ReadPrevious(out string! image) -> string!
 CobolNet.Runtime.IO.IndexedConnector.ReadRandom(int keyIndex, string! keyedRecordImage, out string! image, CobolNet.Runtime.RecordExtents? areaExtents = null) -> string!
@@ -1585,10 +1584,6 @@ CobolNet.Runtime.IO.KeyedAccess.Sequential = 0 -> CobolNet.Runtime.IO.KeyedAcces
 CobolNet.Runtime.IO.KeyedConnector
 CobolNet.Runtime.IO.KeyedConnector.Access.get -> CobolNet.Runtime.IO.KeyedAccess
 CobolNet.Runtime.IO.KeyedConnector.KeyedConnector(string! hostPath, int recordWidth, CobolNet.Runtime.IO.KeyedAccess access, int varyMin, int varyMax) -> void
-CobolNet.Runtime.IO.KeyedConnector.PersistIsReachable(bool owed) -> bool
-CobolNet.Runtime.IO.KeyedConnector.ReleaseFileLock() -> void
-CobolNet.Runtime.IO.KeyedConnector.StoreHolds(long framedBytes) -> bool
-CobolNet.Runtime.IO.KeyedConnector.TakeFileLock(bool create) -> System.IO.FileStream!
 CobolNet.Runtime.IO.LinagePage
 CobolNet.Runtime.IO.LinagePage.Body.get -> int
 CobolNet.Runtime.IO.LinagePage.Body.init -> void
@@ -2359,7 +2354,6 @@ override CobolNet.Runtime.IO.IndexedConnector.LastReadRecordId.get -> string!
 override CobolNet.Runtime.IO.IndexedConnector.LastWrittenRecordId.get -> string!
 override CobolNet.Runtime.IO.IndexedConnector.PeekRandomReadRecordId(int keyIndex, string! recordImage, CobolNet.Runtime.RecordExtents? recordExtents) -> string!
 override CobolNet.Runtime.IO.IndexedConnector.PeekSequentialRecordId(bool previous) -> string!
-override CobolNet.Runtime.IO.KeyedConnector.AbandonOpen() -> void
 override CobolNet.Runtime.IO.KeyedConnector.FixedAttributeConflict() -> bool
 override CobolNet.Runtime.IO.LinagePage.GetHashCode() -> int
 override CobolNet.Runtime.IO.RelativeConnector.Category.get -> CobolNet.Runtime.IO.PhysicalFileCategory
