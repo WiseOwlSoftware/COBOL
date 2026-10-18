@@ -76,3 +76,12 @@ selector tooling only), so there is no exception-path test to add; the rows it m
 lower-case keyword list in `BoundDeferralDriftTests` as a copy of the heading pattern; the sweep now takes a lower-case spelling
 only as a regex, and a theory proves it flags each spelling of the pattern and passes the keyword list.
 
+
+**Merge-queue bounce (finisher).** Pull request #216's merge group (run 39107407998, base `d06dc4fd2`) went red on
+`SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`: the new paragraph row `GR-9.1.16-p4` named
+`FileRegistry.cs#ReadLockGovern`, a method kb/Work PB338 replaced and that file names only in a comment. The branch's gate
+passed it because the word search then read comments; kb/Work PB762, which landed in the group just ahead, reads code only.
+The row now names the member that implements the paragraph, `FileRegistry.ConflictOnLockedRecord` (the one access check
+every governed READ, REWRITE and DELETE asks, whose first statement is the IGNORING LOCK exception), and retires the dead
+witness through `record_verdicts.py` (`adjudication/pb284-paragraph-row-witness/batch.json`). It was the only unresolved
+location over the 4,214 rows.
