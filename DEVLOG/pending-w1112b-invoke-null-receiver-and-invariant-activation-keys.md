@@ -22,8 +22,12 @@ SR-8.4.3.7.3-2 re-verdicted CONFORMS (GAP 58 -> 56). Design: COBOLNET_OO_DESIGN 
 `ByValueClassAdmitted` and `ZeroLengthLiteralAdmitted`, shared), and SR16 and SR10 reported under the generic argument
 code COBOLNET0828 on the typed lane and, for SR10, COBOLNET0866 on the universal one. They are now catalog descriptors
 COBOLNET4268 (SR16) and COBOLNET4269 (SR10), reported by `ReportByValueLiteral` / `ReportObjectDataByReference` on the
-typed, universal and NULL lanes alike; the two pins move with them (`pb1051-by-value-literal-alphanumeric`,
-`OoSpineTests.ObjectData_AutoContent_Sr10`). The semgrep raw-code count stays 245.
+typed, universal and NULL lanes alike; the three pins move with them (`pb1051-by-value-literal-alphanumeric`,
+`OoSpineTests.ObjectData_AutoContent_Sr10`, and the factory-WS case of
+`OoSpineTests.Factory_DualRoster_AndDiagnosticBand`, which the landing's Linux gate caught still expecting 0828 because
+batched gating's Windows leg 1 never reached it; its program has no other violation, so SR10 is its one diagnostic).
+`ObjectData_AutoContent_Sr10` now also asserts the NULL and universal lanes, which no test reached. The semgrep raw-code
+count stays 245.
 
 **PB3257 — culture-invariant keys.** The unit witness `ActivationKeyCultureTests` (a clone of the invariant culture with
 U+2212 as its negative sign, sv-SE's on .NET 10) failed on the unfixed code for all three keys of a `PIC 99P` item:
