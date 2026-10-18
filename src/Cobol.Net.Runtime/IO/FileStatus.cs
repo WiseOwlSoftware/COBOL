@@ -5,8 +5,9 @@ namespace CobolNet.Runtime.IO;
 /// <summary>The ISO/IEC 1989:2023 §9.1.13 I-O status vocabulary this runtime produces, for EVERY organization: the
 /// successful completions (§9.1.13.2, §9.1.13.3), the at end, invalid key, permanent error, logic error, record
 /// operation conflict, file sharing conflict and record content conditions (§9.1.13.4 to §9.1.13.10) and the
-/// implementor-defined 9x values (§9.1.13.11). Each constant's summary names every statement that sets it. The
-/// two-character code is stored into the FILE STATUS data item after each I/O verb and steers the AT END /
+/// implementor-defined 9x values (§9.1.13.11). Each constant's summary cites the §9.1.13 item that defines it, and
+/// that item is the authority for WHICH statements set the status; the summaries of 05, 37, 41, 42, 43, 53 and 54
+/// also list those statements, and the others may name only the leading one. The two-character code is stored into the FILE STATUS data item after each I/O verb and steers the AT END /
 /// declarative branches.</summary>
 public static class FileStatusCode
 {
@@ -29,7 +30,9 @@ public static class FileStatusCode
     /// execution of the READ statement is successful", so it also lands on a truncated ('06') read: '09' is the
     /// status a bad character produces whether or not the line was over-length (kb/Work PB329).</summary>
     public const string LineRecordInvalidCharRead = "09";
-    /// <summary>05 — OPEN of an OPTIONAL file that is not present (created on OUTPUT/EXTEND/I-O, EOF on INPUT).</summary>
+    /// <summary>05 — successful completion, §9.1.13.2 item 4: an OPEN of an OPTIONAL file whose physical file is not
+    /// present (created on OUTPUT/EXTEND/I-O, EOF on INPUT) (a), or a DELETE FILE whose referenced file is not
+    /// available (b; §14.9.10.4 GR14).</summary>
     public const string OptionalFileNotFound = "05";
     /// <summary>07 — ISO §9.1.13.2 item 6: <i>"An OPEN or CLOSE statement is successfully executed but a CLOSE
     /// statement with the NO REWIND, REEL/UNIT, or FOR REMOVAL phrase or an OPEN statement with the NO REWIND
@@ -81,9 +84,11 @@ public static class FileStatusCode
     /// and compares it through <see cref="FixedFileAttributes.Conflicts"/>. DELETE FILE's own §14.9.10.4
     /// GR18 leg is separately (and emptily) defined at <c>FileRegistry.ValidateFixedFileAttributes</c>.</summary>
     public const string FixedAttributeConflict = "39";
-    /// <summary>41 — OPEN attempted on an already-open file.</summary>
+    /// <summary>41 — a logic error, §9.1.13.7 item 1: an OPEN or a DELETE FILE attempted for a file connector in an
+    /// open mode (§14.9.10.4 GR13 for DELETE FILE).</summary>
     public const string FileAlreadyOpen = "41";
-    /// <summary>42 — CLOSE attempted on a file that is not open.</summary>
+    /// <summary>42 — a logic error, §9.1.13.7 item 2: a CLOSE or an UNLOCK attempted for a file connector that is not
+    /// in an open mode.</summary>
     public const string FileNotOpen = "42";
     /// <summary>43 — a DELETE RECORD or REWRITE on a mass storage file in the sequential access mode whose immediately
     /// preceding operation on the file connector was not a successfully executed READ (§9.1.13.7 item 3), on every
