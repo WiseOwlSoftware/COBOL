@@ -102,20 +102,22 @@ internal sealed partial class BTree
     /// <summary>An empty RESIDENT tree.</summary>
     public static BTree EmptyResident(PagedFile file, IKeyOrder order) => new(file, order, default, resident: true);
 
-    /// <summary>Read the whole tree at <paramref name="root"/> into memory, every page verified through its stamp.</summary>
-    public static StoreStatus LoadResident(PagedFile file, IKeyOrder order, PagePointer root, out BTree? tree)
+    /// <summary>Read the whole tree at <paramref name="root"/> into memory, every page verified through its stamp:
+    /// <see cref="PageCheck.Whole"/>, or what the first page that did not verify found — <see cref="PageCheck.Unreadable"/>
+    /// when the medium refused the read, so a caller can tell a refusal from damage (2.2.1.6 R6 step 3).</summary>
+    public static PageCheck LoadResident(PagedFile file, IKeyOrder order, PagePointer root, out BTree? tree)
     {
         var loaded = new BTree(file, order, default, resident: true);
         try
         {
             loaded._root = loaded._flushed = root.IsNone ? default : loaded.LoadAll(root, 0);
             tree = loaded;
-            return StoreStatus.Ok;
+            return PageCheck.Whole;
         }
-        catch (TornPage)
+        catch (TornPage torn)
         {
             tree = null;
-            return StoreStatus.PermanentError;
+            return torn.Check;
         }
     }
 
@@ -730,5 +732,9 @@ internal sealed partial class BTree
     }
 
     /// <summary>A page read through a stamped pointer did not verify; caught at the tree's surface and answered '30'.</summary>
-    private sealed class TornPage(PageCheck check) : Exception($"a page read through a stamped pointer was {check}");
+    private sealed class TornPage(PageCheck check) : Exception($"a page read through a stamped pointer was {check}")
+    {
+        /// <summary>What the read found: a refusal (<see cref="PageCheck.Unreadable"/>) or the damage.</summary>
+        public PageCheck Check { get; } = check;
+    }
 }

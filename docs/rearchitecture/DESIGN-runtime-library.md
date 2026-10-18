@@ -856,7 +856,7 @@ after any later crash.)
    file, its HOLDINGS (decision 7).
 6. **The boundary of a relative or indexed file is the host's** (2.2.1.9): a WRITE or REWRITE answers '24' only when the
    record would take the store past the format's 2^32 pages or past a maximum file size the host REPORTS (`EFBIG`,
-   `ERROR_FILE_TOO_LARGE`); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
+   `ERROR_FILE_TOO_LARGE`); a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record (its tree and ledger rewrite can need a growth page); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
    previous statement left it, never at a later CLOSE.
 7. **APPLY COMMIT, COMMIT and ROLLBACK are per-run-unit TRANSACTIONS with record-level before-images kept in the file**
    (2.2.1.10): a COMMIT is a promotion whose one durable write — the slot write and the sync that acknowledges it — carries
@@ -1005,11 +1005,24 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   promotion the freed and released pages move to the FREE tree. An allocation takes a released page, else the lowest page of
   the FREE tree, else the page at `page count` (the file grows). The file never shrinks of its own accord; `OPEN OUTPUT`
   creates a new three-page store (§14.9.27.4 GR18, *"After the creation of the file, the file contains no records"*) through
-  the connector's own handle: `RandomAccess.SetLength` to ZERO, which is the one truncation (today's `Persist` truncation,
-  moved), then pages 0, 1 and 2 and a sync. (The first draft set the length to three pages, which keeps the old store's
-  three meta pages until they are overwritten: a death between the truncation and the first write left the OLD store's
-  committed slots valid over a file cut to three pages, and the next OPEN adopted a tree whose pages were gone. PB3331's
-  creation cases kill the creation at every write and sync.)
+  the connector's own handle as a PROMOTION OF THE EMPTY STORE, decided by one durable write: the three meta pages are read
+  (and kept); the empty meta is given the generation N = the fence's bound over every meta page that decodes
+  (max(generation + 4 097, `stamp mint` + 1), 0 when none does), so the new store never reissues a stamp the previous one
+  wrote (R3) — written into the slot that does NOT hold the previous store's committed meta, and SYNCED (the commit point);
+  then page 2, the other slot, `RandomAccess.SetLength` to three pages — the one truncation (today's `Persist` truncation,
+  moved) — and a sync. Until the commit write is handed over the previous file is whole; after it the empty store is the
+  committed meta. A REFUSAL at any point but the last sync is §14.9.27.4 GR25's unsuccessful OPEN, *"the file is not
+  affected"*: the meta pages written so far get their previous bytes back, newest first, a file shorter than three pages its
+  previous length TO THE BYTE (the medium's length is in bytes, `IPageMedium.Length`: a format-5 whole store or a foreign
+  file need not be a whole number of pages, and a length kept in whole pages cut its tail off — branch review R2-1), then
+  one sync, and the OPEN answers '30'; a refused last sync follows the truncation, so nothing is left to
+  undo and the medium's state is unknown, as at every refused sync (2.2.1.16). (The first draft set the length to three
+  pages, which kept the old store's three meta pages until they were overwritten: a death between the truncation and the
+  first write left the OLD store's committed slots valid over a file cut to three pages, and the next OPEN adopted a tree
+  whose pages were gone. The second, `SetLength` to ZERO first, emptied the file before anything was decided, so every
+  refusal after it destroyed the previous store against GR25, and the new store's stamps restarted at 1 over pages the
+  previous store had stamped. PB3331's creation cases kill and refuse the creation at every write, sync and the truncation,
+  over a previous store and over a file with none.)
 - **What the pages prove at a glance.** An internal page holds ⌊(4 064 − 12) / (2 + k + 12)⌋ keys of k bytes and one child
   more; a leaf holds ⌊4 064 / (6 + k + v)⌋ entries of v-byte values. With 22-byte internal entries (an 8-byte relative key and a
   12-byte pointer) a page holds 184 keys and 185 children, and a sequential load's append splits leave every internal page but
@@ -1327,7 +1340,14 @@ same boundary. A medium with no room for the statement's pages (`ENOSPC`, `EDQUO
 statement left it; nothing is deferred to the CLOSE. A record's own size is bounded by the host, not the format (overflow pages).
 The relative key's own range is separate: a key less than 1 or greater than 2 147 483 647 (the highest relative record number
 permitted) answers '34' (§14.9.51.4 GR29 b)), and a sequential-access release whose number has more digits than the relative
-key item answers '24' (GR33 c)). Same in every edition."* `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
+key item answers '24' (GR33 c)). Same in every edition."* The page layer answers both halves as `StoreStatus.Boundary`, never
+an escaping exception: a changing statement takes its RESERVATION before its claim, so one whose growth would pass 2^32 pages
+(`PagedFile.FormatPages`) claims and writes nothing; and the production medium reports the host's "the file cannot grow
+further" as `MediumSizeLimitException` (`HandlePageMedium.Write`, asked of `HostFile.IsFileSizeLimit` — the narrower half of
+the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read the host's codes), which a changing statement's
+refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
+serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
+either boundary they answer '30'. `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
 `IndexedStore.RecordBytes` are deleted with the model that needed them. The store header's bytes stay the file's §9.1.6 fixed
@@ -1687,8 +1707,11 @@ not finish.
 **2.2.1.12 The format's drift tests (each invariant pinned by one).** `PagedStore` is written over an `IPageMedium` — the
 production medium is `RandomAccess` on the connector's `SafeFileHandle`; the test medium is an in-memory page array that
 records which writes were SYNCED and can be asked to *lose every unsynced write* (a power loss) or to *keep them* (a process
-death), to *tear* one named page, and to *serve an older version* of one named page (a lost write over a reused page) — so
-every crash scenario is deterministic and runs on every host without a VM:
+death), to *tear* one named page, and to *serve an older version* of one named page (a lost write over a reused page), and
+whose length is in BYTES (so a previous file of any length, a whole number of pages or not, is a case), and whose
+per-run-unit handle kills or refuses that run unit at its n-th OPERATION (a write, a sync or the truncation) — before
+it, after it, refused, or refused because the file cannot grow further — and refuses its n-th READ — so every crash and
+refusal scenario is deterministic and runs on every host without a VM:
 - R1: no write ever targets a page that the committed meta's tree OR the work meta's tree references (the medium records every
   write's page number; the test walks both trees after each statement);
 - R2: the ledger lists exactly the pages allocated since promotion, with their last generation and state; a `released` page is
@@ -1916,7 +1939,8 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after its page 2 | the records are as at the last COMMIT, the entry and its holdings gone; the READ locks go with the handle | none | the state is a completed statement's |
 | ROLLBACK on a file marked UNACKNOWLEDGED (round 5): the reversal if page 2 still carries t, then a promotion | at any point | as the reversal rows above | as the reversal rows above | the answer was not yet given; whichever state the medium keeps is one the owner was never told the opposite of |
 | A transaction's first change (the byte taken, then one statement: the entry, the UNDO tree, the record) | before page 2 | no entry; the byte went with the handle | nothing | the change is invisible; an entry is never visible without its byte having been taken first |
-| `OPEN OUTPUT` (creation: `SetLength` to zero, then pages 0, 1, 2, then a sync) | before all three pages landed | fewer than three valid meta pages, and no page of the previous store | the next OPEN other than OUTPUT answers '30' when no committed slot landed and adopts the EMPTY store when one did (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
+| `OPEN OUTPUT` (creation, 2.2.1.4: the empty meta at N into the slot not holding the previous committed meta → sync → page 2 → the other slot → `SetLength` to three pages → sync) | before the commit slot's write was handed over (the reads included) | the previous file, untouched | the next OPEN finds the previous store (or, over a file with no store, answers '30'); OPEN OUTPUT recreates | the creating OPEN never began to change the file |
+| | after the commit slot's write, at any later point | the commit slot holds the empty store at N, the higher generation; page 2, the other slot and the length as far as the creation got (an old page 2 is FOREIGN: its base is not N) | the next OPEN adopts the EMPTY store and fences it; power loss before the commit's sync: the slot lost → the previous file; after it: the empty store | §14.9.27.4 GR18's file "contains no records"; the previous store's pages past three are reached by nothing and carry stamps below N |
 | Growth (a write at `page count`) | between the write and page 2 | the file is longer than `page count` | the next growth writes the same pages | pages past `page count` are reached by nothing |
 | Every sync point, power loss between two | — | the unsynced statements, or some of them | R3 refuses a lost or torn page at its read; R6 falls back to C when W fails | 2.2.1.2's contract: at most the statements since the last sync are lost, and never a torn state |
 
@@ -1943,7 +1967,10 @@ slot (`committing`).
 | A promotion, after the slot write (sync 2 or the retirement) | landed | its entry completes the retirement · OPEN: the PROMOTION SOURCE → the fence completes it | its entry completes the retirement |
 | The fence (R6 step 4), at any point | the OPEN is unsuccessful ('30'); the connector is left closed (DOC-A.1-105) | the next OPEN: before the slot landed, a DESCENDANT of C at F with the flag (the fence runs again); after it, the PROMOTION SOURCE (the fence completes it) | the same at its OPEN; a live INPUT reader follows page 2's `generation` only |
 | The dead-owner rollback run at A's entry, at any page | B's entry stands; A's statement answers '30' | A: '30' replayed · CLOSE · OPEN as a record statement | the next writer's entry redoes it (idempotent) |
-| `OPEN OUTPUT`, before its three pages | fewer than three valid meta pages | the next OPEN but OUTPUT: '30'; OPEN OUTPUT recreates | the same |
+| `OPEN OUTPUT`, at any read, write, sync or the truncation but the last sync | the previous file, byte for byte: the pages written get their previous bytes back (a page the file held only part of too) and a file shorter than three pages its length to the byte, then a sync (§14.9.27.4 GR25, *"the file is not affected"*) | the OPEN answers '30' and the connector stays closed · the next OPEN finds the previous store (or '30' over a file with none) · OPEN OUTPUT recreates | the same |
+| `OPEN OUTPUT`, at its last sync | the empty store, committed and truncated; the medium's state unknown | '30' · the next OPEN adopts the empty store | the same |
+| Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§9.1.13.6 item 1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
+| A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§9.1.14); a DELETE answers '30' with no invalid key condition (§9.1.13.6 item 1: §9.1.13.5 item 4's '24' is a write's, and §14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
 | Any path, a sync failure | the medium's state unknown | '30', permanent error; R3 and R6 decide the state at the next read or OPEN, never a torn one | the same |
 
 **2.2.1.17 Every two-run-unit interleaving over one file (the round-3 self-attack, 2026-10-17).** A and B are run units
