@@ -15,7 +15,7 @@ public enum SharingMode { None, AllOther, NoOther, ReadOnly }
 
 /// <summary>The LOCK MODE granularity (ISO §12.4.5.9): MANUAL (locks acquired only by an explicit WITH LOCK) vs
 /// AUTOMATIC (a READ locks the record). <see cref="Multiple"/> = WITH LOCK ON MULTIPLE RECORDS (else single —
-/// any I-O except START releases the prior lock, §12.4.5.9 GR6).</summary>
+/// any I-O except START releases the prior lock, §12.4.5.9.4 GR6).</summary>
 public enum LockKind { None, Manual, Automatic }
 public sealed record LockModeInfo(LockKind Kind, bool Multiple);
 
