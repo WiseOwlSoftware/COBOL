@@ -24,7 +24,7 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
     /// <summary>Whether the run unit is dead.</summary>
     public bool Dead => Writes >= DieAfter;
 
-    public long PageCount => inner.PageCount;
+    public long Length => inner.Length;
 
     public void Read(uint page, Span<byte> destination) => inner.Read(page, destination);
 
@@ -42,8 +42,8 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
         Syncs++;
     }
 
-    public void SetPageCount(long pages)
+    public void SetLength(long bytes)
     {
-        if (!Dead) inner.SetPageCount(pages);
+        if (!Dead) inner.SetLength(bytes);
     }
 }

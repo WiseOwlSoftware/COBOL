@@ -330,14 +330,22 @@ public abstract class KeyedConnector : FileConnector
         return FileStatusCode.Success;
     }
 
-    /// <summary>The I-O status a store operation's failure answers: '24' for the boundary of the physical file
-    /// (§14.9.51.4 GR33 b) and GR42 d), 2.2.1.9), otherwise §9.1.13.6 item 1's '30'; null on success.</summary>
-    private protected static string? Failed(StoreStatus status) => status switch
-    {
-        StoreStatus.Ok => null,
-        StoreStatus.Boundary => FileStatusCode.BoundaryViolation,
-        _ => FileStatusCode.PermanentError,
-    };
+    /// <summary>The I-O status a store operation's failure answers when the statement is not a record WRITE or REWRITE —
+    /// an OPEN's adoption or creation, a DELETE — in either organization: §9.1.13.6 item 1's '30' (<i>"A permanent error
+    /// exists and no further information is available concerning the input-output operation"</i>) for every failure, the
+    /// boundary of the physical file included. The boundary's '24' is §9.1.13.5 item 4's <i>"An attempt is made to write
+    /// outside the externally-defined boundaries of a physical relative or indexed file"</i> — an attempt to WRITE a
+    /// record — and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses
+    /// to grow the file for is the permanent error and never the invalid key condition (docs/CONFORMANCE.md
+    /// DOC-A.1-107). Null on success.</summary>
+    private protected static string? Failed(StoreStatus status) =>
+        status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
+
+    /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers, in either organization: '24' for the
+    /// boundary of the physical file (§9.1.13.5 item 4; §14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
+    /// one; 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on success.</summary>
+    private protected static string? RecordWriteFailed(StoreStatus status) =>
+        status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
 
     /// <summary>Whether this statement's coherent entry already read page 2 (the registry's statement around the
     /// verb), so the change's own statement need not read it again.</summary>
@@ -433,15 +441,14 @@ public abstract class KeyedConnector : FileConnector
         if (store.StatementDepth++ > 0) return;   // the run unit is already inside the mutex
         try
         {
-            bool writable = _regions!.Writable;
-            store.MutexHolder = HoldStoreMutex(exclusive: writable);
+            bool exclusive = _regions!.Writable;
+            store.MutexHolder = HoldStoreMutex(exclusive);
             // 2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved it
-            // (its roots, its ledger, the page cache dropped); a writer also takes the mints and resolves a PROMOTING
-            // flag. A store with no file (an absent OPTIONAL file read INPUT) has nothing to enter. ⛔ The entry is a
-            // READER's whenever the mutex is held shared — through this connector's read-only handle — even when a
-            // writable sibling made the run unit's store writable: a reader's entry writes nothing (kb/Work PB3335).
-            if (store.File is { } file && file.Enter(asReader: !writable) != StoreStatus.Ok)
-                SetStatus(FileStatusCode.PermanentError);
+            // (its roots, its ledger, the page cache dropped); a writer also takes the mints and, under an EXCLUSIVE
+            // hold, resolves a PROMOTING flag. An INPUT connector entering the store a writable sibling opened holds the
+            // mutex shared and leaves the flag to the next exclusive entry (PagedFile.Enter's exclusive rule). A store
+            // with no file (an absent OPTIONAL file read INPUT) has nothing to enter.
+            if (store.File is { } file && file.Enter(exclusive) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {

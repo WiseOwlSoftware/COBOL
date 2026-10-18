@@ -102,7 +102,7 @@ public sealed class StoreCoherenceTests
 
     /// <summary>Run <paramref name="open"/> with every store it makes over a <see cref="RefusingPageMedium"/>, and return the
     /// last one made (the run unit's medium on the file).</summary>
-    private static RefusingPageMedium Observed(Action open, Func<uint, Exception?>? write = null, Action<uint>? read = null)
+    private static RefusingPageMedium Observed(Action open, Func<uint, Exception?>? write = null, Func<uint, Exception?>? read = null)
     {
         RefusingPageMedium? medium = null;
         KeyedStore.MediumObserver.Value = inner => medium = new RefusingPageMedium(inner, write, read: read);
@@ -356,13 +356,14 @@ public sealed class StoreCoherenceTests
             bool watching = false;
             var unheld = new List<uint>();
             int watched = 0;
-            void Probe(uint page)
+            Exception? Probe(uint page)
             {
-                if (!watching) return;
+                if (!watching) return null;
                 watched++;
                 using var probe = new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
                 using var regions = HostRegionLocks.Open(probe.SafeFileHandle, host, writable: true);
                 if (regions.HeldByAnother(HostRegionLocks.StoreMutexByte) != RegionLockResult.Held) unheld.Add(page);
+                return null;
             }
             watching = true;
             Observed(() => a.OpenStatic("A1", FileOpenMode.IO), read: Probe);
