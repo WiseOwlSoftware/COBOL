@@ -199,7 +199,7 @@ public static class HostFile
 {
     /// <summary>⛔ THE ONE ANSWER TO "DO THESE TWO HOST PATHS NAME ONE PHYSICAL FILE?" (kb/Work PB2748), for the two
     /// tables keyed on the physical file — Table 19's arbitration state (<c>PhysicalFileTable</c>) and the keyed record
-    /// stores (<c>KeyedStoreTable</c>) — and every other comparison of two connectors' host paths. The paths are the
+    /// stores (<c>StoreTable</c>) — and every other comparison of two connectors' host paths. The paths are the
     /// ABSOLUTE spellings <see cref="CobolFile.ResolveHostPath"/> produces, so <c>data.dat</c>, <c>./data.dat</c> and
     /// the full path are one key; this comparer adds the host file system's case rule: case-insensitive where the
     /// default file systems are (Windows, macOS), case-sensitive elsewhere, where <c>Cust.dat</c> and
@@ -236,7 +236,8 @@ public static class HostFile
     /// (<see cref="PathTooLongException"/>), or malformed (<see cref="ArgumentException"/>,
     /// <see cref="NotSupportedException"/>) — likewise names no present file. That is a statement about the
     /// PATH, not an input-output failure, so it belongs with Absent rather than with '30'; it is also the
-    /// reading <c>RecordFraming.ReadHeader</c> already takes, and the answer <c>File.Exists</c> gave.</para>
+    /// reading the keyed store's meta-page read (<c>Store.MetaPage.Describes</c>) already takes, and the answer
+    /// <c>File.Exists</c> gave.</para>
     /// <para>Every OTHER <see cref="IOException"/> PROPAGATES on purpose: §9.1.13.6 item 1's '30' (<i>"A
     /// permanent error exists and no further information is available concerning the input-output
     /// operation"</i>) is mapped in exactly ONE place — <see cref="FileConnector.Open"/>'s catch — and a probe
@@ -548,13 +549,14 @@ public static class HostFile
         FileShare share, FileOptions options = FileOptions.None) =>
         new(hostPath, mode, access, share, bufferSize: 1, options);
 
-    /// <summary>A RELATIVE or INDEXED connector's own long-lived handle — its §9.1.15 file lock, the ONE handle its
-    /// whole store is loaded and persisted through (kb/Work PB771), and the handle its cross-run-unit store mutex
-    /// and record locks are held by (kb/Work PB2660). UNBUFFERED, like the sequential read handle
-    /// (<see cref="OpenConnectorStream"/>): the load and the persist are POSITIONAL reads and writes on the handle,
-    /// passing through the connector's own input-output areas (<c>KeyedConnector._areas</c>, sized by
-    /// <see cref="InputOutputAreaBuffer"/>; kb/Work PB2693), because a connector that may meet another run unit's
-    /// writer re-reads a file that run unit has rewritten, and a stream buffer would hand back the superseded bytes.
+    /// <summary>A RELATIVE or INDEXED connector's own long-lived handle — its §9.1.15 file lock, the handle the keyed
+    /// store engine's pages travel through (kb/Work PB771; <c>Store.RunUnitPageMedium</c>), and the handle its
+    /// cross-run-unit store mutex and record locks are held by (kb/Work PB2660). UNBUFFERED, like the sequential read
+    /// handle (<see cref="OpenConnectorStream"/>): every page read and write is POSITIONAL, one page per call
+    /// (<c>Store.HandlePageMedium</c>), into the run unit's page cache, whose floor is the connector's input-output
+    /// areas (sized by <see cref="InputOutputAreaBuffer"/>, §12.4.5.14.3 GR1; docs/rearchitecture/DESIGN-runtime-library.md
+    /// 2.2.1.13), because a statement that may meet another run unit's writer reads pages that run unit has rewritten,
+    /// and a stream buffer would hand back the superseded bytes.
     /// <paramref name="share"/> is <see cref="FileConnector.HostShare"/>, the posture <see cref="FileLockPosture"/>
     /// derived.</summary>
     public static FileStream OpenConnectorStore(string hostPath, FileMode mode, FileAccess access, FileShare share) =>

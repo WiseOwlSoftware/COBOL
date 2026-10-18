@@ -369,7 +369,7 @@ public sealed class SharedReadCoherenceDriftTests
 
     /// <summary>The KEYED control, and the argument that named the fix. <c>RelativeConnector</c> and
     /// <c>IndexedConnector</c> do not read the host file per operation — they attach to the ONE
-    /// <c>KeyedStoreTable</c> store for the path (kb/Work PB143), so a sibling's REWRITE is visible to every
+    /// <c>StoreTable</c> store for the path (kb/Work PB143), so a sibling's REWRITE is visible to every
     /// attached connector the instant it happens. That is a release generation, already built, for the other two
     /// organizations; the sequential connector's shared medium is the file system, and PB753 gave it the same
     /// property. Measured, not assumed.</summary>
@@ -539,11 +539,12 @@ public sealed class SharedReadCoherenceDriftTests
     /// 4096-byte buffered, a sibling's REWRITE was STILL invisible, because <see cref="FileStream.Seek"/> reuses its
     /// read buffer when the target offset falls inside it (kb/Work PB753). The one buffer the connector keeps is
     /// sized in ONE place, <c>HostFile.InputOutputAreaBuffer</c>, from the RESERVE clause's count (ISO §12.4.5.14.3
-    /// GR1, kb/Work PB643): the sequential reader and writer and the keyed connector's areas all ask it, so a role
+    /// GR1, kb/Work PB643): the sequential reader and writer and the keyed connectors' areas all ask it, so a role
     /// that spelled its own size would be a connector whose RESERVE clause does nothing again. The keyed store handle
-    /// is unbuffered too, and its areas are a buffer the store's bytes really pass through (<c>KeyedConnector._areas</c>,
-    /// read and written by its load and its persist): sized as the handle's stream buffer, they were allocated and
-    /// never used, because the store is read and written positionally (kb/Work PB2693).</summary>
+    /// is unbuffered too, and both keyed organizations' areas are the keyed store engine's page cache floor, one page
+    /// per area (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.13; kb/Work PB3333, PB3334), sized by the same call
+    /// in the one place the keyed lifecycle attaches a connector to its store (<c>KeyedConnector.Attach</c>). The whole
+    /// store's own transfer buffer went with the whole store (<c>IndexedConnector.WholeStore.cs</c>, kb/Work PB3334).</summary>
     [Fact]
     public void TheConnectorKeepsOneBuffer_ItsInputOutputAreas_SizedInOnePlace()
     {
@@ -563,17 +564,15 @@ public sealed class SharedReadCoherenceDriftTests
         string keyed = string.Concat(File.ReadAllLines(
             TestRepo.Src("Cobol.Net.Runtime", "IO", "KeyedConnector.cs")).Select(Strip));
         Assert.Contains("HostFile.OpenConnectorStore(", keyed, StringComparison.Ordinal);
-        // Allocated once, BEFORE the store handle is taken (a failed allocation must not leak a handle; train 1045).
-        Assert.Equal(1, keyed.Split("new byte[HostFile.InputOutputAreaBuffer(InputOutputAreas)]").Length - 1);
-        Assert.True(keyed.IndexOf("new byte[HostFile.InputOutputAreaBuffer(InputOutputAreas)]", StringComparison.Ordinal)
-            < keyed.IndexOf("HostFile.OpenConnectorStore(", StringComparison.Ordinal),
-            "the areas are allocated before the store handle is taken");
-        Assert.Contains("_areas = areas;", keyed, StringComparison.Ordinal);
-        // The load and the persist pass through the areas; the one positional read that does not is the generation
-        // probe, which is the coherence stamp and not a transfer of the store.
-        Assert.Contains("ReadThroughAreas(handle,", keyed, StringComparison.Ordinal);
-        Assert.Contains("WriteThroughAreas(handle,", keyed, StringComparison.Ordinal);
-        Assert.Equal(1, keyed.Split("RandomAccess.Write(").Length - 1);   // inside WriteThroughAreas only
+        Assert.Equal(1, keyed.Split("HostFile.InputOutputAreaBuffer(InputOutputAreas)").Length - 1);   // the cache's floor
+        Assert.False(File.Exists(TestRepo.Src("Cobol.Net.Runtime", "IO", "IndexedConnector.WholeStore.cs")),
+            "the whole store's transfer buffer went with the whole store (kb/Work PB3334)");
+        foreach (string organization in new[] { "RelativeConnector.cs", "IndexedConnector.cs" })
+        {
+            string own = string.Concat(File.ReadAllLines(TestRepo.Src("Cobol.Net.Runtime", "IO", organization)).Select(Strip));
+            Assert.DoesNotContain("InputOutputAreaBuffer", own, StringComparison.Ordinal);   // the lifecycle's, written once
+            Assert.DoesNotContain("RandomAccess.", own, StringComparison.Ordinal);           // the pages travel through Store/
+        }
     }
 
     /// <summary>The code of the declaration that starts on the line holding <paramref name="signature"/> through

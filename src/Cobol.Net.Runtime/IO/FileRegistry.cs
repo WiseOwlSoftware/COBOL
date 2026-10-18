@@ -46,7 +46,7 @@ public sealed class FileRegistry
     /// <summary>The per-physical-file KEYED record stores (kb/Work PB143 — §14.9.10.4 GR5): one record store
     /// per resolved host path, attached by every relative/indexed connector over it, so mutations are visible
     /// across connectors and the close order cannot pick a surviving private view.</summary>
-    private readonly KeyedStoreTable _stores = new();
+    private readonly StoreTable _stores = new();
 
     // ── Run-unit lifecycle ───────────────────────────────────────────────────────────────────────────────────
 
@@ -645,12 +645,12 @@ public sealed class FileRegistry
     {
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(c switch
+        return c switch
         {
             RelativeConnector r => r.Write(image, length),
             IndexedConnector ix => ix.Write(image, length),
             var other => throw MisroutedVerb("keyed WRITE", name, other),
-        });
+        };
     }
 
     /// <summary>Keyed REWRITE (§14.9.35) — returns the I-O status.</summary>
@@ -658,12 +658,12 @@ public sealed class FileRegistry
     {
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(c switch
+        return c switch
         {
             RelativeConnector r => r.Rewrite(image, length),
             IndexedConnector ix => ix.Rewrite(image, length),
             var other => throw MisroutedVerb("keyed REWRITE", name, other),
-        });
+        };
     }
 
     /// <summary>DELETE RECORD (§14.9.10 F1); for indexed random/dynamic the prime key is sliced from
@@ -672,7 +672,7 @@ public sealed class FileRegistry
     {
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(DeleteRecordInStatement(c, name, keyedRecordImage, areaExtents));
+        return DeleteRecordInStatement(c, name, keyedRecordImage, areaExtents);
     }
 
     private static string DeleteRecordInStatement(FileConnector c, string name, string keyedRecordImage,
@@ -693,12 +693,12 @@ public sealed class FileRegistry
         image = "";
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(c switch
+        return c switch
         {
             RelativeConnector r => r.ReadNext(out image),
             IndexedConnector ix => ix.ReadNext(out image),
             var other => throw MisroutedVerb("keyed READ NEXT", name, other),   // the PB140 sweep's missed arm
-        });
+        };
     }
 
     /// <summary>Sequential keyed READ PREVIOUS (§14.9.30 F1, COBOL-2002+; compiler edition-gated).</summary>
@@ -707,12 +707,12 @@ public sealed class FileRegistry
         image = "";
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(c switch
+        return c switch
         {
             RelativeConnector r => r.ReadPrevious(out image),
             IndexedConnector ix => ix.ReadPrevious(out image),
             var other => throw MisroutedVerb("keyed READ PREVIOUS", name, other),
-        });
+        };
     }
 
     /// <summary>⛔ A READ whose record has just landed in the record area and whose OCCURS DEPENDING ON item then
@@ -752,12 +752,12 @@ public sealed class FileRegistry
         image = "";
         var c = Require(name);
         using var statement = c.BeginStatement();   // kb/Work PB2660
-        return statement.Complete(c switch
+        return c switch
         {
             RelativeConnector r => r.ReadRandom(out image),
             IndexedConnector ix => ix.ReadRandom(keyIndex, keyedRecordImage, out image, areaExtents),
             var other => throw MisroutedVerb("keyed READ", name, other),
-        });
+        };
     }
 
     /// <summary>START on a relative file (§14.9.41 GR8–GR12) — a numeric RRN comparison.</summary>
@@ -1430,7 +1430,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
-        return statement.Complete(ReadSharedInStatement(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image));
+        return ReadSharedInStatement(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
     }
 
     /// <summary>The body of <see cref="ReadShared"/>, inside its connector's store statement.</summary>
@@ -1522,7 +1522,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image, RecordExtents? areaExtents = null)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
-        return statement.Complete(ReadKeyedSharedInStatement(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image, areaExtents));
+        return ReadKeyedSharedInStatement(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image, areaExtents);
     }
 
     /// <summary>The body of <see cref="ReadKeyedShared"/>, inside its connector's store statement.</summary>
@@ -1568,7 +1568,7 @@ public sealed class FileRegistry
         RecordExtents? extents = null, bool nationalRecord = false)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
-        return statement.Complete(WriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, page, advance, extents, nationalRecord));
+        return WriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, page, advance, extents, nationalRecord);
     }
 
     /// <summary>The body of <see cref="WriteShared"/>, inside its connector's store statement.</summary>
@@ -1625,7 +1625,7 @@ public sealed class FileRegistry
         FileRetryKind retryKind, long retryAmount, RecordExtents? extents = null, bool nationalRecord = false)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
-        return statement.Complete(RewriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, extents, nationalRecord));
+        return RewriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, extents, nationalRecord);
     }
 
     /// <summary>The body of <see cref="RewriteShared"/>, inside its connector's store statement.</summary>
@@ -1682,7 +1682,7 @@ public sealed class FileRegistry
         RecordExtents? areaExtents = null)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
-        return statement.Complete(DeleteSharedInStatement(name, keyedRecordImage, retryKind, retryAmount, areaExtents));
+        return DeleteSharedInStatement(name, keyedRecordImage, retryKind, retryAmount, areaExtents);
     }
 
     /// <summary>The body of <see cref="DeleteShared"/>, inside its connector's store statement.</summary>
