@@ -1,0 +1,13 @@
+before
+E(1) len 9 3THREE3ZY
+E(2) len 6 1ONE1Q
+E(3) len 5 2TWO2
+after N=3
+E(1) len 6 1ONE1Q
+E(2) len 5 2TWO2
+E(3) len 9 3THREE3ZY
+RAISED EC-BOUND-ODO                   
+after N=7
+E(1) len 6 1ONE1Q
+E(2) len 5 2TWO2
+E(3) len 9 3THREE3ZY
