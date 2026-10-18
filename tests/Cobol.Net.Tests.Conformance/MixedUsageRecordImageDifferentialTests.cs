@@ -173,7 +173,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
             "        MOVE P-KEY TO WS-ED DISPLAY \"K=\" WS-ED \" \" P-TXT"),
             "K=-300 N2\nK=-005 N1\nK=+003 P1");
 
-    // ── MERGE keys over signed BINARY/PACKED leaves, and the sequence-error path (ISO §14.9.24 GR4/GR6) ─────────
+    // ── MERGE keys over signed BINARY/PACKED leaves, and the sequence-error path (ISO §14.9.24.4 GR3/GR6) ─────────
 
     /// <summary>A MERGE program over two USING files, each written (ascending by <paramref name="keyPic"/>'s value)
     /// by the program itself, merged on <paramref name="direction"/> KEY and returned through an output procedure.
@@ -235,7 +235,7 @@ public sealed class MixedUsageRecordImageDifferentialTests
     /// <summary>MERGE orders two USING files holding signed-COMP keys by ALGEBRAIC value (§14.9.24.4 GR3 a) via
     /// §8.8.4.2.4), negatives first: −8000 &lt; −20 &lt; −14 &lt; 0 &lt; +5 &lt; +99. The merge key window is decoded
     /// through the key item's own profile, exactly as the SORT key is — a byte-wise compare would put every negative
-    /// (leading byte 0xFF) after every positive, SILENTLY.</summary>
+    /// (high bit set: 0x80.. and above) after every positive, SILENTLY.</summary>
     [Fact]
     public void Merge_SignedBinaryKey_Ascending_NegativesOrderAlgebraically()
         => AssertSpec(MergeProgram("MXMRG1", "PIC S9(4) COMP", "ASCENDING", "", "",
@@ -267,79 +267,124 @@ public sealed class MixedUsageRecordImageDifferentialTests
             """),
             "K=+0700 A1\nK=+0012 B1\nK=-0003 A2\nK=-0500 B2\nK=-0900 A3\nDONE");
 
-    /// <summary>EC-SORT-MERGE-SEQUENCE (§14.9.24.4 GR6) is judged on the same algebraic order, in BOTH directions.
-    /// FA holds −14 then +5: ascending by VALUE although its bytes (0xFFF2, 0x0005) descend, so the checked MERGE
-    /// raises nothing and completes. FB holds +5 then −14: out of key order by value, so the checked MERGE raises
-    /// EC-SORT-MERGE-SEQUENCE, the declarative runs, all files of the statement are closed and the results are
-    /// undefined (the statement is terminated — the run unit continues, docs/CONFORMANCE.md §3 D-SMA). The
-    /// abnormal path is as much part of the keys' design as the ordering: a byte-wise sequence scan would
+    /// <summary>A checked-MERGE program for the sequence-error path over a signed-COMP key: FA (<paramref name="writesFa"/>)
+    /// and FB (<paramref name="writesFb"/>) are each merged with FC (one record, −3) in turn on <paramref name="direction"/>
+    /// KEY under <c>&gt;&gt;TURN EC-SORT-MERGE-SEQUENCE CHECKING ON</c>; <paramref name="withDeclarative"/> adds a
+    /// USE AFTER EXCEPTION CONDITION declarative that displays the condition's name.</summary>
+    private static string SequenceCheckProgram(string id, string direction, bool withDeclarative,
+        string writesFa, string writesFb) => $"""
+        >>TURN EC-SORT-MERGE-SEQUENCE CHECKING ON
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. {id}.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+            SELECT FA ASSIGN TO "{id}-A".
+            SELECT FB ASSIGN TO "{id}-B".
+            SELECT FC ASSIGN TO "{id}-C".
+            SELECT MF ASSIGN TO "{id}-WORK".
+        DATA DIVISION.
+        FILE SECTION.
+        FD FA.
+        01 A-REC.
+           05 A-KEY PIC S9(4) COMP.
+        FD FB.
+        01 B-REC.
+           05 B-KEY PIC S9(4) COMP.
+        FD FC.
+        01 C-REC.
+           05 C-KEY PIC S9(4) COMP.
+        SD MF.
+        01 M-REC.
+           05 M-KEY PIC S9(4) COMP.
+        WORKING-STORAGE SECTION.
+        01 WS-EOF PIC X VALUE "N".
+        01 WS-ED PIC +9(4).
+        PROCEDURE DIVISION.
+        {(withDeclarative ? """
+        DECLARATIVES.
+        D-SEQ SECTION.
+            USE AFTER EXCEPTION CONDITION EC-SORT-MERGE-SEQUENCE.
+        D-SEQ-1.
+            DISPLAY "EC=" FUNCTION EXCEPTION-STATUS.
+        END DECLARATIVES.
+        """ : "")}
+        MAIN-SEC SECTION.
+        MAIN-1.
+            OPEN OUTPUT FA.
+        {writesFa}
+            CLOSE FA.
+            OPEN OUTPUT FB.
+        {writesFb}
+            CLOSE FB.
+            OPEN OUTPUT FC.
+            MOVE -3 TO C-KEY WRITE C-REC.
+            CLOSE FC.
+            MERGE MF ON {direction} KEY M-KEY USING FA FC OUTPUT PROCEDURE IS DUMP-SEC.
+            DISPLAY "FIRST-DONE".
+            MOVE "N" TO WS-EOF.
+            MERGE MF ON {direction} KEY M-KEY USING FB FC OUTPUT PROCEDURE IS DUMP-SEC.
+            DISPLAY "SECOND-DONE".
+            STOP RUN.
+        DUMP-SEC SECTION.
+        DUMP-1.
+            RETURN MF AT END MOVE "Y" TO WS-EOF
+                NOT AT END
+                    MOVE M-KEY TO WS-ED
+                    DISPLAY "K=" WS-ED
+            END-RETURN.
+            IF WS-EOF = "N" GO TO DUMP-1.
+        """;
+
+    /// <summary>Writes −14 then +5 to <paramref name="file"/> (A or B): ascending by VALUE, bytes 0xFFF2, 0x0005.</summary>
+    private static string MinusFourteenThenFive(char file) => $"""
+            MOVE -14 TO {file}-KEY WRITE {file}-REC.
+            MOVE 5 TO {file}-KEY WRITE {file}-REC.
+        """;
+
+    /// <summary>Writes +5 then −14 to <paramref name="file"/> (A or B): descending by VALUE, bytes 0x0005, 0xFFF2.</summary>
+    private static string FiveThenMinusFourteen(char file) => $"""
+            MOVE 5 TO {file}-KEY WRITE {file}-REC.
+            MOVE -14 TO {file}-KEY WRITE {file}-REC.
+        """;
+
+    /// <summary>EC-SORT-MERGE-SEQUENCE (§14.9.24.4 GR6) is judged on the same algebraic order, ASCENDING and WITH a
+    /// USE declarative. FA holds −14 then +5: ascending by VALUE although its bytes (0xFFF2, 0x0005) descend, so the
+    /// checked MERGE raises nothing and completes. FB holds +5 then −14: out of key order by value, so the checked
+    /// MERGE raises EC-SORT-MERGE-SEQUENCE, the declarative runs, the statement is terminated (its output procedure
+    /// never runs) and the run unit continues (docs/CONFORMANCE.md §3 D-SMA (b)). A byte-wise sequence scan would
     /// reverse both verdicts.</summary>
     [Fact]
-    public void Merge_SignedBinaryKey_SequenceCheck_IsAlgebraic_BothVerdicts()
-        => AssertSpecAt(2023, """
-            >>TURN EC-SORT-MERGE-SEQUENCE CHECKING ON
-            IDENTIFICATION DIVISION.
-            PROGRAM-ID. MXMRG3.
-            ENVIRONMENT DIVISION.
-            INPUT-OUTPUT SECTION.
-            FILE-CONTROL.
-                SELECT FA ASSIGN TO "MXMRG3-A".
-                SELECT FB ASSIGN TO "MXMRG3-B".
-                SELECT FC ASSIGN TO "MXMRG3-C".
-                SELECT MF ASSIGN TO "MXMRG3-WORK".
-            DATA DIVISION.
-            FILE SECTION.
-            FD FA.
-            01 A-REC.
-               05 A-KEY PIC S9(4) COMP.
-            FD FB.
-            01 B-REC.
-               05 B-KEY PIC S9(4) COMP.
-            FD FC.
-            01 C-REC.
-               05 C-KEY PIC S9(4) COMP.
-            SD MF.
-            01 M-REC.
-               05 M-KEY PIC S9(4) COMP.
-            WORKING-STORAGE SECTION.
-            01 WS-EOF PIC X VALUE "N".
-            01 WS-ED PIC +9(4).
-            PROCEDURE DIVISION.
-            DECLARATIVES.
-            D-SEQ SECTION.
-                USE AFTER EXCEPTION CONDITION EC-SORT-MERGE-SEQUENCE.
-            D-SEQ-1.
-                DISPLAY "EC=" FUNCTION EXCEPTION-STATUS.
-            END DECLARATIVES.
-            MAIN-SEC SECTION.
-            MAIN-1.
-                OPEN OUTPUT FA.
-                MOVE -14 TO A-KEY WRITE A-REC.
-                MOVE 5 TO A-KEY WRITE A-REC.
-                CLOSE FA.
-                OPEN OUTPUT FB.
-                MOVE 5 TO B-KEY WRITE B-REC.
-                MOVE -14 TO B-KEY WRITE B-REC.
-                CLOSE FB.
-                OPEN OUTPUT FC.
-                MOVE -3 TO C-KEY WRITE C-REC.
-                CLOSE FC.
-                MERGE MF ON ASCENDING KEY M-KEY USING FA FC OUTPUT PROCEDURE IS DUMP-SEC.
-                DISPLAY "FIRST-DONE".
-                MOVE "N" TO WS-EOF.
-                MERGE MF ON ASCENDING KEY M-KEY USING FB FC OUTPUT PROCEDURE IS DUMP-SEC.
-                DISPLAY "SECOND-DONE".
-                STOP RUN.
-            DUMP-SEC SECTION.
-            DUMP-1.
-                RETURN MF AT END MOVE "Y" TO WS-EOF
-                    NOT AT END
-                        MOVE M-KEY TO WS-ED
-                        DISPLAY "K=" WS-ED
-                END-RETURN.
-                IF WS-EOF = "N" GO TO DUMP-1.
-            """,
+    public void Merge_SignedBinaryKey_SequenceCheck_Ascending_WithDeclarative_BothVerdicts()
+        => AssertSpecAt(2023, SequenceCheckProgram("MXMRG3", "ASCENDING", true,
+                MinusFourteenThenFive('A'), FiveThenMinusFourteen('B')),
             "K=-0014\nK=-0003\nK=+0005\nFIRST-DONE\nEC=EC-SORT-MERGE-SEQUENCE\nSECOND-DONE");
+
+    /// <summary>The DESCENDING direction (§14.9.24.4 GR3 b)), WITH a declarative: FA holds +5 then −14 — descending
+    /// by VALUE although its bytes (0x0005, 0xFFF2) ascend — so the checked MERGE raises nothing; FB holds −14 then
+    /// +5 and raises. A check that judged a DESCENDING merge by the ascending order would reverse both verdicts.</summary>
+    [Fact]
+    public void Merge_SignedBinaryKey_SequenceCheck_Descending_WithDeclarative_BothVerdicts()
+        => AssertSpecAt(2023, SequenceCheckProgram("MXMRG4", "DESCENDING", true,
+                FiveThenMinusFourteen('A'), MinusFourteenThenFive('B')),
+            "K=+0005\nK=-0003\nK=-0014\nFIRST-DONE\nEC=EC-SORT-MERGE-SEQUENCE\nSECOND-DONE");
+
+    /// <summary>The same two verdicts WITHOUT a USE declarative (ASCENDING): the in-order merge completes; the
+    /// out-of-order one raises the fatal condition, no declarative applies, so the statement alone is terminated
+    /// (§14.6.13.1.3 2), docs/CONFORMANCE.md §3 D-SMA (b)): its output procedure never runs, nothing is displayed for
+    /// the condition, and the run unit continues to SECOND-DONE.</summary>
+    [Fact]
+    public void Merge_SignedBinaryKey_SequenceCheck_Ascending_WithoutDeclarative_TerminatesTheStatementOnly()
+        => AssertSpecAt(2023, SequenceCheckProgram("MXMRG5", "ASCENDING", false,
+                MinusFourteenThenFive('A'), FiveThenMinusFourteen('B')),
+            "K=-0014\nK=-0003\nK=+0005\nFIRST-DONE\nSECOND-DONE");
+
+    /// <summary>The DESCENDING direction WITHOUT a USE declarative.</summary>
+    [Fact]
+    public void Merge_SignedBinaryKey_SequenceCheck_Descending_WithoutDeclarative_TerminatesTheStatementOnly()
+        => AssertSpecAt(2023, SequenceCheckProgram("MXMRG6", "DESCENDING", false,
+                FiveThenMinusFourteen('A'), MinusFourteenThenFive('B')),
+            "K=+0005\nK=-0003\nK=-0014\nFIRST-DONE\nSECOND-DONE");
 
     // ── RELEASE/RETURN round trip (ISO §14.9.32 GR2 / §14.9.34 GR3 — the record area carries the image) ──────
 

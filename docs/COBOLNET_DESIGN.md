@@ -1474,9 +1474,12 @@ LEAF (`BoundSortMergeKey.Item`, bound in `SortBinder`) and the runtime decodes t
 leaf's own profile (`CobolSort.Key.Profile` → `CobolNum.ParseImage`, in `SortKeyColumns`), so a signed COMP / COMP-3 key
 orders ALGEBRAICALLY — §14.9.40.4 GR8 and §14.9.24.4 GR3 a)/b), both through §8.8.4.2.4 — and the MERGE sequence check
 (§14.9.24.4 GR6, EC-SORT-MERGE-SEQUENCE) judges on that same order. The failure mode of any other decode is SILENT:
-everything sorts, but a negative key (leading byte `0xFF`) orders after every positive, and a sequence check reads
-valid input as out of order and the reverse. Witnesses: `MixedUsageRecordImageDifferentialTests` (SORT and MERGE, both
-directions, signed BINARY and PACKED, and the sequence-error path in both verdicts). DISPLAY-statement
+everything sorts, but a byte-wise compare orders a negative COMP key (two's complement, high bit set) after every
+positive and a packed COMP-3 key by MAGNITUDE (its sign nibble is the last half-byte, so +12 `00 01 2C` follows
+-3 `00 00 3D` and precedes -500), and a sequence check reads valid input as out of order and the reverse. Witnesses:
+`MixedUsageRecordImageDifferentialTests` (SORT and MERGE, both directions, signed BINARY and PACKED, and the
+EC-SORT-MERGE-SEQUENCE path over a signed BINARY key in both verdicts, both directions, with and without a USE
+declarative). DISPLAY-statement
 output of the same leaf is unchanged (`OperandText` decodes a non-zoned stored image and renders the digits —
 §14.9.25.4 GR6 treats an elementary numeric operand used as text as though it were MOVED to an alphanumeric item).
 **Named losers:** (a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with
