@@ -12,14 +12,16 @@
       *>   cite.py: OK  §A.1 198)  (Implementor-defined language element list)
       *> docs/CONFORMANCE.md#DOC-A.1-198 documents ONE added restriction: "a system-name
       *> shall not consist of digits only, because such a character-string is always read
-      *> as an integer literal (`OBJECT-COMPUTER. 12345.` is a syntax error at the literal, `COBOL0308`)".
+      *> as an integer literal (`OBJECT-COMPUTER. 12345.` is refused at the literal as a token the
+      *> closed format does not print, `COBOLNET1970`)".
       *> `12345` is otherwise a legal COBOL word (§8.3.2.1: digits allowed, no hyphen at
       *> either end; the letter requirement of §8.3.2.2 binds user-defined words only), so
       *> this documented restriction is the only reason to reject. The companion positive
       *> l1c32_system_name_formation shows `1-2` and `123ABC` accepted. The diagnostic is
-      *> the parse layer's literal-in-a-word-position code, which is exactly what the documentation
-      *> names: since kb/Work PB3370 the stray literal is deleted before the paragraph's period
-      *> (the single-token recovery), where the prediction used to fail with a bare COBOL0001.
+      *> the parse layer's closed-format refusal, which is exactly what the documentation names:
+      *> since kb/Work PB3373 a literal at the position of a closed format's error production is
+      *> refused by name in that format (it was COBOL0308, "a data-name is expected", whose
+      *> IDENTIFIER was only the error production's own left edge).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C32I.
        ENVIRONMENT DIVISION.
