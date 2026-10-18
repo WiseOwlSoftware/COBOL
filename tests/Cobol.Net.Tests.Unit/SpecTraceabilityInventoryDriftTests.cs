@@ -825,10 +825,11 @@ public sealed class SpecTraceabilityInventoryDriftTests
         var bad = new List<string>();
         foreach (var r in rows.Where(r => r.Notes.Length > 0))
         {
-            foreach (var spelling in NotesLocation.Matches(ProseOf(r.Notes, s)).Select(m => (m.Groups[1].Value, m.Groups[2].Value.TrimEnd('.', '-')))
-                         .Distinct())
+            var spellings = NotesLocation.Matches(ProseOf(r.Notes, s))
+                .Select(m => (Path: m.Groups[1].Value, Symbol: m.Groups[2].Value.TrimEnd('.', '-')))
+                .Distinct();
+            foreach ((string path, string symbol) in spellings)
             {
-                (string path, string symbol) = spelling;
                 string file = Path.Combine(root, path.Replace('/', Path.DirectorySeparatorChar));
                 if (!File.Exists(file))
                     bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — no such file");
