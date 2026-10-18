@@ -920,6 +920,131 @@ public sealed class HostEntryTests
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>The nested arms of the cell area (kb/Work PB3273): a subordinate group holding its own dynamic-length item
+    /// and pointer (its components numbered in the record's scope), a dynamic-capacity table under INITIALIZED whose
+    /// elements hold a nested dynamic-capacity table of pointers (each element cell a scope of its own, one level down),
+    /// as an argument (H7NEST: the first call sets the pointers and grows both tables, the second reads them back), and a
+    /// RETURNING group with a fixed table of variable-length elements holding pointers (H7RET).</summary>
+    private const string NestedAreaPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7NEST.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TS.
+              10 TS-D PIC X DYNAMIC LENGTH LIMIT IS 4.
+              10 TS-P USAGE POINTER.
+              10 TS-N PIC 9(3).
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 2 TO 5 INITIALIZED.
+              10 TT-B PIC 9(2) VALUE 77.
+              10 TT-T OCCURS DYNAMIC CAPACITY IN TTC FROM 1 TO 3.
+                 15 TT-TN PIC 9 VALUE 5.
+                 15 TT-TP USAGE POINTER.
+        01 WS-X PIC X(4) VALUE "DATA".
+        01 WS-Y PIC X(4) VALUE "YYYY".
+        LINKAGE SECTION.
+        01 LK-G TYPE TG.
+        01 B PIC X(4) BASED.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            IF TS-P OF LK-G = NULL
+                DISPLAY "FIRST [" TS-D OF LK-G "] " TS-N OF LK-G " " TT-TN OF LK-G (2, 1)
+                MOVE "nested" TO TS-D OF LK-G
+                SET TS-P OF LK-G TO ADDRESS OF WS-X
+                MOVE 7 TO TT-TN OF LK-G (3, 2)
+                SET TT-TP OF LK-G (3, 2) TO ADDRESS OF WS-Y
+            ELSE
+                SET ADDRESS OF B TO TS-P OF LK-G
+                DISPLAY "TS-P " B
+                SET ADDRESS OF B TO TT-TP OF LK-G (3, 2)
+                DISPLAY "TT-TP " B
+            END-IF
+            ADD 1 TO TS-N OF LK-G
+            GOBACK.
+        END PROGRAM H7NEST.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7RET.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TR IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TF OCCURS 2 TIMES.
+              10 TF-D PIC X DYNAMIC LENGTH LIMIT IS 3.
+              10 TF-P USAGE POINTER.
+        01 WS-R PIC X(4) VALUE "RRRR".
+        LINKAGE SECTION.
+        01 LK-A PIC 9(4).
+        01 LK-R TYPE TR.
+        PROCEDURE DIVISION USING LK-A RETURNING LK-R.
+        P1.
+            MOVE "abcd" TO TF-D OF LK-R (2)
+            SET TF-P OF LK-R (2) TO ADDRESS OF WS-R
+            MOVE "z" TO TA OF LK-R
+            ADD 1 TO LK-A
+            GOBACK.
+        END PROGRAM H7RET.
+        """;
+
+    private const string NestedAreaHost = """
+        using System;
+        using CobolNet.Runtime;
+        using Cobol.H7PROGS;
+
+        public static class H7HostProgram
+        {
+            private static string Show(H7NEST.LK_G_Record g) =>
+                $"TS {g.TS.TS_D}/{g.TS.TS_P is { IsNull: false }}/{g.TS.TS_N} TT " + string.Join(",", Array.ConvertAll(g.TT,
+                    t => $"{t.TT_B}:" + string.Join(";", Array.ConvertAll(t.TT_T, u => $"{u.TT_TN}/{u.TT_TP is { IsNull: false }}"))));
+
+            public static int Main()
+            {
+                var g = new H7NEST.LK_G_Record { TS = new() { TS_D = "s", TS_N = 3 } };
+                g.TT = [new() { TT_B = 1, TT_T = [new() { TT_TN = 1 }] }, new() { TT_B = 2, TT_T = [new() { TT_TN = 2 }] }];
+                H7NEST.Call(ref g);
+                Console.WriteLine("OUT1 " + Show(g));
+                H7NEST.Call(ref g);
+                Console.WriteLine("OUT2 " + Show(g));
+                long a = 4;
+                var r = H7RET.Call(ref a);
+                Console.WriteLine($"RET {a} [{r.TA}] {r.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(r.TF,
+                    t => $"{t.TF_D}/{t.TF_P is { IsNull: false }}")));
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>The cell area's nested arms round-trip (kb/Work PB3273): a subordinate group's dynamic-length item and
+    /// pointer, and an element cell's nested dynamic-capacity table of pointers, cross into the activated program's formal
+    /// laid over the area (ISO §14.2.3 8)) and come back. Expected values, derived: "nested" stored into a LIMIT 4 item
+    /// returns as "nest" (§8.5.1.10.4, "truncated on the right as necessary"); the store into TT-TN (3, 2) creates
+    /// occurrence 3 of TT (§8.5.1.9.3), whose members the store does not name are initialized as INITIALIZE … TO VALUE
+    /// THEN TO DEFAULT under TT's INITIALIZED phrase (§8.5.1.9.5), so TT-B (3) is 77 and TT-TN (3, 1) is 5, and it creates
+    /// TT-T (3, 2), whose TT-TN is the 7 stored; both pointers the program sets come back and are passed in again (the
+    /// second activation reads through them). The RETURNING item's "abcd" stored into a LIMIT 3 item is "abc", and only
+    /// TF-P (2) was set.</summary>
+    [Fact]
+    public void AHost_PassesNestedComponentsAndReferences_ThroughTheCellArea_AndReadsThemBack()
+    {
+        string dir = CutRunner.NewTempDir("h7host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H7PROGS", NestedAreaPrograms);
+            NonCobolElement.CompileCSharp(dir, "H7HOST", NestedAreaHost, "H7PROGS", "H7PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H7HOST.dll"), dir);
+            Assert.Equal(
+                "FIRST [s] 003 2\n" +
+                "OUT1 TS nest/True/4 TT 1:1/False,2:2/False,77:5/False;7/True\n" +
+                "TS-P DATA\n" +
+                "TT-TP YYYY\n" +
+                "OUT2 TS nest/True/5 TT 1:1/False,2:2/False,77:5/False;7/True\n" +
+                "RET 5 [z] False /False,abc/True", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>Whether the module <paramref name="name"/> in <paramref name="dir"/> has an entry point, and whether it
     /// has a runtime configuration — an executable has both, a library neither.</summary>
     private static (bool EntryPoint, bool RuntimeConfig) Launchable(string dir, string name)
