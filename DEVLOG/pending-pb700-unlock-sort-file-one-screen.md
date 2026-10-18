@@ -4,7 +4,10 @@ PB700 recorded that `FileLockBinder.BindUnlock` screened a sort-merge (SD) file 
 `COBOLNET1512` literal, while CLOSE, DELETE, DELETE FILE, OPEN, READ, REWRITE, START and WRITE share
 `StatementValidation.ScreenSortMergeFile` (COBOLNET1692, ISO §13.4.6.3 SR3/SR4). Re-probe on this tree: `UNLOCK S.` on an
 SD still reported `COBOLNET1512: UNLOCK may not name the sort/merge file 'S' (ISO §14.9.47.3 SR1)`. COBOLNET1512 was
-therefore spanning two unrelated rules (the AUTOMATIC lock-phrase ban and this one) and `DiagnosticCatalog`'s 1692
+therefore shared by this rule and three others (the AUTOMATIC lock-phrase ban in `FileLockBinder`, LOCK MODE ... WITH LOCK
+ON MULTIPLE RECORDS on a sequential file, §12.4.5.9.3 SR2, in `DataBinder`, and OPEN SHARING WITH ALL OTHER without LOCK
+MODE, §14.9.27.3 SR8, in `StatementValidation`; the note had counted two, inherited, and review round 1 re-derived the
+rest). After this change the code no longer carries the sort-file rule and still has those three meanings. And `DiagnosticCatalog`'s 1692
 descriptor said UNLOCK was already covered.
 
 The fix is at the screen. `ScreenSortMergeFile` takes an optional `verbRule`; UNLOCK passes `§14.9.47.3 SR1`, the one
