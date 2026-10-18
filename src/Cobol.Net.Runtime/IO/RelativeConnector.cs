@@ -217,7 +217,7 @@ public sealed class RelativeConnector : KeyedConnector
     private string? Attach(bool create)
     {
         var store = SharedStores is { } table
-            ? create ? table.AttachCreated<RelativeStore>(HostPath) : table.AttachRelative(HostPath, _ => { })
+            ? create ? table.AttachCreated<RelativeStore>(HostPath) : table.AttachRelative(HostPath)
             : new RelativeStore();
         _st = store;
         _attached = true;
@@ -232,7 +232,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// <summary>Attach to the store of an absent OPTIONAL file opened INPUT: no handle and no records.</summary>
     private void AttachAbsent()
     {
-        _st = SharedStores is { } table ? table.AttachRelative(HostPath, _ => { }) : new RelativeStore();
+        _st = SharedStores is { } table ? table.AttachRelative(HostPath) : new RelativeStore();
         _attached = true;
     }
 
