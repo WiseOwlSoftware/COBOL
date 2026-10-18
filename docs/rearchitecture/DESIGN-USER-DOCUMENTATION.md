@@ -53,8 +53,14 @@ like any documentation site, nothing to download or install. A version picker sw
 - *Install* — `dotnet tool install -g WiseOwl.COBOL`; prerequisites (.NET 10 runtime); verifying the install.
 - *Getting started* — hello world; compile, run, the produced assembly.
 - *User guide* — the `cobol` command; `--std 85|2002|2014|2023` and `--permissive`; reference format (fixed / free /
-  `>>SOURCE`); COPY libraries and search; files and I-O (organizations, the Latin-1 no-CODE-SET rule of R47, status
-  codes); run units and STOP RUN under a .NET host (R48); locale and collation (A.4.9); exception handling.
+  `>>SOURCE`); COPY libraries and search; run units and STOP RUN under a .NET host (R48); locale and collation (A.4.9);
+  exception handling.
+- *File types* (owner 2026-10-17, kb/Work PB3352) — the implementation and support of each file kind, per
+  organization: sequential, line sequential, relative, indexed, sort-merge and report files. For each it gives the
+  access modes and statements per edition, the on-disk format, the limits (DOC-A.1-107 and the other DOC-A.1 rows),
+  foreign files ('39'), the Latin-1 no-CODE-SET rule of R47 and the status codes. It also covers sharing and record
+  locking, APPLY COMMIT / COMMIT / ROLLBACK and the crash guarantee, the performance a user can plan by, and the SORT
+  work files' memory limit and location. Written once kb/Work PB3330's engine has landed.
 - *.NET interoperability* (§4.2.3) — calling COBOL from C# and C# from COBOL; the runtime package.
 - *Migrating* (§4.2.4) — from IBM Enterprise COBOL, Micro Focus and GnuCOBOL: what is standard, what is a dialect
   extension, what CobolSharp rejects and why.
