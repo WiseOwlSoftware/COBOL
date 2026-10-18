@@ -1,4 +1,4 @@
-## PB3353: the SORT and file I/O campaign is registered, and 69 related notes are classified against PB3339 and the PB3330 engine
+## Entry 2172 — 2026-10-17 20:22 PDT — PB3353: the SORT and file I/O campaign is registered, and 69 related notes are classified against PB3339 and the PB3330 engine
 
 The owner, 2026-10-17 (about 17:45-18:10 PDT): "We should end with all the SORT changes & fixes plus all the file I/O
 changes and fixes in main", "Won't our redesign obsolete some / all>? of those prior notes?" and "Let's address and fix as
@@ -64,3 +64,4 @@ through PB3337) and the check at that landing is `work.py next --cluster PB3330`
 because PB3337 and PB3338 exist only on the design branch.
 
 Notes only: no change under `src/` or `tests/`.
+
