@@ -14,18 +14,18 @@
       *> be re-accessed by the same file connector that holds the lock."
       *>
       *> WHY MULTIPLE RECORD LOCKING IS LOAD-BEARING HERE.  Under SINGLE
-      *> record locking 12.4.5.9 GR6 makes "execution of any I-O
+      *> record locking 12.4.5.9.4 GR6 makes "execution of any I-O
       *> statement except START release any previously locked record in
       *> that file for that file connector", so a re-read of a record
       *> this connector locked cannot be told apart from a re-read of a
       *> record whose lock had already been dropped — "ignored" and
       *> "released first" are the same observation.  The LOCK ON
-      *> MULTIPLE RECORDS phrase (12.4.5.9 GR7) suppresses that release,
+      *> MULTIPLE RECORDS phrase (12.4.5.9.4 GR7) suppresses that release,
       *> so the lock demonstrably still stands across R3.  MULTIPLE
       *> requires a non-sequential organization and access mode
       *> (12.4.5.9.3 SR2), hence relative + ACCESS RANDOM.
       *>
-      *> R1  F1's read of record 1 locks it (12.4.5.9 GR4, automatic).
+      *> R1  F1's read of record 1 locks it (12.4.5.9.4 GR4, automatic).
       *> R2  F2's read of record 1 is refused '51' — the lock is REAL.
       *> R3  F1 reads record 2, which under MULTIPLE locking is added to
       *>     F1's held locks; record 1's lock is NOT released.
