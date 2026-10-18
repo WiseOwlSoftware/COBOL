@@ -74,12 +74,21 @@ const RETURN_LINE =
 // reviewed where it was made: ONE read-only cobol-reviewer (the review skill's branch form) records its decisions in
 // <scratch>\review-w<wave>-<letter>.jsonl through review_findings.py, which computes the verdict and stamps it into the
 // report's header (`**Review:** CLEAN <reviewer> <head>`). FINDINGS → a REVIEW FINISHER (a fresh cobol-implementer:
-// a workflow cannot message an agent that has returned) merges the branch, answers every finding by its id (fixed, or
-// no_change_needed with the reason), re-gates and returns; its branch is reviewed again. Only a branch reviewed CLEAN
-// at its head is ready to land; at the round cap the FINDINGS stamp stays, and the next wave's planner dispatches a
-// finisher for it (plan_wave.py). prune_worktrees.py lists a DONE branch WAITING TO LAND only under a CLEAN stamp at
-// its tip, so the landing lane lands no unreviewed branch either.
+// a workflow cannot message an agent that has returned) merges the branch, answers every blocking finding by its id
+// (fixed, or no_change_needed with the reason), re-gates and returns; its branch is reviewed again. Only a branch
+// reviewed CLEAN at its head is ready to land; at the round cap the FINDINGS stamp stays, and the next wave's planner
+// dispatches a finisher for it (plan_wave.py). prune_worktrees.py lists a DONE branch WAITING TO LAND only under a
+// CLEAN stamp at its tip, so the landing lane lands no unreviewed branch either.
+// ROUND 2 AND LATER REVIEW THE DIFF, AND A SEVERITY THRESHOLD DECIDES (kb/Work PB3381, owner 2026-10-18). Round 1 is the
+// whole branch (origin/main...HEAD); a re-review reads only `git diff <the head the last round reviewed>..HEAD` and the
+// report's answers, because the earlier content is reviewed: on wave 1118 every round re-reviewed the whole branch,
+// each found something new (PB3331: 5, 2, 1 findings over 2.3 h) and the cap ended in a DECISION, not a landing. The
+// verdict blocks on critical, high and medium findings while a finisher can still answer them (BLOCKING), and on
+// critical and high only at the round after the last finisher (BLOCKING_AT_CAP): a medium finding becomes a lead
+// there, a low one never blocks, and every non-blocking finding is a LEAD the report lists and the result carries.
 const REVIEW_FIX_ROUNDS = args.review_fix_rounds === undefined ? 2 : args.review_fix_rounds
+const BLOCKING = 'critical,high,medium'
+const BLOCKING_AT_CAP = 'critical,high'
 const REVIEWER_CEILING_MIN = args.reviewer_ceiling_min === undefined ? 90 : args.reviewer_ceiling_min
 // A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the owner's instructions that every group of the campaign must
 // meet, the bullets of the `## Standing requirements` section of the campaign's lead note. plan_wave.py binds each group
@@ -99,27 +108,57 @@ const REVIEW_SCHEMA = {
     findings: { type: 'integer' },
     head: { type: 'string' },
     stamp: { type: 'string', maxLength: 400 },
+    leads: { type: 'array', maxItems: 6, items: { type: 'string', maxLength: 500 } },
     summary: { type: 'string', maxLength: 600 },
   },
   required: ['verdict', 'findings', 'head', 'stamp'],
 }
 const reviews = []
 
-// SAME-FILE SUCCESSORS: a group with `after: '<letter>'` runs only once that predecessor has returned. It is told the
-// predecessor's branch, head and report, merges that branch, and orients from the predecessor's "For the next
-// implementer" section instead of re-surveying the file (owner direction 2026-09-27: fix related work together and
-// minimize repetitive context gathering). The predecessor's branch is then HELD from landing and lands through the
-// successor's branch, which contains it (so the successor's review, over origin/main...HEAD, reviews it too); if the
-// successor produces nothing landable, the predecessor is reviewed and lands alone.
+// SAME-FILE SUCCESSORS (kb/Work PB3381; owner 2026-10-18: "We should not be holding finished work this long,
+// continually postponing it. Something in our process is flawed", and "Make the changes now and land the clean links as
+// they come."): a group with `after: '<letter>'` starts only once that predecessor is SETTLED: its review loop ended
+// (CLEAN, FINDINGS n, STOPPED, NO-RESULT or STALE), or it returned unfinished. It is told the predecessor's FINAL branch
+// (the review finisher's, when one ran), head, report and review verdict, merges THAT branch, and orients from that
+// report's "For the next implementer" section instead of re-surveying the file (owner 2026-09-27: fix related work
+// together and minimize repetitive context gathering). NOTHING IS HELD: every finished result is reviewed in its own slot
+// the moment its implementer returns and goes to `ready` when CLEAN, predecessor or not, so the landing lane lands it at
+// once and the successor's pull request merges on top. The hold this replaced (the predecessor "lands THROUGH the
+// successor") was the train era's, when two same-file branches had to ride one train; since kb/Work PB3023/PB3024 every
+// branch is its own pull request in the merge queue, so the hold saved nothing: on wave 1118 (the PB3330 engine chain)
+// six groups were DONE over seven hours and none landed, PB3331 held from 08:43 behind its successor.
 const queue = [...args.groups]
 const results = []
-const byLetter = {}
-const held = {}          // predecessor letter -> {g, r}: its finished, unreviewed result, waiting for its successor
+const byLetter = {}        // letter -> the group's SETTLED result: the reviewed one (a review finisher's, when one ran)
 const ready = []          // DONE and reviewed CLEAN: the landing lane lands them
 let running = 0
 let wake = () => {}
 
-function hasSuccessorQueued(letter) { return queue.some(g => g.after === letter) }
+// A predecessor is settled when its result is in and, if it finished, its review loop has ended (`review` set).
+function settled(letter) {
+  const p = byLetter[letter]
+  return !!p && (!p.finished || !!p.review)
+}
+
+// HOW A PREDECESSOR'S REVIEW LOOP ENDED, as its successor (and the successor's reviewer) reads it: ONE reading, so the
+// implementer's note and the reviewer's scope never disagree (kb/Work PB3381 review R1-1).
+//   'clean'       reviewed CLEAN at its head: it lands on its own.
+//   'capped'      FINDINGS still stamped at its head after the last round (`reviewed()` ran out of rounds; no finisher
+//                 came back unfinished): the findings belong to its next-wave finisher, and prune_worktrees.py
+//                 carrying_findings holds any branch that carries that stamped tip, so the successor does not answer
+//                 them and its review does not record them again.
+//   'unanswered'  FINDINGS whose review finisher came back unfinished (SPLIT, BLOCKED, STALLED, a DONE the finished test
+//                 refused, no new commit: `reviewed()` sets `finisher`). The finisher rewrote the one report for its own
+//                 branch with no Review line, so NO stamp holds anything: the successor carries the findings unanswered,
+//                 and only the successor's own review can keep them off main, so it reviews the predecessor's content
+//                 as its own and records again each of those findings that still holds.
+//   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
+//                 successor's, as its own.
+function predecessorEnd(p) {
+  if (p.review === 'CLEAN') return 'clean'
+  if (/^FINDINGS/.test(p.review || '')) return p.finisher ? 'unanswered' : 'capped'
+  return 'unreviewed'
+}
 
 function successorNote(g) {
   if (!g.after) return ''
@@ -127,11 +166,22 @@ function successorNote(g) {
   if (!p || !(p.head && p.head !== p.base)) {
     return `Your predecessor group ${g.after} produced NO branch (status ${p ? p.status : 'never ran'}); start from main as usual. `
   }
-  return `⛔ SAME-FILE SUCCESSOR: your predecessor group ${g.after} (${p.notes}) returned ${p.status} on branch ${p.branch} ` +
-    `(worktree ${p.worktree}, head ${p.head}, report ${p.report}). FIRST \`git merge ${p.branch}\` into your branch, then read that ` +
+  const review = p.review || `none (it returned ${p.status}, unfinished)`
+  return `⛔ SAME-FILE SUCCESSOR: your predecessor group ${g.after} (${p.notes}) ended ${p.status}, review ${review}, on its FINAL branch ${p.branch} ` +
+    `(worktree ${p.worktree}, head ${p.head}, report ${p.report}${p.review ? `, review findings ${findingsFile({ letter: g.after })}` : ''}). ` +
+    `FIRST \`git merge ${p.branch}\` (head ${p.head}) into your branch, then read that ` +
     `report's "For the next implementer" section and its STATUS.md as your orientation for the shared file — run ` +
-    `\`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${p.worktree}\` and read ONLY the commits it lists beyond the summary; its notes land through ` +
-    `YOUR branch (list them as landed-via-predecessor). `
+    `\`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${p.worktree}\` and read ONLY the commits it lists beyond the summary. ` +
+    `Its notes are its own: never flip them or list them as yours. ` +
+    {
+      clean: `It was reviewed CLEAN and lands ON ITS OWN (the landing lane lands it now); your pull request merges on top of it. `,
+      capped: `Its review ended ${p.review} at the round cap: those findings belong to group ${g.after}'s NEXT-WAVE FINISHER, not to you; do not fix or answer them. ` +
+        `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS). `,
+      unanswered: `Its review ended ${p.review} and its review finisher came back ${p.finisher}, unfinished: those findings (${findingsFile({ letter: g.after })}) are UNANSWERED, ` +
+        `and your branch carries them with whatever that finisher left half done. No stamp holds your branch for them: your own review covers the predecessor's commits as yours and records again each of those findings that still holds, ` +
+        `so read \`python scripts/orchestrator/review_findings.py show ${findingsFile({ letter: g.after })}\` and fix the ones your change reaches (I9). A branch of it that has not landed by your landing lands with yours. `,
+      unreviewed: `Its review did not finish (${review}), so its commits on your branch are reviewed with yours, and a branch of it that has not landed by your landing lands with yours. `,
+    }[predecessorEnd(p)]
 }
 
 function runGroup(g) {
@@ -153,20 +203,41 @@ function findingsFile(g) { return `${S}\\review-w${W}-${g.letter.toLowerCase()}.
 
 function sameHead(a, b) { return !!a && !!b && (a.startsWith(b) || b.startsWith(a)) }
 
+// What round 1 of a SUCCESSOR's review leaves alone, by predecessorEnd: a predecessor reviewed CLEAN at its head was
+// reviewed, so its content is not re-opened (wave 1118: PB3332's reviewer restated its predecessor's findings); a
+// predecessor CAPPED at FINDINGS keeps its findings in its own file for its own finisher, and its stamp holds the
+// successor for them. Nothing else is left alone: an UNANSWERED predecessor's findings have no stamp holding them, so
+// the successor's reviewer records again each one that still holds (review R1-1: "do not record them again" there let
+// a successor reviewed CLEAN carry them to main), and an unreviewed predecessor is reviewed as this branch.
+function predecessorScope(g) {
+  const p = g.after ? byLetter[g.after] : null
+  if (!p || !p.review || !(p.head && p.head !== p.base)) return ''
+  const file = findingsFile({ letter: g.after })
+  return {
+    clean: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, which was reviewed CLEAN (${file}): that content is reviewed and is not re-opened unless this branch's own commits touch it. `,
+    capped: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} at the round cap: those findings are recorded in ${file} and belong to its next-wave finisher; do not record them again here. `,
+    unanswered: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} and whose review finisher came back ${p.finisher}, unfinished: those findings (${file}) are UNANSWERED and no stamp holds this branch for them. ` +
+      `Review the predecessor's commits as part of this branch (the whole origin/main...HEAD), read \`review_findings.py show ${file}\`, and record again here each of those findings that still holds on this head. `,
+    unreviewed: '',
+  }[predecessorEnd(p)]
+}
+
 function reviewBranch(g, r, round) {
   const file = findingsFile(g)
   const label = `w${W}${g.letter.toLowerCase()}-review-r${round}`
+  const blocking = round > REVIEW_FIX_ROUNDS ? BLOCKING_AT_CAP : BLOCKING
   return withCeiling(agent(
     AUTH + `You are the wave-${W} BRANCH REVIEWER for group ${g.letter} (${g.notes}), review round ${round} — READ-ONLY (kb/Work PB3027). ` +
     `Follow "The branch form" of E:\\COBOL\\.claude\\skills\\review\\SKILL.md exactly, with: branch ${r.branch}; worktree ${r.worktree}; head ${r.head}; ` +
-    `the implementer's report ${r.report}; the findings file ${file}; your reviewer label ${label}; round ${round}. ` +
+    `the implementer's report ${r.report}; the findings file ${file}; your reviewer label ${label}; round ${round}; the blocking severities ${blocking}. ` +
     `The implementer's dispatch spec is ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt: read it, since the branch is reviewed against everything the implementer was told (its notes, its owner requirements, its gate). ` +
     reviewerRequirements(g) +
     (round > 1
-      ? `This is a RE-REVIEW of the review finisher's branch: round ${round - 1}'s findings are in the same file (review_findings.py show ${file} --round ${round - 1}) and the report's "## Review findings" section answers each by its id; raise again only a finding that is neither fixed nor answered with a reason you accept, and any new defect the fix introduced. `
-      : '') +
+      ? `This is a RE-REVIEW of the review finisher's branch (kb/Work PB3381): review ONLY \`git diff ${r.reviewed_head}..HEAD\` (the head round ${round - 1} reviewed, to this one; when the finisher's worktree brought in newer main, only its own commits, \`git log --no-merges ${r.reviewed_head}..HEAD --not origin/main\`) and the report's "## Review findings" section, which answers round ${round - 1}'s findings (review_findings.py show ${file} --round ${round - 1}) by id. The earlier content is reviewed and is not re-opened unless the diff touches it. Raise again only a finding that is neither fixed nor answered with a reason you accept, and any new defect the diff introduced. `
+      : predecessorScope(g)) +
+    `Record every finding with its severity (critical, high, medium, low or info), and run \`review_findings.py verdict ${file} --round ${round} --blocking ${blocking}\`: a finding of another severity is a LEAD, recorded but not blocking. ` +
     `Before EACH new step ${STOP_LINE}return verdict STOPPED and stamp nothing. ` +
-    `Your LAST action is the StructuredOutput call: the verdict review_findings.py verdict printed (CLEAN or FINDINGS), the number of findings, the head you reviewed, the stamp line review_findings.py stamp wrote, and a summary of at most 600 characters.`,
+    `Your LAST action is the StructuredOutput call: the verdict review_findings.py verdict printed (CLEAN or FINDINGS), the number of blocking findings, the head you reviewed, the stamp line review_findings.py stamp wrote, the LEAD lines verdict printed (at most 6) as \`leads\`, and a summary of at most 600 characters.`,
     { label, phase: 'Review', agentType: 'cobol-reviewer', schema: REVIEW_SCHEMA, model: 'opus' }
   ), REVIEWER_CEILING_MIN, () => {
     log(`${g.letter}: reviewer round ${round} not back after ${REVIEWER_CEILING_MIN} min; the branch stays unreviewed (PB1704)`)
@@ -179,8 +250,8 @@ function fixFindings(g, r, v, round) {
     AUTH + `You are the wave-${W} REVIEW FINISHER for group ${g.letter} (${g.notes}), after branch review round ${round} (kb/Work PB3027). ` +
     `Your dispatch spec is the file ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt — read it WHOLE and follow its brief, codes, gate, checkpoint and stop rules; its notes are already implemented on the reviewed branch. ` +
     `FIRST \`git merge ${r.branch}\` into your branch (the reviewed head ${r.head}; worktree ${r.worktree}), then run \`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${r.worktree}\` and read ${r.report} as your orientation. ` +
-    `The reviewer recorded ${v.findings} finding(s): \`python scripts/orchestrator/review_findings.py show ${findingsFile(g)} --round ${round}\`. Answer EVERY one by its id: fix it at its root, with a regression test or golden and the sibling sweep, or answer no_change_needed with the reason. ` +
-    `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and it gains a "## Review findings" section with one line per finding id: fixed (the commit) or no_change_needed (the reason). ` +
+    `The reviewer recorded ${v.findings} blocking finding(s): \`python scripts/orchestrator/review_findings.py show ${findingsFile(g)} --round ${round}\`. Answer EVERY BLOCKING one by its id: fix it at its root, with a regression test or golden and the sibling sweep, or answer no_change_needed with the reason. A LEAD (not blocking) is already listed in the report's "## Review findings": fix it when it sits in a file you change anyway (I9), else leave it for the clerk. ` +
+    `Re-gate (the spec's gate, blocking on its verdict line). Then REWRITE the report at ${r.report} for YOUR branch: its header names your worktree, branch, base and HEAD, carries no Review line (your branch is reviewed again when you return DONE), and its "## Review findings" section keeps every LEAD line and gains one line per blocking finding id: fixed (the commit) or no_change_needed (the reason). ` +
     `Before EACH new step ${STOP_LINE}checkpoint-commit, write STATUS.md NEXT and the report, and return status SPLIT. ` +
     RETURN_LINE,
     { label: `fix-${g.letter}-r${round}`, phase: 'Implement', agentType: 'cobol-implementer', isolation: 'worktree', schema: IMPL_SCHEMA, model: g.model || IMPL_MODEL }
@@ -228,30 +299,36 @@ function asSplit(r) {
   return { ...r, claimed: r.status, status: 'SPLIT', finished: false }
 }
 
-// The review loop: review the head; on FINDINGS a review finisher answers them and its branch is reviewed again, up to
-// REVIEW_FIX_ROUNDS finishers. Returns the newest result (the finisher's branch contains the reviewed one) with
-// `review`: CLEAN, FINDINGS <n> (the stamp stays; a later wave's finisher answers it), STOPPED or NO-RESULT.
+// The review loop: review the head; on FINDINGS a review finisher answers them and its branch is reviewed again (its
+// diff only, from `reviewed_head`), up to REVIEW_FIX_ROUNDS finishers. Returns the newest result (the finisher's branch
+// contains the reviewed one) with `review`: CLEAN, FINDINGS <n> (the stamp stays; a later wave's finisher answers it),
+// STOPPED, NO-RESULT or STALE, and `review_leads`: every round's non-blocking findings, for the clerk.
 async function reviewed(g, r) {
   let cur = r
+  const leads = []
   for (let round = 1; ; round++) {
     let v = null
     try { v = await reviewBranch(g, cur, round) } catch (e) { v = null }
     const verdict = !v ? 'NO-RESULT' : (v.verdict === 'CLEAN' && !sameHead(v.head, cur.head)) ? 'STALE' : v.verdict
-    reviews.push({ letter: g.letter, round, branch: cur.branch, head: cur.head, verdict, findings: v ? v.findings : null })
+    if (v && Array.isArray(v.leads)) leads.push(...v.leads)
+    reviews.push({ letter: g.letter, round, branch: cur.branch, head: cur.head, verdict, findings: v ? v.findings : null, leads: v && v.leads ? v.leads.length : 0 })
     log(`${g.letter}: review round ${round} of ${cur.branch}: ${verdict}${v && v.verdict === 'FINDINGS' ? ' ' + v.findings : ''}`)
-    if (verdict === 'CLEAN') return { ...cur, review: 'CLEAN', review_rounds: round }
-    if (verdict !== 'FINDINGS') return { ...cur, review: verdict, review_rounds: round }
+    const end = { review_rounds: round, review_leads: leads }
+    if (verdict === 'CLEAN') return { ...cur, ...end, review: 'CLEAN' }
+    if (verdict !== 'FINDINGS') return { ...cur, ...end, review: verdict }
     if (round > REVIEW_FIX_ROUNDS) {
       log(`${g.letter}: still FINDINGS after ${REVIEW_FIX_ROUNDS} review finisher(s); the stamp stays and the next wave plans a finisher`)
-      return { ...cur, review: `FINDINGS ${v.findings}`, review_rounds: round }
+      return { ...cur, ...end, review: `FINDINGS ${v.findings}` }
     }
     let f = null
     try { f = await fixFindings(g, cur, v, round) } catch (e) { f = null }
-    let next = f && f.head && f.head !== cur.head ? { ...f, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes, reviewed_from: cur.branch } : null
+    let next = f && f.head && f.head !== cur.head
+      ? { ...f, letter: g.letter, lead: g.lead, notes: g.notes, codes: g.codes, reviewed_from: cur.branch, reviewed_head: cur.head }
+      : null
     if (next && f.status === 'DONE') next = (await finishedReport(g, next, `review finisher round ${round}`)) ? { ...next, finished: true } : asSplit(next)
     if (!next || !next.finished) {
       log(`${g.letter}: review finisher round ${round} returned ${f ? f.status : 'NO-RESULT'}; not landed by this wave`)
-      return { ...(next || cur), review: `FINDINGS ${v.findings}`, review_rounds: round, finisher: f ? f.status : 'NO-RESULT' }
+      return { ...(next || cur), ...end, review: `FINDINGS ${v.findings}`, finisher: f ? f.status : 'NO-RESULT' }
     }
     cur = next
   }
@@ -263,36 +340,18 @@ function landable(r) {
 
 function wakeAll() { const w = wake; wake = () => {}; w() }
 
-// A held predecessor (or one whose successor never ran) lands alone after all: it is reviewed first, like any branch.
-async function landAlone(p) {
-  const pr = await reviewed(p.g, p.r)
-  Object.assign(p.r, pr)          // its entry in `results` becomes the reviewed (possibly finisher's) result
-  if (landable(p.r)) ready.push(p.r)
-}
-
-async function onResult(g, r) {
+// A settled result: recorded for its successor (byLetter holds the REVIEWED result, so a successor merges the reviewed
+// head) and, when reviewed CLEAN, ready for the landing lane at once, predecessor or not (kb/Work PB3381).
+function onResult(g, r) {
   results.push(r)
   byLetter[r.letter] = r
-  wakeAll()                       // a successor parked on this predecessor may start now, while this one is reviewed
-  if (r.finished && hasSuccessorQueued(r.letter)) {
-    held[r.letter] = { g, r }
-    log(`${r.letter}: ${r.status}; HELD — it lands through its same-file successor, whose review covers its commits`)
-  } else if (landable(r)) {
-    ready.push(r)
-  } else if (r.finished) {
-    log(`${r.letter}: ${r.status} but review ${r.review}; not landed by this wave (prune_worktrees.py names who acts next)`)
-  }
-  if (g.after && held[g.after]) {
-    // The successor merged its predecessor: land the successor alone if it is landable, else fall back to the predecessor.
-    const p = held[g.after]
-    delete held[g.after]
-    if (!landable(r)) await landAlone(p)
-  }
+  if (landable(r)) ready.push(r)
+  else if (r.finished) log(`${r.letter}: ${r.status} but review ${r.review}; not landed by this wave (prune_worktrees.py names who acts next)`)
   log(`${r.letter}: ${r.status}; ${ready.length} branch(es) reviewed CLEAN for the landing lane, ${queue.length} group(s) queued`)
 }
 
 function nextEligible() {
-  const i = queue.findIndex(g => !g.after || byLetter[g.after])
+  const i = queue.findIndex(g => !g.after || settled(g.after))
   return i < 0 ? null : queue.splice(i, 1)[0]
 }
 
@@ -313,15 +372,16 @@ async function worker() {
       r = await runGroup(g)
       // a DONE or DISCHARGED return is finished only when its report is (the finished test above, kb/Work PB3181)
       if (r.status === 'DONE' || r.status === 'DISCHARGED') r = (await finishedReport(g, r, 'implementer')) ? { ...r, finished: true } : asSplit(r)
-      // the branch review holds this group's slot: reviewing and answering findings are part of finishing it
-      if (r.finished && !hasSuccessorQueued(g.letter)) r = await reviewed(g, r)
+      // the branch review holds this group's slot: reviewing and answering findings are part of finishing it, for a
+      // same-file predecessor too (its successor waits for it to settle, then merges the reviewed head)
+      if (r.finished) r = await reviewed(g, r)
     } catch (e) {
       r = { letter: g.letter, lead: g.lead, notes: g.notes, status: 'NO-RESULT', error: String(e && e.message || e) }
     } finally {
       running--
     }
     try {
-      await onResult(g, r)
+      onResult(g, r)
     } finally {
       wakeAll()
     }
@@ -330,7 +390,8 @@ async function worker() {
 
 phase('Implement')
 await parallel(Array.from({ length: Math.min(CONC, queue.length) }, () => () => worker()))
-for (const k of Object.keys(held)) { const p = held[k]; delete held[k]; await landAlone(p) }   // a successor that never ran
 
 log(`${ready.length} branch(es) ready to land (${ready.map(r => r.letter).join(' ') || 'none'}): the landing lane lands them`)
-return { results, ready: ready.map(r => ({ letter: r.letter, branch: r.branch, report: r.report })), reviews }
+// the reviews' non-blocking findings, for the enqueue unit's clerk step (units/enqueue.md step 5; each report lists them too)
+const leads = results.flatMap(r => (r.review_leads || []).map(l => `${r.letter} (${r.branch}): ${l}`))
+return { results, ready: ready.map(r => ({ letter: r.letter, branch: r.branch, report: r.report })), reviews, leads }
