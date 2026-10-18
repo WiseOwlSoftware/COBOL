@@ -1001,15 +1001,16 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   (§14.6.13.1.3 2)). `SortWorkBoundDriftTests` refuses a record collection anywhere in the store but the bounded chunk.
 - **The SD/FD record codec IS the generated `AsImage()`/`FromImage()` pair (Phase 1E):** for every image-capable
   record — including mixed-usage records with fixed-point BINARY/PACKED leaves, which serialize each such leaf as
-  its §14.4 zoned digit image (width = `Pic.Digits`, trailing-overpunch sign; ISO §13.18.60 USAGE GR4 implementor
-  representation) — WRITE/RELEASE send `AsImage()`, READ/RETURN distribute via `FromImage()`. `IRecordCodec` for
-  these records is realized by that pair; no separate serializer exists (singular-pattern). A signed COMP/COMP-3
-  SORT/MERGE key's compile-time descriptor carries `PicInfo.ImageSignKind` (the IMAGE sign — trailing overpunch),
-  never the leaf's stored `BinaryMinus`, so `CobolSort.NumericKey` decodes the zoned window algebraically
-  (§14.9.40 GR8 / §8.8.4.2.4 — negatives order before positives; ST108A/ST127A/ST133A/ST134A). The greenfield
-  on-disk record width for such records legitimately differs from the legacy's raw-byte form (e.g. 80 chars where
-  the legacy wrote 72+4 binary bytes) — chains are same-engine, cross-engine file compatibility is not required.
-  Only float (COMP-1/2), COMP-5, and INDEX leaves keep a record outside the codec (loud Tier-C island, §4.2).
+  its TRUE BYTES (§14.4: radix-2 two's complement or BCD, width = `PicInfo.StorageWidth`; ISO §13.18.60.4 GR4/GR11
+  implementor representation) — WRITE/RELEASE send `AsImage()`, READ/RETURN distribute via `FromImage()`.
+  `IRecordCodec` for these records is realized by that pair; no separate serializer exists (singular-pattern). A signed
+  COMP/COMP-3 SORT/MERGE key is decoded from its byte window through the key leaf's own profile, so it orders
+  algebraically (negatives before positives; ST108A/ST127A/ST133A/ST134A) — the rule is stated ONCE, in §14.4's
+  total rule ("THE SORT/MERGE KEY CONSEQUENCE"), and `COBOLNET_FILES_DESIGN.md` D7 is its file-side determination. The
+  on-disk width of such a record is the sum of its leaves' storage widths, the form IBM / Micro Focus / GnuCOBOL write.
+  Float (COMP-1/2), COMP-5 and INDEX leaves are inside the codec too (kb/Work PB164, R40: the IEEE interchange images,
+  the binary image, the 8-byte occurrence-number image); only a pointer/object-reference leaf and a dynamic-length
+  or dynamic-capacity item keep a record outside it (`DataItem.IsImageCapable`).
 
 ### 8.3 Hard problems / edge cases
 
@@ -1427,8 +1428,8 @@ the same class — Tier A/B accessors share the canonical; Tier C shares the cla
 > key windows and the Tier-B REDEFINES backing. `CobolNum.FormatImage`/`ParseImage` (`CobolNum.Image.cs`) is the ONE
 > codec; `DataItem.ImageWidth` and `DataItem.ByteWidth` are now two views of one fact, asserted by
 > `ImageWidthIsStorageWidthTests`. The zoned digit image described below survives ONLY as USAGE DISPLAY's own byte
-> form, and `PicInfo.ImageSignKind` is DELETED — a binary leaf's sign lives in its bytes, so there is no
-> image-specific sign convention left to carry. **What is NOT the record image: an item's DISPLAY-statement text.**
+> form, and the image carries no sign convention of its own — a binary leaf's sign lives in its bytes, so the
+> leaf's `PicInfo.SignKind` (a DISPLAY-form concern) is never consulted by an image consumer. **What is NOT the record image: an item's DISPLAY-statement text.**
 > An ELEMENTARY numeric operand used as text still renders its DIGITS (§14.9.25.4 GR6 / §8.8.4.2.2 — "as though it
 > were moved to an alphanumeric data item"), which is why `DataItem.DisplayTextWidth` exists beside `ImageWidth` and
 > why `OperandText` decodes a non-zoned stored image before rendering it. A GROUP operand is the opposite case:
@@ -1467,7 +1468,18 @@ radix-2 two's complement (big-endian) for BINARY, BCD with a `0xC`/`0xD`/`0xF` s
 `DataItem.IsImageCapable`) implements it for every consumer — whole-group MOVE/compare senders, WRITE/RELEASE,
 READ/RETURN distribution, SORT/MERGE key decode, the Tier-B REDEFINES backing — through the ONE codec
 `CobolNum.FormatImage`/`ParseImage` with the leaf's OWN `_P_` profile. There is no image-specific sign convention:
-a binary leaf's sign is in its bytes, so `SignKind` (a DISPLAY concern) is not consulted, and DISPLAY-statement
+a binary leaf's sign is in its bytes, so `SignKind` (a DISPLAY concern) is not consulted. **THE SORT/MERGE KEY
+CONSEQUENCE (the one statement; §8.2 and FILES D7 point here):** a numeric key's compile-time descriptor carries the key
+LEAF (`BoundSortMergeKey.Item`, bound in `SortBinder`) and the runtime decodes the key's BYTE window through that
+leaf's own profile (`CobolSort.Key.Profile` → `CobolNum.ParseImage`, in `SortKeyColumns`), so a signed COMP / COMP-3 key
+orders ALGEBRAICALLY — §14.9.40.4 GR8 and §14.9.24.4 GR3 a)/b), both through §8.8.4.2.4 — and the MERGE sequence check
+(§14.9.24.4 GR6, EC-SORT-MERGE-SEQUENCE) judges on that same order. The failure mode of any other decode is SILENT:
+everything sorts, but a byte-wise compare orders a negative COMP key (two's complement, high bit set) after every
+positive and a packed COMP-3 key by MAGNITUDE (its sign nibble is the last half-byte, so +12 `00 01 2C` follows
+-3 `00 00 3D` and precedes -500), and a sequence check reads valid input as out of order and the reverse. Witnesses:
+`MixedUsageRecordImageDifferentialTests` (SORT and MERGE, both directions, signed BINARY and PACKED, and the
+EC-SORT-MERGE-SEQUENCE path over a signed BINARY key in both verdicts, both directions, with and without a USE
+declarative). DISPLAY-statement
 output of the same leaf is unchanged (`OperandText` decodes a non-zoned stored image and renders the digits —
 §14.9.25.4 GR6 treats an elementary numeric operand used as text as though it were MOVED to an alphanumeric item).
 **Named losers:** (a) `OperandText.MixedGroupImage` (an inline concat) — RETIRED: it formatted a signed leaf with
@@ -1478,8 +1490,10 @@ carried through P13 and V59 retired.** It was defensible on §13.18.60.4 GR4's r
 contradicted the compiler's OWN pinned widths: `BYTE-LENGTH(G) = 5` while `LENGTH(G) = 8` for one group
 (§15.14.4 r1 vs §15.50.4 r3, which cannot disagree in a single-byte-character model), it made a conforming
 program observe the disagreement with no file and no byte pun, and it put a `PIC 9(4) COMP` on disk as the ASCII
-bytes `31 32 33 34`. Excluded — kept loud: float (no fixed decimal width), COMP-5 (`BinaryCapacity` stores values
-beyond the PICTURE digit count, so its bytes and its picture disagree), INDEX (§13.18.60.4 GR10 — no image at all). A whole-group **MOVE between two mixed groups with
+bytes `31 32 33 34`. The float family (IEEE 32/64 big-endian), COMP-5 and BINARY-CHAR..DOUBLE (the binary byte form) and
+USAGE INDEX (the 8-byte big-endian occurrence number, R40) are inside the codec too (kb/Work PB164); only a
+pointer/object-reference leaf and a dynamic-length or dynamic-capacity item stay outside it (`DataItem.IsImageCapable`).
+A whole-group **MOVE between two mixed groups with
 positionally IDENTICAL leaf layouts** (same usage/digits/scale/sign leaf-by-leaf) is still emitted as a **memberwise
 leaf copy** (`MoveEmitter.AlignedLeafPairs`, tried FIRST) — for identical layouts the §14.9.25.4 GR4
 representation copy and the memberwise copy are indistinguishable, and the memberwise path skips the encode/decode
