@@ -80,8 +80,11 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    origin/main...<head>` and the code around each hunk; the **full code review** dimension above in full —
    `python scripts/spec/drift_rules.py <each changed file>` and every SPECIFIC rule it prints, correctness against the
    CITED rule, the sibling arms, loud failure, comment accuracy, **no fixed time limit in a test**,
-   `python scripts/spec/cite.py --check <clause> "<text>"` on every citation the diff adds; then the other three
-   dimensions where the diff warrants them (a new type or file: architecture and duplication; a hot path: performance).
+   `python scripts/spec/cite.py --check <clause> "<text>"` on every citation the diff adds, and, for a diff that
+   reaches a SORT, MERGE or file I/O path, **its abnormal and exception-path tests** (MANDATORY-PRACTICES I11, the
+   owner's standing rule): each I-O status the change can answer, EC-I-O with and without USE and FILE STATUS, AT END and
+   INVALID KEY, lock contention, and work-file failures. A path the change reaches with no test is a finding (category
+   `test-coverage`). Then the other three dimensions where the diff warrants them (a new type or file: architecture and duplication; a hot path: performance).
    The base skill's Step 6 holds for each candidate: try to REFUTE it, running its scenario when that is cheap; an
    uncertain candidate is dropped. A finding the implementer's report already answers with a reason you accept is not
    one.
