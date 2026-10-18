@@ -2,6 +2,7 @@
       *> id: pb352_start_sequential_first_last_line
       *> rules: [SR-14.9.41.3-2]
       *> accept: [2023]
+      *> constructs: [start-first-last-2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
