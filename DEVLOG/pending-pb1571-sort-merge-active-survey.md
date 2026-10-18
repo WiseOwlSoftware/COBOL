@@ -32,3 +32,10 @@ compile time under 14.9.40.3 SR3. SR3 refuses only a SORT statement there; a RET
 legal source and raises at run time (probed). The comments are corrected, and the active-versus-flow golden gains steps
 7 and 8, a RETURN and a RELEASE written directly in the input and output procedure (EC-SORT-MERGE-ACTIVE, the same
 answer as the PERFORMed arms), so the written arm is witnessed rather than described.
+
+Review round 2 (one finding): every golden arm was handled by a USE procedure, so the undeclared dispositions of the order
+were witnessed nowhere end to end. New `SortMergeActiveUndeclaredDispositionTests` (separate processes, exit code and
+stderr): a written RETURN in an input procedure and a written RELEASE in an output procedure terminate the run unit
+abnormally naming EC-SORT-MERGE-ACTIVE (or the EC-FLOW name where -ACTIVE is not enabled), and a nested format 1 SORT with
+no USE ends only the inner SORT (14.6.13.1.3 2), D-SMA (b)) with the run unit continuing. All four pass on the unchanged
+runtime.
