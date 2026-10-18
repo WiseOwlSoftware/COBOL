@@ -110,3 +110,7 @@ one deadlock this implementation detects, '52' (9.1.13.8 2), docs/CONFORMANCE.md
 GIVING file is left half written but never looked; the program now assigns G in the test's own directory and the
 missing-directory case asserts G was never created (14.9.40.4 GR9 b): no processing of the GIVING file before the output
 phase).
+
+Gate (after review round 3): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,397 of 17,784,
+Unit 33,745 of 34,110, Characterization 5 of 36 ran; the two three-instance SR14/SR15 cases, the seven lock cases and the
+GIVING-file assertion passed in leg 1, none failed).
