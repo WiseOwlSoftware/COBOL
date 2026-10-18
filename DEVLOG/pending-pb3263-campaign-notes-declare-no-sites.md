@@ -10,3 +10,7 @@ the mechanism for the PB3160 conformance-suite slices, so it now carries this se
 one rule for every campaign: the planner treats an empty declared set as unknown, `work.py check` refuses an open
 campaign note with no site block, and the listed notes get their `**Sites:**` paragraphs. The cost of leaving it is a
 wasted landing, not a wrong answer: two groups that edit one file both run and the second takes a finisher.
+
+The same wave gave kb/Work PB3361 a second witness: group F's review finisher returned its `report` field as a
+sentence, the finished test answered UNREADABLE, and the branch went without its round-2 review inside the wave, although
+its report sat at the canonical path. The fault is in the review finisher's return as well as the implementer's.
