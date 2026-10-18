@@ -1,4 +1,4 @@
-## PB320: the inherited clause numbers on the sequential I/O path are repaired where they still stood
+## Entry 2190 — 2026-10-18 03:14 PDT — PB320: the inherited clause numbers on the sequential I/O path are repaired where they still stood
 
 kb/Work PB320 listed sixteen sites that name MOVE, COMMIT, MULTIPLY, RESUME, SET, UNLOCK and START for rules about
 OPEN, CLOSE, RELEASE, RETURN, WRITE and SORT. Re-probed against the current tree, eleven were already repaired by
@@ -31,3 +31,4 @@ mnemonic test, now `§14.9.51.4` GR25d and GR4) and the SQ207M note in `tests/ni
 Review round 2 found that the round-1 fix cited GR4 (the SAME RECORD AREA availability rule) for "the WRITE releases the
 record"; the release rule is `§14.9.51.4` GR12 (`cite.py --check`ed). Both sites (the SQ207M test summary and the corpus
 note) now say GR12; the remaining GR4 citations in the tree are all record-area availability and are correct.
+
