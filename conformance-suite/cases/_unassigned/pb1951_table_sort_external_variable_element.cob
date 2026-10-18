@@ -27,6 +27,17 @@
       *>     1 [ONE] [1], 2 [TWO] [2], 3 [THREE] [3]  - a sort cutting the image back printed [ONE1] [] and so on.
       *>     EP 1 Q, EP 3 ZY                          - the table's occurrences travel with their element (an
       *>                                                image move left them empty).
+      *>
+      *> THE CAPACITY (kb/Work PB2849). Each element's dynamic-capacity table has a capacity register in the element
+      *> (§13.18.38.3 SR30), which SR31 forbids to subscript, so no reference names ECAP; the capacity shows in the
+      *> element's contiguous extent instead (§8.5.1.11.2; FUNCTION LENGTH counts alphanumeric positions, §15.50.4
+      *> rule 3): 1 (EK) + the two dynamic-length items + the table's current capacity. Before the sort the elements
+      *> are 9 (THREE, 3, capacity 2), 6 (ONE, 1, capacity 1) and 5 (TWO, 2, capacity 0); each moves with its own
+      *> capacity (GR24), so after it they read 6, 5, 9. A capacity that failed to shrink at the front would print
+      *> 9 and 6 there, and one that failed to grow at the back would print 5:
+      *>   cite.py --check 15.50.4 "the returned value is an integer equal to the length of argument-1 in
+      *>     alphanumeric character positions" -> OK §15.50.4 3)
+      *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §13.18.38.3 31)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1951EV.
        DATA DIVISION.
@@ -52,10 +63,15 @@
            MOVE "Q" TO EP(2, 1)
            MOVE "TWO" TO ED1(3)
            MOVE "2" TO ED2(3)
+           PERFORM SHOW-LENGTHS
            SORT E ASCENDING KEY EK
            PERFORM VARYING I FROM 1 BY 1 UNTIL I > 3
                DISPLAY EK OF E(I) " [" ED1(I) "] [" ED2(I) "]"
            END-PERFORM
            DISPLAY "EP 1 " EP(1, 1)
            DISPLAY "EP 3 " EP(3, 1) EP(3, 2)
+           PERFORM SHOW-LENGTHS
            STOP RUN.
+       SHOW-LENGTHS.
+           DISPLAY "LEN " FUNCTION LENGTH(E(1)) " " FUNCTION LENGTH(E(2))
+               " " FUNCTION LENGTH(E(3)).
