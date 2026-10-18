@@ -335,7 +335,7 @@ internal static class RecordFraming
 
     /// <summary>⛔ ONE RECORD'S FRAME AS BYTES — its head (<see cref="EncodeFrameHead"/>) and its payload in the file's
     /// channel character set — the value a keyed store engine's leaf entry holds (docs/rearchitecture/DESIGN-runtime-library.md
-    /// §2.2.1.3 decision 3: <i>"The leaf entry's value is the ONE frame shape"</i>) and the frame a whole store is composed
+    /// section 2.2.1.3, decision 3: <i>"The leaf entry's value is the ONE frame shape"</i>) and the frame a whole store is composed
     /// of. The payload is converted by the file's §13.18.13 CODE-SET (<paramref name="codeSet"/>, null for the native
     /// character set); the head is the §9.1.7.2 information this processor adds and is never converted (2.2.1.5).
     /// <para>The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any record

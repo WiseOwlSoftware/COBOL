@@ -366,7 +366,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     }
 
     /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', SHARED OR NOT
-    /// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.3 decision 6, §2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
+    /// (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
     /// permanent error at the WRITE, REWRITE or DELETE that met it, never deferred to a CLOSE, and in effect until the
     /// CLOSE (§9.1.13.1). The file is as the previous statement left it: the next OPEN reads the seeded records
     /// unchanged. A refused SYNC at the CLOSE's promotion is the CLOSE's '30', and the records the statements wrote

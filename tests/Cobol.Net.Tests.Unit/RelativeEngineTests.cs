@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE RELATIVE ORGANIZATION ON THE KEYED STORE ENGINE, THROUGH ITS CONNECTOR (docs/rearchitecture/DESIGN-runtime-library.md
-/// §2.2.1; kb/Work PB3333). The page layer's and the tree's own cases (PB3331, PB3332) run over an in-memory medium; these
+/// section 2.2.1; kb/Work PB3333). The page layer's and the tree's own cases (PB3331, PB3332) run over an in-memory medium; these
 /// run the SAME rows through <see cref="RelativeConnector"/> and <see cref="FileRegistry"/> over a real file, with the
 /// fault injected under the connector's own handle (<see cref="RelativeStore.MediumObserver"/>):
 /// <list type="bullet">
