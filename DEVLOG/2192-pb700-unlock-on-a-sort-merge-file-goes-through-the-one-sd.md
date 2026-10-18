@@ -1,4 +1,4 @@
-## PB700: UNLOCK on a sort-merge file goes through the one SD screen (COBOLNET1692), and the descriptor quotes the standard
+## Entry 2192 — 2026-10-18 03:38 PDT — PB700: UNLOCK on a sort-merge file goes through the one SD screen (COBOLNET1692), and the descriptor quotes the standard
 
 PB700 recorded that `FileLockBinder.BindUnlock` screened a sort-merge (SD) file with its own inline test and a raw
 `COBOLNET1512` literal, while CLOSE, DELETE, DELETE FILE, OPEN, READ, REWRITE, START and WRITE share
@@ -22,3 +22,4 @@ Goldens: `unlock-sort-file` now expects `COBOLNET1692: UNLOCK may not name the s
 message), and `unlock-record-sort-file` and `unlock-records-sort-file` cover the format's other two spellings, each
 refused at 2002, 2014 and 2023. The USE-statement SD screen (`ProcedureTableBuilder`, §14.9.49.3 SR2) is another
 statement's rule and is unchanged. No inventory row changed verdict (`closes_rows: []`).
+
