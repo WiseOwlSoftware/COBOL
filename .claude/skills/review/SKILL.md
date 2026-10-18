@@ -86,20 +86,32 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    uncertain candidate is dropped. A finding the implementer's report already answers with a reason you accept is not
    one.
 3. Each surviving finding, the moment it survives: `RF finding <file> --round <k> '<one JSON object>'` with `file`,
-   `line` (an integer), `category`, `summary` and `failure_scenario` (concrete inputs → the wrong result); `severity`
-   and `fix` are welcome. The tool numbers it `R<k>-<n>`; the finisher answers it by that id.
-4. `RF verdict <file> --round <k>` — CLEAN when the round recorded no finding, else FINDINGS n, computed from the file.
+   `line` (an integer), `category`, `severity` (critical, high, medium, low or info: what the defect does to a user's
+   program or the pipeline, calibrated, never inflated to make it block), `summary` and `failure_scenario` (concrete
+   inputs → the wrong result); `fix` is welcome. The tool numbers it `R<k>-<n>`; the finisher answers it by that id.
+4. `RF verdict <file> --round <k> --blocking <the severities the prompt names>` (default `critical,high,medium`; the
+   rolling wave's round after its last review finisher passes `critical,high`; kb/Work PB3381) — CLEAN when the round
+   recorded no finding of a blocking severity, else FINDINGS n (the blocking ones), computed from the file. Every
+   finding stays recorded; each non-blocking one is a LEAD, printed under the verdict line: return those lines as your
+   `leads`.
 5. `RF stamp <report> --findings <file>` — writes `**Review:** CLEAN <label> <head>` (or `FINDINGS <n> <label> <head>
-   <file>`) under the report's Status line. CLEAN at the branch's tip is what lists it WAITING TO LAND
+   <file>`) under the report's Status line, and lists each LEAD under the report's `## Review findings` (once), where
+   the enqueue unit's clerk files it. CLEAN at the branch's tip is what lists it WAITING TO LAND
    (`prune_worktrees.py`); FINDINGS sends it to a finisher: the wave's review finisher, or the next wave's planner
    (`plan_wave.py`). The stamp REFUSES a report that is not finished (`plan_wave.Report.finished`: a status line saying
    DONE, or DISCHARGED with a HEAD past its base; kb/Work PB3181): return verdict STOPPED with its refusal in the
    summary rather than edit the implementer's report. Return the verdict, the count, the head and the stamp line.
 
-A RE-REVIEW (round k > 1) reviews the review finisher's branch: `RF show <file> --round <k-1>` lists the earlier
-findings and the report's `## Review findings` section answers each by id (fixed in a commit, or `no_change_needed` with
-the reason). Raise again only a finding neither fixed nor answered with a reason you accept, and any new defect the fix
-introduced. `RF summary <scratch>` measures the step: findings per branch, the re-review rate, reviewer minutes.
+A RE-REVIEW (round k > 1) reviews the review finisher's DIFF only (kb/Work PB3381, owner 2026-10-18: "We should not
+be holding finished work this long, continually postponing it"): `git -C <worktree> diff <the head round k-1
+reviewed>..<head>` (the prompt names it; when the finisher's worktree brought in newer main, only its own commits,
+`git log --no-merges <that head>..<head> --not origin/main`), never the whole branch again, because the earlier
+content is reviewed and is not re-opened unless the diff touches it (wave 1118: three whole-branch rounds found 5, 2
+and 1 NEW findings, and the cap ended in a DECISION, not a landing). `RF show <file> --round <k-1>` lists the earlier
+findings, BLOCKING or LEAD, and the report's `## Review findings` section answers each blocking one by id (fixed in a
+commit, or `no_change_needed` with the reason). Raise again only a blocking finding neither fixed nor answered with a
+reason you accept, and any new defect the diff introduced. A successor's round 1 leaves its predecessor's reviewed
+content alone as the prompt says (that branch's own review covered it). `RF summary <scratch>` measures the step: findings per branch, the re-review rate, reviewer minutes.
 
 ## Verify, report, scale
 

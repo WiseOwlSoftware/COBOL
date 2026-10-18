@@ -802,9 +802,11 @@ itself), ordered by `blocked_by:`.
   can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts depth first. Everything else is the fix lane's mechanism: awaiting landing, finishers, model
   routing, budget, trains, allocation and outputs.
 - **Dependencies become successors.** A group whose notes wait on notes planned in this wave joins the TAIL of the
-  blocker group's successor chain (`after:`), so it starts once that chain has returned, merges its branch and lands
-  through it (the rolling wave's same-file mechanism, unchanged). A chain stays linear because the rolling wave holds a
-  predecessor for one successor. In the fix lane the only link is a shared primary file, whose chain tail is that
+  blocker group's successor chain (`after:`), so it starts once that chain's tail has SETTLED (returned, and its
+  review loop ended), merges that tail's reviewed branch and builds on it (the rolling wave's same-file mechanism).
+  Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
+  top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
+  linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a shared primary file, whose chain tail is that
   file's last group, so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY

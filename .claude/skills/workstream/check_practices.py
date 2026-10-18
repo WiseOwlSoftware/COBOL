@@ -60,16 +60,20 @@ BRIEFS = {
                                      r'status_delta\.py',
                                      # PB1721: the ordered gate, blocked on its own verdict line
                                      r'BUILD-LOCAL GATE: ',
-                                     # PB1732 (I8): CI's Linux legs run under WSL before the report
-                                     r'linux-gate\.sh', r'FIX WHAT YOU FIND',  # I9
+                                     # PB1732 (I8): the LINUX GATE paragraph, rendered by host_io (PB3381:
+                                     # make_dispatch_specs.LINUX_GATE; a rendered spec carries linux-gate.sh)
+                                     r'\{linux_gate\}', r'FIX WHAT YOU FIND',  # I9
                                      r'LSP DIAGNOSTICS',  # P13: act on the language server's diagnostics
                                      r'BRANCH REVIEW \(MANDATORY-PRACTICES I10',  # PB3027: reviewed on the branch
                                      r'LEG 1 ONLY \(batched gating, PB2515\)'],  # PB2515: the implementer's done-state
-    # O2: the standard fix-lane dispatch — rolling pool, same-file successors, the graceful STOP, and the explicit
+    # O2: the standard fix-lane dispatch — rolling pool, same-file successors (no hold), the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
     # PB1703 / PB1704: a dead agent (rejection) and a hung agent (ceiling) must not hold the wave.
     'wf_rolling_wave.js': [r'args\.stop_file', r'args\.global_stop', r"agentType: 'cobol-implementer'", r'StructuredOutput',
-                           r'g\.after', r'held\[', r'status_delta\.py', r'withCeiling\(',
+                           # PB3381: no hold; a successor starts once its predecessor's review loop settled, every
+                           # finished result is reviewed in its slot, round 2+ reviews the diff, a severity threshold
+                           r'g\.after', r'settled\(g\.after\)', r'if \(r\.finished\) r = await reviewed\(g, r\)',
+                           r'reviewed_head', r'BLOCKING_AT_CAP', r'status_delta\.py', r'withCeiling\(',
                            r"status: 'NO-RESULT', error", r'starts no lander',  # PB3023, PB3103: the landing lane lands
                            # PB3027 (I10): a DONE branch is reviewed on the branch by one read-only reviewer, findings go
                            # to a review finisher, and only a branch reviewed CLEAN reaches a train
@@ -95,8 +99,9 @@ RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-[A-Za-z0-9][A-Za-z0-
 # A RENDERED spec's report path is in THE reports directory (coord.reports_dir(), kb/Work PB2980), the only one the land
 # unit and prune_worktrees.py read: wave 1055's scratch was its own folder, and its six reports were never seen.
 RENDERED_REPORT = re.escape(str(coord.reports_dir())) + r'\\w\d+[a-z]\d*-PB\d+-report\.md'
-SPEC = [p for p in BRIEFS['dispatch-spec-implementer.md'] if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}')] + \
-    RENDERED_STOPS + [RENDERED_REPORT]
+SPEC = [p for p in BRIEFS['dispatch-spec-implementer.md']
+        if p not in (r'\{global_stop\}', r'\{stop_file\}', r'\{reports\}', r'\{linux_gate\}')] + \
+    RENDERED_STOPS + [RENDERED_REPORT, r'LINUX GATE \(I8, PB1732', r'linux-gate\.sh']
 
 
 # P2: the blocking wait must RETURN when the verdict appears. `tail -f <log> | grep -m1 <verdict>` does not: grep exits
@@ -179,6 +184,26 @@ def specs_missing_requirements(groups_path, specs):
                 continue
             for reqs in (g.get('requirements') or {}).values():
                 found += [(path.name, r) for r in reqs if ' '.join(r.split()) not in text]
+    return found
+
+
+def specs_with_wrong_linux_gate(groups_path, specs):
+    """The rendered spec names whose LINUX GATE paragraph is not the one their group's file set calls for (kb/Work
+    PB3381, MANDATORY-PRACTICES I8): a host-I-O group (make_dispatch_specs.host_io over its `file_set`) runs CI's Linux
+    legs at its own gate, every other group leaves them to the landing. Matched by name like
+    specs_missing_requirements; a group whose groups file carries no `file_set` was decided by the renderer from its
+    notes' declared set, which this check does not recompute (the planner's self-test pins that arm)."""
+    import make_dispatch_specs as mds  # noqa: PLC0415  (the one HOST_IO and the one paragraph text)
+    doc = json.loads(groups_path.read_text(encoding='utf-8'))
+    found = []
+    for s in specs:
+        path = pathlib.Path(s)
+        m = re.fullmatch(r'msg-w[^-]+-([a-z0-9]+)\.txt', path.name)
+        g = next((g for g in doc.get('groups', []) if m and g.get('letter', '').lower() == m.group(1)), None)
+        if g is None or not (isinstance(g.get('file_set'), list) and g['file_set']) or not path.exists():
+            continue
+        if mds.LINUX_GATE[mds.host_io(g['file_set'])] not in path.read_text(encoding='utf-8'):
+            found.append(f"{path.name} ({'a host-I-O group' if mds.host_io(g['file_set']) else 'no host-I-O file'})")
     return found
 
 
@@ -266,6 +291,11 @@ def main():
             bad += 1
             print(f'FAIL     {gp.name}: standing campaign requirements missing from rendered specs (kb/Work PB3359): '
                   + '; '.join(f'{n}: {r[:80]}' for n, r in lacking))
+        wrong = specs_with_wrong_linux_gate(gp, specs)
+        if wrong:
+            bad += 1
+            print(f'FAIL     {gp.name}: the LINUX GATE paragraph is not the group\'s (host-I-O groups run the Linux legs '
+                  f'at their gate, kb/Work PB3381): {"; ".join(wrong)}')
     if len(sys.argv) > 1:
         targets = [(pathlib.Path(a), SPEC) for a in specs]
     else:
