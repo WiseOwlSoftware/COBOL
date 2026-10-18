@@ -2016,7 +2016,7 @@ CobolNet.Runtime.StorageCell
 CobolNet.Runtime.StorageCell.Allocated -> bool
 CobolNet.Runtime.StorageCell.ContiguousAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CellGroupShape?[]? elems = null) -> string!
 CobolNet.Runtime.StorageCell.ContiguousExtentsAt(int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynStructure, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count) -> CobolNet.Runtime.RecordExtents!
-CobolNet.Runtime.StorageCell.CopyArea(long offset, int width) -> CobolNet.Runtime.StorageCell!
+CobolNet.Runtime.StorageCell.CopyArea(long offset, int width, int dynBase = 0, int components = 0) -> CobolNet.Runtime.StorageCell!
 CobolNet.Runtime.StorageCell.DynAt(int ordinal) -> string!
 CobolNet.Runtime.StorageCell.DynTableAt(int ordinal, int min, int elementWidth) -> CobolNet.Runtime.CobolDynTable<CobolNet.Runtime.StorageCell!>!
 CobolNet.Runtime.StorageCell.End(CobolNet.Runtime.StorageEnd reason) -> void
@@ -2030,7 +2030,7 @@ CobolNet.Runtime.StorageCell.SetDynAt(int ordinal, string! content) -> void
 CobolNet.Runtime.StorageCell.SetSlotAt(int byteOffset, object? value) -> void
 CobolNet.Runtime.StorageCell.SlotAt(int byteOffset) -> object?
 CobolNet.Runtime.StorageCell.StorageCell() -> void
-CobolNet.Runtime.StorageCell.StoreArea(long offset, CobolNet.Runtime.StorageCell! source) -> void
+CobolNet.Runtime.StorageCell.StoreArea(long offset, CobolNet.Runtime.StorageCell! source, int dynBase = 0, int components = 0) -> void
 CobolNet.Runtime.StorageCell.StoreContiguousAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynStructure, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, string! image, CobolNet.Runtime.RecordExtents? extents = null, bool fixedForm = false, int count = 2147483647) -> bool
 CobolNet.Runtime.StorageCell.StoreVarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CobolVarGroup! v, CobolNet.Runtime.CellGroupShape?[]? elems = null, bool storage = false) -> void
 CobolNet.Runtime.StorageEnd
@@ -2444,7 +2444,7 @@ static CobolNet.Runtime.CobolArgAdapt.Aliased(CobolNet.Runtime.CobolArg[]! args,
 static CobolNet.Runtime.CobolArgAdapt.Area(CobolNet.Runtime.CellPointer? sharedArea, bool present, int areaWidth, CobolNet.Runtime.GroupAtom![]? formalShape, System.Func<CobolNet.Runtime.StorageCell!>? fresh) -> CobolNet.Runtime.CellPointer!
 static CobolNet.Runtime.CobolArgAdapt.Area(CobolNet.Runtime.CobolArg[]! args, int i, int areaWidth, bool byValueFormal, CobolNet.Runtime.GroupAtom![]? formalShape, System.Func<CobolNet.Runtime.StorageCell!>? fresh) -> CobolNet.Runtime.CellPointer!
 static CobolNet.Runtime.CobolArgAdapt.ArgumentArea(CobolNet.Runtime.CobolArg[]! args, int i) -> CobolNet.Runtime.CellPointer?
-static CobolNet.Runtime.CobolArgAdapt.ContentRecord(CobolNet.Runtime.CellPointer? area, int width) -> CobolNet.Runtime.CellPointer?
+static CobolNet.Runtime.CobolArgAdapt.ContentRecord(CobolNet.Runtime.CellPointer? area, int width, int components) -> CobolNet.Runtime.CellPointer?
 static CobolNet.Runtime.CobolArgAdapt.DynText(CobolNet.Runtime.CobolArg[]! args, int i, int limit) -> CobolNet.Runtime.ManagedPointer<string!>!
 static CobolNet.Runtime.CobolArgAdapt.LandForFormal<T>(CobolNet.Runtime.CobolArg arg, CobolNet.Runtime.NumProfile formal, int formalScale, bool checking) -> CobolNet.Runtime.CobolArg
 static CobolNet.Runtime.CobolArgAdapt.Num<T>(CobolNet.Runtime.CobolArg[]! args, int i, CobolNet.Runtime.NumProfile formal, int formalScale) -> CobolNet.Runtime.ManagedPointer<T>!
@@ -2467,7 +2467,7 @@ static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret, string! value) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret, ulong value) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn<T>(CobolNet.Runtime.CobolArg? ret, T? value) -> void
-static CobolNet.Runtime.CobolArgAdapt.StoreReturnArea(CobolNet.Runtime.CobolArg? ret, CobolNet.Runtime.CellPointer! source, int width) -> void
+static CobolNet.Runtime.CobolArgAdapt.StoreReturnArea(CobolNet.Runtime.CobolArg? ret, CobolNet.Runtime.CellPointer! source, int width, int components) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturnGroup(CobolNet.Runtime.CobolArg? ret, string! image, CobolNet.Runtime.GroupAtom![]! atoms) -> void
 static CobolNet.Runtime.CobolArgAdapt.Text(CobolNet.Runtime.CobolArg[]! args, int i, int width, CobolNet.Runtime.GroupAtom![]? groupAtoms, System.Func<string!>! unbound) -> CobolNet.Runtime.ManagedPointer<string!>!
 static CobolNet.Runtime.CobolArgAdapt.TextValue(CobolNet.Runtime.CobolArg[]! args, int i, int width, CobolNet.Runtime.NumProfile? formal, int formalScale, CobolNet.Runtime.GroupAtom![]? groupAtoms, System.Func<string!>! unbound) -> CobolNet.Runtime.ManagedPointer<string!>!
@@ -3659,7 +3659,7 @@ static readonly CobolNet.Runtime.ManagedPointer.Null -> CobolNet.Runtime.Managed
 static readonly CobolNet.Runtime.NonfatalSelectorFn.None -> CobolNet.Runtime.NonfatalSelectorFn!
 static readonly CobolNet.Runtime.PredefinedNullArgument.Instance -> CobolNet.Runtime.PredefinedNullArgument!
 static readonly CobolNet.Runtime.ProgramPointer.Null -> CobolNet.Runtime.ProgramPointer
-virtual CobolNet.Runtime.BASE.FACTORYOBJECT() -> CobolNet.Runtime.CobolObject?
+virtual CobolNet.Runtime.BASE.__FactoryObject() -> CobolNet.Runtime.CobolObject?
 virtual CobolNet.Runtime.BASE.__FactoryOfClass.get -> CobolNet.Runtime.__FACTORY_BASE!
 virtual CobolNet.Runtime.__FACTORY_BASE.__Create() -> CobolNet.Runtime.BASE!
 virtual CobolNet.Runtime.__FACTORY_BASE.__New() -> CobolNet.Runtime.CobolObject?

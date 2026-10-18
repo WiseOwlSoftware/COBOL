@@ -256,11 +256,13 @@ public sealed class HostEntryShapeDriftTests : CobolNetTestBase
 
     /// <summary>⛔ THE §14.2.3 13) RESTRICTION IS THE BOUNDARY'S (DESIGN-external-repository §4.3, DOC-A.1-141; kb/Work
     /// PB3273). A unit one of whose group formals holds both a variable-length component (§8.5.1.12.1) and a pointer or
-    /// object-reference member publishes NO entry — the other units of the group still do — because no crossing form of the
-    /// boundary carries that group: the activated program's own formal of that description stages the Tier-C loud at its
-    /// copy-in, so an entry for it could only reach a loud. The second half is the pin: the day the CALL lane gains a form
-    /// for the shape this test is red, and the restriction (<c>PublishedRecordEmitter.Renders</c>) is to be lifted
-    /// together with the record's composition of that form's storage, never left standing and never lifted alone.</summary>
+    /// object-reference member publishes NO entry — the other units of the group still do — because the COBOL boundary
+    /// carries that group only as its storage AREA holding its references and its components together (kb/Work PB3139),
+    /// which no published record composes: an entry's argument would reach the activated program's formal without an area,
+    /// whose copy-in of that description is the Tier-C loud. The second half is the pin: the day the formal's copy-in
+    /// loses that loud this test is red, and the restriction (<c>PublishedRecordEmitter.Renders</c>) is to be lifted
+    /// together with the record's composition of the area's components beside its slots, never left standing and never
+    /// lifted alone.</summary>
     [Fact]
     public void AGroupHoldingAComponentAndAReference_PublishesNoEntry_WhileTheBoundaryHasNoFormForIt()
     {

@@ -2178,15 +2178,23 @@ internal static class RuntimeApi
             _ => throw new InvalidOperationException("an area states a component base or a slice extent, never both"),
         };
 
+    /// <summary>A text carrier that READS <paramref name="read"/> each time it is asked and stores nowhere — the BY CONTENT
+    /// carrier of a group whose record crosses as its detached area (kb/Work PB3139): only a formal that cannot be laid
+    /// over that record reads it, and §14.2.3 GR9's record never stores back into the argument.</summary>
+    public static string ReadOnlyTextView(string read) =>
+        $"ManagedPointer<string>.OverField(() => {read}, static _ => {{ }})";
+
     /// <summary>The BY CONTENT record of a group whose values ride managed slots (§14.2.3 GR9; kb/Work PB1940) —
-    /// <c>CobolArgAdapt.ContentRecord</c>: a detached copy of <paramref name="width"/> positions of <paramref name="area"/>.</summary>
-    public static string ArgAdaptContentRecord(string area, int width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.ContentRecord)}({area}, {width})";
+    /// <c>CobolArgAdapt.ContentRecord</c>: a detached copy of <paramref name="width"/> positions of <paramref name="area"/>
+    /// and of its <paramref name="components"/> variable-length components (kb/Work PB3139).</summary>
+    public static string ArgAdaptContentRecord(string area, int width, int components) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.ContentRecord)}({area}, {width}, {components})";
 
     /// <summary>The RETURNING delivery of a group whose values ride managed slots (§14.6.5; kb/Work PB1940) —
-    /// <c>CobolArgAdapt.StoreReturnArea</c>: the returning item's area <paramref name="source"/> into the receiver's.</summary>
-    public static string ArgAdaptStoreReturnArea(string ret, string source, int width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturnArea)}({ret}, {source}, {width})";
+    /// <c>CobolArgAdapt.StoreReturnArea</c>: the returning item's area <paramref name="source"/> — its positions and its
+    /// <paramref name="components"/> variable-length components (kb/Work PB3139) — into the receiver's.</summary>
+    public static string ArgAdaptStoreReturnArea(string ret, string source, int width, int components) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturnArea)}({ret}, {source}, {width}, {components})";
 
     /// <summary>RETURNING delivery into the caller's item (§14.6.5) — <c>CobolArgAdapt.StoreReturn</c>.
     /// <paramref name="description"/> is the SENDING item's description when it has one — its
