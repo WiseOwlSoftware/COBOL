@@ -174,3 +174,8 @@ static CobolNet.Runtime.CobolVarGroup.RunOf(string! window, System.ReadOnlySpan<
 static CobolNet.Runtime.CobolVarGroup.WindowOf(string! run, string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
 CobolNet.Runtime.CobolDynTable<T>.CopyOf(System.Func<T, T>! copyElement) -> CobolNet.Runtime.CobolDynTable<T>!
 CobolNet.Runtime.CobolDynTable<T>.Recreated<TPart>(System.Collections.Generic.IReadOnlyList<TPart>! parts, TPart blank, System.Func<T, TPart, T>! store) -> CobolNet.Runtime.CobolDynTable<T>!
+static CobolNet.Runtime.IO.FileLockPosture.AdmitsAnotherRunUnit(System.IO.FileShare share) -> bool
+override sealed CobolNet.Runtime.IO.KeyedConnector.AbandonOpen() -> void
+override sealed CobolNet.Runtime.IO.KeyedConnector.CloseCore() -> string!
+override sealed CobolNet.Runtime.IO.KeyedConnector.InvalidateFilePosition() -> void
+override sealed CobolNet.Runtime.IO.KeyedConnector.OpenCore(CobolNet.Runtime.IO.FileOpenMode mode, CobolNet.Runtime.IO.FilePresence presence) -> string!
