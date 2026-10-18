@@ -679,10 +679,10 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
     stamped = [r.review.file for r in reports if r.review and r.review.file]
-    refused: list[str] = []
-    found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped), refused)
-    for why in refused:   # said on every survey (session-probe, the landing lane's log) until the file is repaired
-        print(f'prune_worktrees: a findings file the reader refuses holds no branch until it is repaired: {why}',
+    torn: list[str] = []
+    found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped), torn)
+    for why in torn:   # said on every survey (session-probe, the landing lane's log) until the operator repairs it
+        print(f'prune_worktrees: a findings file is torn; the records before the tear still hold (review R4-1): {why}',
               file=sys.stderr)
     carrying_findings(rows, repo, found, list(reports))
     return rows
@@ -759,9 +759,12 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
     again once a later round of that review records CLEAN or that head is on main. The FINDINGS file decides, never a
     report's stamp (review R3-1): a review finisher rewrites the group's one report for its own branch with no Review
     line whatever it returns, so a hold read from the stamp released the successor exactly when nobody had answered
-    them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands."""
+    them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands. A torn findings file
+    holds what its records before the tear hold (review R4-1: skipping it released every hold it recorded), and the
+    held row's `why` names the torn line and the repair, so the operator sees what to fix."""
     if not findings:
         return
+    import review_findings  # noqa: PLC0415  (scripts/orchestrator: the repair command a torn file's row names)
     leads = [(v, findings_lead(v, list(reports), rows)) for v in findings]
     for r in rows:
         if r.state != 'WAITING TO LAND' or not r.tip or not r.report:
@@ -772,9 +775,12 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
         if hit:
             v, lead = hit
             r.state, r.waits_on = 'IN FLIGHT', v['branch']
+            torn = (f'; that findings file is TORN at {v["torn"]}: the records before the tear hold, and appends are '
+                    f'refused until the operator runs `{review_findings.repair_command(pathlib.Path(v["file"]))}` (review '
+                    'R4-1)') if v.get('torn') else ''
             r.why = (f'carries {v["branch"]} ({lead or "note unknown"}), whose review FINDINGS ({v["blocking"]}) at '
-                     f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict): it lands '
-                     'once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
+                     f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict{torn}): it '
+                     'lands once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
 
 
 def owned(rows: list[Row]) -> set[str]:
@@ -1048,16 +1054,22 @@ def self_test() -> int:
         # reviewed CLEAN: no report stamps rpred's findings any more, yet rsucc carries them, so it waits.
         g('switch', '-q', '-c', 'rpred', 'main')
         commit('src/RP.cs', 'class RpredX {}\n', 'rpred')
+        # Review R4-1 (the reviewer's probe): `tpred` ended FINDINGS at the round cap (round 3), and a round-4 review
+        # was killed mid-append of its first finding, leaving a torn line. `tsucc` (another note) merged tpred and was
+        # reviewed CLEAN. The tear answers nothing, so tsucc still carries tpred's unanswered findings and waits.
+        g('switch', '-q', '-c', 'tpred', 'main')
+        commit('src/TP.cs', 'class TpredX {}\n', 'tpred')
         g('branch', 'rpred-fix', 'rpred')
         g('switch', '-q', '-c', 'rsucc', 'rpred')
         commit('src/RS.cs', 'class RsuccX {}\n', 'rsucc')
-        for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs')):
+        for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs'),
+                           ('tsucc', 'tpred', 'src/TS.cs')):
             g('switch', '-q', '-c', b, base)
             commit(f, f'class {b.title()}X {{}}\n', b)
         tips = {b: g('rev-parse', b).stdout.strip() for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
                                                                 'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
                                                                 'xpred', 'xsucc', 'upred', 'usucc', 'pred', 'rpred',
-                                                                'rsucc')}
+                                                                'rsucc', 'tpred', 'tsucc')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
         g('switch', '-q', '-c', 'modified-only', 'main')
@@ -1194,6 +1206,11 @@ def self_test() -> int:
                                           '## Review findings\n- R1-1 not answered: blocked\n', 10),
                 ('w9996b-PB41-report.md', f'Status: DONE\nBranch: rsucc\nHEAD: {tips["rsucc"]}\n'
                                           f'**Review:** CLEAN w9996b-r1 {tips["rsucc"]}\n', 10),
+                # review R4-1: tpred's report keeps its capped FINDINGS stamp; tsucc is reviewed CLEAN
+                ('w9993a-PB42-report.md', f'Status: DONE\nBranch: tpred\nHEAD: {tips["tpred"]}\n'
+                                          f'**Review:** FINDINGS 1 w9993a-r3 {tips["tpred"]} E:/s/review-w9993-a.jsonl\n', 10),
+                ('w9993b-PB43-report.md', f'Status: DONE\nBranch: tsucc\nHEAD: {tips["tsucc"]}\n'
+                                          f'**Review:** CLEAN w9993b-r1 {tips["tsucc"]}\n', 10),
                 # kb/Work PB3181, PB3125: the report, the review and the landing lane's attempt at the tip
                 ('w9998r-PB18-report.md', f'Status: DONE\nBranch: lane-stopped · head {lane_at["lane-stopped"][:12]}\n'
                                           f'**Review:** CLEAN w9998r-r1 {lane_at["lane-stopped"]}\n', 10),
@@ -1230,17 +1247,24 @@ def self_test() -> int:
         import review_findings  # noqa: PLC0415  (scripts/orchestrator)
         fscratch = landed_coord / 'scratch'
 
-        def review_file(path: pathlib.Path, rounds: list[tuple[str, str, list[str]]]) -> None:
+        def review_file(path: pathlib.Path, rounds: list[tuple[str, str, list[str]]], cap: int = 0) -> None:
             for k, (branch, head, severities) in enumerate(rounds, 1):
                 review_findings.start(path, k, branch, head, f'w-self-test-r{k}')
                 for n, sev in enumerate(severities, 1):
                     review_findings.finding(path, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'correctness',
                                                                  'summary': 's', 'severity': sev, 'failure_scenario': 'x'}))
-                review_findings.verdict(path, k)
+                review_findings.verdict(path, k, review_findings.BLOCKING_AT_CAP if k == cap else review_findings.BLOCKING_DEFAULT)
         review_file(fscratch / 'w9997' / 'review-w9997-c.jsonl', [('xpred', tips['xpred'], ['high'])])
         review_file(fscratch / 'review-w9998-o.jsonl', [('fnd-pred', tips['fnd-pred'], ['high'])])
         review_file(fscratch / 'w9996' / 'review-w9996-a.jsonl', [('rpred', tips['rpred'], ['high', 'low'])])
         review_file(fscratch / 'w9995' / 'review-w9995-a.jsonl', [('pred', tips['pred'], ['high']), ('pred', tips['pred'], [])])
+        # review R4-1: tpred's three rounds, the third capped, then a round-4 finding torn mid-append
+        tfile = fscratch / 'w9993' / 'review-w9993-a.jsonl'
+        review_file(tfile, [('tpred', tips['tpred'], ['high'])] * 3, cap=3)
+        review_findings.start(tfile, 4, 'tpred', tips['tpred'], 'w-self-test-r4')
+        tear_at = len(tfile.read_text(encoding='utf-8').splitlines()) + 1
+        with tfile.open('a', encoding='utf-8', newline='\n') as f:
+            f.write('{"kind": "finding", "round": 4, "file": "src/X.cs", "li')
         # a reviewer killed mid-append leaves a torn line: the survey names the file and goes on (every check below runs)
         torn = fscratch / 'w9994' / 'review-w9994-t.jsonl'
         review_findings.start(torn, 1, 'xsucc', tips['xsucc'], 'w9994t-r1')
@@ -1276,7 +1300,8 @@ def self_test() -> int:
                 'discharged-empty': 'DECISION', 'no-head': 'DECISION',
                 'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
-                'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT'}
+                'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
+                'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1317,7 +1342,7 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
         # kb/Work PB3381: no hold. A predecessor reviewed CLEAN keeps its own lifecycle inside an unreviewed successor;
         # a successor carrying another note's unanswered FINDINGS waits on that branch; a finisher of the SAME note
@@ -1333,6 +1358,13 @@ def self_test() -> int:
                'review-w9996-a.jsonl' in rows['rsucc'].why, rows['rpred'].carrier) == ('rpred', True, True, 'rsucc'),
               f'a successor whose predecessor\'s finisher rewrote the report and committed nothing still waits on the '
               f'findings file\'s last verdict: {rows["rsucc"].why}')
+        # review R4-1: a torn line never releases a hold. tpred's capped round-3 FINDINGS stands before the torn round-4
+        # append, so tsucc is HELD (never WAITING TO LAND), and its why names the torn line and the repair
+        check((rows['tsucc'].state, rows['tsucc'].waits_on, 'carries tpred (PB42)' in rows['tsucc'].why,
+               f'review-w9993-a.jsonl:{tear_at}: not JSON' in rows['tsucc'].why,
+               'review_findings.py repair ' in rows['tsucc'].why) == ('IN FLIGHT', 'tpred', True, True, True),
+              f'a successor whose predecessor\'s capped FINDINGS file was torn by a later append is held, the tear named: '
+              f'{rows["tsucc"].state} {rows["tsucc"].why}')
         check(not rows['succ'].waits_on and 'unanswered' not in rows['succ'].why,
               f'a FINDINGS round that a later round answered CLEAN holds nothing: {rows["succ"].why}')
         check((rows['upred'].carrier, 'contained in usucc (WAITING TO LAND)' in rows['upred'].why) == ('usucc', True),

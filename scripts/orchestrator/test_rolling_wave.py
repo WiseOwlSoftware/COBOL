@@ -20,7 +20,8 @@ skill section 2), never from what the script does:
      predecessor CAPPED at the round after its last finisher is not ready, and its successor (and the successor's
      reviewer) are told those findings belong to the predecessor's next-wave finisher; a predecessor whose review
      finisher came back without answering them (SPLIT on a head of its own; dead, STALLED or BLOCKED with no commit
-     after rewriting the report), or whose last verdict cannot be read, is UNANSWERED: the successor's reviewer
+     after rewriting the report), or whose last verdict cannot be read or comes from a TORN findings file (review
+     R4-1: the verdict before the tear, never read as capped), is UNANSWERED: the successor's reviewer
      reviews the predecessor's content and records again each finding that still holds (review R1-1), never "do not
      record them again", and both are told the survey holds the successor;
   4. the reviews' leads reach the wave's result.
@@ -116,13 +117,19 @@ def findings_file(path: pathlib.Path, rounds: list[tuple[str, str, list[str]]], 
         review_findings.verdict(path, k, review_findings.BLOCKING_AT_CAP if k > fix_rounds else review_findings.BLOCKING_DEFAULT)
 
 
-def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = None) -> dict:
-    """Run one scenario; `findings` are group A's review rounds, written to the scenario's own scratch."""
+def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = None, torn: bool = False) -> dict:
+    """Run one scenario; `findings` are group A's review rounds, written to the scenario's own scratch. `torn`: a next
+    round is started after them and its first finding is cut off mid-append (a reviewer killed while writing)."""
     scratch = tmp / name
     scratch.mkdir()
     scenario["args"]["scratch"] = str(scratch)
     if findings:
         findings_file(scratch / "review-w9-a.jsonl", findings, scenario["args"].get("review_fix_rounds", 2))
+    if torn:
+        branch, head, _ = findings[-1]
+        review_findings.start(scratch / "review-w9-a.jsonl", len(findings) + 1, branch, head, "w9a-review-torn")
+        with (scratch / "review-w9-a.jsonl").open("a", encoding="utf-8", newline="\n") as h:
+            h.write('{"kind": "finding", "round": ' + str(len(findings) + 1) + ', "file": "x.py", "li')
     (tmp / f"{name}.json").write_text(json.dumps(scenario), encoding="utf-8", newline="\n")
     p = subprocess.run(["node", str(tmp / "harness.mjs"), str(tmp / "wave.js"), str(tmp / f"{name}.json"),
                         sys.executable, str(HERE / "review_findings.py")],
@@ -225,6 +232,17 @@ def main() -> int:
         bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
         check("3: with no readable last verdict the successor is told UNANSWERED, never capped",
               "UNANSWERED" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
+        # ... and a TORN findings file (review R4-1): the reader returns the capped verdict before the tear, with `torn`
+        # set, and the wave never reads it capped: the successor is told UNANSWERED
+        r = run(tmp, "cap-torn", {"args": args(groups, review_fix_rounds=1), "agents": {
+            "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("FINDINGS", A1, 1)],
+            "fix-A-r1": [impl("bA2", A2)], "w9a-review-r2": [review("FINDINGS", A2, 1)],
+            "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}}, cap_rounds, torn=True)
+        bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
+        lv = {x["letter"]: x for x in r["out"]["results"]}.get("A", {}).get("last_verdict") or {}
+        check("3: a torn findings file reads its capped verdict before the tear, and the successor is told UNANSWERED",
+              (lv.get("round"), bool(lv.get("torn")), "UNANSWERED" in bp, "NEXT-WAVE FINISHER" in bp)
+              == (2, True, True, False), (lv, bp))
         check("1, 2: a CLEAN end reads no findings file (no extra agent)",
               all(not e.startswith("start:last-verdict") for e in run(tmp, "clean-lv", {"args": args(groups), "agents": {
                   "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("CLEAN", A1)],
