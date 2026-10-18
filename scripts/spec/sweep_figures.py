@@ -33,6 +33,8 @@ import pathlib
 import re
 import sys
 
+from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 SPEC_MD = REPO / "specs" / "ISO_COBOL.md"
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
@@ -40,7 +42,6 @@ PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 PAGE_ANCHOR = re.compile(r'^<a id="page-(\d+)"></a>\s*$')
 MD_HEADING = re.compile(r"^\s*#{1,6}\s+\**(\d+(?:\.\d+)+)\s+(.+?)\**\s*$")
 MD_FORMAT = re.compile(r"^\s*\**Formats?\s+(\d+)")
-MD_GENERAL_FORMAT = re.compile(r"general\s+formats?\s*$", re.I)
 ADDENDUM_REF = re.compile(r"see the Addendum \(C\d+\)")
 # A fence may carry a LANGUAGE TAG (```cobol on the example programs). Not matching it would leave the
 # example's lines loose, where the bare-run scanner could mistake a COBOL example for a figure.
@@ -177,7 +178,7 @@ def md_index(lines):
     heads = [(i, m.group(1), m.group(2)) for i, l in enumerate(lines) if (m := MD_HEADING.match(l))]
     out = {}
     for n, (i, clause, title) in enumerate(heads):
-        if not MD_GENERAL_FORMAT.search(title):
+        if not GENERAL_FORMAT_TITLE.search(title):
             continue
         end = heads[n + 1][0] if n + 1 < len(heads) else len(lines)
         marks = [(j, int(m.group(1))) for j in range(i + 1, end) if (m := MD_FORMAT.match(lines[j]))]
@@ -194,7 +195,7 @@ def clause_spans(lines):
     heads = [(i, m.group(1), m.group(2)) for i, l in enumerate(lines) if (m := MD_HEADING.match(l))]
     out = {}
     for n, (i, clause, title) in enumerate(heads):
-        if MD_GENERAL_FORMAT.search(title):
+        if GENERAL_FORMAT_TITLE.search(title):
             out[clause] = (i + 1, heads[n + 1][0] if n + 1 < len(heads) else len(lines))
     return out
 

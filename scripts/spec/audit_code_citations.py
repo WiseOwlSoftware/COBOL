@@ -105,6 +105,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import citation_corpus  # noqa: E402
+from spec_headings import GENERAL_FORMAT_TITLE  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 
 REPO = citation_corpus.REPO
 SPEC = REPO / "specs" / "ISO_COBOL.md"
@@ -532,7 +533,7 @@ def spec_ordinals():
         if (h := _HEADING.match(stripped)) is not None:
             clause, title = h.group(1), h.group(2)
             heads.append((pos, clause, title))
-            in_formats = "general format" in title.lower()
+            in_formats = GENERAL_FORMAT_TITLE.search(title.strip()) is not None
         elif in_formats and clause and (f := _FORMAT_LINE.match(stripped)) is not None:
             for key in (clause, clause.rsplit(".", 1)[0]):
                 formats.setdefault(key, {}).setdefault(int(f.group(1)), f.group(2))
