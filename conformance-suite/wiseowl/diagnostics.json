@@ -9742,6 +9742,12 @@
   ],
   "expect": "COBOLNET1511"
  },
+ "pb1571-sort-merge-active-turn-at-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb1572-bit-group-redefines-below-2002": {
   "refuse-at": [
    "85"
