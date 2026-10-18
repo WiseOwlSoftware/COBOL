@@ -170,7 +170,7 @@ construct id, a paraphrased summary, ISO § citation, `Introduced`/`Removed` edi
 | value-of-removed-2002 | FD VALUE OF clause (deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
 | data-records-removed-2002 | FD/SD DATA RECORDS clause (deleted 2002) | §13.4.6 | 85 | 2002 | 0873 | active |
 | multiple-file-tape-removed-2002 | I-O-CONTROL MULTIPLE FILE TAPE (deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
-| open-reversed-removed-2002 | OPEN … REVERSED tape phrase (deleted 2002) | §14.9.26 | 85 | 2002 | 0902 | active |
+| open-reversed-removed-2002 | OPEN … REVERSED tape phrase (deleted 2002) | §14.9.27 | 85 | 2002 | 0902 | active |
 | close-with-lock-removed-2023 | CLOSE … WITH LOCK (removed 2023) | VCR row 7 | 85 | 2023 | 0902 | active |
 | rerun-removed-2002 | I-O-CONTROL RERUN checkpoint hint (deleted 2002) | VCR Table 7 | 85 | 2002 | 0902 | active |
 

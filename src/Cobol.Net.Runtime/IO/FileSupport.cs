@@ -2,7 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 namespace CobolNet.Runtime.IO;
 
-/// <summary>The mode a file connector is opened in (ISO/IEC 1989:2023 §14.9.25 OPEN).</summary>
+/// <summary>The mode a file connector is opened in (ISO/IEC 1989:2023 §14.9.27 OPEN).</summary>
 public enum FileOpenMode
 {
     /// <summary>OPEN INPUT — read-only sequential access from the start.</summary>
