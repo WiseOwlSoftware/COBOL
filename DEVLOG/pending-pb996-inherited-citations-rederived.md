@@ -27,7 +27,10 @@ state the current contract (§14.9.49.4 GR3, GR4 a)).
 BINARY-CHAR to BINARY-DOUBLE; COMP-5 is an extension the standard does not define, and its range is the owner's
 carrier decision recorded as CONFORMANCE.md DOC-A.1-208 (kb/Work R10). COMP-5-only sites (16-byte containers,
 `PIC S9(4) COMP-5` examples) now cite DOC-A.1-208; sites about both usages cite `§13.18.60.4 GR12 / DOC-A.1-208`.
-This covers src, tests, golden comments, CONFORMANCE.md and two design docs.
+This covers src, tests, golden comments, CONFORMANCE.md and two design docs. CONFORMANCE.md's own prose says
+"A.1 item 208", because in that file the token is a row key and nothing else (`AnnexA1RegisterDriftTests`): the first
+landing attempt wrote it four times in prose and the landing's Linux unit leg went RED on it, a test the Windows leg 1
+had planned into leg 2 (kb/Work PB3131).
 
 **Why the audit missed them.** `audit_code_citations.py` reads no designator in "§14.7 rule 2". Its RULE and
 DIAG-UNQUALIFIED arms skip a clause with no rule block of that kind, so "§8.8.4.2.1 F1 SR2" got through. Its SUBJECT
