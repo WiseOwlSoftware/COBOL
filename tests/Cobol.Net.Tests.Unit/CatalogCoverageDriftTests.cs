@@ -321,13 +321,38 @@ public sealed class CatalogCoverageDriftTests
 
     /// <summary>A line that WRITES the general-format heading as a pattern: a regex literal or a substring test
     /// spelling the words itself. The words are built from parts so this file is not its own offender (it is also
-    /// excluded by name, as the one reader allowed to talk about the pattern).</summary>
+    /// excluded by name, as the one reader allowed to talk about the pattern). A lower-case spelling counts only as a
+    /// regex (<c>general\s+form…</c>): lower-case words in a keyword list are prose, not the heading.</summary>
     private static readonly Regex HeadingWordsSpelledOut =
-        new(@"[Gg]eneral(?:\\s[+*]?|\s)\(?\??:?form", RegexOptions.Compiled);
+        new(@"General(?:\\s[+*]?|\s)\(?\??:?form|general\\s[+*]?\(?\??:?form", RegexOptions.Compiled);
 
     private static readonly Regex PatternContext =
-        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(|\bcompile\(|\bnew\(@""|\bRegex\b|@""|[""']General format[""']\s+(?:not\s+)?in\b",
-            RegexOptions.Compiled);
+        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(|\bcompile\(|\bnew\(@""|\bRegex\b|@""", RegexOptions.Compiled);
+
+    /// <summary>A substring test of the heading in a script: <c>"General format" not in page_text</c>.</summary>
+    private static readonly Regex MembershipTest =
+        new(@"[""']General format[""']\s+(?:not\s+)?in\b", RegexOptions.Compiled);
+
+    private static bool SpellsTheHeading(string line)
+    {
+        string t = line.TrimStart();
+        if (t.StartsWith('#') || t.StartsWith("//")) return false;
+        return HeadingWordsSpelledOut.IsMatch(line) && PatternContext.IsMatch(line) || MembershipTest.IsMatch(line);
+    }
+
+    /// <summary>The no-copy sweep can fail: each way of writing the heading pattern is flagged, and a keyword list
+    /// that merely contains the words is not.</summary>
+    [Theory]
+    [InlineData("GF = re.compile(r\"general\\s+formats?$\", re.I)", true)]
+    [InlineData("if \"General format\" not in page.get_text():", true)]
+    [InlineData("var m = Regex.Match(line, @\"^#+\\s+(\\d+)\\s+General formats?\\s*$\");", true)]
+    [InlineData("new(@\"^#{2,6}\\s+General\\s+form(?:at)?s?\\.?\\s*$\")", true)]
+    [InlineData("@\"\\bSR\\s?\\d|syntax rule|general format|non-ISO\",", false)]
+    [InlineData("    /// the clause that prints its General formats", false)]
+    public void TheNoCopySweep_FlagsEachSpellingAndNotAKeywordList(string line, bool flagged)
+    {
+        Assert.Equal(flagged, SpellsTheHeading(line));
+    }
 
     /// <summary>⛔ ONE RULE, ONE PLACE: NO SCRIPT AND NO TEST SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work PB284,
     /// branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
@@ -353,11 +378,7 @@ public sealed class CatalogCoverageDriftTests
             string[] lines = File.ReadAllLines(TestRepo.At(path));
             for (int i = 0; i < lines.Length; i++)
             {
-                string t = lines[i].TrimStart();
-                if (t.StartsWith('#') || t.StartsWith("//")) continue;
-                if (HeadingWordsSpelledOut.IsMatch(lines[i]) && PatternContext.IsMatch(lines[i])
-                    || (py && Regex.IsMatch(lines[i], "[\"']General format[\"']\\s+(?:not\\s+)?in\\b")))
-                    offenders.Add($"{path}:{i + 1}: {t.Trim()}");
+                if (SpellsTheHeading(lines[i])) offenders.Add($"{path}:{i + 1}: {lines[i].Trim()}");
             }
         }
         Assert.True(scanned > 100, $"only {scanned} script/test sources scanned — the sweep reads nothing");
