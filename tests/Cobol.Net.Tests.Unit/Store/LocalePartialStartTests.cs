@@ -352,6 +352,7 @@ public sealed class LocalePartialStartTests
                 widest = Math.Max(widest, AssertPages(store, order, keys, leaves, depth, marks, probe, relation));
         }
         Assert.True(widest < leaves.Max() / 4, $"a partial START read {widest} pages of a tree of {leaves.Max() + 1} leaves");
+        store.DropCache();   // cold (2.2.1.11 witness (c)'s seam): the seek's own reads, not the page cache's (2.2.1.13)
         long before = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(Latin1("zzz"), SeekRelation.GreaterThan, out var none, prefix: true));
         Assert.False(none.HasCurrent);
@@ -399,6 +400,7 @@ public sealed class LocalePartialStartTests
             stop = exit >= 0 ? exit : forward ? keys.Count - 1 : 0;
         }
         int crossings = seat < 0 || stop < 0 ? 0 : Math.Abs(leafOf[stop] - leafOf[seat]);
+        store.DropCache();   // cold (2.2.1.11 witness (c)'s seam): the seek's own reads, not the page cache's (2.2.1.13)
         long before = store.Counters.PagesRead;
         Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out var cursor, prefix: true));
         int read = (int)(store.Counters.PagesRead - before);
@@ -588,12 +590,14 @@ public sealed class LocalePartialStartTests
         var probe = Latin1("ab");
         foreach (var relation in Enum.GetValues<SeekRelation>())
         {
+            store.DropCache();   // cold: every page of the search is a read the medium can refuse (the page cache, 2.2.1.13, would serve them)
             int start = medium.ReadsPerformed;
             Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out _, prefix: true));
             int reads = medium.ReadsPerformed - start;
             Assert.True(reads >= 2, $"{relation}: {reads} reads");
             for (int n = 1; n <= reads; n++)
             {
+                store.DropCache();
                 medium.FaultAtRead(n, Fault.Refuse);
                 Assert.Equal(StoreStatus.PermanentError, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out var refused, prefix: true));
                 Assert.False(refused.HasCurrent);
