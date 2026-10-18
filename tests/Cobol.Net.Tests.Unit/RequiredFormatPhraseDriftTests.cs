@@ -67,8 +67,8 @@ public sealed class RequiredFormatPhraseDriftTests
         foreach (string raw in lines)
         {
             string line = raw.TrimEnd('\r');
-            var head = Regex.Match(line, @"^#+\s+(\d+(?:\.\d+)*)\s+General formats?\s*$");
-            if (head.Success) { clause = head.Groups[1].Value; continue; }
+            var head = SpecClauseText.GeneralFormatHeading.Match(line);
+            if (head.Success) { clause = head.Groups["num"].Value; continue; }
             if (clause is null || !clause.StartsWith("14.9.", StringComparison.Ordinal)) continue;
             if (line.StartsWith("<pre", StringComparison.Ordinal)) { inPre = true; continue; }
             if (inPre && line.StartsWith("</pre>", StringComparison.Ordinal)) { inPre = false; blocks++; continue; }

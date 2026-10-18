@@ -155,28 +155,6 @@
       "U+2013 EN DASH is left alone — the standard uses it both as the MINUS-sign glyph and as a clause-range",
       "separator ('13.16–13.18')."
     ],
-    "$format-band-residue": [
-      "⛔ A THIRD SCOPING MECHANISM EXISTS IN THE STANDARD AND NEITHER ENGINE CAN SEE IT: the printed FORMAT band.",
-      "§13.18.35.3 syntax rules 11 and 12 are printed under a 'FORMAT 2' heading and are screen-only; §13.18.63.3",
-      "syntax rules 36, 38 and 39 and §13.18.64.4 general rule 24 sit under 'FORMAT 5' and are VALIDATE-only;",
-      "SR-13.18.41.3-1 is the single rule under PRESENT WHEN's 'FORMAT 2' (validation) band. Several of them are",
-      "text-silent outright — GR-13.18.63.4-24 reads, in full, 'General rule 18 applies.'",
-      "",
-      "THE CATALOG DOES NOT CARRY THE BAND. `extract_rule_catalog.py` GLUES the heading onto the PRECEDING rule's",
-      "text ('… is 88. FORMAT 5'), so the scope is lost AND the text a predicate reads is polluted — 176 rules",
-      "carry a stray 'FORMAT n'. So there is no `formats` field to key an arm on, and a regex that reached these",
-      "rows would be a hand list in regex clothing. Where a scoped arm CAN reach them on a real operand name it",
-      "does (the COLUMN/LINE MINUS + identifier-1 arm, and §12.3.7.3's data-name arm). The rest are left to",
-      "explicit adjudication and are named in kb/Work PB284, which owns the extractor repair: a denominator change",
-      "rebuilds the inventory and is its own landing.",
-      "",
-      "Rows this costs today, all still open: SR-13.18.41.3-1 · SR-13.18.63.3-36 · SR-13.18.63.3-38 ·",
-      "SR-13.18.63.3-39 · GR-13.18.63.4-24 (A.4.14), and SR-14.9.1.3-5 · SR-14.9.11.3-3 · GR-14.9.11.4-12",
-      "(A.4.2, which carry hand DOCUMENTED-NON-SUPPORT verdicts from kb/Work PB260 that the drift test cannot",
-      "hold). The ON EXCEPTION band of ACCEPT and DISPLAY left this list on 2026-09-24 (kb/Work R43 / PB1151): the",
-      "phrase is an OPERAND that exists only in the screen formats, so screen-handling-only's operand arm reaches",
-      "it without the band."
-    ],
     "standard-binary-only": {
       "verdict": "DOCUMENTED-NON-SUPPORT",
       "decision": "kb/Work PB198 — ARITHMETIC IS STANDARD-BINARY is declined (owner protocol 2026-08-30); docs/CONFORMANCE.md §2 row 2.",
@@ -296,7 +274,18 @@
         "MEASURED 2026-09-02: 156 of 4,311 rules (110 by clause, 97 by text, 3 by the §12.3.7 operand arm, 6 by the",
         "COLUMN/LINE operand arm; the arms overlap). 149 are blank and 7 already carry DOCUMENTED-NON-SUPPORT, so",
         "the selector FLIPS NOTHING; not one CONFORMS / PARTIAL / DIVERGES / NOT-IMPLEMENTED / NEEDS-OWNER-DECISION",
-        "row is touched. See $format-band-residue for the seven rows this shape cannot hold."
+        "row is touched.",
+        "",
+        "THE FORMAT-BAND ARMS (kb/Work PB284). The standard scopes a rule a THIRD way, by the FORMAT label printed",
+        "above it, and the catalog now carries that label (`band`, and its numbers as `band-formats`) instead of",
+        "gluing it onto the preceding rule's text. ACCEPT format 3 and DISPLAY format 2 are the screen formats, so",
+        "`sections` + `formats` reaches SR-14.9.11.3-3 ('Identifier-2 and identifier-3 shall be unsigned integer data",
+        "items') and GR-14.9.11.4-12 although neither says 'screen'. The numbers are the clause's own, which is why",
+        "the engine refuses `formats` without `sections`. §14.9.1.3 prints NO band on its syntax rules, so SR-14.9.1.3-5",
+        "('Identifier-3 and identifier-4 shall be unsigned integer data items') is reached by its OPERAND NAMES — the",
+        "LINE and COLUMN operands of format 3. Neither mechanism subsumes the other, so both stay.",
+        "Measured with the catalog rebuilt for PB284: 184 selected (181 + those three), all three blank or already",
+        "DOCUMENTED-NON-SUPPORT, none CONFORMS / PARTIAL / DIVERGES."
       ],
       "arms": [
         {
@@ -323,6 +312,31 @@
             "13.18.59",
             "13.18.61"
           ]
+        },
+        {
+          "$arm": "format band — ACCEPT format 3 (§14.9.1) IS the screen format; format 1 is the device and format 2 the temporal ACCEPT, both supported, which is why the number must be paired with the clause",
+          "sections": [
+            "14.9.1"
+          ],
+          "formats": [
+            3
+          ]
+        },
+        {
+          "$arm": "format band — DISPLAY format 2 (§14.9.11) IS the screen format; its rules need not say 'screen' (SR-14.9.11.3-3 is 'Identifier-2 and identifier-3 shall be unsigned integer data items', GR-14.9.11.4-12 'Column and line number positions are specified in terms of alphanumeric character positions')",
+          "sections": [
+            "14.9.11"
+          ],
+          "formats": [
+            2
+          ]
+        },
+        {
+          "$arm": "operand — ACCEPT's identifier-3 and identifier-4 are the screen format's LINE and COLUMN operands; §14.9.1.3 prints no format band at all (SR-14.9.1.3-5), so only the operand name scopes it",
+          "sections": [
+            "14.9.1.3"
+          ],
+          "pattern": "\\bidentifier-[34]\\b"
         },
         {
           "$arm": "text — screen vocabulary inside a SHARED clause; never a general format",
@@ -469,10 +483,20 @@
         "alternative is unreachable rather than unverified, so FMT-14.9.1.2 and FMT-14.9.11.2 are CONFORMS), and",
         "FMT-14.9.36.2 would be WRONG as non-support: ROLLBACK is a recognized statement in the shipped grammar, so the grammar matches the",
         "printed format. ⚠ The '<pre' proxy leaked — 56 of 322 FMT rows do not match it — and it looked safe here",
-        "only because FMT-14.9.7.2 is MISSING FROM THE CATALOG (kb/Work PB284): §14.9.7.2 is headed 'General forms',",
-        "the only such heading against 282 'General format' ones, and its format is an inline backtick rather than a",
-        "<pre> block. Had it been extracted, the proxy would have stamped COMMIT's format and left ROLLBACK's alone",
-        "— a split decided by transcription markup.",
+        "only because FMT-14.9.7.2 was MISSING FROM THE CATALOG (kb/Work PB284, repaired): §14.9.7.2 is headed",
+        "'General forms', the only such heading against 321 'General format(s)' ones, and its format was an inline",
+        "backtick rather than a <pre> block. Had it been extracted then, the proxy would have stamped COMMIT's",
+        "format and left ROLLBACK's alone — a split decided by transcription markup. FMT-14.9.7.2 is now a row and",
+        "CONFORMS beside FMT-14.9.36.2, which is what the KIND exclusion is for.",
+        "",
+        "THE PROSE CONCEPT CLAUSES (kb/Work PB284 part 3). §9.1.18 is Annex A.4.3 item 1 whole ('Commit and Rollback",
+        "9.1.18'), so its rows (9.1.18.1-.7, one per paragraph) are the module's OWN clause and take the clause arm.",
+        "§9.1.17 (the logical unit of work) is not listed, but A.4.1 ¶2 makes 'other rules ... also optional, even if",
+        "not explicitly listed', and the definition's only referent is §9.1.18.1: nothing in it survives the",
+        "module's absence. §9.1.16 is the CLAIMED record-locking clause, so only its two paragraphs whose whole",
+        "content is COMMIT or ROLLBACK ('A COMMIT statement releases all record locks ...') are in, by their opening",
+        "words; the locking paragraphs and the LOCK/UNLOCK prohibition (p6, which SR-12.4.5.9.3-1 and SR-14.9.47.3-2",
+        "already carry as CONFORMS) stay out for the reason the fourteen antecedent rules above do.",
         "",
         "⚖ DOC-A.1-28 ('Commit and rollback (interaction with other facilities and languages)', cross-reference",
         "§9.1.18) used to be listed with those antecedent rules. Owner decision R42 (2026-09-24) withdraws it: its",
@@ -495,6 +519,20 @@
           "excludes-kinds": [
             "FMT"
           ]
+        },
+        {
+          "$arm": "clause — the facility's concept clauses §9.1.18 (Annex A.4.3 item 1) and §9.1.17 (the logical unit of work it delimits); prose paragraph rows, kb/Work PB284",
+          "sections": [
+            "9.1.17",
+            "9.1.18"
+          ]
+        },
+        {
+          "$arm": "paragraph — the two §9.1.16 paragraphs whose whole content is the COMMIT or ROLLBACK statement's effect on locks; the rest of the clause is the CLAIMED record-locking facility",
+          "sections": [
+            "9.1.16"
+          ],
+          "pattern": "^A (?:COMMIT|ROLLBACK) statement releases all record locks"
         },
         {
           "$arm": "text — the facility's own functionality stated inside a mandatory clause; note the PLURAL",
@@ -860,8 +898,13 @@
         "MEASURED 2026-09-03, after §13.18.11 joined: 81 selected of 4,311. 75 already carry this verdict and the",
         "6 to stamp are exactly §13.18.11's rows, so the selector still changes NO adjudicated row — the widening",
         "is provably confined to the clause the decision names. (Before: 75 selected — 57 by clause, 18 by text,",
-        "16 text-only — of which 74 blank and 1, GR-13.18.40.4-19, already at the verdict.) Five further rules are",
-        "solely conditioned and unreachable by this shape; see $format-band-residue."
+        "16 text-only — of which 74 blank and 1, GR-13.18.40.4-19, already at the verdict.)",
+        "",
+        "THE FORMAT-BAND ARMS (kb/Work PB284) reach the five rules no clause or text arm could: SR-13.18.63.3-36/-38/-39",
+        "and GR-13.18.63.4-24 sit under the VALUE clause's printed FORMAT 5 and say only 'Syntax rules 10, 11, 13 ...",
+        "above apply' / 'General rule 18 applies', and SR-13.18.41.3-1 is the single rule under PRESENT WHEN's FORMAT 2",
+        "(validation; FORMAT 1 is the Report Writer clause A.4.11 shares). The catalog carries the printed band as a",
+        "field, so `sections` + `formats` selects them. All five already carried DOCUMENTED-NON-SUPPORT by hand."
       ],
       "arms": [
         {
@@ -873,6 +916,24 @@
             "13.18.31",
             "13.18.62",
             "14.9.50"
+          ]
+        },
+        {
+          "$arm": "format band — the VALUE clause's FORMAT 5 (§13.18.63, 'VALID/INVALID' content validation): printed rules whose text is 'Syntax rules 10, 11, 13 ... above apply' or 'General rule 18 applies' carry no VALIDATE vocabulary at all",
+          "sections": [
+            "13.18.63"
+          ],
+          "formats": [
+            5
+          ]
+        },
+        {
+          "$arm": "format band — PRESENT WHEN's FORMAT 2 (§13.18.41, validation); FORMAT 1 is the Report Writer clause A.4.11 lists too and §5 records as PARTIAL, so only the band tells the two apart",
+          "sections": [
+            "13.18.41"
+          ],
+          "formats": [
+            2
           ]
         },
         {
