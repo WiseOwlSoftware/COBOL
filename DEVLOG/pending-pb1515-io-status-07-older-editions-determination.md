@@ -38,3 +38,8 @@ comment from its clause; the run matched the derivation on the first pass at eve
 **Row.** `GR-9.1.13.2-6` PARTIAL to CONFORMS (GAP 56 to 55), editions kept at 85 to 2023 because the conformance suite
 refuses a test accepted at an edition outside a row's band and the older-edition claim is now stated as what it is.
 No diagnostic codes used (COBOLNET4307 to 4309 returned).
+
+**Gate.** The first gate was RED on one test: `HostWitnessTraitDriftTests` wants every class that reads the source tree to carry
+`[Trait("Sweep", "tree")]`, and the new drift test did not (fixed). Second gate, run `20261018T055600Z-1f509d`:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, all fourteen PB1515 conformance cases passed in `leg-1-Conformance.trx`
+and both `IoStatus07SetterDriftTests` tests in `leg-1-Unit.trx`.
