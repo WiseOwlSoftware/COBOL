@@ -223,6 +223,12 @@ SHIM
          "WT001A: MATCH" "$(WITNESS_STDOUT="HELLO" run_case correct 0 '' '')"
     want "stdout is graded on the acceptance basis: trailing spaces are not a difference" \
          "WT001A: MATCH" "$(WITNESS_STDOUT="HELLO   " run_case correct 0 '' '')"
+    want "console output of only blanks printed NOTHING: a golden for it is not written" \
+         "(stdout) not written" "$(WITNESS_STDOUT="   " run_case correct 0 '' '')"
+    want "extra trailing blank lines on the console are not a difference (the acceptance basis, as the C# arm grades it)" \
+         "WT001A: MATCH" "$(WITNESS_STDOUT="HELLO
+
+" run_case correct 0 '' '')"
     want "console output that differs from its golden is a REGRESSION" \
          "(stdout) differs" "$(WITNESS_STDOUT="HOLA" run_case correct 0 '' '')"
     want "console output with no golden is a REGRESSION" \
@@ -242,6 +248,41 @@ SHIM
     gold
     rm -f "$FR/tests/nist/valid/WT002A.txt"
 
+    # ── THE WRITTEN-FILES ARM'S OWN FAILURE MODES (kb/Work PB804, branch review round 1). A grader that could not
+    #    ENUMERATE or COMPARE the files observed nothing, so it must say FILES NO-VERDICT and never score the run on
+    #    an empty written set (an empty set reads as a pass for a program that has no golden directory). Each arm is
+    #    driven through guard_files_apply itself with the failing step made to fail: a missing marker or run
+    #    directory, a `find` that exits non-zero, a canonicalization that fails (`sed`). The control is the same
+    #    inputs with nothing failing, which proves the arm does not answer NO-VERDICT for everything. ──
+    fa_case() {      # fa_case SHIM-COMMAND-OR-EMPTY MARKER-MODE(present|missing|nodir)  -> "CLASS|VERDICT"
+        local shim="$1" mode="$2" fd="$d/fa" shimdir="$d/fa-shim"
+        rm -rf "$fd" "$shimdir"; mkdir -p "$fd/run" "$fd/gold" "$shimdir"
+        printf 'AB\n' > "$fd/run/xxxxx014.txt"; printf 'AB\n' > "$fd/gold/xxxxx014.txt"
+        : > "$fd/marker"; touch -d '2000-01-01 00:00:00' "$fd/marker"       # the file above is newer than the marker
+        : > "$fd/stdout"
+        case "$mode" in missing) rm -f "$fd/marker" ;; nodir) rm -rf "$fd/run" ;; esac
+        if [ -n "$shim" ]; then
+            printf '#!/bin/bash\necho "%s: witness-forced failure" >&2\nexit 3\n' "$shim" > "$shimdir/$shim"
+            chmod +x "$shimdir/$shim"
+        fi
+        (
+            export PATH="$shimdir:$PATH"
+            . "$ROOT/scripts/guard-verdict.sh"
+            GUARD_CLASS="match"; GUARD_VERDICT="MATCH"
+            guard_files_apply WT001A "$fd/gold" "$fd/run" "$fd/marker" "wt001a.txt" "$fd/stdout" "$fd/problems.txt" 2>/dev/null
+            printf '%s|%s' "$GUARD_CLASS" "$GUARD_VERDICT"
+        )
+    }
+    want "files control: the same inputs with nothing failing stay a MATCH" "match|MATCH" "$(fa_case '' present)"
+    want "a run directory that is gone is FILES NO-VERDICT, never a pass" \
+         "no-verdict|FILES NO-VERDICT (the run directory or its marker is gone" "$(fa_case '' nodir)"
+    want "a marker that was never written is FILES NO-VERDICT, never a pass on an empty written set" \
+         "no-verdict|FILES NO-VERDICT (the run directory or its marker is gone" "$(fa_case '' missing)"
+    want "a find that fails enumerating the written files is FILES NO-VERDICT" \
+         "no-verdict|FILES NO-VERDICT (enumerating the files the program wrote failed, rc=3)" "$(fa_case find present)"
+    want "a canonicalization that fails is FILES NO-VERDICT, never a difference and never a pass" \
+         "no-verdict|FILES NO-VERDICT (canonicalizing xxxxx014.txt for the comparison failed)" "$(fa_case sed present)"
+
     # ── THE COMPILE ARM — unchanged rules, re-witnessed because they now run from the shared library. ──
     want "no .dll and no exit status is a COMPILE NO-VERDICT" \
          "COMPILE NO-VERDICT (the compile never reported an exit status)" "$(compile_case '' '')"
@@ -259,9 +300,44 @@ SHIM
     want "a declared termination with no report (NC401M's CI shape) is TERMINATES" \
          "WT001A: TERMINATES EC-I-O-LOGIC-ERROR (run exited 1" \
          "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case absent 1 "$abend" '')"
+    # ⛔ AND THE FILES THE RUN LEFT AT ITS ABNORMAL END ARE GRADED (kb/Work PB804, branch review round 1; the owner's
+    #    PB3353 requirement that the abnormal paths are covered as fully as the success paths). No report is separated
+    #    out: the print file is a written file like the rest, and the console output counts whenever it printed.
+    local partial='FEATURE 1                FAIL\nFEATURE 2                FAIL\n NO TEST(S) FAILED\n'
+    gold "wt001a.txt=$partial"
     want "a declared termination after a partial report (ST146A's CI shape) is TERMINATES" \
          "WT001A: TERMINATES EC-I-O-LOGIC-ERROR" \
          "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case wrong 1 "$abend" '')"
+    gold "wt001a.txt=${partial}X"
+    want "a declared termination whose partial print file differs from its golden is a REGRESSION" \
+         "DIFF — REGRESSION! (the run ended as declared but 1 written file(s) do not match tests/nist/valid-files/WT001A: wt001a.txt differs" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case wrong 1 "$abend" '')"
+    gold
+    want "a declared termination that left a print file with NO golden is a REGRESSION" \
+         "wt001a.txt has no golden" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case wrong 1 "$abend" '')"
+    gold "xxxxx014.txt=AB"
+    want "a declared termination whose closed data file equals its golden is TERMINATES" \
+         "WT001A: TERMINATES EC-I-O-LOGIC-ERROR" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" WITNESS_FILES="xxxxx014.txt=AB" run_case absent 1 "$abend" '')"
+    want "a declared termination whose closed data file lost a record is a REGRESSION (ST146A's SQ-FS1 shape)" \
+         "xxxxx014.txt differs" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" WITNESS_FILES="xxxxx014.txt=A" run_case absent 1 "$abend" '')"
+    want "a declared termination that never wrote the data file its golden holds is a REGRESSION" \
+         "xxxxx014.txt not written" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case absent 1 "$abend" '')"
+    gold "(stdout)=HELLO"
+    want "a declared termination whose console output equals its golden is TERMINATES" \
+         "WT001A: TERMINATES EC-I-O-LOGIC-ERROR" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" WITNESS_STDOUT="HELLO  " run_case absent 1 "$abend" '')"
+    want "a declared termination whose console output differs from its golden is a REGRESSION" \
+         "(stdout) differs" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" WITNESS_STDOUT="HOLA" run_case absent 1 "$abend" '')"
+    gold
+    want "a declared termination whose console output has no golden is a REGRESSION (no print file is needed for it to count)" \
+         "(stdout) has no golden" \
+         "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" WITNESS_STDOUT="HELLO" run_case absent 1 "$abend" '')"
+    gold "wt001a.txt=$partial"
     want "a declared termination that ran to a normal end is a REGRESSION, even with the golden's report" \
          "DIFF — REGRESSION! (ran to a normal end; corpus.tsv declares it TERMINATES on EC-I-O-LOGIC-ERROR)" \
          "$(GUARD_TERMINATES="WT001A=EC-I-O-LOGIC-ERROR" run_case correct 0 '' '')"
@@ -280,6 +356,7 @@ SHIM
     want "another program's declaration does not touch this one" \
          "WT001A: MATCH" \
          "$(GUARD_TERMINATES="WT002A=EC-I-O-LOGIC-ERROR" run_case correct 0 '' '')"
+    gold
 
     # ── THE EVIDENCE IS KEPT (PB473 item 4): a non-MATCH's work dir dies with its group. ──
     rm -rf "$d/forensics"

@@ -202,16 +202,78 @@ public sealed class NistWrittenFilesTests
         finally { CutRunner.TryDelete(copy); }
     }
 
+    /// <summary>The console output is graded on the acceptance basis in BOTH arms (guard-verdict.sh compares it with
+    /// CRs dropped, per-line trailing spaces stripped and trailing newlines ignored, and a console of only blanks
+    /// printed nothing): trailing blanks and blank lines are no difference, a real difference is one, and a blank
+    /// console is no written file. The former C# arm compared the bytes and so disagreed with the shell.</summary>
     [Fact]
-    public void EveryGoldenDirectory_BelongsToAGreenProgramThatRunsToTheEnd()
+    public void Stdout_IsGradedOnTheAcceptanceBasis_NotByteForByte()
     {
-        var runs = CorpusManifest.Green().Where(r => r.ExpectedTermination is null)
-            .Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.Equal("HELLO\nWORLD", NistOutputs.StdoutBasis("HELLO   \r\nWORLD  \r\n\r\n\n"));
+        Assert.Equal("", NistOutputs.StdoutBasis("   \n  \n"));
+        Assert.Equal("\nX", NistOutputs.StdoutBasis("\nX\n"));                     // a LEADING blank line is output
+        string gold = GoldenDirOf(Files((NistOutputs.StdoutName, "HELLO\nWORLD\n")));
+        try
+        {
+            Assert.Empty(NistOutputs.Grade(Files((NistOutputs.StdoutName, "HELLO   \r\nWORLD\r\n\r\n\r\n")), gold));
+            Assert.StartsWith("(stdout): differs from its golden", Assert.Single(NistOutputs.Grade(Files((NistOutputs.StdoutName, "HELLO\nWORLD!\n")), gold)));
+            Assert.StartsWith("(stdout): differs from its golden", Assert.Single(NistOutputs.Grade(Files((NistOutputs.StdoutName, "HELLO\n\nWORLD\n")), gold)));
+        }
+        finally { CutRunner.TryDelete(gold); }
+        // The same trailing blanks in a FILE are a difference: only the console is host-shaped text.
+        string fileGold = GoldenDirOf(Files(("tf021.txt", "HELLO\n")));
+        try { Assert.Single(NistOutputs.Grade(Files(("tf021.txt", "HELLO  \n")), fileGold)); }
+        finally { CutRunner.TryDelete(fileGold); }
+
+        var written = new Dictionary<string, byte[]>();
+        NistOutputs.AddStdout(written, "   \n\n");
+        Assert.Empty(written);                                                       // blanks printed nothing: no golden needed
+        NistOutputs.AddStdout(written, "HELLO\n");
+        Assert.Equal(["(stdout)"], written.Keys);
+    }
+
+    /// <summary>The abnormal path is graded as fully as the success path (the owner's PB3353 requirement; review
+    /// round 1 of kb/Work PB804): a program a TERMINATES row declares to end its run unit on a fatal I-O status still
+    /// leaves files, and they are graded. ST146A OPENs OUTPUT SQ-FS1 (<c>xxxxx014.txt</c>), WRITEs 1000 records and
+    /// CLOSEs it; its SORT output procedure OPENs OUTPUT SQ-FS2 (<c>xxxxx015.txt</c>); the X-card dump READs the
+    /// closed SQ-FS1 (status 47) and ends the run unit. The control is the real run; then one byte of SQ-FS1's
+    /// golden is perturbed and the grading must go red naming it.</summary>
+    [Fact]
+    public void St146a_FilesLeftAtTheAbnormalEnd_AreGraded_AndOneBytePerturbationIsRed()
+    {
+        var run = NistRunner.Run("ST146A");
+        Assert.False(run.Ok);
+        Assert.Contains("EC-I-O-LOGIC-ERROR", run.Detail);
+        Assert.Contains("xxxxx014.txt", run.Written.Keys);                           // SQ-FS1, closed before the end
+        Assert.Contains("xxxxx015.txt", run.Written.Keys);                           // SQ-FS2, opened by the output procedure
+        string real = NistOutputs.GoldenDir("ST146A");
+        Assert.Empty(NistOutputs.Grade(run.Written, real));
+
+        string copy = CutRunner.NewTempDir("nistst146a");
+        try
+        {
+            foreach (string f in Directory.EnumerateFiles(real)) File.Copy(f, Path.Combine(copy, Path.GetFileName(f)));
+            string target = Path.Combine(copy, "xxxxx014.txt");
+            byte[] bytes = File.ReadAllBytes(target);
+            int at = bytes.Length / 2;
+            bytes[at] ^= 0x01;
+            File.WriteAllBytes(target, bytes);
+            string problem = Assert.Single(NistOutputs.Grade(run.Written, copy));
+            Assert.StartsWith($"xxxxx014.txt: differs from its golden at byte {at} ", problem);
+        }
+        finally { CutRunner.TryDelete(copy); }
+    }
+
+    [Fact]
+    public void EveryGoldenDirectory_BelongsToAGreenProgram()
+    {
+        // A TERMINATES row is a green row too: the files its run leaves at the abnormal end are graded (PB804, review round 1).
+        var runs = CorpusManifest.Green().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var strays = Directory.EnumerateDirectories(NistOutputs.GoldenRoot)
             .Select(d => Path.GetFileName(d)!).Where(n => !runs.Contains(n)).Order().ToList();
         Assert.True(strays.Count == 0,
-            "tests/nist/valid-files holds goldens for programs the differential does not run to the end "
-            + $"(a pending, absent or TERMINATES row): {string.Join(", ", strays)}");
+            "tests/nist/valid-files holds goldens for programs the differential does not run "
+            + $"(a pending or absent row): {string.Join(", ", strays)}");
         var loose = Directory.EnumerateFiles(NistOutputs.GoldenRoot).Select(Path.GetFileName).Order().ToList();
         Assert.True(loose.Count == 0, $"tests/nist/valid-files holds files outside a program's directory: {string.Join(", ", loose)}");
         var empty = Directory.EnumerateDirectories(NistOutputs.GoldenRoot)

@@ -11,7 +11,10 @@ namespace CobolNet.Tests.Conformance;
 /// <param name="Report">The report, normalized (<see cref="NistRunner.Normalize"/>).</param>
 /// <param name="Detail">Compile/run diagnostics when <paramref name="Ok"/> is false, else the run's stderr.</param>
 /// <param name="Written">Every file the program itself wrote besides its report, name → bytes, plus its stdout
-/// when it also wrote a print file (<see cref="NistOutputs.StdoutName"/>).</param>
+/// when it also wrote a print file (<see cref="NistOutputs.StdoutName"/>). When the run EXITED NON-ZERO (the
+/// abnormal termination a <c>TERMINATES</c> row declares) there is no report to separate out, so it holds EVERY
+/// file the run wrote, the print file among them, and the stdout whenever it printed anything: the files an
+/// abnormal end leaves are graded as fully as a normal end's (kb/Work PB804; campaign PB3353).</param>
 internal sealed record NistRunResult(bool Ok, string Report, string Detail, IReadOnlyDictionary<string, byte[]> Written);
 
 /// <summary>Compiles a NIST CCVS program (with its X-card preprocessing) and runs it in an isolated temp directory,
@@ -61,7 +64,16 @@ internal static class NistRunner
             var before = NistOutputs.Snapshot(dir);
             string dat = TestRepo.Nist("data", testName + ".dat");
             var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
-            if (!runOk) return Failed($"[run] exit non-zero: {runDetail}");
+            if (!runOk)
+            {
+                // ⛔ A RUN THAT ENDED ABNORMALLY STILL LEFT FILES (kb/Work PB804; the owner's PB3353 requirement that the
+                // exception paths are covered as fully as the success paths). A TERMINATES row asserts the run unit's
+                // end, and what the program had written by then — the closed files, the print file, the console output —
+                // is what a regression that loses or corrupts a record at that end would change.
+                var left = NistOutputs.Written(dir, before, reportName: null);
+                NistOutputs.AddStdout(left, stdout);
+                return new NistRunResult(false, "", $"[run] exit non-zero: {runDetail}", left);
+            }
 
             // The CCVS report lands in the print file (assign target → <lowercased>.txt in the run dir); a
             // DISPLAY-only program produces no print file and its report is stdout. That is the WHOLE discovery
@@ -73,7 +85,7 @@ internal static class NistRunner
             string report = hasPrintFile ? File.ReadAllText(printFile) : stdout;
 
             var written = NistOutputs.Written(dir, before, reportName);
-            if (hasPrintFile && stdout.Length > 0) written[NistOutputs.StdoutName] = Encoding.UTF8.GetBytes(stdout);
+            if (hasPrintFile) NistOutputs.AddStdout(written, stdout);
             return new NistRunResult(true, Normalize(report), runDetail, written);
         }
         finally { CutRunner.TryDelete(dir); }
@@ -146,17 +158,36 @@ internal static class NistOutputs
 
     /// <summary>The files <paramref name="dir"/> holds that were created or modified since
     /// <paramref name="before"/>, except the program's report file <paramref name="reportName"/> (graded as the
-    /// report): name → bytes.</summary>
-    internal static SortedDictionary<string, byte[]> Written(string dir, IReadOnlyDictionary<string, long> before, string reportName)
+    /// report; <see langword="null"/> when the run has no report to separate out, as after an abnormal end):
+    /// name → bytes.</summary>
+    internal static SortedDictionary<string, byte[]> Written(string dir, IReadOnlyDictionary<string, long> before, string? reportName)
     {
         var written = new SortedDictionary<string, byte[]>(StringComparer.Ordinal);
         foreach (var f in new DirectoryInfo(dir).EnumerateFiles())
         {
-            if (string.Equals(f.Name, reportName, StringComparison.Ordinal)) continue;
+            if (reportName is not null && string.Equals(f.Name, reportName, StringComparison.Ordinal)) continue;
             if (before.TryGetValue(f.Name, out long ticks) && ticks == f.LastWriteTimeUtc.Ticks) continue;
             written[f.Name] = File.ReadAllBytes(f.FullName);
         }
         return written;
+    }
+
+    /// <summary>A console's text on the acceptance basis, exactly <c>guard-verdict.sh</c>'s
+    /// <c>tr -d '\r' | sed 's/ *$//'</c> inside <c>$(...)</c>: carriage returns dropped, each line's trailing spaces
+    /// stripped, trailing newlines dropped. A console's line ends are the HOST's, and a stdout of only blanks and
+    /// newlines printed nothing (it is no written file and needs no golden). One rule in both arms: the C# arm used
+    /// to compare the console byte-for-byte in <see cref="Canonical"/>'s form and so disagreed with the shell
+    /// (kb/Work PB804, review round 1).</summary>
+    internal static string StdoutBasis(string stdout) =>
+        string.Join('\n', stdout.Replace("\r", "").Split('\n').Select(line => line.TrimEnd(' '))).TrimEnd('\n');
+
+    /// <summary>Add the program's console output to <paramref name="written"/> as <see cref="StdoutName"/> when it
+    /// printed anything on the acceptance basis (<see cref="StdoutBasis"/>). The caller decides whether the console
+    /// is a file to grade: beside a print file it is, and after an abnormal end (no report) it is; a DISPLAY-only
+    /// program's console output IS its report and never comes through here.</summary>
+    internal static void AddStdout(IDictionary<string, byte[]> written, string stdout)
+    {
+        if (StdoutBasis(stdout).Length > 0) written[StdoutName] = Encoding.UTF8.GetBytes(stdout);
     }
 
     /// <summary>True for a file that holds only TEXT: horizontal tab, line feed, form feed, carriage return and the
@@ -183,6 +214,12 @@ internal static class NistOutputs
         return canonical.ToArray();
     }
 
+    /// <summary>The form the file called <paramref name="name"/> is compared in: the console output
+    /// (<see cref="StdoutName"/>) on the acceptance basis (<see cref="StdoutBasis"/>, as the shell arm compares it),
+    /// every other file in its <see cref="Canonical"/> form.</summary>
+    internal static byte[] Comparable(string name, byte[] bytes) =>
+        name == StdoutName ? Encoding.UTF8.GetBytes(StdoutBasis(Encoding.UTF8.GetString(bytes))) : Canonical(bytes);
+
     /// <summary>Compare what a program wrote with its goldens in <paramref name="goldenDir"/>; every problem, empty
     /// when the two sets are equal and every file is identical in its <see cref="Canonical"/> form.</summary>
     internal static IReadOnlyList<string> Grade(IReadOnlyDictionary<string, byte[]> written, string goldenDir)
@@ -199,8 +236,8 @@ internal static class NistOutputs
                              $"review it and capture it ({UpdateVariable}=1)");
                 continue;
             }
-            byte[] want = Canonical(File.ReadAllBytes(Path.Combine(goldenDir, name)));
-            byte[] have = Canonical(got);
+            byte[] want = Comparable(name, File.ReadAllBytes(Path.Combine(goldenDir, name)));
+            byte[] have = Comparable(name, got);
             int at = FirstDifference(want, have);
             if (at >= 0)
                 problems.Add($"{name}: differs from its golden at byte {at} (golden {want.Length} bytes, written {have.Length} bytes)");

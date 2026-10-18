@@ -89,9 +89,11 @@ for test in $TESTS; do
     ec="$(guard_declared_termination "$test")"
     if [ -n "$ec" ]; then
         guard_termination_verdict "$test" "$ec" "$rrc" "$errfile" "$RUN_TIMEOUT"
+        # ⛔ The files the run left at its abnormal end are graded too (kb/Work PB804): report name "" = no report.
+        guard_files_apply "$test" "$ROOT/tests/nist/valid-files/$test" "$WORK" "$marker" "" "$stdoutfile" "$CMP/files.problems"
         echo "$test: $GUARD_VERDICT"
         if [ "$GUARD_CLASS" != "match" ]; then
-            guard_preserve "$test" "$GUARD_VERDICT" "$WORK/$outfile" "$stdoutfile" "$errfile"
+            guard_preserve "$test" "$GUARD_VERDICT" "$WORK/$outfile" "$stdoutfile" "$errfile" "$CMP/files.problems"
         fi
         continue
     fi

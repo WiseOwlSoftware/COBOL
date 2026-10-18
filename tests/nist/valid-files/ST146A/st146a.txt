@@ -1,0 +1,25 @@
+
+                                       OFFICIAL COBOL COMPILER VALIDATION SYSTEM
+
+                                        CCVS85 4.2  COPY - NOT FOR DISTRIBUTION
+
+TEST RESULT OF ST146A    IN  HIGH        LEVEL VALIDATION FOR ON-SITE VALIDATION, NATIONAL INSTITUTE OF STD & TECH.
+
+
+ FOR OFFICIAL USE ONLY            COBOL 85 VERSION 4.2, Apr  1993 SSVG                        COPYRIGHT   1985
+
+
+ FEATURE              PASS  PARAGRAPH-NAME                                                 REMARKS
+ TESTED               FAIL
+
+ ***********************************************************************************************************************
+ OCCURS DEPENDING ON  PASS  RELEASE-TEST-1                RELEASE 3 ODO - RETURN 9 ODO
+ OCCURS DEPENDING ON  PASS  RETURN-TEST-1                 RELEASE 7 ODO - RETURN 5 ODO
+ OCCURS DEPENDING ON  PASS  RELEASE-TEST-2                RELEASE 9 ODO - RETURN 9 ODO
+ OCCURS DEPENDING ON  PASS  RETURN-TEST-2                 RELEASE 9 ODO - RETURN 6 ODO
+ ***********************************************************************************************************************
+
+
+
+
+ DUMP OF FIRST 10 (OF 1000) RECORDS FROM SQ-FS1:

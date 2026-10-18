@@ -232,6 +232,10 @@ guard_report_file() {
 # This is the shell arm of NistOutputs.Grade (tests/Cobol.Net.Tests.Conformance/NistRunner.cs); scripts/guard-verify.sh
 # holds the two to the same cases. Every problem is listed in PROBLEMS_FILE (kept as evidence by guard_preserve).
 # Applies only to a verdict already scored `match`, and rewrites it: a clean files arm leaves MATCH untouched.
+# A run that ENDED ABNORMALLY (a row corpus.tsv declares TERMINATES, scored by guard_termination_verdict) has no report
+# to separate out: the caller passes REPORT_NAME "" and EVERY file the run wrote is graded, the print file among
+# them, and the console output whenever it printed anything. The files an abnormal end leaves are graded as fully as a
+# normal end's (the owner's campaign PB3353 requirement: the abnormal paths as fully as the success paths).
 #
 # THE FORM TWO FILES ARE COMPARED IN.  guard_canonical_into SRC DEST   (NistOutputs.Canonical's twin)
 # A line sequential file ends each record with the HOST's newline — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md
@@ -296,7 +300,7 @@ guard_files_apply() {
     fi
     # The console output, when the program also wrote a print file (a DISPLAY-only program's stdout IS its report).
     sout=""
-    if [ -f "$rundir/$report" ] && [ -f "$stdoutfile" ]; then sout="$(tr -d '\r' < "$stdoutfile" | sed 's/ *$//')"; fi
+    if { [ -z "$report" ] || [ -f "$rundir/$report" ]; } && [ -f "$stdoutfile" ]; then sout="$(tr -d '\r' < "$stdoutfile" | sed 's/ *$//')"; fi
     if [ -n "$sout" ]; then
         if [ ! -f "$gdir/(stdout)" ]; then
             guard_files_problem "(stdout)" "the program printed ${#sout} characters and it has no golden in $gdir" "has no golden"
@@ -308,8 +312,10 @@ guard_files_apply() {
         guard_files_problem "(stdout)" "it has a golden in $gdir but the program printed nothing" "not written"
     fi
     if [ "$n" -gt 0 ]; then
+        local lead="the report matched"
+        [ -n "$report" ] || lead="the run ended as declared"
         GUARD_CLASS="regression"
-        GUARD_VERDICT="DIFF — REGRESSION! (the report matched but $n written file(s) do not match tests/nist/valid-files/$test: $(printf '%s' "$names" | cut -c1-90))"
+        GUARD_VERDICT="DIFF — REGRESSION! ($lead but $n written file(s) do not match tests/nist/valid-files/$test: $(printf '%s' "$names" | cut -c1-90))"
     fi
     return 0
 }

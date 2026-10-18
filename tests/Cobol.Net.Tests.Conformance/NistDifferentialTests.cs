@@ -46,14 +46,19 @@ public abstract class NistDifferentialTestsBase<TSlot>
         string goldenPath = TestRepo.Nist("valid", testName + ".txt");
         Assert.True(File.Exists(goldenPath), $"golden not found: {goldenPath}");
 
-        // A row that declares TERMINATES asserts the abnormal termination itself, not the golden: the golden records
-        // a run that continued past a fatal I-O status nothing covers, which Annex A.1 item 103 now ends.
+        // A row that declares TERMINATES asserts the abnormal termination itself, not the report golden: the golden
+        // records a run that continued past a fatal I-O status nothing covers, which Annex A.1 item 103 now ends.
+        // ⛔ The files the run left at that end ARE graded (kb/Work PB804; the owner's PB3353 requirement that the
+        // abnormal path is covered as fully as the success path): what the program had written and closed, its
+        // print file and its console output when the run unit ended are what a regression that loses or corrupts a
+        // record on the way out would change, and graded against tests/nist/valid-files/<TEST>/ like any other run's.
         if (CorpusManifest.Rows.First(r => string.Equals(r.Name, testName, StringComparison.OrdinalIgnoreCase)).ExpectedTermination is { } ec)
         {
             var terminated = NistRunner.Run(testName);
             Assert.False(terminated.Ok, $"{testName} is declared to terminate on {ec} but ran clean");
             Assert.Contains("exit non-zero", terminated.Detail);
             Assert.Contains(ec, terminated.Detail);
+            AssertWrittenFilesMatch(testName, terminated);
             return;
         }
 
@@ -64,6 +69,11 @@ public abstract class NistDifferentialTestsBase<TSlot>
         // ⛔ AND EVERYTHING ELSE THE PROGRAM WROTE (kb/Work PB804): the report is one file of the run. RW104A's
         // report-writer output, a SORT/MERGE or file-I/O program's data files and the console output beside a print
         // file are graded against tests/nist/valid-files/<TEST>/ — see NistOutputs.
+        AssertWrittenFilesMatch(testName, run);
+    }
+
+    private static void AssertWrittenFilesMatch(string testName, NistRunResult run)
+    {
         if (NistOutputs.UpdateRequested) NistOutputs.Capture(NistOutputs.GoldenDir(testName), run.Written);
         var problems = NistOutputs.Grade(run.Written, NistOutputs.GoldenDir(testName));
         Assert.True(problems.Count == 0,
