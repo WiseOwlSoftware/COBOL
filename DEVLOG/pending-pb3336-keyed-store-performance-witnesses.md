@@ -54,4 +54,8 @@ cannot afford). The host file still carries the handles and the locks. The 51 ca
 
 Lead: the ledger could be organized so that a statement's entries land on one leaf. It is in the wave-1118 A6 report.
 
-**Gate:** see the report (`w1118a6-PB3336-report.md`).
+**Gate.** Run `TestResults/build-local/20261018T193202Z-5de143` at 716a54e15, with all 51 new cases Passed in
+leg-1-Unit.trx: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
+run: Conformance 6,368 · Unit 359 · Characterization 31 … Conformance 11,333/17,701 · Unit 33,987/34,346 · Characterization
+5/36 cases ran (skipped 0) in 1 of 2 leg(s) … ===`. Semgrep verify: PASS, no count changed. The Linux gate runs at the
+landing (batched gating).
