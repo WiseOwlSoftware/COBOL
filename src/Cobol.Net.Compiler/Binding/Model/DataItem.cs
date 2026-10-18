@@ -1067,7 +1067,16 @@ public sealed class DataItem
     /// must know whether this compiler can carry it); a bind phase consulting a codegen class is the layering
     /// inversion, and copying the predicate would have been the second copy this repo's two-arm-dispatch rule
     /// forbids. It is a pure declared-shape fact, so the data model is where it belongs.</para></summary>
-    public bool CurrentExtentImageCapable => ComposesCurrentExtent();
+    public bool CurrentExtentImageCapable => ComposesCurrentExtent(areaSlots: false);
+
+    /// <summary>⛔ THE SAME LAW FOR A GROUP THE CELL AREA CARRIES (kb/Work PB3273, PB3139): <see cref="CurrentExtentImageCapable"/>
+    /// with every pointer and object-reference leaf a FIXED PLACEHOLDER of its reserved positions
+    /// (<see cref="TransferImageCapable"/> in place of <see cref="IsImageCapable"/> at the member law's fixed-image arm). A
+    /// reference has no character image, so a group holding one never composes a current-extent IMAGE; but the cell area
+    /// holds it in a managed slot beside the group's variable-length components (<c>StorageCell</c>'s component slots), so
+    /// the area carries the group exactly when its members compose with the references set aside. For a group holding no
+    /// reference the two laws are one.</summary>
+    public bool CurrentExtentAreaCapable => ComposesCurrentExtent(areaSlots: true);
 
     /// <summary>An OCCURS DEPENDING table whose elements are variable-length groups, at any depth beneath
     /// <paramref name="g"/> (REDEFINES subtrees aside): a record of this shape needs a count source to be read back
@@ -1077,10 +1086,10 @@ public sealed class DataItem
             && ((c.OccursSpec?.DependingName is not null && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
-    private bool ComposesCurrentExtent() =>
+    private bool ComposesCurrentExtent(bool areaSlots) =>
         IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
         && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
-            .All(CurrentExtentComposes);
+            .All(c => CurrentExtentComposes(c, areaSlots));
 
     /// <summary>⛔ THE ONE MEMBER LAW of <see cref="CurrentExtentImageCapable"/> (kb/Work PB244, PB2496): can the
     /// group's own struct compose <paramref name="c"/>'s CURRENT extent, as an image and as the components of its
@@ -1117,15 +1126,16 @@ public sealed class DataItem
     /// OCCURS DEPENDING bit table directly after a bit item) composes there too: its characters are the run's, so the
     /// composer classifies it at the run's leading field and measures the table from the run's first bit
     /// (<c>OdoModel.FixedImageTail</c>; kb/Work PB2921 review R1-1).</summary>
-    private static bool CurrentExtentComposes(DataItem c) =>
-        c.IsImageCapable
+    private static bool CurrentExtentComposes(DataItem c, bool areaSlots) =>
+        (areaSlots ? c.TransferImageCapable : c.IsImageCapable)
         || (c.IsDynamicLength && c.IsElementary)
-          || (c.IsDynamicTable && !HasOdoOnOrBeneath(c) && (c.ElementImageCapable || c.ComposesCurrentExtent()))
-          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.ComposesCurrentExtent())
+          || (c.IsDynamicTable && !HasOdoOnOrBeneath(c)
+              && ((areaSlots ? c.ElementTransferImageCapable : c.ElementImageCapable) || c.ComposesCurrentExtent(areaSlots)))
+          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.ComposesCurrentExtent(areaSlots))
           || (c.IsGroup && !c.IsDynamicTable && c.Occurs is not null && c.OccursSpec?.DependingName is null
-              && !HasOdoOnOrBeneath(c) && c.ComposesCurrentExtent())
+              && !HasOdoOnOrBeneath(c) && c.ComposesCurrentExtent(areaSlots))
           || (c.IsGroup && !c.IsDynamicTable && c.OccursSpec?.DependingName is not null
-              && !c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)) && c.ComposesCurrentExtent());
+              && !c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)) && c.ComposesCurrentExtent(areaSlots));
 
     /// <summary>The OCCURS DEPENDING table that is <paramref name="c"/> itself or lies beneath it, or null.
     /// §13.18.38.3 SR22 lets an occurs-depending subject be followed within its record only by entries
