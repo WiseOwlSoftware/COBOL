@@ -100,3 +100,20 @@ refuse a read, and a refused page-2 read is '30'. R1-L2: a refused re-adoption a
 answered '00' and left a writable store with no fence behind it, so the next `OPEN I-O` skipped R6's fence. The CLOSE now
 answers '30' and the store's fence is owed. 2.2.1.16 gains the row. The torn-page case and the re-adoption case were red
 on the unfixed code; the refused-read case witnesses behaviour that was right but untested.
+
+The finisher's gates. The first Windows run stopped in its audits (FLEET PRACTICES): the merge commits had been staged
+with `git add -A` while the worktree's submodule was still checked out at brent-tools 1.20.0, which reverted the 1.21.0
+pin both merged heads carried. The pin is restored at `a828e3ea8`. The second run, `20261018T210832Z-926085`, was RED on
+`PagedFileCrashMatrixTests.A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(path: Close)`,
+expected 0 reads but 3. The two heads had changed that case's halves independently: -26 asserted that the Close scene's
+CLOSE reads nothing, and -20 made the scene change A first, so the CLOSE promotes. The stronger form wins, as main and
+PB3334's round-2 finisher have it. The run at `d3d2fdfd8`, `20261018T215211Z-457feb`, printed:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
+6,902 · Unit 709 · Characterization 31 — Conformance 10,915/17,817 · Unit 33,684/34,393 · Characterization 5/36 cases ran
+(skipped 0) in 1 of 2 leg(s) ===`. The six new `StoreCoherenceTests` cases ran in leg 1 and passed. CI's Linux legs under
+WSL at `8ec12f7cb` printed `=== LINUX GATE: RED (failed or not run: conformance guard; HEAD 8ec12f7cb; logs in
+TestResults/linux-gate/) ===`. The unit leg (34,428), the characterization leg and both self-test legs were GREEN. Every
+red of the conformance and guard legs is one of the 37 INDEXED NIST programs whose report matched but whose written file
+differs from its format-5 golden. That is review w1118-a4 R2-1, on -26's reviewed head `7e585e723`, and it is fixed on
+PB3334's round-2 finisher branch (`worktree-wf_14a1e62b-326-32` at `d633581e9`), which lands before this branch; the
+landing's merge of origin/main brings the re-captured goldens in.
