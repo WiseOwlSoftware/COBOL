@@ -15,6 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// each status below are read back from the standard's own item (so a spec repair reaches this table or fails here)
 /// and must each appear in the constant's summary; the class summary may not claim exhaustiveness for the rest.
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FileStatusCodeDocDriftTests
 {
     private static readonly string[] Spec = File.ReadAllLines(TestRepo.Specs("ISO_COBOL.md"));
