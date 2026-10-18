@@ -27,3 +27,7 @@ WRITE at `§14.9.46` (TERMINATE; WRITE is `§14.9.51`), the very cross-wiring wh
 sweep for WRITE beside `§14.9.46` found two siblings that cite it for WRITE's rules: `FileIoDifferentialTests` (the SQ207M
 mnemonic test, now `§14.9.51.4` GR25d and GR4) and the SQ207M note in `tests/nist/corpus.tsv`. Each cite was
 `cite.py --check`ed; comments and a note column only.
+
+Review round 2 found that the round-1 fix cited GR4 (the SAME RECORD AREA availability rule) for "the WRITE releases the
+record"; the release rule is `§14.9.51.4` GR12 (`cite.py --check`ed). Both sites (the SQ207M test summary and the corpus
+note) now say GR12; the remaining GR4 citations in the tree are all record-area availability and are correct.

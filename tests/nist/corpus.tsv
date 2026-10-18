@@ -310,7 +310,7 @@ SQ203A	SQ	green	SQ202A	valid	-
 SQ204A	SQ	green	-	valid	-
 SQ205A	SQ	green	-	valid	-
 SQ206A	SQ	green	-	valid	-
-SQ207M	SQ	divergent	-	valid	ISO §14.9.51.4 GR4, GR25d — AFTER-ADVANCING-mnemonic WRITE is released (legacy dropped it)
+SQ207M	SQ	divergent	-	valid	ISO §14.9.51.4 GR12, GR25d — AFTER-ADVANCING-mnemonic WRITE is released (legacy dropped it)
 SQ208M	SQ	divergent	-	valid	ISO §13.18.34 GR6b2/3 — data-name LINAGE re-evaluation across page transitions
 SQ209M	SQ	green	-	valid	-
 SQ210M	SQ	divergent	-	valid	ISO §13.18.34 GR6 — LINAGE page re-evaluation

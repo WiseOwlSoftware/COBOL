@@ -196,7 +196,7 @@ public sealed class FileIoDifferentialTests
     /// carriage return (owner decision kb/Work R54, PB1667) — a BEFORE-mnemonic write returns to the start of its
     /// line, so the NEXT write overprints it. (The entry used to name PRT-CHAN, which was never a feature-name: any
     /// word was accepted.)
-    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.51.4 GR4 — the WRITE
+    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.51.4 GR12 — the WRITE
     /// transfers the record regardless of positioning): the legacy DROPS an AFTER-mnemonic write entirely, a
     /// non-conformance its goldens fossilize (SQ207M is swept-only pending re-baseline). The last WRITE also
     /// pins §8.4.2.2 FILE-NAME qualification of a record name (<c>WRITE P-REC IN P-OUT</c> — SQ207M's shape).</summary>
