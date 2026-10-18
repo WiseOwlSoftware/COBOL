@@ -65,3 +65,11 @@ read is a typed `PageCheck`, never an exception. Performance: the interim chains
 per statement, bounded by the 1 024-page checkpoint, and PB3332 replaces them. Duplication: one key codec, one checksum,
 one chain codec. The design's references in code drop the § sign (`2.2.1.x`), so the citation audit reads only ISO
 clauses as clauses.
+
+**Gate.** The first gate (run 20261018T125745Z-135db2) was RED on `FrameDecoderDriftTests`. Its selector treats every
+32-bit little-endian decode under `IO/` as a second frame decoder, and it read the page layout's own fields that way.
+The test now lists those decoders by file and member as `PageLayoutHomes` and requires each one to still exist. The
+second gate (run 20261018T131036Z-c945b0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
+left to CI's whole-population run: Conformance 6,392 · Unit 341 · Characterization 31 … Conformance 11,156/17,548 ·
+Unit 33,824/34,165 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. All 73 Store cases ran in its
+leg 1. The Linux gate runs at the landing (batched gating).
