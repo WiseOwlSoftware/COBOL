@@ -129,10 +129,10 @@ public static class FileStatusCode
     /// <summary>23 — record not found on keyed access / keyed access to an absent optional file (§9.1.13.5 item 3).</summary>
     public const string RecordNotFound = "23";
     /// <summary>24 — invalid-key boundary violation (§9.1.13.5 item 4): a relative or indexed WRITE or REWRITE whose
-    /// record the store cannot hold — the store would exceed <see cref="RecordFraming.MaxStoreBytes"/>, the
-    /// boundary WiseOwl COBOL defines for those organizations (Annex A.1 item 107, docs/CONFORMANCE.md DOC-A.1-107;
-    /// §14.9.51.4 GR33 b) / GR42 d)) — or a sequential-access relative WRITE whose relative record number has
-    /// more significant digits than the relative key item (§14.9.51.4 GR33 c)).</summary>
+    /// record would take the file past the boundary WiseOwl COBOL defines for those organizations, the host's maximum
+    /// file size capped by the format at 2^32 pages (Annex A.1 item 107, docs/CONFORMANCE.md DOC-A.1-107;
+    /// §14.9.51.4 GR33 b) / GR42 d); <c>KeyedConnector.RecordWriteFailed</c>) — or a sequential-access relative WRITE
+    /// whose relative record number has more significant digits than the relative key item (§14.9.51.4 GR33 c)).</summary>
     public const string BoundaryViolation = "24";
     /// <summary>34 — permanent-error boundary violation: a sequential WRITE or REWRITE the host medium cannot
     /// store (§9.1.13.6 item 3, §14.9.51.4 GR20 — the boundary is the medium's capacity, Annex A.1 item 108,
