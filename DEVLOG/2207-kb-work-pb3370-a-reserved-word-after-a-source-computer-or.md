@@ -1,4 +1,4 @@
-## kb/Work PB3370: a reserved word after a SOURCE-COMPUTER or OBJECT-COMPUTER computer-name is named in the paragraph's format
+## Entry 2207 — 2026-10-18 07:20 PDT — kb/Work PB3370: a reserved word after a SOURCE-COMPUTER or OBJECT-COMPUTER computer-name is named in the paragraph's format
 
 **Mechanism.** `SOURCE-COMPUTER. XYZ GLOBAL.` (and the OBJECT-COMPUTER twin) drew a bare `COBOL0307: unexpected
 'GLOBAL'`. XYZ is either the computer-name or an unrecognized configuration paragraph; both readings fail at GLOBAL,
@@ -36,3 +36,4 @@ paragraph for `SOURCE-COMPUTER. XYZ GLOBAL.` is gone, and `ParagraphPeriods`' su
 `ClosedFormatReservedWordTests`; `ParagraphPeriodDriftTests` asserts the two rules. No inventory row moved (all four
 rules were CONFORMS; the source was always refused). A literal after the computer-name (`XYZ "LIT".`) is still
 misattributed, because `genericClause` opens only at an IDENTIFIER. It is reported as a lead and not widened here.
+
