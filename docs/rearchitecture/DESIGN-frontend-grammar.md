@@ -1357,6 +1357,26 @@ joined the table the same way, which is the table doing its job: a tenth format 
   already left the decision's rule) took the configuration section's, the only one past the rule's end while the
   paragraph's second period was required. The SOURCE-COMPUTER and OBJECT-COMPUTER rules therefore superset-parse
   that period (`DOT?`, the punctuation half below), the name's alternative leaves the rule too, and it wins.
+- **The production's token set — a literal opens the run, an unsigned integer and a reserved word do not (kb/Work
+  PB3373).** `genericClause : (IDENTIFIER | residueLiteral) (IDENTIFIER | residueLiteral | INTEGERLIT)*`.
+  `residueLiteral` is every one-token literal except the unsigned integer (`ClosedFormatDriftTests` derives that
+  set from `nonNumericLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
+  run's first token, word or literal. Opening at a word only, the run left `SOURCE-COMPUTER. XYZ "LIT".` ONE viable
+  parse, the name-less paragraph followed by the configuration paragraph `XYZ "LIT"`, so XYZ was the refused word;
+  with the literal admitted the name's reading is viable too and the ambiguity resolves to it (the lower
+  alternative). No closed list's alternative, and nothing that follows a list, begins with a residueLiteral, so the
+  only new ambiguities are a clause's own literal list against "the clause ends, a run begins", which resolve to the
+  clause (loop continuation is the lower alternative); `pb3373_literal_lists_beside_the_residue` runs them. The
+  unsigned integer does not open the run because it may be the next data description entry's level-number after a
+  forgotten period; at a residue position the parse layer refuses it (`IsLiteral`, the 0g arm), unless it may follow
+  the list's period. The tail keeps it (`FOO 12` is one run, which the text-predicated `SEGMENT-LIMIT IS? integer`
+  needs: with no viable residue reading of its shape, a word that is not SEGMENT-LIMIT fails the predicate at the
+  decision's first token). The tail is tokens, not the `literal` rule: a figurative constant is a reserved word and
+  in the run it read `OBJECT-COMPUTER. XYZ ZERO.` as the run `XYZ ZERO`. The residue's integer is the one token whose
+  right reading depends on the format — a level-number can follow only the data division's lists — and one
+  production cannot express that: `SOURCE-COMPUTER. XYZ 12.` and `OBJECT-COMPUTER. XYZ 12.` still read XYZ as the
+  residue, and `01 X PIC X FOO` then `05 Y PIC X.` still reads `FOO 05 Y` as one run (reported from w1126b as a
+  lead).
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose

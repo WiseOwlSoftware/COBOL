@@ -1558,10 +1558,14 @@ internal sealed class VersionConformancePass
         /// clauses may follow the period directly): a 2002 relaxation — X3.23-1985 hung MEMORY SIZE / PROGRAM COLLATING
         /// SEQUENCE / SEGMENT-LIMIT off a REQUIRED computer-name (kb/Work PB78). The empty paragraph is legal at every
         /// edition; only a clause without a name is gated. CHARACTER CLASSIFICATION itself BINDS since kb/Work PB64 T5
-        /// (the A.4.9 locale module is implemented; the COBOLNET1518 non-support era is over).</summary>
+        /// (the A.4.9 locale module is implemented; the COBOLNET1518 non-support era is over).
+        /// <para>⛔ THE ERROR PRODUCTION IS NO CLAUSE (kb/Work PB3373). A residue run the format does not print
+        /// (<c>OBJECT-COMPUTER. "LIT".</c>) parses as an <c>objectComputerClause</c> whose one child is
+        /// <c>unrecognizedClause</c>, which ClosedFormatPass refuses by name; counting it here added a false
+        /// "clause without computer-name-1" at 85 for a paragraph that writes no clause at all.</para></summary>
         public override object? VisitObjectComputerParagraph(CobolParserCore.ObjectComputerParagraphContext ctx)
         {
-            if (ctx.computerName() is null && ctx.objectComputerClause().Length > 0)
+            if (ctx.computerName() is null && ctx.objectComputerClause().Any(c => c.unrecognizedClause() is null))
                 _p.Check(Constructs.ComputerNameOptional2002, "an OBJECT-COMPUTER clause without computer-name-1");
             return base.VisitChildren(ctx);
         }
