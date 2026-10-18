@@ -4417,11 +4417,11 @@
   "subject": "Numeric literals",
   "rule-digest": "4716f22e2798",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#FLOAT_BODY; src/Cobol.Net.Frontend/Common/NumericLiteral.cs#IsFloatingPointForm",
-  "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb66_float_edited_comma_mode; unit:SignedLiteralShapeDriftTests.EveryNumericBody_HasItsFunctionArgumentSignedTwin",
+  "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolLexer.g4#FLOAT_BODY; src/Cobol.Net.Frontend/Common/NumericLiteral.cs#IsFloatingPointForm; src/Cobol.Net.Frontend/Parsing/LiteralScreen.cs#GateFloatingPoint; src/Cobol.Net.Frontend/Parsing/LiteralTokens.cs#FloatingPointTypes",
+  "test-ref": "conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb99_floating_literal_extremes; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb66_float_edited_comma_mode; unit:SignedLiteralShapeDriftTests.EveryNumericBody_HasItsFunctionArgumentSignedTwin; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb674_floating_point_literal_2002; conformance:cases/8.3.3.3.3-Floating-point-numeric-literals/pb674-floating-point-literal-85; unit:LiteralScreenDriftTests.FloatingPointTokenSet_IsEveryTokenDefinedOverAFloatBody",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "The lexer's FLOAT_BODY (and its DECIMAL-POINT IS COMMA twin FLOAT_COMMA_BODY, kb/Work PB98) is exactly the form — a fixed-point literal, the letter E without intervening spaces, a fixed-point exponent; the sign-adjacent twins (function-argument regions, SUBSCRIPT mode) keep -1.5E3 one token (kb/Work R17).",
+  "notes": "",
   "state": "OK"
  },
  {
