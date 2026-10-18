@@ -31,7 +31,7 @@ public sealed class PagedFileCrashMatrixTests
     private sealed record Scene(MemoryPageMedium Medium, MemoryPageMedium.Handle HandleA, PagedFile A, PagedFile? B, PagedFile? Reader,
         MemoryPageMedium.Handle? HandleB = null, MemoryPageMedium.Handle? HandleR = null);
 
-    private static Scene NewScene(bool coherentA = true)
+    private static Scene NewScene(bool coherentA = true, bool changedA = false)
     {
         var (medium, _, store) = StoreKit.NewStore();
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "one"));
@@ -48,8 +48,16 @@ public sealed class PagedFileCrashMatrixTests
         }
         var (ha, sa, a) = StoreKit.OpenAs(medium, "A", coherent: coherentA);
         Assert.Equal(StoreStatus.Ok, sa);
+        // A CLOSE owes a promotion only when a statement completed since the store's last one (its OPEN's fence; 2.2.1.7,
+        // kb/Work PB3333): the CLOSE path's scene has A rewrite record 1 with its own value, so the file's records are
+        // the base's and the CLOSE runs its whole promotion and retirement.
+        if (changedA) Assert.Equal(StoreStatus.Ok, StoreKit.Put(a!, 1, "one"));
         return new Scene(medium, ha, a!, b, reader, hb, hr);
     }
+
+    /// <summary>The scene of <paramref name="path"/>: NO OTHER for the NO OTHER statement, A changed for the CLOSE.</summary>
+    private static Scene SceneFor(PagePath path) =>
+        NewScene(coherentA: path != PagePath.NoOtherStatement, changedA: path == PagePath.Close);
 
     /// <summary>The paths of the page layer, each a step A takes on the scene.</summary>
     public enum PagePath
@@ -77,7 +85,7 @@ public sealed class PagedFileCrashMatrixTests
 
     private static List<string> DryRun(PagePath path)
     {
-        var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+        var s = SceneFor(path);
         int before = s.HandleA.Operations.Count;
         Assert.Equal(StoreStatus.Ok, Run(s, path));
         return s.HandleA.Operations.Skip(before).ToList();
@@ -113,7 +121,7 @@ public sealed class PagedFileCrashMatrixTests
         string where = $"{path} {fault} at op {n} ({ops[n - 1]}) then {continuation}";
         if (fault == Fault.SizeLimit && !ops[n - 1].StartsWith('W')) return;   // a host answers EFBIG to a write only
         bool refused = fault is Fault.Refuse or Fault.SizeLimit;
-        var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+        var s = SceneFor(path);
         s.HandleA.FaultAtOperation(n, fault);
         bool died = false;
         StoreStatus status = StoreStatus.Ok;
@@ -301,7 +309,7 @@ public sealed class PagedFileCrashMatrixTests
         for (int n = 1; n <= reads; n++)
         {
             string where = $"{path}: read {n} of {reads} refused";
-            var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+            var s = SceneFor(path);
             s.HandleA.FaultAtRead(n, Fault.Refuse);
             Assert.True(StoreStatus.PermanentError == Run(s, path), where);
             s.HandleA.Heal();
@@ -332,7 +340,7 @@ public sealed class PagedFileCrashMatrixTests
 
     private static int DryReads(PagePath path)
     {
-        var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+        var s = SceneFor(path);
         int before = s.HandleA.ReadsPerformed;
         Assert.Equal(StoreStatus.Ok, Run(s, path));
         return s.HandleA.ReadsPerformed - before;

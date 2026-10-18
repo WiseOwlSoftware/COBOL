@@ -283,11 +283,13 @@ public sealed class FileBoundaryTests : IDisposable
     /// because the medium is FULL is '30' (§9.1.13.6 item 1), which stays in effect until the CLOSE (§9.1.13.1). Neither
     /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge)
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge, bool rewrite)
     {
-        string host = Host($"refuse-{tooLarge}.dat");
+        string host = Host($"refuse-{tooLarge}-{rewrite}.dat");
         int hresult = tooLarge
             ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
             : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
@@ -302,9 +304,17 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
             c.SetPendingKey(1);
             Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            if (rewrite)
+            {
+                Assert.Equal(FileStatusCode.Success, c.Close());
+                Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));
+            }
             refusing = true;
-            c.SetPendingKey(2);
-            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, c.Write("BBBB"));
+            // The statement's copy-on-write pages need growth: a WRITE's new record, or a REWRITE's new leaf; refused,
+            // the record is not written or rewritten and the file is unchanged (2.2.1.9).
+            c.SetPendingKey(rewrite ? 1 : 2);
+            var refused = rewrite ? c.Rewrite("BBBB") : c.Write("BBBB");
+            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, refused);
             refusing = false;
             c.SetPendingKey(3);
             // '24' is the invalid key condition and the connector goes on; '30' is a permanent error in effect.
@@ -329,7 +339,7 @@ public sealed class FileBoundaryTests : IDisposable
         int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
-        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
                 if (!refusing || !Grows(inner, page)) return null;
@@ -360,7 +370,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.True(refused > 0, "the creation grew the file, and the host refused it");
             refusing = false;
         }
-        finally { RelativeStore.MediumObserver.Value = null; }
+        finally { KeyedStore.MediumObserver.Value = null; }
         Assert.Equal(["1=AAAA"], Records(host));
     }
 
