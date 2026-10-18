@@ -56,4 +56,11 @@ declarative here covers, and 14.6.13.1.3 7) ends the run unit even though the fi
 phrase alone does not run, a 47 ends the run unit per DOC-A.1-103). Both are accepted at 2002 and 2023 and end with the
 run unit's abnormal termination, so the expected output stops before the AFTER line of the 47 leg.
 
+**Review round 2.** The reviewer found that the round 1 witness batch had been recorded as full records without
+`notes`, silently blanking the adjudication notes of seven inventory rows (GR-9.1.13.7-7, GR-9.1.14-1..4,
+GR-14.9.41.4-11/-12); audit_witness_loss guards witness fields, not notes, so nothing flagged it. The inventory is
+restored from the pre-round-1 commit and the round 1 witnesses are re-recorded as witness-only records, which add the
+test-refs and restate nothing. The diff against main on those rows is now the two edition widenings (with the PB870
+justification in the notes) and the added test-refs.
+
 **Gate.** See the report; the verdict line is quoted there.
