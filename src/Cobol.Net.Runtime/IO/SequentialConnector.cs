@@ -963,7 +963,7 @@ public sealed class SequentialConnector : FileConnector
     /// arithmetic case, and it leaves the I-O status alone.</para>
     /// <para>⛔ AND ONE ATTRIBUTE THE PHYSICAL FILE ITSELF STATES: ITS ORGANIZATION, WHEN IT IS A KEYED STORE
     /// (kb/Work PB1098). The questions above ask what THIS organization's format records; a relative or indexed
-    /// store records its own organization in its header (<see cref="RecordFraming.ReadHeader"/>, the §9.1.6
+    /// store records its own organization in its meta page or header (<see cref="IsKeyedStore"/>, the §9.1.6
     /// attributes of kb/Work PB802), and §12.4.5.10.3 GR1 says what that attribute means — <i>"The file
     /// organization is established at the time a physical file is created and cannot subsequently be
     /// changed."</i> An OPEN that would let this connector WRITE into such a file — <c>I-O</c> (whose REWRITE
@@ -975,8 +975,14 @@ public sealed class SequentialConnector : FileConnector
     /// <c>KeyedConnector.FixedAttributeConflict</c> takes, paid only by the two writing modes.</para></remarks>
     protected override bool FixedAttributeConflict() =>
         (IsVarying && !_lineSequential && !RecordFraming.StreamFramingParses(HostPath))
-        || (Mode is FileOpenMode.IO or FileOpenMode.Extend
-            && RecordFraming.ReadHeader(HostPath, out _) is StoreFormat.Described);
+        || (Mode is FileOpenMode.IO or FileOpenMode.Extend && IsKeyedStore(HostPath));
+
+    /// <summary>Whether <paramref name="path"/> holds a RELATIVE or INDEXED store: the paged store of the keyed store
+    /// engine (its meta pages, <see cref="Store.MetaPage.Describes"/> — damaged or not, they say what the file is) or a
+    /// whole store's header (<see cref="RecordFraming.ReadHeader"/>, the INDEXED organization's until kb/Work PB3334).</summary>
+    private static bool IsKeyedStore(string path) =>
+        Store.MetaPage.Describes(path, out _) is StoreFormat.Described or StoreFormat.Damaged
+        || RecordFraming.ReadHeader(path, out _) is StoreFormat.Described;
 
     /// <summary>§14.9.6.4 GR2 a) — <i>"A file whose input or output medium is such that the concepts of rewind
     /// and units have no meaning."</i> A sequential connector holds one <see cref="FileConnector.HostPath"/> on
