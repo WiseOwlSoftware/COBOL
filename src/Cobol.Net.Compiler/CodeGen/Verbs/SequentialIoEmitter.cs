@@ -1191,7 +1191,7 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     {
         BoundNumericLiteral n => RuntimeApi.HostInt32Literal(n.Text),
         BoundOperandError e => LoudValue("int", e.Feature),
-        // An integer identifier (§14.9.47.3 SR — identifier-2 an integer item) reads by VALUE through the ONE integer
+        // An integer identifier (§14.9.51.3 SR14 — identifier-2 an integer data item) reads by VALUE through the ONE integer
         // landing (kb/Work PB86's sweep: the raw read mis-counted a P-scaled item; the `_ => "1"` default was a swallow).
         _ => RuntimeApi.HostInt32(NumericRenderer.Align(num.AsNum(lines, ReceiverContext.None), 0)),
     };
