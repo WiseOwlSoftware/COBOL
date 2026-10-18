@@ -494,8 +494,10 @@ public sealed class IndexedConnector : KeyedConnector
     }
 
     /// <summary>Alternate key <paramref name="keyIndex"/>'s value in a record, as its tree's key part, or null when it is
-    /// the key's SUPPRESS WHEN value (§12.4.5.6.4 GR6: the alternate access path to the record is NOT provided under this
-    /// key, and the record "is not considered to exist" for READ/START under it). The comparison is the §14.9.51 GR35
+    /// the key's SUPPRESS WHEN value — §12.4.5.6.4 GR6: <i>"an alternate record key access path to a particular record
+    /// shall not be provided when the value of data-name-1 or record-key-name-1 in that record is equal to literal-1"</i>,
+    /// so the record has no entry in the key's tree and, under that key of reference, <i>"is not considered to exist"</i>
+    /// (§14.9.30.4 GR21 c)) for READ and START. The comparison is the §14.9.51 GR35
     /// relation condition under this key's collating sequence; the registered value is already the key's own image (a
     /// figurative or ALL literal repeated to the key's size, a shorter literal space-extended, a national value in national
     /// spaces — <c>DataBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the compiler knows the literal's form

@@ -431,6 +431,61 @@ public sealed class IndexedEngineTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>2.2.1.11's INDEXED row, counted and never timed (the repository's rule): a WRITE, REWRITE or DELETE of a
+    /// file with k alternate keys writes at most (k + 1) × d pages of its trees + 2 (ledger) + 2 (free batch) + 1 (page 2)
+    /// + 1 (the claim, under the mutex only), d the trees' depth — a statement that promotes first (R2's ceiling, R5's
+    /// ledger checkpoint) is the promotion row's, and is told apart by its syncs. A load of 4 000 records keeps its trees at depth ≤ 2
+    /// (2.2.1.4's fan-out arithmetic: a leaf of these entries holds well over a hundred), so no statement of it writes more
+    /// than 2 × 2 + 6 = 10 pages — and the last statement writes no more than the first statements after the trees reached
+    /// two levels plus the depth growth, whatever the file's size: the cost is per statement, not per file (kb/Work
+    /// PB2129's quadratic load is gone).</summary>
+    [Theory]
+    [InlineData(FileSharing.AllOther)]
+    [InlineData(FileSharing.NoOther)]
+    public void A_statement_writes_pages_bounded_by_its_trees_depth_whatever_the_files_size(FileSharing sharing)
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        string host = Tmp($"counts-{sharing}");
+        DyingPageMedium? medium = null;
+        try
+        {
+            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            var a = new FileRegistry();
+            Register(a, "A", host, sharing);
+            a.OpenStatic("A", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("A"));
+            var perStatement = new List<int>();
+            for (int n = 1; n <= 4000; n++)
+            {
+                int before = medium!.Writes, synced = medium.Syncs;
+                Assert.True(Write(a, "A", n, (n % 50).ToString("0000", System.Globalization.CultureInfo.InvariantCulture)) is "00" or "02");
+                if (medium.Syncs == synced) perStatement.Add(medium.Writes - before);
+            }
+            a.Close("A");
+            Assert.Equal("00", a.Status("A"));
+            // The REWRITE that moves an alternate entry and the DELETE of n + 1 entries, on the full file.
+            a.OpenStatic("A", FileOpenMode.IO);
+            foreach (var change in new Func<string>[] { () => Rewrite(a, "A", 2000, "XXXX"), () => Delete(a, "A", 3000) })
+            {
+                int before = medium!.Writes, synced = medium.Syncs;
+                Assert.Equal("00", change());
+                if (medium.Syncs == synced) perStatement.Add(medium.Writes - before);
+            }
+            a.Close("A");
+            Assert.Equal("00", a.Status("A"));
+            int bound = 2 * 2 + (sharing == FileSharing.NoOther ? 5 : 6);
+            Assert.True(perStatement.Count > 3000, $"{perStatement.Count} statements promoted nothing");
+            Assert.True(perStatement.Max() <= bound, $"a WRITE wrote {perStatement.Max()} pages (bound {bound})");
+            Assert.True(perStatement[^100..].Average() <= perStatement[1000..1100].Average() + 1,
+                "the per-statement cost grew with the file");
+        }
+        finally
+        {
+            KeyedStore.MediumObserver.Value = null;
+            TryDelete(host);
+        }
+    }
+
     /// <summary>§14.9.41.4 GR17 over the trees, each relational operator with a FULL key and a PARTIAL one (GR17 b)'s length
     /// below the key's): the first record satisfying the comparison (for the LESS relations the LAST — the file searched in
     /// reverse order, GR17 d)) becomes the position, '00', and the next READ NEXT delivers it (§14.9.30.4 GR21 d) 1., the

@@ -970,7 +970,14 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   key is the key of reference remains unchanged"*, and a changed key's record is last among its duplicates because its ordinal
   is the largest. DELETE removes n + 1 entries. A sequential READ under an alternate key walks that tree and takes the record by
   one prime lookup; the record's ordinal vector in the frame is what locates its alternate entries for REWRITE and DELETE, and
-  a reload-time renumbering (PB2693's defect) cannot exist because nothing is renumbered.
+  a reload-time renumbering (PB2693's defect) cannot exist because nothing is renumbered. The n + 1 entries change in ONE
+  statement of the page layer (`KeyedStore.Change`: every tree edited in memory, one reservation sized to all of them, every
+  root set, page 2 last), and the statement's ordinal is the one `PagedFile.ReleaseMint` names after the statement's entry,
+  which `PagedFile.Begin` then claims (in the tree: `IndexedConnector` over `IndexedStore`, kb/Work PB3334). The frame
+  carries one ordinal per key the META PAGE records, and an alternate entry is a record's only while the record still
+  carries the entry's ordinal under that key: the opt-out of DOC-A.1-129 (`COBOLNET_KEYCHECK=OFF`) lets a description with a
+  different key table drive the file's trees by key number, a tree it does not declare is not maintained by its statements,
+  and such a tree's stale entry is passed over by every reader instead of naming a record that no longer has it.
 - **A RELATIVE record is one entry.** The record number is the key; `Highest` (§14.9.51.4 GR29 a), *"one greater than the
   highest relative record number existing in the physical file"*) is the tree's last key; an empty slot costs nothing, so the
   sparse case of kb/Work PB1192 (one record at a key in the billions) is one leaf. START relational operators are seeks;
@@ -981,8 +988,11 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   from the chain. The second condition is the measured correction (kb/Work PB3332): with the first alone a 1 016-byte key and a
   1 016-byte value made a 2 038-byte entry, two of which do not share a page, so a split could not always make two pages; with
   both, any two entries share a page and every split is a two-way split. So the maximum record size is the host's, not the
-  page's. Keys are bounded by the leaf: a key longer than 1 016 bytes is refused at the OPEN with '39' as a fixed-attribute
-  conflict the format cannot hold (DOC-A.1-129); the tree itself refuses one as its caller's defect (`BTree.MaxKeyBytes`).
+  page's. Keys are bounded by the leaf: a prime key longer than 1 016 bytes, or an ALTERNATE key longer than 1 008 (its tree's
+  entry key is the key and then the 8-byte ordinal — the measured correction of kb/Work PB3334; the first draft bounded every
+  key at 1 016 and a 1 009-byte alternate key reached the tree as its caller's defect), is refused at the OPEN with '39' as
+  a fixed-attribute conflict the format cannot hold (DOC-A.1-129), in every open mode, OUTPUT included, before the file is
+  touched (`KeyedConnector.FormatHolds`); the tree itself refuses one as its caller's defect (`BTree.MaxKeyBytes`).
 - **How the tree changes (kb/Work PB3332, `BTree`).** A statement's changes to a tree are made IN MEMORY first — the path to each
   changed entry copied, nodes split, merged or rebalanced — and FLUSHED once: every changed node is written exactly once, children
   before parents, to the statement's reserved pages, and every page the tree stopped referencing is handed to the ledger
@@ -1865,8 +1875,13 @@ PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader 
 over `RelativeStore` in `KeyedStoreTable.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
 `KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
 `IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
-`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `RelativeStore.MediumObserver`); PB3334 INDEXED on the engine
-(the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
+`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `KeyedStore.MediumObserver`); PB3334 INDEXED on the engine
+(the trees, the ordinals, the collations, the indexed half of DOC-A.1-107 — and, once both organizations drive one engine, the
+keyed lifecycle written ONCE, kb/Work PB2753; in the tree: `IndexedConnector` over `IndexedStore` in `KeyedStoreTable.cs`, the
+engine handle `KeyedStore` both stores derive from, with `KeyedStore.Change` the one multi-tree statement and
+`KeyedStore.MediumObserver` the one fault seam; `KeyedConnector.OpenCore`/`CloseCore`/`Attach`/`Detach`/`FormatHolds`;
+`IndexedConnector.WholeStore.cs` deleted, so no connector reaches the whole-store model; the connector-level cases in
+`tests/Cobol.Net.Tests.Unit/IndexedEngineTests.cs`); PB3335 the deletion of the whole-store model's remains and
 the rest of page-granular coherence (`StoreTable`, the rest of DOC-A.1-75, the whole-store ban); PB3336 the performance
 witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and
 witness (e); PB3338 the compiler's APPLY COMMIT.

@@ -68,14 +68,12 @@ public sealed class PendingStoreCases
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
         // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
         // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
-        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows.)
-        new("2.2.1.17", "A's statement ∥ B's statement through the INDEXED connector: alternate keys, ordinals, collations", "PB3334",
-            "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; PB3334's — the INDEXED connector's statements
+        // across run units with their alternate keys, ordinals and '02' look-ahead, and START over the trees — run in
+        // IndexedEngineTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
+        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators.)
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
             "a sibling connector's change visible instantly; another run unit's change adopted at the next coherent entry, the cache dropped"),
-        // The B+ tree's COBOL surface (kb/Work PB3332 built the tree; its statements are the connectors').
-        new("2.2.1.12 tree", "START with each relational operator over the tree's seek, a full key and a partial key, the key found and not found", "PB3334",
-            "§14.9.41.4 GR17 c) to e): the first record satisfying the comparison (LESS and its kin: the last, the file searched in reverse) becomes the position, '00' with NOT INVALID KEY; none satisfies it: '23' with INVALID KEY taken; each with and without a USE declarative and a FILE STATUS item"),
     ];
 
     [Fact]
@@ -84,7 +82,7 @@ public sealed class PendingStoreCases
         Assert.NotEmpty(Rows);
         Assert.All(Rows, row =>
         {
-            Assert.Contains(row.Owner, new[] { "PB3334", "PB3335", "PB3337" });
+            Assert.Contains(row.Owner, new[] { "PB3335", "PB3337" });
             Assert.StartsWith("2.2.1.1", row.Section);
             Assert.False(string.IsNullOrWhiteSpace(row.Row));
             Assert.False(string.IsNullOrWhiteSpace(row.Expected));
