@@ -108,8 +108,9 @@ USE or FILE STATUS the nonfatal condition lets the run go on, checking off sets 
 one deadlock this implementation detects, '52' (9.1.13.8 2), docs/CONFORMANCE.md DOC-A.1-109), answered by the same WHEN
 (my first draft expected 51 under FOREVER and the run said 52, as documented). R1-3: the work-file failure class claimed no
 GIVING file is left half written but never looked; the program now assigns G in the test's own directory and the
-missing-directory case asserts G was never created (14.9.40.4 GR9 b): no processing of the GIVING file before the output
-phase).
+missing-directory case asserts G was never created (§14.9.40.4 GR15 a): the GIVING file is initiated only after the
+execution of any input procedure, and the run file fails inside the input procedure). Review round 2 (R2-1) corrected that
+citation: the first draft cited GR9 b), which governs only the sequencing phase, a phase this run never reaches.
 
 Gate (after review round 3): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,397 of 17,784,
 Unit 33,745 of 34,110, Characterization 5 of 36 ran; the two three-instance SR14/SR15 cases, the seven lock cases and the
