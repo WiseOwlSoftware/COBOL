@@ -33,7 +33,7 @@
       *> Each leg is one physical file with two connectors, both SHARING
       *> WITH ALL OTHER (which §14.9.27.3 SR8 makes conditional on a LOCK
       *> MODE clause) and LOCK MODE IS MANUAL, so the lock is set only by
-      *> the explicit WITH LOCK phrase (§12.4.5.9 GR5).  The reader's
+      *> the explicit WITH LOCK phrase (§12.4.5.9.4 GR5).  The reader's
       *> §14.9.30.4 GR9 conflict check precedes the physical retrieval, so
       *> the '51' does not depend on the writer's stream having reached the
       *> medium.
