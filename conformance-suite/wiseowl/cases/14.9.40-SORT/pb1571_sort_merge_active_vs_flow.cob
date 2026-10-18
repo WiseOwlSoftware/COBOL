@@ -26,10 +26,15 @@
       *> ("If a USE procedure invoked while a format 1 SORT statement is active does
       *> not complete normally, the SORT statement is terminated") ends the active
       *> SORT at the declarative: nothing after the raise in that SORT runs.
-      *> A statement may only be executed in the range of a procedure by a transfer
-      *> of control (a SORT or RETURN WRITTEN in the range is refused at compile
-      *> time, 14.9.40.3 SR3), so each runs in a paragraph outside every range that
-      *> the procedure PERFORMs.
+      *> A statement is in the range of a procedure when it is written there or is
+      *> reached from there by a transfer of control (GR10 and GR13 say "the range of
+      *> the input procedure causes the execution of"). Steps 1 to 6 reach the
+      *> statement through a PERFORM of a paragraph outside every range, which is the
+      *> only way to put a format 1 SORT there: 14.9.40.3 SR3, "A SORT statement
+      *> shall not appear ... in an input or output procedure", refuses one WRITTEN
+      *> in the range (only a SORT; a RETURN or RELEASE written there is legal and
+      *> raises at run time). Steps 7 and 8 therefore write the RETURN and the
+      *> RELEASE directly in the procedure.
       *>
       *> The program is in two regions: EC-SORT-MERGE-ACTIVE and EC-FLOW-* are all
       *> enabled down to OUT-G, EC-SORT-MERGE-ACTIVE is turned OFF for the two
@@ -50,6 +55,10 @@
       *>      H=EC-SORT-MERGE-RETURN   then a RETURN after AT END in the current output
       *>                               procedure (14.9.34.4 GR3), which no ACTIVE or
       *>                               FLOW rule pre-empts
+      *>   7  H=EC-SORT-MERGE-ACTIVE   a RETURN WRITTEN in IN-7: the SORT ends (no
+      *>                               "IN-7 END")
+      *>   8  H=EC-SORT-MERGE-ACTIVE   a RELEASE WRITTEN in OUT-8: the SORT ends (no
+      *>                               "OUT-8 NEXT")
       *>      DONE
       >>TURN EC-SORT-MERGE-ACTIVE EC-FLOW-RETURN EC-FLOW-RELEASE EC-SORT-MERGE-RETURN CHECKING ON
        IDENTIFICATION DIVISION.
@@ -96,6 +105,12 @@
            MOVE 0 TO WS-EOF.
            SORT SF ON ASCENDING KEY SF-REC
                INPUT PROCEDURE IS IN-6 OUTPUT PROCEDURE IS OUT-6.
+           MOVE 0 TO WS-EOF.
+           SORT SF ON ASCENDING KEY SF-REC
+               INPUT PROCEDURE IS IN-7 OUTPUT PROCEDURE IS OUT-PLAIN.
+           MOVE 0 TO WS-EOF.
+           SORT SF ON ASCENDING KEY SF-REC
+               INPUT PROCEDURE IS IN-8 OUTPUT PROCEDURE IS OUT-8.
            DISPLAY "DONE".
            STOP RUN.
        IN-1.
@@ -120,6 +135,22 @@
        IN-6.
            MOVE "FFF" TO SF-REC.
            RELEASE SF-REC.
+       IN-7.
+           MOVE "GGG" TO SF-REC.
+           RELEASE SF-REC.
+           RETURN SF
+               AT END DISPLAY "DIRECT-AT-END"
+               NOT AT END DISPLAY "DIRECT-GOT"
+           END-RETURN.
+           DISPLAY "IN-7 END".
+       IN-8.
+           MOVE "HHH" TO SF-REC.
+           RELEASE SF-REC.
+       OUT-8.
+           MOVE "ZZZ" TO SF-REC.
+           RELEASE SF-REC.
+           DISPLAY "OUT-8 NEXT".
+           PERFORM RETURN-ALL.
        OUT-PLAIN.
            PERFORM RETURN-ALL.
        OUT-2.
