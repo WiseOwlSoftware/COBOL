@@ -18435,6 +18435,12 @@
   ],
   "expect": "COBOLNET0844"
  },
+ "pb680-bit-record-area-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb681-table-element-not-subscripted": {
   "refuse-at": [
    "85",
