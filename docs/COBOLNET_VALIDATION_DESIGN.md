@@ -49,7 +49,13 @@ semantics).
   restore), `DataBinder.BindEntries` per entry (+ the FD/SD/SELECT/I-O-CONTROL/SPECIAL-NAMES/OBJECT-COMPUTER/RD/
   USING loops), `ProcedureTableBuilder` per declarative section / procedure unit, the post-build model passes at
   `DataItem.DeclaredAt` (captured from the cursor when the item is bound), and the two parse-tree passes through
-  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). `EditionContext` implements
+  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). A pass that runs AFTER the
+  bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
+  rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the
+  position is `BoundStatement.At`, stamped on every statement node by the same funnel (`StatementBinder.BindStatement`,
+  kb/Work PB1925), read by `WalkStatement`; its data gates position at `DataItem.DeclaredAt` and its `>>COBOL-WORDS`
+  SR3/SR4 checks at `CobolWordsOp.At`. A NEW bound statement node or a new gate over one inherits the position;
+  `BoundArmDiagnosticPositionTests` pins each arm. `EditionContext` implements
   the cursor for real and `Error`/`Warning` stamp the prefix AUTOMATICALLY; no cursor ⇒ the bare
   `error CODE: message` (a diagnostic about the unit as a whole — never a fabricated line). (2) **The ORIGIN LINE
   MAP**: the cursor is in RESULTANT-text space (the ANTLR token line and column after the reference-format
