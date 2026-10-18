@@ -13,9 +13,10 @@
       *> executed in the range of an output procedure is not kept. GnuCOBOL 3.2
       *> differs (its RETURN takes the record the output procedure is owed, its RELEASE
       *> is kept); the survey in D-SMA (a) says why this compiler does not follow it.
-      *> A statement is executed in the range of a procedure only by a transfer of
-      *> control (a RETURN WRITTEN there is refused at compile time), so each is in a
-      *> paragraph the procedure PERFORMs.
+      *> Here each statement is reached from the procedure by a PERFORM of a
+      *> paragraph outside the range, as in the checked program; a RETURN or RELEASE
+      *> written directly in the range is legal source (14.9.40.3 SR3 refuses only a
+      *> SORT there) and answers the same way.
       *>
       *> EXPECTED, in execution order --
       *>   STRAY-END         the RETURN in IP1's range answers at end
