@@ -177,6 +177,92 @@ public sealed class LocalePartialStartTests
         }
     }
 
+    /// <summary>⛔ THE OVERHANG IS WHAT A CONTRACTION OF SEVERAL PRIMARIES NEEDS. Hungarian's doubled digraphs ("ggy",
+    /// "ccs", "ssz", "nny": three characters, two primaries) raise the deficit by one only, so a truncation in the middle
+    /// of one ("gg") changes the primary just before the cut too: the bound must stop the overhang short of it. The key
+    /// set holds one doubled digraph per key and nothing else that moves the marks, so g = 1 and every probe cut inside
+    /// a digraph meets the bound's edge.</summary>
+    [Fact]
+    public void The_bound_stops_short_of_a_contraction_of_several_primaries_cut_by_the_truncation()
+    {
+        const int keyLength = 8;
+        var random = new Random(3370);
+        var order = new WeightedKeyOrder(null, new LocaleCollation("hu"), keyLength);
+        string[] doubled = ["ggy", "ccs", "ssz", "nny", "gy", "cs"], letters = ["a", "e", "o", "b", "d", "g", "c", "s", "n", "y", "z"];
+        var sorted = new SortedSet<byte[]>(Comparer<byte[]>.Create((x, y) => order.Compare(x, y)));
+        while (sorted.Count < 400)
+        {
+            var sb = new StringBuilder();
+            for (int i = random.Next(4); i > 0; i--) sb.Append(letters[random.Next(letters.Length)]);
+            sb.Append(doubled[random.Next(4)]);
+            while (sb.Length < keyLength) sb.Append(letters[random.Next(letters.Length)]);
+            var key = Latin1(sb.ToString(0, keyLength));
+            if (order.MarksOf(key) == new TreeMarks(1, 2)) sorted.Add(key);   // one doubled digraph, no other contraction
+        }
+        var (tree, keys, marks) = Load(order, sorted, random);
+        Assert.Equal(new TreeMarks(1, 2), marks);
+        int edges = 0;
+        foreach (var key in keys)
+        {
+            var text = Encoding.Latin1.GetString(key);
+            foreach (var digraph in doubled[..4])
+            {
+                int at = text.IndexOf(digraph, StringComparison.Ordinal);
+                if (at < 0) continue;
+                for (int k = at + 1; k < at + 3; k++)
+                {
+                    edges++;
+                    foreach (var relation in Enum.GetValues<SeekRelation>())
+                        AssertSeek(tree, order, keys, key[..k], relation, $"hu \"{text[..k]}\" {relation}");
+                }
+            }
+            if (edges > 300) break;
+        }
+        Assert.True(edges > 100, $"{edges} probes cut a doubled digraph");
+    }
+
+    /// <summary>⛔ THE BOUND STOPS BEFORE A WEIGHT BELOW A SPACE'S (§8.8.4.2.11's trimming). A stored key whose truncation
+    /// ends in spaces of its interior loses them to the trimming, so its truncation is a proper prefix of a probe that has
+    /// a TAB (a weight below a space's) at that place: below the probe, while the stored key's own space weights place it
+    /// above a bound that kept the TAB. The keys have no ignorable and no contraction (g = 0), so only the cut keeps the
+    /// LESS relations from skipping them.</summary>
+    [Fact]
+    public void The_bound_stops_before_a_weight_below_a_space_so_an_interior_space_cut_off_by_the_trimming_is_not_skipped()
+    {
+        const int keyLength = 7;
+        var random = new Random(3371);
+        var order = new WeightedKeyOrder(null, new LocaleCollation("root"), keyLength);
+        string[] pieces = ["a", "b", " ", " ", "\t", "c"];
+        var sorted = new SortedSet<byte[]>(Comparer<byte[]>.Create((x, y) => order.Compare(x, y)));
+        while (sorted.Count < 300)
+            sorted.Add(Latin1(string.Concat(Enumerable.Range(0, keyLength).Select(_ => pieces[random.Next(pieces.Length)]))));
+        var (tree, keys, marks) = Load(order, sorted, random);
+        Assert.Equal(default, marks);
+        int cut = 0;
+        for (int p = 0; p < 400; p++)
+        {
+            int k = 2 + random.Next(keyLength - 2);
+            var probe = string.Concat(Enumerable.Range(0, k - 1).Select(_ => pieces[random.Next(pieces.Length)])) + "\t";
+            if (order.BoundOf(Latin1(probe), marks).Length < k) cut++;
+            foreach (var relation in Enum.GetValues<SeekRelation>())
+                AssertSeek(tree, order, keys, Latin1(probe), relation, $"\"{Show(probe)}\" {relation}");
+        }
+        Assert.True(cut > 300, $"{cut} probes were cut at a TAB");
+    }
+
+    /// <summary>A tree of <paramref name="keys"/> inserted in a random order, committed, and read back with its marks.</summary>
+    private static (BTree Tree, List<byte[]> Keys, TreeMarks Marks) Load(IKeyOrder order, SortedSet<byte[]> keys, Random random)
+    {
+        var (_, _, store) = StoreKit.NewStore(coherent: false);
+        Assert.Equal(StoreStatus.Ok, store.Enter());
+        var tree = new BTree(store, order, store.Meta.PrimeRoot);
+        foreach (var key in keys.OrderBy(_ => random.Next())) Assert.Equal(StoreStatus.Ok, tree.Insert(key, new byte[120], out _));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));
+        var read = new BTree(store, order, store.Meta.PrimeRoot);
+        Assert.Equal(StoreStatus.Ok, read.ReadMarks(out var marks));
+        return (read, keys.ToList(), marks);
+    }
+
     /// <summary>The same agreement through the composite order of an ALTERNATE tree (the key part, then the ordinal):
     /// duplicates of one key value are one run of the key part, and the bound compares the key part only.</summary>
     [Fact]

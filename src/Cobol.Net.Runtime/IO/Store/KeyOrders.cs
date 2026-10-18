@@ -109,12 +109,8 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
         return FileCharacterSet.FromChannel(FileCharacterSet.Medium.GetString(channel), codeSet);
     }
 
-    private int CompareNative(string left, string right)
-    {
-        if (collation is null) return string.CompareOrdinal(left, right);
-        if (collation.SupportsKeys) return collation.KeyOf(left)!.CompareTo(collation.KeyOf(right));
-        return collation.Compare(left, right);
-    }
+    private int CompareNative(string left, string right) =>
+        collation is null ? string.CompareOrdinal(left, right) : collation.CompareByKeys(left, right);
 }
 
 /// <summary>The COMPOSITE key order of an ALTERNATE tree's entry (2.2.1.4): the alternate key's own order over the key

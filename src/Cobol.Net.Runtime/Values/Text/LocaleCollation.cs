@@ -99,12 +99,23 @@ public sealed class LocaleCollation : CobolCollation
     /// <summary>The engine's key of the operand (§8.8.4.2.11-trimmed) through the <see cref="CollationKeyCache"/> of the
     /// collator in effect — what SORT/MERGE and the indexed-file connector compare instead of walking the elements
     /// again for every comparison. An ill-formed operand sets EC-LOCALE-INCOMPATIBLE like <see cref="Compare"/> does.</summary>
-    public override CollationKey KeyOf(string? value)
+    public override CollationKey KeyOf(string? value) => KeyOf(value, CollationKeyCache.For(Resolve()));
+
+    /// <summary>Two operands' keys built by ONE resolution of the sequence (<see cref="CobolCollation.CompareByKeys"/>):
+    /// a key cache the process drops between two lookups (<c>LocaleManager.ClearCache</c>) can then never hand the
+    /// comparison keys of two collators, which <see cref="CollationKey.CompareTo"/> refuses.</summary>
+    internal override int CompareByKeys(string? left, string? right)
+    {
+        var cache = CollationKeyCache.For(Resolve());
+        return KeyOf(left, cache).CompareTo(KeyOf(right, cache));
+    }
+
+    private static CollationKey KeyOf(string? value, CollationKeyCache cache)
     {
         string trimmed = TrimForLocale(value);
         if (!Collator.IsWellFormed(trimmed))
             ExceptionState.LocaleIncompatibleError("a locale-based key over an operand the locale's collating sequence does not order — an ill-formed UTF-16 operand (ISO §8.8.4.2.11)");   // L6
-        return CollationKeyCache.For(Resolve()).GetKey(trimmed);
+        return cache.GetKey(trimmed);
     }
 
     /// <summary>⛔ The prefix shape of a stored key (<see cref="CobolCollation.PrefixShapeOf"/>) over the operand

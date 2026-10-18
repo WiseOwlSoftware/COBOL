@@ -83,6 +83,11 @@ public abstract class CobolCollation
     /// sequence's order. 0 against an empty bound.</summary>
     internal virtual int ComparePrimary(string value, int[] bound) => 0;
 
+    /// <summary>Two values compared the way a consumer of many comparisons (an INDEXED file's keys) compares them: through
+    /// materialized keys built by ONE resolution of the sequence when it <see cref="SupportsKeys"/>, so both keys come
+    /// from one collator, else by <see cref="Compare"/>. The order is <see cref="Compare"/>'s either way.</summary>
+    internal virtual int CompareByKeys(string? left, string? right) => Compare(left, right);
+
     /// <summary>The materialized key of <paramref name="value"/> under this sequence (its operand rule applied), or
     /// null when <see cref="SupportsKeys"/> is false. Keys of one sequence order exactly as <see cref="Compare"/>.</summary>
     public virtual Collation.CollationKey? KeyOf(string? value) => null;

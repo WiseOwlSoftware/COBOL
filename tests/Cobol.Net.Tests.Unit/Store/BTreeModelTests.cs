@@ -67,8 +67,8 @@ public sealed class BTreeModelTests
 
     /// <summary>⛔ THE LOCALE ORDER'S START PREFIX IS THE SEQUENTIAL SEARCH (review w1122-a R1-1): the same model run under
     /// the root locale's CLDR/UCA order (§8.8.4.2.11), whose qualifying entries for a partial key are not one run of the key
-    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) and every
-    /// relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
+    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) from its
+    /// primary-level bound (LocalePartialStartTests), and every relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
     /// internal levels are enough to make the walk cross leaves; the three-level shape is the theory's, and a locale
     /// comparison costs a decoding and a collation key per key, so this run stays at a few hundred entries.</summary>
     [Fact]
