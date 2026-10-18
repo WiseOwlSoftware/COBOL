@@ -3350,7 +3350,6 @@ This phase is the load-bearing hinge between "the compiler works" and "we can sa
 
 - **Diagnostics are unaddressable without a coverage floor** (`DESIGN-test-build-ci.md` §1.6, §3.5). P2 built the first-class descriptor registry; P14 is where "every rule has a test" becomes an enforced invariant (`DiagnosticRegistryCoverageTests`), so a registered code with no negative-corpus case is a red — closing the false-green class the 0899 catch-all and the `1533`-style code reuse used to hide.
 
-- **The three-way "which programs are green" triplication** (`DESIGN-test-build-ci.md` §1.2, smell #3): `guard.sh` `NIST_TESTS`, the `NistDifferentialTests` golden list, and `tests/nist/chains.tsv`. P0 introduces `tests/nist/corpus.tsv` as the single source. ⚠ **RESIDUAL after PB750:** `chains.tsv` and the `[InlineData]` list are folded, but `guard.sh`'s `NIST_TESTS` is still written by hand — not because the population lacks a home, but because that string also encodes the SERIAL guard's run ORDER (producers ahead of consumers, anti-dependencies like "no other TF022 writer between RL107A and RL117A"), which `corpus.tsv` cannot express. It is no longer free to drift: `CorpusManifestTests` asserts the guard population ⊇ every program `NistDifferentialTests` asserts, ⊆ the manifest, with a surplus of `pending` rows only. Retiring the string means giving the serial guard the parallel guard's per-component isolation (or adding an order column). P14's greenfield guard consumes it (not a fourth copy).
 
 ---
 
@@ -3403,7 +3402,7 @@ bash scripts/version-continuity-sweep.sh | tee /tmp/sweep.log ; ! grep -q BREAKS
 Expected: conformance + unit green; `guard-fast.sh` prints `=== ALL GREEN ===`; the sweep prints no `BREAKS`. Record the counts in the DEVLOG opener. If any is red, STOP — a precondition phase (P3/P13) is not actually complete.
 
 Confirm the P14 preconditions exist:
-- `tests/nist/corpus.tsv` exists (P0). If not present, P0's manifest step was skipped — create it first (fold `NistDifferentialTests` `[InlineData]` ∪ `guard.sh` `NIST_TESTS` ∪ `chains.tsv` into the schema in `DESIGN-test-build-ci.md` §3.2, guarded by `CorpusManifestTests`). This is a P0 deliverable; do it here only if missing.
+- `tests/nist/corpus.tsv` exists (P0): the one source of the green NIST set and its chains.
 - The P2 diagnostic-descriptor registry exists (`src/Cobol.Net.Editions/Diagnostics/` with `DiagnosticDescriptor`/`DiagnosticCatalog`). If absent, Step 4's coverage test cannot be authored — escalate; it is a P2 deliverable.
 
 ---
@@ -3792,8 +3791,7 @@ pwsh scripts/gen-vcr.ps1 -Check
 
 **Risks + mitigations:**
 1. **A VCR row is genuinely ambiguous (2002/2014 edge with no in-repo authority).** Mitigation: per ratified decision #1 (no standards acquisition), disposition it with a provisional-confidence marker and an Annex-E/legacy-inventory citation; a provisional edge is a written disposition, not a `TODO`. Never gate on a guess (`feedback_spec_is_the_oracle`; a wrong gate can reject a valid program).
-2. **`corpus.tsv` chain semantics don't reproduce `chains.tsv` + `guard.sh` ordering** (`DESIGN-test-build-ci.md` §6 risk 4). Mitigation: Step 8 reconciles the three sources.
-3. **Snapshot / warnings-as-errors churn from the new test/CLI code.** Mitigation: the new code is test/tooling, not emitter; keep it warning-clean (Release build gate) and it cannot move a characterization snapshot.
+2. **Snapshot / warnings-as-errors churn from the new test/CLI code.** Mitigation: the new code is test/tooling, not emitter; keep it warning-clean (Release build gate) and it cannot move a characterization snapshot.
 
 ---
 
@@ -4624,7 +4622,7 @@ lowering **privately**, and the bound tree it consumes is the SAME neutral tree 
 > `greenfield-tests` + `windows-build-test` (CI never sets UPDATE_SNAPSHOTS); new opt-in `legacy-oracle` job runs
 > differential `COBOLNET_DIFF_MODE=verify` (cobolnet==legacy==golden) NIGHTLY + on manual dispatch only (not every PR — the
 > normal battery stays legacy-free); legacy `guard`/`inv1-sweep` untouched. Local CI-equivalents green: characterization
-> 32/32 compare, verify 644/0. `chains.tsv` KEPT (bash guard/sweep still read it). Step 2 ref-cache ~40–55% faster.
+> 32/32 compare, verify 644/0. Step 2 ref-cache ~40–55% faster.
 > Finding for PHASE-02: undefined-data-name + JUSTIFIED-on-numeric not caught at bind time.
 > Step 1 (migration-SSOT banner) DONE: the migration SSOT is `docs/COBOLNET_REARCHITECTURE_PLAN.md` (the master plan —
 > STATE banner + P0–P16 index + exit criteria + the resume-vs-migration pointer); its banner is flipped to "P0 IN

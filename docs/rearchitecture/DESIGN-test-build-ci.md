@@ -29,9 +29,9 @@ engine; the live legacy comparison, its bake and verify modes and the conformanc
 to `CobolSharp.*` were removed by kb/Work PB2108 (R69), so a new golden is spec-derived and never baked.
 
 `NistDifferentialTests` is DIFFERENT and safe: it compares WiseOwl COBOL output to committed goldens
-(`tests/nist/valid/*.txt`), not to a live legacy run. But the green NIST set is a hand-maintained ~318-row
-`[InlineData]` list — a THIRD copy of "which programs are green" (the others: `scripts/guard.sh` `NIST_TESTS`, and
-implicitly `tests/nist/chains.tsv`).
+(`tests/nist/valid/*.txt`), not to a live legacy run. Its program set and every chain's predecessors come from
+`tests/nist/corpus.tsv` through `CorpusManifest`, the one source of "which programs are green"; the guard
+scripts read the same file.
 
 ### 1.3 Guard scripts (bash, Linux-only NIST loop, over the WiseOwl COBOL CLI)
 ⛔ **The NIST leg drives `cobol` (`src/Cobol.Net.Cli`), not the legacy CLI** — since kb/Work/PB750, which found
@@ -171,8 +171,8 @@ failing closed.
 2. **No behavior-neutrality proof for a refactor.** A rearchitecture phase that splits `StatementBinder` or unifies
    `StoreAsImage` has NO characterization gate: it relies on output goldens for the subset of programs that happen
    to be in the corpus, and nothing snapshots the generated C# to catch an unintended emit change.
-3. **"Which programs are green" has three sources of truth** (`guard.sh` `NIST_TESTS`, `NistDifferentialTests`
-   `[InlineData]`, `chains.tsv`) that can silently disagree.
+3. **"Which programs are green" has one source:** `tests/nist/corpus.tsv` (CLOSED at P0, which folded
+   `guard.sh`'s `NIST_TESTS`, the `[InlineData]` list and the chain table into it).
 4. ~~**The authoritative NIST gate tests frozen code.**~~ **CLOSED 2026-09-06 (kb/Work/PB750).** CI's heaviest job
    (`guard`) drove the legacy engine for the whole of the rearchitecture, so the compiler under development was
    gated on NIST only by the in-process differential suite — and battery #58's `NC215A` wrong answer proved the
@@ -237,7 +237,7 @@ IX999Z  IX     pending        -                                        none     
   asserted, but the golden departs from the output first recorded for it (an ISO re-baseline, a CCVS defect or a
   declared termination) and the note carries the ISO citation. `pending` ⇒ catalogued, not asserted (the mass-red
   guard).
-- `chain-preds` REPLACES `chains.tsv` (folded in — one file).
+- `chain-preds` is the one chain table: no other file encodes the chains.
 - `NistDifferentialTests` reads `corpus.tsv` via `[MemberData]`, NOT a hand-maintained `[InlineData]` list.
 - The bash guard reads the same file for its `NIST_TESTS` population and its EXPECTED verdicts: a plain
   `divergent` row expects `MATCH` (the golden IS the ISO-conforming output WiseOwl COBOL must reproduce).
@@ -2110,7 +2110,6 @@ landing is held to a record of its own tree.
 | create | — | `tools/DifferentialBakeTool` (or a skip-gated maintenance test) | One-time freeze of legacy output → committed goldens (the G8-survival bake). |
 | create | — | `scripts/guard.ps1` | Cross-platform authoritative guard (Windows parity for the regression). |
 | split | `NistDifferentialTests.cs` (318 `[InlineData]`) | `[MemberData]` over `corpus.tsv` + a thin theory | Remove the hand-maintained green list; single source of truth. |
-| merge | `tests/nist/chains.tsv` | into `tests/nist/corpus.tsv` | One manifest, not two. |
 | refactor | ~60 `*DifferentialTests.cs` (assert `cobolnet==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
 | refactor | `EditionContext.Error(code,msg)` string-concat; 161 bare codes | `sink.Report(Diag.X, args)` | Route all diagnostics through the registry. |
 | split | `COBOLNET0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
@@ -2162,9 +2161,8 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
    hand-authored to the ISO value and marked `divergent`.
 3. **Two runtimes side-by-side until G8.** The conformance project references both runtimes; a program loads only
    its own. Low risk (proven today) but the characterization/probe path must use the greenfield driver ONLY.
-4. **`corpus.tsv` chain semantics** must exactly reproduce `chains.tsv` + `guard.sh` ordering. MITIGATION: a
-   one-time `guard-verify`-style diff proving the manifest-driven run matches the current verdict list before
-   deleting the old sources.
+4. **`corpus.tsv` chain semantics.** CLOSED: the manifest-driven run was verdict-equivalent to the old sources
+   (349/349, DEVLOG entry 667), and every old source is deleted.
 5. **Diagnostic registry churn** touches ~161 call sites. MITIGATION: mechanical, one code family at a time, each
    change set battery-green; the drift test catches any orphaned/duplicate code.
 6. **CI time** could rise if characterization emits Roslyn-compile every program. MITIGATION: gate (3) snapshots the

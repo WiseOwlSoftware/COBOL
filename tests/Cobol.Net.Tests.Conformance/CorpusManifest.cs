@@ -32,9 +32,8 @@ public sealed record CorpusRow(string Name, string Suite, string Status, string[
 }
 
 /// <summary>
-/// Loads <c>tests/nist/corpus.tsv</c> — the ONE source of truth for the green NIST set + producer/consumer chains
-/// (folds the former <c>NistDifferentialTests</c> <c>[InlineData]</c> list and <c>tests/nist/chains.tsv</c>). A green
-/// program is a manifest ROW, not a code edit.
+/// Loads <c>tests/nist/corpus.tsv</c> — the ONE source of truth for the green NIST set + producer/consumer chains. A
+/// green program is a manifest ROW, not a code edit.
 /// </summary>
 public static class CorpusManifest
 {
@@ -66,8 +65,7 @@ public static class CorpusManifest
     /// note cites the ISO § that makes the golden right.</summary>
     public static IEnumerable<CorpusRow> Green() => Rows.Where(r => r.Status is "green" or "divergent");
 
-    /// <summary>name → chain predecessors (in run order) — replaces the private <c>Chains</c> lazy formerly in
-    /// <c>NistDifferentialTests</c> (which read <c>chains.tsv</c> directly).</summary>
+    /// <summary>name → chain predecessors (in run order), from the manifest's <c>chain-preds</c> column.</summary>
     public static IReadOnlyDictionary<string, string[]> Chains { get; } =
         Rows.Where(r => r.ChainPreds.Length > 0)
             .ToDictionary(r => r.Name, r => r.ChainPreds, StringComparer.OrdinalIgnoreCase);
