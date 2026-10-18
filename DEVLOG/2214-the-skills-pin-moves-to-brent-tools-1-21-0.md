@@ -1,4 +1,4 @@
-## The skills pin moves to brent-tools 1.21.0
+## Entry 2214 — 2026-10-18 11:18 PDT — The skills pin moves to brent-tools 1.21.0
 
 The public skills repo (BrentRector/claude-skills) is released as v1.21.0 (`b57b900`), with the push approved by the
 owner on its exact text. It generalizes the 2026-10-17/18 lessons, each labelled practice, not yet validated:
@@ -12,3 +12,4 @@ owner on its exact text. It generalizes the 2026-10-17/18 lessons, each labelled
 `tools/claude-skills` moves to tag `v1.21.0`. The five overlays that name the pin (architecture-review, gate,
 review, spec-lookup, workstream) say 1.21.0, and kb/Work PB1699 records the version and the pin. The project-side
 counterparts (MANDATORY-PRACTICES I11, notes PB3378-PB3380) land on their own branch.
+
