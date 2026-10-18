@@ -550,7 +550,7 @@ public sealed class RelativeEngineTests
             try
             {
                 Seed(host);
-                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
@@ -558,7 +558,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { KeyedStore.MediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing == FileSharing.AllOther)
                 {
@@ -590,7 +590,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                KeyedStore.MediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -604,14 +604,14 @@ public sealed class RelativeEngineTests
         {
             Seed(host);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
                 Register(a, "A", host, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { KeyedStore.MediumObserver.Value = null; }
             Assert.Equal("00", Write(a, "A", 3, "CCCC"));
             int before = seen;
             a.Close("A");
@@ -630,7 +630,7 @@ public sealed class RelativeEngineTests
         {
             Seed(host);
             int seen = 0;
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
+            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
@@ -638,7 +638,7 @@ public sealed class RelativeEngineTests
                 a.OpenStatic("A", mode);
                 Assert.Equal("00", a.Status("A"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { KeyedStore.MediumObserver.Value = null; }
             int opened = seen;
             a.Close("A");
             return opened;
@@ -684,14 +684,14 @@ public sealed class RelativeEngineTests
             {
                 Seed(host);
                 var a = new FileRegistry();
-                RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+                KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
                     Register(a, "A", host, sharing);
                     a.OpenStatic("A", mode);
                     Assert.Equal("30", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { KeyedStore.MediumObserver.Value = null; }
                 // The creation is §14.9.27.4 GR25's unsuccessful OPEN, "the file is not affected": a refusal at any of its
                 // writes or syncs gives the file its previous bytes back (PagedFile.Create's undo), so the seeded records
                 // survive; only a refused FINAL sync, after the truncation, leaves the created empty store (2.2.1.16's
@@ -716,7 +716,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                KeyedStore.MediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -741,20 +741,20 @@ public sealed class RelativeEngineTests
                 Seed(host);
                 var a = new FileRegistry();
                 int dieAfter = i;
-                RelativeStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
+                KeyedStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try
                 {
                     Register(a, "A", host, sharing);
                     a.OpenStatic("A", mode);   // what the dying run unit is told is not asked
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { KeyedStore.MediumObserver.Value = null; }
                 a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
                 // A creation that died at write 0 never handed over its commit write; from write 1 on it had.
                 Assert.Equal(AfterAnUnfinishedOpen(mode, committed: i > 0), Records(host));
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                KeyedStore.MediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -777,7 +777,7 @@ public sealed class RelativeEngineTests
             Seed(host);
             int xWrites = 0;
             var x = new FileRegistry();
-            RelativeStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
             try
             {
                 Register(x, "XI", host, FileSharing.AllOther, KeyedAccess.Random);
@@ -787,18 +787,18 @@ public sealed class RelativeEngineTests
                 x.OpenStatic("XO", FileOpenMode.IO);
                 Assert.Equal("00", x.Status("XO"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { KeyedStore.MediumObserver.Value = null; }
 
             int refuseAt = int.MaxValue, seen = 0;
             var y = new FileRegistry();
-            RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
+            KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
                 Register(y, "Y", host, FileSharing.AllOther);
                 y.OpenStatic("Y", FileOpenMode.IO);
                 Assert.Equal("00", y.Status("Y"));
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { KeyedStore.MediumObserver.Value = null; }
             Assert.Equal("00", Write(y, "Y", 3, "CCCC"));
             // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
             refuseAt = seen + 2;
@@ -823,7 +823,7 @@ public sealed class RelativeEngineTests
         }
         finally
         {
-            RelativeStore.MediumObserver.Value = null;
+            KeyedStore.MediumObserver.Value = null;
             TryDelete(host);
         }
     }

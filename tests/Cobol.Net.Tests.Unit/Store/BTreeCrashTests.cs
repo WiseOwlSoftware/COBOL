@@ -217,7 +217,7 @@ public sealed class BTreeCrashTests
         // serves never reaches the medium to be refused.
         var (medium, handle, a, _) = NewScene(coherent: false);
         string before = Show(BaseRecords());
-        a.DropCache();
+        a.DropCache();   // a COLD scan (the page cache, 2.2.1.13, would serve every page the scene wrote)
         int start = handle.ReadsPerformed;
         Assert.Equal(before, StoreKit.Show(a));
         int reads = handle.ReadsPerformed - start;
