@@ -90,21 +90,19 @@ public sealed class RecordExtentsTests
         Assert.False(voided.Describes(Written.Length, 5, [0, 3], [1, 1]));
     }
 
+    /// <summary>A keyed store engine's leaf value carries the record's table outside the record: the value round-trips
+    /// the characters and the table, and a record sent without a table comes back without one.</summary>
     [Fact]
-    public void TheStoreFraming_CarriesTheTable_OutsideTheRecord()
+    public void TheStoreValue_CarriesTheTable_OutsideTheRecord()
     {
         var extents = new RecordExtents([0, 3], [2, 4]);
-        var attributes = new FixedFileAttributes(FixedFileAttributes.Relative, true, 5, 17, []);
-        using var ms = RecordFraming.ComposeStore(attributes,
-            [new StoredFrame(Written, extents), null, new StoredFrame("PLAIN", null)], generation: 0, releaseMint: 0);
-        var back = RecordFraming.DecodeStore(ms.GetBuffer(), (int)ms.Length, out _);
-        Assert.Equal(3, back.Count);
-        Assert.Equal(Written, back[0]!.Value.Image);
-        Assert.Equal([2, 4], back[0]!.Value.Extents!.Lengths);
-        Assert.Equal([0, 3], back[0]!.Value.Extents!.FixedAt);
-        Assert.Null(back[1]);
-        Assert.Equal("PLAIN", back[2]!.Value.Image);
-        Assert.Null(back[2]!.Value.Extents);
+        var back = RecordFraming.DecodeFrame(RecordFraming.EncodeFrame(new StoredFrame(Written, extents), 0, null), 0, null);
+        Assert.Equal(Written, back!.Value.Image);
+        Assert.Equal([2, 4], back.Value.Extents!.Lengths);
+        Assert.Equal([0, 3], back.Value.Extents!.FixedAt);
+        var plain = RecordFraming.DecodeFrame(RecordFraming.EncodeFrame(new StoredFrame("PLAIN", null), 0, null), 0, null);
+        Assert.Equal("PLAIN", plain!.Value.Image);
+        Assert.Null(plain.Value.Extents);
     }
 
     [Fact]
