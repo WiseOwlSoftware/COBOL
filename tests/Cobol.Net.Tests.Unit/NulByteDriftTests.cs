@@ -20,8 +20,10 @@ namespace CobolNet.Tests.Unit;
 /// <para>
 /// ⭐ The population is the COMMITTED tree (<see cref="TrackedTree.Files"/>), narrowed to the text kinds the repo's
 /// sweeps read (<see cref="TextKinds"/>). Binary assets (<c>.bin</c>, <c>.zip</c>, <c>.dat</c>) legitimately hold NULs and
-/// are not in the list; a NEW text kind is a deliberate addition here, not a silent exemption. The BOM half of the same
-/// hygiene lives in <c>SourceEncodingDriftTests</c>.
+/// are not in the list; a NEW text kind is a deliberate addition here, not a silent exemption. Binary data that carries a
+/// text kind's name (a file a NIST program wrote is named for its ASSIGN target, <c>&lt;name&gt;.txt</c>) is an
+/// <see cref="Exempt"/> entry with its reason, held to still needing it. The BOM half of the same hygiene lives in
+/// <c>SourceEncodingDriftTests</c>.
 /// </para>
 /// <para>
 /// ⭐ THE SCAN IS A FUNCTION so its FAILURE branch can be fired: <see cref="TheSweepFiresOnAPlantedNul"/> aims
@@ -48,16 +50,31 @@ public sealed class NulByteDriftTests
     private static readonly string[] TextKinds =
         [".cs", ".cob", ".cbl", ".cpy", ".g4", ".json", ".md", ".txt", ".csproj", ".props", ".ps1", ".tsv", ".out", ".err"];
 
-    /// <summary>The tracked text files that legitimately hold a NUL, each with why. A file is here only when it is
-    /// UPSTREAM DATA whose bytes this repository does not own; <see cref="EveryExemptionStillHoldsItsNul"/> fails when
-    /// one no longer does, so the list cannot rot into a blanket exemption. (A file ENCODED as UTF-16 or UTF-32 needs no
-    /// entry: its byte-order mark says so, and the sweep sets it aside structurally.)</summary>
+    /// <summary>The tracked text-kind files that legitimately hold a NUL, each with why: a key is a path, or a
+    /// directory (a key ending in <c>/</c>) that covers every file beneath it. A file is here only when no agent's
+    /// tool write produced its bytes: UPSTREAM DATA this repository does not own, or RECORD DATA a program wrote and
+    /// the harness recorded byte for byte. <see cref="EveryExemptionStillHoldsItsNul"/> fails when an entry no longer
+    /// covers a file holding a NUL, so the list cannot rot into a blanket exemption. (A file ENCODED as UTF-16 or
+    /// UTF-32 needs no entry: its byte-order mark says so, and the sweep sets it aside structurally.)</summary>
     private static readonly Dictionary<string, string> Exempt = new(StringComparer.Ordinal)
     {
         ["tests/nist/valid/NC107A.txt"] =
             "the NIST CCVS85 source's own information comment (line 35) spells the value LOW-VALUE out as literal NUL "
             + "bytes; it is the upstream distribution's text, a comment, and the test is what the suite expects",
+        ["tests/nist/valid-files/"] =
+            "the NIST differential's written-file goldens (kb/Work PB804): the bytes a CCVS program WROTE to its "
+            + "sequential, relative, indexed and sort files, recorded by the harness (NistOutputs.UpdateVariable) and "
+            + "compared byte for byte (NistOutputs.Canonical). A relative or indexed store's header and slots, a "
+            + "variable-length record's length prefix and a COMP field are binary by the file's own definition; each "
+            + "golden is named for the file the program wrote (its ASSIGN target, <name>.txt), which the comparison "
+            + "requires; and .gitattributes declares the directory byte-exact (-text) for the same reason",
     };
+
+    /// <summary>The <see cref="Exempt"/> key that covers <paramref name="path"/>: the path itself, or the directory
+    /// key it lies beneath; null when none does.</summary>
+    private static string? ExemptionOf(string path) =>
+        Exempt.ContainsKey(path) ? path
+        : Exempt.Keys.FirstOrDefault(k => k.EndsWith('/') && path.StartsWith(k, StringComparison.Ordinal));
 
     /// <summary>What a sweep saw: the offenders AND the population they were drawn from.</summary>
     internal sealed record SweepResult(
@@ -99,9 +116,9 @@ public sealed class NulByteDriftTests
             + "the tree is not the one git describes, and the sweep is not looking at it.");
     }
 
-    /// <summary>An exemption is for a file that still needs it: one that no longer holds a NUL (or is no longer
-    /// tracked) must leave <see cref="Exempt"/>, or the list becomes a blanket exemption nobody re-derives
-    /// (<c>feedback_a_dead_lookup_is_also_unverified</c>).</summary>
+    /// <summary>An exemption is for a file that still needs it: an entry that no longer covers a file holding a NUL
+    /// (the file, or every file of the directory, clean or no longer tracked) must leave <see cref="Exempt"/>, or the
+    /// list becomes a blanket exemption nobody re-derives (<c>feedback_a_dead_lookup_is_also_unverified</c>).</summary>
     [Fact]
     public void EveryExemptionStillHoldsItsNul()
     {
@@ -112,8 +129,10 @@ public sealed class NulByteDriftTests
 
     /// <summary>The sweep fires: a file with the PB927 shape — a literal NUL inside a C# char literal — is reported, a
     /// clean one beside it is not, a UTF-16 file (a NUL in every other byte by construction) is set aside by its
-    /// byte-order mark, an exempt path is reported as exempt, a binary asset kind is out of scope, and a suite golden is
-    /// swept while the same bytes outside every <see cref="Trees"/> entry are not.</summary>
+    /// byte-order mark, an exempt path is reported as exempt, a file beneath an exempt directory is reported as that
+    /// directory's exemption (once, however many files it covers) while a sibling directory sharing its name's prefix
+    /// is still swept, a binary asset kind is out of scope, and a suite golden is swept while the same bytes outside
+    /// every <see cref="Trees"/> entry are not.</summary>
     [Fact]
     public void TheSweepFiresOnAPlantedNul()
     {
@@ -130,6 +149,13 @@ public sealed class NulByteDriftTests
             File.WriteAllBytes(Path.Combine(scratch, "src", "Wide.cpy"), [0xFF, 0xFE, 0x41, 0x00]);
             File.WriteAllBytes(Path.Combine(scratch, "src", "Asset.bin"), [0, 1, 2]);
             File.WriteAllBytes(Path.Combine(scratch, "tests", "nist", "valid", "NC107A.txt"), [0x2A, 0x00]);
+            // Record data a program wrote, beneath the exempt directory: two stores, one exemption. A directory whose
+            // name merely STARTS with the exempt one's is not beneath it.
+            Directory.CreateDirectory(Path.Combine(scratch, "tests", "nist", "valid-files", "IX101A"));
+            Directory.CreateDirectory(Path.Combine(scratch, "tests", "nist", "valid-files-x"));
+            File.WriteAllBytes(Path.Combine(scratch, "tests", "nist", "valid-files", "IX101A", "tf024.txt"), [0x43, 0x00]);
+            File.WriteAllBytes(Path.Combine(scratch, "tests", "nist", "valid-files", "IX101A", "tf025.txt"), [0x43, 0x00]);
+            File.WriteAllBytes(Path.Combine(scratch, "tests", "nist", "valid-files-x", "tf024.txt"), [0x43, 0x00]);
             // A suite golden pinning a raw NUL (a DISPLAY of LOW-VALUE) is an offender: the suite is a swept tree. The
             // same bytes outside every swept tree are out of scope.
             Directory.CreateDirectory(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned"));
@@ -139,11 +165,16 @@ public sealed class NulByteDriftTests
 
             SweepResult r = Sweep(scratch,
                 ["src/Planted.cs", "src/Clean.cs", "src/Wide.cpy", "src/Asset.bin", "src/Gone.cs", "tests/nist/valid/NC107A.txt",
-                 "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"]);
+                 "tests/nist/valid-files/IX101A/tf024.txt", "tests/nist/valid-files/IX101A/tf025.txt",
+                 "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"]);
 
-            Assert.Equal(new[] { "src/Planted.cs", "conformance-suite/cases/_unassigned/lowvalue.out" }, r.Offenders);
-            Assert.Equal(new[] { "tests/nist/valid/NC107A.txt" }, r.Exempted);
-            Assert.Equal(4, r.FilesScanned);        // Planted, Clean, the exempt file and the suite golden; Wide and Asset are set aside, docs/ is no swept tree
+            Assert.Equal(
+                new[] { "src/Planted.cs", "tests/nist/valid-files-x/tf024.txt", "conformance-suite/cases/_unassigned/lowvalue.out" },
+                r.Offenders);
+            Assert.Equal(new[] { "tests/nist/valid/NC107A.txt", "tests/nist/valid-files/" }, r.Exempted);
+            // Planted, Clean, the exempt file, the two stores, the prefix sibling and the suite golden; Wide and Asset
+            // are set aside, and docs/ is no swept tree.
+            Assert.Equal(7, r.FilesScanned);
             Assert.Equal(1, r.FilesWideEncoded);
             Assert.Equal(1, r.FilesMissing);
         }
@@ -175,7 +206,10 @@ public sealed class NulByteDriftTests
 
             scanned++;
             if (!holdsNul) continue;
-            if (Exempt.ContainsKey(path)) exempted.Add(path);
+            if (ExemptionOf(path) is { } exemption)
+            {
+                if (!exempted.Contains(exemption)) exempted.Add(exemption);
+            }
             else offenders.Add(path);
         }
 
