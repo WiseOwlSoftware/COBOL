@@ -63,7 +63,7 @@ public abstract class NistDifferentialTestsBase<TSlot>
 
         // ⛔ AND EVERYTHING ELSE THE PROGRAM WROTE (kb/Work PB804): the report is one file of the run. RW104A's
         // report-writer output, a SORT/MERGE or file-I/O program's data files and the console output beside a print
-        // file are graded byte-for-byte against tests/nist/valid-files/<TEST>/ — see NistOutputs.
+        // file are graded against tests/nist/valid-files/<TEST>/ — see NistOutputs.
         if (NistOutputs.UpdateRequested) NistOutputs.Capture(NistOutputs.GoldenDir(testName), run.Written);
         var problems = NistOutputs.Grade(run.Written, NistOutputs.GoldenDir(testName));
         Assert.True(problems.Count == 0,
