@@ -204,24 +204,31 @@ PROCEDURE DIVISION.
     }
 
     /// <summary>And the other half, which a compiler that refused everything would fail: legal source the
-    /// compiler has not built still COMPILES and still announces itself (a SEARCH ALL of an OCCURS DYNAMIC table nested
-    /// under another table — the scan bound needs a subscripted capacity path, SearchBinder; the table SORT keyed on a
-    /// REDEFINES view inside the element, which this fixture used to be, is built: kb/Work PB599).</summary>
+    /// compiler has not built still COMPILES and still announces itself (INSPECT … FOR ALL LINAGE-COUNTER, a special
+    /// register in a position the resolver routes none to — <c>StatementDeferralAnnounceDriftTests</c> keeps the
+    /// account of the exemplars this fixture has had: a SEARCH ALL of a nested OCCURS DYNAMIC table until kb/Work
+    /// PB3365, the table SORT keyed on a REDEFINES view until kb/Work PB599).</summary>
     [Fact]
     public void GenuineDeferral_StillCompiles_AndAnnounces()
     {
         const string src = """
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB909DEF.
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+    SELECT LF1 ASSIGN TO "pb909.lst".
 DATA DIVISION.
+FILE SECTION.
+FD LF1 LINAGE IS 10 LINES.
+01 LR PIC X(5).
 WORKING-STORAGE SECTION.
-01 TBL.
-   05 ROW OCCURS 2.
-      10 D PIC X OCCURS DYNAMIC ASCENDING KEY IS D INDEXED BY IX.
+01 S PIC X(8).
+01 N PIC 9(4).
 PROCEDURE DIVISION.
 MAIN.
     GO TO SKIPPER.
-    SEARCH ALL D(1) AT END DISPLAY "NF" WHEN D(1, IX) = "A" DISPLAY "FOUND" END-SEARCH.
+    INSPECT S TALLYING N FOR ALL LINAGE-COUNTER OF LF1.
 SKIPPER.
     STOP RUN.
 """;

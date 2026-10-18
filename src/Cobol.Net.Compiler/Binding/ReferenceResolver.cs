@@ -1217,27 +1217,99 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// PB1030): §8.4.2.3.2's empty-parentheses screen, the segment renderer, §8.4.2.3.3 SR4's index-name
     /// association and the SR2/SR3/SR5 arity screen. Null when the list is acceptable (<paramref name="indexExprs"/>
     /// then holds the rendered subscripts); otherwise the non-place answer.</summary>
-    /// <param name="tableSubject">True for the subject of a Format-2 table SORT (kb/Work PB1055): the table's OWN
-    /// level is the one sorted and takes no subscript, so the reference writes the subscripts of the ENCLOSING
-    /// tables only — <see cref="ScreenTableSubjectArity"/> — and §8.4.2.3.3 SR6's rightmost ALL, "equivalent to
-    /// omitting the rightmost or only subscript in this context", is admitted and dropped.</param>
+    /// <param name="subject">Which statement's TABLE operand the reference is (<see cref="TableSubject"/>), or
+    /// <see cref="TableSubject.None"/> for an ordinary table-element reference. A Format-2 table SORT's subject
+    /// (kb/Work PB1055) sorts the table's OWN level, which takes no subscript, so the reference writes the subscripts
+    /// of the ENCLOSING tables only — <see cref="ScreenTableSubjectArity"/> — and §8.4.2.3.3 SR6's rightmost ALL,
+    /// "equivalent to omitting the rightmost or only subscript in this context", is admitted and dropped. SEARCH's
+    /// identifier-1 is the same shape (§14.9.37.3 SR2: not subscripted at the searched level) but its statement
+    /// owns the arity screen (<c>StatementValidation.ResolveSearchTable</c>, where SR3's reading lets the
+    /// superordinate subscripts be left to the WHEN phrases) and SR6's ALL is SORT's alone.</param>
     private RefResolution? ReadSubscripts(Core.DataReferenceContext dref, DataItem item,
-        Core.SubscriptPartContext? subCtx, out List<Position> indexExprs, bool tableSubject = false)
+        Core.SubscriptPartContext? subCtx, out List<Position> indexExprs, TableSubject subject = TableSubject.None)
     {
         indexExprs = [];
         if (subCtx is null)
-            return (tableSubject ? ScreenTableSubjectArity(dref, item, 0) : ScreenSubscriptArity(dref, item, 0))   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
+            return (subject is TableSubject.Sort ? ScreenTableSubjectArity(dref, item, 0)   // §8.4.2.3.3 SR5 — none written (kb/Work PB681)
+                    : subject is TableSubject.None && ScreenSubscriptArity(dref, item, 0))
                 ? RefResolution.Refused(DataBinder.WrittenText(dref)) : null;
         if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
-        var e = InterpretSubscripts(subCtx, ixNames, tableSubject);
+        int preOpMark = data.PendingPreOps.Count;   // the subscripts' own pre-ops (D18 temp stores, activations) start here
+        int propertyMark = data.OoPendingPropertyOps.Count;   // ... and their object-property references (the other pending list)
+        var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
-        if (tableSubject ? ScreenTableSubjectArity(dref, item, e.Count) : ScreenSubscriptArity(dref, item, e.Count))   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
+        if (subject switch
+            {
+                TableSubject.Sort => ScreenTableSubjectArity(dref, item, e.Count),
+                TableSubject.Search => false,
+                _ => ScreenSubscriptArity(dref, item, e.Count),   // §8.4.2.3.3 SR2/SR3 (kb/Work PB877)
+            })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
+        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
         return null;
+    }
+
+    /// <summary>⛔ THE ENCLOSING OCCURRENCE A SEARCH'S WHEN PHRASES NAME (kb/Work PB3365; ISO §14.9.37.4 GR1: "The
+    /// subscript that is used to determine the occurrence of each superordinate table to search is specified by the user
+    /// in the WHEN phrases"). Runs <paramref name="bindWhile"/> — the binding of one WHEN condition — and returns the
+    /// subscripts of the enclosing tables that its FIRST committed reference to <paramref name="table"/> (or to an item
+    /// within it) wrote, outermost first, or null when it references none. The positions are taken from the one
+    /// committing subscript reading (<see cref="ReadSubscripts"/>), never read a second time: a subscript that
+    /// activates a function would activate twice, and a probe (<c>_probing</c>) offers nothing for the same reason.
+    /// <para>Only a dynamic-capacity table needs this: its scan bound is one occurrence's current capacity
+    /// (§8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
+    /// tables. When a condition references the table at two occurrences, the first reference in source order names it.
+    /// Save/restored like <c>_probing</c>: a nested resolution can re-enter.</para>
+    /// <para>⛔ A SUBSCRIPT THAT BEARS A FUNCTION CARRIES ITS PRE-OPS WITH IT. Such a subscript is lowered to a D18
+    /// temp whose store (and the activation feeding it) the WHEN condition's per-evaluation wrapper runs INSIDE the
+    /// condition, but the scan bound is read BEFORE the first condition evaluation — so the positions alone name a
+    /// temp nobody has stored yet (a NullReferenceException on the first probe; on a repeated statement the previous
+    /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
+    /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
+    /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
+    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>DataBinder.OoPendingPropertyOps</c>,
+    /// which the per-evaluation wrapper drains alongside the pre-ops), so its pending GET is captured as well
+    /// (<see cref="EnclosingOccurrence.PropertyOps"/>; kb/Work PB3365 review R2-1).</para></summary>
+    internal EnclosingOccurrence? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
+    {
+        var saved = _enclosingCapture;
+        var mine = _enclosingCapture = new EnclosingSubscriptCapture(table);
+        try { bindWhile(); }
+        finally { _enclosingCapture = saved; }
+        return mine.Enclosing;
+    }
+
+    private EnclosingSubscriptCapture? _enclosingCapture;
+
+    /// <summary>The enclosing occurrence a SEARCH's WHEN phrase names: the subscripts of the tables enclosing the
+    /// searched table, outermost first, and the pre-ops that must run before those positions can be read (see
+    /// <see cref="CaptureEnclosingSubscripts"/>), and the object-property references among them whose GETs those
+    /// positions read.</summary>
+    internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps,
+        IReadOnlyList<DataBinder.OoPendingPropertyOp> PropertyOps);
+
+    private sealed class EnclosingSubscriptCapture(DataItem table)
+    {
+        public EnclosingOccurrence? Enclosing { get; private set; }
+
+        /// <summary>A committed subscript reading of <paramref name="item"/>: the first one that is <c>table</c> or lies
+        /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
+        /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
+        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps,
+            IEnumerable<DataBinder.OoPendingPropertyOp> propertyOps)
+        {
+            if (Enclosing is not null) return;
+            for (DataItem? n = item; n is not null; n = n.Parent)
+            {
+                if (!ReferenceEquals(n, table)) continue;
+                Enclosing = new([.. indexExprs.Take(table.SubscriptArity - 1)], [.. preOps], [.. propertyOps]);
+                return;
+            }
+        }
     }
 
     /// <summary>⛔ §8.4.2.3.3 SR3 / SR5 e) / SR6 FOR THE SUBJECT OF A FORMAT-2 TABLE SORT (kb/Work PB1055) — the
@@ -1266,13 +1338,21 @@ public sealed partial class ReferenceResolver(DataBinder data)
         return true;
     }
 
-    /// <summary>The subscripts a Format-2 table SORT's data-name-2 writes for its ENCLOSING tables, one rendered
-    /// index expression per level, outermost first (empty for a table that lies in no other table) — or the
-    /// refusal. ISO §14.9.40.3 SR13: "Subscripting shall be specified in accordance with 8.4.2.3"; the rule that
-    /// shape takes for a table subject is <see cref="ScreenTableSubjectArity"/>.</summary>
+    /// <summary>The subscripts a table operand (<paramref name="subject"/>: a Format-2 table SORT's data-name-2 or a
+    /// SEARCH's identifier-1) writes for its ENCLOSING tables, one rendered index expression per level, outermost
+    /// first (empty for a table that lies in no other table) — or the refusal. ISO §14.9.40.3 SR13: "Subscripting
+    /// shall be specified in accordance with 8.4.2.3"; the rule that shape takes for a SORT subject is
+    /// <see cref="ScreenTableSubjectArity"/>; a SEARCH's count is screened by its own statement rule.</summary>
     internal RefResolution? ReadTableSubjectSubscripts(Core.DataReferenceContext dref, DataItem table,
-        out List<Position> outerIndexExprs) =>
-        ReadSubscripts(dref, table, SubscriptGroupOf(dref), out outerIndexExprs, tableSubject: true);
+        TableSubject subject, out List<Position> outerIndexExprs) =>
+        ReadSubscripts(dref, table, SubscriptGroupOf(dref), out outerIndexExprs, subject);
+
+    /// <summary>Which statement's <b>table</b> operand a subscript list is read for (<see cref="ReadSubscripts"/>) —
+    /// the operand names a table, not one occurrence of it, so its own level takes no subscript and what is written
+    /// is the ENCLOSING tables' occurrences. <see cref="Sort"/>: a Format-2 SORT's data-name-2 (§14.9.40.3 SR13).
+    /// <see cref="Search"/>: SEARCH's identifier-1 (§14.9.37.3 SR2), read only for a dynamic-capacity table nested
+    /// under other tables, whose scan bound is one instance's current capacity.</summary>
+    internal enum TableSubject { None, Sort, Search }
 
     /// <summary>⛔ A DATA REFERENCE FOLLOWED BY EMPTY PARENTHESES — <c>WS-X()</c> or <c>WS-X( )</c> — is neither
     /// form a parenthesis after a data-name can take (kb/Work PB969): §8.4.2.3.2 writes a subscript list as
