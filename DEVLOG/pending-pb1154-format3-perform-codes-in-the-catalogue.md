@@ -115,3 +115,6 @@ citation: the first draft cited GR9 b), which governs only the sequencing phase,
 Gate (after review round 3): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,397 of 17,784,
 Unit 33,745 of 34,110, Characterization 5 of 36 ran; the two three-instance SR14/SR15 cases, the seven lock cases and the
 GIVING-file assertion passed in leg 1, none failed).
+
+Gate (after review round 4, R2-1 citation fix): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance
+11,383 of 17,784, Unit 33,756 of 34,110, Characterization 5 of 36 ran; the GIVING-file case passed in leg 1, none failed).
