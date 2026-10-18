@@ -435,6 +435,14 @@ public static class ItemCategory
                         ? "a variable-length group (ISO §8.5.1.12.1)" : "")
                    + ", which §13.18.29.4 GR3 excludes from the alphanumeric group items",
         };
+
+    /// <summary>⛔ THE FACE OF AN OPERAND A CATEGORY-WORDED RULE REFUSED (kb/Work PB3355, PB1417): what the operand
+    /// IS — its Table 2 category (a reference-modified view's is §8.4.3.3.4 GR6's, <see cref="CategoryName(Place)"/>),
+    /// else the group description <see cref="Face(DataItem)"/> gives, which names a strongly-typed group's
+    /// exclusion out loud. <c>SetBinder.ScreenAddressName</c> (§8.4.3.12.3 SR1 / §8.4.3.13.3 SR1), <c>CALL</c>'s and
+    /// <c>CANCEL</c>'s identifier-1 (§14.9.4.3 SR1, §14.9.5.3 SR1) refuse the same shape and print the same words.</summary>
+    public static string Face(Place place) =>
+        CategoryName(place) is { } category ? $"of category {category}" : Face(place.Item);
 }
 
 /// <summary>
