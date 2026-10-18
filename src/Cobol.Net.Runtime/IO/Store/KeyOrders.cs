@@ -37,7 +37,8 @@ internal static class KeyOrders
 
 /// <summary>The ORDINAL key order: unsigned bytes. With no CODE-SET clause the channel byte of a character position is
 /// its ISO/IEC 8859-1 code under the storage-byte law (<see cref="FileCharacterSet"/>; HIGH-VALUE is 0xFF), so this IS
-/// the native order of a key with no COLLATING SEQUENCE (§12.4.5.7) — the order <c>IndexedConnector.KeyCompare</c> gives
+/// the native order of a key no COLLATING SEQUENCE clause names (§12.4.5.7.4 GR4: <i>"the native alphanumeric collating
+/// sequence applies"</i>) — the order <c>IndexedConnector.KeyCompare</c> gives
 /// such a key with <see cref="string.CompareOrdinal(string, string)"/>.</summary>
 internal sealed class OrdinalKeyOrder : IKeyOrder
 {
@@ -50,8 +51,8 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
 }
 
 /// <summary>The WEIGHTED key order: the channel bytes decoded to the native character set — the medium's one byte per
-/// character position, then the CODE-SET conversion's inverse (§13.18.13.4 GR6 a), then the storage-byte law
-/// (<see cref="FileCharacterSet.FromChannel"/>) — and compared under the key's collating sequence (§12.4.5.7) exactly as
+/// character position, then the CODE-SET conversion's input rule (§13.18.13.4 GR6 a)), then the storage-byte law
+/// (<see cref="FileCharacterSet.FromChannel"/>) — and compared under the key's collating sequence (§12.4.5.7.4) exactly as
 /// <c>IndexedConnector.KeyCompare</c> compares today: native ordinal with no sequence; a locale sequence through its
 /// materialized keys, which its collator's key cache builds once per distinct value (kb/Work PB106); any other declared
 /// sequence by its weights. A file with a CODE-SET clause and no COLLATING SEQUENCE takes this order with no collation,
