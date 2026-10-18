@@ -39,3 +39,10 @@ row closed; the witness is recorded on GR-8.5.3.1-1 and SR-14.8.2.2-2.
 
 Self-review: the four lenses plus pr-test-analyzer (the culture witness was run red on the unfixed code first),
 silent-failure-hunter (every null-lane screen reports before it returns false) and comment-analyzer.
+
+Branch review (round 1) found one comment defect, R1-1: the `OoBindNullInvoke` doc comment said identifier-1 is the
+first operand §14.9.23.4 GR7 a) evaluates, so the node could only be the raise. GR7 a) evaluates arithmetic-expression-1,
+boolean-expression-1 and identifier-1, -2, -3 and -5 together at the beginning of the statement, and the argument binding
+hoists an argument's activations (an inline invocation, a user-defined function, an object view) ahead of it, so they run
+before EC-OO-NULL is raised, which GR7 a) allows. The comment and `BoundInvokeNull`'s now state that order, and
+pb1136_invoke_null_receiver gains an `O :: "GETV"` argument whose EVALUATED line, printed before HANDLED, pins it.
