@@ -419,14 +419,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 return OoBindStandardInvoke(site, sm, selfForm, receiver: null, receiverClass: null, selfView);
             return OoBindResolvedInvoke(site, sm, selfForm, null, selfView);
         }
+        // The predefined NULL, the one term left (a function-identifier was bound as a computed receiver): the INVOKE
+        // statement's alone, because the inline form refuses it before it gets here (§8.4.3.4.3 SR2).
         if (target.dataReference() is not { } dref)
-            // INVOKE NULL is LEGAL source: §14.9.23.3 SR1 asks only for an object reference, which NULL is
-            // (§8.4.3.7.3 SR2 — class object, category object reference, not universal), and §14.9.23.4 GR5 gives
-            // its meaning — EC-OO-NULL at run time. Until the receiver half of kb/Work PB1136 lands with the
-            // object-reference identifier tier (kb/Work PB1782 step 2 / PB1425) this is a DEFERRAL, never a
-            // refusal: it used to be refused under a §14.9.23.3 rule that does not exist.
-            return new BoundUnsupported("INVOKE through the predefined object reference NULL (the run-time "
-                + "EC-OO-NULL of ISO §14.9.23.4 GR5; kb/Work PB1136)");
+        {
+            System.Diagnostics.Debug.Assert(target.predefinedNull() is not null && !site.ReturningImplicit,
+                "a receiver term other than NULL, or an inline NULL receiver, reached the NULL arm");
+            return OoBindNullInvoke(site);
+        }
 
         // identifier-1 vs class-name-1 (§14.9.23.2): resolve as a data item first (a data-name shadows);
         // an unresolved SIMPLE name is then a class-name candidate in the pass-1 table — a LEGAL alternative,
@@ -450,6 +450,163 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         return BoundRejected.Report(ctx.Edition, "COBOLNET0823",
             $"INVOKE: '{DataBinder.WrittenText(dref)}' is neither a resolvable data item nor a class this source element "
             + "may reference (ISO §14.9.23.2 — identifier-1 or class-name-1; §8.4.6.4)");
+    }
+
+    /// <summary>⛔ INVOKE NULL (kb/Work PB1136) — LEGAL source with one run-time meaning. §14.9.23.3 SR1 asks only that
+    /// identifier-1 be an object reference, and §8.4.3.7.3 SR2 describes NULL as "class object and category object
+    /// reference, and is not a universal object reference". So:
+    /// <list type="bullet">
+    /// <item>literal-1 is the method selector (identifier-2 was refused by SR7 before this, OoBindInvoke), and SR4's
+    /// conditions a)–i) each name a description NULL does not have — an object-class-name, ACTIVE-CLASS, an
+    /// interface-name, SELF, SUPER — so they constrain no method name;</item>
+    /// <item>SR6 is the universal receiver's, so BY CONTENT and BY VALUE stay legal; SR5 and SR18 compare an argument
+    /// with "the corresponding formal parameter", and no method — so no formal — exists;</item>
+    /// <item>every syntax rule that reads only the operand still holds and is asked here: SR9 and SR10 of an explicit
+    /// BY REFERENCE identifier-3 (a keyword-less identifier is BY REFERENCE only when it meets them, §14.9.23.4 GR6 a),
+    /// SR11 of identifier-4, SR12 of either, SR13 of identifier-3, -4 and -5, SR15 and SR16 of a BY VALUE operand,
+    /// SR17 of literal-2 (<see cref="OoScreenNullReceiverArgument"/>, <see cref="OoScreenReturning"/>).</item>
+    /// </list>
+    /// §14.9.23.4 GR5 is the statement's meaning: "If identifier-1 is null, the EC-OO-NULL exception condition is set to
+    /// exist and execution of the INVOKE statement is terminated". GR7 a) evaluates arithmetic-expression-1,
+    /// boolean-expression-1 and identifier-1, -2, -3 and -5 together "at the beginning of the execution of the INVOKE
+    /// statement", and only then "If an exception condition exists, no method is invoked". So the activations an
+    /// argument carries (an inline invocation, a user-defined function, an object view) are hoisted by the argument
+    /// binding ahead of the statement exactly as on the typed path, and they RUN before the raise; what the exception withholds
+    /// (GR7 a)) is only the values that would be made available to a method. The node is therefore the raise alone
+    /// (<see cref="BoundInvokeNull"/>): it passes nothing and delivers nothing, and the argument evaluations precede it
+    /// (pinned by conformance case pb1136_invoke_null_receiver, line EVALUATED).</summary>
+    private BoundStatement OoBindNullInvoke(InvocationSite site)
+    {
+        foreach (var a in site.Args)
+            if (!OoScreenNullReceiverArgument(a))
+                return BoundRejected.Reported(ctx.Edition);
+        if (site.ReturningRef is { } retRef
+            && (host.Expr.ResolveReceiving(retRef) is not { } rp || !OoScreenReturning(rp, retRef, methodName: null)))
+            return BoundRejected.Reported(ctx.Edition);
+        return new BoundInvokeNull();
+    }
+
+    /// <summary>The §14.9.23.3 syntax rules over ONE argument of an INVOKE that has no method to read (identifier-1 is
+    /// NULL, <see cref="OoBindNullInvoke"/>): every rule the operand alone decides, in the order and by the reductions
+    /// the typed lane uses (<see cref="OoBindInvocationArg"/>, which asks the same predicates), with the passing mode
+    /// a keyword-less operand takes from §14.9.23.4 GR6 a) and SR14 — BY REFERENCE when it meets SR9 and SR10, else BY
+    /// CONTENT. False having reported.</summary>
+    private bool OoScreenNullReceiverArgument(InvocationArg arg)
+    {
+        const string subject = "INVOKE NULL USING argument";
+        if (arg.Omitted) return true;   // SR18 asks a formal parameter's OPTIONAL phrase; there is no formal
+        if (arg.Address is { } addrCtx)   // SR9's address-identifier, a sending operand by SR19
+            return host.Ptr.BindAddressIdentifier(addrCtx, "INVOKE … USING") is not null;
+        if (arg.Self)
+        {
+            if (host.OoCurrentClass is not null) return true;
+            _ = RefusePredefinedObjectOutsideMethod($"{subject} SELF");
+            return false;
+        }
+        // SR16: "If literal-2 or its corresponding formal parameter is specified with the BY VALUE phrase, literal-2
+        // shall be a numeric literal" — the ONE predicate CALL's SR23 asks (kb/Work PB1631).
+        if (arg.ByValueWritten && arg.Literal is { } byValueLit && !CallBinder.ByValueLiteralAdmitted(byValueLit))
+        {
+            ReportByValueLiteral(subject, ConcatFolder.Spelling(byValueLit));
+            return false;
+        }
+        var (_, nonNumCtx, _, dref, boolCtx, arithCtx) = ConditionBinder.ReduceArgument(arg.Literal, arg.Ref, arg.Bool, arg.Arith);
+        bool explicitReference = arg.ByReferenceWritten;
+        // A constant-name or symbolic-character is literal-2 unless BY REFERENCE makes it identifier-3 (§13.10.3 SR2;
+        // the typed lane's reading, kb/Work PB1137, PB1544).
+        if (dref is not null && !explicitReference && host.Expr.LiteralAliasOf(dref) is { } alias)
+        {
+            if (arg.ByValueWritten && !alias.IsNumeric)
+            {
+                ReportByValueLiteral(subject, $"{alias.Word} (the {alias.Described})");
+                return false;
+            }
+            return ZeroLengthLiteralAdmitted(host.Expr.AliasOperand(alias), alias.Word, subject);
+        }
+        if (dref is not null)
+        {
+            bool byReference = explicitReference
+                || (!arg.ByContentWritten && !arg.ByValueWritten && host.Params.MeetsByReferenceRules(dref));
+            Place? place = byReference ? host.Expr.ResolveReceiving(dref) : host.Expr.ResolveSending(dref).PlaceOrReported(ctx.Edition);
+            if (place is null) return false;   // reported by the resolver or the receiving chokepoint
+            if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
+            {
+                ReportObjectDataByReference(subject, dref.GetText(), "pass it BY CONTENT");
+                return false;
+            }
+            if (byReference)
+            {
+                if (!host.Params.ScreenSection(place, dref, DiagnosticCatalog.InvokeOperandSection, subject,
+                        "§14.9.23.3 SR9", addressAdmitted: true))
+                    return false;
+                if (BitLayout.IsBitItem(place.Item))
+                    host.Params.ScreenBitAlignment(place, DiagnosticCatalog.InvokeBitAlignment, subject, "§14.9.23.3 SR12");
+            }
+            return ActiveClassSubordinateAdmitted(place, subject)
+                && (!arg.ByValueWritten || ByValueClassAdmitted(new BoundFieldOperand(place), dref.GetText(), subject));
+        }
+        // An inline invocation or an object-view is an identifier referencing a temporary (§8.4.3.4.4 GR1 c),
+        // §8.4.3.5.4 GR1) — identifier-5, never SR9's section item; bound by the OO identifier door, which reports.
+        if (ConditionBinder.SoleOoIdentifier(arithCtx) is { } oo)
+            return OoBindOoIdentifier(oo) is not BoundExprError;
+        if (boolCtx is { } bx) return host.Cond.BindBoolExpr(bx) is not BoundBoolError;
+        if (nonNumCtx is not null)
+            return ZeroLengthLiteralAdmitted(host.Expr.NullAdmittingOperand(nonNumCtx), nonNumCtx.GetText(), subject);
+        if (arithCtx is { } ax)
+        {
+            // A sole function-identifier BY VALUE is identifier-5 of the function's class (SR15).
+            var expr = host.Expr.BindExpr(ax);
+            return expr is not BoundExprError
+                && (!arg.ByValueWritten || ByValueClassAdmitted(IntrinsicBinder.OperandOf(expr), ax.GetText(), subject));
+        }
+        return true;   // a numeric literal-2 (SR16 asked above)
+    }
+
+    /// <summary>§14.9.23.3 SR16 — "If literal-2 or its corresponding formal parameter is specified with the BY VALUE
+    /// phrase, literal-2 shall be a numeric literal" — reported for <paramref name="literal"/> as written (a constant-name
+    /// or symbolic-character names what it stands for). One code on every receiver: the typed lane and the NULL
+    /// receiver's screen (a universal receiver refuses BY VALUE outright, SR6).</summary>
+    private void ReportByValueLiteral(string subject, string literal) =>
+        ctx.Edition.Error(DiagnosticCatalog.InvokeByValueLiteralNotNumeric,
+            $"{subject}: BY VALUE {literal}: literal-2 shall be a numeric literal when it or its corresponding formal "
+            + "parameter is specified with the BY VALUE phrase (ISO §14.9.23.3 SR16)");
+
+    /// <summary>§14.9.23.3 SR10 — "Identifier-3 shall not reference a data item defined in the file or working-storage
+    /// section of a factory or instance object" — reported for the argument <paramref name="written"/> on every receiver:
+    /// an explicit BY REFERENCE through a typed receiver or NULL (where <paramref name="remedy"/> is BY CONTENT), and any
+    /// argument through a universal one, which SR6 makes BY REFERENCE.</summary>
+    private void ReportObjectDataByReference(string subject, string written, string remedy) =>
+        ctx.Edition.Error(DiagnosticCatalog.InvokeObjectDataByReference,
+            $"{subject}: the BY REFERENCE argument '{written}' is OBJECT (factory/instance) data, which may not cross "
+            + $"an INVOKE by reference (ISO §14.9.23.3 SR10); {remedy}");
+
+    /// <summary>§14.9.23.3 SR17 — "Literal-2 shall not be a zero-length literal" — over a literal-2 already mapped by the
+    /// one literal mapping; asked by the typed lane's literal arm and the NULL receiver's screen. False having
+    /// reported.</summary>
+    private bool ZeroLengthLiteralAdmitted(BoundOperand? literal2, string written, string subject)
+    {
+        if (literal2 is not BoundStringLiteral { Value.Length: 0 }) return true;
+        ctx.Edition.Error(DiagnosticCatalog.InvokeArgumentZeroLengthLiteral,
+            $"{subject} {written} is a zero-length literal; ISO §14.9.23.3 SR17: \"Literal-2 shall not be a zero-length "
+            + "literal\"");
+        return false;
+    }
+
+    /// <summary>§14.9.23.3 SR15 — a BY VALUE identifier-5 "shall be of class message-tag, numeric, object or pointer"
+    /// (message-tag is the MCS module, not modeled) — asked of the operand's CLASS, the answer CALL's SR22 screen reads
+    /// (<see cref="IntrinsicArgumentRules.ClassOf"/>), and named through <c>IntrinsicArgumentRules.ClassNameOf</c>, so
+    /// a strongly-typed group is named by its type-name (kb/Work PB3192 review R1-1). Shared by the typed lane and the
+    /// NULL receiver's screen. False having reported.</summary>
+    private bool ByValueClassAdmitted(BoundOperand operand, string written, string subject)
+    {
+        if (IntrinsicArgumentRules.ClassOf(operand) is not { } valueClass
+            || valueClass is CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer)
+            return true;
+        ctx.Edition.Error(DiagnosticCatalog.InvokeByValueOperandClass,
+            $"{subject}: BY VALUE operand '{written}' is of class "
+            + $"{IntrinsicArgumentRules.ClassNameOf(operand, valueClass)}; "
+            + "ISO §14.9.23.3 SR15 admits only class message-tag, numeric, object or pointer by value");
+        return false;
     }
 
     /// <summary>⛔ THE ONE §8.4.3.8 METHOD-SEARCH ROOT OF SELF / [object-class-name-1 OF] SUPER (kb/Work PB1425), asked by
@@ -943,8 +1100,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // which is identifier-5 rather than literal-2 (§8.4.3.1.3 SR7) and whose class §14.9.23.3 SR15 admits.
             if (arg.Literal is { } byValueLit && !CallBinder.ByValueLiteralAdmitted(byValueLit))
             {
-                Err($"BY VALUE {ConcatFolder.Spelling(byValueLit)}: literal-2 shall be a numeric literal when the BY VALUE phrase is "
-                    + "specified (ISO §14.9.23.3 SR16)");
+                ReportByValueLiteral($"{verb} \"{methodName}\"", ConcatFolder.Spelling(byValueLit));
                 return null;
             }
             if (arg.ByValueWritten && !byValue)
@@ -1085,9 +1241,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // written literal is asked above (only a numeric constant-name satisfies it).
             if (byValue && !alias.IsNumeric)
             {
-                Err($"BY VALUE {alias.Word}: the argument is the {alias.Described}, and literal-2 shall be a numeric "
-                    + "literal when it or its corresponding formal parameter is specified with the BY VALUE phrase "
-                    + "(ISO §14.9.23.3 SR16)");
+                ReportByValueLiteral($"{verb} \"{methodName}\"", $"{alias.Word} (the {alias.Described})");
                 return null;
             }
             literal2 = host.Expr.AliasOperand(alias);
@@ -1194,9 +1348,7 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // BY REFERENCE violates the rule; a BARE object-data identifier is assumed BY CONTENT (GR6a2, above).
             if (explicitReference && ctx.Data.OoIsObjectData(place.Item))
             {
-                Err($"BY REFERENCE argument '{argText}' references OBJECT data — factory/instance "
-                    + "working-storage may not cross an INVOKE by reference (ISO §14.9.23.3 SR 10); pass it "
-                    + "BY CONTENT");
+                ReportObjectDataByReference($"{verb} \"{methodName}\"", argText, "pass it BY CONTENT");
                 return null;
             }
             // SR9 over the resolved identifier-3 and SR12's byte-alignment proof — the screens CALL's SR3/SR6 run,
@@ -1213,19 +1365,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
 
             // §14.9.23.3 SR13 over identifier-3 / identifier-5, before any conformance question (kb/Work PB1116).
             if (!ActiveClassSubordinateAdmitted(place, $"{verb} \"{methodName}\" USING argument")) return null;
-            // §14.9.23.3 SR15 — a BY VALUE identifier-5 is of class numeric, object or pointer (message-tag is the MCS
-            // module, not modeled). Asked of the operand's CLASS, the answer CALL's SR22 screen reads
-            // (IntrinsicArgumentRules.ClassOf), before any conformance question.
-            if (byValue && new BoundFieldOperand(place) is var valueOperand
-                && IntrinsicArgumentRules.ClassOf(valueOperand) is { } valueClass
-                && valueClass is not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
-            {
-                ctx.Edition.Error(DiagnosticCatalog.InvokeByValueOperandClass,
-                    $"{verb} \"{methodName}\": BY VALUE operand '{argText}' is of class "
-                    + $"{IntrinsicArgumentRules.ClassNameOf(valueOperand, valueClass)}; "
-                    + "ISO §14.9.23.3 SR15 admits only class message-tag, numeric, object or pointer by value");
+            // §14.9.23.3 SR15 — a BY VALUE identifier-5's class, before any conformance question.
+            if (byValue && !ByValueClassAdmitted(new BoundFieldOperand(place), argText, $"{verb} \"{methodName}\""))
                 return null;
-            }
             // ⛔ BY REFERENCE: THE UNIVERSAL SWITCH'S TWO RELATIONS, ASKED AT COMPILE TIME (kb/Work PB2077, decision PB3098;
             // COBOLNET_OO_DESIGN D6 item 6). A reference-modified operand is the unique data item §8.4.3.3.4 GR5 / GR6
             // create — no PICTURE clause — so it is described as itself (ActivationDescriptions.OfPlace), never as the
@@ -1324,11 +1466,10 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         string literalText = constantName ?? nonNumCtx?.GetText() ?? writtenLit?.Image ?? foldedAlnum ?? "";
         switch (literal2)
         {
-            case BoundStringLiteral { Value.Length: 0 }:
+            case BoundStringLiteral { Value.Length: 0 } empty:
                 // §14.9.23.3 SR17 — and, through §8.4.3.4.3 SR3, the inline form's arguments too (this body is both).
-                ctx.Edition.Error(DiagnosticCatalog.InvokeArgumentZeroLengthLiteral,
-                    $"{verb} \"{methodName}\": the argument {literalText} for formal '{formal.CobolName}' is a "
-                    + "zero-length literal; ISO §14.9.23.3 SR17: \"Literal-2 shall not be a zero-length literal\"");
+                _ = ZeroLengthLiteralAdmitted(empty, $"{literalText} for formal '{formal.CobolName}'",
+                    $"{verb} \"{methodName}\": the argument");
                 return null;
             case BoundStringLiteral { Category: PicCategory.Boolean } boolLit:
                 // A BOOLEAN literal (or a boolean concatenation expression, §8.8.3.3 GR3) is a boolean VALUE with no
@@ -1497,10 +1638,9 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             if (!ActiveClassSubordinateAdmitted(p, "INVOKE USING argument")) return BoundRejected.Reported(ctx.Edition);
             if (ctx.Data.OoIsObjectData(p.Item))
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET0866",
-                    $"INVOKE through a universal object reference: '{p.Item.CobolName}' is OBJECT "
-                    + "(factory/instance) data — it may not cross BY REFERENCE (ISO §14.9.23.3 SR10), and "
-                    + "the universal path has no BY CONTENT fallback (SR6)");
+                ReportObjectDataByReference("INVOKE through a universal object reference", DataBinder.WrittenText(dref),
+                    "the universal path has no BY CONTENT fallback (SR6)");
+                return BoundRejected.Reported(ctx.Edition);
             }
             // A REFERENCE-MODIFIED argument is the unique data item §8.4.3.3.4 GR5/GR6 create, never the description of
             // the item it windows (it used to cross under identifier-1's whole description).

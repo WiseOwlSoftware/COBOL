@@ -311,6 +311,10 @@ public static class BoundStores
             : Hit(n.Returning) ? StoreKind.Write
             : StoreKind.None;
 
+        // INVOKE NULL (§14.9.23.4 GR5): the statement is terminated before any argument crosses or any result is
+        // delivered, so it stores nothing.
+        public StoreKind Visit(BoundInvokeNull n) => StoreKind.None;
+
         // ── Pointer, object-reference and carrier stores (kb/Work PB1275 — these answered null, "outside the
         //    taxonomy", until every Place they carry was classified). Each SET format below stores its receivers
         //    whole and reads only its sender (§14.9.39.4); its sender, a FREE / RAISE operand's read, an ALLOCATE
