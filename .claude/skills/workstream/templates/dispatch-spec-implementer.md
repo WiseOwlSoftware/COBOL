@@ -87,16 +87,11 @@ Turn cap 220 — at the cap, checkpoint, write NEXT, return SPLIT.
 
 Report ≤ 60 lines, following `templates/implementer-report-template.md`, one section per note.
 SORT AND FILE I/O TESTS (MANDATORY-PRACTICES I11, the owner's standing rule): when your change reaches a SORT, MERGE or
-file I/O statement, an I-O status, a declarative or the runtime's I/O, sharing, locking or sort code, your tests cover its
-abnormal and exception paths as fully as its success path:
-- each I-O status it can answer;
-- EC-I-O with and without USE and FILE STATUS;
-- AT END and INVALID KEY;
-- lock contention ('51', RETRY);
-- SORT/MERGE work-file failures;
-- for a compile-time refusal, each illegal form with its diagnostic.
-Expected values come from the cited rule. Your report's `## Owner test requirement` section names those tests, or says why
-your change reaches none. A reviewer treats a missing one as a finding.
+file I/O statement, an I-O status, a declarative or the runtime's I/O, sharing, locking or sort code, read the I11 row of
+`templates/MANDATORY-PRACTICES.md`. It is the rule's one home and lists every case. Test each abnormal and exception path
+your change reaches as fully as its success path; expected values come from the cited rule. Your report's
+`## Owner test requirement` section names those tests, or says why your change reaches none. A reviewer treats a missing
+one as a finding.
 BRANCH REVIEW (MANDATORY-PRACTICES I10, kb/Work PB3027): when you return DONE, one read-only cobol-reviewer reviews your
 branch and stamps your report `**Review:** CLEAN|FINDINGS …` through `review_findings.py`; never write that line
 yourself. A finding comes back to a review finisher, who answers each by its id in the report's `## Review findings`.
