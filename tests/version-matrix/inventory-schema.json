@@ -1241,9 +1241,12 @@
       "    `<repo-relative-path>#<Symbol>` spelling in a row's PROSE must resolve exactly as a `code-location` does.",
       "    The PROSE is `notes` up to the first retired-witness mark; the marks the writer appends after it are",
       "    HISTORY by construction, and a retired symbol is allowed to be gone.",
-      "  · RECORD time (`record_verdicts.validate`): a record that retires a witness must not leave the row's prose",
-      "    exactly as it was while that prose still names the retired symbol.",
-      "A symbol's removal from prose is never required by shape alone: a symbol that merely MOVED is still true prose."
+      "  · RECORD time (`record_verdicts.validate`): once a witness is retired, the row's PROSE may not name its",
+      "    symbol (the history of the retirement is its `retire-reason`, filed behind the mark). A symbol the row still",
+      "    cites at another file is exempt: it MOVED, and the prose stays true.",
+      "A BARE identifier in old prose is not read by the battery gate, because prose also narrates history and the",
+      "standard's own words and no resolver can tell a stale name from a deliberate one; the record-time rule is what",
+      "stops the next one, and the rows that predate it are measured in kb/Work PB762."
     ],
     "retired-witness-mark": "retired-witness:"
   },
