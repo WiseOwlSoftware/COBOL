@@ -1801,6 +1801,7 @@ of an unsupported facility.
   once, when the statement begins; the standard leaves a table referenced at two different enclosing occurrences in its
   WHEN phrases undefined. A fixed or occurs-depending table needs no such choice: its bound is the same for every
   occurrence of its enclosing tables. Witnesses: `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_table`,
+  `conformance:cases/14.9.37-SEARCH/pb3365_search_nested_dynamic_property`,
   `conformance:cases/14.9.37-SEARCH/pb3365-search-nested-dynamic-no-occurrence`.
 
 ### 3.1 Implementor behavior in Annex A.2 undefined cases (kb/Work PB1907)

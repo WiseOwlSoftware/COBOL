@@ -88,9 +88,11 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             bail = BoundRejected.Reported(ctx.Edition);
             return false;
         }
-        // A WHEN-named occurrence whose subscripts bear a function reads a temp the WHEN condition stores only when it
-        // is evaluated, and the scan bound is read before that: the subscripts' own pre-ops run first (R1-1).
-        if (written is null && fromWhens is not null) prelude = fromWhens.PreOps;
+        // A WHEN-named occurrence whose subscripts bear a function or an object property reads a temp the WHEN condition
+        // stores only when it is evaluated, and the scan bound is read before that: the subscripts' own evaluation runs
+        // first, in the order a per-evaluation window drains it - the property GETs, then the pre-ops (R1-1, R2-1).
+        if (written is null && fromWhens is not null)
+            prelude = host.Udf.OperandSteps([.. host.Oo.OoReplayPropertyGets(fromWhens.PropertyOps), .. fromWhens.PreOps]);
         path = ReferenceResolver.BuildTablePath(table, enclosing);
         if (path is null)
         {

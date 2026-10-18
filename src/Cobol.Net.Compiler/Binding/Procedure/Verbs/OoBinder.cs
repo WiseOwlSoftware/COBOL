@@ -148,8 +148,11 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
                 + "class has no GET property method (ISO §8.4.3.9.3 SR3 — WITH NO GET, or no accessor defined)");
             return null;
         }
-        return new BoundInvoke(op.Form, op.ClassCsName, receiver, op.Get.CsName, ctx.Refs.ResolveItem(op.Temp)!, null, op.Get.Binding!.Returning, op.OwnerCsNameOf(op.Get));
+        return GetInvoke(op, op.Get, receiver);
     }
+
+    private BoundInvoke GetInvoke(DataBinder.OoPendingPropertyOp op, OoMethodSymbol get, Place? receiver) =>
+        new(op.Form, op.ClassCsName, receiver, get.CsName, ctx.Refs.ResolveItem(op.Temp)!, null, get.Binding!.Returning, op.OwnerCsNameOf(get));
 
     /// <summary>Drain the property references registered since <paramref name="mark"/> for a PER-EVALUATION
     /// window (<c>UdfBinder.UdfAttachPerEvaluation</c> — a PERFORM UNTIL / VARYING condition, a SEARCH WHEN, an
@@ -171,6 +174,22 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
         {
             gets.AddRange(op.Prelude);   // identifier-3's evaluation precedes its accessor (see OoPendingPropertyOp)
             if (PropertyGet(op, op.Receiver) is { } get) gets.Add(get);
+        }
+        return gets;
+    }
+
+    /// <summary>The GETs <see cref="OoDrainPropertyGets"/> built for references a window has ALREADY drained — nothing
+    /// removed and nothing reported (the drain reported SR3 for them). A SEARCH whose WHEN phrase names the occurrence
+    /// of an enclosing dynamic-capacity table through an object property needs the property fetched ahead of the scan
+    /// bound that reads it, while the WHEN condition keeps its own per-evaluation fetch (kb/Work PB3365 R2-1;
+    /// §14.9.37.4 GR1; §8.4.3.9.4 GR1).</summary>
+    internal List<BoundStatement> OoReplayPropertyGets(IEnumerable<DataBinder.OoPendingPropertyOp> ops)
+    {
+        List<BoundStatement> gets = [];
+        foreach (var op in ops)
+        {
+            gets.AddRange(op.Prelude);
+            if (op.Get is { } get) gets.Add(GetInvoke(op, get, op.Receiver));
         }
         return gets;
     }
