@@ -7075,17 +7075,13 @@ public static class DiagnosticCatalog
         + "the superclass shall not be defined with the FINAL clause.",
         "ISO §11.7.3 SR3 / §11.7.4 GR3");
 
-    /// <summary>COBOLNET4213 — an IMPLEMENTATION RESTRICTION (kb/Work PB1784): a class overrides an inherited method
-    /// whose name is the class's own name. The override must keep the base method's emitted member name, and a C#
-    /// member cannot be named like its enclosing type (CS0542), so the pair is refused by name rather than leaked as
-    /// a Roslyn error. A class's OWN method named like the class is legal and renamed (kb/Work PB975); only the
-    /// override of an inherited one cannot be.</summary>
-    public static readonly DiagnosticDescriptor OverrideNamedLikeItsClass = new(
-        "COBOLNET4213", "override-named-like-its-class", EditionSeverity.Error,
-        "Implementation restriction: a class overrides an inherited method whose name is the name of the class "
-        + "itself; the override keeps the inherited method's emitted name, which the generated class cannot declare. "
-        + "Rename the class or the method.",
-        "ISO §8.4.6.1 / §11.7.3 SR3");
+    // ⛔ `OverrideNamedLikeItsClass` (`override-named-like-its-class`, COBOLNET4213) LIVED HERE AND IS GONE (kb/Work
+    // PB3342), and this comment stands where it did so it is not re-added. It refused, as an "implementation
+    // restriction", a class that overrides an inherited method spelled like the class — legal COBOL (the method-name
+    // and the object-class-name sit in different source elements, §8.3.2.2 / §10.5) — because the override kept the
+    // base member's C# name, which C# forbids a type to declare (CS0542). OoClassTable.NameMethodSlots now names every
+    // method slot (an override chain with the interface prototypes it implements) away from every type that declares
+    // a member of it. The id is retired, never reallocated.
 
     /// <summary>COBOLNET0829 — an overriding method's procedure division header does not conform to the overridden
     /// method's (§11.7.3 SR9, by the rules of §9.3.8.2.3 asked through

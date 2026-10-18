@@ -36,15 +36,16 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// composes (<see cref="DataItem.CurrentExtentImageCapable"/>, the gate of every §8.5.1.12 carrier) — as the CALL
     /// lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>). One shape is the GR13 restriction
     /// DESIGN-external-repository §4.3 states (ISO §14.2.3 13): a group holding BOTH a variable-length component and a
-    /// pointer or object-reference member. ⛔ <b>THE RESTRICTION IS THE BOUNDARY'S, NOT THIS EMITTER'S</b> (kb/Work PB3273):
-    /// no crossing form carries that group — the variable-length carrier has no slot for a reference, the cell area has no
-    /// component, and the activated program's own formal of that description stages the Tier-C loud at its copy-in
-    /// (<c>TierCIsland</c>; a COBOL CALL of it is COBOLNET1688) — so an entry would only reach a loud. The
-    /// <see cref="HoldsSlots"/> conjunct is therefore implied today by <see cref="DataItem.CurrentExtentImageCapable"/>
-    /// (a reference leaf is no member of its law), and it STAYS as the guard: when the boundary gains a form for the
-    /// shape, this emitter must compose that form's storage (the cell area's slots beside the carrier's components) before
-    /// the restriction lifts, or a record would silently drop its references. <c>HostEntryShapeDriftTests</c> pins both
-    /// halves.</summary>
+    /// pointer or object-reference member. ⛔ <b>THE RESTRICTION IS THIS EMITTER'S</b> (kb/Work PB3273, PB3139):
+    /// the COBOL boundary carries that group only as a strongly-typed group's cell AREA that holds its references and its
+    /// variable-length components together (kb/Work PB3139: <c>OoClassTable.LeafCarried</c>, <c>StorageCell.CopyArea</c>),
+    /// and this emitter composes no such area — its slot form (<see cref="HoldsSlots"/>, <c>__Area</c>) has no component and
+    /// its variable-length form (<c>CobolVarGroup</c>) no slot for a reference — so an entry's argument would reach the
+    /// activated program's formal without an area, whose copy-in of that description is the Tier-C loud
+    /// (<c>TierCIsland</c>). The <see cref="HoldsSlots"/> conjunct is implied today by
+    /// <see cref="DataItem.CurrentExtentImageCapable"/> (a reference leaf is no member of its law), and it STAYS as the
+    /// guard: this emitter must compose the area's components beside its slots before the restriction lifts, or a record
+    /// would silently drop its references. <c>HostEntryShapeDriftTests</c> pins both halves.</summary>
     internal static bool Renders(DataItem group) =>
         group.IsGroup && DataItem.DescendantsOf(group).Where(Occupies).All(d => !d.IsAnyLength)
         && (!HoldsComponents(group) || (group.CurrentExtentImageCapable && !HoldsSlots(group)));
