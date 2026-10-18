@@ -35,9 +35,10 @@ Each retired ref must be on the row today and must not be re-named by the same r
 appends `retired-witness: <ref> (<reason>)` to the row's `notes`, which is what lets
 `audit_witness_loss.py --check` tell a deliberate retirement from a silent loss after the batch file is gone. A
 retirement is printed apart from `rows changed`, and a write that would lose a witness any OTHER way is refused.
-A retirement also obliges the row's PROSE (kb/Work PB762): the mark is history, so a record that retires a symbol
-the row's notes still name, and restates those notes unchanged (a witness-only record restates nothing), is refused
-until it rewrites the sentence that narrates the symbol (`inventory_schema.retired_symbols_left_in_prose`).
+A retirement also obliges the row's PROSE (kb/Work PB762): the mark is history and the prose is the present, so a
+record that retires a symbol the row's notes (before the first mark) still name, and the row no longer cites
+anywhere else, is refused until it rewrites that sentence; a witness-only record restates nothing, so it can retire
+only a symbol the prose does not name (`inventory_schema.retired_symbols_left_in_prose`).
 
 A WITNESS-ONLY record — `{"rule-id": "...", "test-ref": "..."}`, with no verdict and no statement field — adds
 witnesses to a row that is already adjudicated and restates nothing, so it is safe to re-apply on a merged tree
@@ -245,12 +246,14 @@ def validate(records: list[tuple[pathlib.Path, int, dict]], schema, catalog: dic
         # ⛔ A RETIREMENT OBLIGES THE PROSE (kb/Work PB762). PB338 renamed `ReadLockGovern`, re-pointed the
         # code-location and appended an erratum; the prose above it kept narrating the method and five rows
         # contradicted themselves for six weeks, because nothing asked the writer to look at what the notes SAY.
-        # The shape rule is decidable from the record and the row: prose a retirement leaves untouched must not
-        # still name the retired symbol (`retired_symbols_left_in_prose`).
-        for ref in retired_symbols_left_in_prose(row.get("notes", ""), after["notes"], retire):
-            bad.append(f"{where}: retiring '{ref}' leaves the row's notes exactly as they were, and they still name "
-                       f"'{ref.partition('#')[2]}' — restate `notes` (with the verdict and editions) so the prose "
-                       f"describes the code as it is now; the retirement itself is recorded for you")
+        # The shape rule is decidable from the record and the row: once a symbol is retired the PROSE may not name
+        # it (`retired_symbols_left_in_prose`); the history of the retirement is its `retire-reason`, which the
+        # writer files behind the retired-witness mark.
+        for ref in retired_symbols_left_in_prose(after["notes"], retire,
+                                                 schema.split(after["code-location"], _sep("code-location", schema))):
+            bad.append(f"{where}: retiring '{ref}' leaves the row's notes naming '{ref.partition('#')[2]}' — the "
+                       f"prose describes the code as it is now, so rewrite the sentence (restate `notes`, with the "
+                       f"verdict and editions) and put the history in '{RETIRE_REASON}'")
 
         for field in schema.requires(verdict):
             if not after.get(field):

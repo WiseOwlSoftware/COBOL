@@ -100,21 +100,23 @@ def symbol_of(ref: str) -> str | None:
     return next((seg for seg in reversed(fragment.split(".")) if seg), None)
 
 
-def retired_symbols_left_in_prose(before_notes: str, after_notes: str, retired: Iterable[str]) -> list[str]:
-    """The retired witnesses whose symbol a write leaves NARRATED in the row's prose, prose it did not touch.
+def retired_symbols_left_in_prose(after_notes: str, retired: Iterable[str], live_locations: Iterable[str]) -> list[str]:
+    """The retired witnesses whose symbol the row's PROSE still names after a write, symbol the row no longer cites.
 
-    ⛔ THE SHAPE OF kb/Work PB762, decided from the record alone (no tree): a landing renamed `ReadLockGovern`,
-    retired its witness and appended a dated erratum, and the prose above the erratum kept describing the method
-    in the present tense, so five rows contradicted themselves. A retirement therefore obliges the record to
-    RESTATE the prose (a witness-only record restates nothing, so it cannot retire a symbol the prose names). A
-    record that rewrote the prose in any way is trusted: a symbol that merely MOVED is still true prose, and the
-    battery gate (`EveryNotesLocation_ResolvesInTheTree`) holds every `path#Symbol` spelling in it to the tree.
+    ⛔ THE SHAPE OF kb/Work PB762, decided from the record and the row alone (no tree): a landing renamed
+    `ReadLockGovern`, retired its witness and APPENDED a dated erratum, and the prose above the erratum kept
+    describing the method in the present tense, so five rows contradicted themselves for six weeks. Prose is the
+    PRESENT state of the code; history belongs in the retirement's reason, which the writer files behind the
+    retired-witness mark. So once a symbol is retired, the prose (the notes before the first mark) may not name it.
+    A symbol the row still cites (`live_locations`: it MOVED to another file, so the prose stays true) is exempt, and
+    so is a witness with no `#Symbol`. Rewriting the prose in some other way does not excuse it: the erratum that
+    sat beside the stale sentence is exactly the shape this refuses.
     """
-    before, after = prose_of(before_notes), prose_of(after_notes)
-    if after != before:
-        return []
+    prose = prose_of(after_notes)
+    still_cited = {s for loc in live_locations if (s := symbol_of(loc))}
     return [ref for ref in sorted(retired)
-            if (sym := symbol_of(ref)) and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", after)]
+            if (sym := symbol_of(ref)) and sym not in still_cited
+            and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", prose)]
 
 
 def resites(field: str, before_verdict: str, after_verdict: str) -> bool:

@@ -365,7 +365,7 @@ def self_test(schema) -> int:
     narrating = {**row, "notes": f"{row.get('notes', '')} The {symbol} method does the work today.".strip()}
     untouched = {**row, "notes": row.get("notes", "").replace(symbol, "")}
     catalog = {rid: row.get("kind", "")}
-    stale_msg = "leaves the row's notes exactly as they were"
+    stale_msg = "leaves the row's notes naming"
 
     def stale(rec: dict[str, str], on: dict[str, Any]) -> bool:
         errs = validate([(pathlib.Path("self-test"), 0, {"rule-id": rid, **rec})], schema, catalog, {rid: on})
@@ -374,10 +374,15 @@ def self_test(schema) -> int:
     retiring_loc = {"retire-witnesses": locs[0], "retire-reason": "self-test"}
     verify("writer: a witness-only retirement of a symbol the prose names is refused",
            stale(retiring_loc, narrating))
-    verify("writer: a full record restating the prose UNCHANGED is refused too",
+    verify("writer: a full record restating that prose is refused too",
            stale({**stmt, "notes": narrating["notes"], **retiring_loc}, narrating))
-    verify("writer: a full record that REWROTE the prose is trusted (a symbol that merely moved is true prose)",
-           not stale({**stmt, "notes": narrating["notes"] + " It moved.", **retiring_loc}, narrating))
+    verify("writer: an ERRATUM appended beside the stale sentence is refused (PB338's shape: the prose still names it)",
+           stale({**stmt, "notes": narrating["notes"] + " ERRATUM: renamed.", **retiring_loc}, narrating))
+    verify("writer: prose rewritten so it no longer names the symbol is accepted",
+           not stale({**stmt, "notes": untouched["notes"] + " It is done elsewhere now.", **retiring_loc}, narrating))
+    verify("writer: a symbol that MOVED (the record names it at another file) keeps its true prose",
+           not stale({**stmt, "notes": narrating["notes"], "code-location": f"src/Moved.cs#{symbol}",
+                      **retiring_loc}, narrating))
     verify("writer: a retirement of a symbol the prose does not name needs no new prose",
            not stale(retiring_loc, untouched))
     verify("writer: a record retiring nothing is never asked about the prose", not stale({**stmt}, narrating))
