@@ -193,6 +193,45 @@ def self_test() -> int:
             print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
             rc = 1
 
+    # ── kb/Work PB284: the FORMAT-BAND axis. The live catalog cannot separate its three failure modes by itself —
+    # a missing `sections` gate, a subset test written as an intersection, and a band read as text — so they are
+    # driven here against fabricated bands. A rule under "FORMATS 1 AND 2" also holds for format 1 and must stay out
+    # of an arm that names format 2 alone; the same number in ANOTHER clause is another clause's format.
+    banded = [
+        {"id": "SR-1.1-1", "kind": "SR", "section": "1.1", "text": "under format 2", "band": "FORMAT 2",
+         "band-formats": [2]},
+        {"id": "SR-1.1-2", "kind": "SR", "section": "1.1", "text": "under formats 1 and 2",
+         "band": "FORMATS 1 AND 2", "band-formats": [1, 2]},
+        {"id": "SR-1.1-3", "kind": "SR", "section": "1.1", "text": "under all formats", "band": "ALL FORMATS"},
+        {"id": "SR-1.1-4", "kind": "SR", "section": "1.1", "text": "under no band at all"},
+        {"id": "SR-2.2-1", "kind": "SR", "section": "2.2", "text": "format 2 of ANOTHER clause",
+         "band": "FORMAT 2", "band-formats": [2]},
+        {"id": "SR-1.1-5", "kind": "SR", "section": "1.1", "text": "FORMAT 2 written in the prose only"},
+    ]
+    band_cases = [
+        ("the FORMAT-BAND axis selects the rule printed under the named format, in the named clause only",
+         {"verdict": "X", "arms": [{"sections": ["1.1"], "formats": [2]}]}, ["SR-1.1-1"]),
+        ("a rule under FORMATS 1 AND 2 is not SOLELY format 2's — the band test is a subset, not an intersection",
+         {"verdict": "X", "arms": [{"sections": ["1.1"], "formats": [1, 2]}]}, ["SR-1.1-1", "SR-1.1-2"]),
+        ("a rule under ALL FORMATS or no band names no format and is never selected",
+         {"verdict": "X", "arms": [{"sections": ["1.1"], "formats": [1, 2, 3]}]}, ["SR-1.1-1", "SR-1.1-2"]),
+        ("the band is a FIELD, never read out of the rule's words",
+         {"verdict": "X", "arms": [{"sections": ["1.1"], "pattern": "format 2"}]}, ["SR-1.1-1", "SR-1.1-5"]),
+    ]
+    for name, raw, want in band_cases:
+        got = DerivedSelector("self-test", raw, register).select(banded)
+        if got == want:
+            print(f"  ok: {name}")
+        else:
+            print(f"  SELF-TEST FAILED: {name} -> selected {got}, wanted {want}")
+            rc = 1
+    try:
+        DerivedSelector("self-test", {"verdict": "X", "arms": [{"formats": [2]}]}, register)
+        print("  SELF-TEST FAILED: an arm naming formats without the clause that numbers them was accepted")
+        rc = 1
+    except SystemExit:
+        print("  ok: an arm that names formats without sections is refused (a format number is its clause's own)")
+
     # An arm with no positive field selects the entire catalog; the constructor refuses it. Driven because the
     # guard's own field list grew by two here, and a guard that forgot one would be silently permissive.
     try:
