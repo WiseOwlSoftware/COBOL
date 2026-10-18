@@ -28,7 +28,7 @@ public sealed class PageLayoutGoldenTests
     public void An_empty_relative_store_is_three_meta_pages_of_the_design_layout()
     {
         var (medium, _, _) = StoreKit.NewStore();
-        Assert.Equal(MetaPage.MetaPages, (uint)medium.PageCount);
+        Assert.Equal(MetaPage.MetaPages * (long)PageHeader.PageSize, medium.Length);
         for (uint p = 0; p < 3; p++)
         {
             var page = medium.Snapshot(p);
@@ -110,7 +110,7 @@ public sealed class PageLayoutGoldenTests
     public void A_statement_refuses_a_page_body_larger_than_the_page()
     {
         var (_, _, store) = StoreKit.NewStore();
-        Assert.Equal(StoreStatus.Ok, store.Begin(1, out var st));
+        Assert.Equal(StoreStatus.Ok, store.Begin(new StatementBound(1, 0), out var st));
         Assert.Throws<ArgumentException>(() => st!.Write(PageKind.Leaf, new byte[PageHeader.BodyBytes + 1]));
         Assert.False(st!.Write(PageKind.Leaf, new byte[PageHeader.BodyBytes]).IsNone);
         st.Abandon();
@@ -229,5 +229,44 @@ public sealed class PageLayoutGoldenTests
         Assert.Equal(0, page[148]);                                                           // flags
         Assert.Equal(0ul, BinaryPrimitives.ReadUInt64LittleEndian(page.AsSpan(149)));         // committing
         Assert.True(page.AsSpan(157, PagePointer.Bytes).IndexOfAnyExcept((byte)0) < 0);       // holdings root
+    }
+
+    /// <summary>The PRODUCTION medium's length is the file's length in BYTES (finding R2-1): over a 5 000-byte file — a
+    /// format-5 whole store, not a whole number of pages — <see cref="HandlePageMedium.Length"/> is 5 000, a read of the
+    /// partly held page serves its bytes then zeros, and <see cref="HandlePageMedium.SetLength"/> after a write past the
+    /// end gives the file back exactly its 5 000 bytes — what a refused creation's undo relies on (§14.9.27.4 GR25,
+    /// <i>"the file is not affected"</i>). A creation over the same file then leaves the three-page empty store.</summary>
+    [Fact]
+    public void The_host_medium_keeps_a_previous_files_length_to_the_byte()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"pb3331-length-{Guid.NewGuid():N}.dat");
+        try
+        {
+            var previous = Enumerable.Range(0, 5_000).Select(i => (byte)(i * 7 + 3)).ToArray();
+            "CBNFSTR"u8.CopyTo(previous);
+            previous[7] = 5;
+            File.WriteAllBytes(path, previous);
+            using (var handle = File.OpenHandle(path, FileMode.Open, FileAccess.ReadWrite))
+            {
+                var medium = new HandlePageMedium(handle);
+                Assert.Equal(5_000, medium.Length);
+                var page = new byte[PageHeader.PageSize];
+                medium.Read(1, page);
+                Assert.True(previous.AsSpan(PageHeader.PageSize).SequenceEqual(page.AsSpan(0, 5_000 - PageHeader.PageSize)));
+                Assert.True(page.AsSpan(5_000 - PageHeader.PageSize).IndexOfAnyExcept((byte)0) < 0);
+                medium.Write(2, new byte[PageHeader.PageSize]);
+                Assert.Equal(3L * PageHeader.PageSize, medium.Length);
+                medium.SetLength(5_000);
+            }
+            Assert.Equal(previous, File.ReadAllBytes(path));
+            using (var handle = File.OpenHandle(path, FileMode.Open, FileAccess.ReadWrite))
+                Assert.Equal(StoreStatus.Ok, PagedFile.Create(new HandlePageMedium(handle), StoreKit.Relative, true, out _));
+            Assert.Equal(3L * PageHeader.PageSize, new FileInfo(path).Length);
+            Assert.Equal(StoreFormat.Described, MetaPage.Describes(path, out _));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 }

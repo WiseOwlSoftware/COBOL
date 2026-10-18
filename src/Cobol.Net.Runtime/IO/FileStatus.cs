@@ -130,7 +130,7 @@ public static class FileStatusCode
     public const string RecordNotFound = "23";
     /// <summary>24 — invalid-key boundary violation (§9.1.13.5 item 4): a relative or indexed WRITE or REWRITE whose
     /// record would take the physical file past its boundary — the host's maximum file size, capped by the format at
-    /// <see cref="Store.PagedFile.MaxPages"/> pages, the boundary WiseOwl COBOL defines for those organizations (Annex
+    /// <see cref="Store.PagedFile.FormatPages"/> pages, the boundary WiseOwl COBOL defines for those organizations (Annex
     /// A.1 item 107, docs/CONFORMANCE.md DOC-A.1-107; §14.9.51.4 GR33 b) / GR42 d)) — or a sequential-access relative
     /// WRITE whose relative record number has
     /// more significant digits than the relative key item (§14.9.51.4 GR33 c)).</summary>
