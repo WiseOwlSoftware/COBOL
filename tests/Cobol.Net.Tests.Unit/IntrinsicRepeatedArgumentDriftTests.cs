@@ -39,7 +39,7 @@ public sealed class IntrinsicRepeatedArgumentDriftTests
         var result = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         foreach (var (sec, name) in SpecClauseText.FunctionSections(spec))
         {
-            var fmt = Regex.Match(spec, @"\n#### " + Regex.Escape(sec) + @"\.2 General format\s*\n(.*?)\n#### " + Regex.Escape(sec) + @"\.3 ", RegexOptions.Singleline);
+            var fmt = Regex.Match(spec, @"\n#### " + Regex.Escape(sec) + @"\.2 " + SpecClauseText.GeneralFormatNoun + @"\s*\n(.*?)\n#### " + Regex.Escape(sec) + @"\.3 ", RegexOptions.Singleline);
             if (!fmt.Success) continue;
             result[name] = fmt.Groups[1].Value.Contains('…');
         }
