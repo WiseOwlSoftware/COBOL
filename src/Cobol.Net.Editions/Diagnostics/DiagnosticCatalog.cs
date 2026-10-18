@@ -3130,7 +3130,8 @@ public static class DiagnosticCatalog
         "COBOLNET4268", "invoke-by-value-literal-not-numeric", EditionSeverity.Error,
         "ISO §14.9.23.3 syntax rule 16: \"If literal-2 or its corresponding formal parameter is specified with the BY "
         + "VALUE phrase, literal-2 shall be a numeric literal.\" A constant-name or symbolic-character that stands for a "
-        + "nonnumeric literal is that literal (§13.10.3 SR2). The predicate is the one CALL's SR23 asks.",
+        + "nonnumeric literal is that literal (§13.10.3 SR2). The predicate is the one the CALL statement's "
+        + "§14.9.4.3 SR23 asks.",
         "ISO §14.9.23.3 SR16");
 
     /// <summary>COBOLNET4269 — factory or instance object data passed BY REFERENCE in an INVOKE (kb/Work PB1136). It was
