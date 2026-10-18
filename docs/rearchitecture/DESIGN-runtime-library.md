@@ -769,9 +769,12 @@ never tears the file, which is Berkeley DB's `DB_TXN_WRITE_NOSYNC` contract ("tr
 not D") made explicit in the format rather than in a flag.
 
 **2.2.1.3 The decisions, in one place.** (Decisions 4, 5 and 7 and the rules they name were corrected on 2026-10-17 by the
-owner-approved finishers of the round-1, round-2 and round-3 reviews; 2.2.1.6, 2.2.1.7 and 2.2.1.10 carry each finding's
-evidence, 2.2.1.15 is the table every writer and reader of the format is checked against, and 2.2.1.16 and 2.2.1.17 are the
-crash points and the two-run-unit interleavings, each with the rule that decides its outcome.)
+owner-approved finishers of the round-1 to round-4 reviews; 2.2.1.6, 2.2.1.7 and 2.2.1.10 carry each finding's evidence,
+2.2.1.15 is the table every writer and reader of the format is checked against, and 2.2.1.16 and 2.2.1.17 are the crash
+points and the two-run-unit interleavings, each with the rule that decides its outcome. Round 4 replaced two case-by-case
+answers with two rules that make their class automatic: a transaction's locks are PAGES OF THE FILE, so no death can
+release them before their rollback; and every identifier the format mints is CLAIMED before anything carries it, so no
+attempt's fate can let it be issued twice.)
 
 1. **ONE paged file, no sidecar, one engine.** The data file IS the store (owner 2026-09-07, kb/Work PB802: "No sidecar of any
    type"). It is a sequence of 4 KiB pages; pages 0, 1 and 2 are the three META pages (two COMMITTED slots and the WORK slot,
@@ -807,7 +810,8 @@ crash points and the two-run-unit interleavings, each with the rule that decides
    since the connector last saw it and, when it did, adopts it and DROPS its page cache; it then reads only the pages it
    touches. Nothing reloads and nothing persists whole. Record locks, the lock-presence byte, the store mutex and the Table 19
    columns keep their bytes, their hosts and their observable behaviour (2.2.1.8); one byte region is added, the
-   transaction-liveness bytes of 2.2.1.10, and one identity kind, the unique-key-value lock of 2.2.1.10.
+   transaction-liveness bytes of 2.2.1.10. A transaction's own locks are not in the region at all: they are pages of the
+   file, its HOLDINGS (decision 7).
 6. **The boundary of a relative or indexed file is the host's** (2.2.1.9): a WRITE or REWRITE answers '24' only when the
    record would take the store past the format's 2^32 pages or past a maximum file size the host REPORTS (`EFBIG`,
    `ERROR_FILE_TOO_LARGE`); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
@@ -817,10 +821,15 @@ crash points and the two-run-unit interleavings, each with the rule that decides
    re-applies them, touching no other run unit's records; a run unit that dies has its transaction rolled back by the FIRST
    statement any connector with a writable handle runs on the file afterwards — a record statement's coherent entry or an
    OPEN, under the mutex, before that statement touches anything (2.2.1.10, finding R3-1). Every record a transaction changes
-   — read or not — and every unique alternate key value its change frees is locked by the transaction's connector until
-   COMMIT, ROLLBACK or termination, so no other connector can change what the rollback will restore while the owner lives;
-   once it is dead, nothing can change them before the rollback because the rollback precedes the next change. Plus the lock
-   releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's and is its own group (PB3338).
+   and every unique alternate key value its change frees is a HOLDING of the transaction, written INTO THE FILE (the
+   HOLDINGS tree, 2.2.1.10) by the statement that makes the change, so the lock outlives the owner's handle: a writer that
+   meets a holding at its own lock test probes the owner's liveness byte there and then — '51' while the owner lives, and
+   when it is dead the rollback runs first, at that test, before the writer changes anything. The outcome does not depend
+   on the instant the death fell (finding R4-1: a lock the operating environment releases with the handle cannot protect a
+   rollback that runs after the death; the surveyed engines keep a dead holder's locks as RETAINED locks until its backout,
+   and so does this one, in the file). A READ's lock (§12.4.5.9.4 GR4) stays a region lock, since nothing restores what a
+   READ held. Plus the lock releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's and is its
+   own group (PB3338).
 
 **2.2.1.4 The on-disk format (store format 5).** All integers little-endian, as format 4's were. A POINTER is 12 bytes: page
 number (4) + the generation of the write it names (8), 2.2.1.6 R3.
@@ -862,10 +871,13 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
                         coherent statement that finds it set under the mutex completes the promotion; the other bits 0
                         (the first draft's CLEAN CLOSE bit is gone: a writable OPEN fences whether or not the last close
                         was clean, R6, so no bit need prove one)
- 149  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
+ 149  12  holdings root POINTER to the HOLDINGS tree (2.2.1.10; finding R4-1): (kind, identity) → transaction id — every
+                        record identity and every unique key value an open transaction holds, kept in the file so that a
+                        dead owner's locks survive its handle
+ 161  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
            code-unit count + UTF-16 code units, kb/Work PB1602) collation-length(1) collation(ASCII fingerprint), then
            root[k+1](12), the POINTER to the alternate tree of key k
-   ..  the per-key descriptors are bounded by the page: 3 947 bytes hold at least 50 keys of 64-byte descriptors; a
+   ..  the per-key descriptors are bounded by the page: 3 935 bytes hold at least 50 keys of 64-byte descriptors; a
        declaration past the page's capacity is refused at the OPEN with '39' (DOC-A.1-129 names the limit)
 
 INTERNAL (I)   body: a leftmost child POINTER(12) at 32, then entries × { key length(2), key bytes, child POINTER(12) } ascending
@@ -1109,8 +1121,10 @@ their places; what each does changes:
   file abandoned the committed tree at its first statement and walked the tree R6 had just rejected, down to the torn page
   and a '30' on a file its OPEN had accepted); an INPUT connector ignores the mint and the flag, which concern writers only.
   **The DEAD-OWNER step** (2.2.1.10) runs at this entry too, through a writable handle: every transaction of the TRANSACTIONS
-  tree whose liveness byte is free is rolled back before the statement proceeds (finding R3-1). The statement then reads the
-  pages it touches: O(log n), the same count as an unshared statement plus the one meta read. `Complete` writes the
+  tree whose liveness byte is free is rolled back before the statement proceeds (finding R3-1); and the statement's own lock
+  tests read the HOLDINGS tree, where a holding whose owner died AFTER this entry's probe is rolled back at the test itself
+  (finding R4-1), so the entry's probe need not be the last word. The statement then reads the pages it touches: O(log n),
+  the same count as an unshared statement plus the one meta read. `Complete` writes the
   statement's dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run
   unit, as before. *Why not
   only the ALL OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the
@@ -1134,9 +1148,11 @@ bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 +
 — stays, held through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files
 of `SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
 `RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (the comment on `HostRegionLocks` is rewritten with
-the constant). **Added: one identity KIND in the record region** — a unique alternate key VALUE a transaction freed (2.2.1.10:
-the key's index and the value's channel bytes), hashed by `RecordLockByte` and tabled by `PhysicalFileTable` exactly as a
-record identity, so no second lock class exists. **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one byte per transaction id (`TransactionLivenessByte`
+the constant). **Not added: a transaction's locks.** The records a transaction changed and the unique alternate key values its
+changes freed are its HOLDINGS, pages of the file (the HOLDINGS tree, 2.2.1.10), not bytes of the region: a region lock dies
+with its holder's handle, and a holding must outlive it (finding R4-1). The region keeps exactly today's kinds — the record
+identity a READ locks (under commit control too, §12.4.5.9.4 GR4) and the explicit postures' locks — and `PhysicalFileTable`
+tables only those. **Added: the TRANSACTION-LIVENESS region at 2^62 + 2^61, one byte per transaction id (`TransactionLivenessByte`
 = base + (id mod 2^60)), held EXCLUSIVELY through the owner's writable handle for the life of the transaction** (2.2.1.10): the
 operating environment releases it with the handle when the owner dies, and the lock-file host already deletes a dead holder's
 file (`SidecarLockFiles`: *"delete it when its holder is dead"*), so "is this transaction's owner alive" is one test of one
@@ -1202,7 +1218,13 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   before-image under the record's identity unless an entry already exists (the first image is the one to restore; later
   changes to the same record do not replace it). The UNDO tree is written by the same statement that changes the record, under
   R1-R3, so it is exactly as crash-consistent as the data: a statement that completed has its before-image; one that did not
-  has neither its change nor its image.
+  has neither its change nor its image. **Its HOLDINGS are in the file too** (finding R4-1): the HOLDINGS tree — ONE tree per
+  file, the same engine, its root in the meta page — maps (kind, identity) → transaction id, where the kind is R for a
+  record identity (the prime key bytes or the relative record number) and V for a unique alternate key value (the key's
+  index and the value's channel bytes), and the statement that changes the record writes the record's holding and every
+  value its change frees in the same statement as the change and the before-image. A transaction's holdings are therefore
+  exactly the identities its rollback restores or re-inserts, they are visible to every statement under the mutex the
+  moment the change is, and they outlive the owner's handle.
 - **COMMIT** (§14.9.7.4 GR3: *"The execution of the COMMIT statement permanently applies any changes made to the files specified
   in all the active APPLY COMMIT clauses and releases all record locks associated with those files."*) = for every physical file
   on which this run unit has a transaction: one statement that removes the transaction's entry and releases its UNDO tree's
@@ -1218,16 +1240,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   generation, atomic under 2.2.1.6) that re-applies every before-image of the UNDO tree — a frame is written back under its
   identity with its OLD ordinals (the alternate trees' composite entries are rebuilt from the frame's ordinal vector, so the
   duplicate order of §14.9.35.4 GR24 is the one at the last COMMIT; the release mint only ever grows), an ABSENT marker deletes
-  the record — and removes the transaction's entry; then the record locks are released (§9.1.16: *"A ROLLBACK statement
-  releases all record locks for files subject to commit and rollback"*), the kept handles of connectors closed since the last
-  COMMIT are released, and the §9.1.15 last sentence's case (a file not open at the previous commit and opened since) releases
-  its file lock. No other connector can have changed a record the rollback restores, or taken a unique key value it
-  re-inserts: while the owner lives, the transaction's locks (the next two bullets) held them; once the owner is dead its
-  locks are gone, but the dead-owner step (the abnormal-termination bullet; finding R3-1) rolls the transaction back at the
-  entry of the first writable statement after the death, before that statement — the first that could change anything —
-  touches a record, and an INPUT connector cannot change one. `ApplyUndo` therefore runs no uniqueness check and no lock
-  test of its own, and a momentary double entry under a unique key inside the one statement (K1 restored under X before the
-  transaction's own K2 with X is removed) is invisible, since the statement is atomic. A ROLLBACK needs no promotion: if its
+  the record — and removes the transaction's entry and its holdings; then the region's record locks (its READ locks) are
+  released (§9.1.16: *"A ROLLBACK statement releases all record locks for files subject to commit and rollback"*), the kept
+  handles of connectors closed since the last COMMIT are released, and the §9.1.15 last sentence's case (a file not open at
+  the previous commit and opened since) releases its file lock. No other connector can have changed a record the rollback
+  restores, or taken a unique key value it re-inserts: each is a holding in the file (the next two bullets), and a holding is
+  passed by no writer while its owner lives ('51') and by none after the owner's death without this rollback having run
+  first, at that writer's own lock test or at its entry (the lock-test bullet; findings R3-1 and R4-1) — and an INPUT
+  connector cannot change one. `ApplyUndo` therefore runs no uniqueness check and no lock test of its own, and a momentary
+  double entry under a unique key inside the one statement (K1 restored under X before the transaction's own K2 with X is
+  removed) is invisible, since the statement is atomic. A ROLLBACK needs no promotion: if its
   statement is lost to a power loss, the committed state still carries the transaction and the next writable statement or
   OPEN rolls it back again; the operation is idempotent.
 - **Every record a transaction changes is locked by the connector that changed it, read or not, until COMMIT, ROLLBACK or
@@ -1252,31 +1274,55 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   `cob_rollback` unlock, `indexed_write` locks only on `COB_WRITE_LOCK`, `libcob/fileio.c` 3811-3818, 6866-6883) — nothing;
   Micro Focus Fileshare locks every record a transaction updates until its COMMIT or ROLLBACK (the survey above). So: commit
   control IMPLIES WITH LOCK for WRITE (GR11); REWRITE and DELETE lock the record they change whether or not a READ locked it
-  first; DELETE's lock is on the deleted record's IDENTITY (prime key bytes or relative record number), which stays in the
-  run unit's lock table and the published region after the record is gone, so another connector's WRITE of a record with that
-  identity answers '51'. The WRITE statement gains the lock test REWRITE and DELETE already have, placed where DOC-A.1-104
-  places theirs: after the invalid-key conditions, which ignore locks (§14.9.51.4 GR33, GR42), and before the record is
-  touched; the RETRY phrase applies (GR16: *"for the case where resources needed to write a record are locked by another run
-  unit"*). The connector's own re-lock is idempotent (GR8).
-- **A unique alternate key value a transaction's change frees is locked too** (finding R2-4). A REWRITE that changes a key
-  declared without DUPLICATES from X to Y, and a DELETE of a record whose such key is X, lock the VALUE X — identity = the
-  key's index and X's channel bytes, hashed into the record region by `RecordLockByte` exactly as a record identity is and
-  compared exactly within the run unit — until COMMIT, ROLLBACK or termination; a WRITE or REWRITE through any other
-  connector, in this run unit or another, that would insert X answers '51' at the same point of its order as the record lock
-  above (RETRY applies); the transaction's own connector holds the lock and proceeds. Without it the rollback's re-insertion
-  of X beside a record another run unit wrote with X would leave two records under a unique key, a state no statement can
-  create and every later alternate-key check answers wrongly against (the review's scenario). The value lock is §9.1.16's
-  *"circumstances other than a locked logical record that result in the return of a locked record status"*, which the
-  implementor may specify; DOC-A.1-152 names it and the deleted-identity lock (PB3337). Keys WITH DUPLICATES need no lock.
+  first; and these locks are the transaction's HOLDINGS, pages of the file, not bytes of the region: the statement that
+  changes the record writes (R, the record's identity: prime key bytes or relative record number) → its transaction id into
+  the HOLDINGS tree, in the same statement as the change and the before-image, and the entry stays after a DELETE's record
+  is gone, so another connector's WRITE of a record with that identity answers '51'. *Finding R4-1: the round-3 text
+  published these locks in the region, where the operating environment releases them with a dead owner's handle; a writer
+  whose entry had probed the owner alive, and whose own lock tests came after, found the record free when the owner was
+  killed between the two, changed it, and the next entry's rollback restored the before-image over its completed statement.
+  No probe closes a window between itself and a test of a different lock. A holding in the file does, because the test and
+  the holding are the same page, read under the mutex, and the only fact about another process the test consults is one
+  byte, probed at the test itself (the lock-test bullet).* The WRITE statement gains the lock test REWRITE and DELETE
+  already have, placed where DOC-A.1-104 places theirs: after the invalid-key conditions, which ignore locks (§14.9.51.4
+  GR33, GR42), and before the record is touched; the RETRY phrase applies (GR16: *"for the case where resources needed to
+  write a record are locked by another run unit"*). The connector's own re-lock is idempotent (GR8).
+- **A unique alternate key value a transaction's change frees is held too** (finding R2-4). A REWRITE that changes a key
+  declared without DUPLICATES from X to Y, and a DELETE of a record whose such key is X, hold the VALUE X — a HOLDINGS entry
+  of kind V: the key's index and X's channel bytes → the transaction id, written by the same statement — until COMMIT or
+  ROLLBACK (the owner's, or the one its death brings); a WRITE or REWRITE through any other connector, in this run unit or
+  another, that would insert X answers '51' at the same point of its order as the record holding above (RETRY applies); the
+  transaction's own connector holds it and proceeds. Without it the rollback's re-insertion of X beside a record another run
+  unit wrote with X would leave two records under a unique key, a state no statement can create and every later
+  alternate-key check answers wrongly against (the review's scenario). The value holding is §9.1.16's *"circumstances other
+  than a locked logical record that result in the return of a locked record status"*, which the implementor may specify;
+  DOC-A.1-152 names it and the deleted-identity holding (PB3337). Keys WITH DUPLICATES need no holding.
+- **The lock TEST, for every writer and every reader not IGNORING LOCK** (finding R4-1). READ, WRITE, REWRITE and DELETE test
+  the region as today (the READ locks and the explicit postures) and, when page 2's holdings root is not empty, look the
+  identity up in the HOLDINGS tree — one lookup, h pages, hot — and, for a WRITE or REWRITE, each unique alternate key
+  value they would insert, at DOC-A.1-104's point of their order. No entry: the identity is nobody's, and no rollback will
+  ever touch it, because a rollback touches holdings only. An entry of this run unit's own transaction, through a connector
+  under commit control: proceed (GR8). An entry of any other transaction — another run unit's, or this run unit's through a
+  connector no APPLY COMMIT names: probe its owner's liveness byte NOW. Held: the owner lives, '51', RETRY applies. Free: the
+  owner died, and the transaction is rolled back HERE — the ROLLBACK statement above, run by the testing connector under
+  the mutex it holds, before its own change — and the test runs again against the restored state (a WRITE of an identity
+  the rollback re-created now answers '22'; a value it re-inserted, '22' under that key). The result does not depend on the
+  instant the death fell: before this statement's entry (the entry's step rolled it back), between the entry and the test
+  (the test does), or after the test (the owner was alive at the test, so the holding was its — '51' — or the identity was
+  nobody's and stays outside every rollback). The order in which the operating environment releases a dead handle's locks
+  is not assumed, since the holding is a page and the byte is the one lock consulted. A READ IGNORING LOCK tests nothing,
+  as today (§9.1.16; D.2.5's tolerated read). An INPUT connector's READ tests the region and the holdings alike (a '51' for
+  a record a live transaction changed, as today's region lock gives it).
 - **The lock ceilings do not apply to the implicit commit posture.** DOC-A.1-154 and DOC-A.1-155 (255 per run unit and 15
   per connector, `PhysicalFileTable.RunUnitLockMax`/`ConnectorLockMax`, the standard's minima) stay for every explicit
-  posture; a connector under commit control holds one lock per record it changed or read since its last COMMIT, which D.2.5's
-  deferred batch commits (*"they may be deferred by using a data-item to count the transactions processed"*) make unbounded by
-  design, and §12.4.5.9.4 GR7 lets the implementor set the maximum. GnuCOBOL 3.2 imposes none of its own (one `DB_LOCK` per
-  file, `lock_record`; no 53 or 54 anywhere). The determination (PB3337 rewrites both rows): for the commit posture the
-  maximum is the host's, each lock costing one published region byte (one `LockFileEx` range, one OFD lock, or one lock file
-  on the lock-file host), and the standard's own warning applies — *"Making the frequency of commits too low will affect the
-  ability of other run units to run concurrently"*.
+  posture; a connector under commit control holds one region lock per record it READ since its last COMMIT and one holding
+  per record it changed, which D.2.5's deferred batch commits (*"they may be deferred by using a data-item to count the
+  transactions processed"*) make unbounded by design, and §12.4.5.9.4 GR7 lets the implementor set the maximum. GnuCOBOL 3.2
+  imposes none of its own (one `DB_LOCK` per file, `lock_record`; no 53 or 54 anywhere). The determination (PB3337 rewrites
+  both rows): for the commit posture the maximum is the host's — a holding is a tree entry and costs a page share, a READ
+  lock costs one published region byte (one `LockFileEx` range, one OFD lock, or one lock file on the lock-file host) — and
+  the standard's own warning applies — *"Making the frequency of commits too low will affect the ability of other run units
+  to run concurrently"*.
 - **Abnormal termination** (§9.1.18.5: *"When a run unit terminates abnormally, all file changes made since the previous commit
   or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY COMMIT clauses."*)
   is two mechanisms. Where the runtime still runs — a fatal exception condition (§14.6.13.1.3 item 8: *"if there is a fatal
@@ -1285,7 +1331,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   rollback differs from user specified rollbacks in that only files and not any of the data items"* are restored) — the
   runtime element's abnormal-termination path executes the file-only ROLLBACK above before it exits (the compiler half, PB3338,
   routes both). Where it does not (a kill, an out-of-memory failure, a power loss), the transaction's liveness byte, its
-  record locks and its value locks are all freed by the operating environment with the handle, and **the DEAD-OWNER STEP**
+  READ locks are freed by the operating environment with the handle — its holdings are not, being pages — and **the DEAD-OWNER STEP**
   rolls the transaction back: at the coherent entry (2.2.1.7) of EVERY statement through a connector with a writable handle
   — a record statement's or an OPEN's (R6 step 5), in any run unit, under the mutex, whether or not other run units hold the
   file open — when page 2's transactions root is not empty, the TRANSACTIONS tree is read, each transaction of ANOTHER run
@@ -1309,23 +1355,32 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   (ibm.com/support/knowledgecenter/en/SSGMCP_5.4.0/troubleshooting/dfht20d.html, read 2026-10-17; the z/OS SHCDS reference,
   SSLTBW_2.1.0 idai200/da6i2273.htm: *"These locks protect uncommitted changes and are needed for eventual backout"*, and
   *"For a failed subsystem, LISTSUBSYS shows the number of retained locks"*). Both keep a dead holder's records untouchable
-  until its rollback has run; neither leaves a window. This engine has no server to hold a dead run unit's locks, so it
-  removes the window the other way: the rollback is the first thing any writer does on the file after the death, and the
-  dead owner's locks are not needed because the only connectors that could change its records run that step first. The
-  cost is one page-2 field already read, the TRANSACTIONS tree (≤ 2 hot pages) only when a transaction exists, and one lock
-  probe per foreign transaction — the primitive the record-lock test already pays at every READ, REWRITE and DELETE. Between
-  the death and that first writable statement, a connector opened INPUT (no writable handle: it can neither take the mutex
-  exclusively on Linux nor write on any host) reads the file as it stands, dead transaction included — D.2.5's "possible for
-  another run unit to read a record written or updated by the current run unit", for a run unit that no longer exists.
-  DOC-A.1-75 (PB3335) and the commit row (PB3338) state this determination.
+  until its rollback has run; neither leaves a window. This engine has no server to hold a dead run unit's locks, so the
+  FILE holds them: a transaction's holdings are pages (the holdings bullets above), which no handle's closing releases —
+  IBM's retained locks, kept by the medium instead of a subsystem — and a dead owner is rolled back at the first entry
+  that probes it or the first lock test that meets one of its holdings, whichever comes first (Fileshare's trigger, the
+  contending access, is the second). *Finding R4-1: the round-3 text kept the locks in the region and rested on the entry's
+  one probe, which speaks only for deaths BEFORE the entry; an owner killed between another writer's entry and that
+  writer's lock tests left the tests passing on locks the operating environment had just released, and the next entry's
+  rollback restored before-images over a completed statement — R3-1's harm through a window inside one statement. No
+  arrangement of probes closes a window between a probe and a test of a different lock; a holding in the file does,
+  because the holding is what the test reads.* The cost is one page-2 field already read, the TRANSACTIONS tree (≤ 2 hot
+  pages) and one liveness probe per foreign transaction at the entry, only when a transaction exists, and the HOLDINGS
+  lookup (h hot pages) at a lock test, only when a holding exists — the probe is the primitive the region's lock test
+  already pays at every READ, REWRITE and DELETE. Between the death and that first writable statement, a connector opened
+  INPUT (no writable handle: it can neither take the mutex exclusively on Linux nor write on any host) reads the file as it
+  stands, dead transaction included — D.2.5's "possible for another run unit to read a record written or updated by the
+  current run unit", for a run unit that no longer exists. DOC-A.1-75 (PB3335) and the commit row (PB3338) state this
+  determination.
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
   contradiction was between that rule and PB3337's brief; both now say the same thing).
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
-  registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4),
-  WRITE, REWRITE and DELETE lock the record they change and the unique key values they free (the two bullets above), and the
-  locks are released only by COMMIT, ROLLBACK and termination. A record the transaction changed is therefore readable by
-  another connector only IGNORING LOCK (§9.1.16), which is D.2.5's one tolerated inconsistency.
+  registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4,
+  in the region), WRITE, REWRITE and DELETE hold the record they change and the unique key values they free (in the file;
+  the bullets above), and the locks and holdings are released only by COMMIT, ROLLBACK and termination — a holding by the
+  rollback the termination brings, if abnormal. A record the transaction changed is therefore readable by another connector
+  only IGNORING LOCK (§9.1.16), which is D.2.5's one tolerated inconsistency.
 - **A second connector of the SAME run unit** on the same physical file that no APPLY COMMIT names (§12.4.6.3.4 GR2 forbids only
   the same CONNECTOR being half-covered) changes records without before-images; the run unit's ROLLBACK restores only what its
   covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
@@ -1343,19 +1398,20 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
 writes and syncs per statement (`IoCounters`, internal), and every witness asserts COUNTS, because a wall-clock test is a flake
 generator (the repository's rule) and because a count is the thing the bar states. With d = the tree's depth (2.2.1.4 gives the
 formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries), the free-tree batch ≤ 2 pages (taken once per
-statement at most), and u = the UNDO tree's depth for a connector under commit control:
+statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
+for a thousand open holdings), read only when page 2's holdings root is not empty:
 
 | Statement | Pages read | Pages written | Syncs |
 |---|---|---|---|
 | OPEN (any mode, file present) | 3 + the ledger's `fresh` pages (after a CLOSE: the retirement's own, ≤ 5; after a death: ≤ 1 024) + the transactions tree (≤ 2) | INPUT handle: 0. Writable handle: the fence, 1 (its claim) + 1 (a committed slot) + its retirement (≤ 2 ledger + 3 free tree + 1 meta); a dead transaction's rollback: its own statement. OUTPUT: 3 | writable: 2; INPUT: 0 |
 | the coherent entry (every statement under the mutex, 2.2.1.7) | 1 (page 2) + through a writable handle, when page 2's transactions root is not empty, ≤ 2 (the TRANSACTIONS tree) and one liveness probe per transaction of another run unit (a host lock test, no page) | a dead transaction found: its rollback's own statement | 0 |
-| READ by key / by RRN | ≤ d + overflow pages of the record (+ the coherent entry when the mutex is held) | 0 | 0 |
-| READ NEXT / PREVIOUS | ≤ 1 (+ d when the cursor crosses a leaf; + d for an alternate key's prime lookup) | 0 | 0 |
-| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta) + 1 (the claim, under the mutex only); under commit control + u + the before-image's overflow pages (and one published lock per record and per freed unique key value: a host lock, no page) | 0 |
-| WRITE / REWRITE / DELETE (relative) | ≤ d | ≤ d + 5 (+ 1 claim under the mutex); under commit control + u + overflow (and one published lock per record) | 0 |
+| READ by key / by RRN | ≤ d + overflow pages of the record (+ the coherent entry when the mutex is held; + h for the holdings lookup of a READ not IGNORING LOCK, when holdings exist) | 0 | 0 |
+| READ NEXT / PREVIOUS | ≤ 1 (+ d when the cursor crosses a leaf; + d for an alternate key's prime lookup; + h as above) | 0 | 0 |
+| WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d + h × (1 + the unique values inserted), when holdings exist | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta) + 1 (the claim, under the mutex only); under commit control + u + h (the holdings' path copy) + the before-image's overflow pages | 0 |
+| WRITE / REWRITE / DELETE (relative) | ≤ d + h when holdings exist | ≤ d + 5 (+ 1 claim under the mutex); under commit control + u + h + overflow | 0 |
 | a promotion (CLOSE or checkpoint; COMMIT; normal termination; the fence at OPEN) | 2 (both committed slots) + ≤ 2 (the ledger) + 3 (the free tree's path) | 1 (the claim with PROMOTING) + 1 (a committed slot) + the retirement (≤ 2 ledger + 3 free tree + 1 meta) | 2 (CLOSE: 3) |
-| COMMIT, per file with a transaction | ≤ 2 | the transaction's removal (≤ 2 + 2 + 1) + the promotion | 2 |
-| ROLLBACK, per file with a transaction | the UNDO tree + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + 2 + 1, in one statement | 0 |
+| COMMIT, per file with a transaction | ≤ 2 + the UNDO tree (its holdings to remove) | the transaction's removal (≤ 2 + the HOLDINGS pages its entries sit on + 2 + 1) + the promotion | 2 |
+| ROLLBACK, per file with a transaction | the UNDO tree + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + the HOLDINGS pages its entries sit on + 2 + 1, in one statement | 0 |
 
 The witnesses: (a) **linearity** — a load of N and of 4N records through `NO OTHER` and through `ALL OTHER`, sequential and
 random keys, asserts that the pages written per statement differ by at most the depth growth (an integer ≤ 1 between those
@@ -1446,12 +1502,20 @@ every crash scenario is deterministic and runs on every host without a VM:
   a connector no APPLY COMMIT names; A's COMMIT releases every lock and B's refused statements then succeed; a transaction of
   300 changed records answers no '53' or '54';
 - the dead owner (finding R3-1): A under APPLY COMMIT DELETEs K5 (unique alternate key X) with no READ and is killed (the
-  test medium and lock host release A's handle: its liveness byte, its K5 identity lock and its X value lock); B, not under
+  test medium and lock host release A's handle: its liveness byte; its K5 and X holdings stay in the file); B, not under
   commit control and live with the file open, WRITEs K5 → the entry rolls A back first, so K5 exists again with X and the
   WRITE answers '22'; B WRITEs K7 with X → '22'; B READs K5 → the record as at A's last COMMIT; the same with A's REWRITE of
   K1's unique key X → Y and B's WRITE of K2 with X ('22' after the rollback, not '00'); an INPUT connector of a third run unit
   reading between A's death and B's statement finds K5 absent (the file as it stands) and after B's statement present; and
-  a WRITE of B's that found no dead transaction (A's byte held, A alive and idle) answers '51' as before.
+  a WRITE of B's that found no dead transaction (A's byte held, A alive and idle) answers '51' as before;
+- the holder's death at every point of another statement (finding R4-1): the same A (DELETE K5, unique value X, idle) is
+  killed, in turn, after B's entry probe found it alive, after B's region test, after B's holdings lookup, after B's claim,
+  between two of B's page writes and after B's page 2 — the test lock host releasing A's byte at exactly that point — for
+  B's WRITE K5 and B's WRITE K7 with X: the answer is '22' (A rolled back at B's test) or '51' (A alive at B's test; the
+  next entry rolls A back, and B's RETRY then answers '22'), never '00'; K5 reads back as at A's last COMMIT in every case;
+  and no record B wrote is ever overwritten by A's rollback (B's WRITE K9, unrelated, in every window: '00' and present
+  afterwards). The region's release order is varied by the test host (byte before locks, locks before byte, all at once)
+  and the answers do not change;
 
 **2.2.1.13 What the design deletes and what it keeps (CLAUDE.md rule 4: no wrapper, no shim, no reader of the old format).**
 Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
@@ -1511,9 +1575,10 @@ writer no reader expects, is a design defect.
 | **The LEDGER tree** | Every statement, path-copied, written after its data and FREE-tree pages from the reservation (R2); the retirement writes the post-promotion ledger (the promoted ledger's fresh entries dropped, its released and freed pages gone to the FREE tree, the promoted ledger's own pages `freed` — the committed slot references them until the next promotion, R4; finding R3-2 — and the retirement's own new pages fresh). | R6 step 3 (every `fresh` page verified before a DESCENDANT is adopted); the retirement (what to move); the allocator (released pages); R4 (freed pages quarantined). Relies on: the ledger root in the meta the reader holds names a ledger whose own pages verify by stamp. |
 | **The FREE tree** | The retirement (adds the retired pages and, at a fence after a rejection, the rejected ledger's never-committed pages); an allocation that takes a batch of its lowest pages (path-copied by the taking statement). | The allocator, after the in-memory ledger's released pages and before growth. Relies on: a page in the committed FREE tree is referenced by no slot's tree (the older committed slot is dead once a promotion's second sync completed, R5). |
 | **Data pages** (internal, leaf, overflow) | The statement that changes them, always to a page neither slot's tree references (R1), stamped with the statement's generation, before page 2. | Every statement through stamped pointers (R3: checksum, `self`, generation); R6 through the ledger's `fresh` list. |
-| **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (the entry removed, the UNDO pages released), ROLLBACK and the dead-owner step (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK, and the dead-owner step at every writable connector's coherent entry and at R6 step 5 (which transactions exist, whose owner is dead by the liveness byte; read only when page 2's transactions root is not empty). Relies on: a before-image exists for every change that completed (same statement); while the owner lives its locks keep every identity and unique value it will restore, and once it is dead the step runs before any writer's statement can touch them (finding R3-1). |
-| **The transaction-liveness byte** (2^62 + 2^61 + id mod 2^60) | Taken exclusively through the owner's writable handle when the transaction begins, before the entry is written in the same statement; given back at COMMIT after the entry's removal and its promotion, at ROLLBACK after its statement, and by the operating environment when the owner dies. | The dead-owner step (every writable coherent entry, R6 step 5) and `CloseAll` (held = alive; a run unit probes only other run units' transactions). Relies on: a transaction visible in the tree has its byte held by a live owner or by nobody, never by a stranger (ids are minted from page 2 under the mutex, and a rejected history's ids died with the power loss that rejected it). |
-| **The record-lock region** (2^62 + 2^60; a record identity or, under commit control, a freed unique key value) | READ under automatic locking; WRITE, REWRITE and DELETE under commit control (the record's identity; the unique values freed); released by UNLOCK/CLOSE for explicit postures and ONLY by COMMIT, ROLLBACK and termination for the commit posture; published through the holder's handle. | READ, REWRITE, DELETE and (new) WRITE of every other connector, at DOC-A.1-104's point of their order; `IGNORING LOCK` bypasses it for READ. No ceiling for the commit posture (DOC-A.1-154/155 rewritten by PB3337). |
+| **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (the entry removed, the UNDO pages released), ROLLBACK and the dead-owner rollback (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK, and the dead-owner step at every writable connector's coherent entry and at R6 step 5 (which transactions exist, whose owner is dead by the liveness byte; read only when page 2's transactions root is not empty). Relies on: a before-image exists for every change that completed (same statement); every identity and unique value a rollback restores is a holding in the file (the next row), so no writer passes it while the owner lives and none after its death without the rollback running first (findings R3-1, R4-1). |
+| **The HOLDINGS tree** (finding R4-1): (kind R record identity / V unique key value, bytes) → transaction id | The statement that changes a record under commit control (its identity and every unique value it frees, in the same statement as the change and the before-image); COMMIT, ROLLBACK and the dead-owner rollback remove the transaction's entries in their statement. Path-copied like every tree; its root in the meta page. | The lock test of READ (not IGNORING LOCK), WRITE, REWRITE and DELETE of every connector, under the mutex, when page 2's holdings root is not empty: own transaction → proceed; another's → its owner's byte probed at the test ('51' held; free → rolled back there, then the test again). Relies on: a holding is written by the same statement as the change it protects, and is removed only by the statement that restores or commits it — so the set of identities a rollback touches IS the set the test refuses, whatever the operating environment did with the owner's handle. |
+| **The transaction-liveness byte** (2^62 + 2^61 + id mod 2^60) | Taken exclusively through the owner's writable handle when the transaction begins, before the entry is written in the same statement; given back at COMMIT after the entry's removal and its promotion, at ROLLBACK after its statement, and by the operating environment when the owner dies. | The dead-owner step (every writable coherent entry, R6 step 5), the lock test that meets another transaction's holding (finding R4-1) and `CloseAll` (held = alive; a run unit probes only other run units' transactions). Relies on: a transaction visible in the tree has its byte held by a live owner or by nobody, never by a stranger (ids are minted from page 2 under the mutex, and a rejected history's ids died with the power loss that rejected it). |
+| **The record-lock region** (2^62 + 2^60; a record identity) | READ under automatic locking (the commit posture's READ locks included); the explicit postures as today; released by UNLOCK/CLOSE for explicit postures and ONLY by COMMIT, ROLLBACK and termination for the commit posture; published through the holder's handle. A change under commit control publishes nothing here: its lock is its holding (the row above; finding R4-1). | READ, REWRITE, DELETE and (new) WRITE of every other connector, at DOC-A.1-104's point of their order, beside the HOLDINGS lookup; `IGNORING LOCK` bypasses both for READ. No ceiling for the commit posture's READ locks (DOC-A.1-154/155 rewritten by PB3337). Relies on: nothing a rollback restores is protected here, so a lock lost with a dead handle protects nothing that outlives it. |
 | **The store mutex and the Table 19 column bytes** | Unchanged (PB2660, PB833): taken for every statement and the OPEN of a coherent connector, exclusive through a writable handle and shared through a reader's. | The same. |
 | **The page cache and the generation last seen** (in memory, one `PagedStore` per physical file per run unit) | The cache: filled by reads, DROPPED by 2.2.1.7 when page 2's `generation` changed; the generation and mint last seen: set at OPEN (page 2's, adopted or not) and at every adoption of page 2 and every own statement. | Every statement of every connector of the run unit on that file. Relies on: within the run unit there is one store, so a sibling's change is visible instantly. |
 
@@ -1543,7 +1608,7 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after the removal's page 2, before the promotion's slot write | the entry is gone; the changes are the last completed statement's, not yet durable against power loss | process death: nothing (committed in effect; the next OPEN adopts W and fences, making it durable). Power loss: W adopted (committed) or rejected (C still carries the entry → the dead-owner step rolls back) | an unacknowledged COMMIT — the run unit died inside it and never saw its result — lands whole or not at all, never partly: the removal statement is atomic and the rollback is idempotent; the standard fixes the outcome only of a completed COMMIT (§14.9.7.4 GR3) and of an abnormal termination after the "previous commit" (§9.1.18.5) |
 | | after the promotion, before the byte is given back | durable; the byte is freed by the handle's close | nothing (no entry to roll back; the step probes only entries) | — |
 | ROLLBACK (one statement), and the dead-owner step (the same statement run by another run unit) | before its page 2 | the entry and the UNDO tree stand; some restored frames on no-slot pages | the dead-owner step redoes it (idempotent); a live run unit refused mid-way ('30') is in §9.1.13.1's permanent error with its transaction intact | nothing of the half rollback is reachable (R1) |
-| | after its page 2 | the records are as at the last COMMIT, the entry gone; the locks go with the handle | none | the state is a completed statement's |
+| | after its page 2 | the records are as at the last COMMIT, the entry and its holdings gone; the READ locks go with the handle | none | the state is a completed statement's |
 | A transaction's first change (the byte taken, then one statement: the entry, the UNDO tree, the record) | before page 2 | no entry; the byte went with the handle | nothing | the change is invisible; an entry is never visible without its byte having been taken first |
 | `OPEN OUTPUT` (creation: `SetLength` to three pages, then pages 0, 1, 2) | before all three pages landed | fewer than three valid meta pages | the next OPEN other than OUTPUT answers '30' (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
 | Growth (a write at `page count`) | between the write and page 2 | the file is longer than `page count` | the next growth writes the same pages | pages past `page count` are reached by nothing |
@@ -1565,9 +1630,10 @@ unit exists. Two connectors of ONE run unit share one `PagedStore` and are seria
 | A's statement ∥ B's COMMIT (a promotion) or checkpoint | the mutex | A's next statement adopts the retirement's page 2: new base, new ledger, cache dropped; A's own uncommitted changes became durable with A's UNDO tree (harmless, 2.2.1.10) |
 | A's promotion ∥ B's promotion | the mutex + R5's read of both slots before the write | each writes the slot holding the lower valid generation; the second never overwrites the first's committed meta; the second's retirement runs on the second's base |
 | A's promotion dies between its claim and its retirement's page 2 ∥ B's next statement | the mutex (freed by A's death) + PROMOTING | B completes the promotion (R5 restarted from page 2) before its own work; without the flag B would have continued on the old base and released pages the new committed slot referenced (found by this self-attack; fixed with R3-4) |
-| A's statement ∥ B's ROLLBACK (B alive) | the mutex + B's transaction locks (record identities, deleted identities, freed unique values) | A's statements on B's records answered '51' (RETRY applies); B's ROLLBACK, one atomic statement, restores only B's records; A's completed statements stand |
+| A's statement ∥ B's ROLLBACK (B alive) | the mutex + B's holdings in the file (record identities, deleted identities, freed unique values; finding R4-1) | A's statements on B's records answered '51' (RETRY applies); B's ROLLBACK, one atomic statement, restores only B's records; A's completed statements stand |
 | A's COMMIT ∥ B's ROLLBACK | the mutex | either order ends with A's changes durable and B's restored; A's promotion carried B's UNDO tree with B's changes |
-| B dies with a transaction ∥ A's next writable statement or OPEN | the mutex + the liveness byte (finding R3-1) | A's entry finds B's byte free, rolls B back before A's own statement; A's records untouched; B's records as at B's last COMMIT; a second writer entering later finds no entry |
+| B dies with a transaction ∥ A's next writable statement or OPEN (the death before A's entry) | the mutex + the liveness byte (finding R3-1) | A's entry finds B's byte free, rolls B back before A's own statement; A's records untouched; B's records as at B's last COMMIT; a second writer entering later finds no entry |
+| B dies with a transaction ∥ A's statement already past its entry (the death at any later point of A's statement; finding R4-1) | the mutex + B's holdings in the file + the liveness byte probed at A's lock test | A's test meets B's holding and probes B THEN: free → B rolled back inside A's statement before A's change, the test repeated ('22' where the rollback re-created the identity); held → '51', and the next entry rolls B back. An identity with no holding is nobody's and no rollback touches it, so a death after the test cannot reach A's change. The point-by-point rows are in 2.2.1.17's round-4 table |
 | B dies with a transaction ∥ C's INPUT statement between the death and A's entry | the shared mutex | C reads the file as it stands (B's uncommitted state; D.2.5's tolerated read); after A's entry C adopts page 2 and reads the restored state |
 | B's transaction begins ∥ A's dead-owner step | the mutex; the byte taken before the entry is written, in B's statement | A probes only entries in the tree; an entry B wrote has B's byte held (B alive) → left as it stands |
 | B's COMMIT gives its byte back ∥ A's dead-owner step | B removes the entry (statement) and promotes before releasing the byte | A never sees an entry with a free byte for a live B |
