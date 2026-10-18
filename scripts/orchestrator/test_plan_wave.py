@@ -687,6 +687,10 @@ check("each spec is checked against its own group's requirements, not every grou
 real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
 check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
       [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
+# the lead note the operator reads says what the planner does: binding by membership (review R2-1), never by the --cluster mode
+lead_text = (coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8")
+check("the PB3353 note states the membership rule the planner implements, not the superseded --cluster-only rule",
+      ("plan_wave.group_requirements" in lead_text, "Read by `plan_wave.py --cluster" in lead_text), (True, False))
 # a fix-lane plan reaches them through the notes' cluster lists: PB3353's members are bound outside a --cluster wave
 real_items = work.load()
 member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3353" in i["cluster"] and i["id"] != "PB3353")
