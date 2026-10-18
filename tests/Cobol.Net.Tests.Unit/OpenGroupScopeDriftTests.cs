@@ -169,9 +169,14 @@ public sealed class OpenGroupScopeDriftTests
     /// phrase leaks. The defect PB316 fixed lives in the BOUND TREE, so it is asserted there: each entry of the
     /// statement carries the retry-phrase and sharing-phrase of the group that wrote it (§14.9.27.4 GR20: "These
     /// separate OPEN statements would each have the same open mode specification, the sharing-phrase,
-    /// retry-phrase, and REWIND phrase as specified in the OPEN statement"). Every row leaves at least one file
-    /// phrase-less AFTER a phrase-bearing group and one BEFORE it, because a leak runs forward under one hoisting
-    /// and backward under another.</summary>
+    /// retry-phrase, and REWIND phrase as specified in the OPEN statement"). A leak runs forward (a group inherits
+    /// an earlier group's phrase) under one hoisting and backward (a statement-scope phrase reaches an earlier
+    /// group) under another, so the rows split the two directions: a phrase-less file AFTER a phrase-bearing group
+    /// witnesses the forward leak (rows 2 to 7, counting from 1), a phrase-less file BEFORE one witnesses the
+    /// backward leak (rows 1, 3, 6 and 7), and rows 3, 6 and 7 carry both. Row 1 alone does not catch a
+    /// forward-only leak
+    /// and rows 2, 4 and 5 alone do not catch a backward-only one: trim the theory only to rows that keep both
+    /// directions.</summary>
     [Theory]
     [InlineData("OPEN INPUT F-SEED INPUT RETRY 2 TIMES F-E",
         new[] { "F-SEED||", "F-E|Times|" })]
