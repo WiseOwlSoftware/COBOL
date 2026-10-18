@@ -7,7 +7,7 @@
 #   $3 = ordered, space-separated test names that must share a dir + run order (a producer/consumer chain, or a
 #        single self-contained test)
 #
-# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same outfile/print-file/stdout resolution, same
+# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same report resolution, same written-files arm, same
 # FAIL*/footer rules) so a verdict here is identical to the serial guard's — only the working directory differs.
 # ⭐ THAT IS NO LONGER A PROMISE KEPT BY HAND: both guards call scripts/guard-verdict.sh, the ONE implementation
 # of the evidence rules (`feedback_one_rule_one_place`). The prose used to say the two blocks were kept
@@ -61,12 +61,16 @@ for test in $TESTS; do
     [ -f "$OUT/$test.runtimeconfig.json" ] && cp "$OUT/$test.runtimeconfig.json" "$WORK/"
 
     outfile="$(echo "$test" | tr '[:upper:]' '[:lower:]').txt"
-    stdoutfile="$WORK/${test}-stdout.txt"
-    errfile="$WORK/${test}-stderr.txt"
+    # The program's stdout and stderr live OUTSIDE its run directory ($CMP): the written-files arm (kb/Work PB804)
+    # grades what the program wrote INTO $WORK, and the shell's own redirections are not the program's output.
+    stdoutfile="$CMP/${test}-stdout.txt"
+    errfile="$CMP/${test}-stderr.txt"
+    marker="$CMP/run.marker"
     datafile="$ROOT/tests/nist/data/$test.dat"
     # EVIDENCE RULE (run): keep the exit status and stderr instead of discarding both with `|| true`. They are
     # what distinguishes "the program produced the wrong answer" from "the program never finished".
     rrc=0
+    : > "$marker"     # what the program WRITES is what is newer than this (guard_files_apply); after the copies above
     if [ -f "$datafile" ]; then
         (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$test.dll" 2>"$errfile") < "$datafile" > "$stdoutfile" || rrc=$?
     else
@@ -85,21 +89,25 @@ for test in $TESTS; do
     ec="$(guard_declared_termination "$test")"
     if [ -n "$ec" ]; then
         guard_termination_verdict "$test" "$ec" "$rrc" "$errfile" "$RUN_TIMEOUT"
+        # ⛔ The files the run left at its abnormal end are graded too (kb/Work PB804): report name "" = no report.
+        guard_files_apply "$test" "$ROOT/tests/nist/valid-files/$test" "$WORK" "$marker" "" "$stdoutfile" "$CMP/files.problems"
         echo "$test: $GUARD_VERDICT"
         if [ "$GUARD_CLASS" != "match" ]; then
-            guard_preserve "$test" "$GUARD_VERDICT" "$WORK/$outfile" "$WORK/print-file.txt" "$stdoutfile" "$errfile"
+            guard_preserve "$test" "$GUARD_VERDICT" "$WORK/$outfile" "$stdoutfile" "$errfile" "$CMP/files.problems"
         fi
         continue
     fi
 
-    # RUN + COMPARE arms, scored by the shared evidence rules (candidates in preference order).
+    # RUN + COMPARE arms, scored by the shared evidence rules: the program's report (guard_report_file), then
+    # ⛔ EVERY OTHER FILE THE PROGRAM WROTE (kb/Work PB804) once the report matched.
     guard_output_verdict "$test" "$validfile" "$rrc" "$errfile" "$RUN_TIMEOUT" "$CMP" \
-        "$WORK/$outfile" "$WORK/print-file.txt" "$stdoutfile"
+        "$(guard_report_file "$WORK" "$outfile" "$stdoutfile")"
+    guard_files_apply "$test" "$ROOT/tests/nist/valid-files/$test" "$WORK" "$marker" "$outfile" "$stdoutfile" "$CMP/files.problems"
     echo "$test: $GUARD_VERDICT"
     if [ "$GUARD_CLASS" != "match" ]; then
         # Anything but a MATCH is worth a post-mortem, and this dir dies with the group. Keep the evidence.
         guard_preserve "$test" "$GUARD_VERDICT" \
-            "$WORK/$outfile" "$WORK/print-file.txt" "$stdoutfile" "$errfile" \
-            "$CMP/expected.norm" "$CMP/actual.norm"
+            "$WORK/$outfile" "$stdoutfile" "$errfile" \
+            "$CMP/expected.norm" "$CMP/actual.norm" "$CMP/files.problems"
     fi
 done
