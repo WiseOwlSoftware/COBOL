@@ -604,8 +604,10 @@ public static class DiagnosticCatalog
     public static readonly DiagnosticDescriptor CallTargetCategory = new(
         "COBOLNET1681", "call-target-category", EditionSeverity.Error,
         "ISO §14.9.4.3 syntax rule 1: \"Identifier-1 shall be defined as an alphanumeric, national, or "
-        + "program-pointer data item.\" Any other identifier target (numeric, boolean, alphabetic, index, "
-        + "object) is not a program name carrier.",
+        + "program-pointer data item.\" The rule names the CATEGORY (§8.5.2.1: a class or category named in the "
+        + "rules of COBOL refers to the category unless class is specifically indicated), so any other identifier "
+        + "target (numeric, boolean, alphabetic, an edited item, index, object, a strongly-typed group whose class "
+        + "and category are its type-name, a bit or variable-length group) is not a program name carrier.",
         "ISO §14.9.4.3 SR1");
     public static readonly DiagnosticDescriptor CallAsNestedContext = new(
         "COBOLNET1682", "call-as-nested-context", EditionSeverity.Error,
@@ -855,7 +857,8 @@ public static class DiagnosticCatalog
         "ISO §14.9.5.3 syntax rule 1: \"Identifier-1 shall be defined as an alphanumeric or national data "
         + "item.\" CANCEL's admitted list is NARROWER than CALL's (§14.9.4.3 SR1 also admits a "
         + "program-pointer item — COBOLNET1681's rule); any other identifier target is not a program-name "
-        + "carrier (kb/Work PB154: CANCEL of a numeric item compiled clean and no-opped silently).",
+        + "carrier (kb/Work PB154: CANCEL of a numeric item compiled clean and no-opped silently; kb/Work PB3355: a "
+        + "strongly-typed group, whose category is its type-name, is not an alphanumeric data item either).",
         "ISO §14.9.5.3 SR1");
     public static readonly DiagnosticDescriptor OperandClassExcluded = new(
         "COBOLNET1694", "operand-class-excluded", EditionSeverity.Error,
