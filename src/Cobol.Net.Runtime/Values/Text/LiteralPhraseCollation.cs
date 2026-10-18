@@ -90,6 +90,9 @@ public abstract class LiteralPhraseCollation : CobolCollation
         return 0;
     }
 
+    /// <summary>The standard comparison of §8.8.4.2.7 1): <see cref="Compare"/> above, position by position.</summary>
+    internal override bool UsesStandardComparison => true;
+
     /// <summary>The total number of collating positions: the specified block plus one DISTINCT position per
     /// unspecified character (ISO §12.3.7.4 GR7 k3 — never a shared bucket). Under an ALSO collapse the block has
     /// FEWER positions than characters, so this is smaller than <see cref="Repertoire"/>.</summary>

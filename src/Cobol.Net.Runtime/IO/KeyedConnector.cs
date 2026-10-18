@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using System.Buffers;
+using CobolNet.Runtime.IO.Store;
 using Microsoft.Win32.SafeHandles;
 
 namespace CobolNet.Runtime.IO;
@@ -19,7 +19,10 @@ public enum KeyedAccess
 
 /// <summary>
 /// The shared base of the KEYED connectors — RELATIVE (§9.1.7.3) and INDEXED (§9.1.7.4) — carrying the one fact
-/// every keyed verb branches on: the connector's ACCESS MODE. A sequential-organization connector has no access
+/// every keyed verb branches on: the connector's ACCESS MODE, and the one LIFECYCLE both organizations share because
+/// they drive one engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1; kb/Work PB2753): the §14.9.27.4 OPEN
+/// arms (<see cref="OpenCore"/>), the store's attach and adoption, the CLOSE's promotion and the §9.1.15 release
+/// (<see cref="CloseCore"/>), and the coherent statement entry. A sequential-organization connector has no access
 /// mode to carry (§12.4.5.5.2 SR2 — <i>"The DYNAMIC and RANDOM phrases shall not be specified for a
 /// sequential file"</i>), which is why this sits below <see cref="FileConnector"/> rather than on it.
 /// That premise is now ENFORCED rather than assumed: until kb/Work PB692 the rule had no check anywhere and
@@ -61,114 +64,96 @@ public abstract class KeyedConnector : FileConnector
     internal bool KeyCheck { get; set; } = true;
 
     /// <inheritdoc/>
-    /// <remarks>⛔ THE KEYED ORGANIZATIONS' §14.9.27.4 GR10 ANSWER: the framed store's HEADER is the physical
-    /// file's §9.1.6 fixed file attributes, so the comparison is that header against
+    /// <remarks>⛔ THE KEYED ORGANIZATIONS' §14.9.27.4 GR10 ANSWER: the paged store's COMMITTED META, read from pages 0
+    /// and 1 (<see cref="MetaPage.Describes"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9), records the
+    /// physical file's §9.1.6 fixed file attributes, so the comparison is those attributes against
     /// <see cref="FileConnector.DeclaredAttributes"/> (<see cref="FixedFileAttributes.Conflicts"/> — the one
     /// place the comparison is written). RELATIVE and INDEXED share this method because they share the format;
     /// what differs between them is only what <see cref="FileConnector.DeclaredKeys"/> supplies, which is where
     /// that difference belongs.
-    /// <para>⛔ A STORE WITH NO READABLE HEADER IS A CONFLICT, NOT "attributes not recorded". Its layout is
-    /// unknown, so its frames cannot be located either, and reading it anyway is the silent misread this rule
-    /// exists to prevent — a plain sequential file opened through a RELATIVE description delivers rubbish with
-    /// status '00' if nothing refuses it. A ZERO-BYTE file is the one exception
+    /// <para>⛔ A FILE WITH NO READABLE META IS A CONFLICT, NOT "attributes not recorded". Its layout is unknown, so its
+    /// records cannot be located either, and reading it anyway is the silent misread this rule exists to prevent — a
+    /// plain sequential file, or a whole-store file of format 5, opened through a RELATIVE or INDEXED description
+    /// delivers rubbish with status '00' if nothing refuses it. A ZERO-BYTE file is the one exception
     /// (<see cref="StoreFormat.Empty"/>): it holds no records, so it can misread nothing and states no attribute
     /// to contradict.</para>
-    /// <para>The header read is ONE bounded auxiliary open, and it replaces the catalog sidecar's open
-    /// one-for-one — the file count went down by one and the open count did not go up (kb/Work PB802). It cannot
-    /// ride the connector's own store load, because GR25 ("If the execution of the OPEN statement is
-    /// unsuccessful, the file is not affected") puts this check BEFORE <c>OpenCore</c>, whose creation arms
-    /// truncate.</para>
-    /// <para>⛔ A HOST REFUSAL OF THAT READ CANNOT SILENTLY SKIP THE CHECK, and the reason is structural rather
-    /// than lucky: <see cref="RecordFraming.ReadHeader"/> answers <see cref="StoreFormat.Empty"/> (no conflict)
-    /// on an I/O failure, but it asks for the LEAST a handle can — <c>HostFile.OpenAuxiliary</c>, read access,
-    /// share <see cref="FileShare.ReadWrite"/> — and the connector's own store handle (<see cref="TakeFileLock"/>)
-    /// asks for at least that a few statements later inside <c>OpenCore</c>, where the failure PROPAGATES to <c>FileConnector.Open</c>'s catch and
-    /// becomes '37' or '30'. So any state that refuses the header read refuses the store load too, and the OPEN
-    /// is unsuccessful either way; the swallow can lose a '39' only in favour of another unsuccessful status,
-    /// never in favour of a successful OPEN over a store this connector could not interpret. Answering the
-    /// authority statuses here instead would be a SECOND place §9.1.13.6 item 1's '30' is decided, which
-    /// <c>FileConnector.Open</c>'s catch is the one place for.</para></remarks>
+    /// <para>The read is ONE bounded auxiliary open of two pages, and it replaces the catalog sidecar's open
+    /// one-for-one (kb/Work PB802). It cannot ride the connector's own adoption, because GR25 ("If the execution of the
+    /// OPEN statement is unsuccessful, the file is not affected") puts this check BEFORE <c>OpenCore</c>, whose
+    /// creation arms truncate. A host refusal of that read answers <see cref="StoreFormat.Empty"/>, and cannot lose a
+    /// '39' in favour of a successful OPEN: the connector's own handle asks for at least what the auxiliary read asks
+    /// a few statements later, inside <c>OpenCore</c>, where the failure becomes '37' or '30'.</para>
+    /// <para>A paged store whose meta pages carry the format's magic but whose committed slots both fail
+    /// (<see cref="StoreFormat.Damaged"/>) is the store's own format, damaged: not a conflict, so the OPEN goes on to
+    /// the adoption rule, which answers §9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1).</para></remarks>
     protected override bool FixedAttributeConflict() =>
-        RecordFraming.ReadHeader(HostPath, out var recorded) switch
+        MetaPage.Describes(HostPath, out var recorded) switch
         {
-            StoreFormat.Empty => false,
+            StoreFormat.Empty or StoreFormat.Damaged => false,
             StoreFormat.Described => recorded!.Conflicts(DeclaredAttributes, KeyCheck),
             _ => true,   // Foreign — not a store this build can interpret
         };
 
-    // ── The ISO §9.1.15 FILE LOCK, for the organizations whose store is a whole-file rewrite ────────────────
+    // ── The ISO §9.1.15 FILE LOCK, and the handle the store's pages travel through ───────────────────────────
 
     /// <summary>⛔ THE HANDLE THAT IS THIS CONNECTOR'S §9.1.15 FILE LOCK — held for the life of the OPEN, and
-    /// the ONE stream the store is loaded from and persisted through (kb/Work PB771).
+    /// the ONE handle the store's pages are read and written through (kb/Work PB771).
     /// <para><i>"The successful opening of a file establishes a file lock for the applicable sharing rules,
     /// thereby preventing other run units from opening that file with incompatible sharing rules"</i>
     /// (§9.1.15 3)) — and a host share mode is the only thing a .NET process can say to another run unit, which
-    /// means a connector that holds no handle says nothing. RELATIVE and INDEXED held none: their store was
-    /// loaded at the OPEN and rewritten at the CLOSE through short-lived <c>HostFile.OpenAuxiliary</c> handles
-    /// fixed at <see cref="FileShare.ReadWrite"/>, so <c>SHARING WITH NO OTHER</c> — <i>"exclusive access to a
-    /// physical file"</i>, §9.1.15 1) — protected an indexed or relative file from nothing outside the run unit,
-    /// and the CLOSE then truncated the file and rewrote it from the OPEN's snapshot, discarding another run
-    /// unit's records with '00' reported on both sides. Measured, on both organizations.</para>
-    /// <para>⛔ AND IT HAS TO BE THE SAME HANDLE THE STORE TRAVELS THROUGH. A second handle taken for the load
-    /// or the persist would ask the operating environment for access this connector's own
-    /// <see cref="FileShare.None"/> forbids, and the OPEN the standard ALLOWED would fail — kb/Work PB713's
-    /// defect, re-opened by its own cure. That is why the load and the persist (<see cref="Load"/>,
-    /// <see cref="Persist"/>) read and write positionally through THIS handle and nothing else.</para>
-    /// <para>⛔ WHY <see cref="FileMode.Open"/> AND NEVER <c>Create</c>, even for <c>OPEN OUTPUT</c>: the handle
-    /// outlives every persist, and <see cref="Persist"/> truncates as part of the rewrite. A creating MODE on the
-    /// handle would make the truncation a property of when the handle happened to be taken.</para></summary>
+    /// means a connector that holds no handle says nothing.</para>
+    /// <para>⛔ AND IT HAS TO BE THE SAME HANDLE THE STORE TRAVELS THROUGH. A second handle taken for a page read or
+    /// write would ask the operating environment for access this connector's own <see cref="FileShare.None"/> forbids,
+    /// and the OPEN the standard ALLOWED would fail — kb/Work PB713's defect. That is why the run unit's page medium
+    /// reads and writes through the handles of its connectors and nothing else (<see cref="RunUnitPageMedium"/>).</para>
+    /// <para>⛔ WHY <see cref="FileMode.Open"/> AND NEVER <c>Create</c>, even for <c>OPEN OUTPUT</c>: the store's
+    /// creation is its one truncation (<see cref="PagedFile.Create"/>); a creating MODE on the handle would make the
+    /// truncation a property of when the handle happened to be taken.</para></summary>
     private FileStream? _store;
 
     /// <inheritdoc/>
     /// <remarks>The store handle <see cref="TakeFileLock"/> took — null before the OPEN body takes it, for an
-    /// OPTIONAL file that is not present (there is no physical file to lock), and after the CLOSE. The
-    /// organizations' load and persist go through it and nowhere else.</remarks>
+    /// OPTIONAL file that is not present (there is no physical file to lock), and after the CLOSE.</remarks>
     internal sealed override FileStream? FileLock => _store;
 
     /// <inheritdoc/>
-    /// <remarks>⛔ THE KEYED STORE IS REWRITTEN WHOLE, so every writable mode READS the physical file before it
-    /// writes it — <c>OPEN EXTEND</c> included, where <see cref="FileLockPosture.AccessOf"/>'s mode-derived
-    /// floor says <see cref="FileAccess.Write"/> alone. §14.9.51.4 GR29 a) is why the load is not optional for
-    /// an extend: the release number is <i>"one greater than the highest relative record number existing in the
-    /// physical file"</i>, which is a fact of the records already there. Stating it here is what lets the
-    /// registry widen a SIBLING's file lock by the access this handle really takes (kb/Work PB771).</remarks>
+    /// <remarks>⛔ THE ENGINE READS THE FILE BEFORE IT WRITES IT, so every writable mode reads — <c>OPEN EXTEND</c>
+    /// included, where <see cref="FileLockPosture.AccessOf"/>'s mode-derived floor says <see cref="FileAccess.Write"/>
+    /// alone: the adoption rule reads the meta pages (2.2.1.6 R6), and §14.9.51.4 GR29 a)'s release number is
+    /// <i>"one greater than the highest relative record number existing in the physical file"</i>, a fact of the
+    /// records already there. Stating it here is what lets the registry widen a SIBLING's file lock by the access this
+    /// handle really takes (kb/Work PB771).</remarks>
     internal override FileAccess HostAccess(FileOpenMode mode) =>
         mode is FileOpenMode.Input ? FileAccess.Read : FileAccess.ReadWrite;
 
     /// <summary>Take the file lock: the connector's own handle on the physical file, carrying
     /// <see cref="FileConnector.HostShare"/> — the posture the registry derived and handed down immediately
-    /// before this body ran. Called by each organization's <c>OpenCore</c> on every arm that has a physical file
-    /// to hold, and by that arm ONLY: an arm with no file (an absent OPTIONAL one on INPUT) locks nothing.
+    /// before this body ran. Called by <see cref="OpenCore"/> on every arm that has a physical file to hold, and by
+    /// that arm ONLY: an arm with no file (an absent OPTIONAL one on INPUT) locks nothing.
     /// <para><paramref name="create"/> is §14.9.27.4 GR17/GR18's creation — the OUTPUT arm and the absent
     /// OPTIONAL I-O/EXTEND arms — and is the only difference between the arms, because the store's own
-    /// truncation is <see cref="Persist"/>'s.</para>
-    /// <para>The same OPEN allocates this connector's input-output areas (ISO §12.4.5.14.3 GR1; <see cref="_areas"/>,
-    /// kb/Work PB643, PB2693), the buffer every byte of the store passes through between the handle and the store.</para></summary>
-    /// <returns>The handle, so the arm that took it writes its store through that value rather than through a
-    /// nullable field it has to re-assert.</returns>
-    protected FileStream TakeFileLock(bool create)
+    /// truncation is <see cref="PagedFile.Create"/>'s.</para></summary>
+    private void TakeFileLock(bool create)
     {
-        // The areas first: an allocation that fails (a RESERVE the host cannot commit) must fail before a handle is
-        // taken, because nothing would dispose a handle that never reached _store (train 1045 review).
-        var areas = new byte[HostFile.InputOutputAreaBuffer(InputOutputAreas)];
         var taken = HostFile.OpenConnectorStore(HostPath, create ? FileMode.OpenOrCreate : FileMode.Open,
             HostAccess(Mode), HostShare);
-        _areas = areas;
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
         _store = taken;
-        // Taken ONCE: the store is read and written positionally through it (never through the stream's buffer,
-        // kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
+        // Taken ONCE: the store's pages are read and written positionally through it (never through the stream's
+        // buffer, kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
         _handle = taken.SafeFileHandle;
         // Writable is what the host granted this handle, never re-derived from the open mode (kb/Work PB2758).
         _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
-        _coherent = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        return taken;
+        // ⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector — a
+        // SHARING WITH READ ONLY writer against the INPUT reader §9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
+        // and only SHARING WITH NO OTHER runs without the mutex.
+        _coherent = FileLockPosture.AdmitsAnotherRunUnit(HostShare);
     }
 
     /// <summary>Give the file lock back — §9.1.15, <i>"The file lock is removed by an explicit or implicit CLOSE
-    /// statement executed for that file connector"</i>. Runs from each organization's <c>CloseCore</c> finally
-    /// (whatever the persist did) and from <see cref="AbandonOpen"/>.</summary>
-    protected void ReleaseFileLock()
+    /// statement executed for that file connector"</i>. Runs from <see cref="CloseCore"/>'s finally (whatever the
+    /// promotion did) and from <see cref="AbandonOpen"/>.</summary>
+    private void ReleaseFileLock()
     {
         // The field is cleared whatever the disposal throws (a final flush refused on an exhausted medium — the
         // disposal still closes the host handle), so a later CLOSE or re-OPEN never meets a disposed handle.
@@ -176,43 +161,202 @@ public abstract class KeyedConnector : FileConnector
         finally
         {
             try { _store?.Dispose(); }
-            finally { _store = null; _handle = null; _regions = null; _coherent = false; _areas = null; }
+            finally { _store = null; _handle = null; _regions = null; _coherent = false; }
         }
     }
 
-    /// <summary>⛔ THIS CONNECTOR'S INPUT-OUTPUT AREAS — ISO §12.4.5.14.3 GR1, <i>"If the RESERVE clause is specified,
-    /// the number of input-output areas allocated is equal to the value of integer-1"</i> — allocated by the OPEN that
-    /// takes the file lock (<see cref="TakeFileLock"/>; a run unit that cannot supply them gets '30' on that OPEN,
-    /// <c>FileConnector.Open</c>) and released by the CLOSE. Every byte of the store passes through them: the load
-    /// reads the file one buffer of areas at a time (<see cref="ReadImage"/>) and the persist writes it the same way
-    /// (<see cref="Persist"/>), positionally on the handle, because a stream buffer would hand back bytes another
-    /// run unit has since replaced (kb/Work PB2660). Until kb/Work PB2693 the areas were the HANDLE's stream buffer,
-    /// which no store byte ever passed through, so RESERVE allocated memory nothing used. Null while the connector
-    /// holds no file lock.</summary>
-    private byte[]? _areas;
+    // ── The lifecycle, written once for both organizations (kb/Work PB2753) ──────────────────────────────────
+
+    /// <summary>The store this connector is attached to — the run unit's ONE store for the physical file
+    /// (kb/Work PB143) — or a placeholder before the OPEN attaches and after the CLOSE detaches.</summary>
+    private protected abstract KeyedStore AttachedStore { get; }
+
+    /// <summary>Attach the organization's store for <see cref="FileConnector.HostPath"/> (the table's live one, or a
+    /// private one for a standalone connector), <paramref name="create"/> for <c>OPEN OUTPUT</c>'s new, EMPTY store
+    /// (<see cref="KeyedStoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
+    private protected abstract KeyedStore AttachStore(bool create);
+
+    /// <summary>Forget the store the connector was attached to (it holds a placeholder again).</summary>
+    private protected abstract void ForgetStore();
+
+    /// <summary>The organization's position state reset at the start of every OPEN (§14.9.27.4 GR14's key of reference
+    /// and position are set by the arm that succeeds).</summary>
+    private protected abstract void ResetPosition();
+
+    /// <summary>The organization's last step of a successful OPEN arm in <paramref name="mode"/> — §14.9.27.4 GR14's and
+    /// GR15's positioning; the failing I-O status (a torn page met while positioning: '30'), or null.</summary>
+    private protected abstract string? Opened(FileOpenMode mode);
+
+    /// <summary>Whether this connector is attached to <see cref="AttachedStore"/> (and its handle to the store's medium).</summary>
+    private bool _attached;
+
+    /// <summary>The file position indicator's validity bit (§9.1.11; §14.9.41.4 GR7 clears it), the one piece of the
+    /// position both organizations keep alike.</summary>
+    private protected bool FpiValid { get; set; }
+
+    /// <summary>The keyed OPEN body (§14.9.27). GR14: INPUT/I-O position the file position indicator at the start of
+    /// the key of reference (the organization's <see cref="Opened"/>); GR15: EXTEND positions after the highest; GR17: an
+    /// absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6 item 5: an absent NON-optional file on
+    /// INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode bookkeeping, the position reset, the
+    /// ONE presence probe behind <paramref name="presence"/>, GR3's authority '37' and the '37'/'30' exception mapping
+    /// live on <see cref="FileConnector.Open"/>.
+    /// <para>The store is adopted or created under the store mutex (2.2.1.7, R6): a damaged store — both committed
+    /// slots fail — or a refused read, write or sync is §9.1.13.6 item 1's '30', and the OPEN is unsuccessful
+    /// (<see cref="AbandonOpen"/> detaches what it attached).</para></summary>
+    protected sealed override string OpenCore(FileOpenMode mode, FilePresence presence)
+    {
+        ResetPosition();
+        // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
+        // a refusal can never be read here as "unavailable" (kb/Work PB323).
+        bool exists = presence is FilePresence.Present;
+        string status = FileStatusCode.Success;
+        switch (mode)
+        {
+            case FileOpenMode.Input:
+                if (!exists)
+                {
+                    if (!IsOptional) return FileStatusCode.FileNotFound;
+                    OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
+                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here.
+                    AttachStore(create: false);          // no file, no records
+                    _attached = true;
+                    status = FileStatusCode.OptionalFileNotFound;
+                    break;
+                }
+                if ((Lock(create: false) ?? Attach(create: false)) is { } refusedInput) return refusedInput;   // §9.1.15 — the lock, before the store is read through it
+                break;
+            case FileOpenMode.Output:
+                // §14.9.27.4 GR18 — OUTPUT creates the physical file: a new, EMPTY store (kb/Work PB754)
+                if ((Lock(create: true) ?? Attach(create: true)) is { } refusedOutput) return refusedOutput;
+                break;
+            case FileOpenMode.IO:
+            case FileOpenMode.Extend:
+                if (!exists)
+                {
+                    if (!IsOptional) return FileStatusCode.FileNotFound;
+                    // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
+                    // and the adoption of a file of no bytes through a writable handle creates the empty store.
+                    if ((Lock(create: true) ?? Attach(create: false)) is { } refusedCreated) return refusedCreated;
+                    status = FileStatusCode.OptionalFileNotFound;
+                    break;
+                }
+                if ((Lock(create: false) ?? Attach(create: false)) is { } refused) return refused;
+                break;
+        }
+        FpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
+        return Opened(mode) ?? status;
+    }
+
+    /// <summary>The file lock of an arm that has a physical file (<see cref="TakeFileLock"/>), taken only for a declaration
+    /// the physical format can hold (<see cref="FormatHolds"/>): one it cannot is §14.9.27.4 GR10's fixed file attribute
+    /// conflict, '39', answered before any file is touched (GR25, <i>"If the execution of the OPEN statement is
+    /// unsuccessful, the file is not affected"</i>). Returns the failing I-O status, or null.</summary>
+    private string? Lock(bool create)
+    {
+        if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
+        TakeFileLock(create);
+        return null;
+    }
+
+    /// <summary>Whether the physical format can hold this connector's declaration (docs/CONFORMANCE.md DOC-A.1-129): its
+    /// key descriptors within the meta page (<see cref="MetaPage.Fits"/>, 2.2.1.4), and each organization's own bounds.</summary>
+    private protected virtual bool FormatHolds() => MetaPage.Fits(DeclaredAttributes);
+
+    /// <summary>Attach the per-physical-file store (kb/Work PB143) and open it through this connector's handle: the
+    /// LIVE store when another connector of the run unit holds this host open (its trees are the truth — never re-read,
+    /// but opened again through a writable handle when it had none, which fences), else a new one adopted from the
+    /// file (2.2.1.6 R6) or, for <paramref name="create"/> — <c>OPEN OUTPUT</c> — created empty, held by no other
+    /// connector. Returns the failing I-O status, or null.</summary>
+    private string? Attach(bool create)
+    {
+        var store = AttachStore(create);
+        _attached = true;
+        store.AttachHandle(_handle!, StoreHandleWritable,
+            HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
+        var opened = InStoreMutex(() => create
+            ? store.Create(DeclaredAttributes, _coherent)
+            : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes));
+        return Failed(opened);
+    }
+
+    /// <summary>Leave the store: this connector's handle off its medium, and the table's attachment given back.</summary>
+    private void Detach()
+    {
+        if (!_attached) return;
+        if (_handle is { } handle) AttachedStore.DetachHandle(handle);
+        SharedStores?.Detach(HostPath);
+        _attached = false;
+        ForgetStore();
+    }
 
     /// <inheritdoc/>
-    protected override void AbandonOpen() => ReleaseFileLock();
-
-    // ── The externally-defined boundary of a relative or indexed file (ISO §9.1.13.5 item 4) ───────────────
-
-    /// <summary>The bytes of this connector's store header — measured once (the declared attributes are fixed for
-    /// the connector's life), and -1 until first asked.</summary>
-    private long _storeHeaderBytes = -1;
-
-    /// <summary>⛔ THE ONE BOUNDARY TEST OF A RELATIVE OR INDEXED FILE (kb/Work PB1192): would a store whose frames
-    /// occupy <paramref name="framedBytes"/> bytes still fit the format's capacity,
-    /// <see cref="RecordFraming.MaxStoreBytes"/>? False is §14.9.51.4 GR33 b) / GR42 d)'s <i>"outside the
-    /// externally defined boundaries"</i> — I-O status '24', the invalid key condition — decided HERE, at the
-    /// WRITE or REWRITE, before anything is released: the store lives in memory while the file is open and is
-    /// written whole at CLOSE, so a record it cannot hold used to be reported '00' and then fail at the CLOSE
-    /// (or, for a relative key in the billions, kill the run unit there). Annex A.1 item 107 is the
-    /// determination (docs/CONFORMANCE.md <c>DOC-A.1-107</c>).</summary>
-    protected bool StoreHolds(long framedBytes)
+    protected sealed override void AbandonOpen()
     {
-        if (_storeHeaderBytes < 0) _storeHeaderBytes = RecordFraming.HeaderBytes(DeclaredAttributes);
-        return _storeHeaderBytes + framedBytes <= RecordFraming.MaxStoreBytes;
+        try { Detach(); }
+        finally { ReleaseFileLock(); }
     }
+
+    /// <summary>The keyed CLOSE body (ISO §14.9.6): through a writable handle the store's PROMOTION (2.2.1.6 R5) — the
+    /// work meta made a committed slot, synced — under the store mutex, so the next OPEN verifies the retirement's few
+    /// pages and nothing else; the records themselves were written by the statements that changed them. The
+    /// run-unit-termination <c>CloseAll</c> reaches it too, which keyed chains (RL208A) depend on. The not-open '42'
+    /// guard lives on <see cref="FileConnector.Close"/>.</summary>
+    protected sealed override string CloseCore()
+    {
+        // A refused promotion maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping), which ends
+        // the open mode either way; ModeKnown then stays true for the USE-declarative scoping. The records survive it:
+        // page 2 already names the last completed statement's trees (2.2.1.6), so the next OPEN adopts them.
+        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file position
+        // indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
+        try
+        {
+            if (!OptionalAbsent && StoreHandleWritable && AttachedStore.File is { Writable: true } file
+                && InStoreMutex(file.Close) != StoreStatus.Ok)
+                throw new IOException($"the medium refused the CLOSE's promotion of '{HostPath}'");
+        }
+        finally
+        {
+            // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
+            // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
+            // its medium reads through is still open.
+            try { Detach(); }
+            finally { ReleaseFileLock(); }
+        }
+        ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
+        return FileStatusCode.Success;
+    }
+
+    /// <summary>The I-O status a store operation's failure answers when the statement is not a record WRITE or REWRITE —
+    /// an OPEN's adoption or creation, a DELETE — in either organization: §9.1.13.6 item 1's '30' (<i>"A permanent error
+    /// exists and no further information is available concerning the input-output operation"</i>) for every failure, the
+    /// boundary of the physical file included. The boundary's '24' is §9.1.13.5 item 4's <i>"An attempt is made to write
+    /// outside the externally-defined boundaries of a physical relative or indexed file"</i> — an attempt to WRITE a
+    /// record — and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses
+    /// to grow the file for is the permanent error and never the invalid key condition (docs/CONFORMANCE.md
+    /// DOC-A.1-107). Null on success.</summary>
+    private protected static string? Failed(StoreStatus status) =>
+        status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
+
+    /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers, in either organization: '24' for the
+    /// boundary of the physical file (§9.1.13.5 item 4; §14.9.51.4 GR33 b) for a relative file, GR42 d) for an indexed
+    /// one; 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on success.</summary>
+    private protected static string? RecordWriteFailed(StoreStatus status) =>
+        status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
+
+    /// <summary>Whether this statement's coherent entry already read page 2 (the registry's statement around the
+    /// verb), so the change's own statement need not read it again.</summary>
+    private protected bool Entered => AttachedStore.StatementDepth > 0;
+
+    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §14.9.41.4 GR7 clears the bit too)
+    protected sealed override void InvalidateFilePosition()
+    {
+        FpiValid = false;
+        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§9.1.13.7 item 6 a))
+    }
+
+    /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
+    /// (§9.1.13.5 item 3): §14.9.41.4 GR7's invalidation plus that value.</summary>
+    private protected string StartFail() => Unsuccessful(FileStatusCode.RecordNotFound);
 
     /// <summary>⛔ THE RECORD'S OWN RULES, WRITTEN ONCE FOR EVERY KEYED WRITE AND REWRITE (kb/Work PB2751): the size
     /// (§14.9.51.4 GR14 / §14.9.35.4 GR20, '44': <i>"If this rule is violated, the execution of the WRITE statement is
@@ -232,17 +376,10 @@ public abstract class KeyedConnector : FileConnector
         return RecordHasCharacterWithoutByteImage(record) ? FileStatusCode.CharacterWithoutByteImage : null;
     }
 
-    /// <summary>Whether a CLOSE that owes a persist still holds the handle it persists through. Every writable
-    /// arm of every keyed OPEN takes it (<see cref="TakeFileLock"/>), so false is an invariant breach, and
-    /// §9.1.13.6 item 1's '30' is the answer: the records this connector holds cannot be written, and reporting
-    /// a successful CLOSE over them would be the silent loss kb/Work PB771 exists to remove.
-    /// </summary>
-    protected bool PersistIsReachable(bool owed) => !owed || _store is not null;
-
     // ── Coherence ACROSS RUN UNITS (ISO §9.1.15, §9.1.16; kb/Work PB2660) ────────────────────────────────────
 
-    /// <summary>The connector's own handle — <see cref="FileLock"/>'s, taken once — through which the store is read
-    /// and written POSITIONALLY and through which the store mutex and the record locks are held
+    /// <summary>The connector's own handle — <see cref="FileLock"/>'s, taken once — through which the store's pages are
+    /// read and written POSITIONALLY and through which the store mutex and the record locks are held
     /// (<see cref="HostRegionLocks"/>). Null whenever <see cref="FileLock"/> is.</summary>
     private SafeFileHandle? _handle;
 
@@ -251,45 +388,29 @@ public abstract class KeyedConnector : FileConnector
     /// <see cref="ReleaseFileLock"/>. Null whenever <see cref="_handle"/> is.</summary>
     private RegionLocks? _regions;
 
-    /// <summary>⛔ Whether ANOTHER RUN UNIT may write this physical file while this connector holds it open — its
-    /// §9.1.15 file lock admits another writer (<see cref="FileLockPosture.AdmitsAnotherWriter"/>), which only
-    /// <c>SHARING WITH ALL OTHER</c> does (§9.1.15 3), <i>"allows concurrent access to a physical file through other
-    /// file connectors specifying input, I-O, or extend mode"</i>). Such a connector's store is a COPY of a file
-    /// someone else may change, so every statement it executes is COHERENT (<see cref="BeginStatement"/>): it
-    /// starts from the file as it is now and leaves the file as the statement left the records. A connector whose
-    /// lock admits no other writer cannot meet one — Table 19 refuses that writer's OPEN in every run unit — and
-    /// keeps the whole-store model (loaded at the OPEN, persisted at the CLOSE) with no per-statement cost.</summary>
+    /// <summary>⛔ Whether this connector's statements must be SERIALIZED against another run unit's — every one of them
+    /// COHERENT (<see cref="BeginStatement"/>): it runs inside the store mutex, starting from the file as it is now. The
+    /// engine writes at every statement, so this is every sharing mode that admits ANY other run unit's connector
+    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and
+    /// 2.2.1.13; kb/Work PB3333): the INPUT reader §9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
+    /// half-written path.</summary>
     private bool _coherent;
 
-    /// <summary>The store this connector is attached to (the run unit's ONE store for the physical file,
-    /// kb/Work PB143).</summary>
-    private protected abstract KeyedStore AttachedStore { get; }
-
-    /// <summary>Replace the records of <paramref name="into"/> with <paramref name="frames"/>, the physical file's
-    /// frames in ordinal order — the organization's half of a load or a reload. The store is the SHARED one, so
-    /// every connector of the run unit attached to it sees the reload, which is the point.
-    /// <paramref name="releaseMint"/> is the file's release mint (<c>RecordFraming.ReleaseMintOffset</c>).</summary>
-    private protected abstract void Fill(KeyedStore into, List<StoredFrame?> frames, long releaseMint);
-
-    /// <summary>The store's frames in the order the organization persists them (null = a relative gap).</summary>
-    private protected abstract IEnumerable<StoredFrame?> PersistFrames();
-
-    /// <summary>The release mint the persist records with the frames: an indexed store's next release ordinal, 0 for
-    /// a relative store (kb/Work PB2693).</summary>
-    private protected abstract long ReleaseMint { get; }
+    /// <summary>Whether the host granted the connector's handle write access (kb/Work PB2758).</summary>
+    private bool StoreHandleWritable => _regions?.Writable ?? false;
 
     /// <inheritdoc/>
     internal override RegionLocks? RecordLocks => _regions;
 
     /// <summary>⛔ ENTER A COHERENT STATEMENT (kb/Work PB2660). For a connector another run unit may write
     /// (<see cref="_coherent"/>): take the store's cross-run-unit MUTEX (<see cref="HostRegionLocks.StoreMutexByte"/>)
-    /// — waiting for another run unit's statement to finish — and, when the file's generation stamp differs from
-    /// the one the store reflects, RELOAD the store from the file. Every governed record statement runs inside one
-    /// (<c>FileRegistry</c>), so its record-lock check, its operation, its lock actions and the persist of what it
-    /// changed are ONE step to every other run unit — which is what makes §9.1.16's <i>"While locked by a given
-    /// file connector, a record is not accessible to another file connector in the same or a different run unit"</i>
-    /// enforceable, and what makes §14.9.30.4 GR21's <i>"the first existing record in the physical file"</i> the
-    /// file's and not a snapshot's. Inert (<c>default</c>) for every other connector.</summary>
+    /// — waiting for another run unit's statement to finish — and read page 2, adopting it when another run unit's
+    /// statement moved it (2.2.1.7). Every governed record statement runs inside one (<c>FileRegistry</c>), so its
+    /// record-lock check, its operation, its lock actions and the pages it writes are ONE step to every other run unit —
+    /// which is what makes §9.1.16's <i>"While locked by a given file connector, a record is not accessible to another
+    /// file connector in the same or a different run unit"</i> enforceable, and what makes §14.9.30.4 GR21's <i>"the
+    /// first existing record in the physical file"</i> the file's and not a snapshot's. Inert (<c>default</c>) for every
+    /// other connector.</summary>
     internal override StoreStatement BeginStatement()
     {
         if (!_coherent || _handle is null) return default;
@@ -298,17 +419,14 @@ public abstract class KeyedConnector : FileConnector
     }
 
     /// <summary>⛔ A HOST FAILURE OF A STATEMENT'S OWN ENTRY IS A PERMANENT ERROR, NOT AN EXCEPTION (kb/Work PB2842).
-    /// Taking the mutex, reading the generation stamp and reloading the store are all host I/O, and §9.1.13.6 1)'s
-    /// <i>"A permanent error exists and no further information is available concerning the input-output
-    /// operation"</i> ('30') is what the standard gives such a failure — the answer OPEN's catch already gives the
-    /// same reload (a file longer than <see cref="RecordFraming.MaxStoreBytes"/>, <see cref="ReadImage"/>) and
-    /// <see cref="CompleteStatement"/> gives the same statement's persist. The statement is entered all the same,
-    /// holding what it took: the status is recorded (<see cref="FileConnector.SetStatus"/>, which starts the permanent
-    /// error of §9.1.13.1, <i>"The permanent error condition remains in effect for all subsequent input-output
-    /// operations on the file"</i>) and the statement's own body ends at the replay every verb makes first
-    /// (<see cref="FileConnector.PermanentErrorReplay"/>) — so READ and START invalidate the file position indicator as
-    /// they do for any permanent error, and nothing reads the stale store. A failure that is not the host's is not
-    /// the file's and escapes as before, with the entry undone.</summary>
+    /// Taking the mutex and reading page 2 are host I/O, and §9.1.13.6 1)'s <i>"A permanent error exists and no further
+    /// information is available concerning the input-output operation"</i> ('30') is what the standard gives such a
+    /// failure. The statement is entered all the same, holding what it took: the status is recorded
+    /// (<see cref="FileConnector.SetStatus"/>, which starts the permanent error of §9.1.13.1, <i>"The permanent error
+    /// condition remains in effect for all subsequent input-output operations on the file"</i>) and the statement's own
+    /// body ends at the replay every verb makes first (<see cref="FileConnector.PermanentErrorReplay"/>) — so READ and
+    /// START invalidate the file position indicator as they do for any permanent error. A failure that is not the
+    /// host's is not the file's and escapes as before, with the entry undone.</summary>
     private static bool IsHostStoreFailure(Exception failure) =>
         failure is IOException or UnauthorizedAccessException or OutOfMemoryException;
 
@@ -317,16 +435,17 @@ public abstract class KeyedConnector : FileConnector
         if (store.StatementDepth++ > 0) return;   // the run unit is already inside the mutex
         try
         {
-            store.MutexHolder = HoldStoreMutex(exclusive: _regions!.Writable);
-            if (ReadGeneration() is { } stamped && stamped != store.Generation) Reload(store);
-            store.VersionAtEntry = store.Version;
+            bool exclusive = _regions!.Writable;
+            store.MutexHolder = HoldStoreMutex(exclusive);
+            // 2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved it
+            // (its roots, its ledger, the page cache dropped); a writer also takes the mints and, under an EXCLUSIVE
+            // hold, resolves a PROMOTING flag. An INPUT connector entering the store a writable sibling opened holds the
+            // mutex shared and leaves the flag to the next exclusive entry (PagedFile.Enter's exclusive rule). A store
+            // with no file (an absent OPTIONAL file read INPUT) has nothing to enter.
+            if (store.File is { } file && file.Enter(exclusive) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {
-            // The statement changed nothing, and a failed reload leaves the store as Reload's contract says (untouched, or
-            // stamped with a generation the file no longer has and owing the file nothing) — never half-reloaded and
-            // trusted — so this statement's permanent error is the whole damage.
-            store.VersionAtEntry = store.Version;
             SetStatus(FileStatusCode.PermanentError);
         }
         catch
@@ -336,25 +455,21 @@ public abstract class KeyedConnector : FileConnector
         }
     }
 
-    /// <summary>Finish the statement's work on the physical file: when the statement changed the records, persist
-    /// them now, under the mutex, so the next statement of ANY run unit sees them. A persist the medium refuses is
-    /// the statement's §9.1.13.6 item 1 permanent error ('30'), reported by THIS statement rather than by a later
-    /// CLOSE. Returns the status the statement ends with.</summary>
-    internal string CompleteStatement(string status)
+    /// <summary>Run <paramref name="body"/> — an OPEN's adoption or creation, a CLOSE's promotion — inside the store mutex
+    /// when this connector is coherent (2.2.1.7: <i>"runs every record statement, and its OPEN's adoption rule (R6),
+    /// inside the store mutex"</i>); a NO OTHER connector has nobody to exclude.</summary>
+    private T InStoreMutex<T>(Func<T> body)
     {
-        var store = AttachedStore;
-        if (store.StatementDepth != 1 || store.Version == store.VersionAtEntry) return status;
-        try
-        {
-            Persist(store);
-            return status;
-        }
-        catch (Exception failure) when (IsHostStoreFailure(failure))
-        {
-            SetStatus(FileStatusCode.PermanentError);
-            return FileStatusCode.PermanentError;
-        }
+        if (!_coherent || _regions is null) return body();
+        var holder = HoldStoreMutex(exclusive: _regions.Writable);
+        try { return body(); }
+        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
     }
+
+    /// <summary>Finish the statement's work on the physical file, under the mutex. The engine's record statements wrote
+    /// their own pages and page 2 before they answered (2.2.1.7), so there is nothing left to write and the status
+    /// stands; this is the hook a deferred write would complete in (kb/Work PB3335).</summary>
+    internal string CompleteStatement(string status) => status;
 
     /// <summary>Leave the statement; the outermost leave gives the mutex back.</summary>
     internal void EndStatement() => Leave(AttachedStore);
@@ -370,9 +485,8 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>⛔ WAIT OUTSIDE THE MUTEX. A statement that meets another run unit's record lock and carries a RETRY
     /// phrase waits for that run unit to give the lock back (§14.7.9.3) — which it can only do by executing a
     /// statement of its own, inside this same mutex. So the wait lets go of the mutex, and the statement re-enters
-    /// (re-reading the file if it changed) before its next attempt. Nothing has been committed when a conflict is
-    /// being retried — every conflict check precedes its operation (kb/Work PB338) — so there is nothing to persist
-    /// first.</summary>
+    /// (re-reading page 2 if it changed) before its next attempt. Nothing has been written when a conflict is
+    /// being retried — every conflict check precedes its operation (kb/Work PB338).</summary>
     internal override void WaitOutsideStatement(Action wait)
     {
         var store = AttachedStore;
@@ -392,200 +506,23 @@ public abstract class KeyedConnector : FileConnector
     /// through an <c>OPEN INPUT</c> connector's read-only one (a reader never changes the store, and Linux refuses
     /// an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). Null when the host
     /// cannot carry the lock, and the run unit then has no protection against another's writer but the file lock
-    /// (docs/CONFORMANCE.md DOC-A.1-75). <paramref name="exclusive"/> is true for a writer's whole-store persist,
-    /// which excludes a reader too; the statement's own mutex follows the connector's access.</summary>
+    /// (docs/CONFORMANCE.md DOC-A.1-75).</summary>
     private RegionLocks? HoldStoreMutex(bool exclusive) =>
         _regions!.Hold(HostRegionLocks.StoreMutexByte, exclusive, wait: true) == RegionLockResult.Ok ? _regions : null;
 
-    /// <summary>The generation stamped in the physical file now — null for a file holding no store header this
-    /// build reads (an empty file, before its creation arm writes one).</summary>
-    private ulong? ReadGeneration()
-    {
-        Span<byte> head = stackalloc byte[RecordFraming.GenerationProbeBytes];
-        int got = ReadAt(_handle!, head, 0);
-        return RecordFraming.DecodeGeneration(head[..got]);
-    }
-
-    /// <summary>⛔ A RELOAD THAT FAILS LEAVES THE STORE EITHER UNTOUCHED OR UNTRUSTED, NEVER HALF-RELOADED AND TRUSTED
-    /// (kb/Work PB2842, review round 1). The file is read and decoded FIRST, touching nothing of the store: a failure
-    /// there (a file past <see cref="RecordFraming.MaxStoreBytes"/>, an allocation the host refuses) leaves the
-    /// records, the generation and the owed persist exactly as they were. Only <see cref="Fill"/> replaces records,
-    /// and a failure inside it leaves a partial store, which then owes the file nothing
-    /// (<see cref="KeyedStore.PersistedVersion"/> = <see cref="KeyedStore.Version"/>), so a CLOSE cannot write the
-    /// partial records over the other run unit's. The generation the store reflects is stamped only AFTER the records
-    /// are in, so in both cases it still differs from the file's stamp and every coherent statement entry of the run
-    /// unit — this connector's or another connector's on the same store — reloads again.</summary>
-    private void Reload(KeyedStore store)
-    {
-        var frames = ReadImage(out long releaseMint, out ulong generation);
-        HostFaultObserver.Value?.Invoke(HostFaultPoint.ReloadDecoded);
-        try
-        {
-            Fill(store, frames, releaseMint);
-        }
-        catch
-        {
-            store.PersistedVersion = store.Version;
-            throw;
-        }
-        store.Generation = generation;
-        store.PersistedVersion = store.Version;
-    }
-
-    /// <summary>A point in a keyed connector's host I/O at which a test makes the host refuse
-    /// (<see cref="HostFaultObserver"/>) — failures a real file cannot be made to produce on demand (an allocation the
-    /// host refuses while decoding or composing a store near <see cref="RecordFraming.MaxStoreBytes"/>).</summary>
-    internal enum HostFaultPoint
-    {
-        /// <summary>The file has been read and decoded; nothing of the store has changed yet.</summary>
-        ReloadDecoded,
-        /// <summary>The store has just been emptied for a reload (<see cref="Fill"/>, after its Clear) and is about to
-        /// be refilled: a refusal here leaves a partial store.</summary>
-        ReloadFilling,
-        /// <summary>The persist is about to compose the store's image.</summary>
-        PersistComposing,
-    }
-
-    /// <summary>Test seam, per async flow (the <see cref="FileRegistry.PauseObserver"/> precedent): called at each
-    /// <see cref="HostFaultPoint"/>; the observer throws what the host would.</summary>
-    internal static readonly AsyncLocal<Action<HostFaultPoint>?> HostFaultObserver = new();
-
-    /// <summary>The organizations' <see cref="Fill"/> calls this right after it empties the store.</summary>
-    private protected static void FaultPointReloadFilling() => HostFaultObserver.Value?.Invoke(HostFaultPoint.ReloadFilling);
-
-    /// <summary>⛔ THE ONE LOAD — the first opener's (the <c>KeyedStoreTable</c> attach callback) and every coherent
-    /// reload's. It reads under the store mutex, so it never sees a store another run unit is half-way through
-    /// rewriting; an absent OPTIONAL file (no handle) loads nothing.</summary>
-    private protected void Load(KeyedStore into)
-    {
-        if (_handle is null)
-        {
-            Fill(into, [], releaseMint: 0);
-            into.PersistedVersion = into.Version;
-            return;
-        }
-        if (into.StatementDepth > 0) { Reload(into); return; }   // already inside the mutex
-        var holder = HoldStoreMutex(exclusive: _regions!.Writable);
-        try { Reload(into); }
-        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
-    }
-
-    /// <summary>⛔ THE ONE PERSIST — every statement that changed a coherent store, every CLOSE that owes one, and the
-    /// creation of a new store. It writes the whole image positionally through the connector's own handle, stamped
-    /// with one more than the generation the file carries NOW, and truncates whatever a longer previous image left;
-    /// then the store agrees with the file again. The caller holds the mutex or takes it here.</summary>
-    private protected void Persist(KeyedStore store)
-    {
-        var handle = _handle!;
-        var holder = store.StatementDepth == 0 ? HoldStoreMutex(exclusive: true) : null;
-        try
-        {
-            ulong generation = (ReadGeneration() ?? store.Generation) + 1;
-            HostFaultObserver.Value?.Invoke(HostFaultPoint.PersistComposing);
-            using var image = RecordFraming.ComposeStore(DeclaredAttributes, PersistFrames(), generation, ReleaseMint,
-                CodeSet);
-            WriteThroughAreas(handle, new ReadOnlySpan<byte>(image.GetBuffer(), 0, (int)image.Length));
-            RandomAccess.SetLength(handle, image.Length);
-            store.Generation = generation;
-            store.PersistedVersion = store.Version;
-        }
-        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
-    }
-
-    /// <summary>Persist at the CLOSE when this run unit holds records the file does not — the whole-store model's
-    /// one write, and a no-op for a coherent connector, whose statements already persisted.</summary>
-    private protected void PersistIfChanged(KeyedStore store)
-    {
-        if (store.Version != store.PersistedVersion) Persist(store);
-    }
-
-    /// <summary>The whole physical file, read positionally through the input-output areas under the caller's mutex,
-    /// decoded; <paramref name="generation"/> receives the generation the image carries and <paramref name="releaseMint"/>
-    /// its release mint. Touches nothing of the store — <see cref="Reload"/> stamps the generation once the records are in.</summary>
-    private List<StoredFrame?> ReadImage(out long releaseMint, out ulong generation)
-    {
-        var handle = _handle!;
-        // ⛔ A FILE LONGER THAN ANY STORE THE FORMAT DESCRIBES IS NOT ONE THIS CONNECTOR CAN READ (kb/Work PB2748):
-        // its header passed §14.9.27.4 GR10's comparison, but no store is ever written past MaxStoreBytes (StoreHolds
-        // refuses the record that would take it there), so the bytes beyond are not records. It is §9.1.13.6 1)'s
-        // permanent error, "no further information is available", answered '30' through OPEN's IOException mapping — a
-        // checked cast used to kill the run unit with an OverflowException instead. A reload inside a later statement
-        // (Enter) maps it to the same '30' (kb/Work PB2842).
-        long length = RandomAccess.GetLength(handle);
-        if (length > RecordFraming.MaxStoreBytes)
-            throw new IOException($"'{HostPath}' is {length} bytes, longer than any store this format describes "
-                + $"({RecordFraming.MaxStoreBytes} bytes)");
-        int size = (int)length;
-        // RENTED, not allocated: a keyed store is routinely past the 85 KB large-object threshold, and this runs at
-        // every OPEN and every coherent reload.
-        byte[] all = ArrayPool<byte>.Shared.Rent(Math.Max(size, 1));
-        try
-        {
-            int got = ReadThroughAreas(handle, all.AsSpan(0, size));
-            generation = RecordFraming.DecodeGeneration(all.AsSpan(0, got)) ?? 0;
-            return RecordFraming.DecodeStore(all, got, out releaseMint, CodeSet);
-        }
-        finally { ArrayPool<byte>.Shared.Return(all); }
-    }
-
-    /// <summary>Fill <paramref name="into"/> from the start of the file through the input-output areas
-    /// (<see cref="_areas"/>), one buffer of areas per positional read, until it is full or the file ends; returns the
-    /// bytes read.</summary>
-    private int ReadThroughAreas(SafeFileHandle handle, Span<byte> into)
-    {
-        var areas = _areas!;
-        int total = 0;
-        while (total < into.Length)
-        {
-            int n = RandomAccess.Read(handle, areas.AsSpan(0, Math.Min(areas.Length, into.Length - total)), total);
-            if (n <= 0) break;
-            areas.AsSpan(0, n).CopyTo(into[total..]);
-            total += n;
-        }
-        return total;
-    }
-
-    /// <summary>Write <paramref name="from"/> at the start of the file through the input-output areas
-    /// (<see cref="_areas"/>), one buffer of areas per positional write.</summary>
-    private void WriteThroughAreas(SafeFileHandle handle, ReadOnlySpan<byte> from)
-    {
-        var areas = _areas!;
-        for (int at = 0; at < from.Length; at += areas.Length)
-        {
-            int n = Math.Min(areas.Length, from.Length - at);
-            from.Slice(at, n).CopyTo(areas);
-            RandomAccess.Write(handle, new ReadOnlySpan<byte>(areas, 0, n), at);
-        }
-    }
-
-    /// <summary>Fill <paramref name="into"/> from <paramref name="offset"/> until it is full or the file ends;
-    /// returns the bytes read. Only the generation probe reads this way: it is the coherence stamp, not a transfer
-    /// of the store.</summary>
-    private static int ReadAt(SafeFileHandle handle, Span<byte> into, long offset)
-    {
-        int total = 0;
-        while (total < into.Length)
-        {
-            int n = RandomAccess.Read(handle, into[total..], offset + total);
-            if (n <= 0) break;
-            total += n;
-        }
-        return total;
-    }
 }
 
 /// <summary>⛔ ONE STATEMENT'S HOLD ON A KEYED STORE that another run unit may write (kb/Work PB2660) — returned by
 /// <see cref="FileConnector.BeginStatement"/> and inert (<c>default</c>) for every connector that cannot meet such a
-/// writer. <c>FileRegistry</c> opens one around each governed record statement, ends the statement through
-/// <see cref="Complete"/> (which persists what the statement changed and reports a refused persist as the
-/// statement's status); a RETRY wait lets the mutex go through <see cref="FileConnector.WaitOutsideStatement"/>.</summary>
+/// writer. <c>FileRegistry</c> opens one around each governed record statement and ends the statement through
+/// <see cref="Complete"/>; a RETRY wait lets the mutex go through <see cref="FileConnector.WaitOutsideStatement"/>.</summary>
 internal readonly struct StoreStatement : IDisposable
 {
     private readonly KeyedConnector? _owner;
 
     internal StoreStatement(KeyedConnector owner) => _owner = owner;
 
-    /// <summary>Persist what the statement changed; returns the status the statement ends with.</summary>
+    /// <summary>Complete the statement's work on the file; returns the status the statement ends with.</summary>
     public string Complete(string status) => _owner is { } owner ? owner.CompleteStatement(status) : status;
 
     /// <summary>Leave the statement (the outermost leave gives the mutex back).</summary>
