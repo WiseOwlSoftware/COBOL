@@ -22,7 +22,7 @@ rule (a count, 0, PAGE, with or without LINAGE), which closes the PAGE shape the
 second arm. A refused WRITE presents nothing, so it neither writes the return nor closes the line.
 
 Tests: golden `14.9.51-WRITE/pb1840_before_after_open_line` (all four editions, seven scenarios derived from GR25 and
-§13.18.34.4 GR7, the LINAGE counter and page arithmetic included); `OpenLineOverprintTests` (19 cases: the success shape
+§13.18.34.4 GR7, the LINAGE counter and page arithmetic included); `OpenLineOverprintTests` (19 cases in the first round, 30 after review round 1: the success shape
 on record sequential, line sequential and LINAGE files, and the exception paths the owner's rule asks for: a '44' outside
 the RECORD IS VARYING bounds with and without a USE declarative, a '71' for a character outside the line sequential set,
 and a GR6 b) 2 LINAGE violation at the page transition of a BEFORE write with and without a declarative). The two tests
@@ -36,3 +36,18 @@ rule and were not captured; both arms of the dispatch (AFTER 0's travel return a
 covered by the same state; the doc comments of `WriteTravel` and the field were brought to the three-state model. The
 whole NIST corpus (378) and the conformance suite (10,831 cases) ran green on the branch before the gate. Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`
 (run 20261018T214428Z-6734e2). Linux gate: the lander's (batched gating).
+
+Branch review round 1 (two findings, both fixed). R1-1: `Present` left a blank presentation from a Fresh device in
+`DeviceLine.Open`, so the next non-empty BEFORE (or AFTER 0) wrote a return although nothing stood after the blank line's
+text; on a line sequential file that return read back as data (kb/Work PB1540). A blank line presented with no line open
+now leaves the device `Returned` (at its start): CLOSE still ends the line, and a record or a zero advance after it writes
+no return. A blank presented onto a text line stays `Open` (the line still holds text). `OpenLineOverprintTests` gained
+five blank-line cases (record sequential x3, line sequential, blank onto a text line); with the old line restored four of
+them fail. R1-2: the exception-path matrix was incomplete. Added: the '44' refusal with a declarative and no FILE STATUS
+item, and with neither (the run unit ends at the refused write with the EC-I-O-LOGIC-ERROR termination, since nothing
+handles the fatal status, §9.1.13.1); and the end-of-page conditions of a LINAGE 4 / FOOTING AT 3 file whose writes
+overprint (GR26 b) on BBBB and on the AFTER 0 CCCC, GR26 a) on DDDD, counters 3, 3, 1 derived by hand), with the
+END-OF-PAGE and NOT END-OF-PAGE phrases, with `USE AFTER EXCEPTION CONDITION EC-I-O-EOP` / `EC-I-O-EOP-OVERFLOW`
+declaratives (checking enabled, as pb854), and with a declarative without FILE STATUS and with neither (GR27 e), the run
+continues). A first draft used the STANDARD ERROR declarative for the end-of-page writes and it never ran: a successful
+write reaches only the exception-condition declaratives, which is also the standard's design.

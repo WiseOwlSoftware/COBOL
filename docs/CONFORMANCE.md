@@ -2735,12 +2735,16 @@ reallocated).
 > while a line is open AND the device is not already at its start: after a zero advance's own return
 > (`SequentialConnector.DeviceLine.Returned`) the next presentation writes none, so AFTER 1 "A", BEFORE 0 "B",
 > BEFORE 1 "C" is `A` CR `B` CR `C` and never two returns in a row. (2) A record with no characters to print (a line
-> of spaces, the report writer's page-feed carrier) overprints nothing and writes no return. (3) A WRITE that is
+> of spaces, the report writer's page-feed carrier) overprints nothing and writes no return; a blank line presented
+> with no line open is itself an open line, with the device at its START (`DeviceLine.Returned`), so the record
+> presented onto it next, or an AFTER 0, finds nothing to return over and writes none (a stray return there would
+> become data of the next record on a line sequential file, kb/Work PB1540). (3) A WRITE that is
 > refused - '44' outside the RECORD IS VARYING bounds, '71' for a character outside the line sequential character
 > set, '91', a lock refusal - presents nothing, so it neither writes the return nor closes the open line; a BEFORE
 > write whose page transition then fails (§13.18.34.4 GR6 b) 2) HAS presented, so its overprint stands. Pinned by
 > `14.9.51-WRITE/pb1840_before_after_open_line` (all four editions) and `OpenLineOverprintTests`, which covers the
-> refusals.
+> refusals (with a declarative, with a FILE STATUS item, with both, with neither: the run ends at the refused
+> write), the blank lines and the end-of-page conditions of a write that overprints.
 
 > ⚖ **DETERMINATION — a WRITE without the ADVANCING phrase is an explicit `AFTER ADVANCING 1 LINE` in every state
 > of the device, and a file supports vertical positioning when its description carries a LINAGE clause or once an

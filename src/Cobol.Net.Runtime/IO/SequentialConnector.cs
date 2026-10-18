@@ -39,9 +39,9 @@ public sealed class SequentialConnector : FileConnector
         /// that line's text — an AFTER write's record, which §14.9.51.4 GR25 f) presents AFTER its advance, or a
         /// BEFORE write's whose amount was zero (before its return). CLOSE terminates exactly such a line.</summary>
         Open,
-        /// <summary>The same open line, the device returned to its start by a bare carriage return
-        /// (<see cref="WriteTravel"/>'s overprint, §14.9.51.4 GR25 c)): the next presentation is at the same
-        /// vertical position with nothing left to return over.</summary>
+        /// <summary>An open line whose device stands at its START: returned there by a bare carriage return
+        /// (<see cref="WriteTravel"/>'s overprint, §14.9.51.4 GR25 c)), or presented with no characters at all (a
+        /// blank line). The next presentation is at the same vertical position with nothing left to return over.</summary>
         Returned,
     }
 
@@ -889,7 +889,9 @@ public sealed class SequentialConnector : FileConnector
         else
         {
             EmitRecord(text, national);
-            if (_device == DeviceLine.Fresh) _device = DeviceLine.Open;   // a blank line is still a presented line
+            // A blank line is still a presented line (CLOSE ends it), but nothing stands after its text: the device is
+            // at the line's start, so a following overprint finds nothing to return over (a stray CR would become data).
+            if (_device == DeviceLine.Fresh) _device = DeviceLine.Returned;
         }
     }
 
