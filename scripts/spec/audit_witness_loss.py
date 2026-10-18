@@ -359,11 +359,17 @@ def self_test(schema) -> int:
            and all(got.get(k) == row.get(k) for k in ("verdict", "editions", "notes", "derivation")))
 
     # A RETIREMENT OBLIGES THE PROSE (kb/Work PB762): the writer's shape rule, asked of planted records.
-    from inventory_schema import symbol_of
     from record_verdicts import validate
-    symbol = symbol_of(locs[0]) or "PlantedSymbol"
-    narrating = {**row, "notes": f"{row.get('notes', '')} The {symbol} method does the work today.".strip()}
-    untouched = {**row, "notes": row.get("notes", "").replace(symbol, "")}
+    # The row is PLANTED, never borrowed from the live inventory: the rule needs a retired witness that carries a
+    # symbol, a second witness naming a DIFFERENT symbol, and prose that narrates the first. A live row's first
+    # witness may be a bare path (28 of 1313 qualifying rows are) or be re-sited, and either turns this arm RED
+    # with no defect.
+    symbol = "PlantedSymbol"
+    planted_locs = ["src/Planted.cs#PlantedSymbol", "src/Other.cs#OtherSymbol"]
+    planted = {**row, "code-location": schema.code_location_sep.join(planted_locs)}
+    narrating = {**planted, "notes": f"The {symbol} method does the work today."}
+    untouched = {**planted, "notes": "The work is done elsewhere."}
+    planted_stmt = {k: planted[k] for k in ("rule-id", "verdict", "editions") if planted.get(k)}
     catalog = {rid: row.get("kind", "")}
     stale_msg = "leaves the row's notes naming"
 
@@ -371,21 +377,21 @@ def self_test(schema) -> int:
         errs = validate([(pathlib.Path("self-test"), 0, {"rule-id": rid, **rec})], schema, catalog, {rid: on})
         return any(stale_msg in e for e in errs)
 
-    retiring_loc = {"retire-witnesses": locs[0], "retire-reason": "self-test"}
+    retiring_loc = {"retire-witnesses": planted_locs[0], "retire-reason": "self-test"}
     verify("writer: a witness-only retirement of a symbol the prose names is refused",
            stale(retiring_loc, narrating))
     verify("writer: a full record restating that prose is refused too",
-           stale({**stmt, "notes": narrating["notes"], **retiring_loc}, narrating))
+           stale({**planted_stmt, "notes": narrating["notes"], **retiring_loc}, narrating))
     verify("writer: an ERRATUM appended beside the stale sentence is refused (PB338's shape: the prose still names it)",
-           stale({**stmt, "notes": narrating["notes"] + " ERRATUM: renamed.", **retiring_loc}, narrating))
+           stale({**planted_stmt, "notes": narrating["notes"] + " ERRATUM: renamed.", **retiring_loc}, narrating))
     verify("writer: prose rewritten so it no longer names the symbol is accepted",
-           not stale({**stmt, "notes": untouched["notes"] + " It is done elsewhere now.", **retiring_loc}, narrating))
+           not stale({**planted_stmt, "notes": untouched["notes"] + " It is done elsewhere now.", **retiring_loc}, narrating))
     verify("writer: a symbol that MOVED (the record names it at another file) keeps its true prose",
-           not stale({**stmt, "notes": narrating["notes"], "code-location": f"src/Moved.cs#{symbol}",
+           not stale({**planted_stmt, "notes": narrating["notes"], "code-location": f"src/Moved.cs#{symbol}",
                       **retiring_loc}, narrating))
     verify("writer: a retirement of a symbol the prose does not name needs no new prose",
            not stale(retiring_loc, untouched))
-    verify("writer: a record retiring nothing is never asked about the prose", not stale({**stmt}, narrating))
+    verify("writer: a record retiring nothing is never asked about the prose", not stale({**planted_stmt}, narrating))
     print(f"=== SELF-TEST: {'GREEN' if not fails else f'RED ({fails})'} ===")
     return 1 if fails else 0
 

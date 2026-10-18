@@ -21,7 +21,8 @@ a declaration: the file holds `IClock` and `SystemClock`), and a scan of the pro
 - `record_verdicts.validate` refuses a record that retires a witness while the row's prose still names its symbol
   and the row no longer cites it anywhere else. The history of a rename goes in `retire-reason`, behind the mark; the
   prose describes the code as it is. `audit_witness_loss.py --self-test` plants the PB338 shape (an erratum appended
-  beside the stale sentence) and the moved-symbol exemption.
+  beside the stale sentence) and the moved-symbol exemption on a PLANTED row (a fixed symbol and a second witness), never a
+  row borrowed from the live inventory, whose first witness may be a bare path or be re-sited (branch review R1-1).
 - The gate was shown to fail: the fabricated-inventory test drives a scratch tree (line, doc and block comments, a
   grammar comment, an absent member, a stale prose spelling, a retired mark hiding history); on the real tree it was
   RED with 45 + 16 before the batch.
