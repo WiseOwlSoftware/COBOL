@@ -1073,16 +1073,16 @@ internal sealed class StatementValidation(DataBinder data)
     private static string EntryFace(FileModel file, IntoPhraseRules rules, int count) =>
         $"this {rules.EntryFace} for '{file.CobolName}' has {count}";
 
-    // ── Arithmetic composite of operands (ISO §14.7 rule 2) — lifted at 10e ──────────────────────────────────
+    // ── Arithmetic composite of operands (ISO §14.7.7 rule 2) — lifted at 10e ──────────────────────────────────
 
-    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7 rule 2, NATIVE arithmetic, the four
+    /// <summary>The per-edition COMPOSITE-OF-OPERANDS check (ISO §14.7.7 rule 2, NATIVE arithmetic, the four
     /// arithmetic statements ONLY — COMPUTE expressions are explicitly exempt, §8.8.1.2 r7): the hypothetical item
     /// superimposing the statement's fixed-point operands aligned on their decimal points shall not exceed the
     /// edition's digit cap (18 at COBOL-85; the 2023 text says 31). Float/binary-native operands are excluded
     /// (rule 2b — the composite is then over the remaining operands).</summary>
     public bool CheckComposite(string verb, IEnumerable<BoundExpr> operands, IEnumerable<Receiver> receivers)
     {
-        if (data.Options.Arithmetic != ArithmeticMode.Native) return true;   // §14.7 r2 applies to native only
+        if (data.Options.Arithmetic != ArithmeticMode.Native) return true;   // §14.7.7 r2 applies to native only
         int maxInt = 0, maxFrac = 0;
         void Shape(int digits, int scale)
         {
@@ -1130,7 +1130,7 @@ internal sealed class StatementValidation(DataBinder data)
                 Shape(rd, rs);
             }
 
-        // The cap is 31 at EVERY edition (ISO §14.7 rule 2a — the 2023 text). A COBOL-85-specific tightening to
+        // The cap is 31 at EVERY edition (ISO §14.7.7 rule 2 a) — the 2023 text). A COBOL-85-specific tightening to
         // 18 was considered and REFUTED by the conformance corpus itself: CCVS-85 NC101A multiplies 9(3)V9(3) by
         // 9(18) (composite 21) as a deliberate SIZE ERROR test, and every conforming '85 implementation accepts
         // it — so the 18-digit figure does not govern the composite (it caps '85 PICTURE/literal capacity only).
@@ -1138,7 +1138,7 @@ internal sealed class StatementValidation(DataBinder data)
         if (composite <= 31) return true;
         data.Edition.Error("COBOLNET0805",
             $"{verb}: the composite of operands spans {composite} digits ({maxInt} integer + {maxFrac} fraction); "
-            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7 rule 2)");
+            + "ISO/IEC 1989 caps the composite of operands at 31 digits (§14.7.7 rule 2 a))");
         return false;
     }
 
@@ -1699,7 +1699,7 @@ internal sealed class StatementValidation(DataBinder data)
                 && (set.Length == 0 || Array.IndexOf(set, CobolClass.Boolean) >= 0);
             if (!(BoolCompatible(left) && BoolCompatible(right)))
                 data.Edition.Error("COBOLNET0844", "a boolean operand may be compared only with another "
-                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.1 F1 "
+                    + "boolean operand or the figurative constant ZERO (ISO §8.8.4.2.2; §8.8.4.2.3 "
                     + "SR2/SR3 exclude class boolean from the general relation)");
             else if (op is not ("==" or "!="))
                 data.Edition.Error("COBOLNET0844", "boolean operands compare for equality only — an ordering "

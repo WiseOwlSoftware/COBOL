@@ -526,10 +526,14 @@ public sealed class ExceptionEngine
     /// element takes the interface's default and answers <see cref="DispatchResult.NoHandler"/>, which is why installing it
     /// unconditionally is correct and why an element with no declaratives costs nothing.
     /// <para>⛔ This is the channel a RUNTIME raise site reaches a declarative through, and it has to be the
-    /// ACTIVATION's rather than the statement's: the ambient checking flags are run-unit state that a CALL does
-    /// not currently save (see kb/Work PB367b's report), so binding the selector to the raising STATEMENT would
-    /// let a callee's raise run the ACTIVATOR's declaratives — a wrong-program dispatch. Bound to the activation,
-    /// the callee's own (possibly default) selector answers.</para></summary>
+    /// ACTIVATION's: a declarative is selected by analyzing "the USE statements in the source element" (§14.9.49.4
+    /// GR3) — the source element that contains the statement that caused the condition (GR4 a) — and a runtime
+    /// raise site (a CONVERT substitution, a dynamic table's growth) knows no statement of its own, only that it runs
+    /// inside the activation now executing. Any selector fixed elsewhere (the run unit's main program, the activating
+    /// statement's element) would let a callee's raise run the ACTIVATOR's declaratives — a wrong-program dispatch.
+    /// The activation boundary installs and restores it exactly as it saves and clears the ambient checking flags
+    /// (<see cref="PushAllCheckingOff"/> / <see cref="RestoreChecking"/>, kb/Work PB841), so the callee's own
+    /// (possibly default) selector answers.</para></summary>
     public INonfatalSelector? NonfatalDispatcher { get; set; }
 
     // ── EC-ARGUMENT-FUNCTION ambient statement gate ───────────────────────────────────────────────────────────
@@ -626,8 +630,11 @@ public sealed class ExceptionEngine
 
     /// <summary>Record EC-DATA-CONVERSION for an untranslatable repertoire value — CONVERT (§15.19.4 r1/r3)
     /// and the argument-2-unspecified DISPLAY-OF/NATIONAL-OF forms (§15.26.4 r3 / §15.66.4 r3). Nonfatal
-    /// (Table 13), so it never throws; it only sets the last exception status, and only while checking for the
-    /// condition is enabled (§14.6.13.1.1). The substitution character is applied by the caller regardless.</summary>
+    /// (Table 13), so it never throws on its own account — the <see cref="NonfatalIfEnabled"/> contract
+    /// <see cref="BoundSetError"/> shares: only while checking for the condition is enabled (§14.6.13.1.1) it sets
+    /// the last exception status and runs the activation's declarative selection (<see cref="NonfatalDispatcher"/>),
+    /// and a declarative that executes RESUME unwinds the rest of the statement through
+    /// <see cref="RaiseResumeSignal"/>. When the raise returns, the caller applies the substitution character.</summary>
     public void DataConversionError(string detail) => NonfatalIfEnabled(DataConversionChecking, "EC-DATA-CONVERSION");
 
     // ── EC-BOUND-OVERFLOW ambient statement gate (OCCURS DYNAMIC implicit growth past expected capacity) ───────
