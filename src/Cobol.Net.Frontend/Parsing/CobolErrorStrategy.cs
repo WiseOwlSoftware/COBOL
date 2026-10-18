@@ -123,7 +123,33 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             ConsumeUntil(recognizer, GetExpectedTokens(recognizer).Or(GetErrorRecoverySet(recognizer)));
             return;
         }
+        if (!InErrorRecoveryMode(recognizer) && IsStrayTokenBeforeOptionalPeriod(recognizer)
+            && SingleTokenDeletion(recognizer) is not null)
+            return;
         base.Sync(recognizer);
+    }
+
+    /// <summary>⛔ A SUPERSET-PARSED SEPARATOR PERIOD RECOVERS LIKE A REQUIRED ONE (kb/Work PB3370). The paragraphs
+    /// <see cref="ParagraphPeriods"/> lists write their period as <c>DOT?</c> so the period can be refused BY NAME
+    /// (and, in SOURCE-COMPUTER and OBJECT-COMPUTER, so the computer-name's prediction commits). A required period gets
+    /// ANTLR's single-token deletion at its match — <c>OBJECT-COMPUTER. XYZ ) .</c> drops the ')' and goes on — but an
+    /// optional one is only a decision whose rule may END, where the base <see cref="DefaultErrorStrategy.Sync"/> lets
+    /// the stray token pass: the paragraph ends, the error surfaces divisions later, and its recovery swallows the next
+    /// paragraphs' own diagnostics. So where the rule could take a period next, a token that NO path can take here (it
+    /// is outside the full-context LL(1) set, so no legal program is touched) directly followed by a period is deleted
+    /// as it would be before a required one.
+    /// <para>Cost: the rule-local next set the ATN caches, then two token types; the full-context set only for a stray
+    /// token right before a period.</para></summary>
+    private static bool IsStrayTokenBeforeOptionalPeriod(Parser recognizer)
+    {
+        var atn = recognizer.Atn;
+        var state = atn.states[recognizer.State];
+        var local = atn.NextTokens(state);
+        if (!local.Contains(CobolLexer.DOT) || !local.Contains(TokenConstants.EPSILON)) return false;
+        var stream = (ITokenStream)recognizer.InputStream;
+        int la1 = stream.LA(1);
+        return la1 != TokenConstants.EOF && !local.Contains(la1) && stream.LA(2) == CobolLexer.DOT
+               && !atn.NextTokens(state, recognizer.Context).Contains(la1);
     }
 
     private static bool IsClosedFormatResidueAhead(Parser recognizer)

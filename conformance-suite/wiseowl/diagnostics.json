@@ -13836,7 +13836,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET3408: OBJECT-COMPUTER paragraph: it ends after 'PROGRAM COLLATING SEQUENCE IS AL-REV' without a separator period"
+  "expect": "COBOLNET3408: OBJECT-COMPUTER paragraph: it ends after 'PROGRAM COLLATING SEQUENCE"
  },
  "pb3370-object-computer-reserved-word-clause": {
   "refuse-at": [

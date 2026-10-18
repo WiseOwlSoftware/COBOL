@@ -1422,7 +1422,11 @@ joined the table the same way, which is the table doing its job: a tenth format 
   SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs (§12.3.5.2, §12.3.6.2) carry the superset for the parse-time reason
   above (kb/Work PB3370): their second period goes only when nothing follows the header (§12.3.5.3 SR1, §12.3.6.3
   SR4), which `ParagraphPeriods.Sentences` reads as a paragraph with no sentence; otherwise its absence is
-  COBOLNET3408 at the name or clause, where it was a bare COBOL0307 at the next header.
+  COBOLNET3408 at the name or clause, where it was a bare COBOL0307 at the next header. A superset-parsed period
+  recovers like a required one: `CobolErrorStrategy.Sync` deletes a token no path can take (outside the full-context
+  LL(1) set) when a period follows it and the rule could take a period next, the single-token deletion ANTLR applies
+  only at a required token's match. Without it `OBJECT-COMPUTER. XYZ ) .` ended the paragraph at ')', and the
+  recovery several rules up swallowed the next paragraphs' diagnostics.
 - **A closed UNION of formats — the file description entry (kb/Work PB1238).** `fileDescriptionClause` is the
   union of §13.4.5.2's three formats, and §13.4.5.3 SR5/SR7/SR8 bind each entry to exactly ONE of them. Which one
   is decided once, in `Compiler/Binding/FileDescriptionFormats.cs` (`Of`: a relative or indexed file is Format 2;

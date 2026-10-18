@@ -17,6 +17,10 @@ arm: in `SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.` the run WIBBLE ends at GLOBAL and 
 Sync. CobolErrorStrategy now treats a Sync inside the word run as a residue position, and its 0g closure records the
 list whose call of the production the parser is still inside. This also names the residue after a word run in the
 configuration section and the identification division, the other two formats whose production is not in a loop.
+The first gate found a recovery regression: an optional period gets no single-token deletion, so `OBJECT-COMPUTER.
+XYZ ) .` ended the paragraph at ')' and the recovery swallowed the next SELECT entry's error (DiagnosticPositionTests'
+NIST column case). Sync now deletes a token that no path can take when a period follows it and the rule could take
+the period, as ANTLR does before a required one.
 
 **Goldens.** Positive `pb3370_computer_paragraph_second_period` (85 up); negatives
 `pb3370-source-computer-reserved-word-clause`, `pb3370-object-computer-reserved-word-clause`,
