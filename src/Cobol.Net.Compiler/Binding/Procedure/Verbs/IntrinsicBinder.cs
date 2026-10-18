@@ -2434,7 +2434,7 @@ internal sealed class IntrinsicBinder(BinderContext ctx, StatementBinder host)
         // DISPLAY uses (a bit-bearing group included, kb/Work PB3030); a group the composer cannot take, or a place
         // none of the composer's storage forms reaches, stays the named stage.
         BoundExpr ImageOrStage(string what) =>
-            group.CurrentExtentImageCapable
+            group.CurrentExtentTransferImageCapable
                 && inner is MemberPlace or DynTablePlace or RedefViewPlace { Coding: VarGroupWindow }
                 ? new BoundIntrinsicCall(sig, [op], PicCategory.Numeric) { OverCurrentImage = true }
                 : Stage(what);

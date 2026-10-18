@@ -63,6 +63,50 @@ public sealed class VariableLengthBoundaryDriftTests
         Assert.Equal(["Binding/Model/DataItem.cs"], definitions);
     }
 
+    /// <summary>⛔ THE ONE-WAY TWIN (kb/Work PB3358). A variable-length group holding a class pointer/object leaf
+    /// has the §14.9.11.4 GR7 DISPLAY format (A.1 item 57) but no §8.5.1.12 carrier, because the carrier's receiving
+    /// side stores components back and the leaf's placeholder has no inverse. That is
+    /// <c>CurrentExtentTransferImageCapable</c>: defined once, beside <c>CurrentExtentImageCapable</c>, over the SAME
+    /// member law (<c>CurrentExtentComposes</c>, one definition with a <c>transfer</c> flag - never a second copy that
+    /// could classify a member differently). The consumers that only SEND characters out (DISPLAY, FUNCTION LENGTH
+    /// and BYTE-LENGTH) ask it; every consumer that reads the image back keeps the carrier law.</summary>
+    [Fact]
+    public void CurrentExtentTransferCapability_IsDefinedOnceOverTheSameMemberLaw()
+    {
+        string root = TestRepo.Src("Cobol.Net.Compiler");
+        var transfer = new List<string>();
+        var memberLaw = new List<string>();
+        foreach (string file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains(Path.DirectorySeparatorChar + "Generated" + Path.DirectorySeparatorChar)) continue;
+            string src = File.ReadAllText(file);
+            string relative = Path.GetRelativePath(root, file).Replace('\\', '/');
+            if (CodeOccurrences(src, "bool CurrentExtentTransferImageCapable") > 0) transfer.Add(relative);
+            if (CodeOccurrences(src, "bool CurrentExtentComposes(") > 0) memberLaw.Add(relative);
+        }
+        Assert.Equal(["Binding/Model/DataItem.cs"], transfer);
+        Assert.Equal(["Binding/Model/DataItem.cs"], memberLaw);
+
+        // The one-way consumers ask the transfer capability and never the carrier's.
+        foreach (string[] site in new[]
+        {
+            new[] { "CodeGen", "Verbs", "AcceptDisplayEmitter.cs" },
+            new[] { "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs" },
+        })
+        {
+            string src = File.ReadAllText(TestRepo.At(["src", "Cobol.Net.Compiler", .. site]));
+            Assert.True(CodeOccurrences(src, "CurrentExtentTransferImageCapable") > 0,
+                $"{site[^1]} sends a variable-length group's characters out and must ask CurrentExtentTransferImageCapable (kb/Work PB3358).");
+            Assert.Equal(0, CodeOccurrences(src, "CurrentExtentImageCapable"));
+        }
+
+        // The record struct emits the one-way CurrentImage for the wider capability and the carrier pair only for the narrower.
+        string emitter = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "DataDivision", "RecordStructEmitter.cs"));
+        Assert.True(CodeOccurrences(emitter, "item.CurrentExtentTransferImageCapable") > 0
+                    && CodeOccurrences(emitter, "item.CurrentExtentImageCapable") > 0,
+            "RecordStructEmitter must emit CurrentImage() for CurrentExtentTransferImageCapable and the AsVarImage/FromVarImage carrier only for CurrentExtentImageCapable (kb/Work PB3358).");
+    }
+
     [Fact]
     public void BoundaryScreens_AskTheBoundaryPredicate()
     {

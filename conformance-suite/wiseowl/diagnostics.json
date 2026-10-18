@@ -13936,6 +13936,13 @@
   ],
   "expect": "COBOLNET2107"
  },
+ "pb3358-vlg-display-reference-leaf-at-2002": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb3365-search-nested-dynamic-no-occurrence": {
   "refuse-at": [
    "2014",

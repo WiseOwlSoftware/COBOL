@@ -442,9 +442,11 @@ internal static class PlaceRenderer
     /// <summary>The contiguous image of a cell-backed variable-length group view (kb/Work PB1026) — behind the SAME
     /// capability a declared group's composer is gated on (<see cref="DataItem.CurrentExtentImageCapable"/>): a table
     /// whose element holds a component of its own (kb/Work PB1042) has a run-time multiplicity of components that
-    /// the element cell's fixed run does not carry, so it is the named loud, never a shortened image.</summary>
-    private static string CellVarContiguous(RedefViewPlace v, VarGroupWindow g, string count) =>
-        v.Item.CurrentExtentImageCapable
+    /// the element cell's fixed run does not carry, so it is the named loud, never a shortened image. A ONE-WAY
+    /// <paramref name="transfer"/> consumer (kb/Work PB3358) asks <see cref="DataItem.CurrentExtentTransferImageCapable"/>
+    /// instead: a class pointer/object leaf of the cell's fixed run is read as the positions it reserves there.</summary>
+    private static string CellVarContiguous(RedefViewPlace v, VarGroupWindow g, string count, bool transfer = false) =>
+        (transfer ? v.Item.CurrentExtentTransferImageCapable : v.Item.CurrentExtentImageCapable)
             ? RuntimeApi.CellVarContiguous(RenderPath(g.Cell, AccessDir.Sending), $"(int)({PositionRenderer.Render(v.Offset)})", v.Width,
                 PositionRenderer.Render(g.DynBase), g.DynFixedAt, g.DynTable, g.Odo, count, g.DynElem)
             : EmitText.LoudValue("string", TierCIsland.Reason(v.Item, "variable-length group image of"));
@@ -788,8 +790,9 @@ internal static class PlaceRenderer
     /// holds no such table — and a group that holds the table must be one the current-extent composer admits
     /// (<see cref="DataItem.CurrentExtentImageCapable"/>: the window cuts its fixed run, so the table has to be its
     /// trailing storage and nothing with a run-time multiplicity of components).</summary>
-    private static bool WindowComposes(RedefViewPlace v, string? odo) =>
-        odo is "" || (odo is not null && v.Item.CurrentExtentImageCapable);
+    private static bool WindowComposes(RedefViewPlace v, string? odo, bool transfer = false) =>
+        odo is "" || (odo is not null
+            && (transfer ? v.Item.CurrentExtentTransferImageCapable : v.Item.CurrentExtentImageCapable));
 
     /// <summary>The OCCURS DEPENDING count argument of the cell's group helpers: the operand's count, or zero for a
     /// group without the table (the helpers ignore it then — <c>OdoTail.Present</c> is false).</summary>
@@ -838,14 +841,19 @@ internal static class PlaceRenderer
     /// <remarks>A statement's operand (DISPLAY, FUNCTION LENGTH) and a record (WRITE / REWRITE / RELEASE) ask the same
     /// capability, <see cref="DataItem.CurrentExtentImageCapable"/>: since kb/Work PB2497 a record holding an OCCURS
     /// DEPENDING table of variable-length elements is read back too (<see cref="WriteVarGroupContiguous"/>).</remarks>
-    public static string VarGroupCurrentImage(Place group, string context)
+    /// <param name="transfer">True for a ONE-WAY transfer consumer (DISPLAY, FUNCTION LENGTH - kb/Work PB3358): the guard
+    /// then asks <see cref="DataItem.CurrentExtentTransferImageCapable"/>, which also admits a group with a class
+    /// pointer/object leaf (its pointer image or reserved placeholder), the twin of <see cref="GroupImage"/>'s flag. A
+    /// record sent to a file and read back keeps it false.</param>
+    public static string VarGroupCurrentImage(Place group, string context, bool transfer = false)
     {
         var (inner, odo) = PeelOdo(group, maximum: false);
         return inner.Undecorated switch
         {
             // the cell composition (kb/Work PB1026), cut to the OCCURS DEPENDING count when it holds the table (kb/Work PB244)
-            RedefViewPlace { Coding: VarGroupWindow g } v when WindowComposes(v, odo) => CellVarContiguous(v, g, CellOdoCount(odo)),
-            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow } || !inner.Item.CurrentExtentImageCapable =>
+            RedefViewPlace { Coding: VarGroupWindow g } v when WindowComposes(v, odo, transfer) => CellVarContiguous(v, g, CellOdoCount(odo), transfer),
+            _ when odo is null || inner.Undecorated is RedefViewPlace { Coding: VarGroupWindow }
+                   || !(transfer ? inner.Item.CurrentExtentTransferImageCapable : inner.Item.CurrentExtentImageCapable) =>
                 EmitText.LoudValue("string", TierCIsland.Reason(inner.Item, context)),
             _ => $"{Read(inner)}.CurrentImage({odo})",
         };
