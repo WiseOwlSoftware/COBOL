@@ -960,8 +960,8 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   number (stored as 8 bytes big-endian, so ordinal byte order IS numeric order and the ordinal comparer serves), and COMPOSITE
   for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b) sets its
   length, c) and d) truncate each stored key to it, e) compares them by §8.8.4.2.7's equal-length rule) is a
-  seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix. GR17 c)
-  and d) define that seek as a SEQUENTIAL search (forward, or in reverse for the LESS relations), and the tree narrows it by
+  seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix. §14.9.41.4
+  GR17 c) and d) define that seek as a SEQUENTIAL search (forward, or in reverse for the LESS relations), and the tree narrows it by
   binary search only under a PREFIX-CONSISTENT order (`IKeyOrder.PrefixConsistent`: a key below another never has a greater
   prefix), which every order that compares position by position is — the bytes, and a sequence under §8.8.4.2.7 1)'s
   standard comparison (`CobolCollation.UsesStandardComparison`). A LOCALE-BASED sequence is not (§8.8.4.2.11, *"not

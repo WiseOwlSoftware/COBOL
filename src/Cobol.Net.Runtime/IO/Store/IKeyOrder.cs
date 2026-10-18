@@ -16,8 +16,8 @@ namespace CobolNet.Runtime.IO.Store;
 internal interface IKeyOrder
 {
     /// <summary>⛔ Whether a key below another never has a greater prefix: true for an order that compares character
-    /// position by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1) that GR17 e)
-    /// names for operands of equal length — so the qualifying entries of every relation are one run of the key order and a
+    /// position by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1), which
+    /// §14.9.41.4 GR17 e) names for operands of equal length — so the qualifying entries of every relation are one run of the key order and a
     /// binary search finds its end. False under a LOCALE-BASED sequence (§8.8.4.2.11, <i>"not necessarily performed
     /// character-by-character"</i>): under the CLDR/UCA engine "áa" is below "ab" (primary a,a &lt; a,b) while its
     /// one-character prefix "á" is above "a" (secondary), so a binary search would land past a qualifying entry.</summary>
