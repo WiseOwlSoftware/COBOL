@@ -272,6 +272,120 @@ public sealed class BTreeShapeTests
     }
 
     [Fact]
+    public void A_cursor_stepped_after_an_edit_of_a_node_the_pending_edit_already_copied_re_seeks_from_its_key()
+    {
+        // Branch review R1-2: the second edit of one pending leaf changes it IN PLACE and leaves the root the same, so a
+        // cursor that compared roots stepped through the shifted lists — the entry twice, or one skipped.
+        var (_, _, store) = StoreKit.NewStore(coherent: false);
+        var tree = StoreKit.Prime(store);
+        foreach (int id in new[] { 1, 2, 3 }) Assert.Equal(StoreStatus.Ok, tree.Put(StoreKit.Key(id), StoreKit.Value($"v{id}", 0)));
+        Assert.Equal(StoreStatus.Ok, tree.Seek(StoreKit.Key(1), SeekRelation.Equal, out var cursor));
+        Assert.Equal(StoreStatus.Ok, tree.Insert(StoreKit.Key(0), StoreKit.Value("v0", 0), out _));
+        Assert.Equal(StoreStatus.Ok, cursor.Next());
+        Assert.Equal(StoreKit.Key(2), cursor.Key);                    // not 1 again
+        Assert.Equal(StoreStatus.Ok, tree.Put(StoreKit.Key(4), StoreKit.Value("v4", 0)));
+        Assert.Equal(StoreStatus.Ok, tree.Delete(StoreKit.Key(1), out _));
+        Assert.Equal(StoreStatus.Ok, cursor.Next());
+        Assert.Equal(StoreKit.Key(3), cursor.Key);                    // not 4: 3 is not skipped
+        Assert.Equal(StoreStatus.Ok, tree.Replace(StoreKit.Key(3), StoreKit.Value("w3", 0), out _));
+        Assert.Equal(StoreStatus.Ok, cursor.ReadValue(out var value));
+        Assert.Equal(StoreKit.Value("w3", 0), value);                 // the current key's value as the edit left it
+        Assert.Equal(StoreStatus.Ok, tree.Delete(StoreKit.Key(3), out _));
+        Assert.Throws<InvalidOperationException>(() => cursor.ReadValue(out _));   // a deleted current entry: the caller's defect
+        Assert.Equal(StoreStatus.Ok, cursor.Previous());
+        Assert.Equal(StoreKit.Key(2), cursor.Key);
+        tree.Discard();                                               // the pending edit dropped: an empty tree again
+        Assert.Equal(StoreStatus.Ok, cursor.Next());
+        Assert.False(cursor.HasCurrent);
+    }
+
+    [Theory]
+    [InlineData(3401, true)]
+    [InlineData(3402, false)]
+    public void A_cursor_stepped_between_edits_and_flushes_agrees_with_a_sorted_model(int seed, bool forward)
+    {
+        var (medium, _, store) = StoreKit.NewStore(coherent: false);
+        var tree = StoreKit.Prime(store);
+        var model = new SortedDictionary<int, string>();
+        for (int id = 10; id <= 12000; id += 10)
+        {
+            Assert.Equal(StoreStatus.Ok, tree.Put(StoreKit.Key(id), StoreKit.Value($"v{id}", 0)));
+            model[id] = $"v{id}";
+        }
+        Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));
+        Assert.True(Levels(medium, store).Count >= 2, "a tree of two levels or more");
+        var random = new Random(seed);
+        Assert.Equal(StoreStatus.Ok, forward ? tree.First(out var cursor) : tree.Last(out cursor));
+        int steps = 0;
+        while (cursor.HasCurrent)
+        {
+            int current = (int)KeyOrders.PageOf(cursor.Key);
+            Assert.True(model.ContainsKey(current), $"step {steps}: the cursor is on {current}, which the model does not hold");
+            for (int edits = random.Next(4); edits > 0; edits--)
+            {
+                int key = random.Next(1, 12100);
+                switch (random.Next(3))
+                {
+                    case 0:
+                        Assert.Equal(StoreStatus.Ok, tree.Put(StoreKit.Key(key), StoreKit.Value($"p{key}", 0)));
+                        model[key] = $"p{key}";
+                        break;
+                    case 1 when model.Count > 0:
+                        int victim = random.Next(5) == 0 ? current : model.Keys.ElementAt(random.Next(model.Count));
+                        Assert.Equal(StoreStatus.Ok, tree.Delete(StoreKit.Key(victim), out _));
+                        model.Remove(victim);
+                        break;
+                    default:
+                        Assert.Equal(StoreStatus.Ok, tree.Replace(StoreKit.Key(current), StoreKit.Value($"r{current}", 0), out bool replaced));
+                        if (replaced) model[current] = $"r{current}";
+                        break;
+                }
+            }
+            if (model.TryGetValue(current, out var text))
+            {
+                Assert.Equal(StoreStatus.Ok, cursor.ReadValue(out var value));
+                Assert.Equal(StoreKit.Value(text, 0), value);
+            }
+            if (++steps % 97 == 0) Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));   // a flush between steps
+            int? expected = forward ? model.Keys.Where(k => k > current).Cast<int?>().FirstOrDefault()
+                : model.Keys.Where(k => k < current).Cast<int?>().LastOrDefault();
+            Assert.Equal(StoreStatus.Ok, forward ? cursor.Next() : cursor.Previous());
+            Assert.True(expected is null ? !cursor.HasCurrent : cursor.HasCurrent && cursor.Key.SequenceEqual(StoreKit.Key(expected.Value)),
+                $"step {steps} from {current}: expected {expected?.ToString() ?? "none"}, got {(cursor.HasCurrent ? KeyOrders.PageOf(cursor.Key) : "none")}");
+        }
+        Assert.True(steps > 1000, $"{steps} steps");
+    }
+
+    [Theory]
+    [InlineData(1000)]   // about 4 MB
+    [InlineData(2069)]   // 8 MiB
+    public void A_statement_that_drops_a_record_of_thousands_of_overflow_pages_reserves_the_ledger_pages_its_releases_take(int blobPages)
+    {
+        // Branch review R1-1: the reservation sized the ledger by the pages the statement RESERVES only, so a DELETE or a
+        // shortening REWRITE of a committed record of k overflow pages — k freed ledger entries — ran out of reserved
+        // pages and escaped as an InvalidOperationException. The record is legal (2.2.1.4: the host's record size).
+        var (medium, _, store) = StoreKit.NewStore();
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "big", blobPages));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 2, "small"));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 3, "big3", blobPages));
+        Assert.Equal(StoreStatus.Ok, store.Promote());          // the chains are COMMITTED: each page's release is one freed entry
+        Assert.Equal(StoreStatus.Ok, StoreKit.Delete(store, 1));
+        Assert.True(StoreKit.Pages(store.LedgerEntries, LedgerState.Freed).Length >= blobPages, "the dropped chain is freed");
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 3, "short"));   // a REWRITE to a short value: the same path
+        Assert.Equal("2=small;3=short;", StoreKit.Show(store));
+        // An uncommitted chain dropped by the statement after the one that wrote it: every page RELEASED.
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 4, "big4", blobPages));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Delete(store, 4));
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        var (_, status, opened) = StoreKit.OpenAs(medium, "B");
+        Assert.Equal(StoreStatus.Ok, status);
+        Assert.Equal("2=small;3=short;", StoreKit.Show(opened!));
+        Assert.True(opened!.FreePages.Count >= 2 * blobPages, $"the chains' pages are in the FREE tree: {opened.FreePages.Count}");
+        StoreKit.AssertR2(medium);
+        StoreKit.AssertNoStampReused(medium);
+    }
+
+    [Fact]
     public void The_key_orders_compare_as_their_rules_state()
     {
         // ORDINAL: unsigned bytes, a shorter key below a longer one it begins; prefixes compare their leading positions.
