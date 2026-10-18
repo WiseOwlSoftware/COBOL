@@ -6,88 +6,12 @@ using Microsoft.Win32.SafeHandles;
 
 namespace CobolNet.Runtime.IO;
 
-/// <summary>
-/// ⭐ The per-PHYSICAL-FILE record stores (kb/Work PB143; ISO §14.9.10.4 GR5 — "the identified record has been
-/// logically removed from THE PHYSICAL FILE and can no longer be accessed"). Every keyed connector used to load
-/// a PRIVATE snapshot at OPEN and persist its WHOLE view at CLOSE, so a record DELETEd through one connector
-/// stayed readable through another over the same host path, and the CLOSE ORDER decided which view survived on
-/// disk — silent undeletion / silent data loss. Now the run unit holds ONE keyed store engine handle per physical file
-/// (<see cref="KeyedStore"/>), keyed by resolved host path (the same key the <see cref="PhysicalFileTable"/> arbitrates
-/// sharing and locks by): the FIRST opener opens it through its handle, later openers ATTACH to the live store (one page
-/// cache and one set of trees, so a sibling's change is visible at once), and the LAST detach drops the entry.
-/// Position/key state (FPI, key of reference, sequential-WRITE slot, GR38 high-key) stays per-CONNECTOR. Two SELECTs to
-/// one ASSIGN target need no SHARING clause to reach this, so the store is unconditional for the keyed organizations;
-/// sequential connectors keep their OS-backed streams (the file system is their shared store). Owned by the
-/// <see cref="FileRegistry"/>; cleared at run-unit Reset.
-/// </summary>
-internal sealed class KeyedStoreTable
-{
-    private sealed class Entry
-    {
-        public required KeyedStore Store;
-        public int Attached;
-    }
-
-    private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
-
-    /// <summary>Attach to the store of organization <typeparamref name="T"/> for <paramref name="host"/>: the live store
-    /// when one exists (its trees are the truth — nothing is re-read), else a new store with no file, which the attaching
-    /// connector opens through its own handle (<see cref="KeyedStore.Open"/>; a failed OPEN detaches again).</summary>
-    public T Attach<T>(string host) where T : KeyedStore, new()
-    {
-        if (_byHost.TryGetValue(host, out var e))
-        {
-            if (e.Store is not T live)
-                throw new InvalidOperationException(
-                    $"physical file '{host}' is open under two different organizations ({e.Store.GetType().Name} vs {typeof(T).Name}) — a compiler/registration defect (kb/Work PB143)");
-            e.Attached++;
-            return live;
-        }
-        var store = new T();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
-    }
-
-    /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §14.9.27.4 GR18: a new, EMPTY store
-    /// for <paramref name="host"/> that no other connector of this run unit holds (kb/Work PB754).
-    /// <para>Emptying a store is a mutation every attached connector would see instantly (kb/Work PB143), so it is
-    /// only ever done HERE, where the precondition that makes it safe is checked rather than remembered: Table 19
-    /// refuses every OUTPUT open beside any other open connector — §9.1.13.9 1) e), <i>"An attempt is made to open a
-    /// physical file in the output mode and the physical file is currently open by another file connector"</i> —
-    /// and <c>FileRegistry.OpenShared</c> runs that arbitration BEFORE the connector's OPEN body. An entry that
-    /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
-    /// silent emptying of records another connector is reading (the analogous impossible state in
-    /// <see cref="Attach{T}"/> is answered the same way).</para></summary>
-    public T AttachCreated<T>(string host) where T : KeyedStore, new()
-    {
-        if (_byHost.TryGetValue(host, out var e))
-            throw new InvalidOperationException(
-                $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
-                + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "
-                + "arbitration defect (kb/Work PB754)");
-        var store = new T();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
-    }
-
-    /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry, so a later
-    /// OPEN opens the file again. Unbalanced detaches are ignored (a failed OPEN never attached).</summary>
-    public void Detach(string host)
-    {
-        if (!_byHost.TryGetValue(host, out var e)) return;
-        if (--e.Attached <= 0) _byHost.Remove(host);
-    }
-
-    /// <summary>Run-unit start hygiene.</summary>
-    public void Clear() => _byHost.Clear();
-}
-
 /// <summary>⭐ THE RUN UNIT'S HANDLE ON ONE PHYSICAL FILE'S KEYED STORE ENGINE
 /// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333, PB3334): ONE paged store (<see cref="PagedFile"/>, its page cache, its ledger) opened through the
 /// handles of the run unit's connectors on the file (<see cref="RunUnitPageMedium"/>), and its trees, which the
 /// organization's view names (<see cref="RelativeStore"/>: one tree keyed by the relative record number;
 /// <see cref="IndexedStore"/>: the prime tree and one tree per alternate key). Every connector of the run unit over the path
-/// attaches to it (<see cref="KeyedStoreTable"/>, kb/Work PB143), so a sibling's change is visible at once. Nothing is
+/// attaches to it (<see cref="StoreTable"/>, kb/Work PB143), so a sibling's change is visible at once. Nothing is
 /// loaded at OPEN and nothing is persisted at CLOSE: a statement reads the pages it touches and writes the pages it
 /// changes, then page 2 (2.2.1.6), in ONE statement of the page layer however many trees it changes
 /// (<see cref="Change"/>).
@@ -162,14 +86,17 @@ internal abstract class KeyedStore
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
     /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a
-    /// handle that cannot.</summary>
-    public void DetachHandle(SafeFileHandle handle)
+    /// handle that cannot. The caller holds the store mutex (2.2.1.7). Returns the reader's adoption status: a refused
+    /// read leaves the store on the meta it holds, which names the last completed statement's trees, and a reader's
+    /// statement never writes (<see cref="PagedFile.Enter"/>'s reader entry).</summary>
+    public StoreStatus DetachHandle(SafeFileHandle handle)
     {
         _handles.Detach(handle);
-        if (!_handles.HasHandle) { File = null; return; }
-        if (File is { Writable: true } && !_handles.HasWritable
-            && PagedFile.Open(_medium, writable: false, _coherent, out var reader, _cachePages) == StoreStatus.Ok)
-            File = reader;
+        if (!_handles.HasHandle) { File = null; return StoreStatus.Ok; }
+        if (File is not { Writable: true } || _handles.HasWritable) return StoreStatus.Ok;
+        var status = PagedFile.Open(_medium, writable: false, _coherent, out var reader, _cachePages);
+        if (status == StoreStatus.Ok) File = reader;
+        return status;
     }
 
     /// <summary>The trees one statement edited, each with the root it sets in the meta: <see cref="PrimeRoot"/> for the

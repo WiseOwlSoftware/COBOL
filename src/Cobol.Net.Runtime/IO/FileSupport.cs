@@ -199,7 +199,7 @@ public static class HostFile
 {
     /// <summary>⛔ THE ONE ANSWER TO "DO THESE TWO HOST PATHS NAME ONE PHYSICAL FILE?" (kb/Work PB2748), for the two
     /// tables keyed on the physical file — Table 19's arbitration state (<c>PhysicalFileTable</c>) and the keyed record
-    /// stores (<c>KeyedStoreTable</c>) — and every other comparison of two connectors' host paths. The paths are the
+    /// stores (<c>StoreTable</c>) — and every other comparison of two connectors' host paths. The paths are the
     /// ABSOLUTE spellings <see cref="CobolFile.ResolveHostPath"/> produces, so <c>data.dat</c>, <c>./data.dat</c> and
     /// the full path are one key; this comparer adds the host file system's case rule: case-insensitive where the
     /// default file systems are (Windows, macOS), case-sensitive elsewhere, where <c>Cust.dat</c> and

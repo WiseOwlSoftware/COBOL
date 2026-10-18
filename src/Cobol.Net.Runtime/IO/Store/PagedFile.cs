@@ -240,16 +240,24 @@ internal sealed class PagedFile
     /// retirement or fence: the store ADOPTS page 2 (its roots, its ledger) and drops its page cache. A writer also takes
     /// page 2's mints (a <c>stamp mint</c> above the generation is a dead or refused attempt: the next claim goes above
     /// it, nothing is dropped) and resolves a PROMOTING flag first (R5's restart rule). A NO OTHER store has nobody to
-    /// adopt from and reads page 2 only to resolve its own refused promotion.</summary>
-    public StoreStatus Enter()
+    /// adopt from and reads page 2 only to resolve its own refused promotion.
+    /// <para>⛔ <paramref name="asReader"/>: the statement entered through a READ-ONLY handle, so it holds the store mutex
+    /// SHARED — an <c>OPEN INPUT</c> connector of a run unit whose store a writable sibling also holds (kb/Work PB3335).
+    /// It adopts like every entry, because the store is the run unit's one store and its roots follow page 2, but it is a
+    /// READER's entry: the mints and a PROMOTING flag are left to the next entry through a writable handle, which holds
+    /// the mutex exclusively (2.2.1.7, <i>"an INPUT connector ignores the mint and the flag, which concern writers
+    /// only"</i>). Resolving the flag WRITES, and a write under a shared hold would race another run unit's reader, or
+    /// another run unit's reader-beside-a-writer resolving the same flag at the same moment.</para></summary>
+    public StoreStatus Enter(bool asReader = false)
     {
         if (!_coherent && !_promotionPending) return StoreStatus.Ok;
+        bool writer = _writable && !asReader;
         var page = new byte[PageHeader.PageSize];
         if (!TryReadRaw(MetaPage.WorkSlot, page)) return StoreStatus.PermanentError;
         var work = MetaPage.Decode(page, MetaPage.WorkSlot);
         // A torn page 2 under a live store: a reader keeps the tree it holds (nothing it can follow moved); a writer
         // cannot know what another run unit completed, so it answers '30' (§9.1.13.6 item 1).
-        if (work is null) return _writable ? StoreStatus.PermanentError : StoreStatus.Ok;
+        if (work is null) return writer ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
         {
             // A reader adopts the roots; only a writer allocates, so only a writer reads the ledger (2.2.1.7).
@@ -259,7 +267,7 @@ internal sealed class PagedFile
             _lastSeen = work.Generation;
             DropCache();
         }
-        if (!_writable) return StoreStatus.Ok;
+        if (!writer) return StoreStatus.Ok;
         SeeMints(work);
         if (!work.Promoting)
         {

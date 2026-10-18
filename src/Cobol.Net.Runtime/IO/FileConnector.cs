@@ -252,7 +252,7 @@ public abstract class FileConnector
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused
     /// unit test) keeps the private-store behavior.</summary>
-    internal KeyedStoreTable? SharedStores { get; set; }
+    internal StoreTable? SharedStores { get; set; }
 
     /// <summary>The live state of the PHYSICAL FILE this connector is associated with — the ONE object that
     /// stands for the medium, held by EVERY connector opened through a registry, whatever its SELECT declared.
