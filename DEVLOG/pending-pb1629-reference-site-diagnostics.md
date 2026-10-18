@@ -48,3 +48,10 @@ conformance cases: `pb1629-type-dynamic-table-in-file-section`, `pb1629-same-as-
 **Self-review.** The architecture lens found the two arms of the same dispatch (the TYPE-only anchor in the group-VALUE screen)
 and the written-forest gap in the depth rule; both are fixed. The duplication lens found `TypeAnchor`-or-self written where
 `ReferenceSite` now answers. No wrapper or alias was left behind.
+
+**Review round 2.** The ambiguity arm of the same rule: a counter that is ambiguous among members of the one copied description
+(SR1, COBOLNET1639) was reported at the declaration and again at each legal TYPE / SAME AS reference, because
+`UniqueOrReportAmbiguous` ran unconditionally at the placement. It now asks the same verdict silently when the table and every
+candidate lie inside the copy (`ambiguityIsDeclarationFact`), so `--permissive` still binds the first-declared counter in the
+clone. The KEY phrase (data-name-2) counts through the same verdict at the table's own position and already reports once;
+the rows `PB1629DC`-`PB1629DF` of `FactOfTheDeclaration_IsNotReportedAgainAtALegalReference` pin both.

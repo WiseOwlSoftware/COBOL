@@ -221,6 +221,12 @@ public sealed class ReferenceSitePositionTests
     [InlineData("PB1629D8", "COBOLNET0856", "       01 HD8.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R SAME AS HD8.\n")]
     // SR20: the counter lies inside the table's own range, both inside the copied description.
     [InlineData("PB1629D9", "COBOLNET0857", "       01 TD9 TYPEDEF.\n          02 D OCCURS 1 TO 5 DEPENDING ON N.\n             03 N PIC 9.\n", "       01 R TYPE TD9.\n")]
+    // §8.4.2.2.3 SR1: the counter is ambiguous among members of the one copied description.
+    [InlineData("PB1629DC", "COBOLNET1639", "       01 TDC TYPEDEF.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TDC.\n")]
+    [InlineData("PB1629DD", "COBOLNET1639", "       01 HDD.\n          02 G1.\n             03 N PIC 9.\n          02 G2.\n             03 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HDD.\n")]
+    // The KEY phrase's data-name-2 is counted by the same verdict (the sibling arm): also once, at the declaration.
+    [InlineData("PB1629DE", "COBOLNET1639", "       01 TDE TYPEDEF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R TYPE TDE.\n")]
+    [InlineData("PB1629DF", "COBOLNET1639", "       01 HDF.\n          02 D OCCURS 3 ASCENDING KEY IS K.\n             03 G1.\n                04 K PIC 9.\n             03 G2.\n                04 K PIC 9.\n", "       01 R SAME AS HDF.\n")]
     // SR10: a copy of a copy whose eighth dimension arose one level up.
     [InlineData("PB1629DA", "COBOLNET2646", "       01 T2A TYPEDEF.\n" + SevenDeep + "       01 T1A TYPEDEF.\n          02 Y OCCURS 2 TYPE T2A.\n", "       01 R TYPE T1A.\n")]
     [InlineData("PB1629DB", "COBOLNET2646", "       01 HB.\n" + SevenDeep + "       01 G1B.\n          02 X OCCURS 2.\n             03 Y SAME AS HB.\n", "       01 R SAME AS G1B.\n")]
