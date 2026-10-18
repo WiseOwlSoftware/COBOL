@@ -96,7 +96,8 @@ internal static class CutRunner
 /// were recorded at; spec-pinned tests of post-85 features pass their own, e.g. 2023 for the wide tier).</param>
 public sealed class CobolNetCompiler(int dialectLevel = 85)
 {
-    public (bool ok, string stdout, string detail) CompileAndRun(string source)
+    public (bool ok, string stdout, string detail) CompileAndRun(string source,
+        IReadOnlyDictionary<string, string?>? env = null)
     {
         string dir = CutRunner.NewTempDir("cn");
         try
@@ -109,7 +110,7 @@ public sealed class CobolNetCompiler(int dialectLevel = 85)
             if (!result.Success)
                 return (false, "", $"[cobolnet compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
-            return CutRunner.Run(dll, dir);
+            return CutRunner.Run(dll, dir, null, env);
         }
         finally { CutRunner.TryDelete(dir); }
     }
