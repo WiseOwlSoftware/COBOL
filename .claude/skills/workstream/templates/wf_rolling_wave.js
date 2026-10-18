@@ -152,7 +152,9 @@ function settled(letter) {
 //                 own or none): that finisher rewrote the group's one report for its own branch with no Review line,
 //                 so no report shows the findings any more, and whatever it left half done is on the successor's
 //                 branch. The successor's review covers the predecessor's content as its own and records again each of
-//                 those findings that still holds. A last verdict that cannot be read reads 'unanswered' too.
+//                 those findings that still holds. A last verdict that cannot be read reads 'unanswered' too, and so
+//                 does a TORN findings file (`v.torn`, review R4-1): the reader returns the verdict before the tear,
+//                 but a round was being written after it, so the file is never read as capped.
 //   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
 //                 successor's, as its own.
 // In both FINDINGS cases prune_worktrees.py carrying_findings holds the successor: it reads the SAME findings file
@@ -162,7 +164,7 @@ function predecessorEnd(p) {
   if (p.review === 'CLEAN') return 'clean'
   if (!/^FINDINGS/.test(p.review || '')) return 'unreviewed'
   const v = p.last_verdict
-  return v && v.unanswered && v.round > REVIEW_FIX_ROUNDS && sameHead(v.head, p.head) ? 'capped' : 'unanswered'
+  return v && v.unanswered && !v.torn && v.round > REVIEW_FIX_ROUNDS && sameHead(v.head, p.head) ? 'capped' : 'unanswered'
 }
 
 // THE ONE READER OF A GROUP'S FINDINGS FILE (kb/Work PB3381 review R3-1): `review_findings.py last-verdict`, run by

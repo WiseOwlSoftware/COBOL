@@ -1824,7 +1824,12 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1); and a merged branch with no clean stamp at its tip never lands alone,
+   each finding that still holds; branch review R1-1, R2-1, R3-1). A torn line never releases a hold (review R4-1):
+   `last_verdict` reads the well-formed records before the first torn line (a record after it could only answer
+   that verdict) and names the line as `torn`; `carrying_findings` writes it into the held row's `why`,
+   `predecessorEnd` never reads a torn file `capped`, and the writers refuse the file, naming
+   `review_findings.py repair <file>`, which prints the torn tail and removes it and which only the operator runs;
+   and a merged branch with no clean stamp at its tip never lands alone,
    it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
    and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
    one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the

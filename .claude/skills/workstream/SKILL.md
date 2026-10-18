@@ -127,7 +127,10 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   next-wave finisher, and its successor neither answers them nor records them again; a predecessor whose review
   finisher was sent to answer them and came back without doing so (SPLIT, BLOCKED, STALLED, killed, with or without a
   commit) is UNANSWERED: its report no longer shows them, so the successor's review covers the predecessor's content
-  and records again each finding that still holds. A successor may also follow a group in the same technological
+  and records again each finding that still holds. A TORN findings file (a writer killed mid-append) never releases
+  a hold: the reader reads the records before the tear, the survey names the torn line in the held row, the wave
+  reads it UNANSWERED, never capped, and the writers refuse it until the operator runs
+  `review_findings.py repair <file>` by hand (branch review R4-1). A successor may also follow a group in the same technological
   area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
