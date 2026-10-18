@@ -352,7 +352,8 @@ the script, which also takes the cold, whole-process and GnuCOBOL measurements a
   `FullCompile` adds emit, Roslyn and the written assembly, so the `Ratio` column is the backend's share. Witness: both
   compiles succeed, the assembly is non-empty, and SM201A really read its library texts.
 - **`GeneratedCode/GeneratedProgramBenchmarks`** — the programs under `Programs/` (`MOVEHOT` moves through every storage
-  form, `PERFHOT` is PERFORM dispatch, `SEQHOT` sequential and `IDXHOT` indexed file I/O), compiled once at the shipping
+  form, `PERFHOT` is PERFORM dispatch, `SEQHOT` sequential and `IDXHOT` indexed file I/O, `SORTHOT` a SORT through input
+  and output procedures and `MERGEHOT` a MERGE of four files, kb/Work PB2777), compiled once at the shipping
   edition and run in this process through their entry point: the generated code and the runtime, without process
   start-up. Witness: the program's whole output must equal its line in `Programs/witnesses.tsv`, which is computed from
   the formula in the program's header comment, never copied from a run. `Programs/EMPTYRUN.cob` is the start-up floor
@@ -360,15 +361,21 @@ the script, which also takes the cold, whole-process and GnuCOBOL measurements a
 
 The `Programs/` sources are plain COBOL 85 on purpose: the script runs the same files through GnuCOBOL 3.2 under WSL,
 so the comparison always measures the same COBOL. Each has exactly one `01 LOOP-COUNT PIC 9(9) COMP VALUE n.` line,
-which the script scales (1x, 2x, 4x) for the scaling curve.
+which the script scales (1x, 2x, 4x) for the scaling curve. The script also records every whole process's PEAK
+resident set, which allocated bytes cannot stand in for, and times a program with an SD entry twice: under the default
+sort memory limit, where every scale is sorted in memory, and as `<program>-SPILL` under a limit several times smaller
+than its records, where the sort writes sorted runs to temporary files and merges them (`docs/CONFORMANCE.md` §3
+D-SWK). Both implementations get the same limit, and the record shows the spilling case's peak staying nearly flat as
+the input grows (kb/Work PB2777).
 
 ---
 
 ## Not measured here
 
 **The COBOL layer beyond the carrier.** `Compare_ShortStrings_LocaleCollation` (run 2) measures the
-`CobolCollation` carrier's LOCALE arm; the table arms (`AlphanumericCollation` / `NationalCollation`) and SORT/MERGE end
-to end are not benchmarked yet (indexed-file key handling is, end to end, by `IDXHOT`).
+`CobolCollation` carrier's LOCALE arm; the table arms (`AlphanumericCollation` / `NationalCollation`) are not
+benchmarked yet. SORT and MERGE are, end to end, by `SORTHOT` and `MERGEHOT` (numeric keys, so no collation), and
+indexed-file key handling by `IDXHOT`.
 
 **Numeric conversion in isolation.** `MOVEHOT` measures `MOVE` across the storage forms as a program does it; there is
 no micro-benchmark of one conversion. Add one as a sibling folder (`tests/Cobol.Net.Benchmarks/<Subsystem>/`) reusing
