@@ -242,4 +242,35 @@ public sealed class BoundArmDiagnosticPositionTests : IDisposable
         Assert.False(ok);
         AssertAt(lines, 6, 8, "error", "COBOLNET0900");
     }
+
+    // ── the report-SUM arm of the data gates: a SUM counter's own PICTURE gate is positioned at its entry ────────────
+
+    [Theory] // an external-float PICTURE (symbol E) is a 2002 introduction (data-model D21); the SUM-counter gate and, where the
+             // entry also prints, the printable-item gate both name the entry, never a bare diagnostic
+    [InlineData("           03  COLUMN 1 PIC +9.9E+99 SUM WS-K.\n", 2)]   // printable SUM: the print item and the counter
+    [InlineData("           03  PIC +9.9E+99 SUM WS-K.\n", 1)]            // non-printable SUM: the counter alone
+    public void ReportSumCounterPictureGate_Below2002_NamesTheSumEntry(string sumEntry, int expectedGates)
+    {
+        string text =
+            "       IDENTIFICATION DIVISION.\n       PROGRAM-ID. PB1925R.\n       ENVIRONMENT DIVISION.\n"
+            + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT PRT ASSIGN TO \"pb1925-prt.tmp\".\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD  PRT REPORT IS R-1.\n"
+            + "       WORKING-STORAGE SECTION.\n       01  WS-K    PIC 99    VALUE 60.\n"
+            + "       REPORT SECTION.\n       RD  R-1 CONTROL IS FINAL PAGE LIMIT IS 20 LINES.\n"
+            + "       01  DE-1 TYPE DE LINE PLUS 1.\n           03  COLUMN 1 PIC 99 SOURCE WS-K.\n"
+            + "       01  TYPE CF FINAL LINE PLUS 1.\n"
+            + (sumEntry.Contains("COLUMN") ? "" : "           03  COLUMN 1 PIC 99 SOURCE WS-K.\n") + sumEntry
+            + "       PROCEDURE DIVISION.\n           OPEN OUTPUT PRT\n           INITIATE R-1\n"
+            + "           GENERATE DE-1\n           TERMINATE R-1\n           CLOSE PRT\n           STOP RUN.\n";
+        string name = "r" + Guid.NewGuid().ToString("N")[..6] + ".cob";
+        File.WriteAllText(Path.Combine(_dir, name), text);
+        var r = CompiledProgramCache.Compile(new CompilerDriver.Options(
+            Path.Combine(_dir, name), Path.Combine(_dir, "out.dll"), DialectLevel: 85, CheckOnly: true,
+            CopyPaths: [_dir], SourceFormat: InitialReferenceFormat.Fixed));
+        Assert.False(r.Success);
+        var gates = r.Errors.Where(d => d.Contains("COBOLNET0900")).ToList();
+        Assert.True(gates.Count >= expectedGates, "expected the PICTURE gate(s); got:\n" + string.Join("\n", r.Errors));
+        int sumLine = text[..text.IndexOf(sumEntry, StringComparison.Ordinal)].Count(c => c == '\n') + 1;   // the line the entry is written on
+        Assert.All(gates, d => Assert.Contains($"({sumLine},12): error COBOLNET0900", d));
+    }
 }
