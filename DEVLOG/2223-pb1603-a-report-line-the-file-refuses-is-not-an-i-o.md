@@ -1,4 +1,4 @@
-## PB1603: a report line the file refuses is not an I-O statement exception (a determination, with its witnesses)
+## Entry 2223 — 2026-10-18 15:57 PDT — PB1603: a report line the file refuses is not an I-O statement exception (a determination, with its witnesses)
 
 Wave 1126, group D. The note asked whether a report line the medium refuses ('91' for a character with no byte image,
 '34' for a full medium) should raise an exception condition, so a program could learn the line was not written.
@@ -25,3 +25,4 @@ golden had neither a FILE STATUS item nor a USE procedure and no '34' case.
 
 **Rows.** The note claimed no inventory row; `closes_rows` is empty with its reason. If the owner wants the refusal
 observable, that is a new decision against DOC-A.1-159 and DOC-A.1-103.
+
