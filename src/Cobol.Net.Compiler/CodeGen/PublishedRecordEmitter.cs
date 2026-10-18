@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
-using CobolNet.Runtime;
 using static CobolNet.CodeGen.Emit.EmitText;
 
 namespace CobolNet.CodeGen;
@@ -465,7 +464,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
                 bool cells = HoldsSlots(m.Item);
                 string cell = cells ? "__ec[__i]" : "null";
                 if (cells)
-                    w.Line($"var __ec = __c!.{nameof(StorageCell.DynTableAt)}({at}, {MinimumCapacity(m.Item)}, {m.Item.ByteWidth}).CurrentOccurrences;");
+                    w.Line($"var __ec = {RuntimeApi.TableCurrentOccurrences(RuntimeApi.CellDynTable("__c!", at, MinimumCapacity(m.Item), m.Item.ByteWidth), null)};");
                 string body = m.Record is not null
                     ? $"{{ if ({m.Record}.__TryGet(__o[__i], {cell}{(nested ? "" : ", 0")}, {each} + \".\", ref __bad, out var __g)) "
                         + $"__r.{m.Name}[__i] = __g; else __ok = false; }}"
@@ -498,7 +497,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             string element = ComponentsOf(m.Item).Count > 0 ? "0, 0" : "0";   // the element's own scope: numbered from zero
             using (w.Block(""))
             {
-                w.Line($"var __t = __c.{nameof(StorageCell.DynTableAt)}(__dyn + {m.Ordinal}, {MinimumCapacity(m.Item)}, {m.Item.ByteWidth}).CurrentOccurrences;");
+                w.Line($"var __t = {RuntimeApi.TableCurrentOccurrences(RuntimeApi.CellDynTable("__c", $"__dyn + {m.Ordinal}", MinimumCapacity(m.Item), m.Item.ByteWidth), null)};");
                 w.Line($"for (int __i = 0; __i < {m.Name}.Length; __i++) "
                     + (m.Record is not null ? $"{m.Name}[__i].__PutSlots(__t[__i], {element});" : Value($"{m.Name}[__i]", "__t[__i]", "0")));
             }
