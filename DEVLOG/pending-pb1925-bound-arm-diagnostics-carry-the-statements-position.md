@@ -17,7 +17,7 @@ diagnostic cursor. The three per-node `At` properties and their three constructi
 directive stage fills with the directive's resultant line and indicator column. A new bound statement, or a new gate
 over one, inherits the position. `docs/COBOLNET_VALIDATION_DESIGN.md` (Positions) names the mechanism.
 
-Witnesses: `BoundArmDiagnosticPositionTests` (29 cases). The placement rules are tested on their refusal paths and
+Witnesses: `BoundArmDiagnosticPositionTests` (31 cases). The placement rules are tested on their refusal paths and
 their legal twins: SORT in a SORT input procedure, a SORT output procedure and a MERGE output procedure at every
 edition (ISO 14.9.40.3 SR3); MERGE in each of the three at 2023 as an error, as a warning under `--permissive`, and
 accepted at 2002 and 2014 (14.9.24.3 SR1, Annex E.2 item 20); COMMIT and ROLLBACK in each (14.9.7.3 SR2, 14.9.36.3
@@ -28,3 +28,9 @@ changed by it.
 
 The sweep's other 23 position-less negatives belong to other passes (report-section RD rules, external-file
 consistency, OO method-header rules, OptionsBinder's COBOLNET0806) and are reported as leads.
+
+Branch review round 1 (two findings, both fixed). The SUM-counter PICTURE gate of the report-Sums loop still ran with no
+cursor; it now positions its sink at the counter register, whose DeclaredAt is the SUM entry. The COBOL-WORDS operation
+carried its position twice (a required 0-based Line that nothing read, and the new optional At); Line is deleted and At
+is the one required positional member, filled by the directive stage, so no producer can leave it unset by omission.
+Two new cases (printable and non-printable SUM entry) pin the SUM arm.

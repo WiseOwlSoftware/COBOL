@@ -481,7 +481,11 @@ internal sealed class VersionConformancePass
             // one 0900, and a PRINTABLE SUM (also a print item, gated above) gets both, exactly as the former two
             // Analyze sites did.
             foreach (var family in report.SumFamilies)
-                if (family.SkeletonGate is { } sumSkeletonId) Check(sumSkeletonId, family.SkeletonWhere);
+                if (family.SkeletonGate is { } sumSkeletonId)
+                {
+                    using var _ = _sink.At(family.Register);   // the SUM entry's own position (Register.DeclaredAt, kb/Work PB1925)
+                    Check(sumSkeletonId, family.SkeletonWhere);
+                }
         }
     }
 
