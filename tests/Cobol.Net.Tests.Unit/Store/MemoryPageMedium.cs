@@ -27,8 +27,9 @@ internal sealed record MediumSync(long UpToSeq, string Unit);
 /// (kb/Work PB3331): an in-memory page array that logs every write and sync, and can LOSE every unsynced write or any
 /// chosen subset of them (a power loss), KEEP them (a process death: nothing to do), TEAR one named page, or SERVE AN
 /// OLDER VERSION of one named page (a lost write over a reused page). Each run unit reaches it through its own
-/// <see cref="Handle"/>, whose fault plan kills or refuses that run unit at its n-th write or sync — so two run units
-/// interleave at every step deterministically, on every host, with no VM.</summary>
+/// <see cref="Handle"/>, whose fault plan kills or refuses that run unit at its n-th write, sync or truncation (an
+/// OPERATION) or at its n-th read — so two run units interleave at every step deterministically, on every host, with no
+/// VM.</summary>
 internal sealed class MemoryPageMedium
 {
     private sealed class PageVersions
@@ -160,6 +161,10 @@ internal sealed class MemoryPageMedium
 
         /// <summary>The run unit dies just AFTER the operation was performed.</summary>
         DeathAfter,
+
+        /// <summary>The host refuses the operation because the FILE cannot grow further (<c>EFBIG</c>,
+        /// <c>ERROR_FILE_TOO_LARGE</c>): <see cref="MediumSizeLimitException"/>, the operation not performed.</summary>
+        SizeLimit,
     }
 
     /// <summary>One run unit's handle: an <see cref="IPageMedium"/> with a fault plan.</summary>
@@ -171,17 +176,21 @@ internal sealed class MemoryPageMedium
         private Fault _syncFault;
         private int _opCountdown = -1;
         private Fault _opFault;
+        private int _readCountdown = -1;
+        private Fault _readFault;
         private bool _dead;
         private bool _refuseAll;
 
         /// <summary>The run unit's name in the logs.</summary>
         public string Unit => unit;
 
-        /// <summary>Every operation this handle performed, in order: <c>W&lt;page&gt;</c> for a write, <c>S</c> for a sync.</summary>
+        /// <summary>Every operation this handle performed, in order: <c>W&lt;page&gt;</c> for a write, <c>S</c> for a sync,
+        /// <c>T&lt;pages&gt;</c> for a truncation. Reads are not operations (a death at a read is a death before the next
+        /// operation); they have their own count and fault plan.</summary>
         public List<string> Operations { get; } = [];
 
-        /// <summary>Fire <paramref name="fault"/> at this handle's <paramref name="nth"/> operation — write OR sync — from
-        /// now (1 = the next): the loop that kills or refuses a path at every point of it.</summary>
+        /// <summary>Fire <paramref name="fault"/> at this handle's <paramref name="nth"/> operation — write, sync or
+        /// truncation — from now (1 = the next): the loop that kills or refuses a path at every point of it.</summary>
         public void FaultAtOperation(int nth, Fault fault) => (_opCountdown, _opFault) = (nth, fault);
 
         /// <summary>The writes this handle performed.</summary>
@@ -190,17 +199,24 @@ internal sealed class MemoryPageMedium
         /// <summary>The syncs this handle performed.</summary>
         public int SyncsPerformed { get; private set; }
 
+        /// <summary>The reads this handle performed.</summary>
+        public int ReadsPerformed { get; private set; }
+
+        /// <summary>Fire <paramref name="fault"/> at this handle's <paramref name="nth"/> READ from now (1 = the next): the
+        /// loop that refuses every read of a path (a refused read is '30', never a verdict on the page).</summary>
+        public void FaultAtRead(int nth, Fault fault) => (_readCountdown, _readFault) = (nth, fault);
+
         /// <summary>Fire <paramref name="fault"/> at this handle's <paramref name="nth"/> write from now (1 = the next).</summary>
         public void FaultAtWrite(int nth, Fault fault) => (_writeCountdown, _writeFault) = (nth, fault);
 
         /// <summary>Fire <paramref name="fault"/> at this handle's <paramref name="nth"/> sync from now (1 = the next).</summary>
         public void FaultAtSync(int nth, Fault fault) => (_syncCountdown, _syncFault) = (nth, fault);
 
-        /// <summary>Refuse every write and sync from now until <see cref="Heal"/>: a full medium.</summary>
+        /// <summary>Refuse every write, sync and truncation from now until <see cref="Heal"/>: a full medium.</summary>
         public void RefuseEverything() => _refuseAll = true;
 
         /// <summary>Clear the fault plan.</summary>
-        public void Heal() => (_writeCountdown, _syncCountdown, _opCountdown, _refuseAll) = (-1, -1, -1, false);
+        public void Heal() => (_writeCountdown, _syncCountdown, _opCountdown, _readCountdown, _refuseAll) = (-1, -1, -1, -1, false);
 
         /// <inheritdoc/>
         public long PageCount => medium._length;
@@ -209,7 +225,10 @@ internal sealed class MemoryPageMedium
         public void Read(uint page, Span<byte> destination)
         {
             ThrowIfDead();
+            bool dieAfter = Fire(ref _readCountdown, _readFault);
             medium.Snapshot(page).CopyTo(destination);
+            ReadsPerformed++;
+            if (dieAfter) Die();
         }
 
         /// <inheritdoc/>
@@ -240,8 +259,12 @@ internal sealed class MemoryPageMedium
         public void SetPageCount(long pages)
         {
             ThrowIfDead();
+            if (_refuseAll) throw new IOException("simulated refused truncation");
+            bool dieAfter = Fire(ref _opCountdown, _opFault);
             medium._length = pages;
             foreach (var p in medium._pages.Keys.Where(p => p >= pages).ToList()) medium._pages.Remove(p);
+            Operations.Add($"T{pages}");
+            if (dieAfter) Die();
         }
 
         /// <summary>Count down a fault; throw for a death or a refusal BEFORE the operation, answer true for a death
@@ -259,6 +282,9 @@ internal sealed class MemoryPageMedium
                 case Fault.Refuse:
                     countdown = -1;
                     throw new IOException("simulated medium refusal");
+                case Fault.SizeLimit:
+                    countdown = -1;
+                    throw new MediumSizeLimitException("simulated file size limit");
                 case Fault.DeathAfter:
                     countdown = -1;
                     return true;

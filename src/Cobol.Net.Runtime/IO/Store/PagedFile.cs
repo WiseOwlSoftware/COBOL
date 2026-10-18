@@ -12,6 +12,14 @@ internal enum StoreStatus
     /// <summary>The medium refused a write, a read or a sync, a page read through a stamped pointer was torn, or the
     /// store is damaged beyond repair (both committed slots): '30'.</summary>
     PermanentError,
+
+    /// <summary>A changing statement would take the store past its BOUNDARY (2.2.1.9): its reservation would grow the
+    /// file past the format's 2^32 pages, or the host refused one of its writes because the file cannot grow further
+    /// (<see cref="MediumSizeLimitException"/>). Nothing the statement did is reachable (R1) and the file is unchanged;
+    /// a WRITE or REWRITE answers it as §9.1.13.5 item 4's '24' with the invalid key condition (§9.1.14). Only
+    /// <see cref="PagedFile.Begin"/> and a statement's completion answer it: an OPEN, a CLOSE and a promotion have no
+    /// '24' and answer <see cref="PermanentError"/>.</summary>
+    Boundary,
 }
 
 /// <summary>How the adoption rule classified the WORK slot at OPEN (2.2.1.6 R6 step 2).</summary>
@@ -57,6 +65,10 @@ internal sealed class PagedFile
 
     /// <summary>R5's ledger checkpoint: a ledger past this many pages promotes at the next statement.</summary>
     public const int LedgerCheckpoint = 1024;
+
+    /// <summary>The format's capacity: 32-bit page numbers address 2^32 pages of 4 096 bytes (2.2.1.3 decision 6,
+    /// 2.2.1.9). A statement whose reservation would grow the file past it answers <see cref="StoreStatus.Boundary"/>.</summary>
+    public const ulong FormatPages = 1ul << 32;
 
     private readonly IPageMedium _medium;
     private readonly bool _writable;
@@ -118,24 +130,69 @@ internal sealed class PagedFile
     // ── Creation and OPEN ───────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
-    /// records"</i>): the medium is EMPTIED first — so a death part-way leaves no page of a previous store to adopt — then
-    /// the three meta pages of an empty store are written and synced. A death before page 0 or page 1 landed leaves no
-    /// valid committed slot (the next OPEN answers '30'); after either, an empty store.</summary>
+    /// records"</i>), a promotion of the EMPTY store with ONE durable write that decides it (2.2.1.16's creation rows):
+    /// the three meta pages are read (kept to undo a refusal) and the empty store's generation N is placed above every
+    /// stamp the previous store can have issued (the fence's bound, R2); the empty meta at N is written into the slot that
+    /// does NOT hold the previous store's committed meta and SYNCED — the commit point — then page 2, the other slot, the
+    /// one TRUNCATION to three pages, and a sync. A death before the commit write was handed over leaves the previous file;
+    /// after it, the empty store. A REFUSAL is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
+    /// pages written so far get their previous bytes back (one more sync), and only a refused final sync — after the
+    /// truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30' either way).</summary>
     public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store)
     {
         if (!MetaPage.Fits(attributes))
             throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
         store = null;
-        var meta = MetaPage.Empty(attributes);
-        var created = new PagedFile(medium, writable: true, coherent, meta);
-        try { medium.SetPageCount(0); }
+        var creator = new PagedFile(medium, writable: true, coherent, MetaPage.Empty(attributes));
+        long length;
+        try { length = medium.PageCount; }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
-        for (uint slot = 0; slot < MetaPage.MetaPages; slot++)
-            if (!created.TryWrite(slot, meta.Encode(slot))) return StoreStatus.PermanentError;
-        if (!created.TrySync()) return StoreStatus.PermanentError;
-        created._adoption = new Adoption(WorkSlotClass.Descendant, WorkAdopted: true, Fenced: false);
-        store = created;
+        var before = new byte[MetaPage.MetaPages][];
+        var previous = new MetaPage?[MetaPage.MetaPages];
+        for (uint p = 0; p < MetaPage.MetaPages; p++)
+        {
+            before[p] = new byte[PageHeader.PageSize];
+            if (!creator.TryReadRaw(p, before[p])) return StoreStatus.PermanentError;
+            previous[p] = MetaPage.Decode(before[p], p);
+        }
+        ulong n = previous.OfType<MetaPage>()
+            .Select(m => Math.Max(m.Generation + GenerationCeiling + 1, m.StampMint + 1)).DefaultIfEmpty(0ul).Max();
+        var meta = MetaPage.Empty(attributes) with { Generation = n, CommittedGeneration = n, StampMint = n };
+        uint target = MetaPage.Committed(previous[MetaPage.SlotA], previous[MetaPage.SlotB]) is { Slot: MetaPage.SlotA }
+            ? MetaPage.SlotB : MetaPage.SlotA;
+        var written = new List<uint>((int)MetaPage.MetaPages);
+        foreach (uint p in new[] { target, MetaPage.WorkSlot, target == MetaPage.SlotA ? MetaPage.SlotB : MetaPage.SlotA })
+        {
+            if (!creator.TryWrite(p, meta.Encode(p))) return creator.UndoCreation(written, before, length);
+            written.Add(p);
+            if (p == target && !creator.TrySync()) return creator.UndoCreation(written, before, length);
+        }
+        try { medium.SetPageCount(MetaPage.MetaPages); }
+        catch (Exception e) when (IsRefusal(e)) { return creator.UndoCreation(written, before, length); }
+        if (!creator.TrySync()) return StoreStatus.PermanentError;
+        creator._meta = meta;
+        creator._lastSeen = n;
+        creator.SeeMints(meta);
+        creator._adoption = new Adoption(WorkSlotClass.Descendant, WorkAdopted: true, Fenced: false);
+        store = creator;
         return StoreStatus.Ok;
+    }
+
+    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): the meta pages it wrote get their
+    /// previous bytes back, newest first, a file shorter than three pages its previous <paramref name="length"/>, and one
+    /// sync; '30' whatever the medium then does.</summary>
+    private StoreStatus UndoCreation(List<uint> written, byte[][] before, long length)
+    {
+        if (written.Count == 0) return StoreStatus.PermanentError;
+        for (int i = written.Count - 1; i >= 0; i--)
+            if (written[i] < length && !TryWrite(written[i], before[written[i]])) return StoreStatus.PermanentError;
+        if (length < MetaPage.MetaPages)
+        {
+            try { _medium.SetPageCount(length); }
+            catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
+        }
+        TrySync();
+        return StoreStatus.PermanentError;
     }
 
     /// <summary>OPEN an existing store: 2.2.1.6 R6's ADOPTION RULE, run by the caller under the store mutex, and through
@@ -170,11 +227,15 @@ internal sealed class PagedFile
         Rejected? rejected = null;
         if (workClass == WorkSlotClass.Descendant)
         {
-            bool readable = opened.TryLoad(work!, out var ledger, out _, out var ledgerChain, out _);
-            if (readable && opened.FreshPagesVerify(ledger)) adopted = work!;
+            // A REFUSED read is no verdict on the work slot (R6 step 3 rejects what fails to VERIFY): '30', nothing written.
+            var load = opened.TryLoad(work!, out var ledger, out _, out var ledgerChain, out _);
+            bool readable = load == Load.Loaded;
+            if (readable) load = opened.FreshPagesVerify(ledger);
+            if (load == Load.Refused) return StoreStatus.PermanentError;
+            if (load == Load.Loaded) adopted = work!;
             else rejected = new Rejected(readable ? ledger : null, readable ? ledgerChain : []);
         }
-        if (!opened.TryLoad(adopted, out var l, out var f, out var lc, out var fc)) return StoreStatus.PermanentError;
+        if (opened.TryLoad(adopted, out var l, out var f, out var lc, out var fc) != Load.Loaded) return StoreStatus.PermanentError;
         opened.SetState(adopted, l, f, lc, fc);
         opened._lastSeen = work?.Generation ?? 0;
         opened.SeeMints(committed);
@@ -214,7 +275,7 @@ internal sealed class PagedFile
         if (work is null) return _writable ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
         {
-            if (!TryLoad(work, out var l, out var f, out var lc, out var fc)) return StoreStatus.PermanentError;
+            if (TryLoad(work, out var l, out var f, out var lc, out var fc) != Load.Loaded) return StoreStatus.PermanentError;
             SetState(work, l, f, lc, fc);
             _lastSeen = work.Generation;
             _cacheEpoch++;
@@ -265,7 +326,9 @@ internal sealed class PagedFile
     /// R5); its CLAIM — in memory, and for a coherent store on page 2 with the roots, base and generation unchanged,
     /// before its first page write (2.2.1.7); and its RESERVATION — the ledger's <c>released</c> pages, then one batch of
     /// the lowest FREE pages, then growth, sized to the bound plus the FREE and LEDGER pages the statement rewrites, so
-    /// nothing is allocated once the ledger is being written (R2).</summary>
+    /// nothing is allocated once the ledger is being written (R2). The reservation is taken BEFORE the claim: one that
+    /// would grow the file past the format's 2^32 pages is the BOUNDARY (2.2.1.9), answered with nothing claimed or
+    /// written.</summary>
     public StoreStatus Begin(int pageBound, out PageStatement? statement, int ordinals = 0, int transactionIds = 0)
     {
         statement = null;
@@ -275,15 +338,15 @@ internal sealed class PagedFile
         if ((NextClaim() > _meta.CommittedGeneration + GenerationCeiling || _ledger.Count > LedgerCheckpoint)
             && PromoteAt(_meta, 0, Claim(), null) != StoreStatus.Ok)
             return StoreStatus.PermanentError;
+        var ledger = _ledger.Clone();
+        var free = new SortedSet<uint>(_free);
+        if (Reserve(ReservationBound(pageBound, ledger.Count, free.Count), ledger, free, _meta.PageCount) is not { } reservation)
+            return StoreStatus.Boundary;
         ulong claim = Claim();
         _releaseMint = Math.Max(_releaseMint, _meta.ReleaseMint) + (ulong)ordinals;
         _transactionMint = Math.Max(_transactionMint, _meta.TransactionMint) + (ulong)transactionIds;
         if (_coherent && !TryWrite(MetaPage.WorkSlot, WithMints(_meta).Encode(MetaPage.WorkSlot)))
-            return StoreStatus.PermanentError;
-        var ledger = _ledger.Clone();
-        var free = new SortedSet<uint>(_free);
-        int bound = ReservationBound(pageBound, ledger.Count, free.Count);
-        var reservation = Reserve(bound, ledger, free, _meta.PageCount);
+            return _lastRefusal;
         _active = statement = new PageStatement(this, claim, ledger, free, reservation, _meta);
         return StoreStatus.Ok;
     }
@@ -295,12 +358,12 @@ internal sealed class PagedFile
     internal StoreStatus Complete(PageStatement s)
     {
         End(s);
-        if (s.Refused) return StoreStatus.PermanentError;
+        if (s.Refused) return s.Refusal;
         foreach (var p in _ledgerChain) s.Ledger.Set(p.Page, p.Generation, LedgerState.Released);
         if (!WriteBookkeeping(s.Generation, s.Ledger, s.Free, s.Reservation, s.Reservation.TookFromFree, _freeChain,
                 _freeChain.Count > 0 ? _meta.FreeRoot : PagePointer.None,
                 out var freeRoot, out var freeChain, out var ledgerRoot, out var ledgerChain, out ulong pageCount))
-            return StoreStatus.PermanentError;
+            return _lastRefusal;
         var completed = WithMints(s.Meta with
         {
             Generation = s.Generation,
@@ -309,7 +372,7 @@ internal sealed class PagedFile
             PageCount = Math.Max(s.Meta.PageCount, pageCount),
             Promoting = false,
         });
-        if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return StoreStatus.PermanentError;
+        if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return _lastRefusal;
         SetState(completed, s.Ledger, s.Free, ledgerChain, freeChain);
         _lastSeen = completed.Generation;
         return StoreStatus.Ok;
@@ -322,8 +385,8 @@ internal sealed class PagedFile
         _active = null;
     }
 
-    /// <summary>Write one page of statement <paramref name="s"/>.</summary>
-    internal bool WritePage(uint page, byte[] bytes) => TryWrite(page, bytes);
+    /// <summary>Write one page of a statement: <see cref="StoreStatus.Ok"/>, or the refusal the medium answered.</summary>
+    internal StoreStatus WritePage(uint page, byte[] bytes) => TryWrite(page, bytes) ? StoreStatus.Ok : _lastRefusal;
 
     // ── Reads ───────────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -386,7 +449,7 @@ internal sealed class PagedFile
     /// it is reached by nothing and the next growth reuses it.</summary>
     private StoreStatus Retire(MetaPage promoted, ulong claim, Rejected? rejected)
     {
-        if (!TryLoad(promoted, out var old, out var oldFree, out var oldLedgerChain, out var oldFreeChain))
+        if (TryLoad(promoted, out var old, out var oldFree, out var oldLedgerChain, out var oldFreeChain) != Load.Loaded)
             return StoreStatus.PermanentError;
         var committedPages = new HashSet<uint>(old.Pages(LedgerState.Fresh));
         committedPages.UnionWith(oldLedgerChain.Select(c => c.Page));
@@ -403,7 +466,9 @@ internal sealed class PagedFile
         free.RemoveWhere(p => p < MetaPage.MetaPages || p >= promoted.PageCount || committedPages.Contains(p));
         var ledger = new Ledger();
         foreach (var c in oldLedgerChain.Concat(oldFreeChain)) ledger.Set(c.Page, c.Generation, LedgerState.Freed);
-        var reservation = Reserve(ReservationBound(0, ledger.Count, free.Count), ledger, free, promoted.PageCount);
+        // A promotion has no '24': a retirement that would grow past the format's last page is '30'.
+        if (Reserve(ReservationBound(0, ledger.Count, free.Count), ledger, free, promoted.PageCount) is not { } reservation)
+            return StoreStatus.PermanentError;
         if (!WriteBookkeeping(claim, ledger, free, reservation, freeChanged: true, oldFreeChain: [], currentFreeRoot: PagePointer.None,
                 out var freeRoot, out var freeChain, out var ledgerRoot, out var ledgerChain, out ulong pageCount))
             return StoreStatus.PermanentError;
@@ -495,8 +560,10 @@ internal sealed class PagedFile
 
     /// <summary>R2's RESERVATION of <paramref name="count"/> pages: the <c>released</c> pages of
     /// <paramref name="ledger"/> (reusable by a statement later than the one that released them), then one batch of the
-    /// lowest pages of <paramref name="free"/> (taken out of it), then growth from <paramref name="pageCount"/>.</summary>
-    private static Reservation Reserve(int count, Ledger ledger, SortedSet<uint> free, ulong pageCount)
+    /// lowest pages of <paramref name="free"/> (taken out of it), then growth from <paramref name="pageCount"/>; null —
+    /// with <paramref name="free"/> untouched — when the growth would pass the format's 2^32 pages (2.2.1.9's
+    /// boundary).</summary>
+    private static Reservation? Reserve(int count, Ledger ledger, SortedSet<uint> free, ulong pageCount)
     {
         var pages = new List<(uint Page, PageOrigin Origin)>(count);
         foreach (uint p in ledger.Pages(LedgerState.Released))
@@ -509,45 +576,56 @@ internal sealed class PagedFile
             if (pages.Count == count) break;
             pages.Add((p, PageOrigin.Free));
         }
+        if (pageCount + (ulong)(count - pages.Count) > FormatPages) return null;
         foreach (var (p, origin) in pages)
             if (origin == PageOrigin.Free) free.Remove(p);
-        for (ulong next = pageCount; pages.Count < count; next++)
-        {
-            if (next > uint.MaxValue) throw new IOException("the store has reached the format's 2^32 pages");
-            pages.Add(((uint)next, PageOrigin.Growth));
-        }
+        for (ulong next = pageCount; pages.Count < count; next++) pages.Add(((uint)next, PageOrigin.Growth));
         return new Reservation(pages, pageCount);
     }
 
     // ── Loading, verifying and holding a meta's structures ──────────────────────────────────────────────────────
 
-    private bool TryLoad(MetaPage meta, out Ledger ledger, out SortedSet<uint> free,
+    /// <summary>What reading a meta's LEDGER and FREE chains found: both whole and decoded; a page that did not verify
+    /// or a payload that did not decode (DAMAGED: R6 step 3 rejects it); or a read the medium REFUSED — no verdict on the
+    /// page at all, so its statement or OPEN answers '30' and decides nothing from it.</summary>
+    private enum Load
+    {
+        Loaded,
+        Damaged,
+        Refused,
+    }
+
+    private static Load LoadOf(PageCheck check) => check == PageCheck.Unreadable ? Load.Refused : Load.Damaged;
+
+    private Load TryLoad(MetaPage meta, out Ledger ledger, out SortedSet<uint> free,
         out List<PagePointer> ledgerChain, out List<PagePointer> freeChain)
     {
         ledger = new Ledger();
         free = [];
         freeChain = [];
-        if (PageChain.Read(meta.LedgerRoot, Verify, out var ledgerBytes, out ledgerChain) != PageCheck.Whole
-            || Ledger.Decode(ledgerBytes) is not { } decoded)
-            return false;
+        var check = PageChain.Read(meta.LedgerRoot, Verify, out var ledgerBytes, out ledgerChain);
+        if (check != PageCheck.Whole) return LoadOf(check);
+        if (Ledger.Decode(ledgerBytes) is not { } decoded) return Load.Damaged;
         ledger = decoded;
-        if (PageChain.Read(meta.FreeRoot, Verify, out var freeBytes, out freeChain) != PageCheck.Whole
-            || PageChain.DecodePageSet(freeBytes) is not { } set)
-            return false;
+        check = PageChain.Read(meta.FreeRoot, Verify, out var freeBytes, out freeChain);
+        if (check != PageCheck.Whole) return LoadOf(check);
+        if (PageChain.DecodePageSet(freeBytes) is not { } set) return Load.Damaged;
         free = set;
-        return true;
+        return Load.Loaded;
     }
 
     private PageCheck Verify(PagePointer pointer, byte[] page) => Read(pointer, page);
 
-    /// <summary>R6 step 3: every <c>fresh</c> page of a DESCENDANT's ledger verifies against the ledger's generation.</summary>
-    private bool FreshPagesVerify(Ledger ledger)
+    /// <summary>R6 step 3: every <c>fresh</c> page of a DESCENDANT's ledger verifies against the ledger's generation —
+    /// <see cref="Load.Damaged"/> at the first that does not, <see cref="Load.Refused"/> at a read the medium refused.</summary>
+    private Load FreshPagesVerify(Ledger ledger)
     {
         var page = new byte[PageHeader.PageSize];
         foreach (var (p, entry) in ledger.Entries)
-            if (entry.State == LedgerState.Fresh && Read(new PagePointer(p, entry.Generation), page) != PageCheck.Whole)
-                return false;
-        return true;
+            if (entry.State == LedgerState.Fresh && Read(new PagePointer(p, entry.Generation), page) is var check
+                && check != PageCheck.Whole)
+                return LoadOf(check);
+        return Load.Loaded;
     }
 
     private void SetState(MetaPage meta, Ledger ledger, SortedSet<uint> free, List<PagePointer> ledgerChain, List<PagePointer> freeChain)
@@ -598,6 +676,10 @@ internal sealed class PagedFile
 
     private static bool IsRefusal(Exception e) => e is IOException or UnauthorizedAccessException;
 
+    /// <summary>What the last refused write answers at a changing statement: the boundary when the host said the file
+    /// cannot grow further (2.2.1.9), else '30'.</summary>
+    private StoreStatus _lastRefusal = StoreStatus.PermanentError;
+
     private bool TryReadRaw(uint page, Span<byte> into)
     {
         try
@@ -617,7 +699,11 @@ internal sealed class PagedFile
             _writes++;
             return true;
         }
-        catch (Exception e) when (IsRefusal(e)) { return false; }
+        catch (Exception e) when (IsRefusal(e))
+        {
+            _lastRefusal = e is MediumSizeLimitException ? StoreStatus.Boundary : StoreStatus.PermanentError;
+            return false;
+        }
     }
 
     private bool TrySync()
@@ -678,8 +764,8 @@ internal sealed class Reservation(List<(uint Page, PageOrigin Origin)> pages, ul
 
 /// <summary>One statement that changes the file (2.2.1.6): it writes its pages from its reservation, stamped with its
 /// claimed generation, releases the pages its tree stops referencing, sets its roots, and completes with page 2 LAST.
-/// A refused write makes every later write a no-op and the completion '30'; nothing the statement did is reachable
-/// (R1).</summary>
+/// A refused write makes every later write a no-op and the completion answer that refusal ('30', or the boundary when the
+/// host said the file cannot grow further); nothing the statement did is reachable (R1).</summary>
 internal sealed class PageStatement
 {
     private readonly PagedFile _store;
@@ -699,7 +785,10 @@ internal sealed class PageStatement
     public ulong Generation { get; }
 
     /// <summary>Whether the medium refused one of the statement's writes.</summary>
-    public bool Refused { get; private set; }
+    public bool Refused => Refusal != StoreStatus.Ok;
+
+    /// <summary>What the first refused write answered (<see cref="StoreStatus.Ok"/> while none was).</summary>
+    public StoreStatus Refusal { get; private set; } = StoreStatus.Ok;
 
     internal Ledger Ledger { get; }
 
@@ -722,9 +811,9 @@ internal sealed class PageStatement
         new PageHeader(kind, flags, entries, Generation, page, next).Encode(bytes);
         body.CopyTo(bytes.AsSpan(PageHeader.Bytes));
         PageHeader.Seal(bytes);
-        if (!_store.WritePage(page, bytes))
+        if (_store.WritePage(page, bytes) is var written && written != StoreStatus.Ok)
         {
-            Refused = true;
+            Refusal = written;
             return PagePointer.None;
         }
         Ledger.Set(page, Generation, LedgerState.Fresh);
