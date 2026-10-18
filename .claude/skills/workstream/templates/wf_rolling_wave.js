@@ -9,7 +9,7 @@ export const meta = {
 }
 
 // args: { scratch, wave, stop_file, global_stop, concurrency (6), groups: [{letter, lead, notes, codes}],
-//         review_fix_rounds (2), reviewer_ceiling_min (90) }
+//         review_fix_rounds (2), reviewer_ceiling_min (90); each group may carry requirements: {campaign lead: [string]} }
 // THE WAVE STARTS NO LANDER (kb/Work PB3023; DESIGN-test-build-ci.md section 3.17.5): it produces DONE branches reviewed
 // CLEAN, and the loop's landing lane (land_lane.py, kb/Work PB3103) lands each with `scripts/orchestrator/enqueue.py
 // land` as it comes back, beside this wave (a script: main merged in,
@@ -81,6 +81,17 @@ const RETURN_LINE =
 // its tip, so the landing lane lands no unreviewed branch either.
 const REVIEW_FIX_ROUNDS = args.review_fix_rounds === undefined ? 2 : args.review_fix_rounds
 const REVIEWER_CEILING_MIN = args.reviewer_ceiling_min === undefined ? 90 : args.reviewer_ceiling_min
+// A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the owner's instructions that every group of the campaign must
+// meet, the bullets of the `## Standing requirements` section of the campaign's lead note. plan_wave.py binds each group
+// to every campaign its notes belong to (a fix-lane group and a campaign finisher included) and writes them into the
+// group's spec and its entry in these args: `g.requirements` is {campaign lead: [requirement]}. The implementer reads
+// them in its spec; the branch reviewer is handed the same spec AND the requirement text, so a branch lacking one is a
+// finding, never a CLEAN.
+function reviewerRequirements(g) {
+  return Object.entries(g.requirements || {}).map(([lead, reqs]) =>
+    `STANDING REQUIREMENTS of campaign ${lead}, which the owner set for every group of it: ${reqs.map((r, i) => `(${i + 1}) ${r}`).join(' ')} ` +
+    `Check the branch against EACH of them, and raise a finding (category requirement) when the branch lacks one, with the sibling arms the requirement names. `).join('')
+}
 const REVIEW_SCHEMA = {
   type: 'object',
   properties: {
@@ -149,6 +160,8 @@ function reviewBranch(g, r, round) {
     AUTH + `You are the wave-${W} BRANCH REVIEWER for group ${g.letter} (${g.notes}), review round ${round} — READ-ONLY (kb/Work PB3027). ` +
     `Follow "The branch form" of E:\\COBOL\\.claude\\skills\\review\\SKILL.md exactly, with: branch ${r.branch}; worktree ${r.worktree}; head ${r.head}; ` +
     `the implementer's report ${r.report}; the findings file ${file}; your reviewer label ${label}; round ${round}. ` +
+    `The implementer's dispatch spec is ${S}\\msg-w${W}-${g.letter.toLowerCase()}.txt: read it, since the branch is reviewed against everything the implementer was told (its notes, its owner requirements, its gate). ` +
+    reviewerRequirements(g) +
     (round > 1
       ? `This is a RE-REVIEW of the review finisher's branch: round ${round - 1}'s findings are in the same file (review_findings.py show ${file} --round ${round - 1}) and the report's "## Review findings" section answers each by its id; raise again only a finding that is neither fixed nor answered with a reason you accept, and any new defect the fix introduced. `
       : '') +
