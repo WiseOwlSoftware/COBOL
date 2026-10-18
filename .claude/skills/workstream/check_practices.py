@@ -36,7 +36,8 @@ BRIEFS = {
     # DONE: its commits are reviewed on the branch before the new tip lands (I10, L9: enqueue.py's exit 11)
     'finisher-brief.md': [r'claude-skills', POINTER, r'STOP', r'until grep -q', r'STATUS-AT:', r'build-local\.ps1 -Priority BelowNormal',
                           r'BUILD-LOCAL GATE: ', r'FIX WHAT YOU FIND', r'=== ENQUEUE: ', r'DO NOT LAND IT YOURSELF',
-                          r'exit 11'],
+                          r'exit 11',
+                          r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11'],  # the owner's exception-path test rule
     # the lanes MANDATORY-PRACTICES I10 does not review name themselves at the landing (enqueue.py UNREVIEWED_LANES)
     'golden-lane-brief.md': [r'claude-skills', POINTER, r'build-local\.ps1 -Priority BelowNormal', *LANDS,
                              r'enqueue\.py land <your branch> --lane golden',
@@ -64,6 +65,8 @@ BRIEFS = {
                                      r'linux-gate\.sh', r'FIX WHAT YOU FIND',  # I9
                                      r'LSP DIAGNOSTICS',  # P13: act on the language server's diagnostics
                                      r'BRANCH REVIEW \(MANDATORY-PRACTICES I10',  # PB3027: reviewed on the branch
+                                     # I11: the owner's SORT and file I/O exception-path test rule (2026-10-17)
+                                     r'SORT AND FILE I/O TESTS \(MANDATORY-PRACTICES I11',
                                      r'LEG 1 ONLY \(batched gating, PB2515\)'],  # PB2515: the implementer's done-state
     # O2: the standard fix-lane dispatch — rolling pool, same-file successors, the graceful STOP, and the explicit
     # final StructuredOutput reminder (three agents in waves 65-67 ended without it and stranded finished branches).
@@ -85,7 +88,8 @@ BRIEFS = {
                                # decision); PB2602 (O11: one landing queue); PB2601 (L13: the landing hand-off)
                                r'NO BRANCH IS LEFT UNDECIDED', r'--abandon', r'ONE LANDING PATH', r'coord\.py loop-state',
                                r'READY-TO-LAND <worktree> <branch>', r'enqueue\.py land',  # PB3023
-                               r'I10', r'review_findings\.py', r'WAITING FOR REVIEW'],  # PB3027: review on the branch
+                               r'I10', r'review_findings\.py', r'WAITING FOR REVIEW',  # PB3027: review on the branch
+                               r'\| I11 \|'],  # the owner's SORT and file I/O exception-path test rule (2026-10-17)
 }
 # The group slug is w<wave><letter>, optionally followed by a successor ordinal (w68v2 = the second same-file
 # cluster after group V), so the report path stays wave-and-group prefixed.
