@@ -1,5 +1,9 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Buffers.Binary;
+using CobolNet.Runtime.IO.Store;
+using Microsoft.Win32.SafeHandles;
+
 namespace CobolNet.Runtime.IO;
 
 /// <summary>
@@ -27,10 +31,10 @@ internal sealed class KeyedStoreTable
 
     private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
 
-    /// <summary>Attach to the RELATIVE store for <paramref name="host"/>: the live store when one exists (its
-    /// content is the truth — no reload), else a fresh store populated by <paramref name="loadFirst"/>.</summary>
-    public RelativeStore AttachRelative(string host, Action<RelativeStore> loadFirst)
-        => Attach(host, () => { var s = new RelativeStore(); loadFirst(s); return s; });
+    /// <summary>Attach to the RELATIVE store for <paramref name="host"/>: the live store when one exists (its tree is
+    /// the truth — nothing is re-read), else a new store with no file, which the attaching connector opens through its
+    /// own handle (<see cref="RelativeStore.Open"/>; a failed OPEN detaches again).</summary>
+    public RelativeStore AttachRelative(string host) => Attach(host, () => new RelativeStore());
 
     /// <summary>Attach to the INDEXED store for <paramref name="host"/> — same contract.</summary>
     public IndexedStore AttachIndexed(string host, Action<IndexedStore> loadFirst)
@@ -85,29 +89,15 @@ internal sealed class KeyedStoreTable
     public void Clear() => _byHost.Clear();
 }
 
-/// <summary>⭐ What every keyed record store knows about its agreement with the PHYSICAL FILE — the state the
-/// cross-run-unit coherence of <c>KeyedConnector</c> runs on (kb/Work PB2660; ISO §9.1.15, <i>"Multiple paths of
-/// access may exist in the same runtime element, contained elements, separate runtime elements within the same run
-/// unit, or runtime elements in different run units"</i>).
-/// <para>The store is this run unit's copy of the physical file. Within the run unit it IS the truth (kb/Work
-/// PB143); across run units the file is, and these numbers say how far the copy may be trusted: whether it has
-/// changed since it last agreed with the file (<see cref="Version"/> against <see cref="PersistedVersion"/>), which
-/// image of the file it agreed with (<see cref="Generation"/>, the stamp every persist writes —
-/// <see cref="RecordFraming.GenerationOffset"/>), and whether a statement of this run unit is already inside the
-/// store's cross-run-unit mutex (<see cref="StatementDepth"/>).</para></summary>
+/// <summary>⭐ What every keyed record store of a run unit knows about the CROSS-RUN-UNIT MUTEX of its physical file
+/// (kb/Work PB2660; ISO §9.1.15, <i>"Multiple paths of access may exist in the same runtime element, contained elements,
+/// separate runtime elements within the same run unit, or runtime elements in different run units"</i>): whether a
+/// statement of this run unit is already inside it (<see cref="StatementDepth"/>) and through which endpoint it is held
+/// (<see cref="MutexHolder"/>). Within the run unit the store IS the truth (kb/Work PB143); across run units the file
+/// is, and each organization's store says how it follows the file (<see cref="RelativeStore"/> through the paged
+/// engine's page 2, <see cref="IndexedStore"/> through its whole-store generation stamp).</summary>
 internal abstract class KeyedStore
 {
-    /// <summary>Bumped by EVERY change to the records — the organizations' mutators are the only writers.</summary>
-    public long Version { get; private set; }
-
-    /// <summary>The <see cref="Version"/> at which the store last agreed with the physical file: set by the load
-    /// and by every persist, so <c>Version != PersistedVersion</c> is exactly "this run unit holds records the
-    /// file does not".</summary>
-    public long PersistedVersion { get; set; }
-
-    /// <summary>The generation stamp of the physical file image the store last loaded or persisted.</summary>
-    public ulong Generation { get; set; }
-
     /// <summary>How many statements of this run unit are inside the store's cross-run-unit mutex. A run unit is one
     /// thread of control, so a nested entry re-enters rather than deadlocking against itself.</summary>
     public int StatementDepth { get; set; }
@@ -115,106 +105,173 @@ internal abstract class KeyedStore
     /// <summary>The endpoint holding the store's cross-run-unit mutex while <see cref="StatementDepth"/> is non-zero —
     /// null when no statement is inside it, or when the host cannot carry the lock.</summary>
     internal RegionLocks? MutexHolder { get; set; }
-
-    /// <summary>The <see cref="Version"/> when the outermost statement entered — so the statement persists only
-    /// what IT changed.</summary>
-    public long VersionAtEntry { get; set; }
-
-    /// <summary>Record that the records changed — called by every mutator, and by nothing else.</summary>
-    protected void Mutated() => Version++;
 }
 
-/// <summary>The shared RELATIVE record store: RRN (1-based, §12.4.5.13 GR1) → record image, plus the ONE
-/// number a sequential-access release needs — <see cref="Highest"/>, the highest RRN existing in the physical
-/// file right now.
-/// <para>⛔ THE SLOTS ARE READ-ONLY TO THE CONNECTOR (kb/Work PB739). ISO §14.9.51.4 GR29 a) assigns an extend
-/// release <i>"a record number that is one greater than the highest relative record number existing in the
-/// physical file"</i> and then says <i>"If the physical file is shared and the open mode is extend, the record
-/// numbers are not necessarily consecutive"</i> — which is only true if the number is taken from the file at
-/// the moment of the release. <c>RelativeConnector</c> took it once, at OPEN, into a private <c>_seqNext</c>, so
-/// two connectors extending one shared file both minted RRN 2 and the second <c>Slots[2] = rec</c> silently
-/// replaced the first record. Exposing the map as <see cref="IReadOnlyDictionary{TKey,TValue}"/> and routing
-/// every mutation through <see cref="Put"/>/<see cref="Remove"/>/<see cref="Clear"/> makes the high-water mark
-/// impossible to leave stale: there is no second way to change the store.</para>
-/// <para>Maintained rather than scanned because a sequential extend asks for it once per WRITE, and a
-/// <c>SortedDictionary</c> has no O(1) maximum — scanning would have made an n-record append O(n²). Only the
-/// removal OF the maximum pays a scan, and only then.</para></summary>
+/// <summary>⭐ THE RUN UNIT'S RELATIVE STORE FOR ONE PHYSICAL FILE — the keyed store engine's handle on it
+/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333): ONE paged store (<see cref="PagedFile"/>, its
+/// page cache, its ledger) and ONE B+ tree keyed by the relative record number — 8 bytes big-endian, so the ordinal byte
+/// order IS numeric order (2.2.1.4, <i>"A RELATIVE record is one entry"</i>) — whose value is the record's frame
+/// (<see cref="RecordFraming.EncodeFrame"/>, the one codec). Every connector of the run unit over the path attaches to it
+/// (<see cref="KeyedStoreTable"/>, kb/Work PB143), so a sibling's change is visible at once: there is one cache and one
+/// tree. Nothing is loaded at OPEN and nothing is persisted at CLOSE: a statement reads the pages it touches and writes
+/// the pages it changes, then page 2 (2.2.1.6).
+/// <para>The sparse key space costs nothing (kb/Work PB1192): an empty slot is no entry, and a record at a key in the
+/// billions is one leaf. Every positional question — the first record at or after a position, the last before it, the
+/// highest record number — is a SEEK on the tree, O(log n) pages, where the map it replaced walked every key from the
+/// lowest (kb/Work PB2755).</para></summary>
 internal sealed class RelativeStore : KeyedStore
 {
-    private readonly SortedDictionary<long, StoredFrame> _slots = new();
+    /// <summary>Test seam, per async flow (the <c>IndexedConnector.HostFaultObserver</c> precedent): wraps the run unit's
+    /// medium of every store made in the flow, so a case can refuse, tear or kill at any page write through a real
+    /// connector (2.2.1.12's fault-injecting medium).</summary>
+    internal static readonly AsyncLocal<Func<IPageMedium, IPageMedium>?> MediumObserver = new();
 
-    /// <summary>The records, in ascending RRN order, each with the extent table it was released with (if any —
-    /// D-FRA (v), kb/Work PB1053). Read-only by construction — see the type summary.</summary>
-    public IReadOnlyDictionary<long, StoredFrame> Slots => _slots;
+    private readonly RunUnitPageMedium _handles = new();
+    private readonly IPageMedium _medium;
+    private int _cachePages = PageCache.DefaultPages;
+    private bool _coherent;
 
-    /// <summary>The highest relative record number existing in the physical file (0 when it holds none) —
-    /// §14.9.51.4 GR29 a)'s "the highest relative record number existing in the physical file".</summary>
-    public long Highest { get; private set; }
+    public RelativeStore() => _medium = MediumObserver.Value?.Invoke(_handles) ?? _handles;
 
-    /// <summary>The bytes the records occupy in the persisted store (<see cref="RecordFraming.FrameBytes"/>
-    /// summed) — maintained by the three mutators, like <see cref="Highest"/>, so the WRITE-time boundary test
-    /// is O(1).</summary>
-    private long _recordBytes;
+    /// <summary>The paged store, or null while the file holds no store: an absent OPTIONAL file opened INPUT, or a present
+    /// file of no bytes opened INPUT (both hold no records, §14.9.27.4 GR13).</summary>
+    public PagedFile? File { get; private set; }
 
-    /// <summary>The bytes the frames of the persisted store would occupy after <see cref="Put"/>(<paramref
-    /// name="rrn"/>, <paramref name="record"/>): every record's frame plus a <see cref="RecordFraming.GapBytes"/>
-    /// tag for every empty slot below the highest RRN — the same image <see cref="RecordFraming.ComposeStore"/>
-    /// composes, so the keyed WRITE and REWRITE can answer §14.9.51.4 GR33 b)'s '24' BEFORE the record is
-    /// released (Annex A.1 item 107; kb/Work PB1192).</summary>
-    public long FramedBytesAfterPut(long rrn, StoredFrame record)
+    /// <summary>Attach a connector's handle (its §9.1.15 file lock) and its input-output areas, the page cache's floor
+    /// (§12.4.5.14.3 GR1: <i>"If the RESERVE clause is specified, the number of input-output areas allocated is equal to
+    /// the value of integer-1"</i>; 2.2.1.13).</summary>
+    public void AttachHandle(SafeFileHandle handle, bool writable, int areaPages)
     {
-        bool replaces = _slots.TryGetValue(rrn, out StoredFrame replaced);
-        long records = _recordBytes + RecordFraming.FrameBytes(record) - (replaces ? RecordFraming.FrameBytes(replaced) : 0);
-        long count = _slots.Count + (replaces ? 0 : 1);
-        return records + (RecordFraming.GapBytes * (Math.Max(Highest, rrn) - count));
+        _handles.Attach(handle, writable);
+        _cachePages = Math.Max(_cachePages, areaPages);
+        File?.ReserveCache(areaPages);
     }
 
-    /// <summary>The store's frames in ordinal order — null for an empty slot — produced LAZILY from the sparse
-    /// map, so a persist never materializes one entry per relative record number (a dense array sized by
-    /// <see cref="Highest"/> overflowed at a large key and allocated millions of slots for one record —
-    /// kb/Work PB1192).</summary>
-    public IEnumerable<StoredFrame?> Ordinal()
+    /// <summary>The OPEN's adoption rule (2.2.1.6 R6), run by the caller under the store mutex. A live store is the truth
+    /// for every connector of the run unit (kb/Work PB143) and is not re-read — unless it was opened through no writable
+    /// handle and this connector's is writable, when the store is opened again through it, which FENCES as every
+    /// writable OPEN does. A file of no bytes holds no store yet: a writable connector creates the empty one (three meta
+    /// pages, §14.9.27.4 GR17's creation), a reader reads no records.</summary>
+    public StoreStatus Open(bool writable, bool coherent, FixedFileAttributes attributes)
     {
-        long next = 1;
-        foreach (var (rrn, record) in _slots)
+        _coherent = coherent;
+        if (File is { } live && (live.Writable || !writable)) return StoreStatus.Ok;
+        if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
+        var status = PagedFile.Open(_medium, writable, coherent, out var opened, _cachePages);
+        if (status == StoreStatus.Ok) File = opened;
+        return status;
+    }
+
+    /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
+    /// records"</i>), and the creation of a file of no bytes: <see cref="PagedFile.Create"/> through the connector's own
+    /// handle, the one truncation.</summary>
+    public StoreStatus Create(FixedFileAttributes attributes, bool coherent)
+    {
+        _coherent = coherent;
+        File = null;
+        var status = PagedFile.Create(_medium, attributes, coherent, out var created, _cachePages);
+        if (status == StoreStatus.Ok) File = created;
+        return status;
+    }
+
+    /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
+    /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a
+    /// handle that cannot.</summary>
+    public void DetachHandle(SafeFileHandle handle)
+    {
+        _handles.Detach(handle);
+        if (!_handles.HasHandle) { File = null; return; }
+        if (File is { Writable: true } && !_handles.HasWritable
+            && PagedFile.Open(_medium, writable: false, _coherent, out var reader, _cachePages) == StoreStatus.Ok)
+            File = reader;
+    }
+
+    // ── Reads ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>The frame bytes of record <paramref name="rrn"/>; null when the file holds none.</summary>
+    public StoreStatus Get(long rrn, out byte[]? value)
+    {
+        value = null;
+        if (File is null || rrn < 1) return StoreStatus.Ok;
+        return Tree().TryGet(Key(rrn), out value);
+    }
+
+    /// <summary>The record the SEEK <paramref name="relation"/> <paramref name="probe"/> finds (a probe below 1 seeks from
+    /// 0, below every record number): its number, and its frame bytes when <paramref name="withValue"/>; null when no
+    /// record satisfies it.</summary>
+    public StoreStatus Seek(long probe, SeekRelation relation, bool withValue, out long? rrn, out byte[]? value)
+    {
+        rrn = null;
+        value = null;
+        if (File is null) return StoreStatus.Ok;
+        var status = Tree().Seek(Key(Math.Max(probe, 0)), relation, out var cursor);
+        return status == StoreStatus.Ok ? Current(cursor, withValue, out rrn, out value) : status;
+    }
+
+    /// <summary>The lowest (<paramref name="last"/> false) or highest record number the file holds; null when none — the
+    /// highest is §14.9.51.4 GR29 a)'s <i>"the highest relative record number existing in the physical file"</i>.</summary>
+    public StoreStatus Edge(bool last, out long? rrn)
+    {
+        rrn = null;
+        if (File is null) return StoreStatus.Ok;
+        var tree = Tree();
+        var status = last ? tree.Last(out var cursor) : tree.First(out cursor);
+        return status == StoreStatus.Ok ? Current(cursor, withValue: false, out rrn, out _) : status;
+    }
+
+    private static StoreStatus Current(BTree.Cursor cursor, bool withValue, out long? rrn, out byte[]? value)
+    {
+        rrn = null;
+        value = null;
+        if (!cursor.HasCurrent) return StoreStatus.Ok;
+        rrn = (long)BinaryPrimitives.ReadUInt64BigEndian(cursor.Key);
+        return withValue ? cursor.ReadValue(out value!) : StoreStatus.Ok;
+    }
+
+    // ── Changes: one statement each ─────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>Release record <paramref name="rrn"/> (<paramref name="done"/> false when it exists: nothing changes).</summary>
+    public StoreStatus Insert(long rrn, byte[] value, bool entered, out bool done) =>
+        Change(tree => (tree.Insert(Key(rrn), value, out bool d), d), entered, out done);
+
+    /// <summary>Replace record <paramref name="rrn"/> (<paramref name="done"/> false when it does not exist).</summary>
+    public StoreStatus Replace(long rrn, byte[] value, bool entered, out bool done) =>
+        Change(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done);
+
+    /// <summary>Remove record <paramref name="rrn"/> (§14.9.10.4 GR5, <i>"the identified record has been logically removed
+    /// from the physical file and can no longer be accessed"</i>; <paramref name="done"/> false when it does not exist).</summary>
+    public StoreStatus Delete(long rrn, bool entered, out bool done) =>
+        Change(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done);
+
+    /// <summary>⛔ ONE CHANGE IS ONE STATEMENT OF THE PAGE LAYER (2.2.1.6): the tree edited in memory, then
+    /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edit writes (its claim, its reservation), the edit
+    /// flushed, the root set and the statement completed — page 2 last. <paramref name="entered"/> says the caller's
+    /// coherent entry already read page 2 for this statement. A torn page or a refused write answers '30' and a
+    /// boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's tree (R1).</summary>
+    private StoreStatus Change(Func<BTree, (StoreStatus Status, bool Done)> edit, bool entered, out bool done)
+    {
+        var file = File ?? throw new InvalidOperationException("a relative store with no file changes nothing");
+        var tree = Tree();
+        (var status, done) = edit(tree);
+        if (status != StoreStatus.Ok || !done) return status;
+        status = file.Begin(StatementBound.Of(tree), out var statement, entered: entered);
+        if (status != StoreStatus.Ok)
         {
-            for (; next < rrn; next++) yield return null;
-            yield return record;
-            next = rrn + 1;
+            tree.Discard();
+            done = false;
+            return status;
         }
+        var flushed = tree.Flush(statement!, out var root);
+        statement!.SetPrimeRoot(root);
+        var completed = statement.Complete();
+        if (flushed == StoreStatus.Ok && completed == StoreStatus.Ok) return StoreStatus.Ok;
+        done = false;
+        return completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
     }
 
-    /// <summary>Release or replace the record at <paramref name="rrn"/>.</summary>
-    public void Put(long rrn, StoredFrame record)
-    {
-        if (_slots.TryGetValue(rrn, out StoredFrame replaced)) _recordBytes -= RecordFraming.FrameBytes(replaced);
-        Mutated();
-        _slots[rrn] = record;
-        _recordBytes += RecordFraming.FrameBytes(record);
-        if (rrn > Highest) Highest = rrn;
-    }
+    private BTree Tree() => new(File!, KeyOrders.Ordinal, File!.Meta.PrimeRoot);
 
-    /// <summary>Remove the record at <paramref name="rrn"/> (§14.9.10.4 GR5 — "logically removed from the
-    /// physical file"); false when there was none. Removing the maximum re-derives it, which is the only
-    /// scan this store ever pays.</summary>
-    public bool Remove(long rrn)
-    {
-        if (!_slots.TryGetValue(rrn, out StoredFrame removed)) return false;
-        Mutated();
-        _slots.Remove(rrn);
-        _recordBytes -= RecordFraming.FrameBytes(removed);
-        if (rrn == Highest) Highest = _slots.Count == 0 ? 0 : _slots.Keys.Max();
-        return true;
-    }
-
-    /// <summary>Empty the store (OPEN OUTPUT, and the OPEN I-O/EXTEND creation of an absent OPTIONAL file).</summary>
-    public void Clear()
-    {
-        Mutated();
-        _slots.Clear();
-        _recordBytes = 0;
-        Highest = 0;
-    }
+    private static byte[] Key(long rrn) => KeyOrders.RecordNumberKey((ulong)rrn);
 }
 
 /// <summary>One stored indexed record: its character image and its PER-KEY release ordinals — lifted out of
@@ -248,8 +305,29 @@ internal sealed class IndexedStore : KeyedStore
 {
     private readonly List<KeyedRec> _recs = [];
 
-    /// <summary>The records, in load order — the persisted order. READ-ONLY to the connector, exactly as
-    /// <see cref="RelativeStore.Slots"/> is: every mutation goes through <see cref="Add"/>, <see cref="Replace"/>,
+    /// <summary>Bumped by EVERY change to the records — the mutators are the only writers. With
+    /// <see cref="PersistedVersion"/>, <see cref="Generation"/> and <see cref="VersionAtEntry"/>, what the WHOLE STORE
+    /// knows about its agreement with the physical file (kb/Work PB2660): this run unit's copy of the file, trusted while
+    /// the file's generation stamp is the one it last loaded or persisted. Deleted with the whole-store model when the
+    /// organization moves to the keyed store engine (kb/Work PB3334, PB3335).</summary>
+    public long Version { get; private set; }
+
+    /// <summary>The <see cref="Version"/> at which the store last agreed with the physical file: set by the load
+    /// and by every persist, so <c>Version != PersistedVersion</c> is exactly "this run unit holds records the
+    /// file does not".</summary>
+    public long PersistedVersion { get; set; }
+
+    /// <summary>The generation stamp of the physical file image the store last loaded or persisted.</summary>
+    public ulong Generation { get; set; }
+
+    /// <summary>The <see cref="Version"/> when the outermost statement entered — so the statement persists only
+    /// what IT changed.</summary>
+    public long VersionAtEntry { get; set; }
+
+    /// <summary>Record that the records changed — called by every mutator, and by nothing else.</summary>
+    private void Mutated() => Version++;
+
+    /// <summary>The records, in load order — the persisted order. READ-ONLY to the connector: every mutation goes through <see cref="Add"/>, <see cref="Replace"/>,
     /// <see cref="Remove"/> or <see cref="Clear"/>, which keep <see cref="RecordBytes"/> true (kb/Work PB1192).</summary>
     public IReadOnlyList<KeyedRec> Recs => _recs;
 

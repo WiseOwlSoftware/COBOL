@@ -84,6 +84,7 @@ public sealed class SortWorkBoundTests : IDisposable
         public override int CharAt(long position) => position is >= 0 and <= char.MaxValue ? (int)position : -1;
         public override char HighValue => char.MaxValue;
         public override char LowValue => char.MinValue;
+        internal override bool UsesStandardComparison => true;
     }
 
     /// <summary>A record whose key is <paramref name="key"/>, shaped like <see cref="Records"/>' and above all of them.</summary>
