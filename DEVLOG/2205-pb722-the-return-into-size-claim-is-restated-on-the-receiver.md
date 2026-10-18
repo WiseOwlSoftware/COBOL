@@ -1,4 +1,4 @@
-## PB722: the RETURN ... INTO size claim is restated on the receiver that can show it
+## Entry 2205 — 2026-10-18 06:50 PDT — PB722: the RETURN ... INTO size claim is restated on the receiver that can show it
 
 kb/Work PB722 reported that the inventory row `GR-14.9.34.4-5` (RETURN ... INTO) claimed the whole record area and the
 current record were "observationally identical", on the strength of PB348's probe `p11`, whose receiver was a
@@ -42,3 +42,4 @@ corpus golden cannot (it must exit 0): the unhandled fatal termination and the d
 termination for both conditions' shapes, the checking-OFF continuation (the store reports the end again, AT END runs,
 the receiver is untouched, exit 0), and item identification without a declarative on a success RETURN (fatal) versus an
 at-end RETURN (nothing raised). Everything conformed, so still no compiler change.
+
