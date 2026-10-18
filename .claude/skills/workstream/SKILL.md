@@ -119,9 +119,11 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   own pull request (kb/Work PB3023, PB3024) and only postponed: wave 1118's six-link chain had six groups DONE and
   none landed in seven hours. A predecessor whose review ended FINDINGS at the cap keeps its findings for its own
   next-wave finisher; its successor does not answer them and lands only after that finisher has landed it
-  (`prune_worktrees.py` reads it IN FLIGHT, waiting on the predecessor). A predecessor whose review FINISHER came back
-  unfinished leaves no stamp holding anything, so its successor's review covers the predecessor's content and records
-  again each finding that still holds (`wf_rolling_wave.js` `predecessorEnd`). A successor may also follow a group in the
+  (`prune_worktrees.py` reads it IN FLIGHT, waiting on the predecessor); so does one whose review finisher left no
+  head of its own (it died, or committed nothing), since that round's stamp still covers the head. A predecessor whose
+  review FINISHER left an unfinished head of its own leaves no stamp holding anything, so its successor's review
+  covers the predecessor's content and records again each finding that still holds (`wf_rolling_wave.js`
+  `predecessorEnd`, which decides by whether the last stamp covers the head, as the survey does). A successor may also follow a group in the
   same technological area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
