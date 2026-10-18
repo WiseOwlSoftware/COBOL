@@ -47,7 +47,8 @@ internal sealed class DataEmitter
     public string ImageInitOf(DataItem item, bool useValues = true) => _codec.ImageInitOf(item, useValues);
 
     /// <summary>See <see cref="GroupImageCodec.CellDynSeeds"/>.</summary>
-    public string CellDynSeeds(DataItem item, bool useValues = true) => _codec.CellDynSeeds(item, useValues);
+    public string CellDynSeeds(DataItem item, bool useValues = true, int? firstOrdinal = null) =>
+        _codec.CellDynSeeds(item, useValues, firstOrdinal);
 
     /// <summary>⛔ THE ONE STATEMENT OF WHAT AN AREA FORMAL BRINGS TO ITS AREA DECISION (kb/Work PB2094, PB2671), for the
     /// program ABI and the method ABI alike: its §8.5.1.12 atoms when it is a VARIABLE-LENGTH group
@@ -63,8 +64,18 @@ internal sealed class DataEmitter
     public (string Shape, string Fresh) AreaFormalShape(DataItem formal) =>
         (VarGroupWindow.Applies(formal) && VariableLengthCompatibility.GroupAtoms(formal) is { } atoms
                 ? _ctx.Atoms.Ref(atoms) : "null",
-            $"static () => new StorageCell {{ Ref = {UnboundFormalRecord(formal, formal.Class!.Width)} }}"
-            + CellDynSeeds(formal, useValues: false));
+            FreshArea(formal, formal.Class!.Width));
+
+    /// <summary>⛔ THE FACTORY OF A FORMAL'S FRESH CELL (<c>static () =&gt; new StorageCell …</c>): the description's
+    /// category-default record image of <paramref name="width"/> positions (<see cref="UnboundFormalRecord"/>) with every
+    /// dynamic-capacity table seeded at its FROM capacity (<see cref="CellDynSeeds"/>). The activated program's area
+    /// formal takes it whenever no argument's area is laid over (<see cref="AreaFormalShape"/>), and a .NET host entry
+    /// builds the area it passes from it (kb/Work PB3273), so a table the host's area holds is created, grown and
+    /// initialized by the description exactly as the program's own is. <paramref name="firstOrdinal"/> is
+    /// <see cref="CellDynSeeds"/>'s.</summary>
+    public string FreshArea(DataItem formal, int width, int? firstOrdinal = null) =>
+        $"static () => new StorageCell {{ Ref = {UnboundFormalRecord(formal, width)} }}"
+        + CellDynSeeds(formal, useValues: false, firstOrdinal);
 
     /// <summary>⛔ THE UNBOUND VALUE OF A LINKAGE FORMAL (kb/Work PB2671; docs/CONFORMANCE.md DOC-A.1-116): what a formal
     /// refers to when no activation bound an argument to it — the main-program entry <c>ICobolProgram.Activate</c>, or
