@@ -51,6 +51,10 @@ internal sealed class Ledger
     /// <summary>Record <paramref name="page"/>.</summary>
     public void Set(uint page, ulong generation, LedgerState state) => _entries[page] = new(generation, state);
 
+    /// <summary>Stop listing <paramref name="page"/>: it has become one of the ledger's OWN pages, which the ledger never
+    /// lists (a <c>released</c> page reused for the ledger chain would otherwise stay listed as reusable).</summary>
+    public void Remove(uint page) => _entries.Remove(page);
+
     /// <summary>The entry of <paramref name="page"/>, if listed.</summary>
     public bool TryGet(uint page, out LedgerEntry entry) => _entries.TryGetValue(page, out entry);
 

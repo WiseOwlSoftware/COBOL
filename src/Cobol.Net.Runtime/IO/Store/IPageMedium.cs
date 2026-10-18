@@ -27,7 +27,7 @@ internal interface IPageMedium
     /// <summary>Make every write handed over so far durable (<c>FlushFileBuffers</c> / <c>fsync</c>).</summary>
     void Sync();
 
-    /// <summary>Set the medium's length to <paramref name="pages"/> pages — the one truncation, which
-    /// <c>OPEN OUTPUT</c>'s creation of a three-page store performs (§14.9.27.4 GR18).</summary>
+    /// <summary>Set the medium's length to <paramref name="pages"/> pages — the one truncation: <c>OPEN OUTPUT</c>'s
+    /// creation empties the medium before it writes the three meta pages of the new store (§14.9.27.4 GR18).</summary>
     void SetPageCount(long pages);
 }

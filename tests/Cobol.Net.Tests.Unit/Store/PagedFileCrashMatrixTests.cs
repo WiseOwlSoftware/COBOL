@@ -24,8 +24,10 @@ public sealed class PagedFileCrashMatrixTests
     private const string Base = "1=one;2=two;";
 
     /// <summary>The scenario every point-loop starts from: a store holding two records, CLOSEd (so durable), then opened
-    /// by A (the run unit under test), B (a live writer) and R (a live INPUT reader).</summary>
-    private sealed record Scene(MemoryPageMedium Medium, MemoryPageMedium.Handle HandleA, PagedFile A, PagedFile B, PagedFile Reader);
+    /// by A (the run unit under test) and — when A shares the file (every sharing mode but NO OTHER) — by B (a live
+    /// writer) and R (a live INPUT reader). A NO OTHER connector has no other run unit beside it: Table 19 refuses every
+    /// other opener (kb/Work PB833), so its scene has neither.</summary>
+    private sealed record Scene(MemoryPageMedium Medium, MemoryPageMedium.Handle HandleA, PagedFile A, PagedFile? B, PagedFile? Reader);
 
     private static Scene NewScene(bool coherentA = true)
     {
@@ -33,14 +35,18 @@ public sealed class PagedFileCrashMatrixTests
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "one"));
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 2, "two", blobPages: 2));
         Assert.Equal(StoreStatus.Ok, store.Close());
-        var (hb, sb, b) = StoreKit.OpenAs(medium, "B");
-        var (hr, sr, reader) = StoreKit.OpenAs(medium, "R", writable: false);
+        PagedFile? b = null, reader = null;
+        if (coherentA)
+        {
+            var (_, sb, opened) = StoreKit.OpenAs(medium, "B");
+            var (_, sr, input) = StoreKit.OpenAs(medium, "R", writable: false);
+            Assert.Equal(StoreStatus.Ok, sb);
+            Assert.Equal(StoreStatus.Ok, sr);
+            (b, reader) = (opened, input);
+        }
         var (ha, sa, a) = StoreKit.OpenAs(medium, "A", coherent: coherentA);
-        Assert.Equal(StoreStatus.Ok, sb);
-        Assert.Equal(StoreStatus.Ok, sr);
         Assert.Equal(StoreStatus.Ok, sa);
-        _ = (hb, hr);
-        return new Scene(medium, ha, a!, b!, reader!);
+        return new Scene(medium, ha, a!, b, reader);
     }
 
     /// <summary>The paths of the page layer, each a step A takes on the scene.</summary>
@@ -114,8 +120,11 @@ public sealed class PagedFileCrashMatrixTests
         string expected = completed ? Base + "3=three;" : Base;
 
         // The live INPUT reader follows page 2 and never meets a torn tree.
-        Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
-        Assert.Equal(expected, StoreKit.Show(s.Reader));
+        if (s.Reader is not null)
+        {
+            Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
+            Assert.Equal(expected, StoreKit.Show(s.Reader));
+        }
 
         switch (continuation)
         {
@@ -123,12 +132,22 @@ public sealed class PagedFileCrashMatrixTests
                 if (fault == Fault.Refuse)
                 {
                     s.HandleA.Heal();
-                    // The refused run unit is alive: its own CLOSE ends the condition (a refused CLOSE has closed it).
-                    if (path is not (PagePath.Close or PagePath.Fence)) Assert.Equal(StoreStatus.Ok, s.A.Close());
+                    // The refused run unit is alive: its own next statement and its CLOSE (which ends the condition;
+                    // a refused CLOSE has closed the connector already) claim above the refused claim (finding R4-3).
+                    if (path is not (PagePath.Close or PagePath.Fence))
+                    {
+                        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 8, "eight"));
+                        Assert.Equal(StoreStatus.Ok, s.A.Close());
+                        expected += "8=eight;";
+                    }
                 }
-                Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 9, "nine"));
-                Assert.Equal(expected + "9=nine;", StoreKit.Show(s.B));
-                Assert.Equal(StoreStatus.Ok, s.B.Close());
+                // The next writer: another live run unit, or — beside a NO OTHER connector, which admits none — the same
+                // run unit if it lives, else nobody (the next OPEN, the case below).
+                var next = s.B;
+                if (next is null) break;
+                Assert.Equal(StoreStatus.Ok, StoreKit.Put(next, 9, "nine"));
+                Assert.Equal(expected + "9=nine;", StoreKit.Show(next));
+                Assert.Equal(StoreStatus.Ok, next.Close());
                 StoreKit.AssertSlotsAndWorkAgree(s.Medium);
                 break;
             case "open":
@@ -303,7 +322,11 @@ public sealed class PagedFileCrashMatrixTests
             Assert.Equal(tearWork ? WorkSlotClass.Foreign : WorkSlotClass.Descendant, c!.Adoption.WorkSlot);
             Assert.False(c.Adoption.WorkAdopted);
             Assert.Equal(Base, StoreKit.Show(c));
-            if (!tearWork) Assert.Contains(fresh.Last(), c.FreePages);   // the rejected history's pages reclaimed
+            // The rejected history's never-committed pages are reclaimed: each is in the FREE set, or taken by the
+            // fence's own retirement, or past the committed page count (reached by nothing; the next growth reuses it).
+            if (!tearWork)
+                Assert.All(fresh, p => Assert.True(c.FreePages.Contains(p) || c.LedgerEntries.ContainsKey(p) || p >= c.Meta.PageCount,
+                    $"rejected page {p} leaked"));
             StoreKit.AssertSlotsAndWorkAgree(s.Medium);
             StoreKit.AssertR2(s.Medium);
         }
@@ -366,14 +389,14 @@ public sealed class PagedFileCrashMatrixTests
     public void Matrix_an_OPEN_by_a_third_run_unit_after_one_of_two_holders_died()
     {
         var s = NewScene();
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 3, "three"));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 3, "three"));
         s.HandleA.FaultAtWrite(3, Fault.Death);
         Assert.Throws<SimulatedDeath>(() => StoreKit.Put(s.A, 4, "four"));
         var (_, status, c) = StoreKit.OpenAs(s.Medium, "C");
         Assert.Equal(StoreStatus.Ok, status);
         Assert.Equal(Base + "3=three;", StoreKit.Show(c!));
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 5, "five"));
-        Assert.Equal(Base + "3=three;5=five;", StoreKit.Show(s.B));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 5, "five"));
+        Assert.Equal(Base + "3=three;5=five;", StoreKit.Show(s.B!));
         StoreKit.AssertNoStampReused(s.Medium);
     }
 
@@ -411,11 +434,11 @@ public sealed class PagedFileCrashMatrixTests
     public void Matrix_a_dead_statement_a_live_completed_one_and_a_power_loss_keeping_the_dead_pages()
     {
         var s = NewScene();
-        Assert.Equal(StoreStatus.Ok, s.B.Enter());
+        Assert.Equal(StoreStatus.Ok, s.B!.Enter());
         s.HandleA.FaultAtWrite(3, Fault.Death);
         Assert.Throws<SimulatedDeath>(() => StoreKit.Put(s.A, 3, "dead"));
         var deadPages = s.Medium.Writes.Where(w => w.Unit == "A" && w.Page >= 3 && !w.Synced).Select(w => w.Page).ToHashSet();
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 4, "live"));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 4, "live"));
         Assert.Contains(s.Medium.Writes, w => w.Unit == "B" && !w.Synced && deadPages.Contains(w.Page));
         s.Medium.PowerLoss(keep: w => w.Unit == "A" || !deadPages.Contains(w.Page));
         var (_, status, c) = StoreKit.OpenAs(s.Medium, "C");
@@ -439,9 +462,9 @@ public sealed class PagedFileCrashMatrixTests
             Assert.Throws<SimulatedDeath>(() => s.A.Close());
             var claimed = MetaPage.Decode(s.Medium.Snapshot(MetaPage.WorkSlot), MetaPage.WorkSlot)!;
             long mark = s.Medium.LastSeq;
-            Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 4, "four"));
-            Assert.Equal(Base + "3=three;4=four;", StoreKit.Show(s.B));
-            Assert.False(s.B.Meta.Promoting);
+            Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 4, "four"));
+            Assert.Equal(Base + "3=three;4=four;", StoreKit.Show(s.B!));
+            Assert.False(s.B!.Meta.Promoting);
             if (claimed.Promoting)
                 Assert.All(s.Medium.Writes.Where(w => w.Seq > mark && w.Page >= 3), w => Assert.True(w.Generation > claimed.StampMint));
             var (sa, sb, work) = StoreKit.MetasAt(s.Medium, s.Medium.LastSeq);
@@ -472,7 +495,7 @@ public sealed class PagedFileCrashMatrixTests
                 s.Medium.Poke(target, (claim with { Promoting = false, CommittedGeneration = claim.Generation }).Encode(target));
             }
             long mark = s.Medium.LastSeq;
-            Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 4, "four"));
+            Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 4, "four"));
             var first = s.Medium.Writes.First(w => w.Seq > mark);
             var after = MetaPage.Decode(s.Medium.SnapshotAt(MetaPage.WorkSlot, first.Seq), MetaPage.WorkSlot)!;
             Assert.Equal(MetaPage.WorkSlot, first.Page);
@@ -484,9 +507,9 @@ public sealed class PagedFileCrashMatrixTests
                 Assert.Equal(claim.CommittedGeneration, after.CommittedGeneration);
             }
             else
-                Assert.Equal(claim.Generation, s.B.Meta.CommittedGeneration);
-            Assert.Equal(0ul, s.B.Meta.Committing);
-            Assert.Equal(Base + "4=four;", StoreKit.Show(s.B));
+                Assert.Equal(claim.Generation, s.B!.Meta.CommittedGeneration);
+            Assert.Equal(0ul, s.B!.Meta.Committing);
+            Assert.Equal(Base + "4=four;", StoreKit.Show(s.B!));
         }
     }
 
@@ -497,14 +520,14 @@ public sealed class PagedFileCrashMatrixTests
     {
         var s = NewScene();
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 3, "three"));
-        int epoch = s.B.CacheEpoch;
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 4, "four"));
-        Assert.Equal(epoch + 1, s.B.CacheEpoch);
-        Assert.True(s.B.Meta.Generation > s.A.Meta.Generation);
+        int epoch = s.B!.CacheEpoch;
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 4, "four"));
+        Assert.Equal(epoch + 1, s.B!.CacheEpoch);
+        Assert.True(s.B!.Meta.Generation > s.A.Meta.Generation);
         var (_, _, r2) = StoreKit.OpenAs(s.Medium, "R2", writable: false);
-        Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
+        Assert.Equal(StoreStatus.Ok, s.Reader!.Enter());
         Assert.Equal(StoreStatus.Ok, r2!.Enter());
-        Assert.Equal(StoreKit.Show(s.Reader), StoreKit.Show(r2));
+        Assert.Equal(StoreKit.Show(s.Reader!), StoreKit.Show(r2));
         Assert.Equal(Base + "3=three;4=four;", StoreKit.Show(r2));
     }
 
@@ -514,20 +537,20 @@ public sealed class PagedFileCrashMatrixTests
     public void Interleaving_a_mint_change_alone_keeps_the_cache_a_generation_change_drops_it()
     {
         var s = NewScene();
-        Assert.Equal(StoreStatus.Ok, s.B.Enter());
-        Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
-        int epochB = s.B.CacheEpoch, epochR = s.Reader.CacheEpoch;
+        Assert.Equal(StoreStatus.Ok, s.B!.Enter());
+        Assert.Equal(StoreStatus.Ok, s.Reader!.Enter());
+        int epochB = s.B!.CacheEpoch, epochR = s.Reader!.CacheEpoch;
         s.HandleA.FaultAtWrite(2, Fault.Refuse);
         Assert.Equal(StoreStatus.PermanentError, StoreKit.Put(s.A, 3, "refused"));
         ulong mint = MetaPage.Decode(s.Medium.Snapshot(MetaPage.WorkSlot), MetaPage.WorkSlot)!.StampMint;
-        Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
-        Assert.Equal(epochR, s.Reader.CacheEpoch);
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B, 4, "four"));
-        Assert.Equal(epochB, s.B.CacheEpoch);
-        Assert.True(s.B.Meta.Generation > mint);
-        Assert.Equal(StoreStatus.Ok, s.Reader.Enter());
-        Assert.Equal(epochR + 1, s.Reader.CacheEpoch);
-        Assert.Equal(Base + "4=four;", StoreKit.Show(s.Reader));
+        Assert.Equal(StoreStatus.Ok, s.Reader!.Enter());
+        Assert.Equal(epochR, s.Reader!.CacheEpoch);
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.B!, 4, "four"));
+        Assert.Equal(epochB, s.B!.CacheEpoch);
+        Assert.True(s.B!.Meta.Generation > mint);
+        Assert.Equal(StoreStatus.Ok, s.Reader!.Enter());
+        Assert.Equal(epochR + 1, s.Reader!.CacheEpoch);
+        Assert.Equal(Base + "4=four;", StoreKit.Show(s.Reader!));
     }
 
     /// <summary>A's statement ∥ B's checkpoint: A's next statement adopts the retirement's page 2 — the new base and the
@@ -537,10 +560,10 @@ public sealed class PagedFileCrashMatrixTests
     {
         var s = NewScene();
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 3, "three"));
-        Assert.Equal(StoreStatus.Ok, s.B.Enter());
-        Assert.Equal(StoreStatus.Ok, s.B.Promote());
+        Assert.Equal(StoreStatus.Ok, s.B!.Enter());
+        Assert.Equal(StoreStatus.Ok, s.B!.Promote());
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 4, "four"));
-        Assert.Equal(s.B.Meta.CommittedGeneration, s.A.Meta.CommittedGeneration);
+        Assert.Equal(s.B!.Meta.CommittedGeneration, s.A.Meta.CommittedGeneration);
         Assert.Equal(Base + "3=three;4=four;", StoreKit.Show(s.A));
         StoreKit.AssertR1(s.Medium);
         StoreKit.AssertR2(s.Medium);
@@ -559,6 +582,7 @@ public sealed class PagedFileCrashMatrixTests
         Assert.Equal(WorkSlotClass.Descendant, b!.Adoption.WorkSlot);
         Assert.True(b.Meta.CommittedGeneration > a!.Meta.CommittedGeneration + PagedFile.GenerationCeiling);
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(a, 2, "two"));
+        Assert.Equal(StoreStatus.Ok, b.Enter());
         Assert.Equal("1=one;2=two;", StoreKit.Show(b));
     }
 
