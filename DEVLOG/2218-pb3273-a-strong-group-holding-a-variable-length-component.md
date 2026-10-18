@@ -1,4 +1,4 @@
-## PB3273: a strong group holding a variable-length component and a reference has its .NET host entry
+## Entry 2218 — 2026-10-18 12:39 PDT — PB3273: a strong group holding a variable-length component and a reference has its .NET host entry
 
 A unit whose group formal or RETURNING item held both a variable-length component (a dynamic-length item or a
 dynamic-capacity table, §8.5.1.12) and a pointer or object reference published no host entry. ISO §14.2.3 13) only
@@ -49,3 +49,4 @@ recurrence's mechanism: the class does name `docs/CONFORMANCE.md` in a string li
 finds it, but the gate had no impact map, and a map-less plan skips every doc and data file (`impacted_tests.py`,
 `if ix is None: continue`) before it asks `readers`. PB3131 now records that gap and the two map-independent inputs that
 would have put the class in leg 1.
+
