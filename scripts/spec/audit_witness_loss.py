@@ -357,6 +357,30 @@ def self_test(schema) -> int:
     verify("writer: a witness-only record adds its witness and restates nothing",
            not witness_losses(row, got, schema) and "conformance:cases/0-SELF-TEST/self_test_extra" in got["test-ref"]
            and all(got.get(k) == row.get(k) for k in ("verdict", "editions", "notes", "derivation")))
+
+    # A RETIREMENT OBLIGES THE PROSE (kb/Work PB762): the writer's shape rule, asked of planted records.
+    from inventory_schema import symbol_of
+    from record_verdicts import validate
+    symbol = symbol_of(locs[0]) or "PlantedSymbol"
+    narrating = {**row, "notes": f"{row.get('notes', '')} The {symbol} method does the work today.".strip()}
+    untouched = {**row, "notes": row.get("notes", "").replace(symbol, "")}
+    catalog = {rid: row.get("kind", "")}
+    stale_msg = "leaves the row's notes exactly as they were"
+
+    def stale(rec: dict[str, str], on: dict[str, Any]) -> bool:
+        errs = validate([(pathlib.Path("self-test"), 0, {"rule-id": rid, **rec})], schema, catalog, {rid: on})
+        return any(stale_msg in e for e in errs)
+
+    retiring_loc = {"retire-witnesses": locs[0], "retire-reason": "self-test"}
+    verify("writer: a witness-only retirement of a symbol the prose names is refused",
+           stale(retiring_loc, narrating))
+    verify("writer: a full record restating the prose UNCHANGED is refused too",
+           stale({**stmt, "notes": narrating["notes"], **retiring_loc}, narrating))
+    verify("writer: a full record that REWROTE the prose is trusted (a symbol that merely moved is true prose)",
+           not stale({**stmt, "notes": narrating["notes"] + " It moved.", **retiring_loc}, narrating))
+    verify("writer: a retirement of a symbol the prose does not name needs no new prose",
+           not stale(retiring_loc, untouched))
+    verify("writer: a record retiring nothing is never asked about the prose", not stale({**stmt}, narrating))
     print(f"=== SELF-TEST: {'GREEN' if not fails else f'RED ({fails})'} ===")
     return 1 if fails else 0
 
