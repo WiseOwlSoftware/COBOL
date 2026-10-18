@@ -313,7 +313,9 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
         }
         // SR4, first half — the same class. Reported only when neither end is already excluded, so one written
         // range cannot draw two diagnostics about the same operand.
-        if (!excluded && loClass is { } lc && hiClass is { } hc && lc != hc)
+        // ⛔ A STRONGLY-TYPED GROUP'S CLASS IS ITS TYPE-NAME (§8.5.2.1, kb/Work PB3355): the lattice answers
+        // alphanumeric for it (§15.3 item 2, a function ARGUMENT), so the pair asks the one same-class identity.
+        if (!excluded && loClass is { } lc && hiClass is { } hc && !IntrinsicArgumentRules.SameClass(lo, lc, hi, hc))
         {
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
