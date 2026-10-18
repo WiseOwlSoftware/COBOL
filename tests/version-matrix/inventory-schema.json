@@ -1216,9 +1216,39 @@
       "answer when a row needs it is to re-key §2 the way §7 was re-keyed, not to widen this pattern. §3 and §4 are",
       "prose lists with no keys at all."
     ],
+    "$symbol-resolution-comment": [
+      "HOW THE GATE RESOLVES '#Symbol' (kb/Work PB762) — ONE predicate, `SpecTraceabilityInventoryDriftTests.SymbolResolves`,",
+      "asked of a `code-location` here and of a `path#Symbol` spelling in a row's `notes` (see `notes`): the file exists and",
+      "every dot-separated segment of the symbol is in the file's CODE. For a C# file the code is its TOKENS, so a",
+      "comment, a doc comment and a disabled region are not code (a string literal is: a construct id or a diagnostic",
+      "code is legitimately anchored in the string that carries it); for a grammar file it is the text with its // and",
+      "/* */ comments removed; for any other file it is the whole text. The word search used to run over the whole body,",
+      "which is why `FileRegistry.cs#ReadLockGovern` resolved on three CONFORMS rows for as long as a comment narrated",
+      "the method's removal: a witness that names a thing the code no longer holds passed because prose said so."
+    ],
     "anchored-files": {
       "docs/CONFORMANCE.md": "^(DOC-A\\.1-[0-9]+|4\\.2\\.16|A\\.4\\.[0-9]+)$"
     }
+  },
+
+  "notes": {
+    "$comment": [
+      "A row's `notes` is the forensic prose a reader opens to learn why the row has its verdict, and it is the one",
+      "adjudicated field a gate used to read not at all (kb/Work PB762: a landing renamed `ReadLockGovern`, re-pointed",
+      "`code-location` because a gate makes it, and left seven rows' prose narrating the dead symbol in the present",
+      "tense). Two rules now read it, in the two places the architecture assigns:",
+      "  · BATTERY time (`SpecTraceabilityInventoryDriftTests.EveryNotesLocation_ResolvesInTheTree`): every",
+      "    `<repo-relative-path>#<Symbol>` spelling in a row's PROSE must resolve exactly as a `code-location` does.",
+      "    The PROSE is `notes` up to the first retired-witness mark; the marks the writer appends after it are",
+      "    HISTORY by construction, and a retired symbol is allowed to be gone.",
+      "  · RECORD time (`record_verdicts.validate`): once a witness is retired, the row's PROSE may not name its",
+      "    symbol (the history of the retirement is its `retire-reason`, filed behind the mark). A symbol the row still",
+      "    cites at another file is exempt: it MOVED, and the prose stays true.",
+      "A BARE identifier in old prose is not read by the battery gate, because prose also narrates history and the",
+      "standard's own words and no resolver can tell a stale name from a deliberate one; the record-time rule is what",
+      "stops the next one, and the rows that predate it are measured in kb/Work PB762."
+    ],
+    "retired-witness-mark": "retired-witness:"
   },
 
   "test-ref": {
