@@ -1,4 +1,4 @@
-## Wave 1119 leads filed as kb/Work notes
+## Entry 2211 — 2026-10-18 08:33 PDT — Wave 1119 leads filed as kb/Work notes
 
 PB3373 files the literal-after-computer-name misattribution (SOURCE-COMPUTER/OBJECT-COMPUTER `XYZ "LIT"`) that PB3370 reported as a lead and left open; only PB3370 mentioned it.
 
@@ -9,3 +9,4 @@ PB3374 files the stale `SortPhysicalWidth`/`SortOffsetInRecord` comments in `Rec
 PB3375 files `record_verdicts.py` `merged()` blanking a non-empty `notes` when a record with a verdict omits it, the root of PB870's finding; PB959 documented it but nothing refuses it.
 
 PB3376 files the `_unassigned` PB352 negative with `rules: []` that no edition suite runs; PB352 is landed and does not own it.
+
