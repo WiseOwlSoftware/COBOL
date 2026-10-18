@@ -26,10 +26,12 @@ records the fresh-cell choice) and both copies of the DOC-A.1-141 determination.
 has a C# host pass and receive the group. Its expected values come from §8.5.1.10.4 (truncation at the LIMIT), §8.5.1.9.3
 and §8.5.1.9.5 (a created occurrence is initialized under INITIALIZED) and §13.18.38.4 16) (the minimum capacity refused
 before activation). `HostEntryShapeDriftTests.AGroupHoldingAComponentAndAReference_PublishesItsEntry_AsTheDescriptionsOwnCellArea`
-replaces the restriction pin. Extra host probes all returned the values the standard gives: numeric-edited, packed,
-COMP-5, float, national and program-pointer members, a nested group with its own dynamic item and pointer, a dynamic
-table whose elements hold a nested dynamic table of pointers, and a RETURNING group with a fixed table of
-variable-length elements.
+replaces the restriction pin. The finishing pass added
+`HostEntryTests.AHost_PassesNestedComponentsAndReferences_ThroughTheCellArea_AndReadsThemBack` for the nested arms the
+first test leaves unexercised: a subordinate group with its own dynamic item and pointer, a dynamic table under
+INITIALIZED whose elements hold a nested dynamic table of pointers, and a RETURNING group with a fixed table of
+variable-length elements. Scratch host probes of numeric-edited, packed, COMP-5, float, national and program-pointer
+members also returned the values the standard gives.
 
 **Rows.** None: no inventory row tracked the withheld entry, and DOC-A.1-141 was already OK (`closes_rows: []`).
 
