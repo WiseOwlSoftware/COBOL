@@ -1,4 +1,4 @@
-## PB2777: the performance baseline gains SORT and MERGE rows, in memory and spilling, and a peak-memory measure
+## Entry 2193 — 2026-10-18 03:50 PDT — PB2777: the performance baseline gains SORT and MERGE rows, in memory and spilling, and a peak-memory measure
 
 kb/Work PB2777 (re-scoped 2026-10-17 after PB3339's bounded-memory SORT landed) asked for SORT and MERGE rows in the
 performance baseline, one size that fits the sort memory limit and one that spills, timed against GnuCOBOL 3.2 at 1x,
@@ -50,3 +50,4 @@ memory query is a measurement failure, not a missing number. A first draft of th
 peak stays "near the limit"; the measurement showed a plateau above the floor instead, so it now says nearly flat. The
 `hot_cases` derivation keeps the witnesses-equal-`[Params]` self-test true. No inventory row: this is the R2 analysis
 note's baseline row (closes_rows_reason unchanged).
+
