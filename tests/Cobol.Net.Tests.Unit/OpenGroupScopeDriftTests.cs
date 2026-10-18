@@ -174,9 +174,8 @@ public sealed class OpenGroupScopeDriftTests
     /// group) under another, so the rows split the two directions: a phrase-less file AFTER a phrase-bearing group
     /// witnesses the forward leak (rows 2 to 7, counting from 1), a phrase-less file BEFORE one witnesses the
     /// backward leak (rows 1, 3, 6 and 7), and rows 3, 6 and 7 carry both. Row 1 alone does not catch a
-    /// forward-only leak
-    /// and rows 2, 4 and 5 alone do not catch a backward-only one: trim the theory only to rows that keep both
-    /// directions.</summary>
+    /// forward-only leak and rows 2, 4 and 5 alone do not catch a backward-only one: trim the theory only to rows
+    /// that keep both directions.</summary>
     [Theory]
     [InlineData("OPEN INPUT F-SEED INPUT RETRY 2 TIMES F-E",
         new[] { "F-SEED||", "F-E|Times|" })]
