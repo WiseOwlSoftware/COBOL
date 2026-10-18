@@ -64,6 +64,13 @@ public sealed class ExceptionPerformBanPositionTests
         Assert.Equal(Where(source, needle), at[0]);
     }
 
+    /// <summary>The legal twin compiles clean, so a rule that over-fires is a failure too.</summary>
+    private static void AssertCompiles(string source)
+    {
+        var (ok, diag) = EditionHarness.Compile(source, 2023);
+        Assert.True(ok, $"the legal twin did not compile: [{string.Join(" | ", diag)}]");
+    }
+
     // ── region A / B bans: at the offending statement inside imperative-statement-1 ──────────────────────────
 
     [Theory]
@@ -136,6 +143,30 @@ public sealed class ExceptionPerformBanPositionTests
         var at = Positions(diag, "COBOLNET1599");
         Assert.Single(at);
         Assert.Equal(Where(src, "WHEN EXCEPTION F1 DISPLAY \"b\"").Line, at[0].Line);
+    }
+
+    // With three instances "the second" is not the offender: the operand that FIRST breaks the rule is (review R1-1).
+    // Each case asserts line AND column, and its legal twin (the third instance changed so the rule holds) compiles.
+
+    [Fact]   // §14.9.28.3 SR15 — F1, F2 are distinct pairings; the second F1 is the repeat
+    public void Sr15ExceptionNameRepeat_WithThreeInstances_IsReportedAtTheInstanceThatBreaksTheRule()
+    {
+        const string head = "    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O FILE F1 DISPLAY \"a\"\n"
+            + "    WHEN EC-I-O FILE F2 DISPLAY \"b\"\n";
+        AssertAt(Files + head + "    WHEN EC-I-O FILE F1 DISPLAY \"c\"\n    END-PERFORM.\n    STOP RUN.\n",
+            "COBOLNET1600", "F1 DISPLAY \"c\"");
+        AssertCompiles(Files + head + "    WHEN EC-I-O FILE F3 DISPLAY \"c\"\n    END-PERFORM.\n    STOP RUN.\n");
+    }
+
+    [Fact]   // §14.9.28.3 SR14 — two paired F1 instances are legal; the bare third one breaks the rule
+    public void Sr14FileNameRepeat_WithThreeInstances_IsReportedAtTheBareInstance()
+    {
+        const string head = "    PERFORM\n        ADD 1 TO N\n    WHEN EC-I-O-AT-END FILE F1 DISPLAY \"a\"\n"
+            + "    WHEN EC-I-O-INVALID-KEY FILE F1 DISPLAY \"b\"\n";
+        AssertAt(Files + head + "    WHEN EXCEPTION F1 DISPLAY \"c\"\n    END-PERFORM.\n    STOP RUN.\n",
+            "COBOLNET1599", "F1 DISPLAY \"c\"");
+        AssertCompiles(Files + head + "    WHEN EC-I-O-PERMANENT-ERROR FILE F1 DISPLAY \"c\"\n    END-PERFORM.\n"
+            + "    STOP RUN.\n");
     }
 
     [Fact]   // §14.9.28.3 SR16 — the non-EC-I-O name paired with FILE, on its own WHEN line

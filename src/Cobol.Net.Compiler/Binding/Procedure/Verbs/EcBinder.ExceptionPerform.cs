@@ -235,14 +235,15 @@ internal sealed partial class EcBinder
     /// <summary>PF3-SR14 (COBOLNET1599) — a file-name shall not appear more than once across the WHEN phrases
     /// unless every instance is paired with an exception-name (§14.9.28.3 SR14). PF3-SR15 (COBOLNET1600) — an
     /// exception-name shall appear only once unless each occurrence pairs a DIFFERENT file-name (§14.9.28.3
-    /// SR15).</summary>
+    /// SR15). Each rule is a predicate over one name's instances; a group that breaks it is reported once, at its
+    /// <see cref="FirstOffender"/>.</summary>
     private void CheckSr14Sr15(List<WhenOperandSite> census)
     {
         // SR14: group by file-name; a file that appears >1 time with ANY bare (unpaired) instance is illegal.
         foreach (var g in census.Where(c => c.File is not null).GroupBy(c => c.File!, CobolNames.Comparer))
-            if (g.Count() > 1 && g.Any(c => c.Ec is null))
+            if (FirstOffender(g, inst => inst.Count <= 1 || inst.All(c => c.Ec is not null)) is { } offender)
             {
-                using var at = ctx.Edition.At(g.ElementAt(1).At);   // the repeat, not the first instance
+                using var at = ctx.Edition.At(offender);
                 ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{g.Key.ToUpperInvariant()}' is specified in more than one WHEN phrase "
                     + "without an exception-name pairing (ISO §14.9.28.3 SR14)");
             }
@@ -252,16 +253,27 @@ internal sealed partial class EcBinder
         // file. A bare occurrence's null is NOT a licensing "distinct file-name" (so bare+FILE-paired same name is
         // rejected, not just bare+bare).
         foreach (var g in census.Where(c => c.Ec is not null).GroupBy(c => c.Ec!, CobolNames.Comparer))
-        {
-            if (g.Count() <= 1) continue;
-            var files = g.Select(c => c.File).ToList();
-            if (files.Any(f => f is null) || files.Select(f => f!).Distinct(CobolNames.Comparer).Count() != files.Count)
+            if (FirstOffender(g, inst => inst.Count <= 1 || (inst.All(c => c.File is not null)
+                    && inst.Select(c => c.File!).Distinct(CobolNames.Comparer).Count() == inst.Count)) is { } offender)
             {
-                using var at = ctx.Edition.At(g.ElementAt(1).At);   // the repeat, not the first instance
+                using var at = ctx.Edition.At(offender);
                 ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformExceptionNameRepeated, $"exception-name '{g.Key.ToUpperInvariant()}' is specified more than once without a "
                     + "distinct file-name (ISO §14.9.28.3 SR15)");
             }
-        }
+    }
+
+    /// <summary>The operand at which one name's WHEN instances FIRST break <paramref name="legal"/>, read in source
+    /// order (kb/Work PB1154 review R1-1): the instances before it obey the rule, so it is the one that breaks it.
+    /// SR14 and SR15 only grow more violated as instances are added, so a group is illegal exactly when it has an
+    /// offender. "The second instance" is not the offender: in WHEN EC-I-O FILE F1 / FILE F2 / FILE F1 the second is
+    /// legal and the third breaks SR15. Null when the whole group obeys the rule.</summary>
+    private static Antlr4.Runtime.IToken? FirstOffender(IEnumerable<WhenOperandSite> instances,
+        Func<IReadOnlyList<WhenOperandSite>, bool> legal)
+    {
+        var ordered = instances.OrderBy(c => c.At.TokenIndex).ToList();
+        for (int n = 2; n <= ordered.Count; n++)
+            if (!legal(ordered.GetRange(0, n))) return ordered[n - 1].At;
+        return null;
     }
 
     /// <summary>⛔ ONE REPORTER FOR EVERY CROSS-STATEMENT BAN (kb/Work PB1154): each statement of type
