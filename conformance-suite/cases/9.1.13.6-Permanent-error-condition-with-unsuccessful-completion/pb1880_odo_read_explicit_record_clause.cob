@@ -14,7 +14,7 @@
       *> covers the IMPLIED value (no RECORD clause: the largest description, §13.18.43.4 GR5); this one covers the
       *> SPECIFIED value, which a record clause can set ABOVE the largest description (§13.18.43.3 SR3 forbids only a
       *> description larger than integer-1). The record's size at a count N is the fixed part plus N occurrences
-      *> (§13.18.43.4 GR13 c), the arithmetic docs/CONFORMANCE.md D-ODO2 applies here: 2 + N), so the READ is unsuccessful exactly when 2 + N exceeds the specified value.
+      *> (§13.18.43.4 GR13 c); docs/CONFORMANCE.md D-ODO2), so the READ is unsuccessful exactly when 2 + N exceeds the specified value.
       *>   OC  RECORD CONTAINS 14 CHARACTERS (Format 1, §13.18.43.4 GR6), table 1 TO 12: the specified value 14 equals the
       *>       description's own maximum. N = 12 is 14 bytes - not more than 14 - so '00'; N = 13 is 15 bytes: '34'.
       *>   OE  RECORD CONTAINS 16 CHARACTERS over the same 14-byte description: the specified value is 16, not the implied
