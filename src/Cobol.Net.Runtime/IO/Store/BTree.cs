@@ -86,6 +86,11 @@ internal sealed partial class BTree
     private Child _root;
     private Child _flushed;
 
+    /// <summary>One more at every change of the tree's view — an edit, a flush, a discard, an adoption. A cursor compares
+    /// it, never the root: an edit to a node this edit already copied changes that node IN PLACE and leaves the root the
+    /// same (branch review R1-2).</summary>
+    private long _version;
+
     /// <summary>A tree whose root is <paramref name="root"/> (<see cref="PagePointer.None"/>: empty), read page by page.</summary>
     public BTree(PagedFile file, IKeyOrder order, PagePointer root) : this(file, order, new Child(root, null), resident: false)
     {
@@ -215,6 +220,7 @@ internal sealed partial class BTree
                 first.Keys.Add(key.ToArray());
                 first.Slots.Add(slot);
                 _root = new Child(PagePointer.None, first);
+                _version++;
                 done = true;
                 return StoreStatus.Ok;
             }
@@ -227,6 +233,7 @@ internal sealed partial class BTree
             // fills its pages (Berkeley DB's rule for a split at the right edge; the 2.2.1.4 fan-out arithmetic).
             bool append = !found && at == original.Keys.Count
                 && path.Take(path.Count - 1).All(p => p.Index == p.Node.Children.Count - 1);
+            _version++;
             var leaf = Own(original);
             if (kind == ChangeKind.Delete)
             {
@@ -272,6 +279,7 @@ internal sealed partial class BTree
         foreach (var page in _superseded) sink.Release(page);
         _superseded.Clear();
         _root = _flushed = _resident ? written : new Child(written.Pointer, null);
+        _version++;
         root = written.Pointer;
         return StoreStatus.Ok;
     }
@@ -281,6 +289,7 @@ internal sealed partial class BTree
     {
         _root = _flushed;
         _superseded.Clear();
+        _version++;
     }
 
     /// <summary>Take <paramref name="root"/> — the root the store adopted at a coherent entry (2.2.1.7: another run unit's
@@ -290,7 +299,9 @@ internal sealed partial class BTree
     {
         if (_resident) throw new InvalidOperationException("a resident tree is reloaded, not re-rooted");
         if (HasPendingChanges) throw new InvalidOperationException("a tree with a pending edit adopts nothing");
-        if (root != _flushed.Pointer) _root = _flushed = new Child(root, null);
+        if (root == _flushed.Pointer) return;
+        _root = _flushed = new Child(root, null);
+        _version++;
     }
 
     // ── The edit's shape: copy the path, fix every level, set the root ──────────────────────────────────────────
