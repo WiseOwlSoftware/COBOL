@@ -765,8 +765,8 @@ public sealed class OoSpineTests
     /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
     /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269 on every receiver: a typed
-    /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which SR6 makes even
-    /// a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
+    /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which §14.9.23.3 SR6
+    /// makes even a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
     /// visible.</summary>
     [Fact]
     public void ObjectData_AutoContent_Sr10()
