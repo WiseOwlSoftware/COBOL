@@ -23,7 +23,6 @@ namespace CobolNet.Tests.Unit;
 /// category), ask <c>SameClass</c> (a pair rule worded in class), or be a function-argument position §15.3 governs
 /// and be listed here with that reason.</para>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class StrongGroupClassScreenDriftTests
 {
     /// <summary>Every Binding source that names the lattice's alphanumeric or national member, and why it may.</summary>
