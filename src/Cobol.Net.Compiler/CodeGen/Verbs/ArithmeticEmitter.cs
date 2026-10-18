@@ -690,7 +690,7 @@ internal sealed class ArithmeticEmitter(EmitContext ctx, NumericRenderer num, Ec
     /// <summary>The digit count of the subsidiary quotient's cap (§14.9.12.4 6) c): "the same number of digits ... as the
     /// data item referenced by identifier-3", kb/Work PB129) - the digits the receiver's store KEEPS, and 0 (no cap)
     /// when the store keeps them all. A PICTURE-truncating item keeps its PICTURE's digit positions. A BINARY-CAPACITY
-    /// item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE) keeps its whole container (§13.18.60.4 GR12): the quotient it
+    /// item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE) keeps its whole container (§13.18.60.4 GR12 / DOC-A.1-208): the quotient it
     /// holds is the full quotient, and a PICTURE-digit cap turned `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into
     /// R = 70004 for `Q PIC 9(4) COMP-5` (the stored Q is 17636, so the remainder is 4) — kb/Work PB3017.</summary>
     private static int SubsidiaryDigitsOf(Place p) => p.Item.Pic switch

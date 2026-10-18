@@ -206,7 +206,7 @@ An unsupported bound construct emits a tracked deferral diagnostic AND emits a r
 - ISO/IEC 1989:2023 §8.4.2 — GLOBAL / EXTERNAL attributes and contained-program visibility (the binder scope tree)
 - ISO/IEC 1989:2023 §11.2, §11.7 — OO CLASS-ID / METHOD-ID → .NET class / methods (G7, but the program model must accommodate it)
 - ISO/IEC 1989:2023 §8.8.1 / §8.8.4 — arithmetic expression composite-of-operands, intermediate scale, and relation-condition comparison rules (ExpressionEmitter scale tracking)
-- ISO/IEC 1989:2023 §14.9.43 (STOP RUN) — run-unit termination (throw StopRun unwinding all Dispatch levels)
+- ISO/IEC 1989:2023 §14.9.42.4 GR1 (STOP RUN) — run-unit termination (throw StopRun unwinding all Dispatch levels)
 - ISO/IEC 1989:2023 §13.18.x — DATA DIVISION clauses (PICTURE/USAGE/VALUE/OCCURS/REDEFINES/RENAMES) governing the data→.NET mapping and the deferred G6 cases
 
 ## Open questions (resolved in `COBOLNET_DESIGN.md` §18)

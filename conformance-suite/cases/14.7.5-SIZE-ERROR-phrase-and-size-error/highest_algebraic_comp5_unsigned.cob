@@ -11,7 +11,7 @@
       *>                magnitude that may be represented in argument-1"; the 15.43.4 NOTE table's
       *>                BINARY-CHAR UNSIGNED row (+255 on an 8-bit container) fixes the container-range
       *>                reading for the fixed-width binary usages, and COMP-5's documented representation
-      *>                (13.18.60.4 GR12; CONFORMANCE.md) is the same full-container rule:
+      *>                (CONFORMANCE.md DOC-A.1-208, kb/Work R10) is the same full-container rule:
       *>                8-byte (10-18 digits) -> 2^64-1; 16-byte (19-31 digits) -> 2^128-1 unsigned,
       *>                2^127-1 signed (LOWEST -2^127, 15.58.4 r2).
       *>   14.9.25.4 GR6d2b - an unsigned receiver stores the absolute value, no operational sign.

@@ -968,7 +968,8 @@ public static class DiagnosticCatalog
         "COBOLNET1557", "same-as-cycle", EditionSeverity.Error,
         "A SAME AS reference is cyclic: neither data-name-1's description nor any subordinate of the subject "
         + "may directly or indirectly reference the subject or a group it is subordinate to, via SAME AS (SR3) "
-        + "or a TYPE clause (SR4).", "ISO §13.18.49.3 SR3/SR4");
+        + "or a TYPE clause (SR4; the TYPE clause's own statement of the cycle is §13.18.57.3 SR1).",
+        "ISO §13.18.49.3 SR3/SR4; §13.18.57.3 SR1");
 
     // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
     // ── COBOLNET1559 — the report-group PRESENT WHEN / VARYING / multiple-COLUMN syntax rules, one code for
@@ -4082,7 +4083,7 @@ public static class DiagnosticCatalog
         + "and negative extremes have DIFFERENT absolute values, the SIGN phrase shall be specified — a) for "
         + "FARTHEST-FROM-ZERO, b) for NEAREST-TO-ZERO. The rule exists because \"the value farthest away from "
         + "zero permitted by the specifications of identifier-14\" (GR32 a) is then ambiguous, and it bites "
-        + "exactly the two's-complement containers of §13.18.60.4 GR12: a PIC S9(4) COMP-5 item spans "
+        + "exactly the two's-complement containers (§13.18.60.4 GR12; COMP-5 by DOC-A.1-208): a PIC S9(4) COMP-5 item spans "
         + "−32768..32767, so FARTHEST-FROM-ZERO alone would have to choose between two different magnitudes. "
         + "Write SIGN POSITIVE or SIGN NEGATIVE. A DIGIT-COUNT item (PIC S9(4) DISPLAY, ±9999) is symmetric and "
         + "needs no phrase.",

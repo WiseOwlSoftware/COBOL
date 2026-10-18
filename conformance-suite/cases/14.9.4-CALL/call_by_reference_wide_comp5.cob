@@ -10,7 +10,7 @@
       *> Derived from ISO/IEC 1989:2023:
       *>   14.2.3 GR8 - "the activated runtime element operates as if the formal parameter occupies the
       *>                same storage area as the argument": the callee's ADD is visible to the caller, and
-      *>                a container-range value (13.18.60.4 GR12; the R10 ownership decision) must cross
+      *>                a container-range value (CONFORMANCE.md DOC-A.1-208, the R10 ownership decision) must cross
       *>                whole. Before R12 the wide/unsigned tiers rode a half-implemented string crossing:
       *>                the generated C# did not compile for BY REFERENCE, and BY CONTENT truncated to the
       *>                picture-digit image.

@@ -42,7 +42,7 @@ public static class HostLanding
         LandUnscaled(value, 0, formal, parameter, member);
 
     /// <summary>Land an unsigned 128-bit host value — the host type of an UNSIGNED 16-byte binary item with no fraction
-    /// positions, whose container holds [0, 2^128) (ISO §13.18.60.4 12); kb/Work R10) — into <paramref name="formal"/>.
+    /// positions, whose container holds [0, 2^128) (DOC-A.1-208; kb/Work R10) — into <paramref name="formal"/>.
     /// For a 16-byte container the result is the container's BITS, which the emitted <c>unchecked((UInt128))</c> store
     /// reinterprets exactly (<see cref="CobolNum.StoreU"/>).</summary>
     /// <exception cref="ArgumentOutOfRangeException">The COMPUTE would lose a digit.</exception>
@@ -292,7 +292,7 @@ public static class HostLanding
     public static CobolDec Dec(Int128 unscaled, int scale) => CobolDec.From(unscaled, scale);
 
     /// <summary>The host <see cref="CobolDec"/> of an UNSIGNED 16-byte binary item with a scale — the one storage no
-    /// exact .NET type holds: its container reaches 2^128 units (ISO §13.18.60.4 12); kb/Work R10) and
+    /// exact .NET type holds: its container reaches 2^128 units (DOC-A.1-208; kb/Work R10) and
     /// <see cref="CobolDec"/>'s significand 2^127. Content below 2^127 units decodes exactly; content at or above it is
     /// the stated ISO §14.2.3 13) restriction for .NET (DESIGN-external-repository §4.3): it is refused like content
     /// that is not numeric — false, the host variable unchanged, and the first refusal kept in
