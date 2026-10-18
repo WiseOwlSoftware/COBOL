@@ -105,7 +105,8 @@ guard_compile_verdict() {
 # RUN + COMPARE ARMS.
 #   guard_output_verdict TEST VALIDFILE RRC ERRFILE RUN_TIMEOUT CMPDIR CANDIDATE...
 # CMPDIR is a writable scratch directory OUTSIDE the program's run directory (the normalized copies must not
-# become inputs to the next test in a chain). CANDIDATEs are tried in preference order.
+# become inputs to the next test in a chain). CANDIDATEs are tried in preference order; the callers pass exactly ONE,
+# the program's report (guard_report_file) — a listing that does not match must not be rescued by another stream.
 guard_output_verdict() {
     local -
     set +e
@@ -203,6 +204,112 @@ guard_output_verdict() {
         # output is an answer, not a lost observation — and it is indistinguishable from one by design.)
         GUARD_CLASS="regression"
         GUARD_VERDICT="DIFF — REGRESSION!"
+    fi
+    return 0
+}
+
+# THE REPORT (kb/Work PB804).  guard_report_file RUN_DIR REPORT_NAME STDOUT_FILE  -> prints the path
+# A CCVS program's report is its print file, `<test>.txt` in the run directory; a DISPLAY-only program has no print
+# file and its report is its stdout. That is the whole discovery rule, shared with NistDifferentialTests (NistRunner):
+# the former candidate list (`<test>.txt`, `print-file.txt`, stdout, any of which could match) let a stream the
+# program did not mean as its report rescue a wrong one, and `print-file.txt` is written by no program in the corpus.
+guard_report_file() {
+    if [ -f "$1/$2" ]; then printf '%s' "$1/$2"; else printf '%s' "$3"; fi
+}
+
+# THE WRITTEN-FILES ARM (kb/Work PB804).  guard_files_apply TEST GOLDEN_DIR RUN_DIR MARKER REPORT_NAME STDOUT_FILE PROBLEMS_FILE
+# The report is ONE file of the run, and grading only it left every other file a CCVS program writes outside the
+# evidence base: RW104A's report-writer output (xxxxx049.txt), the contents of the sequential, relative and indexed
+# files the SQ/RL/IX/ST programs write, the console output beside a print file. PB792 lost a report field's COLUMN 20
+# in xxxxx049.txt while rw104a.txt stayed byte-identical to its golden and the battery was green over it.
+# So when the report MATCHED, every file the program WROTE — created or modified since MARKER, a file the caller
+# touched just before the run and after the compile and any predecessor — is compared BYTE-FOR-BYTE (a text file's
+# host newline aside, guard_canonical_into) with
+# GOLDEN_DIR/<name> (tests/nist/valid-files/<TEST>/), and the two sets must be EQUAL: a file written with no golden,
+# and a golden the program no longer writes, are as red as a different byte. The program's stdout counts as a written
+# file named `(stdout)` when it ALSO wrote a print file, compared on the acceptance basis (drop CR, strip per-line
+# trailing spaces, ignore trailing newlines) because a console's line ends are the host's.
+# This is the shell arm of NistOutputs.Grade (tests/Cobol.Net.Tests.Conformance/NistRunner.cs); scripts/guard-verify.sh
+# holds the two to the same cases. Every problem is listed in PROBLEMS_FILE (kept as evidence by guard_preserve).
+# Applies only to a verdict already scored `match`, and rewrites it: a clean files arm leaves MATCH untouched.
+#
+# THE FORM TWO FILES ARE COMPARED IN.  guard_canonical_into SRC DEST   (NistOutputs.Canonical's twin)
+# A line sequential file ends each record with the HOST's newline — CR LF on Windows, LF on Linux (docs/CONFORMANCE.md
+# DOC-A.1-114; ISO §12.4.5.10.3 GR2, "an implementor-defined line delimiter") — and the goldens hold LF so they read the
+# same on both. A TEXT file (only HT LF FF CR and printable ASCII) is compared with each CR LF taken as LF; a CR not
+# followed by LF is record data and stays. Any other file is a BINARY file and is compared as written: a record file's
+# bytes do not depend on the host, so a newline translation in one is a defect this must see.
+guard_canonical_into() {
+    local -
+    set +e -o pipefail
+    [ -f "$1" ] || return 2
+    if [ "$(LC_ALL=C tr -d '\011\012\014\015\040-\176' < "$1" | wc -c)" -eq 0 ]; then
+        LC_ALL=C sed -z 's/\r\n/\n/g' "$1" > "$2"
+    else
+        cp "$1" "$2"
+    fi
+}
+
+guard_files_apply() {
+    local -
+    set +e -o pipefail
+    local test="$1" gdir="$2" rundir="$3" marker="$4" report="$5" stdoutfile="$6" probfile="$7"
+    local written name g sout gout rc crc names="" n=0 scratch
+    scratch="$(dirname "$probfile")"
+    : > "$probfile" 2>/dev/null     # a previous program's problems are never this one's evidence
+    [ "$GUARD_CLASS" = "match" ] || return 0
+    if [ ! -d "$rundir" ] || [ ! -f "$marker" ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="FILES NO-VERDICT (the run directory or its marker is gone — nothing to enumerate) — NOT SCORED"
+        return 0
+    fi
+    written="$(find "$rundir" -maxdepth 1 -type f -newer "$marker" -printf '%f\n' | LC_ALL=C sort)"; rc=$?
+    if [ "$rc" -ne 0 ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="FILES NO-VERDICT (enumerating the files the program wrote failed, rc=$rc) — NOT SCORED"
+        return 0
+    fi
+    guard_files_problem() { printf '%s: %s\n' "$1" "$2" >> "$probfile"; names="${names:+$names; }$1 $3"; n=$((n + 1)); }
+    while IFS= read -r name; do
+        [ -n "$name" ] && [ "$name" != "$report" ] || continue
+        if [ ! -f "$gdir/$name" ]; then
+            guard_files_problem "$name" "written by the program ($(wc -c < "$rundir/$name") bytes) and it has no golden in $gdir" "has no golden"
+        else
+            guard_canonical_into "$gdir/$name" "$scratch/files.golden.canon"; crc=$?
+            guard_canonical_into "$rundir/$name" "$scratch/files.actual.canon"; rc=$?
+            if [ "$crc" -ne 0 ] || [ "$rc" -ne 0 ]; then
+                GUARD_CLASS="no-verdict"
+                GUARD_VERDICT="FILES NO-VERDICT (canonicalizing $name for the comparison failed) — NOT SCORED"
+                return 0
+            fi
+            cmp -s "$scratch/files.golden.canon" "$scratch/files.actual.canon" ||
+                guard_files_problem "$name" "differs from its golden: $(cmp "$scratch/files.golden.canon" "$scratch/files.actual.canon" 2>&1 | head -1)" "differs"
+        fi
+    done <<< "$written"
+    if [ -d "$gdir" ]; then
+        for g in "$gdir"/*; do
+            [ -f "$g" ] || continue
+            name="$(basename "$g")"
+            [ "$name" = "(stdout)" ] && continue
+            grep -qxF -- "$name" <<< "$written" || guard_files_problem "$name" "it has a golden in $gdir but the program did not write it" "not written"
+        done
+    fi
+    # The console output, when the program also wrote a print file (a DISPLAY-only program's stdout IS its report).
+    sout=""
+    if [ -f "$rundir/$report" ] && [ -f "$stdoutfile" ]; then sout="$(tr -d '\r' < "$stdoutfile" | sed 's/ *$//')"; fi
+    if [ -n "$sout" ]; then
+        if [ ! -f "$gdir/(stdout)" ]; then
+            guard_files_problem "(stdout)" "the program printed ${#sout} characters and it has no golden in $gdir" "has no golden"
+        else
+            gout="$(tr -d '\r' < "$gdir/(stdout)" | sed 's/ *$//')"
+            [ "$gout" = "$sout" ] || guard_files_problem "(stdout)" "differs from its golden" "differs"
+        fi
+    elif [ -f "$gdir/(stdout)" ]; then
+        guard_files_problem "(stdout)" "it has a golden in $gdir but the program printed nothing" "not written"
+    fi
+    if [ "$n" -gt 0 ]; then
+        GUARD_CLASS="regression"
+        GUARD_VERDICT="DIFF — REGRESSION! (the report matched but $n written file(s) do not match tests/nist/valid-files/$test: $(printf '%s' "$names" | cut -c1-90))"
     fi
     return 0
 }
