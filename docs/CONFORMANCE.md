@@ -2718,9 +2718,29 @@ reallocated).
 > and a zero advance is an overprint. `CobolReport.PresentLine` therefore treats its empty page as "the device is at
 > page line 1" only while `CobolFile.DeviceOnOpenLine` is false; with the device on an open line it stands at line 0
 > and the first line travels to its own number. Pinned by `2023/pb1667_advancing_zero_overprint` and
-> `2002/pb1667_reinitiate_open_report_file`. ⚠ **Not decided here:** a BEFORE-placed record presented while a line
-> is still open (an AFTER write's record the device has not travelled past) is appended to it, as GnuCOBOL does;
-> whether the standard's "same vertical position" makes that an overprint from column 1 too is kb/Work PB1840.
+> `2002/pb1667_reinitiate_open_report_file`.
+>
+> **A line presented onto an open line is the same overprint (kb/Work PB1840).** §14.9.51.4 GR25 e): a BEFORE
+> write's "line is presented before the representation of the printed page is advanced", and GR25 f): an AFTER write's
+> line is presented after its advance. So when an earlier write left its line open (an AFTER write's record, a plain
+> WRITE's - an AFTER ADVANCING 1 LINE - or a BEFORE ADVANCING 0's), no advance lies between the two lines and the new
+> one is at the SAME vertical position as the open one, which is GR25 c)'s zero advance by another route. The
+> standard states the position and does not leave it to the implementor, so ISO controls and GnuCOBOL does not:
+> GnuCOBOL appends the BEFORE record to the open line's text (`AB`), a continuation the standard's "same vertical
+> position" does not describe, and WiseOwl COBOL does not follow it. The device representation is the one above: a
+> bare carriage return, written by the ONE presentation (`SequentialConnector.Present`) before the record's
+> characters, so every arm that presents gets it by construction - a BEFORE write of any amount (a positive count, 0,
+> or PAGE: GR25 g) and h) change the advance and not the place the line is presented), on a file with or without a
+> LINAGE clause, record sequential or line sequential. Three points are fixed here. (1) The return is written only
+> while a line is open AND the device is not already at its start: after a zero advance's own return
+> (`SequentialConnector.DeviceLine.Returned`) the next presentation writes none, so AFTER 1 "A", BEFORE 0 "B",
+> BEFORE 1 "C" is `A` CR `B` CR `C` and never two returns in a row. (2) A record with no characters to print (a line
+> of spaces, the report writer's page-feed carrier) overprints nothing and writes no return. (3) A WRITE that is
+> refused - '44' outside the RECORD IS VARYING bounds, '71' for a character outside the line sequential character
+> set, '91', a lock refusal - presents nothing, so it neither writes the return nor closes the open line; a BEFORE
+> write whose page transition then fails (§13.18.34.4 GR6 b) 2) HAS presented, so its overprint stands. Pinned by
+> `14.9.51-WRITE/pb1840_before_after_open_line` (all four editions) and `OpenLineOverprintTests`, which covers the
+> refusals.
 
 > ⚖ **DETERMINATION — a WRITE without the ADVANCING phrase is an explicit `AFTER ADVANCING 1 LINE` in every state
 > of the device, and a file supports vertical positioning when its description carries a LINAGE clause or once an
