@@ -68,13 +68,53 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
 WITNESS_FIELDS = ("code-location", "test-ref")
 CODE_LOCATION_RESITES_ON_READJUDICATION = True
-RETIRED_WITNESS_MARK = "retired-witness:"
+#: The mark `record_verdicts.merged` appends to a row's `notes` for each retired witness. It is DATA, the schema's
+#: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
+#: tell a row's PROSE from the history the writer appended after it, and two spellings of the mark would be two
+#: definitions of where the one ends and the other begins.
+RETIRED_WITNESS_MARK: str = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["notes"]["retired-witness-mark"]
 _RETIRED_RE = re.compile(re.escape(RETIRED_WITNESS_MARK) + r"\s*(\S+)")
 
 
 def retired_witnesses(notes: str) -> set[str]:
     """The witnesses a row's `notes` records as deliberately RETIRED — see `WITNESS_FIELDS`."""
     return {m.rstrip(".,;)") for m in _RETIRED_RE.findall(notes or "")}
+
+
+def prose_of(notes: str) -> str:
+    """A row's `notes` without the retired-witness marks the writer appended: its PROSE (kb/Work PB762).
+
+    The writer only ever APPENDS a mark (`record_verdicts.merged`), so the prose is everything before the first
+    one. A retired symbol is allowed to be gone from the tree and is named in its mark for exactly that reason;
+    the prose is the part a reader takes for the present state of the code.
+    """
+    notes = notes or ""
+    at = notes.find(RETIRED_WITNESS_MARK)
+    return (notes if at < 0 else notes[:at]).rstrip()
+
+
+def symbol_of(ref: str) -> str | None:
+    """The identifier a code-location witness names: the LAST dot-separated segment of its `#Symbol`, or None for
+    a bare path. `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`; `Foo.cs#Type.Member` gives `Member`."""
+    fragment = ref.partition("#")[2]
+    return next((seg for seg in reversed(fragment.split(".")) if seg), None)
+
+
+def retired_symbols_left_in_prose(before_notes: str, after_notes: str, retired: Iterable[str]) -> list[str]:
+    """The retired witnesses whose symbol a write leaves NARRATED in the row's prose, prose it did not touch.
+
+    ⛔ THE SHAPE OF kb/Work PB762, decided from the record alone (no tree): a landing renamed `ReadLockGovern`,
+    retired its witness and appended a dated erratum, and the prose above the erratum kept describing the method
+    in the present tense, so five rows contradicted themselves. A retirement therefore obliges the record to
+    RESTATE the prose (a witness-only record restates nothing, so it cannot retire a symbol the prose names). A
+    record that rewrote the prose in any way is trusted: a symbol that merely MOVED is still true prose, and the
+    battery gate (`EveryNotesLocation_ResolvesInTheTree`) holds every `path#Symbol` spelling in it to the tree.
+    """
+    before, after = prose_of(before_notes), prose_of(after_notes)
+    if after != before:
+        return []
+    return [ref for ref in sorted(retired)
+            if (sym := symbol_of(ref)) and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", after)]
 
 
 def resites(field: str, before_verdict: str, after_verdict: str) -> bool:
