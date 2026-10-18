@@ -1330,6 +1330,28 @@ joined the table the same way, which is the table doing its job: a tenth format 
   the error production) AND reflects over the generated parser (every context type carrying an
   `unrecognizedClause()` accessor has a table row, and every row is still carried), so adding a closed format is
   `| unrecognizedClause` plus a table row, and forgetting the row fails the build.
+- **The parse-time half — a RESERVED word at the production's position (kb/Work PB2533).** `genericClause` begins
+  at an IDENTIFIER, and must: a run that could open with a reserved word would compete with every named alternative
+  of its list (a malformed `SD SF RECORD.` would be read as a foreign word) and, in the paragraph lists, with the
+  headers that follow them. So `SD SF GLOBAL.` never entered the production and drew a bare `COBOL0307`, reported
+  wherever the parse finally failed (`SPECIAL-NAMES. GLOBAL.` failed in `compilationUnit`). `CobolErrorStrategy`
+  closes it without touching the grammar. Its `Sync` override, at an ATN state whose closure reaches a call of
+  `unrecognizedClause` (a per-state flag computed once), refuses a reserved word that is outside the full-context
+  LL(1) set — so the parse fails at that token whatever follows, and no legal program is affected — instead of
+  letting the base strategy exit a list that may end; its 0g hint, read at every report, simulates the ATN from the
+  parser's state to the offending token (re-taking the tokens a failed adaptive prediction looked past) and, if
+  the production's call is reachable there, names the list rule's format through `ClosedFormats.ByRuleIndex`.
+  The INNERMOST open list wins (`SPECIAL-NAMES. GLOBAL.` is the paragraph's, not the configuration section's).
+  The code and sentence are the pass's own (`ClosedFormat.Diagnostic`, `ClosedFormat.Refusal`, one wording for
+  both sites). Two exclusions keep the arm from claiming a structure error: a word that may begin what FOLLOWS the
+  list's separator period (a missing period before `PROCEDURE DIVISION`) and a word that OPENS a division, section
+  or paragraph header (the first token of a rule followed, within it, by a period, SECTION or DIVISION, read from
+  the ATN: `I-O-CONTROL.` before `FILE-CONTROL.`). `ClosedFormatDriftTests` holds every rule that calls the
+  production to a `ByRuleIndex` entry; `ClosedFormatReservedWordTests` pins each format and the three controls.
+  ⚠ Not reached: a reserved word after a SOURCE-/OBJECT-COMPUTER computer-name (`SOURCE-COMPUTER. XYZ GLOBAL.`) —
+  the paragraph's optional group fails its adaptive prediction at GLOBAL, and ANTLR's error-recovery prediction
+  takes the exit alternative, reading XYZ as an unrecognized configuration-section paragraph; the error then
+  surfaces where no closed list is open.
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose

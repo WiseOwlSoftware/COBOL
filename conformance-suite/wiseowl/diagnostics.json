@@ -2359,7 +2359,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: cannot parse construct near 'OF'"
+  "expect": "COBOLNET1941: cannot parse construct near 'OF'"
  },
  "l1c08-entry-name-subscripted": {
   "refuse-at": [
@@ -2699,7 +2699,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307: unexpected 'SET'"
+  "expect": "COBOLNET1941: unexpected 'SET'"
  },
  "l1c22-factory-pd-not-format3": {
   "refuse-at": [
@@ -5791,7 +5791,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001"
+  "expect": "COBOLNET1941: cannot parse construct near 'USING'"
  },
  "pb1260-occurs-at-level-01": {
   "refuse-at": [
@@ -12255,6 +12255,42 @@
   ],
   "expect": "COBOLNET2423"
  },
+ "pb2533-data-entry-reserved-word-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1941: unexpected 'BLOCK'. 'BLOCK' is not a clause of the data description entry for 'W-X'"
+ },
+ "pb2533-identification-reserved-word-paragraph": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1971: unexpected 'GLOBAL'. 'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION"
+ },
+ "pb2533-sd-reserved-word-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: unexpected 'GLOBAL'. 'GLOBAL' is not a clause of the sort-merge file description entry for 'SF'"
+ },
+ "pb2533-special-names-reserved-word-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: unexpected 'GLOBAL'. 'GLOBAL' is not a clause of the SPECIAL-NAMES paragraph"
+ },
  "pb2548-template-dynamic-from-to": {
   "refuse-at": [
    "2014",
@@ -16339,7 +16375,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0307"
+  "expect": "COBOLNET1970: unexpected 'WITH'"
  },
  "pb490-picture-editing-at-85": {
   "refuse-at": [
