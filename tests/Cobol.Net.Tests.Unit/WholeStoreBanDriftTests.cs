@@ -24,7 +24,6 @@ namespace CobolNet.Tests.Unit;
 ///   codec, its boundary arithmetic, its load and persist, its generation probe and its in-memory record table.</item>
 /// </list>
 /// </summary>
-[Trait("Sweep", "tree")]
 public sealed class WholeStoreBanDriftTests
 {
     private static IEnumerable<(string Path, CompilationUnitSyntax Root)> IoSources()
