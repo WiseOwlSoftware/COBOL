@@ -77,7 +77,7 @@
            IF U IS FARTHEST-FROM-ZERO DISPLAY "U-FAR=Y" ELSE DISPLAY "U-FAR=N" END-IF
            MOVE 1 TO U
            IF U IS NEAREST-TO-ZERO DISPLAY "U-NEAR=Y" ELSE DISPLAY "U-NEAR=N" END-IF
-      *> A two's-complement container (13.18.60.4 GR12): both ends are extremes; 9999 (the PICTURE's) is not.
+      *> A two's-complement container (CONFORMANCE.md DOC-A.1-208 for COMP-5): both ends are extremes; 9999 (the PICTURE's) is not.
            SET CONTENT OF C5 TO FARTHEST-FROM-ZERO SIGN NEGATIVE
            IF C5 IS FARTHEST-FROM-ZERO DISPLAY "C5-NEG=Y" ELSE DISPLAY "C5-NEG=N" END-IF
            SET CONTENT OF C5 TO FARTHEST-FROM-ZERO SIGN POSITIVE

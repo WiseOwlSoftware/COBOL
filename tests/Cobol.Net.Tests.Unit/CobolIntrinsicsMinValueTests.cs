@@ -7,7 +7,7 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ THE INT128.MINVALUE MAGNITUDE SITES OF THE EXACT INTRINSIC FAMILY (kb/Work PB2698).
-/// <para>A signed 16-byte binary item legally holds −2^127 (§13.18.60.4 GR12), and <c>-Int128.MinValue</c> wraps to
+/// <para>A signed 16-byte binary item legally holds −2^127 (DOC-A.1-208), and <c>-Int128.MinValue</c> wraps to
 /// itself, so any "absolute value" written as a negated ternary returns a NEGATIVE number for it. PB2639 and PB2641
 /// made the <c>CobolNum</c>, edit and float-conversion sites total over <see cref="CobolDec.UAbs"/>; this class pins
 /// the intrinsic sites that landing left: FUNCTION ABS (whose result 2^127 is past the carrier: the size error), the
