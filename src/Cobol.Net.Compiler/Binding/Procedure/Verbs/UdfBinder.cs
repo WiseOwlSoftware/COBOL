@@ -389,7 +389,15 @@ internal sealed class UdfBinder(BinderContext ctx, StatementBinder host)
             taken.AddRange(calls.GetRange(mark, calls.Count - mark));
             calls.RemoveRange(mark, calls.Count - mark);
         }
-        if (taken.Count == 0) return null;
+        return taken.Count == 0 ? null : OperandSteps(taken);
+    }
+
+    /// <summary>Stamp <paramref name="taken"/> as OPERAND-EVALUATION steps of the statement now binding (see
+    /// <see cref="DrainPending"/>): each step is marked, an activation is given the statement's checking profile, and
+    /// the statement's operand-evaluation count grows. The ONE place a step is stamped — also for steps a binder
+    /// COPIES rather than drains (a SEARCH's prelude that fixes an enclosing occurrence, kb/Work PB3365).</summary>
+    internal List<BoundStatement> OperandSteps(List<BoundStatement> taken)
+    {
         EcCheckingProfile? profile = null;
         for (int i = 0; i < taken.Count; i++)
         {

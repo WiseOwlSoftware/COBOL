@@ -1534,7 +1534,9 @@ searched level's), read by `SearchBinder.Identifier1` through `ReferenceResolver
 (`TableSubject.Search`); otherwise the one the FIRST WHEN-phrase reference to the table subscripts (§14.9.37.4 GR1 — "specified
 by the user in the WHEN phrases"; the bare spelling `SEARCH EP` is legal and is what the standard's own suite writes),
 captured from the one committing subscript reading by `ReferenceResolver.CaptureEnclosingSubscripts` together with the pre-ops
-a function-bearing subscript needs (they run once ahead of the scan, so the bound never reads an unstored temp). A nested
+and the object-property GETs a function- or property-bearing subscript needs (they run once ahead of the scan, in the order
+a per-evaluation window drains them, so the bound never reads an unstored temp; the WHEN condition keeps its own per-evaluation
+copy). A nested
 dynamic table that no WHEN phrase subscripts either is refused COBOLNET2075. `SearchBinder.DynamicTablePath` builds the
 instance path with `BuildTablePath(table, subscripts)` for both formats, and the emitter reads that `CobolDynTable` into one
 local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. A fixed or occurs-depending table

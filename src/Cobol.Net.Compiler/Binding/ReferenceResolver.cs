@@ -1237,6 +1237,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
         int preOpMark = data.PendingPreOps.Count;   // the subscripts' own pre-ops (D18 temp stores, activations) start here
+        int propertyMark = data.OoPendingPropertyOps.Count;   // ... and their object-property references (the other pending list)
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
@@ -1248,7 +1249,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
-        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark));
+        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark), data.OoPendingPropertyOps.Skip(propertyMark));
         return null;
     }
 
@@ -1269,7 +1270,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// temp nobody has stored yet (a NullReferenceException on the first probe; on a repeated statement the previous
     /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
     /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
-    /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.</para></summary>
+    /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.
+    /// An OBJECT-PROPERTY subscript is the same shape on the OTHER pending list (<c>DataBinder.OoPendingPropertyOps</c>,
+    /// which the per-evaluation wrapper drains alongside the pre-ops), so its pending GET is captured as well
+    /// (<see cref="EnclosingOccurrence.PropertyOps"/>; kb/Work PB3365 review R2-1).</para></summary>
     internal EnclosingOccurrence? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
     {
         var saved = _enclosingCapture;
@@ -1283,8 +1287,10 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     /// <summary>The enclosing occurrence a SEARCH's WHEN phrase names: the subscripts of the tables enclosing the
     /// searched table, outermost first, and the pre-ops that must run before those positions can be read (see
-    /// <see cref="CaptureEnclosingSubscripts"/>).</summary>
-    internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps);
+    /// <see cref="CaptureEnclosingSubscripts"/>), and the object-property references among them whose GETs those
+    /// positions read.</summary>
+    internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps,
+        IReadOnlyList<DataBinder.OoPendingPropertyOp> PropertyOps);
 
     private sealed class EnclosingSubscriptCapture(DataItem table)
     {
@@ -1293,13 +1299,14 @@ public sealed partial class ReferenceResolver(DataBinder data)
         /// <summary>A committed subscript reading of <paramref name="item"/>: the first one that is <c>table</c> or lies
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
-        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps)
+        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps,
+            IEnumerable<DataBinder.OoPendingPropertyOp> propertyOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)
             {
                 if (!ReferenceEquals(n, table)) continue;
-                Enclosing = new([.. indexExprs.Take(table.SubscriptArity - 1)], [.. preOps]);
+                Enclosing = new([.. indexExprs.Take(table.SubscriptArity - 1)], [.. preOps], [.. propertyOps]);
                 return;
             }
         }
