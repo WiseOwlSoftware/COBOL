@@ -422,9 +422,11 @@ public abstract class KeyedConnector : FileConnector
     /// condition remains in effect for all subsequent input-output operations on the file"</i>) and the statement's own
     /// body ends at the replay every verb makes first (<see cref="FileConnector.PermanentErrorReplay"/>) — so READ and
     /// START invalidate the file position indicator as they do for any permanent error. A failure that is not the
-    /// host's is not the file's and escapes as before, with the entry undone.</summary>
+    /// host's is not the file's and escapes as before, with the entry undone. (The entry allocated the whole store
+    /// before the keyed store engine, so an allocation the host refused was a host failure too; it reads one page now,
+    /// and that reason left with the whole-store model, kb/Work PB3335.)</summary>
     private static bool IsHostStoreFailure(Exception failure) =>
-        failure is IOException or UnauthorizedAccessException or OutOfMemoryException;
+        failure is IOException or UnauthorizedAccessException;
 
     private void Enter(KeyedStore store)
     {

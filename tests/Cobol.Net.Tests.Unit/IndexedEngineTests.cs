@@ -658,13 +658,7 @@ public sealed class IndexedEngineTests
         string host = Tmp($"format{version}");
         try
         {
-            var declared = new IndexedConnector(host, 8, KeyedAccess.Random, [new(0, 4)]).DeclaredAttributes;
-            using (var image = RecordFraming.ComposeStore(declared, [new StoredFrame("0001AAAA", null, [1])], generation: 1, releaseMint: 2))
-            {
-                byte[] bytes = image.ToArray();
-                bytes["CBNFSTR"u8.Length] = (byte)version;   // the version byte after the whole-store magic
-                File.WriteAllBytes(host, bytes);
-            }
+            File.WriteAllBytes(host, WholeStoreFile.Bytes('I', (byte)version, "0001AAAA"));
             byte[] before = File.ReadAllBytes(host);
             foreach (var mode in new[] { FileOpenMode.Input, FileOpenMode.IO, FileOpenMode.Extend })
             {
