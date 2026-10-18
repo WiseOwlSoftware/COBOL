@@ -35,8 +35,9 @@ measure sees a child's own 256 MiB against an idle child. Both pass on Windows a
 grow from 51.9 to 125.0 MiB and from 57.9 to 133.8 MiB. SEQHOT, which sorts nothing, already sits about 28 MiB above
 the floor, so the spill cases' plateau is the file-I/O runtime plus about the 4 MiB limit. SORTHOT-SPILL's small rise
 is uncollected garbage, not retention: a probe sorted 1,600,000 records under a 4M limit with
-`DOTNET_GCHeapHardLimit` = 20 MiB. Against GnuCOBOL, ours is 2.5x to 4.6x slower at 1x on these programs (net of
-start-up), scaling linearly (growth 1.55 to 1.73 per doubling).
+`DOTNET_GCHeapHardLimit` = 20 MiB. Against GnuCOBOL, net of start-up, ours is 2.5x to 6.0x slower at 1x on these
+programs (SORTHOT-SPILL 2.5x, MERGEHOT-SPILL 2.7x, SORTHOT 4.6x, MERGEHOT 6.0x) and 1.7x to 3.7x at 4x. The gap
+narrows because ours grows 1.55 to 1.73 per doubling of the records where GnuCOBOL grows 1.87 to 2.22.
 
 **A broken leg, fixed.** The probe found the WSL leg dead: since PB2528 the compiler deploys the Windows ReadyToRun
 image of the runtime beside a program compiled on Windows, and Linux .NET refuses it (`BadImageFormatException`), so
