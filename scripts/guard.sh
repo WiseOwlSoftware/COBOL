@@ -245,10 +245,12 @@ for test in $NIST_TESTS; do
     ec="$(guard_declared_termination "$test")"
     if [ -n "$ec" ]; then
         guard_termination_verdict "$test" "$ec" "$rrc" "$errfile" "$RUN_TIMEOUT"
+        # ⛔ The files the run left at its abnormal end are graded too (kb/Work PB804): report name "" = no report.
+        guard_files_apply "$test" "$NIST_VALID_FILES/$test" "$NIST_OUT" "$marker" "" "$stdoutfile" "$CMPDIR/files.problems"
         v "$test" "$GUARD_VERDICT"
         if [ "$GUARD_CLASS" = "regression" ]; then FAILURES=$((FAILURES + 1)); fi
         if [ "$GUARD_CLASS" != "match" ]; then
-            guard_preserve "$test" "$GUARD_VERDICT" "$NIST_OUT/$outfile" "$stdoutfile" "$errfile"
+            guard_preserve "$test" "$GUARD_VERDICT" "$NIST_OUT/$outfile" "$stdoutfile" "$errfile" "$CMPDIR/files.problems"
         fi
         continue
     fi
