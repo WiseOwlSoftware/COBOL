@@ -51,7 +51,8 @@ semantics).
   `DataItem.DeclaredAt` (captured from the cursor when the item is bound; a TYPE / SAME AS copy carries its template
   member's, so a fault of PLACEMENT born at the reference — the file-section ban on a dynamic-capacity table, the OCCURS
   DEPENDING ON placement rules, the seven-subscript limit — is positioned at `DataItem.ReferenceSite`, the entry that wrote
-  the clause, kb/Work PB1629), and the two parse-tree passes through
+  the clause, kb/Work PB1629; a fault whose every involved entry lies inside the one copy is the declaration's fact and
+  is reported there only, `DataItem.IsCopiedUnder`), and the two parse-tree passes through
   `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). A pass that runs AFTER the
   bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
   rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the
