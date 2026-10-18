@@ -5,8 +5,8 @@ using System.Buffers.Binary;
 namespace CobolNet.Runtime.IO.Store;
 
 /// <summary>A payload stored as a CHAIN of <see cref="PageKind.Overflow"/> pages (docs/rearchitecture/DESIGN-runtime-library.md
-/// §2.2.1.4, the OVERFLOW layout): each page's body begins with the next page's generation (8 bytes), so the chain is
-/// stamped like every other pointer (§2.2.1.6 R3), then up to <see cref="PayloadBytes"/> payload bytes; the header's
+/// 2.2.1.4, the OVERFLOW layout): each page's body begins with the next page's generation (8 bytes), so the chain is
+/// stamped like every other pointer (2.2.1.6 R3), then up to <see cref="PayloadBytes"/> payload bytes; the header's
 /// <c>entries</c> is the payload byte count of the page, its <c>next</c> the next page, and flags bit 0 marks the last.
 /// <para>⛔ INTERIM. Until the B+ tree of kb/Work PB3332 lands, the LEDGER (<see cref="Ledger"/>) and the FREE set are
 /// serialized as one chain each (kb/Work PB3331, "Ledger"), so the page layer's crash matrix runs over real pages. PB3332
@@ -55,7 +55,7 @@ internal static class PageChain
     }
 
     /// <summary>Read the chain whose head is <paramref name="head"/>, verifying every page through its stamped pointer
-    /// (§2.2.1.6 R3) with <paramref name="read"/>; the payload and the chain's pages (with the generation each was read
+    /// (2.2.1.6 R3) with <paramref name="read"/>; the payload and the chain's pages (with the generation each was read
     /// at) on <see cref="PageCheck.Whole"/>, the first failing page's check otherwise.</summary>
     public static PageCheck Read(PagePointer head, Func<PagePointer, byte[], PageCheck> read,
         out byte[] payload, out List<PagePointer> chain)

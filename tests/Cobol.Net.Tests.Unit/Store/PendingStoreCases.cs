@@ -4,7 +4,7 @@ using Xunit;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>One PENDING case: a row of docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12, §2.2.1.16 or §2.2.1.17
+/// <summary>One PENDING case: a row of docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12, 2.2.1.16 or 2.2.1.17
 /// whose path a later group builds, with its expected result taken from the design text. It is not a test yet (no
 /// <c>Skip</c>: the gate would count a skipped case); the group named <see cref="Owner"/> turns it into a running case in
 /// its own landing.</summary>
@@ -22,12 +22,12 @@ public sealed class PendingStoreCases
 {
     internal static IReadOnlyList<PendingCase> Rows { get; } =
     [
-        // §2.2.1.12's adoption matrix, the transaction column.
+        // 2.2.1.12's adoption matrix, the transaction column.
         new("2.2.1.12 R6", "every matrix row × a transaction open at the crash", "PB3337",
             "after the adoption every before-image of the dead owner re-applied by the first writable statement (an OPEN's R6 step 5 or a live run unit's coherent entry, whichever comes first) and left in place by an INPUT OPEN; a consistent tree in every cell"),
         new("2.2.1.12 R6", "an OPEN by a third run unit after one of two holders died, with a transaction", "PB3337",
             "by the live holder's next statement if it comes before the OPEN, else by the OPEN, with the live holder's own records untouched either way"),
-        // §2.2.1.12's R5 restart rows for COMMIT.
+        // 2.2.1.12's R5 restart rows for COMMIT.
         new("2.2.1.12 R5", "a COMMIT refused before its slot write", "PB3337",
             "unwound by the next entry (another run unit's statement or the owner's own ROLLBACK, which then restores every before-image); its transaction, UNDO tree and holdings intact until then"),
         new("2.2.1.12 R5", "a COMMIT refused in its retirement (after sync 2)", "PB3337",
@@ -36,7 +36,7 @@ public sealed class PendingStoreCases
             "REVERSES under its own mutex hold and reports failure; afterwards the records are as at the previous COMMIT and the HOLDINGS and TRANSACTIONS trees hold nothing of t, through the owner's ROLLBACK, another run unit's statement, the next OPEN and a power loss keeping any subset of {the COMMIT's slot, the reversal's pages, the reversal's slot}"),
         new("2.2.1.12 R5", "the reversal's own page write or its promotion's sync refused", "PB3337",
             "the COMMIT reports failure, the ROLLBACK reports failure while the sync is refused and success once a sync lands; no run reports a ROLLBACK successful while the medium holds the COMMIT's slot as its highest valid slot"),
-        // §2.2.1.12's transaction drift tests.
+        // 2.2.1.12's transaction drift tests.
         new("2.2.1.12 transaction", "two run units under APPLY COMMIT on disjoint records", "PB3337",
             "A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; a CLOSE then ROLLBACK restores the last COMMIT"),
         new("2.2.1.12 transaction", "a first change under commit control refused at its n-th write (R4-2)", "PB3337",
@@ -51,7 +51,7 @@ public sealed class PendingStoreCases
             "the entry rolls A back first: '22', '22'; B READs K5 as at A's last COMMIT; a third run unit's INPUT read between finds K5 absent, after B's statement present"),
         new("2.2.1.12 dead owner", "the holder's death at every point of another statement (R4-1)", "PB3337",
             "'22' (rolled back at B's test) or '51' (alive at B's test, RETRY then '22'), never '00'; no record B wrote overwritten by A's rollback"),
-        // §2.2.1.16's crash points of the transaction paths.
+        // 2.2.1.16's crash points of the transaction paths.
         new("2.2.1.16", "COMMIT: before the claim / after the claim / after the slot write / after sync 2 / after the retirement", "PB3337",
             "rolled back / unwound then rolled back / completed or rolled back by the slot alone / committed / complete"),
         new("2.2.1.16", "COMMIT with sync 2 refused and the owner alive: the reversal rows", "PB3337",
@@ -61,7 +61,7 @@ public sealed class PendingStoreCases
         // The refused-statement table's transaction rows.
         new("2.2.1.16 refused", "a transaction's first change / ROLLBACK / COMMIT at each point / the dead-owner rollback, refused", "PB3337",
             "as the table's rows: the byte given back; '30' replayed; unwound or completed by the slot; the next writer's entry redoes it"),
-        // §2.2.1.17's rows with transactions, locks and dead owners.
+        // 2.2.1.17's rows with transactions, locks and dead owners.
         new("2.2.1.17", "A's statement ∥ B's ROLLBACK; A's COMMIT ∥ B's ROLLBACK; the reversal rows; B dies with a transaction (both rows); B's transaction begins / gives its byte back ∥ A's dead-owner step", "PB3337",
             "as the table: '51' on B's records with RETRY; either order durable for A, restored for B; B never completes a COMMIT A was told failed; A rolls B back before its own statement or at its lock test"),
         new("2.2.1.17 round 4", "a lock holder's death at every point of another run unit's statement", "PB3337",

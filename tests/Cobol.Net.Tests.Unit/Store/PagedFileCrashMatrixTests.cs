@@ -9,7 +9,7 @@ namespace CobolNet.Tests.Unit.Store;
 /// <summary>
 /// ⛔ A PROCESS DEATH, A POWER LOSS OR A REFUSED WRITE OR SYNC AT EVERY POINT OF EVERY PATH THE PAGE LAYER OWNS LEAVES THE
 /// FILE AS THE LAST COMPLETED STATEMENT LEFT IT, NEVER TORN (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12's
-/// adoption matrix, §2.2.1.16's crash points and refused-statement table, §2.2.1.17's interleavings; kb/Work PB3331).
+/// adoption matrix, 2.2.1.16's crash points and refused-statement table, 2.2.1.17's interleavings; kb/Work PB3331).
 /// <para>The paths: a changing statement (coherent and NO OTHER), growth, a promotion (CLOSE and the checkpoint), the
 /// fence (a writable OPEN) and creation. Each is run once to count its operations (writes and syncs), then once per
 /// operation with the run unit killed BEFORE it, killed AFTER it and refused AT it; each run is then continued by the
@@ -90,7 +90,7 @@ public sealed class PagedFileCrashMatrixTests
         return data;
     }
 
-    /// <summary>§2.2.1.16 for the page layer's paths, at EVERY operation: the next writer, a fresh OPEN and a power loss
+    /// <summary>2.2.1.16 for the page layer's paths, at EVERY operation: the next writer, a fresh OPEN and a power loss
     /// each find the last completed statement; the live reader never reads a torn tree; no stamp is ever reused.</summary>
     [Theory]
     [MemberData(nameof(PathsAndFaults))]
@@ -172,7 +172,7 @@ public sealed class PagedFileCrashMatrixTests
         StoreKit.AssertR1(s.Medium);
     }
 
-    /// <summary>§2.2.1.16 "OPEN OUTPUT (creation)": a death at any point of the creation leaves either no committed slot
+    /// <summary>2.2.1.16 "OPEN OUTPUT (creation)": a death at any point of the creation leaves either no committed slot
     /// (the next OPEN answers '30') or a valid EMPTY store (§14.9.27.4 GR18: the file "contains no records" either way),
     /// never an old store's tree; an OPEN OUTPUT recreates it.</summary>
     [Fact]
@@ -201,7 +201,7 @@ public sealed class PagedFileCrashMatrixTests
             }
     }
 
-    // ── §2.2.1.12's adoption matrix (R6), the no-transaction column ─────────────────────────────────────────────
+    // ── 2.2.1.12's adoption matrix (R6), the no-transaction column ─────────────────────────────────────────────
 
     [Fact]
     public void Matrix_a_CLOSE_then_an_OPEN_adopts_the_work_slot_and_fences()
@@ -513,7 +513,7 @@ public sealed class PagedFileCrashMatrixTests
         }
     }
 
-    // ── §2.2.1.17: two run units interleaved (the rows the page layer's paths own) ──────────────────────────────
+    // ── 2.2.1.17: two run units interleaved (the rows the page layer's paths own) ──────────────────────────────
 
     [Fact]
     public void Interleaving_a_later_writer_adopts_page_2_and_claims_above_the_mint_two_readers_see_one_tree()
