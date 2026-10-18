@@ -1236,6 +1236,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
         if (ScreenEmptyParentheses(dref, subCtx))   // §8.4.2.3.2 / §8.4.3.3.2 (kb/Work PB969)
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         List<IndexUse> ixNames = [];
+        int preOpMark = data.PendingPreOps.Count;   // the subscripts' own pre-ops (D18 temp stores, activations) start here
         var e = InterpretSubscripts(subCtx, ixNames, subject is TableSubject.Sort);
         if (e is null) return SegmentFailure(DataBinder.WrittenText(dref));   // a segment the materializer refused or deferred
         ScreenIndexNameAssociation(item, ixNames);   // §8.4.2.3.3 SR4 (kb/Work PB459)
@@ -1247,7 +1248,7 @@ public sealed partial class ReferenceResolver(DataBinder data)
             })
             return RefResolution.Refused(DataBinder.WrittenText(dref));
         indexExprs = e;
-        if (!_probing) _enclosingCapture?.Offer(item, e);
+        if (!_probing) _enclosingCapture?.Offer(item, e, data.PendingPreOps.Skip(preOpMark));
         return null;
     }
 
@@ -1261,8 +1262,15 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// <para>Only a dynamic-capacity table needs this: its scan bound is one occurrence's current capacity
     /// (§8.5.1.9.1), where a fixed or occurs-depending table has one bound for every occurrence of the enclosing
     /// tables. When a condition references the table at two occurrences, the first reference in source order names it.
-    /// Save/restored like <c>_probing</c>: a nested resolution can re-enter.</para></summary>
-    internal IReadOnlyList<Position>? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
+    /// Save/restored like <c>_probing</c>: a nested resolution can re-enter.</para>
+    /// <para>⛔ A SUBSCRIPT THAT BEARS A FUNCTION CARRIES ITS PRE-OPS WITH IT. Such a subscript is lowered to a D18
+    /// temp whose store (and the activation feeding it) the WHEN condition's per-evaluation wrapper runs INSIDE the
+    /// condition, but the scan bound is read BEFORE the first condition evaluation — so the positions alone name a
+    /// temp nobody has stored yet (a NullReferenceException on the first probe; on a repeated statement the previous
+    /// execution's value, silently the wrong occurrence). The occurrence's pre-ops are therefore captured too
+    /// (<see cref="EnclosingOccurrence.PreOps"/>) and the SEARCH runs them once ahead of the scan to determine the
+    /// occurrence it bounds (§14.9.37.4 GR1); the WHEN condition still evaluates its own copy each time it is tried.</para></summary>
+    internal EnclosingOccurrence? CaptureEnclosingSubscripts(DataItem table, Action bindWhile)
     {
         var saved = _enclosingCapture;
         var mine = _enclosingCapture = new EnclosingSubscriptCapture(table);
@@ -1273,20 +1281,25 @@ public sealed partial class ReferenceResolver(DataBinder data)
 
     private EnclosingSubscriptCapture? _enclosingCapture;
 
+    /// <summary>The enclosing occurrence a SEARCH's WHEN phrase names: the subscripts of the tables enclosing the
+    /// searched table, outermost first, and the pre-ops that must run before those positions can be read (see
+    /// <see cref="CaptureEnclosingSubscripts"/>).</summary>
+    internal sealed record EnclosingOccurrence(IReadOnlyList<Position> Subscripts, IReadOnlyList<Bound.BoundStatement> PreOps);
+
     private sealed class EnclosingSubscriptCapture(DataItem table)
     {
-        public IReadOnlyList<Position>? Enclosing { get; private set; }
+        public EnclosingOccurrence? Enclosing { get; private set; }
 
         /// <summary>A committed subscript reading of <paramref name="item"/>: the first one that is <c>table</c> or lies
         /// within it, fully subscripted (a reference the arity screen refused never reaches here), keeps the leading
         /// positions that belong to the tables ENCLOSING <c>table</c>.</summary>
-        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs)
+        public void Offer(DataItem item, IReadOnlyList<Position> indexExprs, IEnumerable<Bound.BoundStatement> preOps)
         {
             if (Enclosing is not null) return;
             for (DataItem? n = item; n is not null; n = n.Parent)
             {
                 if (!ReferenceEquals(n, table)) continue;
-                Enclosing = [.. indexExprs.Take(table.SubscriptArity - 1)];
+                Enclosing = new([.. indexExprs.Take(table.SubscriptArity - 1)], [.. preOps]);
                 return;
             }
         }
