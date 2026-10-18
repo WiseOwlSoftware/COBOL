@@ -419,10 +419,14 @@ public abstract class KeyedConnector : FileConnector
     /// which is what makes §9.1.16's <i>"While locked by a given file connector, a record is not accessible to another
     /// file connector in the same or a different run unit"</i> enforceable, and what makes §14.9.30.4 GR21's <i>"the
     /// first existing record in the physical file"</i> the file's and not a snapshot's. Inert (<c>default</c>) for every
-    /// other connector.</summary>
+    /// other connector — and for a statement on a connector whose PERMANENT ERROR is in effect (§9.1.13.1, <i>"The
+    /// permanent error condition remains in effect for all subsequent input-output operations on the file"</i>): the
+    /// verb answers it first (<see cref="FileConnector.PermanentErrorReplay"/>), and the technique this processor provides
+    /// (docs/CONFORMANCE.md DOC-A.1-105) says such a statement <i>"does not touch the physical file"</i>, so it neither
+    /// waits for the store mutex nor reads page 2 (kb/Work PB3336 review R1-2).</summary>
     internal override StoreStatement BeginStatement()
     {
-        if (!_coherent || _handle is null) return default;
+        if (!_coherent || _handle is null || PermanentErrorInEffect is not null) return default;
         Enter(AttachedStore);
         return new StoreStatement(this);
     }
