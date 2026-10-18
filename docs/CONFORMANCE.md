@@ -190,7 +190,8 @@ of an unsupported facility.
   `ExceptionCatalog` catalogues EC-MCS-NO-REQUESTER only (a COBOL-2023 name, accepted inert like every EC-MCS name,
   section 4 item 1), and EC-MCS-NO-REQUESTOR is an unknown exception-name: COBOLNET0711 at every edition that has the TURN
   directive. Witnessed by `conformance:cases/_unassigned/pb3149_ec_mcs_no_requester_table13` and
-  `conformance:cases/_unassigned/pb3149-ec-mcs-no-requestor-unknown`.
+  `conformance:cases/_unassigned/pb3149-ec-mcs-no-requestor-unknown`. Confirmed by the owner on 2026-10-18 ("keep
+  EC-MCS-NO-REQUESTER only"; kb/Work PB3149, "Owner confirmation").
 
 - **D-TW1 — a period, comma or semicolon written immediately before a closing pseudo-text delimiter is a
   SEPARATOR, so `==STOP RUN.==` holds the text-words `STOP` `RUN` `.`** (kb/Work PB1350). §8.3.5 2)/3) make those
