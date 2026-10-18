@@ -22,6 +22,14 @@ XYZ ) .` ended the paragraph at ')' and the recovery swallowed the next SELECT e
 NIST column case). Sync now deletes a token that no path can take when a period follows it and the rule could take
 the period, as ANTLR does before a required one.
 
+**Branch review round 1.** R1-1: that deletion also took a paragraph HEADER word followed by its own period.
+`SPECIAL-NAMES. DECIMAL-POINT IS COMMA` (period missing) then `FILE-CONTROL.` deleted FILE-CONTROL and refused the
+SELECT entries as SPECIAL-NAMES clauses (one diagnostic on main, three on the branch; five at I-O-CONTROL, three at
+REPOSITORY). The deletion now skips `HeaderWords`, the ATN-read set the closed-format arm already excludes, and every
+probe is back to main's single diagnostic at the header. `ClosedFormatReservedWordTests` gains a theory with one case
+per `ParagraphPeriods` row and a fact that fails when a row has no case. R1-2: the design doc's old "⚠ Not reached"
+paragraph for `SOURCE-COMPUTER. XYZ GLOBAL.` is gone, and `ParagraphPeriods`' summary no longer counts its rows.
+
 **Goldens.** Positive `pb3370_computer_paragraph_second_period` (85 up); negatives
 `pb3370-source-computer-reserved-word-clause`, `pb3370-object-computer-reserved-word-clause`,
 `pb3370-source-computer-period-missing`, `pb3370-object-computer-period-missing` (every edition). Unit cases in

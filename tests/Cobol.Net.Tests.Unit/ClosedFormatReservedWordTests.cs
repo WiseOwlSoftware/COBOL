@@ -132,6 +132,43 @@ public sealed class ClosedFormatReservedWordTests
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET3408"));
     }
 
+    /// <summary>A superset-parsed paragraph whose period is missing, followed by a paragraph header the position cannot
+    /// take (FILE-CONTROL. with INPUT-OUTPUT SECTION forgotten), keeps that header: the stray-token deletion before an
+    /// optional period never deletes a header word (kb/Work PB3370 review R1-1). Deleting it poured the SELECT entries
+    /// into the closed format above as false "not a clause" refusals. One case per <c>ParagraphPeriods</c> row, each
+    /// with an entry written, and the header is the ONE diagnostic, at the header.</summary>
+    public static TheoryData<string, string, string> HeaderAfterMissingPeriod() => new()
+    {
+        { "SPECIAL-NAMES", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES. DECIMAL-POINT IS COMMA\n", "(6," },
+        { "REPOSITORY", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       REPOSITORY.\n           FUNCTION ALL INTRINSIC\n", "(7," },
+        { "SOURCE-COMPUTER", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ\n", "(6," },
+        { "OBJECT-COMPUTER", "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ\n", "(6," },
+        { "I-O-CONTROL", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       I-O-CONTROL.\n           SAME RECORD AREA FOR SF TF\n", "(7," },
+    };
+
+    [Theory]
+    [MemberData(nameof(HeaderAfterMissingPeriod))]
+    public void HeaderAfterAMissingPeriod_IsNotDeleted_NorItsEntriesCalledClauses(string paragraph, string section, string at)
+    {
+        var errors = Compile(Head + section + "       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
+            + "           SELECT TF ASSIGN TO \"g.dat\".\n       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n"
+            + "       01 R PIC X.\n       FD TF.\n       01 S PIC X.\n" + Proc);
+        Assert.True(errors.Count == 1, $"{paragraph}: expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains(at, errors[0]);
+        Assert.Contains("'FILE-CONTROL'", errors[0]);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1970") || e.Contains("COBOLNET1971"));
+    }
+
+    /// <summary>The theory above holds a case for EVERY superset-parsed paragraph, so a paragraph that joins the table
+    /// joins this control too.</summary>
+    [Fact]
+    public void HeaderAfterMissingPeriod_CoversEveryParagraphPeriodsRow()
+    {
+        var covered = HeaderAfterMissingPeriod().Select(row => (string)row[0]).ToHashSet();
+        var rows = CobolNet.Frontend.Cst.ParagraphPeriods.ByContext.Values.Select(p => p.Subject).ToHashSet();
+        Assert.True(rows.SetEquals(covered), $"rows {string.Join(", ", rows.Order())} vs cases {string.Join(", ", covered.Order())}");
+    }
+
     /// <summary>A paragraph header written out of order (I-O-CONTROL before FILE-CONTROL) is a structure error; its
     /// opening word is never named "not a clause of the I-O-CONTROL paragraph".</summary>
     [Fact]

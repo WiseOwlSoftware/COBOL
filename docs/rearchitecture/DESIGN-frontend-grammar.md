@@ -1357,10 +1357,6 @@ joined the table the same way, which is the table doing its job: a tenth format 
   already left the decision's rule) took the configuration section's, the only one past the rule's end while the
   paragraph's second period was required. The SOURCE-COMPUTER and OBJECT-COMPUTER rules therefore superset-parse
   that period (`DOT?`, the punctuation half below), the name's alternative leaves the rule too, and it wins.
-  ⚠ Not reached: a reserved word after a SOURCE-/OBJECT-COMPUTER computer-name (`SOURCE-COMPUTER. XYZ GLOBAL.`) —
-  the paragraph's optional group fails its adaptive prediction at GLOBAL, and ANTLR's error-recovery prediction
-  takes the exit alternative, reading XYZ as an unrecognized configuration-section paragraph; the error then
-  surfaces where no closed list is open.
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose
@@ -1426,7 +1422,11 @@ joined the table the same way, which is the table doing its job: a tenth format 
   recovers like a required one: `CobolErrorStrategy.Sync` deletes a token no path can take (outside the full-context
   LL(1) set) when a period follows it and the rule could take a period next, the single-token deletion ANTLR applies
   only at a required token's match. Without it `OBJECT-COMPUTER. XYZ ) .` ended the paragraph at ')', and the
-  recovery several rules up swallowed the next paragraphs' diagnostics.
+  recovery several rules up swallowed the next paragraphs' diagnostics. A header word (the same ATN-read set the
+  closed-format arm excludes) is never deleted: followed by its own period it opens the next paragraph, written out
+  of order or after this one's missing period (`SPECIAL-NAMES. DECIMAL-POINT IS COMMA` then `FILE-CONTROL.`), and
+  deleting it poured that paragraph's entries into this format as false COBOLNET1970/1971 refusals.
+  `ClosedFormatReservedWordTests` pins it once per `ParagraphPeriods` row and fails when a row has no case.
 - **A closed UNION of formats — the file description entry (kb/Work PB1238).** `fileDescriptionClause` is the
   union of §13.4.5.2's three formats, and §13.4.5.3 SR5/SR7/SR8 bind each entry to exactly ONE of them. Which one
   is decided once, in `Compiler/Binding/FileDescriptionFormats.cs` (`Of`: a relative or indexed file is Format 2;
