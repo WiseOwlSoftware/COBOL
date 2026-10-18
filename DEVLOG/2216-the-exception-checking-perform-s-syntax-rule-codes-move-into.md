@@ -1,4 +1,4 @@
-## The exception-checking PERFORM's syntax-rule codes move into the diagnostic catalogue, and every ban reports at its own statement
+## Entry 2216 — 2026-10-18 11:54 PDT — The exception-checking PERFORM's syntax-rule codes move into the diagnostic catalogue, and every ban reports at its own statement
 
 kb/Work PB1154 named five raw codes (COBOLNET1605, 1606, 1607, 1612, 1613) and three defects: absent from
 `DiagnosticCatalog`, untested, and positioned at the PERFORM rather than the offending statement. The re-probe on this
@@ -118,3 +118,4 @@ GIVING-file assertion passed in leg 1, none failed).
 
 Gate (after review round 4, R2-1 citation fix): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance
 11,383 of 17,784, Unit 33,756 of 34,110, Characterization 5 of 36 ran; the GIVING-file case passed in leg 1, none failed).
+
