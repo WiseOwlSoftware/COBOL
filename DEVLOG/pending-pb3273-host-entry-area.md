@@ -41,3 +41,11 @@ No second recipe for an element seed lives in the record. A pointer slot is read
 duplicate remains: the host class declares a number's `_P_` profile beside its `__hm` member profile.
 
 **Gate.** Run `20261018T170337Z-6f5a3f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,296, Unit 33,695, Characterization 5 cases ran; both host tests and the drift pin passed).
+
+**Landing stop and review.** The first landing stopped on the Linux unit leg: row DOC-A.1-141's `Pinned by` cell in
+`docs/CONFORMANCE.md` still named the deleted negative pin, and `AnnexA1RegisterDriftTests` failed. The finisher pointed
+the cell at the positive pin and recorded the recurrence in kb/Work PB3131. The branch review (R1-1) refuted that
+recurrence's mechanism: the class does name `docs/CONFORMANCE.md` in a string literal and `impacted_tests.py#readers`
+finds it, but the gate had no impact map, and a map-less plan skips every doc and data file (`impacted_tests.py`,
+`if ix is None: continue`) before it asks `readers`. PB3131 now records that gap and the two map-independent inputs that
+would have put the class in leg 1.
