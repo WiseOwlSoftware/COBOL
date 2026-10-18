@@ -12,7 +12,7 @@ namespace CobolNet.Binding.Procedure;
 using Core = CobolParserCore;
 
 /// <summary>The sequential file-I/O verb binder (P7 Step 10h — a real collaborator over
-/// <see cref="BinderContext"/>, carved from the core partial; ISO §14.9.27/.7/.51/.30/.35; COBOLNET_DESIGN
+/// <see cref="BinderContext"/>, carved from the core partial; ISO §14.9.27/.6/.51/.30/.35; COBOLNET_DESIGN
 /// §8): OPEN/CLOSE/WRITE/READ/REWRITE with the keyed reroutes (the emitter-mirror SeqIo↔KeyedIo cycle), ADVANCING
 /// (the SPECIAL-NAMES mnemonic zero-advance via <see cref="BinderContext.Mnemonics"/>), and the SD loud-guard
 /// seam. The <c>… FROM</c> / <c>… INTO</c> phrases are IMPLICIT MOVES and are bound as such by
