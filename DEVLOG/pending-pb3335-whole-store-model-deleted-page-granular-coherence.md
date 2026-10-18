@@ -76,4 +76,11 @@ COBOLNET_FILES_DESIGN (the format, the boundary, the per-file store, the medium 
 - Duplication: the stream helper `FillExactly` has a one-line twin in `MetaPage`. It was left rather than coupling the page
   format to the frame codec.
 
-**Gate.** (recorded at the gate)
+**Gate.** The first run, `TestResults/build-local/20261018T180903Z-d823b9`, was RED on one case,
+`HostWitnessTraitDriftTests`. The ban test carried a `Sweep` trait, but `drift_rules.py` classes it by the depth of the
+paths it reads, and `Runtime/IO` is specific, so the trait went and the docs now say so. The second run,
+`TestResults/build-local/20261018T182734Z-f4edbc` (gated at `7c4351bca`), printed:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
+6,438 · Unit 358 · Characterization 31 — Conformance 11,241/17,679 · Unit 33,930/34,288 · Characterization 5/36 cases ran
+(skipped 0) in 1 of 2 leg(s) ===`. Every `StoreCoherenceTests` and `WholeStoreBanDriftTests` case ran in leg 1 and passed.
+LINUX GATE: the lander's (batched gating). Semgrep verify: PASS (one rule went 244 → 243, not this branch's).
