@@ -728,12 +728,12 @@ public static class DiagnosticCatalog
         "ISO §14.9.1.3");
     public static readonly DiagnosticDescriptor SortMergeFileInIoStatement = new(
         "COBOLNET1692", "sd-file-io-statement", EditionSeverity.Error,
-        "An input-output statement names a sort-merge (SD) file. \"A sort-merge file is referenced only by a "
-        + "SORT, MERGE, RELEASE, or RETURN statement\" (and a SORT/MERGE USING/GIVING) — CLOSE, DELETE, DELETE "
-        + "FILE, OPEN, READ, REWRITE, START, UNLOCK and WRITE all reject it at compile time. The old posture "
-        + "let CLOSE and the DELETE forms compile and run against an unregistered connector, whose fail-open "
-        + "status read '00'.",
-        "ISO §13.4.6.3");
+        "An input-output statement names a sort-merge (SD) file. ISO §13.4.6.3 SR3: \"File-name-1 shall not be "
+        + "specified in an input-output statement.\" — CLOSE, DELETE, DELETE FILE, OPEN, READ, REWRITE, START, "
+        + "UNLOCK and WRITE all reject it at compile time (UNLOCK's own clause restates the rule, ISO §14.9.47.3 "
+        + "SR1: \"File-name-1 shall not refer to a sort file or a merge file.\"). The old posture let CLOSE and "
+        + "the DELETE forms compile and run against an unregistered connector, whose fail-open status read '00'.",
+        "ISO §13.4.6.3 SR3, §14.9.47.3 SR1");
     // kb/Work PB1291: SR4 was asked only at the WRITE / REWRITE record-name slot (through COBOLNET1692), so an SD
     // record in any other operand position of an input-output statement — the ADVANCING count, a START KEY, a RETRY
     // count, a subscript — compiled clean. StatementValidation.ScreenSortMergeRecordReferences is the ONE screen,
