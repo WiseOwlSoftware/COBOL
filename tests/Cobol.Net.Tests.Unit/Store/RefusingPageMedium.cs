@@ -4,7 +4,7 @@ using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>A REAL medium (a connector's handle, through <c>RelativeStore.MediumObserver</c>) that refuses the writes and
+/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) that refuses the writes and
 /// syncs a case names — the host's answers a real file cannot be made to give on demand (a full medium, a file at its
 /// maximum size, a refused flush): docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12's fault injection at the
 /// connector's level. A refused write or sync changes nothing on the medium.</summary>

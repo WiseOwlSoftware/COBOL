@@ -28,7 +28,7 @@ namespace CobolNet.Tests.Unit;
 /// GR18/GR19's primary-key view must include.
 /// </para>
 /// <para>
-/// The fix is the shape, not the assignment: <c>StartSucceeded(int keyOfReference, KeyedRec found)</c> takes the
+/// The fix is the shape, not the assignment: <c>StartSucceeded(int keyOfReference, byte[] keyValue)</c> takes the
 /// key of reference as a REQUIRED ARGUMENT, so a fourth START format cannot be written without answering the
 /// question. This file is what keeps that true. The BEHAVIOUR is pinned by the corpus goldens
 /// <c>conformance-suite/cases/14.9.41-START/pb356_start_first_last_indexed.cob</c> (the inverted orderings and the four
@@ -75,13 +75,13 @@ public sealed class StartKeyOfReferenceDriftTests
     /// following sequential walk on it — so a second occurrence IS a second epilogue.</summary>
     internal static bool OneStartEpilogueTakingTheKeyOfReference(string source)
     {
-        const string sig = "private string StartSucceeded(int keyOfReference, KeyedRec found)";
+        const string sig = "private string StartSucceeded(int keyOfReference, byte[] keyValue)";
         if (!source.Contains(sig, StringComparison.Ordinal)) return false;
         if (Occurrences(source, "_positioner = 'S'") != 1) return false;
         string body = MemberBody(source, sig);
         return body.Contains("_positioner = 'S'", StringComparison.Ordinal)
             && body.Contains("_refKey = keyOfReference;", StringComparison.Ordinal)
-            && body.Contains("KeyOf(found, keyOfReference)", StringComparison.Ordinal);
+            && body.Contains("_fpiKey = keyValue;", StringComparison.Ordinal);
     }
 
     /// <summary>True when START FIRST/LAST decides the key of reference itself — GR18/GR19's "set to the primary
@@ -92,7 +92,7 @@ public sealed class StartKeyOfReferenceDriftTests
         string body = MemberBody(source, "public string StartFirstLast(bool last)");
         return body.Length > 0
             && !body.Contains("_refKey", StringComparison.Ordinal)
-            && body.Contains("Ordered(PrimeKey)", StringComparison.Ordinal)
+            && body.Contains("_st.Edge(PrimeKey,", StringComparison.Ordinal)
             && body.Contains("StartSucceeded(PrimeKey", StringComparison.Ordinal);
     }
 
@@ -102,7 +102,7 @@ public sealed class StartKeyOfReferenceDriftTests
     /// <see cref="MemberBody"/> — the comparand parameter became <c>keyedRecordImage</c> with kb/Work PB355.</remarks>
     internal static bool KeyPhraseStartUsesTheEpilogue(string source) =>
         MemberBody(source, "public string Start(int keyIndex, string op, string ")
-            .Contains("return StartSucceeded(keyIndex, found);", StringComparison.Ordinal);
+            .Contains("return StartSucceeded(keyIndex, f.KeyPart);", StringComparison.Ordinal);
 
     private static int Occurrences(string haystack, string needle)
     {
@@ -121,7 +121,7 @@ public sealed class StartKeyOfReferenceDriftTests
     {
         Assert.True(OneStartEpilogueTakingTheKeyOfReference(IndexedConnectorSource()),
             "IndexedConnector must complete EVERY successful START through one "
-            + "StartSucceeded(int keyOfReference, KeyedRec found). ISO §14.9.41.4 states the key-of-reference "
+            + "StartSucceeded(int keyOfReference, byte[] keyValue). ISO §14.9.41.4 states the key-of-reference "
             + "decision once per format — GR16 for the KEY phrase, GR18/GR19's \"the key of reference is set to "
             + "the primary key\" for FIRST/LAST — so an epilogue that reads _refKey instead inherits whatever "
             + "the last START or random READ established (kb/Work PB356).");
@@ -132,7 +132,7 @@ public sealed class StartKeyOfReferenceDriftTests
     public void StartFirstLast_OrdersAndAnswersOnThePrimeKey_NotTheInheritedOne()
     {
         Assert.True(StartFirstLastNamesThePrimeKey(IndexedConnectorSource()),
-            "IndexedConnector.StartFirstLast must use Ordered(PrimeKey) and StartSucceeded(PrimeKey, …) and "
+            "IndexedConnector.StartFirstLast must search the prime tree (_st.Edge(PrimeKey, …)) and StartSucceeded(PrimeKey, …) and "
             + "must not mention _refKey. §14.9.41.4 GR18/GR19 name the primary key twice — \"the first [last] "
             + "existing logical record in the physical file\" is the PRIME ordering, and \"the key of reference "
             + "is set to the primary key\" is what the statement leaves for every following sequential READ. "
@@ -144,7 +144,7 @@ public sealed class StartKeyOfReferenceDriftTests
     public void KeyPhraseStart_SharesTheOneEpilogue()
     {
         Assert.True(KeyPhraseStartUsesTheEpilogue(IndexedConnectorSource()),
-            "IndexedConnector.Start(KEY rel-op) must return StartSucceeded(keyIndex, found) — a second copy of "
+            "IndexedConnector.Start(KEY rel-op) must return StartSucceeded(keyIndex, f.KeyPart) — a second copy of "
             + "the GR17 e) 1. file-position-indicator assignment is how the two formats came to disagree.");
     }
 
@@ -193,14 +193,14 @@ public sealed class StartKeyOfReferenceDriftTests
 
                 public string StartFirstLast(bool last)
                 {
-                    var seq = Ordered(PrimeKey);
-                    return StartSucceeded(PrimeKey, last ? seq[^1] : seq[0]);
+                    _st.Edge(PrimeKey, _orders, last, out var cursor);
+                    return StartSucceeded(PrimeKey, cursor.Key);
                 }
 
-                private string StartSucceeded(int keyOfReference, KeyedRec found)
+                private string StartSucceeded(int keyOfReference, byte[] keyValue)
                 {
                     _refKey = keyOfReference;
-                    _fpiKey = KeyOf(found, keyOfReference);
+                    _fpiKey = keyValue;
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }
@@ -213,13 +213,13 @@ public sealed class StartKeyOfReferenceDriftTests
         const string inheritingEpilogue = """
                 public string StartFirstLast(bool last)
                 {
-                    var seq = Ordered(PrimeKey);
-                    return StartSucceeded(PrimeKey, last ? seq[^1] : seq[0]);
+                    _st.Edge(PrimeKey, _orders, last, out var cursor);
+                    return StartSucceeded(PrimeKey, cursor.Key);
                 }
 
-                private string StartSucceeded(int keyOfReference, KeyedRec found)
+                private string StartSucceeded(int keyOfReference, byte[] keyValue)
                 {
-                    _fpiKey = KeyOf(found, _refKey);
+                    _fpiKey = keyValue;
                     _fpiValid = true; _positioner = 'S';
                     return Status = FileStatusCode.Success;
                 }

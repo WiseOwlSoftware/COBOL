@@ -134,6 +134,12 @@ internal sealed class PagedFile
     /// <summary>The highest generation this store has claimed (or seen claimed).</summary>
     public ulong LastClaim => _stampMint;
 
+    /// <summary>The release ordinal (§14.9.51.4 GR40) the next statement that mints one takes: the higher of the meta's
+    /// <c>release mint</c> and what this store has claimed (<see cref="Begin"/> advances it by the statement's
+    /// <c>ordinals</c>, before its first page write, and it never decreases: an ordinal a refused or dead statement drew
+    /// is never issued again, 2.2.1.3 decision 4).</summary>
+    public ulong ReleaseMint => Math.Max(_releaseMint, _meta.ReleaseMint);
+
     /// <summary>The page I/O performed so far.</summary>
     public IoCounters Counters => new(_reads, _writes, _syncs);
 
