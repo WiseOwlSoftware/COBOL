@@ -43,6 +43,9 @@ internal enum PageCheck
 
     /// <summary>The page is whole but carries another generation than the stamp: a lost or stale write.</summary>
     StaleGeneration,
+
+    /// <summary>The medium refused the read (an <see cref="IOException"/>): the page's state is unknown.</summary>
+    Unreadable,
 }
 
 /// <summary>The 32-byte header every page of a keyed store carries (§2.2.1.4): kind, flags, entries, the CRC-32C checksum

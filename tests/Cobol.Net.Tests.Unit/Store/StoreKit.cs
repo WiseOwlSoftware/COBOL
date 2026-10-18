@@ -73,7 +73,11 @@ internal static class StoreKit
         BinaryPrimitives.WriteUInt16LittleEndian(leaf.AsSpan(16), (ushort)utf8.Length);
         utf8.CopyTo(leaf, 18);
         var leafPointer = st!.Write(PageKind.Leaf, leaf);
-        if (children.TryGetValue(id, out var old)) ReleaseRecord(store, st, old);
+        if (children.TryGetValue(id, out var old) && !ReleaseRecord(store, st, old))
+        {
+            st.Abandon();   // a torn read inside the statement: '30', nothing it wrote is reachable
+            return StoreStatus.PermanentError;
+        }
         children[id] = leafPointer;
         return ReplaceRoot(store, st, children);
     }
@@ -87,7 +91,11 @@ internal static class StoreKit
             st!.Abandon();
             return StoreStatus.PermanentError;
         }
-        ReleaseRecord(store, st!, old);
+        if (!ReleaseRecord(store, st!, old))
+        {
+            st!.Abandon();
+            return StoreStatus.PermanentError;
+        }
         return ReplaceRoot(store, st!, children);
     }
 
@@ -136,20 +144,22 @@ internal static class StoreKit
         return PageCheck.Whole;
     }
 
-    private static void ReleaseRecord(PagedFile store, PageStatement st, PagePointer leaf)
+    /// <summary>Release a record's leaf and blob pages; false when one of them reads torn.</summary>
+    private static bool ReleaseRecord(PagedFile store, PageStatement st, PagePointer leaf)
     {
         var page = new byte[PageHeader.PageSize];
-        Assert.Equal(PageCheck.Whole, store.Read(leaf, page));
+        if (store.Read(leaf, page) != PageCheck.Whole) return false;
         var blob = PagePointer.Read(page.AsSpan(PageHeader.Bytes + 4));
         st.Release(leaf);
         while (!blob.IsNone)
         {
-            Assert.Equal(PageCheck.Whole, store.Read(blob, page));
+            if (store.Read(blob, page) != PageCheck.Whole) return false;
             st.Release(blob);
             var h = PageHeader.Decode(page);
             blob = (h.Flags & 1) != 0 ? PagePointer.None
                 : new PagePointer(h.Next, BinaryPrimitives.ReadUInt64LittleEndian(page.AsSpan(PageHeader.Bytes)));
         }
+        return true;
     }
 
     private static StoreStatus ReplaceRoot(PagedFile store, PageStatement st, SortedDictionary<int, PagePointer> children)

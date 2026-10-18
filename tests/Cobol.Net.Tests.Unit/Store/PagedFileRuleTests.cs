@@ -158,7 +158,33 @@ public sealed class PagedFileRuleTests
         Assert.False(b!.Adoption.WorkAdopted);
         for (int i = 0; i < 8; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(b, i, $"s{i}"));
         StoreKit.AssertNoStampReused(medium);
+        ulong abandonedTop = medium.Writes.Where(w => w.Unit == "A" && w.Page >= MetaPage.MetaPages).Max(w => w.Generation);
+        Assert.All(medium.Writes.Where(w => w.Unit == "B" && w.Page >= MetaPage.MetaPages),
+            w => Assert.True(w.Generation > abandonedTop, $"the rerun stamped {w.Generation}, not above the abandoned {abandonedTop}"));
         StoreKit.AssertR1(medium);
+    }
+
+    /// <summary>The same with the abandoned history's mint UNREADABLE: a power loss keeps every page the six statements
+    /// wrote and loses every version of page 2 they wrote, so page 2 names the history's start and nothing on the
+    /// medium records how far it claimed. Only the fence (F = G + 4 097, above every claim R2's ceiling allows a history
+    /// based on G) keeps the rerun's stamps off the surviving pages' — R3's corollary, finding R2-2.</summary>
+    [Fact]
+    public void R3_no_stamp_is_reused_when_the_abandoned_historys_page_2_is_lost_and_its_pages_survive()
+    {
+        var (medium, _, store) = StoreKit.NewStore();
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        var (_, _, a) = StoreKit.OpenAs(medium, "A");
+        for (int i = 0; i < 6; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(a!, i, $"r{i}", blobPages: 1));
+        medium.PowerLoss(keep: w => w.Page != MetaPage.WorkSlot);
+        var (_, status, b) = StoreKit.OpenAs(medium, "B");
+        Assert.Equal(StoreStatus.Ok, status);
+        Assert.Equal("", StoreKit.Show(b!));
+        for (int i = 0; i < 8; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(b!, i, $"s{i}", blobPages: 1));
+        StoreKit.AssertNoStampReused(medium);
+        ulong abandonedTop = medium.Writes.Where(w => w.Unit == "A" && w.Page >= MetaPage.MetaPages).Max(w => w.Generation);
+        Assert.All(medium.Writes.Where(w => w.Unit == "B" && w.Page >= MetaPage.MetaPages),
+            w => Assert.True(w.Generation > abandonedTop, $"the rerun stamped {w.Generation}, not above the abandoned {abandonedTop}"));
+        Assert.Equal("0=s0;1=s1;2=s2;3=s3;4=s4;5=s5;6=s6;7=s7;", StoreKit.Show(b!));
     }
 
     /// <summary>Finding R3-4's scenario: A's WRITE claims g + 1, writes the lowest FREE page and dies before page 2; B's
@@ -218,8 +244,7 @@ public sealed class PagedFileRuleTests
         // Rerun to the same point, then lose the CLOSE's write of a page the refused statement stamped.
         var (medium2, handle2, store2) = StoreKit.NewStore(coherent: false);
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store2, 1, "base"));
-        Assert.Equal(StoreStatus.Ok, store2.Promote());
-        handle2.FaultAtWrite(2, Fault.Refuse);
+        handle2.FaultAtWrite(2, Fault.Refuse);   // the refused leaf is grown, so the CLOSE's retirement grows into it
         Assert.Equal(StoreStatus.PermanentError, StoreKit.Put(store2, 2, "refused"));
         ulong claim2 = store2.LastClaim;
         var stamped = medium2.Writes.Where(w => w.Generation == claim2 && w.Page >= 3).Select(w => w.Page).ToHashSet();
@@ -293,23 +318,33 @@ public sealed class PagedFileRuleTests
 
     // ── R4: a freed page waits for the promotion ───────────────────────────────────────────────────────────────
 
-    /// <summary>Finding R3-2: after a CLOSE and ten WRITEs, no write targets a page the committed meta's ledger root
-    /// reaches (the promoted ledger's own pages are freed, not free).</summary>
+    /// <summary>Finding R3-2: after a CLOSE (the next OPEN's fence included) or a checkpoint, and ten WRITEs, no write
+    /// targets a page the committed meta's ledger root reaches: the promoted ledger's own pages are freed, not free.</summary>
     [Fact]
     public void R4_after_a_CLOSE_and_ten_WRITEs_no_write_targets_a_page_the_committed_ledger_reaches()
     {
-        var (medium, _, store) = StoreKit.NewStore();
-        for (int i = 0; i < 5; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, i, $"r{i}"));
-        Assert.Equal(StoreStatus.Ok, store.Close());
-        var (a, b, _) = StoreKit.MetasAt(medium, medium.LastSeq);
-        var committed = MetaPage.Committed(a, b)!.Value.Meta;
-        StoreKit.Referenced(medium, committed, medium.LastSeq, out var committedLedger);
-        Assert.NotEmpty(committedLedger);
-        long mark = medium.LastSeq;
-        var (_, _, again) = StoreKit.OpenAs(medium, "B");
-        for (int i = 0; i < 10; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(again!, 10 + i, $"s{i}"));
-        Assert.DoesNotContain(medium.Writes, w => w.Seq > mark && committedLedger.Contains(w.Page));
-        StoreKit.AssertR1(medium, mark);
+        foreach (bool reopen in new[] { true, false })
+        {
+            var (medium, _, store) = StoreKit.NewStore();
+            for (int i = 0; i < 5; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, i, $"r{i}"));
+            var writer = store;
+            if (reopen)
+            {
+                Assert.Equal(StoreStatus.Ok, store.Close());
+                writer = StoreKit.OpenAs(medium, "B").Store!;
+            }
+            else
+                Assert.Equal(StoreStatus.Ok, store.Promote());
+            var (a, b, _) = StoreKit.MetasAt(medium, medium.LastSeq);
+            var committed = MetaPage.Committed(a, b)!.Value.Meta;
+            StoreKit.Referenced(medium, committed, medium.LastSeq, out var committedLedger);
+            Assert.NotEmpty(committedLedger);
+            Assert.All(committedLedger, p => Assert.Equal(LedgerState.Freed, writer.LedgerEntries[p].State));
+            long mark = medium.LastSeq;
+            for (int i = 0; i < 10; i++) Assert.Equal(StoreStatus.Ok, StoreKit.Put(writer, 10 + i, $"s{i}"));
+            Assert.DoesNotContain(medium.Writes, w => w.Seq > mark && committedLedger.Contains(w.Page));
+            StoreKit.AssertR1(medium, mark);
+        }
     }
 
     // ── R5: promotion ─────────────────────────────────────────────────────────────────────────────────────────
@@ -375,6 +410,7 @@ public sealed class PagedFileRuleTests
         Assert.NotEqual(afterA.Slot, afterB.Slot);
         Assert.Equal(afterA.Meta.Generation, (afterA.Slot == MetaPage.SlotA ? sa : sb)!.Generation);
         Assert.Equal(afterB.Meta.Generation, work!.CommittedGeneration);
+        Assert.Equal(StoreStatus.Ok, a.Enter());
         Assert.Equal("1=a;2=b;", StoreKit.Show(a));
     }
 
