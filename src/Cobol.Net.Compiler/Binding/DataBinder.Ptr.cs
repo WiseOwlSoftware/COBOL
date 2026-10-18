@@ -140,8 +140,8 @@ public sealed partial class DataBinder
             // An unqualified head keeps the historical first-candidate pick (a duplicate-name mis-force is
             // loud-caught at the SET bind's cell check); a QUALIFIED head resolves through the ONE §8.4.2.2
             // qualification machinery so the RIGHT record is forced. Inside a METHOD both lookups run in the
-            // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and is invisible to the
-            // unit-wide maps, which OoScopeSubtree emptied of it), exactly as the SET bind will resolve it.
+            // method's own scope (§11.7.4 GR5 — a method-local name shadows object data and was never in the
+            // unit-wide maps, kb/Work PB3192), exactly as the SET bind will resolve it.
             DataItem? hit = ResolveStorageClaimHead(name, quals, method, contained, firstOfSeveral: true);
             if (hit is null)
                 continue;   // unresolved / ambiguous — the SET bind reports 0869 with the source text

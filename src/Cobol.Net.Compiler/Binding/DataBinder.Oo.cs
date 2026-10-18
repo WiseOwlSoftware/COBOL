@@ -36,14 +36,27 @@ public sealed class OoMethodDataScope
     /// reproduces its register, kb/Work PB2988).</summary>
     public Dictionary<string, List<DataItem>> CapacityRegisters { get; } = new(CobolNames.Comparer);
 
+    /// <summary>The method's own TYPE DECLARATIONS by type-name (kb/Work PB3192). A type-name declared in a method
+    /// definition is a LOCAL name: §8.4.6.2.2 makes global only a type-name "described with a GLOBAL clause" or
+    /// "declared in a source element for an object definition", and §13.18.27.3 SR4 bars GLOBAL in a method. So it is
+    /// invisible to its object and to its sibling methods (§8.4.6.2.1 "A local name may be referenced only in the source
+    /// element in which it is declared"), it may repeat a type-name of its object without a duplicate, and inside the
+    /// method it hides its object's type-name of the spelling (§11.7.4 GR5). Read by <see cref="DataBinder.TryFindTypeDecl"/>
+    /// before the class binder's own table.</summary>
+    public Dictionary<string, DataItem> TypeDecls { get; } = new(CobolNames.Comparer);
+
     /// <summary>The method's own §8.3.2.2 census: a method is a source element of its own (§10.5), so its words may
     /// repeat, as another type, a word of its class or of a sibling method (§8.4.6.1; kb/Work PB2921).</summary>
     internal UserWordCensus Words { get; } = new();
 
     /// <summary>Whether this method declares <paramref name="word"/> in ANY of its own name indexes — a data-name, a
     /// condition-name, an index-name, a named CAPACITY register (§13.18.38.3 SR30 makes the register a data-name of
-    /// the method that declares its table) or a constant-name (kb/Work PB3164: the method's constant entries live in
-    /// <see cref="Constants"/>). ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here beside the indexes themselves: when the
+    /// the method that declares its table), a type-name (<see cref="TypeDecls"/>, kb/Work PB3192) or a constant-name
+    /// (kb/Work PB3164: the method's constant entries live in <see cref="Constants"/>) — or names it in a data
+    /// description entry whose bind has not begun yet (<see cref="DataBinder.ConstantScope.OtherWords"/>, declared
+    /// before any entry binds): while the method's data division binds, a later entry's word already hides the
+    /// object's declaration of it, so a reference to it waits for the method's own entry (kb/Work PB3192: a method
+    /// constant's <c>LENGTH OF W</c> measured the object's <c>W</c> when the method's <c>W</c> followed it). ⛔ EVERY NAME INDEX OF THIS SCOPE, asked here beside the indexes themselves: when the
     /// registers moved into the method's own scope (kb/Work PB3165), the hand-written list in the binder kept asking
     /// the class's register index and a method's register stopped hiding a symbolic-character (kb/Work PB3154 review
     /// R2-1, the PB3165 merge-queue bounce); and when the constants moved there (PB3164), this list did not ask them,
@@ -54,7 +67,8 @@ public sealed class OoMethodDataScope
     internal bool Declares(string word)
     {
         return ByName.ContainsKey(word) || Conditions.ContainsKey(word) || IndexNames.Declares(word)
-            || CapacityRegisters.ContainsKey(word) || Constants.Declared.ContainsKey(word);
+            || CapacityRegisters.ContainsKey(word) || TypeDecls.ContainsKey(word) || Constants.Declared.ContainsKey(word)
+            || Constants.OtherWords.Contains(word);
     }
 
     /// <summary>The method's own CONSTANT entries, and the other words its data division defines, which hide a constant
@@ -71,7 +85,7 @@ public sealed class OoMethodDataScope
 /// definition or an instance definition, but not in a method definition", so one is refused (COBOLNET1519; kb/Work
 /// PB1308, decision R62) and its entries bind as LOCAL-STORAGE for recovery only. Items bind into the CLASS's one
 /// forest (so USAGE/SIGN inheritance, object-reference resolution, profiles, and struct types all apply unchanged)
-/// but their NAMES move into the method's own scope.
+/// but their NAMES join the method's own scope as they are declared (<see cref="NameScopeOf"/>; kb/Work PB3192).
 /// </summary>
 public sealed partial class DataBinder
 {
@@ -79,15 +93,23 @@ public sealed partial class DataBinder
     /// <c>StatementBinder.BindClassBody</c>; null while binding program/object-level code).</summary>
     public OoMethodDataScope? ActiveMethodScope { get; set; }
 
-    /// <summary>Whether the method whose statements are being bound declares <paramref name="word"/> as a data-name,
-    /// a condition-name, an index-name, a CAPACITY register or a constant-name of its own (<see cref="OoMethodDataScope.Declares"/>) —
-    /// the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
+    /// <summary>The METHOD a reference made now is made in: the method whose statements are being bound
+    /// (<see cref="ActiveMethodScope"/>), else the method whose data division is being bound (<see cref="_bindingMethodScope"/>);
+    /// null at program, object, factory and interface level. ⛔ THE ONE ANSWER every "which element am I in" lookup reads
+    /// (kb/Work PB3192): a method's data division is part of the method's source element, so a reference its entries make
+    /// (a constant's <c>LENGTH OF</c> operand, a TYPE clause's type-name) is answered from the method first (§11.7.4 GR5)
+    /// exactly as one its statements make — <see cref="ActiveScope"/> used to read only the statement half, so the
+    /// method's own data-names were invisible to its own data division.</summary>
+    private OoMethodDataScope? CurrentMethodScope => ActiveMethodScope ?? _bindingMethodScope;
+
+    /// <summary>Whether the method a reference is made in (<see cref="CurrentMethodScope"/>) declares <paramref name="word"/>
+    /// as a data-name, a condition-name, an index-name, a CAPACITY register, a type-name or a constant-name of its own
+    /// (<see cref="OoMethodDataScope.Declares"/>) — the NEAREST tier a reference made in that method can reach, so such a declaration hides every constant-name and
     /// symbolic-character of the spelling the class's binder holds (ISO §8.4.6.2.1 3) a) "If the name is declared in
     /// source element B, the item in source element B is the referenced item"; §8.4.6.1 "even when it is a different
     /// type of user-defined word"; kb/Work PB3154 review R1-1). Asked by the two literal-alias lookups,
-    /// <see cref="FindConstant"/> and <see cref="SymbolicOf(string)"/>; always false outside a method's
-    /// statements.</summary>
-    internal bool ActiveMethodDeclares(string word) => ActiveMethodScope?.Declares(word) == true;
+    /// <see cref="FindConstant"/> and <see cref="SymbolicOf(string)"/>; always false outside a method.</summary>
+    internal bool ActiveMethodDeclares(string word) => CurrentMethodScope?.Declares(word) == true;
 
     /// <summary>True when this binder binds a CLASS unit (per-binder-instance configuration, set ONCE at
     /// construction by <c>Oo/OoDriver</c> — init-only since P9 Step 6, so a mid-bind mutation cannot compile): a root
@@ -255,10 +277,11 @@ public sealed partial class DataBinder
     public IReadOnlySet<string> StaticAddressableCells => _staticAddressableCells;
     private readonly HashSet<string> _staticAddressableCells = new(StringComparer.Ordinal);
 
-    /// <summary>Method root (01/77) → its owning method symbol (M2-OO-1h). The post-build passes (OdoResolve,
-    /// ResolveRedefines) run AFTER <see cref="OoScopeSubtree"/> has moved method names out of the global maps, and
-    /// <see cref="ActiveMethodScope"/> is null then — so they resolve a method item's data-name-1 / REDEFINES
-    /// target through its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
+    /// <summary>Method root (01/77) or method TYPE DECLARATION → its owning method symbol (M2-OO-1h), recorded when the
+    /// method's entry opens it (<see cref="_bindingMethod"/>; kb/Work PB3192). The name registrations read it
+    /// (<see cref="NameScopeOf"/>), and the post-build passes (OdoResolve, ResolveRedefines, ExpandTypes), which run with
+    /// <see cref="ActiveMethodScope"/> null, resolve a method item's data-name-1 / REDEFINES target / type-name through
+    /// its OWNING method's scope (§11.7.4 GR5), keyed off the item's root, never the class globals.</summary>
     internal Dictionary<DataItem, OoMethodSymbol> OoRootOwner { get; } = new(ReferenceEqualityComparer.Instance);
 
     /// <summary>The STATIC index-cell channel — INDEXED BY cells emitted as class-level STATIC <c>long</c>
@@ -296,16 +319,27 @@ public sealed partial class DataBinder
     public Model.SymbolTable Symbols => _symbols ??= new Model.SymbolTable(this);
     private Model.SymbolTable? _symbols;
 
-    /// <summary>The ACTIVE lookup scope — the method whose statements are currently being bound, else program
-    /// scope (the scope <c>LookupData</c>/<c>TryGetVisibleIndexField</c>/<c>IndexFieldFor</c> implied).</summary>
-    internal Model.Scope ActiveScope => new(ActiveMethodScope);
+    /// <summary>The ACTIVE lookup scope — the method a reference is made in (<see cref="CurrentMethodScope"/>: its
+    /// statements or its data division), else program scope.</summary>
+    internal Model.Scope ActiveScope => new(CurrentMethodScope);
 
     /// <summary>The lookup scope that OWNS <paramref name="anchorRoot"/> (M2-OO-1h): the owning METHOD's scope
-    /// when the root is method-scoped (§11.7.4 GR5), else program scope. The post-build passes (OdoResolve /
-    /// ResolveRedefines) resolve through this — <see cref="ActiveMethodScope"/> is null there, which is exactly
-    /// why <c>LookupDataInScopeOf</c> existed.</summary>
+    /// when the root — a record or a type declaration — is the method's (§11.7.4 GR5), else program scope. The
+    /// post-build passes (OdoResolve, ResolveRedefines, the TYPE and SAME AS expansion) resolve through this —
+    /// <see cref="ActiveMethodScope"/> is null there, which is exactly why <c>LookupDataInScopeOf</c> existed — and so
+    /// does every NAME REGISTRATION of an item (<see cref="NameScopeOf"/>), at its bind or at a post-build copy.</summary>
     internal Model.Scope ScopeOf(DataItem anchorRoot) =>
         OoRootOwner.TryGetValue(anchorRoot, out var m) ? new Model.Scope(m.DataScope) : Model.Scope.Program;
+
+    /// <summary>⛔ THE ONE ANSWER TO "WHOSE NAME INDEX DOES <paramref name="item"/>'S NAME JOIN?" (kb/Work PB3192): the
+    /// owning METHOD's scope when its record is the method's (<see cref="ScopeOf"/> of its root), else null — this
+    /// binder's own maps. Asked by every registration — a data-name (<see cref="RegisterName"/>), its index-names
+    /// (<see cref="RegisterIndexes"/>), a condition-name, a type-name — at the entry's bind and at a post-build TYPE /
+    /// SAME AS copy alike. The names used to join the class's maps at bind and move to the method's after the whole
+    /// method had bound (the deleted <c>OoScopeSubtree</c>), so while the method bound its own data-names resolved
+    /// against the object's, and a copy made later (a TYPE clone composed by <c>ExpandTypes</c>) never moved at all: a
+    /// sibling method resolved the clone's members silently, and the backend then failed CS0103.</summary>
+    private OoMethodDataScope? NameScopeOf(DataItem item) => ScopeOf(item.Root).Method;
 
     // The former LookupData / LookupDataInScopeOf / TryGetVisibleIndexField / IndexFieldFor quadruple is DELETED
     // (P6 Step 7b) — every consumer resolves through Symbols.TryResolve/IndexCandidates with an
@@ -315,6 +349,12 @@ public sealed partial class DataBinder
     /// INDEXED BY index-names register into the method's own scope, never the unit's (M2-OO-1h step 4), and every
     /// user-defined word lands in the method's own §8.3.2.2 census (kb/Work PB2921). Null at program/object scope.</summary>
     private OoMethodDataScope? _bindingMethodScope;
+
+    /// <summary>The METHOD whose data entries are being bound (<see cref="OoBindMethodData"/>; cleared with the declaration
+    /// scope, <see cref="MethodDeclarationScope"/>), null otherwise: every record and type declaration its entries open is
+    /// the method's (<see cref="OoRootOwner"/>) from the moment it is opened (kb/Work PB3192), so its names land in the
+    /// method's scope as they are declared.</summary>
+    private OoMethodSymbol? _bindingMethod;
 
     /// <summary>Declare into <paramref name="scope"/>'s method until the returned token is disposed: its data entries
     /// and METHOD-ID (<see cref="OoBindMethodData"/>) and its procedure-names (the class-body collection,
@@ -328,7 +368,7 @@ public sealed partial class DataBinder
     /// <summary>The restore token of <see cref="EnterMethodDeclarations"/>.</summary>
     internal readonly struct MethodDeclarationScope(DataBinder binder) : IDisposable
     {
-        public void Dispose() => binder._bindingMethodScope = null;
+        public void Dispose() => (binder._bindingMethodScope, binder._bindingMethod) = (null, null);
     }
 
     /// <summary>Reserve the names the C# class this binder's data is emitted into already holds, BEFORE the data
@@ -371,6 +411,7 @@ public sealed partial class DataBinder
         OoEnvironmentRules.Screen(OoDefinition.Method, where, m.Ctx.environmentDivision(), Edition);
 
         var dd = m.Ctx.dataDivision();
+        _bindingMethod = m;
         using (EnterMethodDeclarations(m.DataScope))
         {
             // The METHOD-ID's word belongs to the METHOD's source element (§8.4.6.5: "The method-name of a method is
@@ -416,12 +457,10 @@ public sealed partial class DataBinder
             }
         }
 
+        // Each root is the method's since it was opened (OoRootOwner, AttachToHierarchy; kb/Work PB3192), and its names
+        // joined the method's scope as they were declared.
         foreach (var root in m.Binding!.LocalRoots.Concat(m.Binding!.LinkageRoots))
-        {
             OoMethodScopedRoots.Add(root);
-            OoRootOwner[root] = m;   // M2-OO-1h: the post-build passes resolve names through the owning method
-            OoScopeSubtree(root, m.DataScope);
-        }
         // M2-OO-1h step 4: a method table's index cell is a per-activation method local (emitted in OoEmitMethod).
         // LINKAGE + LOCAL-STORAGE roots are C# LOCALS of the emitted method (their struct types and numeric
         // profiles still emit at class level) — never instance fields.
@@ -594,37 +633,6 @@ public sealed partial class DataBinder
         string name = NamingConvention.FormalParameterName(item.CobolName ?? $"P{pos}");
         while (m.Binding!.Formals.Any(f => f.ParamName == name)) name += "_";
         return name;
-    }
-
-    /// <summary>Move a method root subtree's NAME registrations (items + level-88 conditions) out of the class
-    /// globals into the method's own scope (§11.7 GR5 shadowing / sibling invisibility).</summary>
-    private void OoScopeSubtree(DataItem item, OoMethodDataScope scope)
-    {
-        if (item.CobolName is { } n)
-        {
-            if (ByName.TryGetValue(n, out var list))
-            {
-                list.Remove(item);
-                if (list.Count == 0) ByName.Remove(n);
-            }
-            if (!scope.ByName.TryGetValue(n, out var slist)) scope.ByName[n] = slist = [];
-            slist.Add(item);
-        }
-        // Level-88s under this item: transfer by conditional-variable identity.
-        foreach (var (condName, conds) in Conditions.ToList())
-        {
-            List<Condition88>? moved = null;
-            foreach (var c in conds)
-                if (ReferenceEquals(c.Parent, item))
-                    (moved ??= []).Add(c);
-            if (moved is null) continue;
-            foreach (var c in moved) conds.Remove(c);
-            if (conds.Count == 0) Conditions.Remove(condName);
-            if (!scope.Conditions.TryGetValue(condName, out var sc)) scope.Conditions[condName] = sc = [];
-            sc.AddRange(moved);
-        }
-        foreach (var child in item.Children) OoScopeSubtree(child, scope);
-        foreach (var ren in item.Renames66) OoScopeSubtree(ren, scope);
     }
 
     /// <summary>One RESOLVED object-property reference awaiting its statement-level desugar (deep-dive

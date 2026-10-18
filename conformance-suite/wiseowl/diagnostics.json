@@ -13257,6 +13257,22 @@
   ],
   "expect": "constant-name 'N', which substitutes the literal 5"
  },
+ "pb3192-method-type-copy-member-in-sibling": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1639"
+ },
+ "pb3192-method-type-name-in-sibling": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1530"
+ },
  "pb3216-alphabet-name-declared-twice": {
   "refuse-at": [
    "2002",
