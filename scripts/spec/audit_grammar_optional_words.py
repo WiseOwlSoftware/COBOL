@@ -57,6 +57,7 @@ from typing import NamedTuple
 # candidates" that was an artifact of not looking. `grammar_source` is THE reader of all of them (kb/Work PB3204):
 # it excludes the build-time COPIES under obj/, blanks comments and actions, and refuses an empty population.
 import grammar_source
+from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
 
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parents[1]
@@ -74,7 +75,6 @@ SKIP = {"ISO", "IEC", "NOTE", "FORMAT", "FORMATS", "GENERAL", "TRUE", "FALSE", "
 #: A markdown clause heading: `##### 14.9.49.2 General formats`.
 MD_HEADING = re.compile(r"^#{2,6}\s+(\d+(?:\.\d+)*)\s+(\S.*?)\s*$")
 #: The sub-clause that carries the printed diagram(s). Singular in most clauses, plural where there are several.
-GENERAL_FORMAT_TITLE = re.compile(r"^General formats?$")
 #: A construct's ANCHOR KEYWORD is the leading all-caps COBOL word of its clause title — `USE statement`,
 #: `OCCURS clause`, `>>DEFINE directive`, `ABS function`. A title that does not start with one (`Qualification`,
 #: `Report description entry`) has no anchor; those formats are counted and named, never silently dropped.
@@ -106,7 +106,7 @@ def declared_formats(md_text: str) -> list[Format]:
     out: list[Format] = []
     seen: set[str] = set()
     for clause in order:
-        if clause in seen or not GENERAL_FORMAT_TITLE.match(titles.get(clause, "")):
+        if clause in seen or not GENERAL_FORMAT_TITLE.fullmatch(titles.get(clause, "")):
             continue
         seen.add(clause)
         if any(c.startswith(clause + ".") for c in titles):
