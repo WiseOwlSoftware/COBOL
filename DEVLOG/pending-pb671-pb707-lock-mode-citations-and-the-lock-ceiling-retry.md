@@ -37,3 +37,5 @@ note records the determination, and a change of the convention is the owner's.
 Self-review (architecture, full code, performance, duplication): the new method allocates one closure per lock-requesting
 statement, like `ConflictOnLockedRecord` beside it; the ceiling is now judged in one place, which PB2759/PB2749 build on
 (PB2759 is unblocked).
+
+Branch review R1-1: the class summary claimed that every constant names every statement that sets it, but 05, 41 and 42 named only OPEN or CLOSE (the standard lists DELETE FILE for 05 and 41, UNLOCK for 42). Fixed at the claim and the three summaries: the class summary now says the cited section 9.1.13 item is the authority for the statements, and 05, 41 and 42 name them. FileStatusCodeDocDriftTests reads each item back from the standard and requires the summary of 05, 37, 41, 42 and 43 to name every statement it lists, and forbids the exhaustive claim.
