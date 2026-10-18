@@ -16,7 +16,9 @@ skill section 2), never from what the script does:
      round 2 reviews only the finisher's diff from the head round 1 reviewed; the blocking set is critical,high,medium
      until the round after the last finisher, which blocks on critical,high only;
   3. a predecessor whose review ended FINDINGS at the cap is not ready, and its successor (and the successor's reviewer)
-     are told those findings belong to the predecessor's next-wave finisher;
+     are told those findings belong to the predecessor's next-wave finisher; a predecessor whose review FINISHER came
+     back unfinished has no stamp holding its successor, so the successor's reviewer reviews the predecessor's content
+     and records again each finding that still holds (review R1-1), never "do not record them again";
   4. the reviews' leads reach the wave's result.
 No clock decides anything: each stub agent yields to the event loop once and returns its scripted result.
 """
@@ -172,6 +174,29 @@ def main() -> int:
         res = {x["letter"]: x for x in r["out"]["results"]}
         check("3: the predecessor's result says FINDINGS after its review rounds",
               (res["A"].get("review"), res["A"].get("review_rounds")) == ("FINDINGS 1", 2), res.get("A"))
+
+        # 3a. kb/Work PB3381 review R1-1: a predecessor whose review FINISHER came back unfinished (SPLIT on its own
+        #     branch, or with no new commit) ended FINDINGS before the cap. The finisher rewrote the report for its own
+        #     branch with no Review line, so no stamp holds the successor (prune_worktrees.carrying_findings reads only a
+        #     stamp): the successor's review must cover the predecessor's content and record those findings again.
+        for name, fix in (("unanswered-split", impl("bA2", "a2", "SPLIT")), ("unanswered-nocommit", impl("bA", "a1", "BLOCKED"))):
+            r = run(tmp, name, {"args": args(groups), "agents": {
+                "impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 2)],
+                "fix-A-r1": [fix], "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}})
+            ev, pr = r["events"], r["prompts"]
+            res = {x["letter"]: x for x in r["out"]["results"]}
+            check(f"3a {name}: the predecessor is not ready and ended FINDINGS with its finisher's status",
+                  [x["branch"] for x in r["out"]["ready"]] == ["bB"] and res["A"].get("review") == "FINDINGS 2"
+                  and res["A"].get("finisher") == fix["status"], (r["out"]["ready"], res.get("A")))
+            bp = (pr.get("impl-B-PB2") or [""])[0]
+            check(f"3a {name}: the successor merges the predecessor's final branch and is told the findings are UNANSWERED, "
+                  "not its next-wave finisher's",
+                  f"git merge {fix['branch']}" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
+                  and "NEXT-WAVE FINISHER" not in bp and "prune_worktrees.py holds" not in bp, bp)
+            rp = (pr.get("w9b-review-r1") or [""])[0]
+            check(f"3a {name}: the successor's reviewer reviews the predecessor's content and records those findings again",
+                  "record again here each of those findings that still holds" in rp and "review-w9-a.jsonl" in rp
+                  and "do not record them again" not in rp and "not re-opened" not in rp, rp)
 
         # 3b. an unfinished predecessor settles when it returns: its successor starts at once and merges what it left
         r = run(tmp, "split", {"args": args(groups), "agents": {
