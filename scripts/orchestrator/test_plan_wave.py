@@ -622,6 +622,53 @@ if fc:
     check("a dependent is never chosen without its blocker's group",
           all(g.after in {c.letter for c in cp2["groups"]} for g in cp2["groups"] if g.after), True)
 
+# 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
+#     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
+#     requirement lived only in a wave unit's hand edit of groups.json, and the reviewer never saw it.
+REQ_NOTE = ("# PB950\n\nprose\n\n## Standing requirements\n\nintro line, no bullet\n\n"
+            "- First requirement, with commas, and a 'quote'.\n"
+            "- Second requirement wraps\n  over two lines.\n\n## Next section\n\n- not a requirement\n")
+check("campaign_requirements: the bullets of the section, wrapped ones joined, the next heading ends it",
+      pw.campaign_requirements(REQ_NOTE),
+      ["First requirement, with commas, and a 'quote'.", "Second requirement wraps over two lines."])
+check("campaign_requirements: CRLF reads the same", pw.campaign_requirements(REQ_NOTE.replace("\n", "\r\n")),
+      pw.campaign_requirements(REQ_NOTE))
+check("campaign_requirements: a note with no such section has none", pw.campaign_requirements("# PB1\n\n- a bullet\n"), [])
+REQS = pw.campaign_requirements(REQ_NOTE)
+rg = p["groups"][0]
+rj = pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003", "PB950", REQS)
+check("a requirement reaches the group's spec body",
+      all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS), True)
+check("a plan with no campaign requirements says none",
+      "OWNER REQUIREMENT" in pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"], False)
+rcfg = dict(CFG77, requirements=REQS)
+rspec = TMP / "req-spec.txt"
+rspec.write_text(mds.render(rcfg, rj), encoding="utf-8", newline="\n")
+rfile = TMP / "req-groups.json"
+rfile.write_text(JSON.dumps(dict(rcfg, groups=[rj])), encoding="utf-8", newline="\n")
+check("the rendered spec carries every requirement (check_practices.py finds none missing)",
+      check_practices.specs_missing_requirements(rfile, [rspec]), [])
+nospec = TMP / "req-spec-without.txt"
+nospec.write_text(mds.render(CFG77, gjson[0]), encoding="utf-8", newline="\n")
+check("a spec rendered without them is refused, naming each requirement",
+      check_practices.specs_missing_requirements(rfile, [nospec]), [(nospec.name, r) for r in REQS])
+check("a groups file that declares none refuses nothing", check_practices.specs_missing_requirements(gfile, [nospec]), [])
+real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
+check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
+      [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
+# the planner writes them into the args file, and the rolling wave reads them into the REVIEWER's prompt and names the
+# group's dispatch spec there: the three halves are pinned in source, since the workflow has no process API to run here
+PW_SRC = (HERE / "plan_wave.py").read_text(encoding="utf-8")
+WF_SRC = (coord.REPO / ".claude" / "skills" / "workstream" / "templates" / "wf_rolling_wave.js").read_text(encoding="utf-8")
+REVIEW_FN = WF_SRC[WF_SRC.index("function reviewBranch("):WF_SRC.index("function fixFindings(")]
+check("plan_wave.py writes requirements into groups.json and the args file",
+      len(re.findall(r'"requirements": requirements', PW_SRC)), 2)
+check("wf_rolling_wave.js reads args.requirements into REQS", "const REQS = args.requirements || []" in WF_SRC, True)
+check("the branch reviewer's prompt carries the requirements and names the group's dispatch spec",
+      ("reviewerRequirements()" in REVIEW_FN, "msg-w${W}-${g.letter.toLowerCase()}.txt" in REVIEW_FN), (True, True))
+check("the review finisher is pointed at the same dispatch spec (its body carries the requirements)",
+      "msg-w${W}-${g.letter.toLowerCase()}.txt" in WF_SRC[WF_SRC.index("function fixFindings("):], True)
+
 # 9b. plan() alone: a dependent whose blockers sit in two chains (they did not merge: over the cap) waits, and so does
 #     one whose blocker is planned in no group; a dependent on one blocker becomes its chain's successor
 dep = cl("src/X/Dep.cs", "PB11")
