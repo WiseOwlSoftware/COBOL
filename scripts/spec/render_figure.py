@@ -31,6 +31,8 @@ import pathlib
 import re
 import sys
 
+from spec_headings import GENERAL_FORMAT_TITLE   # THE one spelling of the heading (kb/Work PB284)
+
 REPO = pathlib.Path(__file__).resolve().parents[2]
 PDF = next(iter(sorted((REPO / "specs-private").glob("*COBOL*.pdf"))), None)
 
@@ -575,7 +577,6 @@ BODY_TOP, BODY_BOTTOM = 60.0, 730.0     # inside the running header and the foli
 # formats`, the clause that DEFINES underlining. Measured over the whole standard: 87 such lines, all genuine
 # clause headings, none a numbered list item or a table cell (kb/Work PB332).
 CLAUSE_HEADING = re.compile(r"^\d+(?:\.\d+)+(?:\s+\S|$)")
-GENERAL_FORMAT = re.compile(r"general\s+formats?$", re.I)
 FORMAT_LABEL = re.compile(r"^Formats?\s+\d+\b")
 PAD_ABOVE, PAD_BELOW = 6.0, 14.0        # a band must reach the bracket feet below its last row of text
 
@@ -663,7 +664,7 @@ def continues_from_previous(page) -> bool:
     for k in range(n, max(n - 6, 0), -1):
         prev = headings(doc[k - 1])
         if prev:
-            return bool(GENERAL_FORMAT.search(prev[-1][1]))
+            return bool(GENERAL_FORMAT_TITLE.search(prev[-1][1]))
     return False
 
 
@@ -687,7 +688,7 @@ def find_figures(page, extract):
         if not inside:
             continue
         if title is not None:
-            if not GENERAL_FORMAT.search(title):
+            if not GENERAL_FORMAT_TITLE.search(title):
                 continue
         elif inside[0][1] != "label" and not continues_from_previous(page):
             continue                                   # a leading region that is not a figure continuation
@@ -755,7 +756,7 @@ def figure_key(doc, pno, band):
     _, _, title, label = band
     if title is None:                                  # a continuation page inherits its clause
         for n in range(pno - 1, max(pno - 7, 0), -1):
-            heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT.search(t)]
+            heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT_TITLE.search(t)]
             if heads:
                 title = heads[-1]
                 break
@@ -825,7 +826,7 @@ def clause_title(doc, pno, back=6):
     be located in a sheet that contained it twice.
     """
     for n in range(pno, max(pno - back, 0), -1):
-        heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT.search(t)]
+        heads = [t for _, t in headings(doc[n - 1]) if GENERAL_FORMAT_TITLE.search(t)]
         if heads:
             return heads[0] + (f" — continued on folio {pno - 30}" if n < pno else "")
     return "(continued from the previous page)"

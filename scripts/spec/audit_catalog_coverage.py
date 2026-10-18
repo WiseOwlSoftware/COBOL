@@ -37,10 +37,16 @@ from extract_rule_catalog import (  # noqa: E402
     HEADING,
     ORDINAL,
     OUT,
+    PARAGRAPH_BLOCKS,
     SPEC,
     UNHARVESTED,
     kind_of,
 )
+
+
+def squash(text: str) -> str:
+    """Whitespace and the transcription's `\\)` / `\\.` escapes are not content (extract_rule_catalog's own rule)."""
+    return re.sub(r"\s+", " ", text.replace("\\", "")).strip()
 
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
@@ -134,6 +140,11 @@ def main() -> int:
             if info.get("disposition") == "rules":
                 admitted[sec] = info["kind"]
 
+    prose_blocks: set[str] = set()
+    if UNHARVESTED.exists():
+        prose_blocks = {sec for sec in json.loads(UNHARVESTED.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
+                        if not sec.startswith("_")}
+
     catalog = json.loads(OUT.read_text(encoding="utf-8"))
     held: dict[str, list[dict]] = {}
     for r in catalog["rules"]:
@@ -162,11 +173,32 @@ def main() -> int:
         })
     mismatches.sort(key=lambda m: -(m["printed_count"] - m["catalog_rows"]))
 
+    # ⛔ A PROSE CLAUSE ADMITTED AS PARAGRAPH ROWS HOLDS THE CLAUSE, SENTENCE FOR SENTENCE (kb/Work PB284 part 3).
+    # No ordinal counts here, so the invariant is the stronger one: the rows' text, in order, IS the clause's body
+    # (furniture removed) — a sentence that fell between two paragraphs, a list item that opened a row of its own or
+    # a page-break tail dropped from the clause shows as a difference, and so does a row the clause no longer has.
+    prose_held: dict[str, list[dict]] = {}
+    for r in catalog["rules"]:
+        if r.get("shape") == "paragraph":
+            prose_held.setdefault(r["section"], []).append(r)
+    prose_mismatches: list[dict] = []
+    for sec in sorted(set(prose_blocks) | set(prose_held)):
+        rows = prose_held.get(sec, [])
+        printed = squash(" ".join(bodies.get(sec, [])))
+        held_text = squash(" ".join(r["text"] for r in rows))
+        why = ("not admitted in the manifest" if sec not in prose_blocks else
+               "no rows" if not rows else
+               "ordinals are not 1..n" if [r["ordinal"] for r in rows] != list(range(1, len(rows) + 1)) else
+               "" if printed == held_text else "row text differs from the clause body")
+        if why:
+            prose_mismatches.append({"clause": sec, "rows": len(rows), "why": why})
+
     interior_in_clause = [h for h in interior if h["clause"] is not None]
 
     if args.json:
         print(json.dumps({
             "mismatches": mismatches,
+            "prose_mismatches": prose_mismatches,
             "interior_headings": interior_in_clause,
             "unattached_headings": [h for h in interior if h["clause"] is None],
         }, indent=1, ensure_ascii=False))
@@ -190,10 +222,16 @@ def main() -> int:
                 print(f"                        interior heading: {t}")
         if not mismatches:
             print("      ✓ every rule-block clause holds exactly the ordinals the transcription prints")
+        print()
+        print(f"⛔ {len(prose_mismatches)} PROSE CLAUSE(S) admitted as paragraph rows whose rows are not the clause:")
+        for m in prose_mismatches:
+            print(f"      §{m['clause']:<14} {m['rows']:>3} row(s)   {m['why']}")
+        if not prose_mismatches:
+            print(f"      ✓ all {len(prose_blocks)} admitted prose clauses are held sentence for sentence")
 
     undeclared = [m for m in mismatches if not m["declared"]]
     if args.check:
-        return 1 if (undeclared or interior_in_clause) else 0
+        return 1 if (undeclared or interior_in_clause or prose_mismatches) else 0
     return 0
 
 

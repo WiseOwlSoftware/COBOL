@@ -78,10 +78,10 @@ public sealed class PrintedFormatAlternativeDriftTests
         foreach (string raw in lines)
         {
             string line = raw.TrimEnd('\r');
-            var head = Regex.Match(line, @"^#+\s+(\d+(?:\.\d+)*)\s+General formats?\s*$");
+            var head = SpecClauseText.GeneralFormatHeading.Match(line);
             if (head.Success)
             {
-                inSection = head.Groups[1].Value == clause;
+                inSection = head.Groups["num"].Value == clause;
                 sectionSeen |= inSection;
                 continue;
             }
@@ -234,7 +234,7 @@ public sealed class PrintedFormatAlternativeDriftTests
         // Shape assertion 2: and its figure notes really do describe outer repetitions, which is the fact the
         // grammar shape below exists to carry. Derived from the transcription, not from a list kept here.
         string spec = File.ReadAllText(TestRepo.Specs("ISO_COBOL.md"));
-        var section = Regex.Match(spec, @"^#+\s+14\.9\.39\.2\s+General formats?\s*$(.*?)^#+\s+14\.9\.39\.3\s",
+        var section = Regex.Match(spec, @"^#+\s+14\.9\.39\.2\s+" + SpecClauseText.GeneralFormatNoun + @"\s*$(.*?)^#+\s+14\.9\.39\.3\s",
                                   RegexOptions.Singleline | RegexOptions.Multiline);
         Assert.True(section.Success, "§14.9.39.2's own section was not found — the scrape is broken");
         int outerRepeats = Regex.Matches(section.Groups[1].Value,
