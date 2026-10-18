@@ -1,4 +1,4 @@
-## PB1629: a fault of placement born at a TYPE or SAME AS reference is reported at the entry that wrote the clause, and a copied table's eighth subscript is refused
+## Entry 2228 — 2026-10-18 16:27 PDT — PB1629: a fault of placement born at a TYPE or SAME AS reference is reported at the entry that wrote the clause, and a copied table's eighth subscript is refused
 
 ### PB1629: COBOLNET1526 and the placement rules
 
@@ -55,3 +55,4 @@ and the written-forest gap in the depth rule; both are fixed. The duplication le
 candidate lie inside the copy (`ambiguityIsDeclarationFact`), so `--permissive` still binds the first-declared counter in the
 clone. The KEY phrase (data-name-2) counts through the same verdict at the table's own position and already reports once;
 the rows `PB1629DC`-`PB1629DF` of `FactOfTheDeclaration_IsNotReportedAgainAtALegalReference` pin both.
+
