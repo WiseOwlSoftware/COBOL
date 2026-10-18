@@ -5,8 +5,9 @@
 #
 # WHY THIS IS SAFE (isolation model): NIST tests couple ONLY through shared on-disk data files (TF### producer/
 # consumer chains), and that coupling is DECLARED — `tests/nist/corpus.tsv`'s `chain-preds` column. Groups are
-# the CONNECTED COMPONENTS of that graph (step 2), each running serially in its own scratch dir; everything else
-# is a singleton, fully parallel. 332 groups over 376 programs, longest 9.
+# the CONNECTED COMPONENTS of that graph (step 2), each running serially, every program in its own clean directory
+# after exactly its declared predecessors (guard-run-group.sh, NistRunner's rule); everything else is a singleton,
+# fully parallel. 332 groups over 376 programs, longest 9.
 #   ⚠ This REPLACED a hand-written "these six suites run serially" list (see §11 A12d). The declared graph is
 #     already proven sufficient by the GREENFIELD leg: `NistDifferentialTests` runs all 349 programs in
 #     per-program directories with only their declared predecessors, and is green.
