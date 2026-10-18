@@ -283,20 +283,24 @@ public abstract class KeyedConnector : FileConnector
     /// <para>⛔ UNDER THE STORE MUTEX (kb/Work PB3335): when this was the store's last writable handle and a reader stays,
     /// the store is opened again as the reader's (<see cref="KeyedStore.DetachHandle"/>, 2.2.1.6 R6 in memory), and that
     /// adoption reads pages 0, 1 and 2 — which another run unit's statement may be writing. 2.2.1.7 puts every adoption
-    /// <i>"inside the store mutex"</i>; this connector's handle is still open here, so it holds the mutex for it.</para></summary>
-    private void Detach()
+    /// <i>"inside the store mutex"</i>; this connector's handle is still open here, so it holds the mutex for it.
+    /// Returns that adoption's status, which the CLOSE answers (2.2.1.16's refused READ row: '30').</para></summary>
+    private StoreStatus Detach()
     {
-        if (!_attached) return;
-        if (_handle is { } handle) InStoreMutex(() => AttachedStore.DetachHandle(handle));
+        if (!_attached) return StoreStatus.Ok;
+        var status = _handle is { } handle ? InStoreMutex(() => AttachedStore.DetachHandle(handle)) : StoreStatus.Ok;
         SharedStores?.Detach(HostPath);
         _attached = false;
         ForgetStore();
+        return status;
     }
 
     /// <inheritdoc/>
     protected sealed override void AbandonOpen()
     {
-        try { Detach(); }
+        // The OPEN already answers its own failure; a refused re-adoption here leaves the store's fence owed
+        // (KeyedStore.DetachHandle), which is all it can change.
+        try { _ = Detach(); }
         finally { ReleaseFileLock(); }
     }
 
@@ -312,6 +316,7 @@ public abstract class KeyedConnector : FileConnector
         // page 2 already names the last completed statement's trees (2.2.1.6), so the next OPEN adopts them.
         // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file position
         // indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
+        var detached = StoreStatus.Ok;
         try
         {
             if (!OptionalAbsent && StoreHandleWritable && AttachedStore.File is { Writable: true } file
@@ -323,9 +328,14 @@ public abstract class KeyedConnector : FileConnector
             // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
             // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
             // its medium reads through is still open.
-            try { Detach(); }
+            try { detached = Detach(); }
             finally { ReleaseFileLock(); }
         }
+        // The last writable connector's CLOSE re-adopts the store as its INPUT siblings' (KeyedStore.DetachHandle); a
+        // refused read there is this CLOSE's permanent error (§9.1.13.6 item 1; 2.2.1.16's refused READ row), mapped to
+        // '30' by FileConnector.Close like a refused promotion. The connector is closed either way.
+        if (detached != StoreStatus.Ok)
+            throw new IOException($"the medium refused the reader's re-adoption of '{HostPath}' at the CLOSE");
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
     }

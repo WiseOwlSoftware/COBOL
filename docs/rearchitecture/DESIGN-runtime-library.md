@@ -1282,7 +1282,13 @@ their places; what each does changes:
   every record statement, and its OPEN's adoption rule (R6), inside the store mutex (`HostRegionLocks.StoreMutexByte`,
   exclusive through a writable handle, shared through a reader's), and enters by reading page 2 — ONE page read; a page 2
   that does not validate under a live store is answered '30' by a writer, which cannot know what another run unit
-  completed, and leaves a reader on the tree it holds, since nothing it can follow moved — and
+  completed, and leaves a reader on the tree it holds, since nothing it can follow moved. The READER is the entry, not
+  the store: an INPUT connector's statement entering the writable store its run unit's I-O sibling opened holds the mutex
+  shared and writes nothing, so it keeps the tree it holds and answers as another run unit's reader would, and the
+  sibling's next statement, an exclusive entry, answers the '30' (§9.1.13.6 item 1). A page 2 the medium refuses to READ
+  is '30' to either (2.2.1.16's refused READ row). *Measured (PB3335 review lead R1-L1;
+  `StoreCoherenceTests.An_input_readers_entry_beside_its_writable_sibling_keeps_its_tree_over_a_torn_page_2` and
+  `..._answers_30_to_a_refused_page_2_read`).* — and
   comparing three of its fields with THE ONES THE STORE LAST SAW THERE (at its OPEN, or at its own previous statement, which
   wrote it). **`generation`** equal: nothing moved, and the statement proceeds from the meta the store holds. Different:
   another run unit's completed statement, retirement or fence wrote page 2 under the mutex, so page 2 names a complete tree
@@ -1356,7 +1362,13 @@ their places; what each does changes:
   `Store.PageCache`, the ledger, the counters) and the record-number tree; `PagedStore`'s role is those two together. A
   store opened through no writable handle is opened again — and so FENCED — when a writable sibling attaches, and opened
   again as a reader's (R6 in memory) when its last writable connector detaches, so no reader's statement writes through
-  a handle that cannot.
+  a handle that cannot. A read refused in that re-adoption answers the detaching connector's CLOSE '30' (2.2.1.16's
+  refused READ row) and leaves the store on the writable meta it holds — the last completed statement's trees, which the
+  readers' shared entries read and never write — with its fence OWED (`KeyedStore`'s `_fenceOwed`): the run unit's next
+  writable OPEN opens the store again, and so fences, instead of taking it as a live writable store. *Measured (PB3335
+  review lead R1-L2: the CLOSE answered '00' and the next OPEN I-O skipped the fence, so a run unit that died over the
+  file in between left its torn page 2 to that writer's statements, '30';
+  `StoreCoherenceTests.A_refused_re_adoption_at_the_writers_close_is_30_and_the_next_writable_open_fences`).*
 - **Published record locks** are unchanged (2.2.1.8).
 
 **2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
@@ -2044,6 +2056,7 @@ slot (`committing`).
 | `OPEN OUTPUT`, at its last sync | the empty store, committed and truncated; the medium's state unknown | '30' · the next OPEN adopts the empty store | the same |
 | Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§9.1.13.6 item 1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
 | A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§9.1.14); a DELETE answers '30' with no invalid key condition (§9.1.13.6 item 1: §9.1.13.5 item 4's '24' is a write's, and §14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
+| The reader's re-adoption when the run unit's last writable connector CLOSEs and an INPUT sibling stays (2.2.1.7), a refused read | unchanged by the read; the CLOSE's promotion, when one ran, landed before it | that CLOSE answers '30' (§9.1.13.6 item 1) and the connector is closed · the store keeps the writable meta it holds, its fence OWED: the run unit's next writable OPEN opens it again and fences (R6) | the INPUT sibling's next statement enters as a reader over the trees the store holds: '00' |
 | Any path, a sync failure | the medium's state unknown | '30', permanent error; R3 and R6 decide the state at the next read or OPEN, never a torn one | the same |
 
 **2.2.1.17 Every two-run-unit interleaving over one file (the round-3 self-attack, 2026-10-17).** A and B are run units
