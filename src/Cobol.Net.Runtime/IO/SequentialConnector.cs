@@ -192,13 +192,20 @@ public sealed class SequentialConnector : FileConnector
     /// straight over. The ordinal is minted from the same shared state, so it names the record's real place in
     /// the file (§9.1.16: <i>"While locked by a given file connector, a record is not accessible to another
     /// file connector"</i> — the lock is only as good as the identity).</para>
-    /// <para>A connector holding the ONLY writable handle flushes at CLOSE as it always did: no other writer
-    /// can observe the record, and a flush per record on the ordinary WRITE path is a syscall per record for an
-    /// answer nobody reads.</para>
-    /// <para>⛔ THE TWO HALVES HAVE DIFFERENT ANTECEDENTS, so they are two statements (kb/Work PB740). The
-    /// FLUSH is owed whenever another writer may be on the physical file, which is a property of the §9.1.15
-    /// file lock this connector's handle carries — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
-    /// admits a writing sibling beside (kb/Work PB322). The ORDINAL is the §9.1.16 record-lock identity, and a connector
+    /// <para>⛔ A CONNECTOR WHOSE FILE LOCK ADMITS NO OTHER CONNECTOR AT ALL — <c>SHARING WITH NO OTHER</c>, Table
+    /// 19 refuses every opener — fills its input-output areas and flushes at CLOSE as it always did: nothing can
+    /// observe the record, and a flush per record is a syscall per record for an answer nobody reads. A
+    /// <c>SHARING WITH READ ONLY</c> writer is NOT that connector (kb/Work PB1587): §9.1.15 2) admits the INPUT
+    /// connector beside it, whose READ selects <i>"the first existing record in the physical file"</i> (§14.9.30.4
+    /// GR21), and GR12's record was released to the operating environment at the WRITE, so it is in the physical
+    /// file before the statement returns. Until PB1587 only the ALL OTHER writer flushed, and the reader met AT END
+    /// ('10') on a file whose writer had answered '00' for every record still in the 4,096-byte area — the
+    /// RELATIVE organization, which writes at every statement, had always answered the same program the other way.</para>
+    /// <para>⛔ THE HALVES HAVE DIFFERENT ANTECEDENTS, so they are separate statements (kb/Work PB740, PB1587). The
+    /// FLUSH is owed whenever ANY other connector may be on the physical file, a reader or a writer
+    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c>). The ORDINAL is counted
+    /// off the medium only where another WRITER may be on it — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
+    /// admits a writing sibling beside (kb/Work PB322) — and a connector that is the only writer mints it. The ORDINAL is the §9.1.16 record-lock identity, and a connector
     /// that registered NEITHER a SHARING nor a LOCK MODE clause sets no record locks to identify — §12.4.5.9.4
     /// GR1 b) 2. leaves that case to the implementor (<i>"the type of record locking for that opening … is
     /// defined by the implementor … or specify that the default is no record locking"</i>) and this compiler's
@@ -221,7 +228,7 @@ public sealed class SequentialConnector : FileConnector
     private void ReleaseRecord()
     {
         bool anotherWriter = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (anotherWriter)
+        if (FileLockPosture.AdmitsAnotherRunUnit(HostShare))   // a READER or a writer may be open beside this one
         {
             _writer!.Flush();                      // GR12 — released, not merely buffered
             NoteRelease();                         // …and now visible, so no sibling's read-ahead may hide it
@@ -360,8 +367,9 @@ public sealed class SequentialConnector : FileConnector
     /// decides plain-versus-repositioning from the posture; this decides the newline, the encoding and the
     /// buffer, once. The writer's buffer IS the connector's input-output areas (ISO §12.4.5.14.3 GR1;
     /// <see cref="HostFile.InputOutputAreaBuffer"/>) — the handle beneath it holds none (kb/Work PB643) — so a
-    /// connector holding the only writable handle releases its records to the medium as each area set fills, and
-    /// one that may share the file with another writer at every release (<see cref="ReleaseRecord"/>).</summary>
+    /// connector that admits no other connector (<c>SHARING WITH NO OTHER</c>) releases its records to the medium as
+    /// each area set fills, and one that may share the file with a reader or a writer at every release
+    /// (<see cref="ReleaseRecord"/>, kb/Work PB1587).</summary>
     private StreamWriter OpenWriter(FileMode mode)
     {
         // The file coded character set's STRICT encoding (kb/Work PB690): every write arm refuses a record holding
