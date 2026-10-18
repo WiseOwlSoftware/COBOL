@@ -21,7 +21,8 @@ namespace CobolNet.Tests.Unit;
 /// the misplaced period BY NAME (COBOLNET3407 / COBOLNET3408) through <see cref="ParagraphPeriods"/>. These facts
 /// hold the two together in BOTH directions: every grammar rule that writes <c>DOT?</c> has a row, and every row
 /// names a rule the grammar still writes that way, with the periods as the rule's OWN children (which is what
-/// <see cref="ParagraphPeriods.Sentences"/> reads). A fourth rule written with the shape cannot parse into silence.</para>
+/// <see cref="ParagraphPeriods.Sentences"/> reads). Another rule written with the shape cannot parse into silence —
+/// the SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs took it for kb/Work PB3370 and carry rows of their own.</para>
 /// </summary>
 public sealed class ParagraphPeriodDriftTests : CobolNetTestBase
 {
@@ -54,6 +55,10 @@ public sealed class ParagraphPeriodDriftTests : CobolNetTestBase
         Assert.Contains("ioControlParagraph", rules);
         Assert.Contains("specialNamesParagraph", rules);
         Assert.Contains("repositoryParagraph", rules);
+        // The computer paragraphs' second period (kb/Work PB3370): superset-parsed so the optional computer-name's
+        // prediction commits to the paragraph; required back by the same screen.
+        Assert.Contains("sourceComputerParagraph", rules);
+        Assert.Contains("objectComputerParagraph", rules);
     }
 
     [Fact]

@@ -6051,13 +6051,16 @@ public static class DiagnosticCatalog
         + "entry.",
         "ISO §5.2.1");
 
-    /// <summary>An I-O-CONTROL, SPECIAL-NAMES or REPOSITORY paragraph with entries ends without its separator period
-    /// (kb/Work PB2727) — refused by name in ClosedFormatPass through ParagraphPeriods.</summary>
+    /// <summary>An I-O-CONTROL, SPECIAL-NAMES, REPOSITORY, SOURCE-COMPUTER or OBJECT-COMPUTER paragraph with entries
+    /// ends without its separator period (kb/Work PB2727, PB3370) — refused by name in ClosedFormatPass through
+    /// ParagraphPeriods.</summary>
     public static readonly DiagnosticDescriptor ParagraphPeriodMissing = new(
         "COBOLNET3408", "paragraph-period-missing", EditionSeverity.Error,
-        "An I-O-CONTROL, SPECIAL-NAMES or REPOSITORY paragraph that holds entries ends without the separator period "
-        + "its general format prints after the last entry (ISO §12.4.6.2, §12.3.7.2, §12.3.8.2; §5.2.1). Write the "
-        + "period after the last entry.",
+        "An I-O-CONTROL, SPECIAL-NAMES, REPOSITORY, SOURCE-COMPUTER or OBJECT-COMPUTER paragraph that holds entries "
+        + "ends without the separator period its general format prints after the last entry (ISO §12.4.6.2, "
+        + "§12.3.7.2, §12.3.8.2, §12.3.5.2, §12.3.6.2; §5.2.1). The SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs "
+        + "may omit that second period only when nothing follows the paragraph header (§12.3.5.3 SR1, §12.3.6.3 SR4). "
+        + "Write the period after the last entry.",
         "ISO §5.2.1");
 
     /// <summary>A bare operand that is none of the conditions is used as a condition (kb/Work PB982):

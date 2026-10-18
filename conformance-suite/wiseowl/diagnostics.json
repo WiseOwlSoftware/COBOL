@@ -2958,7 +2958,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOL0001: unexpected '12345'"
+  "expect": "COBOL0308: unexpected '12345'"
  },
  "l1c33-terminate-multi-in-exc-perform": {
   "refuse-at": [
@@ -13834,6 +13834,42 @@
    "2023"
   ],
   "expect": "COBOLNET1995"
+ },
+ "pb3370-object-computer-period-missing": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET3408: OBJECT-COMPUTER paragraph: it ends after 'PROGRAM COLLATING SEQUENCE"
+ },
+ "pb3370-object-computer-reserved-word-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: unexpected 'GLOBAL'. 'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3370-source-computer-period-missing": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET3408: SOURCE-COMPUTER paragraph: it ends after 'XYZ' without a separator period"
+ },
+ "pb3370-source-computer-reserved-word-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: unexpected 'GLOBAL'. 'GLOBAL' is not a clause of the SOURCE-COMPUTER paragraph"
  },
  "pb340-advancing-on-lock-keyed-85": {
   "refuse-at": [
