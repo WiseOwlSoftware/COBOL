@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb680_bit_record_area_file_exceptions
-*> rules: [GR-13.18.60.4-5, GR-9.1.13.4-1, GR-9.1.13.5-2, GR-9.1.13.5-3, GR-9.1.14-2, GR-9.1.14-3, GR-14.9.30.4-29, GR-14.9.30.4-32, GR-14.9.35.4-14, GR-14.9.41.4-9, GR-14.9.51.4-15]
+*> rules: [GR-13.18.60.4-5, GR-9.1.13.4-1, GR-9.1.13.5-2, GR-9.1.13.5-3, GR-9.1.14-2, GR-9.1.14-3, GR-14.9.30.4-18, GR-14.9.30.4-29, GR-14.9.30.4-32, GR-14.9.35.4-14, GR-14.9.41.4-9, GR-14.9.51.4-15]
 *> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
@@ -62,7 +62,7 @@
       *>   Z1  WRITE of the prime key "AB" again: 22 (9.1.13.5 item 2 b), phrase runs, record area unaffected.
       *>   Z2  the same with no phrase: 22; the declarative runs: ND = 3.
       *>   Z3  random READ of key "ZZ" (14.9.30.4 GR32): 23; the phrase runs. Z4 the same with no phrase: 23, ND = 4.
-      *>   Z5  REWRITE of key "ZZ": 23, record area unaffected. Z6 START with key "ZZ": 23.
+      *>   Z5  REWRITE of key "ZZ" (IK is set again first: after the unsuccessful READs Z3 and Z4 the record area is undefined, 14.9.30.4 GR18): 23, record area unaffected. Z6 START with key "ZZ": 23.
       *>   Z7  READ of key "AB" returns the original record, not the duplicate WRITE's; READ NEXT: AT END, 10.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB680BITEX.
@@ -228,6 +228,7 @@
                NOT INVALID KEY DISPLAY "Z3-NOT".
            READ FI.
            DISPLAY "Z4-NOKEY=" ST-I " ND=" ND.
+           MOVE "ZZ" TO IK.
            MOVE B"00001111" TO IB.
            REWRITE IR INVALID KEY DISPLAY "Z5-INVALID=" ST-I "[" IB "]"
                NOT INVALID KEY DISPLAY "Z5-NOT".
