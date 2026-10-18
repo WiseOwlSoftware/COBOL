@@ -48,4 +48,4 @@ exception; REWRITE already flushed unconditionally. Performance: a syscall per W
 the ReleaseRecord, OpenWriter, OpenConnectorWriteStream, KeyedConnector and WholeStore remarks that said "another writer"
 now say who is meant.
 
-**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261018T213620Z-551610`).
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261018T220148Z-07045e`, after the last test-only commit; the first, `20261018T213620Z-551610`, was GREEN too). The Linux unit leg also ran GREEN (34,368 unit tests, `/dev/full` included).
