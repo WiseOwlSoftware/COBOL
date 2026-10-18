@@ -7,7 +7,8 @@ internal sealed partial class BTree
     /// <summary>Position a cursor by <paramref name="relation"/> against <paramref name="key"/> — the whole key, or with
     /// <paramref name="prefix"/> the leading positions of each stored key (a START's partial key, §14.9.41.4 GR17 c) to
     /// e): the LESS relations search <i>"in reverse order"</i>, so they land on the LAST qualifying entry). The cursor has
-    /// no current entry when none qualifies.</summary>
+    /// no current entry when none qualifies. A prefix under an order that is not <see cref="IKeyOrder.PrefixConsistent"/>
+    /// is the search GR17 c) and d) state, entry by entry from the first (or, for the LESS relations, the last).</summary>
     public StoreStatus Seek(ReadOnlySpan<byte> key, SeekRelation relation, out Cursor cursor, bool prefix = false)
     {
         var c = cursor = new Cursor(this);
@@ -110,6 +111,11 @@ internal sealed partial class BTree
 
         internal void Position(byte[] probe, SeekRelation relation, bool prefix)
         {
+            if (prefix && !_tree._order.PrefixConsistent)
+            {
+                Search(probe, relation);
+                return;
+            }
             Begin();
             if (IsEmpty(_tree._root)) return;
             // GreaterThan and LessOrEqual find the first entry ABOVE the probe; the others the first AT OR ABOVE it.
@@ -140,6 +146,33 @@ internal sealed partial class BTree
                     }
                     else PositionLast();
                     break;
+            }
+        }
+
+        /// <summary>⛔ THE SEQUENTIAL SEARCH OF §14.9.41.4 GR17 c) and d), for a prefix whose order a binary search cannot
+        /// narrow (<see cref="IKeyOrder.PrefixConsistent"/>): from the first entry forward for EQUAL and the GREATER
+        /// relations, from the last backward for the LESS ones, stopping on the first entry whose prefix satisfies the
+        /// relation (GR17 e) 1.); none satisfies it and the cursor has no current entry (GR17 e) 2.).</summary>
+        private void Search(byte[] probe, SeekRelation relation)
+        {
+            bool forward = relation is SeekRelation.Equal or SeekRelation.GreaterThan or SeekRelation.GreaterOrEqual;
+            if (forward) PositionFirst();
+            else PositionLast();
+            while (HasCurrent)
+            {
+                int c = Compare(probe, prefix: true);
+                bool satisfied = relation switch
+                {
+                    SeekRelation.Equal => c == 0,
+                    SeekRelation.GreaterThan => c > 0,
+                    SeekRelation.GreaterOrEqual => c >= 0,
+                    SeekRelation.LessThan => c < 0,
+                    _ => c <= 0,
+                };
+                if (satisfied) return;
+                var (leaf, at) = _path[^1];
+                _path[^1] = (leaf, forward ? at + 1 : at - 1);
+                Settle(forward);
             }
         }
 

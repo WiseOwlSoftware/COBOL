@@ -43,6 +43,9 @@ internal static class KeyOrders
 internal sealed class OrdinalKeyOrder : IKeyOrder
 {
     /// <inheritdoc/>
+    public bool PrefixConsistent => true;
+
+    /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => left.SequenceCompareTo(right);
 
     /// <inheritdoc/>
@@ -59,6 +62,11 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
 /// because its channel byte order is the coded set's and not the native one.</summary>
 internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollation? collation) : IKeyOrder
 {
+    /// <summary>The decoding is one character per byte position, so the order is prefix-consistent exactly when its
+    /// comparison is: native ordinal, or a sequence compared by the standard comparison
+    /// (<see cref="CobolCollation.UsesStandardComparison"/>).</summary>
+    public bool PrefixConsistent { get; } = collation is null || collation.UsesStandardComparison;
+
     /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => CompareNative(Native(left), Native(right));
 
@@ -84,6 +92,9 @@ internal sealed class CompositeKeyOrder(IKeyOrder keyOrder) : IKeyOrder
 {
     /// <summary>The bytes of the trailing ordinal.</summary>
     public const int OrdinalBytes = sizeof(ulong);
+
+    /// <inheritdoc/>
+    public bool PrefixConsistent => keyOrder.PrefixConsistent;
 
     /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right)

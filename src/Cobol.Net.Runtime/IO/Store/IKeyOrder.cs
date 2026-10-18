@@ -9,11 +9,20 @@ namespace CobolNet.Runtime.IO.Store;
 /// <para><see cref="ComparePrefix"/> is the order of a START's partial key (§14.9.41.4 GR17 b) sets the length of the
 /// first temporary area; GR17 c) and d): <i>"This second temporary area is truncated to the same length as the first"</i>):
 /// the leading <c>prefix.Length</c> byte positions of a stored key's KEY PART (a composite key's part before its ordinal)
-/// against the prefix. A seek under a prefix is a seek in the same tree, so the order must be PREFIX-CONSISTENT — a key
-/// below another never has a greater prefix — which every order here is, because each compares character position by
-/// character position from the left (GR17 e): operands of equal length, as §8.8.4.2.7 compares them).</para></summary>
+/// against the prefix. GR17 c) and d) define the answer as a SEQUENTIAL search — <i>"the file is searched sequentially"</i>,
+/// or <i>"in reverse order"</i> for the LESS relations — so a seek may narrow it by binary search only when the order is
+/// <see cref="PrefixConsistent"/>; otherwise <see cref="BTree.Seek"/> walks the tree in the search's own direction.</para>
+/// </summary>
 internal interface IKeyOrder
 {
+    /// <summary>⛔ Whether a key below another never has a greater prefix: true for an order that compares character
+    /// position by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1) that GR17 e)
+    /// names for operands of equal length — so the qualifying entries of every relation are one run of the key order and a
+    /// binary search finds its end. False under a LOCALE-BASED sequence (§8.8.4.2.11, <i>"not necessarily performed
+    /// character-by-character"</i>): under the CLDR/UCA engine "áa" is below "ab" (primary a,a &lt; a,b) while its
+    /// one-character prefix "á" is above "a" (secondary), so a binary search would land past a qualifying entry.</summary>
+    bool PrefixConsistent { get; }
+
     /// <summary>The order of two whole stored keys: negative, zero or positive.</summary>
     int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right);
 
