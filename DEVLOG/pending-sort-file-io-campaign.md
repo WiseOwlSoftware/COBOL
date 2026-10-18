@@ -23,9 +23,12 @@ transcription sweeps (PB718, PB385, PB1822, PB903), console streams (PB3294) and
   they are about tests, diagnostics, citations, traceability or docs. Each gained `PB3353` in `cluster` and one dated line.
   They include the I/O architecture findings of the PB1754 review and the PB2119 census, since the owner asked for "all the
   file I/O changes".
-- **Obsolete by PB3339 (1):** PB2777 (SORT/MERGE held every record in memory) is landed. `SortStore` holds no record
-  collection (`SortFileTable.cs:14-20`), `SortWork` bounds its chunk at `COBOLNET_SORT_MEMORY`, and `SortWorkBoundTests:130`
-  measures the peak.
+- **Obsolete by PB3339 (none):** the one candidate, PB2777 (SORT/MERGE held every record in memory), has its capacity
+  question answered by PB3339: `SortStore` holds no record collection (`SortFileTable.cs:14-20`) and `SortWork` bounds its
+  chunk at `COBOLNET_SORT_MEMORY`. But the operator's reviewed branch `notes-pb2777-sort-after-pb3339-20261017` keeps it
+  open for the performance baseline's SORT and MERGE rows with a peak-memory measure, so it is still real. It joins
+  PB3353's `blocked_by` and is not edited here, so the two branches do not collide. A first cut of this registration
+  closed it, and the plan dry run's unlanded-branch list showed the other branch, so the edit was reverted.
 - **Replaced by the engine (3, not edited):** PB2222 (IndexedConnector.LastReadPrime) and PB2342 (the IndexedConnector
   KeyIndex extraction) go with PB3334, and PB1096 (the declined APPLY COMMIT grammar) with PB3338. They are for the operator
   to link on the design branch, as PB2129, PB2753 and PB2755 already are.
@@ -44,7 +47,11 @@ text it waited for is not needed, since R61's method dated the ASSIGN USING half
 engine's commit groups: §9.1.16-§9.1.18 have no inventory rows at all, while PB3337 and PB3338 expect to close §9.1.18 rows.
 
 **The lead.** kb/Work PB3353 (decision, process_only) carries the owner's words, the scope and the end state: every member
-landed or closed with evidence, and the PB3330 engine landed. Its `blocked_by` names the 57 members, and PB3330 joins it when
-the design branch lands. `work.py check` is clean, and `work.py next --cluster PB3353` lists 58 open notes in order.
+landed or closed with evidence, and the PB3330 engine landed. Its `blocked_by` names the 57 tagged members and PB2777, and
+PB3330 joins it when the design branch lands. `work.py check` is clean, and `work.py next --cluster PB3353` lists the 57
+members and the lead in order. The plan dry run (`plan_wave.py --cluster PB3353 --budget-points 5 --dry-run`) needed a
+member index for this tree, so `member_index.py --current` recorded one into the coordination cache first (treeKey
+6573141bf007, the same C# tree as origin/main 3f3e0514a). It then planned 8 groups for 1.76 points: PB762, PB1515, PB3314,
+PB2849, PB674, PB996, PB1925 and PB2533.
 
 Notes only: no change under `src/` or `tests/`.
