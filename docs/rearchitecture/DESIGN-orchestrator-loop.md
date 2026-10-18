@@ -809,6 +809,17 @@ itself), ordered by `blocked_by:`.
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.
+- **Standing requirements** (kb/Work PB3359). An owner instruction that every group of a campaign must meet (PB3353's:
+  the SORT and file I/O tests cover the abnormal and exception paths as fully as the success paths) is a bullet of the
+  `## Standing requirements` section of the lead's own note, read by `plan_wave.campaign_requirements`; it is never
+  a wave unit's hand edit of `groups.json`. The planner writes each requirement, verbatim, into every group's spec
+  `body` (as an `OWNER REQUIREMENT` sentence), `groups.json` and the args file; `check_practices.py` refuses a rendered
+  spec that lacks one the groups file declares; and `wf_rolling_wave.js` hands the branch reviewer the group's dispatch
+  spec and the requirements (`reviewerRequirements()`), so a branch lacking one is a finding (category `requirement`)
+  instead of a CLEAN. A prose section rather than a frontmatter list, because a requirement is a sentence with commas
+  and the frontmatter list grammar (`work._split_list`, with its C# parity twin) splits on them. `test_plan_wave.py`
+  section 9a pins the parse, the body, the practices check, the args file and the reviewer prompt, and that PB3353
+  still carries the owner's requirement.
 - **The supervisor** (`orchestrate.ps1 -Cluster <lead>[,<lead>...]`) checks each cluster exists at start, passes
   them to `next_unit.py`, whose campaign rule (section 3.2) alternates `campaign` and fix-lane `wave` units and gives
   the ready leads their campaign turns least recently run first, and ends a lead's lane when every note naming its
