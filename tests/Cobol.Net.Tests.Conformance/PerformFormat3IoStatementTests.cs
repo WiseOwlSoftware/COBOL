@@ -17,6 +17,9 @@ namespace CobolNet.Tests.Conformance;
 /// EC-I-O-LOGIC-ERROR), OPEN or DELETE FILE of a file already in an open mode is '41' (§9.1.13.7 item 1, an
 /// EC-I-O-LOGIC-ERROR), and DELETE FILE of a file that is not available is a SUCCESSFUL '05' (§9.1.13.2 item 4 b —
 /// §14.9.10.4 GR20: "no action takes place if the mass storage file does not exist").</para>
+/// <para>The statuses this class does not reach — lock contention '61' / '62' under RETRY, '37', '39', an OPTIONAL
+/// file's '05', AT END, INVALID KEY, and the SORT / MERGE statements around the PERFORM — are in the sibling
+/// <c>PerformFormat3IoConflictAndSortTests</c> (branch review round 1, kb/Work PB1154).</para>
 /// </summary>
 public sealed class PerformFormat3IoStatementTests
 {
