@@ -33,3 +33,12 @@ on `GR-14.9.34.4-4` and `-5` through a witness-only batch. Writing leg C showed 
 STATEMENT inside an output procedure ends the SORT instead of returning to the procedure; that is correct (RESUME is a
 not-normal completion, 14.6.13.1.2 1), and 14.9.40.4 GR17 terminates the SORT, kb/Work PB1177), so the golden pins it
 rather than working around it.
+
+Branch review round 1 found the abnormal-path coverage still partial: RETURN's own exception conditions
+(EC-FLOW-RETURN, EC-SORT-MERGE-RETURN) had no witness on the INTO arm, and none anywhere without a declarative. Added
+the golden `14.9.34-RETURN/pb722_return_into_flow_ec` (both conditions with a declarative and RESUME; the INTO receiver
+keeps its value, neither AT END nor NOT AT END runs) and `ReturnIntoExceptionPathTests`, whose six facts pin the arms a
+corpus golden cannot (it must exit 0): the unhandled fatal termination and the declarative-completes-normally
+termination for both conditions' shapes, the checking-OFF continuation (the store reports the end again, AT END runs,
+the receiver is untouched, exit 0), and item identification without a declarative on a success RETURN (fatal) versus an
+at-end RETURN (nothing raised). Everything conformed, so still no compiler change.
