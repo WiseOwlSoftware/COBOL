@@ -322,11 +322,12 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             Assert.False(OperatingSystem.IsLinux(), "a Linux host provides /dev/full; the boundary was not exercised");
             return;
         }
-        var reg = new FileRegistry();
-        reg.Register("F", full, recordWidth: 512, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
-        Share(reg, "F", FileSharing.ReadOnly);
-        Assert.Equal(FileStatusCode.Success, Open(reg, "F", FileOpenMode.Output));
-        Assert.Equal(FileStatusCode.PermanentBoundary, Write(reg, "F", new string('X', 512)));
-        reg.Close("F");   // the area holds nothing the medium has not already refused
+        // Built directly, as FileBoundaryTests builds the sole writer's, so the registry's arbitration (and its
+        // cross-run-unit region lock) is not between the test and the medium: the sharing mode is the one thing under
+        // test, and it is stated.
+        var c = new SequentialConnector(full, recordWidth: 512, lineSequential: false) { HostSharing = FileSharing.ReadOnly };
+        Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+        Assert.Equal(FileStatusCode.PermanentBoundary, c.Write(new string('X', 512), -1, page: null));
+        c.Close();   // the area holds nothing the medium has not already refused
     }
 }
