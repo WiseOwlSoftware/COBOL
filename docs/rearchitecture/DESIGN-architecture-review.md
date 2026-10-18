@@ -99,8 +99,9 @@ Every finding is a `kb/Work` note (CLAUDE.md rule 8), never a list in this docum
   whole-population gate time, so no refactor regresses speed unseen. The instrument is
   `scripts/arch/perf_baseline.py` (kb/Work PB2117, which is also kb/Work A6's): warm compile throughput and the
   generated programs' hot paths through `tests/Cobol.Net.Benchmarks` (BenchmarkDotNet, each with a witness), cold
-  whole-process compiles, the same hot paths against GnuCOBOL 3.2 under WSL with a 1x/2x/4x scaling curve, and the
-  gate time read from `build-local.ps1`'s `verdict.json`. It writes the record, conditions and noise band included, to
+  whole-process compiles, the same hot paths against GnuCOBOL 3.2 under WSL with a 1x/2x/4x scaling curve, the peak
+  resident set of every whole process, SORT and MERGE both in memory and spilling to temporary files (kb/Work PB2777),
+  and the gate time read from `build-local.ps1`'s `verdict.json`. It writes the record, conditions and noise band included, to
   `docs/rearchitecture/evidence/perf-baseline/<product commit>.md`. The legacy byte engine is not a baseline
   (kb/Work R69 §1).
 

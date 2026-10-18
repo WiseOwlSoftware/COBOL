@@ -2,7 +2,9 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Antlr4.Runtime.Atn;
 using CobolNet.Editions;
+using CobolNet.Frontend.Cst;          // ClosedFormats — the ONE table of closed general formats (0g)
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime;
 
@@ -99,6 +101,79 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// which consumes the group whole.</summary>
     protected override IToken? SingleTokenDeletion(Parser recognizer) =>
         IsOpenParen(((ITokenStream)recognizer.InputStream).LA(1)) ? null : base.SingleTokenDeletion(recognizer);
+
+    /// <summary>⛔ A RESERVED WORD IS REFUSED WHERE THE CLOSED FORMAT'S LIST STANDS, NOT WHERE THE PARSE GIVES UP
+    /// (kb/Work PB2533). ANTLR synchronizes at every subrule and loop iteration, and at a clause list that may END
+    /// (<c>dataDescriptionClause*</c>, <c>sortMergeDescriptionClause+</c>, a paragraph's entry loop) the base
+    /// <see cref="DefaultErrorStrategy.Sync"/> lets a token it cannot place pass, because the rule's follow might take
+    /// it: the list is exited, and the error surfaces later at the entry's period (<c>SD SF RECORD 80 EXTERNAL.</c>) or
+    /// several rules up (<c>SPECIAL-NAMES. GLOBAL.</c> failed in <c>compilationUnit</c>), where nothing remembers that
+    /// the list was the place. So at a state whose closure reaches the error production, a reserved word that NO
+    /// path can take here — it is outside the full-context LL(1) set, so the parse fails at this token whatever
+    /// happens next, and no legal program is touched — is reported at once (the 0g hint names the format) and the
+    /// residue consumed up to what the list or its follow can take, as the base loop-back recovery does.
+    /// <para>Cost: a per-state flag first (<see cref="ReachesErrorProduction"/>, computed once per ATN state), then the
+    /// rule-local next set the ATN caches; the full-context set and the walk run only for a keyword the list's own
+    /// rule cannot continue with — once per clause list's end in a legal program.</para></summary>
+    public override void Sync(Parser recognizer)
+    {
+        if (!InErrorRecoveryMode(recognizer) && IsClosedFormatResidueAhead(recognizer))
+        {
+            ReportUnwantedToken(recognizer);
+            ConsumeUntil(recognizer, GetExpectedTokens(recognizer).Or(GetErrorRecoverySet(recognizer)));
+            return;
+        }
+        base.Sync(recognizer);
+    }
+
+    private static bool IsClosedFormatResidueAhead(Parser recognizer)
+    {
+        var atn = recognizer.Atn;
+        var state = atn.states[recognizer.State];
+        if (!ReachesErrorProduction(atn, state)) return false;
+        var token = recognizer.CurrentToken;
+        if (token.Type is CobolLexer.IDENTIFIER or TokenConstants.EOF || atn.NextTokens(state).Contains(token.Type))
+            return false;   // the production takes an IDENTIFIER itself; a token the rule continues with is legal
+        return token.Text is [var first, ..] && char.IsAsciiLetter(first)
+               && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
+               && ClosedFormatResidue(recognizer, token) is not null;
+    }
+
+    /// <summary>Per ATN state: does its closure — epsilon edges, every rule call entered, and a call to a rule that can
+    /// match empty stepped over — reach a call of <c>unrecognizedClause</c> without leaving the state's rule? It does
+    /// not pop out of the rule, so it is a pre-filter, not the answer: <see cref="ClosedFormatResidue"/> decides with
+    /// the real context. A list that may end is still caught, at the Sync of the loop that holds it. Cached in a
+    /// static because the ATN is a static of the generated parser; a benign race recomputes the same answer.</summary>
+    private static bool ReachesErrorProduction(ATN atn, ATNState start)
+    {
+        var cache = _reachesErrorProduction ??= new sbyte[atn.states.Count];
+        if (cache[start.stateNumber] != 0) return cache[start.stateNumber] > 0;
+        bool reaches = false;
+        var visited = new HashSet<int>();
+        var work = new Stack<ATNState>();
+        work.Push(start);
+        while (!reaches && work.TryPop(out var state))
+        {
+            if (!visited.Add(state.stateNumber) || state is RuleStopState) continue;
+            for (int i = 0; i < state.NumberOfTransitions && !reaches; i++)
+            {
+                var t = state.Transition(i);
+                if (t is RuleTransition call)
+                {
+                    reaches = call.target.ruleIndex == CobolParserCore.RULE_unrecognizedClause;
+                    work.Push(call.target);
+                    // Step over the call only when the called rule can match empty (its rule-local next set, which
+                    // the ATN caches, holds EPSILON): a call that must consume a token ends the closure here.
+                    if (atn.NextTokens(call.target).Contains(TokenConstants.EPSILON)) work.Push(call.followState);
+                }
+                else if (t.IsEpsilon) work.Push(t.target);
+            }
+        }
+        cache[start.stateNumber] = reaches ? (sbyte)1 : (sbyte)-1;
+        return reaches;
+    }
+
+    private static sbyte[]? _reachesErrorProduction;
 
     private static bool IsOpenParen(int ttype) =>
         ttype is CobolLexer.LPAREN or CobolLexer.FNARG_LPAREN or CobolLexer.REF_LPAREN;
@@ -256,6 +331,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "the whole parenthesised group but encloses the argument forms in BRACES repeated by the ellipsis "
                 + "inside the one pair, and one alternative of a brace group shall be explicitly specified "
                 + "(ISO §5.2.6.3). Omit the parentheses when the method is invoked without arguments.", -1));
+        // ⛔ 0g. A RESERVED WORD WHERE A CLOSED GENERAL FORMAT'S ERROR PRODUCTION STANDS (kb/Work PB2533). Ten closed
+        // formats end their alternative list in `unrecognizedClause`, which ClosedFormatPass refuses BY NAME — but the
+        // production begins at an IDENTIFIER, so a reserved word the format does not print (`SD SF GLOBAL.`, `FD F
+        // DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`) never enters it and used to arrive here as a bare parse error. The
+        // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
+        // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
+        // inherits it.
+        if (ClosedFormatResidue(recognizer, token) is { } closedFormat)
+            hints.Add(new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
+                    Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
+                closedFormat.Refusal(token.Text, ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
 
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
@@ -289,8 +375,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (token.Type == CobolLexer.PROGRAM && expectedTokens?.Contains("IDENTIFIER") == true)
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0201, "PROGRAM is a reserved word. If this is a paragraph name, it cannot be named PROGRAM.", 10));
 
-        // 7. Unrecognized keyword in SPECIAL-NAMES
-        if (IsInRule(ruleStack, "specialNamesParagraph") && !IsIdentifier(token) && !IsLiteral(token))
+        // 7. Unrecognized keyword in SPECIAL-NAMES — a GUESS, suppressed once a structural diagnosis has named the
+        // rule (priority 0): 0g names the closed format a stray reserved word violates, and this sentence would only
+        // restate it vaguely (kb/Work PB2533).
+        if (IsInRule(ruleStack, "specialNamesParagraph") && !IsIdentifier(token) && !IsLiteral(token)
+            && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0305, "Unexpected token in SPECIAL-NAMES. Check implementor-name or mnemonic-name syntax.", 15));
 
         // 8. ASCENDING/DESCENDING KEY where the entry can only end (kb/Work PB1266). KEY is supported; what this
@@ -346,16 +435,182 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             IsInRule(ruleStack, "dataDescriptionEntry"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0310, "Missing BY keyword. INDEXED BY requires 'INDEXED BY <index-name>'.", 10));
 
-        // 19. FILE CONTROL / SELECT context errors
+        // 19. FILE CONTROL / SELECT context errors — a GUESS, suppressed by a structural diagnosis as 7 is (kb/Work PB2533).
         if (IsInRule(ruleStack, "fileControlParagraph") &&
             !IsIdentifier(token) && !IsLiteral(token) &&
-            token.Type is not (CobolLexer.SELECT or CobolLexer.ASSIGN or CobolLexer.FILE_CONTROL))
+            token.Type is not (CobolLexer.SELECT or CobolLexer.ASSIGN or CobolLexer.FILE_CONTROL)
+            && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0312,
                 "Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax.",
                 10));
 
         return hints;
     }
+
+    // ── A reserved word at a closed general format's error production (kb/Work PB2533) ──
+
+    /// <summary>The closed general format whose error production stands where <paramref name="token"/> — a RESERVED
+    /// word — failed the parse, or null.
+    /// <para><b>The position, from the ATN.</b> A small simulation of the parser from its current ATN state and its
+    /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
+    /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
+    /// edge is taken only for the tokens between the parser's current token and <paramref name="token"/> — the ones a
+    /// failed adaptive prediction looked past (<c>SOURCE-COMPUTER. XYZ GLOBAL.</c> fails the prediction of the
+    /// paragraph's optional group at GLOBAL with XYZ still current). If the closure at <paramref name="token"/> reaches
+    /// a call of <c>unrecognizedClause</c>, the rule making that call is the closed format's alternative list
+    /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
+    /// refused by name, and a reserved word is the same residue the production's IDENTIFIER-led shape cannot hold.
+    /// Where two lists are open at once (<c>SPECIAL-NAMES. GLOBAL.</c> could continue the paragraph's entries or start
+    /// a configuration-section paragraph) the INNERMOST wins: the word is written inside it. Nothing is keyed on a
+    /// word or a rule name, so a closed format added to the grammar inherits this. Semantic predicates are not
+    /// evaluated (it names the format of a source that has already failed; it never decides a parse).</para>
+    /// <para><b>A missing separator period is NOT this.</b> A clause list such a format writes ends at a separator
+    /// period, and a word that could begin what FOLLOWS that period (<c>PROCEDURE DIVISION</c>, the next <c>SD</c>,
+    /// <c>WORKING-STORAGE SECTION</c> after <c>01 X PIC X</c> with its period forgotten) is far likelier the start of
+    /// the next construct than a stray clause — so the closure also collects, at each period edge it reaches in the
+    /// parser's own context, the tokens that may come after the period, and a word among them is left to the
+    /// missing-period guess (hint 14).</para></summary>
+    private static ClosedFormat? ClosedFormatResidue(Parser recognizer, IToken token)
+    {
+        var atn = recognizer.Atn;
+        if (!IsReservedWord(token) || HeaderWords(atn).Contains(token.Type)) return null;
+        var stream = (ITokenStream)recognizer.InputStream;
+        List<Config> configs = [new(atn.states[recognizer.State], null, recognizer.Context)];
+        for (int k = 1; ; k++)
+        {
+            var at = stream.LT(k);
+            if (at.TokenIndex == token.TokenIndex) break;
+            if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || k > MaxResimulatedTokens) return null;
+            var moved = new List<Config>();
+            foreach (var c in Closure(atn, configs, probe: null))
+                for (int i = 0; i < c.State.NumberOfTransitions; i++)
+                {
+                    var t = c.State.Transition(i);
+                    if (!t.IsEpsilon && t.Matches(at.Type, TokenConstants.MinUserTokenType, atn.maxTokenType))
+                        moved.Add(c with { State = t.target });
+                }
+            if (moved.Count == 0) return null;
+            configs = moved;
+        }
+        var probe = new ResidueProbe();
+        Closure(atn, configs, probe);
+        return probe.Format is not null && !probe.AfterPeriod.Contains(token.Type) ? probe.Format : null;
+    }
+
+    /// <summary>The words that OPEN a division, section or paragraph header — the first token of a rule whose next
+    /// token, within that rule, is a separator period or the word SECTION or DIVISION (<c>FILE-CONTROL .</c>,
+    /// <c>WORKING-STORAGE SECTION</c>, <c>PROCEDURE DIVISION</c>) — read ONCE from the ATN. Such a word where a clause
+    /// list stands is a header written out of order (an I-O-CONTROL paragraph before FILE-CONTROL) or after a missing
+    /// period, a STRUCTURE error, and naming it "not a clause of the I-O-CONTROL paragraph" would send the reader to
+    /// the wrong rule; <see cref="ClosedFormatResidue"/> leaves it to the generic diagnosis. A clause keyword never
+    /// qualifies: no clause rule writes a separator period. Cached in a static, as the other ATN-derived sets are.</summary>
+    private static IntervalSet HeaderWords(ATN atn)
+    {
+        if (_headerWords is { } cached) return cached;
+        var closers = new IntervalSet(CobolLexer.DOT, CobolLexer.SECTION, CobolLexer.DIVISION);
+        var words = new IntervalSet();
+        foreach (var ruleStart in atn.ruleToStartState)
+        {
+            // The rule's left edge: the token edges reachable from its start state through epsilon edges alone.
+            var visited = new HashSet<int>();
+            var work = new Stack<ATNState>();
+            work.Push(ruleStart);
+            while (work.TryPop(out var state))
+            {
+                if (!visited.Add(state.stateNumber)) continue;
+                for (int i = 0; i < state.NumberOfTransitions; i++)
+                {
+                    var t = state.Transition(i);
+                    if (t is RuleTransition) continue;   // a rule that opens with another rule opens with a word of THAT rule
+                    if (t.IsEpsilon) work.Push(t.target);
+                    else if (t is AtomTransition atom && atn.NextTokens(atom.target).And(closers).Count > 0)
+                        words.AddAll(atom.Label);
+                }
+            }
+        }
+        return _headerWords = words;
+    }
+
+    private static IntervalSet? _headerWords;
+
+    /// <summary>The bound on the tokens <see cref="ClosedFormatResidue"/> re-simulates: a prediction that failed further
+    /// ahead than this is not at a clause position anyone would call "the place", and the walk declines.</summary>
+    private const int MaxResimulatedTokens = 16;
+
+    /// <summary>The epsilon closure of <paramref name="seeds"/>: every configuration reached, each with its own calls
+    /// and context. With a <paramref name="probe"/> it also records each call of <c>unrecognizedClause</c> (with the
+    /// depth of the list making it) and, at each period edge in the parser's own context, what may follow the
+    /// period.</summary>
+    private static List<Config> Closure(ATN atn, List<Config> seeds, ResidueProbe? probe)
+    {
+        var reached = new List<Config>();
+        var visited = new HashSet<Config>();
+        var work = new Stack<Config>(seeds);
+        while (work.TryPop(out var c))
+        {
+            if (!visited.Add(c)) continue;
+            var (state, calls, context) = c;
+            if (state is RuleStopState)
+            {
+                if (calls is not null) work.Push(new(atn.states[calls.FollowState], calls.Next, context));
+                else if (context.invokingState >= 0 && context.Parent is { } caller)
+                    work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
+                continue;
+            }
+            reached.Add(c);
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+            {
+                var t = state.Transition(i);
+                if (t is RuleTransition call)
+                {
+                    if (call.target.ruleIndex == CobolParserCore.RULE_unrecognizedClause)
+                        probe?.Found(state.ruleIndex, context.Depth() + Frame.Count(calls));
+                    work.Push(new(call.target, new Frame(call.followState.stateNumber, calls), context));
+                }
+                else if (t.IsEpsilon)
+                    work.Push(c with { State = t.target });
+                else if (probe is not null && calls is null && t is not NotSetTransition
+                         && t.Label?.Contains(CobolLexer.DOT) == true)
+                    probe.AfterPeriod.AddAll(atn.NextTokens(t.target, context));
+            }
+        }
+        return reached;
+    }
+
+    /// <summary>A simulated parser configuration: an ATN state, the rule calls the simulation made itself, and the
+    /// parser's own context beneath them.</summary>
+    private readonly record struct Config(ATNState State, Frame? Calls, RuleContext Context);
+
+    /// <summary>One rule call the simulation made itself: where to resume when the called rule ends. A record, so two
+    /// configurations that reach a state through the same calls are one visit.</summary>
+    private sealed record Frame(int FollowState, Frame? Next)
+    {
+        public static int Count(Frame? f) { int n = 0; for (; f is not null; f = f.Next) n++; return n; }
+    }
+
+    /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose
+    /// error production it reached, and the tokens that may follow a period it reached.</summary>
+    private sealed class ResidueProbe
+    {
+        private int _depth = -1;
+        public ClosedFormat? Format { get; private set; }
+        public IntervalSet AfterPeriod { get; } = new();
+
+        public void Found(int listRule, int depth)
+        {
+            if (depth <= _depth || ClosedFormats.OfRule(listRule) is not { } format) return;
+            Format = format;
+            _depth = depth;
+        }
+    }
+
+    /// <summary>A reserved or context-sensitive word, as the lexer itself classifies it: a token whose text the lexer
+    /// makes a keyword token of exactly this type (<see cref="CobolKeywordTokens.TryTokenType"/>, which reaches the
+    /// multi-spelling keywords the vocabulary publishes no literal name for). Every such word begins with a letter;
+    /// testing that first keeps a numeric literal away from the lexer probe.</summary>
+    private static bool IsReservedWord(IToken token)
+        => token.Text is [var first, ..] text && char.IsAsciiLetter(first)
+           && CobolKeywordTokens.TryTokenType(text, out int type) && type == token.Type;
 
     // ── The GO TO general-format complement (kb/Work PB412) ──
 
