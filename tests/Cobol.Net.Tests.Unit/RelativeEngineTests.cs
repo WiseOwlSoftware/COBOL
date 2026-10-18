@@ -28,6 +28,7 @@ namespace CobolNet.Tests.Unit;
 /// </list>
 /// Every expected value is the design's bar or a general rule's, never what the engine happens to do.
 /// </summary>
+[Trait("Host", "ReFS")]
 public sealed class RelativeEngineTests
 {
     private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3333-{tag}-{Guid.NewGuid():N}.dat");
