@@ -24,6 +24,12 @@
       *>                         arguments and a RETURNING item — the same EC-OO-NULL.
       *>   4 W=KEEP X=ABC        the statement was terminated, so GR8 never placed a result in W and no argument was
       *>                         passed: both keep their values.
+      *>   5 EVALUATED           GR7 a): "Arithmetic-expression-1, boolean-expression-1, identifier-1, identifier-2,
+      *>                         identifier-3, and identifier-5 are evaluated ... at the beginning of the execution
+      *>                         of the INVOKE statement" - the inline invocation O :: "GETV" (identifier-3) runs
+      *>                         before the null receiver's exception terminates the statement.
+      *>   6 HANDLED=EC-OO-NULL  then GR5 raises EC-OO-NULL and no method is invoked.
+      *>   7 AFTER2              RESUME AT NEXT STATEMENT.
       >>TURN EC-OO-NULL CHECKING ON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1136NR.
@@ -36,6 +42,7 @@
        01 X PIC X(3) VALUE "ABC".
        01 N PIC 9(3) VALUE 5.
        01 W PIC X(4) VALUE "KEEP".
+       01 O USAGE OBJECT REFERENCE PB1136NC.
        PROCEDURE DIVISION.
        DECLARATIVES.
        H SECTION.
@@ -51,6 +58,9 @@
            INVOKE NULL "GETN" USING BY REFERENCE X X BY CONTENT N + 1 "LIT"
                BY VALUE N 7 BY REFERENCE OMITTED RETURNING W.
            DISPLAY "W=" W " X=" X.
+           INVOKE PB1136NC "NEW" RETURNING O.
+           INVOKE NULL "PING" USING BY CONTENT O :: "GETV".
+           DISPLAY "AFTER2".
            STOP RUN.
        END PROGRAM PB1136NR.
 
@@ -68,5 +78,14 @@
        MAIN-P.
            DISPLAY "PINGED".
        END METHOD PING.
+       METHOD-ID. GETV.
+       DATA DIVISION.
+       LINKAGE SECTION.
+       01 R PIC 9(3).
+       PROCEDURE DIVISION RETURNING R.
+       MAIN-P.
+           DISPLAY "EVALUATED".
+           MOVE 7 TO R.
+       END METHOD GETV.
        END OBJECT.
        END CLASS PB1136NC.

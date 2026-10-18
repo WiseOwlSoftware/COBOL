@@ -467,8 +467,14 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
     /// SR17 of literal-2 (<see cref="OoScreenNullReceiverArgument"/>, <see cref="OoScreenReturning"/>).</item>
     /// </list>
     /// §14.9.23.4 GR5 is the statement's meaning: "If identifier-1 is null, the EC-OO-NULL exception condition is set to
-    /// exist and execution of the INVOKE statement is terminated" — identifier-1 is the first operand GR7 a) evaluates,
-    /// as the typed path's null guard is, so the node is the raise alone (<see cref="BoundInvokeNull"/>).</summary>
+    /// exist and execution of the INVOKE statement is terminated". GR7 a) evaluates arithmetic-expression-1,
+    /// boolean-expression-1 and identifier-1, -2, -3 and -5 together "at the beginning of the execution of the INVOKE
+    /// statement", and only then "If an exception condition exists, no method is invoked". So the activations an
+    /// argument carries (an inline invocation, a user-defined function, an object view) are hoisted by the argument
+    /// binding ahead of the statement exactly as on the typed path, and they RUN before the raise; what the exception withholds
+    /// (GR7 a)) is only the values that would be made available to a method. The node is therefore the raise alone
+    /// (<see cref="BoundInvokeNull"/>): it passes nothing and delivers nothing, and the argument evaluations precede it
+    /// (pinned by conformance case pb1136_invoke_null_receiver, line EVALUATED).</summary>
     private BoundStatement OoBindNullInvoke(InvocationSite site)
     {
         foreach (var a in site.Args)
