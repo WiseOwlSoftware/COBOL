@@ -11,34 +11,42 @@ namespace CobolNet.Runtime.IO;
 /// logically removed from THE PHYSICAL FILE and can no longer be accessed"). Every keyed connector used to load
 /// a PRIVATE snapshot at OPEN and persist its WHOLE view at CLOSE, so a record DELETEd through one connector
 /// stayed readable through another over the same host path, and the CLOSE ORDER decided which view survived on
-/// disk — silent undeletion / silent data loss. Now the record images live HERE, keyed by resolved host path
-/// (the same key the <see cref="PhysicalFileTable"/> arbitrates sharing and locks by): the FIRST opener loads
-/// from disk, later openers ATTACH to the live store (never reload — the in-memory store IS the truth while any
-/// connector holds it), every mutation is instantly visible to every attached connector, any CLOSE persists the
-/// ONE shared state (order no longer matters), and the LAST detach drops the entry so a later OPEN re-reads the
-/// disk. Position/key state (FPI, key of reference, sequential-WRITE slot, GR38 high-key) stays per-CONNECTOR.
-/// Two SELECTs to one ASSIGN target need no SHARING clause to reach this, so the store is unconditional for the
-/// keyed organizations; sequential connectors keep their OS-backed streams (the file system is their shared
-/// store). Owned by the <see cref="FileRegistry"/>; cleared at run-unit Reset.
+/// disk — silent undeletion / silent data loss. Now the run unit holds ONE keyed store engine handle per physical file
+/// (<see cref="KeyedStore"/>), keyed by resolved host path (the same key the <see cref="PhysicalFileTable"/> arbitrates
+/// sharing and locks by): the FIRST opener opens it through its handle, later openers ATTACH to the live store (one page
+/// cache and one set of trees, so a sibling's change is visible at once), and the LAST detach drops the entry.
+/// Position/key state (FPI, key of reference, sequential-WRITE slot, GR38 high-key) stays per-CONNECTOR. Two SELECTs to
+/// one ASSIGN target need no SHARING clause to reach this, so the store is unconditional for the keyed organizations;
+/// sequential connectors keep their OS-backed streams (the file system is their shared store). Owned by the
+/// <see cref="FileRegistry"/>; cleared at run-unit Reset.
 /// </summary>
 internal sealed class KeyedStoreTable
 {
     private sealed class Entry
     {
-        public required object Store;
+        public required KeyedStore Store;
         public int Attached;
     }
 
     private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
 
-    /// <summary>Attach to the RELATIVE store for <paramref name="host"/>: the live store when one exists (its tree is
-    /// the truth — nothing is re-read), else a new store with no file, which the attaching connector opens through its
-    /// own handle (<see cref="RelativeStore.Open"/>; a failed OPEN detaches again).</summary>
-    public RelativeStore AttachRelative(string host) => Attach(host, () => new RelativeStore());
-
-    /// <summary>Attach to the INDEXED store for <paramref name="host"/> — same contract.</summary>
-    public IndexedStore AttachIndexed(string host, Action<IndexedStore> loadFirst)
-        => Attach(host, () => { var s = new IndexedStore(); loadFirst(s); return s; });
+    /// <summary>Attach to the store of organization <typeparamref name="T"/> for <paramref name="host"/>: the live store
+    /// when one exists (its trees are the truth — nothing is re-read), else a new store with no file, which the attaching
+    /// connector opens through its own handle (<see cref="KeyedStore.Open"/>; a failed OPEN detaches again).</summary>
+    public T Attach<T>(string host) where T : KeyedStore, new()
+    {
+        if (_byHost.TryGetValue(host, out var e))
+        {
+            if (e.Store is not T live)
+                throw new InvalidOperationException(
+                    $"physical file '{host}' is open under two different organizations ({e.Store.GetType().Name} vs {typeof(T).Name}) — a compiler/registration defect (kb/Work PB143)");
+            e.Attached++;
+            return live;
+        }
+        var store = new T();
+        _byHost[host] = new Entry { Store = store, Attached = 1 };
+        return store;
+    }
 
     /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §14.9.27.4 GR18: a new, EMPTY store
     /// for <paramref name="host"/> that no other connector of this run unit holds (kb/Work PB754).
@@ -62,23 +70,8 @@ internal sealed class KeyedStoreTable
         return store;
     }
 
-    private T Attach<T>(string host, Func<T> create) where T : KeyedStore
-    {
-        if (_byHost.TryGetValue(host, out var e))
-        {
-            if (e.Store is not T live)
-                throw new InvalidOperationException(
-                    $"physical file '{host}' is open under two different organizations ({e.Store.GetType().Name} vs {typeof(T).Name}) — a compiler/registration defect (kb/Work PB143)");
-            e.Attached++;
-            return live;
-        }
-        var store = create();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
-    }
-
-    /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry so a
-    /// later OPEN reloads from disk. Unbalanced detaches are ignored (a failed OPEN never attached).</summary>
+    /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry, so a later
+    /// OPEN opens the file again. Unbalanced detaches are ignored (a failed OPEN never attached).</summary>
     public void Detach(string host)
     {
         if (!_byHost.TryGetValue(host, out var e)) return;
@@ -89,41 +82,26 @@ internal sealed class KeyedStoreTable
     public void Clear() => _byHost.Clear();
 }
 
-/// <summary>⭐ What every keyed record store of a run unit knows about the CROSS-RUN-UNIT MUTEX of its physical file
-/// (kb/Work PB2660; ISO §9.1.15, <i>"Multiple paths of access may exist in the same runtime element, contained elements,
-/// separate runtime elements within the same run unit, or runtime elements in different run units"</i>): whether a
-/// statement of this run unit is already inside it (<see cref="StatementDepth"/>) and through which endpoint it is held
-/// (<see cref="MutexHolder"/>). Within the run unit the store IS the truth (kb/Work PB143); across run units the file
-/// is, and each organization's store says how it follows the file (<see cref="RelativeStore"/> through the paged
-/// engine's page 2, <see cref="IndexedStore"/> through its whole-store generation stamp).</summary>
+/// <summary>⭐ THE RUN UNIT'S HANDLE ON ONE PHYSICAL FILE'S KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md
+/// §2.2.1, kb/Work PB3333, PB3334): ONE paged store (<see cref="PagedFile"/>, its page cache, its ledger) opened through the
+/// handles of the run unit's connectors on the file (<see cref="RunUnitPageMedium"/>), and its trees, which the
+/// organization's view names (<see cref="RelativeStore"/>: one tree keyed by the relative record number;
+/// <see cref="IndexedStore"/>: the prime tree and one tree per alternate key). Every connector of the run unit over the path
+/// attaches to it (<see cref="KeyedStoreTable"/>, kb/Work PB143), so a sibling's change is visible at once. Nothing is
+/// loaded at OPEN and nothing is persisted at CLOSE: a statement reads the pages it touches and writes the pages it
+/// changes, then page 2 (2.2.1.6), in ONE statement of the page layer however many trees it changes
+/// (<see cref="Change"/>).
+/// <para>It also carries what the run unit knows about the CROSS-RUN-UNIT MUTEX of its physical file (kb/Work PB2660;
+/// ISO §9.1.15, <i>"Multiple paths of access may exist in the same runtime element, contained elements, separate runtime
+/// elements within the same run unit, or runtime elements in different run units"</i>): whether a statement of this run
+/// unit is already inside it (<see cref="StatementDepth"/>) and through which endpoint it is held
+/// (<see cref="MutexHolder"/>). Within the run unit the store IS the truth (kb/Work PB143); across run units the file is,
+/// and the store follows it through page 2 (2.2.1.7).</para></summary>
 internal abstract class KeyedStore
 {
-    /// <summary>How many statements of this run unit are inside the store's cross-run-unit mutex. A run unit is one
-    /// thread of control, so a nested entry re-enters rather than deadlocking against itself.</summary>
-    public int StatementDepth { get; set; }
-
-    /// <summary>The endpoint holding the store's cross-run-unit mutex while <see cref="StatementDepth"/> is non-zero —
-    /// null when no statement is inside it, or when the host cannot carry the lock.</summary>
-    internal RegionLocks? MutexHolder { get; set; }
-}
-
-/// <summary>⭐ THE RUN UNIT'S RELATIVE STORE FOR ONE PHYSICAL FILE — the keyed store engine's handle on it
-/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333): ONE paged store (<see cref="PagedFile"/>, its
-/// page cache, its ledger) and ONE B+ tree keyed by the relative record number — 8 bytes big-endian, so the ordinal byte
-/// order IS numeric order (2.2.1.4, <i>"A RELATIVE record is one entry"</i>) — whose value is the record's frame
-/// (<see cref="RecordFraming.EncodeFrame"/>, the one codec). Every connector of the run unit over the path attaches to it
-/// (<see cref="KeyedStoreTable"/>, kb/Work PB143), so a sibling's change is visible at once: there is one cache and one
-/// tree. Nothing is loaded at OPEN and nothing is persisted at CLOSE: a statement reads the pages it touches and writes
-/// the pages it changes, then page 2 (2.2.1.6).
-/// <para>The sparse key space costs nothing (kb/Work PB1192): an empty slot is no entry, and a record at a key in the
-/// billions is one leaf. Every positional question — the first record at or after a position, the last before it, the
-/// highest record number — is a SEEK on the tree, O(log n) pages, where the map it replaced walked every key from the
-/// lowest (kb/Work PB2755).</para></summary>
-internal sealed class RelativeStore : KeyedStore
-{
-    /// <summary>Test seam, per async flow (the <c>IndexedConnector.HostFaultObserver</c> precedent): wraps the run unit's
+    /// <summary>Test seam, per async flow (the <see cref="FileRegistry.PauseObserver"/> precedent): wraps the run unit's
     /// medium of every store made in the flow, so a case can refuse, tear or kill at any page write through a real
-    /// connector (2.2.1.12's fault-injecting medium).</summary>
+    /// connector of either organization (2.2.1.12's fault-injecting medium).</summary>
     internal static readonly AsyncLocal<Func<IPageMedium, IPageMedium>?> MediumObserver = new();
 
     private readonly RunUnitPageMedium _handles = new();
@@ -131,7 +109,15 @@ internal sealed class RelativeStore : KeyedStore
     private int _cachePages = PageCache.DefaultPages;
     private bool _coherent;
 
-    public RelativeStore() => _medium = MediumObserver.Value?.Invoke(_handles) ?? _handles;
+    protected KeyedStore() => _medium = MediumObserver.Value?.Invoke(_handles) ?? _handles;
+
+    /// <summary>How many statements of this run unit are inside the store's cross-run-unit mutex. A run unit is one
+    /// thread of control, so a nested entry re-enters rather than deadlocking against itself.</summary>
+    public int StatementDepth { get; set; }
+
+    /// <summary>The endpoint holding the store's cross-run-unit mutex while <see cref="StatementDepth"/> is non-zero —
+    /// null when no statement is inside it, or when the host cannot carry the lock.</summary>
+    internal RegionLocks? MutexHolder { get; set; }
 
     /// <summary>The paged store, or null while the file holds no store: an absent OPTIONAL file opened INPUT, or a present
     /// file of no bytes opened INPUT (both hold no records, §14.9.27.4 GR13).</summary>
@@ -186,6 +172,94 @@ internal sealed class RelativeStore : KeyedStore
             File = reader;
     }
 
+    /// <summary>The trees one statement edited, each with the root it sets in the meta: <see cref="PrimeRoot"/> for the
+    /// prime (relative: record-number) tree, an alternate key's index for its tree.</summary>
+    internal readonly record struct TreeChange(BTree Tree, int Root)
+    {
+        /// <summary>The <see cref="Root"/> of the prime (relative: record-number) tree.</summary>
+        public const int PrimeRoot = -1;
+    }
+
+    /// <summary>What a statement's in-memory edit did: the page layer's status, whether the change applies (false: the
+    /// tree declined it — a key already present, a key absent — and nothing is written), and every tree it edited.</summary>
+    internal readonly record struct Edit(StoreStatus Status, bool Done, IReadOnlyList<TreeChange> Trees);
+
+    /// <summary>⛔ ONE CHANGE IS ONE STATEMENT OF THE PAGE LAYER, HOWEVER MANY TREES IT CHANGES (2.2.1.6; 2.2.1.4, <i>"An
+    /// INDEXED record is n + 1 entries, one per tree"</i>). The statement's entry first, unless the caller's coherent entry
+    /// already read page 2 for it (<paramref name="entered"/>), so every tree the edit builds is rooted in the file as it is
+    /// now; then <paramref name="edit"/> edits the trees in memory, handed the file and the first release ordinal the
+    /// statement mints (<see cref="PagedFile.ReleaseMint"/>; <paramref name="ordinals"/> of them, §14.9.51.4 GR40); then
+    /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edits write (its claim, its reservation), every edit
+    /// flushed, every root set and the statement completed — page 2 last. A torn page or a refused write answers '30' and
+    /// a boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and
+    /// every pending edit discarded.</summary>
+    private protected StoreStatus Change(bool entered, int ordinals, Func<PagedFile, ulong, Edit> edit, out bool done)
+    {
+        done = false;
+        var file = File ?? throw new InvalidOperationException("a keyed store with no file changes nothing");
+        if (!entered && file.Enter() is not StoreStatus.Ok and var refusedEntry) return refusedEntry;
+        var change = edit(file, file.ReleaseMint);
+        if (change.Status != StoreStatus.Ok || !change.Done)
+        {
+            Discard(change.Trees);
+            return change.Status;
+        }
+        int pages = 0;
+        foreach (var t in change.Trees) pages += t.Tree.PagesToWrite;
+        var status = file.Begin(pages, out var statement, ordinals: ordinals, entered: true);
+        if (status != StoreStatus.Ok)
+        {
+            Discard(change.Trees);
+            return status;
+        }
+        var flushed = StoreStatus.Ok;
+        foreach (var (tree, root) in change.Trees)
+        {
+            if (flushed != StoreStatus.Ok) { tree.Discard(); continue; }
+            flushed = tree.Flush(statement!, out var pointer);
+            if (flushed != StoreStatus.Ok) continue;
+            if (root == TreeChange.PrimeRoot) statement!.SetPrimeRoot(pointer);
+            else statement!.SetAlternateRoot(root, pointer);
+        }
+        var completed = statement!.Complete();
+        if (flushed == StoreStatus.Ok && completed == StoreStatus.Ok)
+        {
+            done = true;
+            return StoreStatus.Ok;
+        }
+        return completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
+    }
+
+    private static void Discard(IReadOnlyList<TreeChange> trees)
+    {
+        foreach (var t in trees) t.Tree.Discard();
+    }
+
+    /// <summary>The record a cursor stands on, in two parts: its key and, when <paramref name="withValue"/>, its value
+    /// bytes (null with no current entry).</summary>
+    private protected static StoreStatus Current(BTree.Cursor cursor, bool withValue, out byte[]? key, out byte[]? value)
+    {
+        key = null;
+        value = null;
+        if (!cursor.HasCurrent) return StoreStatus.Ok;
+        key = cursor.Key;
+        if (!withValue) return StoreStatus.Ok;
+        var status = cursor.ReadValue(out var read);
+        value = read;
+        return status;
+    }
+}
+
+/// <summary>⭐ THE RUN UNIT'S RELATIVE STORE FOR ONE PHYSICAL FILE — the keyed store engine's view of it
+/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work PB3333): ONE B+ tree keyed by the relative record
+/// number — 8 bytes big-endian, so the ordinal byte order IS numeric order (2.2.1.4, <i>"A RELATIVE record is one
+/// entry"</i>) — whose value is the record's frame (<see cref="RecordFraming.EncodeFrame"/>, the one codec).
+/// <para>The sparse key space costs nothing (kb/Work PB1192): an empty slot is no entry, and a record at a key in the
+/// billions is one leaf. Every positional question — the first record at or after a position, the last before it, the
+/// highest record number — is a SEEK on the tree, O(log n) pages, where the map it replaced walked every key from the
+/// lowest (kb/Work PB2755).</para></summary>
+internal sealed class RelativeStore : KeyedStore
+{
     // ── Reads ───────────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The frame bytes of record <paramref name="rrn"/>; null when the file holds none.</summary>
@@ -205,7 +279,7 @@ internal sealed class RelativeStore : KeyedStore
         value = null;
         if (File is null) return StoreStatus.Ok;
         var status = Tree().Seek(Key(Math.Max(probe, 0)), relation, out var cursor);
-        return status == StoreStatus.Ok ? Current(cursor, withValue, out rrn, out value) : status;
+        return status == StoreStatus.Ok ? Number(cursor, withValue, out rrn, out value) : status;
     }
 
     /// <summary>The lowest (<paramref name="last"/> false) or highest record number the file holds; null when none — the
@@ -216,176 +290,192 @@ internal sealed class RelativeStore : KeyedStore
         if (File is null) return StoreStatus.Ok;
         var tree = Tree();
         var status = last ? tree.Last(out var cursor) : tree.First(out cursor);
-        return status == StoreStatus.Ok ? Current(cursor, withValue: false, out rrn, out _) : status;
+        return status == StoreStatus.Ok ? Number(cursor, withValue: false, out rrn, out _) : status;
     }
 
-    private static StoreStatus Current(BTree.Cursor cursor, bool withValue, out long? rrn, out byte[]? value)
+    private static StoreStatus Number(BTree.Cursor cursor, bool withValue, out long? rrn, out byte[]? value)
     {
-        rrn = null;
-        value = null;
-        if (!cursor.HasCurrent) return StoreStatus.Ok;
-        rrn = (long)BinaryPrimitives.ReadUInt64BigEndian(cursor.Key);
-        return withValue ? cursor.ReadValue(out value!) : StoreStatus.Ok;
+        var status = Current(cursor, withValue, out var key, out value);
+        rrn = key is null ? null : (long)BinaryPrimitives.ReadUInt64BigEndian(key);
+        return status;
     }
 
     // ── Changes: one statement each ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Release record <paramref name="rrn"/> (<paramref name="done"/> false when it exists: nothing changes).</summary>
     public StoreStatus Insert(long rrn, byte[] value, bool entered, out bool done) =>
-        Change(tree => (tree.Insert(Key(rrn), value, out bool d), d), entered, out done);
+        OneTree(tree => (tree.Insert(Key(rrn), value, out bool d), d), entered, out done);
 
     /// <summary>Replace record <paramref name="rrn"/> (<paramref name="done"/> false when it does not exist).</summary>
     public StoreStatus Replace(long rrn, byte[] value, bool entered, out bool done) =>
-        Change(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done);
+        OneTree(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done);
 
     /// <summary>Remove record <paramref name="rrn"/> (§14.9.10.4 GR5, <i>"the identified record has been logically removed
     /// from the physical file and can no longer be accessed"</i>; <paramref name="done"/> false when it does not exist).</summary>
     public StoreStatus Delete(long rrn, bool entered, out bool done) =>
-        Change(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done);
+        OneTree(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done);
 
-    /// <summary>⛔ ONE CHANGE IS ONE STATEMENT OF THE PAGE LAYER (2.2.1.6): the tree edited in memory, then
-    /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edit writes (its claim, its reservation), the edit
-    /// flushed, the root set and the statement completed — page 2 last. <paramref name="entered"/> says the caller's
-    /// coherent entry already read page 2 for this statement. A torn page or a refused write answers '30' and a
-    /// boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's tree (R1).</summary>
-    private StoreStatus Change(Func<BTree, (StoreStatus Status, bool Done)> edit, bool entered, out bool done)
-    {
-        var file = File ?? throw new InvalidOperationException("a relative store with no file changes nothing");
-        var tree = Tree();
-        (var status, done) = edit(tree);
-        if (status != StoreStatus.Ok || !done) return status;
-        status = file.Begin(tree.PagesToWrite, out var statement, entered: entered);
-        if (status != StoreStatus.Ok)
+    private StoreStatus OneTree(Func<BTree, (StoreStatus Status, bool Done)> edit, bool entered, out bool done) =>
+        Change(entered, ordinals: 0, (_, _) =>
         {
-            tree.Discard();
-            done = false;
-            return status;
-        }
-        var flushed = tree.Flush(statement!, out var root);
-        statement!.SetPrimeRoot(root);
-        var completed = statement.Complete();
-        if (flushed == StoreStatus.Ok && completed == StoreStatus.Ok) return StoreStatus.Ok;
-        done = false;
-        return completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
-    }
+            var tree = Tree();
+            var (status, applied) = edit(tree);
+            return new Edit(status, applied, [new TreeChange(tree, TreeChange.PrimeRoot)]);
+        }, out done);
 
     private BTree Tree() => new(File!, KeyOrders.Ordinal, File!.Meta.PrimeRoot);
 
     private static byte[] Key(long rrn) => KeyOrders.RecordNumberKey((ulong)rrn);
 }
 
-/// <summary>One stored indexed record: its character image and its PER-KEY release ordinals — lifted out of
-/// <see cref="IndexedConnector"/> when the store became shared (kb/Work PB143).
-/// <para>⛔ THE RELEASE ORDINAL IS PER KEY OF REFERENCE, NOT PER RECORD (kb/Work PB341). ISO §14.9.30.4 GR26
-/// names the retrieval order of duplicates under "an alternate record key that IS THE KEY OF REFERENCE", and
-/// §14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
-/// retrieval when that key is the key of reference remains unchanged" — makes each key's order independent of
-/// every other key's: a REWRITE repositions the record ONLY in the duplicate sets of the keys it actually
-/// changed (GR24 b). One number per record could not express that, so a REWRITE that changed one alternate key
-/// silently reordered every OTHER alternate key's duplicate sequence. <see cref="Ordinals"/> is therefore a
-/// VECTOR: slot 0 the prime key (assigned once at release and never re-stamped — a prime key value cannot
-/// change, §14.9.35.4 GR22/GR23 identify the record BY it — so it doubles as the record's release order in the
-/// physical file), slot <c>i + 1</c> the i-th alternate key.</para></summary>
-internal sealed class KeyedRec
-{
-    public string Image = "";
-    /// <summary>The EXTENT TABLE the record was released with (determination D-FRA (v); kb/Work PB1053) — null when
-    /// the record carries none. Replaced with <see cref="Image"/>, never apart from it.</summary>
-    public RecordExtents? Extents;
-    /// <summary>The record's release ordinal under each key — slot 0 the prime key, slot <c>i + 1</c> the i-th alternate
-    /// (§14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341) — persisted with the record (kb/Work PB2693). A change of its
-    /// LENGTH goes through <see cref="IndexedStore.GrowOrdinals"/>, which counts the bytes.</summary>
-    public long[] Ordinals = [];
-}
+/// <summary>The key orders an INDEXED connector's trees are searched and changed under, chosen once at its OPEN
+/// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4, <i>"Keys are BYTES in the file's channel character set"</i>):
+/// the prime key's order, and per alternate key its own order (<see cref="Alternates"/>, which decides equality — its
+/// SUPPRESS WHEN value, a changed key, a duplicate) and the COMPOSITE order of its tree's entries (<see cref="Trees"/>:
+/// the key's order, then the release ordinal).</summary>
+internal sealed record IndexedKeyOrders(IKeyOrder Prime, IKeyOrder[] Alternates, IKeyOrder[] Trees);
 
-/// <summary>The shared INDEXED record store: the records plus the release-ordinal mint — shared so a WRITE
-/// through one connector takes the next GLOBAL ordinal and §14.9.30.4 GR26's duplicate-alternate retrieval
-/// order holds across connectors.</summary>
+/// <summary>⭐ THE RUN UNIT'S INDEXED STORE FOR ONE PHYSICAL FILE — the keyed store engine's view of it
+/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.3 decision 3 and 2.2.1.4, kb/Work PB3334): the PRIME tree (the
+/// prime key's channel bytes → the record's frame, which carries its ordinal vector) at root[0], and per alternate key a
+/// COMPOSITE tree ((the alternate key's bytes, its 8-byte big-endian release ordinal) → the prime key's bytes) whose root
+/// follows that key's descriptor in the meta page. A record is n + 1 entries, one per tree — none in an alternate tree
+/// whose key equals its SUPPRESS WHEN value (§12.4.5.6.4 GR6) — and every change to them is ONE statement of the page
+/// layer (<see cref="KeyedStore.Change"/>). The release mint (§14.9.51.4 GR40) is the meta page's
+/// (<see cref="PagedFile.ReleaseMint"/>), so a WRITE in either run unit takes the next ordinal of the FILE.
+/// <para>⛔ THE FILE'S KEY TABLE IS THE TREES' (DOC-A.1-129): a store has exactly one alternate tree per alternate key its
+/// meta page records (<see cref="AlternateTrees"/>) and every frame carries one ordinal per recorded key
+/// (<see cref="FrameSlots"/>). Under the <c>COBOLNET_KEYCHECK</c> opt-out a connector whose description declares a
+/// different key table drives these trees by key NUMBER: a declared alternate key with no tree provides no access path,
+/// and a tree the description does not declare is not maintained by that connector's statements.</para></summary>
 internal sealed class IndexedStore : KeyedStore
 {
-    private readonly List<KeyedRec> _recs = [];
+    /// <summary>The alternate trees the file holds — one per alternate key its meta page records.</summary>
+    public int AlternateTrees => File?.Meta.AlternateRoots.Count ?? 0;
 
-    /// <summary>Bumped by EVERY change to the records — the mutators are the only writers. With
-    /// <see cref="PersistedVersion"/>, <see cref="Generation"/> and <see cref="VersionAtEntry"/>, what the WHOLE STORE
-    /// knows about its agreement with the physical file (kb/Work PB2660): this run unit's copy of the file, trusted while
-    /// the file's generation stamp is the one it last loaded or persisted. Deleted with the whole-store model when the
-    /// organization moves to the keyed store engine (kb/Work PB3334, PB3335).</summary>
-    public long Version { get; private set; }
+    /// <summary>The release ordinals each record's frame carries: one per key the meta page records (the prime key's
+    /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
+    public int FrameSlots => File?.Meta.Attributes.Keys.Count ?? 1;
 
-    /// <summary>The <see cref="Version"/> at which the store last agreed with the physical file: set by the load
-    /// and by every persist, so <c>Version != PersistedVersion</c> is exactly "this run unit holds records the
-    /// file does not".</summary>
-    public long PersistedVersion { get; set; }
-
-    /// <summary>The generation stamp of the physical file image the store last loaded or persisted.</summary>
-    public ulong Generation { get; set; }
-
-    /// <summary>The <see cref="Version"/> when the outermost statement entered — so the statement persists only
-    /// what IT changed.</summary>
-    public long VersionAtEntry { get; set; }
-
-    /// <summary>Record that the records changed — called by every mutator, and by nothing else.</summary>
-    private void Mutated() => Version++;
-
-    /// <summary>The records, in load order — the persisted order. READ-ONLY to the connector: every mutation goes through <see cref="Add"/>, <see cref="Replace"/>,
-    /// <see cref="Remove"/> or <see cref="Clear"/>, which keep <see cref="RecordBytes"/> true (kb/Work PB1192).</summary>
-    public IReadOnlyList<KeyedRec> Recs => _recs;
-
-    public long NextOrdinal = 1;
-
-    /// <summary>The bytes the records' frames occupy in the persisted store (<see cref="RecordFraming.FrameBytes"/>
-    /// summed) — maintained by the mutators, so §14.9.51.4 GR42 d)'s boundary test at the WRITE is O(1)
-    /// (Annex A.1 item 107).</summary>
-    public long RecordBytes { get; private set; }
-
-    /// <summary>The frame bytes of one stored record — <see cref="RecordFraming.FrameBytes(int, RecordExtents?, int)"/>
-    /// of its image, its extent table and its <paramref name="ordinalSlots"/> release ordinals (kb/Work PB2693).</summary>
-    public static long FrameBytes(string image, RecordExtents? extents, int ordinalSlots) =>
-        RecordFraming.FrameBytes(image.Length, extents, ordinalSlots);
-
-    /// <summary>Grow a record's release-ordinal vector to <paramref name="slots"/> — a connector of this run unit that
-    /// declares keys the record predates re-stamps one (§14.9.35.4 GR24 b)) — keeping <see cref="RecordBytes"/>
-    /// true. The new slots read 0, as a short vector's missing ones do.</summary>
-    public void GrowOrdinals(KeyedRec rec, int slots)
+    /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
+    /// alternate key's index) under <paramref name="orders"/>; null when the file holds no store, or no such tree.</summary>
+    public BTree? Tree(int key, IndexedKeyOrders orders)
     {
-        if (rec.Ordinals.Length >= slots) return;
-        RecordBytes += FrameBytes(rec.Image, rec.Extents, slots) - FrameBytes(rec.Image, rec.Extents, rec.Ordinals.Length);
-        Array.Resize(ref rec.Ordinals, slots);
+        if (File is not { } file) return null;
+        if (key == TreeChange.PrimeRoot) return new BTree(file, orders.Prime, file.Meta.PrimeRoot);
+        return key < file.Meta.AlternateRoots.Count ? new BTree(file, orders.Trees[key], file.Meta.AlternateRoots[key]) : null;
     }
 
-
-    /// <summary>Release a record into the store (a WRITE, or the OPEN's load).</summary>
-    public void Add(KeyedRec rec)
+    /// <summary>The frame of the record whose prime key is <paramref name="prime"/>; null when the file holds none.</summary>
+    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? frame)
     {
-        Mutated();
-        _recs.Add(rec);
-        RecordBytes += FrameBytes(rec.Image, rec.Extents, rec.Ordinals.Length);
+        frame = null;
+        return Tree(TreeChange.PrimeRoot, orders) is { } tree ? tree.TryGet(prime, out frame) : StoreStatus.Ok;
     }
 
-    /// <summary>Replace a stored record's content in place (§14.9.35 REWRITE) — its image and extent table
-    /// together, never apart (D-FRA (v)).</summary>
-    public void Replace(KeyedRec rec, string image, RecordExtents? extents)
+    /// <summary>A cursor of tree <paramref name="key"/> positioned by <paramref name="relation"/> against
+    /// <paramref name="probe"/> — with <paramref name="prefix"/> the leading positions of each entry's KEY PART (a START's
+    /// partial key, §14.9.41.4 GR17 c) to e); an alternate tree's whole key value, which leaves out the ordinal) — or null
+    /// when there is no such tree.</summary>
+    public StoreStatus Seek(int key, IndexedKeyOrders orders, ReadOnlySpan<byte> probe, SeekRelation relation, bool prefix,
+        out BTree.Cursor? cursor)
     {
-        RecordBytes += FrameBytes(image, extents, rec.Ordinals.Length) - FrameBytes(rec.Image, rec.Extents, rec.Ordinals.Length);
-        Mutated();
-        rec.Image = image;
-        rec.Extents = extents;
+        cursor = null;
+        if (Tree(key, orders) is not { } tree) return StoreStatus.Ok;
+        var status = tree.Seek(probe, relation, out var c, prefix);
+        cursor = c;
+        return status;
     }
 
-    /// <summary>Remove a record (§14.9.10 DELETE); false when it was not in the store.</summary>
-    public bool Remove(KeyedRec rec)
+    /// <summary>A cursor on the first (<paramref name="last"/> false) or last entry of tree <paramref name="key"/>; null
+    /// when there is no such tree.</summary>
+    public StoreStatus Edge(int key, IndexedKeyOrders orders, bool last, out BTree.Cursor? cursor)
     {
-        if (!_recs.Remove(rec)) return false;
-        Mutated();
-        RecordBytes -= FrameBytes(rec.Image, rec.Extents, rec.Ordinals.Length);
-        return true;
+        cursor = null;
+        if (Tree(key, orders) is not { } tree) return StoreStatus.Ok;
+        var status = last ? tree.Last(out var c) : tree.First(out c);
+        cursor = c;
+        return status;
     }
 
-    /// <summary>Empty the store (OPEN OUTPUT, the absent-OPTIONAL creation, and the OPEN's reload).</summary>
-    public void Clear()
-    {
-        Mutated();
-        _recs.Clear();
-        RecordBytes = 0;
-    }
+    /// <summary>The key part and the release ordinal of an alternate tree's entry key (2.2.1.4).</summary>
+    public static (byte[] KeyPart, ulong Ordinal) Split(byte[] entry) =>
+        (entry[..^CompositeKeyOrder.OrdinalBytes],
+         BinaryPrimitives.ReadUInt64BigEndian(entry.AsSpan(entry.Length - CompositeKeyOrder.OrdinalBytes)));
+
+    // ── Changes: one statement each, n + 1 entries ──────────────────────────────────────────────────────────────
+
+    /// <summary>⛔ RELEASE a record (§14.9.51.4 GR40): its frame under its prime key and, for every alternate key with a
+    /// value in <paramref name="alternates"/> (null: the key's SUPPRESS WHEN value, §12.4.5.6.4 GR6, or a key the file has
+    /// no tree for), the entry (that value, the ONE fresh ordinal) → the prime key — n + 1 inserts in one statement, the
+    /// ordinal minted with it. <paramref name="frameOf"/> builds the frame from the ordinal; <paramref name="done"/> is
+    /// false when the prime key is present (nothing changes).</summary>
+    public StoreStatus Release(bool entered, IndexedKeyOrders orders, byte[] prime, Func<ulong, byte[]> frameOf,
+        IReadOnlyList<byte[]?> alternates, out bool done) =>
+        Change(entered, ordinals: 1, (_, ordinal) =>
+        {
+            var trees = new List<TreeChange>(alternates.Count + 1);
+            var primeTree = Tree(TreeChange.PrimeRoot, orders)!;
+            trees.Add(new TreeChange(primeTree, TreeChange.PrimeRoot));
+            var status = primeTree.Insert(prime, frameOf(ordinal), out bool inserted);
+            if (status != StoreStatus.Ok || !inserted) return new Edit(status, false, trees);
+            for (int i = 0; i < alternates.Count && i < AlternateTrees; i++)
+            {
+                if (alternates[i] is not { } value) continue;
+                var tree = Tree(i, orders)!;
+                trees.Add(new TreeChange(tree, i));
+                status = tree.Insert(CompositeKeyOrder.Compose(value, ordinal), prime, out bool _);
+                if (status != StoreStatus.Ok) return new Edit(status, false, trees);
+            }
+            return new Edit(StoreStatus.Ok, true, trees);
+        }, out done);
+
+    /// <summary>⛔ REPLACE a record (§14.9.35.4 GR24): its prime entry's frame and, per alternate key the REWRITE changed
+    /// (<paramref name="moves"/>), the old entry deleted (null: there was none — the old value was suppressed) and the new
+    /// one inserted under the ONE fresh ordinal when <paramref name="ordinals"/> mints it (null: the new value is
+    /// suppressed). A key the REWRITE did not change keeps its entry and its place among its duplicates (GR24 a)) because
+    /// nothing touches its tree. <paramref name="done"/> is false when the record does not exist.</summary>
+    public StoreStatus Replace(bool entered, IndexedKeyOrders orders, byte[] prime, Func<ulong, byte[]> frameOf, int ordinals,
+        IReadOnlyList<(int Key, byte[]? Old, byte[]? New)> moves, out bool done) =>
+        Change(entered, ordinals, (_, ordinal) =>
+        {
+            var trees = new List<TreeChange>(moves.Count + 1);
+            var primeTree = Tree(TreeChange.PrimeRoot, orders)!;
+            trees.Add(new TreeChange(primeTree, TreeChange.PrimeRoot));
+            var status = primeTree.Replace(prime, frameOf(ordinal), out bool replaced);
+            if (status != StoreStatus.Ok || !replaced) return new Edit(status, false, trees);
+            foreach (var (key, old, now) in moves)
+            {
+                if (key >= AlternateTrees) continue;
+                var tree = Tree(key, orders)!;
+                trees.Add(new TreeChange(tree, key));
+                if (old is not null && (status = tree.Delete(old, out bool _)) != StoreStatus.Ok) return new Edit(status, false, trees);
+                if (now is not null
+                    && (status = tree.Insert(CompositeKeyOrder.Compose(now, ordinal), prime, out bool _)) != StoreStatus.Ok)
+                    return new Edit(status, false, trees);
+            }
+            return new Edit(StoreStatus.Ok, true, trees);
+        }, out done);
+
+    /// <summary>⛔ REMOVE a record (§14.9.10.4 GR5): its prime entry and every alternate entry it has
+    /// (<paramref name="entries"/>, each an alternate tree's whole entry key) — n + 1 deletes in one statement.
+    /// <paramref name="done"/> is false when the record does not exist.</summary>
+    public StoreStatus Remove(bool entered, IndexedKeyOrders orders, byte[] prime, IReadOnlyList<(int Key, byte[] Entry)> entries,
+        out bool done) =>
+        Change(entered, ordinals: 0, (_, _) =>
+        {
+            var trees = new List<TreeChange>(entries.Count + 1);
+            var primeTree = Tree(TreeChange.PrimeRoot, orders)!;
+            trees.Add(new TreeChange(primeTree, TreeChange.PrimeRoot));
+            var status = primeTree.Delete(prime, out bool deleted);
+            if (status != StoreStatus.Ok || !deleted) return new Edit(status, false, trees);
+            foreach (var (key, entry) in entries)
+            {
+                if (key >= AlternateTrees) continue;
+                var tree = Tree(key, orders)!;
+                trees.Add(new TreeChange(tree, key));
+                if ((status = tree.Delete(entry, out bool _)) != StoreStatus.Ok) return new Edit(status, false, trees);
+            }
+            return new Edit(StoreStatus.Ok, true, trees);
+        }, out done);
 }

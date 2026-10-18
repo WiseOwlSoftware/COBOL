@@ -4,7 +4,7 @@ using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>A REAL medium (a connector's handle, through <c>RelativeStore.MediumObserver</c>) whose run unit DIES after a
+/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) whose run unit DIES after a
 /// named write: every write handed over before the death is on the medium, in order, and nothing after it is — what a
 /// process death leaves (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12: <i>"a process death keeps every write
 /// handed to the operating environment, in order"</i>). The connector above it runs on in the test process, but none of

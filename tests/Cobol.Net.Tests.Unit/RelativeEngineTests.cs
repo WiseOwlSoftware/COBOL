@@ -13,7 +13,7 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ THE RELATIVE ORGANIZATION ON THE KEYED STORE ENGINE, THROUGH ITS CONNECTOR (docs/rearchitecture/DESIGN-runtime-library.md
 /// section 2.2.1; kb/Work PB3333). The page layer's and the tree's own cases (PB3331, PB3332) run over an in-memory medium; these
 /// run the SAME rows through <see cref="RelativeConnector"/> and <see cref="FileRegistry"/> over a real file, with the
-/// fault injected under the connector's own handle (<see cref="RelativeStore.MediumObserver"/>):
+/// fault injected under the connector's own handle (<see cref="KeyedStore.MediumObserver"/>):
 /// <list type="bullet">
 ///   <item>2.2.1.16, "A changing statement (coherent)" and "(NO OTHER)", and "A promotion (CLOSE)": a process death after
 ///   EVERY write of a WRITE, a REWRITE, a DELETE and a CLOSE. The bar: the next OPEN reads the file as the last COMPLETED
@@ -138,14 +138,14 @@ public sealed class RelativeEngineTests
         {
             Seed(host);
             DyingPageMedium? medium = null;
-            RelativeStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+            KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             try
             {
                 Register(a, "A", host, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
-            finally { RelativeStore.MediumObserver.Value = null; }
+            finally { KeyedStore.MediumObserver.Value = null; }
             int before = medium!.Writes;
             Assert.Equal("00", Run(a, change));
             int statement = medium.Writes - before;
@@ -176,7 +176,7 @@ public sealed class RelativeEngineTests
             {
                 Seed(host);
                 DyingPageMedium? medium = null;
-                RelativeStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
+                KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
                 var a = new FileRegistry();
                 try
                 {
@@ -184,7 +184,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { KeyedStore.MediumObserver.Value = null; }
                 FileRegistry? b = null;
                 if (sharing != FileSharing.NoOther)
                 {
@@ -217,7 +217,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                KeyedStore.MediumObserver.Value = null;
                 TryDelete(host);
             }
         }
@@ -242,7 +242,7 @@ public sealed class RelativeEngineTests
             try
             {
                 Seed(host);
-                RelativeStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
                     write: _ => seen++ == refuseAt ? new IOException("refused by the host") : null);
                 var a = new FileRegistry();
                 try
@@ -251,7 +251,7 @@ public sealed class RelativeEngineTests
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
-                finally { RelativeStore.MediumObserver.Value = null; }
+                finally { KeyedStore.MediumObserver.Value = null; }
                 refuseAt = seen + i;
                 Assert.Equal("30", Run(a, change));
                 Assert.Equal("30", Write(a, "A", 7, "GGGG"));                   // replayed, nothing touched
@@ -274,7 +274,7 @@ public sealed class RelativeEngineTests
             }
             finally
             {
-                RelativeStore.MediumObserver.Value = null;
+                KeyedStore.MediumObserver.Value = null;
                 TryDelete(host);
             }
         }
