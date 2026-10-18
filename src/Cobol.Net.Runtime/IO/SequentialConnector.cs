@@ -1502,9 +1502,13 @@ public sealed class SequentialConnector : FileConnector
     /// GnuCOBOL (<c>cob_seq_write_opt</c> / <c>cob_file_write_opt</c>, libcob/fileio.c) writes a bare CARRIAGE
     /// RETURN for AFTER/BEFORE ADVANCING 0: the device goes back to the start of the line it stands on and does not
     /// feed (docs/CONFORMANCE.md "ADVANCING 0"; owner decision kb/Work R54, kb/Work PB1667).
-    /// <para>The return is written only when a line IS open (<see cref="DeviceLine.Open"/>): with none the device
-    /// already stands at the start of a line and there is nothing to overprint, so a zero is nothing — which is also
-    /// what the report writer's zero advance on a page it has printed nothing on asks for.</para></summary>
+    /// <para>The return is written only when a line IS open and the device stands after its text
+    /// (<see cref="DeviceLine.Open"/>): with none open the device already stands at the start of a line and there is
+    /// nothing to overprint, so a zero is nothing — which is also what the report writer's zero advance on a page it
+    /// has printed nothing on asks for — and a device already <see cref="DeviceLine.Returned"/> is at the start of
+    /// the open line, so a second zero writes none either. <see cref="Present"/> writes the same return for a
+    /// presentation onto an open line (kb/Work PB1840); the <see cref="DeviceLine.Returned"/> state is what keeps the
+    /// two from writing it twice.</para></summary>
     private void WriteTravel(int lines)
     {
         if (lines > 0) AdvanceLines(lines);
