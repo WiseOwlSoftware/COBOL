@@ -1,4 +1,4 @@
-## PB674: the floating-point numeric literal is refused below COBOL-2002; the START half was already gated by PB370
+## Entry 2179 — 2026-10-17 23:37 PDT — PB674: the floating-point numeric literal is refused below COBOL-2002; the START half was already gated by PB370
 
 PB674 held the 85-versus-2002 edge of three constructs the project could not date from the standard text it holds. Two had
 landed or were stale; one was a real under-reject.
@@ -41,3 +41,4 @@ reverse operators, relative and indexed) are PB370's goldens.
 fails on a new float token. silent-failure-hunter lens: the gate is skipped when `gateFormats` is false (a directive in an
 omitted branch), the same posture as the hexadecimal and zero-length gates; `gateFormats` true everywhere a unit is compiled.
 comment-analyzer lens: the construct description states the evidence and what would overturn it.
+
