@@ -569,6 +569,22 @@ public static class CellComponents
     public static IEnumerable<(DataItem Item, int At, Subscripts Fixed)> InLayout(DataItem group) =>
         Walk(group, c => LayoutOffset(group, c), 0, default);
 
+    /// <summary>⛔ THE ONE CONSTRUCTION OF A SCOPE'S WINDOW SHAPE (<c>CellGroupShape</c>, kb/Work PB244, PB3273): the fixed
+    /// run's width, and for each component of <paramref name="group"/> — enumerated by <paramref name="walk"/>, <see cref="Of"/>
+    /// for an item a storage class holds or <see cref="InLayout"/> for a description none holds — its position, its table
+    /// element width (0 for a dynamic-length item), its maximum, and, for a dynamic-capacity table whose elements are
+    /// themselves variable-length groups, the element's own shape one scope down. Null for a scope with no component.</summary>
+    public static CellGroupShape? ShapeOf(DataItem group,
+        Func<DataItem, IEnumerable<(DataItem Item, int At, Subscripts Fixed)>> walk)
+    {
+        var parts = walk(group).ToList();
+        return parts.Count == 0 ? null
+            : new CellGroupShape(group.ByteWidth, parts.Select(p => p.At).ToArray(),
+                parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToArray(),
+                parts.Select(p => p.Item.VariableComponentMax).ToArray(),
+                parts.Select(p => p.Item.IsDynamicTable && p.Item.IsGroup ? ShapeOf(p.Item, walk) : null).ToArray());
+    }
+
     /// <summary>The character offset of <paramref name="item"/>'s first occurrence within <paramref name="group"/> (one
     /// element of it, for a dynamic-capacity table), summed along the parent chain over the one placement walk.</summary>
     private static int LayoutOffset(DataItem group, DataItem item)
@@ -650,16 +666,8 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
     /// element is itself a variable-length group (a runtime-length item or a nested table inside it), else null: the
     /// element cell is a scope of its own, numbered from zero (<see cref="CellComponents"/>), so its image is
     /// composed with ITS shape (kb/Work PB244).</summary>
-    private static CellGroupShape? ElementShapeOf(DataItem table)
-    {
-        if (!table.IsGroup) return null;
-        var parts = CellComponents.Of(table).ToList();
-        return parts.Count == 0 ? null
-            : new CellGroupShape(table.ByteWidth, parts.Select(p => p.At).ToArray(),
-                parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToArray(),
-                parts.Select(p => p.Item.VariableComponentMax).ToArray(),
-                parts.Select(p => p.Item.IsDynamicTable ? ElementShapeOf(p.Item) : null).ToArray());
-    }
+    private static CellGroupShape? ElementShapeOf(DataItem table) =>
+        table.IsGroup ? CellComponents.ShapeOf(table, CellComponents.Of) : null;
 
     /// <summary>True when <paramref name="group"/> would take this coding.</summary>
     public static bool Applies(DataItem group) => group.IsGroup && CellComponents.Of(group).Any();
