@@ -31,11 +31,10 @@ internal sealed class KeyedStoreTable
 
     private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
 
-    /// <summary>Attach to the RELATIVE store for <paramref name="host"/>: the live store when one exists (its
-    /// content is the truth — no reload), else a fresh store opened by <paramref name="loadFirst"/> (which throws when
-    /// the OPEN cannot adopt the file, and then nothing is attached).</summary>
-    public RelativeStore AttachRelative(string host, Action<RelativeStore> loadFirst)
-        => Attach(host, () => { var s = new RelativeStore(); loadFirst(s); return s; });
+    /// <summary>Attach to the RELATIVE store for <paramref name="host"/>: the live store when one exists (its tree is
+    /// the truth — nothing is re-read), else a new store with no file, which the attaching connector opens through its
+    /// own handle (<see cref="RelativeStore.Open"/>; a failed OPEN detaches again).</summary>
+    public RelativeStore AttachRelative(string host) => Attach(host, () => new RelativeStore());
 
     /// <summary>Attach to the INDEXED store for <paramref name="host"/> — same contract.</summary>
     public IndexedStore AttachIndexed(string host, Action<IndexedStore> loadFirst)
