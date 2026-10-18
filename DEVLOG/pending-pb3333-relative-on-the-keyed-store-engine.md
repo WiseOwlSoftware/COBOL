@@ -69,3 +69,27 @@ now refuse every write and sync and kill after every write. (5) Three refused-st
 CLOSE promotes after a refused first statement; they now say it only syncs, and the new OPEN cases corrected two more rows
 (an unfinished creation leaves a file the next OPEN adopts as empty, not '30'). (6) A misquoted §9.1.13.5 item 4 was fixed.
 The review round's gate, run `TestResults/build-local/20261018T175021Z-266291`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,261/17,682 · Unit 33,887/34,247 · Characterization 5/36 in leg 1); every new case and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS.
+
+**The landing's stop and its finisher (review round 3, R3-1).** `enqueue.py land` merged origin/main (7f5d2dcf8) and its
+Linux legs went RED: 31 NIST programs (IX106A and RL101A to RL213A) matched their reports but their written relative files
+(`tf021.txt` and kin) differed from `tests/nist/valid-files`. The report called it a Linux-only difference. It was not:
+the same 31 programs fail on Windows (`differs from its golden at byte 0 (golden 62036 bytes, written 106496 bytes)` for
+RL101A). The goldens, captured by kb/Work PB804, hold the format-5 whole store, and this branch writes a relative file as
+the paged store. Nobody re-captured them because the Windows gate never ran them. Under batched gating (kb/Work PB2515)
+the gate runs leg 1 only, and with no impact map recorded (`plan.json` `map_state: none`) leg 1 is the cheapest two
+thirds of the population. All 31 `NistDifferentialTests` rows sat in `not-run-Conformance.txt`. Only the landing's Linux
+gate runs every leg, so only it could see them. The fix re-captures the 37 written files through the harness's own update
+path (`COBOLNET_UPDATE_NIST_FILES=1`, `NistOutputs.Capture`). Each program's report, which reads its records back, still
+matches, and that report is the authority on what the records hold (`NistOutputs`). A second Windows run grades all 31
+GREEN against the new bytes, and the Linux gate grades the same bytes, so one golden serves both hosts.
+The branch also carried PB3331 and PB3332 at their original implementer heads without their review fixes (kb/Work
+PB3380), so the reviewed link `worktree-wf_a49f0036-841-7` (14398a0e2) was merged first. In `PagedFile.cs`, the design's
+2.2.1.16 and `PendingStoreCases`, the engine side won: `Create`'s commit-slot creation with its §14.9.27.4 GR25 undo, and
+the boundary carried as `MediumSizeLimitException`, raised by `HandlePageMedium.Write` from `HostFile.IsFileSizeLimit`.
+This branch's `IsFileTooLarge` was a second reader of the host's codes, and it was deleted. Three inventory rows retire it
+as a witness (GR-9.1.13.5-4, GR-14.9.51.4-33, DOC-A.1-107). The connector side was re-applied on the new medium contract
+(`IPageMedium.Length` / `SetLength`, `StatementBound.Of`): the page cache, `Enter(exclusive)`, and the CLOSE that only
+syncs when nothing changed. The PB3333 tests moved with the engine. An OPEN OUTPUT refused before its last sync now leaves
+the previous records, which supersedes the round-1 text above ("adopted as empty"). The CLOSE path of the crash matrix
+changes A first, so the CLOSE still runs its promotion's reads. The cold-read witnesses drop the page cache. The host
+boundary's '24' gained its REWRITE case.
