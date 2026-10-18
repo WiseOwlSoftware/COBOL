@@ -68,7 +68,11 @@ public sealed class PendingStoreCases
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
         // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
         // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
-        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows.)
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the torn page's '30' through a compiled program,
+        // with and without a USE procedure and a FILE STATUS clause and the phrases ignored, in the Conformance project's
+        // RelativeEnginePermanentErrorWitnessTests; the phrases taken and not taken for '22', '23', '24' and '10' in the
+        // relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5- and 9.1.14-, pb1192_relative_write_boundary_85
+        // among them.)
         new("2.2.1.17", "A's statement ∥ B's statement through the INDEXED connector: alternate keys, ordinals, collations", "PB3334",
             "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",

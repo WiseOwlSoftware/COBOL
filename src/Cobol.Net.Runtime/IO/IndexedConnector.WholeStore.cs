@@ -40,7 +40,9 @@ public sealed partial class IndexedConnector
     private protected override void ReleaseAreas() => _areas = null;
 
     /// <inheritdoc/>
-    private protected override bool EnterStore()
+    /// <remarks>The whole store's entry only reads (the generation stamp, then a reload), so it is the same under either
+    /// hold.</remarks>
+    private protected override bool EnterStore(bool exclusive)
     {
         if (ReadGeneration() is { } stamped && stamped != _st.Generation) Reload(_st);
         _st.VersionAtEntry = _st.Version;

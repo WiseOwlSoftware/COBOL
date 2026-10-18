@@ -118,9 +118,12 @@ public sealed class RelativeConnector : KeyedConnector
 
     /// <inheritdoc/>
     /// <remarks>2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved
-    /// it (its roots, its ledger, the page cache dropped); a writer also takes the mints and resolves a PROMOTING flag.
-    /// A store with no file (an absent OPTIONAL file read INPUT) has nothing to enter.</remarks>
-    private protected override bool EnterStore() => _st.File is not { } file || file.Enter() == StoreStatus.Ok;
+    /// it (its roots, its ledger, the page cache dropped); a writer also takes the mints and, under an EXCLUSIVE hold,
+    /// resolves a PROMOTING flag. An INPUT connector entering the store a writable sibling opened holds the mutex shared
+    /// and leaves the flag to the next exclusive entry (<see cref="PagedFile.Enter"/>). A store with no file (an absent
+    /// OPTIONAL file read INPUT) has nothing to enter.</remarks>
+    private protected override bool EnterStore(bool exclusive) =>
+        _st.File is not { } file || file.Enter(exclusive) == StoreStatus.Ok;
 
     /// <inheritdoc/>
     private protected override string CompleteStore(string status) => status;
@@ -132,14 +135,22 @@ public sealed class RelativeConnector : KeyedConnector
     /// verb), so the change's own statement need not read it again.</summary>
     private bool Entered => _st.StatementDepth > 0;
 
-    /// <summary>The I-O status a store operation's failure answers: '24' for the boundary of the physical file
-    /// (§14.9.51.4 GR33 b), 2.2.1.9), otherwise §9.1.13.6 item 1's '30'; null on success.</summary>
-    private static string? Failed(StoreStatus status) => status switch
-    {
-        StoreStatus.Ok => null,
-        StoreStatus.Boundary => FileStatusCode.BoundaryViolation,
-        _ => FileStatusCode.PermanentError,
-    };
+    /// <summary>The I-O status a store operation's failure answers when the statement is not a record WRITE or REWRITE —
+    /// an OPEN's adoption or creation, a DELETE: §9.1.13.6 item 1's '30' (<i>"A permanent error exists and no further
+    /// information is available concerning the input-output operation"</i>) for every failure, the boundary of the
+    /// physical file included. The boundary's '24' is §9.1.13.5 item 4's <i>"An attempt is made to write outside the
+    /// externally-defined boundaries of a physical relative or indexed file"</i> — an attempt to WRITE a record — and
+    /// §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write pages the host refuses to grow the
+    /// file for is the permanent error and never the invalid key condition (docs/CONFORMANCE.md DOC-A.1-107). Null on
+    /// success.</summary>
+    private static string? Failed(StoreStatus status) =>
+        status == StoreStatus.Ok ? null : FileStatusCode.PermanentError;
+
+    /// <summary>The I-O status a record WRITE's or REWRITE's store failure answers: '24' for the boundary of the physical
+    /// file (§9.1.13.5 item 4, §14.9.51.4 GR33 b), 2.2.1.9; DOC-A.1-107), otherwise <see cref="Failed"/>'s '30'; null on
+    /// success.</summary>
+    private static string? RecordWriteFailed(StoreStatus status) =>
+        status == StoreStatus.Boundary ? FileStatusCode.BoundaryViolation : Failed(status);
 
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
@@ -474,7 +485,7 @@ public sealed class RelativeConnector : KeyedConnector
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var written = _st.Insert(slot, frame, Entered, out bool inserted);
-        if (Failed(written) is { } refused) return Status = refused;       // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
+        if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
@@ -535,7 +546,7 @@ public sealed class RelativeConnector : KeyedConnector
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         var replaced = _st.Replace(slot, frame, Entered, out bool done);
-        if (Failed(replaced) is { } refused) return Status = refused;      // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
@@ -554,7 +565,7 @@ public sealed class RelativeConnector : KeyedConnector
         long slot = sequential ? _lastSlot : _pendingKey;
         if (slot < 1) return Status = FileStatusCode.RecordNotFound;
         var deleted = _st.Delete(slot, Entered, out bool done);
-        if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1
+        if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
