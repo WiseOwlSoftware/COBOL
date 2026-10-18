@@ -764,8 +764,10 @@ public sealed class OoSpineTests
 
     /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
-    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269. A driver WS argument
-    /// (SR 9) crosses BY REFERENCE and the callee's write IS visible.</summary>
+    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269 on every receiver: a typed
+    /// one, the predefined NULL (an object reference, §8.4.3.7.3 SR2) and a universal one, through which SR6 makes even
+    /// a bare argument BY REFERENCE. A driver WS argument (SR 9) crosses BY REFERENCE and the callee's write IS
+    /// visible.</summary>
     [Fact]
     public void ObjectData_AutoContent_Sr10()
     {
@@ -784,11 +786,13 @@ public sealed class OoSpineTests
             PROCEDURE DIVISION.
             METHOD-ID. RUNIT.
             DATA DIVISION.
+            LOCAL-STORAGE SECTION.
+            01 LU USAGE OBJECT REFERENCE.
             LINKAGE SECTION.
             01 LK-SELF USAGE OBJECT REFERENCE {C}.
             PROCEDURE DIVISION USING LK-SELF.
             MAIN.
-                INVOKE LK-SELF "BUMP" USING {REF}OD.
+                INVOKE {RECV} "BUMP" USING {REF}OD.
                 DISPLAY "OD=" OD.
             END METHOD RUNIT.
             METHOD-ID. BUMP.
@@ -823,14 +827,18 @@ public sealed class OoSpineTests
             END PROGRAM {P}.
 
             """;
-        var (ok, stdout, detail) = CompileAndRun(
-            (drv + cls).Replace("{P}", "OOSP19").Replace("{C}", "OSPC19").Replace("{REF}", ""));
+        string Program(string p, string c, string receiver, string byReference) =>
+            (drv + cls).Replace("{P}", p).Replace("{C}", c).Replace("{RECV}", receiver).Replace("{REF}", byReference);
+        var (ok, stdout, detail) = CompileAndRun(Program("OOSP19", "OSPC19", "LK-SELF", ""));
         Assert.True(ok, detail);
         // OD unchanged (auto-CONTENT — SR 10); the driver's WS item updated (BY REFERENCE — SR 9).
         Assert.Equal("OD=05\nWN=06", CutRunner.Normalize(stdout));
-        EditionHarness.AssertHasDiagnostic(ErrorsOf(
-            (drv + cls).Replace("{P}", "OOSP20").Replace("{C}", "OSPC20").Replace("{REF}", "BY REFERENCE ")),
-            "COBOLNET4269");   // SR10's own code (kb/Work PB1136)
+        // SR10's own code on every receiver lane (kb/Work PB1136): typed, NULL, and universal (bare = BY REFERENCE, SR6).
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20", "OSPC20", "LK-SELF", "BY REFERENCE ")),
+            "COBOLNET4269");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20N", "OSPC20N", "NULL", "BY REFERENCE ")),
+            "COBOLNET4269");
+        EditionHarness.AssertHasDiagnostic(ErrorsOf(Program("OOSP20U", "OSPC20U", "LU", "")), "COBOLNET4269");
     }
 
     /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
@@ -1737,7 +1745,7 @@ public sealed class OoSpineTests
     /// dispatch, no collision. A factory METHOD-ID named NEW in a BASE subclass without OVERRIDE is the §11.7.3
     /// SR4 a) 0837 (kb/Work PB1582); INVOKE class-name
     /// of a method in NEITHER factory roster is the SR3 0825; SUPER in a ROOT class's factory method is the
-    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (0828).</summary>
+    /// trap-#7 0827 (factory flavor); a BY REFERENCE argument reading FACTORY WS violates SR 10 (COBOLNET4269).</summary>
     [Fact]
     public void Factory_DualRoster_AndDiagnosticBand()
     {
@@ -1865,7 +1873,7 @@ public sealed class OoSpineTests
             END METHOD DRIVE.
             END FACTORY.
             END CLASS OSPC40.
-            """), "COBOLNET0828");
+            """), "COBOLNET4269");   // SR10's own code (kb/Work PB1136); FW and LN otherwise conform
     }
 
     /// <summary>FACTORY is a legal USER WORD at COBOL-85 (§8.9 reserves it only from 2002) — the continuity

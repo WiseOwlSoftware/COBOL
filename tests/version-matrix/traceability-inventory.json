@@ -38018,10 +38018,10 @@
   "rule-digest": "924c3eb76f9b",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindInvocationArg; src/Cobol.Net.Compiler/Binding/Procedure/Verbs/OoBinder.cs#OoBindUniversalInvoke; src/Cobol.Net.Compiler/Binding/DataBinder.Oo.cs#OoIsClassUnit",
-  "test-ref": "conformance-test:OoSpineTests.ObjectData_AutoContent_Sr10",
+  "test-ref": "conformance-test:OoSpineTests.ObjectData_AutoContent_Sr10; conformance-test:OoSpineTests.Factory_DualRoster_AndDiagnosticBand",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "Rule: 'Identifier-3 shall not reference a data item defined in the file or working-storage section of a factory or instance object.' (--check OK §14.9.23.3 10)). ctx.Data.OoIsObjectData (a class-unit root that is not method-scoped) drives: explicit BY REFERENCE of object data -> 0828 citing SR10; a bare object-data argument is identifier-5 by GR6 a)2 (BY CONTENT) - probe pd6: PASSOBJ's INVOKE SELF \"TAKE\" USING OBJ-WS, callee MOVE \"CHG\" invisible, AFTER=OBJWS; the universal path, which has no CONTENT fallback (SR6), refuses object data 0866. Method-scoped WS/LS/linkage stay eligible. The covering test asserts both directions from the rule. || editions as adjudicated: 2002, 2014, 2023 (INVOKE and the OO module are a COBOL-2002 introduction; Annex E lists no 2014->2023 change to this rule, so the 2023 text is also the 2014 text)",
+  "notes": "Rule: 'Identifier-3 shall not reference a data item defined in the file or working-storage section of a factory or instance object.' (--check OK §14.9.23.3 10)). ctx.Data.OoIsObjectData (a class-unit root that is not method-scoped) drives: explicit BY REFERENCE of object data through a typed receiver or NULL -> COBOLNET4269 citing SR10 (kb/Work PB1136; it was the generic 0828); a bare object-data argument is identifier-5 by GR6 a)2 (BY CONTENT) - probe pd6: PASSOBJ's INVOKE SELF \"TAKE\" USING OBJ-WS, callee MOVE \"CHG\" invisible, AFTER=OBJWS; the universal path, which has no CONTENT fallback (SR6), refuses object data COBOLNET4269 (it was 0866); ObjectData_AutoContent_Sr10 asserts the typed, NULL and universal lanes, Factory_DualRoster_AndDiagnosticBand the factory-WS case. Method-scoped WS/LS/linkage stay eligible. The covering test asserts both directions from the rule. || editions as adjudicated: 2002, 2014, 2023 (INVOKE and the OO module are a COBOL-2002 introduction; Annex E lists no 2014->2023 change to this rule, so the 2023 text is also the 2014 text)",
   "state": "OK"
  },
  {
