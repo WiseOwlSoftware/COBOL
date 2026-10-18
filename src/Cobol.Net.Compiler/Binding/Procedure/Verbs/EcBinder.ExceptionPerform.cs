@@ -3,7 +3,6 @@
 using Antlr4.Runtime.Tree;
 using CobolNet.Binding.Bound;
 using CobolNet.Binding.Model;
-using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 using CobolNet.Runtime.Exceptions;
@@ -41,14 +40,14 @@ internal sealed partial class EcBinder
         // PF3-STRUCT-WHEN-REQUIRED (COBOLNET1597): ≥1 ordinary WHEN — the outer brace is a required group in the
         // §14.9.28.2 Format-3 general format (PDF-resolved). WHEN OTHER / WHEN COMMON / FINALLY alone is not admitted.
         if (whenPhrases.Length == 0)
-            ctx.Edition.Error("COBOLNET1597", "an exception-checking (Format-3) PERFORM requires at least one WHEN "
+            ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformWhenRequired, "an exception-checking (Format-3) PERFORM requires at least one WHEN "
                 + "phrase (ISO §14.9.28.2 Format 3)");
 
         // Resolve each WHEN's operands (mode / exception-name / file) → the descriptor header, the GR14 overlay
         // enables, and the SR14/SR15 operand census.
         var headers = new List<(string? Mode, List<BoundWhenOperand> Ops)>();
         var overlay = new List<(string Ec, string? File)>();
-        var census = new List<(string? Ec, string? File)>();
+        var census = new List<WhenOperandSite>();
         foreach (var w in whenPhrases)
             headers.Add(ResolveWhenOperands(w, overlay, census));
 
@@ -155,7 +154,7 @@ internal sealed partial class EcBinder
     /// enforce SR16 (a FILE-paired name shall begin EC-I-O), and the per-name edition window. Contributes GR14
     /// overlay enables and the SR14/SR15 census.</summary>
     private (string? Mode, List<BoundWhenOperand> Ops) ResolveWhenOperands(
-        Core.PerformWhenPhraseContext w, List<(string, string?)> overlay, List<(string?, string?)> census)
+        Core.PerformWhenPhraseContext w, List<(string, string?)> overlay, List<WhenOperandSite> census)
     {
         var ops = new List<BoundWhenOperand>();
 
@@ -184,7 +183,7 @@ internal sealed partial class EcBinder
                 {
                     ops.Add(new BoundWhenOperand(null, f));
                     overlay.Add(("EC-I-O", f.CobolName));
-                    census.Add((null, f.CobolName));
+                    census.Add(new(null, f.CobolName, fn.Start));
                 }
             return (null, ops);
         }
@@ -199,7 +198,8 @@ internal sealed partial class EcBinder
             if (files.Length > 0 && !ExceptionCatalog.IsIoName(info.Name))
             {
                 // PF3-SR16 (COBOLNET1601): if file-name-2 is specified, exception-name-2 shall begin 'EC-I-O'.
-                ctx.Edition.Error("COBOLNET1601", $"WHEN exception-name '{info.Name}' is paired with FILE but does "
+                using var at = ctx.Edition.At(item);
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFilePairingNotIo, $"WHEN exception-name '{info.Name}' is paired with FILE but does "
                     + "not begin with the COBOL characters 'EC-I-O' (ISO §14.9.28.3 SR16)");
                 continue;
             }
@@ -207,7 +207,7 @@ internal sealed partial class EcBinder
             {
                 ops.Add(new BoundWhenOperand(info.Name, null));
                 overlay.Add((info.Name, null));
-                census.Add((info.Name, null));
+                census.Add(new(info.Name, null, item.Start));
                 continue;
             }
             foreach (var fn in files)
@@ -215,7 +215,7 @@ internal sealed partial class EcBinder
                 {
                     ops.Add(new BoundWhenOperand(info.Name, f));
                     overlay.Add((info.Name, f.CobolName));
-                    census.Add((info.Name, f.CobolName));
+                    census.Add(new(info.Name, f.CobolName, fn.Start));
                 }
         }
         return (null, ops);
@@ -228,29 +228,67 @@ internal sealed partial class EcBinder
         return null;
     }
 
+    /// <summary>One WHEN operand as the SR14/SR15 census counts it: the exception-name and/or file-name it names, and
+    /// the token a repeat is reported at (the operand itself, not the PERFORM that contains it).</summary>
+    private readonly record struct WhenOperandSite(string? Ec, string? File, Antlr4.Runtime.IToken At);
+
     /// <summary>PF3-SR14 (COBOLNET1599) — a file-name shall not appear more than once across the WHEN phrases
     /// unless every instance is paired with an exception-name (§14.9.28.3 SR14). PF3-SR15 (COBOLNET1600) — an
     /// exception-name shall appear only once unless each occurrence pairs a DIFFERENT file-name (§14.9.28.3
-    /// SR15).</summary>
-    private void CheckSr14Sr15(List<(string? Ec, string? File)> census)
+    /// SR15). Each rule is a predicate over one name's instances; a group that breaks it is reported once, at its
+    /// <see cref="FirstOffender"/>.</summary>
+    private void CheckSr14Sr15(List<WhenOperandSite> census)
     {
         // SR14: group by file-name; a file that appears >1 time with ANY bare (unpaired) instance is illegal.
         foreach (var g in census.Where(c => c.File is not null).GroupBy(c => c.File!, CobolNames.Comparer))
-            if (g.Count() > 1 && g.Any(c => c.Ec is null))
-                ctx.Edition.Error("COBOLNET1599", $"file-name '{g.Key.ToUpperInvariant()}' is specified in more than one WHEN phrase "
+            if (FirstOffender(g, inst => inst.Count <= 1 || inst.All(c => c.Ec is not null)) is { } offender)
+            {
+                using var at = ctx.Edition.At(offender);
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFileNameRepeated, $"file-name '{g.Key.ToUpperInvariant()}' is specified in more than one WHEN phrase "
                     + "without an exception-name pairing (ISO §14.9.28.3 SR14)");
+            }
 
         // SR15: an exception-name may repeat ONLY "in conjunction with different file-names". A repeat is illegal
         // if ANY occurrence is bare (no file — not "in conjunction with a file-name"), or two occurrences share a
         // file. A bare occurrence's null is NOT a licensing "distinct file-name" (so bare+FILE-paired same name is
         // rejected, not just bare+bare).
         foreach (var g in census.Where(c => c.Ec is not null).GroupBy(c => c.Ec!, CobolNames.Comparer))
-        {
-            if (g.Count() <= 1) continue;
-            var files = g.Select(c => c.File).ToList();
-            if (files.Any(f => f is null) || files.Select(f => f!).Distinct(CobolNames.Comparer).Count() != files.Count)
-                ctx.Edition.Error("COBOLNET1600", $"exception-name '{g.Key.ToUpperInvariant()}' is specified more than once without a "
+            if (FirstOffender(g, inst => inst.Count <= 1 || (inst.All(c => c.File is not null)
+                    && inst.Select(c => c.File!).Distinct(CobolNames.Comparer).Count() == inst.Count)) is { } offender)
+            {
+                using var at = ctx.Edition.At(offender);
+                ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformExceptionNameRepeated, $"exception-name '{g.Key.ToUpperInvariant()}' is specified more than once without a "
                     + "distinct file-name (ISO §14.9.28.3 SR15)");
+            }
+    }
+
+    /// <summary>The operand at which one name's WHEN instances FIRST break <paramref name="legal"/>, read in source
+    /// order (kb/Work PB1154 review R1-1): the instances before it obey the rule, so it is the one that breaks it.
+    /// SR14 and SR15 only grow more violated as instances are added, so a group is illegal exactly when it has an
+    /// offender. "The second instance" is not the offender: in WHEN EC-I-O FILE F1 / FILE F2 / FILE F1 the second is
+    /// legal and the third breaks SR15. Null when the whole group obeys the rule.</summary>
+    private static Antlr4.Runtime.IToken? FirstOffender(IEnumerable<WhenOperandSite> instances,
+        Func<IReadOnlyList<WhenOperandSite>, bool> legal)
+    {
+        var ordered = instances.OrderBy(c => c.At.TokenIndex).ToList();
+        for (int n = 2; n <= ordered.Count; n++)
+            if (!legal(ordered.GetRange(0, n))) return ordered[n - 1].At;
+        return null;
+    }
+
+    /// <summary>⛔ ONE REPORTER FOR EVERY CROSS-STATEMENT BAN (kb/Work PB1154): each statement of type
+    /// <typeparamref name="TStmt"/> in <paramref name="region"/> that <paramref name="offends"/> is reported under
+    /// <paramref name="rule"/> AT THAT STATEMENT. The bans run after imperative-statement-1 has bound, so the
+    /// diagnostic cursor is back at the PERFORM — every ban used to print the PERFORM's line and column, and two
+    /// offending statements in one PERFORM were one de-duplicated report. A new ban is one more call, and positions
+    /// itself.</summary>
+    private void Ban<TStmt>(IEnumerable<IParseTree> region, Func<TStmt, bool> offends,
+        DiagnosticDescriptor rule, string message) where TStmt : Antlr4.Runtime.ParserRuleContext
+    {
+        foreach (var stmt in region.SelectMany(Descendants<TStmt>).Where(offends))
+        {
+            using var at = ctx.Edition.At(stmt);
+            ctx.Edition.Error(rule, message);
         }
     }
 
@@ -277,24 +315,24 @@ internal sealed partial class EcBinder
         // construct stack (ctx.Enclosing.InExceptionCheckingPerform). Splitting it left sentence 1 with no home
         // at all: an EXIT PERFORM outside every PERFORM compiled clean and emitted a bare `break;` that spun the
         // pc dispatcher forever. A rule written down in two places is how one of the two ends up empty.
-        foreach (var init in regionB.SelectMany(Descendants<Core.InitiateStatementContext>).Where(s => s.reportName().Length > 1))
-            ctx.Edition.Error("COBOLNET1605", "an INITIATE naming more than one report-name shall not appear within "
-                + "an exception-checking PERFORM (ISO §14.9.21.3 SR3)");
-        foreach (var term in regionB.SelectMany(Descendants<Core.TerminateStatementContext>).Where(s => s.reportName().Length > 1))
-            ctx.Edition.Error("COBOLNET1606", "a TERMINATE naming more than one report-name shall not appear within "
-                + "an exception-checking PERFORM (ISO §14.9.46.3 SR3)");
-        foreach (var val in regionB.SelectMany(Descendants<Core.ValidateFacilityStatementContext>).Where(s => s.dataReference().Length > 1))
-            ctx.Edition.Error("COBOLNET1607", "a VALIDATE naming more than one identifier shall not appear within an "
-                + "exception-checking PERFORM (ISO §14.9.50.3 SR6)");
+        Ban<Core.InitiateStatementContext>(regionB, s => s.reportName().Length > 1,
+            DiagnosticCatalog.ExceptionPerformInitiateMultiReport, "an INITIATE naming more than one report-name shall not "
+            + "appear within an exception-checking PERFORM (ISO §14.9.21.3 SR3)");
+        Ban<Core.TerminateStatementContext>(regionB, s => s.reportName().Length > 1,
+            DiagnosticCatalog.ExceptionPerformTerminateMultiReport, "a TERMINATE naming more than one report-name shall not "
+            + "appear within an exception-checking PERFORM (ISO §14.9.46.3 SR3)");
+        Ban<Core.ValidateFacilityStatementContext>(regionB, s => s.dataReference().Length > 1,
+            DiagnosticCatalog.ExceptionPerformValidateMultiIdentifier, "a VALIDATE naming more than one identifier shall not "
+            + "appear within an exception-checking PERFORM (ISO §14.9.50.3 SR6)");
 
         // ── Region A (imperative-statement-1 only) ──
         // XS-DELETE-FILE-MULTI (§14.9.10.3 SR4) went LIVE with the Format-2 grammar (kb/Work PB134).
-        foreach (var dfm in regionA.SelectMany(Descendants<Core.DeleteFileStatementContext>).Where(s => s.fileName().Length > 1))
-            ctx.Edition.Error("COBOLNET1613", "a DELETE FILE naming more than one file-name shall not appear in "
-                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.10.3 SR4)");
-        foreach (var cl in regionA.SelectMany(Descendants<Core.CloseStatementContext>).Where(s => s.closeFilePhrase().Length > 1))
-            ctx.Edition.Error("COBOLNET1612", "a multi-file CLOSE shall not appear in imperative-statement-1 of an "
-                + "exception-checking PERFORM (ISO §14.9.6.3 SR3)");
+        Ban<Core.DeleteFileStatementContext>(regionA, s => s.fileName().Length > 1,
+            DiagnosticCatalog.ExceptionPerformDeleteFileMulti, "a DELETE FILE naming more than one file-name shall not "
+            + "appear in imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.10.3 SR4)");
+        Ban<Core.CloseStatementContext>(regionA, s => s.closeFilePhrase().Length > 1,
+            DiagnosticCatalog.ExceptionPerformCloseMultiFile, "a multi-file CLOSE shall not appear in imperative-statement-1 "
+            + "of an exception-checking PERFORM (ISO §14.9.6.3 SR3)");
         // ⛔ §14.9.20.3 SR2 AND §14.9.27.3 SR3 COUNT THE METAVARIABLE'S OCCURRENCES, NOT REPEATED VALUES
         // (kb/Work PB330, PB417). "Identifier-1 shall be specified only once" and "An OPEN statement that
         // specifies file-name-1 more than once" speak of the FORMAT TERM, which the general format repeats with
@@ -307,35 +345,33 @@ internal sealed partial class EcBinder
         // group the operands' parse TEXT for duplicates, so `INITIALIZE N M` and `OPEN OUTPUT F1 F2` compiled,
         // and one item spelled two ways (`N OF G` / `N IN G`) slipped past even the duplicate reading. A
         // duplicate is still rejected: it is one case of "more than once".
-        foreach (var ini in regionA.SelectMany(Descendants<Core.InitializeStatementContext>)
-                     .Where(s => s.initializeOperandList().receivingIdentifier().Length > 1))
-            ctx.Edition.Error("COBOLNET1614", "an INITIALIZE naming more than one identifier-1 shall not appear in "
-                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.20.3 SR2)");
-        foreach (var _ in regionA.SelectMany(Descendants<Core.MergeStatementContext>))
-            ctx.Edition.Error("COBOLNET1615", "MERGE shall not appear in imperative-statement-1 of an "
-                + "exception-checking PERFORM (ISO §14.9.24.3 SR1)");
+        Ban<Core.InitializeStatementContext>(regionA, s => s.initializeOperandList().receivingIdentifier().Length > 1,
+            DiagnosticCatalog.ExceptionPerformInitializeMulti, "an INITIALIZE naming more than one identifier-1 shall not "
+            + "appear in imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.20.3 SR2)");
+        Ban<Core.MergeStatementContext>(regionA, _ => true,
+            DiagnosticCatalog.ExceptionPerformMerge, "MERGE shall not appear in imperative-statement-1 of an "
+            + "exception-checking PERFORM (ISO §14.9.24.3 SR1)");
         // Counted over EVERY open-mode group: the outer ellipsis repeats the whole group, so file-name-1 is
         // specified more than once whenever the statement names two file-names in any groups (see above).
-        foreach (var _ in regionA.SelectMany(Descendants<Core.OpenStatementContext>)
-                     .Where(s => s.openClause().Sum(oc => oc.openFileSpec().Length) > 1))
-            ctx.Edition.Error("COBOLNET1616", "an OPEN naming more than one file-name shall not appear in "
-                + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.27.3 SR3)");
+        Ban<Core.OpenStatementContext>(regionA, s => s.openClause().Sum(oc => oc.openFileSpec().Length) > 1,
+            DiagnosticCatalog.ExceptionPerformOpenMulti, "an OPEN naming more than one file-name shall not appear in "
+            + "imperative-statement-1 of an exception-checking PERFORM (ISO §14.9.27.3 SR3)");
         // ⛔ SR3 IS PRINTED UNDER THE `FORMAT 1` HEADING (§14.9.40.3: SR3-SR12 are Format 1, SR13-SR15 Format 2), so the
         // ban is on the FILE-format SORT; a table SORT is legal here and no other rule restricts where it may appear.
         // The parse node is shared by both formats and the split is semantic (SortBinder.IsFileFormat, kb/Work PB1139).
-        foreach (var _ in regionA.SelectMany(Descendants<Core.SortStatementContext>).Where(s => SortBinder.IsFileFormat(ctx, s)))
-            ctx.Edition.Error("COBOLNET1617", "SORT shall not appear in imperative-statement-1 of an "
-                + "exception-checking PERFORM (ISO §14.9.40.3 SR3)");
+        Ban<Core.SortStatementContext>(regionA, s => SortBinder.IsFileFormat(ctx, s),
+            DiagnosticCatalog.ExceptionPerformFileSort, "SORT shall not appear in imperative-statement-1 of an "
+            + "exception-checking PERFORM (ISO §14.9.40.3 SR3)");
 
         // ── Region C (WHEN phrases) ──
-        foreach (var _ in whenBodies.SelectMany(Descendants<Core.GoToStatementContext>))
-            ctx.Edition.Error("COBOLNET1608", "GO TO shall not appear in a WHEN phrase of an exception-checking "
-                + "PERFORM (ISO §14.9.17.3 SR3)");
+        Ban<Core.GoToStatementContext>(whenBodies, _ => true,
+            DiagnosticCatalog.ExceptionPerformGoToInWhen, "GO TO shall not appear in a WHEN phrase of an exception-checking "
+            + "PERFORM (ISO §14.9.17.3 SR3)");
 
         // ── Region D (imperative-statement 2..5) ──
-        foreach (var _ in regionD.SelectMany(Descendants<Core.RaiseStatementContext>))
-            ctx.Edition.Error("COBOLNET1611", "RAISE shall appear only in imperative-statement-1 of an "
-                + "exception-checking PERFORM (ISO §14.9.29.3 SR4)");
+        Ban<Core.RaiseStatementContext>(regionD, _ => true,
+            DiagnosticCatalog.ExceptionPerformRaiseOutsideImp1, "RAISE shall appear only in imperative-statement-1 of an "
+            + "exception-checking PERFORM (ISO §14.9.29.3 SR4)");
 
         // ── Region E (imperative-statement-5, the FINALLY phrase) ──
         // §14.9.28.4 GR16: "There shall be no statements that include a transfer of control out of the PERFORM
@@ -348,7 +384,7 @@ internal sealed partial class EcBinder
         // stays admitted — GR16's third sentence gives it the implicit CONTINUE after END-PERFORM.
         foreach (var transfer in finallyBody.SelectMany(TransfersOut))
         {
-            using var at = ctx.Edition.At(new DiagnosticCursor(transfer.Start.Line, transfer.Start.Column + 1));   // the statement, not the PERFORM
+            using var at = ctx.Edition.At(transfer);   // the statement, not the PERFORM
             ctx.Edition.Error(DiagnosticCatalog.ExceptionPerformFinallyTransferOut,
                 $"'{DataBinder.WrittenText(transfer)}' transfers control out of the PERFORM statement, and it is written "
                 + "in the FINALLY phrase (imperative-statement-5) of an exception-checking PERFORM (ISO §14.9.28.4 GR16)");

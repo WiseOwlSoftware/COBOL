@@ -353,7 +353,7 @@ internal sealed partial class ControlFlowBinder(BinderContext ctx, StatementBind
             // and is legal — which is also what the emitter's innermost-wins F3Region tracking already does.
             if (e.CYCLE() is not null && where.InExceptionCheckingPerform)
             {
-                return BoundRejected.Report(ctx.Edition, "COBOLNET1604", "EXIT PERFORM CYCLE shall not appear within an exception-checking "
+                return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ExitPerformCycleInExceptionPerform, "EXIT PERFORM CYCLE shall not appear within an exception-checking "
                     + "PERFORM (ISO §14.9.14.3 SR8)");
             }
             return new BoundExitPerform(e.CYCLE() is not null);
