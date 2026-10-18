@@ -58,11 +58,26 @@ public sealed class ClosedFormatReservedWordTests
         // section paragraph — the configuration-section case below.)
         { "object-computer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. GLOBAL.\n" + Proc,
           "COBOLNET1970", "'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // §12.3.5.2 / §12.3.6.2 AFTER the computer-name (kb/Work PB3370): XYZ could be the name or an unrecognized
+        // configuration paragraph, both readings fail at GLOBAL, and the error-time prediction used to take the
+        // configuration section's (a bare COBOL0307). The paragraphs' superset-parsed second period makes the name win.
+        { "source-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ GLOBAL.\n" + Proc,
+          "COBOLNET1970", "'GLOBAL' is not a clause of the SOURCE-COMPUTER paragraph" },
+        { "object-computer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ GLOBAL.\n" + Proc,
+          "COBOLNET1970", "'GLOBAL' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // ... and after an unrecognized word run, where no list loop of the format's own is left to Sync: the residue
+        // continues inside the production (CobolErrorStrategy reads the parser's own call of it).
+        { "source-computer-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.\n" + Proc,
+          "COBOLNET1970", "'GLOBAL' is not a clause of the SOURCE-COMPUTER paragraph" },
         // §12.3.2 — the configuration section's PARAGRAPH list.
         { "configuration-section", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       GLOBAL.\n" + Proc,
           "COBOLNET1971", "'GLOBAL' is not a paragraph of the CONFIGURATION SECTION" },
+        { "configuration-section-after-residue", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       WIBBLE GLOBAL.\n" + Proc,
+          "COBOLNET1971", "'GLOBAL' is not a paragraph of the CONFIGURATION SECTION" },
         // §11.2.1 — the identification division's PARAGRAPH list.
         { "identification", Head + "       GLOBAL.\n" + Proc,
+          "COBOLNET1971", "'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION" },
+        { "identification-after-residue", Head + "       WIBBLE GLOBAL.\n" + Proc,
           "COBOLNET1971", "'GLOBAL' is not a paragraph of the IDENTIFICATION DIVISION" },
     };
 
@@ -85,6 +100,36 @@ public sealed class ClosedFormatReservedWordTests
         var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n" + Proc);
         Assert.Contains(errors, e => e.Contains("error COBOL0307: ") && e.Contains("'PROCEDURE'"));
         Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1941"));
+    }
+
+    /// <summary>A computer-name with its second period missing before the next paragraph header is a MISSING PERIOD,
+    /// refused by name (COBOLNET3408, kb/Work PB3370) — never "OBJECT-COMPUTER is not a clause".</summary>
+    [Fact]
+    public void ComputerNameWithoutItsPeriod_IsTheMissingPeriod()
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ\n"
+            + "       OBJECT-COMPUTER. XYZ.\n" + Proc);
+        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error COBOLNET3408: SOURCE-COMPUTER paragraph: it ends after 'XYZ' without a separator period", errors[0]);
+    }
+
+    /// <summary>A stray token right before a superset-parsed period is deleted as it would be before a required one
+    /// (kb/Work PB3370): the paragraph keeps its period, and the error in the NEXT paragraph is still reported rather
+    /// than swallowed by a recovery several divisions up.</summary>
+    [Theory]
+    [InlineData("SOURCE-COMPUTER. XYZ ) .")]
+    [InlineData("OBJECT-COMPUTER. XYZ ) .")]
+    [InlineData("SOURCE-COMPUTER. ) .")]
+    public void StrayTokenBeforeAnOptionalPeriod_IsDeleted_AndTheNextErrorStillReported(string paragraph)
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       " + paragraph + "\n"
+            + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\" ) .\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc);
+        Assert.True(errors.Count == 2, $"expected two diagnostics, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("(5,", errors[0]);
+        Assert.Contains("error COBOL0307: unexpected ')'", errors[0]);
+        Assert.Contains("(8,", errors[1]);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET3408"));
     }
 
     /// <summary>A paragraph header written out of order (I-O-CONTROL before FILE-CONTROL) is a structure error; its
