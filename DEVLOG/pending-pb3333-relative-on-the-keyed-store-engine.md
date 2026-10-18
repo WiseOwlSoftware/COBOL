@@ -93,3 +93,5 @@ syncs when nothing changed. The PB3333 tests moved with the engine. An OPEN OUTP
 the previous records, which supersedes the round-1 text above ("adopted as empty"). The CLOSE path of the crash matrix
 changes A first, so the CLOSE still runs its promotion's reads. The cold-read witnesses drop the page cache. The host
 boundary's '24' gained its REWRITE case.
+
+The finisher's gates, on 9d9de113a (origin/main merged clean): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `TestResults/build-local/20261018T191446Z-5c0b9c`: Conformance 11,420/17,815 · Unit 33,976/34,302 · Characterization 5/36 in leg 1) and `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 9d9de113a) ===` (conformance 17,815/17,815; guard: 362 MATCH, 0 regressions, IX106A and RL101A..RL213A among them).
