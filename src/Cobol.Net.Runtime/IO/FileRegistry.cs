@@ -529,7 +529,7 @@ public sealed class FileRegistry
     /// <summary>
     /// ISO §12.4.5.3 GR3, reached from §14.9.27.4 GR26 — THE ONE PLACE a statement establishes the connector's
     /// association with a physical file, with EXACTLY ONE caller — <see cref="OpenCore"/>, the single OPEN dispatch
-    /// that <see cref="Open"/>, <see cref="OpenNoRewind"/>, <see cref="OpenShared"/> and the emitted SORT/MERGE
+    /// that <see cref="Open"/>, <see cref="OpenTape"/>, <see cref="OpenShared"/> and the emitted SORT/MERGE
     /// implicit opens (§14.9.40.4 GR12a/GR15a, §14.9.24.4 GR7a) all funnel through. <see cref="DeleteFile"/> does NOT
     /// associate: §12.4.5.3 GR3's list of associating statements is closed (OPEN, SORT, MERGE), so it reads the
     /// standing association and takes §14.9.10.4 GR14's '05' when there is none. Returns false when the association
@@ -1325,7 +1325,7 @@ public sealed class FileRegistry
     {
         FileRecordLock.WithNoLock => false,
         FileRecordLock.WithLock => true,
-        _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (§12.4.5.9 GR4), MANUAL does not (GR5)
+        _ => meta.LockMode == FileLockMode.Automatic,   // no phrase: AUTOMATIC auto-locks (§12.4.5.9.4 GR4), MANUAL does not (GR5)
     };
 
     /// <summary>The §12.4.5.9.4 GR7 record-lock CEILING, tested against the record a READ has IDENTIFIED but not
@@ -1341,13 +1341,15 @@ public sealed class FileRegistry
     /// successfully-advanced position behind a failure status, and the next sequential READ silently skipped the
     /// record the denial had already consumed.</para>
     /// <para>A record this connector ALREADY holds is exempt: re-locking it changes no count (a conflict with
-    /// another connector was refused before this point), exactly as the REWRITE arm reasons.</para></summary>
+    /// another connector was refused before this point), exactly as the REWRITE arm reasons.</para>
+    /// <para>The ceiling itself is <see cref="RecordLockCeiling"/>'s, with the statement's RETRY phrase (kb/Work
+    /// PB707).</para></summary>
     private string? PreflightReadLock(ConnectorShare meta, PhysicalFileTable.State st, string name,
-        string recId, FileRecordLock phrase)
+        string recId, FileRecordLock phrase, FileRetryKind retryKind, long retryAmount)
     {
         if (recId.Length == 0 || !ReadSetsRecordLock(meta, phrase) || !LocksEffective(meta, st, name)) return null;
         if (st.RecordLocks.ContainsKey(recId)) return null;
-        string pf = _physical.PreflightNewLock(st, name);
+        string pf = RecordLockCeiling(st, name, retryKind, retryAmount);
         if (pf == FileStatusCode.Success) return null;
         SetStatusOf(name, pf);   // the status assignment drops the '43' gate (PB140)
         return pf;
@@ -1371,11 +1373,11 @@ public sealed class FileRegistry
             PhysicalFileTable.ReleaseSingle(st, name, recId);   // GR11 b)
     }
 
-    /// <summary>Whether this connector SETS record locks: §12.4.5.9 GR1a/b1 — with no LOCK MODE clause a
+    /// <summary>Whether this connector SETS record locks: §12.4.5.9.4 GR1 a) and b) 1. — with no LOCK MODE clause a
     /// SHARING clause/phrase means NO record locks are set (and the implementor default here is likewise none);
     /// GR3 — a connector open in the sharing-with-no-other mode has exclusive access, so its LOCK MODE has no
     /// effect. With no clause at all the posture is <see cref="ImplementorDefaultShare"/>, whose
-    /// <see cref="FileLockMode.None"/> takes the GR1a/b1 arm for the same reason.
+    /// <see cref="FileLockMode.None"/> takes the GR1 a)/b) 1. arm for the same reason.
     /// <para>⛔ IT GOVERNS ACQUISITION ONLY. Conflict CHECKS against locks OTHER connectors hold are never
     /// disabled — §9.1.16 makes a locked record inaccessible to another file connector with no qualification
     /// on that connector's own lock mode, and §12.4.5.9.4 GR1 a)/b) 1. are worded to say only that no locks are
@@ -1392,7 +1394,7 @@ public sealed class FileRegistry
     /// words do not have.</para></summary>
     private static bool LocksEffective(ConnectorShare meta, PhysicalFileTable.State st, string name)
     {
-        if (meta.LockMode == FileLockMode.None) return false;                                   // GR1a/b1
+        if (meta.LockMode == FileLockMode.None) return false;                                   // GR1 a)/b) 1.
         // A connector that is not open has no sharing mode in effect — §9.1.15, "The sharing mode specifies the
         // types of operations that may be performed on the shared physical file through other file connectors
         // throughout the duration of this OPEN" — so it sets no record lock: its statement fails on its own
@@ -1455,7 +1457,7 @@ public sealed class FileRegistry
                     image = "";
                     return pre;      // GR10 — nothing has moved, so a),c),d) hold by construction
                 }
-                if (PreflightReadLock(meta, st, name, peek, phrase) is { } predenied)
+                if (PreflightReadLock(meta, st, name, peek, phrase, retryKind, retryAmount) is { } predenied)
                 {
                     image = "";
                     c.ApplyUnsuccessfulReadPosition();   // §12.4.5.9.4 GR7 unsuccessful → §14.9.30.4 GR18
@@ -1478,7 +1480,7 @@ public sealed class FileRegistry
             // only the RUN-UNIT limit could still deny. Either way it is the same ONE rule, and GR18's
             // invalidation is then the only way a position the retrieval advanced can stop naming a record this
             // unsuccessful READ never made available.
-            if (peek.Length == 0 && PreflightReadLock(meta, st, name, recId, phrase) is { } denied)
+            if (peek.Length == 0 && PreflightReadLock(meta, st, name, recId, phrase, retryKind, retryAmount) is { } denied)
             {
                 image = "";   // a 53/54 lock denial is an unsuccessful READ (§12.4.5.9.4 GR7) — no record available
                 c.ApplyUnsuccessfulReadPosition();
@@ -1538,7 +1540,7 @@ public sealed class FileRegistry
         {
             if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
                 return pre;                          // GR10 — nothing has moved
-            if (PreflightReadLock(meta, st, name, peek, phrase) is { } predenied)
+            if (PreflightReadLock(meta, st, name, peek, phrase, retryKind, retryAmount) is { } predenied)
             {
                 c.ApplyUnsuccessfulReadPosition();   // §12.4.5.9.4 GR7 unsuccessful → §14.9.30.4 GR18
                 return predenied;
@@ -1553,10 +1555,14 @@ public sealed class FileRegistry
     }
 
     /// <summary>Governed WRITE for a sharing-active connector, any organization (§14.9.51 GR10/GR11 + §14.7.9).
-    /// No record-operation conflict is defined for WRITE — §9.1.13.8's 51 covers "an attempt to ACCESS a record",
-    /// the WRITE general rules define no 51 leg, and GR33/GR42 state the invalid-key checks ignore record locks;
-    /// GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise in-process,
-    /// so the first attempt decides. Returns the I-O status.</summary>
+    /// No '51' record-operation conflict is defined for WRITE — §9.1.13.8's 51 covers "an attempt to ACCESS a
+    /// record", the WRITE general rules define no 51 leg, and GR33/GR42 state the invalid-key checks ignore record
+    /// locks; GR16's RETRY governs implementor "resources … locked by another run unit", which cannot arise
+    /// in-process, so no WRITE RETRY ever waits on one. The one conflict a WRITE WITH LOCK CAN meet is the
+    /// §12.4.5.9.4 GR7 lock ceiling ('53'/'54', §9.1.13.8 items 3/4), a record operation conflict condition that
+    /// §14.7.9.3 GR4 engages on, so the statement's RETRY phrase rides to <see cref="RecordLockCeiling"/> and the
+    /// ceiling is judged by <see cref="RetryLoop"/> like every other conflict (kb/Work PB707). Returns the I-O
+    /// status.</summary>
     public string WriteShared(string name, string image, int length, FileRecordLock phrase,
         FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance = default,
         RecordExtents? extents = null, bool nationalRecord = false)
@@ -1570,7 +1576,6 @@ public sealed class FileRegistry
         FileRetryKind retryKind, long retryAmount, LinagePage? page, WriteAdvance advance,
         RecordExtents? extents, bool nationalRecord)
     {
-        _ = retryKind; _ = retryAmount;   // §14.9.51 GR16 — see the summary; kept in the signature as the bound RETRY carrier
         var c = Require(name);   // unregistered = compiler defect, never an invented '30' (kb/Work PB140/PB360)
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
@@ -1585,7 +1590,7 @@ public sealed class FileRegistry
         // DOC-A.1-104 (2) gives '44'. A permanent error in effect (§9.1.13.1, kb/Work PB1541) is replayed by the
         // organization before the gate is reached, so no lock is pre-flighted for that WRITE either.
         string status;
-        if (wantLock) c.CommitGate = () => LockCeilingRefusal(st, name);
+        if (wantLock) c.CommitGate = () => LockCeilingRefusal(st, name, retryKind, retryAmount);
         try { status = WriteAnyOrg(c, medium, length, page, advance, mediumExtents, nationalRecord); }
         finally { c.CommitGate = null; }
         if (wantLock && status.Length > 0 && status[0] == '0' && c.LastWrittenRecordId is { Length: > 0 } recId)
@@ -1596,8 +1601,21 @@ public sealed class FileRegistry
     /// <summary>The <see cref="FileConnector.CommitGate"/> of a statement that requests a NEW record lock: §12.4.5.9.4
     /// GR7's '54' (this connector holds its maximum) or '53' (this run unit does), else null. Acquires nothing — the
     /// lock is set only when the statement has succeeded.</summary>
-    private string? LockCeilingRefusal(PhysicalFileTable.State st, string name) =>
-        _physical.PreflightNewLock(st, name) is var refusal && refusal != FileStatusCode.Success ? refusal : null;
+    private string? LockCeilingRefusal(PhysicalFileTable.State st, string name, FileRetryKind retryKind, long retryAmount) =>
+        RecordLockCeiling(st, name, retryKind, retryAmount) is var refusal && refusal != FileStatusCode.Success ? refusal : null;
+
+    /// <summary>⛔ THE ONE JUDGMENT OF THE §12.4.5.9.4 GR7 RECORD-LOCK CEILING for a statement that requests a new
+    /// lock — READ, WRITE and REWRITE alike (kb/Work PB707): <see cref="PhysicalFileTable.PreflightNewLock"/>
+    /// answers whether one more lock would exceed a limit, and <see cref="RetryLoop"/> lands it. '53' and '54' are
+    /// record operation conflict conditions on the standard's own definition (§9.1.13.8 items 3/4, "Record
+    /// operation conflict condition with unsuccessful completion"), and §14.7.9.3 GR4 engages on any such
+    /// condition, so the statement's RETRY phrase is applied to them here and not decided at three call sites.
+    /// The attempt is <see cref="RetryAttempt.InRunUnit"/>: the count is this connector's and this run unit's own,
+    /// which no re-attempt inside the executing statement can lower, so every form exhausts to the ceiling's own
+    /// status (<see cref="ExhaustionStatus"/> turns only a '51' under FOREVER into the deadlock '52') — the loop
+    /// is the rule's one home, not a way to a different answer.</summary>
+    private string RecordLockCeiling(PhysicalFileTable.State st, string name, FileRetryKind retryKind, long retryAmount) =>
+        RetryLoop(() => RetryAttempt.InRunUnit(_physical.PreflightNewLock(st, name)), retryKind, retryAmount);
 
     /// <summary>Governed REWRITE for a sharing-active connector, any organization (§14.9.35 GR11/GR12 + §14.7.9):
     /// the pre-operation conflict check against the record identified for rewriting (locked by another connector
@@ -1632,12 +1650,12 @@ public sealed class FileRegistry
         var (medium, mediumExtents) = c.FixedForm(image, extents);   // D-FRA (vi), as WriteShared
         // §12.4.5.9.4 GR7's ceiling, the last check of the statement and still before the update (§14.9.35 GR14), asked
         // by the organization through the commit gate exactly as WriteShared does (kb/Work PB2848). Post-conflict-check
-        // any surviving lock on the target is this connector's own — re-lock is idempotent per §9.1.16 GR8
-        // self-access, so only a genuinely NEW lock is gated.
+        // any surviving lock on the target is this connector's own — re-lock is idempotent per §9.1.16 (a locked record "may be re-accessed
+        // by the same file connector that holds the lock"), so only a genuinely NEW lock is gated.
         string status;
         if (target.Length > 0 && phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name)
             && !st.RecordLocks.ContainsKey(target))
-            c.CommitGate = () => LockCeilingRefusal(st, name);
+            c.CommitGate = () => LockCeilingRefusal(st, name, retryKind, retryAmount);
         try { status = RewriteAnyOrg(c, medium, length, mediumExtents, nationalRecord); }
         finally { c.CommitGate = null; }
         if (status.Length > 0 && status[0] == '0' && target.Length > 0)
@@ -1741,7 +1759,7 @@ public sealed class FileRegistry
 
     // ── The record-lock primitives (also the CobolFileLockTests surface) ─────────────────────────────────────
 
-    /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/> (§12.4.5.9 GR7
+    /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/> (§12.4.5.9.4 GR7
     /// ceilings enforced). Returns 00 on grant.</summary>
     public string LockRecord(string name, string recId) =>
         _physical.LockRecord(_physical.For(HostPathOf(name)), name, recId, _files.GetValueOrDefault(name));
@@ -1757,7 +1775,7 @@ public sealed class FileRegistry
         if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
 
-    /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, GR6).</summary>
+    /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, §12.4.5.9.4 GR6).</summary>
     public void ReleaseSingle(string name, string recId)
     {
         if (_physical.TryGet(HostPathOf(name), out var st)) PhysicalFileTable.ReleaseSingle(st, name, recId);
@@ -1889,10 +1907,10 @@ public sealed class FileRegistry
         st.Open.Remove(name);
         // The lock release is guarded on there being locks at all: this now runs on EVERY close of EVERY file,
         // and ReleaseAllForConnector's Where/Select/ToList would otherwise allocate a closure and an empty list
-        // per CLOSE for the overwhelming majority of connectors, which set no record locks — §12.4.5.9.4 GR1a,
+        // per CLOSE for the overwhelming majority of connectors, which set no record locks — §12.4.5.9.4 GR1 a),
         // "If there is a SHARING clause in that file control entry, no record locks are set by the execution of
         // I-O statements through the associated file connector" (the general rules of the LOCK MODE clause are
-        // §12.4.5.9.4; the older comments in this file cite the parent §12.4.5.9).
+        // §12.4.5.9.4, and every citation of a LOCK MODE rule in this file names it).
         if (st.RecordLocks.Count > 0) PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
 }

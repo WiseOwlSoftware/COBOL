@@ -212,7 +212,7 @@ internal sealed record FileControlKeyRule(
 /// the table needs no edition column and the negatives reject at every edition. A rule that arrived with a later
 /// edition would add one, and its gate would ride <c>EditionContext</c> exactly as every other introduction does.</para>
 /// <para>⚖ THE SIBLING SITE. Entry rules that are decidable from the CLAUSES ALONE — §12.4.5.5.2 SR2 (no DYNAMIC
-/// or RANDOM on a sequential file, kb/Work PB692) and the §12.4.5.9 SR2 screen beside it — stay inline in
+/// or RANDOM on a sequential file, kb/Work PB692) and the §12.4.5.9.3 SR2 screen beside it — stay inline in
 /// <c>DataBinder.BindFileControl</c>, because they need nothing resolved and can report as the entry is read.
 /// This table holds the rules that need a RESOLVED DATA ITEM: a key clause names a data-name whose OCCURS
 /// ancestry, PICTURE and owning record description are unknown until the data forest is indexed. That is the
