@@ -6284,7 +6284,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         if (tag is null) return;
         string others = string.Join(", ", usageClauses.Where(u => !ReferenceEquals(u, tag))
                                                       .Select(u => "USAGE " + UsageKeyword(u)));
-        using var _ = Edition.At(new DiagnosticCursor(tag.Start.Line, tag.Start.Column + 1));
+        using var _ = Edition.At(tag);
         Edition.Error(DiagnosticCatalog.MessageTagUsageExclusive,
             $"{entryWhere}: the entry specifies USAGE MESSAGE-TAG and also {others} — \"If MESSAGE-TAG is "
             + "specified, no other usage clauses shall be specified in the data description entry\" "

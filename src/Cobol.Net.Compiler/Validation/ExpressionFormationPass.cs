@@ -49,7 +49,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
     {
         if (ArithmeticFormationRules.StackedUnarySign(ctx) is { } sign)
         {
-            using var _ = Sink.At(sign.Line, sign.Column + 1);
+            using var _ = Sink.At(sign);
             Report(ArithmeticFormationRules.StackedUnaryMessage);
         }
         return base.VisitChildren(ctx);
@@ -62,7 +62,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
     {
         if (ArithmeticFormationRules.StackedNot(ctx) is { } not)
         {
-            using var _ = Sink.At(not.Line, not.Column + 1);
+            using var _ = Sink.At(not);
             Report(ArithmeticFormationRules.StackedNotMessage);
         }
         return base.VisitChildren(ctx);
@@ -74,7 +74,7 @@ internal sealed class ExpressionFormationPass(IDiagnosticSink sink) : CursorFoll
     {
         if (ArithmeticFormationRules.ShiftCountNotSoleOperand(ctx) is { } count)
         {
-            using var _ = Sink.At(count.Line, count.Column + 1);
+            using var _ = Sink.At(count);
             Report(ArithmeticFormationRules.ShiftCountMessage(ctx));
         }
         return base.VisitChildren(ctx);

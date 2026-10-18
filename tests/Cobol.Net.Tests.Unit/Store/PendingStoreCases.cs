@@ -69,7 +69,9 @@ public sealed class PendingStoreCases
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
         // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
         // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
-        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the torn page's '30' through a compiled program,
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the boundary at a WRITE, a REWRITE ('24', the
+        // file unchanged) and a DELETE ('30', no invalid key condition) through the RELATIVE connector in FileBoundaryTests;
+        // the torn page's '30' through a compiled program,
         // with and without a USE procedure and a FILE STATUS clause and the phrases ignored, in the Conformance project's
         // RelativeEnginePermanentErrorWitnessTests; the phrases taken and not taken for '22', '23', '24' and '10' in the
         // relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5- and 9.1.14-, pb1192_relative_write_boundary_85
