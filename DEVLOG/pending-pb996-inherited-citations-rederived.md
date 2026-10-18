@@ -36,4 +36,6 @@ measured on the tree at 545 findings, most of them back-references to a sibling 
 rules. That is a noisy heuristic with a backlog, so it goes to the report as a lead rather than into this slice.
 
 **Rows.** None: the note is process_only and every inventory row it touches was already OK, so `closes_rows: []` with
-a reason. **Gate:** see the w1115g report for the verdict line.
+a reason. **Self-review:** one table for the collating clauses, no second copy of a message; no behaviour change, no
+hot path touched. **Gate** (run 20261018T061112Z-1d9678): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN ===`, with every changed COBOLNET0898 / COBOLNET0844 negative passing in leg 1 at each edition.
