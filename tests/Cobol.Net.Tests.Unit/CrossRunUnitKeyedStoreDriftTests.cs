@@ -404,10 +404,10 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     public void CreatingAStoreAnotherConnectorHolds_IsADefect()
     {
         var table = new KeyedStoreTable();
-        table.AttachRelative("pb754-host", _ => { });
+        table.Attach<RelativeStore>("pb754-host");
         Assert.Throws<InvalidOperationException>(() => table.AttachCreated<RelativeStore>("pb754-host"));
         table.Detach("pb754-host");
-        Assert.Empty(table.AttachCreated<RelativeStore>("pb754-host").Slots);
+        Assert.Null(table.AttachCreated<RelativeStore>("pb754-host").File);   // a store being created holds no file yet
     }
 
     /// <summary>No connector empties a keyed store itself: the ONE emptying is <c>KeyedStoreTable.AttachCreated</c>,
