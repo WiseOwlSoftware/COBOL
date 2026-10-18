@@ -23,7 +23,7 @@ namespace CobolNet.Benchmarks.GeneratedCode;
 [Config(typeof(BenchmarkConfig))]
 public class GeneratedProgramBenchmarks
 {
-    [Params("MOVEHOT", "PERFHOT", "SEQHOT", "IDXHOT")]
+    [Params("MOVEHOT", "PERFHOT", "SEQHOT", "IDXHOT", "SORTHOT", "MERGEHOT")]
     public string Program { get; set; } = "";
 
     private MethodInfo _entryPoint = null!;
