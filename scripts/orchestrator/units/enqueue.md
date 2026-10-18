@@ -63,7 +63,10 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    again by itself: re-arm it (`land_lane.py rearm <branch> --why "<the finisher's finding>"`) when the cause is gone,
    and for a red still on main name it in the handoff and re-arm it once main carries the fix.
 5. LEADS. The reports of the branches the lane queued (step 3's DONE lines, not yet collected) carry new defects as
-   note-ready paragraphs (their "New defects" section, the implementers' `leads`). Dispatch ONE `cobol-clerk` with ids from `python scripts/orchestrator/alloc.py pb <n>`
+   note-ready paragraphs (their "New defects" section, the implementers' `leads`) and the branch review's non-blocking
+   findings as `LEAD` lines under `## Review findings` (`review_findings.py verdict --blocking`, kb/Work PB3381: a low
+   finding, or a medium one at the capped round, is recorded and filed, never blocking; a LEAD the same section answers
+   as fixed is not filed). Dispatch ONE `cobol-clerk` with ids from `python scripts/orchestrator/alloc.py pb <n>`
    (one note per MECHANISM, grepped against kb/Work first, MANDATORY-PRACTICES R1-R3), in a worktree cut from
    origin/main, which commits the notes with a `DEVLOG/pending-<slug>.md` entry and lands its own branch with
    `enqueue.py land <branch> --lane clerk` (a lane MANDATORY-PRACTICES I10 does not review). Skip it when no report carries a lead.
