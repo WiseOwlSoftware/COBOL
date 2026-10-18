@@ -19,4 +19,17 @@ public static class LiteralTokens
     {
         CobolLexer.STRINGLIT, CobolLexer.HEXLIT, CobolLexer.NATLIT, CobolLexer.BOOLLIT,
     };
+
+    /// <summary>Every token type that IS a floating-point numeric literal (ISO §8.3.3.3.3): the dot-decimal
+    /// <c>FLOATLIT</c> and its DECIMAL-POINT IS COMMA twin <c>COMMA_FLOATLIT</c>. The sign-adjacent lexer twins
+    /// (<c>FN_SIGNED_FLOATLIT</c>, <c>FN_SIGNED_COMMA_FLOATLIT</c>) are RE-TYPED to these two by the lexer action
+    /// <c>OnSignedLiteral</c>, so the parser, and the screen, only ever see these. Read by <c>LiteralScreen</c> for the
+    /// literal FORMAT's edition gate (the floating-point-literal-2002 construct, kb/Work PB674); a separate set from
+    /// <see cref="Types"/> because those are the DELIMITED literals, whose length, grouping, repertoire and separation
+    /// rules do not apply to a numeric literal. <c>LiteralScreenDriftTests</c> derives it from the lexer grammar
+    /// (every token defined over a <c>FLOAT*_BODY</c> fragment).</summary>
+    public static IReadOnlySet<int> FloatingPointTypes { get; } = new HashSet<int>
+    {
+        CobolLexer.FLOATLIT, CobolLexer.COMMA_FLOATLIT,
+    };
 }

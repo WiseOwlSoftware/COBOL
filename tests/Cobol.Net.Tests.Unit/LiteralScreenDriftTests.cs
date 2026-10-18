@@ -47,6 +47,28 @@ public sealed class LiteralScreenDriftTests
         Assert.Equal(defined.Order(), screened.Order());
     }
 
+    /// <summary>The floating-point numeric literal's edition gate (kb/Work PB674) reads
+    /// <c>LiteralTokens.FloatingPointTypes</c>, which must be every token the lexer defines over a <c>FLOAT*_BODY</c>
+    /// fragment (the sign-adjacent <c>FN_SIGNED_*</c> twins are re-typed to these by <c>OnSignedLiteral</c>, so they
+    /// are not in the set and never reach the parser). A new float token spelling joins the gate or fails here, and the
+    /// gate has the one construct id and the one reporting site.</summary>
+    [Fact]
+    public void FloatingPointTokenSet_IsEveryTokenDefinedOverAFloatBody()
+    {
+        var bodies = Regex.Matches(LexerText, @"(?m)^fragment\s+(FLOAT\w*_BODY)\s*:").Select(m => m.Groups[1].Value).ToList();
+        Assert.True(bodies.Count >= 2, $"expected FLOAT_BODY and FLOAT_COMMA_BODY, found {bodies.Count}");   // a rename must fail here
+        var defined = Regex.Matches(LexerText, $@"(?m)^([A-Z_]+)\s*:\s*({string.Join("|", bodies)})\s*;")
+            .Select(m => m.Groups[1].Value).ToHashSet();
+        var screened = LiteralTokens.FloatingPointTypes
+            .Select(t => CobolLexer.DefaultVocabulary.GetSymbolicName(t)).ToHashSet();
+        Assert.Equal(defined.Order(), screened.Order());
+        Assert.Equal(1, Directory.EnumerateFiles(TestRepo.Src(), "*.cs", SearchOption.AllDirectories)
+            .Where(p => !p.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}")
+                        && !p.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+                        && Path.GetFileName(p) is not ("Constructs.g.cs" or "ConstructRegistry.g.cs"))
+            .Count(p => File.ReadAllText(p).Contains("Constructs.FloatingPointLiteral2002", StringComparison.Ordinal)));
+    }
+
     /// <summary>The three rule predicates are asked only through <c>CobolLiteral.SyntaxViolation</c>, their one order;
     /// that is asked by <c>LiteralScreen</c> alone, over the unit's tree and over each compiler-directive fragment (lexed
     /// apart from the unit); a directive fragment is parsed only in the conditional-compilation stage's three funnels
