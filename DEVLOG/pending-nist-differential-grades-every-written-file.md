@@ -28,8 +28,18 @@ full runs gave identical bytes for every file. No program produces `print-file.t
 - The goldens are bytes (`-text` in `.gitattributes`): a sequential or relative file has no line terminator and an
   indexed store is binary. They pin WiseOwl COBOL's own file formats (ISO 13.18.43.4 GR2 leaves the record layout on the
   medium to the implementor); the standard-defined content is what the CCVS program reads back into its print file.
-  Only `(stdout)` is compared on the acceptance basis. A deliberate format change re-captures with
-  `COBOLNET_UPDATE_NIST_FILES=1`, the way `COBOLNET_UPDATE_SNAPSHOTS` does.
+  Two things are the host's, so they are not compared as written: a TEXT file's newline (CR LF is taken as LF; the
+  line delimiter of a line sequential file is the host's, DOC-A.1-114 and ISO 12.4.5.10.3 GR2, and the report-writer
+  files are CR LF on Windows and LF on Linux) and `(stdout)`. A binary file is never normalized. A deliberate format
+  change re-captures with `COBOLNET_UPDATE_NIST_FILES=1`, the way `COBOLNET_UPDATE_SNAPSHOTS` does.
+
+**What the first Linux run found.** The Linux gate (conformance and guard legs) ran the new arm on the first commit
+and went red twice, both real. RW101A to RW104A wrote LF where the Windows-captured goldens held CR LF: byte-exact
+goldens of a line sequential file are not portable, hence the canonical form above. And the shell guard ran 15 programs
+that `corpus.tsv` calls `pending` ("cataloged (not asserted)", yet each has a golden and the audit expects MATCH) which
+the differential never ran, so they had no written-file goldens to grade against: OBSQ1A, SQ106A, SQ107A, SQ115A, SQ116A,
+SQ121A, SQ134A and SQ218A to SQ224A and SQ227A. They match under the differential on Windows, so they are green rows now
+(364 theory rows, up from 349) rather than a second, guard-only capture path.
 
 **Falsification** (the deliverable the note asked for). Flipping one bit of RW104A's `xxxxx049.txt` golden reddens
 exactly that case: 1 failed of 349, naming the file and byte 2000. `NistWrittenFilesTests` does it on every run and
