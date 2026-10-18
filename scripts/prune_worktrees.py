@@ -1244,10 +1244,10 @@ def self_test() -> int:
         # a reviewer killed mid-append leaves a torn line: the survey names the file and goes on (every check below runs)
         torn = fscratch / 'w9994' / 'review-w9994-t.jsonl'
         review_findings.start(torn, 1, 'xsucc', tips['xsucc'], 'w9994t-r1')
-        with torn.open('a', encoding='utf-8') as f:
+        with torn.open('a', encoding='utf-8', newline='\n') as f:
             f.write('{"kind": "verdict", "round": 1, "bra')
         (fscratch / 'r2').mkdir()
-        (fscratch / 'r2' / 'review-cli--code.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8')
+        (fscratch / 'r2' / 'review-cli--code.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):

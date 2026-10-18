@@ -539,7 +539,7 @@ def self_test() -> int:
         start(enq, 1, "worktree-wf_x-1", "0123456", "enqueue-review-worktree-wf_x-1-r1")
         verdict(enq, 1)
         (tmp / "last" / "r2").mkdir()
-        (tmp / "last" / "r2" / "review-cli--code.jsonl").write_text('{"type": "read", "file": "x.cs"}\n', encoding="utf-8")
+        (tmp / "last" / "r2" / "review-cli--code.jsonl").write_text('{"type": "read", "file": "x.cs"}\n', encoding="utf-8", newline="\n")
         (tmp / "last" / "w77" / "deep").mkdir()
         deep = tmp / "last" / "w77" / "deep" / "review-w77-z.jsonl"
         start(deep, 1, "bZ", "9999999", "w77z-review-r1")
