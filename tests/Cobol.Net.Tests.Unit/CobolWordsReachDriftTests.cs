@@ -158,10 +158,10 @@ public sealed class CobolWordsReachDriftTests
     {
         var map = new CobolWordsMap(
         [
-            new CobolWordsOp(CobolWordsAction.Equate, "LOCALE", "LOCALITY", 0),
-            new CobolWordsOp(CobolWordsAction.Undefine, "ANYCASE", null, 1),
-            new CobolWordsOp(CobolWordsAction.Substitute, "LEADING", "LEFTMOST", 2),
-            new CobolWordsOp(CobolWordsAction.Reserve, null, "MYWORD", 3),
+            new CobolWordsOp(CobolWordsAction.Equate, "LOCALE", "LOCALITY", default),
+            new CobolWordsOp(CobolWordsAction.Undefine, "ANYCASE", null, default),
+            new CobolWordsOp(CobolWordsAction.Substitute, "LEADING", "LEFTMOST", default),
+            new CobolWordsOp(CobolWordsAction.Reserve, null, "MYWORD", default),
         ]);
 
         // GR2 — literal-2 is a synonym usable in any syntax requiring literal-1; literal-1 keeps its status.
@@ -194,7 +194,7 @@ public sealed class CobolWordsReachDriftTests
     [Fact]
     public void TokenIs_DoesNotResolveAWordTheRetypeAlreadyResolved()
     {
-        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "LEADING", "LEFTMOST", 0)]);
+        var map = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Substitute, "LEADING", "LEFTMOST", default)]);
         Assert.True(CobolKeywordTokens.TryTokenType("LEADING", out int leadingType));
 
         // What the rewriter produces for the synonym: the LEADING token type, re-spelled canonically.
@@ -208,7 +208,7 @@ public sealed class CobolWordsReachDriftTests
         Assert.Null(CobolWordsRewriter.CanonicalWordOf(deReserved, map));
 
         // And a synonym for a word the lexer does NOT tokenize still arrives as an IDENTIFIER to resolve.
-        var nameMap = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Equate, "LOCALE", "LOCALITY", 0)]);
+        var nameMap = new CobolWordsMap([new CobolWordsOp(CobolWordsAction.Equate, "LOCALE", "LOCALITY", default)]);
         var ident = new Antlr4.Runtime.CommonToken(CobolKeywordTokens.IdentifierType) { Text = "LOCALITY" };
         Assert.True(CobolWordsRewriter.TokenIs(ident, "LOCALE", nameMap));
     }
