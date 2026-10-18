@@ -89,6 +89,10 @@ internal sealed class PagedFile
 
     /// <summary>The last write the medium refused was a refusal to grow past the host's maximum file size.</summary>
     private bool _refusedAtBoundary;
+
+    /// <summary>This store completed a statement since its last promotion (its OPEN's fence included): a CLOSE owes a
+    /// promotion only then.</summary>
+    private bool _changedSincePromotion;
     private long _reads, _writes, _syncs;
     private int _cacheEpoch;
     private Adoption _adoption;
@@ -339,6 +343,7 @@ internal sealed class PagedFile
         if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return Refusal();
         SetState(completed, s.Ledger);
         _lastSeen = completed.Generation;
+        _changedSincePromotion = true;
         return StoreStatus.Ok;
     }
 
@@ -403,11 +408,15 @@ internal sealed class PagedFile
     }
 
     /// <summary>CLOSE: through a writable handle a promotion, then one more sync, so a closed file's OPEN verifies the
-    /// retirement's few pages and nothing else (R5); through an INPUT handle nothing.</summary>
+    /// retirement's few pages and nothing else (R5); through an INPUT handle nothing. A store that completed no statement
+    /// since its last promotion (its OPEN's fence, or an earlier CLOSE of the run unit's) owes none: page 2 is already
+    /// the retirement of that promotion, and the sync alone makes it durable — so a connector that changed nothing never
+    /// fails its CLOSE over a page 2 another run unit left torn (kb/Work PB3333; §9.1.13.1's permanent error of the
+    /// statement that met it is that statement's, DOC-A.1-105).</summary>
     public StoreStatus Close()
     {
         if (!_writable) return StoreStatus.Ok;
-        if (Promote() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if ((_changedSincePromotion || _promotionPending) && Promote() != StoreStatus.Ok) return StoreStatus.PermanentError;
         return TrySync() ? StoreStatus.Ok : StoreStatus.PermanentError;
     }
 
@@ -430,7 +439,9 @@ internal sealed class PagedFile
         var slot = claim with { Promoting = false, CommittedGeneration = p };
         if (!TryWrite(target, slot.Encode(target))) return StoreStatus.PermanentError;
         if (!TrySync()) return StoreStatus.PermanentError;
-        return Retire(claim, retirement, rejected);
+        var retired = Retire(claim, retirement, rejected);
+        if (retired == StoreStatus.Ok) _changedSincePromotion = false;
+        return retired;
     }
 
     /// <summary>The RETIREMENT statement (2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at

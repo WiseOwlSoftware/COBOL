@@ -232,8 +232,10 @@ public sealed class FileBoundaryTests : IDisposable
             ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
             : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
         bool refusing = false;
+        // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
+        // size both do; the pages already in the file (page 2 among them) are written as ever.
         RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
-            write: _ => refusing ? new IOException("refused by the host", hresult) : null);
+            write: page => refusing && page >= inner.PageCount ? new IOException("refused by the host", hresult) : null);
         try
         {
             var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);

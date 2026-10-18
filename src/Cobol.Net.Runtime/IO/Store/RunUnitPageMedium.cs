@@ -18,7 +18,7 @@ internal sealed class RunUnitPageMedium : IPageMedium
     private HandlePageMedium? _through;
 
     /// <summary>Whether a writable handle is attached.</summary>
-    public bool HasWritable => _handles.Exists(h => h.Writable);
+    public bool HasWritable => _handles.Any(h => h.Writable);
 
     /// <summary>Whether any handle is attached.</summary>
     public bool HasHandle => _handles.Count > 0;
