@@ -287,27 +287,42 @@ public sealed class SharedExtendWriteDriftTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>The store's own invariant, which is what makes the release number O(1) and exact:
-    /// <c>RelativeStore.Highest</c> is the highest RRN in the map after ANY mutation, including the removal of
-    /// the maximum (§14.9.10.4 GR5 — a DELETE through a sibling connector genuinely lowers it). A stale
-    /// high-water mark is the defect PB739 fixed, in a new place.</summary>
+    /// <summary>The release number is read from the file at the release, after ANY change — the removal of the
+    /// maximum included (§14.9.10.4 GR5: a DELETE through a sibling connector genuinely lowers the highest record
+    /// number). §14.9.51.4 GR29 a): the first extend release is <i>"one greater than the highest relative record number
+    /// existing in the physical file"</i>. The highest number is the tree's last key (kb/Work PB3333), so there is no
+    /// high-water mark to leave stale — the defect PB739 fixed, in a new place.</summary>
     [Fact]
-    public void RelativeStoreHighWaterTracksEveryMutation()
+    public void TheExtendReleaseIsOneAboveTheHighestRecordAfterEveryChange()
     {
-        var st = new RelativeStore();
-        Assert.Equal(0, st.Highest);
-        st.Put(3, new StoredFrame("c", null));
-        st.Put(1, new StoredFrame("a", null));
-        Assert.Equal(3, st.Highest);
-        st.Put(7, new StoredFrame("g", null));
-        Assert.Equal(7, st.Highest);
-        Assert.True(st.Remove(7));
-        Assert.Equal(3, st.Highest);        // re-derived, not left at 7
-        Assert.False(st.Remove(7));
-        Assert.True(st.Remove(1));
-        Assert.Equal(3, st.Highest);        // removing a non-maximum leaves it alone
-        st.Clear();
-        Assert.Equal(0, st.Highest);
+        string host = Tmp("rel-highest");
+        try
+        {
+            var reg = new FileRegistry();
+            reg.RegisterRelative("D", host, 4, optional: false, accessMode: (int)KeyedAccess.Dynamic, relativeKeyDigits: 4, -1, -1);
+            reg.OpenStatic("D", FileOpenMode.Output);
+            foreach (long rrn in new long[] { 3, 1, 7 })
+            {
+                reg.SetRelativeKey("D", rrn);
+                Assert.Equal(FileStatusCode.Success, Write(reg, "D", $"R{rrn:000}"));
+            }
+            reg.Close("D");
+            reg.OpenStatic("D", FileOpenMode.IO);
+            reg.SetRelativeKey("D", 7);
+            Assert.Equal(FileStatusCode.Success, reg.DeleteRecord("D", ""));
+            reg.SetRelativeKey("D", 7);
+            Assert.Equal(FileStatusCode.RecordNotFound, reg.DeleteRecord("D", ""));   // §14.9.10.4 GR4's invalid key
+            reg.SetRelativeKey("D", 1);
+            Assert.Equal(FileStatusCode.Success, reg.DeleteRecord("D", ""));          // a non-maximum: the highest stays 3
+            reg.Close("D");
+
+            reg.RegisterRelative("E", host, 4, false, 0, 4, -1, -1);
+            reg.OpenStatic("E", FileOpenMode.Extend);
+            Assert.Equal(FileStatusCode.Success, Write(reg, "E", "XTND"));
+            Assert.Equal(4, reg.RelativeSlot("E"));   // re-derived after the DELETE of 7, never left at 7
+            reg.Close("E");
+        }
+        finally { TryDelete(host); }
     }
 
     // ── INDEXED: already right, and pinned so it stays right ─────────────────────────────────────────────────
