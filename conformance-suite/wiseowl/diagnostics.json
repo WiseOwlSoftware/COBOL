@@ -9706,6 +9706,14 @@
   ],
   "expect": "COBOLNET2010"
  },
+ "pb1563-line-sequential-dynamic-members-below-2023": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb1567-string-delimited-omitted-below-2002": {
   "refuse-at": [
    "85"
