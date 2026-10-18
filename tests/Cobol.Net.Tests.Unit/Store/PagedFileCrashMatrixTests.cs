@@ -297,14 +297,6 @@ public sealed class PagedFileCrashMatrixTests
     public void A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(PagePath path)
     {
         int reads = DryReads(path);
-        if (path == PagePath.Close)
-        {
-            // The scene's A completed no statement since its OPEN's fence, so its CLOSE owes no promotion and only syncs
-            // (PagedFile.Close; 2.2.1.16's refused rows): it reads nothing. A CLOSE that promotes runs PromoteAt, whose
-            // reads are the Checkpoint path's, refused here one at a time.
-            Assert.Equal(0, reads);
-            return;
-        }
         Assert.True(reads > 0, $"{path} reads nothing");
         for (int n = 1; n <= reads; n++)
         {

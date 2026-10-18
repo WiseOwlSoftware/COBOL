@@ -860,8 +860,8 @@ public abstract class FileConnector
         // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement
         // CREATES a file — GR18's OUTPUT, GR17's absent OPTIONAL I-O/EXTEND — are exactly the moments each
-        // organization's OpenCore writes its own store: the RELATIVE and INDEXED arms call
-        // KeyedConnector.Persist (RecordFraming.ComposeStore), whose HEADER is those attributes, and the sequential arms write a format
+        // organization's OpenCore writes its own store: the RELATIVE and INDEXED arms create the keyed store
+        // (PagedFile.Create), whose meta pages carry those attributes (MetaPage; DESIGN-runtime-library 2.2.1.4), and the sequential arms write a format
         // that records none. So the establishment rides the format instead of a second step beside it, which is
         // what "no sidecar of any type" means and what removes the failure mode the second step had (kb/Work
         // PB684: a catalog this process could not write left the PREVIOUS file's attributes in force).
