@@ -338,11 +338,15 @@ internal sealed class PtrBinder(BinderContext ctx, StatementBinder host)
             // one surface that could not say what was wrong was the one the user reads. Its two siblings
             // (CallMakeExternal, PtrBindBasedAndAddressables) had always interpolated it; this was the third
             // arm of that dispatch. The list survives only as the fallback for the shapes that never reach
-            // the forcer at all: an OCCURS-resident anchor. (A carrier-resident LINKAGE formal no longer reaches
-            // here — an addressed formal is never resident, kb/Work PB1019.)
+            // the forcer at all, and those get the fact the class itself carries: the storage tier the record was left
+            // in (kb/Work PB3286 — the text that stood here named an "OCCURS-resident anchor", which was false for the
+            // contained-program shape that reached it: a record the data pass never claimed). A root is never an
+            // OCCURS-resident item, and a carrier-resident LINKAGE formal no longer reaches here (an addressed formal
+            // is never resident, kb/Work PB1019).
             string why = root.Class is { Tier: RedefinesTier.Rejected, RejectReason: { } reason }
                 ? reason
-                : "an OCCURS-resident anchor — named increment residue";
+                : $"record '{root.CobolName ?? root.CsName}' was not claimed for a cell by the data pass; its storage "
+                  + $"tier is {(root.Class is { } stored ? stored.Tier.ToString() : "unassigned")}";
             ctx.Edition.Error(DiagnosticCatalog.PointerOperandShape,
                 $"ADDRESS OF '{DataBinder.WrittenText(addrRef)}': the operand's record could not be placed on addressable "
                 + $"cell storage ({why}; ISO §8.4.3.11)");

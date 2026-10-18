@@ -318,7 +318,7 @@ internal sealed class EvaluateBinder(BinderContext ctx, StatementBinder host)
             ok = false;
             ctx.Edition.Error(DiagnosticCatalog.EvaluateRangeOperandInvalid,
                 $"the two operands of the range-expression '{DataBinder.WrittenText(range)}' are of class "
-                + $"{IntrinsicArgumentRules.Name(lc)} and class {IntrinsicArgumentRules.Name(hc)}; ISO "
+                + $"{IntrinsicArgumentRules.ClassNameOf(lo, lc)} and class {IntrinsicArgumentRules.ClassNameOf(hi, hc)}; ISO "
                 + "§14.9.13.3 SR4 requires them to be of the same class (§8.5.2.1 Table 2 — CLASS, not "
                 + "category, so alphabetic and alphanumeric are two classes)");
         }
