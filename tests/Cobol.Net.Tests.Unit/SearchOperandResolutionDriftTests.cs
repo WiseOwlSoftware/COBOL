@@ -192,6 +192,66 @@ MAIN.
         Assert.DoesNotContain("TryResolve(", code, StringComparison.Ordinal);
     }
 
+    /// <summary>⛔ THE PB3365 INVARIANT: a SEARCH or SEARCH ALL of a dynamic-capacity table nested under another table
+    /// is bounded by the CURRENT CAPACITY of the one enclosing occurrence the statement names (ISO §8.5.1.9.1,
+    /// §8.5.1.9.2) — in identifier-1 or, as §14.9.37.4 GR1 puts it, in the WHEN phrases — in BOTH formats and BOTH
+    /// spellings. It used to compile clean (COBOLNET1756) and abort the run unit. The row runs the program and reads
+    /// the answer, with the capacities chosen so that a bound taken from the wrong occurrence changes it: E(1) holds
+    /// three occurrences (A B C), E(2) one (X), E(3) four (P Q R S) — a too-small bound loses "S" at 4, a too-large
+    /// one finds SPACE in the occurrence E(2) does not hold.</summary>
+    [Fact]
+    public void NestedDynamicTable_IsBoundedByTheNamedOccurrence_InBothFormatsAndBothSpellings()
+    {
+        const string src = """
+IDENTIFICATION DIVISION.
+PROGRAM-ID. PB3365DRIFT.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 BR.
+   05 E OCCURS 3.
+      10 EP PIC X OCCURS DYNAMIC CAPACITY IN ECAP INDEXED BY EX.
+      10 EQ PIC X OCCURS DYNAMIC CAPACITY IN QCAP ASCENDING KEY IS EQ INDEXED BY QX.
+01 I PIC 9.
+01 K PIC 9.
+PROCEDURE DIVISION.
+MAIN.
+    MOVE "A" TO EP(1, 1). MOVE "B" TO EP(1, 2). MOVE "C" TO EP(1, 3).
+    MOVE "X" TO EP(2, 1).
+    MOVE "P" TO EP(3, 1). MOVE "Q" TO EP(3, 2). MOVE "R" TO EP(3, 3). MOVE "S" TO EP(3, 4).
+    MOVE "A" TO EQ(2, 1). MOVE "B" TO EQ(2, 2).
+    MOVE "A" TO EQ(3, 1). MOVE "B" TO EQ(3, 2). MOVE "C" TO EQ(3, 3). MOVE "D" TO EQ(3, 4).
+    MOVE 3 TO I.
+    SET EX TO 1.
+    SEARCH EP(I) AT END DISPLAY "W-END" WHEN EP(I, EX) = "S" SET K TO EX DISPLAY "W-FOUND " K END-SEARCH.
+    SET EX TO 1.
+    SEARCH EP AT END DISPLAY "B-END" WHEN EP(I, EX) = "S" SET K TO EX DISPLAY "B-FOUND " K END-SEARCH.
+    MOVE 2 TO I.
+    SET EX TO 1.
+    SEARCH EP AT END DISPLAY "E2-END" WHEN EP(I, EX) = SPACE DISPLAY "E2-FOUND" END-SEARCH.
+    SEARCH ALL EQ(I) AT END DISPLAY "A-END" WHEN EQ(I, QX) = "D" DISPLAY "A-FOUND" END-SEARCH.
+    MOVE 3 TO I.
+    SEARCH ALL EQ AT END DISPLAY "AB-END" WHEN EQ(I, QX) = "D" SET K TO QX DISPLAY "AB-FOUND " K END-SEARCH.
+    STOP RUN.
+""";
+        var (ok, detail, stdout) = Run(src);
+        Assert.True(ok, detail);
+        Assert.Equal(string.Join(Nl, "W-FOUND 4", "B-FOUND 4", "E2-END", "A-END", "AB-FOUND 4"), stdout.Replace("\r\n", Nl).Trim());
+    }
+
+    /// <summary>The two-arm guard for the same mechanism: Format 1 and Format 2 name the dynamic table's instance
+    /// through the ONE <c>DynamicTablePath</c> (after their WHEN phrases are bound, for the GR1 spelling), and
+    /// <c>SearchBinder</c> holds no second <c>BuildTablePath</c> and no deferral for the nested shape.</summary>
+    [Fact]
+    public void SearchBinder_NamesTheDynamicTableInstanceInOnePlace()
+    {
+        string path = TestRepo.Src("Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "SearchBinder.cs");
+        string code = string.Join(Nl, File.ReadAllLines(path)
+            .Where(l => !l.TrimStart().StartsWith("//", StringComparison.Ordinal)));
+        Assert.Equal(2, code.Split("DynamicTablePath(s.dataReference()").Length - 1);   // BindSearch, BindSearchAll
+        Assert.Equal(1, code.Split("ReferenceResolver.BuildTablePath(").Length - 1);    // inside DynamicTablePath
+        Assert.DoesNotContain("later increment", code, StringComparison.Ordinal);
+    }
+
     /// <summary>Compile and RUN at the default edition, returning what the program printed — the ANSWER is the
     /// thing under test, so a row that only compiled would pass in the state this note opened in.</summary>
     private (bool Ok, string Detail, string Stdout) Run(string source)
