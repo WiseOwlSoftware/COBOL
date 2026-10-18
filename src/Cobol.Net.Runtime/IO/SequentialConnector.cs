@@ -1214,7 +1214,7 @@ public sealed class SequentialConnector : FileConnector
 
     // ── WRITE ────────────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.46): line-sequential writes the trimmed image as a line;
+    /// <summary>Plain <c>WRITE record</c> (ISO §14.9.51): line-sequential writes the trimmed image as a line;
     /// record-sequential writes a fixed-width block; a VARYING file writes a length-framed record of
     /// <paramref name="length"/> bytes (the DEPENDING item's content, §13.18.43 GR13a) or the image's own length
     /// (GR13b/c), failing with '44' outside the declared bounds (GR14). Valid only when open OUTPUT/EXTEND
