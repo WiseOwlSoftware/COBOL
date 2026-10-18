@@ -118,7 +118,7 @@ public static class CobolWordsDirectiveProcessor
                     else
                         seenWords[w] = i;
                 }
-                ops.Add(op);
+                ops.Add(op with { At = new DiagnosticCursor(directiveLine, at) });
             }
 
             lines[i] = "";   // blank, never delete — line-count preserving (the >>TURN H3 discipline)

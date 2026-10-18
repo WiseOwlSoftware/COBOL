@@ -143,6 +143,7 @@ internal sealed class VersionConformancePass
         if (map.IsEmpty) return;
         foreach (var op in map.Ops)
         {
+            using var _ = sink.At(op.At);   // the directive's own line and column (kb/Work PB1925)
             if (op.Existing is { } e && !IsReservedContextOrIntrinsic(e))
                 ReportCobolWordsInvalid(sink, $"the existing word '{e}' is not a reserved word, "
                     + "context-sensitive word, or intrinsic-function name (ISO §7.3.10.3 SR3)");
@@ -230,9 +231,9 @@ internal sealed class VersionConformancePass
         bool InProcedure(int paraPc) => prohibited.Any(r => r.Spans(paraPc));
         void Flag(BoundStatement s, int paraPc)
         {
+            using var _ = _sink.At(s.At);   // each diagnostic below is at its statement (kb/Work PB812, PB1925)
             if (s is BoundSort so && InProcedure(paraPc))
             {
-                using var _ = _sink.At(so.At);
                 _sink.Report(new EditionDiagnostic(DiagnosticCatalog.SortMergePlacement.Code, EditionSeverity.Error,
                     "sort-merge-placement",
                     $"a file SORT of '{so.File.CobolName}' shall not appear in an input or output procedure of a SORT or "
@@ -243,7 +244,6 @@ internal sealed class VersionConformancePass
             {
                 if (s is BoundMerge m && InProcedure(paraPc))
                 {
-                    using var _ = _sink.At(m.At);
                     _sink.Report(new EditionDiagnostic("COBOLNET1572", mergeSeverity, "merge-in-sort-merge-proc",
                         $"MERGE '{m.File.CobolName}' is prohibited in the output procedure of another MERGE or the input "
                         + "or output procedure of a file SORT (ISO §14.9.24; COBOL-2023, Annex E.2 item 20)",
@@ -254,7 +254,6 @@ internal sealed class VersionConformancePass
                 // reachable only now that the bind produces an identity-bearing node.
                 if (s is BoundCommitRollback cr && InProcedure(paraPc))
                 {
-                    using var _ = _sink.At(cr.At);
                     _sink.Report(new EditionDiagnostic(DiagnosticCatalog.CommitRollbackContext.Code,
                         EditionSeverity.Error, "commit-rollback-context",
                         $"{(cr.IsCommit ? "COMMIT" : "ROLLBACK")} shall not be specified in the input or output "
@@ -268,8 +267,15 @@ internal sealed class VersionConformancePass
             foreach (var stmt in prog.Paragraphs[i].Statements) Flag(stmt, i);
     }
 
+    /// <summary>⛔ EVERY BOUND-ARM GATE REPORTS AT ITS STATEMENT (kb/Work PB1925): the walk positions the sink's cursor at
+    /// the statement's own <see cref="BoundStatement.At"/> — stamped by <c>StatementBinder.BindStatement</c> — so the
+    /// edition gates of <see cref="GateStatement"/> (SET, MOVE, INITIALIZE) print <c>file(line,col)</c> like the
+    /// parse-arm gates do, and a NEW gate over a bound statement cannot forget it. A nested statement positions itself and
+    /// restores this one on exit; a node the binder synthesised (an unset <c>At</c>) reports at the statement
+    /// enclosing it.</summary>
     private void WalkStatement(BoundStatement s)
     {
+        using var _ = _sink.At(s.At);
         GateStatement(s);
         Recurse(s);
     }
@@ -486,6 +492,7 @@ internal sealed class VersionConformancePass
     /// redundant COBOLNET0900 naming <c>national-data-2002</c> on the same entry (kb/Work PB492).</summary>
     private void GateDataItem(DataItem item, string where)
     {
+        using var _ = _sink.At(item);   // the entry's own position, captured when it was bound (kb/Work PB82, PB1925)
         string? id = (item.Pic is { } pic ? PictureConstructId(pic) : null) ?? UsageConstructId(item);
         if (id is { } gate) Check(gate, where);
     }
