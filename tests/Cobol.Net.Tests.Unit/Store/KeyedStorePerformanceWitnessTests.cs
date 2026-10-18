@@ -180,10 +180,17 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         reg.ReadShared(name, previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
             FileRetryKind.None, 0, out image);
 
-    private static string Delete(FileRegistry reg, string name, Cell cell, int n)
+    private static string Delete(FileRegistry reg, string name, Cell cell, int n, FileRetryKind retry = FileRetryKind.None,
+        long retryAmount = 0)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
-        return reg.DeleteShared(name, Rec(n), FileRetryKind.None, 0);
+        return reg.DeleteShared(name, Rec(n), retry, retryAmount);
+    }
+
+    private static string Rewrite(FileRegistry reg, string name, Cell cell, int n)
+    {
+        if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
+        return reg.RewriteShared(name, Rec(n), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
     private static PagedFile Store(FileRegistry reg, string name) =>
@@ -509,14 +516,19 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         Assert.Equal(0, cost.Syncs);
 
         // A WRITE the medium refuses at its first page write: '30'. The permanent error remains in effect for every later
-        // statement on the connector (§9.1.13.1), which answers '30' again touching nothing; the CLOSE ends it (the
-        // technique this processor provides, docs/CONFORMANCE.md DOC-A.1-105).
+        // statement on the connector (§9.1.13.1), which answers '30' again and "does not touch the physical file" (the
+        // technique this processor provides, docs/CONFORMANCE.md DOC-A.1-105): no page read — not even the coherent
+        // entry's page 2, so no wait for the store mutex either — and none written, for every verb; the CLOSE ends it.
         view.RefuseWrite = _ => new IOException("the medium is full");
         Assert.Equal("30", Write(writer, "W", cell, cell.Keys[N]));
         view.RefuseWrite = null;
         before = store.Counters;
         Assert.Equal("30", Write(writer, "W", cell, cell.Keys[N + 1]));
-        Assert.Equal(new IoCounters(entry, 0, 0), Since(store, before));   // the coherent entry's page 2 alone
+        Assert.Equal("30", Read(writer, "W", cell, cell.Keys[3], out _));
+        Assert.Equal("30", ReadNext(writer, "W", out _));
+        Assert.Equal("30", Rewrite(writer, "W", cell, cell.Keys[3]));
+        Assert.Equal("30", Delete(writer, "W", cell, cell.Keys[3]));
+        Assert.Equal(new IoCounters(0, 0, 0), Since(store, before));
         writer.Close("W");
         Assert.Equal("00", writer.Status("W"));
 
@@ -564,6 +576,10 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         Assert.InRange(open.PagesRead, 3 + verified.Count, 3 + verified.Count + 2);
         Assert.Equal(0, open.PagesWritten);
         Assert.Equal(0, open.Syncs);
+        // The fresh pages it verified are bounded by R2's checkpoint plus the one statement that began at it (2.2.1.11's
+        // OPEN row): PagedFile.Begin promotes only a ledger that already lists more than LedgerCheckpoint.
+        Assert.InRange(store.LedgerEntries.Count(e => e.Value.State == LedgerState.Fresh), 1,
+            PagedFile.LedgerCheckpoint + MostPagesOfOneStatement(cell, Depths(store).Max()));
         foreach (int i in new[] { N, N + 1, N + 250, N + 499 })
         {
             Assert.Equal("00", Read(reader, "R", cell, cell.Keys[i], out string image));
@@ -589,7 +605,7 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         cell.Load(0, N);
 
         var (a, _) = cell.Open("A", FileOpenMode.IO);
-        var (b, _) = cell.Open("B", FileOpenMode.IO);
+        var (b, bView) = cell.Open("B", FileOpenMode.IO);
         int n = cell.Keys[123];
         Assert.Equal("00", Read(a, "A", cell, n, out _, phrase: FileRecordLock.WithLock));
         var store = Store(b, "B");
@@ -624,6 +640,22 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
             Assert.Equal("00", Read(b, "B", cell, n, out string image, retry: FileRetryKind.Times, retryAmount: 3));
             Assert.Equal(Rec(n), image);
             Assert.Equal(2, pauses.Count);
+
+            // A permanent error in effect OUTRANKS the lock (§9.1.13.1; DOC-A.1-105, "The condition outranks every other
+            // status the later statement would have taken"): with A holding n again, B's medium refuses a WRITE ('30'), and
+            // B's READ and DELETE of n then answer '30', not '51' — no RETRY pause, no page read.
+            b.Unlock("B", records: true);
+            Assert.Equal("00", Read(a, "A", cell, n, out _, phrase: FileRecordLock.WithLock));
+            bView.RefuseWrite = _ => new IOException("the medium is full");
+            Assert.Equal("30", Write(b, "B", cell, cell.Keys[N]));
+            bView.RefuseWrite = null;
+            pauses.Clear();
+            FileRegistry.PauseObserver.Value = pauses.Add;
+            before = store.Counters;
+            Assert.Equal("30", Read(b, "B", cell, n, out _, retry: FileRetryKind.Times, retryAmount: 3));
+            Assert.Equal("30", Delete(b, "B", cell, n, retry: FileRetryKind.Times, retryAmount: 3));
+            Assert.Empty(pauses);
+            Assert.Equal(new IoCounters(0, 0, 0), Since(store, before));
         }
         finally { FileRegistry.PauseObserver.Value = null; }
         b.Close("B");

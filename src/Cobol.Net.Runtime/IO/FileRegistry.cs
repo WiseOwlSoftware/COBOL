@@ -1237,6 +1237,17 @@ public sealed class FileRegistry
         else PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
 
+    /// <summary>⛔ WHETHER A GOVERNED STATEMENT ASKS NO §9.1.16 LOCK QUESTION BEFORE ITS VERB: no record of the physical file
+    /// is locked, or the connector's PERMANENT ERROR is in effect. §9.1.13.1 keeps that condition <i>"in effect for all
+    /// subsequent input-output operations on the file"</i>, and docs/CONFORMANCE.md DOC-A.1-105 makes it outrank every other
+    /// status the statement would have taken — a '51' for a record another connector holds among them — and says the
+    /// statement <i>"does not touch the physical file"</i>: so no peek reads the record's identity from the file, no
+    /// conflict check answers '51' or waits out a RETRY, and the verb replays the condition through its own precondition
+    /// (<see cref="FileConnector.PermanentErrorReplay"/>; kb/Work PB3336 review R1-2). The REWRITE and DELETE bodies ask
+    /// the same condition before their conflict check.</summary>
+    private static bool NoLockQuestion(PhysicalFileTable.State st, FileConnector c) =>
+        c.PermanentErrorInEffect is not null || NoRecordIsLocked(st, c);
+
     /// <summary>No record of this physical file is locked by ANY connector, so §14.9.30.4 GR9's conflict
     /// condition — <i>"the record identified for access is locked by another file connector"</i> — cannot exist
     /// however the read is going to select its record. The governed reads then skip the pre-read peek entirely:
@@ -1455,8 +1466,9 @@ public sealed class FileRegistry
         while (true)
         {
             // The pre-read legs. ADVANCING ON LOCK takes neither peek nor conflict check: GR22 rules the
-            // conflict condition out and its skip-scan below is post-read on every organization.
-            string peek = advancingOnLock || NoRecordIsLocked(st, c) ? "" : c.PeekSequentialRecordId(previous);
+            // conflict condition out and its skip-scan below is post-read on every organization. Nor does a READ on a
+            // connector whose permanent error is in effect (NoLockQuestion).
+            string peek = advancingOnLock || NoLockQuestion(st, c) ? "" : c.PeekSequentialRecordId(previous);
             if (peek.Length > 0)
             {
                 if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
@@ -1542,7 +1554,7 @@ public sealed class FileRegistry
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.30.4 GR11 a) / §12.4.5.9.4 GR6 — on EXECUTION
-        string peek = NoRecordIsLocked(st, c) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage, areaExtents);
+        string peek = NoLockQuestion(st, c) ? "" : c.PeekRandomReadRecordId(keyIndex, keyedRecordImage, areaExtents);
         if (peek.Length > 0)
         {
             if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
@@ -1647,7 +1659,7 @@ public sealed class FileRegistry
         // below is a no-op whatever the target is (kb/Work PB669).
         string target = RecordLocksGovern(meta, st, name, c) ? c.MutationTargetRecordId(image, extents) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.35.4 GR12 a) 2. — released at the beginning
-        if (target.Length > 0)
+        if (target.Length > 0 && c.PermanentErrorInEffect is null)   // the condition outranks the conflict (NoLockQuestion)
         {
             // §14.9.35.4 GR11 — the ONE conflict check; GR14 then keeps the record, the record area and the file
             // position indicator untouched, which holds because nothing has been committed yet.
@@ -1702,7 +1714,7 @@ public sealed class FileRegistry
         // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
         string target = RecordLocksGovern(meta, st, name, c) ? c.MutationTargetRecordId(keyedRecordImage, areaExtents) : "";
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.10.4 GR7 a) 2. — released at the beginning
-        if (target.Length > 0
+        if (target.Length > 0 && c.PermanentErrorInEffect is null   // the condition outranks the conflict (NoLockQuestion)
             // §14.9.10.4 GR6 — the ONE conflict check; GR6 b)/c) then leave the record present and the record
             // area unaffected, which holds because nothing has been committed yet.
             && ConflictOnLockedRecord(name, st, target, ignoringLock: false, retryKind, retryAmount) is { } conflict)
