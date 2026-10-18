@@ -16,8 +16,11 @@ standing test rule into the skills.
   describes this, and says to plan a chain deeper than a pair one link per wave until the fix lands.
 - **The owner's test rule** (2026-10-17 ~22:25: "test cases for sort and file I/o must cover both the success and
   abnormal exception cases") becomes MANDATORY-PRACTICES **I11**, its one home.
-  - The implementer spec template and the finisher brief carry it, and `check_practices.py` requires both, so every
-    implementer and finisher sees it, campaign or not (PB3369's cases 2 and 3).
+  - The implementer spec template and the finisher brief carry a pointer to the I11 row, never a second case list,
+    and `check_practices.py` requires the pointer in both. So every implementer and finisher sees it, campaign or not
+    (PB3369's cases 2 and 3).
+  - The implementer report template gains a `## Owner test requirement (MANDATORY-PRACTICES I11)` section, also
+    pinned, so the reviewer has one place to read which exception-path tests the implementer claims.
   - The review skill's branch form checks it.
   - PB3369 records what remains: the two campaign copies and a computed binding.
 - Each note now names the skill files its fix must update in the same change (owner 2026-10-18: keep the skills in

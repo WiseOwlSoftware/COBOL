@@ -15,9 +15,8 @@ THEN, in order:
 3. DO NOT LAND IT YOURSELF: return DONE. Your commits are new, unreviewed work (MANDATORY-PRACTICES I10, L9): the branch's CLEAN review stamp no longer covers its tip, so `prune_worktrees.py` reads it WAITING FOR REVIEW, the next enqueue unit's REVIEW FIRST step reviews the new tip, and only then does `enqueue.py land` take it (it refuses a tip whose commits after the CLEAN review are not main's, a clean merge of main or DEVLOG-only: exit 11, UNREVIEWED). A stop you resolved with no commit of your own (a bounce from infrastructure or load timing, a red already on main) is said so in the report, with its cause: the enqueue unit re-arms the branch in the landing lane (`land_lane.py rearm`, kb/Work PB3103), which lands it again at the same head. ⛔ Never open, queue or merge a pull request by hand, and never `git push` to main (LandingPipelineDriftTests; forbidden_commands.py).
 4. FIX WHAT YOU FIND (I9): an issue in a file you have read and understood is fixed in this change; one too large becomes a note-ready paragraph in your report (repro path, code site file:line).
 5. SORT AND FILE I/O TESTS (MANDATORY-PRACTICES I11): a fix that reaches a SORT, MERGE or file I/O path carries tests of
-   its abnormal and exception paths as well as its success path: each I-O status it can answer, EC-I-O with and without
-   USE and FILE STATUS, AT END and INVALID KEY, lock contention, and work-file failures. Name them in the report, or say
-   why the fix reaches none.
+   every abnormal and exception path it reaches, as the I11 row of `templates/MANDATORY-PRACTICES.md` lists them (the
+   rule's one home). Name them in the report's `## Owner test requirement` section, or say why the fix reaches none.
 
 Graceful STOP: before EACH step check the two stop files your prompt names; if either exists, checkpoint, write STATUS.md NEXT, and return SPLIT. Turn cap 160.
 
