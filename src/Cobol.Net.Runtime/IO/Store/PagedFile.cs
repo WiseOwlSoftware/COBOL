@@ -412,6 +412,9 @@ internal sealed class PagedFile
             Generation = claim,
             CommittedGeneration = promoted.Generation,
             Promoting = false,
+            // The retirement clears `committing`; removing the TRANSACTIONS entry it names, and the holdings its UNDO
+            // walk lists, is the transaction slice's part of this statement (kb/Work PB3337) — until it lands that tree
+            // is always empty, as R6 step 5's dead-owner step reads it.
             Committing = 0,
             FreeRoot = freeRoot,
             LedgerRoot = ledgerRoot,
@@ -707,14 +710,17 @@ internal sealed class PageStatement
     internal MetaPage Meta => _meta;
 
     /// <summary>Write a new page from the reservation, stamped with the statement's generation; the POINTER to it (none
-    /// once the statement has been refused).</summary>
+    /// once the statement has been refused). A body longer than <see cref="PageHeader.BodyBytes"/> is the caller's defect
+    /// and is refused loudly, never cut to fit.</summary>
     public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags = 0, ushort entries = 0, uint next = 0)
     {
+        if (body.Length > PageHeader.BodyBytes)
+            throw new ArgumentException($"a page body holds {PageHeader.BodyBytes} bytes, not {body.Length}", nameof(body));
         if (Refused) return PagePointer.None;
         uint page = Reservation.Take();
         var bytes = new byte[PageHeader.PageSize];
         new PageHeader(kind, flags, entries, Generation, page, next).Encode(bytes);
-        body[..Math.Min(body.Length, PageHeader.BodyBytes)].CopyTo(bytes.AsSpan(PageHeader.Bytes));
+        body.CopyTo(bytes.AsSpan(PageHeader.Bytes));
         PageHeader.Seal(bytes);
         if (!_store.WritePage(page, bytes))
         {
