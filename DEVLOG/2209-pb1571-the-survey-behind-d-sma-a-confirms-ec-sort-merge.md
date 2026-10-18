@@ -1,4 +1,4 @@
-## PB1571: the survey behind D-SMA (a) confirms EC-SORT-MERGE-ACTIVE first, and the order now has source-level goldens
+## Entry 2209 — 2026-10-18 07:43 PDT — PB1571: the survey behind D-SMA (a) confirms EC-SORT-MERGE-ACTIVE first, and the order now has source-level goldens
 
 kb/Work PB1571 asked for the GnuCOBOL (and IBM, Micro Focus) survey that CLAUDE.md rule 1 requires and that the
 PB1036 implementer could not run for want of a `cobc`. When a RETURN is executed in the range of an input procedure,
@@ -39,3 +39,4 @@ stderr): a written RETURN in an input procedure and a written RELEASE in an outp
 abnormally naming EC-SORT-MERGE-ACTIVE (or the EC-FLOW name where -ACTIVE is not enabled), and a nested format 1 SORT with
 no USE ends only the inner SORT (14.6.13.1.3 2), D-SMA (b)) with the run unit continuing. All four pass on the unchanged
 runtime.
+
