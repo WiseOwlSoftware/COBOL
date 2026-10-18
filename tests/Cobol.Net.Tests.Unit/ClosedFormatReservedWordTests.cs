@@ -113,6 +113,25 @@ public sealed class ClosedFormatReservedWordTests
         Assert.Contains("error COBOLNET3408: SOURCE-COMPUTER paragraph: it ends after 'XYZ' without a separator period", errors[0]);
     }
 
+    /// <summary>A stray token right before a superset-parsed period is deleted as it would be before a required one
+    /// (kb/Work PB3370): the paragraph keeps its period, and the error in the NEXT paragraph is still reported rather
+    /// than swallowed by a recovery several divisions up.</summary>
+    [Theory]
+    [InlineData("SOURCE-COMPUTER. XYZ ) .")]
+    [InlineData("OBJECT-COMPUTER. XYZ ) .")]
+    [InlineData("SOURCE-COMPUTER. ) .")]
+    public void StrayTokenBeforeAnOptionalPeriod_IsDeleted_AndTheNextErrorStillReported(string paragraph)
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       " + paragraph + "\n"
+            + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\" ) .\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc);
+        Assert.True(errors.Count == 2, $"expected two diagnostics, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("(5,", errors[0]);
+        Assert.Contains("error COBOL0307: unexpected ')'", errors[0]);
+        Assert.Contains("(8,", errors[1]);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET3408"));
+    }
+
     /// <summary>A paragraph header written out of order (I-O-CONTROL before FILE-CONTROL) is a structure error; its
     /// opening word is never named "not a clause of the I-O-CONTROL paragraph".</summary>
     [Fact]
