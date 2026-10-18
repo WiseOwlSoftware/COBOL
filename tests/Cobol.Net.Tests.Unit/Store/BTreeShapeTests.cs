@@ -397,32 +397,42 @@ public sealed class BTreeShapeTests
         // NUMERIC: a relative record number big-endian, so byte order is numeric order.
         Assert.True(KeyOrders.Ordinal.Compare(KeyOrders.RecordNumberKey(255), KeyOrders.RecordNumberKey(256)) < 0);
         // WEIGHTED: the declared alphabet "ZYX…A" (§12.3.7.4 GR7) reverses the letters' order.
-        var reversed = new WeightedKeyOrder(null, BTreeModelTests.ReversedAlphabet());
+        var reversed = new WeightedKeyOrder(null, BTreeModelTests.ReversedAlphabet(), 2);
         Assert.True(reversed.Compare("ZZ"u8, "AA"u8) < 0);
         Assert.True(reversed.ComparePrefix("ZA"u8, "Z"u8) == 0);
         Assert.True(reversed.ComparePrefix("ZA"u8, "Y"u8) < 0);
         // WEIGHTED with a CODE-SET and no COLLATING SEQUENCE: the bytes decoded, then the native order (§12.4.5.7.4 GR4).
         var codeSet = new CodeSetConversion(Enumerable.Range(0, 256).Select(u => (char)(255 - u)).ToArray());
-        var decoded = new WeightedKeyOrder(codeSet, null);
+        var decoded = new WeightedKeyOrder(codeSet, null, 2);
         Assert.True(decoded.Compare([0x01], [0x02]) > 0);
         // COMPOSITE: the key part's order, then the release ordinal; a prefix compares the key part only.
         var composite = new CompositeKeyOrder(KeyOrders.Ordinal);
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 9), CompositeKeyOrder.Compose("AC"u8, 1)) < 0);
         Assert.True(composite.Compare(CompositeKeyOrder.Compose("AB"u8, 1), CompositeKeyOrder.Compose("AB"u8, 2)) < 0);
         Assert.Equal(0, composite.ComparePrefix(CompositeKeyOrder.Compose("ABC"u8, 7), "AB"u8));
-        // PREFIX-CONSISTENT: every order that compares position by position (§8.8.4.2.7 1)); a LOCALE-BASED sequence
-        // (§8.8.4.2.11) is not, and neither is a composite key over one.
-        Assert.True(KeyOrders.Ordinal.PrefixConsistent);
-        Assert.True(reversed.PrefixConsistent);
-        Assert.True(decoded.PrefixConsistent);
-        Assert.True(composite.PrefixConsistent);
-        var locale = new WeightedKeyOrder(null, new LocaleCollation("root"));
-        Assert.False(locale.PrefixConsistent);
-        Assert.False(new CompositeKeyOrder(locale).PrefixConsistent);
+        // PREFIX NARROWING: every order that compares position by position (§8.8.4.2.7 1)) narrows a prefix of every
+        // length; a LOCALE-BASED sequence (§8.8.4.2.11) only a prefix as long as the key, which §14.9.41.4 GR17 c) then
+        // truncates nothing of, and a composite key over one the same.
+        Assert.True(KeyOrders.Ordinal.PrefixNarrows(1));
+        Assert.True(reversed.PrefixNarrows(1));
+        Assert.True(decoded.PrefixNarrows(1));
+        Assert.True(composite.PrefixNarrows(1));
+        var locale = new WeightedKeyOrder(null, new LocaleCollation("root"), 2);
+        Assert.False(locale.PrefixNarrows(1));
+        Assert.True(locale.PrefixNarrows(2));
+        Assert.False(new CompositeKeyOrder(locale).PrefixNarrows(1));
+        Assert.True(new CompositeKeyOrder(locale).PrefixNarrows(2));
         // Why: "áa" is below "ab" (primary a,a < a,b), while its one-character prefix "á" is above "ab"'s "a" (secondary).
         Assert.True(locale.Compare(Latin1("áa"), Latin1("ab")) < 0);
         Assert.True(locale.ComparePrefix(Latin1("áa"), Latin1("á")) == 0);
         Assert.True(locale.ComparePrefix(Latin1("ab"), Latin1("á")) < 0);
+        // A whole-length prefix is the order itself: nothing is truncated.
+        Assert.Equal(Math.Sign(locale.Compare(Latin1("ab"), Latin1("áa"))), Math.Sign(locale.ComparePrefix(Latin1("ab"), Latin1("áa"))));
+        // A key or prefix longer than the key's length is the caller's defect (GR14 bounds a START's length by the key's),
+        // refused for every weighted order, positional or not.
+        Assert.Throws<ArgumentException>(() => locale.Compare(Latin1("abc"), Latin1("ab")));
+        Assert.Throws<ArgumentException>(() => locale.ComparePrefix(Latin1("ab"), Latin1("abc")));
+        Assert.Throws<ArgumentException>(() => reversed.Compare("ZZ"u8, "ZZZ"u8));
     }
 
     /// <summary>⛔ A START'S PARTIAL KEY UNDER A LOCALE-BASED SEQUENCE IS THE SEQUENTIAL SEARCH §14.9.41.4 GR17 STATES
@@ -435,7 +445,7 @@ public sealed class BTreeShapeTests
     public void A_START_prefix_under_a_locale_sequence_is_the_sequential_search_of_GR17()
     {
         var (_, _, store) = StoreKit.NewStore();
-        var order = new WeightedKeyOrder(null, new LocaleCollation("root"));
+        var order = new WeightedKeyOrder(null, new LocaleCollation("root"), 2);
         Assert.Equal(StoreStatus.Ok, store.Enter());
         var tree = new BTree(store, order, store.Meta.PrimeRoot);
         foreach (var key in new[] { "ad", "áa", "ác", "ab" })
@@ -468,6 +478,75 @@ public sealed class BTreeShapeTests
         Assert.Equal(StoreStatus.Ok, read.Seek(Latin1("á"), SeekRelation.GreaterOrEqual, out var after, prefix: true));
         Assert.Equal(StoreStatus.Ok, after.Next());
         Assert.Equal("ab", Encoding.Latin1.GetString(after.Key));
+        // A key longer than the record key is refused at the edit that would store it, before it can reach a START.
+        Assert.Equal(StoreStatus.Ok, store.Enter());
+        var edit = new BTree(store, order, store.Meta.PrimeRoot);
+        Assert.Throws<ArgumentException>(() => edit.Insert(Latin1("abc"), Latin1("abc"), out _));
+    }
+
+    /// <summary>⛔ A WHOLE-LENGTH START KEY UNDER A LOCALE-BASED SEQUENCE IS A BINARY SEARCH, NOT A WALK OF THE FILE (review
+    /// w1122-a R2-1; kb/Work PB3330's bar: no statement reads the whole file). When the START's key is as long as the
+    /// record key (§14.9.41.4 GR17 b)), GR17 c) and d) truncate nothing, so the comparison is the key order's own, the
+    /// qualifying entries are one run of it, and the seek reads the tree's depth, a leaf or two more where it settles across
+    /// a leaf boundary — never the leaves before its answer. Every relation is checked against the sequential search's
+    /// answer over the sorted keys, at present keys, absent keys, below the first and above the last (the invalid key
+    /// condition of GR17 e) 2. for GREATER THAN).</summary>
+    [Fact]
+    public void A_whole_length_START_key_under_a_locale_sequence_reads_the_depth_and_not_the_file()
+    {
+        const int keyLength = 6;
+        const string letters = "aáàAbBcç";
+        var (medium, _, store) = StoreKit.NewStore(coherent: false);
+        var order = new WeightedKeyOrder(null, new LocaleCollation("root"), keyLength);
+        var random = new Random(3306);
+        string NewKey() => string.Create(keyLength, random, static (span, r) =>
+        {
+            for (int i = 0; i < span.Length; i++) span[i] = letters[r.Next(letters.Length)];
+        });
+        var sorted = new SortedSet<byte[]>(Comparer<byte[]>.Create((a, b) => order.Compare(a, b)));
+        while (sorted.Count < 3000) sorted.Add(Latin1(NewKey()));
+        Assert.Equal(StoreStatus.Ok, store.Enter());
+        var tree = new BTree(store, order, store.Meta.PrimeRoot);
+        foreach (var key in sorted) Assert.Equal(StoreStatus.Ok, tree.Insert(key, key, out _));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Commit(store, tree));
+        var levels = Levels(medium, store);
+        int depth = levels.Count;
+        Assert.Equal(2, depth);
+        Assert.True(levels[^1] > 8, $"{levels[^1]} leaves");
+        var keys = sorted.ToList();
+
+        var probes = new List<byte[]> { Latin1("000000"), Latin1("zzzzzz"), keys[0], keys[^1] };
+        for (int i = 0; i < 12; i++) probes.Add(keys[random.Next(keys.Count)]);
+        for (int i = 0; i < 12; i++) probes.Add(Latin1(NewKey()));
+        int widest = 0;
+        foreach (var probe in probes)
+        {
+            Assert.True(order.PrefixNarrows(probe.Length));
+            foreach (var relation in Enum.GetValues<SeekRelation>())
+            {
+                int expected = relation switch
+                {
+                    SeekRelation.Equal => keys.FindIndex(k => order.ComparePrefix(k, probe) == 0),
+                    SeekRelation.GreaterOrEqual => keys.FindIndex(k => order.ComparePrefix(k, probe) >= 0),
+                    SeekRelation.GreaterThan => keys.FindIndex(k => order.ComparePrefix(k, probe) > 0),
+                    SeekRelation.LessOrEqual => keys.FindLastIndex(k => order.ComparePrefix(k, probe) <= 0),
+                    _ => keys.FindLastIndex(k => order.ComparePrefix(k, probe) < 0),
+                };
+                long before = store.Counters.PagesRead;
+                Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(probe, relation, out var cursor, prefix: true));
+                int read = (int)(store.Counters.PagesRead - before);
+                widest = Math.Max(widest, read);
+                Assert.Equal(expected >= 0, cursor.HasCurrent);
+                if (expected >= 0) Assert.Equal(keys[expected], cursor.Key);
+                Assert.InRange(read, depth, depth + 2);   // a LESS relation settles forward, then back across one boundary
+            }
+        }
+        Assert.True(widest < levels[^1], $"a seek read {widest} pages of a tree of {levels[^1]} leaves");
+        // The answer above the last key is the invalid key condition, read in the depth (the reviewer's scenario).
+        long last = store.Counters.PagesRead;
+        Assert.Equal(StoreStatus.Ok, new BTree(store, order, store.Meta.PrimeRoot).Seek(Latin1("zzzzzz"), SeekRelation.GreaterThan, out var none, prefix: true));
+        Assert.False(none.HasCurrent);
+        Assert.Equal(depth, store.Counters.PagesRead - last);
     }
 
     private static byte[] Latin1(string text) => Encoding.Latin1.GetBytes(text);

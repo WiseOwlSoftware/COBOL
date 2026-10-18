@@ -60,8 +60,8 @@ public abstract class CobolCollation
     /// the first unequal pair deciding — and false for a LOCALE-BASED one (§8.8.4.2.11: <i>"is not necessarily performed
     /// character-by-character"</i>; under the CLDR/UCA engine a primary difference late in an operand outranks a secondary
     /// difference early in it). A consumer that relies on the position-by-position shape asks this: the keyed store's
-    /// partial-key seek (<see cref="IO.Store.IKeyOrder.PrefixConsistent"/>) narrows by binary search only over a standard
-    /// comparison. Abstract, so every arm states its shape.</summary>
+    /// partial-key seek (<see cref="IO.Store.IKeyOrder.PrefixNarrows"/>) narrows a key shorter than the record key by
+    /// binary search only over a standard comparison. Abstract, so every arm states its shape.</summary>
     internal abstract bool UsesStandardComparison { get; }
 
     /// <summary>The materialized key of <paramref name="value"/> under this sequence (its operand rule applied), or
