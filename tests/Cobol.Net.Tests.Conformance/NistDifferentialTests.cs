@@ -50,94 +50,31 @@ public abstract class NistDifferentialTestsBase<TSlot>
         // a run that continued past a fatal I-O status nothing covers, which Annex A.1 item 103 now ends.
         if (CorpusManifest.Rows.First(r => string.Equals(r.Name, testName, StringComparison.OrdinalIgnoreCase)).ExpectedTermination is { } ec)
         {
-            var (ranClean, _, terminated) = RunNist(testName);
-            Assert.False(ranClean, $"{testName} is declared to terminate on {ec} but ran clean");
-            Assert.Contains("exit non-zero", terminated);
-            Assert.Contains(ec, terminated);
+            var terminated = NistRunner.Run(testName);
+            Assert.False(terminated.Ok, $"{testName} is declared to terminate on {ec} but ran clean");
+            Assert.Contains("exit non-zero", terminated.Detail);
+            Assert.Contains(ec, terminated.Detail);
             return;
         }
 
-        var (ok, output, detail) = RunNist(testName);
-        Assert.True(ok, detail);
-        Assert.Equal(Normalize(File.ReadAllText(goldenPath)), output);
+        var run = NistRunner.Run(testName);
+        Assert.True(run.Ok, run.Detail);
+        Assert.Equal(NistRunner.Normalize(File.ReadAllText(goldenPath)), run.Report);
+
+        // ⛔ AND EVERYTHING ELSE THE PROGRAM WROTE (kb/Work PB804): the report is one file of the run. RW104A's
+        // report-writer output, a SORT/MERGE or file-I/O program's data files and the console output beside a print
+        // file are graded against tests/nist/valid-files/<TEST>/ — see NistOutputs.
+        if (NistOutputs.UpdateRequested) NistOutputs.Capture(NistOutputs.GoldenDir(testName), run.Written);
+        var problems = NistOutputs.Grade(run.Written, NistOutputs.GoldenDir(testName));
+        Assert.True(problems.Count == 0,
+            $"{testName} wrote files that do not match tests/nist/valid-files/{testName}/:{Environment.NewLine}  "
+            + string.Join(Environment.NewLine + "  ", problems));
     }
 
     // Producer→consumer chains come from CorpusManifest.Chains (folded into tests/nist/corpus.tsv from the former
     // chains.tsv). A chain consumer's first op on the shared TF### file is OPEN INPUT/I-O of a file its predecessors
-    // create, so RunNist compiles and runs the predecessors (in order) inside the consumer's OWN isolated directory
+    // create, so NistRunner compiles and runs the predecessors (in order) inside the consumer's OWN isolated directory
     // first — deterministic start-clean, zero cross-test coupling under xunit parallelism.
-
-    /// <summary>Compile a NIST program (with CCVS X-card preprocessing) and run it in an isolated temp directory —
-    /// chain predecessors first, when <c>chains.tsv</c> lists any — returning the program's output read from its
-    /// print file (the CCVS report) — or stdout for a DISPLAY-only program — normalized to the NIST acceptance
-    /// basis.</summary>
-    private static (bool ok, string output, string detail) RunNist(string testName)
-    {
-        string dir = Path.Combine(Path.GetTempPath(), "CobolNet_Nist_" + Guid.NewGuid().ToString("N")[..8]);
-        Directory.CreateDirectory(dir);
-        try
-        {
-            string src = TestRepo.Nist("programs", testName + ".cob");
-            if (!File.Exists(src)) return (false, "", $"source not found: {src}");
-            string dll = Path.Combine(dir, testName + ".dll");
-
-            // Guard parity (scripts/guard.sh:120): the CCVS-85 switch programs (NC174A/NC254A) run with external
-            // SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
-            var env = new Dictionary<string, string?> { ["COBOL_SWITCH_1"] = "ON" };
-
-            // Chain predecessors: each producer compiles from its OWN .cob and runs in THIS directory so the
-            // consumer's shared TF### input files exist. Chains are self-sufficient in an isolated dir — every
-            // chain's first member re-creates its file via OPEN OUTPUT — so the legacy guard's cross-chain
-            // ordering constraints do not carry over.
-            bool chained = CorpusManifest.Chains.TryGetValue(testName, out var predecessors);
-            if (chained)
-                foreach (string p in predecessors!)
-                {
-                    string pSrc = TestRepo.Nist("programs", p + ".cob");
-                    string pDll = Path.Combine(dir, p + ".dll");
-                    var pResult = CompiledProgramCache.Compile(CorpusManifest.CompileOptions(p, pDll));
-                    if (!pResult.Success)
-                        return (false, "", $"[chain {p}] compile {pResult.Status}: {string.Join("\n", pResult.Errors)}");
-                    string pDat = TestRepo.Nist("data", p + ".dat");
-                    var (pOk, _, pDetail) = CutRunner.Run(pDll, dir, File.Exists(pDat) ? pDat : null, env);
-                    if (!pOk) return (false, "", $"[chain {p}] run exit non-zero: {pDetail}");
-                }
-
-            var result = CompiledProgramCache.Compile(CorpusManifest.CompileOptions(testName, dll));
-            if (!result.Success)
-                return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
-
-            string dat = TestRepo.Nist("data", testName + ".dat");
-            var (runOk, stdout, runDetail) = CutRunner.Run(dll, dir, File.Exists(dat) ? dat : null, env);
-            if (!runOk) return (false, "", $"[run] exit non-zero: {runDetail}");
-
-            // The CCVS report lands in the print file (assign target → <lowercased>.txt in the run dir); a
-            // DISPLAY-only program produces no print file and is read from stdout — exactly the guard's discovery
-            // order. In a chain directory the any-*.txt fallback would pick a predecessor's report or a tf###
-            // data file, so it is disabled there (the consumer's print file is found by exact name only).
-            string printFile = Path.Combine(dir, testName.ToLowerInvariant() + ".txt");
-            string raw = File.Exists(printFile) ? File.ReadAllText(printFile)
-                : !chained && Directory.EnumerateFiles(dir, "*.txt").FirstOrDefault() is { } any ? File.ReadAllText(any)
-                : stdout;
-            return (true, Normalize(raw), runDetail);
-        }
-        finally { CutRunner.TryDelete(dir); }
-    }
-
-    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard.sh</c>'s <c>normalize()</c>): drop CR, strip
-    /// per-line trailing spaces, and mask the COMPUTED= operand (a value some CCVS programs print that is not part of
-    /// the pass/fail decision). Applied identically to the golden and the produced output.
-    /// <para>⛔ A LONE CR IS DROPPED, NOT TURNED INTO A LINE BREAK. <c>ReplaceLineEndings("\n")</c> — what this used
-    /// to call — maps a bare CR to LF, which silently ignored the basis above: a WRITE … ADVANCING 0 is an OVERPRINT
-    /// written as a carriage return (docs/CONFORMANCE.md "ADVANCING 0"; kb/Work PB1667), and the NIST print programs
-    /// (SQ101M, SQ207M) check that the overprinted line follows its marker on the same line. The basis exists to
-    /// compare listing TEXT, and a carriage return is not text.</para></summary>
-    private static string Normalize(string s)
-    {
-        var lines = s.Replace("\r\n", "\n").Replace("\r", "").ReplaceLineEndings("\n").Split('\n')
-            .Select(line => System.Text.RegularExpressions.Regex.Replace(line.TrimEnd(' '), "COMPUTED=  [0-9]*", "COMPUTED=  XXXXXXXXX"));
-        return string.Join("\n", lines).TrimEnd('\n');
-    }
 }
 
 // ⛔ THE SIX PARTITIONS — each its own xUnit collection. TestPartitionAudit proves they cover the corpus exactly
