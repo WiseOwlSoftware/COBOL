@@ -1,4 +1,4 @@
-## PB1880: the I-O bundle's five test-breadth gaps closed with spec-derived goldens and unit tests, the exception paths as full as the success paths
+## Entry 2227 — 2026-10-18 16:19 PDT — PB1880: the I-O bundle's five test-breadth gaps closed with spec-derived goldens and unit tests, the exception paths as full as the success paths
 
 kb/Work PB1880 (wave 1126, group G, campaign PB3353). The 2026-09-30 I-O bundle (PB1562, PB1541, PB1513, PB677, PB679) shipped
 with five gaps its own self-review named. Each was re-probed on this branch's build and each behaved as the standard and the
@@ -62,3 +62,4 @@ a legal record) runs neither phrase and reaches the status item. No source chang
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T215443Z-d36544, before the review
 round; the review finisher's re-gate is named in the report): the nine original new
 conformance cases, 13 + 8 + 2 new unit cases passed in leg 1; the Linux gate is the landing's.
+
