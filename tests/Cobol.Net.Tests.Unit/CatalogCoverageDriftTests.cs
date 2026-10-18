@@ -329,15 +329,26 @@ public sealed class CatalogCoverageDriftTests
     private static readonly Regex PatternContext =
         new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(|\bcompile\(|\bnew\(@""|\bRegex\b|@""", RegexOptions.Compiled);
 
-    /// <summary>A substring test of the heading in a script: <c>"General format" not in page_text</c>.</summary>
+    /// <summary>A substring test of the heading in ANY case: <c>"General format" not in page_text</c>,
+    /// <c>"general format" in title.lower()</c>, <c>title.startswith("general form")</c>,
+    /// <c>title.Contains("general format", …)</c>. Case-insensitive on purpose: the audit_code_citations copy found in
+    /// branch review round 2 (R2-1) was exactly the case-folded shape the capital-G-only test could not see.</summary>
     private static readonly Regex MembershipTest =
-        new(@"[""']General format[""']\s+(?:not\s+)?in\b", RegexOptions.Compiled);
+        new(@"[""']general\s?form[^""']*[""']\s+(?:not\s+)?in\b"
+            + @"|\.(?:startswith|endswith|find|count|contains|indexof)\(\s*[""']general\s?form",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    /// <summary>A lower-case regex of the heading in a PYTHON <c>re</c> call: <c>re.compile(r"general formats?", re.I)</c>.
+    /// Python-only (the call is part of the shape), so a C# keyword alternation that merely contains the words stays prose.</summary>
+    private static readonly Regex PythonLowerPattern =
+        new(@"\bre\.(?:compile|search|match|fullmatch|findall|sub)\(.*general(?:\\s[+*]?|\s)\(?\??:?form", RegexOptions.Compiled);
 
     private static bool SpellsTheHeading(string line)
     {
         string t = line.TrimStart();
         if (t.StartsWith('#') || t.StartsWith("//")) return false;
-        return HeadingWordsSpelledOut.IsMatch(line) && PatternContext.IsMatch(line) || MembershipTest.IsMatch(line);
+        return HeadingWordsSpelledOut.IsMatch(line) && PatternContext.IsMatch(line)
+               || MembershipTest.IsMatch(line) || PythonLowerPattern.IsMatch(line);
     }
 
     /// <summary>The no-copy sweep can fail: each way of writing the heading pattern is flagged, and a keyword list
@@ -347,6 +358,10 @@ public sealed class CatalogCoverageDriftTests
     [InlineData("if \"General format\" not in page.get_text():", true)]
     [InlineData("var m = Regex.Match(line, @\"^#+\\s+(\\d+)\\s+General formats?\\s*$\");", true)]
     [InlineData("new(@\"^#{2,6}\\s+General\\s+form(?:at)?s?\\.?\\s*$\")", true)]
+    [InlineData("in_formats = \"general format\" in title.lower()", true)]
+    [InlineData("GF = re.compile(r\"general formats?\", re.I)", true)]
+    [InlineData("if (title.Contains(\"general format\", StringComparison.OrdinalIgnoreCase))", true)]
+    [InlineData("if title.lower().startswith(\"general form\"):", true)]
     [InlineData("@\"\\bSR\\s?\\d|syntax rule|general format|non-ISO\",", false)]
     [InlineData("    /// the clause that prints its General formats", false)]
     public void TheNoCopySweep_FlagsEachSpellingAndNotAKeywordList(string line, bool flagged)
