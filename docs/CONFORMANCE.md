@@ -888,7 +888,27 @@ of an unsupported facility.
   output procedure fails GR13 / MERGE GR8 and §14.9.32.4 GR1. §14.6.13.1.1: "if more than one exception is detected
   during the execution of a statement, the one that is set to exist is undefined". WiseOwl COBOL raises
   **EC-SORT-MERGE-ACTIVE** when it is enabled — the rule written for exactly that range — and the EC-FLOW-* name only
-  when it is not; a RELEASE's record-range test (EC-SORT-MERGE-RELEASE) comes last.
+  when it is not; a RELEASE's record-range test (EC-SORT-MERGE-RELEASE) comes last. **The survey behind (a)**
+  (CLAUDE.md rule 1: ISO, then GnuCOBOL, then IBM / Micro Focus; kb/Work PB1571; measured on `cobc` 3.2.0 and read
+  from the pinned 3.2 source, `libcob/fileio.c` and `libcob/exception.def`): **GnuCOBOL** lists all seven EC-SORT-MERGE
+  names but raises exactly one, EC-SORT-MERGE-FILE-OPEN (a USING/GIVING file that fails its implicit OPEN with a '4x'
+  status); it raises no -ACTIVE, -RELEASE, -RETURN or -SEQUENCE (its source marks the MERGE sequence test a FIXME) and
+  no EC-FLOW-RELEASE or EC-FLOW-RETURN, with `-debug` as without. So it has no order to follow. What it does with the
+  misplaced statements is a by-product of its sort store with no check behind it: a RETURN in an input procedure takes
+  the record the SORT still owes its output procedure (the output procedure then meets end of file at once, a lost
+  record), a RELEASE in an output procedure is kept when it comes before the first RETURN and is a run-time error '30'
+  after a RETURN, and a nested SORT of another file runs. **IBM Enterprise COBOL** documents the restrictions (an input
+  or output procedure must not contain SORT or MERGE; a called program cannot issue SORT, MERGE, RELEASE or RETURN)
+  without a condition or a result. **Micro Focus** documents one fatal run-time error, COBRT099 "Illegal operation in
+  SORT/MERGE module", for a RELEASE outside the input procedure and a RETURN outside the output procedure alike. Of
+  the three, the one that names the condition (Micro Focus) names a single failure for both rules, and none of the
+  three orders two conditions (the ISO exception-checking model of §14.6.13 is WiseOwl COBOL's own to realise), so the
+  determination stands: -ACTIVE first. The same survey leaves (c) as it is: the answer with checking off is
+  "undefined" in every rule, and GnuCOBOL's depends on the state of its store and loses a record or adds one, where
+  this compiler's answer (a RETURN in an input procedure answers at end, a RELEASE in an output procedure is not
+  kept) is deterministic. Golden
+  `conformance:wiseowl/cases/14.9.40-SORT/pb1571_sort_merge_active_vs_flow` pins (a) at source level, with the EC-FLOW names
+  raised where -ACTIVE is not enabled and EC-SORT-MERGE-RETURN (GR3) unpre-empted. The dispositions with no USE procedure (abnormal termination for a written RETURN/RELEASE, the inner SORT ended and the run unit continuing for a nested SORT) are pinned by `SortMergeActiveUndeclaredDispositionTests`.
   **(b) The disposition when the SORT or MERGE itself raises a condition** (EC-SORT-MERGE-FILE-OPEN,
   -SEQUENCE, -RELEASE of the implicit USING release, -ACTIVE at a nested SORT/MERGE — and any other fatal condition
   its own execution raises, such as an EC-LOCALE-* from a locale-collated key): §14.6.13.1.3 2) hands it to the verb, and
