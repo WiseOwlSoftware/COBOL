@@ -28,9 +28,8 @@ public abstract class NistDifferentialTestsBase<TSlot>
     /// puts this class below the assembly's next-largest (the split version matrix, ~60 s).</summary>
     public const int Partitions = 6;
 
-    // The green∪divergent NIST set now lives in tests/nist/corpus.tsv — the ONE source of truth (folds the former
-    // per-program [InlineData] list and chains.tsv; loaded by CorpusManifest). Adding a
-    // green program is a manifest row, not a code edit. Per-program provenance (subsystem + ISO §) is in DEVLOG + git
+    // The green∪divergent NIST set lives in tests/nist/corpus.tsv — the ONE source of truth, loaded by
+    // CorpusManifest. Adding a green program is a manifest row, not a code edit. Per-program provenance (subsystem + ISO §) is in DEVLOG + git
     // history; a divergent row carries its ISO § citation in the corpus.tsv note.
     [PartitionedRowSource(nameof(GreenPrograms))]
     public static IEnumerable<object[]> AllGreenPrograms() => CorpusManifest.GreenData();
@@ -81,8 +80,8 @@ public abstract class NistDifferentialTestsBase<TSlot>
             + string.Join(Environment.NewLine + "  ", problems));
     }
 
-    // Producer→consumer chains come from CorpusManifest.Chains (folded into tests/nist/corpus.tsv from the former
-    // chains.tsv). A chain consumer's first op on the shared TF### file is OPEN INPUT/I-O of a file its predecessors
+    // Producer→consumer chains come from CorpusManifest.Chains (tests/nist/corpus.tsv's chain-preds column). A
+    // chain consumer's first op on the shared TF### file is OPEN INPUT/I-O of a file its predecessors
     // create, so NistRunner compiles and runs the predecessors (in order) inside the consumer's OWN isolated directory
     // first — deterministic start-clean, zero cross-test coupling under xunit parallelism.
 }
