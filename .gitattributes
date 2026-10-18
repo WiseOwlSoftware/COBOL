@@ -32,3 +32,9 @@ src/**/PublicAPI.*.txt merge=union
 # A conformance fixture whose BYTES are its subject: CR LF terminates a free-form line, and a CR not followed by a LINE
 # FEED is a character of the line (DOC-A.1-156, kb/Work PB1496), so it keeps its CR LF terminators and its lone CRs.
 conformance-suite/cases/6.5-Logical-conversion/pb1496_lone_cr_is_a_character.cob -text
+
+# The NIST differential's written-file goldens (tests/nist/valid-files/<TEST>/<file>, kb/Work PB804) are what a CCVS
+# program WROTE, compared byte for byte: a sequential or relative file's records carry no line terminator, an
+# indexed store is a binary file, and the report-writer files keep their CR LF. An eol conversion would change the
+# bytes the comparison is about.
+tests/nist/valid-files/** -text
