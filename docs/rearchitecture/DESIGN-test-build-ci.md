@@ -1812,14 +1812,19 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor "lands THROUGH" its successor saved nothing once every branch became one pull request in the merge
    queue (PB3023, PB3024) and kept a chain off main until its last link was clean; now the successor starts once the
    predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
-   predecessor's. A predecessor whose review ended FINDINGS with that stamp still covering its head (at the cap, or its
-   review finisher left no head of its own: it died or committed nothing) keeps those findings for its own finisher,
-   and `prune_worktrees.py` holds a successor carrying another note's unanswered FINDINGS IN FLIGHT (`waits_on`) until
-   that finisher has landed it. A predecessor whose review FINISHER left an unfinished head of its own has no such
-   stamp (the finisher rewrote the report for its own branch), so its successor's review covers the predecessor's
-   content and records again each of its findings that still holds (`wf_rolling_wave.js` `predecessorEnd`: clean,
-   capped, unanswered, unreviewed, telling capped from unanswered by whether the last stamp covers the head, the
-   survey's own `covers` test; branch review R1-1, R2-1); and a merged branch with no clean stamp at its tip never lands alone,
+   predecessor's. Unanswered findings have ONE source, the predecessor's findings file, and ONE reader,
+   `review_findings.last_verdict` (its newest verdict: round, branch, head, verdict and the number of blocking
+   findings), which the wave's `predecessorEnd` (through the CLI's `last-verdict`) and `prune_worktrees.py`
+   `carrying_findings` (over `findings_files`: the coordination scratch, one level under it, and every file a stamp
+   names) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
+   own branch with no Review line whatever it returns, so a hold read from the stamp released the successor exactly
+   when nobody had answered them (branch review R3-1). While that last verdict is FINDINGS with blocking findings at a
+   head a successor contains, the survey holds the successor IN FLIGHT (`waits_on`) until a later round of that review
+   records CLEAN or the head is on main; a branch of the same note (its later finisher) is exempt. `predecessorEnd`
+   reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
+   successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
+   without answering, its report rewritten: the successor's review covers the predecessor's content and records again
+   each finding that still holds; branch review R1-1, R2-1, R3-1); and a merged branch with no clean stamp at its tip never lands alone,
    it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
    and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
    one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the

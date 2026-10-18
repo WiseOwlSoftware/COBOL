@@ -8,6 +8,7 @@ decision in `<scratch>/review-w<wave>-<letter>.jsonl`, the verdict computed from
                                                                                     # CLEAN | FINDINGS n, from the file
     python scripts/orchestrator/review_findings.py stamp   <report> --findings <file>
     python scripts/orchestrator/review_findings.py show    <file> [--round N]     # the findings, for the finisher
+    python scripts/orchestrator/review_findings.py last-verdict <file>             # the newest verdict: does it hold?
     python scripts/orchestrator/review_findings.py summary <file or directory>... # the measurement (PB3027 item 5)
     python scripts/orchestrator/review_findings.py --self-test
 
@@ -40,12 +41,25 @@ recorded before severities were required carries none and BLOCKS: an unknown sev
 <head>, or FINDINGS <n> <reviewer> <head> <file>), and reads it back through plan_wave.parse_review, so the writer and
 the reader cannot drift. prune_worktrees.py lists a DONE branch WAITING TO LAND only under a CLEAN stamp at its tip;
 plan_wave.py plans a finisher for a FINDINGS stamp.
+
+UNANSWERED FINDINGS ARE READ FROM THIS FILE, NEVER FROM A REPORT (kb/Work PB3381 review R3-1). `last_verdict(file)` is
+the ONE answer to "does this group's branch carry unanswered blocking findings": the newest verdict the file records
+(its round, branch, head, verdict and `blocking`, the number of findings of a blocking severity under the thresholds
+that round used), `unanswered` when it is FINDINGS with blocking > 0. The rolling wave reads it (the CLI's
+`last-verdict`, through one mechanical agent) to tell a predecessor capped at the round cap from one whose review
+finisher came back without answering, and prune_worktrees.py reads it (`unanswered()` over `findings_files()`) to hold
+a branch that carries another note's unanswered findings. The report stamp is only their human-readable rendering: a
+review finisher rewrites the group's one report for its own branch with no Review line, whatever it returns (BLOCKED,
+SPLIT, STALLED, killed), so a hold read from the stamp let a successor reviewed CLEAN carry the predecessor's findings
+to main. A finisher that answers them is reviewed again and records its round's verdict here; nothing else changes
+what this file says.
 """
 from __future__ import annotations
 
 import argparse
 import datetime as dt
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -260,6 +274,71 @@ def show(path: pathlib.Path, rnd: int | None = None) -> list[str]:
             for r in recs if r["kind"] == "finding" and r["round"] == rnd]
 
 
+def last_verdict(path: pathlib.Path) -> dict | None:
+    """The newest verdict the findings file records, as {file, round, branch, head, verdict, blocking, unanswered}, or
+    None when no round has one yet. `blocking` is the number of findings of a blocking severity under the thresholds
+    that round used (the verdict's own count); `unanswered` is FINDINGS with blocking > 0. A round started after it and
+    never finished (its reviewer died) answers nothing, so the verdict before it still stands. A malformed file is an
+    error (load), never read as no verdict: a lost FINDINGS would let its findings land."""
+    verdicts = [r for r in load(path) if r["kind"] == "verdict"]
+    if not verdicts:
+        return None
+    v = max(verdicts, key=lambda r: r["round"])
+    n = int(v.get("findings") or 0)
+    return {"file": str(path), "round": v["round"], "branch": v.get("branch", ""), "head": v.get("head", ""),
+            "verdict": v["verdict"], "blocking": n, "unanswered": v["verdict"] == "FINDINGS" and n > 0}
+
+
+#: The two names a branch review's findings file takes: the rolling wave's `<scratch>/review-w<wave>-<letter>.jsonl`
+#: (wf_rolling_wave.js findingsFile) and the enqueue unit's `<coord>/scratch/review-<branch>.jsonl` (units/enqueue.md).
+FINDINGS_NAME = "review-*.jsonl"
+WAVE_FINDINGS = re.compile(r"^review-w(?P<wave>\d+)-(?P<letter>[a-z0-9]+)\.jsonl$")
+
+
+def is_findings_file(path: pathlib.Path) -> bool:
+    """A branch review's record: its first record is a `start` with a round and a branch. Other records share the
+    `review-*.jsonl` name (the R2 review's shards, r2_collect.py) and are not this tool's."""
+    try:
+        with path.open(encoding="utf-8") as f:
+            first = next((line for line in f if line.strip()), "")
+        rec = json.loads(first) if first else None
+    except (OSError, ValueError):
+        return False
+    return isinstance(rec, dict) and rec.get("kind") == "start" and isinstance(rec.get("round"), int) and "branch" in rec
+
+
+def findings_files(scratch: pathlib.Path, also: list[str | pathlib.Path] = ()) -> list[pathlib.Path]:
+    """Every branch review's findings file: those in the coordination scratch `scratch` and in each directory directly
+    under it (a wave's scratch, `<coord>/scratch/w<wave>`), plus each path in `also` (the files report stamps name,
+    wherever a hand review put them), once each, branch-review records only (is_findings_file)."""
+    seen: dict[str, pathlib.Path] = {}
+    cands = [*scratch.glob(FINDINGS_NAME), *scratch.glob(f"*/{FINDINGS_NAME}")] if scratch.is_dir() else []
+    for p in [*cands, *(pathlib.Path(a) for a in also if a)]:
+        key = os.path.normcase(os.path.abspath(p))
+        if key not in seen and p.is_file() and is_findings_file(p):
+            seen[key] = p
+    return sorted(seen.values())
+
+
+def unanswered(paths: list[pathlib.Path], refused: list[str] | None = None) -> list[dict]:
+    """The last verdict of each file that holds unanswered blocking findings (last_verdict's `unanswered`). A file the
+    reader refuses raises, unless the caller passes `refused`: then it is named there (`<file>: <why>`) for the caller
+    to say aloud, and skipped. The branch survey passes it, so one torn line (a reviewer killed mid-append) stops no
+    landing lane tick, and every survey names the file until it is repaired."""
+    out = []
+    for p in paths:
+        try:
+            v = last_verdict(p)
+        except RecordError as e:
+            if refused is None:
+                raise
+            refused.append(f"{p}: {e}")
+            continue
+        if v and v["unanswered"]:
+            out.append(v)
+    return out
+
+
 def minutes(a: str, b: str) -> float:
     return (dt.datetime.fromisoformat(b) - dt.datetime.fromisoformat(a)).total_seconds() / 60
 
@@ -429,8 +508,70 @@ def self_test() -> int:
         check("arm: the CLI passes --blocking to the verdict",
               main(["verdict", str(cli), "--round", "1", "--blocking", "critical,high"]) == 0
               and [r for r in load(cli) if r["kind"] == "verdict"][0]["blocking"] == ["critical", "high"])
+        # THE ONE READER OF UNANSWERED FINDINGS (kb/Work PB3381 review R3-1): the file's newest verdict, whatever any
+        # report says. Expected results from the rule: no verdict reads None; a FINDINGS round with blocking findings
+        # is unanswered at its head; a later CLEAN round answers it; a round started and never finished answers nothing.
+        lv = tmp / "last" / "review-w9-l.jsonl"
+        start(lv, 1, "bL", "abc1234", "w9l-review-r1")
+        check("arm: a findings file with no verdict yet has no last verdict", last_verdict(lv) is None)
+        finding(lv, 1, json.dumps({"file": "a.py", "line": 1, "category": "c", "summary": "s", "severity": "high",
+                                   "failure_scenario": "x"}))
+        finding(lv, 1, json.dumps({"file": "a.py", "line": 2, "category": "c", "summary": "s", "severity": "low",
+                                   "failure_scenario": "x"}))
+        verdict(lv, 1)
+        got = last_verdict(lv)
+        check(f"arm: a FINDINGS round is unanswered at its head, counting only its blocking findings: {got}",
+              got == {"file": str(lv), "round": 1, "branch": "bL", "head": "abc1234", "verdict": "FINDINGS",
+                      "blocking": 1, "unanswered": True})
+        start(lv, 2, "bL2", "def5678", "w9l-review-r2")
+        check("arm: a round started and never finished answers nothing: the FINDINGS before it stands",
+              (last_verdict(lv) or {}).get("round") == 1 and last_verdict(lv)["unanswered"])
+        verdict(lv, 2)
+        got = last_verdict(lv)
+        check(f"arm: a later CLEAN round answers them: {got}",
+              (got["round"], got["branch"], got["head"], got["verdict"], got["unanswered"]) == (2, "bL2", "def5678", "CLEAN", False))
+        held = tmp / "last" / "w77" / "review-w77-h.jsonl"
+        start(held, 1, "bH", "fed4321", "w77h-review-r1")
+        finding(held, 1, json.dumps({"file": "a.py", "line": 1, "category": "c", "summary": "s", "severity": "medium",
+                                     "failure_scenario": "x"}))
+        verdict(held, 1)
+        enq = tmp / "last" / "review-worktree-wf_x-1.jsonl"   # the enqueue unit's name for an attended branch
+        start(enq, 1, "worktree-wf_x-1", "0123456", "enqueue-review-worktree-wf_x-1-r1")
+        verdict(enq, 1)
+        (tmp / "last" / "r2").mkdir()
+        (tmp / "last" / "r2" / "review-cli--code.jsonl").write_text('{"type": "read", "file": "x.cs"}\n', encoding="utf-8")
+        (tmp / "last" / "w77" / "deep").mkdir()
+        deep = tmp / "last" / "w77" / "deep" / "review-w77-z.jsonl"
+        start(deep, 1, "bZ", "9999999", "w77z-review-r1")
+        outside = tmp / "elsewhere" / "review-w78-o.jsonl"
+        start(outside, 1, "bO", "8888888", "w78o-review-r1")
+        files = findings_files(tmp / "last", also=[str(outside), str(lv), str(tmp / "missing.jsonl")])
+        check(f"arm: findings_files reads the scratch and one level under it, plus the stamp-named files, once each, "
+              f"never another record's review-*.jsonl: {files}",
+              sorted(p.name for p in files) == sorted(["review-w9-l.jsonl", "review-w77-h.jsonl",
+                                                       "review-worktree-wf_x-1.jsonl", "review-w78-o.jsonl"]))
+        check("arm: unanswered() keeps exactly the files whose last verdict holds blocking findings",
+              [v["branch"] for v in unanswered(files)] == ["bH"])
+        check("arm: the wave's name maps back to its wave and letter",
+              WAVE_FINDINGS.match("review-w77-h.jsonl").group("wave", "letter") == ("77", "h")
+              and WAVE_FINDINGS.match("review-worktree-wf_x-1.jsonl") is None)
+        import contextlib  # noqa: PLC0415
+        import io  # noqa: PLC0415
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = main(["last-verdict", str(held)])
+        line = buf.getvalue().strip()
+        check(f"arm: the CLI prints the one line the wave parses: {line}",
+              rc == 0 and line.startswith("=== LAST VERDICT: ") and line.endswith(" ===")
+              and json.loads(line[len("=== LAST VERDICT: "):-4]) == last_verdict(held))
         bad = tmp / "bad.jsonl"
         bad.write_text('{"kind":"start","round":1}\nnot json\n', encoding="utf-8", newline="\n")
+        check("arm: a malformed findings file is an error for the reader too, never read as no verdict",
+              refused(last_verdict, bad))
+        torn: list[str] = []
+        check("arm: unanswered() raises on a refused file unless the caller collects it, and then names it",
+              refused(unanswered, [held, bad]) and [v["branch"] for v in unanswered([held, bad], torn)] == ["bH"]
+              and len(torn) == 1 and torn[0].startswith(str(bad)))
         check("arm: a malformed line is an error, never skipped (a lost finding would read CLEAN)", refused(load, bad))
         bad.unlink()
         s = summary([tmp])
@@ -460,6 +601,7 @@ def main(argv: list[str] | None = None) -> int:
                         f"its last review finisher passes {','.join(BLOCKING_AT_CAP)})")
     p = sub.add_parser("stamp"); p.add_argument("report", type=pathlib.Path); p.add_argument("--findings", type=pathlib.Path, required=True)
     p = sub.add_parser("show"); p.add_argument("file", type=pathlib.Path); p.add_argument("--round", type=int)
+    p = sub.add_parser("last-verdict"); p.add_argument("file", type=pathlib.Path)
     p = sub.add_parser("summary"); p.add_argument("paths", type=pathlib.Path, nargs="+")
     a = ap.parse_args(argv)
     try:
@@ -479,6 +621,8 @@ def main(argv: list[str] | None = None) -> int:
             print(stamp(a.report, a.findings))
         elif a.cmd == "show":
             print("\n".join(show(a.file, a.round)) or "(no findings)")
+        elif a.cmd == "last-verdict":   # the line the rolling wave parses (wf_rolling_wave.js lastVerdict)
+            print(f"=== LAST VERDICT: {json.dumps(last_verdict(a.file), ensure_ascii=False)} ===")
         else:
             print(json.dumps(summary(a.paths), indent=1))
     except RecordError as e:
