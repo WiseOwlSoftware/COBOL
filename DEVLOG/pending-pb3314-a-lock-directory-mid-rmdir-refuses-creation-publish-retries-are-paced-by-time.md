@@ -30,3 +30,5 @@ and a file at the lock directory name is `Unavailable` for the waiting and the n
 witness does not discriminate the old code from the new (0 of 24 runs red before),; a version with a sibling that
 never rests failed after the fix too, because there every attempt loses independently of any pause (no pause helps a
 race that is not persistent). The design rule is in `DESIGN-runtime-library.md` beside PB3109's and PB3313's.
+
+Review round 1 (R1-1): nothing called the schedule, so deleting Publish's pause left every test green. Publish now reports each pause through SidecarLockFiles.PauseObserver (an AsyncLocal, the FileRegistry.PauseObserver precedent) instead of sleeping when a test watches, and two tests drive Publish with a naming step that raises the lost-race exception: N lost races pause before retries 1..N and then publish; a race that never ends pauses before every retry (1..11) and answers null with no pending file left. With the pause deleted all four of these cases go red.

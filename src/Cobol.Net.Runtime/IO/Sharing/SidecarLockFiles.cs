@@ -139,10 +139,17 @@ internal static class SidecarLockFiles
     /// schedule and jittered, so two publications that lost to each other do not retry in step.</summary>
     private static void Pause(int retry)
     {
+        if (PauseObserver.Value is { } observe) { observe(retry); return; }
         int ceiling = RetryPauseCeiling(retry);
         if (ceiling == 0) Thread.Yield();
         else Thread.Sleep(Random.Shared.Next(1, ceiling + 1));
     }
+
+    /// <summary>Test seam: when set, the pause before retry N of <see cref="Publish"/> is REPORTED (N, 1 for the first retry)
+    /// instead of performed, so a test asserts THAT a publication that keeps losing its race waits, and on which retries,
+    /// without timing a sleep (the precedent of <c>FileRegistry.PauseObserver</c>, kb/Work PB1590, PB3314). An
+    /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes.</summary>
+    internal static readonly AsyncLocal<Action<int>?> PauseObserver = new();
 
     /// <summary>Probe the holder file <paramref name="path"/>, and delete it when its holder is dead. The returned state
     /// is what the caller acts on: <see cref="HostFile.LockFileState.Live"/> and <see cref="HostFile.LockFileState.Unobservable"/>

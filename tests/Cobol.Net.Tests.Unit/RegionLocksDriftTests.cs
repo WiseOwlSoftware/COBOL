@@ -259,6 +259,58 @@ public sealed class RegionLocksDriftTests
         Assert.True(total >= 25 * 17, $"The schedule sums to {total} ms, inside 25 times the longest removal window measured (17 ms).");
     }
 
+    /// <summary>⛔ <see cref="SidecarLockFiles.Publish"/> FOLLOWS THAT SCHEDULE (kb/Work PB3314): a publication whose
+    /// directory or pending file vanishes under it (here the naming step raises what a closing sibling's removal raises,
+    /// the very exception Publish reads as a lost race) pauses before EVERY retry, in order, and publishes on the first
+    /// try that holds. Without this the schedule test pins a pure function nothing calls: delete the pause or pass it a
+    /// constant 0 and the retries are microseconds apart again.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(5)]
+    public void APublicationThatLosesItsRaceNTimesPausesBeforeEachRetry_AndThenPublishes(int lost)
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        var pauses = new List<int>();
+        SidecarLockFiles.PauseObserver.Value = pauses.Add;
+        try
+        {
+            int calls = 0;
+            using var holder = SidecarLockFiles.Publish(lockDir, id =>
+            {
+                if (++calls <= lost) throw new DirectoryNotFoundException("lost to a closing sibling");
+                return $"r{Byte1:x16}-X-{id:N}";
+            });
+            Assert.True(holder is not null, "A race lost fewer times than the attempts allow must still publish.");
+            Assert.Equal(lost + 1, calls);
+            Assert.Equal(Enumerable.Range(1, lost), pauses);
+        }
+        finally { SidecarLockFiles.PauseObserver.Value = null; }
+    }
+
+    /// <summary>The ABNORMAL end of the same rule: a race that never ends is given every retry the schedule allows, each
+    /// paused for, and only then read as a host that cannot hold the lock (<c>null</c>, which the hold answers as
+    /// <see cref="RegionLockResult.Unavailable"/>); the pending files it abandoned are not left behind.</summary>
+    [Fact]
+    public void ARaceThatNeverEnds_IsPausedForThroughEveryRetry_BeforePublishAnswersNull()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        var pauses = new List<int>();
+        SidecarLockFiles.PauseObserver.Value = pauses.Add;
+        try
+        {
+            int calls = 0;
+            var holder = SidecarLockFiles.Publish(lockDir, id => { calls++; throw new DirectoryNotFoundException("always lost"); });
+            Assert.Null(holder);
+            Assert.Equal(SidecarLockFiles.PublishAttempts, calls);
+            Assert.Equal(Enumerable.Range(1, SidecarLockFiles.PublishAttempts - 1), pauses);
+            Assert.Empty(Directory.EnumerateFileSystemEntries(lockDir));
+        }
+        finally { SidecarLockFiles.PauseObserver.Value = null; }
+    }
+
     /// <summary>⛔ PUBLICATION SURVIVES A SIBLING'S CLOSE THAT IS CAUGHT HALF WAY THROUGH REMOVING THE LOCK DIRECTORY
     /// (kb/Work PB3314, PB3313): a sibling's CLOSE (<see cref="SidecarLockFiles.RetireDirectory"/>) removes the empty
     /// directory and its next publication makes it again, so a publication meets a directory that is gone, about to be, or
@@ -267,8 +319,10 @@ public sealed class RegionLocksDriftTests
     /// cannot hold the lock, and the waiting hold that reads it answers <see cref="RegionLockResult.Unavailable"/> with
     /// the store mutex untaken. The window cannot be held open on demand, so this is the contract under the load that opens
     /// it (spinning threads beside the sibling leave a remover off the CPU mid-call), a repetition witness that holds
-    /// the host to publishing; <see cref="ARepeatedLostPublicationRaceIsPacedByTime_NotRetriedAtOnce"/> pins the fix
-    /// itself, because a window of ONE publication in 500,000 is not one a test can wait for.</summary>
+    /// the host to publishing and does not discriminate the fix (it passed 24 of 24 on the unpaced code). The fix itself is
+    /// pinned by <see cref="APublicationThatLosesItsRaceNTimesPausesBeforeEachRetry_AndThenPublishes"/> (Publish pauses
+    /// on the schedule) and <see cref="ARepeatedLostPublicationRaceIsPacedByTime_NotRetriedAtOnce"/> (the schedule),
+    /// because a window of ONE publication in 500,000 is not one a test can wait for.</summary>
     [Fact]
     public void EveryPublicationSucceeds_BesideASiblingThatClosesAndReopensTheLockDirectory_OnAnOversubscribedHost()
     {
