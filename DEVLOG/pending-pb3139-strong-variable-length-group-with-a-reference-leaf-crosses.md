@@ -86,3 +86,5 @@ GREEN ===`; the four goldens and both refusals ran in leg 1 and passed. Codes: n
 **Branch review round 1** (kb/Work PB3027): one finding, R1-1 — `OoClassTable.LeafCarried`'s summary still named the
 deleted static `OfLeaves`; it now names the sender's `AsLeaves` and the receiver's instance `WithLeaves` and why the
 store is an instance one (§14.6.9.2). `git grep OfLeaves` over src, tests, docs and scripts finds no other stale use.
+Re-gate (review finisher, at 5caf3e852, run `20261018T040904Z-45bc9a`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating,
+PB2515): GREEN ===`; the goldens and refusals ran in leg 1 and passed.
