@@ -135,7 +135,7 @@ public sealed class StandardDecimalTests
                 STOP RUN.
             """;
         var (ok, diags) = EditionHarness.Compile(src, 2023);
-        Assert.False(ok, "a 40-digit composite must be REJECTED (ISO §14.7 rule 2 caps at 31)");
+        Assert.False(ok, "a 40-digit composite must be REJECTED (ISO §14.7.7 rule 2 a) caps at 31)");
         EditionHarness.AssertHasDiagnostic(diags, "COBOLNET0805");
     }
 }

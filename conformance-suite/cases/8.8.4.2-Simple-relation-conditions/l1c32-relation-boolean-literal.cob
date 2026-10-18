@@ -14,7 +14,7 @@
       *> literal B"1" violates SR3. Nothing else in the program is illegal. Boolean
       *> literals exist from ISO/IEC 1989:2002, so the program is rejected from 2002 on.
       *> .err stops before the message's parenthesised citation, which names
-      *> "§8.8.4.2.1 F1 SR2/SR3" (the syntax rules are in §8.8.4.2.3).
+      *> §8.8.4.2.3 SR2/SR3 (Format 1's syntax rules).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C32G.
        DATA DIVISION.
