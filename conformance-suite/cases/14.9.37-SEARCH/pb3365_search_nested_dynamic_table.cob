@@ -28,6 +28,11 @@
       *>   S7  SEARCH ALL, E(2) = A B, WHEN = "D": AT END (capacity 2).
       *>   S8  the WHEN body moves the enclosing subscript I: the search ends at the satisfied WHEN, and the next
       *>       statement searches the table I now names.
+      *>   S9  the enclosing occurrence is a FUNCTION result written only in the WHEN phrase, inside a loop (the value
+      *>       is evaluated afresh for each execution of the statement - 8.4.3.2.4 GR1): T = 3 searches E(3) and finds
+      *>       "S" at 4; T = 1 then searches E(1), capacity 3, and ends. A bound read before the function was evaluated
+      *>       (or kept from the previous execution) would fail the first and misbound the second.
+      *>   S10 the same through SEARCH ALL over EQ: T = 3 finds "D" at 4; T = 2 searches E(2), capacity 2, and ends.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB3365NESTDYN.
        DATA DIVISION.
@@ -40,6 +45,7 @@
        01 I PIC 9.
        01 J PIC 9 VALUE 0.
        01 K PIC 9.
+       01 T PIC S9 SIGN IS LEADING SEPARATE.
        PROCEDURE DIVISION.
        MAIN-P.
            MOVE "A" TO EP(1, 1)
@@ -123,4 +129,21 @@
                    SET K TO EX
                    DISPLAY "S8 FOUND3 " K
            END-SEARCH
+           PERFORM VARYING T FROM 3 BY -2 UNTIL T < 1
+               SET EX TO 1
+               SEARCH EP
+                   AT END DISPLAY "S9 END T=" T
+                   WHEN EP(FUNCTION INTEGER(T), EX) = "S"
+                       SET K TO EX
+                       DISPLAY "S9 FOUND " K " T=" T
+               END-SEARCH
+           END-PERFORM
+           PERFORM VARYING T FROM 3 BY -1 UNTIL T < 2
+               SEARCH ALL EQ
+                   AT END DISPLAY "S10 END T=" T
+                   WHEN EQ(FUNCTION INTEGER(T), QX) = "D"
+                       SET K TO QX
+                       DISPLAY "S10 FOUND " K " T=" T
+               END-SEARCH
+           END-PERFORM
            STOP RUN.
