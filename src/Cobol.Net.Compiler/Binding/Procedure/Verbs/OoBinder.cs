@@ -1216,11 +1216,13 @@ internal sealed partial class OoBinder(BinderContext ctx, StatementBinder host)
             // §14.9.23.3 SR15 — a BY VALUE identifier-5 is of class numeric, object or pointer (message-tag is the MCS
             // module, not modeled). Asked of the operand's CLASS, the answer CALL's SR22 screen reads
             // (IntrinsicArgumentRules.ClassOf), before any conformance question.
-            if (byValue && IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place)) is { } valueClass
+            if (byValue && new BoundFieldOperand(place) is var valueOperand
+                && IntrinsicArgumentRules.ClassOf(valueOperand) is { } valueClass
                 && valueClass is not (CobolClass.Numeric or CobolClass.Object or CobolClass.Pointer))
             {
                 ctx.Edition.Error(DiagnosticCatalog.InvokeByValueOperandClass,
-                    $"{verb} \"{methodName}\": BY VALUE operand '{argText}' is of class {IntrinsicArgumentRules.Name(valueClass)}; "
+                    $"{verb} \"{methodName}\": BY VALUE operand '{argText}' is of class "
+                    + $"{IntrinsicArgumentRules.ClassNameOf(valueOperand, valueClass)}; "
                     + "ISO §14.9.23.3 SR15 admits only class message-tag, numeric, object or pointer by value");
                 return null;
             }
