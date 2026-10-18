@@ -77,8 +77,8 @@ public sealed class PendingStoreCases
         // CLOSE included, and the boundary at a WRITE, a REWRITE and a DELETE — run in IndexedEngineTests,
         // FileBoundaryTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
         // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; the torn page's '30' and the
-        // boundary's '24' through a compiled program, in every USE and FILE STATUS combination, in the Conformance
-        // project's IndexedEnginePermanentErrorWitnessTests.)
+        // boundary's '24' through a compiled program, in every USE and FILE STATUS combination, in
+        // IndexedEnginePermanentErrorWitnessTests.)
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
             "a sibling connector's change visible instantly; another run unit's change adopted at the next coherent entry, the cache dropped"),
     ];
