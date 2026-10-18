@@ -1,4 +1,4 @@
-## PB1917: the MERGE USING arm of the short-record fill gets its golden (a witness, not a fix)
+## Entry 2229 — 2026-10-18 16:35 PDT — PB1917: the MERGE USING arm of the short-record fill gets its golden (a witness, not a fix)
 
 kb/Work PB1917 (wave 1126, group H, SORT and file I/O campaign PB3353). PB1140 routes the short-record fill of both SORT and
 MERGE USING transfers through one emitter arm (`SortEmitter.EmitInputFile`, the fixed-SD call of `CobolSort.FillTo` with
@@ -24,3 +24,4 @@ no syntax and no edition gate.
 `conformance-suite/` that makes `generate.py --check` refuse the folder. Compile a copy outside the tree.
 
 Rows: PB1917 claimed none and closes none (`closes_rows_reason` in the note). Self-review: nothing found (no source change).
+
