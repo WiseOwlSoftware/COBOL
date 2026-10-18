@@ -220,6 +220,11 @@ internal sealed partial class BTree
             if (found ? kind == ChangeKind.Insert : kind is ChangeKind.Replace or ChangeKind.Delete) return StoreStatus.Ok;
             var (original, at) = path[^1];
             if (found) Supersede(original.Slots[at]);
+            var before = path.ConvertAll(p => p.Node.Bytes);
+            // An APPEND — a new key above every key of the tree — splits off only what it added, so a sequential load
+            // fills its pages (Berkeley DB's rule for a split at the right edge; the 2.2.1.4 fan-out arithmetic).
+            bool append = !found && at == original.Keys.Count
+                && path.Take(path.Count - 1).All(p => p.Index == p.Node.Children.Count - 1);
             var leaf = Own(original);
             if (kind == ChangeKind.Delete)
             {
@@ -232,7 +237,7 @@ internal sealed partial class BTree
                 leaf.Keys.Insert(at, key.ToArray());
                 leaf.Slots.Insert(at, slot);
             }
-            Rebuild(path, leaf);
+            Rebuild(path, leaf, before, append);
             done = true;
             return StoreStatus.Ok;
         }
@@ -274,6 +279,16 @@ internal sealed partial class BTree
     {
         _root = _flushed;
         _superseded.Clear();
+    }
+
+    /// <summary>Take <paramref name="root"/> — the root the store adopted at a coherent entry (2.2.1.7: another run unit's
+    /// statement moved page 2) — as this tree's. A cursor positioned under the old root re-seeks from its key at its
+    /// next step, so it never walks the superseded path, whose pages that run unit may already have reused.</summary>
+    public void Adopt(PagePointer root)
+    {
+        if (_resident) throw new InvalidOperationException("a resident tree is reloaded, not re-rooted");
+        if (HasPendingChanges) throw new InvalidOperationException("a tree with a pending edit adopts nothing");
+        if (root != _flushed.Pointer) _root = _flushed = new Child(root, null);
     }
 
     // ── The edit's shape: copy the path, fix every level, set the root ──────────────────────────────────────────
@@ -323,8 +338,10 @@ internal sealed partial class BTree
     }
 
     /// <summary>Re-link the changed <paramref name="leaf"/> up <paramref name="path"/>: each ancestor copied, a node past
-    /// a page body split into its parent, a node below a quarter of one rebalanced with a sibling, and the root set.</summary>
-    private void Rebuild(List<(Node Node, int Index)> path, Node leaf)
+    /// a page body split into its parent, a node that SHRANK below a quarter of one (or emptied) rebalanced with a
+    /// sibling, and the root set. <paramref name="before"/> holds each path node's size before the change: a node that
+    /// grew is never rebalanced, so an append's small right page is left to fill.</summary>
+    private void Rebuild(List<(Node Node, int Index)> path, Node leaf, List<int> before, bool append)
     {
         var child = leaf;
         for (int level = path.Count - 2; level >= 0; level--)
@@ -332,22 +349,23 @@ internal sealed partial class BTree
             var (original, index) = path[level];
             var parent = Own(original);
             parent.Children[index] = new Child(PagePointer.None, child);
-            FixChild(parent, index);
+            FixChild(parent, index, before[level + 1], append);
             child = parent;
         }
-        SetRoot(child);
+        SetRoot(child, append);
     }
 
-    private void FixChild(Node parent, int index)
+    private void FixChild(Node parent, int index, int sizeBefore, bool append)
     {
         var child = parent.Children[index].Node!;
-        if (child.Bytes > PageHeader.BodyBytes)
+        int size = child.Bytes;
+        if (size > PageHeader.BodyBytes)
         {
-            var (separator, right) = Split(child);
+            var (separator, right) = Split(child, append);
             parent.Keys.Insert(index, separator);
             parent.Children.Insert(index + 1, new Child(PagePointer.None, right));
         }
-        else if (Rebalancing && parent.Children.Count > 1 && (child.Bytes < UnderflowBytes || child.Keys.Count == 0))
+        else if (Rebalancing && parent.Children.Count > 1 && (child.Keys.Count == 0 || (size < sizeBefore && size < UnderflowBytes)))
             Rebalance(parent, index);
     }
 
@@ -376,14 +394,16 @@ internal sealed partial class BTree
             parent.Children.RemoveAt(r);
             return;
         }
-        var (separator, newRight) = Split(left);
+        var (separator, newRight) = Split(left, append: false);
         parent.Keys[l] = separator;
         parent.Children[r] = new Child(PagePointer.None, newRight);
     }
 
-    /// <summary>Split <paramref name="node"/> where the larger half is smallest; it keeps the left half. A leaf's
-    /// separator is the right half's first key; an internal node promotes its middle key.</summary>
-    private static (byte[] Separator, Node Right) Split(Node node)
+    /// <summary>Split <paramref name="node"/>, which keeps the left part: where the larger half is smallest, or — for an
+    /// <paramref name="append"/> at the right edge — just past what fitted before the append (a leaf's last entry, an
+    /// internal node's last key with its two children). A leaf's separator is the right part's first key; an internal
+    /// node promotes the key between the parts.</summary>
+    private static (byte[] Separator, Node Right) Split(Node node, bool append)
     {
         int n = node.Keys.Count;
         var right = new Node(node.IsLeaf);
@@ -396,6 +416,7 @@ internal sealed partial class BTree
                 int larger = Math.Max(left, total - left);
                 if (larger < bestMax) (best, bestMax) = (m, larger);
             }
+            if (append && total - LeafEntryBytes(node.Keys[n - 1], node.Slots[n - 1]) <= PageHeader.BodyBytes) best = n - 1;
             right.Keys.AddRange(node.Keys.GetRange(best, n - best));
             right.Slots.AddRange(node.Slots.GetRange(best, n - best));
             node.Keys.RemoveRange(best, n - best);
@@ -410,6 +431,7 @@ internal sealed partial class BTree
             int larger = Math.Max(before, after);
             if (larger < midMax) (mid, midMax) = (m, larger);
         }
+        if (append && n >= 3) mid = n - 2;
         var separator = node.Keys[mid];
         right.Keys.AddRange(node.Keys.GetRange(mid + 1, n - mid - 1));
         right.Children.AddRange(node.Children.GetRange(mid + 1, n - mid));
@@ -421,13 +443,13 @@ internal sealed partial class BTree
     /// <summary>Make <paramref name="top"/> the root: a new root above it when it split, its only child when it is an
     /// internal node left without a key, and an empty tree when it is a leaf left without an entry (kept as an empty
     /// leaf while rebalancing is off, so the page count of the ledger's settling only grows).</summary>
-    private void SetRoot(Node top)
+    private void SetRoot(Node top, bool append)
     {
         while (true)
         {
             if (top.Bytes > PageHeader.BodyBytes)
             {
-                var (separator, right) = Split(top);
+                var (separator, right) = Split(top, append);
                 var root = new Node(leaf: false);
                 root.Children.Add(new Child(PagePointer.None, top));
                 root.Keys.Add(separator);

@@ -75,6 +75,17 @@ public sealed class PendingStoreCases
             "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
             "a sibling connector's change visible instantly; another run unit's change adopted at the next coherent entry, the cache dropped"),
+        // The B+ tree's COBOL surface (kb/Work PB3332 built the tree; its statements are the connectors').
+        new("2.2.1.12 tree", "START with each relational operator over the tree's seek, a full key and a partial key, the key found and not found", "PB3334",
+            "§14.9.41.4 GR17 c) to e): the first record satisfying the comparison (LESS and its kin: the last, the file searched in reverse) becomes the position, '00' with NOT INVALID KEY; none satisfies it: '23' with INVALID KEY taken; each with and without a USE declarative and a FILE STATUS item"),
+        new("2.2.1.12 tree", "READ NEXT / READ PREVIOUS stepping off the tree's last / first entry, and across leaves another run unit split", "PB3333",
+            "AT END taken with '10' at the edge and NOT AT END on every entry before; a cursor whose tree another run unit changed re-seeks from its key after the coherent entry (BTree.Adopt) and returns the next record of the new tree"),
+        new("2.2.1.12 tree", "WRITE of a present RELATIVE record number or prime key: the tree's Insert declines", "PB3333",
+            "'22' with INVALID KEY taken and the file unchanged; absent: '00' with NOT INVALID KEY"),
+        new("2.2.1.12 tree", "READ, REWRITE and DELETE by a key the tree does not hold", "PB3333",
+            "'23' with INVALID KEY taken; present: '00' with NOT INVALID KEY"),
+        new("2.2.1.12 tree", "a record statement whose tree read meets a torn or stale page (R3)", "PB3333",
+            "'30' (§9.1.13.6 item 1) at the statement, the file unchanged, the connector in §9.1.13.1's permanent error; EC-I-O-PERMANENT-ERROR with and without a USE declarative and a FILE STATUS item, execution continuing or terminating as the spec rule says"),
     ];
 
     [Fact]

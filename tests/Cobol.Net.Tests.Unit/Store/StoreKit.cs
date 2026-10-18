@@ -163,43 +163,74 @@ internal static class StoreKit
     private static bool WalkTree(MemoryPageMedium medium, PagePointer root, long seq, HashSet<uint> into, Action<byte[], byte[]?>? entry)
     {
         if (root.IsNone) return true;
-        if (Verified(medium, root, seq) is not { } page) return false;
+        if (ReadNode(medium, root, seq) is not { } node) return false;
         into.Add(root.Page);
-        var h = PageHeader.Decode(page);
-        var body = page.AsSpan(PageHeader.Bytes);
         bool whole = true;
-        if (h.Kind == PageKind.Internal)
+        if (node.Kind == PageKind.Internal)
         {
-            whole &= WalkTree(medium, PagePointer.Read(body), seq, into, entry);
-            int at = PagePointer.Bytes;
-            for (int i = 0; i < h.Entries; i++)
-            {
-                at += 2 + BinaryPrimitives.ReadUInt16LittleEndian(body[at..]);
-                whole &= WalkTree(medium, PagePointer.Read(body[at..]), seq, into, entry);
-                at += PagePointer.Bytes;
-            }
+            foreach (var child in node.Children) whole &= WalkTree(medium, child, seq, into, entry);
             return whole;
         }
-        Assert.Equal(PageKind.Leaf, h.Kind);
-        int offset = 0;
+        for (int i = 0; i < node.Keys.Count; i++)
+        {
+            var value = node.Values[i];
+            if (value.Inline is null) whole &= WalkChain(medium, value.Head, seq, into);
+            entry?.Invoke(node.Keys[i], value.Inline);
+        }
+        return whole;
+    }
+
+    /// <summary>A B+ tree node as the auditor decodes it from the raw medium (2.2.1.4): INTERNAL — the leftmost child
+    /// POINTER, then per key {key length (2), key, child POINTER}; LEAF — per entry {key length (2), value length (4; bit
+    /// 31: an OVERFLOW reference of a head POINTER and a total length), key, value}. <see cref="UsedBytes"/> is the
+    /// body's used length.</summary>
+    internal sealed record RawNode(uint Page, PageKind Kind, List<byte[]> Keys, List<PagePointer> Children, List<RawValue> Values, int UsedBytes);
+
+    /// <summary>A leaf value as the auditor decodes it: inline bytes, or an overflow chain's head and total length.</summary>
+    internal readonly record struct RawValue(byte[]? Inline, PagePointer Head, uint Total);
+
+    /// <summary>The node <paramref name="pointer"/> names, decoded from the medium as it stood after write
+    /// <paramref name="seq"/> (the latest when -1); null when the page does not verify against the stamp.</summary>
+    public static RawNode? ReadNode(MemoryPageMedium medium, PagePointer pointer, long seq = -1)
+    {
+        var page = Verified(medium, pointer, seq < 0 ? medium.LastSeq : seq);
+        if (page is null) return null;
+        var h = PageHeader.Decode(page);
+        Assert.True(h.Kind is PageKind.Internal or PageKind.Leaf, $"page {pointer.Page} is a {h.Kind} page, not a tree node");
+        Assert.Equal(0u, h.Next);   // no sibling pointers (2.2.1.4)
+        var body = page.AsSpan(PageHeader.Bytes);
+        var node = new RawNode(pointer.Page, h.Kind, [], [], [], 0);
+        int at = 0;
+        if (h.Kind == PageKind.Internal)
+        {
+            node.Children.Add(PagePointer.Read(body));
+            at = PagePointer.Bytes;
+        }
         for (int i = 0; i < h.Entries; i++)
         {
-            int keyLength = BinaryPrimitives.ReadUInt16LittleEndian(body[offset..]);
-            uint word = BinaryPrimitives.ReadUInt32LittleEndian(body[(offset + 2)..]);
-            offset += 6;
-            var key = body.Slice(offset, keyLength).ToArray();
-            offset += keyLength;
+            int keyLength = BinaryPrimitives.ReadUInt16LittleEndian(body[at..]);
+            if (h.Kind == PageKind.Internal)
+            {
+                node.Keys.Add(body.Slice(at + 2, keyLength).ToArray());
+                at += 2 + keyLength;
+                node.Children.Add(PagePointer.Read(body[at..]));
+                at += PagePointer.Bytes;
+                continue;
+            }
+            uint word = BinaryPrimitives.ReadUInt32LittleEndian(body[(at + 2)..]);
+            at += 6;
+            node.Keys.Add(body.Slice(at, keyLength).ToArray());
+            at += keyLength;
             int stored = (int)(word & 0x7FFF_FFFF);
             if ((word & 0x8000_0000) != 0)
             {
                 Assert.Equal(16, stored);
-                whole &= WalkChain(medium, PagePointer.Read(body[offset..]), seq, into);
-                entry?.Invoke(key, null);
+                node.Values.Add(new RawValue(null, PagePointer.Read(body[at..]), BinaryPrimitives.ReadUInt32LittleEndian(body[(at + 12)..])));
             }
-            else entry?.Invoke(key, body.Slice(offset, stored).ToArray());
-            offset += stored;
+            else node.Values.Add(new RawValue(body.Slice(at, stored).ToArray(), PagePointer.None, (uint)stored));
+            at += stored;
         }
-        return whole;
+        return node with { UsedBytes = at };
     }
 
     private static bool WalkChain(MemoryPageMedium medium, PagePointer head, long seq, HashSet<uint> into)
