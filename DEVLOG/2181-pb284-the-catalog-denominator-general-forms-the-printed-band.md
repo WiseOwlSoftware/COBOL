@@ -1,4 +1,4 @@
-## PB284: the catalog denominator — "General forms", the printed band as a field, prose concept clauses as rows, and the `formats` selector arm
+## Entry 2181 — 2026-10-18 00:18 PDT — PB284: the catalog denominator — "General forms", the printed band as a field, prose concept clauses as rows, and the `formats` selector arm
 
 Wave 1115 A (kb/Work PB284, cluster PB3353). The note was written 2026-09-02 against four ways `extract_rule_catalog.py`
 lost part of the denominator; the wave re-probed each on a fresh build before touching anything.
@@ -75,3 +75,4 @@ selector tooling only), so there is no exception-path test to add; the rows it m
 (run `20261018T064519Z-0c3b6a`). The first review-round gate was RED on the branch's own new no-copy sweep, which flagged a
 lower-case keyword list in `BoundDeferralDriftTests` as a copy of the heading pattern; the sweep now takes a lower-case spelling
 only as a regex, and a theory proves it flags each spelling of the pattern and passes the keyword list.
+
