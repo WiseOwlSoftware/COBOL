@@ -61,14 +61,14 @@ public sealed class SymbolTable
         {
             if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0)
             {
-                items = mlist;
+                items = _data.WithLapsedTypeMembers(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
             if (m.Declares(name)) { items = []; return false; }
         }
         if (_data.ByName.TryGetValue(name, out var list) && list.Count > 0)
         {
-            items = _data.WithLapsedTypeMembers(name, list);
+            items = _data.WithLapsedTypeMembers(name, list, null);
             return true;
         }
         items = [];
@@ -129,14 +129,14 @@ public sealed class SymbolTable
         {
             if (m.Conditions.TryGetValue(name, out var mlist) && mlist.Count > 0)
             {
-                conds = mlist;
+                conds = _data.WithLapsedTypeConditions(name, mlist, m);   // the method's own type declarations (kb/Work PB3192)
                 return true;
             }
             if (m.Declares(name)) { conds = []; return false; }
         }
         if (_data.Conditions.TryGetValue(name, out var list) && list.Count > 0)
         {
-            conds = _data.WithLapsedTypeConditions(name, list);
+            conds = _data.WithLapsedTypeConditions(name, list, null);
             return true;
         }
         conds = [];
@@ -162,7 +162,9 @@ public sealed class SymbolTable
         {
             if (m.ByName.TryGetValue(name, out var mlist) && mlist.Count > 0) return null;   // the method data-name wins
             if (m.IndexNames.Declares(name))
-                return m.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers));
+                return _data.WithLapsedTypeIndexes(name,
+                    m.IndexNames.Candidates(name, d => _data.IndexQualifierChainMatches(d, qualifiers)),
+                    d => _data.IndexQualifierChainMatches(d, qualifiers), m);   // the method's own type declarations (kb/Work PB3192)
             // A method condition-name, CAPACITY register or constant-name of the spelling hides the object's
             // index-name too (GR5 covers every name class; kb/Work PB3165 review R2-1, PB3153 review round 3).
             if (m.Declares(name)) return null;
@@ -175,7 +177,7 @@ public sealed class SymbolTable
         // a contained program's `01 IX` hides its container's GLOBAL table's `INDEXED BY IX`, exactly as its
         // `01 X` hides the container's global `X`. At EQUAL depth the index-name keeps the reference, as before.
         if (indexes.Count > 0 && NearerDataNameHides(name, qualifiers, indexDepth)) return null;
-        return _data.WithLapsedTypeIndexes(name, indexes, d => _data.IndexQualifierChainMatches(d, qualifiers));
+        return _data.WithLapsedTypeIndexes(name, indexes, d => _data.IndexQualifierChainMatches(d, qualifiers), null);
     }
 
     /// <summary>⛔ THE ONE CAPACITY-REGISTER-NAME LOOKUP (kb/Work PB3165) — the dynamic tables whose named OCCURS
