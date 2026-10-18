@@ -1,7 +1,7 @@
 *>--- conformance-case
 *> id: pb248_integer_arg_float_admitted
 *> rules: []
-*> accept: [85]
+*> accept: [2002, 2014, 2023]
 *> source-format: free
 *> portable: unverified
 *>---
