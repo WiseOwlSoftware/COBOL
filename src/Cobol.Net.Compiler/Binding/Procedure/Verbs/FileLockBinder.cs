@@ -29,13 +29,12 @@ internal sealed class FileLockBinder(BinderContext ctx, StatementBinder host)
         // UNLOCK is a COBOL-2002 introduction (§14.9.47), parsed at ALL editions (superset grammar). The edition
         // gate moved to the post-bind VersionConformancePass (rearch PHASE-03 Step 14b) — it fires on the
         // self-identifying BoundUnlock node this method produces, so the binder is edition-agnostic here.
-        string name = ul.fileName().GetText();
         // The ONE file-name resolution step (kb/Work PB236 — §8.4.2.1 through COBOLNET1639); the old
         // BoundUnsupported staged an UNDECLARED file-name to a run-time loud with no compile-time word.
         if (!ctx.Validation.ResolveFile(ul.fileName(), "UNLOCK", out var file)) return BoundRejected.Reported(ctx.Edition);
-        if (file.IsSortMerge)
-            ctx.Edition.Error("COBOLNET1512", $"UNLOCK may not name the sort/merge file '{name}' "
-                + "(ISO §14.9.47.3 SR1)");
+        // SR1 is the ONE sort-merge screen's (kb/Work PB700): §14.9.47.3 SR1 restates §13.4.6.3 SR3 in UNLOCK's own
+        // words, so the shared screen reports it (COBOLNET1692) and names the verb's own clause too.
+        ctx.Validation.ScreenSortMergeFile(file, "UNLOCK", "§14.9.47.3 SR1");
         ctx.Data.ScreenApplyCommitSubject(file, true, "UNLOCK", "ISO §14.9.47.3 SR2: \"File-name-1 shall not be a "
             + "file specified in an APPLY COMMIT clause\"");   // kb/Work PB666
         return new BoundUnlock(file, ul.RECORDS() is not null || ul.RECORD() is not null);
