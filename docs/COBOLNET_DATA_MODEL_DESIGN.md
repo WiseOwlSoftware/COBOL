@@ -1414,6 +1414,18 @@ PB2690), so a fixed table opposite a dynamic-capacity table of variable-length e
 image and the carrier now admit the same groups, the former `CurrentImageCapable` capability is gone. A RECORD takes
 an OCCURS DEPENDING table of variable-length elements too (kb/Work PB2497; the record layout above).
 
+**The one-way twin: `DataItem.CurrentExtentTransferImageCapable` (kb/Work PB3358).** A STRONG variable-length group that holds a
+class pointer or object-reference leaf (§13.18.60.3 SR14) has the DISPLAY format of §14.9.11.4 GR7 (A.1 item 57) but no
+carrier: the carrier's receiving side stores components back and the leaf's 8 positions have no inverse. The capability is the
+current-extent member law (`CurrentExtentComposes`, ONE definition with a `transfer` flag) with its fixed-image test widened by
+exactly the leaf kind `TransferImageCapable` widens `IsImageCapable` by, so a nested fixed group, a fixed or dynamic-capacity
+table and an OCCURS DEPENDING table of such members classify as they do for the carrier. `GroupImageCodec.VarParts` classifies
+by the one-way predicates (equal to the two-way ones for every group without a slot leaf), `RecordStructEmitter` emits
+`CurrentImage()` for the wider capability and the `AsVarImage` / `FromVarImage` pair only for the narrower, and a cell-backed
+window composes the same image from the positions the leaf reserves in its fixed run. Only the SENDING consumers ask it
+(DISPLAY and FUNCTION LENGTH / BYTE-LENGTH, through the `transfer:` flag of `PlaceRenderer.VarGroupCurrentImage`, the twin of
+`GroupImage`'s); MOVE, comparison, CALL and a record keep `CurrentExtentImageCapable`.
+
 **CORE ships whole:** declaration (all phrases, each once and in the printed order — §13.18.38.2 with §5.2.1, refused otherwise by `DataBinder.NarrowToDataDivisionFormats`, **COBOLNET2789**, kb/Work PB1265) · out-of-line growable storage · CAPACITY
 read + SET Format 14 write · implicit + explicit growth · INITIALIZED seeding · bounds/capacity ECs
 (EC-BOUND-SUBSCRIPT/-OVERFLOW/-TABLE-LIMIT/-SET, EC-FLOW-SEARCH via a per-table `_inSearch` guard) · SEARCH/SEARCH
