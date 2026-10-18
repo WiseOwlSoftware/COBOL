@@ -13,11 +13,20 @@ WHAT IT MEASURES, each with the witness that proves the work ran (an unwitnessed
   * compile throughput, COLD: a fresh Release `cobol` process per compile of the same programs (what a user waits for);
   * generated-program hot paths: GeneratedProgramBenchmarks (BenchmarkDotNet, in-process: the generated code and the
     runtime, no start-up) over tests/Cobol.Net.Benchmarks/Programs/ (MOVE-heavy loop, PERFORM dispatch, sequential and
-    indexed file I/O), with allocated bytes per run;
+    indexed file I/O, SORT and MERGE), with allocated bytes per run;
   * the EXTERNAL comparison: the same programs as whole processes, ours (`dotnet prog.dll`) against GnuCOBOL 3.2
     (`cobc -x -O2`), both under WSL on the same kernel and the same native file system, each net of its own start-up
     floor (Programs/EMPTYRUN.cob), at 1x, 2x and 4x the program's LOOP-COUNT — the scaling curve, whose growth ratio
     names the complexity class independently of the machine. The legacy byte engine is NOT a baseline (kb/Work R69 §1);
+  * PEAK MEMORY of every whole process (cold compiles, the host-OS runs and both implementations under WSL): the
+    child's own peak resident set (`wait4`'s `ru_maxrss` on Linux, `GetProcessMemoryInfo`'s peak working set on
+    Windows), a `peak/` row beside each time row. Allocated bytes cannot stand in for it: a run that keeps every record
+    alive allocates no more than one that frees them (kb/Work PB2777);
+  * SORT and MERGE under two memory limits (kb/Work PB2777): a program with an SD entry is timed twice, once under the
+    default sort memory (SORT_LIMITS: every scale fits, so the sort is done in memory) and once as `<program>-SPILL`
+    under a limit several times smaller than its records (sorted runs on temporary files, merged; docs/CONFORMANCE.md
+    §3 D-SWK), the limit given to both implementations alike. The spilling case's peak stays near its limit at every
+    scale while the in-memory case's grows with the input: that is the record of the bounded store;
   * the whole-population gate time, read from build-local.ps1's own verdict.json for each --gate-run given.
 
 THE NOISE BAND (how a later wave reads a delta): every row keeps its samples. Its noise is the larger of the robust
@@ -49,12 +58,9 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import threading
 import time
-
-try:
-    import resource   # POSIX only: the child-CPU accounting of the WSL leg
-except ImportError:
-    resource = None   # Windows reads the child's CPU through GetProcessTimes instead (_windows_cpu)
+from typing import NamedTuple
 
 ROOT =os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 BENCH = os.path.join(ROOT, "tests", "Cobol.Net.Benchmarks")
@@ -66,6 +72,16 @@ SCALES = (1, 2, 4)
 NOISE_FLOOR, ALLOC_FLOOR, GATE_BAND, K_SIGMA = 0.05, 0.02, 0.25, 3.0
 WIDE_NOISE = 0.15   # a row noisier than this is named in the record as one whose band only catches a large change
 RUN_LIMIT_S = 900   # one timed process; the slowest row (our IDXHOT at 4x) takes about 11 s
+# The sort memory limit of both implementations: ours (docs/CONFORMANCE.md §3 D-SWK (a)) and GnuCOBOL 3.2's
+# (runtime.cfg: "COB_SORT_MEMORY ... if this size is exceeded the SORT will be done on disk instead of memory").
+SORT_MEMORY_VARIABLES = ("COBOLNET_SORT_MEMORY", "COB_SORT_MEMORY")
+# (case suffix, limit) per memory regime of a program with an SD entry. 128M is both implementations' default, stated
+# so a host's own setting cannot move a case out of its regime; every scale of Programs/ fits it (100,000 to 400,000
+# 80-byte records: at most about 104 MiB by our resident estimate). 4M is under a sixth of the smallest scale's records
+# by that estimate, so even x1 writes several runs and x4 more runs than one merge reads at once (the fan-in, 16), and
+# it is above GnuCOBOL's floor ("must be more than 1M").
+SORT_LIMITS = (("", "128M"), ("-SPILL", "4M"))
+SD_ENTRY = re.compile(r"^ {7}SD ", re.M)
 DATA_MARK = "<!-- perf-baseline-data: the block below is what perf_baseline.py --against reads -->"
 LOOP_COUNT = re.compile(r"(\b01 LOOP-COUNT\s+PIC 9\(9\) COMP VALUE )(\d+)(\.)")
 
@@ -114,43 +130,80 @@ def run_cmd(argv: list[str], cwd: str | None = None, check: bool = True) -> subp
     return r
 
 
-def timed(argv: list[str], cwd: str) -> tuple[float, float | None, str]:
-    """Run one process to completion: (wall seconds, CPU seconds of the child or None, stdout). A non-zero exit is a
+class Run(NamedTuple):
+    """One finished process: wall seconds, the child's CPU seconds (None where the host refuses them), its PEAK
+    resident set in bytes, and its standard output."""
+    wall: float
+    cpu: float | None
+    peak: int
+    out: str
+
+
+def timed(argv: list[str], cwd: str, env: dict[str, str] | None = None) -> Run:
+    """Run one process to completion, with `env` added to this process's environment. A non-zero exit is a
     measurement failure, never a fast run, and so is a run past RUN_LIMIT_S (a hang is not a slow measurement: the
-    witness never printed)."""
-    before = resource.getrusage(resource.RUSAGE_CHILDREN) if resource else None   # the waited-for children's CPU
-    t0 = time.perf_counter()
-    p = subprocess.Popen(argv, cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, errors="replace")
-    try:
-        out, err = p.communicate(timeout=RUN_LIMIT_S)
-    except subprocess.TimeoutExpired:
-        p.kill()
-        p.communicate()
+    witness never printed). The CPU time and the peak resident set are the CHILD's own: POSIX reaps it with wait4,
+    whose rusage is that one process's (RUSAGE_CHILDREN's ru_maxrss is the largest of every child so far, so it cannot
+    be differenced per run); Windows reads both through the handle Popen holds (_windows_usage)."""
+    child_env = {**os.environ, **env} if env else None
+    expired = threading.Event()
+    with tempfile.TemporaryFile() as out_f, tempfile.TemporaryFile() as err_f:
+        t0 = time.perf_counter()
+        p = subprocess.Popen(argv, cwd=cwd, stdout=out_f, stderr=err_f, env=child_env)
+
+        def expire() -> None:
+            expired.set()
+            p.kill()
+
+        watchdog = threading.Timer(RUN_LIMIT_S, expire)
+        watchdog.start()
+        try:
+            if os.name == "nt":
+                p.wait()
+                wall = time.perf_counter() - t0
+                cpu, peak = _windows_usage(p)
+            else:
+                _, status, usage = os.wait4(p.pid, 0)
+                wall = time.perf_counter() - t0
+                p.returncode = os.waitstatus_to_exitcode(status)   # reaped here, so Popen never waits for it again
+                cpu = usage.ru_utime + usage.ru_stime
+                peak = usage.ru_maxrss * 1024   # Linux reports kibibytes
+        finally:
+            watchdog.cancel()
+        out_f.seek(0)
+        err_f.seek(0)
+        out = out_f.read().decode("utf-8", errors="replace")
+        err = err_f.read().decode("utf-8", errors="replace")
+    if expired.is_set():
         raise MeasurementError(f"{' '.join(argv)} (cwd {cwd}) ran past {RUN_LIMIT_S} s and was killed")
-    wall = time.perf_counter() - t0
-    if resource:
-        after = resource.getrusage(resource.RUSAGE_CHILDREN)
-        cpu =(after.ru_utime - before.ru_utime) + (after.ru_stime - before.ru_stime)
-    else:
-        cpu = _windows_cpu(p)
     if p.returncode != 0:
         raise MeasurementError(f"{' '.join(argv)} (cwd {cwd}) exited {p.returncode}: {err[-1500:]}")
-    return wall, cpu, out
+    return Run(wall, cpu, peak, out)
 
 
-def _windows_cpu(p: subprocess.Popen) -> float | None:
-    """The finished child's user + kernel time (GetProcessTimes on the handle Popen still holds)."""
-    try:
-        import ctypes
-        from ctypes import wintypes
-        c, e, k, u = (wintypes.FILETIME() for _ in range(4))
-        handle = int(p._handle)  # noqa: SLF001 — the only way to the process handle Popen keeps open
-        if not ctypes.windll.kernel32.GetProcessTimes(handle, ctypes.byref(c), ctypes.byref(e), ctypes.byref(k), ctypes.byref(u)):
-            return None
-        to_s = lambda ft: ((ft.dwHighDateTime << 32) | ft.dwLowDateTime) / 1e7
-        return to_s(k) + to_s(u)
-    except (AttributeError, OSError, ValueError):
-        return None
+def _windows_usage(p: subprocess.Popen) -> tuple[float | None, int]:
+    """The finished child's user + kernel time (GetProcessTimes; None if refused) and its peak working set
+    (GetProcessMemoryInfo; a refusal is a MeasurementError, as every process row records it), read through the
+    process handle Popen still holds."""
+    import ctypes
+    from ctypes import wintypes
+
+    class Counters(ctypes.Structure):   # PROCESS_MEMORY_COUNTERS
+        _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD)] + [
+            (name, ctypes.c_size_t) for name in (
+                "PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage", "QuotaPagedPoolUsage",
+                "QuotaPeakNonPagedPoolUsage", "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage")]
+
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    handle = wintypes.HANDLE(int(p._handle))  # noqa: SLF001 — the only way to the process handle Popen keeps open
+    c, e, k, u = (wintypes.FILETIME() for _ in range(4))
+    to_s = lambda ft: ((ft.dwHighDateTime << 32) | ft.dwLowDateTime) / 1e7
+    cpu = to_s(k) + to_s(u) if kernel32.GetProcessTimes(
+        handle, ctypes.byref(c), ctypes.byref(e), ctypes.byref(k), ctypes.byref(u)) else None
+    counters = Counters(cb=ctypes.sizeof(Counters))
+    if not kernel32.K32GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb):
+        raise MeasurementError(f"GetProcessMemoryInfo refused pid {p.pid} (error {ctypes.get_last_error()})")
+    return cpu, counters.PeakWorkingSetSize
 
 
 def row(samples: list[float], unit: str, kind: str = "time", cpu: list[float] | None = None, **extra) -> dict:
@@ -162,10 +215,32 @@ def row(samples: list[float], unit: str, kind: str = "time", cpu: list[float] | 
     return r
 
 
+def process_rows(key: str, runs: list[Run], **extra) -> dict:
+    """A whole-process measurement's two rows: its wall time (with the CPU median) under `key`, and its peak resident
+    set under `peak/<key>`. One rule for every process row, so none can lack its memory."""
+    return {key: row([r.wall for r in runs], "s", cpu=[r.cpu for r in runs if r.cpu is not None], **extra),
+            "peak/" + key: row([float(r.peak) for r in runs], "bytes", kind="peak", **extra)}
+
+
 def to_wsl_path(path: str) -> str:
     path = os.path.abspath(path)
     drive, rest = os.path.splitdrive(path)
     return "/mnt/" + drive.rstrip(":").lower() + rest.replace("\\", "/")
+
+
+def hot_cases() -> list[tuple[str, str, dict[str, str]]]:
+    """Every case the whole-process rows time, as (case, program, environment): a hot-path program is one case, and a
+    program with an SD entry (a SORT or MERGE) is one case per SORT_LIMITS regime, the regime's limit in both
+    implementations' variable. Derived from the sources, so a new sort program gets both regimes without a list."""
+    cases = []
+    for program in bench_params(os.path.join("GeneratedCode", "GeneratedProgramBenchmarks.cs")):
+        text = open(os.path.join(PROGRAMS, program + ".cob"), encoding="utf-8").read()
+        if SD_ENTRY.search(text):
+            cases += [(program + suffix, program, dict.fromkeys(SORT_MEMORY_VARIABLES, limit))
+                      for suffix, limit in SORT_LIMITS]
+        else:
+            cases.append((program, program, {}))
+    return cases
 
 
 def scaled_source(name: str, factor: int) -> tuple[str, int]:
@@ -283,38 +358,46 @@ def measure_cold_compile(work: str, repeat: int) -> dict:
         out_dir = os.path.join(work, "cold", p)
         os.makedirs(out_dir, exist_ok=True)
         dll = os.path.join(out_dir, p + ".dll")
-        walls, cpus = [], []
+        runs = []
         for _ in range(repeat):
             if os.path.exists(dll):
                 os.remove(dll)
-            wall, cpu, _ = timed([cobol, src, "--nist", p, "-o", dll], cwd=out_dir)
+            runs.append(timed([cobol, src, "--nist", p, "-o", dll], cwd=out_dir))
             if not os.path.exists(dll):
                 raise MeasurementError(f"cold compile of {p} wrote no assembly")
-            walls.append(wall)
-            if cpu is not None:
-                cpus.append(cpu)
-        rows[f"cold-compile/{p}"] = row(walls, "s", cpu=cpus, lines=lines)
+        rows.update(process_rows(f"cold-compile/{p}", runs, lines=lines))
     return rows
 
 
+CASE_FILE = "case.json"   # in each staged case directory: its program, LOOP-COUNT and environment
+
+
 def stage_programs(work: str) -> str:
-    """Compile every hot-path program at every scale with the Release compiler into <work>/stage/<P>@x<k>/, the
-    directory both the Windows and the WSL runs use (the same assembly, so the two OSes measure one compile)."""
+    """Compile every case (hot_cases) at every scale with the Release compiler into <work>/stage/<case>@x<k>/, beside
+    its CASE_FILE: the directory both the Windows and the WSL runs use (the same assembly, so the two OSes measure one
+    compile, under one environment)."""
     cobol = release_exe(os.path.join(ROOT, "src", "Cobol.Net.Cli"), "cobol")
     stage = os.path.join(work, "stage")
-    hot = bench_params(os.path.join("GeneratedCode", "GeneratedProgramBenchmarks.cs"))
-    for name in [FLOOR_PROGRAM, *hot]:
-        for k in (SCALES if name != FLOOR_PROGRAM else (1,)):
-            case = os.path.join(stage, f"{name}@x{k}")
-            os.makedirs(case, exist_ok=True)
-            text, n = scaled_source(name, k)
-            with open(os.path.join(case, name + ".cob"), "w", encoding="utf-8", newline="\n") as fh:
+    for case, program, env in [(FLOOR_PROGRAM, FLOOR_PROGRAM, {}), *hot_cases()]:
+        for k in (SCALES if program != FLOOR_PROGRAM else (1,)):
+            case_dir = os.path.join(stage, f"{case}@x{k}")
+            os.makedirs(case_dir, exist_ok=True)
+            text, n = scaled_source(program, k)
+            with open(os.path.join(case_dir, program + ".cob"), "w", encoding="utf-8", newline="\n") as fh:
                 fh.write(text)
-            with open(os.path.join(case, "LOOP-COUNT"), "w", newline="\n") as fh:
-                fh.write(str(n))
-            run_cmd([cobol, name + ".cob"], cwd=case)
+            with open(os.path.join(case_dir, CASE_FILE), "w", encoding="utf-8", newline="\n") as fh:
+                json.dump({"program": program, "loop_count": n, "environment": env}, fh)
+            run_cmd([cobol, program + ".cob"], cwd=case_dir)
     shutil.copy(os.path.join(PROGRAMS, "witnesses.tsv"), stage)
     return stage
+
+
+def read_case(case_dir: str) -> tuple[str, int, dict[str, str], dict]:
+    """A staged case: (program, LOOP-COUNT, environment, the row extras that name its sort memory limit)."""
+    spec = json.load(open(os.path.join(case_dir, CASE_FILE), encoding="utf-8"))
+    env = spec["environment"]
+    extra = {"sort_memory": env[SORT_MEMORY_VARIABLES[0]]} if env else {}
+    return spec["program"], spec["loop_count"], env, extra
 
 
 def measure_windows_processes(stage: str, repeat: int) -> dict:
@@ -323,20 +406,18 @@ def measure_windows_processes(stage: str, repeat: int) -> dict:
     wit = witnesses()
     rows = {}
     for staged in sorted(glob.glob(os.path.join(stage, "*@x1"))):
-        name = os.path.basename(staged).split("@")[0]
+        case = os.path.basename(staged).split("@")[0]
+        program, _, env, extra = read_case(staged)
         # Run in a COPY: the stage must hold only what the WSL leg copies (a data file written here is ours, and
         # GnuCOBOL's indexed handler opening our idxhot.dat spun at 100 % CPU instead of replacing it).
-        case = os.path.join(os.path.dirname(stage), "windows", os.path.basename(staged))
-        shutil.copytree(staged, case)
-        walls, cpus = [], []
+        case_dir = os.path.join(os.path.dirname(stage), "windows", os.path.basename(staged))
+        shutil.copytree(staged, case_dir)
+        runs = []
         for _ in range(repeat):
-            wall, cpu, out = timed(["dotnet", name + ".dll"], cwd=case)
-            if out.rstrip("\r\n") != wit[name]:
-                raise MeasurementError(f"windows {name}: witness mismatch [{out.strip()}] != [{wit[name]}]")
-            walls.append(wall)
-            if cpu is not None:
-                cpus.append(cpu)
-        rows[f"process-windows/ours/{name}"] = row(walls, "s", cpu=cpus)
+            runs.append(timed(["dotnet", program + ".dll"], cwd=case_dir, env=env))
+            if runs[-1].out.rstrip("\r\n") != wit[program]:
+                raise MeasurementError(f"windows {case}: witness mismatch [{runs[-1].out.strip()}] != [{wit[program]}]")
+        rows.update(process_rows(f"process-windows/ours/{case}", runs, **extra))
     return rows
 
 
@@ -353,12 +434,32 @@ def measure_wsl(stage: str, repeat: int, distro: str) -> tuple[dict, dict]:
     return data["rows"], data["environment"]
 
 
+def linux_runtime_image() -> str:
+    """The runtime the Release compiler deploys beside a program compiled on this Linux host, resolved as
+    AssemblyPackager.ResolveRuntimePath resolves it: the ReadyToRun image of this platform, else the portable
+    assembly."""
+    cli = os.path.join(ROOT, "src", "Cobol.Net.Cli", "bin", "Release", "net10.0")
+    arch = {"x86_64": "x64", "aarch64": "arm64"}.get(platform.machine(), platform.machine())
+    image = os.path.join(cli, "ReadyToRun", "linux-" + arch, "Cobol.Net.Runtime.dll")
+    return image if os.path.exists(image) else os.path.join(cli, "Cobol.Net.Runtime.dll")
+
+
 def wsl_leg(stage_mnt: str, repeat: int) -> int:
     """Runs INSIDE WSL: copy the stage to the Linux file system (so file I/O is measured on a native file system, not
     through the Windows mount), compile each program with GnuCOBOL, and time both implementations, interleaved."""
     native = os.path.join(os.path.expanduser("~"), ".cache", "pb2117-perf", os.path.basename(os.path.dirname(stage_mnt)))
     shutil.rmtree(native, ignore_errors=True)
     shutil.copytree(stage_mnt, native, ignore=shutil.ignore_patterns("*.dat"))   # inputs only, never a data file
+    # The stage was compiled on Windows, so beside each program sits the WINDOWS ReadyToRun image of the runtime, which
+    # a Linux .NET refuses (BadImageFormatException: a ReadyToRun image's PE machine field names its operating system).
+    # The program is portable IL; the runtime beside it here is the one the compiler deploys on this platform
+    # (AssemblyPackager.ResolveRuntimePath: ReadyToRun/<platform>/, else the portable assembly; kb/Work PB2528).
+    runtime = linux_runtime_image()
+    if not os.path.exists(runtime):
+        print(f"WSL LEG FAILED: no runtime to deploy ({runtime}): build Cobol.Net.sln in Release first")
+        return 2
+    for case_dir in glob.glob(os.path.join(native, "*@x*")):
+        shutil.copy(runtime, os.path.join(case_dir, os.path.basename(runtime)))
     wit = {}
     for line in open(os.path.join(native, "witnesses.tsv"), encoding="utf-8"):
         if line.strip() and not line.startswith("#"):
@@ -373,34 +474,31 @@ def wsl_leg(stage_mnt: str, repeat: int) -> int:
     env["loadavg_before"] = round(os.getloadavg()[0], 2)
     rows = {}
     try:
-        for case in sorted(glob.glob(os.path.join(native, "*@x*"))):
-            name, scale = os.path.basename(case).split("@")
-            run_cmd(["cobc", "-x", "-O2", "-o", name, name + ".cob"], cwd=case)
-            inputs = set(os.listdir(case))
-            n = int(open(os.path.join(case, "LOOP-COUNT")).read())
-            samples = {"gnucobol": ([], []), "ours": ([], [])}
-            outputs = {}
+        for case_dir in sorted(glob.glob(os.path.join(native, "*@x*"))):
+            case, scale = os.path.basename(case_dir).split("@")
+            program, n, env, extra = read_case(case_dir)
+            run_cmd(["cobc", "-x", "-O2", "-o", program, program + ".cob"], cwd=case_dir)
+            inputs = set(os.listdir(case_dir))
+            runs: dict[str, list[Run]] = {"gnucobol": [], "ours": []}
             # Scaled runs are slow on purpose (that is the curve); one fewer repetition keeps the leg bounded.
             reps = repeat if scale == "x1" else max(3, repeat - 2)
             for _ in range(reps):
-                for impl, argv in (("gnucobol", ["./" + name]), ("ours", ["dotnet", name + ".dll"])):
+                for impl, argv in (("gnucobol", ["./" + program]), ("ours", ["dotnet", program + ".dll"])):
                     # Every run starts from no data file: the two implementations' file formats differ, and
                     # GnuCOBOL's indexed handler spins at 100 % CPU on OPEN OUTPUT over a file it did not write.
-                    for leftover in set(os.listdir(case)) - inputs:
-                        os.remove(os.path.join(case, leftover))
-                    wall, cpu, out = timed(argv, cwd=case)
-                    outputs.setdefault(impl, out.rstrip("\n"))
-                    if out.rstrip("\n") != outputs[impl]:
-                        raise MeasurementError(f"{impl} {name}@{scale}: output changed between runs")
-                    samples[impl][0].append(wall)
-                    samples[impl][1].append(cpu)
+                    for leftover in set(os.listdir(case_dir)) - inputs:
+                        os.remove(os.path.join(case_dir, leftover))
+                    runs[impl].append(timed(argv, cwd=case_dir, env=env))
+                    if runs[impl][-1].out != runs[impl][0].out:
+                        raise MeasurementError(f"{impl} {case}@{scale}: output changed between runs")
+            outputs = {impl: r[0].out.rstrip("\n") for impl, r in runs.items()}
             # The witness: at scale 1 both print the computed line; at every scale the two agree.
-            if scale == "x1" and outputs["ours"] != wit[name]:
-                raise MeasurementError(f"ours {name}: [{outputs['ours']}] != witness [{wit[name]}]")
+            if scale == "x1" and outputs["ours"] != wit[program]:
+                raise MeasurementError(f"ours {case}: [{outputs['ours']}] != witness [{wit[program]}]")
             if outputs["gnucobol"] != outputs["ours"]:
-                raise MeasurementError(f"{name}@{scale}: GnuCOBOL printed [{outputs['gnucobol']}], ours [{outputs['ours']}]")
-            for impl, (walls, cpus) in samples.items():
-                rows[f"process-wsl/{impl}/{name}@{scale}"] = row(walls, "s", cpu=cpus, loop_count=n)
+                raise MeasurementError(f"{case}@{scale}: GnuCOBOL printed [{outputs['gnucobol']}], ours [{outputs['ours']}]")
+            for impl, impl_runs in runs.items():
+                rows.update(process_rows(f"process-wsl/{impl}/{case}@{scale}", impl_runs, loop_count=n, **extra))
     except MeasurementError as e:
         print(f"WSL LEG FAILED: {e}")
         return 2
@@ -525,14 +623,15 @@ def render(record: dict) -> str:
             "Warm = BenchmarkDotNet in one process (JIT and the backend's reference-assembly cache warm); cold = a "
             "fresh Release `cobol --nist` process per compile.", "",
             "| program | lines | front end + bind (warm) | full compile (warm) | lines/s (warm, full) | allocated (full) "
-            "| cold process | noise (warm full / cold) |", "|---|--:|--:|--:|--:|--:|--:|--:|"]
+            "| cold process | peak (cold) | noise (warm full / cold) |", "|---|--:|--:|--:|--:|--:|--:|--:|--:|"]
     for key in sorted(k for k in rows if k.startswith("cold-compile/")):
         p = key.split("/")[1]
         fe, full = get(f"bdn/compile/{p}/FrontEndAndBind"), get(f"bdn/compile/{p}/FullCompile")
         lines = rows[key].get("lines", 0)
         out.append(f"| {p} | {lines:,} | {fmt(fe, 'ms')} | {fmt(full, 'ms')} | "
                    f"{lines / (full / 1000):,.0f} | {fmt(get(f'bdn-alloc/compile/{p}/FullCompile'), 'bytes')} | "
-                   f"{fmt(get(key), 's')} | {noise(f'bdn/compile/{p}/FullCompile')} / {noise(key)} |")
+                   f"{fmt(get(key), 's')} | {fmt(get('peak/' + key), 'bytes')} | "
+                   f"{noise(f'bdn/compile/{p}/FullCompile')} / {noise(key)} |")
 
     out += ["", "## Generated-program hot paths (in-process, BenchmarkDotNet)", "",
             "| program | per run | allocated per run | noise |", "|---|--:|--:|--:|"]
@@ -543,12 +642,15 @@ def render(record: dict) -> str:
     if any(k.startswith("process-wsl/") for k in rows):
         out += ["", "## Against GnuCOBOL (whole processes under WSL, same kernel and file system)", "",
                 f"Each time is the median wall time net of that implementation's `{FLOOR_PROGRAM}` start-up floor; "
-                "ratio = ours / GnuCOBOL. Both print the same witness line at every scale.", "",
-                "| program | LOOP-COUNT | ours (net) | GnuCOBOL (net) | ours / GnuCOBOL | ours CPU | GnuCOBOL CPU |",
-                "|---|--:|--:|--:|--:|--:|--:|"]
+                "ratio = ours / GnuCOBOL. Both print the same witness line at every scale. Peak = the process's own peak "
+                "resident set, start-up included.", "",
+                "| program | LOOP-COUNT | ours (net) | GnuCOBOL (net) | ours / GnuCOBOL | ours CPU | GnuCOBOL CPU "
+                "| ours peak | GnuCOBOL peak |",
+                "|---|--:|--:|--:|--:|--:|--:|--:|--:|"]
         floor = {i: get(f"process-wsl/{i}/{FLOOR_PROGRAM}@x1") or 0.0 for i in ("ours", "gnucobol")}
+        peak_floor = {i: get(f"peak/process-wsl/{i}/{FLOOR_PROGRAM}@x1") or 0.0 for i in ("ours", "gnucobol")}
         out.append(f"| {FLOOR_PROGRAM} (start-up floor) | — | {fmt(floor['ours'], 's')} | {fmt(floor['gnucobol'], 's')} "
-                   f"| — | | |")
+                   f"| — | | | {fmt(peak_floor['ours'], 'bytes')} | {fmt(peak_floor['gnucobol'], 'bytes')} |")
         for key in sorted(k for k in rows if k.startswith("process-wsl/ours/") and FLOOR_PROGRAM not in k):
             case = key.split("/")[2]
             o, g = get(key), get(f"process-wsl/gnucobol/{case}")
@@ -556,7 +658,8 @@ def render(record: dict) -> str:
             ratio = f"{on / gn:,.1f}x" if gn > 0 else "—"
             out.append(f"| {case} | {rows[key].get('loop_count', ''):,} | {fmt(on, 's')} | {fmt(gn, 's')} | {ratio} | "
                        f"{fmt(rows[key].get('cpu_median'), 's')} | "
-                       f"{fmt(rows[f'process-wsl/gnucobol/{case}'].get('cpu_median'), 's')} |")
+                       f"{fmt(rows[f'process-wsl/gnucobol/{case}'].get('cpu_median'), 's')} | "
+                       f"{fmt(get('peak/' + key), 'bytes')} | {fmt(get(f'peak/process-wsl/gnucobol/{case}'), 'bytes')} |")
         out += ["", "### Scaling curve (growth when LOOP-COUNT doubles; 2.0 = linear, 4.0 = quadratic)", "",
                 "| program | ours x1→x2 | ours x2→x4 | GnuCOBOL x1→x2 | GnuCOBOL x2→x4 |", "|---|--:|--:|--:|--:|"]
         names = sorted({k.split("/")[2].split("@")[0] for k in rows if k.startswith("process-wsl/ours/")} - {FLOOR_PROGRAM})
@@ -566,13 +669,29 @@ def render(record: dict) -> str:
                 t = [max((get(f"process-wsl/{impl}/{p}@x{k}") or 0) - floor[impl], 1e-9) for k in SCALES]
                 cells += [f"{t[1] / t[0]:.2f}", f"{t[2] / t[1]:.2f}"]
             out.append(f"| {p} | " + " | ".join(cells) + " |")
+        sort_cases = sorted(k.split("/")[2].split("@")[0] for k in rows
+                            if k.startswith("process-wsl/ours/") and k.endswith("@x1") and "sort_memory" in rows[k])
+        if sort_cases:
+            out += ["", "### SORT and MERGE: peak memory against the sort memory limit (kb/Work PB2777)", "",
+                    "Each cell is the peak resident set above that implementation's start-up floor "
+                    f"(`{FLOOR_PROGRAM}`'s peak), at 1x, 2x and 4x the records. The limit is given to both "
+                    "implementations (`" + "`, `".join(SORT_MEMORY_VARIABLES) + "`; docs/CONFORMANCE.md §3 D-SWK). "
+                    "Under the default limit every scale is sorted in memory, so the peak grows with the records; "
+                    "under the small one the records are written as sorted runs and merged, so the peak stays near "
+                    "the limit at every scale.", "",
+                    "| case | limit | ours x1 | ours x2 | ours x4 | GnuCOBOL x1 | GnuCOBOL x2 | GnuCOBOL x4 |",
+                    "|---|--:|--:|--:|--:|--:|--:|--:|"]
+            for c in sort_cases:
+                cells = [fmt(max((get(f"peak/process-wsl/{impl}/{c}@x{k}") or 0.0) - peak_floor[impl], 0.0), "bytes")
+                         for impl in ("ours", "gnucobol") for k in SCALES]
+                out.append(f"| {c} | {rows[f'process-wsl/ours/{c}@x1']['sort_memory']} | " + " | ".join(cells) + " |")
 
     if any(k.startswith("process-windows/") for k in rows):
         out += ["", "## Ours as whole processes on the host OS (start-up included)", "",
-                "| program | wall | CPU | noise |", "|---|--:|--:|--:|"]
+                "| program | wall | CPU | peak | noise |", "|---|--:|--:|--:|--:|"]
         for key in sorted(k for k in rows if k.startswith("process-windows/")):
             out.append(f"| {key.split('/')[2]} | {fmt(get(key), 's')} | {fmt(rows[key].get('cpu_median'), 's')} | "
-                       f"{noise(key)} |")
+                       f"{fmt(get('peak/' + key), 'bytes')} | {noise(key)} |")
 
     out += ["", "## Whole-population gate time", ""]
     if record.get("gates"):
@@ -664,6 +783,8 @@ def self_test() -> int:
                 "cold-compile/IX113A": row([1.9, 2.0, 2.1], "s", cpu=[3.0], lines=5816),
                 "bdn/run/MOVEHOT": row([700.0, 702.0, 698.0], "ms"),
                 "bdn-alloc/run/MOVEHOT": row([1.8e9], "bytes", kind="alloc"),
+                "peak/process-wsl/ours/SORTHOT-SPILL@x4": row([9.0e7, 9.1e7, 8.9e7], "bytes", kind="peak",
+                                                             sort_memory="4M"),
                 "gate/implementer/ran_s": row([400.0], "s", kind="gate")}
         return {"schema": 1, "conditions": cond, "wsl": {}, "sessions": 2, "repeat": 5, "load": [], "rows": rows,
                 "gates": [], "command": "self-test"}
@@ -691,6 +812,9 @@ def self_test() -> int:
     cur["rows"]["bdn-alloc/run/MOVEHOT"]["median"] *= 1.05
     case("fires ALLOC on +5 % allocated bytes", quiet_compare(base, cur) == 1)
     cur = copy.deepcopy(base)
+    cur["rows"]["peak/process-wsl/ours/SORTHOT-SPILL@x4"]["median"] *= 1.5
+    case("fires PEAK on a planted +50 % peak resident set", quiet_compare(base, cur) == 1)
+    cur = copy.deepcopy(base)
     del cur["rows"]["cold-compile/IX113A"]
     case("fires MISSING on a vanished row", quiet_compare(base, cur) == 1)
     cur = copy.deepcopy(base)
@@ -710,6 +834,16 @@ def self_test() -> int:
     except MeasurementError:
         agree = False
     case("programs agree (Programs/*.cob, witnesses.tsv, [Params], one LOOP-COUNT each)", agree)
+    # The peak measure must see a child's own memory: a child that fills 256 MiB against one that does nothing.
+    with tempfile.TemporaryDirectory() as tmp:
+        try:
+            big = timed([sys.executable, "-c", "b = bytearray(b'x') * (256 << 20)"], cwd=tmp)
+            idle = timed([sys.executable, "-c", "pass"], cwd=tmp)
+            seen = big.peak - idle.peak >= 200 << 20
+        except MeasurementError as e:
+            print(f"       {e}")
+            seen = False
+    case("peak sees a child's own 256 MiB against an idle child", seen)
     print(f"SELF-TEST: {'PASS' if not failures else 'FAIL — ' + ', '.join(failures)}")
     return 0 if not failures else 1
 
