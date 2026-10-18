@@ -162,7 +162,9 @@ public sealed record BoundInvokeUniversal(
 /// to select from (SR4 a)–i) each name a description NULL does not have) and no formal exists for an argument to
 /// conform to. Its meaning is §14.9.23.4 GR5 — "If identifier-1 is null, the EC-OO-NULL exception condition is set to
 /// exist and execution of the INVOKE statement is terminated" — so the node carries no arguments and no returning item:
-/// the binder screened them by the syntax rules that read no method, and nothing is ever passed or delivered.</summary>
+/// the binder screened them by the syntax rules that read no method, and nothing is ever passed or delivered. The
+/// activations an argument carries still run ahead of the node, since §14.9.23.4 GR7 a) evaluates the arguments with
+/// identifier-1 at the beginning of the statement (see <c>OoBinder.OoBindNullInvoke</c>).</summary>
 public sealed record BoundInvokeNull : BoundStatement;
 
 /// <summary>One universal-dispatch argument: the storage and its description (kb/Work PB480).</summary>
