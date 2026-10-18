@@ -152,9 +152,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                 dynamicName = new BoundFieldOperand(place);
                 // §14.9.4.3 SR1: "Identifier-1 shall be defined as an alphanumeric, national, or program-pointer
                 // data item" — a program-pointer target activates the HELD program (ProgramRegistry.CallPointer,
-                // P10 Step 7); any OTHER class is rejected here (kb/Work PB132 — the old arm read the category
+                // P10 Step 7); any OTHER category is rejected here (kb/Work PB132 — the old arm read the category
                 // only to set the pointer flag, and a numeric or boolean target fell through to a garbage
-                // name-string read at run time).
+                // name-string read at run time; kb/Work PB3355 — and the class lattice's alphanumeric answer for a
+                // strongly-typed group let that group through, so the screen asks the category reader).
                 if (place.Item.Pic is { Category: PicCategory.ProgramPointer } pointerPic)
                 {
                     isPointerTarget = true;
@@ -175,11 +176,10 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                             + "(ISO §14.9.4.3 SR14; §13.18.60.4 GR25)");
                     }
                 }
-                else if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(place))
-                         is { } tCls and not (CobolClass.Alphanumeric or CobolClass.National))
+                else if (NameTargetRefusal(place) is { } targetFace)
                 {
                     return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.CallTargetCategory,
-                        $"CALL target '{DataBinder.WrittenText(dref)}' is of class {IntrinsicArgumentRules.Name(tCls)}; ISO "
+                        $"CALL target '{DataBinder.WrittenText(dref)}' is {targetFace}; ISO "
                         + "§14.9.4.3 SR1 admits an alphanumeric, national, or program-pointer data item");
                 }
             }
@@ -865,6 +865,23 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
             ? new BoundCallArg(mode, null, null) { DataAddress = ao.Data, ProgramAddress = ao.Program }
             : null;
 
+    /// <summary>⛔ THE ONE §14.9.4.3 SR1 / §14.9.5.3 SR1 CATEGORY SCREEN of an identifier-1 program-name target
+    /// (kb/Work PB3355): what the operand IS when the rule refuses it, else null. SR1 reads "Identifier-1 shall be
+    /// defined as an alphanumeric or national data item" (CALL adds program-pointer, which its caller tests first),
+    /// and §8.5.2.1 — "Use of the name of a data class or data category in the rules of COBOL refers to the category
+    /// unless class is specifically indicated" — makes that the CATEGORY, the reading <see cref="ItemCategory"/> holds
+    /// for every rule so worded (ASSIGN USING, the record keys, SET … ADDRESS OF PROGRAM). The screen asked the class
+    /// lattice instead (<c>IntrinsicArgumentRules.ClassOf</c>), whose answer for a strongly-typed group is
+    /// ALPHANUMERIC — §15.3 item 2's reading of a function ARGUMENT, not the group's own class, which §8.5.2.1 makes
+    /// its type-name — so a strongly-typed group (and a variable-length one, which §13.18.29.4 GR3 excludes from the
+    /// alphanumeric group items) was accepted and its character image read as a program-name at run time.
+    /// <para>⚠ An operand whose class is not statically decidable (a recovery profile for an entry whose PICTURE was
+    /// already refused) is admitted, exactly as every class screen over the lattice fails open (kb/Work PB960).</para></summary>
+    private static string? NameTargetRefusal(Place target) =>
+        IntrinsicArgumentRules.ClassOfPlace(target) is null || ItemCategory.IsAlphanumericOrNational(target)
+            ? null
+            : ItemCategory.Face(target);
+
     /// <summary>literal-1 of a CALL or CANCEL target written <c>literal | dataReference</c>: the written literal, or
     /// the literal a constant-name or symbolic-character spells (ISO §13.10.3 SR2; §8.3.3.6.3 SR1; kb/Work PB780), or
     /// <see langword="null"/> when the data reference is identifier-1 or program-prototype-name-1. The alias is asked
@@ -969,12 +986,12 @@ internal sealed class CallBinder(BinderContext ctx, StatementBinder host)
                     // national data item" — the CALL twin's class screen (PB132) that this arm never got:
                     // CANCEL WS-NUM compiled clean and the digit image resolved to no program, a silent
                     // no-op at both stages. Same rule family, but NOT the same rule — §14.9.4.3 SR1 also
-                    // admits program-pointer, so CANCEL carries its own descriptor.
-                    if (IntrinsicArgumentRules.ClassOf(new BoundFieldOperand(p))
-                        is { } cCls and not (CobolClass.Alphanumeric or CobolClass.National))
+                    // admits program-pointer, so CANCEL carries its own descriptor (and the one category
+                    // screen, NameTargetRefusal, serves both).
+                    if (NameTargetRefusal(p) is { } targetFace)
                     {
                         ctx.Edition.Error(DiagnosticCatalog.CancelTargetCategory,
-                            $"CANCEL target '{DataBinder.WrittenText(dref)}' is of class {IntrinsicArgumentRules.Name(cCls)}; "
+                            $"CANCEL target '{DataBinder.WrittenText(dref)}' is {targetFace}; "
                             + "ISO §14.9.5.3 SR1 admits an alphanumeric or national data item");
                         continue;
                     }
