@@ -33,3 +33,5 @@ binding is now by membership (`group_requirements`), per group, in every mode. g
 `campaign` and `requirements` keys, check_practices matches a spec to its own group by the `msg-w<wave>-<letter>.txt` name, and
 section 9a pins a real PB3353 member planned without `--cluster`. The golden `testdata/plan_wave_default.json` gained the empty
 `requirements` per group.
+
+Branch review R2 (wave 1116 B finisher, round 2): the campaign lead note kb/Work/PB3353.md still said its `## Standing requirements` section was read by `plan_wave.py --cluster PB3353`, the superseded mode rule, which would send a reader to hand-edit groups.json for a fix-lane member. The sentence now names `plan_wave.group_requirements` and the membership rule, and section 9a of `test_plan_wave.py` pins that the note says so.
