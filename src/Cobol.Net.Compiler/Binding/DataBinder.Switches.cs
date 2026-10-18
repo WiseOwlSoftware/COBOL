@@ -2071,7 +2071,7 @@ public sealed partial class DataBinder
     /// the SPELLING of whatever it was handed, which is how <c>ALPHABET X IS SPACE</c> positioned S, P, A, C, E
     /// (PB770 fixed that arm) and <c>CURRENCY SIGN IS SPACE PICTURE SYMBOL "#"</c> bound the currency string "SPACE"
     /// (the other caller). Both callers screen the operand's class first (<see cref="LiteralPhraseOperand"/>,
-    /// <see cref="CurrencyTextLiteral"/>), so what reaches here is a quoted literal — hexadecimal included, which
+    /// <see cref="CurrencyOperandOf"/>), so what reaches here is a quoted literal — hexadecimal included, which
     /// <see cref="CobolLiteral.Decode"/> decodes itself — or a concatenation expression, and anything else is a caller
     /// that skipped its screen: a defect to find at once, never a value to invent.</para></summary>
     private string LiteralCharsOf(Core.LiteralContext lit, bool sr11)
