@@ -17,9 +17,11 @@ namespace CobolNet.Tests.Conformance;
 /// missing or not writable, the volume full) STOPS THE RUN UNIT with a message naming the directory, the host's
 /// reason and the variable that sets it (<c>COBOLNET_SORT_TMPDIR</c>), "no record is dropped silently". This class pins
 /// that the Format-3 PERFORM's frame does not turn the stop into anything else: no later WHEN phrase, no WHEN OTHER,
-/// no FINALLY and not the statements after END-PERFORM run, the exit status is not zero, and no GIVING file is
-/// left behind half written. The same program with a usable work directory sorts, which is what makes the stop
-/// attributable to the work file and not to the program.</para>
+/// no FINALLY and not the statements after END-PERFORM run, the exit status is not zero, and the GIVING file was
+/// never created: the run file fails while records are released, and §14.9.40.4 GR9 b) does no processing of the
+/// GIVING file before the output phase c), so a stop there leaves no GIVING file behind, empty or half written. The
+/// same program with a usable work directory sorts, which is what makes the stop attributable to the work file and
+/// not to the program.</para>
 /// </summary>
 public sealed class PerformFormat3SortWorkFileFailureTests
 {
@@ -33,15 +35,15 @@ public sealed class PerformFormat3SortWorkFileFailureTests
     /// <summary>Five thousand 200-byte records (about a megabyte, sixteen times the 64 KiB floor limit), released in
     /// DESCENDING key order by an INPUT PROCEDURE, SORTed ascending GIVING G — from inside the WHEN phrase the
     /// OPEN INPUT of the ABSENT file H earns (status 35, EC-I-O-PERMANENT-ERROR, answered by the WHEN).</summary>
-    private const string Program = """
+    private static string Program(string dir) => $"""
         >>TURN EC-ALL CHECKING ON
         IDENTIFICATION DIVISION.
         PROGRAM-ID. F3SWF.
         ENVIRONMENT DIVISION.
         INPUT-OUTPUT SECTION.
         FILE-CONTROL.
-            SELECT G ASSIGN "F3SWF-G.DAT" ORGANIZATION LINE SEQUENTIAL FILE STATUS GS.
-            SELECT H ASSIGN "F3SWF-H.DAT" ORGANIZATION LINE SEQUENTIAL FILE STATUS HS.
+            SELECT G ASSIGN "{GivingPath(dir)}" ORGANIZATION LINE SEQUENTIAL FILE STATUS GS.
+            SELECT H ASSIGN "{Path.Combine(dir, "F3SWF-H.DAT")}" ORGANIZATION LINE SEQUENTIAL FILE STATUS HS.
             SELECT SF ASSIGN "F3SWF-S".
         DATA DIVISION.
         FILE SECTION.
@@ -96,7 +98,10 @@ public sealed class PerformFormat3SortWorkFileFailureTests
         END PROGRAM F3SWF.
         """;
 
-    private static (bool ok, string stdout, string detail) Run(string tmpDirectory) => CobolNet.CompileAndRun(Program,
+    /// <summary>The GIVING file, in the test's own directory, so the test can look at it after the run.</summary>
+    private static string GivingPath(string dir) => Path.Combine(dir, "F3SWF-G.DAT");
+
+    private static (bool ok, string stdout, string detail) Run(string dir, string tmpDirectory) => CobolNet.CompileAndRun(Program(dir),
         new Dictionary<string, string?>
         {
             [MemoryVariable] = "64K",
@@ -110,7 +115,7 @@ public sealed class PerformFormat3SortWorkFileFailureTests
         try
         {
             string work = Directory.CreateDirectory(Path.Combine(dir, "sortwork")).FullName;
-            var (ok, stdout, detail) = Run(work);
+            var (ok, stdout, detail) = Run(dir, work);
             Assert.True(ok, $"WiseOwl COBOL failed: {detail}\nstdout:\n{stdout}");
             // ascending 1 .. 5000 (§14.9.40.4 GR3: the records are returned in key order); the FINALLY phrase runs
             // after the WHEN phrase has completed (§14.9.28.4 GR16: "the end of the PERFORM statement begins at imperative-statement-5")
@@ -127,11 +132,13 @@ public sealed class PerformFormat3SortWorkFileFailureTests
         try
         {
             string missing = Path.Combine(dir, "no-such-directory");
-            var (ok, stdout, detail) = Run(missing);
+            var (ok, stdout, detail) = Run(dir, missing);
             Assert.False(ok, $"expected the run unit to stop on the missing sort work directory; ran clean:\n{stdout}");
             Assert.Equal("IN-WHEN 35", stdout);   // everything before the SORT ran; nothing after it did
             Assert.Contains(DirectoryVariable, detail, StringComparison.Ordinal);
             Assert.Contains("no-such-directory", detail, StringComparison.Ordinal);
+            // §14.9.40.4 GR9 b): no processing of the GIVING file before the output phase, so it was never opened
+            Assert.False(File.Exists(GivingPath(dir)), "the stopped SORT left its GIVING file behind");
         }
         finally { CutRunner.TryDelete(dir); }
     }

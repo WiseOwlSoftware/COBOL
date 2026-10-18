@@ -8,17 +8,18 @@ namespace CobolNet.Tests.Conformance;
 /// <summary>
 /// kb/Work PB1154 / PB3353 (branch review round 1, R1-2) — the rest of the file-I/O abnormal paths of the legal
 /// statements an exception-checking PERFORM may carry, beside <c>PerformFormat3IoStatementTests</c> (OPEN 35/41, CLOSE
-/// 42, DELETE FILE 41/05): the LOCK-CONTENTION statuses under a RETRY phrase, the OPEN statuses 37, 39 and 05, the
-/// AT END and INVALID KEY conditions against their own phrases, and the SORT / MERGE statements that are legal around
+/// 42, DELETE FILE 41/05): under a RETRY phrase, the file sharing conflict statuses 61 and 62 and the record lock
+/// conflict 51 (the w1121c review, round 1, R1-2), the OPEN statuses 37, 39 and 05, the AT END and INVALID KEY conditions against their own phrases, and the SORT / MERGE statements that are legal around
 /// the PERFORM (a table SORT in imperative-statement-1, a file SORT or MERGE in a WHEN phrase) on their success and
 /// on their USING-file failure paths (owner 2026-10-17: SORT and file I-O tests cover both); a failure of the
 /// sort-merge WORK file itself is <c>PerformFormat3SortWorkFileFailureTests</c>.
 /// <para>Each status is delivered, per §9.1.12 and §14.9.28.4 GR17, to the FIRST of: a WHEN phrase naming the
 /// exception, the USE declarative for the file (§14.9.49.4 GR6), the file's FILE STATUS item with nothing else
 /// applicable. Which of the three runs is pinned for each status here, with the NONFATAL / FATAL split the exception
-/// table (§14.6.13.1.6, the EC-I-O names) gives: 61 and 62 (EC-I-O-FILE-SHARING), 05 (EC-I-O-WARNING), 10 (EC-I-O-AT-END) and 23
+/// table (§14.6.13.1.6, the EC-I-O names) gives: 51 (EC-I-O-RECORD-OPERATION), 61 and 62 (EC-I-O-FILE-SHARING), 05 (EC-I-O-WARNING), 10 (EC-I-O-AT-END) and 23
 /// (EC-I-O-INVALID-KEY) are NF and the run goes on; 37 and 39 (EC-I-O-PERMANENT-ERROR) are Fatal.</para>
-/// <para>Expected statuses are the standard's: §9.1.13.9 item 1 e) ('61': OPEN OUTPUT of a physical file another file
+/// <para>Expected statuses are the standard's: §9.1.13.8 item 1 ('51': a record another file connector has locked),
+/// §9.1.13.9 item 1 e) ('61': OPEN OUTPUT of a physical file another file
 /// connector has open) and item 2 ('62': DELETE FILE of a physical file another file connector has open), §9.1.13.6
 /// items 6 and 7 ('37' insufficient authority or a file that will not support the write operation, '39' a fixed-
 /// attribute conflict), §9.1.13.2 item 4 a) ('05': an OPTIONAL file absent), §9.1.13.5 ('23', an invalid key).</para>
@@ -218,6 +219,126 @@ public sealed class PerformFormat3IoConflictAndSortTests
                 DISPLAY "WRONG"
             END-PERFORM
         """, checking: ""), "AFTER 62\nDONE");
+
+    // ── record lock contention: '51', the record operation conflict (§9.1.13.8 1)) ────────────────────────────
+
+    /// <summary>Two connectors on ONE relative file, both SHARING WITH ALL OTHER and LOCK MODE IS AUTOMATIC (the
+    /// <c>l1_read_lock_mode_governs</c> shape): F's plain READ of record 1 locks it (§12.4.5.9.4 GR4), so G's READ of
+    /// the same record in <paramref name="proc"/> is refused with '51' (§14.9.30.4 GR9), which is
+    /// EC-I-O-RECORD-OPERATION, NONFATAL (the exception table, §14.6.13.1.6).</summary>
+    private static string Lock(string name, string proc, bool gStatus = true, string checking = On,
+        (string File, string Body)? use = null)
+    {
+        string path = HostPath(name);
+        return Prog(name,
+            select: $"""
+                SELECT S ASSIGN "{path}" ORGANIZATION RELATIVE ACCESS SEQUENTIAL FILE STATUS SS.
+                SELECT F ASSIGN "{path}" ORGANIZATION RELATIVE ACCESS RANDOM RELATIVE KEY FK FILE STATUS FS
+                    SHARING WITH ALL OTHER LOCK MODE IS AUTOMATIC.
+                SELECT G ASSIGN "{path}" ORGANIZATION RELATIVE ACCESS RANDOM RELATIVE KEY GK{(gStatus ? " FILE STATUS GS" : "")}
+                    SHARING WITH ALL OTHER LOCK MODE IS AUTOMATIC.
+                """,
+            fd: """
+                FD S.
+                01 SR PIC X(4).
+                FD F.
+                01 FR PIC X(4).
+                FD G.
+                01 GR PIC X(4).
+                """,
+            ws: """
+                01 SS PIC XX VALUE "??".
+                01 FS PIC XX VALUE "??".
+                01 GS PIC XX VALUE "??".
+                01 FK PIC 9(4) VALUE 1.
+                01 GK PIC 9(4) VALUE 1.
+                """,
+            proc: """
+                    OPEN OUTPUT S
+                    MOVE "R001" TO SR
+                    WRITE SR
+                    CLOSE S
+                    OPEN INPUT F
+                    OPEN INPUT G
+                    READ F
+                    DISPLAY "HOLD " FS " " FR
+                """ + "\n" + proc + "\n    CLOSE G\n    CLOSE F",
+            checking, use);
+    }
+
+    [Fact]   // §9.1.13.8 1): the READ of a record another connector has locked is '51'; the WHEN is selected
+    public void ReadOfALockedRecord_Retry_WhenRecordOperation_RunsHandler_WithStatus51() => AssertRuns(Lock("F3LK51N", """
+            PERFORM
+                READ G RETRY 2 TIMES
+                DISPLAY "AFTER " GS
+            WHEN EC-I-O-RECORD-OPERATION
+                DISPLAY "HANDLER " GS
+                RESUME NEXT STATEMENT
+            END-PERFORM
+        """), "HOLD 00 R001\nHANDLER 51\nAFTER 51\nDONE");
+
+    [Fact]   // the paired form selects only G's exception
+    public void ReadOfALockedRecord_Retry_WhenRecordOperationPairedWithTheFile_RunsHandler() => AssertRuns(Lock("F3LK51P", """
+            PERFORM
+                READ G RETRY 2 TIMES
+                DISPLAY "AFTER " GS
+            WHEN EC-I-O-RECORD-OPERATION FILE G
+                DISPLAY "PAIRED " GS
+                RESUME NEXT STATEMENT
+            END-PERFORM
+        """), "HOLD 00 R001\nPAIRED 51\nAFTER 51\nDONE");
+
+    [Fact]   // RETRY FOREVER on a lock THIS run unit holds is the one deadlock the implementor detects, '52' (§9.1.13.8
+             // 2); docs/CONFORMANCE.md DOC-A.1-109), the same EC-I-O-RECORD-OPERATION ("5x"), so the same WHEN runs
+    public void ReadOfALockedRecord_RetryForever_IsADeadlock_WhenRecordOperation_RunsHandler_WithStatus52() => AssertRuns(Lock("F3LK52N", """
+            PERFORM
+                READ G RETRY FOREVER
+                DISPLAY "AFTER " GS
+            WHEN EC-I-O-RECORD-OPERATION FILE G
+                DISPLAY "DEADLOCK " GS
+                RESUME NEXT STATEMENT
+            END-PERFORM
+        """), "HOLD 00 R001\nDEADLOCK 52\nAFTER 52\nDONE");
+
+    [Fact]   // a WHEN paired with the HOLDER's file does not match G's conflict; G has a FILE STATUS and no USE
+    public void ReadOfALockedRecord_WhenPairedWithTheHoldersFile_DoesNotRun() => AssertRuns(Lock("F3LK51O", """
+            PERFORM
+                READ G RETRY 1 TIMES
+                DISPLAY "AFTER " GS
+            WHEN EC-I-O-RECORD-OPERATION FILE F
+                DISPLAY "WRONG"
+            END-PERFORM
+        """), "HOLD 00 R001\nAFTER 51\nDONE");
+
+    [Fact]   // §14.9.49.4 GR6: nothing in the PERFORM matches, so the USE declarative for G is executed
+    public void ReadOfALockedRecord_Retry_UnmatchedWhen_FallsToUseDeclarative() => AssertRuns(Lock("F3LK51U", """
+            PERFORM
+                READ G RETRY 2 TIMES
+                DISPLAY "AFTER " GS
+            WHEN EC-SIZE
+                DISPLAY "WRONG"
+            END-PERFORM
+        """, use: ("G", "DISPLAY \"USE \" GS.")), "HOLD 00 R001\nUSE 51\nAFTER 51\nDONE");
+
+    [Fact]   // EC-I-O-RECORD-OPERATION is NONFATAL: no WHEN, no USE, no FILE STATUS, and the run goes on
+    public void ReadOfALockedRecord_NoWhen_NoUse_NoStatus_NonfatalRunContinues() => AssertRuns(Lock("F3LK51X", """
+            PERFORM
+                READ G RETRY 2 TIMES
+                DISPLAY "AFTER"
+            WHEN EC-SIZE
+                DISPLAY "WRONG"
+            END-PERFORM
+        """, gStatus: false), "HOLD 00 R001\nAFTER\nDONE");
+
+    [Fact]   // checking OFF, the WHEN names an unrelated condition: no WHEN runs, the FILE STATUS records the conflict
+    public void ReadOfALockedRecord_CheckingOff_SetsStatusOnly() => AssertRuns(Lock("F3LK51Z", """
+            PERFORM
+                READ G RETRY 2 TIMES
+                DISPLAY "AFTER " GS
+            WHEN EC-SIZE
+                DISPLAY "WRONG"
+            END-PERFORM
+        """, checking: ""), "HOLD 00 R001\nAFTER 51\nDONE");
 
     // ── OPEN '39' (fixed-attribute conflict), '05' (OPTIONAL file absent), '37' (insufficient authority) ─────────
 

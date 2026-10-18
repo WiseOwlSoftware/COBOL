@@ -91,3 +91,22 @@ Gate (after review round 2, the branch's seven commits cherry-picked onto main `
 (batched gating, PB2515): GREEN` (Conformance 11,444 of 17,775, Unit 33,767 of 34,110, Characterization 5 of 36 ran; all 89
 `PerformFormat3*` cases, both `PerformFormat3SortWorkFileFailureTests` cases and the ten refusal goldens passed in leg 1, none
 failed).
+
+Branch review round 3 (finisher w1121c) found three things. R1-1: SR14 and SR15 (COBOLNET1599, COBOLNET1600) were reported
+at the SECOND instance of the name, whatever instance broke the rule. With three instances that can be a legal operand:
+`WHEN EC-I-O FILE F1`, `WHEN EC-I-O FILE F2`, `WHEN EC-I-O FILE F1` named the F2 line, and two paired F1 instances followed
+by a bare `WHEN EXCEPTION F1` named the second paired one. `EcBinder.FirstOffender` now reads one name's instances in source
+order and returns the instance at which the group first breaks the rule; both rules are written as a predicate over the
+instances, and both only grow more violated as instances are added, so a group is illegal exactly when it has an offender.
+Two three-instance cases in `ExceptionPerformBanPositionTests` assert line and column, each with a legal twin. Sibling sweep:
+the only other "report the repeat" site, `OptionsBinder.SectionsOf`, reports occurrences[1] of an at-most-once alternative,
+where every repeat is illegal, so the second IS the offender. R1-2: the campaign's lock contention ('51') had no case;
+the class summary had called 61/62 (the file sharing conflict, 9.1.13.9) "lock contention". Seven cases now read a record
+another connector holds under LOCK MODE IS AUTOMATIC (12.4.5.9.4 GR4; 9.1.13.8 1)): the WHEN is selected and sees 51, the
+paired WHEN, a WHEN paired with the holder's file does not run, an unmatched WHEN falls to the USE declarative, with no WHEN,
+USE or FILE STATUS the nonfatal condition lets the run go on, checking off sets only the status, and RETRY FOREVER is the
+one deadlock this implementation detects, '52' (9.1.13.8 2), docs/CONFORMANCE.md DOC-A.1-109), answered by the same WHEN
+(my first draft expected 51 under FOREVER and the run said 52, as documented). R1-3: the work-file failure class claimed no
+GIVING file is left half written but never looked; the program now assigns G in the test's own directory and the
+missing-directory case asserts G was never created (14.9.40.4 GR9 b): no processing of the GIVING file before the output
+phase).
