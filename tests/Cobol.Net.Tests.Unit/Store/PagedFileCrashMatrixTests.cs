@@ -296,8 +296,6 @@ public sealed class PagedFileCrashMatrixTests
     [MemberData(nameof(Paths))]
     public void A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(PagePath path)
     {
-        // The Close path's scene changes A first (SceneFor), so its CLOSE PROMOTES and every read of that promotion is
-        // refused here one at a time; a CLOSE that changed nothing only syncs and reads nothing (PagedFile.Close).
         int reads = DryReads(path);
         Assert.True(reads > 0, $"{path} reads nothing");
         for (int n = 1; n <= reads; n++)
