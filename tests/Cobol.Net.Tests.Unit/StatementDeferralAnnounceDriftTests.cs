@@ -29,27 +29,37 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class StatementDeferralAnnounceDriftTests
 {
-    /// <summary>A SEARCH ALL of an OCCURS DYNAMIC table nested under another table is a pure job-1 deferral: legal
-    /// COBOL-2023 source (§14.9.37 Format 2; §13.18.38 Format 4) whose scan bound over the current capacity needs a
-    /// subscripted access path the binder has not built (SearchBinder). It sits behind a GO TO so the RUN never reaches
-    /// it — before PB236 that made the staged loud unobservable at EVERY stage. (Until kb/Work PB599 this row was a
-    /// table SORT keyed on a REDEFINES view inside the element, which is built now: the key is read through its
-    /// window; before kb/Work PB1175 it was a table SORT over a REDEFINES view itself.)
-    /// <para>⚠ This row used ENTRY until kb/Work PB909, and that was a PIN OF THE WRONG KIND (kb/Work PB938): ISO/IEC
-    /// 1989 defines no ENTRY statement, so the test was asserting that a vendor extension is a gap in WiseOwl COBOL
-    /// rather than source the standard does not contain. ENTRY is now refused (COBOLNET2269).</para></summary>
+    /// <summary>INSPECT … FOR ALL LINAGE-COUNTER OF file is a pure job-1 deferral: LINAGE-COUNTER (§8.4.3.14) is
+    /// runtime-sourced and the resolver routes it only where a statement binder reads it
+    /// (<c>DeferredShape.UnroutedSpecialRegister</c>), and INSPECT's search operand is not one of them. The source is
+    /// the standard's own: §8.4.3.14.4 GR1 makes LINAGE-COUNTER "a temporary unsigned integer data item of class and
+    /// category numeric" and leaves its usage to the implementor, and §14.9.22.3 SR2 admits an elementary item of
+    /// usage display. It sits behind a GO TO so the RUN never reaches it — before PB236 that made the staged loud
+    /// unobservable at EVERY stage.
+    /// <para>⚠ THE EXEMPLAR IS WHATEVER LEGAL SOURCE THE COMPILER STILL DEFERS, AND IT HAS CHANGED BEFORE: ENTRY until
+    /// kb/Work PB909 (a PIN OF THE WRONG KIND, kb/Work PB938 — ISO/IEC 1989 defines no ENTRY statement, now refused
+    /// COBOLNET2269), a table SORT over a REDEFINES view until kb/Work PB1175 and keyed on one until PB599, and a
+    /// SEARCH ALL of an OCCURS DYNAMIC table nested under another table until kb/Work PB3365 built its per-occurrence
+    /// capacity path. When this one is built, replace it with the next (<c>DeferredShape</c>'s census and the open
+    /// notes naming COBOLNET1756 are the places to look), never with an extension.</para></summary>
     private const string DeferralProgram = """
 IDENTIFICATION DIVISION.
 PROGRAM-ID. PB236ANNOUNCE.
+ENVIRONMENT DIVISION.
+INPUT-OUTPUT SECTION.
+FILE-CONTROL.
+    SELECT LF1 ASSIGN TO "pb236.lst".
 DATA DIVISION.
+FILE SECTION.
+FD LF1 LINAGE IS 10 LINES.
+01 LR PIC X(5).
 WORKING-STORAGE SECTION.
-01 TBL.
-   05 ROW OCCURS 2.
-      10 D PIC X OCCURS DYNAMIC ASCENDING KEY IS D INDEXED BY IX.
+01 S PIC X(8).
+01 N PIC 9(4).
 PROCEDURE DIVISION.
 MAIN.
     GO TO SKIPPER.
-    SEARCH ALL D(1) AT END DISPLAY "NF" WHEN D(1, IX) = "A" DISPLAY "FOUND" END-SEARCH.
+    INSPECT S TALLYING N FOR ALL LINAGE-COUNTER OF LF1.
 SKIPPER.
     DISPLAY "DONE".
     STOP RUN.
@@ -88,8 +98,8 @@ MAIN.
     {
         var (_, _, warnings) = Compile(DeferralProgram);
         string w = warnings.Single(x => x.Contains("COBOLNET1756", StringComparison.Ordinal));
-        Assert.Contains("pb236.cob(11,", w, StringComparison.Ordinal);   // the SEARCH line, not the program
-        Assert.Contains("SEARCH", w, StringComparison.Ordinal);
+        Assert.Contains("pb236.cob(17,", w, StringComparison.Ordinal);   // the INSPECT line, not the program
+        Assert.Contains("LINAGE-COUNTER", w, StringComparison.Ordinal);
     }
 
     [Fact]
