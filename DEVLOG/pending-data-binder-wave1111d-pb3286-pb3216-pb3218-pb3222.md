@@ -31,6 +31,18 @@ declaration of any kind in `UserWordKinds.DeclaredUnqualifiable` (and a switch's
 descriptor, COBOLNET4250 (8.4.2.1). COBOLNET1665 is retired; its golden and docs name 4250. Mnemonic names join the set
 (the sweep). A drift test fails when a SPECIAL-NAMES kind is declared without joining the set. Four goldens.
 
+**Branch review R1-1 — the BY VALUE refusals named a strongly-typed group's class as alphanumeric.** PB3222's new
+COBOLNET1553 text spelled `Name(ClassOfItem(item))`, and `ClassOfItem` answers alphanumeric for a strongly-typed group on
+15.3 item 2's function-argument reading; 8.5.2.1 makes its class the type-name everywhere else. The refusal was right, the
+reason false. The sibling sweep found the same spelling in the CALL (14.9.4.3 SR22, COBOLNET1628), INVOKE (14.9.23.3 SR15)
+and user-function (8.4.3.2.3 SR10, COBOLNET1554) BY VALUE screens, the operand-class exclusion screen, the subscript
+screen and the EVALUATE range same-class message. `IntrinsicArgumentRules.ClassNameOf` (the PB1400 spelling) gained a
+`DataItem` and an operand overload over one private strong-group arm, and every site asks it. CALL's SR22 screen now
+classifies every arm through `ParameterConformance.ValueArgumentClass` (the five callers that passed `ClassOf` held field
+operands or function temporaries, where the two agree), and its one-line `CheckByValueClass` wrapper is gone. Pinned by
+`StrongGroupClassNameTests` (header, CALL, function argument at 2002/2014/2023) and a `ClassSpellingDriftTests` fact that
+fails on `Name` over `ClassOfItem` and on a BY VALUE screen that names its class without `ClassNameOf`.
+
 **PB3192 — a method's names are the method's from the moment they are declared.** Wave 1111 re-probed it and handed it on
 with a design; wave 1112 re-probed all three repros on its own build (p16: false COBOLNET1529 "duplicate type-name" plus
 COBOLNET1740; p17: `A 3` for `A 5`; p18: false COBOLNET1547) and the third symptom (q1: a sibling method resolved a TYPE
