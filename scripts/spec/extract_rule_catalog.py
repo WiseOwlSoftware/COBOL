@@ -49,6 +49,8 @@ OUT = REPO / "docs" / "rearchitecture" / "spec-rule-catalog.json"
 #: manifest the content-keyed scan compares against, so "nothing new fell out of the denominator" is an
 #: observation rather than a memory. See unharvested_rule_blocks() and fix-queue PB29.
 UNHARVESTED = REPO / "docs" / "rearchitecture" / "spec-unharvested-rule-blocks.json"
+#: The manifest's key for the PROSE clauses admitted as one-row-per-paragraph (kb/Work PB284 part 3 / PB479).
+PARAGRAPH_BLOCKS = "paragraph-blocks"
 
 # A numbered section heading, e.g. "## 8.4.3.13.3 Syntax rules" or "### 14.9.28.4 General rules".
 HEADING = re.compile(r"^#{2,6}\s+(?P<num>\d+(?:\.\d+)*)\s+(?P<title>.+?)\s*$")
@@ -228,6 +230,32 @@ def kind_of(title: str) -> str | None:
     return KINDS.get(canonical_title(title))
 
 
+#: The title of a clause that PRINTS a construct's general format. ⛔ BOTH NOUNS, SINGULAR AND PLURAL (kb/Work PB284):
+#: the standard heads 321 clauses "General format(s)" and exactly ONE "General forms" (§14.9.7.2, the COMMIT
+#: statement). The scan once keyed on the word "format" alone and the one clause that spelled it otherwise was
+#: absent from the denominator, silently — no parse gap, no unrecognised heading, nothing.
+GENERAL_FORMAT_TITLE = re.compile(r"general\s+(?:formats?|forms?)\.?", re.IGNORECASE)
+
+#: A clause title that only INTRODUCES its construct and carries no block of its own ("14.9.7.1 General").
+INTRO_TITLE = re.compile(r"general\.?", re.IGNORECASE)
+
+
+def is_unrecognised_general(title: str) -> bool:
+    """Does this heading OPEN with the word "General" and still name no block the extractor knows?
+
+    ⛔ THE GUARD THAT WOULD HAVE SEEN §14.9.7.2 (kb/Work PB284). Every guard before it asked "did a recognised
+    block yield nothing" or "does a rule-shaped heading resolve", and a block heading spelt a way nobody listed is
+    neither: it is never recognised, so it is never counted, so the denominator is short and every check is
+    green. The only block-introducing titles the standard opens with "General" are the intro clause ("General"),
+    the format clause (GENERAL_FORMAT_TITLE) and the general rules (KINDS); any other is a spelling variant of one
+    of them or a new block kind, and either way a person decides.
+    """
+    t = title.strip()
+    if not re.match(r"general\b", t, re.IGNORECASE):
+        return False
+    return not (INTRO_TITLE.fullmatch(t) or GENERAL_FORMAT_TITLE.fullmatch(t) or kind_of(t))
+
+
 def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[str, dict]:
     """Every clause whose BODY carries an ascending ``N)`` list that this extractor does not harvest.
 
@@ -303,6 +331,62 @@ def unharvested_rule_blocks(lines: list[str], titles: dict[str, str]) -> dict[st
     return found
 
 
+#: A line that CONTINUES the paragraph before it instead of opening a new one: a numbered or lettered list item, a
+#: table row, a markup block, or a NOTE (informative; it stays in the rule's text, where `NOTE_MARK` cuts it from
+#: every predicate and the clause's own rows stay the normative paragraphs).
+PARAGRAPH_CONTINUATION = re.compile(r"^(?:\s*\d+\\?[.)]\s|\s*[a-z]\\?\)\s|\s*\||<|NOTE\b|\s*Table\s+\d)")
+#: Where a sentence may legitimately END. A paragraph that stops short of one is cut by a page break (the
+#: running header and licence footer between its halves leave a blank line), and its tail is the same paragraph.
+SENTENCE_END = re.compile(r"[.:;?!]\s*$")
+
+
+def prose_paragraphs(lines: list[str], at: int) -> list[str]:
+    """The normative PARAGRAPHS of the clause whose heading is `lines[at]` — the row unit of a PROSE concept clause.
+
+    ⛔ WHY A CLAUSE WITH NO NUMBERED RULES STILL HAS ROWS (kb/Work PB284 part 3, PB479). §9.1.16 (record locking),
+    §9.1.17 (logical unit of work) and §9.1.18 (commit and rollback) state the facility's meaning as running
+    prose: no `N)` marker, no "General rules" heading, so the numbered-rule scan never opened them and the
+    denominator the burn-down is measured against did not hold the clause that SETS EC-FLOW-APPLY. A rule with no
+    row can never be a GAP and can never be closed. The paragraph is the unit the standard's own prose has, so one
+    row per paragraph is that clause's row shape, exactly as one row per numbered rule is a rule block's.
+
+    Admission is DATA (`paragraph-blocks` in `spec-unharvested-rule-blocks.json`), never a code edit: the
+    standard is full of normative prose, and which clauses are rules is an adjudication (PB479), not a pattern.
+    """
+    paragraphs: list[list[str]] = []
+    fresh = True
+    for line in lines[at + 1:]:
+        if ANY_HEADING.match(line) and not RUNNING_HEADER.match(line) and not PAGE.match(line):
+            break
+        if RUNNING_HEADER.match(line) or PAGE.match(line) or FURNITURE.match(line):
+            continue
+        if not line.strip():
+            fresh = True
+            continue
+        if fresh and paragraphs and (PARAGRAPH_CONTINUATION.match(line)
+                                     or not SENTENCE_END.search(paragraphs[-1][-1])):
+            fresh = False
+        if fresh:
+            paragraphs.append([line.strip()])
+            fresh = False
+        elif paragraphs:
+            paragraphs[-1].append(line.strip())
+    return [re.sub(r"\s+", " ", " ".join(p)).strip() for p in paragraphs]
+
+
+def band_formats(label: str) -> list[int]:
+    """The FORMAT NUMBERS a printed band names: "FORMAT 2" -> [2], "FORMATS 1, 2 AND 4" -> [1, 2, 4].
+
+    ⛔ A band that is not about formats ("SEQUENTIAL FILES", "ALL FORMATS", "CLASS SPECIFIER") names none and
+    returns [] — "ALL FORMATS" is a band on its own, but it scopes a rule to no particular format, which is what
+    an empty list says. The numbers are the clause's OWN (PRESENT WHEN's FORMAT 2 is not ACCEPT's), so a reader
+    that keys on them must also key on the rule's section (kb/Work PB284, `formats` in the inventory schema).
+    """
+    if not re.match(r"FORMATS?\b", label):
+        return []
+    return [int(n) for n in re.findall(r"\d+", label)]
+
+
 def subject_for(num: str, titles: dict[str, str]) -> str:
     """The nearest enclosing ancestor section that is not itself a rule block — the construct being ruled."""
     parts = num.split(".")
@@ -346,6 +430,11 @@ def main() -> int:
         for sec, info in json.loads(UNHARVESTED.read_text(encoding="utf-8"))["blocks"].items():
             if info.get("disposition") == "rules":
                 admitted[sec] = info["kind"]
+    # The PROSE clauses admitted as paragraph rows (see `prose_paragraphs`): section ⇒ {kind, kinds?, why}.
+    paragraph_blocks: dict[str, dict] = {
+        sec: info for sec, info in (json.loads(UNHARVESTED.read_text(encoding="utf-8")).get(PARAGRAPH_BLOCKS, {})
+                                    if UNHARVESTED.exists() else {}).items()
+        if not sec.startswith("_")}      # "_comment" documents the key; it is not a clause
 
     lines = SPEC.read_text(encoding="utf-8", errors="replace").splitlines()
     titles: dict[str, str] = {}
@@ -406,6 +495,11 @@ def main() -> int:
     # last rule of every block that ends near a page boundary (verified against the rendered PDF: GR-7.3.12.4-6
     # is printed on page 95 and was recorded as 96).
     rule_page = 0
+    #: The printed in-clause GROUP LABEL in effect ("FORMAT 2", "SEQUENTIAL FILES", "ALL FORMATS") — the third way
+    #: the standard scopes a rule, beside its clause and its words (kb/Work PB284). Reset at every block heading;
+    #: `rule_band` is the label in effect where the rule STARTED, captured like `rule_page` because flush() runs
+    #: when the NEXT ordinal arrives, after a following label has already moved `band`.
+    band = rule_band = ""
     in_correction_note = False                   # inside a `> ⚠ **CORRECTED …` blockquote paragraph (R66)
 
     def flattened_tail(n: int, form: str) -> bool:
@@ -486,7 +580,7 @@ def main() -> int:
                              f"per-sublist/per-item manifest entry ({json.dumps(cur_kinds)}). Re-adjudicate "
                              f"the clause against the current segmentation before regenerating.")
             rid = f"{kind}-{sec}-{ordinal}" if cur_sublist == 1 else f"{kind}-{sec}-L{cur_sublist}.{ordinal}"
-            rules.append({
+            row = {
                 "id": rid,
                 "section": sec,
                 "kind": kind,
@@ -494,7 +588,12 @@ def main() -> int:
                 "sublist": cur_sublist,
                 "subject": subject_for(sec, titles),
                 "text": re.sub(r"\s+", " ", text),
-            })
+            }
+            if rule_band:
+                row["band"] = rule_band
+                if numbers := band_formats(rule_band):
+                    row["band-formats"] = numbers
+            rules.append(row)
             blocks_with_rules.add(cur)
         buf, ordinal = [], 0
 
@@ -516,6 +615,7 @@ def main() -> int:
         if cur is not None and (gl := GROUP_LABEL.match(line)):
             if line.lstrip().startswith("#"):
                 heading_labels.append((cur[0], gl.group("label")))
+            band = gl.group("label").strip()     # the band the NEXT rule is printed under (a field, never text)
             continue
         if ANY_HEADING.match(line) and not HEADING.match(line):
             flush()
@@ -534,6 +634,7 @@ def main() -> int:
             # the same file's `pending` rows are the worklist of clauses nobody has judged yet.
             k = kind_of(title) or admitted.get(num)
             levels, next_sublist, last_indented, cur_sublist = [], 2, 0, 1
+            band = ""
             if isinstance(k, dict):
                 # Per-sublist kinds: cur carries a hashable token for the seen/with-rules bookkeeping; the
                 # real kind is resolved per rule at flush() from cur_kinds.
@@ -568,12 +669,43 @@ def main() -> int:
             cur_sublist = place(n, m.group("form"))
             ordinal = n
             rule_page = page
+            rule_band = band
             buf = [m.group("text")]
         elif ordinal:
             if im := INDENTED_ORDINAL.match(line):
                 last_indented = int(im.group("n"))
             buf.append(line)
     flush()
+
+    # ---- PROSE concept clauses — one row per normative paragraph (kb/Work PB284 part 3) -------------------------
+    # See `prose_paragraphs`. Every admission is checked against the transcription HERE, so a clause that was
+    # renumbered, retitled or turned into a numbered rule block is LOUD (fatal under --check) instead of a row
+    # family quietly pointing at nothing — or at rows the numbered scan already holds, which would count twice.
+    paragraph_defects: list[str] = []
+    heading_at = {m.group("num"): i for i, ln in enumerate(lines)
+                  if (m := HEADING.match(ln)) and not ln.lstrip().startswith("[")}
+    for sec, info in paragraph_blocks.items():
+        kind = info.get("kind")
+        at = heading_at.get(sec)
+        if kind not in ("SR", "GR"):
+            paragraph_defects.append(f"§{sec}: kind {kind!r} is not SR or GR (§5.3.1: rules are syntax rules and general rules)")
+        elif at is None:
+            paragraph_defects.append(f"§{sec}: no such numbered heading in the transcription")
+        elif kind_of(titles[sec]) or sec in admitted:
+            paragraph_defects.append(f"§{sec}: already a numbered rule block ({titles[sec]!r}) — its rows would count twice")
+        else:
+            paras = prose_paragraphs(lines, at)
+            overrides = info.get("kinds", {})
+            if not paras:
+                paragraph_defects.append(f"§{sec}: admitted as prose but carries no paragraph")
+            if unknown := sorted(set(overrides) - {str(i) for i in range(1, len(paras) + 1)}):
+                paragraph_defects.append(f"§{sec}: per-paragraph kind for paragraph(s) {unknown} the clause does not have")
+            for n, text in enumerate(paras, start=1):
+                k = overrides.get(str(n), kind)
+                rules.append({
+                    "id": f"{k}-{sec}-p{n}", "section": sec, "kind": k, "ordinal": n, "sublist": 1,
+                    "subject": subject_for(sec, titles), "shape": "paragraph", "text": text,
+                })
 
     # ---- completeness self-check -----------------------------------------------------------------------------
     # §5.3.2-5.3.5 are the CONVENTIONS clause: prose DEFINING what a syntax/general/argument/returned-value rule
@@ -603,12 +735,15 @@ def main() -> int:
     # `CatalogCoverageDriftTests.EveryFmtRow_CarriesADiagramOrAFormatLabel` holds the same bar over the written
     # catalog, independently of this code.
     fmt_sections: list[tuple[str, int]] = []   # (section, heading-line)
+    unrecognised_general: list[tuple[str, str]] = []   # headings opening "General" that name no known block kind
     numbered_at: list[tuple[int, str]] = []    # every numbered heading, in order — to see a candidate's next one
     for i, line in enumerate(lines):
         if (m := HEADING.match(line)) and not line.lstrip().startswith("[") and not PAGE.match(line):
             numbered_at.append((i, m.group("num")))
-            if re.fullmatch(r"general formats?\.?", m.group("title").strip(), re.I):
+            if GENERAL_FORMAT_TITLE.fullmatch(m.group("title").strip()):
                 fmt_sections.append((m.group("num"), i))
+            elif is_unrecognised_general(m.group("title")):
+                unrecognised_general.append((m.group("num"), m.group("title").strip()))
     next_numbered = {at: nxt for (at, _), (_, nxt) in zip(numbered_at, numbered_at[1:])}
 
     fmt_parents: list[str] = []     # candidate headings that are clauses ABOUT formats, not a construct's format
@@ -916,6 +1051,23 @@ def main() -> int:
             print(f"      §{sec}  ({subject_for(sec, titles)})")
     else:
         print("✓ every general-format row carries a diagram or a Format label")
+    if unrecognised_general:
+        print(f"\n⛔ {len(unrecognised_general)} heading(s) open with 'General' and name no block this extractor knows —")
+        print("   a spelling variant of 'General format(s)' or 'General rules' is ABSENT FROM THE DENOMINATOR, and absent")
+        print("   silently (kb/Work PB284: §14.9.7.2 'General forms' was exactly this). Resolve each in GENERAL_FORMAT_TITLE")
+        print("   or KINDS, or correct the transcription:")
+        for num, title in unrecognised_general:
+            print(f"      §{num}  '{title}'")
+    else:
+        print("✓ every heading that opens with 'General' is the intro clause, a general format or a rule block")
+    if paragraph_defects:
+        print(f"\n⛔ {len(paragraph_defects)} PROSE-CLAUSE ADMISSION(S) in {UNHARVESTED.name} that the transcription "
+              "no longer supports:")
+        for d in paragraph_defects:
+            print(f"      {d}")
+    else:
+        print(f"✓ {len(paragraph_blocks)} prose clause(s) admitted as paragraph rows, each present, unambiguous and "
+              f"non-empty ({sum(1 for r in rules if r.get('shape') == 'paragraph')} rows)")
 
     # ⛔ THE COMMITTED CATALOG IS THIS RUN'S OUTPUT, OR IT IS STALE (kb/Work PB55). The inventory, every drift
     # test and every derived-verdict selector read the COMMITTED catalog, never the transcription; three landings
@@ -936,7 +1088,8 @@ def main() -> int:
 
     if args.check:
         return 1 if (gaps or unrecognised or added or removed or changed or unexplained
-                     or heading_labels or flattened_tails or unmeasured or stale or fmt_undrawn) else 0
+                     or heading_labels or flattened_tails or unmeasured or stale or fmt_undrawn
+                     or unrecognised_general or paragraph_defects) else 0
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
