@@ -40,3 +40,5 @@ GR14), the file keeps its original records, and READ NEXT past the last record i
 answered every leg on the first run, so no source changed. The io golden no longer claims GR-13.18.33.4-3 (every FD
 there has one level-1 record, so it never witnessed implicit redefinition), and the exceptions header now labels the
 at-end READ X10, the READ after it X10B and the declarative count X13.
+
+Round 2 of the review found that the INDEXED leg REWROTE and STARTed on key IK right after two unsuccessful random READs, when the record area (so IK) is undefined (14.9.30.4 GR18). The program now moves ZZ to IK again before the Z5 REWRITE, so Z5 and Z6 address a key the program set; expected output unchanged.
