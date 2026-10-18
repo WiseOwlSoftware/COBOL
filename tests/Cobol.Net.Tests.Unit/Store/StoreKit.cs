@@ -29,6 +29,20 @@ internal static class StoreKit
         new([new KeySegment(8, 12)], Duplicates: true, Suppress: "*", Collation: ""),
     ]);
 
+    /// <summary>A store that holds <paramref name="records"/> (each "id=text", a blob of three pages for the first) and was
+    /// CLOSEd, over a fresh medium: the PREVIOUS file an <c>OPEN OUTPUT</c> recreates.</summary>
+    public static MemoryPageMedium ClosedStore(params string[] records)
+    {
+        var (medium, _, store) = NewStore();
+        for (int i = 0; i < records.Length; i++)
+        {
+            var (id, text) = (int.Parse(records[i].Split('=')[0]), records[i].Split('=')[1]);
+            Assert.Equal(StoreStatus.Ok, Put(store, id, text, blobPages: i == 0 ? 3 : 0));
+        }
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        return medium;
+    }
+
     /// <summary>A fresh medium holding a new empty relative store, created through <paramref name="unit"/>.</summary>
     public static (MemoryPageMedium Medium, MemoryPageMedium.Handle Handle, PagedFile Store) NewStore(bool coherent = true, string unit = "A")
     {
@@ -106,15 +120,20 @@ internal static class StoreKit
     private static string Text(byte[] value) =>
         Encoding.UTF8.GetString(value, 2, BinaryPrimitives.ReadUInt16LittleEndian(value));
 
-    /// <summary>The statement of a pending edit of the prime tree: begun at exactly the pages the edit will write (the
-    /// entry already run), flushed, its root set, completed.</summary>
+    /// <summary>The statement of a pending edit of the prime tree: begun at exactly the edit's bound (the pages it will
+    /// write and the pages it stopped referencing; the entry already run), flushed, its root set, completed. A refused
+    /// Begin or completion answers what it answered ('30', or the boundary of 2.2.1.9).</summary>
     public static StoreStatus Commit(PagedFile store, BTree tree)
     {
-        if (store.Begin(tree.PagesToWrite, out var st, entered: true) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (store.Begin(StatementBound.Of(tree), out var st, entered: true) is var begun && begun != StoreStatus.Ok)
+        {
+            tree.Discard();
+            return begun;
+        }
         var flushed = tree.Flush(st!, out var root);
         st!.SetPrimeRoot(root);
         var completed = st.Complete();
-        return flushed == StoreStatus.Ok ? completed : StoreStatus.PermanentError;
+        return flushed != StoreStatus.Ok && completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
     }
 
     // ── The auditor: the slots' trees, walked from the raw medium ──────────────────────────────────────────────

@@ -3,6 +3,7 @@
 using System.Text;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
+using CobolNet.Runtime.IO.Store;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -223,28 +224,39 @@ public sealed class FileBoundaryTests : IDisposable
     /// because the medium is FULL is '30' (§9.1.13.6 item 1), which stays in effect until the CLOSE (§9.1.13.1). Neither
     /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge)
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge, bool rewrite)
     {
-        string host = Host($"refuse-{tooLarge}.dat");
-        int hresult = tooLarge
-            ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
-            : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
+        string host = Host($"refuse-{tooLarge}-{rewrite}.dat");
+        int full = OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
         bool refusing = false;
         // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
-        // size both do; the pages already in the file (page 2 among them) are written as ever.
+        // size both do; the pages already in the file (page 2 among them) are written as ever. The medium contract
+        // carries the host's "the file cannot grow further" as MediumSizeLimitException (HandlePageMedium.Write asks
+        // HostFile.IsFileSizeLimit, PagedFileBoundaryTests pins the codes); a full medium travels as the host raised it.
         RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
-            write: page => refusing && page >= inner.PageCount ? new IOException("refused by the host", hresult) : null);
+            write: page => !refusing || InsideTheFile(page, inner) ? null
+                : tooLarge ? new MediumSizeLimitException("the file cannot grow further") : new IOException("refused by the host", full));
         try
         {
             var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
             Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
             c.SetPendingKey(1);
             Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            if (rewrite)
+            {
+                Assert.Equal(FileStatusCode.Success, c.Close());
+                Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));
+            }
             refusing = true;
-            c.SetPendingKey(2);
-            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, c.Write("BBBB"));
+            // The statement's copy-on-write pages need growth: a WRITE's new record, or a REWRITE's new leaf; refused,
+            // the record is not written or rewritten and the file is unchanged (2.2.1.9).
+            c.SetPendingKey(rewrite ? 1 : 2);
+            var refused = rewrite ? c.Rewrite("BBBB") : c.Write("BBBB");
+            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, refused);
             refusing = false;
             c.SetPendingKey(3);
             // '24' is the invalid key condition and the connector goes on; '30' is a permanent error in effect.
@@ -266,15 +278,14 @@ public sealed class FileBoundaryTests : IDisposable
     public void RelativeDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
     {
         string host = Host("refuse-delete.dat");
-        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
         RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
-                if (!refusing || page < inner.PageCount) return null;
+                if (!refusing || InsideTheFile(page, inner)) return null;
                 refused++;
-                return new IOException("refused by the host", tooLarge);
+                return new MediumSizeLimitException("the file cannot grow further");
             });
         try
         {
@@ -303,6 +314,11 @@ public sealed class FileBoundaryTests : IDisposable
         finally { RelativeStore.MediumObserver.Value = null; }
         Assert.Equal(["1=AAAA"], Records(host));
     }
+
+    /// <summary>Whether <paramref name="page"/> lies inside the medium (a write there does not grow the file). A refusing fake
+    /// returns no refusal for such a page.</summary>
+    private static bool InsideTheFile(uint page, IPageMedium inner) =>
+        (long)page * CobolNet.Runtime.IO.Store.PageHeader.PageSize < inner.Length;
 
     /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector
     /// (the next OPEN).</summary>
