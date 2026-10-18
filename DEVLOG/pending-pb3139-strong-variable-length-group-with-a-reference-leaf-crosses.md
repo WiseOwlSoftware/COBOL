@@ -79,3 +79,6 @@ COBOLNET4213 `OverrideNamedLikeItsClass` is deleted with a retirement comment; C
 **Self-review:** architecture — one naming rule for every slot, in the class table that owns the slots; code — the slot
 union reads the same roster key the conformance check pairs by; duplication — the AddMethods special case is gone;
 performance — one pass over the rosters per compilation group. Codes: none of COBOLNET4244-4246 used.
+
+**Gate** (w1114a, at 8b57d399d, run `20261018T034820Z-37ceab`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+GREEN ===`; the four goldens and both refusals ran in leg 1 and passed. Codes: none of COBOLNET4274-4276 used.
