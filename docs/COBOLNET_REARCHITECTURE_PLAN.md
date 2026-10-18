@@ -496,7 +496,7 @@ a DEVLOG entry per landing on main (kb/Work PB2605); commit AND push every check
   then the FILTERED wave-local gate; filter required; ✅ landed, DEVLOG 1331 — **PB108 CLOSED**) — the two external "hard implementation mode" prompts they
   came from were otherwise rejected (a shared opcode IR, invented syntax, appsettings, .NET 8: DEVLOG 1329) ·
   ① ✅ **PB64 T1 LANDED (2026-08-19, DEVLOG 1332)** — the SPECIAL-NAMES LOCALE clause declares (`LocaleSymbol` /
-  `LocaleRef`; L1 normalization; SR10/SR11 via the ONE text-literal rule; COBOLNET1665), `SET` formats 11/12 over
+  `LocaleRef`; L1 normalization; SR10/SR11 via the ONE text-literal rule; COBOLNET4250), `SET` formats 11/12 over
   the ONE `LocaleState` (`LocaleValue` per category, the category SET, `SavedLocalePointer` handles — L4;
   GR21–GR27; COBOLNET1664/1666/1667/1668), the NAMED `IS LOCALE locale-name-2` alphabet, the EC-LOCALE ambient
   gates (MISSING / INVALID-PTR / INCOMPATIBLE raised and OBSERVED; PB100's name refusal reverted), the SORT/MERGE
