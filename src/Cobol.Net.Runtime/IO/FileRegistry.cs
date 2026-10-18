@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Runtime.ExceptionServices;
+using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Runtime.IO;
 
@@ -519,6 +520,12 @@ public sealed class FileRegistry
     /// <summary>Does the print device of the connector of <paramref name="name"/> stand on a line that has been
     /// presented and not travelled past (<see cref="SequentialConnector.DeviceOnOpenLine"/>)?</summary>
     internal bool DeviceOnOpenLine(string name) => SequentialOf(name, "REPORT").DeviceOnOpenLine;
+
+    /// <summary>The paged store the keyed connector of <paramref name="name"/> is attached to, or null
+    /// (<see cref="KeyedConnector.PagedStore"/>; the seam of DESIGN-runtime-library.md 2.2.1.11's witnesses, kb/Work
+    /// PB3336).</summary>
+    internal PagedFile? PagedStoreOf(string name) =>
+        _files.TryGetValue(name, out var c) && c is KeyedConnector k ? k.PagedStore : null;
 
     /// <summary>The sequential connector a sequential-surface entry acts on: an unregistered name and a keyed
     /// connector are both compiler defects (the binder routes keyed files to the keyed entries), so both are
