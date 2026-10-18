@@ -285,15 +285,19 @@ program that writes a second file is graded with no change anywhere.
   implementor-defined line delimiter") — RW101A to RW104A's report files are CR LF on Windows and LF on Linux, and the
   goldens hold LF — while a lone CR is record data and still counts, and a BINARY file is never normalized, so a
   newline translation in a record file is a difference. And `(stdout)` is compared on the acceptance basis (the
-  console's line ends are the host's too). `NistOutputs.Canonical` and `guard-verdict.sh#guard_canonical_into` are the
-  one rule in its two arms.
+  console's line ends are the host's too: carriage returns dropped, per-line trailing spaces stripped, trailing
+  newlines ignored, and a console of only blanks printed nothing and is no written file). `NistOutputs.Canonical`,
+  `NistOutputs.StdoutBasis` and `guard-verdict.sh#guard_canonical_into` are the one rule in its two arms.
+  `guard_files_apply` has its own failure modes, each a `FILES NO-VERDICT` and never a pass or a difference: a missing
+  run directory or marker, a `find` that fails, a canonicalization that fails (`guard-verify.sh` drives each through the
+  function with the failing step shimmed, beside the control with nothing failing).
 - **The population includes the 15 guard-asserted `pending` rows.** `OBSQ1A` and `SQ106A` … `SQ227A` have a golden and
   were run by the guard only; the first Linux run of the written-files arm failed on them for having no golden to
   grade against, and the differential now runs them as green rows (they match on both hosts).
 - **Re-capture** after a deliberate format change: `COBOLNET_UPDATE_NIST_FILES=1 dotnet test … --filter
   NistDifferentialTests`, then review `git diff tests/nist/valid-files` — the same discipline as
   `COBOLNET_UPDATE_SNAPSHOTS`.
-- A `TERMINATES` row is not graded for files (its run ends abnormally by declaration).
+- **A `TERMINATES` row is graded for files too** (review round 1 of PB804; the owner's PB3353 requirement that the abnormal paths are covered as fully as the success paths). Its run ends abnormally by declaration, and what it had written by then — the closed data files, the print file, the console output — is graded with the same rule: a run that exits non-zero has NO report to separate out, so `NistRunner` returns every file it wrote (print file included) and its console output whenever it printed anything (`NistRunResult.Written`), and `guard_files_apply` is called with an empty report name on the termination arm. ST146A is the witness: `xxxxx014.txt` (SQ-FS1, closed before the end), `xxxxx015.txt` and its partial `st146a.txt` have goldens. `NC401M` terminates before it writes any file, so it has no directory.
 
 ### 3.3 The characterization harness (`Cobol.Net.Tests.Characterization`)
 The behavior-neutrality proof the rearchitecture needs. Structure:
