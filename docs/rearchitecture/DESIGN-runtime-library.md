@@ -964,19 +964,26 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
 - **R4 — a FREED page is not reused before the promotion that makes its freeing durable.** Until then the committed meta
   references it, and R1 forbids writing it. At promotion the ledger's `freed` and `released` pages move to the FREE tree and
   its `fresh` pages leave the ledger (they are now committed pages, R1 applies); the ledger's own pages, now referenced by the
-  committed slot, are `freed` in turn. The moving is the RETIREMENT statement of R5.
+  committed slot, are `freed` in turn (finding R3-2 confirmed this reading against the retirement paragraph, which had
+  contradicted it). The moving is the RETIREMENT statement of R5.
 - **R5 — a PROMOTION is: sync the data file (`FileStream.Flush(true)` on the connector's own handle) → write the work meta's
   content, with `committed generation` = its generation, to the COMMITTED SLOT THAT DOES NOT HOLD THE COMMITTED META (the
   lower generation, or the invalid one) → sync again → the RETIREMENT statement.** Two syncs make the meta copy strictly after
   the pages it names, and alternating the slots makes the one write the scheme depends on survivable: a promotion whose slot
   write is torn leaves the other committed slot whole and the work slot, synced by the first sync, naming the state the
   promotion was making durable (finding R1-4; the first draft overwrote page 0 in place and gave a torn page 0 no outcome).
-  **The retirement statement** (finding R2-1) is an ordinary statement — one generation, R1-R3, page 2 written last — that
-  moves the promoted ledger's `released` and `freed` pages and the promoted ledger's own pages into the FREE tree (path-copying
-  the FREE tree: its new pages are `fresh` in the new ledger, the FREE-tree pages it replaced `freed`), drops the `fresh`
-  entries (committed pages now), and writes page 2 with `committed generation` = the promotion's generation and the new
-  ledger's root. Until page 2 lands, the work slot still names the promoted ledger on the OLD base; that state is R6's
-  PROMOTION SOURCE and a writable OPEN completes it. *The first correction's promotion never wrote page 2, so every OPEN after
+  **The retirement statement** (finding R2-1) is an ordinary statement — one generation (its claim, 2.2.1.7), R1-R3, page 2
+  written last — that moves the promoted ledger's `released` and `freed` pages into the FREE tree (path-copying the FREE tree:
+  its new pages are `fresh` in the new ledger, the FREE-tree pages it replaced `freed`), drops the `fresh` entries (committed
+  pages now), records the promoted ledger's OWN pages — the pages its walk read; the committed slot references them through
+  its ledger root, so R1 and R4 protect them until the next promotion — as `freed` in the new ledger, and writes page 2 with
+  `committed generation` = the promotion's generation and the new ledger's root. *Finding R3-2: the round-2 text moved the
+  promoted ledger's own pages straight into the FREE tree while R4 quarantined them; the FREE tree was wrong. The committed
+  meta's ledger is read again whenever R6 adopts the committed meta (its fence retires that ledger, step 4), so a reused ledger
+  page would fail R3 inside the fence of a file whose committed tree is intact; R4's reading stands, and 2.2.1.15's LEDGER row
+  says so.* Until page 2 lands, the work slot still names the promoted ledger on the OLD base; that state is R6's
+  PROMOTION SOURCE, and a writable OPEN (R6) or the next coherent statement of a live run unit (2.2.1.7, the PROMOTING flag)
+  completes it. *The first correction's promotion never wrote page 2, so every OPEN after
   a CLOSE found a work slot whose base was older than the committed meta's, rejected it and reclaimed "the abandoned ledger's
   pages" — the committed tree's own leaves — into the FREE tree; the next WRITE then allocated a live leaf (the review's
   ten-WRITE scenario). The state after a promotion now has a name and a rule.* Promotions happen for EVERY file, under commit
@@ -1008,9 +1015,10 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      are reclaimable when its ledger is readable; the PROMOTION SOURCE and a FOREIGN W give C as well;
   4. a connector with a writable handle then FENCES (finding R2-2): a promotion (R5) of the ADOPTED meta at generation
      F = G + 4 097 — above every stamp a history based on G can have issued, R2 — into the slot that does not hold C, with
-     its two syncs, then the retirement statement at F + 1 on base F, which also moves a rejected DESCENDANT's `fresh` and
-     `released` pages into the FREE tree when that ledger is readable (an unreadable one leaks at most the checkpoint's pages;
-     the file never shrinks of its own accord anyway). After the fence both the committed meta and page 2 name the adopted
+     its two syncs, then the retirement statement on base F (its generation is its claim, F + 1 or above), which also moves a
+     rejected DESCENDANT's `fresh` and `released` pages, and that ledger's own pages (read by the walk; no slot references
+     them once the fence's slot write landed), into the FREE tree when that ledger is readable (an unreadable one leaks at most
+     the checkpoint's pages; the file never shrinks of its own accord anyway). After the fence both the committed meta and page 2 name the adopted
      state, every page of it is durable, and no generation the superseded history may have stamped will be stamped again. A
      fence is a promotion like any other and changes no rollback target; it is harmless when repeated. It runs through the
      store's FIRST writable handle — the OPEN that gives the store one, even when an INPUT connector of the run unit opened
@@ -1176,9 +1184,12 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   LOCK ON MULTIPLE RECORDS"* whose locks only COMMIT and ROLLBACK release; §12.4.5.9.4 GR4 locks on READ (*"Records are
   locked when any READ statement is executed"*); §14.9.51.4 GR11 sets the lock at a WRITE when *"the WITH LOCK phrase is
   specified or implied"* and names no implier, so what implies it is the implementor's; §14.9.10.4 GR7 releases a deleted
-  record's lock only *"if record locks are in effect and the file is not subject to an active APPLY COMMIT clause"*, and its
-  NOTE says that for such connectors *"file and record locking persists"* — a lock on a DELETED record can only exist to hold
-  its identity for the rollback; §9.1.17's unit of work is *"protected from the activity of other run units that wish to
+  record's lock only *"if record locks are in effect and the file is not subject to an active APPLY COMMIT clause"* — under an
+  active APPLY COMMIT the release does not apply, and a lock kept on a DELETED record can only exist to hold its identity for
+  the rollback (the clause's one NOTE, under rule 15 after FORMAT 2 DELETE FILE — *"For file connectors subject to APPLY
+  COMMIT clauses, while those APPLY COMMIT clauses remain active, then file and record locking persists"* — says the same of
+  the posture in general and continues about deleting FILES; finding R3-3: the round-2 text had placed it under GR7, and the
+  deleted-record conclusion rests on GR7's own carve-out, §9.1.16 and D.2.5, not on that NOTE); §9.1.17's unit of work is *"protected from the activity of other run units that wish to
   access any of the same records and data"*; and Annex D.2.5 says *"It is possible for another run unit to read a record
   written or updated by the current run unit"* only with IGNORING LOCK — a written record is a locked record — and that *"As
   locks on records are not released until there is a commit or a rollback, other run units may not prevent the current run
@@ -1392,7 +1403,7 @@ writer no reader expects, is a design defect.
 | **`committed generation`** (the base) | A promotion sets it to its generation in the slot; the retirement copies the promotion's generation into page 2; every later statement copies page 2's. | R6 (DESCENDANT = base equals G); the ledger's meaning (pages allocated since the base). |
 | **`release mint`, `transaction mint`, `page count`** | The statement that mints an ordinal, begins a transaction or grows the file, in page 2; promotions copy them. | WRITE/REWRITE (the next ordinal), the first change under commit control (the next transaction id), allocation (growth). A rejected history's values are discarded with it: an ordinal re-minted orders only the live tree, a transaction id re-minted has a free liveness byte. |
 | **Root pointers** (prime/record tree, alternate trees, FREE, LEDGER, TRANSACTIONS) | The statement that path-copies that tree, in page 2; promotions copy them. | Every tree walk, through R3's stamp check. |
-| **The LEDGER tree** | Every statement, path-copied, written after its data and FREE-tree pages from the reservation (R2); the retirement writes the post-promotion ledger (the promoted ledger's fresh entries dropped, its released/freed/own pages gone to the FREE tree, its own new pages fresh). | R6 step 3 (every `fresh` page verified before a DESCENDANT is adopted); the retirement (what to move); the allocator (released pages); R4 (freed pages quarantined). Relies on: the ledger root in the meta the reader holds names a ledger whose own pages verify by stamp. |
+| **The LEDGER tree** | Every statement, path-copied, written after its data and FREE-tree pages from the reservation (R2); the retirement writes the post-promotion ledger (the promoted ledger's fresh entries dropped, its released and freed pages gone to the FREE tree, the promoted ledger's own pages `freed` — the committed slot references them until the next promotion, R4; finding R3-2 — and the retirement's own new pages fresh). | R6 step 3 (every `fresh` page verified before a DESCENDANT is adopted); the retirement (what to move); the allocator (released pages); R4 (freed pages quarantined). Relies on: the ledger root in the meta the reader holds names a ledger whose own pages verify by stamp. |
 | **The FREE tree** | The retirement (adds the retired pages and, at a fence after a rejection, the rejected ledger's never-committed pages); an allocation that takes a batch of its lowest pages (path-copied by the taking statement). | The allocator, after the in-memory ledger's released pages and before growth. Relies on: a page in the committed FREE tree is referenced by no slot's tree (the older committed slot is dead once a promotion's second sync completed, R5). |
 | **Data pages** (internal, leaf, overflow) | The statement that changes them, always to a page neither slot's tree references (R1), stamped with the statement's generation, before page 2. | Every statement through stamped pointers (R3: checksum, `self`, generation); R6 through the ledger's `fresh` list. |
 | **The TRANSACTIONS tree and the UNDO trees** | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image, in the same statement as the change), COMMIT (the entry removed, the UNDO pages released), ROLLBACK and the dead-transaction step (the before-images re-applied, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK and R6 step 5 (which transactions exist, whose owner is dead by the liveness byte). Relies on: a before-image exists for every change that completed (same statement) and the transaction's locks kept every identity and unique value it will restore. |
