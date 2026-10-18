@@ -11,9 +11,10 @@ namespace CobolNet.Benchmarks.GeneratedCode;
 /// <summary>
 /// GENERATED-PROGRAM HOT PATHS (kb/Work PB2117, the instrument kb/Work A6 asked for): what the code this compiler
 /// emits costs to RUN, on the four shapes A6 named: MOVE-heavy loops across every storage form, PERFORM dispatch,
-/// sequential file I/O and indexed file I/O. Each program is a COBOL source under <c>Programs/</c>, compiled once in
-/// <see cref="Setup"/> at the shipping default edition and then run in this process through its entry point, so the
-/// number is the generated code and the runtime it calls, with no process start-up in it.
+/// sequential file I/O and indexed file I/O, and on SORT and MERGE (kb/Work PB2777). Each program is a COBOL source
+/// under <c>Programs/</c>, compiled once in <see cref="Setup"/> at the shipping default edition and then run in this
+/// process through its entry point, so the number is the generated code and the runtime it calls, with no process
+/// start-up in it.
 /// <para>
 /// The same sources are what <c>scripts/arch/perf_baseline.py</c> times as whole processes against GnuCOBOL 3.2 (the
 /// external comparison A6's storage-model question needs): one source, two consumers, so the two numbers always
@@ -23,7 +24,7 @@ namespace CobolNet.Benchmarks.GeneratedCode;
 [Config(typeof(BenchmarkConfig))]
 public class GeneratedProgramBenchmarks
 {
-    [Params("MOVEHOT", "PERFHOT", "SEQHOT", "IDXHOT")]
+    [Params("MOVEHOT", "PERFHOT", "SEQHOT", "IDXHOT", "SORTHOT", "MERGEHOT")]
     public string Program { get; set; } = "";
 
     private MethodInfo _entryPoint = null!;
