@@ -7,7 +7,7 @@ description: Use BEFORE dispatching any fleet, finisher, implementer or adjudica
 > (a cloud session receives no project marketplace), Read `tools/claude-skills/skills/agent-fleet/SKILL.md` instead
 > (`git submodule update --init tools/claude-skills` if the path is missing). THEN apply this overlay: it carries only
 > what is specific to WiseOwl COBOL — commands, paths, kb/Work, the merge queue, the owner's dated decisions and
-> measurements — and wins on conflict. Pinned: **brent-tools 1.20.0** (`tools/claude-skills`, kb/Work/PB1699). A
+> measurements — and wins on conflict. Pinned: **brent-tools 1.21.0** (`tools/claude-skills`, kb/Work/PB1699). A
 > practice improved here is written into the public base first, then consumed by moving the pin.
 
 # Workstream — token-frugal, restart-safe orchestration
@@ -103,9 +103,14 @@ gathering"; "use this new rolling functionality as it reduces context and token 
 - **Same-file successors.** A file with more open notes than the cluster cap (`fix_clusters.py` caps at 5) becomes
   two or more groups, and each later one declares `after: '<predecessor letter>'`. The successor waits for its
   predecessor, merges its branch, and orients from that report's "For the next implementer" section and STATUS.md
-  instead of re-surveying the file. The predecessor's branch is HELD from the trains and lands THROUGH the successor,
-  which contains it; if the successor produces nothing landable, the predecessor lands alone. A successor may also
-  follow a group in the same technological area (a runtime file, then its emitter).
+  instead of re-surveying the file. The predecessor's branch is HELD unreviewed and lands THROUGH the successor,
+  whose review covers its commits; if the successor returns not landable, the predecessor is reviewed and lands alone.
+  A successor may also follow a group in the same technological area (a runtime file, then its emitter).
+  ⚠ **A CHAIN deeper than a pair breaks this today (kb/Work PB3380).** A successor that is itself held for its own
+  successor is never landable when it returns. So `wf_rolling_wave.js`'s `onResult` reviews and fixes its predecessor
+  alone, on the predecessor's branch, and those fixes never reach the chain: wave 1118's A2 and A3 carried none of A's
+  seven review fixes. Until PB3380 lands, plan a `blocked_by` chain deeper than a pair as successive waves, one link
+  each, with its landing between (the Mythos lane's re-sequencing of wave 1118).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
   architecture review `PB1754`) runs from its notes' `cluster:` and `blocked_by:`:

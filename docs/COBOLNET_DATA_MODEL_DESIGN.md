@@ -1527,9 +1527,21 @@ whole-dynamic-table-operations pass); today both are LOUD, never silently wrong.
 **Hardening (current invariants).** A whole-GROUP receiving MOVE into a group nested BELOW the dynamic level routes
 through `ReceivingPath` (`RefReceiving`) via a `DynTablePlace` arm in `EmitGroupMove`, so it grows rather than
 silently losing an out-of-capacity write. `CorrEligible` gates on `!IsTable` (not `Occurs is null`) so CORRESPONDING
-never emits member access on a `CobolDynTable<T>` field (§14.7.6 rule 4). SEARCH of a dynamic table nested under a
-fixed OCCURS (`TablePath` null) fails LOUD rather than scanning ZERO occurrences (a subscripted-capacity path is a
-later increment). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
+never emits member access on a `CobolDynTable<T>` field (§14.7.6 rule 4). SEARCH and SEARCH ALL of a dynamic table
+nested under other tables are bounded by ONE enclosing occurrence's current capacity (§8.5.1.9.1, §8.5.1.9.2; kb/Work
+PB3365). The occurrence is the one identifier-1 names when it writes every enclosing subscript (§14.9.37.3 SR2 bans only the
+searched level's), read by `SearchBinder.Identifier1` through `ReferenceResolver.ReadTableSubjectSubscripts`
+(`TableSubject.Search`); otherwise the one the FIRST WHEN-phrase reference to the table subscripts (§14.9.37.4 GR1 — "specified
+by the user in the WHEN phrases"; the bare spelling `SEARCH EP` is legal and is what the standard's own suite writes),
+captured from the one committing subscript reading by `ReferenceResolver.CaptureEnclosingSubscripts` together with the pre-ops
+and the object-property GETs a function- or property-bearing subscript needs (they run once ahead of the scan, in the order
+a per-evaluation window drains them, so the bound never reads an unstored temp; the WHEN condition keeps its own per-evaluation
+copy). A nested
+dynamic table that no WHEN phrase subscripts either is refused COBOLNET2075. `SearchBinder.DynamicTablePath` builds the
+instance path with `BuildTablePath(table, subscripts)` for both formats, and the emitter reads that `CobolDynTable` into one
+local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. A fixed or occurs-depending table
+has ONE bound for every occurrence of its enclosing tables, a dynamic table has one per occurrence (docs/CONFORMANCE.md
+D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
 OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
 spurious pending op).
