@@ -1,4 +1,4 @@
-## PB822: the design docs' SORT/MERGE sign determination is re-expressed on the V59 byte image, stated once, and pinned by MERGE witnesses
+## Entry 2204 — 2026-10-18 06:22 PDT — PB822: the design docs' SORT/MERGE sign determination is re-expressed on the V59 byte image, stated once, and pinned by MERGE witnesses
 
 kb/Work PB822 (campaign PB3353) found that `PicInfo.ImageSignKind` is gone from `src` while four design-doc sites still
 rested a determination on it: `COBOLNET_DESIGN.md` §8.2 and §14.4 (which contradicted each other), `COBOLNET_FILES_DESIGN.md`
@@ -38,3 +38,4 @@ representation" wording was corrected in the same file.
 and is noted there as repaired, its items 2-3 and the symbol-existence audit staying open.
 
 **Gate.** See the report.
+
