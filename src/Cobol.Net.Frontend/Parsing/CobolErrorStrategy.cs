@@ -137,7 +137,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the stray token pass: the paragraph ends, the error surfaces divisions later, and its recovery swallows the next
     /// paragraphs' own diagnostics. So where the rule could take a period next, a token that NO path can take here (it
     /// is outside the full-context LL(1) set, so no legal program is touched) directly followed by a period is deleted
-    /// as it would be before a required one.
+    /// as it would be before a required one. A paragraph, section or division header word (<see cref="HeaderWords"/>)
+    /// is never stray: followed by its own period it OPENS the next paragraph, written out of order or after this
+    /// paragraph's missing period (<c>SPECIAL-NAMES. DECIMAL-POINT IS COMMA</c> then <c>FILE-CONTROL.</c>), and deleting
+    /// it would pour that paragraph's entries into this closed format as false "not a clause" refusals.
     /// <para>Cost: the rule-local next set the ATN caches, then two token types; the full-context set only for a stray
     /// token right before a period.</para></summary>
     private static bool IsStrayTokenBeforeOptionalPeriod(Parser recognizer)
@@ -149,7 +152,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var stream = (ITokenStream)recognizer.InputStream;
         int la1 = stream.LA(1);
         return la1 != TokenConstants.EOF && !local.Contains(la1) && stream.LA(2) == CobolLexer.DOT
-               && !atn.NextTokens(state, recognizer.Context).Contains(la1);
+               && !HeaderWords(atn).Contains(la1) && !atn.NextTokens(state, recognizer.Context).Contains(la1);
     }
 
     private static bool IsClosedFormatResidueAhead(Parser recognizer)
