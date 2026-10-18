@@ -6,7 +6,9 @@ namespace CobolNet.Tests.Unit.Store;
 
 /// <summary>The pages of ONE physical file held in memory, the latest version of each and nothing else, so a case can
 /// load tens of thousands of records through the real connectors without the host's per-page cost and without a write
-/// log (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.11's witnesses count page I/O; they never time it). Every run
+/// log (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.11's witnesses count page I/O; they never time it).
+/// <see cref="MemoryPageMedium"/> keeps every version of every page, which the crash cases need and a load of this size
+/// cannot afford (gigabytes); this medium keeps only what a reader sees. Every run
 /// unit's store on the file reads and writes it through its own <see cref="View"/>
 /// (<c>KeyedStore.MediumObserver</c> hands each store one), so a second run unit's OPEN sees exactly the pages the first left: the
 /// FILE is the truth across run units (2.2.1.7). The host file the connectors open still carries their handles and locks;
