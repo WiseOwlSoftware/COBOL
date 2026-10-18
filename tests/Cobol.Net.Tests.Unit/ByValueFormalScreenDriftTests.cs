@@ -31,6 +31,20 @@ public sealed class ByValueFormalScreenDriftTests
         Assert.DoesNotContain("COBOLNET1553", text);
     }
 
+    /// <summary>⛔ THE CLASS SET IS THE TABLE-2 CLASSIFIER'S, NOT A PicCategory LIST (kb/Work PB3222). The list read the
+    /// storage category, which a USAGE INDEX item carries as numeric, so an index formal (class index, §8.5.2.1) passed
+    /// BY VALUE; the argument side (<c>CallBinder.ValueClassScreen</c>) asks <c>IntrinsicArgumentRules.ClassOfItem</c>.</summary>
+    [Fact]
+    public void TheByValueClassScreen_AsksTheTableTwoClassifier_AndListsNoPictureCategory()
+    {
+        string text = Compiler("Binding", "ProcedureHeaderScreen.cs");
+        int at = text.IndexOf("public void ByValueClass(", System.StringComparison.Ordinal);
+        Assert.True(at > 0, "ProcedureHeaderScreen.ByValueClass is gone");
+        string body = text[at..text.IndexOf("public void OptionalNeedsByReference(", at, System.StringComparison.Ordinal)];
+        Assert.Contains("IntrinsicArgumentRules.ClassOfItem(item)", body);
+        Assert.DoesNotContain("PicCategory", body);
+    }
+
     [Fact]
     public void TheMethodRuleSet_ComparesThePassingMode()
     {

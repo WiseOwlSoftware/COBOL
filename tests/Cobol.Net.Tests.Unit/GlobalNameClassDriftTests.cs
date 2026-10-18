@@ -146,6 +146,7 @@ public sealed class GlobalNameClassDriftTests
         ["Conditions"] = "Conditions.ContainsKey(",
         ["IndexNames"] = "IndexNames.Declares(",
         ["CapacityRegisters"] = "CapacityRegisters.ContainsKey(",
+        ["TypeDecls"] = "TypeDecls.ContainsKey(",              // a method's type-names are its own (kb/Work PB3192)
         ["Constants"] = "Constants.Declared.ContainsKey(",
     };
 
