@@ -68,9 +68,22 @@ internal static class SidecarLockFiles
     /// also names a lock DIRECTORY renamed away before its deletion (<see cref="RetireDirectory"/>).</summary>
     private const string RetiredPrefix = "gone-";
 
-    /// <summary>How often a publication retries when a tester or a closing sibling removed what it was standing on.
-    /// Each retry is a different race lost; exhausting them is a host that cannot be trusted, not a refusal.</summary>
-    private const int PublishAttempts = 8;
+    /// <summary>How often a publication tries when a tester or a closing sibling removed what it was standing on, paced
+    /// by <see cref="RetryPauseCeiling"/>. Exhausting them is a host that cannot be trusted, not a refusal.</summary>
+    internal const int PublishAttempts = 12;
+
+    /// <summary>⛔ THE LONGEST PAUSE, in milliseconds, BEFORE RETRY NUMBER <paramref name="retry"/> (1 is the first retry)
+    /// OF A PUBLICATION: the schedule is TIME, not a count of immediate tries (kb/Work PB3314). The first retry is
+    /// immediate (<see cref="Thread.Yield"/>): a tester that reaped the pending file, or a sibling that retired the
+    /// directory, is a race lost once. Every later retry sleeps a jittered span of up to twice the longest one before it,
+    /// to a cap, because a lost race that repeats has not FINISHED. On Linux a directory in the middle of its
+    /// <c>rmdir</c> still answers <c>stat</c> and an empty listing while every creation inside it answers <c>ENOENT</c>
+    /// (the kernel marks the inode dead, and the name stays resolvable until the remover, preempted under load, finishes
+    /// unlinking it); measured at up to 17 ms and 240 consecutive refusals with 8 processes beside 24 CPU burners. Eight
+    /// immediate tries, microseconds apart, all fell inside that window (1 waiting hold in about 500,000 answered
+    /// <see cref="RunUnitFileLock.Outcome.Unavailable"/>, and the store mutex went untaken). The ceilings sum to about
+    /// 0.6 s: far past that window, and spent only when the race does not end.</summary>
+    internal static int RetryPauseCeiling(int retry) => retry <= 1 ? 0 : Math.Min(1 << (retry - 1), 128);
 
     /// <summary>The lock directory of the physical file: beside it, named by the hash of its name key.</summary>
     internal static string LockDirectoryOf(string hostPath)
@@ -89,12 +102,15 @@ internal static class SidecarLockFiles
     internal static bool IsRetired(string name) => name.StartsWith(RetiredPrefix, StringComparison.Ordinal);
 
     /// <summary>Create, lock, verify and name this holder's file, or null when the host cannot hold the lock here.
-    /// <paramref name="finalName"/> maps the publication's unique id to the file's published name. Throws what a file
+    /// <paramref name="finalName"/> maps the publication's unique id to the file's published name. A lost race (a
+    /// vanished directory or pending file) publishes again, paced by <see cref="RetryPauseCeiling"/> because a
+    /// directory mid-<c>rmdir</c> refuses creation for milliseconds (kb/Work PB3314). Throws what a file
     /// operation throws for a directory the process may not write; the caller maps it.</summary>
     internal static LockFileHolder? Publish(string directory, Func<Guid, string> finalName)
     {
         for (int attempt = 0; attempt < PublishAttempts; attempt++)
         {
+            if (attempt > 0) Pause(attempt);
             HostFile.CreateLockDirectory(directory);
             var id = Guid.NewGuid();
             string pending = Path.Combine(directory, PendingPrefix + id.ToString("N"));
@@ -105,7 +121,7 @@ internal static class SidecarLockFiles
                 switch (HostFile.ProbeLockFile(pending))
                 {
                     case HostFile.LockFileState.Live: break;
-                    case HostFile.LockFileState.Gone: Abandon(stream, pending); Thread.Yield(); continue;   // a tester reaped it before we locked it
+                    case HostFile.LockFileState.Gone: Abandon(stream, pending); continue;   // a tester reaped it before we locked it
                     default: Abandon(stream, pending); return null;   // the host takes no lock here (or will not say)
                 }
                 string published = Path.Combine(directory, finalName(id));
@@ -115,10 +131,25 @@ internal static class SidecarLockFiles
             catch (DirectoryNotFoundException) { Abandon(stream, pending); }   // a closing sibling removed the empty directory
             catch (FileNotFoundException) { Abandon(stream, pending); }        // a tester reaped the pending file
             catch (IOException e) when (HostFile.IsSharingRefusal(e)) { Abandon(stream, pending); }   // a tester held it as we locked or renamed it
-            Thread.Yield();
         }
         return null;
     }
+
+    /// <summary>The pause before retry <paramref name="retry"/> of <see cref="Publish"/>, on <see cref="RetryPauseCeiling"/>'s
+    /// schedule and jittered, so two publications that lost to each other do not retry in step.</summary>
+    private static void Pause(int retry)
+    {
+        if (PauseObserver.Value is { } observe) { observe(retry); return; }
+        int ceiling = RetryPauseCeiling(retry);
+        if (ceiling == 0) Thread.Yield();
+        else Thread.Sleep(Random.Shared.Next(1, ceiling + 1));
+    }
+
+    /// <summary>Test seam: when set, the pause before retry N of <see cref="Publish"/> is REPORTED (N, 1 for the first retry)
+    /// instead of performed, so a test asserts THAT a publication that keeps losing its race waits, and on which retries,
+    /// without timing a sleep (the precedent of <c>FileRegistry.PauseObserver</c>, kb/Work PB1590, PB3314). An
+    /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes.</summary>
+    internal static readonly AsyncLocal<Action<int>?> PauseObserver = new();
 
     /// <summary>Probe the holder file <paramref name="path"/>, and delete it when its holder is dead. The returned state
     /// is what the caller acts on: <see cref="HostFile.LockFileState.Live"/> and <see cref="HostFile.LockFileState.Unobservable"/>
