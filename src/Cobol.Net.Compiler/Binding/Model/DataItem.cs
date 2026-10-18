@@ -368,6 +368,13 @@ public sealed class DataItem
         }
     }
 
+    /// <summary>True when this item is a member a TYPE or SAME AS clause copied in under <paramref name="site"/> (the
+    /// entry that wrote the clause, <see cref="ReferenceSite"/>). A fact about such a member that involves ONLY members of
+    /// that one copy is a fact of the copied DECLARATION, which reports it where it is written, so the reference must not
+    /// report it a second time at a legal entry (kb/Work PB1629). A fact that involves the site itself or anything outside
+    /// the copy is a fact of the PLACEMENT, and the site reports it.</summary>
+    public bool IsCopiedUnder(DataItem site) => !ReferenceEquals(this, site) && ReferenceEquals(ReferenceSite, site);
+
     /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §13.18.22 SR1 — a level-1
     /// type declaration may be external; §13.18.58.3 SR3). The type declaration itself has no storage
     /// (§13.18.58.4 GR2); the effect is on its REFERENCES: any record description containing that type is itself

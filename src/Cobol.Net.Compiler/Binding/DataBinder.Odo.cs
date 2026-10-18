@@ -322,13 +322,15 @@ public sealed partial class DataBinder
         // exceeds it (an eighth dimension), not again for everything beneath it.
         // ⛔ THE DEPTH IS A PROPERTY OF THE COMPOSED ENTRY (kb/Work PB1629; the CompositionForest's contract): a TYPE or
         // SAME AS subject placed under seven tables makes the copied table an eighth dimension though its declaration
-        // holds one. A copy whose declaration already reaches eight was reported there, so it is not reported again; a
-        // copy that reaches eight only by where it is PLACED is reported at the entry that placed it.
+        // holds one. A copy whose IMMEDIATE source already reaches eight was reported there (or, when the source is itself
+        // a copy, one level further back: the induction ends at the written entry), so it is not reported again; a copy
+        // that reaches eight only by where it is PLACED is reported at the entry that placed it. The immediate source, not
+        // the written definition: a copy of a copy whose eighth dimension arose one level up was reported there.
         foreach (var table in CompositionForest())
         {
             // The ONE arity walk (DataItem.SubscriptArity — SubscriptAdmissionDriftTests pins that it is written nowhere else).
             if (!table.IsTable || table.SubscriptArity != 8) continue;
-            if (table.ClonedFrom is not null && table.WrittenDefinition.SubscriptArity == 8) continue;
+            if (table.ClonedFrom is { SubscriptArity: 8 }) continue;
             using var _ = Edition.At(table.ReferenceSite);
             Edition.Error(DiagnosticCatalog.TableNestingTooDeep,
                 $"table '{table.CobolName ?? table.CsName}' is nested under seven other OCCURS entries: a reference to "
@@ -391,6 +393,13 @@ public sealed partial class DataBinder
             var placedAt = item.ReferenceSite;
             using var __ = Edition.At(placedAt);
             string via = ViaReference(item);
+            // ⛔ A FACT OF THE DECLARATION IS NOT REPORTED AGAIN AT A LEGAL REFERENCE (kb/Work PB1629 review round 1). The
+            // copied description is itself screened — a TYPE declaration above, a SAME AS source as the written record it is
+            // — so a fault whose every involved entry lies inside this one copy is reported where it is written; the
+            // reference that merely copies it (legal) would otherwise carry the same error a second time. A fault that
+            // involves the reference's own entry, or anything outside the copy, is the PLACEMENT's and is reported here.
+            bool DeclarationFact(params DataItem[] involved) =>
+                item.IsCopiedUnder(placedAt) && Array.TrueForAll(involved, i => i.IsCopiedUnder(placedAt));
             if (tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
@@ -406,7 +415,7 @@ public sealed partial class DataBinder
 
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
-            if (dep.Pic is not { IsIntegerDescription: true })
+            if (dep.Pic is not { IsIntegerDescription: true } && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
@@ -423,7 +432,7 @@ public sealed partial class DataBinder
             // SR2: data-name-1 shall not be subscripted (it cannot lie within any table). A TABLE is any OCCURS — a
             // Format-4 DYNAMIC one leaves Occurs null (kb/Work PB1260) — and "lies within a table" is the ONE arity
             // answer, DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests).
-            if (dep.Parent is { SubscriptArity: > 0 })
+            if (dep.Parent is { SubscriptArity: > 0 } depParent && !DeclarationFact(dep, depParent.SubscriptLevels()[^1]))
                 Edition.Error("COBOLNET0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
@@ -431,7 +440,7 @@ public sealed partial class DataBinder
             // DEPENDING phrase is absent, and no OCCURS subject may have an occurs-depending table beneath it. The
             // nearest enclosing table (DYNAMIC included — `Occurs is not null` let an ODO table nest under OCCURS
             // DYNAMIC, kb/Work PB1260) is the last of the parent's subscript levels.
-            if (item.Parent is { SubscriptArity: > 0 } enclosing)
+            if (item.Parent is { SubscriptArity: > 0 } enclosing && !DeclarationFact(enclosing.SubscriptLevels()[^1]))
                 Edition.Error("COBOLNET0854", $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
@@ -441,9 +450,15 @@ public sealed partial class DataBinder
             // (The FD multi-record shared AREA is §9.1.2 record sharing — synthesized with no written REDEFINES
             // clause — and is exempt: only an explicitly-written REDEFINES anywhere in the class trips this.)
             for (DataItem? a = item; a is not null; a = a.Parent)
-                if (a.RedefinesTargetName is not null
-                    || (a.Class is { } cls && cls.Members.Any(mm => mm.RedefinesTargetName is not null)))
+                if (InRedefinesArea(a))
                 {
+                    // The declaration reports it only when ITS copy of this entry trips the same test: a SAME AS source
+                    // is a written record whose REDEFINES classes exist, a TYPE declaration's members have none, so the
+                    // reference is the one place the rule is asked of a copied TYPE description. The climb goes on past a
+                    // skipped one, for a REDEFINES area above the copy is the placement's.
+                    if (item.IsCopiedUnder(placedAt) && a.IsCopiedUnder(placedAt) && a.ClonedFrom is { } source
+                        && InRedefinesArea(source))
+                        continue;
                     Edition.Error("COBOLNET0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
                         + "table (ISO §13.18.44.3 SR5)" + via);
@@ -457,6 +472,9 @@ public sealed partial class DataBinder
             {
                 if (parent.Children.SkipWhile(s => !ReferenceEquals(s, n)).Skip(1).Any(s => s.RedefinesTargetName is null))
                 {
+                    // Followed inside the copy (the table and its follower are both copied members): the declaration's
+                    // fact, reported there. The climb goes on, for the entries above the copy are the placement's.
+                    if (DeclarationFact(n)) continue;
                     Edition.Error("COBOLNET0856", $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
@@ -468,7 +486,7 @@ public sealed partial class DataBinder
             // SR20: "The data item defined by data-name-1 shall not occupy a byte position within the range of the
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
-            if (DependingInsideTableRange(item, dep))
+            if (DependingInsideTableRange(item, dep) && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
@@ -476,6 +494,12 @@ public sealed partial class DataBinder
                         : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area") + via);
         }
     }
+
+    /// <summary>Is <paramref name="a"/> a REDEFINES entry, or a member of a REDEFINES class that holds one — the entries
+    /// §13.18.44.3 SR5 forbids to include an occurs-depending table. The FD multi-record shared area (§9.1.2) is a class
+    /// with no written REDEFINES, so it is not one.</summary>
+    private static bool InRedefinesArea(DataItem a) =>
+        a.RedefinesTargetName is not null || (a.Class is { } cls && cls.Members.Any(mm => mm.RedefinesTargetName is not null));
 
     /// <summary>The clause that tells the user which entry to edit when a diagnostic's subject is a member the entry
     /// copied in (kb/Work PB1629): empty for an entry the programmer wrote, else the TYPE or SAME AS subject the

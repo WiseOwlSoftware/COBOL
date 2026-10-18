@@ -132,6 +132,8 @@ public sealed class ReferenceSitePositionTests
     [InlineData("PB1629W4", "COBOLNET0853", TypeWithCounter + "       01 R.\n          05 OD OCCURS 2.\n             10 GD TYPE TTC.\n", "GD TYPE TTC", "TC OCCURS")]
     // §13.18.44.3 SR5: the copy lies within a REDEFINES area.
     [InlineData("PB1629W5", "COBOLNET0855", TypeWithCounter + "       01 R.\n          05 GE TYPE TTC.\n          05 HE REDEFINES GE.\n             10 HX PIC X(3).\n", "GE TYPE TTC", "TC OCCURS")]
+    // §13.18.44.3 SR5: the REDEFINES area lies INSIDE the copied TYPE description, which screens no REDEFINES class of its own.
+    [InlineData("PB1629WA", "COBOLNET0855", "       01 TTR TYPEDEF.\n          05 G.\n             10 NR PIC 9.\n             10 TR OCCURS 1 TO 5 DEPENDING ON NR.\n                15 ER PIC X.\n          05 HR REDEFINES G.\n             10 HX PIC X(3).\n       01 R.\n          05 GR TYPE TTR.\n", "GR TYPE TTR", "TR OCCURS")]
     // DEPENDING ON data-name-1 is looked up where the copy is PLACED: nothing there defines it.
     [InlineData("PB1629W6", "COBOLNET0851", TypeNeedingCounter + "       01 R.\n          05 GF TYPE TTN.\n", "GF TYPE TTN", "TN OCCURS")]
     // SR17: the placement supplies a counter that is not an integer.
@@ -184,5 +186,56 @@ public sealed class ReferenceSitePositionTests
         AssertReportedAt(source, 2023, "COBOLNET2646", "A8 PIC X OCCURS", "R9 TYPE TT9");
         var (_, errors) = EditionHarness.Compile(source, 2023);
         Assert.Single(errors, e => e.Contains("COBOLNET2646", StringComparison.Ordinal));
+    }
+
+    /// <summary>The seven-table body (B7 is subscripted seven times); a table under one more is an eighth dimension.</summary>
+    private const string SevenDeep =
+        "       02 B1 OCCURS 2.\n" +
+        "        03 B2 OCCURS 2.\n" +
+        "         04 B3 OCCURS 2.\n" +
+        "          05 B4 OCCURS 2.\n" +
+        "           06 B5 OCCURS 2.\n" +
+        "            07 B6 OCCURS 2.\n" +
+        "             08 B7 PIC X OCCURS 2.\n";
+
+    /// <summary>A fault whose every involved entry lies INSIDE one copied description is a fact of the DECLARATION
+    /// (the TYPE declaration, or the written record a SAME AS copies), which reports it where it is written; a legal
+    /// reference that merely copies it must not report it again (review round 1 of kb/Work PB1629). The count of each
+    /// code is therefore the declaration's alone, with one reference or two, and a reference of a reference (a TYPE
+    /// inside a TYPEDEF, a SAME AS of a record that holds a SAME AS) adds none either.</summary>
+    [Theory]
+    // §13.18.38.3 SR17: the counter in the copied description is not an integer.
+    [InlineData("PB1629D1", "COBOLNET0852", "       01 TD1 TYPEDEF.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD1.\n")]
+    [InlineData("PB1629D2", "COBOLNET0852", "       01 HD2.\n          02 N PIC X.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD2.\n")]
+    // SR2 / SR1(b)+SR10: the counter, and the table, nest inside the copied description.
+    [InlineData("PB1629D3", "COBOLNET0853", "       01 TD3 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD3.\n")]
+    [InlineData("PB1629D4", "COBOLNET0854", "       01 TD4 TYPEDEF.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R TYPE TD4.\n")]
+    [InlineData("PB1629D5", "COBOLNET0854", "       01 HD5.\n          02 A OCCURS 2.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n", "       01 R SAME AS HD5.\n")]
+    // §13.18.44.3 SR5: the REDEFINES area lies inside the copied description.
+    // (A TYPE declaration's members form no REDEFINES class, so for a TYPE copy the reference is where the rule is
+    // asked — OccursDependingOnPlacementFault_IsReportedAtTheEntryThatWroteTheClause, PB1629WA; a SAME AS source is a
+    // written record whose class exists, so it reports the fault and its copy does not.)
+    [InlineData("PB1629D6", "COBOLNET0855", "       01 HD6.\n          02 G.\n             03 N PIC 9.\n             03 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 H REDEFINES G.\n             03 HX PIC X(3).\n", "       01 R SAME AS HD6.\n")]
+    // SR22: the table is followed, inside the copied description, by a non-subordinate entry.
+    [InlineData("PB1629D7", "COBOLNET0856", "       01 TD7 TYPEDEF.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R TYPE TD7.\n")]
+    [InlineData("PB1629D8", "COBOLNET0856", "       01 HD8.\n          02 N PIC 9.\n          02 D PIC X OCCURS 1 TO 5 DEPENDING ON N.\n          02 Z PIC X.\n", "       01 R SAME AS HD8.\n")]
+    // SR20: the counter lies inside the table's own range, both inside the copied description.
+    [InlineData("PB1629D9", "COBOLNET0857", "       01 TD9 TYPEDEF.\n          02 D OCCURS 1 TO 5 DEPENDING ON N.\n             03 N PIC 9.\n", "       01 R TYPE TD9.\n")]
+    // SR10: a copy of a copy whose eighth dimension arose one level up.
+    [InlineData("PB1629DA", "COBOLNET2646", "       01 T2A TYPEDEF.\n" + SevenDeep + "       01 T1A TYPEDEF.\n          02 Y OCCURS 2 TYPE T2A.\n", "       01 R TYPE T1A.\n")]
+    [InlineData("PB1629DB", "COBOLNET2646", "       01 HB.\n" + SevenDeep + "       01 G1B.\n          02 X OCCURS 2.\n             03 Y SAME AS HB.\n", "       01 R SAME AS G1B.\n")]
+    public void FactOfTheDeclaration_IsNotReportedAgainAtALegalReference(string id, string code, string declaration,
+        string reference)
+    {
+        int Count(string idSuffix, string data)
+        {
+            var (_, errors) = EditionHarness.Compile(string.Format(WsHead, id + idSuffix) + data + WsTail, 2023);
+            return errors.Count(e => e.Contains(code, StringComparison.Ordinal));
+        }
+
+        int alone = Count("X", declaration);
+        Assert.True(alone > 0, $"the declaration must itself report {code}");
+        Assert.Equal(alone, Count("Y", declaration + reference));
+        Assert.Equal(alone, Count("Z", declaration + reference + reference.Replace(" R ", " R2 ")));
     }
 }

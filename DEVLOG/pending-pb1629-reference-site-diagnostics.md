@@ -27,6 +27,16 @@ the written-entry forest only. A one-table type placed under seven tables is an 
 walks the composition forest and reports the copy once, at the reference site; a copy whose declaration already reaches
 eight is reported in the declaration only.
 
+**Review round 1.** The reviewer found that anchoring every post-SR16 rule at the reference also put a SECOND copy of each
+declaration fact (a non-integer counter, a counter or table nested inside the copied description, a table followed inside
+it, a counter inside the table's range) at the legal reference, where main reported it once at the declaration; and that
+the depth rule's skip followed `ClonedFrom` to the written definition, so a copy of a copy re-reported an eighth dimension
+created one level up. Fix: `DataItem.IsCopiedUnder(site)`; a rule is skipped at the reference when every entry it involves
+is copied under that one site (the declaration, itself screened, reports it), and REDEFINES (0855) only when the
+declaration's own copy trips the same test, because a TYPE declaration forms no REDEFINES class. The depth skip asks the
+immediate source. Witness: `FactOfTheDeclaration_IsNotReportedAgainAtALegalReference` (counts equal the declaration's with
+one and two references).
+
 **Goldens.** `ReferenceSitePositionTests` (every route above, the in-place arm that must stay put, the declaration line that
 must not be named, COBOLNET1702 through TYPE, COBOLNET2646 through TYPE and SAME AS and its once-only counts), and four
 conformance cases: `pb1629-type-dynamic-table-in-file-section`, `pb1629-same-as-dynamic-table-in-file-section`,
