@@ -34,6 +34,11 @@ public sealed record ParagraphSentence(IReadOnlyList<ParserRuleContext> Entries,
 /// and nothing read the periods, so a period after EVERY entry, or none after the last, compiled clean at every
 /// edition — one shape in three rules. The grammar keeps the punctuation superset so the refusal can NAME the rule
 /// (the design's §3.10 posture), and <c>ClosedFormatPass</c> reads every row through <see cref="Sentences"/>.
+/// The SOURCE-COMPUTER and OBJECT-COMPUTER paragraphs (§12.3.5.2, §12.3.6.2) carry the superset for a parse-time
+/// reason (kb/Work PB3370): their second period is optional in the grammar so the optional computer-name's
+/// prediction can commit to the paragraph, and a reserved word after the name is named in the paragraph's format.
+/// The period the syntax rules require (§12.3.5.3 SR1, §12.3.6.3 SR4: it goes only with nothing written) is the
+/// same COBOLNET3408 here.
 /// <c>ParagraphPeriodDriftTests</c> holds every grammar rule that writes <c>DOT?</c> to a row here, so a fourth
 /// paragraph with the shape cannot parse into silence.</para>
 /// </summary>
@@ -54,6 +59,16 @@ public static class ParagraphPeriods
             // §12.3.8.2: `REPOSITORY. [ { specifier } … . ]` — the period printed inside the bracket, once.
             [typeof(Core.RepositoryParagraphContext)] = new("12.3.8.2", "REPOSITORY",
                 "one separator period, after the last specifier", null),
+            // §12.3.5.2: `SOURCE-COMPUTER. [ computer-name-1 ] .` — §12.3.5.3 SR1 lets the second period go only when
+            // the name is not written. Superset-parsed so the name's prediction commits (kb/Work PB3370).
+            [typeof(Core.SourceComputerParagraphContext)] = new("12.3.5.2", "SOURCE-COMPUTER",
+                "a second separator period after computer-name-1, which only a paragraph without the name may omit "
+                + "(§12.3.5.3 SR1)", null),
+            // §12.3.6.2: `OBJECT-COMPUTER. [ computer-name-1 ] [ clauses ] .` — §12.3.6.3 SR4 lets the second period go
+            // only when neither the name nor a clause is written (kb/Work PB3370, SOURCE-COMPUTER's twin).
+            [typeof(Core.ObjectComputerParagraphContext)] = new("12.3.6.2", "OBJECT-COMPUTER",
+                "a second separator period after computer-name-1 and the clauses, which only a paragraph with neither "
+                + "may omit (§12.3.6.3 SR4)", null),
         }.ToFrozenDictionary();
 
     /// <summary>The paragraph's sentences in source order: the entries between its header's period and each later

@@ -130,7 +130,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         var atn = recognizer.Atn;
         var state = atn.states[recognizer.State];
-        if (!ReachesErrorProduction(atn, state)) return false;
+        // Inside the production itself (its word run, which only unrecognizedClause calls) the residue CONTINUES:
+        // `SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.` stands in the paragraph's single optional residue, and no loop of the
+        // list's own would Sync once the run ended (kb/Work PB3370).
+        if (state.ruleIndex != CobolParserCore.RULE_genericClause && !ReachesErrorProduction(atn, state)) return false;
         var token = recognizer.CurrentToken;
         if (token.Type is CobolLexer.IDENTIFIER or TokenConstants.EOF || atn.NextTokens(state).Contains(token.Type))
             return false;   // the production takes an IDENTIFIER itself; a token the rule continues with is legal
@@ -455,11 +458,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
     /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
     /// edge is taken only for the tokens between the parser's current token and <paramref name="token"/> — the ones a
-    /// failed adaptive prediction looked past (<c>SOURCE-COMPUTER. XYZ GLOBAL.</c> fails the prediction of the
-    /// paragraph's optional group at GLOBAL with XYZ still current). If the closure at <paramref name="token"/> reaches
+    /// failed adaptive prediction looked past (a decision that read k tokens before it failed reports the k-th, with
+    /// the decision's first token still current). If the closure at <paramref name="token"/> reaches
     /// a call of <c>unrecognizedClause</c>, the rule making that call is the closed format's alternative list
     /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
     /// refused by name, and a reserved word is the same residue the production's IDENTIFIER-led shape cannot hold.
+    /// So is the list whose call of the production the PARSER is still inside, met as the closure pops its context
+    /// (<c>SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.</c>: the run WIBBLE ended at GLOBAL, kb/Work PB3370) — the innermost
+    /// list of all, since the word continues that run.
     /// Where two lists are open at once (<c>SPECIAL-NAMES. GLOBAL.</c> could continue the paragraph's entries or start
     /// a configuration-section paragraph) the INNERMOST wins: the word is written inside it. Nothing is keyed on a
     /// word or a rule name, so a closed format added to the grammar inherits this. Semantic predicates are not
@@ -554,7 +560,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             {
                 if (calls is not null) work.Push(new(atn.states[calls.FollowState], calls.Next, context));
                 else if (context.invokingState >= 0 && context.Parent is { } caller)
+                {
+                    // Leaving the PARSER's own call of the production: the word run is still open in the list that
+                    // made the call, the innermost list of all (kb/Work PB3370 — a reserved word after the run).
+                    if (context.RuleIndex == CobolParserCore.RULE_unrecognizedClause)
+                        probe?.Found(caller.RuleIndex, caller.Depth());
                     work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
+                }
                 continue;
             }
             reached.Add(c);
