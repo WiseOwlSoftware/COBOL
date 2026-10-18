@@ -41,8 +41,9 @@ public class BASE : CobolObject
     /// <summary>FactoryObject (§16.2.2.2 GR1): "When invoked on an instance object, the FactoryObject method
     /// determines the class of the object and returns a reference to the factory object associated with that
     /// class." Virtual, because BaseInterface's method is not FINAL — a COBOL subclass may override it
-    /// (<c>METHOD-ID. FactoryObject OVERRIDE.</c>), and its emitted C# member then overrides this one by name.</summary>
-    public virtual CobolObject? FACTORYOBJECT() => __FactoryOfClass;
+    /// (<c>METHOD-ID. FactoryObject OVERRIDE.</c>), and its emitted C# member then overrides this one by name. The name
+    /// is one no class-name spells, so a class named FactoryObject can declare that override (kb/Work PB3342).</summary>
+    public virtual CobolObject? __FactoryObject() => __FactoryOfClass;
 
     /// <summary>The universal-receiver dispatch (D10; §14.9.23.3 SR6/SR7) for BaseInterface: an emitted class's
     /// switch falls through <c>default:</c> to here for a method no COBOL class of the hierarchy declares.</summary>
@@ -51,7 +52,7 @@ public class BASE : CobolObject
         if (CobolNames.Same(name, "FACTORYOBJECT")   // the normalized key is the Annex C fold (PB1402)
             && StandardMethodCrossing.Matches(args, returning, StandardMethodCrossing.FactoryObjectReturning))
         {
-            returning!.Value = FACTORYOBJECT();
+            returning!.Value = __FactoryObject();
             return;
         }
         base.__CobolInvoke(name, args, returning);

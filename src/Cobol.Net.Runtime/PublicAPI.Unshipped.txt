@@ -172,3 +172,5 @@ static CobolNet.Runtime.HostLanding.TryDec(System.UInt128 unscaled, int scale, s
 static CobolNet.Runtime.HostLanding.RequireCapacity<T>(T[]? array, int minimum, string! parameter, string! member) -> T[]!
 static CobolNet.Runtime.CobolVarGroup.RunOf(string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
 static CobolNet.Runtime.CobolVarGroup.WindowOf(string! run, string! window, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable) -> string!
+CobolNet.Runtime.CobolDynTable<T>.CopyOf(System.Func<T, T>! copyElement) -> CobolNet.Runtime.CobolDynTable<T>!
+CobolNet.Runtime.CobolDynTable<T>.Recreated<TPart>(System.Collections.Generic.IReadOnlyList<TPart>! parts, TPart blank, System.Func<T, TPart, T>! store) -> CobolNet.Runtime.CobolDynTable<T>!

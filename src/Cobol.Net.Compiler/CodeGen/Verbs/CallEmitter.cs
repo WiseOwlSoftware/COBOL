@@ -752,7 +752,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
     private string ContentRecordArgument(BoundCallArg a, Place p) =>
         a.Mode is CobolPassMode.Content && CobolNet.Compiler.Oo.OoClassTable.LeafCarried(p.Item)
         && ArgumentArea(p) is var area && area != "null"
-            ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth)}"
+            ? $", Area: {RuntimeApi.ArgAdaptContentRecord(area, p.Item.ByteWidth, CellComponents.PerOccurrence(p.Item))}"
             : "";
 
     /// <summary>The RETURNING item's <c>CobolArg</c> (kb/Work PB962/PB965): the same BY REFERENCE carrier an
@@ -904,7 +904,12 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
             // ⛔ The snapshot READS the operand, so when the operand is a forwarded formal the read has to be
             // guarded: a reference to an omitted formal raises its *-ARG-OMITTED (kb/Work PB971), and GR12 says this
             // reference form does not. The guard also carries the omission on, per GR1c.
-            string snapshot = CrossingOf(p) switch
+            // ⛔ A GROUP WHOSE VALUES RIDE MANAGED SLOTS crosses BY CONTENT as its detached record (ContentRecordArgument,
+            // kb/Work PB1940), which the formal of the same type is laid over; its carrier is read only by a formal that
+            // cannot be, so it is a VIEW, read when (if ever) it is asked for — a variable-length one has no character
+            // image at all (kb/Work PB3139), and an eager snapshot of it staged that loud on every CALL.
+            string contentRecord = ContentRecordArgument(a, p);
+            string snapshot = contentRecord != "" ? RuntimeApi.ReadOnlyTextView(CallContentRead(p)) : CrossingOf(p) switch
             {
                 CallCrossing.VarGroup => RuntimeApi.VarGroupCell(PlaceRenderer.VarGroupBoundaryImage(p, "CALL argument")),
                 CallCrossing.Text => $"ManagedPointer<string>.Cell({CallContentRead(p)})",
@@ -914,7 +919,7 @@ internal sealed class CallEmitter(EmitContext ctx, NumericRenderer num, EcState 
                 // pointer. A SET between two items of the same category IS this copy (kb/Work PB663).
                 _ => $"ManagedPointer<{CallCellCarrier(p)}>.Cell({PlaceRenderer.Read(p)})",
             };
-            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {meta}{ContentRecordArgument(a, p)})";
+            return $"new CobolArg({RuntimeApi.PassModeText(a.Mode)}, {Forwarded(probe, snapshot)}, {meta}{contentRecord})";
         }
         switch (a.Value)
         {

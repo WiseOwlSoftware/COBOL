@@ -208,6 +208,17 @@ internal sealed record ViewCursor(
             ? new ViewCursor(cell, new PositionConstant(0), 0, table, cell) { OrdinalBase = ReferenceResolver.CellOrdinalBase(table.Class!) }
             : null;
 
+    /// <summary>The cursor at an occurrence of the cell-backed dynamic-capacity table <paramref name="table"/> whose
+    /// ELEMENT CELL is the C# local <paramref name="cellLocal"/> (kb/Work PB3139) — the element a recreation's store
+    /// function is handed (<c>CobolDynTable.Recreate</c>), positioned exactly as <see cref="Indexed"/> positions one it
+    /// reaches by subscript: a scope of its own, its members' offsets and ordinals starting at zero.</summary>
+    public static ViewCursor AtElementCell(DataItem table, string cellLocal)
+    {
+        var cell = new AccessPath([new RootFieldSegment(cellLocal)]);
+        return new ViewCursor(cell.Add(new MemberSegment(nameof(CobolNet.Runtime.StorageCell.Ref))), new PositionConstant(0), 0,
+            table, cell) { ScopeTable = table };
+    }
+
     private AccessPath ElementCell(AccessPath cell, Position oneBasedIndex) =>
         cell.Add(CellTableSegment.Of(Item, Ordinal(Item))).Add(new DynTableSegment(oneBasedIndex));
 

@@ -546,13 +546,14 @@ internal static class PlaceRenderer
     public static string GroupLeaves(Place group) =>
         PlaceCursor.Over(group) is ViewCursor view ? CellLeaves(view, 0) : $"{Read(group)}.AsLeaves()";
 
-    /// <summary>The inverse of <see cref="GroupLeaves"/>: a NEW record struct of the place's own type, built field for field
-    /// from <paramref name="leaves"/> by its generated <c>OfLeaves</c>, stored through the ONE place writer — or, for a
-    /// group in a storage cell, each member stored through its own window (the inverse walk of <see cref="CellLeaves"/>).</summary>
+    /// <summary>The inverse of <see cref="GroupLeaves"/>: the place's record struct with every field made from
+    /// <paramref name="leaves"/> by its generated <c>WithLeaves</c> (which recreates a dynamic-capacity table in the
+    /// receiver's own description, kb/Work PB3139), stored through the ONE place writer — or, for a group in a storage
+    /// cell, each member stored through its own window (the inverse walk of <see cref="CellLeaves"/>).</summary>
     public static string WriteGroupLeaves(Place group, string leaves) =>
         PlaceCursor.Over(group) is ViewCursor view
             ? $"{{ {CellLeavesStore(view, leaves, 0)} }}"
-            : Write(group, $"{group.Item.StructName}.OfLeaves({leaves})");
+            : Write(group, $"{Read(group)}.WithLeaves({leaves})");
 
     /// <summary>The members of a leaf-carried group in the order its record struct declares them — every subordinate
     /// group and elementary item (a condition-name or a RENAMES entry occupies no storage), exactly the
@@ -571,7 +572,17 @@ internal static class PlaceRenderer
         foreach (var c in LeafFieldsOf(cur.Item))
         {
             var at = cur.Child(c) ?? throw new InvalidOperationException($"no cursor reaches '{c.CobolName}' (kb/Work PB2087)");
-            if (c.Occurs is int n)
+            if (c.IsDynamicTable)
+            {
+                // A dynamic-capacity table: its CURRENT occurrences (kb/Work PB3139), each in its element's form.
+                string k = $"__lk{depth}";
+                var element = at.DynamicElement(new PositionLocal(k))
+                    ?? throw new InvalidOperationException($"no element cursor reaches '{c.CobolName}' (kb/Work PB3139)");
+                string elem = c.IsGroup ? $"(object?){CellLeaves(element, depth + 1)}"
+                    : $"(object?)({c.ElementType})({LeafCarrierRead(element.ToPlace())})";
+                parts.Add($"global::System.Linq.Enumerable.ToArray(global::System.Linq.Enumerable.Select(global::System.Linq.Enumerable.Range(1, (int){CellTable(at)}.Capacity), {k} => {elem}))");
+            }
+            else if (c.Occurs is int n)
             {
                 string k = $"__lk{depth}";
                 string elem = c.IsGroup ? $"(object?){CellLeaves(at.Indexed(new PositionLocal(k)), depth + 1)}"
@@ -594,7 +605,17 @@ internal static class PlaceRenderer
         {
             var at = cur.Child(c) ?? throw new InvalidOperationException($"no cursor reaches '{c.CobolName}' (kb/Work PB2087)");
             string slot = $"{v}[{i++}]";
-            if (c.Occurs is int n)
+            if (c.IsDynamicTable)
+            {
+                // §14.6.9.2: the receiving table is recreated with the sender's occurrences (kb/Work PB3139), each element
+                // cell the recreation seeds taking one occurrence's vector through the same walk.
+                string e = $"__le{depth}", part = $"__lp{depth}";
+                var element = ViewCursor.AtElementCell(c, e);
+                string store = c.IsGroup ? CellLeavesStore(element, part, depth + 1)
+                    : LeafCarrierWrite(element.ToPlace(), $"({c.ElementType}){part}");
+                stmts.Add($"{CellTable(at)}.Recreate((object?[]){slot}!, (object?)null, ({e}, {part}) => {{ if ({part} is not null) {{ {store} }} return {e}; }});");
+            }
+            else if (c.Occurs is int n)
                 stmts.Add(c.IsGroup
                     ? $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {CellLeavesStore(at.Indexed(new PositionLocal(k)), $"((object?[]){slot}!)[{k} - 1]", depth + 1)} }}"
                     : $"for (int {k} = 1; {k} <= {n}; {k}++) {{ {LeafCarrierWrite(at.Indexed(new PositionLocal(k)).ToPlace(), $"(({c.ElementType}[]){slot}!)[{k} - 1]")} }}");
@@ -605,6 +626,12 @@ internal static class PlaceRenderer
         }
         return string.Join(" ", stmts);
     }
+
+    /// <summary>The <c>CobolDynTable</c> of the cell-backed dynamic-capacity table member at <paramref name="at"/> (its
+    /// <see cref="PlaceCursor.StoragePath"/>; kb/Work PB3139).</summary>
+    private static string CellTable(PlaceCursor at) =>
+        RenderPath(at.StoragePath ?? throw new InvalidOperationException($"no table path reaches '{at.Item.CobolName}' (kb/Work PB3139)"),
+            AccessDir.Sending);
 
     /// <summary>An elementary member's value in its RECORD-STRUCT carrier form. A window over the cell's bytes reads a
     /// native fixed-point or floating-point member as its storage image, so it is decoded to the native carrier through the
