@@ -5,6 +5,7 @@
       *>    GR-14.9.41.4-5, GR-14.9.41.4-6, GR-14.9.41.4-7,
       *>    GR-14.9.41.4-20, GR-14.9.41.4-21]
       *> accept: [2002]
+      *> constructs: [start-first-last-2002]
       *> source-format: fixed
       *> portable: unverified
       *>---

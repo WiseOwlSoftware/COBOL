@@ -208,7 +208,8 @@ conformance-suite/
 - **The generator** (`harness/generate.py`, with `harness/cobol_source.py` for the facts it reads from program
   text) is the ONE reader of test headers. It refuses: an unknown rule id; an `id` unequal to its file name, or one
   two tests share; `accept`/`flag` lists that contradict the inventory's `editions` bands or the construct registry
-  (`tests/version-matrix/constructs.json`, through the test's `constructs`, §3.1); a flagged test with no control, a
+  (`tests/version-matrix/constructs.json`, through the test's `constructs`, §3.1), or a rule whose band begins after
+  every construct its test is written in (kb/Work PB870) unless the row's `notes` name the construct; a flagged test with no control, a
   control not accepted where the test is flagged, a mark that is missing, doubled or on a test not flagged, or a
   GR-only flagged test without its justification; a run-time expectation at 85; free form at 85; an undeclared COPY;
   a test missing `source-format`, or whose block is written in the other form; an unknown field; a missing or unused
