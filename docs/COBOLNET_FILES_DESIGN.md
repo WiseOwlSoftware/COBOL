@@ -926,7 +926,7 @@ Both emit paths get it from the same helper: the statement emitters for a progra
 `OoEmitter`'s class bodies for an object — Annex D.19.9.2's own worked example is an instance file.
 
 **Why the sharing registry stopped caching the host path.** `ConnectorShare` used to hold a `Host` copy taken at
-`RegisterSharing` time, and every physical-file-table lookup (`ReadLockGovern`, `ReadShared`, `WriteShared`,
+`RegisterSharing` time, and every physical-file-table lookup (`ReadKeyedShared`, `ReadShared`, `WriteShared`,
 `RewriteShared`, `DeleteShared`, `SharedClose`) read that copy. It was only ever right because the path could not
 change; a mutable association makes it a stale key that would arbitrate §9.1.15 sharing over the file the connector
 used to be associated with. The field is gone and the lookups read `c.HostPath` (or `HostPathOf(name)`).
@@ -980,7 +980,7 @@ printed bracket, which is what writes "at most one of these" down exactly once. 
 therefore carry FOUR fields, not one: `Lock` (the retention bracket), and `AdvancingOnLock` / `IgnoringLock` /
 `Retry` (the three alternatives of the contention bracket, at most one of which the grammar can deliver). The
 runtime mirrors it: `FileRecordLock` is the retention bracket alone, `CobolFile.ReadShared` takes
-`advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadLockGovern` takes
+`advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadKeyedShared` takes
 `ignoringLock` (ADVANCING ON LOCK is not in the Format-2 general format — D17). WRITE and REWRITE reference
 `recordLockPhrase` only, because §14.9.51.2 and §14.9.35.2 print `[ retry-phrase ]` and
 `[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
@@ -990,7 +990,7 @@ LOCK | WITH? LOCK`, reached through three free optionals, inverted BOTH cardinal
 brackets make mutually exclusive was free (`ADVANCING ON LOCK RETRY 3 TIMES IGNORING LOCK` compiled), and what
 they make independent was exclusive (`IGNORING LOCK WITH NO LOCK` was `no viable alternative at input 'WITH'`).
 The same merge put IGNORING LOCK on WRITE and REWRITE, and — because a single enum cannot say two things — it
-kept the legal contention+retention pair out of `ApplyReadLockDiscipline`'s GR11 b) release. It also SILENTLY
+kept the legal contention+retention pair out of `ApplyPostReadLockActions`'s GR11 b) release. It also SILENTLY
 SUPPLIED §14.9.30.3 SR3: `FileLockBinder.CheckRecordLockPhrase`'s summary claimed to enforce "IGNORING LOCK and
 WITH LOCK are mutually exclusive" while its body tested only SR4's automatic-locking condition, so the
 forbidden pair was rejected by the collapse and by nothing else. Splitting the brackets without landing a real

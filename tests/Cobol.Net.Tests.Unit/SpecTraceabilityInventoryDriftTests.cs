@@ -1,10 +1,12 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CobolNet.Binding;
 using CobolNet.Tests.Shared;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -20,7 +22,14 @@ namespace CobolNet.Tests.Unit;
 /// code, that a verdict was reached against the spec text, and that a spec-derived test covers it — and each of
 /// those claims is cheap to write and expensive to earn. These tests make the cheap version fail:
 /// <c>state</c> is RECOMPUTED here rather than believed, a <c>code-location</c> must name a file and a symbol that
-/// still exist, and a <c>test-ref</c> must resolve to a test that is really on disk.
+/// still exist IN THAT FILE'S CODE (<see cref="SymbolResolves"/>: a comment does not count), a <c>test-ref</c> must
+/// resolve to a test that is really on disk, and every <c>path#Symbol</c> a row's <c>notes</c> prose spells must
+/// resolve as a <c>code-location</c> does (kb/Work PB762: <c>notes</c> was the one adjudicated field no gate read,
+/// so a rename re-pointed the field the gate checks and left the prose narrating the dead name). What it does NOT
+/// check is a BARE identifier in prose (<c>ReadLockGovern became ReadKeyedShared</c>): prose also narrates history
+/// and the standard's own words, so no resolver can tell a stale name from a deliberate one; the writer's side of
+/// the rule (<c>record_verdicts.py</c>: a retirement must restate prose that still names the symbol) is what
+/// reaches it.
 /// </para>
 /// <para>
 /// ⛔ The referential half is deliberately HERE and nowhere else. <c>record_verdicts.py</c> validates an incoming
@@ -119,6 +128,9 @@ public sealed class SpecTraceabilityInventoryDriftTests
         bool EditionsRunThroughLast,
         Regex CodeLocationPattern,
         string CodeLocationSeparator,
+        //: The schema's `notes.retired-witness-mark` (kb/Work PB762): where a row's PROSE ends and the history the
+        //: writer appended begins. The writer (record_verdicts.py) reads the same spelling.
+        string RetiredWitnessMark,
         string TestRefSeparator,
         IReadOnlyDictionary<string, TestRefForm> TestRefForms,
         bool SpecDerivedRequired,
@@ -204,6 +216,7 @@ public sealed class SpecTraceabilityInventoryDriftTests
             editions.GetProperty("run-through-last").GetBoolean(),
             new Regex(loc.GetProperty("pattern").GetString()!, RegexOptions.Compiled),
             loc.GetProperty("separator").GetString()!,
+            root.GetProperty("notes").GetProperty("retired-witness-mark").GetString()!,
             testRef.GetProperty("separator").GetString()!,
             forms,
             testRef.GetProperty("spec-derived-required").GetBoolean(),
@@ -720,9 +733,49 @@ public sealed class SpecTraceabilityInventoryDriftTests
         return bad;
     }
 
+    /// <summary>
+    /// The CODE of a file, for symbol resolution (<see cref="SymbolResolves"/>): a C# file's tokens, so a comment,
+    /// a doc comment and a disabled region are not code but a string literal is (a construct id or a diagnostic
+    /// code is legitimately anchored in the string that carries it); a grammar file's text with its <c>//</c> and
+    /// <c>/* */</c> comments removed; any other file's whole text. Parsed once per file per process.
+    /// </summary>
+    private static readonly ConcurrentDictionary<string, string> CodeTexts = new(StringComparer.OrdinalIgnoreCase);
+
+    private static readonly Regex GrammarComments =
+        new(@"/\*.*?\*/|//[^\n]*", RegexOptions.Compiled | RegexOptions.Singleline);
+
+    private static string CodeText(string file) => CodeTexts.GetOrAdd(file, f =>
+    {
+        string body = File.ReadAllText(f);
+        return Path.GetExtension(f).ToLowerInvariant() switch
+        {
+            ".cs" => string.Join(' ', CSharpSyntaxTree.ParseText(body).GetRoot().DescendantTokens().Select(t => t.Text)),
+            ".g4" => GrammarComments.Replace(body, " "),
+            _ => body,
+        };
+    });
+
+    /// <summary>
+    /// ⛔ THE ONE PREDICATE for "this <c>#Symbol</c> still exists in that file" (kb/Work PB762), asked of a row's
+    /// <c>code-location</c> and of a <c>path#Symbol</c> spelling in its <c>notes</c> alike. A symbol, not a line
+    /// number: it survives every edit that does not delete the thing it names, which is the only event this gate
+    /// should go red for. It must be in the file's CODE (<see cref="CodeText"/>) and not merely in a comment: the
+    /// word search ran over the whole body, so <c>FileRegistry.cs#ReadLockGovern</c> resolved on three CONFORMS rows
+    /// for as long as a comment narrated the method's removal. In a C# file a dotted symbol is a QUALIFIED NAME —
+    /// <c>PictureAnalyzer.Analyze</c> is a member and its type, not that text — so each segment must be an
+    /// identifier of the file; in any other file the symbol is a literal anchor (<c>DOC-A.1-19</c>) and stays whole.
+    /// </summary>
+    private static bool SymbolResolves(string file, string symbol)
+    {
+        string code = CodeText(file);
+        string[] needles = Path.GetExtension(file).Equals(".cs", StringComparison.OrdinalIgnoreCase)
+            ? symbol.Split('.', StringSplitOptions.RemoveEmptyEntries)
+            : [symbol];
+        return needles.All(n => Regex.IsMatch(code, $@"(?<![A-Za-z0-9_]){Regex.Escape(n)}(?![A-Za-z0-9_])"));
+    }
+
     private static List<string> UnresolvedCodeLocations(IEnumerable<Row> rows, Schema s, string root)
     {
-        var text = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var bad = new List<string>();
         foreach (var r in rows.Where(r => r.CodeLocation.Length > 0))
         {
@@ -743,12 +796,46 @@ public sealed class SpecTraceabilityInventoryDriftTests
                 }
                 if (parts.Length == 1) continue;
 
-                if (!text.TryGetValue(file, out string? body))
-                    text[file] = body = File.ReadAllText(file);
-                // A symbol, not a line number: it survives every edit that does not delete the thing it names,
-                // which is the only event this gate should go red for.
-                if (!Regex.IsMatch(body, $@"\b{Regex.Escape(parts[1])}\b"))
-                    bad.Add($"{r.RuleId}: code-location '{loc}' — '{parts[1]}' is no longer in that file");
+                if (!SymbolResolves(file, parts[1]))
+                    bad.Add($"{r.RuleId}: code-location '{loc}' — '{parts[1]}' is no longer in that file's code");
+            }
+        }
+        return bad;
+    }
+
+    /// <summary>A <c>&lt;repo-relative-path&gt;#&lt;Symbol&gt;</c> spelling inside a row's prose — the form a code-location is written in.</summary>
+    private static readonly Regex NotesLocation = new(
+        @"(?<![A-Za-z0-9_./-])((?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+\.[A-Za-z0-9]+)#([A-Za-z0-9_.<>-]+)",
+        RegexOptions.Compiled);
+
+    /// <summary>A row's <c>notes</c> without the retired-witness marks the writer appended — its PROSE.</summary>
+    private static string ProseOf(string notes, Schema s)
+    {
+        int at = notes.IndexOf(s.RetiredWitnessMark, StringComparison.Ordinal);
+        return at < 0 ? notes : notes[..at];
+    }
+
+    /// <summary>
+    /// Every <c>path#Symbol</c> spelling in a row's PROSE that no longer resolves (kb/Work PB762). The writer
+    /// appends a retired witness to the notes behind a mark (<see cref="ProseOf"/>), and that history may name a
+    /// symbol that is gone; the prose above it is what a reader takes for the present state of the code.
+    /// </summary>
+    private static List<string> UnresolvedNotesLocations(IEnumerable<Row> rows, Schema s, string root)
+    {
+        var bad = new List<string>();
+        foreach (var r in rows.Where(r => r.Notes.Length > 0))
+        {
+            var spellings = NotesLocation.Matches(ProseOf(r.Notes, s))
+                .Select(m => (Path: m.Groups[1].Value, Symbol: m.Groups[2].Value.TrimEnd('.', '-')))
+                .Distinct();
+            foreach ((string path, string symbol) in spellings)
+            {
+                string file = Path.Combine(root, path.Replace('/', Path.DirectorySeparatorChar));
+                if (!File.Exists(file))
+                    bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — no such file");
+                else if (!SymbolResolves(file, symbol))
+                    bad.Add($"{r.RuleId}: notes cite '{path}#{symbol}' — '{symbol}' is no longer in that file's code "
+                            + "(rewrite the sentence, or retire the witness so the history sits behind a retired-witness mark)");
             }
         }
         return bad;
@@ -1246,6 +1333,20 @@ public sealed class SpecTraceabilityInventoryDriftTests
         Assert.True(bad.Count == 0, Report("unresolved code-location(s)", bad, rows.Count));
     }
 
+    /// <summary>
+    /// Every <c>path#Symbol</c> spelling in a row's PROSE still resolves (kb/Work PB762). The prose is the field a
+    /// reader opens to learn why a row has its verdict, and it was the one adjudicated field no gate ever read, so a
+    /// landing that renamed a method re-pointed <c>code-location</c> (a gate makes it) and left the prose narrating
+    /// the dead name. A symbol retired on purpose sits behind a retired-witness mark and is exempt.
+    /// </summary>
+    [Fact]
+    public void EveryNotesLocation_ResolvesInTheTree()
+    {
+        var rows = LoadInventory();
+        var bad = UnresolvedNotesLocations(rows, LoadSchema(), TestRepo.Root);
+        Assert.True(bad.Count == 0, Report("unresolved path#Symbol spelling(s) in notes", bad, rows.Count));
+    }
+
     /// <summary>Every claimed covering test is really on disk — "tested" is checked, never asserted.</summary>
     [Fact]
     public void EveryTestRef_ResolvesToARealTest()
@@ -1363,6 +1464,58 @@ public sealed class SpecTraceabilityInventoryDriftTests
             {
                 TestRef = "unit:SpecTraceabilityInventoryDriftTests.EveryRowState_IsDerived_NotAsserted",
             }], s, root));
+
+        // ⛔ A SYMBOL IN A COMMENT IS NOT A SYMBOL (kb/Work PB762), and a row's prose is read too. Built in a scratch
+        // tree so the fixture cannot rot with production code: `Live.cs` holds the symbols in its code and the same
+        // kinds of name where the old whole-body word search would have found them.
+        string fixture = Directory.CreateTempSubdirectory("pb762_").FullName;
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(fixture, "src"));
+            File.WriteAllText(Path.Combine(fixture, "src", "Live.cs"),
+                "// GoneInLineComment\n"
+                + "namespace N;\n"
+                + "/// <summary>GoneInDocComment</summary>\n"
+                + "public sealed class Live\n"
+                + "{\n"
+                + "    public const string Id = \"listing-directive-2002\";\n"
+                + "    /* GoneInBlockComment */\n"
+                + "    public void Run() { }\n"
+                + "}\n");
+            File.WriteAllText(Path.Combine(fixture, "src", "Rules.g4"),
+                "// lineRule : 'x' ;\n/* blockRule : 'y' ; */\nliveRule : 'z' ;\n");
+
+            List<string> Locs(params string[] refs) =>
+                UnresolvedCodeLocations([Base("X-PB762") with { CodeLocation = string.Join(s.CodeLocationSeparator, refs) }], s, fixture);
+
+            // The negatives: a name that is only a comment (line, doc, block) in C#, only a comment in a grammar,
+            // and a member of a type that does not have it.
+            Assert.Equal(6, Locs("src/Live.cs#GoneInLineComment", "src/Live.cs#GoneInDocComment",
+                "src/Live.cs#GoneInBlockComment", "src/Rules.g4#lineRule", "src/Rules.g4#blockRule",
+                "src/Live.cs#Live.NoSuchMember").Count);
+            // The positive controls: a member, a qualified member, a string-literal anchor and a grammar rule.
+            Assert.Empty(Locs("src/Live.cs#Run", "src/Live.cs#Live.Run", "src/Live.cs#listing-directive-2002",
+                "src/Rules.g4#liveRule"));
+
+            List<string> Notes(string notes) => UnresolvedNotesLocations(
+                [Base("X-PB762") with { Notes = notes }], s, fixture);
+            string mark = s.RetiredWitnessMark;
+
+            // A stale spelling in the prose, in a file that is gone, and in a comment: three failures.
+            Assert.Single(Notes("It is done in src/Live.cs#Absent today."));
+            Assert.Single(Notes("It is done in src/Live.cs#GoneInLineComment today."));
+            Assert.Single(Notes("It is done in src/Gone.cs#Run today."));
+            // A live spelling passes, a bare name is not a location, and a retired symbol behind its mark is history.
+            Assert.Empty(Notes("It is done in src/Live.cs#Run, and in src/Live.cs#Live.Run."));
+            Assert.Empty(Notes("The old Absent method is gone."));
+            Assert.Empty(Notes($"It is done in src/Live.cs#Run. {mark} src/Live.cs#Absent (moved)"));
+            // …and only what FOLLOWS the first mark is history: a stale spelling in front of it is still prose.
+            Assert.Single(Notes($"Stale src/Live.cs#Absent here. {mark} src/Live.cs#Absent (moved)"));
+        }
+        finally
+        {
+            Directory.Delete(fixture, recursive: true);
+        }
 
         // ── kind-DOC rows: the register anchor, and what a DOC row costs ─────────────────────────────
         //
