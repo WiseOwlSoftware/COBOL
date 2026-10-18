@@ -29,8 +29,8 @@
       *>   8.8.1.5.2 1): "If the operand value cannot be expressed exactly
       *>   in an SDIDI, the value is rounded according to the rules in
       *>   11.9.11" (cite.py --check 8.8.1.5.2 -> OK 8.8.1.5.2 1)).
-      *>   A 16-byte binary item owns its whole container (13.18.60.4 12),
-      *>   cite.py OK): the subsidiary quotient keeps every digit it holds.
+      *>   A 16-byte binary item owns its whole container (CONFORMANCE.md DOC-A.1-208;
+      *>   kb/Work R10): the subsidiary quotient keeps every digit it holds.
       *>
       *>   Derived by hand (34-digit significands, nearest rounding):
       *>   W = 2**128 - 1 = 340282366920938463463374607431768211455 is the

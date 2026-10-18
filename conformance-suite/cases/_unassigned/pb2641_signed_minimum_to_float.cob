@@ -7,7 +7,7 @@
 *>---
       *> kb/Work PB2641 - 14.6.8.3 GR2: the algebraic value of a numeric operand is converted to a floating-point
       *> receiving item "in a manner consistent with the specifications of ISO/IEC 60559".  The lowest algebraic
-      *> value of a signed 16-byte COMP-5 item is -2**127 (13.18.60.4 GR12, the container range; 15.43.4 gives
+      *> value of a signed 16-byte COMP-5 item is -2**127 (CONFORMANCE.md DOC-A.1-208, the container range; 15.43.4 gives
       *> LOWEST-ALGEBRAIC of it).  The scaled-value converter negated that value to take its magnitude, -2**127
       *> negated is itself, so it took the "exact small value" path and returned 0.  EXACT, hand-derived:
       *>   2**127 = 170141183460469231731687303715884105728

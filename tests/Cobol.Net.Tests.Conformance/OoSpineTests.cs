@@ -129,7 +129,7 @@ public sealed class OoSpineTests
         Assert.Contains("§3.164", e, StringComparison.Ordinal);
     }
 
-    // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.43) ───────────
+    // ── D8: the method-return / run-unit-stop / program-return split (§14.9.18.4 GR4 / §14.9.42.4 GR1) ───────────
 
     /// <summary>GOBACK in a method terminates the METHOD only (§14.9.18.4 GR4; D8): the INVOKE site continues.
     /// The GOBACK sits inside an out-of-line PERFORM, so the MethodReturn signal must unwind the NESTED
@@ -159,7 +159,7 @@ public sealed class OoSpineTests
         Assert.Equal("IN-DEEP\nDRIVER-CONTINUES", CutRunner.Normalize(stdout));
     }
 
-    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§14.9.43) — it must NOT be caught at the
+    /// <summary>STOP RUN inside a method terminates the RUN UNIT (§14.9.42.4 GR1) — it must NOT be caught at the
     /// method boundary as if it were a method return (the D8 anti-conflation fact).</summary>
     [Fact]
     public void StopRun_InsideMethod_TerminatesRunUnit()
@@ -2972,7 +2972,7 @@ public sealed class OoSpineTests
             """,
             "    CONTINUE.")), "COBOLNET0859");
 
-    /// <summary>§8.8.4.2.1 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
+    /// <summary>§8.8.4.2.2 Format 3 — ordering operators and object-vs-non-object mixes reject (0868).</summary>
     [Theory]
     [InlineData("IF U > G DISPLAY \"X\" END-IF.")]
     [InlineData("IF U = N4 DISPLAY \"X\" END-IF.")]

@@ -750,7 +750,7 @@ internal sealed class ConditionRenderer(NumericRenderer num, EmitContext ctx) : 
     /// (<see cref="CobolNet.Runtime.CobolFloatClass"/>), which are the same extremes AlgebraicRanges states for it.</para>
     /// <para>⚠ DETERMINATION: "whether that value is positive or negative" is read as EITHER direction's extreme
     /// — the positive one and, when the item can hold a sign, the negative one — not only the single value of
-    /// greatest magnitude. The readings differ only for a two's-complement container (§13.18.60.4 GR12: PIC S9(4)
+    /// greatest magnitude. The readings differ only for a two's-complement container (DOC-A.1-208 / §13.18.60.4 GR12: PIC S9(4)
     /// COMP-5 spans −32768..32767), and the either-direction reading is the one that keeps SET CONTENT … TO
     /// FARTHEST-FROM-ZERO SIGN POSITIVE (GR32 a)'s value "in the direction the SIGN phrase selects") answering TRUE
     /// here.</para>

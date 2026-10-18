@@ -804,7 +804,7 @@ internal sealed class ProgramEmitter
 
     /// <summary>Emit the module registrar + the run-unit entry wrapper (<see cref="EmitModuleRegistrar"/>, then
     /// <c>Main</c>). <c>Main</c> runs the first program as main and performs the §14.6.11 implicit CLOSE at run-unit
-    /// termination; STOP RUN unwinds to here (§14.9.43); a main-program GOBACK already returned normally through its
+    /// termination; STOP RUN unwinds to here (§14.9.42.4 GR1); a main-program GOBACK already returned normally through its
     /// activation entry.</summary>
     private void EmitEntryWrapper(IReadOnlyList<BoundUnit> units, CodeWriter w, bool anyFiles, ModuleNamespace ns)
     {
