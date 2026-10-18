@@ -15,6 +15,9 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
     /// <summary>The writes handed over so far (the dead run unit's dropped ones excluded).</summary>
     public int Writes { get; private set; }
 
+    /// <summary>The syncs handed over so far — a statement that synced ran a promotion (2.2.1.6 R5).</summary>
+    public int Syncs { get; private set; }
+
     /// <summary>The run unit dies once this many writes have been handed over (never, by default).</summary>
     public int DieAfter { get; set; } = int.MaxValue;
 
@@ -34,7 +37,9 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
 
     public void Sync()
     {
-        if (!Dead) inner.Sync();
+        if (Dead) return;
+        inner.Sync();
+        Syncs++;
     }
 
     public void SetPageCount(long pages)

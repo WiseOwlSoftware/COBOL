@@ -278,8 +278,8 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>The host's two refusals, each at the statement that meets it (2.2.1.9): a page write the host refuses
-    /// because the file cannot GROW past its maximum size is '24' — <i>"an attempt is made to write beyond the
-    /// externally defined boundaries of a relative or indexed file"</i>, §9.1.13.5 item 4 — and a write the host refuses
+    /// because the file cannot GROW past its maximum size is '24' — <i>"An attempt is made to write outside the
+    /// externally-defined boundaries of a physical relative or indexed file"</i>, §9.1.13.5 item 4 — and a write the host refuses
     /// because the medium is FULL is '30' (§9.1.13.6 item 1), which stays in effect until the CLOSE (§9.1.13.1). Neither
     /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
     [Theory]

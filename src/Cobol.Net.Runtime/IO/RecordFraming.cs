@@ -35,8 +35,8 @@ internal enum StoreFormat
 /// variable-length group that sent it had them, where each variable-length component ended. The table is framing
 /// information, never part of the record (§12.4.5.11.4 GR1).
 /// <para><paramref name="Ordinals"/> is an INDEXED record's release-ordinal vector (the prime key's slot first, then
-/// one per alternate key — <c>KeyedRec.Ordinals</c>): the §14.9.30.4 GR26 order of its duplicates under every key,
-/// carried in the store so a reload keeps it (kb/Work PB2693). Null for every other frame.</para></summary>
+/// one per alternate key, as the prime tree of <c>IndexedStore</c> holds it): the §14.9.30.4 GR26 order of its duplicates
+/// under every key, carried with the record (kb/Work PB2693, PB3334). Null for every other frame.</para></summary>
 internal readonly record struct StoredFrame(string Image, RecordExtents? Extents, long[]? Ordinals = null);
 
 /// <summary>What <see cref="RecordFraming.ReadFrame"/> found at a frame boundary.</summary>
@@ -207,7 +207,8 @@ internal static class RecordFraming
     private const int FixedHeaderBytes = 36;
 
     /// <summary>The offset of the RELEASE MINT in the fixed header, 8 bytes little-endian: an indexed store's next
-    /// release ordinal (<c>IndexedStore.NextOrdinal</c>), so the run unit that writes next — this one after a CLOSE
+    /// release ordinal (the whole-store format's; the keyed store engine keeps it in the meta page,
+    /// <c>PagedFile.ReleaseMint</c>), so the run unit that writes next — this one after a CLOSE
     /// and OPEN, or another one sharing the file — releases its record AFTER every record already in the file
     /// (§14.9.30.4 GR26). Zero for a relative store, which has no release order.</summary>
     private const int ReleaseMintOffset = 28;
