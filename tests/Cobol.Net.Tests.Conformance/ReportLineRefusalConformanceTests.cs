@@ -107,6 +107,109 @@ public sealed class ReportLineRefusalConformanceTests
         Assert.Equal(Host("A1B{nl}{nl}AéB{nl}"), Encoding.Latin1.GetString(bytes!));
     }
 
+    /// <summary>A report program under <c>&gt;&gt;TURN EC-I-O CHECKING ON</c>, the setting that makes the question
+    /// observable at all: without it §14.6.13.1.1 links no exception condition to any I-O status. Four detail lines,
+    /// the second and the LAST holding U+20AC, so the refusal arises both when a later GENERATE flushes the pending line
+    /// and when TERMINATE flushes the final one. <paramref name="fileStatus"/> adds a FILE STATUS item,
+    /// <paramref name="use"/> one of the declaratives (none; the EC-I-O exception-name form; the file-name form).
+    /// After every report statement the program shows EXCEPTION-STATUS (blank when no condition is set) and the
+    /// declarative's counter.</summary>
+    private static string CheckedProgram(string id, string file, string org, bool fileStatus, string use)
+    {
+        string fsClause = fileStatus ? " FILE STATUS IS FS" : "";
+        string declaratives = use == "none" ? "" : $"""
+            DECLARATIVES.
+            U SECTION.
+                USE AFTER {(use == "ec" ? "EXCEPTION CONDITION EC-I-O" : "STANDARD EXCEPTION PROCEDURE ON PRT")}.
+            U1.
+                ADD 1 TO WS-USE.
+            END DECLARATIVES.
+            """;
+        return $"""
+            >>TURN EC-I-O CHECKING ON
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {id}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT PRT ASSIGN TO "{file}" ORGANIZATION IS {org}{fsClause}.
+            DATA DIVISION.
+            FILE SECTION.
+            FD PRT REPORT IS R-A.
+            WORKING-STORAGE SECTION.
+            01 FS     PIC XX VALUE "??".
+            01 WS-A   PIC X(3).
+            01 WS-USE PIC 9 VALUE 0.
+            REPORT SECTION.
+            RD R-A PAGE LIMIT 20 LINES.
+            01 DET TYPE DE LINE PLUS 1.
+               03 COLUMN 1 PIC X(3) SOURCE WS-A.
+            PROCEDURE DIVISION.
+            {declaratives}
+            MAIN SECTION.
+                OPEN OUTPUT PRT
+                DISPLAY "OPEN [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                INITIATE R-A
+                DISPLAY "INITIATE [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                MOVE "A1B" TO WS-A
+                GENERATE DET
+                MOVE "A€B" TO WS-A
+                GENERATE DET
+                DISPLAY "GENERATE-2 [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                MOVE "AéB" TO WS-A
+                GENERATE DET
+                DISPLAY "GENERATE-3 [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                MOVE "A€B" TO WS-A
+                GENERATE DET
+                DISPLAY "GENERATE-4 [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                TERMINATE R-A
+                DISPLAY "TERMINATE [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                CLOSE PRT
+                DISPLAY "CLOSE [" FUNCTION TRIM(FUNCTION EXCEPTION-STATUS) "] USE=" WS-USE
+                STOP RUN.
+            """;
+    }
+
+    /// <summary>The claim DOC-A.1-159 makes about EC-I-O: a refused report line raises none. With checking ENABLED and
+    /// every combination of FILE STATUS and declarative (none; USE AFTER EXCEPTION CONDITION EC-I-O; USE AFTER STANDARD
+    /// EXCEPTION PROCEDURE ON the file), no report statement — GENERATE of a line the NEXT statement flushes, GENERATE
+    /// then TERMINATE flushing the final pending line — sets the exception status, no declarative runs, a program with no
+    /// declarative is not terminated by a fatal EC-I-O-IMP, and the run reaches STOP RUN. CLOSE is an I-O statement
+    /// whose own (successful) status is likewise blank. Were the writer routed through the EC-I-O check, the U+20AC line
+    /// would end the run unit (no declarative) or run the declarative with EXCEPTION-STATUS non-blank. The medium holds
+    /// the blank slot of the mid-report refused line (the next line's advance covers it) and nothing for the refused
+    /// FINAL line (no later advance exists to cover it), on both organizations.</summary>
+    [Theory]
+    [InlineData("SEQUENTIAL", "RLR4", "rlr4.rpt", false, "none")]
+    [InlineData("SEQUENTIAL", "RLR5", "rlr5.rpt", false, "ec")]
+    [InlineData("SEQUENTIAL", "RLR6", "rlr6.rpt", false, "file")]
+    [InlineData("SEQUENTIAL", "RLR7", "rlr7.rpt", true, "none")]
+    [InlineData("SEQUENTIAL", "RLR8", "rlr8.rpt", true, "ec")]
+    [InlineData("SEQUENTIAL", "RLR9", "rlr9.rpt", true, "file")]
+    [InlineData("LINE SEQUENTIAL", "RLRA", "rlra.rpt", false, "none")]
+    [InlineData("LINE SEQUENTIAL", "RLRB", "rlrb.rpt", false, "ec")]
+    [InlineData("LINE SEQUENTIAL", "RLRC", "rlrc.rpt", true, "file")]
+    public void RefusedReportLine_RaisesNoEcIo_WhenCheckingIsEnabled(
+        string org, string id, string file, bool fileStatus, string use)
+    {
+        var (ok, stdout, detail, bytes) = CobolNet2023.CompileRunAndReadFile(
+            CheckedProgram(id, file, org, fileStatus, use), file);
+        Assert.True(ok, $"WiseOwl COBOL failed: {detail}");
+        Assert.Equal(
+            """
+            OPEN [] USE=0
+            INITIATE [] USE=0
+            GENERATE-2 [] USE=0
+            GENERATE-3 [] USE=0
+            GENERATE-4 [] USE=0
+            TERMINATE [] USE=0
+            CLOSE [] USE=0
+            """.ReplaceLineEndings("\n"),
+            stdout.ReplaceLineEndings("\n").TrimEnd('\n'));
+        Assert.NotNull(bytes);
+        Assert.Equal(Host("A1B{nl}{nl}AéB{nl}"), Encoding.Latin1.GetString(bytes!));
+    }
+
     /// <summary>The same silence on a medium the host reports full ('34', §9.1.13.6 item 3): Linux's
     /// <c>/dev/full</c> refuses every write with ENOSPC. The writer buffers, so the refusal surfaces on a LATER line's
     /// write (the 68th plain record in GnuCOBOL), and the report statements that meet it answer the program
