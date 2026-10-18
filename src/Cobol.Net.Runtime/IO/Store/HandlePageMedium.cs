@@ -11,7 +11,7 @@ namespace CobolNet.Runtime.IO.Store;
 internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
 {
     /// <inheritdoc/>
-    public long PageCount => RandomAccess.GetLength(handle) / PageHeader.PageSize;
+    public long Length => RandomAccess.GetLength(handle);
 
     /// <inheritdoc/>
     public void Read(uint page, Span<byte> destination)
@@ -42,7 +42,7 @@ internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
     public void Sync() => RandomAccess.FlushToDisk(handle);
 
     /// <inheritdoc/>
-    public void SetPageCount(long pages) => RandomAccess.SetLength(handle, pages * PageHeader.PageSize);
+    public void SetLength(long bytes) => RandomAccess.SetLength(handle, bytes);
 
     private static long Offset(uint page) => (long)page * PageHeader.PageSize;
 }

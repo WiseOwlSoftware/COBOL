@@ -15,8 +15,11 @@ internal enum StoreStatus
 
     /// <summary>A changing statement would take the store past its BOUNDARY (2.2.1.9): its reservation would grow the
     /// file past the format's 2^32 pages, or the host refused one of its writes because the file cannot grow further
-    /// (<see cref="MediumSizeLimitException"/>). Nothing the statement did is reachable (R1) and the file is unchanged;
-    /// a WRITE or REWRITE answers it as §9.1.13.5 item 4's '24' with the invalid key condition (§9.1.14). Only
+    /// (<see cref="MediumSizeLimitException"/>). Nothing the statement did is reachable (R1) and the file is unchanged.
+    /// The page layer does not know the statement; the connector answers by it: a WRITE or REWRITE as §9.1.13.5 item 4's
+    /// '24' with the invalid key condition (§9.1.14), a DELETE as §9.1.13.6 item 1's '30' with NO invalid key condition
+    /// (item 4 is an attempt to write; §14.9.10.4 GR3/GR4 give a DELETE that condition only for a record the file does
+    /// not contain). Only
     /// <see cref="PagedFile.Begin"/> and a statement's completion answer it: an OPEN, a CLOSE and a promotion have no
     /// '24' and answer <see cref="PermanentError"/>.</summary>
     Boundary,
@@ -136,8 +139,10 @@ internal sealed class PagedFile
     /// does NOT hold the previous store's committed meta and SYNCED — the commit point — then page 2, the other slot, the
     /// one TRUNCATION to three pages, and a sync. A death before the commit write was handed over leaves the previous file;
     /// after it, the empty store. A REFUSAL is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
-    /// pages written so far get their previous bytes back (one more sync), and only a refused final sync — after the
-    /// truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30' either way).</summary>
+    /// pages written so far get their previous bytes back and the file its previous length IN BYTES — a previous file need
+    /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync; only a refused final
+    /// sync — after the truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30'
+    /// either way).</summary>
     public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store)
     {
         if (!MetaPage.Fits(attributes))
@@ -145,7 +150,7 @@ internal sealed class PagedFile
         store = null;
         var creator = new PagedFile(medium, writable: true, coherent, MetaPage.Empty(attributes));
         long length;
-        try { length = medium.PageCount; }
+        try { length = medium.Length; }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
         var before = new byte[MetaPage.MetaPages][];
         var previous = new MetaPage?[MetaPage.MetaPages];
@@ -167,7 +172,7 @@ internal sealed class PagedFile
             written.Add(p);
             if (p == target && !creator.TrySync()) return creator.UndoCreation(written, before, length);
         }
-        try { medium.SetPageCount(MetaPage.MetaPages); }
+        try { medium.SetLength(MetaPage.MetaPages * (long)PageHeader.PageSize); }
         catch (Exception e) when (IsRefusal(e)) { return creator.UndoCreation(written, before, length); }
         if (!creator.TrySync()) return StoreStatus.PermanentError;
         creator._meta = meta;
@@ -178,17 +183,19 @@ internal sealed class PagedFile
         return StoreStatus.Ok;
     }
 
-    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): the meta pages it wrote get their
-    /// previous bytes back, newest first, a file shorter than three pages its previous <paramref name="length"/>, and one
-    /// sync; '30' whatever the medium then does.</summary>
+    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): every meta page it wrote that held
+    /// previous bytes gets them back, newest first — a page the previous file held only PART of too, its tail read as
+    /// zeros and cut off again — then a file shorter than three pages its previous <paramref name="length"/> in BYTES, and
+    /// one sync; '30' whatever the medium then does.</summary>
     private StoreStatus UndoCreation(List<uint> written, byte[][] before, long length)
     {
         if (written.Count == 0) return StoreStatus.PermanentError;
         for (int i = written.Count - 1; i >= 0; i--)
-            if (written[i] < length && !TryWrite(written[i], before[written[i]])) return StoreStatus.PermanentError;
-        if (length < MetaPage.MetaPages)
+            if ((long)written[i] * PageHeader.PageSize < length && !TryWrite(written[i], before[written[i]]))
+                return StoreStatus.PermanentError;
+        if (length < MetaPage.MetaPages * (long)PageHeader.PageSize)
         {
-            try { _medium.SetPageCount(length); }
+            try { _medium.SetLength(length); }
             catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
         }
         TrySync();

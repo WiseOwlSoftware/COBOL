@@ -195,7 +195,7 @@ public sealed class PagedFileCrashMatrixTests
         Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, out _));
         var ops = ph.Operations.ToList();
         Assert.Equal(6, ops.Count);
-        Assert.Equal(new[] { "S", "W2", "T3", "S" }, new[] { ops[1], ops[2], ops[4], ops[5] });
+        Assert.Equal(new[] { "S", "W2", $"T{MetaPage.MetaPages * PageHeader.PageSize}", "S" }, new[] { ops[1], ops[2], ops[4], ops[5] });
         Assert.NotEqual(ops[0], ops[3]);
         for (int n = 1; n <= ops.Count; n++)
             foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
@@ -203,12 +203,16 @@ public sealed class PagedFileCrashMatrixTests
                 {
                     string where = $"{fault} at op {n} ({ops[n - 1]}) then {continuation}";
                     var medium = StoreKit.ClosedStore("1=old", "2=older");
+                    var previousBytes = medium.Contents();
                     var h = medium.Open("A");
                     h.FaultAtOperation(n, fault);
                     bool died = false;
                     try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
                     catch (SimulatedDeath) { died = true; }
                     Assert.Equal(fault != Fault.Refuse, died);
+                    // GR25: a refusal before the last sync leaves the file byte for byte as it was.
+                    if (fault == Fault.Refuse && n < ops.Count)
+                        Assert.True(previousBytes.AsSpan().SequenceEqual(medium.Contents()), $"{where}: the file was affected");
                     // The commit write was handed over at op 1 (performed by DeathAfter at 1, by any fault at a later op
                     // but a refusal, which is undone); it is durable once op 2, its sync, was performed.
                     bool handedOver = fault == Fault.Refuse ? n == ops.Count : fault == Fault.DeathAfter || n > 1;
@@ -228,42 +232,45 @@ public sealed class PagedFileCrashMatrixTests
                 }
     }
 
-    /// <summary>Creation over a file with no store in it — an empty file, or one whose three meta pages carry nothing this
-    /// format reads: no committed slot exists until the commit write, so a death before it leaves a file the next OPEN
-    /// answers '30' and after it the EMPTY store; a refusal restores the file's pages AND its length (GR25), so an empty
-    /// file stays empty.</summary>
-    [Fact]
-    public void Every_point_of_creation_over_a_file_with_no_store_leaves_no_store_or_the_empty_store()
+    /// <summary>The previous files a creation meets that hold no store: empty, and foreign bytes of every length class —
+    /// inside page 0 (5 000 bytes: the commit slot's page partly held, the other slot's page past the end), inside page 1
+    /// (8 000: the commit slot's page whole, the other slot's partly held), inside page 2 (12 000: page 2 partly held),
+    /// exactly four pages, and past three pages with a partial tail (20 000) — a format-5 whole store, or any non-store
+    /// file, need not be a whole number of pages.</summary>
+    public static TheoryData<int> PreviousFileLengths => new() { 0, 5_000, 8_000, 12_000, 4 * PageHeader.PageSize, 20_000 };
+
+    /// <summary>Creation over a file with no store in it: no committed slot exists until the commit write, so a death
+    /// before it leaves the file as it was (the next OPEN answers '30') and after it the EMPTY store; a refusal at any point
+    /// but the last sync is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: every byte back AND the
+    /// length to the byte (finding R2-1: the undo once kept the length in whole pages, so it cut a 5 000-byte file to
+    /// 4 096 and never restored a partly held page), so an empty file stays empty.</summary>
+    [Theory]
+    [MemberData(nameof(PreviousFileLengths))]
+    public void Every_point_of_creation_over_a_file_with_no_store_leaves_it_byte_for_byte_or_the_empty_store(int length)
     {
-        foreach (bool foreign in new[] { false, true })
-        {
-            int ops = 6;
-            for (int n = 1; n <= ops; n++)
-                foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
+        var previous = Enumerable.Range(0, length).Select(i => (byte)(i * 7 + 3)).ToArray();
+        int ops = 6;
+        for (int n = 1; n <= ops; n++)
+            foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
+            {
+                string where = $"{length}-byte file, {fault} at op {n}";
+                var medium = MemoryPageMedium.Holding(previous);
+                var h = medium.Open("A");
+                h.FaultAtOperation(n, fault);
+                bool died = false;
+                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
+                catch (SimulatedDeath) { died = true; }
+                Assert.Equal(fault != Fault.Refuse, died);
+                bool created = fault == Fault.Refuse ? n == ops : fault == Fault.DeathAfter || n > 1;
+                if (!created)
                 {
-                    string where = $"{(foreign ? "foreign" : "empty")} file, {fault} at op {n}";
-                    var medium = new MemoryPageMedium();
-                    var garbage = Enumerable.Range(0, PageHeader.PageSize).Select(i => (byte)(i * 7 + 3)).ToArray();
-                    if (foreign)
-                        for (uint p = 0; p < 4; p++) medium.Poke(p, garbage);
-                    long length = medium.PageCount;
-                    var h = medium.Open("A");
-                    h.FaultAtOperation(n, fault);
-                    bool died = false;
-                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
-                    catch (SimulatedDeath) { died = true; }
-                    Assert.Equal(fault != Fault.Refuse, died);
-                    bool created = fault == Fault.Refuse ? n == ops : fault == Fault.DeathAfter || n > 1;
-                    var (_, status, c) = StoreKit.OpenAs(medium, "C");
-                    Assert.True((created ? StoreStatus.Ok : StoreStatus.PermanentError) == status, where);
-                    if (created) Assert.Equal("", StoreKit.Show(c!));
-                    if (fault == Fault.Refuse && n < ops)
-                    {
-                        Assert.True(length == medium.PageCount, where);
-                        for (uint p = 0; p < length; p++) Assert.True(garbage.AsSpan().SequenceEqual(medium.Snapshot(p)), where);
-                    }
+                    Assert.True(length == medium.Length, $"{where}: length {medium.Length}");
+                    Assert.True(previous.AsSpan().SequenceEqual(medium.Contents()), $"{where}: the bytes differ");
                 }
-        }
+                var (_, status, c) = StoreKit.OpenAs(medium, "C");
+                Assert.True((created ? StoreStatus.Ok : StoreStatus.PermanentError) == status, where);
+                if (created) Assert.Equal("", StoreKit.Show(c!));
+            }
     }
 
     // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§9.1.13.6 item 1) ───────────

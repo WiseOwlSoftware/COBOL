@@ -44,7 +44,7 @@ internal sealed class MemoryPageMedium
     private readonly Dictionary<uint, PageVersions> _pages = [];
     private readonly List<MediumWrite> _writes = [];
     private readonly List<MediumSync> _syncs = [];
-    private long _length;   // in pages
+    private long _length;   // in BYTES: a previous file need not be a whole number of pages
     private long _durableLength;
     private long _seq;
 
@@ -54,8 +54,36 @@ internal sealed class MemoryPageMedium
     /// <summary>Every sync, in order.</summary>
     public IReadOnlyList<MediumSync> Syncs => _syncs;
 
-    /// <summary>The medium's length in pages.</summary>
-    public long PageCount => _length;
+    /// <summary>The medium's length in bytes.</summary>
+    public long Length => _length;
+
+    /// <summary>The medium's whole content: <see cref="Length"/> bytes, as a read of every page serves them.</summary>
+    public byte[] Contents()
+    {
+        var bytes = new byte[_length];
+        for (long offset = 0; offset < _length; offset += PageHeader.PageSize)
+        {
+            var page = Snapshot((uint)(offset / PageHeader.PageSize));
+            page.AsSpan(0, (int)Math.Min(PageHeader.PageSize, _length - offset)).CopyTo(bytes.AsSpan((int)offset));
+        }
+        return bytes;
+    }
+
+    /// <summary>A medium holding exactly <paramref name="content"/>, durable — a previous file of ANY length, a whole
+    /// number of pages or not (a format-5 whole store, a foreign file), for <c>OPEN OUTPUT</c> to create over.</summary>
+    public static MemoryPageMedium Holding(byte[] content)
+    {
+        var medium = new MemoryPageMedium();
+        for (int offset = 0; offset < content.Length; offset += PageHeader.PageSize)
+        {
+            var page = new byte[PageHeader.PageSize];
+            content.AsSpan(offset, Math.Min(PageHeader.PageSize, content.Length - offset)).CopyTo(page);
+            medium.Apply("previous", (uint)(offset / PageHeader.PageSize), page);
+        }
+        medium._length = content.Length;
+        medium.SyncAll("previous");
+        return medium;
+    }
 
     /// <summary>A run unit's handle onto the medium.</summary>
     public Handle Open(string unit) => new(this, unit);
@@ -100,7 +128,9 @@ internal sealed class MemoryPageMedium
             v.Versions.AddRange(survivors);
             v.Durable = v.Versions.Count - 1;
         }
-        long keptLength = _pages.Where(p => p.Value.Versions.Count > 0).Select(p => (long)p.Key + 1).DefaultIfEmpty(0).Max();
+        // The length a sync made durable, or past it the end of an unsynced write the loss kept.
+        long keptLength = _writes.Where(w => kept.Contains(w.Seq) && _pages.ContainsKey(w.Page))
+            .Select(w => ((long)w.Page + 1) * PageHeader.PageSize).DefaultIfEmpty(0).Max();
         _length = Math.Max(_durableLength, keptLength);
         _durableLength = _length;
         foreach (var w in _writes) w.Synced = true;   // what survived is now simply the medium's content
@@ -137,7 +167,7 @@ internal sealed class MemoryPageMedium
         long seq = ++_seq;
         if (!_pages.TryGetValue(page, out var v)) _pages[page] = v = new PageVersions();
         v.Versions.Add((bytes, seq));
-        _length = Math.Max(_length, (long)page + 1);
+        _length = Math.Max(_length, ((long)page + 1) * PageHeader.PageSize);
         _writes.Add(new MediumWrite(seq, unit, page, BinaryPrimitives.ReadUInt64LittleEndian(bytes.AsSpan(8)), (PageKind)bytes[0]));
     }
 
@@ -185,7 +215,7 @@ internal sealed class MemoryPageMedium
         public string Unit => unit;
 
         /// <summary>Every operation this handle performed, in order: <c>W&lt;page&gt;</c> for a write, <c>S</c> for a sync,
-        /// <c>T&lt;pages&gt;</c> for a truncation. Reads are not operations (a death at a read is a death before the next
+        /// <c>T&lt;bytes&gt;</c> for a truncation. Reads are not operations (a death at a read is a death before the next
         /// operation); they have their own count and fault plan.</summary>
         public List<string> Operations { get; } = [];
 
@@ -219,7 +249,7 @@ internal sealed class MemoryPageMedium
         public void Heal() => (_writeCountdown, _syncCountdown, _opCountdown, _readCountdown, _refuseAll) = (-1, -1, -1, -1, false);
 
         /// <inheritdoc/>
-        public long PageCount => medium._length;
+        public long Length => medium._length;
 
         /// <inheritdoc/>
         public void Read(uint page, Span<byte> destination)
@@ -256,14 +286,19 @@ internal sealed class MemoryPageMedium
         }
 
         /// <inheritdoc/>
-        public void SetPageCount(long pages)
+        /// <remarks>The bytes cut off are gone from every version: a page wholly past the new length is dropped, and the
+        /// tail of the one it ends inside reads as zeros from then on, as a file system zero-fills a later extension.</remarks>
+        public void SetLength(long bytes)
         {
             ThrowIfDead();
             if (_refuseAll) throw new IOException("simulated refused truncation");
             bool dieAfter = Fire(ref _opCountdown, _opFault);
-            medium._length = pages;
-            foreach (var p in medium._pages.Keys.Where(p => p >= pages).ToList()) medium._pages.Remove(p);
-            Operations.Add($"T{pages}");
+            medium._length = bytes;
+            foreach (var p in medium._pages.Keys.Where(p => (long)p * PageHeader.PageSize >= bytes).ToList()) medium._pages.Remove(p);
+            int tail = (int)(bytes % PageHeader.PageSize);
+            if (tail > 0 && medium._pages.TryGetValue((uint)(bytes / PageHeader.PageSize), out var cut))
+                foreach (var (version, _) in cut.Versions) version.AsSpan(tail).Clear();
+            Operations.Add($"T{bytes}");
             if (dieAfter) Die();
         }
 

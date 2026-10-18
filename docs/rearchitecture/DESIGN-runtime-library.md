@@ -856,7 +856,7 @@ after any later crash.)
    file, its HOLDINGS (decision 7).
 6. **The boundary of a relative or indexed file is the host's** (2.2.1.9): a WRITE or REWRITE answers '24' only when the
    record would take the store past the format's 2^32 pages or past a maximum file size the host REPORTS (`EFBIG`,
-   `ERROR_FILE_TOO_LARGE`); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
+   `ERROR_FILE_TOO_LARGE`); a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record (its tree and ledger rewrite can need a growth page); a medium that is full answers §9.1.13.6 item 1's '30' at the STATEMENT, with the file as the
    previous statement left it, never at a later CLOSE.
 7. **APPLY COMMIT, COMMIT and ROLLBACK are per-run-unit TRANSACTIONS with record-level before-images kept in the file**
    (2.2.1.10): a COMMIT is a promotion whose one durable write — the slot write and the sync that acknowledges it — carries
@@ -991,7 +991,9 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   moved) — and a sync. Until the commit write is handed over the previous file is whole; after it the empty store is the
   committed meta. A REFUSAL at any point but the last sync is §14.9.27.4 GR25's unsuccessful OPEN, *"the file is not
   affected"*: the meta pages written so far get their previous bytes back, newest first, a file shorter than three pages its
-  previous length, then one sync, and the OPEN answers '30'; a refused last sync follows the truncation, so nothing is left to
+  previous length TO THE BYTE (the medium's length is in bytes, `IPageMedium.Length`: a format-5 whole store or a foreign
+  file need not be a whole number of pages, and a length kept in whole pages cut its tail off — branch review R2-1), then
+  one sync, and the OPEN answers '30'; a refused last sync follows the truncation, so nothing is left to
   undo and the medium's state is unknown, as at every refused sync (2.2.1.16). (The first draft set the length to three
   pages, which kept the old store's three meta pages until they were overwritten: a death between the truncation and the
   first write left the OLD store's committed slots valid over a file cut to three pages, and the next OPEN adopted a tree
@@ -1315,7 +1317,8 @@ an escaping exception: a changing statement takes its RESERVATION before its cla
 (`PagedFile.FormatPages`) claims and writes nothing; and the production medium reports the host's "the file cannot grow
 further" as `MediumSizeLimitException` (`HandlePageMedium.Write`, asked of `HostFile.IsFileSizeLimit` — the narrower half of
 the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read the host's codes), which a changing statement's
-refused write answers as the boundary while every other refusal stays '30'. A promotion, a CLOSE and an OPEN have no '24': at
+refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
+serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
 either boundary they answer '30'. `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
@@ -1677,7 +1680,8 @@ not finish.
 production medium is `RandomAccess` on the connector's `SafeFileHandle`; the test medium is an in-memory page array that
 records which writes were SYNCED and can be asked to *lose every unsynced write* (a power loss) or to *keep them* (a process
 death), to *tear* one named page, and to *serve an older version* of one named page (a lost write over a reused page), and
-whose per-run-unit handle kills or refuses that run unit at its n-th OPERATION (a write, a sync or the truncation) — before
+whose length is in BYTES (so a previous file of any length, a whole number of pages or not, is a case), and whose
+per-run-unit handle kills or refuses that run unit at its n-th OPERATION (a write, a sync or the truncation) — before
 it, after it, refused, or refused because the file cannot grow further — and refuses its n-th READ — so every crash and
 refusal scenario is deterministic and runs on every host without a VM:
 - R1: no write ever targets a page that the committed meta's tree OR the work meta's tree references (the medium records every
@@ -1929,10 +1933,10 @@ slot (`committing`).
 | A promotion, after the slot write (sync 2 or the retirement) | landed | its entry completes the retirement · OPEN: the PROMOTION SOURCE → the fence completes it | its entry completes the retirement |
 | The fence (R6 step 4), at any point | the OPEN is unsuccessful ('30'); the connector is left closed (DOC-A.1-105) | the next OPEN: before the slot landed, a DESCENDANT of C at F with the flag (the fence runs again); after it, the PROMOTION SOURCE (the fence completes it) | the same at its OPEN; a live INPUT reader follows page 2's `generation` only |
 | The dead-owner rollback run at A's entry, at any page | B's entry stands; A's statement answers '30' | A: '30' replayed · CLOSE · OPEN as a record statement | the next writer's entry redoes it (idempotent) |
-| `OPEN OUTPUT`, at any read, write, sync or the truncation but the last sync | the previous file: the pages written get their previous bytes back and a file shorter than three pages its length, then a sync (§14.9.27.4 GR25, *"the file is not affected"*) | the OPEN answers '30' and the connector stays closed · the next OPEN finds the previous store (or '30' over a file with none) · OPEN OUTPUT recreates | the same |
+| `OPEN OUTPUT`, at any read, write, sync or the truncation but the last sync | the previous file, byte for byte: the pages written get their previous bytes back (a page the file held only part of too) and a file shorter than three pages its length to the byte, then a sync (§14.9.27.4 GR25, *"the file is not affected"*) | the OPEN answers '30' and the connector stays closed · the next OPEN finds the previous store (or '30' over a file with none) · OPEN OUTPUT recreates | the same |
 | `OPEN OUTPUT`, at its last sync | the empty store, committed and truncated; the medium's state unknown | '30' · the next OPEN adopts the empty store | the same |
 | Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§9.1.13.6 item 1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
-| A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY: a WRITE or REWRITE answers '24' with the invalid key condition, the file unchanged (§9.1.14); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
+| A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§9.1.14); a DELETE answers '30' with no invalid key condition (§9.1.13.6 item 1: §9.1.13.5 item 4's '24' is a write's, and §14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
 | Any path, a sync failure | the medium's state unknown | '30', permanent error; R3 and R6 decide the state at the next read or OPEN, never a torn one | the same |
 
 **2.2.1.17 Every two-run-unit interleaving over one file (the round-3 self-attack, 2026-10-17).** A and B are run units
