@@ -46,4 +46,14 @@ miss. Silent failure: the stated-difference escape is a substring of the row's n
 empty note. Tests: the exception golden's every leg can fail independently (the control against S3 separates 10 from
 46). Comments: the golden headers cite only clauses run through `cite.py --check`.
 
+**Review round 1.** The branch reviewer found the campaign requirement (EC-I-O conditions with and without USE and FILE
+STATUS) unmet for the checked arm and for the no-FILE-STATUS-no-USE arm. Two goldens now pin them:
+`pb870_start_first_last_relative_ecio_checked` (`>>TURN EC-I-O CHECKING ON`: the INVALID KEY phrase runs with
+EC-I-O-INVALID-KEY as the last exception status and the USE procedure does not; without the phrase the USE procedure
+runs and the statement ends, with and without FILE STATUS; START on a closed file is 47, a fatal EC-I-O-LOGIC-ERROR no
+declarative here covers, and 14.6.13.1.3 7) ends the run unit even though the file has a FILE STATUS clause) and
+`pb870_start_first_last_relative_nofs_nouse` (checking off, no FILE STATUS, no USE: 23 continues, a NOT INVALID KEY
+phrase alone does not run, a 47 ends the run unit per DOC-A.1-103). Both are accepted at 2002 and 2023 and end with the
+run unit's abnormal termination, so the expected output stops before the AFTER line of the 47 leg.
+
 **Gate.** See the report; the verdict line is quoted there.
