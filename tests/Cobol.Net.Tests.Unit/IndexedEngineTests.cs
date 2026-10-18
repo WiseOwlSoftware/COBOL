@@ -850,7 +850,7 @@ public sealed class IndexedEngineTests
         }
     }
 
-    /// <summary>An OPEN of the seeded file in <paramref name="mode"/>: EXTEND is sequential access's (§14.9.27.4 GR4).</summary>
+    /// <summary>An OPEN of the seeded file in <paramref name="mode"/>: EXTEND is sequential access's (§14.9.27.3 SR2).</summary>
     private static void Open(FileRegistry reg, string name, string host, FileOpenMode mode, FileSharing sharing)
     {
         Register(reg, name, host, sharing, mode == FileOpenMode.Extend ? KeyedAccess.Sequential : KeyedAccess.Dynamic);
