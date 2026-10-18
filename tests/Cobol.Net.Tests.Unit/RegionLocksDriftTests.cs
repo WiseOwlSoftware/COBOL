@@ -259,31 +259,38 @@ public sealed class RegionLocksDriftTests
         Assert.True(total >= 25 * 17, $"The schedule sums to {total} ms, inside 25 times the longest removal window measured (17 ms).");
     }
 
-    /// <summary>⛔ PUBLICATION SURVIVES A SIBLING THAT CLOSES AND REOPENS THE LOCK DIRECTORY WITHOUT PAUSE (kb/Work PB3314,
-    /// PB3313): a sibling's CLOSE (<see cref="SidecarLockFiles.RetireDirectory"/>) removes the empty directory and its next
-    /// publication makes it again, as fast as the host allows, so every publication meets a directory that is gone, about
-    /// to be, or half removed. Each must still publish: <c>null</c> is a host that cannot hold the lock, and the waiting
-    /// hold that reads it answers <see cref="RegionLockResult.Unavailable"/> with the store mutex untaken. The race
-    /// cannot be made to happen on demand, so the witness is repetition against a sibling that never rests.</summary>
+    /// <summary>⛔ PUBLICATION SURVIVES A SIBLING'S CLOSE THAT IS CAUGHT HALF WAY THROUGH REMOVING THE LOCK DIRECTORY
+    /// (kb/Work PB3314, PB3313): a sibling's CLOSE (<see cref="SidecarLockFiles.RetireDirectory"/>) removes the empty
+    /// directory and its next publication makes it again, so a publication meets a directory that is gone, about to be, or
+    /// MID-<c>rmdir</c>: on Linux, for as long as the remover is off the CPU, the name still answers <c>stat</c> while
+    /// every creation inside it is <c>ENOENT</c>. Each publication must still end published: <c>null</c> is a host that
+    /// cannot hold the lock, and the waiting hold that reads it answers <see cref="RegionLockResult.Unavailable"/> with
+    /// the store mutex untaken. The window cannot be held open on demand, so the witness is repetition with the host
+    /// oversubscribed (spinning threads beside the sibling, which is what leaves a remover off the CPU mid-call): it was
+    /// red in most runs with eight immediate tries and is green with the paced schedule.</summary>
     [Fact]
-    public void EveryPublicationSucceeds_BesideASiblingThatClosesAndReopensTheLockDirectoryWithoutPause()
+    public void EveryPublicationSucceeds_BesideASiblingThatClosesAndReopensTheLockDirectory_OnAnOversubscribedHost()
     {
         using var site = new Site(RegionHostKind.LockFiles);
         string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
         using var stop = new CancellationTokenSource();
-        var sibling = new Thread(() =>
+        var threads = new List<Thread>();
+        threads.Add(new Thread(() =>
         {
             while (!stop.IsCancellationRequested)
             {
                 try { HostFile.CreateLockDirectory(lockDir); SidecarLockFiles.RetireDirectory(lockDir); }
                 catch (IOException) { }
                 catch (UnauthorizedAccessException) { }
+                Thread.Sleep(1);   // a CLOSE and the next OPEN, not a spin: the spinners below are what preempt it
             }
-        });
-        sibling.Start();
+        }));
+        for (int i = 0; i < Environment.ProcessorCount * 2; i++)
+            threads.Add(new Thread(() => { while (!stop.IsCancellationRequested) Thread.SpinWait(100); }) { Priority = ThreadPriority.BelowNormal });
+        foreach (var t in threads) t.Start();
         try
         {
-            for (int i = 0; i < 400; i++)
+            for (int i = 0; i < 300; i++)
             {
                 using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
                 Assert.True(holder is not null, $"Publication {i} gave up: the host was read as unable to hold a lock.");
@@ -292,7 +299,7 @@ public sealed class RegionLocksDriftTests
         finally
         {
             stop.Cancel();
-            sibling.Join();
+            foreach (var t in threads) t.Join();
         }
     }
 
