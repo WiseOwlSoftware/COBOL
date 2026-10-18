@@ -301,8 +301,9 @@ public abstract class KeyedConnector : FileConnector
         if (store.StatementDepth++ > 0) return;   // the run unit is already inside the mutex
         try
         {
-            store.MutexHolder = HoldStoreMutex(exclusive: _regions!.Writable);
-            if (!EnterStore()) SetStatus(FileStatusCode.PermanentError);
+            bool exclusive = _regions!.Writable;
+            store.MutexHolder = HoldStoreMutex(exclusive);
+            if (!EnterStore(exclusive)) SetStatus(FileStatusCode.PermanentError);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {
@@ -320,8 +321,10 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>The engine's half of a coherent statement's entry, inside the mutex: bring the store to the physical
     /// file as it is now — the whole store reloads when the file's generation stamp moved, the paged engine reads page 2
-    /// and adopts it (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7). False is §9.1.13.6 item 1's '30'.</summary>
-    private protected abstract bool EnterStore();
+    /// and adopts it (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7). <paramref name="exclusive"/> is whether the
+    /// mutex this connector holds excludes every other run unit (false through an <c>OPEN INPUT</c> connector's read-only
+    /// handle), and an entry that is not exclusive writes nothing. False is §9.1.13.6 item 1's '30'.</summary>
+    private protected abstract bool EnterStore(bool exclusive);
 
     /// <summary>The engine's repair when <see cref="EnterStore"/> threw a host failure.</summary>
     private protected virtual void EnterStoreFailed() { }

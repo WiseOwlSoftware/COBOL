@@ -218,8 +218,8 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     /// <summary>The host's two refusals, each at the statement that meets it (2.2.1.9): a page write the host refuses
-    /// because the file cannot GROW past its maximum size is '24' — <i>"an attempt is made to write beyond the
-    /// externally defined boundaries of a relative or indexed file"</i>, §9.1.13.5 item 4 — and a write the host refuses
+    /// because the file cannot GROW past its maximum size is '24' — <i>"An attempt is made to write outside the
+    /// externally-defined boundaries of a physical relative or indexed file"</i>, §9.1.13.5 item 4 — and a write the host refuses
     /// because the medium is FULL is '30' (§9.1.13.6 item 1), which stays in effect until the CLOSE (§9.1.13.1). Neither
     /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
     [Theory]
@@ -253,6 +253,55 @@ public sealed class FileBoundaryTests : IDisposable
         }
         finally { RelativeStore.MediumObserver.Value = null; }
         Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
+    }
+
+    /// <summary>⛔ THE BOUNDARY'S '24' IS A RECORD WRITE'S ALONE (review finding R1-1 of kb/Work PB3333). §9.1.13.5 item 4's
+    /// invalid key condition is <i>"An attempt is made to write outside the externally-defined boundaries of a physical
+    /// relative or indexed file"</i>, and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write
+    /// pages the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's '30'
+    /// (<i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
+    /// never '24' with the INVALID KEY branch taken; so is an OPEN OUTPUT whose creation the host refuses to grow the file
+    /// for. Both leave the file as it was: the DELETE's record is still there at the next OPEN.</summary>
+    [Fact]
+    public void RelativeDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
+        bool refusing = false;
+        int refused = 0;
+        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || page < inner.PageCount) return null;
+                refused++;
+                return new IOException("refused by the host", tooLarge);
+            });
+        try
+        {
+            var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            string created = Host("refuse-create.dat");
+            var o = new RelativeConnector(created, 4, KeyedAccess.Random, 4);
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { RelativeStore.MediumObserver.Value = null; }
+        Assert.Equal(["1=AAAA"], Records(host));
     }
 
     /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector

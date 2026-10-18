@@ -527,4 +527,326 @@ public sealed class RelativeEngineTests
         }
         finally { TryDelete(host); }
     }
+
+    // ── 2.2.1.16's OPEN and CLOSE rows through the connector (review finding R1-4) ───────────────────────────────────
+
+    /// <summary>A refusing medium whose <paramref name="refuseAt"/>-th write or sync (counted together, from the medium's
+    /// creation) is refused; <paramref name="seen"/> counts every write and sync handed to it.</summary>
+    private static RefusingPageMedium Refusing(IPageMedium inner, Func<int> refuseAt, Action count, Func<int> seen) =>
+        new(inner,
+            write: _ => Next(refuseAt, count, seen),
+            sync: () => Next(refuseAt, count, seen));
+
+    private static IOException? Next(Func<int> refuseAt, Action count, Func<int> seen)
+    {
+        bool refuse = seen() == refuseAt();
+        count();
+        return refuse ? new IOException("refused by the host") : null;
+    }
+
+    /// <summary>Whether page 2 of the file carries PROMOTING, read beside the run units that hold it open.</summary>
+    private static bool PageTwoPromoting(string host)
+    {
+        using var stream = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var page = new byte[PageHeader.PageSize];
+        stream.Position = MetaPage.WorkSlot * (long)PageHeader.PageSize;
+        stream.ReadExactly(page);
+        return MetaPage.Decode(page, MetaPage.WorkSlot) is { Promoting: true };
+    }
+
+    public static TheoryData<FileSharing> Sharings() => [FileSharing.AllOther, FileSharing.ReadOnly, FileSharing.NoOther];
+
+    /// <summary>2.2.1.16's refused table, "A promotion (CLOSE ...)" before and after the slot write, through the connector:
+    /// a host refusal of EVERY write and sync of the CLOSE that follows a completed WRITE answers the CLOSE '30' (§9.1.13.6
+    /// item 1: <i>"A permanent error exists and no further information is available concerning the input-output
+    /// operation"</i>) and leaves the connector closed — its next OPEN succeeds — and the WRITE's record is in the file,
+    /// since page 2 already named it (2.2.1.6). Under ALL OTHER, another run unit open beside it runs its next statement
+    /// ('00'), whose entry runs the promotion again.</summary>
+    [Theory]
+    [MemberData(nameof(Sharings))]
+    public void A_refusal_at_every_write_and_sync_of_the_CLOSE_is_30_and_keeps_the_completed_statement(FileSharing sharing)
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        int closeOps = CloseOperationsAfterAWrite(sharing);
+        Assert.True(closeOps >= 3, $"a promotion writes its claim and its slot and syncs ({closeOps})");
+        for (int k = 0; k < closeOps; k++)
+        {
+            string host = Tmp($"refuse-close-{sharing}-{k}");
+            int refuseAt = int.MaxValue, seen = 0;
+            try
+            {
+                Seed(host);
+                RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+                var a = new FileRegistry();
+                try
+                {
+                    Register(a, "A", host, sharing);
+                    a.OpenStatic("A", FileOpenMode.IO);
+                    Assert.Equal("00", a.Status("A"));
+                }
+                finally { RelativeStore.MediumObserver.Value = null; }
+                FileRegistry? b = null;
+                if (sharing == FileSharing.AllOther)
+                {
+                    b = new FileRegistry();
+                    Register(b, "B", host, FileSharing.AllOther);
+                    b.OpenStatic("B", FileOpenMode.IO);
+                    Assert.Equal("00", b.Status("B"));
+                }
+                Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+                refuseAt = seen + k;
+                a.Close("A");
+                Assert.Equal("30", a.Status("A"));
+                refuseAt = int.MaxValue;
+                var expected = After(Change.Write).ToList();
+                if (b is not null)
+                {
+                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    expected.Add("0005EEEE");
+                    b.Close("B");
+                    Assert.Equal("00", b.Status("B"));
+                }
+                a.OpenStatic("A", FileOpenMode.IO);                  // the CLOSE left the connector closed
+                Assert.Equal("00", a.Status("A"));
+                Assert.Equal("00", ReadKey(a, "A", 3, out string image));
+                Assert.Equal("0003CCCC", image);
+                a.Close("A");
+                Assert.Equal("00", a.Status("A"));
+                Assert.Equal(expected, Records(host));
+            }
+            finally
+            {
+                RelativeStore.MediumObserver.Value = null;
+                TryDelete(host);
+            }
+        }
+    }
+
+    /// <summary>The writes and syncs of a CLOSE after one completed WRITE, measured on a run that is not refused.</summary>
+    private static int CloseOperationsAfterAWrite(FileSharing sharing)
+    {
+        string host = Tmp("measure-close");
+        try
+        {
+            Seed(host);
+            int seen = 0;
+            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => -1, () => seen++, () => seen);
+            var a = new FileRegistry();
+            try
+            {
+                Register(a, "A", host, sharing);
+                a.OpenStatic("A", FileOpenMode.IO);
+            }
+            finally { RelativeStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+            int before = seen;
+            a.Close("A");
+            Assert.Equal("00", a.Status("A"));
+            return seen - before;
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The writes and syncs an OPEN hands over, measured on a run that is not refused: the fence of an
+    /// <c>OPEN I-O</c> of the seeded file, or an <c>OPEN OUTPUT</c>'s creation over it.</summary>
+    private static int OpenOperations(FileOpenMode mode, FileSharing sharing)
+    {
+        string host = Tmp("measure-open");
+        try
+        {
+            Seed(host);
+            int seen = 0;
+            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => -1, () => seen++, () => seen);
+            var a = new FileRegistry();
+            try
+            {
+                Register(a, "A", host, sharing);
+                a.OpenStatic("A", mode);
+                Assert.Equal("00", a.Status("A"));
+            }
+            finally { RelativeStore.MediumObserver.Value = null; }
+            int opened = seen;
+            a.Close("A");
+            return opened;
+        }
+        finally { TryDelete(host); }
+    }
+
+    public static TheoryData<FileOpenMode, FileSharing> Opens()
+    {
+        var data = new TheoryData<FileOpenMode, FileSharing>();
+        foreach (var mode in new[] { FileOpenMode.IO, FileOpenMode.Extend, FileOpenMode.Output })
+            foreach (var sharing in new[] { FileSharing.AllOther, FileSharing.NoOther })
+                data.Add(mode, sharing);
+        return data;
+    }
+
+    /// <summary>The records the next OPEN reads after an OPEN of the seeded file that did not complete: the fence of an
+    /// <c>OPEN I-O</c> or <c>OPEN EXTEND</c> changes no record (2.2.1.16, "The fence"), so the seeded records; an
+    /// <c>OPEN OUTPUT</c> that truncated the file holds none (2.2.1.16, "<c>OPEN OUTPUT</c>": §14.9.27.4 GR18's file
+    /// <i>"contains no records"</i> either way, a file of no bytes and a store whose committed slot landed alike), and
+    /// one that wrote nothing at all left the seeded store.</summary>
+    private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool truncated) =>
+        mode == FileOpenMode.Output && truncated ? [] : Before;
+
+    /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and "<c>OPEN OUTPUT</c>, before its three
+    /// pages", through the connector: a host refusal of EVERY write and sync of the OPEN answers the OPEN '30' (§9.1.13.6
+    /// item 1) and leaves the connector closed (<see cref="FileConnector.AbandonOpen"/> detaches the store and gives the
+    /// handle back), so the SAME connector's next OPEN succeeds and reads the file; another run unit's OPEN succeeds too.
+    /// Neither reads a record the unfinished OPEN invented or misses one it could not have removed.</summary>
+    [Theory]
+    [MemberData(nameof(Opens))]
+    public void A_refusal_at_every_write_and_sync_of_the_OPEN_is_30_and_leaves_the_connector_closed(FileOpenMode mode, FileSharing sharing)
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        int openOps = OpenOperations(mode, sharing);
+        Assert.True(openOps >= 2, $"an OPEN through a writable handle writes and syncs ({openOps})");
+        for (int k = 0; k < openOps; k++)
+        {
+            string host = Tmp($"refuse-open-{mode}-{sharing}-{k}");
+            int refuseAt = k, seen = 0;
+            try
+            {
+                Seed(host);
+                var a = new FileRegistry();
+                RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+                try
+                {
+                    Register(a, "A", host, sharing);
+                    a.OpenStatic("A", mode);
+                    Assert.Equal("30", a.Status("A"));
+                }
+                finally { RelativeStore.MediumObserver.Value = null; }
+                // The creation truncates before its first page (PagedFile.Create), so every refusal of it follows the truncation.
+                var expected = AfterAnUnfinishedOpen(mode, truncated: true).ToList();
+                if (sharing == FileSharing.AllOther)
+                {
+                    var b = new FileRegistry();
+                    Register(b, "B", host, FileSharing.AllOther);
+                    b.OpenStatic("B", FileOpenMode.IO);
+                    Assert.Equal("00", b.Status("B"));
+                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    expected.Add("0005EEEE");
+                    b.Close("B");
+                    Assert.Equal("00", b.Status("B"));
+                }
+                a.OpenStatic("A", FileOpenMode.IO);                  // the refused OPEN left the connector closed
+                Assert.Equal("00", a.Status("A"));
+                a.Close("A");
+                Assert.Equal("00", a.Status("A"));
+                Assert.Equal(expected, Records(host));
+            }
+            finally
+            {
+                RelativeStore.MediumObserver.Value = null;
+                TryDelete(host);
+            }
+        }
+    }
+
+    /// <summary>2.2.1.16's crash points of an OPEN through the connector: a process death after EVERY write of the fence
+    /// of an <c>OPEN I-O</c> or <c>OPEN EXTEND</c>, or of an <c>OPEN OUTPUT</c>'s creation, leaves a file the next run
+    /// unit's OPEN adopts ('00'), with the records the table's rows name: the seeded ones after a fence (it changes no
+    /// record), none after a creation that truncated the file, and the seeded ones after a creation that died before its
+    /// truncation.</summary>
+    [Theory]
+    [MemberData(nameof(Opens))]
+    public void A_death_after_every_write_of_the_OPEN_leaves_a_file_the_next_OPEN_adopts(FileOpenMode mode, FileSharing sharing)
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        int openOps = OpenOperations(mode, sharing);
+        for (int i = 0; i <= openOps; i++)
+        {
+            string host = Tmp($"die-open-{mode}-{sharing}-{i}");
+            try
+            {
+                Seed(host);
+                var a = new FileRegistry();
+                int dieAfter = i;
+                RelativeStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
+                try
+                {
+                    Register(a, "A", host, sharing);
+                    a.OpenStatic("A", mode);   // what the dying run unit is told is not asked
+                }
+                finally { RelativeStore.MediumObserver.Value = null; }
+                a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
+                // DyingPageMedium drops the truncation too once dead, so a creation that died at write 0 truncated nothing.
+                Assert.Equal(AfterAnUnfinishedOpen(mode, truncated: i > 0), Records(host));
+            }
+            finally
+            {
+                RelativeStore.MediumObserver.Value = null;
+                TryDelete(host);
+            }
+        }
+    }
+
+    /// <summary>⛔ REVIEW FINDING R1-2 OF kb/Work PB3333 — ONLY AN EXCLUSIVE ENTRY WRITES (2.2.1.7). Run unit X holds the
+    /// file open twice, INPUT and I-O; run unit Y's CLOSE is refused after its claim, so page 2 carries PROMOTING (2.2.1.16's
+    /// refused table, "A promotion ... before the slot write"). X's INPUT connector holds the store mutex SHARED (a read-only
+    /// handle cannot hold it exclusive) and so must not resolve the flag — two run units' readers doing so at once would
+    /// claim from the same mints and write the same slot and page 2 interleaved, breaking R1 — yet it reads the record Y's
+    /// completed WRITE left ('00'). X's I-O connector's next statement, under its EXCLUSIVE hold, resolves it; the file then
+    /// holds every completed statement's record.</summary>
+    [Fact]
+    public void An_input_connector_beside_its_writable_sibling_reads_a_promoting_page_2_and_writes_nothing()
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        string host = Tmp("r1-2");
+        try
+        {
+            Seed(host);
+            int xWrites = 0;
+            var x = new FileRegistry();
+            RelativeStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
+            try
+            {
+                Register(x, "XI", host, FileSharing.AllOther, KeyedAccess.Random);
+                x.OpenStatic("XI", FileOpenMode.Input);
+                Assert.Equal("00", x.Status("XI"));
+                Register(x, "XO", host, FileSharing.AllOther);
+                x.OpenStatic("XO", FileOpenMode.IO);
+                Assert.Equal("00", x.Status("XO"));
+            }
+            finally { RelativeStore.MediumObserver.Value = null; }
+
+            int refuseAt = int.MaxValue, seen = 0;
+            var y = new FileRegistry();
+            RelativeStore.MediumObserver.Value = inner => Refusing(inner, () => refuseAt, () => seen++, () => seen);
+            try
+            {
+                Register(y, "Y", host, FileSharing.AllOther);
+                y.OpenStatic("Y", FileOpenMode.IO);
+                Assert.Equal("00", y.Status("Y"));
+            }
+            finally { RelativeStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Write(y, "Y", 3, "CCCC"));
+            // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
+            refuseAt = seen + 2;
+            y.Close("Y");
+            Assert.Equal("30", y.Status("Y"));
+            Assert.True(PageTwoPromoting(host), "the refused promotion left PROMOTING on page 2");
+
+            int before = xWrites;
+            Assert.Equal("00", ReadKey(x, "XI", 3, out string image));
+            Assert.Equal("0003CCCC", image);
+            Assert.Equal(before, xWrites);                        // the shared entry wrote nothing
+            Assert.True(PageTwoPromoting(host), "the INPUT connector left the flag to an exclusive entry");
+
+            Assert.Equal("00", ReadKey(x, "XO", 3, out image));   // the exclusive entry resolves it (R5's restart rule)
+            Assert.Equal("0003CCCC", image);
+            Assert.True(xWrites > before, "the I-O connector's entry ran the promotion again");
+            Assert.False(PageTwoPromoting(host), "the promotion completed");
+            x.Close("XI");
+            x.Close("XO");
+            Assert.Equal("00", x.Status("XO"));
+            Assert.Equal(After(Change.Write), Records(host));
+        }
+        finally
+        {
+            RelativeStore.MediumObserver.Value = null;
+            TryDelete(host);
+        }
+    }
 }

@@ -53,3 +53,18 @@ re-verdicted). DOC-A.1-107 and the relative half of DOC-A.1-75 were rewritten. P
 unblocked.
 
 **Gate.** Run `TestResults/build-local/20261018T154127Z-564f1b` (gated at `c91f4eaad`; two earlier runs were RED and fixed: four design-section references the citation audit read as ISO clauses, and the host trait the concurrent witness needs): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,233/17,570 · Unit 33,837/34,215 · Characterization 5/36 in leg 1; leg 2 left to CI). The 24 `RelativeEngineTests` cases and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS. The Linux gate is the lander's (batched gating).
+
+**Branch review, round 1.** The reviewer recorded six findings, all answered on the branch. (1) A DELETE whose copy-on-write
+pages the host refused to grow the file for answered '24' and ran INVALID KEY: the one `Failed` mapping served every verb.
+It is now two: `RecordWriteFailed` ('24' at the boundary, WRITE and REWRITE only, §9.1.13.5 item 4) and `Failed` ('30' for
+everything else, DELETE and OPEN included). (2) An INPUT connector whose run unit also had the file open I-O entered the
+writable store under a SHARED mutex hold and could resolve another run unit's PROMOTING flag with writes; two such readers
+in two run units would interleave the same slot and page 2. `PagedFile.Enter(exclusive)` now adopts page 2 under a shared
+hold and leaves the flag to the next exclusive entry. (3) The engine's '30' had no compiled-program case: the new
+`RelativeEnginePermanentErrorWitnessTests` tear a record leaf and run READ, READ NEXT and WRITE with and without a USE
+procedure and a FILE STATUS clause (and with EC-I-O checking on), checking that neither phrase runs and whether the run
+unit continues (DOC-A.1-103); `pb1192_relative_write_boundary_85` gained a sequential-access '24' leg with INVALID KEY
+taken. (4) The CLOSE's promotion and the OPEN's fence and creation had no refusal or death case through the connector; they
+now refuse every write and sync and kill after every write. (5) Three refused-statement rows of 2.2.1.16 still said the
+CLOSE promotes after a refused first statement; they now say it only syncs, and the new OPEN cases corrected two more rows
+(an unfinished creation leaves a file the next OPEN adopts as empty, not '30'). (6) A misquoted §9.1.13.5 item 4 was fixed.

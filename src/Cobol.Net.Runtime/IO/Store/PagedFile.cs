@@ -234,8 +234,15 @@ internal sealed class PagedFile
     /// retirement or fence: the store ADOPTS page 2 (its roots, its ledger) and drops its page cache. A writer also takes
     /// page 2's mints (a <c>stamp mint</c> above the generation is a dead or refused attempt: the next claim goes above
     /// it, nothing is dropped) and resolves a PROMOTING flag first (R5's restart rule). A NO OTHER store has nobody to
-    /// adopt from and reads page 2 only to resolve its own refused promotion.</summary>
-    public StoreStatus Enter()
+    /// adopt from and reads page 2 only to resolve its own refused promotion.
+    /// <para>⛔ ONLY AN EXCLUSIVE ENTRY WRITES. <paramref name="exclusive"/> is whether the caller's hold on the store mutex
+    /// excludes every other run unit (or none can exist). A writable store entered by its run unit's INPUT connector — the
+    /// store a writable sibling opened, entered under that reader's SHARED hold, because a read-only handle cannot take an
+    /// exclusive lock (2.2.1.7) — adopts page 2 as a writer does (the ledger and the mints are reads) but leaves a
+    /// PROMOTING flag to the next exclusive entry or the CLOSE (<see cref="_promotionPending"/>): two run units' readers
+    /// each resolving it under shared holds would claim from the same mints and write the same slot and page 2
+    /// interleaved, breaking R1. The tree page 2 names is a completed statement's either way, so the reader reads it.</para></summary>
+    public StoreStatus Enter(bool exclusive = true)
     {
         if (!_coherent && !_promotionPending) return StoreStatus.Ok;
         var page = new byte[PageHeader.PageSize];
@@ -258,6 +265,11 @@ internal sealed class PagedFile
         if (!work.Promoting)
         {
             _promotionPending = false;
+            return StoreStatus.Ok;
+        }
+        if (!exclusive)
+        {
+            _promotionPending = true;
             return StoreStatus.Ok;
         }
         return ResolvePromotion(work);
