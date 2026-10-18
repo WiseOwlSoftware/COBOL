@@ -34,7 +34,7 @@ namespace CobolNet.Validation;
 /// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes. (The pass owns one
 /// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
 /// position no format prints; see <see cref="VisitMisplacedSpecialNamesForPhrase"/> — and the punctuation half of
-/// three paragraph formats, their separator periods, read through <see cref="ParagraphPeriods"/>; see
+/// five paragraph formats, their separator periods, read through <see cref="ParagraphPeriods"/>; see
 /// <see cref="ScreenParagraphPeriods"/>.)</para>
 ///
 /// <para>WHY A PARSE-TREE WALK AND NOT A BINDER HOOK — the <see cref="DeclinedFacilityPass"/> argument, and here
@@ -89,7 +89,9 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// each general format". The grammar superset-parses a period after every entry so the refusal can name the
     /// rule: a period that splits the paragraph is COBOLNET3407, at the period; a paragraph that ends without its
     /// closing period is COBOLNET3408, at its last entry. Error at every edition: the 1985, 2002, 2014 and 2023
-    /// formats all print the single period.</summary>
+    /// formats all print the single period. The SOURCE-COMPUTER and OBJECT-COMPUTER rows (§12.3.5.2, §12.3.6.2;
+    /// kb/Work PB3370) read the same way: a paragraph with nothing after its header has no sentence, which is the
+    /// one spelling §12.3.5.3 SR1 and §12.3.6.3 SR4 let omit the second period.</summary>
     private void ScreenParagraphPeriods(ParserRuleContext paragraph, ParagraphPeriod row)
     {
         var sentences = ParagraphPeriods.Sentences(paragraph);

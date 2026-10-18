@@ -123,14 +123,46 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             ConsumeUntil(recognizer, GetExpectedTokens(recognizer).Or(GetErrorRecoverySet(recognizer)));
             return;
         }
+        if (!InErrorRecoveryMode(recognizer) && IsStrayTokenBeforeOptionalPeriod(recognizer)
+            && SingleTokenDeletion(recognizer) is not null)
+            return;
         base.Sync(recognizer);
+    }
+
+    /// <summary>⛔ A SUPERSET-PARSED SEPARATOR PERIOD RECOVERS LIKE A REQUIRED ONE (kb/Work PB3370). The paragraphs
+    /// <see cref="ParagraphPeriods"/> lists write their period as <c>DOT?</c> so the period can be refused BY NAME
+    /// (and, in SOURCE-COMPUTER and OBJECT-COMPUTER, so the computer-name's prediction commits). A required period gets
+    /// ANTLR's single-token deletion at its match — <c>OBJECT-COMPUTER. XYZ ) .</c> drops the ')' and goes on — but an
+    /// optional one is only a decision whose rule may END, where the base <see cref="DefaultErrorStrategy.Sync"/> lets
+    /// the stray token pass: the paragraph ends, the error surfaces divisions later, and its recovery swallows the next
+    /// paragraphs' own diagnostics. So where the rule could take a period next, a token that NO path can take here (it
+    /// is outside the full-context LL(1) set, so no legal program is touched) directly followed by a period is deleted
+    /// as it would be before a required one. A paragraph, section or division header word (<see cref="HeaderWords"/>)
+    /// is never stray: followed by its own period it OPENS the next paragraph, written out of order or after this
+    /// paragraph's missing period (<c>SPECIAL-NAMES. DECIMAL-POINT IS COMMA</c> then <c>FILE-CONTROL.</c>), and deleting
+    /// it would pour that paragraph's entries into this closed format as false "not a clause" refusals.
+    /// <para>Cost: the rule-local next set the ATN caches, then two token types; the full-context set only for a stray
+    /// token right before a period.</para></summary>
+    private static bool IsStrayTokenBeforeOptionalPeriod(Parser recognizer)
+    {
+        var atn = recognizer.Atn;
+        var state = atn.states[recognizer.State];
+        var local = atn.NextTokens(state);
+        if (!local.Contains(CobolLexer.DOT) || !local.Contains(TokenConstants.EPSILON)) return false;
+        var stream = (ITokenStream)recognizer.InputStream;
+        int la1 = stream.LA(1);
+        return la1 != TokenConstants.EOF && !local.Contains(la1) && stream.LA(2) == CobolLexer.DOT
+               && !HeaderWords(atn).Contains(la1) && !atn.NextTokens(state, recognizer.Context).Contains(la1);
     }
 
     private static bool IsClosedFormatResidueAhead(Parser recognizer)
     {
         var atn = recognizer.Atn;
         var state = atn.states[recognizer.State];
-        if (!ReachesErrorProduction(atn, state)) return false;
+        // Inside the production itself (its word run, which only unrecognizedClause calls) the residue CONTINUES:
+        // `SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.` stands in the paragraph's single optional residue, and no loop of the
+        // list's own would Sync once the run ended (kb/Work PB3370).
+        if (state.ruleIndex != CobolParserCore.RULE_genericClause && !ReachesErrorProduction(atn, state)) return false;
         var token = recognizer.CurrentToken;
         if (token.Type is CobolLexer.IDENTIFIER or TokenConstants.EOF || atn.NextTokens(state).Contains(token.Type))
             return false;   // the production takes an IDENTIFIER itself; a token the rule continues with is legal
@@ -455,11 +487,14 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
     /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
     /// edge is taken only for the tokens between the parser's current token and <paramref name="token"/> — the ones a
-    /// failed adaptive prediction looked past (<c>SOURCE-COMPUTER. XYZ GLOBAL.</c> fails the prediction of the
-    /// paragraph's optional group at GLOBAL with XYZ still current). If the closure at <paramref name="token"/> reaches
+    /// failed adaptive prediction looked past (a decision that read k tokens before it failed reports the k-th, with
+    /// the decision's first token still current). If the closure at <paramref name="token"/> reaches
     /// a call of <c>unrecognizedClause</c>, the rule making that call is the closed format's alternative list
     /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
     /// refused by name, and a reserved word is the same residue the production's IDENTIFIER-led shape cannot hold.
+    /// So is the list whose call of the production the PARSER is still inside, met as the closure pops its context
+    /// (<c>SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.</c>: the run WIBBLE ended at GLOBAL, kb/Work PB3370) — the innermost
+    /// list of all, since the word continues that run.
     /// Where two lists are open at once (<c>SPECIAL-NAMES. GLOBAL.</c> could continue the paragraph's entries or start
     /// a configuration-section paragraph) the INNERMOST wins: the word is written inside it. Nothing is keyed on a
     /// word or a rule name, so a closed format added to the grammar inherits this. Semantic predicates are not
@@ -554,7 +589,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             {
                 if (calls is not null) work.Push(new(atn.states[calls.FollowState], calls.Next, context));
                 else if (context.invokingState >= 0 && context.Parent is { } caller)
+                {
+                    // Leaving the PARSER's own call of the production: the word run is still open in the list that
+                    // made the call, the innermost list of all (kb/Work PB3370 — a reserved word after the run).
+                    if (context.RuleIndex == CobolParserCore.RULE_unrecognizedClause)
+                        probe?.Found(caller.RuleIndex, caller.Depth());
                     work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
+                }
                 continue;
             }
             reached.Add(c);
