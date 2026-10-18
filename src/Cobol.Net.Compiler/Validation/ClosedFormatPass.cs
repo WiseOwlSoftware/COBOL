@@ -28,7 +28,8 @@ namespace CobolNet.Validation;
 /// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
 /// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production
 /// (<c>unrecognizedClause</c>), this pass is its ONE consumer, and <see cref="ClosedFormats.ByContext"/> is its
-/// ONE table; <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
+/// ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word at its
+/// position is refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533); <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
 /// parser, in BOTH directions, so a new closed format cannot parse into silence and a stale row cannot linger.
 /// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes. (The pass owns one
 /// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
@@ -181,7 +182,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     }
 
     private static string OwnerSuffix(ParserRuleContext container)
-        => OwnerName(container) is { Length: > 0 } n ? $" '{n}'" : "";
+        => ClosedFormats.OwnerName(container) is { Length: > 0 } n ? $" '{n}'" : "";
 
     /// <summary>The first words of a clause as the programmer wrote them (at most 32 characters), to name it in the message.</summary>
     private static string WrittenOpening(ParserRuleContext clause)
@@ -194,14 +195,16 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     }
 
     /// <summary>THE refusal. The format is identified by the PARENT context — the alternative list the error
-    /// production was written into — so one visitor serves every closed format and a new one needs no arm.</summary>
+    /// production was written into — so one visitor serves every closed format and a new one needs no arm. Its
+    /// wording and code are the row's (<see cref="ClosedFormat.Refusal"/>, <see cref="ClosedFormat.Diagnostic"/>),
+    /// shared with the parse layer's refusal of a RESERVED word at the same position (<c>CobolErrorStrategy</c>,
+    /// kb/Work PB2533), which the production cannot take because it begins at an IDENTIFIER.</summary>
     public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx)
     {
         var format = ClosedFormats.Of(ctx.Parent?.GetType());
         // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
         // silent return here is precisely the defect this pass exists to end.
         string word = ctx.genericClause()?.IDENTIFIER(0)?.GetText() ?? ctx.GetText();
-        string owner = OwnerName(ctx) is { Length: > 0 } n ? $" for '{n}'" : "";
         if (format is null)
         {
             _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,
@@ -209,12 +212,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
                 + "in ClosedFormats.ByContext, which ClosedFormatDriftTests exists to prevent");
             return null;
         }
-        _edition.Error(format.Code == "COBOLNET1941" ? DiagnosticCatalog.DataClauseUnrecognized
-                     : format.Noun == "paragraph" ? DiagnosticCatalog.ClosedFormatUnrecognizedParagraph
-                     : DiagnosticCatalog.ClosedFormatUnrecognizedClause,
-            $"'{word}' is not a {format.Noun} of the {format.Subject}{owner} — the ISO §{format.Clause} "
-            + $"{format.FormatLabel}general format lists the {format.Noun}s that may be specified, and it is a "
-            + "closed list");
+        _edition.Error(format.Diagnostic, format.Refusal(word, ClosedFormats.OwnerName(ctx)));
         return null;   // nothing below an error production is diagnosed — one diagnostic per word run
     }
 
@@ -239,30 +237,6 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
         string words = string.Join(" ", Enumerable.Range(0, phrase.ChildCount).Select(i => phrase.GetChild(i).GetText()));
         _edition.Error(DiagnosticCatalog.SpecialNamesForPhraseMisplaced, $"{clause}: the phrase '{words}' "
             + $"follows the clause's definition — the FOR phrase belongs {where} (ISO §12.3.7.2 general format)");
-        return null;
-    }
-
-    /// <summary>The name of the entry the offending word run sits in, for a message that points at the user's own
-    /// declaration rather than at a line number alone. Four of the formats have such a name (the data
-    /// description entry's data-name, the FD's and SD's file-name, the file control entry's SELECT file-name);
-    /// the rest — I-O-CONTROL, SPECIAL-NAMES, SOURCE-/OBJECT-COMPUTER, the configuration section and the identification division —
-    /// are unnamed paragraphs and correctly yield null, because no ancestor of theirs matches an arm below.
-    /// <para>⚠ NEAREST ancestor wins, which is the point: a <c>dataDescriptionEntry</c> nested under an
-    /// <c>fileDescriptionEntry</c> must report ITS data-name, not the file's.</para></summary>
-    private static string? OwnerName(ParserRuleContext ctx)
-    {
-        for (RuleContext? p = ctx; p is not null; p = p.Parent)   // the nearest ancestor-or-self: a clause container asks for its own entry
-            switch (p)
-            {
-                case CobolParserCore.ReportGroupEntryContext r: return r.dataName()?.GetText();
-                case CobolParserCore.DataDescriptionEntryContext d: return d.dataName()?.GetText();
-                case CobolParserCore.FileDescriptionEntryContext f: return f.fileName()?.GetText();
-                case CobolParserCore.SortMergeDescriptionEntryContext s: return s.fileName()?.GetText();
-                case CobolParserCore.FileControlClauseGroupContext g: return g.fileName()?.GetText();
-                case CobolParserCore.EnvironmentDivisionContext: return null;   // bound: no named ancestor above
-                case CobolParserCore.IdentificationDivisionContext: return null;
-                case CobolParserCore.DataDivisionContext: return null;
-            }
         return null;
     }
 }

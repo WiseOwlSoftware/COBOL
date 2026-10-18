@@ -163,14 +163,44 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
             Assert.Matches(@"^\d+(\.\d+)+$", f.Clause);
             Assert.False(string.IsNullOrWhiteSpace(f.Subject), $"{type.Name}: empty Subject");
             Assert.Contains(f.Noun, new[] { "clause", "paragraph" });
-            Assert.Contains(f.Code, new[] { "COBOLNET1941", "COBOLNET1970", "COBOLNET1971" });
+            Assert.Contains(f.Diagnostic.Code, new[] { "COBOLNET1941", "COBOLNET1970", "COBOLNET1971" });
             Assert.True(f.FormatLabel.Length == 0 || f.FormatLabel.EndsWith(' '),
                 $"{type.Name}: FormatLabel must carry its own trailing space so the message needs no second template");
             // The noun and the code agree: a PARAGRAPH list is 1971, a CLAUSE list is 1970 (or 1941, the code
             // §13.16.2 kept from kb/Work PB487). A mismatch sends the reader to the wrong subclause.
-            if (f.Noun == "paragraph") Assert.Equal("COBOLNET1971", f.Code);
-            else Assert.Contains(f.Code, new[] { "COBOLNET1941", "COBOLNET1970" });
+            if (f.Noun == "paragraph") Assert.Equal("COBOLNET1971", f.Diagnostic.Code);
+            else Assert.Contains(f.Diagnostic.Code, new[] { "COBOLNET1941", "COBOLNET1970" });
         }
+    }
+
+    /// <summary>⛔ THE PARSE LAYER'S KEY AGREES WITH THE TREE'S (kb/Work PB2533). <c>CobolErrorStrategy</c> refuses a
+    /// RESERVED word at a closed format's error production by the RULE INDEX of the alternative list the ATN walk finds
+    /// calling <c>unrecognizedClause</c>; <see cref="ClosedFormats.ByRuleIndex"/> must therefore hold every row, each
+    /// under the rule whose generated context type is the row's key, and every rule that calls the production must be
+    /// one of them — else a reserved word in that format would fall back to a bare parse error.</summary>
+    [Fact]
+    public void EveryRuleCallingTheErrorProduction_IsAClosedFormatRuleIndex()
+    {
+        Assert.Equal(ClosedFormats.ByContext.Count, ClosedFormats.ByRuleIndex.Count);
+        foreach (var (type, f) in ClosedFormats.ByContext)
+        {
+            string rule = char.ToLowerInvariant(type.Name[0]) + type.Name[1..^"Context".Length];
+            int index = Array.IndexOf(Core.ruleNames, rule);
+            Assert.True(index >= 0, $"{type.Name}: no parser rule '{rule}'");
+            Assert.Same(f, ClosedFormats.OfRule(index));
+        }
+        // Every rule whose ATN calls unrecognizedClause, read from the generated parser itself.
+        var atn = Core._ATN;
+        var callers = atn.states
+            .Where(s => s is not null && Enumerable.Range(0, s.NumberOfTransitions).Any(i =>
+                s.Transition(i) is Antlr4.Runtime.Atn.RuleTransition rt
+                && rt.target.ruleIndex == Core.RULE_unrecognizedClause))
+            .Select(s => s.ruleIndex).ToHashSet();
+        Assert.True(callers.Count >= 8, $"only {callers.Count} rule(s) call unrecognizedClause — the ATN probe is broken");
+        var unmapped = callers.Where(r => ClosedFormats.OfRule(r) is null).Select(r => Core.ruleNames[r]).ToList();
+        Assert.True(unmapped.Count == 0, "rules call unrecognizedClause with no ClosedFormats.ByRuleIndex entry: "
+            + string.Join(", ", unmapped));
+        Assert.Null(ClosedFormats.OfRule(Core.RULE_procedureDivision));   // the lookup can answer "none"
     }
 
     /// <summary>The band is ERROR severity at every edition and every strictness. §4.2.2 makes a general format
