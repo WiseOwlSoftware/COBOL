@@ -227,7 +227,7 @@ guard_report_file() {
 # host newline aside, guard_canonical_into) with
 # GOLDEN_DIR/<name> (tests/nist/valid-files/<TEST>/), and the two sets must be EQUAL: a file written with no golden,
 # and a golden the program no longer writes, are as red as a different byte. The program's stdout counts as a written
-# file named `(stdout)` when it ALSO wrote a print file, compared on the acceptance basis (drop CR, strip per-line
+# file named `(stdout)` beside a print file and after an abnormal end (no report), compared on the acceptance basis (drop CR, strip per-line
 # trailing spaces, ignore trailing newlines) because a console's line ends are the host's.
 # This is the shell arm of NistOutputs.Grade (tests/Cobol.Net.Tests.Conformance/NistRunner.cs); scripts/guard-verify.sh
 # holds the two to the same cases. Every problem is listed in PROBLEMS_FILE (kept as evidence by guard_preserve).
@@ -298,7 +298,7 @@ guard_files_apply() {
             grep -qxF -- "$name" <<< "$written" || guard_files_problem "$name" "it has a golden in $gdir but the program did not write it" "not written"
         done
     fi
-    # The console output, when the program also wrote a print file (a DISPLAY-only program's stdout IS its report).
+    # The console output, beside a print file or after an abnormal end (a normally ended DISPLAY-only program's stdout IS its report).
     sout=""
     if { [ -z "$report" ] || [ -f "$rundir/$report" ]; } && [ -f "$stdoutfile" ]; then sout="$(tr -d '\r' < "$stdoutfile" | sed 's/ *$//')"; fi
     if [ -n "$sout" ]; then

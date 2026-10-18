@@ -267,7 +267,7 @@ one file of the run, and the differential used to read only it: RW104A's report-
 field's COLUMN under `--permissive` (PB792) while `rw104a.txt` stayed byte-identical, and the battery was green over it.
 
 So **every file the program WROTE** — created or modified since just before it ran, which excludes the compiler's
-artefacts and a chain predecessor's files — plus its console output when it also wrote a print file (`(stdout)`) is
+artefacts and a chain predecessor's files — plus its console output beside a print file or after an abnormal end (`(stdout)`) is
 compared with `tests/nist/valid-files/<TEST>/<file>`, and the two sets must be EQUAL: a file written with no golden,
 a golden no longer written and one different byte are each red. 150 programs write one or more: the sequential,
 relative and indexed files of the SQ/RL/IX/ST/SM/IC families, the OBSQ chain, the RW report files. The next
