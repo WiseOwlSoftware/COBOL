@@ -70,7 +70,8 @@ demonstration: `NC215A` printed a wrong answer (PB741) that `NistDifferentialTes
   (no Roslyn), fails on any `BREAKS`. THIS one drives the greenfield CLI.
 
 **NIST is measured twice, by two different paths, and they are ONE POPULATION.** `NistDifferentialTests`
-(6 partitions) drives `CompilerDriver` IN-PROCESS over the 349 green∪divergent rows on both OSes;
+(6 partitions) drives `CompilerDriver` IN-PROCESS over the 364 green∪divergent rows on both OSes (kb/Work PB804 made the
+15 programs that have a golden and that only the guard ran green rows too);
 `guard-fast.sh` drives the `cobol` CLI as a separate process over the whole 376-program in-scope corpus from
 bash on Linux. Neither subsumes the other — one covers the library API and Windows, the other covers the
 shipped exe, the CCVS chain-isolation model and the compile+run health of the golden-less programs — and both
@@ -278,8 +279,17 @@ program that writes a second file is graded with no change anywhere.
 - **Bytes, not text.** The files are compared byte-for-byte (`-text` in `.gitattributes`): a sequential or relative
   file has no line terminator, an indexed store is binary. They pin WiseOwl COBOL's own file format (the standard
   leaves the storage layout to the implementor, ISO §13.18.43.4 GR2); the standard-defined content is what the CCVS
-  program reads back and reports in its print file. Only `(stdout)` is compared on the acceptance basis (the console's
-  line ends are the host's).
+  program reads back and reports in its print file. Two exceptions, each because the HOST decides the bytes: a TEXT
+  file (only tab, line feed, form feed, carriage return and printable ASCII) is compared with each CR LF taken as LF,
+  because a line sequential file ends its records with the host's newline (DOC-A.1-114; ISO §12.4.5.10.3 GR2, "an
+  implementor-defined line delimiter") — RW101A to RW104A's report files are CR LF on Windows and LF on Linux, and the
+  goldens hold LF — while a lone CR is record data and still counts, and a BINARY file is never normalized, so a
+  newline translation in a record file is a difference. And `(stdout)` is compared on the acceptance basis (the
+  console's line ends are the host's too). `NistOutputs.Canonical` and `guard-verdict.sh#guard_canonical_into` are the
+  one rule in its two arms.
+- **The population includes the 15 guard-asserted `pending` rows.** `OBSQ1A` and `SQ106A` … `SQ227A` have a golden and
+  were run by the guard only; the first Linux run of the written-files arm failed on them for having no golden to
+  grade against, and the differential now runs them as green rows (they match on both hosts).
 - **Re-capture** after a deliberate format change: `COBOLNET_UPDATE_NIST_FILES=1 dotnet test … --filter
   NistDifferentialTests`, then review `git diff tests/nist/valid-files` — the same discipline as
   `COBOLNET_UPDATE_SNAPSHOTS`.
