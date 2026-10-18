@@ -7,8 +7,9 @@ internal sealed partial class BTree
     /// <summary>Position a cursor by <paramref name="relation"/> against <paramref name="key"/> — the whole key, or with
     /// <paramref name="prefix"/> the leading positions of each stored key (a START's partial key, §14.9.41.4 GR17 c) to
     /// e): the LESS relations search <i>"in reverse order"</i>, so they land on the LAST qualifying entry). The cursor has
-    /// no current entry when none qualifies. A prefix under an order that is not <see cref="IKeyOrder.PrefixConsistent"/>
-    /// is the search GR17 c) and d) state, entry by entry from the first (or, for the LESS relations, the last).</summary>
+    /// no current entry when none qualifies. A prefix the order does not narrow (<see cref="IKeyOrder.PrefixNarrows"/>: a
+    /// partial key under a locale-based sequence) is the search GR17 c) and d) state, entry by entry from the first (or,
+    /// for the LESS relations, the last); a prefix as long as the key is a binary search under every order.</summary>
     public StoreStatus Seek(ReadOnlySpan<byte> key, SeekRelation relation, out Cursor cursor, bool prefix = false)
     {
         var c = cursor = new Cursor(this);
@@ -111,7 +112,7 @@ internal sealed partial class BTree
 
         internal void Position(byte[] probe, SeekRelation relation, bool prefix)
         {
-            if (prefix && !_tree._order.PrefixConsistent)
+            if (prefix && !_tree._order.PrefixNarrows(probe.Length))
             {
                 Search(probe, relation);
                 return;
@@ -150,7 +151,7 @@ internal sealed partial class BTree
         }
 
         /// <summary>⛔ THE SEQUENTIAL SEARCH OF §14.9.41.4 GR17 c) and d), for a prefix whose order a binary search cannot
-        /// narrow (<see cref="IKeyOrder.PrefixConsistent"/>): from the first entry forward for EQUAL and the GREATER
+        /// narrow (<see cref="IKeyOrder.PrefixNarrows"/>): from the first entry forward for EQUAL and the GREATER
         /// relations, from the last backward for the LESS ones, stopping on the first entry whose prefix satisfies the
         /// relation (GR17 e) 1.); none satisfies it and the cursor has no current entry (GR17 e) 2.).</summary>
         private void Search(byte[] probe, SeekRelation relation)

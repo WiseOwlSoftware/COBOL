@@ -99,8 +99,8 @@ public sealed class BTreeModelTests
             (Medium, _, Store) = StoreKit.NewStore();
             KeyOrder = kind switch
             {
-                Order.Weighted => new WeightedKeyOrder(null, ReversedAlphabet()),
-                Order.Locale => new WeightedKeyOrder(null, new LocaleCollation("root")),
+                Order.Weighted => new WeightedKeyOrder(null, ReversedAlphabet(), WeightedKeyLength),
+                Order.Locale => new WeightedKeyOrder(null, new LocaleCollation("root"), LocaleKeyLength),
                 Order.Composite => new CompositeKeyOrder(KeyOrders.Ordinal),
                 _ => KeyOrders.Ordinal,
             };
@@ -243,9 +243,9 @@ public sealed class BTreeModelTests
                 case Order.Numeric:
                     return KeyOrders.RecordNumberKey(_random.Next(4) == 0 ? (ulong)_random.NextInt64(1, 1L << 40) : (ulong)_random.Next(1, 200_000));
                 case Order.Weighted:
-                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(36), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123"));
+                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(WeightedKeyLength), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123"));
                 case Order.Locale:
-                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(12), LocaleLetters));
+                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(LocaleKeyLength), LocaleLetters));
                 case Order.Composite:
                     return CompositeKeyOrder.Compose(Encoding.Latin1.GetBytes(Letters(1 + _random.Next(5), "ABCD")), ++_ordinal);
                 default:
@@ -261,10 +261,16 @@ public sealed class BTreeModelTests
         {
             Order.Numeric => NewKey()[..(1 + _random.Next(7))],
             Order.Weighted => Encoding.Latin1.GetBytes(Letters(1 + _random.Next(3), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123")),
-            Order.Locale => Encoding.Latin1.GetBytes(Letters(1 + _random.Next(3), LocaleLetters)),
+            // A partial key mostly, and now and then one as long as the key, which the tree narrows by binary search.
+            Order.Locale => Encoding.Latin1.GetBytes(Letters(_random.Next(4) == 0 ? LocaleKeyLength : 1 + _random.Next(3), LocaleLetters)),
             Order.Composite => Encoding.Latin1.GetBytes(Letters(1 + _random.Next(3), "ABCD")),
             _ => NewKey()[..1],
         };
+
+        /// <summary>The longest WEIGHTED and LOCALE keys (the key's length its order is declared with).</summary>
+        private const int WeightedKeyLength = 36;
+
+        private const int LocaleKeyLength = 12;
 
         /// <summary>Letters that differ at the primary (a, b, c), secondary (á, à, ç) and tertiary (A, B) levels, so a
         /// key's order and its prefix's disagree often.</summary>

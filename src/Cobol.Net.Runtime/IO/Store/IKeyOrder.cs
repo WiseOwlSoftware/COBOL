@@ -10,18 +10,22 @@ namespace CobolNet.Runtime.IO.Store;
 /// first temporary area; GR17 c) and d): <i>"This second temporary area is truncated to the same length as the first"</i>):
 /// the leading <c>prefix.Length</c> byte positions of a stored key's KEY PART (a composite key's part before its ordinal)
 /// against the prefix. GR17 c) and d) define the answer as a SEQUENTIAL search — <i>"the file is searched sequentially"</i>,
-/// or <i>"in reverse order"</i> for the LESS relations — so a seek may narrow it by binary search only when the order is
-/// <see cref="PrefixConsistent"/>; otherwise <see cref="BTree.Seek"/> walks the tree in the search's own direction.</para>
+/// or <i>"in reverse order"</i> for the LESS relations — so a seek may narrow it by binary search only when
+/// <see cref="PrefixNarrows"/> says the qualifying entries are one run of the key order; otherwise
+/// <see cref="BTree.Seek"/> walks the tree in the search's own direction.</para>
 /// </summary>
 internal interface IKeyOrder
 {
-    /// <summary>⛔ Whether a key below another never has a greater prefix: true for an order that compares character
-    /// position by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1), which
-    /// §14.9.41.4 GR17 e) names for operands of equal length — so the qualifying entries of every relation are one run of the key order and a
-    /// binary search finds its end. False under a LOCALE-BASED sequence (§8.8.4.2.11, <i>"not necessarily performed
-    /// character-by-character"</i>): under the CLDR/UCA engine "áa" is below "ab" (primary a,a &lt; a,b) while its
-    /// one-character prefix "á" is above "a" (secondary), so a binary search would land past a qualifying entry.</summary>
-    bool PrefixConsistent { get; }
+    /// <summary>⛔ Whether the entries a prefix of <paramref name="prefixLength"/> positions qualifies, under every relation,
+    /// are one run of the key order, so a binary search finds its end. True for an order that compares character position
+    /// by character position from the left — the bytes, and the STANDARD comparison of §8.8.4.2.7 1), which §14.9.41.4
+    /// GR17 e) names for operands of equal length — at every length: a key below another never has a greater prefix.
+    /// Under a LOCALE-BASED sequence (§8.8.4.2.11, <i>"not necessarily performed character-by-character"</i>) true only for
+    /// a prefix as long as the key itself: GR17 c) then truncates nothing, so <see cref="ComparePrefix"/> IS
+    /// <see cref="Compare"/>. A shorter one is not: under the CLDR/UCA engine "áa" is below "ab" (primary a,a &lt; a,b)
+    /// while its one-character prefix "á" is above "a" (secondary), so a binary search would land past a qualifying
+    /// entry.</summary>
+    bool PrefixNarrows(int prefixLength);
 
     /// <summary>The order of two whole stored keys: negative, zero or positive.</summary>
     int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right);

@@ -962,12 +962,18 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   length, c) and d) truncate each stored key to it, e) compares them by §8.8.4.2.7's equal-length rule) is a
   seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix. §14.9.41.4
   GR17 c) and d) define that seek as a SEQUENTIAL search (forward, or in reverse for the LESS relations), and the tree narrows it by
-  binary search only under a PREFIX-CONSISTENT order (`IKeyOrder.PrefixConsistent`: a key below another never has a greater
-  prefix), which every order that compares position by position is — the bytes, and a sequence under §8.8.4.2.7 1)'s
-  standard comparison (`CobolCollation.UsesStandardComparison`). A LOCALE-BASED sequence is not (§8.8.4.2.11, *"not
-  necessarily performed character-by-character"*: under the root locale "áa" < "ab" while "á" > "a"), so under it a START's
-  partial key walks the tree entry by entry in the search's direction, exactly as GR17 states and as
-  `IndexedConnector.Start` searches every key today (review w1122-a R1-1).
+  binary search wherever the qualifying entries are one run of the key order (`IKeyOrder.PrefixNarrows(length)`): at every
+  length under an order that compares position by position — the bytes, and a sequence under §8.8.4.2.7 1)'s standard
+  comparison (`CobolCollation.UsesStandardComparison`) — and under a LOCALE-BASED sequence at the key's whole length only:
+  a START key as long as the record key (GR17 b)) has nothing truncated by c) and d), so the prefix comparison IS the key
+  order and every whole-key START reads the tree's depth (a leaf or two more where it settles across a leaf boundary). The
+  `WeightedKeyOrder` carries the key's length for that and refuses a longer key or prefix (GR14 bounds a START's length by the
+  key's). A SHORTER partial key under a locale-based sequence is not one run (§8.8.4.2.11, *"not necessarily performed
+  character-by-character"*: under the root locale "áa" < "ab" while "á" > "a"), so it walks the tree entry by entry in the
+  search's direction, as GR17 states (review w1122-a R1-1). That walk reads every leaf before its answer, the whole prime
+  tree when none qualifies, which PB3330's bar (*"No statement reads or writes the whole file"*) forbids: it is an OPEN
+  DEFECT of the engine (review w1122-a R2-1), not an accepted cost, until a narrowing that is sound under the locale
+  engine's contractions and ignorables bounds it.
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
   key whose value is not the key's SUPPRESS WHEN value (the §12.4.5.6.4 GR6 suppression; §14.9.30.4 GR21 c): such a record *"is not
   considered to exist"* under that key), an entry (alternate key, ordinal) → prime key, every ordinal the one fresh mint value (§14.9.51.4 GR40). REWRITE
