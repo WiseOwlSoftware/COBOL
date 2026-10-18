@@ -82,4 +82,22 @@ its removal statement reported failure with the transaction gone: a COMMIT is no
 write (`committing` in the claim and the slot; the retirement removes the entry), and a promotion's restart rule reads both
 slots for a flag left by a dead or a refused promoter (landed: complete; unlanded: run again, or unwind a COMMIT).
 
+Round 5 found two more (both medium), and the owner chose the same finisher again. A COMMIT whose sync after the slot
+write was refused could be answered '30' while another connector completed it, so the fatal path's ROLLBACK restored
+nothing: a COMMIT is now answered only by that sync, a refused one is REVERSED under the COMMIT's own mutex hold before
+it answers, and a refused reversal marks the file so that every later ROLLBACK answers by its own sync. A unique key value
+freed by a second change of the same record was in no before-image and leaked past COMMIT and ROLLBACK: every holding is
+now an entry of its owner's UNDO tree, which the HOLDINGS tree indexes by identity, and a drift test keeps the two key
+sets equal. The owner stopped the review rounds that night, before round 5 was reviewed.
+
+On 2026-10-18 the Mythos lane decided the route, and the branch's finisher merged origin/main and wrote it into PB3330.
+The prose review rounds are over: the method is SIMULATOR-FIRST. The deterministic fault-injecting page medium of
+§2.2.1.12 is the first deliverable of PB3331, built before the engine's logic, and the crash rules, the crash points and
+the two-run-unit interleavings become its executable cases; the design is corrected from what they find. The core engine
+(PB3331-PB3336) goes to the Mythos lane's Opus waves. The transaction slice (PB3337, PB3338 and PB3340) took fifteen of
+the twenty-one review findings, and it is HELD until the core has landed and its simulator proves the crash and coherence
+rules on the real engine; its scope, and the cross-file COMMIT question round 5 left, are the owner's decision. PB3330
+also gains the owner's standing test rule (success and abnormal cases for SORT and file I/O) and the engine's own cases,
+which the planner writes into every group of the cluster.
+
 Notes and docs only. No code change.
