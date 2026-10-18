@@ -284,18 +284,23 @@ is LEGAL SOURCE that GR1/GR2/GR4a define at run time; rejecting it would be a `r
 `StatementBinder.BindRetry` binds the three forms with no screen and must stay that way.
 
 **Where it lives.** `FileRegistry.RetryLoop` gates on `IsConflict` (§9.1.13.1's own first-digit classification) and
-routes every landing through the private `ExhaustionStatus` — the ONE place the rule is written. Its FIVE call
-sites (`DeleteFile`, `OpenCore`, `ConflictOnLockedRecord`, `RewriteShared`, `DeleteShared`) inherit it rather than
-each judging for themselves, and that is every RETRY-bearing verb: the two READ formats do NOT call it
-separately, they both reach `ConflictOnLockedRecord`, which is the one §14.9.30.4 GR9 check (kb/Work PB340).
-`WriteShared` deliberately takes the phrase and discards it, and the ground is NOT §14.9.51.4 GR16 alone: GR16
+routes every landing through the private `ExhaustionStatus` — the ONE place the rule is written. Its call
+sites (`DeleteFile`, `OpenCore`, `ConflictOnLockedRecord` and `RecordLockCeiling`) inherit it rather than each
+judging for themselves, and that is every RETRY-bearing verb: the two READ formats, REWRITE and DELETE do NOT call it
+separately, they reach `ConflictOnLockedRecord`, which is the one §14.9.30.4 GR9 / §14.9.35.4 GR11 / §14.9.10.4 GR6
+check (kb/Work PB340). WRITE has no `ConflictOnLockedRecord` leg, and the ground is NOT §14.9.51.4 GR16 alone: GR16
 says only that RETRY controls WRITE "for the case where resources needed to write a record are locked by another
 run unit", which cannot arise in a single-run-unit model. What rules WRITE out of §9.1.13.8 item 1 is that its '51'
 is "an attempt to ACCESS a record" and the WRITE general rules define no '51' leg (GR33/GR42 state the invalid-key
-checks ignore record locks), so the first attempt decides. ⚠ The §12.4.5.9 GR7 lock-CEILING statuses '53'/'54' a
-WRITE WITH LOCK can raise are first-digit '5' and therefore inside `IsConflict`, but no re-attempt within one run
-unit can clear a ceiling and `ExhaustionStatus` returns them unchanged under every form, so routing them through
-`RetryLoop` would be behaviour-identical; they stay outside it deliberately.
+checks ignore record locks).
+The §12.4.5.9.4 GR7 lock-CEILING statuses '53'/'54' are the one conflict a statement that REQUESTS a new lock (READ,
+WRITE and REWRITE with a lock phrase) can meet. They are record operation conflict conditions on §9.1.13.8's own
+heading, so §14.7.9.3 GR4 engages on them, and `FileRegistry.RecordLockCeiling` — the one place
+`PhysicalFileTable.PreflightNewLock` is asked — lands them through `RetryLoop` as an in-run-unit attempt (kb/Work
+PB707). No re-attempt within one run unit can clear a ceiling (the count is the connector's and the run unit's own) and
+`ExhaustionStatus` returns a non-'51' conflict unchanged under every form, so the loop is the rule's one home and
+changes no answer; `RecordLockCeilingRetryDriftTests` pins the placement and `CobolFileLockTests` the '53'/'54' rows
+of the class theory.
 
 **No site upstream of `RetryLoop` may restate its outcome.** Splitting the SECONDS arm off the FOREVER arm was a
 one-line change to the code and a change to NOTHING ELSE, and five descriptions of the old arm survived it — in
@@ -1165,7 +1170,7 @@ The general format says the same thing structurally — Format 3, the sequential
 `[ ACCESS MODE IS SEQUENTIAL ]` — but a format is not a check, and nothing screened it: `SELECT F ASSIGN TO "f"
 ORGANIZATION IS SEQUENTIAL ACCESS MODE IS RANDOM.` compiled and ran clean (kb/Work PB692).
 
-**Where it lives.** `DataBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9 SR2
+**Where it lives.** `DataBinder.BindFileControl`, immediately after the clause loop, beside the §12.4.5.9.3 SR2
 screen already there: `file.IsSequential && file.AccessMode is Random or Dynamic` — the predicate NAMES the
 two phrases SR2 names rather than negating SEQUENTIAL → **COBOLNET1858**,
 positioned at the ACCESS MODE clause itself. Both banned phrases go through one screen and one descriptor,
@@ -1212,7 +1217,7 @@ become decidable at the same moment, so "on the entry" is two places, and which 
 what the rule needs rather than by taste:
 
 - **Decidable from the CLAUSES ALONE** → `DataBinder.BindFileControl`, inline after the clause loop, reporting at
-  once. §12.4.5.5.2 SR2 above, and the §12.4.5.9 SR2 screen beside it, are of this kind: organization against
+  once. §12.4.5.5.2 SR2 above, and the §12.4.5.9.3 SR2 screen beside it, are of this kind: organization against
   access mode, a clause against another clause.
 - **Needs a RESOLVED DATA ITEM** → `DataBinder.ResolveFiles`, the post-build pass, through the one table below.
   A key clause names a data-name whose OCCURS ancestry, PICTURE and owning record description are not known until
