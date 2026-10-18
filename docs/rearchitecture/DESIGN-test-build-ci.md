@@ -1814,7 +1814,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
    predecessor's. A predecessor whose review ended FINDINGS at the cap keeps those findings for its own finisher, and
    `prune_worktrees.py` holds a successor carrying another note's unanswered FINDINGS IN FLIGHT (`waits_on`) until
-   that finisher has landed it. Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
+   that finisher has landed it. A predecessor whose review FINISHER came back unfinished has no such stamp (the
+   finisher rewrote the report for its own branch), so its successor's review covers the predecessor's content and
+   records again each of its findings that still holds (`wf_rolling_wave.js` `predecessorEnd`: clean, capped,
+   unanswered, unreviewed; branch review R1-1); and a merged branch with no clean stamp at its tip never lands alone,
+   it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
    and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
    one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
    stamp: `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest report's CLEAN stamp names no commit of
