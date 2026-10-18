@@ -43,6 +43,9 @@ internal static class KeyOrders
 internal sealed class OrdinalKeyOrder : IKeyOrder
 {
     /// <inheritdoc/>
+    public bool PrefixNarrows(int prefixLength) => true;
+
+    /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => left.SequenceCompareTo(right);
 
     /// <inheritdoc/>
@@ -56,9 +59,19 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
 /// <c>IndexedConnector.KeyCompare</c> compares today: native ordinal with no sequence; a locale sequence through its
 /// materialized keys, which its collator's key cache builds once per distinct value (kb/Work PB106); any other declared
 /// sequence by its weights. A file with a CODE-SET clause and no COLLATING SEQUENCE takes this order with no collation,
-/// because its channel byte order is the coded set's and not the native one.</summary>
-internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollation? collation) : IKeyOrder
+/// because its channel byte order is the coded set's and not the native one. <paramref name="keyLength"/> is the key's
+/// length in character positions (one byte each), the length of the record key a START's partial key is a prefix of
+/// (§14.9.41.4 GR14); a key or prefix longer than it is the caller's defect and is refused.</summary>
+internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollation? collation, int keyLength) : IKeyOrder
 {
+    private readonly bool _positional = collation is null || collation.UsesStandardComparison;
+
+    /// <summary>The decoding is one character per byte position, so a prefix narrows at every length exactly when the
+    /// comparison is positional — native ordinal, or a sequence compared by the standard comparison
+    /// (<see cref="CobolCollation.UsesStandardComparison"/>) — and otherwise only at the key's whole length, where
+    /// §14.9.41.4 GR17 c) truncates nothing.</summary>
+    public bool PrefixNarrows(int prefixLength) => _positional || prefixLength >= keyLength;
+
     /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right) => CompareNative(Native(left), Native(right));
 
@@ -66,8 +79,13 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
     public int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix) =>
         CompareNative(Native(stored[..Math.Min(stored.Length, prefix.Length)]), Native(prefix));
 
-    private string Native(ReadOnlySpan<byte> channel) =>
-        FileCharacterSet.FromChannel(FileCharacterSet.Medium.GetString(channel), codeSet);
+    private string Native(ReadOnlySpan<byte> channel)
+    {
+        // The one place every key and prefix passes: a longer one would make a whole-length prefix truncate after all.
+        if (channel.Length > keyLength)
+            throw new ArgumentException($"a key of {channel.Length} positions is longer than the key's {keyLength}", nameof(channel));
+        return FileCharacterSet.FromChannel(FileCharacterSet.Medium.GetString(channel), codeSet);
+    }
 
     private int CompareNative(string left, string right)
     {
@@ -84,6 +102,9 @@ internal sealed class CompositeKeyOrder(IKeyOrder keyOrder) : IKeyOrder
 {
     /// <summary>The bytes of the trailing ordinal.</summary>
     public const int OrdinalBytes = sizeof(ulong);
+
+    /// <inheritdoc/>
+    public bool PrefixNarrows(int prefixLength) => keyOrder.PrefixNarrows(prefixLength);
 
     /// <inheritdoc/>
     public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right)

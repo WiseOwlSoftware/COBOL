@@ -87,32 +87,39 @@ internal sealed class Ledger
     public Ledger Clone() => new(new SortedDictionary<uint, LedgerEntry>(_entries), _tree.Fork(), []);
 
     /// <summary>An upper bound of the pages <see cref="Write"/> takes when the statement reserves
-    /// <paramref name="reservedPages"/> pages (each a ledger change at most three ways: written, released, left over):
-    /// every page of the tree copied, one split per copied leaf, one per hundred entries the write adds (a split leaf
-    /// keeps more than a hundred 19-byte entries), and the root.</summary>
-    public int WriteBound(int reservedPages)
+    /// <paramref name="reservedPages"/> pages (each a ledger change at most twice: written or left over, and its
+    /// settling) and stops referencing <paramref name="releases"/> pages (each one change: <c>released</c> or
+    /// <c>freed</c>; finding R1-1 — a dropped overflow chain of thousands of pages is thousands of entries): every page of
+    /// the tree copied and one split per copied node; for the entries the write adds, one new leaf per hundred (a split
+    /// leaf keeps more than a hundred 19-byte entries) and above them one new internal node per hundred children (an
+    /// internal entry is at most 18 bytes), level by level, each level able to raise a new root.</summary>
+    public int WriteBound(int reservedPages, int releases)
     {
         int own = _tree.ResidentPages().Count;
-        int inserts = _changed.Count + 3 * reservedPages + own;
-        return 2 * own + inserts / 100 + 4;
+        int inserts = _changed.Count + 2 * reservedPages + releases + own;
+        int bound = 2 * own + 2;
+        for (int added = inserts / 100 + 1; added > 0; added /= 100) bound += added + 1;
+        return bound;
     }
 
-    /// <summary>Read the ledger tree at <paramref name="root"/>, every page verified through its stamp; '30' for a torn
-    /// page or a body that is not a ledger's.</summary>
-    public static StoreStatus Load(PagedFile file, PagePointer root, out Ledger? ledger)
+    /// <summary>Read the ledger tree at <paramref name="root"/>, every page verified through its stamp:
+    /// <see cref="PageCheck.Whole"/>; <see cref="PageCheck.Unreadable"/> when the medium REFUSED a read (no verdict on
+    /// the page); the failed check of a torn page, and <see cref="PageCheck.ChecksumFails"/> for a body that is not a
+    /// ledger's (the OPEN's adoption rule tells a refusal from damage, 2.2.1.6 R6 step 3).</summary>
+    public static PageCheck Load(PagedFile file, PagePointer root, out Ledger? ledger)
     {
         ledger = null;
-        if (BTree.LoadResident(file, KeyOrders.Ordinal, root, out var tree) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (BTree.LoadResident(file, KeyOrders.Ordinal, root, out var tree) is var check && check != PageCheck.Whole) return check;
         var entries = new SortedDictionary<uint, LedgerEntry>();
         foreach (var (key, value) in tree!.ResidentEntries())
         {
-            if (key.Length != sizeof(uint) || value is not { Length: ValueBytes }) return StoreStatus.PermanentError;
+            if (key.Length != sizeof(uint) || value is not { Length: ValueBytes }) return PageCheck.ChecksumFails;
             var state = (LedgerState)value[sizeof(ulong)];
-            if (state is not (LedgerState.Fresh or LedgerState.Released or LedgerState.Freed)) return StoreStatus.PermanentError;
+            if (state is not (LedgerState.Fresh or LedgerState.Released or LedgerState.Freed)) return PageCheck.ChecksumFails;
             entries[KeyOrders.PageOf(key)] = new LedgerEntry(BinaryPrimitives.ReadUInt64LittleEndian(value), state);
         }
         ledger = new Ledger(entries, tree, []);
-        return StoreStatus.Ok;
+        return PageCheck.Whole;
     }
 
     /// <summary>Write the ledger LAST among statement <paramref name="statement"/>'s pages (R2: nothing is allocated while
