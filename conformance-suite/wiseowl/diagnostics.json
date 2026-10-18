@@ -18371,6 +18371,12 @@
   ],
   "expect": "COBOLNET2211"
  },
+ "pb674-floating-point-literal-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb678-sort-collating-for-forms-at-85": {
   "refuse-at": [
    "85"
