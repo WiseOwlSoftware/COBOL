@@ -988,7 +988,7 @@ public sealed class SequentialConnector : FileConnector
 
     // ── OPEN / CLOSE ─────────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The sequential OPEN body (ISO §14.9.25 / §9.1.13.4) — the shared preamble/guards, the ONE
+    /// <summary>The sequential OPEN body (ISO §14.9.27 / §9.1.13.4) — the shared preamble/guards, the ONE
     /// presence probe behind <paramref name="presence"/>, and §14.9.27.4 GR3's '37' all live on
     /// <see cref="FileConnector.Open"/>.</summary>
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
@@ -1164,7 +1164,7 @@ public sealed class SequentialConnector : FileConnector
         catch (UnauthorizedAccessException) { }
     }
 
-    /// <summary>The sequential CLOSE body (ISO §14.9.7). A print stream whose last line is still unterminated —
+    /// <summary>The sequential CLOSE body (ISO §14.9.6). A print stream whose last line is still unterminated —
     /// an AFTER write's record, presented after its advance (§14.9.51.4 GR25 f)) — is ended with one line
     /// terminator; a stream whose last travel already ended the line (a BEFORE write, GR25 e)) gets none
     /// (<see cref="_lineOpen"/>, kb/Work PB864). The report writer's lines are AFTER-placed and reach this same
