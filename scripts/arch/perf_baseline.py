@@ -25,8 +25,9 @@ WHAT IT MEASURES, each with the witness that proves the work ran (an unwitnessed
   * SORT and MERGE under two memory limits (kb/Work PB2777): a program with an SD entry is timed twice, once under the
     default sort memory (SORT_LIMITS: every scale fits, so the sort is done in memory) and once as `<program>-SPILL`
     under a limit several times smaller than its records (sorted runs on temporary files, merged; docs/CONFORMANCE.md
-    §3 D-SWK), the limit given to both implementations alike. The spilling case's peak stays near its limit at every
-    scale while the in-memory case's grows with the input: that is the record of the bounded store;
+    §3 D-SWK), the limit given to both implementations alike. The spilling case's peak stays nearly flat from 1x to
+    4x, bounded by the limit and not by the input, while the in-memory case's grows with the input: that is the
+    record of the bounded store;
   * the whole-population gate time, read from build-local.ps1's own verdict.json for each --gate-run given.
 
 THE NOISE BAND (how a later wave reads a delta): every row keeps its samples. Its noise is the larger of the robust
@@ -77,7 +78,7 @@ RUN_LIMIT_S = 900   # one timed process; the slowest row (our IDXHOT at 4x) take
 SORT_MEMORY_VARIABLES = ("COBOLNET_SORT_MEMORY", "COB_SORT_MEMORY")
 # (case suffix, limit) per memory regime of a program with an SD entry. 128M is both implementations' default, stated
 # so a host's own setting cannot move a case out of its regime; every scale of Programs/ fits it (100,000 to 400,000
-# 80-byte records: at most about 104 MiB by our resident estimate). 4M is under a sixth of the smallest scale's records
+# 80-byte records: at most about 104 MiB by our resident estimate). 4M is about a sixth of the smallest scale's records
 # by that estimate, so even x1 writes several runs and x4 more runs than one merge reads at once (the fan-in, 16), and
 # it is above GnuCOBOL's floor ("must be more than 1M").
 SORT_LIMITS = (("", "128M"), ("-SPILL", "4M"))
@@ -677,8 +678,8 @@ def render(record: dict) -> str:
                     f"(`{FLOOR_PROGRAM}`'s peak), at 1x, 2x and 4x the records. The limit is given to both "
                     "implementations (`" + "`, `".join(SORT_MEMORY_VARIABLES) + "`; docs/CONFORMANCE.md §3 D-SWK). "
                     "Under the default limit every scale is sorted in memory, so the peak grows with the records; "
-                    "under the small one the records are written as sorted runs and merged, so the peak stays near "
-                    "the limit at every scale.", "",
+                    "under the small one the records are written as sorted runs and merged, so the peak stays nearly "
+                    "flat as the records grow: the limit bounds it, not the input.", "",
                     "| case | limit | ours x1 | ours x2 | ours x4 | GnuCOBOL x1 | GnuCOBOL x2 | GnuCOBOL x4 |",
                     "|---|--:|--:|--:|--:|--:|--:|--:|"]
             for c in sort_cases:
