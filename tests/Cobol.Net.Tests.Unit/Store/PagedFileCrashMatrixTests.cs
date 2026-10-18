@@ -11,9 +11,10 @@ namespace CobolNet.Tests.Unit.Store;
 /// FILE AS THE LAST COMPLETED STATEMENT LEFT IT, NEVER TORN (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12's
 /// adoption matrix, 2.2.1.16's crash points and refused-statement table, 2.2.1.17's interleavings; kb/Work PB3331).
 /// <para>The paths: a changing statement (coherent and NO OTHER), growth, a promotion (CLOSE and the checkpoint), the
-/// fence (a writable OPEN) and creation. Each is run once to count its operations (writes and syncs), then once per
-/// operation with the run unit killed BEFORE it, killed AFTER it and refused AT it; each run is then continued by the
-/// next writer (another live run unit's statement), by a fresh OPEN, and by a power loss followed by an OPEN. Every
+/// fence (a writable OPEN) and creation. Each is run once to count its operations (writes, syncs and the truncation) and
+/// its reads, then once per operation with the run unit killed BEFORE it, killed AFTER it, refused AT it and — at a write
+/// — refused because the file cannot grow further, and once per READ with the read refused; each run is then continued
+/// by the next writer (another live run unit's statement), by a fresh OPEN, and by a power loss followed by an OPEN. Every
 /// expected state is the design's bar: the records of the last COMPLETED statement — a statement completed exactly when
 /// its page 2 completion was handed to the medium — or, after a power loss, of the last completed statement a sync made
 /// durable. The rows whose paths later groups build (the record statements' locks, the transactions, the dead owner)
@@ -27,7 +28,8 @@ public sealed class PagedFileCrashMatrixTests
     /// by A (the run unit under test) and — when A shares the file (every sharing mode but NO OTHER) — by B (a live
     /// writer) and R (a live INPUT reader). A NO OTHER connector has no other run unit beside it: Table 19 refuses every
     /// other opener (kb/Work PB833), so its scene has neither.</summary>
-    private sealed record Scene(MemoryPageMedium Medium, MemoryPageMedium.Handle HandleA, PagedFile A, PagedFile? B, PagedFile? Reader);
+    private sealed record Scene(MemoryPageMedium Medium, MemoryPageMedium.Handle HandleA, PagedFile A, PagedFile? B, PagedFile? Reader,
+        MemoryPageMedium.Handle? HandleB = null, MemoryPageMedium.Handle? HandleR = null);
 
     private static Scene NewScene(bool coherentA = true)
     {
@@ -36,17 +38,17 @@ public sealed class PagedFileCrashMatrixTests
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 2, "two", blobPages: 2));
         Assert.Equal(StoreStatus.Ok, store.Close());
         PagedFile? b = null, reader = null;
+        MemoryPageMedium.Handle? hb = null, hr = null;
         if (coherentA)
         {
-            var (_, sb, opened) = StoreKit.OpenAs(medium, "B");
-            var (_, sr, input) = StoreKit.OpenAs(medium, "R", writable: false);
+            (hb, var sb, b) = StoreKit.OpenAs(medium, "B");
+            (hr, var sr, reader) = StoreKit.OpenAs(medium, "R", writable: false);
             Assert.Equal(StoreStatus.Ok, sb);
             Assert.Equal(StoreStatus.Ok, sr);
-            (b, reader) = (opened, input);
         }
         var (ha, sa, a) = StoreKit.OpenAs(medium, "A", coherent: coherentA);
         Assert.Equal(StoreStatus.Ok, sa);
-        return new Scene(medium, ha, a!, b, reader);
+        return new Scene(medium, ha, a!, b, reader, hb, hr);
     }
 
     /// <summary>The paths of the page layer, each a step A takes on the scene.</summary>
@@ -85,13 +87,15 @@ public sealed class PagedFileCrashMatrixTests
     {
         var data = new TheoryData<PagePath, string>();
         foreach (var path in Enum.GetValues<PagePath>())
-            foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
+            foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse, Fault.SizeLimit })
                 data.Add(path, fault.ToString());
         return data;
     }
 
     /// <summary>2.2.1.16 for the page layer's paths, at EVERY operation: the next writer, a fresh OPEN and a power loss
-    /// each find the last completed statement; the live reader never reads a torn tree; no stamp is ever reused.</summary>
+    /// each find the last completed statement; the live reader never reads a torn tree; no stamp is ever reused. A write
+    /// the host refuses because the file cannot grow further is the BOUNDARY at a changing statement (2.2.1.9, §9.1.13.5
+    /// item 4's '24': the file unchanged) and '30' at an OPEN, a CLOSE and a promotion, which have no '24'.</summary>
     [Theory]
     [MemberData(nameof(PathsAndFaults))]
     public void Every_point_of_every_path_leaves_the_last_completed_statement(PagePath path, string faultName)
@@ -107,13 +111,16 @@ public sealed class PagedFileCrashMatrixTests
     private static void OnePoint(PagePath path, Fault fault, int n, List<string> ops, string continuation)
     {
         string where = $"{path} {fault} at op {n} ({ops[n - 1]}) then {continuation}";
+        if (fault == Fault.SizeLimit && !ops[n - 1].StartsWith('W')) return;   // a host answers EFBIG to a write only
+        bool refused = fault is Fault.Refuse or Fault.SizeLimit;
         var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
         s.HandleA.FaultAtOperation(n, fault);
         bool died = false;
         StoreStatus status = StoreStatus.Ok;
         try { status = Run(s, path); }
         catch (SimulatedDeath) { died = true; }
-        if (fault == Fault.Refuse) Assert.Equal(StoreStatus.PermanentError, status);
+        if (refused)
+            Assert.True((fault == Fault.SizeLimit && Changes(path) ? StoreStatus.Boundary : StoreStatus.PermanentError) == status, where);
         else Assert.True(died, where);
         // The statement completed exactly when its last operation — page 2's completion — was handed over.
         bool completed = Changes(path) && fault == Fault.DeathAfter && n == ops.Count;
@@ -129,7 +136,7 @@ public sealed class PagedFileCrashMatrixTests
         switch (continuation)
         {
             case "next-writer":
-                if (fault == Fault.Refuse)
+                if (refused)
                 {
                     s.HandleA.Heal();
                     // The refused run unit is alive: its own next statement and its CLOSE (which ends the condition;
@@ -151,7 +158,7 @@ public sealed class PagedFileCrashMatrixTests
                 StoreKit.AssertSlotsAndWorkAgree(s.Medium);
                 break;
             case "open":
-                if (fault == Fault.Refuse) s.HandleA.Heal();
+                if (refused) s.HandleA.Heal();
                 var (_, opened, c) = StoreKit.OpenAs(s.Medium, "C");
                 Assert.Equal(StoreStatus.Ok, opened);
                 Assert.Equal(expected, StoreKit.Show(c!));
@@ -172,33 +179,197 @@ public sealed class PagedFileCrashMatrixTests
         StoreKit.AssertR1(s.Medium);
     }
 
-    /// <summary>2.2.1.16 "OPEN OUTPUT (creation)": a death at any point of the creation leaves either no committed slot
-    /// (the next OPEN answers '30') or a valid EMPTY store (§14.9.27.4 GR18: the file "contains no records" either way),
-    /// never an old store's tree; an OPEN OUTPUT recreates it.</summary>
+    /// <summary>2.2.1.16 "OPEN OUTPUT (creation)" over a previous store, at EVERY operation — the commit slot's write,
+    /// its sync, page 2, the other slot, the truncation, the last sync. The one durable write decides (§14.9.27.4 GR18,
+    /// <i>"After the creation of the file, the file contains no records"</i>): a death before the commit slot was handed
+    /// over leaves the previous store whole, after it the EMPTY store, and a power loss keeps the empty store only once the
+    /// commit's sync ran. A REFUSAL is GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: '30' with the previous
+    /// store whole at every point but the last sync, which follows the truncation and has nothing left to undo. In every
+    /// cell an OPEN OUTPUT recreates, and the new store never reissues a stamp the previous one wrote (R3).</summary>
     [Fact]
-    public void A_death_at_every_point_of_creation_leaves_no_store_or_an_empty_one()
+    public void Every_point_of_creation_leaves_the_previous_store_or_the_empty_store_and_a_refusal_affects_nothing()
     {
-        var probe = new MemoryPageMedium();
+        const string Previous = "1=old;2=older;";
+        var probe = StoreKit.ClosedStore("1=old", "2=older");
         var ph = probe.Open("A");
         Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, out _));
-        int ops = ph.Operations.Count;
-        for (int n = 1; n <= ops; n++)
+        var ops = ph.Operations.ToList();
+        Assert.Equal(6, ops.Count);
+        Assert.Equal(new[] { "S", "W2", "T3", "S" }, new[] { ops[1], ops[2], ops[4], ops[5] });
+        Assert.NotEqual(ops[0], ops[3]);
+        for (int n = 1; n <= ops.Count; n++)
             foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
+                foreach (var continuation in new[] { "open", "power-loss" })
+                {
+                    string where = $"{fault} at op {n} ({ops[n - 1]}) then {continuation}";
+                    var medium = StoreKit.ClosedStore("1=old", "2=older");
+                    var h = medium.Open("A");
+                    h.FaultAtOperation(n, fault);
+                    bool died = false;
+                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
+                    catch (SimulatedDeath) { died = true; }
+                    Assert.Equal(fault != Fault.Refuse, died);
+                    // The commit write was handed over at op 1 (performed by DeathAfter at 1, by any fault at a later op
+                    // but a refusal, which is undone); it is durable once op 2, its sync, was performed.
+                    bool handedOver = fault == Fault.Refuse ? n == ops.Count : fault == Fault.DeathAfter || n > 1;
+                    bool durable = fault == Fault.Refuse ? n == ops.Count : fault == Fault.DeathAfter ? n >= 2 : n > 2;
+                    if (continuation == "power-loss") medium.PowerLoss();
+                    string expected = (continuation == "power-loss" ? durable : handedOver) ? "" : Previous;
+                    var (_, status, c) = StoreKit.OpenAs(medium, "C");
+                    Assert.True(status == StoreStatus.Ok, where);
+                    Assert.True(expected == StoreKit.Show(c!), $"{where}: {StoreKit.Show(c!)}");
+                    StoreKit.AssertSlotsAndWorkAgree(medium);
+                    var again = medium.Open("D");
+                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, out var fresh));
+                    Assert.Equal("", StoreKit.Show(fresh!));
+                    Assert.Equal(StoreStatus.Ok, StoreKit.Put(fresh!, 7, "new", blobPages: 3));
+                    StoreKit.AssertNoStampReused(medium);
+                    StoreKit.AssertR1(medium);
+                }
+    }
+
+    /// <summary>Creation over a file with no store in it — an empty file, or one whose three meta pages carry nothing this
+    /// format reads: no committed slot exists until the commit write, so a death before it leaves a file the next OPEN
+    /// answers '30' and after it the EMPTY store; a refusal restores the file's pages AND its length (GR25), so an empty
+    /// file stays empty.</summary>
+    [Fact]
+    public void Every_point_of_creation_over_a_file_with_no_store_leaves_no_store_or_the_empty_store()
+    {
+        foreach (bool foreign in new[] { false, true })
+        {
+            int ops = 6;
+            for (int n = 1; n <= ops; n++)
+                foreach (var fault in new[] { Fault.Death, Fault.DeathAfter, Fault.Refuse })
+                {
+                    string where = $"{(foreign ? "foreign" : "empty")} file, {fault} at op {n}";
+                    var medium = new MemoryPageMedium();
+                    var garbage = Enumerable.Range(0, PageHeader.PageSize).Select(i => (byte)(i * 7 + 3)).ToArray();
+                    if (foreign)
+                        for (uint p = 0; p < 4; p++) medium.Poke(p, garbage);
+                    long length = medium.PageCount;
+                    var h = medium.Open("A");
+                    h.FaultAtOperation(n, fault);
+                    bool died = false;
+                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
+                    catch (SimulatedDeath) { died = true; }
+                    Assert.Equal(fault != Fault.Refuse, died);
+                    bool created = fault == Fault.Refuse ? n == ops : fault == Fault.DeathAfter || n > 1;
+                    var (_, status, c) = StoreKit.OpenAs(medium, "C");
+                    Assert.True((created ? StoreStatus.Ok : StoreStatus.PermanentError) == status, where);
+                    if (created) Assert.Equal("", StoreKit.Show(c!));
+                    if (fault == Fault.Refuse && n < ops)
+                    {
+                        Assert.True(length == medium.PageCount, where);
+                        for (uint p = 0; p < length; p++) Assert.True(garbage.AsSpan().SequenceEqual(medium.Snapshot(p)), where);
+                    }
+                }
+        }
+    }
+
+    // ── A REFUSED READ at every read of every path: '30', never a verdict on the page (§9.1.13.6 item 1) ───────────
+
+    /// <summary>Every read the page layer makes — OPEN's three meta pages, R6 step 3's verification of a DESCENDANT's
+    /// <c>fresh</c> pages, a statement's entry (page 2), the promotion's read of both slots, the retirement's ledger and
+    /// FREE chains, a tree page through its stamped pointer — refused by the medium, one at a time: the path answers '30'
+    /// (§9.1.13.6 item 1, <i>"A permanent error exists and no further information is available concerning the
+    /// input-output operation"</i>) and decides NOTHING from the unread page — no rejection of a work slot, no slot chosen
+    /// for a promotion — so the file is the last completed statement for the refused run unit's next statement, for the
+    /// next writer and for a fresh OPEN.</summary>
+    [Theory]
+    [MemberData(nameof(Paths))]
+    public void A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(PagePath path)
+    {
+        int reads = DryReads(path);
+        Assert.True(reads > 0, $"{path} reads nothing");
+        for (int n = 1; n <= reads; n++)
+        {
+            string where = $"{path}: read {n} of {reads} refused";
+            var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+            s.HandleA.FaultAtRead(n, Fault.Refuse);
+            Assert.True(StoreStatus.PermanentError == Run(s, path), where);
+            s.HandleA.Heal();
+            string expected = Base;
+            if (path is not (PagePath.Close or PagePath.Fence))
             {
-                // An existing store with records, recreated by OPEN OUTPUT.
-                var (medium, _, old) = StoreKit.NewStore();
-                Assert.Equal(StoreStatus.Ok, StoreKit.Put(old, 1, "old", blobPages: 3));
-                Assert.Equal(StoreStatus.Ok, old.Close());
-                var h = medium.Open("A");
-                h.FaultAtOperation(n, fault);
-                try { Assert.Equal(StoreStatus.PermanentError, PagedFile.Create(h, StoreKit.Relative, true, out _)); }
-                catch (SimulatedDeath) { }
-                var (_, status, c) = StoreKit.OpenAs(medium, "C");
-                if (status == StoreStatus.Ok) Assert.Equal("", StoreKit.Show(c!));
-                var again = medium.Open("D");
-                Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, out var fresh));
-                Assert.Equal("", StoreKit.Show(fresh!));
+                Assert.True(StoreStatus.Ok == StoreKit.Put(s.A, 8, "eight"), where);
+                expected += "8=eight;";
+                Assert.Equal(StoreStatus.Ok, s.A.Close());
             }
+            if (s.B is { } b)
+            {
+                Assert.True(StoreStatus.Ok == StoreKit.Put(b, 9, "nine"), where);
+                expected += "9=nine;";
+                Assert.True(expected == StoreKit.Show(b), $"{where}: {StoreKit.Show(b)}");
+                Assert.Equal(StoreStatus.Ok, b.Close());
+            }
+            var (_, opened, c) = StoreKit.OpenAs(s.Medium, "C");
+            Assert.True(StoreStatus.Ok == opened, where);
+            Assert.True(expected == StoreKit.Show(c!), $"{where}: {StoreKit.Show(c!)}");
+            StoreKit.AssertSlotsAndWorkAgree(s.Medium);
+            StoreKit.AssertNoStampReused(s.Medium);
+            StoreKit.AssertR1(s.Medium);
+        }
+    }
+
+    public static TheoryData<PagePath> Paths() => new(Enum.GetValues<PagePath>());
+
+    private static int DryReads(PagePath path)
+    {
+        var s = NewScene(coherentA: path != PagePath.NoOtherStatement);
+        int before = s.HandleA.ReadsPerformed;
+        Assert.Equal(StoreStatus.Ok, Run(s, path));
+        return s.HandleA.ReadsPerformed - before;
+    }
+
+    /// <summary>The reads of the other run units' paths: an INPUT OPEN's three meta pages, a live reader's entry and its
+    /// tree reads, and the RESTART RULE's read of both slots when a dead promoter left PROMOTING — each refused, each '30'
+    /// (a reader's tree read: <see cref="PageCheck.Unreadable"/>), and the next try, healed, finds the last completed
+    /// statement and completes the dead promotion.</summary>
+    [Fact]
+    public void A_refused_read_by_a_reader_an_INPUT_OPEN_and_the_restart_rule_answers_30_and_decides_nothing()
+    {
+        var s = NewScene();
+        // A live reader: its entry (page 2) and its tree reads, after another run unit's completed statement.
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 3, "three"));
+        s.HandleR!.FaultAtRead(1, Fault.Refuse);
+        Assert.Equal(StoreStatus.PermanentError, s.Reader!.Enter());
+        Assert.Equal(StoreStatus.Ok, s.Reader!.Enter());
+        var root = new byte[PageHeader.PageSize];
+        s.HandleR.FaultAtRead(1, Fault.Refuse);
+        Assert.Equal(PageCheck.Unreadable, s.Reader!.Read(s.Reader.Meta.PrimeRoot, root));
+        Assert.Equal(Base + "3=three;", StoreKit.Show(s.Reader!));
+
+        // An INPUT OPEN, at each of its reads.
+        for (int n = 1; n <= MetaPage.MetaPages; n++)
+        {
+            var h = s.Medium.Open($"I{n}");
+            h.FaultAtRead(n, Fault.Refuse);
+            Assert.Equal(StoreStatus.PermanentError, PagedFile.Open(h, writable: false, coherent: true, out var none));
+            Assert.Null(none);
+        }
+
+        // The restart rule: A dies after its promotion's claim; B's entry reads both slots, and that read is refused.
+        var ops = DryRun(PagePath.Close);
+        s.HandleA.FaultAtOperation(ops.IndexOf("S") + 1, Fault.DeathAfter);   // the claim landed and synced
+        Assert.Throws<SimulatedDeath>(() => s.A.Close());
+        Assert.True(MetaPage.Decode(s.Medium.Snapshot(MetaPage.WorkSlot), MetaPage.WorkSlot)!.Promoting);
+        // B's statement, its every read refused in turn (page 2, the chains it adopts, both slots, the retirement's
+        // chains, its tree pages): '30' each time, until the fault lies past its last read and the statement completes.
+        int refusedReads = 0;
+        for (int n = 1; ; n++)
+        {
+            s.HandleB!.FaultAtRead(n, Fault.Refuse);
+            var status = StoreKit.Put(s.B!, 4, "four");
+            s.HandleB.Heal();
+            if (status == StoreStatus.Ok) break;
+            Assert.True(StoreStatus.PermanentError == status, $"read {n}");
+            refusedReads++;
+        }
+        Assert.True(refusedReads >= 3, $"only {refusedReads} reads");
+        Assert.False(s.B!.Meta.Promoting);
+        Assert.Equal(Base + "3=three;4=four;", StoreKit.Show(s.B!));
+        StoreKit.AssertNoStampReused(s.Medium);
+        StoreKit.AssertR1(s.Medium);
     }
 
     // ── 2.2.1.12's adoption matrix (R6), the no-transaction column ─────────────────────────────────────────────

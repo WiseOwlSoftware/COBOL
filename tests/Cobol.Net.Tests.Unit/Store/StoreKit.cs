@@ -28,6 +28,20 @@ internal static class StoreKit
         new([new KeySegment(8, 12)], Duplicates: true, Suppress: "*", Collation: ""),
     ]);
 
+    /// <summary>A store that holds <paramref name="records"/> (each "id=text", a blob of three pages for the first) and was
+    /// CLOSEd, over a fresh medium: the PREVIOUS file an <c>OPEN OUTPUT</c> recreates.</summary>
+    public static MemoryPageMedium ClosedStore(params string[] records)
+    {
+        var (medium, _, store) = NewStore();
+        for (int i = 0; i < records.Length; i++)
+        {
+            var (id, text) = (int.Parse(records[i].Split('=')[0]), records[i].Split('=')[1]);
+            Assert.Equal(StoreStatus.Ok, Put(store, id, text, blobPages: i == 0 ? 3 : 0));
+        }
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        return medium;
+    }
+
     /// <summary>A fresh medium holding a new empty relative store, created through <paramref name="unit"/>.</summary>
     public static (MemoryPageMedium Medium, MemoryPageMedium.Handle Handle, PagedFile Store) NewStore(bool coherent = true, string unit = "A")
     {
@@ -52,7 +66,7 @@ internal static class StoreKit
     /// <paramref name="blobPages"/> pages: one statement.</summary>
     public static StoreStatus Put(PagedFile store, int id, string text, int blobPages = 0)
     {
-        if (store.Begin(blobPages + 2, out var st) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (store.Begin(blobPages + 2, out var st) is var begun && begun != StoreStatus.Ok) return begun;
         if (ReadRoot(store, out var children) != PageCheck.Whole)
         {
             st!.Abandon();
@@ -85,7 +99,7 @@ internal static class StoreKit
     /// <summary>DELETE record <paramref name="id"/>: one statement.</summary>
     public static StoreStatus Delete(PagedFile store, int id)
     {
-        if (store.Begin(1, out var st) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (store.Begin(1, out var st) is var begun && begun != StoreStatus.Ok) return begun;
         if (ReadRoot(store, out var children) != PageCheck.Whole || !children.Remove(id, out var old))
         {
             st!.Abandon();

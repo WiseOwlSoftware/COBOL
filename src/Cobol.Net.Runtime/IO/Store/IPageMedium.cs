@@ -8,8 +8,10 @@ namespace CobolNet.Runtime.IO.Store;
 /// is an in-memory page array that logs every write and sync and can lose, keep, tear or age them, so every crash point
 /// of 2.2.1.16 runs deterministically on every host.
 /// <para>⛔ A HOST REFUSAL IS AN <see cref="IOException"/> (or <see cref="UnauthorizedAccessException"/>): a full medium,
-/// a quota, a revoked handle, a failed sync. <see cref="PagedFile"/> answers it as §9.1.13.6 item 1's '30' at the
-/// statement it refused; nothing else is caught, so a fault no medium can report is never mistaken for one.</para></summary>
+/// a quota, a revoked handle, a failed read or sync. <see cref="PagedFile"/> answers it as §9.1.13.6 item 1's '30' at the
+/// statement it refused; nothing else is caught, so a fault no medium can report is never mistaken for one. The one
+/// refusal with another answer is a write the host refuses because the FILE cannot grow further: the medium reports it
+/// as <see cref="MediumSizeLimitException"/>, and a changing statement it refuses answers the boundary ('24', 2.2.1.9).</para></summary>
 internal interface IPageMedium
 {
     /// <summary>The pages the medium holds: its length over the page size.</summary>
@@ -31,3 +33,9 @@ internal interface IPageMedium
     /// creation empties the medium before it writes the three meta pages of the new store (§14.9.27.4 GR18).</summary>
     void SetPageCount(long pages);
 }
+
+/// <summary>The host refused a page write because the file has reached the largest size the host allows
+/// (<c>EFBIG</c>, <c>ERROR_FILE_TOO_LARGE</c>: <see cref="HostFile.IsFileSizeLimit"/>) — the boundary of a relative or
+/// indexed file (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9; §9.1.13.5 item 4's '24'), which a full medium is
+/// not. An <see cref="IOException"/>, so every refusal arm still sees it as a refusal.</summary>
+internal sealed class MediumSizeLimitException(string message, Exception? inner = null) : IOException(message, inner);

@@ -29,8 +29,14 @@ internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
     }
 
     /// <inheritdoc/>
-    public void Write(uint page, ReadOnlySpan<byte> source) =>
-        RandomAccess.Write(handle, source[..PageHeader.PageSize], Offset(page));
+    /// <remarks>The host's "the file cannot grow further" is the medium contract's <see cref="MediumSizeLimitException"/>
+    /// (asked of <see cref="HostFile.IsFileSizeLimit"/>, the one place the host's codes are read); every other refusal
+    /// travels as the host raised it.</remarks>
+    public void Write(uint page, ReadOnlySpan<byte> source)
+    {
+        try { RandomAccess.Write(handle, source[..PageHeader.PageSize], Offset(page)); }
+        catch (IOException e) when (HostFile.IsFileSizeLimit(e)) { throw new MediumSizeLimitException(e.Message, e); }
+    }
 
     /// <inheritdoc/>
     public void Sync() => RandomAccess.FlushToDisk(handle);

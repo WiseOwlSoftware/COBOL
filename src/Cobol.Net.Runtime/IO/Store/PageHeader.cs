@@ -35,7 +35,8 @@ internal enum PageCheck
     /// <summary>The page is the one the pointer names.</summary>
     Whole,
 
-    /// <summary>The CRC-32C over bytes 8..4095 does not match: a torn or damaged page.</summary>
+    /// <summary>The CRC-32C over bytes 0..3 and 8..4095 (every byte but the checksum's own, 2.2.1.4) does not match: a
+    /// torn or damaged page.</summary>
     ChecksumFails,
 
     /// <summary>The page's <c>self</c> is not the page number read.</summary>
