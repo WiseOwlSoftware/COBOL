@@ -635,37 +635,79 @@ check("campaign_requirements: CRLF reads the same", pw.campaign_requirements(REQ
       pw.campaign_requirements(REQ_NOTE))
 check("campaign_requirements: a note with no such section has none", pw.campaign_requirements("# PB1\n\n- a bullet\n"), [])
 REQS = pw.campaign_requirements(REQ_NOTE)
-rg = p["groups"][0]
-rj = pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003", "PB950", REQS)
-check("a requirement reaches the group's spec body",
-      all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS), True)
+# A group is bound by the campaigns its NOTES belong to (group_requirements), never by the planning mode (review R1-1):
+# a fix-lane wave that plans a campaign member, or a campaign finisher, carries the requirement as a --cluster wave does.
+RQDIR = TMP / "req-notes"
+RQDIR.mkdir()
+(RQDIR / "PB950.md").write_text(REQ_NOTE, encoding="utf-8", newline="\n")
+(RQDIR / "PB951.md").write_text("# PB951\n\n## Standing requirements\n\n- Second campaign's own rule.\n", encoding="utf-8", newline="\n")
+(RQDIR / "PB952.md").write_text("# PB952\n\nno standing requirements here\n", encoding="utf-8", newline="\n")
+rg, rg_other = p["groups"][0], p["groups"][1]
+member_of = {rg.notes[0]: ["PB950", "PB951"], rg_other.notes[0]: ["PB952"]}
+bound = pw.group_requirements([rg, rg_other], member_of, RQDIR)
+check("a group is bound by every campaign its notes belong to, one that holds the section", bound[0], {"PB950": REQS, "PB951": ["Second campaign's own rule."]})
+check("a member of a campaign whose lead note has no section is bound by nothing", bound[1], {})
+check("a note naming no campaign (no cluster, a scalar cluster, an unknown note) is bound by nothing",
+      pw.group_requirements([rg], {rg.notes[0]: "PB950"}, RQDIR) + pw.group_requirements([rg], {}, RQDIR), [{}, {}])
+check("a campaign lead naming no note file binds nothing", pw.group_requirements([rg], {rg.notes[0]: ["PB999"]}, RQDIR), [{}])
+check("`always` (the campaign a --cluster wave runs) binds every group, before the notes' own, once",
+      pw.group_requirements([rg, rg_other], member_of, RQDIR, ["PB950"]),
+      [{"PB950": REQS, "PB951": ["Second campaign's own rule."]}, {"PB950": REQS}])
+rj = pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003", bound[0])
+check("a requirement reaches the group's spec body, one OWNER REQUIREMENT sentence each, per campaign",
+      (all(r in rj["body"] and "OWNER REQUIREMENT (campaign PB950" in rj["body"] for r in REQS),
+       "OWNER REQUIREMENT (campaign PB951" in rj["body"], rj["body"].count("OWNER REQUIREMENT")), (True, True, 3))
+check("the group entry carries its requirements for the practices check and the reviewer", rj["requirements"], bound[0])
 check("a plan with no campaign requirements says none",
-      "OWNER REQUIREMENT" in pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"], False)
-rcfg = dict(CFG77, requirements=REQS)
-rspec = TMP / "req-spec.txt"
-rspec.write_text(mds.render(rcfg, rj), encoding="utf-8", newline="\n")
+      ("OWNER REQUIREMENT" in pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"],
+       pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["requirements"]), (False, {}))
+rspec = TMP / "msg-w77-req.txt"
+rspec.write_text(mds.render(CFG77, rj), encoding="utf-8", newline="\n")
 rfile = TMP / "req-groups.json"
-rfile.write_text(JSON.dumps(dict(rcfg, groups=[rj])), encoding="utf-8", newline="\n")
+rfile.write_text(JSON.dumps(dict(CFG77, groups=[rj])), encoding="utf-8", newline="\n")
 check("the rendered spec carries every requirement (check_practices.py finds none missing)",
       check_practices.specs_missing_requirements(rfile, [rspec]), [])
-nospec = TMP / "req-spec-without.txt"
+nospec = TMP / "msg-w77-req-without.txt"
 nospec.write_text(mds.render(CFG77, gjson[0]), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",
-      check_practices.specs_missing_requirements(rfile, [nospec]), [(nospec.name, r) for r in REQS])
+      check_practices.specs_missing_requirements(rfile, [nospec]),
+      [(nospec.name, r) for r in REQS + ["Second campaign's own rule."]])
 check("a groups file that declares none refuses nothing", check_practices.specs_missing_requirements(gfile, [nospec]), [])
+# a spec named for another group is checked against THAT group's requirements only (make_dispatch_specs.py's name)
+other_j = dict(pw.as_group_json(rg_other, "77", notes, "COBOLNET0004-COBOLNET0006"), letter="Z")
+rj_named = dict(rj, letter="Y")
+mfile = TMP / "req-groups-two.json"
+mfile.write_text(JSON.dumps(dict(CFG77, groups=[rj_named, other_j])), encoding="utf-8", newline="\n")
+yspec = TMP / "msg-w77-y.txt"
+yspec.write_text(mds.render(CFG77, rj_named), encoding="utf-8", newline="\n")
+zspec = TMP / "msg-w77-z.txt"
+zspec.write_text(mds.render(CFG77, other_j), encoding="utf-8", newline="\n")
+check("each spec is checked against its own group's requirements, not every group's",
+      check_practices.specs_missing_requirements(mfile, [yspec, zspec]), [])
 real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
 check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
       [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
-# the planner writes them into the args file, and the rolling wave reads them into the REVIEWER's prompt and names the
-# group's dispatch spec there: the three halves are pinned in source, since the workflow has no process API to run here
+# a fix-lane plan reaches them through the notes' cluster lists: PB3353's members are bound outside a --cluster wave
+real_items = work.load()
+member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3353" in i["cluster"] and i["id"] != "PB3353")
+fg = pw.Group(kind="cluster", notes=[member], file="", files=[], letter="Q", model="sonnet", why_model="default")
+check("a real PB3353 member planned by a fix-lane wave (no --cluster) is bound by the owner's requirement",
+      pw.group_requirements([fg], {i.get("id"): i.get("cluster") for i in real_items}, coord.REPO / "kb" / "Work"),
+      [{"PB3353": real_reqs}])
+# the planner writes them per group into groups.json and the args file, and the rolling wave reads them into the
+# REVIEWER's prompt and names the group's dispatch spec there: the halves are pinned in source, since the workflow has
+# no process API to run here
 PW_SRC = (HERE / "plan_wave.py").read_text(encoding="utf-8")
 WF_SRC = (coord.REPO / ".claude" / "skills" / "workstream" / "templates" / "wf_rolling_wave.js").read_text(encoding="utf-8")
 REVIEW_FN = WF_SRC[WF_SRC.index("function reviewBranch("):WF_SRC.index("function fixFindings(")]
-check("plan_wave.py writes requirements into groups.json and the args file",
-      len(re.findall(r'"requirements": requirements', PW_SRC)), 2)
-check("wf_rolling_wave.js reads args.requirements into REQS", "const REQS = args.requirements || []" in WF_SRC, True)
+check("plan_wave.py binds groups by their notes' campaigns, never by the planning mode",
+      ("group_requirements(p[\"groups\"]" in PW_SRC, "campaign_requirements(lead_note" in PW_SRC), (True, False))
+check("plan_wave.py carries each group's requirements into the args file",
+      '"after", "requirements")' in PW_SRC, True)
+check("wf_rolling_wave.js reads the group's requirements into the reviewer prompt",
+      ("g.requirements" in WF_SRC, "args.requirements" in WF_SRC), (True, False))
 check("the branch reviewer's prompt carries the requirements and names the group's dispatch spec",
-      ("reviewerRequirements()" in REVIEW_FN, "msg-w${W}-${g.letter.toLowerCase()}.txt" in REVIEW_FN), (True, True))
+      ("reviewerRequirements(g)" in REVIEW_FN, "msg-w${W}-${g.letter.toLowerCase()}.txt" in REVIEW_FN), (True, True))
 check("the review finisher is pointed at the same dispatch spec (its body carries the requirements)",
       "msg-w${W}-${g.letter.toLowerCase()}.txt" in WF_SRC[WF_SRC.index("function fixFindings("):], True)
 

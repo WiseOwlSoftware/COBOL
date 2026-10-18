@@ -57,9 +57,11 @@ cluster_order() of LEAD (every open note whose `cluster` names it, whatever its 
 they DECLARE (their site blocks, under model_rules.json `campaign` roots), one blocked_by depth at a time; a note waiting on
 another planned note runs after it as a successor (`after:`); everything else above is the same mechanism.
 A campaign's STANDING REQUIREMENTS (kb/Work PB3359) are the bullets of the `## Standing requirements` section of
-LEAD's own note (campaign_requirements): the owner's instructions that every group of the campaign must meet. Each is
-written into every group's spec body, groups.json and the args file (wf_rolling_wave.js hands them, with the group's
-dispatch spec, to the branch reviewer), and check_practices.py refuses a spec that lacks one.
+the campaign lead's own note (campaign_requirements): the owner's instructions that every group of the campaign must
+meet. A group is bound by every campaign its notes' `cluster:` lists name (group_requirements), in a fix-lane wave and
+a `--cluster` wave alike, a campaign finisher included. Each is written into the group's spec body, its groups.json
+entry and its args entry (wf_rolling_wave.js hands them, with the group's dispatch spec, to the branch reviewer), and
+check_practices.py refuses a spec that lacks one.
 THE FILE-SET PARTITION (owner, kb/Work PB2118 question 5, 2026-10-07; R69 §2; DESIGN-architecture-review §8.7) gates
 EVERY plan, the fix lane's and a campaign's alike (kb/Work PB2807: it once gated a campaign only, so with two planners,
 the loop and an attended or Mythos session, a fix-lane group was planned on a file another session's running group
@@ -103,7 +105,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -1185,13 +1187,39 @@ def campaign_requirements(note_text: str) -> list[str]:
 
 
 def requirements_text(campaign: str, requirements: Sequence[str]) -> str:
-    """The requirements as a group's spec body states them. The text of each requirement is carried verbatim, which is
-    what check_practices.py looks for in every rendered spec."""
+    """One campaign's requirements as a group's spec body states them. The text of each requirement is carried
+    verbatim, which is what check_practices.py looks for in every rendered spec."""
     return "".join(f" ⛔ OWNER REQUIREMENT (campaign {campaign}, standing; the branch reviewer raises a finding when "
                    f"your branch lacks it): {r}" for r in requirements)
 
 
-def body_of(g: Group, notes: dict[str, Note], campaign: str = "", requirements: Sequence[str] = ()) -> str:
+def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], notes_dir: pathlib.Path,
+                       always: Sequence[str] = ()) -> list[dict[str, list[str]]]:
+    """The standing requirements each group must meet, aligned with `groups`: `{campaign lead: requirements}`, {} for a
+    group no campaign binds (kb/Work PB3359, review R1-1). Keyed to MEMBERSHIP, never to the planning mode: a group is
+    bound by every campaign its notes' `cluster:` lists name (`cluster_of`: note id -> that list), so a fix-lane wave
+    that plans a campaign member, or the finisher of a campaign branch, carries the requirement exactly as a
+    `--cluster` wave does. `always` names campaigns that bind every group (the one a `--cluster` wave runs). A lead
+    whose note has no REQUIREMENTS_HEADING section binds nothing."""
+    read: dict[str, list[str]] = {}
+
+    def of(lead: str) -> list[str]:
+        if lead not in read:
+            f = notes_dir / f"{lead}.md"
+            read[lead] = campaign_requirements(f.read_text(encoding="utf-8")) if f.is_file() else []
+        return read[lead]
+
+    out = []
+    for g in groups:
+        leads = list(always)
+        for nid in g.notes:
+            cl = cluster_of.get(nid)
+            leads += [c for c in cl if c not in leads] if isinstance(cl, list) else []
+        out.append({lead: reqs for lead in dict.fromkeys(leads) if (reqs := of(lead))})
+    return out
+
+
+def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequence[str]] = {}) -> str:
     parts = []
     for nid in g.notes:
         n = notes[nid]
@@ -1208,17 +1236,19 @@ def body_of(g: Group, notes: dict[str, Note], campaign: str = "", requirements: 
                  f"around it: merge the predecessor branch the wave names before touching code, and if it did not "
                  f"finish its blocker, stop and return BLOCKED naming it.")
     return ("NOTES: " + " · ".join(parts) + f" CODE SITES the notes name: {sites}. {tail}"
-            + requirements_text(campaign, requirements))
+            + "".join(requirements_text(lead, reqs) for lead, reqs in requirements.items()))
 
 
-def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str, campaign: str = "",
-                  requirements: Sequence[str] = ()) -> dict[str, Any]:
+def as_group_json(g: Group, wave: str, notes: dict[str, Note], codes: str,
+                  requirements: Mapping[str, Sequence[str]] = {}) -> dict[str, Any]:
     lead = max(g.notes, key=lambda i: (len(notes[i].rows), -g.notes.index(i)))
     out = {"letter": g.letter, "model": g.model, "slug": f"w{wave}{g.letter.lower()}", "group": title_of(g),
            "notes": ", ".join(g.notes), "lead": lead, "codes": codes,
            "root": (g.file + (" (also " + ", ".join(f for f in g.files if f != g.file)[:300] + ")"
                               if len(g.files) > 1 else "")) if g.file else "the files the notes name",
-           "files": ", ".join(f"`kb/Work/{i}.md`" for i in g.notes), "body": body_of(g, notes, campaign, requirements),
+           "files": ", ".join(f"`kb/Work/{i}.md`" for i in g.notes), "body": body_of(g, notes, requirements),
+           # the standing requirements of the campaigns this group's notes belong to: {campaign lead: [requirement]}
+           "requirements": {k: list(v) for k, v in requirements.items()},
            # the group's file set as a LIST, which make_dispatch_specs.py records in the dispatch ledger (kb/Work PB3186)
            "file_set": sorted(g.files)}
     if g.pred:
@@ -1334,7 +1364,7 @@ def main(argv: list[str] | None = None) -> int:
             return json.loads(pathlib.Path(given).read_text(encoding="utf-8"))["clusters"]
         return run_fix_clusters(status, cdir / f"clusters-{status}.json", rules)["clusters"]
 
-    deps, waiting, campaign, requirements = None, {}, "", []
+    deps, waiting, campaign = None, {}, ""
     # THE declared set of a note, one index policy for every plan (kb/Work PB3203): THE index of this tree
     declared = declared_sets(REPO, IndexPolicy.of(cdir, regenerate=not a.no_index_regenerate))
     if a.cluster:
@@ -1352,10 +1382,6 @@ def main(argv: list[str] | None = None) -> int:
         coord.write_json(cdir / f"clusters-campaign-{a.cluster}.json",
                          {"cluster": a.cluster, "open": clusters, "half": half_clusters, "deps": deps, "waiting": waiting})
         campaign = f" — CAMPAIGN {a.cluster}"
-        # the campaign lead's standing requirements reach every group's spec, the args file (the branch reviewer's
-        # prompt) and check_practices.py (kb/Work PB3359)
-        lead_note = REPO / "kb" / "Work" / f"{a.cluster}.md"
-        requirements = campaign_requirements(lead_note.read_text(encoding="utf-8")) if lead_note.is_file() else []
         a.authorization += (f"; this wave runs the campaign lane for the kb/Work cluster {a.cluster} that the "
                             f"orchestrator was started with (orchestrate.ps1 -Cluster, kb/Work PB2120)")
     else:
@@ -1404,13 +1430,17 @@ def main(argv: list[str] | None = None) -> int:
     wave = str(next_wave(REPO, reports, cdir)) if a.wave == "next" else str(a.wave)
     peek_code = alloc.peek("code", REPO, cdir)
     per = rules["wave"]["codes_per_group"]
+    # the standing requirements each group must meet, by the campaigns its notes belong to: they reach its spec, the args
+    # file (the branch reviewer's prompt) and check_practices.py (kb/Work PB3359)
+    group_reqs = group_requirements(p["groups"], {i.get("id"): i.get("cluster") for i in items}, REPO / "kb" / "Work",
+                                    [a.cluster] if a.cluster else [])
     gjson = []
     for k, g in enumerate(p["groups"]):
         if a.dry_run:
             first = peek_code + k * per
         else:
             first, _ = alloc.allocate("code", per, REPO, cdir)
-        gjson.append(as_group_json(g, wave, notes, alloc.render("code", first, per), a.cluster or "", requirements))
+        gjson.append(as_group_json(g, wave, notes, alloc.render("code", first, per), group_reqs[k]))
 
     print(f"=== WAVE {wave} PLAN{campaign}: {len(p['groups'])} groups, {p['points']:.2f} of "
           f"{budget_points:.2f} weekly points{' (DRY RUN: nothing reserved or written)' if a.dry_run else ''} ===")
@@ -1444,13 +1474,13 @@ def main(argv: list[str] | None = None) -> int:
         print(f"--stop-file {stop_file} is the owner's GLOBAL stop; a fleet's stop is its own STOP-<scope> (kb/Work PB2483)")
         return 2
     gfile.write_text(json.dumps({"wave": wave, "scratch": str(scratch), "base": f"{head} (origin/main when planned)",
-                                 "stop_file": str(stop_file), "campaign": a.cluster or "", "requirements": requirements,
+                                 "stop_file": str(stop_file),
                                  "groups": gjson}, indent=1, ensure_ascii=False) + "\n",
                      encoding="utf-8", newline="\n")
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
-            "concurrency": rules["wave"]["concurrency"], "campaign": a.cluster or "", "requirements": requirements,
+            "concurrency": rules["wave"]["concurrency"],
             "implementer_model": rules["wave"]["implementer_model"], "authorization": a.authorization,
-            "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after") if k in j}
+            "groups": [{k: j[k] for k in ("letter", "lead", "notes", "codes", "model", "after", "requirements") if k in j}
                        for j in gjson]}
     afile = scratch / f"wf-args-w{wave}.json"
     afile.write_text(json.dumps(args, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")

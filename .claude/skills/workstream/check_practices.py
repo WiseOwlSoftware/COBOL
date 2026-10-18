@@ -76,7 +76,7 @@ BRIEFS = {
                            r"agentType: 'cobol-reviewer'", r'review_findings\.py', r"r\.review === 'CLEAN'",
                            r'REVIEW FINISHER', r'REVIEW_FIX_ROUNDS',
                            # PB3359: a campaign's standing requirements and the group's dispatch spec reach the reviewer
-                           r'args\.requirements', r'reviewerRequirements\(\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it'],
+                           r'g\.requirements', r'reviewerRequirements\(g\)', r'msg-w\$\{W\}-\$\{g\.letter\.toLowerCase\(\)\}\.txt: read it'],
     # O8: every fleet workflow runs with the stall watchdog beside it (PB1704).
     'MANDATORY-PRACTICES.md': [r'stall_watch\.py', r'linux-gate\.sh', r'I9', r'dispatch_guard\.py', r'prune_worktrees\.py',  # O8; PB1732; I9, O9, O10
                                r'STOP-<scope>',  # P3, PB2483: the scoped stop
@@ -163,14 +163,22 @@ def same_file_without_successor(groups_path):
 
 def specs_missing_requirements(groups_path, specs):
     """The (spec name, requirement) pairs where a rendered spec lacks a requirement the groups file declares (kb/Work
-    PB3359). `requirements` is the campaign lead note's `## Standing requirements` (plan_wave.campaign_requirements):
-    the owner's instructions that every group of the campaign must meet, which reach an implementer only through its
-    spec. Whitespace is compared collapsed, as the planner collapses it. A groups file with none declares none."""
-    reqs = json.loads(groups_path.read_text(encoding='utf-8')).get('requirements') or []
+    PB3359). A group's `requirements` is {campaign lead: [requirement]}, the lead notes' `## Standing requirements`
+    (plan_wave.group_requirements) of every campaign the group's notes belong to: the owner's instructions that the
+    group must meet, which reach an implementer only through its spec. A spec is matched to its group by the name
+    `msg-w<wave>-<letter>.txt` (make_dispatch_specs.py's), so a group's requirement is checked in its OWN spec only.
+    Whitespace is compared collapsed, as the planner collapses it. A group with none declares none."""
+    doc = json.loads(groups_path.read_text(encoding='utf-8'))
     found = []
     for s in specs:
-        text = ' '.join(pathlib.Path(s).read_text(encoding='utf-8').split()) if pathlib.Path(s).exists() else ''
-        found += [(pathlib.Path(s).name, r) for r in reqs if ' '.join(r.split()) not in text]
+        path = pathlib.Path(s)
+        text = ' '.join(path.read_text(encoding='utf-8').split()) if path.exists() else ''
+        m = re.fullmatch(r'msg-w[^-]+-([a-z0-9]+)\.txt', path.name)
+        for g in doc.get('groups', []):
+            if m and g.get('letter', '').lower() != m.group(1):
+                continue
+            for reqs in (g.get('requirements') or {}).values():
+                found += [(path.name, r) for r in reqs if ' '.join(r.split()) not in text]
     return found
 
 
