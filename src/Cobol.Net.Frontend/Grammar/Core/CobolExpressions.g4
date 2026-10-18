@@ -36,6 +36,11 @@ unrecognizedClause
 
 // The word-run matcher `unrecognizedClause` is built on. Kept as its own rule because the diagnostic quotes the
 // FIRST word of the run (`genericClause.IDENTIFIER(0)`) and the whole run as written.
+// ⚠ It begins at an IDENTIFIER, and must: a run that could open with a RESERVED word would compete with every named
+// alternative of its list (a malformed `RECORD` clause would be read as a foreign word) and, in the paragraph lists,
+// with the headers that follow them. A reserved word the format does not print is refused BY NAME all the same — by
+// `Parsing/CobolErrorStrategy` (its 0g hint and its Sync), which finds this production's position in the ATN and
+// reports the SAME refusal from the SAME `ClosedFormats` row (kb/Work PB2533).
 genericClause
     : IDENTIFIER (IDENTIFIER | literal)*
     ;
