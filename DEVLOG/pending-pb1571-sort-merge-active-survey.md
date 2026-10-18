@@ -26,3 +26,9 @@ order, a nested SORT in an output range, and the GR3 EC-SORT-MERGE-RETURN that n
 declarative RESUMEs, which terminates the active SORT under 14.9.40.4 GR17), `pb1571_sort_merge_stray_unchecked` (the
 checking-off answers) and the negative `pb1571-sort-merge-active-turn-at-85`. The register note PB1571 is landed with
 `closes_rows: []` (an analysis claiming no row).
+
+Review round 1 (one finding): both goldens' header comments said a RETURN written in an input procedure is refused at
+compile time under 14.9.40.3 SR3. SR3 refuses only a SORT statement there; a RETURN or RELEASE written in the range is
+legal source and raises at run time (probed). The comments are corrected, and the active-versus-flow golden gains steps
+7 and 8, a RETURN and a RELEASE written directly in the input and output procedure (EC-SORT-MERGE-ACTIVE, the same
+answer as the PERFORMed arms), so the written arm is witnessed rather than described.
