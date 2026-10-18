@@ -56,6 +56,14 @@ reads the C# constant and compares), and `CatalogCoverageDriftTests.NoScriptOrTe
 when any script or test writes the pattern itself again. The sweep after the change: 486 figures, 0 words-differ, 1 documented
 correction kept.
 
+**Branch review round 2: an eighth copy survived (R2-1).** `audit_code_citations.py` carried `"general format" in
+title.lower()`, a case-folded substring test (False for "General forms"); round 1 had judged it a non-copy, and the guard could
+not see it because its substring test was capital-G only and its pattern test took a lower-case spelling only as `\s`. The
+audit now imports `GENERAL_FORMAT_TITLE` (no citation verdict moved: 0 findings before and after, self-test PASS), and the
+guard sees the case-folded shapes: `MembershipTest` is case-insensitive and covers `startswith`/`endswith`/`find`/`count`/
+`Contains`/`IndexOf`, and `PythonLowerPattern` flags a lower-case regex inside a Python `re` call (a C# keyword alternation
+stays prose). `TheNoCopySweep_FlagsEachSpellingAndNotAKeywordList` gained four flagged cases, including the exact R2-1 line.
+
 **Side finding, not widened.** 315 of 322 FMT rows carry a stray `<a id=…>` anchor in their text (the FMT scan does not skip
 page furniture); repairing it changes 315 `rule-digest` values under live verdicts, so it is its own landing.
 
