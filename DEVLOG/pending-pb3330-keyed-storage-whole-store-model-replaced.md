@@ -57,4 +57,15 @@ transaction locks on every changed record and every freed unique key value (deri
 in the first per-statement-writing group, and §2.2.1.15, a table of every structure's writers and readers for the next
 reviewer.
 
+Round 3 found four more (three high), and the owner chose a finisher required to attack its own fixes before returning
+("Fable + self-attack"). A dead owner's locks went with its handle while its rollback waited for the next writable OPEN, so a
+live writer changed its records in between (both Micro Focus Fileshare and IBM VSAM RLS, read at the sources, keep a dead
+holder's records untouchable until the rollback): the DEAD-OWNER STEP now runs at the entry of every statement through a
+writable handle. A live run unit continuing a dead statement's history without an OPEN re-stamped its generation: a changing
+statement now CLAIMS its generation on page 2 (`stamp mint`) before its first page write. The promoted ledger's own pages are
+quarantined, as R4 said, not freed; the DELETE NOTE is cited at rule 15. The self-attack's two tables, §2.2.1.16 (24 crash
+points) and §2.2.1.17 (18 two-run-unit interleavings), found five more gaps and closed them: a promotion is restartable
+through a PROMOTING flag, reads both committed slots before it writes, and the fence's claim rewrites page 2 to the adopted
+meta; a retirement's own reserved pages are fresh; an unacknowledged COMMIT lands whole or not at all.
+
 Notes and docs only. No code change.
