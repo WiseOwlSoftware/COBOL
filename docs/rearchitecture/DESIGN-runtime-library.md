@@ -818,9 +818,10 @@ after any later crash.)
    type"). It is a sequence of 4 KiB pages; pages 0, 1 and 2 are the three META pages (two COMMITTED slots and the WORK slot,
    2.2.1.6); every other page is a B+ tree page, an overflow page or a free page. RELATIVE and INDEXED are the same engine with
    different KEY ORDERS and a different number of trees; every sharing mode runs the same statement path. There is no small-file
-   path, no in-memory path and no reader of store format 4: a format-4 file is `StoreFormat.Foreign` and its OPEN answers '39'
-   exactly as a format-3 file does today (CLAUDE.md rule 4; the version byte after the magic moves from 4 to 5, so the existing
-   `Foreign` arm already answers it).
+   path, no in-memory path and no reader of the whole-store format: a whole-store file (its header's magic at offset 0,
+   version 5 since kb/Work PB1099) is `StoreFormat.Foreign` and its OPEN answers '39' exactly as a format-3 file does today
+   (CLAUDE.md rule 4; the paged format's meta pages carry the magic at offset 32 with version 6, so neither reader can
+   take the other's file for its own, and `MetaPage.Describes` answers the existing `Foreign` arm).
 2. **The page size is 4 096 bytes**, the host's I/O block (Berkeley DB's default rule; `HostFile.InputOutputAreaBytes` is
    already 4 096) and the size the measurements were taken at. It is a format constant, not a per-file choice: one size makes
    every page computation static, and a record larger than a page's payload goes to overflow pages (2.2.1.4), so no record
@@ -881,7 +882,7 @@ after any later crash.)
    READ held. Plus the lock releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's and is its
    own group (PB3338).
 
-**2.2.1.4 The on-disk format (store format 5).** All integers little-endian, as format 4's were. A POINTER is 12 bytes: page
+**2.2.1.4 The on-disk format (paged store format 6).** All integers little-endian, as the whole-store format's were. A POINTER is 12 bytes: page
 number (4) + the generation of the write it names (8), 2.2.1.6 R3.
 
 ```
@@ -889,7 +890,10 @@ PAGE (4 096 bytes; every page)
    0   1  kind          M meta · I internal · L leaf · O overflow · F free
    1   1  flags         kind-specific (a leaf's bit 0: rightmost; an overflow's bit 0: last of its chain)
    2   2  entries       entry count (I, L); payload bytes (O)
-   4   4  checksum      CRC-32C of bytes 8..4095, the one torn-page detector (2.2.1.6 R6)
+   4   4  checksum      CRC-32C of every other byte of the page — bytes 0..3 and 8..4095 — the one torn-page detector
+                        (2.2.1.6 R3, R6). (The first draft covered bytes 8..4095 only and left kind, flags and entries
+                        unprotected: one flipped bit in a leaf's entry count passed the check. PB3331's layout golden flips
+                        every bit of every page kind.)
    8   8  generation    the generation that last wrote this page (2.2.1.6 R2, R3)
   16   4  self          this page's number (a page read from the wrong offset is a torn read)
   20   4  next          O: the next overflow page of the chain; L: the right sibling (0 = none); I, M: 0
@@ -897,10 +901,12 @@ PAGE (4 096 bytes; every page)
   32  ..  body
 
 META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 = the WORK slot; 2.2.1.6)
-  32   8  magic "CBNFSTR" + format version 5          (the same first eight bytes as format 4, so a format-4 file is Foreign)
+  32   8  magic "CBNFSTR" + format version 6          (the whole-store header is version 5 with its magic at offset 0, so it is
+                                                     Foreign here; a page carrying this magic and version whose committed
+                                                     slots both fail is `StoreFormat.Damaged`: R6's '30', not GR10's '39')
   40   1  organization  'R' relative · 'I' indexed
   41   1  record type   'F' fixed · 'V' varying
-  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as format 4)
+  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as the whole-store header)
   50   2  key count     0 relative; prime + alternates indexed
   52   8  generation    the coherence stamp (2.2.1.7); one more per statement that changed the file
   60   8  release mint  an indexed store's next release ordinal (kb/Work PB2693); 0 relative
@@ -928,9 +934,12 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
  157  12  holdings root POINTER to the HOLDINGS tree (2.2.1.10; finding R4-1): (kind, identity) → transaction id — every
                         record identity and every unique key value an open transaction holds, kept in the file so that a
                         dead owner's locks survive its handle
- 169  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
-           code-unit count + UTF-16 code units, kb/Work PB1602) collation-length(1) collation(ASCII fingerprint), then
-           root[k+1](12), the POINTER to the alternate tree of key k
+ 169  ..  per key, exactly the whole-store header's descriptor, written by its ONE codec
+           (`RecordFraming.WriteKeyDescriptor`/`ReadKeyDescriptor`): segment count(4) and per segment offset(4) length(4)
+           (kb/Work PB1099's SOURCE-phrase windows), duplicates(1), suppress(Int32 biased code-unit count + UTF-16 code
+           units, kb/Work PB1602), collation-length(1), collation(ASCII fingerprint); an ALTERNATE key's descriptor is then
+           followed by its root(12), the POINTER to its tree (the prime key's tree is root[0] at 84, so the prime key's
+           descriptor carries none)
    ..  the per-key descriptors are bounded by the page: 3 927 bytes hold at least 50 keys of 64-byte descriptors; a
        declaration past the page's capacity is refused at the OPEN with '39' (DOC-A.1-129 names the limit)
 
@@ -974,8 +983,11 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   promotion the freed and released pages move to the FREE tree. An allocation takes a released page, else the lowest page of
   the FREE tree, else the page at `page count` (the file grows). The file never shrinks of its own accord; `OPEN OUTPUT`
   creates a new three-page store (§14.9.27.4 GR18, *"After the creation of the file, the file contains no records"*) through
-  the connector's own handle with `RandomAccess.SetLength` to three pages, which is the one truncation (today's `Persist`
-  truncation, moved).
+  the connector's own handle: `RandomAccess.SetLength` to ZERO, which is the one truncation (today's `Persist` truncation,
+  moved), then pages 0, 1 and 2 and a sync. (The first draft set the length to three pages, which keeps the old store's
+  three meta pages until they are overwritten: a death between the truncation and the first write left the OLD store's
+  committed slots valid over a file cut to three pages, and the next OPEN adopted a tree whose pages were gone. PB3331's
+  creation cases kill the creation at every write and sync.)
 - **What the pages prove at a glance.** With 22-byte internal entries (an 8-byte relative key and a 12-byte pointer) a page
   fans out 184 ways; a 3-level tree covers 6 million relative records, 4 levels 1.1 billion. With 40-byte prime keys an
   internal page holds 75 entries and a leaf 16 records of 200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5
@@ -1016,7 +1028,10 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   later than the one that released it), `freed` (a committed page released since; quarantined, R4).** The ledger is a small
   B+ tree of the same engine whose root pointer is in the work meta; it is path-copied by the statement that changes it, like
   every tree, so the work meta and the ledger always agree. The ledger does not list its own pages: they are verified through
-  their stamped pointers (R3) when the ledger is walked. **Allocation never happens while the ledger is being written:** a
+  their stamped pointers (R3) when the ledger is walked. The pages of the ledger a statement SUPERSEDES — the previous
+  statement's ledger, allocated since the base — are `released` in the new one, and a `released` page the statement reuses
+  for its own ledger leaves the list (PB3331's first simulator run: without the removal the ledger listed its own page as
+  reusable and the next statement overwrote it while page 2 referenced it). **Allocation never happens while the ledger is being written:** a
   statement reserves its pages first — the released pages the in-memory ledger offers, then one batch of the lowest FREE-tree
   pages sized to the statement's bound (2.2.1.11), then growth — writes its data and free-tree pages, and writes the ledger
   LAST from the reservation; a reserved page the statement did not use is recorded as `released`, never lost. **The
@@ -1050,14 +1065,21 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   its `fresh` pages leave the ledger (they are now committed pages, R1 applies); the ledger's own pages, now referenced by the
   committed slot, are `freed` in turn (finding R3-2 confirmed this reading against the retirement paragraph, which had
   contradicted it). The moving is the RETIREMENT statement of R5.
-- **R5 — a PROMOTION is: the CLAIM — page 2 := the meta being promoted (page 2's own content for an ordinary promotion; for
-  the fence, the ADOPTED meta with `generation` = F, since after a rejection page 2 holds the superseded slot, 2.2.1.16),
-  with `stamp mint` = the retirement's claim and the PROMOTING flag set (2.2.1.7) → sync the data file
+- **R5 — a PROMOTION is: the CLAIM — page 2 := the meta being promoted AT A FRESH CLAIM P (page 2's own content for an
+  ordinary promotion, with `generation` := P, the next claim; for the fence, the ADOPTED meta with `generation` = F,
+  since after a rejection page 2 holds the superseded slot, 2.2.1.16), with `stamp mint` = the retirement's claim P + 1
+  and the PROMOTING flag set (2.2.1.7) → sync the data file
   (`FileStream.Flush(true)` on the connector's own handle) → read both committed slots and write page 2's content, with
   `committed generation` = its generation, to the COMMITTED SLOT THAT DOES NOT HOLD THE COMMITTED META (the lower valid
   generation, or the invalid one — decided from the slots as they are NOW, under the mutex, never from memory: another run
   unit may have promoted since this one last looked) → sync again → the RETIREMENT statement, whose page 2 clears the flag
   (a page the retirement reserves for itself is `fresh` in the new ledger, never also moved into the FREE tree).**
+  *Why a fresh claim (PB3331's simulator, 2026-10-18): the round-4 text promoted page 2 at its own generation g, the last
+  completed statement's, with the retirement claiming above the mints. Refused statements since the base raise the mint
+  without raising g, so the retirement's claim could lie above g + 4 096 — outside the window R2's ceiling gives a history
+  based on g, which is what the fence at g + 4 097 relies on: a retirement that died there left pages stamped at the very
+  generation the next OPEN's fence would reissue. Promoting at a claim P, above every claim before it, makes every history
+  begin above everything it supersedes, and P is a meta generation only (no page is stamped P).*
   Two syncs make the meta copy strictly after the pages it names, and alternating the slots makes the one write the scheme
   depends on survivable: a promotion whose slot write is torn leaves the other committed slot whole and the work slot, synced
   by the first sync, naming the state the promotion was making durable (finding R1-4; the first draft overwrote page 0 in
@@ -1070,7 +1092,9 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   claim and the flag — is still exactly the state being promoted. The statement reads both slots. A slot that names page
   2's generation means the promotion LANDED, and the statement completes it: the syncs are not skipped, since the dead
   promoter may have died before its second one, and the retirement claims above the dead retirement's claim, so its pages
-  are stamped afresh — a retirement that removes the transaction `committing` names, if any. No slot names it and
+  are stamped afresh — and writes that claim to page 2 (the flag still set) before its first page write, so a death inside
+  the restarted retirement is continued above it in turn; and were that claim to pass the promoted generation + 4 096, the
+  promotion runs again from a fresh claim instead — a retirement that removes the transaction `committing` names, if any. No slot names it and
   `committing` is 0: the statement runs R5 from the claim — a checkpoint or a CLOSE is harmless when repeated. No slot
   names it and `committing` is a transaction t: the promotion was a COMMIT that did not land, and the statement UNWINDS
   it — page 2 := the same content with PROMOTING clear and `committing` 0, nothing else written — so that t is an ordinary
@@ -1083,8 +1107,11 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   written last — that moves the promoted ledger's `released` and `freed` pages into the FREE tree (path-copying the FREE tree:
   its new pages are `fresh` in the new ledger, the FREE-tree pages it replaced `freed`), drops the `fresh` entries (committed
   pages now), records the promoted ledger's OWN pages — the pages its walk read; the committed slot references them through
-  its ledger root, so R1 and R4 protect them until the next promotion — as `freed` in the new ledger, and writes page 2 with
-  `committed generation` = the promotion's generation and the new ledger's root. *Finding R3-2: the round-2 text moved the
+  its ledger root, so R1 and R4 protect them until the next promotion — as `freed` in the new ledger (and the promoted FREE
+  tree's own pages likewise), and writes page 2 with `committed generation` = the promotion's generation and the new
+  ledger's root. A page at or past the promoted state's `page count` never enters the FREE tree: it is reached by nothing,
+  and the next growth reuses it (a rejected history that grew the file leaves its grown pages there; putting them in the
+  FREE tree as well would let growth and the FREE tree hand out the same page). *Finding R3-2: the round-2 text moved the
   promoted ledger's own pages straight into the FREE tree while R4 quarantined them; the FREE tree was wrong. The committed
   meta's ledger is read again whenever R6 adopts the committed meta (its fence retires that ledger, step 4), so a reused ledger
   page would fail R3 inside the fence of a file whose committed tree is intact; R4's reading stands, and 2.2.1.15's LEDGER row
@@ -1122,7 +1149,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      and C is adopted — a power loss tore a page or lost a write; W's `fresh` and `released` pages were never committed and
      are reclaimable when its ledger is readable; the PROMOTION SOURCE and a FOREIGN W give C as well;
   4. a connector with a writable handle then FENCES (finding R2-2): a promotion (R5) of the ADOPTED meta at generation
-     F = G + 4 097 — above every stamp a history based on G can have issued, R2 — into the slot that does not hold C, with
+     F = G + 4 097 — above every stamp a history based on G can have issued, R2 (and above every mint a slot or page 2
+     still shows, which a valid history never puts higher) — into the slot that does not hold C, with
      its claim (page 2 := the adopted meta at generation F, PROMOTING set, `committing` = C's when C is adopted and 0 when
      W is — a nonzero `committing` in a DESCENDANT W is a COMMIT's claim that never landed, and this fence unwinds it as R5's
      restart rule does; a nonzero one in C is a COMMIT whose slot landed and whose retirement did not, and this fence's
@@ -1130,7 +1158,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      the same tree from page 2 at that moment, and a later OPEN classifies that page 2 as a DESCENDANT of C with the fence
      unlanded, or as the PROMOTION SOURCE once the slot landed) and its two syncs, then the retirement statement on base F (its generation is its claim, F + 1 or above), which also moves a
      rejected DESCENDANT's `fresh` and `released` pages, and that ledger's own pages (read by the walk; no slot references
-     them once the fence's slot write landed), into the FREE tree when that ledger is readable (an unreadable one leaks at most
+     them once the fence's slot write landed), into the FREE tree when that ledger is readable — those below C's `page count`;
+     the pages that history grew are reused by the next growth (an unreadable one leaks at most
      the checkpoint's pages; the file never shrinks of its own accord anyway). After the fence both the committed meta and page 2 name the adopted
      state, every page of it is durable, and no generation the superseded history may have stamped will be stamped again. A
      fence is a promotion like any other and changes no rollback target; it is harmless when repeated. It runs through the
@@ -1181,7 +1210,9 @@ their places; what each does changes:
   generation it read). **A connector whose sharing mode admits ANY other run unit's connector — every mode but `SHARING WITH NO
   OTHER`** (`FileLockPosture.AdmitsAnotherRunUnit`; the keyed connector's `_coherent` is derived from it, 2.2.1.13) — runs
   every record statement, and its OPEN's adoption rule (R6), inside the store mutex (`HostRegionLocks.StoreMutexByte`,
-  exclusive through a writable handle, shared through a reader's), and enters by reading page 2 — ONE page read — and
+  exclusive through a writable handle, shared through a reader's), and enters by reading page 2 — ONE page read; a page 2
+  that does not validate under a live store is answered '30' by a writer, which cannot know what another run unit
+  completed, and leaves a reader on the tree it holds, since nothing it can follow moved — and
   comparing three of its fields with THE ONES THE STORE LAST SAW THERE (at its OPEN, or at its own previous statement, which
   wrote it). **`generation`** equal: nothing moved, and the statement proceeds from the meta the store holds. Different:
   another run unit's completed statement, retirement or fence wrote page 2 under the mutex, so page 2 names a complete tree
@@ -1701,8 +1732,8 @@ every crash scenario is deterministic and runs on every host without a VM:
   of the dead owner re-applied by the first writable statement — an OPEN's R6 step 5 or a live run unit's coherent entry,
   whichever comes first (the third-run-unit row: by the live holder's next statement if it comes before the OPEN, else by
   the OPEN, with the live holder's own records untouched either way) — and left in place by an INPUT OPEN — with the file
-  reading back a consistent tree in every cell, and every writable-handle cell ending with both committed slots and page 2
-  naming the adopted state (the fence);
+  reading back a consistent tree in every cell, and every writable-handle cell ending with the committed meta (the
+  fence's slot) and page 2 naming the adopted state (the other committed slot holds the meta the fence superseded);
 - the statement's atomicity: a medium that refuses the n-th write of a statement leaves the file at the previous statement
   and the statement at '30';
 - the layout: a golden hex dump of an empty relative store and of an empty indexed store with two keys (the three meta pages
@@ -1774,7 +1805,10 @@ today.
 
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
-crash matrix; PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
+crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
+`Ledger`, `PageChain`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
+`tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set are serialized as `PageChain` overflow chains until
+PB3332's tree replaces both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
@@ -1848,7 +1882,7 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after its page 2 | the records are as at the last COMMIT, the entry and its holdings gone; the READ locks go with the handle | none | the state is a completed statement's |
 | ROLLBACK on a file marked UNACKNOWLEDGED (round 5): the reversal if page 2 still carries t, then a promotion | at any point | as the reversal rows above | as the reversal rows above | the answer was not yet given; whichever state the medium keeps is one the owner was never told the opposite of |
 | A transaction's first change (the byte taken, then one statement: the entry, the UNDO tree, the record) | before page 2 | no entry; the byte went with the handle | nothing | the change is invisible; an entry is never visible without its byte having been taken first |
-| `OPEN OUTPUT` (creation: `SetLength` to three pages, then pages 0, 1, 2) | before all three pages landed | fewer than three valid meta pages | the next OPEN other than OUTPUT answers '30' (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
+| `OPEN OUTPUT` (creation: `SetLength` to zero, then pages 0, 1, 2, then a sync) | before all three pages landed | fewer than three valid meta pages, and no page of the previous store | the next OPEN other than OUTPUT answers '30' when no committed slot landed and adopts the EMPTY store when one did (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
 | Growth (a write at `page count`) | between the write and page 2 | the file is longer than `page count` | the next growth writes the same pages | pages past `page count` are reached by nothing |
 | Every sync point, power loss between two | — | the unsynced statements, or some of them | R3 refuses a lost or torn page at its read; R6 falls back to C when W fails | 2.2.1.2's contract: at most the statements since the last sync are lost, and never a torn state |
 
