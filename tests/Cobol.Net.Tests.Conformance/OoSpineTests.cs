@@ -764,7 +764,7 @@ public sealed class OoSpineTests
 
     /// <summary>§14.9.23.3 SR 10 both ways: OBJECT data may NOT cross an INVOKE BY REFERENCE — a BARE
     /// object-data argument is assumed BY CONTENT (GR6a2: the callee's writes are invisible to the object's
-    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time 0828. A driver WS argument
+    /// state), and an EXPLICIT BY REFERENCE of object data is the compile-time COBOLNET4269. A driver WS argument
     /// (SR 9) crosses BY REFERENCE and the callee's write IS visible.</summary>
     [Fact]
     public void ObjectData_AutoContent_Sr10()
@@ -830,7 +830,7 @@ public sealed class OoSpineTests
         Assert.Equal("OD=05\nWN=06", CutRunner.Normalize(stdout));
         EditionHarness.AssertHasDiagnostic(ErrorsOf(
             (drv + cls).Replace("{P}", "OOSP20").Replace("{C}", "OSPC20").Replace("{REF}", "BY REFERENCE ")),
-            "COBOLNET0828");
+            "COBOLNET4269");   // SR10's own code (kb/Work PB1136)
     }
 
     /// <summary>§14.8.2 strict REFERENCE conformance: a description mismatch (PIC 9(4) formal, PIC 9(5)
