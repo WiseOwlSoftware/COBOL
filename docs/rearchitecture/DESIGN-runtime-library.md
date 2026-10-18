@@ -1403,7 +1403,12 @@ further" as `MediumSizeLimitException` (`HandlePageMedium.Write`, asked of `Host
 the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read the host's codes), which a changing statement's
 refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
 serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
-either boundary they answer '30'. `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
+either boundary they answer '30'. The mapping is written once for both organizations, `KeyedConnector.RecordWriteFailed`
+(a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *Measured (PB3334 review,
+`IndexedEnginePermanentErrorWitnessTests.BoundaryFile`):* an `OPEN I-O` or `OPEN EXTEND`'s fence reserves its retirement's
+BOUND (R2: `Ledger.WriteBound`, a few pages even for an empty ledger), so a store fewer than that many pages below the
+format's last page answers that OPEN '30' although the fence would write only its meta pages; `OPEN INPUT` still reads it.
+`RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
 `IndexedStore.RecordBytes` are deleted with the model that needed them. The store header's bytes stay the file's §9.1.6 fixed
