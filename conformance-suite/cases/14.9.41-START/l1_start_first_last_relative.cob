@@ -1,7 +1,8 @@
       *>--- conformance-case
       *> id: l1_start_first_last_relative
       *> rules: [GR-14.9.41.4-11, GR-14.9.41.4-12]
-      *> accept: [2023]
+      *> accept: [2002, 2023]
+      *> constructs: [start-first-last-2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
@@ -13,6 +14,13 @@
       *> START statement is unsuccessful."
       *> GR12 — the same for LAST and "the last existing logical
       *> record".
+      *> EDITIONS (kb/Work PB870). FIRST and LAST are ONE construct
+      *> (start-first-last-2002; docs/VERSION_CHANGE_REFERENCE.md row
+      *> 7.38), gated once for every organization, so GR11 and GR12
+      *> exist wherever their INDEXED twins GR18 and GR19 do: the
+      *> program is accepted from 2002, with one output at every
+      *> edition. Its refusal below 2002 is
+      *> pb870-start-first-last-relative-85.
       *> The word the goldens have to bite on is EXISTING. FR is
       *> SPARSE: its records are at relative record numbers 3, 7 and 9,
       *> so "first existing" is 3 (not 1, the lowest number the file

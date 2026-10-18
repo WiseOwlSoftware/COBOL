@@ -2346,6 +2346,15 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   `conformance:cases/14.9.41-START/pb352_start_sequential_first_last_line` (the LINE-sequential framing, 2023 because the
   organization is — kb/Work PB688) and the Sequential-row START cells of
   `conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative`.
+- **START FIRST / LAST IS ONE CONSTRUCT ACROSS THREE ORGANIZATIONS, AND ITS RULES CARRY ONE EDITION BAND** (kb/Work
+  PB870). 14.9.41.2 prints one phrase and `start-first-last-2002` gates it once (the derived 2002 edge, VCR row 7.38), so
+  GR11/GR12 (RELATIVE), GR18/GR19 (INDEXED) and GR20/GR21 (SEQUENTIAL) are all 2002,2014,2023; the RELATIVE pair had been
+  left at 2014,2023. The abnormal arms of the RELATIVE pair are `conformance:cases/14.9.41-START/pb870_start_first_last_relative_exceptions`
+  (47 on an OUTPUT-mode and on a closed file, 23 with INVALID KEY and without it and the USE procedure, the absent
+  OPTIONAL file, GR7 as 46 against a 10 control, a file no USE covers) and the negative below 2002 is
+  `pb870-start-first-last-relative-85`. The generator holds the bands to the registry: a test that names a construct
+  in `constructs` may not witness a rule whose band begins after the construct's introduction unless the row's notes
+  name the construct.
 - **EVERY START FORMAT DECIDES THE KEY OF REFERENCE, AND THE EPILOGUE MAKES IT SAY SO** (kb/Work PB356).
   14.9.41.4 states the decision once per format and never as a default: GR16 for the KEY phrase ("The key
   specified in the KEY phrase, or that shares a leftmost character with the data item specified in the KEY

@@ -2,6 +2,7 @@
       *> id: pb356_start_first_last_suppressed
       *> rules: [GR-14.9.41.4-18, GR-14.9.41.4-19]
       *> accept: [2023]
+      *> constructs: [start-first-last-2002]
       *> source-format: fixed
       *> portable: unverified
       *>---
