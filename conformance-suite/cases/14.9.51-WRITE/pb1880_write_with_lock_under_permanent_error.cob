@@ -28,7 +28,7 @@
       *>   H   no FILE STATUS clause, a USE procedure for the file: the declarative runs for the producing WRITE and again
       *>       for the one the condition refuses, and execution continues (DOC-A.1-103).
       *> WHY EACH LEG CAN FAIL: a replay that did not cover the WITH LOCK path would answer '22' at W1 and '00' at W2,
-      *> store record 2 (O2 '00') and lock it (O3 would not differ from the control, but O1 or a later conflict would).
+      *> store record 2 (O2 '00'), and a lock it set while failing on record 1 would turn O1 into '51'.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1880WL.
        ENVIRONMENT DIVISION.
