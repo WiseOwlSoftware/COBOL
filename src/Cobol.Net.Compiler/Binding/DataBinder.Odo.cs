@@ -410,7 +410,13 @@ public sealed partial class DataBinder
                         : "is not defined (ISO §13.18.38 Format 2)") + via);
                 continue;
             }
-            if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _) is not { } dep) continue;
+            // The ambiguity (§8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that
+            // holds this table: the declaration reports it, and the legal reference asks the same verdict silently (so
+            // --permissive's first-declared reading still binds the clone's counter) instead of reporting it again.
+            bool ambiguityIsDeclarationFact = tier.Count > 1 && item.IsCopiedUnder(placedAt)
+                && !tier.Any(c => !c.IsCopiedUnder(placedAt));
+            if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact)
+                is not { } dep) continue;
             spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
