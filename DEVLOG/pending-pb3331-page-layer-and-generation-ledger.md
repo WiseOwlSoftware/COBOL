@@ -111,3 +111,26 @@ bytes 8..4095, and format 5. The sibling in PB3330's design summary said the sam
 Each mechanism's mutation turned its cases red and was reverted: a refused read served as zeros, a creation with no
 undo, the claim written before the boundary check, the size-limit refusal answered '30', and the created store at
 generation 0.
+
+**Branch review round 2 (the second review finisher).** Two findings, both fixed.
+
+*The previous file's length (R2-1).* The undo of a refused creation kept the previous file's length as the medium's
+page count, which is the length in whole pages, rounded down. So a refused OPEN OUTPUT over a 5 000-byte file (a
+format-5 whole store, or any foreign file) cut it to 4 096 bytes and never restored a page the file held only part of,
+against GR25. The test medium kept its length in pages too, so no case could express the file. The medium contract is
+now a length in BYTES (`IPageMedium.Length` and `SetLength`, replacing `PageCount` and `SetPageCount` in both media and
+every caller). The undo restores every meta page that held any previous byte and then cuts the file back to its exact
+length. `MemoryPageMedium` keeps bytes, zeroes a truncated page's tail and builds a previous file of any length
+(`Holding`). The creation case now runs every operation over files of 0, 5 000, 8 000, 12 000, 16 384 and 20 000 bytes
+and asserts the file byte for byte after each refusal; the previous-store case asserts the same. A new case drives the
+production medium over a real 5 000-byte file. The mutation that put back the whole-page length turned the 5 000-,
+8 000- and 12 000-byte cells red.
+
+*The DELETE at the boundary (R2-2).* The design gave the boundary an I-O status only at a WRITE or REWRITE ('24'), but
+a DELETE goes through the same `Begin` and `Complete` and can meet it too, since its tree and ledger rewrite can need a
+growth page. The spec leaves a DELETE no '24': §9.1.13.5 item 4 is an attempt to write outside the boundaries, and
+§14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. So a
+DELETE at the boundary answers §9.1.13.6 item 1's '30'. The page layer does not know which statement it serves, so the
+connector answers by the statement. Decision 6, 2.2.1.9, the 2.2.1.16 boundary row, the `StoreStatus.Boundary` doc and
+PB3331's landing line now say so, and `PendingStoreCases` carries the relative and indexed connector cells for PB3333
+and PB3334.

@@ -453,7 +453,7 @@ public sealed class PagedFileRuleTests
         var page = new byte[PageHeader.PageSize];
         Assert.Equal(PageCheck.Whole, store.Read(store.Meta.PrimeRoot, page));
         var child = PagePointer.Read(page.AsSpan(PageHeader.Bytes + 4));
-        Assert.True(medium.PageCount > child.Page);
+        Assert.True(medium.Length > (long)child.Page * PageHeader.PageSize);
         return child.Page;
     }
 }

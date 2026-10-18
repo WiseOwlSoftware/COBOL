@@ -3,7 +3,7 @@
 namespace CobolNet.Runtime.IO.Store;
 
 /// <summary>The medium a keyed store's pages live on (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12): read
-/// page n, write page n, sync, and the page count, over <see cref="PageHeader.PageSize"/>-byte pages. The production
+/// page n, write page n, sync, and the length, over <see cref="PageHeader.PageSize"/>-byte pages. The production
 /// medium is <see cref="HandlePageMedium"/> (positional I/O through the connector's own handle); the unit tests' medium
 /// is an in-memory page array that logs every write and sync and can lose, keep, tear or age them, so every crash point
 /// of 2.2.1.16 runs deterministically on every host.
@@ -14,11 +14,13 @@ namespace CobolNet.Runtime.IO.Store;
 /// as <see cref="MediumSizeLimitException"/>, and a changing statement it refuses answers the boundary ('24', 2.2.1.9).</para></summary>
 internal interface IPageMedium
 {
-    /// <summary>The pages the medium holds: its length over the page size.</summary>
-    long PageCount { get; }
+    /// <summary>The medium's length in BYTES. A store's file is always a whole number of pages; the file an
+    /// <c>OPEN OUTPUT</c> creates over need not be (a format-5 whole store, any foreign file), and a refused creation
+    /// gives it back exactly this length (§14.9.27.4 GR25).</summary>
+    long Length { get; }
 
-    /// <summary>Read page <paramref name="page"/> into <paramref name="destination"/> (one page); a page at or past
-    /// <see cref="PageCount"/> reads as zeros, which no checksum accepts.</summary>
+    /// <summary>Read page <paramref name="page"/> into <paramref name="destination"/> (one page); every byte at or past
+    /// <see cref="Length"/> reads as zero, so a page wholly past the end fails every checksum.</summary>
     void Read(uint page, Span<byte> destination);
 
     /// <summary>Write one page at <paramref name="page"/>, extending the medium when the page lies past its end. The
@@ -29,9 +31,10 @@ internal interface IPageMedium
     /// <summary>Make every write handed over so far durable (<c>FlushFileBuffers</c> / <c>fsync</c>).</summary>
     void Sync();
 
-    /// <summary>Set the medium's length to <paramref name="pages"/> pages — the one truncation: <c>OPEN OUTPUT</c>'s
-    /// creation empties the medium before it writes the three meta pages of the new store (§14.9.27.4 GR18).</summary>
-    void SetPageCount(long pages);
+    /// <summary>Set the medium's length to <paramref name="bytes"/> — the one truncation, <c>OPEN OUTPUT</c>'s: the
+    /// created store's three pages after its commit point (§14.9.27.4 GR18), or a refused creation's previous length
+    /// (GR25). The bytes cut off are gone: a later write past them leaves zeros in between.</summary>
+    void SetLength(long bytes);
 }
 
 /// <summary>The host refused a page write because the file has reached the largest size the host allows
