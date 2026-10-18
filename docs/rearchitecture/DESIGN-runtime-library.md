@@ -987,17 +987,26 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   changed entry copied, nodes split, merged or rebalanced — and FLUSHED once: every changed node is written exactly once, children
   before parents, to the statement's reserved pages, and every page the tree stopped referencing is handed to the ledger
   (`released` or `freed`, R2). So R1 holds by construction, no (page, generation) pair is written twice however many changes a
-  statement makes to one tree (R3's corollary), and the number of pages a statement will write is known before it begins, which
-  sizes its reservation exactly. A node is split when it passes a page body — where the larger half is smallest, or, for an
+  statement makes to one tree (R3's corollary), and both the pages a statement will write and the pages it stops referencing
+  are known before it begins (`StatementBound.Of`), which size its reservation: its own pages, and the LEDGER pages its
+  releases take — a DELETE or shortening REWRITE of a committed record of k overflow pages adds k `freed` entries, so a
+  bound from the reserved pages alone ran out of ledger pages on a 4 MB record (PB3332's branch review R1-1; a 1 000- and
+  a 2 069-page record are cases, the second killed and refused at every write). A node is split when it passes a page body — where the larger half is smallest, or, for an
   APPEND above every key of the tree, just past what fitted before (Berkeley DB's rule at the right edge), so a sequential load
   fills its pages — and is merged with a sibling, or borrows from one, when a change SHRANK it below a quarter of a body (a page
   an append left small is left to fill). **There are no sibling pointers**: a leaf's `next` is 0, because path copying cannot
   keep them — a rewritten leaf's left neighbour would still name the superseded page, and re-pointing it would copy every leaf
   to its left, which R1 forbids doing in place. A cursor holds its root-to-leaf path and crosses leaves by climbing it to the
   first ancestor with a further child (so READ NEXT reads ≤ 1 page within a parent and ≤ d − 1 across one, 2.2.1.11); a cursor
-  whose tree another statement replaced re-seeks from its current key (`BTree.Adopt` takes the root a coherent entry adopted,
-  2.2.1.7), so it never walks a superseded path whose pages may have been reused. A torn or stale page met by a read answers
-  '30' and discards the tree's pending edit. The LEDGER is a RESIDENT instance (every node in memory, read whole at each
+  whose tree changed since it was positioned re-seeks from its current key: another statement replaced the root
+  (`BTree.Adopt` takes the root a coherent entry adopted, 2.2.1.7), so it never walks a superseded path whose pages may have
+  been reused, or the cursor's own run unit edited, flushed or discarded the tree — detected by the tree's CHANGE COUNTER,
+  never by comparing roots, because a second edit of a node the pending edit already copied changes it in place under the
+  same root (PB3332's branch review R1-2: the root comparison stepped through shifted lists, an entry returned twice or
+  skipped). A torn or stale page met by a read answers '30' and discards the tree's pending edit; a read the medium REFUSES
+  answers '30' too and is no verdict on the page — the resident LEDGER's load reports which (`PageCheck.Unreadable`), so R6
+  step 3 never rejects a DESCENDANT for a refusal (PB3331's R1-2 on the tree; the tree's every read point is a refused-read
+  case, `BTreeCrashTests`). The LEDGER is a RESIDENT instance (every node in memory, read whole at each
   adoption, R6 step 3 needing all of it anyway); every other tree reads the pages a walk needs.
 - **Free space.** A page leaves a tree in one of two ways and the LEDGER (2.2.1.6 R2) records which: a page the COMMITTED tree
   references is `freed` and quarantined until the promotion that makes its freeing durable (R4); a page allocated since the
@@ -1074,8 +1083,9 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   for its own ledger leaves the list (PB3331's first simulator run: without the removal the ledger listed its own page as
   reusable and the next statement overwrote it while page 2 referenced it). **Allocation never happens while the ledger is being written:** a
   statement reserves its pages first — the released pages the in-memory ledger offers, then one batch of the lowest FREE-tree
-  pages sized to the statement's bound (2.2.1.11), then growth — writes its data and free-tree pages, and writes the ledger
-  LAST from the reservation; a reserved page the statement did not use is recorded as `released`, never lost. **The
+  pages sized to the statement's bound (2.2.1.11) — its own pages plus the FREE-tree and LEDGER pages it rewrites, the
+  ledger's sized by one entry per page reserved and per page the statement's edits stop referencing (`StatementBound`) —
+  then growth — writes its data and free-tree pages, and writes the ledger LAST from the reservation; a reserved page the statement did not use is recorded as `released`, never lost. **The
   GENERATION CEILING:** a statement whose generation — its CLAIM, 2.2.1.7 — would exceed the committed generation + 4 096
   (`GenerationCeiling`, a format constant) promotes first — R5's statement-count checkpoint, stated as a rule of the format —
   so every stamp a history based on committed generation G issues lies in (G, G + 4 096], the stamps of a statement that died

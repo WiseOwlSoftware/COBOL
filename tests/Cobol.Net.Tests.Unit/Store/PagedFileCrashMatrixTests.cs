@@ -232,12 +232,14 @@ public sealed class PagedFileCrashMatrixTests
                 }
     }
 
-    /// <summary>The previous files a creation meets that hold no store: empty, and foreign bytes of every length class —
-    /// inside page 0 (5 000 bytes: the commit slot's page partly held, the other slot's page past the end), inside page 1
-    /// (8 000: the commit slot's page whole, the other slot's partly held), inside page 2 (12 000: page 2 partly held),
-    /// exactly four pages, and past three pages with a partial tail (20 000) — a format-5 whole store, or any non-store
-    /// file, need not be a whole number of pages.</summary>
-    public static TheoryData<int> PreviousFileLengths => new() { 0, 5_000, 8_000, 12_000, 4 * PageHeader.PageSize, 20_000 };
+    /// <summary>The previous files a creation meets that hold no store: empty, and foreign bytes of every length class.
+    /// With no committed slot the commit write goes to slot A, page 0 (<see cref="MetaPage.SlotA"/>), so the classes are:
+    /// inside page 0 (1 000 bytes: the commit slot's page partly held — a format-5 whole store of a few short records —
+    /// slot B's page and page 2 past the end; branch review R3-1); inside page 1 (5 000: page 0 whole, slot B's page partly
+    /// held, page 2 past the end); exactly two pages (8 192: page 2 just past the end); inside page 2 (12 000: page 2
+    /// partly held); exactly four pages; and past three pages with a partial tail (20 000) — a format-5 whole store, or any
+    /// non-store file, need not be a whole number of pages.</summary>
+    public static TheoryData<int> PreviousFileLengths => new() { 0, 1_000, 5_000, 2 * PageHeader.PageSize, 12_000, 4 * PageHeader.PageSize, 20_000 };
 
     /// <summary>Creation over a file with no store in it: no committed slot exists until the commit write, so a death
     /// before it leaves the file as it was (the next OPEN answers '30') and after it the EMPTY store; a refusal at any point
