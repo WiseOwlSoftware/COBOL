@@ -1,6 +1,6 @@
 ## PB3139 and PB3342 — a strongly-typed variable-length group with a reference leaf crosses as its area and its leaf vector; one C# name per method slot
 
-### PB3139 — the COBOL boundary and the MOVE (the host entry remains, SPLIT)
+### PB3139 — the COBOL boundary and the MOVE (landed; the host entry is PB3273's)
 
 **Re-probe** (fresh Debug build of main 0b8557338, repros in `E:/COBOL-coord/scratch/w1106c/`): a strong type holding
 `PIC X DYNAMIC LENGTH`, `USAGE POINTER` and `PIC 9(2)` passed to a program-prototype CALL drew COBOLNET1688 on the CALL
@@ -38,10 +38,16 @@ refuses at 85 and 2002 with COBOLNET0900 (`wiseowl/diagnostics.json`). Main had 
 (PB1099 to 8, PB3339 to 9), and this branch changes shipped members (`CopyArea`, `StoreArea`, `ContentRecord`, `StoreReturnArea`, and
 PB3342's `BASE.__FactoryObject`), so the major is 10 and `RuntimeAbiPinDriftTests` re-pins the measured surface hash.
 
-**Rows:** none claimed by the note. **Remaining (SPLIT):** the .NET host entry still withholds a unit with such a formal
-(`PublishedRecordEmitter.Renders`, PB3273's restriction): the published record composes no area holding components beside
-slots. The note's Progress section names the steps and the design constraint found here (a host-built dynamic-capacity
-table must carry its description's element seed).
+**Carried onto main a0a2ff24f (w1114a).** The seven commits were cherry-picked again (never merged); main's PB3339 had
+taken the runtime major to 9, so the major is 10 here and the surface hash re-pins to `7B86AAFDF5884757`. Re-probed:
+both goldens MATCH. **Rows:** none claimed by the note (`closes_rows: []`; `SR-14.8.2.2-2` and `GR-14.9.25.4-9`, which
+the goldens witness, were already CONFORMS). PB3139 lands with its own mechanism, the COBOL boundary. The .NET host entry
+is a separate mechanism with its own note, PB3273, now unblocked: the published record composes no area holding
+components beside slots, so `PublishedRecordEmitter.Renders` still withholds a unit with such a formal, and PB3139's
+w1111b Progress section names the design constraint (the area must state its `Shape`, and a host-built
+dynamic-capacity table needs its description's element seed). Measured on the way and reported for the register:
+DISPLAY of such a group whole compiles and then aborts in the Tier-C whole-group image loud, where DOC-A.1-214 makes a
+reference's positions the placeholder image; a relation of two such groups and FUNCTION LENGTH of one run correctly.
 
 ### PB3342 — one C# name per method slot (COBOLNET4213 retired)
 
