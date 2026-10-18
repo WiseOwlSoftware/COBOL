@@ -78,3 +78,5 @@ They run in every USE x FILE STATUS combination with checking off and on, and ev
 §14.9.30.4 GR13/GR24 and DOC-A.1-103. The boundary file is measured, not assumed: the fewest pages below 2^32 that let the OPEN
 I-O's fence complete. That measurement showed a fence reserves its bound and so fails a few pages short of the format's end,
 which design 2.2.1.9 now states.
+
+Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `57b0af458`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).
