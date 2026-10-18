@@ -217,5 +217,8 @@ public sealed class NistWrittenFilesTests
         var empty = Directory.EnumerateDirectories(NistOutputs.GoldenRoot)
             .Where(d => !Directory.EnumerateFileSystemEntries(d).Any()).Select(d => Path.GetFileName(d)!).Order().ToList();
         Assert.True(empty.Count == 0, $"empty golden directories (a program that writes nothing has none): {string.Join(", ", empty)}");
+        var nested = Directory.EnumerateDirectories(NistOutputs.GoldenRoot).SelectMany(Directory.EnumerateDirectories)
+            .Select(d => Path.GetRelativePath(NistOutputs.GoldenRoot, d)).Order().ToList();
+        Assert.True(nested.Count == 0, $"a program's golden directory holds only files (NistOutputs.Grade reads nothing deeper):{string.Join(", ", nested)}");
     }
 }
