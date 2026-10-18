@@ -141,7 +141,8 @@ internal sealed class ProgramEmitter
                 EmitProgramClass(unit, w);
         // The .NET host surface (DESIGN-external-repository §4.3; kb/Work PB2099): one public class per outermost unit, named
         // in the module namespace's type scope beside every type the module already declares there.
-        new HostEntryEmitter(Current.Ctx.SignEncoding, comp.OoClasses).Emit(units,
+        new HostEntryEmitter(Current.Ctx.SignEncoding, comp.OoClasses, _atoms,
+            data => new DataEmitter(new EmitContext(w, data, _names, _atoms, _whenCompiledStamp))).Emit(units,
             units.Where(u => u.Parent is null).Select(u => u.ClassName)
                 .Concat(comp.OoClasses.Classes.SelectMany(c => c.FactoryOrInstanceCsTypes))
                 .Concat(comp.OoClasses.Interfaces.Select(i => i.CsName))
