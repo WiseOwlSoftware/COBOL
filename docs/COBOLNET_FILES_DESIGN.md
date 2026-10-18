@@ -2255,11 +2255,19 @@ its fixed-form offset (`KeyedIoEmitter.KeyWindow`), the window the second progra
 
 **One pad, one trim, keyed on the record area's category (PB679; §14.9.30.4 GR15).** `FileConnector.FitRecord` is the only
 short-record pad; the indexed key slice, the varying-record store and the blank area an unsuccessful READ returns
-(`BlankRecordArea`) all use it, so a national record area is never padded with a byte-level space.
+(`BlankRecordArea`) all use it, so a national record area is never padded with a byte-level space. Witnesses (kb/Work
+PB1880): the golden `pb1880_national_pad_record_sequential_and_relative` (the uncovered tail of a WRITE and the short
+tail of a varying READ, record sequential and relative), `NationalBlankRecordAreaTests` (the blank area of an unsuccessful
+READ in both organizations, with the alphanumeric control), and the indexed `IndexedNationalKeyPadTests`; LINE
+SEQUENTIAL's national fill is the standard's own (§14.9.30.4 GR15, `pb327_national_line_sequential_fill`).
 
 **A report file has no record description (PB677; §13.4.5.3 SR8, §9.1.22).** The emitter's one record-less arm registers
 it through `CobolFile.RegisterReport`; its connector is told `recordDescribed: false`, and `NoticeIfLayoutDisagrees` — the
 one rule that compares the file's bytes with a record length — asks that first. A line width is not a record length.
+The emitter's half is pinned by `ReportFileRegistrationEmitterTests` (a report file registers through `RegisterReport` with
+its own line width and OPTIONAL flag, a file with records never does), the runtime's by `RecordLayoutNoticeTests`, and the
+standard's observable half (OPEN EXTEND over an earlier report answers '00', a second OPEN '41', a CLOSE of a closed file
+'42') by the golden `pb1880_report_file_open_extend` (kb/Work PB1880).
 
 ## C# mapping
 
