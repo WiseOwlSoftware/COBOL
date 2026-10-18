@@ -447,6 +447,10 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
         if (InputOutputStatement(s) is { } io)
             Ctx.Validation.ScreenSortMergeRecordReferences(io, io.Start.Text.ToUpperInvariant(), Ctx.Refs);
         var core = BindStatementCore(s);
+        // The statement's position goes onto the node (kb/Work PB1925): the cursor is this statement's here, and the
+        // conformance pass — which has no parse tree — positions its bound-arm diagnostics from it. A node the verb
+        // binder returned from a nested statement keeps that statement's own.
+        if (!core.At.IsSet) core.At = data.Edition.Cursor;
         // ISO §14.9.14.3 SR1, §14.9.17.3 SR2, §14.9.42.3 SR1 (kb/Work PB397) — the three rules stated over a
         // statement SEQUENCE (a bare EXIT alone in its paragraph; a Format 1 GO TO and a STOP RUN last in their
         // consecutive sequence of imperative statements, kb/Work PB2610), asked HERE because this is the one funnel every statement passes through and the position is a
@@ -741,6 +745,6 @@ public sealed partial class StatementBinder(DataBinder data, ReferenceResolver r
                 $"{verb} shall not be specified in a recursive source element (ISO {cite}; a function or "
                 + "method is always recursive, §8.6.6)");
         }
-        return new BoundCommitRollback(isCommit) { At = Ctx.Edition.Cursor };
+        return new BoundCommitRollback(isCommit);
     }
 }
