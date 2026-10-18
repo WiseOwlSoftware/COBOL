@@ -17,7 +17,7 @@
       *> executed, the EC-SORT-MERGE-RETURN exception condition is set to
       *> exist".  Both are Table 13 fatal; the declarative runs under
       *> CHECKING ON and RESUME AT NEXT STATEMENT continues after the
-      *> offending statement (§14.6.13.1.3 5), NOTE 1) -- except that a
+      *> offending statement (§14.6.13.1.3 5), NOTE 2) -- except that a
       *> RESUME is a not-normal completion (§14.6.13.1.2 1)), which
       *> terminates the SORT whose output procedure raised it
       *> (§14.9.40.4 GR17), so nothing after leg D's offending RETURN
