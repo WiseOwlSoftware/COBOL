@@ -39,3 +39,5 @@ members also returned the values the standard gives.
 No second recipe for an element seed lives in the record. A pointer slot is read only from the cell that holds it. The
 `Published` guard stays for shapes the law refuses, which the binder already refuses (COBOLNET0853/0854). A small
 duplicate remains: the host class declares a number's `_P_` profile beside its `__hm` member profile.
+
+**Gate.** Run `20261018T170337Z-6f5a3f`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,296, Unit 33,695, Characterization 5 cases ran; both host tests and the drift pin passed).
