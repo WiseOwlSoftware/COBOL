@@ -11,7 +11,8 @@ namespace CobolNet.Tests.Conformance;
 /// 42, DELETE FILE 41/05): the LOCK-CONTENTION statuses under a RETRY phrase, the OPEN statuses 37, 39 and 05, the
 /// AT END and INVALID KEY conditions against their own phrases, and the SORT / MERGE statements that are legal around
 /// the PERFORM (a table SORT in imperative-statement-1, a file SORT or MERGE in a WHEN phrase) on their success and
-/// on their work-file failure paths (owner 2026-10-17: SORT and file I-O tests cover both).
+/// on their USING-file failure paths (owner 2026-10-17: SORT and file I-O tests cover both); a failure of the
+/// sort-merge WORK file itself is <c>PerformFormat3SortWorkFileFailureTests</c>.
 /// <para>Each status is delivered, per §9.1.12 and §14.9.28.4 GR17, to the FIRST of: a WHEN phrase naming the
 /// exception, the USE declarative for the file (§14.9.49.4 GR6), the file's FILE STATUS item with nothing else
 /// applicable. Which of the three runs is pinned for each status here, with the NONFATAL / FATAL split the exception
@@ -38,7 +39,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     /// declarative on one file whose body is the given statements (§14.4.1: with declaratives present every
     /// paragraph of the main part lives in a section).</summary>
     private static string Prog(string name, string select, string fd, string ws, string proc,
-        string checking = On, (string File, string Body)? use = null)
+        string checking = On, (string File, string Body)? use = null, string paras = "")
     {
         string declaratives = use is not { } u ? "" : $"""
             DECLARATIVES.
@@ -68,6 +69,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             {proc}
                 DISPLAY "DONE"
                 STOP RUN.
+            {paras}
             """;
     }
 
@@ -337,8 +339,10 @@ public sealed class PerformFormat3IoConflictAndSortTests
             END-PERFORM
         """, status: false), "AFTER\nDONE");
 
-    /// <summary>'37' on OPEN OUTPUT over a PRESENT file this process may not write (§14.9.27.4 GR16 / §9.1.13.6 item
-    /// 6 a: the file will not support the write operation). The host's ability to refuse is MEASURED, not assumed
+    /// <summary>'37' on OPEN OUTPUT over a PRESENT file this process may not write (§14.9.27.4 GR3: "If the file
+    /// associated with file-name-1 is present and insufficient authority exists to open the file ..."; §9.1.13.6 item
+    /// 6 a) 1.: "the EXTEND or OUTPUT phrase is specified but the file will not support write operations", and 6 b):
+    /// "insufficient authority exists to access the file"). The host's ability to refuse is MEASURED, not assumed
     /// (kb/Work PB795): a process that bypasses file permissions (a root Linux user) has nothing to assert, and that
     /// is recorded, never silent.</summary>
     private static bool MakeUnwritable(string path)
@@ -634,7 +638,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     /// <summary>F holds three unordered records (DDDD AAAA CCCC), G is the GIVING file, H an ABSENT file, J a second
     /// GIVING file and SF the sort-merge work file; <c>TE</c> is a four-entry table.</summary>
     private static string Sort(string name, string proc, bool hStatus = true, string checking = On,
-        (string File, string Body)? use = null)
+        (string File, string Body)? use = null, string paras = "")
     {
         return Prog(name,
             select: string.Format(SortSelect, HostPath(name + "F"), HostPath(name + "G"), HostPath(name + "H"),
@@ -666,7 +670,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
                     MOVE "AAAA" TO R WRITE R
                     MOVE "CCCC" TO R WRITE R
                     CLOSE F
-                """ + "\n" + proc, checking, use);
+                """ + "\n" + proc, checking, use, paras);
     }
 
     /// <summary>Read G to its end, displaying each record.</summary>
@@ -707,13 +711,15 @@ public sealed class PerformFormat3IoConflictAndSortTests
     /// <summary>The imperative-statement-1 that earns the WHEN phrase a file SORT / MERGE: OPEN INPUT of the ABSENT
     /// file H answers '35' (EC-I-O-PERMANENT-ERROR), the WHEN runs <paramref name="body"/> and RESUMEs.
     /// <para>⛔ A WHEN body binds under TURN OFF ALL (§14.9.28.4 GR14: "An implicit PUSH ALL followed by TURN OFF ALL
-    /// is assumed at the end of imperative-statement-1"), and a real directive written inside it wins: the SORT-MERGE
-    /// conditions are raised in the body only when <paramref name="turn"/> enables them there.</para></summary>
-    private static string InWhen(string body, string turn = "") => $"""
+    /// is assumed at the end of imperative-statement-1"), and a TURN directive may NOT be written inside the
+    /// exception-checking PERFORM at all (§7.3.25.3 SR5: "A TURN directive shall not be specified within an exception
+    /// processing PERFORM statement"; the compiler warns, COBOLNET2187). A SORT / MERGE whose EC-SORT-MERGE conditions
+    /// must be raised therefore lives in a PARAGRAPH compiled under the program's own EC-ALL directive and is
+    /// PERFORMed from the WHEN body (<c>paras</c> of <see cref="Sort"/>): the shape a conforming program has.</para></summary>
+    private static string InWhen(string body) => $"""
             PERFORM
                 OPEN INPUT H
             WHEN EC-I-O-PERMANENT-ERROR
-            {turn}
                 {body}
                 RESUME NEXT STATEMENT
             END-PERFORM
@@ -728,8 +734,6 @@ public sealed class PerformFormat3IoConflictAndSortTests
                 RESUME NEXT STATEMENT
             END-PERFORM
         """;
-
-    private const string SortMergeOn = ">>TURN EC-SORT-MERGE CHECKING ON";
 
     private const string Nl = "\n                ";
 
@@ -756,9 +760,28 @@ public sealed class PerformFormat3IoConflictAndSortTests
     [Fact]   // §14.9.40.4 GR9 a): a USING file in an open mode at the SORT is EC-SORT-MERGE-FILE-OPEN; §14.6.13.1.3 2)
              // makes the SORT rules apply, so the declarative runs, the SORT is terminated and the run unit continues
     public void FileSortInWhen_UsingFileOpen_SortMergeFileOpen_TerminatesTheSort() => AssertRuns(Sort("F3ST06",
-        "    OPEN INPUT F\n" + InWhen("SORT SF ASCENDING KEY SK USING F GIVING G" + Nl + "DISPLAY \"CONTINUED\"", SortMergeOn)
-        + "\n    CLOSE F\n" + GAbsent, use: ("EC-SORT-MERGE-FILE-OPEN", "DISPLAY \"USE-SM\".")),
+        "    OPEN INPUT F\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\"")
+        + "\n    CLOSE F\n" + GAbsent, use: ("EC-SORT-MERGE-FILE-OPEN", "DISPLAY \"USE-SM\"."),
+        paras: SortPara("SORT SF ASCENDING KEY SK USING F GIVING G")),
         "USE-SM\nCONTINUED\nG-ABSENT 35\nDONE");
+
+    [Fact]   // the same condition with NO declarative for it: EC-SORT-MERGE-FILE-OPEN is checked and unhandled, yet a
+             // fatal condition in a SORT does NOT end the run unit (§14.6.12: "unless the exception occurs in a MERGE
+             // statement, a SORT statement, or an I-O statement for which the implementor specifies otherwise, the
+             // runtime system attempts to perform ..." the abnormal termination); the SORT is terminated and control
+             // goes on, with no GIVING file created
+    public void FileSortInWhen_UsingFileOpen_NoDeclarative_TerminatesTheSort_RunContinues() => AssertRuns(Sort("F3ST07",
+        "    OPEN INPUT F\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\"")
+        + "\n    CLOSE F\n" + GAbsent, paras: SortPara("SORT SF ASCENDING KEY SK USING F GIVING G")),
+        "CONTINUED\nG-ABSENT 35\nDONE");
+
+    /// <summary>The paragraph a conforming program PERFORMs from a WHEN body to run a SORT or MERGE with the
+    /// EC-SORT-MERGE conditions checked (§7.3.25.3 SR5 forbids the TURN directive inside the exception-checking
+    /// PERFORM; the paragraph is compiled under the program's own EC-ALL directive).</summary>
+    private static string SortPara(string statement) => $"""
+            SORT-PARA.
+                {statement}.
+            """;
 
     [Fact]   // §14.9.24.4 GR12: MERGE in a WHEN phrase (legal); both USING files are in key order, the GIVING file is merged
     public void MergeInWhen_Success_MergesTheFiles() => AssertRuns(Sort("F3MG01", """
@@ -791,6 +814,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
             OPEN OUTPUT G
             MOVE "BBBB" TO GR WRITE GR
             CLOSE G
-        """ + "\n" + InWhen("MERGE SF ASCENDING KEY SK USING F G GIVING J" + Nl + "DISPLAY \"CONTINUED\"", SortMergeOn),
-        use: ("EC-SORT-MERGE-SEQUENCE", "DISPLAY \"USE-SEQ\".")), "USE-SEQ\nCONTINUED\nDONE");
+        """ + "\n" + InWhen("PERFORM SORT-PARA" + Nl + "DISPLAY \"CONTINUED\""),
+        use: ("EC-SORT-MERGE-SEQUENCE", "DISPLAY \"USE-SEQ\"."),
+        paras: SortPara("MERGE SF ASCENDING KEY SK USING F G GIVING J")), "USE-SEQ\nCONTINUED\nDONE");
 }
