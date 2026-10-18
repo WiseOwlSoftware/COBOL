@@ -34,18 +34,18 @@ public sealed class FrameDecoderDriftTests
     };
 
     /// <summary>The paged keyed store's OWN field decoders (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work
-    /// PB3331), by file and member: the page header's <c>self</c>, <c>next</c> and checksum, a POINTER's page number, and
-    /// the interim LEDGER and FREE payloads' page numbers. They are a second FORMAT's fixed fields, not a frame word: a
-    /// frame the paged store carries in a leaf value is decoded by <c>RecordFraming.ReadFrame</c> like every other
-    /// (kb/Work PB3333). Each home must still exist, so a moved or deleted one (kb/Work PB3332 replaces the two interim
-    /// payloads) is a red here rather than a silently widened exemption.</summary>
+    /// PB3331, PB3332), by file and member: the page header's <c>self</c>, <c>next</c> and checksum, a POINTER's page
+    /// number, and a B+ tree LEAF entry's value length and overflow reference's total length. They are a second FORMAT's
+    /// fixed fields, not a frame word: a frame the paged store carries in a leaf value is decoded by
+    /// <c>RecordFraming.ReadFrame</c> like every other (kb/Work PB3333). Each home must still exist, so a moved or
+    /// deleted one (PB3332 deleted the interim LEDGER and FREE payloads' two) is a red here rather than a silently widened
+    /// exemption.</summary>
     private static readonly HashSet<(string File, string Member)> PageLayoutHomes =
     [
         ("PageHeader.cs", "Decode"),
         ("PageHeader.cs", "ChecksumHolds"),
         ("PagePointer.cs", "Read"),
-        ("Ledger.cs", "Decode"),
-        ("PageChain.cs", "DecodePageSet"),
+        ("BTree.cs", "DecodeNode"),
     ];
 
     /// <summary>Every member that reads frames, by file — the selector's population, so the reach test measures

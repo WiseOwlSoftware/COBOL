@@ -63,10 +63,7 @@ internal sealed class PagedFile
     private readonly bool _coherent;
 
     private MetaPage _meta;
-    private Ledger _ledger = new();
-    private SortedSet<uint> _free = [];
-    private List<PagePointer> _ledgerChain = [];
-    private List<PagePointer> _freeChain = [];
+    private Ledger _ledger;
 
     /// <summary>Page 2's generation as this store last saw or wrote it (2.2.1.7).</summary>
     private ulong _lastSeen;
@@ -92,6 +89,7 @@ internal sealed class PagedFile
         _writable = writable;
         _coherent = coherent;
         _meta = meta;
+        _ledger = new Ledger(this);
     }
 
     /// <summary>The meta the store holds: the adopted meta, or page 2 from the moment its generation changes.</summary>
@@ -100,8 +98,23 @@ internal sealed class PagedFile
     /// <summary>The ledger the store holds.</summary>
     public IReadOnlyDictionary<uint, LedgerEntry> LedgerEntries => _ledger.Entries;
 
-    /// <summary>The FREE set the store holds.</summary>
-    public IReadOnlyCollection<uint> FreePages => _free;
+    /// <summary>Every page of the FREE tree the store's meta names, read by a walk of the tree (an audit; no statement
+    /// reads more of the FREE tree than the batch its reservation takes, R2).</summary>
+    public IReadOnlyCollection<uint> FreePages
+    {
+        get
+        {
+            var pages = new SortedSet<uint>();
+            var free = new BTree(this, KeyOrders.Ordinal, _meta.FreeRoot);
+            if (free.First(out var cursor) != StoreStatus.Ok) throw new IOException("the FREE tree reads torn");
+            while (cursor.HasCurrent)
+            {
+                pages.Add(KeyOrders.PageOf(cursor.Key));
+                if (cursor.Next() != StoreStatus.Ok) throw new IOException("the FREE tree reads torn");
+            }
+            return pages;
+        }
+    }
 
     /// <summary>The highest generation this store has claimed (or seen claimed).</summary>
     public ulong LastClaim => _stampMint;
@@ -167,15 +180,17 @@ internal sealed class PagedFile
             : WorkSlotClass.Foreign;
 
         var adopted = committed;
+        Ledger? adoptedLedger = null;
         Rejected? rejected = null;
         if (workClass == WorkSlotClass.Descendant)
         {
-            bool readable = opened.TryLoad(work!, out var ledger, out _, out var ledgerChain, out _);
-            if (readable && opened.FreshPagesVerify(ledger)) adopted = work!;
-            else rejected = new Rejected(readable ? ledger : null, readable ? ledgerChain : []);
+            bool readable = Ledger.Load(opened, work!.LedgerRoot, out var ledger) == StoreStatus.Ok;
+            if (readable && opened.FreshPagesVerify(ledger!)) (adopted, adoptedLedger) = (work, ledger);
+            else rejected = new Rejected(ledger);
         }
-        if (!opened.TryLoad(adopted, out var l, out var f, out var lc, out var fc)) return StoreStatus.PermanentError;
-        opened.SetState(adopted, l, f, lc, fc);
+        if (adoptedLedger is null && Ledger.Load(opened, adopted.LedgerRoot, out adoptedLedger) != StoreStatus.Ok)
+            return StoreStatus.PermanentError;
+        opened.SetState(adopted, adoptedLedger!);
         opened._lastSeen = work?.Generation ?? 0;
         opened.SeeMints(committed);
         if (work is not null) opened.SeeMints(work);
@@ -192,8 +207,8 @@ internal sealed class PagedFile
     }
 
     /// <summary>A DESCENDANT the adoption rule rejected: its ledger when readable (its <c>fresh</c> and <c>released</c>
-    /// pages and its own pages were never committed, and the fence's retirement returns them to the FREE set).</summary>
-    private sealed record Rejected(Ledger? Ledger, List<PagePointer> LedgerChain);
+    /// pages and its own pages were never committed, and the fence's retirement returns them to the FREE tree).</summary>
+    private sealed record Rejected(Ledger? Ledger);
 
     // ── The statement's entry ───────────────────────────────────────────────────────────────────────────────────
 
@@ -214,8 +229,10 @@ internal sealed class PagedFile
         if (work is null) return _writable ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
         {
-            if (!TryLoad(work, out var l, out var f, out var lc, out var fc)) return StoreStatus.PermanentError;
-            SetState(work, l, f, lc, fc);
+            // A reader adopts the roots; only a writer allocates, so only a writer reads the ledger (2.2.1.7).
+            if (!_writable) _meta = work;
+            else if (Ledger.Load(this, work.LedgerRoot, out var ledger) != StoreStatus.Ok) return StoreStatus.PermanentError;
+            else SetState(work, ledger!);
             _lastSeen = work.Generation;
             _cacheEpoch++;
         }
@@ -259,19 +276,21 @@ internal sealed class PagedFile
 
     // ── A changing statement ────────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Begin a statement that CHANGES the file, bounded to <paramref name="pageBound"/> pages of its own (the
-    /// tree pages it writes), minting <paramref name="ordinals"/> release ordinals and <paramref name="transactionIds"/>
-    /// transaction ids. Its entry (<see cref="Enter"/>); the ceiling and the ledger checkpoint (a promotion first, R2 and
-    /// R5); its CLAIM — in memory, and for a coherent store on page 2 with the roots, base and generation unchanged,
-    /// before its first page write (2.2.1.7); and its RESERVATION — the ledger's <c>released</c> pages, then one batch of
-    /// the lowest FREE pages, then growth, sized to the bound plus the FREE and LEDGER pages the statement rewrites, so
-    /// nothing is allocated once the ledger is being written (R2).</summary>
-    public StoreStatus Begin(int pageBound, out PageStatement? statement, int ordinals = 0, int transactionIds = 0)
+    /// <summary>Begin a statement that CHANGES the file, writing <paramref name="pageBound"/> pages of its own (the tree
+    /// pages its edits will flush, <see cref="BTree.PagesToWrite"/>), minting <paramref name="ordinals"/> release
+    /// ordinals and <paramref name="transactionIds"/> transaction ids. Its entry (<see cref="Enter"/>, unless the caller
+    /// already ran it for this statement — <paramref name="entered"/> — to read the trees its edits change); the ceiling
+    /// and the ledger checkpoint (a promotion first, R2 and R5: it moves no data tree's root); its CLAIM — in memory, and
+    /// for a coherent store on page 2 with the roots, base and generation unchanged, before its first page write
+    /// (2.2.1.7); and its RESERVATION — the ledger's <c>released</c> pages, then one batch of the lowest FREE-tree pages,
+    /// then growth, sized to the statement's pages plus the FREE-tree and LEDGER pages it rewrites, so nothing is
+    /// allocated once the ledger is being written (R2).</summary>
+    public StoreStatus Begin(int pageBound, out PageStatement? statement, int ordinals = 0, int transactionIds = 0, bool entered = false)
     {
         statement = null;
         if (!_writable) throw new InvalidOperationException("an INPUT store changes nothing");
         if (_active is not null) throw new InvalidOperationException("one statement at a time");
-        if (Enter() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (!entered && Enter() != StoreStatus.Ok) return StoreStatus.PermanentError;
         if ((NextClaim() > _meta.CommittedGeneration + GenerationCeiling || _ledger.Count > LedgerCheckpoint)
             && PromoteAt(_meta, 0, Claim(), null) != StoreStatus.Ok)
             return StoreStatus.PermanentError;
@@ -281,36 +300,31 @@ internal sealed class PagedFile
         if (_coherent && !TryWrite(MetaPage.WorkSlot, WithMints(_meta).Encode(MetaPage.WorkSlot)))
             return StoreStatus.PermanentError;
         var ledger = _ledger.Clone();
-        var free = new SortedSet<uint>(_free);
-        int bound = ReservationBound(pageBound, ledger.Count, free.Count);
-        var reservation = Reserve(bound, ledger, free, _meta.PageCount);
+        var free = new BTree(this, KeyOrders.Ordinal, _meta.FreeRoot);
+        if (Reserve(pageBound, ledger, free, _meta.PageCount, out var reservation) != StoreStatus.Ok)
+            return StoreStatus.PermanentError;   // a torn FREE-tree page: '30', the claim raised and nothing written
         _active = statement = new PageStatement(this, claim, ledger, free, reservation, _meta);
         return StoreStatus.Ok;
     }
 
-    /// <summary>Complete <paramref name="s"/>: the superseded ledger pages become <c>released</c>, the FREE and LEDGER
-    /// pages are written from the reservation, and page 2 LAST, with the claim as its generation (2.2.1.6 R1-R3). A
-    /// refusal anywhere leaves page 2 naming the previous statement's tree, untouched (R1), and the store's memory as it
-    /// was but for the claim, which stays raised (finding R4-3).</summary>
+    /// <summary>Complete <paramref name="s"/>: the FREE tree and then the LEDGER are written from the reservation, and
+    /// page 2 LAST, with the claim as its generation (2.2.1.6 R1-R3). A refusal anywhere leaves page 2 naming the previous
+    /// statement's tree, untouched (R1), and the store's memory as it was but for the claim, which stays raised (finding
+    /// R4-3).</summary>
     internal StoreStatus Complete(PageStatement s)
     {
         End(s);
-        if (s.Refused) return StoreStatus.PermanentError;
-        foreach (var p in _ledgerChain) s.Ledger.Set(p.Page, p.Generation, LedgerState.Released);
-        if (!WriteBookkeeping(s.Generation, s.Ledger, s.Free, s.Reservation, s.Reservation.TookFromFree, _freeChain,
-                _freeChain.Count > 0 ? _meta.FreeRoot : PagePointer.None,
-                out var freeRoot, out var freeChain, out var ledgerRoot, out var ledgerChain, out ulong pageCount))
-            return StoreStatus.PermanentError;
+        if (s.Refused || !WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return StoreStatus.PermanentError;
         var completed = WithMints(s.Meta with
         {
             Generation = s.Generation,
             FreeRoot = freeRoot,
             LedgerRoot = ledgerRoot,
-            PageCount = Math.Max(s.Meta.PageCount, pageCount),
+            PageCount = Math.Max(s.Meta.PageCount, s.Reservation.GrownTo),
             Promoting = false,
         });
         if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return StoreStatus.PermanentError;
-        SetState(completed, s.Ledger, s.Free, ledgerChain, freeChain);
+        SetState(completed, s.Ledger);
         _lastSeen = completed.Generation;
         return StoreStatus.Ok;
     }
@@ -379,34 +393,35 @@ internal sealed class PagedFile
 
     /// <summary>The RETIREMENT statement (2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at
     /// <paramref name="claim"/> on the base <paramref name="promoted"/>'s generation. The promoted ledger's
-    /// <c>released</c> and <c>freed</c> pages move into the FREE set, its <c>fresh</c> entries are dropped (committed
-    /// pages now), and the promoted ledger's own pages and the promoted FREE chain — referenced by the committed slot until
-    /// the next promotion — are <c>freed</c> in the new ledger (R4); at a fence after a rejection, the rejected history's
-    /// never-committed pages join the FREE set too. A page past the promoted state's page count never enters the FREE set:
-    /// it is reached by nothing and the next growth reuses it.</summary>
+    /// <c>released</c> and <c>freed</c> pages are inserted into the FREE tree (path-copied: the FREE-tree pages it
+    /// replaces are committed pages, so they are <c>freed</c> in the new ledger), its <c>fresh</c> entries are dropped
+    /// (committed pages now), and the promoted ledger's own pages — referenced by the committed slot until the next
+    /// promotion — are <c>freed</c> in the new ledger (R4); at a fence after a rejection, the rejected history's
+    /// never-committed pages join the FREE tree too (a page the committed FREE tree already holds is held once). A page
+    /// past the promoted state's page count never enters the FREE tree: it is reached by nothing and the next growth
+    /// reuses it.</summary>
     private StoreStatus Retire(MetaPage promoted, ulong claim, Rejected? rejected)
     {
-        if (!TryLoad(promoted, out var old, out var oldFree, out var oldLedgerChain, out var oldFreeChain))
-            return StoreStatus.PermanentError;
-        var committedPages = new HashSet<uint>(old.Pages(LedgerState.Fresh));
-        committedPages.UnionWith(oldLedgerChain.Select(c => c.Page));
-        committedPages.UnionWith(oldFreeChain.Select(c => c.Page));
-        var free = new SortedSet<uint>(oldFree);
-        free.UnionWith(old.Pages(LedgerState.Released));
-        free.UnionWith(old.Pages(LedgerState.Freed));
+        if (Ledger.Load(this, promoted.LedgerRoot, out var old) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var ownPages = old!.OwnPages;
+        var own = ownPages.Select(p => p.Page).ToHashSet();
+        var moved = new SortedSet<uint>(old.Pages(LedgerState.Released));
+        moved.UnionWith(old.Pages(LedgerState.Freed));
         if (rejected?.Ledger is { } abandoned)
         {
-            free.UnionWith(abandoned.Pages(LedgerState.Fresh));
-            free.UnionWith(abandoned.Pages(LedgerState.Released));
-            free.UnionWith(rejected.LedgerChain.Select(c => c.Page));
+            moved.UnionWith(abandoned.Pages(LedgerState.Fresh));
+            moved.UnionWith(abandoned.Pages(LedgerState.Released));
+            moved.UnionWith(abandoned.OwnPages.Select(p => p.Page));
         }
-        free.RemoveWhere(p => p < MetaPage.MetaPages || p >= promoted.PageCount || committedPages.Contains(p));
-        var ledger = new Ledger();
-        foreach (var c in oldLedgerChain.Concat(oldFreeChain)) ledger.Set(c.Page, c.Generation, LedgerState.Freed);
-        var reservation = Reserve(ReservationBound(0, ledger.Count, free.Count), ledger, free, promoted.PageCount);
-        if (!WriteBookkeeping(claim, ledger, free, reservation, freeChanged: true, oldFreeChain: [], currentFreeRoot: PagePointer.None,
-                out var freeRoot, out var freeChain, out var ledgerRoot, out var ledgerChain, out ulong pageCount))
-            return StoreStatus.PermanentError;
+        moved.RemoveWhere(p => p < MetaPage.MetaPages || p >= promoted.PageCount || own.Contains(p));
+        var ledger = new Ledger(this);
+        foreach (var p in ownPages) ledger.Set(p.Page, p.Generation, LedgerState.Freed);
+        var free = new BTree(this, KeyOrders.Ordinal, promoted.FreeRoot);
+        foreach (uint p in moved)
+            if (free.Put(KeyOrders.PageKey(p), []) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (Reserve(0, ledger, free, promoted.PageCount, out var reservation) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var s = new PageStatement(this, claim, ledger, free, reservation, promoted);
+        if (!WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return StoreStatus.PermanentError;
         var retired = WithMints(promoted with
         {
             Generation = claim,
@@ -418,50 +433,27 @@ internal sealed class PagedFile
             Committing = 0,
             FreeRoot = freeRoot,
             LedgerRoot = ledgerRoot,
-            PageCount = Math.Max(promoted.PageCount, pageCount),
+            PageCount = Math.Max(promoted.PageCount, s.Reservation.GrownTo),
         });
         if (!TryWrite(MetaPage.WorkSlot, retired.Encode(MetaPage.WorkSlot))) return StoreStatus.PermanentError;
-        SetState(retired, ledger, free, ledgerChain, freeChain);
+        SetState(retired, ledger);
         _lastSeen = retired.Generation;
         _promotionPending = false;
         return StoreStatus.Ok;
     }
 
-    // ── The bookkeeping pages: the FREE set and the LEDGER, written last from the reservation ───────────────────────
+    // ── The bookkeeping pages: the FREE tree and the LEDGER, written last from the reservation ──────────────────────
 
-    /// <summary>Write a statement's FREE chain (when the set changed: the superseded chain's pages become <c>released</c>
-    /// or <c>freed</c> by the ledger's rule, the new chain's pages <c>fresh</c>) and then its LEDGER chain, both from the
-    /// reservation; the reserved pages left over are <c>released</c> (a FREE page) or stay as they were (a released page)
-    /// or are simply not grown into. Nothing is allocated here: every page comes from the reservation (R2).</summary>
-    private bool WriteBookkeeping(ulong claim, Ledger ledger, SortedSet<uint> free, Reservation reservation, bool freeChanged,
-        List<PagePointer> oldFreeChain, PagePointer currentFreeRoot,
-        out PagePointer freeRoot, out List<PagePointer> freeChain, out PagePointer ledgerRoot, out List<PagePointer> ledgerChain,
-        out ulong pageCount)
+    /// <summary>Write statement <paramref name="s"/>'s FREE tree, when its reservation took FREE pages or a retirement
+    /// moved pages into it (path-copied: its new pages are listed <c>fresh</c>, the pages it replaces <c>released</c> or
+    /// <c>freed</c> by the ledger's rule), and then its LEDGER, settled and written LAST (R2). Nothing is allocated here:
+    /// every page is the next of the reservation.</summary>
+    private static bool WriteBookkeeping(PageStatement s, out PagePointer freeRoot, out PagePointer ledgerRoot)
     {
-        freeRoot = currentFreeRoot;
-        freeChain = oldFreeChain;
+        freeRoot = s.Meta.FreeRoot;
         ledgerRoot = PagePointer.None;
-        ledgerChain = [];
-        pageCount = 0;
-        if (freeChanged)
-        {
-            foreach (var p in oldFreeChain) Supersede(ledger, p);
-            var payload = PageChain.EncodePageSet(free);
-            var pages = reservation.Take(PageChain.PagesFor(payload.Length));
-            if (!PageChain.Compose(payload, pages, claim, TryWrite, out freeRoot)) return false;
-            freeChain = pages.Select(p => new PagePointer(p, claim)).ToList();
-            foreach (var p in pages) ledger.Set(p, claim, LedgerState.Fresh);
-        }
-        int k = 0;
-        while (PageChain.PagesFor(Ledger.BytesFor(ledger.Count + reservation.UnusedFreeAfter(k))) > k) k++;
-        var ledgerPages = reservation.Take(k);
-        // The ledger does not list its own pages (R2): a released page reused for its chain leaves the list.
-        foreach (var p in ledgerPages) ledger.Remove(p);
-        foreach (var p in reservation.UnusedFree()) ledger.Set(p, 0, LedgerState.Released);
-        if (!PageChain.Compose(ledger.Encode(), ledgerPages, claim, TryWrite, out ledgerRoot)) return false;
-        ledgerChain = ledgerPages.Select(p => new PagePointer(p, claim)).ToList();
-        pageCount = reservation.GrownTo;
-        return true;
+        if (s.FreeTree.HasPendingChanges && s.FreeTree.Flush(s, out freeRoot) != StoreStatus.Ok) return false;
+        return s.Ledger.Write(s, out ledgerRoot) == StoreStatus.Ok && !s.Refused;
     }
 
     /// <summary>A page the work tree stops referencing: <c>released</c> when it was allocated since the base (the ledger
@@ -478,67 +470,60 @@ internal sealed class PagedFile
             ledger.Set(page.Page, page.Generation, LedgerState.Freed);
     }
 
-    /// <summary>The pages a statement of <paramref name="pages"/> tree pages reserves: its own, the FREE chain it may
-    /// rewrite and the LEDGER chain it writes (which lists every reserved page and the superseded chains' pages).</summary>
-    private int ReservationBound(int pages, int ledgerEntries, int freeCount)
+    /// <summary>R2's RESERVATION for a statement of <paramref name="pages"/> pages of its own: the <c>released</c> pages
+    /// of <paramref name="ledger"/> (reusable by a statement later than the one that released them), then one batch of
+    /// the lowest pages of the FREE tree <paramref name="free"/> (deleted from it in memory: its pending edit is the
+    /// statement's FREE-tree change), then growth from <paramref name="pageCount"/>. The size is settled with the pages
+    /// the FREE tree's edit and the ledger's write will take ('30' for a torn FREE-tree page).</summary>
+    private static StoreStatus Reserve(int pages, Ledger ledger, BTree free, ulong pageCount, out Reservation reservation)
     {
-        int freePages = PageChain.PagesFor(4L * freeCount);
-        int superseded = _freeChain.Count + _ledgerChain.Count;
-        int total = pages + freePages;
+        reservation = null!;
+        var released = ledger.Pages(LedgerState.Released).ToList();
+        var fromFree = new List<uint>();
+        bool exhausted = false;
+        int need = 0;
         while (true)
         {
-            int ledgerPages = PageChain.PagesFor(Ledger.BytesFor((long)ledgerEntries + total + superseded + freePages));
-            if (pages + freePages + ledgerPages <= total) return total;
-            total = pages + freePages + ledgerPages;
+            int next = pages + free.PagesToWrite + ledger.WriteBound(need);
+            if (next <= need) break;
+            need = next;
+            int wanted = need - Math.Min(released.Count, need);
+            if (!exhausted && fromFree.Count < wanted && TakeLowest(free, wanted - fromFree.Count, fromFree, ref exhausted) != StoreStatus.Ok)
+                return StoreStatus.PermanentError;
         }
+        var reserved = new List<(uint Page, PageOrigin Origin)>(need);
+        foreach (uint p in released.Take(need)) reserved.Add((p, PageOrigin.Released));
+        foreach (uint p in fromFree.Take(need - reserved.Count)) reserved.Add((p, PageOrigin.Free));
+        for (ulong p = pageCount; reserved.Count < need; p++)
+        {
+            if (p > uint.MaxValue) throw new IOException("the store has reached the format's 2^32 pages");
+            reserved.Add(((uint)p, PageOrigin.Growth));
+        }
+        reservation = new Reservation(reserved, pageCount);
+        return StoreStatus.Ok;
     }
 
-    /// <summary>R2's RESERVATION of <paramref name="count"/> pages: the <c>released</c> pages of
-    /// <paramref name="ledger"/> (reusable by a statement later than the one that released them), then one batch of the
-    /// lowest pages of <paramref name="free"/> (taken out of it), then growth from <paramref name="pageCount"/>.</summary>
-    private static Reservation Reserve(int count, Ledger ledger, SortedSet<uint> free, ulong pageCount)
+    /// <summary>The <paramref name="count"/> lowest pages of the FREE tree (fewer, and <paramref name="exhausted"/>, when
+    /// it holds fewer), deleted from it in memory.</summary>
+    private static StoreStatus TakeLowest(BTree free, int count, List<uint> into, ref bool exhausted)
     {
-        var pages = new List<(uint Page, PageOrigin Origin)>(count);
-        foreach (uint p in ledger.Pages(LedgerState.Released))
+        if (free.First(out var cursor) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var keys = new List<byte[]>(count);
+        while (cursor.HasCurrent && keys.Count < count)
         {
-            if (pages.Count == count) break;
-            pages.Add((p, PageOrigin.Released));
+            keys.Add(cursor.Key);
+            if (cursor.Next() != StoreStatus.Ok) return StoreStatus.PermanentError;
         }
-        foreach (uint p in free)
+        exhausted |= keys.Count < count;
+        foreach (var key in keys)
         {
-            if (pages.Count == count) break;
-            pages.Add((p, PageOrigin.Free));
+            if (free.Delete(key, out _) != StoreStatus.Ok) return StoreStatus.PermanentError;
+            into.Add(KeyOrders.PageOf(key));
         }
-        foreach (var (p, origin) in pages)
-            if (origin == PageOrigin.Free) free.Remove(p);
-        for (ulong next = pageCount; pages.Count < count; next++)
-        {
-            if (next > uint.MaxValue) throw new IOException("the store has reached the format's 2^32 pages");
-            pages.Add(((uint)next, PageOrigin.Growth));
-        }
-        return new Reservation(pages, pageCount);
+        return StoreStatus.Ok;
     }
 
-    // ── Loading, verifying and holding a meta's structures ──────────────────────────────────────────────────────
-
-    private bool TryLoad(MetaPage meta, out Ledger ledger, out SortedSet<uint> free,
-        out List<PagePointer> ledgerChain, out List<PagePointer> freeChain)
-    {
-        ledger = new Ledger();
-        free = [];
-        freeChain = [];
-        if (PageChain.Read(meta.LedgerRoot, Verify, out var ledgerBytes, out ledgerChain) != PageCheck.Whole
-            || Ledger.Decode(ledgerBytes) is not { } decoded)
-            return false;
-        ledger = decoded;
-        if (PageChain.Read(meta.FreeRoot, Verify, out var freeBytes, out freeChain) != PageCheck.Whole
-            || PageChain.DecodePageSet(freeBytes) is not { } set)
-            return false;
-        free = set;
-        return true;
-    }
-
-    private PageCheck Verify(PagePointer pointer, byte[] page) => Read(pointer, page);
+    // ── Verifying and holding a meta's structures ───────────────────────────────────────────────────────────────
 
     /// <summary>R6 step 3: every <c>fresh</c> page of a DESCENDANT's ledger verifies against the ledger's generation.</summary>
     private bool FreshPagesVerify(Ledger ledger)
@@ -550,13 +535,10 @@ internal sealed class PagedFile
         return true;
     }
 
-    private void SetState(MetaPage meta, Ledger ledger, SortedSet<uint> free, List<PagePointer> ledgerChain, List<PagePointer> freeChain)
+    private void SetState(MetaPage meta, Ledger ledger)
     {
         _meta = meta;
         _ledger = ledger;
-        _free = free;
-        _ledgerChain = ledgerChain;
-        _freeChain = freeChain;
     }
 
     private bool TryReadSlots(out MetaPage? a, out MetaPage? b)
@@ -650,26 +632,15 @@ internal sealed class Reservation(List<(uint Page, PageOrigin Origin)> pages, ul
 {
     private int _next;
 
-    /// <summary>Whether a FREE page was reserved (the FREE set then changed).</summary>
-    public bool TookFromFree { get; } = pages.Any(p => p.Origin == PageOrigin.Free);
+    /// <summary>How many reserved pages have been taken.</summary>
+    public int Position => _next;
 
-    /// <summary>The next reserved page; a statement past its bound is a caller defect.</summary>
+    /// <summary>The next reserved page; a statement past its reservation is a caller defect.</summary>
     public uint Take() => _next < pages.Count ? pages[_next++].Page
         : throw new InvalidOperationException("the statement wrote more pages than it reserved");
 
-    /// <summary>The next <paramref name="count"/> reserved pages.</summary>
-    public List<uint> Take(int count)
-    {
-        var taken = new List<uint>(count);
-        for (int i = 0; i < count; i++) taken.Add(Take());
-        return taken;
-    }
-
-    /// <summary>The FREE pages that would be left over after <paramref name="more"/> further takes.</summary>
-    public int UnusedFreeAfter(int more) => pages.Skip(_next + more).Count(p => p.Origin == PageOrigin.Free);
-
-    /// <summary>The FREE pages left over.</summary>
-    public IEnumerable<uint> UnusedFree() => pages.Skip(_next).Where(p => p.Origin == PageOrigin.Free).Select(p => p.Page);
+    /// <summary>The pages not taken yet, in the order they will be taken.</summary>
+    public List<(uint Page, PageOrigin Origin)> Remaining() => pages.GetRange(_next, pages.Count - _next);
 
     /// <summary>The page count after the pages taken so far: one past the highest grown page used.</summary>
     public ulong GrownTo => pages.Take(_next).Where(p => p.Origin == PageOrigin.Growth)
@@ -677,20 +648,20 @@ internal sealed class Reservation(List<(uint Page, PageOrigin Origin)> pages, ul
 }
 
 /// <summary>One statement that changes the file (2.2.1.6): it writes its pages from its reservation, stamped with its
-/// claimed generation, releases the pages its tree stops referencing, sets its roots, and completes with page 2 LAST.
+/// claimed generation, releases the pages its trees stop referencing, sets its roots, and completes with page 2 LAST.
 /// A refused write makes every later write a no-op and the completion '30'; nothing the statement did is reachable
-/// (R1).</summary>
-internal sealed class PageStatement
+/// (R1). It is the <see cref="IPageSink"/> its trees flush through.</summary>
+internal sealed class PageStatement : IPageSink
 {
     private readonly PagedFile _store;
     private MetaPage _meta;
 
-    internal PageStatement(PagedFile store, ulong generation, Ledger ledger, SortedSet<uint> free, Reservation reservation, MetaPage meta)
+    internal PageStatement(PagedFile store, ulong generation, Ledger ledger, BTree freeTree, Reservation reservation, MetaPage meta)
     {
         _store = store;
         Generation = generation;
         Ledger = ledger;
-        Free = free;
+        FreeTree = freeTree;
         Reservation = reservation;
         _meta = meta;
     }
@@ -703,16 +674,24 @@ internal sealed class PageStatement
 
     internal Ledger Ledger { get; }
 
-    internal SortedSet<uint> Free { get; }
+    /// <summary>The FREE tree, with the reservation's batch deleted from it (a pending edit the completion flushes).</summary>
+    internal BTree FreeTree { get; }
 
     internal Reservation Reservation { get; }
 
     internal MetaPage Meta => _meta;
 
-    /// <summary>Write a new page from the reservation, stamped with the statement's generation; the POINTER to it (none
-    /// once the statement has been refused). A body longer than <see cref="PageHeader.BodyBytes"/> is the caller's defect
-    /// and is refused loudly, never cut to fit.</summary>
-    public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags = 0, ushort entries = 0, uint next = 0)
+    /// <summary>Write a new page from the reservation, stamped with the statement's generation and listed <c>fresh</c>;
+    /// the POINTER to it (none once the statement has been refused). A body longer than <see cref="PageHeader.BodyBytes"/>
+    /// is the caller's defect and is refused loudly, never cut to fit.</summary>
+    public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags = 0, ushort entries = 0, uint next = 0) =>
+        Write(kind, body, flags, entries, next, listed: true);
+
+    /// <summary>Write one of the LEDGER's own pages, which the ledger never lists (R2).</summary>
+    internal PagePointer WriteUnlisted(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next) =>
+        Write(kind, body, flags, entries, next, listed: false);
+
+    private PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, bool listed)
     {
         if (body.Length > PageHeader.BodyBytes)
             throw new ArgumentException($"a page body holds {PageHeader.BodyBytes} bytes, not {body.Length}", nameof(body));
@@ -727,7 +706,7 @@ internal sealed class PageStatement
             Refused = true;
             return PagePointer.None;
         }
-        Ledger.Set(page, Generation, LedgerState.Fresh);
+        if (listed) Ledger.Set(page, Generation, LedgerState.Fresh);
         return new PagePointer(page, Generation);
     }
 
