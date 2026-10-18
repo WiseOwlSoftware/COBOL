@@ -439,7 +439,9 @@ public static class HostFile
     internal static void CreateLockDirectory(string directory)
     {
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
-        try { _ = File.GetUnixFileMode(directory); return; }                // exists: another holder's
+        // Exists: another holder's. A FILE at the name falls through to the creation, whose EEXIST stands (below): the
+        // host refusing the lock directory, which no pause outwaits (kb/Work PB3314: Publish paces a race that repeats).
+        try { if ((File.GetAttributes(directory) & FileAttributes.Directory) != 0) return; }
         catch (FileNotFoundException) { }
         catch (DirectoryNotFoundException) { }
         try { Directory.CreateDirectory(directory); }
