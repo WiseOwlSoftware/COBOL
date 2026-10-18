@@ -190,6 +190,11 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>Whether this connector is attached to <see cref="AttachedStore"/> (and its handle to the store's medium).</summary>
     private bool _attached;
 
+    /// <summary>The paged store of the run unit's store this connector is attached to, or null while it is not attached
+    /// or the file holds no store: the seam of DESIGN-runtime-library.md 2.2.1.11's witnesses (in docs/rearchitecture;
+    /// kb/Work PB3336), which read its <see cref="PagedFile.Counters"/> and drop its cache cold.</summary>
+    internal PagedFile? PagedStore => _attached ? AttachedStore.File : null;
+
     /// <summary>The file position indicator's validity bit (§9.1.11; §14.9.41.4 GR7 clears it), the one piece of the
     /// position both organizations keep alike.</summary>
     private protected bool FpiValid { get; set; }
