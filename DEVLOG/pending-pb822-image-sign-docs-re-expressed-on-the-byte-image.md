@@ -19,16 +19,20 @@ outside the codec, which PB164 and R40 superseded (`DataItem.IsImageCapable`); �
 **Fix.** The SORT/MERGE key consequence is now stated ONCE, in §14.4's total rule: the key descriptor carries the leaf, the
 byte window is decoded through the leaf's profile, the order is algebraic (§14.9.40.4 GR8; §14.9.24.4 GR3 a)/b), both via
 §8.8.4.2.4), the MERGE sequence check (§14.9.24.4 GR6) judges on that same order, and the failure of any other decode is
-silent (negatives, leading byte 0xFF, order after positives). §8.2 and D7 point at it and keep what they own; D7's title,
+silent (a byte-wise compare orders negative COMP keys after positives and packed keys by magnitude). §8.2 and D7 point at it and keep what they own; D7's title,
 rationale and rejected alternatives are rewritten; the OO design's SIGN representation names `PicInfo.SignKind`.
 Every citation was run through `cite.py --check` (the MERGE comparison rule is GR3, not the SORT's GR8 that the new tests'
 first draft carried over).
 
-**Witnesses.** Three end-to-end tests in `MixedUsageRecordImageDifferentialTests`, which had SORT keys only:
-`Merge_SignedBinaryKey_Ascending_NegativesOrderAlgebraically`, `Merge_SignedPackedKey_Descending_HighestFirst` and
-`Merge_SignedBinaryKey_SequenceCheck_IsAlgebraic_BothVerdicts` (the abnormal path: a USING file ordered by value whose bytes
-descend raises no EC-SORT-MERGE-SEQUENCE, one out of order by value raises it, the declarative runs and the statement
-terminates). The class's stale "digit-image representation" wording was corrected in the same file.
+**Witnesses.** End-to-end tests in `MixedUsageRecordImageDifferentialTests`, which had SORT keys only:
+`Merge_SignedBinaryKey_Ascending_NegativesOrderAlgebraically`, `Merge_SignedPackedKey_Descending_HighestFirst` and the
+abnormal path, EC-SORT-MERGE-SEQUENCE over a signed COMP key, in four programs (`Merge_SignedBinaryKey_SequenceCheck_*`):
+ASCENDING and DESCENDING, each WITH and WITHOUT a USE declarative. In each, a USING file ordered by value whose bytes run
+the other way raises nothing; one out of order by value raises the condition, the declarative (when present) runs and the
+statement alone is terminated (its output procedure never runs, the run unit continues). Review round 1 found that the
+first draft covered only the ascending, declarative arm, misstated the silent failure (a packed key orders by magnitude,
+not 0xFF-first) and kept a stale GR ordinal in a header; all three were fixed. The class's stale "digit-image
+representation" wording was corrected in the same file.
 
 **Register.** PB822 flips to landed with `closes_rows: []` (no inventory row claimed it); PB868 item 1 is the same defect
 and is noted there as repaired, its items 2-3 and the symbol-existence audit staying open.
