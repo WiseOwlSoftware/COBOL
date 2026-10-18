@@ -64,8 +64,25 @@ a file SORT or MERGE in a WHEN phrase with the USING file absent (35, the SORT t
 file created), absent with no FILE STATUS and no USE (fatal), a USING file open (EC-SORT-MERGE-FILE-OPEN) and a USING
 file out of key order (EC-SORT-MERGE-SEQUENCE). Two things the tests showed that I had guessed wrong, both the
 compiler being right: a USE declarative for a file still runs with checking off (ISO 14.9.49.4 GR6 does not condition it
-on a TURN directive), and a WHEN body binds under TURN OFF ALL (14.9.28.4 GR14), so the SORT-MERGE conditions are raised
-inside it only after a `>>TURN EC-SORT-MERGE CHECKING ON` written in the body. No compiler defect turned up.
+on a TURN directive), and a WHEN body binds under TURN OFF ALL (14.9.28.4 GR14), so a SORT written in the body does not
+raise the SORT-MERGE conditions (round 2 below replaces the first draft's workaround for that). No compiler defect turned up.
+
+Review round 2 (three findings, all in the tests). R2-1: the first draft of the EC-SORT-MERGE-FILE-OPEN and
+EC-SORT-MERGE-SEQUENCE tests wrote `>>TURN EC-SORT-MERGE CHECKING ON` inside the WHEN body, which ISO 7.3.25.3 SR5
+forbids ("A TURN directive shall not be specified within an exception processing PERFORM statement"; the compiler warns,
+COBOLNET2187, and the test helper ignored the warning), so the tests pinned the compiler's handling of a program the
+standard rejects. They now use the conforming shape: the SORT or MERGE lives in a paragraph compiled under the program's
+own `>>TURN EC-ALL CHECKING ON` and the WHEN body PERFORMs it. A third case shows the condition with no declarative for it
+does not end the run unit either: 14.6.12 excepts an exception in a SORT or MERGE from the abnormal termination, so the SORT
+is terminated, control goes on and no GIVING file is created (my first guess, a fatal stop, failed and was wrong).
+R2-2: `PerformFormat3SortWorkFileFailureTests` makes the SORT's own work file fail inside a WHEN phrase of a Format-3 PERFORM
+that has WHEN OTHER and FINALLY (a megabyte of records, `COBOLNET_SORT_MEMORY=64K`, `COBOLNET_SORT_TMPDIR` a missing
+directory). docs/CONFORMANCE.md D-SWK (d) makes that an implementor-defined stop of the run unit, and the test pins it:
+exit status not zero, the directory and the variable named, nothing after the SORT runs (no WHEN OTHER, no FINALLY, no
+statement after END-PERFORM). The control run with a usable directory sorts 5,000 records to 00000001..00005000 and runs
+the FINALLY. `CobolNetCompiler.CompileAndRun` gained an optional environment argument for it. R2-3: a doc comment cited
+14.9.27.4 GR16 (the I-O phrase rule) for OPEN OUTPUT over a read-only file; it now cites GR3 (insufficient authority) and
+9.1.13.6 item 6 a) 1. and b), each checked with `cite.py --check`.
 
 Gate (after review round 1): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,282 of 17,643, Unit 33,759 of
 34,095, Characterization 5 of 36 ran; the 47 Conformance cases added before the review and the 48 added after it (42 + 6) and both new Unit drift tests passed in leg 1, none failed).
