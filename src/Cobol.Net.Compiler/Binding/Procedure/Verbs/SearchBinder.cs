@@ -12,7 +12,8 @@ using Core = CobolParserCore;
 
 /// <summary>The SEARCH / SEARCH ALL verb binder (P7 Step 10m — a real collaborator over
 /// <see cref="BinderContext"/>, on the shared <c>BoundSearch</c> machinery; the scope-aware index-cell
-/// is the table's own declaration (<c>DataItem.Indexes</c>, kb/Work PB919), the dynamic-table bound <c>OdoModel.SearchBound</c>).</summary>
+/// is the table's own declaration (<c>DataItem.Indexes</c>, kb/Work PB919), the dynamic-table bound the instance path
+/// <see cref="DynamicTablePath"/> builds, the occurs-depending bound <c>OdoModel.SearchDepending</c>).</summary>
 internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
 {
     /// <summary>⛔ IDENTIFIER-1, FOR BOTH FORMATS, RESOLVED AND SCREENED IN ONE PLACE (kb/Work PB443). Format 1
@@ -26,35 +27,86 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// answer on legal, unambiguous COBOL — and none of §14.9.37.3 SR1–SR3 could even be asked, because nothing
     /// downstream ever saw a subscript or a modifier at all. The resolution is now the ordinary §8.4.2.2 one
     /// (<c>ReferenceResolver.ResolveTableOperand</c>) and the rules are the one check catalog's.</para>
-    /// <para>The nested-dynamic guard stays HERE and stays a <c>BoundUnsupported</c>: it is a genuine WiseOwl COBOL
-    /// increment, not a rule the source violates (a subscripted capacity path over the enclosing indices), which
-    /// is exactly the job PB236 left the carrier.</para></summary>
+    /// <para>⛔ A DYNAMIC-CAPACITY TABLE NESTED UNDER OTHER TABLES IS BOUNDED BY ONE INSTANCE'S CAPACITY (kb/Work
+    /// PB3365). Its scan bound (§8.5.1.9.1 current capacity) and its EnterSearch/ExitSearch bracket (§14.9.39 GR31)
+    /// are the <c>CobolDynTable</c> of ONE occurrence of the enclosing tables, and the statement names that occurrence
+    /// in one of two places: identifier-1, which §14.9.37.3 SR2 lets write the enclosing subscripts (read here, as the
+    /// SORT table subject reads the same written subscripts, kb/Work PB1055), or — the spelling GR1 puts first and
+    /// the standard's own suite writes — the WHEN phrases, whose first reference to the table names it
+    /// (<see cref="DynamicTablePath"/>, after the phrases are bound). This used to be a <c>BoundUnsupported</c> "later
+    /// increment" that compiled clean and aborted the run unit.</para></summary>
     /// <param name="dref">identifier-1 as written.</param>
     /// <param name="verb">"SEARCH" or "SEARCH ALL".</param>
     /// <param name="bail">What to bind INSTEAD when this returns null: a <c>BoundRejected</c> after a reported syntax
-    /// rule (the compile has already failed — ISO §4.2.2 ¶2), or the nested-dynamic deferral.</param>
+    /// rule (the compile has already failed — ISO §4.2.2 ¶2), or the deferral of an access path the one builder
+    /// has not built.</param>
+    /// <param name="written">The enclosing subscripts identifier-1 wrote for a dynamic-capacity table nested under
+    /// other tables, outermost first; null when it wrote none (or the table is not dynamic or not nested).</param>
     /// <returns>The table identifier-1 names, or null.</returns>
-    private DataItem? Identifier1(Core.DataReferenceContext dref, string verb, out BoundStatement bail)
+    private DataItem? Identifier1(Core.DataReferenceContext dref, string verb, out BoundStatement bail,
+        out IReadOnlyList<Position>? written)
     {
         bail = null!;   // assigned on each null return below — a refusal is put on the ledger only when it is one (PB1029)
-        if (ctx.Validation.ResolveSearchTable(dref, verb, ctx.Refs) is not { } table)   // fixed OR dynamic (D9)
+        written = null;
+        if (ctx.Validation.ResolveSearchTable(dref, verb, ctx.Refs) is not { } operand)   // fixed OR dynamic (D9)
         {
             bail = BoundRejected.Reported(ctx.Edition);
             return null;
         }
-        // A dynamic table NESTED under another table has no whole-table path (BuildTablePath null), so the AT-END bound
-        // (§8.5.1.9.1 current capacity) and the EnterSearch/ExitSearch bracket cannot be addressed by name — a
-        // subscripted capacity path over the enclosing indices is a later increment. Reject rather than let
-        // SearchBound fall back to Count=0 and silently scan ZERO occurrences (OCCURS DYNAMIC review #5; D9).
-        if (table.IsDynamicTable && ReferenceResolver.BuildTablePath(table) is null)
+        var table = operand.Item;
+        if (table.IsDynamicTable && table.SubscriptArity > 1 && operand.SubscriptCount == table.SubscriptArity - 1)
         {
-            bail = new BoundUnsupported($"{verb} of the dynamic-capacity table '{table.CobolName}' nested under "
-                + "another table (the scan bound over its current capacity needs a subscripted access path — a "
-                + "later increment)");
-            return null;
+            if (ctx.Refs.ReadTableSubjectSubscripts(dref, table, ReferenceResolver.TableSubject.Search, out var subscripts) is { } answer)
+            {
+                bail = answer.Refusal(ctx.Edition);
+                return null;
+            }
+            written = subscripts;
         }
         return table;
     }
+
+    /// <summary>⛔ THE ACCESS PATH OF A DYNAMIC-CAPACITY TABLE'S INSTANCE, FOR THE SCAN BOUND AND THE EC-FLOW-SEARCH
+    /// BRACKET (kb/Work PB3365; ISO §8.5.1.9.1, §14.9.39 GR31) — null for every other table, whose bound is a number
+    /// the declaration holds. The enclosing occurrences are identifier-1's own subscripts when it wrote them, else the
+    /// ones the WHEN phrases wrote (§14.9.37.4 GR1: "The subscript that is used to determine the occurrence of each
+    /// superordinate table to search is specified by the user in the WHEN phrases"); a table in no other table needs
+    /// none. A nested table no phrase subscripts has no occurrence to bound the scan, which is reported
+    /// (<see cref="StatementValidation.SearchNestedDynamicWithoutOccurrence"/>) rather than guessed.</summary>
+    private bool DynamicTablePath(Core.DataReferenceContext dref, string verb, DataItem table,
+        IReadOnlyList<Position>? written, ReferenceResolver.EnclosingOccurrence? fromWhens, out AccessPath? path,
+        out IReadOnlyList<BoundStatement> prelude, out BoundStatement bail)
+    {
+        bail = null!;
+        path = null;
+        prelude = [];
+        if (!table.IsDynamicTable) return true;
+        IReadOnlyList<Position>? enclosing = written ?? fromWhens?.Subscripts ?? (table.SubscriptArity == 1 ? [] : null);
+        if (enclosing is null)
+        {
+            ctx.Validation.SearchNestedDynamicWithoutOccurrence(verb, DataBinder.WrittenText(dref), table);
+            bail = BoundRejected.Reported(ctx.Edition);
+            return false;
+        }
+        // A WHEN-named occurrence whose subscripts bear a function or an object property reads a temp the WHEN condition
+        // stores only when it is evaluated, and the scan bound is read before that: the subscripts' own evaluation runs
+        // first, in the order a per-evaluation window drains it - the property GETs, then the pre-ops (R1-1, R2-1).
+        if (written is null && fromWhens is not null)
+            prelude = host.Udf.OperandSteps([.. host.Oo.OoReplayPropertyGets(fromWhens.PropertyOps), .. fromWhens.PreOps]);
+        path = ReferenceResolver.BuildTablePath(table, enclosing);
+        if (path is null)
+        {
+            bail = new BoundUnsupported($"{verb} of the dynamic-capacity table '{table.CobolName}': "
+                + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>The SEARCH statement preceded by the pre-ops that fix the enclosing occurrence of a dynamic-capacity
+    /// table (<see cref="DynamicTablePath"/>); the search itself when there are none.</summary>
+    private static BoundStatement Preceded(IReadOnlyList<BoundStatement> prelude, BoundSearch search) =>
+        prelude.Count == 0 ? search : new BoundSequence([.. prelude, search]);
 
     /// <summary>The ALL-FORMATS phrases both formats print identically — <c>[ AT END imperative-statement-1 ]</c>
     /// and the WHEN arms' <c>{ imperative-statement-2 | NEXT SENTENCE }</c> under an optional END-SEARCH — bound
@@ -63,8 +115,10 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// prints is refused by the GRAMMAR now (kb/Work PB446 — it used to parse, and a helper here refused it).
     /// A NEXT SENTENCE arm binds through the statement funnel, which admits it only as the WHOLE arm
     /// (<see cref="StatementBinder.IsNextSentenceArm"/>).</summary>
-    private (List<BoundStatement>? AtEnd, List<BoundSearchWhen> Whens) Phrases(string verb,
-        Core.SearchAtEndClauseContext? ae, ITerminalNode? endSearch,
+    /// <param name="table">identifier-1's table; when it is a dynamic-capacity table nested under other tables the
+    /// WHEN conditions are bound under <see cref="ReferenceResolver.CaptureEnclosingSubscripts"/>.</param>
+    private (List<BoundStatement>? AtEnd, List<BoundSearchWhen> Whens, ReferenceResolver.EnclosingOccurrence? WhenEnclosing) Phrases(
+        string verb, DataItem table, Core.SearchAtEndClauseContext? ae, ITerminalNode? endSearch,
         IReadOnlyList<(Core.ConditionContext Cond, Core.StatementBlockContext Arm)> whens)
     {
         ctx.Validation.CheckSearchEndSearchNextSentence(verb, endSearch, whens.Select(w => w.Arm));
@@ -74,14 +128,22 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // process is then repeated using the new index setting" (Format 1) and per probe of GR9's
         // implementor-specified technique (Format 2) — so a user-function reference inside it activates per
         // evaluation: the per-evaluation wrapper (§8.4.3.2.4 GR1/GR6a; §8.8.4.13 r2).
+        bool capture = table.IsDynamicTable && table.SubscriptArity > 1;
+        ReferenceResolver.EnclosingOccurrence? whenEnclosing = null;
         var bound = whens.Select(w =>
             {
                 var udfMark = host.Udf.Mark;
-                var cond = host.Udf.UdfAttachPerEvaluation(host.Cond.BindCondition(w.Cond), udfMark);
+                BoundCondition condition = null!;
+                var named = capture
+                    ? ctx.Refs.CaptureEnclosingSubscripts(table, () => condition = host.Cond.BindCondition(w.Cond))
+                    : null;
+                if (!capture) condition = host.Cond.BindCondition(w.Cond);
+                whenEnclosing ??= named;   // the first WHEN phrase that references the table names the occurrence
+                var cond = host.Udf.UdfAttachPerEvaluation(condition, udfMark);
                 return new BoundSearchWhen(cond, host.BindBlocks([w.Arm]));
             })
             .ToList();
-        return (atEnd, bound);
+        return (atEnd, bound, whenEnclosing);
     }
 
     /// <summary>Bind a serial SEARCH (ISO §14.9.37 Format 1). identifier-1 is resolved and screened by
@@ -92,7 +154,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// increments that item in step with the search index.</summary>
     public BoundStatement BindSearch(Core.SearchStatementContext s)
     {
-        if (Identifier1(s.dataReference(), "SEARCH", out var bail) is not { } table) return bail;
+        if (Identifier1(s.dataReference(), "SEARCH", out var bail, out var written) is not { } table) return bail;
 
         string searchIx = table.Indexes[0].Cell;   // the table's OWN first declaration (kb/Work PB919)
         BoundSetTarget? also = null;
@@ -135,15 +197,17 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
             else return BoundRejected.Reported(ctx.Edition);   // the receiving chokepoint reported it — not a deferral (kb/Work PB236, PB881)
         }
 
-        var (atEnd, whens) = Phrases("SEARCH", s.searchAtEndClause(), s.END_SEARCH(),
+        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH", table, s.searchAtEndClause(), s.END_SEARCH(),
             [.. s.searchWhenClause().Select(wc => (wc.condition(), wc.statementBlock()))]);
-        return new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
+        if (!DynamicTablePath(s.dataReference(), "SEARCH", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
+            return bail;
+        return Preceded(prelude, new BoundSearch(searchIx, table.Occurs ?? 0, also, atEnd, whens,
             DependItem: OdoModel.SearchDepending(table, ctx.Refs),
-            DynTable: table.IsDynamicTable ? ReferenceResolver.BuildTablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
+            DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // §14.9.37.4 GR4: an out-of-range initial index (SEARCH-INDEX) / a scan advancing off the end (NO-MATCH)
             // sets the nonfatal range EC when checking is enabled — captured at the statement line (F10/CONTINUE template).
             CheckSearchIndex: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-INDEX", null, s.Start.Line),
-            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line));
+            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line)));
     }
 
     /// <summary>Bind <c>SEARCH ALL</c> (ISO §14.9.37 Format 2 — the ordered-table search form). The initial index
@@ -170,7 +234,7 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
     /// Format-2 lowering.</para></summary>
     public BoundStatement BindSearchAll(Core.SearchAllStatementContext s)
     {
-        if (Identifier1(s.dataReference(), "SEARCH ALL", out var bail) is not { } table) return bail;
+        if (Identifier1(s.dataReference(), "SEARCH ALL", out var bail, out var written) is not { } table) return bail;
 
         // The Format-2 operand rules (ISO §14.9.37.3 SR7–SR13; kb/Work PB445). Screened BEFORE the WHEN phrases
         // bind, so a violation is reported against the source's own operands rather than after whatever the
@@ -181,14 +245,16 @@ internal sealed class SearchBinder(BinderContext ctx, StatementBinder host)
         // Format 2 prints exactly ONE WHEN phrase (its ellipsis is on the AND bracket — kb/Work PB446), and the
         // grammar now spells that, so there is one arm.
         var wc = s.searchAllWhenClause();
-        var (atEnd, whens) = Phrases("SEARCH ALL", s.searchAtEndClause(), s.END_SEARCH(),
+        var (atEnd, whens, whenEnclosing) = Phrases("SEARCH ALL", table, s.searchAtEndClause(), s.END_SEARCH(),
             [(wc.condition(), wc.statementBlock())]);
-        return new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
+        if (!DynamicTablePath(s.dataReference(), "SEARCH ALL", table, written, whenEnclosing, out var dynTable, out var prelude, out bail))
+            return bail;
+        return Preceded(prelude, new BoundSearch(table.Indexes[0].Cell, table.Occurs ?? 0,
             AlsoVaried: null, atEnd, whens, IsAll: true, DependItem: OdoModel.SearchDepending(table, ctx.Refs),
-            DynTable: table.IsDynamicTable ? ReferenceResolver.BuildTablePath(table) : null,   // EC-FLOW-SEARCH bracket (GR31, D9)
+            DynTable: dynTable,   // EC-FLOW-SEARCH bracket (GR31, D9)
             // SEARCH ALL forces the index to 1 (GR9 ignores the initial setting) so SEARCH-INDEX can never arise;
             // only an unsuccessful scan (incl. an empty table) sets EC-RANGE-SEARCH-NO-MATCH.
             CheckSearchIndex: false,
-            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line));
+            CheckSearchNoMatch: ctx.EcState.Turn.Enabled("EC-RANGE-SEARCH-NO-MATCH", null, s.Start.Line)));
     }
 }

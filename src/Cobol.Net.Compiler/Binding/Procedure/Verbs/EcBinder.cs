@@ -146,7 +146,7 @@ internal sealed partial class EcBinder(BinderContext ctx, StatementBinder host)
         {
             ctx.EcState.Resume = true;
             if (r.NEXT() is not null) return new BoundResume(DispatchResult.ResumeNext);
-            return BoundRejected.Report(ctx.Edition, "COBOLNET1610", "RESUME in a WHEN phrase of an exception-checking PERFORM shall "
+            return BoundRejected.Report(ctx.Edition, DiagnosticCatalog.ResumeInWhenNotNextStatement, "RESUME in a WHEN phrase of an exception-checking PERFORM shall "
                 + "specify NEXT STATEMENT (ISO §14.9.33.3 SR1)");
         }
         if (where.Declarative is null)

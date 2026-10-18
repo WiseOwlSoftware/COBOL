@@ -760,8 +760,8 @@ internal sealed class StatementValidation(DataBinder data)
     /// <param name="dref">identifier-1 as written.</param>
     /// <param name="verb">"SEARCH" or "SEARCH ALL", for the message.</param>
     /// <param name="refs">The resolver whose §8.4.2.2 matcher settles the qualification.</param>
-    /// <returns>The table identifier-1 names, or null after reporting when the statement cannot bind.</returns>
-    public DataItem? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
+    /// <returns>The table identifier-1 names with the subscripts it wrote, or null after reporting when the statement cannot bind.</returns>
+    public ReferenceResolver.TableOperand? ResolveSearchTable(Core.DataReferenceContext dref, string verb, ReferenceResolver refs)
     {
         string written = dref.GetText();
         if (refs.ResolveTableOperand(dref) is not { } operand)
@@ -825,6 +825,7 @@ internal sealed class StatementValidation(DataBinder data)
         // has already returned, so the SUPERORDINATE count is exactly one less.
         int superordinate = table.SubscriptArity - 1;
         if (operand.SubscriptCount > superordinate)
+        {
             Identifier1(verb, written, $"identifier-1 carries {operand.SubscriptCount} subscript"
                 + $"{(operand.SubscriptCount == 1 ? "" : "s")} and '{table.CobolName}' has "
                 + (superordinate == 0 ? "no enclosing table"
@@ -833,8 +834,31 @@ internal sealed class StatementValidation(DataBinder data)
                 + "(ISO §14.9.37.3 SR2). The search supplies that occurrence itself by varying the table's first "
                 + "index (§14.9.37.4 GR1); an enclosing table's occurrence may be written here or left to the "
                 + "WHEN phrases, which is where GR1 puts it.");
-        return table;
+            // ⛔ A DYNAMIC-CAPACITY TABLE'S SCAN BOUND IS ITS ENCLOSING OCCURRENCE'S CAPACITY (kb/Work PB3365): with the
+            // subscripts of identifier-1 unreadable there is no bound to bind, so this one cannot "continue" past its
+            // report the way the fixed and occurs-depending tables do.
+            if (table.IsDynamicTable) return null;
+        }
+        return operand;
     }
+
+    /// <summary>⛔ A DYNAMIC-CAPACITY TABLE UNDER OTHER TABLES, SEARCHED WITH NO OCCURRENCE TO BOUND THE SCAN (kb/Work
+    /// PB3365). The bound of a fixed table is its OCCURS integer and an occurs-depending table's is its data-name-1
+    /// (outside the table, §13.18.38.3 SR20): one value for every occurrence of the enclosing tables, which is why
+    /// §14.9.37.4 GR1 can leave those occurrences to the WHEN phrases. A dynamic-capacity table's bound is its CURRENT
+    /// CAPACITY (§8.5.1.9.1), and each occurrence of an enclosing table holds a capacity of its own, so the bound exists
+    /// only for the occurrence the statement names — in identifier-1 (SR2 permits the enclosing subscripts there) or,
+    /// as GR1 says, "in the WHEN phrases". Reported when neither names one: no WHEN condition references an element of
+    /// the table, so the search can neither bound itself nor test anything about the table it varies.</summary>
+    public void SearchNestedDynamicWithoutOccurrence(string verb, string written, DataItem table) =>
+        Identifier1(verb, written, $"'{table.CobolName}' is a dynamic-capacity table inside "
+            + $"{table.SubscriptArity - 1} enclosing table{(table.SubscriptArity == 2 ? "" : "s")}, so the search is "
+            + "bounded by the current capacity of ONE occurrence's table (§8.5.1.9.1: \"The number of occurrences "
+            + "allocated at a particular time is referred to as the current capacity of the table\"), and neither "
+            + "identifier-1 nor any WHEN phrase subscripts it: \"The subscript that is used to determine the "
+            + "occurrence of each superordinate table to search is specified by the user in the WHEN phrases\" "
+            + $"(ISO §14.9.37.4 GR1). Write the enclosing subscripts on identifier-1, or reference an element of "
+            + $"'{table.CobolName}' in a WHEN phrase.");
 
     /// <summary>The identifier-1 sink (ISO §14.9.37.3 SR1–SR3) — one code for one operand position, the same way
     /// COBOLNET1964–1966 group SR7–SR13 by the operand each is about.</summary>
