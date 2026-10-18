@@ -73,3 +73,64 @@ second gate (run 20261018T131036Z-c945b0): `=== BUILD-LOCAL GATE: LEG 1 ONLY (ba
 left to CI's whole-population run: Conformance 6,392 · Unit 341 · Characterization 31 … Conformance 11,156/17,548 ·
 Unit 33,824/34,165 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. All 73 Store cases ran in its
 leg 1. The Linux gate runs at the landing (batched gating).
+
+**Branch review, round 1: five findings, four mechanisms.** The reviewer read the branch and found the abnormal paths
+thinner than the successful ones. Each finding was re-probed on the finisher's build and fixed at its root.
+
+*The boundary (R1-1).* 2.2.1.9 says a WRITE or REWRITE that would take the store past 2^32 pages, or past the host's
+maximum file size, answers '24' (§9.1.13.5 item 4) with the file unchanged, while a full medium answers '30'. The page
+layer had no way to say it. `Reserve` threw an `IOException` out of `Begin`, `Open` and `Close` at the format's end, and
+the host's `EFBIG` was just another '30'. Now `StoreStatus.Boundary` exists. `Begin` takes its reservation before its
+claim, so a statement past the format's end claims nothing and writes nothing. `HandlePageMedium` reports the host's
+"the file cannot grow further" as `MediumSizeLimitException`, classified by `HostFile.IsFileSizeLimit`, the narrower half
+that `IsMediumBoundary` now calls, so the host's codes are still read in one place. A promotion, CLOSE and OPEN have no
+'24' and answer '30'.
+
+*Refused reads (R1-2).* The fault-injecting medium could not refuse a read, so no refused-read arm of the engine ran in
+any case. With `FaultAtRead` added, the cases found a silent defect. At OPEN, a refused read of a DESCENDANT's ledger or
+fresh page was taken as "the page does not verify": the work slot was rejected and its statements were dropped, with
+'00'. `TryLoad` and `FreshPagesVerify` now tell a refused read from damage, and a refused read is '30' that decides
+nothing. Every read of every path is now refused in turn, along with a reader's entry and tree reads, an INPUT OPEN and
+the restart rule's slot reads.
+
+*Creation (R1-3, R1-4).* The truncation was not an operation of the simulator, and the creation case accepted either
+answer at every point. The design's two creation rows also contradicted each other. Pinning every cell against the spec
+showed that the zero-first creation broke §14.9.27.4 GR25 (*"If the execution of the OPEN statement is unsuccessful, the
+file is not affected"*). Every refusal after its truncation destroyed the previous store. It also restarted stamps at 1
+over pages the previous store had stamped. `Create` is now a promotion of the empty store with one durable write. The
+three meta pages are read and kept. The empty meta goes into the slot that does not hold the committed meta, at a
+generation above every stamp the previous store can have issued (the fence's bound), and is synced. Then come page 2,
+the other slot, the one truncation to three pages, and a sync. A refusal before the last sync restores the previous
+bytes and length. The cases pin every operation over a previous store, an empty file and a foreign file, each continued
+by an OPEN, a power loss and a re-creation, with no stamp reused. The 2.2.1.4 paragraph and the 2.2.1.16 rows are
+rewritten from what the cases showed, and rows are added for a refused read and for the boundary.
+
+*Text (R1-5).* `PageCheck.ChecksumFails` and the note's Mechanism still named the first draft's layout: a checksum over
+bytes 8..4095, and format 5. The sibling in PB3330's design summary said the same. All three are corrected.
+
+Each mechanism's mutation turned its cases red and was reverted: a refused read served as zeros, a creation with no
+undo, the claim written before the boundary check, the size-limit refusal answered '30', and the created store at
+generation 0.
+
+**Branch review round 2 (the second review finisher).** Two findings, both fixed.
+
+*The previous file's length (R2-1).* The undo of a refused creation kept the previous file's length as the medium's
+page count, which is the length in whole pages, rounded down. So a refused OPEN OUTPUT over a 5 000-byte file (a
+format-5 whole store, or any foreign file) cut it to 4 096 bytes and never restored a page the file held only part of,
+against GR25. The test medium kept its length in pages too, so no case could express the file. The medium contract is
+now a length in BYTES (`IPageMedium.Length` and `SetLength`, replacing `PageCount` and `SetPageCount` in both media and
+every caller). The undo restores every meta page that held any previous byte and then cuts the file back to its exact
+length. `MemoryPageMedium` keeps bytes, zeroes a truncated page's tail and builds a previous file of any length
+(`Holding`). The creation case now runs every operation over files of 0, 5 000, 8 000, 12 000, 16 384 and 20 000 bytes
+and asserts the file byte for byte after each refusal; the previous-store case asserts the same. A new case drives the
+production medium over a real 5 000-byte file. The mutation that put back the whole-page length turned the 5 000-,
+8 000- and 12 000-byte cells red.
+
+*The DELETE at the boundary (R2-2).* The design gave the boundary an I-O status only at a WRITE or REWRITE ('24'), but
+a DELETE goes through the same `Begin` and `Complete` and can meet it too, since its tree and ledger rewrite can need a
+growth page. The spec leaves a DELETE no '24': §9.1.13.5 item 4 is an attempt to write outside the boundaries, and
+§14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. So a
+DELETE at the boundary answers §9.1.13.6 item 1's '30'. The page layer does not know which statement it serves, so the
+connector answers by the statement. Decision 6, 2.2.1.9, the 2.2.1.16 boundary row, the `StoreStatus.Boundary` doc and
+PB3331's landing line now say so, and `PendingStoreCases` carries the relative and indexed connector cells for PB3333
+and PB3334.
