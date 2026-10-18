@@ -683,14 +683,14 @@ public sealed class RelativeEngineTests
 
     /// <summary>The records the next OPEN reads after an OPEN of the seeded file that did not complete: the fence of an
     /// <c>OPEN I-O</c> or <c>OPEN EXTEND</c> changes no record (2.2.1.16, "The fence"), so the seeded records; an
-    /// <c>OPEN OUTPUT</c> that truncated the file holds none (2.2.1.16, "<c>OPEN OUTPUT</c>": §14.9.27.4 GR18's file
-    /// <i>"contains no records"</i> either way, a file of no bytes and a store whose committed slot landed alike), and
-    /// one that wrote nothing at all left the seeded store.</summary>
-    private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool truncated) =>
-        mode == FileOpenMode.Output && truncated ? [] : Before;
+    /// <c>OPEN OUTPUT</c> whose commit slot landed holds none (2.2.1.16's creation rows: §14.9.27.4 GR18's file
+    /// <i>"contains no records"</i>), and one that died before that write, or was refused anywhere before its last sync,
+    /// left the seeded store (GR25's <i>"the file is not affected"</i>: PagedFile.Create undoes a refused creation).</summary>
+    private static string[] AfterAnUnfinishedOpen(FileOpenMode mode, bool created) =>
+        mode == FileOpenMode.Output && created ? [] : Before;
 
-    /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and "<c>OPEN OUTPUT</c>, before its three
-    /// pages", through the connector: a host refusal of EVERY write and sync of the OPEN answers the OPEN '30' (§9.1.13.6
+    /// <summary>2.2.1.16's refused table, "The fence (R6 step 4), at any point" and the two <c>OPEN OUTPUT</c> rows (any
+    /// write or sync but the last; the last sync), through the connector: a host refusal of EVERY write and sync of the OPEN answers the OPEN '30' (§9.1.13.6
     /// item 1) and leaves the connector closed (<see cref="FileConnector.AbandonOpen"/> detaches the store and gives the
     /// handle back), so the SAME connector's next OPEN succeeds and reads the file; another run unit's OPEN succeeds too.
     /// Neither reads a record the unfinished OPEN invented or misses one it could not have removed.</summary>
@@ -717,8 +717,9 @@ public sealed class RelativeEngineTests
                     Assert.Equal("30", a.Status("A"));
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
-                // The creation truncates before its first page (PagedFile.Create), so every refusal of it follows the truncation.
-                var expected = AfterAnUnfinishedOpen(mode, truncated: true).ToList();
+                // A refused creation is undone (PagedFile.Create, §14.9.27.4 GR25) unless the refusal is its LAST sync, after
+                // the commit slot, page 2, the other slot and the truncation: the empty store stands, the medium's state unknown.
+                var expected = AfterAnUnfinishedOpen(mode, created: k == openOps - 1).ToList();
                 if (sharing == FileSharing.AllOther)
                 {
                     var b = new FileRegistry();
@@ -747,8 +748,8 @@ public sealed class RelativeEngineTests
     /// <summary>2.2.1.16's crash points of an OPEN through the connector: a process death after EVERY write of the fence
     /// of an <c>OPEN I-O</c> or <c>OPEN EXTEND</c>, or of an <c>OPEN OUTPUT</c>'s creation, leaves a file the next run
     /// unit's OPEN adopts ('00'), with the records the table's rows name: the seeded ones after a fence (it changes no
-    /// record), none after a creation that truncated the file, and the seeded ones after a creation that died before its
-    /// truncation.</summary>
+    /// record), none after a creation whose commit slot write (its first) was handed over, and the seeded ones after a
+    /// creation that died before it.</summary>
     [Theory]
     [MemberData(nameof(Opens))]
     public void A_death_after_every_write_of_the_OPEN_leaves_a_file_the_next_OPEN_adopts(FileOpenMode mode, FileSharing sharing)
@@ -771,8 +772,8 @@ public sealed class RelativeEngineTests
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
                 a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
-                // DyingPageMedium drops the truncation too once dead, so a creation that died at write 0 truncated nothing.
-                Assert.Equal(AfterAnUnfinishedOpen(mode, truncated: i > 0), Records(host));
+                // The creation's first write is its commit slot (PagedFile.Create): a death before it leaves the seeded store.
+                Assert.Equal(AfterAnUnfinishedOpen(mode, created: i > 0), Records(host));
             }
             finally
             {

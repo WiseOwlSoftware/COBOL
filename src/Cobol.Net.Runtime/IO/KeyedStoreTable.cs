@@ -156,7 +156,7 @@ internal sealed class RelativeStore : KeyedStore
     {
         _coherent = coherent;
         if (File is { } live && (live.Writable || !writable)) return StoreStatus.Ok;
-        if (File is null && _medium.PageCount == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
+        if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
         var status = PagedFile.Open(_medium, writable, coherent, out var opened, _cachePages);
         if (status == StoreStatus.Ok) File = opened;
         return status;
@@ -254,7 +254,7 @@ internal sealed class RelativeStore : KeyedStore
         var tree = Tree();
         (var status, done) = edit(tree);
         if (status != StoreStatus.Ok || !done) return status;
-        status = file.Begin(tree.PagesToWrite, out var statement, entered: entered);
+        status = file.Begin(StatementBound.Of(tree), out var statement, entered: entered);
         if (status != StoreStatus.Ok)
         {
             tree.Discard();

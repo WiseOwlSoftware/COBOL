@@ -68,11 +68,14 @@ public sealed class PendingStoreCases
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
         // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
         // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
-        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the torn page's '30' through a compiled program,
-        // with and without a USE procedure and a FILE STATUS clause and the phrases ignored, in the Conformance project's
-        // RelativeEnginePermanentErrorWitnessTests; the phrases taken and not taken for '22', '23', '24' and '10' in the
-        // relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5- and 9.1.14-, pb1192_relative_write_boundary_85
-        // among them.)
+        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the boundary at a WRITE, a REWRITE ('24', the
+        // file unchanged) and a DELETE ('30', no invalid key condition) through the RELATIVE connector in FileBoundaryTests;
+        // the torn page's '30' through a compiled program, with and without a USE procedure and a FILE STATUS clause and
+        // the phrases ignored, in the Conformance project's RelativeEnginePermanentErrorWitnessTests; the phrases taken and
+        // not taken for '22', '23', '24' and '10' in the relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5-
+        // and 9.1.14-, pb1192_relative_write_boundary_85 among them.)
+        new("2.2.1.16 refused", "the boundary (the format's 2^32 pages, the host's EFBIG) at a WRITE, a REWRITE and a DELETE through the INDEXED connector", "PB3334",
+            "the same as the relative rows, the DELETE's rule being §14.9.10.4 GR3: '24' with INVALID KEY at the WRITE and REWRITE, '30' with no invalid key condition at the DELETE"),
         new("2.2.1.17", "A's statement ∥ B's statement through the INDEXED connector: alternate keys, ordinals, collations", "PB3334",
             "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
         new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",

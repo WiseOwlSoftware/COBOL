@@ -19,7 +19,9 @@ namespace CobolNet.Tests.Unit.Store;
 /// by the auditor's own decoder (key order within each node, every key inside its separators, every leaf at one depth,
 /// no page over its body); the page layer's R2 and R3 hold throughout. The orders: ORDINAL bytes, the NUMERIC order of
 /// relative record numbers (8 bytes big-endian under the ordinal order), WEIGHTED (a declared alphabet "ZYX…A", whose
-/// order is not the bytes') and COMPOSITE (an alternate key with duplicates, then its release ordinal).</para>
+/// order is not the bytes'), LOCALE (the root locale's CLDR/UCA order, §8.8.4.2.11, which is not prefix-consistent, so a
+/// START prefix is the sequential search of §14.9.41.4 GR17 c) and d) — the model's own <c>FindIndex</c> and
+/// <c>FindLastIndex</c>) and COMPOSITE (an alternate key with duplicates, then its release ordinal).</para>
 /// </summary>
 public sealed class BTreeModelTests
 {
@@ -29,6 +31,7 @@ public sealed class BTreeModelTests
         Ordinal,
         Numeric,
         Weighted,
+        Locale,
         Composite,
     }
 
@@ -62,6 +65,24 @@ public sealed class BTreeModelTests
         StoreKit.AssertR2(run.Medium);
     }
 
+    /// <summary>⛔ THE LOCALE ORDER'S START PREFIX IS THE SEQUENTIAL SEARCH (review w1122-a R1-1): the same model run under
+    /// the root locale's CLDR/UCA order (§8.8.4.2.11), whose qualifying entries for a partial key are not one run of the key
+    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) and every
+    /// relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
+    /// internal levels are enough to make the walk cross leaves; the three-level shape is the theory's, and a locale
+    /// comparison costs a decoding and a collation key per key, so this run stays at a few hundred entries.</summary>
+    [Fact]
+    public void The_tree_agrees_with_a_sorted_model_under_a_locale_order_whose_prefixes_are_not_consistent()
+    {
+        var run = new ModelRun(Order.Locale, 3305);
+        while (run.Model.Count < 500) run.Statement(ops: 40, insertBias: 0.85);
+        Assert.True(run.Depth >= 2, $"several leaves: depth {run.Depth}");
+        while (run.Model.Count > 0) run.Statement(ops: Math.Clamp(run.Model.Count / 10, 1, 40), insertBias: 0.1);
+        Assert.True(run.Store.Meta.PrimeRoot.IsNone);
+        StoreKit.AssertNoStampReused(run.Medium);
+        StoreKit.AssertR2(run.Medium);
+    }
+
     /// <summary>One model run: the store, the tree's order, the model, the seeded source of operations.</summary>
     private sealed class ModelRun
     {
@@ -78,7 +99,8 @@ public sealed class BTreeModelTests
             (Medium, _, Store) = StoreKit.NewStore();
             KeyOrder = kind switch
             {
-                Order.Weighted => new WeightedKeyOrder(null, ReversedAlphabet()),
+                Order.Weighted => new WeightedKeyOrder(null, ReversedAlphabet(), WeightedKeyLength),
+                Order.Locale => new WeightedKeyOrder(null, new LocaleCollation("root"), LocaleKeyLength),
                 Order.Composite => new CompositeKeyOrder(KeyOrders.Ordinal),
                 _ => KeyOrders.Ordinal,
             };
@@ -221,7 +243,9 @@ public sealed class BTreeModelTests
                 case Order.Numeric:
                     return KeyOrders.RecordNumberKey(_random.Next(4) == 0 ? (ulong)_random.NextInt64(1, 1L << 40) : (ulong)_random.Next(1, 200_000));
                 case Order.Weighted:
-                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(36), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123"));
+                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(WeightedKeyLength), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123"));
+                case Order.Locale:
+                    return Encoding.Latin1.GetBytes(Letters(1 + _random.Next(LocaleKeyLength), LocaleLetters));
                 case Order.Composite:
                     return CompositeKeyOrder.Compose(Encoding.Latin1.GetBytes(Letters(1 + _random.Next(5), "ABCD")), ++_ordinal);
                 default:
@@ -237,9 +261,20 @@ public sealed class BTreeModelTests
         {
             Order.Numeric => NewKey()[..(1 + _random.Next(7))],
             Order.Weighted => Encoding.Latin1.GetBytes(Letters(1 + _random.Next(3), "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123")),
+            // A partial key mostly, and now and then one as long as the key, which the tree narrows by binary search.
+            Order.Locale => Encoding.Latin1.GetBytes(Letters(_random.Next(4) == 0 ? LocaleKeyLength : 1 + _random.Next(3), LocaleLetters)),
             Order.Composite => Encoding.Latin1.GetBytes(Letters(1 + _random.Next(3), "ABCD")),
             _ => NewKey()[..1],
         };
+
+        /// <summary>The longest WEIGHTED and LOCALE keys (the key's length its order is declared with).</summary>
+        private const int WeightedKeyLength = 36;
+
+        private const int LocaleKeyLength = 12;
+
+        /// <summary>Letters that differ at the primary (a, b, c), secondary (á, à, ç) and tertiary (A, B) levels, so a
+        /// key's order and its prefix's disagree often.</summary>
+        private const string LocaleLetters = "aáàAbBcç";
 
         private string Letters(int length, string alphabet) =>
             string.Create(length, (this, alphabet), static (span, s) =>
