@@ -104,6 +104,18 @@ public sealed class PageLayoutGoldenTests
         Assert.Equal(PageCheck.ChecksumFails, PageHeader.Check(new byte[PageHeader.PageSize], 12, 5));
     }
 
+    /// <summary>A page body larger than the page is the caller's defect and is refused loudly — never cut to fit, which
+    /// would write a page whose checksum holds over a truncated tree node.</summary>
+    [Fact]
+    public void A_statement_refuses_a_page_body_larger_than_the_page()
+    {
+        var (_, _, store) = StoreKit.NewStore();
+        Assert.Equal(StoreStatus.Ok, store.Begin(1, out var st));
+        Assert.Throws<ArgumentException>(() => st!.Write(PageKind.Leaf, new byte[PageHeader.BodyBytes + 1]));
+        Assert.False(st!.Write(PageKind.Leaf, new byte[PageHeader.BodyBytes]).IsNone);
+        st.Abandon();
+    }
+
     [Fact]
     public void The_meta_page_refuses_a_key_declaration_past_its_capacity()
     {
