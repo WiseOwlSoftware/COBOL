@@ -40,8 +40,10 @@
       *> the file section, so WiseOwl COBOL's own determination
       *> stands.
       *>
-      *> Paths walked (each I-O status the READ and WRITE answer for
-      *> this record, with and without a USE procedure):
+      *> Paths walked (the success paths and the first exceptions;
+      *> READ '09', REWRITE '43' '49' '71', record locks and the
+      *> abnormal SORT paths are the companion golden
+      *> pb1563_line_sequential_dynamic_members_exceptions):
       *>   A. WRITE of three records (14.9.51.4 GR21 drops the spaces
       *>      right of the rightmost non-space character), READ of
       *>      them back, '10' at the end of the file.

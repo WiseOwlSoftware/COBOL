@@ -1579,7 +1579,13 @@ public sealed class SequentialConnector : FileConnector
             // remainder of an over-length line belongs to the READ that DELIVERS it, not to this one. GR16 is
             // stated after GR15 and asks only that the read be successful, so it also lands on a truncated
             // ('06') read; the status arbitration below follows that order (kb/Work PB329).
-            lineBadChar = RecordAreaOutsideLineCharacterSet(image, NationalRecordArea);
+            // ⛔ The delivered record area of a variable-length group is the WHOLE contiguous line (D-FRA (x)), not
+            // just its RecordWidth fixed run, so the set is asked of the delivered line at its own width: a control
+            // character in a dynamic member past the fixed run is '09', as the WRITE's GR23 and the REWRITE's GR17 d)
+            // answer '71' for it (kb/Work PB1563 review R1-1). For every other record the delivered line is at most
+            // RecordWidth wide, so the fitted image is the same subject as before.
+            string delivered = lineTooLong ? CurrentRecord : line;
+            lineBadChar = RecordAreaOutsideLineCharacterSet(delivered.Length > RecordWidth ? delivered : image, NationalRecordArea);
         }
         else if (NextFrame(out _, out RecordExtents? extents) is { } data)
         {

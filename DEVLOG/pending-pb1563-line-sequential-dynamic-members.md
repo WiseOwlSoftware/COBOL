@@ -29,4 +29,17 @@ closed; `closes_rows: []` with its reason. Self-review (silent-failure, comment,
 fix has no catch or default arm to swallow a failure, the new comments name D-FRA (x) and the bound they rely on, and
 the golden covers each status the record can answer rather than only the success path.
 
+Branch review round 1 raised two findings, both fixed. R1-1: the READ's §14.9.30.4 GR16 character-set test ('09') was
+asked of `Fit(line)`, the `RecordWidth` window, the very mechanism fixed four lines away for GR17 a); a control
+character in a dynamic member past the 3-character fixed run was delivered with '00' while the WRITE and REWRITE of the
+same character answered '71'. The test now asks the delivered line at its own width. R1-2: the campaign requirement
+(PB3353) that file I-O is tested on its exception paths as fully as on its success paths was not met, so the companion
+golden `pb1563_line_sequential_dynamic_members_exceptions` walks READ '09' (past the fixed run, inside it, and in the
+remainder of an over-length line after the '06' READ), REWRITE '43', '49' and '71' with the line left unchanged
+(GR14), '51' on a READ, a READ with RETRY and a REWRITE against a record the other connector locked and the REWRITE that
+succeeds once the lock moved, and a SORT whose USING file is absent ('35') or whose GIVING file cannot be created
+('30'). The exceptions on a file with neither FILE STATUS nor USE procedure end the run unit (§9.1.13.1) and cannot be a
+golden, so `LineSequentialDynamicMembersAbnormalTests` asserts the exit code, stdout and stderr for READ '46', REWRITE
+'43' and '71' and the SORT's '35'. D-FRA (x) no longer claims more than the witnesses cover.
+
 Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T133019Z-4ac93f).
