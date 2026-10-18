@@ -20,24 +20,40 @@ namespace CobolNet.Tests.Unit;
 /// record count and the backward-READ index (<c>RecordFraming.FrameStarts</c>) ended the data before it; a gap word
 /// after a valid frame was a zero-length record to the index and an <see cref="OutOfMemoryException"/> to the READ;
 /// a huge extent-table count allocated its table before a single byte was read.</para>
-/// <para><b>So the guard is the shape, measured three ways:</b> the frame word's two constants are spelled only by the
-/// one decoder and the one encoder; every frame reader reaches the decoder; and on every damaged shape the readers
-/// stop at the same frame.</para>
+/// <para><b>So the guard is the shape, measured three ways:</b> the frame word's constant (bit 31's extent flag) is
+/// spelled, and the word decoded, only by the one decoder and the one encoder; every frame reader reaches the decoder;
+/// and on every damaged shape the readers stop at the same frame. (The gap tag went with the whole-store image, kb/Work
+/// PB3335: a keyed store's empty slot is no entry of its tree, so no medium carries a gap any longer.)</para>
 /// </summary>
 public sealed class FrameDecoderDriftTests
 {
-    /// <summary>The members allowed to spell the frame word's constants or decode a little-endian 32-bit word: the
-    /// one decoder (and the table it reads), the one encoder, and the gap encoder.</summary>
+    /// <summary>The members allowed to spell the frame word's constant or decode a little-endian 32-bit word: the
+    /// one decoder (and the table it reads) and the one encoder.</summary>
     private static readonly HashSet<string> FrameWordHomes = new(StringComparer.Ordinal)
     {
-        "ReadFrame", "ReadExtentTable", "EncodeFrameHead", "EncodeGap",
+        "ReadFrame", "ReadExtentTable", "EncodeFrameHead",
     };
+
+    /// <summary>The paged keyed store's OWN field decoders (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work
+    /// PB3331, PB3332), by file and member: the page header's <c>self</c>, <c>next</c> and checksum, a POINTER's page
+    /// number, and a B+ tree LEAF entry's value length and overflow reference's total length. They are a second FORMAT's
+    /// fixed fields, not a frame word: a frame the paged store carries in a leaf value is decoded by
+    /// <c>RecordFraming.ReadFrame</c> like every other (kb/Work PB3333). Each home must still exist, so a moved or
+    /// deleted one (PB3332 deleted the interim LEDGER and FREE payloads' two) is a red here rather than a silently widened
+    /// exemption.</summary>
+    private static readonly HashSet<(string File, string Member)> PageLayoutHomes =
+    [
+        ("PageHeader.cs", "Decode"),
+        ("PageHeader.cs", "ChecksumHolds"),
+        ("PagePointer.cs", "Read"),
+        ("BTree.cs", "DecodeNode"),
+    ];
 
     /// <summary>Every member that reads frames, by file — the selector's population, so the reach test measures
     /// something only while it still finds them (feedback_measure_the_selectors_complement).</summary>
     private static readonly (string File, string[] Methods)[] FrameReaders =
     [
-        ("RecordFraming.cs", ["DecodeStore", "FrameStarts", "StreamFramingParses"]),
+        ("RecordFraming.cs", ["DecodeFrame", "FrameStarts", "StreamFramingParses"]),
         ("SequentialConnector.cs", ["NextFrame"]),
     ];
 
@@ -54,12 +70,13 @@ public sealed class FrameDecoderDriftTests
     {
         var offenders = new List<string>();
         int homesSeen = 0;
+        var pageHomesSeen = new HashSet<(string, string)>();
         foreach (var (file, source) in IoSources())
         {
             var root = CSharpSyntaxTree.ParseText(source).GetRoot();
             foreach (var node in root.DescendantNodes())
             {
-                bool spellsWord = node is IdentifierNameSyntax { Identifier.Text: "GapTag" or "ExtentFlag" };
+                bool spellsWord = node is IdentifierNameSyntax { Identifier.Text: "ExtentFlag" };
                 bool decodesWord = node is InvocationExpressionSyntax
                 {
                     Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "ReadUInt32LittleEndian" },
@@ -67,6 +84,11 @@ public sealed class FrameDecoderDriftTests
                 if (!spellsWord && !decodesWord) continue;
                 string? member = node.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault()?.Identifier.Text;
                 if (member is not null && FrameWordHomes.Contains(member)) { homesSeen++; continue; }
+                if (decodesWord && member is not null && PageLayoutHomes.Contains((file, member)))
+                {
+                    pageHomesSeen.Add((file, member));
+                    continue;
+                }
                 int line = node.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 offenders.Add($"{file}:{line} ({member ?? "outside a method"}): {node}");
             }
@@ -74,6 +96,9 @@ public sealed class FrameDecoderDriftTests
 
         Assert.True(homesSeen >= 4, $"The sweep found the frame word in only {homesSeen} places inside its homes — "
             + "the decoder or the encoder moved, and this test no longer measures anything.");
+        Assert.True(pageHomesSeen.SetEquals(PageLayoutHomes), "A paged-store field decoder named in "
+            + $"{nameof(PageLayoutHomes)} no longer decodes a 32-bit word: "
+            + string.Join(", ", PageLayoutHomes.Except(pageHomesSeen)) + " — remove it from the list.");
         Assert.True(offenders.Count == 0,
             "The frame word is decoded or spelled outside RecordFraming.ReadFrame / EncodeFrameHead (kb/Work PB2754). "
             + "A second decoder is a second answer to what a gap and a torn tail are — call ReadFrame through an "
@@ -120,7 +145,8 @@ public sealed class FrameDecoderDriftTests
         /// <summary>An extent table whose components the file ends inside.</summary>
         TornTable,
 
-        /// <summary>The gap tag, which no stream-level writer writes, followed by a valid frame.</summary>
+        /// <summary>The word 0xFFFFFFFF — the deleted whole-store format's gap tag, which no writer writes — followed by
+        /// a valid frame: bit 31 and a payload no file holds.</summary>
         GapWord,
 
         /// <summary>An extent-table count no file can hold.</summary>
@@ -205,14 +231,16 @@ public sealed class FrameDecoderDriftTests
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
 
-    [Fact]
-    public void TheStoreShape_KeepsAGapAsASlot_AndEndsAtATornTail()
+    /// <summary>A keyed store engine's leaf value is exactly one frame (<see cref="RecordFraming.DecodeFrame"/>, the one
+    /// decoder): a whole frame decodes; every damaged shape, and a whole frame with a byte after it, is not a value this
+    /// writer produces — null, which the reader answers as the torn page it is ('30', §9.1.13.6 item 1).</summary>
+    [Theory]
+    [MemberData(nameof(Damages))]
+    public void ALeafValue_IsExactlyOneFrame(Damage damage)
     {
-        var attributes = new FixedFileAttributes(FixedFileAttributes.Relative, true, 1, 20, []);
-        using var header = RecordFraming.ComposeStore(attributes, [], generation: 0, releaseMint: 0);
-        byte[] image = [.. header.ToArray(), .. TwoRecords, .. Damaged(Damage.GapWord), .. Damaged(Damage.TornPayload)];
-        var frames = RecordFraming.DecodeStore(image, image.Length, out _);
-        Assert.Equal(new string?[] { "HELLO", "WORLD!", null, "AFTER" }, frames.Select(f => f?.Image));
+        Assert.Equal("HELLO", RecordFraming.DecodeFrame(Frame("HELLO"), ordinalSlots: 0, codeSet: null)?.Image);
+        Assert.Null(RecordFraming.DecodeFrame([.. Frame("HELLO"), 0x00], ordinalSlots: 0, codeSet: null));
+        Assert.Null(RecordFraming.DecodeFrame(Damaged(damage), ordinalSlots: 0, codeSet: null));
     }
 
     /// <summary>A stream that counts how often its length is asked — on a file handle that admits other writers

@@ -319,9 +319,8 @@ the §14.9.27.4 GR10 store-header read and the varying framing's parse check —
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
 holds or the host refuses it. Every one of those runs BEFORE the connector's own handle for that OPEN exists,
 which is what makes the permissiveness free: this role is never the handle a COBOL statement is served
-through and never stands in for a file lock. **A keyed store's whole-file load and persist LEFT this list**
-(kb/Work PB771) — they were the only handle those organizations ever took, which is why they held no
-§9.1.15 lock; they now travel through the connector's own `OpenConnectorStore` handle. `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
+through and never stands in for a file lock. **A keyed store's pages are not on this list** (kb/Work PB771): they
+travel only through the connector's own `OpenConnectorStore` handle, one page per positional call (2.2.1.8). `SharedExtendOpenDriftTests` bans every other host-path open under `Runtime/IO`
 and pins both roles to this file. (kb/Work PB713 — a sharing-active `OPEN EXTEND` measured its write-ordinal
 base from a SECOND handle on the path it had just opened for WRITE: `File.ReadLines` for the line-sequential
 framing, a three-argument `FileStream` for the varying one, both `FileShare.Read`, both refused. The refusal ran
@@ -388,12 +387,14 @@ cannot admit this run unit's second connector while refusing a foreign process. 
   long-lived host handle carrying its posture** — §9.1.15 3) names none, so all three owe the lock (kb/Work
   PB771). `KeyedConnector` is where RELATIVE and INDEXED hold theirs: `TakeFileLock` on each `OpenCore` arm that
   has a physical file and `ReleaseFileLock` in the CLOSE and on an unsuccessful OPEN. ⛔ **It is the SAME handle
-  the store travels through** — `KeyedConnector.Load`/`Persist` read and write positionally through it, and `RecordFraming` only composes and decodes the image — because a
-  second handle for the load or the persist would ask for access the connector's own `FileShare.None` forbids,
+  the store travels through** — the keyed store engine's pages are read and written positionally through it
+  (`Store.RunUnitPageMedium` → `Store.HandlePageMedium`, 2.2.1.8) — because a
+  second handle for a page read or write would ask for access the connector's own `FileShare.None` forbids,
   which is kb/Work PB713's defect re-opened by its own cure. The handle's ACCESS is `FileConnector.HostAccess`
   (every organization opens its handle, `FileConnector.FileLock`, with it and spells none of its own; kb/Work PB2758),
-  not the open mode's floor, because a whole-store organization reads the physical file in every writable mode
-  (§14.9.51.4 GR29 a)'s release number is a fact of the records already there).
+  not the open mode's floor, because the keyed store engine reads the physical file before it writes it in every
+  writable mode (the adoption rule's meta pages, 2.2.1.6 R6; §14.9.51.4 GR29 a)'s release number is a fact of the
+  records already there).
 
 There is NO widening and NO handle rebuild. Every pair of the three modes that Table 19 admits already has
 mutually admissible base postures — `FileLockPostureDriftTests.EveryNormalOpenCellHasMutuallyAdmissiblePostures`
@@ -555,7 +556,7 @@ other connector then owes: the record selected is *"the first existing record **
 relative key number is greater than the file position indicator if NEXT is specified or implied"*, and that
 record *"is made available in the record area associated with file-name-1"*. The physical file, not a snapshot
 of what it said when a buffer was filled. The keyed organizations satisfy this by construction — their medium is
-the ONE `KeyedStoreTable` store, so a sibling's mutation is visible instantly — and the sequential connector,
+the run unit's ONE store for the file (`StoreTable`, 2.2.1.7), so a sibling's change is visible instantly — and the sequential connector,
 whose medium is the file system, needed the rule stating in two places at once:
 
 - `PhysicalFileTable.State.ReleaseGeneration` counts the releases that have REACHED the physical file (both
@@ -586,48 +587,41 @@ concurrent read/update pass computed from data the same run unit had already rep
 rule was already written down in `SeekToRecord`'s doc comment — for the connector's OWN seek, never for a sibling's
 write.)
 
-**And ACROSS RUN UNITS: a keyed store another run unit may write is a COPY, kept coherent one statement at a time
-(kb/Work PB2660).** §9.1.15 3) admits concurrent writers in other run units — *"The sharing with all other mode
-allows concurrent access to a physical file through other file connectors specifying input, I-O, or extend mode"*,
-and *"Multiple paths of access may exist … or runtime elements in different run units"* — and §9.1.16 binds them to
-each other's record locks: *"While locked by a given file connector, a record is not accessible to another file
-connector in the same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK
-phrase"*, answered by §9.1.13.8 1)'s `51`. The `KeyedStoreTable` store is ONE run unit's, so before PB2660 a second
-run unit's `READ … WITH LOCK` of a record the first held answered `00`, its `REWRITE` and `WRITE` answered `00`, and
-the first run unit's CLOSE then rewrote the file from the image it had read at its OPEN — measured on both keyed
-organizations. Three pieces close it, and each lives in one place:
+**And ACROSS RUN UNITS: the FILE is the truth, and every run unit's store follows it one page at a time (kb/Work
+PB2660, PB3335; 2.2.1.7).** §9.1.15 3) admits concurrent writers in other run units — *"The sharing with all other
+mode allows concurrent access to a physical file through other file connectors specifying input, I-O, or extend
+mode"*, and *"Multiple paths of access may exist … or runtime elements in different run units"* — and §9.1.16 binds
+them to each other's record locks: *"While locked by a given file connector, a record is not accessible to another
+file connector in the same or a different run unit, except by the execution of a READ statement with the IGNORING LOCK
+phrase"*, answered by §9.1.13.8 1)'s `51`. A run unit's `StoreTable` store is that run unit's alone, so the file has
+to carry what the run units tell each other. Three pieces do it, and each lives in one place:
 
-- **The store GENERATION (`RecordFraming.GenerationOffset`, store format 3; format 4 adds the release mint and each
-  indexed record's release ordinals, kb/Work PB2693, so a reload keeps every duplicate order; a format-3 store is
-  Foreign to this build and its OPEN answers '39', with no reader or migration kept, CLAUDE.md rule 4).** Eight bytes in the fixed header,
-  stamped by every persist with one more than the generation the file carried at that moment. A run unit compares
-  them with the generation its store reflects (`KeyedStore.Generation`) and reloads only when they differ, so a
-  statement costs one small positional read, not a whole-store load. It is the cross-run-unit twin of
-  `PhysicalFileTable.State.ReleaseGeneration` above, which can live in memory only because a sequential sibling is
-  in the same run unit.
-- **The coherent STATEMENT (`KeyedConnector.BeginStatement` → `StoreStatement`).** A connector whose file lock
-  admits another writer (`FileLockPosture.AdmitsAnotherWriter` — only `ALL OTHER`) runs every record statement
-  inside the store's cross-run-unit MUTEX (`HostRegionLocks.StoreMutexByte`): it enters (taking the mutex, waiting
-  for another run unit's statement to finish, and reloading when the generation moved), the statement runs its
-  record-lock check, its operation and its lock actions, and `Complete` persists what THIS statement changed
-  before the mutex is given back. `FileRegistry` wraps every keyed record entry point in one, so to every other
-  run unit a statement is one step — which is what §12.4.5.9.4 GR8's *"The setting of a record lock is part of the
-  operation of an I-O statement"* needs, and why a check-then-act race between two run units cannot exist. A
-  connector whose lock admits no other writer cannot meet one (Table 19 refuses that writer's OPEN in every run
-  unit, PB833), so it keeps the whole-store model — loaded at the OPEN, persisted at the CLOSE, and the CLOSE now
-  persists only when the store holds records the file does not (`KeyedStore.Version` against
-  `PersistedVersion`). ⚠ The price of keeping the whole-store FORMAT is paid by the coherent connector alone: each
-statement that changes the records persists the whole store, O(store) per mutating statement, so a bulk load
-through an `ALL OTHER` connector is quadratic in the records. ⛔ The owner ruled this whole-store model unacceptable
-(2026-10-17). kb/Work PB3330 replaces it with the record-level, page-granular engine designed in §2.2.1 below (one paged
-file, B+ trees, a generation ledger for crash consistency); until its groups PB3331-PB3338 land, this paragraph and the
-two bullets around it describe the current compiler, and §2.2.1 the target. Every load and every persist, coherent or not, runs under
-the mutex, so no run unit reads a
-  store another is half-way through rewriting. The store's bytes are read and written POSITIONALLY through the
-  connector's own handle (`KeyedConnector.Load`/`Persist`, `RandomAccess`), never through the `FileStream`'s
-  buffer, which would hand back an image another run unit has replaced; `RecordFraming` only composes
-  (`ComposeStore`) and decodes (`DecodeStore`) the image. A persist the medium refuses is the statement's own
-  §9.1.13.6 item 1 `30`.
+- **The GENERATION in the work meta (page 2, 2.2.1.4).** Every statement that changes the file ends by writing page 2
+  with its generation — its claim, one above the highest generation claimed on the file's history (`stamp mint`,
+  finding R3-4) — and a coherent statement's entry (`PagedFile.Enter`) reads that ONE page and compares its generation
+  with the one the store last saw there. Equal: nothing moved. Different: the store ADOPTS page 2 (its roots and, for a
+  writable store, the ledger a writer allocates from) and DROPS the run unit's page cache for the file instead of
+  reloading anything, so the statement then reads only the pages it touches — O(log n), an unshared statement's count
+  plus the one meta read (`StoreCoherenceTests`). It is the cross-run-unit twin of
+  `PhysicalFileTable.State.ReleaseGeneration` above, which can live in memory only because a sequential sibling is in
+  the same run unit.
+- **The coherent STATEMENT (`KeyedConnector.BeginStatement` → `StoreStatement`).** A connector whose sharing mode admits
+  ANY other run unit's connector — every mode but `SHARING WITH NO OTHER` (`FileLockPosture.AdmitsAnotherRunUnit`) —
+  runs every record statement inside the store's cross-run-unit MUTEX (`HostRegionLocks.StoreMutexByte`; exclusive
+  through a writable handle, shared through an `OPEN INPUT` connector's, whose entry is a reader's and writes nothing,
+  not even beside a writable sibling of its run unit): it enters (taking the mutex, waiting for another run unit's
+  statement to finish, and reading page 2), the statement runs its record-lock check, its operation and its lock
+  actions, and its change is ONE statement of the page layer whose pages and page 2 are written before the verb answers
+  (`KeyedStore.Change`). `FileRegistry` wraps every keyed record entry point in one, so to every other run unit a
+  statement is one step — which is what §12.4.5.9.4 GR8's *"The setting of a record lock is part of the operation of an
+  I-O statement"* needs, and why a check-then-act race between two run units cannot exist. The OPEN's adoption rule,
+  the CLOSE's promotion and a reader's re-adoption when its run unit's last writable connector closes run under the same
+  mutex. A `NO OTHER` connector cannot meet another run unit's connector (Table 19 refuses every other opener in every
+  run unit, PB833), so it runs the same statement path without the mutex and without the page-2 read. Every page is read
+  and written POSITIONALLY through a connector's own handle, one page per call (`Store.HandlePageMedium`), never through
+  the `FileStream`'s buffer, which would hand back a page another run unit has replaced; a page write or a sync the
+  medium refuses is the statement's own §9.1.13.6 item 1 `30`, and nothing is deferred to the CLOSE.
+  `WholeStoreBanDriftTests` keeps every whole-file read and write out of `Runtime/IO`.
 - **Published RECORD LOCKS (`PhysicalFileTable.LockRecord` / `HolderOf`, `HostRegionLocks.RecordLockByte`).** Every
   lock the run unit grants through a connector that has `RecordLocks` (the keyed organizations) is also held
   as a region lock on that endpoint, on one byte of the record region (SHA-256 of the record identity, 60 bits,
@@ -694,14 +688,14 @@ the medium. (3) A reader whose file lock admits another writer RE-ANCHORS AT EVE
 otherwise be served from the read-ahead. `CrossRunUnitSequentialLockDriftTests` measures it for the fixed, line and
 varying framings.
 
-**Emptying a keyed store is done in ONE place: `KeyedStoreTable.AttachCreated` (kb/Work PB754).** An `OPEN OUTPUT`
-creates the file (§14.9.27.4 GR18, *"After the creation of the file, the file contains no records"*), and emptying
-a store is a mutation every attached connector sees instantly, so the creation attaches a NEW empty store and
-refuses, loudly, to create one another connector of the run unit still holds — Table 19 has already refused that
-OPEN (§9.1.13.9 1) e)), so reaching it is an arbitration defect. The absent-OPTIONAL creation arms (§14.9.27.4 GR17)
-attach normally: the file was absent, so the store is empty by construction. No connector calls `Clear()` on a store
-(`CrossRunUnitKeyedStoreDriftTests.NoConnectorClearsASharedStore`); the organizations' `Fill` — a load or reload,
-which every attached connector must see — is the only other emptying.
+**Emptying a keyed store is its CREATION, done in ONE place: `StoreTable.AttachCreated` and `PagedFile.Create` (kb/Work
+PB754).** An `OPEN OUTPUT` creates the file (§14.9.27.4 GR18, *"After the creation of the file, the file contains no
+records"*), and emptying a store is a change every attached connector sees instantly, so the creation attaches a NEW
+empty store and refuses, loudly, to create one another connector of the run unit still holds — Table 19 has already
+refused that OPEN (§9.1.13.9 1) e)), so reaching it is an arbitration defect. Its one truncation is `PagedFile.Create`
+(three meta pages), reached only through `KeyedStore.Create`. The absent-OPTIONAL creation arms (§14.9.27.4 GR17) attach
+normally: the file of no bytes the file lock created is adopted as the empty store. A store holds no records in memory,
+so no connector clears one (`CrossRunUnitKeyedStoreDriftTests.NoConnectorClearsASharedStore`).
 
 **The SORT/MERGE work store is an external merge sort in bounded memory (kb/Work PB3339).** The owner's ruling on the
 keyed stores (2026-10-17, "Reading the entire file into memory as a design requirement is a fatal flaw") applies to
@@ -746,10 +740,12 @@ three (sequential varying framing folds into it — same 4-byte LE prefix). File
 #### 2.2.1 The keyed store engine — a record-level, crash-consistent, page-granular format for RELATIVE and INDEXED files (kb/Work PB3330)
 
 ⛔ **STATUS.** This section is the DESIGN the owner ordered on 2026-10-17 ("THis is a completely unacceptable design", of the
-whole-store model the paragraphs above still describe). It is the target state; the current compiler is the whole-store model
-until the implementation groups kb/Work PB3331 to PB3338 land, each of which rewrites the paragraphs above that it retires and
-the two `docs/CONFORMANCE.md` rows it changes (DOC-A.1-107, DOC-A.1-75) in the same change set (CLAUDE.md rule 6). PB3330 lands
-when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
+whole-store model it replaced). The core groups kb/Work PB3331 to PB3335 have built it — the page layer and its ledger, the
+B+ tree, RELATIVE and INDEXED on the engine, and coherence across run units at page granularity — and the whole-store model
+is deleted, with no reader of its format kept; the paragraphs above and the two `docs/CONFORMANCE.md` rows (DOC-A.1-107,
+DOC-A.1-75) describe the engine. Still the target: the performance witnesses (a) to (c) of 2.2.1.11 (PB3336) and the
+transactions of 2.2.1.10 with their crash and interleaving rows (PB3337, PB3338), held until the core lands and the owner
+decides their scope. PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
 reads the header; a keyed statement touches O(log n) pages; the size limit is the host's; a statement's change reaches the
 file when it completes, crash-consistently; `SHARING WITH ALL OTHER` is coherent at page granularity with today's record locks;
 every current golden keeps passing plus measured performance witnesses; one engine, no second path and no reader of the old
@@ -785,8 +781,8 @@ the repository's drive and the temp drive; the numbers decide the fsync policy a
 | positional read, hot page | 1.4-1.8 µs |
 | write + `FlushFileBuffers` (`FileStream.Flush(true)`) | 2.9-3.1 ms |
 | appends with one fsync per 10 / per 100 statements | 0.28-0.32 / 0.025-0.027 ms per statement |
-| the current model: whole-store persist of 64 MiB through the areas (every changing statement under ALL OTHER) | 77-92 ms |
-| the current model: whole-store load of 64 MiB (every OPEN; every reload) | 65-68 ms |
+| the whole-store model (deleted, PB3335): a persist of 64 MiB through the areas (every changing statement under ALL OTHER) | 77-92 ms |
+| the whole-store model (deleted, PB3335): a load of 64 MiB (every OPEN; every reload) | 65-68 ms |
 
 An fsync is three hundred times a page write. A design that makes every statement durable against POWER LOSS costs 3 ms per
 WRITE (a million-record load: 50 minutes); one that makes every statement durable against PROCESS DEATH costs one page write
@@ -818,9 +814,10 @@ after any later crash.)
    type"). It is a sequence of 4 KiB pages; pages 0, 1 and 2 are the three META pages (two COMMITTED slots and the WORK slot,
    2.2.1.6); every other page is a B+ tree page, an overflow page or a free page. RELATIVE and INDEXED are the same engine with
    different KEY ORDERS and a different number of trees; every sharing mode runs the same statement path. There is no small-file
-   path, no in-memory path and no reader of store format 4: a format-4 file is `StoreFormat.Foreign` and its OPEN answers '39'
-   exactly as a format-3 file does today (CLAUDE.md rule 4; the version byte after the magic moves from 4 to 5, so the existing
-   `Foreign` arm already answers it).
+   path, no in-memory path and no reader of the whole-store format: a whole-store file (its header's magic at offset 0,
+   version 5 since kb/Work PB1099) is `StoreFormat.Foreign` and its OPEN answers '39' exactly as a format-3 file does today
+   (CLAUDE.md rule 4; the paged format's meta pages carry the magic at offset 32 with version 6, so neither reader can
+   take the other's file for its own, and `MetaPage.Describes` answers the existing `Foreign` arm).
 2. **The page size is 4 096 bytes**, the host's I/O block (Berkeley DB's default rule; `HostFile.InputOutputAreaBytes` is
    already 4 096) and the size the measurements were taken at. It is a format constant, not a per-file choice: one size makes
    every page computation static, and a record larger than a page's payload goes to overflow pages (2.2.1.4), so no record
@@ -881,26 +878,31 @@ after any later crash.)
    READ held. Plus the lock releases §14.9.7.4 GR3 and §14.9.36.4 GR3 name; the data-item half is the compiler's and is its
    own group (PB3338).
 
-**2.2.1.4 The on-disk format (store format 5).** All integers little-endian, as format 4's were. A POINTER is 12 bytes: page
+**2.2.1.4 The on-disk format (paged store format 6).** All integers little-endian, as the whole-store format's were. A POINTER is 12 bytes: page
 number (4) + the generation of the write it names (8), 2.2.1.6 R3.
 
 ```
 PAGE (4 096 bytes; every page)
    0   1  kind          M meta · I internal · L leaf · O overflow · F free
-   1   1  flags         kind-specific (a leaf's bit 0: rightmost; an overflow's bit 0: last of its chain)
+   1   1  flags         kind-specific (an overflow's bit 0: last of its chain; I, L, M: 0)
    2   2  entries       entry count (I, L); payload bytes (O)
-   4   4  checksum      CRC-32C of bytes 8..4095, the one torn-page detector (2.2.1.6 R6)
+   4   4  checksum      CRC-32C of every other byte of the page — bytes 0..3 and 8..4095 — the one torn-page detector
+                        (2.2.1.6 R3, R6). (The first draft covered bytes 8..4095 only and left kind, flags and entries
+                        unprotected: one flipped bit in a leaf's entry count passed the check. PB3331's layout golden flips
+                        every bit of every page kind.)
    8   8  generation    the generation that last wrote this page (2.2.1.6 R2, R3)
   16   4  self          this page's number (a page read from the wrong offset is a torn read)
-  20   4  next          O: the next overflow page of the chain; L: the right sibling (0 = none); I, M: 0
+  20   4  next          O: the next overflow page of the chain; I, L, M: 0 (no sibling pointers: see below)
   24   8  reserved      0
   32  ..  body
 
 META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 = the WORK slot; 2.2.1.6)
-  32   8  magic "CBNFSTR" + format version 5          (the same first eight bytes as format 4, so a format-4 file is Foreign)
+  32   8  magic "CBNFSTR" + format version 6          (the whole-store header is version 5 with its magic at offset 0, so it is
+                                                     Foreign here; a page carrying this magic and version whose committed
+                                                     slots both fail is `StoreFormat.Damaged`: R6's '30', not GR10's '39')
   40   1  organization  'R' relative · 'I' indexed
   41   1  record type   'F' fixed · 'V' varying
-  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as format 4)
+  42   4  minimum logical record size · 46 4 maximum logical record size   (§9.1.6, as the whole-store header)
   50   2  key count     0 relative; prime + alternates indexed
   52   8  generation    the coherence stamp (2.2.1.7); one more per statement that changed the file
   60   8  release mint  an indexed store's next release ordinal (kb/Work PB2693); 0 relative
@@ -928,17 +930,21 @@ META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 =
  157  12  holdings root POINTER to the HOLDINGS tree (2.2.1.10; finding R4-1): (kind, identity) → transaction id — every
                         record identity and every unique key value an open transaction holds, kept in the file so that a
                         dead owner's locks survive its handle
- 169  ..  per key, exactly format 4's descriptor: offset(4) length(4) flags(1: bit0 DUPLICATES) suppress(Int32 biased
-           code-unit count + UTF-16 code units, kb/Work PB1602) collation-length(1) collation(ASCII fingerprint), then
-           root[k+1](12), the POINTER to the alternate tree of key k
+ 169  ..  per key, its descriptor, written by the ONE key codec
+           (`MetaPage.WriteKeyDescriptor`/`ReadKeyDescriptor`): segment count(4) and per segment offset(4) length(4)
+           (kb/Work PB1099's SOURCE-phrase windows), duplicates(1), suppress(Int32 biased code-unit count + UTF-16 code
+           units, kb/Work PB1602), collation-length(1), collation(ASCII fingerprint); an ALTERNATE key's descriptor is then
+           followed by its root(12), the POINTER to its tree (the prime key's tree is root[0] at 84, so the prime key's
+           descriptor carries none)
    ..  the per-key descriptors are bounded by the page: 3 927 bytes hold at least 50 keys of 64-byte descriptors; a
        declaration past the page's capacity is refused at the OPEN with '39' (DOC-A.1-129 names the limit)
 
 INTERNAL (I)   body: a leftmost child POINTER(12) at 32, then entries × { key length(2), key bytes, child POINTER(12) } ascending
 LEAF (L)       body: entries × { key length(2), value length(4), key bytes, value bytes } ascending;
-               a value whose length word has bit 31 set is an OVERFLOW REFERENCE: a POINTER(12) to the first overflow page +
-               4 bytes total length; each overflow page's `next` is paired with the next page's generation in its own body's
-               first 8 bytes (so the chain is stamped like every other pointer)
+               a value whose length word has bit 31 set is an OVERFLOW REFERENCE (its low bits 16, the reference's own
+               size): a POINTER(12) to the first overflow page + 4 bytes total length; each overflow page's `next` is paired
+               with the next page's generation in its own body's first 8 bytes (so the chain is stamped like every other
+               pointer)
 OVERFLOW (O)   body: 8 bytes next-page generation, then up to 4 056 payload bytes, chained by `next`
 FREE (F)       body: unused (a free page keeps its header so a stale read is recognizable)
 ```
@@ -948,7 +954,8 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   KEY ORDER chosen once per tree at OPEN (`IKeyOrder`): ORDINAL bytes for a native collating sequence, WEIGHTED (decode, then
   the key's `CobolCollation` as `IndexedConnector.KeyCompare` does today) for a declared one, NUMERIC for a relative record
   number (stored as 8 bytes big-endian, so ordinal byte order IS numeric order and the ordinal comparer serves), and COMPOSITE
-  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b)) is a
+  for an alternate tree (the key's order, then the 8-byte big-endian ordinal). A START's partial key (§14.9.41.4 GR17 b) sets its
+  length, c) and d) truncate each stored key to it, e) compares them by §8.8.4.2.7's equal-length rule) is a
   seek to the prefix under the same order; the '02' look-ahead of §14.9.30.4 GR27 is the next entry's key prefix.
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
   key whose value is not the key's SUPPRESS WHEN value (the §12.4.5.6.4 GR6 suppression; §14.9.30.4 GR21 c): such a record *"is not
@@ -959,35 +966,74 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   key is the key of reference remains unchanged"*, and a changed key's record is last among its duplicates because its ordinal
   is the largest. DELETE removes n + 1 entries. A sequential READ under an alternate key walks that tree and takes the record by
   one prime lookup; the record's ordinal vector in the frame is what locates its alternate entries for REWRITE and DELETE, and
-  a reload-time renumbering (PB2693's defect) cannot exist because nothing is renumbered.
+  a reload-time renumbering (PB2693's defect) cannot exist because nothing is renumbered. The n + 1 entries change in ONE
+  statement of the page layer (`KeyedStore.Change`: every tree edited in memory, one reservation sized to all of them, every
+  root set, page 2 last), and the statement's ordinal is the one `PagedFile.ReleaseMint` names after the statement's entry,
+  which `PagedFile.Begin` then claims (in the tree: `IndexedConnector` over `IndexedStore`, kb/Work PB3334). The frame
+  carries one ordinal per key the META PAGE records, and an alternate entry is a record's only while the record still
+  carries the entry's ordinal under that key: the opt-out of DOC-A.1-129 (`COBOLNET_KEYCHECK=OFF`) lets a description with a
+  different key table drive the file's trees by key number, a tree it does not declare is not maintained by its statements,
+  and such a tree's stale entry is passed over by every reader instead of naming a record that no longer has it.
 - **A RELATIVE record is one entry.** The record number is the key; `Highest` (§14.9.51.4 GR29 a), *"one greater than the
   highest relative record number existing in the physical file"*) is the tree's last key; an empty slot costs nothing, so the
   sparse case of kb/Work PB1192 (one record at a key in the billions) is one leaf. START relational operators are seeks;
   READ NEXT / PREVIOUS are cursor steps.
-- **A record larger than a leaf can hold inline goes to overflow pages**: a leaf entry keeps at most 1 016 bytes of value inline
-  (a quarter of the body, Berkeley DB's `page_size / (minkeys × 2)` with two keys per page) and otherwise an overflow reference;
-  the frame is read from the chain. So the maximum record size is the host's, not the page's. Keys are bounded by the leaf: a
-  key longer than 1 016 bytes is refused at the OPEN with '39' as a fixed-attribute conflict the format cannot hold (DOC-A.1-129).
+- **A record larger than a leaf can hold inline goes to overflow pages**: a leaf entry keeps a value inline when the value is at
+  most 1 016 bytes (a quarter of the body, Berkeley DB's `page_size / (minkeys × 2)` with two keys per page) AND the whole entry
+  (6 + key + value bytes) is at most half a body, 2 032 bytes, and otherwise an overflow reference of 16 bytes; the frame is read
+  from the chain. The second condition is the measured correction (kb/Work PB3332): with the first alone a 1 016-byte key and a
+  1 016-byte value made a 2 038-byte entry, two of which do not share a page, so a split could not always make two pages; with
+  both, any two entries share a page and every split is a two-way split. So the maximum record size is the host's, not the
+  page's. Keys are bounded by the leaf: a prime key longer than 1 016 bytes, or an ALTERNATE key longer than 1 008 (its tree's
+  entry key is the key and then the 8-byte ordinal — the measured correction of kb/Work PB3334; the first draft bounded every
+  key at 1 016 and a 1 009-byte alternate key reached the tree as its caller's defect), is refused at the OPEN with '39' as
+  a fixed-attribute conflict the format cannot hold (DOC-A.1-129), in every open mode, OUTPUT included, before the file is
+  touched (`KeyedConnector.FormatHolds`); the tree itself refuses one as its caller's defect (`BTree.MaxKeyBytes`).
+- **How the tree changes (kb/Work PB3332, `BTree`).** A statement's changes to a tree are made IN MEMORY first — the path to each
+  changed entry copied, nodes split, merged or rebalanced — and FLUSHED once: every changed node is written exactly once, children
+  before parents, to the statement's reserved pages, and every page the tree stopped referencing is handed to the ledger
+  (`released` or `freed`, R2). So R1 holds by construction, no (page, generation) pair is written twice however many changes a
+  statement makes to one tree (R3's corollary), and the number of pages a statement will write is known before it begins, which
+  sizes its reservation exactly. A node is split when it passes a page body — where the larger half is smallest, or, for an
+  APPEND above every key of the tree, just past what fitted before (Berkeley DB's rule at the right edge), so a sequential load
+  fills its pages — and is merged with a sibling, or borrows from one, when a change SHRANK it below a quarter of a body (a page
+  an append left small is left to fill). **There are no sibling pointers**: a leaf's `next` is 0, because path copying cannot
+  keep them — a rewritten leaf's left neighbour would still name the superseded page, and re-pointing it would copy every leaf
+  to its left, which R1 forbids doing in place. A cursor holds its root-to-leaf path and crosses leaves by climbing it to the
+  first ancestor with a further child (so READ NEXT reads ≤ 1 page within a parent and ≤ d − 1 across one, 2.2.1.11); a cursor
+  whose tree another statement replaced re-seeks from its current key (`BTree.Adopt` takes the root a coherent entry adopted,
+  2.2.1.7), so it never walks a superseded path whose pages may have been reused. A torn or stale page met by a read answers
+  '30' and discards the tree's pending edit. The LEDGER is a RESIDENT instance (every node in memory, read whole at each
+  adoption, R6 step 3 needing all of it anyway); every other tree reads the pages a walk needs.
 - **Free space.** A page leaves a tree in one of two ways and the LEDGER (2.2.1.6 R2) records which: a page the COMMITTED tree
   references is `freed` and quarantined until the promotion that makes its freeing durable (R4); a page allocated since the
   committed generation is `released` and reusable by any LATER statement (R1 keeps the work meta's own tree intact). At a
   promotion the freed and released pages move to the FREE tree. An allocation takes a released page, else the lowest page of
   the FREE tree, else the page at `page count` (the file grows). The file never shrinks of its own accord; `OPEN OUTPUT`
   creates a new three-page store (§14.9.27.4 GR18, *"After the creation of the file, the file contains no records"*) through
-  the connector's own handle with `RandomAccess.SetLength` to three pages, which is the one truncation (today's `Persist`
-  truncation, moved).
-- **What the pages prove at a glance.** With 22-byte internal entries (an 8-byte relative key and a 12-byte pointer) a page
-  fans out 184 ways; a 3-level tree covers 6 million relative records, 4 levels 1.1 billion. With 40-byte prime keys an
-  internal page holds 75 entries and a leaf 16 records of 200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5
-  levels 500 million. Every level but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in
-  the steady state and O(log n) only cold (2.2.1.11).
+  the connector's own handle: `RandomAccess.SetLength` to ZERO, which is the one truncation (the whole-store `Persist`'s
+  truncation, moved), then pages 0, 1 and 2 and a sync. (The first draft set the length to three pages, which keeps the old store's
+  three meta pages until they are overwritten: a death between the truncation and the first write left the OLD store's
+  committed slots valid over a file cut to three pages, and the next OPEN adopted a tree whose pages were gone. PB3331's
+  creation cases kill the creation at every write and sync.)
+- **What the pages prove at a glance.** An internal page holds ⌊(4 064 − 12) / (2 + k + 12)⌋ keys of k bytes and one child
+  more; a leaf holds ⌊4 064 / (6 + k + v)⌋ entries of v-byte values. With 22-byte internal entries (an 8-byte relative key and a
+  12-byte pointer) a page holds 184 keys and 185 children, and a sequential load's append splits leave every internal page but
+  the rightmost of its level with 184; a leaf of 8-byte frames holds 184. So such a tree is 1 level to 184 records, 2 levels to
+  185 × 184 = 34 040, 3 levels to about 6.3 million and 4 to about 1.15 billion — the boundaries PB3332's shape test measures
+  (184 → 1 level, 185 → 2, 34 040 → 2, 34 041 → 3). A realistic 80-byte record frame gives 39 per leaf: 3 levels hold about
+  1.3 million records, 4 levels 245 million. With 40-byte prime keys an internal page holds 75 keys and a leaf 16 records of
+  200 bytes: 3 levels cover 90 000 records, 4 levels 6.7 million, 5 levels 500 million. These are FULL pages, a sequential
+  load's; random inserts leave pages about two-thirds full on average, which costs a level only near a boundary. Every level
+  but the leaf fits a cache of a few hundred pages, which is why a READ is one page of I/O in the steady state and O(log n)
+  only cold (2.2.1.11).
 
 **2.2.1.5 The code set and the character set.** The frame payload and the key bytes are the channel bytes of today's
 `FileCharacterSet.ToChannel` + `Medium.GetBytes` (one byte per character position; a character with no byte image is refused at
 the WRITE with '91', DOC-A.1-110, before any page is touched), and a READ decodes them with `FromChannel` (§13.18.13.4 GR6 a):
 the frames come back in the native character set). The meta page, the page headers, the key lengths and the ordinals are the
 §9.1.7.2 information *"the implementor may add to the record on the physical storage medium"* and are never converted (the same
-rule `ComposeStore` applied to the length word and the header). A declared COLLATING SEQUENCE orders the tree through the
+rule the whole-store codec applied to its length word and header). A declared COLLATING SEQUENCE orders the tree through the
 weighted key order; its fingerprint in the meta page is what makes a file created under one sequence refuse an OPEN under
 another ('39', §14.9.27.4 GR10 — *"The implementor defines which of the fixed-file attributes are validated during the
 execution of the OPEN statement"*), exactly as today, because an index ordered under one sequence cannot be searched under
@@ -1016,7 +1062,10 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   later than the one that released it), `freed` (a committed page released since; quarantined, R4).** The ledger is a small
   B+ tree of the same engine whose root pointer is in the work meta; it is path-copied by the statement that changes it, like
   every tree, so the work meta and the ledger always agree. The ledger does not list its own pages: they are verified through
-  their stamped pointers (R3) when the ledger is walked. **Allocation never happens while the ledger is being written:** a
+  their stamped pointers (R3) when the ledger is walked. The pages of the ledger a statement SUPERSEDES — the previous
+  statement's ledger, allocated since the base — are `released` in the new one, and a `released` page the statement reuses
+  for its own ledger leaves the list (PB3331's first simulator run: without the removal the ledger listed its own page as
+  reusable and the next statement overwrote it while page 2 referenced it). **Allocation never happens while the ledger is being written:** a
   statement reserves its pages first — the released pages the in-memory ledger offers, then one batch of the lowest FREE-tree
   pages sized to the statement's bound (2.2.1.11), then growth — writes its data and free-tree pages, and writes the ledger
   LAST from the reservation; a reserved page the statement did not use is recorded as `released`, never lost. **The
@@ -1050,14 +1099,21 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   its `fresh` pages leave the ledger (they are now committed pages, R1 applies); the ledger's own pages, now referenced by the
   committed slot, are `freed` in turn (finding R3-2 confirmed this reading against the retirement paragraph, which had
   contradicted it). The moving is the RETIREMENT statement of R5.
-- **R5 — a PROMOTION is: the CLAIM — page 2 := the meta being promoted (page 2's own content for an ordinary promotion; for
-  the fence, the ADOPTED meta with `generation` = F, since after a rejection page 2 holds the superseded slot, 2.2.1.16),
-  with `stamp mint` = the retirement's claim and the PROMOTING flag set (2.2.1.7) → sync the data file
+- **R5 — a PROMOTION is: the CLAIM — page 2 := the meta being promoted AT A FRESH CLAIM P (page 2's own content for an
+  ordinary promotion, with `generation` := P, the next claim; for the fence, the ADOPTED meta with `generation` = F,
+  since after a rejection page 2 holds the superseded slot, 2.2.1.16), with `stamp mint` = the retirement's claim P + 1
+  and the PROMOTING flag set (2.2.1.7) → sync the data file
   (`FileStream.Flush(true)` on the connector's own handle) → read both committed slots and write page 2's content, with
   `committed generation` = its generation, to the COMMITTED SLOT THAT DOES NOT HOLD THE COMMITTED META (the lower valid
   generation, or the invalid one — decided from the slots as they are NOW, under the mutex, never from memory: another run
   unit may have promoted since this one last looked) → sync again → the RETIREMENT statement, whose page 2 clears the flag
   (a page the retirement reserves for itself is `fresh` in the new ledger, never also moved into the FREE tree).**
+  *Why a fresh claim (PB3331's simulator, 2026-10-18): the round-4 text promoted page 2 at its own generation g, the last
+  completed statement's, with the retirement claiming above the mints. Refused statements since the base raise the mint
+  without raising g, so the retirement's claim could lie above g + 4 096 — outside the window R2's ceiling gives a history
+  based on g, which is what the fence at g + 4 097 relies on: a retirement that died there left pages stamped at the very
+  generation the next OPEN's fence would reissue. Promoting at a claim P, above every claim before it, makes every history
+  begin above everything it supersedes, and P is a meta generation only (no page is stamped P).*
   Two syncs make the meta copy strictly after the pages it names, and alternating the slots makes the one write the scheme
   depends on survivable: a promotion whose slot write is torn leaves the other committed slot whole and the work slot, synced
   by the first sync, naming the state the promotion was making durable (finding R1-4; the first draft overwrote page 0 in
@@ -1070,7 +1126,9 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   claim and the flag — is still exactly the state being promoted. The statement reads both slots. A slot that names page
   2's generation means the promotion LANDED, and the statement completes it: the syncs are not skipped, since the dead
   promoter may have died before its second one, and the retirement claims above the dead retirement's claim, so its pages
-  are stamped afresh — a retirement that removes the transaction `committing` names, if any. No slot names it and
+  are stamped afresh — and writes that claim to page 2 (the flag still set) before its first page write, so a death inside
+  the restarted retirement is continued above it in turn; and were that claim to pass the promoted generation + 4 096, the
+  promotion runs again from a fresh claim instead — a retirement that removes the transaction `committing` names, if any. No slot names it and
   `committing` is 0: the statement runs R5 from the claim — a checkpoint or a CLOSE is harmless when repeated. No slot
   names it and `committing` is a transaction t: the promotion was a COMMIT that did not land, and the statement UNWINDS
   it — page 2 := the same content with PROMOTING clear and `committing` 0, nothing else written — so that t is an ordinary
@@ -1083,8 +1141,11 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   written last — that moves the promoted ledger's `released` and `freed` pages into the FREE tree (path-copying the FREE tree:
   its new pages are `fresh` in the new ledger, the FREE-tree pages it replaced `freed`), drops the `fresh` entries (committed
   pages now), records the promoted ledger's OWN pages — the pages its walk read; the committed slot references them through
-  its ledger root, so R1 and R4 protect them until the next promotion — as `freed` in the new ledger, and writes page 2 with
-  `committed generation` = the promotion's generation and the new ledger's root. *Finding R3-2: the round-2 text moved the
+  its ledger root, so R1 and R4 protect them until the next promotion — as `freed` in the new ledger (and the promoted FREE
+  tree's own pages likewise), and writes page 2 with `committed generation` = the promotion's generation and the new
+  ledger's root. A page at or past the promoted state's `page count` never enters the FREE tree: it is reached by nothing,
+  and the next growth reuses it (a rejected history that grew the file leaves its grown pages there; putting them in the
+  FREE tree as well would let growth and the FREE tree hand out the same page). *Finding R3-2: the round-2 text moved the
   promoted ledger's own pages straight into the FREE tree while R4 quarantined them; the FREE tree was wrong. The committed
   meta's ledger is read again whenever R6 adopts the committed meta (its fence retires that ledger, step 4), so a reused ledger
   page would fail R3 inside the fence of a file whose committed tree is intact; R4's reading stands, and 2.2.1.15's LEDGER row
@@ -1122,7 +1183,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      and C is adopted — a power loss tore a page or lost a write; W's `fresh` and `released` pages were never committed and
      are reclaimable when its ledger is readable; the PROMOTION SOURCE and a FOREIGN W give C as well;
   4. a connector with a writable handle then FENCES (finding R2-2): a promotion (R5) of the ADOPTED meta at generation
-     F = G + 4 097 — above every stamp a history based on G can have issued, R2 — into the slot that does not hold C, with
+     F = G + 4 097 — above every stamp a history based on G can have issued, R2 (and above every mint a slot or page 2
+     still shows, which a valid history never puts higher) — into the slot that does not hold C, with
      its claim (page 2 := the adopted meta at generation F, PROMOTING set, `committing` = C's when C is adopted and 0 when
      W is — a nonzero `committing` in a DESCENDANT W is a COMMIT's claim that never landed, and this fence unwinds it as R5's
      restart rule does; a nonzero one in C is a COMMIT whose slot landed and whose retirement did not, and this fence's
@@ -1130,7 +1192,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
      the same tree from page 2 at that moment, and a later OPEN classifies that page 2 as a DESCENDANT of C with the fence
      unlanded, or as the PROMOTION SOURCE once the slot landed) and its two syncs, then the retirement statement on base F (its generation is its claim, F + 1 or above), which also moves a
      rejected DESCENDANT's `fresh` and `released` pages, and that ledger's own pages (read by the walk; no slot references
-     them once the fence's slot write landed), into the FREE tree when that ledger is readable (an unreadable one leaks at most
+     them once the fence's slot write landed), into the FREE tree when that ledger is readable — those below C's `page count`;
+     the pages that history grew are reused by the next growth (an unreadable one leaks at most
      the checkpoint's pages; the file never shrinks of its own accord anyway). After the fence both the committed meta and page 2 name the adopted
      state, every page of it is durable, and no generation the superseded history may have stamped will be stamped again. A
      fence is a promotion like any other and changes no rollback target; it is harmless when repeated. It runs through the
@@ -1155,8 +1218,8 @@ finding's evidence is under the rule that answers it (R1, R2, R3, R5, R6 and 2.2
   written LAST. A death or a host refusal part-way (a full medium, a handle the host revoked) leaves the work meta naming the
   previous statement's tree, whose pages were never touched (R1); the statement drops the cache and answers '30' (§9.1.13.6
   item 1, *"A permanent error exists and no further information is available concerning the input-output operation"*), and
-  §9.1.13.1's permanent error is in effect from there — the behaviour `CompleteStatement` and `Enter` give a refused persist
-  and a refused reload today, now for every connector. The generation the dead or refused statement stamped is never issued
+  §9.1.13.1's permanent error is in effect from there — the behaviour the coherent entry (`KeyedConnector.Enter`) gives a
+  refused page-2 read, for every connector. The generation the dead or refused statement stamped is never issued
   again: it claimed it first — in the store's memory, and on page 2 under the mutex — so this run unit's next statement
   claims above it (its CLOSE's promotion and retirement included: finding R4-3), any other run unit's does (2.2.1.7), and
   the next OPEN fences above the whole history (R6). The same holds of every other identifier the attempt drew: a
@@ -1181,7 +1244,9 @@ their places; what each does changes:
   generation it read). **A connector whose sharing mode admits ANY other run unit's connector — every mode but `SHARING WITH NO
   OTHER`** (`FileLockPosture.AdmitsAnotherRunUnit`; the keyed connector's `_coherent` is derived from it, 2.2.1.13) — runs
   every record statement, and its OPEN's adoption rule (R6), inside the store mutex (`HostRegionLocks.StoreMutexByte`,
-  exclusive through a writable handle, shared through a reader's), and enters by reading page 2 — ONE page read — and
+  exclusive through a writable handle, shared through a reader's), and enters by reading page 2 — ONE page read; a page 2
+  that does not validate under a live store is answered '30' by a writer, which cannot know what another run unit
+  completed, and leaves a reader on the tree it holds, since nothing it can follow moved — and
   comparing three of its fields with THE ONES THE STORE LAST SAW THERE (at its OPEN, or at its own previous statement, which
   wrote it). **`generation`** equal: nothing moved, and the statement proceeds from the meta the store holds. Different:
   another run unit's completed statement, retirement or fence wrote page 2 under the mutex, so page 2 names a complete tree
@@ -1210,9 +1275,17 @@ their places; what each does changes:
   tree whose liveness byte is free is rolled back before the statement proceeds (finding R3-1); and the statement's own lock
   tests read the HOLDINGS tree, where a holding whose owner died AFTER this entry's probe is rolled back at the test itself
   (finding R4-1), so the entry's probe need not be the last word. The statement then reads the pages it touches: O(log n),
-  the same count as an unshared statement plus the one meta read. `Complete` writes the
-  statement's dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run
-  unit, as before. *Why not
+  the same count as an unshared statement plus the one meta read. The record statement's own page statement writes its
+  dirty pages and the work meta before the mutex is given back, so the statement is one step to every other run unit, as
+  before: each WRITE, REWRITE or DELETE is ONE statement of the page layer — the tree edited in memory, `PagedFile.Begin`
+  sized to exactly the pages the edit writes, the flush, page 2 last (`RelativeStore.Change`, kb/Work PB3333) — run inside
+  the registry's statement and so inside the mutex, so the statement's end has nothing left to write (`StoreStatement`
+  carries no completion step: PB3335 deleted the pass-through it had become). *Measured correction (PB3333): the first text put the writes at
+  `StoreStatement.Complete`; the verb knows its pages and its status ('24' for the boundary, '30' for a refusal) at the
+  write, and answering them there keeps one terminal per verb.* A CLOSE PROMOTES only when its store completed a
+  statement since its last promotion (its OPEN's fence included) and otherwise only syncs, so a connector that changed
+  nothing never fails its CLOSE over a page 2 another run unit's death left torn (PB3333, the relative rows of
+  `KeyedStoreReloadFailureDriftTests`). *Why not
   only the ALL OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the
   INPUT reader Table 19 admits beside it (§9.1.15 2), *"restricts concurrent access to a physical file through file connectors
   other than this one, to input mode"*; the table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing
@@ -1231,18 +1304,25 @@ their places; what each does changes:
   modes with a reader.* Dirty pages are written at the end of each statement all the same (the bar: *the file is in the
   state after its last completed statement*), and the cache is never dropped. The whole-store "loaded at OPEN, persisted
   at CLOSE" branch is gone, so there is ONE statement path.
-- **Within a run unit** the successor of `KeyedStoreTable` is a table of OPEN STORES per physical file (`StoreTable`): one
-  `PagedStore` — the handle's page I/O, the page cache, the ledger and the trees — attached by every connector of the run unit
-  over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach` on the last CLOSE), so a sibling's mutation is
-  visible instantly because there is one cache and one set of trees, as there was one `KeyedStore`.
+- **Within a run unit** the table of OPEN STORES per physical file is `StoreTable` (kb/Work PB3335; the successor of the
+  whole-store model's `KeyedStoreTable`): one store — the handle's page I/O, the page cache, the ledger and the trees —
+  attached by every connector of the run unit over that path (`Attach`, `AttachCreated` with its PB754 refusal, `Detach`
+  on the last CLOSE), so a sibling's change is visible instantly because there is one cache and one set of trees.
+  *As built (kb/Work PB3333-PB3335):* the entry is a `KeyedStore` (`IO/KeyedStore.cs`), a `RelativeStore` or an
+  `IndexedStore` — the run unit's page I/O (`Store.RunUnitPageMedium`: the attached connectors' own handles, each its §9.1.15 file lock, a
+  writable one used whenever one is attached, so no second handle is ever taken), one `PagedFile` (the pages, the page cache
+  `Store.PageCache`, the ledger, the counters) and the record-number tree; `PagedStore`'s role is those two together. A
+  store opened through no writable handle is opened again — and so FENCED — when a writable sibling attaches, and opened
+  again as a reader's (R6 in memory) when its last writable connector detaches, so no reader's statement writes through
+  a handle that cannot.
 - **Published record locks** are unchanged (2.2.1.8).
 
 **2.2.1.8 Where the locks live.** Nowhere new but one region. The region map of `HostRegionLocks` — the five Table 19 column
 bytes at 2^62, the store mutex at 2^62 + 0x100, the lock-presence byte at 2^62 + 0x101, the hashed record region at 2^62 + 2^60
 — stays, held through the connector's own handle (`HandleRegionLocks`: Windows `LockFileEx`, Linux OFD locks) or the lock files
 of `SidecarRegionLocks` on every other host, and the reason the Windows locks are harmless changes from "beyond
-`RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (the comment on `HostRegionLocks` is rewritten with
-the constant). **Not added: a transaction's locks.** The records a transaction changed and the unique alternate key values its
+`RecordFraming.MaxStoreBytes`" to "beyond 2^44, the format's largest file" (`PagedFile.MaxFileBytes`, which the comment on
+`HostRegionLocks` cites since PB3335). **Not added: a transaction's locks.** The records a transaction changed and the unique alternate key values its
 changes freed are its HOLDINGS, pages of the file (the HOLDINGS tree, 2.2.1.10), not bytes of the region: a region lock dies
 with its holder's handle, and a holding must outlive it (finding R4-1). The region keeps exactly today's kinds — the record
 identity a READ locks (under commit control too, §12.4.5.9.4 GR4) and the explicit postures' locks — and `PhysicalFileTable`
@@ -1254,7 +1334,8 @@ byte on every host, by the same primitive and with the same liveness the record 
 unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), the presence-byte shortcut, the publish-then-test
 discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait outside the mutex (`WaitOutsideStatement`)
 keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged in intent over the new engine (its
-`KeyedStoreReloadFailureDriftTests` sibling becomes the adoption-rule and refused-page-write witnesses of 2.2.1.12). The
+sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and the refused page write, and
+`StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
@@ -1590,14 +1671,14 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
 **2.2.1.11 Performance targets, and how a test measures them without a clock.** `PagedStore` counts its page reads, page
 writes and syncs per statement (`IoCounters`, internal), and every witness asserts COUNTS, because a wall-clock test is a flake
 generator (the repository's rule) and because a count is the thing the bar states. With d = the tree's depth (2.2.1.4 gives the
-formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries), the free-tree batch ≤ 2 pages (taken once per
-statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
+formulas), the ledger's path ≤ 2 pages (it holds at most 1 024 entries; PB3332's shape test measures at most 2 over 3 000
+one-record statements), the free-tree batch ≤ 2 pages (taken once per statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
 for a thousand open holdings), read only when page 2's holdings root is not empty:
 
 | Statement | Pages read | Pages written | Syncs |
 |---|---|---|---|
 | OPEN (any mode, file present) | 3 + the ledger's `fresh` pages (after a CLOSE: the retirement's own, ≤ 5; after a death: ≤ 1 024) + the transactions tree (≤ 2) | INPUT handle: 0. Writable handle: the fence, 1 (its claim) + 1 (a committed slot) + its retirement (≤ 2 ledger + 3 free tree + 1 meta); a dead transaction's rollback: its own statement. OUTPUT: 3 | writable: 2; INPUT: 0 |
-| the coherent entry (every statement under the mutex, 2.2.1.7) | 1 (page 2) + through a writable handle, when page 2's transactions root is not empty, ≤ 2 (the TRANSACTIONS tree) and one liveness probe per transaction of another run unit (a host lock test, no page) | a dead transaction found: its rollback's own statement | 0 |
+| the coherent entry (every statement under the mutex, 2.2.1.7) | 1 (page 2) + when page 2's generation moved and the run unit's store is writable, the ledger's path (≤ 2; measured, PB3335: a writer allocates from the ledger it adopts) + through a writable handle, when page 2's transactions root is not empty, ≤ 2 (the TRANSACTIONS tree) and one liveness probe per transaction of another run unit (a host lock test, no page) | a dead transaction found: its rollback's own statement | 0 |
 | READ by key / by RRN | ≤ d + overflow pages of the record (+ the coherent entry when the mutex is held; + h for the holdings lookup of a READ not IGNORING LOCK, when holdings exist) | 0 | 0 |
 | READ NEXT / PREVIOUS | ≤ 1 (+ d when the cursor crosses a leaf; + d for an alternate key's prime lookup; + h as above) | 0 | 0 |
 | WRITE / REWRITE / DELETE (indexed, k alternate keys) | ≤ (k + 1) × d + h × (1 + the unique values inserted), when holdings exist | ≤ (k + 1) × d + 2 (ledger) + 2 (free batch) + 1 (meta) + 1 (the claim, under the mutex only); under commit control + u × (1 + the unique values freed, one path copy per leaf the UNDO entries land on) + h × (the same count, the holdings' path copies) + the before-image's overflow pages | 0 |
@@ -1614,13 +1695,14 @@ after a CLOSE reads ≤ 3 + 7 pages (the three slots, the retirement's ledger an
 whatever N, and writes nothing through an INPUT handle and ≤ 8 pages (the fence's claim, slot and retirement) through a
 writable one; (c) **random READ is O(log n)** — 1 000 random READs on the 4N store read ≤ d + 1 pages
 each, with the cache cold (`PagedStore` offers a `DropCache` seam for the witness); (d) **no whole-store I/O exists** — a
-tree-wide drift test (`[Trait("Sweep", "tree")]`) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
+drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
 m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + 3 pages (the ROLLBACK row above)
 and leaves every record of another run unit byte-identical.
-Witnesses (a) to (d) are PB3336's; (e) needs the transaction runtime and lands with it, in PB3337. For the
+Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are PB3336's; (e) needs the transaction runtime and
+lands with it, in PB3337. For the
 record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
 8 µs, some 50 s of I/O before the tree's own work; the same load through today's `ALL OTHER` path is 10^6 × O(file) and does
 not finish.
@@ -1701,14 +1783,18 @@ every crash scenario is deterministic and runs on every host without a VM:
   of the dead owner re-applied by the first writable statement — an OPEN's R6 step 5 or a live run unit's coherent entry,
   whichever comes first (the third-run-unit row: by the live holder's next statement if it comes before the OPEN, else by
   the OPEN, with the live holder's own records untouched either way) — and left in place by an INPUT OPEN — with the file
-  reading back a consistent tree in every cell, and every writable-handle cell ending with both committed slots and page 2
-  naming the adopted state (the fence);
+  reading back a consistent tree in every cell, and every writable-handle cell ending with the committed meta (the
+  fence's slot) and page 2 naming the adopted state (the other committed slot holds the meta the fence superseded);
 - the statement's atomicity: a medium that refuses the n-th write of a statement leaves the file at the previous statement
   and the statement at '30';
 - the layout: a golden hex dump of an empty relative store and of an empty indexed store with two keys (the three meta pages
   byte for byte), and the page checksum detecting a single flipped bit in every page kind;
 - the engine's tree: a property test of insert/delete/seek/next/prev against a `SortedDictionary` model under every key order,
-  including composite keys, overflow values and splits and merges at every level;
+  including composite keys, overflow values and splits and merges at every level (PB3332's `BTreeModelTests`, with the shape
+  and I/O counts of 2.2.1.4 and 2.2.1.11 in `BTreeShapeTests` and a tree statement killed, killed just after and refused at
+  each of its writes in `BTreeCrashTests`); a writer's coherent entry that adopts another run unit's page 2 reads the
+  LEDGER tree whole (it is resident: allocation needs its released pages, R6 step 3 its fresh ones), at most the
+  checkpoint's few pages;
 - the transaction: two run units on one file, each under APPLY COMMIT, interleaving WRITE, REWRITE and DELETE on disjoint
   records; A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; A's COMMIT then B's ROLLBACK
   restores B's; a run unit that CLOSEs and then ROLLBACKs restores the state at its last COMMIT; a first change under
@@ -1746,7 +1832,7 @@ every crash scenario is deterministic and runs on every host without a VM:
   region's release order plays no part (2.2.1.17's round-4 table);
 
 **2.2.1.13 What the design deletes and what it keeps (CLAUDE.md rule 4: no wrapper, no shim, no reader of the old format).**
-Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
+Deleted with their callers (by kb/Work PB3333-PB3335; `WholeStoreBanDriftTests` keeps every name below from coming back): `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
 `ReadHeader`'s stream walk (replaced by the meta-page reads), `GapTag`/`GapBytes`/`EncodeGap`, `ImageMedium`,
 `MaxStoreBytes`, `HeaderBytes`, `OrdinalSlots`, `FrameBytes(StoredFrame)` and the boundary arithmetic; `KeyedConnector.Load`,
 `Persist`, `PersistIfChanged`, `PersistIsReachable`, `ReadImage`, `ReadThroughAreas`, `WriteThroughAreas`, `ReadAt`,
@@ -1761,10 +1847,12 @@ ordinal count — ask exactly "may another WRITER exist", the sequential organiz
 predicate would turn every `SHARING WITH READ ONLY` sequential load into one flush per record for nothing. The rule is a
 property of the ENGINE, not of the posture: a per-statement-writing engine must serialize against any other run unit, a
 streaming writer only against another writer; so the predicate each connector asks follows the engine it drives, and the
-whole-store engine's last caller leaves with PB3335. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
+whole-store engine's last caller left with PB3335. The key descriptor codec moved from `RecordFraming` to `MetaPage`, the
+one format that records a key, and `StoreFormat` with it. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
 `ReadStreamFrame`, `FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
 the sequential connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock
-class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Complete`/`Dispose`), `FileRegistry`'s statement
+class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Dispose`; its `Complete` step became a pass-through
+once every verb wrote its own pages, and PB3335 deleted it), `FileRegistry`'s statement
 wrapping, every status the organizations answer and the order they answer it in (DOC-A.1-104). The input-output areas of
 §12.4.5.14.3 GR1 (*"If the RESERVE clause is specified, the number of input-output areas allocated is equal to the value of
 integer-1"*) become the page cache's floor: the cache for a physical file holds at least the attached connectors' areas (one
@@ -1774,13 +1862,30 @@ today.
 
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
-crash matrix; PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
+crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
+`Ledger`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
+`tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
+PB3332's tree replaced both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it
+(in the tree: `BTree`, `BTreeCursor`, `IKeyOrder`, `KeyOrders`, `OverflowChain`, with the LEDGER a resident tree and the FREE
+set the FREE tree, and its model, shape and crash cases beside the page layer's); PB3333 RELATIVE on the engine (its connector, its tests, the
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
-PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits); PB3334 INDEXED on the engine
-(the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
-the rest of page-granular coherence (`StoreTable`, the rest of DOC-A.1-75, the whole-store ban); PB3336 the performance
+PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits; in the tree: `RelativeConnector`
+over `RelativeStore` in `KeyedStore.cs`, `Store/PageCache`, `Store/RunUnitPageMedium`, `StoreStatus.Boundary`,
+`KeyedConnector.CoherentUnder`/`EnterStore`/`CompleteStore`/`InStoreMutex` with the whole-store machinery moved to
+`IndexedConnector.WholeStore.cs`, and the connector-level crash, refusal and interleaving cases in
+`tests/Cobol.Net.Tests.Unit/RelativeEngineTests.cs` over `KeyedStore.MediumObserver`); PB3334 INDEXED on the engine
+(the trees, the ordinals, the collations, the indexed half of DOC-A.1-107 — and, once both organizations drive one engine, the
+keyed lifecycle written ONCE, kb/Work PB2753; in the tree: `IndexedConnector` over `IndexedStore` in `KeyedStore.cs`, the
+engine handle `KeyedStore` both stores derive from, with `KeyedStore.Change` the one multi-tree statement and
+`KeyedStore.MediumObserver` the one fault seam; `KeyedConnector.OpenCore`/`CloseCore`/`Attach`/`Detach`/`FormatHolds`;
+`IndexedConnector.WholeStore.cs` deleted, so no connector reaches the whole-store model; the connector-level cases in
+`tests/Cobol.Net.Tests.Unit/IndexedEngineTests.cs`); PB3335 the deletion of the whole-store model's remains and
+the rest of page-granular coherence (in the tree: `StoreTable`, `IO/KeyedStore.cs`, a reader's entry through a shared
+mutex, `PagedFile.Enter(asReader)`, and the reader's re-adoption under the mutex, `KeyedConnector.Detach`; the rest of
+DOC-A.1-75; the whole-store ban, `WholeStoreBanDriftTests`; the connector-level coherence cases in
+`tests/Cobol.Net.Tests.Unit/StoreCoherenceTests.cs`); PB3336 the performance
 witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and
 witness (e); PB3338 the compiler's APPLY COMMIT.
 Same-file work is sequenced by `blocked_by`, and every group lands green on its own: no landing between two groups leaves main
@@ -1848,7 +1953,7 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after its page 2 | the records are as at the last COMMIT, the entry and its holdings gone; the READ locks go with the handle | none | the state is a completed statement's |
 | ROLLBACK on a file marked UNACKNOWLEDGED (round 5): the reversal if page 2 still carries t, then a promotion | at any point | as the reversal rows above | as the reversal rows above | the answer was not yet given; whichever state the medium keeps is one the owner was never told the opposite of |
 | A transaction's first change (the byte taken, then one statement: the entry, the UNDO tree, the record) | before page 2 | no entry; the byte went with the handle | nothing | the change is invisible; an entry is never visible without its byte having been taken first |
-| `OPEN OUTPUT` (creation: `SetLength` to three pages, then pages 0, 1, 2) | before all three pages landed | fewer than three valid meta pages | the next OPEN other than OUTPUT answers '30' (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
+| `OPEN OUTPUT` (creation: `SetLength` to zero, then pages 0, 1, 2, then a sync) | before all three pages landed | fewer than three valid meta pages, and no page of the previous store | the next OPEN other than OUTPUT answers '30' when no committed slot landed and adopts the EMPTY store when one did (neither committed slot validates); OPEN OUTPUT recreates | the creating OPEN never completed; §14.9.27.4 GR18's file "contains no records" either way |
 | Growth (a write at `page count`) | between the write and page 2 | the file is longer than `page count` | the next growth writes the same pages | pages past `page count` are reached by nothing |
 | Every sync point, power loss between two | — | the unsynced statements, or some of them | R3 refuses a lost or torn page at its read; R6 falls back to C when W fails | 2.2.1.2's contract: at most the statements since the last sync are lost, and never a torn state |
 
