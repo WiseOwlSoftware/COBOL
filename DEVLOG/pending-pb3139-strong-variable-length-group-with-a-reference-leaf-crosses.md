@@ -34,9 +34,9 @@ element) and `pb3139_strong_vlg_objref_invoke` (INVOKE BY REFERENCE / BY CONTENT
 table element), both `rules: [SR-14.8.2.2-2, GR-14.9.25.4-9]`, accepted at 2014 and 2023 (re-probed: MATCH at both); the
 portability lint's numeric DISPLAYs now go through a `PIC Z` / `PIC X` holder (the capacity counter is binary, and
 §14.9.25.3 SR8 admits only a numeric receiver for it). The negative `cases/13.18.19-DYNAMIC-LENGTH/pb3139-strong-vlg-pointer-at-2002`
-refuses at 85 and 2002 with COBOLNET0900 (`wiseowl/diagnostics.json`). Main had already raised the runtime major to 8
-(PB1099), and this branch changes shipped members (`CopyArea`, `StoreArea`, `ContentRecord`, `StoreReturnArea`, and
-PB3342's `BASE.__FactoryObject`), so the major is 9 and `RuntimeAbiPinDriftTests` re-pins the measured surface hash.
+refuses at 85 and 2002 with COBOLNET0900 (`wiseowl/diagnostics.json`). Main had already raised the runtime major to 9
+(PB1099 to 8, PB3339 to 9), and this branch changes shipped members (`CopyArea`, `StoreArea`, `ContentRecord`, `StoreReturnArea`, and
+PB3342's `BASE.__FactoryObject`), so the major is 10 and `RuntimeAbiPinDriftTests` re-pins the measured surface hash.
 
 **Rows:** none claimed by the note. **Remaining (SPLIT):** the .NET host entry still withholds a unit with such a formal
 (`PublishedRecordEmitter.Renders`, PB3273's restriction): the published record composes no area holding components beside
