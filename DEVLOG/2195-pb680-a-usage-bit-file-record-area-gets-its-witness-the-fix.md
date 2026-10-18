@@ -1,4 +1,4 @@
-## PB680: a USAGE BIT file record area gets its witness (the fix had landed with PB327, unpinned)
+## Entry 2195 — 2026-10-18 03:56 PDT — PB680: a USAGE BIT file record area gets its witness (the fix had landed with PB327, unpinned)
 
 **Re-probe.** PB680 recorded that an elementary `01 R PIC 1(8) USAGE BIT.` under an FD had written its `'0'/'1'`
 value carrier (eight characters, truncated to the one-character record) until PB327 routed every record-area send
@@ -42,3 +42,4 @@ there has one level-1 record, so it never witnessed implicit redefinition), and 
 at-end READ X10, the READ after it X10B and the declarative count X13.
 
 Round 2 of the review found that the INDEXED leg REWROTE and STARTed on key IK right after two unsuccessful random READs, when the record area (so IK) is undefined (14.9.30.4 GR18). The program now moves ZZ to IK again before the Z5 REWRITE, so Z5 and Z6 address a key the program set; expected output unchanged.
+
