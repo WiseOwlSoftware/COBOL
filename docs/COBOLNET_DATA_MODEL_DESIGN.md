@@ -1542,7 +1542,8 @@ instance path with `BuildTablePath(table, subscripts)` for both formats, and the
 local (`__searchTblN`) that carries the scan bound and the EnterSearch/ExitSearch bracket. A fixed or occurs-depending table
 has ONE bound for every occurrence of its enclosing tables, a dynamic table has one per occurrence (docs/CONFORMANCE.md
 D-SRCH-DYN). OCCURS DYNAMIC in the FILE SECTION is rejected **COBOLNET1526** (§8.5.1.9.1 item 3 — "any place
-OTHER THAN the file section"). The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
+OTHER THAN the file section") on every route a description reaches a record by, positioned at the entry that wrote the
+TYPE or SAME AS clause (`DataItem.ReferenceSite`, kb/Work PB1629), never at the declaration the table is copied from. The SET Format 14 capacity peek uses a PURE `ReferenceResolver.CapacityRegisterFor`
 (never `refs.Resolve`, which would route an OO `prop OF obj` first target through the property hook and enqueue a
 spurious pending op).
 
