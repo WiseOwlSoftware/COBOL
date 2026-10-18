@@ -94,9 +94,9 @@ internal sealed class PhysicalFileTable
         public long ReleaseGeneration;
     }
 
-    /// <summary>The per-file-connector record-lock ceiling (§12.4.5.9 GR7 — implementor max, ≥15) → status 54.</summary>
+    /// <summary>The per-file-connector record-lock ceiling (§12.4.5.9.4 GR7 — implementor max, ≥15) → status 54.</summary>
     private const int ConnectorLockMax = 15;
-    /// <summary>The per-run-unit record-lock ceiling (§12.4.5.9 GR7 — implementor max, ≥255) → status 53.</summary>
+    /// <summary>The per-run-unit record-lock ceiling (§12.4.5.9.4 GR7 — implementor max, ≥255) → status 53.</summary>
     private const int RunUnitLockMax = 255;
 
     private readonly Dictionary<string, State> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
@@ -115,8 +115,9 @@ internal sealed class PhysicalFileTable
     public void Clear() => _byHost.Clear();
 
     /// <summary>Acquire a lock on <paramref name="recId"/> for connector <paramref name="name"/>; re-locking a
-    /// record the connector already holds is idempotent (GR8 self-access). Enforces the connector ceiling (54)
-    /// and the run-unit ceiling (53). Returns 00 on grant.
+    /// record the connector already holds is idempotent (§9.1.16: <i>"A locked record may be re-accessed by the same
+    /// file connector that holds the lock"</i>). Enforces the connector ceiling (54) and the run-unit ceiling (53).
+    /// Returns 00 on grant.
     /// <para>⛔ AND PUBLISHES IT to every other run unit through <paramref name="holder"/>'s
     /// <c>RecordLocks</c> (kb/Work PB2660): §9.1.16 makes a locked record inaccessible to a file connector
     /// <i>"in the same or a different run unit"</i>, and this table is one run unit's. A byte another run unit
@@ -126,13 +127,13 @@ internal sealed class PhysicalFileTable
     {
         if (st.RecordLocks.TryGetValue(recId, out var owner))
             return CobolNames.Same(owner, name)
-                ? FileStatusCode.Success                     // self re-lock (GR8) — idempotent
+                ? FileStatusCode.Success                     // self re-lock (§9.1.16) — idempotent
                 : FileStatusCode.RecordLocked;               // 51 — another connector holds it
         int mine = 0;
         foreach (var o in st.RecordLocks.Values)
             if (CobolNames.Same(o, name)) mine++;
-        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;   // 54 (GR7)
-        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (GR7)
+        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;   // 54 (§12.4.5.9.4 GR7)
+        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (§12.4.5.9.4 GR7)
         if (holder?.RecordLocks is { } regions)
         {
             switch (Publish(regions, HostRegionLocks.RecordLockByte(recId)))
@@ -200,7 +201,7 @@ internal sealed class PhysicalFileTable
         foreach (var k in mine) Unlock(st, k);
     }
 
-    /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, GR6).</summary>
+    /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, §12.4.5.9.4 GR6).</summary>
     public static void ReleaseSingle(State st, string name, string recId)
     {
         if (st.RecordLocks.TryGetValue(recId, out var owner)
@@ -222,7 +223,7 @@ internal sealed class PhysicalFileTable
     }
 
     /// <summary>Release every record lock <paramref name="name"/> holds EXCEPT one on <paramref name="keepId"/>
-    /// — the single-lock begin-of-statement discipline (§12.4.5.9 GR6): a REWRITE/DELETE releases a self-lock
+    /// — the single-lock begin-of-statement discipline (§12.4.5.9.4 GR6): a REWRITE/DELETE releases a self-lock
     /// held on a record OTHER than its target at the beginning of execution (§14.9.35 GR12a2 / §14.9.10 GR7a2);
     /// the target's own lock survives to the completion rules.</summary>
     public static void ReleaseAllExcept(State st, string name, string keepId)
@@ -235,7 +236,7 @@ internal sealed class PhysicalFileTable
     }
 
     /// <summary>Would acquiring one NEW lock (a record <paramref name="name"/> does not already hold) exceed a
-    /// §12.4.5.9 GR7 ceiling? Returns 54/53/00 WITHOUT acquiring — the pre-flight for the mutating verbs, whose
+    /// §12.4.5.9.4 GR7 ceiling? Returns 54/53/00 WITHOUT acquiring — the pre-flight for the mutating verbs, whose
     /// statement must be unsuccessful with the operation NOT performed (§14.9.51 GR15 / §14.9.35 GR14) rather
     /// than lock-fail after the record already changed.</summary>
     public string PreflightNewLock(State st, string name)
@@ -243,8 +244,8 @@ internal sealed class PhysicalFileTable
         int mine = 0;
         foreach (var o in st.RecordLocks.Values)
             if (CobolNames.Same(o, name)) mine++;
-        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;     // 54 (GR7)
-        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (GR7)
+        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;     // 54 (§12.4.5.9.4 GR7)
+        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (§12.4.5.9.4 GR7)
         return FileStatusCode.Success;
     }
 
