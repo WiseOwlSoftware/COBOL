@@ -1,4 +1,4 @@
-## INVOKE NULL compiles and raises EC-OO-NULL; activation-description keys are culture-invariant (PB1136, PB3257)
+## Entry 2170 — 2026-10-17 19:01 PDT — INVOKE NULL compiles and raises EC-OO-NULL; activation-description keys are culture-invariant (PB1136, PB3257)
 
 Wave 1112 group B, the OO binder group: kb/Work PB1136's receiver half and PB3257.
 
@@ -56,3 +56,4 @@ inline SR15 BY VALUE screen name the class through `IntrinsicArgumentRules.Class
 named by its type-name (ISO §8.5.2.1), while this branch had moved that screen into `ByValueClassAdmitted`, shared by the
 typed lane and the NULL receiver. The helper now asks `ClassNameOf`, so both lanes carry main's spelling, and
 `StrongGroupClassNameTests` gains the two INVOKE screens (typed receiver, NULL) at 2002/2014/2023.
+
