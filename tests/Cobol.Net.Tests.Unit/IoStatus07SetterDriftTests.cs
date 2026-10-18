@@ -26,6 +26,7 @@ namespace CobolNet.Tests.Unit;
 /// code generator nowhere but the constant's own declaration. A new medium or organization that needs the status
 /// changes those two dispatches, never a third site.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class IoStatus07SetterDriftTests
 {
     private static readonly string[] ScannedRoots =
