@@ -28,6 +28,10 @@ One line each: path · PROGRAM-ID · editions it runs at · how the expected val
 Refusals: path · its `wiseowl/diagnostics.json` `refuse-at` editions · code. (One positive at the introducing edition + one negative below it is the
 default; a copy per edition only where the rule's behaviour differs by edition.)
 
+## Owner test requirement (MANDATORY-PRACTICES I11)
+For a change that reaches a SORT, MERGE or file I/O path: one line per test of an abnormal or exception path it reaches
+(path or test name · the case it covers, from the I11 row's list). Otherwise one line saying why the change reaches none.
+
 ## Rows
 `record_verdicts` verbatim summary lines (records / rows changed / verdicts / GAP a → b) and the batch path.
 Notes flipped (id → status). Rows deliberately NOT closed, each with the residual and its owner.
