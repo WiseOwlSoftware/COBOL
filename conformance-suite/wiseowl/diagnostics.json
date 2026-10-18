@@ -21715,13 +21715,29 @@
   ],
   "expect": "COBOLNET1639"
  },
+ "unlock-record-sort-file": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1692: UNLOCK may not name the sort-merge file"
+ },
+ "unlock-records-sort-file": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1692: UNLOCK may not name the sort-merge file"
+ },
  "unlock-sort-file": {
   "refuse-at": [
    "2002",
    "2014",
    "2023"
   ],
-  "expect": "UNLOCK may not name the sort/merge file"
+  "expect": "COBOLNET1692: UNLOCK may not name the sort-merge file"
  },
  "unlock_below_2002": {
   "refuse-at": [
