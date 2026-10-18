@@ -68,4 +68,18 @@ points) and §2.2.1.17 (18 two-run-unit interleavings), found five more gaps and
 through a PROMOTING flag, reads both committed slots before it writes, and the fence's claim rewrites page 2 to the adopted
 meta; a retirement's own reserved pages are fresh; an unacknowledged COMMIT lands whole or not at all.
 
+Round 4 found three more (one high), and the owner chose the same finisher with the same self-attack rule. An owner killed
+AFTER another writer's entry probe and BEFORE that writer's lock tests had its region locks released with its handle, so the
+tests passed and the next entry's rollback overwrote a completed statement: no arrangement of probes closes a window between a
+probe and a test of a different lock, so a transaction's locks are now PAGES OF THE FILE — one HOLDINGS tree, written by the
+statement that makes the change — and a writer that meets a holding probes its owner at the test itself (IBM's retained
+locks, kept by the medium). A first change refused part-way kept its liveness byte while page 2 still offered its id, and a
+NO OTHER connector's CLOSE re-stamped a refused statement's page: every identifier the format mints is now CLAIMED in the
+store's memory before any page carries it (and on page 2 under the mutex), a transaction id is DRAWN by its byte, and a
+refused first change gives the byte back. The self-attack's two new tables — a holder's death at every point of another
+statement (11 rows) and every statement refused part-way with its continuers (14 rows) — found that a COMMIT refused after
+its removal statement reported failure with the transaction gone: a COMMIT is now decided by its promotion's one durable
+write (`committing` in the claim and the slot; the retirement removes the entry), and a promotion's restart rule reads both
+slots for a flag left by a dead or a refused promoter (landed: complete; unlanded: run again, or unwind a COMMIT).
+
 Notes and docs only. No code change.
