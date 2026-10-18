@@ -215,7 +215,7 @@ internal sealed class SetBinder(BinderContext ctx, StatementBinder host)
                         + "identifier-14 shall reference a numeric data item (ISO §14.9.39.3 syntax rule 31)");
                 }
                 // SR31 a): the receiver's positive and negative extremes differ in magnitude — the two's-
-                // complement containers of §13.18.60.4 GR12 — so "the value farthest away from zero permitted
+                // complement containers (§13.18.60.4 GR12 / DOC-A.1-208) — so "the value farthest away from zero permitted
                 // by the specifications of identifier-14" (GR32 a) does not name one value, and the SIGN phrase
                 // resolves it. Measured on the range itself, never on a usage list, so a future capacity
                 // discipline with the same asymmetry inherits the rule.

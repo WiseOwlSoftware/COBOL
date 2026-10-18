@@ -7,6 +7,6 @@ namespace CobolNet.Runtime;
 /// program) raises it; the raising program's activation entry catches it and returns control to the activator.
 /// In a MAIN program the activation entry is the run-unit wrapper, so a main-program GOBACK terminates the run
 /// unit (§14.9.18 GR3 — GOBACK in a main program acts as a STOP statement). Distinct from <see cref="StopRun"/>,
-/// which unwinds the WHOLE run unit from anywhere (§14.9.43).
+/// which unwinds the WHOLE run unit from anywhere (§14.9.42.4 GR1).
 /// </summary>
 public sealed class ProgramReturn : Exception;

@@ -4363,9 +4363,11 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         // The target's description is COMPLETED before it is copied (GR1 copies the whole description, and
         // CloneItem never re-expands): a chained SAME AS on the target or any entry in its subtree expands first,
         // on THIS chain, and so does every TYPE clause there. A TYPE clause naming a declaration still being
-        // completed is this entry's own enclosing declaration — §13.18.57.3 SR1: "The description of any data
-        // item subordinate to type-name-1 shall not contain a SAME AS clause that references the subject of this
-        // entry or any group item to which this entry is subordinate."
+        // completed is this entry's own enclosing declaration, and the one cycle breaks two rules, one from each
+        // clause's side: §13.18.49.3 SR4, "The description of data-name-1, including its subordinate data items,
+        // shall not contain a TYPE clause that references the record to which this entry is subordinate", and
+        // §13.18.57.3 SR1: "The description of any data item subordinate to type-name-1 shall not contain a SAME AS
+        // clause that references the subject of this entry or any group item to which this entry is subordinate."
         foreach (var pending in DataItem.DescendantsOf(target).Prepend(target).ToList())
         {
             if (pending.SameAsName is not null) ExpandSameAs(pending, expanding);
@@ -4375,7 +4377,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             {
                 Edition.Error(DiagnosticCatalog.SameAsCycle, $"'{subject}': SAME AS '{targetName}' references an "
                     + $"entry whose description holds TYPE '{pendingType}', a type declaration whose own description "
-                    + "contains this SAME AS clause (ISO §13.18.57.3 SR1)");
+                    + "contains this SAME AS clause (ISO §13.18.49.3 SR4; §13.18.57.3 SR1)");
                 return false;
             }
             ExpandType(pending);

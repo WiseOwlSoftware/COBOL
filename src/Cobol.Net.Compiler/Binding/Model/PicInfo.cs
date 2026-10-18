@@ -650,7 +650,7 @@ public sealed record PicInfo(
 
     /// <summary>True for an UNSIGNED BinaryCapacity item whose 16-byte container range [0, 2^128) exceeds every
     /// signed carrier — its CLR carrier is <see cref="UInt128"/> (kb/Work R10, owner decision 2026-08-07: the item
-    /// owns its full container range, ISO §13.18.60.4 GR12). Reads of such an item enter the numeric renderer on
+    /// owns its full container range, DOC-A.1-208). Reads of such an item enter the numeric renderer on
     /// the unsigned-wide lane (<c>NumX.U</c>), whose value paths keep the full range and whose arithmetic funnel
     /// is <c>CobolNum.Widen</c>.</summary>
     public bool IsUnsignedWideBinary => Category is PicCategory.Numeric && !Signed
@@ -666,7 +666,7 @@ public sealed record PicInfo(
     /// <summary>⛔ AN UPPER BOUND ON THE DECIMAL DIGITS OF THIS ITEM'S UNSCALED VALUE — the fact the native renderer's
     /// carrier decisions are made on (<c>NumX.Digits</c>; kb/Work PB1143 / PB621). A DISPLAY / PACKED / plain
     /// COMPUTATIONAL item holds at most <see cref="Digits"/>; a BinaryCapacity (COMP-5, BINARY-CHAR … -DOUBLE) item
-    /// owns its whole container range (§13.18.60.4 GR12) — values past the PICTURE's digits are legal — so its bound
+    /// owns its whole container range (§13.18.60.4 GR12 / DOC-A.1-208) — values past the PICTURE's digits are legal — so its bound
     /// is the container's: 2^(8w−1) &lt; 10^3 / 10^5 / 10^10 / 10^19 for the signed 1/2/4/8-byte widths, one more
     /// digit unsigned at 8 bytes (2^64 &lt; 1.85·10^19), and the 16-byte container 39 digits (2^127 ≈ 1.7·10^38 — the
     /// Int128 engine's own magnitude; its unsigned-wide lane funnels through <c>CobolNum.Widen</c>, loud beyond
@@ -867,7 +867,7 @@ public sealed record PicInfo(
         // Fixed-point numerics (DISPLAY/COMP/COMP-3/COMP-5) are stored as a native integer holding the UNSCALED
         // value (all digits; the decimal point is implied by Scale, compile-time metadata) — long up to 18 digits,
         // Int128 for the 19–31-digit 2002+ tier. COMP-1/COMP-2 are hardware floats. (No decimal/BigInteger.)
-        // ⛔ An UNSIGNED BinaryCapacity item owns its full container range (ISO §13.18.60.4 GR12; kb/Work R10,
+        // ⛔ An UNSIGNED BinaryCapacity item owns its full container range (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10,
         // owner decision 2026-08-07), so its carrier is the container's own unsigned CLR type wherever a signed
         // carrier cannot hold that range: an 8-byte container holds [0, 2^64) → ulong (long tops out at 2^63−1 —
         // the F75 fold/storage disagreement), a 16-byte container holds [0, 2^128) → UInt128. Containers of

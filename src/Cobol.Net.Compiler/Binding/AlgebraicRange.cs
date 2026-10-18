@@ -12,8 +12,9 @@ namespace CobolNet.Binding;
 /// identifier-14") name the same quantity.</param>
 /// <param name="FarthestNegative">The NEGATIVE value of greatest finite magnitude, or <c>null</c> when the
 /// description cannot represent a sign at all. ⚠ It is NOT always <c>-Farthest</c>: a two's-complement container
-/// reaches one further down (§13.18.60.4 GR12 — <c>PIC S9(4) COMP-5</c> spans −32768..32767), which is exactly the
-/// asymmetry §14.9.39.3 SR31 a) makes the SIGN phrase mandatory for.</param>
+/// reaches one further down (<c>PIC S9(4) COMP-5</c> spans −32768..32767 — DOC-A.1-208; BINARY-SHORT likewise,
+/// §13.18.60.4 GR12 / DOC-A.1-206), which is exactly the asymmetry §14.9.39.3 SR31 a) makes the SIGN phrase
+/// mandatory for.</param>
 /// <param name="Nearest">The nonzero value NEAREST to zero the description permits — §15.83.4 r2's "smallest
 /// algebraic value that may represent the difference between two values represented in argument-1" and
 /// §14.9.39.4 GR36 a)'s "the nonzero value nearest to zero permitted by the specifications of identifier-14".
@@ -121,9 +122,10 @@ internal static class AlgebraicRanges
         else if (pic.Truncation == CobolNet.Runtime.NumericTruncation.BinaryCapacity)
         {
             // ⛔ Keyed on the ONE capacity-discipline datum (PicInfo.Truncation), never on a usage list: the
-            // item owns its container's FULL two's-complement range (§13.18.60.4 GR12), which is the shape whose
-            // |min| ≠ |max| makes §14.9.39.3 SR31 a) demand the SIGN phrase. AlgebraicFoldContainerAgreementTests
-            // pins this bound against the runtime capacity for every BinaryCapacity profile.
+            // item owns its container's FULL two's-complement range (COMP-5: DOC-A.1-208; BINARY-*: §13.18.60.4
+            // GR12), the shape whose |min| ≠ |max| makes §14.9.39.3 SR31 a) demand the SIGN phrase.
+            // AlgebraicFoldContainerAgreementTests pins this bound against the runtime capacity for every
+            // BinaryCapacity profile.
             scale = pic.Scale;
             int bits = 8 * pic.StorageWidth;
             BigInteger hi = pic.Signed ? (BigInteger.One << (bits - 1)) - 1 : (BigInteger.One << bits) - 1;
