@@ -108,11 +108,15 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// <param name="useValues">False for a PLAIN external record (§13.18.63.4 GR4 a): no VALUE seeds the initial
     /// state — though the occurrences a statement creates under the INITIALIZED phrase are still composed as an
     /// INITIALIZE … TO VALUE composes them (§8.5.1.9.5).</param>
-    public string CellDynSeeds(DataItem root, bool useValues = true) => string.Concat(CellScopeSeeds(root, useValues, default));
+    /// <param name="firstOrdinal">The ordinal of the root's first component; null for the root's class ordinal
+    /// (<see cref="DataItem.ClassDynOrdinal"/>), and 0 for a root no storage class holds — a .NET host's published record
+    /// of a group formal or RETURNING item (kb/Work PB3273), whose cell is its own scope.</param>
+    public string CellDynSeeds(DataItem root, bool useValues = true, int? firstOrdinal = null) =>
+        string.Concat(CellScopeSeeds(root, useValues, default, firstOrdinal));
 
-    private IEnumerable<string> CellScopeSeeds(DataItem scope, bool useValues, Subscripts subs)
+    private IEnumerable<string> CellScopeSeeds(DataItem scope, bool useValues, Subscripts subs, int? firstOrdinal = null)
     {
-        int ordinal = scope.IsDynamicTable ? 0 : scope.ClassDynOrdinal;
+        int ordinal = firstOrdinal ?? (scope.IsDynamicTable ? 0 : scope.ClassDynOrdinal);
         foreach (var (c, _, fixedSubs) in CellComponents.Of(scope))
         {
             int k = ordinal++;
