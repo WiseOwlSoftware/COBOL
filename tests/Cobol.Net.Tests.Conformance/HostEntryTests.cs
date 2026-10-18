@@ -784,6 +784,142 @@ public sealed class HostEntryTests
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>A strongly-typed VARIABLE-LENGTH group holding a data pointer, a dynamic-length item, a dynamic-capacity table
+    /// whose elements hold a pointer and a number, as an argument (H6VP: the first call sets the pointers and grows the
+    /// table, the second reads them) and as a RETURNING item (H6RET).</summary>
+    private const string AreaPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H6VP.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 1 TO 5 INITIALIZED.
+              10 TT-X PIC X(2).
+              10 TT-N PIC 9(2).
+              10 TT-P USAGE POINTER.
+           05 TN PIC 9(2).
+        01 WS-X PIC X(4) VALUE "DATA".
+        01 WS-W PIC X(4) VALUE "WWWW".
+        01 K PIC Z.
+        LINKAGE SECTION.
+        01 LK-G TYPE TG.
+        01 B PIC X(4) BASED.
+        PROCEDURE DIVISION USING LK-G.
+        P1.
+            MOVE TC OF LK-G TO K
+            IF TP OF LK-G = NULL
+                DISPLAY "FIRST [" TA OF LK-G "] " TN OF LK-G " " K " "
+                    TT-X OF LK-G (1) TT-N OF LK-G (1) " " TT-X OF LK-G (2) TT-N OF LK-G (2)
+                SET TP OF LK-G TO ADDRESS OF WS-X
+                SET TT-P OF LK-G (2) TO ADDRESS OF WS-W
+                MOVE "longer than ten" TO TA OF LK-G
+                MOVE "cc" TO TT-X OF LK-G (3)
+            ELSE
+                SET ADDRESS OF B TO TP OF LK-G
+                DISPLAY "TP " B
+                SET ADDRESS OF B TO TT-P OF LK-G (2)
+                DISPLAY "TT2 " B " [" TT-X OF LK-G (3) "] " TT-N OF LK-G (3)
+            END-IF
+            ADD 1 TO TN OF LK-G
+            GOBACK.
+        END PROGRAM H6VP.
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H6RET.
+        DATA DIVISION.
+        WORKING-STORAGE SECTION.
+        01 TG IS TYPEDEF STRONG.
+           05 TA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 TP USAGE POINTER.
+           05 TT OCCURS DYNAMIC CAPACITY IN TC FROM 1 TO 5 INITIALIZED.
+              10 TT-X PIC X(2).
+              10 TT-N PIC 9(2).
+              10 TT-P USAGE POINTER.
+           05 TN PIC 9(2).
+        01 WS-R PIC X(4) VALUE "RRRR".
+        LINKAGE SECTION.
+        01 LK-R TYPE TG.
+        PROCEDURE DIVISION RETURNING LK-R.
+        P1.
+            MOVE "ret" TO TA OF LK-R
+            SET TP OF LK-R TO ADDRESS OF WS-R
+            MOVE "r1" TO TT-X OF LK-R (1)
+            MOVE 41 TO TT-N OF LK-R (1)
+            MOVE 9 TO TN OF LK-R
+            GOBACK.
+        END PROGRAM H6RET.
+        """;
+
+    private const string AreaHost = """
+        using System;
+        using CobolNet.Runtime;
+        using Cobol.H6PROGS;
+
+        public static class H6HostProgram
+        {
+            private static string Show(H6VP.LK_G_Record g) =>
+                $"[{g.TA}] {g.TN} {g.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(g.TT,
+                    t => $"{t.TT_X}/{t.TT_N}/{t.TT_P is { IsNull: false }}"));
+
+            public static int Main()
+            {
+                var g = new H6VP.LK_G_Record { TA = "Ann", TN = 7 };
+                g.TT = [new() { TT_X = "aa", TT_N = 11 }, new() { TT_X = "bb", TT_N = 22 }];
+                var overlong = g with { TA = "ELEVEN CHARS" };
+                try { H6VP.Call(ref overlong); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentOutOfRangeException x) { Console.WriteLine($"TA {x.ParamName}"); }
+                try { var bad = g with { TT = [] }; H6VP.Call(ref bad); Console.WriteLine("ACTIVATED"); }
+                catch (ArgumentException x) { Console.WriteLine($"MIN {x.ParamName} {x.GetType().Name}"); }
+                H6VP.Call(ref g);
+                Console.WriteLine("OUT1 " + Show(g));
+                H6VP.Call(ref g);
+                Console.WriteLine("OUT2 " + Show(g));
+                var r = H6RET.Call();
+                Console.WriteLine($"RET [{r.TA}] {r.TN} {r.TP is { IsNull: false }} " + string.Join(",", Array.ConvertAll(r.TT,
+                    t => $"{t.TT_X}/{t.TT_N}/{t.TT_P is { IsNull: false }}")));
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes and receives a strongly-typed group that holds BOTH a variable-length component and references
+    /// (ISO §14.2.3 13): the entry restriction PB3273 once stated). The published record crosses as the CALL lane's cell area
+    /// (the references in their managed slots beside the dynamic-length item and the dynamic-capacity table's element
+    /// cells), and the activated program's formal is laid over it (§14.2.3 8)), so its stores are the host's and the pointers
+    /// it sets come back and can be passed in again. Expected values, derived: a dynamic-length item stored past its LIMIT
+    /// is "truncated on the right as necessary" (§8.5.1.10.4), so "longer than ten" returns as its first 10 characters; a
+    /// store into occurrence 3 of a table of capacity 2 creates the occurrence (§8.5.1.9.3), whose members the store does
+    /// not name are first initialized under the INITIALIZED phrase (§8.5.1.9.5: "as though they had been the subject of a
+    /// statement of the form INITIALIZE … WITH FILLER ALL TO VALUE THEN TO DEFAULT": TT-N zero, TT-P null), so the table
+    /// returns with 3 entries and TT-N(3) is 00 — which holds only when the host's table is created by the DESCRIPTION'S
+    /// factory (the host's area is built from it), never by a space-filling one; ADD 1 raises TN each call (7, 8, 9); a landing that would lose content — a string past the LIMIT, an
+    /// array below the minimum capacity ("Integer-4 is the minimum capacity of the table", §13.18.38.4 16)) — is refused
+    /// before anything is activated. The RETURNING item is an area the activated program fills (§14.2.3 6) NOTE 1).</summary>
+    [Fact]
+    public void AHost_PassesAStrongVariableLengthGroupWithReferences_AsTheCellAreaOfItsComponentsAndReferences()
+    {
+        string dir = CutRunner.NewTempDir("h6host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H6PROGS", AreaPrograms);
+            NonCobolElement.CompileCSharp(dir, "H6HOST", AreaHost, "H6PROGS", "H6PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H6HOST.dll"), dir);
+            Assert.Equal(
+                "TA LK_G\n" +
+                "MIN LK_G ArgumentException\n" +
+                "FIRST [Ann] 07 2 aa11 bb22\n" +
+                "OUT1 [longer tha] 8 True aa/11/False,bb/22/True,cc/0/False\n" +
+                "TP DATA\n" +
+                "TT2 WWWW [cc] 00\n" +
+                "OUT2 [longer tha] 9 True aa/11/False,bb/22/True,cc/0/False\n" +
+                "RET [ret] 9 True r1/41/False", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>Whether the module <paramref name="name"/> in <paramref name="dir"/> has an entry point, and whether it
     /// has a runtime configuration — an executable has both, a library neither.</summary>
     private static (bool EntryPoint, bool RuntimeConfig) Launchable(string dir, string name)

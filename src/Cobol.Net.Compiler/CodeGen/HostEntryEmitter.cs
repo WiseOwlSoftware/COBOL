@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Compiler.Oo;
 using CobolNet.Runtime;
@@ -31,7 +32,12 @@ namespace CobolNet.CodeGen;
 /// leave — and decodes it only when the class test NUMERIC is true of it (ISO §8.8.4.4.4 3) n);
 /// <see cref="HostLanding.TryDecode"/>). A native cell could not hold such content to be refused.</para>
 /// </summary>
-internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes)
+/// <param name="atoms">The module's one §8.5.1.12 atom table (<c>ProgramEmitter._atoms</c>, emitted after the entries): the
+/// shape a variable-length record's area states, so the activated program's formal is laid over it.</param>
+/// <param name="dataEmitterFor">A unit's data-division emitter, which states the DESCRIPTION'S fresh cell of a formal
+/// (<see cref="DataEmitter.FreshArea"/>) for a record the host builds an area of.</param>
+internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? classes, GroupAtomTable atoms,
+    Func<DataBinder, DataEmitter> dataEmitterFor)
 {
     /// <summary>The units that publish a host entry: every outermost unit, except a prototype whose definition the same
     /// group compiles (that definition's entry is the one class for the name — DESIGN-external-repository §7.2).</summary>
@@ -42,8 +48,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
 
     /// <summary>Whether every GROUP formal and RETURNING item of the unit has a published record
     /// (<see cref="PublishedRecordEmitter.Renders"/>). A unit with one that has none publishes no entry at all (the §14.2.3
-    /// 13) restriction DOC-A.1-141 states): a group holding both a variable-length component and a reference, which no
-    /// crossing form of the boundary carries.</summary>
+    /// 13) restriction DOC-A.1-141 states): a group whose current extent does not compose, which no crossing form of the
+    /// boundary carries.</summary>
     private static bool Published(BoundUnit u) =>
         u.Data.LinkageFormals.Select(f => (DataItem?)f.Item).Append(u.Data.LinkageReturning)
             .All(d => d is not { IsGroup: true } || PublishedRecordEmitter.Renders(d));
@@ -63,7 +69,7 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     /// <summary>One formal (or the RETURNING item) as the entry handles it; <paramref name="CsType"/> is its host type's
     /// C# spelling — for a group, its published record struct.</summary>
     private sealed record Item(DataItem Description, HostType Type, string CsType, string Name, string Cell, string? Profile,
-        bool ByValue, bool Optional);
+        bool ByValue, bool Optional, string? Seed = null);
 
     private void EmitEntry(BoundUnit unit, string className, CodeWriter w)
     {
@@ -84,6 +90,11 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
             return field;
         }
         var records = new List<(DataItem Group, string Name)>();
+        // The fresh cells of the records the host builds an AREA of that holds variable-length components (the description's
+        // own factory: DataEmitter.FreshArea), and the numeric profiles the seeds name (a description's `_P_<uid>` fields,
+        // declared once here as the program class declares them).
+        var seeds = new List<(string Field, string Factory)>();
+        var seedProfiles = new HashSet<string>(StringComparer.Ordinal);
         Item Describe(DataItem description, string name, bool byValue, bool optional)
         {
             int n = serial++;
@@ -95,7 +106,16 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
                 profiles.Add((profile, init));
             }
             string csType = type.CsType ?? Record(description);
-            return new Item(description, type, csType, name, $"__hc{n}", profile, byValue, optional);
+            string? seed = null;
+            if (type.Kind is HostTypeKind.Group && PublishedRecordEmitter.HoldsSlots(description) && PublishedRecordEmitter.HoldsComponents(description))
+            {
+                seed = $"__hs{n}";
+                seeds.Add((seed, dataEmitterFor(unit.Data).FreshArea(description, description.ByteWidth, firstOrdinal: 0)));
+                foreach (var leaf in DataItem.DescendantsOf(description).Where(d => d.IsElementary && d.Pic is { Category: PicCategory.Numeric }))
+                    if (seedProfiles.Add(leaf.ProfileName))
+                        profiles.Add((leaf.ProfileName, leaf.Pic!.ProfileInitializer(signEncoding)));
+            }
+            return new Item(description, type, csType, name, $"__hc{n}", profile, byValue, optional, seed);
         }
         // A group formal's published record struct, named `<word>_Record` in the class's member scope (§4.3 "Names").
         string Record(DataItem group)
@@ -127,6 +147,8 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         {
             foreach (var (field, init) in profiles)
                 w.Line($"private static readonly NumProfile {field} = {init};");
+            foreach (var (field, factory) in seeds)
+                w.Line($"private static readonly global::System.Func<StorageCell> {field} = {factory};   // the description's fresh cell (kb/Work PB3273)");
             if (records.Count > 0)
                 foreach (string line in recordText.ToString().TrimEnd('\n').Split('\n'))
                     w.Line(line);
@@ -234,12 +256,14 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         // A group: its published record's image, every member landed exactly (PublishedRecordEmitter), crossing as the
         // CALL lane's TEXT crossing of a group of its description.
         if (f.Type.Kind is HostTypeKind.Group)
-            return PublishedRecordEmitter.HoldsComponents(d)
+            return PublishedRecordEmitter.HoldsSlots(d)
+                // A record holding references: the CALL lane's cell area (kb/Work PB2087), its image and its slots — and,
+                // when it also holds variable-length components, those in the cell's component slots, the cell the
+                // description's own fresh cell (kb/Work PB3273).
+                ? $"{value}.__Area({CsLiteral(f.Name)}{(f.Seed is null ? "" : $", {f.Seed}")})"
+                : PublishedRecordEmitter.HoldsComponents(d)
                 // A variable-length record: the CALL lane's variable-length carrier of its description (ISO §8.5.1.12).
                 ? RuntimeApi.VarGroupCell($"{value}.__Var({CsLiteral(f.Name)})")
-                : PublishedRecordEmitter.HoldsSlots(d)
-                // A record holding references: the CALL lane's cell area (kb/Work PB2087), its image and its slots.
-                ? $"{value}.__Area({CsLiteral(f.Name)})"
                 : $"ManagedPointer<string>.Cell({GroupCrossing(d, $"{value}.__Land({CsLiteral(f.Name)})")})";
         PicInfo pic = d.Pic ?? throw Unsupported(f);
         string member = "null";
@@ -293,10 +317,10 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     {
         DataItem d = r.Description;
         if (r.Type.Kind is HostTypeKind.Group)
-            return PublishedRecordEmitter.HoldsComponents(d)
+            return PublishedRecordEmitter.HoldsSlots(d)
+                ? $"new {r.CsType}().__Area({CsLiteral(r.CsType)}{(r.Seed is null ? "" : $", {r.Seed}")})"
+                : PublishedRecordEmitter.HoldsComponents(d)
                 ? RuntimeApi.VarGroupCell($"new {r.CsType}().__Var({CsLiteral(r.CsType)})")
-                : PublishedRecordEmitter.HoldsSlots(d)
-                ? $"new {r.CsType}().__Area({CsLiteral(r.CsType)})"
                 : $"ManagedPointer<string>.Cell({GroupCrossing(d, $"new {r.CsType}().__Land({CsLiteral(r.CsType)})")})";
         PicInfo pic = d.Pic ?? throw Unsupported(r);
         return r.Type.Kind switch
@@ -336,7 +360,12 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
         if (f.Type.Kind is HostTypeKind.Group && PublishedRecordEmitter.HoldsSlots(f.Description))
         {
             carrier = $"ManagedPointer<string>.OverField(() => {f.Cell}.Ref, __v => {{ {f.Cell}.Ref = __v; }})";
-            area = $", Area: {RuntimeApi.ArgArea(f.Cell, "0")}";
+            // A record that also holds variable-length components states the group's §8.5.1.12 atoms and its first component
+            // (ordinal 0 of its own cell), as a CALL's area of such a group does (CallEmitter.AreaOf): the formal of the
+            // same storage is laid over this area only when it can show it shares the shape (CobolArgAdapt.Area).
+            area = PublishedRecordEmitter.HoldsComponents(f.Description)
+                ? $", Area: {RuntimeApi.ArgArea(f.Cell, "0", "0", atoms.Ref(VariableLengthCompatibility.GroupAtoms(f.Description)!))}"
+                : $", Area: {RuntimeApi.ArgArea(f.Cell, "0")}";
         }
         string built = $"new CobolArg({RuntimeApi.PassModeText(mode)}, {carrier}, {f.Profile ?? "null"}{area})";
         string? description = ActivationDescriptions.Of(f.Description, classes) is { } d ? RuntimeApi.ActivationDescriptionNew(d) : null;
@@ -366,12 +395,12 @@ internal sealed class HostEntryEmitter(SignEncoding signEncoding, OoClassTable? 
     {
         string word = f.Name == "__hr" ? f.Description.CobolName ?? "RETURNING" : f.Name;
         if (f.Type.Kind is HostTypeKind.Group)
-            return $"{{ if ({f.CsType}.__TryGet("
-                + (PublishedRecordEmitter.HoldsComponents(f.Description) ? $"{f.Cell}.Value"
-                    : PublishedRecordEmitter.HoldsSlots(f.Description)
-                    ? $"{f.Cell}.Ref, {f.Cell}"
-                    : $"{GroupImage(f.Description, $"{f.Cell}.Value")}, null")
-                + (PublishedRecordEmitter.HoldsComponents(f.Description) ? "" : ", 0")
+            return $"{{ if ({f.CsType}.__TryGet"
+                + (PublishedRecordEmitter.HoldsSlots(f.Description)
+                    // The cell area read back: its image, each reference from its slot, and its components from its slots.
+                    ? $"Area({f.Cell}"
+                    : PublishedRecordEmitter.HoldsComponents(f.Description) ? $"({f.Cell}.Value, null"
+                    : $"({GroupImage(f.Description, $"{f.Cell}.Value")}, null, 0")
                 + $", {CsLiteral(word + ".")}, ref __hbad, out var __hg)) {target} = __hg; }}";
         PicInfo pic = f.Description.Pic ?? throw Unsupported(f);
         return f.Type.Kind is HostTypeKind.Integer or HostTypeKind.Decimal or HostTypeKind.Dec
