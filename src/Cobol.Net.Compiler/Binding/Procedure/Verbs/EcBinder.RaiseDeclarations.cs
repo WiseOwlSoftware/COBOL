@@ -203,6 +203,8 @@ internal sealed partial class EcBinder
         new(s => s is BoundObjectView { View.IsUniversal: false }, ["EC-OO-CONFORMANCE"]),
         // §14.9.23.4 GR5 / GR7b, and GR7 d) — a method activation is an EC-EXTERNAL raise point (§14.8.4; kb/Work PB1138)
         new(s => s is BoundInvoke or BoundInvokeUniversal, [.. OoInvokeNames, .. ExternalNames]),
+        // §14.9.23.4 GR5 — INVOKE NULL activates nothing (kb/Work PB1136): its one raise is EC-OO-NULL.
+        new(s => s is BoundInvokeNull, ["EC-OO-NULL"]),
         // CA37 is PRECISE: EC-FLOW-SEARCH can only arise from a capacity SET (§14.9.39.4 GR31), which is one bound
         // node. Its twin EC-BOUND-TABLE-LIMIT is NOT precise — growth also happens on IMPLICIT receiving-reference
         // growth, which renders inline — so it is ambient. The two are deliberately not merged.
