@@ -91,6 +91,11 @@ public sealed class LocaleCollation : CobolCollation
     /// <inheritdoc/>
     public override bool SupportsKeys => true;
 
+    /// <summary>A locale-based comparison (§8.8.4.2.7: <i>"Locale-based comparison is used when the alphanumeric program
+    /// collating sequence in effect is locale based"</i>; §8.8.4.2.11): the engine's multi-level comparison, never
+    /// position by position.</summary>
+    internal override bool UsesStandardComparison => false;
+
     /// <summary>The engine's key of the operand (§8.8.4.2.11-trimmed) through the <see cref="CollationKeyCache"/> of the
     /// collator in effect — what SORT/MERGE and the indexed-file connector compare instead of walking the elements
     /// again for every comparison. An ill-formed operand sets EC-LOCALE-INCOMPATIBLE like <see cref="Compare"/> does.</summary>

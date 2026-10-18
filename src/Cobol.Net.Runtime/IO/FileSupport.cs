@@ -501,11 +501,22 @@ public static class HostFile
     /// <c>0x8007xxxx</c>; .NET on Unix surfaces the raw errno — <c>EFBIG</c> 27 and <c>ENOSPC</c> 28 on every
     /// Unix, <c>EDQUOT</c> 122 on Linux and 69 on the BSD family (macOS). The errno is a per-host fact, so it is
     /// asked HERE, once (kb/Work PB795).</para></summary>
-    public static bool IsMediumBoundary(IOException failure) => failure.HResult switch
+    public static bool IsMediumBoundary(IOException failure) => IsFileSizeLimit(failure) || failure.HResult switch
     {
-        unchecked((int)0x80070027) or unchecked((int)0x80070070)
-            or unchecked((int)0x800700DF) or unchecked((int)0x8007050F) => true,
-        int errno when !OperatingSystem.IsWindows() => errno is UnixFileTooLarge or UnixNoSpace || errno == UnixQuotaExceeded,
+        unchecked((int)0x80070027) or unchecked((int)0x80070070) or unchecked((int)0x8007050F) => true,
+        int errno when !OperatingSystem.IsWindows() => errno == UnixNoSpace || errno == UnixQuotaExceeded,
+        _ => false,
+    };
+
+    /// <summary>The narrower half of <see cref="IsMediumBoundary"/>: did the operating environment refuse the write
+    /// because the FILE has reached the largest size the host allows — <c>ERROR_FILE_TOO_LARGE</c> (223) on Windows,
+    /// <c>EFBIG</c> (27) on every Unix — rather than because the medium is full? A relative or indexed file's boundary is
+    /// this answer and the paged format's own 2^32 pages (§9.1.13.5 item 4's '24', Annex A.1 item 107,
+    /// docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9); a full medium there is §9.1.13.6 item 1's '30'.</summary>
+    internal static bool IsFileSizeLimit(IOException failure) => failure.HResult switch
+    {
+        unchecked((int)0x800700DF) => true,
+        int errno when !OperatingSystem.IsWindows() => errno == UnixFileTooLarge,
         _ => false,
     };
 
