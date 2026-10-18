@@ -1,4 +1,104 @@
-## PB3331 and PB3332: the keyed store engine's page layer, generation ledger and B+ tree, simulator first
+## Entry 2220 — 2026-10-18 13:11 PDT — PB3333: RELATIVE on the keyed store engine; PB3331 and PB3332: the keyed store engine's page layer, generation ledger and B+ tree, simulator first
+
+### PB3333: RELATIVE on the keyed store engine
+
+kb/Work PB3333 (wave 1118, group A3, the PB3330 cluster's third core group), built on PB3332's B+ tree and PB3331's page
+layer, merged from `worktree-wf_14a1e62b-326-3`. It was a construction, not a fix: the predecessor's base held the tree and
+the pages but no connector used them, so there was nothing to re-probe.
+
+**The mechanism.** `RelativeConnector` keeps its §14.9.30.4 GR21 selection rules, its statuses and their DOC-A.1-104 order
+and changes only its medium. Its store, `RelativeStore` (in `KeyedStoreTable.cs`, so the PB143 attach contract and the PB754
+refusal are unchanged), is one `PagedFile` plus one B+ tree keyed by the 8-byte big-endian relative record number, whose value
+is the record's frame through a new `RecordFraming.EncodeFrame`/`DecodeFrame` pair (the one head encoder and the one decoder,
+`ReadFrame`; `ComposeStore` now composes from `EncodeFrame`). READ NEXT/PREVIOUS and START are seeks of the tree; WRITE,
+REWRITE and DELETE are one page-layer statement each (`RelativeStore.Change`: edit in memory, `Begin` sized to the edit's
+pages, flush, page 2 last). PB2755's quadratic walks went with the map. The page I/O goes through the run unit's connectors'
+own handles (`Store/RunUnitPageMedium`), so no second handle is taken (PB771); a store opened through no writable handle is
+opened again, and fenced, when a writable sibling attaches.
+
+**Coherence.** The engine writes at every statement, so a relative connector is coherent under every sharing mode but NO
+OTHER: `KeyedConnector.CoherentUnder` follows the engine, relative asks the new `FileLockPosture.AdmitsAnotherRunUnit` and
+indexed keeps `AdmitsAnotherWriter` (finding R2-7's split). The statement's entry is `EnterStore` (relative: `PagedFile.Enter`,
+page 2 adopted and the cache dropped; indexed: the whole-store reload), its completion `CompleteStore`, and OPEN and CLOSE run
+under the mutex through `InStoreMutex`. The whole-store machinery left `KeyedConnector` for `IndexedConnector.WholeStore.cs`,
+the one file PB3335 deletes; two of its protected members left the public surface, so the runtime major went 10 → 11 and
+`RuntimeAbiPinDriftTests` was re-pinned.
+
+**The boundary.** `StoreStatus.Boundary` is the format's 2^32 pages or the host's file-too-large refusal
+(`ERROR_FILE_TOO_LARGE`, `EFBIG`), answered '24' at the WRITE or REWRITE; a full medium is '30' at that statement.
+`StoreHolds` and `FramedBytesAfterPut` are gone for RELATIVE. `pb1192_relative_write_boundary_85` was re-derived from the new
+DOC-A.1-107 text: record number 600 000 000 is one leaf entry, so it answers '00' with NOT INVALID KEY and reads back after
+record 5. `FileBoundaryTests` gained the host-boundary case and the '24'/'30' refusal case; `RelativeStore_PredictedSize` was
+deleted with the arithmetic.
+
+**Corrections the build found.** (1) The note put a statement's writes at `StoreStatement.Complete`. The verb already knows
+its pages and its '24'/'30', so the verb writes them inside the registry's statement, which is still inside the mutex
+(2.2.1.7 corrected). (2) A CLOSE that promoted unconditionally failed with '30' over a page 2 that another run unit's death
+had torn, even when the closing connector had changed nothing. `PagedFile.Close` now promotes only after a statement completed
+since the last promotion and otherwise only syncs. (3) The page cache of 2.2.1.13 was not built, so RESERVE meant nothing to
+the engine. `Store/PageCache` is LRU, its floor is the connectors' areas with a default of 256 pages, it is dropped on
+adoption, and a hit is checked against the pointer's stamp. The page layer's stale-page and cold-read cases now drop it
+explicitly, because a live store's cache holds the page as that store wrote it.
+
+**Cases.** All 188 relative suite subjects (383 cases) and NIST RL1-RL4 plus IX106A pass over the engine. The new
+`RelativeEngineTests` drive 2.2.1.16's crash rows and refused-statement rows through a real connector and real file
+(`RelativeStore.MediumObserver` with `DyingPageMedium` or `RefusingPageMedium`). They cover a death after every write of
+WRITE, REWRITE, DELETE and the CLOSE under ALL OTHER, READ ONLY and NO OTHER, where the next OPEN reads the last completed
+statement's file, and a refusal at every write, where the statement answers '30', the error is replayed, the CLOSE ends it
+and another run unit's next statement succeeds. They also cover 2.2.1.17's pair rows; the R2-6 regression (a READ ONLY writer
+and an INPUT reader on two threads, where READ NEXT never answers '30'); a reader through a tree another run unit splits; a
+round trip of gaps, varying frames, extent tables and a CODE-SET; a format-5 file answering '39'; and the tree's '22'/'23'
+and torn-page '30'. The PB3333 rows of `PendingStoreCases` are now these cases.
+
+**Register and docs.** Batch `pb3333-relative-engine-witnesses` re-pointed nine inventory rows' witnesses (GAP 66 → 66, none
+re-verdicted). DOC-A.1-107 and the relative half of DOC-A.1-75 were rewritten. PB3333 and PB2755 are landed and PB3334 is
+unblocked.
+
+**Gate.** Run `TestResults/build-local/20261018T154127Z-564f1b` (gated at `c91f4eaad`; two earlier runs were RED and fixed: four design-section references the citation audit read as ISO clauses, and the host trait the concurrent witness needs): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,233/17,570 · Unit 33,837/34,215 · Characterization 5/36 in leg 1; leg 2 left to CI). The 24 `RelativeEngineTests` cases and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS. The Linux gate is the lander's (batched gating).
+
+**Branch review, round 1.** The reviewer recorded six findings, all answered on the branch. (1) A DELETE whose copy-on-write
+pages the host refused to grow the file for answered '24' and ran INVALID KEY: the one `Failed` mapping served every verb.
+It is now two: `RecordWriteFailed` ('24' at the boundary, WRITE and REWRITE only, §9.1.13.5 item 4) and `Failed` ('30' for
+everything else, DELETE and OPEN included). (2) An INPUT connector whose run unit also had the file open I-O entered the
+writable store under a SHARED mutex hold and could resolve another run unit's PROMOTING flag with writes; two such readers
+in two run units would interleave the same slot and page 2. `PagedFile.Enter(exclusive)` now adopts page 2 under a shared
+hold and leaves the flag to the next exclusive entry. (3) The engine's '30' had no compiled-program case: the new
+`RelativeEnginePermanentErrorWitnessTests` tear a record leaf and run READ, READ NEXT and WRITE with and without a USE
+procedure and a FILE STATUS clause (and with EC-I-O checking on), checking that neither phrase runs and whether the run
+unit continues (DOC-A.1-103); `pb1192_relative_write_boundary_85` gained a sequential-access '24' leg with INVALID KEY
+taken. (4) The CLOSE's promotion and the OPEN's fence and creation had no refusal or death case through the connector; they
+now refuse every write and sync and kill after every write. (5) Three refused-statement rows of 2.2.1.16 still said the
+CLOSE promotes after a refused first statement; they now say it only syncs, and the new OPEN cases corrected two more rows
+(an unfinished creation leaves a file the next OPEN adopts as empty, not '30'). (6) A misquoted §9.1.13.5 item 4 was fixed.
+The review round's gate, run `TestResults/build-local/20261018T175021Z-266291`: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Conformance 11,261/17,682 · Unit 33,887/34,247 · Characterization 5/36 in leg 1); every new case and `pb1192_relative_write_boundary_85` passed in leg 1. Semgrep verify PASS.
+
+**The landing's stop and its finisher (review round 3, R3-1).** `enqueue.py land` merged origin/main (7f5d2dcf8) and its
+Linux legs went RED: 31 NIST programs (IX106A and RL101A to RL213A) matched their reports but their written relative files
+(`tf021.txt` and kin) differed from `tests/nist/valid-files`. The report called it a Linux-only difference. It was not:
+the same 31 programs fail on Windows (`differs from its golden at byte 0 (golden 62036 bytes, written 106496 bytes)` for
+RL101A). The goldens, captured by kb/Work PB804, hold the format-5 whole store, and this branch writes a relative file as
+the paged store. Nobody re-captured them because the Windows gate never ran them. Under batched gating (kb/Work PB2515)
+the gate runs leg 1 only, and with no impact map recorded (`plan.json` `map_state: none`) leg 1 is the cheapest two
+thirds of the population. All 31 `NistDifferentialTests` rows sat in `not-run-Conformance.txt`. Only the landing's Linux
+gate runs every leg, so only it could see them. The fix re-captures the 37 written files through the harness's own update
+path (`COBOLNET_UPDATE_NIST_FILES=1`, `NistOutputs.Capture`). Each program's report, which reads its records back, still
+matches, and that report is the authority on what the records hold (`NistOutputs`). A second Windows run grades all 31
+GREEN against the new bytes, and the Linux gate grades the same bytes, so one golden serves both hosts.
+The branch also carried PB3331 and PB3332 at their original implementer heads without their review fixes (kb/Work
+PB3380), so the reviewed link `worktree-wf_a49f0036-841-7` (14398a0e2) was merged first. In `PagedFile.cs`, the design's
+2.2.1.16 and `PendingStoreCases`, the engine side won: `Create`'s commit-slot creation with its §14.9.27.4 GR25 undo, and
+the boundary carried as `MediumSizeLimitException`, raised by `HandlePageMedium.Write` from `HostFile.IsFileSizeLimit`.
+This branch's `IsFileTooLarge` was a second reader of the host's codes, and it was deleted. Three inventory rows retire it
+as a witness (GR-9.1.13.5-4, GR-14.9.51.4-33, DOC-A.1-107). The connector side was re-applied on the new medium contract
+(`IPageMedium.Length` / `SetLength`, `StatementBound.Of`): the page cache, `Enter(exclusive)`, and the CLOSE that only
+syncs when nothing changed. The PB3333 tests moved with the engine. An OPEN OUTPUT refused before its last sync now leaves
+the previous records, which supersedes the round-1 text above ("adopted as empty"). The CLOSE path of the crash matrix
+changes A first, so the CLOSE still runs its promotion's reads. The cold-read witnesses drop the page cache. The host
+boundary's '24' gained its REWRITE case.
+
+The finisher's gates, on 9d9de113a (origin/main merged clean): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `TestResults/build-local/20261018T191446Z-5c0b9c`: Conformance 11,420/17,815 · Unit 33,976/34,302 · Characterization 5/36 in leg 1) and `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD 9d9de113a) ===` (conformance 17,815/17,815; guard: 362 MATCH, 0 regressions, IX106A and RL101A..RL213A among them).
+
+### PB3331 and PB3332: the keyed store engine's page layer, generation ledger and B+ tree, simulator first
 
 One branch lands groups 1 and 2 of PB3330's engine: PB3331 (the page layer and the generation ledger) merged into PB3332 (the B+ tree over it), with every branch-review round of both answered.
 
@@ -242,3 +342,4 @@ The review finisher's gate: run `20261018T173458Z-985656` was RED on the citatio
 **Branch review, wave 1122 A, round 2 (review-w1122-a.jsonl R2-1).** The reviewer found that the R1-1 fix sent EVERY START prefix under a locale order to the walk, a START key as long as the record key too. §14.9.41.4 GR17 b) sets the first temporary area's length and c) truncates the second *"to the same length as the first"*, so at the key's whole length nothing is truncated, the prefix comparison IS the key order and the binary search is exact; the walk instead read every leaf before the answer (the reviewer's scenario: a full-key START GREATER THAN above the last of 1 000 000 records reads the whole prime tree to answer '23'), against PB3330's bar that no statement reads the whole file. `IKeyOrder.PrefixConsistent` became `PrefixNarrows(prefixLength)`, the one question the cursor asks: the ordinal, the positional sequences and a composite over them narrow at every length, a locale sequence at the key's length only, which `WeightedKeyOrder` now takes (it refuses a longer key or prefix in the one place every key is decoded, so a whole-length prefix can never truncate after all). Case `BTreeShapeTests.A_whole_length_START_key_under_a_locale_sequence_reads_the_depth_and_not_the_file`: 3 000 six-character keys under the root locale (depth 2, 15 leaves), every relation at present, absent, below-first and above-last probes against the sorted list, each seek's pages counted: depth to depth + 2 (a LESS relation settles forward, then back across one boundary), and the reviewer's GREATER THAN above the last reads exactly the depth. With the cursor forced back to the walk it was red (`Range: (2 - 4) Actual: 15`). The locale model run now draws a whole-length prefix one time in four; the key-order case asserts both arms of `PrefixNarrows` and the length refusals. A SHORTER partial key under a locale sequence still walks, as GR17 states; that reads the file, so the design's 2.2.1.4 now records it as an open defect of the engine, not an accepted cost, and it goes to the register as this round's lead (a narrowing sound under the locale engine's contractions and ignorables is a design beyond this slice).
 
 The round-2 finisher's gate, run `20261018T181140Z-c1d8fc`, 134 Store cases in leg 1 and passed, the new page-count case among them: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,587 · Unit 458 · Characterization 31 … — Conformance 11,112/17,699 · Unit 33,790/34,248 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) …`. The Linux gate is the landing's (batched gating).
+
