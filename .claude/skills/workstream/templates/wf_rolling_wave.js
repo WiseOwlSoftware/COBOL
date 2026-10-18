@@ -140,6 +140,26 @@ function settled(letter) {
   return !!p && (!p.finished || !!p.review)
 }
 
+// HOW A PREDECESSOR'S REVIEW LOOP ENDED, as its successor (and the successor's reviewer) reads it: ONE reading, so the
+// implementer's note and the reviewer's scope never disagree (kb/Work PB3381 review R1-1).
+//   'clean'       reviewed CLEAN at its head: it lands on its own.
+//   'capped'      FINDINGS still stamped at its head after the last round (`reviewed()` ran out of rounds; no finisher
+//                 came back unfinished): the findings belong to its next-wave finisher, and prune_worktrees.py
+//                 carrying_findings holds any branch that carries that stamped tip, so the successor does not answer
+//                 them and its review does not record them again.
+//   'unanswered'  FINDINGS whose review finisher came back unfinished (SPLIT, BLOCKED, STALLED, a DONE the finished test
+//                 refused, no new commit: `reviewed()` sets `finisher`). The finisher rewrote the one report for its own
+//                 branch with no Review line, so NO stamp holds anything: the successor carries the findings unanswered,
+//                 and only the successor's own review can keep them off main, so it reviews the predecessor's content
+//                 as its own and records again each of those findings that still holds.
+//   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
+//                 successor's, as its own.
+function predecessorEnd(p) {
+  if (p.review === 'CLEAN') return 'clean'
+  if (/^FINDINGS/.test(p.review || '')) return p.finisher ? 'unanswered' : 'capped'
+  return 'unreviewed'
+}
+
 function successorNote(g) {
   if (!g.after) return ''
   const p = byLetter[g.after]
@@ -153,12 +173,15 @@ function successorNote(g) {
     `report's "For the next implementer" section and its STATUS.md as your orientation for the shared file — run ` +
     `\`python tools/claude-skills/skills/agent-fleet/references/status_delta.py ${p.worktree}\` and read ONLY the commits it lists beyond the summary. ` +
     `Its notes are its own: never flip them or list them as yours. ` +
-    (p.review === 'CLEAN'
-      ? `It was reviewed CLEAN and lands ON ITS OWN (the landing lane lands it now); your pull request merges on top of it. `
-      : /^FINDINGS/.test(p.review || '')
-        ? `Its review ended ${p.review} at the round cap: those findings belong to group ${g.after}'s NEXT-WAVE FINISHER, not to you; do not fix or answer them. ` +
-          `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS). `
-        : `Its review did not finish (${review}), so its commits on your branch are reviewed with yours, and a branch of it that has not landed by your landing lands with yours. `)
+    {
+      clean: `It was reviewed CLEAN and lands ON ITS OWN (the landing lane lands it now); your pull request merges on top of it. `,
+      capped: `Its review ended ${p.review} at the round cap: those findings belong to group ${g.after}'s NEXT-WAVE FINISHER, not to you; do not fix or answer them. ` +
+        `Your branch carries them, so it lands only after that finisher has landed ${g.after} (prune_worktrees.py holds a branch carrying another note's unanswered FINDINGS). `,
+      unanswered: `Its review ended ${p.review} and its review finisher came back ${p.finisher}, unfinished: those findings (${findingsFile({ letter: g.after })}) are UNANSWERED, ` +
+        `and your branch carries them with whatever that finisher left half done. No stamp holds your branch for them: your own review covers the predecessor's commits as yours and records again each of those findings that still holds, ` +
+        `so read \`python scripts/orchestrator/review_findings.py show ${findingsFile({ letter: g.after })}\` and fix the ones your change reaches (I9). A branch of it that has not landed by your landing lands with yours. `,
+      unreviewed: `Its review did not finish (${review}), so its commits on your branch are reviewed with yours, and a branch of it that has not landed by your landing lands with yours. `,
+    }[predecessorEnd(p)]
 }
 
 function runGroup(g) {
@@ -180,17 +203,23 @@ function findingsFile(g) { return `${S}\\review-w${W}-${g.letter.toLowerCase()}.
 
 function sameHead(a, b) { return !!a && !!b && (a.startsWith(b) || b.startsWith(a)) }
 
-// What round 1 of a SUCCESSOR's review leaves alone: a predecessor reviewed CLEAN at its head was reviewed, so its
-// content is not re-opened (wave 1118: PB3332's reviewer restated its predecessor's findings); a predecessor that ended
-// FINDINGS keeps its findings in its own file, for its own finisher.
+// What round 1 of a SUCCESSOR's review leaves alone, by predecessorEnd: a predecessor reviewed CLEAN at its head was
+// reviewed, so its content is not re-opened (wave 1118: PB3332's reviewer restated its predecessor's findings); a
+// predecessor CAPPED at FINDINGS keeps its findings in its own file for its own finisher, and its stamp holds the
+// successor for them. Nothing else is left alone: an UNANSWERED predecessor's findings have no stamp holding them, so
+// the successor's reviewer records again each one that still holds (review R1-1: "do not record them again" there let
+// a successor reviewed CLEAN carry them to main), and an unreviewed predecessor is reviewed as this branch.
 function predecessorScope(g) {
   const p = g.after ? byLetter[g.after] : null
   if (!p || !p.review || !(p.head && p.head !== p.base)) return ''
-  return p.review === 'CLEAN'
-    ? `This branch merged its same-file predecessor ${p.branch} at ${p.head}, which was reviewed CLEAN (${findingsFile({ letter: g.after })}): that content is reviewed and is not re-opened unless this branch's own commits touch it. `
-    : /^FINDINGS/.test(p.review)
-      ? `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review}: those findings are recorded in ${findingsFile({ letter: g.after })} and belong to its next-wave finisher; do not record them again here. `
-      : ''
+  const file = findingsFile({ letter: g.after })
+  return {
+    clean: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, which was reviewed CLEAN (${file}): that content is reviewed and is not re-opened unless this branch's own commits touch it. `,
+    capped: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} at the round cap: those findings are recorded in ${file} and belong to its next-wave finisher; do not record them again here. `,
+    unanswered: `This branch merged its same-file predecessor ${p.branch} at ${p.head}, whose review ended ${p.review} and whose review finisher came back ${p.finisher}, unfinished: those findings (${file}) are UNANSWERED and no stamp holds this branch for them. ` +
+      `Review the predecessor's commits as part of this branch (the whole origin/main...HEAD), read \`review_findings.py show ${file}\`, and record again here each of those findings that still holds on this head. `,
+    unreviewed: '',
+  }[predecessorEnd(p)]
 }
 
 function reviewBranch(g, r, round) {
