@@ -1,4 +1,4 @@
-## PB870: START FIRST / LAST on a RELATIVE file is a 2002 rule like its INDEXED and SEQUENTIAL twins, and the generator now holds a rule's band to the construct its test is written in
+## Entry 2206 — 2026-10-18 06:55 PDT — PB870: START FIRST / LAST on a RELATIVE file is a 2002 rule like its INDEXED and SEQUENTIAL twins, and the generator now holds a rule's band to the construct its test is written in
 
 **What the note said.** `GR-14.9.41.4-11` and `-12` (START FIRST / LAST on a relative file) carried editions
 2014,2023 while GR18-GR21, the same phrase on indexed and sequential files, carried 2002,2014,2023, and
@@ -64,3 +64,4 @@ test-refs and restate nothing. The diff against main on those rows is now the tw
 justification in the notes) and the added test-refs.
 
 **Gate.** See the report; the verdict line is quoted there.
+
