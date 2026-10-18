@@ -25,7 +25,10 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
                  Checked HERE, at record time, so a malformed batch never reaches the inventory.
   · REFERENCE  — the code-location symbol still exists, the test-ref names a test that is really on disk.
                  Checked ONLY by the C# battery gate, because it must keep holding as the tree changes underneath
-                 an already-recorded row. Re-checking it here would be the same rule in two places.
+                 an already-recorded row. Re-checking it here would be the same rule in two places. That covers a
+                 `path#Symbol` spelled in a row's `notes` prose too (kb/Work PB762); the one thing this side adds is
+                 a SHAPE rule about the record: retiring a witness may not leave its symbol in the prose
+                 (`retired_symbols_left_in_prose`).
 """
 from __future__ import annotations
 
@@ -94,9 +97,15 @@ def prose_of(notes: str) -> str:
 
 
 def symbol_of(ref: str) -> str | None:
-    """The identifier a code-location witness names: the LAST dot-separated segment of its `#Symbol`, or None for
-    a bare path. `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`; `Foo.cs#Type.Member` gives `Member`."""
-    fragment = ref.partition("#")[2]
+    """The identifier a code-location witness names, or None for a bare path. In a C# file a dotted symbol is a
+    qualified name (the gate resolves each segment, `SymbolResolves`) and the identifier is its LAST segment:
+    `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`, `Foo.cs#Type.Member` gives `Member`. In any other
+    file the fragment is a literal anchor and stays whole (`docs/CONFORMANCE.md#DOC-A.1-19`)."""
+    path, _, fragment = ref.partition("#")
+    if not fragment:
+        return None
+    if not path.endswith(".cs"):
+        return fragment
     return next((seg for seg in reversed(fragment.split(".")) if seg), None)
 
 
