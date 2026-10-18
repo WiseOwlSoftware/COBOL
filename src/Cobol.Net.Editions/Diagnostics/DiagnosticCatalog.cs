@@ -3137,6 +3137,28 @@ public static class DiagnosticCatalog
         + "argument literal and, through §8.4.3.4.3 SR3, every argument of an inline method invocation.",
         "ISO §14.9.23.3 SR17");
 
+    /// <summary>COBOLNET4268 — a non-numeric literal-2 passed BY VALUE in an INVOKE (kb/Work PB1136, PB1631). It was the
+    /// generic argument code COBOLNET0828 on the typed lane and had no site through the predefined NULL; one code now
+    /// names the rule on every receiver.</summary>
+    public static readonly DiagnosticDescriptor InvokeByValueLiteralNotNumeric = new(
+        "COBOLNET4268", "invoke-by-value-literal-not-numeric", EditionSeverity.Error,
+        "ISO §14.9.23.3 syntax rule 16: \"If literal-2 or its corresponding formal parameter is specified with the BY "
+        + "VALUE phrase, literal-2 shall be a numeric literal.\" A constant-name or symbolic-character that stands for a "
+        + "nonnumeric literal is that literal (§13.10.3 SR2). The predicate is the one the CALL statement's "
+        + "§14.9.4.3 SR23 asks.",
+        "ISO §14.9.23.3 SR16");
+
+    /// <summary>COBOLNET4269 — factory or instance object data passed BY REFERENCE in an INVOKE (kb/Work PB1136). It was
+    /// COBOLNET0828 on the typed lane and COBOLNET0866 on the universal one; one code now names the rule on every
+    /// receiver.</summary>
+    public static readonly DiagnosticDescriptor InvokeObjectDataByReference = new(
+        "COBOLNET4269", "invoke-object-data-by-reference", EditionSeverity.Error,
+        "ISO §14.9.23.3 syntax rule 10: \"Identifier-3 shall not reference a data item defined in the file or "
+        + "working-storage section of a factory or instance object.\" Written without a BY phrase, such an argument "
+        + "is passed BY CONTENT (§14.9.23.4 GR6 a) 2.); through a universal object reference every argument is BY "
+        + "REFERENCE (SR6), so there it cannot cross at all.",
+        "ISO §14.9.23.3 SR10");
+
     public static readonly DiagnosticDescriptor UndefinedReference = new(
         "COBOLNET1639", "undefined-reference", EditionSeverity.Error,
         "A statement or clause references a name that no declaration in the source element defines, or that the "
