@@ -23,7 +23,7 @@ namespace CobolNet.Runtime.IO;
 /// (§12.4.5.12 SR2), for which ordinal IS the native collating sequence — correct for COBOL-85 NIST; the file-level
 /// COLLATING SEQUENCE clause (§12.4.5.7, WRITE §14.9.51.4 GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
 /// </summary>
-public sealed class IndexedConnector : KeyedConnector
+public sealed partial class IndexedConnector : KeyedConnector
 {
     /// <summary>The prime key's byte windows, in order (<see cref="KeySegment"/>; one for data-name-1, one per
     /// data-name-2 of the SOURCE phrase), and their total width — the key's length.</summary>
@@ -301,18 +301,20 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override KeyedStore AttachedStore => _st;
 
-    /// <inheritdoc/>
-    /// <remarks>⛔ THE RELEASE ORDINALS ARE THE FILE'S, NOT RE-DERIVED (kb/Work PB2693). §14.9.30.4 GR26's duplicate
+    /// <summary>Replace the records of <paramref name="into"/> with <paramref name="frames"/>, the physical file's
+    /// frames in ordinal order — the whole store's load and reload. The store is the SHARED one, so every connector of
+    /// the run unit attached to it sees the reload, which is the point. <paramref name="releaseMint"/> is the file's
+    /// release mint (<c>RecordFraming.ReleaseMintOffset</c>).
+    /// <para>⛔ THE RELEASE ORDINALS ARE THE FILE'S, NOT RE-DERIVED (kb/Work PB2693). §14.9.30.4 GR26's duplicate
     /// order and GR21 f)'s "logical position within the set of duplicates" are each record's release ordinal under the
     /// key of reference, which the store persists with the record (<see cref="StoredFrame.Ordinals"/>), together with
     /// the mint the next release takes (<paramref name="releaseMint"/>). A reload therefore leaves every ordinal where
     /// it was — the position a connector partway through a duplicate set holds (<c>_readOrdinal</c>) still names the
     /// same place after another run unit's change. When this run unit renumbered the records from their file order
     /// instead, another run unit's DELETE of an earlier record moved every later one down by one and the next READ
-    /// NEXT skipped a duplicate.</remarks>
-    private protected override void Fill(KeyedStore into, List<StoredFrame?> frames, long releaseMint)
+    /// NEXT skipped a duplicate.</para></summary>
+    private void Fill(IndexedStore store, List<StoredFrame?> frames, long releaseMint)
     {
-        var store = (IndexedStore)into;
         store.Clear();
         FaultPointReloadFilling();
         long next = Math.Max(releaseMint, 1);
@@ -345,17 +347,17 @@ public sealed class IndexedConnector : KeyedConnector
         return ordinals;
     }
 
-    /// <inheritdoc/>
-    /// <remarks>In RELEASE order (the prime-key ordinal), each frame carrying its record's ordinal vector — the
-    /// order the file is written in decides nothing, because the ordinals travel with the records (kb/Work PB2693).
-    /// Materialized, because the compose enumerates the frames twice.</remarks>
-    private protected override IEnumerable<StoredFrame?> PersistFrames() =>
+    /// <summary>The store's frames in the order the persist writes them: RELEASE order (the prime-key ordinal), each frame
+    /// carrying its record's ordinal vector — the order the file is written in decides nothing, because the ordinals
+    /// travel with the records (kb/Work PB2693). Materialized, because the compose enumerates the frames twice.</summary>
+    private IEnumerable<StoredFrame?> PersistFrames() =>
         _recs.OrderBy(r => Ordinal(r, PrimeKey))
             .Select(r => (StoredFrame?)new StoredFrame(r.Image, r.Extents,
                 r.Ordinals.Length == _alts.Count + 1 ? r.Ordinals : OrdinalVector(r.Ordinals))).ToList();
 
-    /// <inheritdoc/>
-    private protected override long ReleaseMint => _st.NextOrdinal;
+    /// <summary>The release mint the persist records with the frames: the store's next release ordinal (kb/Work
+    /// PB2693).</summary>
+    private long ReleaseMint => _st.NextOrdinal;
 
     /// <summary>The indexed CLOSE body (§14.9.6): a writable mode persists the store with every record's release
     /// ordinals (<see cref="PersistFrames"/>), so §14.9.30.4 GR26's duplicate retrieval order survives a CLOSE/OPEN
