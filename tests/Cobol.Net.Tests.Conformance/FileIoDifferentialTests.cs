@@ -190,13 +190,13 @@ public sealed class FileIoDifferentialTests
             """), edition: 2023,
             goldenName: "write_after_advancing_line_sequential_read_back");
 
-    /// <summary>§14.9.46 — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
+    /// <summary>§14.9.51.4 GR25d — WRITE {BEFORE|AFTER} ADVANCING mnemonic-name: the positioning is IMPLEMENTOR-DEFINED
     /// for the associated feature; the feature-name CSP's rule (docs/CONFORMANCE.md §7 item 190, kb/Work PB862 —
     /// the rule the SQ207M golden encodes) is a ZERO-line advance, which is ADVANCING 0's overprint written as a
     /// carriage return (owner decision kb/Work R54, PB1667) — a BEFORE-mnemonic write returns to the start of its
     /// line, so the NEXT write overprints it. (The entry used to name PRT-CHAN, which was never a feature-name: any
     /// word was accepted.)
-    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.46 GR1 — the WRITE
+    /// SPEC-PINNED (not legacy-differential) because the record is ALWAYS released (§14.9.51.4 GR12 — the WRITE
     /// transfers the record regardless of positioning): the legacy DROPS an AFTER-mnemonic write entirely, a
     /// non-conformance its goldens fossilize (SQ207M is swept-only pending re-baseline). The last WRITE also
     /// pins §8.4.2.2 FILE-NAME qualification of a record name (<c>WRITE P-REC IN P-OUT</c> — SQ207M's shape).</summary>

@@ -350,7 +350,7 @@ public static class CobolFile
     /// <summary>UNLOCK file [RECORD[S]] (§14.9.47 GR1).</summary>
     public static void Unlock(string name, bool records) => _reg.Unlock(name, records);
 
-    /// <summary>Acquire a record lock (§12.4.5.9 GR7 ceilings enforced; the CobolFileLockTests surface).</summary>
+    /// <summary>Acquire a record lock (§12.4.5.9.4 GR7 ceilings enforced; the CobolFileLockTests surface).</summary>
     public static string LockRecord(string name, string recId) => _reg.LockRecord(name, recId);
 
     /// <summary>True when <paramref name="recId"/> is locked by a connector OTHER than <paramref name="name"/>.</summary>
@@ -359,7 +359,7 @@ public static class CobolFile
     /// <summary>Release every record lock held by <paramref name="name"/> (UNLOCK, CLOSE).</summary>
     public static void ReleaseAllForConnector(string name) => _reg.ReleaseAllForConnector(name);
 
-    /// <summary>Release a single record lock (the LOCK MODE single-lock discipline, §12.4.5.9 GR6).</summary>
+    /// <summary>Release a single record lock (the LOCK MODE single-lock discipline, §12.4.5.9.4 GR6).</summary>
     public static void ReleaseSingle(string name, string recId) => _reg.ReleaseSingle(name, recId);
 
     /// <summary>Resolve an ASSIGN target to a host file path: a target that already looks like a path (has a

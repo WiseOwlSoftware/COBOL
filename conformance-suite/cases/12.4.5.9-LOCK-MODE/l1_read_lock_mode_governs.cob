@@ -11,11 +11,11 @@
       *> observed to do is make the READ's locking behaviour follow the
       *> file control entry, so the two legs below differ in NOTHING
       *> but the presence of the LOCK MODE clause.
-      *> 12.4.5.9 GR1 a) "If the LOCK MODE clause is omitted from a file
-      *>   control entry, ... If there is a SHARING clause in that file
-      *>   control entry, no record locks are set by the execution of
+      *> 12.4.5.9.4 GR1 a) "If the LOCK MODE clause is omitted from a
+      *>   file control entry, ... If there is a SHARING clause in that
+      *>   file control entry, no record locks are set by the execution of
       *>   I-O statements through the associated file connector."
-      *> 12.4.5.9 GR4 "If the AUTOMATIC phrase is specified, the lock
+      *> 12.4.5.9.4 GR4 "If the AUTOMATIC phrase is specified, the lock
       *>   mode is automatic.  Records are locked when any READ
       *>   statement is executed."
       *>
@@ -120,7 +120,7 @@
            MOVE "R002" TO S-REC.
            WRITE S-REC.
            CLOSE FS.
-      *> LEG 1 - no LOCK MODE clause: 12.4.5.9 GR1a, no locks are set.
+      *> LEG 1 - no LOCK MODE clause: 12.4.5.9.4 GR1 a), no locks are set.
            OPEN INPUT F1.
            OPEN INPUT F2.
            MOVE 1 TO K1.
@@ -131,7 +131,7 @@
            DISPLAY "R2=" ST2 " " R2-REC.
            CLOSE F1.
            CLOSE F2.
-      *> LEG 2 - LOCK MODE IS AUTOMATIC: 12.4.5.9 GR4, any READ locks.
+      *> LEG 2 - LOCK MODE IS AUTOMATIC: 12.4.5.9.4 GR4, any READ locks.
            OPEN INPUT F3.
            OPEN INPUT F4.
            MOVE 1 TO K3.
