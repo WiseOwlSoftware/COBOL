@@ -1812,12 +1812,14 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor "lands THROUGH" its successor saved nothing once every branch became one pull request in the merge
    queue (PB3023, PB3024) and kept a chain off main until its last link was clean; now the successor starts once the
    predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
-   predecessor's. A predecessor whose review ended FINDINGS at the cap keeps those findings for its own finisher, and
-   `prune_worktrees.py` holds a successor carrying another note's unanswered FINDINGS IN FLIGHT (`waits_on`) until
-   that finisher has landed it. A predecessor whose review FINISHER came back unfinished has no such stamp (the
-   finisher rewrote the report for its own branch), so its successor's review covers the predecessor's content and
-   records again each of its findings that still holds (`wf_rolling_wave.js` `predecessorEnd`: clean, capped,
-   unanswered, unreviewed; branch review R1-1); and a merged branch with no clean stamp at its tip never lands alone,
+   predecessor's. A predecessor whose review ended FINDINGS with that stamp still covering its head (at the cap, or its
+   review finisher left no head of its own: it died or committed nothing) keeps those findings for its own finisher,
+   and `prune_worktrees.py` holds a successor carrying another note's unanswered FINDINGS IN FLIGHT (`waits_on`) until
+   that finisher has landed it. A predecessor whose review FINISHER left an unfinished head of its own has no such
+   stamp (the finisher rewrote the report for its own branch), so its successor's review covers the predecessor's
+   content and records again each of its findings that still holds (`wf_rolling_wave.js` `predecessorEnd`: clean,
+   capped, unanswered, unreviewed, telling capped from unanswered by whether the last stamp covers the head, the
+   survey's own `covers` test; branch review R1-1, R2-1); and a merged branch with no clean stamp at its tip never lands alone,
    it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
    and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
    one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the

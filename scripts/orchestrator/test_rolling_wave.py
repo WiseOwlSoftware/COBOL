@@ -16,9 +16,11 @@ skill section 2), never from what the script does:
      round 2 reviews only the finisher's diff from the head round 1 reviewed; the blocking set is critical,high,medium
      until the round after the last finisher, which blocks on critical,high only;
   3. a predecessor whose review ended FINDINGS at the cap is not ready, and its successor (and the successor's reviewer)
-     are told those findings belong to the predecessor's next-wave finisher; a predecessor whose review FINISHER came
-     back unfinished has no stamp holding its successor, so the successor's reviewer reviews the predecessor's content
-     and records again each finding that still holds (review R1-1), never "do not record them again";
+     are told those findings belong to the predecessor's next-wave finisher, and so is the successor of a predecessor
+     whose review finisher left NO head of its own (dead, or no new commit: the round's stamp still covers the head,
+     review R2-1); a predecessor whose review FINISHER left an unfinished head of its own has no stamp holding its
+     successor, so the successor's reviewer reviews the predecessor's content and records again each finding that
+     still holds (review R1-1), never "do not record them again";
   4. the reviews' leads reach the wave's result.
 No clock decides anything: each stub agent yields to the event loop once and returns its scripted result.
 """
@@ -175,28 +177,54 @@ def main() -> int:
         check("3: the predecessor's result says FINDINGS after its review rounds",
               (res["A"].get("review"), res["A"].get("review_rounds")) == ("FINDINGS 1", 2), res.get("A"))
 
-        # 3a. kb/Work PB3381 review R1-1: a predecessor whose review FINISHER came back unfinished (SPLIT on its own
-        #     branch, or with no new commit) ended FINDINGS before the cap. The finisher rewrote the report for its own
+        # 3a. kb/Work PB3381 review R1-1: a predecessor whose review FINISHER came back unfinished on a head of its OWN
+        #     (SPLIT past the reviewed head) ended FINDINGS before the cap. The finisher rewrote the report for its own
         #     branch with no Review line, so no stamp holds the successor (prune_worktrees.carrying_findings reads only a
-        #     stamp): the successor's review must cover the predecessor's content and record those findings again.
-        for name, fix in (("unanswered-split", impl("bA2", "a2", "SPLIT")), ("unanswered-nocommit", impl("bA", "a1", "BLOCKED"))):
-            r = run(tmp, name, {"args": args(groups), "agents": {
-                "impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 2)],
-                "fix-A-r1": [fix], "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}})
+        #     stamp covering a tip): the successor's review must cover the predecessor's content and record those
+        #     findings again.
+        r = run(tmp, "unanswered-split", {"args": args(groups), "agents": {
+            "impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 2)],
+            "fix-A-r1": [impl("bA2", "a2", "SPLIT")], "impl-B-PB2": [impl("bB", "b1")],
+            "w9b-review-r1": [review("CLEAN", "b1")]}})
+        ev, pr = r["events"], r["prompts"]
+        res = {x["letter"]: x for x in r["out"]["results"]}
+        check("3a unanswered-split: the predecessor is not ready and ended FINDINGS on its finisher's head",
+              [x["branch"] for x in r["out"]["ready"]] == ["bB"] and res["A"].get("review") == "FINDINGS 2"
+              and res["A"].get("finisher") == "SPLIT" and res["A"].get("head") == "a2", (r["out"]["ready"], res.get("A")))
+        bp = (pr.get("impl-B-PB2") or [""])[0]
+        check("3a unanswered-split: the successor merges the finisher's branch and is told the findings are UNANSWERED, "
+              "not its next-wave finisher's",
+              "git merge bA2" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
+              and "NEXT-WAVE FINISHER" not in bp and "prune_worktrees.py holds" not in bp, bp)
+        rp = (pr.get("w9b-review-r1") or [""])[0]
+        check("3a unanswered-split: the successor's reviewer reviews the predecessor's content and records those findings again",
+              "record again here each of those findings that still holds" in rp and "review-w9-a.jsonl" in rp
+              and "do not record them again" not in rp and "not re-opened" not in rp, rp)
+
+        # 3a'. kb/Work PB3381 review R2-1: a review finisher that left NO head of its own (it died: no scripted result,
+        #     NO-RESULT; or it returned with no new commit) leaves the result at the reviewed head, whose report still
+        #     carries round 1's `Review: FINDINGS` stamp, so prune_worktrees.carrying_findings DOES hold the successor.
+        #     The successor and its reviewer are told what the survey does: the predecessor's next-wave finisher answers
+        #     them, the successor does not, and its reviewer does not record them again.
+        for name, fix in (("dead-finisher", None), ("nocommit-finisher", impl("bA", "a1", "BLOCKED"))):
+            agents = {"impl-A-PB1": [impl("bA", "a1")], "w9a-review-r1": [review("FINDINGS", "a1", 2)],
+                      "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}
+            if fix:
+                agents["fix-A-r1"] = [fix]
+            r = run(tmp, name, {"args": args(groups), "agents": agents})
             ev, pr = r["events"], r["prompts"]
             res = {x["letter"]: x for x in r["out"]["results"]}
-            check(f"3a {name}: the predecessor is not ready and ended FINDINGS with its finisher's status",
+            want = fix["status"] if fix else "NO-RESULT"
+            check(f"3a' {name}: the predecessor is not ready and ended FINDINGS at its reviewed head",
                   [x["branch"] for x in r["out"]["ready"]] == ["bB"] and res["A"].get("review") == "FINDINGS 2"
-                  and res["A"].get("finisher") == fix["status"], (r["out"]["ready"], res.get("A")))
+                  and res["A"].get("finisher") == want and res["A"].get("head") == "a1", (r["out"]["ready"], res.get("A")))
             bp = (pr.get("impl-B-PB2") or [""])[0]
-            check(f"3a {name}: the successor merges the predecessor's final branch and is told the findings are UNANSWERED, "
-                  "not its next-wave finisher's",
-                  f"git merge {fix['branch']}" in bp and "UNANSWERED" in bp and "review-w9-a.jsonl" in bp
-                  and "NEXT-WAVE FINISHER" not in bp and "prune_worktrees.py holds" not in bp, bp)
+            check(f"3a' {name}: the successor merges the stamped branch and is told the findings are its next-wave finisher's",
+                  "git merge bA" in bp and "head a1" in bp and "NEXT-WAVE FINISHER" in bp and "prune_worktrees.py holds" in bp
+                  and want in bp and "UNANSWERED" not in bp and "No stamp holds" not in bp, bp)
             rp = (pr.get("w9b-review-r1") or [""])[0]
-            check(f"3a {name}: the successor's reviewer reviews the predecessor's content and records those findings again",
-                  "record again here each of those findings that still holds" in rp and "review-w9-a.jsonl" in rp
-                  and "do not record them again" not in rp and "not re-opened" not in rp, rp)
+            check(f"3a' {name}: the successor's reviewer does not record the predecessor's findings again",
+                  "do not record them again" in rp and "record again here" not in rp and "no stamp holds" not in rp, rp)
 
         # 3b. an unfinished predecessor settles when it returns: its successor starts at once and merges what it left
         r = run(tmp, "split", {"args": args(groups), "agents": {
