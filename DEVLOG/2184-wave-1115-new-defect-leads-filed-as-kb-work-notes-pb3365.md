@@ -1,3 +1,4 @@
-## Wave-1115 new-defect leads filed as kb/Work notes (PB3365-PB3368)
+## Entry 2184 — 2026-10-18 01:04 PDT — Wave-1115 new-defect leads filed as kb/Work notes (PB3365-PB3368)
 
 Notes only. PB3365 (SEARCH of a dynamic-capacity table nested under another table aborts at run time through the COBOLNET1756 deferral in SearchBinder; crashes, rejects legal source) is from `w1115e-PB2849-report.md`. PB3366 (audit_code_citations skips a rule cited under a clause with no block of that kind; 545 unread citations) is from `w1115g-PB996-report.md`. PB3367 (devlog.py stamp is not atomic; a failed `git add` strands the branch) and PB3368 (enqueue.py queues the catch-up merge with no check re-run) are process-landing leads from the coordinator, measured on PB3314's and PB284's landing attempts. The COBOLNET1756 notes and the audit-speed notes were read first and none covered these; no ids unused.
+
