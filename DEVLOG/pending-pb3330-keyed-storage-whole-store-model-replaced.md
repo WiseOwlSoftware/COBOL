@@ -100,4 +100,13 @@ rules on the real engine; its scope, and the cross-file COMMIT question round 5 
 also gains the owner's standing test rule (success and abnormal cases for SORT and file I/O) and the engine's own cases,
 which the planner writes into every group of the cluster.
 
+The branch review of that route (round 6) found nine places where the notes did not yet carry it. The hold was a line
+of prose the planner never reads; PB3337, PB3338 and PB3340 now carry `status: owner`, which the planner does read, and
+a dry run plans PB3331-PB3336 and lists the three as waiting. PB3331 itself now says its first commit is the simulator
+and the cases written from the design text, with the held slice's cases written as pending. Two standing requirements
+that bound every core group to COMMIT and ROLLBACK rows are scoped to the rows each group owns. The transaction cost
+witness moved from PB3336 to PB3337, and PB3333 rewrites the relative half of the file-sharing documentation row in the
+same landing that changes the relative mutex rule. Four test paths were left from before main's corpus move, and one
+dead-owner test still described round 3's region locks; both are corrected.
+
 Notes and docs only. No code change.

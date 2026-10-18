@@ -1279,7 +1279,7 @@ sequential description is not a conflict" keeps its answer through the same read
 
 **2.2.1.10 APPLY COMMIT, COMMIT and ROLLBACK: per-run-unit transactions on the ledger.** The facility is declined today at bind
 (`DeclinedFacilityPass.VisitApplyCommitClause`, Annex A.4.3 item 2) and COMMIT and ROLLBACK are CONTINUE
-(`conformance:2023/pb137_commit_inert`, §14.9.7.4 GR1 / §14.9.36.4 GR1). PB3330's bar builds them on the engine, so the decline
+(`conformance:cases/14.9.7-COMMIT/pb137_commit_inert`, §14.9.7.4 GR1 / §14.9.36.4 GR1). PB3330's bar builds them on the engine, so the decline
 is reversed by its groups: the runtime half (PB3337) and the compiler half (PB3338).
 
 - **The scope the standard requires (finding R1-2, derived 2026-10-17).** §14.9.7.1: the COMMIT statement *"makes permanent all
@@ -1618,7 +1618,8 @@ tree-wide drift test (`[Trait("Sweep", "tree")]`) asserts that `src/Cobol.Net.Ru
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
-m changed records writes ≤ m × ((k + 1) × d) + 3 pages and leaves every record of another run unit byte-identical. For the
+m changed records writes ≤ m × ((k + 1) × d) + 3 pages and leaves every record of another run unit byte-identical.
+Witnesses (a) to (d) are PB3336's; (e) needs the transaction runtime and lands with it, in PB3337. For the
 record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
 8 µs, some 50 s of I/O before the tree's own work; the same load through today's `ALL OTHER` path is 10^6 × O(file) and does
 not finish.
@@ -1740,8 +1741,8 @@ every crash scenario is deterministic and runs on every host without a VM:
   B's WRITE K5 and B's WRITE K7 with X: the answer is '22' (A rolled back at B's test) or '51' (A alive at B's test; the
   next entry rolls A back, and B's RETRY then answers '22'), never '00'; K5 reads back as at A's last COMMIT in every case;
   and no record B wrote is ever overwritten by A's rollback (B's WRITE K9, unrelated, in every window: '00' and present
-  afterwards). The region's release order is varied by the test host (byte before locks, locks before byte, all at once)
-  and the answers do not change;
+  afterwards). A holds nothing in the region but its liveness byte (its K5 and X locks are holdings, 2.2.1.10), so the
+  region's release order plays no part (2.2.1.17's round-4 table);
 
 **2.2.1.13 What the design deletes and what it keeps (CLAUDE.md rule 4: no wrapper, no shim, no reader of the old format).**
 Deleted with their callers: `RecordFraming.ComposeStore`, `DecodeStore`, `DecodeHeader`/`WriteHeader`'s store-level form,
@@ -1773,13 +1774,14 @@ today.
 **2.2.1.14 The implementation, as groups the fix lane lands one mechanism at a time** (the register entries are kb/Work
 PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page layer and the ledger over `IPageMedium`, with the
 crash matrix; PB3332 the B+ tree over it, with the model test; PB3333 RELATIVE on the engine (its connector, its tests, the
-relative half of DOC-A.1-107 — and, because it is the first connector that writes at every statement, the coherence
+relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
 condition of 2.2.1.7 for the connectors on the engine: `AdmitsAnotherRunUnit` with the mutex for every mode but NO OTHER,
 while the whole-store connectors keep `AdmitsAnotherWriter` until they leave; finding R2-6 showed that leaving the condition to
 PB3335 landed a READ ONLY relative writer with no mutex beside the INPUT reader Table 19 admits); PB3334 INDEXED on the engine
 (the trees, the ordinals, the collations, the indexed half of DOC-A.1-107); PB3335 the deletion of the whole-store model and
-the rest of page-granular coherence (`StoreTable`, DOC-A.1-75, the whole-store ban); PB3336 the performance witnesses of
-2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks; PB3338 the compiler's APPLY COMMIT.
+the rest of page-granular coherence (`StoreTable`, the rest of DOC-A.1-75, the whole-store ban); PB3336 the performance
+witnesses (a) to (d) of 2.2.1.11; PB3337 the transactions, COMMIT and ROLLBACK in the runtime, with their locks and
+witness (e); PB3338 the compiler's APPLY COMMIT.
 Same-file work is sequenced by `blocked_by`, and every group lands green on its own: no landing between two groups leaves main
 with a sharing mode the engine writes under and the mutex does not cover.
 
