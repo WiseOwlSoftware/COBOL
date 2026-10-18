@@ -88,7 +88,7 @@ internal sealed class PhysicalFileTable
         /// reader told to re-anchor for them would read a half-written frame instead of a stale whole one.
         /// The generation moves exactly where the bytes do.</para>
         /// <para>The keyed organizations do not use it, for the reason that names the fix: their record images
-        /// live in the ONE <see cref="KeyedStoreTable"/> store for the path (kb/Work PB143), so a sibling's
+        /// live in the ONE <see cref="StoreTable"/> store for the path (kb/Work PB143), so a sibling's
         /// REWRITE is visible to every attached connector the instant it happens — measured, not assumed.
         /// This is the same rule for the organization whose medium is the host file itself.</para></summary>
         public long ReleaseGeneration;

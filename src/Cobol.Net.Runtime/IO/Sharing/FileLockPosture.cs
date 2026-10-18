@@ -101,4 +101,14 @@ public static class FileLockPosture
     /// <para>A bit test rather than <c>HasFlag</c>: <see cref="SequentialConnector"/> asks this once per
     /// released record, which is the sequential WRITE path.</para></summary>
     public static bool AdmitsAnotherWriter(FileShare share) => (share & FileShare.Write) != 0;
+
+    /// <summary>Would a handle carrying <paramref name="share"/> admit ANY other run unit's connector — reader or
+    /// writer — to the same physical file? Every sharing mode but <c>SHARING WITH NO OTHER</c> does (§9.1.15 1),
+    /// <i>"The sharing with no other mode specifies exclusive access to a physical file"</i>). The predicate an engine
+    /// that writes the file AT EVERY STATEMENT needs (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work
+    /// PB3333): such a writer must serialize against the INPUT reader that §9.1.15 2) admits beside a
+    /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. It does NOT replace
+    /// <see cref="AdmitsAnotherWriter"/>, which a streaming writer asks (finding R2-7): the predicate a connector
+    /// asks follows the engine it drives.</summary>
+    public static bool AdmitsAnotherRunUnit(FileShare share) => share != FileShare.None;
 }

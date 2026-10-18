@@ -252,7 +252,7 @@ public abstract class FileConnector
     /// from the physical file"): the keyed connectors attach their record images through it so every connector
     /// over one host path sees ONE store. Null (a connector constructed outside a registry, e.g. a focused
     /// unit test) keeps the private-store behavior.</summary>
-    internal KeyedStoreTable? SharedStores { get; set; }
+    internal StoreTable? SharedStores { get; set; }
 
     /// <summary>The live state of the PHYSICAL FILE this connector is associated with — the ONE object that
     /// stands for the medium, held by EVERY connector opened through a registry, whatever its SELECT declared.
@@ -860,8 +860,8 @@ public abstract class FileConnector
         // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement
         // CREATES a file — GR18's OUTPUT, GR17's absent OPTIONAL I-O/EXTEND — are exactly the moments each
-        // organization's OpenCore writes its own store: the RELATIVE and INDEXED arms call
-        // KeyedConnector.Persist (RecordFraming.ComposeStore), whose HEADER is those attributes, and the sequential arms write a format
+        // organization's OpenCore writes its own store: the RELATIVE and INDEXED arms create the paged store
+        // (KeyedConnector.OpenCore, PagedFile.Create), whose META PAGES record those attributes, and the sequential arms write a format
         // that records none. So the establishment rides the format instead of a second step beside it, which is
         // what "no sidecar of any type" means and what removes the failure mode the second step had (kb/Work
         // PB684: a catalog this process could not write left the PREVIOUS file's attributes in force).
@@ -989,9 +989,6 @@ public abstract class FileConnector
         try { return CloseCore(); }
         catch (UnauthorizedAccessException) { return FileStatusCode.PermanentError; }
         catch (IOException) { return FileStatusCode.PermanentError; }
-        // A persist composes the whole store image in one allocation (RecordFraming.ComposeStore), so a CLOSE owing one
-        // maps an allocation the host refuses to the same '30' as OPEN and CompleteStatement (kb/Work PB2842).
-        catch (OutOfMemoryException) { return FileStatusCode.PermanentError; }
     }
 
     /// <summary>The organization-specific OPEN body: reset org state, create/load the physical store, and
