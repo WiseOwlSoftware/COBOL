@@ -26,4 +26,13 @@ introducing-edition negatives of the shapes already exist (the three `pb1951-...
 **Found, not fixed (another subsystem).** SEARCH and SEARCH ALL of a dynamic-capacity table nested under another table is
 a COBOLNET1756 deferral that aborts at run time (`SearchBinder.cs`, "a later increment"); reported as a lead.
 
+**Review findings (wave 1116 finisher).** R1-1: the headers of the two goldens predicted the wrong output for a capacity that
+stays in its position while the items move (9 6 5 / "would print 5"); the arithmetic, 1 + the dynamic-length items +
+capacity, gives LEN 7 6 7, and the headers now say so (the 9 6 5 pattern is a whole-image move that ignores the
+components). R1-2: `pb2849_table_sort_carrier_beside_odo_table` ran only the success path; it now runs under
+`>>TURN EC-BOUND-ODO CHECKING ON` with a USE AFTER EXCEPTION CONDITION EC-BOUND-ODO declarative and sorts E descending
+with the record count 7 (above integer-2, 4): E is a sibling of the subject T, neither subordinate nor superordinate to
+it, so 13.18.38.4 GR7 raises nothing and the carriers sort whole (the expected output has no RAISED line); N is put back
+to 2 before T is read, since reading T under 7 would itself raise the condition.
+
 Gate: see the wave report.

@@ -33,8 +33,10 @@
       *> element's contiguous extent instead (§8.5.1.11.2; FUNCTION LENGTH counts alphanumeric positions, §15.50.4
       *> rule 3): 1 (EK) + the two dynamic-length items + the table's current capacity. Before the sort the elements
       *> are 9 (THREE, 3, capacity 2), 6 (ONE, 1, capacity 1) and 5 (TWO, 2, capacity 0); each moves with its own
-      *> capacity (GR24), so after it they read 6, 5, 9. A capacity that failed to shrink at the front would print
-      *> 9 and 6 there, and one that failed to grow at the back would print 5:
+      *> capacity (GR24), so after it they read 6, 5, 9. A capacity that stayed in its POSITION (2, 1, 0) while the
+      *> items moved would give the key-1 element 1+3+1+2 = 7, the key-2 element 1+3+1+1 = 6 and the key-3 element
+      *> 1+5+1+0 = 7, so the line would read LEN 7 6 7 (an image move that ignored the components would keep the
+      *> positions' own lengths, 9 6 5):
       *>   cite.py --check 15.50.4 "the returned value is an integer equal to the length of argument-1 in
       *>     alphanumeric character positions" -> OK §15.50.4 3)
       *>   cite.py --check 13.18.38.3 "Data-name-3 shall not be subscripted." -> OK §13.18.38.3 31)

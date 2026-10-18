@@ -38,8 +38,8 @@
       *>   N = 3. Keys 3, 1, 2. Before: 3THREE3ZY (9; capacity 2), 1ONE1Q (6; capacity 1), 2TWO2 (5; capacity 0).
       *>   SORT E ASCENDING KEY EK places the elements, each with its own items and capacity, in key order:
       *>     1ONE1Q (6), 2TWO2 (5), 3THREE3ZY (9)
-      *>   a capacity that did not shrink would print 1ONE1Q with a length of 9 and a stale second occurrence, and
-      *>   one that did not grow would cut 3THREE3ZY back to length 5.
+      *>   a capacity that stayed in its POSITION (2, 1, 0) while the items moved would give the key-1 element
+      *>   1+3+1+2 = 7, the key-2 element 1+3+1+1 = 6 and the key-3 element 1+5+1+0 = 7: lengths 7 6 7.
       *>   EXCEPTION PATH. N = 7 is above integer-2 (4): under EC-BOUND-ODO checking the condition is set to exist
       *>   when the subject is referenced (GR7), the declarative displays it and RESUME NEXT STATEMENT continues
       *>   after the SORT (§14.9.33.4 GR2): the statement placed nothing, so the descending order that would have
