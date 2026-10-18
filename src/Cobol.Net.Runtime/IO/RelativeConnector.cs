@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Runtime.IO;
 
@@ -11,20 +12,25 @@ namespace CobolNet.Runtime.IO;
 /// OPEN/START, advanced exclusively by READ), '46' poisoning after an unsuccessful READ/START (§14.9.30 GR21 /
 /// §9.1.13.7 item 6), and the '43' previous-op-was-READ rule for sequential-access REWRITE/DELETE (§14.9.35 GR5 /
 /// §14.9.10 GR2). Records cross this boundary as their character image (a <see cref="string"/>).
+/// <para>⛔ THE RECORDS LIVE IN THE KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1, kb/Work
+/// PB3333): one B+ tree keyed by the relative record number (<see cref="RelativeStore"/>), every statement reading the
+/// pages it touches and writing the pages it changes, then page 2 — so the file is, after every statement, in the state
+/// its last completed statement left it, whatever happens to the run unit. Nothing is loaded at OPEN and nothing is
+/// persisted at CLOSE; the statuses and their order (docs/CONFORMANCE.md DOC-A.1-104) are this connector's, and only the
+/// medium changed.</para>
 /// </summary>
 public sealed class RelativeConnector : KeyedConnector
 {
     private readonly int _keyDigits;   // RELATIVE KEY digit capacity (0 = no RELATIVE KEY clause)
 
-    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
-    /// ONE slot dictionary, so a DELETE through one is a deletion for all and the close order cannot pick a
-    /// surviving view. A placeholder until OPEN attaches (and again after CLOSE detaches).</summary>
+    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees ONE
+    /// tree, so a DELETE through one is a deletion for all. A placeholder until OPEN attaches (and again after CLOSE
+    /// detaches). Every change goes through the store's own <c>Insert</c>/<c>Replace</c>/<c>Delete</c>, each one
+    /// statement of the page layer; there is no second way to change it (kb/Work PB739).</summary>
     private RelativeStore _st = new();
 
-    /// <summary>The sparse slot store: RRN (1-based, §12.4.5.13 GR1) → record image — the ATTACHED store's,
-    /// READ-ONLY. Every mutation goes through the store's own Put/Remove/Clear, which maintain its
-    /// high-water mark; there is deliberately no second way to change it (kb/Work PB739).</summary>
-    private IReadOnlyDictionary<long, StoredFrame> _slots => _st.Slots;
+    /// <summary>Whether this connector is attached to <see cref="_st"/> (and its handle to the store's medium).</summary>
+    private bool _attached;
 
     private long _fpi;                   // file position indicator: the current slot (§9.1.11)
     private bool _fpiValid;
@@ -65,9 +71,9 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>  (Write sets <see cref="_lastSlot"/> to the released RRN on success, §14.9.51 GR29)
     public override string LastWrittenRecordId => LastReadRecordId;
 
-    // RECORD IS VARYING: the RecordFraming store already carries each record's exact length, so a varying
-    // record persists at the length it was written (§13.18.43 GR13) and reports it on READ (GR15);
-    // WRITE/REWRITE outside the VaryMin/VaryMax bounds is the GR14/§14.9.35 GR20 '44'.
+    // RECORD IS VARYING: each record's frame carries its exact length, so a varying record persists at the length it
+    // was written (§13.18.43 GR13) and reports it on READ (GR15); WRITE/REWRITE outside the VaryMin/VaryMax bounds is
+    // the GR14/§14.9.35 GR20 '44'.
 
     public RelativeConnector(string hostPath, int recordWidth, KeyedAccess access, int relativeKeyDigits,
         int varyMin = -1, int varyMax = -1)
@@ -89,13 +95,62 @@ public sealed class RelativeConnector : KeyedConnector
     /// determination (kb/Work PB235).</summary>
     public override PhysicalFileCategory Category => PhysicalFileCategory.NonSequential;
 
+    // ── The engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1) ─────────────────────────────────────
+
+    /// <inheritdoc/>
+    /// <remarks>The paged store's COMMITTED META, read from pages 0 and 1 (<see cref="MetaPage.Describes"/>, 2.2.1.9).</remarks>
+    private protected override StoreFormat RecordedAttributes(out FixedFileAttributes? recorded) =>
+        MetaPage.Describes(HostPath, out recorded);
+
+    /// <inheritdoc/>
+    /// <remarks>⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector —
+    /// a <c>SHARING WITH READ ONLY</c> writer against the INPUT reader §9.1.15 2) admits beside it (2.2.1.7, finding
+    /// R2-6) — and only <c>SHARING WITH NO OTHER</c> runs without the mutex.</remarks>
+    private protected override bool CoherentUnder(FileShare share) => FileLockPosture.AdmitsAnotherRunUnit(share);
+
+    /// <inheritdoc/>
+    /// <remarks>The engine keeps no buffer of its own: the input-output areas are the page cache's floor, one page each
+    /// (2.2.1.13), raised when the connector attaches (<see cref="Attach"/>).</remarks>
+    private protected override void AllocateAreas() { }
+
+    /// <inheritdoc/>
+    private protected override void ReleaseAreas() { }
+
+    /// <inheritdoc/>
+    /// <remarks>2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved
+    /// it (its roots, its ledger, the page cache dropped); a writer also takes the mints and resolves a PROMOTING flag.
+    /// A store with no file (an absent OPTIONAL file read INPUT) has nothing to enter.</remarks>
+    private protected override bool EnterStore() => _st.File is not { } file || file.Enter() == StoreStatus.Ok;
+
+    /// <inheritdoc/>
+    private protected override string CompleteStore(string status) => status;
+
+    /// <inheritdoc/>
+    private protected override KeyedStore AttachedStore => _st;
+
+    /// <summary>Whether this statement's coherent entry already read page 2 (the registry's statement around the
+    /// verb), so the change's own statement need not read it again.</summary>
+    private bool Entered => _st.StatementDepth > 0;
+
+    /// <summary>The I-O status a store operation's failure answers: '24' for the boundary of the physical file
+    /// (§14.9.51.4 GR33 b), 2.2.1.9), otherwise §9.1.13.6 item 1's '30'; null on success.</summary>
+    private static string? Failed(StoreStatus status) => status switch
+    {
+        StoreStatus.Ok => null,
+        StoreStatus.Boundary => FileStatusCode.BoundaryViolation,
+        _ => FileStatusCode.PermanentError,
+    };
+
     // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
 
     /// <summary>The relative OPEN body. GR14: INPUT/I-O position the FPI at 1; GR15: EXTEND positions after the
     /// highest existing RRN; GR17: an absent OPTIONAL file on I-O/EXTEND is created ('05'); §9.1.13.6 item 5: an
     /// absent NON-optional file on INPUT/I-O/EXTEND is '35' — the already-open '41' guard, the attempted-mode
     /// bookkeeping, the position reset, the ONE presence probe behind <paramref name="presence"/>, GR3's
-    /// authority '37' and the '37'/'30' exception mapping live on <see cref="FileConnector.Open"/>.</summary>
+    /// authority '37' and the '37'/'30' exception mapping live on <see cref="FileConnector.Open"/>.
+    /// <para>The store is adopted or created under the store mutex (2.2.1.7, R6): a damaged store — both committed
+    /// slots fail — or a refused read, write or sync is §9.1.13.6 item 1's '30', and the OPEN is unsuccessful
+    /// (<see cref="AbandonOpen"/> detaches what it attached).</para></summary>
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _pendingKey = 0;
@@ -113,47 +168,37 @@ public sealed class RelativeConnector : KeyedConnector
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
                     // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here.
-                    Attach();                            // empty — the file is absent
+                    AttachAbsent();                      // no file, no records
                     status = FileStatusCode.OptionalFileNotFound;
                     break;
                 }
                 TakeFileLock(create: false);             // §9.1.15 — the lock, before the store is read through it
-                Attach();
+                if (Attach(create: false) is { } refusedInput) return refusedInput;
                 break;
             case FileOpenMode.Output:
                 TakeFileLock(create: true);              // §14.9.27.4 GR18 — OUTPUT creates the physical file
-                AttachCreated();                         // a new, EMPTY store no other connector holds (kb/Work PB754)
-                Persist(_st);                            // a new physical file; the header IS its §9.1.6 attributes
+                if (Attach(create: true) is { } refusedOutput) return refusedOutput;   // a new, EMPTY store (kb/Work PB754)
                 break;
             case FileOpenMode.IO:
-                if (!exists)
-                {
-                    if (!IsOptional) return FileStatusCode.FileNotFound;
-                    TakeFileLock(create: true);
-                    Attach();                            // empty by construction: the file was absent (kb/Work PB754)
-                    Persist(_st);                        // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
-                    status = FileStatusCode.OptionalFileNotFound;
-                    break;
-                }
-                TakeFileLock(create: false);
-                Attach();
-                break;
             case FileOpenMode.Extend:
                 if (!exists)
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     TakeFileLock(create: true);
-                    Attach();                            // empty by construction: the file was absent (kb/Work PB754)
-                    Persist(_st);                        // §14.9.27 GR17
+                    // Created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17): the file the lock just created has no bytes,
+                    // and the adoption of a file of no bytes through a writable handle creates the empty store.
+                    if (Attach(create: false) is { } refusedCreated) return refusedCreated;
                     status = FileStatusCode.OptionalFileNotFound;
+                    break;
                 }
-                else { TakeFileLock(create: false); Attach(); }
-                // ⛔ NOTHING IS CAPTURED HERE (kb/Work PB739). The extend release number used to be
+                TakeFileLock(create: false);
+                if (Attach(create: false) is { } refused) return refused;
+                // ⛔ NOTHING IS CAPTURED HERE FOR EXTEND (kb/Work PB739). The extend release number used to be
                 // measured once, at this point, into a private _seqNext — and §14.9.51.4 GR29 a) says in
                 // the same breath that under sharing "the record numbers are not necessarily consecutive",
                 // which can only be true of a number taken from the file AT THE RELEASE. Two connectors
                 // extending one shared file both captured 2 and the second overwrote the first record.
-                // NextSequentialSlot reads the live store instead; §14.9.27 GR15's positioning IS that
+                // NextSequentialSlot reads the live tree instead; §14.9.27 GR15's positioning IS that
                 // reading, not a saved base.
                 break;
         }
@@ -163,75 +208,76 @@ public sealed class RelativeConnector : KeyedConnector
         return status;
     }
 
-    /// <summary>Attach the per-physical-file store (kb/Work PB143): the LIVE store when another connector holds
-    /// this host open (its content is the truth — never reloaded from disk), else a fresh one loaded from disk.
-    /// With no registry table (a standalone connector), a private freshly-loaded store — the pre-PB143 shape.</summary>
-    private void Attach()
+    /// <summary>Attach the per-physical-file store (kb/Work PB143) and open it through this connector's handle: the
+    /// LIVE store when another connector of the run unit holds this host open (its tree is the truth — never re-read,
+    /// but opened again through a writable handle when it had none, which fences), else a new one adopted from the
+    /// file (2.2.1.6 R6) or, for <paramref name="create"/> — <c>OPEN OUTPUT</c> — created empty, held by no other
+    /// connector (<see cref="KeyedStoreTable.AttachCreated{T}"/>, kb/Work PB754). With no registry table (a standalone
+    /// connector), a private store. Returns the failing I-O status, or null.</summary>
+    private string? Attach(bool create)
     {
-        if (SharedStores is { } t) { _st = t.AttachRelative(HostPath, Load); return; }
-        var s = new RelativeStore();
-        Load(s);
-        _st = s;
+        var store = SharedStores is { } table
+            ? create ? table.AttachCreated<RelativeStore>(HostPath) : table.AttachRelative(HostPath)
+            : new RelativeStore();
+        _st = store;
+        _attached = true;
+        store.AttachHandle(StoreHandle!, StoreHandleWritable,
+            HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
+        var opened = InStoreMutex(() => create
+            ? store.Create(DeclaredAttributes, Coherent)
+            : store.Open(StoreHandleWritable, Coherent, DeclaredAttributes));
+        return Failed(opened);
     }
 
-    /// <summary>Attach to the store an <c>OPEN OUTPUT</c> is creating — empty, and held by no other connector
-    /// (<see cref="KeyedStoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
-    private void AttachCreated() =>
-        _st = SharedStores is { } t ? t.AttachCreated<RelativeStore>(HostPath) : new RelativeStore();
-
-    /// <inheritdoc/>
-    private protected override KeyedStore AttachedStore => _st;
-
-    /// <inheritdoc/>
-    /// <remarks>A relative store has no release order, so <paramref name="releaseMint"/> is not read.</remarks>
-    private protected override void Fill(KeyedStore into, List<StoredFrame?> frames, long releaseMint)
+    /// <summary>Attach to the store of an absent OPTIONAL file opened INPUT: no handle and no records.</summary>
+    private void AttachAbsent()
     {
-        var store = (RelativeStore)into;
-        store.Clear();
-        FaultPointReloadFilling();
-        for (int i = 0; i < frames.Count; i++)
-            if (frames[i] is { } rec)
-                store.Put(i + 1, rec);       // slot ordinal = frame ordinal (1-based RRN, §12.4.5.13 GR1)
+        _st = SharedStores is { } table ? table.AttachRelative(HostPath) : new RelativeStore();
+        _attached = true;
+    }
+
+    /// <summary>Leave the store: this connector's handle off its medium, and the table's attachment given back.</summary>
+    private void Detach()
+    {
+        if (!_attached) return;
+        if (StoreHandle is { } handle) _st.DetachHandle(handle);
+        SharedStores?.Detach(HostPath);
+        _attached = false;
+        _st = new RelativeStore();
     }
 
     /// <inheritdoc/>
-    /// <remarks>The slots LAZILY, gaps included — never a dense array sized by the highest RRN (kb/Work PB1192).</remarks>
-    private protected override IEnumerable<StoredFrame?> PersistFrames() => _st.Ordinal();
+    protected override void AbandonOpen()
+    {
+        try { Detach(); }
+        finally { base.AbandonOpen(); }
+    }
 
-    /// <inheritdoc/>
-    /// <remarks>A relative record is identified by its relative record number, never by a release order.</remarks>
-    private protected override long ReleaseMint => 0;
-
-    /// <summary>The relative CLOSE body (ISO §14.9.6): a writable mode persists the store — including via the
-    /// run-unit-termination <c>CloseAll</c>, which keyed chains (RL208A) depend on. The not-open '42' guard
-    /// lives on <see cref="FileConnector.Close"/>.</summary>
+    /// <summary>The relative CLOSE body (ISO §14.9.6): through a writable handle the store's PROMOTION (2.2.1.6 R5) —
+    /// the work meta made a committed slot, synced — under the store mutex, so the next OPEN verifies the retirement's
+    /// few pages and nothing else; the records themselves were written by the statements that changed them. The
+    /// run-unit-termination <c>CloseAll</c> reaches it too, which keyed chains (RL208A) depend on. The not-open '42'
+    /// guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
-        // A persist IOException maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping),
-        // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
-        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file
-        // position indicator is unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
-        // The DETACH runs whatever the persist outcome (kb/Work PB143): the connector leaves the shared
-        // store, and never aliases a detached one.
+        // A refused promotion maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping), which ends
+        // the open mode either way; ModeKnown then stays true for the USE-declarative scoping. The records survive it:
+        // page 2 already names the last completed statement's tree (2.2.1.6), so the next OPEN adopts it. OptionalAbsent
+        // (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 says the file position indicator is
+        // unchanged; the next OPEN resets it (FileConnector.Open) — kb/Work PB140.
         try
         {
-            bool owed = !OptionalAbsent && Mode is not FileOpenMode.Input;
-            // ⛔ A PERSIST THAT CANNOT REACH THE FILE IS NOT A SUCCESSFUL CLOSE (kb/Work PB771). The only way
-            // to get here without the handle is a writable arm that never took the file lock (an invariant
-            // breach); reporting '00' over records this connector still holds would be the silent loss this note
-            // exists to remove.
-            if (!PersistIsReachable(owed))
-                throw new IOException($"the §9.1.15 file lock on '{HostPath}' was not held at the CLOSE, "
-                    + "so the record store cannot be persisted");
-            if (owed) PersistIfChanged(_st);
+            if (!OptionalAbsent && StoreHandleWritable && _st.File is { Writable: true } file
+                && InStoreMutex(file.Close) != StoreStatus.Ok)
+                throw new IOException($"the medium refused the CLOSE's promotion of '{HostPath}'");
         }
         finally
         {
             // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
-            // file connector", whatever the persist outcome was (kb/Work PB771).
-            ReleaseFileLock();
-            SharedStores?.Detach(HostPath);
-            _st = new RelativeStore();
+            // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
+            // its medium reads through is still open.
+            try { Detach(); }
+            finally { ReleaseFileLock(); }
         }
         ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
@@ -255,16 +301,18 @@ public sealed class RelativeConnector : KeyedConnector
     /// position indicator set by a prior OPEN or START selects "the first existing record that is selected …
     /// regardless of whether NEXT or PREVIOUS is specified" (the inclusive bound), one set by a prior READ
     /// selects the first existing relative key number greater than it under NEXT and less than it under
-    /// PREVIOUS. <see langword="null"/> is rule e)'s at-end condition.
+    /// PREVIOUS. A null <paramref name="slot"/> is rule e)'s at-end condition; with <paramref name="withValue"/> the
+    /// record's frame bytes come with it, from the same walk. Each rule is ONE SEEK of the tree (O(log n) pages, kb/Work
+    /// PB2755: the map it replaced walked every key from the lowest).
     /// <para>⛔ SELECTION ONLY — IT COMMITS NOTHING (kb/Work PB338). Splitting it out of the read is what lets
     /// <see cref="PeekSequentialRecordId"/> answer GR9's "the record identified for access" BEFORE the position
     /// moves, without a second copy of these rules living in the peek.</para></summary>
-    private long? SelectSequentialSlot(bool previous)
+    private StoreStatus SelectSequentialSlot(bool previous, bool withValue, out long? slot, out byte[]? value)
     {
         // ⛔ RULE b) IS DIRECTION-BLIND, AND IT IS THE WHOLE RULE FOR AN INCLUSIVE INDICATOR (kb/Work PB343).
         // §14.9.30.4 GR21, "When the file is a relative file": "b) If the file position indicator was
         // established by a prior successful OPEN or START statement, the first existing record that is selected
-        // is made available, regardless of whether NEXT or PREVIOUS is specified." One walk serves both
+        // is made available, regardless of whether NEXT or PREVIOUS is specified." One seek serves both
         // directions, so `previous` is not consulted at all here: the answer is the first existing record at or
         // after the indicator. That is well defined for every way an inclusive indicator can arise —
         // §14.9.41.4 GR9 a)/b), GR11 and GR12 only ever set a RELATIVE file's indicator to "the relative record
@@ -282,35 +330,24 @@ public sealed class RelativeConnector : KeyedConnector
         // b) reads identically in 2002, 2014 and 2023, this selection takes NO edition parameter —
         // docs/COBOLNET_FILES_DESIGN.md, "READ PREVIOUS is not COBOL-85"; VERSION_CHANGE_REFERENCE row 29 is
         // the indexed leg only.
-        if (_inclusive)
-        {
-            foreach (long k in _slots.Keys) if (k >= _fpi) return k;   // rule b) — ascending, direction ignored
-            return null;                                              // rule e) — no record found: the at end condition
-        }
         // Rule c) — an indicator established by a prior successful READ is EXCLUSIVE and the direction selects:
         // "the first existing record in the physical file whose relative key number is greater than the file
         // position indicator if NEXT is specified or implied or is less than the file position indicator if
         // PREVIOUS is specified is selected".
-        long? slot = null;
-        if (previous)
-        {
-            foreach (long k in _slots.Keys) { if (k < _fpi) slot = k; else break; }
-        }
-        else
-        {
-            foreach (long k in _slots.Keys) if (k > _fpi) { slot = k; break; }
-        }
-        return slot;
+        var relation = _inclusive ? SeekRelation.GreaterOrEqual            // rule b) — ascending, direction ignored
+            : previous ? SeekRelation.LessThan : SeekRelation.GreaterThan;  // rule c)
+        return _st.Seek(_fpi, relation, withValue, out slot, out value);
     }
 
     /// <inheritdoc/>
     /// <remarks>The relative organization's §14.9.30.4 GR9 pre-read conflict target: the RRN
     /// <see cref="SelectSequentialSlot"/> names. The remaining precondition beyond
     /// <c>SequentialReadReachesRetrieval</c> is a valid file position indicator (a failed START leaves
-    /// none — §14.9.41.4 GR7).</remarks>
+    /// none — §14.9.41.4 GR7). A torn page names no record; the READ itself then answers '30'.</remarks>
     public override string PeekSequentialRecordId(bool previous) =>
-        SequentialReadReachesRetrieval && _fpiValid && SelectSequentialSlot(previous) is { } s
-            ? s.ToString(System.Globalization.CultureInfo.InvariantCulture)
+        SequentialReadReachesRetrieval && _fpiValid
+        && SelectSequentialSlot(previous, withValue: false, out var s, out _) == StoreStatus.Ok && s is { } slot
+            ? slot.ToString(System.Globalization.CultureInfo.InvariantCulture)
             : "";
 
     /// <inheritdoc/>
@@ -321,7 +358,8 @@ public sealed class RelativeConnector : KeyedConnector
     public override string PeekRandomReadRecordId(int keyIndex, string recordImage, RecordExtents? recordExtents)
     {
         _ = keyIndex; _ = recordImage;
-        return ReadOpenModeGuard() is null && !OptionalAbsent && _slots.ContainsKey(_pendingKey)
+        return ReadOpenModeGuard() is null && !OptionalAbsent
+            && _st.Get(_pendingKey, out var value) == StoreStatus.Ok && value is not null
             ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture)
             : "";
     }
@@ -332,16 +370,18 @@ public sealed class RelativeConnector : KeyedConnector
         if (SequentialReadGuard() is { } pre) return Unsuccessful(pre);   // '47'/'46'/'10' — FileConnector
         if (!_fpiValid) return Unsuccessful(FileStatusCode.NoValidNextRecord);   // '46' §9.1.13.7 6a (failed START)
 
-        if (SelectSequentialSlot(previous) is not { } s) return Unsuccessful(FileStatusCode.AtEnd);   // §14.9.30 GR24b
-        if (_keyDigits > 0 && s.ToString().Length > _keyDigits)
+        if (SelectSequentialSlot(previous, withValue: true, out var found, out var value) is not StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);              // a torn page: '30' §9.1.13.6 item 1
+        if (found is not { } s) return Unsuccessful(FileStatusCode.AtEnd);   // §14.9.30 GR24b
+        if (_keyDigits > 0 && s.ToString(System.Globalization.CultureInfo.InvariantCulture).Length > _keyDigits)
         {
             // §14.9.30 GR21 relative rule d: significant digits of the RRN exceed the RELATIVE KEY item → '14',
             // the at-end condition, FPI invalidated.
             return Unsuccessful(FileStatusCode.RelativeKeyOverflow);
         }
+        if (Decoded(value) is not { } read) return Unsuccessful(FileStatusCode.PermanentError);
         _fpi = s; _fpiValid = true; _inclusive = false;   // GR21 rule f + rule c's exclusive bound
         _lastSlot = s;
-        var read = _slots[s];
         NoteRecordRead(read.Image, read.Extents);   // §13.18.43 GR15 — the stored frame length
         image = Fit(read.Image);
         return ReadSucceeded(FileStatusCode.Success);
@@ -354,8 +394,10 @@ public sealed class RelativeConnector : KeyedConnector
         image = BlankRecordArea();
         if (ReadOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);            // '47' §14.9.30.4 GR2
         if (RandomReadAbsentOptionalGuard() is { } absent) return Unsuccessful(absent);  // '23' §9.1.13.5 3 b)
-        if (!_slots.TryGetValue(_pendingKey, out StoredFrame rec))
-            return Unsuccessful(FileStatusCode.RecordNotFound);            // '23' §9.1.13.5 3a
+        if (_st.Get(_pendingKey, out var value) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §9.1.13.6 item 1
+        if (value is null) return Unsuccessful(FileStatusCode.RecordNotFound);   // '23' §9.1.13.5 3a
+        if (Decoded(value) is not { } rec) return Unsuccessful(FileStatusCode.PermanentError);
         _fpi = _pendingKey; _fpiValid = true; _inclusive = false;
         _lastSlot = _pendingKey;
         NoteRecordRead(rec.Image, rec.Extents);   // §13.18.43 GR15 — the stored frame length
@@ -363,32 +405,36 @@ public sealed class RelativeConnector : KeyedConnector
         return ReadSucceeded(FileStatusCode.Success);
     }
 
+    /// <summary>The record a tree value holds, in the native character set (§13.18.13.4 GR6 a)); null for a value this
+    /// writer cannot have produced — the torn page it is ('30').</summary>
+    private StoredFrame? Decoded(byte[]? value) => value is null ? null : RecordFraming.DecodeFrame(value, 0, CodeSet);
+
     // ── WRITE / REWRITE / DELETE (ISO §14.9.51 / §14.9.35 / §14.9.10) ───────────────────────────────────────
 
     /// <summary>⛔ THE HIGHEST RELATIVE RECORD NUMBER PERMITTED FOR A RELATIVE FILE — ISO §14.9.51.4 GR29 b)'s
     /// <i>"If the relative key data item contains a value that is less than 1 or greater than the highest relative
     /// record number permitted for the file, the execution of the WRITE statement is unsuccessful, and the I O
     /// status for the write file connector is set to '34'"</i>. The implementor's number (Annex A.1 item 107,
-    /// docs/CONFORMANCE.md <c>DOC-A.1-107</c>): 2 147 483 647. A key between the store's capacity and this
-    /// number is a well-formed relative record number that does not fit — the '24' boundary of GR33 b)
-    /// (<see cref="KeyedConnector.StoreHolds"/>), which also takes the INVALID KEY phrase; a key above it is not
-    /// a relative record number this implementation permits at all.</summary>
+    /// docs/CONFORMANCE.md <c>DOC-A.1-107</c>): 2 147 483 647 — the §12.4.5.13 key item's domain, a determination the
+    /// engine's tree (which would hold 2^63 keys) need not change (2.2.1.9). A key above it is not a relative record
+    /// number this implementation permits at all; a key below it is one leaf entry however sparse the file.</summary>
     public const long HighestRelativeRecordNumber = int.MaxValue;
 
     /// <summary>WRITE (§14.9.51.4 GR29): sequential access releases consecutive RRNs (OUTPUT from 1, EXTEND from
     /// highest+1); RRN digit overflow of the key item → invalid key '24' (GR29a/GR33c). Random/dynamic writes the
     /// slot staged in the key item: occupied → '22' (GR33a), key &lt; 1 or above
-    /// <see cref="HighestRelativeRecordNumber"/> → permanent error '34' (GR29b). A record the store cannot hold →
-    /// invalid key '24' (GR33 b), <see cref="KeyedConnector.StoreHolds"/>); a record holding a character with no
-    /// byte image → '91' (<see cref="FileConnector.RecordHasCharacterWithoutByteImage"/>). Open-mode legality per
-    /// §9.1.13.7 item 8 ('48').
+    /// <see cref="HighestRelativeRecordNumber"/> → permanent error '34' (GR29b). A record whose pages would take the
+    /// store past the boundary of the physical file (the format's 2^32 pages, or the host's maximum file size) →
+    /// invalid key '24' (GR33 b), 2.2.1.9); a medium that refuses the statement's pages → '30' (§9.1.13.6 item 1), the
+    /// file as the previous statement left it; a record holding a character with no byte image → '91'
+    /// (<see cref="FileConnector.RecordHasCharacterWithoutByteImage"/>). Open-mode legality per §9.1.13.7 item 8 ('48').
     /// <para>⛔ THE RULES ARE TESTED IN THE ORDER THE GENERAL RULES STATE THEM (docs/CONFORMANCE.md DOC-A.1-104;
     /// kb/Work PB2751): the open mode (GR3, '48'), the record size (GR14, '44') and the record's content ('91'),
     /// both through <see cref="KeyedConnector.RecordRulesFailure"/>, and only then the release rules of GR29 and the
     /// invalid key conditions of GR33. The key rules used to come first, so a too-short record written to an
     /// occupied slot answered '22' and ran the INVALID KEY phrase where GR14's '44' is a logic error.</para></summary>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
-    /// (determination D-FRA (v); kb/Work PB1053), stored and persisted with it.</param>
+    /// (determination D-FRA (v); kb/Work PB1053), stored with it.</param>
     public string Write(string image, int length = -1, RecordExtents? extents = null)
     {
         // §14.9.51.4 GR29 a) "If the access mode of the write file connector is sequential…" vs. GR29 b)
@@ -413,7 +459,7 @@ public sealed class RelativeConnector : KeyedConnector
         long slot;
         if (sequentialRelease)
         {
-            slot = NextSequentialSlot();
+            if (NextSequentialSlot(out slot) is { } torn) return Status = torn;
             if (_keyDigits > 0 && slot.ToString(System.Globalization.CultureInfo.InvariantCulture).Length > _keyDigits)
                 return Status = FileStatusCode.BoundaryViolation;          // '24' §14.9.51.4 GR29 a) / GR33 c)
         }
@@ -422,13 +468,14 @@ public sealed class RelativeConnector : KeyedConnector
             slot = _pendingKey;
             if (slot is < 1 or > HighestRelativeRecordNumber)
                 return Status = FileStatusCode.PermanentBoundary;          // '34' §14.9.51.4 GR29 b)
-            if (_slots.ContainsKey(slot)) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51.4 GR33 a)
+            if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+            if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51.4 GR33 a)
         }
-        var frame = Framed(rec, image, extents);
-        if (!StoreHolds(_st.FramedBytesAfterPut(slot, frame)))
-            return Status = FileStatusCode.BoundaryViolation;              // '24' §14.9.51.4 GR33 b)
+        var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        _st.Put(slot, frame);
+        var written = _st.Insert(slot, frame, Entered, out bool inserted);
+        if (Failed(written) is { } refused) return Status = refused;       // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
+        if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
         _lastSlot = slot;                                                  // GR29 a) — MOVEd back into the key item
         return Status = FileStatusCode.Success;
@@ -442,23 +489,30 @@ public sealed class RelativeConnector : KeyedConnector
     /// If the physical file is shared and the open mode is extend, the record numbers are not necessarily
     /// consecutive. Otherwise, they are consecutive."</i>
     /// <para>ONE expression answers all four sentences, which is why there is no captured base any more
-    /// (kb/Work PB739). <c>_st.Highest</c> is the highest RRN existing in the physical file AT THIS MOMENT,
+    /// (kb/Work PB739). The tree's LAST key is the highest RRN existing in the physical file AT THIS MOMENT,
     /// so OPEN OUTPUT (which empties the store) yields 1, OPEN EXTEND yields highest+1, an unshared file
     /// yields consecutive numbers because nothing else releases between two of this connector's writes, and
     /// a SHARED file yields the non-consecutive-but-ascending sequence the rule's own last two sentences
-    /// describe — the other connector's release has already raised the high-water mark.</para>
+    /// describe — the other connector's release has already raised the highest record number.</para>
     /// <para><c>_lastReleasedSlot</c> is the "ascending" clamp, and it is not redundant: a connector open
     /// I-O may DELETE the top record (§14.9.10.4 GR5) while this one is extending, which lowers the
     /// highest EXISTING number below one this connector already used. The record numbers it releases still
-    /// have to ascend.</para></summary>
-    private long NextSequentialSlot() => Math.Max(_st.Highest, _lastReleasedSlot) + 1;
+    /// have to ascend.</para>
+    /// Returns '30' for a torn page, or null.</summary>
+    private string? NextSequentialSlot(out long slot)
+    {
+        slot = 0;
+        if (_st.Edge(last: true, out var highest) != StoreStatus.Ok) return FileStatusCode.PermanentError;
+        slot = Math.Max(highest ?? 0, _lastReleasedSlot) + 1;
+        return null;
+    }
 
     /// <summary>REWRITE (§14.9.35): open mode must be I-O ('49', §9.1.13.7 item 9). Sequential access replaces
     /// the prior READ's record (no prior successful READ → '43', GR5); random/dynamic replaces the slot named by
-    /// the key item (absent → '23', GR21). The FPI is unaffected (GR13). A replacing record the store cannot hold
-    /// (a longer varying record, §14.9.35.4 GR18) is §9.1.13.5 item 4's "attempt … to write outside the
-    /// externally-defined boundaries" — '24', the WRITE's own boundary (<see cref="Replace"/>); one holding a
-    /// character with no byte image is '91'.</summary>
+    /// the key item (absent → '23', GR21). The FPI is unaffected (GR13). A replacing record whose pages would take
+    /// the store past the boundary of the physical file is §9.1.13.5 item 4's "attempt … to write outside the
+    /// externally-defined boundaries" — '24', the WRITE's own boundary; a medium that refuses the pages, '30'; one
+    /// holding a character with no byte image, '91'.</summary>
     /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053) — a relative record is
     /// replaced whole (GR18), so its table is replaced with it.</param>
     public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
@@ -476,24 +530,18 @@ public sealed class RelativeConnector : KeyedConnector
         // GR21 for random/dynamic access; for sequential access GR5's "the record that was accessed by the READ
         // statement", which another connector may have deleted since (§14.9.10.4 GR5: it "can no longer be
         // accessed") — the record does not exist, '23', as the indexed organization answers (DOC-A.1-104 (4)).
-        if (!_slots.ContainsKey(slot)) return Status = FileStatusCode.RecordNotFound;           // '23'
-        return Status = Replace(slot, rec, image, extents);
-    }
-
-    /// <summary>The REWRITE's one replacement, after its own target, size and content rules: the boundary ('24')
-    /// test every write of a record into this store answers, then the replacement.</summary>
-    private string Replace(long slot, string stored, string image, RecordExtents? extents)
-    {
-        var frame = Framed(stored, image, extents);
-        if (!StoreHolds(_st.FramedBytesAfterPut(slot, frame))) return FileStatusCode.BoundaryViolation;   // '24'
-        if (RefusedAtCommit() is { } lockRefused) return lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        _st.Put(slot, frame);
-        return FileStatusCode.Success;
+        if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (present is null) return Status = FileStatusCode.RecordNotFound;                     // '23'
+        var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
+        if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
+        var replaced = _st.Replace(slot, frame, Entered, out bool done);
+        if (Failed(replaced) is { } refused) return Status = refused;      // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
+        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
     /// <summary>DELETE RECORD (§14.9.10): open mode must be I-O ('49', GR1). Sequential access removes the prior
     /// READ's record ('43' without one, GR2); random/dynamic removes the slot named by the key item (absent →
-    /// invalid key '23', GR4). The FPI is unaffected (GR9).</summary>
+    /// invalid key '23', GR4). The FPI is unaffected (GR9). A medium that refuses the statement's pages → '30'.</summary>
     public string Delete()
     {
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
@@ -503,8 +551,11 @@ public sealed class RelativeConnector : KeyedConnector
         // GR4's invalid key for random/dynamic access; for sequential access GR2's "the record that was accessed by
         // that READ statement", which another connector may have deleted since — '23', not a success over nothing
         // (kb/Work PB2751; the indexed organization's answer, DOC-A.1-104 (4)).
-        if (!_st.Remove(sequential ? _lastSlot : _pendingKey)) return Status = FileStatusCode.RecordNotFound;
-        return Status = FileStatusCode.Success;
+        long slot = sequential ? _lastSlot : _pendingKey;
+        if (slot < 1) return Status = FileStatusCode.RecordNotFound;
+        var deleted = _st.Delete(slot, Entered, out bool done);
+        if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1
+        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
     // ── START (ISO §14.9.41) ─────────────────────────────────────────────────────────────────────────────────
@@ -512,20 +563,26 @@ public sealed class RelativeConnector : KeyedConnector
     /// <summary>START KEY rel-op (GR9): a NUMERIC comparison over RRNs against <paramref name="operand"/> (the
     /// RELATIVE KEY item's value, GR10) — forward search for =, &gt;, &gt;=; REVERSE search for &lt;, &lt;= (the
     /// first record satisfying the comparison searching the file in reverse order, GR9b). Not satisfied → invalid
-    /// key '23' with the FPI invalidated (GR7/GR9c). Open mode must be input or I-O (GR1 → '47').</summary>
+    /// key '23' with the FPI invalidated (GR7/GR9c). Open mode must be input or I-O (GR1 → '47'). Each comparison is
+    /// one SEEK of the tree, whose key order IS the numeric order of the record numbers (2.2.1.4).</summary>
     public string Start(string op, long operand)
     {
         if (StartOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);   // '47' §14.9.41.4 GR1 + GR7
         if (OptionalAbsent) return StartFail();                           // '23' §14.9.41 GR5
-        long? found = null;
-        switch (op)
+        var relation = op switch
         {
-            case "==": if (_slots.ContainsKey(operand)) found = operand; break;
-            case ">": foreach (long k in _slots.Keys) if (k > operand) { found = k; break; } break;
-            case ">=": foreach (long k in _slots.Keys) if (k >= operand) { found = k; break; } break;
-            case "<": foreach (long k in _slots.Keys) { if (k < operand) found = k; else break; } break;
-            case "<=": foreach (long k in _slots.Keys) { if (k <= operand) found = k; else break; } break;
-        }
+            "==" => SeekRelation.Equal,
+            ">" => SeekRelation.GreaterThan,
+            ">=" => SeekRelation.GreaterOrEqual,
+            "<" => SeekRelation.LessThan,
+            "<=" => SeekRelation.LessOrEqual,
+            _ => throw new ArgumentException($"'{op}' is not a START relational operator", nameof(op)),
+        };
+        // A key below 1 names no record: = and the reverse comparisons find none, and the forward ones start below the
+        // lowest record number, where the seek from 0 starts too.
+        if (operand < 1 && relation is SeekRelation.Equal) return StartFail();
+        if (_st.Seek(operand, relation, withValue: false, out var found, out _) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §9.1.13.6 item 1
         return found is { } f ? StartAt(f) : StartFail();
     }
 
@@ -534,8 +591,9 @@ public sealed class RelativeConnector : KeyedConnector
     public string StartFirstLast(bool last)
     {
         if (StartOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);   // '47' §14.9.41.4 GR1 + GR7
-        if (OptionalAbsent || _slots.Count == 0) return StartFail();
-        return StartAt(last ? _st.Highest : _slots.Keys.Min());
+        if (OptionalAbsent) return StartFail();
+        if (_st.Edge(last, out var edge) != StoreStatus.Ok) return Unsuccessful(FileStatusCode.PermanentError);
+        return edge is { } e ? StartAt(e) : StartFail();
     }
 
     private string StartAt(long slot)
