@@ -22,6 +22,12 @@ internal enum StoreFormat
     /// It is not a store this processor can interpret, so GR10's answer is '39': LOUD, where reading it as
     /// frames would be a silent misread.</summary>
     Foreign,
+
+    /// <summary>A PAGED store (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of
+    /// whose three meta pages carries this format's magic but neither COMMITTED slot validates: the store's own format,
+    /// damaged beyond what it can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it
+    /// with §9.1.13.6 item 1's '30' (2.2.1.6 R6 step 1). Only <c>Store.MetaPage.Describes</c> answers it.</summary>
+    Damaged,
 }
 
 /// <summary>One record as it travels with its EXTENT TABLE (determination D-FRA (v); kb/Work PB1053) — between a
@@ -460,31 +466,64 @@ internal static class RecordFraming
         BinaryPrimitives.WriteUInt64LittleEndian(head.AsSpan(GenerationOffset), generation);
         BinaryPrimitives.WriteInt64LittleEndian(head.AsSpan(ReleaseMintOffset), releaseMint);
         fs.Write(head, 0, head.Length);
-        Span<byte> word = stackalloc byte[4];
         foreach (var k in a.Keys)
+            WriteKeyDescriptor(fs, k);
+    }
+
+    /// <summary>Write one key's descriptor — its segment count and (offset, length) windows, its DUPLICATES flag, its
+    /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §9.1.6 fixed attributes, shared by
+    /// this header and the paged store's meta page (<c>Store.MetaPage</c>, docs/rearchitecture/DESIGN-runtime-library.md
+    /// 2.2.1.4), so the two formats cannot record a key differently. <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
+    internal static void WriteKeyDescriptor(Stream fs, FixedFileAttributes.KeyDescriptor k)
+    {
+        Span<byte> word = stackalloc byte[4];
+        BinaryPrimitives.WriteInt32LittleEndian(word, k.Segments.Count);
+        fs.Write(word);
+        foreach (var s in k.Segments)
         {
-            BinaryPrimitives.WriteInt32LittleEndian(word, k.Segments.Count);
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Offset);
             fs.Write(word);
-            foreach (var s in k.Segments)
-            {
-                BinaryPrimitives.WriteInt32LittleEndian(word, s.Offset);
-                fs.Write(word);
-                BinaryPrimitives.WriteInt32LittleEndian(word, s.Length);
-                fs.Write(word);
-            }
-            fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
-            // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
-            // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
-            // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The header records what the
-            // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
-            // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
-            // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
-            // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.
-            WriteCodeUnits(fs, k.Suppress);
-            byte[] collation = Encoding.ASCII.GetBytes(k.Collation);
-            fs.WriteByte((byte)collation.Length);
-            fs.Write(collation, 0, collation.Length);
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Length);
+            fs.Write(word);
         }
+        fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
+        // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
+        // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
+        // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The header records what the
+        // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
+        // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
+        // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
+        // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.
+        WriteCodeUnits(fs, k.Suppress);
+        byte[] collation = Encoding.ASCII.GetBytes(k.Collation);
+        fs.WriteByte((byte)collation.Length);
+        fs.Write(collation, 0, collation.Length);
+    }
+
+    /// <summary>The inverse of <see cref="WriteKeyDescriptor"/> from the stream's current position; null when the bytes
+    /// end inside the descriptor or are not one this build writes.</summary>
+    internal static FixedFileAttributes.KeyDescriptor? ReadKeyDescriptor(Stream fs)
+    {
+        var word = new byte[4];
+        if (!FillExactly(fs, word)) return null;
+        int segmentCount = BinaryPrimitives.ReadInt32LittleEndian(word);
+        if (segmentCount < 1 || segmentCount > MaxKeySegments) return null;
+        var segments = new KeySegment[segmentCount];
+        for (int s = 0; s < segmentCount; s++)
+        {
+            if (!FillExactly(fs, word)) return null;
+            int off = BinaryPrimitives.ReadInt32LittleEndian(word);
+            if (!FillExactly(fs, word)) return null;
+            segments[s] = new KeySegment(off, BinaryPrimitives.ReadInt32LittleEndian(word));
+        }
+        int dup = fs.ReadByte();
+        if (dup < 0) return null;
+        if (!ReadCodeUnits(fs, out string? suppress)) return null;
+        int collLen = fs.ReadByte();
+        if (collLen < 0) return null;
+        var coll = new byte[collLen];
+        if (!FillExactly(fs, coll)) return null;
+        return new FixedFileAttributes.KeyDescriptor(segments, dup != 0, suppress, Encoding.ASCII.GetString(coll));
     }
 
     /// <summary>Write an optional string as a little-endian Int32 code-unit count biased by one (0 = absent), then
@@ -540,28 +579,10 @@ internal static class RecordFraming
         if (min < 0 || max < 0) return null;
         int count = BinaryPrimitives.ReadUInt16LittleEndian(head.AsSpan(18));
         var keys = new List<FixedFileAttributes.KeyDescriptor>(count);
-        var word = new byte[4];
         for (int i = 0; i < count; i++)
         {
-            if (!FillExactly(fs, word)) return null;
-            int segmentCount = BinaryPrimitives.ReadInt32LittleEndian(word);
-            if (segmentCount < 1 || segmentCount > MaxKeySegments) return null;
-            var segments = new KeySegment[segmentCount];
-            for (int s = 0; s < segmentCount; s++)
-            {
-                if (!FillExactly(fs, word)) return null;
-                int off = BinaryPrimitives.ReadInt32LittleEndian(word);
-                if (!FillExactly(fs, word)) return null;
-                segments[s] = new KeySegment(off, BinaryPrimitives.ReadInt32LittleEndian(word));
-            }
-            int dup = fs.ReadByte();
-            if (dup < 0) return null;
-            if (!ReadCodeUnits(fs, out string? suppress)) return null;
-            int collLen = fs.ReadByte();
-            if (collLen < 0) return null;
-            var coll = new byte[collLen];
-            if (!FillExactly(fs, coll)) return null;
-            keys.Add(new FixedFileAttributes.KeyDescriptor(segments, dup != 0, suppress, Encoding.ASCII.GetString(coll)));
+            if (ReadKeyDescriptor(fs) is not { } key) return null;
+            keys.Add(key);
         }
         return new FixedFileAttributes(org, head[9] == (byte)'V', min, max, keys);
     }
