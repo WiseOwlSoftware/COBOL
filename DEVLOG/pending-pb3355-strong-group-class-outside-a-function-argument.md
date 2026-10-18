@@ -31,3 +31,8 @@ function-argument position or a listed lattice consumer. START's generic-key SR6
 for a strongly-typed operand (a second record description sharing the key's bytes is refused, COBOLNET1532).
 
 **Rows.** None claimed or closed (`closes_rows: []`, reason in the note).
+
+**Gate.** First gate RED on `HostWitnessTraitDriftTests` only: the drift test carried `[Trait("Sweep", "tree")]` yet scans
+`src/Cobol.Net.Compiler/Binding`, a specific path (drift_rules.py SPECIFIC_DEPTH), so the trait was removed. Re-gate:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261018T164851Z-074753); all 22 pb3355 conformance
+cases in `leg-1-Conformance.trx` Passed. `semgrep/verify.py` PASS, `cobolnet-raw-diagnostic-code-literal` 244 -> 243 (baseline updated).
