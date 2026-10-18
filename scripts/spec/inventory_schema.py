@@ -25,7 +25,10 @@ DIVISION OF LABOUR between the two, deliberately with NO overlap:
                  Checked HERE, at record time, so a malformed batch never reaches the inventory.
   · REFERENCE  — the code-location symbol still exists, the test-ref names a test that is really on disk.
                  Checked ONLY by the C# battery gate, because it must keep holding as the tree changes underneath
-                 an already-recorded row. Re-checking it here would be the same rule in two places.
+                 an already-recorded row. Re-checking it here would be the same rule in two places. That covers a
+                 `path#Symbol` spelled in a row's `notes` prose too (kb/Work PB762); the one thing this side adds is
+                 a SHAPE rule about the record: retiring a witness may not leave its symbol in the prose
+                 (`retired_symbols_left_in_prose`).
 """
 from __future__ import annotations
 
@@ -68,13 +71,61 @@ ADJUDICATED = ("verdict", "code-location", "test-ref", "derivation", "editions",
 #: exercises the rule is an observation of it whatever the verdict says (`CODE_LOCATION_RESITES_ON_READJUDICATION`).
 WITNESS_FIELDS = ("code-location", "test-ref")
 CODE_LOCATION_RESITES_ON_READJUDICATION = True
-RETIRED_WITNESS_MARK = "retired-witness:"
+#: The mark `record_verdicts.merged` appends to a row's `notes` for each retired witness. It is DATA, the schema's
+#: `notes.retired-witness-mark`, because the C# battery gate reads the same spelling (kb/Work PB762): the gate must
+#: tell a row's PROSE from the history the writer appended after it, and two spellings of the mark would be two
+#: definitions of where the one ends and the other begins.
+RETIRED_WITNESS_MARK: str = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))["notes"]["retired-witness-mark"]
 _RETIRED_RE = re.compile(re.escape(RETIRED_WITNESS_MARK) + r"\s*(\S+)")
 
 
 def retired_witnesses(notes: str) -> set[str]:
     """The witnesses a row's `notes` records as deliberately RETIRED — see `WITNESS_FIELDS`."""
     return {m.rstrip(".,;)") for m in _RETIRED_RE.findall(notes or "")}
+
+
+def prose_of(notes: str) -> str:
+    """A row's `notes` without the retired-witness marks the writer appended: its PROSE (kb/Work PB762).
+
+    The writer only ever APPENDS a mark (`record_verdicts.merged`), so the prose is everything before the first
+    one. A retired symbol is allowed to be gone from the tree and is named in its mark for exactly that reason;
+    the prose is the part a reader takes for the present state of the code.
+    """
+    notes = notes or ""
+    at = notes.find(RETIRED_WITNESS_MARK)
+    return (notes if at < 0 else notes[:at]).rstrip()
+
+
+def symbol_of(ref: str) -> str | None:
+    """The identifier a code-location witness names, or None for a bare path. In a C# file a dotted symbol is a
+    qualified name (the gate resolves each segment, `SymbolResolves`) and the identifier is its LAST segment:
+    `FileRegistry.cs#ReadLockGovern` gives `ReadLockGovern`, `Foo.cs#Type.Member` gives `Member`. In any other
+    file the fragment is a literal anchor and stays whole (`docs/CONFORMANCE.md#DOC-A.1-19`)."""
+    path, _, fragment = ref.partition("#")
+    if not fragment:
+        return None
+    if not path.endswith(".cs"):
+        return fragment
+    return next((seg for seg in reversed(fragment.split(".")) if seg), None)
+
+
+def retired_symbols_left_in_prose(after_notes: str, retired: Iterable[str], live_locations: Iterable[str]) -> list[str]:
+    """The retired witnesses whose symbol the row's PROSE still names after a write, symbol the row no longer cites.
+
+    ⛔ THE SHAPE OF kb/Work PB762, decided from the record and the row alone (no tree): a landing renamed
+    `ReadLockGovern`, retired its witness and APPENDED a dated erratum, and the prose above the erratum kept
+    describing the method in the present tense, so five rows contradicted themselves for six weeks. Prose is the
+    PRESENT state of the code; history belongs in the retirement's reason, which the writer files behind the
+    retired-witness mark. So once a symbol is retired, the prose (the notes before the first mark) may not name it.
+    A symbol the row still cites (`live_locations`: it MOVED to another file, so the prose stays true) is exempt, and
+    so is a witness with no `#Symbol`. Rewriting the prose in some other way does not excuse it: the erratum that
+    sat beside the stale sentence is exactly the shape this refuses.
+    """
+    prose = prose_of(after_notes)
+    still_cited = {s for loc in live_locations if (s := symbol_of(loc))}
+    return [ref for ref in sorted(retired)
+            if (sym := symbol_of(ref)) and sym not in still_cited
+            and re.search(rf"(?<![A-Za-z0-9_]){re.escape(sym)}(?![A-Za-z0-9_])", prose)]
 
 
 def resites(field: str, before_verdict: str, after_verdict: str) -> bool:
