@@ -106,22 +106,59 @@ public sealed class StorageCell
     /// shifted to the same position of the copy. It is ISO §14.2.3 GR9's record "allocated by the activating runtime
     /// element" for a group whose values ride the slots (a strongly-typed group with an object-reference or pointer
     /// leaf): the copy keeps every reference, which a character image would drop, and "does not occupy the same storage
-    /// area as the argument". Only byte-offset slots are copied — the area is a group with no variable-length component
-    /// (such a group crosses on its §8.5.1.12 carrier).</summary>
-    public StorageCell CopyArea(long offset, int width)
+    /// area as the argument".
+    /// <para>⛔ A VARIABLE-LENGTH AREA CARRIES ITS COMPONENTS TOO (kb/Work PB3139): a strongly-typed variable-length group
+    /// with a reference leaf crosses on its area as well, and its dynamic-length items and dynamic-capacity tables ride
+    /// the cell's component slots (<see cref="DynAt"/>, <see cref="DynTableAt"/>), numbered across the whole cell. The
+    /// <paramref name="components"/> components from ordinal <paramref name="dynBase"/> (the area's
+    /// <see cref="CellPointer.DynBase"/>) are copied as the copy's components from ordinal zero: a dynamic-length item's
+    /// content, and a dynamic-capacity table as a detached table whose every element cell is copied whole
+    /// (<see cref="CopyWhole"/>), its references included. Zero for an area with no component.</para></summary>
+    public StorageCell CopyArea(long offset, int width, int dynBase = 0, int components = 0)
     {
         int at = checked((int)offset);
         var copy = new StorageCell { Ref = Ref.Substring(at, width) };
         if (_slots is { } m)
             foreach (var (key, value) in m)
                 if (key >= at && key < at + width) copy.SetSlotAt(key - at, value);
+        for (int k = 0; k < components; k++) copy.SetComponent(k, CopiedComponent(dynBase + k));
         return copy;
+    }
+
+    /// <summary>A detached copy of this whole cell — every character, every managed slot and every component, a
+    /// dynamic-capacity table's element cells copied whole in turn (kb/Work PB3139). An element cell of a dynamic-capacity
+    /// table is a scope of its own (its components numbered from zero), so its copy is this one.</summary>
+    private StorageCell CopyWhole()
+    {
+        var copy = new StorageCell { Ref = Ref };
+        if (_slots is { } m)
+            foreach (var (key, value) in m)
+                copy.SetSlotAt(key, value is CobolDynTable<StorageCell> table ? table.CopyOf(static e => e.CopyWhole()) : value);
+        return copy;
+    }
+
+    /// <summary>Component <paramref name="ordinal"/> as a detached value: a dynamic-length item's content (a string is
+    /// immutable, so it is its own copy) or a copy of a dynamic-capacity table; null when the cell holds neither.</summary>
+    private object? CopiedComponent(int ordinal) =>
+        SlotAt(TableKey(ordinal)) is CobolDynTable<StorageCell> table ? table.CopyOf(static e => e.CopyWhole())
+        : SlotAt(DynKey(ordinal));
+
+    /// <summary>Make component <paramref name="ordinal"/> <paramref name="value"/> — a <see cref="CopiedComponent"/>
+    /// result — replacing whatever the component held; null leaves the component in its empty state.</summary>
+    private void SetComponent(int ordinal, object? value)
+    {
+        _slots?.Remove(DynKey(ordinal));
+        _slots?.Remove(TableKey(ordinal));
+        if (value is CobolDynTable<StorageCell>) SetSlotAt(TableKey(ordinal), value);
+        else if (value is string content) SetSlotAt(DynKey(ordinal), content);
     }
 
     /// <summary>The receiving twin of <see cref="CopyArea"/> (kb/Work PB1940): make the positions of this cell from
     /// <paramref name="offset"/> hold <paramref name="source"/> — its characters, and its managed slots in place of the
-    /// ones keyed inside those positions here.</summary>
-    public void StoreArea(long offset, StorageCell source)
+    /// ones keyed inside those positions here — and make this cell's <paramref name="components"/> components from
+    /// ordinal <paramref name="dynBase"/> source's components from ordinal zero (kb/Work PB3139; the copy
+    /// <see cref="CopyArea"/> made, which this cell takes over).</summary>
+    public void StoreArea(long offset, StorageCell source, int dynBase = 0, int components = 0)
     {
         int at = checked((int)offset), width = source.Ref.Length;
         Ref = string.Concat(Ref.AsSpan(0, at), source.Ref, Ref.AsSpan(at + width));
@@ -130,6 +167,8 @@ public sealed class StorageCell
         if (source._slots is { } s)
             foreach (var (key, value) in s)
                 if (key >= 0) SetSlotAt(key + at, value);
+        for (int k = 0; k < components; k++)
+            SetComponent(dynBase + k, source.SlotAt(TableKey(k)) ?? source.SlotAt(DynKey(k)));
     }
 
     // ── THE VARIABLE-LENGTH HALF OF THE SAME AREA (kb/Work PB1026, PB1042) ──────────────────────────────────────

@@ -75,10 +75,12 @@ public static class OoStandardClasses
     /// PB1582).</summary>
     public const string NewCsName = "__New";
 
-    /// <summary>The runtime member that implements FactoryObject — the uppercase method-name, the same convention
-    /// every emitted method follows, so a COBOL <c>METHOD-ID. FactoryObject OVERRIDE.</c> adopts it as a C#
-    /// <c>override</c> exactly as it would a superclass method written in COBOL.</summary>
-    public const string FactoryObjectCsName = "FACTORYOBJECT";
+    /// <summary>The runtime member that implements FactoryObject: the virtual <c>__FactoryObject()</c> of
+    /// <c>CobolNet.Runtime.BASE</c>, which a COBOL <c>METHOD-ID. FactoryObject OVERRIDE.</c> adopts as a C#
+    /// <c>override</c> (its slot is named by <c>OoClassTable.NameMethodSlots</c>). It is NOT the uppercase method-name,
+    /// for the reason <see cref="NewCsName"/> is not: a class named FactoryObject may override it, and a C# member may not
+    /// be named like its enclosing type (CS0542; kb/Work PB3342), so the slot's name is one no class-name spells.</summary>
+    public const string FactoryObjectCsName = "__FactoryObject";
 
     /// <summary>Build one compilation group's symbol for the standard class BASE, with its §16.2 method rosters.
     /// One per <see cref="OoClassTable"/> (never a shared static): a group's pass-1 marks overrides against it,

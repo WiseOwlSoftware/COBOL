@@ -207,16 +207,24 @@ public sealed class OoClassTable
     /// <summary>⛔ THE LEAF-VECTOR CROSSING FORM (kb/Work PB1116): a strongly-typed group with NO boundary character
     /// image — §13.18.60.3 confines a subordinate object reference to a strong type declaration, so this is every
     /// strong group holding an object-reference (or class-pointer) leaf. It crosses an activation boundary as the
-    /// <c>object?[]</c> of its record struct's physical fields (<c>AsLeaves</c> / <c>OfLeaves</c>, emitted by
-    /// <c>RecordStructEmitter</c>): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
+    /// <c>object?[]</c> of its record struct's physical fields, made by the sender's <c>AsLeaves</c> and stored by the
+    /// RECEIVER's instance <c>WithLeaves</c> (both emitted by <c>RecordStructEmitter</c>; an instance store, because a
+    /// dynamic-capacity table is recreated in the receiver's own description): the two sides are of the SAME type (§14.8.2.2 / §14.8.3.2 "both shall be of the same
     /// type", decided before any carrier is chosen), so their fields correspond one to one, while their C# record
     /// structs are distinct (every TYPE clone has its own, and two equivalent type declarations in two source elements
     /// are two types) — a field-wise copy through a neutral vector is the one carrier that works between any two of
-    /// them. An object reference is copied as a reference. A variable-length strong group keeps the §8.5.1.12 carrier.
+    /// them. An object reference is copied as a reference.
+    /// <para>⛔ A VARIABLE-LENGTH STRONG GROUP IS IN WHEN IT HAS NO OTHER FORM (kb/Work PB3139). One whose current extent
+    /// composes crosses on its §8.5.1.12 carrier (<see cref="DataItem.BoundaryImageCapable"/> excludes it here); one that
+    /// holds a reference leaf has no such carrier — a pointer or object reference is no member of
+    /// <c>DataItem.CurrentExtentComposes</c>'s law — and nothing in §8.5.1.12.1 bars a strong group from being
+    /// variable-length, so §14.8.2.2 rule 2's "both shall be of the same type" makes this vector its crossing too: a
+    /// dynamic-length member rides it as its current content and a dynamic-capacity table as its current occurrences, each
+    /// in its element's form, recreated in the receiver's description (§14.6.9.2). Excluding the shape refused legal
+    /// source (COBOLNET1688 on the CALL, COBOLNET1513 on the prototype) and staged a group MOVE of it loud.</para>
     /// It is tested BEFORE <see cref="StringCarried"/>, which is true of every group.</summary>
     public static bool LeafCarried(DataItem item) =>
-        item.IsGroup && !item.BoundaryImageCapable && !item.CurrentExtentImageCapable
-        && !VariableLengthCompatibility.IsVariableLength(item) && StrongTypeModel.IsStrongGroup(item);
+        item.IsGroup && !item.BoundaryImageCapable && StrongTypeModel.IsStrongGroup(item);
 
     /// <summary>The §11.8.4 GR2 closure: direct IMPLEMENTS + everything an implemented interface INHERITS +
     /// everything an inherited CLASS implements (transitively, cycle-safe).</summary>
@@ -623,7 +631,7 @@ public sealed class OoClassTable
         void AddMethods(OoClassSymbol sym)
         {
             var ctx = sym.Ctx;
-            string name = sym.Name, csName = sym.CsName;
+            string name = sym.Name;
             foreach (var m in ctx.objectParagraph()?.methodDefinition() ?? [])
             {
                 using var atMethod = edition.At(m);
@@ -634,15 +642,9 @@ public sealed class OoClassTable
                         : NamingConvention.SetAccessorName(sel.propertyName().GetText()))
                     : m.methodName(0).GetText();
                 var pd = m.procedureDivision();
+                // The word's own spelling; a method named like a type that declares its slot is renamed by the one
+                // slot-naming rule (NameMethodSlots, kb/Work PB975 / PB3342), once every slot is known.
                 string mcs = sel is not null ? methodName : DataItem.WordIdentifier(methodName);
-                // CS0542 guard: a C# member may not be named like its enclosing type — a METHOD-ID named like
-                // its CLASS-ID is legal COBOL, so the SYMBOL renames. Derivation (kb/Work PB975): §8.3.2.2 bars
-                // one word as two types of user-defined word only "Within a source element"; §10.4 makes a method
-                // a source unit "directly contained within" its factory/instance definition, and §10.5 "A source
-                // element is a source unit excluding any contained source units" — so the method-name and the
-                // class-name sit in DIFFERENT source elements, which §8.4.6.1 lets "use identical user-defined
-                // words ... independent of the use of these user-defined words by other source elements".
-                if (mcs == csName) mcs = NamingConvention.ClassNamedMethodName(mcs);
                 var method = new OoMethodSymbol(
                     methodName,
                     HasUsing: pd?.usingClause() is not null,
@@ -893,8 +895,8 @@ public sealed class OoClassTable
     /// superclass shall not be defined with the FINAL clause"); a name match WITHOUT the attribute is the §11.7.3
     /// SR4 a) 0837 via EditionContext.Removed (error strict; warning + the pre-wave inference under --permissive — the
     /// documented migration leniency), and the override is STILL marked so 0829 signature messages stay coherent;
-    /// OVERRIDE with NO matching base method is the SR3 0838. The override adopts the base slot's CsName (C# requires
-    /// the exact member name; the class-name collision corner is COBOLNET4213, an implementation restriction). A PROPERTY clause's own accessors carry
+    /// OVERRIDE with NO matching base method is the SR3 0838. The override and the method it overrides are one slot, which
+    /// <see cref="NameMethodSlots"/> names once every override is marked (C# requires the exact member name). A PROPERTY clause's own accessors carry
     /// no OVERRIDE (its implicit METHOD-ID has none), so a clause accessor that meets a superclass method of its name
     /// is §13.18.42.3 SR4 — asked here too, by property-name, since SR4 bars the name whichever accessors either side
     /// defines.</para>
@@ -909,6 +911,7 @@ public sealed class OoClassTable
             ScreenInheritedPropertyNames(sym, factory: false, edition);
             ScreenInheritedPropertyNames(sym, factory: true, edition);
         }
+        NameMethodSlots();
     }
 
     /// <summary>ISO §13.18.42.3 SR4: "The data-name for the subject of the entry shall not be the same as a
@@ -967,12 +970,74 @@ public sealed class OoClassTable
                     + $"'{baseM.SourceName}', which is declared FINAL — a FINAL method shall not be "
                     + "overridden (ISO §11.7.3 SR3 / §11.7.4 GR3)");
             m.OverrideOf = baseM;
-            m.CsName = baseM.CsName;
-            if (m.CsName == sym.CsName)
-                edition.Error(DiagnosticCatalog.OverrideNamedLikeItsClass,
-                    $"class '{sym.Name}': the method '{m.SourceName}' overrides the inherited method of the class's own "
-                    + "name, whose emitted member name the generated class cannot declare (implementation restriction — "
-                    + "rename the class or the method)");
+        }
+    }
+
+    /// <summary>⛔ ONE C# MEMBER NAME PER METHOD SLOT, NEVER THE NAME OF A TYPE THAT DECLARES IT (kb/Work PB975, PB3342).
+    /// Every method that C# requires to share one member name is one SLOT: an override and the method it overrides
+    /// (C# overrides by name; §11.7.3 SR3 pairs them by method resolution signature), and a class's method and every
+    /// interface prototype it implements (C# implements implicitly by name; §9.3.11 pairs them by the roster key, the
+    /// externalized name, which <see cref="OoConformance.ValidateImplements"/> asks through the same
+    /// <see cref="OoClassSymbol.FindMethod"/>). A slot is named once, from the word of its first non-overriding method
+    /// in source order (a standard method's runtime name when the slot holds one), and every member takes that name.
+    /// <para>The name a slot cannot take is the name of a type that declares one of its members — the instance class,
+    /// the factory class or the interface — because a C# member may not be named like its enclosing type (CS0542).
+    /// Such a slot takes <see cref="NamingConvention.ClassNamedMethodName"/>, a prefix family no user word and no type
+    /// spells. The COBOL is legal: §8.3.2.2 bars one word as two types of user-defined word only "Within a source
+    /// element"; §10.5 "A source element is a source unit excluding any contained source units", so a method-name (a
+    /// METHOD-ID's own source element) and the object-class-name or interface-name of a definition containing it sit in
+    /// different source elements, and an override or an implementation of a method spelled like the class keeps the
+    /// legality of the method it overrides or implements. Before this rule a class's OWN method was renamed alone
+    /// (kb/Work PB975), so an override of an inherited method spelled like the class was refused (COBOLNET4213, retired)
+    /// and an implementation of a prototype spelled like the class failed in Roslyn (CS0535).</para>
+    /// <para>Run once every override is marked (<see cref="ResolveOverrides"/>), before any procedure binds an INVOKE
+    /// (<c>OoBinder</c> reads <see cref="OoMethodSymbol.CsName"/>).</para></summary>
+    private void NameMethodSlots()
+    {
+        var parent = new Dictionary<OoMethodSymbol, OoMethodSymbol>(ReferenceEqualityComparer.Instance);
+        var enclosing = new Dictionary<OoMethodSymbol, string>(ReferenceEqualityComparer.Instance);
+        var order = new List<OoMethodSymbol>();
+        void Add(OoMethodSymbol m, string type)
+        {
+            if (parent.TryAdd(m, m)) order.Add(m);
+            enclosing.TryAdd(m, type);
+        }
+        OoMethodSymbol Root(OoMethodSymbol m)
+        {
+            while (!ReferenceEquals(parent[m], m)) m = parent[m] = parent[parent[m]];
+            return m;
+        }
+        void Join(OoMethodSymbol a, OoMethodSymbol b) => parent[Root(a)] = Root(b);
+
+        foreach (var iface in _interfaces)
+            foreach (var proto in iface.Prototypes) Add(proto, iface.CsName);
+        foreach (var cls in _classes)
+        {
+            foreach (var m in cls.Methods) Add(m, cls.CsName);
+            foreach (var m in cls.FactoryMethods) Add(m, cls.FactoryCsName);
+        }
+        foreach (var cls in _classes)
+            foreach (var m in cls.Methods.Concat(cls.FactoryMethods))
+                if (m.OverrideOf is { } baseM)
+                {
+                    Add(baseM, baseM.Owner is { } o ? (baseM.IsFactory ? o.FactoryCsName : o.CsName) : "");
+                    Join(m, baseM);
+                }
+        foreach (var cls in _classes)
+            foreach (bool factory in new[] { false, true })
+                foreach (var proto in ImplementsClosure(cls, factory).SelectMany(i => i.AllPrototypes()))
+                    if ((factory ? cls.FindFactoryMethod(proto.ExternalizedName) : cls.FindMethod(proto.ExternalizedName)) is { } impl
+                        && parent.ContainsKey(impl) && parent.ContainsKey(proto))
+                        Join(impl, proto);
+
+        foreach (var slot in order.GroupBy(Root, ReferenceEqualityComparer.Instance))
+        {
+            var members = slot.ToList();
+            string name = members.FirstOrDefault(m => m.Standard is not StandardMethod.None)?.CsName
+                ?? members.First(m => m.OverrideOf is null).CsName;
+            if (members.Any(m => enclosing[m] == name)) name = NamingConvention.ClassNamedMethodName(name);
+            foreach (var m in members)
+                if (m.Standard is StandardMethod.None) m.CsName = name;
         }
     }
 }

@@ -29,9 +29,10 @@ public static class NamingConvention
     /// <summary>The <see cref="FactoryClassName"/> family's tag.</summary>
     public const string FactoryClassPrefix = "__FACTORY_";
 
-    /// <summary>The C# name of a METHOD-ID spelled like its own CLASS-ID (a C# member may not be named like its
-    /// enclosing type, CS0542; the method-name and the class-name sit in different source elements, so the COBOL is
-    /// legal — <c>OoClassTable.AddMethods</c>). A prefix family: the <c>_M</c> suffix it replaced was also the
+    /// <summary>The C# name of a method SLOT spelled like a type that declares one of its members — the class of the
+    /// method, of an override of it, or the interface of a prototype it implements (a C# member may not be named like
+    /// its enclosing type, CS0542; the method-name and the class-name sit in different source elements, so the COBOL is
+    /// legal — <c>OoClassTable.NameMethodSlots</c>, kb/Work PB3342). A prefix family: the <c>_M</c> suffix it replaced was also the
     /// spelling of the method-name <c>FOO-M</c> beside it (CS0111; kb/Work PB2921).</summary>
     public static string ClassNamedMethodName(string methodCsName) => ClassNamedMethodPrefix + methodCsName;
 
