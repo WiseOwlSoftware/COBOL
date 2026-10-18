@@ -9320,6 +9320,13 @@
   ],
   "expect": "COBOLNET0802"
  },
+ "pb1515-io-warning-07-below-2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET0878"
+ },
  "pb152-options-initialize-below-2023": {
   "refuse-at": [
    "85",
