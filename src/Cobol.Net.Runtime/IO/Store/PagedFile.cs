@@ -12,6 +12,12 @@ internal enum StoreStatus
     /// <summary>The medium refused a write, a read or a sync, a page read through a stamped pointer was torn, or the
     /// store is damaged beyond repair (both committed slots): '30'.</summary>
     PermanentError,
+
+    /// <summary>The statement's pages would take the store past the BOUNDARY of the physical file — the format's 2^32
+    /// pages, or a maximum file size the host REPORTS (<c>EFBIG</c>, <c>ERROR_FILE_TOO_LARGE</c>) — so the record that
+    /// needed them is outside the externally defined boundaries: the WRITE's or REWRITE's '24' (§14.9.51.4 GR33 b),
+    /// docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9). Nothing the statement did is reachable (R1).</summary>
+    Boundary,
 }
 
 /// <summary>How the adoption rule classified the WORK slot at OPEN (2.2.1.6 R6 step 2).</summary>
@@ -79,12 +85,17 @@ internal sealed class PagedFile
     private bool _promotionPending;
 
     private PageStatement? _active;
+    private readonly PageCache _cache;
+
+    /// <summary>The last write the medium refused was a refusal to grow past the host's maximum file size.</summary>
+    private bool _refusedAtBoundary;
     private long _reads, _writes, _syncs;
     private int _cacheEpoch;
     private Adoption _adoption;
 
-    private PagedFile(IPageMedium medium, bool writable, bool coherent, MetaPage meta)
+    private PagedFile(IPageMedium medium, bool writable, bool coherent, MetaPage meta, int cachePages)
     {
+        _cache = new PageCache(cachePages);
         _medium = medium;
         _writable = writable;
         _coherent = coherent;
@@ -134,13 +145,14 @@ internal sealed class PagedFile
     /// records"</i>): the medium is EMPTIED first — so a death part-way leaves no page of a previous store to adopt — then
     /// the three meta pages of an empty store are written and synced. A death before page 0 or page 1 landed leaves no
     /// valid committed slot (the next OPEN answers '30'); after either, an empty store.</summary>
-    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store)
+    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store,
+        int cachePages = PageCache.DefaultPages)
     {
         if (!MetaPage.Fits(attributes))
             throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
         store = null;
         var meta = MetaPage.Empty(attributes);
-        var created = new PagedFile(medium, writable: true, coherent, meta);
+        var created = new PagedFile(medium, writable: true, coherent, meta, cachePages);
         try { medium.SetPageCount(0); }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
         for (uint slot = 0; slot < MetaPage.MetaPages; slot++)
@@ -158,7 +170,8 @@ internal sealed class PagedFile
     /// verifies is adopted, anything else gives C. A writable store then promotes the adopted meta at
     /// F = G + 4 097 (above every stamp a history based on G can have issued, R2) with its retirement, which also reclaims
     /// a rejected DESCENDANT's readable ledger; an INPUT store adopts in memory and writes nothing.</summary>
-    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, out PagedFile? store)
+    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, out PagedFile? store,
+        int cachePages = PageCache.DefaultPages)
     {
         store = null;
         var pages = new byte[MetaPage.MetaPages][];
@@ -172,7 +185,7 @@ internal sealed class PagedFile
         if (MetaPage.Committed(MetaPage.Decode(pages[MetaPage.SlotA], MetaPage.SlotA),
                 MetaPage.Decode(pages[MetaPage.SlotB], MetaPage.SlotB)) is not { Meta: var committed })
             return StoreStatus.PermanentError;
-        var opened = new PagedFile(medium, writable, coherent, committed) { _reads = MetaPage.MetaPages };
+        var opened = new PagedFile(medium, writable, coherent, committed, cachePages) { _reads = MetaPage.MetaPages };
         ulong g = committed.Generation;
         var workClass = work is null || work.Attributes.Conflicts(committed.Attributes) ? WorkSlotClass.Foreign
             : work.CommittedGeneration == g ? WorkSlotClass.Descendant
@@ -234,7 +247,7 @@ internal sealed class PagedFile
             else if (Ledger.Load(this, work.LedgerRoot, out var ledger) != StoreStatus.Ok) return StoreStatus.PermanentError;
             else SetState(work, ledger!);
             _lastSeen = work.Generation;
-            _cacheEpoch++;
+            DropCache();
         }
         if (!_writable) return StoreStatus.Ok;
         SeeMints(work);
@@ -301,8 +314,8 @@ internal sealed class PagedFile
             return StoreStatus.PermanentError;
         var ledger = _ledger.Clone();
         var free = new BTree(this, KeyOrders.Ordinal, _meta.FreeRoot);
-        if (Reserve(pageBound, ledger, free, _meta.PageCount, out var reservation) != StoreStatus.Ok)
-            return StoreStatus.PermanentError;   // a torn FREE-tree page: '30', the claim raised and nothing written
+        if (Reserve(pageBound, ledger, free, _meta.PageCount, out var reservation) is not StoreStatus.Ok and var refused)
+            return refused;   // a torn FREE-tree page ('30') or growth past 2^32 pages ('24'): the claim raised, nothing written
         _active = statement = new PageStatement(this, claim, ledger, free, reservation, _meta);
         return StoreStatus.Ok;
     }
@@ -314,7 +327,7 @@ internal sealed class PagedFile
     internal StoreStatus Complete(PageStatement s)
     {
         End(s);
-        if (s.Refused || !WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return StoreStatus.PermanentError;
+        if (s.Refused || !WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return Refusal();
         var completed = WithMints(s.Meta with
         {
             Generation = s.Generation,
@@ -323,7 +336,7 @@ internal sealed class PagedFile
             PageCount = Math.Max(s.Meta.PageCount, s.Reservation.GrownTo),
             Promoting = false,
         });
-        if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return StoreStatus.PermanentError;
+        if (!TryWrite(MetaPage.WorkSlot, completed.Encode(MetaPage.WorkSlot))) return Refusal();
         SetState(completed, s.Ledger);
         _lastSeen = completed.Generation;
         return StoreStatus.Ok;
@@ -343,12 +356,41 @@ internal sealed class PagedFile
 
     /// <summary>Read a page through a stamped pointer (2.2.1.6 R3): <see cref="PageCheck.Whole"/> only when its checksum
     /// holds, its <c>self</c> is the page read and its generation is the stamp; a statement answers anything else as
-    /// '30'.</summary>
+    /// '30'.
+    /// <para>A page the cache holds under the pointer's own <c>self</c> and generation is served from it (verified when
+    /// it entered); anything else is read from the medium, and a page that checks whole enters the cache.</para></summary>
     public PageCheck Read(PagePointer pointer, Span<byte> page)
     {
         if (pointer.IsNone) throw new ArgumentException("no page", nameof(pointer));
-        return TryReadRaw(pointer.Page, page) ? PageHeader.Check(page, pointer.Page, pointer.Generation) : PageCheck.Unreadable;
+        if (_cache.Get(pointer.Page) is { } cached && PageHeader.Decode(cached) is var head
+            && head.Self == pointer.Page && head.Generation == pointer.Generation)
+        {
+            cached.CopyTo(page);
+            return PageCheck.Whole;
+        }
+        if (!TryReadRaw(pointer.Page, page)) return PageCheck.Unreadable;
+        var check = PageHeader.Check(page, pointer.Page, pointer.Generation);
+        if (check == PageCheck.Whole) _cache.Put(pointer.Page, page[..PageHeader.PageSize].ToArray());
+        return check;
     }
+
+    /// <summary>Forget every cached page (2.2.1.7's drop when page 2 is adopted from another run unit; the cold-cache
+    /// seam of 2.2.1.11's witnesses).</summary>
+    public void DropCache()
+    {
+        _cache.Clear();
+        _cacheEpoch++;
+    }
+
+    /// <summary>Raise the page cache's capacity to at least <paramref name="pages"/> — the input-output areas of a
+    /// connector attached with a RESERVE clause (§12.4.5.14.3 GR1, 2.2.1.13).</summary>
+    public void ReserveCache(int pages) => _cache.Reserve(pages);
+
+    /// <summary>The pages the cache holds at most.</summary>
+    public int CacheCapacity => _cache.Capacity;
+
+    /// <summary>Whether the store was opened through a writable handle (it fenced, and it may change the file).</summary>
+    public bool Writable => _writable;
 
     // ── Promotion ───────────────────────────────────────────────────────────────────────────────────────────────
 
@@ -496,7 +538,7 @@ internal sealed class PagedFile
         foreach (uint p in fromFree.Take(need - reserved.Count)) reserved.Add((p, PageOrigin.Free));
         for (ulong p = pageCount; reserved.Count < need; p++)
         {
-            if (p > uint.MaxValue) throw new IOException("the store has reached the format's 2^32 pages");
+            if (p > uint.MaxValue) return StoreStatus.Boundary;   // the format's 2^32 pages (2.2.1.9): '24'
             reserved.Add(((uint)p, PageOrigin.Growth));
         }
         reservation = new Reservation(reserved, pageCount);
@@ -597,9 +639,30 @@ internal sealed class PagedFile
         {
             _medium.Write(page, bytes);
             _writes++;
+            _refusedAtBoundary = false;
+            if (page >= MetaPage.MetaPages) _cache.Put(page, bytes);   // a page this store wrote is the page it reads
             return true;
         }
-        catch (Exception e) when (IsRefusal(e)) { return false; }
+        catch (Exception e) when (IsRefusal(e))
+        {
+            _refusedAtBoundary = IsFileTooLarge(e);
+            return false;
+        }
+    }
+
+    /// <summary>What a statement's refused write answers: the boundary's '24' when the host refused to grow the file
+    /// past its maximum size, otherwise '30' (a full medium, a refused write).</summary>
+    private StoreStatus Refusal() => _refusedAtBoundary ? StoreStatus.Boundary : StoreStatus.PermanentError;
+
+    /// <summary>⛔ THE HOST'S "THE FILE CANNOT GROW FURTHER" (2.2.1.9) — Windows <c>ERROR_FILE_TOO_LARGE</c> (223, carried
+    /// in an <see cref="IOException"/>'s HRESULT as 0x800700DF) and POSIX <c>EFBIG</c> (27, carried as the raw errno) —
+    /// the boundary of the physical file, answered '24'. A medium with no ROOM (<c>ENOSPC</c>, <c>EDQUOT</c>,
+    /// <c>ERROR_DISK_FULL</c>, <c>ERROR_HANDLE_DISK_FULL</c>, <c>ERROR_DISK_QUOTA_EXCEEDED</c>) is not a boundary of the
+    /// file: it is §9.1.13.6 item 1's '30' at the statement.</summary>
+    internal static bool IsFileTooLarge(Exception e)
+    {
+        const int ErrorFileTooLarge = unchecked((int)0x800700DF), Efbig = 27;
+        return e is IOException && e.HResult == (OperatingSystem.IsWindows() ? ErrorFileTooLarge : Efbig);
     }
 
     private bool TrySync()

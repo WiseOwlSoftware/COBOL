@@ -319,27 +319,53 @@ internal static class RecordFraming
                 + "relative or indexed file");
         var composed = new MemoryStream((int)size);
         WriteHeader(composed, attributes, generation, releaseMint);
-        // One head buffer for the whole compose, grown only for a frame whose extent table outgrows it.
-        byte[] head = new byte[FrameHeadBytes(null, slots) + 64];
+        byte[] gap = new byte[GapBytes];
+        EncodeGap(gap);
         foreach (StoredFrame? stored in frames)
         {
             if (stored is not { } frame)
             {
-                EncodeGap(head);
-                composed.Write(head, 0, GapBytes);
+                composed.Write(gap, 0, GapBytes);
                 continue;
             }
-            // The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any
-            // record holding a character with no byte image ('91'), so an exception here is a missed refusal —
-            // loud, raised before the file is truncated — never a silent '?'.
-            byte[] payload = FileCharacterSet.Medium.GetBytes(FileCharacterSet.ToChannel(frame.Image, codeSet));
-            int headBytes = (int)FrameHeadBytes(frame.Extents, slots);
-            if (headBytes > head.Length) head = new byte[headBytes];
-            EncodeFrameHead(head, payload.Length, frame.Extents, frame.Ordinals);
-            composed.Write(head, 0, headBytes);
-            composed.Write(payload, 0, payload.Length);
+            composed.Write(EncodeFrame(frame, slots, codeSet));
         }
         return composed;
+    }
+
+    /// <summary>⛔ ONE RECORD'S FRAME AS BYTES — its head (<see cref="EncodeFrameHead"/>) and its payload in the file's
+    /// channel character set — the value a keyed store engine's leaf entry holds (docs/rearchitecture/DESIGN-runtime-library.md
+    /// §2.2.1.3 decision 3: <i>"The leaf entry's value is the ONE frame shape"</i>) and the frame a whole store is composed
+    /// of. The payload is converted by the file's §13.18.13 CODE-SET (<paramref name="codeSet"/>, null for the native
+    /// character set); the head is the §9.1.7.2 information this processor adds and is never converted (2.2.1.5).
+    /// <para>The file coded character set's STRICT encoding (kb/Work PB690): the keyed WRITE/REWRITE refused any record
+    /// holding a character with no byte image ('91'), so an exception here is a missed refusal — loud, raised before the
+    /// file is touched — never a silent '?'.</para></summary>
+    /// <exception cref="InvalidOperationException">The frame carries a number of release ordinals other than
+    /// <paramref name="ordinalSlots"/>.</exception>
+    public static byte[] EncodeFrame(StoredFrame frame, int ordinalSlots, CodeSetConversion? codeSet)
+    {
+        if ((frame.Ordinals?.Length ?? 0) != ordinalSlots)
+            throw new InvalidOperationException($"a frame carries {frame.Ordinals?.Length ?? 0} release ordinals where "
+                + $"its store's key count makes it {ordinalSlots}");
+        byte[] payload = FileCharacterSet.Medium.GetBytes(FileCharacterSet.ToChannel(frame.Image, codeSet));
+        int headBytes = (int)FrameHeadBytes(frame.Extents, ordinalSlots);
+        var value = new byte[headBytes + payload.Length];
+        EncodeFrameHead(value, payload.Length, frame.Extents, frame.Ordinals);
+        payload.CopyTo(value, headBytes);
+        return value;
+    }
+
+    /// <summary>The record a keyed store engine's leaf value holds (<see cref="EncodeFrame"/>'s inverse), decoded by the
+    /// ONE frame decoder (<see cref="ReadFrame"/>) and returned in the NATIVE character set (§13.18.13.4 GR6 a)); null
+    /// when the value is not exactly one record's frame — a value this writer cannot have produced, which its reader
+    /// answers as the torn page it is ('30', §9.1.13.6 item 1).</summary>
+    public static StoredFrame? DecodeFrame(byte[] value, int ordinalSlots, CodeSetConversion? codeSet)
+    {
+        var medium = new ImageMedium(value, value.Length, 0);
+        return ReadFrame(ref medium, ordinalSlots, out FrameHead head) == FrameKind.Record && medium.At == value.Length
+            ? new StoredFrame(FileCharacterSet.FromChannel(medium.Payload!, codeSet), head.Extents, head.Ordinals)
+            : null;
     }
 
     /// <summary>Decode a whole store image: one entry per frame, null for a gap. A torn tail ends the store.
