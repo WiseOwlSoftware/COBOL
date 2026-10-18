@@ -53,4 +53,18 @@ files after their I-O status and AT END and INVALID KEY tests, not only what the
 failure modes (a file with no golden, a golden no longer written, a truncated or extended file) are each a witnessed red
 in both arms, never a silent pass.
 
+**Branch review round 1 (three findings, all fixed).** (1) The net skipped every `TERMINATES` row, the abnormal path the
+campaign names: ST146A closes SQ-FS1, writes SQ-FS2 and ends its run unit on a fatal I-O status, and a regression
+that lost or corrupted either file at that end left every gate green. `NistRunner` now returns the files a run that
+exits non-zero left (no report to separate out, so the print file counts, and the console output whenever it printed),
+`NistDifferentialTests` grades them, and the termination arm of both shell guards calls `guard_files_apply` with an
+empty report name. ST146A has goldens (`xxxxx014.txt`, `xxxxx015.txt`, the partial `st146a.txt`); NC401M terminates
+before writing a file and has none. `EveryGoldenDirectory_BelongsToAGreenProgram` no longer forbids them.
+(2) `(stdout)` was graded by two different rules: the C# arm byte-for-byte after the host newline, the shell on the
+acceptance basis, so a trailing blank line was red in C# and MATCH in CI. Both now use the acceptance basis
+(`NistOutputs.StdoutBasis`), and a console of only blanks printed nothing in both. (3) The three `FILES NO-VERDICT`
+arms of `guard_files_apply` had no witness; `guard-verify.sh` now drives each (missing run directory, missing marker,
+failing `find`, failing canonicalization) through the function with the step shimmed, plus a control, and every new
+case was shown red against a mutant (checks removed, pipefail dropped) or the previous runner.
+
 **Register.** kb/Work PB804 landed, `closes_rows: []` with its reason (a process-only defect, no inventory row).
