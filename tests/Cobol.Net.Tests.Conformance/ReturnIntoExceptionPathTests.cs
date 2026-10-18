@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Conformance;
 /// file sets the EC-FLOW-RETURN exception condition; GR3: a RETURN executed in the current output procedure after the
 /// AT END phrase ran sets EC-SORT-MERGE-RETURN; both are Table 13 fatal, so with checking enabled and no handler
 /// "execution of the run unit is terminated abnormally" (§14.6.13.1.3 7)) and with checking not enabled the
-/// continuation is the implementor's (§14.6.13.1.3 8)). GR5 b): "The implied MOVE statement does not occur if the
+/// continuation is the implementor's (§14.6.13.1.3 8)). Then §14.9.34.4 GR5 b): "The implied MOVE statement does not occur if the
 /// execution of the RETURN statement was unsuccessful", so the INTO receiver keeps its value in every arm. Golden
 /// <c>2023/pb722_return_into_flow_ec</c> is the declarative (RESUME) twin; <c>2023/pb722_return_into_unsuccessful</c>
 /// the AT END and item-identification witnesses.
