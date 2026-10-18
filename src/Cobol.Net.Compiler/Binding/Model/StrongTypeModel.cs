@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using CobolNet.Runtime;
 
@@ -175,7 +176,7 @@ public static class StrongTypeModel
     /// elementary item's relative bit position, length in bits and §8.5.3.1 essential characteristics (the
     /// <see cref="SameEssentialCharacteristics"/> list: ALIGNED, BLANK WHEN ZERO, DYNAMIC LENGTH, JUSTIFIED,
     /// SYNCHRONIZED and the analyzed PICTURE / SIGN / USAGE profile), so equal keys ⇔ <see cref="SameType"/> — pinned
-    /// end to end by <c>conformance:2002/pb480_universal_match_relations</c> (two equivalent declarations of one
+    /// end to end by <c>conformance:cases/9.3.6-Method-invocation/pb480_universal_match_relations</c> (two equivalent declarations of one
     /// type-name in two source elements cross). The one fact a key cannot carry exactly is the LOCALE phrase's
     /// external identification, which §8.5.3.1 compares character for character between two literals but without
     /// regard to case when a word is involved: it is keyed as written, word or literal, so a literal and a word that
@@ -193,12 +194,12 @@ public static class StrongTypeModel
         key.Append(CobolNames.Fold(DeclaredTypeName(anchor) ?? "")).Append(DeclaredStrong(anchor) ? "|STRONG" : "|-")
             .Append(DeclaredExternal(anchor) ? "|EXTERNAL" : "|-");
         if (!ReferenceEquals(anchor, item))
-            key.Append($"|SUBORDINATE {BitLayout.StartBitOf(anchor, item)}:{BitLayout.RunBits(item)}");
+            key.Append(CultureInfo.InvariantCulture, $"|SUBORDINATE {BitLayout.StartBitOf(anchor, item)}:{BitLayout.RunBits(item)}");
         List<(DataItem Item, int Start)> leaves = [];
         if (!CollectElementary(anchor, 0, leaves)) return key.Append("|UNPLACED ").Append(anchor.CobolName).ToString();
         open.Add(anchor);
         foreach (var (leaf, start) in leaves)
-            key.Append($"|{start}:{BitLayout.RunBits(leaf)}:{EssentialCharacteristicsKey(leaf, open)}");
+            key.Append(CultureInfo.InvariantCulture, $"|{start}:{BitLayout.RunBits(leaf)}:{EssentialCharacteristicsKey(leaf, open)}");
         open.RemoveAt(open.Count - 1);
         return key.ToString();
     }
@@ -217,23 +218,45 @@ public static class StrongTypeModel
     /// (<see cref="PicInfo"/>'s own record text, every axis by construction, with the members
     /// <see cref="SameAnalyzedProfile"/> handles apart rendered apart — a restricted prototype-pointer by the TYPE it
     /// is, its prototype's signature class, never the prototype's name; a restricted data-pointer by its type-name
-    /// under the fold <see cref="SameRestriction"/> compares with, and the declaration it resolves to).</summary>
+    /// under the fold <see cref="SameRestriction"/> compares with, and the declaration it resolves to).
+    /// <para>⛔ THE KEY IS THE SAME TEXT ON EVERY HOST (kb/Work PB3257). It is compiled into the program and compared
+    /// ordinally at run time against a key another compilation built (<c>ActivationRelations</c>), so a number in it
+    /// is formatted with the invariant culture: a negative <see cref="PicInfo.Scale"/> (<c>PIC 99P</c>) printed U+2212
+    /// under sv-SE, and two compilations of one type on two hosts keyed apart. The record text is rendered by
+    /// <see cref="InvariantRecordText"/>, because a record's synthesized <c>PrintMembers</c> formats its members with
+    /// the current culture and takes no format provider.</para></summary>
     private static string EssentialCharacteristicsKey(DataItem x, List<DataItem> open)
     {
-        string entry = $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}"
-            + $"{(x.Synchronized ? "Y" : "-")}"
-            + (x.IsDynamicLength ? $"D{x.DynMaxSize}/{CobolNames.Fold(x.DynStructure?.Name ?? "")}" : "");
+        string entry = string.Create(CultureInfo.InvariantCulture,
+            $"{(x.IsAligned ? "A" : "-")}{(x.BlankWhenZero ? "B" : "-")}{(x.Justified ? "J" : "-")}{(x.Synchronized ? "Y" : "-")}")
+            + (x.IsDynamicLength ? string.Create(CultureInfo.InvariantCulture, $"D{x.DynMaxSize}/{CobolNames.Fold(x.DynStructure?.Name ?? "")}") : "");
         if (x.Pic is not { } p) return entry;
         string locale = p.LocaleEdit is { } le
-            ? $"{le.Size}/{le.Picture}/{(le.Locale.Named is { } n ? (n.FromLiteral ? "L:" + n.External : "W:" + CobolNames.Fold(n.External)) : "-")}"
+            ? string.Create(CultureInfo.InvariantCulture,
+                $"{le.Size}/{le.Picture}/{(le.Locale.Named is { } n ? (n.FromLiteral ? "L:" + n.External : "W:" + CobolNames.Fold(n.External)) : "-")}")
             : "";
-        string rules = p.EditingRules is null ? "" : string.Join(";", p.EditingRules);
+        string rules = p.EditingRules is null ? "" : string.Join(";", p.EditingRules);   // char, string and bool members only
         string restricted = p.RestrictedTypeName is null ? ""
             : CobolNames.Fold(p.RestrictedTypeName)
               + (p.RestrictedTypeDecl is not { } decl ? ""
-                 : open.FindIndex(o => IsOpenDeclaration(o, decl)) is var at and >= 0 ? $"@{open.Count - at}" : $"[{TypeIdentityKey(decl, open)}]");
-        return $"{entry}|{p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null }}"
-            + $"|{rules}|{locale}|{PrototypeSignatures.RestrictionIdentity(x)}|{restricted}";
+                 : open.FindIndex(o => IsOpenDeclaration(o, decl)) is var at and >= 0
+                     ? string.Create(CultureInfo.InvariantCulture, $"@{open.Count - at}")
+                     : $"[{TypeIdentityKey(decl, open)}]");
+        string profile = InvariantRecordText(p with { EditingRules = null, RestrictedTypeName = null, RestrictedTypeDecl = null, RestrictedPrototypeName = null, LocaleEdit = null });
+        return $"{entry}|{profile}|{rules}|{locale}|{PrototypeSignatures.RestrictionIdentity(x)}|{restricted}";
+    }
+
+    /// <summary>A record's synthesized text under the invariant culture: its <c>PrintMembers</c> formats each member
+    /// through <c>StringBuilder.Append(object)</c>, which reads <see cref="CultureInfo.CurrentCulture"/> and takes no
+    /// format provider, so the culture is set for the call (it is thread-local) and restored after it. Every member
+    /// the record has, and every one a later change adds, is then rendered the same on every host — the reason
+    /// <see cref="EssentialCharacteristicsKey"/> keys the analyzed profile by the record's own text (kb/Work PB3257).</summary>
+    private static string InvariantRecordText(object record)
+    {
+        var host = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        try { return record.ToString() ?? ""; }
+        finally { CultureInfo.CurrentCulture = host; }
     }
 
     /// <summary>The type-name of a declaration in either of its two forms — a TYPEDEF template's own name

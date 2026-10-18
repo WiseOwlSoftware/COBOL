@@ -290,7 +290,7 @@ accident, since its I-O and EXTEND streams *are* write opens, while the relative
 their store: the same read-only file answered '37' sequentially and '00' keyed, then '00' for READ and REWRITE,
 and the loss surfaced as a '30' at CLOSE on a byte-identical file. The two-arm dispatch again, one arm fixed.)
 
-**One host-path OPEN, four named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenConnectorWriteStream` / `HostFile.OpenConnectorStore` / `HostFile.OpenAuxiliary`, same file).**
+**One host-path OPEN, five named roles (`HostFile.OpenConnectorStream` / `HostFile.OpenConnectorWriteStream` / `HostFile.OpenConnectorStore` / `HostFile.OpenAuxiliary` / `HostFile.CreateSortWork`, same file).**
 The third question `HostFile` owns is *"what may every OTHER handle on this physical file do while this one is
 open?"*, and it is not a per-call-site decision: §9.1.15 puts the in-run-unit gate on the file connectors —
 *"Before access to a shared physical file is allowed through an OPEN statement, the sharing mode and the open
@@ -482,7 +482,7 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   meantime is retried, not `Unavailable`) and RENAMES it to its final name, so the testers, which read only final
   names, never see a half-published holder; a file they can open freely belongs to a dead run unit and is deleted. The
   CLOSE takes the file's name BEFORE closing the descriptor (a `fork` for `CALL "SYSTEM"` holds a copy of the description
-  until its `exec`; a name nobody can see cannot refuse a successor) and the directory with its last file. ⛔ NO NAME A PROBER READS IS DELETED IN PLACE (`SidecarLockFiles.Retire`, train 1056b): where share modes are mandatory a file deleted while another handle has it open stays listed, delete-pending, and every open of it is "access denied", the unobservable holder's answer, which no bound on asking again tells apart; so a lock file there is renamed to `gone-<guid>` (a wire value no tester probes) before it is deleted, and "access denied" is always an answer. ⛔ THE SAME HOLDS OF THE LOCK DIRECTORY (`SidecarLockFiles.RetireDirectory`, kb/Work PB3109): the last holder's CLOSE removes the empty directory, and where share modes are mandatory the directory passes through delete-pending under its own name for as long as any other handle on it is open, so a publisher's `CreateNew` inside it and a tester's listing of it were "access denied" — read as a directory this user may not write, a waiting region hold answered `Unavailable` and the store mutex went untaken (11 of 3,000 two-endpoint rounds under CPU load). So there the empty directory is renamed to `.wolk-gone-<guid>` first and only that name is deleted; a directory with any entry, or one the host will not move while a holder's file is open, stays standing, and a publisher that resolved the old name finds it gone and publishes again (the residue of a kill between the rename and the delete is one empty `.wolk-gone-` directory). A directory
+  until its `exec`; a name nobody can see cannot refuse a successor) and the directory with its last file. ⛔ NO NAME A PROBER READS IS DELETED IN PLACE (`SidecarLockFiles.Retire`, train 1056b): where share modes are mandatory a file deleted while another handle has it open stays listed, delete-pending, and every open of it is "access denied", the unobservable holder's answer, which no bound on asking again tells apart; so a lock file there is renamed to `gone-<guid>` (a wire value no tester probes) before it is deleted, and "access denied" is always an answer. ⛔ THE SAME HOLDS OF THE LOCK DIRECTORY (`SidecarLockFiles.RetireDirectory`, kb/Work PB3109): the last holder's CLOSE removes the empty directory, and where share modes are mandatory the directory passes through delete-pending under its own name for as long as any other handle on it is open, so a publisher's `CreateNew` inside it and a tester's listing of it were "access denied" — read as a directory this user may not write, a waiting region hold answered `Unavailable` and the store mutex went untaken (11 of 3,000 two-endpoint rounds under CPU load). So there the empty directory is renamed to `.wolk-gone-<guid>` first and only that name is deleted; a directory with any entry, or one the host will not move while a holder's file is open, stays standing, and a publisher that resolved the old name finds it gone and publishes again (the residue of a kill between the rename and the delete is one empty `.wolk-gone-` directory). Where an `rmdir` is atomic the same race meets a publisher one step earlier (kb/Work PB3313): its `mkdir` answers `EEXIST` because a sibling had just made the directory, the sibling's CLOSE removes it before .NET's own existence check, and .NET throws the `EEXIST` — so `HostFile.CreateLockDirectory` reads `EEXIST` with no FILE at the name as that race and returns (`HostFile.IsClosingSiblingRace`), as .NET on Windows does: with nothing left at the name the publication into the missing directory publishes again, and with a directory there again (a sibling's next publication made it after the CLOSE) the directory is another holder's (14 of 24,000 waiting two-endpoint rounds under CPU load on Linux answered `Unavailable` before it; the directory-again arm is branch review R3-1, asked directly by `RegionLocksDriftTests.ALockDirectoryEexist_IsTheClosingSiblingRace_UnlessAFileHoldsTheName`). ⛔ A DIRECTORY IN THE MIDDLE OF ITS `rmdir` IS NOT YET GONE (kb/Work PB3314): the kernel marks the inode dead and the name stays resolvable until the remover finishes unlinking it, so for as long as a preempted remover is off the CPU (measured up to 17 ms, 240 consecutive refusals, 8 processes beside 24 CPU burners) the directory answers `stat` and an empty listing while every creation inside it answers `ENOENT`; eight immediate tries in `SidecarLockFiles.Publish` all fell inside that window (1 waiting hold in about 500,000 answered `Unavailable`), so a lost race that repeats is paced by TIME instead — the first retry is immediate, every later one sleeps a jittered span up to twice the longest before it, to 128 ms (`SidecarLockFiles.RetryPauseCeiling`, 12 attempts, about 0.6 s at the ceiling), spent only when the race does not end. A directory
   the process may not write is `Unavailable`, never an exception — except that a user who may not WRITE the lock
   directory still LOOKS: a live or unobservable conflicting holder refuses it. A user who may enter the lock directory but not LIST it cannot look: every holder is unobservable to it, so a request row that refuses any column is refused (the train 1056b review: the other user of a `0711` parent, whose mode the lock directory copies). ⛔ THE CROSS-USER MODEL: the lock
   directory is created with the permissions of the physical file's directory (`HostFile.CreateLockDirectory`) and a
@@ -702,6 +702,38 @@ OPEN (§9.1.13.9 1) e)), so reaching it is an arbitration defect. The absent-OPT
 attach normally: the file was absent, so the store is empty by construction. No connector calls `Clear()` on a store
 (`CrossRunUnitKeyedStoreDriftTests.NoConnectorClearsASharedStore`); the organizations' `Fill` — a load or reload,
 which every attached connector must see — is the only other emptying.
+
+**The SORT/MERGE work store is an external merge sort in bounded memory (kb/Work PB3339).** The owner's ruling on the
+keyed stores (2026-10-17, "Reading the entire file into memory as a design requirement is a fatal flaw") applies to
+the sort-merge store as well: a SORT of a multi-gigabyte file is ordinary COBOL work. `CobolSort` keeps the statement
+API and the procedure phase (`SortStore`), and the records live in ONE engine, `SortWork` (`IO/SortWork.cs`), owned by
+the store for the statement's life:
+- **The limit** is `SortMemory` (`IO/SortMemory.cs`), read once per run unit when `RunUnit.SortFiles` is built:
+  `COBOLNET_SORT_MEMORY` (bytes, with an optional `K`/`M`/`G` suffix; default 128 MiB, GnuCOBOL's `COB_SORT_MEMORY`
+  default; floor 64 KiB) and `COBOLNET_SORT_TMPDIR` (else `Path.GetTempPath()`), both registered in `RuntimeConfig`.
+- **The release phase** appends to one in-memory chunk and charges each record its resident estimate (image,
+  frame, extent table and the decoded key columns the chunk's sort will build). A record that would pass the limit
+  first SEALS the chunk: a SORT sorts it (`SortKeyColumns` decoded once per record, an index sort whose tie is the
+  release order) and writes it as a run; a MERGE appends each USING stream's part to that stream's run, after the
+  §14.9.24.4 GR6 order check, which `Merge` raises when checking is enabled. F runs of one level merge into one run
+  of the next level (`SortMemory.FanIn`: the limit over four 64 KiB read buffers, between 2 and 16), always the last F
+  and so always consecutive.
+- **The sequence phase** sorts or merges from memory when nothing was written (no disk cost for a file that fits);
+  otherwise it writes the last chunk and merges runs until at most F remain. The return phase is `SortMergeCursor`, a
+  k-way merge whose tie goes to the earliest run — the one rule that gives both §14.9.40.4 GR3 and §14.9.24.4 GR4.
+  `Rewind` restarts it for each GIVING file.
+- **Run files** are a fifth `HostFile` role (`HostFile.CreateSortWork`, `IO/FileSupport.cs`): a new file in the work
+  directory, delete-on-close on Windows and unlinked at creation elsewhere, one handle per run, read back through the
+  same handle (`SortRunFile`). `SortWork._files` is the ONE owner of every open run file: `NewRun` registers a file
+  before its first record is written, a merge closes its inputs (`SortWork.Close`) only once its output is complete,
+  and the run lists and `SortMergeCursor` only refer to files, so `SortWork.Dispose` (the statement's `finally`)
+  closes every one after a failure as after a normal end. A record is its character count, its extent table (with an interned layout index,
+  since `RecordExtents.Layout` is an object the fixed form of a GIVING file needs), then its UTF-16 code units
+  unconverted — private to the process, so no file coded character set applies. An I/O failure of a work file is an
+  implementor-defined fatal stop (`CobolImplementorFatalException`) naming the directory and the host's reason.
+- **Memory**: at most the limit (or one record, when a record alone exceeds it) in the release phase; F read buffers
+  and F head records in the return phase. `SortWorkBoundDriftTests` pins the shape: no record collection in the store
+  but the chunk.
 
 The static `CobolFile` facade (kept for the emitted surface) becomes a pure delegator to `RunUnit.Current.Files`.
 The `Keyed*` static methods at `IndexedFile.cs:570-707` are **deleted**; their callers in `CobolFile.cs` collapse to a

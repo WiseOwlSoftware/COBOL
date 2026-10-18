@@ -968,7 +968,8 @@ public static class DiagnosticCatalog
         "COBOLNET1557", "same-as-cycle", EditionSeverity.Error,
         "A SAME AS reference is cyclic: neither data-name-1's description nor any subordinate of the subject "
         + "may directly or indirectly reference the subject or a group it is subordinate to, via SAME AS (SR3) "
-        + "or a TYPE clause (SR4).", "ISO §13.18.49.3 SR3/SR4");
+        + "or a TYPE clause (SR4; the TYPE clause's own statement of the cycle is §13.18.57.3 SR1).",
+        "ISO §13.18.49.3 SR3/SR4; §13.18.57.3 SR1");
 
     // ── COBOLNET1558 — EXTERNAL type declarations (§13.18.22 / §13.18.58; P10 Step 16) ───────────────
     // ── COBOLNET1559 — the report-group PRESENT WHEN / VARYING / multiple-COLUMN syntax rules, one code for
@@ -2659,11 +2660,11 @@ public static class DiagnosticCatalog
         + "(PICTURE §13.18.40.3 SR37; LOCALE-COMPARE / -DATE / -TIME / UPPER-CASE / LOWER-CASE; CHARACTER CLASSIFICATION "
         + "§12.3.6.3 SR3). Declare it: LOCALE locale-name IS external-locale-name | literal.",
         "ISO §12.3.7.3 SR24 / §14.9.39.3 SR26 / §12.3.7.4 GR1");
-    public static readonly DiagnosticDescriptor LocaleNameDuplicate = new(
-        "COBOLNET1665", "locale-name-duplicate", EditionSeverity.Error,
-        "The same locale-name is declared by more than one SPECIAL-NAMES LOCALE clause of one paragraph. A user-defined "
-        + "word of one type is unique within its scope (ISO §8.3.2.2); the LOCALE clause is repeatable (§12.3.7.2) so "
-        + "several LOCALES may be declared, each under its own name.", "ISO §8.3.2.2 / §12.3.7.2");
+    // ⛔ `LocaleNameDuplicate` (COBOLNET1665, `locale-name-duplicate`) LIVED HERE AND IS GONE (kb/Work PB3216), and this
+    // comment stands where it did so it is not re-added. It refused a second LOCALE clause of one locale-name; the
+    // ALPHABET, CLASS and switch condition-name registries dropped the same shape silently, and the DYNAMIC LENGTH
+    // STRUCTURE clause kept a private refusal. All of them are now ONE rule at the declaration funnel,
+    // SpecialNameDeclaredTwice (COBOLNET4250). The id is retired, never reallocated.
     public static readonly DiagnosticDescriptor SetLocaleCategories = new(
         "COBOLNET1666", "set-locale-categories", EditionSeverity.Error,
         "The first operand of SET LOCALE (ISO §14.9.39.2 format 11) is malformed: a category is specified more than "
@@ -2990,6 +2991,20 @@ public static class DiagnosticCatalog
         + "data-name, property-name, record-key-name and record-name. Rename one of the declarations.",
         "ISO §8.3.2.2");
 
+    /// <summary>COBOLNET4250 — a SECOND declaration, in one source element, of a name that cannot be qualified (kb/Work
+    /// PB3216): an alphabet-name, a class-name, a locale-name, an ordering-name, a dynamic-length-structure-name, a
+    /// mnemonic-name or a switch's condition-name. §8.4.2.1: "In order to use a resource, a statement shall contain a
+    /// reference that uniquely identifies that resource" — and none of these has a qualifier to identify one of two.
+    /// Decided at the ONE declaration funnel (<c>DataBinder.DeclareUserWord</c>, <c>UserWordKinds.DeclaredUnqualifiable</c>),
+    /// so every declaring clause, and the next one added, is covered. The first declaration stands.</summary>
+    public static readonly DiagnosticDescriptor SpecialNameDeclaredTwice = new(
+        "COBOLNET4250", "special-name-declared-twice", EditionSeverity.Error,
+        "A name that cannot be qualified — an alphabet-name, class-name, locale-name, ordering-name, "
+        + "dynamic-length-structure-name, mnemonic-name or a switch's condition-name — is declared a second time in one "
+        + "source element. ISO §8.4.2.1: \"In order to use a resource, a statement shall contain a reference that "
+        + "uniquely identifies that resource\"; no qualifier can tell the two declarations apart. Rename one of them.",
+        "ISO §8.4.2.1");
+
     /// <summary>COBOLNET2693 — a user-defined word with no letter (kb/Work PB1403). §8.3.2.2: "With the exception of
     /// section-names, paragraph-names, and level-numbers, each user-defined word shall contain at least one basic
     /// letter or extended letter." The lexer must admit a letterless token (<c>1-2</c> is a legal paragraph-name), so
@@ -3123,6 +3138,28 @@ public static class DiagnosticCatalog
         + "argument literal and, through §8.4.3.4.3 SR3, every argument of an inline method invocation.",
         "ISO §14.9.23.3 SR17");
 
+    /// <summary>COBOLNET4268 — a non-numeric literal-2 passed BY VALUE in an INVOKE (kb/Work PB1136, PB1631). It was the
+    /// generic argument code COBOLNET0828 on the typed lane and had no site through the predefined NULL; one code now
+    /// names the rule on every receiver.</summary>
+    public static readonly DiagnosticDescriptor InvokeByValueLiteralNotNumeric = new(
+        "COBOLNET4268", "invoke-by-value-literal-not-numeric", EditionSeverity.Error,
+        "ISO §14.9.23.3 syntax rule 16: \"If literal-2 or its corresponding formal parameter is specified with the BY "
+        + "VALUE phrase, literal-2 shall be a numeric literal.\" A constant-name or symbolic-character that stands for a "
+        + "nonnumeric literal is that literal (§13.10.3 SR2). The predicate is the one the CALL statement's "
+        + "§14.9.4.3 SR23 asks.",
+        "ISO §14.9.23.3 SR16");
+
+    /// <summary>COBOLNET4269 — factory or instance object data passed BY REFERENCE in an INVOKE (kb/Work PB1136). It was
+    /// COBOLNET0828 on the typed lane and COBOLNET0866 on the universal one; one code now names the rule on every
+    /// receiver.</summary>
+    public static readonly DiagnosticDescriptor InvokeObjectDataByReference = new(
+        "COBOLNET4269", "invoke-object-data-by-reference", EditionSeverity.Error,
+        "ISO §14.9.23.3 syntax rule 10: \"Identifier-3 shall not reference a data item defined in the file or "
+        + "working-storage section of a factory or instance object.\" Written without a BY phrase, such an argument "
+        + "is passed BY CONTENT (§14.9.23.4 GR6 a) 2.); through a universal object reference every argument is BY "
+        + "REFERENCE (SR6), so there it cannot cross at all.",
+        "ISO §14.9.23.3 SR10");
+
     public static readonly DiagnosticDescriptor UndefinedReference = new(
         "COBOLNET1639", "undefined-reference", EditionSeverity.Error,
         "A statement or clause references a name that no declaration in the source element defines, or that the "
@@ -3218,11 +3255,11 @@ public static class DiagnosticCatalog
     //          misdescribe the posture: a decline under the processor-dependent clause reads "we could not",
     //          a decline under the optional clause reads "we chose not to, and documented it".
     //
-    //    • REFUSE (Error) — COBOLNET1560 / 1705 / 1706 / 1707 / 1954. These facilities are NOT additive:
+    //    • REFUSE (Error) — COBOLNET1560 / 1584 / 1705 / 1706 / 1707. These facilities are NOT additive:
     //      compiled inert they change the ANSWER (which bytes reach the medium; which record description entry
     //      is selected; a whole-record-area write standing in for a §14.9.51.4 GR8 implicit record; a screen
-    //      ACCEPT re-read as the device format, which transfers the wrong data; a prime record key that names
-    //      no data item at all). A.4.1's first sentence is the licence to refuse an OPTIONAL element: "An
+    //      ACCEPT re-read as the device format, which transfers the wrong data; a national key ordered by a
+    //      sequence other than the one written). A.4.1's first sentence is the licence to refuse an OPTIONAL element: "An
     //      implementation shall accept the syntax and provide the functionality for an optional element only
     //      when support for that language element is claimed by the implementor."
     //      Unclaimed ⇒ the syntax is not accepted. The strictness axis does NOT move these: --permissive is
@@ -3230,14 +3267,14 @@ public static class DiagnosticCatalog
     //      "pre-removal semantics" to preserve here — matching the accept-inert rows above, which --permissive
     //      likewise does not move.
     //      ⛔ THE DISPOSITION SPLITS ON WHETHER AN INERT READING EXISTS, **NOT** ON WHICH ANNEX LISTS THE
-    //      ELEMENT, and 1954 is what proves it (kb/Work PB358, 2026-09-09). Until it landed, every REFUSE row
-    //      happened to be Annex A.4 and every ACCEPT-INERT row Annex A.3, and this header and
-    //      EditionContext.Declined both wrote that coincidence down as if it were the rule ("an Annex A.3
-    //      processor-dependent facility is accepted-and-warned while an Annex A.4 optional module is
-    //      refused"). COBOLNET1954 is an **A.3** element (item 40, the SOURCE phrase of RECORD KEY /
-    //      ALTERNATE RECORD KEY) that must be REFUSED, because a record-key-name declared by a SOURCE phrase
-    //      names no data item — accept it inert and the file has no prime key, which is a wrong answer and not
-    //      an absent facility. §4.2.6 ¶3 licenses exactly that in its own closing sentence: "The implementor is
+    //      ELEMENT (kb/Work PB358, 2026-09-09). Until then every REFUSE row happened to be Annex A.4 and every
+    //      ACCEPT-INERT row Annex A.3, and this header and EditionContext.Declined both wrote that coincidence
+    //      down as if it were the rule ("an Annex A.3 processor-dependent facility is accepted-and-warned while
+    //      an Annex A.4 optional module is refused"). COBOLNET1584 is an **A.3** element (item 41, a national
+    //      key collating sequence defined by literals or LOCALE) that must be REFUSED, because accepted inert it
+    //      orders the key — and judges its uniqueness — by a sequence other than the one written, which is a
+    //      wrong answer and not an absent facility. (COBOLNET1954, the A.3 item 40 SOURCE phrase that first
+    //      proved the rule, is retired: kb/Work PB1099 provides it.) §4.2.6 ¶3 licenses exactly that in its own closing sentence: "The implementor is
     //      not required to produce executable code when unsupported processor-dependent language elements are
     //      used." The annex still decides the POSTURE CLAUSE the message cites (DiagnosticDescriptor.Annex →
     //      PostureClause: §4.2.6 for A.3, §4.2.7 for A.4); it does not decide the severity.
@@ -3310,48 +3347,12 @@ public static class DiagnosticCatalog
         + "record size, so no program-visible value changes. See docs/CONFORMANCE.md §2 row 26 and §7.",
         "ISO §4.2.6 ¶3 / Annex A.3 item 26 / Annex A.1 items 150-151 / §12.4.5.11", RecognizedNotImplemented,
         Annex: DeclinedAnnex.A3);
-    // ⛔ ONE CODE FOR **BOTH CLAUSES**, and that is the point (kb/Work PB358 / PB293). Annex A.3 item 40 names
-    //    the RECORD KEY clause and the ALTERNATE RECORD KEY clause in ONE sentence — "The capability of
-    //    specifying the SOURCE phrase of the RECORD KEY clause and ALTERNATE RECORD KEY clause is dependent on
-    //    the capabilities of the processor" — and §12.4.5.12.2 and §12.4.5.6.2 print the SAME brace group
-    //    (`{ data-name-1 | record-key-name-1 SOURCE IS { data-name-2 } … }`). One rule, one place
-    //    (feedback_one_rule_one_place); a second code would invite the two-arm defect this note was opened for,
-    //    which is exactly how the construct got here — the original finding named only the prime key.
-    // ⛔ REFUSE, not accept-inert, and the difference from COBOLNET1778 above is NOT the annex (both are A.3)
-    //    but whether an inert reading exists. §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2: "Record-key-name-1 defines a
-    //    record key consisting of the concatenation of all occurrences of data-name-2 in the order specified."
-    //    record-key-name-1 is its own name class (§8.3.2.2.24, scoped by §8.4.6.2.4) and names no data item, so
-    //    there is nothing for an inert compile to use as the key: the file would have NO prime key, every
-    //    keyed READ/START/WRITE would be resolved against nothing, and the program would produce a wrong
-    //    answer rather than merely lack a facility. §4.2.6 ¶3's closing sentence is the licence: "The
-    //    implementor is not required to produce executable code when unsupported processor-dependent language
-    //    elements are used."
-    // ⛔ WHAT PROVIDING IT WOULD COST is recorded in kb/Work PB293, NOT as a proposal: a record key would
-    //    become a LIST of byte windows end-to-end — FileModel's key model, KeyedIoEmitter.EmitRegistration,
-    //    RuntimeApi.FileRegisterIndexed/FileAddAlternateKey, IndexedConnector's single `(Off, Len)` slice,
-    //    RecordLayout.KeyIndexOfKeyItem (which matches by STORAGE POSITION and cannot express a
-    //    concatenation), FixedFileAttributes.KeyDescriptor and therefore the framed store's on-disk header
-    //    (docs/COBOLNET_FILES_DESIGN.md D10 — a second owner-visible file-format break), plus the §12.4.5.7
-    //    Format-2 per-key COLLATING SEQUENCE seam. The standard makes the element optional; this
-    //    implementation declines it and says so.
-    // EVERY EDITION. SOURCE is reserved at 85/2002/2014/2023 (tests/version-matrix/reserved-words.json), the
-    //    element is provided at none of them, and a construct that never compiles has no edition window — which
-    //    is why there is no tests/version-matrix/constructs.json row (that file models `introducedIn` /
-    //    `removedIn`), matching COBOLNET1778's precedent.
-    public static readonly DiagnosticDescriptor RecordKeySourcePhraseUnsupported = new(
-        "COBOLNET1954", "record-key-source-phrase-unsupported", EditionSeverity.Error,
-        "the SOURCE phrase of the RECORD KEY / ALTERNATE RECORD KEY clause (ISO §12.4.5.12.2 / §12.4.5.6.2) "
-        + "declares a record-key-name whose key is the concatenation of one or more data-name-2 operands "
-        + "(§12.4.5.12.4 GR2 / §12.4.5.6.4 GR2). It is a processor-dependent element (§4.2.6; Annex A.3 item "
-        + "40 — \"The capability of specifying the SOURCE phrase of the RECORD KEY clause and ALTERNATE RECORD "
-        + "KEY clause is dependent on the capabilities of the processor\") that this implementation does not "
-        + "provide: a record key here is one contiguous byte window of the record, never a concatenation of "
-        + "several. The clause is REFUSED rather than accepted inert, because record-key-name-1 is its own name "
-        + "class (§8.3.2.2.24) and names no data item — an inert compile would leave the file with no key at "
-        + "all. Write the single-item form instead: RECORD KEY IS data-name-1. See docs/CONFORMANCE.md §2 row "
-        + "40.",
-        "ISO §4.2.6 ¶3 / Annex A.3 item 40 / §12.4.5.12.2 / §12.4.5.6.2", RecognizedNotImplemented,
-        Annex: DeclinedAnnex.A3);
+    // ⛔ COBOLNET1954 ("record-key-source-phrase-unsupported") is RETIRED — NEVER REALLOCATE IT. It refused the
+    //    SOURCE phrase of the RECORD KEY / ALTERNATE RECORD KEY clause (Annex A.3 item 40) at every edition while a
+    //    record key was one contiguous byte window. kb/Work PB1099 Q1 (owner rule R65: a processor-dependent
+    //    element is declined only where the processor truly lacks the capability) PROVIDES it: a record key is a
+    //    list of byte windows end to end (FileModel's RecordKey, the runtime KeySegment), §12.4.5.12.4 GR2 /
+    //    §12.4.5.6.4 GR2's concatenation. The COBOLNET1518 precedent applies: a retired code stays retired.
     // ── 1560 / 1705 / 1706 / 1707 — the REFUSE half of the band (see the header above). One code per A.4
     //    MODULE (A.4.2 takes two, split at the division boundary — see the header below it), not per
     //    clause: the module is the unit §4.2.7 makes the implementor document and Annex A.4 makes optional, so
@@ -4082,7 +4083,7 @@ public static class DiagnosticCatalog
         + "and negative extremes have DIFFERENT absolute values, the SIGN phrase shall be specified — a) for "
         + "FARTHEST-FROM-ZERO, b) for NEAREST-TO-ZERO. The rule exists because \"the value farthest away from "
         + "zero permitted by the specifications of identifier-14\" (GR32 a) is then ambiguous, and it bites "
-        + "exactly the two's-complement containers of §13.18.60.4 GR12: a PIC S9(4) COMP-5 item spans "
+        + "exactly the two's-complement containers (§13.18.60.4 GR12; COMP-5 by DOC-A.1-208): a PIC S9(4) COMP-5 item spans "
         + "−32768..32767, so FARTHEST-FROM-ZERO alone would have to choose between two different magnitudes. "
         + "Write SIGN POSITIVE or SIGN NEGATIVE. A DIGIT-COUNT item (PIC S9(4) DISPLAY, ±9999) is symmetric and "
         + "needs no phrase.",
@@ -6955,19 +6956,178 @@ public static class DiagnosticCatalog
         + "ACTIVE-CLASS object reference, and no RETURNING phrase. The site names the rule it caught.",
         "ISO §11.7.3 SR5/SR6/SR7");
 
-    /// <summary>COBOLNET2791 — the INHERITS clause of a CLASS-ID paragraph breaks one of §11.3.3's syntax rules on
-    /// object-class-name-2 (kb/Work PB1505, PB1020): SR3 (the class names itself), SR4 (object-class-name-2 inherits
-    /// from the class being defined, directly or indirectly — a cycle) or SR7 (a class name written twice). Asked of
-    /// EVERY class definition, the parameterized skeletons <c>OoExpansion</c> keeps out of the class table included,
-    /// by <c>OoClassTable.Build</c>; SR7 is asked before the declined multiple-inheritance facility (COBOLNET0849,
-    /// Annex A.4.10 item 1), which counts DISTINCT names. The site names the rule it caught.</summary>
-    public static readonly DiagnosticDescriptor ClassInheritsRule = new(
-        "COBOLNET2791", "class-inherits-rule", EditionSeverity.Error,
-        "The INHERITS clause of a CLASS-ID paragraph breaks a syntax rule: SR3 — object-class-name-2 shall not be the "
-        + "name of the class declared by this class definition; SR4 — object-class-name-2 shall not inherit from "
-        + "object-class-name-1 directly or indirectly; SR7 — a given class name shall not appear more than once in an "
-        + "INHERITS clause. The site names the rule it caught.",
-        "ISO §11.3.3 SR3/SR4/SR7");
+    // ── The OO definition rules of the class table (kb/Work PB1784 item 2, PB745) ─────────────────────────────────
+    // ONE descriptor per rule, never a code shared by unrelated rules: until PB1784 COBOLNET0840 carried eight rules
+    // (a duplicate interface, a class named like an interface, OVERRIDE/FINAL in a prototype, a duplicate prototype, an
+    // unresolved INHERITS or IMPLEMENTS interface, the interface INHERITS cycle and a repeated interface-name), 0820
+    // four, 0839 two, and 0849 both the A.4.10 decline and GOBACK/EXIT's §14.9.18.3 SR4 — and none had a descriptor.
+
+    /// <summary>COBOLNET2791 — an INHERITS clause breaks one of its syntax rules on the inherited name (kb/Work PB1505,
+    /// PB1020, PB1784): of a CLASS-ID paragraph, §11.3.3 SR3 (the class names itself), SR4 (object-class-name-2
+    /// inherits from the class being defined, directly or indirectly — a cycle), SR5 (object-class-name-2 is FINAL) or
+    /// SR7 (a class name written twice); of an INTERFACE-ID paragraph, §11.6.3 SR3 (a cycle) or SR6 (an interface-name
+    /// written twice). ONE rule shape for both paragraphs, keyed on the WRITTEN name (docs/CONFORMANCE.md D-INH1).
+    /// Asked of EVERY definition, the parameterized skeletons <c>OoExpansion</c> keeps out of the class table included,
+    /// by <c>OoClassTable.Build</c>; SR7 is asked before the declined multiple-inheritance facility
+    /// (<see cref="MultipleInheritanceDeclined"/>), which counts DISTINCT names. The site names the rule it
+    /// caught.</summary>
+    public static readonly DiagnosticDescriptor InheritsClauseRule = new(
+        "COBOLNET2791", "inherits-clause-rule", EditionSeverity.Error,
+        "The INHERITS clause of a CLASS-ID or INTERFACE-ID paragraph breaks a syntax rule: §11.3.3 SR3 — "
+        + "object-class-name-2 shall not be the name of the class declared by this class definition; SR4 — "
+        + "object-class-name-2 shall not inherit from object-class-name-1 directly or indirectly; SR5 — "
+        + "object-class-name-2 shall not be the name of a class defined with the FINAL clause; SR7 — a given class "
+        + "name shall not appear more than once in an INHERITS clause; §11.6.3 SR3 — interface-name-2 shall not "
+        + "inherit directly or indirectly from interface-name-1; SR6 — a given interface-name shall not appear more "
+        + "than once in an INHERITS clause. The site names the rule it caught.",
+        "ISO §11.3.3 SR3/SR4/SR5/SR7 / §11.6.3 SR3/SR6");
+
+    /// <summary>COBOLNET0820 — two OO definitions of the compilation group declare one name (kb/Work PB1784): two
+    /// class definitions (§8.4.6.4 "Object class definitions within a compilation group shall have unique
+    /// object-class-names"), two interface definitions (its interface-name twin), or a class and an interface — two
+    /// different kinds of entity under one externalized name (§8.3.2.2). Asked by <c>OoClassTable.Build</c> of the
+    /// plain definitions and by <c>OoExpansion</c> of the parameterized ones.</summary>
+    public static readonly DiagnosticDescriptor OoDefinitionNameNotUnique = new(
+        "COBOLNET0820", "oo-definition-name-not-unique", EditionSeverity.Error,
+        "Two class or interface definitions of the compilation group declare the same name: object class definitions "
+        + "within a compilation group shall have unique object-class-names, interface definitions unique "
+        + "interface-names, and a class and an interface are different kinds of entity that cannot share an "
+        + "externalized name.",
+        "ISO §8.4.6.4 / §8.3.2.2");
+
+    /// <summary>COBOLNET0821 — a CLASS-ID's INHERITS names no class the definition may reference (§11.3.3 SR2, an
+    /// instance of §8.4.6.4's scope rule; kb/Work PB365): reported by the <c>OoNameResolution.Resolve</c> funnel,
+    /// whose message says whether the class is defined in the group but undeclared, or defined nowhere.</summary>
+    public static readonly DiagnosticDescriptor InheritedClassNotInScope = new(
+        "COBOLNET0821", "inherited-class-not-in-scope", EditionSeverity.Error,
+        "The INHERITS clause of a CLASS-ID paragraph names no class this definition may reference: object-class-name-2 "
+        + "shall be the name of a class specified in the REPOSITORY paragraph of this source element.",
+        "ISO §11.3.3 SR2 / §8.4.6.4");
+
+    /// <summary>COBOLNET0840 — an INTERFACE-ID's INHERITS, or a FACTORY or OBJECT paragraph's IMPLEMENTS, names no
+    /// interface the definition may reference (§11.6.3 SR2, §11.4.3 SR1, §11.8.3 SR1 — instances of §8.4.6.4's scope
+    /// rule; kb/Work PB365): reported by the <c>OoNameResolution.Resolve</c> funnel. Before kb/Work PB1784 the code
+    /// also carried seven unrelated rules, which now have descriptors of their own.</summary>
+    public static readonly DiagnosticDescriptor InterfaceNameNotInScope = new(
+        "COBOLNET0840", "interface-name-not-in-scope", EditionSeverity.Error,
+        "An INHERITS clause of an INTERFACE-ID paragraph, or an IMPLEMENTS clause of a FACTORY or OBJECT paragraph, "
+        + "names no interface this definition may reference: the interface-name shall be the name of an interface "
+        + "specified in the REPOSITORY paragraph of this source element (of the containing class definition, for "
+        + "IMPLEMENTS).",
+        "ISO §11.6.3 SR2 / §11.4.3 SR1 / §11.8.3 SR1 / §8.4.6.4");
+
+    /// <summary>COBOLNET0849 — the DECLINED Annex A.4.10 item 1 (kb/Work PB745): a CLASS-ID INHERITS clause naming
+    /// more than one DISTINCT class. Multiple class inheritance is an OPTIONAL element this implementation does not
+    /// claim (docs/CONFORMANCE.md §5, row A.4.10), refused through <c>EditionContext.Declined</c>; a class name
+    /// written twice is §11.3.3 SR7 (<see cref="InheritsClauseRule"/>), asked first. Item 2, the interface twin, is
+    /// implemented.</summary>
+    public static readonly DiagnosticDescriptor MultipleInheritanceDeclined = new(
+        "COBOLNET0849", "multiple-inheritance-declined", EditionSeverity.Error,
+        "Multiple inheritance — an INHERITS clause of a CLASS-ID paragraph that names more than one class (the "
+        + "repetition of object-class-name-2, §11.3.2) — is an OPTIONAL element (§4.2.7; Annex A.4.10 item 1) whose "
+        + "support WiseOwl COBOL does not claim: a class inherits from at most one class. See docs/CONFORMANCE.md §5.",
+        "ISO §4.2.7 / Annex A.4.10 item 1 / §11.3.2", DeclinedOptionalElement, Annex: DeclinedAnnex.A4);
+
+    /// <summary>COBOLNET0822 — the DECLINED Annex A.4.10 item 3 (kb/Work PB745): two methods of one name in a class's
+    /// instance or factory definition, or two method prototypes of one name in an interface. Overloading by method
+    /// resolution signature is parametric polymorphism (§9.3.5.3), an OPTIONAL element this implementation does not
+    /// claim (docs/CONFORMANCE.md §5, row A.4.10): the implemented method resolution signature is the method NAME
+    /// alone, so a second definition of a name is refused through <c>EditionContext.Declined</c>.</summary>
+    public static readonly DiagnosticDescriptor ParametricPolymorphismDeclined = new(
+        "COBOLNET0822", "parametric-polymorphism-declined", EditionSeverity.Error,
+        "Parametric polymorphism — two methods of one name in a factory or instance definition, or two method "
+        + "prototypes of one name in an interface, distinguished by their method resolution signatures (§9.3.5.3, "
+        + "method overloading) — is an OPTIONAL element (§4.2.7; Annex A.4.10 item 3) whose support WiseOwl COBOL does "
+        + "not claim: the method resolution signature is the method name alone, so a method-name is defined once per "
+        + "definition. See docs/CONFORMANCE.md §5.",
+        "ISO §4.2.7 / Annex A.4.10 item 3 / §9.3.5.3", DeclinedOptionalElement, Annex: DeclinedAnnex.A4);
+
+    /// <summary>COBOLNET4212 — a method prototype (an interface's METHOD-ID) carries the OVERRIDE phrase (§11.7.3 SR2)
+    /// or the FINAL clause (§11.7.3 SR8). Split off COBOLNET0840 (kb/Work PB1784).</summary>
+    public static readonly DiagnosticDescriptor MethodPrototypeOverrideOrFinal = new(
+        "COBOLNET4212", "method-prototype-override-or-final", EditionSeverity.Error,
+        "A method prototype breaks a syntax rule of the METHOD-ID paragraph: SR2 — the OVERRIDE phrase shall not be "
+        + "specified in a method prototype; SR8 — the FINAL clause shall not be specified in a method prototype.",
+        "ISO §11.7.3 SR2/SR8");
+
+    /// <summary>COBOLNET0838 — a METHOD-ID specifies OVERRIDE but no superclass defines a method of its name
+    /// (§11.7.3 SR3, first sentence).</summary>
+    public static readonly DiagnosticDescriptor OverrideWithoutInheritedMethod = new(
+        "COBOLNET0838", "override-without-inherited-method", EditionSeverity.Error,
+        "A METHOD-ID specifies OVERRIDE, but no superclass defines a method with the same method resolution "
+        + "signature: if the OVERRIDE phrase is specified, there shall be such a method defined in a superclass.",
+        "ISO §11.7.3 SR3");
+
+    /// <summary>COBOLNET0837 — a method redefines an inherited method without OVERRIDE (§11.7.3 SR4 a)). Reported
+    /// through <c>EditionContext.Removed</c>: an error, a warning under <c>--permissive</c> (the documented migration
+    /// leniency, which infers the override).</summary>
+    public static readonly DiagnosticDescriptor RedefinitionWithoutOverride = new(
+        "COBOLNET0837", "redefinition-without-override", EditionSeverity.Error,
+        "A method of a class definition has the same method resolution signature as an inherited method, and its "
+        + "METHOD-ID does not specify OVERRIDE: no inherited method shall have the same method resolution signature "
+        + "as a method this class definition declares without the OVERRIDE phrase. A warning under --permissive.",
+        "ISO §11.7.3 SR4 a)");
+
+    /// <summary>COBOLNET0839 — a method overrides a superclass method defined with the FINAL clause (§11.7.3 SR3,
+    /// second sentence; §11.7.4 GR3). A FINAL superclass is §11.3.3 SR5, <see cref="InheritsClauseRule"/>.</summary>
+    public static readonly DiagnosticDescriptor FinalMethodOverridden = new(
+        "COBOLNET0839", "final-method-overridden", EditionSeverity.Error,
+        "A METHOD-ID specifies OVERRIDE of a superclass method that is defined with the FINAL clause: the method in "
+        + "the superclass shall not be defined with the FINAL clause.",
+        "ISO §11.7.3 SR3 / §11.7.4 GR3");
+
+    // ⛔ `OverrideNamedLikeItsClass` (`override-named-like-its-class`, COBOLNET4213) LIVED HERE AND IS GONE (kb/Work
+    // PB3342), and this comment stands where it did so it is not re-added. It refused, as an "implementation
+    // restriction", a class that overrides an inherited method spelled like the class — legal COBOL (the method-name
+    // and the object-class-name sit in different source elements, §8.3.2.2 / §10.5) — because the override kept the
+    // base member's C# name, which C# forbids a type to declare (CS0542). OoClassTable.NameMethodSlots now names every
+    // method slot (an override chain with the interface prototypes it implements) away from every type that declares
+    // a member of it. The id is retired, never reallocated.
+
+    /// <summary>COBOLNET0829 — an overriding method's procedure division header does not conform to the overridden
+    /// method's (§11.7.3 SR9, by the rules of §9.3.8.2.3 asked through
+    /// <c>OoConformance.MethodConformanceMismatches</c>). The message names each mismatch.</summary>
+    public static readonly DiagnosticDescriptor OverrideSignatureMismatch = new(
+        "COBOLNET0829", "override-signature-mismatch", EditionSeverity.Error,
+        "An overriding method's parameter declarations, returning item or exceptions do not conform to the method it "
+        + "overrides: they shall obey the rules of conformance according to §9.3.8.2.3, Conformance between "
+        + "interfaces.",
+        "ISO §11.7.3 SR9 / §9.3.8.2.3");
+
+    /// <summary>COBOLNET0841 — a class does not implement an interface its FACTORY or OBJECT paragraph IMPLEMENTS
+    /// (§9.3.11): a prototype has no method, defined or inherited, or its method does not conform (§11.7.3 SR9 /
+    /// §9.3.8.2.3, through <c>OoConformance.MethodConformanceMismatches</c>).</summary>
+    public static readonly DiagnosticDescriptor InterfaceNotImplemented = new(
+        "COBOLNET0841", "interface-not-implemented", EditionSeverity.Error,
+        "A class does not implement an interface it names in an IMPLEMENTS clause: the implementing class shall "
+        + "implement all the method specifications of the interface, including inherited ones, each with a method "
+        + "whose procedure division header conforms to the prototype.",
+        "ISO §9.3.11 / §11.7.3 SR9 / §9.3.8.2.3");
+
+    /// <summary>COBOLNET0842 — a PROPERTY clause on an entry without a name (FILLER, or a data-name omitted): the
+    /// clause may be specified only for an elementary item whose name does not require qualification (§13.18.42.3
+    /// SR3), and the property-name it defines is the subject's data-name.</summary>
+    public static readonly DiagnosticDescriptor PropertyClauseUnnamedSubject = new(
+        "COBOLNET0842", "property-clause-unnamed-subject", EditionSeverity.Error,
+        "A PROPERTY clause is specified for a data description entry that has no data-name: the PROPERTY clause may be "
+        + "specified only for an elementary item whose name does not require qualification, and the property it "
+        + "defines is named by that data-name.",
+        "ISO §13.18.42.3 SR3");
+
+    /// <summary>COBOLNET4211 — the RAISING phrase of a GOBACK or EXIT statement names an identifier-1 that breaks the
+    /// statement's object-reference rule (GOBACK §14.9.18.3 SR4, EXIT §14.9.14.3 SR5; kb/Work PB745, PB1425): it is
+    /// not an object reference (NULL included — it references no object), it is a universal object reference
+    /// (sub-rule d)), or what its description names is not specified in the RAISING phrase of the procedure division
+    /// header (a) class, b) interface, c) ACTIVE-CLASS).
+    /// Split off COBOLNET0849, which had carried this mandatory rule beside the Annex A.4.10 decline.</summary>
+    public static readonly DiagnosticDescriptor RaisingObjectOperandRule = new(
+        "COBOLNET4211", "raising-object-operand-rule", EditionSeverity.Error,
+        "The identifier-1 of a GOBACK or EXIT statement's RAISING phrase breaks a syntax rule: identifier-1 shall be "
+        + "an object reference and shall not be a universal object reference, and the class (or a superclass) or "
+        + "interface its description names — the containing object's class for ACTIVE-CLASS — shall be specified, "
+        + "with the same presence or absence of FACTORY, in the RAISING phrase of the procedure division header. "
+        + "The site names the sub-rule it caught.",
+        "ISO §14.9.18.3 SR4 / §14.9.14.3 SR5");
 
     /// <summary>COBOLNET2793 — an end marker breaks one of §10.7.3's syntax rules (kb/Work PB988): SR1 (a program
     /// definition that contains or precedes another source unit has no END PROGRAM), SR2 / SR4 / SR6 / SR7 / SR8 / SR9

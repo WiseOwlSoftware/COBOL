@@ -9,28 +9,32 @@ namespace CobolNet.Runtime.IO;
 /// phase — a USE declarative that runs from an implicit transfer is not in the range of either procedure.</summary>
 internal enum ProcedurePhase { None, Input, Output }
 
-/// <summary>The per-SD store of one executing SORT/MERGE statement: released images (in release order — the
-/// stability anchor ISO §14.9.40.4 GR3 requires), the USING stream boundaries for MERGE, and the return cursor.</summary>
-internal sealed class SortStore
+/// <summary>The per-SD store of one executing SORT/MERGE statement: its records — <see cref="Work"/>, the bounded
+/// external merge sort that keeps release order as the stability anchor ISO §14.9.40.4 GR3 requires (kb/Work PB3339) —
+/// and the statement's procedure phase. ⛔ It holds no record collection of its own (<c>SortWorkBoundDriftTests</c>).</summary>
+internal sealed class SortStore(SortMemory memory)
 {
-    /// <summary>Each released record with the extent table it was released with (D-FRA (v); kb/Work PB1053).</summary>
-    public readonly List<StoredFrame> Records = [];
-    public readonly List<int> StreamStarts = [];   // MERGE: index where each USING file's records begin
-    public int Cursor;
+    /// <summary>The statement's records, keys and GR5 sequences (the §14.6.6 r5 snapshots), from
+    /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> — a keyless, empty work
+    /// until then.</summary>
+    public SortWork Work { get; private set; } = new(memory, [], null, null);
+
+    /// <summary>Begin the statement's records: <paramref name="work"/> replaces the previous statement's, whose
+    /// temporary files close (and delete themselves) here.</summary>
+    public void Begin(SortWork work)
+    {
+        Work.Dispose();
+        Work = work;
+    }
+
     public int LastReturnedLength;
     /// <summary>The extent table of the most recently RETURNed record — null when it carries none.</summary>
     public RecordExtents? LastReturnedExtents;
-    /// <summary>The ALPHANUMERIC collating sequence snapshotted at statement start (ISO §14.6.6 r5) — see
-    /// <see cref="CobolSort.Init(string, CobolCollation?, CobolCollation?)"/>.</summary>
-    public CobolCollation? Collation;
-    /// <summary>Its NATIONAL twin — GR5 determines the two sequences SEPARATELY, so they snapshot
-    /// separately and a statement may carry one, both or neither.</summary>
-    public CobolCollation? NatCollation;
     /// <summary>Which procedure of the executing SORT/MERGE statement is running — the state §14.9.32.4 GR1
     /// ("within the range of an input procedure being executed by a SORT statement that references the
     /// file-name") and §14.9.34.4 GR1 ("within the range of an output procedure being executed by a MERGE or
     /// SORT statement that references file-name-1") test. The store exists only between
-    /// <see cref="CobolSort.Init(string, CobolCollation?, CobolCollation?)"/> and <see cref="CobolSort.Close"/>, so
+    /// <see cref="CobolSort.Init(string, CobolSort.Key[], CobolCollation?, CobolCollation?)"/> and <see cref="CobolSort.Close"/>, so
     /// "no store" is "no statement executing".</summary>
     public ProcedurePhase Phase;
     /// <summary>The statement's §14.9.40.4 GR17 registration (kb/Work PB1177) — set by
@@ -74,20 +78,26 @@ public sealed class SortFileTable
     /// activation returns (<see cref="AfterActivationReturn"/>), else null.</summary>
     private string? _exitTerminated;
 
+    /// <summary>The run unit's sort memory limit and work directory (kb/Work PB3339; docs/CONFORMANCE.md §3 D-SWK) —
+    /// read from the environment ONCE, when the run unit is built, so an executing statement's limit cannot change
+    /// under it. A host (or a test) may set it before the run unit's first SORT or MERGE.</summary>
+    internal SortMemory Memory { get; set; } = SortMemory.FromEnvironment();
+
     /// <summary>The store of <paramref name="name"/>, created empty when no statement has begun on it.</summary>
     internal SortStore Get(string name)
     {
-        if (!_stores.TryGetValue(name, out var s)) _stores[name] = s = new SortStore();
+        if (!_stores.TryGetValue(name, out var s)) _stores[name] = s = new SortStore(Memory);
         return s;
     }
 
     /// <summary>The store of <paramref name="name"/> when a statement has begun on it, else null.</summary>
     internal SortStore? Find(string name) => _stores.GetValueOrDefault(name);
 
-    /// <summary>Drop the store of <paramref name="name"/> — the statement ended (<see cref="CobolSort.Close"/>).</summary>
+    /// <summary>Drop the store of <paramref name="name"/> — the statement ended (<see cref="CobolSort.Close"/>) — and close
+    /// its temporary run files, each of which deletes itself as it closes.</summary>
     internal void Remove(string name)
     {
-        _stores.Remove(name);
+        if (_stores.Remove(name, out var store)) store.Work.Dispose();
         if (_exitTerminated is { } t && CobolNames.Comparer.Equals(t, name)) _exitTerminated = null;
     }
 

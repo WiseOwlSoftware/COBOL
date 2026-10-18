@@ -191,38 +191,63 @@ internal sealed class RecordStructEmitter(EmitContext ctx, PhysicalModel phys, G
     /// <summary>The leaf-vector pair of one record struct (kb/Work PB1116): <c>AsLeaves()</c> boxes each PHYSICAL field
     /// in declaration order — an elementary field by value (an object reference as the reference), a fixed table of
     /// elementary items as a copy of its array, a nested group by its own vector, a table of groups as an array of their
-    /// vectors — and the static <c>OfLeaves</c> builds a NEW struct from such a vector. Two record structs of one
+    /// vectors, a dynamic-capacity table as an array of its CURRENT occurrences in the same element forms (kb/Work PB3139)
+    /// — and <c>WithLeaves</c> returns this struct with every field made from such a vector. Two record structs of one
     /// strong type have corresponding physical fields (§8.5.3.1: the same elementary items at the same relative
     /// positions with the same clauses), so a vector made by one is read by the other field for field — the copy-in
-    /// and copy-out of a BY REFERENCE crossing, the copy of a BY CONTENT one, and a RETURNING delivery.</summary>
+    /// and copy-out of a BY REFERENCE crossing, the copy of a BY CONTENT one, a RETURNING delivery and a group MOVE.
+    /// <para>⛔ AN INSTANCE METHOD, BECAUSE A DYNAMIC-CAPACITY TABLE IS RECREATED IN ITS RECEIVER'S DESCRIPTION (kb/Work
+    /// PB3139; ISO §14.6.9.2: "The operation recreates or overwrites the receiving table with a copy of the sending table"):
+    /// the receiving struct's own table states the FROM minimum, the expected capacity and the seed of every element it
+    /// creates, which a vector cannot carry, so the store asks the receiver's table for a recreated copy
+    /// (<c>CobolDynTable.Recreated</c>) and never shares a table, an array or an element with the sender.</para></summary>
     private void EmitLeafMethods(DataItem item, CodeWriter w)
     {
         var fs = phys.PhysicalChildrenOf(item);
-        static string Elem(string arrayType) => arrayType.EndsWith("[]", StringComparison.Ordinal) ? arrayType[..^2] : arrayType;
-        string Out(PhysicalModel.Physical f) =>
-            (f.IsGroupStruct, f.Occurs > 0) switch
-            {
-                (false, false) => f.Name,
-                (false, true) => $"{f.Name}.Clone()",
-                (true, false) => $"{f.Name}.AsLeaves()",
-                (true, true) => $"global::System.Array.ConvertAll({f.Name}, __e => (object?)__e.AsLeaves())",
-            };
-        string In(PhysicalModel.Physical f, string v) =>
-            (f.IsGroupStruct, f.Occurs > 0) switch
-            {
-                (false, false) => $"__s.{f.Name} = ({f.Type}){v}!;",
-                (false, true) => $"__s.{f.Name} = ({f.Type})(({f.Type}){v}!).Clone();",
-                (true, false) => $"__s.{f.Name} = {f.Type}.OfLeaves((object?[]){v}!);",
-                (true, true) => $"__s.{f.Name} = global::System.Array.ConvertAll((object?[]){v}!, __e => {Elem(f.Type)}.OfLeaves((object?[])__e!));",
-            };
-        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select(Out))}];   // kb/Work PB1116");
-        using (w.Block($"public static {item.StructName} OfLeaves(object?[] __l)"))
+        // A strongly-typed group holds no REDEFINES subject (§13.18.44.3 SR14), so its physical fields are its
+        // subordinate groups and elementary items one for one (PlaceRenderer.LeafFieldsOf walks the same members).
+        var members = item.Children.Where(c => c.IsGroup || c.IsElementary).ToList();
+        if (members.Count != fs.Count)
+            throw new InvalidOperationException(
+                $"the leaf vector of '{item.CobolName}' has {fs.Count} physical fields for {members.Count} members (kb/Work PB1116)");
+        string Out(PhysicalModel.Physical f, DataItem m) =>
+            m.IsDynamicTable
+                ? $"{f.Name}.CurrentOccurrencesAs(static __e => (object?){(m.IsGroup ? "__e.AsLeaves()" : "__e")})"
+                : (f.IsGroupStruct, f.Occurs > 0) switch
+                {
+                    (false, false) => f.Name,
+                    (false, true) => $"{f.Name}.Clone()",
+                    (true, false) => $"{f.Name}.AsLeaves()",
+                    (true, true) => $"global::System.Array.ConvertAll({f.Name}, __e => (object?)__e.AsLeaves())",
+                };
+        string In(PhysicalModel.Physical f, DataItem m, string v) =>
+            m.IsDynamicTable
+                // §14.6.9.2's recreation in the receiver's description; the occurrences the sender carried are at least
+                // the FROM minimum (the two tables are one type's), so the blank part is never asked for.
+                ? $"__s.{f.Name} = __s.{f.Name}.Recreated((object?[]){v}!, (object?)null, static (__e, __p) => __p is null ? __e : "
+                  + (m.IsGroup ? "__e.WithLeaves((object?[])__p)" : $"({m.ElementType})__p") + ");"
+                : (f.IsGroupStruct, f.Occurs > 0) switch
+                {
+                    (false, false) => $"__s.{f.Name} = ({f.Type}){v}!;",
+                    (false, true) => $"__s.{f.Name} = ({f.Type})(({f.Type}){v}!).Clone();",
+                    (true, false) => $"__s.{f.Name} = __s.{f.Name}.WithLeaves((object?[]){v}!);",
+                    (true, true) => FixedGroupTableIn(f, v),
+                };
+        w.Line($"public readonly object?[] AsLeaves() => [{string.Join(", ", fs.Select((f, i) => Out(f, members[i])))}];   // kb/Work PB1116");
+        using (w.Block($"public readonly {item.StructName} WithLeaves(object?[] __l)"))
         {
-            w.Line($"var __s = new {item.StructName}();");
-            for (int i = 0; i < fs.Count; i++) w.Line(In(fs[i], $"__l[{i}]"));
+            w.Line("var __s = this;");
+            for (int i = 0; i < fs.Count; i++) w.Line(In(fs[i], members[i], $"__l[{i}]"));
             w.Line("return __s;");
         }
     }
+
+    /// <summary>The <c>WithLeaves</c> store of a fixed table of group structs: a copy of the receiver's array whose every
+    /// occurrence takes its own vector, so no occurrence is shared with the array the struct was copied from.</summary>
+    private static string FixedGroupTableIn(PhysicalModel.Physical f, string v) =>
+        "{ " + $"var __a = ({f.Type})__s.{f.Name}.Clone(); var __v = (object?[]){v}!; "
+        + "for (int __i = 0; __i < __a.Length; __i++) __a[__i] = __a[__i].WithLeaves((object?[])__v[__i]!); "
+        + $"__s.{f.Name} = __a; " + "}";
 
     private void EmitProfiles(DataItem item, CodeWriter w)
     {

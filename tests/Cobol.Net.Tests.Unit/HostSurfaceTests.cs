@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// published record structs and the repository record's decoder read, so this pins each row of the table over BOUND
 /// descriptions (the binder's own PICTURE and USAGE analysis, never a hand-built <see cref="PicInfo"/>): a fixed-point
 /// item by its capacity discipline — a PICTURE's digits for DISPLAY, a binary item's whole container when its
-/// truncation is by capacity (ISO §13.18.60.4 12); kb/Work R10) — a floating-point item by its carrier, the character
+/// truncation is by capacity (§13.18.60.4 GR12 / DOC-A.1-208; kb/Work R10) — a floating-point item by its carrier, the character
 /// classes as <see cref="string"/>, the pointer and object classes as their runtime carriers, and a group as its
 /// published record struct. The expected types are derived from each storage's range: a signed 8-byte container's
 /// [-2^63, 2^63) is <c>long</c>'s, an unsigned one's [0, 2^64) needs <c>Int128</c>, an unsigned 16-byte one's [0, 2^128)

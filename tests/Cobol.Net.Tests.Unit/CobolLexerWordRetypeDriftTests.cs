@@ -35,7 +35,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     [Fact]
     public void ASynonymOfPic_EntersPicMode()
     {
-        var tokens = Lex("01 X PX 9(3) VALUE 7.\n", new CobolWordsOp(CobolWordsAction.Equate, "PIC", "PX", 0));
+        var tokens = Lex("01 X PX 9(3) VALUE 7.\n", new CobolWordsOp(CobolWordsAction.Equate, "PIC", "PX", default));
         Assert.Contains(tokens, t => t.Type == CobolLexer.PIC && t.Text == "PIC");        // re-spelled canonically
         Assert.Contains(tokens, t => t.Type == CobolLexer.PIC_STRING && t.Text == "9(3)");   // the picture string is ONE token
     }
@@ -44,7 +44,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     public void ASubstituteForPicture_EntersPicMode_AndPictureIsADataName()
     {
         var tokens = Lex("01 X LOOKS 9(3) VALUE 7.\n01 PICTURE PIC X(3).\n",
-            new CobolWordsOp(CobolWordsAction.Substitute, "PICTURE", "LOOKS", 0));
+            new CobolWordsOp(CobolWordsAction.Substitute, "PICTURE", "LOOKS", default));
         Assert.Equal(2, tokens.Count(t => t.Type == CobolLexer.PIC));
         Assert.Contains(tokens, t => t.Type == CobolLexer.PIC_STRING && t.Text == "9(3)");
         Assert.Contains(tokens, t => t.Type == CobolLexer.IDENTIFIER && t.Text == "PICTURE");   // literal-4 is a user word now
@@ -53,7 +53,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     [Fact]
     public void AnUndefinedPicture_IsADataName_AndSwallowsNothing()
     {
-        var tokens = Lex("01 PICTURE PIC X(3) VALUE \"P\".\n", new CobolWordsOp(CobolWordsAction.Undefine, "PICTURE", null, 0));
+        var tokens = Lex("01 PICTURE PIC X(3) VALUE \"P\".\n", new CobolWordsOp(CobolWordsAction.Undefine, "PICTURE", null, default));
         Assert.Equal([CobolLexer.INTEGERLIT, CobolLexer.IDENTIFIER, CobolLexer.PIC], Types(tokens).Take(3));
         Assert.Contains(tokens, t => t.Type == CobolLexer.PIC_STRING && t.Text == "X(3)");
     }
@@ -63,7 +63,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     [Fact]
     public void UndefiningPic_LeavesPictureAKeyword()
     {
-        var tokens = Lex("01 PIC PICTURE X(3).\n", new CobolWordsOp(CobolWordsAction.Undefine, "PIC", null, 0));
+        var tokens = Lex("01 PIC PICTURE X(3).\n", new CobolWordsOp(CobolWordsAction.Undefine, "PIC", null, default));
         Assert.Equal(1, tokens.Count(t => t.Type == CobolLexer.PIC));
         Assert.Contains(tokens, t => t.Type == CobolLexer.IDENTIFIER && t.Text == "PIC");
         Assert.Contains(tokens, t => t.Type == CobolLexer.PIC_STRING && t.Text == "X(3)");
@@ -72,7 +72,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     [Fact]
     public void ASynonymOfFunction_OpensTheArgumentRegion()
     {
-        var tokens = Lex("DISPLAY FN UPPER-CASE(X).\n", new CobolWordsOp(CobolWordsAction.Equate, "FUNCTION", "FN", 0));
+        var tokens = Lex("DISPLAY FN UPPER-CASE(X).\n", new CobolWordsOp(CobolWordsAction.Equate, "FUNCTION", "FN", default));
         Assert.Contains(tokens, t => t.Type == CobolLexer.FUNCTION);
         Assert.Contains(tokens, t => t.Type == CobolLexer.FNARG_LPAREN);
         Assert.Contains(tokens, t => t.Type == CobolLexer.FNARG_RPAREN);
@@ -82,7 +82,7 @@ public sealed class CobolLexerWordRetypeDriftTests
     public void AnUndefinedKeyword_UsedAsASubscriptedDataName_OpensASubscript()
     {
         // The seam this replaces (a set of de-reserved types the lexer consulted at '('): the retype made it redundant.
-        var tokens = Lex("COMPUTE MOVE(2) = 5.\n", new CobolWordsOp(CobolWordsAction.Undefine, "MOVE", null, 0));
+        var tokens = Lex("COMPUTE MOVE(2) = 5.\n", new CobolWordsOp(CobolWordsAction.Undefine, "MOVE", null, default));
         Assert.Contains(tokens, t => t.Type == CobolLexer.IDENTIFIER && t.Text == "MOVE");
         // The '(' after a data-name is a REFERENCE paren (REF_LPAREN … REF_RPAREN), exactly as after any ordinary
         // data-name — and NOT as it is after a reserved MOVE, which opens none.

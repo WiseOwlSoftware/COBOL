@@ -119,7 +119,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // string misdiagnosed a pointer-leafed record — the same wrong-cause defect twice removed).
             return new BoundUnsupported(TierCIsland.Reason(file.Records[0], "SORT SD record of"));
 
-        var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
+        var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase(), merge: false);
         if (collErr is { } ce) return ce;
 
         // Release phase source (ISO §14.9.40 GR9a): USING file list or INPUT PROCEDURE pc range.
@@ -155,7 +155,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (!ScreenTransferRecordSizes(file, usingFiles, givingFiles, merge: false)) return BoundRejected.Reported(ctx.Edition);   // SR5, SR11
 
         return new BoundSort(file, keys, s.sortDuplicatesPhrase() is not null, collating,
-            usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file)) { At = ctx.Edition.Cursor };
+            usingFiles, inputProc, givingFiles, outputProc, SortVaryingOf(file));
     }
 
     /// <summary>Bind the Format-2 in-place TABLE sort (ISO §14.9.40 GR18–GR24) over the typed element array.
@@ -352,7 +352,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
                     return new BoundUnsupported($"SORT table key '{k.Key.CobolName}': "
                         + DeferredShapes.Describe(DeferredShape.UnbuiltAccessPath));
 
-        var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase());
+        var (collating, collErr) = SortBindCollating(s.sortCollatingPhrase(), merge: false);
         if (collErr is { } ce) return ce;
         return new BoundTableSort(storage, table, count, keys, s.sortDuplicatesPhrase() is not null, collating);
 
@@ -394,7 +394,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         if (SortRecordOf(file) is null)   // after the keys, for the reason BindSort gives (kb/Work PB1173)
             return new BoundUnsupported($"MERGE '{file.CobolName}' without a usable SD record (Tier-C byte island, deferred)");
 
-        var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase());
+        var (collating, collErr) = SortBindCollating(m.sortCollatingPhrase(), merge: true);
         if (collErr is { } ce) return ce;
 
         var usingFiles = new List<FileModel>();
@@ -442,8 +442,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // procedure-range cross-pass in VersionConformancePass.GateSortMergeProcedures (the paragraph-pc ranges are
         // available on this BoundMerge/BoundSort). Below 2023 the runtime EC-SORT-MERGE-ACTIVE raise in
         // CobolSort.Init covers the dynamic case when checking is enabled (kb/Work PB1036).
-        return new BoundMerge(file, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file))
-            { At = ctx.Edition.Cursor };
+        return new BoundMerge(file, keys, collating, usingFiles, givingFiles, outputProc, SortVaryingOf(file));
     }
 
     // ── RELEASE (ISO §14.9.32) ─────────────────────────────────────────────────────────────────────────────
@@ -680,16 +679,22 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
     /// (<c>DataBinder.CollatingAlphabetFault</c>; §14.9.40.3 SR1/SR2 — a UTF-8/UTF-16 alphabet references NO
     /// collating sequence, §12.3.7 Table 6), and since kb/Work PB678 the
     /// resolved national half IS carried into the bound node: a national key reaches the comparator (PB327 admitted
-    /// national leaves to FD/SD records) and GR5 is what tells it which sequence to use.</summary>
-    private (SortCollation Collation, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c)
+    /// national leaves to FD/SD records) and GR5 is what tells it which sequence to use.
+    /// <para>⛔ THE CLAUSE COMES FROM THE VERB BEING BOUND (kb/Work PB996): SORT and MERGE print the same phrase and
+    /// state its rules under their own clauses — SORT §14.9.40.2 / §14.9.40.3 SR1 and SR2, MERGE §14.9.24.2 /
+    /// §14.9.24.3 SR5 and SR6 — so <see cref="SortCollatingClauses"/> is the one table a message reads them from,
+    /// and a SORT diagnostic never sends its reader to MERGE's rule, or the reverse.</para></summary>
+    private (SortCollation Collation, BoundStatement? Error) SortBindCollating(Core.SortCollatingPhraseContext? c,
+        bool merge)
     {
+        var clauses = SortCollatingClauses(merge);
         // GR5b — the program collating sequences, per class (null ⇒ that class's native order).
         var pcs = new SortCollation(ctx.Data.Collating, ctx.Data.NationalCollating);
         if (c is null) return (pcs, null);
 
         var (alnumName, natName) = ChoiceIndicators.AlphabetPair(ctx.Edition, c.collatingForPhrase(),
             f => f.NATIONAL() is not null, f => f.cobolWord().GetText(), c.cobolWord(),
-            "SORT/MERGE COLLATING SEQUENCE", "14.9.40.2");
+            "SORT/MERGE COLLATING SEQUENCE", clauses.Format);
         // The written names are the phrase's §8.3.2.2 uses (kb/Work PB3153); the screens below read the definitions.
         foreach (var name in new[] { alnumName, natName }.OfType<string>()) ctx.Data.UseAlphabetName(c, name);
 
@@ -697,13 +702,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // that fails either check leaves the national half on the program collating sequence — the diagnostic is
         // the verdict, and inventing a sequence for a rejected alphabet-name would only add a second wrong answer.
         // BOTH slots ask the ONE class test the PROGRAM COLLATING SEQUENCE and the file COLLATING SEQUENCE clauses
-        // ask (DataBinder.CollatingAlphabetFault, kb/Work PB1082) — SORT states the rules as SR1/SR2, MERGE as SR5/SR6.
+        // ask (DataBinder.CollatingAlphabetFault, kb/Work PB1082) — SORT states the rules as SR1/SR2, MERGE as SR5/SR6,
+        // and each message cites the bound verb's own rule (SortCollatingClauses).
         NationalAlphabetDef? nat = pcs.National;
         if (natName is not null)
         {
             if (ctx.Data.CollatingAlphabetFault(natName, national: true) is { } natFault)
                 ctx.Edition.Error("COBOLNET0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
-                    natName, national: true, natFault, "ISO §14.9.40.3 SR2; §14.9.24.3 SR6"));
+                    natName, national: true, natFault, clauses.National));
             else if (ctx.Data.NationalAlphabets.TryPeek(natName, out var def))
                 nat = def.IsIdentity ? null : def;   // GR5a — an identity national alphabet (NATIVE/UCS-4) ⇒ native
         }
@@ -715,7 +721,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         {
             if (ctx.Data.CollatingAlphabetFault(alnumName, national: false) is { } fault)
                 ctx.Edition.Error("COBOLNET0898", DataBinder.CollatingAlphabetViolation("SORT/MERGE COLLATING SEQUENCE",
-                    alnumName, national: false, fault, "ISO §14.9.40.3 SR1; §14.9.24.3 SR5"));
+                    alnumName, national: false, fault, clauses.Alphanumeric));
             // A FOR NATIONAL alphabet in the slot leaves the statement bindable (the alphanumeric keys fall to the
             // native order); any other word is no alphabet at all and the statement is rejected (PB236).
             if (ctx.Data.NationalAlphabets.Declares(alnumName)) return (new SortCollation(null, nat), null);
@@ -724,6 +730,14 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         // GR5a — the statement's own sequences (an identity alphabet ⇒ native, no carrier emitted).
         return (new SortCollation(alnumDef.IsIdentity ? null : alnumDef, nat), null);
     }
+
+    /// <summary>The clauses the bound verb states its COLLATING SEQUENCE phrase under: the general format that prints
+    /// the FOR ALPHANUMERIC / FOR NATIONAL pair, and the syntax rules that alphabet-name-1 "shall reference an alphabet
+    /// that defines an alphanumeric collating sequence" and alphabet-name-2 "a national collating sequence" — SORT
+    /// §14.9.40.3 SR1 / SR2, MERGE §14.9.24.3 SR5 / SR6.</summary>
+    private static (string Format, string Alphanumeric, string National) SortCollatingClauses(bool merge) => merge
+        ? ("14.9.24.2", "ISO §14.9.24.3 SR5", "ISO §14.9.24.3 SR6")
+        : ("14.9.40.2", "ISO §14.9.40.3 SR1", "ISO §14.9.40.3 SR2");
 
     /// <summary>Map a USING/GIVING file list to <see cref="FileModel"/>s. Each shall be an FD file — never an SD
     /// (ISO §14.9.40.3 SR8) — of ANY organization: the implicit OPEN/READ/WRITE/CLOSE of GR12/GR15 run through the
@@ -779,20 +793,40 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
         var first = keys[0];
         foreach (var g in givingFiles)
         {
-            if (g.Organization != FileOrganization.Indexed || g.RecordKeyItem is not { } prime) continue;
+            if (g.Organization != FileOrganization.Indexed || g.PrimeKey is not { } prime) continue;
             string? why = null;
             if (first.Descending)
                 why = "the first specification of data-name-1 is associated with a DESCENDING phrase";
-            else if (Model.RecordLayout.KeyWindowOf(SortRootOf(prime), prime, prime.ByteWidth) is { } pw
-                     && (pw.Offset != first.Offset || pw.Bytes != first.Length))
+            else if (PrimeKeyBytes(prime) is (false, _))
+                continue;   // a key with no window: its clause's own rules have reported it
+            else if (PrimeKeyBytes(prime).Run is not { } pw)
+                why = $"the prime record key '{prime.Face}' is the concatenation of data-name-2 operands that are not "
+                    + "one run of bytes in its record (ISO §12.4.5.12.4 GR2), so no data item occupies its byte positions";
+            else if (pw.Offset != first.Offset || pw.Bytes != first.Length)
                 why = $"the first key occupies bytes {first.Offset + 1}..{first.Offset + first.Length} of its record but the "
-                    + $"prime record key '{prime.CobolName}' occupies bytes {pw.Offset + 1}..{pw.Offset + pw.Bytes}";
+                    + $"prime record key '{prime.Face}' occupies bytes {pw.Offset + 1}..{pw.Offset + pw.Bytes}";
             if (why is null) continue;
             return ctx.Validation.RejectStatementOperand($"{(merge ? "MERGE" : "SORT")} GIVING file '{g.CobolName}' is an indexed file, "
                 + $"so the first key shall be ASCENDING and lie at the prime record key's byte location and size: {why} "
                 + $"({(merge ? "ISO §14.9.24.3 SR10" : "ISO §14.9.40.3 SR9")})");
         }
         return true;
+
+        // The prime record key's byte location and size in its record: data-name-1's window, or a SOURCE-form key's
+        // segments when each begins where the previous one ends (kb/Work PB1099). Locatable is false when a segment has
+        // no window at all; Run is null when the windows are not one run.
+        (bool Locatable, (int Offset, int Bytes)? Run) PrimeKeyBytes(RecordKey prime)
+        {
+            (int Offset, int End)? run = null;
+            bool contiguous = true;
+            foreach (var s in prime.Segments)
+            {
+                if (Model.RecordLayout.KeyWindowOf(SortRootOf(s), s, s.ByteWidth) is not { } w) return (false, null);
+                contiguous &= run is not { } r || w.Offset == r.End;
+                run = (run?.Offset ?? w.Offset, w.Offset + w.Bytes);
+            }
+            return (true, contiguous && run is { } whole ? (whole.Offset, whole.End - whole.Offset) : null);
+        }
     }
 
     /// <summary>⛔ THE RECORD-SIZE RULES BETWEEN A SORT-MERGE FILE AND THE FILES OF ITS USING AND GIVING PHRASES, ONE SCREEN

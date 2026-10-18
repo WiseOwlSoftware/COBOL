@@ -14,7 +14,7 @@ namespace CobolNet.Tests.Unit.Collation;
 /// per-category snapshot, the two runtime conditions the statements own — EC-LOCALE-MISSING (GR24) and
 /// EC-LOCALE-INVALID-PTR (GR21) — through their checking flags (a raise only while checking is on; the state is
 /// unchanged either way), DETERMINATION L1's normalization of external identifications, and the SORT snapshot
-/// (§14.6.6 r5 — <c>CobolCollation.Snapshot</c>). The goldens under tests/conformance/2002/pb64t1_* prove the same
+/// (§14.6.6 r5 — <c>CobolCollation.Snapshot</c>). The suite tests pb64t1_* (conformance-suite/cases/) prove the same
 /// through compiled COBOL; this pins the runtime's contract directly.
 /// </summary>
 [Collection("process-globals")]   // reads the process-global locale configuration (the site tailoring directory variable a
@@ -200,11 +200,12 @@ public sealed class LocaleStateTests
             Assert.True(LocaleCollation.Current.Compare("ñu", "nz") < 0);                    // the live form followed
             // And CobolSort takes the snapshot at Init — a switch between Init and Sort has no effect.
             ru.Locale.SetFromSystemDefault(LocaleCategorySet.All);
-            CobolSort.Init("SNAP-TEST", LocaleCollation.Current, national: null);
+            CobolSort.Init("SNAP-TEST", [new CobolSort.Key(0, 2, false, CobolSort.KeyClass.Alphanumeric, default)],
+                LocaleCollation.Current, national: null);
             CobolSort.Release("SNAP-TEST", "nz", 0, 0, int.MaxValue);
             ru.Locale.SetFromLocale(LocaleCategorySet.Collate, "es-ES");
             CobolSort.Release("SNAP-TEST", "ñu", 0, 0, int.MaxValue);
-            CobolSort.Sort("SNAP-TEST", [new CobolSort.Key(0, 2, false, CobolSort.KeyClass.Alphanumeric, default)], false);
+            CobolSort.Sort("SNAP-TEST", false);
             Assert.True(CobolSort.Return("SNAP-TEST", out string? first));
             Assert.Equal("ñu", first);                                                        // root order: ñu before nz
         });

@@ -39,9 +39,14 @@ public sealed record SameClause(SameClauseKind Kind, IReadOnlyList<FileModel> Me
 /// is why <c>Item</c> is nullable here and not there.</para></summary>
 public sealed class AlternateKeyClause
 {
+    /// <summary>The clause's key name as written: data-name-1, or record-key-name-1 when <see cref="Source"/> is
+    /// set.</summary>
     public required string Name { get; init; }
     public required IReadOnlyList<string> Qualifiers { get; init; }
     public bool Duplicates { get; init; }
+
+    /// <summary>The SOURCE phrase (§12.4.5.6.2's second key form), or null for the data-name-1 form.</summary>
+    public RecordKeySource? Source { get; init; }
 
     /// <summary>The SUPPRESS WHEN phrase's literal-1 as the literal position read it (ISO §12.4.5.6.2) — set by
     /// <c>DataBinder.ResolveFiles</c>, because a constant-name operand (§13.10.3 SR2) is declared in the DATA
@@ -53,8 +58,77 @@ public sealed class AlternateKeyClause
     public CobolNet.Editions.DiagnosticCursor At { get; init; }
 
     /// <summary>What data-name-1 resolved to (set by <c>DataBinder.ResolveFiles</c>); null when the name
-    /// references nothing describable — itself a §12.4.5.6.3 SR2 violation.</summary>
+    /// references nothing describable — itself a §12.4.5.6.3 SR2 violation — and always null for the SOURCE form,
+    /// whose operands resolve on <see cref="Source"/>.</summary>
     public DataItem? Item { get; set; }
+}
+
+/// <summary>The SOURCE phrase of a RECORD KEY or ALTERNATE RECORD KEY clause AS WRITTEN — ISO §12.4.5.12.2 /
+/// §12.4.5.6.2 <c>record-key-name-1 SOURCE IS { data-name-2 } …</c> — the second of the two key forms both general
+/// formats print. record-key-name-1 is its own name class (§8.3.2.2.24, scoped by §8.4.6.2.4) and names the key
+/// that is "the concatenation of all occurrences of data-name-2 in the order specified" (§12.4.5.12.4 GR2,
+/// §12.4.5.6.4 GR2), so the phrase is a name plus an ordered operand list (kb/Work PB1099 Q1).</summary>
+public sealed class RecordKeySource
+{
+    /// <summary>record-key-name-1 as written.</summary>
+    public required string Name { get; init; }
+
+    /// <summary>The data-name-2 operands, in the order specified.</summary>
+    public required IReadOnlyList<KeySourceOperand> Operands { get; init; }
+}
+
+/// <summary>One data-name-2 of a SOURCE phrase: the operand as written (its base word and IN/OF qualifiers,
+/// innermost first), where it is written — the cursor §12.4.5.12.3 / §12.4.5.6.3 report at — and the item it
+/// resolved to post-build (null when it references nothing describable).</summary>
+public sealed class KeySourceOperand
+{
+    public required string Name { get; init; }
+    public required IReadOnlyList<string> Qualifiers { get; init; }
+    public CobolNet.Editions.DiagnosticCursor At { get; init; }
+    public DataItem? Item { get; set; }
+}
+
+/// <summary>A RESOLVED record key of an indexed file (ISO §12.4.5.12 / §12.4.5.6): the data items whose bytes,
+/// concatenated in order, ARE the key. ⛔ ONE SHAPE FOR BOTH KEY FORMS (kb/Work PB1099 Q1): data-name-1's key is
+/// one segment, and the SOURCE form's is one segment per data-name-2 (§12.4.5.12.4 GR2 / §12.4.5.6.4 GR2), so
+/// registration, the connector's extraction and every key rule read the same list and neither form is a
+/// special case of the other.</summary>
+public sealed class RecordKey
+{
+    private RecordKey(string? recordKeyName, IReadOnlyList<DataItem> segments) =>
+        (RecordKeyName, Segments) = (recordKeyName, segments);
+
+    /// <summary>The data-name-1 form's key: the one item.</summary>
+    public static RecordKey OfItem(DataItem item) => new(null, [item]);
+
+    /// <summary>The SOURCE form's key: record-key-name-1 over its resolved data-name-2 items, in order.</summary>
+    public static RecordKey OfSource(string recordKeyName, IReadOnlyList<DataItem> segments) =>
+        segments.Count > 0 ? new(recordKeyName, segments)
+            : throw new ArgumentException("a SOURCE phrase names at least one data-name-2", nameof(segments));
+
+    /// <summary>record-key-name-1 for a SOURCE-form key; null for data-name-1's.</summary>
+    public string? RecordKeyName { get; }
+
+    /// <summary>The key's data items in concatenation order — exactly one for data-name-1.</summary>
+    public IReadOnlyList<DataItem> Segments { get; }
+
+    /// <summary>True when the key was declared with the SOURCE phrase — the fact §12.4.5.6.3 SR4's last sentence and
+    /// §14.9.41.3 SR6 b) 1. ("defined without the SOURCE phrase") are stated on.</summary>
+    public bool IsSourceForm => RecordKeyName is not null;
+
+    /// <summary>data-name-1's item, or null for a SOURCE-form key, which no data item IS.</summary>
+    public DataItem? Item => IsSourceForm ? null : Segments[0];
+
+    /// <summary>The key's length in bytes — the sum of its segments' (a national position is two bytes, D-N1).</summary>
+    public int ByteWidth => Segments.Sum(s => s.ByteWidth);
+
+    /// <summary>The item the key takes its class and category from: data-name-1, or — §12.4.5.12.3 SR5 /
+    /// §12.4.5.6.3 SR6, "Record-key-name-1 has the class and category of data-name-2" — the first data-name-2,
+    /// SR2's "All occurrences of data-name-2 shall be of the same category" making every one the same answer.</summary>
+    public DataItem CategorySource => Segments[0];
+
+    /// <summary>The key as a diagnostic names it.</summary>
+    public string Face => RecordKeyName ?? Segments[0].CobolName ?? "";
 }
 
 /// <summary>Which of the shapes ISO §12.4.5.6.3 SR7 names a SUPPRESS WHEN literal-1 was written in.</summary>
@@ -236,31 +310,27 @@ public sealed class FileModel
     /// SR10), since there is no clause to point at. See <see cref="FileControlKeyRules"/>.</summary>
     public CobolNet.Editions.DiagnosticCursor EntryAt { get; set; }
 
-    /// <summary>The RECORD KEY base data-name as written (ISO §12.4.5.12), resolved post-build to
-    /// <see cref="RecordKeyItem"/>; null when absent (the clause is required for ORGANIZATION INDEXED).</summary>
+    /// <summary>The RECORD KEY clause's key name as written (ISO §12.4.5.12) — data-name-1, or record-key-name-1
+    /// when <see cref="RecordKeySource"/> is set — resolved post-build to <see cref="PrimeKey"/>; null when the
+    /// clause is absent (it is required for ORGANIZATION INDEXED, §12.4.5.1 Format 1).</summary>
     public string? RecordKeyName { get; set; }
 
     /// <summary>The source position of the RECORD KEY clause's data-name-1 — where §12.4.5.12.3's syntax rules
     /// report, since they are screened post-build (the operand resolves only once the data forest is indexed).</summary>
     public CobolNet.Editions.DiagnosticCursor RecordKeyAt { get; set; }
 
-    /// <summary>Whether the entry WROTE a RECORD KEY clause at all — which is not the same question as whether
-    /// <see cref="RecordKeyName"/> is set, and §12.4.5.1 Format 1's requiredness rule asks THIS one: the clause
-    /// is an unbracketed member of the indexed format, so the rule is about the clause's PRESENCE, never about
-    /// what it named. The two answers diverge for exactly one shape — the declined
-    /// <c>RECORD KEY IS record-key-name-1 SOURCE IS data-name-2 …</c> form (Annex A.3 item 40, COBOLNET1954,
-    /// kb/Work PB358), which names a record-key-name (§8.3.2.2.24) and therefore no data-name. Without this,
-    /// a program that wrote the clause and was told the form is not provided was ALSO told its indexed file
-    /// "has no RECORD KEY clause", which is false and points at a different repair.</summary>
-    public bool RecordKeyClauseWritten { get; set; }
+    /// <summary>The RECORD KEY clause's SOURCE phrase (§12.4.5.12.2's second key form), or null for the
+    /// data-name-1 form.</summary>
+    public RecordKeySource? RecordKeySource { get; set; }
 
     /// <summary>The RECORD KEY reference's IN/OF qualifier words, written order (innermost first) — identically
     /// named key items under different areas of the record are legal and selected by qualification (ISO
-    /// §8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified.</summary>
+    /// §8.4.2.2; IX215A's three IX-FD3-KEY items). Empty = unqualified, and always empty for the SOURCE form.</summary>
     public IReadOnlyList<string> RecordKeyQualifiers { get; set; } = [];
 
-    /// <summary>The resolved prime RECORD KEY item — a data item within the file's record (ISO §12.4.5.12 SR2).</summary>
-    public DataItem? RecordKeyItem { get; set; }
+    /// <summary>The resolved prime record key (ISO §12.4.5.12) — data-name-1's item, or the SOURCE phrase's
+    /// data-name-2 items in order; null when the clause is absent or an operand references nothing describable.</summary>
+    public RecordKey? PrimeKey { get; set; }
 
     /// <summary>The ALTERNATE RECORD KEY clauses as written, in declaration order (ISO §12.4.5.6), each carrying
     /// what its data-name-1 resolved to. ⛔ THIS is the §12.4.5.6.3 screen's subject list, NOT
@@ -271,7 +341,61 @@ public sealed class FileModel
     /// <summary>The resolved alternate keys, in declaration order (the runtime key index is the list index).
     /// <c>Suppress</c> is the §12.4.5.6.4 GR6 key suppression value sized to the key (null = no SUPPRESS WHEN
     /// phrase, or an operand §12.4.5.6.3 SR7 refused).</summary>
-    public List<(DataItem Item, bool Duplicates, KeySuppression? Suppress)> AlternateKeys { get; } = [];
+    public List<(RecordKey Key, bool Duplicates, KeySuppression? Suppress)> AlternateKeys { get; } = [];
+
+    /// <summary>The SOURCE-form keys of this file that a reference <paramref name="recordKeyName"/>
+    /// <paramref name="qualifiers"/> names — the ONE answer to ISO §14.9.30.3 SR11 / §14.9.41.3 SR7 / §12.4.5.7.3
+    /// SR5's "specified as a record-key-name … in the file control entry", as a COUNTED set (prime key first, then
+    /// the alternates in declaration order). <paramref name="qualifiers"/> is the reference's IN/OF list:
+    /// §8.4.2.2.2 Format 6 (qualified-record-key-name) qualifies a record-key-name by ONE file-name, so a reference
+    /// qualified by anything but this file's own name names no key of it.
+    /// <para>⛔ A SET, NEVER "THE FIRST MATCH" (kb/Work PB1099 review R1-2). Nothing forbids two of this entry's
+    /// clauses declaring the same record-key-name (§8.3.2.2), and Format 6's only qualifier is the file-name both
+    /// share, so no reference can single either out: §8.4.2.2.3 SR1's error, reported by the caller's one
+    /// ambiguity verdict. Returning the first match bound such a reference silently to the prime key.</para></summary>
+    public NameCandidates<KeyNameReading> RecordKeyNameCandidates(string recordKeyName, IReadOnlyList<string> qualifiers)
+    {
+        List<KeyNameReading> named = [];
+        if (!RecordKeyNameQualifiersAdmit(qualifiers)) return new(named);
+        if (PrimeKey is { IsSourceForm: true } pk && CobolNet.Runtime.CobolNames.Same(pk.RecordKeyName, recordKeyName))
+            named.Add(new KeyNameReading.RecordKeyName(this, -1));
+        for (int i = 0; i < AlternateKeys.Count; i++)
+            if (AlternateKeys[i].Key.IsSourceForm
+                && CobolNet.Runtime.CobolNames.Same(AlternateKeys[i].Key.RecordKeyName, recordKeyName))
+                named.Add(new KeyNameReading.RecordKeyName(this, i));
+        return new(named);
+    }
+
+    /// <summary>Whether a record-key-name reference's IN/OF list can name a key of this file: none, or §8.4.2.2.2
+    /// Format 6's one file-name qualifier naming this file.</summary>
+    private bool RecordKeyNameQualifiersAdmit(IReadOnlyList<string> qualifiers) =>
+        qualifiers.Count == 0
+        || qualifiers.Count == 1 && (CobolNet.Runtime.CobolNames.Same(qualifiers[0], SelectName)
+                                     || CobolNet.Runtime.CobolNames.Same(qualifiers[0], CobolName));
+
+    /// <summary>Whether a key clause of this entry that did NOT resolve (an operand referencing nothing describable,
+    /// already reported by that clause's own SR2 row) is the one a key-level COLLATING SEQUENCE operand
+    /// <paramref name="name"/> <paramref name="qualifiers"/> was written to name — so the operand is not reported a
+    /// second time as "not a key of this file" (one fault, one verdict). A data-name-1 clause matches by spelling (its
+    /// operand names nothing, so no qualification can be judged); a SOURCE-form clause matches its record-key-name
+    /// under Format 6's qualifier rule. ⛔ A SOURCE-form clause is unresolved when one of ITS OPERANDS is — never
+    /// because <see cref="AlternateKeyClause.Item"/> is null, which it always is for that form (kb/Work PB1099 review
+    /// R1-1: every SOURCE alternate read as unresolved, so <c>COLLATING SEQUENCE OF AK IN another-file</c> was
+    /// dropped unreported).</summary>
+    public bool DeclaresUnresolvedKeyNamed(string name, IReadOnlyList<string> qualifiers)
+    {
+        bool Matches(string clauseName, RecordKeySource? source) =>
+            CobolNet.Runtime.CobolNames.Same(clauseName, name)
+            && (source is null || RecordKeyNameQualifiersAdmit(qualifiers));
+        bool Unresolved(DataItem? item, RecordKeySource? source) =>
+            source is null ? item is null : source.Operands.Any(o => o.Item is null);
+        return RecordKeyName is { } rk && PrimeKey is null && Matches(rk, RecordKeySource)
+            || AlternateKeyNames.Any(a => Unresolved(a.Item, a.Source) && Matches(a.Name, a.Source));
+    }
+
+    /// <summary>The resolved key at <paramref name="keyIndex"/> (−1 = prime), or null.</summary>
+    public RecordKey? KeyAt(int keyIndex) =>
+        keyIndex < 0 ? PrimeKey : keyIndex < AlternateKeys.Count ? AlternateKeys[keyIndex].Key : null;
 
     // ── §12.4.5.7 COLLATING SEQUENCE (INDEXED record-key collating) — raw capture, resolved post-build ──────────
 
@@ -562,6 +686,15 @@ public sealed class FileModel
     /// item contributes its MAXIMUM size (§8.5.1.10.1 — <see cref="DataItem.DynMaxSize"/> characters, two bytes
     /// each when national, D-N1). Every other member is <see cref="DataItem.ByteWidth"/>'s own sum, so this is
     /// that sum with the variable-length members filled in, never a second layout.
+    /// <para>⛔ IT IS <see cref="DataItem.ByteWidth"/> PLUS THE DYNAMIC-LENGTH LEAVES, NEVER A RE-SUMMATION OF THE
+    /// OTHER LEAVES (kb/Work PB3253, the PB1277 shape): <see cref="DataItem.ByteWidth"/> already lays a bit-bearing
+    /// subtree out by the one §8.5.1.6.3 walk (§13.18.43.4 GR4: "the entire byte in which that data item ends") and
+    /// counts a dynamic-length leaf as zero bytes, so the maximum is that fixed part plus, for every dynamic-length leaf at
+    /// or beneath <paramref name="item"/> that is not a redefinition, its maximum extent
+    /// (<see cref="DynamicLeafMaximum"/>) times the occurrence counts between the leaf and the item
+    /// (<see cref="DynamicLeafSum"/>). The arm that summed each child's own <c>ByteWidth</c> gave every bit leaf a
+    /// byte of its own, so two <c>PIC 1(3) USAGE BIT</c> items beside a dynamic-length item had minimum 1 and
+    /// maximum 12 and a legal <c>RECORD CONTAINS 11</c> was refused.</para>
     /// <para>⛔ A DYNAMIC-LENGTH ELEMENTARY ITEM IS THE ONLY VARIABLE-LENGTH MEMBER A RECORD CAN HOLD, so this
     /// walk has no dynamic-capacity-table arm (kb/Work PB1604, discharged): a dynamic-capacity table "may be
     /// defined in any place, other than the file section" (§8.5.1.9.1 3)), and COBOLNET1526
@@ -572,9 +705,33 @@ public sealed class FileModel
     /// (§8.5.1.9.1, DOC-A.1-60), never its TO phrase, which is only the EXPECTED capacity and "may be exceeded
     /// with a nonfatal exception".</para></summary>
     internal static long MaxDynamicExtent(DataItem item) =>
-        item.IsDynamicLength ? (long)item.DynMaxSize * (item.Pic?.BytesPerPosition ?? 1) + StructureOverhead(item)
-        : item.IsElementary || !CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(item) ? (long)item.ByteWidth * (item.Occurs ?? 1)
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(MaxDynamicExtent) * (item.Occurs ?? 1);
+        ((long)item.ByteWidth + DynamicLeafSum(item, static leaf => DynamicLeafMaximum(leaf))) * (item.Occurs ?? 1);
+
+    /// <summary>A dynamic-length item's MAXIMUM extent in a record image: its maximum size in bytes (§8.5.1.10.1 —
+    /// <see cref="DataItem.DynMaxSize"/> character positions of <see cref="PicInfo.BytesPerPosition"/> bytes each)
+    /// plus its dynamic length structure (<see cref="StructureOverhead"/>).</summary>
+    private static long DynamicLeafMaximum(DataItem leaf) =>
+        (long)leaf.DynMaxSize * (leaf.Pic?.BytesPerPosition ?? 1) + StructureOverhead(leaf);
+
+    /// <summary>⛔ THE ONE WALK OVER THE DYNAMIC-LENGTH LEAVES OF A RECORD DESCRIPTION (kb/Work PB3253): the sum of
+    /// <paramref name="leafExtent"/> over every dynamic-length item at or beneath <paramref name="item"/> that is not
+    /// a redefinition (a redefining entry overlays its target and adds no storage, §13.18.44), each leaf counted once
+    /// per occurrence of every table between it and <paramref name="item"/> — the child's own occurrence count,
+    /// never <paramref name="item"/>'s, which is the caller's to apply: <see cref="DataItem.Occurs"/> (the maximum)
+    /// or, <paramref name="atMinimum"/>, <see cref="DataItem.MinimumOccurrences"/>. It is the variable part both
+    /// GR8 sums add to <see cref="DataItem.ByteWidth"/>: <see cref="MaxDynamicExtent"/> with each leaf's maximum
+    /// extent at the maximum occurrence counts, <see cref="MinExtent"/> with each leaf's structure overhead alone
+    /// (the data itself is zero bytes at its minimum, §8.5.1.10.1) at the minimum counts.</summary>
+    private static long DynamicLeafSum(DataItem item, Func<DataItem, long> leafExtent, bool atMinimum = false) =>
+        item.IsDynamicLength ? leafExtent(item)
+        : item.IsGroup ? item.Children.Where(c => c.RedefinesTargetName is null)
+            .Sum(c => DynamicLeafSum(c, leafExtent, atMinimum) * (atMinimum ? c.MinimumOccurrences : c.Occurs ?? 1))
+        : 0;
+
+    /// <summary>The structure overhead of every dynamic-length item at or beneath <paramref name="item"/> that is
+    /// not a redefinition, at the minimum occurrence counts — <see cref="MinExtent"/>'s variable part.</summary>
+    private static long MinimumStructureOverhead(DataItem item) =>
+        DynamicLeafSum(item, static leaf => StructureOverhead(leaf), atMinimum: true);
 
     /// <summary>⛔ THE ONE READER OF THE DYNAMIC LENGTH STRUCTURE A DYNAMIC-LENGTH ITEM OCCUPIES IN A RECORD IMAGE
     /// (ISO §12.3.7.4 GR18 length field, GR19 delimiter; docs/CONFORMANCE.md §3 D-DL3; kb/Work PB1094): the runtime
@@ -607,12 +764,6 @@ public sealed class FileModel
     internal static bool CarriesStructure(DataItem record) =>
         record.IsDynamicLength ? StructureOf(record) is not null
         : record.IsGroup && record.Children.Any(c => c.RedefinesTargetName is null && CarriesStructure(c));
-
-    /// <summary>The structure overhead of every dynamic-length item at or beneath <paramref name="item"/> that is
-    /// not a redefinition — the minimum-size twin of <see cref="MaxDynamicExtent"/>'s per-leaf term.</summary>
-    private static long StructureOverheadBeneath(DataItem item) =>
-        item.IsElementary ? StructureOverhead(item)
-        : item.Children.Where(c => c.RedefinesTargetName is null).Sum(StructureOverheadBeneath);
 
     /// <summary>⛔ THE ONE "does this record have a fixed character window?" predicate — D-FRA
     /// (docs/CONFORMANCE.md §3, kb/Work PB981). A record description that is a dynamic-length elementary item,
@@ -689,7 +840,9 @@ public sealed class FileModel
     internal static int MinRecordSize(DataItem item) => (int)Math.Min(int.MaxValue, MinExtent(item));
 
     /// <summary>GR8 a)'s summation, per occurrence of <paramref name="item"/> (a parent multiplies by the item's
-    /// own <see cref="DataItem.MinimumOccurrences"/>). Three arms:
+    /// own <see cref="DataItem.MinimumOccurrences"/>). Three arms, the first two adding
+    /// <see cref="MinimumStructureOverhead"/> (a dynamic-length item is zero bytes at its minimum, but its length
+    /// field and delimiter are not, <see cref="StructureOverhead"/>):
     /// <list type="bullet">
     ///   <item>no table varies beneath the item — its <see cref="DataItem.ByteWidth"/>, the fixed GR8 sum;</item>
     ///   <item>a bit-bearing subtree over an occurs-depending table — the §8.5.1.6.3 placement of that table (the
@@ -699,11 +852,12 @@ public sealed class FileModel
     ///   <item>otherwise the sum over the non-redefining children, each at its minimum occurrence count.</item>
     /// </list></summary>
     private static long MinExtent(DataItem item) =>
-        item.IsElementary || !HasVaryingTableBeneath(item) ? item.ByteWidth + StructureOverheadBeneath(item)
+        item.IsElementary || !HasVaryingTableBeneath(item)
+            ? item.ByteWidth + MinimumStructureOverhead(item)
         : item.HasBitDescendant && OdoModel.TableUnder(item) is { OccursSpec: { } os } table
                 && BitLayout.StartBitOf(item, table) is >= 0 and var start
             ? BitLayout.Characters(start
-                + BitLayout.TableBits(table, os.Min))
+                + BitLayout.TableBits(table, os.Min)) + MinimumStructureOverhead(item)
         : item.Children.Where(c => c.RedefinesTargetName is null).Sum(c => MinExtent(c) * c.MinimumOccurrences);
 
     /// <summary>Whether an occurs-depending table — the one table in a record whose occurrence count varies —
@@ -923,9 +1077,10 @@ public sealed class CollatingKeyOperand
     /// <summary>The operand's IN/OF qualifier words, innermost first (ISO §8.4.2.2).</summary>
     public required IReadOnlyList<string> Qualifiers { get; init; }
 
-    /// <summary>The key item the operand names — set post-build by <c>DataBinder.ResolveFileCollating</c>; null
-    /// when it names no key of the file (§12.4.5.7.3 SR4/SR5, reported there) or was refused at capture.</summary>
-    public DataItem? Key { get; set; }
+    /// <summary>The record key the operand names — data-name-1's, or a SOURCE-form key by its record-key-name —
+    /// set post-build by <c>DataBinder.ResolveFileCollating</c>; null when it names no key of the file
+    /// (§12.4.5.7.3 SR4/SR5, reported there) or was refused at capture.</summary>
+    public RecordKey? Key { get; set; }
 }
 
 /// <summary>One key-level (Format 2) COLLATING SEQUENCE clause: the keys it names, alphabet-name-3, and where it is

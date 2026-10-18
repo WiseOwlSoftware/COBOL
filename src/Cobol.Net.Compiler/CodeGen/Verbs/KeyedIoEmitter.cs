@@ -60,22 +60,19 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
             return;
         }
-        if (file.RecordKeyItem is not { } pk || KeyWindow(pk, file.FixedFormRecords) is not var (pkOff, pkLayout))
+        if (file.PrimeKey is not { } pk || KeySegments(pk, file.FixedFormRecords) is not { } primeKey)
         {
             w.Line(LoudStmt($"indexed file '{file.CobolName}': RECORD KEY missing or not locatable in the record "
                 + "image (ISO §12.4.5.12)"));
             return;
         }
-        // ⛔ THE KEY WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
-        // identical BYTE POSITIONS", and RecordLayout.OffsetOf above is already a byte offset — so the WIDTH must
-        // be the key's byte extent too, which for a national key (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).
-        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, $"{pkOff}", pk.ByteWidth, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName), pkLayout)};");
+        w.Line($"{RuntimeApi.FileRegisterIndexed(name, assign, file.RecordWidth, opt, access, primeKey, vary, ctx.Data.Edition.DialectLevel, CollationLit(file.PrimeKeyCollation), CsLiteral(file.SelectName))};");
         for (int i = 0; i < file.AlternateKeys.Count; i++)
         {
             var (alt, dups, suppress) = file.AlternateKeys[i];
-            if (KeyWindow(alt, file.FixedFormRecords) is not var (aOff, aLayout))
+            if (KeySegments(alt, file.FixedFormRecords) is not { } altKey)
             {
-                w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.CobolName}' not "
+                w.Line(LoudStmt($"indexed file '{file.CobolName}': ALTERNATE RECORD KEY '{alt.Face}' not "
                     + "locatable in the record image (ISO §12.4.5.6)"));
                 continue;
             }
@@ -84,9 +81,27 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             // the connector compares key IMAGES, so a national key's value rides the ONE national serializer.
             string sup = suppress is not { } s ? "null"
                 : s.National ? RuntimeApi.NatBytes(CsLiteral(s.Value)) : CsLiteral(s.Value);
-            w.Line($"{RuntimeApi.FileAddAlternateKey(name, $"{aOff}", alt.ByteWidth, dups ? "true" : "false", CollationLit(altCollation), sup, aLayout)};");   // bytes — see the prime key above (kb/Work PB327)
+            w.Line($"{RuntimeApi.FileAddAlternateKey(name, altKey, dups ? "true" : "false", CollationLit(altCollation), sup)};");
         }
         SequentialIoEmitter.EmitAreaRegistrations(w, file);   // §14.9.30.4 GR15 + §13.18.13.4 GR2
+    }
+
+    /// <summary>A record key's byte windows as the connector takes them (<see cref="RuntimeApi.KeySegments"/>): one
+    /// per segment of the key, in order — data-name-1's one, or each data-name-2 of the SOURCE phrase, whose
+    /// concatenation IS the key (§12.4.5.12.4 GR2 / §12.4.5.6.4 GR2; kb/Work PB1099). Null when any segment has no
+    /// locatable window.
+    /// <para>⛔ EACH WINDOW IS IN BYTES (kb/Work PB327): §12.4.5.12.4 GR4 states key correspondence over "the
+    /// identical BYTE POSITIONS", and <see cref="KeyWindow"/>'s offset is a byte offset — so the WIDTH is the item's
+    /// byte extent too, which for a national item (PIC N(n)) is 2n, not n (§13.18.60.4 GR8; D-N1).</para></summary>
+    private string? KeySegments(Binding.Model.RecordKey key, bool fixedForm)
+    {
+        var windows = new List<(int Offset, int Width, string Layout)>(key.Segments.Count);
+        foreach (var segment in key.Segments)
+        {
+            if (KeyWindow(segment, fixedForm) is not var (off, layout)) return null;
+            windows.Add((off, segment.ByteWidth, layout));
+        }
+        return RuntimeApi.KeySegments(windows);
     }
 
     /// <summary>A record key's registration window (§12.4.5.12 / §12.4.5.6): its byte offset and, when a
@@ -227,8 +242,8 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 // record area, never the padded area): the BOUND move, built by the SAME binder call the
                 // sequential arm makes (kb/Work PB348 over PB339).
                 if (into) move.Emit(rd.IntoMove!);
-                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook.NotPhraseGate, nae);                  // §14.9.30 — NOT AT END on success
-                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook.NotPhraseGate, nik);    // §9.1.14 — success only
+                if (rd.NotAtEnd is { } nae) SeqIo.EmitNotPhrase(hook, nae);                  // §14.9.30 — NOT AT END on success
+                if (rd.InvalidKey?.NotInvalid is { } nik) SeqIo.EmitNotPhrase(hook, nik);    // §9.1.14 — success only
             }
         if (rd.AtEnd is { } at)
             using (w.Block($"if ({IoStatusClass.AtEnd(st)})"))
@@ -279,7 +294,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
                 arith.StoreArith(rkPlace, new NumX(RuntimeApi.FileRelativeSlot(name), 0), CobolRounding.Truncation);
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "WRITE", invalidKeyHandled: wr.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, wr.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, wr.InvalidKey, hook);
     }
 
     // ── REWRITE (ISO §14.9.35) ─────────────────────────────────────────────────────────────────────────────────
@@ -316,7 +331,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         SeqIo.EndReleasedRecord(file, rw.Record, released, lenArg, RuntimeApi.FileStatus(name));
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "REWRITE", invalidKeyHandled: rw.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, rw.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, rw.InvalidKey, hook);
     }
 
     // ── DELETE RECORD / DELETE FILE (ISO §14.9.10) ─────────────────────────────────────────────────────────────
@@ -354,7 +369,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         w.Line($"var {st} = {RuntimeApi.FileDeleteShared(name, image, retryKind, retryAmount, areaExtents)};");
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "DELETE", invalidKeyHandled: del.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, del.InvalidKey, hook.NotPhraseGate);
+        SeqIo.EmitInvalid(st, del.InvalidKey, hook);
     }
 
     public void EmitDeleteFile(BoundKeyedDeleteFile df)
@@ -386,17 +401,13 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         // default (GR20c), the same third-flag shape the AT END / INVALID KEY suppressions use. The old
         // `if (OnException is null)` skip left EXCEPTION-STATUS stale inside imperative-statement-3
         // (kb/Work PB141).
-        SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
+        var hook = SeqIo.EmitUseHook(df.File, "DELETE FILE", onExceptionHandled: df.OnException is not null);
         // §9.1.13.1/§14.9.10: ON EXCEPTION runs on an unsuccessful completion; '05' (absent file) is a SUCCESSFUL
-        // completion (GR14) and takes the NOT ON EXCEPTION path.
-        if (df.OnException is { } on)
-        {
-            using (w.Block($"if ({IoStatusClass.Unsuccessful(st)})")) Statements.EmitStatementList(on);
-            if (df.NotOnException is { } not)
-                using (w.Block("else")) Statements.EmitStatementList(not);
-        }
-        else if (df.NotOnException is { } not)
-            using (w.Block($"if ({IoStatusClass.Successful(st)})")) Statements.EmitStatementList(not);
+        // completion (GR14) and takes the NOT ON EXCEPTION path — unless a USE declarative (or a WHEN phrase) has
+        // handled the EC-I-O-WARNING that '05' raised, when "the imperative-statement in that phrase is not
+        // executed" (§14.6.13.1.4 2)/3), kb/Work PB3237): the hook's NotPhraseGate, as every other I-O verb's.
+        SeqIo.EmitPhrasePair(IoStatusClass.Unsuccessful(st), df.OnException, df.NotOnException,
+            IoStatusClass.Successful(st), hook);
     }
 
     // ── START (ISO §14.9.41) ───────────────────────────────────────────────────────────────────────────────────
@@ -444,7 +455,9 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             // never its carrier, or the connector would compare one byte per position against a two-byte window.
             // GR17e's comparison per §8.8.4.2.9 is satisfied by the byte compare: UTF-16BE pair order IS code-unit
             // order over the BMP repertoire §8.5.1.4 admits (CONFORMANCE.md items 33/188).
-            int natBytes = NationalWindow.PositionsOf(sta.Operand!.Item) is not null
+            // A record-key-name (sta.NamedKey) has the class of data-name-2 (§12.4.5.12.3 SR5 / §12.4.5.6.3 SR6) and
+            // its length is the concatenation's (GR17 b) — kb/Work PB1099.
+            int natBytes = NationalWindow.PositionsOf(sta.NamedKey?.CategorySource ?? sta.Operand!.Item) is not null
                 ? RuntimeApi.BytesPerNational : 1;
             // ⛔ §14.9.41.4 GR14 IS ASKED OF arithmetic-expression-1 ITSELF, SO THE VALUE TRAVELS UNNARROWED
             // (kb/Work PB357): "If arithmetic-expression-1 does not evaluate to a positive nonzero integer that is
@@ -454,7 +467,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
             // scaled Int128 with its scale, or the native double — the fraction and the magnitude both survive.
             string len = sta.Length is { } le
                 ? StartLength(num.Landed(NumericRenderer.DeU(num.Render(le, ReceiverContext.None)), ReceiverContext.None), natBytes)
-                : RuntimeApi.StartKeyLengthWidth(sta.Operand!.Item.ByteWidth);
+                : RuntimeApi.StartKeyLengthWidth(sta.NamedKey?.ByteWidth ?? sta.Operand!.Item.ByteWidth);
             string areaImage = refs.RecordArea(file) is { } ar
                 ? OperandText.RecordSendImage(ar) : "\"\"";   // THE ONE record-area channel (kb/Work PB327)
             string? areaExtents = refs.RecordArea(file) is { } extentArea
@@ -463,7 +476,7 @@ internal sealed class KeyedIoEmitter(EmitContext ctx, NumericRenderer num, Refer
         }
         SeqIo.EmitStoreFileStatus(file);
         var hook = SeqIo.EmitUseHook(file, "START", invalidKeyHandled: sta.InvalidKey?.Invalid is not null);
-        SeqIo.EmitInvalid(st, sta.InvalidKey, hook.NotPhraseGate);   // §14.9.41 GR6 — transfer per §9.1.14
+        SeqIo.EmitInvalid(st, sta.InvalidKey, hook);   // §14.9.41 GR6 — transfer per §9.1.14
     }
 
     /// <summary>The <c>StartKeyLength</c> expression for a WITH LENGTH count already funnelled to its exact lane

@@ -309,7 +309,7 @@ rules cannot leave a description behind it (kb/Work PB346).
 `RetryLoop_AttemptCount_FollowsGR1AndGR4` asserts the same rules on the axis a status cannot witness, the ATTEMPT
 COUNT; and `ReadUnderEveryRetryForm_BindsGR9ToTheRetryRules_OnBothFormats` covers §14.9.30.4 GR9's own
 delegation to §14.7.9 through BOTH read formats — until it existed, no test passed a RETRY phrase to a READ
-at all. The corpus witness is `conformance:2023/pb346_read_retry_record_conflict` with its 2014 twin. The
+at all. The corpus witness is `conformance:cases/9.1.13.8-Record-operation-conflict-condition-with-unsuccessful/pb346_read_retry_record_conflict_2023` with its 2014 twin. The
 outside-holder arm is `CobolFileLockTests.RetryForever_AgainstAHolderOutsideTheRunUnit_WaitsUntilTheOperationCompletes`
 and `RetryAgainstAnOutsideHolder_PausesBeforeEachReattempt_AndOnlyThen` (the pause is observed through
 `FileRegistry.PauseObserver`, never timed), and end to end `SharingRefusalStatusTests.RetryForever_WaitsForAnotherRunUnitToRelease_DeleteFileAndOpen`,
@@ -382,6 +382,16 @@ sequential arms. It lives on the sequential emitter because that class is the de
 common services `KeyedIo` consumes (status store, USE hook, image splice, RETRY renders); a second copy on the
 keyed side is exactly how the sequential WRITE came to have no branch at all.
 
+**One phrase / NOT-phrase pair renderer, with the gate (kb/Work PB3237, PB1120).** `EmitInvalid` and DELETE FILE's
+`ON EXCEPTION` / `NOT ON EXCEPTION` pair both render through `SequentialIoEmitter.EmitPhrasePair(phraseCond, phrase,
+notPhrase, successCond, hook)`, and a lone NOT phrase (READ's NOT AT END, WRITE's NOT END-OF-PAGE) through
+`EmitNotPhrase(hook, body)`. Each takes the statement's `UseHookResult` WHOLE, never its `NotPhraseGate` string (no
+nullable parameter, no default), because §14.6.13.1.4 2)/3) skips a NOT phrase once a WHEN phrase or USE declarative
+has handled the EC-I-O-WARNING a successful completion raised, and a caller with no hook to pass does not compile.
+DELETE FILE had its own copy of the pair dispatch with no gate. `NotPhraseGateDriftTests` closes what the type leaves
+open: a NOT-phrase read in the I-O emitters must reach a renderer, every renderer call must pass the `hook` variable,
+and a `UseHookResult` may be built (`new` or `default`) only inside `EmitUseHook`.
+
 **One code, six rules.** `COBOLNET1720` serves all six, on the `COBOLNET1694` precedent: the *shape* is one
 rule ("a phrase is written where this statement's syntax rules forbid it") and each site's message quotes its own
 §/SR. §14.9.10.3 **SR1** (DELETE RECORD on a sequential-organization file) is deliberately **not** on this seam —
@@ -448,8 +458,8 @@ answers, each stated in the code where that organization's format lives:
   ⚖ Behaviourally GnuCOBOL's `variable-length SEQUENTIAL data integrity` case: an FD of
   `RECORD VARYING FROM 5 TO 500` over a plain XML text file answers `OPEN ERROR: 39`.
 - **RELATIVE and INDEXED — whatever the framed store's HEADER carries**: the **organization**, the **record
-  type**, the **minimum and maximum logical record size**, and the **key table** — each key's byte window,
-  DUPLICATES phrase, SUPPRESS WHEN value and collating-sequence fingerprint. Those two organizations live in an
+  type**, the **minimum and maximum logical record size**, and the **key table** — each key's byte windows (one,
+  or one per data-name-2 of a SOURCE phrase, kb/Work PB1099), DUPLICATES phrase, SUPPRESS WHEN value and collating-sequence fingerprint. Those two organizations live in an
   implementor-defined store whose STRUCTURE *is* those attributes, and the header is where that structure is now
   written down: **in the file**, exactly as GnuCOBOL's ISAM key definitions are in the file. A store whose header
   is absent or unreadable is not a store this build can interpret, and answering '39' for it is LOUD where
@@ -477,8 +487,9 @@ fixed-length record sequential file is still plain bytes and a line sequential f
 the interchange property those shapes exist for, and a varying record-sequential file still carries only the
 per-record prefix it always carried.
 
-**The store format is VERSION 4** (`RecordFraming.FormatVersion`): version 3 (kb/Work PB2660) added the store
-generation, and version 4 (kb/Work PB2693) the release mint and each indexed record's release ordinals; a store of
+**The store format is VERSION 5** (`RecordFraming.FormatVersion`): version 3 (kb/Work PB2660) added the store
+generation, version 4 (kb/Work PB2693) the release mint and each indexed record's release ordinals, and version 5
+(kb/Work PB1099) records each key as a segment count and its (offset, length) windows; a store of
 any earlier version is Foreign and refused with '39'. **Version 2 (kb/Work PB1602)** set the SUPPRESS WHEN
 encoding the header still uses. Each key's SUPPRESS WHEN value is stored as its exact UTF-16 code
 units behind an Int32 count biased by one (0 = no phrase). The header records what the program DECLARED, and the
@@ -502,7 +513,7 @@ and §12.4.5.6.4 GR3 says the same of every alternate key and of the number of a
 as that used when the physical file was created" — the two rules are worded differently and the difference is
 quoted here rather than smoothed over). Neither states a consequence where it is written; GR10's conflict
 condition is the mechanism that detects a violation, so carrying the key table in the store header is what gives
-those two rules an effect at all. The recorded descriptor is the key's byte window plus its collating sequence,
+those two rules an effect at all. The recorded descriptor is the key's byte windows plus its collating sequence,
 which is the whole of "the data description … as well as their relative location" this processor can act on:
 §12.4.5.12.3 SR2 confines a record key to category alphanumeric or category national, §12.4.5.12.4 GR1 makes key
 equality a relation condition under the file's collating sequence, and both native sequences are one code-unit
@@ -611,7 +622,7 @@ CLOSE performs none of the closing actions — including §14.9.6.4 GR9's lock r
 ahead of the connector's own `Close()` on every path. **Symbol e does not release locks either**: its
 non-unit branch is “the file remains in the open mode … and no other action takes place”, and GR9's release
 rides symbol c (“Close file”), so `CLOSE … UNIT` keeps the file lock and every record lock — pinned by
-`conformance:2002/pb235_close_unit_locks`.
+`conformance:cases/14.9.6-CLOSE/pb235_close_unit_locks`.
 
 ### D26. The per-file-name TAPE PHRASE is ONE enum end to end, with a ROW per phrase — never a bool per phrase.
 
@@ -694,7 +705,7 @@ standing in for a per-group value: the bind leak was forward-only (a later group
 group's phrase, so `OPEN OUTPUT SHARING WITH ALL OTHER F1 OUTPUT F2` rejected legal source at §14.9.27.3
 SR8 while its reverse ordering compiled), the emit leak order-independent (a file written BEFORE the phrase
 was routed through the sharing facade too, and `FileRegistry.OpenShared` then made it a sharing participant
-for the rest of the run). Pinned by `conformance:2002/pb316_open_group_scope`, which writes every arbitration
+for the rest of the run). Pinned by `conformance:cases/14.9.27-OPEN/pb316_open_group_scope`, which writes every arbitration
 twice — once as separate OPEN statements, once as one statement with the same groups — and requires the two
 to agree, so the test asserts GR20 itself rather than any implementor-defined default.
 
@@ -732,9 +743,9 @@ program that really does violate SR8, the same rule reported TWICE in two differ
 shape: **a syntax rule listed under a statement's clause belongs to that statement's binder; a declaration-time
 copy of it can only be a paraphrase, because a declaration cannot see the statement the rule quantifies over.**
 
-`conformance:2002/pb319_sr8_antecedent` pins the antecedent falsified in both compilable ways;
-`conformance:negative/sharing-all-no-lockmode` (disjunct 1) and
-`conformance:negative/pb316-open-sharing-all-no-lockmode` (disjunct 2) pin it holding.
+`conformance:cases/14.9.27-OPEN/pb319_sr8_antecedent` pins the antecedent falsified in both compilable ways;
+`conformance:cases/14.9.27-OPEN/sharing-all-no-lockmode` (disjunct 1) and
+`conformance:cases/14.9.27-OPEN/pb316-open-sharing-all-no-lockmode` (disjunct 2) pin it holding.
 `conformance:OpenSharingLockModeTests` carries the two assertions no `.cob` corpus can make — that ONE violation
 draws exactly ONE diagnostic (a substring-matching `.err` is blind to a duplicate, which is how the second copy
 survived), and the APPLY COMMIT exemption, which needs the permissive axis.
@@ -915,7 +926,7 @@ Both emit paths get it from the same helper: the statement emitters for a progra
 `OoEmitter`'s class bodies for an object — Annex D.19.9.2's own worked example is an instance file.
 
 **Why the sharing registry stopped caching the host path.** `ConnectorShare` used to hold a `Host` copy taken at
-`RegisterSharing` time, and every physical-file-table lookup (`ReadLockGovern`, `ReadShared`, `WriteShared`,
+`RegisterSharing` time, and every physical-file-table lookup (`ReadKeyedShared`, `ReadShared`, `WriteShared`,
 `RewriteShared`, `DeleteShared`, `SharedClose`) read that copy. It was only ever right because the path could not
 change; a mutable association makes it a stale key that would arbitrate §9.1.15 sharing over the file the connector
 used to be associated with. The field is gone and the lookups read `c.HostPath` (or `HostPathOf(name)`).
@@ -969,7 +980,7 @@ printed bracket, which is what writes "at most one of these" down exactly once. 
 therefore carry FOUR fields, not one: `Lock` (the retention bracket), and `AdvancingOnLock` / `IgnoringLock` /
 `Retry` (the three alternatives of the contention bracket, at most one of which the grammar can deliver). The
 runtime mirrors it: `FileRecordLock` is the retention bracket alone, `CobolFile.ReadShared` takes
-`advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadLockGovern` takes
+`advancingOnLock` and `ignoringLock` as their own arguments, and the Format-2 `ReadKeyedShared` takes
 `ignoringLock` (ADVANCING ON LOCK is not in the Format-2 general format — D17). WRITE and REWRITE reference
 `recordLockPhrase` only, because §14.9.51.2 and §14.9.35.2 print `[ retry-phrase ]` and
 `[ WITH LOCK | WITH NO LOCK ]` and no IGNORING LOCK at all.
@@ -979,7 +990,7 @@ LOCK | WITH? LOCK`, reached through three free optionals, inverted BOTH cardinal
 brackets make mutually exclusive was free (`ADVANCING ON LOCK RETRY 3 TIMES IGNORING LOCK` compiled), and what
 they make independent was exclusive (`IGNORING LOCK WITH NO LOCK` was `no viable alternative at input 'WITH'`).
 The same merge put IGNORING LOCK on WRITE and REWRITE, and — because a single enum cannot say two things — it
-kept the legal contention+retention pair out of `ApplyReadLockDiscipline`'s GR11 b) release. It also SILENTLY
+kept the legal contention+retention pair out of `ApplyPostReadLockActions`'s GR11 b) release. It also SILENTLY
 SUPPLIED §14.9.30.3 SR3: `FileLockBinder.CheckRecordLockPhrase`'s summary claimed to enforce "IGNORING LOCK and
 WITH LOCK are mutually exclusive" while its body tested only SR4's automatic-locking condition, so the
 forbidden pair was rejected by the collapse and by nothing else. Splitting the brackets without landing a real
@@ -1192,8 +1203,8 @@ to that organization's edition gate (kb/Work PB688), not to this rule.
 let through. A static scan of all 1483 SELECT entries under `tests/` reports every cell this screen rejects
 EMPTY — no corpus program declares the combination, so the change cannot over-reject anything the suite already
 compiles — and every legal (organization × access) cell populated **except** LINE SEQUENTIAL with an explicit
-`ACCESS MODE IS SEQUENTIAL`, which had zero witnesses. `conformance:2023/pb692_line_sequential_access_sequential`
-is that missing positive; `conformance:2023/l1_open_mixed_org_access` already pins RELATIVE/RANDOM and
+`ACCESS MODE IS SEQUENTIAL`, which had zero witnesses. `conformance:cases/12.4.5-File-control/pb692_line_sequential_access_sequential`
+is that missing positive; `conformance:cases/14.9.27-OPEN/l1_open_mixed_org_access` already pins RELATIVE/RANDOM and
 INDEXED/DYNAMIC.
 
 **Two sites, one decision, and the criterion that picks between them.** The entry's syntax rules do not all
@@ -1300,8 +1311,9 @@ the formats column instead.
 
 **Boundaries.** The screen holds only what the standard states about the ENTRY. It carries every syntax rule of the
 three key clauses except the two DESCRIPTIVE ones, §12.4.5.12.3 SR5 and §12.4.5.6.3 SR6 (*"Record-key-name-1 has
-the class and category of data-name-2"*), which state a property of the SOURCE phrase's operand and have nothing
-to screen while that phrase is declined (just below). §12.4.5.12.3 SR3 and §12.4.5.6.3 SR3 (kb/Work PB1073) are
+the class and category of data-name-2"*), which state a property of the key rather than an obligation on the
+source: the resolved key takes its class and category from its first data-name-2 (`RecordKey.CategorySource`),
+and SR2's last sentence — a row of its own — makes every data-name-2 the same answer (just below). §12.4.5.12.3 SR3 and §12.4.5.6.3 SR3 (kb/Work PB1073) are
 one row each over the operand's own DYNAMIC LENGTH attribute, which is the ELEMENTARY half of §8.5.1.11.1's
 *"dynamic-capacity table or … dynamic-length elementary item"* — the table half is a key under OCCURS, which SR1
 already reports, and a GROUP that merely contains a dynamic-length item is a variable-length GROUP, which the
@@ -1309,46 +1321,76 @@ standard names separately where it means to forbid one (§12.4.5.8.3 SR3, §13.1
 key. §12.4.5.6.3 SR4 is one row that compares each alternate clause's `RecordLayout.KeyWindowInFile` offset (and
 whether a variable-length member precedes it) with the prime key's and with every OTHER alternate clause's; the
 operand carries its clause ordinal (`FileKeyOperand.Ordinal`), so two clauses naming one item each violate it. Its
-SOURCE-phrase exemption exempts the declined form, so no operand reaches the row through it. §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
+SOURCE-phrase exemption — *"This restriction does not apply in the case where either key is specified using the
+SOURCE phrase"* — is `CoincidingKey`'s first test, and a SOURCE-form key is no other key to coincide with. §12.4.5.2 SR8's third operand, the file-level COLLATING SEQUENCE clause, is refused where it
 is RESOLVED (`DataBinder.ResolveFileCollating`, COBOLNET1582), because the same test is also the guard that stops
 the rest of that method and splitting a guard from its report would leave the resolution running on an entry it
 has already refused; its citation was §12.4.5.7.1, the clause's descriptive General paragraph, and is now SR8.
 The traceability row `SR-12.4.5.2-8` names both sites.
 
 `conformance:negative/pb699-*`, `pb742-*` and `pb743-*` pin each rule on an OPEN/CLOSE-only program at all four
-editions; `conformance:85/pb699_legal_key_clauses` and `pb742_legal_entry_formats_85` are the over-rejection twins
+editions; `conformance:wiseowl/cases/_unassigned/pb699_legal_key_clauses` and `pb742_legal_entry_formats_85` are the over-rejection twins
 (the second adds a plain sequential file with no key clause, and a LEGAL Format-4 sort-merge entry, which the
 deleted `if (file.IsSortMerge) return;` used to protect by construction) (a GROUP prime key reached through an `IN`
 qualifier, an alternate key `WITH DUPLICATES`, a relative key in WORKING-STORAGE);
 `FileControlKeyRuleSpecTests` carries the assertion no `.cob` corpus can make — that the SAME entry, with and
 without a keyed verb, draws the SAME diagnostics, exactly once.
 
-**THE SECOND KEY FORM IS DECLINED, AND IT IS DECLINED BY NAME** (kb/Work PB358, 2026-09-09). §12.4.5.12.2 and
-§12.4.5.6.2 each print a required choice of two key forms — `{ data-name-1 | record-key-name-1 SOURCE IS
-{ data-name-2 } … }` (rendered from printed pages 359 and 350; `RECORD`, `ALTERNATE` and `SOURCE` carry underline
-rules, `KEY` and both occurrences of `IS` do not) — and §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2 give the second one
-its meaning: *"Record-key-name-1 defines a record key consisting of the concatenation of all occurrences of
-data-name-2 in the order specified."* A WiseOwl COBOL record key is **one contiguous byte window** at every layer
-that carries it — `FileModel`, `RecordLayout.KeyIndexOfKeyItem`, `RuntimeApi.FileRegisterIndexed`,
-`IndexedConnector`'s `(Off, Len)` slice, and `FixedFileAttributes.KeyDescriptor` in D10's store header — so the
-concatenated form is **not provided**, which Annex A.3 item 40 expressly permits (*"The capability of specifying
-the SOURCE phrase … is dependent on the capabilities of the processor"*; `docs/CONFORMANCE.md` §2 row 40).
-⛔ **The decline is a REFUSAL, not the accept-inert warning its A.3 sibling the RECORD DELIMITER clause gets**
-(D-item: COBOLNET1778). The axis is not the annex — it is whether an inert reading exists. A declined RECORD
-DELIMITER changes no program-visible value (§12.4.5.11.4 GR1); a declined RECORD KEY names no data item at all
-(record-key-name-1 is its own name class, §8.3.2.2.24, scoped by §8.4.6.2.4), so an inert compile would leave the
-file **keyless** — a wrong answer. §4.2.6 ¶3 licenses refusing outright: *"The implementor is not required to
-produce executable code when unsupported processor-dependent language elements are used."*
-Both clauses PARSE the phrase (`CobolIO.g4#recordKeySourcePhrase`, one shared rule) so that
-`DataBinder.DeclineRecordKeySource` can name it — **ONE diagnostic, COBOLNET1954, for both clauses**, because
-A.3 item 40 names both in one sentence and the two general formats print the same brace group. Until this
-landed the phrase matched no alternative anywhere and a user saw `COBOL0312: unexpected 'SOURCE' … A period
-may be missing at the end of the previous sentence`, so §4.2.6 ¶3's mandatory compile-time indication was
-unbuilt here. ⚠ The §12.4.5.1 Format-1 requiredness rule reads `FileKeyOperand.Written`, not a null data-name,
-for a measured reason: the first build of the surface told the same program both that the form is not provided
-and that its indexed file *"has no RECORD KEY clause"*. **What providing it would cost** is recorded in
-kb/Work PB293 and is not proposed here: a key would become a LIST of windows end-to-end, including a second
-owner-visible break of D10's store-header format.
+**THE SECOND KEY FORM — `record-key-name-1 SOURCE IS { data-name-2 } …` — IS PROVIDED** (kb/Work PB1099 Q1, owner
+rule R65; it was refused by name as COBOLNET1954 from kb/Work PB358 until then, and the code is retired).
+§12.4.5.12.2 and §12.4.5.6.2 each print a required choice of two key forms — `{ data-name-1 | record-key-name-1
+SOURCE IS { data-name-2 } … }` (rendered from printed pages 359 and 350; `RECORD`, `ALTERNATE` and `SOURCE` carry
+underline rules, `KEY` and both occurrences of `IS` do not) — and §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2 give the
+second one its meaning: *"Record-key-name-1 defines a record key consisting of the concatenation of all
+occurrences of data-name-2 in the order specified."* Annex A.3 item 40 makes the capability processor-dependent,
+and this processor has it.
+
+⛔ **ONE KEY SHAPE FOR BOTH FORMS: a record key is a LIST of byte windows, end to end.** The bound key is
+`FileModel.RecordKey` — its `Segments` are data-name-1's one item, or each data-name-2 in the order specified —
+and the runtime key is a `KeySegment[]` (offset, length, and the record type's layout when a variable-length
+member precedes the window, D-KWV). `IndexedConnector.KeyOf` concatenates the windows through the ONE slice a
+one-window key takes, so the SOURCE form is not a special case of anything: registration
+(`KeyedIoEmitter.KeySegments`, `RuntimeApi.KeySegments`), uniqueness, ordering, START's partial key (§14.9.41.4
+GR17 a)/b): the first n characters of the concatenation) and D10's store header (format version 5 records each
+key as its segment count and windows; §12.4.5.12.4 GR3 makes every window's location a fixed attribute) all read
+the same list.
+- **Capture and resolution.** `DataBinder.CaptureRecordKeySource` captures the phrase for BOTH clauses (one
+  shared grammar rule, `CobolIO.g4#recordKeySourcePhrase`) through the one data-name-n capture, and declares
+  record-key-name-1 (§8.3.2.2.24) through the one declaration funnel; `ResolveFiles` resolves each data-name-2 by
+  the same SR2 selection data-name-1 uses.
+- **The syntax rules.** `FileControlKeyRules` contributes ONE OPERAND PER data-name-2, so every rule stated of
+  "data-name-1 and data-name-2" (SR1 OCCURS, SR2 location and category, SR3 variable-length, the minimum-size
+  rule) reaches each one by the row that screens data-name-1; SR2's last sentence — *"All occurrences of
+  data-name-2 shall be of the same category"* — is a row of its own; the clause-level rows (§12.4.5.2 SR8,
+  §12.4.5.6.3 SR4, SR7's SUPPRESS WHEN) ask only the clause's first operand, so a clause is reported once.
+- **Naming the key.** A file answers which of its keys a record-key-name reference names as a COUNTED set
+  (`FileModel.RecordKeyNameCandidates`, which also reads §8.4.2.2.2 Format 6's one file-name qualifier):
+  READ … KEY (§14.9.30.3 SR11), START … KEY (§14.9.41.3 SR7; GR15's default is the prime key in either form, GR17
+  b)'s default length the concatenation's), COLLATING SEQUENCE OF (§12.4.5.7.3 SR5). Those positions admit
+  data-name-1 OR record-key-name-1, and §8.3.2.2 lets one word be both, so each counts every reading in one
+  `KeyNameReading` set — the record-key-names of every visible file (the clause: of its own entry) and EVERY
+  data-name reading (each same-spelled data item `DataBinder.QualifiedCandidates` reaches; the clause narrows them to
+  its entry's key items, as its key clauses' SR2 selection does) — judged by the one §8.4.2.2.3 SR1 verdict
+  (`DataBinder.UniqueOrReportAmbiguous`, COBOLNET1639): a name two clauses of one entry declare (no Format 6 qualifier
+  can separate them), two files declare unqualified, or one or more data items also bear is refused, never resolved
+  to "the record-key-name first" (kb/Work PB1099 review R1-2). The data-name readings are counted, never probed: a
+  probe answers only a unique item, so a second same-spelled data item used to drop both out of the count and the
+  reference bound silently to the record key (review R2-1). A
+  record-key-name that only another visible file declares is refused naming the rule; a GLOBAL file's
+  record-key-names have its scope (§8.4.6.2.4) because the visible file set carries them. A key clause that did not
+  resolve is already reported, so a COLLATING SEQUENCE operand naming it is not reported again
+  (`FileModel.DeclaresUnresolvedKeyNamed`; a SOURCE-form clause is unresolved only when one of its operands is). A SOURCE-form key is no data item, so the data-item
+  arms — READ SR11's identity, START SR6 a)/b) (b) 1. *"defined without the SOURCE phrase"*), §12.4.5.12.4 GR4's
+  positional promotion — pass over it (`RecordLayout.KeyIndexAtOffset`).
+- **SORT/MERGE GIVING an indexed file** (§14.9.40.3 SR9, §14.9.24.3 SR10) compares the first key with the prime
+  key's byte location and size, which a SOURCE-form prime key has only when its windows are one run.
+- **Edition.** ANSI X3.23-1985 prints data-name-1 only, so the phrase is a post-1985 form gated once, on the
+  shared rule (`record-key-source-2002`, VCR row 7.36, a DERIVED provisional 2002 edge; COBOLNET0900 at 85).
+Witnesses: `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099_record_key_source` (a reversed-order prime key, a duplicate alternate key,
+the concatenated uniqueness '22', the sequential order, READ / START / START WITH LENGTH / DELETE on both keys, a
+Format-6 qualified record-key-name), `conformance:cases/12.4.5.6-ALTERNATE-RECORD-KEY/pb1099-record-key-source-85`, and
+`FileControlKeyRuleSpecTests`' SOURCE section (each data-name-2 rule, SR11/SR7's other-file refusal, the
+complement).
 
 **Still homeless, and NOT closed by either half** (measured over the entry-rule family while here):
 §12.4.5.5.2 **SR1** (RANDOM banned on a file named in a SORT/MERGE USING or GIVING phrase — a statement-context
@@ -1456,7 +1498,7 @@ ungoverned path,
 because there is no ungoverned entry to reach. `BoundIoPhraseConsumptionDriftTests` keeps the other half honest:
 every phrase a bound I-O node declares must be READ by its emitter.
 
-**The evidence.** `tests/conformance/2023/pb683_open_sharing_read_only` (the `READ ONLY` spelling on all three
+**The evidence.** `conformance-suite/cases/9.1.15-Sharing-mode/pb683_open_sharing_read_only` (the `READ ONLY` spelling on all three
 organizations, with the `RETRY 0 TIMES` discriminator that used to disagree),
 `pb683_open_sharing_no_other` (the `NO OTHER` spelling, both open orders, and the §9.1.15 item 1 `'61'`), and
 `pb683_write_advancing_governed` (the same WRITE in all three printed shapes, all `'51'`).
@@ -1792,7 +1834,7 @@ not two. Diagnostics: COBOLNET1994 (admissibility), COBOLNET1995 (the strong-rec
   §12.4.5.6.3 SR2 each admitted a strongly-typed or variable-length group. `ItemCategory.IsAlphanumericGroup` is
   now the one spelling, GR3's three conjuncts, and `ItemCategory.Face` names the two exclusions out loud — it used
   to answer *"not an elementary or group data item"* for every plain group, false but unreachable while no group
-  could fail the predicate. The sweep is witnessed by `conformance:negative/pb337-assign-using-strong-group`.
+  could fail the predicate. The sweep is witnessed by `conformance:cases/_unassigned/pb337-assign-using-strong-group`.
   `ItemCategory` has since become the ONE §8.5.2 CLASS reader as well as the category one — the index /
   message-tag / object / pointer population that three rules name with identical words lives there too
   (`IsIndexMessageTagObjectOrPointer`, kb/Work PB391); see `docs/COBOLNET_DATA_MODEL_DESIGN.md`.
@@ -1888,7 +1930,7 @@ a negative golden per arm: the PB743 clamp applied before the defect rather than
 **Format 3 gets no SR4-analogue, deliberately.** §13.18.43.4 GR18 says that for that format *"the size of each
 record is completely defined in the record description entry"*, so the standard states no rule bounding the
 descriptions by integer-4 and integer-5. Inventing one would reject legal source, and
-`conformance:negative/pb721-record-contains-inverted-range` asserts the record draws nothing while the clause is
+`conformance:cases/13.18.43-RECORD/pb721-record-contains-inverted-range` asserts the record draws nothing while the clause is
 reported.
 
 **SR7 and SR8 need no row, and the absence is DERIVED.** §5.5 1) — *"When the term 'integer-n' (n = 1, 2, …) is
@@ -1923,9 +1965,9 @@ of the same clause is untouched everywhere; and BYTES stays a `nameSlot` row in
 `tests/version-matrix/cobol-words.json`, so `01 BYTES PIC X.` is still legal COBOL-85 — §8.10's own sentence
 says a context-sensitive word outside its format *"is treated as a user-defined word"*, and a hard keyword
 token is exactly how that right gets lost silently. Three programs say which is which:
-`conformance:negative/pb721-record-bytes-below-2023` (the spelling, refused at 85/2002/2014),
-`conformance:85/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
-`conformance:85/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
+`conformance:cases/13.18.43-RECORD/pb721-record-bytes-below-2023` (the spelling, refused at 85/2002/2014),
+`conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` (the CHARACTERS spelling, accepted at 85) and
+`conformance:cases/_unassigned/pb721_bytes_user_word_85` (the word as a data-name, a table and a paragraph-name at 85).
 
 **SR1 stays where it is** (`DataBinder.MaterializeImpliedRecord`, COBOLNET1836): it is about the clause's
 PRESENCE, decidable while the entry is read — D19's first list, not its second.
@@ -1941,7 +1983,7 @@ becomes three rows of this table.
 — the complete 2014→2023 delta — carries no entry for this subclause, and `docs/VERSION_CHANGE_REFERENCE.md`
 records that this repository's spec cannot speak for the 85↔2002 delta at all, so a gate below 2014 would be
 INVENTED rather than derived. The screen is therefore unconditional and every negative rejects at all four
-editions; `conformance:85/pb721_zero_length_record_85` is the over-rejection twin that proves no gate leaked
+editions; `conformance:cases/13.18.43-RECORD/pb721_zero_length_record_85` is the over-rejection twin that proves no gate leaked
 downward.
 
 **Why a table, and the drift guard that keeps it one.** `RecordClauseRuleDriftTests` re-derives every row from
@@ -2294,11 +2336,11 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   positioning is INCLUSIVE per 14.9.30.4 GR21's sequential arm b). Every failure arm — an empty file, a
   non-seekable stream, an absent OPTIONAL file — is '23' (9.1.13.5 item 3 b)/d)), never an abort; a wrong open
   mode is '47' (9.1.13.7 item 7, Table 20's blank Output/Extend cells); an unsuccessful START arms 9.1.13.7
-  item 6 a)'s '46' on the next sequential READ. Goldens: `conformance:2002/pb352_start_sequential_first_last`
+  item 6 a)'s '46' on the next sequential READ. Goldens: `conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb352_start_sequential_first_last`
   (record sequential, at the oldest edition START FIRST/LAST exists at),
-  `conformance:2023/pb352_start_sequential_first_last_line` (the LINE-sequential framing, 2023 because the
+  `conformance:cases/14.9.41-START/pb352_start_sequential_first_last_line` (the LINE-sequential framing, 2023 because the
   organization is — kb/Work PB688) and the Sequential-row START cells of
-  `conformance:2023/l1_table20_seq_relative`.
+  `conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative`.
 - **EVERY START FORMAT DECIDES THE KEY OF REFERENCE, AND THE EPILOGUE MAKES IT SAY SO** (kb/Work PB356).
   14.9.41.4 states the decision once per format and never as a default: GR16 for the KEY phrase ("The key
   specified in the KEY phrase, or that shares a leftmost character with the data item specified in the KEY
@@ -2316,8 +2358,8 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   key of reference in the file position indicator"); where the alternate carried SUPPRESS WHEN it additionally
   HID records that 12.4.5.6.4 GR6 withholds from the ALTERNATE path only and §14.9.41.4 GR18/GR19's primary-key view must
   include. The relative and sequential arms have no key of reference and pass no such argument. Goldens:
-  `conformance:2002/pb356_start_first_last_indexed` (the inverted orderings, the four following prime-order
-  READs, and GR18/GR19's empty-file '23') and `conformance:2023/pb356_start_first_last_suppressed` (the
+  `conformance:cases/14.9.41-START/pb356_start_first_last_indexed` (the inverted orderings, the four following prime-order
+  READs, and GR18/GR19's empty-file '23') and `conformance:cases/14.9.41-START/pb356_start_first_last_suppressed` (the
   SUPPRESS WHEN records FIRST/LAST must still see); the SHAPE is held by
   `unit:StartKeyOfReferenceDriftTests`.
 - **The START key operand is screened by TWO rules with one home each** (kb/Work PB354).
@@ -2353,11 +2395,11 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   not even fail loudly: a two-character generic key with `WITH LENGTH 4` compared `"AB  "`, and `"AB01" > "AB  "`
   is true, so the statement positioned on the WRONG record and the following READ NEXT delivered it. On a
   NATIONAL key the pad was not even a character — one 0x20 byte where 14.9.30.4 GR15's national space is the
-  pair 0x00 0x20. Goldens: `conformance:2002/pb355_start_length_past_operand` (the alphanumeric arms, including
+  pair 0x00 0x20. Goldens: `conformance:cases/14.9.41-START/pb355_start_length_past_operand` (the alphanumeric arms, including
   the silent-wrong-record one and the complement arms that pin the short case) and
-  `conformance:2002/pb355_start_length_national_past_operand`; structure `unit:StartTemporaryKeyAreaDriftTests`.
+  `conformance:cases/14.9.41-START/pb355_start_length_national_past_operand`; structure `unit:StartTemporaryKeyAreaDriftTests`.
   Below COBOL-2002 there is no LENGTH phrase, so the temporary area can never be longer than data-name-1 and the
-  two readings coincide — the 85 regression net is `conformance:85/pb358_start_no_key_phrase`.
+  two readings coincide — the 85 regression net is `conformance:cases/14.9.41-START/pb358_start_no_key_phrase`.
 - **The GR17 b) LENGTH travels to the connector UNNARROWED** (kb/Work PB357). 14.9.41.4 GR14 is a predicate on
   arithmetic-expression-1 itself — *"If arithmetic-expression-1 does not evaluate to a positive nonzero integer that
   is less than or equal to the length of the associated key, the I-O status value … is set to '23'"* — and 14.9.41.3
@@ -2368,7 +2410,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   carrier-neutral landing `SetAmount.Land`, then 1 ≤ count ≤ key length, then the GR13 national-position scaling on
   the bounded integer. The former int narrowing of `Align(expr, 0)` truncated 2.5 to 2 and wrapped 4294967297 to 1,
   so the connector's bound test ran on a value already forced into range. Golden
-  `conformance:2002/pb357_start_length_not_integer`; structure + failure proof `unit:StartKeyLengthTests`.
+  `conformance:cases/9.1.13.5-Invalid-key-condition-with-unsuccessful-completion/pb357_start_length_not_integer`; structure + failure proof `unit:StartKeyLengthTests`.
 - **The record area is resolved in ONE place** — `ReferenceResolver.RecordArea(FileModel)`, the
   `FileModel.AreaRecord` lookup plus the `ResolveItem` step that five consumers each used to write out (the two
   keyed emitter sites, the sequential READ emitter, the two READ/RETURN `INTO` binders). 13.18.33.4 GR3 makes the
@@ -2389,7 +2431,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
     An ADVANCING or LINAGE file is forced to line-oriented output, and **a WRITE with no ADVANCING phrase on a file that supports vertical positioning IS an explicit `AFTER ADVANCING 1 LINE`** (kb/Work PB1027; §14.9.51.4 GR25: "automatic advancing shall be provided by the implementor to act as if the user has specified AFTER ADVANCING 1 LINE"): `SequentialConnector.WriteRecord` reroutes it to `WriteAdvancingRecord(lines: 1, before: false)` in EVERY state of the device, for record sequential AND line sequential files, so there is one placement (GR25 f): advance, then present) and one counter step (GR7 c) 3)), with no second arm to disagree with it. This replaced kb/Work PB964's `ImplicitAdvanceIsBefore`, which placed the advance by the device's line state and took BEFORE's record-then-terminator shape when no line was open: that left a plain WRITE after a BEFORE write with no blank line where the spelled-out AFTER has one, put the first record of a LINAGE page one line high, and made a line sequential file travel twice around an AFTER write. **Which files support vertical positioning is the implementor's determination** (`SequentialConnector.SupportsVerticalPositioning`, docs/CONFORMANCE.md §4): a file with a LINAGE clause, and a file to which an ADVANCING phrase has been written since its OPEN (`_printControl`); any other file is unpositioned and its plain WRITE is the record and its own line end (a line sequential delimiter, a record sequential block). `PlainWriteAdvancingConformanceTests` holds the equivalence over every three-write mix. A BEFORE write after an AFTER write still presents on the open line (GR25 e): no advance precedes it), exactly as AFTER ADVANCING 0 LINES does (GR25 c)).
   - **One statement-supplied operand set for both forms** (13.18.34 GR6): every OPEN and every sequential WRITE entry takes a `LinagePage?` — `SequentialIoEmitter.LinageArg(file)` renders `new LinagePage(body, footing, top, bottom)` from the file model (literals fold to constants, GR6a; data-names render the EXECUTING element's field reads, GR6b) or `null` for an FD with no LINAGE clause. The runtime adopts the values at OPEN OUTPUT (GR6b1, with counter := 1 per GR7d — `FileRegistry.SharedOpenAttempt` → `SequentialConnector.BeginLinagePage`, at the COMPLETION of a successful open as GR6b1 says) and at the two page transitions — the ADVANCING-PAGE reset (GR6b2) and the overflow wrap (GR6b3), AFTER the overflow decision against the OLD body, because "the value applies to the next logical page". Evaluating data-names at these page transitions (not only at OPEN) is required by GR6b2/GR6b3 — evaluating solely at OPEN is a conformance hole (SQ208M/SQ210M). **⛔ The page model is connector state; the operand SOURCE is not** (kb/Work PB673): a connector-held evaluator closure belonged to whichever activation installed it last, which for a RECURSIVE unit with a LOCAL-STORAGE operand is a RETURNED activation's dead storage — and it was installed on the program path only, so a class's LINAGE FD (`OoEmitter`) had no page model at all. `HasLinage` is gone with it: "this FD has a LINAGE clause" is now exactly "the statement supplied a page".
   - **GR26 operational mapping** (`PositionOnLogicalPage` — the counter arithmetic ported from the legacy `AdvanceLinageCounter` and proven over the SQ goldens, now deciding the DEVICE with it because GR26 a) states both in one sentence): with post-advance counter c, body B, footing F — `c > B` ⇒ overflow end-of-page, counter := 1 (GR26a + GR7c4; the reposition lands on the next page's body line 1 through `BeginNextLogicalPage`, never a modulo carry); else `F > 0 ∧ c ≥ F` ⇒ footing end-of-page (GR26b). ADVANCING PAGE IS THAT OVERFLOW ARM, not one of its own (kb/Work PB578): §13.18.34.4 GR7 c) 1 resets the counter to one and, "during the resetting", implicitly increments it "to exceed the value specified by integer-1" — GR26 a)'s trigger — so the write takes the same transition and counter := 1 AND causes the overflow end-of-page condition, EC-I-O-EOP-OVERFLOW (GR27 a)), which a USE declarative, an exception-checking PERFORM's WHEN and FUNCTION EXCEPTION-STATUS observe and which keeps a NOT END-OF-PAGE imperative from running (GR28); `docs/CONFORMANCE.md` §4 **DETERMINATION — WRITE ADVANCING PAGE on a logical page is a page overflow**. The counter advances in the CONNECTOR as part of EVERY write (EOP phrase or not), with the device and not separately from it, so an AT branch reads the post-advance counter whichever side of the presentation 14.9.51.4 GR25 e)/f) put the advance on.
-    - ⚖ **`c == B` IS AN ADJUDICATED BOUNDARY, DECIDED AGAINST THE PRINTED ARM TEXT — do not "fix" either comparison to match GR26's words.** GR26 a) as printed fires at `c ≥ B` and GR26 b) is clamped to `c < B`; at `c == B` those two cannot both hold with §13.18.34.4 GR2 (all B lines may be written), GR3 (the footing area is [F, B] INCLUSIVE) and GR26's own lead sentence (the lines "do not fit within the current page body"). The strict `c > B` boundary above is the reading `docs/CONFORMANCE.md` §4 records as **DETERMINATION — the §14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page size** (kb/Work PB686), with the survey (IBM, Micro Focus, GnuCOBOL-via-NIST) and the NIST SQ201M evidence. It is pinned at the boundary by `tests/conformance/2023/pb686_linage_gr26_boundary.cob` and its `85/` twin — **including the no-FOOTING arm**, because the literal reading would make the last body line unwritable for a file that never mentions FOOTING, and a FOOTING-only fixture cannot see that.
+    - ⚖ **`c == B` IS AN ADJUDICATED BOUNDARY, DECIDED AGAINST THE PRINTED ARM TEXT — do not "fix" either comparison to match GR26's words.** GR26 a) as printed fires at `c ≥ B` and GR26 b) is clamped to `c < B`; at `c == B` those two cannot both hold with §13.18.34.4 GR2 (all B lines may be written), GR3 (the footing area is [F, B] INCLUSIVE) and GR26's own lead sentence (the lines "do not fit within the current page body"). The strict `c > B` boundary above is the reading `docs/CONFORMANCE.md` §4 records as **DETERMINATION — the §14.9.51.4 GR26 a)/b) boundary at LINAGE-COUNTER = page size** (kb/Work PB686), with the survey (IBM, Micro Focus, GnuCOBOL-via-NIST) and the NIST SQ201M evidence. It is pinned at the boundary by `conformance-suite/cases/13.18.34-LINAGE/pb686_linage_gr26_boundary.cob` and its `85/` twin — **including the no-FOOTING arm**, because the literal reading would make the last body line unwritable for a file that never mentions FOOTING, and a FOOTING-only fixture cannot see that.
   - **LINAGE-COUNTER register** (8.4.3.14): runtime-sourced (`BoundLinageCounterRef` → `CobolFile.LinageCounter(name)`), never a synthesized storage item (only the IOCS modifies it, GR7b); qualified `OF/IN file-name` resolves via the grammar's dedicated alternative, unqualified requires exactly one LINAGE file (SR3/8.4.2.2, ambiguity is a bind-time diagnostic). `ReferenceResolver.Resolve` returns null for the register early (the qualified form's cobolWord is the FILE-name).
   - **END-OF-PAGE phrases** branch on `CobolFile.EndOfPage(name)` read in the `if` HEADER (a branch body may WRITE the same file — SQ208M); EOP is a SUCCESSFUL write (GR27 — status 00), and GR27 a)'s EC-I-O-EOP / EC-I-O-EOP-OVERFLOW ride that status to the USE hook, which dispatches the exception-checking PERFORM's WHEN or the declarative only when the END-OF-PAGE phrase is absent (GR27 c)/d), kb/Work PB854). Bind-time diagnostics: SR19 (EOP without LINAGE — the old silent-drop), SR18 (ADVANCING PAGE + the AT END-OF-PAGE phrase; a NOT END-OF-PAGE phrase alone is legal beside it, because SR19 and GR28 name the two phrases separately — kb/Work PB578), SR13 (mnemonic ADVANCING on a LINAGE file).
   - **The GR6 b) VALUE RULES and EC-I-O-LINAGE** (kb/Work PB525 + PB526). `EvaluateLinage` is the ONE place the two value rules are applied — GR6 b) 1 `body > 0`, GR6 b) 2 `0 < footing ≤ body` **whenever the FOOTING PHRASE IS SPECIFIED** — and it is reached from all three GR6 b) evaluation points (the OPEN OUTPUT completion and both page transitions inside `BeginNextLogicalPage`).
@@ -2397,7 +2439,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
     **A violation is an exception condition, not a process kill.** GR6 b) 2 spells out three consequences and all three are realized: LINAGE-COUNTER is set to 0, the page model is discarded, and a `_linagePageBroken` latch holds until CLOSE so *"all subsequent WRITE statements referencing the file cause the EC-I-O-LINAGE exception condition to continue to exist"* — a latched WRITE returns before the record reaches the medium and before GR12's release. The latch is a SEPARATE bit from `HasLogicalPage`: read off the zeroed page model, every later write would take the no-LINAGE print-stream arm and SUCCEED. Both WRITE entries carry the check, because a plain WRITE on a LINE SEQUENTIAL LINAGE file does not route through `WriteAdvancing` (the two-arm dispatch this connector has been bitten by twice). The statement is ABANDONED where GR6 b) 2 abandons it — *"it continues with the statement following the WRITE statement"* — so an AFTER write never presents its record and a BEFORE write keeps the line it had already presented on the page whose values were still valid (GR25 e) puts the presentation first) but does not release it.
     **The raise itself is NOT made in the connector.** The connector reports an unsuccessful I-O status `'90'` (§9.1.13.11's implementor-defined value; docs/CONFORMANCE.md §7 **DOC-A.1-110**) together with the exception-NAME GR6 b) 2 gives it, through `FileConnector.SetIoCondition` — and the ONE EC-I-O channel every other I-O condition already uses, the emitted `__IoCheckEc` hook after the verb, owns the USE format-1 and format-3 tiers, the exception-checking PERFORM frames and the fatal default. **The name has to travel beside the status** because §9.1.13.1's status→EC correspondence has no entry for EC-I-O-LINAGE and would read a `'9x'` as EC-I-O-IMP; `FileConnector.IoConditionName` carries it, the one `Status` setter clears it so it cannot outlive its operation, and `FileRegistry.IoConditionName` is the one place the named condition and the correspondence are combined. `ExceptionCatalog.IoMaskNames` gained EC-I-O-LINAGE (append-only — the mask is a compile-time integer) so `>>TURN EC-I-O-LINAGE CHECKING ON` reaches a statement's mask.
     **The OPEN stays open.** A violation at the OPEN OUTPUT completion replaces the OPEN's STATUS only: GR6 b) 2's *"until the file is closed"* and *"all subsequent WRITE statements referencing the file"* both presuppose an open file connector, and the CLOSE is what ends the regime (`EndLinagePage` clears the latch with the page). Goldens `2023/pb526_linage_ec_condition` (+ the `85/` twin — the whole behaviour is reachable with no construct newer than 1985, since the status and the format-1 declarative carry it) and `2023/pb526_linage_ec_checking` (the `>>TURN` path, where FUNCTION EXCEPTION-STATUS proves the name is EC-I-O-LINAGE and not EC-I-O-IMP).
-  - Conformance net: `LinageConformanceTests.cs` (per-GR: GR7c1–c4/GR7d, GR26a/b discrimination incl. c==B, GR6b1/2/3 timing, GR1 no-footing, qualified/ambiguous register, ADVANCING 0, SR13/18/19) — **plus the `Bytes_*` group, which reads the produced FILE** through `CobolNetCompiler.CompileRunAndReadFile` (margins + overflow, the zero-margin identity, AFTER and BEFORE ADVANCING PAGE, the BEFORE-phrase overflow ordering, and the LINE SEQUENTIAL arm). ⛔ That group exists because the rest of the class can only see stdout, and a rule about WHERE ON THE MEDIUM a record lands is invisible there — which is how kb/Work PB523 stayed green for the whole life of the connector. The corpus twins are `tests/conformance/2023/pb523_linage_margins_on_the_medium.cob` (writes two files, reads them back AS LINE SEQUENTIAL so each DISPLAYed index is a physical line number) and `tests/conformance/85/pb523_linage_margins_on_the_medium_85.cob` (LINE SEQUENTIAL is 2023-only, so the 85 twin reads the medium one character at a time and pins the file length and each record's byte offset).
+  - Conformance net: `LinageConformanceTests.cs` (per-GR: GR7c1–c4/GR7d, GR26a/b discrimination incl. c==B, GR6b1/2/3 timing, GR1 no-footing, qualified/ambiguous register, ADVANCING 0, SR13/18/19) — **plus the `Bytes_*` group, which reads the produced FILE** through `CobolNetCompiler.CompileRunAndReadFile` (margins + overflow, the zero-margin identity, AFTER and BEFORE ADVANCING PAGE, the BEFORE-phrase overflow ordering, and the LINE SEQUENTIAL arm). ⛔ That group exists because the rest of the class can only see stdout, and a rule about WHERE ON THE MEDIUM a record lands is invisible there — which is how kb/Work PB523 stayed green for the whole life of the connector. The corpus twins are `conformance-suite/cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium.cob` (writes two files, reads them back AS LINE SEQUENTIAL so each DISPLAYed index is a physical line number) and `conformance-suite/cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85.cob` (LINE SEQUENTIAL is 2023-only, so the 85 twin reads the medium one character at a time and pins the file length and each record's byte offset).
 - On-disk framing: a fixed record-sequential file is contiguous; a variable sequential, relative, or indexed file uses a 4-byte little-endian length prefix; a sparse relative file uses 0xFF gaps.
 - DELETE FILE statement (14.9.10 Format 2): delete the host path and reset the in-memory map. A present file that is deleted gives 00 and an absent file gives 05 — BOTH successful (14.9.10 GR14/GR20); the error paths are 41 (the connector is still open, GR13), 62 (the physical file is open by another connector, GR15), and 37 (insufficient authority or the storage medium forbids deletion, GR16/GR17). A missing file is NEVER 35 — 35 is an OPEN-only status.
 - Keyed record stores are PER PHYSICAL FILE, not per connector (kb/Work PB143; §14.9.10.4 GR5 — "removed from
@@ -2443,7 +2485,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   `FileConnector.Close` maps the same host failures as OPEN, `OutOfMemoryException` included. The refusals a real file
   cannot produce on demand are injected through `KeyedConnector.HostFaultObserver`.
 - I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOLNET1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
-- Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§14.9.51.4 GR29 a)/b), GR38/GR39; §14.9.35.4 GR5 vs. GR21/GR22/GR23; §14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§14.9.27.4 GR8), whose unsuccessful cells §9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:2023/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
+- Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§14.9.51.4 GR29 a)/b), GR38/GR39; §14.9.35.4 GR5 vs. GR21/GR22/GR23; §14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§14.9.27.4 GR8), whose unsuccessful cells §9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns
   the three of them and every organization's READ entry delegates: `ReadOpenModeGuard` (§14.9.30.4 GR2 /
   §9.1.13.7 item 7 → '47'), `SequentialReadGuard` (GR2, then §14.9.30.4 GR21's "if the previous READ or START statement for
@@ -2483,7 +2525,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   `return Status = notOpen;`, and `Status = X; return false;` with no invalidation — each kept GR18/GR7 only by an
   argument about OPEN's current shape. The structural gate is `FilePositionInvalidationDriftTests` (no READ/START
   entry of a connector assigns `Status`; the terminal invalidates first; the guards are pure); the witness is
-  `tests/conformance/85/pb359_unsuccessful_read_start_position`.
+  `conformance-suite/cases/14.9.30-READ/pb359_unsuccessful_read_start_position`.
 - SAME AREA buffer-only and SAME SORT-MERGE AREA are no-ops in a managed runtime (pure memory-layout optimizations with no observable behavior).
 
 ## Per-edition gating (G1 — four compilers in one `cobol.exe`)
@@ -2543,7 +2585,7 @@ rows; derive 85↔2002 gating from the 2002 standard / the ISO2023_CONFORMANCE_P
   run at every edition, the generated selector carries no edition condition, and the USE hook takes no
   which-verb argument. Asserted by `conformance:{85,2002,2014,2023}/pb344_use_mode_invalid_key` and
   `…/pb344_use_mode_read_exception`, whose four copies are byte-identical BY DESIGN — that identity is the
-  assertion — plus `conformance:2023/pb344_use_f3_perform_preempt` for GR6's leading exception-checking-PERFORM
+  assertion — plus `conformance:cases/9.1.12-Input-output-exception-processing/pb344_use_f3_perform_preempt` for GR6's leading exception-checking-PERFORM
   clause.
 
 **The two mechanisms behind those rows.** (1) **`CobolNet.Runtime.DialectBehaviors` is the named register of
@@ -2723,8 +2765,8 @@ but is not a logical record is refused at bind.
 **Edition posture.** Edition-INVARIANT — the rule is written identically in 1985, 2002 and 2014, so there is no
 gate and no `constructs.json` row. Witnesses: `tests/conformance/negative/pb347-*` (seven cases, three verbs ×
 the subordinate / reference-modified / not-a-file-record faults, each `*> reject-at: 85 2002 2014 2023`) and
-the acceptance twins `tests/conformance/2023/pb347_record_name_identity` and
-`tests/conformance/85/pb347_record_name_identity_85`, which pin that the qualified `OF` form still binds at all
+the acceptance twins `conformance-suite/cases/14.9.32-RELEASE/pb347_record_name_identity` and
+`conformance-suite/cases/14.9.32-RELEASE/pb347_record_name_identity_85`, which pin that the qualified `OF` form still binds at all
 three verbs and that a SORT returns exactly the records RELEASE named. (kb/Work PB347)
 
 ## The `file-name` operand — ONE resolution that takes the PARSE NODE, and ONE shape rule
@@ -2767,8 +2809,8 @@ formats), OPEN, READ, REWRITE, START, UNLOCK and WRITE.
   whose record is an SD record (the record description entry is the 01 and everything under it). A new operand
   position in any of the eight is therefore screened without a verb binder remembering to ask: until kb/Work PB1291
   only the record-name slot was, and `WRITE … AFTER ADVANCING SRT-N LINES`, a START KEY or a RETRY count naming an
-  SD item compiled clean. Witnesses: `tests/conformance/negative/pb1291-sd-record-advancing` and the permitted arm
-  `tests/conformance/85/pb1291_sd_record_from_into_85`.
+  SD item compiled clean. Witnesses: `conformance-suite/cases/13.4.6-Sort-merge-file-description/pb1291-sd-record-advancing` and the permitted arm
+  `conformance-suite/cases/13.4.6-Sort-merge-file-description/pb1291_sd_record_from_into_85`.
 
 ## The COLLATING SEQUENCE clause — SR8 counts CLAUSES, not occurrences
 
@@ -2795,9 +2837,9 @@ offending clause also repeats the key internally.
 `file-collating-clause-2002`, COBOLNET0900 at `--std 85`), so SR8's behaviour lanes are 2002/2014/2023 and 85 is the
 gate lane. Witnesses: `conformance:FileCollatingSequenceSpecTests` (both arms per edition, the
 one-diagnostic count, and the 85 gate), the positive golden
-`tests/conformance/2002/pb703_collating_key_named_twice` (a key named twice in ONE clause, whose output proves
+`conformance-suite/cases/12.4.5.7-COLLATING-SEQUENCE/pb703_collating_key_named_twice` (a key named twice in ONE clause, whose output proves
 GR6 still gives each key its own clause's alphabet) and the negative
-`tests/conformance/negative/pb703-collating-key-in-two-clauses` (`*> reject-at: 2002 2014 2023`). (kb/Work PB703)
+`conformance-suite/cases/12.4.5.7-COLLATING-SEQUENCE/pb703-collating-key-in-two-clauses` (`*> reject-at: 2002 2014 2023`). (kb/Work PB703)
 
 **The sequence follows the KEY'S CLASS, and the alphabet operands are screened as written** (kb/Work PB1074).
 §12.4.5.7.4 GR2/GR3 give alphabet-name-1 to the keys of class alphanumeric and alphabet-name-2 to the keys of class

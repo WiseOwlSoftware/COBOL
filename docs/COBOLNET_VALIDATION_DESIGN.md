@@ -49,7 +49,13 @@ semantics).
   restore), `DataBinder.BindEntries` per entry (+ the FD/SD/SELECT/I-O-CONTROL/SPECIAL-NAMES/OBJECT-COMPUTER/RD/
   USING loops), `ProcedureTableBuilder` per declarative section / procedure unit, the post-build model passes at
   `DataItem.DeclaredAt` (captured from the cursor when the item is bound), and the two parse-tree passes through
-  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). `EditionContext` implements
+  `Validation/CursorFollowingVisitor` (the cursor follows the walk, restored on exit). A pass that runs AFTER the
+  bind, over the BOUND tree (`VersionConformancePass`'s bound-tree arm: the SORT/MERGE/COMMIT/ROLLBACK placement
+  rules, the SET and MOVE statement gates), has no parse tree to read, and a bound node carries no span: the
+  position is `BoundStatement.At`, stamped on every statement node by the same funnel (`StatementBinder.BindStatement`,
+  kb/Work PB1925), read by `WalkStatement`; its data gates position at `DataItem.DeclaredAt` and its `>>COBOL-WORDS`
+  SR3/SR4 checks at `CobolWordsOp.At`. A NEW bound statement node or a new gate over one inherits the position;
+  `BoundArmDiagnosticPositionTests` pins each arm. `EditionContext` implements
   the cursor for real and `Error`/`Warning` stamp the prefix AUTOMATICALLY; no cursor ⇒ the bare
   `error CODE: message` (a diagnostic about the unit as a whole — never a fabricated line). (2) **The ORIGIN LINE
   MAP**: the cursor is in RESULTANT-text space (the ANTLR token line and column after the reference-format
@@ -119,7 +125,7 @@ semantics).
     assert. `ConstructRegistry` is the edition-gating registry; putting a decline in it would be the same
     two-answers-to-two-questions mistake as folding the pass into `VersionConformancePass`. The declined band's
     per-edition obligation is discharged instead by the negative corpus's `*> reject-at:` header plus the
-    below-edition POSITIVE controls (`conformance:85/declined_validate_words_are_user_words` — the clause words
+    below-edition POSITIVE controls (`conformance:cases/_unassigned/declined_validate_words_are_user_words` — the clause words
     are legal user-defined words at COBOL-85 — and `DeclinedFacilityTests.CommitAt2014_IsAUserWord…`).
   - **Adding one.** Put the rule in `CobolDeclined.g4` behind an `{isXXXX()}?` LEFT-EDGE predicate (the clause
     words are user-defined words below the edition that introduced them) and, if it is an ENTRY POINT there — a
@@ -131,7 +137,7 @@ semantics).
     documentation, matched on a `-` boundary so a family's level-2 name, its level-3 names and the open
     `EC-IMP` suffixes resolve to one row. It is keyed to the three names Annex A.4.3 item 3 LISTS, never to the
     live `EC-FLOW` level-2 family — `EC-FLOW-RELEASE` and its siblings belong to implemented facilities, and
-    `conformance:2023/declined_ec_flow_sibling_still_legal` is that complement's witness. EC-SCREEN-\* and
+    `conformance:cases/_unassigned/declined_ec_flow_sibling_still_legal` is that complement's witness. EC-SCREEN-\* and
     EC-MCS-\* have the same zero-setting-site shape and are ONE ROW EACH when their modules' witnesses land.
 - **Corpus runners** (`CorpusRunnerTests`, Phase-1 shells): per-edition `tests/conformance/<ed>/manifest.json`
   discovery (enabled compile-asserted strict; pending catalogued; integrity facts forbid silent

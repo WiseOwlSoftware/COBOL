@@ -1168,7 +1168,7 @@ products: any .NET language, and only as the ACTIVATING element.** No non-COBOL 
 program-pointer or `ADDRESS OF PROGRAM` resolves only WiseOwl COBOL programs. **Mechanism:** every outermost program
 and every user-defined function — definition or prototype — has a generated public class `Cobol.<assembly>.<name>`
 in the assembly that compiled it (except a unit one of whose group formals or RETURNING item holds both a dynamic-length
-item or dynamic-capacity table and a pointer or object reference, which has none: no crossing form of the boundary carries that group, the activated program's own formal of it stages the Tier-C loud at its copy-in, so an entry could only reach a loud - kb/Work PB3273), whose static `Call` method activates
+item or dynamic-capacity table and a pointer or object reference, which has none: the COBOL boundary carries that group only as its storage area holding its references and its components together, which no published record composes, so an entry could only reach the activated program's copy-in loud - kb/Work PB3273, PB3139), whose static `Call` method activates
 it through the same boundary a COBOL CALL crosses (§14.9.4.4 GR3), and, for a program, a static `Cancel` method
 (§14.9.5). This is the only host interface.
 **Parameter matching:** positional (§14.2.3 GR2), one `Call` parameter per USING formal in order; the C# compiler
@@ -1878,7 +1878,7 @@ and 6 stand alone; 3 needs 1, 2 and kb/Work PB2087; 4 needs 3; 5 needs 4; 7 need
    `EnsureRegistered()`. No prerequisite.
 2. **The one name allocator — LANDED (kb/Work PB2098, PB2093).** `CsNames.Allocate` with seeded scopes replaced
    `DataBinder.Unique` at every caller (the class-level roots through `CsNameScope.ProgramClass()`, a group's members
-   through `DataItem.AddMember`); the collision fixture `tests/conformance/2002/pb2093_member_names_like_generated_members`
+   through `DataItem.AddMember`); the collision fixture `conformance-suite/cases/_unassigned/pb2093_member_names_like_generated_members`
    (subordinates named `AsImage`, `Equals`, `ToString`, `F` beside `F` and `F-2`, a record named `CloseFiles`, and a
    TYPE clone of a type with such members) compiles and runs; `CsNameReservationDriftTests` keeps the seeds total.
    The published scopes of slice 3 reuse the allocator with their own seeds.

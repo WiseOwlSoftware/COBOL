@@ -391,8 +391,9 @@ r1), so the arm is the item the TYPE describes, never a list of the three string
 national or boolean result keeps a RUNTIME length over its string image (BYTE-LENGTH: 1 byte per alphanumeric position,
 2 per national position — D-N1 — and ceil(positions / 8) per boolean, §15.14.4 r4, the renderer's `ByteLength` arm over
 `ByteLengthNational` / `ByteLengthBoolean`); an integer or numeric result is the §15.4 temporary
-(`SendingValueTemp.NumericReturnedValuePic` — the ONE description the statement hoist stores the value in, so the item a
-value is stored in and the item its length is asked of cannot differ), S9(30) DISPLAY, 30 positions and 30 bytes
+(`SendingValueTemp.NumericReturnedValuePic` — the ONE description of the returned-value item that LENGTH, BYTE-LENGTH
+and IN-ARITHMETIC-RANGE ask about; the intermediate a statement hoist stores the value in is a different item, described
+for the value by `SendingValueTemp.IntermediatePic`, kb/Work PB3268), S9(30) DISPLAY, 30 positions and 30 bytes
 (DOC-A.1-92); an index result is the index carrier, 8. A result the binder FOLDED to a literal (`FUNCTION
 LENGTH(FUNCTION LENGTH(X))`) is not a literal the source wrote: `BoundNumLiteral.FunctionValue` /
 `BoundNumericLiteral.FunctionValue` carry that origin from the ONE point every bound function result passes
@@ -543,7 +544,7 @@ The staged `substitute-all-subscript-argument` descriptor is retired. Golden `pb
 
 §15.4.1 r1 leaves no latitude under STANDARD-DECIMAL / STANDARD-BINARY ("the returned value shall equal the value of the equivalent arithmetic expression") and §8.8.1.5.2 r1 converts **each operand** to the SDIDI individually, so a standard mode never forms a common scale at all. The NATIVE arms align first, on the Int128 carrier, and **alignment multiplies**: a 31-digit integer beside a scale-18 operand needs 49 digits, so `NumericRenderer.Align`'s per-argument escape raises EC-SIZE-OVERFLOW where the SDIDI holds the answer exactly (`MEAN(10³⁰, 2.0)` = 500000000000000000000000000001; `REM(10³¹−2, 1.5)` = 0.5). **"Does this arm cross-align?" is therefore the exact test for "must it be on the Dec lane under a standard mode"** — the routing is a property of the switch, not a taste.
 
-⛔ It was nevertheless built one arm at a time, and each pass believed itself complete: PB62 moved the summing family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) for MEAN's witness; PB252 found **MOD and REM still on the Int128 lane** — the same clause, the same mechanism, the arm nobody swept. The set is now two NAMED collections instead of an inline `is … or …` chain: `IntrinsicRenderer.CrossAlignedNativeArms` (MOD · REM · SUM · RANGE · MEAN · MEDIAN · MIDRANGE — the structural half) and `StandardValueFixedByRule` (SQRT · FACTORIAL · the four inexact-EAE financial/statistical functions · the NUMVAL family — each for its own cited reason). `ExactCarrierBoundaryDriftTests.EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode` reads the native switch, collects the case labels of every arm calling `AlignedArgs`/`AlignedArgsEx` or `NumericRenderer.Align(x, s)`, and fails if one is missing — so a new aligning arm is routed automatically or the build goes red. MAX/MIN/ORD-MAX/ORD-MIN stay OUT by the complementary test: `RawArgPairs` rescales each argument to its OWN scale, so they form no common scale (PB65).
+⛔ It was nevertheless built one arm at a time, and each pass believed itself complete: PB62 moved the summing family (SUM/RANGE/MEAN/MEDIAN/MIDRANGE) for MEAN's witness; PB252 found **MOD and REM still on the Int128 lane** — the same clause, the same mechanism, the arm nobody swept. The set is now two NAMED collections instead of an inline `is … or …` chain: `IntrinsicCarrierRules.CrossAlignedNativeArms` (MOD · REM · SUM · RANGE · MEAN · MEDIAN · MIDRANGE — the structural half; in `compiler.bound`, because the bind-time lane prediction `FunctionValueLane` reads it too) and `StandardValueFixedByRule` (SQRT · FACTORIAL · the four inexact-EAE financial/statistical functions · the NUMVAL family — each for its own cited reason). `ExactCarrierBoundaryDriftTests.EveryCrossAligningNativeArm_IsRoutedToTheSdidiUnderAStandardMode` reads the native switch, collects the case labels of every arm calling `AlignedArgs`/`AlignedArgsEx` or `NumericRenderer.Align(x, s)`, and fails if one is missing — so a new aligning arm is routed automatically or the build goes red. MAX/MIN/ORD-MAX/ORD-MIN stay OUT by the complementary test: `RawArgPairs` rescales each argument to its OWN scale, so they form no common scale (PB65).
 
 Pinned by `pb62_all_subscript_runtime_ranges` (every range and shape, values derived in its header),
 `pb62_standard_decimal_summing_family`, `pb252_mod_rem_standard_decimal` (REM's exact 0.5 across the 49-digit alignment, plus the §15.64.4 NOTE sign table on the SDIDI carrier), and the `pb62-all-subscript-*` negatives.
@@ -551,8 +552,11 @@ Pinned by `pb62_all_subscript_runtime_ranges` (every range and shape, values der
 ### A SELECTION function delivers the selected argument's CONTENT from its own carrier (PB65, RV-15.59.4-1 D2).
 
 MAX / MIN / ORD-MAX / ORD-MIN — and MEDIAN over an odd count (§15.61.4 r1's equivalent expression is
-`(argument-a)`, the middle argument itself) — return "the content of the argument" compared "according to the rules
-for simple conditions" (§15.59.4 r1 / §15.63.4 r1 / §15.61.4 r3); no equivalent ARITHMETIC expression is involved,
+`(argument-a)`, the middle argument itself) — select an argument: §15.59.4 r1 / §15.63.4 r1 make MAX / MIN return "the content of the argument-1";
+§15.71.4 r1 / §15.72.4 r1 make ORD-MAX / ORD-MIN return the "ordinal number that corresponds to the position of the argument-1";
+§15.61.1 makes MEDIAN return "the content of the argument whose value is the middle value"; each compares "according to
+the rules for simple conditions" (§15.59.4 r1, §15.63.4 r1, §15.71.4 r2, §15.72.4 r2, §15.61.4 r3); no equivalent
+ARITHMETIC expression is involved,
 so §15.4.1's native latitude over the representation of the returned value never reaches the VALUE. A MIXED
 argument list — a float beside a fixed-point item, conforming under §8.5.2.1 Table 2 (both class numeric) — used to
 route the WHOLE call through binary64 (`AnyRealArgument` → `RenderFloat` → `MaxReal(params double[])` →
@@ -649,10 +653,10 @@ ACOS, ASIN) are still screened by the ONE §15.3 rule 14 screen (PB952): their o
 `null` for a rejected argument, which the body turns into the NaN every rejected argument becomes — so no body
 carries a domain test. A float operand IS its binary64 and keeps the double body, as a scaled operand of a `Sdidi`
 member does. `WholeRangeBodiesDriftTests` pins each member's runtime overload and every arm's value against an
-independent 140-digit oracle. Pinned by `tests/conformance/2002/pb999_log_trig_decimal_range`,
-`tests/conformance/85/pb1041_trig_log_arc_exact_argument` and `tests/conformance/2002/pb1041_exp_and_wide_exact_argument`,
+independent 140-digit oracle. Pinned by `conformance-suite/cases/15.20.4-Returned-value-rule/pb999_log_trig_decimal_range`,
+`conformance-suite/cases/15.8.4-Returned-value-rule/pb1041_trig_log_arc_exact_argument` and `conformance-suite/cases/15.20.4-Returned-value-rule/pb1041_exp_and_wide_exact_argument`,
 and the rate-side twin (PRESENT-VALUE's exact discount base, above) by
-`tests/conformance/85/pb1000_present_value_rate_near_minus_one`. ANNUITY's twin is a BODY fix, not an intake one
+`conformance-suite/cases/15.74.3-Argument-rules/pb1000_present_value_rate_near_minus_one`. ANNUITY's twin is a BODY fix, not an intake one
 (PB1310): its §15.9.4 1) b) denominator 1 − (1 + rate)^−n is evaluated as −expm1(−n·log1p(rate))
 (`CobolIntrinsics.ExpMinusOne` / `LogOnePlus`, Kahan's formulations), because forming 1 + rate in binary64 is exactly
 1.0 for any rate below 2^−53 — a COMP-2 rate included — and ANNUITY(1E-17 12) stored 0 for 1/12.
@@ -671,7 +675,7 @@ result. PRESENT-VALUE's §15.74.3 r2 is then decided where every SDIDI evaluatio
 leading table(ALL) rate stay one `CobolDec[]` enumeration. A list with a floating argument keeps the binary64
 body (its EAE is evaluated in binary64, CONFORMANCE.md DOC-A.1-92); an SDIDI argument was already routed to the
 Dec bodies by `RenderNum`'s native Dec arm (PB69). `WholeRangeBodiesDriftTests` requires every variadic Float
-catalog row to be a member and pins each overload. Pinned by `tests/conformance/85/pb1565_variadic_exact_argument_list`.
+catalog row to be a member and pins each overload. Pinned by `conformance-suite/cases/15.74.4-Returned-value-rule/pb1565_variadic_exact_argument_list`.
 
 **The RANGE of the returned value: past binary64 is the size error condition (PB1566).** Under native arithmetic the
 family's returned value IS a binary64 (CONFORMANCE.md DOC-A.1-92), so binary64's range is the range of the native
@@ -683,7 +687,7 @@ check, raising `CobolSizeError` exactly as FACTORIAL does past the Int128 interm
 ARGUMENT keeps its DOC-A.1-70 disposition), and every `ExactListBodies` result through `NarrowResult`, which knows
 the exact value. EXP(1000) used to print `Infinity` and `COMPUTE F = FUNCTION EXP(-1000) ON SIZE ERROR` took NOT ON
 SIZE ERROR. Under a standard mode the SDIDI's own range answers the same way (§8.8.1.5.2 r2). Pinned by
-`tests/conformance/2002/pb1566_exp_result_range`.
+`conformance-suite/cases/15.34.4-Returned-value-rules/pb1566_exp_result_range`.
 
 ### An intrinsic-function-name the REPOSITORY identifies is not a user-defined word (PB65, §8.3.2.1 rule 5).
 

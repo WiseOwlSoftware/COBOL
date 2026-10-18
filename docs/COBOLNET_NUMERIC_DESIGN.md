@@ -327,6 +327,9 @@ r2; 'E' not `[eE]` — the lexer is case-insensitive) placed BEFORE `DECIMALLIT`
 token — plus a `FLOATLIT` alt in `numericLiteralCore` (and the DECIMAL-POINT IS COMMA twin `COMMA_FLOATLIT`,
 kb/Work PB98). `EmitText.UnscaledLit` detects the E and returns a `Real` NumX with the literal verbatim (a COBOL
 float literal is already valid C# `double` syntax — the form the CALL/INVOKE argument emitters still take).
+The literal FORMAT is a COBOL-2002 introduction (constructs.json `floating-point-literal-2002`, VCR row 7.37, kb/Work
+PB674; COBOL-85's numeric literal is fixed-point alone): `LiteralScreen.GateFloatingPoint` refuses it below 2002 with
+COBOLNET0900 on the TOKEN (`LiteralTokens.FloatingPointTypes`), position-blind, so no consumer carries its own gate.
 ⛔ **THE LITERAL IS ITS EXACT VALUE IN EVERY POSITION AND EVERY MODE** (owner decision D-B, 2026-08-30; kb/Work
 PB156 + PB195, superseding the per-position split PB99 left behind). `NumericRenderer.LiteralNum` is the ONE
 rendering: a floating-point literal becomes its §8.3.3.3.3 rule-5 value — significand × 10^exponent — on the `Dec`
@@ -714,7 +717,7 @@ Int128 kernel (`CobolNum.Divide` at the receiver's scale, then `CapDigits`): its
 Int128 (DOC-A.1-179), so an unsigned-wide dividend past 2^127 - 1 is the funnel's size error and a float dividend past the
 carrier raises EC-SIZE-OVERFLOW from `NumericRenderer.Align`. ⛔ The subsidiary quotient's DIGIT CAP is the digits the
 receiver's store KEEPS (kb/Work PB129): the PICTURE's digit positions for a PICTURE-truncating item, none for a
-BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its whole container (§13.18.60.4 GR12, DOC-A.1-123) -
+BINARY-CAPACITY item (COMP-5, BINARY-CHAR ... BINARY-DOUBLE), which owns its whole container (§13.18.60.4 GR12 / DOC-A.1-208, DOC-A.1-123) -
 the quotient such an item holds is the full quotient, and capping it at the PICTURE's digits made the remainder of
 `DIVIDE 123456 BY 7 GIVING Q REMAINDER R` into `Q PIC 9(4) COMP-5` 70004 instead of 4.
 
@@ -955,7 +958,7 @@ exactly, so an unsigned receiver's absolute value (§14.9.25.4 GR6 b), every dig
 different things:** a DISPLAY / COMP / PACKED receiver takes the DECIMAL low-order digits, so the widening is
 `RescaleStoreCap` (the ≤38-digit cap applied BEFORE the multiply — exact, since 10^D divides 10^38 for every
 D ≤ 38, hence (v·10^s mod 10^38) mod 10^D = v·10^s mod 10^D); a BinaryCapacity receiver (COMP-5 / the BINARY-CHAR
-family, §13.18.60.4 GR12) takes the CONTAINER's two's-complement residue, and there the carrier's own wrap IS
+family, §13.18.60.4 GR12 / DOC-A.1-208) takes the CONTAINER's two's-complement residue, and there the carrier's own wrap IS
 modulo 2^128, which 2^bits divides — so that arm keeps `Rescale` and is exact as it stands. `StoreU` has had this
 split since R10 (its cap argument is the binary modulus or the decimal one); `Store` was the unfixed arm — the
 [[two_arm_dispatch]] shape again. The emitter names this landing too: `RuntimeApi.NumRescaleStore(…, bool
@@ -1056,7 +1059,7 @@ clause text and fails if a new member is silently exempted.
 
 1. *Can this operation leave the `Int128` carrier?* `NumX.Digits` is an UPPER BOUND on the decimal digits of an exact
    operand's unscaled value (0 = unknown): a field read states `PicInfo.UnscaledDigitBound` (the PICTURE's digits; a
-   COMP-5 / BINARY-CHAR… item owns its whole container range, §13.18.60.4 GR12), a literal its own digit count, and the
+   COMP-5 / BINARY-CHAR… item owns its whole container range, §13.18.60.4 GR12 / DOC-A.1-208), a literal its own digit count, and the
    exact sum, difference, negation and product derive theirs. A product of N- and M-digit unscaled values is below
    10^(N+M), so `NumericRenderer.Multiply` decides at COMPILE time: N+M ≤ 38 — a bare multiply (no check needed, none
    emitted); N+M > 38 — the exact 256-bit product, which is (i) when it IS the final transfer to a resultant (the
@@ -1082,7 +1085,7 @@ clause text and fails if a new member is silently exempted.
    (GnuCOBOL's own divide is inexact, numeric.c:2259-2261) and an exponentiation take the SDIDI (`CobolDec.MulToOdd` /
    `DivToOdd`) as before; an unknown bound — `CobolNum.MulChecked` in EVERY statement (a native product never wraps). The old emitter
    multiplied unchecked and `PIC 9V9(30)` × `PIC 9V9(30)` — a legal statement, §14.7.7 r2 a) caps the COMPOSITE — stored a
-   wrapped product. The same bound drives `IntrinsicRenderer.AlignmentMayLeaveCarrier`: SUM / RANGE / MEAN / MEDIAN /
+   wrapped product. The same bound drives `IntrinsicCarrierRules.AlignmentMayLeaveCarrier` (the one reader, in `compiler.bound`; the renderer and the bind-time lane prediction both ask it): SUM / RANGE / MEAN / MEDIAN /
    MIDRANGE align every argument to the list's maximum scale, and when the SUM of the magnitudes the function adds (each
    bounded by its aligned digits: every argument for SUM / MEAN, the two largest for RANGE, ×10 for MEDIAN / MIDRANGE)
    passes `Int128.MaxValue` the call goes to its SDIDI body (`SumDec` …) instead of raising for a value the receiver
@@ -1156,7 +1159,7 @@ test, MinValue-safe), where it used to count digits (`> 38`) and refused every 3
 2^127 − 1, CONFORMANCE.md §4.2.16) belongs to the native `Int128` lanes only. `CombineCore` and `Power` decide the SDIDI / Dec
 lane FIRST and hand it the unsigned-wide operand as it is, so `DecOperand` rounds it (`CobolDec.FromUnsigned`) like every
 other operand, and a unary minus lifts it under a standard mode; the funnel runs only on the paths that remain native.
-The result lands the same way: an unsigned 16-byte BinaryCapacity receiver's container is [0, 2^128) (§13.18.60.4 GR12),
+The result lands the same way: an unsigned 16-byte BinaryCapacity receiver's container is [0, 2^128) (DOC-A.1-208),
 which `ToUnscaled` / `ToUnscaledChecked` (an `Int128` each) cannot carry, so `CobolNum.Store` / `TryStore(CobolDec, …)` take
 `CobolDec.ToUnscaledMagnitude` for it (a `UInt128`, the container's bits in the `Int128` the emitted store reads back), and
 only a magnitude past 2^128 is the §14.7.5 case 3 size error (the signed twin's disposition). `SdidiOperandLiftDriftTests`

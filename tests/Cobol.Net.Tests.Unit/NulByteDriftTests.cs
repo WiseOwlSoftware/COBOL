@@ -8,8 +8,8 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ NO TRACKED TEXT FILE UNDER <c>src/</c> OR <c>tests/</c> CONTAINS A NUL BYTE, because a file with one is BINARY to
-/// every sweep this project runs, and a file a sweep cannot read has been exempt from every sibling sweep ever run
+/// ⛔ NO TRACKED TEXT FILE UNDER <c>src/</c>, <c>tests/</c> OR <c>conformance-suite/</c> CONTAINS A NUL BYTE, because a
+/// file with one is BINARY to every sweep this project runs, and a file a sweep cannot read has been exempt from every sibling sweep ever run
 /// (<c>kb/Work/PB927</c>). The instance: <c>tests/Cobol.Net.Tests.Unit/CobolPtrTests.cs</c> held
 /// <c>CobolPtr.Allocate(3, '\0', …)</c> written with a LITERAL NUL character, so <c>grep -rn UpByReal tests/</c>
 /// answered <c>Binary file … matches</c> instead of the lines, and the arm that file tests was never re-read against
@@ -35,8 +35,11 @@ namespace CobolNet.Tests.Unit;
 [Trait("Sweep", "tree")]
 public sealed class NulByteDriftTests
 {
-    /// <summary>The repo-root-relative trees swept.</summary>
-    private static readonly string[] Trees = ["src/", "tests/"];
+    /// <summary>The repo-root-relative trees swept: the compiler, its tests, and the conformance suite, which holds the
+    /// corpus's <c>.cob</c>/<c>.out</c> text since the move (kb/Work PB3177, slice S2). The class summary states this
+    /// same scope, and <see cref="TheSweepFiresOnAPlantedNul"/> plants an offender in the suite and one outside every
+    /// tree.</summary>
+    private static readonly string[] Trees = ["src/", "tests/", "conformance-suite/"];
 
     /// <summary>The text kinds the repo's greps and drift sweeps read, compared case-insensitively. COBOL sources and
     /// copybooks, the C# the compiler is made of, the grammar, the registers and project files, and the golden
@@ -60,7 +63,8 @@ public sealed class NulByteDriftTests
     internal sealed record SweepResult(
         IReadOnlyList<string> Offenders, int FilesScanned, int FilesMissing, int FilesWideEncoded, IReadOnlyList<string> Exempted);
 
-    /// <summary>No tracked text file under <c>src/</c> or <c>tests/</c> contains a NUL byte.</summary>
+    /// <summary>No tracked text file under <c>src/</c>, <c>tests/</c> or <c>conformance-suite/</c> contains a NUL
+    /// byte.</summary>
     [Fact]
     public void NoTrackedTextFileContainsANulByte()
     {
@@ -108,7 +112,8 @@ public sealed class NulByteDriftTests
 
     /// <summary>The sweep fires: a file with the PB927 shape — a literal NUL inside a C# char literal — is reported, a
     /// clean one beside it is not, a UTF-16 file (a NUL in every other byte by construction) is set aside by its
-    /// byte-order mark, an exempt path is reported as exempt, and a binary asset kind is out of scope.</summary>
+    /// byte-order mark, an exempt path is reported as exempt, a binary asset kind is out of scope, and a suite golden is
+    /// swept while the same bytes outside every <see cref="Trees"/> entry are not.</summary>
     [Fact]
     public void TheSweepFiresOnAPlantedNul()
     {
@@ -125,13 +130,20 @@ public sealed class NulByteDriftTests
             File.WriteAllBytes(Path.Combine(scratch, "src", "Wide.cpy"), [0xFF, 0xFE, 0x41, 0x00]);
             File.WriteAllBytes(Path.Combine(scratch, "src", "Asset.bin"), [0, 1, 2]);
             File.WriteAllBytes(Path.Combine(scratch, "tests", "nist", "valid", "NC107A.txt"), [0x2A, 0x00]);
+            // A suite golden pinning a raw NUL (a DISPLAY of LOW-VALUE) is an offender: the suite is a swept tree. The
+            // same bytes outside every swept tree are out of scope.
+            Directory.CreateDirectory(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned"));
+            Directory.CreateDirectory(Path.Combine(scratch, "docs"));
+            File.WriteAllBytes(Path.Combine(scratch, "conformance-suite", "cases", "_unassigned", "lowvalue.out"), [0x41, 0x00]);
+            File.WriteAllBytes(Path.Combine(scratch, "docs", "Outside.md"), [0x41, 0x00]);
 
             SweepResult r = Sweep(scratch,
-                ["src/Planted.cs", "src/Clean.cs", "src/Wide.cpy", "src/Asset.bin", "src/Gone.cs", "tests/nist/valid/NC107A.txt"]);
+                ["src/Planted.cs", "src/Clean.cs", "src/Wide.cpy", "src/Asset.bin", "src/Gone.cs", "tests/nist/valid/NC107A.txt",
+                 "conformance-suite/cases/_unassigned/lowvalue.out", "docs/Outside.md"]);
 
-            Assert.Equal(new[] { "src/Planted.cs" }, r.Offenders);
+            Assert.Equal(new[] { "src/Planted.cs", "conformance-suite/cases/_unassigned/lowvalue.out" }, r.Offenders);
             Assert.Equal(new[] { "tests/nist/valid/NC107A.txt" }, r.Exempted);
-            Assert.Equal(3, r.FilesScanned);        // Planted, Clean and the exempt file; Wide and Asset are set aside
+            Assert.Equal(4, r.FilesScanned);        // Planted, Clean, the exempt file and the suite golden; Wide and Asset are set aside, docs/ is no swept tree
             Assert.Equal(1, r.FilesWideEncoded);
             Assert.Equal(1, r.FilesMissing);
         }

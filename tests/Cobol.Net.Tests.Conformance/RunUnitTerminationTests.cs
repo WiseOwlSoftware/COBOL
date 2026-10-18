@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet;
+using CobolNet.Tests.Shared;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
 
@@ -245,10 +246,9 @@ public sealed class RunUnitTerminationTests
             CompileTo(source, dir, "PB2846SKEW");
             string dll = Path.Combine(dir, "PB2846SKEW.dll");
             byte[] image = File.ReadAllBytes(dll);
-            byte[] recorded = System.Text.Encoding.Unicode.GetBytes(CobolNet.Runtime.RuntimeAbi.Version.ToString());
-            byte[] skewed = System.Text.Encoding.Unicode.GetBytes(
-                new Version(CobolNet.Runtime.RuntimeAbi.Version.Major + 1, 0, 0, 0).ToString());
-            Assert.Equal(recorded.Length, skewed.Length);
+            byte[] recorded = System.Text.Encoding.Unicode.GetBytes(RuntimeVersionSkew.Current);
+            byte[] skewed = System.Text.Encoding.Unicode.GetBytes(RuntimeVersionSkew.OtherMajor);
+            Assert.Equal(recorded.Length, skewed.Length);   // a user-string heap entry cannot change its length
             int at = image.AsSpan().IndexOf(recorded);
             Assert.True(at >= 0, "the module's recorded runtime version was not found in its user-string heap");
             skewed.CopyTo(image, at);

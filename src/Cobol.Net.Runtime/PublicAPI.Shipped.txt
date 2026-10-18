@@ -1458,7 +1458,7 @@ CobolNet.Runtime.IO.FileRecordLock.None = 0 -> CobolNet.Runtime.IO.FileRecordLoc
 CobolNet.Runtime.IO.FileRecordLock.WithLock = 1 -> CobolNet.Runtime.IO.FileRecordLock
 CobolNet.Runtime.IO.FileRecordLock.WithNoLock = 2 -> CobolNet.Runtime.IO.FileRecordLock
 CobolNet.Runtime.IO.FileRegistry
-CobolNet.Runtime.IO.FileRegistry.AddAlternateKey(string! name, int offset, int length, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null, CobolNet.Runtime.CobolContiguousLayout? layout = null) -> void
+CobolNet.Runtime.IO.FileRegistry.AddAlternateKey(string! name, CobolNet.Runtime.IO.KeySegment[]! key, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
 CobolNet.Runtime.IO.FileRegistry.AtEnd(string! name) -> bool
 CobolNet.Runtime.IO.FileRegistry.Close(string! name) -> void
 CobolNet.Runtime.IO.FileRegistry.CloseAll() -> void
@@ -1500,7 +1500,7 @@ CobolNet.Runtime.IO.FileRegistry.ReadKeyedShared(string! name, int keyIndex, str
 CobolNet.Runtime.IO.FileRegistry.ReadShared(string! name, bool previous, CobolNet.Runtime.IO.FileRecordLock phrase, bool advancingOnLock, bool ignoringLock, CobolNet.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image) -> string!
 CobolNet.Runtime.IO.FileRegistry.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin, int varyMax, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 CobolNet.Runtime.IO.FileRegistry.RegisterCodeSet(string! name, char[]! toNative) -> void
-CobolNet.Runtime.IO.FileRegistry.RegisterIndexed(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, int primeOffset, int primeLength, int varyMin, int varyMax, CobolNet.Runtime.CobolCollation? primeCollation = null, string? selectName = null, int edition = 2023, CobolNet.Runtime.CobolContiguousLayout? primeLayout = null) -> void
+CobolNet.Runtime.IO.FileRegistry.RegisterIndexed(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, CobolNet.Runtime.IO.KeySegment[]! primeKey, int varyMin, int varyMax, CobolNet.Runtime.CobolCollation? primeCollation = null, string? selectName = null, int edition = 2023) -> void
 CobolNet.Runtime.IO.FileRegistry.RegisterNationalArea(string! name) -> void
 CobolNet.Runtime.IO.FileRegistry.RegisterRecordLengthFromDepending(string! name) -> void
 CobolNet.Runtime.IO.FileRegistry.RegisterRelative(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, int relativeKeyDigits, int varyMin, int varyMax, string? selectName = null, int edition = 2023) -> void
@@ -1543,16 +1543,14 @@ CobolNet.Runtime.IO.FixedFileAttributes.FixedFileAttributes(string! Organization
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Collation.get -> string!
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Collation.init -> void
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Deconstruct(out int Offset, out int Length, out bool Duplicates, out string? Suppress, out string! Collation) -> void
+CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Deconstruct(out System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.IO.KeySegment>! Segments, out bool Duplicates, out string? Suppress, out string! Collation) -> void
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Duplicates.get -> bool
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Duplicates.init -> void
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Equals(CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor other) -> bool
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.KeyDescriptor() -> void
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.KeyDescriptor(int Offset, int Length, bool Duplicates, string? Suppress, string! Collation) -> void
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Length.get -> int
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Length.init -> void
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Offset.get -> int
-CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Offset.init -> void
+CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.KeyDescriptor(System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.IO.KeySegment>! Segments, bool Duplicates, string? Suppress, string! Collation) -> void
+CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Segments.get -> System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.IO.KeySegment>!
+CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Segments.init -> void
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Suppress.get -> string?
 CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor.Suppress.init -> void
 CobolNet.Runtime.IO.FixedFileAttributes.Keys.get -> System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.IO.FixedFileAttributes.KeyDescriptor>!
@@ -1569,9 +1567,9 @@ CobolNet.Runtime.IO.HostFile
 CobolNet.Runtime.IO.IClock
 CobolNet.Runtime.IO.IClock.Now() -> System.DateTimeOffset
 CobolNet.Runtime.IO.IndexedConnector
-CobolNet.Runtime.IO.IndexedConnector.AddAlternateKey(int offset, int length, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null, CobolNet.Runtime.CobolContiguousLayout? layout = null) -> void
+CobolNet.Runtime.IO.IndexedConnector.AddAlternateKey(CobolNet.Runtime.IO.KeySegment[]! key, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
 CobolNet.Runtime.IO.IndexedConnector.Delete(string! keyedRecordImage, CobolNet.Runtime.RecordExtents? areaExtents = null) -> string!
-CobolNet.Runtime.IO.IndexedConnector.IndexedConnector(string! hostPath, int recordWidth, CobolNet.Runtime.IO.KeyedAccess access, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1, CobolNet.Runtime.CobolCollation? primeCollation = null, CobolNet.Runtime.CobolContiguousLayout? primeLayout = null) -> void
+CobolNet.Runtime.IO.IndexedConnector.IndexedConnector(string! hostPath, int recordWidth, CobolNet.Runtime.IO.KeyedAccess access, CobolNet.Runtime.IO.KeySegment[]! primeKey, int varyMin = -1, int varyMax = -1, CobolNet.Runtime.CobolCollation? primeCollation = null) -> void
 CobolNet.Runtime.IO.IndexedConnector.LastReadPrime.get -> string?
 CobolNet.Runtime.IO.IndexedConnector.ReadNext(out string! image) -> string!
 CobolNet.Runtime.IO.IndexedConnector.ReadPrevious(out string! image) -> string!
@@ -2018,7 +2016,7 @@ CobolNet.Runtime.StorageCell
 CobolNet.Runtime.StorageCell.Allocated -> bool
 CobolNet.Runtime.StorageCell.ContiguousAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CellGroupShape?[]? elems = null) -> string!
 CobolNet.Runtime.StorageCell.ContiguousExtentsAt(int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynStructure, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count) -> CobolNet.Runtime.RecordExtents!
-CobolNet.Runtime.StorageCell.CopyArea(long offset, int width) -> CobolNet.Runtime.StorageCell!
+CobolNet.Runtime.StorageCell.CopyArea(long offset, int width, int dynBase = 0, int components = 0) -> CobolNet.Runtime.StorageCell!
 CobolNet.Runtime.StorageCell.DynAt(int ordinal) -> string!
 CobolNet.Runtime.StorageCell.DynTableAt(int ordinal, int min, int elementWidth) -> CobolNet.Runtime.CobolDynTable<CobolNet.Runtime.StorageCell!>!
 CobolNet.Runtime.StorageCell.End(CobolNet.Runtime.StorageEnd reason) -> void
@@ -2032,7 +2030,7 @@ CobolNet.Runtime.StorageCell.SetDynAt(int ordinal, string! content) -> void
 CobolNet.Runtime.StorageCell.SetSlotAt(int byteOffset, object? value) -> void
 CobolNet.Runtime.StorageCell.SlotAt(int byteOffset) -> object?
 CobolNet.Runtime.StorageCell.StorageCell() -> void
-CobolNet.Runtime.StorageCell.StoreArea(long offset, CobolNet.Runtime.StorageCell! source) -> void
+CobolNet.Runtime.StorageCell.StoreArea(long offset, CobolNet.Runtime.StorageCell! source, int dynBase = 0, int components = 0) -> void
 CobolNet.Runtime.StorageCell.StoreContiguousAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynStructure, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, string! image, CobolNet.Runtime.RecordExtents? extents = null, bool fixedForm = false, int count = 2147483647) -> bool
 CobolNet.Runtime.StorageCell.StoreVarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CobolVarGroup! v, CobolNet.Runtime.CellGroupShape?[]? elems = null, bool storage = false) -> void
 CobolNet.Runtime.StorageEnd
@@ -2446,7 +2444,7 @@ static CobolNet.Runtime.CobolArgAdapt.Aliased(CobolNet.Runtime.CobolArg[]! args,
 static CobolNet.Runtime.CobolArgAdapt.Area(CobolNet.Runtime.CellPointer? sharedArea, bool present, int areaWidth, CobolNet.Runtime.GroupAtom![]? formalShape, System.Func<CobolNet.Runtime.StorageCell!>? fresh) -> CobolNet.Runtime.CellPointer!
 static CobolNet.Runtime.CobolArgAdapt.Area(CobolNet.Runtime.CobolArg[]! args, int i, int areaWidth, bool byValueFormal, CobolNet.Runtime.GroupAtom![]? formalShape, System.Func<CobolNet.Runtime.StorageCell!>? fresh) -> CobolNet.Runtime.CellPointer!
 static CobolNet.Runtime.CobolArgAdapt.ArgumentArea(CobolNet.Runtime.CobolArg[]! args, int i) -> CobolNet.Runtime.CellPointer?
-static CobolNet.Runtime.CobolArgAdapt.ContentRecord(CobolNet.Runtime.CellPointer? area, int width) -> CobolNet.Runtime.CellPointer?
+static CobolNet.Runtime.CobolArgAdapt.ContentRecord(CobolNet.Runtime.CellPointer? area, int width, int components) -> CobolNet.Runtime.CellPointer?
 static CobolNet.Runtime.CobolArgAdapt.DynText(CobolNet.Runtime.CobolArg[]! args, int i, int limit) -> CobolNet.Runtime.ManagedPointer<string!>!
 static CobolNet.Runtime.CobolArgAdapt.LandForFormal<T>(CobolNet.Runtime.CobolArg arg, CobolNet.Runtime.NumProfile formal, int formalScale, bool checking) -> CobolNet.Runtime.CobolArg
 static CobolNet.Runtime.CobolArgAdapt.Num<T>(CobolNet.Runtime.CobolArg[]! args, int i, CobolNet.Runtime.NumProfile formal, int formalScale) -> CobolNet.Runtime.ManagedPointer<T>!
@@ -2469,7 +2467,7 @@ static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret, string! value) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn(CobolNet.Runtime.CobolArg? ret, ulong value) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturn<T>(CobolNet.Runtime.CobolArg? ret, T? value) -> void
-static CobolNet.Runtime.CobolArgAdapt.StoreReturnArea(CobolNet.Runtime.CobolArg? ret, CobolNet.Runtime.CellPointer! source, int width) -> void
+static CobolNet.Runtime.CobolArgAdapt.StoreReturnArea(CobolNet.Runtime.CobolArg? ret, CobolNet.Runtime.CellPointer! source, int width, int components) -> void
 static CobolNet.Runtime.CobolArgAdapt.StoreReturnGroup(CobolNet.Runtime.CobolArg? ret, string! image, CobolNet.Runtime.GroupAtom![]! atoms) -> void
 static CobolNet.Runtime.CobolArgAdapt.Text(CobolNet.Runtime.CobolArg[]! args, int i, int width, CobolNet.Runtime.GroupAtom![]? groupAtoms, System.Func<string!>! unbound) -> CobolNet.Runtime.ManagedPointer<string!>!
 static CobolNet.Runtime.CobolArgAdapt.TextValue(CobolNet.Runtime.CobolArg[]! args, int i, int width, CobolNet.Runtime.NumProfile? formal, int formalScale, CobolNet.Runtime.GroupAtom![]? groupAtoms, System.Func<string!>! unbound) -> CobolNet.Runtime.ManagedPointer<string!>!
@@ -3391,7 +3389,7 @@ static CobolNet.Runtime.GroupCompatibility.SameShape(CobolNet.Runtime.GroupAtom!
 static CobolNet.Runtime.GroupCompatibility.Walk(CobolNet.Runtime.GroupAtom![]! a, CobolNet.Runtime.GroupAtom![]! b, System.Collections.Generic.List<(int First, int Second)>? pairs = null, CobolNet.Runtime.GroupCharTally? tally = null) -> CobolNet.Runtime.GroupMismatch?
 static CobolNet.Runtime.GroupMismatch.operator !=(CobolNet.Runtime.GroupMismatch? left, CobolNet.Runtime.GroupMismatch? right) -> bool
 static CobolNet.Runtime.GroupMismatch.operator ==(CobolNet.Runtime.GroupMismatch? left, CobolNet.Runtime.GroupMismatch? right) -> bool
-static CobolNet.Runtime.IO.CobolFile.AddAlternateKey(string! name, int offset, int length, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null, CobolNet.Runtime.CobolContiguousLayout? layout = null) -> void
+static CobolNet.Runtime.IO.CobolFile.AddAlternateKey(string! name, CobolNet.Runtime.IO.KeySegment[]! key, bool duplicates, CobolNet.Runtime.CobolCollation? collation = null, string? suppress = null) -> void
 static CobolNet.Runtime.IO.CobolFile.AtEnd(string! name) -> bool
 static CobolNet.Runtime.IO.CobolFile.Close(string! name) -> void
 static CobolNet.Runtime.IO.CobolFile.CloseAll() -> void
@@ -3433,7 +3431,7 @@ static CobolNet.Runtime.IO.CobolFile.ReadKeyedShared(string! name, int keyIndex,
 static CobolNet.Runtime.IO.CobolFile.ReadShared(string! name, bool previous, CobolNet.Runtime.IO.FileRecordLock phrase, bool advancingOnLock, bool ignoringLock, CobolNet.Runtime.IO.FileRetryKind retryKind, long retryAmount, out string! image) -> string!
 static CobolNet.Runtime.IO.CobolFile.Register(string! cobolName, string! assignTarget, int recordWidth, bool lineSequential, bool optional, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023, int recordMax = 0) -> void
 static CobolNet.Runtime.IO.CobolFile.RegisterCodeSet(string! name, char[]! toNative) -> void
-static CobolNet.Runtime.IO.CobolFile.RegisterIndexed(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, int primeOffset, int primeLength, int varyMin = -1, int varyMax = -1, CobolNet.Runtime.CobolCollation? primeCollation = null, string? selectName = null, int edition = 2023, CobolNet.Runtime.CobolContiguousLayout? primeLayout = null) -> void
+static CobolNet.Runtime.IO.CobolFile.RegisterIndexed(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, CobolNet.Runtime.IO.KeySegment[]! primeKey, int varyMin = -1, int varyMax = -1, CobolNet.Runtime.CobolCollation? primeCollation = null, string? selectName = null, int edition = 2023) -> void
 static CobolNet.Runtime.IO.CobolFile.RegisterNationalArea(string! name) -> void
 static CobolNet.Runtime.IO.CobolFile.RegisterRecordLengthFromDepending(string! name) -> void
 static CobolNet.Runtime.IO.CobolFile.RegisterRelative(string! cobolName, string! assignTarget, int recordWidth, bool optional, int accessMode, int relativeKeyDigits, int varyMin = -1, int varyMax = -1, string? selectName = null, int edition = 2023) -> void
@@ -3473,20 +3471,19 @@ static CobolNet.Runtime.IO.CobolSort.Close(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.EnterProcedure(string! name, bool output) -> void
 static CobolNet.Runtime.IO.CobolSort.FileNotOpen(string! name, string! file) -> void
 static CobolNet.Runtime.IO.CobolSort.FillTo(string! image, int width, bool national, CobolNet.Runtime.RecordExtents? extents = null) -> string!
-static CobolNet.Runtime.IO.CobolSort.Init(string! name) -> void
-static CobolNet.Runtime.IO.CobolSort.Init(string! name, CobolNet.Runtime.CobolCollation? collation, CobolNet.Runtime.CobolCollation? national) -> void
+static CobolNet.Runtime.IO.CobolSort.Init(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys, CobolNet.Runtime.CobolCollation? collation = null, CobolNet.Runtime.CobolCollation? national = null) -> void
 static CobolNet.Runtime.IO.CobolSort.Key.operator !=(CobolNet.Runtime.IO.CobolSort.Key left, CobolNet.Runtime.IO.CobolSort.Key right) -> bool
 static CobolNet.Runtime.IO.CobolSort.Key.operator ==(CobolNet.Runtime.IO.CobolSort.Key left, CobolNet.Runtime.IO.CobolSort.Key right) -> bool
 static CobolNet.Runtime.IO.CobolSort.LastReturnedExtents(string! name) -> CobolNet.Runtime.RecordExtents?
 static CobolNet.Runtime.IO.CobolSort.LastReturnedLength(string! name) -> int
-static CobolNet.Runtime.IO.CobolSort.Merge(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys) -> void
+static CobolNet.Runtime.IO.CobolSort.Merge(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.NextInput(string! name) -> void
 static CobolNet.Runtime.IO.CobolSort.Release(string! name, string! image, int readSize, int min, int max, CobolNet.Runtime.RecordExtents? extents = null) -> void
 static CobolNet.Runtime.IO.CobolSort.ReleaseStatement(string! name, string! image, int min, int max, int? size = null, CobolNet.Runtime.RecordExtents? extents = null) -> bool
 static CobolNet.Runtime.IO.CobolSort.Return(string! name, out string! image) -> bool
 static CobolNet.Runtime.IO.CobolSort.ReturnStatement(string! name, out string! image) -> bool
 static CobolNet.Runtime.IO.CobolSort.Rewind(string! name) -> void
-static CobolNet.Runtime.IO.CobolSort.Sort(string! name, CobolNet.Runtime.IO.CobolSort.Key[]! keys, bool duplicatesInOrder) -> void
+static CobolNet.Runtime.IO.CobolSort.Sort(string! name, bool duplicatesInOrder) -> void
 static CobolNet.Runtime.IO.FileCharacterSet.FromChannel(string! channel, CobolNet.Runtime.IO.CodeSetConversion? codeSet) -> string!
 static CobolNet.Runtime.IO.FileCharacterSet.HasCharacterWithoutByteImage(System.ReadOnlySpan<char> record) -> bool
 static CobolNet.Runtime.IO.FileCharacterSet.Medium.get -> System.Text.Encoding!
@@ -3662,7 +3659,7 @@ static readonly CobolNet.Runtime.ManagedPointer.Null -> CobolNet.Runtime.Managed
 static readonly CobolNet.Runtime.NonfatalSelectorFn.None -> CobolNet.Runtime.NonfatalSelectorFn!
 static readonly CobolNet.Runtime.PredefinedNullArgument.Instance -> CobolNet.Runtime.PredefinedNullArgument!
 static readonly CobolNet.Runtime.ProgramPointer.Null -> CobolNet.Runtime.ProgramPointer
-virtual CobolNet.Runtime.BASE.FACTORYOBJECT() -> CobolNet.Runtime.CobolObject?
+virtual CobolNet.Runtime.BASE.__FactoryObject() -> CobolNet.Runtime.CobolObject?
 virtual CobolNet.Runtime.BASE.__FactoryOfClass.get -> CobolNet.Runtime.__FACTORY_BASE!
 virtual CobolNet.Runtime.__FACTORY_BASE.__Create() -> CobolNet.Runtime.BASE!
 virtual CobolNet.Runtime.__FACTORY_BASE.__New() -> CobolNet.Runtime.CobolObject?

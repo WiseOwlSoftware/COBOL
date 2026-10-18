@@ -27,8 +27,13 @@ public enum CobolWordsAction
 /// <param name="Action">Which option.</param>
 /// <param name="Existing">literal-1 (EQUATE) / literal-3 (UNDEFINE) / literal-4 (SUBSTITUTE); null for RESERVE.</param>
 /// <param name="New">literal-2 (EQUATE) / literal-5 (SUBSTITUTE) / literal-6 (RESERVE); null for UNDEFINE.</param>
-/// <param name="Line">The directive's 0-based line index in the final preprocessed text (diagnostics anchor).</param>
-public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, string? New, int Line);
+/// <param name="At">Where the directive is written, in the final preprocessed text: the line (1-based) and the
+/// indicator's column (0-based) — the diagnostics anchor. SR3 and SR4's WORD-CATEGORY checks run in the conformance
+/// pass, after the directive's text is gone, so the pass positions its sink from this (kb/Work PB1925); the frontend's
+/// own SR1/SR2/SR5 diagnostics read the same place off the directive line directly. It is the operation's ONLY position
+/// (the former 0-based <c>Line</c> was read nowhere and is deleted); a producer outside the directive stage passes
+/// <c>default</c> (no cursor) knowingly.</param>
+public sealed record CobolWordsOp(CobolWordsAction Action, string? Existing, string? New, DiagnosticCursor At);
 
 /// <summary>
 /// The per-compilation-group <c>&gt;&gt;COBOL-WORDS</c> override layer (ISO §7.3.10; Annex D.12; Annex E.3.3

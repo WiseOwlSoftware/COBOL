@@ -424,14 +424,28 @@ public static class HostFile
     /// make a second user who may write the physical file's directory unable to publish into the lock directory, and
     /// that user's OPEN would be granted where §9.1.15 2) requires the refusal. Only the creator applies the mode, and
     /// only to a directory it created; a directory that exists is the first holder's and is left as it is. Windows has
-    /// no such mode.</summary>
+    /// no such mode.
+    /// <para>⛔ <c>EEXIST</c> FROM THE CREATION IS THE CLOSING-SIBLING RACE, NOT A HOST FAILURE, UNLESS A FILE HOLDS THE
+    /// NAME (kb/Work PB3313; <see cref="IsClosingSiblingRace"/>). The last holder's CLOSE removes the empty directory
+    /// (<see cref="SidecarLockFiles.RetireDirectory"/>), and an <c>rmdir</c> can land between .NET's <c>mkdir</c>,
+    /// answered <c>EEXIST</c> because a sibling had just made the directory, and .NET's own check that the name is a
+    /// directory: .NET then throws the <c>EEXIST</c> as an <see cref="IOException"/>, which every caller reads as a lock
+    /// directory the host cannot hold, so a WAITING region hold answered <see cref="RegionLockResult.Unavailable"/> and the
+    /// store mutex went untaken (14 of 24,000 two-endpoint rounds under CPU load on Linux). Here it returns, as .NET itself
+    /// answers the same race on Windows, which fails an existing name only when a FILE is there: with nothing left at the
+    /// name, the publication that follows meets the missing directory and publishes again
+    /// (<see cref="SidecarLockFiles.Publish"/>); with a directory there again (a sibling's next publication made it after
+    /// the CLOSE), it is another holder's, as at the first probe above.</para></summary>
     internal static void CreateLockDirectory(string directory)
     {
         if (OperatingSystem.IsWindows()) { Directory.CreateDirectory(directory); return; }
-        try { _ = File.GetUnixFileMode(directory); return; }                // exists: another holder's
+        // Exists: another holder's. A FILE at the name falls through to the creation, whose EEXIST stands (below): the
+        // host refusing the lock directory, which no pause outwaits (kb/Work PB3314: Publish paces a race that repeats).
+        try { if ((File.GetAttributes(directory) & FileAttributes.Directory) != 0) return; }
         catch (FileNotFoundException) { }
         catch (DirectoryNotFoundException) { }
-        Directory.CreateDirectory(directory);
+        try { Directory.CreateDirectory(directory); }
+        catch (IOException e) when (IsClosingSiblingRace(e, directory)) { return; }
         try
         {
             const UnixFileMode shared = UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute
@@ -443,6 +457,21 @@ public static class HostFile
         catch (IOException) { }                   // the directory is gone again: the publisher's retry creates it
     }
 
+    /// <summary>Is <paramref name="failure"/>, thrown by a Unix <see cref="Directory.CreateDirectory(string)"/> of
+    /// <paramref name="directory"/>, the closing-sibling race (<see cref="CreateLockDirectory"/>, kb/Work PB3313)? It is
+    /// when the failure is <c>EEXIST</c> and no FILE holds the name now: the name is empty (a sibling's CLOSE removed the
+    /// directory .NET's <c>mkdir</c> met) or a directory again (a sibling's next publication made it after that CLOSE).
+    /// Both arms are the race, and .NET on Windows answers both as success; only a file at the name, or a name the host
+    /// will not describe, is the host refusing the lock directory, and the <c>EEXIST</c> stands.</summary>
+    internal static bool IsClosingSiblingRace(IOException failure, string directory)
+    {
+        if (failure.HResult != UnixAlreadyExists) return false;
+        try { return (File.GetAttributes(directory) & FileAttributes.Directory) != 0; }   // made again: another holder's
+        catch (FileNotFoundException) { return true; }                                     // removed: publish creates it again
+        catch (DirectoryNotFoundException) { return true; }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
 
     /// <summary>Are this host's share modes MANDATORY and PER-ACCESS — a handle opened with <see cref="FileShare.Read"/>
     /// refuses an outside writer, and one opened <see cref="FileShare.None"/> refuses every other handle? That is
@@ -455,6 +484,10 @@ public static class HostFile
 
     /// <summary><c>EWOULDBLOCK</c> (= <c>EAGAIN</c>) on this Unix host — 11 on Linux, 35 on the BSD family.</summary>
     private static readonly int UnixWouldBlock = OperatingSystem.IsLinux() || OperatingSystem.IsAndroid() ? 11 : 35;
+
+    /// <summary><c>EEXIST</c> on every Unix host — 17 on Linux and on the BSD family alike — which .NET surfaces as the
+    /// raw errno in <see cref="Exception.HResult"/>.</summary>
+    private const int UnixAlreadyExists = 17;
 
     /// <summary>⛔ THE ONE HOST CLASSIFICATION OF A WRITE FAILURE AS THE MEDIUM'S BOUNDARY (kb/Work PB1192): did
     /// the operating environment refuse to store bytes because the medium is full, a quota is exhausted, or the
@@ -580,6 +613,28 @@ public static class HostFile
     /// forward pass over the whole file.</summary>
     public static FileStream OpenAuxiliary(string hostPath, FileMode mode, FileAccess access) =>
         new(hostPath, mode, access, FileShare.ReadWrite, 4096, FileOptions.SequentialScan);
+
+    /// <summary>⛔ THE FIFTH ROLE: a SORT/MERGE statement's temporary RUN file (kb/Work PB3339; docs/CONFORMANCE.md §3
+    /// D-SWK) — a NEW file in <paramref name="directory"/> that no COBOL file connector names and no other handle may
+    /// share, written and read back through this one handle (<see cref="SortRunFile"/>). It never outlives the handle:
+    /// on Windows it is opened <see cref="FileOptions.DeleteOnClose"/>, which the operating environment honours when
+    /// the process is killed too; elsewhere it is unlinked at once, so its storage goes when the handle closes. The
+    /// caller turns an I-O failure here into its own fatal stop (the directory is named in the message).</summary>
+    /// <param name="directory">The work directory (<see cref="SortMemory.Directory"/>).</param>
+    /// <param name="bufferBytes">The handle's buffer size.</param>
+    internal static FileStream CreateSortWork(string directory, int bufferBytes)
+    {
+        string path = Path.Combine(directory, $"cobolnet-sort-{Environment.ProcessId}-{Guid.NewGuid():N}.tmp");
+        bool windows = OperatingSystem.IsWindows();
+        var fs = new FileStream(path, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None, bufferBytes,
+            windows ? FileOptions.DeleteOnClose : FileOptions.None);
+        if (!windows)
+        {
+            try { File.Delete(path); }   // the open handle keeps the storage until it closes
+            catch { fs.Dispose(); throw; }
+        }
+        return fs;
+    }
 
     /// <summary>A file connector's own long-lived WRITE stream — the third role, and the one .NET does not
     /// have. <c>FileMode.Append</c> is not the host's atomic append: it seeks to the end ONCE, at open, and

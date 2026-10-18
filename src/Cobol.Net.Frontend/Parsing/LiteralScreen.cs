@@ -55,7 +55,7 @@ namespace CobolNet.Frontend.Parsing;
 /// (every token whose body is a literal fragment), so a new literal token cannot escape the screen.</para>
 /// <para>The syntax rules are edition-invariant: they carry no edition qualifier in the text the repository holds, and
 /// the checks they replace ran at every <c>--std</c>. The one edition question asked here is which literal FORMATS the
-/// targeted edition HAS (<see cref="GateFormat"/>) — the same property of the token as written, so the same walk. The
+/// targeted edition HAS (<see cref="GateFormat"/>, and <see cref="GateFloatingPoint"/> for the numeric one) — the same property of the token as written, so the same walk. The
 /// compiler runs it as a sibling of <c>ExpressionFormationPass</c> on the same "orthogonal axis ⇒ separate pass"
 /// footing (<c>BinderDriver</c>), and — unlike a visitor that follows the diagnostic cursor — it is a plain walk, so
 /// no visitor override that declines to descend can hide a literal from it.</para>
@@ -81,6 +81,8 @@ public static class LiteralScreen
             if (node is ITerminalNode t)
             {
                 if (LiteralTokens.Types.Contains(t.Symbol.Type)) clean &= Screen(t, edition, sink, gateFormats);
+                else if (gateFormats && LiteralTokens.FloatingPointTypes.Contains(t.Symbol.Type))
+                    GateFloatingPoint(t, edition, sink);
                 continue;
             }
             if (SignedSlot(node) is ({ } sign, { } first)) clean &= ScreenSign(node, sign, first, sink);
@@ -135,6 +137,21 @@ public static class LiteralScreen
             _ => DiagnosticCatalog.LiteralTooLong,
         }, $"the literal {CobolLiteral.Abbreviated(raw)} {v.Message}");
         return false;
+    }
+
+    /// <summary>⛔ THE FLOATING-POINT NUMERIC LITERAL — ISO §8.3.3.3.3 1), "formed from two fixed-point numeric literals
+    /// separated by the letter 'E'", a COBOL-2002 introduction (<see cref="Constructs.FloatingPointLiteral2002"/>; VCR
+    /// row 7.37, kb/Work PB674): asked of the TOKEN (<see cref="LiteralTokens.FloatingPointTypes"/>), position-blind, so a
+    /// COMPUTE operand, a MOVE source, a VALUE, a relation operand, a FUNCTION argument, a subscript and a CALL argument
+    /// are one question with one answer and the next grammar position that admits a numeric literal needs no arm. The
+    /// edge is DERIVED, the repository holding no 1985, 2002 or 2014 text; the derivation is the VCR row's. A numeric
+    /// literal has none of the delimited literals' own syntax rules (<see cref="CobolLiteral.SyntaxViolation"/>), so
+    /// this is the format gate alone and the literal's value is left intact.</summary>
+    private static void GateFloatingPoint(ITerminalNode t, EditionInfo edition, IDiagnosticSink sink)
+    {
+        using var _ = sink.At(t.Symbol.Line, t.Symbol.Column);
+        ConstructRegistry.Check(edition, sink, Constructs.FloatingPointLiteral2002,
+            $"the floating-point numeric literal {t.GetText()}");
     }
 
     /// <summary>Report an ERROR under <paramref name="descriptor"/>'s code through the layer-neutral sink — the

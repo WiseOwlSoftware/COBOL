@@ -30,7 +30,11 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class DerivedVerdictDriftTests
 {
-    private sealed record Rule(string Id, string Section, string Kind, string Text, string Requirement, int Sublist);
+    /// <param name="BandFormats">the format NUMBERS of the printed FORMAT band the rule sits under ("FORMAT 2" -> [2],
+    /// "FORMATS 1 AND 2" -> [1, 2]; empty under no format band) — the catalog's <c>band-formats</c> field, which the
+    /// <c>formats</c> arm field reads (kb/Work PB284; Python twin <c>DerivedSelector._arm_selects</c>).</param>
+    private sealed record Rule(string Id, string Section, string Kind, string Text, string Requirement, int Sublist,
+                               IReadOnlyList<int> BandFormats);
 
     /// <summary>⛔ The transcription spells a COBOL operand name's hyphen two ways. 29 catalog rules carry
     /// U+2011 NON-BREAKING HYPHEN where the rest carry ASCII '-' — SR-13.18.14.3-12 reads "Identifier‑1 shall be
@@ -117,7 +121,9 @@ public sealed class DerivedVerdictDriftTests
                                   // extract_rule_catalog.py. Only DOC rules carry it.
                                   r.TryGetProperty("requirement", out var q) ? q.GetString() ?? "" : "",
                                   r.TryGetProperty("sublist", out var l) && l.ValueKind == JsonValueKind.Number
-                                      ? l.GetInt32() : 1))];
+                                      ? l.GetInt32() : 1,
+                                  r.TryGetProperty("band-formats", out var bf)
+                                      ? [.. bf.EnumerateArray().Select(n => n.GetInt32())] : []))];
     }
 
     private static Dictionary<string, JsonElement> Inventory()
@@ -161,6 +167,10 @@ public sealed class DerivedVerdictDriftTests
     /// perfectly reachable, and what is common to them is the ADJUDICATION. Both axes read something the OWNER
     /// wrote rather than an agent's reading of a rule's text. ⚠ Neither is falsifiable against today's data —
     /// see <see cref="TheSelectorEngine_ProvesEveryAxisCanFail"/>.</item>
+    /// <item><c>formats</c> — the format numbers of the printed FORMAT band (the catalog's <c>band-formats</c>,
+    /// kb/Work PB284), always beside <c>sections</c> because the numbers are the clause's own. SOLELY: a rule
+    /// under "FORMATS 1 AND 2" also holds for format 1, so every format its band names must be one the arm names.
+    /// </item>
     /// </list></summary>
     private static (List<string> ids, string verdict) Select(string name)
     {
@@ -170,6 +180,7 @@ public sealed class DerivedVerdictDriftTests
             : [];
         var arms = sel.GetProperty("arms").EnumerateArray().Select(a => (
             sections: Strings(a, "sections"),
+            formats: a.TryGetProperty("formats", out var fm) ? [.. fm.EnumerateArray().Select(n => n.GetInt32())] : new List<int>(),
             xrefs: Strings(a, "xref-sections"),
             kinds: Strings(a, "kinds"),
             notKinds: Strings(a, "excludes-kinds"),
@@ -186,9 +197,14 @@ public sealed class DerivedVerdictDriftTests
                 ? new Regex(np.GetString()!, RegexOptions.IgnoreCase) : null)).ToList();
 
         Assert.All(arms, a => Assert.True(
-            a.sections.Count + a.xrefs.Count + a.kinds.Count + a.requirement.Count + a.determination.Count > 0
+            a.sections.Count + a.xrefs.Count + a.kinds.Count + a.requirement.Count + a.determination.Count
+            + a.formats.Count > 0
             || a.pattern is not null || a.leadIn is not null,
             $"derived-verdicts.{name}: an arm with no positive field selects the entire catalog"));
+        // A format number is its CLAUSE's own ("FORMAT 2" of PRESENT WHEN is not ACCEPT's): naming formats without
+        // the clause that numbers them would select the same-numbered band of every multi-format clause.
+        Assert.All(arms, a => Assert.True(a.formats.Count == 0 || a.sections.Count > 0,
+            $"derived-verdicts.{name}: an arm names formats without sections"));
 
         var determinations = ConformanceRegister.Determinations;
         var catalog = Catalog();
@@ -215,6 +231,10 @@ public sealed class DerivedVerdictDriftTests
                 }
 
                 if (a.sections.Count > 0 && !a.sections.Any(p => SectionMatches(p, r.Section))) continue;
+                // SOLELY: a rule under "FORMATS 1 AND 2" also holds for format 1, so it must name only formats the
+                // arm names; a rule under no format band names none and is never selected.
+                if (a.formats.Count > 0 && (r.BandFormats.Count == 0 || r.BandFormats.Any(n => !a.formats.Contains(n))))
+                    continue;
                 if (a.xrefs.Count > 0
                     && !XrefCitation.Matches(r.Text).Any(m => a.xrefs.Any(p => SectionMatches(p, m.Groups[1].Value))))
                     continue;
@@ -300,11 +320,6 @@ public sealed class DerivedVerdictDriftTests
         AssertHeldAtTheDerivedVerdict("float-formats-not-provided",
             "FLOAT-BINARY-128 and the standard decimal floating-point usages are not provided (CONFORMANCE.md §2 "
             + "rows 13, 17, 19; kb/Work R43)");
-
-    [Fact]
-    public void NoRecordKeySourceFormRow_Diverges() =>
-        AssertHeldAtTheDerivedVerdict("record-key-source-only",
-            "the record-key SOURCE form, Annex A.3 item 40, is Not claimed (CONFORMANCE.md §2 row 40; kb/Work R43)");
 
     /// <summary>The one selector that is NOT a module decline: an owner ADJUDICATION common to a whole class of
     /// rows. It also drifts by a route none of the others can — a new §7 determination — and that is deliberate:
@@ -438,6 +453,18 @@ public sealed class DerivedVerdictDriftTests
         // PB55; those items were rows GR-14.9.1.4-L2.1 … L3.2 and GR-14.9.11.4-L2.1/L2.2 until then.)
         foreach (string id in (string[])["GR-14.9.1.4-24", "GR-14.9.1.4-25", "GR-14.9.11.4-17", "GR-14.9.11.4-18"])
             Assert.Contains(id, ids);
+        // THE FORMAT-BAND ARMS AND THE ACCEPT OPERAND ARM (kb/Work PB284). ACCEPT format 3 and DISPLAY format 2
+        // ARE the screen formats, so their rules need not say "screen": SR-14.9.11.3-3 is 'Identifier-2 and
+        // identifier-3 shall be unsigned integer data items' and GR-14.9.11.4-12 is about character positions.
+        // §14.9.1.3 prints no band, so SR-14.9.1.3-5 ('Identifier-3 and identifier-4 ...') is reached by the operand
+        // names, which neither the band arm nor the text arm can see.
+        foreach (string id in (string[])["SR-14.9.11.3-3", "GR-14.9.11.4-12", "SR-14.9.1.3-5"])
+            Assert.Contains(id, ids);
+        // The number belongs to the CLAUSE: ACCEPT's formats 1 and 2 (device, temporal) and DISPLAY's format 1 are
+        // claimed. If one of these appears, `formats` was matched without `sections`, or as a prefix.
+        foreach (string id in (string[])["GR-14.9.1.4-6", "GR-14.9.1.4-12", "SR-14.9.1.3-1", "SR-14.9.11.3-1",
+                                         "GR-14.9.11.4-9"])
+            Assert.DoesNotContain(id, ids);
         // …and the device/temporal rules of the same two clauses stay out: GR1 of each is ordinary surface.
         Assert.DoesNotContain("GR-14.9.1.4-1", ids);
         Assert.DoesNotContain("GR-14.9.11.4-1", ids);
@@ -471,7 +498,21 @@ public sealed class DerivedVerdictDriftTests
     public void TheCommitRollbackSelector_IsStillSharp()
     {
         var (ids, _) = Select("commit-and-rollback-only");
-        Assert.InRange(ids.Count, 15, 40);   // 25 when it landed
+        Assert.InRange(ids.Count, 15, 50);   // 25 when it landed; 40 with the prose paragraph rows (PB284)
+
+        // ⛔ THE PROSE CONCEPT CLAUSES (kb/Work PB284 part 3). §9.1.18 is Annex A.4.3 item 1 whole, so each of its
+        // paragraph rows is the module's own; §9.1.17 is the definition of the unit it delimits; and exactly the two
+        // §9.1.16 paragraphs whose whole content is COMMIT's or ROLLBACK's effect on locks are in.
+        foreach (string id in (string[])["GR-9.1.18.1-p1", "GR-9.1.18.3-p1", "GR-9.1.18.5-p1", "GR-9.1.18.7-p1",
+                                         "GR-9.1.18.7-p2", "GR-9.1.17-p1", "GR-9.1.16-p7", "GR-9.1.16-p8"])
+            Assert.Contains(id, ids);
+        // The rest of §9.1.16 is the CLAIMED record-locking facility and its LOCK/UNLOCK prohibition (SR-12.4.5.9.3-1
+        // carries the same decision as CONFORMS); selecting any of it would document claimed locking as declined.
+        foreach (string id in (string[])["GR-9.1.16-p1", "GR-9.1.16-p2", "GR-9.1.16-p3", "GR-9.1.16-p4",
+                                         "GR-9.1.16-p5", "SR-9.1.16-p6", "GR-9.1.16-p9"])
+            Assert.DoesNotContain(id, ids);
+        // COMMIT's general format records by its LIVE surface, exactly like ROLLBACK's (the PB284 row).
+        Assert.DoesNotContain("FMT-14.9.7.2", ids);
 
         // Clause arm: seven §12.4.6.3 rules say only "this clause" and a text-only predicate drops all of them.
         Assert.Contains("SR-12.4.6.3.3-1", ids);
@@ -555,8 +596,8 @@ public sealed class DerivedVerdictDriftTests
             Assert.Contains(id, ids);
 
         // ⛔ ITEM 2 IS SUPPORTED AND THIS IS NOW THE OWNER'S ROW, NOT AN AGENT'S READING (kb/Work PB285).
-        // CobolOO.g4:77 parses `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2/SR3/SR6 with
-        // COBOLNET0840. SR-11.6.3-6's text is verbatim parallel to SR-11.3.3-7 and matches the pattern, so the
+        // CobolOO.g4:77 parses `INHERITS FROM interfaceName+`; OoClassTable enforces §11.6.3 SR2 (COBOLNET0840) and
+        // SR3/SR6 (COBOLNET2791). SR-11.6.3-6's text is verbatim parallel to SR-11.3.3-7 and matches the pattern, so the
         // `interface-name` exclusion is the only thing holding it out; if it returns, an implemented, shipping
         // facility is being documented as unsupported. SR-11.6.3-5 is ordinary work to adjudicate.
         Assert.DoesNotContain("SR-11.6.3-6", ids);
@@ -619,23 +660,6 @@ public sealed class DerivedVerdictDriftTests
         // One row, one determination: these two are standard-binary-only's.
         Assert.DoesNotContain("AR-15.43.3-3", ids);
         Assert.DoesNotContain("AR-15.58.3-3", ids);
-    }
-
-    [Fact]
-    public void TheRecordKeySourceSelector_IsStillSharp()
-    {
-        var (ids, _) = Select("record-key-source-only");
-        Assert.InRange(ids.Count, 3, 10);   // 5 when it landed (kb/Work R43)
-        foreach (string id in (string[])["SR-12.4.5.6.3-6", "GR-12.4.5.6.4-2", "SR-12.4.5.12.3-5",
-                                         "GR-12.4.5.12.4-2", "SR-14.9.41.3-7"])
-            Assert.Contains(id, ids);
-        // "data-name-1 or record-key-name-1" constrains the plain key too — each arm's own exclusion.
-        Assert.DoesNotContain("GR-12.4.5.6.4-6", ids);
-        Assert.DoesNotContain("SR-14.9.41.3-6", ids);
-        Assert.DoesNotContain("GR-12.4.5.12.4-4", ids);
-        // Each general format prints both key forms.
-        Assert.DoesNotContain("FMT-12.4.5.12.2", ids);
-        Assert.DoesNotContain("FMT-12.4.5.6.2", ids);
     }
 
     [Fact]
@@ -718,6 +742,19 @@ public sealed class DerivedVerdictDriftTests
         // EC-DATA-INCOMPATIBLE names VALIDATE only to exempt it.
         Assert.DoesNotContain("GR-14.6.13.2-1", ids);
         Assert.DoesNotContain("GR-14.6.13.2-2", ids);
+
+        // ⛔ THE FORMAT-BAND ARMS (kb/Work PB284). These five rules say nothing about VALIDATE — GR-13.18.63.4-24
+        // reads, in full, "General rule 18 applies." — and were reachable by no clause or text arm; the printed band
+        // is the only thing that scopes them. SR-13.18.41.3-1 is PRESENT WHEN's FORMAT 2 (validation).
+        foreach (string id in (string[])["SR-13.18.63.3-36", "SR-13.18.63.3-38", "SR-13.18.63.3-39",
+                                         "GR-13.18.63.4-24", "SR-13.18.41.3-1"])
+            Assert.Contains(id, ids);
+        // …and the same clauses' OTHER bands stay out. PRESENT WHEN's FORMAT 1 is the Report Writer clause A.4.11
+        // shares (§5: PARTIAL, implemented); FORMATS 1 AND 2 holds for format 1 too, so a SUBSET test must refuse it;
+        // the VALUE clause's FORMAT 4 (report) and FORMAT 3 (condition-name) are claimed.
+        foreach (string id in (string[])["GR-13.18.41.4-2", "GR-13.18.41.4-3", "GR-13.18.41.4-1",
+                                         "SR-13.18.63.3-35", "SR-13.18.63.3-26"])
+            Assert.DoesNotContain(id, ids);
     }
 
     [Fact]
@@ -878,6 +915,12 @@ public sealed class DerivedVerdictDriftTests
                      "a NOTE cannot EXCLUDE a rule",
                      "a NOTE cannot SELECT a rule",
                      "an arm's OWN exclusion does not reach its sibling arm",
+                     // kb/Work PB284: the FORMAT-BAND axis.
+                     "the FORMAT-BAND axis selects the rule printed under the named format, in the named clause only",
+                     "a rule under FORMATS 1 AND 2 is not SOLELY format 2's — the band test is a subset, not an intersection",
+                     "a rule under ALL FORMATS or no band names no format and is never selected",
+                     "the band is a FIELD, never read out of the rule's words",
+                     "an arm that names formats without sections is refused (a format number is its clause's own)",
                  });
     }
 

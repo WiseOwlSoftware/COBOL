@@ -80,7 +80,7 @@ public abstract class FileConnector
     /// items 10 and 73, docs/CONFORMANCE.md DOC-A.1-73) — a pure function of the specification, so the OPEN
     /// (<see cref="Associate"/>, which then records the host path on its connector) and the SORT/MERGE statement's
     /// association of its OWN sort-merge file (<see cref="CobolSort.AssociationMade"/>, which has no connector to
-    /// record it on — a sort-merge file is the in-memory sort store, §13.4.6; kb/Work PB1097) ask the same question
+    /// record it on — a sort-merge file is the statement's sort work, never a host connector, §13.4.6; kb/Work PB1097) ask the same question
     /// and cannot answer it differently. Returns null when the association can be made, else the I-O status of the
     /// failure ('31'); <paramref name="hostPath"/> is the physical file the specification identifies, or null when
     /// it identifies none and the registration's stands (the bare <c>ASSIGN USING</c> placeholder).</summary>

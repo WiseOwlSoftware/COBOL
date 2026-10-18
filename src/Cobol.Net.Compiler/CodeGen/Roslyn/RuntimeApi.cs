@@ -1336,18 +1336,27 @@ internal static class RuntimeApi
     /// all), and an emitted named argument is what makes a wrong one readable in a <c>--emit-cs</c> dump.</para></summary>
     private static string EditionArg(int edition) => $", edition: {edition}";
 
-    /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (prime-key window per §12.4.5.12,
-    /// plus the optional §12.4.5.7 prime-key collating sequence — a CobolCollation expression; <paramref name="weights"/>
-    /// is "null" for native, emitted as a named argument so a no-clause file's registration is byte-identical to the
-    /// pre-clause engine).</summary>
-    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string pkOffset, int pkWidth, string varyArgs, int edition, string weights = "null", string? selectName = null, string layout = "null") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {pkOffset}, {pkWidth}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)}{EditionArg(edition)}{(layout == "null" ? "" : $", primeLayout: {layout}")})";
+    /// <summary>Register an INDEXED connector — <c>CobolFile.RegisterIndexed</c> (the prime key's byte windows per
+    /// §12.4.5.12, <see cref="KeySegments"/>, plus the optional §12.4.5.7 prime-key collating sequence — a
+    /// CobolCollation expression; <paramref name="weights"/> is "null" for native, emitted as a named argument so a
+    /// no-clause file's registration carries no collation argument).</summary>
+    public static string FileRegisterIndexed(string name, string assign, int width, string optional, int access, string primeKey, string varyArgs, int edition, string weights = "null", string? selectName = null) =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.RegisterIndexed)}({name}, {assign}, {width}, {optional}, {access}, {primeKey}{varyArgs}{(weights == "null" ? "" : $", primeCollation: {weights}")}{SelectNameArg(selectName)}{EditionArg(edition)})";
 
-    /// <summary>Register one ALTERNATE RECORD KEY window (§12.4.5.6) — <c>CobolFile.AddAlternateKey</c>, with its
-    /// optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS WHEN value ("null" = absent, each emitted
-    /// as a named argument so a plain alternate key's registration is unchanged).</summary>
-    public static string FileAddAlternateKey(string name, string offset, int width, string dups, string weights = "null", string suppress = "null", string layout = "null") =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {offset}, {width}, {dups}{(weights == "null" ? "" : $", collation: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")}{(layout == "null" ? "" : $", layout: {layout}")})";
+    /// <summary>Register one ALTERNATE RECORD KEY (§12.4.5.6) by its byte windows (<see cref="KeySegments"/>) —
+    /// <c>CobolFile.AddAlternateKey</c>, with its optional §12.4.5.7 collating weights and §12.4.5.6.4 GR6 SUPPRESS
+    /// WHEN value ("null" = absent, each emitted as a named argument so a plain alternate key's registration
+    /// carries neither).</summary>
+    public static string FileAddAlternateKey(string name, string key, string dups, string weights = "null", string suppress = "null") =>
+        $"{nameof(CobolFile)}.{nameof(CobolFile.AddAlternateKey)}({name}, {key}, {dups}{(weights == "null" ? "" : $", collation: {weights}")}{(suppress == "null" ? "" : $", suppress: {suppress}")})";
+
+    /// <summary>A record key as the connector takes it — the array of its <c>KeySegment</c> byte windows in order
+    /// (ISO §12.4.5.12.4 GR2 / §12.4.5.6.4 GR2: the SOURCE phrase's key is the concatenation of its data-name-2
+    /// operands; data-name-1's is one window). Each window is (byte offset, byte width, layout expression), the
+    /// layout "null" for a window at a fixed position.</summary>
+    public static string KeySegments(IEnumerable<(int Offset, int Width, string Layout)> windows) =>
+        "new " + nameof(KeySegment) + "[] { " + string.Join(", ", windows.Select(w =>
+            $"new({w.Offset}, {w.Width}{(w.Layout == "null" ? "" : $", {w.Layout}")})")) + " }";
 
     /// <summary>Position a relative connector to the RELATIVE KEY item's RRN — <c>CobolFile.SetRelativeKey</c>.</summary>
     public static string FileSetRelativeKey(string name, string rrn) =>
@@ -1644,10 +1653,11 @@ internal static class RuntimeApi
 
     // ── SORT / MERGE (CobolSort; ISO §14.9.40 / §14.9.24) ──
 
-    /// <summary>Initialize the per-SD image store — <c>CobolSort.Init</c> — with the statement's collating sequence,
-    /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on it).</summary>
-    public static string SortInit(string sd, string weights, string natWeights) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {weights}, {natWeights})";
+    /// <summary>Initialize the per-SD store — <c>CobolSort.Init</c> — with the statement's key descriptors (the store
+    /// orders runs while the release phase fills its memory limit, kb/Work PB3339) and its two collating sequences,
+    /// snapshotted at statement start (ISO §14.6.6 r5: a locale switch during the SORT/MERGE has no effect on them).</summary>
+    public static string SortInit(string sd, string keys, string weights, string natWeights) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Init)}({sd}, {keys}, {weights}, {natWeights})";
 
     /// <summary>Register the statement as the run unit's active format 1 SORT, with its scope's declaratives (or
     /// <c>null</c>), for §14.9.40.4 GR17 — <c>CobolSort.RegisterFormat1Sort</c> (kb/Work PB1177; <c>EcEmitter.SortUseScope</c>).</summary>
@@ -1717,13 +1727,13 @@ internal static class RuntimeApi
     public static string SortTerminationSignalType { get; } =
         $"global::CobolNet.Runtime.Exceptions.{nameof(Runtime.Exceptions.SortTerminationSignal)}";
 
-    /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8).</summary>
-    public static string SortSort(string sd, string keys, string dupsInOrder) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {keys}, {dupsInOrder})";
+    /// <summary>The sequence phase — <c>CobolSort.Sort</c> (stable; GR8; the keys are <see cref="SortInit"/>'s).</summary>
+    public static string SortSort(string sd, string dupsInOrder) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Sort)}({sd}, {dupsInOrder})";
 
-    /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties).</summary>
-    public static string SortMerge(string sd, string keys) =>
-        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd}, {keys})";
+    /// <summary>The k-way merge — <c>CobolSort.Merge</c> (GR4 — file order breaks ties; the keys are <see cref="SortInit"/>'s).</summary>
+    public static string SortMerge(string sd) =>
+        $"{nameof(CobolSort)}.{nameof(CobolSort.Merge)}({sd})";
 
     /// <summary>Open a new pre-sorted USING stream — <c>CobolSort.NextInput</c>.</summary>
     public static string SortNextInput(string sd) => $"{nameof(CobolSort)}.{nameof(CobolSort.NextInput)}({sd})";
@@ -2168,15 +2178,23 @@ internal static class RuntimeApi
             _ => throw new InvalidOperationException("an area states a component base or a slice extent, never both"),
         };
 
+    /// <summary>A text carrier that READS <paramref name="read"/> each time it is asked and stores nowhere — the BY CONTENT
+    /// carrier of a group whose record crosses as its detached area (kb/Work PB3139): only a formal that cannot be laid
+    /// over that record reads it, and §14.2.3 GR9's record never stores back into the argument.</summary>
+    public static string ReadOnlyTextView(string read) =>
+        $"ManagedPointer<string>.OverField(() => {read}, static _ => {{ }})";
+
     /// <summary>The BY CONTENT record of a group whose values ride managed slots (§14.2.3 GR9; kb/Work PB1940) —
-    /// <c>CobolArgAdapt.ContentRecord</c>: a detached copy of <paramref name="width"/> positions of <paramref name="area"/>.</summary>
-    public static string ArgAdaptContentRecord(string area, int width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.ContentRecord)}({area}, {width})";
+    /// <c>CobolArgAdapt.ContentRecord</c>: a detached copy of <paramref name="width"/> positions of <paramref name="area"/>
+    /// and of its <paramref name="components"/> variable-length components (kb/Work PB3139).</summary>
+    public static string ArgAdaptContentRecord(string area, int width, int components) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.ContentRecord)}({area}, {width}, {components})";
 
     /// <summary>The RETURNING delivery of a group whose values ride managed slots (§14.6.5; kb/Work PB1940) —
-    /// <c>CobolArgAdapt.StoreReturnArea</c>: the returning item's area <paramref name="source"/> into the receiver's.</summary>
-    public static string ArgAdaptStoreReturnArea(string ret, string source, int width) =>
-        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturnArea)}({ret}, {source}, {width})";
+    /// <c>CobolArgAdapt.StoreReturnArea</c>: the returning item's area <paramref name="source"/> — its positions and its
+    /// <paramref name="components"/> variable-length components (kb/Work PB3139) — into the receiver's.</summary>
+    public static string ArgAdaptStoreReturnArea(string ret, string source, int width, int components) =>
+        $"{nameof(CobolArgAdapt)}.{nameof(CobolArgAdapt.StoreReturnArea)}({ret}, {source}, {width}, {components})";
 
     /// <summary>RETURNING delivery into the caller's item (§14.6.5) — <c>CobolArgAdapt.StoreReturn</c>.
     /// <paramref name="description"/> is the SENDING item's description when it has one — its
