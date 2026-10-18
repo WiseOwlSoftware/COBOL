@@ -1774,7 +1774,7 @@ public sealed record BoundSearch(
 
 // ── File I/O (ISO §14.9; COBOLNET_DESIGN §8) ───────────────────────────────────────────────────────────────────
 
-/// <summary>How a file is opened (ISO §14.9.25). Maps 1:1 to the runtime <c>FileOpenMode</c>.</summary>
+/// <summary>How a file is opened (ISO §14.9.27). Maps 1:1 to the runtime <c>FileOpenMode</c>.</summary>
 public enum BoundOpenMode { Input, Output, Extend, IO }
 
 /// <summary>The written form of a CLOSE statement (ISO §14.9.6) — the four rows of Table 14 (§14.9.6.4 GR3)
@@ -1874,7 +1874,7 @@ public enum BoundOpenTapePhrase { None, NoRewind, Reversed }
 /// and the REWIND phrase on the entry for the file-name that wrote it.</summary>
 public sealed record BoundOpen(IReadOnlyList<BoundOpenFile> Files) : BoundStatement;
 
-/// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.7).</summary>
+/// <summary><c>CLOSE file [WITH LOCK | REEL/UNIT] …</c> (ISO §14.9.6).</summary>
 public sealed record BoundClose(IReadOnlyList<(FileModel File, BoundCloseKind Kind)> Files) : BoundStatement;
 
 /// <summary>The ONE <c>[BEFORE] [AFTER] ADVANCING {n LINES | PAGE}</c> phrase of a WRITE (ISO §14.9.51.2
