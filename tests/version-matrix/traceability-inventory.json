@@ -55325,7 +55325,7 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "REF-MOD-ZERO-LENGTH directive",
-  "rule-digest": "09071d0e31ab",
+  "rule-digest": "efe586d4f729",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Editions/CompilerDirectiveCatalog.cs#CheckOperand; src/Cobol.Net.Frontend/Preprocessor/RefModZeroLengthDirectiveProcessor.cs#Process; src/Cobol.Net.Editions/DirectiveOperandSyntax.cs#DirectiveOperandSyntax",
   "test-ref": "conformance:cases/7.3.23-REF-MOD-ZERO-LENGTH/ref-mod-zero-length-malformed; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_DiagnosesAMalformedOperand; unit:CompilerDirectiveCatalogDriftTests.EveryClosedOperandDirective_AcceptsAConformingOperand",

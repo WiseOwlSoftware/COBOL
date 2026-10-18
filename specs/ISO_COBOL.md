@@ -4234,10 +4234,11 @@ The REF-MOD-ZERO-LENGTH directive specifies whether resultant data items may hav
 <a id="section-7-3-23-2"></a>
 ##### 7.3.23.2 General format.
 
-> ```
-> >> REF-MOD-ZERO-LENGTH ⎧ ON  ⎫
->                        ⎩ OFF ⎭
-> ```
+<pre style="line-height:1">
+                       ╭ ON  ╮
+>> <u>REF-MOD-ZERO-LENGTH</u> ┤     ├
+                       ╰ <u>OFF</u> ╯
+</pre>
 >
 > **Figure notes (REF-MOD-ZERO-LENGTH directive general format).** `REF-MOD-ZERO-LENGTH` and `OFF` are underlined in the printed standard (required words); `ON` is printed **without** an underline, so per 5.2.3 it is an OPTIONAL word: the ON alternative may be selected with the word omitted. The braces therefore do not force a written choice — writing `OFF`, writing `ON`, or writing neither all satisfy them, omission being equivalent to ON. Per 7.3.23.3 General rule 1, omitting the directive is equivalent to specifying it as off.
 
