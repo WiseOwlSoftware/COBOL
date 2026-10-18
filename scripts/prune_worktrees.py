@@ -20,14 +20,15 @@ who acts next:
                    ledger, read through plan_wave.inflight_file_sets; the branch name starts with the group's slug
                    `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
                    Nobody touches it.
-                   A DECISION branch (no report, or a FINDINGS stamp) whose tip is contained in a fix-lane branch that
-                   is IN FLIGHT, waiting or STOPPED (a branch a review finisher merged, an unfinished predecessor;
-                   contained()) is IN FLIGHT too: it lands through that branch (its row names it, `carrier`), and
-                   reads LANDED once it has. A contained branch with a lifecycle of its own keeps it: a same-file
-                   predecessor reviewed CLEAN is WAITING TO LAND and lands at once (kb/Work PB3381). A WAITING TO
-                   LAND branch that carries ANOTHER note's unanswered FINDINGS is IN FLIGHT, waiting on that branch
-                   (`waits_on`, carrying_findings()). Only the first kind has a live owner of its own (owned(): what
-                   the planner's FINDINGS arm waits on).
+                   A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
+                   FOR REVIEW) whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED (a
+                   branch a review finisher merged, an unfinished or unreviewed predecessor; contained()) is IN FLIGHT
+                   too: an unreviewed checkpoint never lands alone, it lands through that branch (its row names it,
+                   `carrier`), and reads LANDED once it has. A branch reviewed CLEAN at its tip keeps its own
+                   lifecycle, contained or not: a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at
+                   once (kb/Work PB3381). A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
+                   IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings()). Only the first kind has a live
+                   owner of its own (owned(): what the planner's FINDINGS arm waits on).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
@@ -51,7 +52,8 @@ who acts next:
                    red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, a repeated exit 2 or 9, a runner that DIED twice): the
                    lane never relaunches it at this head; the enqueue unit sends it to its finisher (or reviewer), whose
                    new tip is reviewed and landed, or re-arms a stop resolved with no commit. The evidence names the
-                   attempt and land_lane.ACTION's owner. A DECISION branch it contains lands through it (IN FLIGHT).
+                   attempt and land_lane.ACTION's owner. A branch it contains with no clean stamp at its tip lands
+                   through it (IN FLIGHT).
   ENQUEUED         its pull request is open in GitHub's merge queue, or set to join it (auto-merge on): the queue tests it
                    in a merge group and lands it (kb/Work PB3024); offline, the lane's exit-0 attempt at the tip says
                    the same. Nobody touches it.
@@ -682,22 +684,34 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
 CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED', 'ENQUEUED', 'BOUNCED')
 
 
+#: The states of a branch with NO clean review stamp at its tip that contained() can read as carried: a finished report
+#: still WAITING FOR REVIEW (no stamp, or a stamp at an older head), and a DECISION (with no report or a FINDINGS stamp,
+#: below). Every other state keeps its own lifecycle inside a carrier: a CLEAN stamp at the tip (WAITING TO LAND,
+#: STOPPED) or a pull request (ENQUEUED, BOUNCED) is that branch's own landing, which nothing postpones (kb/Work PB3381).
+CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
+
+
 def contained(rows: list[Row], repo=REPO) -> None:
-    """A DECISION branch that lands THROUGH another one is IN FLIGHT, not a decision and not a second landing: its tip
-    is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
-    (CARRIER_STATES), and it has no report or a FINDINGS-stamped one, so it cannot land by itself: a branch a review
-    finisher merged (kb/Work PB3027: the wave's finisher rewrites the report for its own branch; a later wave's finisher
-    writes a new report and leaves the FINDINGS-stamped one behind), an unfinished predecessor its successor merged.
-    A branch with a lifecycle of its own keeps it, contained or not (kb/Work PB3381, owner 2026-10-18: "land the clean
-    links as they come"): a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at once, its successor's
-    pull request merging on top, where until then it read IN FLIGHT and waited for its successor (the train era's
-    hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands, the content
-    test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
+    """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
+    tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
+    (CARRIER_STATES), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
+    FINDINGS-stamped one, or a finished report WAITING FOR REVIEW), so it cannot land by itself: an unreviewed checkpoint
+    never lands alone (kb/Work PB3381 section G). That is a branch a review finisher merged (kb/Work PB3027: the wave's
+    finisher rewrites the report for its own branch; a later wave's finisher writes a new report and leaves the
+    FINDINGS-stamped one behind), an unfinished predecessor its successor merged, and a DONE predecessor whose own
+    review never ended (its reviewer hit its ceiling: NO-RESULT), which its successor's review covered with its own
+    (wf_rolling_wave.js predecessorEnd 'unreviewed'). Reading that one WAITING FOR REVIEW sent a second reviewer over
+    content already reviewed, whose findings would then hold the CLEAN successor (review R1-2).
+    A branch reviewed CLEAN at its tip keeps its own lifecycle, contained or not (kb/Work PB3381, owner 2026-10-18:
+    "land the clean links as they come"): a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at once,
+    its successor's pull request merging on top, where until then it read IN FLIGHT and waited for its successor (the
+    train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
+    the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
     carriers = [c for c in rows if c.report and c.tip and c.state in CARRIER_STATES]
     for r in rows:
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
-        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state != 'DECISION' \
-                or (r.report is not None and not findings):
+        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES \
+                or (r.state == 'DECISION' and r.report is not None and not findings):
             continue
         c = next((c for c in carriers if c.tip != r.tip
                   and git('merge-base', '--is-ancestor', r.tip, c.tip, cwd=repo).returncode == 0), None)
@@ -988,12 +1002,17 @@ def self_test() -> int:
         for b, f in (('cpred', 'src/CP.cs'), ('xpred', 'src/XP.cs')):
             g('switch', '-q', '-c', b, 'main')
             commit(f, f'class {b.title()}X {{}}\n', b)
-        for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs')):
+        # Review R1-2: `upred` is DONE with NO stamp (its reviewer never returned: NO-RESULT) and `usucc`, its successor,
+        # merged it and was reviewed CLEAN over the whole branch: an unreviewed checkpoint never lands alone, so `upred`
+        # lands through `usucc` (IN FLIGHT, carried), never WAITING FOR REVIEW for a second reviewer.
+        g('switch', '-q', '-c', 'upred', 'main')
+        commit('src/UP.cs', 'class UpredX {}\n', 'upred')
+        for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs')):
             g('switch', '-q', '-c', b, base)
             commit(f, f'class {b.title()}X {{}}\n', b)
         tips = {b: g('rev-parse', b).stdout.strip() for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
                                                                 'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
-                                                                'xpred', 'xsucc')}
+                                                                'xpred', 'xsucc', 'upred', 'usucc')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
         g('switch', '-q', '-c', 'modified-only', 'main')
@@ -1122,6 +1141,9 @@ def self_test() -> int:
                                           f'**Review:** FINDINGS 1 w9997c-r3 {tips["xpred"]} E:/s/review-w9997-c.jsonl\n', 10),
                 ('w9997d-PB33-report.md', f'Status: DONE\nBranch: xsucc\nHEAD: {tips["xsucc"]}\n'
                                           f'**Review:** CLEAN w9997d-r1 {tips["xsucc"]}\n', 10),
+                ('w9997e-PB34-report.md', f'Status: DONE\nBranch: upred\nHEAD: {tips["upred"]}\n', 10),
+                ('w9997f-PB35-report.md', f'Status: DONE\nBranch: usucc\nHEAD: {tips["usucc"]}\n'
+                                          f'**Review:** CLEAN w9997f-r1 {tips["usucc"]}\n', 10),
                 # kb/Work PB3181, PB3125: the report, the review and the landing lane's attempt at the tip
                 ('w9998r-PB18-report.md', f'Status: DONE\nBranch: lane-stopped · head {lane_at["lane-stopped"][:12]}\n'
                                           f'**Review:** CLEAN w9998r-r1 {lane_at["lane-stopped"]}\n', 10),
@@ -1177,7 +1199,8 @@ def self_test() -> int:
                 'lane-stopped': 'STOPPED', 'lane-pred': 'IN FLIGHT', 'lane-free': 'WAITING TO LAND',
                 'lane-done': 'ENQUEUED', 'lane-running': 'WAITING TO LAND', 'discharged': 'WAITING TO LAND',
                 'discharged-empty': 'DECISION', 'no-head': 'DECISION',
-                'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT'}
+                'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
+                'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1218,7 +1241,7 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
         # kb/Work PB3381: no hold. A predecessor reviewed CLEAN keeps its own lifecycle inside an unreviewed successor;
         # a successor carrying another note's unanswered FINDINGS waits on that branch; a finisher of the SAME note
@@ -1228,6 +1251,9 @@ def self_test() -> int:
         check((rows['xsucc'].waits_on, 'carries xpred (PB32)' in rows['xsucc'].why, rows['xpred'].carrier)
               == ('xpred', True, 'xsucc'),
               f'a successor carrying its predecessor\'s unanswered FINDINGS waits on it: {rows["xsucc"].why}')
+        check((rows['upred'].carrier, 'contained in usucc (WAITING TO LAND)' in rows['upred'].why) == ('usucc', True),
+              f'a finished predecessor with no clean stamp at its tip lands through its successor, never alone and '
+              f'never reviewed twice (review R1-2): {rows["upred"].why}')
         check(set(rows) == set(want), f'every branch and detached worktree has a row: {sorted(set(rows) ^ set(want))}')
         check(rows['modified-only'].content == 'CHECK', 'a branch that only modifies an existing file is not LANDED')
         check(rows['unreadable'].dirty > 0, 'a worktree whose status git cannot produce counts as dirty')
@@ -1296,8 +1322,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 43 · 8 in flight · 3 waiting for review · '
-                                                      '8 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 45 · 9 in flight · 3 waiting for review · '
+                                                      '9 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')

@@ -1747,7 +1747,12 @@ actual diff (`best_group`: most of its files, then the smallest declared set, th
 the union of every ledger group its diff met, so a fix-lane worktree on a file one R3 group (or a scraped hand entry)
 also declared read as R3 work: 23 fix-lane landings stopped so on 2026-10-14/15. A branch whose commits the landing
 contains (a predecessor it merged) is the landing itself, and a file whose version on another branch IS the landing's
-is the landing's content; anything else that shares a file and was dispatched earlier stops it, naming how it was
+is the landing's content. Two kinds of in-flight work never stop a landing (`depends`, kb/Work PB3381): a branch that
+DESCENDS from the landing branch (their merge-base lies beyond `origin/main`: a successor, a review finisher or a carrier
+that merged some head of it, and lands on top of it; wave 1118's successor -326-13 held PB3333's older head and stopped
+PB3333's reviewed branch three times), and a worktree with no commit beyond `origin/main` (its loose files are work in
+progress, a merge or a first edit; its dispatch, when the ledger records one, is read through its declared set). The
+partition orders only INDEPENDENT dispatches on the same file; anything else that shares a file and was dispatched earlier stops it, naming how it was
 identified and how to bind work it did not recognise. (The train manifests that once named a train's own members are
 gone with the train, kb/Work PB3023.) An aborted dispatch's entry never expires on a clock; it is released by hand
 (`plan_wave.py --release <wave|group|note>`). Fix-lane work against fix-lane work is never stopped: the merge queue
