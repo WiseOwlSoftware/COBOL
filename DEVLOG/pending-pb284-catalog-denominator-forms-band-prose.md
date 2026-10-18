@@ -62,3 +62,8 @@ page furniture); repairing it changes 315 `rule-digest` values under live verdic
 **Owner test requirement (SORT and file I/O abnormal paths).** This group touches no SORT or file I/O behavior (catalog and
 selector tooling only), so there is no exception-path test to add; the rows it mints for record locking point at the existing
 `51`/`53`/`54` and `IGNORING LOCK` witnesses.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` on the branch head after the review round
+(run `20261018T064519Z-0c3b6a`). The first review-round gate was RED on the branch's own new no-copy sweep, which flagged a
+lower-case keyword list in `BoundDeferralDriftTests` as a copy of the heading pattern; the sweep now takes a lower-case spelling
+only as a regex, and a theory proves it flags each spelling of the pattern and passes the keyword list.
