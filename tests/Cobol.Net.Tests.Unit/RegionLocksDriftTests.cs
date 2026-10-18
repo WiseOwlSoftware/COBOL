@@ -235,6 +235,190 @@ public sealed class RegionLocksDriftTests
         finally { Directory.Delete(parent, recursive: true); }
     }
 
+    /// <summary>⛔ A PUBLICATION THAT LOSES THE SAME RACE AGAIN WAITS FOR IT TO END INSTEAD OF RETRYING AT ONCE (kb/Work
+    /// PB3314). On Linux a lock directory in the middle of its <c>rmdir</c> answers <c>stat</c> and an empty listing while
+    /// every creation inside it is <c>ENOENT</c>, for as long as a preempted remover is off the CPU (measured up to 17 ms
+    /// with 8 processes beside 24 CPU burners); eight immediate tries all fell inside that window and a waiting hold
+    /// answered <see cref="RegionLockResult.Unavailable"/> once in about 500,000 rounds. The schedule is asked directly,
+    /// because the window itself cannot be held open on demand: the first retry is immediate, no pause exceeds the
+    /// 128 ms that a statement can bear, the pauses never shrink, and their ceilings sum to at least 25 times the
+    /// longest window measured.</summary>
+    [Fact]
+    public void ARepeatedLostPublicationRaceIsPacedByTime_NotRetriedAtOnce()
+    {
+        Assert.Equal(0, SidecarLockFiles.RetryPauseCeiling(1));
+        int total = 0, previous = 0;
+        for (int retry = 1; retry < SidecarLockFiles.PublishAttempts; retry++)
+        {
+            int ceiling = SidecarLockFiles.RetryPauseCeiling(retry);
+            Assert.InRange(ceiling, previous, 128);
+            if (retry > 1) Assert.True(ceiling > 0, $"Retry {retry} would be immediate again.");
+            total += ceiling;
+            previous = ceiling;
+        }
+        Assert.True(total >= 25 * 17, $"The schedule sums to {total} ms, inside 25 times the longest removal window measured (17 ms).");
+    }
+
+    /// <summary>⛔ <see cref="SidecarLockFiles.Publish"/> FOLLOWS THAT SCHEDULE (kb/Work PB3314): a publication whose
+    /// directory or pending file vanishes under it (here the naming step raises what a closing sibling's removal raises,
+    /// the very exception Publish reads as a lost race) pauses before EVERY retry, in order, and publishes on the first
+    /// try that holds. Without this the schedule test pins a pure function nothing calls: delete the pause or pass it a
+    /// constant 0 and the retries are microseconds apart again.</summary>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(5)]
+    public void APublicationThatLosesItsRaceNTimesPausesBeforeEachRetry_AndThenPublishes(int lost)
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        var pauses = new List<int>();
+        SidecarLockFiles.PauseObserver.Value = pauses.Add;
+        try
+        {
+            int calls = 0;
+            using var holder = SidecarLockFiles.Publish(lockDir, id =>
+            {
+                if (++calls <= lost) throw new DirectoryNotFoundException("lost to a closing sibling");
+                return $"r{Byte1:x16}-X-{id:N}";
+            });
+            Assert.True(holder is not null, "A race lost fewer times than the attempts allow must still publish.");
+            Assert.Equal(lost + 1, calls);
+            Assert.Equal(Enumerable.Range(1, lost), pauses);
+        }
+        finally { SidecarLockFiles.PauseObserver.Value = null; }
+    }
+
+    /// <summary>The ABNORMAL end of the same rule: a race that never ends is given every retry the schedule allows, each
+    /// paused for, and only then read as a host that cannot hold the lock (<c>null</c>, which the hold answers as
+    /// <see cref="RegionLockResult.Unavailable"/>); the pending files it abandoned are not left behind.</summary>
+    [Fact]
+    public void ARaceThatNeverEnds_IsPausedForThroughEveryRetry_BeforePublishAnswersNull()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        var pauses = new List<int>();
+        SidecarLockFiles.PauseObserver.Value = pauses.Add;
+        try
+        {
+            int calls = 0;
+            var holder = SidecarLockFiles.Publish(lockDir, id => { calls++; throw new DirectoryNotFoundException("always lost"); });
+            Assert.Null(holder);
+            Assert.Equal(SidecarLockFiles.PublishAttempts, calls);
+            Assert.Equal(Enumerable.Range(1, SidecarLockFiles.PublishAttempts - 1), pauses);
+            Assert.Empty(Directory.EnumerateFileSystemEntries(lockDir));
+        }
+        finally { SidecarLockFiles.PauseObserver.Value = null; }
+    }
+
+    /// <summary>⛔ PUBLICATION SURVIVES A SIBLING'S CLOSE THAT IS CAUGHT HALF WAY THROUGH REMOVING THE LOCK DIRECTORY
+    /// (kb/Work PB3314, PB3313): a sibling's CLOSE (<see cref="SidecarLockFiles.RetireDirectory"/>) removes the empty
+    /// directory and its next publication makes it again, so a publication meets a directory that is gone, about to be, or
+    /// MID-<c>rmdir</c>: on Linux, for as long as the remover is off the CPU, the name still answers <c>stat</c> while
+    /// every creation inside it is <c>ENOENT</c>. Each publication must still end published: <c>null</c> is a host that
+    /// cannot hold the lock, and the waiting hold that reads it answers <see cref="RegionLockResult.Unavailable"/> with
+    /// the store mutex untaken. The window cannot be held open on demand, so this is the contract under the load that opens
+    /// it (spinning threads beside the sibling leave a remover off the CPU mid-call), a repetition witness that holds
+    /// the host to publishing and does not discriminate the fix (it passed 24 of 24 on the unpaced code). The fix itself is
+    /// pinned by <see cref="APublicationThatLosesItsRaceNTimesPausesBeforeEachRetry_AndThenPublishes"/> (Publish pauses
+    /// on the schedule) and <see cref="ARepeatedLostPublicationRaceIsPacedByTime_NotRetriedAtOnce"/> (the schedule),
+    /// because a window of ONE publication in 500,000 is not one a test can wait for.</summary>
+    [Fact]
+    public void EveryPublicationSucceeds_BesideASiblingThatClosesAndReopensTheLockDirectory_OnAnOversubscribedHost()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        using var stop = new CancellationTokenSource();
+        var threads = new List<Thread>();
+        threads.Add(new Thread(() =>
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                try { HostFile.CreateLockDirectory(lockDir); SidecarLockFiles.RetireDirectory(lockDir); }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+                Thread.Sleep(1);   // a CLOSE and the next OPEN, not a spin: the spinners below are what preempt it
+            }
+        }));
+        for (int i = 0; i < Environment.ProcessorCount; i++)
+            threads.Add(new Thread(() => { while (!stop.IsCancellationRequested) Thread.SpinWait(100); }) { Priority = ThreadPriority.BelowNormal });
+        foreach (var t in threads) t.Start();
+        try
+        {
+            for (int i = 0; i < 100; i++)
+            {
+                using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
+                Assert.True(holder is not null, $"Publication {i} gave up: the host was read as unable to hold a lock.");
+            }
+        }
+        finally
+        {
+            stop.Cancel();
+            foreach (var t in threads) t.Join();
+        }
+    }
+
+    /// <summary>⛔ A TESTER THAT REAPS A PENDING FILE IS A RACE LOST, NOT A REFUSAL (SidecarLockFiles remarks): a tester that
+    /// opens a pending file freely in the instant between its creation and its lock reads it as a dead holder's and
+    /// deletes it, and the publisher publishes again. Here a tester sweeps the directory's pending files without pause
+    /// while publications run; each must still end published, and the published file must be Live.</summary>
+    [Fact]
+    public void EveryPublicationSucceeds_BesideATesterThatReapsPendingFilesWithoutPause()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        HostFile.CreateLockDirectory(lockDir);
+        using var keep = SidecarLockFiles.Publish(lockDir, id => $"r{Byte2:x16}-S-{id:N}");   // keeps the directory standing
+        Assert.NotNull(keep);
+        using var stop = new CancellationTokenSource();
+        var tester = new Thread(() =>
+        {
+            while (!stop.IsCancellationRequested)
+            {
+                try
+                {
+                    foreach (string path in Directory.EnumerateFileSystemEntries(lockDir, "pending-*"))
+                        SidecarLockFiles.Observe(path);
+                }
+                catch (IOException) { }
+                catch (UnauthorizedAccessException) { }
+            }
+        });
+        tester.Start();
+        try
+        {
+            for (int i = 0; i < 400; i++)
+            {
+                using var holder = SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}");
+                Assert.True(holder is not null, $"Publication {i} gave up beside a reaping tester.");
+                Assert.Equal(HostFile.LockFileState.Live, HostFile.ProbeLockFile(Path.Combine(lockDir, holder!.Name)));
+            }
+        }
+        finally
+        {
+            stop.Cancel();
+            tester.Join();
+        }
+    }
+
+    /// <summary>A NAME THE HOST WILL NOT LET BE A LOCK DIRECTORY — a regular file at it — is the host refusing the lock,
+    /// not a race to retry: the hold answers <see cref="RegionLockResult.Unavailable"/> at once, for the waiting and
+    /// the non-waiting alike, never an exception out of a statement and never a wait through the retry schedule
+    /// (<see cref="SidecarLockFiles.RetryPauseCeiling"/>).</summary>
+    [Fact]
+    public void AFileAtTheLockDirectoryName_IsUnavailableAtOnce_NotARetriedRace()
+    {
+        using var site = new Site(RegionHostKind.LockFiles);
+        System.IO.File.WriteAllText(SidecarLockFiles.LockDirectoryOf(site.File), "not a directory");
+        var a = site.Endpoint();
+        string lockDir = SidecarLockFiles.LockDirectoryOf(site.File);
+        // The refusal is the host's, raised where the directory is asked for, and never a lost race that publishes again.
+        Assert.Throws<IOException>(() => HostFile.CreateLockDirectory(lockDir));
+        Assert.Throws<IOException>(() => SidecarLockFiles.Publish(lockDir, id => $"r{Byte1:x16}-X-{id:N}"));
+        Assert.Equal(RegionLockResult.Unavailable, a.Hold(Byte1, exclusive: true, wait: false));
+        Assert.Equal(RegionLockResult.Unavailable, a.Hold(Byte1, exclusive: true, wait: true));
+    }
+
     /// <summary>The names are a contract between run units (two runtime versions must find each other): a held byte is a
     /// file of the physical file's lock directory named <c>r</c>, the byte as 16 hex digits, the mode, and a GUID; the
     /// directory goes with its last file.</summary>
