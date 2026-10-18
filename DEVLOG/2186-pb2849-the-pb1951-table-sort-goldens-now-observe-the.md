@@ -1,4 +1,4 @@
-## PB2849: the PB1951 table-SORT goldens now observe the capacity, and the carrier-with-ODO abort does not exist
+## Entry 2186 — 2026-10-18 01:43 PDT — PB2849: the PB1951 table-SORT goldens now observe the capacity, and the carrier-with-ODO abort does not exist
 
 Wave 1115 group E, the SORT and file I/O campaign (PB3353). A tests-only change; no compiler or runtime source moved.
 
@@ -36,3 +36,4 @@ it, so 13.18.38.4 GR7 raises nothing and the carriers sort whole (the expected o
 to 2 before T is read, since reading T under 7 would itself raise the condition.
 
 Gate: see the wave report.
+
