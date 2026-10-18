@@ -1,4 +1,4 @@
-## PB996: inherited clause numbers re-derived (STOP RUN, composite, boolean relation, SAME AS/TYPE, SORT/MERGE collating, COMP-5)
+## Entry 2185 — 2026-10-18 01:15 PDT — PB996: inherited clause numbers re-derived (STOP RUN, composite, boolean relation, SAME AS/TYPE, SORT/MERGE collating, COMP-5)
 
 Fix-lane wave 1115 group G took kb/Work PB996, the register's catch-all for code comments and diagnostic messages
 that cite the wrong rule. The behaviour at every site was already right; the text sent the reader to the wrong
@@ -45,3 +45,4 @@ PB2515): GREEN ===`, with every changed COBOLNET0898 / COBOLNET0844 negative pas
 finisher's re-gate after the CONFORMANCE.md fix (run 20261018T074555Z-f11e76) read the same GREEN line; it again left
 `AnnexA1RegisterDriftTests` in leg 2, so that class ran on its own (3/3 passed) and `audit_annex_a1.py --check`
 reported no findings.
+
