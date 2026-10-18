@@ -4890,6 +4890,66 @@
   ],
   "expect": "COBOLNET2797"
  },
+ "pb1154-close-multi-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1612: a multi-file CLOSE shall not appear in imperative-statement-1 of an exception-checking PERFORM"
+ },
+ "pb1154-delete-file-multi-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1613: a DELETE FILE naming more than one file-name shall not appear in imperative-statement-1"
+ },
+ "pb1154-exit-perform-cycle-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1604: EXIT PERFORM CYCLE shall not appear within an exception-checking PERFORM"
+ },
+ "pb1154-file-sort-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1617: SORT shall not appear in imperative-statement-1 of an exception-checking PERFORM"
+ },
+ "pb1154-goto-in-f3-when": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1608: GO TO shall not appear in a WHEN phrase of an exception-checking PERFORM"
+ },
+ "pb1154-initialize-multi-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1614: an INITIALIZE naming more than one identifier-1 shall not appear in imperative-statement-1"
+ },
+ "pb1154-perform-f3-no-when": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1597: an exception-checking (Format-3) PERFORM requires at least one WHEN"
+ },
+ "pb1154-perform-f3-sr15-exception-name-repeat": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1600: exception-name 'EC-SIZE' is specified more than once"
+ },
+ "pb1154-resume-at-in-f3-when": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1610: RESUME in a WHEN phrase of an exception-checking PERFORM shall specify NEXT STATEMENT"
+ },
+ "pb1154-validate-multi-in-f3": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET1607: a VALIDATE naming more than one identifier shall not appear within an exception-checking PERFORM"
+ },
  "pb1160-resume-in-when-in-global-declarative": {
   "refuse-at": [
    "2023"
