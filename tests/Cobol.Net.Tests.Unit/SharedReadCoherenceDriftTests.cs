@@ -369,7 +369,7 @@ public sealed class SharedReadCoherenceDriftTests
 
     /// <summary>The KEYED control, and the argument that named the fix. <c>RelativeConnector</c> and
     /// <c>IndexedConnector</c> do not read the host file per operation — they attach to the ONE
-    /// <c>KeyedStoreTable</c> store for the path (kb/Work PB143), so a sibling's REWRITE is visible to every
+    /// <c>StoreTable</c> store for the path (kb/Work PB143), so a sibling's REWRITE is visible to every
     /// attached connector the instant it happens. That is a release generation, already built, for the other two
     /// organizations; the sequential connector's shared medium is the file system, and PB753 gave it the same
     /// property. Measured, not assumed.</summary>

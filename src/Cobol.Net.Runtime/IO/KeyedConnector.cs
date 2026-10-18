@@ -173,7 +173,7 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>Attach the organization's store for <see cref="FileConnector.HostPath"/> (the table's live one, or a
     /// private one for a standalone connector), <paramref name="create"/> for <c>OPEN OUTPUT</c>'s new, EMPTY store
-    /// (<see cref="KeyedStoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
+    /// (<see cref="StoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
     private protected abstract KeyedStore AttachStore(bool create);
 
     /// <summary>Forget the store the connector was attached to (it holds a placeholder again).</summary>
@@ -279,11 +279,15 @@ public abstract class KeyedConnector : FileConnector
         return Failed(opened);
     }
 
-    /// <summary>Leave the store: this connector's handle off its medium, and the table's attachment given back.</summary>
+    /// <summary>Leave the store: this connector's handle off its medium, and the table's attachment given back.
+    /// <para>⛔ UNDER THE STORE MUTEX (kb/Work PB3335): when this was the store's last writable handle and a reader stays,
+    /// the store is opened again as the reader's (<see cref="KeyedStore.DetachHandle"/>, 2.2.1.6 R6 in memory), and that
+    /// adoption reads pages 0, 1 and 2 — which another run unit's statement may be writing. 2.2.1.7 puts every adoption
+    /// <i>"inside the store mutex"</i>; this connector's handle is still open here, so it holds the mutex for it.</para></summary>
     private void Detach()
     {
         if (!_attached) return;
-        if (_handle is { } handle) AttachedStore.DetachHandle(handle);
+        if (_handle is { } handle) InStoreMutex(() => AttachedStore.DetachHandle(handle));
         SharedStores?.Detach(HostPath);
         _attached = false;
         ForgetStore();
@@ -427,11 +431,15 @@ public abstract class KeyedConnector : FileConnector
         if (store.StatementDepth++ > 0) return;   // the run unit is already inside the mutex
         try
         {
-            store.MutexHolder = HoldStoreMutex(exclusive: _regions!.Writable);
+            bool writable = _regions!.Writable;
+            store.MutexHolder = HoldStoreMutex(exclusive: writable);
             // 2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved it
             // (its roots, its ledger, the page cache dropped); a writer also takes the mints and resolves a PROMOTING
-            // flag. A store with no file (an absent OPTIONAL file read INPUT) has nothing to enter.
-            if (store.File is { } file && file.Enter() != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
+            // flag. A store with no file (an absent OPTIONAL file read INPUT) has nothing to enter. ⛔ The entry is a
+            // READER's whenever the mutex is held shared — through this connector's read-only handle — even when a
+            // writable sibling made the run unit's store writable: a reader's entry writes nothing (kb/Work PB3335).
+            if (store.File is { } file && file.Enter(asReader: !writable) != StoreStatus.Ok)
+                SetStatus(FileStatusCode.PermanentError);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {
@@ -455,12 +463,9 @@ public abstract class KeyedConnector : FileConnector
         finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
     }
 
-    /// <summary>Finish the statement's work on the physical file, under the mutex. The engine's record statements wrote
-    /// their own pages and page 2 before they answered (2.2.1.7), so there is nothing left to write and the status
-    /// stands; this is the hook a deferred write would complete in (kb/Work PB3335).</summary>
-    internal string CompleteStatement(string status) => status;
-
-    /// <summary>Leave the statement; the outermost leave gives the mutex back.</summary>
+    /// <summary>Leave the statement; the outermost leave gives the mutex back. The statement's verb wrote its own pages
+    /// and page 2 before it answered (2.2.1.7: each change is one statement of the page layer, run inside this one), so
+    /// nothing is left to write when it ends.</summary>
     internal void EndStatement() => Leave(AttachedStore);
 
     private static void Leave(KeyedStore store)
@@ -503,16 +508,14 @@ public abstract class KeyedConnector : FileConnector
 
 /// <summary>⛔ ONE STATEMENT'S HOLD ON A KEYED STORE that another run unit may write (kb/Work PB2660) — returned by
 /// <see cref="FileConnector.BeginStatement"/> and inert (<c>default</c>) for every connector that cannot meet such a
-/// writer. <c>FileRegistry</c> opens one around each governed record statement and ends the statement through
-/// <see cref="Complete"/>; a RETRY wait lets the mutex go through <see cref="FileConnector.WaitOutsideStatement"/>.</summary>
+/// writer. <c>FileRegistry</c> opens one around each governed record statement (<c>using</c>), and its disposal ends the
+/// statement; a RETRY wait lets the mutex go through <see cref="FileConnector.WaitOutsideStatement"/>. It carries no
+/// completion step: the verb inside it wrote its pages and page 2 before it answered (2.2.1.7; kb/Work PB3333, PB3335).</summary>
 internal readonly struct StoreStatement : IDisposable
 {
     private readonly KeyedConnector? _owner;
 
     internal StoreStatement(KeyedConnector owner) => _owner = owner;
-
-    /// <summary>Complete the statement's work on the file; returns the status the statement ends with.</summary>
-    public string Complete(string status) => _owner is { } owner ? owner.CompleteStatement(status) : status;
 
     /// <summary>Leave the statement (the outermost leave gives the mutex back).</summary>
     public void Dispose() => _owner?.EndStatement();

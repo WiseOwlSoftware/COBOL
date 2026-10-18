@@ -15,8 +15,9 @@ internal sealed record PendingCase(string Section, string Row, string Owner, str
 /// THEIR EXPECTED RESULTS BEFORE THE ENGINE THAT RUNS THEM EXISTS (kb/Work PB3331, "The first deliverable"; PB3330's
 /// Route from 2026-10-18). The held transaction slice (COMMIT, ROLLBACK, the dead-owner step and the holdings) is kb/Work
 /// PB3337's; the record statements' lock tests and lock publication, the alternate-key and relative statements and the
-/// connectors' coherence are PB3333, PB3334 and PB3335's. Each owner turns its rows into running cases when it lands;
-/// this class checks only that every row names an owner that is not the page layer, a section and an expected result.
+/// connectors' coherence were PB3333, PB3334 and PB3335's, and run now as cases of their own. Each owner turns its rows
+/// into running cases when it lands; this class checks only that every row left names the held slice, a section and an
+/// expected result.
 /// </summary>
 public sealed class PendingStoreCases
 {
@@ -66,14 +67,14 @@ public sealed class PendingStoreCases
             "as the table: '51' on B's records with RETRY; either order durable for A, restored for B; B never completes a COMMIT A was told failed; A rolls B back before its own statement or at its lock test"),
         new("2.2.1.17 round 4", "a lock holder's death at every point of another run unit's statement", "PB3337",
             "the round-4 table: K5 '22', K7/X '22', K9 '00'; a READ lock goes with the handle"),
-        // The later core groups' paths. (PB3333's rows — the relative statements, their coherence, the lock test beside
-        // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
-        // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; PB3334's — the INDEXED connector's statements
-        // across run units with their alternate keys, ordinals and '02' look-ahead, and START over the trees — run in
+        // The core groups' rows run where their paths are. (PB3333's — the relative statements, their coherence, the lock
+        // test beside the publication and the tree's COBOL surface for a relative file — in RelativeEngineTests and, over
+        // the engine, CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; PB3334's — the INDEXED connector's statements
+        // across run units with their alternate keys, ordinals and '02' look-ahead, and START over the trees — in
         // IndexedEngineTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
-        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators.)
-        new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
-            "a sibling connector's change visible instantly; another run unit's change adopted at the next coherent entry, the cache dropped"),
+        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; PB3335's — the connectors'
+        // coherence, StoreTable's attach and detach, the cache dropped on adoption, a reader's entry, the crashed-file
+        // reader of R6's last row — in StoreCoherenceTests.) What is left is the held transaction slice's.
     ];
 
     [Fact]
@@ -82,7 +83,7 @@ public sealed class PendingStoreCases
         Assert.NotEmpty(Rows);
         Assert.All(Rows, row =>
         {
-            Assert.Contains(row.Owner, new[] { "PB3335", "PB3337" });
+            Assert.Equal("PB3337", row.Owner);
             Assert.StartsWith("2.2.1.1", row.Section);
             Assert.False(string.IsNullOrWhiteSpace(row.Row));
             Assert.False(string.IsNullOrWhiteSpace(row.Expected));
