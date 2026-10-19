@@ -123,7 +123,7 @@ operation is applied to a group containing it"* (§8.5.1.11.2).
   `ReadKeyedShared` / `StartIndexed` / `DeleteShared` and of `CobolSort.Release` / `ReleaseStatement`. It is framing,
   never record data (§12.4.5.11.4 GR1): `RecordFraming` writes it after a frame's length word, flagged by bit 31 of
   that word, in both the stream shape (a RECORD VARYING record-sequential file) and the store shape (relative and
-  indexed — `StoredFrame`); the sort store and `KeyedRec` hold it beside the record; a READ / RETURN hands it back
+  indexed — `StoredFrame`); the sort store holds it beside the record and an indexed record's frame in the prime tree carries it; a READ / RETURN hands it back
   as `FileConnector.CurrentRecordExtents` / `CobolSort.LastReturnedExtents`, written only through `NoteRecordRead`.
   `CobolContiguousLayout` honours it only when `RecordExtents.Describes` accepts it — the receiving group's
   components at the same fixed-run offsets (§8.5.1.12.2) and the record exactly the characters it describes — so a
@@ -478,16 +478,20 @@ repository's own naming (`COBOLNET_`, not `COBOL_`, because `COBOL_` is the exte
 `SwitchStore.Prefix`). It is read **once per run unit**, in `FileRegistry`'s constructor, and registered in
 `RuntimeConfig` like every other variable the runtime honours. It is itself part of the A.1 item 129
 determination rather than an escape from it: with it OFF the key table leaves the validated set for that run,
-and the organization, record type and record sizes stay in it. A connector that opens I-O under the opt-out and
-persists re-stamps the header with ITS OWN key table — the file follows the description that wrote it, which is
-what an opt-out from the key check means.
+and the organization, record type and record sizes stay in it. The FILE'S key table stays the trees' (an indexed
+file has one B+ tree per key its meta page records, docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4): a
+connector admitted under the opt-out with a different key table drives those trees by key NUMBER, a declared alternate
+key the file has no tree for provides no access path ('23' for a READ or START under it), and a tree the description
+does not declare is not maintained by its statements — the DOC-A.1-129 text, measured by
+`IndexedEngineTests.The_keycheck_opt_out_drives_the_files_trees_by_key_number`.
 
-**⚠ THIS IS A FORMAT CHANGE TO RELATIVE AND INDEXED DATA FILES, and it is owner-visible.** The framed store now
-begins with a header (magic + version, organization, record type, the two record sizes, the key table) and the
-frames follow it; `RecordFraming.ComposeStore` stamps it from the writing connector's `DeclaredAttributes` on every
-persist, so a store always describes itself. A relative or indexed file written by an earlier build carries no
-header and is therefore **refused with '39'** rather than silently misread — the loud failure is the point, and
-it is the reason the header is required rather than optional. The SEQUENTIAL formats are untouched: a
+**⚠ THE FORMAT OF RELATIVE AND INDEXED DATA FILES RECORDS THEIR ATTRIBUTES, and it is owner-visible.** A relative or
+indexed file is the keyed store engine's paged store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4), whose meta
+pages record the magic and version, the organization, the record type, the two record sizes and the key table;
+`PagedFile.Create` writes them from the creating connector's `DeclaredAttributes`, so a store always describes itself. A
+relative or indexed file of any earlier format — the whole-store image of format 5 and before, deleted with its codec
+(kb/Work PB3335) — is therefore **refused with '39'** rather than silently misread: the loud failure is the point, and no
+reader of an old format is kept. The SEQUENTIAL formats are untouched: a
 fixed-length record sequential file is still plain bytes and a line sequential file is still plain text, which is
 the interchange property those shapes exist for, and a varying record-sequential file still carries only the
 per-record prefix it always carried.
@@ -2102,14 +2106,13 @@ cause.
 answer that every organization's WRITE and REWRITE asks, in the connector, before the record is released:
 
 1. **Can the record be written in the file coded character set?** The medium's encoding is an attribute of the file (`FileConnector.MediumEncoding`, derived — never stored: CODE-SET present -> `CodeSet`; else LINE SEQUENTIAL -> `Utf8`; else `SingleByte`; D29). A `SingleByte` file (Annex A.1 item 31, owner decisions kb/Work R47 and R51) is ISO/IEC 8859-1, one byte per character position, through the storage-byte law (`FileCharacterSet.ToChannel/FromChannel`: U+FFFF, the HIGH-VALUE character, is byte 0xFF): `FileConnector.RecordHasCharacterWithoutByteImage` refuses a record holding any other character above U+00FF; a file with a CODE-SET is refused a character the alphabet does not represent (`CodeSetConversion.HasCharacterWithoutImage`, §13.18.13.4 GR6 b; kb/Work PB1150, PB1542) and writes HIGH-VALUE as the set's highest code unit (`CodeSetConversion.HighUnit`). The refusal is '91' (§9.1.13.11; DOC-A.1-110) on every fixed-record organization and on the report writer's line. A LINE SEQUENTIAL file with no CODE-SET is UTF-8 text: its character set (`LineSequentialCharacterSet`, item 115) is the Unicode scalar values from U+0020 in both record-area classes, so only C0 controls and an unpaired surrogate are refused, with '71'. Every record write encodes through the medium's codec — `FileCharacterSet.Medium` (a STRICT Latin-1 encoding of the channel) or `LineSequentialEncoding` — so a path that skipped the refusal fails loudly: there is no replacement fallback and no print-specific character map anywhere.
-2. **Does the store hold it?** A relative or indexed file is held in memory while open and written whole at
-   CLOSE, so its externally-defined boundary (§9.1.13.5 item 4; Annex A.1 item 107) is the store image's
-   capacity, `RecordFraming.MaxStoreBytes`. `RecordFraming.FrameBytes` is the ONE size formula — the stores keep a
-   running total through their only mutators (`RelativeStore.FramedBytesAfterPut`, `IndexedStore.RecordBytes`)
-   and `ComposeStore` sizes its composition with it — so `KeyedConnector.StoreHolds` answers §14.9.51.4 GR33 b) /
-   GR42 d)'s '24' in O(1), at the WRITE. A relative store is persisted from its sparse slots LAZILY
-   (`RelativeStore.Ordinal`), never through an array sized by the highest RRN. GR29 b)'s highest permitted RRN
-   is `RelativeConnector.HighestRelativeRecordNumber`; above it is '34'.
+2. **Does the file hold it?** A relative or indexed file is the keyed store engine's paged store, read and written a
+   page at a time (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9), so its externally-defined boundary
+   (§9.1.13.5 item 4; Annex A.1 item 107) is the host file system's maximum file size, capped by the format at
+   `PagedFile.FormatPages` pages: a WRITE or REWRITE whose pages would pass it is answered §14.9.51.4 GR33 b) / GR42 d)'s
+   '24' at the statement (`PagedFile.Begin`'s reservation, `StoreStatus.Boundary`), as the host's own refusal to grow
+   the file is. An empty relative record number is no entry of the tree, so a record in the billions costs one leaf.
+   GR29 b)'s highest permitted RRN is `RelativeConnector.HighestRelativeRecordNumber`; above it is '34'.
 3. **Does the host medium take it?** A sequential file's boundary is the host medium's capacity (§9.1.13.6
    item 3; Annex A.1 item 108). `HostFile.IsMediumBoundary` is the one classification of the host's refusal and
    `FileStatusCode.ForWriteFailure` maps it ('34', else '30'); `SequentialConnector.Write`, `WriteAdvancing` and
@@ -2149,7 +2152,7 @@ BYTES. The two meet at exactly one law and one per-file encoding:
 |---|---|---|
 | in memory | alphanumeric / national items hold characters; a byte-form leaf (binary, packed, IEEE, pointer, bit, a national item's UTF-16BE pairs in a record image) holds BYTES, imaged one character per byte | the record structs and REDEFINES backings |
 | the storage-byte law | **byte 0xFF is the character U+FFFF (the native HIGH-VALUE, R52); every other byte b is U+00bb; a character's byte is its low-order byte**, so U+00FF and U+FFFF share 0xFF | `CobolNet.Runtime.StorageByte` — every byte-form encoder (`CobolNum.Image`, `PointerImage`, `CobolBits`) and decoder, the item-209 byte reduction (`CobolIntrinsics.RawBytes`) and the fixed-record medium |
-| the file encoding | fixed-record organizations (sequential, relative, indexed, report): one byte per position through the law, a character with no byte (above U+00FF, not U+FFFF) refused `'91'` (R47); LINE SEQUENTIAL: UTF-8 (PB1760); a CODE-SET clause converts the native one-byte channel (§13.18.13.4 GR6) | `FileCharacterSet.ToChannel` / `FromChannel` (the two medium sites: `FileConnector.ToMedium`/`FromMedium`, `RecordFraming.ComposeStore`/`DecodeStore`) |
+| the file encoding | fixed-record organizations (sequential, relative, indexed, report): one byte per position through the law, a character with no byte (above U+00FF, not U+FFFF) refused `'91'` (R47); LINE SEQUENTIAL: UTF-8 (PB1760); a CODE-SET clause converts the native one-byte channel (§13.18.13.4 GR6) | `FileCharacterSet.ToChannel` / `FromChannel` (the two medium sites: `FileConnector.ToMedium`/`FromMedium`, `RecordFraming.EncodeFrame`/`DecodeFrame`, the keyed store engine's leaf value) |
 
 **Why one law and no per-leaf medium codec (the correction).** The first version of this decision gave every record
 struct a second generated image (`AsMedium`/`FromMedium`) whose alphanumeric leaves mapped U+FFFF <-> 0xFF, on the
@@ -2369,7 +2372,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   phrase, becomes the key of reference"), GR18/GR19 for FIRST/LAST ("the file position indicator is set to the
   value of the primary key of the first [last] existing logical record in the physical file **and the key of
   reference is set to the primary key**"). So `IndexedConnector` completes every successful START through ONE
-  epilogue, `StartSucceeded(int keyOfReference, KeyedRec found)`, **whose key of reference is a REQUIRED
+  epilogue, `StartSucceeded(int keyOfReference, byte[] keyValue)`, **whose key of reference is a REQUIRED
   ARGUMENT** — a fourth START format cannot be written without answering the question, and an epilogue that read
   `_refKey` would have no correct reading at all. `StartFirstLast` passes `PrimeKey` and orders its search with
   `Ordered(PrimeKey)`: GR18/GR19 name the primary key TWICE, once as the ordering ("in the physical file") and
@@ -2462,16 +2465,18 @@ A process-wide registry keyed by external name (with an Area discriminator for r
     **The raise itself is NOT made in the connector.** The connector reports an unsuccessful I-O status `'90'` (§9.1.13.11's implementor-defined value; docs/CONFORMANCE.md §7 **DOC-A.1-110**) together with the exception-NAME GR6 b) 2 gives it, through `FileConnector.SetIoCondition` — and the ONE EC-I-O channel every other I-O condition already uses, the emitted `__IoCheckEc` hook after the verb, owns the USE format-1 and format-3 tiers, the exception-checking PERFORM frames and the fatal default. **The name has to travel beside the status** because §9.1.13.1's status→EC correspondence has no entry for EC-I-O-LINAGE and would read a `'9x'` as EC-I-O-IMP; `FileConnector.IoConditionName` carries it, the one `Status` setter clears it so it cannot outlive its operation, and `FileRegistry.IoConditionName` is the one place the named condition and the correspondence are combined. `ExceptionCatalog.IoMaskNames` gained EC-I-O-LINAGE (append-only — the mask is a compile-time integer) so `>>TURN EC-I-O-LINAGE CHECKING ON` reaches a statement's mask.
     **The OPEN stays open.** A violation at the OPEN OUTPUT completion replaces the OPEN's STATUS only: GR6 b) 2's *"until the file is closed"* and *"all subsequent WRITE statements referencing the file"* both presuppose an open file connector, and the CLOSE is what ends the regime (`EndLinagePage` clears the latch with the page). Goldens `2023/pb526_linage_ec_condition` (+ the `85/` twin — the whole behaviour is reachable with no construct newer than 1985, since the status and the format-1 declarative carry it) and `2023/pb526_linage_ec_checking` (the `>>TURN` path, where FUNCTION EXCEPTION-STATUS proves the name is EC-I-O-LINAGE and not EC-I-O-IMP).
   - Conformance net: `LinageConformanceTests.cs` (per-GR: GR7c1–c4/GR7d, GR26a/b discrimination incl. c==B, GR6b1/2/3 timing, GR1 no-footing, qualified/ambiguous register, ADVANCING 0, SR13/18/19) — **plus the `Bytes_*` group, which reads the produced FILE** through `CobolNetCompiler.CompileRunAndReadFile` (margins + overflow, the zero-margin identity, AFTER and BEFORE ADVANCING PAGE, the BEFORE-phrase overflow ordering, and the LINE SEQUENTIAL arm). ⛔ That group exists because the rest of the class can only see stdout, and a rule about WHERE ON THE MEDIUM a record lands is invisible there — which is how kb/Work PB523 stayed green for the whole life of the connector. The corpus twins are `conformance-suite/cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium.cob` (writes two files, reads them back AS LINE SEQUENTIAL so each DISPLAYed index is a physical line number) and `conformance-suite/cases/13.18.34-LINAGE/pb523_linage_margins_on_the_medium_85.cob` (LINE SEQUENTIAL is 2023-only, so the 85 twin reads the medium one character at a time and pins the file length and each record's byte offset).
-- On-disk framing: a fixed record-sequential file is contiguous; a variable sequential, relative, or indexed file uses a 4-byte little-endian length prefix; a sparse relative file uses 0xFF gaps.
+- On-disk framing: a fixed record-sequential file is contiguous; a variable record-sequential file uses a 4-byte little-endian length prefix per record; a relative or indexed file is the keyed store engine's paged store, each record the same framed value under its key in a B+ tree (an empty relative record number is no entry).
 - DELETE FILE statement (14.9.10 Format 2): delete the host path and reset the in-memory map. A present file that is deleted gives 00 and an absent file gives 05 — BOTH successful (14.9.10 GR14/GR20); the error paths are 41 (the connector is still open, GR13), 62 (the physical file is open by another connector, GR15), and 37 (insufficient authority or the storage medium forbids deletion, GR16/GR17). A missing file is NEVER 35 — 35 is an OPEN-only status.
 - Keyed record stores are PER PHYSICAL FILE, not per connector (kb/Work PB143; §14.9.10.4 GR5 — "removed from
-  the physical file"): `KeyedStoreTable` (registry-owned, keyed by resolved host path — the same key
-  `PhysicalFileTable` arbitrates sharing and locks by) holds ONE `RelativeStore` (RRN → image) or `IndexedStore`
-  (the records plus the GLOBAL release-ordinal mint) per host. The FIRST opener loads from disk; later openers
-  ATTACH to the live store (never reload — the in-memory store is the truth while any connector holds it); every
-  DELETE/WRITE/REWRITE is instantly visible to every attached connector; any CLOSE persists the one shared state
-  (close order cannot resurrect a deleted record or drop another connector's write); the LAST detach drops the
-  entry so a later OPEN re-reads the disk; OPEN OUTPUT empties the shared view. Position/key state (FPI, key of
+  the physical file"): `StoreTable` (registry-owned, keyed by resolved host path — the same key
+  `PhysicalFileTable` arbitrates sharing and locks by) holds ONE keyed store engine handle per host (`KeyedStore`: a
+  `RelativeStore` or an `IndexedStore`, over the run unit's page I/O, its page cache and its trees;
+  docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7). The FIRST opener opens the file through its handle; later
+  openers ATTACH to the live store (one page cache and one set of trees, so nothing is re-read); every
+  DELETE/WRITE/REWRITE is ONE statement of the page layer, written to the file before it answers and instantly visible
+  to every attached connector, so close order cannot resurrect a deleted record or drop another connector's write; the
+  LAST detach drops the entry so a later OPEN opens the file again; OPEN OUTPUT creates a new, empty store
+  (`StoreTable.AttachCreated`, kb/Work PB754). Position/key state (FPI, key of
   reference, the §14.9.51 GR29a sequential-WRITE slot, the GR38 high-key) stays per-CONNECTOR. The store is
   unconditional — two SELECTs to one ASSIGN target reach it with no SHARING clause — and sequential connectors
   are out of its scope (their OS-backed streams are already the shared store). A connector constructed outside a
@@ -2479,33 +2484,30 @@ A process-wide registry keyed by external name (with an Area discriminator for r
 - Indexed duplicate order is PER KEY OF REFERENCE, and the file position indicator is a KEY VALUE (kb/Work
   PB341, PB342). 14.9.30.4 GR26 scopes the release order to "an alternate record key that is the key of
   reference", and 14.9.35.4 GR24 a) freezes an untouched key's order across a REWRITE while b) moves the record
-  last under a changed one - so the release ordinal is a VECTOR on `KeyedRec`, one slot per key (slot 0 the
-  prime, assigned at release and never re-stamped, which makes it the record's physical release order too).
-  WRITE stamps one fresh ordinal into every slot; REWRITE re-stamps only the keys whose value or SUPPRESS WHEN
-  state changed, and "changed" is ONE predicate (KeyEq under the key's collating sequence, per GR24's closing
-  sentence) that GR24 a), GR24 b), GR24's suppression sub-rules and the 9.1.13.2 2 c) '02' all read.
-  14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file position indicator, so a START-seeded walk enters a
-  duplicate set at the end GR26 names for ITS direction - first-released forward, last-released backward - and
-  the duplicate-set position of a prior READ is separate connector state, which is what 14.9.30.4 GR21 rules
-  e)/f) name instead of the indicator. The persist writes each record's WHOLE ordinal vector in its frame and the
-  release mint in the store header (`RecordFraming`, store format 4; `IndexedConnector.PersistFrames` / `Fill`,
-  kb/Work PB2693), so a reload keeps every key's order exactly - including per-key orders no single sequence of
-  records could carry (GR24 b) can put r2 before r1 under one key and after it under another) - and a connector
-  partway through a duplicate set keeps its place when a coherent reload follows another run unit's DELETE.
+  last under a changed one - so the release ordinal is a VECTOR in the record's frame, one slot per key (slot 0 the
+  prime, assigned at release and never re-stamped, which makes it the record's physical release order too), and the
+  same ordinal is the trailing 8 bytes of the record's entry key in each alternate key's B+ tree
+  (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4, kb/Work PB3334), so a tree's order IS its duplicate order.
+  WRITE stamps one fresh ordinal from the FILE's release mint (the meta page's) into every slot; REWRITE re-stamps only
+  the keys whose value or SUPPRESS WHEN state changed — moving each such key's entry to the end of its duplicates — and
+  "changed" is ONE predicate (equality under the key's order, per GR24's closing sentence) that GR24 a), GR24 b), GR24's
+  suppression sub-rules and the 9.1.13.2 2 c) '02' all read. 14.9.41.4 GR17 e) 1. puts only a KEY VALUE in the file
+  position indicator, so a START-seeded walk enters a duplicate set at the end GR26 names for ITS direction -
+  first-released forward, last-released backward - and the duplicate-set position of a prior READ is separate connector
+  state (the ordinal), which is what 14.9.30.4 GR21 rules e)/f) name instead of the indicator. Every sequential READ is
+  a fresh seek from those two values, so nothing is ever renumbered (kb/Work PB2693's defect cannot exist) and a
+  connector partway through a duplicate set keeps its place across another run unit's DELETE.
 - A coherent statement's ENTRY has only I-O statuses as outcomes (kb/Work PB2842): `KeyedConnector.Enter` (the store
-  mutex, the generation probe, the reload — also the re-entry after a RETRY wait, `WaitOutsideStatement`) maps a host
+  mutex and the read of page 2, 2.2.1.7 — also the re-entry after a RETRY wait, `WaitOutsideStatement`) maps a host
   failure (`IOException`, `UnauthorizedAccessException`, `OutOfMemoryException` — one predicate,
-  `KeyedConnector.IsHostStoreFailure`, shared with `CompleteStatement`'s persist) to the permanent error '30'
-  (§9.1.13.6 1)), exactly as OPEN maps the same reload. The statement is entered all the same, so its depth and mutex
+  `KeyedConnector.IsHostStoreFailure`) and a page 2 that does not validate under a writer to the permanent error '30'
+  (§9.1.13.6 1)), exactly as OPEN maps the same adoption. The statement is entered all the same, so its depth and mutex
   unwind through the ordinary `Dispose`; the status starts the §9.1.13.1 permanent error, and the verb's own first
-  line, `FileConnector.PermanentErrorReplay`, ends the statement before it reads the stale store. A file grown past
-  `RecordFraming.MaxStoreBytes` by another run unit is the case `KeyedStoreReloadFailureDriftTests` measures, for
-  every keyed verb on both organizations. The reload itself is atomic in what it trusts: it reads and decodes the file
-  BEFORE touching the store (`ReadImage` returns the generation rather than stamping it), stamps the generation only
-  AFTER `Fill` has put the records in, and a store whose `Fill` failed owes the file nothing, so a refused reload
-  neither leaves a half-filled store trusted nor lets a CLOSE write it over the other run unit's records;
-  `FileConnector.Close` maps the same host failures as OPEN, `OutOfMemoryException` included. The refusals a real file
-  cannot produce on demand are injected through `KeyedConnector.HostFaultObserver`.
+  line, `FileConnector.PermanentErrorReplay`, ends the statement before it reads anything. A page 2 torn by another
+  run unit is the case `KeyedStoreReloadFailureDriftTests` measures, for every keyed verb on both organizations, with a
+  page write or a sync the host refuses at the statement and at the CLOSE; the refusals a real file cannot produce on
+  demand are injected under the connector's own handle through `KeyedStore.MediumObserver`
+  (`tests/Cobol.Net.Tests.Unit/Store/RefusingPageMedium`, `DyingPageMedium`).
 - I-O status discipline (kb/Work PB140): `FileConnector.Status`'s setter is the ONE assignment path — it records `EverAccessed` AND drops the §9.1.13.7 3) '43' gate (READ terminals re-arm through `ReadSucceeded`); openness is the ONE base `_openMode` bit, separate from the `OptionalAbsent` file-position state a CLOSE leaves unchanged (§14.9.6.4 GR6); `FileRegistry` throws on an unregistered or misrouted name (never a fail-open '00' — the SD/organization screens reject at bind time, COBOLNET1692/1693); `FileConnector.Close` maps OS failures to '30' (§9.1.13.6 item 1) with the sequential streams nulled either way; CLOSE WITH LOCK locks only on a successful close.
 - Keyed-verb branch discipline (kb/Work PB325): the ACCESS MODE is the SOLE discriminator of a keyed verb's branch, and it lives in ONE place — `KeyedConnector.Access`, the abstract base `RelativeConnector` and `IndexedConnector` share. Every branch the standard draws inside a keyed verb is drawn on it (§14.9.51.4 GR29 a)/b), GR38/GR39; §14.9.35.4 GR5 vs. GR21/GR22/GR23; §14.9.10.4 GR2 vs. GR3/GR4), and the OPEN MODE enters only as the permission test that FOLLOWS — Table 20 (§14.9.27.4 GR8), whose unsuccessful cells §9.1.13.7 items 8 and 9 name. ⛔ An open mode in a branch PREDICATE inverts that dependency: `_access == Sequential || Mode == Extend` made the runtime's answer depend on an unenforced bind-time screen (§14.9.27.3 SR2) and turned Table 20's blank Random/Dynamic × WRITE × Extend cell into a successful append instead of item 8 b)'s '48'. The whole table is walked by conformance:cases/9.1.13.2-Successful-completion/l1_table20_seq_relative + l1_table20_indexed and, for the cell conforming source cannot reach, unit:Table20WriteOpenModeTests.
 - READ preconditions live in the BASE, once, in the standard's own order (kb/Work PB336). `FileConnector` owns

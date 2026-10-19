@@ -7,19 +7,16 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ A COHERENT STATEMENT'S ENTRY HAS ONLY I-O STATUSES AS OUTCOMES — never an escaping exception
-/// (kb/Work PB2842). For the RELATIVE organization the entry is the keyed store engine's read of page 2
-/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work PB3333): a page 2 that does not validate under a
-/// live store is answered '30' by a writer, which cannot know what another run unit completed; for the INDEXED
-/// organization, until it moves to the engine (kb/Work PB3334), it is the whole store's reload. ISO §9.1.13.6 1): <i>"A permanent error exists and no further information is available"</i>
-/// is I-O status '30'. A keyed connector whose file another run unit may write (<c>SHARING WITH ALL OTHER</c>) reloads
-/// its store at the start of a statement when the file's generation stamp moved
-/// (<c>KeyedConnector.BeginStatement</c>); a file that has meanwhile grown past
-/// <see cref="RecordFraming.MaxStoreBytes"/> is not one the connector can read, and the reload used to let that
-/// <see cref="IOException"/> out of the READ, WRITE, REWRITE, DELETE or START — the OPEN's mapping to '30' had no twin
-/// in the statement. The refusal is a permanent error (§9.1.13.1: <i>"The permanent error condition remains in
-/// effect for all subsequent input-output operations on the file"</i>), so the statement runs its ordinary
-/// permanent-error replay — position invalidation for READ and START included — and touches no record of the stale
-/// store; a CLOSE ends the condition.
+/// (kb/Work PB2842). For both keyed organizations the entry is the keyed store engine's read of page 2
+/// (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7; kb/Work PB3333, PB3334): a page 2 that does not validate
+/// under a live store is answered '30' by a writer, which cannot know what another run unit completed. ISO §9.1.13.6 1):
+/// <i>"A permanent error exists and no further information is available"</i> is I-O status '30'. A keyed connector whose
+/// file another run unit may write (every sharing mode but <c>SHARING WITH NO OTHER</c>) reads page 2 at the start of a
+/// statement (<c>KeyedConnector.BeginStatement</c>), and a page 2 torn under it used to be an escaping exception's
+/// shape: the refusal is a permanent error (§9.1.13.1: <i>"The permanent error condition remains in effect for all
+/// subsequent input-output operations on the file"</i>), so the statement runs its ordinary permanent-error replay —
+/// position invalidation for READ and START included — and touches no record; a CLOSE ends the condition. A page write
+/// or a sync the host refuses is the statement's (or the CLOSE's) own '30' in both organizations, never deferred.
 /// </summary>
 public sealed class KeyedStoreReloadFailureDriftTests
 {
@@ -59,27 +56,15 @@ public sealed class KeyedStoreReloadFailureDriftTests
         seed.Close("S");
     }
 
-    /// <summary>Make the next coherent entry of a writer unable to read the file: for the whole store (INDEXED), a file
-    /// longer than any store the format describes, its header — and so its generation stamp — intact (sparse where the
-    /// host's file system supports it); for the engine (RELATIVE), page 2 torn (its checksum fails, 2.2.1.6 R3).</summary>
-    private static void MakeTheEntryUnreadable(string host, Org org)
+    /// <summary>Make the next coherent entry of a writer unable to read the file: page 2 torn (its checksum fails,
+    /// docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.6 R3) — the keyed store engine's one entry read, for both
+    /// organizations.</summary>
+    private static void MakeTheEntryUnreadable(string host)
     {
-        if (org == Org.Relative)
-        {
-            using var page2 = File.OpenHandle(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-            var torn = new byte[CobolNet.Runtime.IO.Store.PageHeader.PageSize];
-            Array.Fill(torn, (byte)0xAB);
-            RandomAccess.Write(page2, torn, 2L * torn.Length);
-            return;
-        }
-        GrowPastTheStoreCapacity(host);
-    }
-
-    private static void GrowPastTheStoreCapacity(string host)
-    {
-        using var handle = File.OpenHandle(host, FileMode.Open, FileAccess.Write,
-            FileShare.ReadWrite | FileShare.Delete);
-        RandomAccess.SetLength(handle, RecordFraming.MaxStoreBytes + 1);
+        using var page2 = File.OpenHandle(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+        var torn = new byte[CobolNet.Runtime.IO.Store.PageHeader.PageSize];
+        Array.Fill(torn, (byte)0xAB);
+        RandomAccess.Write(page2, torn, 2L * torn.Length);
     }
 
     private static string Run(FileRegistry reg, Verb verb, Org org, out string image)
@@ -148,7 +133,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
 
             // Another run unit moves the file's generation, then the file becomes one the entry cannot read.
             Assert.Equal("00", Write(b, "B", org, 3, "CCCC"));
-            MakeTheEntryUnreadable(host, org);
+            MakeTheEntryUnreadable(host);
 
             string status = Run(a, verb, org, out string image);
             Assert.Equal("30", status);
@@ -195,7 +180,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             FileRegistry.PauseObserver.Value = _ =>
             {
                 Assert.Equal("00", Write(a, "A", org, 3, "CCCC"));   // moves the generation
-                MakeTheEntryUnreadable(host, org);
+                MakeTheEntryUnreadable(host);
                 a.Unlock("A", records: true);                          // the conflict is over
             };
             try
@@ -213,18 +198,6 @@ public sealed class KeyedStoreReloadFailureDriftTests
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
 
-    // ── A reload that fails inside the reload leaves the store untouched or untrusted, never half-reloaded and trusted
-    //    (review round 1 of PB2842). The host's refusal of an allocation cannot be made to happen on demand, so the test
-    //    seam IndexedConnector.HostFaultObserver throws what the host would at the named point. The engine (RELATIVE)
-    //    reloads nothing; its refused page writes are the RELATIVE rows below. ────────────────────────────────────────
-
-    private static string ReadKey(FileRegistry reg, string name, Org org, int n, out string image)
-    {
-        if (org == Org.Relative) reg.SetRelativeKey(name, n);
-        return reg.ReadKeyedShared(name, -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
-            FileRetryKind.None, 0, out image);
-    }
-
     private static void AssertFileHoldsThreeRecords(string host, Org org)
     {
         var check = new FileRegistry();
@@ -233,205 +206,98 @@ public sealed class KeyedStoreReloadFailureDriftTests
         Assert.Equal("00", check.Status("C"));
         for (int n = 1; n <= 3; n++)
         {
-            Assert.Equal("00", ReadKey(check, "C", org, n, out string image));
-            Assert.StartsWith($"{n:0000}", image);
+            if (org == Org.Relative) check.SetRelativeKey("C", n);
+            Assert.Equal("00", check.ReadKeyedShared("C", -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
+                FileRetryKind.None, 0, out string image));
+            Assert.StartsWith(Rec(n, ""), image);
         }
         check.Close("C");
     }
 
-    /// <summary>The file is read and decoded before the store is touched, so an allocation the host refuses there leaves
-    /// the store exactly as it was: the generation it reflects is not stamped (it used to be, before the records were
-    /// replaced) and another connector of the same run unit still reloads and sees the other run unit's record — and a
-    /// CLOSE writes nothing over it.</summary>
-    [Theory]
-    [InlineData(Org.Indexed)]
-    public void AReloadRefusedBeforeTheRecordsAreReplaced_LeavesTheStoreUntouchedAndReloadable(Org org)
+    /// <summary>The sharing modes a refused page write or sync is answered under: <c>ALL OTHER</c>, <c>READ ONLY</c>
+    /// (kb/Work PB1587: a READ ONLY writer is coherent, §9.1.15 2) admits another run unit's INPUT reader beside it, and
+    /// its WRITE releases the record to the file at the statement, §14.9.51.4 GR12) and the clause-less
+    /// <c>NO OTHER</c> default (null).</summary>
+    private static readonly FileSharing?[] Sharings = [FileSharing.AllOther, FileSharing.ReadOnly, null];
+
+    public static TheoryData<Org, Verb, FileSharing?> RefusedStatements()
     {
-        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"decoded-{org}");
-        try
-        {
-            Seed(host, org);
-            var a = new FileRegistry();
-            var b = new FileRegistry();
-            Register(a, "A", host, org);
-            Register(a, "A2", host, org);   // a second SELECT of the same physical file: the SAME store (kb/Work PB143)
-            Register(b, "B", host, org);
-            a.OpenStatic("A", FileOpenMode.IO);
-            a.OpenStatic("A2", FileOpenMode.IO);
-            b.OpenStatic("B", FileOpenMode.IO);
-            Assert.Equal("00", Write(b, "B", org, 3, "CCCC"));   // moves the generation
-
-            IndexedConnector.HostFaultObserver.Value = point =>
-            {
-                if (point == IndexedConnector.HostFaultPoint.ReloadDecoded) throw new OutOfMemoryException("injected");
-            };
-            try { Assert.Equal("30", ReadKey(a, "A", org, 1, out _)); }
-            finally { IndexedConnector.HostFaultObserver.Value = null; }
-
-            // The other connector reloads (the store still differs from the file) and sees run unit B's record.
-            Assert.Equal("00", ReadKey(a, "A2", org, 3, out string image));
-            Assert.StartsWith("0003", image);
-
-            a.Close("A");
-            a.Close("A2");
-            b.Close("B");
-            AssertFileHoldsThreeRecords(host, org);
-        }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        var data = new TheoryData<Org, Verb, FileSharing?>();
+        foreach (var org in Enum.GetValues<Org>())
+            foreach (var verb in new[] { Verb.PlainWrite, Verb.Rewrite, Verb.Delete })
+                foreach (var sharing in Sharings)
+                    data.Add(org, verb, sharing);
+        return data;
     }
 
-    /// <summary>A failure while the records are being replaced leaves a partial store: it owes the file nothing, so the
-    /// CLOSE of the connector that met the permanent error does not write the partial records over the other run
-    /// unit's, and the generation is still not the file's, so the next statement reloads again.</summary>
-    [Theory]
-    [InlineData(Org.Indexed)]
-    public void AReloadRefusedWhileTheRecordsAreReplaced_OwesTheFileNothing(Org org)
+    public static TheoryData<Org, FileSharing?> RefusedCloses()
     {
-        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"filled-{org}");
-        try
-        {
-            Seed(host, org);
-            var a = new FileRegistry();
-            var b = new FileRegistry();
-            Register(a, "A", host, org);
-            Register(a, "A2", host, org);
-            Register(b, "B", host, org);
-            a.OpenStatic("A", FileOpenMode.IO);
-            a.OpenStatic("A2", FileOpenMode.IO);
-            b.OpenStatic("B", FileOpenMode.IO);
-            Assert.Equal("00", Write(b, "B", org, 3, "CCCC"));
-
-            IndexedConnector.HostFaultObserver.Value = point =>
-            {
-                if (point == IndexedConnector.HostFaultPoint.ReloadFilling) throw new OutOfMemoryException("injected");
-            };
-            try { Assert.Equal("30", ReadKey(a, "A", org, 1, out _)); }
-            finally { IndexedConnector.HostFaultObserver.Value = null; }
-
-            Assert.Equal("00", ReadKey(a, "A2", org, 3, out string image));   // reloaded again, whole
-            Assert.StartsWith("0003", image);
-
-            a.Close("A");   // a CLOSE that persisted the partial store would erase B's record
-            Assert.Equal("00", a.Status("A"));
-            a.Close("A2");
-            Assert.Equal("00", a.Status("A2"));
-            b.Close("B");
-            Assert.Equal("00", b.Status("B"));
-            AssertFileHoldsThreeRecords(host, org);
-        }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        var data = new TheoryData<Org, FileSharing?>();
+        foreach (var org in Enum.GetValues<Org>())
+            foreach (var sharing in Sharings)
+                data.Add(org, sharing);
+        return data;
     }
 
-    /// <summary>The persist of a coherent statement and the persist owed by a CLOSE both compose the whole store in one
-    /// allocation, and an allocation the host refuses is the permanent error '30' at either — the statement's own
-    /// (<c>CompleteStatement</c>) and the CLOSE's (<c>FileConnector.Close</c>), not an exception out of the program.</summary>
-    [Theory]
-    [InlineData(Org.Indexed, FileSharing.AllOther)]
-    [InlineData(Org.Indexed, FileSharing.ReadOnly)]   // kb/Work PB1587: a READ ONLY writer persists at the statement too
-    [InlineData(Org.Indexed, null)]   // the clause-less NO OTHER default
-    public void APersistTheHostRefuses_IsAPermanentError30_AtTheStatementAndAtTheClose(Org org, FileSharing? sharing)
-    {
-        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        bool shared = sharing is not null;   // another connector may be on the file: the statement persists at once
-        string host = Tmp($"persist-{org}-{sharing}");
-        try
-        {
-            Seed(host, org);
-            var a = new FileRegistry();
-            Register(a, "A", host, org, sharing);
-            a.OpenStatic("A", FileOpenMode.IO);
-            IndexedConnector.HostFaultObserver.Value = point =>
-            {
-                if (point == IndexedConnector.HostFaultPoint.PersistComposing) throw new OutOfMemoryException("injected");
-            };
-            try
-            {
-                string written = Write(a, "A", org, 9, "ZZZZ");
-                if (shared)
-                {
-                    Assert.Equal("30", written);   // the coherent statement persists at once: CompleteStatement
-                    Assert.Equal("30", a.Status("A"));
-                }
-                else
-                {
-                    Assert.Equal("00", written);   // the whole-store model persists at the CLOSE
-                    a.Close("A");   // FileConnector.Close
-                    Assert.Equal("30", a.Status("A"));
-                }
-            }
-            finally { IndexedConnector.HostFaultObserver.Value = null; }
-            if (shared) a.Close("A");
-        }
-        finally { try { File.Delete(host); } catch (IOException) { } }
-    }
-
-    /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', SHARED OR NOT
-    /// (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
+    /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', WHATEVER ITS
+    /// SHARING MODE (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
     /// permanent error at the WRITE, REWRITE or DELETE that met it, never deferred to a CLOSE, and in effect until the
     /// CLOSE (§9.1.13.1). The file is as the previous statement left it: the next OPEN reads the seeded records
     /// unchanged. A refused SYNC at the CLOSE's promotion is the CLOSE's '30', and the records the statements wrote
     /// survive it (page 2 already named them).</summary>
     [Theory]
-    [InlineData(Verb.PlainWrite, true)]
-    [InlineData(Verb.PlainWrite, false)]
-    [InlineData(Verb.Rewrite, true)]
-    [InlineData(Verb.Rewrite, false)]
-    [InlineData(Verb.Delete, true)]
-    [InlineData(Verb.Delete, false)]
-    public void ARelativePageWriteTheHostRefuses_Is30_AtTheStatement(Verb verb, bool shared)
+    [MemberData(nameof(RefusedStatements))]
+    public void APageWriteTheHostRefuses_Is30_AtTheStatement(Org org, Verb verb, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"engine-write-{verb}-{shared}");
+        string host = Tmp($"engine-write-{org}-{verb}-{sharing}");
         bool refusing = false;
         try
         {
-            Seed(host, Org.Relative);
-            CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
+            Seed(host, org);
+            CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, write: _ => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, Org.Relative, shared ? FileSharing.AllOther : null);
+            Register(a, "A", host, org, sharing);
             a.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal("00", a.Status("A"));
             refusing = true;
-            Assert.Equal("30", verb == Verb.PlainWrite ? Write(a, "A", Org.Relative, 9, "ZZZZ") : Run(a, verb, Org.Relative, out _));
+            Assert.Equal("30", verb == Verb.PlainWrite ? Write(a, "A", org, 9, "ZZZZ") : Run(a, verb, org, out _));
             refusing = false;
-            Assert.Equal("30", Run(a, Verb.ReadNext, Org.Relative, out string image));   // §9.1.13.1: still in effect
+            Assert.Equal("30", Run(a, Verb.ReadNext, org, out string image));   // §9.1.13.1: still in effect
             Assert.Equal("", image.Trim());
             a.Close("A");
             Assert.Equal("00", a.Status("A"));   // the CLOSE ends it (DOC-A.1-105)
         }
         finally
         {
-            CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = null;
+            CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = null;
             try { File.Delete(host); } catch (IOException) { }
         }
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public void ARelativeCloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(bool shared)
+    [MemberData(nameof(RefusedCloses))]
+    public void ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(Org org, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"engine-close-{shared}");
+        string host = Tmp($"engine-close-{org}-{sharing}");
         bool refusing = false;
         try
         {
-            Seed(host, Org.Relative);
-            CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
+            Seed(host, org);
+            CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, sync: () => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, Org.Relative, shared ? FileSharing.AllOther : null);
+            Register(a, "A", host, org, sharing);
             a.OpenStatic("A", FileOpenMode.IO);
-            Assert.Equal("00", Write(a, "A", Org.Relative, 3, "CCCC"));
+            Assert.Equal("00", Write(a, "A", org, 3, "CCCC"));
             refusing = true;
             a.Close("A");
             Assert.Equal("30", a.Status("A"));
         }
-        finally { CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = null; }
-        try { AssertFileHoldsThreeRecords(host, Org.Relative); }
+        finally { CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = null; }
+        try { AssertFileHoldsThreeRecords(host, org); }
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
 }

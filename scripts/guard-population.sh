@@ -62,6 +62,15 @@ guard_declared_termination() {
     return 0
 }
 
+# guard_chain_preds NAME [corpus.tsv] — NAME's declared chain predecessors (the chain-preds column, column 4) in run
+# order, space-joined; nothing for a program that declares none or has no row. The group runner runs them, in order,
+# in the program's own clean directory before the program, as NistRunner does (guard-run-group.sh; kb/Work PB3334).
+guard_chain_preds() {
+    local corpus="${2:-$GUARD_CORPUS_TSV}"
+    guard_manifest_present "$corpus" || return 1
+    awk -F'\t' -v t="$1" '$1 == t && $1 !~ /^#/ { if ($4 != "-" && $4 != "") print $4; exit }' "$corpus"
+}
+
 # ── SELF-TEST ─────────────────────────────────────────────────────────────────────────────────────────────
 # A check that has never been observed failing is not evidence (feedback_green_gates_arent_evidence), and the loud
 # arm above exists precisely because its silent version would look green.
@@ -106,6 +115,16 @@ if [ "${BASH_SOURCE[0]}" = "$0" ] && [ "${1:-}" = "--self-test" ]; then
     gp_assert "guard_declared_termination says nothing for an undeclared program" $?
     [ -z "$(GUARD_TERMINATES="" guard_declared_termination NC401M)" ]
     gp_assert "an empty GUARD_TERMINATES declares nothing" $?
+
+    # (4) THE CHAIN PREDECESSORS (kb/Work PB3334 review round 2): a consumer's declared list, in run order, a chain
+    #     head's nothing, a comment row's nothing, and a missing manifest is loud.
+    [ "$(guard_chain_preds IX115A)" = "IX109A" ]; gp_assert "guard_chain_preds reads IX115A's one declared predecessor" $?
+    [ "$(guard_chain_preds ST103A)" = "ST101A ST102A" ]; gp_assert "guard_chain_preds keeps the declared run order" $?
+    [ -z "$(guard_chain_preds IX109A)" ]; gp_assert "a chain head declares no predecessor" $?
+    printf '# C1\tZZ\tgreen\tP9\tvalid\t-\nC1\tZZ\tgreen\tP1 P2\tvalid\t-\n' > "$gp_tmp/chain.tsv"
+    [ "$(guard_chain_preds C1 "$gp_tmp/chain.tsv")" = "P1 P2" ]; gp_assert "a comment row declares no chain" $?
+    guard_chain_preds C1 "$gp_tmp/absent.tsv" >/dev/null 2>&1
+    [ $? -ne 0 ]; gp_assert "guard_chain_preds on a missing manifest returns non-zero" $?
 
     if [ "$gp_fail" -eq 0 ]; then
         echo "=== GUARD POPULATION SELF-TEST: PASS ($gp_checks checks) ==="; exit 0
