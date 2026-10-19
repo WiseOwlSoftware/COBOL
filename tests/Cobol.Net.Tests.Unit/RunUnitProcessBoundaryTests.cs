@@ -82,20 +82,29 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
     private static string Cobol(params string[] lines) => string.Join("\n", lines) + "\n";
 
+    /// <summary>The file's SELECT entry, its sentence ended by the period after its last clause. A SHARING WITH ALL OTHER
+    /// entry carries LOCK MODE IS MANUAL beside it, which §14.9.27.3 SR8 asks for when the OPEN has no sharing phrase.</summary>
+    private static string[] SelectEntry(string file, string? sharing, bool fileStatus)
+    {
+        var entry = new List<string> { $"           SELECT F ASSIGN TO \"{file}\"", "               ORGANIZATION IS SEQUENTIAL" };
+        if (sharing is not null) entry.Add($"               SHARING WITH {sharing}");
+        if (sharing == "ALL OTHER") entry.Add("               LOCK MODE IS MANUAL");
+        if (fileStatus) entry.Add("               FILE STATUS IS ST");
+        entry[^1] += ".";
+        return [.. entry];
+    }
+
     /// <summary>The HOLDER: opens <paramref name="file"/> in <paramref name="sharing"/> and <paramref name="mode"/>, prints
     /// <c>HELD &lt;status&gt;</c>, then obeys one line from stdin — <c>CLOSE</c> gives the lock back with an explicit
-    /// CLOSE and waits for a second line; <c>ABORT</c> ends the run unit abnormally (§14.9.4.4 GR3 b), a call of a
+    /// CLOSE and waits for a second line; <c>ABORT</c> ends the run unit abnormally (§14.9.4.4 GR3: a call of a
     /// program that does not exist); anything else ends it normally with the file still open.</summary>
-    private static string Holder(string id, string file, string sharing, string mode) => Cobol(
+    private static string Holder(string id, string file, string sharing, string mode) => Cobol([
         "       IDENTIFICATION DIVISION.",
         $"       PROGRAM-ID. {id}.",
         "       ENVIRONMENT DIVISION.",
         "       INPUT-OUTPUT SECTION.",
         "       FILE-CONTROL.",
-        $"           SELECT F ASSIGN TO \"{file}\"",
-        "               ORGANIZATION IS SEQUENTIAL",
-        $"               SHARING WITH {sharing}",
-        "               FILE STATUS IS ST.",
+        .. SelectEntry(file, sharing, fileStatus: true),
         "       DATA DIVISION.",
         "       FILE SECTION.",
         "       FD F.",
@@ -117,12 +126,12 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         "               CALL \"NOSUCHPG\"",
         "           END-IF.",
         "           DISPLAY \"EXITING\".",
-        "           STOP RUN.");
+        "           STOP RUN."]);
 
     /// <summary>The second run unit. Its file connector carries a FILE STATUS item (<paramref name="fileStatus"/>) and
     /// a USE declarative with the file-sharing exception checked (<paramref name="declarative"/>) as asked, and its
     /// procedure division is <paramref name="body"/>.</summary>
-    private static string Prober(string id, bool fileStatus, bool declarative, params string[] body)
+    private static string Prober(string id, bool fileStatus, bool declarative, string[] body, string? sharing = null)
     {
         var lines = new List<string>();
         if (declarative) lines.Add("       >>TURN EC-I-O-FILE-SHARING CHECKING ON");
@@ -133,10 +142,8 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
             "       ENVIRONMENT DIVISION.",
             "       INPUT-OUTPUT SECTION.",
             "       FILE-CONTROL.",
-            "           SELECT F ASSIGN TO \"shared.dat\"",
-            fileStatus ? "               ORGANIZATION IS SEQUENTIAL" : "               ORGANIZATION IS SEQUENTIAL.",
+            .. SelectEntry("shared.dat", sharing, fileStatus),
         ]);
-        if (fileStatus) lines.Add("               FILE STATUS IS ST.");
         lines.AddRange(
         [
             "       DATA DIVISION.",
@@ -183,7 +190,11 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
     // ── The harness ─────────────────────────────────────────────────────────────────────────────────────────────────
 
-    private string SharedFile => Path.Combine(_work, "shared.dat");
+    /// <summary>The holder most tests ask against: <c>SHARING WITH NO OTHER</c>, open for I-O.</summary>
+    private string NoOtherHolder() =>
+        _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+
+    private string SharedFile =>Path.Combine(_work, "shared.dat");
 
     /// <summary>The held file's size, from its metadata: the holder's share mode refuses this process a read, but not
     /// this question, and an OPEN OUTPUT that got through would have truncated it to nothing.</summary>
@@ -221,7 +232,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void ARefusedOpenIsStatus61_AndTheHoldersCloseGivesTheLockBack_WhileTheHolderLives()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string prober = Open("pb2485_open_each");
         using var holder = StartHolder(holderDll);
 
@@ -239,6 +250,37 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.Equal(0, holder.WaitForExit());
     }
 
+    /// <summary>The lock must not over-refuse: where Table 19 (§14.9.27.4) prints <i>"Normal open"</i> a second process's OPEN
+    /// is a success BESIDE a live holder, and where it prints <i>"Unsuccessful open"</i> it is '61' — read from the printed
+    /// table for a holder in SHARING WITH ALL OTHER: an ALL OTHER request is normal for INPUT, I-O and EXTEND and
+    /// unsuccessful for OUTPUT; a READ ONLY or NO OTHER request is unsuccessful for every mode against an I-O
+    /// holder, and a READ ONLY request is normal for INPUT, I-O and EXTEND against an INPUT holder.</summary>
+    [Fact]
+    public void AnOpenThatTable19Permits_SucceedsBesideALiveHolderInAnotherProcess_AndOneItRefusesDoesNot()
+    {
+        SeedFile("shared.dat");
+        string[] readModes = ["INPUT", "I-O", "EXTEND"];
+        string Sharing(string name, string sharing, string[] modes) =>
+            _programs.Build(name, Prober(Id(name), true, false, OpenEach(modes), sharing));
+
+        string allOther = Sharing("pb2485_open_allother", "ALL OTHER", EveryOpenMode);
+        string readOnly = Sharing("pb2485_open_readonly", "READ ONLY", readModes);
+        string noOther = Sharing("pb2485_open_noother", "NO OTHER", readModes);
+
+        using (var ioHolder = StartHolder(_programs.Build("pb2485_holder_allother_io",
+                   Holder("PB2485HAO", "shared.dat", "ALL OTHER", "I-O"))))
+        {
+            Assert.Equal(["INPUT 00", "I-O 00", "EXTEND 00", "OUTPUT 61"], Run(allOther));
+            Assert.Equal(Every("61", readModes), Run(readOnly));
+            Assert.Equal(Every("61", readModes), Run(noOther));
+            Assert.Equal(Seed.Length, SharedFileLength());
+        }
+
+        using var inputHolder = StartHolder(_programs.Build("pb2485_holder_allother_input",
+            Holder("PB2485HAI", "shared.dat", "ALL OTHER", "INPUT")));
+        Assert.Equal(Every("00", readModes), Run(readOnly));
+    }
+
     // ── 2. The lock dies with its holder, however the holder ends ────────────────────────────────────────────────────
 
     /// <summary>§14.6.11 2): the holder's run unit ends with the file still open, and the implicit CLOSE it runs gives the
@@ -247,7 +289,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void TheImplicitCloseAtTheEndOfTheHoldersRunUnitGivesTheLockBack()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string prober = Open("pb2485_open_each");
         using var holder = StartHolder(holderDll);
         Assert.Equal(Every("61"), Run(prober));
@@ -259,13 +301,13 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     }
 
     /// <summary>§14.6.12: the holder's run unit ends ABNORMALLY — a call of a program that does not exist, with no
-    /// handler, is a fatal exception (§14.9.4.4 GR3 b)) — and the runtime performs the termination operations it can;
+    /// handler, is a fatal exception (§14.9.4.4 GR3) — and the runtime performs the termination operations it can;
     /// the lock does not outlive the run unit.</summary>
     [Fact]
     public void AnAbnormalEndOfTheHoldersRunUnitGivesTheLockBack()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string prober = Open("pb2485_open_each");
         using var holder = StartHolder(holderDll);
         Assert.Equal(Every("61"), Run(prober));
@@ -344,12 +386,14 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void ARefusedOpen_ReachesTheProgramsHandlers_WithAndWithoutAFileStatusAndADeclarative(bool fileStatus, bool declarative)
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string name = $"pb2485_handlers_{(fileStatus ? "fs" : "nofs")}_{(declarative ? "use" : "nouse")}";
         string prober = _programs.Build(name, Prober(Id(name), fileStatus, declarative,
+        [
             "           OPEN INPUT F.",
             fileStatus ? "           DISPLAY \"OPEN \" ST." : "           DISPLAY \"OPEN CONTINUES\".",
-            "           DISPLAY \"AFTER\"."));
+            "           DISPLAY \"AFTER\".",
+        ]));
         using var holder = StartHolder(holderDll);
 
         var expectedRefused = new List<string>();
@@ -372,18 +416,24 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void ARefusedDeleteFileIsStatus62_ThroughEveryHandler_AndSucceedsOnceTheHolderIsGone()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string onException = _programs.Build("pb2485_delete_onexception", Prober("PB2485DEL1", true, false,
+        [
             "           DELETE FILE F",
             "               ON EXCEPTION DISPLAY \"DELEXC \" ST",
             "               NOT ON EXCEPTION DISPLAY \"DELOK \" ST",
-            "           END-DELETE."));
+            "           END-DELETE.",
+        ]));
         string statusOnly = _programs.Build("pb2485_delete_status", Prober("PB2485DEL2", true, false,
+        [
             "           DELETE FILE F.",
-            "           DISPLAY \"DEL \" ST."));
+            "           DISPLAY \"DEL \" ST.",
+        ]));
         string declarative = _programs.Build("pb2485_delete_declarative", Prober("PB2485DEL3", false, true,
+        [
             "           DELETE FILE F.",
-            "           DISPLAY \"AFTER\"."));
+            "           DISPLAY \"AFTER\".",
+        ]));
         using var holder = StartHolder(holderDll);
 
         Assert.Equal(["DELEXC 62"], Run(onException));
@@ -408,7 +458,7 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void ARetryThatTheHolderOutlasts_IsStatus61_AndSucceedsOnceTheHolderIsGone()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string prober = Open("pb2485_open_retry_each", retry: "RETRY 2 TIMES ");
         using var holder = StartHolder(holderDll);
 
@@ -430,12 +480,14 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
     public void ARetryForeverSucceedsOnceTheHolderClosesTheFile()
     {
         SeedFile("shared.dat");
-        string holderDll = _programs.Build("pb2485_holder_noother", Holder("PB2485HNO", "shared.dat", "NO OTHER", "I-O"));
+        string holderDll = NoOtherHolder();
         string prober = _programs.Build("pb2485_open_forever", Prober("PB2485FOR", true, false,
+        [
             "           DISPLAY \"TRYING\".",
             "           OPEN I-O RETRY FOREVER F.",
             "           DISPLAY \"OPEN \" ST.",
-            "           IF ST = \"00\" CLOSE F END-IF."));
+            "           IF ST = \"00\" CLOSE F END-IF.",
+        ]));
         using var holder = StartHolder(holderDll);
         using var retrying = LiveProcess.Start(Dotnet(prober));
         Assert.Equal("TRYING", retrying.ExpectLine());
