@@ -398,6 +398,14 @@ public abstract class FileConnector
     /// <see cref="CloseCore"/> already runs.</para></summary>
     protected virtual void AbandonOpen() { }
 
+    /// <summary>Freeze the collating sequences this connector's keys are ordered by, for the OPEN about to run and the
+    /// file it opens (ISO §12.4.5.7.4 GR1: <i>"Each collating sequence is a fixed file attribute"</i>). Called first in
+    /// <see cref="Open"/>, before §14.9.27.4 GR10 compares the declared attributes with the file's, so the comparison,
+    /// the attributes a creating OPEN records and every key comparison while the file is open use ONE sequence: a SET
+    /// LOCALE issued while the file is open cannot reorder it. The base does nothing: only an indexed file has keys
+    /// ordered by a collating sequence.</summary>
+    private protected virtual void FreezeOpenSequences() { }
+
     /// <summary>True while the connector is in an open mode (ISO §9.1.4): set by a success-family OPEN, cleared
     /// by ANY completed CLOSE (§14.9.6.4 GR8 — and an unsuccessful close does not keep the open mode either).
     /// ⛔ ONE bit with ONE job (kb/Work PB140): the FPI's "optional file not present" state lives on
@@ -737,6 +745,7 @@ public abstract class FileConnector
         ModeKnown = true;   // a FAILED open still records the attempted mode (GR6b "being opened")
         OptionalAbsent = false;
         LastReadUnsuccessful = false;   // OPEN is a reposition; the '43' gate drops in the Status setter
+        FreezeOpenSequences();          // before GR10's comparison reads them (§12.4.5.7.4 GR1)
         // ⛔ ONE presence probe per OPEN, taken HERE and handed down to OpenCore (kb/Work PB323). Two things
         // hang on it — GR3's authority answer and GR10's "the file exists" precondition — and every
         // organization's OpenCore needs it again for Table 18, so asking the host once and passing the answer

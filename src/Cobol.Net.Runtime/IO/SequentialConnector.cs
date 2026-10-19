@@ -27,19 +27,33 @@ public sealed class SequentialConnector : FileConnector
     /// omitted ADVANCING phrase still line-advances (<see cref="Write"/>). Asked by the ROUTING, never by
     /// CLOSE.</summary>
     private bool _printControl;
-    /// <summary>Is the device standing on a line that a presentation has written and no travel has ended yet —
-    /// an AFTER write's record, which §14.9.51.4 GR25 f) presents AFTER its advance? Set by
-    /// <see cref="Present"/>, cleared by every travel (<see cref="AdvanceLines"/> with a positive count, a
-    /// form feed, a line sequential record's own delimiter). Asked by CLOSE, which terminates exactly such a
-    /// line and nothing else.</summary>
-    private bool _lineOpen;
+    /// <summary>Where the device stands against the line a presentation last wrote — ONE field, so "the open
+    /// line" and "the device was returned to its start" cannot disagree (kb/Work PB1667, PB1840).</summary>
+    private enum DeviceLine
+    {
+        /// <summary>No presented line is open: the device stands at the start of a fresh line (OPEN, or every
+        /// travel — <see cref="AdvanceLines"/> with a positive count, a form feed, a line sequential record's own
+        /// delimiter — clears to here).</summary>
+        Fresh,
+        /// <summary>A presentation has written a line and no travel has ended it, and the device stands AFTER
+        /// that line's text — an AFTER write's record, which §14.9.51.4 GR25 f) presents AFTER its advance, or a
+        /// BEFORE write's whose amount was zero (before its return). CLOSE terminates exactly such a line.</summary>
+        Open,
+        /// <summary>An open line whose device stands at its START: returned there by a bare carriage return
+        /// (<see cref="WriteTravel"/>'s overprint, §14.9.51.4 GR25 c)), or presented with no characters at all (a
+        /// blank line). The next presentation is at the same vertical position with nothing left to return over.</summary>
+        Returned,
+    }
+
+    private DeviceLine _device = DeviceLine.Fresh;
 
     /// <summary>The device stands on a line that has been presented and not yet travelled past
-    /// (<see cref="_lineOpen"/>) — the ONE representation of "the open line" (kb/Work PB1667). The report writer
-    /// asks it, through <see cref="CobolFile.DeviceOnOpenLine"/>, before it reads its own page-empty state as "the
-    /// device is at line 1": a report file that is still open after a TERMINATE stands on that report's last line,
-    /// so a re-INITIATEd report's first line belongs on the NEXT one.</summary>
-    internal bool DeviceOnOpenLine => _lineOpen;
+    /// (<see cref="DeviceLine.Open"/> or <see cref="DeviceLine.Returned"/>) — the ONE representation of "the open
+    /// line" (kb/Work PB1667). The report writer asks it, through <see cref="CobolFile.DeviceOnOpenLine"/>, before
+    /// it reads its own page-empty state as "the device is at line 1": a report file that is still open after a
+    /// TERMINATE stands on that report's last line, so a re-INITIATEd report's first line belongs on the NEXT
+    /// one.</summary>
+    internal bool DeviceOnOpenLine => _device != DeviceLine.Fresh;
 
     // The byte offset of the most recently read record's fixed-width block (for the in-place record-sequential
     // REWRITE) and the LOGICAL read offset it derives from. The logical offset counts characters CONSUMED from
@@ -192,13 +206,20 @@ public sealed class SequentialConnector : FileConnector
     /// straight over. The ordinal is minted from the same shared state, so it names the record's real place in
     /// the file (§9.1.16: <i>"While locked by a given file connector, a record is not accessible to another
     /// file connector"</i> — the lock is only as good as the identity).</para>
-    /// <para>A connector holding the ONLY writable handle flushes at CLOSE as it always did: no other writer
-    /// can observe the record, and a flush per record on the ordinary WRITE path is a syscall per record for an
-    /// answer nobody reads.</para>
-    /// <para>⛔ THE TWO HALVES HAVE DIFFERENT ANTECEDENTS, so they are two statements (kb/Work PB740). The
-    /// FLUSH is owed whenever another writer may be on the physical file, which is a property of the §9.1.15
-    /// file lock this connector's handle carries — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
-    /// admits a writing sibling beside (kb/Work PB322). The ORDINAL is the §9.1.16 record-lock identity, and a connector
+    /// <para>⛔ A CONNECTOR WHOSE FILE LOCK ADMITS NO OTHER CONNECTOR AT ALL — <c>SHARING WITH NO OTHER</c>, Table
+    /// 19 refuses every opener — fills its input-output areas and flushes at CLOSE as it always did: nothing can
+    /// observe the record, and a flush per record is a syscall per record for an answer nobody reads. A
+    /// <c>SHARING WITH READ ONLY</c> writer is NOT that connector (kb/Work PB1587): §9.1.15 2) admits the INPUT
+    /// connector beside it, whose READ selects <i>"the first existing record in the physical file"</i> (§14.9.30.4
+    /// GR21), and GR12's record was released to the operating environment at the WRITE, so it is in the physical
+    /// file before the statement returns. Until PB1587 only the ALL OTHER writer flushed, and the reader met AT END
+    /// ('10') on a file whose writer had answered '00' for every record still in the 4,096-byte area — the
+    /// RELATIVE organization, which writes at every statement, had always answered the same program the other way.</para>
+    /// <para>⛔ THE HALVES HAVE DIFFERENT ANTECEDENTS, so they are separate statements (kb/Work PB740, PB1587). The
+    /// FLUSH is owed whenever ANY other connector may be on the physical file, a reader or a writer
+    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c>). The ORDINAL is counted
+    /// off the medium only where another WRITER may be on it — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
+    /// admits a writing sibling beside (kb/Work PB322) — and a connector that is the only writer mints it. The ORDINAL is the §9.1.16 record-lock identity, and a connector
     /// that registered NEITHER a SHARING nor a LOCK MODE clause sets no record locks to identify — §12.4.5.9.4
     /// GR1 b) 2. leaves that case to the implementor (<i>"the type of record locking for that opening … is
     /// defined by the implementor … or specify that the default is no record locking"</i>) and this compiler's
@@ -221,7 +242,7 @@ public sealed class SequentialConnector : FileConnector
     private void ReleaseRecord()
     {
         bool anotherWriter = FileLockPosture.AdmitsAnotherWriter(HostShare);
-        if (anotherWriter)
+        if (FileLockPosture.AdmitsAnotherRunUnit(HostShare))   // a READER or a writer may be open beside this one
         {
             _writer!.Flush();                      // GR12 — released, not merely buffered
             NoteRelease();                         // …and now visible, so no sibling's read-ahead may hide it
@@ -360,8 +381,9 @@ public sealed class SequentialConnector : FileConnector
     /// decides plain-versus-repositioning from the posture; this decides the newline, the encoding and the
     /// buffer, once. The writer's buffer IS the connector's input-output areas (ISO §12.4.5.14.3 GR1;
     /// <see cref="HostFile.InputOutputAreaBuffer"/>) — the handle beneath it holds none (kb/Work PB643) — so a
-    /// connector holding the only writable handle releases its records to the medium as each area set fills, and
-    /// one that may share the file with another writer at every release (<see cref="ReleaseRecord"/>).</summary>
+    /// connector that admits no other connector (<c>SHARING WITH NO OTHER</c>) releases its records to the medium as
+    /// each area set fills, and one that may share the file with a reader or a writer at every release
+    /// (<see cref="ReleaseRecord"/>, kb/Work PB1587).</summary>
     private StreamWriter OpenWriter(FileMode mode)
     {
         // The file coded character set's STRICT encoding (kb/Work PB690): every write arm refuses a record holding
@@ -852,12 +874,33 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>Present one line on the current logical page — the record, preceded by the page's top margin
     /// when this is the first thing written on the page (§13.18.34.4 GR4). ⛔ EVERY record that reaches a
     /// LINAGE file's medium goes through here (a line sequential one too: its write is the same
-    /// <see cref="WriteAdvancingRecord"/>), so a page's margin cannot be skipped by adding a write arm.</summary>
+    /// <see cref="WriteAdvancingRecord"/>), so a page's margin cannot be skipped by adding a write arm.
+    /// <para>⛔ A PRESENTATION ONTO AN OPEN LINE IS AN OVERPRINT (kb/Work PB1840). §14.9.51.4 GR25 e) presents a
+    /// BEFORE write's line <i>"before the representation of the printed page is advanced"</i>, so when an earlier
+    /// write left its line open (an AFTER write's record, a plain WRITE's, a BEFORE ADVANCING 0's) no advance lies
+    /// between the two and the new line is at the SAME vertical position as the open one, exactly as GR25 c)'s
+    /// zero advance puts it. The device representation of "same vertical position" is the bare carriage return
+    /// (docs/CONFORMANCE.md "ADVANCING 0"), written HERE so every arm that presents — an AFTER, a BEFORE with any
+    /// amount including PAGE, a report file's — gets it by construction; a presentation that follows
+    /// <see cref="WriteTravel"/>'s own return finds the device already <see cref="DeviceLine.Returned"/> and writes
+    /// no second one. A record with no characters (a print line of spaces, the report writer's page-feed carrier)
+    /// overprints nothing and writes no return.</para></summary>
     private void Present(string text, LinagePage? page, bool national)
     {
         if (page is not null && HasLogicalPage) EmitTopMarginIfPending();
-        EmitRecord(text, national);
-        _lineOpen = true;   // presented, not yet travelled past
+        if (text.Length > 0)
+        {
+            if (_device == DeviceLine.Open) _writer!.Write('\r');   // GR25 e)/c): the same vertical position, from column 1
+            EmitRecord(text, national);
+            _device = DeviceLine.Open;   // presented, not yet travelled past
+        }
+        else
+        {
+            EmitRecord(text, national);
+            // A blank line is still a presented line (CLOSE ends it), but nothing stands after its text: the device is
+            // at the line's start, so a following overprint finds nothing to return over (a stray CR would become data).
+            if (_device == DeviceLine.Fresh) _device = DeviceLine.Returned;
+        }
     }
 
     /// <summary>True between a successful OPEN and the matching CLOSE (an absent-OPTIONAL INPUT open counts —
@@ -1000,7 +1043,7 @@ public sealed class SequentialConnector : FileConnector
     protected override string OpenCore(FileOpenMode mode, FilePresence presence)
     {
         _printControl = false;
-        _lineOpen = false;
+        _device = DeviceLine.Fresh;
         _lineEnd = SelectLineEnd();   // the registry told HasLinageClause before this OPEN's body ran
         _lastReadBlockStart = -1;
         _lastReadTableCount = -1;
@@ -1173,7 +1216,7 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>The sequential CLOSE body (ISO §14.9.6). A print stream whose last line is still unterminated —
     /// an AFTER write's record, presented after its advance (§14.9.51.4 GR25 f)) — is ended with one line
     /// terminator; a stream whose last travel already ended the line (a BEFORE write, GR25 e)) gets none
-    /// (<see cref="_lineOpen"/>, kb/Work PB864). The report writer's lines are AFTER-placed and reach this same
+    /// (<see cref="_device"/>, kb/Work PB864). The report writer's lines are AFTER-placed and reach this same
     /// CLOSE. The not-open guard lives on <see cref="FileConnector.Close"/>.</summary>
     protected override string CloseCore()
     {
@@ -1181,7 +1224,7 @@ public sealed class SequentialConnector : FileConnector
         {
             // An unterminated line — an AFTER write's record — is ended here; a line some travel already ended
             // gets nothing (kb/Work PB864).
-            if (_lineOpen) { _writer?.Write(_lineEnd); _lineOpen = false; }
+            if (_device != DeviceLine.Fresh) { _writer?.Write(_lineEnd); _device = DeviceLine.Fresh; }
             _reader?.Dispose();
             _writer?.Dispose();   // a flush failure here maps to '30' on FileConnector.Close (§9.1.13.6 item 1)
         }
@@ -1446,7 +1489,7 @@ public sealed class SequentialConnector : FileConnector
     private void EmitRecordLine(string data, bool national)
     {
         _writer!.WriteLine(ToMedium(data, national));
-        _lineOpen = false;   // the record's own delimiter ended the line
+        _device = DeviceLine.Fresh;   // the record's own delimiter ended the line
     }
 
     /// <summary>The print stream's own advance: <paramref name="lines"/> lines, or a form feed for ADVANCING
@@ -1455,7 +1498,7 @@ public sealed class SequentialConnector : FileConnector
     /// PAGE is GR25 g) and goes through <see cref="BeginNextLogicalPage"/>.</summary>
     private void Advance(int lines)
     {
-        if (lines < 0) { _writer!.Write('\f'); _lineOpen = false; return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
+        if (lines < 0) { _writer!.Write('\f'); _device = DeviceLine.Fresh; return; }   // ADVANCING PAGE — GR25 h), the NO-LINAGE arm
         WriteTravel(lines);
     }
 
@@ -1469,13 +1512,21 @@ public sealed class SequentialConnector : FileConnector
     /// GnuCOBOL (<c>cob_seq_write_opt</c> / <c>cob_file_write_opt</c>, libcob/fileio.c) writes a bare CARRIAGE
     /// RETURN for AFTER/BEFORE ADVANCING 0: the device goes back to the start of the line it stands on and does not
     /// feed (docs/CONFORMANCE.md "ADVANCING 0"; owner decision kb/Work R54, kb/Work PB1667).
-    /// <para>The return is written only when a line IS open (<see cref="_lineOpen"/>): with none the device
-    /// already stands at the start of a line and there is nothing to overprint, so a zero is nothing — which is also
-    /// what the report writer's zero advance on a page it has printed nothing on asks for.</para></summary>
+    /// <para>The return is written only when a line IS open and the device stands after its text
+    /// (<see cref="DeviceLine.Open"/>): with none open the device already stands at the start of a line and there is
+    /// nothing to overprint, so a zero is nothing — which is also what the report writer's zero advance on a page it
+    /// has printed nothing on asks for — and a device already <see cref="DeviceLine.Returned"/> is at the start of
+    /// the open line, so a second zero writes none either. <see cref="Present"/> writes the same return for a
+    /// presentation onto an open line (kb/Work PB1840); the <see cref="DeviceLine.Returned"/> state is what keeps the
+    /// two from writing it twice.</para></summary>
     private void WriteTravel(int lines)
     {
         if (lines > 0) AdvanceLines(lines);
-        else if (_lineOpen) _writer!.Write('\r');   // lines == 0: a negative amount (PAGE) never reaches here
+        else if (_device == DeviceLine.Open)   // lines == 0: a negative amount (PAGE) never reaches here
+        {
+            _writer!.Write('\r');
+            _device = DeviceLine.Returned;   // the next presentation stands at column 1 already (see Present)
+        }
     }
 
     /// <summary>Move the device down <paramref name="lines"/> lines (never negative) — the one place a blank
@@ -1483,7 +1534,7 @@ public sealed class SequentialConnector : FileConnector
     private void AdvanceLines(int lines)
     {
         for (int i = 0; i < lines; i++) _writer!.Write(_lineEnd);
-        if (lines > 0) _lineOpen = false;   // the travel ended the line the device stood on
+        if (lines > 0) _device = DeviceLine.Fresh;   // the travel ended the line the device stood on
     }
 
     // ── READ ─────────────────────────────────────────────────────────────────────────────────────────────────
