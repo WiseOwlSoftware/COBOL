@@ -843,9 +843,9 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
   SUCCESSOR and to return BLOCKED if its blocker did not finish.
-- **Standing requirements** (kb/Work PB3359). An owner instruction that every group of a campaign must meet (PB3353's:
-  the SORT and file I/O tests cover the abnormal and exception paths as fully as the success paths) is a bullet of the
-  `## Standing requirements` section of the lead's own note, read by `plan_wave.campaign_requirements`; it is never
+- **Standing requirements** (kb/Work PB3359). An owner instruction that every group of a campaign must meet and that
+  no other change shares (PB3330's keyed-engine cases: process death, refused write or sync, interleaved run units) is
+  a bullet of the `## Standing requirements` section of the lead's own note, read by `plan_wave.campaign_requirements`; it is never
   a wave unit's hand edit of `groups.json`. A group is bound by MEMBERSHIP, never by the planning mode
   (`plan_wave.group_requirements`): by every campaign its notes' `cluster:` lists name, so a fix-lane wave that plans a
   campaign member, and a finisher of a campaign branch, carry the requirement exactly as a `--cluster` wave does (the
@@ -855,8 +855,19 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   `wf_rolling_wave.js` hands the branch reviewer the group's dispatch spec and the requirements
   (`reviewerRequirements(g)`), so a branch lacking one is a finding (category `requirement`) instead of a CLEAN. A prose section rather than a frontmatter list, because a requirement is a sentence with commas
   and the frontmatter list grammar (`work._split_list`, with its C# parity twin) splits on them. `test_plan_wave.py`
-  section 9a pins the parse, the body, the practices check, the args file and the reviewer prompt, and that PB3353
-  still carries the owner's requirement.
+  section 9a pins the parse, the body, the practices check, the args file and the reviewer prompt, and that a
+  real PB3330 member is bound by that lead's own bullets.
+  The owner's SORT and file I/O test sentence (2026-10-17 ~22:25) is NOT a campaign requirement: its one home is
+  MANDATORY-PRACTICES I11, which every rendered implementer spec and finisher brief points at (`check_practices.py`
+  refuses a template without the pointer) and which the `review` skill's branch form checks on every diff that reaches
+  a SORT, MERGE or file I/O path, campaign member or not (kb/Work PB3369). `test_plan_wave.py` refuses a copy of the
+  sentence in any lead note's `## Standing requirements`. The binding is the text in every brief and the reviewer's
+  reading of the diff, not a computed one. Measured 2026-10-19 over the 356 findings in the branch reviewers' findings
+  files (waves 1116 to 1131): 25 are category `requirement`, and 21 of those name a missing exception-path test on a
+  branch that changes a SORT, MERGE or file I/O path; the other four are not an I11 finding on a branch that reaches no
+  such path (the planner's own binding, a held-slice bullet of PB3330, a code comment and a CONFORMANCE.md row).
+  The prose raised no false I11 finding, so a binding computed from a group's file set or its notes' `area` (which
+  the register does not normalize) would add a list to maintain and remove nothing.
 - **The supervisor** (`orchestrate.ps1 -Cluster <lead>[,<lead>...]`) checks each cluster exists at start, passes
   them to `next_unit.py`, whose campaign rule (section 3.2) alternates `campaign` and fix-lane `wave` units and gives
   the ready leads their campaign turns least recently run first, and ends a lead's lane when every note naming its

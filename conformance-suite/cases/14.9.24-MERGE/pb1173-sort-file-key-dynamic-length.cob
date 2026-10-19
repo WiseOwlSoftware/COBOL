@@ -10,6 +10,9 @@
       *>     -> OK §14.9.40.3 6) d)
       *> SK is PIC X DYNAMIC LENGTH (a COBOL-2014 construct). The statement was refused all along, but as "key 'SK' has
       *> no character image" — a statement about the compiler — where the standard names the case.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FD.
        ENVIRONMENT DIVISION.
@@ -22,11 +25,12 @@
        FILE SECTION.
        SD SW.
        01 SR.
-          05 SK PIC X DYNAMIC LENGTH.
+          05 K1 PIC X.
+          05 SK PIC X DYNAMIC LENGTH LIMIT 3.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(4).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(4).
        PROCEDURE DIVISION.
        MAIN.
            SORT SW ASCENDING KEY SK USING IN1 GIVING OU1
