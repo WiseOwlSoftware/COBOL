@@ -29,11 +29,13 @@ namespace CobolNet.Validation;
 /// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
 /// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production, in two forms
 /// (<c>unrecognizedClause</c>, and <c>unrecognizedDataClause</c> where a level-number may follow the list, whose run
-/// holds no unsigned integer: kb/Work PB3390), this pass is its ONE consumer, and
-/// <see cref="ClosedFormats.ByContext"/> is its ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word or an
-/// unsigned integer at its position is refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533); <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
-/// parser, in BOTH directions, so a new closed format cannot parse into silence and a stale row cannot linger.
-/// Adding a closed format is `| unrecognizedClause` (or the data form) plus a table row — no code here changes. (The pass owns one
+/// holds no literal that begins with an unsigned integer: kb/Work PB3390), this pass is its ONE consumer, and
+/// <see cref="ClosedFormats.ByContext"/> is its ONE table — which the parse layer reads too, for the residue the
+/// production cannot hold: a RESERVED word, or a literal the data form cannot hold (<c>1,5</c>), at its position is
+/// refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533);
+/// <c>ClosedFormatDriftTests</c> derives the obligation from the generated parser, in BOTH directions, so a new closed
+/// format cannot parse into silence and a stale row cannot linger. Adding a closed format is the error production (the
+/// form its follow set calls for, which the drift test checks) plus a table row — no code here changes. (The pass owns one
 /// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
 /// position no format prints; see <see cref="VisitMisplacedSpecialNamesForPhrase"/> — and the punctuation half of
 /// five paragraph formats, their separator periods, read through <see cref="ParagraphPeriods"/>; see
@@ -60,7 +62,7 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     public static void Run(GroupBindContext group, EditionContext edition)
         => new ClosedFormatPass(edition).VisitPositioned(group.Tree);
 
-    /// <summary>Do not descend into a PROCEDURE DIVISION: <c>unrecognizedClause</c> is reachable only from the
+    /// <summary>Do not descend into a PROCEDURE DIVISION: the error production (either form) is reachable only from the
     /// identification division, the environment division and the data division (every row of
     /// <see cref="ClosedFormats.ByContext"/> is in one of those three), so the largest part of a real compilation
     /// unit carries none. ⚠ The same verification <see cref="DeclinedFacilityPass"/> records applies and is what
@@ -201,8 +203,8 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// <summary>THE refusal. The format is identified by the PARENT context — the alternative list the error
     /// production was written into — so one visitor serves every closed format and a new one needs no arm. Its
     /// wording and code are the row's (<see cref="ClosedFormat.Refusal"/>, <see cref="ClosedFormat.Diagnostic"/>),
-    /// shared with the parse layer's refusal of a RESERVED word or an unsigned integer at the same position
-    /// (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373), which the production cannot take. The word quoted is the
+    /// shared with the parse layer's refusal of a RESERVED word or a literal the data form cannot hold at the same
+    /// position (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373, PB3390), which the production cannot take. The word quoted is the
     /// run's OPENING item as written, a word or a whole literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c>
     /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign). The production has two forms, the data
     /// division's holding no unsigned integer (kb/Work PB3390); both are refused here, the same way.</summary>

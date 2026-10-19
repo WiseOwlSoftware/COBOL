@@ -160,6 +160,9 @@ public sealed class ClosedFormatReservedWordTests
         { "fd-comma-decimal-opening", Head + CommaMode + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
             + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF 1,5.\n       01 R PIC X.\n" + Proc,
           "COBOLNET1970", "'1,5' is not a clause of the file description entry for 'SF'" },
+        { "sd-leading-comma-in-run", Head + CommaMode + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF RECORD 80 FOO ,5.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'FOO' is not a clause of the sort-merge file description entry for 'SF'" },
         // THE UNSIGNED INTEGER AND THE COMMA DECIMALS outside the data division (kb/Work PB3390): no level-number follows
         // these lists, so the run opens and continues at them, and the computer-name keeps its reading.
         { "source-computer-integer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ 12.\n" + Proc,
