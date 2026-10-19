@@ -17,7 +17,7 @@ namespace CobolNet.Tests.Unit;
 /// <para>Two files, each built through the registry exactly as the program declares it (an 8-character record, the
 /// prime key in 1-4, an alternate key WITH DUPLICATES in 5-8). The TORN file's record leaves carry one flipped byte,
 /// so a tree read meets a failed checksum (2.2.1.6 R3): §9.1.13.6 item 1's '30'. The BOUNDARY file's meta pages record
-/// all but the few pages an OPEN I-O's fence needs of the format's 2^32 as used, and its FREE tree and LEDGER as empty
+/// every one of the format's 2^32 pages as used, and its FREE tree and LEDGER as empty
 /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.9: the boundary of the physical file is the format's 2^32 pages
 /// or the host's maximum size; the precondition is measured through the connector, <see cref="BoundaryFile"/>), so
 /// every changing statement needs a page past the boundary: a WRITE or REWRITE answers §14.9.51.4 GR42 d)'s '24'
@@ -97,32 +97,29 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
         return forged;
     }
 
-    /// <summary>A file AT ITS BOUNDARY (2.2.1.9): the store's records 0001AAAA and 0002BBBB, with the fewest pages left
-    /// below the format's 2^32 that let an <c>OPEN I-O</c>'s fence (its reservation is a bound, 2.2.1.6 R2) complete.
-    /// The precondition is measured through the connector on a copy, never assumed: the OPEN I-O answers '00', and then
-    /// a WRITE of a new record answers the boundary's '24' and a DELETE '30' — every changing statement needs a page past
-    /// the boundary — while a READ answers '00'.</summary>
+    /// <summary>A file AT ITS BOUNDARY (2.2.1.9): the store's records 0001AAAA and 0002BBBB, its meta pages recording
+    /// every one of the format's 2^32 pages as used. An <c>OPEN I-O</c>'s fence takes only the pages it writes (kb/Work
+    /// PB3396: a retirement is refused only at a page past the format's last, never for the bound of its reservation,
+    /// 2.2.1.6 R2), and with the FREE tree and the LEDGER empty it writes none, so it completes. The precondition is
+    /// measured through the connector on a copy, never assumed: the OPEN I-O answers '00', and then a WRITE of a new
+    /// record answers the boundary's '24' and a DELETE '30' — every changing statement needs a page past the boundary —
+    /// while a READ answers '00'.</summary>
     private string BoundaryFile(string tag)
     {
         string host = NewFile(tag), probe = NewFile(tag + "-probe");
         Seed(host, "0001AAAA", "0002BBBB");
-        byte[] file = File.ReadAllBytes(host);
-        for (ulong headroom = 0; headroom <= 64; headroom++)
-        {
-            File.WriteAllBytes(probe, AtTheBoundary(file, headroom));
-            var reg = new FileRegistry();
-            Register(reg, probe);
-            reg.OpenStatic("IX", FileOpenMode.IO);
-            if (reg.Status("IX") != "00") continue;   // the fence's reservation does not fit yet
-            Assert.Equal("00", reg.ReadKeyedShared("IX", -1, "0001    ", FileRecordLock.None, ignoringLock: false,
-                FileRetryKind.None, 0, out _));
-            Assert.Equal("24", reg.WriteShared("IX", "0003CCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
-            Assert.Equal("30", reg.DeleteShared("IX", "0002    ", FileRetryKind.None, 0));
-            reg.Close("IX");
-            File.WriteAllBytes(host, AtTheBoundary(file, headroom));
-            return host;
-        }
-        Assert.Fail("no headroom below 64 pages lets the OPEN I-O's fence complete");
+        byte[] boundary = AtTheBoundary(File.ReadAllBytes(host), headroom: 0);
+        File.WriteAllBytes(probe, boundary);
+        var reg = new FileRegistry();
+        Register(reg, probe);
+        reg.OpenStatic("IX", FileOpenMode.IO);
+        Assert.Equal("00", reg.Status("IX"));   // the fence needs no page
+        Assert.Equal("00", reg.ReadKeyedShared("IX", -1, "0001    ", FileRecordLock.None, ignoringLock: false,
+            FileRetryKind.None, 0, out _));
+        Assert.Equal("24", reg.WriteShared("IX", "0003CCCC", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null));
+        Assert.Equal("30", reg.DeleteShared("IX", "0002    ", FileRetryKind.None, 0));
+        reg.Close("IX");
+        File.WriteAllBytes(host, boundary);
         return host;
     }
 
@@ -236,6 +233,26 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
             STOP RUN.
         """;
 
+    /// <summary>The fence program: the OPEN I-O whose fence the format's last page refuses (<see cref="Header"/>), then
+    /// an OPEN INPUT of the same file (the failed OPEN left it not open, §14.9.27.4 GR2's '41' is for an open one), which
+    /// writes nothing and so is not refused, a READ of the record and the CLOSE.</summary>
+    private static string FenceProgram(string id, string host, bool fileStatus, bool use, bool checking) =>
+        Header(id, host, fileStatus, use, checking) + """
+
+            OPEN INPUT IX.
+            DISPLAY "OPEN2 " FS.
+            MOVE "0001" TO IK.
+            READ IX KEY IS IK.
+            DISPLAY "READ " FS " " IXR.
+            CLOSE IX.
+            DISPLAY "CLOSE " FS.
+            STOP RUN.
+        """;
+
+    private (bool ok, string stdout, string detail) Fence(string id, bool fileStatus, bool use, bool checking = false) =>
+        Trimmed(CompileAndRun(FenceProgram(id, KeyedFenceBoundaryTests.UnclosedIndexed(NewFile(id), headroom: 0),
+            fileStatus, use, checking), 2023));
+
     private (bool ok, string stdout, string detail) Torn(string id, bool fileStatus, bool use, bool checking = false) =>
         Trimmed(CompileAndRun(TornProgram(id, TornFile(id), fileStatus, use, checking), 2023));
 
@@ -291,6 +308,51 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
         Assert.False(ok, $"expected abnormal termination; ran clean with stdout:\n{stdout}");
         Assert.Contains("EC-I-O-PERMANENT-ERROR", detail);
         Assert.Equal("OPEN 00", stdout);
+    }
+
+    // ── '30': an OPEN I-O whose fence the format's last page refuses (kb/Work PB3396) ───────────────────────────
+
+    [Fact]   // A USE procedure and a FILE STATUS clause: the OPEN's '30' runs the procedure; the OPEN INPUT reads the file.
+    public void FenceRefused_UseAndFileStatus_RunsTheUseProcedureAtTheOpen_AndTheFileIsStillReadable()
+    {
+        var (ok, stdout, detail) = Fence("IXFENA", fileStatus: true, use: true);
+        Assert.True(ok, detail);
+        Assert.Equal(Lines("USE 30", "OPEN 30", "OPEN2 00", "READ 00 0001AAAA", "CLOSE 00"), stdout);
+    }
+
+    [Fact]   // A USE procedure alone: the same transfer of control, FS untouched.
+    public void FenceRefused_UseWithoutFileStatus_RunsTheUseProcedure_AndContinues()
+    {
+        var (ok, stdout, detail) = Fence("IXFENB", fileStatus: false, use: true);
+        Assert.True(ok, detail);
+        Assert.Equal(Lines("USE --", "OPEN --", "OPEN2 --", "READ -- 0001AAAA", "CLOSE --"), stdout);
+    }
+
+    [Fact]   // A FILE STATUS clause alone: the status is the program's to see and the run continues.
+    public void FenceRefused_FileStatusWithoutUse_StoresThe30_AndContinues()
+    {
+        var (ok, stdout, detail) = Fence("IXFENC", fileStatus: true, use: false);
+        Assert.True(ok, detail);
+        Assert.Equal(Lines("OPEN 30", "OPEN2 00", "READ 00 0001AAAA", "CLOSE 00"), stdout);
+    }
+
+    [Fact]   // Neither: DOC-A.1-103, the permanent error ends the run unit at the OPEN.
+    public void FenceRefused_NeitherUseNorFileStatus_TerminatesAtTheOpen()
+    {
+        var (ok, stdout, detail) = Fence("IXFEND", fileStatus: false, use: false);
+        Assert.False(ok, $"expected abnormal termination; ran clean with stdout:\n{stdout}");
+        Assert.Contains("EC-I-O-PERMANENT-ERROR", detail);
+        Assert.Contains("(OPEN)", detail);
+        Assert.Equal("", stdout);
+    }
+
+    [Fact]   // Checking enabled and no USE procedure: §14.6.13.1.3; the FILE STATUS clause does not continue the run unit.
+    public void FenceRefused_CheckingEnabled_FileStatusWithoutUse_TerminatesAtTheOpen()
+    {
+        var (ok, stdout, detail) = Fence("IXFENE", fileStatus: true, use: false, checking: true);
+        Assert.False(ok, $"expected abnormal termination; ran clean with stdout:\n{stdout}");
+        Assert.Contains("EC-I-O-PERMANENT-ERROR", detail);
+        Assert.Equal("", stdout);
     }
 
     // ── '24': the boundary of the physical file (and the DELETE's '30' there) ────────────────────────────────────
