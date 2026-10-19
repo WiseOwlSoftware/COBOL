@@ -10,7 +10,8 @@ using Core = CobolNet.Frontend.Generated.CobolParserCore;
 namespace CobolNet.Frontend.Cst;
 
 /// <summary>
-/// One CLOSED general format that ends in the <c>unrecognizedClause</c> error production — everything the
+/// One CLOSED general format that ends in the error production (<c>unrecognizedClause</c>, or its data division form
+/// <c>unrecognizedDataClause</c>: kb/Work PB3390) — everything the
 /// diagnostic needs to NAME the format the offending word violates.
 /// </summary>
 /// <param name="Clause">The general format's own subclause, as §-numbered in ISO/IEC 1989:2023.</param>
@@ -28,7 +29,8 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
 {
     /// <summary>⛔ THE ONE WORDING OF THE REFUSAL, for both of its sites (kb/Work PB2533): <c>ClosedFormatPass</c>, which
     /// refuses a word run the error production RECOGNIZED, and <c>CobolErrorStrategy</c>, which refuses a RESERVED word
-    /// or an unsigned integer written at the same position — a token the production never begins with (kb/Work PB3373).
+    /// or a literal the data division's form cannot hold (<c>1,5</c>) written at the same position — a token the
+    /// production never begins with (kb/Work PB3373, PB3390).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
@@ -37,14 +39,14 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
 
 /// <summary>
 /// ⛔ THE ONE TABLE OF CLOSED GENERAL FORMATS whose residue is refused by name (kb/Work PB829), keyed by the
-/// parse-tree context of the alternative list that ends in <c>unrecognizedClause</c>.
+/// parse-tree context of the alternative list that ends in the error production (either form).
 ///
 /// <para>WHY A TABLE AND NOT EIGHT DIAGNOSTIC SITES. The catch-all this closes (<c>genericClause :
 /// IDENTIFIER (IDENTIFIER|literal)*</c>) was ONE grammar rule wired into SIX sites spanning EIGHT closed general
 /// formats, and closing it one site at a time is how it survived: kb/Work PB487 closed §13.16.2 and its sibling
 /// sweep, reading the grammar by rule NAME, counted four of the remaining five and missed the I-O-CONTROL
 /// paragraph's INLINE alternative entirely. One production, one pass and one table make the NEXT closed format
-/// automatic — add <c>| unrecognizedClause</c> to its alternative list and <c>ClosedFormatDriftTests</c> fails
+/// automatic — add the error production to its alternative list and <c>ClosedFormatDriftTests</c> fails
 /// until a row lands here, rather than the format parsing into silence.</para>
 ///
 /// <para>⚠ EVERY ROW'S CLAUSE LIST WAS RENDERED FROM THE PRINTED PAGE before its site was closed
@@ -55,10 +57,10 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
 /// </summary>
 public static class ClosedFormats
 {
-    /// <summary>Every alternative list that ends in <c>unrecognizedClause</c>, by the context type ANTLR
+    /// <summary>Every alternative list that ends in the error production (either form), by the context type ANTLR
     /// generates for it. A <see cref="FrozenDictionary{TKey,TValue}"/> rather than a type-pattern <c>switch</c>
     /// because it must be ENUMERABLE — <c>ClosedFormatDriftTests</c> reflects over the generated parser for every
-    /// context type carrying an <c>unrecognizedClause()</c> accessor and compares the two sets in BOTH
+    /// context type carrying an accessor of either form and compares the two sets in BOTH
     /// directions, so neither a new closed format nor a stale row can hide.</summary>
     public static readonly FrozenDictionary<Type, ClosedFormat> ByContext =
         new Dictionary<Type, ClosedFormat>
@@ -113,7 +115,7 @@ public static class ClosedFormats
                 new("11.2.1", "", "IDENTIFICATION DIVISION", "paragraph", DiagnosticCatalog.ClosedFormatUnrecognizedParagraph),
         }.ToFrozenDictionary();
 
-    /// <summary>The closed general format an <c>unrecognizedClause</c> node violates, or null if its parent
+    /// <summary>The closed general format an error production node (either form) violates, or null if its parent
     /// carries no row — which <c>ClosedFormatDriftTests</c> makes impossible, so the null arm is a belt-and-braces
     /// guard against a diagnostic-less refusal rather than a reachable state.</summary>
     public static ClosedFormat? Of(Type? parentContextType)
@@ -128,6 +130,17 @@ public static class ClosedFormats
 
     /// <summary>The closed general format whose alternative list is the parser rule <paramref name="ruleIndex"/>, or null.</summary>
     public static ClosedFormat? OfRule(int ruleIndex) => ByRuleIndex.GetValueOrDefault(ruleIndex);
+
+    /// <summary>⛔ THE ERROR PRODUCTION'S TWO FORMS, by rule index (kb/Work PB3390) — the ONE place the parse layer
+    /// learns which rules they are. <c>unrecognizedClause</c> is written by every list that no level-number follows;
+    /// <c>unrecognizedDataClause</c>, whose run holds no unsigned integer, by the data division's three entries, after
+    /// whose period the next entry's level-number (ISO §8.3.2.2.13) may come. <c>ClosedFormatDriftTests</c> holds each
+    /// list to the form its follow set calls for.</summary>
+    public static readonly FrozenSet<int> ErrorProductionRules =
+        FrozenSet.ToFrozenSet([Core.RULE_unrecognizedClause, Core.RULE_unrecognizedDataClause]);
+
+    /// <summary>Whether <paramref name="ruleIndex"/> is one of the error production's two forms.</summary>
+    public static bool IsErrorProduction(int ruleIndex) => ErrorProductionRules.Contains(ruleIndex);
 
     /// <summary>The name of the entry <paramref name="ctx"/> sits in, for a message that points at the user's own
     /// declaration rather than at a line number alone. Four of the formats have such a name (the data description

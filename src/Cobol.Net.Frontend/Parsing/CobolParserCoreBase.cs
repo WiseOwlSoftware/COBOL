@@ -721,7 +721,7 @@ public abstract class CobolParserCoreBase : Parser
     /// reserved (an older edition, <c>--permissive</c>; BIT and NATIONAL are also bare USAGE keywords). Both failures
     /// were MEASURED — <c>USAGE POINTER BIT</c> and
     /// <c>USAGE POINTER HIGH-ORDER-RIGHT</c> each bound the word as a type-name. A plain IDENTIFIER is always
-    /// the operand (the only thing it could otherwise begin is the unrecognizedClause error production).</summary>
+    /// the operand (the only thing it could otherwise begin is the unrecognizedDataClause error production).</summary>
     protected bool pointerOperandHere()
     {
         int t = TokenStream.LA(1);
@@ -874,12 +874,33 @@ public abstract class CobolParserCoreBase : Parser
 
     /// <summary><see cref="tokensAreContiguous"/> for the <paramref name="count"/> tokens starting at
     /// <c>LT(<paramref name="first"/>)</c>.</summary>
-    private bool TokensAreContiguousFrom(int first, int count)
+    private bool TokensAreContiguousFrom(int first, int count) => TokensAreContiguous(TokenStream, first, count);
+
+    /// <summary>How many tokens the UNSIGNED numeric literal at <c>LT(<paramref name="i"/>)</c> of
+    /// <paramref name="stream"/> spans, or 0 when none starts there: one for a one-token literal and the unsigned
+    /// integer, three for the contiguous comma decimal <c>1,5</c> and two for <c>,5</c> (numericLiteralCore's
+    /// alternatives; a comma that no space follows is no separator, ISO §8.3.5 2), so each is ONE character-string).
+    /// The one reading of a literal's extent off the token stream, for the parser's predicates and for
+    /// <c>CobolErrorStrategy</c>, which must not take <c>1,5</c>'s first token for a level-number (kb/Work PB3390).</summary>
+    internal static int NumericLiteralWidth(ITokenStream stream, int i) => stream.LA(i) switch
+    {
+        CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT or CobolLexer.DECIMALLIT => 1,
+        CobolLexer.INTEGERLIT =>
+            stream.LA(i + 1) == CobolLexer.COMMA && stream.LA(i + 2) == CobolLexer.INTEGERLIT
+                && TokensAreContiguous(stream, i, 3) ? 3 : 1,
+        CobolLexer.COMMA =>
+            stream.LA(i + 1) == CobolLexer.INTEGERLIT && TokensAreContiguous(stream, i, 2) ? 2 : 0,
+        _ => 0,
+    };
+
+    /// <summary>Are the <paramref name="count"/> tokens of <paramref name="stream"/> starting at
+    /// <c>LT(<paramref name="first"/>)</c> ONE character-string (see <see cref="tokensAreContiguous"/>)?</summary>
+    internal static bool TokensAreContiguous(ITokenStream stream, int first, int count)
     {
         for (int i = first; i < first + count - 1; i++)
         {
-            var a = TokenStream.LT(i);
-            var b = TokenStream.LT(i + 1);
+            var a = stream.LT(i);
+            var b = stream.LT(i + 1);
             if (a is null || b is null || a.StopIndex + 1 != b.StartIndex) return false;
         }
         return true;
@@ -909,16 +930,7 @@ public abstract class CobolParserCoreBase : Parser
             if (!TokensAreContiguousFrom(i, 2)) return false;
             i++;
         }
-        int width = TokenStream.LA(i) switch
-        {
-            CobolLexer.FLOATLIT or CobolLexer.COMMA_FLOATLIT or CobolLexer.DECIMALLIT => 1,
-            CobolLexer.INTEGERLIT =>
-                TokenStream.LA(i + 1) == CobolLexer.COMMA && TokenStream.LA(i + 2) == CobolLexer.INTEGERLIT
-                    && TokensAreContiguousFrom(i, 3) ? 3 : 1,
-            CobolLexer.COMMA =>
-                TokenStream.LA(i + 1) == CobolLexer.INTEGERLIT && TokensAreContiguousFrom(i, 2) ? 2 : 0,
-            _ => 0,
-        };
+        int width = NumericLiteralWidth(TokenStream, i);
         return width != 0
             && TokenStream.LA(i + width) is CobolLexer.PLUS or CobolLexer.MINUS or CobolLexer.STAR
                 or CobolLexer.SLASH or CobolLexer.POWER;

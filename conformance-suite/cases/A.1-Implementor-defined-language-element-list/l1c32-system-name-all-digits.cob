@@ -18,10 +18,11 @@
       *> either end; the letter requirement of §8.3.2.2 binds user-defined words only), so
       *> this documented restriction is the only reason to reject. The companion positive
       *> l1c32_system_name_formation shows `1-2` and `123ABC` accepted. The diagnostic is
-      *> the parse layer's closed-format refusal, which is exactly what the documentation names:
-      *> since kb/Work PB3373 a literal at the position of a closed format's error production is
-      *> refused by name in that format (it was COBOL0308, "a data-name is expected", whose
-      *> IDENTIFIER was only the error production's own left edge).
+      *> the closed format's refusal by name, which is exactly what the documentation names:
+      *> since kb/Work PB3390 the error production of a list that no level-number follows
+      *> opens at an unsigned integer, so the literal is the refused run (kb/Work PB3373 had
+      *> the parse layer refuse it in the same words; before that it was COBOL0308, "a
+      *> data-name is expected", whose IDENTIFIER was only the error production's own left edge).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. L1C32I.
        ENVIRONMENT DIVISION.

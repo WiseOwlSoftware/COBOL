@@ -2958,7 +2958,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET1970: unexpected '12345'. '12345' is not a clause of the OBJECT-COMPUTER paragraph"
+  "expect": "COBOLNET1970: '12345' is not a clause of the OBJECT-COMPUTER paragraph"
  },
  "l1c33-terminate-multi-in-exc-perform": {
   "refuse-at": [
@@ -14063,6 +14063,33 @@
    "2023"
   ],
   "expect": "COBOLNET1970: '-1' is not a clause of the SOURCE-COMPUTER paragraph"
+ },
+ "pb3390-data-entry-level-number-after-run": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0307: missing token before '05'. A period may be missing"
+ },
+ "pb3390-object-computer-integer-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: '12' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3390-source-computer-comma-decimal-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: ',5' is not a clause of the SOURCE-COMPUTER paragraph"
  },
  "pb3391-data-entry-picture-locale-word": {
   "refuse-at": [
