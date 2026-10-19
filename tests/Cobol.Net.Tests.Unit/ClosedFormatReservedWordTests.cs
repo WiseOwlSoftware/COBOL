@@ -197,6 +197,96 @@ public sealed class ClosedFormatReservedWordTests
         Assert.DoesNotContain("data-name is expected", errors[0]);
     }
 
+    /// <summary>⛔ A WORD REFUSED BY A TEXT-PREDICATED CLAUSE IS REFUSED BY NAME, IN ITS OWN FORMAT (kb/Work PB3391). The
+    /// error production opens at a word, but where a clause of the same list is recognized by the TEXT of its word
+    /// (SEGMENT-LIMIT, MEMORY SIZE, CLASSIFICATION, the SPECIAL-NAMES LOCALE clause, PICTURE's LOCALE phrase) and the
+    /// run cannot continue at the reserved word that clause takes next (IS, SIZE), the predicated clause is the
+    /// prediction's sole survivor, and ANTLR throws NoViableAlt at the word when its predicate refuses it: a bare
+    /// COBOL0001 "cannot parse construct near 'FOO'", and a second refusal of the next token against an enclosing
+    /// list's format. The word is now refused in its own format, and the run is ONE refusal. Every edition: the
+    /// standard prints none of these words as a clause (ISO §12.3.6.2, §12.3.7.2, §13.16.2), and at COBOL-85, where
+    /// SEGMENT-LIMIT and MEMORY SIZE were clauses, FOO is still neither.</summary>
+    public static TheoryData<string, int, string, string, string> PredicateRefusedWord() => new()
+    {
+        // The note's repro: the run FOO ends at IS, and only `{segmentLimitAhead()}? IDENTIFIER IS? integerLiteral` survives.
+        { "object-computer-segment-limit-shape", 85, "       OBJECT-COMPUTER. XYZ FOO IS 12.\n",
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "object-computer-segment-limit-shape-2023", 2023, "       OBJECT-COMPUTER. XYZ FOO IS 12.\n",
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // The shape's prefix alone: the prediction commits at IS, before the period that would end it.
+        { "object-computer-segment-limit-prefix", 85, "       OBJECT-COMPUTER. XYZ FOO IS.\n",
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // Without the computer-name: the optional name's decision fails the same way.
+        { "object-computer-segment-limit-shape-without-name", 85, "       OBJECT-COMPUTER. FOO IS 12.\n",
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // MEMORY SIZE: SIZE is reserved, so the run FOO ends there and the predicated clause survives.
+        { "object-computer-memory-size-shape", 85, "       OBJECT-COMPUTER. XYZ FOO SIZE 12 WORDS.\n",
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // INSIDE the run: the run's own loop decides between continuing with BAR and ending before a clause opening at BAR.
+        { "object-computer-segment-limit-shape-in-run", 85, "       OBJECT-COMPUTER. XYZ FOO BAR IS 12.\n",
+          "COBOLNET1970", "'BAR' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // CHARACTER CLASSIFICATION's CHARACTER is optional and its CLASSIFICATION text-predicated: a reserved word the arm
+        // already named, whose residue drew a second refusal at IS ("not a paragraph of the CONFIGURATION SECTION").
+        { "object-computer-character-shape", 2023, "       OBJECT-COMPUTER. XYZ CHARACTER FOO IS X.\n",
+          "COBOLNET1970", "'CHARACTER' is not a clause of the OBJECT-COMPUTER paragraph" },
+        // The SPECIAL-NAMES LOCALE clause `{localeClauseAhead()}? formatWord cobolWord IS? (cobolWord | literal)`.
+        { "special-names-locale-shape", 2023, "       SPECIAL-NAMES.\n           FOO BAR IS \"x\".\n",
+          "COBOLNET1970", "'FOO' is not a clause of the SPECIAL-NAMES paragraph" },
+        { "special-names-locale-shape-85", 85, "       SPECIAL-NAMES.\n           FOO BAR IS \"x\".\n",
+          "COBOLNET1970", "'FOO' is not a clause of the SPECIAL-NAMES paragraph" },
+    };
+
+    [Theory]
+    [MemberData(nameof(PredicateRefusedWord))]
+    public void WordRefusedByATextPredicatedClause_IsRefusedByName_Once(string name, int edition, string paragraph, string code, string sentence)
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n" + paragraph + Proc, edition);
+        Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        Assert.Contains($"error {code}: ", errors[0]);
+        Assert.Contains(sentence, errors[0]);
+        Assert.Contains("is a closed list", errors[0]);
+    }
+
+    /// <summary>The data division's sibling (kb/Work PB3391): PICTURE's LOCALE phrase is text-predicated, so after
+    /// <c>PIC X</c> a word followed by SIZE leaves the phrase the sole survivor. The word is refused in the data
+    /// description entry's format, and the recovery stops at the entry's period: the NEXT entry's error is still
+    /// reported, in its own entry.</summary>
+    [Theory]
+    [InlineData(85)]
+    [InlineData(2023)]
+    public void WordRefusedByThePictureLocalePhrase_IsRefusedInItsEntry_AndTheNextEntryStillChecked(int edition)
+    {
+        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO SIZE 3.\n"
+            + "       01 W-Y PIC X BLOCK.\n" + Proc, edition);
+        Assert.True(errors.Count == 2, $"expected exactly two diagnostics, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("error COBOLNET1941: ", errors[0]);
+        Assert.Contains("'FOO' is not a clause of the data description entry for 'W-X'", errors[0]);
+        Assert.Contains("'BLOCK' is not a clause of the data description entry for 'W-Y'", errors[1]);
+    }
+
+    /// <summary>The recovery after a refused word consumes its run, never the next paragraph (kb/Work PB3391): the
+    /// SPECIAL-NAMES paragraph after <c>OBJECT-COMPUTER. XYZ FOO IS 12.</c> is still parsed, and its own error is
+    /// still reported in its own format.</summary>
+    [Fact]
+    public void WordRefusedByATextPredicatedClause_LeavesTheNextParagraphChecked()
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ FOO IS 12.\n"
+            + "       SPECIAL-NAMES. GLOBAL.\n" + Proc, 85);
+        Assert.True(errors.Count == 2, $"expected exactly two diagnostics, got:\n{string.Join("\n", errors)}");
+        Assert.Contains("'FOO' is not a clause of the OBJECT-COMPUTER paragraph", errors[0]);
+        Assert.Contains("'GLOBAL' is not a clause of the SPECIAL-NAMES paragraph", errors[1]);
+    }
+
+    /// <summary>The word the predicate ACCEPTS keeps its clause (kb/Work PB3391's controls): <c>SEGMENT-LIMIT IS</c> with
+    /// its integer missing is a malformed clause of the 85 format, never "'SEGMENT-LIMIT' is not a clause".</summary>
+    [Fact]
+    public void MalformedTextPredicatedClause_IsNotCalledForeign()
+    {
+        var errors = Compile(Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ SEGMENT-LIMIT IS.\n" + Proc, 85);
+        Assert.NotEmpty(errors);
+        Assert.DoesNotContain(errors, e => e.Contains("COBOLNET1970"));
+    }
+
     /// <summary>At COBOL-85 the misreading also drew edition diagnostics about a word it had misplaced (kb/Work
     /// PB3373): XYZ read as a configuration paragraph was an area-A header out of area A (COBOLNET3734), and XYZ read as
     /// an OBJECT-COMPUTER clause was a clause without computer-name-1 (COBOLNET0900). A residue run is no clause either,
