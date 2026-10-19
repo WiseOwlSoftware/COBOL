@@ -42,3 +42,9 @@ must carry `[Trait("Sweep", "tree")]`); fixed in the next commit.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261019T175916Z-cb709d`), with
 `TheLinageClaim_AgreesWithTheFileDescriptionFormatTable` and the four editions of `pb1238-fd-linage-relative` Passed in leg 1.
+
+**Branch review, round 1.** The reviewer found the new A.4.11 row cited the register row key `DOC-A.1-110` in prose, which
+`AnnexA1RegisterDriftTests` forbids (prose cites "A.1 item N"; a key appears only as the key of its row). The gate had not
+planned that test in leg 1 (it ran in the landing's population), so the leg-1 GREEN did not see it. Fixed: the sentence now reads
+"(A.1 item 110)", and `python scripts/spec/audit_annex_a1.py --check` exits 0 with no findings. The planning gap is the open
+kb/Work PB3247/PB3131 witness the reviewer named; it sits in `scripts/gate_plan.py`, not in this branch's files.
