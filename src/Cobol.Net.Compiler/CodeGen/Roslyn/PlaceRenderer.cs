@@ -860,23 +860,21 @@ internal static class PlaceRenderer
         };
     }
 
-    /// <summary>⛔ THE CHARACTER IMAGE OF A VARIABLE-LENGTH GROUP OPERAND THAT A STATEMENT READS, or null when
-    /// <paramref name="p"/> is not one (kb/Work PB3424): the current-extent image DISPLAY shows (CONFORMANCE.md A.1 item
-    /// 57) for every consumer that takes a group's characters as an operand - DISPLAY and an intrinsic function's string
-    /// argument (<c>OperandText.AsTransferString</c>, <paramref name="transfer"/> true: they read the characters and
-    /// never read them back, so a class pointer/object leaf is its placeholder) and the digit decode of a group in a
-    /// numeric position (<c>NumericRenderer.FieldNumCore</c>, <paramref name="transfer"/> false: a fixed group with such a
-    /// leaf stays loud there, so its variable-length twin does too). The last two are reached only through
-    /// <c>--permissive</c> (ISO 15.3 admits a variable-length group as a function argument only where the function says
-    /// so; 8.8.1.1 bars a group arithmetic operand), which therefore cannot disagree with DISPLAY about the group's
+    /// <summary>⛔ THE ONE-WAY CHARACTER IMAGE OF A VARIABLE-LENGTH GROUP OPERAND, or null when <paramref name="p"/> is not
+    /// one (kb/Work PB3424): the current-extent image DISPLAY shows (CONFORMANCE.md A.1 item 57), gated by
+    /// <see cref="DataItem.CurrentExtentTransferImageCapable"/> (kb/Work PB3358) - the capability of every consumer that
+    /// takes a group's characters and never reads them back, so a class pointer/object leaf is its placeholder. The
+    /// consumers: DISPLAY and an intrinsic function's string argument (<c>OperandText.AsTransferString</c>) and the digit
+    /// decode of a group in a numeric position (<c>NumericRenderer.FieldNumCore</c>). The last two are reached only
+    /// through <c>--permissive</c> (ISO 15.3 admits a variable-length group as a function argument only where the function
+    /// says so; 8.8.1.1 bars a group arithmetic operand), which therefore cannot disagree with DISPLAY about the group's
     /// characters. A class-tier REDEFINES view is excluded (its Read() is a string window, so <c>.CurrentImage()</c> on it
     /// is CS1061 - the PB176 skeptic round) except the cell-backed <see cref="VarGroupWindow"/>, whose view composes the
     /// same image from its cell (kb/Work PB1026).</summary>
-    public static string? VarGroupOperandImage(Place p, string context, bool transfer) =>
-        p is { Item.IsGroup: true, ImageCapable: false }
+    public static string? VarGroupOperandImage(Place p, string context) =>
+        p is { Item.IsGroup: true, ImageCapable: false, Item.CurrentExtentTransferImageCapable: true }
             && (p is not RedefViewPlace || p is RedefViewPlace { Coding: VarGroupWindow })
-            && (transfer ? p.Item.CurrentExtentTransferImageCapable : p.Item.CurrentExtentImageCapable)
-            ? VarGroupCurrentImage(p, context, transfer)
+            ? VarGroupCurrentImage(p, context, transfer: true)
             : null;
 
     /// <summary>⛔ THE ONE §8.5.1.12 CARRIER OF A GROUP OPERAND THAT MEETS A VARIABLE-LENGTH GROUP, IN ITS OWN SHAPE —
@@ -1018,8 +1016,10 @@ internal static class PlaceRenderer
     /// NATIONAL group holding N"12" decoded the UTF-16BE BYTES 00 31 00 32 as digits, where §14.9.25.4 GR6 d) 3
     /// treats a national sender "as if it were an unsigned integer" of its character positions — and the
     /// GR1 zero-length-item test in <c>MoveEmitter</c> read a national group's STRUCT <c>.Length</c> (CS1061).</para></summary>
-    public static string SendingGroupValue(Place group, string context = "whole-group image of") =>
-        !group.Item.IsAsIfElementary ? SendingGroupImage(group, context)
+    /// <param name="transfer">True for a ONE-WAY consumer of the alphanumeric arm (the digit decode of a group in a numeric
+    /// position, kb/Work PB3424) - see <see cref="GroupImage"/>; the bit and national arms have no pointer-leaf shape.</param>
+    public static string SendingGroupValue(Place group, string context = "whole-group image of", bool transfer = false) =>
+        !group.Item.IsAsIfElementary ? SendingGroupImage(group, context, transfer)
         : group.Item.GroupUsage is GroupUsage.Bit ? SendingBits(group)
         : SendingNat(group);
 

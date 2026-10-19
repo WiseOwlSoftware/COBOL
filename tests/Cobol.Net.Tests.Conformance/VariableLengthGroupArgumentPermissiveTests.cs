@@ -137,6 +137,49 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
        END CLASS PB3424C.
        """;
 
+    /// <summary>The numeric position over a strongly-typed group holding an object-reference leaf, FIXED and
+    /// VARIABLE-length: the decode is a one-way read, so the leaf is its placeholder (eight spaces, no digit) and both
+    /// groups decode the digits "12" and "05" around it: 1205, plus 1 = 1206.</summary>
+    private const string StrongNumericProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3424SNM.
+       ENVIRONMENT DIVISION.
+       CONFIGURATION SECTION.
+       REPOSITORY.
+           CLASS PB3424D.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 TF IS TYPEDEF STRONG.
+          05 FA PIC X(2).
+          05 FR USAGE OBJECT REFERENCE PB3424D.
+          05 FN PIC 9(2).
+       01 TV IS TYPEDEF STRONG.
+          05 VA PIC X DYNAMIC LENGTH LIMIT IS 10.
+          05 VR USAGE OBJECT REFERENCE PB3424D.
+          05 VN PIC 9(2).
+       01 WS-F TYPE TF.
+       01 WS-V TYPE TV.
+       01 WS-N PIC 9(4).
+       PROCEDURE DIVISION.
+       MAIN-P.
+           MOVE "12" TO FA OF WS-F
+           MOVE 5 TO FN OF WS-F
+           MOVE "12" TO VA OF WS-V
+           MOVE 5 TO VN OF WS-V
+           COMPUTE WS-N = WS-F + 1
+           DISPLAY WS-N
+           COMPUTE WS-N = WS-V + 1
+           DISPLAY WS-N
+           STOP RUN.
+       END PROGRAM PB3424SNM.
+
+       IDENTIFICATION DIVISION.
+       CLASS-ID. PB3424D.
+       OBJECT.
+       END OBJECT.
+       END CLASS PB3424D.
+       """;
+
     private static string[] Lines(string stdout) => stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
 
     /// <summary>Strict conformance refuses the argument (§15.3) and the arithmetic operand (§8.8.1.1); the refusal
@@ -212,5 +255,19 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
         Assert.EndsWith("05]", lines[0], StringComparison.Ordinal);
         // The function line is the display image upper-cased and space-padded into WS-X (30 positions).
         Assert.Equal(lines[0].TrimEnd(']').ToUpperInvariant(), lines[1].TrimEnd(']').TrimEnd());
+    }
+
+    /// <summary>The numeric decode of a strongly-typed group with an object-reference leaf is a one-way read, so it
+    /// takes the placeholder image instead of aborting in the Tier-C island - fixed and variable-length alike.</summary>
+    [Fact]
+    public void StronglyTypedGroupWithAReferenceLeaf_DecodesItsTransferImageInANumericPosition()
+    {
+        var (ok, _, warnings) = EditionHarness.CompileFull(StrongNumericProgram, 2023, permissive: true);
+        Assert.True(ok, "--permissive must accept the coercion");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET0844");
+
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(StrongNumericProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "1206", "1206" }, Lines(stdout));
     }
 }
