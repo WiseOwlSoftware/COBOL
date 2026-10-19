@@ -860,6 +860,25 @@ internal static class PlaceRenderer
         };
     }
 
+    /// <summary>⛔ THE CHARACTER IMAGE OF A VARIABLE-LENGTH GROUP OPERAND THAT A STATEMENT READS, or null when
+    /// <paramref name="p"/> is not one (kb/Work PB3424): the current-extent image DISPLAY shows (CONFORMANCE.md A.1 item
+    /// 57) for every consumer that takes a group's characters as an operand - DISPLAY and an intrinsic function's string
+    /// argument (<c>OperandText.AsTransferString</c>, <paramref name="transfer"/> true: they read the characters and
+    /// never read them back, so a class pointer/object leaf is its placeholder) and the digit decode of a group in a
+    /// numeric position (<c>NumericRenderer.FieldNumCore</c>, <paramref name="transfer"/> false: a fixed group with such a
+    /// leaf stays loud there, so its variable-length twin does too). The last two are reached only through
+    /// <c>--permissive</c> (ISO 15.3 admits a variable-length group as a function argument only where the function says
+    /// so; 8.8.1.1 bars a group arithmetic operand), which therefore cannot disagree with DISPLAY about the group's
+    /// characters. A class-tier REDEFINES view is excluded (its Read() is a string window, so <c>.CurrentImage()</c> on it
+    /// is CS1061 - the PB176 skeptic round) except the cell-backed <see cref="VarGroupWindow"/>, whose view composes the
+    /// same image from its cell (kb/Work PB1026).</summary>
+    public static string? VarGroupOperandImage(Place p, string context, bool transfer) =>
+        p is { Item.IsGroup: true, ImageCapable: false }
+            && (p is not RedefViewPlace || p is RedefViewPlace { Coding: VarGroupWindow })
+            && (transfer ? p.Item.CurrentExtentTransferImageCapable : p.Item.CurrentExtentImageCapable)
+            ? VarGroupCurrentImage(p, context, transfer)
+            : null;
+
     /// <summary>⛔ THE ONE §8.5.1.12 CARRIER OF A GROUP OPERAND THAT MEETS A VARIABLE-LENGTH GROUP, IN ITS OWN SHAPE —
     /// for every statement that takes a compatible pair component by component: the §14.9.25.4 GR9 MOVE's sending
     /// operand and both operands of the §8.8.4.2.17 comparison (kb/Work PB1467 moved it here from the MOVE emitter so
