@@ -5015,6 +5015,13 @@
   ],
   "expect": "COBOLNET2577"
  },
+ "pb1173-merge-key-dynamic-length": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "is a dynamic-length elementary item"
+ },
  "pb1173-merge-key-occurs": {
   "refuse-at": [
    "85",
@@ -5024,6 +5031,15 @@
   ],
   "expect": "SR4 b) and f)"
  },
+ "pb1173-merge-key-odo-group": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "dynamic-length elementary item, or an item subordinate to a dynamic-capacity table\" (ISO \u00a714.9.24.3 SR4 d))"
+ },
  "pb1173-merge-key-pointer": {
   "refuse-at": [
    "2002",
@@ -5031,6 +5047,13 @@
    "2023"
   ],
   "expect": "SR4 c)"
+ },
+ "pb1173-merge-key-variable-group": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "is a variable-length group"
  },
  "pb1173-sort-file-key-boolean": {
   "refuse-at": [
@@ -5067,6 +5090,7 @@
  },
  "pb1173-sort-file-key-odo-group": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -5080,6 +5104,13 @@
    "2023"
   ],
   "expect": "is of class pointer"
+ },
+ "pb1173-sort-file-key-variable-group": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "dynamic-length elementary item or an item subordinate to a dynamic-capacity table\" (ISO §14.9.40.3 SR6 d))"
  },
  "pb1173-sort-table-key-boolean": {
   "refuse-at": [

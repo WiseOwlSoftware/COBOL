@@ -8,6 +8,9 @@
       *>   cite.py --check 14.9.40.3 "The data items identified by key data-names shall be described in records
       *>     associated with file-name-1." -> OK §14.9.40.3 6) a)
       *> WK is a WORKING-STORAGE item, not part of any record of SW, so it cannot be a key.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173NR.
        ENVIRONMENT DIVISION.
@@ -22,9 +25,9 @@
        01 SR.
           05 K1 PIC X.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(1).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(1).
        WORKING-STORAGE SECTION.
        01 WK PIC X.
        PROCEDURE DIVISION.
