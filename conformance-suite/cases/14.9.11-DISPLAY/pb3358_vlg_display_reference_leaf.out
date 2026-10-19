@@ -1,0 +1,22 @@
+G1=[hello                        5]
+LEN 0030
+G2=[ab2x1        x2        ]
+LEN 0023
+G3=[cdy1        y2        ]
+LEN 0022
+G4=[ef                ]
+LEN 0018
+G5=[zp        qq        ]
+LEN 0020
+G6=[z2p        qq        ]
+LEN 0021
+G7=[wm        nn        ]
+LEN 0020
+GD=[abcxy        07]
+LEN 0015
+E5=[qq        ]
+LEN 0010
+E6=[p        ]
+LEN 0009
+E7=[nn        ]
+LEN 0010

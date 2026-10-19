@@ -455,7 +455,14 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     private string DynElementImage(DataItem d) =>
         // A GROUP element of fixed image renders through its AsImage; one that is itself a variable-length group
         // (kb/Work PB244) through its own CurrentImage - each occurrence at its own current extent.
-        d.IsGroup ? d.ElementImageCapable ? "static __e => __e.AsImage()" : "static __e => __e.CurrentImage()"
+        d.IsGroup ? d.ElementTransferImageCapable ? "static __e => __e.AsImage()" : "static __e => __e.CurrentImage()"
+        // A class pointer/object ELEMENT (kb/Work PB3358: a strong variable-length group's dynamic-capacity table of
+        // them reaches the one-way CurrentImage only): each occurrence is its 8 positions exactly as a fixed table's
+        // are (SlotImageOf) - the pointer's storage image of DOC-A.1-216, or the object's reserved placeholder. The
+        // carrier never asks this arm: CurrentExtentImageCapable refuses a slot-carried element.
+        : SlotWindow.CarriedBySlot(d)
+            ? SlotWindow.CarriesPointerImage(d) ? $"static __e => {RuntimeApi.PointerImageOf("__e")}"
+                                                : $"static __e => {SlotPlaceholder(d.ByteWidth)}"
         // The element lane mirrors PhysicalModel's numLeaf rule exactly: a NATIVE numeric element goes
         // through its byte-form lane (float via the distinctly-named IEEE lane), a string-carried element
         // (alphanumeric / edited / StoreAsImage) passes through. A USAGE BIT element is the third lane (kb/Work
@@ -526,7 +533,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         var composite = group.Children
             .Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary)
-                && (c.IsDynamicTable || c.IsDynamicLength || (c.IsGroup && !c.IsImageCapable)
+                && (c.IsDynamicTable || c.IsDynamicLength || (c.IsGroup && !c.TransferImageCapable)
                     || DataItem.HasOdoOnOrBeneath(c)))
             .ToDictionary(c => c.CsName, StringComparer.Ordinal);
         var parts = new List<VarPart>();
@@ -552,8 +559,8 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 continue;
             }
             parts.Add(d.IsDynamicLength ? new VarPart(VarPartKind.DynLeaf, f, d, 0, 1)
-                : d.IsDynamicTable ? new VarPart(d.ElementImageCapable ? VarPartKind.DynTable : VarPartKind.DynGroupTable, f, d, 0, 1)
-                : d.IsImageCapable ? new VarPart(VarPartKind.OdoFixed, f, d, f.Width, 0)
+                : d.IsDynamicTable ? new VarPart(d.ElementTransferImageCapable ? VarPartKind.DynTable : VarPartKind.DynGroupTable, f, d, 0, 1)
+                : d.TransferImageCapable ? new VarPart(VarPartKind.OdoFixed, f, d, f.Width, 0)
                 : d.OccursSpec?.DependingName is not null
                     ? new VarPart(VarPartKind.OdoTable, f, d, (d.Occurs ?? 1) * VarFixedWidth(d), (d.Occurs ?? 1) * VarComponentCount(d), d.Occurs ?? 1)
                 : d.Occurs is { } n ? new VarPart(VarPartKind.NestedTable, f, d, n * VarFixedWidth(d), n * VarComponentCount(d), n)
