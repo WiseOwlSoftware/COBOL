@@ -38,18 +38,21 @@ who acts next:
        the DEVLOG stamp: `unreviewed_since`, the one coverage rule the review stamp and `enqueue.py land` read). A
        report naming no HEAD, or followed by a commit no report describes (an agent resumed after writing it), covers
        nothing: DECISION, with the count;
-    2. its header's review stamp is CLEAN at the tip, or at an older head the same coverage reaches;
+    2. its header's review stamp COVERS the tip (`stamp_covers`, the one rule the planner's FINDINGS arm reads too,
+       kb/Work PB3394): the stamp names the tip, or an older head the same coverage reaches; CLEAN and FINDINGS alike;
     3. the landing lane's newest attempt AT THE TIP (land_lane.view: its head, or the end head its run left).
-  WAITING FOR REVIEW  coverage 1 holds, but the header carries no `Review: CLEAN` stamp covering the tip
-                   (plan_wave.REVIEW, written by review_findings.py stamp): ONE read-only cobol-reviewer reviews it (the
-                   `review` skill's branch form, kb/Work PB3027). The landing step never reviews and never fixes a
-                   finding. A stamp at an older head is unreviewed work.
+  WAITING FOR REVIEW  coverage 1 holds, but no review stamp covers the tip (none, or one at an older head followed by
+                   commits that are not mechanical; plan_wave.REVIEW, written by review_findings.py stamp): ONE
+                   read-only cobol-reviewer reviews it (the `review` skill's branch form, kb/Work PB3027; a diff-only
+                   re-review of the commits since an older stamp, PB3381). The landing step never reviews and never
+                   fixes a finding. A FINDINGS stamp at an older head is unreviewed work too, never a finisher's: the
+                   planner reads the same coverage (kb/Work PB3394).
   WAITING TO LAND  coverages 1 and 2 hold and no attempt stopped at this tip (none ran here, one is running, or its exit
                    is one the lane retries by itself: 3 once landing_check.py passes, 2 or 9 once, 8 after the halt; or
                    the enqueue unit re-armed it): the loop's landing lane runs `enqueue.py land <branch>` on it
                    (land_lane.py, kb/Work PB3103, PB3023), one branch at a time, the most harmful lead first (`--brief`
-                   lists them in that order, kb/Work PB2981's ranking). (A stamp that says FINDINGS is a DECISION row:
-                   the next wave's finisher answers them, plan_wave.py.)
+                   lists them in that order, kb/Work PB2981's ranking). (A stamp that says FINDINGS and covers the tip is
+                   a DECISION row: the next wave's finisher answers them, plan_wave.py.)
   STOPPED          coverages 1 and 2 hold and the lane's attempt at this tip STOPPED (land_lane's class: a conflict 4, a
                    red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, a repeated exit 2 or 9, a runner that DIED twice): the
                    lane never relaunches it at this head; the enqueue unit sends it to its finisher (or reviewer), whose
@@ -357,8 +360,8 @@ class Row:
     why: str = ''
     how: str = ''                   # a LANDED row whose own merge would change main: how its work got there (carried)
     tip: str = ''                   # the branch's tip sha (a review stamp covers exactly one head)
-    review_holds: bool = False      # its CLEAN stamp names an older head and every commit since is mechanical
-                                    # (unreviewed_since: main's, a clean merge of main, DEVLOG-only)
+    review_holds: bool = False      # its review stamp (CLEAN or FINDINGS) names an older head and every commit since
+                                    # is mechanical (unreviewed_since: main's, a clean merge of main, DEVLOG-only)
     report_since: list[str] | None = None   # unreviewed_since(the report's HEAD, tip): [] = the report covers the tip,
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
@@ -392,6 +395,30 @@ def unreviewed_since(reviewed: str, tip: str, *, repo=REPO, base: str = 'refs/re
     if not full or not tip or git('merge-base', '--is-ancestor', full, tip, cwd=repo).returncode != 0:
         return None
     return [c for c in git('rev-list', tip, f'^{full}', f'^{base}', cwd=repo).stdout.split() if not mechanical(c, repo)]
+
+
+def review_holds(rv: Review, tip: str | None, *, repo=REPO) -> bool:
+    """A review stamp at an OLDER head still holds at `tip`: every commit since its head is mechanical
+    (unreviewed_since == []: main merged in cleanly, the DEVLOG stamp). False when it names the tip itself."""
+    return bool(tip) and not rv.covers(tip) and unreviewed_since(rv.sha, tip, repo=repo) == []
+
+
+def stamp_covers(rv: Review, tip: str | None, *, repo=REPO) -> bool:
+    """THE REVIEW STAMP'S COVERAGE OF A BRANCH TIP (coverage 2 of the module doc), one rule for both verdicts and both
+    readers: lifecycle() here (a CLEAN stamp that covers is WAITING TO LAND, a FINDINGS stamp that covers is the next
+    wave's finisher) and the planner's FINDINGS arm (plan_wave.plan `review_covers`, kb/Work PB3394). The stamp names
+    the tip, or it holds there (review_holds). A stamp at an older head followed by real commits covers nothing: those
+    commits are unreviewed, so the branch is WAITING FOR REVIEW, a diff-only re-review (kb/Work PB3381), and a
+    finisher there would answer findings the branch has already answered (wave 1127 planned three)."""
+    return bool(tip) and (rv.covers(tip) or review_holds(rv, tip, repo=repo))
+
+
+def review_coverage(rows: list[Row], repo=REPO) -> Callable[[Review | None, str | None], bool]:
+    """stamp_covers at the tips THIS survey measured: (a stamp, its branch) -> the stamp covers that branch's tip. The
+    planner's FINDINGS arm reads it (plan_wave.main, kb/Work PB3394), so the planner and lifecycle() never disagree on
+    one branch. A branch the survey has no row for has no tip, and no stamp covers it."""
+    tips = {r.name: r.tip for r in rows}
+    return lambda rv, branch: bool(rv) and stamp_covers(rv, tips.get(branch or ''), repo=repo)
 
 
 @dataclasses.dataclass
@@ -487,9 +514,10 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
             return ('IN FLIGHT', touched) if fresh else ('DECISION', f'{rep.name}: {rep.status}, but {uncovered}; '
                                                          + evidence(row))
         rv = rep.review
-        if rv and rv.verdict == 'CLEAN' and (rv.covers(row.tip) or row.review_holds):
+        covered = bool(rv) and (rv.covers(row.tip) or row.review_holds)   # stamp_covers, measured by survey()
+        if covered and rv.verdict == 'CLEAN':
             return landing_state(row, rep, rv, lane)
-        if rv and rv.verdict == 'FINDINGS' and rv.covers(row.tip):
+        if covered and rv.verdict == 'FINDINGS':
             return 'DECISION', (f'{rep.name}: {rep.status}, but its branch review found {rv.findings} finding(s) '
                                 f'({rv.file}): a finisher answers them, and the next wave plans it (plan_wave.py, '
                                 'kb/Work PB3027); ' + evidence(row))
@@ -671,8 +699,8 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
     lane = land_lane.view(pathlib.Path(coord_dir) if coord_dir else coord.coord_path())
     for r in rows:
         rv = r.report.review if r.report else None
-        if rv and rv.verdict == 'CLEAN' and r.tip and not rv.covers(r.tip):
-            r.review_holds = unreviewed_since(rv.sha, r.tip, repo=repo) == []
+        if rv:
+            r.review_holds = review_holds(rv, r.tip, repo=repo)
         if r.content not in LANDED_CONTENT and r.report and r.report.finished and r.report.head and r.tip:
             r.report_since = unreviewed_since(r.report.head, r.tip, repo=repo)
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
@@ -1049,6 +1077,9 @@ def self_test() -> int:
                      # `succ`, which was cut from it and is DONE and reviewed CLEAN
                      ('unreviewed', 'src/N.cs'), ('review-findings', 'src/O.cs'), ('reviewed-moved', 'src/S.cs'),
                      ('pred', 'src/T.cs'), ('fnd-pred', 'src/W.cs'), ('reviewed-stamped', 'src/Y.cs'),
+                     # kb/Work PB3394: a FINDINGS stamp at a head the branch moved past (its answers committed after
+                     # the review), and one followed only by the DEVLOG stamp
+                     ('findings-moved', 'src/FM.cs'), ('findings-stamped', 'src/FS.cs'),
                      # ONE RULE FOR A FINISHED BRANCH (kb/Work PB3181, PB3125): the report's coverage, the review's,
                      # and the landing lane's newest attempt at the tip. `lane-pred` carries no report and lands
                      # through `lane-stopped`, cut from it; the other `lane-*` are each one attempt's outcome; a
@@ -1072,6 +1103,12 @@ def self_test() -> int:
         stamped_at = g('rev-parse', 'reviewed-stamped').stdout.strip()
         g('switch', '-q', 'reviewed-stamped')
         commit('DEVLOG/0042-the-fix.md', '## Entry 42 — 2026-10-11 20:00 PDT — the fix\n\nWhy.\n', 'DEVLOG 42: stamp')
+        fmoved_at = g('rev-parse', 'findings-moved').stdout.strip()
+        g('switch', '-q', 'findings-moved')
+        commit('src/FM.cs', 'class FindingsMovedX { int R1_1Answered; }\n', 'review R1-1: answered after the review')
+        fstamped_at = g('rev-parse', 'findings-stamped').stdout.strip()
+        g('switch', '-q', 'findings-stamped')
+        commit('DEVLOG/0043-the-findings.md', '## Entry 43 — 2026-10-11 21:00 PDT — findings\n\nWhy.\n', 'DEVLOG 43: stamp')
         g('switch', '-q', '-c', 'succ', 'pred')
         commit('src/V.cs', 'class SuccessorX {}\n', 'succ')
         # `fnd-pred` was reviewed FINDINGS; a later wave's finisher `fnd-fix` merged it and was reviewed CLEAN
@@ -1109,7 +1146,7 @@ def self_test() -> int:
         tips = {b: g('rev-parse', b).stdout.strip() for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
                                                                 'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
                                                                 'xpred', 'xsucc', 'upred', 'usucc', 'pred', 'rpred',
-                                                                'rsucc', 'tpred', 'tsucc')}
+                                                                'rsucc', 'tpred', 'tsucc', 'findings-moved')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
         g('switch', '-q', '-c', 'modified-only', 'main')
@@ -1230,6 +1267,12 @@ def self_test() -> int:
                                           f'**Review:** CLEAN w9998n-r1 {tips["succ"]}\n', 10),
                 ('w9998q-PB17-report.md', f'Status: DONE\nBranch: reviewed-stamped\nHEAD: {stamped_at[:12]}\n'
                                           f'**Review:** CLEAN w9998q-review-r1 {stamped_at[:12]}\n', 10),
+                # kb/Work PB3394: rewritten for the answers committed after the FINDINGS review (the report covers the
+                # tip, the stamp does not), and a FINDINGS stamp followed only by the DEVLOG stamp (it still covers)
+                ('w9992a-PB50-report.md', f'Status: DONE\nBranch: findings-moved\nHEAD: {tips["findings-moved"]}\n'
+                                          f'**Review:** FINDINGS 1 w9992a-r1 {fmoved_at[:12]} E:/s/review-w9992-a.jsonl\n', 10),
+                ('w9992b-PB51-report.md', f'Status: DONE\nBranch: findings-stamped\nHEAD: {fstamped_at[:12]}\n'
+                                          f'**Review:** FINDINGS 1 w9992b-r1 {fstamped_at[:12]} E:/s/review-w9992-b.jsonl\n', 10),
                 ('w9998o-PB16-report.md', f'Status: DONE\nBranch: fnd-pred\nHEAD: {tips["fnd-pred"]}\n'
                                           f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} {at_scratch("review-w9998-o.jsonl")}\n', 10),
                 ('w9998p-PB16-report.md', f'Status: DONE\nBranch: fnd-fix\nHEAD: {tips["fnd-fix"]}\n'
@@ -1346,7 +1389,8 @@ def self_test() -> int:
                 'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
                 'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
                 'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
-                'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT'}
+                'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT',
+                'findings-moved': 'WAITING FOR REVIEW', 'findings-stamped': 'DECISION'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1379,6 +1423,26 @@ def self_test() -> int:
         check('but the branch is at' in rows['reviewed-moved'].why, 'a stamp at an older head is unreviewed work, said so')
         check('2 finding(s)' in rows['review-findings'].why and 'finisher' in rows['review-findings'].why,
               'a FINDINGS stamp is a finisher DECISION, with the findings file')
+        # kb/Work PB3394 (wave 1127's shape): the planner reads THIS survey's coverage (review_coverage), so a FINDINGS
+        # stamp at a head the branch moved past is WAITING FOR REVIEW to both and gets no finisher; one followed only by
+        # the DEVLOG stamp still covers its tip, and gets its finisher
+        import plan_wave  # noqa: PLC0415  (it imports this module back)
+        check('Review FINDINGS at' in rows['findings-moved'].why and 'finding(s)' in rows['findings-stamped'].why,
+              f'a FINDINGS stamp at an older head is unreviewed work; one followed only by the DEVLOG stamp covers: '
+              f'{rows["findings-moved"].why} / {rows["findings-stamped"].why}')
+        coverage = review_coverage(list(rows.values()), repo=repo)
+        preps = plan_wave.load_reports(rdir)
+        pnotes = {n: plan_wave.Note(n, 'open', 'process', n, [], '', 0) for n in ('PB50', 'PB51')}
+        plan = plan_wave.plan(pnotes, [{'file': f'src/{f}.cs', 'files': [], 'harm': 0, 'notes': [{'id': n}]}
+                                       for n, f in (('PB50', 'FM'), ('PB51', 'FS'))], [], preps,
+                              lambda b: rows[b].content if b in rows else 'ABSENT', {}, coord.rules(), 100,
+                              review_covers=lambda rep: coverage(rep.review, rep.branch))
+        fins = {i: g.pred for g in plan['groups'] if g.kind == 'finisher' for i in g.notes}
+        check(('PB50' in fins, plan['waiting'].get('PB50', '').startswith('WAITING FOR REVIEW'),
+               'FINISH-FIRST: the branch review of w9992b' in fins.get('PB51', ''), 'PB51' in plan['waiting'])
+              == (False, True, True, False),
+              f'the planner plans no finisher for a FINDINGS stamp at an older head (WAITING FOR REVIEW, as the survey '
+              f'reads it) and one for a stamp that covers the tip: groups {fins}, waiting {plan["waiting"]}')
         check('contained in succ' in rows['pred'].why, f'a predecessor lands through its successor: {rows["pred"].why}')
         check('contained in fnd-fix' in rows['fnd-pred'].why,
               f'a FINDINGS branch its finisher merged lands through the finisher: {rows["fnd-pred"].why}')
@@ -1556,7 +1620,7 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 50 · 13 in flight · 3 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 52 · 13 in flight · 4 waiting for review · '
                                                       '9 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
