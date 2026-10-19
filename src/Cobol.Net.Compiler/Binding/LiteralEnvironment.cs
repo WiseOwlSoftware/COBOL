@@ -87,6 +87,12 @@ internal sealed class LiteralEnvironment
     /// <summary>The constant-name <paramref name="word"/> names here, or null (§13.10.3 SR2).</summary>
     public DataBinder.ConstantDef? Constant(string word) => _data?.FindConstant(word);
 
+    /// <summary>What <paramref name="word"/> stands for at a position that admits BOTH a literal and a system-name
+    /// (§13.10.3 SR2; ASSIGN's device-name-1 / literal-1, kb/Work PB2500): the constant it names, a refused constant
+    /// entry, or no constant at all. <see cref="Unscoped"/> defines none, so every word is
+    /// <see cref="ConstantReadingKind.NotAConstant"/> there.</summary>
+    public ConstantReading ReadConstant(string word) => _data?.ReadConstant(word) ?? ConstantReading.NotAConstant;
+
     /// <summary>Whether <paramref name="word"/> is a symbolic-character name here — in SPECIAL-NAMES, one the
     /// paragraph declares in any clause, since the clauses are order-free (kb/Work PB226).</summary>
     public bool IsSymbolicCharacter(string word) => _data is not null
