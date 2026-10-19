@@ -27,8 +27,9 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // the two bytes it occupies — D-N1; kb/Work PB327 dissolved the old one-character divergence. An ODO table
         // beside a dynamic member displays at its CURRENT count, and a table of variable-length elements - OCCURS
         // DEPENDING or dynamic-capacity, in a declared group or a CELL-BACKED one (kb/Work PB244) - shows each
-        // occurrence's own current image: the gate is CurrentExtentImageCapable, the one current-extent capability,
-        // which a WRITE / RELEASE of such a record asks too - kb/Work PB2497).
+        // occurrence's own current image: the gate is CurrentExtentTransferImageCapable, the one-way twin of the
+        // carrier's CurrentExtentImageCapable that also admits a class pointer/object leaf - kb/Work PB3358; a
+        // WRITE / RELEASE of such a record reads it back and asks the carrier's - kb/Work PB2497).
         // ⛔ `vp is not RedefViewPlace`: a Tier-B class-tier VIEW's Read() is its string WINDOW — spelling
         // .CurrentImage() on it is CS1061 on `string` (the PB176 skeptic round; whether a dynamic-length
         // member under REDEFINES is even legal is kb/Work PB177's screen question — the emitter defends
