@@ -566,7 +566,7 @@ for the keyword-omitted call's subscript trigger. And a DEFINING slot is a word,
 INDEXED BY index-names were a `dataReferenceList`, so `INDEXED BY IX OF G` compiled and declared `IXOFG`; they are
 now `indexNameList : cobolWord (COMMA? cobolWord)*`, and a qualifier or subscript is the syntax error §13.18.38.2's
 `{ index-name-1 } …` makes it. `UserWordSlotDriftTests` reads every parser `.g4` and fails on a bare `IDENTIFIER`
-outside the argued keyword, system-name and word-run sites (`formatWord`, `enterOperand`, `genericClause`, a
+outside the argued keyword, system-name and word-run sites (`formatWord`, `enterOperand`, `residueOpening`, a
 predicate-led keyword, the tokenless-keyword alternatives it names with their reason).
 **A REFERENCE to a gated word is answered by the parse-error path.** The gate leaves no name-slot alternative for
 `DISPLAY CONSTANT.` at `--std 2002`, and a source that fails to parse never reaches the bound-tree funnel. So
@@ -1262,8 +1262,8 @@ of words at the tail of a §13.16.2 Format-1 entry. Three harms, all the same ha
 3. every "…the only other clauses permitted are…" rule of §13.16.3 was unenforceable against a word the parser
    never classified — SR12, SR13, SR17 and SR18 alike.
 
-**The replacement.** `unrecognizedClause` (`Core/CobolExpressions.g4`), an ERROR PRODUCTION placed LAST in the
-alternative list. It still RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather
+**The replacement.** `unrecognizedDataClause` (`Core/CobolExpressions.g4`; the data division's form of the error
+production `unrecognizedClause`, below), an ERROR PRODUCTION placed LAST in the alternative list. It still RECOGNIZES the word run, which keeps recovery local (one diagnostic per entry rather
 than a cascade), and every instance is REFUSED by name — **COBOLNET1941** for this format, naming the word and
 citing §13.16.2. Refused at every edition and every strictness: **a vendor extension is admitted only under the
 dialect that owns it, never by a catch-all**, and this compiler declares no vendor dialect. The strictness axis
@@ -1316,8 +1316,14 @@ joined the table the same way, which is the table doing its job: a tenth format 
 | §12.3.2 | configuration section | `configurationParagraph` | COBOLNET1971 |
 | §11.2.1 | identification division | `identificationParagraph` | COBOLNET1971 |
 
-- **ONE production.** `genericClause` is referenced from `unrecognizedClause` and nowhere else; every site spells
-  `| unrecognizedClause`, LAST.
+- **ONE production, in two forms (kb/Work PB3390).** Every site spells the error production LAST: the data
+  division's three lists (`dataDescriptionClause`, `fileDescriptionClause`, `sortMergeDescriptionClause`) spell
+  `| unrecognizedDataClause`, every other list `| unrecognizedClause`. The two differ in ONE thing, the literal shapes
+  that begin with an unsigned integer (`residueInteger`), which only `unrecognizedClause` holds — because only after
+  the data division's lists may the next entry's level-number (ISO §8.3.2.2.13) follow the period, and one production
+  cannot hold a token in one list and refuse it in another. The run's pieces (`residueOpening`, `residueItem`,
+  `residueInteger`) are called from the two forms and nowhere else. `ClosedFormats.ErrorProductionRules` is the one
+  place the parse layer learns the two rules.
 - **ONE table.** `Frontend/Cst/ClosedFormats.cs` keys the format's §, subject, noun (`clause` vs `paragraph` —
   the §12.3.2 and §11.2.1 lists are lists of PARAGRAPHS, and calling one a clause sends the reader to the wrong
   subclause) and code on the PARENT context type.
@@ -1326,12 +1332,14 @@ joined the table the same way, which is the table doing its job: a tenth format 
   refusal used to live in `DataBinder.BindEntry`, which the level-66 and level-88 paths return before, so
   `88 CN WIBBLE VALUE 1.` dropped the word in silence — measured on the pre-change build, where only
   COBOLNET1747 fired. Four of the other formats bind nothing at all by construction.
-- **ONE drift guard.** `ClosedFormatDriftTests` reads the `.g4` files (the word-run matcher is referenced only by
-  the error production) AND reflects over the generated parser (every context type carrying an
-  `unrecognizedClause()` accessor has a table row, and every row is still carried), so adding a closed format is
-  `| unrecognizedClause` plus a table row, and forgetting the row fails the build.
-- **The parse-time half — a RESERVED word at the production's position (kb/Work PB2533).** `genericClause` begins
-  at an IDENTIFIER, and must: a run that could open with a reserved word would compete with every named alternative
+- **ONE drift guard.** `ClosedFormatDriftTests` reads the generated parser's ATN (the word run's pieces are called
+  only by the two forms; each list writes the form its follow set calls for — the data form exactly where INTEGERLIT
+  may begin what follows the list's period, derived from the ATN, not listed; `numericLiteralCore`'s shapes are
+  split exactly once between the run's opening and `residueInteger`) AND reflects over it (every context type
+  carrying an accessor of either form has a table row, and every row is still carried), so adding a closed format is
+  the error production plus a table row, the form is checked, and forgetting the row fails the build.
+- **The parse-time half — a RESERVED word at the production's position (kb/Work PB2533).** The word run
+  never begins at a reserved word, and must not: a run that could open with a reserved word would compete with every named alternative
   of its list (a malformed `SD SF RECORD.` would be read as a foreign word) and, in the paragraph lists, with the
   headers that follow them. So `SD SF GLOBAL.` never entered the production and drew a bare `COBOL0307`, reported
   wherever the parse finally failed (`SPECIAL-NAMES. GLOBAL.` failed in `compilationUnit`). `CobolErrorStrategy`
@@ -1357,35 +1365,44 @@ joined the table the same way, which is the table doing its job: a tenth format 
   already left the decision's rule) took the configuration section's, the only one past the rule's end while the
   paragraph's second period was required. The SOURCE-COMPUTER and OBJECT-COMPUTER rules therefore superset-parse
   that period (`DOT?`, the punctuation half below), the name's alternative leaves the rule too, and it wins.
-- **The production's token set — the run holds every literal but the reserved words; an unsigned integer and a
-  reserved word never open it (kb/Work PB3373).** `genericClause : residueOpening residueItem*`. The opening is
-  `IDENTIFIER | residueLiteral | (PLUS | MINUS) numericLiteralCore`; an item is `IDENTIFIER |
-  residueNonNumericLiteral | signedNumericLiteral | AMPERSAND concatOperand`. `residueLiteral` is every one-token
-  literal except the unsigned integer (`ClosedFormatDriftTests` derives that set from `nonNumericLiteral` and
-  `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the opening as written, word or
-  whole literal. Opening at a word only, the run left `SOURCE-COMPUTER. XYZ "LIT".` ONE viable parse, the name-less
+- **The production's token set — the run holds every literal but the reserved words; a reserved word never opens
+  it, and the data division's form holds no literal that begins with an unsigned integer (kb/Work PB3373,
+  PB3390).** `unrecognizedClause : (residueOpening | residueInteger) (residueItem | residueInteger)*` and
+  `unrecognizedDataClause : residueOpening residueItem*`. The opening is `IDENTIFIER | residueLiteral |
+  {tokensAreContiguous(2)}? COMMA INTEGERLIT | (PLUS | MINUS) numericLiteralCore`; an item is `residueOpening |
+  AMPERSAND concatOperand`; `residueInteger` is the integer and the integer-led comma decimal.
+  `residueLiteral` is every one-token literal except the unsigned integer (`ClosedFormatDriftTests` derives that set
+  from `nonNumericLiteral` and `numericLiteralCore` in the generated parser), and `ClosedFormatPass` quotes the
+  opening (the first item of either form) as written, word or whole literal. Opening at a word only, the run left `SOURCE-COMPUTER. XYZ "LIT".` ONE viable parse, the name-less
   paragraph followed by the configuration paragraph `XYZ "LIT"`, so XYZ was the refused word; with the literal
   admitted the name's reading is viable too and the ambiguity resolves to it (the lower alternative). No closed
   list's alternative, and nothing that follows a list, begins with an opening literal, so the only new ambiguities
   are a clause's own literal list against "the clause ends, a run begins", which resolve to the clause (loop
-  continuation is the lower alternative); `pb3373_literal_lists_beside_the_residue` runs them. The same holds for a
+  continuation is the lower alternative); `pb3373_literal_lists_beside_the_residue` runs them, and
+  `pb3390_integer_lists_beside_the_residue` the integer lists (SYMBOLIC CHARACTERS `ARE 2 4`, `RESERVE 2 AREAS`,
+  the '85 `MEMORY SIZE` and `SEGMENT-LIMIT 50`). The same holds for a
   sign-led opening after a clause that takes words (`SPECIAL-NAMES. FOO BAR -1.` reads `FOO BAR` as the
-  implementor-name clause, and `-1` is the run). The unsigned integer does not open the run because it may be the
-  next data description entry's level-number after a forgotten period; at a residue position the parse layer
-  refuses it (`IsLiteral`, the 0g arm), unless it may follow the list's period. The tail keeps it (`FOO 12` is one
-  run, which the text-predicated `SEGMENT-LIMIT IS? integer` needs: with no viable residue reading of its shape, a
-  word that is not SEGMENT-LIMIT fails the predicate at the decision's first token). The tail is the `literal` rule
+  implementor-name clause, and `-1` is the run). The general form opens and continues at an unsigned integer and at
+  both comma decimals (kb/Work PB3390): `SOURCE-COMPUTER. XYZ 12.`, `OBJECT-COMPUTER. XYZ 12.` and `XYZ ,5.` read XYZ
+  as the computer-name and refuse the literal, where the run that could not hold it left the name-less reading alone;
+  and `FOO 12` is one run, which the text-predicated `SEGMENT-LIMIT IS? integer` needs (with no viable residue reading
+  of its shape, a word that is not SEGMENT-LIMIT fails the predicate at the decision's first token). The data form
+  holds none of the INTEGERLIT-led shapes: an unsigned integer there may be the next entry's level-number after a
+  forgotten period (`01 X PIC X FOO` then `05 Y PIC X.` is the missing period at 05, where it used to be the one run
+  `FOO 05 Y` and a false COBOLNET2423 for Y's PICTURE), and even the comma decimal `1,5`, which is no level-number,
+  cannot be admitted, because a predicated alternative that is the only one viable at its first token throws
+  NoViableAlt at that token when its predicate fails (`05 Y` would draw one). The parse layer refuses `1,5` instead:
+  the 0g arm's after-period exclusion spares a token that heads a longer literal
+  (`CobolParserCoreBase.NumericLiteralWidth`, the one reading of a literal's extent, shared with
+  `numericLiteralIsLeftOperand`), and the refusal quotes the literal whole. The tail is the `literal` rule
   less its reserved words: a figurative constant (and NULL) is a reserved word, and in the run it read
   `OBJECT-COMPUTER. XYZ ZERO.` as the run `XYZ ZERO`; every other literal shape stays, so a sign-led numeric
   literal, a DECIMAL-POINT IS COMMA literal and a concatenation (whose `&` continues the run) never end the run at a
   bare parse error with a false missing-period hint (`01 A PIC X FOO -1.`, `FOO "A" & "B"`). No FIRST set of the
   run holds a reserved word, so the 0g arm still names each. `LiteralScreen` screens the opening's sign as it
-  screens `signedNumericLiteral`'s (COBOLNET2155 for `- 1`). The residue's integer is the one token whose right
-  reading depends on the format — a level-number can follow only the data division's lists — and one production
-  cannot express that: `SOURCE-COMPUTER. XYZ 12.` and `OBJECT-COMPUTER. XYZ 12.` still read XYZ as the residue, and
-  `01 X PIC X FOO` then `05 Y PIC X.` still reads `FOO 05 Y` as one run; the bare leading-comma decimal (`,5`), whose
-  only spelling is `numericLiteralCore`'s predicated alternative, does not open the run either, so
-  `OBJECT-COMPUTER. XYZ ,5.` still quotes XYZ (both reported from w1126b as leads).
+  screens `signedNumericLiteral`'s (COBOLNET2155 for `- 1`). The leading-comma decimal (`,5`) is written in the
+  opening itself (`numericLiteralCore`'s predicated alternative, copied because that rule also holds the unsigned
+  integer; the drift guard holds the split), so it opens either form's run.
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose
