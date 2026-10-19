@@ -1,5 +1,6 @@
-## PB3365, PB3355: two superseded branches recorded ABANDONED; PB2665 seen again
+## Entry 2231 — 2026-10-18 17:37 PDT — PB3365, PB3355: two superseded branches recorded ABANDONED; PB2665 seen again
 
 Branches worktree-wf_ebc64425-1e2-2 (PB3365, w1120b) and worktree-wf_ebc64425-1e2-5 (PB3355, w1120e) are recorded ABANDONED in their kb/Work notes. Both stopped SPLIT before their gates at the 08:58 STOP-loop, and finisher branches carried the work to main: PR #250 (worktree-wf_b390c138-faf-17, DEVLOG 2215) for PB3365 and PR #248 (worktree-wf_b390c138-faf-3, DEVLOG 2213) for PB3355. git cherry origin/main marks every commit of both branches `-` (2 of 2 each), the only file in either tree absent from main is its pending DEVLOG entry (stamped on main as 2215 and 2213), and every other differing file is newer on main. The authority is the loop steer's rule 5 (`--abandon` only for work verified carried elsewhere). No other branch was abandoned: worktree-wf_ebc64425-1e2-3 (PB3358, open) goes to a finisher, and the Mythos lane's worktree-wf_14a1e62b-326-31 and the detached pins pin-r2 and plan-main-20261018 stay with that lane (steer rule 4).
 
 kb/Work PB2665 gains the 16:53 to 17:07 recurrence: three meter units could not read account 2's meter because the Chrome extension was signed into account 1, the two that wrote a valid `outcome: failed` handoff never reached the breaker, and the synthesized third started a resume unit over an unchanged state.
+
