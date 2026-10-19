@@ -5,9 +5,10 @@
 *> source-format: free
 *> portable: unverified
 *>---
-      *> kb/Work PB643 - the RESERVE clause allocates integer-1
-      *> input-output areas, and how many there are is VISIBLE to a
-      *> second file connector of the same physical file.
+      *> kb/Work PB643, PB1587 - the RESERVE clause allocates integer-1
+      *> input-output areas, and how many there are is NOT visible to a
+      *> second file connector of the same physical file: a WRITE
+      *> releases its record at once whatever the count.
       *>
       *> "If the RESERVE clause is specified, the number of
       *> input-output areas allocated is equal to the value of
@@ -19,28 +20,37 @@
       *> logical record to the operating environment."
       *>   cite.py: OK  §14.9.51.4 12)  (General rules)
       *>
+      *> "The successful execution of a WRITE statement releases a
+      *> logical record to the operating environment."
+      *>   cite.py: OK  §14.9.51.4 12)  (General rules)
+      *> "The sharing with read only mode restricts concurrent access
+      *> to a physical file through file connectors other than this
+      *> one, to input mode."
+      *>   cite.py: OK  §9.1.15 2)  (Sharing mode)
+      *>
       *> WiseOwl COBOL's determination (docs/CONFORMANCE.md
       *> DOC-A.1-164): an input-output area is 4,096 bytes of buffer
       *> between the connector's record area and the medium; with no
-      *> RESERVE clause a connector has ONE. A connector that holds the
-      *> only writable handle releases its records to the medium as its
-      *> areas fill (and at CLOSE); a connector whose sharing mode admits
-      *> another writer releases each record during its own WRITE.
+      *> RESERVE clause a connector has ONE. The areas decide only WHEN
+      *> a record reaches the medium, and only for a connector that
+      *> admits no other connector (SHARING WITH NO OTHER) can that
+      *> be unobservable: every WRITE of a connector whose sharing mode
+      *> admits a reader or a writer releases its record at the WRITE
+      *> (GR12), whatever the count of areas. kb/Work PB1587 retired
+      *> the earlier determination, under which a SHARING WITH READ
+      *> ONLY writer held its records until the areas filled.
       *>
       *> DERIVATION. Each phase empties the file, opens a writer in the
       *> extend mode, WRITEs 100 records of 64 bytes (6,400 bytes) and
       *> then counts what a second connector (RDR) reads, before and
-      *> after the writer's CLOSE.
-      *>   no clause / RESERVE 1 AREA: one 4,096-byte area fills after
-      *>     64 records and goes to the medium when the 65th arrives;
-      *>     the other 36 (2,304 bytes) stay in the area -> 064, then
-      *>     100 after CLOSE.
-      *>   RESERVE 2 AREAS: 8,192 bytes of area hold all 6,400 bytes
-      *>     -> 000, then 100 after CLOSE. Without the clause's effect
-      *>     this phase would read 064, like the two above.
-      *>   RESERVE 5 AREAS under SHARING WITH ALL OTHER: the sharing
-      *>     mode admits another writer, so every WRITE releases its
-      *>     record through the areas -> 100, then 100.
+      *> after the writer's CLOSE. The writer's sharing mode (READ ONLY
+      *> in the first three phases, ALL OTHER in the fourth) admits
+      *> RDR, so GR12 puts every record in the physical file at its
+      *> WRITE and RDR reads all 100 before the CLOSE:
+      *>   no clause / RESERVE 1 AREA / RESERVE 2 AREAS: 100, then 100
+      *>     after CLOSE - the count of areas changes nothing RDR can
+      *>     see (it used to read 064, 064 and 000).
+      *>   RESERVE 5 AREAS under SHARING WITH ALL OTHER: 100, then 100.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB643VIS.
        ENVIRONMENT DIVISION.
