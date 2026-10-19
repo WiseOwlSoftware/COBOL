@@ -35,3 +35,10 @@ contiguous current-extent image (8.5.1.11.2) is the storage image too; `ConvertA
 (fixed control `6162633037`, variable-length `61623036`, BYTE-LENGTH 4). A lead was also answered: the pointer-leaf comments said the
 leaf "contributes no digit", true for an object reference and for a NULL pointer only; a non-NULL pointer's address token can carry
 digit characters. The comment and the DOC-A.1-57 row now say so, and `StronglyTypedGroupWithANullPointerLeaf_...` pins the pinnable NULL case.
+
+**Review round 2.** The round-1 CONVERT ANY fix read the current-extent character image as the group's storage, which is wrong for a group holding a
+dynamic-length national item or a dynamic-capacity table of national elements (composed character for character, A.1 item 63; `N"xy"` + `PIC 9(2)` gave
+`78793036` against the storage `007800793036`): a loud abort had become a silent wrong value. `DataItem.CurrentImageIsStorageImage` is asked by
+`OperandText.AsStorageImage` before the one reader, so such a group stays at the named run-time loud for the storage channel; DISPLAY, the function string argument
+and the digit decode (character consumers) are unchanged. Tests: the fixed-national control, the item and table loud pins and the item's own CONVERT. Lead: for such a
+group DISPLAY's width and `BYTE-LENGTH` disagree (A.1 item 57's "no exception" is false for a dynamic national item); the DOC-A.1-57 row records it, the fix is a record-framing redesign.
