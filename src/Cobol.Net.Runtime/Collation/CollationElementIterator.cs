@@ -37,6 +37,49 @@ internal ref struct CollationElementIterator
     {
         while (true)
         {
+            if (TryNextOfMapping(out element)) return true;
+            if (!TryNextMapping())
+            {
+                element = default;
+                return false;
+            }
+        }
+    }
+
+    /// <summary>The char index of the text where the current MAPPING begins: the first code point of the single
+    /// character, Hangul syllable or contraction <see cref="TryNextMapping"/> last took.</summary>
+    public int MappingStart { get; private set; }
+
+    /// <summary>The char index just past the last position the current mapping consumed (a discontiguous contraction's
+    /// furthest mark included; a mark it skipped inside that span is a mapping of its own, walked later).</summary>
+    public int MappingEnd { get; private set; }
+
+    /// <summary>Advance to the next MAPPING of the text (UTS #10 S2.1: one code point, a Hangul syllable or the longest
+    /// contraction), whose elements <see cref="TryNextOfMapping"/> then yields — none for a mapping to no element. False
+    /// at the end of the text. Any element of the previous mapping not yet yielded is dropped.</summary>
+    public bool TryNextMapping()
+    {
+        _poolCount = _poolIndex = _computedCount = _computedIndex = _jamoCount = _jamoIndex = 0;
+        if (!_walker.NextCodePoint(out int cp, out int after)) return false;
+        MappingStart = after - (cp > 0xFFFF ? 2 : 1);
+        MappingEnd = after;
+        var candidates = _table.ContractionsStartingWith(cp);
+        if (candidates is not null && _walker.TryMatchContraction(after, candidates, out var contraction))
+        {
+            SetPool(contraction.Offset, contraction.Count);
+            MappingEnd = _walker.MatchEnd;
+        }
+        else if (CollationTable.IsHangulSyllable(cp))
+            _jamoCount = CollationTable.DecomposeHangul(cp, out _jamo0, out _jamo1, out _jamo2);
+        else Load(cp);
+        return true;
+    }
+
+    /// <summary>The next element of the current mapping, or false when it has no more.</summary>
+    public bool TryNextOfMapping(out CollationElement element)
+    {
+        while (true)
+        {
             if (_poolIndex < _poolCount)
             {
                 element = _table.ElementAt(_poolOffset + _poolIndex);
@@ -56,24 +99,8 @@ internal ref struct CollationElementIterator
                 Load(jamo);
                 continue;
             }
-            if (!_walker.NextCodePoint(out int cp, out int after))
-            {
-                element = default;
-                return false;
-            }
-            var candidates = _table.ContractionsStartingWith(cp);
-            if (candidates is not null && _walker.TryMatchContraction(after, candidates, out var contraction))
-            {
-                SetPool(contraction.Offset, contraction.Count);
-                continue;
-            }
-            if (CollationTable.IsHangulSyllable(cp))
-            {
-                _jamoCount = CollationTable.DecomposeHangul(cp, out _jamo0, out _jamo1, out _jamo2);
-                _jamoIndex = 0;
-                continue;
-            }
-            Load(cp);
+            element = default;
+            return false;
         }
     }
 

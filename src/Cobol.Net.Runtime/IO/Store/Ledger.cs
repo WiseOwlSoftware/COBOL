@@ -203,8 +203,8 @@ internal sealed class Ledger
     /// were settled as <c>released</c> before the write, so a release here records nothing.</summary>
     private sealed class OwnPageSink(PageStatement statement) : IPageSink
     {
-        public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next) =>
-            statement.WriteUnlisted(kind, body, flags, entries, next);
+        public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, TreeMarks marks) =>
+            statement.WriteUnlisted(kind, body, flags, entries, next, marks);
 
         public void Release(PagePointer page)
         {
