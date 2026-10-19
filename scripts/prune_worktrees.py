@@ -1438,7 +1438,7 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 48 · 11 in flight · 3 waiting for review · '
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 50 · 13 in flight · 3 waiting for review · '
                                                       '9 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
