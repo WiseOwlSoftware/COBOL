@@ -1784,8 +1784,10 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    dispatch spec allocated, and flips its notes.
 2. **Review on the branch** (landed, PB3027; MANDATORY-PRACTICES I10): a read-only reviewer (`cobol-reviewer`, the
    `review` skill's "branch form": the full-code pass over `origin/main...HEAD`, the drift rules of the changed files,
-   fixed time limits in tests, `cite.py --check`, the other dimensions where the diff warrants) runs when the branch is
-   DONE, inside the wave's slot for that group (`wf_rolling_wave.js` `reviewed()`). Every decision is a line in
+   fixed time limits in tests, `cite.py --check`, the other dimensions where the diff warrants) runs THE MOMENT the
+   branch is DONE, inside the wave's slot for that group (`wf_rolling_wave.js` `reviewed()`), a same-file predecessor's
+   branch too: no branch waits for its successor, and a branch reviewed CLEAN is landable at once (kb/Work PB3381,
+   below). Every decision is a line in
    `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
    the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
    `FINDINGS <n> <reviewer> <head> <file>` — read back through `plan_wave.parse_review`, the one reader. The stamp sits
@@ -1795,9 +1797,57 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
    returns DONE), reviewed again, at most `review_fix_rounds` (2) times; after that the FINDINGS stamp stays and
-   `plan_wave.py` plans a finisher for it. Only a branch stamped CLEAN at its tip is landable: the wave hands its
-   trains only those, and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches
-   the reviewer for one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
+   `plan_wave.py` plans a finisher for it. **The rounds converge (kb/Work PB3381, owner 2026-10-18: "We should not be
+   holding finished work this long, continually postponing it. Something in our process is flawed"; on the change:
+   "Make the changes now and land the clean links as they come.").** Round 1 is the whole branch; round 2 and later
+   review ONLY `git diff <the head the last round reviewed>..HEAD` (the wave passes `reviewed_head`) and the report's
+   answers, since the earlier content is reviewed and is not re-opened unless the diff touches it. Every finding
+   carries a severity (critical, high, medium, low, info) and the verdict is a threshold, `review_findings.py verdict
+   --blocking`: critical, high and medium block in every round a finisher can still answer, critical and high only in
+   the round after the last finisher; low and info never block; every finding stays recorded, and each non-blocking
+   one is a LEAD the stamp lists under the report's `## Review findings` and the wave returns in `leads`, filed by the
+   enqueue unit's clerk. Measured on wave 1118 (the PB3330 engine chain, 7 h, six groups DONE, none landed): PB3331's
+   three whole-branch rounds found 5, 2 and 1 findings over 2.3 h, each new, and the cap turned one LOW finding into
+   a DECISION row. **Nothing is held for a same-file successor (kb/Work PB3381):** the train-era rule that a
+   predecessor "lands THROUGH" its successor saved nothing once every branch became one pull request in the merge
+   queue (PB3023, PB3024) and kept a chain off main until its last link was clean; now the successor starts once the
+   predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
+   predecessor's. Unanswered findings have ONE source, the predecessor's findings file, and ONE reader,
+   `review_findings.last_verdict` (its newest verdict: round, branch, head, verdict and the number of blocking
+   findings), which the wave's `predecessorEnd` (through the CLI's `last-verdict`) and `prune_worktrees.py`
+   `carrying_findings` (over `findings_files`: every `review-*.jsonl` in the coordination scratch and one level under
+   it, and every file a stamp names, found by NAME only, never opened to decide what is one) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
+   own branch with no Review line whatever it returns, so a hold read from the stamp released the successor exactly
+   when nobody had answered them (branch review R3-1). While that last verdict is FINDINGS with blocking findings at a
+   head a successor contains, the survey holds the successor IN FLIGHT (`waits_on`) until a later round of that review
+   records CLEAN or the head is on main; a branch of the same note (its later finisher) is exempt. `predecessorEnd`
+   reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
+   successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
+   without answering, its report rewritten: the successor's review covers the predecessor's content and records again
+   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
+   when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
+   holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
+   under `review_findings.SCHEMA` (every required field of its kind present with the right type, a verdict's FINDINGS
+   when and only when its count is above zero; an extra field is allowed), the one record schema the writers share
+   (`append` refuses to write a record that fails it). No verdict is read from a torn file, whatever its records say:
+   `last_verdict` returns verdict TORN, `unanswered`, with `torn` naming the file, line, byte offset and reason
+   (`reason` and `line` apart) and the `branches` and `heads` its parseable lines name (or the branch an enqueue
+   unit's `review-<branch>.jsonl` names), and it never raises, so the CLI's `last-verdict` (exit 0) and the survey
+   read one answer. `carrying_findings` holds each WAITING TO LAND branch it names and each one containing a head it
+   names, the same note's included (a file that names none holds the branches of the note whose review it records,
+   by the stamp that names it or its wave name), and writes the tear and what the operator does into the held row's
+   `why`; `predecessorEnd` reads it `unanswered`, never `capped`; one file never stops the landing lane's tick; every
+   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs:
+   it removes a byte-order mark, keeps a last record that only lost its newline, removes any other torn tail, deletes
+   a file left with no record, refuses a file it cannot read, and leaves an intact file unchanged.
+   `review_findings.py --self-test` proves the rule by cutting a findings file at every byte offset, alone and with a
+   record glued on, by each discovery case made at the file's first read (a read denied, a byte-order mark, a
+   zero-byte file, a directory in its place, the CLI and the survey agreeing on each) and by each schema mutation;
+   and a merged branch with no clean stamp at its tip never lands alone,
+   it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
+   and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
+   one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
    stamp: `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest report's CLEAN stamp names no commit of
    it, or after which it gained a commit that is not main's, a clean merge of main (its tree the auto-merge of its
    parents) or DEVLOG-only — a finisher's fix, a hand-resolved conflict — so that work is reviewed at its new tip first;
@@ -1825,7 +1875,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    whole population, no waiting for CI. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
    gate at enqueue adds CI's Linux legs under WSL (`linux-gate.sh --nice`), run under `gate_slot.py run` as a
    landing ticket of the same shared gate slot (§3.14.6; kb/Work PB3104: run bare, seven concurrent landings ran seven
-   uncapped WSL gates and load alone turned five RED); then that row goes. Every gate row declares how it takes its
+   uncapped WSL gates and load alone turned five RED); then that row goes. A HOST-I-O group (a file of its set under
+   `src/Cobol.Net.Runtime/IO/`) does not meet the Linux legs first here: its implementer runs the unit and
+   conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8; `make_dispatch_specs.host_io`, kb/Work PB3381:
+   wave 1118's PB3333 was refused at this step by 31 NIST RL programs that differ on Linux, 2.6 h after its DONE),
+   and this step still runs all of them. Every gate row declares how it takes its
    slot and `enqueue.py` runs no row while one would run outside it.
 4. **The merge queue** (PB3024): GitHub builds the merge group (several queued PRs on top of `main`), the workflow runs on
    the `merge_group` event — the full matrix: Linux and Windows, the sharded conformance legs, unit + characterization,
