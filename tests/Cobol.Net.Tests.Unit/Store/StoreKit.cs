@@ -84,6 +84,16 @@ internal static class StoreKit
         return Commit(store, tree);
     }
 
+    /// <summary>INSERT <paramref name="key"/> → <paramref name="value"/> into the prime tree under <paramref name="order"/>: one
+    /// statement ('30' when the key is already there: the test inserts only new keys).</summary>
+    public static StoreStatus CommitOne(PagedFile store, IKeyOrder order, byte[] key, byte[] value)
+    {
+        if (store.Enter() != StoreStatus.Ok) return StoreStatus.PermanentError;
+        var tree = new BTree(store, order, store.Meta.PrimeRoot);
+        if (tree.Insert(key, value, out bool inserted) != StoreStatus.Ok || !inserted) return StoreStatus.PermanentError;
+        return Commit(store, tree);
+    }
+
     /// <summary>DELETE record <paramref name="id"/>: one statement ('30' when it does not exist: the test asks only for
     /// records it wrote).</summary>
     public static StoreStatus Delete(PagedFile store, int id)
@@ -214,7 +224,8 @@ internal static class StoreKit
     /// POINTER, then per key {key length (2), key, child POINTER}; LEAF — per entry {key length (2), value length (4; bit
     /// 31: an OVERFLOW reference of a head POINTER and a total length), key, value}. <see cref="UsedBytes"/> is the
     /// body's used length.</summary>
-    internal sealed record RawNode(uint Page, PageKind Kind, List<byte[]> Keys, List<PagePointer> Children, List<RawValue> Values, int UsedBytes);
+    internal sealed record RawNode(uint Page, PageKind Kind, List<byte[]> Keys, List<PagePointer> Children, List<RawValue> Values, int UsedBytes,
+        TreeMarks Marks);
 
     /// <summary>A leaf value as the auditor decodes it: inline bytes, or an overflow chain's head and total length.</summary>
     internal readonly record struct RawValue(byte[]? Inline, PagePointer Head, uint Total);
@@ -229,7 +240,7 @@ internal static class StoreKit
         Assert.True(h.Kind is PageKind.Internal or PageKind.Leaf, $"page {pointer.Page} is a {h.Kind} page, not a tree node");
         Assert.Equal(0u, h.Next);   // no sibling pointers (2.2.1.4)
         var body = page.AsSpan(PageHeader.Bytes);
-        var node = new RawNode(pointer.Page, h.Kind, [], [], [], 0);
+        var node = new RawNode(pointer.Page, h.Kind, [], [], [], 0, h.Marks);
         int at = 0;
         if (h.Kind == PageKind.Internal)
         {
