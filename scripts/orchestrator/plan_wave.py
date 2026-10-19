@@ -975,9 +975,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         """A finished report on an unlanded branch whose branch review stamped FINDINGS, at whatever head."""
         return cls not in LANDED_CLASSES and r.finished and bool(r.review) and r.review.verdict == "FINDINGS"
 
+    covered: dict[pathlib.Path, bool] = {}   # review_covers may run git (a stamp at an older head): once per report
+
     def findings(r: Report, cls: str) -> bool:
         """... and the stamp covers the branch tip: only then does a review finisher answer it (kb/Work PB3394)."""
-        return stamped(r, cls) and review_covers(r)
+        if not stamped(r, cls):
+            return False
+        if r.path not in covered:
+            covered[r.path] = review_covers(r)
+        return covered[r.path]
 
     # THE LEADS THE REPORTS DECIDE: every open note the fix lane sees, and the lead of a live FINDINGS report that the
     # fix lane cannot see (a `process_only` note, or an owner task's note main does not have yet: branch_lead_notes),
