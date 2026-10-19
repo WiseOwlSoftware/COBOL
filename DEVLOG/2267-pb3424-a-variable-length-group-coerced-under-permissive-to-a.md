@@ -1,4 +1,4 @@
-## PB3424 - a variable-length group coerced under --permissive to a function string argument or a numeric operand is the image DISPLAY shows, not a run-time abort
+## Entry 2267 — 2026-10-19 14:28 PDT — PB3424 - a variable-length group coerced under --permissive to a function string argument or a numeric operand is the image DISPLAY shows, not a run-time abort
 
 **What was wrong.** `MOVE FUNCTION UPPER-CASE (PG) TO X` over a group holding a DYNAMIC LENGTH item compiled under `--permissive` with the
 COBOLNET1627 warning ("accepted ... with the existing coercion") and then aborted with `NotImplementedCobolFeatureException`, the Tier-C
@@ -42,3 +42,4 @@ dynamic-length national item or a dynamic-capacity table of national elements (c
 `OperandText.AsStorageImage` before the one reader, so such a group stays at the named run-time loud for the storage channel; DISPLAY, the function string argument
 and the digit decode (character consumers) are unchanged. Tests: the fixed-national control, the item and table loud pins and the item's own CONVERT. Lead: for such a
 group DISPLAY's width and `BYTE-LENGTH` disagree (A.1 item 57's "no exception" is false for a dynamic national item); the DOC-A.1-57 row records it, the fix is a record-framing redesign.
+
