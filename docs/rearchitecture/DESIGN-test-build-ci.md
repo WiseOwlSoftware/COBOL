@@ -1815,8 +1815,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor's. Unanswered findings have ONE source, the predecessor's findings file, and ONE reader,
    `review_findings.last_verdict` (its newest verdict: round, branch, head, verdict and the number of blocking
    findings), which the wave's `predecessorEnd` (through the CLI's `last-verdict`) and `prune_worktrees.py`
-   `carrying_findings` (over `findings_files`: the coordination scratch, one level under it, and every file a stamp
-   names) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
+   `carrying_findings` (over `findings_files`: every `review-*.jsonl` in the coordination scratch and one level under
+   it, and every file a stamp names, found by NAME only, never opened to decide what is one) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
    own branch with no Review line whatever it returns, so a hold read from the stamp released the successor exactly
    when nobody had answered them (branch review R3-1). While that last verdict is FINDINGS with blocking findings at a
    head a successor contains, the survey holds the successor IN FLIGHT (`waits_on`) until a later round of that review
@@ -1824,18 +1824,26 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
    successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
    without answering, its report rewritten: the successor's review covers the predecessor's content and records again
-   each finding that still holds; branch review R1-1, R2-1, R3-1). A TORN findings file holds every branch it names
-   (review R4-1, R5-1): a file is torn when it does not end with a newline, when a line is not a review record, or
-   when its bytes are not UTF-8, and no verdict is read from it, whatever its records say (`last_verdict` returns
-   verdict TORN, `unanswered`, with `torn` naming the file, line, byte offset and reason and the `branches` and
-   `heads` its parseable lines name); `carrying_findings` holds each WAITING TO LAND branch it names and each one
-   containing a head it names, the same note's included, and writes the tear and the repair into the held row's
-   `why`; `predecessorEnd` reads it `unanswered`, never `capped`; `unanswered` never raises (a file the reader cannot
-   read is a tear of that file alone, holding the branches of the note whose review it records), so one file never
-   stops the landing lane's tick; every writer refuses a torn file BEFORE writing, naming
-   `review_findings.py repair <file>`, which only the operator runs: it keeps a last record that only lost its
-   newline and removes any other torn tail, and leaves an intact file unchanged. `review_findings.py --self-test`
-   proves the rule by cutting a findings file at every byte offset, alone and with a record glued on;
+   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
+   when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
+   holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
+   under `review_findings.SCHEMA` (every required field of its kind present with the right type, a verdict's FINDINGS
+   when and only when its count is above zero; an extra field is allowed), the one record schema the writers share
+   (`append` refuses to write a record that fails it). No verdict is read from a torn file, whatever its records say:
+   `last_verdict` returns verdict TORN, `unanswered`, with `torn` naming the file, line, byte offset and reason
+   (`reason` and `line` apart) and the `branches` and `heads` its parseable lines name (or the branch an enqueue
+   unit's `review-<branch>.jsonl` names), and it never raises, so the CLI's `last-verdict` (exit 0) and the survey
+   read one answer. `carrying_findings` holds each WAITING TO LAND branch it names and each one containing a head it
+   names, the same note's included (a file that names none holds the branches of the note whose review it records,
+   by the stamp that names it or its wave name), and writes the tear and what the operator does into the held row's
+   `why`; `predecessorEnd` reads it `unanswered`, never `capped`; one file never stops the landing lane's tick; every
+   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs:
+   it removes a byte-order mark, keeps a last record that only lost its newline, removes any other torn tail, deletes
+   a file left with no record, refuses a file it cannot read, and leaves an intact file unchanged.
+   `review_findings.py --self-test` proves the rule by cutting a findings file at every byte offset, alone and with a
+   record glued on, by each discovery case made at the file's first read (a read denied, a byte-order mark, a
+   zero-byte file, a directory in its place, the CLI and the survey agreeing on each) and by each schema mutation;
    and a merged branch with no clean stamp at its tip never lands alone,
    it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
    and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for

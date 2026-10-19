@@ -153,8 +153,9 @@ function settled(letter) {
 //                 so no report shows the findings any more, and whatever it left half done is on the successor's
 //                 branch. The successor's review covers the predecessor's content as its own and records again each of
 //                 those findings that still holds. A last verdict that cannot be read reads 'unanswered' too, and so
-//                 does a TORN findings file (`v.torn`, verdict TORN, review R4-1, R5-1): no verdict is read from a torn
-//                 file, whatever its records say, so it is never read as capped.
+//                 does a TORN findings file (`v.torn`, verdict TORN, review R4-1, R5-1, R6-1: one the reader cannot
+//                 open, or whose content is not records; the CLI exits 0 with that reading): no verdict is read from a
+//                 torn file, whatever its records say, so it is never read as capped.
 //   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
 //                 successor's, as its own.
 // In both FINDINGS cases prune_worktrees.py carrying_findings holds the successor: it reads the SAME findings file
