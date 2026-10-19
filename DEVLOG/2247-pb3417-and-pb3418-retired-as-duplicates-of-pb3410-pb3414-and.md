@@ -1,4 +1,4 @@
-## PB3417 and PB3418 retired as duplicates of PB3410, PB3414 and PB3415
+## Entry 2247 — 2026-10-19 01:31 PDT — PB3417 and PB3418 retired as duplicates of PB3410, PB3414 and PB3415
 
 The enqueue unit's leads clerk (PR #278) filed four leads at 00:15. Two of them were already in the register:
 - PB3417 repeats PB3410 (the ledger's "at most 9 pages" bound has no assertion). PB3410 had landed with PR #275 at
@@ -14,3 +14,4 @@ re-check command.
 
 PB3416 stays open. It names PB2749 and sequences against it: a small replay-rule fix of its own, while PB2749's broader
 extraction is blocked on PB2759. PB3419 (the `orchestrate.ps1` LaneTick comment that still names `STOP-UNIT`) is new.
+
