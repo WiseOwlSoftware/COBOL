@@ -69,7 +69,13 @@ def family(model: str) -> str:
 
 
 def coord_path(override: str | None = None) -> pathlib.Path:
-    """The coordination directory's path, WITHOUT creating it (a reader on a machine without one stays read-only)."""
+    """The coordination directory's path, WITHOUT creating it (a reader on a machine without one stays read-only). An
+    explicit `override` (a script's --coord) must be absolute (absolute_problem, kb/Work PB3114): a drive-relative one,
+    which Git Bash makes of an unquoted Windows path, names a directory inside whatever the current one is, and a
+    writer that takes this path (mailbox.py send) would create its files there. The default and the environment keep
+    coord_dir's rule (it refuses either when it is not absolute on this host)."""
+    if override and (why := absolute_problem(override, "the coordination directory")):
+        raise SystemExit(f"⛔ {why}")
     return pathlib.Path(override or os.environ.get(ENV) or DEFAULT)
 
 
@@ -111,6 +117,43 @@ def fleet_stop(scratch: pathlib.Path | str, scope: str) -> pathlib.Path:
     if not STOP_SCOPE.fullmatch(scope):
         raise ValueError(f"stop scope {scope!r} is not a plain name ([A-Za-z0-9._-])")
     return pathlib.Path(scratch) / f"STOP-{scope}"
+
+
+# THE FLEET PATHS A DISPATCH WRITES OR NAMES (kb/Work PB3114): the wave's scratch directory and its own stop file. Git
+# Bash drops the backslashes of an UNQUOTED Windows path, so `--scratch E:\COBOL-coord\scratch` arrives as the
+# DRIVE-RELATIVE `E:COBOL-coordscratch` (`pathlib.Path("E:x").is_absolute()` is False), which Windows resolves against
+# drive E:'s current directory: three wave units wrote their specs into a folder inside the main checkout and named a
+# stop file nobody watches. Every writer asks these BEFORE it reserves, records or writes anything (plan_wave.main,
+# make_dispatch_specs.main) and check_practices.py refuses a groups file whose stop file fails: one rule, three readers.
+def absolute_problem(path: pathlib.Path | str, what: str) -> str | None:
+    """Why `path` cannot be a fleet path on this host, or None: it must be ABSOLUTE (no drive-relative `E:x`, no
+    root-relative `\\x`, no relative name)."""
+    if not str(path) or not pathlib.Path(path).is_absolute():
+        return (f"{what} {str(path)!r} is not an absolute path on this host (Git Bash drops the backslashes of an unquoted "
+                "Windows path: quote it, kb/Work PB3114)")
+    return None
+
+
+def scratch_problem(scratch: pathlib.Path | str) -> str | None:
+    """Why `scratch` cannot be a fleet's scratch directory, or None: absolute, and outside this repository's checkout
+    (fleet files inside it are one careless `git add -A` from a commit)."""
+    if why := absolute_problem(scratch, "the scratch directory"):
+        return why
+    if pathlib.Path(scratch).resolve().is_relative_to(REPO.resolve()):
+        return f"the scratch directory {scratch} is inside the repository checkout {REPO}: fleet files live outside it"
+    return None
+
+
+def fleet_stop_problem(stop: pathlib.Path | str) -> str | None:
+    """Why `stop` cannot be a fleet's own graceful-stop file, or None (kb/Work PB2483, PB3114): absolute and named
+    `STOP-<scope>` (fleet_stop's name), so never the owner's global `STOP` (global_stop)."""
+    if why := absolute_problem(stop, "the fleet stop file"):
+        return why
+    name = pathlib.Path(stop).name
+    if not (name.startswith("STOP-") and STOP_SCOPE.fullmatch(name[len("STOP-"):])):
+        return (f"the fleet stop file {stop} is not named STOP-<scope> ([A-Za-z0-9._-]): a fleet's stop is its own, never "
+                "the owner's global STOP (kb/Work PB2483)")
+    return None
 
 
 # THE COORDINATION DIRECTORY'S ONE SHORT MUTEX (the allocator's `alloc.lock`):
@@ -326,6 +369,27 @@ def _self_test() -> int:
             got, why = loop_state(d)
             if got != want:
                 fails.append(f"lock {content!r}: want {want}, got {got} ({why})")
+        # the fleet paths (kb/Work PB3114): what Git Bash makes of an unquoted Windows path is refused, on any host
+        tmp = pathlib.Path(d).resolve()
+        for got, want, what in (
+                (scratch_problem(tmp / "scratch"), False, "an absolute scratch outside the checkout"),
+                (scratch_problem("E:COBOL-coordscratch"), True, "a drive-relative scratch"),
+                (scratch_problem("scratch"), True, "a relative scratch"),
+                (scratch_problem(REPO / "COBOL-coordscratch"), True, "a scratch inside the repository checkout"),
+                (fleet_stop_problem(fleet_stop(tmp, "loop")), False, "the loop's STOP-loop"),
+                (fleet_stop_problem("E:COBOL-coordscratchSTOP-loop"), True, "a drive-relative stop file"),
+                (fleet_stop_problem(tmp / "STOP"), True, "the global stop's name"),
+                (fleet_stop_problem(tmp / "STOP-"), True, "an empty scope"),
+                (fleet_stop_problem(tmp / "STOP-a b"), True, "a scope that is not a plain name")):
+            if (got is not None) != want:
+                fails.append(f"fleet paths: {what}: want {'refused' if want else 'accepted'}, got {got!r}")
+        try:
+            coord_path("E:COBOL-coord")
+            fails.append("coord_path: a drive-relative --coord was accepted")
+        except SystemExit:
+            pass
+        if coord_path(str(tmp)) != tmp:
+            fails.append(f"coord_path: an absolute --coord reads {coord_path(str(tmp))}, want {tmp}")
     # process_table reads the REAL table (a kernel snapshot on Windows, /proc elsewhere): this process is in it, under
     # its parent, with its own command line (mailbox.py's watcher check walks exactly these fields, kb/Work PB2814)
     me = [p for p in process_table() if p["pid"] == os.getpid()]

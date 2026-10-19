@@ -103,7 +103,7 @@ BRIEFS = {
 # cluster after group V), so the report path stays wave-and-group prefixed.
 # A RENDERED spec names the two stop files themselves (PB2483): the owner's global `...\scratch\STOP` and the fleet's own
 # `...\STOP-<scope>`, never a bare shared `{S}\STOP` that another session's wind-down would trip.
-RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-[A-Za-z0-9][A-Za-z0-9._-]*']
+RENDERED_STOPS = [r'scratch[\\/]STOP(?![-\w])', r'[\\/]STOP-' + coord.STOP_SCOPE.pattern]   # the scope: coord's one rule
 # A RENDERED spec's report path is in THE reports directory (coord.reports_dir(), kb/Work PB2980), the only one the land
 # unit and prune_worktrees.py read: wave 1055's scratch was its own folder, and its six reports were never seen.
 RENDERED_REPORT = re.escape(str(coord.reports_dir())) + r'\\w\d+[a-z]\d*-PB\d+-report\.md'
@@ -282,10 +282,13 @@ def main():
         print(f'FAIL     mechanical role given a per-call model (P1 — it overrides its Sonnet frontmatter): {over}')
     groups_files = [pathlib.Path(a) for a in sys.argv[1:] if a.endswith('.json')]
     for gp in groups_files:
-        stop = json.loads(gp.read_text(encoding='utf-8')).get('stop_file') or ''
-        if not re.search(RENDERED_STOPS[1] + r'$', stop):
-            bad += 1
-            print(f'FAIL     {gp.name}: `stop_file` {stop!r} is not a fleet-scoped STOP-<scope> file (P3, kb/Work PB2483)')
+        cfg = json.loads(gp.read_text(encoding='utf-8'))
+        # the fleet paths' one rule (coord.fleet_stop_problem, scratch_problem: kb/Work PB2483, PB3114), the same the
+        # planner and the spec renderer ask before they write
+        for why in (coord.fleet_stop_problem(cfg.get('stop_file') or ''), coord.scratch_problem(cfg.get('scratch') or '')):
+            if why:
+                bad += 1
+                print(f'FAIL     {gp.name}: {why} (P3)')
         clash = same_file_without_successor(gp)
         if clash:
             bad += 1

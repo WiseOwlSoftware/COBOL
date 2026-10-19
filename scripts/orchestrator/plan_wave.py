@@ -41,7 +41,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
    that already failed twice; Sonnet otherwise; never Fable).
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
    skipped and a smaller later one may still fit; a successor only with its predecessor), plus each group's landing (kb/Work PB3023).
-7. Codes (three per group) come from alloc.py; --dry-run peeks and reserves nothing, and writes nothing. The planner
+7. Codes (three per group) come from alloc.py, reserved only after the specs rendered on the PEEKED codes check GREEN
+   (below); --dry-run peeks and reserves nothing, and writes nothing. The planner
    allocates no lead ids: the enqueue unit's clerk takes them from `alloc.py pb <n>` when it files the landed reports'
    leads (units/enqueue.md step 5; kb/Work PB3023 retired the train's lead-id blocks).
 8. A note whose body says it needs a frontier model under the owner's approval (model_rules.json
@@ -89,10 +90,16 @@ ADMISSION estimate; the GUARANTEE is the landing check (scripts/orchestrator/lan
 land`): R3 work whose ACTUAL diff leaves its declared set, or that meets another in-flight branch's, stops and re-plans
 (PB2118 Draft 9); fix lane against fix lane is never stopped there, and costs at most a conflict finisher at the merge.
 
-Without --dry-run it writes <scratch>/groups.json (make_dispatch_specs.py's format, each group's `file_set` a list),
-runs make_dispatch_specs.py (which renders the specs, records the groups in the dispatch ledger and runs
-check_practices.py), and writes <scratch>/wf-args-w<wave>.json, the args of
-.claude/skills/workstream/templates/wf_rolling_wave.js. Exit 1 when check_practices.py is red.
+Without --dry-run, A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114). First, before anything is
+planned, it refuses (exit 2) a --scratch, --stop-file or --reports that is not a fleet path (coord.scratch_problem,
+fleet_stop_problem, absolute_problem: absolute, the scratch outside the checkout, the stop file STOP-<scope>; Git Bash
+makes the drive-relative `E:COBOL-coordscratch` of an unquoted Windows path). Then it writes <scratch>/groups.json
+(make_dispatch_specs.py's format, each group's `file_set` a list) with the PEEKED codes and runs `make_dispatch_specs.py
+--no-record` (render, check_practices.py, record nothing); only on GREEN does it reserve the codes through alloc.py,
+write groups.json again with them, run make_dispatch_specs.py (render, check, and on GREEN record the groups in the
+dispatch ledger) and write <scratch>/wf-args-w<wave>.json, the args of
+.claude/skills/workstream/templates/wf_rolling_wave.js. Exit 1 when check_practices.py is red: no code reserved, no
+ledger entry, no args file.
 """
 from __future__ import annotations
 
@@ -1400,6 +1407,15 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("one of the arguments --budget-points --from-budget is required")
     if not a.dry_run and not a.scratch:
         ap.error("--scratch is required without --dry-run")
+    # THE FLEET PATHS FIRST (kb/Work PB3114), before anything is planned, reserved, recorded or written: Git Bash makes the
+    # drive-relative `E:COBOL-coordscratch` of an unquoted Windows path, and three wave units wrote their specs into a
+    # folder inside the main checkout, reserved 24 codes each and held eight notes in the ledger with nothing in flight.
+    # The rules are coord's, the ones make_dispatch_specs.py and check_practices.py read too.
+    if refused := [w for w in (a.scratch and coord.scratch_problem(a.scratch),
+                               a.stop_file and coord.fleet_stop_problem(a.stop_file),
+                               a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
+        print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
     rules = coord.rules()
@@ -1491,13 +1507,13 @@ def main(argv: list[str] | None = None) -> int:
     # file (the branch reviewer's prompt) and check_practices.py (kb/Work PB3359)
     group_reqs = group_requirements(p["groups"], {i.get("id"): i.get("cluster") for i in items}, REPO / "kb" / "Work",
                                     [a.cluster] if a.cluster else [])
-    gjson = []
-    for k, g in enumerate(p["groups"]):
-        if a.dry_run:
-            first = peek_code + k * per
-        else:
-            first, _ = alloc.allocate("code", per, REPO, cdir)
-        gjson.append(as_group_json(g, wave, notes, alloc.render("code", first, per), group_reqs[k]))
+
+    def group_json(first: int) -> list[dict[str, Any]]:
+        """The groups file's groups, each with its `per` codes from `first` on (group k: first + k·per)."""
+        return [as_group_json(g, wave, notes, alloc.render("code", first + k * per, per), group_reqs[k])
+                for k, g in enumerate(p["groups"])]
+
+    gjson = group_json(peek_code)   # PEEKED: a plan reserves its codes only once its specs check GREEN (kb/Work PB3114)
 
     print(f"=== WAVE {wave} PLAN{campaign}: {len(p['groups'])} groups, {p['points']:.2f} of "
           f"{budget_points:.2f} weekly points{' (DRY RUN: nothing reserved or written)' if a.dry_run else ''} ===")
@@ -1527,13 +1543,34 @@ def main(argv: list[str] | None = None) -> int:
                           text=True).stdout.strip()
     gfile = scratch / "groups.json"
     stop_file = pathlib.Path(a.stop_file) if a.stop_file else coord.fleet_stop(scratch, f"w{wave}")
-    if stop_file == coord.global_stop(a.coord):
-        print(f"--stop-file {stop_file} is the owner's GLOBAL stop; a fleet's stop is its own STOP-<scope> (kb/Work PB2483)")
-        return 2
-    gfile.write_text(json.dumps({"wave": wave, "scratch": str(scratch), "base": f"{head} (origin/main when planned)",
-                                 "stop_file": str(stop_file),
-                                 "groups": gjson}, indent=1, ensure_ascii=False) + "\n",
-                     encoding="utf-8", newline="\n")
+
+    def render(gjson: list[dict[str, Any]], *flags: str) -> int:
+        """Write groups.json and run make_dispatch_specs.py on it (it renders the specs, runs check_practices.py and,
+        unless `--no-record`, records the groups in the dispatch ledger when GREEN: record_dispatch, the one writer,
+        kb/Work PB3186)."""
+        gfile.write_text(json.dumps({"wave": wave, "scratch": str(scratch), "base": f"{head} (origin/main when planned)",
+                                     "stop_file": str(stop_file), "groups": gjson}, indent=1, ensure_ascii=False) + "\n",
+                         encoding="utf-8", newline="\n")
+        sys.stdout.flush()   # the plan table above prints before the renderer's own lines, redirected or not
+        return subprocess.call([sys.executable, str(MAKE_SPECS), str(gfile), *flags,
+                                *(["--coord", a.coord] if a.coord else [])], cwd=REPO)
+
+    # A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114): render and check on the PEEKED codes,
+    # recording nothing; only then reserve the codes, render again with them and record. A RED check reserves no code
+    # and holds no note in the ledger (a wave entry never expires: its notes waited for a hand `--release`).
+    if rc := render(gjson, "--no-record"):
+        print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
+              "ledger, no wf-args file; fix the cause and plan again)")
+        return rc
+    first, _ = alloc.allocate("code", per * len(p["groups"]), REPO, cdir)
+    if first != peek_code:
+        print(f"  codes moved while the specs were checked (another allocation): reserved from "
+              f"{alloc.render('code', first, per * len(p['groups']))}")
+    gjson = group_json(first)
+    rc = render(gjson)
+    print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
+    if rc:
+        return rc
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
             "concurrency": rules["wave"]["concurrency"],
             "implementer_model": rules["wave"]["implementer_model"], "authorization": a.authorization,
@@ -1542,12 +1579,7 @@ def main(argv: list[str] | None = None) -> int:
     afile = scratch / f"wf-args-w{wave}.json"
     afile.write_text(json.dumps(args, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {gfile} and {afile}")
-    # make_dispatch_specs.py renders the specs AND records the wave's groups in the dispatch ledger (record_dispatch,
-    # the one writer: kb/Work PB3186)
-    rc = subprocess.call([sys.executable, str(MAKE_SPECS), str(gfile), *(["--coord", a.coord] if a.coord else [])],
-                         cwd=REPO)
-    print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
-    return rc
+    return 0
 
 
 if __name__ == "__main__":

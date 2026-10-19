@@ -9,6 +9,7 @@ waits (blockers in two chains, the owner, a frontier model), and work.py check's
 Run: python scripts/orchestrator/test_plan_wave.py   (no build, no git; the campaign section needs the
 tools/claude-skills submodule, and its absence is a FAIL)."""
 import dataclasses
+import json
 import os
 import pathlib
 import re
@@ -1444,6 +1445,72 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
       note_path_scanners({"scripts/arch/planted.py": PLANT, "scripts/orchestrator/p2.py": "fc" + ".sites(text, idx, exts)",
                           "scripts/orchestrator/fine.py": "x = 1"}),
       ["scripts/arch/planted.py", "scripts/orchestrator/p2.py"])
+
+# kb/Work PB3114: A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE, end to end through main() on a scratch
+# coordination directory (its own allocator and dispatch ledger), with the plan itself fixed (one group) so only main's
+# ordering is under test. (a) A drive-relative --scratch or --stop-file (what Git Bash makes of an unquoted Windows
+# path) is refused before anything: exit 2, nothing reserved, recorded or written. (b) A RED practices check (a stand-in
+# make_dispatch_specs.py that exits 1) reserves no code and records nothing, and its one call was the --no-record pass.
+# (c) GREEN through the real make_dispatch_specs.py: the codes are reserved after the check, the spec carries them, the
+# ledger holds the group and the args file is written. (d) The renderer alone records nothing on RED.
+C3114 = TMP / "coord-3114"
+C3114.mkdir()
+(C3114 / "inflight-groups.json").write_text('{"groups": []}\n', encoding="utf-8", newline="\n")
+for kind in ("open", "half"):
+    (C3114 / f"clusters-{kind}.json").write_text('{"clusters": []}\n', encoding="utf-8", newline="\n")
+(TMP / "reports-3114").mkdir()
+FAKE_SPECS = TMP / "fake_make_dispatch_specs.py"
+FAKE_SPECS.write_text("import pathlib, sys\npathlib.Path(sys.argv[1]).with_name('fake-calls.txt').open('a').write("
+                      "' '.join(sys.argv[2:]) + chr(10))\nsys.exit(1)\n", encoding="utf-8", newline="\n")
+
+
+def main3114(scratch, stop, specs):
+    saved_plan, saved_specs = pw.plan, pw.MAKE_SPECS
+    pw.plan = lambda *_a, **_k: {"groups": [pw.Group("cluster", ["PB3114"], "scripts/orchestrator/plan_wave.py",
+                                                     ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
+                                 "points": 0.1, "awaiting_landing": {}, "waiting": {}, "unlanded_without_note": [],
+                                 "drain_not_started": [], "skipped": []}
+    pw.MAKE_SPECS = specs
+    try:
+        return pw.main(["--wave", "9114", "--budget-points", "3", "--no-branches", "--coord", str(C3114),
+                        "--reports", str(TMP / "reports-3114"), "--clusters-json", str(C3114 / "clusters-open.json"),
+                        "--half-clusters-json", str(C3114 / "clusters-half.json"), "--scratch", str(scratch),
+                        "--stop-file", str(stop)])
+    finally:
+        pw.plan, pw.MAKE_SPECS = saved_plan, saved_specs
+
+
+def state3114():
+    return (pw.alloc.peek("code", coord.REPO, C3114), pw.ledger_groups(C3114))
+
+
+before = state3114()
+S3114 = TMP / "scratch-3114"
+for scratch, stop in (("E:COBOL-coordscratch", S3114 / "STOP-loop"), (S3114, "E:COBOL-coordscratchSTOP-loop"),
+                      (S3114, S3114 / "STOP")):
+    check(f"PB3114 (a): --scratch {scratch} --stop-file {stop} is refused first, nothing reserved, recorded or written",
+          (main3114(scratch, stop, pw.MAKE_SPECS), state3114(), S3114.exists()), (2, before, False))
+check("PB3114 (b): a RED check reserves no code, records nothing and writes no args file; its one render recorded nothing",
+      (main3114(S3114, S3114 / "STOP-loop", FAKE_SPECS), state3114(), (S3114 / "wf-args-w9114.json").exists(),
+       (S3114 / "fake-calls.txt").read_text(encoding="utf-8").split(chr(10))[0].split()[:1]),
+      (1, before, False, ["--no-record"]))
+rc3114 = main3114(S3114, S3114 / "STOP-loop", pw.MAKE_SPECS)
+after_code, after_ledger = state3114()
+spec3114 = (S3114 / "msg-w9114-a.txt").read_text(encoding="utf-8")
+check("PB3114 (c): GREEN reserves the group's codes after the check, renders them and records the group",
+      (rc3114, after_code - before[0], pw.alloc.render("code", before[0], 3) in spec3114,
+       [(g["wave"], g["letter"], g["notes"]) for g in after_ledger], (S3114 / "wf-args-w9114.json").is_file()),
+      (0, 3, True, [("9114", "A", ["PB3114"])], True))
+pw.release_dispatch(C3114, "9114")
+# a hand-planned groups file whose practices check is RED: a standing requirement its spec body does not carry (PB3359)
+g3114 = json.loads((S3114 / "groups.json").read_text(encoding="utf-8"))["groups"][0]
+gred = TMP / "groups-3114-red.json"
+gred.write_text(json.dumps({"wave": "9115", "scratch": str(S3114), "base": "abc", "stop_file": str(S3114 / "STOP-x"),
+                            "groups": [{**g3114, "letter": "B", "slug": "w9115b",
+                                        "requirements": {"PB1": ["a requirement no rendered spec carries (3114)"]}}]}),
+                encoding="utf-8", newline="\n")
+check("PB3114 (d): make_dispatch_specs.py records nothing when its practices check is RED",
+      (mds.main([str(gred), "--coord", str(C3114)]), pw.ledger_groups(C3114)), (1, []))
 
 for f in fails:
     print("FAIL:", f)

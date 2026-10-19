@@ -62,6 +62,8 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "scripts" / "spec"))
+sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
+import coord  # noqa: E402  (THE coordination directory and the stop files, one definition: kb/Work PB3114)
 import r2_collect  # noqa: E402  (the launch plan a batch is sized by)
 import r2_cost  # noqa: E402
 import r2_subsystems  # noqa: E402
@@ -69,7 +71,6 @@ import work  # noqa: E402
 
 CENSUS_DIR = Path("docs/rearchitecture/evidence/arch-census")
 PERF_DIR = Path("docs/rearchitecture/evidence/perf-baseline")
-COORD = Path(os.environ.get("COBOL_COORD", r"E:\COBOL-coord"))
 # The dimensions (PROMPT.md §4's four, plus §5.5's modern-C#). Their criteria live in ONE place each — the review
 # skill and design §5 — and the workflow brief points there; nothing here restates them (N4).
 DIMENSIONS = ["architecture", "code", "performance", "duplication", "modern-csharp"]
@@ -565,8 +566,8 @@ def main():
     ap.add_argument("--dimensions", default=",".join(DIMENSIONS))
     ap.add_argument("--duplication", action="store_true", help="with --batch: include the ONE whole-codebase clone pass")
     ap.add_argument("--width", type=int, default=8)
-    ap.add_argument("--stop-file", default=str(COORD / "scratch" / "STOP-r2"))
-    ap.add_argument("--global-stop-file", default=str(COORD / "scratch" / "STOP"))
+    ap.add_argument("--stop-file", default=str(coord.fleet_stop(coord.coord_path() / "scratch", "r2")))
+    ap.add_argument("--global-stop-file", default=str(coord.global_stop()))
     r2_cost.add_budget_args(ap)
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args()
@@ -574,6 +575,8 @@ def main():
         return self_test()
     if not a.out:
         ap.error("--out is required")
+    if why := coord.fleet_stop_problem(a.stop_file):   # the fleet paths' one rule (kb/Work PB3114)
+        ap.error(why)
     if a.batch:
         if not a.shards and not a.duplication:
             ap.error("--batch needs --shards (or --duplication alone: a batch of only the clone pass)")
