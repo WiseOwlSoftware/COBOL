@@ -28,7 +28,8 @@ who acts next:
                    lifecycle, contained or not: a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at
                    once (kb/Work PB3381). A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
                    IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings(): read from the findings file's
-                   last verdict, review_findings.last_verdict, never from a report's stamp). Only the first kind has a live
+                   last verdict, review_findings.last_verdict, never from a report's stamp), and so is every WAITING TO
+                   LAND branch a TORN findings file names or that contains a head it names. Only the first kind has a live
                    owner of its own (owned(): what the planner's FINDINGS arm waits on).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
@@ -362,8 +363,9 @@ class Row:
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
                                     # nobody works on THIS one (owned() excludes it; kb/Work PB3311 review R1-1)
-    waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries; it lands
-                                    # after that one, and nobody works on THIS one either (owned() excludes it)
+    waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries, or that a
+                                    # TORN findings file holding it names first; it lands after that one is answered
+                                    # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
 
 
 def mechanical(commit: str, repo=REPO) -> bool:
@@ -679,11 +681,11 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
     scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
     stamped = [r.review.file for r in reports if r.review and r.review.file]
-    torn: list[str] = []
-    found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped), torn)
-    for why in torn:   # said on every survey (session-probe, the landing lane's log) until the operator repairs it
-        print(f'prune_worktrees: a findings file is torn; the records before the tear still hold (review R4-1): {why}',
-              file=sys.stderr)
+    found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped))
+    for v in found:   # said on every survey (session-probe, the landing lane's log) until the operator repairs it
+        if v['torn']:
+            print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1): {v["torn"]}; '
+                  f'repair: {review_findings.repair_command(pathlib.Path(v["file"]))}', file=sys.stderr)
     carrying_findings(rows, repo, found, list(reports))
     return rows
 
@@ -743,7 +745,8 @@ def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
     hit = next((rep for rep in reports if rep.name.startswith(f'w{m["wave"]}{m["letter"]}-')), None) if m else None
     if hit:
         return hit.lead
-    row = next((r for r in rows if r.name == v['branch'] and r.report), None)
+    branch = v['branch'] or next(iter(v.get('branches') or []), '')   # a torn reading names its branches instead
+    row = next((r for r in rows if branch and r.name == branch and r.report), None)
     return row.report.lead if row else ''
 
 
@@ -759,27 +762,44 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
     again once a later round of that review records CLEAN or that head is on main. The FINDINGS file decides, never a
     report's stamp (review R3-1): a review finisher rewrites the group's one report for its own branch with no Review
     line whatever it returns, so a hold read from the stamp released the successor exactly when nobody had answered
-    them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands. A torn findings file
-    holds what its records before the tear hold (review R4-1: skipping it released every hold it recorded), and the
-    held row's `why` names the torn line and the repair, so the operator sees what to fix."""
+    them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands.
+    A TORN findings file (its reading's `torn`; review R5-1) holds every WAITING TO LAND branch it names and every one
+    whose tip contains, not yet on main, a head it names, the same note's included: no verdict is read from it. A file
+    that names no branch (it could not be read at all) holds the branches of the note whose review it records
+    (findings_lead) and every branch containing their tips. The held row's `why` names the tear and the repair."""
     if not findings:
         return
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the repair command a torn file's row names)
-    leads = [(v, findings_lead(v, list(reports), rows)) for v in findings]
+    holds = []   # (reading, its note, the branches it holds by name, the heads it holds by containment)
+    for v in findings:
+        lead = findings_lead(v, list(reports), rows)
+        if v['torn']:
+            names = set(v['branches']) or {x.name for x in rows if lead and x.report and x.report.lead == lead}
+            heads = [*v['heads'], *(x.tip for x in rows if x.name in names and x.tip)]
+        else:
+            names, heads = set(), [v['head']]
+        holds.append((v, lead, names, [h for h in heads if h]))
     for r in rows:
         if r.state != 'WAITING TO LAND' or not r.tip or not r.report:
             continue
         unlanded = git('rev-list', f'origin/main..{r.tip}', cwd=repo).stdout.split()
-        hit = next(((v, lead) for v, lead in leads if v['head'] and not (lead and lead == r.report.lead)
-                    and any(c.startswith(v['head']) for c in unlanded)), None)
-        if hit:
-            v, lead = hit
-            r.state, r.waits_on = 'IN FLIGHT', v['branch']
-            torn = (f'; that findings file is TORN at {v["torn"]}: the records before the tear hold, and appends are '
-                    f'refused until the operator runs `{review_findings.repair_command(pathlib.Path(v["file"]))}` (review '
-                    'R4-1)') if v.get('torn') else ''
+        hit = next(((v, lead, names) for v, lead, names, heads in holds
+                    if (v['torn'] or not (lead and lead == r.report.lead))
+                    and (r.name in names or any(c.startswith(h) for h in heads for c in unlanded))), None)
+        if not hit:
+            continue
+        v, lead, names = hit
+        r.state = 'IN FLIGHT'
+        if v['torn']:
+            r.waits_on = next(iter([*v['branches'], *sorted(names)]), pathlib.Path(v['file']).name)
+            r.why = (f'carries {r.waits_on} ({lead or "note unknown"}), whose findings file {v["file"]} is TORN '
+                     f'({v["torn"]}): a torn file holds every branch it names, whatever its records say, and no writer '
+                     f'appends to it until the operator runs `{review_findings.repair_command(pathlib.Path(v["file"]))}` '
+                     '(kb/Work PB3381 review R5-1); ' + evidence(r))
+        else:
+            r.waits_on = v['branch']
             r.why = (f'carries {v["branch"]} ({lead or "note unknown"}), whose review FINDINGS ({v["blocking"]}) at '
-                     f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict{torn}): it '
+                     f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict): it '
                      'lands once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
 
 
@@ -1265,9 +1285,10 @@ def self_test() -> int:
         tear_at = len(tfile.read_text(encoding='utf-8').splitlines()) + 1
         with tfile.open('a', encoding='utf-8', newline='\n') as f:
             f.write('{"kind": "finding", "round": 4, "file": "src/X.cs", "li')
-        # a reviewer killed mid-append leaves a torn line: the survey names the file and goes on (every check below runs)
+        # a torn file naming a branch and head this repository lacks: the survey says it, holds nothing else, and goes on
+        # (every check below runs)
         torn = fscratch / 'w9994' / 'review-w9994-t.jsonl'
-        review_findings.start(torn, 1, 'xsucc', tips['xsucc'], 'w9994t-r1')
+        review_findings.start(torn, 1, 'gone', '0abcdef', 'w9994t-r1')
         with torn.open('a', encoding='utf-8', newline='\n') as f:
             f.write('{"kind": "verdict", "round": 1, "bra')
         (fscratch / 'r2').mkdir()
@@ -1358,13 +1379,73 @@ def self_test() -> int:
                'review-w9996-a.jsonl' in rows['rsucc'].why, rows['rpred'].carrier) == ('rpred', True, True, 'rsucc'),
               f'a successor whose predecessor\'s finisher rewrote the report and committed nothing still waits on the '
               f'findings file\'s last verdict: {rows["rsucc"].why}')
-        # review R4-1: a torn line never releases a hold. tpred's capped round-3 FINDINGS stands before the torn round-4
-        # append, so tsucc is HELD (never WAITING TO LAND), and its why names the torn line and the repair
+        # review R4-1, R5-1: a torn file holds every branch it names and every branch containing a head it names. tpred's
+        # file is torn by a round-4 append after its capped round 3, so tsucc is HELD (never WAITING TO LAND), and its
+        # why names the tear and the repair
         check((rows['tsucc'].state, rows['tsucc'].waits_on, 'carries tpred (PB42)' in rows['tsucc'].why,
-               f'review-w9993-a.jsonl:{tear_at}: not JSON' in rows['tsucc'].why,
+               f'review-w9993-a.jsonl:{tear_at} (byte ' in rows['tsucc'].why and 'not JSON' in rows['tsucc'].why,
                'review_findings.py repair ' in rows['tsucc'].why) == ('IN FLIGHT', 'tpred', True, True, True),
-              f'a successor whose predecessor\'s capped FINDINGS file was torn by a later append is held, the tear named: '
+              f'a successor whose predecessor\'s findings file is torn is held, the tear named: '
               f'{rows["tsucc"].state} {rows["tsucc"].why}')
+        # review R5-1, THE PROPERTY at representative cuts (review_findings.py --self-test proves it at every byte):
+        # the survey's own reader (unanswered over findings_files) and carrying_findings, re-run on tsucc for each body
+        # of tpred's findings file. Expected results from the rule: a cut inside a record holds tsucc; among them the
+        # swallowed-record cut of the reviewer's probe case 3 (round 2's FINDINGS verdict lost its newline and round
+        # 3's start was glued on; the round-4 reader read round 1 CLEAN and released tsucc) and a cut inside a "§"
+        # (the round-4 reader raised UnicodeDecodeError out of the survey); a cut at a record boundary reads exactly
+        # its records' verdict (round 1 CLEAN: tsucc lands; round 2 FINDINGS: held).
+        kept = tfile.read_bytes()
+
+        def body(name: str, rounds: list[tuple[str, list[str]]], then: bytes = b'') -> bytes:
+            p = tmp / 'cuts' / f'review-{name}.jsonl'
+            for k, (summary, severities) in enumerate(rounds, 1):
+                review_findings.start(p, k, 'tpred', tips['tpred'], f'w-cut-r{k}')
+                for n, sev in enumerate(severities, 1):
+                    review_findings.finding(p, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'c', 'severity': sev,
+                                                              'summary': summary, 'failure_scenario': 'x'},
+                                                             ensure_ascii=False))
+                review_findings.verdict(p, k)
+            return p.read_bytes() + then
+
+        two = body('two', [('s', []), ('s', ['high'])])
+        glued = json.dumps({'kind': 'start', 'round': 3, 'branch': 'tpred', 'head': tips['tpred'],
+                            'reviewer': 'w-cut-r3'}).encode() + b'\n'
+        sect = json.dumps({'kind': 'finding', 'round': 2, 'summary': '§14.9 wrong'}, ensure_ascii=False).encode()
+        one = body('one', [('s', [])])
+        cuts = (('probe case 3: round 2 FINDINGS lost its newline, round 3 start glued on', two[:-1] + glued, 'IN FLIGHT', True),
+                ('round 2 FINDINGS lost its newline', two[:-1], 'IN FLIGHT', True),
+                ('inside a "§" of a round-2 finding', body('sect', [('§ 1', [])]) + json.dumps(
+                    {'kind': 'start', 'round': 2, 'branch': 'tpred', 'head': tips['tpred'], 'reviewer': 'w-cut-r2'}).encode()
+                 + b'\n' + sect[:sect.index('§'.encode()) + 1], 'IN FLIGHT', True),
+                ('at a record boundary after round 1 CLEAN', one, 'WAITING TO LAND', False),
+                ('at a record boundary after round 2 FINDINGS', two, 'IN FLIGHT', False),
+                # the reader cannot read the file at all (review R5-1, land_lane's guard): it names no branch, so it
+                # holds the branches of the note whose review it records (tpred) and every branch containing their tips
+                ('unreadable: the reader raised PermissionError', two, 'IN FLIGHT', True))
+        real_read = review_findings.read_bytes
+
+        def locked(p: pathlib.Path) -> bytes:
+            if p == tfile:
+                raise PermissionError(13, 'the file is locked', str(p))
+            return real_read(p)
+
+        for what, cut, want_state, torn_cut in cuts:
+            tfile.write_bytes(cut)
+            cut_rows = [dataclasses.replace(r) for r in rows.values()]
+            ts = next(r for r in cut_rows if r.name == 'tsucc')
+            ts.state, ts.waits_on, ts.why = 'WAITING TO LAND', '', ''
+            review_findings.read_bytes = locked if what.startswith('unreadable') else real_read
+            try:
+                carrying_findings(cut_rows, repo, review_findings.unanswered(review_findings.findings_files(fscratch)),
+                                  report_index(rdir, terminal))
+                got = (ts.state, ts.waits_on, 'TORN' in ts.why)
+            except Exception as e:  # noqa: BLE001  (the round-4 reader raised here; a raise is a failed check, never a crash)
+                got = (f'RAISED {e!r}', '', False)
+            finally:
+                review_findings.read_bytes = real_read
+            check(got == (want_state, 'tpred' if want_state == 'IN FLIGHT' else '', torn_cut),
+                  f'tpred\'s findings file cut {what}: tsucc reads {want_state}{" (TORN)" if torn_cut else ""}: {got} {ts.why}')
+        tfile.write_bytes(kept)
         check(not rows['succ'].waits_on and 'unanswered' not in rows['succ'].why,
               f'a FINDINGS round that a later round answered CLEAN holds nothing: {rows["succ"].why}')
         check((rows['upred'].carrier, 'contained in usucc (WAITING TO LAND)' in rows['upred'].why) == ('usucc', True),
