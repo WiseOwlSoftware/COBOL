@@ -838,9 +838,10 @@ internal static class PlaceRenderer
     /// (the A.1 item 57 composer DISPLAY already uses), behind the same capability guard and unwrap as
     /// <see cref="VarGroupImage"/>. It is what a WRITE / REWRITE / RELEASE of a variable-length RECORD sends
     /// (determination D-FRA; kb/Work PB981).</summary>
-    /// <remarks>A statement's operand (DISPLAY, FUNCTION LENGTH) and a record (WRITE / REWRITE / RELEASE) ask the same
-    /// capability, <see cref="DataItem.CurrentExtentImageCapable"/>: since kb/Work PB2497 a record holding an OCCURS
-    /// DEPENDING table of variable-length elements is read back too (<see cref="WriteVarGroupContiguous"/>).</remarks>
+    /// <remarks>A record (WRITE / REWRITE / RELEASE) asks <see cref="DataItem.CurrentExtentImageCapable"/>, the carrier's
+    /// capability, because it is read back (since kb/Work PB2497 one holding an OCCURS DEPENDING table of variable-length
+    /// elements too, <see cref="WriteVarGroupContiguous"/>); a statement's operand that only sends (DISPLAY, FUNCTION
+    /// LENGTH) passes <paramref name="transfer"/>.</remarks>
     /// <param name="transfer">True for a ONE-WAY transfer consumer (DISPLAY, FUNCTION LENGTH - kb/Work PB3358): the guard
     /// then asks <see cref="DataItem.CurrentExtentTransferImageCapable"/>, which also admits a group with a class
     /// pointer/object leaf (its pointer image or reserved placeholder), the twin of <see cref="GroupImage"/>'s flag. A
