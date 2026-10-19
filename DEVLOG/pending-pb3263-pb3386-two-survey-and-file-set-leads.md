@@ -1,6 +1,6 @@
-## kb/Work PB3263, PB3386, PB3388, PB3389, PB3392: five leads from the engine landings of 2026-10-18
+## kb/Work PB3263, PB3386, PB3388, PB3389, PB3392, PB3393: six leads from the engine landings of 2026-10-18
 
-Five leads from the day's engine and campaign landings, filed by the operator's clerk.
+Six leads from the day's engine and campaign landings, filed by the operator's clerk.
 
 - PB3263 (campaign notes get an empty declared file set) gains its third population, the PB3330 engine's wave 1118.
   Every group was recorded with zero files because its code sites did not exist yet. At 15:28 the landing check
@@ -13,6 +13,10 @@ Five leads from the day's engine and campaign landings, filed by the operator's 
 - PB3392 (new): `plan_wave.record_dispatch` stamps `at` at every recording, so a re-rendered spec makes an early
   dispatch read as the later one. Wave 1118's engine groups (dispatched about 05:00) read 16:42 after a re-render, and
   the partition's "the later of two re-plans" would stop the wrong branch.
+- PB3393 (new): `ledger_state.py mark-published` records only main's stamp, and only while the checkout renders
+  exactly that stamp. A render takes 6 to 8 minutes on a loaded host, so while landings stream in no publish can be
+  marked: v127 and v128 were refused. The fix records the stamp the page was rendered at and leaves the owed state
+  to say whether it is main's.
 - PB3386 (new): `prune_worktrees.contained()` carries a DECISION row only when its report is FINDINGS-stamped. A SPLIT
   predecessor that its successor merged therefore still reads DECISION, and asks for a land-or-abandon decision about
   work already landing through the successor.
