@@ -1,4 +1,4 @@
-## PB3390: the closed formats' error production has two forms, and the data division's run holds no unsigned integer
+## Entry 2262 — 2026-10-19 12:38 PDT — PB3390: the closed formats' error production has two forms, and the data division's run holds no unsigned integer
 
 **The defect.** The residue run of the closed general formats (`unrecognizedClause`, refused by name by
 `ClosedFormatPass`) had one opening set and one tail set for every list. One token reads differently by list: an
@@ -40,3 +40,4 @@ GR7 k) 2.: integer lists that a clause owns keep their integers.
 
 **Rows.** None re-verdicted. The five FMT rows were already CONFORMS. `OBJECT-COMPUTER. XYZ FOO IS 12.` (PB3391,
 the predicated `segmentLimitClause`) is not this root and stays open.
+
