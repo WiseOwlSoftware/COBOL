@@ -1,4 +1,4 @@
-## PB3402: the soft context cap no longer holds landings; PB3380 landed by PB3381; PB3403-PB3408 and PB3412-PB3415 filed
+## Entry 2243 — 2026-10-19 00:39 PDT — PB3402: the soft context cap no longer holds landings; PB3380 landed by PB3381; PB3403-PB3408 and PB3412-PB3415 filed
 
 **PB3402 (MAJOR), fixed.** On 2026-10-18 the loop's enqueue unit passed its 200,000-token soft cap three times (19:11,
 21:17, 23:47). The supervisor's `STOP-UNIT` was also one of the landing lane's stops, so every time, branches already
@@ -43,3 +43,4 @@ New notes:
   (PB3334-PB3336) was on main. PB3414: GR-14.9.51.4-12 has no behavioural witness that a READ ONLY keyed writer runs
   under the store mutex. PB3415: two comments still say the sequential release asks `AdmitsAnotherWriter`. The
   `-326-31` review's three lows were filed by the enqueue unit's clerk (PB3410, PB3411, PB2749 witness (c)).
+
