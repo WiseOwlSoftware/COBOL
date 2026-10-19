@@ -98,7 +98,7 @@ guard_closure() {
     local seed="$1" corpus="$2"
     guard_manifest_present "$corpus" || return 1
     awk -F'\t' -v seed="$seed" '
-        FNR == NR {
+        FILENAME != "-" {                       # the manifest (FNR == NR would misread an empty one)
             if ($1 ~ /^#/ || $1 == "") next
             row[$1] = 1; preds[$1] = ($4 == "-" ? "" : $4)
             if (seed == "asserted" && ($3 == "green" || $3 == "divergent")) add($1)
