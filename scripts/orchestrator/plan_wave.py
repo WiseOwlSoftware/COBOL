@@ -756,14 +756,14 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
             plannable[r["id"]] = r
         else:
             waiting[r["id"]] = "waiting on " + ", ".join(w for w in r["waiting_on"] if w not in plannable)
-    tiers: dict[str, dict[int, list[dict]]] = {"open": {}, "half": {}}
+    by_status: dict[str, dict[int, list[dict]]] = {"open": {}, "half": {}}
     for nid, r in plannable.items():
-        entry = {"id": nid, "area": r["area"], "harm": notes[nid].harm, "title": r["title"][:140],
+        entry = {"id": nid, "area": r["area"], "harm": notes[nid].harm, "title": r["title"][:140], "tier": r["tier"],
                  "sites": {p: 3 for p in work.note_sites(texts[nid]).paths if (repo / p).is_file()},
                  "fileset": declared(texts[nid])}
-        tiers["half" if r["status"] == "half" else "open"].setdefault(r["depth"], []).append(entry)
+        by_status["half" if r["status"] == "half" else "open"].setdefault(r["depth"], []).append(entry)
     out: dict[str, list[dict]] = {"open": [], "half": []}
-    for key, by_depth in tiers.items():
+    for key, by_depth in by_status.items():
         for d in sorted(by_depth):
             ns = by_depth[d]
             cl = fc.cluster([n for n in ns if n["sites"]], cap)
@@ -771,6 +771,7 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
             for c in cl:
                 c["files"] = collision_set(c["file"], [n["fileset"] for n in c["notes"]])
                 c["depth"] = d
+                c["tier"] = min((n["tier"] for n in c["notes"]), key=work.tier_rank)
                 c["notes"] = [{k: n[k] for k in ("id", "area", "harm", "title")} for n in c["notes"]]
             out[key] += cl
     deps = {nid: list(r["waiting_on"]) for nid, r in plannable.items() if r["waiting_on"]}
@@ -787,8 +788,28 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
             head["harm"] += c["harm"]
             head["files"] = sorted(set(head["files"]) | set(c["files"]))
             head["file"] = head["file"] or c["file"]
+            head["tier"] = min(head["tier"], c["tier"], key=work.tier_rank)
             out["open"].remove(c)
+    lift_tiers(out["open"], deps)
     return out["open"], out["half"], deps, waiting
+
+
+def lift_tiers(clusters: list[dict], deps: dict[str, list[str]]) -> None:
+    """Lower each cluster's `tier` to the lowest tier of every cluster that waits on it, in place (kb/Work PB3423).
+
+    plan() ranks the tier first and letters a dependent only after its blockers' groups, so a blocker's cluster must
+    never rank after its dependent's. A NOTE's tier already satisfies that (work.cluster_order's effective tier), but a
+    cluster takes its LOWEST note's, so it can outrank the cluster holding the blocker of one of its OTHER notes (a
+    tier-1 note beside an untiered dependent whose blocker sits in an untiered cluster). `deps` is {note: its in-wave
+    blockers}; a pass only ever lowers a tier, so the loop ends."""
+    home = {n["id"]: c for c in clusters for n in c["notes"]}
+    lowered = True
+    while lowered:
+        lowered = False
+        for nid, blockers in deps.items():
+            for b in blockers:
+                if nid in home and b in home and work.tier_rank(home[nid]["tier"]) < work.tier_rank(home[b]["tier"]):
+                    home[b]["tier"], lowered = home[nid]["tier"], True
 
 
 # ── planning ─────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1060,8 +1081,11 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         ids = [n["id"] for n in c["notes"] if n["id"] in open_ids and n["id"] not in taken]
         if ids:
             ranked.append((c, ids))
-    # a campaign's clusters carry their topological depth, which ranks first; the fix lane's carry none (all 0)
-    ranked.sort(key=lambda ci: (ci[0].get("depth", 0), -rows(ci[1]), -ci[0].get("harm", 0)))
+    # A campaign's clusters carry the owner's tier (kb/Work PB3423), which ranks first, and their topological depth,
+    # which ranks next (campaign_clusters lifts a blocker's cluster to its dependents' tier, so the two together stay a
+    # blocked_by order); the fix lane's carry neither (no tier, depth 0), so its rank is rows, then harm, unchanged.
+    ranked.sort(key=lambda ci: (work.tier_rank(ci[0].get("tier")), ci[0].get("depth", 0), -rows(ci[1]),
+                                -ci[0].get("harm", 0)))
     # A finisher on a cluster's primary file absorbs that cluster's notes up to the cap (one orientation). Never a
     # campaign cluster past depth 0: its notes wait on blockers planned after the finisher, which would hold it back.
     for g in groups:
