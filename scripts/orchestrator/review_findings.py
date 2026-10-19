@@ -36,7 +36,8 @@ BLOCKING_AT_CAP (critical,high) for the round after its last finisher: a medium 
 answer it and becomes a lead at the cap; a low or info finding never blocks; a critical or high one always does, and at
 the cap its FINDINGS stamp stays for the next wave's finisher. Wave 1118 measured why: PB3331's third whole-branch round
 turned one LOW finding (a test theory's length class) into a DECISION row, and the branch never landed. A finding
-recorded before severities were required carries none and BLOCKS: an unknown severity is never waved through.
+recorded before SEVERITIES were required carries a free word (`minor`, `MAJOR`) and BLOCKS: an unknown severity is
+never waved through.
 
 `stamp` writes the verdict into the implementer's report header as the line plan_wave.REVIEW reads (CLEAN <reviewer>
 <head>, or FINDINGS <n> <reviewer> <head> <file>), and reads it back through plan_wave.parse_review, so the writer and
@@ -55,19 +56,30 @@ SPLIT, STALLED, killed), so a hold read from the stamp let a successor reviewed 
 to main. A finisher that answers them is reviewed again and records its round's verdict here; nothing else changes
 what this file says.
 
-A TORN FILE HOLDS EVERY BRANCH IT NAMES (kb/Work PB3381 review R4-1, R5-1). A findings file is TORN when it does not
-end with a newline, when a line of it is not a review record (JSON with a `kind` of KINDS; a blank line is skipped), or when its bytes are not UTF-8: a writer killed mid-append, or a record that lost its final newline.
-A torn file is never read for a verdict, whatever its records say: the records before a tear can read more permissive
-than the file, since a FINDINGS verdict that lost only its newline, with the next record glued onto its line, leaves
-the CLEAN round before it as the last whole verdict (R5-1). `last_verdict` returns a TORN reading instead (verdict TORN, `unanswered` true,
-`torn` naming the file, line, byte offset and reason, `branches` and `heads` every branch and head its parseable lines
-name); the survey holds each branch the file names and each branch containing a head it names, the wave reads it
-UNANSWERED, and the landing lane lands none of them. Every writer (`append`, so `start`, `finding` and `verdict`;
-`stamp` reads the file first) refuses a torn file BEFORE writing, naming `repair <file>`, so nothing is ever glued onto
-a torn line. `repair` prints the torn tail: a last line that parses as a record but lost its newline is terminated and
-kept; otherwise the torn line and every line after it are removed, bytes that are not UTF-8 shown as bytes; an intact
-file is left unchanged. Only the operator runs it, by hand; no survey or wave does. `--self-test` proves the rule by
-cutting a findings file at every byte offset (THE PROPERTY, in self_test).
+EVERY CONTENT PROBLEM IS A TEAR, AND A TORN FILE HOLDS EVERY BRANCH IT NAMES (kb/Work PB3381 review R4-1, R5-1,
+R6-1, R6-2). The survey finds the findings files BY NAME ONLY (findings_files: every `review-*.jsonl` where they live,
+and every file a report stamp names); it never opens one to decide whether it is one, so nothing the reader would hold
+is dropped before the reader sees it. The reader, `last_verdict`, is the ONE answer to both callers (the CLI's
+`last-verdict`, which the wave reads, and the survey's `unanswered`), and it reads a file as TORN when the file cannot
+be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark, holds bytes that are
+not UTF-8, does not end with a newline, holds a line that is not a record (JSON that passes SCHEMA, the record schema
+the writers share; a blank line is skipped), or holds no record: a writer killed mid-append, a record that lost its
+final newline, a hand edit. A torn file is never read for a verdict, whatever its records say: the records before a
+tear can read more permissive than the file, since a FINDINGS verdict that lost only its newline, with the next record
+glued onto its line, leaves the CLEAN round before it as the last whole verdict (R5-1). Its reading is verdict TORN,
+`unanswered` true, `torn` naming the file, line, byte offset and reason (`reason` and `line` apart, `line` None when
+the file could not be read), and `branches` and `heads`, every branch and head its parseable lines name (or the branch
+its name names). `last_verdict` never raises, and the CLI prints that reading and exits 0, so the wave reads UNANSWERED
+from the reading, never from an exit code. The survey holds each branch the file names and each branch containing a
+head it names (a file that names none, by the group its name or a stamp binds it to), the wave reads it UNANSWERED,
+and the landing lane lands none of them. Every writer (`append`, so `start`, `finding` and `verdict`; `stamp` reads the
+file first) refuses a torn file BEFORE writing, naming `repair <file>`, so nothing is ever glued onto a torn line, and
+`append` refuses a record that fails SCHEMA, so no writer writes what the reader would tear. `repair` prints what it
+mends: a byte-order mark is removed; a last line that is a record but lost its newline is terminated and kept;
+otherwise the torn line and every line after it are removed, bytes that are not UTF-8 shown as bytes; a file left with
+no record is deleted; a file it cannot read is refused; an intact file is left unchanged. Only the operator runs it, by
+hand; no survey or wave does. `--self-test` proves the rule by cutting a findings file at every byte offset (THE
+PROPERTY), by each discovery case at the file's first read (DISCOVERY) and by each schema mutation (SCHEMA).
 """
 from __future__ import annotations
 
@@ -86,7 +98,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import plan_wave  # noqa: E402  (the one reader of the stamp, and the one definition of a stamp line: PB3077)
 
-KINDS = ("start", "finding", "verdict")
+#: The fields a finding's reviewer supplies (`finding`'s JSON object); the tool adds `kind`, `round`, `id` and `at`.
 FINDING_FIELDS = ("file", "line", "category", "severity", "summary", "failure_scenario")
 #: The severities a finding may carry, most severe first (the review skill's branch form, step 3).
 SEVERITIES = ("critical", "high", "medium", "low", "info")
@@ -96,8 +108,59 @@ BLOCKING_AT_CAP = ("critical", "high")
 REVIEW_LINE = plan_wave.REVIEW_LINE   # the planner skips these lines when it reads the branch (kb/Work PB3077)
 
 
+SHA = re.compile(r"[0-9a-f]{7,40}")
+
+
+def _integer_from(low: int):
+    return lambda v: isinstance(v, int) and not isinstance(v, bool) and v >= low
+
+
+#: The tests a field's value passes, each with what it says when the value fails it.
+POSITIVE = ("a positive integer", _integer_from(1))
+COUNT = ("an integer >= 0", _integer_from(0))
+TEXT = ("a non-empty string", lambda v: isinstance(v, str) and v != "")
+COMMIT = ("a commit sha", lambda v: isinstance(v, str) and SHA.fullmatch(v) is not None)
+TEXTS = ("a list of strings", lambda v: isinstance(v, list) and all(isinstance(x, str) for x in v))
+VERDICTS = ("CLEAN", "FINDINGS")
+#: THE RECORD SCHEMA (kb/Work PB3381 review R6-2): every field each kind of record carries and the test its value
+#: passes, the ONE statement of what a record is. The writers share it (`append` refuses to write a record that fails
+#: it) and so does the reader (`scan` reads a line that fails it as a TEAR). A field it does not name is allowed (a
+#: finding's `fix` or `dimension`); a verdict's `blocking` and `leads` are OPTIONAL (verdicts recorded before kb/Work
+#: PB3381's threshold carry neither) and tested when present. A finding's `severity` is any word: a file from before
+#: SEVERITIES carries free words (`minor`, `MAJOR`), which block (`blocks`); `finding` writes only SEVERITIES.
+SCHEMA = {
+    "start": {"round": POSITIVE, "branch": TEXT, "head": COMMIT, "reviewer": TEXT, "at": TEXT},
+    "finding": {"round": POSITIVE, "id": TEXT, **{k: POSITIVE if k == "line" else TEXT for k in FINDING_FIELDS},
+                "at": TEXT},
+    "verdict": {"round": POSITIVE, "branch": TEXT, "head": COMMIT, "reviewer": TEXT,
+                "verdict": ("CLEAN or FINDINGS", lambda v: isinstance(v, str) and v in VERDICTS), "findings": COUNT,
+                "at": TEXT},
+}
+OPTIONAL = {"verdict": {"blocking": TEXTS, "leads": TEXTS}}
+KINDS = tuple(SCHEMA)
+
+
 class RecordError(ValueError):
     pass
+
+
+def malformed(rec: object) -> str:
+    """'' when `rec` is a well-formed review record (SCHEMA), else what is wrong with it: not an object of a kind of
+    KINDS, a required field missing, a field that fails its test, or a verdict whose `verdict` and `findings` disagree
+    (FINDINGS when, and only when, `findings` > 0: what `verdict` computes)."""
+    if not isinstance(rec, dict) or rec.get("kind") not in SCHEMA:
+        return f"not a review record (a JSON object whose `kind` is one of {', '.join(KINDS)})"
+    kind = rec["kind"]
+    missing = [k for k in SCHEMA[kind] if k not in rec]
+    if missing:
+        return f"a {kind} record that lacks {', '.join(missing)}"
+    tests = {**SCHEMA[kind], **{k: f for k, f in OPTIONAL.get(kind, {}).items() if k in rec}}
+    bad = [f"`{k}` is {rec[k]!r}, not {what}" for k, (what, ok) in tests.items() if not ok(rec[k])]
+    if bad:
+        return f"a {kind} record whose {'; '.join(bad)}"
+    if kind == "verdict" and (rec["verdict"] == "FINDINGS") != (rec["findings"] > 0):
+        return f"a verdict {rec['verdict']} with findings {rec['findings']} (FINDINGS when, and only when, findings > 0)"
+    return ""
 
 
 def now() -> str:
@@ -105,57 +168,77 @@ def now() -> str:
 
 
 NEWLINE = b"\n"
+BOM = b"\xef\xbb\xbf"
 
 
 @dataclasses.dataclass(frozen=True)
 class Scan:
-    """One findings file's bytes read against the tear rule (the module docstring, A TORN FILE). `records` is every
-    record when the file is intact. When it is torn, `torn` describes the tear (`<file>:<line> (byte <offset>):
-    <reason>`), `offset` is the byte offset where the torn line starts, and `keep` says that line is the unterminated
-    last line and parses as a record (repair terminates it); `records` then holds the records before the tear, which
-    only `repair` reads: no reader takes a verdict from a torn file."""
+    """One findings file read against the tear rule (the module docstring, EVERY CONTENT PROBLEM IS A TEAR). `records`
+    is every record when the file is intact. When it is torn, `torn` describes the tear (`<file>:<line> (byte
+    <offset>): <reason>`, or `<file>: <reason>` when it could not be read: `line` is then None), `reason` is why,
+    `offset` is the byte offset where the torn line starts, and `keep` says that line is the unterminated last line and
+    is a record (repair terminates it); `records` then holds the records before the tear, which only `repair` reads: no
+    reader takes a verdict from a torn file."""
     records: list[dict]
     torn: str = ""
+    reason: str = ""
+    line: int | None = None
     offset: int = 0
     keep: bool = False
 
 
 def scan(data: bytes, path: pathlib.Path) -> Scan:
-    """The ONE parser of a findings file: `load` (every writer's read, the finisher's), `last_verdict` (the reader)
-    and `repair` all call it."""
+    """The ONE parser of a findings file's bytes: `load` (every writer's read, the finisher's), `last_verdict` (the
+    reader) and `repair` all call it. Every content problem is a tear: a byte-order mark, bytes that are not UTF-8, a
+    line that is not JSON or not a record (malformed: SCHEMA), no newline at the end, no record at all."""
+    recs: list[dict] = []
+
+    def tear(why: str, line: int, at: int, keep: bool = False) -> Scan:
+        return Scan(recs, f"{path}:{line} (byte {at}): {why}", why, line, at, keep)
+
+    if data.startswith(BOM):
+        return tear("starts with a UTF-8 byte-order mark (a hand edit: the writers write none)", 1, 0)
     try:
         data.decode("utf-8")
         bad = -1
     except UnicodeDecodeError as e:
         bad = e.start
-    recs: list[dict] = []
     at, line = 0, 0
     while at < len(data):
         line += 1
         end = data.find(NEWLINE, at)
         stop = len(data) if end < 0 else end
-        torn = lambda why, keep=False: Scan(recs, f"{path}:{line} (byte {at}): {why}", at, keep)  # noqa: E731
         if at <= bad < stop:
-            return torn(f"not UTF-8 (byte {bad} is 0x{data[bad]:02X})")
+            return tear(f"not UTF-8 (byte {bad} is 0x{data[bad]:02X})", line, at)
         text = data[at:stop].decode("utf-8")
         if text.strip():
             try:
                 rec = json.loads(text)
             except ValueError as e:
-                return torn(f"not JSON ({e})")
-            if not isinstance(rec, dict) or rec.get("kind") not in KINDS:
-                return torn(f"not a review record (kind must be one of {', '.join(KINDS)})")
+                return tear(f"not JSON ({e})", line, at)
+            why = malformed(rec)
+            if why:
+                return tear(why, line, at)
             if end < 0:
-                return torn("the last record has no newline at the end", keep=True)
+                return tear("the last record has no newline at the end", line, at, keep=True)
             recs.append(rec)
         elif end < 0:
-            return torn("no newline at the end")
+            return tear("no newline at the end", line, at)
         at = stop + 1
+    if not recs:
+        return tear("holds no record (a findings file starts with its round-1 `start`)", 1, 0)
     return Scan(recs)
 
 
-def read_bytes(path: pathlib.Path) -> bytes:
-    return path.read_bytes() if path.is_file() else b""
+def examine(path: pathlib.Path) -> tuple[Scan, bytes]:
+    """The findings file at `path` read and scanned, with its bytes. It never raises: a file that cannot be opened or
+    read (gone, a directory in its place, a read denied, a lock) is a tear of its own (`line` None, no bytes)."""
+    try:
+        data = path.read_bytes()
+    except OSError as e:
+        why = f"cannot be read ({type(e).__name__}: {e.strerror or e})"
+        return Scan([], f"{path}: {why}", why), b""
+    return scan(data, path), data
 
 
 def repair_command(path: pathlib.Path) -> str:
@@ -163,24 +246,33 @@ def repair_command(path: pathlib.Path) -> str:
 
 
 def load(path: pathlib.Path) -> list[dict]:
-    """Every record, in order. A torn file is an error, never read past or around: a lost finding would read CLEAN, and
-    a record glued onto a torn line swallows the one before it (review R5-1). The refusal names the repair, which the
-    operator runs by hand (`repair`)."""
-    s = scan(read_bytes(path), path)
+    """Every record, in order; [] when there is no file yet (round 1's `start` creates it). A torn file is an error,
+    never read past or around: a lost finding would read CLEAN, and a record glued onto a torn line swallows the one
+    before it (review R5-1). The refusal names the repair, which the operator runs by hand (`repair`)."""
+    if not os.path.lexists(path):
+        return []
+    s, _ = examine(path)
     if s.torn:
         raise RecordError(f"{s.torn}: the findings file is TORN, so no writer appends to it and every branch it names is "
-                          f"held. Repair it: `{repair_command(path)}` (it prints the torn tail, keeps a last record "
-                          "that only lost its newline, and removes the rest)")
+                          "held. " + (f"Repair it: `{repair_command(path)}` (it prints the torn tail, keeps a last record "
+                                      "that only lost its newline, and removes the rest)" if s.line is not None else
+                                      "The operator makes it readable again (or moves what stands in its place aside)"))
     return s.records
 
 
 def mend(data: bytes, path: pathlib.Path) -> tuple[bytes, list[str]]:
-    """A torn file's bytes mended, with what was done, one line each (`kept: …`, `removed: …`): a last line that parses
-    as a record but lost its newline is terminated and kept; otherwise the torn line and every line after it are
-    removed, bytes that are not UTF-8 shown as bytes. An intact file's bytes come back unchanged, with []."""
+    """A torn file's bytes mended, with what was done, one line each (`kept: …`, `removed: …`): a byte-order mark is
+    removed and the rest mended; a last line that is a record but lost its newline is terminated and kept; otherwise
+    the torn line and every line after it are removed, bytes that are not UTF-8 shown as bytes. Bytes that hold no
+    record mend to none (repair then deletes the file). An intact file's bytes come back unchanged, with []."""
     s = scan(data, path)
     if not s.torn:
         return data, []
+    if data.startswith(BOM):
+        rest, did = mend(data[len(BOM):], path)
+        return rest, ["removed: the UTF-8 byte-order mark", *did]
+    if not data.strip():
+        return b"", [f"removed: {len(data)} byte(s) that hold no record"]
     if s.keep:
         return data + NEWLINE, [f"kept: {data[s.offset:].decode('utf-8')} (its newline restored)"]
     shown = []
@@ -196,22 +288,32 @@ def mend(data: bytes, path: pathlib.Path) -> tuple[bytes, list[str]]:
 
 def repair(path: pathlib.Path) -> list[str]:
     """Mend a torn findings file in place (mend) and return what was done; [] when it is intact, and then the file is
-    left untouched. The operator runs it by hand (the CLI's `repair`), after reading what it prints; no survey and no
-    wave runs it."""
-    data = read_bytes(path)
+    left untouched. When no record is left the file is deleted (the next `start` creates it again). A file it cannot
+    read is refused: the operator makes it readable first. The operator runs it by hand (the CLI's `repair`), after
+    reading what it prints; no survey and no wave runs it."""
+    s, data = examine(path)
+    if s.torn and s.line is None:
+        raise RecordError(f"{s.torn}: repair cannot mend a file it cannot read; make it readable (or move what stands "
+                          "in its place aside) and run it again")
     new, did = mend(data, path)
-    if did:
+    if did and new:
         path.write_bytes(new)
+    elif did:
+        path.unlink()
+        did.append(f"deleted: {path} (no record is left; the next `start` creates it again)")
     return did
 
 
 def append(path: pathlib.Path, rec: dict) -> dict:
     """Append one record. A torn file is refused BEFORE anything is written (`load`), so no record is ever glued onto a
     torn line (review R5-1: a FINDINGS verdict that lost its newline, then the next `start` glued on, read as the CLEAN
-    round before it)."""
+    round before it), and so is a record the reader would read as a tear (malformed: SCHEMA)."""
     load(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     rec = {**rec, "at": now()}
+    why = malformed(rec)
+    if why:
+        raise RecordError(f"refused to write {why} (SCHEMA: the reader would read it as a tear)")
+    path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", encoding="utf-8", newline="\n") as f:
         f.write(json.dumps(rec, ensure_ascii=False) + "\n")
     return rec
@@ -251,8 +353,6 @@ def finding(path: pathlib.Path, rnd: int, raw: str) -> dict:
         raise RecordError(f"the finding lacks {', '.join(missing)} (no scenario, no finding: the review skill's bar)")
     if body["severity"] not in SEVERITIES:
         raise RecordError(f"`severity` is one of {', '.join(SEVERITIES)}, got {body['severity']!r}")
-    if not isinstance(body["line"], int) or body["line"] < 1:
-        raise RecordError("`line` is the 1-based line the finding anchors to (an integer)")
     k = len(of_round(recs, rnd, "finding")) + 1
     return append(path, {**{k2: v for k2, v in body.items() if k2 not in ("kind", "round", "id", "at")},
                          "kind": "finding", "round": rnd, "id": f"R{rnd}-{k}"})
@@ -379,101 +479,94 @@ def show(path: pathlib.Path, rnd: int | None = None) -> list[str]:
 
 def named(data: bytes) -> tuple[list[str], list[str]]:
     """The branches and heads a findings file's bytes name: every line that parses as a JSON object, a torn file's
-    included, in order, once each. What a torn file holds (A TORN FILE)."""
+    included (a byte-order mark set aside), in order, once each. What a torn file holds (EVERY CONTENT PROBLEM IS A
+    TEAR)."""
     branches: dict[str, None] = {}
     heads: dict[str, None] = {}
     for text in data.decode("utf-8", errors="replace").split("\n"):
         try:
-            rec = json.loads(text)
+            rec = json.loads(text.lstrip("\ufeff"))
         except ValueError:
             continue
         if isinstance(rec, dict):
             if isinstance(rec.get("branch"), str) and rec["branch"]:
                 branches[rec["branch"]] = None
-            if isinstance(rec.get("head"), str) and re.fullmatch(r"[0-9a-f]{7,40}", rec["head"]):
+            if isinstance(rec.get("head"), str) and SHA.fullmatch(rec["head"]):
                 heads[rec["head"]] = None
     return list(branches), list(heads)
 
 
-def torn_reading(path: pathlib.Path, torn: str, data: bytes) -> dict:
-    """A torn file's reading: no verdict is read from it, it holds (`unanswered`), and it names the tear and every
-    branch and head its parseable lines name, which the survey holds."""
+def torn_reading(path: pathlib.Path, s: Scan, data: bytes) -> dict:
+    """A torn file's reading: no verdict is read from it, it holds (`unanswered`), and it names the tear (`torn`, its
+    `reason` and `line`, None when the file could not be read) and every branch and head its parseable lines name,
+    which the survey holds. A file whose bytes name no branch is bound by its NAME: the enqueue unit's
+    `review-<branch>.jsonl` names its branch; a wave's `review-w<wave>-<letter>.jsonl` names its group, whose report
+    the survey finds (prune_worktrees.findings_lead)."""
     branches, heads = named(data)
+    by_name = NAMED_FINDINGS.match(path.name)
+    if not branches and by_name and not WAVE_FINDINGS.match(path.name):
+        branches = [by_name["branch"]]
     return {"file": str(path), "round": None, "branch": "", "head": "", "verdict": "TORN", "blocking": None,
-            "unanswered": True, "torn": torn, "branches": branches, "heads": heads}
+            "unanswered": True, "torn": s.torn, "reason": s.reason, "line": s.line, "branches": branches,
+            "heads": heads}
 
 
 def last_verdict(path: pathlib.Path) -> dict | None:
-    """The newest verdict the findings file records (reading, over the file's bytes)."""
-    return reading(read_bytes(path), path)
+    """The newest verdict the findings file records (reading, over the file's bytes): the ONE answer to both callers,
+    the CLI's `last-verdict` (the wave) and `unanswered` (the survey). It never raises: a file that cannot be read is a
+    tear (examine), and so is any failure of the reader itself, so the two callers cannot disagree."""
+    s, data = examine(path)
+    try:
+        return torn_reading(path, s, data) if s.torn else reading(data, path, s)
+    except Exception as e:  # noqa: BLE001  (the one boundary: a reader that fails reads TORN, never a release)
+        why = f"the reader failed ({type(e).__name__}: {e})"
+        return torn_reading(path, Scan([], f"{path}: {why}", why), data)
 
 
-def reading(data: bytes, path: pathlib.Path) -> dict | None:
+def reading(data: bytes, path: pathlib.Path, s: Scan | None = None) -> dict | None:
     """The newest verdict findings-file bytes record, as {file, round, branch, head, verdict, blocking, unanswered,
     torn}, or None when no round has one yet. `blocking` is the number of findings of a blocking severity under the
     thresholds that round used (the verdict's own count); `unanswered` is FINDINGS with blocking > 0. A round started
     after it and never finished (its reviewer died) answers nothing, so the verdict before it still stands; `torn` is ''.
-    TORN bytes are never read for a verdict (A TORN FILE, review R5-1): their reading is torn_reading's, verdict TORN
-    and `unanswered` true, whatever the records say, so every caller holds it and the wave never reads it capped."""
-    s = scan(data, path)
+    TORN bytes are never read for a verdict (EVERY CONTENT PROBLEM IS A TEAR): their reading is torn_reading's, verdict
+    TORN and `unanswered` true, whatever the records say, so every caller holds it and the wave never reads it capped."""
+    s = s or scan(data, path)
     if s.torn:
-        return torn_reading(path, s.torn, data)
+        return torn_reading(path, s, data)
     verdicts = [r for r in s.records if r["kind"] == "verdict"]
     if not verdicts:
         return None
     v = max(verdicts, key=lambda r: r["round"])
-    n = int(v.get("findings") or 0)
-    return {"file": str(path), "round": v["round"], "branch": v.get("branch", ""), "head": v.get("head", ""),
-            "verdict": v["verdict"], "blocking": n, "unanswered": v["verdict"] == "FINDINGS" and n > 0, "torn": ""}
+    return {"file": str(path), "round": v["round"], "branch": v["branch"], "head": v["head"], "verdict": v["verdict"],
+            "blocking": v["findings"], "unanswered": v["findings"] > 0, "torn": ""}
 
 
 #: The two names a branch review's findings file takes: the rolling wave's `<scratch>/review-w<wave>-<letter>.jsonl`
 #: (wf_rolling_wave.js findingsFile) and the enqueue unit's `<coord>/scratch/review-<branch>.jsonl` (units/enqueue.md).
 FINDINGS_NAME = "review-*.jsonl"
 WAVE_FINDINGS = re.compile(r"^review-w(?P<wave>\d+)-(?P<letter>[a-z0-9]+)\.jsonl$")
-
-
-def is_findings_file(path: pathlib.Path) -> bool:
-    """A branch review's record: its first non-blank line is a `start` with a round and a branch. Other records share
-    the `review-*.jsonl` name (the R2 review's shards, r2_collect.py) and are not this tool's. Only that first line is
-    decoded, so bytes that are not UTF-8 further on (a tear the reader holds) never hide the file."""
-    try:
-        with path.open("rb") as f:
-            first = next((line for line in f if line.strip()), b"")
-        rec = json.loads(first.decode("utf-8")) if first else None
-    except (OSError, ValueError):
-        return False
-    return isinstance(rec, dict) and rec.get("kind") == "start" and isinstance(rec.get("round"), int) and "branch" in rec
+NAMED_FINDINGS = re.compile(r"^review-(?P<branch>.+)\.jsonl$")
 
 
 def findings_files(scratch: pathlib.Path, also: list[str | pathlib.Path] = ()) -> list[pathlib.Path]:
-    """Every branch review's findings file: those in the coordination scratch `scratch` and in each directory directly
-    under it (a wave's scratch, `<coord>/scratch/w<wave>`), plus each path in `also` (the files report stamps name,
-    wherever a hand review put them), once each, branch-review records only (is_findings_file)."""
+    """Every branch review's findings file, BY NAME ONLY (kb/Work PB3381 review R6-1): every `review-*.jsonl` in the
+    coordination scratch `scratch` and in each directory directly under it (a wave's scratch, `<coord>/scratch/w<wave>`),
+    plus each path in `also` (the files report stamps name, wherever a hand review put them), once each. Nothing is
+    opened, read or parsed to decide what is one: a candidate's content is the reader's business (last_verdict), which
+    reads one that cannot be opened, or whose content is not records, as TORN, so it holds. The R2 review's
+    `review-<pair>--f<k>.jsonl` shards live two levels down (`<coord>/scratch/r2-<sha>/batch-<n>`), outside this search."""
     seen: dict[str, pathlib.Path] = {}
     cands = [*scratch.glob(FINDINGS_NAME), *scratch.glob(f"*/{FINDINGS_NAME}")] if scratch.is_dir() else []
     for p in [*cands, *(pathlib.Path(a) for a in also if a)]:
-        key = os.path.normcase(os.path.abspath(p))
-        if key not in seen and p.is_file() and is_findings_file(p):
-            seen[key] = p
+        seen.setdefault(os.path.normcase(os.path.abspath(p)), p)
     return sorted(seen.values())
 
 
 def unanswered(paths: list[pathlib.Path]) -> list[dict]:
     """The reading of each file that holds: its last verdict is FINDINGS with blocking findings, or it is TORN
-    (torn_reading: `torn` set, which the caller says aloud until the operator repairs the file). It never raises: a file
-    that cannot be read at all (an exception from the reader) is a tear of that file alone, so it holds the branches
-    that file concerns and every other file is still read: one findings file never stops the landing lane's tick for
-    every branch (kb/Work PB3381 review R5-1)."""
-    out = []
-    for p in paths:
-        try:
-            v = last_verdict(p)
-        except Exception as e:  # noqa: BLE001  (the one boundary: this file becomes a tear, never the survey's end)
-            v = torn_reading(p, f"{p}: unreadable ({type(e).__name__}: {e})", b"")
-        if v and v["unanswered"]:
-            out.append(v)
-    return out
+    (torn_reading: `torn` set, which the caller says aloud until the operator repairs the file). It never raises
+    (last_verdict never does), so one findings file never stops the landing lane's tick for every branch."""
+    return [v for v in map(last_verdict, paths) if v and v["unanswered"]]
 
 
 def minutes(a: str, b: str) -> float:
@@ -595,8 +688,8 @@ def self_test() -> int:
             for k, sev in enumerate(severities, 1):
                 body = {"file": "a.py", "line": k, "category": "correctness", "summary": f"finding {k}",
                         "failure_scenario": "x"}
-                if sev is None:   # a record from before severities were required: written as such, never via finding()
-                    append(path, {**body, "kind": "finding", "round": 1, "id": f"R1-{k}"})
+                if sev not in SEVERITIES:   # a free word from before SEVERITIES (`minor`): never written via finding()
+                    append(path, {**body, "severity": sev, "kind": "finding", "round": 1, "id": f"R1-{k}"})
                 else:
                     finding(path, 1, json.dumps({**body, "severity": sev}))
             return path, verdict(path, 1, blocking)
@@ -614,8 +707,8 @@ def self_test() -> int:
               (v["verdict"], v["findings"], v["leads"]) == ("CLEAN", 0, ["R1-1", "R1-2"]))
         check("arm: every finding stays recorded, blocking or not",
               len([r for r in load(lowf) if r["kind"] == "finding"]) == 2)
-        _, v = one_round("x", ["high", "medium", "low", None])
-        check(f"arm: the count is the blocking findings only; a finding with no severity blocks: {v}",
+        _, v = one_round("x", ["high", "medium", "low", "minor"])
+        check(f"arm: the count is the blocking findings only; a finding with an unknown severity blocks: {v}",
               (v["verdict"], v["findings"], v["leads"]) == ("FINDINGS", 3, ["R1-3"]))
         check("arm: --blocking without critical, or naming no severity, is refused",
               refused(blocking_set, "high,medium") and refused(blocking_set, "critical,nit"))
@@ -683,12 +776,17 @@ def self_test() -> int:
         outside = tmp / "elsewhere" / "review-w78-o.jsonl"
         start(outside, 1, "bO", "8888888", "w78o-review-r1")
         files = findings_files(tmp / "last", also=[str(outside), str(lv), str(tmp / "missing.jsonl")])
-        check(f"arm: findings_files reads the scratch and one level under it, plus the stamp-named files, once each, "
-              f"never another record's review-*.jsonl: {files}",
-              sorted(p.name for p in files) == sorted(["review-w9-l.jsonl", "review-w77-h.jsonl",
-                                                       "review-worktree-wf_x-1.jsonl", "review-w78-o.jsonl"]))
-        check("arm: unanswered() keeps exactly the files whose last verdict holds blocking findings",
-              [v["branch"] for v in unanswered(files)] == ["bH"])
+        check(f"arm: findings_files lists BY NAME the scratch and one level under it, plus the stamp-named files, once "
+              f"each, a file of other records and a stamp-named file that is gone included (review R6-1): {files}",
+              sorted(p.name for p in files) == sorted(["review-w9-l.jsonl", "review-w77-h.jsonl", "review-cli--code.jsonl",
+                                                       "review-worktree-wf_x-1.jsonl", "review-w78-o.jsonl",
+                                                       "missing.jsonl"]))
+        got = unanswered(files)
+        check(f"arm: unanswered() keeps the files whose last verdict holds blocking findings, and every torn one (another "
+              f"tool's records; a stamp-named file that is gone), the torn one bound by its name: {got}",
+              sorted((v["verdict"], v["branch"] or ",".join(v["branches"]), pathlib.Path(v["file"]).name) for v in got)
+              == [("FINDINGS", "bH", "review-w77-h.jsonl"), ("TORN", "", "missing.jsonl"),
+                  ("TORN", "cli--code", "review-cli--code.jsonl")])
         check("arm: the wave's name maps back to its wave and letter",
               WAVE_FINDINGS.match("review-w77-h.jsonl").group("wave", "letter") == ("77", "h")
               and WAVE_FINDINGS.match("review-worktree-wf_x-1.jsonl") is None)
@@ -797,24 +895,142 @@ def self_test() -> int:
         did = repair(mb)
         check(f"arm: `repair` shows the bytes that are not UTF-8 and removes their line: {did}",
               len(did) == 1 and did[0].startswith("removed (not UTF-8): b'") and mb.read_bytes() == intact)
-        # an exception from the reader is a tear of that one file: unanswered never raises, and reads every other file
-        real = read_bytes
+        # DISCOVERY (kb/Work PB3381 review R6-1, the Mythos decision's part 5). Expected results from the rule: a file
+        # is found BY NAME, never by its content, so each of these is LISTED by findings_files and reads TORN through
+        # the one reader, the CLI and the survey agreeing (part 4), and the next file is still read. Each case is made
+        # at the file's FIRST read: a read denied is pathlib's `open` raising PermissionError (where discovery opened
+        # the file before), a directory in the file's place is a real one, a BOM and a zero-byte file are real bytes.
+        import subprocess  # noqa: PLC0415
+        disc = tmp / "discovery" / "w31"
+        start(disc / "review-w31-a.jsonl", 1, "bA31", "a1a1a1a", "w31a-review-r1")
+        finding(disc / "review-w31-a.jsonl", 1, high)
+        verdict(disc / "review-w31-a.jsonl", 1)
+        findings_bytes = (disc / "review-w31-a.jsonl").read_bytes()
+        denied = disc / "review-w31-n.jsonl"
+        denied.write_bytes(findings_bytes)
+        (disc / "review-w31-b.jsonl").write_bytes(BOM + findings_bytes)
+        (disc / "review-w31-z.jsonl").write_bytes(b"")
+        (disc / "review-w31-d.jsonl").mkdir()
+        real_open = pathlib.Path.open
 
-        def locked(p: pathlib.Path) -> bytes:
-            if p == mb:
-                raise PermissionError(13, "the file is locked", str(p))
-            return real(p)
+        def deny(self, *a, **k):
+            if self == denied:
+                raise PermissionError(13, "Permission denied", str(self))
+            return real_open(self, *a, **k)
 
-        globals()["read_bytes"] = locked
+        import contextlib  # noqa: PLC0415
+        import io  # noqa: PLC0415
+
+        def cli(path: pathlib.Path) -> tuple[int, object]:
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                rc = main(["last-verdict", str(path)])
+            text = buf.getvalue().strip()
+            prefix = "=== LAST VERDICT: "
+            return rc, json.loads(text[len(prefix):-4]) if text.startswith(prefix) and text.endswith(" ===") else text
+
+        pathlib.Path.open = deny
         try:
-            got = unanswered([mb, held])
-        except Exception as e:  # noqa: BLE001
-            got = [{"verdict": f"RAISED {e!r}", "file": "", "torn": ""}]
+            listed = findings_files(tmp / "discovery")
+            survey = {v["file"]: v for v in unanswered(listed)}
+            answers = {name: cli(disc / name) for name in ("review-w31-n.jsonl", "review-w31-b.jsonl",
+                                                           "review-w31-z.jsonl", "review-w31-d.jsonl")}
+        except Exception as e:  # noqa: BLE001  (a raise is a failed check, never the self-test's end)
+            listed, survey, answers = [], {}, {"raised": (1, repr(e))}
         finally:
-            globals()["read_bytes"] = real
-        check(f"arm: a file the reader cannot read holds as TORN (unreadable), and the next file is still read: {got}",
-              [(v["verdict"], v["file"]) for v in got] == [("TORN", str(mb)), ("FINDINGS", str(held))]
-              and "unreadable (PermissionError" in got[0]["torn"])
+            pathlib.Path.open = real_open
+        for name, why in (("review-w31-n.jsonl", "cannot be read (PermissionError"),
+                          ("review-w31-b.jsonl", "byte-order mark"), ("review-w31-z.jsonl", "holds no record"),
+                          ("review-w31-d.jsonl", "cannot be read (")):
+            path = disc / name
+            v = survey.get(str(path)) or {}
+            check(f"arm: DISCOVERY {name} ({why}) is LISTED and reads TORN, held, the tear named: {v}",
+                  path in listed and (v.get("verdict"), v.get("unanswered"), v.get("file")) == ("TORN", True, str(path))
+                  and why in v.get("torn", "") and why in v.get("reason", "")
+                  and v.get("line") == (None if why.startswith("cannot") else 1))
+            check(f"arm: DISCOVERY {name}: the CLI exits 0 with the same reading the survey holds: {answers.get(name)}",
+                  answers.get(name) == (0, v) and v)
+        check(f"arm: DISCOVERY the readable file beside them is still read: {survey.get(str(disc / 'review-w31-a.jsonl'))}",
+              (survey.get(str(disc / "review-w31-a.jsonl")) or {}).get("verdict") == "FINDINGS")
+        check(f"arm: DISCOVERY a BOM file names its branches and heads: {survey.get(str(disc / 'review-w31-b.jsonl'))}",
+              ((survey.get(str(disc / "review-w31-b.jsonl")) or {}).get("branches"),
+               (survey.get(str(disc / "review-w31-b.jsonl")) or {}).get("heads")) == (["bA31"], ["a1a1a1a"]))
+        enq = tmp / "discovery" / "review-worktree-wf_q-9.jsonl"
+        enq.mkdir()
+        v = last_verdict(enq) or {}
+        check(f"arm: DISCOVERY an enqueue unit's file that cannot be read is bound to its branch by its name: {v}",
+              (v.get("verdict"), v.get("branches")) == ("TORN", ["worktree-wf_q-9"]))
+        p = subprocess.run([sys.executable, str(pathlib.Path(__file__).resolve()), "last-verdict",
+                            str(disc / "review-w31-d.jsonl")], capture_output=True, text=True, encoding="utf-8")
+        line = p.stdout.strip()
+        check(f"arm: DISCOVERY the CLI as a process exits 0 with verdict TORN, reason, file and line: {p.returncode} {line}",
+              p.returncode == 0 and line.startswith("=== LAST VERDICT: ")
+              and json.loads(line[len("=== LAST VERDICT: "):-4]) == survey.get(str(disc / "review-w31-d.jsonl")))
+        said = refusal(start, disc / "review-w31-z.jsonl", 1, "bZ", "a1a1a1a", "x")
+        check(f"arm: DISCOVERY a writer refuses a zero-byte file, naming the repair: {said!r}",
+              "holds no record" in said and "review_findings.py repair" in said)
+        did = repair(disc / "review-w31-b.jsonl")
+        check(f"arm: DISCOVERY `repair` removes a BOM and the records stand: {did}",
+              did == ["removed: the UTF-8 byte-order mark"] and (disc / "review-w31-b.jsonl").read_bytes() == findings_bytes
+              and last_verdict(disc / "review-w31-b.jsonl")["verdict"] == "FINDINGS")
+        did = repair(disc / "review-w31-z.jsonl")
+        check(f"arm: DISCOVERY `repair` deletes a file that holds no record, and round 1 starts again: {did}",
+              len(did) == 2 and did[-1].startswith("deleted: ") and not (disc / "review-w31-z.jsonl").exists()
+              and not refusal(start, disc / "review-w31-z.jsonl", 1, "bZ", "a1a1a1a", "x"))
+        check("arm: DISCOVERY `repair` refuses a file it cannot read (a directory in its place), changing nothing",
+              "cannot mend a file it cannot read" in refusal(repair, disc / "review-w31-d.jsonl")
+              and (disc / "review-w31-d.jsonl").is_dir())
+        # SCHEMA (kb/Work PB3381 review R6-2, the Mythos decision's part 3). Expected results from SCHEMA: a record
+        # missing any required field, or with any field of the wrong type, reads TORN (held), and the writers refuse
+        # to write it; a field SCHEMA does not name is no tear, and the verdict reads exactly as written.
+        base = [{"kind": "start", "round": 1, "branch": "bS", "head": "a1a1a1a", "reviewer": "w9-review-r1", "at": "t"},
+                {"kind": "finding", "round": 1, "id": "R1-1", "file": "x.py", "line": 3, "category": "c",
+                 "severity": "high", "summary": "s", "failure_scenario": "x", "at": "t"},
+                {"kind": "verdict", "round": 1, "branch": "bS", "head": "a1a1a1a", "reviewer": "w9-review-r1",
+                 "verdict": "FINDINGS", "findings": 1, "blocking": ["critical", "high", "medium"], "leads": [], "at": "t"}]
+        wrong = {"round": ["1", 0, True, None], "line": ["3", 0, 1.5], "findings": ["1", -1, None, True],
+                 "head": ["zzz", 7, ""], "verdict": ["findings", "clean", 1], "blocking": ["high", [1]],
+                 "leads": ["R1-1", [2]]}
+        sf = tmp / "schema" / "review-w9-s.jsonl"
+        sf.parent.mkdir(parents=True)
+
+        def rows(recs: list[dict]) -> bytes:
+            return "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in recs).encode()
+
+        mutations, missed = 0, []
+        for i, rec in enumerate(base):
+            for field in rec:
+                if field == "kind":
+                    continue
+                cases = [] if field in OPTIONAL.get(rec["kind"], {}) else [("dropped", {k: v for k, v in rec.items() if k != field})]
+                cases += [(f"= {bad!r}", {**rec, field: bad}) for bad in wrong.get(field, [7, "", None])]
+                for what, mutant in cases:
+                    mutations += 1
+                    sf.write_bytes(rows([*base[:i], mutant, *base[i + 1:]]))
+                    v = last_verdict(sf) or {}
+                    torn_ok = (v.get("verdict"), v.get("unanswered"), v.get("line")) == ("TORN", True, i + 1)
+                    writer_ok = field == "at" or bool(refusal(append, sf.parent / "fresh.jsonl",
+                                                              {k: x for k, x in mutant.items() if k != "at"}))
+                    if not (torn_ok and writer_ok):   # `append` stamps `at` itself, so a bad `at` never reaches it
+                        missed.append((rec["kind"], field, what, v.get("verdict"), writer_ok))
+        for what, recs in (("FINDINGS with findings 0", [*base[:2], {**base[2], "findings": 0}]),
+                           ("CLEAN with findings 1", [*base[:2], {**base[2], "verdict": "CLEAN"}])):
+            mutations += 1
+            sf.write_bytes(rows(recs))
+            if (last_verdict(sf) or {}).get("verdict") != "TORN":
+                missed.append(("verdict", "verdict/findings", what, (last_verdict(sf) or {}).get("verdict")))
+        check(f"arm: SCHEMA, {mutations} mutations (each required field dropped, each given a wrong type, a verdict that "
+              f"disagrees with its count): each reads TORN at its line, held; missed {missed}",
+              not missed and mutations >= 60)
+        sf.write_bytes(rows([{**r, "zz": [1, {"x": None}]} for r in base]))
+        v = last_verdict(sf)
+        check(f"arm: SCHEMA, a field SCHEMA does not name is no tear: the verdict reads as written: {v}",
+              (v["round"], v["verdict"], v["blocking"], v["unanswered"], v["torn"]) == (1, "FINDINGS", 1, True, ""))
+        check("arm: SCHEMA, a writer refuses a record the reader would tear",
+              "SCHEMA" in refusal(append, tmp / "schema" / "review-w9-w.jsonl",
+                                  {"kind": "verdict", "round": 1, "branch": "b", "head": "a1a1a1a", "reviewer": "r",
+                                   "verdict": "FINDINGS", "findings": 0})
+              and not (tmp / "schema" / "review-w9-w.jsonl").exists())
         # THE PROPERTY (kb/Work PB3381 review R5-1, the Mythos decision's exhaustive proof): a findings file of seven
         # records (round 1 CLEAN; round 2 a high finding and FINDINGS; round 3 started and CLEAN; "§" in the branch and
         # the summary), cut at EVERY byte offset k from 0 to its length, alone and with one well-formed record glued
@@ -842,9 +1058,11 @@ def self_test() -> int:
               data.count(b"\n") == 7 and data.count("§".encode()) == 7)
         glue = (("alone", b"", None),
                 ("start", json.dumps({"kind": "start", "round": 4, "branch": br, "head": "d4d4d4d",
-                                      "reviewer": "w9p-review-r4"}, ensure_ascii=False).encode() + b"\n", None),
+                                      "reviewer": "w9p-review-r4", "at": now()}, ensure_ascii=False).encode() + b"\n",
+                 None),
                 ("clean", json.dumps({"kind": "verdict", "round": 9, "branch": br, "head": "d4d4d4d", "reviewer": "x",
-                                      "verdict": "CLEAN", "findings": 0}, ensure_ascii=False).encode() + b"\n",
+                                      "verdict": "CLEAN", "findings": 0, "at": now()},
+                                     ensure_ascii=False).encode() + b"\n",
                  (9, "CLEAN", False)))
 
         def said(v: dict | None) -> object:
@@ -860,12 +1078,13 @@ def self_test() -> int:
             for name, extra, appended in glue:
                 cases += 1
                 body = pre + extra
-                want = (appended or snap[j]) if boundary else "TORN"
+                want = (appended or snap[j]) if boundary and body else "TORN"   # an empty file holds no record: TORN
                 got = said(reading(body, pf))
                 mended, _ = mend(body, pf)
+                removed = mended == b""   # no record is left: `repair` deletes the file, and the next `start` makes it
                 want_mended = snap[j + 1] if name == "alone" and data[k:k + 1] == b"\n" else snap[j]
-                if got != want or scan(mended, pf).torn or (
-                        mended != body if boundary else said(reading(mended, pf)) != want_mended):
+                if got != want or not (removed or not scan(mended, pf).torn) or (
+                        mended != body if boundary else (None if removed else said(reading(mended, pf))) != want_mended):
                     wrong.append((k, name, got, want))
         check(f"arm: THE PROPERTY, {cases} cuts of {len(data)} bytes: each reads TORN or exactly its whole records' "
               f"verdict and mends to bytes every writer accepts; wrong: {len(wrong)}, first {wrong[:3]}",
