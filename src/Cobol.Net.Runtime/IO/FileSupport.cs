@@ -666,10 +666,11 @@ public static class HostFile
     /// OPEN.</para>
     /// <para>⛔ EITHER WAY THE HANDLE IS UNBUFFERED (<c>bufferSize: 1</c>; kb/Work PB643). The connector's
     /// input-output areas are its own <see cref="StreamWriter"/>'s buffer (<see cref="InputOutputAreaBuffer"/>):
-    /// a connector that may share the file with another writer flushes it at every release (§14.9.51.4 GR12), and
-    /// a second buffer between that release and the file is exactly the thing that hid the record from the other
-    /// connector; a connector that holds the only writable handle lets it fill, so the RESERVE clause's areas,
-    /// not a fixed host buffer, decide when its records reach the medium (§12.4.5.14.3 GR1).</para>
+    /// a connector that may share the file with ANY other connector, a reader or a writer, flushes it at every
+    /// release (§14.9.51.4 GR12, kb/Work PB1587), and a second buffer between that release and the file is exactly
+    /// the thing that hid the record from the other connector; a connector that admits no other (<c>SHARING WITH NO
+    /// OTHER</c>) lets it fill, so the RESERVE clause's areas, not a fixed host buffer, decide when its records
+    /// reach the medium (§12.4.5.14.3 GR1) — a difference no connector can observe.</para>
     /// <para><paramref name="mode"/> is <see cref="FileMode.Append"/> for <c>OPEN EXTEND</c> and
     /// <see cref="FileMode.Create"/> for <c>OPEN OUTPUT</c> — Table 19 admits an incoming EXTEND against an
     /// existing connector open in the OUTPUT mode (its <c>extend I-O output</c> column group), so the OUTPUT
