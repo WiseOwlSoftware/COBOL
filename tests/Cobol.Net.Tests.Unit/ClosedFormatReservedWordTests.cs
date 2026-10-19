@@ -7,12 +7,14 @@ namespace CobolNet.Tests.Unit;
 
 /// <summary>
 /// ⛔ A RESERVED WORD IN A CLOSED GENERAL FORMAT IS REFUSED BY NAME (kb/Work PB2533). Every closed format ends its
-/// alternative list in the <c>unrecognizedClause</c> error production, which <c>ClosedFormatPass</c> refuses naming the
-/// format (COBOLNET1941 / 1970 / 1971) — but the production never begins at a reserved word, so one the format does
-/// not print (<c>SD SF GLOBAL.</c>) never entered it and drew a bare parse error. <c>CobolErrorStrategy</c> now finds
-/// the production's position in the ATN and reports the pass's own refusal, from the same <c>ClosedFormats</c> row.
-/// A LITERAL is held here too (kb/Work PB3373, <see cref="LiteralResidue"/>): the production opens at a one-token
-/// literal, and the parse layer refuses the unsigned integer it does not open with.
+/// alternative list in the error production (<c>unrecognizedClause</c>, or <c>unrecognizedDataClause</c> in the data
+/// division), which <c>ClosedFormatPass</c> refuses naming the format (COBOLNET1941 / 1970 / 1971) — but the production
+/// never begins at a reserved word, so one the format does not print (<c>SD SF GLOBAL.</c>) never entered it and drew
+/// a bare parse error. <c>CobolErrorStrategy</c> now finds the production's position in the ATN and reports the pass's
+/// own refusal, from the same <c>ClosedFormats</c> row.
+/// A LITERAL is held here too (kb/Work PB3373, PB3390, <see cref="LiteralResidue"/>): the production opens at any
+/// literal, but the data division's form holds none that begins with an unsigned integer (the next entry's
+/// level-number may stand there), and the parse layer refuses the comma decimal it cannot hold.
 /// <para>One case per closed format whose position the parser reaches, each asserting the code, the sentence and that
 /// it is the ONLY diagnostic (the recovery consumes the residue). The controls pin what the arm must NOT claim: a
 /// missing separator period before the next construct, a paragraph header written out of order, and a clause of the
@@ -24,6 +26,8 @@ public sealed class ClosedFormatReservedWordTests
     private const string Select = "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n"
         + "           SELECT SF ASSIGN TO \"pb2533u.dat\".\n";
     private const string Proc = "       PROCEDURE DIVISION.\n           STOP RUN.\n";
+    private const string CommaMode = "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n"
+        + "           DECIMAL-POINT IS COMMA.\n";
 
     public static TheoryData<string, string, string, string> ReservedWordResidue() => new()
     {
@@ -144,9 +148,46 @@ public sealed class ClosedFormatReservedWordTests
           "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
         { "data-entry-concatenation-in-run", Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO \"A\" & \"B\".\n" + Proc,
           "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
-        { "data-entry-comma-decimal-in-run", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA.\n"
-            + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO 1,5.\n" + Proc,
-          "COBOLNET1941", "'FOO' is not a clause of the data description entry for 'W-X'" },
+        // The data division's run holds no item that begins with an unsigned integer (kb/Work PB3390), so the run FOO
+        // ends at `1,5`; the comma decimal is one character-string and never a level-number, so the parse layer
+        // refuses it by name, quoted whole, rather than guess a missing period.
+        { "data-entry-comma-decimal-in-run", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO 1,5.\n" + Proc,
+          "COBOLNET1941", "'1,5' is not a clause of the data description entry for 'W-X'" },
+        { "data-entry-comma-decimal-opening", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X 1,5.\n" + Proc,
+          "COBOLNET1941", "'1,5' is not a clause of the data description entry for 'W-X'" },
+        { "data-entry-leading-comma-opening", Head + CommaMode + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X ,5.\n" + Proc,
+          "COBOLNET1941", "',5' is not a clause of the data description entry for 'W-X'" },
+        { "fd-comma-decimal-opening", Head + CommaMode + "       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
+            + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF 1,5.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'1,5' is not a clause of the file description entry for 'SF'" },
+        // THE UNSIGNED INTEGER AND THE COMMA DECIMALS outside the data division (kb/Work PB3390): no level-number follows
+        // these lists, so the run opens and continues at them, and the computer-name keeps its reading.
+        { "source-computer-integer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ 12.\n" + Proc,
+          "COBOLNET1970", "'12' is not a clause of the SOURCE-COMPUTER paragraph" },
+        { "object-computer-integer-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ 12.\n" + Proc,
+          "COBOLNET1970", "'12' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "source-computer-leading-comma-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SOURCE-COMPUTER. XYZ ,5.\n"
+            + "       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA.\n" + Proc,
+          "COBOLNET1970", "',5' is not a clause of the SOURCE-COMPUTER paragraph" },
+        { "object-computer-leading-comma-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ ,5.\n"
+            + "       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA.\n" + Proc,
+          "COBOLNET1970", "',5' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "object-computer-comma-decimal-after-name", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ 1,5.\n"
+            + "       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA.\n" + Proc,
+          "COBOLNET1970", "'1,5' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "object-computer-integer-in-run", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       OBJECT-COMPUTER. XYZ FOO 12 BAR.\n" + Proc,
+          "COBOLNET1970", "'FOO' is not a clause of the OBJECT-COMPUTER paragraph" },
+        { "special-names-integer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       SPECIAL-NAMES.\n           DECIMAL-POINT IS COMMA 12.\n" + Proc,
+          "COBOLNET1970", "'12' is not a clause of the SPECIAL-NAMES paragraph" },
+        { "configuration-section-integer", Head + "       ENVIRONMENT DIVISION.\n       CONFIGURATION SECTION.\n       12.\n" + Proc,
+          "COBOLNET1971", "'12' is not a paragraph of the CONFIGURATION SECTION" },
+        { "identification-integer", Head + "       12.\n" + Proc,
+          "COBOLNET1971", "'12' is not a paragraph of the IDENTIFICATION DIVISION" },
+        { "select-integer", Head + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\"\n"
+            + "               ORGANIZATION IS SEQUENTIAL 12.\n       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'12' is not a clause of the file control entry for 'SF'" },
+        { "io-control-integer", Head + Select + "       I-O-CONTROL.\n           12.\n       DATA DIVISION.\n       FILE SECTION.\n       FD SF.\n       01 R PIC X.\n" + Proc,
+          "COBOLNET1970", "'12' is not a clause of the I-O-CONTROL paragraph" },
         { "fd-signed-in-run", Head + Select + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF FOO +2.\n       01 R PIC X.\n" + Proc,
           "COBOLNET1970", "'FOO' is not a clause of the file description entry for 'SF'" },
         { "select-signed-in-run", Head + "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\"\n"
@@ -212,16 +253,24 @@ public sealed class ClosedFormatReservedWordTests
         Assert.Contains($"error COBOLNET1970: '\"LIT\"' is not a clause of the {subject} paragraph", errors[0]);
     }
 
-    /// <summary>An unsigned integer the production never opens with keeps the missing-period diagnosis where it may be
-    /// the next data description entry's level-number (ISO §8.3.2.2.13): <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c>
-    /// is a forgotten period, never "'05' is not a clause".</summary>
-    [Fact]
-    public void LevelNumberAfterAMissingPeriod_IsNotCalledAClause()
+    /// <summary>An unsigned integer the data division's run never holds keeps the missing-period diagnosis where it may
+    /// be the next entry's level-number (ISO §8.3.2.2.13): <c>01 W-X PIC X</c> then <c>05 W-Y PIC X.</c> is a forgotten
+    /// period, never "'05' is not a clause" — and after a foreign word (kb/Work PB3390) never the one run <c>FOO 05
+    /// W-Y</c>, which read W-Y's PICTURE as W-X's second (COBOLNET2423). One case per list a level-number follows.</summary>
+    [Theory]
+    [InlineData("data-entry", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n       05 W-Y PIC X.\n", "'05'")]
+    [InlineData("data-entry-after-run", "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X FOO\n       05 W-Y PIC X.\n", "'05'")]
+    [InlineData("fd-after-run", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
+        + "       DATA DIVISION.\n       FILE SECTION.\n       FD SF FOO\n       01 R PIC X.\n", "'01'")]
+    [InlineData("sd-after-run", "       ENVIRONMENT DIVISION.\n       INPUT-OUTPUT SECTION.\n       FILE-CONTROL.\n           SELECT SF ASSIGN TO \"f.dat\".\n"
+        + "       DATA DIVISION.\n       FILE SECTION.\n       SD SF FOO\n       01 R PIC X.\n", "'01'")]
+    public void LevelNumberAfterAMissingPeriod_IsNotCalledAClause(string name, string body, string at)
     {
-        var errors = Compile(Head + "       DATA DIVISION.\n       WORKING-STORAGE SECTION.\n       01 W-X PIC X\n       05 W-Y PIC X.\n" + Proc);
-        Assert.True(errors.Count == 1, $"expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
+        var errors = Compile(Head + body + Proc);
+        Assert.True(errors.Count == 1, $"[{name}] expected exactly one diagnostic, got:\n{string.Join("\n", errors)}");
         Assert.Contains("error COBOL0307: ", errors[0]);
-        Assert.Contains("'05'", errors[0]);
+        Assert.Contains(at, errors[0]);
+        Assert.Contains("period may be missing", errors[0]);
     }
 
     [Theory]

@@ -67,22 +67,23 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["levelNumber"] = "a level-number is a user-defined word written as digits (ISO §8.3.2.2.13), never a literal",
         ["stopStatement"] = "STOP literal is the X3.23-1985 Format 2 (stop-literal-removed-2002): " + Removed2002,
         ["entryStatement"] = "ISO/IEC 1989 defines no ENTRY statement; StatementBinder refuses it whole, so no operand binds",
+        ["residueOpening"] = ErrorProduction,
+        ["residueInteger"] = ErrorProduction,
         ["residueLiteral"] = ErrorProduction,
         ["residueNonNumericLiteral"] = ErrorProduction,
     };
 
-    /// <summary>The error production's word run and its literal tokens (kb/Work PB3373) are no format: ClosedFormatPass
-    /// refuses the whole run by name, so nothing in it binds and no literal is specified there.</summary>
+    /// <summary>The error production's word run and its literal tokens (kb/Work PB3373, PB3390) are no format:
+    /// ClosedFormatPass refuses the whole run by name, so nothing in it binds and no literal is specified there.</summary>
     private const string ErrorProduction =
-        "the error production of a closed clause list (CobolExpressions.g4#unrecognizedClause), refused by name "
-        + "(COBOLNET1941 / 1970 / 1971); it is no format, so it specifies no literal";
+        "the error production of a closed clause list (CobolExpressions.g4#unrecognizedClause and its data division form "
+        + "unrecognizedDataClause), refused by name (COBOLNET1941 / 1970 / 1971); it is no format, so it specifies no literal";
 
     /// <summary>The word-admitting literal slots no enabled golden can witness, each with its reason.</summary>
     internal static readonly IReadOnlyDictionary<string, string> Unwitnessed = new Dictionary<string, string>
     {
         ["compileTimeOperand"] = "a compiler directive's operand (>>DEFINE, >>IF), which ISO §13.10.3 SR2 excepts: \"Except in "
             + "a compiler directive\"",
-        ["residueItem"] = ErrorProduction,
         ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §8.3.2.2), never a "
             + "literal",
         ["assignTarget"] = PB2500,

@@ -109,7 +109,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// it: the list is exited, and the error surfaces later at the entry's period (<c>SD SF RECORD 80 EXTERNAL.</c>) or
     /// several rules up (<c>SPECIAL-NAMES. GLOBAL.</c> failed in <c>compilationUnit</c>), where nothing remembers that
     /// the list was the place. So at a state whose closure reaches the error production, a reserved word (or a literal
-    /// the production does not open with, the unsigned integer: kb/Work PB3373) that NO path can take here — it is
+    /// the production does not open with: in the data division's form, one that begins with an unsigned integer,
+    /// kb/Work PB3373, PB3390) that NO path can take here — it is
     /// outside the full-context LL(1) set, so the parse fails at this token whatever happens next, and no legal
     /// program is touched — is reported at once (the 0g hint names the format) and the
     /// residue consumed up to what the list or its follow can take, as the base loop-back recovery does.
@@ -160,23 +161,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     {
         var atn = recognizer.Atn;
         var state = atn.states[recognizer.State];
-        // Inside the production itself (its word run, which only unrecognizedClause calls) the residue CONTINUES:
+        // Inside the production itself (its word run, in either form) the residue CONTINUES:
         // `SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.` stands in the paragraph's single optional residue, and no loop of the
         // list's own would Sync once the run ended (kb/Work PB3370).
-        if (state.ruleIndex != CobolParserCore.RULE_genericClause && !ReachesErrorProduction(atn, state)) return false;
+        if (!ClosedFormats.IsErrorProduction(state.ruleIndex) && !ReachesErrorProduction(atn, state)) return false;
         var token = recognizer.CurrentToken;
         if (token.Type is CobolLexer.IDENTIFIER or TokenConstants.EOF || atn.NextTokens(state).Contains(token.Type))
             return false;   // the production takes an IDENTIFIER itself; a token the rule continues with is legal
-        // A word (a reserved word is the candidate) or a literal the production does not open with — the unsigned
-        // integer (kb/Work PB3373); ClosedFormatResidue decides.
+        // A word (a reserved word is the candidate) or a literal the production does not open with — in the data
+        // division's form, one that begins with an unsigned integer (kb/Work PB3373, PB3390); ClosedFormatResidue
+        // decides.
         return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
                && ClosedFormatResidue(recognizer, token) is not null;
     }
 
     /// <summary>Per ATN state: does its closure — epsilon edges, every rule call entered, and a call to a rule that can
-    /// match empty stepped over — reach a call of <c>unrecognizedClause</c> without leaving the state's rule? It does
-    /// not pop out of the rule, so it is a pre-filter, not the answer: <see cref="ClosedFormatResidue"/> decides with
+    /// match empty stepped over — reach a call of the error production (either form) without leaving the state's rule?
+    /// It does not pop out of the rule, so it is a pre-filter, not the answer: <see cref="ClosedFormatResidue"/> decides with
     /// the real context. A list that may end is still caught, at the Sync of the loop that holds it. Cached in a
     /// static because the ATN is a static of the generated parser; a benign race recomputes the same answer.</summary>
     private static bool ReachesErrorProduction(ATN atn, ATNState start)
@@ -195,7 +197,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 var t = state.Transition(i);
                 if (t is RuleTransition call)
                 {
-                    reaches = call.target.ruleIndex == CobolParserCore.RULE_unrecognizedClause;
+                    reaches = ClosedFormats.IsErrorProduction(call.target.ruleIndex);
                     work.Push(call.target);
                     // Step over the call only when the called rule can match empty (its rule-local next set, which
                     // the ATN caches, holds EPSILON): a call that must consume a token ends the closure here.
@@ -367,9 +369,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "inside the one pair, and one alternative of a brace group shall be explicitly specified "
                 + "(ISO §5.2.6.3). Omit the parentheses when the method is invoked without arguments.", -1));
         // ⛔ 0g. A RESERVED WORD WHERE A CLOSED GENERAL FORMAT'S ERROR PRODUCTION STANDS (kb/Work PB2533). Ten closed
-        // formats end their alternative list in `unrecognizedClause`, which ClosedFormatPass refuses BY NAME — but the
-        // production never begins at a reserved word or an unsigned integer, so one the format does not print (`SD SF
-        // GLOBAL.`, `FD F DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`, `OBJECT-COMPUTER. 12.` — kb/Work PB3373) never
+        // formats end their alternative list in the error production (`unrecognizedClause`, or `unrecognizedDataClause`
+        // in the data division), which ClosedFormatPass refuses BY NAME — but the production never begins at a reserved
+        // word, nor its data form at a literal that begins with an unsigned integer (kb/Work PB3373, PB3390), so one the
+        // format does not print (`SD SF GLOBAL.`, `FD F DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`, `01 X PIC X 1,5.`) never
         // enters it and used to arrive here as a bare parse error. The
         // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
         // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
@@ -377,7 +380,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (ClosedFormatResidue(recognizer, token) is { } closedFormat)
             hints.Add(new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                     Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
-                closedFormat.Refusal(token.Text, ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
+                closedFormat.Refusal(WrittenResidueItem(recognizer, token), ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
 
         if (token.Type is CobolLexer.CORRESPONDING or CobolLexer.CORR && IsInRule(ruleStack, "moveStatement"))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOLNET2173,
@@ -488,19 +491,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     // ── A reserved word or a literal at a closed general format's error production (kb/Work PB2533, PB3373) ──
 
     /// <summary>The closed general format whose error production stands where <paramref name="token"/> — a RESERVED
-    /// word, or a literal the production does not open with (the unsigned integer, kb/Work PB3373:
-    /// <c>OBJECT-COMPUTER. 12.</c>) — failed the parse, or null.
+    /// word, or a literal the production does not open with (in the data division's form, one that begins with an
+    /// unsigned integer, kb/Work PB3373, PB3390: <c>01 X PIC X 1,5.</c>) — failed the parse, or null.
     /// <para><b>The position, from the ATN.</b> A small simulation of the parser from its current ATN state and its
     /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
     /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
     /// edge is taken only for the tokens between the parser's current token and <paramref name="token"/> — the ones a
     /// failed adaptive prediction looked past (a decision that read k tokens before it failed reports the k-th, with
     /// the decision's first token still current). If the closure at <paramref name="token"/> reaches
-    /// a call of <c>unrecognizedClause</c>, the rule making that call is the closed format's alternative list
+    /// a call of the error production (either form), the rule making that call is the closed format's alternative list
     /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
-    /// refused by name, and a reserved word or an unsigned integer is the same residue the production cannot hold.
-    /// The integer that may be the next entry's level-number is the after-period exclusion below, met in the data
-    /// division's lists (<c>01 X PIC X 05 Y …</c>), where the missing period stands.
+    /// refused by name, and a reserved word or a literal it cannot hold is the same residue. The integer that may be
+    /// the next entry's level-number is the after-period exclusion below, met in the data division's lists (<c>01 X
+    /// PIC X 05 Y …</c>), where the missing period stands; the integer that heads a comma decimal (<c>1,5</c>) is no
+    /// level-number and is refused here, quoted whole (kb/Work PB3390).
     /// So is the list whose call of the production the PARSER is still inside, met as the closure pops its context
     /// (<c>SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.</c>: the run WIBBLE ended at GLOBAL, kb/Work PB3370) — the innermost
     /// list of all, since the word continues that run.
@@ -520,7 +524,8 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!(IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         List<Config> configs = [new(atn.states[recognizer.State], null, recognizer.Context)];
-        for (int k = 1; ; k++)
+        int k = 1;
+        for (; ; k++)
         {
             var at = stream.LT(k);
             if (at.TokenIndex == token.TokenIndex) break;
@@ -538,7 +543,29 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         }
         var probe = new ResidueProbe();
         Closure(atn, configs, probe);
-        return probe.Format is not null && !probe.AfterPeriod.Contains(token.Type) ? probe.Format : null;
+        // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
+        // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
+        // no separator, ISO §8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
+        bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
+                                 && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
+        return probe.Format is not null && !beginsWhatFollows ? probe.Format : null;
+    }
+
+    /// <summary>The residue item as written from <paramref name="token"/>: the token's own text, or the whole literal it
+    /// heads when the literal spans more tokens (the comma decimals <c>1,5</c> and <c>,5</c>), so the parse layer's
+    /// refusal quotes a literal whole, as <c>ClosedFormatPass</c> quotes a run's opening (kb/Work PB3373, PB3390).</summary>
+    private static string WrittenResidueItem(Parser recognizer, IToken token)
+    {
+        var stream = (ITokenStream)recognizer.InputStream;
+        for (int k = 1; k <= MaxResimulatedTokens; k++)
+        {
+            var at = stream.LT(k);
+            if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF) break;
+            if (at.TokenIndex != token.TokenIndex) continue;
+            int width = CobolParserCoreBase.NumericLiteralWidth(stream, k);
+            return width > 1 ? stream.GetText(at, stream.LT(k + width - 1)) : token.Text;
+        }
+        return token.Text;
     }
 
     /// <summary>The words that OPEN a division, section or paragraph header — the first token of a rule whose next
@@ -582,7 +609,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private const int MaxResimulatedTokens = 16;
 
     /// <summary>The epsilon closure of <paramref name="seeds"/>: every configuration reached, each with its own calls
-    /// and context. With a <paramref name="probe"/> it also records each call of <c>unrecognizedClause</c> (with the
+    /// and context. With a <paramref name="probe"/> it also records each call of the error production (with the
     /// depth of the list making it) and, at each period edge in the parser's own context, what may follow the
     /// period.</summary>
     private static List<Config> Closure(ATN atn, List<Config> seeds, ResidueProbe? probe)
@@ -601,7 +628,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 {
                     // Leaving the PARSER's own call of the production: the word run is still open in the list that
                     // made the call, the innermost list of all (kb/Work PB3370 — a reserved word after the run).
-                    if (context.RuleIndex == CobolParserCore.RULE_unrecognizedClause)
+                    if (ClosedFormats.IsErrorProduction(context.RuleIndex))
                         probe?.Found(caller.RuleIndex, caller.Depth());
                     work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
                 }
@@ -613,7 +640,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 var t = state.Transition(i);
                 if (t is RuleTransition call)
                 {
-                    if (call.target.ruleIndex == CobolParserCore.RULE_unrecognizedClause)
+                    if (ClosedFormats.IsErrorProduction(call.target.ruleIndex))
                         probe?.Found(state.ruleIndex, context.Depth() + Frame.Count(calls));
                     work.Push(new(call.target, new Frame(call.followState.stateNumber, calls), context));
                 }

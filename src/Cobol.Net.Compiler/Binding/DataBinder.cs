@@ -2132,7 +2132,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     /// Two rules, both keyed on facts decided before the clause loop: the §13.4.5.2 format's clause list
     /// (<see cref="FileDescriptionFormats"/>, COBOLNET2604 — including the file control entry's clauses, which no
     /// FD format contains) and §13.4.5.3 SR4's LINE SEQUENTIAL ban on BLOCK CONTAINS and RECORD CONTAINS
-    /// (COBOLNET2605). The <c>unrecognizedClause</c> error production has no row and is admitted here: its own pass
+    /// (COBOLNET2605). The <c>unrecognizedDataClause</c> error production has no row and is admitted here: its own pass
     /// refuses it by name (COBOLNET1970).</summary>
     private bool FileDescriptionClauseAdmitted(
         Core.FileDescriptionClauseContext clause, FileDescriptionFormat format, FileModel file, string fdName)
@@ -5442,7 +5442,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     // Binding/Model/BitLayout.cs.
                     isAligned = true;
                 // ⛔ THE CLOSED §13.16.2 FORMAT-1 CLAUSE LIST has NO arm here (kb/Work PB487, generalized by
-                // kb/Work PB829). `unrecognizedClause` is an ERROR PRODUCTION, not a clause, and it is refused —
+                // kb/Work PB829). `unrecognizedDataClause` is an ERROR PRODUCTION, not a clause, and it is refused —
                 // by name, COBOLNET1941 — from `Validation/ClosedFormatPass.cs`, the ONE place every closed
                 // general format's residue is reported. It moved out of this loop because BindEntry is NOT
                 // reached for every written entry: the level-66 and level-88 paths return before it, so an

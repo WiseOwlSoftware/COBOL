@@ -95,9 +95,9 @@ public static class LiteralScreen
     /// admit a sign as a separate token in front of a numeric literal: <c>signedNumericLiteral : (PLUS | MINUS)?
     /// numericLiteralCore</c> (every procedure-division <c>literal</c> slot — MOVE, ADD, DISPLAY …),
     /// <c>signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT</c> (the slots the standard signs, kb/Work PB553) and the
-    /// sign-led alternative of <c>residueOpening</c>, the error production's opening literal (kb/Work PB3373), whose
-    /// tail holds <c>signedNumericLiteral</c> itself, so <c>FOO - 1</c> and a run opening at <c>- 1</c> are screened
-    /// alike. All are superset parses: the DEFAULT-mode lexer emits MINUS INTEGERLIT for <c>-5</c>, <c>- 5</c> and a
+    /// sign-led alternative of <c>residueOpening</c>, the error production's literal (kb/Work PB3373), which opens a
+    /// run and continues one (a tail item is a <c>residueOpening</c> too, kb/Work PB3390), so <c>FOO - 1</c> and a run
+    /// opening at <c>- 1</c> are screened alike. All are superset parses: the DEFAULT-mode lexer emits MINUS INTEGERLIT for <c>-5</c>, <c>- 5</c> and a
     /// sign at the end of a line alike. (null, null) when the node is none of them or carries no sign.</summary>
     private static (IToken? Sign, IToken? First) SignedSlot(IParseTree node) => node switch
     {
