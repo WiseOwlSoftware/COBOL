@@ -108,9 +108,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <see cref="DefaultErrorStrategy.Sync"/> lets a token it cannot place pass, because the rule's follow might take
     /// it: the list is exited, and the error surfaces later at the entry's period (<c>SD SF RECORD 80 EXTERNAL.</c>) or
     /// several rules up (<c>SPECIAL-NAMES. GLOBAL.</c> failed in <c>compilationUnit</c>), where nothing remembers that
-    /// the list was the place. So at a state whose closure reaches the error production, a reserved word that NO
-    /// path can take here — it is outside the full-context LL(1) set, so the parse fails at this token whatever
-    /// happens next, and no legal program is touched — is reported at once (the 0g hint names the format) and the
+    /// the list was the place. So at a state whose closure reaches the error production, a reserved word (or a literal
+    /// the production does not open with, the unsigned integer: kb/Work PB3373) that NO path can take here — it is
+    /// outside the full-context LL(1) set, so the parse fails at this token whatever happens next, and no legal
+    /// program is touched — is reported at once (the 0g hint names the format) and the
     /// residue consumed up to what the list or its follow can take, as the base loop-back recovery does.
     /// <para>Cost: a per-state flag first (<see cref="ReachesErrorProduction"/>, computed once per ATN state), then the
     /// rule-local next set the ATN caches; the full-context set and the walk run only for a keyword the list's own
@@ -166,7 +167,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var token = recognizer.CurrentToken;
         if (token.Type is CobolLexer.IDENTIFIER or TokenConstants.EOF || atn.NextTokens(state).Contains(token.Type))
             return false;   // the production takes an IDENTIFIER itself; a token the rule continues with is legal
-        return token.Text is [var first, ..] && char.IsAsciiLetter(first)
+        // A word (a reserved word is the candidate) or a literal the production does not open with — the unsigned
+        // integer (kb/Work PB3373); ClosedFormatResidue decides.
+        return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
                && ClosedFormatResidue(recognizer, token) is not null;
     }
@@ -365,8 +368,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 + "(ISO §5.2.6.3). Omit the parentheses when the method is invoked without arguments.", -1));
         // ⛔ 0g. A RESERVED WORD WHERE A CLOSED GENERAL FORMAT'S ERROR PRODUCTION STANDS (kb/Work PB2533). Ten closed
         // formats end their alternative list in `unrecognizedClause`, which ClosedFormatPass refuses BY NAME — but the
-        // production begins at an IDENTIFIER, so a reserved word the format does not print (`SD SF GLOBAL.`, `FD F
-        // DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`) never enters it and used to arrive here as a bare parse error. The
+        // production never begins at a reserved word or an unsigned integer, so one the format does not print (`SD SF
+        // GLOBAL.`, `FD F DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`, `OBJECT-COMPUTER. 12.` — kb/Work PB3373) never
+        // enters it and used to arrive here as a bare parse error. The
         // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
         // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
         // inherits it.
@@ -453,8 +457,10 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0307, "A period may be missing at the end of the previous sentence.", 25));
 
-        // 15. Literal where identifier expected
-        if (IsLiteral(token) && expectedTokens?.Contains("IDENTIFIER") == true)
+        // 15. Literal where identifier expected — a GUESS, suppressed once a structural diagnosis has named the rule
+        // (priority 0), as 7 and 14 are: at a closed format's residue position the IDENTIFIER in the expected set is
+        // the error production's own left edge, so "a data-name is expected here" would contradict 0g (kb/Work PB3373).
+        if (IsLiteral(token) && expectedTokens?.Contains("IDENTIFIER") == true && hints.TrueForAll(h => h.Priority > 0))
             hints.Add(new(Diagnostics.DiagnosticDescriptors.COBOL0308, "A data-name is expected here, not a literal.", 20));
 
         // 16. Identifier where literal expected
@@ -479,10 +485,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         return hints;
     }
 
-    // ── A reserved word at a closed general format's error production (kb/Work PB2533) ──
+    // ── A reserved word or a literal at a closed general format's error production (kb/Work PB2533, PB3373) ──
 
     /// <summary>The closed general format whose error production stands where <paramref name="token"/> — a RESERVED
-    /// word — failed the parse, or null.
+    /// word, or a literal the production does not open with (the unsigned integer, kb/Work PB3373:
+    /// <c>OBJECT-COMPUTER. 12.</c>) — failed the parse, or null.
     /// <para><b>The position, from the ATN.</b> A small simulation of the parser from its current ATN state and its
     /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
     /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
@@ -491,7 +498,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the decision's first token still current). If the closure at <paramref name="token"/> reaches
     /// a call of <c>unrecognizedClause</c>, the rule making that call is the closed format's alternative list
     /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
-    /// refused by name, and a reserved word is the same residue the production's IDENTIFIER-led shape cannot hold.
+    /// refused by name, and a reserved word or an unsigned integer is the same residue the production cannot hold.
+    /// The integer that may be the next entry's level-number is the after-period exclusion below, met in the data
+    /// division's lists (<c>01 X PIC X 05 Y …</c>), where the missing period stands.
     /// So is the list whose call of the production the PARSER is still inside, met as the closure pops its context
     /// (<c>SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.</c>: the run WIBBLE ended at GLOBAL, kb/Work PB3370) — the innermost
     /// list of all, since the word continues that run.
@@ -508,7 +517,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static ClosedFormat? ClosedFormatResidue(Parser recognizer, IToken token)
     {
         var atn = recognizer.Atn;
-        if (!IsReservedWord(token) || HeaderWords(atn).Contains(token.Type)) return null;
+        if (!(IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         List<Config> configs = [new(atn.states[recognizer.State], null, recognizer.Context)];
         for (int k = 1; ; k++)
@@ -1046,8 +1055,26 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     private static bool IsIdentifier(IToken token)
         => token.Type == CobolLexer.IDENTIFIER;
 
-    private static bool IsLiteral(IToken token)
-        => token.Type is CobolLexer.STRINGLIT or CobolLexer.INTEGERLIT or CobolLexer.DECIMALLIT;
+    /// <summary>A token that is a whole literal by itself: a <c>residueLiteral</c> token or the unsigned integer, which
+    /// together are every single-token alternative of <c>nonNumericLiteral</c> and <c>numericLiteralCore</c>
+    /// (ClosedFormatDriftTests holds the equality). Read from the ATN once. It used to be STRINGLIT, INTEGERLIT and
+    /// DECIMALLIT alone, so a national, boolean, hexadecimal or floating-point literal was "no literal" to every hint
+    /// below (kb/Work PB3373).</summary>
+    private static bool IsLiteral(IToken token) => LiteralTokens.Contains(token.Type);
+
+    private static IntervalSet LiteralTokens => _literalTokens ??= LiteralTokenSet();
+
+    private static IntervalSet? _literalTokens;
+
+    private static IntervalSet LiteralTokenSet()
+    {
+        var atn = CobolParserCore._ATN;
+        var set = new IntervalSet();
+        set.AddAll(atn.NextTokens(atn.ruleToStartState[CobolParserCore.RULE_residueLiteral]));
+        set.Add(CobolLexer.INTEGERLIT);
+        set.SetReadonly(true);
+        return set;
+    }
 
     private static bool IsInRule(string[] ruleStack, string ruleName)
         => ruleStack.Any(r => CobolNames.Same(r, ruleName));
