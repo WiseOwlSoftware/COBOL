@@ -487,7 +487,8 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
    at the tip reads **STOPPED** (the enqueue unit's; never WAITING TO LAND, so the table's "never relaunched at this
    head" and the survey agree), exit 0 at the tip reads ENQUEUED, and only a tip with no attempt, a running one or a
    retryable one (exit 3, 2, 9, 8, or a re-arm) reads WAITING TO LAND. A STOPPED branch carries the predecessors it
-   contains (they read IN FLIGHT). A report that names no HEAD, or that a later non-mechanical commit outdates, is a
+   contains that have no clean stamp at their tips (they read IN FLIGHT); a predecessor reviewed CLEAN keeps its own
+   state and lands on its own (kb/Work PB3381). A report that names no HEAD, or that a later non-mechanical commit outdates, is a
    DECISION with that evidence: its author rewrites it. The rolling wave asks the same predicate before it reviews a
    return (`plan_wave.py --finished <report>`, through one mechanical `cobol-locator`, since a workflow script runs no
    process), and `review_findings.py stamp` refuses an unfinished report.
@@ -506,7 +507,7 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
 | re-armed by the enqueue unit at this head (`land_lane.py rearm`) | launches, once: the launch consumes the re-arm; a re-arm whose branch moved is dropped |
 | none, or at another head (a finisher's commit, reviewed CLEAN) | launches |
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head | nothing: the queue has it |
-| exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched in-flight work, kb/Work PB2701) | retries at this head once `landing_check.py` passes on the branch's own range |
+| exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
 | exit 2 (main moved under every catch-up merge), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
 | exit 4, 5, 6, 7, 11, or a second exit 2 or 9 at this head | STOPPED: never relaunched at this head unless re-armed; the enqueue unit's |
@@ -802,9 +803,11 @@ itself), ordered by `blocked_by:`.
   can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts depth first. Everything else is the fix lane's mechanism: awaiting landing, finishers, model
   routing, budget, trains, allocation and outputs.
 - **Dependencies become successors.** A group whose notes wait on notes planned in this wave joins the TAIL of the
-  blocker group's successor chain (`after:`), so it starts once that chain has returned, merges its branch and lands
-  through it (the rolling wave's same-file mechanism, unchanged). A chain stays linear because the rolling wave holds a
-  predecessor for one successor. In the fix lane the only link is a shared primary file, whose chain tail is that
+  blocker group's successor chain (`after:`), so it starts once that chain's tail has SETTLED (returned, and its
+  review loop ended), merges that tail's reviewed branch and builds on it (the rolling wave's same-file mechanism).
+  Nothing in the chain is held: each link reviewed CLEAN lands as it comes, its successor's pull request merging on
+  top (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."). A chain stays
+  linear because a group names one `after:`, so it merges one predecessor's branch. In the fix lane the only link is a shared primary file, whose chain tail is that
   file's last group, so the rule there is the same-file rule exactly. A group whose blockers are planned in no group,
   or still sit in two chains (they did not merge, or the group's own file belongs to another chain), waits for a later
   wave. Its spec says it is a DEPENDENCY
