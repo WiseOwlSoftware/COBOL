@@ -12234,6 +12234,20 @@
   ],
   "expect": "COBOLNET1504"
  },
+ "pb2500-assign-constant-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: constant entry (01 … CONSTANT AS) requires COBOL-2002"
+ },
+ "pb2500-assign-constant-numeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the constant-name 'PB2500KN' stands for a numeric literal"
+ },
  "pb2502-record-key-alias-of-numeric": {
   "refuse-at": [
    "85",

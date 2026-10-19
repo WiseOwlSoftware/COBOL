@@ -1507,7 +1507,10 @@ newly-closed format as the standing witness that the rendering was right.
   allowed is §12.4.5.2 SR5's implementor determination (`docs/CONFORMANCE.md` §7 DOC-A.1-71: one operand, or DISK /
   PRINTER then one operand), read at bind in ONE place, `Binding/AssignTargetRule`, and refused BY NAME
   (COBOLNET2256). A consequence for this mechanism: a word run after an ASSIGN operand is now further TO operands,
-  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970.
+  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970. A word that names a constant entry at
+  an operand is literal-1 (§13.10.3 SR2), held to §12.4.5.2 SR4 (`AssignTargetRule.WordText`, kb/Work PB2500): the
+  grammar cannot tell a constant-name from a device-name-1, so the one `cobolWord` alternative is decided at bind,
+  the program's own declaration winning as it does for the LOCALE clause and the ALPHABET code-name.
 - **The §12.3.7.2 `dynamic-length-structure-clause` is modelled** (kb/Work PB829 finisher). It had no rule at all
   (`DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` was COBOL0001 — DYNAMIC is a reserved token no alternative admitted,
   so the catch-all never saw it). `dynamicLengthStructureClause` writes the RENDERED format: STRUCTURE and IS
