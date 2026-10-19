@@ -30,7 +30,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static string Tmp(string tag) =>
         Path.Combine(Path.GetTempPath(), $"pb2842-{tag}-{Guid.NewGuid():N}.dat");
 
-    private static void Register(FileRegistry reg, string name, string host, Org org, bool shared = true)
+    private static void Register(FileRegistry reg, string name, string host, Org org, FileSharing? sharing = FileSharing.AllOther)
     {
         if (org == Org.Relative)
             reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
@@ -38,7 +38,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         else
             reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
                 primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-        if (shared) reg.RegisterSharing(name, FileSharing.AllOther, FileLockMode.Manual, multiple: false);
+        if (sharing is { } clause) reg.RegisterSharing(name, clause, FileLockMode.Manual, multiple: false);
     }
 
     private static string Rec(int n, string payload) => $"{n:0000}{payload}";
@@ -52,7 +52,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static void Seed(string host, Org org)
     {
         var seed = new FileRegistry();
-        Register(seed, "S", host, org, shared: false);
+        Register(seed, "S", host, org, sharing: null);
         seed.OpenStatic("S", FileOpenMode.Output);
         Assert.Equal("00", Write(seed, "S", org, 1, "AAAA"));
         Assert.Equal("00", Write(seed, "S", org, 2, "BBBB"));
@@ -228,7 +228,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static void AssertFileHoldsThreeRecords(string host, Org org)
     {
         var check = new FileRegistry();
-        Register(check, "C", host, org, shared: false);
+        Register(check, "C", host, org, sharing: null);
         check.OpenStatic("C", FileOpenMode.Input);
         Assert.Equal("00", check.Status("C"));
         for (int n = 1; n <= 3; n++)
@@ -328,17 +328,19 @@ public sealed class KeyedStoreReloadFailureDriftTests
     /// allocation, and an allocation the host refuses is the permanent error '30' at either — the statement's own
     /// (<c>CompleteStatement</c>) and the CLOSE's (<c>FileConnector.Close</c>), not an exception out of the program.</summary>
     [Theory]
-    [InlineData(Org.Indexed, true)]
-    [InlineData(Org.Indexed, false)]
-    public void APersistTheHostRefuses_IsAPermanentError30_AtTheStatementAndAtTheClose(Org org, bool shared)
+    [InlineData(Org.Indexed, FileSharing.AllOther)]
+    [InlineData(Org.Indexed, FileSharing.ReadOnly)]   // kb/Work PB1587: a READ ONLY writer persists at the statement too
+    [InlineData(Org.Indexed, null)]   // the clause-less NO OTHER default
+    public void APersistTheHostRefuses_IsAPermanentError30_AtTheStatementAndAtTheClose(Org org, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"persist-{org}-{shared}");
+        bool shared = sharing is not null;   // another connector may be on the file: the statement persists at once
+        string host = Tmp($"persist-{org}-{sharing}");
         try
         {
             Seed(host, org);
             var a = new FileRegistry();
-            Register(a, "A", host, org, shared);
+            Register(a, "A", host, org, sharing);
             a.OpenStatic("A", FileOpenMode.IO);
             IndexedConnector.HostFaultObserver.Value = point =>
             {
@@ -389,7 +391,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, write: _ => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, Org.Relative, shared);
+            Register(a, "A", host, Org.Relative, shared ? FileSharing.AllOther : null);
             a.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal("00", a.Status("A"));
             refusing = true;
@@ -421,7 +423,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             CobolNet.Runtime.IO.RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, sync: () => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, Org.Relative, shared);
+            Register(a, "A", host, Org.Relative, shared ? FileSharing.AllOther : null);
             a.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal("00", Write(a, "A", Org.Relative, 3, "CCCC"));
             refusing = true;

@@ -18,9 +18,14 @@ public sealed partial class IndexedConnector
         RecordFraming.ReadHeader(HostPath, out recorded);
 
     /// <inheritdoc/>
-    /// <remarks>The whole store persists at CLOSE under the mutex, so only another WRITER can make its copy stale
-    /// (§9.1.15 3)).</remarks>
-    private protected override bool CoherentUnder(FileShare share) => FileLockPosture.AdmitsAnotherWriter(share);
+    /// <remarks>⛔ A STATEMENT THAT CHANGED THE STORE PERSISTS IT AT THE STATEMENT WHENEVER ANOTHER CONNECTOR MAY BE ON
+    /// THE FILE — a reader as well as a writer (kb/Work PB1587). §14.9.51.4 GR12 releases a written record to the
+    /// operating environment, and §9.1.15 2) admits the INPUT connector of another run unit beside a
+    /// <c>SHARING WITH READ ONLY</c> writer, so a record this connector answered '00' for must be in the file for that
+    /// reader: until PB1587 only <c>SHARING WITH ALL OTHER</c> was coherent, and a READ ONLY writer's records reached
+    /// the file at its CLOSE (the reader met '10'). The same predicate the paged engine asks
+    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, 2.2.1.7), which this model leaves with PB3334.</remarks>
+    private protected override bool CoherentUnder(FileShare share) => FileLockPosture.AdmitsAnotherRunUnit(share);
 
     /// <summary>⛔ THIS CONNECTOR'S INPUT-OUTPUT AREAS — ISO §12.4.5.14.3 GR1, <i>"If the RESERVE clause is specified,
     /// the number of input-output areas allocated is equal to the value of integer-1"</i> — allocated by the OPEN that
