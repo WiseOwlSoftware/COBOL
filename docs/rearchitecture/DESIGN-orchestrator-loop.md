@@ -1040,8 +1040,12 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   does not re-arm it goes deaf mid-session, and nothing at session start sees that: on 2026-10-18 the operator's
   watcher fired at 14:40, was not re-armed, and nine messages waited until 17:14. The Stop hook
   `scripts/hooks/inbox_guard.py` asks `status` at every attended turn's end and, when it reads false, refuses the stop
-  with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit, a host
-  without the coordination directory and a session with a watcher armed pass silently. A turn already continued for a
-  Stop hook (`stop_hook_active`) gets the line as a warning instead, so the hook never loops. The
+  with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit and a host
+  without the coordination directory pass silently. A turn already continued for a Stop hook (`stop_hook_active`) gets
+  the line as a warning instead, so the hook never loops. `watch` fires only on NEW messages: it records the ones it
+  returned in `mailbox/delivered-<lane>.json` (pruned to the open messages), so a watcher stays armed beside a message
+  the session has seen and cannot close yet, such as one waiting on the owner or a landing still running. Firing on
+  any open message would have made the hook and the watcher loop, one turn per cycle. Such a message, once open past
+  `STALE_MINUTES`, is named in a warning at every turn's end, never a refusal. The
   sender sees the other side: `send` warns when the recipient's inbox already holds messages open over 30 minutes
   (`mailbox.stale`), because that peer is probably not watching (kb/Work PB2816, folded into PB2814).
