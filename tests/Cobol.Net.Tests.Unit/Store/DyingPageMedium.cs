@@ -4,7 +4,7 @@ using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>A REAL medium (a connector's handle, through <c>RelativeStore.MediumObserver</c>) whose run unit DIES after a
+/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) whose run unit DIES after a
 /// named write: every write handed over before the death is on the medium, in order, and nothing after it is — what a
 /// process death leaves (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12: <i>"a process death keeps every write
 /// handed to the operating environment, in order"</i>). The connector above it runs on in the test process, but none of
@@ -14,6 +14,9 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
 {
     /// <summary>The writes handed over so far (the dead run unit's dropped ones excluded).</summary>
     public int Writes { get; private set; }
+
+    /// <summary>The syncs handed over so far — a statement that synced ran a promotion (2.2.1.6 R5).</summary>
+    public int Syncs { get; private set; }
 
     /// <summary>The run unit dies once this many writes have been handed over (never, by default).</summary>
     public int DieAfter { get; set; } = int.MaxValue;
@@ -34,7 +37,9 @@ internal sealed class DyingPageMedium(IPageMedium inner) : IPageMedium
 
     public void Sync()
     {
-        if (!Dead) inner.Sync();
+        if (Dead) return;
+        inner.Sync();
+        Syncs++;
     }
 
     public void SetLength(long bytes)

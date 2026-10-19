@@ -8,13 +8,19 @@
 #        single self-contained test)
 #
 # Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same report resolution, same written-files arm, same
-# FAIL*/footer rules) so a verdict here is identical to the serial guard's — only the working directory differs.
+# FAIL*/footer rules); only the working directory differs.
 # ⭐ THAT IS NO LONGER A PROMISE KEPT BY HAND: both guards call scripts/guard-verdict.sh, the ONE implementation
 # of the evidence rules (`feedback_one_rule_one_place`). The prose used to say the two blocks were kept
 # "character-for-character in step", and they had already drifted (this file's normalize() carried a `[ -f ]`
 # guard guard.sh's did not) while sharing every hole kb/Work/PB473 found.
-# The dir starts clean (mktemp) and is NOT cleaned between tests within the group, so a chain's shared TF### data
-# files accumulate in declaration order exactly as they do in the serial guard's shared dir.
+# ⛔ EVERY PROGRAM RUNS IN ITS OWN CLEAN DIRECTORY, AFTER EXACTLY ITS DECLARED PREDECESSORS (kb/Work PB3334, review
+# round 2) — NistRunner's rule, so the two arms grade a program over the same input. Its predecessors are corpus.tsv's
+# chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own member of the group).
+# The group's programs used to share ONE directory, so a consumer ran over whatever the members before it left: IX115A,
+# which declares only IX109A, ran over the tf024.txt that IX110A and IX114A had opened I-O. That agreed with NistRunner
+# only while an OPEN and a CLOSE that changed no record left the file's bytes alone. The keyed-store engine's writable
+# OPEN writes its fence (DESIGN-runtime-library 2.2.1.6, R6 step 4), so IX114A-IX120A wrote a tf024.txt that differed
+# from the golden the C# arm captured over IX109A's file alone.
 #
 # ⛔ THE EVIDENCE RULES (plan §11 A12b/A12d; DESIGN-test-build-ci.md §3.10) live in scripts/guard-verdict.sh and
 # cover all THREE arms — compile, run and compare. Read that file's header for what each one requires and why.
@@ -38,14 +44,36 @@ RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 . "$(cd "$(dirname "$0")" && pwd)/guard-verdict.sh"
 . "$(cd "$(dirname "$0")" && pwd)/guard-population.sh"
 
-WORK="$(mktemp -d)"
-# The comparison's scratch — DELIBERATELY OUTSIDE $WORK. The normalized copies must never become inputs to the
-# next test in a chain (a group's dir is shared by design and IX216A/IX217A are canaries for any stray file).
-CMP="$WORK.cmp"
+# One clean run directory per program under $RUNS (its own $WORK, below).
+RUNS="$(mktemp -d)"
+# The comparison's scratch — DELIBERATELY OUTSIDE every run directory. The normalized copies must never become
+# inputs to a program (IX216A/IX217A are canaries for any stray file).
+CMP="$RUNS.cmp"
 mkdir -p "$CMP"
-trap 'rm -rf "$WORK" "$CMP"' EXIT
-cp "$RUNTIME" "$WORK/"
+trap 'rm -rf "$RUNS" "$CMP"' EXIT
 export COBOL_SWITCH_1=ON
+
+# run_predecessor PRED CONSUMER — run PRED, ungraded, in CONSUMER's run directory ($WORK), its standard input its data
+# file as when it is graded. A predecessor with no compiled program is said so on stderr and skipped: the consumer
+# then lacks its input and goes red, never a false green.
+run_predecessor() {
+    local pred="$1" consumer="$2" pdata="$ROOT/tests/nist/data/$1.dat" prc=0
+    if [ ! -f "$OUT/$pred.dll" ]; then
+        echo "  ⚠ $consumer: its declared predecessor $pred has no compiled program — $consumer runs without it" >&2
+        return 0
+    fi
+    cp "$OUT/$pred.dll" "$WORK/"
+    [ -f "$OUT/$pred.runtimeconfig.json" ] && cp "$OUT/$pred.runtimeconfig.json" "$WORK/"
+    if [ -f "$pdata" ]; then
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") < "$pdata" > /dev/null 2>&1 || prc=$?
+    else
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") > /dev/null 2>&1 || prc=$?
+    fi
+    if [ "$prc" -eq 124 ] || [ "$prc" -eq 137 ]; then
+        echo "  ⚠ $consumer: its declared predecessor $pred timed out (rc=$prc) in $consumer's directory" >&2
+    fi
+    return 0
+}
 
 for test in $TESTS; do
     dll="$OUT/$test.dll"
@@ -57,6 +85,11 @@ for test in $TESTS; do
         echo "$test: $GUARD_VERDICT"
         continue
     fi
+    WORK="$RUNS/$test"
+    mkdir -p "$WORK"
+    cp "$RUNTIME" "$WORK/"
+    preds="$(guard_chain_preds "$test")" || exit 1
+    for pred in $preds; do run_predecessor "$pred" "$test"; done
     cp "$dll" "$WORK/"
     [ -f "$OUT/$test.runtimeconfig.json" ] && cp "$OUT/$test.runtimeconfig.json" "$WORK/"
 
