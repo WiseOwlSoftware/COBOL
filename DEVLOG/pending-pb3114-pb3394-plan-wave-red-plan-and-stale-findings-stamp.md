@@ -37,3 +37,9 @@ Docs: DESIGN-orchestrator-loop section 9 items 2, 7 and 8 and the ledger row (it
 lead-id and train args), DESIGN-test-build-ci's review-rounds paragraph, MANDATORY-PRACTICES I10 and O10, the workstream
 SKILL's Specs paragraph. Both notes landed, `closes_rows: []` (process tooling, no inventory row). No diagnostic code
 used (COBOLNET4616-4618 returned).
+
+Self-review: the planner asked `review_covers` (git, for a stale stamp) up to three times per report, now once; the
+scratch rule also refuses the MAIN checkout when the planner runs from one of its agent worktrees. Gate (run
+`20261019T222512Z-da5920`, at be46f2427): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
+left to CI's whole-population run` (Conformance 11,010/18,013 · Unit 33,701/34,755 · Characterization 5/36 in leg 1;
+self-tests GREEN, 41 ran, 46 reused).
