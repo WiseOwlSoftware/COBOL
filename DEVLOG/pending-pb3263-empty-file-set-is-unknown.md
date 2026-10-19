@@ -12,8 +12,12 @@ site block) was planned that way beside the in-flight storage engine and landed 
 set is UNKNOWN: it meets the other side on a shared subsystem (the notes' `area:`, `plan_wave.subsystems`), and it meets
 everything when the other side's subsystem is unknown too. A meeting by subsystem waits even for finished work,
 because a continuation would merge a branch the group may share nothing with. Within a wave an unknown group is
-planned alone on its subsystems: it joins the chain of the last group on one of them, and a later group on one joins
-its chain. A dispatch recorded with no files stays in flight with its notes, and the branch survey's in-flight slugs
+planned alone on its subsystems by the same rule: it follows every group of the wave it meets, and a later group that
+meets it joins its chain. A chain is linear, so when the groups it meets lie in two chains it waits for a later wave.
+The first version followed only the last group on a subsystem, and the branch review (finding R1-1) showed the hole:
+two known `runtime/io` groups on `Engine.cs` and `Locks.cs` are two chains, and an unsited `runtime/io` group placed
+after the second ran beside the first. Four cases now pin it (two chains, so it waits; known groups after an unknown
+one; an unknown subsystem meets every group, both ways), and three of them were red on the reviewed head. A dispatch recorded with no files stays in flight with its notes, and the branch survey's in-flight slugs
 now count it too, which they missed before. A finisher's set now includes the files of the branch it continues. The
 plan table and the spec name the group `UNPARTITIONED` and ask its implementer for a `**Sites:**` paragraph. The
 external-repository slices owner now carries its notes, so an unknown group meets it only on a shared subsystem. A dry
@@ -39,7 +43,7 @@ now from sites that predate the group's new files, which is what stopped PB3334'
 stop now names the arm its set came from instead of "a member_index hole". Self-test cases PB3263a-d pin the 15:28
 shape.
 
-Design: `DESIGN-orchestrator-loop.md` section 9 item 1b and 9.1. Tests: `test_plan_wave.py` 274/274 (section 12 and
+Design: `DESIGN-orchestrator-loop.md` section 9 item 1b and 9.1. Tests: `test_plan_wave.py` 278/278 (section 12 and
 the `sites_problems` cases in section 10) and `landing_check.py --self-test` 45/45. The tier fixture of section 9b now
 gives each note its own area, because two of its notes declare no sites and a shared area would chain them all.
 
