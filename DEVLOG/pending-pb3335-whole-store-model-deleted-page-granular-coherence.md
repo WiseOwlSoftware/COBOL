@@ -168,3 +168,11 @@ sites, 32 cases in all. They are a format 1 USE procedure with and without FILE 
 and a declarative for EC-I-O (rule 5). Each trace ends at "USE", and the run unit then ends abnormally with
 EC-I-O-PERMANENT-ERROR. All 32 cases are red with both '30' arms of `KeyedConnector.CloseCore` disabled, and the new
 covers are red at the trace too.
+
+The round-3 gates ran at `a2f97fc91`. The Windows run `20261019T003930Z-e04bf9` printed `=== BUILD-LOCAL GATE: LEG 1
+ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,592 · Unit 561 ·
+Characterization 31 — Conformance 11,352/17,944 · Unit 33,953/34,514 · Characterization 5/36 cases ran (skipped 0) in 1
+of 2 leg(s) ===`, and all 32 witness cases passed in leg 1. CI's Linux legs printed `=== LINUX GATE: GREEN (legs
+selftests unit characterization conformance guard selftests-built; HEAD a2f97fc91) ===`. Both gates were also GREEN at
+`da8cd56d8`, before the last two commits (the fourth cover, the counts and this entry) and the clean merge of b3d-4's
+landing.
