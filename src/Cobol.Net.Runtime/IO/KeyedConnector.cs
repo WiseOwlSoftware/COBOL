@@ -407,8 +407,7 @@ public abstract class KeyedConnector : FileConnector
     /// engine writes at every statement, so this is every sharing mode that admits ANY other run unit's connector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and
     /// 2.2.1.13; kb/Work PB3333): the INPUT reader §9.1.15 2) admits beside a READ ONLY writer would otherwise meet a
-    /// half-written path, or miss a record a WRITE released to the file at the statement (§14.9.51.4 GR12, kb/Work
-    /// PB1587).</summary>
+    /// half-written path.</summary>
     private bool _coherent;
 
     /// <summary>Whether the host granted the connector's handle write access (kb/Work PB2758).</summary>
