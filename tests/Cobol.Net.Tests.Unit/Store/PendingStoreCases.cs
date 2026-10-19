@@ -15,8 +15,9 @@ internal sealed record PendingCase(string Section, string Row, string Owner, str
 /// THEIR EXPECTED RESULTS BEFORE THE ENGINE THAT RUNS THEM EXISTS (kb/Work PB3331, "The first deliverable"; PB3330's
 /// Route from 2026-10-18). The held transaction slice (COMMIT, ROLLBACK, the dead-owner step and the holdings) is kb/Work
 /// PB3337's; the record statements' lock tests and lock publication, the alternate-key and relative statements and the
-/// connectors' coherence are PB3333, PB3334 and PB3335's. Each owner turns its rows into running cases when it lands;
-/// this class checks only that every row names an owner that is not the page layer, a section and an expected result.
+/// connectors' coherence were PB3333, PB3334 and PB3335's, and run now as cases of their own. Each owner turns its rows
+/// into running cases when it lands; this class checks only that every row left names the held slice, a section and an
+/// expected result.
 /// </summary>
 public sealed class PendingStoreCases
 {
@@ -70,19 +71,21 @@ public sealed class PendingStoreCases
         // the publication and the tree's COBOL surface for a relative file — run in RelativeEngineTests and, over the
         // engine, in CrossRunUnitKeyedStoreDriftTests' Org.Relative rows; the boundary at a WRITE, a REWRITE ('24', the
         // file unchanged) and a DELETE ('30', no invalid key condition) through the RELATIVE connector in FileBoundaryTests;
-        // the torn page's '30' through a compiled program, with and without a USE procedure and a FILE STATUS clause and
-        // the phrases ignored, in the Conformance project's RelativeEnginePermanentErrorWitnessTests; the phrases taken and
-        // not taken for '22', '23', '24' and '10' in the relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5-
-        // and 9.1.14-, pb1192_relative_write_boundary_85 among them.)
-        new("2.2.1.16 refused", "the boundary (the format's 2^32 pages, the host's EFBIG) at a WRITE, a REWRITE and a DELETE through the INDEXED connector", "PB3334",
-            "the same as the relative rows, the DELETE's rule being §14.9.10.4 GR3: '24' with INVALID KEY at the WRITE and REWRITE, '30' with no invalid key condition at the DELETE"),
-        new("2.2.1.17", "A's statement ∥ B's statement through the INDEXED connector: alternate keys, ordinals, collations", "PB3334",
-            "the same, plus §14.9.30.4 GR26's duplicate order kept across run units and the '02' look-ahead"),
-        new("2.2.1.17", "the connectors' coherence: StoreTable attach/detach, the page cache dropped on adoption", "PB3335",
-            "a sibling connector's change visible instantly; another run unit's change adopted at the next coherent entry, the cache dropped"),
-        // The B+ tree's COBOL surface (kb/Work PB3332 built the tree; its statements are the connectors').
-        new("2.2.1.12 tree", "START with each relational operator over the tree's seek, a full key and a partial key, the key found and not found", "PB3334",
-            "§14.9.41.4 GR17 c) to e): the first record satisfying the comparison (LESS and its kin: the last, the file searched in reverse) becomes the position, '00' with NOT INVALID KEY; none satisfies it: '23' with INVALID KEY taken; each with and without a USE declarative and a FILE STATUS item"),
+        // the torn page's '30' through a compiled program,
+        // with and without a USE procedure and a FILE STATUS clause and the phrases ignored, in the Conformance project's
+        // RelativeEnginePermanentErrorWitnessTests; the phrases taken and not taken for '22', '23', '24' and '10' in the
+        // relative goldens of conformance-suite/cases/9.1.13.4-, 9.1.13.5- and 9.1.14-, pb1192_relative_write_boundary_85
+        // among them. PB3334's — the INDEXED connector's statements across run units with their alternate keys, ordinals
+        // and '02' look-ahead, START over the trees, the refusals and deaths at every write of every statement, OPEN and
+        // CLOSE included, and the boundary at a WRITE, a REWRITE and a DELETE — run in IndexedEngineTests,
+        // FileBoundaryTests, CrossRunUnitKeyedStoreDriftTests' Org.Indexed rows and the golden
+        // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; the torn page's '30' and the
+        // boundary's '24' through a compiled program, in every USE and FILE STATUS combination, in
+        // IndexedEnginePermanentErrorWitnessTests. PB3335's — the connectors' coherence, StoreTable's attach and detach, the
+        // cache dropped on adoption, a reader's entry beside a writable sibling with its torn and refused page 2, the
+        // re-adoption's refusal at a CLOSE, the crashed-file reader of R6's last row — in StoreCoherenceTests; a CLOSE's
+        // '30', its promotion or its re-adoption refused, through a compiled program in every USE and FILE STATUS
+        // combination, in KeyedClosePermanentErrorWitnessTests.) What is left is the held transaction slice's.
     ];
 
     [Fact]
@@ -91,7 +94,7 @@ public sealed class PendingStoreCases
         Assert.NotEmpty(Rows);
         Assert.All(Rows, row =>
         {
-            Assert.Contains(row.Owner, new[] { "PB3334", "PB3335", "PB3337" });
+            Assert.Equal("PB3337", row.Owner);
             Assert.StartsWith("2.2.1.1", row.Section);
             Assert.False(string.IsNullOrWhiteSpace(row.Row));
             Assert.False(string.IsNullOrWhiteSpace(row.Expected));

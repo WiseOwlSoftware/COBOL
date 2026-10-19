@@ -20,7 +20,7 @@ namespace CobolNet.Tests.Unit;
 /// <see cref="FileRegistry"/> IS a second run unit here: it shares no table and no handle with the first
 /// (<see cref="RunUnitFileLockDriftTests"/>), so only what the physical file and the host's byte-range locks carry
 /// can pass between them.</para>
-/// <para>The PB754 half: emptying a keyed store is done in ONE place, <see cref="KeyedStoreTable.AttachCreated{T}"/>,
+/// <para>The PB754 half: emptying a keyed store is done in ONE place, <see cref="StoreTable.AttachCreated{T}"/>,
 /// which refuses a store another connector still holds — no connector clears one itself.</para>
 /// </summary>
 public sealed class CrossRunUnitKeyedStoreDriftTests
@@ -403,28 +403,36 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     [Fact]
     public void CreatingAStoreAnotherConnectorHolds_IsADefect()
     {
-        var table = new KeyedStoreTable();
-        table.AttachRelative("pb754-host");
+        var table = new StoreTable();
+        table.Attach<RelativeStore>("pb754-host");
         Assert.Throws<InvalidOperationException>(() => table.AttachCreated<RelativeStore>("pb754-host"));
         table.Detach("pb754-host");
         Assert.Null(table.AttachCreated<RelativeStore>("pb754-host").File);   // a store being created holds no file yet
     }
 
-    /// <summary>No connector empties a keyed store itself: the ONE emptying is <c>KeyedStoreTable.AttachCreated</c>,
-    /// and the only other <c>Clear()</c> is the organization's <c>Fill</c> — a load or a reload from the physical
-    /// file, which every attached connector must see (kb/Work PB754).</summary>
+    /// <summary>No connector empties a keyed store itself. Emptying is the store's CREATION, done in one place:
+    /// <c>OPEN OUTPUT</c>'s <c>StoreTable.AttachCreated</c>, which refuses a store another connector still holds, and then
+    /// <c>KeyedStore.Create</c>'s <c>PagedFile.Create</c>, the one truncation (kb/Work PB754; on the keyed store engine,
+    /// kb/Work PB3335, a store holds no records in memory, so there is nothing a connector could clear).</summary>
     [Fact]
     public void NoConnectorClearsASharedStore()
     {
+        static IEnumerable<(string Line, int At)> Code(string file, string token) =>
+            File.ReadAllLines(file).Select((l, i) => (l, i + 1)).Where(x => x.l.Contains(token, StringComparison.Ordinal)
+                && !x.l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         foreach (var file in new[] { "RelativeConnector.cs", "IndexedConnector.cs", "KeyedConnector.cs" })
         {
-            string[] lines = File.ReadAllLines(TestRepo.Src("Cobol.Net.Runtime", "IO", file));
-            var clears = lines.Select((l, i) => (l, i)).Where(x => x.l.Contains(".Clear()", StringComparison.Ordinal)
-                && !x.l.TrimStart().StartsWith("//", StringComparison.Ordinal)).ToList();
-            foreach (var (line, at) in clears)
-                Assert.True(line.Trim() == "store.Clear();",
-                    $"{file}:{at + 1} clears a store outside Fill: '{line.Trim()}' — emptying a shared keyed store is "
-                    + "KeyedStoreTable.AttachCreated's alone (kb/Work PB754).");
+            var clears = Code(TestRepo.Src("Cobol.Net.Runtime", "IO", file), ".Clear()").ToList();
+            Assert.True(clears.Count == 0, $"{file} clears something a keyed store holds: "
+                + string.Join("; ", clears.Select(c => $"{c.At}: {c.Line.Trim()}"))
+                + " — emptying a shared keyed store is OPEN OUTPUT's creation alone (kb/Work PB754).");
         }
+        string io = TestRepo.Src("Cobol.Net.Runtime", "IO");
+        var truncations = Directory.EnumerateFiles(io, "*.cs", SearchOption.TopDirectoryOnly)
+            .SelectMany(f => Code(f, "PagedFile.Create(").Select(c => $"{Path.GetFileName(f)}:{c.At}"))
+            .ToList();
+        Assert.True(truncations.All(t => t.StartsWith("KeyedStore.cs:", StringComparison.Ordinal)) && truncations.Count > 0,
+            "PagedFile.Create — the one truncation of a keyed store — is reached only through KeyedStore.Create; found: "
+            + string.Join(", ", truncations));
     }
 }

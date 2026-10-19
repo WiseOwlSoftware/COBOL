@@ -12,11 +12,9 @@ namespace CobolNet.Tests.Unit;
 /// The runtime's two MEDIUM boundaries, pinned where a COBOL golden cannot reach them (kb/Work PB1192, PB690).
 /// <list type="bullet">
 /// <item>The externally-defined boundaries of ISO §9.1.13.5 item 4 ('24', a relative or indexed file — Annex A.1
-/// item 107: for a RELATIVE file the host's maximum file size and the engine's 2^32 pages, for an INDEXED file until
-/// kb/Work PB3334 the whole store's capacity <see cref="RecordFraming.MaxStoreBytes"/>) and §9.1.13.6 item 3 ('34', a
-/// sequential file — Annex A.1 item 108, the host medium's capacity, <see cref="HostFile.IsMediumBoundary"/>).
-/// The indexed capacity test is ARITHMETIC over the one size formula (<see cref="RecordFraming.FrameBytes"/>), so
-/// these tests hold that formula against the bytes <see cref="RecordFraming.ComposeStore"/> really composes.</item>
+/// item 107: the host's maximum file size and the keyed store engine's 2^32 pages, met at the statement whose pages the
+/// host refuses to grow the file for) and §9.1.13.6 item 3 ('34', a sequential file — Annex A.1 item 108, the host
+/// medium's capacity, <see cref="HostFile.IsMediumBoundary"/>).</item>
 /// <item>The file coded character set of Annex A.1 item 31 (owner decision kb/Work R47): ISO/IEC 8859-1, with a
 /// strict encoding so an unrepresentable character can never become a silent <c>?</c>.</item>
 /// </list>
@@ -33,6 +31,10 @@ public sealed class FileBoundaryTests : IDisposable
     }
 
     private string Host(string name) => Path.Combine(_dir, name);
+
+    /// <summary>Whether a write of <paramref name="page"/> grows the file: the page at or past the medium's end in bytes —
+    /// the writes a full medium and a file at its maximum size refuse.</summary>
+    private static bool Grows(IPageMedium medium, uint page) => (long)page * PageHeader.PageSize >= medium.Length;
 
     private static readonly char Euro = (char)0x20AC;
     private static readonly char EAcute = (char)0x00E9;
@@ -133,55 +135,112 @@ public sealed class FileBoundaryTests : IDisposable
 
     // ── §9.1.13.5 item 4: the store's capacity ───────────────────────────────────────────────────────────
 
-    /// <summary>The capacity is the largest array the store is composed in and loaded from.</summary>
+    /// <summary>⛔ AN INDEXED RECORD IS n + 1 ENTRIES, ITS ORDINALS IN ITS FRAME AND IN ITS COMPOSITE KEYS
+    /// (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4; kb/Work PB3334, PB2693). Read back from the file's own pages
+    /// (the committed meta through a fresh adoption, the trees by a walk): the prime tree holds each record's frame under
+    /// its prime key's channel bytes, carrying one release ordinal per key the meta page records — a WRITE stamps one
+    /// fresh ordinal into every slot (§14.9.51.4 GR40), a REWRITE re-stamps only the key it changed (§14.9.35.4 GR24) —
+    /// and the alternate tree holds (the key's bytes, the record's ordinal under it) → its prime key, in that order, so a
+    /// tree's order IS its duplicate order. A record whose alternate key equals its SUPPRESS WHEN value has no alternate
+    /// entry (§12.4.5.6.4 GR6).</summary>
     [Fact]
-    public void MaxStoreBytes_IsTheLargestArrayTheStoreIsComposedIn() =>
-        Assert.Equal(RecordFraming.MaxStoreBytes, (long)Array.MaxLength);
-
-    /// <summary>The indexed store's running size agrees with the composed image through Add, Replace and Remove —
-    /// each frame with its release ordinals, one per key (kb/Work PB2693).</summary>
-    [Fact]
-    public void IndexedStore_RecordBytes_IsTheComposedSize()
+    public void IndexedRecord_IsNPlusOneEntries_TheOrdinalsInItsFrameAndInItsCompositeKeys()
     {
-        var attributes = new IndexedConnector("i.dat", 8, KeyedAccess.Random, [new(0, 4)], varyMin: 4, varyMax: 8).DeclaredAttributes;
-        var store = new IndexedStore();
-        var a = new KeyedRec { Image = "K001AAAA", Ordinals = [1] };
-        var b = new KeyedRec { Image = "K002", Extents = RecordFraming.VoidExtents(1), Ordinals = [2] };
-        store.Add(a);
-        store.Add(b);
-        Check();
-        store.Replace(a, "K001A", null);
-        Check();
-        Assert.True(store.Remove(b));
-        Check();
-        store.Clear();
-        Check();
+        string host = Host("ix-entries.dat");
+        var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)]);
+        c.AddAlternateKey([new(4, 4)], duplicates: true, suppress: "ZZZZ");
+        Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+        Assert.Equal(FileStatusCode.Success, c.Write("K002DDDD"));
+        Assert.Equal(FileStatusCode.DuplicateAlternateKey, c.Write("K001DDDD"));   // '02': a permitted duplicate
+        Assert.Equal(FileStatusCode.Success, c.Write("K003ZZZZ"));                 // suppressed: no alternate entry
+        Assert.Equal(FileStatusCode.Success, c.Close());
+        Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));
+        Assert.Equal(FileStatusCode.Success, c.Rewrite("K002EEEE"));               // GR24 b): last among its new duplicates
+        Assert.Equal(FileStatusCode.Success, c.Close());
 
-        void Check() => Assert.Equal(RecordFraming.HeaderBytes(attributes) + store.RecordBytes,
-            Composed(attributes, store.Recs.Select(r => (StoredFrame?)new StoredFrame(r.Image, r.Extents, r.Ordinals))));
+        using var handle = File.OpenHandle(host, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var medium = new CobolNet.Runtime.IO.Store.HandlePageMedium(handle);
+        Assert.Equal(CobolNet.Runtime.IO.Store.StoreStatus.Ok,
+            CobolNet.Runtime.IO.Store.PagedFile.Open(medium, writable: false, coherent: false, out var file));
+        var meta = file!.Meta;
+        Assert.Equal(2, meta.Attributes.Keys.Count);
+        Assert.Single(meta.AlternateRoots);
+        var prime = Entries(new CobolNet.Runtime.IO.Store.BTree(file, CobolNet.Runtime.IO.Store.KeyOrders.Ordinal, meta.PrimeRoot))
+            .Select(e => (Key: Encoding.Latin1.GetString(e.Key), Frame: RecordFraming.DecodeFrame(e.Value, 2, null)!.Value))
+            .ToList();
+        Assert.Equal(["K001", "K002", "K003"], prime.Select(p => p.Key));
+        Assert.Equal(["K001DDDD", "K002EEEE", "K003ZZZZ"], prime.Select(p => p.Frame.Image));
+        // The release mint is the file's: 0, 1, 2 for the three WRITEs, 3 for the REWRITE's re-stamp of key 1 alone.
+        Assert.Equal([1L, 1L], prime[0].Frame.Ordinals!);
+        Assert.Equal([0L, 3L], prime[1].Frame.Ordinals!);
+        Assert.Equal([2L, 2L], prime[2].Frame.Ordinals!);
+        var alternate = Entries(new CobolNet.Runtime.IO.Store.BTree(file,
+                new CobolNet.Runtime.IO.Store.CompositeKeyOrder(CobolNet.Runtime.IO.Store.KeyOrders.Ordinal), meta.AlternateRoots[0]))
+            .Select(e => (IndexedStore.Split(e.Key), Encoding.Latin1.GetString(e.Value)))
+            .Select(e => $"{Encoding.Latin1.GetString(e.Item1.KeyPart)}#{e.Item1.Ordinal}->{e.Item2}")
+            .ToList();
+        Assert.Equal(["DDDD#1->K001", "EEEE#3->K002"], alternate);
+
+        static List<(byte[] Key, byte[] Value)> Entries(CobolNet.Runtime.IO.Store.BTree tree)
+        {
+            var all = new List<(byte[], byte[])>();
+            Assert.Equal(CobolNet.Runtime.IO.Store.StoreStatus.Ok, tree.First(out var cursor));
+            while (cursor.HasCurrent)
+            {
+                Assert.Equal(CobolNet.Runtime.IO.Store.StoreStatus.Ok, cursor.ReadValue(out var value));
+                all.Add((cursor.Key, value));
+                Assert.Equal(CobolNet.Runtime.IO.Store.StoreStatus.Ok, cursor.Next());
+            }
+            return all;
+        }
     }
 
-    /// <summary>An indexed store keeps every record's release ordinals and its release mint through the framing
-    /// (kb/Work PB2693): the §14.9.30.4 GR26 order of each key's duplicates is one number per record PER KEY, which the
-    /// order of the frames alone cannot carry. A frame whose vector does not match the header's key count is refused
-    /// before anything is composed, because the decoder locates every later frame by that count.</summary>
-    [Fact]
-    public void IndexedStore_Framing_CarriesTheReleaseOrdinals()
+    /// <summary>The host's two refusals at an INDEXED statement (2.2.1.9; the record's n + 1 entries are one statement): a
+    /// page write the host refuses because the file cannot GROW past its maximum size is '24' — §14.9.51.4 GR42 d),
+    /// <i>"When the record that is to be released to the operating environment would reside outside the externally
+    /// defined boundaries of the physical file"</i> — and a write refused because the medium is FULL is '30' (§9.1.13.6
+    /// item 1), in effect until the CLOSE (§9.1.13.1). Neither releases the record under any key: the next OPEN reads the
+    /// earlier records by the prime key and by the alternate key alike.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void IndexedWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge)
     {
-        var c = new IndexedConnector("i.dat", 8, KeyedAccess.Random, [new(0, 4)], varyMin: -1, varyMax: -1);
-        c.AddAlternateKey([new(4, 1)], duplicates: true);
-        var attributes = c.DeclaredAttributes;
-        Assert.Equal(2, RecordFraming.OrdinalSlots(attributes));
-        using var ms = RecordFraming.ComposeStore(attributes,
-            [new StoredFrame("K001D   ", null, [1, 7]), new StoredFrame("K002D   ", null, [2, 2])],
-            generation: 5, releaseMint: 8);
-        var back = RecordFraming.DecodeStore(ms.GetBuffer(), (int)ms.Length, out long mint);
-        Assert.Equal(8, mint);
-        Assert.Equal([1L, 7L], back[0]!.Value.Ordinals!);
-        Assert.Equal([2L, 2L], back[1]!.Value.Ordinals!);
-        Assert.Equal("K002D   ", back[1]!.Value.Image);
-        Assert.Throws<InvalidOperationException>(() => RecordFraming.ComposeStore(attributes,
-            [new StoredFrame("K001D   ", null, [1])], generation: 0, releaseMint: 2));
+        string host = Host($"ix-refuse-{tooLarge}.dat");
+        int hresult = tooLarge
+            ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
+            : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
+        bool refusing = false;
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
+        try
+        {
+            var c = Indexed(host);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            Assert.Equal(FileStatusCode.Success, c.Write("K001AAAA"));
+            refusing = true;
+            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, c.Write("K002BBBB"));
+            refusing = false;
+            // '24' is the invalid key condition and the connector goes on; '30' is a permanent error in effect.
+            Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.PermanentError, c.Write("K003CCCC"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+        }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        var r = Indexed(host);
+        Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
+        Assert.Equal(FileStatusCode.RecordNotFound, r.ReadRandom(0, "    BBBB", out _));   // not released under key 1
+        Assert.Equal(FileStatusCode.RecordNotFound, r.ReadRandom(-1, "K002    ", out _));   // nor under the prime key
+        Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.RecordNotFound, r.ReadRandom(0, "    CCCC", out _));
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K001    ", out string first));
+        Assert.Equal("K001AAAA", first);
+        Assert.Equal(FileStatusCode.Success, r.Close());
+
+        static IndexedConnector Indexed(string host)
+        {
+            var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)]);
+            c.AddAlternateKey([new(4, 4)], duplicates: false);
+            return c;
+        }
     }
 
     /// <summary>⛔ THE BOUNDARY OF A RELATIVE FILE IS THE HOST'S (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9,
@@ -231,15 +290,14 @@ public sealed class FileBoundaryTests : IDisposable
     public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge, bool rewrite)
     {
         string host = Host($"refuse-{tooLarge}-{rewrite}.dat");
-        int full = OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
+        int hresult = tooLarge
+            ? OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27     // ERROR_FILE_TOO_LARGE / EFBIG
+            : OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
         bool refusing = false;
         // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
-        // size both do; the pages already in the file (page 2 among them) are written as ever. The medium contract
-        // carries the host's "the file cannot grow further" as MediumSizeLimitException (HandlePageMedium.Write asks
-        // HostFile.IsFileSizeLimit, PagedFileBoundaryTests pins the codes); a full medium travels as the host raised it.
-        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
-            write: page => !refusing || InsideTheFile(page, inner) ? null
-                : tooLarge ? new MediumSizeLimitException("the file cannot grow further") : new IOException("refused by the host", full));
+        // size both do; the pages already in the file (page 2 among them) are written as ever.
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page => refusing && Grows(inner, page) ? HandlePageMedium.Refusal(new IOException("refused by the host", hresult)) : null);
         try
         {
             var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
@@ -263,7 +321,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.PermanentError, c.Write("CCCC"));
             Assert.Equal(FileStatusCode.Success, c.Close());
         }
-        finally { RelativeStore.MediumObserver.Value = null; }
+        finally { KeyedStore.MediumObserver.Value = null; }
         Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
     }
 
@@ -278,14 +336,15 @@ public sealed class FileBoundaryTests : IDisposable
     public void RelativeDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
     {
         string host = Host("refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
         RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
-                if (!refusing || InsideTheFile(page, inner)) return null;
+                if (!refusing || !Grows(inner, page)) return null;
                 refused++;
-                return new MediumSizeLimitException("the file cannot grow further");
+                return HandlePageMedium.Refusal(new IOException("refused by the host", tooLarge));
             });
         try
         {
@@ -315,10 +374,67 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal(["1=AAAA"], Records(host));
     }
 
-    /// <summary>Whether <paramref name="page"/> lies inside the medium (a write there does not grow the file). A refusing fake
-    /// returns no refusal for such a page.</summary>
-    private static bool InsideTheFile(uint page, IPageMedium inner) =>
-        (long)page * CobolNet.Runtime.IO.Store.PageHeader.PageSize < inner.Length;
+    /// <summary>⛔ THE INDEXED SIBLING OF THE RELATIVE CASE ABOVE (review finding R1-1 of kb/Work PB3334): the boundary's
+    /// '24' is a record WRITE's or REWRITE's alone in an indexed file too (<c>KeyedConnector.RecordWriteFailed</c>, the one
+    /// mapping both organizations share). A DELETE whose copy-on-write pages — the prime entry's leaf and the alternate
+    /// entry's — the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's
+    /// '30', never §9.1.13.5 item 4's '24' with the INVALID KEY branch taken (§14.9.10.4 gives DELETE the invalid key
+    /// condition only for a record the file does not contain), and the permanent error stays in effect (§9.1.13.1); an
+    /// OPEN OUTPUT whose creation the host refuses to grow the file for is '30' as well. The file is unchanged by both:
+    /// the record the DELETE named is still there under the prime key AND the alternate key at the next OPEN.</summary>
+    [Fact]
+    public void IndexedDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("ix-refuse-delete.dat");
+        int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
+        bool refusing = false;
+        int refused = 0;
+        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || !Grows(inner, page)) return null;
+                refused++;
+                return HandlePageMedium.Refusal(new IOException("refused by the host", tooLarge));
+            });
+        try
+        {
+            var c = Indexed(host);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            Assert.Equal(FileStatusCode.Success, c.Write("K001AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Write("K002BBBB"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K001    "));
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete("K002    "));   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            var o = Indexed(Host("ix-refuse-create.dat"));
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { KeyedStore.MediumObserver.Value = null; }
+        var r = Indexed(host);
+        Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K001    ", out string byPrime));
+        Assert.Equal("K001AAAA", byPrime);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(0, "    AAAA", out string byAlternate));
+        Assert.Equal("K001AAAA", byAlternate);
+        Assert.Equal(FileStatusCode.Success, r.ReadRandom(-1, "K002    ", out _));
+        Assert.Equal(FileStatusCode.Success, r.Close());
+
+        static IndexedConnector Indexed(string host)
+        {
+            var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)]);
+            c.AddAlternateKey([new(4, 4)], duplicates: false);
+            return c;
+        }
+    }
 
     /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector
     /// (the next OPEN).</summary>
@@ -474,11 +590,5 @@ public sealed class FileBoundaryTests : IDisposable
         Assert.Equal("A\u00FF", FileCharacterSet.ToChannel("A\uFFFF", codeSet: null));
         Assert.Equal("A\uFFFF", FileCharacterSet.FromChannel("A\u00FF", codeSet: null));
         Assert.False(FileCharacterSet.HasCharacterWithoutByteImage("A\uFFFF"));
-    }
-
-    private static long Composed(FixedFileAttributes attributes, IEnumerable<StoredFrame?> frames)
-    {
-        using var ms = RecordFraming.ComposeStore(attributes, frames, generation: 0, releaseMint: 0);
-        return ms.Length;
     }
 }
