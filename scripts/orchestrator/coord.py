@@ -135,12 +135,15 @@ def absolute_problem(path: pathlib.Path | str, what: str) -> str | None:
 
 
 def scratch_problem(scratch: pathlib.Path | str) -> str | None:
-    """Why `scratch` cannot be a fleet's scratch directory, or None: absolute, and outside this repository's checkout
-    (fleet files inside it are one careless `git add -A` from a commit)."""
+    """Why `scratch` cannot be a fleet's scratch directory, or None: absolute, and outside this repository's checkout,
+    and outside the main checkout when this is one of its agent worktrees (`<main>/.claude/worktrees/<name>`): fleet
+    files inside either are one careless `git add -A` from a commit."""
     if why := absolute_problem(scratch, "the scratch directory"):
         return why
-    if pathlib.Path(scratch).resolve().is_relative_to(REPO.resolve()):
-        return f"the scratch directory {scratch} is inside the repository checkout {REPO}: fleet files live outside it"
+    here = REPO.resolve()
+    checkouts = [here] + ([here.parents[2]] if (here.parent.name, here.parents[1].name) == ("worktrees", ".claude") else [])
+    if inside := next((c for c in checkouts if pathlib.Path(scratch).resolve().is_relative_to(c)), None):
+        return f"the scratch directory {scratch} is inside the repository checkout {inside}: fleet files live outside it"
     return None
 
 
@@ -376,6 +379,8 @@ def _self_test() -> int:
                 (scratch_problem("E:COBOL-coordscratch"), True, "a drive-relative scratch"),
                 (scratch_problem("scratch"), True, "a relative scratch"),
                 (scratch_problem(REPO / "COBOL-coordscratch"), True, "a scratch inside the repository checkout"),
+                (scratch_problem((REPO.parents[2] if REPO.parent.name == "worktrees" else REPO) / "COBOL-coordscratch"),
+                 True, "a scratch inside the main checkout, from one of its worktrees"),
                 (fleet_stop_problem(fleet_stop(tmp, "loop")), False, "the loop's STOP-loop"),
                 (fleet_stop_problem("E:COBOL-coordscratchSTOP-loop"), True, "a drive-relative stop file"),
                 (fleet_stop_problem(tmp / "STOP"), True, "the global stop's name"),
