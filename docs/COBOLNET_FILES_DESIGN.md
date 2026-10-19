@@ -2499,7 +2499,7 @@ A process-wide registry keyed by external name (with an Area discriminator for r
   connector partway through a duplicate set keeps its place across another run unit's DELETE.
 - A coherent statement's ENTRY has only I-O statuses as outcomes (kb/Work PB2842): `KeyedConnector.Enter` (the store
   mutex and the read of page 2, 2.2.1.7 — also the re-entry after a RETRY wait, `WaitOutsideStatement`) maps a host
-  failure (`IOException`, `UnauthorizedAccessException`, `OutOfMemoryException` — one predicate,
+  failure (`IOException`, `UnauthorizedAccessException` — one predicate,
   `KeyedConnector.IsHostStoreFailure`) and a page 2 that does not validate under a writer to the permanent error '30'
   (§9.1.13.6 1)), exactly as OPEN maps the same adoption. The statement is entered all the same, so its depth and mutex
   unwind through the ordinary `Dispose`; the status starts the §9.1.13.1 permanent error, and the verb's own first
