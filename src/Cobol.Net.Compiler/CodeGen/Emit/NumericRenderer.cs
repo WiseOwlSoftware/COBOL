@@ -510,8 +510,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
         // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
         // of illegal source instead of fixing anything — the two changes are correct only together. A
-        // group with a pointer/object-class leaf (or a variable-length group) still has no image and stays
-        // loud even under --permissive (kb/Work PB164 + R40 — an INDEX-leaf group images now).
+        // group with a pointer/object-class leaf still has no image and stays loud even under --permissive
+        // (kb/Work PB164 + R40 — an INDEX-leaf group images now); a variable-length group decodes its current-extent
+        // image just below (kb/Work PB3424).
         // ⛔ THROUGH THE ONE SENDING READER, never a self-spelled `.AsImage()` (kb/Work PB178, the sibling of
         // OperandText.AsStorageImage's defect and found in the same sweep). This site used to inline
         // `p is RedefViewPlace ? Read(p) : Read(p).AsImage()`, which had TWO independent holes:
@@ -531,6 +532,10 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // ⛔ …and through the ONE GROUP VALUE reader, never the image reader alone (kb/Work PB944's sibling
         // sweep): a NATIONAL group is Table 16's National row (§13.18.29.4 GR2b) and §14.9.25.4 GR6 d) 3 decodes
         // its CHARACTER positions, not the UTF-16BE bytes its image carries.
+        // A VARIABLE-LENGTH group decodes its CURRENT-extent image - the one DISPLAY shows (CONFORMANCE.md A.1 item 57),
+        // through the reader every character consumer asks (kb/Work PB3424). Reached only under --permissive (ISO 8.8.1.1
+        // bars a group arithmetic operand; a numeric-argument function coerces a group the same way).
+        null when PlaceRenderer.VarGroupOperandImage(p, "numeric use of group item", transfer: false) is { } varImage => AlnumNum(varImage, sending),
         null => AlnumNum(PlaceRenderer.SendingGroupValue(p, "numeric use of group item"), sending),
         // ⛔ EVERY WINDOWED (StoreAsImage) numeric leaf decodes through THE ONE windowed reader, WindowedNum above —
         // float, unsigned-wide and the signed Int128 lane alike (kb/Work PB186: the table SORT comparer used to spell
