@@ -1,4 +1,4 @@
-## PB2503 - the LINAGE clause is a CLAIMED Annex A.4.11 element, and SR-13.4.5.3-7 cites the code and tests that enforce its first sentence
+## Entry 2257 — 2026-10-19 11:32 PDT — PB2503 - the LINAGE clause is a CLAIMED Annex A.4.11 element, and SR-13.4.5.3-7 cites the code and tests that enforce its first sentence
 
 **What was open.** Two bookkeeping gaps the PB865 refuter found. (1) Inventory row `SR-13.4.5.3-7` named only
 `MaterializeImpliedRecord` and the PB345 tests, which witness its second sentence (an indexed file needs a record description
@@ -48,3 +48,4 @@ must carry `[Trait("Sweep", "tree")]`); fixed in the next commit.
 planned that test in leg 1 (it ran in the landing's population), so the leg-1 GREEN did not see it. Fixed: the sentence now reads
 "(A.1 item 110)", and `python scripts/spec/audit_annex_a1.py --check` exits 0 with no findings. The planning gap is the open
 kb/Work PB3247/PB3131 witness the reviewer named; it sits in `scripts/gate_plan.py`, not in this branch's files.
+
