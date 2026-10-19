@@ -5,6 +5,7 @@ using Antlr4.Runtime;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -75,4 +76,21 @@ public sealed class FileDescriptionFormatDriftTests
     public void TheFormat_IsDecidedByOrganizationThenReportClause(
         FileOrganization organization, bool hasReport, string expected) =>
         Assert.Equal(Enum.Parse<FileDescriptionFormat>(expected), FileDescriptionFormats.Of(organization, hasReport));
+
+    /// <summary>⛔ THE LINAGE CLAIM IS HELD TO THE TABLE (kb/Work PB2503). Annex A.4.11 item 10 lists the LINAGE clause
+    /// (§13.18.34) among the optional Report Writer elements, and A.4.1 lets an implementation accept it "only when
+    /// support for that language element is claimed". <c>docs/CONFORMANCE.md</c> §5's A.4.11 row says the clause is
+    /// CLAIMED and that it is a Format 1 clause only; this reads that row and the table, so neither can change alone:
+    /// a LINAGE row that admits a second format, or a row that stops saying "CLAIMED", is red.</summary>
+    [Fact]
+    public void TheLinageClaim_AgreesWithTheFileDescriptionFormatTable()
+    {
+        string row = File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md"))
+            .Single(l => l.StartsWith("| A.4.11 |", StringComparison.Ordinal));
+        Assert.Contains("The LINAGE clause (item 10, §13.18.34) is CLAIMED", row, StringComparison.Ordinal);
+        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOLNET2604",
+            row, StringComparison.Ordinal);
+        Assert.Equal(FileDescriptionFormat.Sequential,
+            FileDescriptionFormats.ByContext[typeof(Core.LinageClauseContext)].Formats);
+    }
 }
