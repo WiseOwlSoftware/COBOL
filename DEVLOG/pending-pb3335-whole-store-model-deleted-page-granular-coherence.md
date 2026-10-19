@@ -119,8 +119,8 @@ PB3334's round-2 finisher branch (`worktree-wf_14a1e62b-326-32` at `d633581e9`),
 landing's merge of origin/main brings the re-captured goldens in.
 
 **Finisher (round 2).** Two jobs: merge PB3334's reviewed head before it lands, and add the test that review lead R2-L1
-asked for. The branch merged `worktree-wf_14a1e62b-326-32` at `d633581e9` (PB3334's round-2 finisher, with the 37
-re-captured INDEXED written-file goldens that were the reds of this branch's Linux legs), then origin/main. Eight files
+asked for. The branch merged `worktree-wf_14a1e62b-326-32` at `d633581e9` (PB3334's round-2 finisher, with the written-file
+goldens of the 37 INDEXED programs, 41 re-captured and 7 new, that were the reds of this branch's Linux legs), then origin/main. Eight files
 conflicted, and every resolution keeps both sides. The runtime hunks were doc comments and one blank line. The
 `PagedFile.Enter` rule (`_writable && exclusive`) and `_fenceOwed` are unchanged. In `FileBoundaryTests`, -32's only change
 was the loss, at its own merge `d745abaab`, of PB3333's REWRITE leg of the host-refusal theory, which main carries; this
@@ -132,7 +132,7 @@ cases. They cover both organizations, both refusals (the CLOSE's promotion, and 
 every USE × FILE STATUS combination, plus a FILE STATUS clause alone with EC-I-O checking enabled. The refusal comes from
 the fault-injecting medium, which is per async flow, so the program runs in the test's own process through its generated
 .NET host entry, and its BY REFERENCE formal carries its trace back. The expected values come from §14.9.6.4 GR4,
-§9.1.13.6 1), §9.1.13.1 with DOC-A.1-103, and GR8 with the connector's open-mode rule: the USE procedure runs, the FILE
+§9.1.13.6 1), §9.1.13.1 with DOC-A.1-103, and GR8 with DOC-A.1-105: the USE procedure runs, the FILE
 STATUS item holds '30', the run continues under either clause and ends abnormally with EC-I-O-PERMANENT-ERROR when neither
 covers the CLOSE or when checking is enabled with no USE procedure, and the next OPEN is '00'. The records survive a
 refused promotion; after a refused re-adoption the sibling keeps reading, and the next OPEN I-O fences. All 20 cases are
@@ -147,3 +147,24 @@ whole-population run: Conformance 6,574 · Unit 569 · Characterization 31 — C
 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`, and the 20 new cases passed in leg 1. CI's Linux
 legs printed `=== LINUX GATE: GREEN (legs selftests unit characterization conformance guard selftests-built; HEAD
 d2530f7d2) ===`.
+
+**Finisher (round 3).** The branch now lands PB3334 with it: PB3334's own landing bounced on a `docs/CONFORMANCE.md`
+conflict with main's PB1880 landing, and its pending entry folds into this one at the stamp. Three review leads, all fixed.
+R3-L1 is the landing conflict, in two parts. First the reviewed bounded-walk branch `worktree-wf_2ae0707b-b3d-4`
+(PB3331 and PB3332 round 3, `5a0f7783c`), which is about to land, was merged at `9fdd84b1d`. Its one conflict was
+`IndexedConnector.cs`: this branch had deleted the string-keyed engine whose `KeyCompare` b3d-4 changed, so the merge keeps
+this branch's engine plus b3d-4's `SequenceOf` and `FreezeOpenSequences`, and `ResetPosition` builds each tree's
+`WeightedKeyOrder` from the sequence frozen at the OPEN (§12.4.5.7.4 GR1: "Each collating sequence is a fixed file
+attribute"). The golden `pb3331_locale_key_sequence_fixed_at_open` is red with the trees on the declared sequences and green
+with the frozen ones. Then origin/main (`8f7df8caf`, at `5852ba65a`; `38926bffb`, clean, at `da8cd56d8`). Of the three
+conflicted Annex A.1 rows, DOC-A.1-103 and DOC-A.1-107 keep this branch's text and pins, which already include main's, and
+DOC-A.1-105 takes main's row, which adds the WITH LOCK sentence and three pins to text this branch never changed. The
+carried PB3334 entry and note now give the golden count the tree supports: 56c69829c captured 48 IX written files, 41
+format-5 goldens of 30 programs re-captured and 7 new (IX114A-IX120A's `tf024.txt`). R3-L2: the test's comment had
+§14.9.6.4 GR8 backwards and cited `FileConnector.IsOpen`. GR8 takes the connector out of its open mode after a successful
+CLOSE and says nothing of an unsuccessful one. DOC-A.1-105 is where an unsuccessful CLOSE also leaves the connector closed.
+R3-L3: `KeyedClosePermanentErrorWitnessTests` gains three EC-I-O-checking covers, in both organizations and at both fault
+sites, 32 cases in all. They are a format 1 USE procedure with and without FILE STATUS (§14.6.13.1.3 rule 3, then rule 7)
+and a declarative for EC-I-O (rule 5). Each trace ends at "USE", and the run unit then ends abnormally with
+EC-I-O-PERMANENT-ERROR. All 32 cases are red with both '30' arms of `KeyedConnector.CloseCore` disabled, and the new
+covers are red at the trace too.

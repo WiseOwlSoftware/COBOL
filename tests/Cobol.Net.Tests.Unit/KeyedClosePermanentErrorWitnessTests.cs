@@ -70,23 +70,24 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
     }
 
     /// <summary>What covers the writer's statements: a USE procedure, a FILE STATUS clause, both, neither; or, with EC-I-O
-    /// checking enabled, a FILE STATUS clause alone, with a format 1 USE procedure on the file (<c>USE AFTER STANDARD
-    /// ERROR PROCEDURE ON KW</c>, §14.6.13.1.3 rule 3, then rule 7), or with a declarative for the condition (<c>USE AFTER
-    /// EXCEPTION CONDITION EC-I-O</c>, rule 5).</summary>
+    /// checking enabled, a FILE STATUS clause alone, a format 1 USE procedure on the file (<c>USE AFTER STANDARD ERROR
+    /// PROCEDURE ON KW</c>, §14.6.13.1.3 rule 3, then rule 7) with and without a FILE STATUS clause, or a declarative for
+    /// the condition (<c>USE AFTER EXCEPTION CONDITION EC-I-O</c>, rule 5) with one.</summary>
     public enum Cover
     {
         UseAndFileStatus, UseOnly, FileStatusOnly, Neither,
-        CheckingWithFileStatusOnly, CheckingWithUseAndFileStatus, CheckingWithExceptionUseAndFileStatus,
+        CheckingWithFileStatusOnly, CheckingWithUseAndFileStatus, CheckingWithUseOnly, CheckingWithExceptionUseAndFileStatus,
     }
 
-    private static bool HasFileStatus(Cover cover) => cover is not (Cover.UseOnly or Cover.Neither);
+    private static bool HasFileStatus(Cover cover) =>
+        cover is not (Cover.UseOnly or Cover.Neither or Cover.CheckingWithUseOnly);
 
     /// <summary>A format 1 USE procedure on the writer's file.</summary>
     private static bool HasFileUse(Cover cover) =>
-        cover is Cover.UseAndFileStatus or Cover.UseOnly or Cover.CheckingWithUseAndFileStatus;
+        cover is Cover.UseAndFileStatus or Cover.UseOnly or Cover.CheckingWithUseAndFileStatus or Cover.CheckingWithUseOnly;
 
     private static bool Checking(Cover cover) =>
-        cover is Cover.CheckingWithFileStatusOnly or Cover.CheckingWithUseAndFileStatus
+        cover is Cover.CheckingWithFileStatusOnly or Cover.CheckingWithUseAndFileStatus or Cover.CheckingWithUseOnly
             or Cover.CheckingWithExceptionUseAndFileStatus;
 
     /// <summary>A declarative runs for the CLOSE's '30': the file's USE procedure, or the condition's.</summary>

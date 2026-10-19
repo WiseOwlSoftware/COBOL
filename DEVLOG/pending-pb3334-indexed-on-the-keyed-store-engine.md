@@ -86,9 +86,10 @@ NIST programs failed `NistProgram_MatchesGolden` on the written-file check, and 
 and RL rows sat in its leg 2). The 30 RL programs failed because the branch did not carry A3's re-captured relative
 goldens; merging PB3333's landing tip `worktree-wf_14a1e62b-326-20` (2f5b26d36, at d745abaab) brought them in, with its
 stamped DEVLOG 2220. The 37 IX programs failed because the branch moves INDEXED onto the paged store (meta-page format 6)
-while `tests/nist/valid-files` still held the format-5 whole store. At 56c69829c their 41 written files were re-captured
-through `COBOLNET_UPDATE_NIST_FILES=1`, and the CCVS reports, which read every record back, still match. Seven of those
-files are new. IX114A-IX120A each chain from IX109A's `tf024.txt`, open it I-O and CLOSE it with no record changed, and the
+while `tests/nist/valid-files` still held the format-5 whole store. At 56c69829c their written files were captured
+through `COBOLNET_UPDATE_NIST_FILES=1`, 48 files in all: 41 format-5 goldens of 30 programs re-captured, and 7 new ones,
+the `tf024.txt` of IX114A-IX120A, which main never captured. The CCVS reports, which read every record back, still
+match. IX114A-IX120A each chain from IX109A's `tf024.txt`, open it I-O and CLOSE it with no record changed, and the
 harness grades every file whose last-write time the run changed (`NistRunner.Written`). The whole store never wrote a file
 at an unchanged CLOSE, while the engine's writable OPEN writes its fence (DESIGN-runtime-library 2.2.1.6, R6 step 4: a
 promotion of the adopted meta, so pages 0, 2 and 9 differ from IX109A's file), so main never captured those goldens. The
