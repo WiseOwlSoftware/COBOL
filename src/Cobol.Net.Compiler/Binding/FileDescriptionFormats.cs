@@ -62,7 +62,7 @@ internal static class FileDescriptionFormats
 {
     private const string FileControlEntry = "the file control entry (ISO §12.4.5.1)";
 
-    /// <summary>Every <c>fileDescriptionClause</c> alternative except the <c>unrecognizedClause</c> error
+    /// <summary>Every <c>fileDescriptionClause</c> alternative except the <c>unrecognizedDataClause</c> error
     /// production (refused by <c>ClosedFormatPass</c>, COBOLNET1970), in the order §13.4.5.2 prints them. The
     /// Format columns are the rendered §13.4.5.2 lists.</summary>
     public static readonly IReadOnlyList<FileDescriptionClauseRow> Rows =
@@ -104,7 +104,7 @@ internal static class FileDescriptionFormats
         : hasReportClause ? FileDescriptionFormat.Report
         : FileDescriptionFormat.Sequential;
 
-    /// <summary>The row for one written clause, or null for the <c>unrecognizedClause</c> error production (which
+    /// <summary>The row for one written clause, or null for the <c>unrecognizedDataClause</c> error production (which
     /// its own pass refuses).</summary>
     public static FileDescriptionClauseRow? RowOf(Core.FileDescriptionClauseContext clause) =>
         clause.ChildCount > 0 && ByContext.TryGetValue(clause.GetChild(0).GetType(), out var row) ? row : null;
