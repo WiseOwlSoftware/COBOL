@@ -169,31 +169,48 @@ internal static class ProcessObserver
         string? runDirectory = null)
     {
         int budget = timeoutMs ?? TimeoutMs;
+        return ObserveWithRetry($"{psi.FileName} {psi.Arguments}", budget, runDirectory,
+            () => Observe(psi, stdinText, budget));
+    }
+
+    /// <summary>
+    /// The retry policy, separated from the process launch so that it is testable WITHOUT a child process and without a
+    /// time limit: a test supplies <paramref name="attempt"/> as an in-process stand-in that writes into the run
+    /// directory and reports <see cref="ProcessOutcome.TimedOut"/>, exactly what a killed attempt leaves behind, so no
+    /// wall clock decides which attempt the test observes (kb/Work PB3022, PB1590).
+    /// </summary>
+    /// <param name="command">The command line, for the log and the non-observation message.</param>
+    /// <param name="budget">The per-attempt budget, reported in the message; the attempt enforces it.</param>
+    /// <param name="runDirectory">See <see cref="ObserveOrThrow"/>.</param>
+    /// <param name="attempt">One observation of the child.</param>
+    internal static ProcessObservation ObserveWithRetry(string command, int budget, string? runDirectory,
+        Func<ProcessObservation> attempt)
+    {
         var before = runDirectory is null ? null : RunDirectoryState.Capture(runDirectory);
-        var first = Observe(psi, stdinText, budget);
+        var first = attempt();
         if (first.Completed) return first;
 
         Interlocked.Increment(ref _retries);
-        Record($"RETRY  {psi.FileName} {psi.Arguments} :: {first.Outcome} :: {first.Detail}");
+        Record($"RETRY  {command} :: {first.Outcome} :: {first.Detail}");
         RetryGate.Wait();
         ProcessObservation second;
         try
         {
-            if (before is not null) RestoreForRetry(psi, before, first);
-            second = Observe(psi, stdinText, budget);
+            if (before is not null) RestoreForRetry(command, before, first);
+            second = attempt();
         }
         finally { RetryGate.Release(); }
         if (second.Completed)
         {
-            Record($"RECOVERED  {psi.FileName} {psi.Arguments} :: exit {second.ExitCode}");
+            Record($"RECOVERED  {command} :: exit {second.ExitCode}");
             return second;
         }
 
         Interlocked.Increment(ref _nonObservations);
-        Record($"NON-OBSERVATION  {psi.FileName} {psi.Arguments} :: {second.Outcome} :: {second.Detail}");
+        Record($"NON-OBSERVATION  {command} :: {second.Outcome} :: {second.Detail}");
         throw new HarnessNonObservationException(
             "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
-            $"  command : {psi.FileName} {psi.Arguments}\n" +
+            $"  command : {command}\n" +
             $"  attempt1: {first.Outcome} — {first.Detail}\n" +
             $"  attempt2: {second.Outcome} — {second.Detail}\n" +
             $"  budget  : {budget} ms (set COBOLNET_RUN_TIMEOUT_MS to change)\n" +
@@ -206,7 +223,7 @@ internal static class ProcessObserver
 
     /// <summary>Put the run directory back as it was before the first attempt, or raise the non-observation: a retry
     /// over a state that is not the first attempt's would measure a different input and report it as a value.</summary>
-    private static void RestoreForRetry(ProcessStartInfo psi, RunDirectoryState before, ProcessObservation first)
+    private static void RestoreForRetry(string command, RunDirectoryState before, ProcessObservation first)
     {
         IReadOnlyList<string> unrestorable;
         try { unrestorable = before.Restore(); }
@@ -216,10 +233,10 @@ internal static class ProcessObserver
         }
         if (unrestorable.Count == 0) return;
         Interlocked.Increment(ref _nonObservations);
-        Record($"NON-OBSERVATION  {psi.FileName} {psi.Arguments} :: run directory cannot be restored :: {string.Join(", ", unrestorable)}");
+        Record($"NON-OBSERVATION  {command} :: run directory cannot be restored :: {string.Join(", ", unrestorable)}");
         throw new HarnessNonObservationException(
             "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
-            $"  command : {psi.FileName} {psi.Arguments}\n" +
+            $"  command : {command}\n" +
             $"  attempt1: {first.Outcome} — {first.Detail}\n" +
             "  attempt2: not run — the run directory cannot be restored to the state attempt 1 started from, and a\n" +
             "            retry over the first attempt's leftovers measures a different input (kb/Work PB3388).\n" +
