@@ -1792,7 +1792,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   GR5, §14.9.36.4 GR3's second sentence), with EC-FLOW-COMMIT / EC-FLOW-ROLLBACK / EC-FLOW-APPLY-COMMIT where §9.1.18.7 raises
   them (the catalog already lists them). Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
-  that must give a sequential transaction the same scope.
+  that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
 
 **2.2.1.11 Performance targets, and how a test measures them without a clock.** `PagedFile` counts its page reads, page
 writes and syncs (`PagedFile.Counters`, cumulative: a witness takes the difference across a statement), and every witness asserts COUNTS, because a wall-clock test is a flake
@@ -2227,6 +2227,354 @@ any later crash — an answer the medium can later contradict is a defect.
 
 The one determination the tables surface that the standard does not settle (a COMMIT over several files, one refused) is
 written at the COMMIT bullet and asked in PB3330.
+
+#### 2.2.2 The sequential organization under APPLY COMMIT — the transaction journal (kb/Work PB3340)
+
+⛔ **STATUS.** This section is the DESIGN of 2026-10-19 (the Mythos lane, kb/Work PB3426; the tier-2 memo PB3420 orders),
+written before PB3340 implements it and followed by it (CLAUDE.md rule 2). It gives a SEQUENTIAL file under an active APPLY
+COMMIT clause the same transaction as 2.2.1.10 gives a keyed file — the same scope, the same three COMMIT regions, the same
+dead-owner rollback — over a format that has no ledger. PB3340 follows PB3337 (the runtime's COMMIT and ROLLBACK) and PB3338
+(the compiler's APPLY COMMIT), and it is held with them until the owner decides the transaction slice's scope (PB3420). **One
+decision of the owner is open and is asked in PB3340:** the journal lives in a TRANSIENT file beside the physical file
+(2.2.2.4), and kb/Work PB802 decided "no sidecar of any type" of the fixed-file-attribute catalog; until the owner admits a
+journal that exists only while a transaction is open (as the lock files of `SidecarLockFiles` exist only while a holder
+lives), PB3340 implements nothing of this section.
+
+**2.2.2.1 What the standard requires, and what it leaves to the implementor.** §9.1.18.2: *"Apart from sort-merge files and
+report writer files, any type of file on a mass storage device may be specified"* — and §12.4.5.9.3 SR1 names the organization
+outright: the implicit lock posture of a file under APPLY COMMIT applies *"including for sequential files"*. So a SEQUENTIAL
+file (record sequential, fixed or RECORD VARYING; line sequential; a print file written with ADVANCING or under a LINAGE
+clause) named in an APPLY COMMIT clause is subject to everything 2.2.1.10 derived for a keyed file: COMMIT makes its changes
+permanent *"so that they will remain in that state even in the event of subsequent abnormal termination"* (§9.1.18.3);
+ROLLBACK restores it *"to the state they were in at the execution of the last COMMIT statement or the start of the run unit
+if no COMMIT statements had previously been executed"* (§14.9.36.4 GR3); abnormal termination rolls back *"all file changes
+made since the previous commit or, if none, the beginning of the run unit"* (§9.1.18.5) and normal termination commits them
+(§14.6.11 1): *"An implicit COMMIT statement is executed for the files specified in all active APPLY COMMIT clauses in the run
+unit"*); the CLOSE keeps the file lock (§14.9.6.4 GR9: *"Except when the file is specified in an APPLY COMMIT clause, the file
+lock and any record locks associated with the file connector referenced by file-name-1 are released by the execution of the
+CLOSE statement"*) until the COMMIT (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed
+and not reopened prior to the COMMIT statement, the file locks are released"*; §9.1.15: *"where a file has been closed and not
+reopened prior to a commit, the file lock is removed by the COMMIT statement"*) or the ROLLBACK (§9.1.15's last sentence); the
+OPEN's SHARING phrase is forbidden (§14.9.27.3 SR7: *"The sharing phrase shall not be specified for a file subject to an APPLY
+COMMIT clause"*), so the posture is the file control entry's SHARING clause or the implementor's default; a DELETE FILE of
+such a file is allowed and undone by a rollback (§14.9.10.4, the NOTE under GR15: *"Such files can still be deleted, however
+if they are, then in the event of a rollback they will be restored to the state they were in at the last commit or, if none,
+the start of the run unit"*); and a fatal condition on it runs item 8's unconditional ROLLBACK (§14.6.13.1.3 8): *"a ROLLBACK
+statement is executed unconditionally"*). The scope is 2.2.1.10's, derived there from §9.1.17, §9.1.16 and Annex D.2.5 and
+settled by the precedence survey: the RUN UNIT's own changes through its covered connectors, and nothing of another run unit's
+is committed, restored or discarded by this one. What the standard leaves to the implementor, and this section decides: where
+the before-state is kept (§9.1.7.2 lets the implementor add *"information ... to the record on the physical storage medium"*
+and 2.2 chose to add none to a sequential file — it is plain bytes, or plain text, for interchange), what a sequential
+transaction locks (§9.1.16: *"The implementor may specify circumstances other than a locked logical record that result in the
+return of a locked record status"*), and when a dead run unit's transaction is rolled back (2.2.1.10's survey: at the first
+contending access, Micro Focus; retained until backout, IBM; GnuCOBOL has no commit control).
+
+**2.2.2.2 What a sequential file's changes are — the whole list, so the journal's shape is derived and not guessed.** A
+sequential connector changes a physical file in exactly four ways, each a verb arm of `SequentialConnector` today: (a) a
+WRITE under OPEN OUTPUT or EXTEND APPENDS bytes at the end — a fixed-width block, a length-framed VARYING frame, a delimited
+line, or the print-control stream's record with its line ends, form feeds and LINAGE margins (`WriteRecord`,
+`WriteAdvancingRecord`, through `ReleaseRecord`); (b) a REWRITE under OPEN I-O OVERWRITES one record IN PLACE and at its own
+size — §14.9.35.4 GR16 refuses a record sequential replacement whose byte count *"is not equal to the number of bytes in the
+record being replaced"* with '44', and GR17 c) space-fills a shorter line sequential record to the replaced line's length
+(`OverwriteInPlace`, the ONE in-place overwrite); (c) an OPEN OUTPUT TRUNCATES an existing file to nothing before the first
+WRITE (§14.9.27.4 GR18: *"After the creation of the file, the file contains no records"*; `OpenWriter(FileMode.Create)`);
+(d) a DELETE FILE (§14.9.10 format 2) REMOVES a closed file. There is no DELETE of a record, no key, no reordering, and no
+change to a byte before the record being rewritten. Therefore the state of the file at the last COMMIT is fully described, for
+every composition of (a)-(d) a transaction can execute, by THREE things, and the journal holds exactly these: **L, the
+committed length** — the file's byte length at the transaction's first change, to which a rollback TRUNCATES, undoing every
+append whatever its framing; **the before-images of the records REWRITTEN** — (ordinal, byte offset, length, the bytes), the
+FIRST image of each ordinal only (the state at the last COMMIT; a second REWRITE of the same record adds nothing, as
+2.2.1.10's "the first image is the one to restore"); and **the before file** — the whole physical file as it stood before an
+OPEN OUTPUT's truncation or a DELETE FILE, kept once per transaction (the first capture is the state at the last COMMIT; a
+later OPEN OUTPUT or DELETE FILE in the same transaction captures nothing more). A REWRITE's before-image never overlaps an
+append's bytes of the same transaction in a way the rollback cannot order: a rollback restores the before file, re-applies the
+before-images, then truncates to L, and each step is idempotent, so the composition holds for every order the verbs ran in and
+for every point a previous rollback attempt stopped at.
+
+**2.2.2.3 The transaction, and what it holds.** A TRANSACTION is one run unit's open unit of work on one physical file,
+exactly as in 2.2.1.10: it begins at the first change — the first WRITE, REWRITE, OPEN OUTPUT of an existing file or DELETE
+FILE — the run unit executes through a connector under commit control on that file; a run unit that only reads has nothing to
+undo and no transaction. Its HOLDINGS, the locks that outlive its handle and that every other connector's lock test meets,
+are: (R) every ORDINAL it rewrote (the record's §9.1.16 identity on this organization, `LastReadRecordId`; the before-image's
+ordinal), and (END) the APPEND POINT and every ordinal past n(L), the record count at L — the records it appended. **Why the
+end of the file is a holding (the determination §9.1.16's latitude grants):** a sequential record's identity is its ordinal, and
+a record removed from the MIDDLE of a sequential file renumbers every record after it, so the only rollback that keeps every
+other connector's record identities true is a TRUNCATION, and a truncation is only the undo of the transaction's appends if no
+other connector's record lies past L. Holding the append point makes that so: a WRITE through any other connector — another
+run unit's under `SHARING WITH ALL OTHER` (§14.9.51.4 GR19's concurrent extenders), or this run unit's through a connector no
+APPLY COMMIT names — answers '51' while the transaction lives, with the RETRY phrase applying as GR16 provides *"for the case
+where resources needed to write a record are locked by another run unit"*; GR19's own *"otherwise in an undefined order"*
+is what makes this a scheduling of the appends and not a change to any record. A READ not IGNORING LOCK of a held ordinal, and
+a REWRITE of one, answer '51' as today's region lock answers them. The transaction's READ locks (the implicit AUTOMATIC
+posture's, §12.4.5.9.4 GR4, on records a covered I-O connector READ) stay region locks as in 2.2.1.10, released by COMMIT,
+ROLLBACK and termination. Nothing else is locked: a REWRITE through another connector of a record BEFORE L that this
+transaction did not rewrite proceeds, and is that connector's own change, outside this transaction's rollback (2.2.1.10's
+scope). **The lock test** of READ (not IGNORING LOCK), WRITE and REWRITE, at DOC-A.1-104's point of their order, reads the
+file's open journals (2.2.2.4) when the journal directory exists: this run unit's own transaction through a covered connector
+proceeds; any other transaction's holding — another run unit's, or this run unit's through an uncovered connector — has its
+owner's liveness byte probed AT THE TEST: held, '51' (RETRY applies); free, the owner died and the transaction is rolled back
+THERE (2.2.2.7), under the mutex the tester takes for it, before the tester's own change, and the statement's conditions are
+evaluated again. The reasoning is 2.2.1.10's finding R4-1 unchanged: no probe closes a window between itself and a test of a
+different lock, so the holding and the liveness probe are read in the same step, and the holding is a durable record, never a
+region byte the operating environment releases with a dead handle.
+
+**2.2.2.4 The journal: where it lives, what it holds, and why nowhere else will do.** The journal of a transaction on physical
+file F is the file `txn-<id>.journal` in F's lock directory — `.wolk-<16 hex>/` beside F, named by `HostFile.PhysicalFileKey`
+exactly as `SidecarLockFiles.LockDirectoryOf` names it, created on every host with the permissions `HostFile.CreateLockDirectory`
+gives it (on macOS the directory already exists while any holder lives; on Linux and Windows it is created for the journal
+and retired with its last file by `SidecarLockFiles.RetireDirectory`'s rule) — and, when the transaction captured one, the
+before file `txn-<id>.before` beside it. *Why not inside F:* 2.2 made a record sequential file plain bytes and a line
+sequential file plain text on purpose (*"a header would stop a record sequential file being plain bytes and a line sequential
+file being plain text, which is the interchange property those shapes exist for"*, `RecordFraming`), and a fixed-length file
+has nowhere to put a byte that is not a record; the keyed engine keeps its UNDO in the file only because its format is its own.
+*Why not in the run unit's memory alone:* §9.1.18.5 rolls back the changes of a run unit that terminates abnormally, and
+2.2.1's bar — the bar PB3340 names, "crash-consistent in the same sense as 2.2.1" — includes the terminations the runtime
+cannot see (a kill, a power loss); an UNDO that dies with the process leaves a killed run unit's uncommitted appends in the
+file for ever and makes "restored at the next entry" a promise the keyed organization keeps and the sequential one breaks.
+§14.6.12's *"The circumstances of abnormal termination may be such that execution of some or all of these operations is not
+possible"* licenses the runtime to do less when it CANNOT; it does not license a design that cannot. *Why the lock directory:*
+it is the one place beside a physical file this runtime already owns, keyed by the same name rule two spellings of one file
+share, created and retired by rules already measured for races (`SidecarLockFiles`, kb/Work PB2917, PB3109); a journal is as
+transient as a lock file — it exists from the transaction's first change to its retirement, and a leftover is consumed by the
+next entry (2.2.2.8) — and it describes no attribute of F that a program reading F without this runtime would need: a copy of F
+taken without its journal is F as it stands, committed. That transience, and that F stays byte-identical to what a program
+with no transactions would write, is what distinguishes it from the catalog kb/Work PB802 refused ("no sidecar of any type",
+2026-09-07: a `.cbattr` file describing every data file for ever, consulted at every OPEN); whether the owner's words also
+refuse this is PB3340's question to the owner, and the alternative is stated in 2.2.2.11. **The format** (little-endian, like
+2.2.1.4's): a HEADER of 32 bytes — magic `WOLJ`, format 1, the transaction id (8), L (8; −1 when a before file holds the whole
+state), the open kind of the capture (OUTPUT, DELETE, none), the DECISION byte (`O` open, `C` committed), a CRC-32 of the
+header — written and synced once, before the first byte of F changes; then ENTRIES, one per rewritten ordinal: ordinal (8),
+offset (8), length (4), the bytes, CRC-32 of the entry — each appended and synced before the in-place write it precedes. A
+torn tail (a short entry, a failed CRC) ENDS the entries, exactly as a torn frame ends a stream file's data: the entry's
+statement had not written F when the death fell (R2 below), so the record is as the entries before it say. The before file is
+F's bytes, moved or copied whole (2.2.2.5), with no header. **The transaction id and its liveness byte.** The id is DRAWN, not
+minted: the lowest non-negative integer whose liveness byte `HostRegionLocks.TransactionLivenessByte(id)` (2.2.1.8's map, on
+F's region, exclusively through the transaction's handle) the connector can take AND whose journal file does not exist — a
+held byte is a live transaction's (skipped), a journal with a free byte is a dead transaction's and is rolled back by the
+entry step before any id is drawn, so the smallest id is always free once the directory is clean. No mint is needed because
+the journal file IS the transaction's entry: its name carries the id, and the drawing's two tests (the byte, then the name)
+are each atomic at the host. A first change refused after the byte was taken and before the header was synced gives the byte
+back and leaves no file; one refused after the header was synced leaves a transaction with nothing to undo, which the next
+entry retires. **The handle that holds the byte, and the §9.1.15 file lock that outlives the CLOSE, are one handle.** A
+covered sequential connector takes its host handle at its first OPEN after the last COMMIT or ROLLBACK and KEEPS it — across
+its CLOSE (§14.9.6.4 GR9) and across a re-OPEN in the same transaction, whose reader or writer is rebuilt over the kept
+handle (an OUTPUT re-open truncates it after the capture, an EXTEND re-open seeks to its end, an INPUT or I-O re-open seeks to
+its start) — until the COMMIT (§14.9.7.4 GR4) or ROLLBACK (§9.1.15's last sentence) releases it, as `KeyedConnector` keeps its
+handle in `ClosedUnderCommit` (PB3337). It is opened READ-WRITE where the host grants it (every mode of the transaction must
+be servable through it; a host that refuses the write grants a read-only handle, and a later OPEN OUTPUT through it is the
+'37' §14.9.27.4 GR3 gives a file the run unit may not write), with the posture's share mode. *Why one handle:* under
+`SHARING WITH NO OTHER` the posture is `FileShare.None`, which refuses a SECOND handle of this very process, so the liveness
+byte and the file lock cannot be split between a transaction handle and a statement handle; and a byte held exclusively
+through one handle cannot be taken by another before the first releases it, so a re-OPEN that opened a new handle would have
+to drop the byte for an instant, which is the gap 2.2.1.10 forbids. **The posture of a covered connector with no SHARING
+clause** is the implementor's (§9.1.15): `SHARING WITH NO OTHER` for every open mode, including INPUT — the one handle serves
+every mode of the transaction, and the stricter of the two defaults (`FileLockPosture`: READ ONLY for INPUT, NO OTHER
+otherwise, kb/Work PB322) is the only one that serves OUTPUT. A program that wants concurrent readers of a file under commit
+control writes `SHARING WITH READ ONLY` or `ALL OTHER` in the file control entry (SR7 forbids it on the OPEN).
+
+**2.2.2.5 The write-ahead rules — four, each with a drift test.** **R1 — the header before the first change.** The journal
+header (with L, read from the kept handle's length at that moment; with the before file's name when the change is an OPEN
+OUTPUT of an existing file or a DELETE FILE) is written and SYNCED before the first byte of F changes. The capture of a before
+file is ORDERED: header synced (naming the before file), then F renamed to the before file, then (OPEN OUTPUT) F created
+empty through the kept handle — so every death leaves one of three states the rollback reads unambiguously: no before file
+and F intact (restore nothing); the before file present and F absent (rename it back); the before file present and F present
+(copy its bytes into F through the handle and delete it). The rename is O(1) on the file's own volume and is possible because
+no other connector can hold F open at an OPEN OUTPUT or a DELETE FILE (Table 19's OUTPUT rows and DOC-A.1-75's exclusive
+request); the restore COPIES rather than renaming back whenever F exists, because the kept handle, and any sibling reader
+`ALL OTHER` admitted since, hold F's identity and a rename-back would leave them on an orphan. **R2 — the before-image before
+the overwrite.** A covered REWRITE appends its entry (R1's ordinal, offset, length, bytes) to the journal and SYNCS it before
+`OverwriteInPlace` writes F; the first entry for an ordinal is the only one written (the connector keeps the set of ordinals
+it has journaled in this transaction; a run unit that rewrites a million distinct records holds a million ordinals, as the
+keyed transaction holds a million holdings — D.2.5's deferred commits make it unbounded by design). The data write itself is
+not synced at the statement: a power loss that loses it leaves the record as its before-image, which the rollback re-applies
+anyway (idempotent), and the COMMIT syncs F once. **R3 — an append needs no entry.** The committed length is the undo of every
+append, so a WRITE under commit control pays nothing at the statement beyond what its posture already pays (`ReleaseRecord`'s
+flush under a sharing posture, nothing under `NO OTHER`). **R4 — the byte for the life of the transaction.** The liveness byte
+is taken on the kept handle before the header is written and given back only by the retirement (COMMIT's), the rollback's
+(the owner's, or the dead-owner step's) or the handle's death. Drift tests: R1 by a journal medium that dies before the
+header's sync at an OPEN OUTPUT (F intact, no capture), R2 by a death between the entry's sync and the overwrite and between
+the overwrite and the next statement (both restore the before-image), R3 by the absence of any journal write on a WRITE path
+(the medium's write log), R4 by a kept-handle test that CLOSEs under commit control and finds the byte still held.
+
+**2.2.2.6 COMMIT — decided by one durable write, answered by its sync, in 2.2.1.10's three regions.** For every physical file
+on which the run unit has a transaction, sequential and keyed alike in the one order of the run unit's open files
+(`FileRegistry.Commit`, PB3337): (1) F is synced through the kept handle (the writer's buffer flushed, `FlushFileBuffers` /
+`fsync`), so every append and overwrite since the last COMMIT is durable; (2) THE DECISION: the journal's decision byte is
+written `C` and the journal synced — one durable write, which is what 2.2.1.10's slot write is; (3) THE RETIREMENT: the before
+file (if any) and the journal are deleted, the lock directory retired with its last file, the liveness byte given back, the
+connector's READ locks released (`PhysicalFileTable.ReleaseAllForConnector`), the kept handle of a connector CLOSEd since the
+last COMMIT released (GR4). The regions: **(1) refused before the decision's sync** — F's sync (1), the byte write or its sync
+refused: the journal still reads `O`, the transaction is intact, the COMMIT is unsuccessful — 2.2.1.10's determination
+(PB3338's commit row): the fatal EC-I-O-PERMANENT-ERROR for F with '30' in F's status item, so §14.6.13.1.3 item 8's
+unconditional ROLLBACK follows and restores from the intact journal. **(2) the decision synced:** committed, and the COMMIT
+answers success whatever becomes of the retirement — a journal left reading `C` is completed (deleted) by the next entry
+(2.2.2.8), never rolled back. **(3) the decision's write handed to the operating environment and its sync REFUSED — the
+unacknowledged COMMIT.** Every live process reads `C` through the operating environment while the medium holds `O` or `C`.
+As in 2.2.1.10 the COMMIT makes "not committed" true before it answers: under the file's mutex it REVERSES — writes `O` back
+and syncs, then runs the rollback of 2.2.2.7 (whose material is intact: no retirement ran) — and answers unsuccessful, so
+item 8's ROLLBACK finds no transaction on F. When the reversal is refused too (the `O` write, its sync, or a write of the
+rollback), the transaction's fate on the medium is unknown: the registry MARKS F unacknowledged in the run unit's memory, the
+COMMIT answers unsuccessful with '30', and the only statements this run unit then runs on F are item 8's ROLLBACK and the
+termination path's file-only rollback, each of which repeats the reversal under the mutex and answers by its own sync; a
+later OPEN settles the medium's state through the entry step (a `C` is completed, an `O` is rolled back). A journal whose
+header the next entry finds torn is an `O` (the header's CRC is checked before its decision byte is believed). **What the
+program is told** is 2.2.1.10's determination unchanged, and the per-file order of a multi-file COMMIT is its determination
+too: a COMMIT refused at file i leaves the files before i committed.
+
+**2.2.2.7 ROLLBACK — one idempotent sequence under the file's mutex.** For every physical file on which the run unit has a
+transaction (the ROLLBACK statement, §14.9.36.4 GR3; item 8's unconditional one; §14.6.12's file-only one at abnormal
+termination; and the dead-owner step for a transaction of a run unit that died, 2.2.2.8), under `HostRegionLocks.StoreMutexByte`
+of F's region taken EXCLUSIVELY through a writable handle (the sequential organization's first use of the mutex; held for the
+rollback and the entry step only, never for an ordinary statement): (1) if the journal names a before file: F absent → rename
+the before file to F; F present → truncate F to 0 through the handle, copy the before file's bytes in, sync F, delete the
+before file; (2) for every entry of the journal, in file order, write its bytes at its offset through the handle (a record
+past F's current length is left to step 3); (3) if L ≥ 0, `SetLength(L)` and sync F; (4) delete the journal, give the byte
+back, release the READ locks and the kept handles of connectors CLOSEd since the last COMMIT (§9.1.16, §9.1.15's last
+sentence). Every step is idempotent and every death between steps leaves the journal present and reading `O`, so the next
+entry runs the same sequence again from step 1; a rollback needs no decision write of its own (2.2.1.10's "the operation is
+idempotent"). The connector's own state after its run unit's ROLLBACK: an OUTPUT or EXTEND writer's next WRITE lands at the
+restored end (its stream is repositioned at L, or at the restored file's end — a `SharedAppendStream` repositions at every
+write by construction); an I-O connector's file position indicator and its last-read anchors are unchanged (the record it
+read back is restored in place at the same offset, so a REWRITE after the ROLLBACK targets the same bytes); a print file's
+LINAGE page state — `LinageCounter`, the device line, the pending top margin, the page model — is restored from the snapshot
+the last COMMIT (or the OPEN) took, since the bytes it describes are the ones the truncation kept; the data items of the
+LINAGE and RECORD clauses and the file status items are the compiler's (PB3338, §14.9.7.4 GR5). **The dead-owner rollback is
+this same sequence** run by the entering connector of ANY run unit through ITS writable handle, which is why a leftover
+journal must be readable and F writable by that run unit: a journal this process may not read is a holder it cannot observe
+(the determination of DOC-A.1-75 for a lock file applies): the statement's lock test answers '51' and a writable OPEN of F
+answers '61', loudly, until the owner or an administrator removes the `.wolk-*` directory — a refusal, where a silent grant
+would lose a dead run unit's rollback.
+
+**2.2.2.8 The dead-owner step, and what a file not under APPLY COMMIT pays.** At every WRITABLE OPEN of a sequential file
+(OUTPUT, EXTEND, I-O; any posture, any run unit, covered or not) and at the entry of every WRITE and REWRITE through a
+connector whose file lock admits another run unit's WRITER (`FileLockPosture.AdmitsAnotherWriter`, `SHARING WITH ALL OTHER`
+only — the one posture under which a transaction can begin and its owner die between two of this connector's statements), the
+connector asks whether F's lock directory holds a `txn-*.journal`: none, nothing more happens; some, then under the mutex, for
+each: decision `C` → the retirement is completed (2.2.2.6 region 2); decision `O` → its liveness byte is probed: held → a
+live transaction, whose holdings the entering statement's lock test then meets ('51'); free → the rollback of 2.2.2.7, before
+the entering statement proceeds. The cost to a file NOT under APPLY COMMIT: ONE directory probe per writable OPEN (the price
+§9.1.18.5 exacts from every writer so that a killed run unit's transaction is rolled back by the next writer of the file — the
+keyed engine pays a page-2 read for the same promise), and under `ALL OTHER` one probe per changing statement, beside the
+seek and the count that posture already pays per release (PB2692); no mutex, no journal, no byte, no sync. A connector opened
+INPUT runs no step and rolls back nothing (no writable handle: it can neither take the mutex exclusively on Linux nor write
+F): it reads F as it stands, a dead transaction's appends included — D.2.5's "possible for another run unit to read a record
+written or updated by the current run unit" for a run unit that no longer exists, the determination DOC-A.1-75 and the commit
+row already state for a keyed file — and its READ not IGNORING LOCK of a held ordinal answers '51' as today.
+
+**2.2.2.9 CLOSE, re-OPEN and termination under commit control.** A covered connector's CLOSE releases its records (the
+writer's buffer flushed, an open print line ended, `CloseCore` as today), disposes its reader or writer, and KEEPS the host
+handle with its region endpoint — the §9.1.15 file lock, the liveness byte and the transaction's READ locks — in the
+registry's `ClosedUnderCommit` set (PB3337's set, one for both organizations); a re-OPEN before the next COMMIT or ROLLBACK
+rebuilds the reader or writer over the kept handle (2.2.2.4), and an OPEN INPUT of the file by the same run unit in that
+interval reads its own uncommitted changes (D.2.5; the one handle sees its own writes). Normal termination commits every
+transaction (§14.6.11 1), then closes; the runtime's abnormal-termination path runs the file-only rollback of 2.2.2.7 before
+the process exits (PB3338 routes it); a kill is the dead-owner step's. A SORT or MERGE whose GIVING file is a covered connector
+writes through that connector under its transaction (the sort's OPEN OUTPUT is a capture, its WRITEs are appends); the
+EC-FLOW conditions of §9.1.18.7 are the compiler's.
+
+**2.2.2.10 LINE SEQUENTIAL and the print stream are COVERED, with the same journal** (the explicit decision PB3340 asked for;
+`docs/CONFORMANCE.md`'s commit row states it when PB3340 lands). §12.4.5.10.3 GR2 makes a line sequential record *"terminated
+by an implementor-defined line delimiter"* and nothing else, so its two changes are the two the journal already undoes: an
+append (truncated by L) and an in-place same-span overwrite (GR17 c), the before-image of the line's bytes at its anchor
+`_lastLineStart`, length `_lastLineBytes`). A print file's WRITE ADVANCING arm and a LINAGE file's margins and form feeds are
+appends. The byte-order mark of a UTF-8 line sequential file (DOC-A.1-115) is written at creation and is part of the before
+file or lies below L, never inside an entry. Nothing in the journal is organization-specific but the ordinal an entry names
+(a line's ordinal is its line number, as `_readOrdinal` counts it), which is why one journal serves the three framings and the
+print stream.
+
+**2.2.2.11 The alternative, if the owner keeps PB802's words for a journal too: memory-only undo, documented as the
+determination it would be.** The same transaction, holdings and lock test (2.2.2.3) with the journal's header and entries kept
+in the run unit's memory (`FileRegistry`), the before file replaced by an in-memory copy of F (O(file) memory at an OPEN OUTPUT
+of an existing file or a DELETE FILE), and the COMMIT reduced to F's sync. What it loses, stated so the owner decides with it
+in view: a run unit that is KILLED or loses power under an open transaction leaves its uncommitted appends and overwrites in F
+for ever (no entry can roll them back: nothing durable says what they were), other run units' lock tests cannot see a dead
+owner's holdings (they died with its memory), and the keyed organization's §9.1.18.5 promise does not hold for the sequential
+one; `docs/CONFORMANCE.md` would record it under §9.1.18.5 as a documented determination with the cause, and PB3340's crash
+rows for the kill and the power loss would be witnesses of that determination rather than of a restoration. The runtime's own
+abnormal-termination path (a fatal exception condition, §14.6.12) still restores, since the process still runs it. This
+alternative is cheaper by one directory probe per writable OPEN and one sync per covered REWRITE, and by every line of
+2.2.2.4 to 2.2.2.8 that touches a file.
+
+**2.2.2.12 Every crash point and every interleaving, as rows a test executes (the owner's rule for a concurrent design: an
+executable simulator from round one).** The medium under test is the one seam every sequential byte already passes through —
+`HostFile`'s roles (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, the lock-directory roles) — made
+instance-scoped on the run unit (`FileRegistry` takes an `IHostMedium` whose production implementation is today's static
+`HostFile`, as `RunUnitPageMedium` is the production `IPageMedium`), so a test registry substitutes a medium that logs every
+write, sync, rename, create and delete, REFUSES the n-th operation (the live-process refusal) or DIES at it (every later
+operation refused and the handles' bytes released) and, for a power loss, keeps or loses any subset of the unsynced writes;
+`SharedExtendOpenDriftTests`' ban on every other host-path open under `Runtime/IO` is what makes the seam complete. The rows,
+each run in the refusal mode and the death mode and, where a sync is involved, the power-loss mode; the invariant of every
+row: after the next entry F holds exactly the state at the last COMMIT (journal `O`, or torn) or exactly the committed state
+(journal absent or `C`), never a third — and the program was told success only in the second case:
+
+| path | before/after which step | expected |
+|---|---|---|
+| first WRITE (EXTEND) | the byte taken · the header written · the header synced · the append | no journal and F intact; header torn → `O`, nothing to undo; F at L after the entry's rollback, or committed only after a COMMIT |
+| OPEN OUTPUT of an existing F | header synced · F renamed to the before file · F created empty · first WRITE | F intact / F absent and restored by rename / F empty and restored by copy / the same with one record appended and truncated |
+| DELETE FILE | header synced · F renamed | F intact / restored by rename; after a COMMIT the before file is deleted and F is gone |
+| REWRITE (I-O) | the entry appended · the entry synced · the overwrite · the next statement | the record as before in every row; the entry torn → ignored and the record as before |
+| COMMIT, two files (a keyed and a sequential) | F synced · `C` written · `C` synced · retirement · the second file's steps | region 1: unsuccessful, both files at the previous COMMIT after item 8's ROLLBACK; region 2: success, retirement completed by the next entry; region 3: reversed, unsuccessful, F at the previous COMMIT; refused at the second file: the first committed, the second at the previous COMMIT |
+| ROLLBACK | each of steps 1-4, and a death between any two | the next entry completes it; F byte-identical to the state at the last COMMIT; a second ROLLBACK is a no-op |
+| CLOSE under commit, then COMMIT / ROLLBACK | the CLOSE · the COMMIT's steps | the handle kept through the CLOSE (another run unit's `NO OTHER` OPEN '61' until the COMMIT), released by the COMMIT or ROLLBACK |
+| A dies with an open transaction; B (not covered), C (covered), D (INPUT) follow | B's OPEN EXTEND entry · B's WRITE under ALL OTHER after A's death mid-session · C's lock test after its entry probe found A alive | A's appends gone and its rewrites restored before B's first byte; '51' then RETRY '00' where the test met A alive; D reads F as it stands between the death and B's entry |
+| A (covered) and B (another run unit, ALL OTHER) interleave | B WRITEs while A's END holding lives · B READs an ordinal A appended · B REWRITEs an ordinal A rewrote · B REWRITEs an ordinal below L that A did not touch · A's ROLLBACK · A's COMMIT then B's REWRITE | '51' (RETRY applies) · '51' · '51' · '00', and A's ROLLBACK leaves it · A's appends gone, B's records untouched · '00' |
+| the same with B a connector of A's own run unit that no APPLY COMMIT names | as above | as above (2.2.1.10's uncovered-connector rule) |
+| a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed |
+| a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
+
+**2.2.2.13 What the design deletes, keeps and measures.** Deleted: nothing — the facility is declined today (COBOLNET1709).
+Kept, unchanged in contract: every verb arm of `SequentialConnector`, `OverwriteInPlace` as the one in-place overwrite,
+`ReleaseRecord` as the one release, `SharedAppendStream`, the region map (one new use of `StoreMutexByte`, one new byte kind
+already in 2.2.1.8's map), `SidecarLockFiles`' directory rules. Added: the journal (`IO/Sharing/SequentialJournal.cs`: the
+format, the drawing of the id, the four rules), the kept handle under commit control, the entry step, the lock test's journal
+arm, the `IHostMedium` seam and its simulator. Measured without a clock, through the medium's operation log: a covered WRITE
+adds zero journal operations (R3); a covered REWRITE adds one append and one sync; a COMMIT adds one sync of F, one write and
+one sync of the journal, and the retirement's deletes; a writable OPEN of an uncovered file adds one directory probe and
+nothing else; a rollback of a transaction with m rewritten records and a appended ones writes m records, one truncation and
+one sync, never a byte of another connector's record.
+
+#### 2.2.3 The sequential frame index — bounded memory for the backward READ and a count that stores nothing (kb/Work PB3350)
+
+⛔ **STATUS.** The DESIGN of 2026-10-19 (the Mythos lane, kb/Work PB3426), implemented by PB3350 in the SORT and file I/O
+campaign (PB3353). It replaces `RecordFraming.FrameStarts`' `List<long>` — one offset per frame of a RECORD VARYING file, kept
+for the life of the OPEN by `SequentialConnector._varyingStarts` and built in full only to be counted by `CountRecords` — with
+one walk that yields a COUNT and a SPARSE index, so no consumer holds O(records) memory.
+
+**The two consumers and the one walk.** `ReadStreamFrame` stays the one decoder and `StreamMedium` the one walk (its
+snapshot of the length, PB2754, unchanged). (1) **The count** — `CountRecords`' VARYING arm, the OPEN EXTEND base and the
+REVERSED count — is `RecordFraming.CountFrames(stream, from, to)`: the same loop, returning the number of frames that start
+in [from, to) and storing none of them. (2) **The backward READ** (§14.9.30.4 GR21 rule c)'s decreasing arm, and OPEN INPUT
+REVERSED's standing reversal) asks `SeekToOrdinal` for the START of ordinal n, and that start comes from a `FrameIndex` — a
+checkpoint list holding the start of every S-th frame (S = 4096; one `long` per 4096 records: 2 KB per million, under 2 MB
+per billion) and a WINDOW of the exact starts of the checkpoint span the connector is currently reading backward through (at
+most S longs, 32 KB, rebuilt by one forward walk of ≤ S frame heads from the span's checkpoint when the position leaves the
+span). `SeekToRecord` stays the ONE reposition (kb/Work PB352); the index answers only WHERE a frame starts.
+
+**How the index is built, and why it is never stale within an OPEN.** The forward walk the connector already makes
+(`NextFrame`) knows every frame's start as it passes it, so the index grows for free during forward reads: every S-th
+ordinal's start is appended to the checkpoint list as it is read (the `_readOrdinal` the connector keeps is the frame's
+ordinal). A backward read whose target lies beyond the frames walked so far — OPEN REVERSED's first READ, which targets the
+last record of a file nothing has read — builds the checkpoints by ONE counting walk, the same `CountFrames` call that
+measures the REVERSED count (`FrameIndex.Build(stream, stride)` returns both, so OPEN REVERSED pays one pass, as today's
+`CountRecords` plus `FrameStarts` paid two). The layout cannot change while the connector is open — §14.9.35.4 GR16 makes a
+record sequential REWRITE size-preserving, and a sibling's appends (ALL OTHER) lie past every indexed frame and are walked
+when a target reaches them — so one build per OPEN is right, as `_varyingStarts`' comment already states; `OpenCore` drops it.
+
+**Cost, stated so a witness can measure it without a clock.** A single backward read costs at most S frame-head reads (one
+window build) and then one seek; a whole-file backward pass — the COBOL-85 REVERSED read of every record — costs one window
+build per span, S heads each, so O(records) head reads in total, the same order as today's one full walk and the forward
+read; memory is O(records / S + S). Rejected: a trailing length word after each payload (O(1) backward steps, but a FORMAT
+change — every reader of the stream framing, the sort store's and `CobolSort`'s included, changes with it, and a file written
+by the current format is misread by the new one; the framing is the interchange property of 2.2); walking from 0 at every
+backward step (O(1) memory, but a backward pass of a file is then quadratic in its records); keeping the whole index but
+building it lazily (what exists today; the memory is the defect).
+
+**The witnesses.** A structural drift test over a generated file of 2^20 frames: `CountRecords` allocates no per-frame storage
+(the allocation delta of the count is bounded by a constant), the index's checkpoint list holds ⌈frames / S⌉ entries and the
+window at most S; the GR21 goldens of the backward READ and the REVERSED goldens stay byte-identical (`conformance:` the
+existing `14.9.30-READ` PREVIOUS cases and the `85/` REVERSED cases are the regression net); a READ PREVIOUS across a span
+boundary, at ordinal S + 1 and at ordinal 1, each answered from the index after one window build (the medium's read log counts
+the heads read).
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
