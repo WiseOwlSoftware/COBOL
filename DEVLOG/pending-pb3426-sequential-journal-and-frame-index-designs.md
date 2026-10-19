@@ -34,9 +34,11 @@ transaction left open across the first's program) found its twin, an L read belo
 rollback would have cut a committed record. One cause, one fix: L is read at the transaction's FIRST APPEND, when no other
 transaction lives, and journaled as its own record; a transaction that never appended truncates nothing. The self-test now
 proves its own watchdog (R2-2): six named mutations, each required RED — 276,000 runs at depth 4, 631,000 at depth 5 by
-hand. **One owner decision is open, recorded in PB3340:**
-kb/Work PB802's "no sidecar of any type" (the attribute catalog) may or may not cover a transient journal; 2.2.2.11 states
-the memory-only alternative and what it loses, and nothing of 2.2.2 is implemented until the owner answers.
+hand. **The one owner decision it asked is made:** on 2026-10-19 at 15:45 PDT the owner, shown the durable journal, memory-only
+undo, a journal elsewhere and a header inside the file with what each costs and loses, approved the journal ("option a
+approved"): kb/Work PB802's "no sidecar of any type" refused a persistent attribute catalog and does not cover a transient
+journal in the lock directory (PB802 and PB3340 carry the words; 2.2.2.11 keeps the rejected shapes), and PB3340 is `open`,
+blocked by PB3338 in the tier-2 chain whose scope decision is still the owner's.
 
 **2.2.3 — the frame index (PB3350).** One walk, two products: `CountFrames` returns a count and stores nothing; `FrameIndex`
 keeps one checkpoint per 4096 frames plus a window of at most 4096 exact starts, built for free by the forward walk, so the
