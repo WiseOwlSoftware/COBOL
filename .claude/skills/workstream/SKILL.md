@@ -92,25 +92,55 @@ gathering"; "use this new rolling functionality as it reduces context and token 
 `Workflow({scriptPath: ".claude/skills/workstream/templates/wf_rolling_wave.js", args})`. There is no wave barrier:
 - **Rolling pool.** `concurrency` workers pull groups from one queue, so a freed slot is refilled the moment an
   implementer returns, never after the slowest of the wave.
-- **Review on the branch** (MANDATORY-PRACTICES I10, kb/Work PB3027). A DONE implementer's branch is reviewed by ONE
-  read-only `cobol-reviewer` (the `review` skill's branch form) inside its slot; FINDINGS go to a review finisher and
-  the branch is reviewed again (`review_fix_rounds`, 2). Only a branch stamped `Review: CLEAN` at its head is ready;
-  the landing never reviews. `review_findings.py summary <scratch>` measures it.
+- **Review on the branch** (MANDATORY-PRACTICES I10, kb/Work PB3027, PB3381). A DONE implementer's branch is reviewed
+  by ONE read-only `cobol-reviewer` (the `review` skill's branch form) inside its slot THE MOMENT IT RETURNS, a
+  same-file predecessor's too; FINDINGS go to a review finisher and the branch is reviewed again (`review_fix_rounds`,
+  2). Round 1 reviews the whole branch; round 2 and later review ONLY the finisher's diff from the head the last round
+  reviewed, plus the report's answers. Every finding carries a severity, and `review_findings.py verdict --blocking`
+  decides: critical, high and medium block while a finisher can still answer them, critical and high only at the
+  round after the last finisher; low never blocks; every non-blocking finding is a LEAD (in the report's `## Review
+  findings` and the wave's `leads`), filed by the enqueue unit's clerk. Owner 2026-10-18: "We should not be holding
+  finished work this long, continually postponing it. Something in our process is flawed." (wave 1118: PB3331's three
+  whole-branch rounds found 5, 2 and 1 findings over 2.3 h and the cap turned one LOW finding into a DECISION row).
+  Only a branch stamped `Review: CLEAN` at its head is ready; the landing never reviews. `review_findings.py summary
+  <scratch>` measures it.
 - **No lander, no train (kb/Work PB3023).** The wave ends when its groups return; every branch reviewed CLEAN is the
   loop's landing lane's (`land_lane.py`, kb/Work PB3103), which lands each with `scripts/orchestrator/enqueue.py land`
   (main merged in, the gate on both hosts under the gate slot, the DEVLOG stamp, the landing checks, one pull request
   into the merge queue); the `enqueue` unit handles the reviews, the finishers, the re-arms and the leads.
 - **Same-file successors.** A file with more open notes than the cluster cap (`fix_clusters.py` caps at 5) becomes
-  two or more groups, and each later one declares `after: '<predecessor letter>'`. The successor waits for its
-  predecessor, merges its branch, and orients from that report's "For the next implementer" section and STATUS.md
-  instead of re-surveying the file. The predecessor's branch is HELD unreviewed and lands THROUGH the successor,
-  whose review covers its commits; if the successor returns not landable, the predecessor is reviewed and lands alone.
-  A successor may also follow a group in the same technological area (a runtime file, then its emitter).
-  ⚠ **A CHAIN deeper than a pair breaks this today (kb/Work PB3380).** A successor that is itself held for its own
-  successor is never landable when it returns. So `wf_rolling_wave.js`'s `onResult` reviews and fixes its predecessor
-  alone, on the predecessor's branch, and those fixes never reach the chain: wave 1118's A2 and A3 carried none of A's
-  seven review fixes. Until PB3380 lands, plan a `blocked_by` chain deeper than a pair as successive waves, one link
-  each, with its landing between (the Mythos lane's re-sequencing of wave 1118).
+  two or more groups, and each later one declares `after: '<predecessor letter>'`. The successor waits until its
+  predecessor is SETTLED (its review loop ended: CLEAN, FINDINGS n, STOPPED, NO-RESULT or STALE; or it returned
+  unfinished), merges the predecessor's FINAL branch (the review finisher's, when one ran: the reviewed head), and
+  orients from that report's "For the next implementer" section and STATUS.md instead of re-surveying the file.
+  NOTHING IS HELD (kb/Work PB3381, owner 2026-10-18: "Make the changes now and land the clean links as they come."): a
+  predecessor reviewed CLEAN is ready at once and the landing lane lands it, the successor's pull request merging on
+  top. The train-era hold (the predecessor "lands THROUGH the successor") saved nothing once every branch became its
+  own pull request (kb/Work PB3023, PB3024) and only postponed: wave 1118's six-link chain had six groups DONE and
+  none landed in seven hours. Whether a branch carries a predecessor's UNANSWERED findings is read from ONE source,
+  the predecessor's FINDINGS FILE (its last verdict: FINDINGS with blocking findings at a head the branch contains),
+  through ONE reader, `review_findings.py last_verdict` (CLI `last-verdict`), which the wave's `predecessorEnd` and
+  `prune_worktrees.py carrying_findings` both call; never from a report stamp, because a review finisher rewrites the
+  group's one report for its own branch with no Review line whatever it returns (branch review R3-1). While that
+  verdict stands, the survey holds the successor (IN FLIGHT, `waits_on`) until the predecessor's own finisher has
+  answered them and landed it. A predecessor CAPPED at the round after its last finisher keeps them for that
+  next-wave finisher, and its successor neither answers them nor records them again; a predecessor whose review
+  finisher was sent to answer them and came back without doing so (SPLIT, BLOCKED, STALLED, killed, with or without a
+  commit) is UNANSWERED: its report no longer shows them, so the successor's review covers the predecessor's content
+  and records again each finding that still holds. The survey finds findings files by NAME only (`review-*.jsonl` in
+  the coordination scratch and one level under it, and every file a stamp names) and never opens one to decide
+  whether it is one. Every content problem is a TEAR, the reader's to classify: a file it cannot open or read (a
+  directory in its place, a read denied), a byte-order mark, bytes that are not UTF-8, no final newline, no record, or
+  a line that is not a record under the one record schema the writers share (`review_findings.SCHEMA`). A TORN file
+  holds every branch it names, whatever its records say (one with no readable name, through its wave name or the stamp
+  that names it): the reader reads no verdict from it (verdict TORN, with its reason, file and line), the CLI
+  `last-verdict` and the survey read that same answer, the CLI exits 0, the survey holds each branch it names and each
+  branch containing a head it names and names the tear in the held row, the wave reads it UNANSWERED, never capped, the
+  reader never raises, and every writer refuses it BEFORE writing until the operator mends it by hand (`review_findings.py
+  repair <file>`, which removes a byte-order mark, keeps a last record that only lost its newline, removes any other
+  torn tail and deletes a file left with no record; a file it cannot read is made readable first) (branch review R4-1,
+  R5-1, R6-1, R6-2). A successor may also follow a group in the same technological
+  area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
   architecture review `PB1754`) runs from its notes' `cluster:` and `blocked_by:`:

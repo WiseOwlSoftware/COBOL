@@ -41,8 +41,15 @@ the scraped hand entries the dispatch guard once wrote (six of 303-910 files) it
 entry stays in flight with its whole declared set, started or not, until its notes are terminal or its report answers it
 (its agent returned: its work is then its branch's actual diff, kb/Work PB2795). A branch this landing
 contains (it merged it) is the landing's own: only its later, uncommitted edits count; and so is a file whose version
-on another branch IS the landing's (the same work re-committed); anything else that shares a file and was dispatched
-earlier stops it, and the stop names how it was identified and how to bind work it failed to recognise.
+on another branch IS the landing's (the same work re-committed). Two kinds of in-flight work never block a landing
+(kb/Work PB3381 section H): a branch that DESCENDS from the landing branch (its merge-base with it lies beyond
+`base`: it merged some head of it, so it is a same-file successor, a review finisher or a carrier of this landing,
+and it lands on top of it: wave 1118's successor -326-13 merged an OLDER head of PB3333 and so "shared" six files with
+PB3333's reviewed branch, stopping its own predecessor's landing three times with both gates GREEN), and a worktree
+whose branch has no commit beyond `base` (a finisher cut from main that has not committed: its loose files are a merge
+or an edit in progress, and its dispatch, when the ledger records one, is read through its declared set). Anything
+else that shares a file and was dispatched earlier stops it: the partition orders only INDEPENDENT dispatches that
+touch the same primary file, and the stop names how it was identified and how to bind work it failed to recognise.
 
 Fix lane against fix lane is never stopped: fix-lane implementers share files by design, and the merge queue merges
 them (at worst through a conflict finisher, MANDATORY-PRACTICES L12). The partition's domain is the campaign's code roots (model_rules.json `campaign`: src, tests, scripts,
@@ -244,9 +251,23 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
                  + [first_commit_time(git, base, m["rev"]) or float("inf")])
         return their, at, how or "nothing"
 
+    def depends(their_rev: str) -> bool:
+        """An in-flight branch that blocks nothing (kb/Work PB3381 section H): one with no commit beyond `base` (an
+        empty worktree: its loose files are work in progress, not a dispatch's claim), or one that DESCENDS from the
+        landing branch: their merge-base is a commit beyond `base`, so it merged some head of this branch (a successor,
+        a review finisher, a carrier) and lands on top of it. Never one this landing merged: the caller reads that one
+        by its later, uncommitted edits."""
+        if git("merge-base", "--is-ancestor", their_rev, base).returncode == 0:
+            return True
+        mb = git("merge-base", their_rev, rev).stdout.strip()
+        return bool(mb) and git("merge-base", "--is-ancestor", mb, base).returncode != 0 \
+            and git("merge-base", "--is-ancestor", their_rev, rev).returncode != 0
+
     for owner, files in sorted(busy.items()):
         m = meta.get(owner, {})
         if m.get("rev"):                                   # a worktree or an unlanded branch, by its ACTUAL diff
+            if depends(m["rev"]):
+                continue                                   # empty, or built on this landing: it lands on top of it
             if git("merge-base", "--is-ancestor", m["rev"], rev).returncode == 0:
                 files = set(m.get("uncommitted", set()))   # its commits are in this landing; later edits are its own
             shared = {f for f in mine & files if inside(f)}
@@ -458,9 +479,49 @@ def self_test() -> int:
     expect("K3d: ... and another earlier worktree on the same file still STOPS it",
            check(repo, "origin/main", "r-train3", cdir, items, rules, lambda ids: {"src/A.cs"}, git), 1, 0)
     drop("wt-other")
-    drop("wt-impl")
-    for b in ("r-train2", "r-train3"):
+    sh("branch", "-D", "r-train2")
+    # kb/Work PB3381 section H: a successor that merged an OLDER head of the landing branch descends from it and lands
+    # on top of it, so it never blocks it (wave 1118: -326-13 held PB3333's 3dadec3a3 and stopped PB3333's reviewed
+    # -326-20 three times); an empty worktree (no commit beyond main, a merge in progress) blocks nothing; an
+    # independent earlier dispatch on the same file (K3d above) still stops it.
+    sh("checkout", "-q", "-b", "succ-old", "wt-impl")   # merged the landing's OLDER head (wt-impl), then its own edit
+    write("src/A.cs", "// the successor's own edit on the shared file\n")
+    sh("add", "-A")
+    sh("commit", "-qm", "WIP checkpoint: the successor", when=1_000_950)
+    sh("checkout", "-q", "main")
+    sh("checkout", "-q", "-b", "pred-new", "wt-impl")   # the landing: the predecessor's newer, reviewed head
+    write("src/A.cs", "// the predecessor's review fix\n")
+    sh("add", "-A")
+    sh("commit", "-qm", "PB9001: the review fix", when=1_000_960)
+    sh("checkout", "-q", "main")
+    # the successor's group was planned with the wave, before any commit of the landing: by dispatch time it is the
+    # EARLIER one, which is what stopped the predecessor before section H
+    ledger({"wave": "4", "letter": "b", "notes": ["PB9100"], "files": ["src/A.cs"], "at": 1_000_100})
+    hdir = root / "reports-h"
+    hdir.mkdir()
+    (hdir / "w4b-PB9100-report.md").write_text("Status: DONE" + chr(10) + "Branch: succ-old" + chr(10),
+                                               encoding="utf-8", newline=chr(10))
+    h_reports = plan_wave.load_reports(hdir)
+    expect("H1: a successor holding an OLDER head of the landing branch descends from it: it does not block it",
+           check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
+                 reports=h_reports), 0, 0)
+    empty = root / "wt-empty"
+    sh("worktree", "add", "-q", "-b", "wt-empty", str(empty), "origin/main")
+    (empty / "src" / "A.cs").write_text("// a merge in progress, nothing committed\n", encoding="utf-8", newline="\n")
+    expect("H2: a worktree with no commit beyond main (its edits uncommitted) blocks nothing",
+           check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
+                 reports=h_reports), 0, 0)
+    drop("wt-empty")
+    worktree("wt-indep", "WIP checkpoint: independent", {"src/A.cs": "// independent work\n"}, 1_000_150)
+    expect("H3: ... while an INDEPENDENT earlier dispatch on the same file still STOPS it",
+           check(repo, "origin/main", "pred-new", cdir, items, rules, lambda ids: {"src/A.cs"}, git,
+                 reports=h_reports), 1, 0)
+    drop("wt-indep")
+    ledger()
+    for b in ("succ-old", "pred-new"):
         sh("branch", "-D", b)
+    drop("wt-impl")
+    sh("branch", "-D", "r-train3")
 
     # ── PB3186: a worktree is bound to ONE dispatch (its report, its commit subjects, else the one ledger group that
     #    best covers its diff), never the union of every group its diff meets; a retired hand entry is no dispatch ──
