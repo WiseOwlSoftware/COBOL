@@ -58,8 +58,10 @@ public sealed class FilePositionInvalidationDriftTests
     private static readonly (string File, string[] Methods)[] KnownEntries =
     [
         ("SequentialConnector.cs", ["Read", "ReadRecord", "ReadFailed", "StartFirstLast", "StartFirstLastRecord", "StartFail"]),
-        ("RelativeConnector.cs", ["ReadSequential", "ReadRandom", "Start", "StartFirstLast", "StartAt", "StartFail"]),
-        ("IndexedConnector.cs", ["ReadSequential", "ReadRandom", "Start", "StartFirstLast", "StartSucceeded", "StartFail"]),
+        ("RelativeConnector.cs", ["ReadSequential", "ReadRandom", "Start", "StartFirstLast", "StartAt"]),
+        ("IndexedConnector.cs", ["ReadSequential", "ReadRandom", "Start", "StartFirstLast", "StartSucceeded"]),
+        // The keyed organizations' one lifecycle (kb/Work PB2753) carries their shared START failure.
+        ("KeyedConnector.cs", ["StartFail"]),
     ];
 
     private static IEnumerable<(string File, string Source)> IoSources() =>
@@ -131,14 +133,15 @@ public sealed class FilePositionInvalidationDriftTests
             && !l.Contains("void InvalidateFilePosition()", StringComparison.Ordinal));
 
     /// <summary>The lines of <paramref name="source"/> that clear a keyed validity bit outside an override of the
-    /// virtual: every <c>_fpiValid = false;</c> must sit in the body that an <c>InvalidateFilePosition()</c>
-    /// override opens, i.e. within the three lines after its signature.</summary>
+    /// virtual: every <c>FpiValid = false;</c> (the keyed base's property, or a connector's own field of the same name)
+    /// must sit in the body that an <c>InvalidateFilePosition()</c> override opens, i.e. within the three lines after
+    /// its signature.</summary>
     internal static IEnumerable<string> HandWrittenValidityClear(string source)
     {
         string[] lines = Lines(source);
         for (int i = 0; i < lines.Length; i++)
         {
-            if (!lines[i].Contains("_fpiValid = false", StringComparison.Ordinal)) continue;
+            if (!lines[i].Contains("FpiValid = false", StringComparison.OrdinalIgnoreCase)) continue;
             bool inOverride = Enumerable.Range(Math.Max(0, i - 3), Math.Min(3, i))
                 .Any(j => lines[j].Contains("override void InvalidateFilePosition()", StringComparison.Ordinal));
             if (!inOverride) yield return lines[i].Trim();
@@ -210,13 +213,13 @@ public sealed class FilePositionInvalidationDriftTests
             .SelectMany(s => HandWrittenValidityClear(s.Source).Select(l => $"{s.File}: {l}"))
             .ToList();
         Assert.True(offenders.Count == 0,
-            "A keyed connector clears _fpiValid outside its InvalidateFilePosition override, so the base flag the "
+            "A keyed connector clears FpiValid outside its InvalidateFilePosition override, so the base flag the "
             + "'46' reads is not set with it — return Unsuccessful(status):\n" + string.Join("\n", offenders));
-        // The sweep measures something only while both keyed overrides exist (feedback_measure_the_selectors_complement).
-        foreach (string keyed in new[] { "RelativeConnector.cs", "IndexedConnector.cs" })
-            Assert.Contains(IoSources(), s => s.File == keyed
-                && s.Source.Contains("protected override void InvalidateFilePosition()", StringComparison.Ordinal)
-                && s.Source.Contains("_fpiValid = false", StringComparison.Ordinal));
+        // The sweep measures something only while the keyed override exists (feedback_measure_the_selectors_complement):
+        // ONE, on the keyed base both organizations share (kb/Work PB2753).
+        Assert.Contains(IoSources(), s => s.File == "KeyedConnector.cs"
+            && s.Source.Contains("protected sealed override void InvalidateFilePosition()", StringComparison.Ordinal)
+            && s.Source.Contains("FpiValid = false", StringComparison.Ordinal));
     }
 
     /// <summary>⛔ The failure proof: each predicate trips on the defect's shape and passes the fixed one.</summary>

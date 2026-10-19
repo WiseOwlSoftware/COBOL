@@ -308,14 +308,29 @@ class Result:
 GIT_IDENTITY = ("self-test", "self-test@localhost")
 
 
+#: What the private global config sets besides the identity: NO AUTOMATIC MAINTENANCE. git starts `git maintenance run
+#: --auto --detach` after a commit, a merge, a fetch and (in the receiving repository) a push; in git 2.55 (CI's
+#: runner, WSL) that background process packs refs (`pack-refs --all --prune --auto`) and repacks (`repack -d -l`,
+#: `multi-pack-index write`) in the very scratch repository a self-test is still building and surveying. Measured: one
+#: prune_worktrees self-test run started 60 of them, and 15 of its own git commands (switch, add, commit) ran while one
+#: did. A self-test's repository is then changed by a process it neither started nor waits for, at a moment that
+#: differs on every run and every host. It was the one such actor in the fixture when merge-group run 39193754708 read
+#: a fixture branch MERGED, an ancestor of main it was built not to be, on the CI runner while every local run passed
+#: (kb/Work PB1957, the CI invariant). `gc.auto = 0` keeps an older git's `gc --auto` out the same way.
+GIT_NO_AUTO_MAINTENANCE = (("maintenance", "auto", "false"), ("gc", "auto", "0"))
+
+
 def private_git_config(scratch: Path) -> Path:
-    """A private global git config holding only an identity. A self-test that commits in a scratch repository then
-    behaves the same on a developer's machine (whose global config names a user, an editor, credential helpers) and on
-    a CI runner (whose global config names no user, so `git commit` fails): local == CI, the CI invariant (kb/Work
-    PB1957). The system config (Git for Windows' core.autocrlf) is left as it is, as on every host."""
+    """A private global git config holding only an identity and GIT_NO_AUTO_MAINTENANCE. A self-test that commits in a
+    scratch repository then behaves the same on a developer's machine (whose global config names a user, an editor,
+    credential helpers) and on a CI runner (whose global config names no user, so `git commit` fails), and no git
+    process it did not start changes that repository under it: local == CI, the CI invariant (kb/Work PB1957). The
+    system config (Git for Windows' core.autocrlf) is left as it is, as on every host."""
     cfg = scratch / "gitconfig"
-    cfg.write_text("\n".join(["[user]", f"\tname = {GIT_IDENTITY[0]}", f"\temail = {GIT_IDENTITY[1]}", ""]),
-                   encoding="utf-8", newline="\n")
+    lines = ["[user]", f"\tname = {GIT_IDENTITY[0]}", f"\temail = {GIT_IDENTITY[1]}"]
+    for section, key, value in GIT_NO_AUTO_MAINTENANCE:
+        lines += [f"[{section}]", f"\t{key} = {value}"]
+    cfg.write_text("\n".join([*lines, ""]), encoding="utf-8", newline="\n")
     return cfg
 
 
@@ -707,6 +722,9 @@ def self_test() -> int:
             "import os, subprocess, sys\nprint('coord=' + os.environ.get('COBOL_COORD_DIR', ''))\n"
             "print('user=' + subprocess.run(['git', 'config', '--global', 'user.name'], capture_output=True,"
             " text=True).stdout.strip())\n"
+            "for k in ('maintenance.auto', 'gc.auto'):\n"
+            "    print(k + '=' + subprocess.run(['git', 'config', '--global', k], capture_output=True,"
+            " text=True).stdout.strip())\n"
             "sys.exit(0 if os.environ.get('GIT_DIR') is None else 3)\n", encoding="utf-8", newline="\n")
         (root / "scripts" / "test_red.py").write_text("import sys\nprint('planted failure')\nsys.exit(1)\n",
                                                       encoding="utf-8", newline="\n")
@@ -751,6 +769,9 @@ def self_test() -> int:
               True)
         check("arm: each self-test commits under the private global config's identity, never the caller's",
               f"user={GIT_IDENTITY[0]}" in by["scripts/test_green.py"].output.splitlines(), True)
+        check("arm: no self-test's git starts automatic maintenance behind it (GIT_NO_AUTO_MAINTENANCE)",
+              [l for l in by["scripts/test_green.py"].output.splitlines() if l.startswith(("maintenance.", "gc."))],
+              ["maintenance.auto=false", "gc.auto=0"])
         check("arm: a failing self-test is RED", (by["scripts/test_red.py"].state, by["scripts/test_red.py"].rc), (RED, 1))
         check("arm: a failing self-test's output reaches the console", any("planted failure" in s for s in said), True)
         check("arm: a self-test for another platform is NOT RUN, not run", by["scripts/elsewhere.py"].state, NOT_RUN)

@@ -983,6 +983,10 @@ def main(argv=None):
 
 
 # ── the self-test ────────────────────────────────────────────────────────────────────────────────────────────────────
+class FixtureError(RuntimeError):
+    """A git command that builds the self-test's scratch repository failed: the fixture, not the survey, is wrong."""
+
+
 def self_test() -> int:
     """A scratch repository with one branch in every lifecycle state, surveyed and then pruned (--apply)."""
     fails = []
@@ -995,9 +999,23 @@ def self_test() -> int:
         origin, repo = tmp / 'origin.git', tmp / 'repo'
         subprocess.run(['git', 'init', '-q', '--bare', '-b', 'main', str(origin)], check=True)
         subprocess.run(['git', 'init', '-q', '-b', 'main', str(repo)], check=True)
-        g = lambda *x, cwd=repo: git(*x, cwd=cwd)  # noqa: E731
+        def g(*args, cwd=repo):
+            """A FIXTURE git command, which must succeed: a failure raises with git's own message. Unchecked, a command
+            that failed while the fixture was built left a branch where the fixture never meant it, and a lifecycle
+            FAIL on that branch was the only trace (merge-group run 39193754708: `lane-free` read MERGED, its own
+            commit absent from it, and nothing said why)."""
+            r = git(*args, cwd=cwd)
+            if r.returncode:
+                raise FixtureError(f'git {" ".join(map(str, args))} (in {cwd}) exited {r.returncode}: '
+                                   f'{(r.stderr or r.stdout).strip()}')
+            return r
         for k, v in (('user.name', 'self-test'), ('user.email', 'self-test@example.invalid'), ('commit.gpgsign', 'false')):
             g('config', k, v)
+        try:
+            g('rev-parse', '--verify', '--quiet', 'refs/heads/no-such-branch')
+            check(False, 'a failing fixture git command raises')
+        except FixtureError:
+            pass
 
         def commit(path, text, msg, cwd=repo):
             p = pathlib.Path(cwd) / path
@@ -1602,6 +1620,8 @@ def self_test() -> int:
               f'a landed branch is deleted on origin too: {out}')
         check('refs/heads/merged' in heads and any('kept origin/merged' in l for l in out),
               f'a remote branch holding commits the local one did not is kept: {out}')
+    except FixtureError as e:
+        fails.append(f'the fixture could not be built, so nothing above it was measured: {e}')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for f in fails:

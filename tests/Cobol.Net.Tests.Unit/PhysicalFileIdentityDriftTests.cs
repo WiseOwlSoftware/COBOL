@@ -70,7 +70,7 @@ public sealed class PhysicalFileIdentityDriftTests
     [Fact]
     public void EveryPhysicalFileTable_UsesTheOneComparer()
     {
-        foreach (var file in new[] { TestRepo.Src("Cobol.Net.Runtime", "IO", "KeyedStoreTable.cs"),
+        foreach (var file in new[] { TestRepo.Src("Cobol.Net.Runtime", "IO", "StoreTable.cs"),
                      TestRepo.Src("Cobol.Net.Runtime", "IO", "Sharing", "PhysicalFileTable.cs") })
         {
             string byHost = File.ReadAllLines(file).Single(l => l.Contains("_byHost = new(", StringComparison.Ordinal));

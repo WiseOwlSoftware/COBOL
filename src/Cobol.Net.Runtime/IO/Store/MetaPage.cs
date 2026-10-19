@@ -1,8 +1,35 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using System.Buffers.Binary;
+using System.Text;
 
 namespace CobolNet.Runtime.IO.Store;
+
+/// <summary>What <see cref="MetaPage.Describes"/> found in a physical file opened through a RELATIVE or INDEXED
+/// description, or tested by a sequential one (§14.9.27.4 GR10).</summary>
+internal enum StoreFormat
+{
+    /// <summary>The file holds no bytes (or the host would not let this process read them). It records no
+    /// records and therefore no attribute, so it can misread nothing and contradicts nothing — the ONE
+    /// tolerated shape that is not a §14.9.27.4 GR10 conflict.</summary>
+    Empty,
+
+    /// <summary>A paged store whose committed meta validates; its <see cref="FixedFileAttributes"/> are the physical
+    /// file's §9.1.6 fixed file attributes.</summary>
+    Described,
+
+    /// <summary>Bytes that are not a paged store this build understands — a file some other tool wrote, a plain
+    /// sequential file opened through a keyed description, or a store of an earlier format (the whole-store image of
+    /// format 5 included; no reader of it is kept, 2.2.1.3 decision 1). It is not a store this processor can interpret,
+    /// so GR10's answer is '39': LOUD, where reading it would be a silent misread.</summary>
+    Foreign,
+
+    /// <summary>A paged store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4) one of whose three meta pages
+    /// carries this format's magic but neither COMMITTED slot validates: the store's own format, damaged beyond what it
+    /// can repair. It is not a fixed-attribute conflict ('39'); the adoption rule answers it with §9.1.13.6 item 1's
+    /// '30' (2.2.1.6 R6 step 1).</summary>
+    Damaged,
+}
 
 /// <summary>A META page of the paged keyed store (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4): pages 0 and 1
 /// are the two COMMITTED slots, written alternately by promotions, and page 2 is the WORK slot, written by every
@@ -12,9 +39,8 @@ namespace CobolNet.Runtime.IO.Store;
 /// attributes (organization, record type, minimum and maximum record size, key count), the coherence
 /// <see cref="Generation"/>, the three mints, the page count, the five root POINTERS, the base
 /// (<see cref="CommittedGeneration"/>), the flags byte whose bit 0 is <see cref="Promoting"/>,
-/// <see cref="Committing"/>, and from offset 169 each key's descriptor in the whole-store header's encoding
-/// (<see cref="RecordFraming.WriteKeyDescriptor"/>, the ONE key codec), an alternate key's descriptor followed by the
-/// POINTER to its tree.</para></summary>
+/// <see cref="Committing"/>, and from offset 169 each key's descriptor (<see cref="WriteKeyDescriptor"/>, the ONE key
+/// codec), an alternate key's descriptor followed by the POINTER to its tree.</para></summary>
 internal sealed record MetaPage(
     FixedFileAttributes Attributes,
     ulong Generation,
@@ -44,11 +70,16 @@ internal sealed record MetaPage(
     /// <summary>The pages a newly created store holds: the three meta pages.</summary>
     public const uint MetaPages = 3;
 
-    /// <summary>The paged format's version, the byte after the magic. Version 5 is the WHOLE-STORE header of
-    /// <see cref="RecordFraming"/> (its magic at offset 0, where a paged store has its page header), so the paged format
-    /// takes 6 and a file of either is <see cref="StoreFormat.Foreign"/> to the other's reader: no reader of the old
+    /// <summary>The paged format's version, the byte after the magic. Versions 1 to 5 were the WHOLE-STORE image's
+    /// header (its magic at offset 0, where a paged store has its page header; deleted with its codec, kb/Work PB3335),
+    /// so the paged format takes 6 and a whole-store file is <see cref="StoreFormat.Foreign"/>: no reader of the old
     /// format is kept (2.2.1.3 decision 1).</summary>
     public const byte FormatVersion = 6;
+
+    /// <summary>The most segments a key descriptor may declare: the decoder's bound on a count it reads before trusting
+    /// it. A key's segments are data-name-2 operands of ONE clause, each at least one byte of a record, so no declarable
+    /// key comes near it; a larger count is a descriptor this build did not write.</summary>
+    private const int MaxKeySegments = 4096;
 
     private static ReadOnlySpan<byte> Magic => "CBNFSTR"u8;
 
@@ -129,7 +160,7 @@ internal sealed record MetaPage(
             Span<byte> pointer = stackalloc byte[PagePointer.Bytes];
             for (int k = 0; k < Attributes.Keys.Count; k++)
             {
-                RecordFraming.WriteKeyDescriptor(keys, Attributes.Keys[k]);
+                WriteKeyDescriptor(keys, Attributes.Keys[k]);
                 if (k == 0) continue;
                 AlternateRoots[k - 1].Write(pointer);
                 keys.Write(pointer);
@@ -166,7 +197,7 @@ internal sealed record MetaPage(
             var pointer = new byte[PagePointer.Bytes];
             for (int k = 0; k < keyCount; k++)
             {
-                if (RecordFraming.ReadKeyDescriptor(stream) is not { } key) return null;
+                if (ReadKeyDescriptor(stream) is not { } key) return null;
                 keys.Add(key);
                 if (k == 0) continue;
                 if (stream.Read(pointer, 0, pointer.Length) != pointer.Length) return null;
@@ -211,13 +242,15 @@ internal sealed record MetaPage(
 
     /// <summary>The §9.1.6 fixed file attributes the paged store at <paramref name="path"/> records — the read half of
     /// §14.9.27.4 GR10 (<i>"The implementor defines which of the fixed-file attributes are validated during the execution
-    /// of the OPEN statement"</i>). It reads pages 0 and 1 through a short-lived auxiliary handle and takes the valid slot
-    /// with the higher generation; a file with no bytes is <see cref="StoreFormat.Empty"/>, one whose meta pages carry
-    /// this format's magic but whose committed slots both fail is <see cref="StoreFormat.Damaged"/> (the adoption rule's
-    /// '30'), and anything else is <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of format 5 included.
+    /// of the OPEN statement"</i>). It reads the three meta pages through a short-lived auxiliary handle and takes the
+    /// valid committed slot with the higher generation; a file with no bytes is <see cref="StoreFormat.Empty"/>, one whose
+    /// meta pages carry this format's magic but whose committed slots both fail is <see cref="StoreFormat.Damaged"/> (the
+    /// adoption rule's '30'), and anything else is <see cref="StoreFormat.Foreign"/> ('39') — a whole-store file of
+    /// format 5 included.
     /// <para>An I/O failure answers <see cref="StoreFormat.Empty"/>, never a conflict: this bounded read is bookkeeping,
-    /// and the authority questions are answered by the connector's own handle (<c>RecordFraming.ReadHeader</c>'s
-    /// rule).</para></summary>
+    /// and the authority questions (§14.9.27.4 GR3's '37', §9.1.13.6 item 1's '30') are answered in ONE place each — by
+    /// the connector's own handle, <c>HostFile.Probe</c> and <c>FileConnector.Open</c>'s catch — never by guessing
+    /// here.</para></summary>
     public static StoreFormat Describes(string path, out FixedFileAttributes? attributes)
     {
         attributes = null;
@@ -250,7 +283,98 @@ internal sealed record MetaPage(
     private static long KeyBytes(FixedFileAttributes attributes)
     {
         using var measure = new MemoryStream();
-        foreach (var key in attributes.Keys) RecordFraming.WriteKeyDescriptor(measure, key);
+        foreach (var key in attributes.Keys) WriteKeyDescriptor(measure, key);
         return measure.Length + (long)PagePointer.Bytes * AlternateKeyCount(attributes);
     }
+
+    // ── The ONE key codec: a key's §9.1.6 fixed attributes ──────────────────────────────────────────────────────
+
+    /// <summary>Write one key's descriptor — its segment count and (offset, length) windows, its DUPLICATES flag, its
+    /// SUPPRESS WHEN value and its collation fingerprint. The ONE encoder of a key's §9.1.6 fixed attributes (a
+    /// SOURCE-phrase key is a SEQUENCE of byte windows, the concatenation of its data-name-2 operands, §12.4.5.12.4 GR2
+    /// and GR3, kb/Work PB1099). <see cref="ReadKeyDescriptor"/> is its inverse.</summary>
+    internal static void WriteKeyDescriptor(Stream fs, FixedFileAttributes.KeyDescriptor k)
+    {
+        Span<byte> word = stackalloc byte[4];
+        BinaryPrimitives.WriteInt32LittleEndian(word, k.Segments.Count);
+        fs.Write(word);
+        foreach (var s in k.Segments)
+        {
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Offset);
+            fs.Write(word);
+            BinaryPrimitives.WriteInt32LittleEndian(word, s.Length);
+            fs.Write(word);
+        }
+        fs.WriteByte(k.Duplicates ? (byte)1 : (byte)0);
+        // §12.4.5.6.4 GR6 admits ANY figurative-constant or literal SUPPRESS WHEN value, so it is written
+        // with an explicit length rather than a delimiter: a value carrying a NUL or a line ending is legal.
+        // ⛔ It is written as its exact UTF-16 CODE UNITS (kb/Work PB1602). The meta page records what the
+        // program DECLARED, and §12.4.5.3's OPEN comparison asks it back, so the encoding must be lossless over
+        // the whole repertoire (UTF-16 — the alphanumeric AND national literal both). Latin-1 turned "€€" into
+        // "??", and the program could never reopen the file it had just written ('39'). An Encoding would also
+        // be lossy: it replaces a lone surrogate (a legal NX"D800" national literal) with U+FFFD.
+        WriteCodeUnits(fs, k.Suppress);
+        byte[] collation = Encoding.ASCII.GetBytes(k.Collation);
+        fs.WriteByte((byte)collation.Length);
+        fs.Write(collation, 0, collation.Length);
+    }
+
+    /// <summary>The inverse of <see cref="WriteKeyDescriptor"/> from the stream's current position; null when the bytes
+    /// end inside the descriptor or are not one this build writes.</summary>
+    internal static FixedFileAttributes.KeyDescriptor? ReadKeyDescriptor(Stream fs)
+    {
+        var word = new byte[4];
+        if (!FillExactly(fs, word)) return null;
+        int segmentCount = BinaryPrimitives.ReadInt32LittleEndian(word);
+        if (segmentCount < 1 || segmentCount > MaxKeySegments) return null;
+        var segments = new KeySegment[segmentCount];
+        for (int s = 0; s < segmentCount; s++)
+        {
+            if (!FillExactly(fs, word)) return null;
+            int off = BinaryPrimitives.ReadInt32LittleEndian(word);
+            if (!FillExactly(fs, word)) return null;
+            segments[s] = new KeySegment(off, BinaryPrimitives.ReadInt32LittleEndian(word));
+        }
+        int dup = fs.ReadByte();
+        if (dup < 0) return null;
+        if (!ReadCodeUnits(fs, out string? suppress)) return null;
+        int collLen = fs.ReadByte();
+        if (collLen < 0) return null;
+        var coll = new byte[collLen];
+        if (!FillExactly(fs, coll)) return null;
+        return new FixedFileAttributes.KeyDescriptor(segments, dup != 0, suppress, Encoding.ASCII.GetString(coll));
+    }
+
+    /// <summary>Write an optional string as a little-endian Int32 code-unit count biased by one (0 = absent), then
+    /// its UTF-16 code units, each little-endian — the exact <see cref="string"/>, lone surrogates included
+    /// (kb/Work PB1602). <see cref="ReadCodeUnits"/> is its inverse.</summary>
+    private static void WriteCodeUnits(Stream fs, string? s)
+    {
+        var buf = new byte[4 + 2 * (s?.Length ?? 0)];
+        BinaryPrimitives.WriteInt32LittleEndian(buf, s is null ? 0 : s.Length + 1);
+        for (int i = 0; i < (s?.Length ?? 0); i++)
+            BinaryPrimitives.WriteUInt16LittleEndian(buf.AsSpan(4 + 2 * i), s![i]);
+        fs.Write(buf, 0, buf.Length);
+    }
+
+    /// <summary>The inverse of <see cref="WriteCodeUnits"/>; false when the stream ends inside the value or the
+    /// count is not one a meta page can hold.</summary>
+    private static bool ReadCodeUnits(Stream fs, out string? s)
+    {
+        s = null;
+        var word = new byte[4];
+        if (!FillExactly(fs, word)) return false;
+        int biased = BinaryPrimitives.ReadInt32LittleEndian(word);
+        if (biased == 0) return true;
+        if (biased < 0 || biased - 1 > PageHeader.PageSize / 2) return false;
+        var buf = new byte[2 * (biased - 1)];
+        if (!FillExactly(fs, buf)) return false;
+        var chars = new char[biased - 1];
+        for (int i = 0; i < chars.Length; i++) chars[i] = (char)BinaryPrimitives.ReadUInt16LittleEndian(buf.AsSpan(2 * i));
+        s = new string(chars);
+        return true;
+    }
+
+    private static bool FillExactly(Stream s, Span<byte> buf) =>
+        s.ReadAtLeast(buf, buf.Length, throwOnEndOfStream: false) == buf.Length;
 }
