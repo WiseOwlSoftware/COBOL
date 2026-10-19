@@ -1,0 +1,5 @@
+## PB3420: the SORT and file I/O completion plan is recorded (owner, 2026-10-19)
+
+The owner asked for the remaining cost of a 100 % working SORT and file I/O, questioned an estimate that put a roughly 30M-token job at 7-10 loop days, and measured the budget himself: account 2 at 48 % of the weekly quota after 38 hours, account 1 at 27 % after 21 hours, about 1.3 % per hour each. The harness's per-agent token counts are not billed tokens, since every cached context re-read bills, so the quota binds at today's intensity. He approved the recommended order: the known defects first, the transactions once he has decided their scope, and the architecture debt and the closure review after the quota resets. Nothing starts before the restart on the morning of 2026-10-19.
+
+The plan lives in `kb/Work/PB3420.md` (tiers by note id, the budget, the clock and the mechanics for both lanes), summarized in one paragraph of plan §0 with no list, and the operator's loop follows it through the cluster steer for PB3353. Work-register note, plan and DEVLOG only; no code changed.
