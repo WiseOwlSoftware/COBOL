@@ -80,3 +80,32 @@ I-O's fence complete. That measurement showed a fence reserves its bound and so 
 which design 2.2.1.9 now states.
 
 Review round 1 gate: run `TestResults/build-local/20261018T193020Z-b4351c` (gated at `57b0af458`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — Conformance 11,338/17,706 · Unit 34,000/34,359 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`. Every new case passed in leg 1: the ten compiled programs, the CLOSE and OPEN refusal and death theories, the R1-2 sibling and the indexed boundary case. Semgrep verify PASS. LINUX GATE: the lander's (batched gating).
+
+**Review round 2 (wave 1118, review finisher on branch `worktree-wf_14a1e62b-326-32`).** One finding, R2-1 (critical): 67
+NIST programs failed `NistProgram_MatchesGolden` on the written-file check, and the round-1 gate never ran them (all 72 IX
+and RL rows sat in its leg 2). The 30 RL programs failed because the branch did not carry A3's re-captured relative
+goldens; merging PB3333's landing tip `worktree-wf_14a1e62b-326-20` (2f5b26d36, at d745abaab) brought them in, with its
+stamped DEVLOG 2220. The 37 IX programs failed because the branch moves INDEXED onto the paged store (meta-page format 6)
+while `tests/nist/valid-files` still held the format-5 whole store. At 56c69829c their written files were captured
+through `COBOLNET_UPDATE_NIST_FILES=1`, 48 files in all: 41 format-5 goldens of 30 programs re-captured, and 7 new ones,
+the `tf024.txt` of IX114A-IX120A, which main never captured. The CCVS reports, which read every record back, still
+match. IX114A-IX120A each chain from IX109A's `tf024.txt`, open it I-O and CLOSE it with no record changed, and the
+harness grades every file whose last-write time the run changed (`NistRunner.Written`). The whole store never wrote a file
+at an unchanged CLOSE, while the engine's writable OPEN writes its fence (DESIGN-runtime-library 2.2.1.6, R6 step 4: a
+promotion of the adopted meta, so pages 0, 2 and 9 differ from IX109A's file), so main never captured those goldens. The
+sibling in the same blind spot was `SpecTraceabilityInventoryDriftTests.EveryCodeLocation_ResolvesInTheTree`: four rows
+(GR-9.1.13.5-4, GR-14.9.51.4-33, GR-14.9.51.4-42, DOC-A.1-107) named the deleted `PagedFile.IsFileTooLarge`. A
+`record_verdicts` batch re-witnessed them on the engine's boundary mechanism (no verdict changed; GAP 66 → 66), and
+`FileStatusCode.BoundaryViolation`'s summary and `FileConnector`'s OPEN comment no longer describe the whole store.
+
+The round-2 gates then found two more reds, both fixed here. (1) Both hosts' unit legs failed
+`PagedFileCrashMatrixTests.A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(path: Close)`. The
+d745abaab merge took A3's `SceneFor`, whose CLOSE scene changes A so the CLOSE runs its whole promotion, but kept this
+branch's arm asserting that the CLOSE reads nothing; that arm is gone, so every read of the CLOSE's promotion is now refused
+one at a time. (2) CI's guard leg, run from WSL, failed IX114A-IX120A on `tf024.txt`. `guard-run-group.sh` ran a chain
+component in ONE shared directory, so a consumer ran over whatever the members before it left: IX115A, which declares only
+IX109A, met the file IX110A and IX114A had fenced. `NistRunner` runs each program in a clean directory after only its
+declared predecessors. The two inputs agreed only while an unchanged OPEN and CLOSE left the bytes alone. The group runner now
+runs every program in its own clean directory after exactly its declared predecessors (`guard_chain_preds`, the manifest's
+one shell reader of the chain-preds column, with self-test cases), so both arms grade the same input. The serial
+`scripts/guard.sh`, which only the battery runs, still shares one directory and is a reported lead.

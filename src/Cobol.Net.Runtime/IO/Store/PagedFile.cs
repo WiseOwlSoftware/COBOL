@@ -73,10 +73,6 @@ internal sealed class PagedFile
     /// 2.2.1.9). A statement whose reservation would grow the file past it answers <see cref="StoreStatus.Boundary"/>.</summary>
     public const ulong FormatPages = 1ul << 32;
 
-    /// <summary>The largest file the format can describe, in bytes: <see cref="FormatPages"/> pages of
-    /// <see cref="PageHeader.PageSize"/> bytes, 2^44 (docs/CONFORMANCE.md DOC-A.1-107).</summary>
-    public const long MaxFileBytes = (long)FormatPages * PageHeader.PageSize;
-
     private readonly IPageMedium _medium;
     private readonly bool _writable;
     private readonly bool _coherent;
@@ -316,9 +312,12 @@ internal sealed class PagedFile
         var page = new byte[PageHeader.PageSize];
         if (!TryReadRaw(MetaPage.WorkSlot, page)) return StoreStatus.PermanentError;
         var work = MetaPage.Decode(page, MetaPage.WorkSlot);
-        // A torn page 2 under a live store: a reader keeps the tree it holds (nothing it can follow moved); a writer
-        // cannot know what another run unit completed, so it answers '30' (§9.1.13.6 item 1).
-        if (work is null) return _writable ? StoreStatus.PermanentError : StoreStatus.Ok;
+        // A torn page 2 under a live store: a READER's entry — a read-only store's, or the shared entry of an INPUT
+        // connector into the writable store its sibling opened — keeps the tree it holds (nothing it can follow moved; the
+        // statement writes nothing), so its READ answers as any other run unit's reader would; an exclusive entry of a
+        // writable store cannot know what another run unit completed before it writes, so it answers '30' (§9.1.13.6
+        // item 1; 2.2.1.7).
+        if (work is null) return _writable && exclusive ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
         {
             // A reader adopts the roots; only a writer allocates, so only a writer reads the ledger (2.2.1.7).

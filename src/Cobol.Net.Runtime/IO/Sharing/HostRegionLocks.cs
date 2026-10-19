@@ -92,7 +92,7 @@ internal interface IRegionLockHost
 /// it holds on the file closes.</item>
 /// <item><b>Windows</b> — <c>LockFileEx</c>/<c>UnlockFileEx</c>, which are per-handle. They are MANDATORY for the
 /// bytes they cover, which is harmless here because every byte this class names lies at 2^62 or beyond, far past the
-/// end of the largest file the keyed store's format can describe, 2^44 bytes (<see cref="Store.PagedFile.MaxFileBytes"/>,
+/// end of the largest file the keyed store's format can describe, 2^44 bytes (<see cref="Store.PagedFile.FormatPages"/> pages of 4 096 bytes,
 /// docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.8).</item>
 /// <item><b>Everywhere else</b> (macOS above all) — a lock FILE per holder beside the physical file
 /// (<see cref="SidecarRegionLocks"/>, kb/Work PB2936): a byte offset cannot be locked there without a native call
