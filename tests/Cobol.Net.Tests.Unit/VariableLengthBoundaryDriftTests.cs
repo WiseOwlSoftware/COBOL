@@ -95,10 +95,32 @@ public sealed class VariableLengthBoundaryDriftTests
         })
         {
             string src = File.ReadAllText(TestRepo.At(["src", "Cobol.Net.Compiler", .. site]));
-            Assert.True(CodeOccurrences(src, "CurrentExtentTransferImageCapable") > 0,
-                $"{site[^1]} sends a variable-length group's characters out and must ask CurrentExtentTransferImageCapable (kb/Work PB3358).");
             Assert.Equal(0, CodeOccurrences(src, "CurrentExtentImageCapable"));
         }
+        Assert.True(CodeOccurrences(File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "Binding", "Procedure", "Verbs", "IntrinsicBinder.cs")),
+                "CurrentExtentTransferImageCapable") > 0,
+            "IntrinsicBinder sends a variable-length group's characters out (FUNCTION LENGTH) and must ask CurrentExtentTransferImageCapable (kb/Work PB3358).");
+
+        // The emitters that send a variable-length group's CHARACTERS out - DISPLAY, a function's string argument, the
+        // digit decode of a group in a numeric position - read the group through the ONE reader, PlaceRenderer.VarGroupOperandImage,
+        // which asks the transfer capability (kb/Work PB3358, PB3424): no consumer spells its own copy of that gate.
+        string reader = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Roslyn", "PlaceRenderer.cs"));
+        Match body = Regex.Match(reader, @"string\? VarGroupOperandImage\(.*?\n\s*: null;", RegexOptions.Singleline);
+        Assert.True(body.Success && CodeOccurrences(body.Value, "CurrentExtentTransferImageCapable") > 0,
+            "PlaceRenderer.VarGroupOperandImage no longer asks CurrentExtentTransferImageCapable (kb/Work PB3424).");
+        foreach (string[] consumer in new[]
+        {
+            new[] { "CodeGen", "Emit", "OperandText.cs" },
+            new[] { "CodeGen", "Emit", "NumericRenderer.cs" },
+        })
+        {
+            string src = File.ReadAllText(TestRepo.At(["src", "Cobol.Net.Compiler", .. consumer]));
+            Assert.True(CodeOccurrences(src, "PlaceRenderer.VarGroupOperandImage(") > 0,
+                $"{consumer[^1]} must read a variable-length group's characters through PlaceRenderer.VarGroupOperandImage (kb/Work PB3424).");
+        }
+        string display = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "AcceptDisplayEmitter.cs"));
+        Assert.True(CodeOccurrences(display, "OperandText.AsTransferString(") > 0 && CodeOccurrences(display, "CurrentExtentTransferImageCapable") == 0,
+            "DISPLAY must read a group operand through OperandText.AsTransferString, never its own copy of the capability gate (kb/Work PB3424).");
 
         // The record struct emits the one-way CurrentImage for the wider capability and the carrier pair only for the narrower.
         string emitter = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "DataDivision", "RecordStructEmitter.cs"));
