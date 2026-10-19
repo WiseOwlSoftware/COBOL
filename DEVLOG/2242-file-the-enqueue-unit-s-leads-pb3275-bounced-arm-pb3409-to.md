@@ -12,3 +12,5 @@ unused. Checked and not filed: the git-maintenance self-test race (fixed on 326-
 codes (swept, none), the skills-pin PB3380 text lead (its branch is not queued), landing_measure refusals for PRs #139,
 #149 and #162 (already PB3124).
 
+
+PB3336 landed (PR #268, 0eba56a75) while this branch was landing, so PB3410 and PB3411 are now `blocked: false` with `blocked_by` kept, and their citations are read on main. PB3389 gains the two witnesses of the stored `blocked` flag going stale (PR #268 run 39202733274 and PR #275 run 39209418316).
