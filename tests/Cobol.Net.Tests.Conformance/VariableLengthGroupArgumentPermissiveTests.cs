@@ -180,6 +180,57 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
        END CLASS PB3424D.
        """;
 
+    /// <summary>The CONVERT ANY-source argument (the raw-storage channel, §15.19.3) over a FIXED control group and a
+    /// variable-length one: the storage image of the variable-length group is its current-extent image too.</summary>
+    private const string ConvertProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3424CVT.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 FG.
+          05 FA PIC X(3) VALUE "abc".
+          05 FN PIC 9(2) VALUE 7.
+       01 PG.
+          05 PA PIC X DYNAMIC LENGTH LIMIT IS 10.
+          05 PN PIC 9(2).
+       01 WS-X PIC X(30).
+       PROCEDURE DIVISION.
+       MAIN-P.
+           MOVE "ab" TO PA
+           MOVE 6 TO PN
+           MOVE FUNCTION CONVERT (FG ANY ANUM HEX) TO WS-X
+           DISPLAY "[" WS-X "]"
+           MOVE FUNCTION CONVERT (PG ANY ANUM HEX) TO WS-X
+           DISPLAY "[" WS-X "]"
+           MOVE FUNCTION BYTE-LENGTH (PG) TO WS-X
+           DISPLAY "[" WS-X "]"
+           STOP RUN.
+       """;
+
+    /// <summary>The numeric position over a strongly-typed group holding a POINTER leaf that was never set: its
+    /// transfer image is the NULL image (A.1 item 216, eight X"00"), which contributes no digit. A non-NULL pointer's
+    /// image is an address token whose bytes may be digit characters, so only the NULL case has a pinned value.</summary>
+    private const string NullPointerNumericProgram = """
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3424NPN.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 TG IS TYPEDEF STRONG.
+          05 TA PIC X(2).
+          05 TP USAGE POINTER.
+          05 TN PIC 9(2).
+       01 WS-G TYPE TG.
+       01 WS-N PIC 9(4).
+       PROCEDURE DIVISION.
+       MAIN-P.
+           MOVE "12" TO TA OF WS-G
+           MOVE 5 TO TN OF WS-G
+           COMPUTE WS-N = WS-G + 1
+           DISPLAY WS-N
+           STOP RUN.
+       END PROGRAM PB3424NPN.
+       """;
+
     private static string[] Lines(string stdout) => stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n');
 
     /// <summary>Strict conformance refuses the argument (§15.3) and the arithmetic operand (§8.8.1.1); the refusal
@@ -269,5 +320,37 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(StrongNumericProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
         Assert.Equal(new[] { "1206", "1206" }, Lines(stdout));
+    }
+
+    /// <summary>CONVERT's ANY source over a variable-length group (the sibling raw-storage channel of the function
+    /// string argument): the current-extent image "ab" + "06" in hexadecimal, the fixed group the control, and
+    /// BYTE-LENGTH the image's width. Expected values by hand: a=61 b=62 c=63 0=30 6=36 7=37.</summary>
+    [Fact]
+    public void ConvertAnySource_IsTheCurrentExtentImageDisplayShows()
+    {
+        var (ok, _, warnings) = EditionHarness.CompileFull(ConvertProgram, 2023, permissive: true);
+        Assert.True(ok, "--permissive must accept the coercion");
+        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1627");
+
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(ConvertProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(
+            new[]
+            {
+                "[6162633037                    ]",
+                "[61623036                      ]",
+                "[4                             ]",
+            },
+            Lines(stdout));
+    }
+
+    /// <summary>A POINTER leaf, never set, in a group decoded in a numeric position: the NULL image adds no digit, so
+    /// the group decodes "12" + "05" = 1205, plus 1 = 1206 (the pointer-leaf arm of the fixed-group decode).</summary>
+    [Fact]
+    public void StronglyTypedGroupWithANullPointerLeaf_DecodesItsTransferImageInANumericPosition()
+    {
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(NullPointerNumericProgram, 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "1206" }, Lines(stdout));
     }
 }

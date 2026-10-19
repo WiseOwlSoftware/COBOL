@@ -510,8 +510,9 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // PIC 9 leaves threw at run time, so the operand whose digits were unambiguous failed and the merely-textual
         // one succeeded. Migrating this arm while strict still ACCEPTED the construct would have extended acceptance
         // of illegal source instead of fixing anything — the two changes are correct only together. A
-        // group with a pointer/object-class leaf decodes its one-way TRANSFER image - the leaf its placeholder, which
-        // contributes no digit - exactly as DISPLAY shows it, because a decode never reads the characters back
+        // group with a pointer/object-class leaf decodes its one-way TRANSFER image - an object reference its eight-space
+        // placeholder (no digit), a POINTER its address-token image (NULL: eight X"00", no digit; a non-NULL token's bytes
+        // may be digit characters and then are decoded as such) - exactly as DISPLAY shows it, because a decode never reads the characters back
         // (kb/Work PB164 + R40 — an INDEX-leaf group images now; kb/Work PB3424 — the pointer leaf, a fixed or a
         // variable-length group alike, no longer aborts at run time).
         // ⛔ THROUGH THE ONE SENDING READER, never a self-spelled `.AsImage()` (kb/Work PB178, the sibling of

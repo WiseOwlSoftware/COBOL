@@ -27,3 +27,11 @@ numeric lane (a plain variable-length group, and a strong typedef group with an 
 negative is the standing `15.3-Arguments/pb124-vlg-function-argument`.
 
 **Rows.** None: PB3424 claimed no inventory row, closes none.
+
+**Review round 1.** The reviewer found the sibling raw-storage channel unswept: `FUNCTION CONVERT (PG ANY ANUM HEX)` over a variable-length
+group under `--permissive` warned COBOLNET1627 and aborted in the Tier-C island (`IntrinsicRenderer.StorageArg` -> `OperandText.AsStorageImage`).
+`AsStorageImage`'s group arm now asks `PlaceRenderer.VarGroupOperandImage` first when the consumer is one-way (`transfer`), so the
+contiguous current-extent image (8.5.1.11.2) is the storage image too; `ConvertAnySource_IsTheCurrentExtentImageDisplayShows` pins it
+(fixed control `6162633037`, variable-length `61623036`, BYTE-LENGTH 4). A lead was also answered: the pointer-leaf comments said the
+leaf "contributes no digit", true for an object reference and for a NULL pointer only; a non-NULL pointer's address token can carry
+digit characters. The comment and the DOC-A.1-57 row now say so, and `StronglyTypedGroupWithANullPointerLeaf_...` pins the pinnable NULL case.
