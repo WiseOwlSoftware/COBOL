@@ -91,18 +91,22 @@ public static class LiteralScreen
         return clean;
     }
 
-    /// <summary>The sign token and the literal's first token of a SIGNED LITERAL SLOT — the two grammar rules that
+    /// <summary>The sign token and the literal's first token of a SIGNED LITERAL SLOT — the three grammar rules that
     /// admit a sign as a separate token in front of a numeric literal: <c>signedNumericLiteral : (PLUS | MINUS)?
-    /// numericLiteralCore</c> (every procedure-division <c>literal</c> slot — MOVE, ADD, DISPLAY …) and
-    /// <c>signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT</c> (the slots the standard signs, kb/Work PB553). Both are
-    /// superset parses: the DEFAULT-mode lexer emits MINUS INTEGERLIT for <c>-5</c>, <c>- 5</c> and a sign at the end
-    /// of a line alike. (null, null) when the node is neither rule or carries no sign.</summary>
+    /// numericLiteralCore</c> (every procedure-division <c>literal</c> slot — MOVE, ADD, DISPLAY …),
+    /// <c>signedIntegerLiteral : (PLUS | MINUS)? INTEGERLIT</c> (the slots the standard signs, kb/Work PB553) and the
+    /// sign-led alternative of <c>residueOpening</c>, the error production's opening literal (kb/Work PB3373), whose
+    /// tail holds <c>signedNumericLiteral</c> itself, so <c>FOO - 1</c> and a run opening at <c>- 1</c> are screened
+    /// alike. All are superset parses: the DEFAULT-mode lexer emits MINUS INTEGERLIT for <c>-5</c>, <c>- 5</c> and a
+    /// sign at the end of a line alike. (null, null) when the node is none of them or carries no sign.</summary>
     private static (IToken? Sign, IToken? First) SignedSlot(IParseTree node) => node switch
     {
         CobolParserCore.SignedNumericLiteralContext s when (s.PLUS() ?? s.MINUS()) is { } sign =>
             (sign.Symbol, s.numericLiteralCore().Start),
         CobolParserCore.SignedIntegerLiteralContext s when (s.PLUS() ?? s.MINUS()) is { } sign =>
             (sign.Symbol, s.INTEGERLIT().Symbol),
+        CobolParserCore.ResidueOpeningContext s when (s.PLUS() ?? s.MINUS()) is { } sign =>
+            (sign.Symbol, s.numericLiteralCore().Start),
         _ => (null, null),
     };
 
