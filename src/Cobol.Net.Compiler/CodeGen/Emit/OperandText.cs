@@ -287,7 +287,15 @@ internal static class OperandText
     /// value and never stores into the argument). One rule in one place: DISPLAY used to carry this arm alone, and
     /// <c>FUNCTION UPPER-CASE(G)</c> over such a group compiled clean and aborted at run time (kb/Work PB1901).</summary>
     public static string AsTransferString(BoundOperand op, NumericRenderer num, string context) =>
-        op is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false, TransferImageCapable: true } tp }
+        // A VARIABLE-LENGTH group has no fixed record window, so none of the group arm below reads it: its image is
+        // the one DISPLAY shows - the current-extent image, CONFORMANCE.md A.1 item 57 - through the ONE reader
+        // PlaceRenderer.VarGroupOperandImage. DISPLAY and an intrinsic function's string argument both ask this
+        // method, so the variable-length group a --permissive build coerces to a function argument (ISO 15.3 admits
+        // one only where the function says so - LENGTH and BYTE-LENGTH - and COBOLNET1627 warns) is that same image,
+        // never the Tier-C refusal (kb/Work PB3424).
+        op is BoundFieldOperand { Place: var vp } && PlaceRenderer.VarGroupOperandImage(vp, context) is { } varImage
+            ? varImage
+        : op is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false, TransferImageCapable: true } tp }
             ? PlaceRenderer.SendingGroupImage(tp, context, transfer: true)
             : AsString(op, num);
 
@@ -329,7 +337,18 @@ internal static class OperandText
         // `CobolStr.RefMod(...).AsImage()` was a backend CS1061. `SendingGroupImage` owns all four arms —
         // the RedefViewPlace window, the OdoGroupPlace §13.18.38 GR8 current-extent slice (the arm this site
         // used to spell itself, one line above), the capability guard, and the plain struct image.
-        if (p.Item.IsGroup) return PlaceRenderer.SendingGroupImage(p, context, transfer);
+        // ⛔ A VARIABLE-LENGTH group a ONE-WAY consumer reads is its CURRENT-extent image - the one DISPLAY shows (A.1 item
+        // 57) - through the ONE reader PlaceRenderer.VarGroupOperandImage (kb/Work PB3424): CONVERT's ANY source
+        // (IntrinsicRenderer.StorageArg) under --permissive, where §15.3 14) bars the group argument and COBOLNET1627
+        // warns. §8.5.1.11.2 makes a variable-length item behave as though contiguous with its neighbours whenever a
+        // procedural operation is applied to a group containing it, so the contiguous current-extent image is the
+        // group's storage as an operation sees it. ⛔ ONLY WHERE THAT IMAGE IS THE STORAGE (DataItem.CurrentImageIsStorageImage):
+        // a dynamic-length NATIONAL member is composed character for character (A.1 item 63), not as the UTF-16BE bytes it
+        // occupies, so a group holding one stays at the loud SendingGroupImage refusal - a character image read as storage
+        // would be a silent wrong value (review round 2, R2-1).
+        if (p.Item.IsGroup)
+            return (transfer && p.Item.CurrentImageIsStorageImage ? PlaceRenderer.VarGroupOperandImage(p, context) : null)
+                ?? PlaceRenderer.SendingGroupImage(p, context, transfer);
         // ⛔ USAGE NATIONAL IS A SERIALIZATION OF THE CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7 —
         // the group codec's AsImageOf composes the same way, kb/Work PB646). The category decides what the
         // item's CHARACTERS are — for category national its carrier, for the national-form NUMERIC of
