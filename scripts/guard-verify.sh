@@ -79,7 +79,11 @@ if [ "$t" = "WT001A" ] && [ -n "${WITNESS_FILES:-}" ]; then
 fi
 if [ "$t" = "WT001A" ] && [ -n "${WITNESS_STDOUT:-}" ]; then printf '%s\n' "$WITNESS_STDOUT"; fi
 if [ -n "${WITNESS_STDERR:-}" ]; then echo "$WITNESS_STDERR" >&2; fi
-exit "${WITNESS_RC:-0}"
+# kb/Work PB3385: ONE program's own exit status and stderr (WITNESS_RC_WT001A, WITNESS_STDERR_WT001A) — a declared
+# predecessor that crashes while its consumer runs clean.
+rcvar="WITNESS_RC_$t"; errvar="WITNESS_STDERR_$t"
+if [ -n "${!errvar:-}" ]; then echo "${!errvar}" >&2; fi
+exit "${!rcvar:-${WITNESS_RC:-0}}"
 SHIM
     chmod +x "$BIN/dotnet"
 
@@ -247,6 +251,51 @@ SHIM
          "$(WITNESS_GROUP="WT001A WT002A" WITNESS_FILES="tf021.txt=AB" run_case correct 0 '' '')"
     gold
     rm -f "$FR/tests/nist/valid/WT002A.txt"
+
+    # ── THE CHAIN PREDECESSOR ARM (kb/Work PB3385). NistRunner fails a consumer whose declared predecessor does not
+    #    run to a normal end (`[chain p] run exit non-zero`); the group runner used to drop the predecessor's status
+    #    and grade the consumer over whatever the predecessor left. The group here is the CONSUMER ALONE — the shape
+    #    of a GUARD_TESTS subset naming only it, where the predecessor is not graded as a member and so cannot be
+    #    seen to fail anywhere else. The manifest is a one-row stand-in (GUARD_CORPUS_TSV): WT002A <- WT001A. ──
+    printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
+        > "$FR/tests/nist/valid/WT002A.txt"
+    printf 'WT002A\tWT\tgreen\tWT001A\tvalid\t-\n' > "$d/chain.tsv"
+    # chain_case PRED-DLL(yes|no) PRED-CRC PRED-CLOG -> the consumer's verdict line; WITNESS_RC_WT001A / _STDERR_WT001A
+    # steer the predecessor's run, the consumer's own run is clean and its report correct.
+    chain_case() {
+        local pdll="$1" pcrc="$2" plog="$3"
+        rm -rf "$FR/tests/nist/output"; mkdir -p "$FR/tests/nist/output"
+        printf 'stub\n' > "$FR/tests/nist/output/WT002A.dll"
+        if [ "$pdll" = "yes" ]; then printf 'stub\n' > "$FR/tests/nist/output/WT001A.dll"; fi
+        if [ -n "$pcrc" ]; then printf '%s\n' "$pcrc" > "$FR/tests/nist/output/WT001A.compile.rc"; fi
+        if [ -n "$plog" ]; then printf '%s\n' "$plog" > "$FR/tests/nist/output/WT001A.compile.log"; fi
+        GUARD_CORPUS_TSV="$d/chain.tsv" GUARD_FORENSICS="$d/forensics" PATH="$BIN:$PATH" \
+        WITNESS_CASE=correct WITNESS_VALID="$FR/tests/nist/valid" \
+            bash "$GROUP_RUNNER" "$FR" gW "WT002A" 2>>"$d/stderr.txt"
+    }
+    want "control: a predecessor that runs to a normal end leaves the consumer graded (MATCH)" \
+         "WT002A: MATCH" "$(chain_case yes '' '')"
+    want "a predecessor that exits non-zero WITH a diagnostic is a REGRESSION naming it, not a graded consumer" \
+         "WT002A: DIFF — REGRESSION! (declared predecessor WT001A exited 1: pred-boom)" \
+         "$(WITNESS_RC_WT001A=1 WITNESS_STDERR_WT001A=pred-boom chain_case yes '' '')"
+    want "a failed predecessor leaves its evidence (stderr) preserved" \
+         "pred-boom" "$(cat "$d/forensics/WT002A/WT002A-WT001A-stderr.txt" 2>/dev/null)"
+    want "a predecessor that exits non-zero with NO diagnostic is a RUN NO-VERDICT naming it" \
+         "WT002A: RUN NO-VERDICT (declared predecessor WT001A rc=1 with NO diagnostic" \
+         "$(WITNESS_RC_WT001A=1 chain_case yes '' '')"
+    want "a predecessor that times out is a RUN NO-VERDICT naming it" \
+         "WT002A: RUN NO-VERDICT (declared predecessor WT001A timeout/kill after 120s, rc=124)" \
+         "$(WITNESS_RC_WT001A=124 chain_case yes '' '')"
+    want "a predecessor killed by a signal is a RUN NO-VERDICT naming it" \
+         "WT002A: RUN NO-VERDICT (declared predecessor WT001A killed by signal 11)" \
+         "$(WITNESS_RC_WT001A=139 chain_case yes '' '')"
+    want "a predecessor with no program and a compile diagnostic is a REGRESSION naming it" \
+         "WT002A: DIFF — REGRESSION! (declared predecessor WT001A did not compile: rc=1: pred-syntax)" \
+         "$(chain_case no 1 'pred-syntax')"
+    want "a predecessor with no program and no compile evidence is a COMPILE NO-VERDICT naming it" \
+         "WT002A: COMPILE NO-VERDICT (declared predecessor WT001A: the compile never reported an exit status)" \
+         "$(chain_case no '' '')"
+    rm -f "$FR/tests/nist/valid/WT002A.txt" "$d/chain.tsv"
 
     # ── THE WRITTEN-FILES ARM'S OWN FAILURE MODES (kb/Work PB804, branch review round 1). A grader that could not
     #    ENUMERATE or COMPARE the files observed nothing, so it must say FILES NO-VERDICT and never score the run on
