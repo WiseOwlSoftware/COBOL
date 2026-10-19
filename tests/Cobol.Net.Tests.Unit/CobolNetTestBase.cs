@@ -51,7 +51,7 @@ public abstract class CobolNetTestBase : IDisposable
         // The ONE child-process observer (tests/_shared/ProcessObservation.cs) — a run that does not complete
         // raises rather than returning an empty stdout for the caller to compare. See plan §11 A12.
         var psi = new ProcessStartInfo("dotnet", $"\"{dllPath}\"") { WorkingDirectory = TempDir };
-        var obs = ProcessObserver.ObserveOrThrow(psi);
+        var obs = ProcessObserver.ObserveOrThrow(psi, runDirectory: TempDir);
         // Canonicalize newlines so multi-line expectations are platform-independent (a compiled program's DISPLAY
         // uses the platform newline: \r\n on Windows, \n on Linux/CI). See the legacy EndToEndTestBase note.
         string stdout = obs.Stdout.ReplaceLineEndings("\r\n").TrimEnd();
