@@ -630,27 +630,32 @@ public sealed class StoreCoherenceTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>2.2.1.13 (finding R2-7): the predicate each connector asks follows the engine it drives. The keyed store
+    /// <summary>2.2.1.13 (finding R2-7): the predicate each connector asks follows the question it answers. The keyed store
     /// writes at every statement, so its connector serializes against ANY other run unit
-    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and asks nothing else; the sequential organization's streaming
-    /// writer serializes only against another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>), and its callers
-    /// keep that question. Behaviourally: a <c>SHARING WITH READ ONLY</c> sequential writer buffers — its record is not on
-    /// the medium before the CLOSE — while a <c>SHARING WITH ALL OTHER</c> one hands each record over at its WRITE.</summary>
+    /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and asks nothing else. The sequential organization asks two
+    /// questions: its release (<c>SequentialConnector.ReleaseRecord</c>'s flush) asks about ANY other connector, a reader
+    /// as well as a writer (kb/Work PB1587: §14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
+    /// and §9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its append position, its ordinal count and
+    /// its shared append stream ask only about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
+    /// Behaviourally: a <c>SHARING WITH NO OTHER</c> sequential writer keeps its record in its input-output area until the
+    /// CLOSE, while a <c>SHARING WITH READ ONLY</c> or <c>SHARING WITH ALL OTHER</c> one hands each record over at its
+    /// WRITE.</summary>
     [Fact]
-    public void The_keyed_store_asks_about_any_run_unit_and_the_sequential_writer_about_another_writer()
+    public void The_keyed_store_asks_about_any_run_unit_and_the_sequential_release_about_any_other_connector()
     {
         string io = TestRepo.Src("Cobol.Net.Runtime", "IO");
         static bool Asks(string file, string predicate) => File.ReadAllLines(file)
             .Any(l => l.Contains($"FileLockPosture.{predicate}(", StringComparison.Ordinal)
                 && !l.TrimStart().StartsWith("//", StringComparison.Ordinal));
         var runUnit = Directory.EnumerateFiles(io, "*.cs", SearchOption.AllDirectories)
-            .Where(f => Asks(f, "AdmitsAnotherRunUnit")).Select(Path.GetFileName).ToList();
+            .Where(f => Asks(f, "AdmitsAnotherRunUnit")).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
         var writer = Directory.EnumerateFiles(io, "*.cs", SearchOption.AllDirectories)
             .Where(f => Asks(f, "AdmitsAnotherWriter")).Select(Path.GetFileName).Order(StringComparer.Ordinal).ToList();
-        Assert.Equal(["KeyedConnector.cs"], runUnit);
+        Assert.Equal(["KeyedConnector.cs", "SequentialConnector.cs"], runUnit);
         Assert.Equal(["FileSupport.cs", "SequentialConnector.cs"], writer);
 
-        foreach (var (sharing, handedOver) in new[] { (FileSharing.ReadOnly, false), (FileSharing.AllOther, true) })
+        foreach (var (sharing, handedOver) in new[]
+                 { (FileSharing.NoOther, false), (FileSharing.ReadOnly, true), (FileSharing.AllOther, true) })
         {
             string host = Tmp($"seq-{sharing}");
             try
