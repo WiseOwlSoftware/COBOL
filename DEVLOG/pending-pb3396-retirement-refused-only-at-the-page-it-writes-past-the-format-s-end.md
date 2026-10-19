@@ -29,4 +29,12 @@ host file (a never-closed file read beside its open handle under SHARING WITH AL
 STATUS combination and EC-I-O checking on and off. `BoundaryFile` there now opens I-O at all 2^32 recorded pages in one
 step instead of searching for the fewest pages that let the fence complete.
 
+**Branch review round 1.** The reviewer found the CLOSE promotion (the `Take` arm's other callers) untested. Re-probed
+on the fix: a CLOSE after statements cannot be made to answer '30' by any headroom, because every statement leaves its
+retirement the pages it released (a sweep of 124 single-record cases and the two sweeps in `PagedFileBoundaryTests` met
+no refusal), so the design's "the CLOSE answers '30' and the next OPEN I-O the same" was a claim about a state no
+statement reaches, and is rewritten to what is measured. The success arm is the regression witness: a CLOSE behind the one
+statement that fits, at every headroom (fails on the bound-sized reservation, passes on the page rule), and a CLOSE
+after statements spent every FREE page. The design's "fewer than the pages the format has left" is now "no more".
+
 Rows: none claimed, none closed (`closes_rows: []`, with its reason).

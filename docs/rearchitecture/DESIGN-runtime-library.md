@@ -1480,11 +1480,16 @@ it would have fitted. A RETIREMENT (an `OPEN I-O` fence, a promotion at a CLOSE,
 checkpoint) has no '24' and its claim is already taken, so its boundary is the PAGE (`BoundaryAt.Take`): the pages of its
 reservation past the format's last are `PageOrigin.Beyond`, carry no page number, and the retirement is refused ('30', the
 store as the previous statement left it) only if it WRITES one of them. A fence that writes no page past the page count,
-or fewer than the pages the format has left, therefore completes at the format's last page (measured: the
+or no more pages than the format has left, therefore completes at the format's last page (measured: the
 `PagedFileBoundaryTests` fence cases; `IndexedEnginePermanentErrorWitnessTests.BoundaryFile` opens I-O at 2^32 recorded
 pages), and one that writes one more answers '30' while `OPEN INPUT` still reads the file (`KeyedFenceBoundaryTests`, the
-`FenceRefused` program cases). A store whose last statement leaves fewer pages than its retirement writes cannot be
-promoted: the CLOSE answers '30' and the next OPEN I-O the same, which is the format's end, not an estimate.
+`FenceRefused` program cases). A retirement that must write a page past the format's last is refused
+whatever promotion it serves, and the store is then the previous statement's. Through statements that is met at the
+OPEN's fence (a never-closed store whose adopted state owes a ledger page the format has no room for), while a CLOSE
+behind statements completes: each statement leaves its retirement the pages it released, and the bound-sized
+reservation that refused it is gone (measured: `PagedFileBoundaryTests`' close cases, a CLOSE behind the one statement
+that fits at every headroom and a CLOSE after statements spent every FREE page; no headroom made a CLOSE answer '30').
+A CLOSE whose page write the host refuses answers '30' (`KeyedClosePermanentErrorWitnessTests`).
 `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
