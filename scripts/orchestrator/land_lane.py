@@ -41,8 +41,9 @@ THE TICK, in order:
      PB2981), written to survey.json. The survey reads these attempts back (`view`, kb/Work PB3125, PB3181): a branch
      whose newest attempt at its tip STOPPED reads STOPPED, one whose attempt there was ENQUEUED reads ENQUEUED, and
      only a tip no attempt stopped at reads WAITING TO LAND.
-  3. LAUNCH, unless HALT exists or a stop does (the loop's STOP-UNIT or STOP, or the owner's global scratch\\STOP; a
-     running `enqueue.py land` finishes either way: it is idempotent). The candidates are the WAITING TO LAND rows in
+  3. LAUNCH, unless HALT exists or a stop does (the loop's STOP or its fleet stop scratch\\STOP-loop, or the owner's
+     global scratch\\STOP; never STOP-UNIT alone, the soft context cap's signal to the unit, kb/Work PB3402; a running
+     `enqueue.py land` finishes either way: it is idempotent). The candidates are the WAITING TO LAND rows in
      survey order, then the branches whose last attempt a script may retry (below) and whose tip is still that
      attempt's end head (a run that committed makes the survey read the branch IN FLIGHT, so a retry is the lane's own
      record, never the survey's), then the branches the enqueue unit re-armed at their current tip (BOUNCED ones
@@ -225,7 +226,7 @@ class Decision:
 def decide(tip: str, atts: list[dict[str, Any]], overlap_free: Callable[[], tuple[bool, str]],
            rearmed: dict[str, Any] | None = None) -> Decision:
     """Whether to start `enqueue.py land` for a branch at `tip`, given its attempts (oldest first) and the enqueue
-    unit's re-arm of it, if any. The global stops (HALT, STOP, STOP-UNIT) are the caller's; `overlap_free` is asked
+    unit's re-arm of it, if any. The global stops (HALT, STOP, the loop's fleet stop) are the caller's; `overlap_free` is asked
     only for an exit 3 at this head."""
     last = atts[-1] if atts else None
     if last is not None and not finished(last):
@@ -404,8 +405,12 @@ def rearm(cdir: pathlib.Path, branch: str, why: str, say: Say = print,
 
 # ── the tick ───────────────────────────────────────────────────────────────────────────────────────────────────────
 def stop_reason(cdir: pathlib.Path) -> str | None:
-    """Why no attempt may start now: the loop's STOP-UNIT or STOP, the owner's global stop, or HALT."""
-    for path, what in ((coord.stop_unit(str(cdir)), "STOP-UNIT"), (cdir / "STOP", "the loop's STOP"),
+    """Why no attempt may start now: the loop's STOP, its fleet stop `scratch\\STOP-loop` (the hard context cap and
+    STOP), the owner's global stop, or HALT. Never `STOP-UNIT` alone (kb/Work PB3402): that is the soft context cap's
+    signal to the running UNIT, and a landing is its own process, which adds nothing to the unit's context, so the
+    unit's size must not hold finished work."""
+    for path, what in ((cdir / "STOP", "the loop's STOP"),
+                       (coord.fleet_stop(cdir / "scratch", "loop"), "the loop's fleet stop"),
                        (coord.global_stop(str(cdir)), "the owner's global STOP"),
                        (lane_dir(cdir) / HALT, "HALT (a run ended QUEUE NOT ACTIVE; `land_lane.py clear-halt`)")):
         if path.exists():
@@ -833,14 +838,24 @@ def self_test() -> int:
         expect("after clear-halt both branches start, the halted one again at its head",
                sorted(f6.tick(c6)) == ["w5a", "w5b"], str(f6.started))
 
-        # 7. STOP-UNIT, the loop's STOP and the global stop: nothing starts, yet the tick still reaps and surveys.
-        for name, path in (("STOP-UNIT", lambda c: coord.stop_unit(str(c))), ("STOP", lambda c: c / "STOP"),
-                           ("global STOP", lambda c: coord.global_stop(str(c)))):
-            cs = fresh(f"stop-{name.replace(' ', '-')}")
+        # 7. The loop's STOP, the hard cap's pair (STOP-UNIT with the loop's fleet stop) and the global stop: nothing
+        #    starts, yet the tick still reaps and surveys.
+        for name, paths in (("STOP", [lambda c: c / "STOP"]),
+                            ("the hard cap's STOP-UNIT and fleet stop",
+                             [lambda c: coord.stop_unit(str(c)), lambda c: coord.fleet_stop(c / "scratch", "loop")]),
+                            ("global STOP", [lambda c: coord.global_stop(str(c))])):
+            cs = fresh(f"stop-{name.split()[0]}-{len(paths)}")
             fs = Fake([row("w6a", "WAITING TO LAND", "s1")])
-            path(cs).write_text("", encoding="utf-8", newline="\n")
+            for path in paths:
+                path(cs).parent.mkdir(parents=True, exist_ok=True)
+                path(cs).write_text("", encoding="utf-8", newline="\n")
             expect(f"{name}: no attempt starts, and the survey is still written",
                    fs.tick(cs) == [] and (lane_dir(cs) / SURVEY).exists(), str(fs.said))
+        # 7b. STOP-UNIT alone is the SOFT context cap's signal to the running unit (kb/Work PB3402): the lane lands on.
+        cu = fresh("stop-unit-soft")
+        fu = Fake([row("w6b", "WAITING TO LAND", "s2")])
+        coord.stop_unit(str(cu)).write_text("", encoding="utf-8", newline="\n")
+        expect("STOP-UNIT alone (the soft cap): the WAITING TO LAND branch starts", fu.tick(cu) == ["w6b"], str(fu.said))
 
         # 8. ENQUEUED: nothing more at that head; its leads and record are the enqueue unit's until collected.
         c8 = fresh("enqueued")
