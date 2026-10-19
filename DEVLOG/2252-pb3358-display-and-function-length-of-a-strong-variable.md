@@ -1,4 +1,4 @@
-## PB3358 - DISPLAY and FUNCTION LENGTH of a strong variable-length group holding a pointer or object-reference leaf
+## Entry 2252 — 2026-10-19 03:05 PDT — PB3358 - DISPLAY and FUNCTION LENGTH of a strong variable-length group holding a pointer or object-reference leaf
 
 **What was wrong.** `DISPLAY` of a strongly-typed variable-length group (a dynamic-length item, or a dynamic-capacity
 table, beside a POINTER, PROGRAM-POINTER or OBJECT REFERENCE leaf, section 13.18.60.3 SR14) compiled clean and aborted at run time
@@ -65,3 +65,4 @@ dynamic-capacity table whose ELEMENT is a pointer or object leaf failed the back
 (the pointer's `PointerImage.Of`, the object's placeholder). Why the Windows gate missed the NUL: the three tree-walking facts of
 `NulByteDriftTests` are recorded at 2.4 to 25 s, over `SWEEP_CHEAP_SECONDS` (2.0 s), so tier 0c leaves them in leg 2 on Windows
 and only the landing's Linux whole-population unit leg runs them (kb/Work PB3112, open; PB3155 for the re-gate).
+
