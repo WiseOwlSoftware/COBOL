@@ -48,3 +48,5 @@ a note's sites (`note_sites`, now with `declared`). Area strings are not normali
 subsystem key is coarse, but the backfill and the new check make it a fallback rather than the main path. Performance:
 `subsystems` runs per group per in-flight owner, a few thousand set unions. Duplication: none added. No codes used
 (COBOLNET4619-4621 returned).
+
+Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261019T223933Z-65cfbe`; the self-tests of `test_plan_wave.py` and `landing_check.py` re-ran GREEN in it).
