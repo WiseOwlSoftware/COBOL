@@ -1,4 +1,4 @@
-## PB3387: an attended turn no longer ends while its inbox watcher is unarmed, and the process table reads in 0.1 s
+## Entry 2241 — 2026-10-18 22:46 PDT — PB3387: an attended turn no longer ends while its inbox watcher is unarmed, and the process table reads in 0.1 s
 
 On 2026-10-18 the operator's inbox watcher fired at 14:40 on a Mythos message and was never re-armed. The session read
 past it, and past the ⛔ "NO watcher armed" line the 15:57 compaction's probe printed. Nine messages waited until
@@ -21,3 +21,4 @@ watching it take a message from the other, so the record is per watching session
 (`mailbox/delivered-<lane>-<session pid>.json`, pruned to the open messages; a dead session's record is deleted). With
 a watcher armed, the hook only names a seen message that stays open past the stale limit. The loop design doc's mailbox section,
 `mailbox.py`'s watcher comment and the session-start skill describe both.
+
