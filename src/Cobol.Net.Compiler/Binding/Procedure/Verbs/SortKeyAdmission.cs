@@ -92,10 +92,16 @@ internal static class SortKeyAdmission
             shape = "an occurs-depending group item (ISO §13.18.38.4 GR8)";
         if (shape is not null)
             return $"{verb} key '{name}' is {shape}: \"A key data item shall not "
-                + (rules == SortKeyRules.TableSort
-                    ? "reference a variable-length group or an occurs-depending group item"
-                    : "be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item "
-                        + "or an item subordinate to a dynamic-capacity table")
+                + (rules switch
+                {
+                    SortKeyRules.TableSort => "reference a variable-length group or an occurs-depending group item",
+                    // SORT Format 1 SR6 d) and MERGE SR4 d) list the same four shapes; MERGE's copy has a comma before
+                    // "or an item subordinate" and SORT's has none, and the quote is the clause's, verbatim.
+                    SortKeyRules.Merge => "be a variable-length group, an occurs-depending-on data item, a dynamic-length "
+                        + "elementary item, or an item subordinate to a dynamic-capacity table",
+                    _ => "be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item "
+                        + "or an item subordinate to a dynamic-capacity table",
+                })
                 + $"\" ({clause} d))";
         return null;
     }
