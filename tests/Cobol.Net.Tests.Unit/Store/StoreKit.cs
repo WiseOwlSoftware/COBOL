@@ -19,6 +19,17 @@ namespace CobolNet.Tests.Unit.Store;
 /// OVERFLOW layouts, never through the engine, to check R1 and R2 after the fact.</para></summary>
 internal static class StoreKit
 {
+    /// <summary>Whether page 2 of the physical file at <paramref name="host"/> carries PROMOTING (2.2.1.6 R5), read beside
+    /// the run units that hold it open.</summary>
+    public static bool PageTwoPromoting(string host)
+    {
+        using var stream = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+        var page = new byte[PageHeader.PageSize];
+        stream.Position = MetaPage.WorkSlot * (long)PageHeader.PageSize;
+        stream.ReadExactly(page);
+        return MetaPage.Decode(page, MetaPage.WorkSlot) is { Promoting: true };
+    }
+
     /// <summary>A RELATIVE file's attributes (no keys).</summary>
     public static FixedFileAttributes Relative { get; } = new(FixedFileAttributes.Relative, false, 80, 80, []);
 

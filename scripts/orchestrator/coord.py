@@ -193,34 +193,82 @@ def write_json(path: pathlib.Path, value: Any) -> None:
 def process_name(pid: int) -> str | None:
     """The image name of the live process `pid`, or None when no process has that id (read-only; no psutil here)."""
     if os.name == "nt":
-        import subprocess  # noqa: PLC0415
-        out = subprocess.run(["tasklist", "/FI", f"PID eq {pid}", "/NH", "/FO", "CSV"], capture_output=True, text=True,
-                             encoding="utf-8", errors="replace").stdout
-        m = re.match(r'^"([^"]+)","(\d+)"', out.strip())
-        return m.group(1) if m and int(m.group(2)) == pid else None
+        return next((p["name"] for p in _nt_snapshot() if p["pid"] == pid), None)
     try:
         return pathlib.Path(f"/proc/{pid}/comm").read_text().strip()
     except OSError:
         return None
 
 
+def _nt_snapshot() -> list[dict[str, Any]]:
+    """Every live Windows process as {pid, ppid, name}, from ONE Toolhelp32 snapshot through the kernel (about 0.1 s).
+    It replaced `tasklist` and a PowerShell CIM query of Win32_Process, which took 6 to 12 s on a loaded host: too slow
+    for a check that runs at every attended turn's end (kb/Work PB3387)."""
+    import ctypes  # noqa: PLC0415
+    from ctypes import wintypes  # noqa: PLC0415
+
+    class Entry(ctypes.Structure):   # PROCESSENTRY32W
+        _fields_ = [("dwSize", wintypes.DWORD), ("cntUsage", wintypes.DWORD), ("th32ProcessID", wintypes.DWORD),
+                    ("th32DefaultHeapID", ctypes.c_void_p), ("th32ModuleID", wintypes.DWORD),
+                    ("cntThreads", wintypes.DWORD), ("th32ParentProcessID", wintypes.DWORD),
+                    ("pcPriClassBase", ctypes.c_long), ("dwFlags", wintypes.DWORD), ("szExeFile", ctypes.c_wchar * 260)]
+
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+    snap = k32.CreateToolhelp32Snapshot(0x2, 0)   # TH32CS_SNAPPROCESS
+    if not snap or snap == wintypes.HANDLE(-1).value:
+        return []
+    rows = []
+    try:
+        e = Entry()
+        e.dwSize = ctypes.sizeof(Entry)
+        ok = k32.Process32FirstW(snap, ctypes.byref(e))
+        while ok:
+            rows.append({"pid": e.th32ProcessID, "ppid": e.th32ParentProcessID, "name": e.szExeFile})
+            ok = k32.Process32NextW(snap, ctypes.byref(e))
+    finally:
+        k32.CloseHandle(snap)
+    return rows
+
+
+def _nt_command_line(pid: int) -> str:
+    """`pid`'s command line through NtQueryInformationProcess (ProcessCommandLineInformation, Windows 8.1 and later),
+    or '' when the process is gone or not ours to open (a protected or another user's process: none is a watcher)."""
+    import ctypes  # noqa: PLC0415
+    from ctypes import wintypes  # noqa: PLC0415
+
+    class UnicodeString(ctypes.Structure):
+        _fields_ = [("Length", wintypes.USHORT), ("MaximumLength", wintypes.USHORT), ("Buffer", ctypes.c_void_p)]
+
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.OpenProcess.restype = wintypes.HANDLE
+    h = k32.OpenProcess(0x1000, False, pid)   # PROCESS_QUERY_LIMITED_INFORMATION
+    if not h:
+        return ""
+    try:
+        query = ctypes.WinDLL("ntdll").NtQueryInformationProcess
+        size = wintypes.ULONG(0)
+        query(h, 60, None, 0, ctypes.byref(size))   # 60 = ProcessCommandLineInformation; this call sizes the buffer
+        if not size.value:
+            return ""
+        buf = ctypes.create_string_buffer(size.value)
+        if query(h, 60, buf, size, ctypes.byref(size)) != 0:
+            return ""
+        us = UnicodeString.from_buffer(buf)
+        return ctypes.wstring_at(us.Buffer, us.Length // 2) if us.Buffer else ""
+    finally:
+        k32.CloseHandle(h)
+
+
 def process_table() -> list[dict[str, Any]]:
     """Every live process as {pid, ppid, name, cmd}, or [] when the table cannot be read (read-only; no psutil here).
-    Windows asks CIM through PowerShell, because tasklist carries no command line; elsewhere it reads /proc."""
+    Windows reads one kernel snapshot and each process's command line (`_nt_snapshot`, `_nt_command_line`); elsewhere
+    it reads /proc."""
     if os.name == "nt":
-        import shutil  # noqa: PLC0415
-        import subprocess  # noqa: PLC0415
-        query = ("Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,CommandLine"
-                 " | ConvertTo-Json -Compress")
         try:
-            out = subprocess.run([shutil.which("pwsh") or "powershell", "-NoProfile", "-NonInteractive", "-Command", query],
-                                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60).stdout
-            rows = json.loads(out or "[]")
-        except (OSError, subprocess.SubprocessError, ValueError):
+            return [{**p, "cmd": _nt_command_line(p["pid"])} for p in _nt_snapshot()]
+        except OSError:
             return []
-        return [{"pid": r.get("ProcessId"), "ppid": r.get("ParentProcessId"), "name": r.get("Name") or "",
-                 "cmd": r.get("CommandLine") or ""} for r in (rows if isinstance(rows, list) else [rows])
-                if isinstance(r, dict)]
     table = []
     try:
         procs = list(pathlib.Path("/proc").iterdir())
@@ -278,11 +326,13 @@ def _self_test() -> int:
             got, why = loop_state(d)
             if got != want:
                 fails.append(f"lock {content!r}: want {want}, got {got} ({why})")
-    # process_table reads the REAL table (PowerShell CIM on Windows, /proc elsewhere): this process is in it, under
+    # process_table reads the REAL table (a kernel snapshot on Windows, /proc elsewhere): this process is in it, under
     # its parent, with its own command line (mailbox.py's watcher check walks exactly these fields, kb/Work PB2814)
     me = [p for p in process_table() if p["pid"] == os.getpid()]
     if not me or me[0]["ppid"] != os.getppid() or "coord.py" not in me[0]["cmd"]:
         fails.append(f"process_table: this process (pid {os.getpid()}, ppid {os.getppid()}) not found as itself: {me}")
+    if "python" not in (process_name(os.getpid()) or "").lower() or process_name(2 ** 22 + 12345) is not None:
+        fails.append(f"process_name: this process reads {process_name(os.getpid())!r}; a dead pid must read None")
     for f in fails:
         print(f"FAIL  {f}")
     print(f"=== COORD SELF-TEST: {'GREEN' if not fails else f'RED ({len(fails)})'} ===")

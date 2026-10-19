@@ -225,11 +225,12 @@ public sealed class SharedExtendOpenDriftTests
 
     /// <summary>RELATIVE and INDEXED reach the same shared <c>OPEN EXTEND</c> (§14.9.27.3 SR2 admits it for any
     /// organization at sequential access; Table 20 lists WRITE under the extend column for all three). They keep
-    /// their records in a <c>RecordFraming</c> store whose whole-file load and persist were the other two
-    /// share-mode-assuming opens in the subsystem — <c>ReadStore</c>'s implicit <see cref="FileShare.Read"/> and
-    /// <c>WriteStore</c>'s implicit <see cref="FileShare.None"/>, the stricter form of the same defect. Neither
-    /// crashed today, and that is exactly why they belong here: the matrix has to fail when a LATER change makes
-    /// a keyed store overlap a held handle, not only when the reported arm regresses.</summary>
+    /// their records in the keyed store engine's paged store, whose pages travel only through the connector's own
+    /// handle (kb/Work PB771). Its whole-file load and persist, the old store's, were the other two share-mode-assuming
+    /// opens in the subsystem (an implicit <see cref="FileShare.Read"/> and an implicit <see cref="FileShare.None"/>, the
+    /// stricter form of the same defect) and are gone with the whole-store model (kb/Work PB3335). They belong here all
+    /// the same: the matrix has to fail when a LATER change makes a keyed store overlap a held handle, not only when the
+    /// reported arm regresses.</summary>
     [Theory]
     [MemberData(nameof(Spellings))]
     public void SharedExtend_OpensAndAppends_ForTheRelativeOrganization(Spelling spelling)
