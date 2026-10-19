@@ -22,6 +22,7 @@ using Core = CobolParserCore;
 /// (<see cref="FileDescriptionFormats"/>) is only automatic for the NEXT clause if a new <c>fileDescriptionClause</c>
 /// alternative cannot land without a row; these facts read the generated parser, not a list, so it cannot.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FileDescriptionFormatDriftTests
 {
     /// <summary>The alternatives of <c>fileDescriptionClause</c> as the GENERATED parser exposes them: its
