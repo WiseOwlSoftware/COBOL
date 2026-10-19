@@ -87,7 +87,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// §14.9.10.4 GR3 — the ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
     protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) =>
         Access == KeyedAccess.Sequential
-        ? LastReadRecordId
+        ? SequentialMutationTarget
         : AreaKey(recordImage, recordExtents, PrimeKey);
 
     /// <inheritdoc/>
