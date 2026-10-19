@@ -198,13 +198,15 @@ public sealed class KeyedStoreReloadFailureDriftTests
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
 
-    private static void AssertFileHoldsThreeRecords(string host, Org org)
+    private static void AssertFileHoldsThreeRecords(string host, Org org) => AssertFileHoldsRecords(host, org, 3);
+
+    private static void AssertFileHoldsRecords(string host, Org org, int count)
     {
         var check = new FileRegistry();
         Register(check, "C", host, org, sharing: null);
         check.OpenStatic("C", FileOpenMode.Input);
         Assert.Equal("00", check.Status("C"));
-        for (int n = 1; n <= 3; n++)
+        for (int n = 1; n <= count; n++)
         {
             if (org == Org.Relative) check.SetRelativeKey("C", n);
             Assert.Equal("00", check.ReadKeyedShared("C", -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
@@ -298,6 +300,56 @@ public sealed class KeyedStoreReloadFailureDriftTests
         }
         finally { CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = null; }
         try { AssertFileHoldsThreeRecords(host, org); }
+        finally { try { File.Delete(host); } catch (IOException) { } }
+    }
+
+    public static TheoryData<Org, FileSharing?, bool> RefusedUnchangedCloses()
+    {
+        var data = new TheoryData<Org, FileSharing?, bool>();
+        foreach (var org in Enum.GetValues<Org>())
+            foreach (var sharing in Sharings)
+                foreach (bool afterARead in new[] { false, true })
+                    data.Add(org, sharing, afterARead);
+        return data;
+    }
+
+    /// <summary>⛔ A CLOSE THAT OWES NO PROMOTION STILL SYNCS, AND A SYNC THE HOST REFUSES IS THE CLOSE'S '30', NEVER '00'
+    /// (docs/rearchitecture/DESIGN-runtime-library.md section 2.2.1.7; kb/Work PB3333, PB3382): a connector that changed
+    /// nothing since its OPEN's fence (it did nothing, or it only READ) writes no page at its CLOSE, but §9.1.13.6 1)'s
+    /// permanent error ("A permanent error exists and no further information is available concerning the input-output
+    /// operation") is the refused sync's status, and the program must not believe the file durable when the host refused.
+    /// The records the file held are untouched, and the connector is closed either way.</summary>
+    [Theory]
+    [MemberData(nameof(RefusedUnchangedCloses))]
+    public void ACloseOfAConnectorThatChangedNothingWhoseSyncTheHostRefuses_Is30_AndKeepsTheRecords(
+        Org org, FileSharing? sharing, bool afterARead)
+    {
+        using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
+        string host = Tmp($"engine-close-unchanged-{org}-{sharing}-{afterARead}");
+        bool refusing = false;
+        int writes = 0;   // every medium the connector opens counts here (a CLOSE may re-adopt through a new one)
+        try
+        {
+            Seed(host, org);
+            CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
+                inner, write: _ => { writes++; return null; }, sync: () => refusing ? new IOException("refused by the host") : null);
+            var a = new FileRegistry();
+            Register(a, "A", host, org, sharing);
+            a.OpenStatic("A", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("A"));
+            if (afterARead)
+            {
+                Assert.Equal("00", Run(a, Verb.ReadNext, org, out string image));
+                Assert.StartsWith(Rec(1, ""), image);
+            }
+            refusing = true;
+            int writesBefore = writes;
+            a.Close("A");
+            Assert.Equal("30", a.Status("A"));
+            Assert.Equal(writesBefore, writes);   // the CLOSE owed no promotion: it wrote no page
+        }
+        finally { CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = null; }
+        try { AssertFileHoldsRecords(host, org, 2); }
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
 }
