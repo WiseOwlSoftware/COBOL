@@ -1,4 +1,4 @@
-## PB3391: a word a text-predicated clause refuses is named in its closed format, and its run is one refusal
+## Entry 2255 — 2026-10-19 10:55 PDT — PB3391: a word a text-predicated clause refuses is named in its closed format, and its run is one refusal
 
 Wave 1129 group C (kb/Work PB3391, campaign PB3353). `OBJECT-COMPUTER. XYZ FOO IS 12.` drew a bare COBOL0001 "cannot parse construct near 'FOO'" and then COBOLNET1971 "'IS' is not a paragraph of the CONFIGURATION SECTION", at every edition. ISO §12.3.6.2 prints a closed clause list, and FOO opens none of its clauses (at 85 the SEGMENT-LIMIT and MEMORY SIZE clauses existed, and FOO is neither), so the source is illegal everywhere and the defect is the message.
 
@@ -13,3 +13,4 @@ Wave 1129 group C (kb/Work PB3391, campaign PB3353). `OBJECT-COMPUTER. XYZ FOO I
 **Rows.** None claimed. `closes_rows: []`, because every probe was already refused and FMT-12.3.6.2, FMT-12.3.7.2 and FMT-13.16.2 are CONFORMS.
 
 **Lead.** A text predicate inside a clause the format prints still draws a bare error at the word it refuses (`MEMORY SIZE 12 FOO.`, `SEGMENT-LIMIT IS.`). The expected set cannot show a word a predicate tests.
+
