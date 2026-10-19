@@ -239,9 +239,9 @@ public abstract class KeyedConnector : FileConnector
     /// units matter (<see cref="CoherentUnder"/>, docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7 and 2.2.1.13;
     /// kb/Work PB3333): the paged engine, which writes at every statement, against ANY other run unit's connector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, every sharing mode but NO OTHER — the INPUT reader §9.1.15 2)
-    /// admits beside a READ ONLY writer would otherwise meet a half-written path); the whole store, which persists at
-    /// CLOSE under the mutex, against another WRITER only (<see cref="FileLockPosture.AdmitsAnotherWriter"/>, which only
-    /// <c>SHARING WITH ALL OTHER</c> admits).</summary>
+    /// admits beside a READ ONLY writer would otherwise meet a half-written path); the whole store, which persists after
+    /// each statement that changed it, under the mutex, against the same set (kb/Work PB1587: the INPUT reader beside a
+    /// READ ONLY writer must find every record a WRITE released in the file, §14.9.51.4 GR12).</summary>
     private bool _coherent;
 
     /// <summary>Whether a connector whose file lock carries <paramref name="share"/> is coherent (<see cref="_coherent"/>):
