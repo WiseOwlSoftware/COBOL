@@ -27,7 +27,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static string Tmp(string tag) =>
         Path.Combine(Path.GetTempPath(), $"pb2842-{tag}-{Guid.NewGuid():N}.dat");
 
-    private static void Register(FileRegistry reg, string name, string host, Org org, bool shared = true)
+    private static void Register(FileRegistry reg, string name, string host, Org org, FileSharing? sharing = FileSharing.AllOther)
     {
         if (org == Org.Relative)
             reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
@@ -35,7 +35,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         else
             reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
                 primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-        if (shared) reg.RegisterSharing(name, FileSharing.AllOther, FileLockMode.Manual, multiple: false);
+        if (sharing is { } clause) reg.RegisterSharing(name, clause, FileLockMode.Manual, multiple: false);
     }
 
     private static string Rec(int n, string payload) => $"{n:0000}{payload}";
@@ -49,7 +49,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static void Seed(string host, Org org)
     {
         var seed = new FileRegistry();
-        Register(seed, "S", host, org, shared: false);
+        Register(seed, "S", host, org, sharing: null);
         seed.OpenStatic("S", FileOpenMode.Output);
         Assert.Equal("00", Write(seed, "S", org, 1, "AAAA"));
         Assert.Equal("00", Write(seed, "S", org, 2, "BBBB"));
@@ -201,7 +201,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     private static void AssertFileHoldsThreeRecords(string host, Org org)
     {
         var check = new FileRegistry();
-        Register(check, "C", host, org, shared: false);
+        Register(check, "C", host, org, sharing: null);
         check.OpenStatic("C", FileOpenMode.Input);
         Assert.Equal("00", check.Status("C"));
         for (int n = 1; n <= 3; n++)
@@ -214,28 +214,43 @@ public sealed class KeyedStoreReloadFailureDriftTests
         check.Close("C");
     }
 
-    public static TheoryData<Org, Verb, bool> RefusedStatements()
+    /// <summary>The sharing modes a refused page write or sync is answered under: <c>ALL OTHER</c>, <c>READ ONLY</c>
+    /// (kb/Work PB1587: a READ ONLY writer is coherent, §9.1.15 2) admits another run unit's INPUT reader beside it, and
+    /// its WRITE releases the record to the file at the statement, §14.9.51.4 GR12) and the clause-less
+    /// <c>NO OTHER</c> default (null).</summary>
+    private static readonly FileSharing?[] Sharings = [FileSharing.AllOther, FileSharing.ReadOnly, null];
+
+    public static TheoryData<Org, Verb, FileSharing?> RefusedStatements()
     {
-        var data = new TheoryData<Org, Verb, bool>();
+        var data = new TheoryData<Org, Verb, FileSharing?>();
         foreach (var org in Enum.GetValues<Org>())
             foreach (var verb in new[] { Verb.PlainWrite, Verb.Rewrite, Verb.Delete })
-                foreach (bool shared in new[] { true, false })
-                    data.Add(org, verb, shared);
+                foreach (var sharing in Sharings)
+                    data.Add(org, verb, sharing);
         return data;
     }
 
-    /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', SHARED OR NOT
-    /// (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
+    public static TheoryData<Org, FileSharing?> RefusedCloses()
+    {
+        var data = new TheoryData<Org, FileSharing?>();
+        foreach (var org in Enum.GetValues<Org>())
+            foreach (var sharing in Sharings)
+                data.Add(org, sharing);
+        return data;
+    }
+
+    /// <summary>⛔ THE ENGINE WRITES AT EVERY STATEMENT, SO A WRITE THE HOST REFUSES IS THE STATEMENT'S '30', WHATEVER ITS
+    /// SHARING MODE (docs/rearchitecture/DESIGN-runtime-library.md sections 2.2.1.3 (decision 6) and 2.2.1.9; kb/Work PB3333): §9.1.13.6 1)'s
     /// permanent error at the WRITE, REWRITE or DELETE that met it, never deferred to a CLOSE, and in effect until the
     /// CLOSE (§9.1.13.1). The file is as the previous statement left it: the next OPEN reads the seeded records
     /// unchanged. A refused SYNC at the CLOSE's promotion is the CLOSE's '30', and the records the statements wrote
     /// survive it (page 2 already named them).</summary>
     [Theory]
     [MemberData(nameof(RefusedStatements))]
-    public void APageWriteTheHostRefuses_Is30_AtTheStatement(Org org, Verb verb, bool shared)
+    public void APageWriteTheHostRefuses_Is30_AtTheStatement(Org org, Verb verb, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"engine-write-{org}-{verb}-{shared}");
+        string host = Tmp($"engine-write-{org}-{verb}-{sharing}");
         bool refusing = false;
         try
         {
@@ -243,7 +258,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, write: _ => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, org, shared);
+            Register(a, "A", host, org, sharing);
             a.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal("00", a.Status("A"));
             refusing = true;
@@ -262,14 +277,11 @@ public sealed class KeyedStoreReloadFailureDriftTests
     }
 
     [Theory]
-    [InlineData(Org.Relative, true)]
-    [InlineData(Org.Relative, false)]
-    [InlineData(Org.Indexed, true)]
-    [InlineData(Org.Indexed, false)]
-    public void ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(Org org, bool shared)
+    [MemberData(nameof(RefusedCloses))]
+    public void ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(Org org, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp($"engine-close-{org}-{shared}");
+        string host = Tmp($"engine-close-{org}-{sharing}");
         bool refusing = false;
         try
         {
@@ -277,7 +289,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             CobolNet.Runtime.IO.KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(
                 inner, sync: () => refusing ? new IOException("refused by the host") : null);
             var a = new FileRegistry();
-            Register(a, "A", host, org, shared);
+            Register(a, "A", host, org, sharing);
             a.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal("00", Write(a, "A", org, 3, "CCCC"));
             refusing = true;

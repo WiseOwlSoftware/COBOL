@@ -305,10 +305,12 @@ posture, because the connector above keeps exactly one buffer — its `StreamRea
 invalidate or release only the one it owns (kb/Work PB753, below). **That one buffer IS the connector's input-output
 areas** (ISO §12.4.5.14.3 GR1, kb/Work PB643): `FileConnector.InputOutputAreas` (the RESERVE clause's integer-1,
 registered by `CobolFile.RegisterReserve`, else `HostFile.ImplementorInputOutputAreas` = 1) × `HostFile.InputOutputAreaBytes`
-(4,096), sized in ONE place, `HostFile.InputOutputAreaBuffer`. A connector holding the only writable handle releases
-its records to the medium as its areas fill; one whose file lock admits another writer releases at every WRITE /
-REWRITE (`SequentialConnector.ReleaseRecord`), so the posture decides WHEN the areas are emptied, never WHETHER they
-exist (before PB643 the areas were the host handle's 4,096-byte buffer in one posture and the reader's default buffer
+(4,096), sized in ONE place, `HostFile.InputOutputAreaBuffer`. A connector whose file lock admits no
+other connector (`SHARING WITH NO OTHER`) releases its records to the medium as its areas fill; one whose file lock
+admits a reader or a writer (`AdmitsAnotherRunUnit`: READ ONLY or ALL OTHER) releases at every WRITE / REWRITE
+(`SequentialConnector.ReleaseRecord`, kb/Work PB1587: GR12 puts the record in the physical file at the statement, and
+§9.1.15 2) admits the INPUT connector beside a READ ONLY writer), so the posture decides WHEN the areas are emptied,
+never WHETHER they exist (before PB643 the areas were the host handle's 4,096-byte buffer in one posture and the reader's default buffer
 in the other, so RESERVE had no one place to land). `OpenConnectorStore(path, mode, access, share)` is a
 RELATIVE or INDEXED connector's long-lived store handle (kb/Work PB771, below), UNBUFFERED: the store is read and
 written positionally (kb/Work PB2660), and every byte of it passes through the connector's own areas,
@@ -347,7 +349,9 @@ of a WRITE statement releases a logical record to the operating environment"*) i
 and because a record still in this connector's buffer is one the other connector cannot see, count, or avoid
 overwriting. **The predicate is the POSTURE, not a clause** (kb/Work PB740): a handle whose §9.1.15 file lock
 admits a writer takes the repositioning stream and flushes each release, which since kb/Work PB322 means a
-connector declared `SHARING WITH ALL OTHER` (the only mode Table 19 admits a writing sibling beside). Keying it on
+connector declared `SHARING WITH ALL OTHER` (the only mode Table 19 admits a writing sibling beside); and a handle
+whose lock admits a READER (`SHARING WITH READ ONLY` too, kb/Work PB1587) flushes each release over its plain stream.
+Keying it on
 "this SELECT wrote a clause" would have left a pair that shares a file without either having written one —
 writing through two independent buffers.
 
@@ -1386,11 +1390,13 @@ their places; what each does changes:
   statement since its last promotion (its OPEN's fence included) and otherwise only syncs, so a connector that changed
   nothing never fails its CLOSE over a page 2 another run unit's death left torn (PB3333, the relative rows of
   `KeyedStoreReloadFailureDriftTests`). *Why not
-  only the ALL OTHER writer, as today:* today a `SHARING WITH READ ONLY` writer persists at CLOSE under the mutex, so the
-  INPUT reader Table 19 admits beside it (§9.1.15 2), *"restricts concurrent access to a physical file through file connectors
-  other than this one, to input mode"*; the table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing
-  with read only` / `I-O` is *Normal open*) sees one image per CLOSE; an engine that writes at every statement must put that
-  writer's statements under the mutex too, or the reader meets a half-written path. One condition, one path.
+  only the ALL OTHER writer:* the INPUT reader Table 19 admits beside a `SHARING WITH READ ONLY` writer (§9.1.15 2),
+  *"restricts concurrent access to a physical file through file connectors other than this one, to input mode"*; the
+  table's `SHARING WITH ALL OTHER` / `INPUT` request against an existing `sharing with read only` / `I-O` is *Normal open*)
+  must find in the file every record that writer's WRITE released at the statement (§14.9.51.4 GR12, kb/Work PB1587;
+  `ReadOnlyWriterReleaseDriftTests.AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite`), and an engine that writes at
+  every statement must put that writer's statements under the mutex, or the reader meets a half-written path. One
+  condition, one path.
 - **A `SHARING WITH NO OTHER` connector** (Table 19 refuses every other opener in every run unit, kb/Work PB833) runs the same
   statement path with no mutex and no generation read, and its claim is the store's memory alone: no other run unit can
   continue its history, so its only continuers are this run unit's own next statement — which claims above the memory's
@@ -1964,14 +1970,17 @@ Deleted with their callers (by kb/Work PB3333-PB3335; `WholeStoreBanDriftTests` 
 in-memory record maps (their names may survive as the two tree-handle views, their maps may not); `KeyedStoreTable` as the
 store of records; `KeyedConnector._coherent`'s derivation from `FileLockPosture.AdmitsAnotherWriter` — the keyed connector
 asks `AdmitsAnotherRunUnit` (2.2.1.7), a new predicate beside the old one. `AdmitsAnotherWriter` itself STAYS (finding R2-7):
-its four callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
-`SequentialConnector.ReleaseRecord` (the per-record flush), `EnsureReaderCoherent` (the reader's re-seek) and the EXTEND
-ordinal count — ask exactly "may another WRITER exist", the sequential organization's question, and moving them to the run-unit
-predicate would turn every `SHARING WITH READ ONLY` sequential load into one flush per record for nothing. The rule is a
+its three callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
+`EnsureReaderCoherent` (the reader's re-seek) and the EXTEND ordinal count — ask exactly "may another WRITER exist", the
+sequential organization's question. `SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work
+PB1587): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §9.1.15 2) admits beside a `SHARING WITH READ ONLY`
+writer must find in the physical file every record a WRITE answered '00' for (§14.9.51.4 GR12), exactly as it does beside
+a RELATIVE writer; a flush per record for such a writer is the price of that, and `SHARING WITH NO OTHER` keeps its
+buffered load. The rule is a
 property of the ENGINE, not of the posture: a per-statement-writing engine must serialize against any other run unit, a
-streaming writer only against another writer; so the predicate each connector asks follows the engine it drives, and the
-whole-store engine's last caller left with PB3335. The key descriptor codec moved from `RecordFraming` to `MetaPage`, the
-one format that records a key, and `StoreFormat` with it. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
+streaming writer only against another writer (its append position); so the predicate each connector asks follows the engine
+it drives, and the whole-store engine's last caller left with PB3335. The key descriptor codec moved from `RecordFraming` to
+`MetaPage`, the one format that records a key, and `StoreFormat` with it. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
 `ReadStreamFrame`, `FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
 the sequential connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock
 class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Dispose`; its `Complete` step became a pass-through
