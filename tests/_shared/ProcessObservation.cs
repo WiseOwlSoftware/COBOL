@@ -34,6 +34,16 @@ namespace CobolNet.Tests.Shared;
 /// given that contention is the named cause. Every retry is recorded (see <see cref="LogPath"/>) so the rate
 /// is measurable rather than assumed — a silent retry would trade one blind spot for another.
 /// </para>
+/// <para>
+/// ⛔ A RETRY OF A PROGRAM THAT WRITES STARTS FROM THE FIRST ATTEMPT'S STATE, NOT FROM ITS WRECKAGE (kb/Work PB3388).
+/// "Nothing was learned on the first attempt" holds only for a child that left nothing behind. A compiled COBOL
+/// program killed at the budget has already created, appended to and rewritten files in its run directory, and a retry
+/// over those files measures a different input: NIST IX216A's OPEN EXTEND of an absent OPTIONAL file answered 00 (file
+/// present, created by the killed attempt) where ISO/IEC 1989:2023 §14.9.27.4 GR17 requires 05, one red in 17,812.
+/// A caller that runs a program in a directory names it (<c>runDirectory</c>); the observer records that directory
+/// before the first attempt and restores it before the retry (<see cref="RunDirectoryState"/>), or raises the
+/// non-observation when it cannot.
+/// </para>
 /// </remarks>
 internal enum ProcessOutcome
 {
@@ -150,29 +160,57 @@ internal static class ProcessObserver
     /// <see cref="HarnessNonObservationException"/> if the second attempt observes nothing either. Callers get
     /// a real exit code and real streams, or an exception — never a fabricated value.
     /// </summary>
-    public static ProcessObservation ObserveOrThrow(ProcessStartInfo psi, string? stdinText = null, int? timeoutMs = null)
+    /// <param name="runDirectory">The directory the child reads and writes its files in, when it is a program under
+    /// test (a compiled COBOL program run in its own scratch directory). Its state is captured before the first
+    /// attempt and restored before a retry, so the retry measures the same input the first attempt had
+    /// (<see cref="RunDirectoryState"/>, kb/Work PB3388). Leave it null for a tool run in a directory that is not
+    /// the child's to own (git or python in the repository).</param>
+    public static ProcessObservation ObserveOrThrow(ProcessStartInfo psi, string? stdinText = null, int? timeoutMs = null,
+        string? runDirectory = null)
     {
         int budget = timeoutMs ?? TimeoutMs;
-        var first = Observe(psi, stdinText, budget);
+        return ObserveWithRetry($"{psi.FileName} {psi.Arguments}", budget, runDirectory,
+            () => Observe(psi, stdinText, budget));
+    }
+
+    /// <summary>
+    /// The retry policy, separated from the process launch so that it is testable WITHOUT a child process and without a
+    /// time limit: a test supplies <paramref name="attempt"/> as an in-process stand-in that writes into the run
+    /// directory and reports <see cref="ProcessOutcome.TimedOut"/>, exactly what a killed attempt leaves behind, so no
+    /// wall clock decides which attempt the test observes (kb/Work PB3022, PB1590).
+    /// </summary>
+    /// <param name="command">The command line, for the log and the non-observation message.</param>
+    /// <param name="budget">The per-attempt budget, reported in the message; the attempt enforces it.</param>
+    /// <param name="runDirectory">See <see cref="ObserveOrThrow"/>.</param>
+    /// <param name="attempt">One observation of the child.</param>
+    internal static ProcessObservation ObserveWithRetry(string command, int budget, string? runDirectory,
+        Func<ProcessObservation> attempt)
+    {
+        var before = runDirectory is null ? null : RunDirectoryState.Capture(runDirectory);
+        var first = attempt();
         if (first.Completed) return first;
 
         Interlocked.Increment(ref _retries);
-        Record($"RETRY  {psi.FileName} {psi.Arguments} :: {first.Outcome} :: {first.Detail}");
+        Record($"RETRY  {command} :: {first.Outcome} :: {first.Detail}");
         RetryGate.Wait();
         ProcessObservation second;
-        try { second = Observe(psi, stdinText, budget); }
+        try
+        {
+            if (before is not null) RestoreForRetry(command, before, first);
+            second = attempt();
+        }
         finally { RetryGate.Release(); }
         if (second.Completed)
         {
-            Record($"RECOVERED  {psi.FileName} {psi.Arguments} :: exit {second.ExitCode}");
+            Record($"RECOVERED  {command} :: exit {second.ExitCode}");
             return second;
         }
 
         Interlocked.Increment(ref _nonObservations);
-        Record($"NON-OBSERVATION  {psi.FileName} {psi.Arguments} :: {second.Outcome} :: {second.Detail}");
+        Record($"NON-OBSERVATION  {command} :: {second.Outcome} :: {second.Detail}");
         throw new HarnessNonObservationException(
             "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
-            $"  command : {psi.FileName} {psi.Arguments}\n" +
+            $"  command : {command}\n" +
             $"  attempt1: {first.Outcome} — {first.Detail}\n" +
             $"  attempt2: {second.Outcome} — {second.Detail}\n" +
             $"  budget  : {budget} ms (set COBOLNET_RUN_TIMEOUT_MS to change)\n" +
@@ -181,6 +219,29 @@ internal static class ProcessObserver
             "  The process never finished, so NOTHING was learned about the program under test. Do not read\n" +
             "  this as a failing assertion: no output was compared. See plan §11 A12 and the observation log\n" +
             $"  at {LogPath}.");
+    }
+
+    /// <summary>Put the run directory back as it was before the first attempt, or raise the non-observation: a retry
+    /// over a state that is not the first attempt's would measure a different input and report it as a value.</summary>
+    private static void RestoreForRetry(string command, RunDirectoryState before, ProcessObservation first)
+    {
+        IReadOnlyList<string> unrestorable;
+        try { unrestorable = before.Restore(); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            unrestorable = [$"(the directory could not be reset: {e.GetType().Name}: {e.Message})"];
+        }
+        if (unrestorable.Count == 0) return;
+        Interlocked.Increment(ref _nonObservations);
+        Record($"NON-OBSERVATION  {command} :: run directory cannot be restored :: {string.Join(", ", unrestorable)}");
+        throw new HarnessNonObservationException(
+            "⛔ HARNESS NON-OBSERVATION — this is NOT a value mismatch and NOT a compiler verdict.\n" +
+            $"  command : {command}\n" +
+            $"  attempt1: {first.Outcome} — {first.Detail}\n" +
+            "  attempt2: not run — the run directory cannot be restored to the state attempt 1 started from, and a\n" +
+            "            retry over the first attempt's leftovers measures a different input (kb/Work PB3388).\n" +
+            $"  cannot be restored: {string.Join(", ", unrestorable)}\n" +
+            $"  (files over {RunDirectoryState.MaxCopiedFileBytes} bytes are not copied; see {nameof(RunDirectoryState)}).");
     }
 
     /// <summary>Append one line to the observation log. Best-effort and lock-tolerant: this is an instrument,
