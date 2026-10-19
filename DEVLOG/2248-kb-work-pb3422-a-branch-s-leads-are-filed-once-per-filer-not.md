@@ -1,4 +1,4 @@
-## kb/Work PB3422: a branch's leads are filed once per filer, not once
+## Entry 2248 — 2026-10-19 01:31 PDT — kb/Work PB3422: a branch's leads are filed once per filer, not once
 
 The leads of PR #268 (PB3336, which carried PB3334 and PB3335) were filed three times. The previous enqueue unit's
 clerk filed the A6 report's leads as PB3409-PB3411 (PR #275) before the branch landed. The Mythos lane filed the A5
@@ -14,3 +14,4 @@ own check also cut its grep output with `head`.
 The fix the note names is one record at the source: `filed as PBnnnn` on each lead line of the report, written by one
 tool. Step 5 then selects leads that are not yet marked. R1 also greps the open notes branches, and a drift test pins
 both.
+
