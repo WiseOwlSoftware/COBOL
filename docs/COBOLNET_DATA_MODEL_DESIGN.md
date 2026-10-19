@@ -1421,7 +1421,9 @@ current-extent member law (`CurrentExtentComposes`, ONE definition with a `trans
 exactly the leaf kind `TransferImageCapable` widens `IsImageCapable` by, so a nested fixed group, a fixed or dynamic-capacity
 table and an OCCURS DEPENDING table of such members classify as they do for the carrier. `GroupImageCodec.VarParts` classifies
 by the one-way predicates (equal to the two-way ones for every group without a slot leaf), `RecordStructEmitter` emits
-`CurrentImage()` for the wider capability and the `AsVarImage` / `FromVarImage` pair only for the narrower, and a cell-backed
+`CurrentImage()` for the wider capability and the `AsVarImage` / `FromVarImage` pair only for the narrower (a dynamic-capacity
+table whose ELEMENT is the leaf composes each occurrence as its 8 positions, `GroupImageCodec.DynElementImage`, exactly as
+`SlotImageOf` composes a fixed table of them), and a cell-backed
 window composes the same image from the positions the leaf reserves in its fixed run. Only the SENDING consumers ask it
 (DISPLAY and FUNCTION LENGTH / BYTE-LENGTH, through the `transfer:` flag of `PlaceRenderer.VarGroupCurrentImage`, the twin of
 `GroupImage`'s); MOVE, comparison, CALL and a record keep `CurrentExtentImageCapable`.
