@@ -29,9 +29,11 @@ engine; the live legacy comparison, its bake and verify modes and the conformanc
 to `CobolSharp.*` were removed by kb/Work PB2108 (R69), so a new golden is spec-derived and never baked.
 
 `NistDifferentialTests` is DIFFERENT and safe: it compares WiseOwl COBOL output to committed goldens
-(`tests/nist/valid/*.txt`), not to a live legacy run. But the green NIST set is a hand-maintained ~318-row
-`[InlineData]` list — a THIRD copy of "which programs are green" (the others: `scripts/guard.sh` `NIST_TESTS`, and
-implicitly `tests/nist/chains.tsv`).
+(`tests/nist/valid/*.txt`), not to a live legacy run. Its program set and every chain's predecessors come from
+`tests/nist/corpus.tsv` through `CorpusManifest`. The guard scripts read their chains and expected verdicts from
+the same file, but their population is still the hand-written `NIST_TESTS` in `scripts/guard.sh`, whose order is
+also how the serial guard runs the chains (kb/Work PB925, PB3383); `CorpusManifestTests.GuardNistPopulation_*`
+check it against the manifest.
 
 ### 1.3 Guard scripts (bash, Linux-only NIST loop, over the WiseOwl COBOL CLI)
 ⛔ **The NIST leg drives `cobol` (`src/Cobol.Net.Cli`), not the legacy CLI** — since kb/Work/PB750, which found
@@ -171,8 +173,10 @@ failing closed.
 2. **No behavior-neutrality proof for a refactor.** A rearchitecture phase that splits `StatementBinder` or unifies
    `StoreAsImage` has NO characterization gate: it relies on output goldens for the subset of programs that happen
    to be in the corpus, and nothing snapshots the generated C# to catch an unintended emit change.
-3. **"Which programs are green" has three sources of truth** (`guard.sh` `NIST_TESTS`, `NistDifferentialTests`
-   `[InlineData]`, `chains.tsv`) that can silently disagree.
+3. **"Which programs are green" has one source for the tests and a second, hand-written one for the guards.**
+   `tests/nist/corpus.tsv` replaced the `[InlineData]` list and the chain table at P0. `guard.sh`'s `NIST_TESTS`
+   is still a hand-maintained population, and for the serial guard the chain order, that
+   `CorpusManifestTests.GuardNistPopulation_*` check only for containment (kb/Work PB925, PB3383).
 4. ~~**The authoritative NIST gate tests frozen code.**~~ **CLOSED 2026-09-06 (kb/Work/PB750).** CI's heaviest job
    (`guard`) drove the legacy engine for the whole of the rearchitecture, so the compiler under development was
    gated on NIST only by the in-process differential suite — and battery #58's `NC215A` wrong answer proved the
@@ -237,9 +241,11 @@ IX999Z  IX     pending        -                                        none     
   asserted, but the golden departs from the output first recorded for it (an ISO re-baseline, a CCVS defect or a
   declared termination) and the note carries the ISO citation. `pending` ⇒ catalogued, not asserted (the mass-red
   guard).
-- `chain-preds` REPLACES `chains.tsv` (folded in — one file).
+- `chain-preds` is the chain table `NistDifferentialTests` and the group guard read. The serial guard still
+  encodes the chains by the order of `NIST_TESTS` (kb/Work PB3383).
 - `NistDifferentialTests` reads `corpus.tsv` via `[MemberData]`, NOT a hand-maintained `[InlineData]` list.
-- The bash guard reads the same file for its `NIST_TESTS` population and its EXPECTED verdicts: a plain
+- The bash guard reads the same file for its EXPECTED verdicts (its population is still the hand-written
+  `NIST_TESTS`, kb/Work PB925): a plain
   `divergent` row expects `MATCH` (the golden IS the ISO-conforming output WiseOwl COBOL must reproduce).
   ⛔ **A fact about the rows is DERIVED, through one reader** — `scripts/guard-population.sh`, sourced by
   `guard.sh`, `guard-fast.sh` and the audit. Until kb/Work PB898 the guard held the divergent names as a
@@ -1784,8 +1790,10 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    dispatch spec allocated, and flips its notes.
 2. **Review on the branch** (landed, PB3027; MANDATORY-PRACTICES I10): a read-only reviewer (`cobol-reviewer`, the
    `review` skill's "branch form": the full-code pass over `origin/main...HEAD`, the drift rules of the changed files,
-   fixed time limits in tests, `cite.py --check`, the other dimensions where the diff warrants) runs when the branch is
-   DONE, inside the wave's slot for that group (`wf_rolling_wave.js` `reviewed()`). Every decision is a line in
+   fixed time limits in tests, `cite.py --check`, the other dimensions where the diff warrants) runs THE MOMENT the
+   branch is DONE, inside the wave's slot for that group (`wf_rolling_wave.js` `reviewed()`), a same-file predecessor's
+   branch too: no branch waits for its successor, and a branch reviewed CLEAN is landable at once (kb/Work PB3381,
+   below). Every decision is a line in
    `<scratch>/review-w<wave>-<letter>.jsonl`, appended through `scripts/orchestrator/review_findings.py`, which computes
    the verdict from the file and stamps it into the report's header — `**Review:** CLEAN <reviewer> <head>` or
    `FINDINGS <n> <reviewer> <head> <file>` — read back through `plan_wave.parse_review`, the one reader. The stamp sits
@@ -1795,9 +1803,57 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
    returns DONE), reviewed again, at most `review_fix_rounds` (2) times; after that the FINDINGS stamp stays and
-   `plan_wave.py` plans a finisher for it. Only a branch stamped CLEAN at its tip is landable: the wave hands its
-   trains only those, and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches
-   the reviewer for one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
+   `plan_wave.py` plans a finisher for it. **The rounds converge (kb/Work PB3381, owner 2026-10-18: "We should not be
+   holding finished work this long, continually postponing it. Something in our process is flawed"; on the change:
+   "Make the changes now and land the clean links as they come.").** Round 1 is the whole branch; round 2 and later
+   review ONLY `git diff <the head the last round reviewed>..HEAD` (the wave passes `reviewed_head`) and the report's
+   answers, since the earlier content is reviewed and is not re-opened unless the diff touches it. Every finding
+   carries a severity (critical, high, medium, low, info) and the verdict is a threshold, `review_findings.py verdict
+   --blocking`: critical, high and medium block in every round a finisher can still answer, critical and high only in
+   the round after the last finisher; low and info never block; every finding stays recorded, and each non-blocking
+   one is a LEAD the stamp lists under the report's `## Review findings` and the wave returns in `leads`, filed by the
+   enqueue unit's clerk. Measured on wave 1118 (the PB3330 engine chain, 7 h, six groups DONE, none landed): PB3331's
+   three whole-branch rounds found 5, 2 and 1 findings over 2.3 h, each new, and the cap turned one LOW finding into
+   a DECISION row. **Nothing is held for a same-file successor (kb/Work PB3381):** the train-era rule that a
+   predecessor "lands THROUGH" its successor saved nothing once every branch became one pull request in the merge
+   queue (PB3023, PB3024) and kept a chain off main until its last link was clean; now the successor starts once the
+   predecessor's review loop has ended, merges the REVIEWED head, and its pull request merges on top of the
+   predecessor's. Unanswered findings have ONE source, the predecessor's findings file, and ONE reader,
+   `review_findings.last_verdict` (its newest verdict: round, branch, head, verdict and the number of blocking
+   findings), which the wave's `predecessorEnd` (through the CLI's `last-verdict`) and `prune_worktrees.py`
+   `carrying_findings` (over `findings_files`: every `review-*.jsonl` in the coordination scratch and one level under
+   it, and every file a stamp names, found by NAME only, never opened to decide what is one) both call. A report stamp is only their rendering: a review finisher rewrites the group's one report for its
+   own branch with no Review line whatever it returns, so a hold read from the stamp released the successor exactly
+   when nobody had answered them (branch review R3-1). While that last verdict is FINDINGS with blocking findings at a
+   head a successor contains, the survey holds the successor IN FLIGHT (`waits_on`) until a later round of that review
+   records CLEAN or the head is on main; a branch of the same note (its later finisher) is exempt. `predecessorEnd`
+   reads `capped` when that verdict is the round after the last finisher (no finisher was sent to answer it: the
+   successor neither answers nor re-records them) and `unanswered` otherwise (a finisher was sent and came back
+   without answering, its report rewritten: the successor's review covers the predecessor's content and records again
+   each finding that still holds; branch review R1-1, R2-1, R3-1). Every content problem is a TEAR, and a TORN
+   findings file holds every branch it names (review R4-1, R5-1, R6-1, R6-2): the reader classifies a file as torn
+   when it cannot be opened or read (gone, a directory in its place, a read denied), starts with a byte-order mark,
+   holds bytes that are not UTF-8, does not end with a newline, holds no record, or holds a line that is not a record
+   under `review_findings.SCHEMA` (every required field of its kind present with the right type, a verdict's FINDINGS
+   when and only when its count is above zero; an extra field is allowed), the one record schema the writers share
+   (`append` refuses to write a record that fails it). No verdict is read from a torn file, whatever its records say:
+   `last_verdict` returns verdict TORN, `unanswered`, with `torn` naming the file, line, byte offset and reason
+   (`reason` and `line` apart) and the `branches` and `heads` its parseable lines name (or the branch an enqueue
+   unit's `review-<branch>.jsonl` names), and it never raises, so the CLI's `last-verdict` (exit 0) and the survey
+   read one answer. `carrying_findings` holds each WAITING TO LAND branch it names and each one containing a head it
+   names, the same note's included (a file that names none holds the branches of the note whose review it records,
+   by the stamp that names it or its wave name), and writes the tear and what the operator does into the held row's
+   `why`; `predecessorEnd` reads it `unanswered`, never `capped`; one file never stops the landing lane's tick; every
+   writer refuses a torn file BEFORE writing, naming `review_findings.py repair <file>`, which only the operator runs:
+   it removes a byte-order mark, keeps a last record that only lost its newline, removes any other torn tail, deletes
+   a file left with no record, refuses a file it cannot read, and leaves an intact file unchanged.
+   `review_findings.py --self-test` proves the rule by cutting a findings file at every byte offset, alone and with a
+   record glued on, by each discovery case made at the file's first read (a read denied, a byte-order mark, a
+   zero-byte file, a directory in its place, the CLI and the survey agreeing on each) and by each schema mutation;
+   and a merged branch with no clean stamp at its tip never lands alone,
+   it lands through the branch that carries it (`prune_worktrees.contained`). Only a branch stamped CLEAN at its tip is landable: the landing lane lands only those,
+   and `prune_worktrees.py` lists any other DONE branch WAITING FOR REVIEW (a land unit dispatches the reviewer for
+   one finished outside a wave). The landing step never reviews and never fixes, but it ENFORCES the
    stamp: `enqueue.py land` refuses (exit 11, UNREVIEWED) a branch whose newest report's CLEAN stamp names no commit of
    it, or after which it gained a commit that is not main's, a clean merge of main (its tree the auto-merge of its
    parents) or DEVLOG-only — a finisher's fix, a hand-resolved conflict — so that work is reviewed at its new tip first;
@@ -1825,7 +1881,11 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    whole population, no waiting for CI. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
    gate at enqueue adds CI's Linux legs under WSL (`linux-gate.sh --nice`), run under `gate_slot.py run` as a
    landing ticket of the same shared gate slot (§3.14.6; kb/Work PB3104: run bare, seven concurrent landings ran seven
-   uncapped WSL gates and load alone turned five RED); then that row goes. Every gate row declares how it takes its
+   uncapped WSL gates and load alone turned five RED); then that row goes. A HOST-I-O group (a file of its set under
+   `src/Cobol.Net.Runtime/IO/`) does not meet the Linux legs first here: its implementer runs the unit and
+   conformance legs from WSL at its own gate (MANDATORY-PRACTICES I8; `make_dispatch_specs.host_io`, kb/Work PB3381:
+   wave 1118's PB3333 was refused at this step by 31 NIST RL programs that differ on Linux, 2.6 h after its DONE),
+   and this step still runs all of them. Every gate row declares how it takes its
    slot and `enqueue.py` runs no row while one would run outside it.
 4. **The merge queue** (PB3024): GitHub builds the merge group (several queued PRs on top of `main`), the workflow runs on
    the `merge_group` event — the full matrix: Linux and Windows, the sharded conformance legs, unit + characterization,
@@ -2103,14 +2163,13 @@ landing is held to a record of its own tree.
 | Action | From | To | Why |
 |---|---|---|---|
 | create | — | `tests/Cobol.Net.Tests.Characterization/` (+ `tests/characterization/`, `Snapshots/`) | The behavior-neutrality harness (gates 2 & 3) — the missing "prove I changed nothing" proof for every refactor phase. |
-| create | — | `tests/nist/corpus.tsv` | ONE source of truth for the green NIST set + chains; kills the 3-way triplication. |
+| create | — | `tests/nist/corpus.tsv` | The source of the green NIST set + chains; it replaced two of the three copies, and `guard.sh`'s `NIST_TESTS` is the one left (kb/Work PB925). |
 | create | — | `src/Cobol.Net.Compiler/Diagnostics/` (`DiagnosticDescriptor`, `Diag`, `Diagnostic`, `Severity`) | Registry so codes are addressable, snapshot-keyable, doc-generable, suppress-targetable. |
 | (exists) | — | `docs/COBOLNET_REARCHITECTURE_PLAN.md` | Resumable migration SSOT + roadmap with per-phase exit criteria = battery-green gate (the master plan already in the repo). |
 | create | — | `docs/DIAGNOSTICS.md` (generated) | The single human-readable code table (understandability #1). |
 | create | — | `tools/DifferentialBakeTool` (or a skip-gated maintenance test) | One-time freeze of legacy output → committed goldens (the G8-survival bake). |
 | create | — | `scripts/guard.ps1` | Cross-platform authoritative guard (Windows parity for the regression). |
 | split | `NistDifferentialTests.cs` (318 `[InlineData]`) | `[MemberData]` over `corpus.tsv` + a thin theory | Remove the hand-maintained green list; single source of truth. |
-| merge | `tests/nist/chains.tsv` | into `tests/nist/corpus.tsv` | One manifest, not two. |
 | refactor | ~60 `*DifferentialTests.cs` (assert `cobolnet==legacy`) | golden-comparison base (`AssertMatchesGolden`) + `tests/differential/**/*.out` | Sever the oracle coupling so the net survives G8. |
 | refactor | `EditionContext.Error(code,msg)` string-concat; 161 bare codes | `sink.Report(Diag.X, args)` | Route all diagnostics through the registry. |
 | split | `COBOLNET0899` (~47 sites) | distinct unimplemented-feature descriptors behind a tracked list | One code = one rule; snapshot precision. |
@@ -2162,9 +2221,9 @@ errors stays on the Release/CI build; the drift tests (`ConstructRegistry`, `Res
    hand-authored to the ISO value and marked `divergent`.
 3. **Two runtimes side-by-side until G8.** The conformance project references both runtimes; a program loads only
    its own. Low risk (proven today) but the characterization/probe path must use the greenfield driver ONLY.
-4. **`corpus.tsv` chain semantics** must exactly reproduce `chains.tsv` + `guard.sh` ordering. MITIGATION: a
-   one-time `guard-verify`-style diff proving the manifest-driven run matches the current verdict list before
-   deleting the old sources.
+4. **`corpus.tsv` chain semantics.** The manifest-driven run was verdict-equivalent to the old sources (349/349,
+   DEVLOG entry 667), and `chains.tsv` and the `[InlineData]` list are deleted. The serial guard's hand-ordered
+   `NIST_TESTS` remains (kb/Work PB925, PB3383).
 5. **Diagnostic registry churn** touches ~161 call sites. MITIGATION: mechanical, one code family at a time, each
    change set battery-green; the drift test catches any orphaned/duplicate code.
 6. **CI time** could rise if characterization emits Roslyn-compile every program. MITIGATION: gate (3) snapshots the

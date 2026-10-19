@@ -468,8 +468,9 @@ finally:
 # 7. the group JSON renders through the real template and passes check_practices' same-file rule
 gjson = [pw.as_group_json(g, "77", notes, "COBOLNET0001-COBOLNET0003") for g in p["groups"]]
 CFG77 = {"wave": "77", "base": "abc", "scratch": str(TMP), "stop_file": str(coord.fleet_stop(TMP, "w77"))}
+FILES = lambda g: mds.group_files(g, lambda ids: set())  # noqa: E731  (a fixture note declares no files)
 try:
-    specs = [mds.render(CFG77, g) for g in gjson]
+    specs = [mds.render(CFG77, g, FILES(g)) for g in gjson]
     rendered = True
 except (KeyError, IndexError) as e:
     specs, rendered = [], f"template placeholder missing: {e}"
@@ -492,11 +493,53 @@ check("check_practices accepts the rendered report path",
 check("check_practices refuses a report under the wave's scratch",
       bool(re.search(check_practices.RENDERED_REPORT, f"Report: {TMP}\\reports\\w77a-PB1-report.md")), False)
 try:
-    mds.render({k: v for k, v in CFG77.items() if k != "stop_file"}, gjson[0])
+    mds.render({k: v for k, v in CFG77.items() if k != "stop_file"}, gjson[0], FILES(gjson[0]))
     check("no stop_file, no spec", "rendered", "KeyError")
 except KeyError:
     check("no stop_file, no spec", True, True)
 check("a fleet stop is STOP-<scope>", coord.fleet_stop(pathlib.Path("S"), "loop").name, "STOP-loop")
+# 7d. A HOST-I-O GROUP RUNS CI'S LINUX LEGS AT ITS OWN GATE (kb/Work PB3381; MANDATORY-PRACTICES I8). Expected from the
+#     rule: a file under src/Cobol.Net.Runtime/IO/ (either separator) makes a group host-I-O, a compiler or other runtime
+#     file does not; the file set is the group's file_set list, else (absent or empty) what its notes declare; a
+#     host-I-O spec says run the unit and conformance legs from WSL after the Windows gate, any other keeps the
+#     landing's Linux gate; check_practices refuses a spec whose paragraph is not its group's.
+check("host_io: a file under src/Cobol.Net.Runtime/IO/ sets it, either separator",
+      (mds.host_io(["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"]), mds.host_io(["src\\Cobol.Net.Runtime\\IO\\Sharing\\X.cs"])),
+      (True, True))
+check("host_io: a compiler file, another runtime folder, a look-alike folder and no file do not set it",
+      (mds.host_io(["src/Cobol.Net.Compiler/Binding/DataBinder.cs"]), mds.host_io(["src/Cobol.Net.Runtime/Values/CobolDec.cs"]),
+       mds.host_io(["src/Cobol.Net.Runtime/IOX/A.cs"]), mds.host_io([])), (False, False, False, False))
+asked = []
+check("group_files: the file_set list when it has files, else the notes' declared set",
+      (mds.group_files({"notes": "PB1", "file_set": ["src/A.cs"]}, lambda ids: asked.append(ids) or {"src/N.cs"}),
+       mds.group_files({"notes": "PB1, PB2", "file_set": []}, lambda ids: asked.append(ids) or {"src/Cobol.Net.Runtime/IO/N.cs"}),
+       mds.group_files({"notes": "PB3"}, lambda ids: asked.append(ids) or set()), asked),
+      (["src/A.cs"], ["src/Cobol.Net.Runtime/IO/N.cs"], [], [["PB1", "PB2"], ["PB3"]]))
+IOG = dict(gjson[0], letter="IO", file_set=["src/Cobol.Net.Runtime/IO/IndexedConnector.cs"])
+CMG = dict(gjson[0], letter="CM", file_set=["src/Cobol.Net.Compiler/Binding/DataBinder.cs"])
+io_spec, cm_spec = (mds.render(CFG77, g, FILES(g)) for g in (IOG, CMG))
+check("a host-I-O group's spec runs the Linux unit and conformance legs at its gate, blocking on the verdict",
+      ("HOST-I-O GROUP" in io_spec, "bash scripts/linux-gate.sh --legs unit,conformance --nice" in io_spec,
+       "=== LINUX GATE: " in io_spec, "skip it and report" in io_spec), (True, True, True, False))
+check("any other group's spec keeps the landing's Linux gate (batched gating), unchanged",
+      ("HOST-I-O GROUP" in cm_spec, "skip it and report `LINUX GATE: the lander's (batched gating)`" in cm_spec),
+      (False, True))
+io_file, cm_file = TMP / "msg-w77-io.txt", TMP / "msg-w77-cm.txt"
+io_file.write_text(io_spec, encoding="utf-8", newline="\n")
+cm_file.write_text(cm_spec, encoding="utf-8", newline="\n")
+check("both rendered specs pass check_practices",
+      [[m for m in check_practices.check(f, check_practices.SPEC) if "report" not in m] for f in (io_file, cm_file)], [[], []])
+iofile = TMP / "io-groups.json"
+iofile.write_text(__import__("json").dumps(dict(CFG77, groups=[IOG, CMG])), encoding="utf-8", newline="\n")
+check("check_practices finds each spec's LINUX GATE paragraph its group's",
+      check_practices.specs_with_wrong_linux_gate(iofile, [io_file, cm_file]), [])
+swapped = TMP / "swapped"
+swapped.mkdir()
+(swapped / "msg-w77-io.txt").write_text(cm_spec, encoding="utf-8", newline="\n")
+(swapped / "msg-w77-cm.txt").write_text(io_spec, encoding="utf-8", newline="\n")
+check("check_practices refuses a host-I-O group's spec without the host-I-O paragraph, and the reverse",
+      check_practices.specs_with_wrong_linux_gate(iofile, [swapped / "msg-w77-io.txt", swapped / "msg-w77-cm.txt"]),
+      ["msg-w77-io.txt (a host-I-O group)", "msg-w77-cm.txt (no host-I-O file)"])
 try:
     coord.fleet_stop(TMP, "../x")
     check("a scope with a path in it is refused", "accepted", "ValueError")
@@ -616,7 +659,7 @@ if fc:
     cfile.write_text(JSON.dumps({"wave": "78", "scratch": "X", "base": "abc", "groups": cg}), encoding="utf-8", newline="\n")
     check("campaign groups pass check_practices' successor rule", check_practices.same_file_without_successor(cfile), [])
     for g in cg:
-        mds.render(dict(CFG77, wave="78"), g)
+        mds.render(dict(CFG77, wave="78"), g, FILES(g))
     only_b = pw.group_cost("opus", 1, RULES) + pw.landing_cost(RULES)
     cp2 = pw.plan(cnotes, copen, chalf, [], lambda b: "ABSENT", {}, RULES, budget_points=only_b * 1.5, deps=cdeps)
     check("a dependent is never chosen without its blocker's group",
@@ -662,13 +705,13 @@ check("a plan with no campaign requirements says none",
       ("OWNER REQUIREMENT" in pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["body"],
        pw.as_group_json(rg, "77", notes, "COBOLNET0001-COBOLNET0003")["requirements"]), (False, {}))
 rspec = TMP / "msg-w77-req.txt"
-rspec.write_text(mds.render(CFG77, rj), encoding="utf-8", newline="\n")
+rspec.write_text(mds.render(CFG77, rj, FILES(rj)), encoding="utf-8", newline="\n")
 rfile = TMP / "req-groups.json"
 rfile.write_text(JSON.dumps(dict(CFG77, groups=[rj])), encoding="utf-8", newline="\n")
 check("the rendered spec carries every requirement (check_practices.py finds none missing)",
       check_practices.specs_missing_requirements(rfile, [rspec]), [])
 nospec = TMP / "msg-w77-req-without.txt"
-nospec.write_text(mds.render(CFG77, gjson[0]), encoding="utf-8", newline="\n")
+nospec.write_text(mds.render(CFG77, gjson[0], FILES(gjson[0])), encoding="utf-8", newline="\n")
 check("a spec rendered without them is refused, naming each requirement",
       check_practices.specs_missing_requirements(rfile, [nospec]),
       [(nospec.name, r) for r in REQS + ["Second campaign's own rule."]])
@@ -679,9 +722,9 @@ rj_named = dict(rj, letter="Y")
 mfile = TMP / "req-groups-two.json"
 mfile.write_text(JSON.dumps(dict(CFG77, groups=[rj_named, other_j])), encoding="utf-8", newline="\n")
 yspec = TMP / "msg-w77-y.txt"
-yspec.write_text(mds.render(CFG77, rj_named), encoding="utf-8", newline="\n")
+yspec.write_text(mds.render(CFG77, rj_named, FILES(rj_named)), encoding="utf-8", newline="\n")
 zspec = TMP / "msg-w77-z.txt"
-zspec.write_text(mds.render(CFG77, other_j), encoding="utf-8", newline="\n")
+zspec.write_text(mds.render(CFG77, other_j, FILES(other_j)), encoding="utf-8", newline="\n")
 check("each spec is checked against its own group's requirements, not every group's",
       check_practices.specs_missing_requirements(mfile, [yspec, zspec]), [])
 real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
