@@ -820,7 +820,11 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   kb/Work PB3242) with `fix_clusters.py`'s own `cluster` (imported, never forked), one topological depth at a time
   so a cluster never mixes a blocker with what it blocks. A note declaring no site file is a group of its own, ordered
   by its chain; when it declares no site block at all its set is UNKNOWN and it is planned alone on its subsystem
-  (item 1b), and `work.py check` refuses a note filed into a cluster without one (below). A group's file set, the one the partition checks, is its notes' declared sets plus its primary file
+  (item 1b). `work.py check` (`sites_problems`) refuses an open note filed into any cluster from
+  `work.SITES_REQUIRED_FROM` (PB3443) on that has no site block, a `**Sites:**` list or `**Sites:** none (why)`: every
+  cluster is a campaign once an operator runs it, so the rule names no campaign. The 198 older notes with none (2026-10-19)
+  stay readable as UNKNOWN; the open notes of the running campaigns PB3353 and PB3160 were given blocks by hand. A
+  group's file set, the one the partition checks, is its notes' declared sets plus its primary file
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent
   can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts the tier first
   (a cluster's is its lowest note's, and `plan_wave.lift_tiers` lowers a blocker's cluster to the tier of every cluster

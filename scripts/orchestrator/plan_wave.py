@@ -694,7 +694,8 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         session has decided, MANDATORY-PRACTICES O10; the collision names it, so the operator decides it), or a
         detached worktree or owner the survey does not name (the external-repository slices).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
-    report's ids are the branch's notes: plan() never defers a group for work on its OWN notes."""
+    report's ids are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
+    plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
     by_branch: dict[str, Report] = {}
     for r in reports:   # oldest first: the last write is the newest
         if r.branch:
@@ -710,7 +711,7 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         if state in GONE_STATES:
             continue
         rep = by_branch.get(branch or "")
-        notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", []))
+        notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
         done = rep if state in CONTINUED_STATES and rep and rep.finished else None
         out[owner] = InFlight(set(files), branch, notes, done, state)
     return out
@@ -1304,8 +1305,9 @@ def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], n
 
 def unpartitioned(g: Group, notes: Mapping[str, Note]) -> str:
     """The plan table's and the spec's naming of a group whose file set is UNKNOWN (kb/Work PB3263): the silence ended."""
-    return (f"⚠ UNPARTITIONED (kb/Work PB3263): no note of this group declares a site block, so its file set is "
-            f"UNKNOWN and the partition planned it alone on its subsystem(s) "
+    return (f"⚠ UNPARTITIONED (kb/Work PB3263): no note of this group declares a file the partition covers (a site "
+            f"block's path under a campaign root), so its file set is UNKNOWN and the partition planned it alone on "
+            f"its subsystem(s) "
             f"{', '.join(sorted(subsystems(g.notes, notes))) or '(none known)'}.")
 
 
@@ -1500,9 +1502,13 @@ def main(argv: list[str] | None = None) -> int:
     meta: dict[str, dict] = {}
     raw = inflight_file_sets(coord_dir=cdir, terminal=terminal, with_git=not a.no_branches, meta=meta, reports=reports)
     # the slices gate the R3 campaign only (PB2118 Draft 7, R69 section 2): the fix lane is never held for them
-    if a.cluster and any(work.EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
-                         and i.get("status") not in work.TERMINAL_STATUSES for i in items):
+    slices = [i["id"] for i in items if work.EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
+              and i.get("status") not in work.TERMINAL_STATUSES]
+    if a.cluster and slices:
         raw["the open external-repository slices"] = work.slice_file_set()
+        # their notes give the owner its subsystems, so a group whose set is UNKNOWN meets it only on a shared one
+        # (collision, kb/Work PB3263), never on "subsystem unknown"
+        meta["the open external-repository slices"] = {"notes": slices}
     states: dict[str, str] = {}
     owned: set[str] = set()
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull

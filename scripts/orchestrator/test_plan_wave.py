@@ -1189,6 +1189,26 @@ check("a malformed entry, a campaign named twice, or a campaign the note is not 
 check("tier_of reads the well-formed entry for that campaign only",
       [work.tier_of(i, "C") for i in TIERS] + [work.tier_of(TIERS[1], "D"), work.tier_of(TIERS[6], "D")],
       [1, 12, None, None, None, 1, None, None, 2, 2])
+# an open note filed into a cluster from work.SITES_REQUIRED_FROM on declares a site block (kb/Work PB3263): a list of
+# paths, or `**Sites:** none (why)`; an older note, a decision, a terminal note and a note in no cluster are exempt
+NEW = work.SITES_REQUIRED_FROM
+SITED = [{"_file": f"PB{n}.md", "id": f"PB{n}", "kind": k, "status": s, "cluster": cl, "_body": b}
+         for n, k, s, cl, b in [
+             (NEW, "defect", "open", ["C"], "Prose names `src/A.cs` only."),
+             (NEW + 1, "defect", "open", ["C"], "**Sites:**\n- `src/A.cs`\n"),
+             (NEW + 2, "analysis", "half", ["C"], "**Sites:** none (it changes no code file)\n"),
+             (NEW + 3, "decision", "open", ["C"], "An owner question."),
+             (NEW + 4, "defect", "landed", ["C"], "Landed, no sites."),
+             (NEW + 5, "defect", "open", [], "In no cluster."),
+             (NEW - 1, "defect", "open", ["C"], "Filed before the rule."),
+             (NEW + 6, "analysis", "owner", ["C"], "Held by the owner, no sites.")]]
+check("work.sites_problems: an open note in a cluster from the cutover on with no site block is refused, prose paths "
+      "and all; a block naming none is a declaration",
+      [s.split(":")[0] for s in work.sites_problems(SITED)], [f"PB{NEW}.md", f"PB{NEW + 6}.md"])
+check("... and the refusal names the rule and the planner's UNKNOWN set",
+      all(t in work.sites_problems(SITED)[0] for t in ("**Sites:**", "UNKNOWN", "PB3263")), True)
+check("note_sites says whether a block is present, whatever it names",
+      [work.note_sites(i["_body"]).declared for i in SITED[:3]], [False, True, True])
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/
@@ -1473,6 +1493,14 @@ ufin = pw.plan(notes, [unsited("PB3")], [], [r3], lambda b: "UNLANDED", {}, RULE
                busy={f"worktree pred ({r3.branch})": pw.InFlight({F_EMIT, "src/X/New.cs"}, r3.branch)})
 check("a finisher's set is what the branch it continues changes: known, so planned and recorded with those files",
       [(g.kind, g.notes, g.files) for g in ufin["groups"]], [("finisher", ["PB3"], [F_EMIT, "src/X/New.cs"])])
+SLI = pw.classify_inflight({"the open external-repository slices": {"src/S.cs"}},
+                           {"the open external-repository slices": {"notes": ["PB8"]}}, [], {})
+check("an owner's meta notes (the slices' own) are its notes, so its subsystems are known",
+      SLI["the open external-repository slices"].notes, {"PB8"})
+us = pw.plan(notes, [unsited("PB9"), unsited("PB11")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
+             busy=SLI)
+check("... and an UNKNOWN group meets it only on a shared subsystem (PB8 is oo/classes; PB9 and PB11 are runtime)",
+      (sorted(i for g in us["groups"] for i in g.notes), sorted(us["waiting"])), (["PB11", "PB9"], []))
 UL = TMP / "coord-unknown"
 UL.mkdir()
 coord.write_json(UL / pw.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
