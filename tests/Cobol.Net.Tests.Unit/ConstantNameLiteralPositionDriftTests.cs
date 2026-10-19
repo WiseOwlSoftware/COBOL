@@ -86,8 +86,6 @@ public sealed class ConstantNameLiteralPositionDriftTests
             + "a compiler directive\"",
         ["procedureName"] = "a paragraph-name or section-name written in digits, a user-defined word (ISO §8.3.2.2), never a "
             + "literal",
-        ["assignTarget"] = PB2500,
-        ["localeClause"] = PB2500,
         ["valueOfClause"] = "the VALUE OF clause of the file description entry, " + Removed2002,
         ["paddingCharacterClause"] = "the SELECT PADDING CHARACTER clause, obsolete at 2002 and absent from ISO 2014 and 2023 "
             + "(COBOLNET0903 / COBOLNET0902); its operand is never bound, so a golden that writes a constant-name there would "
@@ -98,10 +96,6 @@ public sealed class ConstantNameLiteralPositionDriftTests
         ["validateDefaultClause"] = Validate,
         ["validateStatusClause"] = Validate,
     };
-
-    private const string PB2500 =
-        "a word here is either a constant-name or an implementor system-name (device-name-1, external-locale-name-1), and "
-        + "which reading wins is the open latitude kb/Work PB2500 holds for an owner decision";
 
     private const string Screen =
         "the SCREEN SECTION is a declined optional module (Annex A.4.2), refused whole by COBOLNET1560, so its clauses never bind";

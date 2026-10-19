@@ -1545,7 +1545,10 @@ newly-closed format as the standing witness that the rendering was right.
   allowed is §12.4.5.2 SR5's implementor determination (`docs/CONFORMANCE.md` §7 DOC-A.1-71: one operand, or DISK /
   PRINTER then one operand), read at bind in ONE place, `Binding/AssignTargetRule`, and refused BY NAME
   (COBOLNET2256). A consequence for this mechanism: a word run after an ASSIGN operand is now further TO operands,
-  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970.
+  not a residue clause, so it draws COBOLNET2256 rather than COBOLNET1970. A word that names a constant entry at
+  an operand is literal-1 (§13.10.3 SR2), held to §12.4.5.2 SR4 (`AssignTargetRule.WordText`, kb/Work PB2500): the
+  grammar cannot tell a constant-name from a device-name-1, so the one `cobolWord` alternative is decided at bind,
+  the program's own declaration winning as it does for the LOCALE clause and the ALPHABET code-name.
 - **The §12.3.7.2 `dynamic-length-structure-clause` is modelled** (kb/Work PB829 finisher). It had no rule at all
   (`DYNAMIC LENGTH STRUCTURE DLS1 IS PREFIXED.` was COBOL0001 — DYNAMIC is a reserved token no alternative admitted,
   so the catch-all never saw it). `dynamicLengthStructureClause` writes the RENDERED format: STRUCTURE and IS
@@ -1829,8 +1832,10 @@ derives every literal reference from the `.g4` text in both directions: a refere
 as a position no constant-name stands in (a level-number, the 1985 STOP literal, the non-ISO ENTRY), and every slot
 that admits a word is witnessed by an enabled 2002+ golden writing a declared constant-name in that rule's word arm
 (it compiles strict, so the binder admitted the word as the literal) or argued (a compiler directive's operand,
-SR2's own exception; the declined SCREEN, VALIDATE and message-server facilities; the open latitude of kb/Work
-PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
+SR2's own exception; the declined SCREEN, VALIDATE and message-server facilities; the deleted VALUE OF and PADDING
+CHARACTER clauses). The two slots where a word is also a system-name, ASSIGN's device-name-1 and LOCALE's
+external-locale-name-1, are witnessed like the rest (`pb2500_assign_constant_name`, `pb2500_locale_constant_name`):
+the program's declaration of the word wins (kb/Work PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
 
 ## 4. Current → target module changes
 
