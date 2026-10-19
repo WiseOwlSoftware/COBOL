@@ -42,3 +42,11 @@ was, so the registry's lock check ran ahead of the connector's own '43' gate. Th
 SEQUENTIAL, three holder places, REWRITE and DELETE RECORD; red on all 15 without the fix) and the '51' test now re-reads
 record 1 between its statements. DOC-A.1-104 (2) carries the order. R1-2 (a lead): the lock-taking comment now cites
 §14.9.30.4 GR11 d), the rule that sets the lock in manual mode.
+
+**Goldens the fix corrected.** The Linux gate (the whole conformance population, which leg 1 does not run) showed two goldens
+that had pinned the old order: `file_sharing_seq` (B's REWRITE after its UNLOCK was `REWB51=51`, and the RETRY re-execution
+after the '51' `REWBRT=51`) and `pb1563_line_sequential_dynamic_members_exceptions` (`J7=51`, the same REWRITE executed again
+with RETRY after the '51' of J6). Both programs' own comments already said the intervening statement drops the '43' gate
+(PB140), and pb1563's header said "'43' again because the failed REWRITE is not a READ (GR5)": the goldens contradicted their
+narrative. They now read `REWBU43=43`, `REWBRT=43` and `J7=43`; the sequential '51' after a READ stays witnessed by J6 and by
+the unit theories. The traceability inventory's UNLOCK note that quoted `REWB51=51` follows.
