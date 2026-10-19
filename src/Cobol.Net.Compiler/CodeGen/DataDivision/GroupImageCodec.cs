@@ -456,6 +456,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // A GROUP element of fixed image renders through its AsImage; one that is itself a variable-length group
         // (kb/Work PB244) through its own CurrentImage - each occurrence at its own current extent.
         d.IsGroup ? d.ElementTransferImageCapable ? "static __e => __e.AsImage()" : "static __e => __e.CurrentImage()"
+        // A class pointer/object ELEMENT (kb/Work PB3358: a strong variable-length group's dynamic-capacity table of
+        // them reaches the one-way CurrentImage only): each occurrence is its 8 positions exactly as a fixed table's
+        // are (SlotImageOf) - the pointer's storage image of DOC-A.1-216, or the object's reserved placeholder. The
+        // carrier never asks this arm: CurrentExtentImageCapable refuses a slot-carried element.
+        : SlotWindow.CarriedBySlot(d)
+            ? SlotWindow.CarriesPointerImage(d) ? $"static __e => {RuntimeApi.PointerImageOf("__e")}"
+                                                : $"static __e => {SlotPlaceholder(d.ByteWidth)}"
         // The element lane mirrors PhysicalModel's numLeaf rule exactly: a NATIVE numeric element goes
         // through its byte-form lane (float via the distinctly-named IEEE lane), a string-carried element
         // (alphanumeric / edited / StoreAsImage) passes through. A USAGE BIT element is the third lane (kb/Work

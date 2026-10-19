@@ -49,3 +49,19 @@ Conformance 11,384/17,952, Unit 33,994/34,641, Characterization 5/36 cases ran. 
 `leg-1-Conformance.trx` (pb3358_vlg_display_reference_leaf 2014, pb3358_vlg_display_reference_leaf_cell 2023,
 pb3358_vlg_display_pointer_leaf 2014, refusal pb3358-vlg-display-reference-leaf-at-2002 at 85 and 2002); the drift test ran in
 leg 1 of Unit. `scripts/semgrep/verify.py`: PASS, no rule count raised. Linux gate: the lander's (batched gating).
+
+**Finisher: the landing's Linux gate went RED, and a missed shape.** The landing stopped `GATE RED (Linux)` on 161bacdc3:
+`NulByteDriftTests.NoTrackedTextFileContainsANulByte` found the golden `pb3358_vlg_display_pointer_leaf.out` holding the NULL
+images (eight X"00" per pointer leaf) byte for byte. A pointer's image ALWAYS holds zero positions (NULL is all zeros and an
+address token's high-order positions are zero), so no golden can pin a displayed pointer leaf. The case was re-expressed: its
+DISPLAYs show each group at an extent with no pointer occurrence (an OCCURS 0 TO 3 DEPENDING table at count 0, section 13.18.38.4
+GR8 b; a dynamic-capacity table at its initial capacity zero, section 8.5.1.9.1 item 3), and FUNCTION LENGTH counts the 8 positions
+of each leaf at non-zero extents. The pointer positions' characters moved to `VariableLengthGroupPointerImageTests` (Conformance
+assembly), whose expected strings are built from the determination: a fixed leaf and fixed table, an OCCURS DEPENDING table, and
+a dynamic-capacity table of program-pointers and of object references. Writing that last shape found a defect of this branch: a
+dynamic-capacity table whose ELEMENT is a pointer or object leaf failed the backend compile (CS0029, the element lambda
+`static __e => __e` returned the managed pointer as a string), where main had refused it loudly at run time.
+`GroupImageCodec.DynElementImage` now gives a slot-carried element its 8 positions exactly as `SlotImageOf` does for a fixed table
+(the pointer's `PointerImage.Of`, the object's placeholder). Why the Windows gate missed the NUL: the three tree-walking facts of
+`NulByteDriftTests` are recorded at 2.4 to 25 s, over `SWEEP_CHEAP_SECONDS` (2.0 s), so tier 0c leaves them in leg 2 on Windows
+and only the landing's Linux whole-population unit leg runs them (kb/Work PB3112, open; PB3155 for the re-gate).
