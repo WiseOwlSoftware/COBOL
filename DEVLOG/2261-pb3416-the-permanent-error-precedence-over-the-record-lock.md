@@ -1,4 +1,4 @@
-## PB3416: the permanent-error precedence over the record-lock question is written once
+## Entry 2261 — 2026-10-19 12:38 PDT — PB3416: the permanent-error precedence over the record-lock question is written once
 
 Group E of wave 1129 (kb/Work PB3416, campaign PB3353). The note said the REWRITE and DELETE bodies in
 `FileRegistry` carry the READ peeks' permanent-error rule a second and third time, as a guard
@@ -50,3 +50,4 @@ with RETRY after the '51' of J6). Both programs' own comments already said the i
 (PB140), and pb1563's header said "'43' again because the failed REWRITE is not a READ (GR5)": the goldens contradicted their
 narrative. They now read `REWBU43=43`, `REWBRT=43` and `J7=43`; the sequential '51' after a READ stays witnessed by J6 and by
 the unit theories. The traceability inventory's UNLOCK note that quoted `REWB51=51` follows.
+
