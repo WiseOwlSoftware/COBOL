@@ -192,3 +192,13 @@ output only. In the inventory this branch's side was taken and main's four PB158
 `record_verdicts` batch `w1118a5-r4-PB1587-merge`. GR-14.9.51.4-12's dead `WholeStore.cs#CoherentUnder` witness now
 points at `KeyedConnector.cs#TakeFileLock`, and the GAP stays at 66. DESIGN-runtime-library 2.2.1.7's "why not only ALL
 OTHER" paragraph and the PB3334 and PB1587 notes now describe the engine.
+
+The first round-4 gates at `1f86951c4` were RED twice, and both reds came from the merge. On Windows the witness-loss
+audit stopped the run (`20261019T015012Z-c7d1ac`) because GR-14.9.51.4-12 had dropped main's `WholeStore.cs#CoherentUnder`
+with no retirement mark: taking this branch's side of the row was a loss to the audit, not a retirement. Two
+`record_verdicts` batches fixed it. `-2a` puts main's witness back and `-2b` retires it with its reason, so the audit reads
+0 unexcused against main. On Linux, `StoreCoherenceTests`, a test only this branch has, still pinned the rule PB1587
+retired: it expected a `SHARING WITH READ ONLY` sequential writer to buffer until CLOSE and `AdmitsAnotherRunUnit` to be
+asked only in `KeyedConnector.cs`. It now pins PB1587's rule. The release asks about any other connector (READ ONLY and
+ALL OTHER hand the record over at the WRITE, NO OTHER keeps it until the CLOSE). The append position, the ordinal count
+and the shared append stream still ask about another writer only. The test is red at `1f86951c4` and green now.
