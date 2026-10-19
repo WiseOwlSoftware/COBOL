@@ -1,4 +1,4 @@
-## File the enqueue unit's review leads as PB3416-PB3419 and correct the keyed host-failure predicate in the files design
+## Entry 2245 — 2026-10-19 00:39 PDT — File the enqueue unit's review leads as PB3416-PB3419 and correct the keyed host-failure predicate in the files design
 
 Filed four kb/Work notes from the enqueue unit's leads, each re-read on origin/main 0eba56a75. PB3416 (low, runtime/io): the
 REWRITE and DELETE guards `target.Length > 0 && c.PermanentErrorInEffect is null` in `FileRegistry.cs` can never change an
@@ -16,3 +16,4 @@ PB3335), so the doc no longer names it.
 
 Where the leads came from: the branch reviews of PR #268 (PB3336 with PB3334 and PB3335 landed through it) and of
 `notes-pb3381-leads-pb3380-landed-20261018`. No code changed.
+
