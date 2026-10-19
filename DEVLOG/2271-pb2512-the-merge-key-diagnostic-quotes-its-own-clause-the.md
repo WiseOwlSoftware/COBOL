@@ -1,4 +1,4 @@
-## PB2512: the MERGE key diagnostic quotes its own clause, the PB1173 key goldens break one rule each, and edition 85 refuses an occurs-depending key by determination
+## Entry 2271 — 2026-10-19 16:14 PDT — PB2512: the MERGE key diagnostic quotes its own clause, the PB1173 key goldens break one rule each, and edition 85 refuses an occurs-depending key by determination
 
 Three loose ends of the PB1924 SORT/MERGE key adjudication, taken together because they share `SortKeyAdmission` and its goldens (campaign PB3353).
 
@@ -12,3 +12,4 @@ Three loose ends of the PB1924 SORT/MERGE key adjudication, taken together becau
 4. Review round 1 (R1-1): the same mistake sat in `SortBinder.SortAddFileKeys` itself. Its key-not-in-record refusal and its two OCCURS-position refusals quoted SORT's "§14.9.40.3 SR6a" and "SR6b/SR6f" for a MERGE statement. `SortKeyAdmission.Clause(rules)` is now the one statement-to-clause map, read by `Violation` and by those three refusals, and they cite "SR6 a)" / "SR4 a)" and "b) and f)" in each statement's own rule. New goldens `pb1173-merge-key-not-in-record` (pins `SR4 a)`) and `pb1173-merge-key-boolean` (the SR4 c) boolean arm for MERGE, which had no witness); `pb1173-sort-file-key-not-in-record` now pins `SR6 a)`. R1-2: D-SKE records the GnuCOBOL 3.2 survey (accepts the key at every dialect, so no guidance) before resting on Micro Focus; Veryant is no longer cited.
 
 **Owner test requirement.** The change is a compile-time refusal; the goldens cover each illegal key form the rules name for SORT Format 1 and MERGE with its diagnostic: OCCURS, class pointer, dynamic-length item, variable-length group and occurs-depending group for both; key outside the SD and class boolean for both since round 1 (SORT's goldens predate the branch). No runtime I/O path is reached.
+
