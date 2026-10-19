@@ -252,8 +252,11 @@ public sealed class FileIoDifferentialTests
         // carriage return (§14.9.51.4 GR25 c) — an overprint; docs/CONFORMANCE.md "ADVANCING 0"), a lone CR is DATA
         // to a line sequential read (kb/Work PB1540), and the harness's normalization shows it as a line break.
         // The second record, "CCCC" then "DDDD": AFTER ADVANCING CSP finds no open line (BBBB's own advance ended
-        // it), so there is nothing to overprint and nothing is written, and DDDD is presented on CCCC's line.
-        Assert.Equal("L=AAAA\nBBBB\nL=CCCCDDDD", cout);
+        // it), so there is nothing to overprint and nothing is written, and CCCC is presented on a fresh line.
+        // DDDD is a BEFORE write presented while CCCC's line is open (§14.9.51.4 GR25 e): no advance lies
+        // between the two lines), so it is at the SAME vertical position - an overprint from column 1, a
+        // carriage return that the read-back also shows as a line break (kb/Work PB1840).
+        Assert.Equal("L=AAAA\nBBBB\nL=CCCC\nDDDD", cout);
     }
 
     /// <summary>The feature-name <c>C01</c> (docs/CONFORMANCE.md §7, Annex A.1 items 190 and 222 — kb/Work PB862):
