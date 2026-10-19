@@ -1,4 +1,4 @@
-## PB3423 review leads: the tier lift is now tested where it is called
+## PB3440 (PB3423 review leads): the tier lift is now tested where it is called
 
 The branch review of PB3423 (#292) passed CLEAN with two low leads, and both were small enough to answer at once rather than file. R1-1: `plan_wave.plan()`'s docstring still said a campaign cluster's depth ranks first; it now names the owner's tier first and depth next. R1-2 was the real one: `test_plan_wave.py` tested `lift_tiers` directly, but no fixture needed the CALL inside `campaign_clusters`, and the reviewer's mutation (the call deleted) kept every check green.
 
