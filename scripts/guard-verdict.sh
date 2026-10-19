@@ -355,6 +355,55 @@ guard_termination_verdict() {
     return 0
 }
 
+# THE CHAIN-PREDECESSOR ARMS (kb/Work PB3385). A consumer's declared predecessors (corpus.tsv's chain-preds column) run
+# ungraded in the consumer's directory before it, to leave the files it reads; NistRunner FAILS the consumer when one
+# does not run to a normal end (`[chain p] run exit non-zero`, `[chain p] compile …`). A predecessor that did not
+# finish — or never compiled — leaves a partial file or none, so the consumer's report is no observation of the
+# compiler: its verdict is the PREDECESSOR's failure, named, under the same evidence rules as every other arm. In a
+# full group run the predecessor is also graded as its own member, but a GUARD_TESTS subset that names only the
+# consumer has nowhere else to see it fail. Both functions leave GUARD_CLASS EMPTY when the predecessor was fine, and
+# set GUARD_CLASS/GUARD_VERDICT (the words the audit and guard-verify already classify) when the consumer must not be
+# graded.
+#   guard_predecessor_verdict PRED PRC ERRFILE RUN_TIMEOUT   — the predecessor's RUN
+guard_predecessor_verdict() {
+    local -
+    set +e
+    local pred="$1" prc="$2" errfile="$3" timeout_s="$4"
+    GUARD_VERDICT=""; GUARD_CLASS=""; GUARD_ACTUAL=""
+    if [ "$prc" -eq 0 ]; then
+        return 0
+    elif [ "$prc" -eq 124 ] || [ "$prc" -eq 137 ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred timeout/kill after ${timeout_s}s, rc=$prc) — NOT SCORED"
+    elif [ "$prc" -gt 128 ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred killed by signal $((prc - 128))) — NOT SCORED"
+    elif [ ! -s "$errfile" ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred rc=$prc with NO diagnostic — a failure with no reason is a lost result) — NOT SCORED"
+    else
+        GUARD_CLASS="regression"
+        GUARD_VERDICT="DIFF — REGRESSION! (declared predecessor $pred exited $prc: $(guard_first_line "$errfile"))"
+    fi
+    return 0
+}
+
+#   guard_predecessor_compile_verdict PRED CRC CLOG   — the predecessor has NO program (guard_compile_verdict's rules)
+guard_predecessor_compile_verdict() {
+    local -
+    set +e
+    local pred="$1" crc="$2" clog="$3" reason
+    guard_compile_verdict "$pred" "$crc" "$clog"
+    if [ "$GUARD_CLASS" = "regression" ]; then
+        reason="${GUARD_VERDICT#COMPILE FAILED — REGRESSION! (}"
+        GUARD_VERDICT="DIFF — REGRESSION! (declared predecessor $pred did not compile: ${reason%)})"
+    else
+        reason="${GUARD_VERDICT#COMPILE NO-VERDICT (}"
+        GUARD_VERDICT="COMPILE NO-VERDICT (declared predecessor $pred: ${reason%) — NOT SCORED}) — NOT SCORED"
+    fi
+    return 0
+}
+
 # KEEP THE EVIDENCE on any non-MATCH (kb/Work/PB473 item 4). Attributing battery #43's red cost hours only
 # because the group's working directory had already been deleted by its own EXIT trap; the one artefact that
 # made attribution possible at all survived by accident. Nothing is copied on a green run.
