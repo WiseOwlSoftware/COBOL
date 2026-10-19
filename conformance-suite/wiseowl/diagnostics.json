@@ -14064,6 +14064,33 @@
   ],
   "expect": "COBOLNET1970: '-1' is not a clause of the SOURCE-COMPUTER paragraph"
  },
+ "pb3391-data-entry-picture-locale-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1941: cannot parse construct near 'FOO'. 'FOO' is not a clause of the data description entry for 'W-X'"
+ },
+ "pb3391-object-computer-predicated-clause-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: cannot parse construct near 'FOO'. 'FOO' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3391-special-names-locale-shape-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: cannot parse construct near 'FOO'. 'FOO' is not a clause of the SPECIAL-NAMES paragraph"
+ },
  "pb340-advancing-on-lock-keyed-85": {
   "refuse-at": [
    "85"
