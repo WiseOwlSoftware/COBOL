@@ -56,9 +56,14 @@ unrecognizedClause
 // with the period forgotten would read `05 Y` as a foreign clause of X where the source has a missing period. One at
 // a residue position is refused by the parse layer instead (CobolErrorStrategy's 0g arm: `OBJECT-COMPUTER. 12.`),
 // unless it may begin what follows the list's period, where the missing-period diagnosis stands. In the TAIL the
-// integer stays: an IDENTIFIER-led `FOO 12` is one run, and the text-predicated OBJECT-COMPUTER clause
-// `SEGMENT-LIMIT IS? integer` relies on that — without a viable residue reading of its shape, a word that is not
-// SEGMENT-LIMIT fails the clause's predicate at the decision's first token (NoViableAlt at `FOO`, not a refusal).
+// integer stays: an IDENTIFIER-led `FOO 12` is one run, quoted by its opening.
+// ⚠ A RUN SHAPED LIKE A TEXT-PREDICATED CLAUSE (kb/Work PB3391). Where a clause of the same list is recognized by the
+// TEXT of its word (`SEGMENT-LIMIT IS? integer`, `MEMORY SIZE …`, PICTURE's `LOCALE … SIZE …`, the SPECIAL-NAMES
+// LOCALE clause) and the run cannot continue at the reserved word that clause takes next (`OBJECT-COMPUTER. XYZ FOO
+// IS 12.`: the run FOO ends at IS), the clause is the prediction's sole survivor, and ANTLR throws NoViableAlt at the
+// word when its predicate refuses it. The run cannot take that reserved word itself (no FIRST set of the run holds
+// one, below), so CobolErrorStrategy refuses the word BY NAME in the same format (its 0g arm, predictionFailedAt) and
+// consumes the run as one refusal.
 // ⚠ THE RUN HOLDS EVERY LITERAL BUT THE RESERVED WORDS (kb/Work PB3373). A figurative constant (and NULL) is a
 // RESERVED word, and with the whole `literal` rule in the run `OBJECT-COMPUTER. XYZ ZERO.` read as one run `XYZ ZERO`
 // (XYZ misreported as a clause) where the parse layer names ZERO in the format. Every other literal shape stays in the
