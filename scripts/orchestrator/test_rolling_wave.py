@@ -20,10 +20,12 @@ skill section 2), never from what the script does:
      predecessor CAPPED at the round after its last finisher is not ready, and its successor (and the successor's
      reviewer) are told those findings belong to the predecessor's next-wave finisher; a predecessor whose review
      finisher came back without answering them (SPLIT on a head of its own; dead, STALLED or BLOCKED with no commit
-     after rewriting the report), or whose last verdict cannot be read or comes from a TORN findings file (review
-     R4-1: the verdict before the tear, never read as capped), is UNANSWERED: the successor's reviewer
-     reviews the predecessor's content and records again each finding that still holds (review R1-1), never "do not
-     record them again", and both are told the survey holds the successor;
+     after rewriting the report), or whose findings file is TORN, is UNANSWERED: the successor's reviewer reviews the
+     predecessor's content and records again each finding that still holds (review R1-1), never "do not record them
+     again", and both are told the survey holds the successor. A TORN file (review R4-1, R5-1, R6-1) is one the reader
+     cannot open (gone, a directory in its place) or whose content is not records (a torn last line, a byte-order mark,
+     a record SCHEMA tears): no verdict is read from it, the CLI exits 0 with verdict TORN, and it is never read as
+     capped;
   4. the reviews' leads reach the wave's result.
 No clock decides anything: each stub agent yields to the event loop once and returns its scripted result.
 """
@@ -117,9 +119,12 @@ def findings_file(path: pathlib.Path, rounds: list[tuple[str, str, list[str]]], 
         review_findings.verdict(path, k, review_findings.BLOCKING_AT_CAP if k > fix_rounds else review_findings.BLOCKING_DEFAULT)
 
 
-def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = None, torn: bool = False) -> dict:
+def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = None, torn: bool = False,
+        damage: str = "") -> dict:
     """Run one scenario; `findings` are group A's review rounds, written to the scenario's own scratch. `torn`: a next
-    round is started after them and its first finding is cut off mid-append (a reviewer killed while writing)."""
+    round is started after them and its first finding is cut off mid-append (a reviewer killed while writing).
+    `damage`: the written file is given a UTF-8 byte-order mark (`bom`, a hand edit) or replaced by a directory
+    (`dir`, a file the reader cannot open)."""
     scratch = tmp / name
     scratch.mkdir()
     scenario["args"]["scratch"] = str(scratch)
@@ -130,6 +135,11 @@ def run(tmp: pathlib.Path, name: str, scenario: dict, findings: list | None = No
         review_findings.start(scratch / "review-w9-a.jsonl", len(findings) + 1, branch, head, "w9a-review-torn")
         with (scratch / "review-w9-a.jsonl").open("a", encoding="utf-8", newline="\n") as h:
             h.write('{"kind": "finding", "round": ' + str(len(findings) + 1) + ', "file": "x.py", "li')
+    if damage == "bom":
+        (scratch / "review-w9-a.jsonl").write_bytes(review_findings.BOM + (scratch / "review-w9-a.jsonl").read_bytes())
+    elif damage == "dir":
+        (scratch / "review-w9-a.jsonl").unlink()
+        (scratch / "review-w9-a.jsonl").mkdir()
     (tmp / f"{name}.json").write_text(json.dumps(scenario), encoding="utf-8", newline="\n")
     p = subprocess.run(["node", str(tmp / "harness.mjs"), str(tmp / "wave.js"), str(tmp / f"{name}.json"),
                         sys.executable, str(HERE / "review_findings.py")],
@@ -230,8 +240,22 @@ def main() -> int:
             "fix-A-r1": [impl("bA2", A2)], "w9a-review-r2": [review("FINDINGS", A2, 1)],
             "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}})
         bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
-        check("3: with no readable last verdict the successor is told UNANSWERED, never capped",
-              "UNANSWERED" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
+        lv = {x["letter"]: x for x in r["out"]["results"]}.get("A", {}).get("last_verdict") or {}
+        check("3: with no findings file the reader answers TORN (cannot be read) and the successor is told UNANSWERED, "
+              "never capped", (lv.get("verdict"), "cannot be read" in (lv.get("reason") or ""), "UNANSWERED" in bp,
+                               "NEXT-WAVE FINISHER" in bp) == ("TORN", True, True, False), (lv, bp))
+        # ... and a findings file the survey's discovery once dropped (review R6-1): a byte-order mark, a directory in
+        # its place. The CLI exits 0 with verdict TORN for each (never exit 1), and the wave reads it UNANSWERED
+        for damage, why in (("bom", "byte-order mark"), ("dir", "cannot be read")):
+            r = run(tmp, f"cap-{damage}", {"args": args(groups, review_fix_rounds=1), "agents": {
+                "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("FINDINGS", A1, 1)],
+                "fix-A-r1": [impl("bA2", A2)], "w9a-review-r2": [review("FINDINGS", A2, 1)],
+                "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}}, cap_rounds, damage=damage)
+            bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
+            lv = {x["letter"]: x for x in r["out"]["results"]}.get("A", {}).get("last_verdict") or {}
+            check(f"3: a findings file with {why} reads TORN through the CLI (exit 0), and the successor is told "
+                  "UNANSWERED", (lv.get("verdict"), why in (lv.get("reason") or ""), "UNANSWERED" in bp,
+                                 "NEXT-WAVE FINISHER" in bp) == ("TORN", True, True, False), (lv, bp))
         # ... and a TORN findings file (review R4-1, R5-1): the reader reads no verdict from it (verdict TORN, `torn`
         # set), and the wave never reads it capped: the successor is told UNANSWERED
         r = run(tmp, "cap-torn", {"args": args(groups, review_fix_rounds=1), "agents": {

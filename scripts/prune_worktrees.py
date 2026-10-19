@@ -684,8 +684,8 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
     found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped))
     for v in found:   # said on every survey (session-probe, the landing lane's log) until the operator repairs it
         if v['torn']:
-            print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1): {v["torn"]}; '
-                  f'repair: {review_findings.repair_command(pathlib.Path(v["file"]))}', file=sys.stderr)
+            print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1, R6-1): {v["torn"]}; '
+                  f'the operator: {review_findings.remedy(pathlib.Path(v["file"]), v["line"])}', file=sys.stderr)
     carrying_findings(rows, repo, found, list(reports))
     return rows
 
@@ -763,10 +763,12 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
     report's stamp (review R3-1): a review finisher rewrites the group's one report for its own branch with no Review
     line whatever it returns, so a hold read from the stamp released the successor exactly when nobody had answered
     them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands.
-    A TORN findings file (its reading's `torn`; review R5-1) holds every WAITING TO LAND branch it names and every one
-    whose tip contains, not yet on main, a head it names, the same note's included: no verdict is read from it. A file
-    that names no branch (it could not be read at all) holds the branches of the note whose review it records
-    (findings_lead) and every branch containing their tips. The held row's `why` names the tear and the repair."""
+    A TORN findings file (its reading's `torn`; review R5-1, R6-1: the survey lists the files by name, and any content
+    problem, or a file it cannot open, is a tear) holds every WAITING TO LAND branch it names and every one whose tip
+    contains, not yet on main, a head it names, the same note's included: no verdict is read from it. A file that names
+    no branch (it could not be read, or no line of it is a record) holds the branches of the note whose review it
+    records (findings_lead: the stamp naming it, or its wave name) and every branch containing their tips. The held
+    row's `why` names the tear and the repair."""
     if not findings:
         return
     import review_findings  # noqa: PLC0415  (scripts/orchestrator: the repair command a torn file's row names)
@@ -794,8 +796,8 @@ def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), rep
             r.waits_on = next(iter([*v['branches'], *sorted(names)]), pathlib.Path(v['file']).name)
             r.why = (f'carries {r.waits_on} ({lead or "note unknown"}), whose findings file {v["file"]} is TORN '
                      f'({v["torn"]}): a torn file holds every branch it names, whatever its records say, and no writer '
-                     f'appends to it until the operator runs `{review_findings.repair_command(pathlib.Path(v["file"]))}` '
-                     '(kb/Work PB3381 review R5-1); ' + evidence(r))
+                     f'appends to it until the operator mends it ({review_findings.remedy(pathlib.Path(v["file"]), v["line"])}) '
+                     '(kb/Work PB3381 review R5-1, R6-1); ' + evidence(r))
         else:
             r.waits_on = v['branch']
             r.why = (f'carries {v["branch"]} ({lead or "note unknown"}), whose review FINDINGS ({v["blocking"]}) at '
@@ -1191,6 +1193,9 @@ def self_test() -> int:
         rdir = tmp / 'reports'
         rdir.mkdir()
         hours = lambda h: time.time() - h * 3600  # noqa: E731
+        # a FINDINGS stamp names its findings file where the review wrote it (the coordination scratch below): the
+        # survey reads every stamped path, and one that cannot be opened is a tear (review R6-1)
+        at_scratch = lambda rel: (landed_coord / 'scratch' / rel).as_posix()  # noqa: E731
         for name, text, h in (
                 # the attended shape (kb/Work PB2602): Status, Worktree (a Windows path), Branch, HEAD, Base
                 ('w9998a-PB1-report.md', 'Status: DONE\nWorktree: E:\\x\\.claude\\worktrees\\done-wt\n'
@@ -1208,14 +1213,14 @@ def self_test() -> int:
                 ('w9998q-PB17-report.md', f'Status: DONE\nBranch: reviewed-stamped\nHEAD: {stamped_at[:12]}\n'
                                           f'**Review:** CLEAN w9998q-review-r1 {stamped_at[:12]}\n', 10),
                 ('w9998o-PB16-report.md', f'Status: DONE\nBranch: fnd-pred\nHEAD: {tips["fnd-pred"]}\n'
-                                          f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} E:/s/review-w9998-o.jsonl\n', 10),
+                                          f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} {at_scratch("review-w9998-o.jsonl")}\n', 10),
                 ('w9998p-PB16-report.md', f'Status: DONE\nBranch: fnd-fix\nHEAD: {tips["fnd-fix"]}\n'
                                           f'**Review:** CLEAN w9998p-r1 {tips["fnd-fix"]}\n', 10),
                 ('w9997a-PB30-report.md', f'Status: DONE\nBranch: cpred\nHEAD: {tips["cpred"]}\n'
                                           f'**Review:** CLEAN w9997a-r1 {tips["cpred"]}\n', 10),
                 ('w9997b-PB31-report.md', f'Status: DONE\nBranch: csucc\nHEAD: {tips["csucc"]}\n', 10),
                 ('w9997c-PB32-report.md', f'Status: DONE\nBranch: xpred\nHEAD: {tips["xpred"]}\n'
-                                          f'**Review:** FINDINGS 1 w9997c-r3 {tips["xpred"]} E:/s/review-w9997-c.jsonl\n', 10),
+                                          f'**Review:** FINDINGS 1 w9997c-r3 {tips["xpred"]} {at_scratch("w9997/review-w9997-c.jsonl")}\n', 10),
                 ('w9997d-PB33-report.md', f'Status: DONE\nBranch: xsucc\nHEAD: {tips["xsucc"]}\n'
                                           f'**Review:** CLEAN w9997d-r1 {tips["xsucc"]}\n', 10),
                 ('w9997e-PB34-report.md', f'Status: DONE\nBranch: upred\nHEAD: {tips["upred"]}\n', 10),
@@ -1228,7 +1233,7 @@ def self_test() -> int:
                                           f'**Review:** CLEAN w9996b-r1 {tips["rsucc"]}\n', 10),
                 # review R4-1: tpred's report keeps its capped FINDINGS stamp; tsucc is reviewed CLEAN
                 ('w9993a-PB42-report.md', f'Status: DONE\nBranch: tpred\nHEAD: {tips["tpred"]}\n'
-                                          f'**Review:** FINDINGS 1 w9993a-r3 {tips["tpred"]} E:/s/review-w9993-a.jsonl\n', 10),
+                                          f'**Review:** FINDINGS 1 w9993a-r3 {tips["tpred"]} {at_scratch("w9993/review-w9993-a.jsonl")}\n', 10),
                 ('w9993b-PB43-report.md', f'Status: DONE\nBranch: tsucc\nHEAD: {tips["tsucc"]}\n'
                                           f'**Review:** CLEAN w9993b-r1 {tips["tsucc"]}\n', 10),
                 # kb/Work PB3181, PB3125: the report, the review and the landing lane's attempt at the tip
@@ -1263,7 +1268,8 @@ def self_test() -> int:
         # THE FINDINGS FILES, the one source of unanswered findings (kb/Work PB3381 review R3-1), written by the
         # review's own tool where each wave keeps them: xpred's (capped), fnd-pred's (answered by its own note's later
         # finisher), rpred's (its finisher came back BLOCKED with no commit), and pred's, whose FINDINGS a later round
-        # answered CLEAN, so succ, which contains it, carries nothing. An R2 shard sharing the name is not one.
+        # answered CLEAN, so succ, which contains it, carries nothing. An R2 shard sharing the name lives two levels
+        # down (`<coord>/scratch/r2-<sha>/batch-<n>`), outside the survey's search by name.
         import review_findings  # noqa: PLC0415  (scripts/orchestrator)
         fscratch = landed_coord / 'scratch'
 
@@ -1291,8 +1297,8 @@ def self_test() -> int:
         review_findings.start(torn, 1, 'gone', '0abcdef', 'w9994t-r1')
         with torn.open('a', encoding='utf-8', newline='\n') as f:
             f.write('{"kind": "verdict", "round": 1, "bra')
-        (fscratch / 'r2').mkdir()
-        (fscratch / 'r2' / 'review-cli--code.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
+        (fscratch / 'r2-0abc' / 'batch-1').mkdir(parents=True)
+        (fscratch / 'r2-0abc' / 'batch-1' / 'review-cli--code--f1.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):
@@ -1419,22 +1425,33 @@ def self_test() -> int:
                  + b'\n' + sect[:sect.index('§'.encode()) + 1], 'IN FLIGHT', True),
                 ('at a record boundary after round 1 CLEAN', one, 'WAITING TO LAND', False),
                 ('at a record boundary after round 2 FINDINGS', two, 'IN FLIGHT', False),
-                # the reader cannot read the file at all (review R5-1, land_lane's guard): it names no branch, so it
-                # holds the branches of the note whose review it records (tpred) and every branch containing their tips
-                ('unreadable: the reader raised PermissionError', two, 'IN FLIGHT', True))
-        real_read = review_findings.read_bytes
+                # review R6-1: discovery is BY NAME, so a file the survey cannot read, or whose first line is no record,
+                # is still listed and read TORN. Each is made at the file's FIRST read (where the round-5 discovery
+                # opened it and dropped it): a BOM (an operator's hand edit through Windows PowerShell 5.1), a read
+                # denied (pathlib's open raising PermissionError) and a real directory in the file's place. A file that
+                # names no branch holds the branches of the note whose review it records (tpred, by its wave name) and
+                # every branch containing their tips
+                ('with a UTF-8 byte-order mark', review_findings.BOM + two, 'IN FLIGHT', True),
+                ('unreadable: opening it raises PermissionError', two, 'IN FLIGHT', True),
+                ('unreadable: a directory in its place', None, 'IN FLIGHT', True))
+        real_open = pathlib.Path.open
 
-        def locked(p: pathlib.Path) -> bytes:
-            if p == tfile:
-                raise PermissionError(13, 'the file is locked', str(p))
-            return real_read(p)
+        def deny(self, *a, **k):
+            if self == tfile:
+                raise PermissionError(13, 'Permission denied', str(self))
+            return real_open(self, *a, **k)
 
         for what, cut, want_state, torn_cut in cuts:
-            tfile.write_bytes(cut)
+            if cut is None:
+                tfile.unlink()
+                tfile.mkdir()
+            else:
+                tfile.write_bytes(cut)
             cut_rows = [dataclasses.replace(r) for r in rows.values()]
             ts = next(r for r in cut_rows if r.name == 'tsucc')
             ts.state, ts.waits_on, ts.why = 'WAITING TO LAND', '', ''
-            review_findings.read_bytes = locked if what.startswith('unreadable') else real_read
+            if 'PermissionError' in what:
+                pathlib.Path.open = deny
             try:
                 carrying_findings(cut_rows, repo, review_findings.unanswered(review_findings.findings_files(fscratch)),
                                   report_index(rdir, terminal))
@@ -1442,7 +1459,9 @@ def self_test() -> int:
             except Exception as e:  # noqa: BLE001  (the round-4 reader raised here; a raise is a failed check, never a crash)
                 got = (f'RAISED {e!r}', '', False)
             finally:
-                review_findings.read_bytes = real_read
+                pathlib.Path.open = real_open
+                if cut is None:
+                    tfile.rmdir()
             check(got == (want_state, 'tpred' if want_state == 'IN FLIGHT' else '', torn_cut),
                   f'tpred\'s findings file cut {what}: tsucc reads {want_state}{" (TORN)" if torn_cut else ""}: {got} {ts.why}')
         tfile.write_bytes(kept)

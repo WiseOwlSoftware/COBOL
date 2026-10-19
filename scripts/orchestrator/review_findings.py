@@ -245,6 +245,15 @@ def repair_command(path: pathlib.Path) -> str:
     return f"python scripts/orchestrator/review_findings.py repair {path}"
 
 
+def remedy(path: pathlib.Path, line: int | None) -> str:
+    """What the operator does about a torn file (no survey and no wave does it): `repair` it; when it could not be read
+    (its tear's `line` is None) `repair` cannot either, so it is made readable first."""
+    if line is None:
+        return (f"make {path} readable again (restore it, or move what stands in its place aside), then run "
+                f"`{repair_command(path)}` if it still reads torn")
+    return f"run `{repair_command(path)}`"
+
+
 def load(path: pathlib.Path) -> list[dict]:
     """Every record, in order; [] when there is no file yet (round 1's `start` creates it). A torn file is an error,
     never read past or around: a lost finding would read CLEAN, and a record glued onto a torn line swallows the one
@@ -254,9 +263,8 @@ def load(path: pathlib.Path) -> list[dict]:
     s, _ = examine(path)
     if s.torn:
         raise RecordError(f"{s.torn}: the findings file is TORN, so no writer appends to it and every branch it names is "
-                          "held. " + (f"Repair it: `{repair_command(path)}` (it prints the torn tail, keeps a last record "
-                                      "that only lost its newline, and removes the rest)" if s.line is not None else
-                                      "The operator makes it readable again (or moves what stands in its place aside)"))
+                          f"held. The operator mends it: {remedy(path, s.line)} (repair prints what it mends: it keeps "
+                          "a last record that only lost its newline and removes the rest)")
     return s.records
 
 
@@ -553,7 +561,8 @@ def findings_files(scratch: pathlib.Path, also: list[str | pathlib.Path] = ()) -
     coordination scratch `scratch` and in each directory directly under it (a wave's scratch, `<coord>/scratch/w<wave>`),
     plus each path in `also` (the files report stamps name, wherever a hand review put them), once each. Nothing is
     opened, read or parsed to decide what is one: a candidate's content is the reader's business (last_verdict), which
-    reads one that cannot be opened, or whose content is not records, as TORN, so it holds. The R2 review's
+    reads one that cannot be opened (a stamped path that is gone among them), or whose content is not records, as
+    TORN, so it holds. The R2 review's
     `review-<pair>--f<k>.jsonl` shards live two levels down (`<coord>/scratch/r2-<sha>/batch-<n>`), outside this search."""
     seen: dict[str, pathlib.Path] = {}
     cands = [*scratch.glob(FINDINGS_NAME), *scratch.glob(f"*/{FINDINGS_NAME}")] if scratch.is_dir() else []

@@ -127,13 +127,19 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   next-wave finisher, and its successor neither answers them nor records them again; a predecessor whose review
   finisher was sent to answer them and came back without doing so (SPLIT, BLOCKED, STALLED, killed, with or without a
   commit) is UNANSWERED: its report no longer shows them, so the successor's review covers the predecessor's content
-  and records again each finding that still holds. A TORN findings file (it does not end with a newline, a line is
-  not a record, or its bytes are not UTF-8: a writer killed mid-append, a record that lost its newline) holds every
-  branch it names, whatever its records say: the reader reads no verdict from it (verdict TORN), the survey holds each
-  branch it names and each branch containing a head it names and names the tear in the held row, the wave reads it
-  UNANSWERED, never capped, the reader never raises (a file it cannot read is that file's tear alone), and every writer
-  refuses it BEFORE writing until the operator runs `review_findings.py repair <file>` by hand, which keeps a last
-  record that only lost its newline and removes any other torn tail (branch review R4-1, R5-1). A successor may also follow a group in the same technological
+  and records again each finding that still holds. The survey finds findings files by NAME only (`review-*.jsonl` in
+  the coordination scratch and one level under it, and every file a stamp names) and never opens one to decide
+  whether it is one. Every content problem is a TEAR, the reader's to classify: a file it cannot open or read (a
+  directory in its place, a read denied), a byte-order mark, bytes that are not UTF-8, no final newline, no record, or
+  a line that is not a record under the one record schema the writers share (`review_findings.SCHEMA`). A TORN file
+  holds every branch it names, whatever its records say (one with no readable name, through its wave name or the stamp
+  that names it): the reader reads no verdict from it (verdict TORN, with its reason, file and line), the CLI
+  `last-verdict` and the survey read that same answer, the CLI exits 0, the survey holds each branch it names and each
+  branch containing a head it names and names the tear in the held row, the wave reads it UNANSWERED, never capped, the
+  reader never raises, and every writer refuses it BEFORE writing until the operator mends it by hand (`review_findings.py
+  repair <file>`, which removes a byte-order mark, keeps a last record that only lost its newline, removes any other
+  torn tail and deletes a file left with no record; a file it cannot read is made readable first) (branch review R4-1,
+  R5-1, R6-1, R6-2). A successor may also follow a group in the same technological
   area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the

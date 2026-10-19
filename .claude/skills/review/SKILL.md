@@ -105,11 +105,16 @@ the implementer was told, and a branch that lacks a requirement is a finding (ca
    DONE, or DISCHARGED with a HEAD past its base; kb/Work PB3181): return verdict STOPPED with its refusal in the
    summary rather than edit the implementer's report. Return the verdict, the count, the head and the stamp line.
 
-THE FILE IS APPEND-ONLY THROUGH `RF`, and a TORN file is refused (kb/Work PB3381 review R4-1, R5-1): a file that does
-not end with a newline, has a line that is not a review record, or holds bytes that are not UTF-8 is never read for a
-verdict (`RF last-verdict` prints verdict TORN, and the survey holds every branch it names), and every `RF` writer
-refuses it before writing, naming `RF repair <file>`. Never edit the file by hand and never repair it yourself: return
-verdict STOPPED with the refusal in the summary; only the operator runs `repair`.
+THE FILE IS APPEND-ONLY THROUGH `RF`, and a TORN file is refused (kb/Work PB3381 review R4-1, R5-1, R6-1, R6-2). The
+survey finds findings files by NAME only (`review-*.jsonl`, and every file a stamp names) and never opens one to decide
+whether it is one; every content problem is the reader's, and is a tear: a file that cannot be opened or read (a
+directory in its place, a read denied), starts with a byte-order mark, holds bytes that are not UTF-8, does not end with
+a newline, holds no record, or has a line that is not a record under `RF`'s record schema (SCHEMA: every required field
+of its kind present with the right type; an extra field is allowed). A torn file is never read for a verdict: `RF
+last-verdict` prints verdict TORN with its reason, file and line and exits 0, the survey reads the same answer and holds
+every branch the file names, and every `RF` writer refuses it before writing, naming `RF repair <file>`. `RF` also
+refuses to write a record that fails SCHEMA. Never edit the file by hand and never repair it yourself: return verdict
+STOPPED with the refusal in the summary; only the operator runs `repair`.
 
 A RE-REVIEW (round k > 1) reviews the review finisher's DIFF only (kb/Work PB3381, owner 2026-10-18: "We should not
 be holding finished work this long, continually postponing it"): `git -C <worktree> diff <the head round k-1

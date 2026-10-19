@@ -275,8 +275,9 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     """(every surveyed row as {name, state, tip, worktree, why, lead}, the WAITING TO LAND names in landing order) —
     prune_worktrees.live_survey, imported: one lifecycle rule (MANDATORY-PRACTICES O10). The reports and the dispatch
     ledger are the TICK's coordination directory's, never the environment's default. The survey's reader of the review
-    findings files never raises (review_findings.unanswered, kb/Work PB3381 review R5-1): a file it cannot read, or a
-    torn one, holds only the branches that file concerns, so one findings file never stops the tick for every branch."""
+    findings files never raises (review_findings.last_verdict, kb/Work PB3381 review R5-1, R6-1): a file it cannot
+    read, or a torn one, holds only the branches that file concerns, so one findings file never stops the tick for
+    every branch."""
     import prune_worktrees  # noqa: PLC0415  (scripts/: it imports coord and plan_wave back)
     probe = prune_worktrees.git("rev-parse", "--git-common-dir", cwd=repo)
     if probe.returncode != 0:
