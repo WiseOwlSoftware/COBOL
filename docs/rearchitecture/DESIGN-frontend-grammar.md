@@ -1385,8 +1385,8 @@ joined the table the same way, which is the table doing its job: a tenth format 
   implementor-name clause, and `-1` is the run). The general form opens and continues at an unsigned integer and at
   both comma decimals (kb/Work PB3390): `SOURCE-COMPUTER. XYZ 12.`, `OBJECT-COMPUTER. XYZ 12.` and `XYZ ,5.` read XYZ
   as the computer-name and refuse the literal, where the run that could not hold it left the name-less reading alone;
-  and `FOO 12` is one run, which the text-predicated `SEGMENT-LIMIT IS? integer` needs (with no viable residue reading
-  of its shape, a word that is not SEGMENT-LIMIT fails the predicate at the decision's first token). The data form
+  and `FOO 12` is one run, quoted by its opening (a word a text-predicated clause refuses where the run cannot
+  continue is the next bullet's, kb/Work PB3391). The data form
   holds none of the INTEGERLIT-led shapes: an unsigned integer there may be the next entry's level-number after a
   forgotten period (`01 X PIC X FOO` then `05 Y PIC X.` is the missing period at 05, where it used to be the one run
   `FOO 05 Y` and a false COBOLNET2423 for Y's PICTURE), and even the comma decimal `1,5`, which is no level-number,
@@ -1403,6 +1403,27 @@ joined the table the same way, which is the table doing its job: a tenth format 
   screens `signedNumericLiteral`'s (COBOLNET2155 for `- 1`). The leading-comma decimal (`,5`) is written in the
   opening itself (`numericLiteralCore`'s predicated alternative, copied because that rule also holds the unsigned
   integer; the drift guard holds the split), so it opens either form's run.
+- **A word refused by a text-predicated clause — the prediction fails AT the production's own opening (kb/Work
+  PB3391).** Several clauses of a closed list are recognized by the TEXT of their word, through a left-edge
+  predicate: OBJECT-COMPUTER's '85 `SEGMENT-LIMIT IS? integer` and `MEMORY SIZE …` and its CHARACTER CLASSIFICATION
+  clause, the SPECIAL-NAMES LOCALE clause, the PICTURE clause's LOCALE phrase before the data description entry's
+  list resumes. Where the run cannot continue at the reserved word such a clause takes next (`OBJECT-COMPUTER. XYZ
+  FOO IS 12.`: the run FOO ends at IS; `01 X PIC X FOO SIZE 3.`; `SPECIAL-NAMES. FOO BAR IS "x".`), the predicated
+  clause is the decision's sole SLL survivor, and ANTLR evaluates an accept state's predicates and throws NoViableAlt
+  at the decision's start token when none holds. The run cannot take the reserved word (no FIRST set of the run holds
+  one), so the error strategy owns the case: a NoViableAlt whose start token IS its offending token
+  (`IsPredictionFailedAt`) makes `ClosedFormatResidue` admit an IDENTIFIER too (`predictionFailedAt`), the 0g hint
+  names it in the innermost open list's format (inside the run, the run's own list: `XYZ FOO BAR IS 12.` names
+  BAR), and the after-period exclusion is skipped for it, because the decision's own lookahead already tried every
+  path out of the list. `Recover` then consumes the refused token and the rest of the run up to a token of the
+  recovery set that no run of the production's form there holds (`ResidueRunTokens(production)`, the FIRST sets of
+  the run pieces that form calls, so the data form's set leaves out the unsigned integer that may be the next
+  entry's level-number, kb/Work PB3390; `ClosedFormatResidue` returns the form with the format): the base
+  recovery stopped AT the word, an IDENTIFIER being in nearly every recovery set, and an enclosing list refused the
+  next token a second time against its own format ("'IS' is not a paragraph of the CONFIGURATION SECTION"). The
+  same recovery serves a RESERVED word the arm names at a failed prediction (`OBJECT-COMPUTER. XYZ CHARACTER FOO IS
+  X.`). A word the predicate ACCEPTS keeps its clause: `SEGMENT-LIMIT IS.` fails inside the clause and is never
+  called foreign. `ClosedFormatReservedWordTests.PredicateRefusedWord` pins each shape as the one diagnostic.
 - **The other half of a closed format — an element printed ONCE, written twice (kb/Work PB917).** A bracket with no
   ellipsis permits its element at most once (§5.2.6.2, §5.2.7), and the grammar writes only the order licence
   (`clause*`). `Frontend/Cst/ClauseCardinality.cs` (`ClauseCardinalities.ByClauseContext`) keys the clause lists whose

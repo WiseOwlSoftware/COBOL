@@ -42,9 +42,8 @@ options {
 // paragraph (§12.3.5.3 SR1 lets its second period go) followed by `XYZ 12` as an unrecognized configuration
 // paragraph, so XYZ was the refused word; `OBJECT-COMPUTER. XYZ 12.` read XYZ as an OBJECT-COMPUTER clause. With the
 // integer admitted the computer-name's reading is viable too, and ANTLR resolves the tie toward the lower alternative,
-// the name. The integer also continues the run: an IDENTIFIER-led `FOO 12` is one run, and the text-predicated
-// OBJECT-COMPUTER clause `SEGMENT-LIMIT IS? integer` relies on that — without a viable residue reading of its shape, a
-// word that is not SEGMENT-LIMIT fails the clause's predicate at the decision's first token (NoViableAlt at `FOO`).
+// the name. The integer also continues the run: an IDENTIFIER-led `FOO 12` is one run, quoted by its opening (where a
+// text-predicated clause is the sole survivor instead, the parse layer refuses the word; kb/Work PB3391, below).
 // One production cannot hold a token in one list and refuse it in another, so the error production has two forms,
 // and `ClosedFormatDriftTests` derives which list writes which from the generated parser: the data form exactly where
 // a level-number may follow the list's period.
@@ -86,6 +85,13 @@ unrecognizedDataClause
 // The leading-comma decimal is numericLiteralCore's alternative, with its contiguity predicate (kb/Work PB1446: `, 5`
 // is a separator and an integer), and ClosedFormatDriftTests holds the split: residueOpening's numeric shapes and
 // residueInteger's are numericLiteralCore's alternatives, each exactly once.
+// ⚠ A RUN SHAPED LIKE A TEXT-PREDICATED CLAUSE (kb/Work PB3391). Where a clause of the same list is recognized by the
+// TEXT of its word (`SEGMENT-LIMIT IS? integer`, `MEMORY SIZE …`, PICTURE's `LOCALE … SIZE …`, the SPECIAL-NAMES
+// LOCALE clause) and the run cannot continue at the reserved word that clause takes next (`OBJECT-COMPUTER. XYZ FOO
+// IS 12.`: the run FOO ends at IS), the clause is the prediction's sole survivor, and ANTLR throws NoViableAlt at the
+// word when its predicate refuses it. The run cannot take that reserved word itself (no FIRST set of the run holds
+// one, below), so CobolErrorStrategy refuses the word BY NAME in the same format (its 0g arm, predictionFailedAt) and
+// consumes the run as one refusal.
 residueOpening
     : IDENTIFIER
     | residueLiteral
