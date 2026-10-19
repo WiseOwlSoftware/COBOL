@@ -40,9 +40,11 @@ namespace CobolNet.Tests.Unit.Store;
 ///   <item>The exception paths cost no more than the success and write NOTHING when they change nothing: a WRITE refused
 ///   '22' — the prime key or a unique alternate key a record holds (§14.9.51.4 GR42 b) and c); GR33 a) for RELATIVE) — and
 ///   §14.9.51.4 GR15's <i>"the write operation does not take place"</i>; a READ and a DELETE refused '23' (§9.1.13.5 3)
-///   a)); a WRITE the medium refuses answers '30' (§9.1.13.6 1)), the permanent error then answers every later statement
-///   (§9.1.13.1) reading nothing but the coherent entry's page 2, and after the CLOSE the next run unit's WRITE is within
-///   its row and the refused record is not in the file; a READ that
+///   a)); a WRITE the medium refuses answers '30' (§9.1.13.6 1)), and after the CLOSE the next run unit's WRITE is within
+///   its row and the refused record is not in the file; the permanent error then answers every later statement on the
+///   connector (§9.1.13.1) — WRITE, READ, READ NEXT, START, REWRITE and DELETE, one case each in both sharing modes —
+///   reading, writing and syncing NOTHING, not even the coherent entry's page 2 (docs/CONFORMANCE.md DOC-A.1-105: such a
+///   statement <i>"does not touch the physical file"</i>), and outranks another run unit's lock; a READ that
 ///   meets another run unit's record lock answers '51' (§9.1.13.8 1)) writing nothing, a RETRY repeats only that bounded
 ///   statement (§14.7.9.3 GR1), and a RETRY whose wait sees the lock released succeeds (§14.7.9.3 GR4).</item>
 /// </list>
@@ -515,20 +517,11 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         Assert.Equal(0, cost.PagesWritten);
         Assert.Equal(0, cost.Syncs);
 
-        // A WRITE the medium refuses at its first page write: '30'. The permanent error remains in effect for every later
-        // statement on the connector (§9.1.13.1), which answers '30' again and "does not touch the physical file" (the
-        // technique this processor provides, docs/CONFORMANCE.md DOC-A.1-105): no page read — not even the coherent
-        // entry's page 2, so no wait for the store mutex either — and none written, for every verb; the CLOSE ends it.
+        // A WRITE the medium refuses at its first page write: '30' (§9.1.13.6 1)); the CLOSE ends the permanent error
+        // (DOC-A.1-105's technique). Its replay on every verb is A_replayed_permanent_error_touches_nothing.
         view.RefuseWrite = _ => new IOException("the medium is full");
         Assert.Equal("30", Write(writer, "W", cell, cell.Keys[N]));
         view.RefuseWrite = null;
-        before = store.Counters;
-        Assert.Equal("30", Write(writer, "W", cell, cell.Keys[N + 1]));
-        Assert.Equal("30", Read(writer, "W", cell, cell.Keys[3], out _));
-        Assert.Equal("30", ReadNext(writer, "W", out _));
-        Assert.Equal("30", Rewrite(writer, "W", cell, cell.Keys[3]));
-        Assert.Equal("30", Delete(writer, "W", cell, cell.Keys[3]));
-        Assert.Equal(new IoCounters(0, 0, 0), Since(store, before));
         writer.Close("W");
         Assert.Equal("00", writer.Status("W"));
 
@@ -596,6 +589,70 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         Assert.Equal(2, fenced.Syncs);
         writer.Close("W");
         Assert.Equal("00", writer.Status("W"));
+    }
+
+    /// <summary>The statements a replayed permanent error is witnessed on, one case each.</summary>
+    public enum Verb { Write, Read, ReadNext, Start, Rewrite, Delete }
+
+    /// <summary>Each verb in each sharing mode: under <c>NO OTHER</c> no statement enters the store, under <c>ALL OTHER</c>
+    /// every other statement is a coherent entry under the store mutex (2.2.1.7), and the replay is answered before it.</summary>
+    public static TheoryData<FileSharing, Verb> ReplayCells()
+    {
+        var data = new TheoryData<FileSharing, Verb>();
+        foreach (var sharing in new[] { FileSharing.NoOther, FileSharing.AllOther })
+            foreach (var verb in Enum.GetValues<Verb>())
+                data.Add(sharing, verb);
+        return data;
+    }
+
+    /// <summary>⛔ A REPLAYED PERMANENT ERROR TOUCHES NOTHING. After a WRITE the medium refuses ('30', §9.1.13.6 1)),
+    /// §9.1.13.1 keeps the condition <i>"in effect for all subsequent input-output operations on the file"</i>, and the
+    /// technique this processor provides (docs/CONFORMANCE.md DOC-A.1-105) says such a statement <i>"does not touch the
+    /// physical file, it sets the same I-O status again"</i>: the verb answers '30', with the page cache cold, reading,
+    /// writing and syncing nothing — not the coherent entry's page 2, so it takes no store mutex either
+    /// (<c>KeyedConnector.BeginStatement</c>; 2.2.1.11's unsuccessful row) — and the file is as it was: the CLOSE ends the
+    /// condition, the record the verb named is unchanged, and the refused record is absent.</summary>
+    [Theory]
+    [MemberData(nameof(ReplayCells))]
+    public void A_replayed_permanent_error_touches_nothing(FileSharing sharing, Verb verb)
+    {
+        const int Held = 200;
+        using var cell = new Cell(shape, Order.Ascending, sharing);
+        cell.Load(0, Held);
+        var (writer, view) = cell.Open("W", FileOpenMode.IO);
+        var store = Store(writer, "W");
+        view.RefuseWrite = _ => new IOException("the medium is full");
+        Assert.Equal("30", Write(writer, "W", cell, cell.Keys[Held]));
+        view.RefuseWrite = null;
+
+        int named = cell.Keys[3];
+        store.DropCache();
+        var before = store.Counters;
+        string status = verb switch
+        {
+            Verb.Write => Write(writer, "W", cell, cell.Keys[Held + 1]),
+            Verb.Read => Read(writer, "W", cell, named, out _),
+            Verb.ReadNext => ReadNext(writer, "W", out _),
+            Verb.Start => cell.Shape == Shape.Relative
+                ? writer.StartRelative("W", ">=", named)
+                : writer.StartIndexed("W", -1, ">=", Rec(named), StartKeyLength.OfWidth(8)),
+            Verb.Rewrite => Rewrite(writer, "W", cell, named),
+            Verb.Delete => Delete(writer, "W", cell, named),
+            _ => throw new ArgumentOutOfRangeException(nameof(verb)),
+        };
+        Assert.Equal("30", status);
+        Assert.Equal("30", writer.Status("W"));
+        Assert.Equal(new IoCounters(0, 0, 0), Since(store, before));
+        writer.Close("W");
+        Assert.Equal("00", writer.Status("W"));
+
+        var (reader, _) = cell.Open("R", FileOpenMode.Input);
+        Assert.Equal("00", Read(reader, "R", cell, named, out string image));
+        Assert.Equal(Rec(named), image);
+        Assert.Equal("23", Read(reader, "R", cell, cell.Keys[Held], out _));
+        Assert.Equal("23", Read(reader, "R", cell, cell.Keys[Held + 1], out _));
+        reader.Close("R");
+        Assert.Equal("00", reader.Status("R"));
     }
 
     [Fact]

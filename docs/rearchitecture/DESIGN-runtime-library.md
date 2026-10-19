@@ -1795,7 +1795,7 @@ formulas), s = the pages a statement's splits add (one per level that splits, a 
 statements together add exactly the pages its trees gain), ℓ = the ledger's path copy — its root and every ledger leaf
 the statement's entries land on, at most the ledger tree's pages: 1 for a load whose pages are adjacent (an ascending
 load), but the ledger is keyed by page number and a statement of scattered keys releases pages anywhere in the file, so
-there ℓ grows with the ledger's fill up to the whole tree, at most 9 pages at R2's 1 024-entry checkpoint (measured,
+there ℓ grows with the ledger's fill up to the whole tree, at most 9 pages at R2's checkpoint (1 024 entries plus the pages of the one statement that begins at it; measured,
 PB3336: a random relative load writes ℓ ≈ 5 at 20 000 records, the ascending one 1); the checkpoint, not the file's
 size, bounds it — the free-tree batch ≤ 2 pages (taken once per statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
 for a thousand open holdings), read only when page 2's holdings root is not empty:
@@ -1828,7 +1828,8 @@ death, the OPEN reads 3 + the ledger tree's pages and its fresh pages, and adopt
 the mutex, with the cache cold (`PagedFile.DropCache`, reached from a connector through `FileRegistry.PagedStoreOf`), and by
 the unique alternate key its path, the prime tree's and the crossing row above. The READ NEXT walk reads every page of the
 tree once and its AT END READ answers '10'; and every unsuccessful row above is a case beside its successful twin — a WRITE
-refused '22', a READ and a DELETE refused '23', a WRITE the medium refuses ('30', then the permanent error's replay), a READ
+refused '22', a READ and a DELETE refused '23', a WRITE the medium refuses ('30'), then the permanent error's replay by WRITE, READ, READ NEXT, START, REWRITE and
+DELETE, one case each in both sharing modes, each reading, writing and syncing nothing (the unsuccessful row), a READ
 meeting another run unit's lock ('51', a RETRY of three attempts, and a RETRY that sees the lock released and succeeds); (d) **no whole-store I/O exists** — a
 drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those files by `drift_rules.py`'s depth, not a `Sweep` trait's tree-wide sweep, measured PB3335) asserts that `src/Cobol.Net.Runtime/IO/Store/` is the ONLY code under
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
