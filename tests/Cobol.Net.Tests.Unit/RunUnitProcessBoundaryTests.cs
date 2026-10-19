@@ -27,6 +27,11 @@ namespace CobolNet.Tests.Unit;
 /// is run with a FILE STATUS item alone, with a USE declarative alone, with both and with neither (§9.1.12; §9.1.13.1:
 /// a '6x' status is not a fatal class, so a request with no handler continues), and with a RETRY phrase that the
 /// holder outlasts (§14.7.9.3 4)).</para>
+/// <para><b>Why <c>Host=ReFS</c> (tier 0h):</b> this class is the process-boundary member of the family whose other two,
+/// <see cref="RunUnitFileLockDriftTests"/> and <c>SidecarColumnLockHostDriftTests</c>, carry the same trait: the lock files a
+/// holder publishes beside the physical file are removed by a holder's CLOSE, end or kill, and removal differs between this
+/// host's ReFS and CI's NTFS (the PB2917 unlink race); only a REAL holder's end, in another process, reaches that removal
+/// the way a compiled program does.</para>
 /// </summary>
 [Trait("Host", "ReFS")]
 public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBoundaryTests.CompiledPrograms>, IDisposable
@@ -449,6 +454,40 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
         Assert.False(File.Exists(SharedFile));
     }
 
+    /// <summary>§9.1.12 and §9.1.13.1 for the '62' (§9.1.13.9 2)) as for the '61' above: a DELETE FILE with NO ON EXCEPTION
+    /// phrase reaches a FILE STATUS item alone, a USE declarative alone, both (the declarative runs and the item receives
+    /// the status) and NEITHER — a '6x' status is not a fatal class, so with no handler at all the run unit continues
+    /// with the file untouched; and once the holder is gone the same statement deletes the file.</summary>
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public void ARefusedDeleteFile_ReachesTheProgramsHandlers_WithAndWithoutAFileStatusAndADeclarative(bool fileStatus, bool declarative)
+    {
+        SeedFile("shared.dat");
+        string holderDll = NoOtherHolder();
+        string name = $"pb2485_delhandlers_{(fileStatus ? "fs" : "nofs")}_{(declarative ? "use" : "nouse")}";
+        string prober = _programs.Build(name, Prober(Id(name), fileStatus, declarative,
+        [
+            "           DELETE FILE F.",
+            fileStatus ? "           DISPLAY \"DEL \" ST." : "           DISPLAY \"DEL CONTINUES\".",
+            "           DISPLAY \"AFTER\".",
+        ]));
+        using var holder = StartHolder(holderDll);
+
+        var expectedRefused = new List<string>();
+        if (declarative) expectedRefused.AddRange(["DECL [EC-I-O-FILE-SHARING]", "FILE [62F]"]);
+        expectedRefused.Add(fileStatus ? "DEL 62" : "DEL CONTINUES");
+        expectedRefused.Add("AFTER");
+        Assert.Equal(expectedRefused.ToArray(), Run(prober));
+        Assert.Equal(Seed.Length, SharedFileLength());          // §9.1.13.9 2): the file is still there, untouched
+
+        holder.Kill();
+        Assert.Equal(new[] { fileStatus ? "DEL 00" : "DEL CONTINUES", "AFTER" }, Run(prober));
+        Assert.False(File.Exists(SharedFile));
+    }
+
     // ── 6. RETRY (§14.7.9.3) ─────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>§14.7.9.3 4) b): a RETRY phrase attempts the OPEN again, and when the holder outlasts every attempt
@@ -467,6 +506,29 @@ public sealed class RunUnitProcessBoundaryTests : IClassFixture<RunUnitProcessBo
 
         holder.Kill();
         Assert.Equal(Every("00"), Run(prober));
+    }
+
+    /// <summary>§14.7.9.3 4) b) for DELETE FILE: a RETRY phrase attempts the statement again, and a holder that outlasts
+    /// every attempt leaves it unsuccessful with '62' (§9.1.13.9 2)) and the file untouched; after the holder's end the
+    /// same RETRY statement deletes the file at once.</summary>
+    [Fact]
+    public void ADeleteFileRetryThatTheHolderOutlasts_IsStatus62_AndSucceedsOnceTheHolderIsGone()
+    {
+        SeedFile("shared.dat");
+        string holderDll = NoOtherHolder();
+        string prober = _programs.Build("pb2485_delete_retry", Prober("PB2485DELR", true, false,
+        [
+            "           DELETE FILE F RETRY 2 TIMES.",
+            "           DISPLAY \"DELR \" ST.",
+        ]));
+        using var holder = StartHolder(holderDll);
+
+        Assert.Equal(["DELR 62"], Run(prober));
+        Assert.Equal(Seed.Length, SharedFileLength());
+
+        holder.Kill();
+        Assert.Equal(["DELR 00"], Run(prober));
+        Assert.False(File.Exists(SharedFile));
     }
 
     /// <summary>§14.7.9.3 3) and 4): <i>"If the FOREVER phrase is specified, the mass storage control system shall attempt

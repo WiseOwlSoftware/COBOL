@@ -12,7 +12,7 @@ EXTEND mode and waits on `ACCEPT`; the second program's `OPEN EXTEND` answers `6
 the holder ended by STOP RUN, by a fatal `CALL` of a missing program, or by a kill. No defect: the implementation was right,
 and nothing had witnessed it.
 
-**The witness.** `tests/Cobol.Net.Tests.Unit/RunUnitProcessBoundaryTests.cs` (13 cases, `[Trait("Host","ReFS")]` so the gate's
+**The witness.** `tests/Cobol.Net.Tests.Unit/RunUnitProcessBoundaryTests.cs` (18 cases, `[Trait("Host","ReFS")]` so the gate's
 leg 1 holds it) compiles a HOLDER program (any sharing clause and open mode; it prints `HELD <status>` and obeys one stdin
 line: `CLOSE`, `ABORT`, or end normally with the file open) and PROBER programs, and runs them as real processes. The new
 instrument is `tests/_shared/LiveProcess.cs`, the long-lived twin of `ProcessObserver`: the test and the program speak by
@@ -27,7 +27,7 @@ not over-refuse (an ALL OTHER holder admits ALL OTHER INPUT, I-O and EXTEND besi
 requests; an ALL OTHER INPUT holder admits READ ONLY INPUT, I-O and EXTEND: the printed Table 19 of §14.9.27.4); the refusal
 reaches a FILE STATUS item, a USE declarative with `EC-I-O-FILE-SHARING` checked (`EXCEPTION-STATUS`, `EXCEPTION-FILE` =
 `61F`), both, and neither (a `6x` status is not a fatal class, so the program continues, §9.1.13.1); DELETE FILE is `62`
-through ON EXCEPTION, FILE STATUS alone and a declarative alone, leaves the file in place, and deletes it once the holder is
+through ON EXCEPTION, FILE STATUS alone, a declarative alone, both, neither (continues) and a RETRY the holder outlasts, leaves the file in place, and deletes it once the holder is
 gone; `OPEN ... RETRY 2 TIMES` that the holder outlasts is `61` (§14.7.9.3 4)) and `RETRY FOREVER` succeeds when the holder
 CLOSEs. A child started FROM a process that holds the lock (the stand-in for `CALL "SYSTEM"`, which the compiler does not
 provide) outlives the holder's CLOSE and does not keep the lock.
@@ -39,3 +39,10 @@ host it is on (Windows and Linux in the gates).
 
 **Docs.** `DESIGN-runtime-library.md` (guards list) and `docs/CONFORMANCE.md` DOC-A.1-75 (witness columns) name the class.
 Rows re-verdicted: none (`inventory_rows` was empty; `closes_rows: []` with its reason).
+
+**Branch review round 1 (R1-1, medium).** The reviewer found the DELETE FILE `62` witnessed only through ON EXCEPTION, FILE STATUS
+alone and a declarative alone, while the design doc claims both, neither and a RETRY the holder outlasts. The behavior was right and
+only the witness was missing: five cases added (`ARefusedDeleteFile_ReachesTheProgramsHandlers_...` over all four handler
+combinations, with the file untouched while refused and deleted after the holder's kill; and
+`ADeleteFileRetryThatTheHolderOutlasts_IsStatus62_...`). R1-2 (the `Host=ReFS` trait) is kept, with the reason written into the
+class's summary: it is the process-boundary member of the family whose siblings carry it.
