@@ -428,6 +428,47 @@ public sealed class FileAuthorityPresenceTests : IDisposable
         Assert.Equal("37", reg.Status("F"));
     }
 
+    /// <summary>⛔ kb/Work PB3372 — an EXTEND OPEN that SETS NO record lock needs only WRITE access, so on a file this
+    /// process may write but not read it is successful. §9.1.13.6 item 6) a) 1. makes EXTEND need only write support
+    /// from the file, and the read half of <c>HostAccess</c> and the record count it feeds exist only to number the
+    /// records a LOCK is published under (<see cref="OpenExtend_RecordLockingWriterOnAWriteOnlyFile_Is37"/>), which
+    /// <c>FileRegistry.RecordLocksSetUnder</c> says this connector never sets: (1) a SHARING clause with no LOCK MODE
+    /// clause (§12.4.5.9.4 GR1 a)), (2) a SHARING phrase on the OPEN and no clause (GR1 b) 1.), (3) a LOCK MODE clause
+    /// under the NO OTHER default of EXTEND (GR3: "the LOCK MODE clause has no effect"). Before PB3372 each registered
+    /// a posture, asked for the read and answered '37'. The appended record is in the file.</summary>
+    [Theory]
+    [InlineData("sharing-clause-no-lock-mode")]
+    [InlineData("open-sharing-phrase-no-clause")]
+    [InlineData("lock-mode-under-no-other-default")]
+    public void OpenExtend_AWriterThatSetsNoRecordLockOnAWriteOnlyFile_IsSuccessful(string framing)
+    {
+        if (NotReadable() is not { } witness) { NoPrecondition(); return; }
+        Assert.True(HostFile.PermitsWrite(witness), "The premise is a file the host lets this process write.");
+        var reg = Register("seq", witness, optional: false);
+        switch (framing)
+        {
+            case "sharing-clause-no-lock-mode":
+                reg.RegisterSharing("F", FileSharing.AllOther, FileLockMode.None, false);
+                reg.OpenStatic("F", FileOpenMode.Extend);
+                break;
+            case "open-sharing-phrase-no-clause":
+                reg.OpenShared("F", FileOpenMode.Extend, hasSharingOverride: true, FileSharing.ReadOnly, FileRetryKind.None,
+                    0, OpenTapePhrase.None, witness, assignDynamic: false, page: null);
+                break;
+            default:
+                reg.RegisterSharing("F", null, FileLockMode.Manual, false);
+                reg.OpenStatic("F", FileOpenMode.Extend);
+                break;
+        }
+        Assert.Equal("00", reg.Status("F"));
+        reg.Write("F", "APPENDED-REC-0002", -1, null);
+        Assert.Equal("00", reg.Status("F"));
+        reg.Close("F");
+        Assert.Equal("00", reg.Status("F"));
+        RestoreWindowsOrUnixRead(witness);
+        Assert.EndsWith("APPENDED-REC-0002", File.ReadAllText(witness));
+    }
+
     /// <summary>⛔ kb/Work PB2848 — the host path of an ASSIGN target the host cannot make absolute is data, not a
     /// crash. <see cref="CobolFile.ResolveHostPath"/> runs at registration and before the OPEN body, outside every
     /// I-O-status catch, and the content of a data-name-1 is an arbitrary string (§12.4.5.3 GR3 b)): a path longer
