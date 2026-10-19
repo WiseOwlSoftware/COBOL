@@ -407,3 +407,24 @@ conformance guard selftests-built; HEAD 93ef4cbd1) ===`. The gate one merge earl
 reds PB3335's branch then had from its PB1587 merge (a lost witness of GR-14.9.51.4-12 and one StoreCoherenceTests case,
 red on its own gates too); they were fixed there and merged here, not fixed twice.
 
+### The merge queue's bounce: a self-test fixture changed under it by git's own background maintenance
+
+Pull request #268 was removed from the merge queue (run 39193754708): `scripts/prune_worktrees.py --self-test` was RED in
+CI's `audits` self-test step, its fixture branch `lane-free` read MERGED (an ancestor of main it was built not to be)
+and four checks followed from that one row. The pull request changes nothing that self-test reads, the same self-test was
+GREEN in #267's merge group an hour earlier, and about 430 local runs (WSL, git 2.55, the CI runner's version; the
+branch's merged head and origin/main; alone, 24 at once, pinned to one, two and four cores, with every fsync delayed 50
+ms, and inside the whole `self_tests.py` run) were all GREEN: an intermittent red, not this branch's change.
+
+What the runs did show is the one actor in that fixture its author never started: after every commit, merge, fetch and
+receiving push git 2.55 starts `git maintenance run --auto --detach`, which packs refs and repacks (`repack -d -l`,
+`multi-pack-index write`) in the scratch repository while the self-test is still building and surveying it. One run
+started 60 of them, and 15 of the fixture's own git commands (switch, add, commit) ran while one did. The fixture's git
+helper also discarded every exit code, so a fixture command that failed left only a wrong lifecycle verdict behind.
+Two changes, each pinned: the self-test runner's private global git config (the one place every self-test's git
+configuration comes from, in CI, the gates and the Linux gate alike) now also sets `maintenance.auto = false` and
+`gc.auto = 0` (`self_tests.GIT_NO_AUTO_MAINTENANCE`; the runner's self-test reads both back from a planted self-test, and
+fails without them); measured, the same self-test run now starts no maintenance process at all. And the prune fixture's
+git commands are checked: one that fails raises `FixtureError` with git's own message, reported as the fixture's
+failure, never as a branch's state (its self-test asserts a failing command raises).
+
