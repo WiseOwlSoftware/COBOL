@@ -38,6 +38,14 @@ at 85 and 2002), expected output derived from DOC-A.1-57/214/216 and confirmed a
 and its consumers on the right side. Citations checked with `cite.py --check`: 14.9.11.4 GR7, 13.18.60.3 SR14, 13.18.60.4 GR22 a)
 and GR23, 13.18.63.4 GR4, 8.5.1.12.1, 15.50.4 rule 7. DOC-A.1-57 and the data-model design carry the new capability.
 
-**Gate.** NOT RUN by the implementer: the fleet's `STOP-loop` appeared after the last commit, and the stop rule forbids starting a
-build or gate once it exists. The compiler solution built clean (0 warnings, 0 errors) before the drift test was added, the test
-project was NOT compiled afterwards, and `conformance-suite/harness/generate.py --check` is GREEN; a finisher runs `scripts/build-local.ps1 -Priority BelowNormal` and records its verdict line here.
+**Merge with PB3273.** Between the first implementation and this finish, PB3273 landed `DataItem.CurrentExtentAreaCapable`, the
+identical member law (a reference a fixed placeholder, via `TransferImageCapable`) for the host entry's cell area. Two properties
+over one law is the duplication this repo forbids, so the finish merged them: `CurrentExtentTransferImageCapable` is the one
+capability, `ComposesCurrentExtent(transfer)` the one function, and the host-entry and published-record callers, the external
+repository design doc and the PB3273 note were renamed to it.
+
+**Gate.** `build-local.ps1 -Priority BelowNormal`, run 20261019T084208Z-7a96d8: `LEG 1 ONLY (batched gating, PB2515): GREEN`,
+Conformance 11,384/17,952, Unit 33,994/34,641, Characterization 5/36 cases ran. The new goldens passed in
+`leg-1-Conformance.trx` (pb3358_vlg_display_reference_leaf 2014, pb3358_vlg_display_reference_leaf_cell 2023,
+pb3358_vlg_display_pointer_leaf 2014, refusal pb3358-vlg-display-reference-leaf-at-2002 at 85 and 2002); the drift test ran in
+leg 1 of Unit. `scripts/semgrep/verify.py`: PASS, no rule count raised. Linux gate: the lander's (batched gating).
