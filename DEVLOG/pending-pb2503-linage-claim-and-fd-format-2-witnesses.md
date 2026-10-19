@@ -33,3 +33,12 @@ rule is section 9.1.7.2) were corrected before commit.
 documents are pinned by the existing refusals (`pb1238-fd-linage-relative`, `pb1238-report-fd-linage`, `pb345-indexed-no-record`,
 each with its diagnostic) and the LINAGE exception-path witnesses the claim now names (`pb526_linage_ec_checking`,
 `pb686_linage_gr26_boundary`, `pb524-*`, `pb489-*`).
+
+**Self-review.** The diff changes no compiler code, so the architecture, performance and duplication lenses had nothing to read;
+the full-code lens checked that the new sentence says what the binder does (LINAGE row is `Sequential` only; Format 3 refused
+by the same table) and the comment lens that no citation was inherited. The first gate was RED on
+`HostWitnessTraitDriftTests` (the drift class now reads `docs/CONFORMANCE.md`, a top-level path, so it is a tree-wide sweep and
+must carry `[Trait("Sweep", "tree")]`); fixed in the next commit.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261019T175916Z-cb709d`), with
+`TheLinageClaim_AgreesWithTheFileDescriptionFormatTable` and the four editions of `pb1238-fd-linage-relative` Passed in leg 1.
