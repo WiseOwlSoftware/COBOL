@@ -1812,8 +1812,10 @@ derives every literal reference from the `.g4` text in both directions: a refere
 as a position no constant-name stands in (a level-number, the 1985 STOP literal, the non-ISO ENTRY), and every slot
 that admits a word is witnessed by an enabled 2002+ golden writing a declared constant-name in that rule's word arm
 (it compiles strict, so the binder admitted the word as the literal) or argued (a compiler directive's operand,
-SR2's own exception; the declined SCREEN, VALIDATE and message-server facilities; the open latitude of kb/Work
-PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
+SR2's own exception; the declined SCREEN, VALIDATE and message-server facilities; the deleted VALUE OF and PADDING
+CHARACTER clauses). The two slots where a word is also a system-name, ASSIGN's device-name-1 and LOCALE's
+external-locale-name-1, are witnessed like the rest (`pb2500_assign_constant_name`, `pb2500_locale_constant_name`):
+the program's declaration of the word wins (kb/Work PB2500). The `integer-n` positions are `IntegerOperandSlotDriftTests`'s (`integerOperand`).
 
 ## 4. Current → target module changes
 

@@ -38,6 +38,13 @@ is a 2002 introduction, COBOLNET0900 at 85). `AssignConstantNameTests` (Conforma
 wording, the silent recovery, a word that names no constant, a hexadecimal-alphanumeric constant read by a contained
 program's ASSIGN through a GLOBAL constant, and the DISK-constant corner.
 
+**The generated check.** `ConstantNameLiteralPositionDriftTests.Unwitnessed` argued the `assignTarget` and `localeClause`
+slots as this note's open latitude. The ASSIGN golden witnesses the first, so the test turned red at the landing's Linux
+unit leg ("Unwitnessed argues slot(s) a golden now witnesses: assignTarget"); the implementer's leg-1 gate never planned
+it. Both entries and their rationale are gone, and `12.3.7-SPECIAL-NAMES/pb2500_locale_constant_name` witnesses the LOCALE
+slot: a constant `FR_FR` standing for "ja-JP" formats LOCALE-DATE in the ja-JP form, where the system-name reading would
+give the fr-FR form the literal leg shows. DOC-A.1-181 lists it.
+
 **Rows.** The note claimed none (`inventory_rows: []`) and closes none; DOC-A.1-71's text and witnesses are extended.
 
 **Self-review.** Silent failure: a refused constant returns "" only under an already-failed compile and the entry reported;
