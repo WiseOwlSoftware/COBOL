@@ -871,21 +871,22 @@ internal sealed class PageStatement : IPageSink
     /// <summary>Write a new page from the reservation, stamped with the statement's generation and listed <c>fresh</c>;
     /// the POINTER to it (none once the statement has been refused). A body longer than <see cref="PageHeader.BodyBytes"/>
     /// is the caller's defect and is refused loudly, never cut to fit.</summary>
-    public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags = 0, ushort entries = 0, uint next = 0) =>
-        Write(kind, body, flags, entries, next, listed: true);
+    public PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags = 0, ushort entries = 0, uint next = 0,
+        TreeMarks marks = default) =>
+        Write(kind, body, flags, entries, next, marks, listed: true);
 
     /// <summary>Write one of the LEDGER's own pages, which the ledger never lists (R2).</summary>
-    internal PagePointer WriteUnlisted(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next) =>
-        Write(kind, body, flags, entries, next, listed: false);
+    internal PagePointer WriteUnlisted(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, TreeMarks marks) =>
+        Write(kind, body, flags, entries, next, marks, listed: false);
 
-    private PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, bool listed)
+    private PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, TreeMarks marks, bool listed)
     {
         if (body.Length > PageHeader.BodyBytes)
             throw new ArgumentException($"a page body holds {PageHeader.BodyBytes} bytes, not {body.Length}", nameof(body));
         if (Refused) return PagePointer.None;
         uint page = Reservation.Take();
         var bytes = new byte[PageHeader.PageSize];
-        new PageHeader(kind, flags, entries, Generation, page, next).Encode(bytes);
+        new PageHeader(kind, flags, entries, Generation, page, next, marks).Encode(bytes);
         body.CopyTo(bytes.AsSpan(PageHeader.Bytes));
         PageHeader.Seal(bytes);
         if (_store.WritePage(page, bytes) is var written && written != StoreStatus.Ok)
