@@ -712,6 +712,14 @@ public abstract class FileConnector
     public string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) =>
         MutationOpenModeGuard() is null ? MutationTargetRecordIdCore(recordImage, recordExtents) : "";
 
+    /// <summary>The record a sequential-ACCESS REWRITE or DELETE RECORD identifies, or "" when none is: §14.9.35.4 GR5 and
+    /// §14.9.10.4 GR2 name the record the immediately previous statement's READ made current, and only a statement that follows
+    /// a successfully executed READ has one. After any other statement (an unsuccessful REWRITE, a WRITE, a START) the
+    /// statement is the '43' of <see cref="PrevOpWasSuccessfulRead"/>'s gate, tested in the general rules' order BEFORE the
+    /// record lock GR11 / GR6 would have met (docs/CONFORMANCE.md DOC-A.1-104 (2)): the registry's conflict check, which runs
+    /// ahead of the connector's own body, must therefore have no target to conflict on (kb/Work PB3416, review R1-1).</summary>
+    private protected string SequentialMutationTarget => PrevOpWasSuccessfulRead ? LastReadRecordId : "";
+
     /// <summary>The organization's answer to <see cref="MutationTargetRecordId"/> for a connector open in the I-O
     /// mode.</summary>
     protected virtual string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => "";

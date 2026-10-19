@@ -94,16 +94,21 @@
            UNLOCK F-B RECORD. DISPLAY "UNLB=" B-ST.
            READ F-A. DISPLAY "READA3=" A-ST " " A-REC.
       *> A rewrites record 2 WITH LOCK (GR12c: the lock is set at
-      *> completion), so B's REWRITE of its last-read record (2) is 51.
+      *> completion). B's REWRITE follows B's UNLOCK, not a successful
+      *> READ, so it is '43' (14.9.35.4 GR5, tested before GR11's lock
+      *> check '51'; DOC-A.1-104 (2)): the connector names no record
+      *> to conflict on. RETRY re-executes it: '43' again, no lock wait.
+      *> (The '51' of a sequential REWRITE after a READ is pb1563's J6
+      *> and the PermanentErrorOutranksRecordLockTests unit witness.)
            REWRITE A-REC FROM "MMMMM" WITH LOCK. DISPLAY "REWA=" A-ST.
-           REWRITE B-REC FROM "ZZZZZ". DISPLAY "REWB51=" B-ST.
+           REWRITE B-REC FROM "ZZZZZ". DISPLAY "REWBU43=" B-ST.
            REWRITE B-REC FROM "ZZZZZ" RETRY 2 TIMES.
            DISPLAY "REWBRT=" B-ST.
       *> A unlocks; B's re-executed REWRITE is '43' (9.1.13.7 3) - the
-      *> intervening UNSUCCESSFUL REWRITE ('51') was the last executed
+      *> intervening UNSUCCESSFUL REWRITE was the last executed
       *> I-O statement, not a successful READ, and the setter chokepoint
       *> drops the gate on EVERY outcome (kb/Work PB140; a program must
-      *> re-READ or use RETRY to land it). Record 2 keeps A's MMMMM.
+      *> re-READ to land it). Record 2 keeps A's MMMMM.
            UNLOCK F-A. DISPLAY "UNLA=" A-ST.
            REWRITE B-REC FROM "ZZZZZ". DISPLAY "REWB=" B-ST.
            CLOSE F-A.
