@@ -513,7 +513,15 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   through the host of the machine. `SidecarColumnLockHostDriftTests` holds the lock-file host to the same table over
   every (sharing × open mode) pair directly (`RunUnitFileLock.Take(host, …)`), plus the simultaneous-open race, the
   sweep of a dead holder's leftovers, the wire names and the case rule — it is plain managed code, so it runs on
-  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path.
+  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path. `RunUnitProcessBoundaryTests`
+  (kb/Work PB2485) is the witness with TWO REAL PROCESSES, which a second registry cannot be: compiled COBOL programs
+  hold a file while another process asks for it. A refused OPEN is `61` in every open mode and a refused DELETE FILE
+  `62`, each through a FILE STATUS item and a USE declarative alone, both, and neither, and through a RETRY that the
+  holder outlasts (and a `RETRY FOREVER` that is released by the holder's CLOSE); the lock comes back with the holder's
+  CLOSE while the holder lives, with its run unit's implicit CLOSE, with an abnormal end (a call of a missing program)
+  and with a kill that runs nothing; and a child process started while the lock is held does not keep it past the
+  CLOSE (the `O_CLOEXEC` guard of `OfdRegionLocks.Open`; the handle's non-inheritance on Windows). It runs on Windows
+  and Linux, through the host of the machine; the macOS lock-file host is held to the same table by the other witnesses.
 
 **⛔ DETERMINATION (Annex A.1 item 75, `docs/CONFORMANCE.md` DOC-A.1-75) — WHO IS BOUND.** §9.1.15 binds other RUN
 UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on a host that carries the region lock (Linux
@@ -1471,10 +1479,25 @@ the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read t
 refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
 serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
 either boundary they answer '30'. The mapping is written once for both organizations, `KeyedConnector.RecordWriteFailed`
-(a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *Measured (PB3334 review,
-`IndexedEnginePermanentErrorWitnessTests.BoundaryFile`):* an `OPEN I-O` or `OPEN EXTEND`'s fence reserves its retirement's
-BOUND (R2: `Ledger.WriteBound`, a few pages even for an empty ledger), so a store fewer than that many pages below the
-format's last page answers that OPEN '30' although the fence would write only its meta pages; `OPEN INPUT` still reads it.
+(a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *The two arms of the boundary (PB3334 review, kb/Work PB3396):* a changing statement and a retirement reserve the same
+BOUND (R2: `Ledger.WriteBound`, an upper bound of the ledger pages the write takes, a few pages even for an empty ledger),
+and the format's last page treats it differently. A statement's boundary is its RESERVATION (`BoundaryAt.Reservation`): a
+bound that would grow the file past 2^32 pages is refused before the claim, the implementor's definition of the
+externally-defined boundary §9.1.13.5 item 4 leaves to it, so a WRITE a few pages short of the end may answer '24' although
+it would have fitted. A RETIREMENT (an `OPEN I-O` fence, a promotion at a CLOSE, at the generation ceiling or at the ledger
+checkpoint) has no '24' and its claim is already taken, so its boundary is the PAGE (`BoundaryAt.Take`): the pages of its
+reservation past the format's last are `PageOrigin.Beyond`, carry no page number, and the retirement is refused ('30', the
+store as the previous statement left it) only if it WRITES one of them. A fence that writes no page past the page count,
+or no more pages than the format has left, therefore completes at the format's last page (measured: the
+`PagedFileBoundaryTests` fence cases; `IndexedEnginePermanentErrorWitnessTests.BoundaryFile` opens I-O at 2^32 recorded
+pages), and one that writes one more answers '30' while `OPEN INPUT` still reads the file (`KeyedFenceBoundaryTests`, the
+`FenceRefused` program cases). A retirement that must write a page past the format's last is refused
+whatever promotion it serves, and the store is then the previous statement's. Through statements that is met at the
+OPEN's fence (a never-closed store whose adopted state owes a ledger page the format has no room for), while a CLOSE
+behind statements completes: each statement leaves its retirement the pages it released, and the bound-sized
+reservation that refused it is gone (measured: `PagedFileBoundaryTests`' close cases, a CLOSE behind the one statement
+that fits at every headroom and a CLOSE after statements spent every FREE page; no headroom made a CLOSE answer '30').
+A CLOSE whose page write the host refuses answers '30' (`KeyedClosePermanentErrorWitnessTests`).
 `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and

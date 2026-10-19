@@ -395,7 +395,7 @@ internal sealed class PagedFile
             return StoreStatus.PermanentError;
         var ledger = _ledger.Clone();
         var free = new BTree(this, KeyOrders.Ordinal, _meta.FreeRoot);
-        if (Reserve(bound, ledger, free, _meta.PageCount, out var reservation) is var reserved && reserved != StoreStatus.Ok)
+        if (Reserve(bound, ledger, free, _meta.PageCount, BoundaryAt.Reservation, out var reservation) is var reserved && reserved != StoreStatus.Ok)
             return reserved;
         ulong claim = Claim();
         _releaseMint = Math.Max(_releaseMint, _meta.ReleaseMint) + (ulong)ordinals;
@@ -555,8 +555,9 @@ internal sealed class PagedFile
         var free = new BTree(this, KeyOrders.Ordinal, promoted.FreeRoot);
         foreach (uint p in moved)
             if (free.Put(KeyOrders.PageKey(p), []) != StoreStatus.Ok) return StoreStatus.PermanentError;
-        // A promotion has no '24': a retirement that would grow past the format's last page is '30'.
-        if (Reserve(default, ledger, free, promoted.PageCount, out var reservation) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        // A promotion has no '24', and its claim is already taken: it is refused ('30') only if it WRITES a page past the
+        // format's last, never for the bound its reservation is sized to (kb/Work PB3396).
+        if (Reserve(default, ledger, free, promoted.PageCount, BoundaryAt.Take, out var reservation) != StoreStatus.Ok) return StoreStatus.PermanentError;
         var s = new PageStatement(this, claim, ledger, free, reservation, promoted);
         if (!WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return StoreStatus.PermanentError;
         var retired = WithMints(promoted with
@@ -613,8 +614,13 @@ internal sealed class PagedFile
     /// statement's FREE-tree change), then growth from <paramref name="pageCount"/>. The size is settled with the pages
     /// the FREE tree's edit and the ledger's write will take — the ledger's sized by every change the statement makes to
     /// it: each page reserved, each page the statement's trees and the FREE tree's edit stop referencing ('30' for a torn
-    /// FREE-tree page; the BOUNDARY, 2.2.1.9, when the growth would pass the format's 2^32 pages).</summary>
-    private static StoreStatus Reserve(StatementBound bound, Ledger ledger, BTree free, ulong pageCount, out Reservation reservation)
+    /// FREE-tree page). The reservation is the BOUND (an upper bound: the pages a statement really takes are fewer), and
+    /// where growth would pass the format's 2^32 pages <paramref name="boundaryAt"/> says which of the two things the
+    /// BOUNDARY (2.2.1.9) is: <see cref="BoundaryAt.Reservation"/>, a changing statement's, answered here with nothing
+    /// claimed or written, or <see cref="BoundaryAt.Take"/>, a retirement's, whose reservation lists the pages past the
+    /// format's last as <see cref="PageOrigin.Beyond"/> and is refused only if the retirement writes one of them.</summary>
+    private static StoreStatus Reserve(StatementBound bound, Ledger ledger, BTree free, ulong pageCount, BoundaryAt boundaryAt,
+        out Reservation reservation)
     {
         reservation = null!;
         var released = ledger.Pages(LedgerState.Released).ToList();
@@ -633,8 +639,9 @@ internal sealed class PagedFile
         var reserved = new List<(uint Page, PageOrigin Origin)>(need);
         foreach (uint p in released.Take(need)) reserved.Add((p, PageOrigin.Released));
         foreach (uint p in fromFree.Take(need - reserved.Count)) reserved.Add((p, PageOrigin.Free));
-        if (pageCount + (ulong)(need - reserved.Count) > FormatPages) return StoreStatus.Boundary;
-        for (ulong p = pageCount; reserved.Count < need; p++) reserved.Add(((uint)p, PageOrigin.Growth));
+        if (boundaryAt == BoundaryAt.Reservation && pageCount + (ulong)(need - reserved.Count) > FormatPages) return StoreStatus.Boundary;
+        for (ulong p = pageCount; reserved.Count < need; p++)
+            reserved.Add(p < FormatPages ? ((uint)p, PageOrigin.Growth) : (Reservation.BeyondPage, PageOrigin.Beyond));
         reservation = new Reservation(reserved, pageCount);
         return StoreStatus.Ok;
     }
@@ -778,6 +785,18 @@ internal sealed class PagedFile
     }
 }
 
+/// <summary>When a reservation meets the format's last page (2.2.1.9): the changing statement's BOUNDARY is at its
+/// reservation, before its claim, and a retirement (a promotion, an OPEN's fence: no '24', its claim already taken) is
+/// refused only at the page it writes past the end (<see cref="PageOrigin.Beyond"/>).</summary>
+internal enum BoundaryAt
+{
+    /// <summary>The reservation is refused when its bound passes the format's last page.</summary>
+    Reservation,
+
+    /// <summary>The reservation lists the pages past the format's last as <see cref="PageOrigin.Beyond"/>.</summary>
+    Take,
+}
+
 /// <summary>Where a reserved page came from (R2's order).</summary>
 internal enum PageOrigin
 {
@@ -789,6 +808,10 @@ internal enum PageOrigin
 
     /// <summary>A page at or past the page count: the file grows.</summary>
     Growth,
+
+    /// <summary>A page the format has no number for (past its 2^32 pages; <see cref="BoundaryAt.Take"/>): the bound's
+    /// slack beyond the last page. It is never written: taking it is the boundary (<see cref="Reservation.TryTake"/>).</summary>
+    Beyond,
 }
 
 /// <summary>A statement's RESERVATION (R2): its pages, taken in order; what is left at the end is recorded, never lost.</summary>
@@ -799,9 +822,22 @@ internal sealed class Reservation(List<(uint Page, PageOrigin Origin)> pages, ul
     /// <summary>How many reserved pages have been taken.</summary>
     public int Position => _next;
 
-    /// <summary>The next reserved page; a statement past its reservation is a caller defect.</summary>
-    public uint Take() => _next < pages.Count ? pages[_next++].Page
-        : throw new InvalidOperationException("the statement wrote more pages than it reserved");
+    /// <summary>The number a <see cref="PageOrigin.Beyond"/> entry carries: page 0 is a meta page, which no reservation
+    /// ever lists, and the ledger never lists it either.</summary>
+    public const uint BeyondPage = 0;
+
+    /// <summary>Take the next reserved page into <paramref name="page"/>: false (taking nothing) when it is a
+    /// <see cref="PageOrigin.Beyond"/> one — the retirement writes past the format's last page; a statement past its
+    /// reservation is a caller defect.</summary>
+    public bool TryTake(out uint page)
+    {
+        if (_next >= pages.Count) throw new InvalidOperationException("the statement wrote more pages than it reserved");
+        var (number, origin) = pages[_next];
+        page = number;
+        if (origin == PageOrigin.Beyond) return false;
+        _next++;
+        return true;
+    }
 
     /// <summary>The pages not taken yet, in the order they will be taken.</summary>
     public List<(uint Page, PageOrigin Origin)> Remaining() => pages.GetRange(_next, pages.Count - _next);
@@ -884,7 +920,11 @@ internal sealed class PageStatement : IPageSink
         if (body.Length > PageHeader.BodyBytes)
             throw new ArgumentException($"a page body holds {PageHeader.BodyBytes} bytes, not {body.Length}", nameof(body));
         if (Refused) return PagePointer.None;
-        uint page = Reservation.Take();
+        if (!Reservation.TryTake(out uint page))
+        {
+            Refusal = StoreStatus.Boundary;   // the retirement's last page is past the format's (2.2.1.9)
+            return PagePointer.None;
+        }
         var bytes = new byte[PageHeader.PageSize];
         new PageHeader(kind, flags, entries, Generation, page, next, marks).Encode(bytes);
         body.CopyTo(bytes.AsSpan(PageHeader.Bytes));
