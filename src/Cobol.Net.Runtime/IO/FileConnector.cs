@@ -265,7 +265,9 @@ public abstract class FileConnector
     internal PhysicalFileTable.State? Physical { get; private set; }
 
     /// <summary>The §9.1.16 RECORD-LOCKING view of <see cref="Physical"/> — non-null only for a connector whose
-    /// SELECT registered a SHARING or LOCK MODE clause (or whose OPEN carried a SHARING/RETRY phrase). It is
+    /// current OPEN can SET record locks: a LOCK MODE clause under a sharing mode other than NO OTHER
+    /// (<c>FileRegistry.RecordLocksSetUnder</c>, §12.4.5.9.4 GR1 and GR3). A SHARING clause alone, a SHARING or RETRY
+    /// phrase on the OPEN and the NO OTHER mode confer none (kb/Work PB3372). It is
     /// what the release-ordinal mint a shared <c>OPEN EXTEND</c> numbers its appended records from reads
     /// (kb/Work PB739), and the gate is the record-locking one because the ordinal IS the lock identity:
     /// §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor and this

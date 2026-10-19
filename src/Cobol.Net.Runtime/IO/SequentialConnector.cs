@@ -220,8 +220,9 @@ public sealed class SequentialConnector : FileConnector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c>). The ORDINAL is counted
     /// off the medium only where another WRITER may be on it — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
     /// admits a writing sibling beside (kb/Work PB322) — and a connector that is the only writer mints it. The ORDINAL is the §9.1.16 record-lock identity, and a connector
-    /// that registered NEITHER a SHARING nor a LOCK MODE clause sets no record locks to identify — §12.4.5.9.4
-    /// GR1 b) 2. leaves that case to the implementor (<i>"the type of record locking for that opening … is
+    /// that cannot SET record locks has none to identify (kb/Work PB3372, <c>FileRegistry.RecordLocksSetUnder</c>): a
+    /// SHARING clause or an OPEN SHARING phrase without a LOCK MODE clause sets none (§12.4.5.9.4 GR1 a), b) 1.), and
+    /// GR3 voids the LOCK MODE clause under SHARING WITH NO OTHER. §12.4.5.9.4 GR1 b) 2. leaves the no-clause case to the implementor (<i>"the type of record locking for that opening … is
     /// defined by the implementor … or specify that the default is no record locking"</i>) and this compiler's
     /// determination is no record locking (<see cref="FileLockMode.None"/>) — so the ordinal is minted only
     /// where the physical file's shared state exists to mint it from. Gating the flush on the ordinal's

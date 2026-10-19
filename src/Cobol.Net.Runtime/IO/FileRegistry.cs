@@ -38,7 +38,9 @@ public sealed class FileRegistry
     /// (kb/Work PB324).</para></summary>
     private readonly record struct ConnectorShare(FileSharing? Sharing, FileLockMode LockMode, bool Multiple);
 
-    /// <summary>The per-connector declared sharing/lock metadata (a connector is "sharing-active" iff present).</summary>
+    /// <summary>The per-connector declared sharing/lock metadata, from the SELECT's SHARING and LOCK MODE clauses
+    /// (an absent entry reads as <see cref="ImplementorDefaultShare"/>). Presence is NOT record-locking
+    /// participation: that is <see cref="RecordLocksSetUnder"/>, which asks for a LOCK MODE clause (kb/Work PB3372).</summary>
     private readonly Dictionary<string, ConnectorShare> _connectorShares = new(CobolNames.Comparer);
 
     /// <summary>The physical-file sharing/record-lock registry (§9.1.15/§9.1.16).</summary>
@@ -1045,7 +1047,7 @@ public sealed class FileRegistry
         FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
         LinagePage? page)
         => OpenCore(name, mode, hasSharingOverride ? sharingOverride : null, retryKind, retryAmount, tape,
-            assign, assignDynamic, page, phraseParticipant: true);
+            assign, assignDynamic, page);
 
     /// <summary>⛔ §14.9.27.4 GR2 IS DECIDED FIRST, AND ALONE (kb/Work PB2748): <i>"The file connector referenced by
     /// file-name-1 shall not be open. If it is open, the execution of the OPEN statement is unsuccessful and the I-O
@@ -1078,9 +1080,13 @@ public sealed class FileRegistry
     /// attempt, so the plain <see cref="Open"/> is the same code path with <see cref="FileRetryKind.None"/>. The
     /// GC-deferred per-object close drains first, on this (mutator) thread, for both entries — it used to drain
     /// only for the plain one.</para>
-    /// <para><paramref name="phraseParticipant"/> is true for an OPEN statement that writes a SHARING or RETRY phrase
-    /// (<see cref="OpenShared"/>); the record-locking posture such a phrase gives a clause-less connector is
-    /// registered only once GR2 has admitted the statement (<see cref="RefusedAsAlreadyOpen"/>).</para>
+    /// <para>⛔ A SHARING OR RETRY PHRASE REGISTERS NO RECORD-LOCKING POSTURE (kb/Work PB3372). Whether the opened
+    /// connector is a record-locking participant is derived at <see cref="SharedOpenAttempt"/> from the posture the
+    /// file control entry registered and the sharing mode THIS open is arbitrated under
+    /// (<see cref="RecordLocksSetUnder"/>); an OPEN phrase can change the mode but cannot write a LOCK MODE clause, and
+    /// §12.4.5.9.4 GR1 b) 1. says that with a SHARING phrase and no LOCK MODE clause <i>"no record locks are set"</i>.
+    /// The phrase used to register a lock-less posture on the spot, which made the connector a participant (and so
+    /// paid the whole-file record count of a sequential <c>OPEN EXTEND</c>) for the life of the run unit.</para>
     /// <para><paramref name="tape"/> carries the statement's WITH NO REWIND phrase, applied by
     /// <see cref="NoRewindPhraseEffect"/> AFTER the arbitrated open. It rides here rather than at either entry
     /// point because SHARING/RETRY and NO REWIND are independent phrases of one general format (§14.9.27.2), so
@@ -1089,15 +1095,10 @@ public sealed class FileRegistry
     /// <see cref="NoRewindPhraseEffect"/> writes '07' only over a status whose first digit is '0'.</para></summary>
     private void OpenCore(string name, FileOpenMode mode, FileSharing? sharingOverride,
         FileRetryKind retryKind, long retryAmount, OpenTapePhrase tape, string assign, bool assignDynamic,
-        LinagePage? page, bool phraseParticipant = false)
+        LinagePage? page)
     {
         DrainPendingObjectCloses();   // reclaim any GC-finalized per-object connectors on this (mutator) thread first
         if (RefusedAsAlreadyOpen(name, mode)) return;   // §14.9.27.4 GR2 — before anything below touches the connector
-        // A sharing/retry phrase on the OPEN makes the connector a record-locking participant even without a
-        // SELECT clause. Its SHARING MODE is still whatever §9.1.15 gives it: the phrase's mode when a SHARING
-        // phrase is written, otherwise the implementor default of the open mode — never a hard-coded ALL OTHER.
-        if (phraseParticipant && !_connectorShares.ContainsKey(name))
-            RegisterSharing(name, null, FileLockMode.None, false);
         // §14.9.27.4 GR26 → §12.4.5.3 GR3, and BEFORE the Table-19 arbitration: a sharing conflict is defined
         // over "another file connector" holding THE PHYSICAL FILE this OPEN names (§9.1.13.9), so the association
         // this statement establishes has to stand before the physical-file table is consulted. OUTSIDE the RETRY
@@ -1143,9 +1144,8 @@ public sealed class FileRegistry
         // §9.1.15 / §14.9.27.4 GR23: the OPEN's SHARING phrase overrides the file control entry's SHARING
         // clause; with neither, the implementor default, which is a function of THIS open's mode (see
         // ImplementorDefaultSharing) and so is one of the three modes Table 19 prints.
-        FileSharing sharing = sharingOverride
-            ?? (_connectorShares.TryGetValue(name, out var meta) ? meta.Sharing : null)
-            ?? ImplementorDefaultSharing(mode);
+        var posture = ShareOf(name);
+        FileSharing sharing = sharingOverride ?? posture.Sharing ?? ImplementorDefaultSharing(mode);
         var st = _physical.For(c.HostPath);
         foreach (var (other, existing) in st.Open)
         {
@@ -1160,7 +1160,10 @@ public sealed class FileRegistry
         // open is unsuccessful with '41' (§9.1.13.7 item 1) and FileConnector.Open leaves the connector in its
         // ORIGINAL mode — but `IsOpen` is true throughout, so gating on it re-registered the connector under the
         // mode and sharing of the FAILED request and every later arbitration used them (kb/Work PB321).
-        // §9.1.15 participation, derived from the ONE register that records it, at the one moment it is read.
+        // §9.1.15 / §12.4.5.9.4 participation, derived from the ONE rule that says when record locks are set
+        // (RecordLocksSetUnder — the question LocksEffective asks at every I-O statement), at the one moment it is
+        // read: for THIS open's arbitrated sharing mode, so a SHARING clause alone, a SHARING or RETRY phrase and the
+        // NO OTHER mode (GR1 a), GR1 b) 1., GR3) all leave the connector a non-participant (kb/Work PB3372).
         // OpenCore consults it for the release-ordinal mint (kb/Work PB713 put the write-ordinal seeding on it),
         // and this line is its only writer — so it cannot outlive, or lag, the posture map. What it hands over
         // is the physical file's own shared STATE, not a bare bit (kb/Work PB739): a participant needs the
@@ -1172,7 +1175,7 @@ public sealed class FileRegistry
         // (State.ReleaseGeneration) is a rule about the MEDIUM, which a clause-less pair sharing one file
         // under kb/Work PB740 is on exactly as much as a SHARING WITH ALL OTHER pair. The second argument is
         // the RECORD-LOCKING posture, and only the §9.1.16 questions read it through `SharedPhysical`.
-        c.AssociatePhysical(st, _connectorShares.ContainsKey(name));
+        c.AssociatePhysical(st, RecordLocksSetUnder(posture, sharing));
         // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). The share mode of
         // a host handle is fixed when the handle is created, so the posture of THIS connector's sharing mode is
         // handed down here, ahead of c.Open. It is the posture of the mode alone: Table 19 has just admitted this
@@ -1432,15 +1435,25 @@ public sealed class FileRegistry
     /// words do not have.</para></summary>
     private static bool LocksEffective(ConnectorShare meta, PhysicalFileTable.State st, string name)
     {
-        if (meta.LockMode == FileLockMode.None) return false;                                   // GR1 a)/b) 1.
         // A connector that is not open has no sharing mode in effect — §9.1.15, "The sharing mode specifies the
         // types of operations that may be performed on the shared physical file through other file connectors
         // throughout the duration of this OPEN" — so it sets no record lock: its statement fails on its own
         // open-mode rule ('47'/'48'/'49') before any lock is reached (kb/Work PB1194).
         if (!st.Open.TryGetValue(name, out var open)) return false;
-        if (open.Sharing == FileSharing.NoOther) return false;                                  // GR3
-        return true;
+        return RecordLocksSetUnder(meta, open.Sharing);
     }
+
+    /// <summary>⛔ THE ONE RULE FOR WHEN A CONNECTOR SETS RECORD LOCKS (kb/Work PB3372), asked per statement by
+    /// <see cref="LocksEffective"/> and per OPEN by <see cref="SharedOpenAttempt"/> (which hands the answer to
+    /// <see cref="FileConnector.AssociatePhysical"/> as the connector's record-locking participation — the §9.1.16
+    /// lock identity a sequential <c>OPEN EXTEND</c> numbers its releases by), so the two cannot disagree. §12.4.5.9.4
+    /// GR1: with no LOCK MODE clause <i>"no record locks are set"</i> — whether the file control entry has a SHARING
+    /// clause (a), or the OPEN has a SHARING phrase (b 1.), or neither (b 2., the implementor default, which here is
+    /// <see cref="FileLockMode.None"/>); GR3: <i>"If a physical file is open in the sharing with no other mode, the
+    /// LOCK MODE clause has no effect."</i> A SHARING or RETRY phrase therefore never makes a connector a
+    /// participant; only a LOCK MODE clause under a sharing mode other than NO OTHER does.</summary>
+    private static bool RecordLocksSetUnder(ConnectorShare meta, FileSharing openSharing) =>
+        meta.LockMode != FileLockMode.None && openSharing != FileSharing.NoOther;   // GR1 a)/b) 1., GR3
 
     /// <summary>⛔ THE ONE GOVERNED FORMAT-1 (sequential-access) READ — sequential, relative AND indexed
     /// organization (§9.1.16; the READ lock rules §14.9.30.4 GR7–GR12 are ALL-FORMATS rules, and GR22 is a
