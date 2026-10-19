@@ -8,8 +8,9 @@
 
 WHY IT EXISTS. The owner's rule for a crash-consistent, multi-process design (2026-10-17, after the keyed store's five
 prose review rounds): the design is checked by an executable model from round one, and reviewed only once the model
-passes. This file IS that model for 2.2.2, and the review of 2026-10-19 (kb/Work PB3426 R1-1, R1-2) is what it would
-have caught: a REWRITE journaled after a capture, and a created file left in place by a rollback. It runs the
+passes. This file IS that model for 2.2.2, and the reviews of 2026-10-19 (kb/Work PB3426 R1-1, R1-2, R2-1) are what it
+catches: a REWRITE journaled after a capture, a created file left in place by a rollback, and a rollback that EXTENDED
+a file another transaction's rollback had shortened. It runs the
 protocol — the files, the writes, the syncs, the locks and the ORDER of the steps — over a medium that can REFUSE any
 operation (the process continues), KILL the run unit at any operation (its locks go, its unsynced writes stay in the
 operating environment), or LOSE POWER at any operation (every file keeps a PREFIX of its unsynced writes, a file
@@ -33,25 +34,37 @@ statement, which is another boundary of the same sweep).
 
 THE PROTOCOL UNDER TEST (2.2.2.4–2.2.2.8, in the model's terms; every name below is a step the design states):
   files in the lock directory D: txn-<t>.live (the holder: locked while the owner lives, the liveness and the
-  ownership), txn-<t>.journal (readable by everyone: header H(start, L); entries R(ordinal, image), K(kind);
+  ownership), txn-<t>.journal (readable by everyone: header H(start); entries L(length), R(ordinal, image), K(kind);
   decision D(C|O|R) appended), txn-<t>.before (the copy of F a capture took), mutex (the entry mutex, held for the
   entry step and the rest of a writable OPEN, a DELETE FILE, a first change, a capture and a rollback).
   begin:    under the mutex: the lowest t with neither file; create+lock .live; create .journal; H synced; D synced.
-  BASE:     start P and no K: a WRITE appends (no entry); a REWRITE of ordinal k < L writes R(k, image) and syncs it
-            BEFORE the overwrite, once per ordinal.
+  BASE:     start P and no K: the transaction's FIRST append writes L(n), n = F's length at that moment, and syncs it
+            BEFORE the append — no other transaction lives at an append (each holds END), so n IS the committed
+            length, and everything at or past it is this transaction's own from then on; later appends write
+            nothing; a REWRITE of an ordinal k that is not its own append (every k before its first append, k < L
+            after it) writes R(k, image) and syncs it BEFORE the overwrite, once per ordinal. The length at the BEGIN
+            is never recorded: it may count another transaction's uncommitted appends, present or still in flight
+            (review round 2, R2-1), and a transaction that never appended has nothing to truncate.
   capture:  under the mutex, with no other handle on F: copy F to .before, sync it, sync D, append K, sync; the
             phase is REPLACED: nothing more is journaled, whatever the verbs after it do to F.
   start A:  F absent at the first change (a creation): REPLACED from the start; no entry is ever written.
   COMMIT:   sync F; sync F's directory; append D(C); sync (THE DECISION); then retire (.before, .journal, .live,
             sync D). Refused before the decision's sync: region 1 (rollback); the sync of a handed-over C refused:
             region 3 (reverse: D(O) synced, then rollback; a refused reversal MARKS the file and touches nothing).
-  ROLLBACK: under the mutex: K → F := .before; start P → every R(k) written back, F truncated to L, F synced;
-            start A → F deleted; then D(R) synced, then retire. Idempotent at every step.
+  ROLLBACK: under the mutex: K → F := .before; start P → every R(k) written back, F truncated to L when the journal
+            has an L record (F is never shorter than it: only an appending transaction's rollback truncates, and two
+            transactions never append at once — the model asserts it), F synced; start A → F deleted; then D(R)
+            synced, then retire. Idempotent at every step.
   entry:    under the mutex, for every t whose .live is not held: torn or absent journal → litter deleted; D(C)/D(R)
             → retire; D(O) → rollback. A held .live is a live transaction: its holdings are read from its journal.
   holdings: a live journal holds the END of F (every WRITE through another connector: '51'), every ordinal in its R
-            set and every ordinal ≥ L (READ not IGNORING LOCK, REWRITE: '51'), and the WHOLE file once REPLACED (a
+            set and, once it has appended, every ordinal ≥ L (READ not IGNORING LOCK, REWRITE: '51'), and the WHOLE
+            file once REPLACED (a
             writable OPEN by another run unit: '61'); an OPEN OUTPUT or DELETE FILE also needs no other handle ('61').
+
+ITS OWN WATCHDOG (review round 2, R2-2). A model that stays GREEN proves nothing once its oracle or its fault injector
+is weakened, so --self-test also runs the protocol with each named MUTATION applied (each a defect a review found or a
+write-ahead order broken) and requires RED from every one; `--mutation <name>` runs one by hand.
 """
 from __future__ import annotations
 
@@ -62,6 +75,16 @@ import time
 from dataclasses import dataclass, field
 
 ABSENT = "ABSENT"
+ZERO = "ZERO"      # the record a SetLength past the end of F appends: zero bytes, never a committed record
+
+MUTATIONS = {
+    "R1-1": "an R record journaled after a capture, re-applied over the restored before file (review round 1)",
+    "R1-2": "a creation journaled as START P with L = 0: the rollback truncates the created file instead of removing it",
+    "R1": "the header not synced before the first change",
+    "R3": "the L record not synced before the first append",
+    "R4": "the K record synced before the before file",
+    "R2-1": "L read at the BEGIN, as the first text had it: it counts another transaction's appends, undone or in flight",
+}
 REFUSE, DIE, POWER = "refuse", "die", "power"
 
 
@@ -207,8 +230,11 @@ def records(units: list) -> list:
         elif kind == "ovw":
             if u[1] < len(out):
                 out[u[1]] = u[2]
-        elif kind == "trunc":
-            del out[u[1]:]
+        elif kind == "setlen":
+            if u[1] < len(out):
+                del out[u[1]:]
+            else:
+                out.extend([ZERO] * (u[1] - len(out)))    # SetLength past the end: the file grows with zero bytes
         elif kind == "set":
             out = list(u[1])
     return out
@@ -258,19 +284,23 @@ class Host:
 class Oracle:
     """The state at the last COMMIT, kept by replaying each run unit's OWN changes when they commit (a change
     outside commit control commits the moment it is made), never by reading the file: the file holds other run
-    units' uncommitted changes too."""
+    units' uncommitted changes too. A COMMIT handed to the operating environment and never acknowledged (its
+    decision written, its sync unanswered, the run unit dead) leaves TWO candidates — the committed state and the
+    one that COMMIT made durable — carried through every later run unit's commit until the owner acknowledges or
+    reverses it, or a later change that only one candidate admits decides it."""
 
     def __init__(self, initial):
         self.committed = initial
         self.post = None      # the state a handed-over but unacknowledged COMMIT may have made durable
-        self.unacknowledged = False
+        self.post_by = None   # the run unit whose COMMIT that is
 
     @staticmethod
     def replay(state, changes):
+        """The state after the changes, or None: the changes cannot have been made on that state."""
         out = list(state) if state != ABSENT else ABSENT
         for c in changes:
             if c[0] in ("app", "ovw") and out == ABSENT:
-                raise Violation(f"I1: a record change {c} committed on a file the committed state says is absent")
+                return None
             if c[0] == "app":
                 out.append(c[1])
             elif c[0] == "ovw":
@@ -284,15 +314,38 @@ class Oracle:
                 out = ABSENT
         return out
 
-    def commit(self, changes):
-        self.committed = self.replay(self.committed, changes)
-        self.post, self.unacknowledged = None, False
+    def _apply(self, changes):
+        c = self.replay(self.committed, changes)
+        p = self.replay(self.post, changes) if self.post is not None else None
+        if c is None and p is None:
+            raise Violation(f"I1: the changes {changes} committed on a file neither candidate state admits "
+                            f"(committed {self.committed}, unacknowledged {self.post})")
+        if c is None or p is None:                    # only one candidate admits them: it is the state
+            self.committed, self.post, self.post_by = (p if c is None else c), None, None
+        else:
+            self.committed, self.post = c, p
 
-    def handed(self, changes):
-        self.post = self.replay(self.committed, changes)
+    def commit(self, who, changes):
+        if self.post is not None and self.post_by is who:
+            self.committed, self.post, self.post_by = self.post, None, None   # the handed-over COMMIT acknowledged
+        else:
+            self._apply(changes)
+
+    def handed(self, who, changes):
+        if self.post is not None:
+            # another run unit's COMMIT is unacknowledged; this one's sync is answered at once (the second run unit
+            # runs fault-free), so its commit() applies its changes to both candidates
+            return
+        self.post, self.post_by = self.replay(self.committed, changes), who
+        if self.post is None:
+            raise Violation(f"I1: the changes {changes} handed over on a file the committed state {self.committed} refuses")
+
+    def reversed(self, who):
+        if self.post_by is who:
+            self.post, self.post_by = None, None
 
     def plain(self, change):
-        self.committed = self.replay(self.committed, [change])
+        self._apply([change])
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -302,14 +355,16 @@ class Oracle:
 class Txn:
     id: int
     start: str
-    L: int
     phase: str
+    L: int | None = None        # the L record: F's length at this transaction's first append; None until it appends
     journaled: set = field(default_factory=set)
 
 
 class RunUnit:
-    def __init__(self, name: str, m: Medium, h: Host, oracle: Oracle, F: str, D: str, covered: bool, optional: bool):
+    def __init__(self, name: str, m: Medium, h: Host, oracle: Oracle, F: str, D: str, covered: bool, optional: bool,
+                 mutation: str | None = None):
         self.name, self.m, self.h, self.oracle, self.F, self.D = name, m, h, oracle, F, D
+        self.mutation = mutation                    # one of MUTATIONS, applied to this run unit's protocol, or None
         self.Fdir = dirname(F)
         self.covered, self.optional = covered, optional
         self.mode: str | None = None
@@ -354,11 +409,13 @@ class RunUnit:
         units = self.m.view(self.J(t))
         if not units or units[0][0] != "H":
             return None
-        start, L = units[0][1], units[0][2]
+        start, L = units[0][1], None
         decision, entries = "O", []
         for u in units[1:]:
             if u[0] == "D":
                 decision = u[1]
+            elif u[0] == "L":
+                L = u[1]                              # the first append's record: the committed length at that moment
             else:
                 entries.append(u)
         K = next((e for e in entries if e[0] == "K"), None)
@@ -410,7 +467,11 @@ class RunUnit:
                 if k < len(cur):
                     CHECKS.no_foreign_lock(self, k)
                     self.m.write(F, ("ovw", k, old))
-            self.m.write(F, ("trunc", j["L"]))
+            if j["L"] is not None:                    # the transaction appended: everything at or past L is its own
+                if len(cur) < j["L"]:
+                    raise Violation(f"I1: F has {len(cur)} records, fewer than journal {t}'s L {j['L']}: SetLength "
+                                    f"would extend it with zero bytes")
+                self.m.write(F, ("setlen", j["L"]))
             self.m.sync(F)
             self.m.syncdir(self.Fdir)
         else:
@@ -461,12 +522,12 @@ class RunUnit:
             elif kind == "WRITE":
                 return "51"
             else:
-                if j is None or j["replaced"] or k in j["R"] or k >= j["L"]:
+                if j is None or j["replaced"] or k in j["R"] or (j["L"] is not None and k >= j["L"]):
                     return "51"
         return None
 
     # --- begin and capture (caller holds the mutex) ---
-    def _begin(self, start: str, L: int):
+    def _begin(self, start: str):
         t = 0
         while self.m.exists(self.J(t)) or self.m.exists(self.LIVE(t)):
             t += 1
@@ -475,18 +536,46 @@ class RunUnit:
             self.m.create(live)
             self.h.lock(live, self)
             self.m.create(j)
-            self.m.write(j, ("H", start, L))
-            self.m.sync(j)
-            self.m.syncdir(self.D)
+            self.m.write(j, ("H", start))
+            if start == "P" and self.mutation == "R2-1":
+                self.m.write(j, ("L", len(self._recs())))   # the mutation: the first text's L, read at the begin
+            if self.mutation != "R1":                 # the mutation: the header not synced before the first change
+                self.m.sync(j)
+                self.m.syncdir(self.D)
         except Refused:
             self.h.unlock(live, self)
             for p in (j, live):
                 if self.m.exists(p):
                     self.m.delete(p)
             raise
-        self.txn = Txn(t, start, L, "BASE" if start == "P" else "REPLACED")
+        self.txn = Txn(t, start, "BASE" if start == "P" else "REPLACED")
+        if start == "P" and self.mutation == "R2-1":
+            self.txn.L = len(self._recs())
         if self.m.exists(self.F):
             self.h.append[self.F] = self
+
+    def _begin_creation(self):
+        """The first change creates F: START A, REPLACED from the start (the mutation: journaled as START P on an empty
+        file, so the rollback truncates the created file to nothing instead of removing it — the review's R1-2)."""
+        self._begin("P" if self.mutation == "R1-2" else "A")
+        if self.mutation == "R1-2":
+            self.txn.L = 0
+            self.m.write(self.J(self.txn.id), ("L", 0))
+            self.m.sync(self.J(self.txn.id))
+
+    def _note_append(self):
+        """R3: the transaction's FIRST append writes the L record — F's length at this moment, which is the committed
+        length, since no other transaction lives (each holds END, and the holding test just passed) — and syncs it
+        before the append; later appends, and appends in the REPLACED phase, write nothing. (The mutation R3: not
+        synced, so a power loss can drop the record and keep the append.)"""
+        txn = self.txn
+        if txn.phase != "BASE" or txn.L is not None:
+            return
+        n = len(self._recs())
+        self.m.write(self.J(txn.id), ("L", n))
+        if self.mutation != "R3":
+            self.m.sync(self.J(txn.id))
+        txn.L = n
 
     def _capture(self, kind: str):
         CHECKS.no_foreign_handle(self)
@@ -497,11 +586,16 @@ class RunUnit:
         try:
             self.m.create(b)
             self.m.write(b, ("img", img))
+            if self.mutation == "R4":                 # the mutation: K handed over and synced before the before file is
+                self.m.write(self.J(t), ("K", kind))
+                handed = True
+                self.m.sync(self.J(t))
             self.m.sync(b)
             self.m.syncdir(self.D)
-            self.m.write(self.J(t), ("K", kind))
-            handed = True
-            self.m.sync(self.J(t))
+            if self.mutation != "R4":
+                self.m.write(self.J(t), ("K", kind))
+                handed = True
+                self.m.sync(self.J(t))
         except Refused:
             if not handed:
                 if self.m.exists(b):
@@ -551,14 +645,14 @@ class RunUnit:
                 if exists:
                     if self.covered:
                         if self.txn is None:
-                            self._begin("P", len(self._recs()))
+                            self._begin("P")
                         if self.txn.phase == "BASE":
                             self._capture("O")
-                    self.m.write(F, ("trunc", 0))
+                    self.m.write(F, ("setlen", 0))
                     self._change(("trunc", 0))
                 else:
                     if self.covered and self.txn is None:
-                        self._begin("A", 0)
+                        self._begin_creation()
                     self.m.create(F)
                     self._change(("create",))
                 status = "00"
@@ -567,7 +661,7 @@ class RunUnit:
                     if not self.optional:
                         return "35"
                     if self.covered and self.txn is None:
-                        self._begin("A", 0)
+                        self._begin_creation()
                     self.m.create(F)
                     self._change(("create",))
                     status = "05"
@@ -597,9 +691,10 @@ class RunUnit:
                 if st is not None:
                     return st
                 if self.m.exists(self.F):
-                    self._begin("P", len(self._recs()))
+                    self._begin("P")
+                    self._note_append()               # under the same hold: header and L synced before the append
                 else:
-                    self._begin("A", 0)
+                    self._begin_creation()
                     self.m.create(self.F)
                     self._change(("create",))
                     self.h.handles_on(self.F).add(self)
@@ -612,6 +707,11 @@ class RunUnit:
             st = self._holding_test("WRITE")
             if st is not None:
                 return st
+            if self.covered:
+                try:
+                    self._note_append()
+                except Refused:
+                    return "30"                       # fatal (R5): the append never ran, so F is right either way
         try:
             self.m.write(self.F, ("app", rec))
         except Refused:
@@ -647,13 +747,16 @@ class RunUnit:
             if self.txn is None:
                 self._take_mutex()
                 try:
-                    self._begin("P", len(recs))
+                    self._begin("P")
                 except Refused:
                     return "30"
                 finally:
                     self._drop_mutex()
             txn = self.txn
-            if txn.phase == "BASE" and k < txn.L and k not in txn.journaled:
+            # R2: an image of every record that is not this transaction's own append (every ordinal before its first
+            # append; k < L after it), in the base phase only (the mutation R1-1: in the REPLACED phase too)
+            if (txn.phase == "BASE" or self.mutation == "R1-1") and (txn.L is None or k < txn.L) \
+                    and k not in txn.journaled:
                 try:
                     self.m.write(self.J(txn.id), ("R", k, recs[k]))
                     txn.journaled.add(k)          # handed over: the entry may be on the medium, so it stays claimed
@@ -691,7 +794,7 @@ class RunUnit:
                 return "35"
             if self.covered:
                 if self.txn is None:
-                    self._begin("P", len(self._recs()))
+                    self._begin("P")
                 if self.txn.phase == "BASE":
                     self._capture("D")
                 self.h.handles_on(self.F).discard(self)
@@ -730,7 +833,7 @@ class RunUnit:
             self.m.syncdir(self.Fdir)
             self.m.write(j, ("D", "C"))
             handed = True
-            self.oracle.handed(self.changes)
+            self.oracle.handed(self, self.changes)
             self.m.sync(j)
         except Refused:
             if not handed:
@@ -741,12 +844,11 @@ class RunUnit:
                 self.m.sync(j)
             except Refused:
                 self.marked = True                    # the medium decides; nothing of F is touched
-                self.oracle.unacknowledged = True
                 return "30"
-            self.oracle.post = None
+            self.oracle.reversed(self)
             self._owner_rollback()
             return "30"
-        self.oracle.commit(self.changes)              # region 2
+        self.oracle.commit(self, self.changes)        # region 2
         try:
             self._retire(t)
         except Refused:
@@ -780,7 +882,7 @@ class RunUnit:
             except Refused:
                 return "30"
             self.marked = False
-            self.oracle.unacknowledged, self.oracle.post = False, None
+            self.oracle.reversed(self)
         if self.txn is None:
             if self.mode is None:
                 self.h.handles_on(self.F).discard(self)
@@ -898,12 +1000,22 @@ B_PROGRAMS = {
     "delete":   [("DF",)],
     "read":     [("ON",), ("R",), ("CL",)],
 }
+# LATER: B's statements after it run once A's program has ended (B keeps its transaction open across the rest of A's);
+# DIE: B's run unit dies there (its locks and handles go; its journal is settled by the next entry).
+LATER, DIE = ("...",), ("DIE",)
 B_COVERED_PROGRAMS = {
     "append-commit":  [("OE",), ("W", "B1"), ("CL",), ("CM",)],
     "rewrite-commit": [("OI",), ("R",), ("RW", "BY1"), ("CL",), ("CM",)],
     "append-roll":    [("OE",), ("W", "B1"), ("CL",), ("RB",)],
     "rewrite-roll":   [("OI",), ("R",), ("RW", "BY1"), ("CL",), ("RB",)],
-    "append-open":    [("OE",), ("W", "B1")],
+    "append-open":    [("OE",), ("W", "B1"), LATER],                                  # ends normally: implicit COMMIT
+    "append-open-roll": [("OE",), ("W", "B1"), ("CL",), LATER, ("RB",)],
+    "append-open-dies": [("OE",), ("W", "B1"), LATER, DIE],
+    "rewrite-open":   [("OI",), ("R",), ("RW", "BY1"), ("CL",), LATER],
+    "rewrite-open-roll": [("OI",), ("R",), ("RW", "BY1"), ("CL",), LATER, ("RB",)],   # R2-1: B's L counts A's appends
+    "rewrite-open-dies": [("OI",), ("R",), ("RW", "BY1"), ("CL",), LATER, DIE],
+    "rewrite-open-append-roll": [("OI",), ("R",), ("RW", "BY1"), ("CL",), LATER, ("OE",), ("W", "B2"), ("RB",)],  # L record
+    "rewrite-open-append-commit": [("OI",), ("R",), ("RW", "BY1"), ("CL",), LATER, ("OE",), ("W", "B2"), ("CM",)],
 }
 
 F, D = "data/F", "data/.wolk-F"
@@ -924,6 +1036,7 @@ class Scenario:
     mode: str | None = None
     die_after_b: bool = False
     keep: dict | None = None          # the power-loss prefix choice
+    mutation: str | None = None       # one of MUTATIONS applied to every run unit's protocol (the watchdog's proof)
 
     def title(self) -> str:
         prog = " ".join(s[0] + ("(" + s[1] + ")" if len(s) > 1 else "") for s in self.program)
@@ -936,6 +1049,8 @@ class Scenario:
             bits.append(f"{self.mode}@{self.fault_at}" + (f" keep={self.keep}" if self.keep else ""))
         if self.die_after_b:
             bits.append("A dies after B")
+        if self.mutation:
+            bits.append(f"mutation={self.mutation}")
         return " · ".join(bits)
 
 
@@ -954,19 +1069,28 @@ def execute(sc: Scenario) -> Outcome:
 
     bs: list = []
 
+    def run_b(b: RunUnit, stmts: list) -> bool:
+        """Run B's statements; False when B's run unit died (DIE) or a fatal status ended its program."""
+        for stmt in stmts:
+            if stmt == DIE:
+                h.kill(b)
+                return False
+            st = run_statement(b, stmt)
+            out.b_statuses.append(st)
+            if st == "30":
+                b.rollback()
+                return False
+        return True
+
     def b_hook():
         if not sc.b_program:
             return
-        b = RunUnit("B", m, h, oracle, F, D, sc.b_covered, sc.optional)
+        b = RunUnit("B", m, h, oracle, F, D, sc.b_covered, sc.optional, sc.mutation)
+        now = sc.b_program[: sc.b_program.index(LATER)] if LATER in sc.b_program else sc.b_program
+        later = sc.b_program[len(now) + 1:] if LATER in sc.b_program else []
         try:
-            for stmt in sc.b_program:
-                st = run_statement(b, stmt)
-                out.b_statuses.append(st)
-                if st == "30":
-                    b.rollback()
-                    break
-            if b.txn is not None:
-                bs.append(b)                           # B keeps its transaction open (and alive) beside A
+            if run_b(b, now) and (b.txn is not None or later):
+                bs.append((b, later))                  # B lives on beside A: its transaction open, its program not done
             else:
                 h.kill(b)                              # B's run unit ends
         except Blocked:
@@ -982,7 +1106,7 @@ def execute(sc: Scenario) -> Outcome:
         f = m.files[F] = FileImage()
         f.exists_durable = True
         f.durable = [("app", r) for r in sc.initial]
-    a = RunUnit("A", m, h, oracle, F, D, True, sc.optional)
+    a = RunUnit("A", m, h, oracle, F, D, True, sc.optional, sc.mutation)
     A_holder.append(a)
     died = power = False
     try:
@@ -1016,13 +1140,15 @@ def execute(sc: Scenario) -> Outcome:
         raise AssertionError("A found the mutex held with no one else running")
     out.ops = m.ops
     fault.die_after_hook = False                       # A is gone; a death armed for its next operation is moot
-    for b in bs:                                       # a B left alive ends normally: its implicit COMMIT
-        if not power:
-            b.commit()
-        h.kill(b)
+    for b, later in bs:                                # a B left alive runs the rest of its program, then ends normally
+        if power:
+            continue                                   # the power loss took B's run unit with A's
+        if run_b(b, later):
+            b.commit()                                 # normal termination: the implicit COMMIT
+            h.kill(b)
     # the next entry
     fault.mode = None
-    e = RunUnit("E", m, h, oracle, F, D, False, sc.optional)
+    e = RunUnit("E", m, h, oracle, F, D, False, sc.optional, sc.mutation)
     e.sweep()
     actual = records(m.view(F)) if m.exists(F) else ABSENT
     litter = [p[len(D) + 1:] for p in m.listdir(D) if "mutex" not in p]
@@ -1046,7 +1172,7 @@ def run(sc: Scenario) -> Outcome:
         raise RuntimeError(f"the model itself failed: {type(e).__name__}: {e} [{sc.title()}]") from e
 
 
-def sweep_scenario(base: Scenario, results: list) -> int:
+def sweep_scenario(base: Scenario) -> int:
     """Run the fault-free scenario, then every fault at every operation (and every power-loss prefix)."""
     count = 0
     plain = run(base)
@@ -1063,11 +1189,10 @@ def sweep_scenario(base: Scenario, results: list) -> int:
                     sc2 = Scenario(**{**sc.__dict__, "keep": keep})
                     run(sc2)
                     count += 1
-    results.append(base.title())
     return count
 
 
-def sweep_interleavings(base: Scenario, b_name: str, b_prog: list, b_covered: bool) -> int:
+def sweep_interleavings(base: Scenario, b_prog: list, b_covered: bool) -> int:
     count = 0
     plain = run(base)
     for i in range(1, plain.ops + 2):
@@ -1104,29 +1229,49 @@ ROWS = [
     ("COMMIT then more, ROLLBACK", ("C1",), False,
      [("OE",), ("W", "X1"), ("CM",), ("W", "X2"), ("RB",)]),
     ("CLOSE under commit, then COMMIT", ("C1",), False, [("OE",), ("W", "X1"), ("CL",), ("CM",)]),
+    # R2-1 lives in this row's interleavings: B "rewrite-open-roll" begins while A's append X1 is live (or still in
+    # flight, between A's begin and its write) and rolls back after A's ROLLBACK shortened F, or after A's COMMIT kept
+    # X1; "rewrite-open-append-roll" appends into the end A's ROLLBACK vacated and rolls back.
+    ("R2-1 a transaction begun beside another's append", ("C1", "C2"), False, [("OE",), ("W", "X1"), ("CL",), ("RB",)]),
 ]
 
 
-def run_rows(verbose: bool) -> int:
-    failures = 0
+def sweep_with_b(base: Scenario) -> int:
+    """The base scenario under every fault, then every second-run-unit program at every boundary (fault-free)."""
+    n = sweep_scenario(base)
+    for b_prog in B_PROGRAMS.values():
+        n += sweep_interleavings(base, b_prog, False)
+    for b_prog in B_COVERED_PROGRAMS.values():
+        n += sweep_interleavings(base, b_prog, True)
+    return n
+
+
+def run_rows(verbose: bool, mutation: str | None = None, stop_at_first: bool = False) -> tuple[int, int, str | None]:
+    """Returns (runs, failures, the first violation)."""
+    runs = failures = 0
+    first = None
     for name, initial, optional, prog in ROWS:
-        base = Scenario(initial=initial, optional=optional, program=prog)
+        base = Scenario(initial=initial, optional=optional, program=prog, mutation=mutation)
         try:
-            n = sweep_scenario(base, [])
-            for b_name, b_prog in B_PROGRAMS.items():
-                n += sweep_interleavings(base, b_name, b_prog, False)
-            for b_name, b_prog in B_COVERED_PROGRAMS.items():
-                n += sweep_interleavings(base, b_name, b_prog, True)
+            n = sweep_with_b(base)
+            runs += n
             if verbose:
                 print(f"OK    {name}: {n} runs")
         except Violation as v:
             failures += 1
-            print(f"FAIL  {name}: {v}")
-    return failures
+            first = first or f"{name}: {v}"
+            if verbose:
+                print(f"FAIL  {name}: {v}")
+            if stop_at_first:
+                break
+    return runs, failures, first
 
 
-def run_sweep(depth: int, b_depth: int, verbose: bool) -> tuple[int, int]:
+def run_sweep(depth: int, b_depth: int, verbose: bool, mutation: str | None = None,
+              stop_at_first: bool = False) -> tuple[int, int, str | None]:
+    """Every legal program of up to `depth` statements; returns (runs, failures, the first violation)."""
     runs = failures = 0
+    first = None
     programs = list(legal_programs(depth, "A"))
     for initial in (ABSENT, ("C1", "C2")):
         for optional in (False, True):
@@ -1135,20 +1280,35 @@ def run_sweep(depth: int, b_depth: int, verbose: bool) -> tuple[int, int]:
             for prog in programs:
                 if not prog:
                     continue
-                base = Scenario(initial=initial, optional=optional, program=prog)
+                base = Scenario(initial=initial, optional=optional, program=prog, mutation=mutation)
                 try:
-                    runs += sweep_scenario(base, [])
-                    if len(prog) <= b_depth:
-                        for b_name, b_prog in B_PROGRAMS.items():
-                            runs += sweep_interleavings(base, b_name, b_prog, False)
-                        for b_name, b_prog in B_COVERED_PROGRAMS.items():
-                            runs += sweep_interleavings(base, b_name, b_prog, True)
+                    runs += sweep_with_b(base) if len(prog) <= b_depth else sweep_scenario(base)
                 except Violation as v:
                     failures += 1
-                    print(f"FAIL  {base.title()}: {v}")
-                    if failures > 20:
-                        return runs, failures
-    return runs, failures
+                    first = first or str(v)
+                    if verbose:
+                        print(f"FAIL  {base.title()}: {v}")
+                    if stop_at_first or failures > 20:
+                        return runs, failures, first
+    return runs, failures, first
+
+
+def prove_mutations(verbose: bool) -> int:
+    """The watchdog proves itself (review round 2, R2-2): with each named mutation applied, the rows and the depth-3
+    sweep must turn RED. Returns the number of mutations the model failed to catch."""
+    dead = 0
+    for name, what in MUTATIONS.items():
+        t0 = time.time()
+        runs, failures, first = run_rows(False, mutation=name, stop_at_first=True)
+        if failures == 0:
+            r2, failures, first = run_sweep(3, 3, False, mutation=name, stop_at_first=True)
+            runs += r2
+        if failures == 0:
+            dead += 1
+            print(f"FAIL  mutation {name} ({what}) left the model GREEN over {runs} runs: the watchdog is dead")
+        elif verbose:
+            print(f"RED   mutation {name} ({what}) after {runs} runs, {time.time() - t0:.1f}s: {first}")
+    return dead
 
 
 def main(argv=None) -> int:
@@ -1157,16 +1317,23 @@ def main(argv=None) -> int:
     ap.add_argument("--depth", type=int, default=0, help="sweep every program of up to this many statements")
     ap.add_argument("--b-depth", type=int, default=3, help="interleave the second run unit with programs up to this length")
     ap.add_argument("--rows", action="store_true", help="run the named 2.2.2.12 rows and print each")
+    ap.add_argument("--mutations", action="store_true", help="run only the watchdog's proof: every named mutation must be RED")
+    ap.add_argument("--mutation", choices=sorted(MUTATIONS), help="apply one named mutation to the rows or the sweep (by hand)")
     args = ap.parse_args(argv)
     t0 = time.time()
-    if args.self_test or args.rows:
-        failures = run_rows(verbose=True)
+    if args.mutations:
+        failures = prove_mutations(verbose=True)
+    elif args.self_test or args.rows:
+        runs, failures, _ = run_rows(verbose=True, mutation=args.mutation)
         if args.self_test:
-            runs, f2 = run_sweep(4, 3, verbose=False)
+            r2, f2, _ = run_sweep(4, 3, verbose=False, mutation=args.mutation)
+            runs += r2
             failures += f2
-            print(f"sweep: depth 4, {runs} runs")
+            print(f"sweep: depth 4, {runs} runs with the rows")
+            if args.mutation is None:
+                failures += prove_mutations(verbose=True)
     elif args.depth:
-        runs, failures = run_sweep(args.depth, args.b_depth, verbose=True)
+        runs, failures, _ = run_sweep(args.depth, args.b_depth, verbose=True, mutation=args.mutation)
         print(f"sweep: depth {args.depth}, {runs} runs")
     else:
         ap.print_help()
