@@ -32,7 +32,8 @@ public sealed record CorpusRow(string Name, string Suite, string Status, string[
 }
 
 /// <summary>
-/// Loads <c>tests/nist/corpus.tsv</c> — the ONE source of truth for the green NIST set + producer/consumer chains. A
+/// Loads <c>tests/nist/corpus.tsv</c> — the source of the green NIST set + producer/consumer chains for the tests and
+/// the group guard (<c>scripts/guard.sh</c>'s <c>NIST_TESTS</c> still lists the guard population, kb/Work PB925). A
 /// green program is a manifest ROW, not a code edit.
 /// </summary>
 public static class CorpusManifest

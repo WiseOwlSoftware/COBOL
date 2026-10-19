@@ -28,7 +28,7 @@ public abstract class NistDifferentialTestsBase<TSlot>
     /// puts this class below the assembly's next-largest (the split version matrix, ~60 s).</summary>
     public const int Partitions = 6;
 
-    // The green∪divergent NIST set lives in tests/nist/corpus.tsv — the ONE source of truth, loaded by
+    // The green∪divergent NIST set this test runs lives in tests/nist/corpus.tsv, loaded by
     // CorpusManifest. Adding a green program is a manifest row, not a code edit. Per-program provenance (subsystem + ISO §) is in DEVLOG + git
     // history; a divergent row carries its ISO § citation in the corpus.tsv note.
     [PartitionedRowSource(nameof(GreenPrograms))]
