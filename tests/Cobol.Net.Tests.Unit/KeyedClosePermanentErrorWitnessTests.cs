@@ -21,7 +21,7 @@ namespace CobolNet.Tests.Unit;
 /// <see cref="KeyedStoreReloadFailureDriftTests"/>) see only the connector's status; these run the program, so the
 /// emitted transfer of control — the USE procedure, the FILE STATUS item and whether the run unit continues — is checked
 /// for each refusal, in both organizations, in every combination of a USE procedure and a FILE STATUS clause, and with
-/// EC-I-O checking enabled.
+/// EC-I-O checking enabled, with no declarative, a format 1 USE procedure on the file, or a declarative for the condition.
 ///
 /// <para>The refusal is the host's answer a real file cannot be made to give on demand, so it comes from 2.2.1.12's
 /// fault-injecting medium (<see cref="RefusingPageMedium"/> through <c>KeyedStore.MediumObserver</c>), which is per
@@ -39,11 +39,19 @@ namespace CobolNet.Tests.Unit;
 /// implementor determines what action is taken after the execution of any applicable exception processing statement"</i>:
 /// the USE procedure runs, and then <i>"The implementor may either continue or terminate the execution of the run unit"</i>,
 /// which docs/CONFORMANCE.md DOC-A.1-103 makes: with EC-I-O checking not enabled the run unit continues when a FILE STATUS
-/// clause or a USE procedure covers the statement and terminates abnormally when neither does; with checking enabled and
-/// no USE procedure it terminates even with a FILE STATUS clause (§14.6.13.1.3). §14.9.6.4 GR8 leaves the connector in
-/// an open mode only after a SUCCESSFUL CLOSE, and an unsuccessful one does not keep it either
-/// (<c>FileConnector.IsOpen</c>), so the next OPEN of the connector succeeds rather than answering '41'; GR9 releases the
-/// file lock whatever the outcome. The file keeps every record a completed statement wrote: page 2 names the last
+/// clause or a USE procedure covers the statement and terminates abnormally when neither does. With checking enabled the
+/// fatal-exception rules follow the §9.1.13 processing (§14.6.13.1.3 rule 3), and the run unit terminates abnormally even
+/// with a FILE STATUS clause: with no USE procedure by rule 7, <i>"If checking for the exception condition is enabled,
+/// execution of the run unit is terminated abnormally"</i>; after a format 1 USE procedure on the file has run (rule 3's
+/// §9.1.13 processing) by the same rule 7; and after a declarative for the condition by rule 5, <i>"If execution of the
+/// declarative completes normally the execution of the run unit is terminated abnormally"</i>; so the declarative's trace
+/// entry is the last (DOC-A.1-218). §14.9.6.4 GR8 takes the connector OUT of its open mode after a SUCCESSFUL CLOSE —
+/// <i>"Following the successful execution of a CLOSE statement without the UNIT phrase, … the open mode of that file
+/// connector is set such that it is no longer in an open mode"</i> — and says nothing of an unsuccessful one;
+/// docs/CONFORMANCE.md DOC-A.1-105 documents that an unsuccessful CLOSE leaves the connector closed too, so the next OPEN
+/// of the connector succeeds rather than answering '41'. GR9 releases the file lock whatever the outcome: <i>"the file
+/// lock and any record locks associated with the file connector referenced by file-name-1 are released by the execution
+/// of the CLOSE statement"</i>. The file keeps every record a completed statement wrote: page 2 names the last
 /// completed statement's trees (2.2.1.6), so the next OPEN adopts them; and the INPUT sibling of a refused re-adoption
 /// keeps reading the trees it holds, while the run unit's next OPEN I-O fences (2.2.1.7, 2.2.1.16's re-adoption row).</para>
 /// </summary>
@@ -61,9 +69,33 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         ReAdoption,
     }
 
-    /// <summary>What covers the writer's statements: a USE procedure, a FILE STATUS clause, both, neither; or a FILE
-    /// STATUS clause alone with EC-I-O checking enabled.</summary>
-    public enum Cover { UseAndFileStatus, UseOnly, FileStatusOnly, Neither, CheckingWithFileStatusOnly }
+    /// <summary>What covers the writer's statements: a USE procedure, a FILE STATUS clause, both, neither; or, with EC-I-O
+    /// checking enabled, a FILE STATUS clause alone, with a format 1 USE procedure on the file (<c>USE AFTER STANDARD
+    /// ERROR PROCEDURE ON KW</c>, §14.6.13.1.3 rule 3, then rule 7), or with a declarative for the condition (<c>USE AFTER
+    /// EXCEPTION CONDITION EC-I-O</c>, rule 5).</summary>
+    public enum Cover
+    {
+        UseAndFileStatus, UseOnly, FileStatusOnly, Neither,
+        CheckingWithFileStatusOnly, CheckingWithUseAndFileStatus, CheckingWithExceptionUseAndFileStatus,
+    }
+
+    private static bool HasFileStatus(Cover cover) => cover is not (Cover.UseOnly or Cover.Neither);
+
+    /// <summary>A format 1 USE procedure on the writer's file.</summary>
+    private static bool HasFileUse(Cover cover) =>
+        cover is Cover.UseAndFileStatus or Cover.UseOnly or Cover.CheckingWithUseAndFileStatus;
+
+    private static bool Checking(Cover cover) =>
+        cover is Cover.CheckingWithFileStatusOnly or Cover.CheckingWithUseAndFileStatus
+            or Cover.CheckingWithExceptionUseAndFileStatus;
+
+    /// <summary>A declarative runs for the CLOSE's '30': the file's USE procedure, or the condition's.</summary>
+    private static bool DeclarativeRuns(Cover cover) =>
+        HasFileUse(cover) || cover == Cover.CheckingWithExceptionUseAndFileStatus;
+
+    /// <summary>The run unit continues past the CLOSE's '30' (DOC-A.1-103): checking not enabled, and a FILE STATUS
+    /// clause or a USE procedure covers the statement.</summary>
+    private static bool Continues(Cover cover) => !Checking(cover) && (HasFileUse(cover) || HasFileStatus(cover));
 
     /// <summary>The program's one formal: its trace, an entry per statement ending in <c>;</c>.</summary>
     private delegate void Entry(ref string trace);
@@ -151,8 +183,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
 
     private static string Program(string id, string host, Org org, Refusal refusal, Cover cover)
     {
-        bool fileStatus = cover is Cover.UseAndFileStatus or Cover.FileStatusOnly or Cover.CheckingWithFileStatusOnly;
-        bool use = cover is Cover.UseAndFileStatus or Cover.UseOnly;
+        bool fileStatus = HasFileStatus(cover);
         string organization = org == Org.Relative ? "RELATIVE" : "INDEXED";
         string writerKey = org == Org.Relative ? "RELATIVE KEY WK" : "RECORD KEY KWK";
         string readerKey = org == Org.Relative ? "RELATIVE KEY RK" : "RECORD KEY KRK";
@@ -206,12 +237,15 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
                 {Note("RCLOSE", "RS")}
                 GOBACK.
             """;
-        string declaratives = use
-            ? "DECLARATIVES.\nERR-S SECTION.\n    USE AFTER STANDARD ERROR PROCEDURE ON KW.\nERR-P.\n    "
+        string? use = HasFileUse(cover) ? "USE AFTER STANDARD ERROR PROCEDURE ON KW."
+            : cover == Cover.CheckingWithExceptionUseAndFileStatus ? "USE AFTER EXCEPTION CONDITION EC-I-O."
+            : null;
+        string declaratives = use is not null
+            ? $"DECLARATIVES.\nERR-S SECTION.\n    {use}\nERR-P.\n    "
               + Note("USE", "FS") + "\nEND DECLARATIVES.\nMAIN-S SECTION.\n"
             : "";
         return $"""
-            {(cover == Cover.CheckingWithFileStatusOnly ? ">>TURN EC-I-O CHECKING ON\n" : "")}IDENTIFICATION DIVISION.
+            {(Checking(cover) ? ">>TURN EC-I-O CHECKING ON\n" : "")}IDENTIFICATION DIVISION.
             PROGRAM-ID. {id}.
             ENVIRONMENT DIVISION.
             INPUT-OUTPUT SECTION.
@@ -285,13 +319,13 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
     /// is then an ordinary item the I-O never stores into. The reader's RS is always its own FILE STATUS item.</summary>
     private static string[] Expected(Refusal refusal, Cover cover)
     {
-        bool fileStatus = cover is Cover.UseAndFileStatus or Cover.FileStatusOnly or Cover.CheckingWithFileStatusOnly;
-        bool use = cover is Cover.UseAndFileStatus or Cover.UseOnly;
+        bool fileStatus = HasFileStatus(cover);
         string ok = fileStatus ? "00" : "--", failed = fileStatus ? "30" : "--";
-        bool continues = use || cover == Cover.FileStatusOnly;
         var before = refusal == Refusal.Promotion ? new[] { $"OPEN {ok}", $"WRITE {ok}" } : [$"OPEN {ok}", "ROPEN 00"];
-        if (!continues) return before;
-        var close = use ? new[] { $"USE {failed}", $"CLOSE {failed}" } : [$"CLOSE {failed}"];
+        // The declarative runs before the run unit's fate is decided (§9.1.13.1; §14.6.13.1.3 rules 3 and 5).
+        string[] use = DeclarativeRuns(cover) ? [$"USE {failed}"] : [];
+        if (!Continues(cover)) return [.. before, .. use];
+        string[] close = [.. use, $"CLOSE {failed}"];
         string[] after = refusal == Refusal.Promotion
             ? [$"REOPEN {ok}", $"READ {ok} 0003CCCC", $"CLOSE2 {ok}"]
             : ["RREAD 00 0001AAAA", $"REOPEN {ok}", $"WRITE {ok}", $"CLOSE2 {ok}", "RREAD3 00 0003CCCC", "RCLOSE 00"];
@@ -308,8 +342,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         Probe(host, org, refusal);
         var (trace, ended) = Run(id, Program(id, host, org, refusal, cover));
         Assert.Equal(Expected(refusal, cover), trace);
-        bool continues = cover is Cover.UseAndFileStatus or Cover.UseOnly or Cover.FileStatusOnly;
-        if (continues)
+        if (Continues(cover))
         {
             Assert.Null(ended);
             return;
