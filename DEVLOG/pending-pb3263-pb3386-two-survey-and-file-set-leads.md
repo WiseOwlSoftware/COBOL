@@ -1,13 +1,18 @@
-## kb/Work PB3263, PB3386, PB3388, PB3389: four leads from the engine landings of 2026-10-18
+## kb/Work PB3263, PB3386, PB3388, PB3389, PB3392: five leads from the engine landings of 2026-10-18
 
-Four leads from the day's engine and campaign landings, filed by the operator's clerk.
+Five leads from the day's engine and campaign landings, filed by the operator's clerk.
 
 - PB3263 (campaign notes get an empty declared file set) gains its third population, the PB3330 engine's wave 1118.
   Every group was recorded with zero files because its code sites did not exist yet. At 15:28 the landing check
   stopped `worktree-wf_14a1e62b-326-32`, reviewed CLEAN, through another arm: the R3 notes PB2222 and PB2342 that the
   branch also closes were in no ledger group, so their set was computed from sites that predate the engine's files,
   and its message blamed a member_index hole. The Mythos lane recorded them on group A4 by hand. The fix shape gains a
-  fourth part: an R3 note a recorded group's branch closes is checked against that group's set.
+  fourth part: an R3 note a recorded group's branch closes is checked against that group's set. It also records the
+  second population's cost: wave 1126 C (PB1587, no site block, 0 files) landed as PR #265 over the engine's
+  `-326-19` and forced a fourth merge round there.
+- PB3392 (new): `plan_wave.record_dispatch` stamps `at` at every recording, so a re-rendered spec makes an early
+  dispatch read as the later one. Wave 1118's engine groups (dispatched about 05:00) read 16:42 after a re-render, and
+  the partition's "the later of two re-plans" would stop the wrong branch.
 - PB3386 (new): `prune_worktrees.contained()` carries a DECISION row only when its report is FINDINGS-stamped. A SPLIT
   predecessor that its successor merged therefore still reads DECISION, and asks for a land-or-abandon decision about
   work already landing through the successor.
