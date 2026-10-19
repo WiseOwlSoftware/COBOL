@@ -679,7 +679,8 @@ def tnote(nid, tier=None, blocked_by=(), site="", wrong=False):
     (TW / f"{nid}.md").write_text(
         f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
         f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\nblocked: {'true' if blocked_by else 'false'}\n"
-        f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940]\n" + (f"tier: {tier}\n" if tier else "") +
+        f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940, PB949]\n" +
+        (f'tier: ["PB940:{tier}", "PB949:{9 - tier}"]\n' if tier else "") +
         f"---\n\n# {nid}\n\n" + (f"**Sites:**\n- `{site}`\n" if site else "Prose only.\n"), encoding="utf-8", newline="\n")
 
 
@@ -697,6 +698,9 @@ check("cluster_order: tier first (a blocker takes the lowest tier it blocks), th
       [("PB943", 1, 0), ("PB944", 1, 0), ("PB948", 1, 0), ("PB947", 1, 1), ("PB945", 2, 0), ("PB941", None, 0),
        ("PB942", None, 0)])
 check("the tiered register is well-formed", work.topology_problems(titems), [])
+check("a tier is scoped to its campaign: the same notes in PB949 rank by that campaign's tiers",
+      [(r["id"], r["tier"]) for r in work.cluster_order(titems, "PB949")["notes"]][:5],
+      [("PB945", 7), ("PB943", 8), ("PB944", 8), ("PB948", 8), ("PB947", 8)])
 check("lift_tiers: a cluster waiting on another lowers it, transitively; an unrelated cluster keeps its tier",
       (lambda cs: (pw.lift_tiers(cs, {"X2": ["Y1"], "Y1": ["Z1"]}), [c["tier"] for c in cs])[1])(
           [{"notes": [{"id": "X1"}, {"id": "X2"}], "tier": 1}, {"notes": [{"id": "Y1"}], "tier": None},
@@ -1140,13 +1144,17 @@ check("a cycle never reads as ready", [(r["id"], r["depth"], r["ready"]) for r i
       [("T6", None, False), ("T7", None, False)])
 check("a scalar cluster is no member (no substring match)", [r["id"] for r in work.cluster_order(TOPO, "T3")["notes"]],
       ["T3"])
-# a tier (kb/Work PB3423) is a positive integer on a note that names a cluster; anything else is reported, never read
+# a tier (kb/Work PB3423) is a list of CAMPAIGN:N entries naming the note's own campaigns once; anything else is
+# reported, and only the well-formed entries are read
 TIERS = [{"_file": f"U{k}.md", "id": f"U{k}", "status": "open", "blocked": False, "blocked_by": [], "cluster": cl, "tier": t}
-         for k, (t, cl) in enumerate([("1", ["C"]), ("12", ["C"]), ("0", ["C"]), ("x", ["C"]), (True, ["C"]),
-                                       ("-1", ["C"]), ("2", [])])]
-check("a malformed tier, or a tier on a note naming no cluster, is a problem; 1 and 12 are not",
-      sorted(s.split(":")[0] for s in work.topology_problems(TIERS)), ["U2.md", "U3.md", "U4.md", "U5.md", "U6.md"])
-check("a malformed tier reads as no tier", [work.tier_of(i) for i in TIERS], [1, 12, None, None, None, None, 2])
+         for k, (t, cl) in enumerate([(["C:1"], ["C"]), (["C:12", "D:2"], ["C", "D"]), (["C:0"], ["C"]),
+                                       (["C:x"], ["C"]), ("1", ["C"]), (["C:1", "C:2"], ["C"]), (["D:2"], ["C"]),
+                                       (["C"], ["C"])])]
+check("a malformed entry, a campaign named twice, or a campaign the note is not in, is a problem",
+      sorted(s.split(":")[0] for s in work.topology_problems(TIERS)), ["U2.md", "U3.md", "U4.md", "U5.md", "U6.md", "U7.md"])
+check("tier_of reads the well-formed entry for that campaign only",
+      [work.tier_of(i, "C") for i in TIERS] + [work.tier_of(TIERS[1], "D"), work.tier_of(TIERS[6], "D")],
+      [1, 12, None, None, None, 1, None, None, 2, 2])
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/

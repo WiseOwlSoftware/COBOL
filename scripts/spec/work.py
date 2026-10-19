@@ -22,7 +22,7 @@ a previous summary was wrong — lives in the note BODY, which is where it alrea
     python scripts/spec/work.py migrate    # ONE TIME: fold the five registers into kb/Work/
     python scripts/spec/work.py check      # validate frontmatter; non-zero on a bad/missing field
     python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
-    python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes in blocked_by order
+    python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes, tier then blocked_by order
     python scripts/spec/work.py stats      # counts by kind/status/harm
     python scripts/spec/work.py parity     # the frontmatter reader vs. its C# twin's fixture (--json for the gate)
 
@@ -495,18 +495,35 @@ def actionable(items: list[dict]) -> list[dict]:
 # ⭐ `tier:` IS THE OWNER'S ORDER INSIDE A CAMPAIGN (kb/Work PB3423). `blocked_by` says what CANNOT start before
 # something else; a tier says what SHOULD start first among notes that are all ready (PB3420: the owner's ten known
 # SORT and file I/O defects before the rest of cluster PB3353, which the planner had ranked by inventory rows and harm
-# alone). It is a positive integer, 1 first, on a note that names a cluster; a note without one ranks after every
-# tiered note. `cluster_order` reads a note's EFFECTIVE tier, the lowest of its own and of every open cluster member it
-# blocks (a tier-1 note's blocker is tier 1 too), so ranking by tier and then depth is still a blocked_by order, and
+# alone). It is a list of `CAMPAIGN:N` entries, `tier: ["PB3353:1"]`, N a positive integer, 1 first, each naming a
+# campaign the note's `cluster:` lists: SCOPED, because a note belongs to several campaigns (PB1278 to three) and the
+# owner's order for one says nothing about another. In a campaign a note has no tier for, it ranks after every tiered
+# note. `cluster_order` reads a note's EFFECTIVE tier, the lowest of its own and of every open cluster member it blocks
+# (a tier-1 note's blocker is tier 1 too), so ranking by tier and then depth is still a blocked_by order, and
 # `plan_wave.campaign_clusters` lifts its clusters the same way, so `work.py next --cluster` and the planner read one
-# order. A held tier (`status: owner`, a `blocked_by` hold) is still held: a tier ranks the READY notes, nothing more.
-TIER = re.compile(r"\A[1-9][0-9]*\Z")
+# order. A held note (`status: owner`, a `blocked_by` hold) is still held: a tier ranks the READY notes, nothing more.
+TIER = re.compile(r"\A(?P<campaign>[^:\s]+):(?P<tier>[1-9][0-9]*)\Z")
 
 
-def tier_of(it: dict) -> int | None:
-    """The note's own `tier:` as an integer, or None when it has none (a malformed one is `check`'s to report)."""
-    v = it.get("tier")
-    return int(v) if isinstance(v, str) and TIER.match(v) else None
+def tier_entries(it: dict) -> tuple[dict[str, int], list[str]]:
+    """The note's `tier:` as `({campaign: tier}, [every entry that is not CAMPAIGN:N, or names a campaign twice])`;
+    `check` reports the second list, and the first holds only the well-formed entries."""
+    v = it.get("tier", [])
+    if not isinstance(v, list):
+        return {}, [repr(v)]
+    good: dict[str, int] = {}
+    bad: list[str] = []
+    for e in v:
+        if (m := TIER.match(e)) is None or m["campaign"] in good:
+            bad.append(e)
+        else:
+            good[m["campaign"]] = int(m["tier"])
+    return good, bad
+
+
+def tier_of(it: dict, campaign: str) -> int | None:
+    """The note's own tier in `campaign`, or None when it has none there."""
+    return tier_entries(it)[0].get(campaign)
 
 
 def tier_rank(tier: int | None) -> float:
@@ -539,8 +556,8 @@ def cluster_order(items: list[dict], lead: str) -> dict:
     in `blocked_by` topological order (together still a topological order: a blocker's tier is never later).
 
     Each entry is `{"id", "kind", "status", "area", "title", "tier", "depth", "ready", "waiting_on",
-    "blockers_in_cluster"}`: `tier` is the note's EFFECTIVE tier, the lowest of its own `tier:` and of every open
-    cluster member it blocks, or `None` (ranked after every tiered note); `depth` is 0 for a note no open cluster member
+    "blockers_in_cluster"}`: `tier` is the note's EFFECTIVE tier in `lead`, the lowest of its own (`tier_of`) and of
+    every open cluster member it blocks, or `None` (ranked after every tiered note); `depth` is 0 for a note no open cluster member
     blocks and one past its deepest open in-cluster blocker otherwise (`None` inside a cycle); `waiting_on` lists every
     open blocker, in the cluster or not, plus the reason a note is held without one (`status: owner`, `status:
     blocked`, or `blocked: true` with no `blocked_by`); `ready` is `waiting_on == []`. Ties sort by note number.
@@ -565,7 +582,7 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
     # The effective tier: a blocker ranks no later than anything it blocks. A pass only ever lowers a tier, so the
     # loop ends, a cycle included.
-    tier = {nid: tier_of(it) for nid, it in members.items()}
+    tier = {nid: tier_of(it, lead) for nid, it in members.items()}
     lowered = True
     while lowered:
         lowered = False
@@ -591,8 +608,9 @@ def cluster_order(items: list[dict], lead: str) -> dict:
 
 def topology_problems(items: list[dict]) -> list[str]:
     """`blocked_by` names notes that exist, `blocked` agrees with it, open notes form no blocking cycle, `cluster`
-    is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and a `tier` is a positive
-    integer on a note that names a cluster (it ranks the note inside its campaigns and means nothing outside one)."""
+    is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
+    `CAMPAIGN:N` entries, each naming a campaign of the note's own `cluster` list once (a tier ranks the note inside
+    that campaign and means nothing outside it)."""
     by_id = {i.get("id"): i for i in items}
     bad = []
     for it in items:
@@ -600,9 +618,14 @@ def topology_problems(items: list[dict]) -> list[str]:
         bb, cl = it.get("blocked_by", []), it.get("cluster", [])
         if not isinstance(cl, list) or not all(isinstance(c, str) and c for c in cl):
             bad.append(f"{f}: cluster must be a list of cluster names, got {cl!r}")
-        if "tier" in it and (tier_of(it) is None or not isinstance(cl, list) or not cl):
-            bad.append(f"{f}: tier must be a positive integer (1 first) on a note that names a cluster, got tier "
-                       f"{it['tier']!r} with cluster {cl!r} (kb/Work PB3423)")
+        if "tier" in it:
+            good, malformed = tier_entries(it)
+            for e in malformed:
+                bad.append(f"{f}: tier entry {e!r} is not CAMPAIGN:N (N a positive integer, 1 first) naming a campaign "
+                           f"once, e.g. tier: [\"PB3353:1\"] (kb/Work PB3423)")
+            for c in sorted(set(good) - set(cl if isinstance(cl, list) else [])):
+                bad.append(f"{f}: tier names campaign {c!r}, which its cluster list {cl!r} does not: a tier ranks a "
+                           f"note inside a campaign it belongs to (kb/Work PB3423)")
         if not isinstance(bb, list):
             bad.append(f"{f}: blocked_by must be a list of note ids, got {bb!r}")
             continue
