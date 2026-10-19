@@ -31,3 +31,14 @@ status or output changed. `docs/rearchitecture/DESIGN-runtime-library.md` needed
 
 **Register.** PB3416 landed, no inventory row claimed or moved (`closes_rows_reason`); PB2749's witness (c) now describes
 the code its extraction moves.
+
+**Review round 1 (R1-1, blocking).** The reviewer found that the first version of this entry's new test pinned a wrong status:
+a sequential-ACCESS REWRITE whose immediately previous statement was the unsuccessful '51' REWRITE answered '51' (and RETRY
+waited) where §14.9.35.4 GR5 and DOC-A.1-104 (2) put '43' first. Root cause, older than this branch: the sequential-access
+arms of `MutationTargetRecordIdCore` (sequential, relative, indexed) named `LastReadRecordId` whatever the previous statement
+was, so the registry's lock check ran ahead of the connector's own '43' gate. The one fix is
+`FileConnector.SequentialMutationTarget` (the record only after a successful READ), used by all three arms, with
+`ASequentialAccessStatement_AfterAnUnsuccessfulOne_Is43_NotTheRecordLock` (15 cells: three organizations, keyed ones in ACCESS
+SEQUENTIAL, three holder places, REWRITE and DELETE RECORD; red on all 15 without the fix) and the '51' test now re-reads
+record 1 between its statements. DOC-A.1-104 (2) carries the order. R1-2 (a lead): the lock-taking comment now cites
+§14.9.30.4 GR11 d), the rule that sets the lock in manual mode.

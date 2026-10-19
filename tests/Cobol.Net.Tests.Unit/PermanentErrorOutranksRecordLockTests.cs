@@ -43,7 +43,8 @@ public sealed class PermanentErrorOutranksRecordLockTests
         return data;
     }
 
-    private static void Register(FileRegistry reg, string name, string host, Org org, bool shared)
+    private static void Register(FileRegistry reg, string name, string host, Org org, bool shared,
+        KeyedAccess access = KeyedAccess.Dynamic)
     {
         switch (org)
         {
@@ -51,11 +52,11 @@ public sealed class PermanentErrorOutranksRecordLockTests
                 reg.Register(name, host, recordWidth: 4, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
                 break;
             case Org.Relative:
-                reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+                reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)access,
                     relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
                 break;
             default:
-                reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+                reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)access,
                     primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
                 break;
         }
@@ -97,7 +98,8 @@ public sealed class PermanentErrorOutranksRecordLockTests
         return all;
     }
 
-    /// <summary>Connector A takes record 1's lock (§14.9.30.4 GR11 b)) and holds it.</summary>
+    /// <summary>Connector A takes record 1's lock (§14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
+    /// READ says WITH LOCK) and holds it.</summary>
     private static void HoldRecordOne(FileRegistry a, Org org)
     {
         string status;
@@ -119,6 +121,18 @@ public sealed class PermanentErrorOutranksRecordLockTests
     {
         if (org == Org.Sequential) Assert.Equal("00", ReadNext(b, "B", FileRecordLock.None, ignoringLock: true, out _));
         else if (org == Org.Relative) b.SetRelativeKey("B", 1);
+    }
+
+    /// <summary>Make the next sequential REWRITE the statement that follows a successful READ of record 1 again (a sequential
+    /// file has no way back but a CLOSE and a new OPEN). A keyed connector in dynamic access names the record in its key and
+    /// needs nothing.</summary>
+    private static void Reaim(FileRegistry b, Org org)
+    {
+        if (org != Org.Sequential) return;
+        b.Close("B");
+        b.OpenStatic("B", FileOpenMode.IO);
+        Assert.Equal("00", b.Status("B"));
+        AimAtRecordOne(b, org);
     }
 
     private static string Mutate(FileRegistry b, Org org, Verb verb, FileRetryKind retry, long amount) => verb == Verb.Rewrite
@@ -153,6 +167,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
             AimAtRecordOne(b, org);
             Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.None, 0));
             Assert.Empty(pauses);
+            Reaim(b, org);   // a sequential-access statement needs a READ just before it (GR5 / GR2); see the '43' test below
             Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.Times, 2));
             Assert.Equal(place == Place.SameRunUnit ? 0 : 2, pauses.Count);
             pauses.Clear();
@@ -184,6 +199,61 @@ public sealed class PermanentErrorOutranksRecordLockTests
             b.Close("B");
             a.Close("A");
 
+            Assert.Equal(Payloads.Select((p, i) => Image(org, i + 1, p)).ToList(), Records(host, org));
+        }
+        finally
+        {
+            FileRegistry.PauseObserver.Value = null;
+            try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+        }
+    }
+
+    /// <summary>⛔ GR5's '43' IS TESTED BEFORE GR11's '51' (§14.9.35.4 5) and 11); §14.9.10.4 2) and 6); DOC-A.1-104 (2): among
+    /// unsuccessful values the first general rule that fails supplies the status; kb/Work PB3416 review R1-1). A
+    /// sequential-ACCESS REWRITE or DELETE RECORD names the record the immediately previous statement's READ made current; once
+    /// an unsuccessful statement of its own (the '51') has intervened it names none, so it is the '43' of a statement with no
+    /// successful READ before it — not the '51' of a lock on a record it has no right to name, and no RETRY phrase waits for a
+    /// lock that could not change that answer. The cells are the three organizations (the keyed ones in ACCESS SEQUENTIAL,
+    /// where GR5 applies), the holder in the same run unit and in another, and each verb the organization has.</summary>
+    [Theory]
+    [MemberData(nameof(Cells))]
+    public void ASequentialAccessStatement_AfterAnUnsuccessfulOne_Is43_NotTheRecordLock(Org org, Place place, Verb verb)
+    {
+        using var forced = RegionHostSeam.Use(place == Place.OtherRunUnitSidecarHost ? RegionHostKind.LockFiles : RegionHostKind.OfThisProcess);
+        string host = Tmp(org);
+        var pauses = new List<TimeSpan>();
+        FileRegistry.PauseObserver.Value = pauses.Add;
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            var b = place == Place.SameRunUnit ? a : new FileRegistry();
+            Register(a, "A", host, org, shared: true);
+            Register(b, "B", host, org, shared: true, KeyedAccess.Sequential);
+            a.OpenStatic("A", FileOpenMode.IO);
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("A"));
+            Assert.Equal("00", b.Status("B"));
+            HoldRecordOne(a, org);
+
+            // A previous successful READ (IGNORING LOCK, since A holds the record) makes the statement name record 1: '51'.
+            Assert.Equal("00", ReadNext(b, "B", FileRecordLock.None, ignoringLock: true, out _));
+            Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.None, 0));
+
+            // The '51' is the immediately previous statement now: '43', with no wait, however the statement is asked.
+            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, org, verb, FileRetryKind.None, 0));
+            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, org, verb, FileRetryKind.Times, 2));
+            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, b.Status("B"));
+            Assert.Empty(pauses);
+
+            // The record is untouched and A's lock still held: a third connector still meets it.
+            var c = new FileRegistry();
+            Register(c, "C", host, org, shared: true);
+            c.OpenStatic("C", FileOpenMode.IO);
+            Assert.Equal("51", ReadNext(c, "C", FileRecordLock.WithLock, ignoringLock: false, out _));
+            c.Close("C");
+            b.Close("B");
+            a.Close("A");
             Assert.Equal(Payloads.Select((p, i) => Image(org, i + 1, p)).ToList(), Records(host, org));
         }
         finally
