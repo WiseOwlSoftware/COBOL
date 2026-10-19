@@ -1,6 +1,6 @@
 *>--- conformance-case
 *> id: pb1238-fd-linage-relative
-*> rules: [SR-13.4.5.3-5]
+*> rules: [SR-13.4.5.3-5, SR-13.4.5.3-7]
 *> source-format: free
 *> portable: unverified
 *>---
