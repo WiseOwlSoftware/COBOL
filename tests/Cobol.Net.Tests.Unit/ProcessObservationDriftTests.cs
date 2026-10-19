@@ -138,58 +138,37 @@ public sealed class ProcessObservationDriftTests
 
     // ── The retry of a program that WRITES (kb/Work PB3388) ────────────────────────────────────────────────
     //
-    // The program under test is a script that behaves differently on its first attempt and on its retry, decided by a
-    // marker kept OUTSIDE the run directory (so the restoration cannot erase it): the first attempt writes into the run
-    // directory and hangs until the budget kills it; the retry exits 0 only if the run directory is as the first attempt
-    // found it, and exits 9 (the leftovers of a killed attempt are present) otherwise. That is NIST IX216A's failure
-    // in miniature: its OPEN EXTEND of an absent OPTIONAL file answered 00 on the retry, because the killed attempt
-    // had created the file (ISO/IEC 1989:2023 §14.9.27.4 GR17: an absent OPTIONAL file is created and the status is 05).
+    // The retry policy is exercised through ProcessObserver.ObserveWithRetry with an IN-PROCESS attempt, not a child
+    // process under a short budget: a real child killed at a literal 1 s budget makes WHICH attempt a test observes a
+    // function of host load (kb/Work PB1590, PB3022). The first attempt here does what a killed COBOL program leaves
+    // behind (writes into the run directory, then reports TimedOut); the second reports the run directory it found.
+    // That is NIST IX216A's failure in miniature: its OPEN EXTEND of an absent OPTIONAL file answered 00 on the retry,
+    // because the killed attempt had created the file (ISO/IEC 1989:2023 §14.9.27.4 GR17: an absent OPTIONAL file is
+    // created and the status is 05). The process-level wiring (Observe over a real child) is covered by the
+    // never-finishes tests above; the three call sites that run a program are pinned by the drift test below.
 
-    /// <summary>The probe script, written per OS in <paramref name="outer"/>, and the command that runs it with the
-    /// marker directory as its first argument and <paramref name="touchBig"/> as its second ("big": the first attempt
-    /// also appends to <c>big.bin</c>).</summary>
-    private static ProcessStartInfo WritingProbe(string outer, string runDirectory, string touchBig)
+    /// <summary>What the attempts of one probe saw: the retry's view of the run directory.</summary>
+    private sealed class WritingAttempts(string run, bool touchBig)
     {
-        ProcessStartInfo psi;
-        if (OperatingSystem.IsWindows())
+        public int Calls;
+        public bool CreatedFileSeenByRetry;
+        public string? DataSeenByRetry;
+
+        public ProcessObservation Attempt()
         {
-            string script = Path.Combine(outer, "probe.cmd");
-            File.WriteAllText(script,
-                "@echo off\r\n"
-                + "if exist \"%~1\\seen\" goto second\r\n"
-                + "echo x> \"%~1\\seen\"\r\n"
-                + "echo after> data.txt\r\n"
-                + "echo x> created.txt\r\n"
-                + "if \"%~2\"==\"big\" echo x>> big.bin\r\n"
-                + "ping -n 30 127.0.0.1 >nul\r\n"
-                + "exit /b 0\r\n"
-                + ":second\r\n"
-                + "if exist created.txt exit /b 9\r\n"
-                + "exit /b 0\r\n");
-            psi = new ProcessStartInfo("cmd.exe");
-            psi.ArgumentList.Add("/c");
-            psi.ArgumentList.Add(script);
+            if (++Calls == 1)
+            {
+                // The killed first attempt's leftovers: a created file, a file rewritten in place, and (optionally) a
+                // change to a file over the copy bound.
+                File.WriteAllText(Path.Combine(run, "created.txt"), "x");
+                File.WriteAllText(Path.Combine(run, "data.txt"), "after");
+                if (touchBig) File.AppendAllText(Path.Combine(run, "big.bin"), "x");
+                return new ProcessObservation(ProcessOutcome.TimedOut, -1, "", "", "killed at the budget");
+            }
+            CreatedFileSeenByRetry = File.Exists(Path.Combine(run, "created.txt"));
+            DataSeenByRetry = File.ReadAllText(Path.Combine(run, "data.txt"));
+            return new ProcessObservation(ProcessOutcome.Completed, CreatedFileSeenByRetry ? 9 : 0, "", "", "");
         }
-        else
-        {
-            string script = Path.Combine(outer, "probe.sh");
-            File.WriteAllText(script,
-                "if [ -f \"$1/seen\" ]; then\n"
-                + "  if [ -f created.txt ]; then exit 9; fi\n"
-                + "  exit 0\n"
-                + "fi\n"
-                + "echo x > \"$1/seen\"\n"
-                + "echo after > data.txt\n"
-                + "echo x > created.txt\n"
-                + "if [ \"$2\" = big ]; then echo x >> big.bin; fi\n"
-                + "sleep 30\n");
-            psi = new ProcessStartInfo("/bin/sh");
-            psi.ArgumentList.Add(script);
-        }
-        psi.ArgumentList.Add(outer);
-        psi.ArgumentList.Add(touchBig);
-        psi.WorkingDirectory = runDirectory;
-        return psi;
     }
 
     /// <summary>A run directory holding what a chain predecessor leaves a program: a data file the killed attempt
@@ -207,8 +186,8 @@ public sealed class ProcessObservationDriftTests
 
     /// <summary>
     /// ⛔ THE ONE THAT PINS PB3388. The killed first attempt created <c>created.txt</c> and rewrote <c>data.txt</c>; the
-    /// retry must find neither (<c>created.txt</c> absent: exit 0, not 9) and the directory must end as it began. A file
-    /// over the copy bound that no attempt touched does not refuse the retry.
+    /// retry must find neither and the directory must end as it began. A file over the copy bound that no attempt
+    /// touched does not refuse the retry.
     /// </summary>
     [Fact]
     public void ARetryOfAProgramThatWrites_StartsFromTheStateTheFirstAttemptStartedFrom()
@@ -216,11 +195,14 @@ public sealed class ProcessObservationDriftTests
         var (outer, run) = WritingProbeDirectories();
         try
         {
-            var obs = ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "small"), timeoutMs: 1_000, runDirectory: run);
+            var attempts = new WritingAttempts(run, touchBig: false);
+            var obs = ProcessObserver.ObserveWithRetry("probe", 1, run, attempts.Attempt);
 
+            Assert.Equal(2, attempts.Calls);
             Assert.Equal(0, obs.ExitCode);   // 9 = the retry found what the killed attempt created
-            Assert.False(File.Exists(Path.Combine(run, "created.txt")), "a file the killed attempt created is deleted");
-            Assert.Equal("before", File.ReadAllText(Path.Combine(run, "data.txt")).Trim());   // rewritten in place, restored
+            Assert.False(attempts.CreatedFileSeenByRetry, "a file the killed attempt created is deleted before the retry");
+            Assert.Equal("before", attempts.DataSeenByRetry);   // rewritten in place by the killed attempt, restored
+            Assert.False(File.Exists(Path.Combine(run, "created.txt")));
             Assert.Equal("kept", File.ReadAllText(Path.Combine(run, "sub", "kept.txt")));
             Assert.Equal(RunDirectoryState.MaxCopiedFileBytes + 1, new FileInfo(Path.Combine(run, "big.bin")).Length);
         }
@@ -238,9 +220,11 @@ public sealed class ProcessObservationDriftTests
         var (outer, run) = WritingProbeDirectories();
         try
         {
+            var attempts = new WritingAttempts(run, touchBig: true);
             var ex = Assert.Throws<HarnessNonObservationException>(
-                () => ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "big"), timeoutMs: 1_000, runDirectory: run));
+                () => ProcessObserver.ObserveWithRetry("probe", 1, run, attempts.Attempt));
 
+            Assert.Equal(1, attempts.Calls);   // the retry is not made
             Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
             Assert.Contains("cannot be restored", ex.Message, StringComparison.Ordinal);
             Assert.Contains("big.bin", ex.Message, StringComparison.Ordinal);
@@ -258,10 +242,35 @@ public sealed class ProcessObservationDriftTests
         var (outer, run) = WritingProbeDirectories();
         try
         {
-            var obs = ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "small"), timeoutMs: 1_000);
+            var attempts = new WritingAttempts(run, touchBig: false);
+            var obs = ProcessObserver.ObserveWithRetry("probe", 1, runDirectory: null, attempts.Attempt);
 
             Assert.Equal(9, obs.ExitCode);
             Assert.True(File.Exists(Path.Combine(run, "created.txt")));
+        }
+        finally { Directory.Delete(outer, recursive: true); }
+    }
+
+    /// <summary>The abnormal arm of the retry itself: a retry that also observes nothing raises, and the directory it
+    /// ran over is the restored one, not the first attempt's leftovers.</summary>
+    [Fact]
+    public void ARetryThatAlsoTimesOut_RaisesAfterRestoringTheDirectory()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            int calls = 0;
+            string? createdSeenByRetry = null;
+            var ex = Assert.Throws<HarnessNonObservationException>(() => ProcessObserver.ObserveWithRetry("probe", 1, run, () =>
+            {
+                if (++calls == 1) File.WriteAllText(Path.Combine(run, "created.txt"), "x");
+                else createdSeenByRetry = File.Exists(Path.Combine(run, "created.txt")).ToString();
+                return new ProcessObservation(ProcessOutcome.TimedOut, -1, "", "", "killed at the budget");
+            }));
+
+            Assert.Equal(2, calls);
+            Assert.Equal("False", createdSeenByRetry);
+            Assert.Contains("attempt2", ex.Message, StringComparison.Ordinal);
         }
         finally { Directory.Delete(outer, recursive: true); }
     }
