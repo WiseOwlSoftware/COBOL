@@ -1,4 +1,4 @@
-## PB2696: a second occurrence, where the NIST programs that write relative files never ran in a runtime format change's leg 1
+## Entry 2233 — 2026-10-18 18:16 PDT — PB2696: a second occurrence, where the NIST programs that write relative files never ran in a runtime format change's leg 1
 
 The operator adds a dated section to kb/Work PB2696, from the Mythos lane's PB3333 finisher lead, checked against the
 run's own files. The PB3330 engine's RELATIVE link changed relative files to the paged format (INDEXED keeps the
@@ -10,3 +10,4 @@ format. The finisher re-recorded the 37 written files, every one a relative file
 The root cause is PB2696's item 1. The note also records the finisher's untested hypothesis that a recorded map would
 still not attribute the runtime's I/O code to the out-of-process NIST rows, the measurement that settles it (with the
 IX programs among its witnesses), and the static rule needed if it holds. Notes only.
+
