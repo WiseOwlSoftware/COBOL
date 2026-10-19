@@ -42,18 +42,24 @@ internal enum SortKeyRules
 /// </list></summary>
 internal static class SortKeyAdmission
 {
+    /// <summary>The syntax rule that prints the key rules of <paramref name="rules"/>, as a diagnostic cites it
+    /// ("ISO §14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
+    /// read by this predicate and by <c>SortBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
+    /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
+    public static string Clause(SortKeyRules rules) => rules switch
+    {
+        SortKeyRules.FileSort => "ISO §14.9.40.3 SR6",
+        SortKeyRules.TableSort => "ISO §14.9.40.3 SR14",
+        _ => "ISO §14.9.24.3 SR4",
+    };
+
     /// <summary>The refusal text for <paramref name="key"/> under <paramref name="rules"/> — the violated rule quoted
     /// with its clause — or <see langword="null"/> when the key is admissible. The first violation in the order the
     /// rules are printed (b/f, c, d); one is enough to refuse, and naming the others would only restate it.</summary>
     public static string? Violation(DataItem key, SortKeyRules rules)
     {
         string name = key.CobolName ?? key.CsName;
-        string clause = rules switch
-        {
-            SortKeyRules.FileSort => "ISO §14.9.40.3 SR6",
-            SortKeyRules.TableSort => "ISO §14.9.40.3 SR14",
-            _ => "ISO §14.9.24.3 SR4",
-        };
+        string clause = Clause(rules);
         string verb = rules == SortKeyRules.Merge ? "MERGE" : "SORT";
 
         // SR6 b) / f): subject to OCCURS — its own entry or any entry above it. The file verbs only (see the type).
@@ -92,10 +98,16 @@ internal static class SortKeyAdmission
             shape = "an occurs-depending group item (ISO §13.18.38.4 GR8)";
         if (shape is not null)
             return $"{verb} key '{name}' is {shape}: \"A key data item shall not "
-                + (rules == SortKeyRules.TableSort
-                    ? "reference a variable-length group or an occurs-depending group item"
-                    : "be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item "
-                        + "or an item subordinate to a dynamic-capacity table")
+                + (rules switch
+                {
+                    SortKeyRules.TableSort => "reference a variable-length group or an occurs-depending group item",
+                    // SORT Format 1 SR6 d) and MERGE SR4 d) list the same four shapes; MERGE's copy has a comma before
+                    // "or an item subordinate" and SORT's has none, and the quote is the clause's, verbatim.
+                    SortKeyRules.Merge => "be a variable-length group, an occurs-depending-on data item, a dynamic-length "
+                        + "elementary item, or an item subordinate to a dynamic-capacity table",
+                    _ => "be a variable-length group, an occurs-depending-on data item, a dynamic-length elementary item "
+                        + "or an item subordinate to a dynamic-capacity table",
+                })
                 + $"\" ({clause} d))";
         return null;
     }

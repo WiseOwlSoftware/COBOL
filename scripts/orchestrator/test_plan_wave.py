@@ -845,20 +845,32 @@ zspec = TMP / "msg-w77-z.txt"
 zspec.write_text(mds.render(CFG77, other_j, FILES(other_j)), encoding="utf-8", newline="\n")
 check("each spec is checked against its own group's requirements, not every group's",
       check_practices.specs_missing_requirements(mfile, [yspec, zspec]), [])
-real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
-check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
-      [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
+# The owner's SORT and file I/O test sentence (2026-10-17 ~22:25) has ONE home, MANDATORY-PRACTICES I11, which every
+# rendered spec and finisher brief points at (kb/Work PB3369). A campaign lead's `## Standing requirements` holds
+# campaign-specific cases only: a copy of the sentence in a lead is a second home that drifts from the first.
+OWNER_SENTENCE = "out test cases for sort and file i/o must cover"
+I11_ROW = next(l for l in (coord.REPO / ".claude" / "skills" / "workstream" / "templates" / "MANDATORY-PRACTICES.md")
+               .read_text(encoding="utf-8").splitlines() if l.startswith("| I11 |"))
+check("MANDATORY-PRACTICES I11 carries the owner's SORT and file I/O sentence", OWNER_SENTENCE in " ".join(I11_ROW.lower().split()), True)
+lead_copies = sorted(f.stem for f in (coord.REPO / "kb" / "Work").glob("PB*.md")
+                     if any(OWNER_SENTENCE in " ".join(r.lower().split()) or "abnormal exception cases" in r
+                            for r in pw.campaign_requirements(f.read_text(encoding="utf-8"))))
+check("no campaign lead note's Standing requirements restates the owner's SORT and file I/O sentence (kb/Work PB3369)",
+      lead_copies, [])
 # the lead note the operator reads says what the planner does: binding by membership (review R2-1), never by the --cluster mode
-lead_text = (coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8")
-check("the PB3353 note states the membership rule the planner implements, not the superseded --cluster-only rule",
+real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3330.md").read_text(encoding="utf-8"))
+lead_text = (coord.REPO / "kb" / "Work" / "PB3330.md").read_text(encoding="utf-8")
+check("the PB3330 note states the membership rule the planner implements, not the superseded --cluster-only rule",
       ("plan_wave.group_requirements" in lead_text, "Read by `plan_wave.py --cluster" in lead_text), (True, False))
-# a fix-lane plan reaches them through the notes' cluster lists: PB3353's members are bound outside a --cluster wave
+check("the PB3330 campaign note still carries the keyed engine's own cases, so the binding test below is not vacuous",
+      len(real_reqs) > 0, True)
+# a fix-lane plan reaches them through the notes' cluster lists: PB3330's members are bound outside a --cluster wave
 real_items = work.load()
-member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3353" in i["cluster"] and i["id"] != "PB3353")
+member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3330" in i["cluster"] and i["id"] != "PB3330")
 fg = pw.Group(kind="cluster", notes=[member], file="", files=[], letter="Q", model="sonnet", why_model="default")
-check("a real PB3353 member planned by a fix-lane wave (no --cluster) is bound by the owner's requirement",
+check("a real PB3330 member planned by a fix-lane wave (no --cluster) is bound by the campaign's own requirements",
       pw.group_requirements([fg], {i.get("id"): i.get("cluster") for i in real_items}, coord.REPO / "kb" / "Work"),
-      [{"PB3353": real_reqs}])
+      [{"PB3330": real_reqs}])
 # the planner writes them per group into groups.json and the args file, and the rolling wave reads them into the
 # REVIEWER's prompt and names the group's dispatch spec there: the halves are pinned in source, since the workflow has
 # no process API to run here

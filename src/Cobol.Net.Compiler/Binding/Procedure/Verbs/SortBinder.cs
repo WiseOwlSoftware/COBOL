@@ -610,10 +610,10 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             DataItem root = SortRootOf(item);
             if (!file.Records.Contains(root))
                 return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' is not described in a record of '{file.CobolName}' "
-                    + "(ISO §14.9.40.3 SR6a)");
+                    + $"({SortKeyAdmission.Clause(rules)} a))");
             if (Model.RecordLayout.OffsetInRecord(root, item) is null)
                 return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
-                    + "clause (ISO §14.9.40.3 SR6b/SR6f)");
+                    + $"clause ({SortKeyAdmission.Clause(rules)} b) and f))");
             // ⛔ THE CLASS IS THE OPERAND'S, AND IT IS ASKED ONCE (kb/Work PB678). §14.9.40.4 GR5 / §14.9.24.4 GR5
             // select the collating sequence by the KEY's class, so the key descriptor carries the class rather
             // than a single "numeric?" bit — and it reads OperandPic, the ONE operand-category reader (D20), so a
@@ -636,7 +636,7 @@ internal sealed class SortBinder(BinderContext ctx, StatementBinder host)
             // within the minimum record size.
             if (Model.RecordLayout.KeyWindowOf(root, item, len) is not { } win)
                 return Reject($"SORT/MERGE key '{DataBinder.WrittenText(dref)}' — key data-names shall not be subject to any OCCURS "
-                    + "clause (ISO §14.9.40.3 SR6b/SR6f)");
+                    + $"clause ({SortKeyAdmission.Clause(rules)} b) and f))");
             // §14.9.40.3 SR6 g) / §14.9.24.3 SR4 g): with variable-length records every key lies within the first
             // n bytes, n the minimum record size — for ANY record, so a key that follows a variable-length member is
             // measured at its furthest reach (every preceding member at its maximum). ⛔ The minimum is the file's
