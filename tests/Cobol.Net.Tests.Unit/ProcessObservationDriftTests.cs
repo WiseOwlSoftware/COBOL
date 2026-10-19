@@ -136,6 +136,172 @@ public sealed class ProcessObservationDriftTests
         Assert.Equal("", obs.Stdout);
     }
 
+    // ── The retry of a program that WRITES (kb/Work PB3388) ────────────────────────────────────────────────
+    //
+    // The program under test is a script that behaves differently on its first attempt and on its retry, decided by a
+    // marker kept OUTSIDE the run directory (so the restoration cannot erase it): the first attempt writes into the run
+    // directory and hangs until the budget kills it; the retry exits 0 only if the run directory is as the first attempt
+    // found it, and exits 9 (the leftovers of a killed attempt are present) otherwise. That is NIST IX216A's failure
+    // in miniature: its OPEN EXTEND of an absent OPTIONAL file answered 00 on the retry, because the killed attempt
+    // had created the file (ISO/IEC 1989:2023 §14.9.27.4 GR17: an absent OPTIONAL file is created and the status is 05).
+
+    /// <summary>The probe script, written per OS in <paramref name="outer"/>, and the command that runs it with the
+    /// marker directory as its first argument and <paramref name="touchBig"/> as its second ("big": the first attempt
+    /// also appends to <c>big.bin</c>).</summary>
+    private static ProcessStartInfo WritingProbe(string outer, string runDirectory, string touchBig)
+    {
+        ProcessStartInfo psi;
+        if (OperatingSystem.IsWindows())
+        {
+            string script = Path.Combine(outer, "probe.cmd");
+            File.WriteAllText(script,
+                "@echo off\r\n"
+                + "if exist \"%~1\\seen\" goto second\r\n"
+                + "echo x> \"%~1\\seen\"\r\n"
+                + "echo after> data.txt\r\n"
+                + "echo x> created.txt\r\n"
+                + "if \"%~2\"==\"big\" echo x>> big.bin\r\n"
+                + "ping -n 30 127.0.0.1 >nul\r\n"
+                + "exit /b 0\r\n"
+                + ":second\r\n"
+                + "if exist created.txt exit /b 9\r\n"
+                + "exit /b 0\r\n");
+            psi = new ProcessStartInfo("cmd.exe");
+            psi.ArgumentList.Add("/c");
+            psi.ArgumentList.Add(script);
+        }
+        else
+        {
+            string script = Path.Combine(outer, "probe.sh");
+            File.WriteAllText(script,
+                "if [ -f \"$1/seen\" ]; then\n"
+                + "  if [ -f created.txt ]; then exit 9; fi\n"
+                + "  exit 0\n"
+                + "fi\n"
+                + "echo x > \"$1/seen\"\n"
+                + "echo after > data.txt\n"
+                + "echo x > created.txt\n"
+                + "if [ \"$2\" = big ]; then echo x >> big.bin; fi\n"
+                + "sleep 30\n");
+            psi = new ProcessStartInfo("/bin/sh");
+            psi.ArgumentList.Add(script);
+        }
+        psi.ArgumentList.Add(outer);
+        psi.ArgumentList.Add(touchBig);
+        psi.WorkingDirectory = runDirectory;
+        return psi;
+    }
+
+    /// <summary>A run directory holding what a chain predecessor leaves a program: a data file the killed attempt
+    /// rewrites, a subdirectory, and a file over the copy bound (the runtime assembly's stand-in).</summary>
+    private static (string outer, string run) WritingProbeDirectories()
+    {
+        string outer = Path.Combine(Path.GetTempPath(), "CobolNet_RetryProbe_" + Guid.NewGuid().ToString("N")[..8]);
+        string run = Path.Combine(outer, "run");
+        Directory.CreateDirectory(Path.Combine(run, "sub"));
+        File.WriteAllText(Path.Combine(run, "data.txt"), "before");
+        File.WriteAllText(Path.Combine(run, "sub", "kept.txt"), "kept");
+        File.WriteAllBytes(Path.Combine(run, "big.bin"), new byte[RunDirectoryState.MaxCopiedFileBytes + 1]);
+        return (outer, run);
+    }
+
+    /// <summary>
+    /// ⛔ THE ONE THAT PINS PB3388. The killed first attempt created <c>created.txt</c> and rewrote <c>data.txt</c>; the
+    /// retry must find neither (<c>created.txt</c> absent: exit 0, not 9) and the directory must end as it began. A file
+    /// over the copy bound that no attempt touched does not refuse the retry.
+    /// </summary>
+    [Fact]
+    public void ARetryOfAProgramThatWrites_StartsFromTheStateTheFirstAttemptStartedFrom()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            var obs = ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "small"), timeoutMs: 1_000, runDirectory: run);
+
+            Assert.Equal(0, obs.ExitCode);   // 9 = the retry found what the killed attempt created
+            Assert.False(File.Exists(Path.Combine(run, "created.txt")), "a file the killed attempt created is deleted");
+            Assert.Equal("before", File.ReadAllText(Path.Combine(run, "data.txt")).Trim());   // rewritten in place, restored
+            Assert.Equal("kept", File.ReadAllText(Path.Combine(run, "sub", "kept.txt")));
+            Assert.Equal(RunDirectoryState.MaxCopiedFileBytes + 1, new FileInfo(Path.Combine(run, "big.bin")).Length);
+        }
+        finally { Directory.Delete(outer, recursive: true); }
+    }
+
+    /// <summary>
+    /// The exception path of the restoration. A file over the copy bound that the killed attempt CHANGED cannot be put
+    /// back, and the retry is then not made: a non-observation that names the file, never a value measured over a
+    /// state that is not the first attempt's.
+    /// </summary>
+    [Fact]
+    public void ARetryWhoseRunDirectoryCannotBeRestored_RaisesInsteadOfMeasuringTheWrongState()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            var ex = Assert.Throws<HarnessNonObservationException>(
+                () => ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "big"), timeoutMs: 1_000, runDirectory: run));
+
+            Assert.Contains("HARNESS NON-OBSERVATION", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("cannot be restored", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("big.bin", ex.Message, StringComparison.Ordinal);
+            Assert.Contains("attempt2: not run", ex.Message, StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(outer, recursive: true); }
+    }
+
+    /// <summary>A caller that names no run directory (a tool run in the repository, which is not the child's to
+    /// own) is NOT restored: the retry sees what the killed attempt left. The two behaviours are the caller's choice,
+    /// stated at the call, so the test pins that the opt-in is what restores.</summary>
+    [Fact]
+    public void ARetryWithoutARunDirectory_LeavesTheDirectoryAlone()
+    {
+        var (outer, run) = WritingProbeDirectories();
+        try
+        {
+            var obs = ProcessObserver.ObserveOrThrow(WritingProbe(outer, run, "small"), timeoutMs: 1_000);
+
+            Assert.Equal(9, obs.ExitCode);
+            Assert.True(File.Exists(Path.Combine(run, "created.txt")));
+        }
+        finally { Directory.Delete(outer, recursive: true); }
+    }
+
+    /// <summary>
+    /// ⛔ THE ARM THAT KEEPS THE FIX TOTAL (CLAUDE.md rule 4's two-arm dispatch). The retry restores a directory only
+    /// for a caller that NAMES it, so a test source that runs a compiled program (<c>new ProcessStartInfo("dotnet", …)</c>)
+    /// and observes it without <c>runDirectory:</c> would leave the IX216A failure open for that one call site. Every
+    /// <c>ObserveOrThrow</c> call in a file that launches <c>dotnet</c> names the run directory.
+    /// </summary>
+    [Fact]
+    public void EveryRunOfACompiledProgram_NamesItsRunDirectory()
+    {
+        var offenders = new List<string>();
+        foreach (string file in TestSources())
+        {
+            string body = File.ReadAllText(file);
+            if (!RunsDotnet.IsMatch(body)) continue;
+            foreach (System.Text.RegularExpressions.Match call in ObserveCall.Matches(body))
+                if (!call.Value.Contains("runDirectory:", StringComparison.Ordinal))
+                    offenders.Add($"{Path.GetRelativePath(TestRepo.Root, file)}:  {call.Value}");
+        }
+        Assert.True(offenders.Count == 0,
+            "a compiled program is observed without naming its run directory, so a retry after a contention timeout runs "
+            + "over the killed attempt's files and measures another input (kb/Work PB3388, IX216A):\n"
+            + string.Join("\n", offenders));
+
+        // The patterns catch the shapes they forbid and pass the one they require.
+        Assert.Matches(RunsDotnet, "var psi = new ProcessStartInfo(\"dotnet\", $\"\\\"{dll}\\\"\") { WorkingDirectory = dir };");
+        Assert.Matches(ObserveCall, "ProcessObserver.ObserveOrThrow(psi, stdin);");
+        Assert.DoesNotContain("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin);").Value, StringComparison.Ordinal);
+        Assert.Contains("runDirectory:", ObserveCall.Match("ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);").Value, StringComparison.Ordinal);
+    }
+
+    private static readonly System.Text.RegularExpressions.Regex RunsDotnet =
+        new(@"new ProcessStartInfo\(\s*""dotnet""", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    private static readonly System.Text.RegularExpressions.Regex ObserveCall =
+        new(@"ObserveOrThrow\([^;]*\);", System.Text.RegularExpressions.RegexOptions.Compiled);
+
     // ⛔ THE SHELL COMMANDS ARE WRITTEN PER-OS, NOT TRANSLATED. The first version of this helper took one
     // cmd.exe string and string-replaced `>nul` for `>/dev/null` on POSIX — which left `exit /b 7` intact, and
     // `/bin/sh` does not accept it. The Windows leg was green, the Linux CI leg was red, and the defect was a
