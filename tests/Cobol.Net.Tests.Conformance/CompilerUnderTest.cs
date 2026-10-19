@@ -49,7 +49,11 @@ internal static class CutRunner
     /// then compared against a golden, so a contention timeout was reported as a value mismatch. It now raises
     /// <c>HarnessNonObservationException</c> via <see cref="ProcessObserver.ObserveOrThrow"/>, which retries
     /// once serially first. No caller had to change: the fix is in the dispatch, and all ~730 call sites
-    /// inherit it.</para></summary>
+    /// inherit it.</para>
+    /// <para>⛔ THE RETRY STARTS FROM THE FIRST ATTEMPT'S DIRECTORY STATE (kb/Work PB3388): <paramref name="workDir"/>
+    /// is handed to the observer as the run directory, which restores it before the retry — a program killed at the
+    /// budget has already created and rewritten files there, and IX216A's OPEN EXTEND of an absent OPTIONAL file
+    /// answered 00 instead of 05 over the leftovers.</para></summary>
     public static (int exitCode, string stdout, string detail) RunExit(string dllPath, string workDir,
         string? stdinFile = null, IReadOnlyDictionary<string, string?>? env = null)
     {
@@ -69,7 +73,7 @@ internal static class CutRunner
                 if (v is null) psi.Environment.Remove(k);
                 else psi.Environment[k] = v;
         // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh parity.
-        var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile));
+        var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile), runDirectory: workDir);
         return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }
 
