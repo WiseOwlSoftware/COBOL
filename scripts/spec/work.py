@@ -439,6 +439,7 @@ def check() -> int:
                        f'genuinely does nothing to a user\'s program.')
         bad += closes_rows_shape(it)
     bad += topology_problems(items)
+    bad += sites_problems(items)
     bad += r3_program_problems(items)
     ids = [it.get("id") for it in items]
     for i in set(ids):
@@ -736,6 +737,9 @@ class NoteSites:
     paths: tuple[str, ...]
     names: tuple[str, ...]
     wave: str
+    #: The note HAS a site block, whatever it names: `**Sites:** none (…)` declares that it changes no code file, which
+    #: sites_problems accepts, while a note with no block at all leaves the planner an UNKNOWN set (kb/Work PB3263).
+    declared: bool = False
 
     @property
     def fix_lane(self) -> bool:
@@ -823,7 +827,35 @@ def note_sites(text: str, roots: tuple[str, ...] | None = None) -> NoteSites:
     for part in blocks + ([moves.group(1)] if moves else []):
         names += [d.split("~", 1)[0] for d in _DOC_ID.findall(part)]
     wave = m.group(1).lower() if (m := _WAVE_KIND.search(text)) else ""
-    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave)
+    return NoteSites(tuple(sorted(paths)), tuple(dict.fromkeys(names)), wave, bool(blocks))
+
+
+#: The first note id `check` holds to SITES_RULE (kb/Work PB3263, filed 2026-10-19 at PB3443, the next id unallocated
+#: when the rule landed). Every cluster is a campaign the moment an operator runs it (orchestrate.ps1 -Cluster), and on
+#: 2026-10-19 198 open notes naming 218 clusters declared no site block, most of them in long-idle clusters: refusing
+#: those would turn the check into a backlog, so they stay readable (the planner reads each one's
+#: set UNKNOWN and plans it alone on its subsystem, plan_wave.collision), and the open notes of the RUNNING campaigns
+#: (PB3353, PB3160) were given their site blocks by hand in the change that added this rule. From here on, a note filed
+#: into a cluster carries its block from its first commit.
+SITES_REQUIRED_FROM = 3443
+SITES_RULE = ("an open note that names a cluster declares its sites: a `**Sites:**` paragraph naming the files it "
+              "changes, or `**Sites:** none (why)` when it changes no code file")
+
+
+def sites_problems(items: list[dict]) -> list[str]:
+    """SITES_RULE for every open note from SITES_REQUIRED_FROM on (kb/Work PB3263): a note with no site block leaves
+    the planner's file-set partition an UNKNOWN set, which it can only plan alone on its subsystem. A `decision` note
+    changes no file by itself and is exempt."""
+    bad = []
+    for it in items:
+        nid = str(it.get("id") or "")
+        if (not it.get("cluster") or it.get("kind") == "decision" or it.get("status") in TERMINAL_STATUSES
+                or not (m := re.fullmatch(r"PB(\d+)", nid)) or int(m.group(1)) < SITES_REQUIRED_FROM):
+            continue
+        if not note_sites(it.get("_body", "")).declared:
+            bad.append(f"{it['_file']}: names the cluster(s) {', '.join(it['cluster'])} but declares no site block — "
+                       f"{SITES_RULE}; without one the wave planner reads its file set as UNKNOWN (kb/Work PB3263)")
+    return bad
 
 
 def _slice_rows(repo: pathlib.Path) -> list[list[str]]:
