@@ -232,17 +232,17 @@ def main() -> int:
         bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
         check("3: with no readable last verdict the successor is told UNANSWERED, never capped",
               "UNANSWERED" in bp and "NEXT-WAVE FINISHER" not in bp, bp)
-        # ... and a TORN findings file (review R4-1): the reader returns the capped verdict before the tear, with `torn`
-        # set, and the wave never reads it capped: the successor is told UNANSWERED
+        # ... and a TORN findings file (review R4-1, R5-1): the reader reads no verdict from it (verdict TORN, `torn`
+        # set), and the wave never reads it capped: the successor is told UNANSWERED
         r = run(tmp, "cap-torn", {"args": args(groups, review_fix_rounds=1), "agents": {
             "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("FINDINGS", A1, 1)],
             "fix-A-r1": [impl("bA2", A2)], "w9a-review-r2": [review("FINDINGS", A2, 1)],
             "impl-B-PB2": [impl("bB", "b1")], "w9b-review-r1": [review("CLEAN", "b1")]}}, cap_rounds, torn=True)
         bp = (r["prompts"].get("impl-B-PB2") or [""])[0]
         lv = {x["letter"]: x for x in r["out"]["results"]}.get("A", {}).get("last_verdict") or {}
-        check("3: a torn findings file reads its capped verdict before the tear, and the successor is told UNANSWERED",
-              (lv.get("round"), bool(lv.get("torn")), "UNANSWERED" in bp, "NEXT-WAVE FINISHER" in bp)
-              == (2, True, True, False), (lv, bp))
+        check("3: a torn findings file reads TORN, never its capped verdict, and the successor is told UNANSWERED",
+              (lv.get("verdict"), lv.get("unanswered"), bool(lv.get("torn")), "UNANSWERED" in bp, "NEXT-WAVE FINISHER" in bp)
+              == ("TORN", True, True, True, False), (lv, bp))
         check("1, 2: a CLEAN end reads no findings file (no extra agent)",
               all(not e.startswith("start:last-verdict") for e in run(tmp, "clean-lv", {"args": args(groups), "agents": {
                   "impl-A-PB1": [impl("bA", A1)], "w9a-review-r1": [review("CLEAN", A1)],

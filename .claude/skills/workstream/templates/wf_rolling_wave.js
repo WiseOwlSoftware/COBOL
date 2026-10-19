@@ -153,8 +153,8 @@ function settled(letter) {
 //                 so no report shows the findings any more, and whatever it left half done is on the successor's
 //                 branch. The successor's review covers the predecessor's content as its own and records again each of
 //                 those findings that still holds. A last verdict that cannot be read reads 'unanswered' too, and so
-//                 does a TORN findings file (`v.torn`, review R4-1): the reader returns the verdict before the tear,
-//                 but a round was being written after it, so the file is never read as capped.
+//                 does a TORN findings file (`v.torn`, verdict TORN, review R4-1, R5-1): no verdict is read from a torn
+//                 file, whatever its records say, so it is never read as capped.
 //   'unreviewed'  any other end (STOPPED, NO-RESULT, STALE) or an unfinished return: its content is reviewed with the
 //                 successor's, as its own.
 // In both FINDINGS cases prune_worktrees.py carrying_findings holds the successor: it reads the SAME findings file
@@ -169,7 +169,8 @@ function predecessorEnd(p) {
 
 // THE ONE READER OF A GROUP'S FINDINGS FILE (kb/Work PB3381 review R3-1): `review_findings.py last-verdict`, run by
 // ONE mechanical cobol-locator (a workflow script has no process API; the finished test does the same), returning the
-// file's newest verdict {file, round, branch, head, verdict, blocking, unanswered}, or null when it gave no answer.
+// file's newest verdict {file, round, branch, head, verdict, blocking, unanswered, torn} (a torn file's reading is
+// verdict TORN, unanswered, with the branches and heads it names), or null when it gave no answer (read unanswered).
 const LAST_VERDICT_SCHEMA = {
   type: 'object',
   properties: { exit: { type: 'integer' }, line: { type: 'string', maxLength: 800 } },
