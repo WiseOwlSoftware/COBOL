@@ -227,7 +227,9 @@ def watch(cdir: pathlib.Path, party: str, interval: float, timeout: float) -> li
 # the session itself can arm it: a watcher is useful only as that session's own BACKGROUND Bash task, whose exit
 # re-invokes the session. A hook cannot arm it, so every place a session looks at the mailbox — session-probe at every
 # start, resume, clear and compaction, and every list and done — says whether THIS session has one (kb/Work PB2814:
-# a restarted operator armed none, and the Mythos lane's question waited 1 h 40 min).
+# a restarted operator armed none, and the Mythos lane's question waited 1 h 40 min), and the Stop hook
+# `scripts/hooks/inbox_guard.py` refuses an attended turn's end while `status` reads false (kb/Work PB3387: a watcher
+# that fired mid-session was never re-armed, and nine messages waited 2 h 34 min).
 WATCH_CMD = "python scripts/orchestrator/mailbox.py watch --inbox {lane} --timeout 0"
 CLAUDE_IMAGES = ("claude", "claude.exe")
 WATCHER = re.compile(r"mailbox\.py\S*\s(?:.*\s)?watch\b.*?--inbox[=\s]+(\w+)")   # global options may precede watch
