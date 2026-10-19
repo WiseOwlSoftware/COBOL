@@ -320,15 +320,23 @@ public sealed partial class DataBinder
         // §13.18.38.3 SR10 / §8.4.2.3.3 SR3 (kb/Work PB1260): "as long as the number of subscripts required does not
         // exceed seven" — a table nested under seven others needs eight. Reported ONCE, at the first entry that
         // exceeds it (an eighth dimension), not again for everything beneath it.
-        foreach (var table in ConformanceForest())
+        // ⛔ THE DEPTH IS A PROPERTY OF THE COMPOSED ENTRY (kb/Work PB1629; the CompositionForest's contract): a TYPE or
+        // SAME AS subject placed under seven tables makes the copied table an eighth dimension though its declaration
+        // holds one. A copy whose IMMEDIATE source already reaches eight was reported there (or, when the source is itself
+        // a copy, one level further back: the induction ends at the written entry), so it is not reported again; a copy
+        // that reaches eight only by where it is PLACED is reported at the entry that placed it. The immediate source, not
+        // the written definition: a copy of a copy whose eighth dimension arose one level up was reported there.
+        foreach (var table in CompositionForest())
         {
             // The ONE arity walk (DataItem.SubscriptArity — SubscriptAdmissionDriftTests pins that it is written nowhere else).
             if (!table.IsTable || table.SubscriptArity != 8) continue;
-            using var _ = Edition.At(table);
+            if (table.ClonedFrom is { SubscriptArity: 8 }) continue;
+            using var _ = Edition.At(table.ReferenceSite);
             Edition.Error(DiagnosticCatalog.TableNestingTooDeep,
                 $"table '{table.CobolName ?? table.CsName}' is nested under seven other OCCURS entries: a reference to "
                 + "it needs eight subscripts, and \"as long as the number of subscripts required does not exceed "
-                + "seven\" (ISO §13.18.38.3 SR10) — at most seven subscripts may be specified (§8.4.2.3.3 SR3)");
+                + "seven\" (ISO §13.18.38.3 SR10) — at most seven subscripts may be specified (§8.4.2.3.3 SR3)"
+                + ViaReference(table));
         }
 
         foreach (var item in ClauseResolutionForest())
@@ -376,6 +384,22 @@ public sealed partial class DataBinder
             // placement), so neither its ambiguity nor its SR17 category is a fact of the declaration (train 1055
             // review: an unused template beside two unrelated CNTs drew COBOLNET1639).
             if (declaration) tier = tier.Where(c => ReferenceEquals(c.Root, item.Root));
+
+            // ⛔ EVERY RULE FROM HERE DOWN IS A FACT OF THE PLACEMENT (kb/Work PB1629): the counter is found from where the
+            // description is PLACED (above), and the nesting, REDEFINES and trailing-storage rules ask what surrounds
+            // it. A table a TYPE or SAME AS clause copies in is legal in its declaration and wrong at the reference, so
+            // these are positioned at the entry that wrote the clause (DataItem.ReferenceSite), never at the
+            // declaration. SR16 above is a fact of the written phrase and stays at the entry that holds it.
+            var placedAt = item.ReferenceSite;
+            using var __ = Edition.At(placedAt);
+            string via = ViaReference(item);
+            // ⛔ A FACT OF THE DECLARATION IS NOT REPORTED AGAIN AT A LEGAL REFERENCE (kb/Work PB1629 review round 1). The
+            // copied description is itself screened — a TYPE declaration above, a SAME AS source as the written record it is
+            // — so a fault whose every involved entry lies inside this one copy is reported where it is written; the
+            // reference that merely copies it (legal) would otherwise carry the same error a second time. A fault that
+            // involves the reference's own entry, or anything outside the copy, is the PLACEMENT's and is reported here.
+            bool DeclarationFact(params DataItem[] involved) =>
+                item.IsCopiedUnder(placedAt) && Array.TrueForAll(involved, i => i.IsCopiedUnder(placedAt));
             if (tier.Count == 0)
             {
                 if (declaration) continue;   // placed, and so checked, by each clone (above)
@@ -383,17 +407,23 @@ public sealed partial class DataBinder
                     + (spec.DependingQualifiers.Count > 0
                         ? "is not defined under the given qualifiers (ISO §8.4.2.2.1: uniqueness shall be established "
                           + "through qualification)"
-                        : "is not defined (ISO §13.18.38 Format 2)"));
+                        : "is not defined (ISO §13.18.38 Format 2)") + via);
                 continue;
             }
-            if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _) is not { } dep) continue;
+            // The ambiguity (§8.4.2.2.3 SR1) is a fact of the declaration too when every candidate lies inside the copy that
+            // holds this table: the declaration reports it, and the legal reference asks the same verdict silently (so
+            // --permissive's first-declared reading still binds the clone's counter) instead of reporting it again.
+            bool ambiguityIsDeclarationFact = tier.Count > 1 && item.IsCopiedUnder(placedAt)
+                && !tier.Any(c => !c.IsCopiedUnder(placedAt));
+            if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact)
+                is not { } dep) continue;
             spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
-            if (dep.Pic is not { IsIntegerDescription: true })
+            if (dep.Pic is not { IsIntegerDescription: true } && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
-                    + "shall describe an integer (ISO §13.18.38.3 SR17)");
+                    + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
             // SR18 / SR21 (kb/Work PB1261): data-name-1 must share the table record's SCOPE and RESIDENCE attributes,
             // or the table's current extent would depend on a counter that a program sharing the record cannot see
@@ -403,35 +433,41 @@ public sealed partial class DataBinder
             // element's own items.
             if (!declaration && DependingAttributeFault(item, dep) is { } attributeFault)
                 Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch,
-                    $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}");
+                    $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}{via}");
 
             // SR2: data-name-1 shall not be subscripted (it cannot lie within any table). A TABLE is any OCCURS — a
             // Format-4 DYNAMIC one leaves Occurs null (kb/Work PB1260) — and "lies within a table" is the ONE arity
             // answer, DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests).
-            if (dep.Parent is { SubscriptArity: > 0 })
+            if (dep.Parent is { SubscriptArity: > 0 } depParent && !DeclarationFact(dep, depParent.SubscriptLevels()[^1]))
                 Edition.Error("COBOLNET0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
-                    + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)");
+                    + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
             // SR1(b)/SR10: "complex ODO" is illegal at every edition — tables may be nested only when the
             // DEPENDING phrase is absent, and no OCCURS subject may have an occurs-depending table beneath it. The
             // nearest enclosing table (DYNAMIC included — `Occurs is not null` let an ODO table nest under OCCURS
             // DYNAMIC, kb/Work PB1260) is the last of the parent's subscript levels.
-            if (item.Parent is { SubscriptArity: > 0 } enclosing)
+            if (item.Parent is { SubscriptArity: > 0 } enclosing && !DeclarationFact(enclosing.SubscriptLevels()[^1]))
                 Edition.Error("COBOLNET0854", $"occurs-depending table '{subject}' is subordinate to the "
                     + $"OCCURS item '{enclosing.SubscriptLevels()[^1].CobolName}': tables may be nested only when the "
                     + "DEPENDING phrase is "
-                    + "absent (ISO §13.18.38.3 SR1(b)/SR10)");
+                    + "absent (ISO §13.18.38.3 SR1(b)/SR10)" + via);
 
             // §13.18.44 SR: neither the redefined item nor a redefinition may include an occurs-depending table.
             // (The FD multi-record shared AREA is §9.1.2 record sharing — synthesized with no written REDEFINES
             // clause — and is exempt: only an explicitly-written REDEFINES anywhere in the class trips this.)
             for (DataItem? a = item; a is not null; a = a.Parent)
-                if (a.RedefinesTargetName is not null
-                    || (a.Class is { } cls && cls.Members.Any(mm => mm.RedefinesTargetName is not null)))
+                if (InRedefinesArea(a))
                 {
+                    // The declaration reports it only when ITS copy of this entry trips the same test: a SAME AS source
+                    // is a written record whose REDEFINES classes exist, a TYPE declaration's members have none, so the
+                    // reference is the one place the rule is asked of a copied TYPE description. The climb goes on past a
+                    // skipped one, for a REDEFINES area above the copy is the placement's.
+                    if (item.IsCopiedUnder(placedAt) && a.IsCopiedUnder(placedAt) && a.ClonedFrom is { } source
+                        && InRedefinesArea(source))
+                        continue;
                     Edition.Error("COBOLNET0855", $"occurs-depending table '{subject}' lies within a REDEFINES "
                         + "area: neither the original nor a redefinition may include an OCCURS DEPENDING ON "
-                        + "table (ISO §13.18.44.3 SR5)");
+                        + "table (ISO §13.18.44.3 SR5)" + via);
                     break;
                 }
 
@@ -442,10 +478,13 @@ public sealed partial class DataBinder
             {
                 if (parent.Children.SkipWhile(s => !ReferenceEquals(s, n)).Skip(1).Any(s => s.RedefinesTargetName is null))
                 {
+                    // Followed inside the copy (the table and its follower are both copied members): the declaration's
+                    // fact, reported there. The climb goes on, for the entries above the copy are the placement's.
+                    if (DeclarationFact(n)) continue;
                     Edition.Error("COBOLNET0856", $"occurs-depending table '{subject}' is followed by a "
                         + "non-subordinate entry in its record: the subject of an OCCURS DEPENDING ON entry may "
                         + "be followed, within that record, only by data items subordinate to it "
-                        + "(ISO §13.18.38.3 SR22)");
+                        + "(ISO §13.18.38.3 SR22)" + via);
                     break;
                 }
             }
@@ -453,14 +492,28 @@ public sealed partial class DataBinder
             // SR20: "The data item defined by data-name-1 shall not occupy a byte position within the range of the
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
-            if (DependingInsideTableRange(item, dep))
+            if (DependingInsideTableRange(item, dep) && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
                     + (ReferenceEquals(dep.Root, item.Root) ? ""
-                        : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area"));
+                        : $" — '{dep.Root.CobolName}' and '{item.Root.CobolName}' are one storage area") + via);
         }
     }
+
+    /// <summary>Is <paramref name="a"/> a REDEFINES entry, or a member of a REDEFINES class that holds one — the entries
+    /// §13.18.44.3 SR5 forbids to include an occurs-depending table. The FD multi-record shared area (§9.1.2) is a class
+    /// with no written REDEFINES, so it is not one.</summary>
+    private static bool InRedefinesArea(DataItem a) =>
+        a.RedefinesTargetName is not null || (a.Class is { } cls && cls.Members.Any(mm => mm.RedefinesTargetName is not null));
+
+    /// <summary>The clause that tells the user which entry to edit when a diagnostic's subject is a member the entry
+    /// copied in (kb/Work PB1629): empty for an entry the programmer wrote, else the TYPE or SAME AS subject the
+    /// diagnostic is positioned at (<see cref="DataItem.ReferenceSite"/>).</summary>
+    private static string ViaReference(DataItem item) =>
+        item.ReferenceSite is var site && !ReferenceEquals(site, item)
+            ? $" — part of the description '{site.CobolName ?? "FILLER"}' copies in through its TYPE or SAME AS clause"
+            : "";
 
     /// <summary>⛔ §13.18.38.3 SR20 over the record's STORAGE AREA, not its entry (kb/Work PB1261). The range is
     /// byte positions — from the table's first to its record's last — and a byte position belongs to an AREA, which
@@ -555,10 +608,17 @@ public sealed partial class DataBinder
             // §8.5.1.9.1 item 3 (:8195) — a dynamic-capacity table "may be defined in any place, OTHER THAN the file
             // section" (its out-of-line CobolDynTable has no place in a record image). Reject a dynamic table whose
             // storage root is an FD/SD record.
+            // ⛔ A fault of PLACEMENT is positioned at the entry that placed it (kb/Work PB1629): a table that reaches the
+            // record through a TYPE or SAME AS clause is legal in the declaration it is copied from, so the error is
+            // at the clause's subject (DataItem.ReferenceSite) — the FD record or the group inside it — never at the
+            // working-storage declaration, whose line the user would be told to change.
             DataItem root = item; while (root.Parent is { } p) root = p;
             if (fileRecordRoots.Contains(root))
+            {
+                using var __ = Edition.At(item.ReferenceSite);
                 Edition.Error("COBOLNET1526", $"OCCURS DYNAMIC on '{subject}': a dynamic-capacity table shall not be "
-                    + "defined in the FILE SECTION (ISO §8.5.1.9.1)");
+                    + "defined in the FILE SECTION (ISO §8.5.1.9.1)" + ViaReference(item));
+            }
 
             // SR28 (:19987): integer-4 (FROM) shall be nonnegative and integer-5 (TO), if both present, shall be
             // GREATER THAN integer-4. (FROM<0 cannot be written — the grammar takes an unsigned integerLiteral.)
