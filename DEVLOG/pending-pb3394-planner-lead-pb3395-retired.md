@@ -20,3 +20,8 @@ ledger entries were released and two notes were filed.
 
 The review finisher answered the finding by retiring the duplicate. PB3394 stays open and unstarted: this landing is
 notes only, and the drain (no new work) leaves its fix to a later planner group with PB3263, PB3392, PB3114 and PB3369.
+
+Branch review round 1 then found (R1-1) that folding PB3395 into PB3114 dropped the defect out of the live PB3353
+campaign: PB3395 carried that cluster and PB3114 held only its two landed ones. PB3114 now also lists PB3353 in its
+`cluster`, so `work.py next --cluster PB3353` ranks it with PB3263, PB3369, PB3392 and PB3394 and the group the notes
+name can be planned.
