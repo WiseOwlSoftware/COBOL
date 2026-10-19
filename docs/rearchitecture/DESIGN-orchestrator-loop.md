@@ -710,6 +710,18 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    earlier attempt). A ledger group a report answers (its slug) is read through its branch, never its declared set; a
    LANDED branch is gone. The external-repository slices gate the campaign only. The landing check stays the
    guarantee for R3 work; fix lane against fix lane is never stopped there, and costs at most a conflict finisher.
+   **An empty file set is UNKNOWN, never "collides with nothing"** (`plan_wave.collision`, kb/Work PB3263). A group
+   none of whose notes declares a site block has an empty set, and so does a dispatch the ledger recorded with none
+   (wave 1117 recorded six of its eight PB3353 groups so; wave 1126 C, PB1587, was planned beside the in-flight
+   storage engine and landed on six of its files). Two known sets meet on a shared file. An unknown side meets the
+   other on a shared SUBSYSTEM, the notes' `area:` values (`plan_wave.subsystems`), and meets everything when that is
+   unknown too (an owner none of whose notes is known). A meeting by subsystem waits even for FINISHED work, because a
+   continuation would merge a branch the group may share nothing with. Within the wave an unknown group is planned
+   ALONE ON ITS SUBSYSTEMS: it joins the chain of the last group on any of them (`after:`), and a later group on one
+   joins its chain. A dispatch recorded with no files stays in flight with its empty set and its notes. The plan
+   table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
+   `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
+   finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
 2. **Finishers first.** (a) A note whose newest report (by wave, then time; header lines only) says `SPLIT` or
    `NOT STARTED`, whatever its branch's state (a `land` unit lands only `DONE` branches, so an unlanded `SPLIT` branch
    held for one was stranded; kb/Work PB2575), or says `DONE` with a branch review stamped `Review: FINDINGS` (kb/Work
@@ -807,7 +819,8 @@ itself), ordered by the owner's `tier:` and by `blocked_by:`.
   blocks under `model_rules.json` `campaign.src`; never what its prose, a `Gate:` line or a tool command mentions,
   kb/Work PB3242) with `fix_clusters.py`'s own `cluster` (imported, never forked), one topological depth at a time
   so a cluster never mixes a blocker with what it blocks. A note declaring no site file is a group of its own, ordered
-  by its chain. A group's file set, the one the partition checks, is its notes' declared sets plus its primary file
+  by its chain; when it declares no site block at all its set is UNKNOWN and it is planned alone on its subsystem
+  (item 1b), and `work.py check` refuses a note filed into a cluster without one (below). A group's file set, the one the partition checks, is its notes' declared sets plus its primary file
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent
   can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts the tier first
   (a cluster's is its lowest note's, and `plan_wave.lift_tiers` lowers a blocker's cluster to the tier of every cluster
