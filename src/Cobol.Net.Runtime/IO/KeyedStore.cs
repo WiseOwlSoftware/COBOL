@@ -58,17 +58,20 @@ internal abstract class KeyedStore
     }
 
     /// <summary>The OPEN's adoption rule (2.2.1.6 R6), run by the caller under the store mutex. A live store is the truth
-    /// for every connector of the run unit (kb/Work PB143) and is not re-read — unless it was opened through no writable
-    /// handle and this connector's is writable, when the store is opened again through it, which FENCES as every
-    /// writable OPEN does. A file of no bytes holds no store yet: a writable connector creates the empty one (three meta
-    /// pages, §14.9.27.4 GR17's creation), a reader reads no records.</summary>
+    /// for every connector of the run unit (kb/Work PB143) and is not re-read — unless this connector's handle is writable
+    /// and the store was opened through no writable handle, or its writable handles all detached and the reader's
+    /// re-adoption was refused (<see cref="_fenceOwed"/>): then the store is opened again through it, which FENCES as
+    /// every writable OPEN does. A file of no bytes holds no store yet: a writable connector creates the empty one (three
+    /// meta pages, §14.9.27.4 GR17's creation), a reader reads no records.</summary>
     public StoreStatus Open(bool writable, bool coherent, FixedFileAttributes attributes)
     {
         _coherent = coherent;
-        if (File is { } live && (live.Writable || !writable)) return StoreStatus.Ok;
+        if (File is { } live && (!writable || (live.Writable && !_fenceOwed))) return StoreStatus.Ok;
         if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
         var status = PagedFile.Open(_medium, writable, coherent, out var opened, _cachePages);
-        if (status == StoreStatus.Ok) File = opened;
+        if (status != StoreStatus.Ok) return status;
+        File = opened;
+        _fenceOwed = false;
         return status;
     }
 
@@ -79,6 +82,7 @@ internal abstract class KeyedStore
     {
         _coherent = coherent;
         File = null;
+        _fenceOwed = false;
         var status = PagedFile.Create(_medium, attributes, coherent, out var created, _cachePages);
         if (status == StoreStatus.Ok) File = created;
         return status;
@@ -86,18 +90,33 @@ internal abstract class KeyedStore
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
     /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a
-    /// handle that cannot. The caller holds the store mutex (2.2.1.7). Returns the reader's adoption status: a refused
-    /// read leaves the store on the meta it holds, which names the last completed statement's trees, and a reader's
-    /// statement never writes (<see cref="PagedFile.Enter"/>'s reader entry).</summary>
+    /// handle that cannot. The caller holds the store mutex (2.2.1.7). Returns the reader's adoption status, which the
+    /// detaching connector's CLOSE answers: a refused read ('30', 2.2.1.16's refused READ row) leaves the store on the
+    /// meta it holds — the last completed statement's trees, which a reader's entry reads and never writes
+    /// (<see cref="PagedFile.Enter"/>'s shared entry) — with its fence OWED (<see cref="_fenceOwed"/>), so the run unit's
+    /// next writable OPEN opens it again and fences rather than taking it as a live writable store.</summary>
     public StoreStatus DetachHandle(SafeFileHandle handle)
     {
         _handles.Detach(handle);
-        if (!_handles.HasHandle) { File = null; return StoreStatus.Ok; }
+        if (!_handles.HasHandle)
+        {
+            File = null;
+            _fenceOwed = false;
+            return StoreStatus.Ok;
+        }
         if (File is not { Writable: true } || _handles.HasWritable) return StoreStatus.Ok;
         var status = PagedFile.Open(_medium, writable: false, _coherent, out var reader, _cachePages);
         if (status == StoreStatus.Ok) File = reader;
+        else _fenceOwed = true;
         return status;
     }
+
+    /// <summary>⛔ The store's <see cref="File"/> is WRITABLE but no writable handle has opened it since its last writable
+    /// handle detached: the reader's re-adoption was refused (<see cref="DetachHandle"/>). The writable state names the
+    /// last completed statement's trees, which the readers left keep reading, but no writable OPEN's fence (2.2.1.6 R6)
+    /// stands behind it any more — another run unit may have died over the file since — so the next writable OPEN of the
+    /// run unit opens the store again, which fences, and clears this.</summary>
+    private bool _fenceOwed;
 
     /// <summary>The trees one statement edited, each with the root it sets in the meta: <see cref="PrimeRoot"/> for the
     /// prime (relative: record-number) tree, an alternate key's index for its tree.</summary>

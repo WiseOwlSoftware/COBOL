@@ -4,13 +4,14 @@ using CobolNet.Runtime.IO.Store;
 
 namespace CobolNet.Tests.Unit.Store;
 
-/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) that refuses the writes and
-/// syncs a case names — the host's answers a real file cannot be made to give on demand (a full medium, a file at its
-/// maximum size, a refused flush): docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.12's fault injection at the
-/// connector's level. A refused write or sync changes nothing on the medium. <paramref name="read"/> observes every page
-/// read before it is made (a case asks there what another run unit could see at that moment, kb/Work PB3335).</summary>
+/// <summary>A REAL medium (a connector's handle, through <c>KeyedStore.MediumObserver</c>) that refuses the reads, writes
+/// and syncs a case names — the host's answers a real file cannot be made to give on demand (a full medium, a file at its
+/// maximum size, a refused flush, a read the device fails): docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.12's fault
+/// injection at the connector's level. A refused write or sync changes nothing on the medium, and a refused read hands
+/// nothing back. Each seam is called before its operation is made, so it also observes it (a case asks there what another
+/// run unit could see at that moment, kb/Work PB3335), and answers the exception the host would throw, or null.</summary>
 internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception?>? write = null, Func<Exception?>? sync = null,
-    Action<uint>? read = null)
+    Func<uint, Exception?>? read = null)
     : IPageMedium
 {
     /// <summary>The page writes handed to the inner medium so far.</summary>
@@ -38,7 +39,7 @@ internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception
 
     public void Read(uint page, Span<byte> destination)
     {
-        read?.Invoke(page);
+        if (read?.Invoke(page) is { } refusal) throw refusal;
         inner.Read(page, destination);
         Reads++;
     }

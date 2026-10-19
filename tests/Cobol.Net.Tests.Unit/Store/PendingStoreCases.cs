@@ -82,8 +82,10 @@ public sealed class PendingStoreCases
         // conformance-suite/cases/14.9.41-START/pb3334_start_indexed_tree_operators; the torn page's '30' and the
         // boundary's '24' through a compiled program, in every USE and FILE STATUS combination, in
         // IndexedEnginePermanentErrorWitnessTests. PB3335's — the connectors' coherence, StoreTable's attach and detach, the
-        // cache dropped on adoption, a reader's entry, the crashed-file reader of R6's last row — in StoreCoherenceTests.)
-        // What is left is the held transaction slice's.
+        // cache dropped on adoption, a reader's entry beside a writable sibling with its torn and refused page 2, the
+        // re-adoption's refusal at a CLOSE, the crashed-file reader of R6's last row — in StoreCoherenceTests; a CLOSE's
+        // '30', its promotion or its re-adoption refused, through a compiled program in every USE and FILE STATUS
+        // combination, in KeyedClosePermanentErrorWitnessTests.) What is left is the held transaction slice's.
     ];
 
     [Fact]

@@ -339,7 +339,7 @@ public sealed class FileBoundaryTests : IDisposable
         int tooLarge = OperatingSystem.IsWindows() ? unchecked((int)0x800700DF) : 27;   // ERROR_FILE_TOO_LARGE / EFBIG
         bool refusing = false;
         int refused = 0;
-        KeyedStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
             write: page =>
             {
                 if (!refusing || !Grows(inner, page)) return null;
@@ -370,7 +370,7 @@ public sealed class FileBoundaryTests : IDisposable
             Assert.True(refused > 0, "the creation grew the file, and the host refused it");
             refusing = false;
         }
-        finally { KeyedStore.MediumObserver.Value = null; }
+        finally { RelativeStore.MediumObserver.Value = null; }
         Assert.Equal(["1=AAAA"], Records(host));
     }
 
