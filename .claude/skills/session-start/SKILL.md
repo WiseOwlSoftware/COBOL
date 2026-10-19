@@ -44,6 +44,8 @@ Reading its output:
 - **`⛔ mailbox (<lane>) … NO watcher armed for this session`** — act on the inbox (`python
   scripts/orchestrator/mailbox.py list --inbox <lane>`), then arm the watcher the line names as a BACKGROUND Bash task,
   and re-arm it each time it fires. Only this session can arm it: its exit is what wakes this session (kb/Work PB2814).
+  The Stop hook `inbox_guard.py` refuses the turn's end while it is unarmed (kb/Work PB3387). The watcher fires only
+  on NEW messages, so it stays armed beside one you have seen and cannot close yet.
 - **`⚠ UNEXPECTED BRANCH`** — expected is `phase-14` or `main`. Stop and ask before working on another.
 - **`⚠ DIRTY TREE`** — commit or explain before proceeding. Never start new work on top of unexplained changes.
 - **`diag`** — claim the next diagnostic code from `next free`, never by reading a list. `src-grep max >= catalog max`
