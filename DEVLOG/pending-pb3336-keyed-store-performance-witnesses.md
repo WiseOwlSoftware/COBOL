@@ -73,8 +73,11 @@ Lead: the ledger could be organized so that a statement's entries land on one le
 - Cleanup owed to rule 4: nothing was left. PB3335's reviewed head had already deleted `RecordFraming.ComposeStore`,
   `DecodeStore`, `MaxStoreBytes`, their test and the `OutOfMemoryException` catch of `FileConnector.MappedCloseCore`.
 
-**Gate.** Run `TestResults/build-local/20261018T193202Z-5de143` at 716a54e15, with all 51 new cases Passed in
-leg-1-Unit.trx: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population
-run: Conformance 6,368 · Unit 359 · Characterization 31 … Conformance 11,333/17,701 · Unit 33,987/34,346 · Characterization
-5/36 cases ran (skipped 0) in 1 of 2 leg(s) … ===`. Semgrep verify: PASS, no count changed. The Linux gate runs at the
-landing (batched gating).
+**Gate.** At 93ef4cbd1 (the predecessors' reviewed content merged: origin/main, then PB3335's branch at b3a83d9e8),
+run `TestResults/build-local/20261019T020842Z-9a08d6`, the 36 replay cases Passed in leg-1-Unit.trx:
+`=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance
+6,563 · Unit 493 · Characterization 31 … Conformance 11,384/17,947 · Unit 34,147/34,640 · Characterization 5/36 cases ran
+(skipped 0) in 1 of 2 leg(s) … ===`. Linux, the same commit: `=== LINUX GATE: GREEN (legs selftests unit characterization
+conformance guard selftests-built; HEAD 93ef4cbd1) ===`. The gate one merge earlier (c13feb6cf) was RED on exactly the two
+reds PB3335's branch then had from its PB1587 merge (a lost witness of GR-14.9.51.4-12 and one StoreCoherenceTests case,
+red on its own gates too); they were fixed there and merged here, not fixed twice.
