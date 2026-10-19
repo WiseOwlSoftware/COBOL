@@ -363,9 +363,11 @@ from a per-connector base plus a per-connector count, which had both connectors 
 record ordinal 2. `FileConnector.Physical` is how a connector reaches that state and EVERY connector holds it —
 Table 19 arbitrates every open over it, and since PB740 two clause-less connectors may share one physical file,
 so a rule about the MEDIUM cannot be gated on a clause. `SharedPhysical` is the §9.1.16 RECORD-LOCKING view of
-it, non-null only for a connector that registered a SHARING or LOCK MODE clause, because the ordinal *is* the
-lock identity and §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor
-(this compiler's determination: none). Both are written by ONE call, `AssociatePhysical`, immediately before the
+it, non-null only for a connector whose current OPEN can SET record locks (`FileRegistry.RecordLocksSetUnder`: a
+LOCK MODE clause under a sharing mode other than NO OTHER, §12.4.5.9.4 GR1 and GR3), because the ordinal *is* the
+lock identity: a SHARING clause alone (GR1 a), a SHARING or RETRY phrase on the OPEN (GR1 b) 1.) and a clause-less
+connector (GR1 b) 2., this compiler's determination: none) set no record lock and so have none to identify
+(kb/Work PB3372). The same predicate answers `LocksEffective` at every I-O statement. Both are written by ONE call, `AssociatePhysical`, immediately before the
 OPEN body runs — the boolean that used to sit beside the state is still gone, and the view is derived rather
 than stored (kb/Work PB740 removed the conflation with the OS share mode; PB753 split the medium question from
 the locking one without adding a second answer).
