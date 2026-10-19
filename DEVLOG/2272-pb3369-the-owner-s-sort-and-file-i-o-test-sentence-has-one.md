@@ -1,4 +1,4 @@
-## PB3369: the owner's SORT and file I/O test sentence has one home, MANDATORY-PRACTICES I11, and a drift test keeps it so
+## Entry 2272 — 2026-10-19 16:23 PDT — PB3369: the owner's SORT and file I/O test sentence has one home, MANDATORY-PRACTICES I11, and a drift test keeps it so
 
 Wave 1131, group H. The note (filed 2026-10-18) found that the owner's standing test requirement (SORT, MERGE and file
 I/O tests cover the abnormal and exception paths as fully as the success paths) reached a group only through a campaign
@@ -35,3 +35,4 @@ register's `area` values are not normalized, so a computed binding would be a li
 self-test, a design section and a skill sentence. The drift test is its witness.
 
 Rows: none claimed, none closed. Gate: see the report.
+
