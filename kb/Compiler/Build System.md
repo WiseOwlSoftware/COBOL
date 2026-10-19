@@ -11,7 +11,6 @@ related_files:
   - Cobol.Net.sln
   - src/Cobol.Net.Frontend/Cobol.Net.Frontend.csproj
   - src/Cobol.Net.Frontend/Invoke-Antlr4CSharp.ps1
-  - scripts/guard.sh
   - scripts/guard-fast.sh
 tags:
   - cobolsharp
@@ -54,12 +53,10 @@ engine is deleted from `main` (`docs/rearchitecture/LEGACY-ARCHIVE.md`). See
 [[kb/Architecture/Module Overview]].
 
 ## Guard & generator scripts (`scripts/`)
-- **`guard.sh`** — the full serial gate: build CLI → unit → integration → the 364-program NIST regression, in a
-  per-run snapshot dir (snapshots the built compiler + NIST inputs so a concurrent rebuild can't swap DLLs mid-run —
-  the "phantom regression" class).
-- **`guard-fast.sh`** — the parallel fast gate, proven equivalent to `guard.sh` via `guard-verify.sh`. Self-contained
-  suites run fully parallel; file-I/O suites run serially within-suite. Mis-grouping can only produce a RED, never a
-  false GREEN.
+- **`guard-fast.sh`** — the NIST guard: builds the `cobol` CLI, compiles the population it derives from
+  `tests/nist/corpus.tsv`, runs every program as its own job in a clean directory after exactly its declared
+  predecessors (`guard-run-group.sh`), and audits every verdict against the manifest. A missing predecessor edge can
+  only produce a RED, never a false GREEN. `JOBS=1` runs it serially; `guard-verify.sh --self-test` proves its rules.
 - **`gen-*.ps1` generators** (each with a drift test): `gen-cobol-words.ps1` (→ `CobolWords.g4` + `CobolLexerWordSet.g.cs`),
   `gen-reserved-words.ps1` (→ `ReservedWords.Table.cs`), `gen-constructs.ps1`, `gen-vcr.ps1`, `gen-diagnostics-doc.ps1`.
 
@@ -67,7 +64,7 @@ engine is deleted from `main` (`docs/rearchitecture/LEGACY-ARCHIVE.md`). See
 ```bash
 dotnet build                    # build all projects (regenerates ANTLR if stale)
 dotnet test                     # unit + conformance + characterization
-bash scripts/guard.sh           # full regression gate incl. NIST
+bash scripts/guard-fast.sh      # the NIST regression gate
 ```
 
 ## Key concepts
@@ -75,7 +72,7 @@ bash scripts/guard.sh           # full regression gate incl. NIST
 - Central package management (`Directory.Packages.props`) = one version source.
 - `Generated/` is a gitignored build output; ANTLR regenerated at build; failed regen fails the build.
 - Portable regen: per-grammar, own-directory, bare-filename; package name = MSBuild `<AntlrNamespace>`.
-- Two guard gates + `gen-*.ps1` generators, each drift-tested against its JSON source.
+- One NIST guard + `gen-*.ps1` generators, each drift-tested against its JSON source.
 
 ## See also
 - [[kb/Compiler/Phases]] — the grammar that gets regenerated.

@@ -78,7 +78,7 @@ Vocabulary of the COBOL.NET project. Each term links to where it is developed.
 - **Spec-derived golden** — an expected-output test whose value is computed from the ISO §, not copied from the oracle.
 - **Singular pattern** — one mechanism per job (the best one); the master design principle. See
   [[kb/Context/Doctrine & Anti-Patterns]].
-- **guard.sh / guard-fast.sh** — the full / parallel regression gates. See [[kb/Compiler/Build System]].
+- **guard-fast.sh** — the NIST guard: the CLI-level NIST regression, every program in its own directory. See [[kb/Compiler/Build System]].
 
 
 ## ISO COBOL lookup cross-reference

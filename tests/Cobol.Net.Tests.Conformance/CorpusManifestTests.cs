@@ -216,13 +216,13 @@ public sealed class CorpusManifestTests
         var offenders = new List<string>();
         foreach (string script in Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh").Order())
         {
-            string text = File.ReadAllText(script);
-            foreach (System.Text.RegularExpressions.Match m in assignment.Matches(text))
+            string source = File.ReadAllText(script);
+            foreach (System.Text.RegularExpressions.Match m in assignment.Matches(source))
             {
                 int names = m.Groups[2].Value
                     .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
                     .Count(t => name.IsMatch(t));
-                int lineNo = text.AsSpan(0, m.Index).Count('\n') + 1;
+                int lineNo = source.AsSpan(0, m.Index).Count('\n') + 1;
                 if (names >= 2) offenders.Add($"{Path.GetFileName(script)}:{lineNo} {m.Groups[1].Value} ({names} names)");
             }
         }
