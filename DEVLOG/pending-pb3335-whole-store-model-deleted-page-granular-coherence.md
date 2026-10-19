@@ -176,3 +176,19 @@ of 2 leg(s) ===`, and all 32 witness cases passed in leg 1. CI's Linux legs prin
 selftests unit characterization conformance guard selftests-built; HEAD a2f97fc91) ===`. Both gates were also GREEN at
 `da8cd56d8`, before the last two commits (the fourth cover, the counts and this entry) and the clean merge of b3d-4's
 landing.
+
+Round 4 answered R4-L1, the conflict the landing would have met: main had landed PB1587 (PR #265) on the whole store
+after the round-3 tip. `90fc2692c` merged origin/main `bb24cae07`. The deletion of `IndexedConnector.WholeStore.cs` wins,
+since PB1587's change there (`CoherentUnder` asking `AdmitsAnotherRunUnit`) is already the engine's rule in
+`KeyedConnector.TakeFileLock`. PB1587's READ ONLY refused-persist case now lives in the engine's own refusal theories in
+`KeyedStoreReloadFailureDriftTests`. `APageWriteTheHostRefuses_Is30_AtTheStatement` and
+`ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords` run under ALL OTHER, READ ONLY and NO OTHER in both
+organizations, all '30' (§9.1.13.6 1)). Main's whole-store persist test went with the model it tested. Measured: the
+case PB1587 left for this engine, `AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite`, stays green even with the
+predicate weakened to `AdmitsAnotherWriter`. On the engine a WRITE's visibility to another run unit is structural, because
+the statement writes its pages before it returns. The predicate only serializes that writer against the reader. The
+three `pb1587_write_released_*` goldens pass on the paged store, and none was re-captured because they pin standard
+output only. In the inventory this branch's side was taken and main's four PB1587 rows were re-applied by the
+`record_verdicts` batch `w1118a5-r4-PB1587-merge`. GR-14.9.51.4-12's dead `WholeStore.cs#CoherentUnder` witness now
+points at `KeyedConnector.cs#TakeFileLock`, and the GAP stays at 66. DESIGN-runtime-library 2.2.1.7's "why not only ALL
+OTHER" paragraph and the PB3334 and PB1587 notes now describe the engine.
