@@ -12,9 +12,9 @@ as a lead. Each defect now has a running case, and each case went red (6 reds) w
 **Mechanism 1: coherence completed in the connectors.**
 - *A reader's entry wrote under a SHARED mutex.* An `OPEN INPUT` connector beside a writable sibling in its own run unit
   holds the store mutex shared. Its `PagedFile.Enter` still ran as the writable store's entry, so a PROMOTING flag left on
-  page 2 by another run unit's refused CLOSE was resolved with page writes under the shared hold. `PagedFile.Enter(asReader)`
-  makes a statement through a read-only handle adopt page 2 and leave the mints and the flag to the next writable entry,
-  which holds the mutex exclusively (2.2.1.7: "an INPUT connector ignores the mint and the flag, which concern writers
+  page 2 by another run unit's refused CLOSE was resolved with page writes under the shared hold. `PagedFile.Enter(exclusive)`
+  makes a shared entry adopt page 2 and read the ledger and the mints as a writer does, but leave a PROMOTING flag to the
+  next exclusive entry or the CLOSE, which holds the mutex exclusively (2.2.1.7: "an INPUT connector ignores the mint and the flag, which concern writers
   only"). A torn page 2 leaves such a reader on the tree it holds.
 - *The reader's re-adoption ran outside the mutex.* When the run unit's last writable connector closes and a reader stays,
   `KeyedStore.DetachHandle` reopens the store as the reader's: R6 in memory, reading pages 0 to 2. That ran after the
@@ -34,7 +34,7 @@ value (`EncodeFrame`/`DecodeFrame`) and the stream shape. Deleted with their cal
 `HeaderBytes`, `OrdinalSlots`, `FrameBytes`, `GapTag`/`EncodeGap` with `FrameKind` (`ReadFrame` answers bool), and the
 generation probe. `ImageMedium` is now `ValueMedium`, the leaf value's medium. The key descriptor codec and `StoreFormat`
 move to `Store/MetaPage.cs`, the one format that still records a key, and `SequentialConnector.IsKeyedStore` asks only
-`MetaPage.Describes`. `PagedFile.MaxPages` and `MaxFileBytes` (2^32 pages, 2^44 bytes) name the format's boundary, and
+`MetaPage.Describes`. `PagedFile.FormatPages` (2^32 pages of 4 096 bytes, so 2^44 bytes) names the format's boundary, and
 `HostRegionLocks`' Windows note and FileStatus '24' cite them. The `OutOfMemoryException` mappings of the CLOSE and of the
 coherent entry are removed; they existed only for the whole-store image's single allocation.
 
