@@ -38,7 +38,7 @@ internal static class OverflowChain
             Array.Clear(body);
             BinaryPrimitives.WriteUInt64LittleEndian(body, next.Generation);
             payload.Slice(at, share).CopyTo(body.AsSpan(NextGenerationBytes));
-            next = sink.Write(PageKind.Overflow, body, next.IsNone ? LastFlag : (byte)0, (ushort)share, next.Page);
+            next = sink.Write(PageKind.Overflow, body, next.IsNone ? LastFlag : (byte)0, (ushort)share, next.Page, default);
             if (next.IsNone) return PagePointer.None;
         }
         return next;

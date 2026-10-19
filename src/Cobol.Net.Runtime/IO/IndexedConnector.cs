@@ -38,8 +38,14 @@ public sealed class IndexedConnector : KeyedConnector
     /// data-name-2 of the SOURCE phrase), and their total width — the key's length.</summary>
     private readonly KeySegment[] _prime;
     private readonly int _primeLen;
-    private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
+    private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence AS DECLARED (the CobolCollation carrier); null = native ordinal
     private readonly List<(KeySegment[] Segments, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
+    /// <summary>The key sequences IN EFFECT for the current OPEN — index 0 the prime key, 1.. the alternates — each the
+    /// declared sequence's <see cref="CobolCollation.Snapshot"/> taken by <see cref="FreezeOpenSequences"/>. Every key
+    /// comparison and the declared attributes read these (<see cref="SequenceOf"/>), never the declared carriers: a
+    /// declared current-locale sequence (<see cref="LocaleCollation.Current"/>) resolves the run unit's locale at each
+    /// use, and a SET LOCALE between two statements on the open file would otherwise reorder the keys it holds.</summary>
+    private CobolCollation?[] _openSequences = [];
     /// <summary>True when ANY key's position varies with the record (<see cref="KeyOf"/>): such a key is located
     /// in the record AS WRITTEN — its length is what places it — so no key is ever sliced from a record image
     /// padded or truncated to the area width (<see cref="AreaKey"/>, and the WRITE / REWRITE key image).</summary>
@@ -163,10 +169,13 @@ public sealed class IndexedConnector : KeyedConnector
         {
             var keys = new List<FixedFileAttributes.KeyDescriptor>(_alts.Count + 1)
             {
-                new(Windows(_prime), false, null, FixedFileAttributes.Fingerprint(_primeCollation)),
+                new(Windows(_prime), false, null, FixedFileAttributes.Fingerprint(SequenceOf(PrimeKey))),
             };
-            foreach (var (segments, _, dups, collation, suppress) in _alts)
-                keys.Add(new(Windows(segments), dups, suppress, FixedFileAttributes.Fingerprint(collation)));
+            for (int i = 0; i < _alts.Count; i++)
+            {
+                var (segments, _, dups, _, suppress) = _alts[i];
+                keys.Add(new(Windows(segments), dups, suppress, FixedFileAttributes.Fingerprint(SequenceOf(i))));
+            }
             return keys;
             // The recorded descriptor is each window's offset and length; a layout is how a record is READ, not
             // an attribute of the physical file.
@@ -185,6 +194,24 @@ public sealed class IndexedConnector : KeyedConnector
         && _alts.All(a => a.Len <= BTree.MaxKeyBytes - CompositeKeyOrder.OrdinalBytes);
 
     // ── The engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1) ─────────────────────────────────────
+
+    /// <summary>The collating sequence key <paramref name="keyIndex"/> (&lt; 0, <see cref="PrimeKey"/>: the prime key)
+    /// is ordered by for the current OPEN; null = native ordinal. Before the first OPEN, the declared one.</summary>
+    private CobolCollation? SequenceOf(int keyIndex)
+    {
+        int slot = keyIndex < 0 ? 0 : keyIndex + 1;
+        if (slot < _openSequences.Length) return _openSequences[slot];
+        return keyIndex < 0 ? _primeCollation : _alts[keyIndex].Collation;
+    }
+
+    /// <inheritdoc/>
+    private protected override void FreezeOpenSequences()
+    {
+        var sequences = new CobolCollation?[_alts.Count + 1];
+        sequences[0] = _primeCollation?.Snapshot();
+        for (int i = 0; i < _alts.Count; i++) sequences[i + 1] = _alts[i].Collation?.Snapshot();
+        _openSequences = sequences;
+    }
 
     /// <inheritdoc/>
     private protected override KeyedStore AttachedStore => _st;
@@ -232,8 +259,8 @@ public sealed class IndexedConnector : KeyedConnector
         _lastWrittenPrime = null;
         _lastReadPrime = null;
         _lastWrittenPrimeId = null;
-        var alternates = _alts.Select(a => KeyOrder(a.Collation, a.Len)).ToArray();
-        _orders = new IndexedKeyOrders(KeyOrder(_primeCollation, _primeLen), alternates,
+        var alternates = _alts.Select((a, i) => KeyOrder(SequenceOf(i), a.Len)).ToArray();
+        _orders = new IndexedKeyOrders(KeyOrder(SequenceOf(PrimeKey), _primeLen), alternates,
             [.. alternates.Select(order => (IKeyOrder)new CompositeKeyOrder(order))]);
         _suppress = [.. _alts.Select(a => a.Suppress is { } value ? KeyBytes(value) : null)];
     }
