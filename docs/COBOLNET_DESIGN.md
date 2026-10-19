@@ -930,7 +930,10 @@ value of the typed RECORD KEY / RELATIVE KEY field.
   elementary item, a variable-length group or an occurs-depending group item is refused BY NAME, COBOLNET1757, before
   the record's image or the key's window is asked about. The file verbs read SR6 d)'s "occurs-depending-on data item" as
   including the occurs-depending GROUP (§13.18.38.4 GR8): a key whose length varies cannot be "the same byte positions"
-  of SR6 e). `RecordLayout.OffsetInRecord` bails on OCCURS ahead of its REDEFINES-class branch, so a multi-01 SD no
+  of SR6 e). The refusal quotes the copy of the rule printed for ITS statement, verbatim (MERGE SR4 d) has a comma before
+  "or an item subordinate" that SORT SR6 d) lacks; `cite.py` ignores punctuation, so the goldens `pb1173-merge-key-odo-group`
+  and `pb1173-sort-file-key-variable-group` pin each form), and the occurs-depending arm is not edition-gated: it also refuses
+  at `--std 85` (CONFORMANCE.md D-SKE). `RecordLayout.OffsetInRecord` bails on OCCURS ahead of its REDEFINES-class branch, so a multi-01 SD no
   longer places a table key at its first occurrence. **The USING and GIVING files are of ANY organization**
   (kb/Work PB994): the as-if OPEN / READ NEXT / WRITE / CLOSE of §14.9.40.4 GR12 / GR15 and §14.9.24.4 GR7 / GR12 run
   through the one runtime file facade, which dispatches to the sequential, relative and indexed connectors, so

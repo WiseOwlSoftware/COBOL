@@ -248,7 +248,11 @@ IX999Z  IX     pending        -                                        none     
   declared termination) and the note carries the ISO citation. `pending` ⇒ catalogued, not asserted (the mass-red
   guard).
 - `chain-preds` is the chain table `NistDifferentialTests` and the guard's program runner read: a program runs in its
-  own clean directory after exactly its declared predecessors, so no order carries a chain (kb/Work PB3383).
+  own clean directory after exactly its declared predecessors, so no order carries a chain (kb/Work PB3383). The runner
+  runs those predecessors ungraded and, like `NistRunner` (`[chain p] …`), never grades a consumer over a predecessor
+  that did not run to a normal end or has no compiled program: the consumer's verdict is that failure, named, under
+  the §3.10 evidence rules (`guard_predecessor_verdict` / `guard_predecessor_compile_verdict` in
+  `scripts/guard-verdict.sh`; kb/Work PB3385).
 - `NistDifferentialTests` reads `corpus.tsv` via `[MemberData]`, NOT a hand-maintained `[InlineData]` list.
 - The bash guard reads the same file for its population (the asserted rows plus their declared predecessors,
   kb/Work PB925) and its EXPECTED verdicts: a plain

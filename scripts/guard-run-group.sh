@@ -14,7 +14,9 @@
 # every program in one shared directory, so IX115A read the files IX114A left behind (kb/Work PB3383). It is retired.
 # ⛔ EVERY PROGRAM RUNS IN ITS OWN CLEAN DIRECTORY, AFTER EXACTLY ITS DECLARED PREDECESSORS (kb/Work PB3334, review
 # round 2) — NistRunner's rule, so the two arms grade a program over the same input. Its predecessors are corpus.tsv's
-# chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own member of the group).
+# chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own population member, when
+# it is one), and a predecessor that does not run to a normal end, or has no compiled program, makes the CONSUMER's
+# verdict that failure, named (guard_predecessor_verdict, kb/Work PB3385 — NistRunner's `[chain p] …` failures).
 # The group's programs used to share ONE directory, so a consumer ran over whatever the members before it left: IX115A,
 # which declares only IX109A, ran over the tf024.txt that IX110A and IX114A had opened I-O. That agreed with NistRunner
 # only while an OPEN and a CLOSE that changed no record left the file's bytes alone. The keyed-store engine's writable
@@ -53,25 +55,28 @@ trap 'rm -rf "$RUNS" "$CMP"' EXIT
 export COBOL_SWITCH_1=ON
 
 # run_predecessor PRED CONSUMER — run PRED, ungraded, in CONSUMER's run directory ($WORK), its standard input its data
-# file as when it is graded. A predecessor with no compiled program is said so on stderr and skipped: the consumer
-# then lacks its input and goes red, never a false green.
+# file as when it is graded, its stderr kept outside the run directory ($PRED_ERR). Returns 0 when PRED ran to a normal
+# end; otherwise 1 with GUARD_CLASS/GUARD_VERDICT set (guard_predecessor_verdict; guard_predecessor_compile_verdict for
+# a predecessor with no compiled program), and the caller reports THAT as the consumer's verdict instead of grading it
+# (kb/Work PB3385; NistRunner's `[chain p] …` failures). A consumer graded over the partial file a crashed predecessor
+# left, or over none, is no observation of the compiler — and a GUARD_TESTS subset naming only the consumer has no other
+# place where the predecessor is graded and seen to fail.
 run_predecessor() {
     local pred="$1" consumer="$2" pdata="$ROOT/tests/nist/data/$1.dat" prc=0
+    PRED_ERR="$CMP/${consumer}-${pred}-stderr.txt"
     if [ ! -f "$OUT/$pred.dll" ]; then
-        echo "  ⚠ $consumer: its declared predecessor $pred has no compiled program — $consumer runs without it" >&2
-        return 0
+        guard_predecessor_compile_verdict "$pred" "$(cat "$OUT/$pred.compile.rc" 2>/dev/null || echo "")" "$OUT/$pred.compile.log"
+        return 1
     fi
     cp "$OUT/$pred.dll" "$WORK/"
     [ -f "$OUT/$pred.runtimeconfig.json" ] && cp "$OUT/$pred.runtimeconfig.json" "$WORK/"
     if [ -f "$pdata" ]; then
-        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") < "$pdata" > /dev/null 2>&1 || prc=$?
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll" 2>"$PRED_ERR") < "$pdata" > /dev/null || prc=$?
     else
-        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") > /dev/null 2>&1 || prc=$?
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll" 2>"$PRED_ERR") > /dev/null || prc=$?
     fi
-    if [ "$prc" -eq 124 ] || [ "$prc" -eq 137 ]; then
-        echo "  ⚠ $consumer: its declared predecessor $pred timed out (rc=$prc) in $consumer's directory" >&2
-    fi
-    return 0
+    guard_predecessor_verdict "$pred" "$prc" "$PRED_ERR" "$RUN_TIMEOUT"
+    [ -z "$GUARD_CLASS" ]
 }
 
 for test in $TESTS; do
@@ -88,7 +93,15 @@ for test in $TESTS; do
     mkdir -p "$WORK"
     cp "$RUNTIME" "$WORK/"
     preds="$(guard_chain_preds "$test")" || exit 1
-    for pred in $preds; do run_predecessor "$pred" "$test"; done
+    pred_failed=""
+    for pred in $preds; do
+        if ! run_predecessor "$pred" "$test"; then pred_failed="$pred"; break; fi
+    done
+    if [ -n "$pred_failed" ]; then
+        echo "$test: $GUARD_VERDICT"
+        guard_preserve "$test" "$GUARD_VERDICT" "$PRED_ERR" "$OUT/$pred_failed.compile.log"
+        continue
+    fi
     cp "$dll" "$WORK/"
     [ -f "$OUT/$test.runtimeconfig.json" ] && cp "$OUT/$test.runtimeconfig.json" "$WORK/"
 
