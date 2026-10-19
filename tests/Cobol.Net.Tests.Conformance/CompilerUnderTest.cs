@@ -13,8 +13,8 @@ internal static class CutRunner
 {
     /// <summary>
     /// Canonicalize a compiled program's stdout to the <b>NIST acceptance basis</b> — exactly the guard's
-    /// <c>normalize()</c> (<c>scripts/guard.sh</c>): drop CR, then strip trailing spaces <i>per line</i>. The
-    /// committed differential goldens (<c>tests/differential/**/*.out</c>) were recorded on this basis, so every
+    /// <c>guard_normalize_into</c> (<c>scripts/guard-verdict.sh</c>): drop CR, then strip trailing spaces
+    /// <i>per line</i>. The committed differential goldens (<c>tests/differential/**/*.out</c>) were recorded on this basis, so every
     /// comparison against them goes through it. WiseOwl COBOL itself DISPLAYs the full field (ISO §14.9.11.4 GR1);
     /// a case whose meaning depends on <i>internal</i> trailing spaces (e.g. <c>DISPLAY WS-X "]"</c>) is pinned to
     /// its spec-derived value, which keeps the spaces before the bracket.
@@ -72,7 +72,7 @@ internal static class CutRunner
             foreach (var (k, v) in env)
                 if (v is null) psi.Environment.Remove(k);
                 else psi.Environment[k] = v;
-        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard.sh parity.
+        // ACCEPT device input (ISO §14.9.1 F1): pipe the NIST .dat to stdin (EOF when none) — guard-run-group.sh parity.
         var obs = ProcessObserver.ObserveOrThrow(psi, stdinFile is null ? null : File.ReadAllText(stdinFile), runDirectory: workDir);
         return (obs.ExitCode, Normalize(obs.Stdout), Normalize(obs.Stderr));
     }

@@ -1,18 +1,17 @@
 #!/bin/bash
-# Run ONE NIST group serially in an isolated scratch directory, emitting one "TEST: VERDICT" line per test to
-# stdout. Used by scripts/guard-fast.sh to parallelize the NIST suite across cores with airtight isolation.
+# THE ONE RUNNER OF NIST PROGRAMS: run each named program, one after another, each in its own clean scratch
+# directory, emitting one "TEST: VERDICT" line per program to stdout. scripts/guard-fast.sh runs every program of
+# its population as its own job through it (kb/Work PB3383), and scripts/guard-verify.sh's witnesses drive it.
 #
 #   $1 = repo root (absolute)
-#   $2 = group id (informational)
-#   $3 = ordered, space-separated test names that must share a dir + run order (a producer/consumer chain, or a
-#        single self-contained test)
+#   $2 = a label (informational)
+#   $3 = space-separated test names; each is graded on its own, so the order carries nothing
 #
-# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same report resolution, same written-files arm, same
-# FAIL*/footer rules); only the working directory differs.
-# ⭐ THAT IS NO LONGER A PROMISE KEPT BY HAND: both guards call scripts/guard-verdict.sh, the ONE implementation
-# of the evidence rules (`feedback_one_rule_one_place`). The prose used to say the two blocks were kept
-# "character-for-character in step", and they had already drifted (this file's normalize() carried a `[ -f ]`
-# guard guard.sh's did not) while sharing every hole kb/Work/PB473 found.
+# It scores through scripts/guard-verdict.sh, the ONE implementation of the evidence rules
+# (`feedback_one_rule_one_place`), and guard-verify.sh fails on any other guard script that runs a NIST program. A
+# serial twin, scripts/guard.sh, kept a hand copy of this loop "character-for-character in step": it had drifted
+# (this file's normalize() carried a `[ -f ]` guard its copy did not), shared every hole kb/Work/PB473 found, and ran
+# every program in one shared directory, so IX115A read the files IX114A left behind (kb/Work PB3383). It is retired.
 # ⛔ EVERY PROGRAM RUNS IN ITS OWN CLEAN DIRECTORY, AFTER EXACTLY ITS DECLARED PREDECESSORS (kb/Work PB3334, review
 # round 2) — NistRunner's rule, so the two arms grade a program over the same input. Its predecessors are corpus.tsv's
 # chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own member of the group).
@@ -39,8 +38,8 @@ case "$RUNTIME" in /*|[A-Za-z]:[\\/]*) ;; *) RUNTIME="$ROOT/$RUNTIME" ;; esac
 # conservative direction — and it is loud, so it gets read rather than absorbed.
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 
-# THE evidence rules (compile · run · compare · termination), shared with scripts/guard.sh, and the manifest's
-# one shell reader (guard_declared_termination).
+# THE evidence rules (compile · run · compare · termination), and the manifest's one shell reader
+# (guard_declared_termination, guard_chain_preds).
 . "$(cd "$(dirname "$0")" && pwd)/guard-verdict.sh"
 . "$(cd "$(dirname "$0")" && pwd)/guard-population.sh"
 

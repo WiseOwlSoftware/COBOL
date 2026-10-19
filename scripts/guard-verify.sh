@@ -1,45 +1,33 @@
 #!/bin/bash
-# TWO CHECKS, in this order:
+# THE NIST GUARD'S SELF-TEST: the compiler-identity watchdog's self-test (scripts/guard-compiler.sh), then THE
+# EVIDENCE-RULE WITNESSES — synthetic runs through the REAL scripts/guard-run-group.sh, each built so that exactly one
+# evidence rule (or the run-directory isolation) decides its verdict. No corpus, no compiler.
+#   bash scripts/guard-verify.sh --self-test
+# Exit 0 iff every witness holds. scripts/self_tests.py discovers it (every gate and CI's audits run it), and
+# scripts/guard-fast.sh and scripts/battery.sh run it before they measure.
 #
-#  (1) THE EVIDENCE-RULE WITNESSES — synthetic runs through the REAL scripts/guard-run-group.sh, each built so
-#      that exactly one evidence rule decides its verdict. Seconds, no corpus, no compiler. A harness whose
-#      verdicts are wrong makes (2) meaningless, so this runs first and (2) is skipped if it fails.
-#  (2) THE EQUIVALENCE PROOF — run scripts/guard.sh and scripts/guard-fast.sh over the corpus, extract the
-#      per-test "NAME: VERDICT" lines, and diff them. They MUST be byte-identical.
-#
-# Exit 0 iff the witnesses pass AND the verdict lists are identical AND both runs were ALL GREEN.
-#   bash scripts/guard-verify.sh              both checks (the full, slow proof)
-#   bash scripts/guard-verify.sh --witnesses  the witnesses only (seconds — the wave-local gate for a change to
-#                                             the verdict rules themselves)
-#
-# ⚠ (2) IS NO LONGER THE PRIMARY CHECK, AND THE HEADER USED TO SAY IT WAS. Both guards now run
-# scripts/guard-nist-audit.sh, which compares every program's verdict against tests/nist/corpus.tsv — an
-# ABSOLUTE check against a committed manifest. (2) is RELATIVE: it compares the two guards to each other, so it
-# cannot see them deviating together, and it is necessarily empty whenever both are audit-clean. Keep it for the
-# case the audit cannot cover: a difference in the two guards' own MECHANICS that the manifest is blind to
-# (working-directory isolation, run ORDER within a group, the compile path).
-#
-# ⛔ AND "THEY AGREE" WAS NEVER EVIDENCE THAT EITHER IS RIGHT. Both guards shared every hole kb/Work/PB473 found
-# in the COMPARE arm, so (2) was perfectly green while a lost observation was being scored `DIFF — REGRESSION!`
-# on both sides. That is what (1) is for: it asserts what a verdict MEANS, one rule at a time, and every case
-# below was proved RED against the pre-fix runner before it was made green (`feedback_green_gates_arent_evidence`
-# — reproduce with `git show 80c87970:scripts/guard-run-group.sh > /tmp/old.sh` and
-# `GUARD_GROUP_RUNNER=/tmp/old.sh bash scripts/guard-verify.sh --witnesses`).
+# ⛔ "TWO GUARDS AGREE" WAS NEVER EVIDENCE THAT EITHER IS RIGHT. This script also ran an EQUIVALENCE PROOF that diffed
+# the retired serial guard's verdicts with guard-fast.sh's. Both shared every hole kb/Work/PB473 found in the COMPARE
+# arm, so the proof was green while a lost observation was scored `DIFF — REGRESSION!` on both sides; and it went red
+# for the serial guard's own shared directory, not for a difference in what a verdict means (kb/Work PB3383). What a
+# verdict MEANS is asserted here, one rule at a time; what each program's verdict must BE is asserted against the
+# committed manifest by scripts/guard-nist-audit.sh. Every case below was proved RED against the pre-fix runner
+# before it was made green (`feedback_green_gates_arent_evidence` — reproduce with
+# `git show 80c87970:scripts/guard-run-group.sh > /tmp/old.sh` and
+# `GUARD_GROUP_RUNNER=/tmp/old.sh bash scripts/guard-verify.sh --self-test`).
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 
-MODE="${1:-all}"
-case "$MODE" in
-    --witnesses|--witness) MODE="witnesses" ;;
-    all|"")                MODE="all" ;;
-    *) echo "usage: $0 [--witnesses]" >&2; exit 2 ;;
+case "${1:-}" in
+    --self-test) ;;
+    *) echo "usage: $0 --self-test" >&2; exit 2 ;;
 esac
 
 # The runner under test. Overridable so the witnesses can be pointed at an OLD copy of the group runner and
 # shown to fail — a check that has never been shown to fail is not evidence.
 GROUP_RUNNER="${GUARD_GROUP_RUNNER:-$ROOT/scripts/guard-run-group.sh}"
 
-# ── (1) THE EVIDENCE-RULE WITNESSES ────────────────────────────────────────────────────────────────────────
+# ── THE EVIDENCE-RULE WITNESSES ────────────────────────────────────────────────────────────────────────────
 # Each case drives the real group runner over a FAKE repo root, with `dotnet` (and, for one case, `diff`)
 # replaced by shims on PATH so the scenario is exact and instant: no compiler, no COBOL, no corpus. What the
 # program did — wrote a report or not, exited 0 or 1, said something on stderr or nothing — is the entire input,
@@ -71,6 +59,15 @@ case "${WITNESS_CASE:-}" in
     correct)   cp "$WITNESS_VALID/$t.txt" "./$lt.txt" ;;
     wrong)     sed 's/PASS/FAIL/' "$WITNESS_VALID/$t.txt" > "./$lt.txt" ;;
     stdout)    cat "$WITNESS_VALID/$t.txt" ;;                  # DISPLAY-only: the report arrives on stdout
+    # kb/Work PB3383: a chain over one data file. WT001A produces it; WT003A, which no program declares as a
+    # predecessor, writes the same file (as IX114A's writable OPEN fenced tf024.txt); WT002A, which declares WT001A, is
+    # correct only over exactly what WT001A wrote.
+    chain)     case "$t" in
+                   WT001A) printf 'PRODUCED' > ./tf024.txt; cp "$WITNESS_VALID/$t.txt" "./$lt.txt" ;;
+                   WT003A) printf 'FENCE' >> ./tf024.txt; cp "$WITNESS_VALID/$t.txt" "./$lt.txt" ;;
+                   WT002A) if [ "$(cat ./tf024.txt 2>/dev/null)" = "PRODUCED" ]; then cp "$WITNESS_VALID/$t.txt" "./$lt.txt"
+                           else sed 's/PASS/FAIL/' "$WITNESS_VALID/$t.txt" > "./$lt.txt"; fi ;;
+               esac ;;
 esac
 # kb/Work PB804: the OTHER files a program writes (WITNESS_FILES="name=content|name=content" — WT001A only, so a second program
 # of the group can be shown NOT to have written them) and a line of console output beside a print file.
@@ -91,14 +88,22 @@ SHIM
     } > "$BIN/diff"
     chmod +x "$BIN/diff"
 
-    # run_case CASE RC STDERR DIFF_RC [DLL=yes|no] -> prints the group runner's verdict line for WT001A
+    # The fake manifest the runner reads its chain predecessors from (guard_chain_preds): WT002A declares WT001A.
+    printf 'WT001A\tWT\tgreen\t-\tvalid\t-\nWT002A\tWT\tgreen\tWT001A\tvalid\t-\nWT003A\tWT\tgreen\t-\tvalid\t-\n' \
+        > "$FR/tests/nist/corpus.tsv"
+    printf 'WT001A\tWT\tgreen\t-\tvalid\t-\nWT002A\tWT\tgreen\t-\tvalid\t-\nWT003A\tWT\tgreen\t-\tvalid\t-\n' \
+        > "$FR/tests/nist/corpus-nochain.tsv"
+
+    # run_case CASE RC STDERR DIFF_RC [DLL=yes|no] -> prints the group runner's verdict line for WT001A (or for every
+    # program of WITNESS_GROUP); with DLL=yes every witness program is compiled, so a predecessor can run.
     run_case() {
         local case_name="$1" wrc="$2" werr="$3" wdiff="$4" dll="${5:-yes}"
         rm -rf "$FR/tests/nist/output"; mkdir -p "$FR/tests/nist/output"
         if [ "$dll" = "yes" ]; then
-            local prog; for prog in ${WITNESS_GROUP:-WT001A}; do printf 'stub\n' > "$FR/tests/nist/output/$prog.dll"; done
+            local prog; for prog in WT001A WT002A WT003A; do printf 'stub\n' > "$FR/tests/nist/output/$prog.dll"; done
         fi
         GUARD_FORENSICS="$d/forensics" \
+        GUARD_CORPUS_TSV="${WITNESS_CORPUS:-$FR/tests/nist/corpus.tsv}" \
         PATH="$BIN:$PATH" \
         WITNESS_CASE="$case_name" WITNESS_RC="$wrc" WITNESS_STDERR="$werr" WITNESS_DIFF_RC="$wdiff" \
         WITNESS_VALID="$FR/tests/nist/valid" \
@@ -124,7 +129,7 @@ SHIM
         fi
     }
 
-    echo "=== (1) evidence-rule witnesses (through $GROUP_RUNNER) ==="
+    echo "=== evidence-rule witnesses (through $GROUP_RUNNER) ==="
 
     # ── THE CONTROLS. Without these the fix could turn EVERY outcome into a NO-VERDICT and look green. ──
     want "control: a correct report is a MATCH" \
@@ -237,16 +242,30 @@ SHIM
     want "a (stdout) golden for a program that printed nothing is a REGRESSION" \
          "(stdout) not written" "$(run_case correct 0 '' '')"
     gold
-    # A file an EARLIER program of the group wrote, and this one did not touch, is not this one's output: the
-    # group (a producer/consumer chain) shares a directory, and the marker is taken just before each program runs.
+    # A file the program's declared PREDECESSOR wrote, and this one did not touch, is not this one's output: the
+    # predecessor runs first in the consumer's own directory, and the marker is taken just before the consumer runs.
     printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
         > "$FR/tests/nist/valid/WT002A.txt"
+    printf 'FEATURE 1                PASS\nFEATURE 2                PASS\n NO TEST(S) FAILED\n' \
+        > "$FR/tests/nist/valid/WT003A.txt"
     gold "tf021.txt=AB"
     want "a chain member that leaves its predecessor's file alone is graded on its own writes only" \
          "WT002A: MATCH" \
          "$(WITNESS_GROUP="WT001A WT002A" WITNESS_FILES="tf021.txt=AB" run_case correct 0 '' '')"
     gold
-    rm -f "$FR/tests/nist/valid/WT002A.txt"
+
+    # ── THE RUN DIRECTORY (kb/Work PB3383, PB3334). A program reads exactly what its DECLARED predecessors wrote: never
+    #    a file a program it does not declare left behind, and its predecessors' files even when it is run alone. The
+    #    serial guard this replaced ran every program in one shared directory, so IX115A read the tf024.txt IX114A had
+    #    fenced. The discriminator proves WT002A really depends on the file, so the controls cannot pass vacuously. ──
+    want "a consumer is not corrupted by a NON-predecessor that wrote the same file before it" \
+         "WT002A: MATCH" "$(WITNESS_GROUP="WT001A WT003A WT002A" run_case chain 0 '' '')"
+    want "a consumer run alone still gets its declared predecessor's file" \
+         "WT002A: MATCH" "$(WITNESS_GROUP="WT002A" run_case chain 0 '' '')"
+    want "discriminator: a consumer with no declared predecessor runs without the file, and is a REGRESSION" \
+         "WT002A: DIFF — REGRESSION!" \
+         "$(WITNESS_CORPUS="$FR/tests/nist/corpus-nochain.tsv" WITNESS_GROUP="WT002A" run_case chain 0 '' '')"
+    rm -f "$FR/tests/nist/valid/WT002A.txt" "$FR/tests/nist/valid/WT003A.txt"
 
     # ── THE WRITTEN-FILES ARM'S OWN FAILURE MODES (kb/Work PB804, branch review round 1). A grader that could not
     #    ENUMERATE or COMPARE the files observed nothing, so it must say FILES NO-VERDICT and never score the run on
@@ -376,7 +395,7 @@ SHIM
         echo "  ok: a MATCH preserves nothing"
     fi
 
-    # ── THE BASELINE AUDIT (scripts/guard-baselines.sh) — the ONE copy guard.sh and guard-fast.sh both call.
+    # ── THE BASELINE AUDIT (scripts/guard-baselines.sh) — the ONE copy, which guard-fast.sh calls.
     # Every arm is fired here, because an allowance nobody has seen refuse is not an allowance, it is a hole.
     local BV="$d/bl"
     mkdir -p "$BV/valid"
@@ -410,8 +429,7 @@ SHIM
     # ── STRUCTURAL: the rule stays in ONE place, and the compare never reads through a pipe it cannot check. ──
     # (Comment lines are exempt — this file and guard-verdict.sh both QUOTE the old construct to explain it.)
     awk '$0 !~ /^[ \t]*#/ && ($0 ~ /diff[ \t]*<\(/ || $0 ~ /comm[ \t].*<\(/) { print FILENAME ":" FNR ": " $0 }' \
-        scripts/guard.sh scripts/guard-run-group.sh scripts/guard-fast.sh scripts/guard-verdict.sh \
-        scripts/guard-baselines.sh \
+        scripts/guard-run-group.sh scripts/guard-fast.sh scripts/guard-verdict.sh scripts/guard-baselines.sh \
         > "$d/procsub.txt" 2>/dev/null
     if [ -s "$d/procsub.txt" ]; then
         echo "  WITNESS FAILED: a verdict-bearing comparison reads through a PROCESS SUBSTITUTION"
@@ -420,20 +438,28 @@ SHIM
     else
         echo "  ok: no verdict-bearing comparison reads through a process substitution"
     fi
-    for f in scripts/guard.sh scripts/guard-run-group.sh; do
-        if grep -q 'guard_output_verdict' "$f" && grep -q 'guard_compile_verdict' "$f" \
-           && grep -q 'guard_termination_verdict' "$f" && ! grep -q '^ *normalize()' "$f"; then
-            echo "  ok: $f scores through the shared evidence rules and defines none of its own"
-        else
-            echo "  WITNESS FAILED: $f has grown its own copy of the verdict rules (feedback_one_rule_one_place)"
-            rc=1
-        fi
-    done
+    local f=scripts/guard-run-group.sh
+    if grep -q 'guard_output_verdict' "$f" && grep -q 'guard_compile_verdict' "$f" \
+       && grep -q 'guard_termination_verdict' "$f" && ! grep -q '^ *normalize()' "$f"; then
+        echo "  ok: $f scores through the shared evidence rules and defines none of its own"
+    else
+        echo "  WITNESS FAILED: $f has grown its own copy of the verdict rules (feedback_one_rule_one_place)"
+        rc=1
+    fi
+    # ⛔ ONE RUNNER OF NIST PROGRAMS (kb/Work PB3383): a second script that runs them carries its own run directory and
+    # its own order, which is how the retired serial guard came to grade IX115A over files IX114A left behind.
+    local runners
+    runners="$(grep -l -E '^[^#]*dotnet "\$[A-Za-z_]+\.dll"' scripts/guard*.sh | grep -v -x 'scripts/guard-run-group.sh')"
+    if [ -z "$runners" ]; then
+        echo "  ok: scripts/guard-run-group.sh is the one guard script that runs a NIST program"
+    else
+        echo "  WITNESS FAILED: another guard script runs NIST programs itself: $runners"; rc=1
+    fi
 
     if [ "$rc" -eq 0 ]; then
-        echo "=== (1) WITNESSES: ALL GREEN — every evidence rule proved on the real group runner ==="
+        echo "=== WITNESSES: ALL GREEN — every evidence rule proved on the real group runner ==="
     else
-        echo "=== (1) WITNESSES: FAILED — the harness's verdicts do not mean what they say ==="
+        echo "=== WITNESSES: FAILED — the harness's verdicts do not mean what they say ==="
         [ -s "$d/stderr.txt" ] && { echo "--- group-runner stderr ---"; sed 's/^/    /' "$d/stderr.txt"; }
     fi
     return $rc
@@ -446,58 +472,4 @@ W_RC=0
 # battery greps.
 bash "$ROOT/scripts/guard-compiler.sh" --self-test || W_RC=1
 witnesses || W_RC=1
-if [ "$MODE" = "witnesses" ]; then
-    exit $W_RC
-fi
-if [ "$W_RC" -ne 0 ]; then
-    echo "=== SKIPPING the equivalence proof: two guards agreeing about a rule that is WRONG is not evidence ==="
-    exit 1
-fi
-
-# ── (2) THE EQUIVALENCE PROOF ──────────────────────────────────────────────────────────────────────────────
-# This run's OWN scratch directory (kb/Work PB2922): fixed names (gv_serial.log, ...) directly in the machine-wide temp
-# directory were one file for every run on the host. Removed when the proof is GREEN; kept, and named, when it is not.
-TMP="$(mktemp -d "${TMPDIR:-/tmp}/guard-verify.XXXXXX")"
-echo "=== serial scripts/guard.sh ==="
-bash scripts/guard.sh > "$TMP/gv_serial.log" 2>&1; SER=$?
-echo "=== parallel scripts/guard-fast.sh ==="
-bash scripts/guard-fast.sh > "$TMP/gv_fast.log" 2>&1; FAST=$?
-
-# Normalize verdict lines (strip indent, keep the FAIL* count) and sort so order (which differs by design) is moot.
-# ⛔ THE VOCABULARY MUST BE COMPLETE. An earlier pattern omitted one verdict word, so 11 programs were silently
-# dropped from BOTH sides and the equivalence proof never compared them — the same defect class this whole wave
-# closes (a filter that quietly excludes reads as agreement). Any line that looks like a verdict but matches no
-# known word is surfaced by the UNKNOWN check below rather than discarded.
-VERDICT_WORDS="MATCH|DIFF|FOOTER|COMPILE FAILED|COMPILE NO-VERDICT|RUN NO-VERDICT|COMPARE NO-VERDICT|NO BASELINE|TERMINATES"
-verdicts() {
-    grep -E "^ *[A-Z][A-Z0-9]+: ($VERDICT_WORDS)" "$1" | sed 's/^ *//' | sort
-}
-# Every "NAME: something" line the run emitted, so a NEW verdict word cannot slip past the filter above.
-all_verdict_shaped() { grep -E "^ *[A-Z][A-Z0-9]+: " "$1" | sed 's/^ *//' | sort; }
-verdicts "$TMP/gv_serial.log" > "$TMP/gv_serial.verdicts"
-verdicts "$TMP/gv_fast.log"   > "$TMP/gv_fast.verdicts"
-
-# A verdict-shaped line the filter did not recognize would otherwise vanish from the comparison.
-RC_UNKNOWN=0
-for side in serial fast; do
-    all_verdict_shaped "$TMP/gv_$side.log" > "$TMP/gv_$side.all"
-    if ! diff -q "$TMP/gv_$side.all" "$TMP/gv_$side.verdicts" > /dev/null; then
-        echo "=== $side: verdict-shaped lines the filter does NOT recognize (teach VERDICT_WORDS) ==="
-        comm -23 "$TMP/gv_$side.all" "$TMP/gv_$side.verdicts"
-        RC_UNKNOWN=1
-    fi
-done
-
-echo
-if diff "$TMP/gv_serial.verdicts" "$TMP/gv_fast.verdicts" > "$TMP/gv_diff.txt"; then
-    echo "=== VERDICTS IDENTICAL ($(wc -l < "$TMP/gv_serial.verdicts" | tr -d ' ') tests) — guard-fast PROVEN equivalent to guard.sh ==="
-    RC=0
-else
-    echo "=== VERDICT MISMATCH (< serial / > fast) — guard-fast is NOT yet equivalent; fix grouping ==="
-    cat "$TMP/gv_diff.txt"
-    RC=1
-fi
-echo "serial guard rc=$SER   fast guard rc=$FAST   unrecognized-verdict-words=$RC_UNKNOWN"
-[ "$SER" -eq 0 ] && [ "$FAST" -eq 0 ] && [ "$RC_UNKNOWN" -eq 0 ] || RC=1
-if [ "$RC" -eq 0 ]; then rm -rf "$TMP"; else echo "=== both guards' logs and verdict lists: $TMP ==="; fi
-exit $RC
+exit $W_RC

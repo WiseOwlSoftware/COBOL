@@ -11,8 +11,8 @@
 # declined to produce is a FAILURE, never a silent subtraction — and the expected verdict is derived from a
 # COMMITTED MANIFEST and compared BY THE SCRIPT, never by a human against a remembered number.
 #
-# It is consumed by BOTH guards (serial `guard.sh` and parallel `guard-fast.sh`) so the rule is written down
-# exactly once (`feedback_one_rule_one_place`).
+# The guard (`guard-fast.sh`) consumes it, so the rule is written down exactly once
+# (`feedback_one_rule_one_place`).
 #
 # Usage:  bash scripts/guard-nist-audit.sh <results-file> <tests-file>
 #           <results-file>  one "NAME: VERDICT" line per test (leading whitespace tolerated)
@@ -46,8 +46,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 #                                         which WiseOwl COBOL must reproduce byte-exact, as NistDifferentialTests
 #                                         does. No row is exempt from the comparison — kb/Work PB750, PB2109.)
 # ⚠ `pending` is NOT "no golden": it means the program is not yet in the greenfield NistDifferentialTests set.
-# 15 pending programs carry a valid golden and are expected to MATCH. Keying on `status` instead of `golden`
-# would have wrongly expected NO BASELINE for all 27 of them.
+# A pending row with a valid golden is expected to MATCH (the manifest has carried such rows), so the expectation
+# keys on `golden`, never on `status`.
 
 audit() {
     # ⛔ WHICH `divergent` ROWS ARE WHICH KIND IS ASKED OF THE ONE SHELL READER (scripts/guard-population.sh), the
