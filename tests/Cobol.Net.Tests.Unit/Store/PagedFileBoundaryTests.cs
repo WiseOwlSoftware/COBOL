@@ -78,6 +78,70 @@ public sealed class PagedFileBoundaryTests
         _ = h;
     }
 
+    /// <summary>A store that WROTE one record and was never closed (its process died after the statement), over a fresh
+    /// medium: the fence of the next writable OPEN retires its adopted state, and — the ledger listing the statement's
+    /// page <c>fresh</c> and its own page, with nothing released and nothing in the FREE tree — that retirement writes
+    /// ONE new page, the ledger's, from growth.</summary>
+    private static MemoryPageMedium UnclosedStore()
+    {
+        var (medium, _, store) = StoreKit.NewStore();
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "one"));
+        return medium;
+    }
+
+    /// <summary>A writable OPEN's fence at each headroom below the format's last page (every meta page records
+    /// <c>FormatPages - headroom</c> pages): the fence retires the adopted state with ONE reservation (2.2.1.6 R5), and
+    /// a promotion has no '24' (2.2.1.9) — it answers <see cref="StoreStatus.PermanentError"/> or succeeds. It takes the
+    /// pages it WRITES, never the bound its reservation was sized to (R2): it is refused only while the format has
+    /// fewer pages than it writes, so the first headroom that lets it complete is exactly the number of pages it wrote
+    /// (the store then fills the format's last page) and every smaller headroom answers '30' with the committed records
+    /// unchanged and readable (R1) — the refusal arm and the success arm of one rule (kb/Work PB3396).</summary>
+    [Fact]
+    public void An_open_fence_is_refused_only_for_the_pages_it_writes_not_for_the_bound_of_its_reservation()
+    {
+        byte[] content = UnclosedStore().Contents();
+        int? minimal = null;
+        for (ulong headroom = 0; headroom <= 64; headroom++)
+        {
+            var medium = MemoryPageMedium.Holding(content);
+            SetRecordedPageCount(medium, PagedFile.FormatPages - headroom);
+            var (_, status, store) = StoreKit.OpenAs(medium, "A");
+            if (status == StoreStatus.Ok)
+            {
+                minimal = (int)headroom;
+                Assert.Equal(PagedFile.FormatPages, store!.Meta.PageCount);   // it took what it wrote: the last pages, no more
+                Assert.Equal("1=one;", StoreKit.Show(store));
+                Assert.Equal(StoreStatus.Ok, store.Close());
+                break;
+            }
+            Assert.Equal(StoreStatus.PermanentError, status);   // a promotion has no '24' (2.2.1.9)
+            var (_, again, reader) = StoreKit.OpenAs(medium, "R", writable: false);
+            Assert.Equal(StoreStatus.Ok, again);
+            Assert.Equal("1=one;", StoreKit.Show(reader!));
+            StoreKit.AssertR1(medium);
+            StoreKit.AssertNoStampReused(medium);
+        }
+        Assert.True(minimal is >= 1, "a fence that writes a page needs at least one page below the format's end");
+    }
+
+    /// <summary>The same rule's other end: a fence that needs no page past the page count — the CLOSEd store's retirement
+    /// is served from the pages its ledger and FREE tree hold — completes at the format's very last page, where a
+    /// reservation sized to a bound would have refused it. Coherent and NO OTHER alike.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_fence_that_writes_no_page_past_the_page_count_completes_at_the_formats_last_page(bool coherent)
+    {
+        var medium = StoreKit.ClosedStore("1=one", "2=two");
+        SetRecordedPageCount(medium, PagedFile.FormatPages);
+        var (_, status, store) = StoreKit.OpenAs(medium, "A", coherent: coherent);
+        Assert.Equal(StoreStatus.Ok, status);
+        Assert.Equal(PagedFile.FormatPages, store!.Meta.PageCount);
+        Assert.Equal("1=one;2=two;", StoreKit.Show(store));
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        StoreKit.AssertR1(medium);
+    }
+
     /// <summary>A WRITE, a REWRITE and a DELETE whose page write the host refuses because the file cannot grow further:
     /// the boundary, the records as they were, and — the condition gone — the same run unit's next statement succeeds;
     /// the same refusal for any other reason (a full medium) is '30'. (The connector answers the boundary by the
