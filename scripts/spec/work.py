@@ -22,7 +22,7 @@ a previous summary was wrong — lives in the note BODY, which is where it alrea
     python scripts/spec/work.py migrate    # ONE TIME: fold the five registers into kb/Work/
     python scripts/spec/work.py check      # validate frontmatter; non-zero on a bad/missing field
     python scripts/spec/work.py next       # the ranked work list (session-probe prints this)
-    python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes in blocked_by order
+    python scripts/spec/work.py next --cluster PB2108 [--json]   # one campaign's open notes, tier then blocked_by order
     python scripts/spec/work.py stats      # counts by kind/status/harm
     python scripts/spec/work.py parity     # the frontmatter reader vs. its C# twin's fixture (--json for the gate)
 
@@ -491,6 +491,44 @@ def actionable(items: list[dict]) -> list[dict]:
 # work list; two were found that way when this was written (PB1940 after PB2087 landed, PB1956 after PB322). So
 # `check` holds the flag to the list: when `blocked_by` names notes, `blocked` is true exactly while one of them is
 # still open. A flag with an empty list stays legal: it is a note blocked on something that is not a note.
+#
+# ⭐ `tier:` IS THE OWNER'S ORDER INSIDE A CAMPAIGN (kb/Work PB3423). `blocked_by` says what CANNOT start before
+# something else; a tier says what SHOULD start first among notes that are all ready (PB3420: the owner's ten known
+# SORT and file I/O defects before the rest of cluster PB3353, which the planner had ranked by inventory rows and harm
+# alone). It is a list of `CAMPAIGN:N` entries, `tier: ["PB3353:1"]`, N a positive integer, 1 first, each naming a
+# campaign the note's `cluster:` lists: SCOPED, because a note belongs to several campaigns (PB1278 to three) and the
+# owner's order for one says nothing about another. In a campaign a note has no tier for, it ranks after every tiered
+# note. `cluster_order` reads a note's EFFECTIVE tier, the lowest of its own and of every open cluster member it blocks
+# (a tier-1 note's blocker is tier 1 too), so ranking by tier and then depth is still a blocked_by order, and
+# `plan_wave.campaign_clusters` lifts its clusters the same way, so `work.py next --cluster` and the planner read one
+# order. A held note (`status: owner`, a `blocked_by` hold) is still held: a tier ranks the READY notes, nothing more.
+TIER = re.compile(r"\A(?P<campaign>[^:\s]+):(?P<tier>[1-9][0-9]*)\Z")
+
+
+def tier_entries(it: dict) -> tuple[dict[str, int], list[str]]:
+    """The note's `tier:` as `({campaign: tier}, [every entry that is not CAMPAIGN:N, or names a campaign twice])`;
+    `check` reports the second list, and the first holds only the well-formed entries."""
+    v = it.get("tier", [])
+    if not isinstance(v, list):
+        return {}, [repr(v)]
+    good: dict[str, int] = {}
+    bad: list[str] = []
+    for e in v:
+        if (m := TIER.match(e)) is None or m["campaign"] in good:
+            bad.append(e)
+        else:
+            good[m["campaign"]] = int(m["tier"])
+    return good, bad
+
+
+def tier_of(it: dict, campaign: str) -> int | None:
+    """The note's own tier in `campaign`, or None when it has none there."""
+    return tier_entries(it)[0].get(campaign)
+
+
+def tier_rank(tier: int | None) -> float:
+    """Sort key: tier 1 first, an untiered note after every tiered one."""
+    return float("inf") if tier is None else tier
 
 
 def id_order(nid: str) -> tuple[int, str]:
@@ -514,14 +552,17 @@ def cluster_members(items: list[dict], lead: str) -> list[dict]:
 
 def cluster_order(items: list[dict], lead: str) -> dict:
     """The cluster `lead` names: `{"cluster", "named", "notes": [...]}`, `notes` being every NON-TERMINAL note whose
-    `cluster` list holds `lead`, whatever its kind, harm flags or `process_only`, in `blocked_by` topological order.
+    `cluster` list holds `lead`, whatever its kind, harm flags or `process_only`, in tier order and, inside a tier,
+    in `blocked_by` topological order (together still a topological order: a blocker's tier is never later).
 
-    Each entry is `{"id", "kind", "status", "area", "title", "depth", "ready", "waiting_on", "blockers_in_cluster"}`:
-    `depth` is 0 for a note no open cluster member blocks and one past its deepest open in-cluster blocker otherwise
-    (`None` inside a cycle); `waiting_on` lists every open blocker, in the cluster or not, plus the reason a note is
-    held without one (`status: owner`, `status: blocked`, or `blocked: true` with no `blocked_by`); `ready` is
-    `waiting_on == []`. Ties sort by note number. `named` counts every note that names the cluster, landed or not,
-    so a caller can tell a LANDED cluster (named > 0, notes empty) from a misspelled one (named == 0)."""
+    Each entry is `{"id", "kind", "status", "area", "title", "tier", "depth", "ready", "waiting_on",
+    "blockers_in_cluster"}`: `tier` is the note's EFFECTIVE tier in `lead`, the lowest of its own (`tier_of`) and of
+    every open cluster member it blocks, or `None` (ranked after every tiered note); `depth` is 0 for a note no open cluster member
+    blocks and one past its deepest open in-cluster blocker otherwise (`None` inside a cycle); `waiting_on` lists every
+    open blocker, in the cluster or not, plus the reason a note is held without one (`status: owner`, `status:
+    blocked`, or `blocked: true` with no `blocked_by`); `ready` is `waiting_on == []`. Ties sort by note number.
+    `named` counts every note that names the cluster, landed or not, so a caller can tell a LANDED cluster (named > 0,
+    notes empty) from a misspelled one (named == 0)."""
     by_id = {i.get("id"): i for i in items}
     named = cluster_members(items, lead)
     members = {i["id"]: i for i in named if i.get("status") not in TERMINAL_STATUSES}
@@ -539,6 +580,17 @@ def cluster_order(items: list[dict], lead: str) -> dict:
         depth[nid] = None if None in ds else (1 + max(ds) if ds else 0)
         return depth[nid]
 
+    # The effective tier: a blocker ranks no later than anything it blocks. A pass only ever lowers a tier, so the
+    # loop ends, a cycle included.
+    tier = {nid: tier_of(it, lead) for nid, it in members.items()}
+    lowered = True
+    while lowered:
+        lowered = False
+        for nid, it in members.items():
+            for b in open_blockers(it, by_id):
+                if b in members and tier_rank(tier[nid]) < tier_rank(tier[b]):
+                    tier[b], lowered = tier[nid], True
+
     rows = []
     for nid, it in members.items():
         waiting = open_blockers(it, by_id)
@@ -547,15 +599,18 @@ def cluster_order(items: list[dict], lead: str) -> dict:
         elif it.get("blocked") and not it.get("blocked_by"):
             waiting.append("blocked: true (no blocked_by note)")
         rows.append({"id": nid, "kind": it.get("kind", ""), "status": it.get("status", ""), "area": it.get("area", ""),
-                     "title": str(it.get("title", "")), "depth": depth_of(nid, set()), "ready": not waiting,
-                     "waiting_on": waiting, "blockers_in_cluster": [b for b in waiting if b in members]})
-    rows.sort(key=lambda r: (r["depth"] is None, r["depth"] or 0, id_order(r["id"])))
+                     "title": str(it.get("title", "")), "tier": tier[nid], "depth": depth_of(nid, set()),
+                     "ready": not waiting, "waiting_on": waiting,
+                     "blockers_in_cluster": [b for b in waiting if b in members]})
+    rows.sort(key=lambda r: (r["depth"] is None, tier_rank(r["tier"]), r["depth"] or 0, id_order(r["id"])))
     return {"cluster": lead, "named": len(named), "notes": rows}
 
 
 def topology_problems(items: list[dict]) -> list[str]:
-    """`blocked_by` names notes that exist, `blocked` agrees with it, open notes form no blocking cycle, and
-    `cluster` is a list of names (a lead note's id, or a campaign name such as `user-documentation`)."""
+    """`blocked_by` names notes that exist, `blocked` agrees with it, open notes form no blocking cycle, `cluster`
+    is a list of names (a lead note's id, or a campaign name such as `user-documentation`), and `tier` is a list of
+    `CAMPAIGN:N` entries, each naming a campaign of the note's own `cluster` list once (a tier ranks the note inside
+    that campaign and means nothing outside it)."""
     by_id = {i.get("id"): i for i in items}
     bad = []
     for it in items:
@@ -563,6 +618,14 @@ def topology_problems(items: list[dict]) -> list[str]:
         bb, cl = it.get("blocked_by", []), it.get("cluster", [])
         if not isinstance(cl, list) or not all(isinstance(c, str) and c for c in cl):
             bad.append(f"{f}: cluster must be a list of cluster names, got {cl!r}")
+        if "tier" in it:
+            good, malformed = tier_entries(it)
+            for e in malformed:
+                bad.append(f"{f}: tier entry {e!r} is not CAMPAIGN:N (N a positive integer, 1 first) naming a campaign "
+                           f"once, e.g. tier: [\"PB3353:1\"] (kb/Work PB3423)")
+            for c in sorted(set(good) - set(cl if isinstance(cl, list) else [])):
+                bad.append(f"{f}: tier names campaign {c!r}, which its cluster list {cl!r} does not: a tier ranks a "
+                           f"note inside a campaign it belongs to (kb/Work PB3423)")
         if not isinstance(bb, list):
             bad.append(f"{f}: blocked_by must be a list of note ids, got {bb!r}")
             continue
@@ -1007,12 +1070,15 @@ def print_cluster(view: dict, as_json: bool) -> int:
         print(f"cluster {lead}: LANDED ({view['named']} note(s), every one landed or retired)")
         return 0
     ready = sum(n["ready"] for n in notes)
-    print(f"cluster {lead}: {len(notes)} open note(s), {ready} ready, {len(notes) - ready} waiting (blocked_by order)")
+    print(f"cluster {lead}: {len(notes)} open note(s), {ready} ready, {len(notes) - ready} waiting "
+          f"(tier, then blocked_by order)")
     for n in notes:
         title = re.sub(rf"^{re.escape(n['id'])}\s*[—-]\s*", "", n["title"])[:90]
         state = "ready  " if n["ready"] else "waiting on " + ", ".join(n["waiting_on"])
         depth = "cyc" if n["depth"] is None else f"{n['depth']:3}"
-        print(f"  {depth} {n['id']:7} {n['kind']:9} {n['area'][:18]:18} {state}" + (f"  {title}" if n["ready"] else ""))
+        tier = "  -" if n["tier"] is None else f"t{n['tier']:<2}"
+        print(f"  {tier} {depth} {n['id']:7} {n['kind']:9} {n['area'][:18]:18} {state}"
+              + (f"  {title}" if n["ready"] else ""))
     return 0
 
 

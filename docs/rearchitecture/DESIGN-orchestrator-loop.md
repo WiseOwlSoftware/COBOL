@@ -785,15 +785,22 @@ The fix lane plans from harm: `fix_clusters.py` reads `.agent-fleet.json`, which
 retirement `PB2108`, the architecture review `PB1754`) is `process_only` work in `tests/`, `scripts/`, `.github/`,
 `docs/` and the legacy tree, so before this lane it could be dispatched only by a hand-written `groups.json`. A
 campaign is a named cluster in the register: every note whose `cluster:` list names the lead (a lead note may list
-itself), ordered by `blocked_by:`.
+itself), ordered by the owner's `tier:` and by `blocked_by:`.
 
-- **Selection** is `work.py`'s `cluster_order(items, lead)`, the one reader of `cluster` and `blocked_by` (also behind
-  `python scripts/spec/work.py next --cluster <lead> [--json]`): every non-terminal note naming the cluster, of any kind,
-  whatever its harm flags, with its depth in the `blocked_by` topology and what it waits on (open blockers, in the
-  cluster or not; `status: owner` or `blocked`; or `blocked: true` with no `blocked_by`). A note is READY when it waits
-  on nothing. `work.py check` holds the two spellings together: `blocked_by` names notes, `blocked` is true exactly
-  while a named blocker is open (a stale `true` hid PB1940 and PB1956 from every work list), and open notes form no
-  cycle.
+- **Selection** is `work.py`'s `cluster_order(items, lead)`, the one reader of `cluster`, `tier` and `blocked_by` (also
+  behind `python scripts/spec/work.py next --cluster <lead> [--json]`): every non-terminal note naming the cluster, of
+  any kind, whatever its harm flags, with its tier, its depth in the `blocked_by` topology and what it waits on (open
+  blockers, in the cluster or not; `status: owner` or `blocked`; or `blocked: true` with no `blocked_by`). A note is
+  READY when it waits on nothing. `work.py check` holds the two spellings together: `blocked_by` names notes, `blocked`
+  is true exactly while a named blocker is open (a stale `true` hid PB1940 and PB1956 from every work list), and open
+  notes form no cycle.
+- **The owner's tier** (kb/Work PB3423) orders the READY notes: `tier: ["PB3353:1"]`, a list of `CAMPAIGN:N` entries
+  (N a positive integer, 1 first), scoped because a note belongs to several campaigns and the owner's order for one
+  says nothing about another; `work.py check` refuses an entry that is not `CAMPAIGN:N`, names a campaign twice or
+  names one the note's `cluster:` does not. A note with no tier in the campaign ranks after every tiered one. The tier
+  read is the EFFECTIVE one, the lowest of the note's own and of every open member it blocks, so tier-then-depth stays a
+  `blocked_by` order. It ranks and never releases: a held note stays held. `test_plan_wave.py` section 9b pins the order, the scoping, the lift below, and that a group cap spends its slots on
+  tier 1 first however much harm an untiered group carries.
 - **Planning** (`plan_wave.py --cluster <lead>`): a note is PLANNABLE when it is ready or when everything it waits on
   is plannable; the rest are printed as waiting with the reason. Plannable notes are clustered on the sites they
   DECLARE (`work.note_sites`, the one reader of a note's structured sites: the paths of its Code site / Site / Sites
@@ -802,7 +809,10 @@ itself), ordered by `blocked_by:`.
   so a cluster never mixes a blocker with what it blocks. A note declaring no site file is a group of its own, ordered
   by its chain. A group's file set, the one the partition checks, is its notes' declared sets plus its primary file
   (`plan_wave.collision_set`; DESIGN-architecture-review §8.7), for a fix-lane group too. The clusters holding one dependent's blockers MERGE when they share a depth and fit the cap, so the dependent
-  can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts depth first. Everything else is the fix lane's mechanism: awaiting landing, finishers, model
+  can follow one chain (wave 1025 was planned so by hand: PB2108 + PB2109, then PB2110). Ranking puts the tier first
+  (a cluster's is its lowest note's, and `plan_wave.lift_tiers` lowers a blocker's cluster to the tier of every cluster
+  that waits on it, so a dependent is never lettered before its blockers' groups), then depth, then rows and harm; a
+  fix-lane cluster carries no tier and depth 0, so its rank is unchanged. Everything else is the fix lane's mechanism: awaiting landing, finishers, model
   routing, budget, trains, allocation and outputs.
 - **Dependencies become successors.** A group whose notes wait on notes planned in this wave joins the TAIL of the
   blocker group's successor chain (`after:`), so it starts once that chain's tail has SETTLED (returned, and its

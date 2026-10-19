@@ -143,8 +143,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
-  architecture review `PB1754`) runs from its notes' `cluster:` and `blocked_by:`:
-  `python scripts/spec/work.py next --cluster <lead>` lists it in dependency order,
+  architecture review `PB1754`) runs from its notes' `cluster:`, `blocked_by:` and the owner's `tier:` (`tier:
+  ["<lead>:1"]` ranks a ready note first in that campaign, kb/Work PB3423):
+  `python scripts/spec/work.py next --cluster <lead>` lists it in tier, then dependency order,
   `python scripts/orchestrator/plan_wave.py --cluster <lead> --budget-points P --dry-run` plans a wave of it (its
   dependent notes become successors, `after:`, of the groups holding their blockers), and
   `pwsh scripts/orchestrator/orchestrate.ps1 -Cluster <lead>` alternates its waves with fix-lane waves until every
