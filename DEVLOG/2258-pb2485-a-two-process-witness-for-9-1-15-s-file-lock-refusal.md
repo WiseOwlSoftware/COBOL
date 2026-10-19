@@ -1,4 +1,4 @@
-## PB2485 — a two-process witness for §9.1.15's file lock: refusal, release by CLOSE, by run-unit end, by abnormal end, by a kill, and not kept by a child
+## Entry 2258 — 2026-10-19 11:59 PDT — PB2485 — a two-process witness for §9.1.15's file lock: refusal, release by CLOSE, by run-unit end, by abnormal end, by a kill, and not kept by a child
 
 **What was missing.** `RunUnitFileLockDriftTests` proves the cross-run-unit file lock (PB833) over 768 sharing × open-mode
 pairs by opening one file through two `FileRegistry` instances in ONE test process. That reaches the same host primitive
@@ -46,3 +46,4 @@ only the witness was missing: five cases added (`ARefusedDeleteFile_ReachesThePr
 combinations, with the file untouched while refused and deleted after the holder's kill; and
 `ADeleteFileRetryThatTheHolderOutlasts_IsStatus62_...`). R1-2 (the `Host=ReFS` trait) is kept, with the reason written into the
 class's summary: it is the process-boundary member of the family whose siblings carry it.
+
