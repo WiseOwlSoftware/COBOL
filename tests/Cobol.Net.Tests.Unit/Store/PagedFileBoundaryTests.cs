@@ -81,11 +81,14 @@ public sealed class PagedFileBoundaryTests
     /// <summary>A store that WROTE one record and was never closed (its process died after the statement), over a fresh
     /// medium: the fence of the next writable OPEN retires its adopted state, and — the ledger listing the statement's
     /// page <c>fresh</c> and its own page, with nothing released and nothing in the FREE tree — that retirement writes
-    /// ONE new page, the ledger's, from growth.</summary>
+    /// ONE new page, the ledger's, from growth. (A second statement would release the first's leaf, which the retirement
+    /// moves into the FREE tree and then takes: it needs no growth, and so is never refused — measured for 2 to 50
+    /// records. The statements' own released pages always cover a retirement; the pure-growth case is the one a fence
+    /// can be refused in.)</summary>
     private static MemoryPageMedium UnclosedStore()
     {
         var (medium, _, store) = StoreKit.NewStore();
-        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "one"));
+        Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "r1"));
         return medium;
     }
 
@@ -100,6 +103,7 @@ public sealed class PagedFileBoundaryTests
     public void An_open_fence_is_refused_only_for_the_pages_it_writes_not_for_the_bound_of_its_reservation()
     {
         byte[] content = UnclosedStore().Contents();
+        const string shown = "1=r1;";
         int? minimal = null;
         for (ulong headroom = 0; headroom <= 64; headroom++)
         {
@@ -110,14 +114,14 @@ public sealed class PagedFileBoundaryTests
             {
                 minimal = (int)headroom;
                 Assert.Equal(PagedFile.FormatPages, store!.Meta.PageCount);   // it took what it wrote: the last pages, no more
-                Assert.Equal("1=one;", StoreKit.Show(store));
+                Assert.Equal(shown, StoreKit.Show(store));
                 Assert.Equal(StoreStatus.Ok, store.Close());
                 break;
             }
             Assert.Equal(StoreStatus.PermanentError, status);   // a promotion has no '24' (2.2.1.9)
             var (_, again, reader) = StoreKit.OpenAs(medium, "R", writable: false);
             Assert.Equal(StoreStatus.Ok, again);
-            Assert.Equal("1=one;", StoreKit.Show(reader!));
+            Assert.Equal(shown, StoreKit.Show(reader!));
             StoreKit.AssertR1(medium);
             StoreKit.AssertNoStampReused(medium);
         }
@@ -140,6 +144,109 @@ public sealed class PagedFileBoundaryTests
         Assert.Equal("1=one;2=two;", StoreKit.Show(store));
         Assert.Equal(StoreStatus.Ok, store.Close());
         StoreKit.AssertR1(medium);
+    }
+
+    /// <summary>A store that holds <paramref name="records"/> three-page records 1.. and has DELETEd the first
+    /// <paramref name="deleted"/> of them before its CLOSE: the closed file's FREE tree then holds the pages the deletes
+    /// freed, and its page count is rewritten to the format's very last page, so only those pages can serve a statement.</summary>
+    private static MemoryPageMedium StoreWithFreePagesAtTheFormatsEnd(int records, int deleted)
+    {
+        var (medium, _, store) = StoreKit.NewStore();
+        for (int id = 1; id <= records; id++)
+            Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, id, $"r{id}", blobPages: 2));
+        for (int id = 1; id <= deleted; id++)
+            Assert.Equal(StoreStatus.Ok, StoreKit.Delete(store, id));
+        Assert.Equal(StoreStatus.Ok, store.Close());
+        SetRecordedPageCount(medium, PagedFile.FormatPages);
+        return medium;
+    }
+
+    /// <summary>A CLOSE's promotion right behind the one statement that fits beside the format's last page, at every
+    /// headroom: a store that has released and freed nothing (its one WRITE created the file's first leaf), so the
+    /// retirement has no page to move into the FREE tree and writes its ledger from growth — ONE page — while the bound
+    /// its reservation is sized to is several. The CLOSE completes whenever the page exists (the statement left at least
+    /// one: its own reservation was the larger bound) and the store reopens holding the record; a bound-sized
+    /// reservation refused it for headrooms the statement fitted in (kb/Work PB3396). Coherent and NO OTHER alike.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_close_promotion_behind_the_one_statement_that_fits_completes_in_the_pages_it_writes(bool coherent)
+    {
+        int fitted = 0;
+        for (ulong headroom = 0; headroom <= 30; headroom++)
+        {
+            var (medium, _, fresh) = StoreKit.NewStore(coherent);
+            _ = fresh;
+            SetRecordedPageCount(medium, PagedFile.FormatPages - headroom);
+            var (_, opened, a) = StoreKit.OpenAs(medium, "A", coherent: coherent);
+            if (opened != StoreStatus.Ok)
+            {
+                Assert.Equal(StoreStatus.PermanentError, opened);   // the fence's retirement found too few pages
+                continue;
+            }
+            var put = StoreKit.Put(a!, 1, "one");
+            if (put == StoreStatus.Boundary) continue;   // the statement's own reservation does not fit: nothing to close behind
+            Assert.Equal(StoreStatus.Ok, put);
+            fitted++;
+            Assert.Equal(StoreStatus.Ok, a!.Close());
+            var (_, reopened, b) = StoreKit.OpenAs(medium, "B");
+            Assert.Equal(StoreStatus.Ok, reopened);
+            Assert.True(b!.Meta.PageCount <= PagedFile.FormatPages);
+            Assert.Equal("1=one;", StoreKit.Show(b));
+            StoreKit.AssertR1(medium);
+            StoreKit.AssertNoStampReused(medium);
+        }
+        Assert.True(fitted > 0, "no headroom fitted the statement: nothing was measured");
+    }
+
+    /// <summary>A CLOSE's promotion at the format's last page, its retirement built from every kind of reserved page (the
+    /// ledger lists pages RELEASED by the statements' path copies and FREED by a DELETE, and the FREE tree holds pages):
+    /// statements spend the FREE pages until the next one's reservation would grow the file (the boundary, nothing
+    /// written), a DELETE then frees pages, and the CLOSE retires them. The CLOSE completes — a retirement is refused
+    /// only for a page it WRITES past the format's last, and the pages the statements released and freed are the ones
+    /// its own reservation takes (the bound-sized reservation refused it here before kb/Work PB3396) — and the store
+    /// reopens as the statements left it, still at the format's last page. A CLOSE that cannot write its pages is not
+    /// reachable through statements (each leaves its retirement the pages it released: measured over this sweep and over
+    /// single-record stores at every headroom of 0 to 30, where the CLOSE never answered '30'); the refusal of a
+    /// retirement for a page past the end is witnessed at the fence, the same <c>Retire</c>, above, and a CLOSE's '30'
+    /// by a refused page write is KeyedClosePermanentErrorWitnessTests'.</summary>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void A_close_promotion_at_the_formats_last_page_completes_from_the_pages_the_statements_released(bool coherent)
+    {
+        for (int deleted = 4; deleted <= 40; deleted += 4)
+        {
+            var medium = StoreWithFreePagesAtTheFormatsEnd(records: 42, deleted);
+            var (_, opened, a) = StoreKit.OpenAs(medium, "A", coherent: coherent);
+            Assert.Equal(StoreStatus.Ok, opened);
+            string expected = StoreKit.Show(a!);
+            int record = 100;
+            foreach (int blobPages in new[] { 2, 0 })   // then single-page statements, whose smaller reservation fits closer to the end
+                for (; ; record++)
+                {
+                    Assert.True(record < 400, "the boundary was never met");
+                    var put = StoreKit.Put(a!, record, $"r{record}", blobPages);
+                    if (put == StoreStatus.Boundary) break;
+                    Assert.Equal(StoreStatus.Ok, put);
+                    expected += $"{record}=r{record};";
+                }
+            Assert.Equal(PagedFile.FormatPages, a!.Meta.PageCount);   // not one page grew: the FREE pages served every statement
+            int victim = record > 100 ? 100 : 42;   // a record the statements wrote, else one the store began with
+            var removed = StoreKit.Delete(a, victim);   // its reservation may itself meet the boundary: it then changes nothing
+            Assert.True(removed is StoreStatus.Ok or StoreStatus.Boundary, $"DELETE answered {removed}");
+            if (removed == StoreStatus.Ok) expected = expected.Replace($"{victim}=r{victim};", "");
+            Assert.Equal(expected, StoreKit.Show(a));
+
+            Assert.Equal(StoreStatus.Ok, a.Close());
+            var (_, reopened, b) = StoreKit.OpenAs(medium, "B");
+            Assert.Equal(StoreStatus.Ok, reopened);
+            Assert.Equal(PagedFile.FormatPages, b!.Meta.PageCount);
+            Assert.Equal(expected, StoreKit.Show(b));
+            Assert.Equal(StoreStatus.Ok, b.Close());
+            StoreKit.AssertR1(medium);
+            StoreKit.AssertNoStampReused(medium);
+        }
     }
 
     /// <summary>A WRITE, a REWRITE and a DELETE whose page write the host refuses because the file cannot grow further:
