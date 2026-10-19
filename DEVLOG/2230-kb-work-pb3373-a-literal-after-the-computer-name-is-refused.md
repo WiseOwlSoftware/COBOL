@@ -1,4 +1,4 @@
-## kb/Work PB3373: a literal after the computer-name is refused in its own format; the closed formats' error production opens at a literal
+## Entry 2230 — 2026-10-18 17:06 PDT — kb/Work PB3373: a literal after the computer-name is refused in its own format; the closed formats' error production opens at a literal
 
 **The defect.** ISO §12.3.5.2 prints `SOURCE-COMPUTER. [ computer-name-1 ] .` and §12.3.6.2 the OBJECT-COMPUTER clause
 set; a literal stands in neither. Re-probed on the worktree build, `SOURCE-COMPUTER. XYZ "LIT".` drew COBOLNET1971 'XYZ'
@@ -48,3 +48,4 @@ does; reported as a lead.
 division's lists), which one production cannot express: `SOURCE-COMPUTER. XYZ 12.` and `OBJECT-COMPUTER. XYZ 12.`
 still read XYZ as the residue, and `01 X PIC X FOO` / `05 Y PIC X.` still reads `FOO 05 Y` as one run. Reported as a
 lead. No inventory row moved (FMT-12.3.5.2, FMT-12.3.6.2 and FMT-12.3.7.2 were already CONFORMS).
+
