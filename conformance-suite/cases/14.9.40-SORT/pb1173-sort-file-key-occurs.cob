@@ -12,6 +12,9 @@
       *> KOCC is a table; writing it unsubscripted used to draw COBOLNET2270 ("a table element needs a subscript"),
       *> true and beside the point: no subscript would make it a legal key. The key-admissibility predicate names the
       *> rule the statement breaks, for the key whether or not it is subscripted.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FC.
        ENVIRONMENT DIVISION.
@@ -27,9 +30,9 @@
           05 K1 PIC X.
           05 KOCC PIC X OCCURS 2.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(3).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(3).
        PROCEDURE DIVISION.
        MAIN.
            SORT SW ASCENDING KEY KOCC USING IN1 GIVING OU1
