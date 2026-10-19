@@ -665,6 +665,65 @@ if fc:
     check("a dependent is never chosen without its blocker's group",
           all(g.after in {c.letter for c in cp2["groups"]} for g in cp2["groups"] if g.after), True)
 
+# 9b. THE OWNER'S TIER RANKS A CAMPAIGN FIRST (kb/Work PB3423): wave 1129's dry plan gave five of its eight groups to
+#     untiered PB3353 members because the planner ranked by rows and harm alone. Here the untiered notes carry the
+#     harm (wrong_answer) and the tiered ones none, so without the tier they would plan first.
+TW = TMP / "tiers" / "kb" / "Work"
+TW.mkdir(parents=True)
+for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs", "scripts/gamma.py", "tests/Delta.Tests/DeltaTests.cs"):
+    (TMP / "tiers" / rel).parent.mkdir(parents=True, exist_ok=True)
+    (TMP / "tiers" / rel).write_text("// fixture\n", encoding="utf-8", newline="\n")
+
+
+def tnote(nid, tier=None, blocked_by=(), site="", wrong=False):
+    (TW / f"{nid}.md").write_text(
+        f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
+        f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\nblocked: {'true' if blocked_by else 'false'}\n"
+        f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940]\n" + (f"tier: {tier}\n" if tier else "") +
+        f"---\n\n# {nid}\n\n" + (f"**Sites:**\n- `{site}`\n" if site else "Prose only.\n"), encoding="utf-8", newline="\n")
+
+
+tnote("PB941", site="src/Lib/Alpha.cs", wrong=True)
+tnote("PB942", site="scripts/gamma.py", wrong=True)
+tnote("PB943", tier=1, site="src/Lib/Beta.cs")
+tnote("PB944", tier=1)
+tnote("PB945", tier=2, site="tests/Delta.Tests/DeltaTests.cs")
+tnote("PB947", tier=1, blocked_by=("PB948",))
+tnote("PB948")  # untiered, but it blocks a tier-1 note: its effective tier is 1
+titems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(TW.glob("*.md"))]
+tview = work.cluster_order(titems, "PB940")
+check("cluster_order: tier first (a blocker takes the lowest tier it blocks), then depth, untiered last",
+      [(r["id"], r["tier"], r["depth"]) for r in tview["notes"]],
+      [("PB943", 1, 0), ("PB944", 1, 0), ("PB948", 1, 0), ("PB947", 1, 1), ("PB945", 2, 0), ("PB941", None, 0),
+       ("PB942", None, 0)])
+check("the tiered register is well-formed", work.topology_problems(titems), [])
+check("lift_tiers: a cluster waiting on another lowers it, transitively; an unrelated cluster keeps its tier",
+      (lambda cs: (pw.lift_tiers(cs, {"X2": ["Y1"], "Y1": ["Z1"]}), [c["tier"] for c in cs])[1])(
+          [{"notes": [{"id": "X1"}, {"id": "X2"}], "tier": 1}, {"notes": [{"id": "Y1"}], "tier": None},
+           {"notes": [{"id": "Z1"}], "tier": 3}, {"notes": [{"id": "W1"}], "tier": None}]),
+      [1, 1, 1, None])
+if fc:
+    tnotes = pw.load_notes(TW, {"wrong_answer": 8})
+    ttexts = {i: (TW / f"{i}.md").read_text(encoding="utf-8") for i in tnotes}
+    TDECL = pw.declared_sets(TMP / "tiers", pw.IndexPolicy(TMP / "no-cache-tiers", regenerate=False))
+    topen, thalf, tdeps, twait = pw.campaign_clusters(tview, tnotes, ttexts, RULES, fc, TMP / "tiers", TDECL)
+    check("campaign clusters carry the tier", {tuple(n["id"] for n in c["notes"]): c["tier"] for c in topen},
+          {("PB941",): None, ("PB942",): None, ("PB943",): 1, ("PB944",): 1, ("PB945",): 2, ("PB947",): 1,
+           ("PB948",): 1})
+    tp = pw.plan(tnotes, topen, thalf, [], lambda b: "ABSENT", {}, RULES, budget_points=100, deps=tdeps)
+    check("the plan letters tier 1 first, its successor after its blocker, then tier 2, then the untiered",
+          [(g.letter, g.after, g.notes) for g in tp["groups"]],
+          [("A", "", ["PB943"]), ("B", "", ["PB944"]), ("C", "", ["PB948"]), ("C2", "C", ["PB947"]),
+           ("D", "", ["PB945"]), ("E", "", ["PB941"]), ("F", "", ["PB942"])])
+    # THE DRIFT TEST: under a group cap, no group of a later tier is chosen while a READY group of an earlier one waits
+    capped = pw.plan(tnotes, topen, thalf, [], lambda b: "ABSENT", {}, RULES, budget_points=100, deps=tdeps, max_groups=4)
+    rank = {r["id"]: work.tier_rank(r["tier"]) for r in tview["notes"]}
+    worst_chosen = max(rank[i] for g in capped["groups"] for i in g.notes)
+    check("a group cap spends its slots on tier 1 before any untiered group, however much harm it carries",
+          ([g.notes for g in capped["groups"]],
+           all(min(rank[i] for i in g.notes) >= worst_chosen for g in capped["skipped"] if not g.after)),
+          ([["PB943"], ["PB944"], ["PB948"], ["PB947"]], True))
+
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
 #     requirement lived only in a wave unit's hand edit of groups.json, and the reviewer never saw it.
@@ -1081,6 +1140,13 @@ check("a cycle never reads as ready", [(r["id"], r["depth"], r["ready"]) for r i
       [("T6", None, False), ("T7", None, False)])
 check("a scalar cluster is no member (no substring match)", [r["id"] for r in work.cluster_order(TOPO, "T3")["notes"]],
       ["T3"])
+# a tier (kb/Work PB3423) is a positive integer on a note that names a cluster; anything else is reported, never read
+TIERS = [{"_file": f"U{k}.md", "id": f"U{k}", "status": "open", "blocked": False, "blocked_by": [], "cluster": cl, "tier": t}
+         for k, (t, cl) in enumerate([("1", ["C"]), ("12", ["C"]), ("0", ["C"]), ("x", ["C"]), (True, ["C"]),
+                                       ("-1", ["C"]), ("2", [])])]
+check("a malformed tier, or a tier on a note naming no cluster, is a problem; 1 and 12 are not",
+      sorted(s.split(":")[0] for s in work.topology_problems(TIERS)), ["U2.md", "U3.md", "U4.md", "U5.md", "U6.md"])
+check("a malformed tier reads as no tier", [work.tier_of(i) for i in TIERS], [1, 12, None, None, None, None, 2])
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/
