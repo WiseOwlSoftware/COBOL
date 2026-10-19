@@ -287,7 +287,15 @@ internal static class OperandText
     /// value and never stores into the argument). One rule in one place: DISPLAY used to carry this arm alone, and
     /// <c>FUNCTION UPPER-CASE(G)</c> over such a group compiled clean and aborted at run time (kb/Work PB1901).</summary>
     public static string AsTransferString(BoundOperand op, NumericRenderer num, string context) =>
-        op is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false, TransferImageCapable: true } tp }
+        // A VARIABLE-LENGTH group has no fixed record window, so none of the group arm below reads it: its image is
+        // the one DISPLAY shows - the current-extent image, CONFORMANCE.md A.1 item 57 - through the ONE reader
+        // PlaceRenderer.VarGroupOperandImage. DISPLAY and an intrinsic function's string argument both ask this
+        // method, so the variable-length group a --permissive build coerces to a function argument (ISO 15.3 admits
+        // one only where the function says so - LENGTH and BYTE-LENGTH - and COBOLNET1627 warns) is that same image,
+        // never the Tier-C refusal (kb/Work PB3424).
+        op is BoundFieldOperand { Place: var vp } && PlaceRenderer.VarGroupOperandImage(vp, context) is { } varImage
+            ? varImage
+        : op is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false, TransferImageCapable: true } tp }
             ? PlaceRenderer.SendingGroupImage(tp, context, transfer: true)
             : AsString(op, num);
 
