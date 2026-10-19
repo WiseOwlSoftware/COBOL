@@ -33,8 +33,9 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// DEPENDING ON table is held (its storage is the maximum allocation, ISO §8.5.1.8, the image the CALL lane's text
     /// crossing carries), and so is a pointer or object reference (its managed slot, <see cref="HoldsSlots"/>). A
     /// VARIABLE-LENGTH group (<see cref="HoldsComponents"/>) whenever the CALL lane carries it — its current extent
-    /// composes (<see cref="DataItem.CurrentExtentAreaCapable"/>, the gate of every §8.5.1.12 carrier, with a reference
-    /// leaf a fixed placeholder) — as the CALL lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>)
+    /// composes (<see cref="DataItem.CurrentExtentTransferImageCapable"/>: the current-extent member law with a reference
+    /// leaf a fixed placeholder; for a group holding no reference it is the §8.5.1.12 carrier's own
+    /// <see cref="DataItem.CurrentExtentImageCapable"/>) — as the CALL lane's variable-length carrier (<c>CobolVarGroup</c>, <see cref="EmitVar"/>)
     /// or, when it also holds a pointer or object reference, as the CALL lane's cell AREA holding the references and the
     /// components together (<see cref="EmitArea"/>).
     /// <para>⛔ <b>THERE IS NO GR13 RESTRICTION LEFT</b> (kb/Work PB3273; ISO §14.2.3 13) obliges the implementor to STATE
@@ -47,7 +48,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
     /// back by the same walk (<c>__TryGetArea</c>). <c>HostEntryShapeDriftTests</c> pins the entry.</para></summary>
     internal static bool Renders(DataItem group) =>
         group.IsGroup && DataItem.DescendantsOf(group).Where(Occupies).All(d => !d.IsAnyLength)
-        && (!HoldsComponents(group) || group.CurrentExtentAreaCapable);
+        && (!HoldsComponents(group) || group.CurrentExtentTransferImageCapable);
 
     /// <summary>Whether <paramref name="item"/> is or holds a §8.5.1.12 VARIABLE-LENGTH COMPONENT — a dynamic-length
     /// elementary item or a dynamic-capacity table (<see cref="CellComponents"/>, the data model's one enumeration of

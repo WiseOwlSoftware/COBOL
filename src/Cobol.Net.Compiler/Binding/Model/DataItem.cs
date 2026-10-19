@@ -1091,16 +1091,25 @@ public sealed class DataItem
     /// must know whether this compiler can carry it); a bind phase consulting a codegen class is the layering
     /// inversion, and copying the predicate would have been the second copy this repo's two-arm-dispatch rule
     /// forbids. It is a pure declared-shape fact, so the data model is where it belongs.</para></summary>
-    public bool CurrentExtentImageCapable => ComposesCurrentExtent(areaSlots: false);
+    public bool CurrentExtentImageCapable => ComposesCurrentExtent(transfer: false);
 
-    /// <summary>⛔ THE SAME LAW FOR A GROUP THE CELL AREA CARRIES (kb/Work PB3273, PB3139): <see cref="CurrentExtentImageCapable"/>
-    /// with every pointer and object-reference leaf a FIXED PLACEHOLDER of its reserved positions
-    /// (<see cref="TransferImageCapable"/> in place of <see cref="IsImageCapable"/> at the member law's fixed-image arm). A
-    /// reference has no character image, so a group holding one never composes a current-extent IMAGE; but the cell area
-    /// holds it in a managed slot beside the group's variable-length components (<c>StorageCell</c>'s component slots), so
-    /// the area carries the group exactly when its members compose with the references set aside. For a group holding no
-    /// reference the two laws are one.</summary>
-    public bool CurrentExtentAreaCapable => ComposesCurrentExtent(areaSlots: true);
+    /// <summary>⛔ THE ONE-WAY CURRENT-EXTENT IMAGE capability (kb/Work PB3358): <see cref="CurrentExtentImageCapable"/> widened
+    /// by exactly the leaf kind <see cref="TransferImageCapable"/> widens <see cref="IsImageCapable"/> by - a class
+    /// pointer/object leaf, which contributes its <see cref="ByteWidth"/> positions (a pointer's storage image, an object's
+    /// reserved placeholder; CONFORMANCE.md A.1 items 56 and 214, D-SLOT) - so a STRONG variable-length group holding one has
+    /// the documented §14.9.11.4 GR7 DISPLAY format (CONFORMANCE.md A.1 item 57) that every other variable-length group has.
+    /// <para>⛔ WHY A SECOND CAPABILITY AND NOT A WIDER <see cref="CurrentExtentImageCapable"/>: that one is also the
+    /// gate of the §8.5.1.12 component CARRIER (a CALL / INVOKE crossing, a MOVE or a comparison), whose receiving side
+    /// stores the carried components back, and a placeholder has no inverse. The two differ in ONE predicate, the member
+    /// law's fixed-image test (<see cref="CurrentExtentComposes"/>), exactly as <see cref="TransferImageCapable"/> and
+    /// <see cref="IsImageCapable"/> differ in one leaf kind; the consumers that only SEND characters out - DISPLAY and
+    /// FUNCTION LENGTH - ask this, every consumer that reads the image back asks <see cref="CurrentExtentImageCapable"/>.</para>
+    /// <para>⛔ ONE LAW FOR THE CELL AREA TOO (kb/Work PB3273, PB3139): the cell area holds a reference in a managed slot
+    /// beside the group's variable-length components (<c>StorageCell</c>'s component slots), so the host entry's area
+    /// (<c>PublishedRecordEmitter</c>, <c>HostEntryEmitter</c>) carries a group exactly when its members compose with the
+    /// references set aside - the same member law, so there is one
+    /// and never a second. For a group holding no reference this and <see cref="CurrentExtentImageCapable"/> are one.</para></summary>
+    public bool CurrentExtentTransferImageCapable => ComposesCurrentExtent(transfer: true);
 
     /// <summary>An OCCURS DEPENDING table whose elements are variable-length groups, at any depth beneath
     /// <paramref name="g"/> (REDEFINES subtrees aside): a record of this shape needs a count source to be read back
@@ -1110,12 +1119,13 @@ public sealed class DataItem
             && ((c.OccursSpec?.DependingName is not null && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(c))
                 || HasOdoTableOfVariableLengthElements(c)));
 
-    private bool ComposesCurrentExtent(bool areaSlots) =>
+    private bool ComposesCurrentExtent(bool transfer) =>
         IsGroup && CobolNet.Binding.ReferenceResolver.HasVariableLengthSubordinate(this)
         && Children.Where(c => c.RedefinesTargetName is null && (c.IsGroup || c.IsElementary))
-            .All(c => CurrentExtentComposes(c, areaSlots));
+            .All(c => CurrentExtentComposes(c, transfer));
 
-    /// <summary>⛔ THE ONE MEMBER LAW of <see cref="CurrentExtentImageCapable"/> (kb/Work PB244, PB2496): can the
+    /// <summary>⛔ THE ONE MEMBER LAW of <see cref="CurrentExtentImageCapable"/> and, with <paramref name="transfer"/>, of
+    /// <see cref="CurrentExtentTransferImageCapable"/> (kb/Work PB244, PB2496, PB3358): can the
     /// group's own struct compose <paramref name="c"/>'s CURRENT extent, as an image and as the components of its
     /// carrier? The arms are the member kinds <c>GroupImageCodec.VarParts</c> classifies, so the gate and the composer
     /// cannot disagree about a member.
@@ -1150,16 +1160,16 @@ public sealed class DataItem
     /// OCCURS DEPENDING bit table directly after a bit item) composes there too: its characters are the run's, so the
     /// composer classifies it at the run's leading field and measures the table from the run's first bit
     /// (<c>OdoModel.FixedImageTail</c>; kb/Work PB2921 review R1-1).</summary>
-    private static bool CurrentExtentComposes(DataItem c, bool areaSlots) =>
-        (areaSlots ? c.TransferImageCapable : c.IsImageCapable)
+    private static bool CurrentExtentComposes(DataItem c, bool transfer) =>
+        (transfer ? c.TransferImageCapable : c.IsImageCapable)
         || (c.IsDynamicLength && c.IsElementary)
           || (c.IsDynamicTable && !HasOdoOnOrBeneath(c)
-              && ((areaSlots ? c.ElementTransferImageCapable : c.ElementImageCapable) || c.ComposesCurrentExtent(areaSlots)))
-          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.ComposesCurrentExtent(areaSlots))
+              && ((transfer ? c.ElementTransferImageCapable : c.ElementImageCapable) || c.ComposesCurrentExtent(transfer)))
+          || (c.IsGroup && !c.IsDynamicTable && c.Occurs is null && c.ComposesCurrentExtent(transfer))
           || (c.IsGroup && !c.IsDynamicTable && c.Occurs is not null && c.OccursSpec?.DependingName is null
-              && !HasOdoOnOrBeneath(c) && c.ComposesCurrentExtent(areaSlots))
+              && !HasOdoOnOrBeneath(c) && c.ComposesCurrentExtent(transfer))
           || (c.IsGroup && !c.IsDynamicTable && c.OccursSpec?.DependingName is not null
-              && !c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)) && c.ComposesCurrentExtent(areaSlots));
+              && !c.Children.Any(m => m.RedefinesTargetName is null && HasOdoOnOrBeneath(m)) && c.ComposesCurrentExtent(transfer));
 
     /// <summary>The OCCURS DEPENDING table that is <paramref name="c"/> itself or lies beneath it, or null.
     /// §13.18.38.3 SR22 lets an occurs-depending subject be followed within its record only by entries
