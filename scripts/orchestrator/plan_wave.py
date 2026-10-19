@@ -735,8 +735,9 @@ def campaign_clusters(view: dict[str, Any], notes: dict[str, Note], texts: dict[
                       ) -> tuple[list[dict], list[dict], dict[str, list[str]], dict[str, str]]:
     """A campaign's plannable notes as fix_clusters-shaped clusters: `(open, half, deps, waiting)`.
 
-    `view` is work.cluster_order(): every open note of the cluster in blocked_by order. A note is PLANNABLE when it is
-    ready, or when every note it waits on is plannable (then plan() runs it after them, `deps`); every other note is
+    `view` is work.cluster_order(): every open note of the cluster in tier, then blocked_by order, each with its
+    effective tier. A note is PLANNABLE when it is ready, or when every note it waits on is plannable (then plan() runs
+    it after them, `deps`); every other note is
     `waiting`, with the reason. Plannable notes are clustered on their DECLARED sites (kb/Work PB3242: the files of
     their site blocks, work.note_sites, each at fix_clusters' path weight, through fix_clusters' `cluster`), never on
     what their prose mentions (57 of PB1754's 63 ready notes DISCUSS plan_wave.py and landing_check.py, and the prose
