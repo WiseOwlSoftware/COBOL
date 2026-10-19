@@ -153,7 +153,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   held for the owner's per-dispatch approval and dispatched by the attended session. An owner instruction every group of
   the campaign must meet goes in the lead note's `## Standing requirements` section (a bullet each, kb/Work PB3359):
   the planner puts it in the spec, the args entry and the branch reviewer's prompt of every group whose notes name that
-  cluster, in a fix-lane wave as in a campaign wave; never hand-edit it into `groups.json`.
+  cluster, in a fix-lane wave as in a campaign wave; never hand-edit it into `groups.json`. A bullet is a case only
+  that campaign has: the owner's SORT and file I/O test rule lives in MANDATORY-PRACTICES I11 alone and is never copied
+  into a lead (kb/Work PB3369; `test_plan_wave.py` refuses the copy).
 - **Why.** Orientation was ~46 % of every implementer's tokens (waves 45–57): a successor pays the file's context
   once, not once per cluster. It is a FRESH agent, not a longer transcript, because of the quadratic cost law above:
   the cap exists because the sixth defect in one transcript costs more than a new agent, and the successor keeps the
