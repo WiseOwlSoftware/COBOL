@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Collections.Concurrent;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Atn;
@@ -31,6 +32,53 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         var token = e.OffendingToken ?? recognizer.CurrentToken;
         var message = BuildMessage(recognizer, token, e, ErrorKind.NoViableAlternative);
         recognizer.NotifyErrorListeners(token, message, e);
+    }
+
+    /// <summary>⛔ A RESIDUE REFUSED WHERE ITS PREDICTION FAILED IS CONSUMED AS ONE RUN (kb/Work PB3391). When the 0g arm
+    /// names the decision's first token as a closed format's residue (<see cref="ClosedFormatResidue"/> with
+    /// <c>predictionFailedAt</c>: a word a text-predicated clause refused, or a reserved word such as the CHARACTER of
+    /// <c>OBJECT-COMPUTER. XYZ CHARACTER FOO IS X.</c>), the base recovery resynchronizes on the first token of the
+    /// recovery set, and the run's own tokens are in it: an IDENTIFIER is in nearly every recovery set, because the
+    /// error production of an enclosing list opens with one. The rule that caught the error then returned, an
+    /// enclosing list took the rest of the run as ITS residue, and the next token was refused a second time, often
+    /// against the wrong format (<c>OBJECT-COMPUTER. XYZ FOO IS 12.</c> also drew "'IS' is not a paragraph of the
+    /// CONFIGURATION SECTION"). So the refused token is consumed, and the rest up to a token the context may resume
+    /// with that NO run of the production's form there holds (<see cref="ResidueRunTokens"/>: a period, a clause
+    /// keyword, a header word, and in the data division's form the unsigned integer that may be the next entry's
+    /// level-number, kb/Work PB3390), as the production itself would have consumed the run and the 0g Sync the
+    /// reserved word after it; the base recovery then finds itself at that token. One refusal per residue, as
+    /// <see cref="Sync"/> gives one.</summary>
+    public override void Recover(Parser recognizer, RecognitionException e)
+    {
+        if (e is NoViableAltException { OffendingToken: { } word } && IsPredictionFailedAt(e, word)
+            && ((ITokenStream)recognizer.InputStream).LT(1).TokenIndex == word.TokenIndex
+            && ClosedFormatResidue(recognizer, word, predictionFailedAt: true) is { } residue)
+        {
+            recognizer.Consume();
+            ConsumeUntil(recognizer, GetErrorRecoverySet(recognizer).Subtract(ResidueRunTokens(residue.Production)));
+        }
+        base.Recover(recognizer, e);
+    }
+
+    /// <summary>Every token a run of the error production's form <paramref name="production"/> may hold: the union of
+    /// the FIRST sets of the run pieces the form calls (<c>residueOpening</c>, <c>residueItem</c>, and in
+    /// <c>unrecognizedClause</c> <c>residueInteger</c>: words, every literal token but the reserved ones, a sign, the
+    /// concatenation's <c>&amp;</c>, the unsigned integer where the form holds it), read from the ATN once per form, so
+    /// a piece or token either form admits tomorrow is held here too.</summary>
+    private static IntervalSet ResidueRunTokens(int production)
+        => ResidueRunTokenSets.GetOrAdd(production, static rule => ResidueRunTokenSet(CobolParserCore._ATN, rule));
+
+    private static readonly ConcurrentDictionary<int, IntervalSet> ResidueRunTokenSets = new();
+
+    private static IntervalSet ResidueRunTokenSet(ATN atn, int production)
+    {
+        var set = new IntervalSet();
+        foreach (var state in atn.states.Where(s => s is not null && s.ruleIndex == production))
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+                if (state.Transition(i) is RuleTransition call)
+                    set.AddAll(atn.NextTokens(call.target));
+        set.SetReadonly(true);
+        return set;
     }
 
     protected override void ReportInputMismatch(Parser recognizer, InputMismatchException e)
@@ -173,7 +221,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // decides.
         return (IsLiteral(token) || token.Text is [var first, ..] && char.IsAsciiLetter(first))
                && !atn.NextTokens(state, recognizer.Context).Contains(token.Type)
-               && ClosedFormatResidue(recognizer, token) is not null;
+               && ClosedFormatResidue(recognizer, token, predictionFailedAt: false) is not null;
     }
 
     /// <summary>Per ATN state: does its closure — epsilon edges, every rule call entered, and a call to a rule that can
@@ -235,7 +283,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             _ => "syntax error"
         };
 
-        var hints = GuessCobolIntent(recognizer, token, expectedTokens);
+        var hints = GuessCobolIntent(recognizer, token, expectedTokens, IsPredictionFailedAt(e, token));
 
         if (hints.Count == 0)
             return baseMsg;
@@ -258,7 +306,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     // ── COBOL-specific heuristics ──
 
     private static List<DiagnosticHint> GuessCobolIntent(
-        Parser recognizer, IToken token, string? expectedTokens)
+        Parser recognizer, IToken token, string? expectedTokens, bool predictionFailedAt)
     {
         var hints = new List<DiagnosticHint>();
         var stream = (ITokenStream)recognizer.InputStream;
@@ -373,11 +421,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // in the data division), which ClosedFormatPass refuses BY NAME — but the production never begins at a reserved
         // word, nor its data form at a literal that begins with an unsigned integer (kb/Work PB3373, PB3390), so one the
         // format does not print (`SD SF GLOBAL.`, `FD F DUPLICATES.`, `SPECIAL-NAMES. GLOBAL.`, `01 X PIC X 1,5.`) never
-        // enters it and used to arrive here as a bare parse error. The
+        // enters it and used to arrive here as a bare parse error. Nor does a word the production opens with when a
+        // text-predicated clause of the list was the prediction's sole survivor and refused it (`OBJECT-COMPUTER. XYZ
+        // FOO IS 12.`, kb/Work PB3391: ClosedFormatResidue's predictionFailedAt). The
         // position is read FROM THE ATN (ClosedFormatResidue), the format and the wording from the ONE table the pass
         // reads, so the refusal is the pass's own — same code, same sentence — and a closed format added tomorrow
         // inherits it.
-        if (ClosedFormatResidue(recognizer, token) is { } closedFormat)
+        if (ClosedFormatResidue(recognizer, token, predictionFailedAt) is { Format: var closedFormat })
             hints.Add(new(new Diagnostics.DiagnosticDescriptor(closedFormat.Diagnostic.Code,
                     Diagnostics.DiagnosticSeverity.Error, "{0}"),   // the catalogue code, single-sourced as every twin's is
                 closedFormat.Refusal(WrittenResidueItem(recognizer, token), ClosedFormats.OwnerName(recognizer.Context)) + ".", 0));
@@ -492,7 +542,19 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     /// <summary>The closed general format whose error production stands where <paramref name="token"/> — a RESERVED
     /// word, or a literal the production does not open with (in the data division's form, one that begins with an
-    /// unsigned integer, kb/Work PB3373, PB3390: <c>01 X PIC X 1,5.</c>) — failed the parse, or null.
+    /// unsigned integer, kb/Work PB3373, PB3390: <c>01 X PIC X 1,5.</c>) — failed the parse, with the form of the
+    /// production that stands there, or null.
+    /// <para><b>A WORD the production does open with, where the prediction failed AT it (kb/Work PB3391).</b>
+    /// <paramref name="predictionFailedAt"/> says an adaptive prediction found no viable alternative at
+    /// <paramref name="token"/>, the decision's FIRST token (<see cref="IsPredictionFailedAt"/>). An IDENTIFIER the
+    /// production could open with fails there only when a TEXT-PREDICATED clause of the same list was the decision's
+    /// sole syntactic survivor and its predicate refused the word: ANTLR evaluates the predicates of an SLL accept
+    /// state and throws NoViableAlt at the decision's start token when none holds. <c>OBJECT-COMPUTER. XYZ FOO IS
+    /// 12.</c> is the shape: the run <c>FOO</c> cannot continue at the reserved IS, so only
+    /// <c>{segmentLimitAhead()}? IDENTIFIER IS? integerLiteral</c> survives, and FOO is not SEGMENT-LIMIT. The word is
+    /// then exactly what the production would have refused by name: no clause of the list opens with it. The
+    /// after-period exclusion below does not apply to it: the decision's own lookahead already tried every path out of
+    /// the list, its period included, and none took the tokens written.</para>
     /// <para><b>The position, from the ATN.</b> A small simulation of the parser from its current ATN state and its
     /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
     /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
@@ -518,10 +580,11 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// the next construct than a stray clause — so the closure also collects, at each period edge it reaches in the
     /// parser's own context, the tokens that may come after the period, and a word among them is left to the
     /// missing-period guess (hint 14).</para></summary>
-    private static ClosedFormat? ClosedFormatResidue(Parser recognizer, IToken token)
+    private static Residue? ClosedFormatResidue(Parser recognizer, IToken token, bool predictionFailedAt)
     {
         var atn = recognizer.Atn;
-        if (!(IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
+        bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
+        if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         List<Config> configs = [new(atn.states[recognizer.State], null, recognizer.Context)];
         int k = 1;
@@ -546,10 +609,17 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
         // no separator, ISO §8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
+        // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
         bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
                                  && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
-        return probe.Format is not null && !beginsWhatFollows ? probe.Format : null;
+        return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
+            ? new Residue(format, probe.Production)
+            : null;
     }
+
+    /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
+    /// (<c>unrecognizedClause</c> or <c>unrecognizedDataClause</c>, kb/Work PB3390) that list calls.</summary>
+    private readonly record struct Residue(ClosedFormat Format, int Production);
 
     /// <summary>The residue item as written from <paramref name="token"/>: the token's own text, or the whole literal it
     /// heads when the literal spans more tokens (the comma decimals <c>1,5</c> and <c>,5</c>), so the parse layer's
@@ -629,7 +699,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                     // Leaving the PARSER's own call of the production: the word run is still open in the list that
                     // made the call, the innermost list of all (kb/Work PB3370 — a reserved word after the run).
                     if (ClosedFormats.IsErrorProduction(context.RuleIndex))
-                        probe?.Found(caller.RuleIndex, caller.Depth());
+                        probe?.Found(caller.RuleIndex, context.RuleIndex, caller.Depth());
                     work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
                 }
                 continue;
@@ -641,7 +711,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
                 if (t is RuleTransition call)
                 {
                     if (ClosedFormats.IsErrorProduction(call.target.ruleIndex))
-                        probe?.Found(state.ruleIndex, context.Depth() + Frame.Count(calls));
+                        probe?.Found(state.ruleIndex, call.target.ruleIndex, context.Depth() + Frame.Count(calls));
                     work.Push(new(call.target, new Frame(call.followState.stateNumber, calls), context));
                 }
                 else if (t.IsEpsilon)
@@ -666,17 +736,20 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     }
 
     /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose
-    /// error production it reached, and the tokens that may follow a period it reached.</summary>
+    /// error production it reached, the form of the production that list calls, and the tokens that may follow a
+    /// period it reached.</summary>
     private sealed class ResidueProbe
     {
         private int _depth = -1;
         public ClosedFormat? Format { get; private set; }
+        public int Production { get; private set; } = -1;
         public IntervalSet AfterPeriod { get; } = new();
 
-        public void Found(int listRule, int depth)
+        public void Found(int listRule, int production, int depth)
         {
             if (depth <= _depth || ClosedFormats.OfRule(listRule) is not { } format) return;
             Format = format;
+            Production = production;
             _depth = depth;
         }
     }
@@ -1081,6 +1154,13 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
     private static bool IsIdentifier(IToken token)
         => token.Type == CobolLexer.IDENTIFIER;
+
+    /// <summary>Did an adaptive prediction find no viable alternative AT <paramref name="token"/>, the decision's first
+    /// token? A NoViableAltException carries the decision's start token and the token it reports; they are one token
+    /// when the sole survivor's semantic predicate refused the start token (ANTLR rewinds the input to it before it
+    /// evaluates an accept state's predicates), the case kb/Work PB3391 names.</summary>
+    private static bool IsPredictionFailedAt(RecognitionException? e, IToken token)
+        => e is NoViableAltException { StartToken: { } start } && start.TokenIndex == token.TokenIndex;
 
     /// <summary>A token that is a whole literal by itself: a <c>residueLiteral</c> token or the unsigned integer, which
     /// together are every single-token alternative of <c>nonNumericLiteral</c> and <c>numericLiteralCore</c>
