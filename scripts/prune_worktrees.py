@@ -20,10 +20,17 @@ who acts next:
                    ledger, read through plan_wave.inflight_file_sets; the branch name starts with the group's slug
                    `w<wave><letter>`), or it was touched in the last --min-age minutes (its HEAD reflog or STATUS.md).
                    Nobody touches it.
-                   A branch whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED (a
-                   same-file predecessor, a branch a review finisher merged; contained()) is IN FLIGHT too: it lands
-                   through that branch (its row names it, `carrier`), and reads LANDED once it has. Only the first
-                   kind has a live owner of its own (owned(): what the planner's FINDINGS arm waits on).
+                   A branch with NO clean stamp at its tip (no report, a FINDINGS stamp, or a finished report WAITING
+                   FOR REVIEW) whose tip is contained in a fix-lane branch that is IN FLIGHT, waiting or STOPPED (a
+                   branch a review finisher merged, an unfinished or unreviewed predecessor; contained()) is IN FLIGHT
+                   too: an unreviewed checkpoint never lands alone, it lands through that branch (its row names it,
+                   `carrier`), and reads LANDED once it has. A branch reviewed CLEAN at its tip keeps its own
+                   lifecycle, contained or not: a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at
+                   once (kb/Work PB3381). A WAITING TO LAND branch that carries ANOTHER note's unanswered FINDINGS is
+                   IN FLIGHT, waiting on that branch (`waits_on`, carrying_findings(): read from the findings file's
+                   last verdict, review_findings.last_verdict, never from a report's stamp), and so is every WAITING TO
+                   LAND branch a TORN findings file names or that contains a head it names. Only the first kind has a live
+                   owner of its own (owned(): what the planner's FINDINGS arm waits on).
   A FINISHED BRANCH is decided by ONE rule of three coverages, never by a report's age (kb/Work PB3181, PB3125):
     1. its newest fix-lane report (`w<wave><letter>-PB<lead>-report.md`, plan_wave.py REPORT_NAME, under
        coord.reports_dir()) is FINISHED (plan_wave.Report.finished: `Status: DONE`, or DISCHARGED with a HEAD past its
@@ -47,7 +54,8 @@ who acts next:
                    red gate 5, a DEVLOG refusal 6, UNREVIEWED 11, a repeated exit 2 or 9, a runner that DIED twice): the
                    lane never relaunches it at this head; the enqueue unit sends it to its finisher (or reviewer), whose
                    new tip is reviewed and landed, or re-arms a stop resolved with no commit. The evidence names the
-                   attempt and land_lane.ACTION's owner. A branch it contains lands through it (IN FLIGHT).
+                   attempt and land_lane.ACTION's owner. A branch it contains with no clean stamp at its tip lands
+                   through it (IN FLIGHT).
   ENQUEUED         its pull request is open in GitHub's merge queue, or set to join it (auto-merge on): the queue tests it
                    in a merge group and lands it (kb/Work PB3024); offline, the lane's exit-0 attempt at the tip says
                    the same. Nobody touches it.
@@ -355,6 +363,9 @@ class Row:
                                             # None = it names no head of this branch (kb/Work PB3181)
     carrier: str = ''               # contained(): the branch it lands THROUGH; its IN FLIGHT is that branch's, and
                                     # nobody works on THIS one (owned() excludes it; kb/Work PB3311 review R1-1)
+    waits_on: str = ''              # carrying_findings(): the branch whose unanswered FINDINGS it carries, or that a
+                                    # TORN findings file holding it names first; it lands after that one is answered
+                                    # (or the file repaired), and nobody works on THIS one either (owned() excludes it)
 
 
 def mechanical(commit: str, repo=REPO) -> bool:
@@ -667,25 +678,50 @@ def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = ()
         r.state, r.why = lifecycle(r, in_flight_slugs=set(slugs), min_age=min_age, stale_hours=stale_hours, live=live,
                                    prs=prs, lane=lane)
     contained(rows, repo)
+    import review_findings  # noqa: PLC0415  (scripts/orchestrator: the one reader of a findings file, kb/Work PB3381)
+    scratch = (pathlib.Path(coord_dir) if coord_dir else coord.coord_path()) / 'scratch'
+    stamped = [r.review.file for r in reports if r.review and r.review.file]
+    found = review_findings.unanswered(review_findings.findings_files(scratch, also=stamped))
+    for v in found:   # said on every survey (session-probe, the landing lane's log) until the operator repairs it
+        if v['torn']:
+            print(f'prune_worktrees: a findings file is TORN and holds every branch it names (review R5-1, R6-1): {v["torn"]}; '
+                  f'the operator: {review_findings.remedy(pathlib.Path(v["file"]), v["line"])}', file=sys.stderr)
+    carrying_findings(rows, repo, found, list(reports))
     return rows
 
 
-#: The states whose branch has an owner and lands, so a branch it contains lands through it. STOPPED is one (kb/Work
-#: PB3125): its landing attempt stopped, the enqueue unit's finisher owns it, and its predecessors wait with it.
+#: The states whose branch has an owner and lands, so a branch it contains that cannot land by itself lands through
+#: it. STOPPED is one (kb/Work PB3125): its landing attempt stopped, the enqueue unit's finisher owns it.
 CARRIER_STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED', 'ENQUEUED', 'BOUNCED')
 
 
+#: The states of a branch with NO clean review stamp at its tip that contained() can read as carried: a finished report
+#: still WAITING FOR REVIEW (no stamp, or a stamp at an older head), and a DECISION (with no report or a FINDINGS stamp,
+#: below). Every other state keeps its own lifecycle inside a carrier: a CLEAN stamp at the tip (WAITING TO LAND,
+#: STOPPED) or a pull request (ENQUEUED, BOUNCED) is that branch's own landing, which nothing postpones (kb/Work PB3381).
+CARRIED_STATES = ('DECISION', 'WAITING FOR REVIEW')
+
+
 def contained(rows: list[Row], repo=REPO) -> None:
-    """A branch that lands THROUGH another one is IN FLIGHT, not a decision and not a second landing: its tip is an
-    ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
-    (CARRIER_STATES). That is a same-file predecessor (MANDATORY-PRACTICES O2: it lands through its successor) and a
-    branch a review finisher merged (kb/Work PB3027: the wave's finisher rewrites the report for its own branch; a
-    later wave's finisher writes a new report and leaves the FINDINGS-stamped one behind). Once the carrier lands, the
-    content test reads it LANDED and --apply deletes it. Two names for one commit carry nothing."""
+    """A branch that lands THROUGH another one is IN FLIGHT, not a decision, not a review and not a second landing: its
+    tip is an ancestor of the tip of a fix-lane branch (one a report names) that is IN FLIGHT, waiting or STOPPED
+    (CARRIER_STATES), and it carries NO clean stamp at its tip (CARRIED_STATES: a DECISION with no report or a
+    FINDINGS-stamped one, or a finished report WAITING FOR REVIEW), so it cannot land by itself: an unreviewed checkpoint
+    never lands alone (kb/Work PB3381 section G). That is a branch a review finisher merged (kb/Work PB3027: the wave's
+    finisher rewrites the report for its own branch; a later wave's finisher writes a new report and leaves the
+    FINDINGS-stamped one behind), an unfinished predecessor its successor merged, and a DONE predecessor whose own
+    review never ended (its reviewer hit its ceiling: NO-RESULT), which its successor's review covered with its own
+    (wf_rolling_wave.js predecessorEnd 'unreviewed'). Reading that one WAITING FOR REVIEW sent a second reviewer over
+    content already reviewed, whose findings would then hold the CLEAN successor (review R1-2).
+    A branch reviewed CLEAN at its tip keeps its own lifecycle, contained or not (kb/Work PB3381, owner 2026-10-18:
+    "land the clean links as they come"): a same-file predecessor reviewed CLEAN is WAITING TO LAND and lands at once,
+    its successor's pull request merging on top, where until then it read IN FLIGHT and waited for its successor (the
+    train era's hold: wave 1118 kept six DONE branches of one chain off main for seven hours). Once the carrier lands,
+    the content test reads a carried branch LANDED and --apply deletes it. Two names for one commit carry nothing."""
     carriers = [c for c in rows if c.report and c.tip and c.state in CARRIER_STATES]
     for r in rows:
         findings = bool(r.report and r.report.review and r.report.review.verdict == 'FINDINGS')
-        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in ('DECISION', *CARRIER_STATES[1:]) \
+        if not r.tip or r.dirty or r.content in LANDED_CONTENT or r.state not in CARRIED_STATES \
                 or (r.state == 'DECISION' and r.report is not None and not findings):
             continue
         c = next((c for c in carriers if c.tip != r.tip
@@ -695,6 +731,80 @@ def contained(rows: list[Row], repo=REPO) -> None:
             r.why = f'contained in {c.name} ({c.state}): its work lands through that branch; ' + evidence(r)
 
 
+def findings_lead(v: dict, reports: list[Report], rows: list[Row]) -> str:
+    """The note whose branch review recorded the last verdict `v` (review_findings.last_verdict): the report whose stamp
+    names its file; else, for a wave's file (`review-w<wave>-<letter>.jsonl`), that group's report
+    (`w<wave><letter>-PB<lead>-report.md`), which a review finisher rewrites for its own branch but never renames; else
+    the report of the branch the verdict reviewed. '' when none is known: then no branch is exempt as the same note's."""
+    import review_findings  # noqa: PLC0415
+    path = os.path.normcase(os.path.abspath(v['file']))
+    for rep in reports:
+        if rep.review and rep.review.file and os.path.normcase(os.path.abspath(rep.review.file)) == path:
+            return rep.lead
+    m = review_findings.WAVE_FINDINGS.match(pathlib.Path(v['file']).name)
+    hit = next((rep for rep in reports if rep.name.startswith(f'w{m["wave"]}{m["letter"]}-')), None) if m else None
+    if hit:
+        return hit.lead
+    branch = v['branch'] or next(iter(v.get('branches') or []), '')   # a torn reading names its branches instead
+    row = next((r for r in rows if branch and r.name == branch and r.report), None)
+    return row.report.lead if row else ''
+
+
+def carrying_findings(rows: list[Row], repo=REPO, findings: list[dict] = (), reports: list[Report] = ()) -> None:
+    """A WAITING TO LAND branch that carries ANOTHER note's unanswered review findings waits for them (kb/Work PB3381):
+    its tip contains, not yet on main, the head at which a branch review's LAST verdict is FINDINGS with blocking
+    findings (`findings`: review_findings.unanswered over review_findings.findings_files, the ONE reader the rolling
+    wave's predecessorEnd reads too), and that review is of a different note (findings_lead). That is a same-file
+    successor of a predecessor whose review ended FINDINGS: at the round cap, or with a review finisher that came back
+    without answering them (BLOCKED, SPLIT, STALLED, killed). The findings belong to the predecessor's next-wave
+    finisher (plan_wave.py plans it), and the successor's own CLEAN stamp says nothing about them: landing it would put
+    them on main. It reads IN FLIGHT, waiting on the branch that review stamped (`waits_on`), and is WAITING TO LAND
+    again once a later round of that review records CLEAN or that head is on main. The FINDINGS file decides, never a
+    report's stamp (review R3-1): a review finisher rewrites the group's one report for its own branch with no Review
+    line whatever it returns, so a hold read from the stamp released the successor exactly when nobody had answered
+    them. A finisher of the SAME note carries the findings on purpose, to answer them, and lands.
+    A TORN findings file (its reading's `torn`; review R5-1, R6-1: the survey lists the files by name, and any content
+    problem, or a file it cannot open, is a tear) holds every WAITING TO LAND branch it names and every one whose tip
+    contains, not yet on main, a head it names, the same note's included: no verdict is read from it. A file that names
+    no branch (it could not be read, or no line of it is a record) holds the branches of the note whose review it
+    records (findings_lead: the stamp naming it, or its wave name) and every branch containing their tips. The held
+    row's `why` names the tear and the repair."""
+    if not findings:
+        return
+    import review_findings  # noqa: PLC0415  (scripts/orchestrator: the repair command a torn file's row names)
+    holds = []   # (reading, its note, the branches it holds by name, the heads it holds by containment)
+    for v in findings:
+        lead = findings_lead(v, list(reports), rows)
+        if v['torn']:
+            names = set(v['branches']) or {x.name for x in rows if lead and x.report and x.report.lead == lead}
+            heads = [*v['heads'], *(x.tip for x in rows if x.name in names and x.tip)]
+        else:
+            names, heads = set(), [v['head']]
+        holds.append((v, lead, names, [h for h in heads if h]))
+    for r in rows:
+        if r.state != 'WAITING TO LAND' or not r.tip or not r.report:
+            continue
+        unlanded = git('rev-list', f'origin/main..{r.tip}', cwd=repo).stdout.split()
+        hit = next(((v, lead, names) for v, lead, names, heads in holds
+                    if (v['torn'] or not (lead and lead == r.report.lead))
+                    and (r.name in names or any(c.startswith(h) for h in heads for c in unlanded))), None)
+        if not hit:
+            continue
+        v, lead, names = hit
+        r.state = 'IN FLIGHT'
+        if v['torn']:
+            r.waits_on = next(iter([*v['branches'], *sorted(names)]), pathlib.Path(v['file']).name)
+            r.why = (f'carries {r.waits_on} ({lead or "note unknown"}), whose findings file {v["file"]} is TORN '
+                     f'({v["torn"]}): a torn file holds every branch it names, whatever its records say, and no writer '
+                     f'appends to it until the operator mends it ({review_findings.remedy(pathlib.Path(v["file"]), v["line"])}) '
+                     '(kb/Work PB3381 review R5-1, R6-1); ' + evidence(r))
+        else:
+            r.waits_on = v['branch']
+            r.why = (f'carries {v["branch"]} ({lead or "note unknown"}), whose review FINDINGS ({v["blocking"]}) at '
+                     f'{v["head"][:12]} are unanswered (round {v["round"]} of {v["file"]}, its last verdict): it '
+                     'lands once that note\'s finisher has answered them and landed it (kb/Work PB3381); ' + evidence(r))
+
+
 def owned(rows: list[Row]) -> set[str]:
     """The branches with a live owner of their OWN: IN FLIGHT by lifecycle() (a live agent's lock, its dispatch still
     out, a touch inside --min-age, which is how a resumed branch whose tip moved past its report reads), never by
@@ -702,7 +812,7 @@ def owned(rows: list[Row]) -> set[str]:
     any finished branch that merged it (a same-file successor of ANOTHER note, MANDATORY-PRACTICES O2): that says
     nothing about who works on THIS branch. The planner's FINDINGS arm reads this set (plan_wave.plan `owned`, kb/Work
     PB3311): the bare state made a carried FINDINGS branch wait for an answer nobody was writing (review R1-1)."""
-    return {r.name for r in rows if r.state == 'IN FLIGHT' and not r.carrier}
+    return {r.name for r in rows if r.state == 'IN FLIGHT' and not r.carrier and not r.waits_on}
 
 
 def verdict(rows: list[Row]) -> str:
@@ -967,8 +1077,39 @@ def self_test() -> int:
         # `fnd-pred` was reviewed FINDINGS; a later wave's finisher `fnd-fix` merged it and was reviewed CLEAN
         g('switch', '-q', '-c', 'fnd-fix', 'fnd-pred')
         commit('src/W2.cs', 'class FindingsFixedX {}\n', 'the findings answered')
+        # kb/Work PB3381: `cpred` was reviewed CLEAN and `csucc`, its same-file successor cut from it, is not reviewed
+        # yet: the predecessor lands at once, never held behind its successor. `xpred` ended FINDINGS at the cap and
+        # `xsucc` (another note) merged it and was reviewed CLEAN: it carries xpred's unanswered findings, so it waits.
+        for b, f in (('cpred', 'src/CP.cs'), ('xpred', 'src/XP.cs')):
+            g('switch', '-q', '-c', b, 'main')
+            commit(f, f'class {b.title()}X {{}}\n', b)
+        # Review R1-2: `upred` is DONE with NO stamp (its reviewer never returned: NO-RESULT) and `usucc`, its successor,
+        # merged it and was reviewed CLEAN over the whole branch: an unreviewed checkpoint never lands alone, so `upred`
+        # lands through `usucc` (IN FLIGHT, carried), never WAITING FOR REVIEW for a second reviewer.
+        g('switch', '-q', '-c', 'upred', 'main')
+        commit('src/UP.cs', 'class UpredX {}\n', 'upred')
+        # Review R3-1: `rpred` was reviewed FINDINGS (its findings file says so) and its review finisher came back
+        # BLOCKED with NO commit, its branch `rpred-fix` fast-forwarded to rpred's head, after REWRITING the group's one
+        # report for `rpred-fix` with no Review line, as its contract says. `rsucc` (another note) merged rpred and was
+        # reviewed CLEAN: no report stamps rpred's findings any more, yet rsucc carries them, so it waits.
+        g('switch', '-q', '-c', 'rpred', 'main')
+        commit('src/RP.cs', 'class RpredX {}\n', 'rpred')
+        # Review R4-1 (the reviewer's probe): `tpred` ended FINDINGS at the round cap (round 3), and a round-4 review
+        # was killed mid-append of its first finding, leaving a torn line. `tsucc` (another note) merged tpred and was
+        # reviewed CLEAN. The tear answers nothing, so tsucc still carries tpred's unanswered findings and waits.
+        g('switch', '-q', '-c', 'tpred', 'main')
+        commit('src/TP.cs', 'class TpredX {}\n', 'tpred')
+        g('branch', 'rpred-fix', 'rpred')
+        g('switch', '-q', '-c', 'rsucc', 'rpred')
+        commit('src/RS.cs', 'class RsuccX {}\n', 'rsucc')
+        for b, base, f in (('csucc', 'cpred', 'src/CS.cs'), ('xsucc', 'xpred', 'src/XS.cs'), ('usucc', 'upred', 'src/US.cs'),
+                           ('tsucc', 'tpred', 'src/TS.cs')):
+            g('switch', '-q', '-c', b, base)
+            commit(f, f'class {b.title()}X {{}}\n', b)
         tips = {b: g('rev-parse', b).stdout.strip() for b in ('done-branch', 'review-findings', 'succ', 'fnd-pred', 'fnd-fix',
-                                                                'unreviewed', 'reviewed-moved')}
+                                                                'unreviewed', 'reviewed-moved', 'cpred', 'csucc',
+                                                                'xpred', 'xsucc', 'upred', 'usucc', 'pred', 'rpred',
+                                                                'rsucc', 'tpred', 'tsucc')}
         # modified-only: an unlanded change to an EXISTING file that declares no new name (train 1039b review: the
         # name test called it LANDED, and --apply would have deleted it)
         g('switch', '-q', '-c', 'modified-only', 'main')
@@ -1070,6 +1211,9 @@ def self_test() -> int:
         rdir = tmp / 'reports'
         rdir.mkdir()
         hours = lambda h: time.time() - h * 3600  # noqa: E731
+        # a FINDINGS stamp names its findings file where the review wrote it (the coordination scratch below): the
+        # survey reads every stamped path, and one that cannot be opened is a tear (review R6-1)
+        at_scratch = lambda rel: (landed_coord / 'scratch' / rel).as_posix()  # noqa: E731
         for name, text, h in (
                 # the attended shape (kb/Work PB2602): Status, Worktree (a Windows path), Branch, HEAD, Base
                 ('w9998a-PB1-report.md', 'Status: DONE\nWorktree: E:\\x\\.claude\\worktrees\\done-wt\n'
@@ -1087,9 +1231,29 @@ def self_test() -> int:
                 ('w9998q-PB17-report.md', f'Status: DONE\nBranch: reviewed-stamped\nHEAD: {stamped_at[:12]}\n'
                                           f'**Review:** CLEAN w9998q-review-r1 {stamped_at[:12]}\n', 10),
                 ('w9998o-PB16-report.md', f'Status: DONE\nBranch: fnd-pred\nHEAD: {tips["fnd-pred"]}\n'
-                                          f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} E:/s/review-w9998-o.jsonl\n', 10),
+                                          f'**Review:** FINDINGS 1 w9998o-r1 {tips["fnd-pred"]} {at_scratch("review-w9998-o.jsonl")}\n', 10),
                 ('w9998p-PB16-report.md', f'Status: DONE\nBranch: fnd-fix\nHEAD: {tips["fnd-fix"]}\n'
                                           f'**Review:** CLEAN w9998p-r1 {tips["fnd-fix"]}\n', 10),
+                ('w9997a-PB30-report.md', f'Status: DONE\nBranch: cpred\nHEAD: {tips["cpred"]}\n'
+                                          f'**Review:** CLEAN w9997a-r1 {tips["cpred"]}\n', 10),
+                ('w9997b-PB31-report.md', f'Status: DONE\nBranch: csucc\nHEAD: {tips["csucc"]}\n', 10),
+                ('w9997c-PB32-report.md', f'Status: DONE\nBranch: xpred\nHEAD: {tips["xpred"]}\n'
+                                          f'**Review:** FINDINGS 1 w9997c-r3 {tips["xpred"]} {at_scratch("w9997/review-w9997-c.jsonl")}\n', 10),
+                ('w9997d-PB33-report.md', f'Status: DONE\nBranch: xsucc\nHEAD: {tips["xsucc"]}\n'
+                                          f'**Review:** CLEAN w9997d-r1 {tips["xsucc"]}\n', 10),
+                ('w9997e-PB34-report.md', f'Status: DONE\nBranch: upred\nHEAD: {tips["upred"]}\n', 10),
+                ('w9997f-PB35-report.md', f'Status: DONE\nBranch: usucc\nHEAD: {tips["usucc"]}\n'
+                                          f'**Review:** CLEAN w9997f-r1 {tips["usucc"]}\n', 10),
+                # review R3-1: the finisher's rewrite of rpred's report (BLOCKED, its own branch, no Review line)
+                ('w9996a-PB40-report.md', f'Status: BLOCKED\nBranch: rpred-fix\nHEAD: {tips["rpred"]}\n\n'
+                                          '## Review findings\n- R1-1 not answered: blocked\n', 10),
+                ('w9996b-PB41-report.md', f'Status: DONE\nBranch: rsucc\nHEAD: {tips["rsucc"]}\n'
+                                          f'**Review:** CLEAN w9996b-r1 {tips["rsucc"]}\n', 10),
+                # review R4-1: tpred's report keeps its capped FINDINGS stamp; tsucc is reviewed CLEAN
+                ('w9993a-PB42-report.md', f'Status: DONE\nBranch: tpred\nHEAD: {tips["tpred"]}\n'
+                                          f'**Review:** FINDINGS 1 w9993a-r3 {tips["tpred"]} {at_scratch("w9993/review-w9993-a.jsonl")}\n', 10),
+                ('w9993b-PB43-report.md', f'Status: DONE\nBranch: tsucc\nHEAD: {tips["tsucc"]}\n'
+                                          f'**Review:** CLEAN w9993b-r1 {tips["tsucc"]}\n', 10),
                 # kb/Work PB3181, PB3125: the report, the review and the landing lane's attempt at the tip
                 ('w9998r-PB18-report.md', f'Status: DONE\nBranch: lane-stopped · head {lane_at["lane-stopped"][:12]}\n'
                                           f'**Review:** CLEAN w9998r-r1 {lane_at["lane-stopped"]}\n', 10),
@@ -1119,6 +1283,40 @@ def self_test() -> int:
                 ('w9998j-PB11-report.md', 'Status: DONE\nBranch: carried-moved\n', 11)):
             (rdir / name).write_text(text, encoding='utf-8', newline="\n")
             os.utime(rdir / name, (hours(h), hours(h)))
+        # THE FINDINGS FILES, the one source of unanswered findings (kb/Work PB3381 review R3-1), written by the
+        # review's own tool where each wave keeps them: xpred's (capped), fnd-pred's (answered by its own note's later
+        # finisher), rpred's (its finisher came back BLOCKED with no commit), and pred's, whose FINDINGS a later round
+        # answered CLEAN, so succ, which contains it, carries nothing. An R2 shard sharing the name lives two levels
+        # down (`<coord>/scratch/r2-<sha>/batch-<n>`), outside the survey's search by name.
+        import review_findings  # noqa: PLC0415  (scripts/orchestrator)
+        fscratch = landed_coord / 'scratch'
+
+        def review_file(path: pathlib.Path, rounds: list[tuple[str, str, list[str]]], cap: int = 0) -> None:
+            for k, (branch, head, severities) in enumerate(rounds, 1):
+                review_findings.start(path, k, branch, head, f'w-self-test-r{k}')
+                for n, sev in enumerate(severities, 1):
+                    review_findings.finding(path, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'correctness',
+                                                                 'summary': 's', 'severity': sev, 'failure_scenario': 'x'}))
+                review_findings.verdict(path, k, review_findings.BLOCKING_AT_CAP if k == cap else review_findings.BLOCKING_DEFAULT)
+        review_file(fscratch / 'w9997' / 'review-w9997-c.jsonl', [('xpred', tips['xpred'], ['high'])])
+        review_file(fscratch / 'review-w9998-o.jsonl', [('fnd-pred', tips['fnd-pred'], ['high'])])
+        review_file(fscratch / 'w9996' / 'review-w9996-a.jsonl', [('rpred', tips['rpred'], ['high', 'low'])])
+        review_file(fscratch / 'w9995' / 'review-w9995-a.jsonl', [('pred', tips['pred'], ['high']), ('pred', tips['pred'], [])])
+        # review R4-1: tpred's three rounds, the third capped, then a round-4 finding torn mid-append
+        tfile = fscratch / 'w9993' / 'review-w9993-a.jsonl'
+        review_file(tfile, [('tpred', tips['tpred'], ['high'])] * 3, cap=3)
+        review_findings.start(tfile, 4, 'tpred', tips['tpred'], 'w-self-test-r4')
+        tear_at = len(tfile.read_text(encoding='utf-8').splitlines()) + 1
+        with tfile.open('a', encoding='utf-8', newline='\n') as f:
+            f.write('{"kind": "finding", "round": 4, "file": "src/X.cs", "li')
+        # a torn file naming a branch and head this repository lacks: the survey says it, holds nothing else, and goes on
+        # (every check below runs)
+        torn = fscratch / 'w9994' / 'review-w9994-t.jsonl'
+        review_findings.start(torn, 1, 'gone', '0abcdef', 'w9994t-r1')
+        with torn.open('a', encoding='utf-8', newline='\n') as f:
+            f.write('{"kind": "verdict", "round": 1, "bra')
+        (fscratch / 'r2-0abc' / 'batch-1').mkdir(parents=True)
+        (fscratch / 'r2-0abc' / 'batch-1' / 'review-cli--code--f1.jsonl').write_text('{"type": "read", "file": "x.cs"}\n', encoding='utf-8', newline='\n')
         # age everything but `fresh` past --min-age: the branch reflogs, each worktree's HEAD log
         common = repo / '.git'
         for p in list((common / 'logs').rglob('*')):
@@ -1144,7 +1342,11 @@ def self_test() -> int:
                 'reviewed-stamped': 'WAITING TO LAND',
                 'lane-stopped': 'STOPPED', 'lane-pred': 'IN FLIGHT', 'lane-free': 'WAITING TO LAND',
                 'lane-done': 'ENQUEUED', 'lane-running': 'WAITING TO LAND', 'discharged': 'WAITING TO LAND',
-                'discharged-empty': 'DECISION', 'no-head': 'DECISION'}
+                'discharged-empty': 'DECISION', 'no-head': 'DECISION',
+                'cpred': 'WAITING TO LAND', 'csucc': 'WAITING FOR REVIEW', 'xpred': 'IN FLIGHT', 'xsucc': 'IN FLIGHT',
+                'upred': 'IN FLIGHT', 'usucc': 'WAITING TO LAND',
+                'rpred': 'IN FLIGHT', 'rpred-fix': 'DECISION', 'rsucc': 'IN FLIGHT',
+                'tpred': 'IN FLIGHT', 'tsucc': 'IN FLIGHT'}
         for name, state in want.items():
             got = rows.get(name)
             check(got is not None and got.state == state, f'{name}: want {state}, got {got.state if got else "no row"} ({got.why if got else ""})')
@@ -1185,8 +1387,107 @@ def self_test() -> int:
         live_set = owned(list(rows.values()))
         check((rows['fnd-pred'].carrier, rows['pred'].carrier, rows['lane-pred'].carrier, rows['fresh'].carrier)
               == ('fnd-fix', 'succ', 'lane-stopped', ''), 'contained() names the carrier; a fresh branch has none')
-        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred'},
+        check(live_set == {n for n, s in want.items() if s == 'IN FLIGHT'} - {'fnd-pred', 'pred', 'lane-pred', 'xpred', 'xsucc', 'upred', 'rpred', 'rsucc', 'tpred', 'tsucc'},
               f'owned = IN FLIGHT by its own lifecycle (lock, ledger, touch), never by containment: {sorted(live_set)}')
+        # kb/Work PB3381: no hold. A predecessor reviewed CLEAN keeps its own lifecycle inside an unreviewed successor;
+        # a successor carrying another note's unanswered FINDINGS waits on that branch; a finisher of the SAME note
+        # (fnd-fix, above) carries them to answer them and lands
+        check('the landing lane lands it' in rows['cpred'].why and not rows['cpred'].carrier,
+              f'a predecessor reviewed CLEAN lands at once, not through its successor: {rows["cpred"].why}')
+        check((rows['xsucc'].waits_on, 'carries xpred (PB32)' in rows['xsucc'].why, rows['xpred'].carrier)
+              == ('xpred', True, 'xsucc'),
+              f'a successor carrying its predecessor\'s unanswered FINDINGS waits on it: {rows["xsucc"].why}')
+        # review R3-1: the hold is read from the FINDINGS FILE. rpred's finisher came back BLOCKED with no commit and
+        # rewrote the report for its own branch with no Review line; rsucc still carries rpred's unanswered findings
+        check((rows['rsucc'].waits_on, 'carries rpred (PB40)' in rows['rsucc'].why,
+               'review-w9996-a.jsonl' in rows['rsucc'].why, rows['rpred'].carrier) == ('rpred', True, True, 'rsucc'),
+              f'a successor whose predecessor\'s finisher rewrote the report and committed nothing still waits on the '
+              f'findings file\'s last verdict: {rows["rsucc"].why}')
+        # review R4-1, R5-1: a torn file holds every branch it names and every branch containing a head it names. tpred's
+        # file is torn by a round-4 append after its capped round 3, so tsucc is HELD (never WAITING TO LAND), and its
+        # why names the tear and the repair
+        check((rows['tsucc'].state, rows['tsucc'].waits_on, 'carries tpred (PB42)' in rows['tsucc'].why,
+               f'review-w9993-a.jsonl:{tear_at} (byte ' in rows['tsucc'].why and 'not JSON' in rows['tsucc'].why,
+               'review_findings.py repair ' in rows['tsucc'].why) == ('IN FLIGHT', 'tpred', True, True, True),
+              f'a successor whose predecessor\'s findings file is torn is held, the tear named: '
+              f'{rows["tsucc"].state} {rows["tsucc"].why}')
+        # review R5-1, THE PROPERTY at representative cuts (review_findings.py --self-test proves it at every byte):
+        # the survey's own reader (unanswered over findings_files) and carrying_findings, re-run on tsucc for each body
+        # of tpred's findings file. Expected results from the rule: a cut inside a record holds tsucc; among them the
+        # swallowed-record cut of the reviewer's probe case 3 (round 2's FINDINGS verdict lost its newline and round
+        # 3's start was glued on; the round-4 reader read round 1 CLEAN and released tsucc) and a cut inside a "§"
+        # (the round-4 reader raised UnicodeDecodeError out of the survey); a cut at a record boundary reads exactly
+        # its records' verdict (round 1 CLEAN: tsucc lands; round 2 FINDINGS: held).
+        kept = tfile.read_bytes()
+
+        def body(name: str, rounds: list[tuple[str, list[str]]], then: bytes = b'') -> bytes:
+            p = tmp / 'cuts' / f'review-{name}.jsonl'
+            for k, (summary, severities) in enumerate(rounds, 1):
+                review_findings.start(p, k, 'tpred', tips['tpred'], f'w-cut-r{k}')
+                for n, sev in enumerate(severities, 1):
+                    review_findings.finding(p, k, json.dumps({'file': 'src/X.cs', 'line': n, 'category': 'c', 'severity': sev,
+                                                              'summary': summary, 'failure_scenario': 'x'},
+                                                             ensure_ascii=False))
+                review_findings.verdict(p, k)
+            return p.read_bytes() + then
+
+        two = body('two', [('s', []), ('s', ['high'])])
+        glued = json.dumps({'kind': 'start', 'round': 3, 'branch': 'tpred', 'head': tips['tpred'],
+                            'reviewer': 'w-cut-r3'}).encode() + b'\n'
+        sect = json.dumps({'kind': 'finding', 'round': 2, 'summary': '§14.9 wrong'}, ensure_ascii=False).encode()
+        one = body('one', [('s', [])])
+        cuts = (('probe case 3: round 2 FINDINGS lost its newline, round 3 start glued on', two[:-1] + glued, 'IN FLIGHT', True),
+                ('round 2 FINDINGS lost its newline', two[:-1], 'IN FLIGHT', True),
+                ('inside a "§" of a round-2 finding', body('sect', [('§ 1', [])]) + json.dumps(
+                    {'kind': 'start', 'round': 2, 'branch': 'tpred', 'head': tips['tpred'], 'reviewer': 'w-cut-r2'}).encode()
+                 + b'\n' + sect[:sect.index('§'.encode()) + 1], 'IN FLIGHT', True),
+                ('at a record boundary after round 1 CLEAN', one, 'WAITING TO LAND', False),
+                ('at a record boundary after round 2 FINDINGS', two, 'IN FLIGHT', False),
+                # review R6-1: discovery is BY NAME, so a file the survey cannot read, or whose first line is no record,
+                # is still listed and read TORN. Each is made at the file's FIRST read (where the round-5 discovery
+                # opened it and dropped it): a BOM (an operator's hand edit through Windows PowerShell 5.1), a read
+                # denied (pathlib's open raising PermissionError) and a real directory in the file's place. A file that
+                # names no branch holds the branches of the note whose review it records (tpred, by its wave name) and
+                # every branch containing their tips
+                ('with a UTF-8 byte-order mark', review_findings.BOM + two, 'IN FLIGHT', True),
+                ('unreadable: opening it raises PermissionError', two, 'IN FLIGHT', True),
+                ('unreadable: a directory in its place', None, 'IN FLIGHT', True))
+        real_open = pathlib.Path.open
+
+        def deny(self, *a, **k):
+            if self == tfile:
+                raise PermissionError(13, 'Permission denied', str(self))
+            return real_open(self, *a, **k)
+
+        for what, cut, want_state, torn_cut in cuts:
+            if cut is None:
+                tfile.unlink()
+                tfile.mkdir()
+            else:
+                tfile.write_bytes(cut)
+            cut_rows = [dataclasses.replace(r) for r in rows.values()]
+            ts = next(r for r in cut_rows if r.name == 'tsucc')
+            ts.state, ts.waits_on, ts.why = 'WAITING TO LAND', '', ''
+            if 'PermissionError' in what:
+                pathlib.Path.open = deny
+            try:
+                carrying_findings(cut_rows, repo, review_findings.unanswered(review_findings.findings_files(fscratch)),
+                                  report_index(rdir, terminal))
+                got = (ts.state, ts.waits_on, 'TORN' in ts.why)
+            except Exception as e:  # noqa: BLE001  (the round-4 reader raised here; a raise is a failed check, never a crash)
+                got = (f'RAISED {e!r}', '', False)
+            finally:
+                pathlib.Path.open = real_open
+                if cut is None:
+                    tfile.rmdir()
+            check(got == (want_state, 'tpred' if want_state == 'IN FLIGHT' else '', torn_cut),
+                  f'tpred\'s findings file cut {what}: tsucc reads {want_state}{" (TORN)" if torn_cut else ""}: {got} {ts.why}')
+        tfile.write_bytes(kept)
+        check(not rows['succ'].waits_on and 'unanswered' not in rows['succ'].why,
+              f'a FINDINGS round that a later round answered CLEAN holds nothing: {rows["succ"].why}')
+        check((rows['upred'].carrier, 'contained in usucc (WAITING TO LAND)' in rows['upred'].why) == ('usucc', True),
+              f'a finished predecessor with no clean stamp at its tip lands through its successor, never alone and '
+              f'never reviewed twice (review R1-2): {rows["upred"].why}')
         check(set(rows) == set(want), f'every branch and detached worktree has a row: {sorted(set(rows) ^ set(want))}')
         check(rows['modified-only'].content == 'CHECK', 'a branch that only modifies an existing file is not LANDED')
         check(rows['unreadable'].dirty > 0, 'a worktree whose status git cannot produce counts as dirty')
@@ -1255,8 +1556,8 @@ def self_test() -> int:
         check([r.name for r in order] == ['b3', 'b5', 'b2', 'b6', 'b1', 'b7', 'b0', 'b4'],
               f'the landing order is the most harmful lead first, compiler before process, oldest first: '
               f'{[r.name for r in order]}')
-        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 39 · 6 in flight · 2 waiting for review · '
-                                                      '7 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
+        check(verdict(list(rows.values())).startswith('=== BRANCH LIFECYCLE: 50 · 13 in flight · 3 waiting for review · '
+                                                      '9 waiting to land · 1 stopped · 1 enqueued · 0 bounced · 5 landed'),
               f'verdict line: {verdict(list(rows.values()))}')
         # the pure rule: a lock with no pid is honoured; a ledger slug matches only at a word boundary
         r0 = dataclasses.replace(rows['orphan'], lock='')

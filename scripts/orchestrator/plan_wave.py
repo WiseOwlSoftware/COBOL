@@ -48,7 +48,7 @@ cost the orchestrator a hand-written groups.json; this computes it.
 9. --drain (the owner's drain: "do not schedule new work items but continue all necessary work to get in-process work
    to main", 2026-10-13; kb/Work PB3150) plans only the finishers of STARTED work: every review-FINDINGS finisher, a
    SPLIT or NOT STARTED report's finisher only while its branch holds unlanded work that no other DONE branch carries
-   (`git merge-base --is-ancestor`: a predecessor its successor merged lands THROUGH that successor), and an unlanded
+   (`git merge-base --is-ancestor`: unfinished work a finished branch merged lands with that branch), and an unlanded
    branch's finisher on the same terms; never a cluster, a half note's open half, or a note a report left NOT
    started (each waits, with the reason). Every finisher's pred says so.
 
@@ -339,9 +339,11 @@ def git_branch_classifier() -> Callable[[str], str]:
 def branch_carrier(reports: list[Report], classify: Callable[[str], str],
                    git: Callable[..., Any]) -> Callable[[str], str | None]:
     """branch -> the branch of a FINISHED report (Report.finished), not on main, that contains it (`git merge-base --is-ancestor`), or None.
-    A predecessor that a successor merged lands THROUGH that successor (MANDATORY-PRACTICES O2): wave 1074's group A
-    split on `…-e99-1`, A2 merged it into `…-e99-4`, and a finisher that cherry-picked `…-e99-1` onto main again would
-    redo work `…-e99-4` already carries (kb/Work PB3150)."""
+    Unfinished work that a finished branch merged lands WITH that branch: a SPLIT predecessor's branch carries no clean
+    stamp at its tip, so it never lands alone (prune_worktrees.contained: an unreviewed checkpoint lands through the
+    branch that carries it, kb/Work PB3381). Only a finished predecessor reviewed CLEAN lands on its own, and this reads
+    finished branches only as carriers. Wave 1074's group A split on `…-e99-1`, A2 merged it into `…-e99-4`, and a
+    finisher that cherry-picked `…-e99-1` onto main again would redo work `…-e99-4` already carries (kb/Work PB3150)."""
     done = list(dict.fromkeys(r.branch for r in reversed(reports) if r.branch and r.finished))
     cache: dict[str, str | None] = {}
 
@@ -691,7 +693,8 @@ def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
         f"which changes {', '.join(shared.get(r.branch or '', [])[:3])}" for r in reps)
         + ". Before touching code, `git merge` each of those branches into yours (never a rebase, never a cherry-pick), "
           "read each report's \"For the next implementer\" section, and build on its work; a branch that has not "
-          "landed by your landing lands through yours (MANDATORY-PRACTICES O2).")
+          "landed by your landing lands with yours (MANDATORY-PRACTICES O2: a merged branch with no clean stamp at "
+          "its tip lands through the branch that carries it; one reviewed CLEAN lands on its own first).")
 
 
 def run_fix_clusters(status: str, out: pathlib.Path, rules: dict[str, Any]) -> dict[str, Any]:
@@ -904,8 +907,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     A CAMPAIGN (`--cluster`, kb/Work PB2120) passes `deps`, {note: its open blockers}, and clusters that carry a
     `depth` (their place in the blocked_by topology, ranked first). A group whose notes have blockers runs AFTER the
     group that holds them: it joins the tail of that group's successor chain (`after:`), as a same-file successor
-    does, because a successor merges its predecessor's branch and the rolling wave lands a chain through its last
-    group. A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
+    does, because a successor merges its predecessor's FINAL, reviewed branch once that predecessor is settled
+    (wf_rolling_wave.js `settled`), and each link reviewed CLEAN lands as it comes (kb/Work PB3381). A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
     Both lanes pass `busy`, {in-flight owner: InFlight} from classify_inflight (kb/Work PB2807: the fix lane once
     passed none, so a fix-lane group was planned on a file another session's running group held): a group whose files
     meet RUNNING work waits, the collision named, and so does every group that would follow it; a group whose files
