@@ -1,4 +1,4 @@
-## PB3380 landed by PB3381; PB3402-PB3408 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, and PB3381's five open leads
+## PB3380 landed by PB3381; PB3402-PB3408 and PB3412 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang
 
 PB3381 (PR #270) fixed PB3380, a successor chain whose predecessors' review fixes never reached the later links. A
 successor now waits for its predecessor's whole review loop and merges the reviewed head. PB3381's note left the flip to
@@ -19,3 +19,6 @@ Seven new notes:
   - PB3406: `last_verdict` can raise on a parser failure that is not an `OSError`;
   - PB3407: an unlistable wave directory drops its findings files silently;
   - PB3408: a relative stamped findings path reads TORN from another directory.
+- **PB3412 (analysis).** A standalone Windows run of the prune self-test hung for more than 3 minutes in process
+  creation under full CPU load, while the gate's run of it passed. The Mythos lane reported it during the `-326-31`
+  bounce verification. It is unexplained, so it is a defect to root-cause.
