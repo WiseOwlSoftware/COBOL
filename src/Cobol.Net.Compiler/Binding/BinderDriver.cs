@@ -240,7 +240,8 @@ internal sealed class BinderDriver
         // The closed-general-format pass (ISO §4.2.2) — a FOURTH sibling on the same footing, and the one that
         // ends the grammar's last total sink. `genericClause : IDENTIFIER (IDENTIFIER|literal)*` was reached from
         // six sites spanning eight closed general formats and swallowed any word run the format did not define,
-        // at every edition and every strictness; it now spells `unrecognizedClause` at every site and this pass
+        // at every edition and every strictness; it now spells the error production at every site (`unrecognizedClause`,
+        // or `unrecognizedDataClause` in the data division, kb/Work PB3390) and this pass
         // refuses each instance by name, naming the format and its § from ClosedFormats.ByContext (COBOLNET1941
         // for §13.16.2, 1970 for the clause-list formats, 1971 for the paragraph-list ones). Runs at EVERY
         // edition — unlike the declined pass there is no edition below which the sink cannot fire. kb/Work PB829.

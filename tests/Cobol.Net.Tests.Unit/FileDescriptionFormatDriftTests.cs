@@ -26,13 +26,13 @@ using Core = CobolParserCore;
 public sealed class FileDescriptionFormatDriftTests
 {
     /// <summary>The alternatives of <c>fileDescriptionClause</c> as the GENERATED parser exposes them: its
-    /// no-argument accessors returning a rule context, less the <c>unrecognizedClause</c> error production.</summary>
+    /// no-argument accessors returning a rule context, less the <c>unrecognizedDataClause</c> error production.</summary>
     private static IReadOnlyList<Type> Alternatives() =>
         typeof(Core.FileDescriptionClauseContext)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.GetParameters().Length == 0
                         && typeof(ParserRuleContext).IsAssignableFrom(m.ReturnType)
-                        && m.ReturnType != typeof(Core.UnrecognizedClauseContext))
+                        && m.ReturnType != typeof(Core.UnrecognizedDataClauseContext))
             .Select(m => m.ReturnType)
             .Distinct()
             .ToList();

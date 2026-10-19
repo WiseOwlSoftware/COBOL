@@ -29,8 +29,8 @@ public sealed class UserWordSlotDriftTests
         ["formatWord"] = "a general-format KEYWORD with no lexer token, matched by text (kb/Work PB764)",
         ["enterOperand"] = "ENTER language-name-1 / routine-name-1: a system-name and an external routine, not a "
             + "word in the program's name space (the X3.23-1985 ENTER statement, removed by COBOL-2002)",
-        ["residueOpening"] = "the unrecognizedClause error production's word run (its opening), refused by name (kb/Work PB829, PB3373)",
-        ["residueItem"] = "the unrecognizedClause error production's word run (its tail), refused by name (kb/Work PB829, PB3373)",
+        ["residueOpening"] = "the error production's word run (its opening, and every tail item but an `&` operand), refused "
+            + "by name (kb/Work PB829, PB3373, PB3390)",
         ["decimalPointClause"] = "DECIMAL-POINT IS COMMA: the keyword COMMA has no lexer token",
         ["screenLineClause"] = "the keyword MINUS has no lexer token (the declined screen module, kb/Work PB260)",
         ["screenColumnClause"] = "the keyword MINUS has no lexer token (the declined screen module, kb/Work PB260)",
