@@ -37,7 +37,7 @@ public sealed class AcceptDifferentialTests
             // ACCEPT test seeing no input echoed back, which reads exactly like a semantic defect. See §11 A12.
             var psi = new ProcessStartInfo("dotnet", $"\"{dll}\"") { WorkingDirectory = dir };
             if (clock is not null) psi.Environment["COBOLNET_CLOCK"] = clock;
-            var obs = ProcessObserver.ObserveOrThrow(psi, stdin);
+            var obs = ProcessObserver.ObserveOrThrow(psi, stdin, runDirectory: dir);
             return (obs.ExitCode == 0, CutRunner.Normalize(obs.Stdout), CutRunner.Normalize(obs.Stderr));
         }
         finally { CutRunner.TryDelete(dir); }
