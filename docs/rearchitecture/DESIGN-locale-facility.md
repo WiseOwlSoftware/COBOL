@@ -626,9 +626,14 @@ and only for a program that references ORD/CHAR (or HIGH-/LOW-VALUE at run time)
   is defined in the SPECIAL-NAMES paragraph with the LOCALE phrase or with literals is dependent on the
   capabilities of the processor*". ⚖ **DETERMINATION L8:** WiseOwl COBOL *does* provide it — the index is an
   in-process ordered structure keyed by `CobolCollation`, so a locale key ordering costs nothing extra — and
-  documents the one consequence: **an indexed file written under one locale and read under another is not
-  guaranteed to be in key order**, which is why the resolved locale key is captured at OPEN and a mid-file
-  `SET LOCALE LC_COLLATE` does not re-order an open file.
+  makes the order what §12.4.5.7.4 GR1 says it is (`--check` OK): "*Each collating sequence is a fixed file
+  attribute*". `FileConnector.Open` calls `FreezeOpenSequences` first, and the indexed connector freezes each key's
+  declared sequence with `CobolCollation.Snapshot` (bound to the locale current at the OPEN and pinned to ONE
+  collator), before §14.9.27.4 GR10 compares the declared attributes with the file's: a creating OPEN records that
+  order's fingerprint, an OPEN of an existing file while a locale of a different order is current is the attribute
+  conflict '39', and a mid-file `SET LOCALE LC_COLLATE` does not re-order an open file (golden
+  `pb3331_locale_key_sequence_fixed_at_open`; kb/Work PB3331, review w1123b R1-1). The keyed store engine's tree
+  takes its key order from the same frozen sequence (kb/Work PB3334).
 
 ### 4.5 Character classification (A.4.9 items 6, 7, 13)
 

@@ -238,6 +238,57 @@ public sealed class Collator
         return new CollationKey(perLevel, Strength == CollationStrength.Identical ? walked : null, this);
     }
 
+    /// <summary>⛔ THE PREFIX SHAPE of <paramref name="text"/> (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.4, the
+    /// partial-key START; kb/Work PB3332): how far the level-1 weights of a LEADING PART of the text, walked on its own,
+    /// can fall short of its length, and how far one mapping can reach across a cut — the two numbers that bound which
+    /// level-1 weights of a text its truncation keeps (<see cref="PrefixShape"/>). A CUT is a position of the text that no
+    /// mapping straddles — UTS #10 S2.1's single code point, Hangul syllable or longest contraction, a discontiguous one
+    /// to its furthest mark — and that begins with a starter, so the walk of the text before it is the walk of that part
+    /// on its own (S2.1 takes the longest match, which a text that ends at the cut still offers, and a discontiguous scan
+    /// stops at a starter). The DEFICIT is the largest (cut − level-1 weights before it): an ignorable character (a
+    /// control, a soft hyphen, a variable under <see cref="AlternateHandling.Shifted"/>) raises it, an expansion lowers
+    /// it, and it is 0 for text whose characters each weigh one primary. The OVERHANG is the longest run between two
+    /// consecutive cuts, less one: 0 when no mapping spans more than one character, 1 for a two-character contraction
+    /// ("ch" under Czech). A text that needs normalization is walked in NFD with each walked character mapped back to the
+    /// character it came from, so both numbers count positions of <paramref name="text"/> itself.</summary>
+    internal PrefixShape PrefixShapeOf(ReadOnlySpan<char> text)
+    {
+        List<int>? origin = null;
+        ReadOnlySpan<char> walked = text;
+        if (NeedsNormalization(text))
+        {
+            origin = new List<int>(text.Length + 8);
+            walked = Normalizer.ToNfd(text, Table, origin);
+        }
+        var it = new CollationElementIterator(walked, Table);
+        bool afterVariable = false;
+        int before = 0, since = 0;          // the level-1 weights before the last cut, and since it
+        int cut = 0, reach = 0;             // the last cut, and past the furthest position consumed since it
+        int deficit = 0, overhang = 0;
+        while (it.TryNextMapping())
+        {
+            int start = it.MappingStart;
+            int first = origin is null ? start : origin[start];
+            // Every position before `start` was consumed by an earlier mapping, so this is a cut when none of them reached
+            // `first` and the walk does not reorder across it (a starter; without normalization every character is one).
+            if (first >= reach && (origin is null || Table.CombiningClass(CodePointAt(walked, start)) == 0))
+            {
+                overhang = Math.Max(overhang, first - cut - 1);
+                before += since;
+                since = 0;
+                deficit = Math.Max(deficit, first - before);
+                cut = first;
+            }
+            for (int i = start; i < it.MappingEnd; i++) reach = Math.Max(reach, (origin is null ? i : origin[i]) + 1);
+            while (it.TryNextOfMapping(out var ce))
+                if (WeightAt(ce, 1, ref afterVariable) != 0) since++;
+        }
+        // The end of the text is a cut.
+        overhang = Math.Max(overhang, text.Length - cut - 1);
+        deficit = Math.Max(deficit, text.Length - before - since);
+        return new PrefixShape(deficit, overhang);
+    }
+
     /// <summary>The key of <paramref name="text"/> through this collator's <see cref="Cache.CollationKeyCache"/> — the
     /// same key as <see cref="GetKey"/>, built once per distinct text.</summary>
     public CollationKey GetKeyCached(string? text) => Cache.CollationKeyCache.For(this).GetKey(text);

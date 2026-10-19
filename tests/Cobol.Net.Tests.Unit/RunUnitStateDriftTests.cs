@@ -233,6 +233,8 @@ public sealed class RunUnitStateDriftTests
             "memo of locale facts, keyed by locale name: derived from immutable platform data",
         ["CobolNet.Runtime.LocaleCollation::s_orders"] =
             "memo of order vectors, keyed by the (immutable) collator",
+        ["CobolNet.Runtime.LocaleCollation::s_pads"] =
+            "memo of a collator's space facts (in a contraction; its largest primary), keyed by the (immutable) collator",
         ["CobolNet.Runtime.Globalization.MonetaryFacts::s_cache"] =
             "memo of monetary facts, keyed by the (immutable) LocaleFacts object",
         ["CobolNet.Runtime.Globalization.TimeFacts::s_cache"] =
