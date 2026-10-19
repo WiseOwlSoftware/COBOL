@@ -5015,12 +5015,29 @@
   ],
   "expect": "COBOLNET2577"
  },
+ "pb1173-merge-key-boolean": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is of class boolean"
+ },
  "pb1173-merge-key-dynamic-length": {
   "refuse-at": [
    "2014",
    "2023"
   ],
   "expect": "is a dynamic-length elementary item"
+ },
+ "pb1173-merge-key-not-in-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is not described in a record of 'SW' (ISO §14.9.24.3 SR4 a))"
  },
  "pb1173-merge-key-occurs": {
   "refuse-at": [
@@ -5077,7 +5094,7 @@
    "2014",
    "2023"
   ],
-  "expect": "is not described in a record"
+  "expect": "is not described in a record of 'SW' (ISO §14.9.40.3 SR6 a))"
  },
  "pb1173-sort-file-key-occurs": {
   "refuse-at": [

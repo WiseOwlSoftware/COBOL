@@ -42,18 +42,24 @@ internal enum SortKeyRules
 /// </list></summary>
 internal static class SortKeyAdmission
 {
+    /// <summary>The syntax rule that prints the key rules of <paramref name="rules"/>, as a diagnostic cites it
+    /// ("ISO §14.9.40.3 SR6"; the lettered sub-rule follows) — the ONE place the statement-to-clause map is written,
+    /// read by this predicate and by <c>SortBinder.SortAddFileKeys</c>'s own key screens (record membership, OCCURS
+    /// position), so a MERGE key refusal never quotes SORT's clause (kb/Work PB2512).</summary>
+    public static string Clause(SortKeyRules rules) => rules switch
+    {
+        SortKeyRules.FileSort => "ISO §14.9.40.3 SR6",
+        SortKeyRules.TableSort => "ISO §14.9.40.3 SR14",
+        _ => "ISO §14.9.24.3 SR4",
+    };
+
     /// <summary>The refusal text for <paramref name="key"/> under <paramref name="rules"/> — the violated rule quoted
     /// with its clause — or <see langword="null"/> when the key is admissible. The first violation in the order the
     /// rules are printed (b/f, c, d); one is enough to refuse, and naming the others would only restate it.</summary>
     public static string? Violation(DataItem key, SortKeyRules rules)
     {
         string name = key.CobolName ?? key.CsName;
-        string clause = rules switch
-        {
-            SortKeyRules.FileSort => "ISO §14.9.40.3 SR6",
-            SortKeyRules.TableSort => "ISO §14.9.40.3 SR14",
-            _ => "ISO §14.9.24.3 SR4",
-        };
+        string clause = Clause(rules);
         string verb = rules == SortKeyRules.Merge ? "MERGE" : "SORT";
 
         // SR6 b) / f): subject to OCCURS — its own entry or any entry above it. The file verbs only (see the type).
