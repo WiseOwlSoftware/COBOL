@@ -55,7 +55,9 @@ public sealed class PagedFileCrashMatrixTests
         return new Scene(medium, ha, a!, b, reader, hb, hr);
     }
 
-    /// <summary>The scene of <paramref name="path"/>: NO OTHER for the NO OTHER statement, A changed for the CLOSE.</summary>
+    /// <summary>The scene of <paramref name="path"/>: NO OTHER for the NO OTHER statement; A changed for the CLOSE that owes
+    /// a promotion and UNCHANGED for the CLOSE that owes none, whose sync alone the matrix must refuse and kill too
+    /// (kb/Work PB3382: a scene that changes A first never reaches that sync).</summary>
     private static Scene SceneFor(PagePath path) =>
         NewScene(coherentA: path != PagePath.NoOtherStatement, changedA: path == PagePath.Close);
 
@@ -66,6 +68,7 @@ public sealed class PagedFileCrashMatrixTests
         NoOtherStatement,
         GrowingStatement,
         Close,
+        CloseUnchanged,
         Checkpoint,
         Fence,
     }
@@ -74,11 +77,15 @@ public sealed class PagedFileCrashMatrixTests
     {
         PagePath.CoherentStatement or PagePath.NoOtherStatement => StoreKit.Put(s.A, 3, "three"),
         PagePath.GrowingStatement => StoreKit.Put(s.A, 3, "three", blobPages: 6),
-        PagePath.Close => s.A.Close(),
+        PagePath.Close or PagePath.CloseUnchanged => s.A.Close(),
         PagePath.Checkpoint => s.A.Promote(),
         PagePath.Fence => PagedFile.Open(s.HandleA, writable: true, coherent: true, out _),
         _ => throw new ArgumentOutOfRangeException(nameof(path)),
     };
+
+    /// <summary>Whether <paramref name="path"/> is a CLOSE (a refused one has closed the connector already) or the OPEN's
+    /// fence: the run unit has no next statement of its own afterwards.</summary>
+    private static bool EndsTheRunUnitsUse(PagePath path) => path is PagePath.Close or PagePath.CloseUnchanged or PagePath.Fence;
 
     private static bool Changes(PagePath path) =>
         path is PagePath.CoherentStatement or PagePath.NoOtherStatement or PagePath.GrowingStatement;
@@ -149,7 +156,7 @@ public sealed class PagedFileCrashMatrixTests
                     s.HandleA.Heal();
                     // The refused run unit is alive: its own next statement and its CLOSE (which ends the condition;
                     // a refused CLOSE has closed the connector already) claim above the refused claim (finding R4-3).
-                    if (path is not (PagePath.Close or PagePath.Fence))
+                    if (!EndsTheRunUnitsUse(path))
                     {
                         Assert.Equal(StoreStatus.Ok, StoreKit.Put(s.A, 8, "eight"));
                         Assert.Equal(StoreStatus.Ok, s.A.Close());
@@ -297,6 +304,13 @@ public sealed class PagedFileCrashMatrixTests
     public void A_refused_read_at_every_read_of_every_path_answers_30_and_decides_nothing(PagePath path)
     {
         int reads = DryReads(path);
+        // A CLOSE that owes no promotion only syncs (2.2.1.7): it reads no page, so it cannot meet a torn page 2 another
+        // run unit left (kb/Work PB3333) and there is no read to refuse.
+        if (path == PagePath.CloseUnchanged)
+        {
+            Assert.Equal(0, reads);
+            return;
+        }
         Assert.True(reads > 0, $"{path} reads nothing");
         for (int n = 1; n <= reads; n++)
         {
@@ -306,7 +320,7 @@ public sealed class PagedFileCrashMatrixTests
             Assert.True(StoreStatus.PermanentError == Run(s, path), where);
             s.HandleA.Heal();
             string expected = Base;
-            if (path is not (PagePath.Close or PagePath.Fence))
+            if (!EndsTheRunUnitsUse(path))
             {
                 Assert.True(StoreStatus.Ok == StoreKit.Put(s.A, 8, "eight"), where);
                 expected += "8=eight;";
@@ -329,6 +343,20 @@ public sealed class PagedFileCrashMatrixTests
     }
 
     public static TheoryData<PagePath> Paths() => new(Enum.GetValues<PagePath>());
+
+    /// <summary>The two CLOSEs the matrix runs stay the two the design names (2.2.1.7, kb/Work PB3333, PB3382): the CLOSE
+    /// of a store changed since its last promotion writes the claim, the slot and the retirement between syncs, and the
+    /// CLOSE of a store that changed nothing is ONE sync and no write — so a refusal of that sync is the only fault the
+    /// UNCHANGED scene can meet, and a scene that quietly changed A first would leave it untested.</summary>
+    [Fact]
+    public void The_CLOSE_scenes_pin_a_promoting_CLOSE_and_a_CLOSE_that_is_one_sync()
+    {
+        var promoting = DryRun(PagePath.Close);
+        Assert.Contains(promoting, o => o.StartsWith('W'));
+        Assert.True(promoting.Count(o => o == "S") >= 2, string.Join(",", promoting));
+        Assert.Equal(["S"], DryRun(PagePath.CloseUnchanged));
+        Assert.Equal(0, DryReads(PagePath.CloseUnchanged));
+    }
 
     private static int DryReads(PagePath path)
     {
