@@ -926,8 +926,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
 
-    A CAMPAIGN (`--cluster`, kb/Work PB2120) passes `deps`, {note: its open blockers}, and clusters that carry a
-    `depth` (their place in the blocked_by topology, ranked first). A group whose notes have blockers runs AFTER the
+    A CAMPAIGN (`--cluster`, kb/Work PB2120) passes `deps`, {note: its open blockers}, and clusters that carry the
+    owner's `tier` (ranked first, kb/Work PB3423; lift_tiers keeps a blocker's cluster from ranking after its
+    dependent's) and a `depth` (their place in the blocked_by topology, ranked next). A group whose notes have blockers runs AFTER the
     group that holds them: it joins the tail of that group's successor chain (`after:`), as a same-file successor
     does, because a successor merges its predecessor's FINAL, reviewed branch once that predecessor is settled
     (wf_rolling_wave.js `settled`), and each link reviewed CLEAN lands as it comes (kb/Work PB3381). A group whose blockers are planned in no group, or in two chains, waits for a later wave (`waiting`).
