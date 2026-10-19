@@ -21,6 +21,12 @@ internal ref struct ContractionWalker
     // Char indices consumed early by a discontiguous contraction match (rare; lazily allocated).
     private List<int>? _removed;
 
+    /// <summary>The char index just past the LAST position the most recent successful <see cref="TryMatchContraction"/>
+    /// consumed: its contiguous end, or past the furthest non-starter it took discontiguously — so a contraction's
+    /// mapping spans [its first code point, <see cref="MatchEnd"/>) of the text, with any unconsumed (blocked) marks
+    /// inside that span walked later as mappings of their own.</summary>
+    public int MatchEnd { get; private set; }
+
     /// <param name="text">The text, already in NFD when it holds a non-starter (this type never normalizes).</param>
     /// <param name="unicode">Any table: only its canonical combining classes are read.</param>
     public ContractionWalker(ReadOnlySpan<char> text, CollationTable unicode)
@@ -71,7 +77,7 @@ internal ref struct ContractionWalker
             }
         }
         // Discontiguous extension over the following non-starters.
-        int scan = end;
+        int scan = end, consumedEnd = end;
         Span<bool> seen = stackalloc bool[256];
         while (scan < _text.Length)
         {
@@ -88,12 +94,14 @@ internal ref struct ContractionWalker
                 matched = true;
                 match = g;
                 (_removed ??= new List<int>(2)).Add(here);
+                consumedEnd = scan;
                 // The consumed mark no longer blocks anything; its class is NOT recorded.
             }
             else seen[ccc] = true;
         }
         if (!matched) return false;
         _pos = end;      // past the contiguous part; discontiguously consumed marks are skipped when the cursor reaches them
+        MatchEnd = consumedEnd;
         return true;
     }
 

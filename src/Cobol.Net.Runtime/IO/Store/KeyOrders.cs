@@ -51,6 +51,15 @@ internal sealed class OrdinalKeyOrder : IKeyOrder
     /// <inheritdoc/>
     public int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix) =>
         stored[..Math.Min(stored.Length, prefix.Length)].SequenceCompareTo(prefix);
+
+    /// <summary>Zeros: the bytes' prefixes narrow at every length.</summary>
+    public TreeMarks MarksOf(ReadOnlySpan<byte> key) => default;
+
+    /// <summary>Empty: the bytes' prefixes narrow at every length, so no seek asks for a bound.</summary>
+    public int[] BoundOf(ReadOnlySpan<byte> prefix, TreeMarks marks) => [];
+
+    /// <inheritdoc/>
+    public int CompareBound(ReadOnlySpan<byte> stored, int[] bound) => 0;
 }
 
 /// <summary>The WEIGHTED key order: the channel bytes decoded to the native character set — the medium's one byte per
@@ -79,6 +88,19 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
     public int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix) =>
         CompareNative(Native(stored[..Math.Min(stored.Length, prefix.Length)]), Native(prefix));
 
+    /// <summary>The key's prefix shape under its collating sequence's operand rule
+    /// (<see cref="CobolCollation.PrefixShapeOf"/>); zeros for a positional comparison, whose prefixes narrow.</summary>
+    public TreeMarks MarksOf(ReadOnlySpan<byte> key) =>
+        _positional ? default : TreeMarks.Of(collation!.PrefixShapeOf(Native(key)));
+
+    /// <inheritdoc/>
+    public int[] BoundOf(ReadOnlySpan<byte> prefix, TreeMarks marks) =>
+        _positional ? [] : collation!.PrimaryBound(Native(prefix), marks.Margin(prefix.Length));
+
+    /// <inheritdoc/>
+    public int CompareBound(ReadOnlySpan<byte> stored, int[] bound) =>
+        bound.Length == 0 ? 0 : collation!.ComparePrimary(Native(stored), bound);
+
     private string Native(ReadOnlySpan<byte> channel)
     {
         // The one place every key and prefix passes: a longer one would make a whole-length prefix truncate after all.
@@ -87,12 +109,8 @@ internal sealed class WeightedKeyOrder(CodeSetConversion? codeSet, CobolCollatio
         return FileCharacterSet.FromChannel(FileCharacterSet.Medium.GetString(channel), codeSet);
     }
 
-    private int CompareNative(string left, string right)
-    {
-        if (collation is null) return string.CompareOrdinal(left, right);
-        if (collation.SupportsKeys) return collation.KeyOf(left)!.CompareTo(collation.KeyOf(right));
-        return collation.Compare(left, right);
-    }
+    private int CompareNative(string left, string right) =>
+        collation is null ? string.CompareOrdinal(left, right) : collation.CompareByKeys(left, right);
 }
 
 /// <summary>The COMPOSITE key order of an ALTERNATE tree's entry (2.2.1.4): the alternate key's own order over the key
@@ -116,6 +134,15 @@ internal sealed class CompositeKeyOrder(IKeyOrder keyOrder) : IKeyOrder
     /// <inheritdoc/>
     public int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix) =>
         keyOrder.ComparePrefix(stored[..^OrdinalBytes], prefix);
+
+    /// <summary>The key part's marks: the ordinal is no part of a START's key.</summary>
+    public TreeMarks MarksOf(ReadOnlySpan<byte> key) => keyOrder.MarksOf(key[..^OrdinalBytes]);
+
+    /// <inheritdoc/>
+    public int[] BoundOf(ReadOnlySpan<byte> prefix, TreeMarks marks) => keyOrder.BoundOf(prefix, marks);
+
+    /// <inheritdoc/>
+    public int CompareBound(ReadOnlySpan<byte> stored, int[] bound) => keyOrder.CompareBound(stored[..^OrdinalBytes], bound);
 
     /// <summary>The entry key of an alternate key value <paramref name="keyPart"/> and its release ordinal.</summary>
     public static byte[] Compose(ReadOnlySpan<byte> keyPart, ulong ordinal)

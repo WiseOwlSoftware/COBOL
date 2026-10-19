@@ -8,8 +8,9 @@ internal sealed partial class BTree
     /// <paramref name="prefix"/> the leading positions of each stored key (a START's partial key, §14.9.41.4 GR17 c) to
     /// e): the LESS relations search <i>"in reverse order"</i>, so they land on the LAST qualifying entry). The cursor has
     /// no current entry when none qualifies. A prefix the order does not narrow (<see cref="IKeyOrder.PrefixNarrows"/>: a
-    /// partial key under a locale-based sequence) is the search GR17 c) and d) state, entry by entry from the first (or,
-    /// for the LESS relations, the last); a prefix as long as the key is a binary search under every order.</summary>
+    /// partial key under a locale-based sequence) is the search GR17 c) and d) state, entry by entry, from the tree's
+    /// primary-level bound and through the run that ties it (<see cref="Cursor"/>'s search); a prefix as long as the key is
+    /// a binary search under every order.</summary>
     public StoreStatus Seek(ReadOnlySpan<byte> key, SeekRelation relation, out Cursor cursor, bool prefix = false)
     {
         var c = cursor = new Cursor(this);
@@ -119,48 +120,51 @@ internal sealed partial class BTree
             }
             Begin();
             if (IsEmpty(_tree._root)) return;
-            // GreaterThan and LessOrEqual find the first entry ABOVE the probe; the others the first AT OR ABOVE it.
+            // GreaterThan and LessOrEqual find the first entry ABOVE the probe; the others the first AT OR ABOVE it. A
+            // separator s heads the keys at or above it; a prefix at or below the probe's can still precede s, so the
+            // descent toward the first entry AT OR ABOVE a PREFIX counts only the separators strictly below it.
             bool above = relation is SeekRelation.GreaterThan or SeekRelation.LessOrEqual;
-            var node = _tree.Load(_tree._root);
-            while (!node.IsLeaf)
-            {
-                if (_path.Count > MaxDepth) throw new TornPage(PageCheck.ChecksumFails);
-                // A separator s heads the keys at or above it; a prefix at or below the probe's can still precede s, so
-                // the descent toward the first entry AT OR ABOVE a PREFIX counts only the separators strictly below it.
-                int child = _tree.Bound(node.Keys, probe, orEqual: above || !prefix, prefix);
-                _path.Add((node, child));
-                node = _tree.Load(node.Children[child]);
-            }
-            _path.Add((node, _tree.Bound(node.Keys, probe, orEqual: above, prefix)));
-            Settle(forward: true);
+            Seat(_tree.Load(_tree._root), new KeyProbe(_tree._order, probe, prefix), internalOrEqual: above || !prefix, leafOrEqual: above);
             switch (relation)
             {
                 case SeekRelation.Equal:
                     if (HasCurrent && Compare(probe, prefix) != 0) Clear();
                     break;
                 case SeekRelation.LessThan or SeekRelation.LessOrEqual:
-                    if (HasCurrent)
-                    {
-                        var (leaf, at) = _path[^1];
-                        _path[^1] = (leaf, at - 1);
-                        Settle(forward: false);
-                    }
-                    else PositionLast();
+                    StepBackFromSeat();
                     break;
             }
         }
 
         /// <summary>⛔ THE SEQUENTIAL SEARCH OF §14.9.41.4 GR17 c) and d), for a prefix whose order a binary search cannot
-        /// narrow (<see cref="IKeyOrder.PrefixNarrows"/>): from the first entry forward for EQUAL and the GREATER
-        /// relations, from the last backward for the LESS ones, stopping on the first entry whose prefix satisfies the
-        /// relation (GR17 e) 1.); none satisfies it and the cursor has no current entry (GR17 e) 2.).</summary>
+        /// narrow (<see cref="IKeyOrder.PrefixNarrows"/>: a partial key under a locale-based sequence), BOUNDED AT THE
+        /// PRIMARY LEVEL (2.2.1.4, the partial-key START). The tree's high-water marks give the probe's bound B
+        /// (<see cref="IKeyOrder.BoundOf"/>): an entry whose leading level-1 weights are below B has a truncation below
+        /// the probe, one above B a truncation above it. So the search starts where GR17's would first meet an entry that
+        /// can qualify — at the first entry at or above B for EQUAL and the GREATER relations, at the last at or below B
+        /// for the LESS ones — and walks entry by entry in its direction, the exact GR17 comparison
+        /// (<see cref="IKeyOrder.ComparePrefix"/>) deciding, only through the RUN of entries that tie B: the first entry
+        /// past the run is the answer of GREATER and NOT LESS (its truncation is above the probe) and of LESS and NOT
+        /// GREATER (below it), and ends EQUAL with no entry (GR17 e) 2., every entry beyond it differing too). An empty
+        /// bound — the marks leave no margin — makes the run the whole tree: GR17's search from the first (or the last)
+        /// entry, exactly as written.</summary>
         private void Search(byte[] probe, SeekRelation relation)
         {
+            Begin();
+            if (IsEmpty(_tree._root)) return;
+            var root = _tree.Load(_tree._root);
+            var bound = new BoundProbe(_tree._order, _tree._order.BoundOf(probe, root.Marks));
             bool forward = relation is SeekRelation.Equal or SeekRelation.GreaterThan or SeekRelation.GreaterOrEqual;
-            if (forward) PositionFirst();
-            else PositionLast();
+            // FORWARD: the first entry at or above B. REVERSE: the first entry above B, then one back.
+            Seat(root, bound, internalOrEqual: !forward, leafOrEqual: !forward);
+            if (!forward) StepBackFromSeat();
             while (HasCurrent)
             {
+                if (bound.Against(Key) != 0)
+                {
+                    if (relation == SeekRelation.Equal) Clear();
+                    return;
+                }
                 int c = Compare(probe, prefix: true);
                 bool satisfied = relation switch
                 {
@@ -175,6 +179,36 @@ internal sealed partial class BTree
                 _path[^1] = (leaf, forward ? at + 1 : at - 1);
                 Settle(forward);
             }
+        }
+
+        /// <summary>Descend from <paramref name="root"/> to the first entry the probe does not count as below it — counting
+        /// equal keys too where <paramref name="internalOrEqual"/> (in an internal node) or <paramref name="leafOrEqual"/>
+        /// (in the leaf) says so — and settle forward onto it (no current entry past the last).</summary>
+        private void Seat<TProbe>(Node root, scoped in TProbe probe, bool internalOrEqual, bool leafOrEqual) where TProbe : IProbe, allows ref struct
+        {
+            var node = root;
+            while (!node.IsLeaf)
+            {
+                if (_path.Count > MaxDepth) throw new TornPage(PageCheck.ChecksumFails);
+                int child = Bound(node.Keys, probe, internalOrEqual);
+                _path.Add((node, child));
+                node = _tree.Load(node.Children[child]);
+            }
+            _path.Add((node, Bound(node.Keys, probe, leafOrEqual)));
+            Settle(forward: true);
+        }
+
+        /// <summary>From a seat on the first entry ABOVE what a LESS relation takes, the entry before it — the last entry
+        /// when the seat fell past the end.</summary>
+        private void StepBackFromSeat()
+        {
+            if (HasCurrent)
+            {
+                var (leaf, at) = _path[^1];
+                _path[^1] = (leaf, at - 1);
+                Settle(forward: false);
+            }
+            else PositionLast();
         }
 
         internal void PositionFirst()
