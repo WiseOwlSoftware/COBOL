@@ -1,4 +1,4 @@
-## PB3380 landed by PB3381; PB3402-PB3408 and PB3412 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang
+## PB3380 landed by PB3381; PB3402-PB3408, PB3412 and PB3413 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang, and remote-only branches the survey never sees
 
 PB3381 (PR #270) fixed PB3380, a successor chain whose predecessors' review fixes never reached the later links. A
 successor now waits for its predecessor's whole review loop and merges the reviewed head. PB3381's note left the flip to
@@ -22,3 +22,7 @@ Seven new notes:
 - **PB3412 (analysis).** A standalone Windows run of the prune self-test hung for more than 3 minutes in process
   creation under full CPU load, while the gate's run of it passed. The Mythos lane reported it during the `-326-31`
   bounce verification. It is unexplained, so it is a defect to root-cause.
+- **PB3413 (MAJOR).** The branch survey lists only local branches and detached worktrees. Eleven branches of 10-09 to
+  10-11 that exist only on origin surfaced only through a hand query during the drain. The owner asked why. Each was
+  checked by hand: all are carried on main. A remote whose local branch went any way other than `--apply` is never
+  seen again. PB2708 found that `origin` is never surveyed and fixed only the `--apply` path.
