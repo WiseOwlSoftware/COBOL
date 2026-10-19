@@ -297,17 +297,18 @@ public sealed class LinageConformanceTests
     [Theory]
     // The OTHER placements keep their own answers. A BEFORE write after an AFTER write presents on the line the
     // device stands on (GR25 e): "the line is presented before the representation of the printed page is
-    // advanced") — the same line, appended to it (GnuCOBOL's behaviour, kb/Work PB1840 holds the overprint
-    // question); AFTER ADVANCING 0 LINES is an OVERPRINT (GR25 c): "no repositioning of the representation of the
-    // printed page is performed"), written as a bare carriage return (docs/CONFORMANCE.md "ADVANCING 0", owner
-    // decision kb/Work R54), so BBBB returns to the start of AAAA's line; a BEFORE write followed by an AFTER
-    // write is two advances, so one blank line.
+    // advanced"), i.e. at the SAME vertical position, so BBBB OVERPRINTS AAAA from column 1: the same bare
+    // carriage return as GR25 c)'s zero advance (docs/CONFORMANCE.md "ADVANCING 0", owner decision kb/Work R54;
+    // kb/Work PB1840 - GnuCOBOL appends instead, which only the implementor's latitude would allow and GR25 does
+    // not leave); AFTER ADVANCING 0 LINES is the OVERPRINT of GR25 c) ("no repositioning of the representation
+    // of the printed page is performed") the same way, so BBBB returns to the start of AAAA's line; a BEFORE write
+    // followed by an AFTER write is two advances, so one blank line.
     // ⛔ AND THE LAST WRITE, WITH NO ADVANCING PHRASE, IS AN EXPLICIT AFTER ADVANCING 1 LINE (kb/Work PB1027;
     // GR25: "automatic advancing shall be provided by the implementor to act as if the user has specified AFTER
     // ADVANCING 1 LINE"): after a BEFORE write, whose own advance already ended the line, it advances AGAIN, so
     // CCCC follows a blank line exactly as LNGBYG's explicit AFTER does. (Before PB1027 it took BEFORE's
     // placement whenever no line was open, which left no blank line here.)
-    [InlineData("LNGBYF", "lngbyf.prt", "AFTER ADVANCING 1 LINE", "BEFORE ADVANCING 1 LINE", "\r\nAAAABBBB\r\n\r\nCCCC\r\n")]
+    [InlineData("LNGBYF", "lngbyf.prt", "AFTER ADVANCING 1 LINE", "BEFORE ADVANCING 1 LINE", "\r\nAAAA\rBBBB\r\n\r\nCCCC\r\n")]
     [InlineData("LNGBYG", "lngbyg.prt", "BEFORE ADVANCING 1 LINE", "AFTER ADVANCING 1 LINE", "AAAA\r\n\r\nBBBB\r\nCCCC\r\n")]
     [InlineData("LNGBYH", "lngbyh.prt", "BEFORE ADVANCING 1 LINE", "", "AAAA\r\n\r\nBBBB\r\nCCCC\r\n")]
     [InlineData("LNGBYI", "lngbyi.prt", "AFTER ADVANCING 1 LINE", "AFTER ADVANCING 0 LINES", "\r\nAAAA\rBBBB\r\nCCCC\r\n")]

@@ -67,8 +67,8 @@ public sealed class BTreeModelTests
 
     /// <summary>⛔ THE LOCALE ORDER'S START PREFIX IS THE SEQUENTIAL SEARCH (review w1122-a R1-1): the same model run under
     /// the root locale's CLDR/UCA order (§8.8.4.2.11), whose qualifying entries for a partial key are not one run of the key
-    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) and every
-    /// relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
+    /// order, so <see cref="BTree.Seek"/> walks the tree in the search's direction (§14.9.41.4 GR17 c) and d)) from its
+    /// primary-level bound (LocalePartialStartTests), and every relation must still agree with the model's <c>FindIndex</c> and <c>FindLastIndex</c>. Several leaves under one or two
     /// internal levels are enough to make the walk cross leaves; the three-level shape is the theory's, and a locale
     /// comparison costs a decoding and a collation key per key, so this run stays at a few hundred entries.</summary>
     [Fact]
@@ -315,16 +315,21 @@ public sealed class BTreeModelTests
     /// <summary>The auditor's check of a tree's SHAPE from the raw medium: every node decodes and fits its page; keys
     /// ascend within each node; every key lies within its separators (at or above the one before its child, below the one
     /// after); every leaf is at one depth; no leaf but the root is empty; an inline value obeys the inline rule and an
-    /// overflow value exceeds it. The depth (0 for an empty tree), with the entry and overflow-value counts.</summary>
+    /// overflow value exceeds it; the root's header carries marks at or above every key's (<see cref="IKeyOrder.MarksOf"/>,
+    /// 2.2.1.4) and every other page zeros. The depth (0 for an empty tree), with the entry and overflow-value counts.</summary>
     internal static int AuditShape(MemoryPageMedium medium, PagePointer root, IKeyOrder order, out int entries, out int overflow)
     {
         entries = overflow = 0;
         if (root.IsNone) return 0;
         int leafDepth = -1, count = 0, overflowed = 0;
+        TreeMarks rootMarks = default, keyMarks = default;
         void Walk(PagePointer at, int depth, byte[]? low, byte[]? high, bool isRoot)
         {
             var node = StoreKit.ReadNode(medium, at) ?? throw new Xunit.Sdk.XunitException($"tree page {at.Page} does not verify");
             Assert.True(node.UsedBytes <= PageHeader.BodyBytes);
+            if (isRoot) rootMarks = node.Marks;
+            else Assert.True(node.Marks == default, $"page {at.Page}: a page that is not the root carries marks");
+            foreach (var key in node.Keys) keyMarks = keyMarks.Max(order.MarksOf(key));
             for (int i = 0; i < node.Keys.Count; i++)
             {
                 if (i > 0) Assert.True(order.Compare(node.Keys[i - 1], node.Keys[i]) < 0, $"page {at.Page}: keys out of order");
@@ -355,6 +360,8 @@ public sealed class BTreeModelTests
                 Walk(node.Children[c], depth + 1, c == 0 ? low : node.Keys[c - 1], c == node.Keys.Count ? high : node.Keys[c], isRoot: false);
         }
         Walk(root, 1, null, null, isRoot: true);
+        Assert.True(rootMarks.Deficit >= keyMarks.Deficit && rootMarks.Overhang >= keyMarks.Overhang,
+            $"the root's marks {rootMarks} are below a key's {keyMarks}");
         entries = count;
         overflow = overflowed;
         return leafDepth;
