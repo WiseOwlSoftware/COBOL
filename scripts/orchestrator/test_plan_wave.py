@@ -1449,8 +1449,8 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
 #     eight PB3353 groups with `0 files` (their notes declare no site block), and wave 1126 C (PB1587, runtime/io, no
 #     site block) was planned beside the in-flight engine and landed on six of its files. An unknown side meets the
 #     other on a shared SUBSYSTEM (the notes' areas), and meets everything when that is unknown too; within a wave an
-#     unknown group is planned alone on its subsystems (a successor of the last group on one, and a later group on one
-#     follows it); a meeting by subsystem waits even for FINISHED work (never a continuation of an unrelated branch);
+#     unknown group is planned alone on its subsystems (a successor of EVERY group it meets, waiting when they lie in
+#     two chains, and a later group that meets it follows it); a meeting by subsystem waits even for FINISHED work (never a continuation of an unrelated branch);
 #     a dispatch recorded with no files stays in flight; the plan table and the spec name the group UNPARTITIONED.
 def unsited(*ids):
     return {"file": "", "harm": 1, "files": [], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
@@ -1471,6 +1471,30 @@ check("in a wave an UNKNOWN group follows the last group on its subsystem, a kno
       "and another subsystem runs beside them",
       [(g.letter, g.after, g.notes) for g in uw["groups"]],
       [("A", "", ["PB5"]), ("A2", "A", ["PB9"]), ("A3", "A2", ["PB10"]), ("B", "", ["PB8"]), ("A4", "A3", ["PB11"])])
+# The review's probe (w1131g R1-1): two KNOWN groups of one subsystem on different files are two chains; an UNKNOWN
+# group of that subsystem meets BOTH (collision), so following only the last would run it beside the first. It waits.
+u2 = pw.plan(notes, [cl("src/IO/Engine.cs", "PB5"), cl("src/IO/Locks.cs", "PB11"), unsited("PB9")], [], [],
+             lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("an UNKNOWN group meeting groups of its subsystem in two chains waits for a later wave, never beside either",
+      ([(g.letter, g.after, g.notes) for g in u2["groups"]], "meets by subsystem" in u2["waiting"].get("PB9", ""),
+       "different successor chains" in u2["waiting"].get("PB9", "")),
+      ([("A", "", ["PB5"]), ("B", "", ["PB11"])], True, True))
+u3 = pw.plan(notes, [unsited("PB9"), cl("src/IO/Engine.cs", "PB5"), cl("src/IO/Locks.cs", "PB11"), unsited("PB10")],
+             [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("every known group after an UNKNOWN one of its subsystem follows it, and a later UNKNOWN one follows them all",
+      [(g.letter, g.after, g.notes) for g in u3["groups"]],
+      [("A", "", ["PB9"]), ("A2", "A", ["PB5"]), ("A3", "A2", ["PB11"]), ("A4", "A3", ["PB10"])])
+no_area = {**notes, "PB9": dataclasses.replace(notes["PB9"], area="")}
+u4 = pw.plan(no_area, [cl("src/IO/Engine.cs", "PB5"), cl(F_OO, "PB8"), unsited("PB9")], [], [], lambda b: "ABSENT",
+             {}, RULES, budget_points=100)
+check("an UNKNOWN group whose subsystem is unknown too meets every group: groups in two chains, so it waits",
+      ([g.notes for g in u4["groups"]], "different successor chains" in u4["waiting"].get("PB9", "")),
+      ([["PB5"], ["PB8"]], True))
+u5 = pw.plan(no_area, [unsited("PB9"), cl("src/IO/Engine.cs", "PB5"), cl(F_OO, "PB8")], [], [], lambda b: "ABSENT",
+             {}, RULES, budget_points=100)
+check("... and every later group, of any subsystem, follows it",
+      [(g.letter, g.after, g.notes) for g in u5["groups"]],
+      [("A", "", ["PB9"]), ("A2", "A", ["PB5"]), ("A3", "A2", ["PB8"])])
 ub = pw.plan(notes, [unsited("PB9"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")], [], [], lambda b: "ABSENT", {},
              RULES, budget_points=100,
              busy={"dispatched w1117c (PB5)": pw.InFlight(set(), notes={"PB5"}, state="DISPATCHED, NO REPORT YET"),

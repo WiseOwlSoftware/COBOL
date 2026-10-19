@@ -1144,10 +1144,11 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     group_of: dict[str, Group] = {}          # note -> the group planned for it
     placed: list[Group] = []
     # A group whose file set is UNKNOWN (no note declares a site block, kb/Work PB3263) is planned ALONE ON ITS
-    # SUBSYSTEMS (its notes' areas): it follows the chain of the last group of this wave on any of them, and a later
-    # group on one follows it, so it never runs beside a group it cannot be checked against.
-    last_on_area: dict[str, Group] = {}
-    unknown_on_area: dict[str, Group] = {}
+    # SUBSYSTEMS: by THE meeting rule (collision), it follows EVERY group of this wave it meets, and every later group
+    # that meets it follows it. A successor chain is linear, so when the groups it meets lie in two chains it waits for
+    # a later wave: it never runs beside a group it cannot be checked against. Two KNOWN groups link on their primary
+    # file only (the same-file rule above); the partition by file set is the in-flight one.
+    areas_of: dict[int, set[str]] = {}       # id(group) -> its subsystems, for each placed group
     for g in groups:
         # a finisher's set includes what the branches it continues already change (their actual diff, read once by
         # inflight_file_sets): that much of its work is known whatever its notes declare
@@ -1155,9 +1156,10 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             g.files = sorted(set(g.files) | carried)
         links = [last_on_file[g.file]] if g.file and g.file in last_on_file else []
         areas = subsystems(g.notes, notes)
-        links += [x for a in sorted(areas) if (x := (last_on_area if not g.files else unknown_on_area).get(a))]
+        mine = {f.replace(chr(92), "/") for f in g.files}
+        unpart = [x for x in placed if not (mine and x.files) and collision(mine, areas, set(x.files), areas_of[id(x)])]
+        links += unpart
         if busy:   # THE FILE-SET PARTITION, one rule for both lanes (kb/Work PB2807; classify_inflight)
-            mine = {f.replace(chr(92), "/") for f in g.files}
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
                    if not (x.branch and x.branch in g.continues)              # its pred continues, or a dispatch of
                    and not x.notes & set(g.notes)                             # its own notes (the hold decided those)
@@ -1186,8 +1188,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             links += [group_of[b] for b in g.blocked_by]
         chains = {chain_of[id(x)] for x in links}
         if len(chains) > 1:
+            what = "its blockers, its file and the groups it meets by subsystem" if unpart else "its blockers and its file"
             for i in g.notes:
-                waiting[i] = ("its blockers and its file are in different successor chains ("
+                waiting[i] = (f"{what} are in different successor chains ("
                               + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
             continue
         prev = tail[chains.pop()] if chains else None
@@ -1202,10 +1205,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         tail[chain_of[id(g)]] = g
         if g.file:
             last_on_file[g.file] = g
-        for a in areas:
-            last_on_area[a] = g
-            if not g.files:
-                unknown_on_area[a] = g
+        areas_of[id(g)] = areas
         for i in g.notes:
             group_of[i] = g
         g.model, g.why_model = choose_model(g, notes, reports, rules)

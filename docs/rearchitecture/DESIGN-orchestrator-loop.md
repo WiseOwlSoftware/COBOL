@@ -717,8 +717,10 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    other on a shared SUBSYSTEM, the notes' `area:` values (`plan_wave.subsystems`), and meets everything when that is
    unknown too (an owner none of whose notes is known). A meeting by subsystem waits even for FINISHED work, because a
    continuation would merge a branch the group may share nothing with. Within the wave an unknown group is planned
-   ALONE ON ITS SUBSYSTEMS: it joins the chain of the last group on any of them (`after:`), and a later group on one
-   joins its chain. A dispatch recorded with no files stays in flight with its empty set and its notes. The plan
+   ALONE ON ITS SUBSYSTEMS, by the same meeting rule: it follows EVERY group of the wave it meets (`after:`, the tail
+   of their one chain), and every later group that meets it joins its chain. A chain is linear, so when the groups it
+   meets lie in two chains it waits for a later wave (two known groups of one subsystem on different files are two
+   chains, and an unknown group beside either could edit the other's files). A dispatch recorded with no files stays in flight with its empty set and its notes. The plan
    table and the group's spec name it `UNPARTITIONED`, and the spec asks its implementer to give each note a
    `**Sites:**` paragraph. A finisher's set includes the files of the branch it continues (its actual diff), so a
    finisher is never unknown for want of sites. `test_plan_wave.py` section 12 pins each arm.
