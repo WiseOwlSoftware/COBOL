@@ -213,13 +213,28 @@ def take(cdir: pathlib.Path, mid: str, repo: pathlib.Path = coord.REPO) -> tuple
     return m, []
 
 
+DELIVERED = "delivered-{party}.json"   # in box(cdir): the open messages some watch on that inbox has already returned
+
+
+def delivered(cdir: pathlib.Path, party: str) -> set[str]:
+    return set(coord.read_json(box(cdir) / DELIVERED.format(party=party), []))
+
+
 def watch(cdir: pathlib.Path, party: str, interval: float, timeout: float) -> list[dict[str, Any]]:
-    """Return the inbox as soon as it holds a message; [] once `timeout` seconds pass (0 = wait forever)."""
+    """Return the inbox's NEW messages, the open ones no earlier watch on it returned, as soon as there is one, and
+    record them delivered; [] once `timeout` seconds pass (0 = wait forever). A message the session has seen and cannot
+    close yet (one waiting on the owner, a landing still running) does not end the next watcher at once, so a watcher
+    stays armed beside it: with "any open message" the Stop hook and an instantly exiting watcher looped, one turn per
+    cycle (kb/Work PB3387, review R1-1). The record is pruned to the open messages, so a closed one drops out."""
     start = time.monotonic()
     while True:
         msgs = listing(cdir, party)
-        if msgs or (timeout and time.monotonic() - start >= timeout):
-            return msgs
+        fresh = [m for m in msgs if m["id"] not in delivered(cdir, party)]
+        if fresh:
+            coord.write_json(box(cdir) / DELIVERED.format(party=party), sorted(m["id"] for m in msgs))
+            return fresh
+        if timeout and time.monotonic() - start >= timeout:
+            return []
         time.sleep(interval)
 
 
@@ -403,9 +418,20 @@ def _self_test() -> int:
               (got, (box(cdir) / "done" / hand.name).exists(), "refs is empty" in "; ".join(why3)), (None, True, True))
         check("declined carries the reason", "malformed" in _load(box(cdir) / "done" / hand.name)["result"]["report"], True)
         refused("an unknown status", lambda: done(cdir, a.stem, "finished", ""))
-        # watch: returns at once when the inbox holds a message; an empty inbox returns [] at the timeout
-        check("watch returns the waiting messages", len(watch(cdir, "operator", 0.01, 0)) >= 1, True)
-        check("watch on an empty inbox times out empty", watch(cdir, "nobody-here", 0.01, 0.05), [])
+        # watch: returns at once with the messages no earlier watch returned; an inbox with none new times out empty
+        first = watch(cdir, "operator", 0.01, 0)
+        check("watch returns the waiting messages", len(first) >= 1, True)
+        check("a seen message still open does not end the next watcher (kb/Work PB3387 R1-1: the hook loop)",
+              watch(cdir, "operator", 0.01, 0.05), [])
+        fresh = send(cdir, to="operator", kind="info", subject="a new one", body="b", refs=[note], now=when)
+        check("a NEW message wakes the watcher, and only it is returned",
+              [m["id"] for m in watch(cdir, "operator", 0.01, 0)], [fresh.stem])
+        done(cdir, fresh.stem, "done", "", now=when)
+        newer = send(cdir, to="operator", kind="info", subject="a newer one", body="b", refs=[note], now=when)
+        watch(cdir, "operator", 0.01, 0)
+        check("the delivered record is pruned to the open messages: a closed one drops out",
+              (fresh.stem in delivered(cdir, "operator"), newer.stem in delivered(cdir, "operator")), (False, True))
+        check("an empty inbox times out empty", watch(cdir, "nobody-here", 0.01, 0.05), [])
         # operator-session.json through a JSON library: backslashes survive, a re-write keeps started_at
         s1 = session(cdir, "COBOL [7a2da9]", "sid-1", True, now=when)
         raw = (cdir / SESSION_FILE).read_text(encoding="utf-8")

@@ -12,5 +12,10 @@ a host without the coordination directory and an armed session pass silently, an
 hook gets a warning instead, so the hook never loops. The check had to be cheap enough to run on every turn:
 `coord.process_table` asked PowerShell CIM for `Win32_Process` (`mailbox.py status` took 12.5 s), and now it reads one
 Toolhelp32 snapshot plus each command line through `NtQueryInformationProcess` (0.12 s for 395 processes; `status`
-0.7 s). `coord.process_name`, which asked `tasklist` (6.5 s), reads the same snapshot. The loop design doc's mailbox
-section, `mailbox.py`'s watcher comment and the session-start skill name the hook.
+0.7 s). `coord.process_name`, which asked `tasklist` (6.5 s), reads the same snapshot.
+
+The branch review found a loop (R1-1). `watch` returned at once while any message was open, so beside a message the
+session could not close yet, the hook and the watcher would re-invoke the session forever. `watch` now fires only on
+messages no earlier watch returned (`mailbox/delivered-<lane>.json`, pruned to the open ones). With a watcher armed,
+the hook only names a seen message that stays open past the stale limit. The loop design doc's mailbox section,
+`mailbox.py`'s watcher comment and the session-start skill describe both.

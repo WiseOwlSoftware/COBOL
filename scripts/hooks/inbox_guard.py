@@ -9,8 +9,11 @@ session. On 2026-10-18 the operator's watcher fired at 14:40 on a Mythos message
 
 So at every turn's end this hook asks `mailbox.status` (the one rule for this session's lane and whether THIS session
 has a watcher armed) and, when it reads false, refuses the stop with that ⛔ line as the reason: the session acts on the
-inbox and arms the watcher before its turn ends. A loop unit (COBOL_LOOP_UNIT), a host without the coordination
-directory and a session with a watcher armed pass silently. The refusal is made once per stop: when Claude Code reports
+inbox and arms the watcher before its turn ends. A loop unit (COBOL_LOOP_UNIT) and a host without the coordination
+directory pass silently. So does a session with a watcher armed, unless messages it has seen stay open past
+mailbox.STALE_MINUTES: those are named in a warning, never a refusal. The watcher fires only on NEW messages
+(mailbox.watch), so it stays armed beside one that waits on the owner, and refusing the stop for that message would
+loop the session (review R1-1). The refusal is made once per stop: when Claude Code reports
 `stop_hook_active` (this turn already continued for a Stop hook) the line becomes a warning, so the hook never loops.
 A failure of the hook itself is a warning too, never an exception: a hook must not break the session.
 
@@ -27,8 +30,9 @@ from typing import Any, Callable
 REPO = pathlib.Path(__file__).resolve().parents[2]
 
 
-def live_status() -> tuple[str, bool] | None:
-    """mailbox.status for this session, or None when no attended lane applies (a loop unit, no coordination dir)."""
+def live_status() -> tuple[str, bool, str] | None:
+    """(mailbox.status line, armed, '' or how many messages are open past mailbox.STALE_MINUTES) for this session, or
+    None when no attended lane applies (a loop unit, no coordination directory)."""
     sys.path.insert(0, str(REPO / "scripts" / "orchestrator"))
     import coord  # noqa: PLC0415
     import mailbox  # noqa: PLC0415
@@ -37,19 +41,27 @@ def live_status() -> tuple[str, bool] | None:
     cdir = coord.coord_path(None)
     if not cdir.is_dir():
         return None
-    return mailbox.status(cdir)
+    line, armed = mailbox.status(cdir)
+    lane = mailbox.lane(cdir)
+    old = len(mailbox.stale(cdir, lane)) if lane else 0
+    return line, armed, f"{old} open over {mailbox.STALE_MINUTES} min" if old else ""
 
 
-def decide(payload: dict[str, Any], status: Callable[[], tuple[str, bool] | None]) -> dict[str, Any] | None:
+def decide(payload: dict[str, Any], status: Callable[[], tuple[str, bool, str] | None]) -> dict[str, Any] | None:
     """The hook's JSON answer, or None to let the turn end silently."""
     try:
         got = status()
     except Exception as exc:  # noqa: BLE001 - a hook must never break the session
         return {"systemMessage": f"⚠ inbox guard failed ({type(exc).__name__}: {exc}): run "
                                  "`python scripts/orchestrator/mailbox.py status` by hand (kb/Work PB3387)"}
-    if got is None or got[1]:
+    if got is None:
         return None
-    line = got[0]
+    line, armed, stale = got
+    if armed:
+        # An armed watcher fires only on NEW messages (mailbox.watch), so one the session has seen and not yet closed
+        # is held by nothing: name it at every turn's end while it ages, never refuse the stop for it (that would loop
+        # while the message legitimately waits on the owner or a running landing).
+        return {"systemMessage": f"⚠ {line}: {stale}; act on them or close them"} if stale else None
     if payload.get("stop_hook_active"):
         return {"systemMessage": line}
     return {"decision": "block", "reason": f"{line}. Do it now, before this turn ends (kb/Work PB3387)."}
@@ -63,14 +75,21 @@ def _self_test() -> int:
             fails.append(f"{name}: want {want!r}, got {got!r}")
 
     unarmed = "⛔ mailbox (operator): 2 open in to-operator (oldest 14:40); NO watcher armed for this session"
+    armed = "mailbox (operator): 1 open in to-operator (oldest 14:40); watcher armed (pid 12)"
     check("a loop unit or a host without the coordination dir ends its turn silently", decide({}, lambda: None), None)
     check("a session with a watcher armed ends its turn silently",
-          decide({}, lambda: ("mailbox (operator): 0 open; watcher armed (pid 12)", True)), None)
-    blocked = decide({"stop_hook_active": False}, lambda: (unarmed, False))
+          decide({}, lambda: ("mailbox (operator): 0 open; watcher armed (pid 12)", True, "")), None)
+    # review R1-1: a message the session cannot close yet (waiting on the owner) sits open beside an armed watcher,
+    # which fires only on NEW messages; the stop is never refused for it, or the hook and the watcher loop
+    waiting = decide({"stop_hook_active": False}, lambda: (armed, True, "1 open over 30 min"))
+    check("an armed watcher beside an old open message: a warning that names it, never a refusal",
+          ((waiting or {}).get("decision"), "1 open over 30 min" in (waiting or {}).get("systemMessage", "")),
+          (None, True))
+    blocked = decide({"stop_hook_active": False}, lambda: (unarmed, False, ""))
     check("no watcher armed: the stop is refused", (blocked or {}).get("decision"), "block")
     check("the refusal carries the status line that names the arm command", unarmed in (blocked or {}).get("reason", ""),
           True)
-    again = decide({"stop_hook_active": True}, lambda: (unarmed, False))
+    again = decide({"stop_hook_active": True}, lambda: (unarmed, False, ""))
     check("a turn already continued for a Stop hook is warned, never refused again (no loop)",
           (again or {}).get("decision"), None)
     check("the warning still shows the line", (again or {}).get("systemMessage"), unarmed)
