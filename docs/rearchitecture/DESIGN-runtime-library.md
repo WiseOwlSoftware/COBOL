@@ -2293,17 +2293,20 @@ OUTPUT and a CLOSE — and *"the I-O status value associated with file-name-1 is
 `HostFile.OpenAuxiliary(FileMode.Create)`). There is no DELETE of a record, no key, no reordering, and no change to a byte
 before the record being rewritten. **The composition is derived from the ORDER the changes run in, and it has two phases.**
 In the BASE phase the file is the committed file with (a) appended past its committed length and (b) overwritten below it,
-in any interleaving: the state at the last COMMIT is **L, the committed length** — the byte length at the transaction's first
-change, to which a rollback TRUNCATES, undoing every append whatever its framing — and **the before-images of the records
-REWRITTEN below L** — (ordinal, byte offset, length, the bytes), the FIRST image of each ordinal only (a second REWRITE of the
-same record adds nothing, as 2.2.1.10's "the first image is the one to restore"; a REWRITE of a record the transaction itself
-appended lies past L and needs none, the truncation removes it). The first (c) or (d) ENDS the base phase: it CAPTURES the
+in any interleaving: the state at the last COMMIT is **L, the committed length** — the byte length of the file at the
+transaction's FIRST APPEND, read at that statement and never at its begin (2.2.2.3 says why: at an append no other transaction
+lives, so the length then is the committed one; at the begin it may count another transaction's uncommitted appends, present
+or still in flight — the branch review's R2-1), to which a rollback TRUNCATES, undoing every append whatever its framing; a
+transaction that never appended has no L and truncates nothing — and **the before-images of the records REWRITTEN that are
+not its own appends** — (ordinal, byte offset, length, the bytes), the FIRST image of each ordinal only (a second REWRITE of
+the same record adds nothing, as 2.2.1.10's "the first image is the one to restore"; a REWRITE of a record the transaction
+itself appended lies at or past L and needs none, the truncation removes it). The first (c) or (d) ENDS the base phase: it CAPTURES the
 file as it then stands — the committed file with the base phase's appends and overwrites in it — as **the before file**, and
 from that point the file is REPLACED: every byte of it is the transaction's own, and every later verb, (a) to (e) alike (a
 second OPEN OUTPUT, a DELETE FILE after an OPEN OUTPUT, an OPEN OUTPUT that creates the file again after a DELETE FILE, a
 REWRITE of a record written since the capture), changes nothing the rollback needs to know, because the rollback discards the
-replaced file whole and restores the before file, then re-applies the base phase's images to it and truncates it to L. A
-transaction whose first change is (e) is REPLACED from the start with NO before file: the state at the last COMMIT is "no
+replaced file whole and restores the before file, then re-applies the base phase's images to it and truncates it to L when
+it has one. A transaction whose first change is (e) is REPLACED from the start with NO before file: the state at the last COMMIT is "no
 file", and its rollback REMOVES the file. **Why by phase and not by a list of entries in time order:** an image taken after
 the capture describes the REPLACED file, not the committed one — the branch review's R1-1: an OPEN OUTPUT, three WRITEs, a
 CLOSE, an OPEN I-O, a READ and a REWRITE, journaled as the first text had it, rolled back to the committed file with the
@@ -2314,9 +2317,10 @@ executable model (2.2.2.12) holds that composition for every order of the five v
 exactly as in 2.2.1.10: it begins at the first change — the first WRITE, REWRITE, OPEN OUTPUT, DELETE FILE or creation the
 run unit executes through a connector under commit control on that file; a run unit that only reads has nothing to undo and
 no transaction (it keeps its handle, 2.2.2.9, since GR9 keeps its file lock). Its HOLDINGS, the locks that outlive its
-statement and that every other connector's lock test meets, are: (R) every ORDINAL it rewrote below L (the record's §9.1.16
-identity on this organization, `LastReadRecordId`; the image's ordinal), (END) the APPEND POINT and every ordinal past n(L),
-the record count at L — the records it appended — and, once REPLACED, (ALL) the whole file. **Why the end of the file is a
+statement and that every other connector's lock test meets, are: (R) every ORDINAL it rewrote that is not its own append (the
+record's §9.1.16 identity on this organization, `LastReadRecordId`; the image's ordinal), (END) the APPEND POINT and, once it
+has appended, every ordinal at or past n(L), the record count at L — the records it appended — and, once REPLACED, (ALL) the
+whole file. **Why the end of the file is a
 holding (the determination §9.1.16's latitude grants):** a sequential record's identity is its ordinal, and a record removed
 from the MIDDLE of a sequential file renumbers every record after it, so the only rollback that keeps every other connector's
 record identities true is a TRUNCATION, and a truncation is only the undo of the transaction's appends if no other connector's
@@ -2325,11 +2329,19 @@ record lies past L. Holding the append point makes that so: a WRITE through any 
 names — answers '51' while ANY transaction on the file lives, with the RETRY phrase applying as GR16 provides *"for the case
 where resources needed to write a record are locked by another run unit"*; GR19's own *"otherwise in an undefined order"*
 is what makes this a scheduling of the appends and not a change to any record. **Why every live transaction holds the end,
-not only the one that appended:** every transaction's rollback truncates to ITS L, which it read when it began; an append by
-another transaction after that would be cut by it. So two transactions never append to one file at once, and a transaction
-that only rewrites blocks another's appends until its COMMIT — a coarser lock than the records it touched, stated as the
-determination it is; a transaction that rewrites a record BELOW the other's L that the other did not rewrite proceeds beside
-it (2.2.1.10's scope: its change is its own, outside the other's rollback). A READ not IGNORING LOCK of a held ordinal, and a
+not only the one that appended — and why L is read at the first append, never at the begin:** an appending transaction's
+rollback truncates to ITS L, so an append by another transaction after that L was read would be cut by it. So two
+transactions never append to one file at once, and a transaction that only rewrites blocks another's appends until its COMMIT
+— a coarser lock than the records it touched, stated as the determination it is; a transaction that rewrites a record the
+other neither rewrote nor appended proceeds beside it (2.2.1.10's scope: its change is its own, outside the other's rollback).
+That second transaction's L, were it read at its BEGIN, would count the first's uncommitted appends: those already in the file,
+which the first's ROLLBACK then removes — a rollback truncating to that L after it would EXTEND the file with zero bytes, a
+garbage record in a fixed-length file, NULs in a line sequential one, a misframed length word in a VARYING one, the branch
+review's R2-1 — and the one still IN FLIGHT between the first's begin (under the entry mutex) and its write (outside it),
+which that L would not count, so a rollback truncating to it would cut the first's record, committed or not. Read at the
+first append, under the lock test that found no other live transaction, L is the committed length and nothing of anyone
+else's can lie at or past it; a transaction that never appends has no L and never truncates; the model's interleavings
+hold both cases (2.2.2.12). A READ not IGNORING LOCK of a held ordinal, and a
 REWRITE of one, answer '51' as today's region lock answers them. **(ALL):** a REPLACED transaction holds every byte: another
 run unit's writable OPEN of the file answers '61' until the COMMIT or ROLLBACK, and an OPEN OUTPUT or a DELETE FILE by anyone
 also needs no other connector's handle on the file (Table 19's OUTPUT rows and DOC-A.1-75's exclusive request, as today),
@@ -2345,9 +2357,9 @@ transaction's holdings — another run unit's, or this run unit's through an unc
 for it, before the tester's own change, and the statement's conditions are evaluated again. The reasoning is 2.2.1.10's
 finding R4-1 unchanged: no probe closes a window between itself and a test of a different lock, so the holding and the
 liveness probe are read in the same step, and the holding is a durable record, never a region byte the operating environment
-releases with a dead handle. A WRITE's first change — the test, the drawing of the journal and the reading of L — runs under
-the entry mutex as ONE step, so no other transaction begins on the file between the test and the header (the model's
-interleavings at every operation boundary are what hold this).
+releases with a dead handle. A WRITE's first change — the test, the drawing of the journal, the reading of L and its record
+— runs under the entry mutex as ONE step, so no other transaction begins on the file between the test and the header (the
+model's interleavings at every operation boundary are what hold this).
 
 **2.2.2.4 The journal: where it lives, what it holds, and why nowhere else will do.** The journal of a transaction on physical
 file F is THREE transient files in F's lock directory — `.wolk-<16 hex>/` beside F, named by `HostFile.PhysicalFileKey`
@@ -2390,10 +2402,11 @@ hold needs no handle on F (`ExclusiveNeedsWritableHandle` is false there: its ho
 the file it guards may not exist, which is the one case `HandleRegionLocks`' byte on F cannot serve — is taken for: every
 writable OPEN (the entry step through the host open or creation), every DELETE FILE, every first change, every capture and
 every rollback; never for an ordinary WRITE, READ or REWRITE. **The format of the record** (little-endian, like 2.2.1.4's): a
-HEADER of 32 bytes — magic `WOLJ`, format 1, the transaction id (8), the START (`P`, the file was present, or `A`, absent), L
-(8), a CRC-32 of the header — written and synced once, with the lock directory synced after it, before the first byte of F
-changes; then RECORDS, each with a CRC-32 and each appended and synced before the change it precedes: `R` (ordinal 8, offset 8,
-length 4, the bytes), one per rewritten ordinal of the base phase; `K` (the kind, `O` for an OPEN OUTPUT or `D` for a DELETE
+HEADER of 24 bytes — magic `WOLJ`, format 1, the transaction id (8), the START (`P`, the file was present, or `A`, absent), a
+CRC-32 of the header — written and synced once, with the lock directory synced after it, before the first byte of F changes;
+then RECORDS, each with a CRC-32 and each appended and synced before the change it precedes: `L` (the length 8), at most one,
+the transaction's first append (R3); `R` (ordinal 8, offset 8, length 4, the bytes), one per rewritten ordinal of the base
+phase that is not the transaction's own append; `K` (the kind, `O` for an OPEN OUTPUT or `D` for a DELETE
 FILE, and the before file's length 8), at most one, the capture; and `D` (the decision, `C` committed, `O` open again after a
 reversal, `R` rolled back), the LAST whole one of which is the transaction's decision, and none is `O`. A torn tail (a short
 record, a failed CRC) ENDS the records, exactly as a torn frame ends a stream file's data: the record's step had not changed F
@@ -2423,34 +2436,40 @@ wants concurrent readers of a file under commit control writes `SHARING WITH REA
 entry (SR7 forbids it on the OPEN).
 
 **2.2.2.5 The write-ahead rules — five, each held by the model at every operation and each with a drift test.** **R1 — the
-header before the first change.** Under the entry mutex: the holder published, the record created, the header (START and L,
-L read from the kept handle's length at that moment, under the same hold as the lock test) written and SYNCED, the lock
-directory synced — all before the first byte of F changes or the file is created. The model's mutation "header not synced"
-is RED at depth 3: a power loss after an append with no durable header leaves the append in F for ever. **R2 — the image
-before the overwrite.** A covered REWRITE in the base phase of an ordinal below n(L) appends its `R` record and SYNCS it before
+header before the first change.** Under the entry mutex: the holder published, the record created, the header (START) written
+and SYNCED, the lock directory synced — all before the first byte of F changes or the file is created. The model's mutation
+`R1`, the header not synced, is RED: a power loss after an append with no durable header leaves the append in F for ever.
+**R2 — the image before the overwrite.** A covered REWRITE in the base phase of a record that is not the transaction's own
+append (every ordinal before its first append; one below n(L) after it) appends its `R` record and SYNCS it before
 `OverwriteInPlace` writes F; the first record for an ordinal is the only one written (the connector keeps the set of ordinals
 it has journaled in this transaction; a run unit that rewrites a million distinct records holds a million ordinals, as the
 keyed transaction holds a million holdings — D.2.5's deferred commits make it unbounded by design). The data write itself is
 not synced at the statement: a power loss that loses it leaves the record as its image, which the rollback re-applies anyway
 (idempotent), and the COMMIT syncs F once. A REWRITE in the REPLACED phase, or of an ordinal at or past n(L), writes no record
-(2.2.2.2). **R3 — an append needs no record.** The committed length is the undo of every append, so a WRITE under commit
-control pays nothing at the statement beyond what its posture already pays (`ReleaseRecord`'s flush under a sharing posture,
-nothing under `NO OTHER`). **R4 — the capture's order.** Under the entry mutex, with no other connector's handle on F: the
+(2.2.2.2). **R3 — the first append writes L; no append writes more.** The transaction's FIRST append reads F's length through
+the kept handle after its lock test, which found no other live transaction (2.2.2.3), so that length is the committed one;
+it appends the `L` record and SYNCS it before the record is written (for a first change that is a WRITE, under the same hold
+of the entry mutex as the header). Every later append, and an append in the REPLACED phase, writes nothing: the committed
+length is the undo of every append, so a WRITE under commit control pays nothing at the statement beyond what its posture
+already pays (`ReleaseRecord`'s flush under a sharing posture, nothing under `NO OTHER`). The model's mutation `R3`, the
+record not synced, is RED: a power loss that drops it keeps the append for ever. **R4 — the capture's order.** Under the entry mutex, with no other connector's handle on F: the
 before file created and F's bytes written into it through the kept handle, the before file SYNCED, the lock directory synced,
 THEN the `K` record appended and SYNCED, and only then F truncated (an OPEN OUTPUT) or removed (a DELETE FILE). So every death
 leaves one of two states the settle reads unambiguously: no whole `K` — F is intact and a before file, if any, is litter
 (deleted); a whole `K` — the before file is whole (its sync preceded the record's) and F is restored from it whatever F now
-holds. The model's mutation "`K` synced before the before file" is RED: a refusal between the two leaves a capture naming a
-before file that does not exist. **R5 — a refused sync of the record is fatal.** A record handed to the operating environment
-whose sync is refused (the `R` of a REWRITE, the `K` of a capture) may or may not be on the medium, and the run unit cannot
-know which; the statement answers '30' (EC-I-O-PERMANENT-ERROR), item 8's unconditional ROLLBACK follows (§14.6.13.1.3 8),
+holds. The model's mutation `R4`, the `K` synced before the before file, is RED: a power loss between the two leaves a capture
+naming a before file that does not exist. **R5 — a refused sync of the record is fatal.** A record handed to the operating environment
+whose sync is refused (the `L` of a first append, the `R` of a REWRITE, the `K` of a capture) may or may not be on the medium,
+and the run unit cannot know which; the statement answers '30' (EC-I-O-PERMANENT-ERROR), item 8's unconditional ROLLBACK follows (§14.6.13.1.3 8),
 and nothing more changes through the transaction: the rollback reads the record as the operating environment shows it (the
 handed-over `K` present: the before file holds what F still holds, since F was not yet truncated; the `R` present: the image
-is F's record, since the overwrite never ran), and a power loss that drops the handed-over record drops nothing F needed. The
+is F's record, since the overwrite never ran; the `L` present or absent: the append never ran, so F is right either way), and
+a power loss that drops the handed-over record drops nothing F needed. The
 first text's capture deleted the before file on that refusal and left the cached `K` naming it, which the model found at its
 first run. Drift tests: R1 by a journal medium that dies before the header's sync at a first WRITE (F intact, no journal), R2
 by a death between the record's sync and the overwrite and between the overwrite and the next statement (both restore the
-image), R3 by the absence of any journal write on a WRITE path (the medium's write log), R4 by a death between the before
+image), R3 by one record and one sync on a transaction's first WRITE and no journal write on its later ones (the medium's
+write log) and by a death between the record's sync and the append (F at L), R4 by a death between the before
 file's sync and the `K`'s (F intact, the before file reaped) and after the `K`'s (F restored), R5 by a refused sync of a `K`
 whose write succeeded (item 8's rollback, F intact, no litter).
 
@@ -2490,8 +2509,12 @@ entry mutex, from what the record says: (1) a whole `K`: F is REPLACED by the be
 nothing if present, the before file's bytes written in through the writer's handle (the owner's kept handle; the entering run
 unit's own writable handle, opened for the purpose, when the owner is dead) — and a before file with no whole `K` is deleted
 (litter: F was never truncated, R4); (2) START `P`: every `R` record's bytes are written at its offset (one below F's current
-length; an offset at or past it is left to the truncation), F is truncated to L (`SetLength`), F is synced and its directory
-synced; START `A`: F is removed (the owner closes its kept handle first) and its directory synced — the state at the last
+length; an offset at or past it is left to the truncation), F is truncated to L (`SetLength`) when the journal has an `L`
+record — F is never shorter than that L, because only an appending transaction's rollback truncates, to its own L, and two
+transactions never append at once (2.2.2.3), which the model asserts at every rollback; a journal with no `L` record truncates
+nothing (the branch review's R2-1: the first text's L, read at the begin, counted another transaction's appends, and a
+`SetLength` to it after that transaction's own rollback would have EXTENDED F with zero bytes) — F is synced and its
+directory synced; START `A`: F is removed (the owner closes its kept handle first) and its directory synced — the state at the last
 COMMIT had no file, so a later OPEN INPUT answers '35', or '05' for an OPTIONAL file (GR17's creation undone: the branch
 review's R1-2, which the first text truncated to an empty file where the standard requires none); (3) the record `D R` is
 appended and synced, so a journal found with it is retired and never rolled back again — in particular one that a power loss
@@ -2591,16 +2614,20 @@ handle, the region READ locks, the holder's liveness, every write, sync, directo
 rules state — over a medium that REFUSES any one operation (the process continues), KILLS the run unit at any operation (its
 locks and handles go, its unsynced writes stay in the operating environment's cache), or LOSES POWER at any operation (every
 file keeps a prefix of its unsynced writes, a file created without a directory sync vanishes, a file deleted without one
-returns), with a second run unit — outside commit control, and under its own — run at every operation boundary of the first,
-and after "the next entry" (a fresh run unit's writable OPEN) asserts four invariants: **I1** F holds exactly the state at the
+returns), with a second run unit — outside commit control, and under its own: committed, rolled back, and left open across
+the rest of the first's program and then committed, rolled back, killed, or appending first — run at every operation boundary
+of the first, and after "the next entry" (a fresh run unit's writable OPEN) asserts four invariants: **I1** F holds exactly the state at the
 last COMMIT (the journal open, or torn) or exactly the state the COMMIT made durable (its decision synced), never a third, and
 the program was told success only in the second case; **I2** nothing another run unit changed is undone, and a record another
 run unit holds a lock on is never written by a rollback; **I3** no holder, record, before file or lock directory is left
 behind; **I4** a capture or a DELETE FILE never runs while another connector holds the file. The gate's run sweeps the named
-rows below and every legal program of up to four statements over an absent and a present file, OPTIONAL and not — 195,400
-runs in about seven seconds; a hand run (`--depth 6`) sweeps 2.3 million. Its worth is measured as the owner measures a
-watchdog: with each review finding put back (an `R` record journaled after a capture; a created file truncated by the rollback
-instead of removed), and with R1 or R4's order broken, it is RED. It models the PROTOCOL, not the bytes (a record is a token,
+rows below and every legal program of up to four statements over an absent and a present file, OPTIONAL and not — 276,000
+runs in about twenty seconds; a hand run (`--depth 5`) sweeps 631,000. **Its worth is proved in the same run** (the branch
+review's R2-2): the self-test applies each named MUTATION of the protocol — each review finding put back (`R1-1`, an `R`
+record journaled after a capture; `R1-2`, a creation journaled as a truncation to nothing; `R2-1`, L read at the begin) and
+R1's, R3's and R4's write-ahead order broken — and requires RED from every one, so a later change that weakens the oracle or
+the fault injector fails the gate instead of leaving a watchdog that no longer bites (`--mutations` runs that arm alone,
+`--mutation <name>` applies one to a hand sweep). It models the PROTOCOL, not the bytes (a record is a token,
 L a count, a checksum "the record is whole or it is not"); the bytes are PB3340's, whose **`IHostMedium` seam** — `HostFile`'s
 roles (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, the lock-directory and lock-holder roles) made
 instance-scoped on the run unit (`FileRegistry` takes an `IHostMedium` whose production implementation is today's static
@@ -2624,8 +2651,9 @@ with the second run unit at every boundary; the expected state in every row is I
 | REWRITE twice, ROLLBACK | F = C1 C2; OPEN I-O, READ, REWRITE Y1, REWRITE Y2, ROLLBACK | one image (C1); the record torn → ignored and F's record as before |
 | COMMIT then more, ROLLBACK | F = C1; OPEN EXTEND, WRITE X1, COMMIT, WRITE X2, ROLLBACK | C1 X1: the second transaction's L is the first's committed length |
 | CLOSE under commit, then COMMIT | F = C1; OPEN EXTEND, WRITE X1, CLOSE, COMMIT | the handle kept through the CLOSE (another run unit's `NO OTHER` OPEN '61' until the COMMIT), released by the COMMIT |
+| R2-1 a transaction begun beside another's append | F = C1 C2; the first: OPEN EXTEND, WRITE X1, CLOSE, ROLLBACK; the second, covered, at every boundary of the first: OPEN I-O, READ, REWRITE BY1, CLOSE, left open, and after the first's program ROLLBACK · dies · OPEN EXTEND, WRITE B2, ROLLBACK or COMMIT | the second's journal has no L until its own first append, so after the first's ROLLBACK its rollback restores C1 and truncates nothing — C1 C2, never C1 C2 and zero bytes (the first text's L = 3) — and after the first's COMMIT it cuts nothing of X1, even begun between the first's begin and its write (the first text's L = 2); its own append after the first's ROLLBACK writes L = 2 and is undone to C1 C2, committed to BY1 C2 B2 |
 | every row × the COMMIT's regions | F synced · directory synced · `D C` written · `D C` synced · the retirement's deletes | region 1: unsuccessful, F at the previous COMMIT after item 8's rollback; region 2: success, the retirement completed by the next entry or the holder's own; region 3: reversed and rolled back, or marked and settled by the next entry — never a third state |
-| every row × the second run unit | append · rewrite of ordinal 0 · rewrite of ordinal 1 · truncate · DELETE FILE · read; plain and covered, with COMMIT, with ROLLBACK, and left open | '51' to a WRITE while any transaction lives; '51' to a REWRITE of a held ordinal and '00' to one below L the first did not touch, which the first's ROLLBACK leaves (I2); '61' to an OPEN OUTPUT, a DELETE FILE and every writable OPEN of a REPLACED file; a read sees F as it stands; the first run unit's death after the second's statement is settled before the second's next change |
+| every row × the second run unit | append · rewrite of ordinal 0 · rewrite of ordinal 1 · truncate · DELETE FILE · read; plain, and covered with COMMIT, with ROLLBACK, and left open across the rest of the first's program and then committed, rolled back, killed, or appending and then committed or rolled back | '51' to a WRITE while any transaction lives; '51' to a REWRITE of a held ordinal and '00' to one below L the first did not touch, which the first's ROLLBACK leaves (I2); '61' to an OPEN OUTPUT, a DELETE FILE and every writable OPEN of a REPLACED file; a read sees F as it stands; the first run unit's death after the second's statement is settled before the second's next change |
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 
@@ -2637,11 +2665,11 @@ is one of its holders). Added: the journal (`IO/Sharing/SequentialJournal.cs`: t
 five rules, the settle), the kept handle under commit control, the entry step, the lock test's journal arm, the `IHostMedium`
 seam and its simulator, and the model `scripts/models/sequential_journal_model.py`, which the implementer extends with every
 row the implementation adds and keeps green at every change to the protocol. Measured without a clock, through the medium's
-operation log: a covered WRITE adds zero journal operations (R3); a covered REWRITE in the base phase adds one append and one
-sync; a capture adds one copy of F, two syncs and one directory sync; a COMMIT adds one sync of F, one directory sync, one
+operation log: a covered WRITE adds zero journal operations after the transaction's first, which adds one append and one
+sync (R3); a covered REWRITE in the base phase adds one append and one sync; a capture adds one copy of F, two syncs and one directory sync; a COMMIT adds one sync of F, one directory sync, one
 write and one sync of the record, and the retirement's three deletes and directory sync; a writable OPEN of an uncovered file
 adds one directory listing and nothing else; a rollback of a transaction with m rewritten records and a appended ones writes
-m records, one truncation and one sync, never a byte of another connector's record.
+m records, one truncation when a > 0 and one sync, never a byte of another connector's record.
 
 #### 2.2.3 The sequential frame index — bounded memory for the backward READ and a count that stores nothing (kb/Work PB3350)
 
