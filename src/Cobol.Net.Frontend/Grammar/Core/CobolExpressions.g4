@@ -10,87 +10,105 @@ options {
     tokenVocab = CobolLexer;
 }
 
-// ⛔ NOT A CLAUSE, AND NOT A VENDOR HOOK — the ONE error production of the whole grammar (kb/Work PB829; the
-// §13.16.2 half landed first as kb/Work PB487).
+// ⛔ NOT A CLAUSE, AND NOT A VENDOR HOOK — the grammar's ERROR PRODUCTION, in the two forms below (kb/Work PB829,
+// PB3390; the §13.16.2 half landed first as kb/Work PB487).
 //
-// A word run (`genericClause`, below) matches ANY run of words, so wherever it sits in an alternative list it is a
-// TOTAL SINK for everything the named alternatives missed. It used to be reached from SIX sites spanning EIGHT
-// closed general formats — the data description entry (§13.16.2), the file description entry (§13.4.5.2), the
-// sort-merge file description entry (§13.4.6.2), the file control entry (§12.4.5.1), the I-O-CONTROL paragraph
-// (§12.4.6.2), the SPECIAL-NAMES paragraph (§12.3.7.2), the configuration section (§12.3.2) and the
-// identification division (§11.2.1) — under the name of a "vendor/extension hook". It is not one: a vendor
-// extension is admitted only under the dialect that owns it, never by a catch-all, and this compiler declares no
-// vendor dialect. What it actually did was SWALLOW a word run the format does not define, at every edition and
-// every strictness, with no diagnostic anywhere — §4.2.2's warning obligation cannot be met for a construct the
-// compiler never represents.
+// A word run matches ANY run of words, so wherever it sits in an alternative list it is a TOTAL SINK for everything
+// the named alternatives missed. It used to be reached from SIX sites spanning EIGHT closed general formats — the
+// data description entry (§13.16.2), the file description entry (§13.4.5.2), the sort-merge file description entry
+// (§13.4.6.2), the file control entry (§12.4.5.1), the I-O-CONTROL paragraph (§12.4.6.2), the SPECIAL-NAMES paragraph
+// (§12.3.7.2), the configuration section (§12.3.2) and the identification division (§11.2.1) — under the name of a
+// "vendor/extension hook". It is not one: a vendor extension is admitted only under the dialect that owns it, never
+// by a catch-all, and this compiler declares no vendor dialect. What it actually did was SWALLOW a word run the format
+// does not define, at every edition and every strictness, with no diagnostic anywhere — §4.2.2's warning obligation
+// cannot be met for a construct the compiler never represents.
 //
-// Every one of those sites now spells `unrecognizedClause`, and `genericClause` is referenced from NOWHERE ELSE
-// (`ClosedFormatDriftTests` derives that from these .g4 files and fails the build otherwise). The alternative is
-// still RECOGNIZED rather than deleted, because recognizing it keeps recovery local — the rest of the entry, the
-// paragraph and the division still parse, so the user gets ONE named error instead of a cascade of "no viable
-// alternative". `Validation/ClosedFormatPass.cs` refuses every instance BY NAME, naming the format and its §.
-// It must be the LAST alternative at every site: ANTLR takes the first matching alternative.
+// Every one of those sites now spells `unrecognizedClause` or `unrecognizedDataClause`, and the run's pieces
+// (residueOpening, residueItem, residueInteger) are referenced from NOWHERE ELSE (`ClosedFormatDriftTests` derives that
+// from these .g4 files and fails the build otherwise). The alternative is still RECOGNIZED rather than deleted, because
+// recognizing it keeps recovery local — the rest of the entry, the paragraph and the division still parse, so the user
+// gets ONE named error instead of a cascade of "no viable alternative". `Validation/ClosedFormatPass.cs` refuses every
+// instance BY NAME, naming the format and its §, and quotes the run's OPENING item as written (a word, or a literal
+// of one or more tokens). It must be the LAST alternative at every site: ANTLR takes the first matching alternative.
+//
+// ⛔ TWO FORMS, BECAUSE ONE TOKEN'S READING DEPENDS ON WHAT FOLLOWS THE LIST (kb/Work PB3390). An unsigned integer can
+// be the NEXT entry's level-number (ISO §8.3.2.2.13: "A level-number, expressed as a one-digit or two-digit number"),
+// and a level-numbered entry follows the period of only the data division's three lists: the data description entry
+// (§13.16.2), the file description entry (§13.4.5.2) and the sort-merge file description entry (§13.4.6.2), whose
+// record descriptions follow. A run that held the integer there read `01 X PIC X FOO` then `05 Y PIC X.`, the period
+// forgotten, as the ONE run `FOO 05 Y`, and Y's PICTURE as X's second (COBOLNET2423). Nothing that follows any other
+// list begins with an integer, and there the run must hold one: `SOURCE-COMPUTER. XYZ 12.` (ISO §12.3.5.2 prints
+// `SOURCE-COMPUTER. [ computer-name-1 ] .`) had ONE viable parse while the run could not open at it, the name-less
+// paragraph (§12.3.5.3 SR1 lets its second period go) followed by `XYZ 12` as an unrecognized configuration
+// paragraph, so XYZ was the refused word; `OBJECT-COMPUTER. XYZ 12.` read XYZ as an OBJECT-COMPUTER clause. With the
+// integer admitted the computer-name's reading is viable too, and ANTLR resolves the tie toward the lower alternative,
+// the name. The integer also continues the run: an IDENTIFIER-led `FOO 12` is one run, and the text-predicated
+// OBJECT-COMPUTER clause `SEGMENT-LIMIT IS? integer` relies on that — without a viable residue reading of its shape, a
+// word that is not SEGMENT-LIMIT fails the clause's predicate at the decision's first token (NoViableAlt at `FOO`).
+// One production cannot hold a token in one list and refuse it in another, so the error production has two forms,
+// and `ClosedFormatDriftTests` derives which list writes which from the generated parser: the data form exactly where
+// a level-number may follow the list's period.
+// ⚠ The data form leaves out the integer-led comma decimal (`1,5`) too, although it is never a level-number (a comma
+// that no space follows is no separator, ISO §8.3.5 2), so `1,5` is one character-string): every item that begins
+// with INTEGERLIT must be out, because a predicated alternative that is the only one viable at its first token throws
+// NoViableAlt there when its predicate fails — `FOO` then `05 Y` would draw a bare parse error at 05. The parse layer
+// refuses the comma decimal by name instead (CobolErrorStrategy), and a bare integer there is the missing period's.
+
+// The error production of every closed list that a level-number cannot follow: the environment and identification
+// divisions' formats. Its run opens and continues at an unsigned integer.
 unrecognizedClause
-    : genericClause
+    : (residueOpening | residueInteger) (residueItem | residueInteger)*
     ;
 
-// The word-run matcher `unrecognizedClause` is built on. Kept as its own rule because the diagnostic quotes the
-// run's OPENING item (`ClosedFormatPass` reads `residueOpening`: a word, or a literal of one or more tokens) and the
-// whole run as written.
+// The error production of the data division's entries, whose period the next entry's level-number may follow. No item
+// of its run begins with an unsigned integer.
+unrecognizedDataClause
+    : residueOpening residueItem*
+    ;
+
+// What a run opens with, in either form: a word or any literal but the reserved words (a figurative constant, NULL)
+// and the shapes that begin with an unsigned integer (residueInteger).
 // ⚠ It never begins at a RESERVED word: a run that could open with one would compete with every named alternative of
 // its list (a malformed `RECORD` clause would be read as a foreign word) and, in the paragraph lists, with the
 // headers that follow them. A reserved word the format does not print is refused BY NAME all the same — by
 // `Parsing/CobolErrorStrategy` (its 0g hint and its Sync), which finds this production's position in the ATN and
-// reports the SAME refusal from the SAME `ClosedFormats` row (kb/Work PB2533).
-// ⛔ A LITERAL OPENS THE RUN AS A WORD DOES (kb/Work PB3373): any literal that is one token by itself
-// (residueLiteral) except the unsigned integer. No alternative of a closed list begins with one, and nothing that
-// follows a list does, so admitting one at the left edge competes with no legal reading. It has to: while the run
-// could open only at a word, `SOURCE-COMPUTER. XYZ "LIT".` (ISO §12.3.5.2 prints `SOURCE-COMPUTER. [ computer-name-1
-// ] .`) had ONE viable parse, the name-less paragraph (§12.3.5.3 SR1 lets its second period go) followed by
-// `XYZ "LIT"` as an unrecognized configuration paragraph, so XYZ was misreported as a paragraph (and, at 85, as an
-// area-A header), and `OBJECT-COMPUTER. XYZ "LIT".` read XYZ as an OBJECT-COMPUTER clause. With the literal admitted
-// the computer-name's reading is viable too, the two readings are ambiguous, and ANTLR resolves the tie toward the
-// lower alternative: the name.
-// ⚠ AN UNSIGNED INTEGER NEVER OPENS THE RUN: it can be the NEXT data description entry's level-number (ISO
-// §8.3.2.2.13: "A level-number, expressed as a one-digit or two-digit number"), and `01 X PIC X` then `05 Y PIC X.`
-// with the period forgotten would read `05 Y` as a foreign clause of X where the source has a missing period. One at
-// a residue position is refused by the parse layer instead (CobolErrorStrategy's 0g arm: `OBJECT-COMPUTER. 12.`),
-// unless it may begin what follows the list's period, where the missing-period diagnosis stands. In the TAIL the
-// integer stays: an IDENTIFIER-led `FOO 12` is one run, and the text-predicated OBJECT-COMPUTER clause
-// `SEGMENT-LIMIT IS? integer` relies on that — without a viable residue reading of its shape, a word that is not
-// SEGMENT-LIMIT fails the clause's predicate at the decision's first token (NoViableAlt at `FOO`, not a refusal).
-// ⚠ THE RUN HOLDS EVERY LITERAL BUT THE RESERVED WORDS (kb/Work PB3373). A figurative constant (and NULL) is a
-// RESERVED word, and with the whole `literal` rule in the run `OBJECT-COMPUTER. XYZ ZERO.` read as one run `XYZ ZERO`
-// (XYZ misreported as a clause) where the parse layer names ZERO in the format. Every other literal shape stays in the
-// run, the multi-token ones included, or the run would end inside a literal at a bare parse error with a false "a
-// period may be missing" (`01 A PIC X FOO -1.`, `FOO "A" & "B"`): a sign-led numeric literal (ISO §8.3.3.3.2 2), "If a
-// sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT outside the list
-// and argument regions), a DECIMAL-POINT IS COMMA literal, and a concatenation (§8.8.3.3 3), "equivalent to a literal"),
-// whose `&` continues the run with the operand after it. The OPENING excludes what the tail may hold but the left edge
-// may not: the unsigned integer and the integer-led comma decimal (the level-number, above), and the `&`, whose operand
-// belongs to the literal before it. It holds no bare leading-comma decimal (`,5`) either, whose only spelling is
-// numericLiteralCore's predicated alternative, which the opening does not copy. No FIRST set of the run holds a
-// reserved word, so the parse layer's 0g arm still sees every one (a reserved word after `&` is the operand's).
-genericClause
-    : residueOpening residueItem*
-    ;
-
-// What the run opens with: a word, a one-token literal but the unsigned integer, or a sign-led numeric literal.
+// reports the SAME refusal from the SAME `ClosedFormats` row (kb/Work PB2533). A figurative constant (and NULL) is a
+// reserved word too: with the whole `literal` rule in the run, `OBJECT-COMPUTER. XYZ ZERO.` read as one run `XYZ ZERO`.
+// ⛔ A LITERAL OPENS THE RUN AS A WORD DOES (kb/Work PB3373). No alternative of a closed list begins with one, and
+// nothing that follows a list does (but the data division's level-number, above), so admitting one at the left edge
+// competes with no legal reading but a clause's own literal list, which keeps it (loop continuation is the lower
+// alternative). Every multi-token literal shape is held, or the run would end inside a literal at a bare parse error
+// with a false "a period may be missing" (`01 A PIC X FOO -1.`, `FOO "A" & "B"`): a sign-led numeric literal (ISO
+// §8.3.3.3.2 2), "If a sign is used, it shall appear as the leftmost character of the literal"; `-1` is MINUS INTEGERLIT
+// outside the list and argument regions), the DECIMAL-POINT IS COMMA literals (the leading-comma `,5` here, kb/Work
+// PB3390: `OBJECT-COMPUTER. XYZ ,5.` quoted XYZ while the run could not open at it) and a concatenation (§8.8.3.3 3),
+// "equivalent to a literal"), whose `&` continues the run (residueItem) with the operand after it.
+// The leading-comma decimal is numericLiteralCore's alternative, with its contiguity predicate (kb/Work PB1446: `, 5`
+// is a separator and an integer), and ClosedFormatDriftTests holds the split: residueOpening's numeric shapes and
+// residueInteger's are numericLiteralCore's alternatives, each exactly once.
 residueOpening
     : IDENTIFIER
     | residueLiteral
+    | {tokensAreContiguous(2)}? COMMA INTEGERLIT
     | (PLUS | MINUS) numericLiteralCore
     ;
 
-// What continues the run: a word, any literal but a figurative constant and NULL, or a concatenation's `& operand`.
+// What continues a run, in either form: anything it opens with, or a concatenation's `& operand`. Reuse
+// `concatOperand` only after AMPERSAND: its figuratives are reserved words, which no FIRST set of the run may hold
+// (the parse layer's 0g arm must still see every one; a reserved word after `&` is the operand's).
 residueItem
-    : IDENTIFIER
-    | residueNonNumericLiteral
-    | signedNumericLiteral
+    : residueOpening
     | AMPERSAND concatOperand
     ;
 
-// Every literal that is ONE token by itself except the unsigned integer (above): the single-token alternatives of
+// The literal shapes that begin with an unsigned integer: the integer itself and the integer-led comma decimal
+// (numericLiteralCore's two INTEGERLIT-led alternatives). Only `unrecognizedClause` holds them.
+residueInteger
+    : {tokensAreContiguous(3)}? INTEGERLIT COMMA INTEGERLIT
+    | INTEGERLIT
+    ;
+
+// Every literal that is ONE token by itself except the unsigned integer: the single-token alternatives of
 // nonNumericLiteral and numericLiteralCore. ClosedFormatDriftTests derives that set from the generated parser, so a
 // literal token added to either rule fails the build until it is decided here. CobolErrorStrategy reads this rule
 // (plus INTEGERLIT) as its one set of literal tokens.
@@ -103,8 +121,7 @@ residueLiteral
     | SIGNED_INTEGERLIT
     ;
 
-// The single-token alternatives of nonNumericLiteral: the run's tail takes the numeric ones through
-// signedNumericLiteral, which holds every numeric shape the opening's tokens hold.
+// The single-token alternatives of nonNumericLiteral.
 residueNonNumericLiteral
     : STRINGLIT
     | NATLIT

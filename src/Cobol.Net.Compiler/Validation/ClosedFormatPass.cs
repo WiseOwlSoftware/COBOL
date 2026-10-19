@@ -27,12 +27,13 @@ namespace CobolNet.Validation;
 /// <para>WHY ONE PASS AND ONE TABLE, NOT EIGHT DIAGNOSTIC SITES. Closing it one site at a time is how it
 /// survived: kb/Work PB487 closed §13.16.2 and its sibling sweep, reading the grammar by rule NAME, counted four
 /// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
-/// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production
-/// (<c>unrecognizedClause</c>), this pass is its ONE consumer, and <see cref="ClosedFormats.ByContext"/> is its
-/// ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word or an
+/// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production, in two forms
+/// (<c>unrecognizedClause</c>, and <c>unrecognizedDataClause</c> where a level-number may follow the list, whose run
+/// holds no unsigned integer: kb/Work PB3390), this pass is its ONE consumer, and
+/// <see cref="ClosedFormats.ByContext"/> is its ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word or an
 /// unsigned integer at its position is refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533); <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
 /// parser, in BOTH directions, so a new closed format cannot parse into silence and a stale row cannot linger.
-/// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes. (The pass owns one
+/// Adding a closed format is `| unrecognizedClause` (or the data form) plus a table row — no code here changes. (The pass owns one
 /// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
 /// position no format prints; see <see cref="VisitMisplacedSpecialNamesForPhrase"/> — and the punctuation half of
 /// five paragraph formats, their separator periods, read through <see cref="ParagraphPeriods"/>; see
@@ -203,13 +204,19 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// shared with the parse layer's refusal of a RESERVED word or an unsigned integer at the same position
     /// (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373), which the production cannot take. The word quoted is the
     /// run's OPENING item as written, a word or a whole literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c>
-    /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign).</summary>
-    public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx)
+    /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign). The production has two forms, the data
+    /// division's holding no unsigned integer (kb/Work PB3390); both are refused here, the same way.</summary>
+    public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx) => Refuse(ctx);
+
+    /// <inheritdoc cref="VisitUnrecognizedClause"/>
+    public override object? VisitUnrecognizedDataClause(CobolParserCore.UnrecognizedDataClauseContext ctx) => Refuse(ctx);
+
+    private object? Refuse(ParserRuleContext ctx)
     {
         var format = ClosedFormats.Of(ctx.Parent?.GetType());
         // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
         // silent return here is precisely the defect this pass exists to end.
-        string word = ctx.genericClause()?.residueOpening() is { } opening ? WrittenSource.Of(opening) : ctx.GetText();
+        string word = ctx.GetChild(0) is ParserRuleContext opening ? WrittenSource.Of(opening) : ctx.GetText();
         if (format is null)
         {
             _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,
