@@ -16,6 +16,8 @@ Toolhelp32 snapshot plus each command line through `NtQueryInformationProcess` (
 
 The branch review found a loop (R1-1). `watch` returned at once while any message was open, so beside a message the
 session could not close yet, the hook and the watcher would re-invoke the session forever. `watch` now fires only on
-messages no earlier watch returned (`mailbox/delivered-<lane>.json`, pruned to the open ones). With a watcher armed,
-the hook only names a seen message that stays open past the stale limit. The loop design doc's mailbox section,
+messages new to its session. A second round (R2-1) showed that one record per inbox would let the first of two sessions
+watching it take a message from the other, so the record is per watching session
+(`mailbox/delivered-<lane>-<session pid>.json`, pruned to the open messages; a dead session's record is deleted). With
+a watcher armed, the hook only names a seen message that stays open past the stale limit. The loop design doc's mailbox section,
 `mailbox.py`'s watcher comment and the session-start skill describe both.
