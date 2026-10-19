@@ -897,7 +897,9 @@ PAGE (4 096 bytes; every page)
    8   8  generation    the generation that last wrote this page (2.2.1.6 R2, R3)
   16   4  self          this page's number (a page read from the wrong offset is a torn read)
   20   4  next          O: the next overflow page of the chain; I, L, M: 0 (no sibling pointers: see below)
-  24   8  reserved      0
+  24   2  deficit       I, L: the tree's PREFIX DEFICIT g on its ROOT page (the high-water marks, below); 0 on every other page
+  26   2  overhang      I, L: the tree's CONTRACTION OVERHANG c − 1 on its ROOT page; 0 on every other page
+  28   4  reserved      0
   32  ..  body
 
 META (page 0 and page 1 = the two COMMITTED slots, written alternately; page 2 = the WORK slot; 2.2.1.6)
@@ -969,11 +971,61 @@ FREE (F)       body: unused (a free page keeps its header so a stale read is rec
   order and every whole-key START reads the tree's depth (a leaf or two more where it settles across a leaf boundary). The
   `WeightedKeyOrder` carries the key's length for that and refuses a longer key or prefix (GR14 bounds a START's length by the
   key's). A SHORTER partial key under a locale-based sequence is not one run (§8.8.4.2.11, *"not necessarily performed
-  character-by-character"*: under the root locale "áa" < "ab" while "á" > "a"), so it walks the tree entry by entry in the
-  search's direction, as GR17 states (review w1122-a R1-1). That walk reads every leaf before its answer, the whole prime
-  tree when none qualifies, which PB3330's bar (*"No statement reads or writes the whole file"*) forbids: it is an OPEN
-  DEFECT of the engine (review w1122-a R2-1), not an accepted cost, until a narrowing that is sound under the locale
-  engine's contractions and ignorables bounds it.
+  character-by-character"*: under the root locale "áa" < "ab" while "á" > "a"; review w1122-a R1-1), so it is GR17's
+  sequential search, started at a PRIMARY-LEVEL BOUND and ended at the end of the run that ties it (review w1122-a R2-1,
+  R3-1; the Mythos design decision of 2026-10-18):
+  - **Two high-water marks per tree**, on the ROOT page's header (bytes 24..27 above), raised by every INSERT
+    (`IKeyOrder.MarksOf`, once per inserted key) and never lowered by a DELETE, so they hold for every key the tree holds:
+    the PREFIX DEFICIT g, the largest (cut − level-1 weights before it) of any key, and the CONTRACTION OVERHANG c − 1,
+    the longest run between two consecutive cuts of any key, less one (`Collator.PrefixShapeOf`; a CUT is a position no
+    mapping of UTS #10 S2.1 straddles — a code point, a Hangul syllable, the longest contraction, a discontiguous one to
+    its furthest mark — that begins with a starter, so the walk of the text before it is the walk of that part on its own;
+    a text walked in NFD is measured in its own positions through the normalizer's origins). An ignorable character (a
+    control, a soft hyphen, a variable under shifted alternate handling) and a contraction raise g, an expansion lowers it;
+    ordinary text has g = 0 and c = 1. Both are taken over the operand §8.8.4.2.11 compares — *"trailing spaces are
+    truncated from the operands except that an operand consisting of all spaces is truncated to a single space"* — so a
+    key's padding counts for nothing. The marks live on the root because PATH COPYING rewrites the root at every change of
+    the tree: they are crash-consistent with the root the meta names by the same shadow paging as every node, travel with
+    the root another run unit's statement left (`BTree.Adopt`, 2.2.1.7), and need no meta field and no wiring per tree.
+  - **The bound.** For a probe of k positions, m = max(0, k − g − (c − 1)), and B = the first min(m, |Pp|) level-1
+    weights Pp of the probe's own key, cut before the first weight below a space's (`IKeyOrder.BoundOf`). Every stored
+    key's first |B| level-1 weights are then the first level-1 weights of its truncation to k (the last cut s at or
+    before k lies at or after k − c + 1, the mappings before s are the truncation's own, and they yield at least
+    s − g ≥ m weights), so "the stored key's first |B| level-1
+    weights against B" (`IKeyOrder.CompareBound`) is a fixed-length comparison, monotone in the tree's order, whose
+    answer below (above) B means a truncation below (above) the probe at level 1. The space cut is the trimming's: a
+    truncation that ends in spaces of the key's interior loses them, so it is a proper prefix of the probe at level 1,
+    while the stored key's own space weights meet the bound — and a bound weight below a space's would place that key
+    above the bound while its truncation is below the probe. (A tailoring with a contraction that holds a space gives
+    every key the deficit of its whole length, so every partial key takes the empty bound.)
+  - **The walk.** FORWARD relations (EQUAL, GREATER, NOT LESS) seat at the first entry at or above B, REVERSE relations
+    (LESS, NOT GREATER) at the last at or below it, both by the tree's binary descent (`Cursor.Search`); the walk is
+    GR17's, entry by entry in the search's direction with the exact GR17 predicate (`ComparePrefix`) deciding, and it never
+    leaves the RUN (the entries that tie B): an entry past the run's end has a truncation above the probe, so it is the
+    answer of GREATER and NOT LESS when nothing in the run qualified and ends EQUAL with none (GR17 e) 2.); an entry before
+    the run's start has a truncation below it, the answer of LESS and NOT GREATER. Inside the run no bound exists in this
+    tree: its entries are ordered by their CONTINUATION past k before their lower levels, prime keys are unique so almost
+    every continuation is its own group, and a qualifying variant ("SMÍTH…" above "SMITH") can sit in any group — the run
+    is exactly the entries whose truncation ties the probe at level 1, the ones GR17 c) and d) must examine at the lower
+    levels, and reading it is the optimum for this tree (only a second index, written by every INSERT, REWRITE and DELETE
+    of every locale-keyed file, could beat it; `Cursor.Search` is the seam it would plug into). So the search is exact for
+    every table and every key, reads the depth for every full-length probe and for every partial probe that no entry
+    ties at the primary level, and the depth plus the leaves of the run up to its answer for one that entries tie; no
+    statement reads the whole file unless the whole file ties the probe's base letters. m = 0 (a probe within the
+    margin, or a tree whose marks are large) gives the empty bound, which is GR17 from the first (or last) entry as
+    written; ordinary text (g = 0, c = 1) never takes it.
+  - **The cases** (`LocalePartialStartTests`): the model (GR17 as written, `FindIndex` / `FindLastIndex` over the sorted
+    keys) against the engine for every relation and every partial-key length, over key sets of accent and case variants,
+    embedded controls and soft hyphens, interior and trailing spaces and tabs, expansions ("æ", "ß"), Czech "ch" and
+    Danish "aa" cut by the truncation, Hungarian's doubled digraphs (three characters, two primaries: the overhang's case)
+    and a TAB where a stored key's interior spaces fall to the trimming (the space cut's case), and through the composite
+    order of an alternate tree; the pages (ordinary text reads the depth and the leaves its run crosses; a probe above
+    every key the depth alone; a run of variants its variants ahead of the answer); the marks on the root page and zeros
+    elsewhere (`AuditShape` checks it in every model run of `BTreeModelTests`), across CLOSE and OPEN, a DELETE and the
+    tree's emptying; a statement that raises them killed before or after, or refused at, every one of its writes
+    (2.2.1.16: the next OPEN finds the previous tree with its marks or the new one with the raised marks); a refused read
+    at every read of the search ('30', the retry answers GR17's entry); and another run unit's statement adopted between
+    two of this one's (2.2.1.17).
 - **An INDEXED record is n + 1 entries, one per tree.** WRITE inserts the frame under the prime key and, for every alternate
   key whose value is not the key's SUPPRESS WHEN value (the §12.4.5.6.4 GR6 suppression; §14.9.30.4 GR21 c): such a record *"is not
   considered to exist"* under that key), an entry (alternate key, ordinal) → prime key, every ordinal the one fresh mint value (§14.9.51.4 GR40). REWRITE

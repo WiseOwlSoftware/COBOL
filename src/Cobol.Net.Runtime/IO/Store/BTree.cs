@@ -28,8 +28,9 @@ internal enum SeekRelation
 /// statement's generation, and the pages the tree stops referencing (released or freed by the ledger's rule).</summary>
 internal interface IPageSink
 {
-    /// <summary>Write a new page; its POINTER, or <see cref="PagePointer.None"/> once the medium has refused a write.</summary>
-    PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next);
+    /// <summary>Write a new page; its POINTER, or <see cref="PagePointer.None"/> once the medium has refused a write.
+    /// <paramref name="marks"/> are the header's tree marks: a tree's own on its root, zeros on every other page.</summary>
+    PagePointer Write(PageKind kind, ReadOnlySpan<byte> body, byte flags, ushort entries, uint next, TreeMarks marks);
 
     /// <summary>A page the tree no longer references.</summary>
     void Release(PagePointer page);
@@ -150,6 +151,22 @@ internal sealed partial class BTree
     /// <summary>The pages <see cref="Flush"/> will write: every changed node and the overflow chains of new values.</summary>
     public int PagesToWrite => Count(_root);
 
+    /// <summary>The tree's high-water marks (<see cref="TreeMarks"/>; the pending edit's view): its root's, zeros for an
+    /// empty tree. Reading them reads the root.</summary>
+    internal StoreStatus ReadMarks(out TreeMarks marks)
+    {
+        marks = default;
+        try
+        {
+            if (!IsEmpty(_root)) marks = Load(_root).Marks;
+            return StoreStatus.Ok;
+        }
+        catch (TornPage)
+        {
+            return StoreStatus.PermanentError;
+        }
+    }
+
     /// <summary>The pages of a RESIDENT tree, as its last flush left it.</summary>
     public List<PagePointer> ResidentPages()
     {
@@ -216,7 +233,7 @@ internal sealed partial class BTree
             if (IsEmpty(_root))
             {
                 if (kind is ChangeKind.Replace or ChangeKind.Delete) return StoreStatus.Ok;
-                var first = new Node(leaf: true);
+                var first = new Node(leaf: true) { Marks = _order.MarksOf(key) };
                 first.Keys.Add(key.ToArray());
                 first.Slots.Add(slot);
                 _root = new Child(PagePointer.None, first);
@@ -227,6 +244,8 @@ internal sealed partial class BTree
             var path = PathTo(key, out bool found);
             if (found ? kind == ChangeKind.Insert : kind is ChangeKind.Replace or ChangeKind.Delete) return StoreStatus.Ok;
             var (original, at) = path[^1];
+            // The marks are the root's; a new key raises them, and nothing lowers them (TreeMarks).
+            var marks = found || kind == ChangeKind.Delete ? path[0].Node.Marks : path[0].Node.Marks.Max(_order.MarksOf(key));
             if (found) Supersede(original.Slots[at]);
             var before = path.ConvertAll(p => p.Node.Bytes);
             // An APPEND — a new key above every key of the tree — splits off only what it added, so a sequential load
@@ -247,6 +266,7 @@ internal sealed partial class BTree
                 leaf.Slots.Insert(at, slot);
             }
             Rebuild(path, leaf, before, append);
+            StampRoot(marks);
             done = true;
             return StoreStatus.Ok;
         }
@@ -315,30 +335,51 @@ internal sealed partial class BTree
         while (!node.IsLeaf)
         {
             if (path.Count > MaxDepth) throw new TornPage(PageCheck.ChecksumFails);
-            int child = Bound(node.Keys, key, orEqual: true, prefix: false);
+            int child = Bound(node.Keys, new KeyProbe(_order, key, prefix: false), orEqual: true);
             path.Add((node, child));
             node = Load(node.Children[child]);
         }
-        int at = Bound(node.Keys, key, orEqual: false, prefix: false);
+        int at = Bound(node.Keys, new KeyProbe(_order, key, prefix: false), orEqual: false);
         found = at < node.Keys.Count && _order.Compare(node.Keys[at], key) == 0;
         path.Add((node, at));
         return path;
     }
 
     /// <summary>The number of <paramref name="keys"/> below <paramref name="probe"/> — or at or below it when
-    /// <paramref name="orEqual"/> — under the order or (with <paramref name="prefix"/>) its prefix comparison: a lower or
-    /// upper bound, by binary search.</summary>
-    private int Bound(List<byte[]> keys, ReadOnlySpan<byte> probe, bool orEqual, bool prefix)
+    /// <paramref name="orEqual"/> — a lower or upper bound, by binary search; the probe says what a stored key is compared
+    /// by (<see cref="IProbe"/>).</summary>
+    private static int Bound<TProbe>(List<byte[]> keys, scoped in TProbe probe, bool orEqual) where TProbe : IProbe, allows ref struct
     {
         int lo = 0, hi = keys.Count;
         while (lo < hi)
         {
             int mid = (lo + hi) >>> 1;
-            int c = prefix ? _order.ComparePrefix(keys[mid], probe) : _order.Compare(keys[mid], probe);
+            int c = probe.Against(keys[mid]);
             if (c < 0 || (orEqual && c == 0)) lo = mid + 1;
             else hi = mid;
         }
         return lo;
+    }
+
+    /// <summary>What a binary search compares a stored key with: a stored key against the probe, negative, zero or
+    /// positive, monotone in the tree's order.</summary>
+    private interface IProbe
+    {
+        int Against(byte[] stored);
+    }
+
+    /// <summary>A whole key, or a START's partial key under the order's prefix comparison (§14.9.41.4 GR17 c), d)).</summary>
+    private readonly ref struct KeyProbe(IKeyOrder order, ReadOnlySpan<byte> key, bool prefix) : IProbe
+    {
+        private readonly ReadOnlySpan<byte> _key = key;
+
+        public int Against(byte[] stored) => prefix ? order.ComparePrefix(stored, _key) : order.Compare(stored, _key);
+    }
+
+    /// <summary>A partial key's PRIMARY-LEVEL BOUND (<see cref="IKeyOrder.BoundOf"/>).</summary>
+    private readonly struct BoundProbe(IKeyOrder order, int[] bound) : IProbe
+    {
+        public int Against(byte[] stored) => order.CompareBound(stored, bound);
     }
 
     /// <summary>The node <paramref name="node"/> as this edit may change it: itself when this edit already copied it,
@@ -463,6 +504,7 @@ internal sealed partial class BTree
             if (top.Bytes > PageHeader.BodyBytes)
             {
                 var (separator, right) = Split(top, append);
+                top.Marks = default;                                  // no longer the root (StampRoot marks the new one)
                 var root = new Node(leaf: false);
                 root.Children.Add(new Child(PagePointer.None, top));
                 root.Keys.Add(separator);
@@ -484,6 +526,21 @@ internal sealed partial class BTree
             _root = top.IsLeaf && top.Keys.Count == 0 && Rebalancing ? default : new Child(PagePointer.None, top);
             return;
         }
+    }
+
+    /// <summary>Put <paramref name="marks"/> on the root the edit left: the root is a node the edit changed, except when
+    /// a collapse made an untouched child the root — a page written as a child, so its marks are zeros, and it is copied
+    /// to carry the tree's when they are not. An emptied tree keeps none: no key is left for them to bound.</summary>
+    private void StampRoot(TreeMarks marks)
+    {
+        if (IsEmpty(_root)) return;
+        if (_root.Node is not { Dirty: true } root)
+        {
+            if (marks == default) return;
+            root = Own(Load(_root));
+            _root = new Child(PagePointer.None, root);
+        }
+        root.Marks = marks;
     }
 
     // ── Values and overflow chains ──────────────────────────────────────────────────────────────────────────────
@@ -557,7 +614,7 @@ internal sealed partial class BTree
             for (int i = 0; i < node.Children.Count; i++)
                 node.Children[i] = FlushChild(node.Children[i], sink, ref refused);
         var page = refused ? PagePointer.None
-            : sink.Write(node.IsLeaf ? PageKind.Leaf : PageKind.Internal, EncodeNode(node), 0, (ushort)node.Keys.Count, 0);
+            : sink.Write(node.IsLeaf ? PageKind.Leaf : PageKind.Internal, EncodeNode(node), 0, (ushort)node.Keys.Count, 0, node.Marks);
         refused |= page.IsNone;
         node.Page = page;
         return new Child(page, _resident ? node : null);
@@ -653,7 +710,7 @@ internal sealed partial class BTree
         var header = PageHeader.Decode(page);
         if (header.Kind is not (PageKind.Leaf or PageKind.Internal)) return null;
         var body = page[PageHeader.Bytes..];
-        var node = new Node(header.Kind == PageKind.Leaf);
+        var node = new Node(header.Kind == PageKind.Leaf) { Marks = header.Marks };
         int at = 0;
         if (!node.IsLeaf)
         {
@@ -719,6 +776,9 @@ internal sealed partial class BTree
 
         public PagePointer Page;
 
+        /// <summary>The tree's high-water marks when this node is the root; zeros on every other node.</summary>
+        public TreeMarks Marks;
+
         public bool Dirty => Page.IsNone;
 
         public int Bytes
@@ -734,7 +794,7 @@ internal sealed partial class BTree
 
         public Node Clone()
         {
-            var copy = new Node(IsLeaf);
+            var copy = new Node(IsLeaf) { Marks = Marks };
             copy.Keys.AddRange(Keys);
             copy.Slots.AddRange(Slots);
             copy.Children.AddRange(Children);
