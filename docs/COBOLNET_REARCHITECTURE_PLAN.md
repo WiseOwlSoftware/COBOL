@@ -3402,7 +3402,8 @@ bash scripts/version-continuity-sweep.sh | tee /tmp/sweep.log ; ! grep -q BREAKS
 Expected: conformance + unit green; `guard-fast.sh` prints `=== ALL GREEN ===`; the sweep prints no `BREAKS`. Record the counts in the DEVLOG opener. If any is red, STOP — a precondition phase (P3/P13) is not actually complete.
 
 Confirm the P14 preconditions exist:
-- `tests/nist/corpus.tsv` exists (P0): the one source of the green NIST set and its chains.
+- `tests/nist/corpus.tsv` exists (P0): the source of the green NIST set and its chains for the tests and the group
+  guard (`scripts/guard.sh`'s `NIST_TESTS` is still hand-written, kb/Work PB925).
 - The P2 diagnostic-descriptor registry exists (`src/Cobol.Net.Editions/Diagnostics/` with `DiagnosticDescriptor`/`DiagnosticCatalog`). If absent, Step 4's coverage test cannot be authored — escalate; it is a P2 deliverable.
 
 ---
