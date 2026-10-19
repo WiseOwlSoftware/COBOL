@@ -140,6 +140,12 @@ internal sealed class PagedFile
     /// <summary>The highest generation this store has claimed (or seen claimed).</summary>
     public ulong LastClaim => _stampMint;
 
+    /// <summary>The release ordinal (§14.9.51.4 GR40) the next statement that mints one takes: the higher of the meta's
+    /// <c>release mint</c> and what this store has claimed (<see cref="Begin"/> advances it by the statement's
+    /// <c>ordinals</c>, before its first page write, and it never decreases: an ordinal a refused or dead statement drew
+    /// is never issued again, 2.2.1.3 decision 4).</summary>
+    public ulong ReleaseMint => Math.Max(_releaseMint, _meta.ReleaseMint);
+
     /// <summary>The page I/O performed so far.</summary>
     public IoCounters Counters => new(_reads, _writes, _syncs);
 
@@ -306,9 +312,12 @@ internal sealed class PagedFile
         var page = new byte[PageHeader.PageSize];
         if (!TryReadRaw(MetaPage.WorkSlot, page)) return StoreStatus.PermanentError;
         var work = MetaPage.Decode(page, MetaPage.WorkSlot);
-        // A torn page 2 under a live store: a reader keeps the tree it holds (nothing it can follow moved); a writer
-        // cannot know what another run unit completed, so it answers '30' (§9.1.13.6 item 1).
-        if (work is null) return _writable ? StoreStatus.PermanentError : StoreStatus.Ok;
+        // A torn page 2 under a live store: a READER's entry — a read-only store's, or the shared entry of an INPUT
+        // connector into the writable store its sibling opened — keeps the tree it holds (nothing it can follow moved; the
+        // statement writes nothing), so its READ answers as any other run unit's reader would; an exclusive entry of a
+        // writable store cannot know what another run unit completed before it writes, so it answers '30' (§9.1.13.6
+        // item 1; 2.2.1.7).
+        if (work is null) return _writable && exclusive ? StoreStatus.PermanentError : StoreStatus.Ok;
         if (work.Generation != _lastSeen)
         {
             // A reader adopts the roots; only a writer allocates, so only a writer reads the ledger (2.2.1.7).

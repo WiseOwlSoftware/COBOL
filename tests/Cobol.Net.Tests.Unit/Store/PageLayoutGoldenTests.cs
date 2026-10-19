@@ -51,8 +51,8 @@ public sealed class PageLayoutGoldenTests
             // From offset 169: the prime key's descriptor (the whole-store header's encoding), then the alternate key's
             // descriptor followed by the POINTER to its tree (empty: 12 zero bytes).
             var expected = new MemoryStream();
-            RecordFraming.WriteKeyDescriptor(expected, StoreKit.TwoKeyIndexed.Keys[0]);
-            RecordFraming.WriteKeyDescriptor(expected, StoreKit.TwoKeyIndexed.Keys[1]);
+            MetaPage.WriteKeyDescriptor(expected, StoreKit.TwoKeyIndexed.Keys[0]);
+            MetaPage.WriteKeyDescriptor(expected, StoreKit.TwoKeyIndexed.Keys[1]);
             expected.Write(new byte[PagePointer.Bytes]);
             var keys = expected.ToArray();
             // The descriptor bytes themselves, read off the encoding: segment count 1, offset 0, length 8, no duplicates,

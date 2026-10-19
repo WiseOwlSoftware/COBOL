@@ -1,14 +1,26 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime.IO.Store;
+
 namespace CobolNet.Runtime.IO;
 
 /// <summary>
 /// A typed-native INDEXED-organization file connector (ISO/IEC 1989:2023 §9.1.7.4): records identified by a unique
 /// PRIME record key plus optional ALTERNATE record keys (each a byte range of the record's character image,
-/// §12.4.5.12/§12.4.5.6). Ports the legacy <c>IndexedFileHandler</c>'s NIST-IX-proven design: the record list is the
-/// SOLE source of truth (alternate orderings are derived on demand — a cloned index goes stale) and each record
-/// carries a PER-KEY release ordinal (<see cref="KeyedRec.Ordinals"/>) realizing the duplicate-alternate retrieval
-/// order (§14.9.30.4 GR26/GR32, §14.9.51.4 GR40, §14.9.35.4 GR24).
+/// §12.4.5.12/§12.4.5.6).
+/// <para>⛔ THE RECORDS LIVE IN THE KEYED STORE ENGINE (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.3 decision
+/// 3 and 2.2.1.4; kb/Work PB3334): the PRIME tree (the prime key's channel bytes → the record's frame) and one COMPOSITE
+/// tree per alternate key ((the key's bytes, the record's release ordinal under it) → the prime key), each under the key
+/// order its collating sequence selects (<see cref="IndexedKeyOrders"/>), in <see cref="IndexedStore"/>. A record is n +
+/// 1 entries; every statement reads the pages it touches and writes the pages it changes, then page 2, so a READ by key
+/// is a seek, READ NEXT a cursor step and START a seek under the partial key — the per-call sorts and whole-file scans
+/// of the record list this replaced are gone (kb/Work PB2129). The statuses and their order (docs/CONFORMANCE.md
+/// DOC-A.1-104) are this connector's, and only the medium changed.</para>
+/// <para>⛔ THE DUPLICATE ORDER IS EACH KEY'S RELEASE ORDINAL (§14.9.30.4 GR26, §14.9.51.4 GR40, §14.9.35.4 GR24; kb/Work
+/// PB341, PB2693): a WRITE mints ONE ordinal from the file's release mint and stamps it under every key; a REWRITE
+/// re-stamps only the keys it changed, each moved to the end of its duplicate set by a fresh ordinal; the ordinal is the
+/// trailing part of the alternate tree's entry key, so a tree's order IS its duplicate order and nothing is ever
+/// renumbered.</para>
 /// <para>⛔ THE FILE POSITION INDICATOR IS A KEY VALUE AND NOTHING ELSE (kb/Work PB342). §14.9.41.4 GR17 e) 1. —
 /// "The file position indicator is set to the value of the key of reference in the first logical record whose key
 /// satisfies the comparison" — and §14.9.30.4 GR21 g)/GR32 say the same of a READ. The standard never puts a
@@ -18,12 +30,9 @@ namespace CobolNet.Runtime.IO;
 /// (<c>_readOrdinal</c>) is separate state consulted ONLY under rules e)/f). Modelling the FPI as the pair
 /// (key, ordinal) made a START into a duplicate set resume at the wrong end and lose the rest of the set.
 /// Positions are held as VALUES, not record references, so they survive an interleaved REWRITE/DELETE of the
-/// current record (§14.9.10.4 GR9).</para>
-/// Key comparisons are ordinal over the Latin-1 character image: record keys are category alphanumeric/national
-/// (§12.4.5.12 SR2), for which ordinal IS the native collating sequence — correct for COBOL-85 NIST; the file-level
-/// COLLATING SEQUENCE clause (§12.4.5.7, WRITE §14.9.51.4 GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
+/// current record (§14.9.10.4 GR9) and another run unit's change: every sequential READ is a fresh seek from them.</para>
 /// </summary>
-public sealed partial class IndexedConnector : KeyedConnector
+public sealed class IndexedConnector : KeyedConnector
 {
     /// <summary>The prime key's byte windows, in order (<see cref="KeySegment"/>; one for data-name-1, one per
     /// data-name-2 of the SOURCE phrase), and their total width — the key's length.</summary>
@@ -41,40 +50,37 @@ public sealed partial class IndexedConnector : KeyedConnector
     /// in the record AS WRITTEN — its length is what places it — so no key is ever sliced from a record image
     /// padded or truncated to the area width (<see cref="AreaKey"/>, and the WRITE / REWRITE key image).</summary>
     private bool _layoutKeys;
-    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path sees
-    /// ONE record list and ONE release-ordinal mint. A placeholder until OPEN attaches (and after CLOSE
-    /// detaches).</summary>
+
+    /// <summary>The attached PER-PHYSICAL-FILE store (kb/Work PB143): every connector over one host path drives ONE set
+    /// of trees and ONE release mint. A placeholder until OPEN attaches (and after CLOSE detaches).</summary>
     private IndexedStore _st = new();
 
-    private IReadOnlyList<KeyedRec> _recs => _st.Recs;   // load order — the persisted order (the ATTACHED store's; mutated only through it)
-    private long _nextOrdinal { get => _st.NextOrdinal; set => _st.NextOrdinal = value; }
+    /// <summary>The key orders of this connector's trees and each alternate key's SUPPRESS WHEN value as channel bytes —
+    /// chosen at every OPEN (2.2.1.4, 2.2.1.5), once the file's CODE-SET is known.</summary>
+    private IndexedKeyOrders _orders = null!;
+    private byte[]?[] _suppress = [];
 
     /// <summary>The key-index spelling of THE PRIME RECORD KEY: <c>_alts</c> is indexed from 0, so the prime key
-    /// is the one index below it. Every key-index parameter on this connector reads it (<see cref="KeyOf"/>,
-    /// <see cref="Ordered"/>, <see cref="IsSuppressed"/>), and it is what §14.9.27.4 GR14 and §14.9.41.4
-    /// GR18/GR19 mean by "the prime record key" / "the primary key".</summary>
-    private const int PrimeKey = -1;
+    /// is the one index below it — the same value as <see cref="KeyedStore.TreeChange.PrimeRoot"/>, the prime tree's.
+    /// Every key-index parameter on this connector reads it, and it is what §14.9.27.4 GR14 and §14.9.41.4 GR18/GR19
+    /// mean by "the prime record key" / "the primary key".</summary>
+    private const int PrimeKey = KeyedStore.TreeChange.PrimeRoot;
 
     private int _refKey = PrimeKey;      // key of reference: PrimeKey, or i = i-th alternate (§14.9.30.4 GR30/GR31)
-    private string _fpiKey = "";         // THE file position indicator — a KEY VALUE (§14.9.41.4 GR17e1; §9.1.11)
-    private long _readOrdinal;           // NOT the FPI: the prior READ's record's release ordinal under the key of
+    private byte[] _fpiKey = [];         // THE file position indicator — a KEY VALUE (§14.9.41.4 GR17e1; §9.1.11)
+    private ulong _readOrdinal;          // NOT the FPI: the prior READ's record's release ordinal under the key of
                                          // reference — §14.9.30.4 GR21 e)/f)'s "the record that was made available
                                          // by that prior READ statement" and its "logical position within the set
                                          // of duplicates". Meaningful only while _positioner is 'R'.
-    private bool _fpiValid;
     private char _positioner = 'O';      // 'O' OPEN / 'S' START / 'R' READ — selects GR21 rule d) vs. e)/f)
-    private string? _lastWrittenPrime;   // sequential-access ascending check (§14.9.51 GR38; EXTEND seeds highest)
-    private string? _lastReadPrime;      // sequential-access REWRITE/DELETE target (§14.9.35 GR22 / §14.9.10 GR2)
-
-    /// <summary>The prime record key of the most recently read record — the record-lock identity for §9.1.16
-    /// record locking (Phase 4d M2-FILE-1). Null before the first successful READ.</summary>
-    public string? LastReadPrime => _lastReadPrime;
-    private string? _lastWrittenPrimeId;   // the record released by the last successful Write (§14.9.51 GR11)
+    private byte[]? _lastWrittenPrime;   // sequential-access ascending check (§14.9.51 GR38; EXTEND seeds highest)
+    private byte[]? _lastReadPrime;      // sequential-access REWRITE/DELETE target (§14.9.35 GR22 / §14.9.10 GR2)
+    private byte[]? _lastWrittenPrimeId; // the record released by the last successful Write (§14.9.51 GR11)
 
     // ── Record-lock identity (ISO §9.1.16) — an indexed record's identity is its PRIME record key ────────────
 
     /// <inheritdoc/>
-    public override string LastReadRecordId => _lastReadPrime ?? "";
+    public override string LastReadRecordId => Identity(_lastReadPrime);
 
     /// <inheritdoc/>  (sequential access targets the last-read record, §14.9.35.4 GR22 / §14.9.10.4 GR2;
     /// random/dynamic the record whose prime key is the record area's key slice, §14.9.35.4 GR23 /
@@ -85,11 +91,11 @@ public sealed partial class IndexedConnector : KeyedConnector
         : AreaKey(recordImage, recordExtents, PrimeKey);
 
     /// <inheritdoc/>
-    public override string LastWrittenRecordId => _lastWrittenPrimeId ?? "";
+    public override string LastWrittenRecordId => Identity(_lastWrittenPrimeId);
 
-    // RECORD IS VARYING: the RecordFraming store carries each record's exact length; key slices pad on demand
-    // (KeyOf), so a varying record persists at its written length (§13.18.43 GR13) and reports it on READ
-    // (GR15). Out-of-bounds WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
+    // RECORD IS VARYING: each record's frame carries its exact length; key slices pad on demand (KeyOf), so a varying
+    // record persists at its written length (§13.18.43 GR13) and reports it on READ (GR15). Out-of-bounds
+    // WRITE/REWRITE is the GR14/§14.9.35 GR20 '44'.
 
     /// <param name="primeKey">The prime record key's byte windows in order (§12.4.5.12): one for data-name-1, one per
     /// data-name-2 of the SOURCE phrase (GR2), each with its record type's layout when a variable-length member
@@ -139,9 +145,9 @@ public sealed partial class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     /// <remarks>§9.1.6 names the prime record key, the alternate record keys, the SUPPRESS WHEN attribute and
     /// "the collating sequence of the keys for indexed files" as fixed attributes of the physical file — the
-    /// index structure this connector builds and persists is exactly those. Index 0 is the prime key; the
-    /// alternates follow in declaration order, which is the order their key numbers are assigned in, and
-    /// §12.4.5.6.4 GR6's key suppression value is an ALTERNATE key's attribute only.
+    /// index structure this connector builds is exactly those. Index 0 is the prime key; the alternates follow in
+    /// declaration order, which is the order their key numbers are assigned in, and §12.4.5.6.4 GR6's key suppression
+    /// value is an ALTERNATE key's attribute only.
     /// <para>⛔ FOR INDEXED FILES THIS IS NOT ONLY IMPLEMENTOR LATITUDE. §12.4.5.12.4 GR3: "The data description
     /// of data-name-1 or data-name-2 as well as their relative location within a record shall be the same as
     /// that used when the file was created", and §12.4.5.6.4 GR3 says the same of every alternate key AND that
@@ -177,39 +183,17 @@ public sealed partial class IndexedConnector : KeyedConnector
         }
     }
 
-    /// <summary>True when this record's <paramref name="keyIndex"/> alternate key equals that key's SUPPRESS WHEN
-    /// value (ISO §12.4.5.6.4 GR6): the alternate access path to the record is NOT provided under this key, and
-    /// the record "is not considered to exist" for READ/START (the GR6 NOTE). The comparison is the §14.9.51 GR35
-    /// relation condition under this key's collating sequence (null weights = ordinal, <see cref="KeyEq"/>). The
-    /// relation's operand SIZING is the compiler's, not this method's: the registered value is already the key's
-    /// own image (a figurative or ALL literal repeated to the key's size, a shorter literal space-extended, a
-    /// national value in national spaces — <c>DataBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the
-    /// compiler knows the literal's form and the key's category. The prime key (keyIndex &lt; 0) is NEVER
-    /// suppressible (GR6 scopes suppression to alternate keys).</summary>
-    private bool IsSuppressed(string image, RecordExtents? extents, int keyIndex)
-    {
-        if (keyIndex < 0 || _alts[keyIndex].Suppress is not { } lit) return false;
-        return KeyEq(KeyOf(image, extents, keyIndex), lit, keyIndex);
-    }
+    /// <inheritdoc/>
+    /// <remarks>⛔ THE FORMAT BOUNDS A KEY BY ITS LEAF (2.2.1.4; docs/CONFORMANCE.md DOC-A.1-129): a key's channel bytes
+    /// are one per character position (2.2.1.5), and a tree key holds at most <see cref="BTree.MaxKeyBytes"/> bytes — the
+    /// prime key's whole, an alternate key's with its 8-byte release ordinal after it — so a declaration with a longer key
+    /// is one the physical format cannot hold, and the OPEN refuses it before any file is touched.</remarks>
+    private protected override bool FormatHolds() =>
+        base.FormatHolds()
+        && _primeLen <= BTree.MaxKeyBytes
+        && _alts.All(a => a.Len <= BTree.MaxKeyBytes - CompositeKeyOrder.OrdinalBytes);
 
-    /// <summary><see cref="IsSuppressed(string, RecordExtents?, int)"/> of a STORED record.</summary>
-    private bool IsSuppressed(KeyedRec rec, int keyIndex) => IsSuppressed(rec.Image, rec.Extents, keyIndex);
-
-    /// <summary>Compare two full key values under the key of reference's collating sequence (ISO §12.4.5.7.4 /
-    /// §14.9.41 GR17e / §12.4.5.12.4 GR1). <paramref name="keyIndex"/> &lt; 0 (<see cref="PrimeKey"/>) selects
-    /// the prime key. With no
-    /// COLLATING SEQUENCE clause the key's weights are null and the comparison is native ordinal — byte-identical
-    /// to the pre-§12.4.5.7 engine (the NIST-IX baseline), since keys are fixed-length so no space-extension
-    /// differs. A declared alphabet routes through the §8.8.4.2.7 weighted relation-condition compare.</summary>
-    private int KeyCompare(string a, string b, int keyIndex)
-    {
-        var c = SequenceOf(keyIndex);
-        if (c is null) return string.CompareOrdinal(a, b);
-        // A LOCALE key sequence compares materialized keys — the file's stored key values are compared on every
-        // lookup and insert, and the collator's key cache builds each distinct value's key once (kb/Work PB106) —
-        // both built by one resolution of the sequence (CobolCollation.CompareByKeys).
-        return c.CompareByKeys(a, b);
-    }
+    // ── The engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1) ─────────────────────────────────────
 
     /// <summary>The collating sequence key <paramref name="keyIndex"/> (&lt; 0, <see cref="PrimeKey"/>: the prime key)
     /// is ordered by for the current OPEN; null = native ordinal. Before the first OPEN, the declared one.</summary>
@@ -229,195 +213,123 @@ public sealed partial class IndexedConnector : KeyedConnector
         _openSequences = sequences;
     }
 
-    /// <summary>Key equality under the key of reference's collating sequence: two keys that differ in bytes but
-    /// share collating weights are EQUAL (ISO §12.4.5.12.4 GR1 — "based on the collating sequence … according to
-    /// the rules for a relation condition"). Drives uniqueness, random match, target lookup, and the '02'
-    /// look-ahead.</summary>
-    private bool KeyEq(string a, string b, int keyIndex) => KeyCompare(a, b, keyIndex) == 0;
-
-    // ── OPEN / CLOSE (ISO §14.9.27 / §14.9.6) ────────────────────────────────────────────────────────────────
-
-    /// <summary>The indexed OPEN body (§14.9.27). GR14: INPUT/I-O set the FPI to the lowest collating position
-    /// and the PRIME key becomes the key of reference; GR15: EXTEND positions after the highest prime key
-    /// (seeding the GR38 ascending-sequence check). An absent NON-optional file on INPUT/I-O/EXTEND is '35'
-    /// (§9.1.13.6 item 5) — pinned to the spec; the legacy created a missing file on I-O with '00' (brief §2.3
-    /// #3, version-invariant). The '41' guard, mode bookkeeping, position reset, the ONE presence probe behind
-    /// <paramref name="presence"/>, GR3's authority '37' and the '37'/'30' exception mapping live on
-    /// <see cref="FileConnector.Open"/>.</summary>
-    protected override string OpenCore(FileOpenMode mode, FilePresence presence)
-    {
-        _refKey = PrimeKey;                                                 // §14.9.27 GR14 — prime key of reference
-        _fpiKey = ""; _readOrdinal = 0; _positioner = 'O';
-        _lastWrittenPrime = null;
-        _lastReadPrime = null;
-        _lastWrittenPrimeId = null;
-        // Table 18's availability axis; GR3 has already turned an Unauthorized probe into '37' upstream, so
-        // a refusal can never be read here as "unavailable" (kb/Work PB323).
-        bool exists = presence is FilePresence.Present;
-        string status = FileStatusCode.Success;
-        switch (mode)
-        {
-            case FileOpenMode.Input:
-                if (!exists)
-                {
-                    if (!IsOptional) return FileStatusCode.FileNotFound;
-                    OptionalAbsent = true;
-                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here.
-                    Attach();                              // empty — the file is absent
-                    status = FileStatusCode.OptionalFileNotFound;
-                    break;
-                }
-                TakeFileLock(create: false);               // §9.1.15 — the lock, before the store is read through it
-                Attach();
-                break;
-            case FileOpenMode.Output:
-                TakeFileLock(create: true);                // §14.9.27.4 GR18 — OUTPUT creates the physical file
-                AttachCreated();                           // a new, EMPTY store no other connector holds (kb/Work PB754)
-                Persist(_st);                              // a new physical file; the header IS its §9.1.6 attributes
-                break;
-            case FileOpenMode.IO:
-                if (!exists)
-                {
-                    if (!IsOptional) return FileStatusCode.FileNotFound;   // '35' — spec-pinned
-                    TakeFileLock(create: true);
-                    Attach();                              // empty by construction: the file was absent (kb/Work PB754)
-                    Persist(_st);                          // created as if OPEN OUTPUT + CLOSE (§14.9.27 GR17)
-                    status = FileStatusCode.OptionalFileNotFound;
-                    break;
-                }
-                TakeFileLock(create: false);
-                Attach();
-                break;
-            case FileOpenMode.Extend:
-                if (!exists)
-                {
-                    if (!IsOptional) return FileStatusCode.FileNotFound;
-                    TakeFileLock(create: true);
-                    Attach();                              // empty by construction: the file was absent (kb/Work PB754)
-                    Persist(_st);                          // §14.9.27 GR17
-                    status = FileStatusCode.OptionalFileNotFound;
-                }
-                else { TakeFileLock(create: false); Attach(); }
-                if (_recs.Count > 0)
-                {
-                    var ordered = Ordered(PrimeKey);
-                    _lastWrittenPrime = KeyOf(ordered[^1], PrimeKey);   // §14.9.51 GR38 — highest existing
-                }
-                break;
-        }
-        _fpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
-        return status;
-    }
-
-    /// <summary>Attach the per-physical-file store (kb/Work PB143): the LIVE store when another connector holds
-    /// this host open (its content and release-ordinal mint are the truth — never reloaded), else a fresh one loaded
-    /// from disk. With no registry table, a private freshly-loaded store — the pre-PB143 shape.</summary>
-    private void Attach()
-    {
-        if (SharedStores is { } t) { _st = t.AttachIndexed(HostPath, Load); return; }
-        var s = new IndexedStore();
-        Load(s);
-        _st = s;
-    }
-
-    /// <summary>Attach to the store an <c>OPEN OUTPUT</c> is creating — empty, its release-ordinal mint at 1, and held
-    /// by no other connector (<see cref="KeyedStoreTable.AttachCreated{T}"/>, kb/Work PB754).</summary>
-    private void AttachCreated() =>
-        _st = SharedStores is { } t ? t.AttachCreated<IndexedStore>(HostPath) : new IndexedStore();
-
     /// <inheritdoc/>
     private protected override KeyedStore AttachedStore => _st;
 
-    /// <summary>Replace the records of <paramref name="into"/> with <paramref name="frames"/>, the physical file's
-    /// frames in ordinal order — the whole store's load and reload. The store is the SHARED one, so every connector of
-    /// the run unit attached to it sees the reload, which is the point. <paramref name="releaseMint"/> is the file's
-    /// release mint (<c>RecordFraming.ReleaseMintOffset</c>).
-    /// <para>⛔ THE RELEASE ORDINALS ARE THE FILE'S, NOT RE-DERIVED (kb/Work PB2693). §14.9.30.4 GR26's duplicate
-    /// order and GR21 f)'s "logical position within the set of duplicates" are each record's release ordinal under the
-    /// key of reference, which the store persists with the record (<see cref="StoredFrame.Ordinals"/>), together with
-    /// the mint the next release takes (<paramref name="releaseMint"/>). A reload therefore leaves every ordinal where
-    /// it was — the position a connector partway through a duplicate set holds (<c>_readOrdinal</c>) still names the
-    /// same place after another run unit's change. When this run unit renumbered the records from their file order
-    /// instead, another run unit's DELETE of an earlier record moved every later one down by one and the next READ
-    /// NEXT skipped a duplicate.</para></summary>
-    private void Fill(IndexedStore store, List<StoredFrame?> frames, long releaseMint)
+    /// <inheritdoc/>
+    private protected override KeyedStore AttachStore(bool create) =>
+        _st = SharedStores is { } table
+            ? create ? table.AttachCreated<IndexedStore>(HostPath) : table.Attach<IndexedStore>(HostPath)
+            : new IndexedStore();
+
+    /// <inheritdoc/>
+    private protected override void ForgetStore() => _st = new IndexedStore();
+
+    /// <summary>The key's channel bytes — the bytes its tree compares (2.2.1.4, 2.2.1.5): one per character position, the
+    /// file's CODE-SET conversion applied, as the frame payload carries them. Null for a value holding a character with no
+    /// byte image, which no stored key can carry (a WRITE refused it with '91').</summary>
+    private byte[]? KeyBytes(string native) =>
+        RecordHasCharacterWithoutByteImage(native) ? null
+        : FileCharacterSet.Medium.GetBytes(FileCharacterSet.ToChannel(native, CodeSet));
+
+    /// <summary>The §9.1.16 lock identity of a record: its prime key in the native character set (null: none).</summary>
+    private string Identity(byte[]? prime) =>
+        prime is null ? "" : FileCharacterSet.FromChannel(FileCharacterSet.Medium.GetString(prime), CodeSet);
+
+    /// <summary>The order of key <paramref name="keyIndex"/>'s values (not its tree's entries: an alternate tree's
+    /// composite order adds the ordinal).</summary>
+    private IKeyOrder OrderOf(int keyIndex) => keyIndex < 0 ? _orders.Prime : _orders.Alternates[keyIndex];
+
+    /// <summary>The key order a key's collating sequence selects (2.2.1.4): ORDINAL bytes for the native sequence over
+    /// the native character set, WEIGHTED (decode, then the sequence — §12.4.5.7.4) for a declared sequence or a CODE-SET
+    /// conversion, whose channel byte order is the coded set's. <paramref name="keyLength"/> is the key's length in
+    /// character positions, the record key a START's partial key is a prefix of (§14.9.41.4 GR14).</summary>
+    private IKeyOrder KeyOrder(CobolCollation? collation, int keyLength) =>
+        collation is null && CodeSet is null ? KeyOrders.Ordinal : new WeightedKeyOrder(CodeSet, collation, keyLength);
+
+    // ── OPEN (ISO §14.9.27; the arms are KeyedConnector.OpenCore's) ─────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    /// <remarks>§14.9.27 GR14 — the PRIME key becomes the key of reference and the file position indicator is set to
+    /// the lowest collating position; the key orders are chosen here, once the file's CODE-SET is known.</remarks>
+    private protected override void ResetPosition()
     {
-        store.Clear();
-        FaultPointReloadFilling();
-        long next = Math.Max(releaseMint, 1);
-        // A varying file's frames keep their exact stored lengths (§13.18.43 GR15 reports them on READ);
-        // fixed frames normalize to the record width.
-        foreach (StoredFrame? stored in frames)
-            if (stored is { } frame)
+        _refKey = PrimeKey;
+        _fpiKey = []; _readOrdinal = 0; _positioner = 'O';
+        _lastWrittenPrime = null;
+        _lastReadPrime = null;
+        _lastWrittenPrimeId = null;
+        var alternates = _alts.Select((a, i) => KeyOrder(SequenceOf(i), a.Len)).ToArray();
+        _orders = new IndexedKeyOrders(KeyOrder(SequenceOf(PrimeKey), _primeLen), alternates,
+            [.. alternates.Select(order => (IKeyOrder)new CompositeKeyOrder(order))]);
+        _suppress = [.. _alts.Select(a => a.Suppress is { } value ? KeyBytes(value) : null)];
+    }
+
+    /// <inheritdoc/>
+    /// <remarks>§14.9.27 GR15: EXTEND positions after the highest prime key, which seeds the GR38 ascending-sequence
+    /// check — the prime tree's last key.</remarks>
+    private protected override string? Opened(FileOpenMode mode)
+    {
+        if (mode is not FileOpenMode.Extend) return null;
+        if (_st.Edge(PrimeKey, _orders, last: true, out var cursor) != StoreStatus.Ok) return FileStatusCode.PermanentError;
+        if (cursor is { HasCurrent: true }) _lastWrittenPrime = cursor.Key;   // §14.9.51 GR38 — highest existing
+        return null;
+    }
+
+    // ── The record an entry names ───────────────────────────────────────────────────────────────────────────────
+
+    /// <summary>One record a tree entry names: its prime key, its frame (decoded), the key of reference's value in it and
+    /// its release ordinal under that key.</summary>
+    private readonly record struct Found(byte[] Prime, StoredFrame Record, byte[] KeyPart, ulong Ordinal);
+
+    /// <summary>The record a frame value holds, its image normalized as the WRITE stored it — a varying file's frames keep
+    /// their exact stored lengths (§13.18.43 GR15 reports them on READ), fixed frames normalize to the record width; null
+    /// for a value this writer cannot have produced (the torn page it is, '30').</summary>
+    private StoredFrame? Decoded(byte[] frame) =>
+        RecordFraming.DecodeFrame(frame, _st.FrameSlots, CodeSet) is not { } stored ? null
+        : IsVarying ? stored
+        : stored with { Image = Fit(stored.Image), Extents = null };   // a fitted fixed record is not the image a table describes
+
+    /// <summary>A record's release ordinal under <paramref name="keyIndex"/> (slot 0 the prime key's; a slot past the
+    /// frame's — a key the file does not record, under the <c>COBOLNET_KEYCHECK</c> opt-out — reads 0).</summary>
+    private static ulong OrdinalOf(StoredFrame record, int keyIndex)
+    {
+        int slot = keyIndex + 1;
+        return record.Ordinals is { } o && (uint)slot < (uint)o.Length ? (ulong)o[slot] : 0;
+    }
+
+    /// <summary>⛔ THE RECORD THE CURSOR'S ENTRY NAMES, OR THE NEXT ONE IN <paramref name="forward"/>'s DIRECTION THAT
+    /// <paramref name="satisfies"/> ACCEPTS. A prime tree entry IS the record. An alternate tree entry names it by its
+    /// prime key, and is the record's only when the record still carries the entry's ordinal under that key — always, but
+    /// under the <c>COBOLNET_KEYCHECK</c> opt-out, where a connector whose description omits a key the file records does
+    /// not maintain that key's tree (IndexedStore): such an entry is not an access path to any record and is passed
+    /// over. Null when the walk runs out.</summary>
+    private StoreStatus Resolve(BTree.Cursor cursor, int keyIndex, bool forward, Func<byte[], bool>? satisfies, out Found? found)
+    {
+        found = null;
+        while (cursor.HasCurrent)
+        {
+            byte[] entry = cursor.Key;
+            byte[] keyPart = keyIndex < 0 ? entry : IndexedStore.Split(entry).KeyPart;
+            if (satisfies is not null && !satisfies(keyPart)) return StoreStatus.Ok;
+            var status = cursor.ReadValue(out var value);
+            if (status != StoreStatus.Ok) return status;
+            byte[] prime = keyIndex < 0 ? entry : value;
+            byte[]? frame = value;
+            if (keyIndex >= 0 && (status = _st.Get(_orders, prime, out frame)) != StoreStatus.Ok) return status;
+            if (frame is not null)
             {
-                long[] ordinals = OrdinalVector(frame.Ordinals);
-                foreach (long o in ordinals) next = Math.Max(next, o + 1);
-                store.Add(new KeyedRec
+                if (Decoded(frame) is not { } record) return StoreStatus.PermanentError;
+                ulong ordinal = keyIndex < 0 ? OrdinalOf(record, PrimeKey) : IndexedStore.Split(entry).Ordinal;
+                if (keyIndex < 0 || OrdinalOf(record, keyIndex) == ordinal)
                 {
-                    Image = IsVarying ? frame.Image : Fit(frame.Image),
-                    Extents = IsVarying ? frame.Extents : null,   // a fitted fixed record is not the image a table describes
-                    Ordinals = ordinals,
-                });
+                    found = new Found(prime, record, keyPart, ordinal);
+                    return StoreStatus.Ok;
+                }
             }
-        // The mint is never below an ordinal already in the store, so the next release is last under every key.
-        store.NextOrdinal = next;
-    }
-
-    /// <summary>A stored ordinal vector in THIS connector's key count (the prime key's slot first). They agree
-    /// whenever §14.9.27.4 GR10 admitted the OPEN; under the <c>COBOLNET_KEYCHECK</c> opt-out a vector written for
-    /// fewer keys reads 0 for each missing one, exactly as <see cref="Ordinal"/> reads a short vector in memory, and
-    /// one written for more keys keeps the slots this connector declares.</summary>
-    private long[] OrdinalVector(long[]? stored)
-    {
-        var ordinals = new long[_alts.Count + 1];
-        if (stored is not null) Array.Copy(stored, ordinals, Math.Min(stored.Length, ordinals.Length));
-        return ordinals;
-    }
-
-    /// <summary>The store's frames in the order the persist writes them: RELEASE order (the prime-key ordinal), each frame
-    /// carrying its record's ordinal vector — the order the file is written in decides nothing, because the ordinals
-    /// travel with the records (kb/Work PB2693). Materialized, because the compose enumerates the frames twice.</summary>
-    private IEnumerable<StoredFrame?> PersistFrames() =>
-        _recs.OrderBy(r => Ordinal(r, PrimeKey))
-            .Select(r => (StoredFrame?)new StoredFrame(r.Image, r.Extents,
-                r.Ordinals.Length == _alts.Count + 1 ? r.Ordinals : OrdinalVector(r.Ordinals))).ToList();
-
-    /// <summary>The release mint the persist records with the frames: the store's next release ordinal (kb/Work
-    /// PB2693).</summary>
-    private long ReleaseMint => _st.NextOrdinal;
-
-    /// <summary>The indexed CLOSE body (§14.9.6): a writable mode persists the store with every record's release
-    /// ordinals (<see cref="PersistFrames"/>), so §14.9.30.4 GR26's duplicate retrieval order survives a CLOSE/OPEN
-    /// cycle and run-unit termination. The not-open '42' guard lives on <see cref="FileConnector.Close"/>.</summary>
-    protected override string CloseCore()
-    {
-        // A persist IOException maps to '30' on FileConnector.Close (§9.1.13.6 item 1 — the ONE mapping),
-        // which ends the open mode either way; ModeKnown then stays true for the USE-declarative scoping.
-        // OptionalAbsent (the FPI's "not present" state) survives the CLOSE — §14.9.6.4 GR6 (kb/Work PB140).
-        // The DETACH runs whatever the persist outcome (kb/Work PB143): the connector leaves the shared
-        // store, and never aliases a detached one.
-        try
-        {
-            bool owed = !OptionalAbsent && Mode is not FileOpenMode.Input;
-            // ⛔ A PERSIST THAT CANNOT REACH THE FILE IS NOT A SUCCESSFUL CLOSE (kb/Work PB771). The only way
-            // to get here without the handle is a writable arm that never took the file lock (an invariant
-            // breach); reporting '00' over records this connector still holds would be the silent loss this note
-            // exists to remove.
-            if (!PersistIsReachable(owed))
-                throw new IOException($"the §9.1.15 file lock on '{HostPath}' was not held at the CLOSE, "
-                    + "so the record store cannot be persisted");
-            if (owed) PersistIfChanged(_st);
+            if ((status = forward ? cursor.Next() : cursor.Previous()) != StoreStatus.Ok) return status;
         }
-        finally
-        {
-            // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
-            // file connector", whatever the persist outcome was (kb/Work PB771).
-            ReleaseFileLock();
-            SharedStores?.Detach(HostPath);
-            _st = new IndexedStore();
-        }
-        ModeKnown = false;   // 9.1.4 - after a successful CLOSE the file is in no open mode
-        return FileStatusCode.Success;
+        return StoreStatus.Ok;
     }
 
     // ── READ (ISO §14.9.30) ──────────────────────────────────────────────────────────────────────────────────
@@ -435,26 +347,26 @@ public sealed partial class IndexedConnector : KeyedConnector
     /// VERSION_CHANGE_REFERENCE row 29 — kb/Work PB344).</summary>
     public string ReadPrevious(out string image) => ReadSequential(out image, previous: true);
 
-    /// <summary>ISO §14.9.30.4 GR21's "When the file is an indexed file" SELECTION — rules d)/e)/f) over the
-    /// key-of-reference ordering, returning the record to be made available (<see langword="null"/> is rule
-    /// d) 3/e) 3/f) 3's at-end condition) and its index in <paramref name="seq"/>, which GR27's '02' look-ahead
-    /// needs.
+    /// <summary>ISO §14.9.30.4 GR21's "When the file is an indexed file" SELECTION — rules d)/e)/f) over the key of
+    /// reference's tree, ONE SEEK from the position held as values: the record to be made available (null is rule d) 3/e)
+    /// 3/f) 3's at-end condition), and, with <paramref name="lookAhead"/>, whether the next record in the walk's direction
+    /// duplicates its key (GR27's '02').
     /// <para>⛔ SELECTION ONLY — IT COMMITS NOTHING (kb/Work PB338). Splitting it out of the read is what lets
     /// <see cref="PeekSequentialRecordId"/> answer GR9's "the record identified for access" BEFORE the file
     /// position indicator and the duplicate-set ordinal move, without a second copy of these rules.</para>
     /// </summary>
-    private KeyedRec? SelectSequentialRecord(bool previous, List<KeyedRec> seq, out int foundIdx)
+    private StoreStatus SelectSequentialRecord(bool previous, bool lookAhead, out Found? found, out bool duplicateFollows)
     {
-        KeyedRec? found = null;
-        foundIdx = -1;
+        found = null;
+        duplicateFollows = false;
         // ⛔ WHICH RULE GOVERNS THIS WALK IS DECIDED BY THE PREVIOUS OPERATION, NOT BY A STORED POSITION
         // (kb/Work PB342). §14.9.30.4 GR21 rule d) applies when the previous operation was an OPEN or a START:
         // the FPI then holds a KEY VALUE and nothing else (§14.9.41.4 GR17 e) 1.), so the comparison is on the
         // key ALONE and a duplicate set is entered at the end §14.9.30.4 GR26 names for the direction —
-        // first-released going forward, last-released going backward. Rules e)/f) apply when it was a READ:
-        // only then is there a "record that was made available by that prior READ statement" whose "logical
-        // position within the set of duplicates" the walk resumes strictly after (or before).
-        bool fromRead = _positioner == 'R';
+        // first-released going forward, last-released going backward: a seek on the KEY PART of the entries. Rules
+        // e)/f) apply when it was a READ: only then is there a "record that was made available by that prior READ
+        // statement" whose "logical position within the set of duplicates" the walk resumes strictly after (or
+        // before): a seek on the whole entry, the key and its ordinal.
         // ⛔ §14.9.30.4 GR21 d) 3 — "If no such record is found or PREVIOUS is specified and the previous
         // operation on the file was an OPEN statement, the at end condition exists". THAT SENTENCE IS THE 2023
         // RULE, and Annex E.2 item 22 is the informative record that 2023 AMENDED it: "READ PREVIOUS statement
@@ -470,55 +382,45 @@ public sealed partial class IndexedConnector : KeyedConnector
         // registration; kb/Work PB344, VERSION_CHANGE_REFERENCE row 29.
         if (previous && _positioner == 'O'
             && DialectBehaviors.IsActive(DialectBehavior.IndexedReadPreviousAfterOpenAtEnd, Edition))
-            found = null;
-        else if (_positioner == 'O')
-        {
-            // §14.9.27 GR14 — OPEN INPUT/I-O positions the FPI at the LOWEST record in the key-of-reference's
+            return StoreStatus.Ok;
+        bool composite = _refKey >= 0;
+        bool forward = !previous || _positioner == 'O';
+        StoreStatus status;
+        BTree.Cursor? cursor;
+        if (_positioner == 'O')
+            // §14.9.27 GR14 — OPEN INPUT/I-O positions the FPI at the LOWEST record in the key of reference's
             // collating sequence, so the first READ NEXT yields it — and, at 2002/2014, so does the first READ
-            // PREVIOUS, which is why this arm is reached for BOTH directions there (the gate above).
-            // Read it off the ordered sequence directly
-            // rather than comparing against the empty-string OPEN sentinel: under a §12.4.5.7 alphabet where the
-            // pad SPACE weighs high, that sentinel is NOT the lowest value, so a PositionCompare walk would find
-            // nothing (the collating-sequence AT-END bug). Ordinal order is unaffected — seq[0] is still lowest.
-            if (seq.Count > 0) { found = seq[0]; foundIdx = 0; }
-        }
-        else if (!previous)
-        {
-            for (int i = 0; i < seq.Count; i++)
-            {
-                int c = PositionCompare(seq[i]);
-                if (c > 0 || (!fromRead && c == 0)) { found = seq[i]; foundIdx = i; break; }
-            }
-        }
+            // PREVIOUS, which is why this arm is reached for BOTH directions there (the gate above). The tree's first
+            // entry IS the lowest under its order, whatever weight the sequence gives the pad SPACE.
+            status = _st.Edge(_refKey, _orders, last: false, out cursor);
+        else if (_positioner != 'R')
+            status = _st.Seek(_refKey, _orders, _fpiKey, previous ? SeekRelation.LessOrEqual : SeekRelation.GreaterOrEqual,
+                prefix: composite, out cursor);
         else
-        {
-            for (int i = seq.Count - 1; i >= 0; i--)
-            {
-                int c = PositionCompare(seq[i]);
-                if (c < 0 || (!fromRead && c == 0)) { found = seq[i]; foundIdx = i; break; }
-            }
-        }
-        return found;
-
-        int PositionCompare(KeyedRec rec)
-        {
-            int c = KeyCompare(KeyOf(rec, _refKey), _fpiKey, _refKey);
-            // ⛔ The duplicate-set tie-break is consulted ONLY under rules e)/f). Under rule d) the position IS
-            // the key value (§14.9.41.4 GR17 e) 1.) and consulting a stored ordinal would resume the walk at
-            // whichever duplicate the START happened to stop on — losing the rest of the set (kb/Work PB342).
-            return c != 0 || !fromRead ? c : Ordinal(rec, _refKey).CompareTo(_readOrdinal);
-        }
+            status = _st.Seek(_refKey, _orders, composite ? CompositeKeyOrder.Compose(_fpiKey, _readOrdinal) : _fpiKey,
+                previous ? SeekRelation.LessThan : SeekRelation.GreaterThan, prefix: false, out cursor);
+        if (status != StoreStatus.Ok || cursor is null) return status;
+        if ((status = Resolve(cursor, _refKey, forward, null, out found)) != StoreStatus.Ok || found is not { } f
+            || !lookAhead || !composite)
+            return status;
+        // §14.9.30 GR27 a) — '02': the key of reference is an alternate key and the next record in the walk duplicates
+        // the key just read; the ordinal order makes "next" the next entry of the same key part.
+        if ((status = forward ? cursor.Next() : cursor.Previous()) != StoreStatus.Ok) return status;
+        var keyOrder = OrderOf(_refKey);
+        status = Resolve(cursor, _refKey, forward, part => keyOrder.Compare(part, f.KeyPart) == 0, out var adjacent);
+        duplicateFollows = adjacent is not null;
+        return status;
     }
 
     /// <inheritdoc/>
     /// <remarks>The indexed organization's §14.9.30.4 GR9 pre-read conflict target: the PRIME key of the record
     /// <see cref="SelectSequentialRecord"/> names, which is this organization's lock identity (§9.1.16). The
     /// remaining precondition beyond <c>SequentialReadReachesRetrieval</c> is a valid file position indicator
-    /// (a failed START leaves none — §14.9.41.4 GR7).</remarks>
+    /// (a failed START leaves none — §14.9.41.4 GR7). A torn page names no record; the READ itself then answers '30'.</remarks>
     public override string PeekSequentialRecordId(bool previous) =>
-        SequentialReadReachesRetrieval && _fpiValid
-        && SelectSequentialRecord(previous, Ordered(_refKey), out _) is { } found
-            ? KeyOf(found, PrimeKey)
+        SequentialReadReachesRetrieval && FpiValid
+        && SelectSequentialRecord(previous, lookAhead: false, out var found, out _) == StoreStatus.Ok && found is { } f
+            ? Identity(f.Prime)
             : "";
 
     /// <inheritdoc/>
@@ -528,50 +430,48 @@ public sealed partial class IndexedConnector : KeyedConnector
     public override string PeekRandomReadRecordId(int keyIndex, string recordImage, RecordExtents? recordExtents)
     {
         if (ReadOpenModeGuard() is not null || OptionalAbsent) return "";
-        return FindRandom(keyIndex, AreaKey(recordImage, recordExtents, keyIndex)) is { } found ? KeyOf(found, PrimeKey) : "";
+        return FindRandom(keyIndex, KeyBytes(AreaKey(recordImage, recordExtents, keyIndex)), out var found) == StoreStatus.Ok
+            && found is { } f ? Identity(f.Prime) : "";
     }
 
-    /// <summary>ISO §14.9.30.4 GR32's record identification for a random READ — the first record whose key of
-    /// reference equals <paramref name="value"/>, and among duplicate alternates <i>"the first record in a
-    /// sequence of duplicates that was released to the operating environment"</i> (the smallest release ordinal
-    /// under THAT key); §12.4.5.6.4 GR6's SUPPRESS WHEN records do not exist for the walk. ⛔ SELECTION ONLY —
-    /// it establishes no key of reference and moves no position (kb/Work PB338).</summary>
-    private KeyedRec? FindRandom(int keyIndex, string value)
+    /// <summary>ISO §14.9.30.4 GR32's record identification for a random READ — the record whose key of reference equals
+    /// <paramref name="value"/>, and among duplicate alternates <i>"the first record in a sequence of duplicates that was
+    /// released to the operating environment"</i>: the FIRST entry of the key's tree whose key part equals the value,
+    /// because the smallest ordinal sorts first. §12.4.5.6.4 GR6's SUPPRESS WHEN records have no entry. ⛔ SELECTION
+    /// ONLY — it establishes no key of reference and moves no position (kb/Work PB338).</summary>
+    private StoreStatus FindRandom(int keyIndex, byte[]? value, out Found? found)
     {
-        KeyedRec? found = null;
-        foreach (var rec in _recs)
-            if (!IsSuppressed(rec, keyIndex) && KeyEq(KeyOf(rec, keyIndex), value, keyIndex)
-                && (found is null || Ordinal(rec, keyIndex) < Ordinal(found, keyIndex)))
-                found = rec;
-        return found;
+        found = null;
+        if (value is null) return StoreStatus.Ok;
+        if (keyIndex < 0)
+        {
+            var status = _st.Get(_orders, value, out var frame);
+            if (status != StoreStatus.Ok || frame is null) return status;
+            if (Decoded(frame) is not { } record) return StoreStatus.PermanentError;
+            found = new Found(value, record, value, OrdinalOf(record, PrimeKey));
+            return StoreStatus.Ok;
+        }
+        var seek = _st.Seek(keyIndex, _orders, value, SeekRelation.Equal, prefix: true, out var cursor);
+        if (seek != StoreStatus.Ok || cursor is null) return seek;
+        var order = OrderOf(keyIndex);
+        return Resolve(cursor, keyIndex, forward: true, part => order.Compare(part, value) == 0, out found);
     }
 
     private string ReadSequential(out string image, bool previous)
     {
         image = BlankRecordArea();
         if (SequentialReadGuard() is { } pre) return Unsuccessful(pre);   // '47'/'46'/'10' — FileConnector
-        if (!_fpiValid) return Unsuccessful(FileStatusCode.NoValidNextRecord);   // '46' §9.1.13.7 6a (failed START)
-
-        var seq = Ordered(_refKey);
-        if (SelectSequentialRecord(previous, seq, out int foundIdx) is not { } found)
-            return Unsuccessful(FileStatusCode.AtEnd);                     // §14.9.30 GR24b
-        // §14.9.30 GR27 — '02' look-ahead: alternate key of reference and the adjacent record duplicates it.
-        string status = FileStatusCode.Success;
-        if (_refKey >= 0)
-        {
-            KeyedRec? adjacent = previous
-                ? (foundIdx > 0 ? seq[foundIdx - 1] : null)
-                : (foundIdx + 1 < seq.Count ? seq[foundIdx + 1] : null);
-            if (adjacent is not null && KeyEq(KeyOf(adjacent, _refKey), KeyOf(found, _refKey), _refKey))
-                status = FileStatusCode.DuplicateAlternateKey;
-        }
-        _fpiKey = KeyOf(found, _refKey);                             // GR21 rule g — a KEY VALUE
-        _readOrdinal = Ordinal(found, _refKey);                            // GR21 e)/f) — where in its set of duplicates
-        _fpiValid = true; _positioner = 'R';
-        _lastReadPrime = KeyOf(found, PrimeKey);
-        NoteRecordRead(found.Image, found.Extents);   // §13.18.43 GR15 — the stored frame length
-        image = Fit(found.Image);
-        return ReadSucceeded(status);
+        if (!FpiValid) return Unsuccessful(FileStatusCode.NoValidNextRecord);   // '46' §9.1.13.7 6a (failed START)
+        if (SelectSequentialRecord(previous, lookAhead: true, out var selected, out bool duplicate) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);              // a torn page: '30' §9.1.13.6 item 1
+        if (selected is not { } found) return Unsuccessful(FileStatusCode.AtEnd);   // §14.9.30 GR24b
+        _fpiKey = found.KeyPart;                                           // GR21 rule g — a KEY VALUE
+        _readOrdinal = found.Ordinal;                                      // GR21 e)/f) — where in its set of duplicates
+        FpiValid = true; _positioner = 'R';
+        _lastReadPrime = found.Prime;
+        NoteRecordRead(found.Record.Image, found.Record.Extents);   // §13.18.43 GR15 — the stored frame length
+        image = Fit(found.Record.Image);
+        return ReadSucceeded(duplicate ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success);
     }
 
     /// <summary>Format-2 random READ (§14.9.30 GR30–GR32): <paramref name="keyIndex"/> becomes the key of
@@ -586,27 +486,70 @@ public sealed partial class IndexedConnector : KeyedConnector
         if (ReadOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);            // '47' §14.9.30.4 GR2
         _refKey = keyIndex;                                                // GR30/GR31
         if (RandomReadAbsentOptionalGuard() is { } absent) return Unsuccessful(absent);  // '23' §9.1.13.5 3 b)
-        string value = AreaKey(keyedRecordImage, areaExtents, keyIndex);
-        if (FindRandom(keyIndex, value) is not { } found)   // §14.9.30.4 GR32 + §12.4.5.6.4 GR6 — the ONE copy
-            return Unsuccessful(FileStatusCode.RecordNotFound);            // '23' GR32
+        byte[]? value = KeyBytes(AreaKey(keyedRecordImage, areaExtents, keyIndex));
+        if (FindRandom(keyIndex, value, out var selected) != StoreStatus.Ok)   // §14.9.30.4 GR32 + §12.4.5.6.4 GR6 — the ONE copy
+            return Unsuccessful(FileStatusCode.PermanentError);            // a torn page: '30' §9.1.13.6 item 1
+        if (selected is not { } found) return Unsuccessful(FileStatusCode.RecordNotFound);   // '23' GR32
         // GR32 sets the FPI "to the value in the key of reference" — the key VALUE the program supplied; the
         // duplicate-set position of the record made available is separate state (GR21 e)/f), kb/Work PB342).
-        _fpiKey = value; _readOrdinal = Ordinal(found, keyIndex); _fpiValid = true; _positioner = 'R';
-        _lastReadPrime = KeyOf(found, PrimeKey);
-        NoteRecordRead(found.Image, found.Extents);   // §13.18.43 GR15 — the stored frame length
-        image = Fit(found.Image);
+        _fpiKey = value!; _readOrdinal = found.Ordinal; FpiValid = true; _positioner = 'R';
+        _lastReadPrime = found.Prime;
+        NoteRecordRead(found.Record.Image, found.Record.Extents);   // §13.18.43 GR15 — the stored frame length
+        image = Fit(found.Record.Image);
         return ReadSucceeded(FileStatusCode.Success);
     }
 
     // ── WRITE / REWRITE / DELETE (ISO §14.9.51 / §14.9.35 / §14.9.10) ───────────────────────────────────────
 
+    /// <summary>Whether a record other than the one whose prime key is <paramref name="self"/> (null: any record) has
+    /// <paramref name="value"/> under alternate key <paramref name="keyIndex"/> — the uniqueness test of §14.9.51.4
+    /// GR40/GR42 c) and §14.9.35.4 GR25 c), a seek on the key part (§12.4.5.12.4 GR1: equality under the key's
+    /// collating sequence). A key the file has no tree for has no access path to test.</summary>
+    private StoreStatus Duplicates(int keyIndex, byte[] value, byte[]? self, out bool exists)
+    {
+        exists = false;
+        var status = _st.Seek(keyIndex, _orders, value, SeekRelation.Equal, prefix: true, out var cursor);
+        if (status != StoreStatus.Ok || cursor is null) return status;
+        var order = OrderOf(keyIndex);
+        while (true)
+        {
+            if ((status = Resolve(cursor, keyIndex, forward: true, part => order.Compare(part, value) == 0, out var found))
+                != StoreStatus.Ok || found is not { } f)
+                return status;
+            if (self is null || _orders.Prime.Compare(f.Prime, self) != 0) { exists = true; return StoreStatus.Ok; }
+            if ((status = cursor.Next()) != StoreStatus.Ok) return status;
+        }
+    }
+
+    /// <summary>Alternate key <paramref name="keyIndex"/>'s value in a record, as its tree's key part, or null when it is
+    /// the key's SUPPRESS WHEN value — §12.4.5.6.4 GR6: <i>"an alternate record key access path to a particular record
+    /// shall not be provided when the value of data-name-1 or record-key-name-1 in that record is equal to literal-1"</i>,
+    /// so the record has no entry in the key's tree and, under that key of reference, <i>"is not considered to exist"</i>
+    /// (§14.9.30.4 GR21 c)) for READ and START. The comparison is the §14.9.51 GR35
+    /// relation condition under this key's collating sequence; the registered value is already the key's own image (a
+    /// figurative or ALL literal repeated to the key's size, a shorter literal space-extended, a national value in national
+    /// spaces — <c>DataBinder.KeySuppressionOf</c>, kb/Work PB1072), because only the compiler knows the literal's form
+    /// and the key's category. The prime key is NEVER suppressible (GR6 scopes suppression to alternate keys).</summary>
+    private byte[]? AlternateValue(string image, RecordExtents? extents, int keyIndex)
+    {
+        byte[] value = KeyBytes(KeyOf(image, extents, keyIndex))!;   // a stored or storable record has a byte image ('91')
+        return _suppress[keyIndex] is { } suppress && _orders.Alternates[keyIndex].Compare(value, suppress) == 0 ? null : value;
+    }
+
+    /// <summary>A record's frame bytes under the file's ordinal slots (<see cref="IndexedStore.FrameSlots"/>), the one
+    /// codec (<see cref="RecordFraming.EncodeFrame"/>).</summary>
+    private byte[] FrameOf(StoredFrame record, long[] ordinals) =>
+        RecordFraming.EncodeFrame(record with { Ordinals = ordinals }, _st.FrameSlots, CodeSet);
+
     /// <summary>WRITE (§14.9.51 GR34–GR42): sequential access requires strictly ascending prime keys ('21',
     /// GR38/GR42a); a duplicate prime key → '22' (GR36/GR42b); a duplicate no-DUPLICATES alternate → '22'
     /// (GR40/GR42c); a permitted duplicate alternate succeeds with '02' (§9.1.13.2 2c). The released record takes
     /// the next release ordinal under EVERY key at once, so sequential retrieval order is the actual write order
-    /// (GR40). Open-mode legality per §9.1.13.7 item 8.</summary>
+    /// (GR40). A record whose pages would take the store past the boundary of the physical file → '24' (GR42 d),
+    /// 2.2.1.9); a medium that refuses the statement's pages → '30' (§9.1.13.6 item 1), the file as the previous statement
+    /// left it. Open-mode legality per §9.1.13.7 item 8.</summary>
     /// <param name="extents">The record's EXTENT TABLE when a variable-length group record is written
-    /// (determination D-FRA (v); kb/Work PB1053): stored and persisted with it, and what locates a key the record's
+    /// (determination D-FRA (v); kb/Work PB1053): stored with it, and what locates a key the record's
     /// variable-length members precede.</param>
     public string Write(string image, int length = -1, RecordExtents? extents = null)
     {
@@ -633,43 +576,54 @@ public sealed partial class IndexedConnector : KeyedConnector
         // answered '44' where its own REWRITE and DELETE answer the open mode.
         if (RecordRulesFailure(image, length, out string stored) is { } badRecord)
             return Status = badRecord;                                     // '44' §14.9.51.4 GR14, then '91'
-        extents = Framed(stored, image, extents).Extents;
+        var framed = Framed(stored, image, extents);
+        extents = framed.Extents;
         image = _layoutKeys ? stored : Fit(image);   // key slices come from the record-area image (KeyOf pads on demand)
-        string prime = KeyOf(image, extents, PrimeKey);
-        if (sequentialRelease && _lastWrittenPrime is { } lastPrime && KeyCompare(prime, lastPrime, PrimeKey) <= 0)
+        byte[] prime = KeyBytes(KeyOf(image, extents, PrimeKey))!;
+        if (sequentialRelease && _lastWrittenPrime is { } lastPrime && _orders.Prime.Compare(prime, lastPrime) <= 0)
             return Status = FileStatusCode.SequenceError;                  // '21' GR38/GR42a
-        if (_recs.Any(r => KeyEq(KeyOf(r, PrimeKey), prime, PrimeKey)))
-            return Status = FileStatusCode.DuplicateKey;                   // '22' GR36/GR42b
+        if (_st.Get(_orders, prime, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' GR36/GR42b
         bool duplicateAlt = false;
+        var alternates = new byte[]?[_alts.Count];
         for (int i = 0; i < _alts.Count; i++)
         {
-            if (IsSuppressed(image, extents, i)) continue;   // §14.9.51 GR41 — a suppressed alternate key provides no access path and never duplicates
-            string value = KeyOf(image, extents, i);
-            bool exists = _recs.Any(r => !IsSuppressed(r, i) && KeyEq(KeyOf(r, i), value, i));
+            // §14.9.51 GR41 — a suppressed alternate key provides no access path and never duplicates.
+            if ((alternates[i] = AlternateValue(image, extents, i)) is not { } value) continue;
+            if (Duplicates(i, value, self: null, out bool exists) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;   // '22' GR40/GR42c
             if (exists) duplicateAlt = true;
         }
-        // §14.9.51.4 GR42 d) — "When the record that is to be released to the operating environment would reside
-        // outside the externally defined boundaries of the physical file, the I-O status … is set to '24'":
-        // the store's capacity (Annex A.1 item 107, KeyedConnector.StoreHolds), tested before the release.
-        if (!StoreHolds(_st.RecordBytes + IndexedStore.FrameBytes(stored, extents, _alts.Count + 1)))
-            return Status = FileStatusCode.BoundaryViolation;              // '24' GR42d
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.51.4 GR40 — the WRITE RELEASES the record, so it is positioned last in the duplicate set of
         // EVERY key at once: one fresh ordinal stamped into every slot (the prime slot doubles as the record's
-        // release order in the physical file — see KeyedRec.Ordinals).
-        _st.Add(new KeyedRec { Image = stored, Extents = extents, Ordinals = ReleaseOrdinals(_nextOrdinal++) });
+        // release order in the physical file).
+        var released = _st.Release(Entered, _orders, prime,
+            ordinal => FrameOf(framed, ReleaseOrdinals(ordinal)), alternates, out bool done);
+        if (RecordWriteFailed(released) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR42 d) / '30' §9.1.13.6 1)
+        if (!done) return Status = FileStatusCode.DuplicateKey;            // '22' — the tree declined (GR42 b))
         if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
         _lastWrittenPrimeId = prime;   // §9.1.16 lock identity of the record just released (§14.9.51 GR11)
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
+    }
+
+    /// <summary>A freshly released record's ordinal vector: ONE ordinal in every slot the file records — a WRITE releases
+    /// the record under every key at the same instant (§14.9.51.4 GR40).</summary>
+    private long[] ReleaseOrdinals(ulong ordinal)
+    {
+        var ordinals = new long[_st.FrameSlots];
+        Array.Fill(ordinals, (long)ordinal);
+        return ordinals;
     }
 
     /// <summary>REWRITE (§14.9.35): open mode I-O ('49'); sequential access requires the previous op to be a
     /// successful READ ('43', GR5) AND the prime key to equal the last-read prime ('21', GR22/GR25a);
     /// random/dynamic an existing prime ('23', GR23/GR25b); a no-DUPLICATES alternate conflict with ANOTHER
     /// record → '22' (GR25c); a CHANGED alternate key — and ONLY a changed one, GR24 a) — repositions the record
-    /// LAST in that key's duplicate set (GR24 b: it takes the next release ordinal under that key alone); a
-    /// duplicate key value CREATED under a permitted-duplicates alternate → '02' (§9.1.13.2 2 c).</summary>
+    /// LAST in that key's duplicate set (GR24 b: it takes a fresh release ordinal under that key alone); a
+    /// duplicate key value CREATED under a permitted-duplicates alternate → '02' (§9.1.13.2 2 c). A replacing record whose
+    /// pages would take the store past the boundary of the physical file → '24' (§9.1.13.5 item 4); a medium that refuses
+    /// them → '30'.</summary>
     /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053), replaced with it.</param>
     public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
     {
@@ -681,103 +635,104 @@ public sealed partial class IndexedConnector : KeyedConnector
         if (sequential && !wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;   // '43' GR5
         if (RecordRulesFailure(image, length, out string stored) is { } badRecord)
             return Status = badRecord;                                                          // '44' GR20, then '91'
-        extents = Framed(stored, image, extents).Extents;
+        var framed = Framed(stored, image, extents);
+        extents = framed.Extents;
         image = _layoutKeys ? stored : Fit(image);   // the WRITE's key image rule (kb/Work PB1025)
-        string prime = KeyOf(image, extents, PrimeKey);
-        if (sequential)
-        {
-            // '21' §14.9.35 GR22 — the prime key of the replaced record must EQUAL that of the last record read;
-            // equality is collating-sequence-based per §12.4.5.12.4 GR1 (KeyEq honors _primeCollation), not ordinal.
-            if (_lastReadPrime is not { } lastPrime || !KeyEq(prime, lastPrime, PrimeKey))
-                return Status = FileStatusCode.SequenceError;
-        }
-        KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r, PrimeKey), prime, PrimeKey));
-        if (target is null) return Status = FileStatusCode.RecordNotFound;                      // '23' GR23
-        // ⛔ TWO PASSES, AND THE ORDER MATTERS. Pass 1 VALIDATES ONLY: an early '22' leaves the REWRITE
-        // unsuccessful, so nothing may have been repositioned by then. Pass 2 applies GR24's repositioning, and
-        // both run while target.Image is still the REPLACED record — AltChanged compares against it.
+        byte[] prime = KeyBytes(KeyOf(image, extents, PrimeKey))!;
+        // '21' §14.9.35 GR22 — the prime key of the replaced record must EQUAL that of the last record read;
+        // equality is collating-sequence-based per §12.4.5.12.4 GR1 (the prime key's order), not ordinal.
+        if (sequential && (_lastReadPrime is not { } lastPrime || _orders.Prime.Compare(prime, lastPrime) != 0))
+            return Status = FileStatusCode.SequenceError;
+        if (_st.Get(_orders, prime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (frame is null) return Status = FileStatusCode.RecordNotFound;                       // '23' GR23
+        if (Decoded(frame) is not { } target) return Status = FileStatusCode.PermanentError;
+        // ⛔ VALIDATE FIRST, THEN CHANGE. An early '22' leaves the REWRITE unsuccessful, so nothing may have been
+        // repositioned by then; the statement below changes every tree at once or none.
         bool duplicateAlt = false;
+        var moves = new List<(int Key, byte[]? Old, byte[]? New)>();
         for (int i = 0; i < _alts.Count; i++)
         {
-            // §12.4.5.6.4 GR6 — a key whose value equals its SUPPRESS WHEN value provides no access path, so it
-            // is skipped for the uniqueness check (it can never duplicate, §14.9.51.4 GR41 by parity with WRITE).
-            if (IsSuppressed(image, extents, i)) continue;
-            string newValue = KeyOf(image, extents, i);
-            bool exists = _recs.Any(r => !ReferenceEquals(r, target) && !IsSuppressed(r, i) && KeyEq(KeyOf(r, i), newValue, i));
+            byte[]? now = AlternateValue(image, extents, i);
+            byte[]? old = AlternateValue(target.Image, target.Extents, i);
+            // The ONE definition of "this REWRITE changed alternate key i" that GR24 a)/b), GR24's SUPPRESS WHEN
+            // sub-rules and §9.1.13.2 2 c) all key off. §14.9.35.4 GR24's closing sentence — "The comparison used for
+            // determining changes to the key is based on the collating sequence for the file according to the rules
+            // for a relation condition" — makes it the key's order, not a byte compare; entering OR leaving
+            // suppression is a change of its own (GR24's two SUPPRESS WHEN sub-rules both reposition).
+            bool changed = (now is null) != (old is null) || now is not null && _orders.Alternates[i].Compare(now, old!) != 0;
+            if (changed) moves.Add((i, old is null ? null : CompositeKeyOrder.Compose(old, OrdinalOf(target, i)), now));
+            // §12.4.5.6.4 GR6 — a key whose value equals its SUPPRESS WHEN value provides no access path, so it is
+            // skipped for the uniqueness check (it can never duplicate, §14.9.51.4 GR41 by parity with WRITE).
+            if (now is null) continue;
+            if (Duplicates(i, now, self: prime, out bool exists) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;          // '22' GR25c
             // §9.1.13.2 2 c) — '02' is "the record just written CREATED a duplicate key value": a key whose
             // value and suppression state this REWRITE did not change duplicated before the statement ran too,
             // so it created nothing (kb/Work PB341).
-            if (exists && AltChanged(i)) duplicateAlt = true;
+            if (exists && changed) duplicateAlt = true;
         }
-        // §9.1.13.5 item 4 — a replacing record the store cannot hold (a longer record, §14.9.35.4 GR18) is an
-        // attempt to write outside the file's externally-defined boundaries: '24', still inside the validation
-        // pass, so nothing below has been repositioned (Annex A.1 item 107).
-        if (!StoreHolds(_st.RecordBytes + IndexedStore.FrameBytes(stored, extents, target.Ordinals.Length)
-            - IndexedStore.FrameBytes(target.Image, target.Extents, target.Ordinals.Length)))
-            return Status = FileStatusCode.BoundaryViolation;                                   // '24'
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
         // retrieval when that key is the key of reference remains unchanged" — so ONLY the keys this REWRITE
-        // actually changed are re-stamped; b) puts the record "last within the set of duplicate records" of
+        // actually changed are re-stamped and moved; b) puts the record "last within the set of duplicate records" of
         // each of those, which one ordinal off the monotone mint does for all of them at once.
-        long repositioned = 0;
-        for (int i = 0; i < _alts.Count; i++)
+        var replaced = _st.Replace(Entered, _orders, prime, ordinal =>
         {
-            if (!AltChanged(i)) continue;
-            if (repositioned == 0) repositioned = _nextOrdinal++;
-            Stamp(target, i, repositioned);                                                     // GR24 b)
-        }
-        _st.Replace(target, stored, extents);
+            long[] ordinals = target.Ordinals is { } o ? (long[])o.Clone() : new long[_st.FrameSlots];
+            foreach (var (key, _, _) in moves)
+                if (key + 1 < ordinals.Length) ordinals[key + 1] = (long)ordinal;   // GR24 b)
+            return FrameOf(framed, ordinals);
+        }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done);
+        if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
+        if (!done) return Status = FileStatusCode.RecordNotFound;
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
-
-        // The ONE definition of "this REWRITE changed alternate key i" that GR24 a)/b), GR24's SUPPRESS WHEN
-        // sub-rules and §9.1.13.2 2 c) all key off. §14.9.35.4 GR24's closing sentence — "The comparison used for
-        // determining changes to the key is based on the collating sequence for the file according to the rules
-        // for a relation condition" — makes it KeyEq, not an ordinal string compare; entering OR leaving
-        // suppression is a change of its own (GR24's two SUPPRESS WHEN sub-rules both reposition).
-        bool AltChanged(int i) =>
-            !KeyEq(KeyOf(image, extents, i), KeyOf(target, i), i)
-            || IsSuppressed(image, extents, i) != IsSuppressed(target, i);
     }
 
     /// <summary>DELETE RECORD (§14.9.10): open mode I-O ('49', GR1); sequential access removes the prior READ's
     /// record ('43' without one, GR2); random/dynamic removes the record whose PRIME key equals the prime key
-    /// item's content (sliced from the record area image — GR3; absent → invalid key '23'). The FPI is unaffected
-    /// (GR9) — the position survives because it is held as values (key + release ordinal) the next READ
-    /// re-derives from, not as a reference to the deleted record.</summary>
+    /// item's content (sliced from the record area image — GR3; absent → invalid key '23'). The record's n + 1 entries
+    /// go in one statement; a medium that refuses its pages → '30'. The FPI is unaffected (GR9) — the position survives
+    /// because it is held as values (key + release ordinal) the next READ seeks from, not as a reference to the deleted
+    /// record.</summary>
     public string Delete(string keyedRecordImage, RecordExtents? areaExtents = null)
     {
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §14.9.35.4 GR3 / §14.9.10.4 GR1
-        string prime;
+        byte[]? prime;
         if (Access == KeyedAccess.Sequential)   // §14.9.10.4 GR2 vs. GR3 — the ACCESS MODE alone
         {
             if (!wasRead) return Status = FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite;
-            prime = _lastReadPrime ?? "";
+            prime = _lastReadPrime;
         }
         else
-            prime = AreaKey(keyedRecordImage, areaExtents, PrimeKey);
-        KeyedRec? target = _recs.FirstOrDefault(r => KeyEq(KeyOf(r, PrimeKey), prime, PrimeKey));
-        if (target is null) return Status = FileStatusCode.RecordNotFound;
-        _st.Remove(target);
-        return Status = FileStatusCode.Success;
+            prime = KeyBytes(AreaKey(keyedRecordImage, areaExtents, PrimeKey));
+        if (prime is null) return Status = FileStatusCode.RecordNotFound;
+        if (_st.Get(_orders, prime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (frame is null) return Status = FileStatusCode.RecordNotFound;
+        if (Decoded(frame) is not { } target) return Status = FileStatusCode.PermanentError;
+        var entries = new List<(int Key, byte[] Entry)>(_alts.Count);
+        for (int i = 0; i < _alts.Count; i++)
+            if (AlternateValue(target.Image, target.Extents, i) is { } value)
+                entries.Add((i, CompositeKeyOrder.Compose(value, OrdinalOf(target, i))));
+        var removed = _st.Remove(Entered, _orders, prime, entries, out bool done);
+        if (Failed(removed) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
+        return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
 
     // ── START (ISO §14.9.41) ─────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>START KEY rel-op (GR16/GR17): the comparison takes the leftmost <paramref name="compareLength"/>
-    /// characters of each stored key (the GR17 temporary-area partial-key model — a generic/shorter operand or
-    /// the 2002+ WITH LENGTH count). An out-of-range length → '23' (GR14). Forward search (=, &gt;, &gt;=) takes
-    /// the FIRST record in (key value, release ordinal) order satisfying the comparison; reverse (&lt;, &lt;=) the LAST — the
-    /// indexed analogue of the relative GR9b reverse search. Success establishes <paramref name="keyIndex"/> as
-    /// the key of reference for subsequent sequential READs (GR16); failure invalidates the FPI and leaves the
-    /// key of reference undefined (GR7).</summary>
+    /// <summary>START KEY rel-op (GR16/GR17): the comparison takes the leftmost <paramref name="length"/> characters
+    /// of each stored key (the GR17 temporary-area partial-key model — a generic/shorter operand or the 2002+ WITH LENGTH
+    /// count), ONE SEEK of the key's tree under its order with the partial key as a prefix of each entry's key part
+    /// (2.2.1.4). An out-of-range length → '23' (GR14). Forward search (=, &gt;, &gt;=) takes the FIRST record in (key
+    /// value, release ordinal) order satisfying the comparison; reverse (&lt;, &lt;=) the LAST — the file searched in
+    /// reverse order (GR17 d)). Success establishes <paramref name="keyIndex"/> as the key of reference for subsequent
+    /// sequential READs (GR16); failure invalidates the FPI and leaves the key of reference undefined (GR7).</summary>
     /// <param name="keyedRecordImage">⛔ THE RECORD AREA, NOT data-name-1's own content (kb/Work PB355).
     /// §14.9.41.4 GR17 a) — "The specified key is set up by moving the relevant parts of the record area into a
     /// temporary data area" — names the record area as the SOURCE and GR16's key of reference as the key, so the
     /// first temporary area is <see cref="KeyOf"/> the area under <paramref name="keyIndex"/>, truncated to the
-    /// GR17 b) length the caller passes as <paramref name="compareLength"/>. That is the SAME extraction the
+    /// GR17 b) length the caller passes as <paramref name="length"/>. That is the SAME extraction the
     /// random READ (§14.9.30.4 GR32) and DELETE (§14.9.10.4 GR3) make from the same image; taking data-name-1's
     /// own bytes and PADDING them to the count instead made a LENGTH that reaches past the operand search for
     /// invented spaces where the record area holds the rest of the key.</param>
@@ -793,30 +748,30 @@ public sealed partial class IndexedConnector : KeyedConnector
         if (!length.TryCompareLength(keyLength, out int compareLength)) return StartFail();   // '23' GR14
         // GR17 a)/b) — the first temporary area. KeyOf pads the area to the key's own span, so the slice is
         // always in range once GR14 above has bounded compareLength by that span.
-        string value = AreaKey(keyedRecordImage, areaExtents, keyIndex)[..compareLength];
-        var seq = Ordered(keyIndex);
-        KeyedRec? found = null;
-        bool forward = op is "==" or ">" or ">=";
-        for (int i = 0; i < seq.Count; i++)
+        if (KeyBytes(AreaKey(keyedRecordImage, areaExtents, keyIndex)[..compareLength]) is not { } value) return StartFail();
+        var relation = op switch
         {
-            var rec = seq[forward ? i : seq.Count - 1 - i];
-            string part = KeyOf(rec, keyIndex)[..compareLength];
-            int c = KeyCompare(part, value, keyIndex);   // §14.9.41 GR17e — the file's collating sequence
-            bool satisfied = op switch
-            {
-                "==" => c == 0,
-                ">" => c > 0,
-                ">=" => c >= 0,
-                "<" => c < 0,
-                "<=" => c <= 0,
-                _ => false,
-            };
-            if (satisfied) { found = rec; break; }
-        }
-        if (found is null) return StartFail();                             // '23' — comparison not satisfied
+            "==" => SeekRelation.Equal,
+            ">" => SeekRelation.GreaterThan,
+            ">=" => SeekRelation.GreaterOrEqual,
+            "<" => SeekRelation.LessThan,
+            "<=" => SeekRelation.LessOrEqual,
+            _ => throw new ArgumentException($"'{op}' is not a START relational operator", nameof(op)),
+        };
+        // §14.9.41 GR17 e) — the comparison is the file's collating sequence over operands of equal length: the key's
+        // order over the leading compareLength positions of each entry's key part.
+        if (_st.Seek(keyIndex, _orders, value, relation, prefix: true, out var cursor) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §9.1.13.6 item 1
+        if (cursor is null) return StartFail();                           // '23' — no tree, no record satisfies it
+        bool forward = relation is SeekRelation.Equal or SeekRelation.GreaterThan or SeekRelation.GreaterOrEqual;
+        var order = OrderOf(keyIndex);
+        Func<byte[], bool>? satisfies = relation == SeekRelation.Equal ? part => order.ComparePrefix(part, value) == 0 : null;
+        if (Resolve(cursor, keyIndex, forward, satisfies, out var found) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);
+        if (found is not { } f) return StartFail();                       // '23' — comparison not satisfied
         // GR16 — "The key specified in the KEY phrase … becomes the key of reference", and GR17 e) 1. sets the
         // file position indicator to ITS value in the record the comparison stopped on.
-        return StartSucceeded(keyIndex, found);
+        return StartSucceeded(keyIndex, f.KeyPart);
     }
 
     /// <summary>START FIRST/LAST (COBOL-2002+) on an indexed file: §14.9.41.4 GR18 — "If FIRST is specified, the
@@ -825,19 +780,21 @@ public sealed partial class IndexedConnector : KeyedConnector
     /// last existing record. An empty or absent-optional file → invalid key '23' (GR18/GR19's own second
     /// sentence).</summary>
     /// <remarks>⛔ THE PRIME KEY IS BOTH THE ORDERING AND THE OUTCOME (kb/Work PB356). GR18/GR19 name the primary
-    /// key twice over: the record selected is the first/last one under the PRIME ordering, and the key of
-    /// reference the statement leaves behind for every subsequent sequential READ (GR16's last sentence,
-    /// §14.9.30.4 GR21 b)'s "otherwise") is the prime key too. Walking the INHERITED key of reference instead
-    /// — which this method used to do, justified by §14.9.27.4 GR14, a real clause about what OPEN establishes
-    /// and not about what START FIRST/LAST does — answered LAST with the alternate ordering's last record and
-    /// left every following READ NEXT walking that alternate; and where the alternate carries SUPPRESS WHEN
-    /// (§12.4.5.6.4 GR6) it additionally hid records the primary-key view must include.</remarks>
+    /// key twice over: the record selected is the first/last one under the PRIME ordering — the prime tree's first or
+    /// last entry — and the key of reference the statement leaves behind for every subsequent sequential READ (GR16's
+    /// last sentence, §14.9.30.4 GR21 b)'s "otherwise") is the prime key too. Walking the INHERITED key of reference
+    /// instead — which this method used to do, justified by §14.9.27.4 GR14, a real clause about what OPEN establishes
+    /// and not about what START FIRST/LAST does — answered LAST with the alternate ordering's last record and left
+    /// every following READ NEXT walking that alternate; and where the alternate carries SUPPRESS WHEN (§12.4.5.6.4
+    /// GR6) it additionally hid records the primary-key view must include.</remarks>
     public string StartFirstLast(bool last)
     {
         if (StartOpenModeGuard() is { } notOpen) return Unsuccessful(notOpen);   // '47' §14.9.41.4 GR1 + GR7
-        if (OptionalAbsent || _recs.Count == 0) return StartFail();
-        var seq = Ordered(PrimeKey);   // GR18/GR19 — "in the physical file": the PRIME ordering, not the inherited one
-        return StartSucceeded(PrimeKey, last ? seq[^1] : seq[0]);
+        if (OptionalAbsent) return StartFail();
+        // GR18/GR19 — "in the physical file": the PRIME tree, not the inherited key of reference's
+        if (_st.Edge(PrimeKey, _orders, last, out var cursor) != StoreStatus.Ok)
+            return Unsuccessful(FileStatusCode.PermanentError);           // a torn page: '30' §9.1.13.6 item 1
+        return cursor is { HasCurrent: true } ? StartSucceeded(PrimeKey, cursor.Key) : StartFail();
     }
 
     /// <summary>The epilogue of EVERY successful START on an indexed file (§14.9.41.4): the format's own
@@ -851,68 +808,15 @@ public sealed partial class IndexedConnector : KeyedConnector
     /// kb/Work PB342): which record of a duplicate set the search stopped on is NOT recorded, so the following
     /// READ enters the set at the end §14.9.30.4 GR26 names for ITS direction — which is why
     /// <c>_readOrdinal</c> is deliberately untouched here and <c>_positioner</c> becomes 'S'.</remarks>
-    private string StartSucceeded(int keyOfReference, KeyedRec found)
+    private string StartSucceeded(int keyOfReference, byte[] keyValue)
     {
         _refKey = keyOfReference;
-        _fpiKey = KeyOf(found, keyOfReference);
-        _fpiValid = true; _positioner = 'S';
+        _fpiKey = keyValue;
+        FpiValid = true; _positioner = 'S';
         return StartPositioned();
     }
 
-    /// <inheritdoc/>  (a keyed FPI is a key VALUE plus a validity bit; §14.9.41.4 GR7 clears the bit too,
-    /// and its second sentence leaves the key of reference undefined, so _refKey needs no reset)
-    protected override void InvalidateFilePosition()
-    {
-        _fpiValid = false;
-        base.InvalidateFilePosition();   // → '46' on the next sequential READ (§9.1.13.7 item 6 a))
-    }
-
-    /// <summary>An unsuccessful START whose status is the invalid key condition's '23'
-    /// (§9.1.13.5 item 3): §14.9.41.4 GR7's invalidation plus that value.</summary>
-    private string StartFail() => Unsuccessful(FileStatusCode.RecordNotFound);
-
     // ── Internals ────────────────────────────────────────────────────────────────────────────────────────────
-
-    /// <summary>The records ordered by (key-of-reference value, THAT KEY'S release ordinal) under the key of
-    /// reference's collating sequence (ISO §12.4.5.5.3 GR2c) — derived per call from the one record list (the
-    /// legacy's lesson: a maintained clone index goes stale across REWRITE/DELETE). With no §12.4.5.7 COLLATING
-    /// clause the key's weights are null and the ordering is native ordinal, byte-identical to the pre-clause
-    /// engine. The tie-break is <see cref="Ordinal"/> for THIS key, never a per-record number: §14.9.30.4 GR26's
-    /// release order is a property of the key of reference (kb/Work PB341).</summary>
-    private List<KeyedRec> Ordered(int keyIndex) =>
-        [.. _recs.Where(r => !IsSuppressed(r, keyIndex))   // §12.4.5.6.4 GR6 — suppressed records are not provided under this key
-                 .OrderBy(r => KeyOf(r, keyIndex),
-                Comparer<string>.Create((x, y) => KeyCompare(x, y, keyIndex))).ThenBy(r => Ordinal(r, keyIndex))];
-
-    // ── The per-key release-ordinal model (ISO §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341) ──────────────
-
-    /// <summary>The ordinal slot for a key index: 0 the prime key, <c>i + 1</c> the i-th alternate. A record
-    /// released through a connector of this run unit that declared FEWER keys (the store is shared, kb/Work PB143)
-    /// reads 0 for the missing slots — unreachable while the §12.4.5.6.4 GR3 key count is a fixed file attribute the
-    /// §14.9.27.4 GR10 conflict check enforces ('39'), and a total order either way.</summary>
-    private static long Ordinal(KeyedRec rec, int keyIndex)
-    {
-        int slot = keyIndex + 1;
-        return (uint)slot < (uint)rec.Ordinals.Length ? rec.Ordinals[slot] : 0;
-    }
-
-    /// <summary>Stamp <paramref name="keyIndex"/>'s release ordinal, growing the vector (through the store, which
-    /// counts its bytes) if this connector declares keys the stored record predates.</summary>
-    private void Stamp(KeyedRec rec, int keyIndex, long ordinal)
-    {
-        int slot = keyIndex + 1;
-        if (slot >= rec.Ordinals.Length) _st.GrowOrdinals(rec, _alts.Count + 1);
-        rec.Ordinals[slot] = ordinal;
-    }
-
-    /// <summary>A freshly released record's ordinal vector: ONE ordinal in every slot — a WRITE releases the
-    /// record under every key at the same instant (§14.9.51.4 GR40).</summary>
-    private long[] ReleaseOrdinals(long ordinal)
-    {
-        var ordinals = new long[_alts.Count + 1];
-        Array.Fill(ordinals, ordinal);
-        return ordinals;
-    }
 
     /// <summary>The key value at <paramref name="keyIndex"/> (−1 = prime) — the concatenation of the key's
     /// <see cref="KeySegment"/> slices of the record's character image, in order (§12.4.5.12.4 GR2; a data-name-1
@@ -961,9 +865,4 @@ public sealed partial class IndexedConnector : KeyedConnector
         var (image, extents) = FixedForm(areaImage, areaExtents);
         return KeyOf(_layoutKeys ? image : Fit(image), _layoutKeys ? extents : null, keyIndex);
     }
-
-    /// <summary>The key value of a STORED record — <see cref="KeyOf(string, RecordExtents?, int)"/> over its image
-    /// and the extent table it was released with.</summary>
-    private string KeyOf(KeyedRec rec, int keyIndex) => KeyOf(rec.Image, rec.Extents, keyIndex);
-
 }
