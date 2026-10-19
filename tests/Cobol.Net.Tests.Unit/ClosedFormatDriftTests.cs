@@ -3,6 +3,8 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Antlr4.Runtime;
+using Antlr4.Runtime.Atn;
+using Antlr4.Runtime.Misc;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Cst;
 using CobolNet.Frontend.Generated;
@@ -16,7 +18,7 @@ using Core = CobolParserCore;
 /// <summary>
 /// ⛔ THE DRIFT GUARD FOR THE GRAMMAR'S LAST TOTAL SINK (kb/Work PB829).
 ///
-/// <para><b>Why it exists.</b> <c>genericClause : IDENTIFIER (IDENTIFIER|literal)*</c> matches ANY run of words,
+/// <para><b>Why it exists.</b> The word run <c>genericClause</c> matches ANY run of words,
 /// so wherever it sits in an alternative list it swallows everything the named alternatives missed. It was ONE
 /// grammar rule reached from SIX sites spanning EIGHT closed general formats, and closing it one site at a time
 /// is exactly how it survived: kb/Work PB487 closed §13.16.2 and swept for siblings, but read the grammar by rule
@@ -91,7 +93,7 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
                 bodies.Add(m.Groups[1].Value);
 
         Assert.True(offenders.Count == 0,
-            "genericClause — the unbounded `IDENTIFIER (IDENTIFIER|literal)*` word-run matcher — is referenced "
+            "genericClause — the unbounded word-run matcher — is referenced "
             + "outside the ONE error production, so some alternative list has a total sink again and whatever it "
             + "swallows will be accepted in silence (kb/Work PB829): " + string.Join(" | ", offenders));
         Assert.Equal(["unrecognizedClause"], bodies);
@@ -193,7 +195,7 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
         var atn = Core._ATN;
         var callers = atn.states
             .Where(s => s is not null && Enumerable.Range(0, s.NumberOfTransitions).Any(i =>
-                s.Transition(i) is Antlr4.Runtime.Atn.RuleTransition rt
+                s.Transition(i) is RuleTransition rt
                 && rt.target.ruleIndex == Core.RULE_unrecognizedClause))
             .Select(s => s.ruleIndex).ToHashSet();
         Assert.True(callers.Count >= 8, $"only {callers.Count} rule(s) call unrecognizedClause — the ATN probe is broken");
@@ -201,6 +203,56 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
         Assert.True(unmapped.Count == 0, "rules call unrecognizedClause with no ClosedFormats.ByRuleIndex entry: "
             + string.Join(", ", unmapped));
         Assert.Null(ClosedFormats.OfRule(Core.RULE_procedureDivision));   // the lookup can answer "none"
+    }
+
+    /// <summary>⛔ THE RESIDUE'S LITERAL TOKENS ARE EVERY ONE-TOKEN LITERAL BUT THE UNSIGNED INTEGER (kb/Work PB3373).
+    /// <c>genericClause</c> opens at a <c>residueLiteral</c>, so <c>SOURCE-COMPUTER. XYZ "LIT".</c> reads XYZ as the
+    /// computer-name; the unsigned integer is left out because it may be the next data description entry's
+    /// level-number. The set is read from the generated parser: the token edges of <c>nonNumericLiteral</c> and
+    /// <c>numericLiteralCore</c> that end their rule by themselves. A literal token added to either rule therefore fails
+    /// here until <c>residueLiteral</c> decides it — the hand-written list cannot rot as <c>IsLiteral</c>'s three-token
+    /// list did (STRINGLIT, INTEGERLIT and DECIMALLIT alone).</summary>
+    [Fact]
+    public void TheResidueLiterals_AreEverySingleTokenLiteral_ButTheUnsignedInteger()
+    {
+        var atn = Core._ATN;
+        var single = new IntervalSet();
+        foreach (int rule in new[] { Core.RULE_nonNumericLiteral, Core.RULE_numericLiteralCore })
+            single.AddAll(SingleTokenAlternatives(atn, rule));
+        Assert.True(single.Contains(CobolLexer.STRINGLIT) && single.Contains(CobolLexer.INTEGERLIT),
+            $"the single-token literal probe found {single.ToString(Core.DefaultVocabulary)} — it is broken");
+        var residue = atn.NextTokens(atn.ruleToStartState[Core.RULE_residueLiteral]);
+        var expected = single.Subtract(IntervalSet.Of(CobolLexer.INTEGERLIT));
+        Assert.True(expected.Equals(residue),
+            $"residueLiteral is {residue.ToString(Core.DefaultVocabulary)}; every single-token literal but INTEGERLIT is "
+            + expected.ToString(Core.DefaultVocabulary));
+    }
+
+    /// <summary>The token edges at <paramref name="rule"/>'s left edge (reached by epsilon edges, not into a called rule)
+    /// whose target reaches the rule's stop state by epsilon edges alone: the alternatives that are one token.</summary>
+    private static IntervalSet SingleTokenAlternatives(ATN atn, int rule)
+    {
+        var set = new IntervalSet();
+        var stop = atn.ruleToStopState[rule];
+        foreach (var state in EpsilonReach(atn.ruleToStartState[rule]))
+            for (int i = 0; i < state.NumberOfTransitions; i++)
+                if (state.Transition(i) is { IsEpsilon: false, Label: { } label } t
+                    && EpsilonReach(t.target).Contains(stop))
+                    set.AddAll(label);
+        return set;
+    }
+
+    private static HashSet<ATNState> EpsilonReach(ATNState start)
+    {
+        var seen = new HashSet<ATNState>();
+        var work = new Stack<ATNState>([start]);
+        while (work.TryPop(out var s))
+        {
+            if (!seen.Add(s)) continue;
+            for (int i = 0; i < s.NumberOfTransitions; i++)
+                if (s.Transition(i) is { IsEpsilon: true } e and not RuleTransition) work.Push(e.target);
+        }
+        return seen;
     }
 
     /// <summary>The band is ERROR severity at every edition and every strictness. §4.2.2 makes a general format

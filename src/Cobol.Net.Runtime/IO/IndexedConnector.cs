@@ -23,14 +23,20 @@ namespace CobolNet.Runtime.IO;
 /// (§12.4.5.12 SR2), for which ordinal IS the native collating sequence — correct for COBOL-85 NIST; the file-level
 /// COLLATING SEQUENCE clause (§12.4.5.7, WRITE §14.9.51.4 GR35/GR42) is the SPECIAL-NAMES/alphabet subsystem's seam.
 /// </summary>
-public sealed class IndexedConnector : KeyedConnector
+public sealed partial class IndexedConnector : KeyedConnector
 {
     /// <summary>The prime key's byte windows, in order (<see cref="KeySegment"/>; one for data-name-1, one per
     /// data-name-2 of the SOURCE phrase), and their total width — the key's length.</summary>
     private readonly KeySegment[] _prime;
     private readonly int _primeLen;
-    private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence (the CobolCollation carrier); null = native ordinal
+    private readonly CobolCollation? _primeCollation;   // §12.4.5.7 prime-key collating sequence AS DECLARED (the CobolCollation carrier); null = native ordinal
     private readonly List<(KeySegment[] Segments, int Len, bool Dups, CobolCollation? Collation, string? Suppress)> _alts = [];
+    /// <summary>The key sequences IN EFFECT for the current OPEN — index 0 the prime key, 1.. the alternates — each the
+    /// declared sequence's <see cref="CobolCollation.Snapshot"/> taken by <see cref="FreezeOpenSequences"/>. Every key
+    /// comparison and the declared attributes read these (<see cref="SequenceOf"/>), never the declared carriers: a
+    /// declared current-locale sequence (<see cref="LocaleCollation.Current"/>) resolves the run unit's locale at each
+    /// use, and a SET LOCALE between two statements on the open file would otherwise reorder the keys it holds.</summary>
+    private CobolCollation?[] _openSequences = [];
     /// <summary>True when ANY key's position varies with the record (<see cref="KeyOf"/>): such a key is located
     /// in the record AS WRITTEN — its length is what places it — so no key is ever sliced from a record image
     /// padded or truncated to the area width (<see cref="AreaKey"/>, and the WRITE / REWRITE key image).</summary>
@@ -157,10 +163,13 @@ public sealed class IndexedConnector : KeyedConnector
         {
             var keys = new List<FixedFileAttributes.KeyDescriptor>(_alts.Count + 1)
             {
-                new(Windows(_prime), false, null, FixedFileAttributes.Fingerprint(_primeCollation)),
+                new(Windows(_prime), false, null, FixedFileAttributes.Fingerprint(SequenceOf(PrimeKey))),
             };
-            foreach (var (segments, _, dups, collation, suppress) in _alts)
-                keys.Add(new(Windows(segments), dups, suppress, FixedFileAttributes.Fingerprint(collation)));
+            for (int i = 0; i < _alts.Count; i++)
+            {
+                var (segments, _, dups, _, suppress) = _alts[i];
+                keys.Add(new(Windows(segments), dups, suppress, FixedFileAttributes.Fingerprint(SequenceOf(i))));
+            }
             return keys;
             // The recorded descriptor is each window's offset and length; a layout is how a record is READ, not
             // an attribute of the physical file.
@@ -194,12 +203,30 @@ public sealed class IndexedConnector : KeyedConnector
     /// differs. A declared alphabet routes through the §8.8.4.2.7 weighted relation-condition compare.</summary>
     private int KeyCompare(string a, string b, int keyIndex)
     {
-        var c = keyIndex < 0 ? _primeCollation : _alts[keyIndex].Collation;
+        var c = SequenceOf(keyIndex);
         if (c is null) return string.CompareOrdinal(a, b);
-        // A LOCALE key sequence: compare materialized keys — the file's stored key values are compared on every
-        // lookup and insert, and the collator's key cache builds each distinct value's key once (kb/Work PB106).
-        if (c.SupportsKeys) return c.KeyOf(a)!.CompareTo(c.KeyOf(b));
-        return c.Compare(a, b);
+        // A LOCALE key sequence compares materialized keys — the file's stored key values are compared on every
+        // lookup and insert, and the collator's key cache builds each distinct value's key once (kb/Work PB106) —
+        // both built by one resolution of the sequence (CobolCollation.CompareByKeys).
+        return c.CompareByKeys(a, b);
+    }
+
+    /// <summary>The collating sequence key <paramref name="keyIndex"/> (&lt; 0, <see cref="PrimeKey"/>: the prime key)
+    /// is ordered by for the current OPEN; null = native ordinal. Before the first OPEN, the declared one.</summary>
+    private CobolCollation? SequenceOf(int keyIndex)
+    {
+        int slot = keyIndex < 0 ? 0 : keyIndex + 1;
+        if (slot < _openSequences.Length) return _openSequences[slot];
+        return keyIndex < 0 ? _primeCollation : _alts[keyIndex].Collation;
+    }
+
+    /// <inheritdoc/>
+    private protected override void FreezeOpenSequences()
+    {
+        var sequences = new CobolCollation?[_alts.Count + 1];
+        sequences[0] = _primeCollation?.Snapshot();
+        for (int i = 0; i < _alts.Count; i++) sequences[i + 1] = _alts[i].Collation?.Snapshot();
+        _openSequences = sequences;
     }
 
     /// <summary>Key equality under the key of reference's collating sequence: two keys that differ in bytes but
@@ -301,18 +328,20 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override KeyedStore AttachedStore => _st;
 
-    /// <inheritdoc/>
-    /// <remarks>⛔ THE RELEASE ORDINALS ARE THE FILE'S, NOT RE-DERIVED (kb/Work PB2693). §14.9.30.4 GR26's duplicate
+    /// <summary>Replace the records of <paramref name="into"/> with <paramref name="frames"/>, the physical file's
+    /// frames in ordinal order — the whole store's load and reload. The store is the SHARED one, so every connector of
+    /// the run unit attached to it sees the reload, which is the point. <paramref name="releaseMint"/> is the file's
+    /// release mint (<c>RecordFraming.ReleaseMintOffset</c>).
+    /// <para>⛔ THE RELEASE ORDINALS ARE THE FILE'S, NOT RE-DERIVED (kb/Work PB2693). §14.9.30.4 GR26's duplicate
     /// order and GR21 f)'s "logical position within the set of duplicates" are each record's release ordinal under the
     /// key of reference, which the store persists with the record (<see cref="StoredFrame.Ordinals"/>), together with
     /// the mint the next release takes (<paramref name="releaseMint"/>). A reload therefore leaves every ordinal where
     /// it was — the position a connector partway through a duplicate set holds (<c>_readOrdinal</c>) still names the
     /// same place after another run unit's change. When this run unit renumbered the records from their file order
     /// instead, another run unit's DELETE of an earlier record moved every later one down by one and the next READ
-    /// NEXT skipped a duplicate.</remarks>
-    private protected override void Fill(KeyedStore into, List<StoredFrame?> frames, long releaseMint)
+    /// NEXT skipped a duplicate.</para></summary>
+    private void Fill(IndexedStore store, List<StoredFrame?> frames, long releaseMint)
     {
-        var store = (IndexedStore)into;
         store.Clear();
         FaultPointReloadFilling();
         long next = Math.Max(releaseMint, 1);
@@ -345,17 +374,17 @@ public sealed class IndexedConnector : KeyedConnector
         return ordinals;
     }
 
-    /// <inheritdoc/>
-    /// <remarks>In RELEASE order (the prime-key ordinal), each frame carrying its record's ordinal vector — the
-    /// order the file is written in decides nothing, because the ordinals travel with the records (kb/Work PB2693).
-    /// Materialized, because the compose enumerates the frames twice.</remarks>
-    private protected override IEnumerable<StoredFrame?> PersistFrames() =>
+    /// <summary>The store's frames in the order the persist writes them: RELEASE order (the prime-key ordinal), each frame
+    /// carrying its record's ordinal vector — the order the file is written in decides nothing, because the ordinals
+    /// travel with the records (kb/Work PB2693). Materialized, because the compose enumerates the frames twice.</summary>
+    private IEnumerable<StoredFrame?> PersistFrames() =>
         _recs.OrderBy(r => Ordinal(r, PrimeKey))
             .Select(r => (StoredFrame?)new StoredFrame(r.Image, r.Extents,
                 r.Ordinals.Length == _alts.Count + 1 ? r.Ordinals : OrdinalVector(r.Ordinals))).ToList();
 
-    /// <inheritdoc/>
-    private protected override long ReleaseMint => _st.NextOrdinal;
+    /// <summary>The release mint the persist records with the frames: the store's next release ordinal (kb/Work
+    /// PB2693).</summary>
+    private long ReleaseMint => _st.NextOrdinal;
 
     /// <summary>The indexed CLOSE body (§14.9.6): a writable mode persists the store with every record's release
     /// ordinals (<see cref="PersistFrames"/>), so §14.9.30.4 GR26's duplicate retrieval order survives a CLOSE/OPEN
