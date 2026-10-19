@@ -7,6 +7,7 @@ using CobolNet.Binding.Passes;       // GroupBindContext
 using CobolNet.Editions.Diagnostics; // DiagnosticCatalog
 using CobolNet.Frontend.Cst;         // ClosedFormats — the ONE table of closed general formats
 using CobolNet.Frontend.Generated;   // CobolParserCore
+using CobolNet.Frontend.Parsing;     // WrittenSource — the opening item quoted as written
 
 namespace CobolNet.Validation;
 
@@ -14,7 +15,7 @@ namespace CobolNet.Validation;
 /// THE ONE PLACE A CLOSED GENERAL FORMAT'S RESIDUE IS REFUSED BY NAME (kb/Work PB829) — a sibling to
 /// <see cref="DeclinedFacilityPass"/>, run right after it from <c>BinderDriver</c>.
 ///
-/// <para>WHAT IT CLOSES. <c>genericClause : IDENTIFIER (IDENTIFIER|literal)*</c> matches ANY run of words, so
+/// <para>WHAT IT CLOSES. The word run <c>genericClause</c> matched ANY run of words, so
 /// wherever it sat in an alternative list it was a TOTAL SINK for everything the named alternatives missed. The
 /// grammar called it a "vendor/extension hook" and reached it from SIX sites spanning EIGHT closed general
 /// formats. It is not a vendor hook: a vendor extension is admitted only under the dialect that owns it, never by
@@ -28,8 +29,8 @@ namespace CobolNet.Validation;
 /// of the remaining five and missed the I-O-CONTROL paragraph's INLINE alternative, which is not a named
 /// <c>xxxClause : genericClause</c> wrapper. The grammar now has ONE error production
 /// (<c>unrecognizedClause</c>), this pass is its ONE consumer, and <see cref="ClosedFormats.ByContext"/> is its
-/// ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word at its
-/// position is refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533); <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
+/// ONE table — which the parse layer reads too, for the residue the production cannot hold: a RESERVED word or an
+/// unsigned integer at its position is refused by <c>CobolErrorStrategy</c> with the row's own code and sentence (kb/Work PB2533); <c>ClosedFormatDriftTests</c> derives the obligation from the .g4 files and from the generated
 /// parser, in BOTH directions, so a new closed format cannot parse into silence and a stale row cannot linger.
 /// Adding a closed format is `| unrecognizedClause` plus a table row — no code here changes. (The pass owns one
 /// more error production of the same posture, <c>misplacedSpecialNamesForPhrase</c> — a known phrase written in a
@@ -199,14 +200,16 @@ internal sealed class ClosedFormatPass(EditionContext edition) : CursorFollowing
     /// <summary>THE refusal. The format is identified by the PARENT context — the alternative list the error
     /// production was written into — so one visitor serves every closed format and a new one needs no arm. Its
     /// wording and code are the row's (<see cref="ClosedFormat.Refusal"/>, <see cref="ClosedFormat.Diagnostic"/>),
-    /// shared with the parse layer's refusal of a RESERVED word at the same position (<c>CobolErrorStrategy</c>,
-    /// kb/Work PB2533), which the production cannot take because it begins at an IDENTIFIER.</summary>
+    /// shared with the parse layer's refusal of a RESERVED word or an unsigned integer at the same position
+    /// (<c>CobolErrorStrategy</c>, kb/Work PB2533, PB3373), which the production cannot take. The word quoted is the
+    /// run's OPENING item as written, a word or a whole literal (kb/Work PB3373: <c>OBJECT-COMPUTER. XYZ "LIT".</c>
+    /// quotes "LIT", <c>01 A PIC X -1.</c> quotes -1 rather than its sign).</summary>
     public override object? VisitUnrecognizedClause(CobolParserCore.UnrecognizedClauseContext ctx)
     {
         var format = ClosedFormats.Of(ctx.Parent?.GetType());
         // The drift test makes a missing row impossible; refuse anyway rather than return silently, because a
         // silent return here is precisely the defect this pass exists to end.
-        string word = ctx.genericClause()?.IDENTIFIER(0)?.GetText() ?? ctx.GetText();
+        string word = ctx.genericClause()?.residueOpening() is { } opening ? WrittenSource.Of(opening) : ctx.GetText();
         if (format is null)
         {
             _edition.Error(DiagnosticCatalog.ClosedFormatUnrecognizedClause,

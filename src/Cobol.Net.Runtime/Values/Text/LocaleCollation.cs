@@ -42,6 +42,14 @@ public sealed class LocaleCollation : CobolCollation
 
     private readonly string? _localeTag;
 
+    /// <summary>True for a <see cref="Snapshot"/>: the sequence resolves its collator ONCE, at its first use, and keeps
+    /// it (<see cref="_pinned"/>).</summary>
+    private readonly bool _pins;
+
+    /// <summary>A snapshot's collator, set by its first <see cref="Resolve"/>; null before it and for every sequence that
+    /// is not a snapshot.</summary>
+    private Collator? _pinned;
+
     /// <summary>The <c>IS LOCALE</c> phrase without a locale-name: the run unit's current LC_COLLATE locale at each use.</summary>
     public static LocaleCollation Current { get; } = new(null);
 
@@ -49,9 +57,12 @@ public sealed class LocaleCollation : CobolCollation
     /// a locale like any other, e.g. <c>LOCALE INV IS "INVARIANT"</c> — or an ORDER TABLE locale tag); NULL = the
     /// current locale at each use. ⚠ "" and null differ: a sequence bound to the root stays the root after a SET
     /// LOCALE; the current-locale form follows it.</summary>
-    public LocaleCollation(string? localeTag)
+    public LocaleCollation(string? localeTag) : this(localeTag, pins: false) { }
+
+    private LocaleCollation(string? localeTag, bool pins)
     {
         _localeTag = localeTag?.Trim();
+        _pins = pins;
     }
 
     /// <summary>The bound locale tag, or null for "the current locale at each use".</summary>
@@ -60,8 +71,17 @@ public sealed class LocaleCollation : CobolCollation
     /// <summary>The collator this sequence uses right now (re-resolved per use for the current-locale form). A NAMED
     /// locale that is not available in this operating environment is EC-LOCALE-MISSING at the point of use (§8.2.1;
     /// DESIGN-locale-facility L1 item 4 — availability is a run-time property, the compiler never resolved it);
-    /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).</summary>
+    /// with checking off the sequence answers the locale's nearest available order (the CLDR parent chain / root).
+    /// <para>A <see cref="Snapshot"/> resolves at its first use and answers that collator from then on, so every key it
+    /// builds comes from ONE collator: the engine's caches can be dropped between two uses (<c>LocaleManager.ClearCache</c>,
+    /// which makes the next resolution a new collator), and <see cref="CollationKey.CompareTo"/> refuses keys of two.</para></summary>
     public Collator Resolve()
+    {
+        if (_pins) return _pinned ?? Interlocked.CompareExchange(ref _pinned, ResolveNow(), null) ?? _pinned;
+        return ResolveNow();
+    }
+
+    private Collator ResolveNow()
     {
         if (_localeTag is { } tag)
         {
@@ -73,11 +93,13 @@ public sealed class LocaleCollation : CobolCollation
     }
 
     /// <summary>§14.6.6 r5 — "A locale switch during execution of a SORT or MERGE statement has no effect on the
-    /// processing of that SORT or MERGE statement": the current-locale form frozen to the locale current NOW (the
-    /// statement's start; a SET LOCALE in the input procedure must not move the sort's sequence); a named form is
-    /// already fixed and returns itself.</summary>
+    /// processing of that SORT or MERGE statement" — and §12.4.5.7.4 GR1 — "Each collating sequence is a fixed file
+    /// attribute": the sequence frozen for one statement or one open file. The current-locale form is bound to the
+    /// locale current NOW (a SET LOCALE in the input procedure, or between two statements on the open file, must not
+    /// move the order), and either form PINS its collator at its first use (<see cref="Resolve"/>), so the keys of one
+    /// statement or one open file are all one collator's. A snapshot is its own snapshot.</summary>
     public override CobolCollation Snapshot() =>
-        _localeTag is null ? new LocaleCollation(RunUnit.Current.Locale.Current(LocaleCategory.Collate)) : this;
+        _pins ? this : new LocaleCollation(_localeTag ?? RunUnit.Current.Locale.Current(LocaleCategory.Collate), pins: true);
 
     /// <inheritdoc/>
     public override int Compare(string? left, string? right)
@@ -91,16 +113,82 @@ public sealed class LocaleCollation : CobolCollation
     /// <inheritdoc/>
     public override bool SupportsKeys => true;
 
+    /// <summary>A locale-based comparison (§8.8.4.2.7: <i>"Locale-based comparison is used when the alphanumeric program
+    /// collating sequence in effect is locale based"</i>; §8.8.4.2.11): the engine's multi-level comparison, never
+    /// position by position.</summary>
+    internal override bool UsesStandardComparison => false;
+
     /// <summary>The engine's key of the operand (§8.8.4.2.11-trimmed) through the <see cref="CollationKeyCache"/> of the
     /// collator in effect — what SORT/MERGE and the indexed-file connector compare instead of walking the elements
     /// again for every comparison. An ill-formed operand sets EC-LOCALE-INCOMPATIBLE like <see cref="Compare"/> does.</summary>
-    public override CollationKey KeyOf(string? value)
+    public override CollationKey KeyOf(string? value) => KeyOf(value, CollationKeyCache.For(Resolve()));
+
+    /// <summary>Two operands' keys built by ONE resolution of the sequence (<see cref="CobolCollation.CompareByKeys"/>):
+    /// a key cache the process drops between two lookups (<c>LocaleManager.ClearCache</c>) can then never hand the
+    /// comparison keys of two collators, which <see cref="CollationKey.CompareTo"/> refuses.</summary>
+    internal override int CompareByKeys(string? left, string? right)
+    {
+        var cache = CollationKeyCache.For(Resolve());
+        return KeyOf(left, cache).CompareTo(KeyOf(right, cache));
+    }
+
+    private static CollationKey KeyOf(string? value, CollationKeyCache cache)
     {
         string trimmed = TrimForLocale(value);
         if (!Collator.IsWellFormed(trimmed))
             ExceptionState.LocaleIncompatibleError("a locale-based key over an operand the locale's collating sequence does not order — an ill-formed UTF-16 operand (ISO §8.8.4.2.11)");   // L6
-        return CollationKeyCache.For(Resolve()).GetKey(trimmed);
+        return cache.GetKey(trimmed);
     }
+
+    /// <summary>⛔ The prefix shape of a stored key (<see cref="CobolCollation.PrefixShapeOf"/>) over the operand
+    /// §8.8.4.2.11 compares — <i>"trailing spaces are truncated from the operands except that an operand consisting of
+    /// all spaces is truncated to a single space"</i> — so a key's padding never counts: a truncation that reaches into
+    /// it leaves the whole trimmed key, whose weights are all the order's. A tailoring with a contraction that holds a
+    /// space would let the trimming of a truncation change the mapping before it, so under one the shape is the key's
+    /// whole length, which gives every partial key the empty bound: GR17's walk as written.</summary>
+    internal override PrefixShape PrefixShapeOf(string value)
+    {
+        var collator = Resolve();
+        return PadOf(collator).InContraction ? new PrefixShape(value.Length, 0) : collator.PrefixShapeOf(TrimForLocale(value.AsSpan()));
+    }
+
+    /// <summary>⛔ The bound of a partial key (<see cref="CobolCollation.PrimaryBound"/>): the first level-1 weights of the
+    /// prefix's own key, at most <paramref name="margin"/>, and none from the first one that weighs less than a space
+    /// on. That cut is what the trimming asks: a stored key's truncation that ends in spaces of the key's interior loses
+    /// them to §8.8.4.2.11, so its weights are the stored key's up to them and then the prefix-shorter ones; the
+    /// stored key's own space weights then meet the bound, and a bound weight below a space's would order such a key
+    /// ABOVE the bound while its truncation (a proper prefix of the probe at level 1) is below the probe.</summary>
+    internal override int[] PrimaryBound(string prefix, int margin)
+    {
+        if (margin <= 0) return [];
+        var primary = KeyOf(prefix).Level(1);
+        int floor = PadOf(Resolve()).Floor, n = Math.Min(margin, primary.Length);
+        for (int i = 0; i < n; i++)
+            if (primary[i] < floor)
+            {
+                n = i;
+                break;
+            }
+        return primary[..n].ToArray();
+    }
+
+    /// <inheritdoc/>
+    internal override int ComparePrimary(string value, int[] bound)
+    {
+        if (bound.Length == 0) return 0;
+        var primary = KeyOf(value).Level(1);
+        return primary[..Math.Min(primary.Length, bound.Length)].SequenceCompareTo(bound);
+    }
+
+    private static readonly ConcurrentDictionary<Collator, Pad> s_pads = new();
+
+    private static Pad PadOf(Collator collator) => s_pads.GetOrAdd(collator, static c => new Pad(
+        c.Table.Contractions().Any(x => x.CodePoints.Contains(' ')),
+        c.GetKey(" ").Primary.DefaultIfEmpty(0).Max()));
+
+    /// <summary>What the §8.8.4.2.11 trimming needs to know of one collator's SPACE: whether a contraction holds one,
+    /// and the largest level-1 weight a space has (0 when it has none, as under shifted variables).</summary>
+    private sealed record Pad(bool InContraction, int Floor);
 
     /// <summary>§8.8.4.2.11 sentence 1: trailing spaces off; an all-space operand becomes ONE space; "" stays "".
     /// A SPAN, so a fixed-width (space-padded) operand costs no substring per comparison.</summary>
