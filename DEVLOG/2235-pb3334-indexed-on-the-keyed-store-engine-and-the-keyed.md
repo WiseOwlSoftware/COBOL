@@ -428,3 +428,9 @@ fails without them); measured, the same self-test run now starts no maintenance 
 git commands are checked: one that fails raises `FixtureError` with git's own message, reported as the fixture's
 failure, never as a branch's state (its self-test asserts a failing command raises).
 
+Before it went back to the queue, the self-test runner was run once more on a Linux clone of that tip under the isolation
+CI has (an empty HOME, `GIT_CONFIG_GLOBAL=/dev/null`, no `gh`, a minimal PATH): `prune_worktrees.py --self-test` GREEN,
+`=== SELF-TESTS: GREEN — 72 ran`. Then origin/main (49e1c6b79) was merged in, cleanly: main's PB3381 rewrite of
+`prune_worktrees.py` and this branch's checked fixture git and private-config maintenance settings each survive. Main's
+PB3383 and PB3385 were filed `blocked: true` with `blocked_by: PB3334`; this landing lands PB3334, so both now read
+`blocked: false` (no other open note waits on a note this branch lands).
