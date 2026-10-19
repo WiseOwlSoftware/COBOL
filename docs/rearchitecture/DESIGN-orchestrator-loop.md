@@ -1042,9 +1042,12 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   `scripts/hooks/inbox_guard.py` asks `status` at every attended turn's end and, when it reads false, refuses the stop
   with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit and a host
   without the coordination directory pass silently. A turn already continued for a Stop hook (`stop_hook_active`) gets
-  the line as a warning instead, so the hook never loops. `watch` fires only on NEW messages: it records the ones it
-  returned in `mailbox/delivered-<lane>.json` (pruned to the open messages), so a watcher stays armed beside a message
-  the session has seen and cannot close yet, such as one waiting on the owner or a landing still running. Firing on
+  the line as a warning instead, so the hook never loops. `watch` fires only on messages NEW TO ITS SESSION: it records the
+  ones it returned in `mailbox/delivered-<lane>-<session pid>.json`, keyed by the watching session's Claude Code process
+  and pruned to the open messages. So a watcher stays armed beside a message the session has seen and cannot close yet,
+  such as one waiting on the owner or a landing still running, and a second session watching the same inbox is still
+  woken by every message (one record per inbox would let the first watcher to poll take it from the other). A watch
+  deletes the records of sessions whose process has ended. Firing on
   any open message would have made the hook and the watcher loop, one turn per cycle. Such a message, once open past
   `STALE_MINUTES`, is named in a warning at every turn's end, never a refusal. The
   sender sees the other side: `send` warns when the recipient's inbox already holds messages open over 30 minutes
