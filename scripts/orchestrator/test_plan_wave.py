@@ -727,6 +727,38 @@ if fc:
           ([g.notes for g in capped["groups"]],
            all(min(rank[i] for i in g.notes) >= worst_chosen for g in capped["skipped"] if not g.after)),
           ([["PB943"], ["PB944"], ["PB948"], ["PB947"]], True))
+    # THE LIFT, THROUGH campaign_clusters AND plan (review R1-2 of PB3423: deleting the call kept every check green).
+    # At a cap of 2, Alpha.cs's three notes split [PB961, PB962] and [PB963]; Beta.cs's tier-1 PB964 shares a cluster
+    # with the untiered PB965, whose blocker PB963 sits alone and untiered. Unlifted, that cluster ranks after the
+    # tier-1 dependent cluster, which then waits ("blocker PB963 is not planned"); lifted, it ranks before it and the
+    # dependents follow the one Alpha.cs chain.
+    LW = TMP / "lift" / "kb" / "Work"
+    LW.mkdir(parents=True)
+    for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs"):
+        (TMP / "lift" / rel).parent.mkdir(parents=True, exist_ok=True)
+        (TMP / "lift" / rel).write_text("// fixture\n", encoding="utf-8", newline="\n")
+    for nid, tier, bb, site in (("PB961", 0, "", "Alpha"), ("PB962", 0, "", "Alpha"), ("PB963", 0, "", "Alpha"),
+                                ("PB964", 1, "PB961", "Beta"), ("PB965", 0, "PB963", "Beta")):
+        (LW / f"{nid}.md").write_text(
+            f'---\ntitle: "{nid} — lift step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
+            f"wrong_answer: false\nprocess_only: true\nblocked: {'true' if bb else 'false'}\nblocked_by: [{bb}]\n"
+            f"cluster: [PB960]\n" + (f'tier: ["PB960:{tier}"]\n' if tier else "") +
+            f"---\n\n# {nid}\n\n**Sites:**\n- `src/Lib/{site}.cs`\n", encoding="utf-8", newline="\n")
+    litems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(LW.glob("*.md"))]
+    lnotes = pw.load_notes(LW, {"wrong_answer": 8})
+    ltexts = {i: (LW / f"{i}.md").read_text(encoding="utf-8") for i in lnotes}
+    LRULES = JSON.loads(JSON.dumps(RULES))
+    LRULES["wave"]["max_notes_per_group"] = 2
+    lopen, lhalf, ldeps, _ = pw.campaign_clusters(work.cluster_order(litems, "PB960"), lnotes, ltexts, LRULES, fc,
+                                                  TMP / "lift", pw.declared_sets(TMP / "lift", pw.IndexPolicy(
+                                                      TMP / "no-cache-lift", regenerate=False)))
+    check("campaign_clusters lifts the untiered blocker's cluster to its tier-1 dependent's",
+          [([n["id"] for n in c["notes"]], c["tier"], c["depth"]) for c in lopen],
+          [(["PB961", "PB962"], 1, 0), (["PB963"], 1, 0), (["PB964", "PB965"], 1, 1)])
+    lp = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
+    check("so the mixed dependent cluster follows the one Alpha.cs chain instead of waiting",
+          ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
+          ([("A", "", ["PB961", "PB962"]), ("A2", "A", ["PB963"]), ("A3", "A2", ["PB964", "PB965"])], {}))
 
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
