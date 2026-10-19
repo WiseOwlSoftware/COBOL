@@ -12,7 +12,7 @@ EXTEND mode and waits on `ACCEPT`; the second program's `OPEN EXTEND` answers `6
 the holder ended by STOP RUN, by a fatal `CALL` of a missing program, or by a kill. No defect: the implementation was right,
 and nothing had witnessed it.
 
-**The witness.** `tests/Cobol.Net.Tests.Unit/RunUnitProcessBoundaryTests.cs` (12 cases, `[Trait("Host","ReFS")]` so the gate's
+**The witness.** `tests/Cobol.Net.Tests.Unit/RunUnitProcessBoundaryTests.cs` (13 cases, `[Trait("Host","ReFS")]` so the gate's
 leg 1 holds it) compiles a HOLDER program (any sharing clause and open mode; it prints `HELD <status>` and obeys one stdin
 line: `CLOSE`, `ABORT`, or end normally with the file open) and PROBER programs, and runs them as real processes. The new
 instrument is `tests/_shared/LiveProcess.cs`, the long-lived twin of `ProcessObserver`: the test and the program speak by
@@ -22,7 +22,9 @@ named non-observation (`ProcessObserver.TimeoutMs`), never a value.
 Success and abnormal paths (MANDATORY-PRACTICES I11): NO OTHER holder refuses INPUT, I-O, EXTEND and OUTPUT with `61`
 (§9.1.13.9 1) a)), the holder's explicit CLOSE gives the lock back while the holder lives (§9.1.15 3)), its run unit's
 implicit CLOSE does (§14.6.11 2)), so does an abnormal end (§14.6.12) and so does a kill that runs nothing (the host fact
-DOC-A.1-75 documents); READ ONLY holder in EXTEND mode refuses EXTEND, I-O and OUTPUT (§9.1.13.9 1) c), e)); the refusal
+DOC-A.1-75 documents); READ ONLY holder in EXTEND mode refuses EXTEND, I-O and OUTPUT (§9.1.13.9 1) c), e)); the lock does
+not over-refuse (an ALL OTHER holder admits ALL OTHER INPUT, I-O and EXTEND beside it and refuses OUTPUT, READ ONLY and NO OTHER
+requests; an ALL OTHER INPUT holder admits READ ONLY INPUT, I-O and EXTEND: the printed Table 19 of §14.9.27.4); the refusal
 reaches a FILE STATUS item, a USE declarative with `EC-I-O-FILE-SHARING` checked (`EXCEPTION-STATUS`, `EXCEPTION-FILE` =
 `61F`), both, and neither (a `6x` status is not a fatal class, so the program continues, §9.1.13.1); DELETE FILE is `62`
 through ON EXCEPTION, FILE STATUS alone and a declarative alone, leaves the file in place, and deletes it once the holder is
