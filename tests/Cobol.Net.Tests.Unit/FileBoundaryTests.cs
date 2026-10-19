@@ -3,6 +3,7 @@
 using System.Text;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
+using CobolNet.Runtime.IO.Store;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -11,11 +12,11 @@ namespace CobolNet.Tests.Unit;
 /// The runtime's two MEDIUM boundaries, pinned where a COBOL golden cannot reach them (kb/Work PB1192, PB690).
 /// <list type="bullet">
 /// <item>The externally-defined boundaries of ISO §9.1.13.5 item 4 ('24', a relative or indexed file — Annex A.1
-/// item 107, the store's capacity <see cref="RecordFraming.MaxStoreBytes"/>) and §9.1.13.6 item 3 ('34', a
+/// item 107: for a RELATIVE file the host's maximum file size and the engine's 2^32 pages, for an INDEXED file until
+/// kb/Work PB3334 the whole store's capacity <see cref="RecordFraming.MaxStoreBytes"/>) and §9.1.13.6 item 3 ('34', a
 /// sequential file — Annex A.1 item 108, the host medium's capacity, <see cref="HostFile.IsMediumBoundary"/>).
-/// The capacity test is ARITHMETIC over the one size formula (<see cref="RecordFraming.FrameBytes"/>), so these
-/// tests hold that formula against the bytes <see cref="RecordFraming.ComposeStore"/> really composes: a drift
-/// between them would let a store past the boundary be released, or refuse one inside it.</item>
+/// The indexed capacity test is ARITHMETIC over the one size formula (<see cref="RecordFraming.FrameBytes"/>), so
+/// these tests hold that formula against the bytes <see cref="RecordFraming.ComposeStore"/> really composes.</item>
 /// <item>The file coded character set of Annex A.1 item 31 (owner decision kb/Work R47): ISO/IEC 8859-1, with a
 /// strict encoding so an unrepresentable character can never become a silent <c>?</c>.</item>
 /// </list>
@@ -137,30 +138,6 @@ public sealed class FileBoundaryTests : IDisposable
     public void MaxStoreBytes_IsTheLargestArrayTheStoreIsComposedIn() =>
         Assert.Equal(RecordFraming.MaxStoreBytes, (long)Array.MaxLength);
 
-    /// <summary>The relative store's size arithmetic agrees with the image <see cref="RecordFraming.ComposeStore"/>
-    /// composes, through every mutation: a release above the highest RRN (gap tags), a replacement by a longer
-    /// record, a record with an extent table, a removal of the highest record (its gap tags go with it).</summary>
-    [Fact]
-    public void RelativeStore_PredictedSize_IsTheComposedSize()
-    {
-        var attributes = new RelativeConnector("r.dat", 8, KeyedAccess.Random, 4, varyMin: 1, varyMax: 8).DeclaredAttributes;
-        var store = new RelativeStore();
-        void PutAndCheck(long rrn, StoredFrame frame)
-        {
-            long predicted = RecordFraming.HeaderBytes(attributes) + store.FramedBytesAfterPut(rrn, frame);
-            store.Put(rrn, frame);
-            Assert.Equal(predicted, Composed(attributes, store.Ordinal()));
-        }
-        PutAndCheck(3, new StoredFrame("ABC", null));
-        PutAndCheck(10, new StoredFrame("ABCDEFGH", null));
-        PutAndCheck(3, new StoredFrame("ABCDEFG", null));
-        PutAndCheck(5, new StoredFrame("ABCD", RecordFraming.VoidExtents(2)));
-        Assert.True(store.Remove(10));
-        Assert.Equal(RecordFraming.HeaderBytes(attributes) + store.FramedBytesAfterPut(5, store.Slots[5]),
-            Composed(attributes, store.Ordinal()));
-        Assert.Equal([null, null, "ABCDEFG", null, "ABCD"], store.Ordinal().Select(f => f?.Image));
-    }
-
     /// <summary>The indexed store's running size agrees with the composed image through Add, Replace and Remove —
     /// each frame with its release ordinals, one per key (kb/Work PB2693).</summary>
     [Fact]
@@ -207,31 +184,28 @@ public sealed class FileBoundaryTests : IDisposable
             [new StoredFrame("K001D   ", null, [1])], generation: 0, releaseMint: 2));
     }
 
-    /// <summary>The relative boundary, exactly: a 4-character fixed record's store is a 36-byte header (format 4,
-    /// whose generation stamp — kb/Work PB2660 — and release mint — kb/Work PB2693 — take its last 16 bytes), a 4-byte
-    /// gap tag for every empty slot below the record and the record's own 8-byte frame — so RRN 536 870 887 is the
-    /// last that fits <see cref="RecordFraming.MaxStoreBytes"/> (2 147 483 588 bytes) and 536 870 888 the first that
-    /// does not (2 147 483 592). Beyond the store, GR29 b)'s highest permitted RRN (2 147 483 647) splits
-    /// '24' (a relative record number that does not fit — the invalid key condition) from '34' (one that is not
-    /// permitted at all). Nothing is released by either, so the CLOSE persists only the in-bounds record.</summary>
+    /// <summary>⛔ THE BOUNDARY OF A RELATIVE FILE IS THE HOST'S (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.9,
+    /// docs/CONFORMANCE.md DOC-A.1-107; kb/Work PB3333). The record number's own range is §14.9.51.4 GR29 b)'s: a key
+    /// below 1 or above 2 147 483 647 is '34', and a key anywhere inside it is one leaf entry of the tree — the record at
+    /// the highest permitted number and one in the billions answer '00' and cost a page each, where the whole store
+    /// answered '24' for every key past 536 870 887 (its image's capacity). A WRITE whose pages the host refuses to GROW
+    /// the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is outside the externally defined boundaries — GR33 b)'s
+    /// '24', the invalid key condition — and a medium with no ROOM answers §9.1.13.6 item 1's '30' at that statement;
+    /// both leave the file as the previous statement left it, so the next OPEN reads exactly the records written
+    /// before.</summary>
     [Fact]
-    public void RelativeWrite_BoundaryIsTheStoreCapacity_AndTheKeyRangeIs34()
+    public void RelativeWrite_BoundaryIsTheHosts_AndTheKeyRangeIs34()
     {
-        var c = new RelativeConnector(Host("rel.dat"), 4, KeyedAccess.Random, 18);
-        long header = RecordFraming.HeaderBytes(c.DeclaredAttributes);
-        Assert.Equal(36, header);
-        var probe = new RelativeStore();
-        var four = new StoredFrame("ABCD", null);
-        Assert.True(header + probe.FramedBytesAfterPut(536_870_887, four) <= RecordFraming.MaxStoreBytes);
-        Assert.True(header + probe.FramedBytesAfterPut(536_870_888, four) > RecordFraming.MaxStoreBytes);
-
+        string host = Host("rel.dat");
+        var c = new RelativeConnector(host, 4, KeyedAccess.Random, 18);
         Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
-        c.SetPendingKey(536_870_888);
-        Assert.Equal(FileStatusCode.BoundaryViolation, c.Write("ABCD"));
-        c.SetPendingKey(RelativeConnector.HighestRelativeRecordNumber);
-        Assert.Equal(FileStatusCode.BoundaryViolation, c.Write("ABCD"));
+        foreach (long key in new long[] { 536_870_888, RelativeConnector.HighestRelativeRecordNumber, 5 })
+        {
+            c.SetPendingKey(key);
+            Assert.Equal(FileStatusCode.Success, c.Write("K" + (key % 1000).ToString("000", System.Globalization.CultureInfo.InvariantCulture)));
+        }
         c.SetPendingKey(5);
-        Assert.Equal(FileStatusCode.Success, c.Write("ABCD"));
+        Assert.Equal(FileStatusCode.DuplicateKey, c.Write("ABCD"));                 // '22' GR33 a), the file unchanged
         // The permanent errors LAST: under Annex A.1 item 105 a '3x' stays in effect until the CLOSE, which runs
         // normally and ends it.
         c.SetPendingKey(RelativeConnector.HighestRelativeRecordNumber + 1);
@@ -239,7 +213,123 @@ public sealed class FileBoundaryTests : IDisposable
         c.SetPendingKey(0);
         Assert.Equal(FileStatusCode.PermanentBoundary, c.Write("ABCD"));
         Assert.Equal(FileStatusCode.Success, c.Close());
-        Assert.Equal(header + (4 * 4) + 8, new FileInfo(Host("rel.dat")).Length);
+        // Three meta pages and a handful of tree and bookkeeping pages: the key's size costs nothing.
+        Assert.True(new FileInfo(host).Length <= 16 * CobolNet.Runtime.IO.Store.PageHeader.PageSize, $"{new FileInfo(host).Length} bytes");
+        Assert.Equal(["5=K005", "536870888=K888", "2147483647=K647"], Records(host));
+    }
+
+    /// <summary>The host's two refusals, each at the statement that meets it (2.2.1.9): a page write the host refuses
+    /// because the file cannot GROW past its maximum size is '24' — <i>"An attempt is made to write outside the
+    /// externally-defined boundaries of a physical relative or indexed file"</i>, §9.1.13.5 item 4 — and a write the host refuses
+    /// because the medium is FULL is '30' (§9.1.13.6 item 1), which stays in effect until the CLOSE (§9.1.13.1). Neither
+    /// releases the record, and the next OPEN reads the records the earlier statements wrote, byte for byte.</summary>
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    public void RelativeWrite_TheHostsRefusalIsAtTheStatement_24ForTooLarge_30ForFull(bool tooLarge, bool rewrite)
+    {
+        string host = Host($"refuse-{tooLarge}-{rewrite}.dat");
+        int full = OperatingSystem.IsWindows() ? unchecked((int)0x80070070) : 28;    // ERROR_DISK_FULL / ENOSPC
+        bool refusing = false;
+        // The host refuses to GROW the file — a write at or past its end — as a full medium and a file at its maximum
+        // size both do; the pages already in the file (page 2 among them) are written as ever. The medium contract
+        // carries the host's "the file cannot grow further" as MediumSizeLimitException (HandlePageMedium.Write asks
+        // HostFile.IsFileSizeLimit, PagedFileBoundaryTests pins the codes); a full medium travels as the host raised it.
+        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page => !refusing || InsideTheFile(page, inner) ? null
+                : tooLarge ? new MediumSizeLimitException("the file cannot grow further") : new IOException("refused by the host", full));
+        try
+        {
+            var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            if (rewrite)
+            {
+                Assert.Equal(FileStatusCode.Success, c.Close());
+                Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));
+            }
+            refusing = true;
+            // The statement's copy-on-write pages need growth: a WRITE's new record, or a REWRITE's new leaf; refused,
+            // the record is not written or rewritten and the file is unchanged (2.2.1.9).
+            c.SetPendingKey(rewrite ? 1 : 2);
+            var refused = rewrite ? c.Rewrite("BBBB") : c.Write("BBBB");
+            Assert.Equal(tooLarge ? FileStatusCode.BoundaryViolation : FileStatusCode.PermanentError, refused);
+            refusing = false;
+            c.SetPendingKey(3);
+            // '24' is the invalid key condition and the connector goes on; '30' is a permanent error in effect.
+            Assert.Equal(tooLarge ? FileStatusCode.Success : FileStatusCode.PermanentError, c.Write("CCCC"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+        }
+        finally { RelativeStore.MediumObserver.Value = null; }
+        Assert.Equal(tooLarge ? ["1=AAAA", "3=CCCC"] : ["1=AAAA"], Records(host));
+    }
+
+    /// <summary>⛔ THE BOUNDARY'S '24' IS A RECORD WRITE'S ALONE (review finding R1-1 of kb/Work PB3333). §9.1.13.5 item 4's
+    /// invalid key condition is <i>"An attempt is made to write outside the externally-defined boundaries of a physical
+    /// relative or indexed file"</i>, and §14.9.10.4 gives DELETE no boundary condition, so a DELETE whose copy-on-write
+    /// pages the host refuses to grow the file for (<c>ERROR_FILE_TOO_LARGE</c>, <c>EFBIG</c>) is §9.1.13.6 item 1's '30'
+    /// (<i>"A permanent error exists and no further information is available concerning the input-output operation"</i>),
+    /// never '24' with the INVALID KEY branch taken; so is an OPEN OUTPUT whose creation the host refuses to grow the file
+    /// for. Both leave the file as it was: the DELETE's record is still there at the next OPEN.</summary>
+    [Fact]
+    public void RelativeDeleteAndCreate_AtTheHostsBoundary_Are30_NeverTheInvalidKey()
+    {
+        string host = Host("refuse-delete.dat");
+        bool refusing = false;
+        int refused = 0;
+        RelativeStore.MediumObserver.Value = inner => new CobolNet.Tests.Unit.Store.RefusingPageMedium(inner,
+            write: page =>
+            {
+                if (!refusing || InsideTheFile(page, inner)) return null;
+                refused++;
+                return new MediumSizeLimitException("the file cannot grow further");
+            });
+        try
+        {
+            var c = new RelativeConnector(host, 4, KeyedAccess.Random, 4);
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.Output));
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.Success, c.Write("AAAA"));
+            Assert.Equal(FileStatusCode.Success, c.Close());
+            Assert.Equal(FileStatusCode.Success, c.Open(FileOpenMode.IO));   // §14.9.10.4 GR1: DELETE needs the I-O mode
+            refusing = true;
+            c.SetPendingKey(1);
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());
+            Assert.True(refused > 0, "the DELETE grew the file, and the host refused it");
+            refusing = false;
+            Assert.Equal(FileStatusCode.PermanentError, c.Delete());   // §9.1.13.1: the permanent error stays in effect
+            Assert.Equal(FileStatusCode.Success, c.Close());
+
+            string created = Host("refuse-create.dat");
+            var o = new RelativeConnector(created, 4, KeyedAccess.Random, 4);
+            refusing = true;
+            refused = 0;
+            Assert.Equal(FileStatusCode.PermanentError, o.Open(FileOpenMode.Output));
+            Assert.True(refused > 0, "the creation grew the file, and the host refused it");
+            refusing = false;
+        }
+        finally { RelativeStore.MediumObserver.Value = null; }
+        Assert.Equal(["1=AAAA"], Records(host));
+    }
+
+    /// <summary>Whether <paramref name="page"/> lies inside the medium (a write there does not grow the file). A refusing fake
+    /// returns no refusal for such a page.</summary>
+    private static bool InsideTheFile(uint page, IPageMedium inner) =>
+        (long)page * CobolNet.Runtime.IO.Store.PageHeader.PageSize < inner.Length;
+
+    /// <summary>Every record of the relative file at <paramref name="host"/> as "rrn=image", read by a fresh connector
+    /// (the next OPEN).</summary>
+    private static List<string> Records(string host)
+    {
+        var r = new RelativeConnector(host, 4, KeyedAccess.Sequential, 18);
+        Assert.Equal(FileStatusCode.Success, r.Open(FileOpenMode.Input));
+        var all = new List<string>();
+        while (r.ReadNext(out string image) == FileStatusCode.Success) all.Add($"{r.LastSlot}={image}");
+        Assert.Equal(FileStatusCode.Success, r.Close());
+        return all;
     }
 
     // ── Annex A.1 item 31: the file coded character set ──────────────────────────────────────────────────

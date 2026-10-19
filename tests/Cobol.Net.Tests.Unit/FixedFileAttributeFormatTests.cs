@@ -85,17 +85,16 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         // rejected with the sidecar, and one is what a `*.dat:*` enumeration would add here.
         Assert.Equal([Path.GetFileName(host)], Directory.GetFiles(_dir).Select(Path.GetFileName).Order());
 
-        // The whole of what a LATER RUN can know is these bytes: magic + version 5 (PB1099), 'R'elative, 'F'ixed,
-        // min 10, max 10, no keys, the generation stamp of the store's one persist (its creation, PB2660) and a zero
-        // release mint (a relative store has no release order). Nothing in this process holds them.
-        byte[] head = File.ReadAllBytes(host);
-        Assert.Equal(
-            [(byte)'C', (byte)'B', (byte)'N', (byte)'F', (byte)'S', (byte)'T', (byte)'R', 5,
-             (byte)'R', (byte)'F', 10, 0, 0, 0, 10, 0, 0, 0, 0, 0,
-             1, 0, 0, 0, 0, 0, 0, 0,
-             0, 0, 0, 0, 0, 0, 0, 0],
-            head[..36]);
-        Assert.Equal(36, head.Length);   // an empty store is its header and nothing else
+        // The whole of what a LATER RUN can know is these bytes, in each of the paged store's three meta pages
+        // (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.4, kb/Work PB3333): at offset 32 the magic + format
+        // version 6, 'R'elative, 'F'ixed, min 10, max 10, no keys. Nothing in this process holds them.
+        byte[] file = File.ReadAllBytes(host);
+        Assert.Equal(3 * PageSize, file.Length);   // an empty store is its three meta pages and nothing else
+        for (int page = 0; page < 3; page++)
+            Assert.Equal(
+                [(byte)'C', (byte)'B', (byte)'N', (byte)'F', (byte)'S', (byte)'T', (byte)'R', 6,
+                 (byte)'R', (byte)'F', 10, 0, 0, 0, 10, 0, 0, 0, 0, 0],
+                file[(page * PageSize + 32)..(page * PageSize + 52)]);
 
         // §14.9.27.4 GR10 — organization and record size both differ: the OPEN is unsuccessful, '39'.
         Assert.Equal(FileStatusCode.FixedAttributeConflict, OpenContradictingRelativeConnector(host));
@@ -113,23 +112,34 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         CobolFile.Close("RD");
     }
 
+    private const int PageSize = CobolNet.Runtime.IO.Store.PageHeader.PageSize;
+
     [Theory]
-    // A byte of the MAGIC is wrong — a file some other tool wrote, or a store from before the header existed.
-    [InlineData(0, (byte)'X')]
-    [InlineData(6, (byte)'X')]
-    // A FORMAT VERSION this build does not know. It is a CONFLICT and not "attributes not recorded": an
-    // unknown layout cannot have its frames located either, so reading on would be a silent misread.
-    [InlineData(7, (byte)9)]
-    // An ORGANIZATION byte outside the two a framed store can carry (§9.1.6 names three, and the sequential
-    // one has no store) — and a RECORD TYPE outside fixed/variable.
-    [InlineData(8, (byte)'S')]
-    [InlineData(9, (byte)'X')]
-    public void AStoreThisBuildCannotInterpret_IsAConflict(int at, byte to)
+    // A byte of the MAGIC is wrong — a file some other tool wrote, or a store from before the paged format existed.
+    [InlineData(32, (byte)'X', FileStatusCode.FixedAttributeConflict)]
+    [InlineData(38, (byte)'X', FileStatusCode.FixedAttributeConflict)]
+    // A FORMAT VERSION this build does not know — the whole store's 5 included. It is a CONFLICT and not
+    // "attributes not recorded": an unknown layout cannot have its records located either, so reading on would be a
+    // silent misread.
+    [InlineData(39, (byte)5, FileStatusCode.FixedAttributeConflict)]
+    [InlineData(39, (byte)9, FileStatusCode.FixedAttributeConflict)]
+    // The format's magic and version over meta pages that do not validate — an ORGANIZATION byte outside the two a
+    // keyed store can carry, a RECORD TYPE outside fixed/variable — is the store's own format DAMAGED: the adoption
+    // rule's '30' (§9.1.13.6 item 1; 2.2.1.6 R6 step 1), not GR10's '39' (2.2.1.4: "a page carrying this magic and
+    // version whose committed slots both fail is StoreFormat.Damaged").
+    [InlineData(40, (byte)'S', FileStatusCode.PermanentError)]
+    [InlineData(41, (byte)'X', FileStatusCode.PermanentError)]
+    public void AStoreThisBuildCannotInterpret_IsAConflict(int at, byte to, string expected)
     {
         string host = Host($"ffa-foreign-{at}-{to}.dat");
         MakeRelativeTenByteFile(host);
         byte[] bytes = File.ReadAllBytes(host);
-        bytes[at] = to;
+        for (int page = 0; page < 3; page++)   // every meta page, each sealed again: the checksum is not what refuses
+        {
+            var meta = bytes.AsSpan(page * PageSize, PageSize);
+            meta[at] = to;
+            CobolNet.Runtime.IO.Store.PageHeader.Seal(meta);
+        }
         File.WriteAllBytes(host, bytes);
 
         // Even the connector that MATCHES the file's declared attributes is refused, because the refusal is
@@ -137,7 +147,7 @@ public sealed class FixedFileAttributeFormatTests : IDisposable
         CobolFile.Init();
         CobolFile.RegisterRelative("RD", host, 10, false, 0, 0);
         CobolFile.OpenInput("RD", host, assignDynamic: false, page: null);
-        Assert.Equal(FileStatusCode.FixedAttributeConflict, CobolFile.Status("RD"));
+        Assert.Equal(expected, CobolFile.Status("RD"));
     }
 
     [Fact]
