@@ -1,4 +1,4 @@
-## PB3388 - IX216A's OPEN EXTEND status: the harness retried a killed program over its own leftover files
+## Entry 2254 — 2026-10-19 10:47 PDT — PB3388 - IX216A's OPEN EXTEND status: the harness retried a killed program over its own leftover files
 
 **The observation.** One Linux gate red in 17,812 (`NistProgram_MatchesGolden("IX216A")`, head c95af8611, 6 m 22 s):
 `OPEN EXTEND: EXP: 05 FAIL* OPEN-TEST-GF-01`. IX216A opens an absent OPTIONAL indexed file with OPEN EXTEND and expects status
@@ -34,3 +34,4 @@ call site from being added without the argument.
 **Tests (ProcessObservationDriftTests, the owner's I-O exception-path rule).** The retry policy is its own method, `ProcessObserver.ObserveWithRetry(command, budget, runDirectory, attempt)`, and the tests drive it with an in-process attempt: the first attempt creates a file, rewrites a data file in place and reports TimedOut, as a killed program leaves them; the second reports what it found. A retry restores the created file, the in-place rewrite and the subdirectory (exit 0, not 9); an unrestorable large file raises with the file named and `attempt2: not run` and the retry is never made; a caller that names no directory keeps the old behaviour (exit 9), which pins that the argument is what restores; a retry that also times out raises after restoring. The first version ran a real cmd.exe or sh child under a literal 1 s budget, so which attempt a test observed depended on host load (branch review R1-1, kb/Work PB1590, PB3022): fixed at the root by separating the policy from the process launch rather than widening the budget. The process-level wiring stays covered by the existing never-finishes tests. The runtime's own I-O statuses are untouched.
 
 **Register.** PB3388 landed, `closes_rows: []` (a harness defect; no inventory row changed verdict).
+
