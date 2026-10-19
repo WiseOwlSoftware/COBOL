@@ -558,11 +558,11 @@ programPrototypeName
 // LEFT the rule, and with a required period only the exit alternative had: XYZ was read as a configuration paragraph
 // and GLOBAL drew a bare COBOL0307. With the period optional the name's alternative leaves the rule too, so it wins,
 // and CobolErrorStrategy names GLOBAL in THIS format (COBOLNET1970). objectComputerParagraph is the same shape.
-// A LITERAL after the name is the other half (kb/Work PB3373): the error production opens at a literal too
-// (Core/CobolExpressions.g4#genericClause), so `SOURCE-COMPUTER. XYZ "LIT".` is ambiguous rather than readable only
-// as a name-less paragraph and an unrecognized `XYZ "LIT"` paragraph, and the tie goes to the name. (An unsigned
-// integer does not open the run — it may be a level-number after a data-division list — so `XYZ 12` keeps the
-// name-less reading: see genericClause.)
+// A LITERAL after the name is the other half (kb/Work PB3373, PB3390): the error production opens at any literal too
+// (Core/CobolExpressions.g4#unrecognizedClause — the unsigned integer and the comma decimals included, since no
+// level-number follows this list), so `SOURCE-COMPUTER. XYZ "LIT".` and `SOURCE-COMPUTER. XYZ 12.` are ambiguous
+// rather than readable only as a name-less paragraph and an unrecognized `XYZ "LIT"` paragraph, and the tie goes to
+// the name.
 sourceComputerParagraph
     : SOURCE_COMPUTER DOT (computerName debuggingModeClause? unrecognizedClause?)? DOT?
     ;
