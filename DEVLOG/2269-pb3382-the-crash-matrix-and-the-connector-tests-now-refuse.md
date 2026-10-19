@@ -1,4 +1,4 @@
-## PB3382 - the crash matrix and the connector tests now refuse the sync of an UNCHANGED CLOSE
+## Entry 2269 — 2026-10-19 15:35 PDT — PB3382 - the crash matrix and the connector tests now refuse the sync of an UNCHANGED CLOSE
 
 **What was wrong.** A CLOSE of a keyed store that completed no statement since its last promotion (its OPEN's fence, or an
 earlier CLOSE) writes nothing and only syncs (`PagedFile.Close`, DESIGN-runtime-library 2.2.1.7, PB3333). A host that refuses
@@ -26,3 +26,4 @@ but no test refused that sync: since 1a2728f7a the page-layer matrix's CLOSE sce
 mutation; restored, all pass.
 
 **Rows.** None claimed or closed (`closes_rows: []`, with the reason in the note).
+
