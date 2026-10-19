@@ -22,7 +22,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
    kb/Work PB2575), a DONE report whose branch review stamped FINDINGS (kb/Work PB3027: the finisher answers each
    finding; none while the report's branch is IN FLIGHT by its own lifecycle, prune_worktrees.owned, kb/Work PB3311:
    a live agent's worktree, a dispatch still out, or a touch inside --min-age means someone is already finishing it;
-   IN FLIGHT only as a carrier's content is not that), a `status: half` note, and an UNLANDED branch
+   IN FLIGHT only as a carrier's content is not that; and none unless the stamp COVERS the branch tip,
+   prune_worktrees.stamp_covers, the survey's own rule: a stamp at an older head followed by real commits is WAITING
+   FOR REVIEW, a diff-only re-review, and waits, kb/Work PB3394), a `status: half` note, and an UNLANDED branch
    (prune_worktrees.classify) whose commit subjects
    name an open note with no report. One finisher group per predecessor; its `pred` names the predecessor report and
    branch. The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
@@ -921,7 +923,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          deps: dict[str, list[str]] | None = None, busy: dict[str, InFlight] | None = None,
          held: dict[str, str] | None = None, drain: bool = False,
          carrier: Callable[[str], str | None] | None = None,
-         owned: set[str] | None = None) -> dict[str, Any]:
+         owned: set[str] | None = None,
+         review_covers: Callable[[Report], bool] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -945,17 +948,29 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     survey: the branches IN FLIGHT by their OWN lifecycle, never one IN FLIGHT only because a carrier contains it)
     lets a FINDINGS report's branch with a live owner wait: someone is already answering the findings (kb/Work
     PB3311). A FINDINGS branch that a carrier merely contains is not owned, and gets its finisher with the carrier
-    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1)."""
+    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1).
+
+    `review_covers(report)`: its review stamp COVERS its branch's tip (prune_worktrees.stamp_covers over the survey's
+    tips, the one coverage rule the branch survey's lifecycle reads; kb/Work PB3394). Only a FINDINGS stamp that covers
+    the tip makes a review finisher; a stamp at an older head followed by real commits is WAITING FOR REVIEW (those
+    commits are unreviewed, and the enqueue unit's diff-only re-review reads them, kb/Work PB3381): it is named in
+    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
+    review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
     wave_rules = rules["wave"]
     cap = wave_rules["max_notes_per_group"]
     open_ids = {n["id"] for c in clusters + half_clusters for n in c["notes"] if n["id"] in notes}
     note_file = {n["id"]: c["file"] for c in clusters + half_clusters for n in c["notes"]}
     note_files = {n["id"]: c.get("files", []) for c in clusters + half_clusters for n in c["notes"]}
 
-    def findings(r: Report, cls: str) -> bool:
+    def stamped(r: Report, cls: str) -> bool:
+        """A finished report on an unlanded branch whose branch review stamped FINDINGS, at whatever head."""
         return cls not in LANDED_CLASSES and r.finished and bool(r.review) and r.review.verdict == "FINDINGS"
+
+    def findings(r: Report, cls: str) -> bool:
+        """... and the stamp covers the branch tip: only then does a review finisher answer it (kb/Work PB3394)."""
+        return stamped(r, cls) and review_covers(r)
 
     # THE LEADS THE REPORTS DECIDE: every open note the fix lane sees, and the lead of a live FINDINGS report that the
     # fix lane cannot see (a `process_only` note, or an owner task's note main does not have yet: branch_lead_notes),
@@ -968,7 +983,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # hold and an unlanded branch's notes (review R2-1). Only the clusters' own arms read the clusters.
     leads = open_ids | {r.lead for r in reports if r.review and r.review.verdict == "FINDINGS" and
                         r.lead not in open_ids and r.lead in notes and
-                        findings(r, classify(r.branch) if r.branch else "ABSENT")}
+                        stamped(r, classify(r.branch) if r.branch else "ABSENT")}
     unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()}
     newest: dict[str, Report] = {}
     for r in reports:  # sorted oldest first, so the last write wins
@@ -996,7 +1011,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         # note NOT started still lands first: the landing lane lands its finished work.
         # A DONE branch whose review stamp says FINDINGS is unfinished too (kb/Work PB3027): the enqueue unit never fixes
         # a review finding, so its finisher answers them (finisher_pred's review arm).
-        if findings(r, cls) and r.branch in owned:
+        if stamped(r, cls) and r.branch in owned:
             # THE BRANCH IS BEING FINISHED (kb/Work PB3311): the survey reads it IN FLIGHT by its own lifecycle (a live
             # agent's worktree, its dispatch out, or a touch inside --min-age, which is how a resumed branch whose tip
             # moved past the reviewed head reads). A finisher's own branch is exempt from the file-set collision (it
@@ -1006,6 +1021,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             waiting[nid] = (f"its review findings are being answered: branch {r.branch} is IN FLIGHT (a live agent, a "
                             f"dispatch still out, or touched within --min-age): a finisher now would redo that work; "
                             f"it is planned again once the branch settles")
+        elif stamped(r, cls) and not findings(r, cls):
+            # THE STAMP IS OLDER THAN THE TIP (kb/Work PB3394): commits after the reviewed head are unreviewed work (the
+            # branch survey reads it WAITING FOR REVIEW by the same coverage rule), very likely the answers to these
+            # findings; one cobol-reviewer reads them (the enqueue unit's diff-only re-review, kb/Work PB3381). A
+            # finisher would redo answered work on a branch whose author may still be committing (wave 1127's C).
+            waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and "
+                            f"branch {r.branch} has commits since that no review covers: one cobol-reviewer reviews "
+                            f"them (the enqueue unit's diff-only re-review), never a finisher")
         elif r.status in FINISH_STATUSES or (cls in LANDED_CLASSES and r.not_started) or findings(r, cls):
             if drain and not findings(r, cls) and (why := drained(r.branch, cls)):
                 waiting[nid] = why
@@ -1442,16 +1465,21 @@ def main(argv: list[str] | None = None) -> int:
         raw["the open external-repository slices"] = work.slice_file_set()
     states: dict[str, str] = {}
     owned: set[str] = set()
+    review_covers = None
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
         states, owned = {r.name: r.state for r in rows}, prune_worktrees.owned(rows)
+        coverage = prune_worktrees.review_coverage(rows)   # the survey's own coverage rule, kb/Work PB3394
+
+        def review_covers(rep: Report) -> bool:
+            return coverage(rep.review, rep.branch)
     busy = classify_inflight(raw, meta, reports, states, unlanded)
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned)
+             owned=owned, review_covers=review_covers)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"

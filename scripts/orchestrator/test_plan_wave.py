@@ -318,6 +318,28 @@ for drain in (False, True):
                   budget_points=100, drain=False, carrier=DR_CARRIER.get, owned={"worktree-wf_dr-3"})
     check("a SPLIT report's branch IN FLIGHT is the SPLIT arm's (PB2974), not this rule's",
           any("PB6" in g.notes for g in pf2["groups"]), True)
+# kb/Work PB3394 (wave 1127's A, B and C): a FINDINGS stamp makes a finisher only when it COVERS the branch tip
+# (`review_covers`: prune_worktrees.review_coverage over the survey in plan_wave.main, the survey's own rule; the
+# end-to-end case on a real git history is prune_worktrees.py --self-test's findings-moved and findings-stamped). A stamp
+# at an older head is WAITING FOR REVIEW, named in `waiting`, never a group, in either mode. Without a survey the
+# report's own HEAD stands for the tip: a report rewritten after the review (HEAD past the stamp) is not covered.
+SV = TMP / "reports-stale-stamp"
+SV.mkdir()
+for head, stamp in (("314d06415aa", "11f7b8ab0c0e"), ("11f7b8ab0c0e", "11f7b8ab0c0e")):
+    (SV / "w1127a-PB7-report.md").write_text(
+        f"Status: DONE\n**Review:** FINDINGS 1 w1127a-review-r1 {stamp} E:/s/review-w1127-a.jsonl\n"
+        f"Branch: worktree-wf_dr-2\nHEAD: {head}\n\n## X\n", encoding="utf-8", newline="\n")
+    for drain in (False, True):
+        for covers in (None, lambda _r: False, lambda _r: True):
+            covered = covers(None) if covers else head == stamp
+            psv = pw.plan(dr_notes, CLUSTERS, HALF, pw.load_reports(SV), lambda b: DR_CLASS.get(b, "ABSENT"), {}, RULES,
+                          budget_points=100, drain=drain, review_covers=covers)
+            g7 = [g.pred for g in psv["groups"] if "PB7" in g.notes]
+            check(f"PB3394: HEAD {head[:4]}, stamp {stamp[:4]}, {'drain' if drain else 'normal'}, review_covers "
+                  f"{'default' if covers is None else covered}: {'a finisher' if covered else 'WAITING FOR REVIEW'}",
+                  (bool(g7) and g7[0].startswith("FINISH-FIRST: the branch review of w1127a"),
+                   psv["waiting"].get("PB7", "").startswith("WAITING FOR REVIEW")),
+                  (covered, not covered))
 # PB3311 review R1-1: the survey reads a FINDINGS branch IN FLIGHT ALSO when a carrier merely contains it
 # (prune_worktrees.contained: it lands through that branch), and that says nothing about who answers ITS findings. The
 # survey as plan_wave.main reads it, end to end: wf_dr-5 (PB79's FINDINGS branch, DECISION by lifecycle) is an ancestor
