@@ -35,8 +35,15 @@ internal sealed class HandlePageMedium(SafeFileHandle handle) : IPageMedium
     public void Write(uint page, ReadOnlySpan<byte> source)
     {
         try { RandomAccess.Write(handle, source[..PageHeader.PageSize], Offset(page)); }
-        catch (IOException e) when (HostFile.IsFileSizeLimit(e)) { throw new MediumSizeLimitException(e.Message, e); }
+        catch (IOException e) when (HostFile.IsFileSizeLimit(e)) { throw Refusal(e); }
     }
+
+    /// <summary>What this medium hands the page layer for the host's refusal <paramref name="host"/> of a page write: the
+    /// contract's <see cref="MediumSizeLimitException"/> when the host said the file cannot grow further
+    /// (<see cref="HostFile.IsFileSizeLimit"/>), else the refusal as the host raised it. A fault-injecting test medium
+    /// above this one raises a host code through it, so the code is read in this one place.</summary>
+    internal static IOException Refusal(IOException host) =>
+        HostFile.IsFileSizeLimit(host) ? new MediumSizeLimitException(host.Message, host) : host;
 
     /// <inheritdoc/>
     public void Sync() => RandomAccess.FlushToDisk(handle);
