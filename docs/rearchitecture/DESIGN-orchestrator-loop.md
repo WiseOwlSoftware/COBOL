@@ -1034,9 +1034,24 @@ backspace; `operator-session.json` was invalid JSON with unescaped backslashes).
   15:07 question waited until 16:47. `status` prints one line: this session's lane (None for a loop unit, which carries
   `COBOL_LOOP_UNIT`; `operator` under the config dir `operator-session.json` names; otherwise `mythos`), its open
   messages (count, oldest, any question, approval, task or needs_owner), and whether a `mailbox.py watch --inbox <lane>`
-  process is descended from THIS session's Claude Code process (`coord.process_table`; a watcher another session armed
-  wakes that session, so it does not count). With none, the line is a ⛔ that names the command to arm. The line is
-  printed by `session-probe.ps1`, which the SessionStart hook runs at every start, resume, clear and compaction; by
-  `list`; and by `done` whenever no watcher is armed. A firing `watch` prints the re-arm command as it exits. The
+  process is descended from THIS session's Claude Code process (`coord.process_table`, one kernel snapshot on Windows,
+  about 0.1 s; a watcher another session armed wakes that session, so it does not count). With none, the line is a ⛔
+  that names the command to arm. The line is printed by `session-probe.ps1`, which the SessionStart hook runs at every
+  start, resume, clear and compaction; by `list`; and by `done` whenever no watcher is armed. A firing `watch` prints
+  the re-arm command as it exits.
+- **A turn does not end without the watcher (kb/Work PB3387).** A watcher exits each time it fires, so a session that
+  does not re-arm it goes deaf mid-session, and nothing at session start sees that: on 2026-10-18 the operator's
+  watcher fired at 14:40, was not re-armed, and nine messages waited until 17:14. The Stop hook
+  `scripts/hooks/inbox_guard.py` asks `status` at every attended turn's end and, when it reads false, refuses the stop
+  with the ⛔ line as the reason, so the session acts on the inbox and arms the watcher first. A loop unit and a host
+  without the coordination directory pass silently. A turn already continued for a Stop hook (`stop_hook_active`) gets
+  the line as a warning instead, so the hook never loops. `watch` fires only on messages NEW TO ITS SESSION: it records the
+  ones it returned in `mailbox/delivered-<lane>-<session pid>.json`, keyed by the watching session's Claude Code process
+  and pruned to the open messages. So a watcher stays armed beside a message the session has seen and cannot close yet,
+  such as one waiting on the owner or a landing still running, and a second session watching the same inbox is still
+  woken by every message (one record per inbox would let the first watcher to poll take it from the other). A watch
+  deletes the records of sessions whose process has ended. Firing on
+  any open message would have made the hook and the watcher loop, one turn per cycle. Such a message, once open past
+  `STALE_MINUTES`, is named in a warning at every turn's end, never a refusal. The
   sender sees the other side: `send` warns when the recipient's inbox already holds messages open over 30 minutes
   (`mailbox.stale`), because that peer is probably not watching (kb/Work PB2816, folded into PB2814).

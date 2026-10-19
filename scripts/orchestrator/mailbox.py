@@ -213,13 +213,50 @@ def take(cdir: pathlib.Path, mid: str, repo: pathlib.Path = coord.REPO) -> tuple
     return m, []
 
 
-def watch(cdir: pathlib.Path, party: str, interval: float, timeout: float) -> list[dict[str, Any]]:
-    """Return the inbox as soon as it holds a message; [] once `timeout` seconds pass (0 = wait forever)."""
+# In box(cdir), ONE RECORD PER WATCHING SESSION (its Claude Code process, session_root): the open messages a watch of
+# that session has already returned. Per session, never per inbox: a watcher wakes only the session that armed it
+# (watchers), so with one record per inbox the first session's watcher to poll took a message from every other session
+# watching that inbox, which then never woke (kb/Work PB3387, review R2-1). "none" keys a watch run outside a session.
+DELIVERED = "delivered-{party}-{root}.json"
+DELIVERED_RECORD = re.compile(r"delivered-(\w+)-(\d+)\.json")
+
+
+def delivered(cdir: pathlib.Path, party: str, root: int | None) -> set[str]:
+    return set(coord.read_json(box(cdir) / DELIVERED.format(party=party, root=root or "none"), []))
+
+
+def prune_delivered(cdir: pathlib.Path, live: set[int]) -> None:
+    """Delete the records of sessions whose Claude Code process has ended, so a record lives no longer than its session
+    (a later process given the same pid would otherwise inherit it)."""
+    for p in box(cdir).glob("delivered-*.json"):
+        m = DELIVERED_RECORD.fullmatch(p.name)
+        if m and int(m.group(2)) not in live:
+            p.unlink(missing_ok=True)
+
+
+def watch(cdir: pathlib.Path, party: str, interval: float, timeout: float, *,
+          root: int | None | str = "auto") -> list[dict[str, Any]]:
+    """Return the inbox's messages NEW TO THIS SESSION, the open ones no earlier watch of the same session returned, as
+    soon as there is one, and record them delivered; [] once `timeout` seconds pass (0 = wait forever). A message the
+    session has seen and cannot close yet (one waiting on the owner, a landing still running) does not end the next
+    watcher at once, so a watcher stays armed beside it: with "any open message" the Stop hook and an instantly exiting
+    watcher looped, one turn per cycle (kb/Work PB3387, review R1-1). Each session keeps its own record (review R2-1),
+    pruned to the open messages, so a closed one drops out. `root` is the watching session's process ("auto" reads it
+    from the process table, and prunes the records of sessions that have ended); the self-test passes it."""
+    if root == "auto":
+        table = coord.process_table()
+        root = session_root(table, os.getpid())
+        prune_delivered(cdir, {p["pid"] for p in table})
+    record = box(cdir) / DELIVERED.format(party=party, root=root or "none")
     start = time.monotonic()
     while True:
         msgs = listing(cdir, party)
-        if msgs or (timeout and time.monotonic() - start >= timeout):
-            return msgs
+        fresh = [m for m in msgs if m["id"] not in delivered(cdir, party, root)]
+        if fresh:
+            coord.write_json(record, sorted(m["id"] for m in msgs))
+            return fresh
+        if timeout and time.monotonic() - start >= timeout:
+            return []
         time.sleep(interval)
 
 
@@ -227,7 +264,9 @@ def watch(cdir: pathlib.Path, party: str, interval: float, timeout: float) -> li
 # the session itself can arm it: a watcher is useful only as that session's own BACKGROUND Bash task, whose exit
 # re-invokes the session. A hook cannot arm it, so every place a session looks at the mailbox — session-probe at every
 # start, resume, clear and compaction, and every list and done — says whether THIS session has one (kb/Work PB2814:
-# a restarted operator armed none, and the Mythos lane's question waited 1 h 40 min).
+# a restarted operator armed none, and the Mythos lane's question waited 1 h 40 min), and the Stop hook
+# `scripts/hooks/inbox_guard.py` refuses an attended turn's end while `status` reads false (kb/Work PB3387: a watcher
+# that fired mid-session was never re-armed, and nine messages waited 2 h 34 min).
 WATCH_CMD = "python scripts/orchestrator/mailbox.py watch --inbox {lane} --timeout 0"
 CLAUDE_IMAGES = ("claude", "claude.exe")
 WATCHER = re.compile(r"mailbox\.py\S*\s(?:.*\s)?watch\b.*?--inbox[=\s]+(\w+)")   # global options may precede watch
@@ -401,9 +440,28 @@ def _self_test() -> int:
               (got, (box(cdir) / "done" / hand.name).exists(), "refs is empty" in "; ".join(why3)), (None, True, True))
         check("declined carries the reason", "malformed" in _load(box(cdir) / "done" / hand.name)["result"]["report"], True)
         refused("an unknown status", lambda: done(cdir, a.stem, "finished", ""))
-        # watch: returns at once when the inbox holds a message; an empty inbox returns [] at the timeout
-        check("watch returns the waiting messages", len(watch(cdir, "operator", 0.01, 0)) >= 1, True)
-        check("watch on an empty inbox times out empty", watch(cdir, "nobody-here", 0.01, 0.05), [])
+        # watch: returns at once with the messages new to THIS session; with none new it times out empty. Sessions A
+        # (root 101) and B (root 202) watch the same inbox.
+        first = watch(cdir, "operator", 0.01, 0, root=101)
+        check("watch returns the waiting messages", len(first) >= 1, True)
+        check("a seen message still open does not end the session's next watcher (kb/Work PB3387 R1-1: the hook loop)",
+              watch(cdir, "operator", 0.01, 0.05, root=101), [])
+        check("another session watching the same inbox is woken by the same messages (R2-1: a lost wake-up)",
+              sorted(m["id"] for m in watch(cdir, "operator", 0.01, 0, root=202)), sorted(m["id"] for m in first))
+        fresh = send(cdir, to="operator", kind="info", subject="a new one", body="b", refs=[note], now=when)
+        check("a NEW message wakes each session's watcher, and only it is returned",
+              ([m["id"] for m in watch(cdir, "operator", 0.01, 0, root=101)],
+               [m["id"] for m in watch(cdir, "operator", 0.01, 0, root=202)]), ([fresh.stem], [fresh.stem]))
+        done(cdir, fresh.stem, "done", "", now=when)
+        newer = send(cdir, to="operator", kind="info", subject="a newer one", body="b", refs=[note], now=when)
+        watch(cdir, "operator", 0.01, 0, root=101)
+        check("the delivered record is pruned to the open messages: a closed one drops out",
+              (fresh.stem in delivered(cdir, "operator", 101), newer.stem in delivered(cdir, "operator", 101)),
+              (False, True))
+        prune_delivered(cdir, {101})
+        check("the record of a session whose process ended is deleted, a live one's kept",
+              (bool(delivered(cdir, "operator", 101)), delivered(cdir, "operator", 202)), (True, set()))
+        check("an empty inbox times out empty", watch(cdir, "nobody-here", 0.01, 0.05, root=101), [])
         # operator-session.json through a JSON library: backslashes survive, a re-write keeps started_at
         s1 = session(cdir, "COBOL [7a2da9]", "sid-1", True, now=when)
         raw = (cdir / SESSION_FILE).read_text(encoding="utf-8")
