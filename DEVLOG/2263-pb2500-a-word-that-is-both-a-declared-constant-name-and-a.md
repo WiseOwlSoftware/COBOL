@@ -1,4 +1,4 @@
-## PB2500 - a word that is both a declared constant-name and a device-name-1 names the CONSTANT's file in ASSIGN TO
+## Entry 2263 — 2026-10-19 12:48 PDT — PB2500 - a word that is both a declared constant-name and a device-name-1 names the CONSTANT's file in ASSIGN TO
 
 **What was wrong.** `SELECT F ASSIGN TO KN` with `01 KN CONSTANT AS 'p12out.txt'.` compiled clean and wrote `kn.txt`, the
 spelling of KN as device-name-1, never `p12out.txt`: the constant was never consulted. The ASSIGN clause admits
@@ -51,3 +51,4 @@ give the fr-FR form the literal leg shows. DOC-A.1-181 lists it.
 the Unscoped environment answers NotAConstant so no null path. Test analysis: the golden's abnormal paths are derived from
 sections 9.1.13.2 4), 9.1.13.4 1), 9.1.13.6 5) and 14.6.13.1.3 3). Comments: the determination is stated once on
 `WordText`; the class summary points to it.
+
