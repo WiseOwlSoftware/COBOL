@@ -202,3 +202,9 @@ retired: it expected a `SHARING WITH READ ONLY` sequential writer to buffer unti
 asked only in `KeyedConnector.cs`. It now pins PB1587's rule. The release asks about any other connector (READ ONLY and
 ALL OTHER hand the record over at the WRITE, NO OTHER keeps it until the CLOSE). The append position, the ordinal count
 and the shared append stream still ask about another writer only. The test is red at `1f86951c4` and green now.
+
+The round-4 gates ran at `b3a83d9e8`. The Windows run `20261019T020846Z-c57ec5` printed `=== BUILD-LOCAL GATE: LEG 1 ONLY
+(batched gating, PB2515): GREEN — leg 2 left to CI's whole-population run: Conformance 6,563 · Unit 493 · Characterization
+31 — Conformance 11,384/17,947 · Unit 34,060/34,553 · Characterization 5/36 cases ran (skipped 0) in 1 of 2 leg(s) ===`,
+and the renamed `StoreCoherenceTests` case ran in its leg 1. CI's Linux legs printed `=== LINUX GATE: GREEN (legs
+selftests unit characterization conformance guard selftests-built; HEAD b3a83d9e8) ===`.
