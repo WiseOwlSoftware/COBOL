@@ -1243,10 +1243,30 @@ public sealed class FileRegistry
     /// status the statement would have taken — a '51' for a record another connector holds among them — and says the
     /// statement <i>"does not touch the physical file"</i>: so no peek reads the record's identity from the file, no
     /// conflict check answers '51' or waits out a RETRY, and the verb replays the condition through its own precondition
-    /// (<see cref="FileConnector.PermanentErrorReplay"/>; kb/Work PB3336 review R1-2). The REWRITE and DELETE bodies ask
-    /// the same condition before their conflict check.</summary>
+    /// (<see cref="FileConnector.PermanentErrorReplay"/>; kb/Work PB3336 review R1-2). The READ peeks ask it here; the
+    /// REWRITE and DELETE bodies reach it through <see cref="MutationTarget"/>, so the permanent-error half of the rule is
+    /// written once, in <see cref="PermanentErrorOutranksLocks"/> (kb/Work PB3416).</summary>
     private static bool NoLockQuestion(PhysicalFileTable.State st, FileConnector c) =>
-        c.PermanentErrorInEffect is not null || NoRecordIsLocked(st, c);
+        PermanentErrorOutranksLocks(c) || NoRecordIsLocked(st, c);
+
+    /// <summary>⛔ THE ONE WRITING OF "A PERMANENT ERROR IN EFFECT ASKS NO §9.1.16 LOCK QUESTION" (kb/Work PB3416): the
+    /// condition <i>"remains in effect for all subsequent input-output operations on the file"</i> (§9.1.13.1) and
+    /// docs/CONFORMANCE.md DOC-A.1-105 makes it outrank the '51' a locked record would answer. Every governed verb's
+    /// lock question — the READ peeks (<see cref="NoLockQuestion"/>) and the REWRITE / DELETE target
+    /// (<see cref="MutationTarget"/>) — begins here, before any lock table or host presence byte is consulted.</summary>
+    private static bool PermanentErrorOutranksLocks(FileConnector c) => c.PermanentErrorInEffect is not null;
+
+    /// <summary>⛔ THE LOCK IDENTITY OF THE RECORD A GOVERNED REWRITE OR DELETE TARGETS, taken in the one place either body
+    /// takes it (§14.9.35.4 GR11 "the record identified for rewriting", §14.9.10.4 GR6 "the record identified for
+    /// deletion"; kb/Work PB3416): "" when no §9.1.16 question can have a non-trivial answer (<see cref="RecordLocksGovern"/>,
+    /// which keeps the key- or ordinal-string allocation off the plain path — kb/Work PB669) and while the connector's
+    /// permanent error is in effect (<see cref="PermanentErrorOutranksLocks"/>: not even the host's presence byte is
+    /// asked, and the verb then replays the condition through its own open-mode precondition,
+    /// <see cref="FileConnector.MutationTargetRecordId"/>'s guard). A non-empty target therefore already means "no
+    /// permanent error in effect", which the conflict check needs and no longer re-tests.</summary>
+    private static string MutationTarget(ConnectorShare meta, PhysicalFileTable.State st, string name, FileConnector c,
+        string image, RecordExtents? extents) =>
+        !PermanentErrorOutranksLocks(c) && RecordLocksGovern(meta, st, name, c) ? c.MutationTargetRecordId(image, extents) : "";
 
     /// <summary>No record of this physical file is locked by ANY connector, so §14.9.30.4 GR9's conflict
     /// condition — <i>"the record identified for access is locked by another file connector"</i> — cannot exist
@@ -1657,9 +1677,9 @@ public sealed class FileRegistry
         // The record identity costs an allocation on the keyed organizations, so it is taken only when some
         // §9.1.16 question can have a non-trivial answer; with no lock on the file and none to set, every arm
         // below is a no-op whatever the target is (kb/Work PB669).
-        string target = RecordLocksGovern(meta, st, name, c) ? c.MutationTargetRecordId(image, extents) : "";
+        string target = MutationTarget(meta, st, name, c, image, extents);
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.35.4 GR12 a) 2. — released at the beginning
-        if (target.Length > 0 && c.PermanentErrorInEffect is null)   // the condition outranks the conflict (NoLockQuestion)
+        if (target.Length > 0)
         {
             // §14.9.35.4 GR11 — the ONE conflict check; GR14 then keeps the record, the record area and the file
             // position indicator untouched, which holds because nothing has been committed yet.
@@ -1712,9 +1732,9 @@ public sealed class FileRegistry
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         // The record identity is taken only when a §9.1.16 question can have a non-trivial answer (kb/Work PB669).
-        string target = RecordLocksGovern(meta, st, name, c) ? c.MutationTargetRecordId(keyedRecordImage, areaExtents) : "";
+        string target = MutationTarget(meta, st, name, c, keyedRecordImage, areaExtents);
         ReleasePriorRecordLocks(meta, st, name, target);   // §14.9.10.4 GR7 a) 2. — released at the beginning
-        if (target.Length > 0 && c.PermanentErrorInEffect is null   // the condition outranks the conflict (NoLockQuestion)
+        if (target.Length > 0
             // §14.9.10.4 GR6 — the ONE conflict check; GR6 b)/c) then leave the record present and the record
             // area unaffected, which holds because nothing has been committed yet.
             && ConflictOnLockedRecord(name, st, target, ignoringLock: false, retryKind, retryAmount) is { } conflict)

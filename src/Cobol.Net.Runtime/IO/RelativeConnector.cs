@@ -61,7 +61,7 @@ public sealed class RelativeConnector : KeyedConnector
     /// random/dynamic the slot named by the RELATIVE KEY item, §14.9.35.4 GR21 / §14.9.10.4 GR4 — the
     /// ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
     protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => Access == KeyedAccess.Sequential
-        ? LastReadRecordId
+        ? SequentialMutationTarget
         : _pendingKey > 0 ? _pendingKey.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
     /// <inheritdoc/>  (Write sets <see cref="_lastSlot"/> to the released RRN on success, §14.9.51 GR29)

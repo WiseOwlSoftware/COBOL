@@ -189,7 +189,7 @@ public sealed class SequentialConnector : FileConnector
         _readOrdinal > 0 ? _readOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
     /// <inheritdoc/>  (a sequential REWRITE replaces the record obtained by the last successful READ, §14.9.35)
-    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => LastReadRecordId;
+    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => SequentialMutationTarget;
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => _writeOrdinal > 0

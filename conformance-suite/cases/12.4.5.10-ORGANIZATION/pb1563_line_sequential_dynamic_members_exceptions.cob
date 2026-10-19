@@ -44,7 +44,10 @@
       *>      is '51' (14.9.30.4 GR9, 9.1.13.8 item 1), with or
       *>      without RETRY (14.7.9.3 GR4 - the retries fail); the
       *>      REWRITE of a record the other connector locked is '51'
-      *>      (14.9.35.4 GR11); once the lock is released (a second
+      *>      (14.9.35.4 GR11), and the same REWRITE executed again
+      *>      (here with RETRY) is '43' - the '51' REWRITE is not a
+      *>      READ (GR5, tested before GR11; DOC-A.1-104 (2));
+      *>      once the lock is released (a second
       *>      READ WITH LOCK moves the single lock, 14.9.30.4 GR11 a)
       *>      the REWRITE is '00'.
       *>   K. SORT with a line sequential USING file that is not
@@ -220,6 +223,8 @@
            MOVE "ZZ" TO CA.
            REWRITE CR.
            DISPLAY "J6=" LC-ST.
+      *> The immediately previous statement was the '51' REWRITE, not a
+      *> successful READ: '43' (14.9.35.4 GR5), with no lock wait.
            REWRITE CR RETRY 2 TIMES.
            DISPLAY "J7=" LC-ST.
            CLOSE LA.
