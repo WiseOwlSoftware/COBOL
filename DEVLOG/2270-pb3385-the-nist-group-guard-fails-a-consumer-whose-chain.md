@@ -1,4 +1,4 @@
-## PB3385: the NIST group guard fails a consumer whose chain predecessor did not run to a normal end
+## Entry 2270 — 2026-10-19 15:51 PDT — PB3385: the NIST group guard fails a consumer whose chain predecessor did not run to a normal end
 
 `scripts/guard-run-group.sh` runs a consumer's declared predecessors (corpus.tsv's `chain-preds`) ungraded in the
 consumer's clean directory, then grades the consumer. `run_predecessor` dropped the predecessor's exit status and
@@ -26,3 +26,4 @@ shared functions (noted on that register item).
 
 **Self-review.** One missing-program case was found beside the reported one and fixed in the same function. No
 TERMINATES row is a predecessor, so a non-zero exit is never a legitimate predecessor outcome in the corpus.
+
