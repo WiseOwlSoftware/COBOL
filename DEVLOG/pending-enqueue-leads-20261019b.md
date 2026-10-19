@@ -7,4 +7,4 @@ residue tail and after-period exclusion admit integers that cannot be level-numb
 witness. PB3438: the constant-named ASSIGN golden lacks the EC-I-O arm with neither FILE STATUS nor USE. PB3439:
 `read_previous_run` reads only the Windows run directory, so a Linux landing red is not a previous red. PB3108 gained two
 witnesses of the 120 s harness budget red (`BothRunners_GiveEverySuiteTestTheSameVerdict`); PB3247 gained the
-conformance-golden witness with its four causes. No ids unused. No code changed.
+conformance-golden witness with its four causes. No ids unused. No code changed. It also commits the ledger trend points rendered on main (PB2426).
