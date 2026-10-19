@@ -19,7 +19,7 @@ and the `AssociatePhysical` call read it; the `phraseParticipant` parameter and 
 change the sharing mode but cannot write a LOCK MODE clause. The posture is derived per OPEN. The two drift tests that pinned
 `_connectorShares.ContainsKey(name)` and the OPEN-dispatch order test (which listed `RegisterSharing(`) were re-pointed.
 
-**Goldens.** No COBOL-visible answer changed, so no new conformance case; `12.4.5.9-LOCK-MODE/l1_lock_mode_omitted_sets_no_lock` and
+**Goldens.** One COBOL-visible status changed: an OPEN EXTEND of a file the process may write but not read, by a writer that sets no record lock (SHARING clause without LOCK MODE, SHARING phrase without a clause, LOCK MODE under NO OTHER), answered '37' and now answers '00' (ISO 9.1.13.6 6) a) 1.: '37' only when the file will not support write operations). The conformance corpus cannot make a file unreadable, so `FileAuthorityPresenceTests.OpenExtend_AWriterThatSetsNoRecordLockOnAWriteOnlyFile_IsSuccessful` (3 framings, host-only witness) pins it, and the record-locking writer stays '37' (`OpenExtend_RecordLockingWriterOnAWriteOnlyFile_Is37`); review round 1 R1-1. No other answer changed, so no new conformance case; `12.4.5.9-LOCK-MODE/l1_lock_mode_omitted_sets_no_lock` and
 `l1c17_lock_mode_no_other_inert` stay the I-O statement half. `RecordLockingParticipationDriftTests` (55 cells): 14 spellings x 3 framings for participation
 and the seeded ordinal; WRITE WITH LOCK sets a lock only under a LOCK MODE clause; a sibling READ gets '51' on the participant's record and '00' on a
 lock-less writer's; '35', '61' (also after a RETRY phrase exhausts) and '41' leave no participation; per-open derivation; the structural half.

@@ -464,8 +464,9 @@ public sealed class SequentialConnector : FileConnector
     /// open for reading (<c>EBADF</c>): an OUTPUT or EXTEND writer that took the mode's bare WRITE access would hold
     /// its record locks with no announcement, and every other run unit's hot-path test
     /// (<c>FileRegistry.NoRecordIsLocked</c>) would read the file as unlocked. Read is the one access the band
-    /// admits beyond a mode's floor (<c>FileLockPostureDriftTests</c>), and only a connector that registered a
-    /// record-locking posture (<see cref="FileConnector.SharedPhysical"/>) asks for it. For OUTPUT the read is a
+    /// admits beyond a mode's floor (<c>FileLockPostureDriftTests</c>), and only a connector that SETS record locks
+    /// under this open (<see cref="FileConnector.SharedPhysical"/>, <c>FileRegistry.RecordLocksSetUnder</c>; a SHARING
+    /// clause or phrase alone does not) asks for it. For OUTPUT the read is a
     /// PREFERENCE: a host that refuses it still grants the write (<see cref="OpenWriter"/>, kb/Work PB2848); for
     /// EXTEND it is a need, because the record ordinals a lock is published under are counted off the medium.</remarks>
     internal override FileAccess HostAccess(FileOpenMode mode) =>
