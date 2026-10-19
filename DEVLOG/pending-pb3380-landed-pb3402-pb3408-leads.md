@@ -1,15 +1,27 @@
-## PB3380 landed by PB3381; PB3402-PB3408 and PB3412-PB3415 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang, remote-only branches the survey never sees, and two engine leads
+## PB3402: the soft context cap no longer holds landings; PB3380 landed by PB3381; PB3403-PB3408 and PB3412-PB3415 filed
+
+**PB3402 (MAJOR), fixed.** On 2026-10-18 the loop's enqueue unit passed its 200,000-token soft cap three times (19:11,
+21:17, 23:47). The supervisor's `STOP-UNIT` was also one of the landing lane's stops, so every time, branches already
+reviewed CLEAN waited for the capped unit to end: 26 minutes after 19:11, and 47 minutes after 21:17 (two branches
+stamped CLEAN at 21:18 started landing at 22:05:08). A landing is its own process and adds nothing to the unit's
+context. The owner (~23:58): "Stop the soft cap from holding landings".
+
+Every stop meant to halt the loop already has a file of its own: the loop's `STOP`, the owner's global `STOP`, `HALT`,
+and the hard cap's fleet stop `scratch\STOP-loop`, which the supervisor writes beside `STOP-UNIT`. So
+`land_lane.stop_reason` reads the fleet stop in place of `STOP-UNIT`:
+- the soft cap (and an operator's bare `STOP-UNIT`) holds no landing;
+- the hard cap, `STOP`, the global `STOP` and `HALT` still do.
+`STOP-UNIT` still tells the running unit to start no new step. The self-test's case 7 plants `STOP`, the hard cap's
+pair and the global `STOP`; case 7b plants `STOP-UNIT` alone, and its WAITING TO LAND branch starts. With `STOP-UNIT`
+put back, case 7b goes RED. The design doc (the file table, the context-policy table, section 4.9 and the self-test
+list), `land_lane.py`'s docstrings and MANDATORY-PRACTICES O11 state the new rule.
 
 PB3381 (PR #270) fixed PB3380, a successor chain whose predecessors' review fixes never reached the later links. A
 successor now waits for its predecessor's whole review loop and merges the reviewed head. PB3381's note left the flip to
 the operator, because PB3380's note was not on its branch. PB3380 is now landed, and its note says the three-link test
 it asked for was not added.
 
-Seven new notes:
-- **PB3402 (MAJOR).** On 2026-10-18 the enqueue unit passed its 200,000-token soft cap at 21:17:53. The supervisor's
-  `STOP-UNIT` is also one of the landing lane's stops, so two branches reviewed CLEAN at 21:18 waited until the unit
-  ended and started landing at 22:05:08, 47 minutes later. The same thing happened from 19:11 to 19:37. A landing is its
-  own process, so a unit's context is no reason to hold it.
+New notes:
 - **PB3403.** `devlog.py check` refuses every pending entry, and only the landing stamps, so a finished branch cannot
   confirm its entry before landing. It needs a pre-landing mode (the Mythos lane's lead).
 - **PB3404-PB3408**, PB3381's open review leads:
@@ -24,8 +36,9 @@ Seven new notes:
   bounce verification. It is unexplained, so it is a defect to root-cause.
 - **PB3413 (MAJOR).** The branch survey lists only local branches and detached worktrees. Eleven branches of 10-09 to
   10-11 that exist only on origin surfaced only through a hand query during the drain. The owner asked why. Each was
-  checked by hand: all are carried on main. A remote whose local branch went any way other than `--apply` is never
-  seen again. PB2708 found that `origin` is never surveyed and fixed only the `--apply` path.
+  checked by hand: all are carried on main, and on the owner's word they are deleted on origin. A remote whose local
+  branch went any way other than `--apply` is never seen again. PB2708 found that `origin` is never surveyed and fixed
+  only the `--apply` path.
 - **PB3414 and PB3415**, the Mythos lane's two remaining leads from `-326-19`'s round-5 review, filed once PR #268
   (PB3334-PB3336) was on main. PB3414: GR-14.9.51.4-12 has no behavioural witness that a READ ONLY keyed writer runs
   under the store mutex. PB3415: two comments still say the sequential release asks `AdmitsAnotherWriter`. The

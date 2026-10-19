@@ -52,8 +52,8 @@ the tools it runs). Contents:
 | `STOP` | the owner (`stop.ps1`) | closes work down as soon as possible without losing any: a running unit is wound down (below), then the loop ends; `stop.ps1 -Clear` removes it |
 | `checkpoint.json` | the supervisor (`checkpoint.py`) | the running unit's frequent handoff (section 5.1); moved to `logs\` when the unit ends, so a survivor means the supervisor died |
 | `milestones.jsonl` | the running unit's model | one line per milestone; moved to `logs\` when the unit ends |
-| `STOP-UNIT` | the supervisor | asks the running unit to start no new step, launch no fleet (`dispatch_guard.py` refuses one in a loop unit) and hand off once its current step ends (section 4.3); created for either context cap and for `STOP` |
-| `scratch\STOP-loop` | the supervisor | the LOOP's fleet stop (section 4.6), created with `STOP-UNIT` for `STOP` and for the HARD context cap only, never for the soft cap (section 4.3): every implementer and lander the loop dispatched checkpoints, commits and returns `SPLIT`; removed at the start of the next unit |
+| `STOP-UNIT` | the supervisor | asks the running unit to start no new step, launch no fleet (`dispatch_guard.py` refuses one in a loop unit) and hand off once its current step ends (section 4.3); created for either context cap and for `STOP`. A signal to the UNIT only: the landing lane does not read it (kb/Work PB3402), so the soft cap holds no landing |
+| `scratch\STOP-loop` | the supervisor | the LOOP's fleet stop (section 4.6), created with `STOP-UNIT` for `STOP` and for the HARD context cap only, never for the soft cap (section 4.3): every implementer and lander the loop dispatched checkpoints, commits and returns `SPLIT`; removed at the start of the next unit. The landing lane starts no attempt while it exists (section 4.9) |
 | `scratch\STOP` | the owner (`stop.ps1 -Global`) | the GLOBAL stop (section 4.6): every agent of every session obeys it, and the loop ends; nothing but the owner's `stop.ps1 -Clear -Global` removes it |
 | `handoff.json` | the running unit | its handoff (section 5); the supervisor archives it per unit. One present when a unit STARTS was written by no unit of this run (a hand edit): the supervisor archives it as `logs\<time>-<unit>.handoff.orphan.json` and says so; it steers nothing (section 4.8) |
 | `handoff.last.json` | the supervisor | the newest VALID handoff, which the next unit reads and `next_unit.py` decides from: a unit's own, one the supervisor synthesized for a dead unit (section 5.1), or the operator's steer once its unit starts (section 4.8) |
@@ -136,8 +136,8 @@ and the unit polls nothing (it waits for the Workflow's completion signal).
 If a wind-down is signalled while a Workflow runs, the unit does NOT end the session: supervising the fleet is its
 current step, so it waits for the Workflow to return, writes a handoff that names every unlanded branch, worktree and
 report (`next_unit: resume` when any is left), and ends. Whether the FLEET stops is the supervisor's decision, never
-the unit's (section 4.3): for the SOFT context cap it sends `STOP-UNIT` only, the fleet finishes its work and its
-trains land; for the owner's `STOP` or the HARD context cap it also creates the loop's fleet stop `{FLEET_STOP}`
+the unit's (section 4.3): for the SOFT context cap it sends `STOP-UNIT` only, the fleet finishes its work and the
+landing lane keeps landing every branch reviewed CLEAN (kb/Work PB3402); for the owner's `STOP` or the HARD context cap it also creates the loop's fleet stop `{FLEET_STOP}`
 (`scratch\STOP-loop`), so every implementer it dispatched checkpoints and returns `SPLIT` and every lander finishes or
 abandons its train at a cluster boundary. The next unit is then a fresh `resume`.
 A kill (after `-GraceMinutes`) is the last resort, and it loses only uncheckpointed agent work: every agent
@@ -321,7 +321,7 @@ work (00:10:03). So the policy has two levels, and the fleet stop belongs to the
 
 | Level | Fires at | The supervisor creates | Kill timer | What happens |
 |---|---|---|---|---|
-| soft | `-MaxContextTokens`, default 200,000 | `STOP-UNIT` | none | the unit starts no new step and launches no fleet; a fleet already running finishes and its trains land; then the unit hands off |
+| soft | `-MaxContextTokens`, default 200,000 | `STOP-UNIT` | none | the unit starts no new step and launches no fleet; a fleet already running finishes; the landing lane keeps landing every branch reviewed CLEAN (PB3402); then the unit hands off |
 | hard | `-HardContextTokens`, default 500,000 | `STOP-UNIT` and `scratch\STOP-loop` | `-GraceMinutes` (three times for `wave`/`campaign`) | as for the owner's `STOP`: agents checkpoint and return `SPLIT`, the unit hands off `resume` |
 
 Three mechanisms keep a just-paid fleet from being thrown away:
@@ -492,8 +492,10 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
    DECISION with that evidence: its author rewrites it. The rolling wave asks the same predicate before it reviews a
    return (`plan_wave.py --finished <report>`, through one mechanical `cobol-locator`, since a workflow script runs no
    process), and `review_findings.py stamp` refuses an unfinished report.
-3. LAUNCHES, unless `HALT`, the loop's `STOP-UNIT` or `STOP`, or the owner's global `scratch\STOP` exists (a running
-   `enqueue.py land` finishes either way; it is idempotent): for every WAITING TO LAND row in survey order, every
+3. LAUNCHES, unless `HALT`, the loop's `STOP` or its fleet stop `scratch\STOP-loop` (the hard context cap), or the
+   owner's global `scratch\STOP` exists, never for `STOP-UNIT` alone (the soft cap's signal to the unit, which a
+   landing's own process does not touch: kb/Work PB3402); a running `enqueue.py land` finishes either way, it is
+   idempotent: for every WAITING TO LAND row in survey order, every
    branch whose last attempt the lane may retry with its tip still that attempt's end head, and every branch the
    enqueue unit re-armed at its current tip (a BOUNCED one included), `land_lane.decide` says
    whether to start `enqueue.py land <branch> --worktree <wt>`, DETACHED (its own process group, out of the
@@ -922,8 +924,8 @@ against the retired train records, kb/Work PB3028; `LandingMeasureDriftTests` al
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
 in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone; an exit 5 is
 never relaunched at its head and a new head is eligible again; an exit 2 or 9 is retried once; a DIED runner is reaped
-and retried once; an exit 8 stops every attempt and names the operator until `clear-halt`; STOP-UNIT, STOP and the
-global stop start nothing; the agent work `next_unit.py` reads; a real detached runner records its outcome; on
+and retried once; an exit 8 stops every attempt and names the operator until `clear-halt`; STOP, the hard cap's fleet stop and the
+global stop start nothing, and STOP-UNIT alone (the soft cap) does not stop it; the agent work `next_unit.py` reads; a real detached runner records its outcome; on
 Windows a spawned runner owns a console with no visible window). The
 supervisor's self-test is twelve parallel parts,
 `scripts/orchestrator/test_orchestrate_*.ps1`, sharing the harness `testdata/orchestrate_test_lib.ps1`: they drive the
