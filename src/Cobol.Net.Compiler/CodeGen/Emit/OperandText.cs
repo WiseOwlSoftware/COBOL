@@ -293,7 +293,7 @@ internal static class OperandText
         // method, so the variable-length group a --permissive build coerces to a function argument (ISO 15.3 admits
         // one only where the function says so - LENGTH and BYTE-LENGTH - and COBOLNET1627 warns) is that same image,
         // never the Tier-C refusal (kb/Work PB3424).
-        op is BoundFieldOperand { Place: var vp } && PlaceRenderer.VarGroupOperandImage(vp, context, transfer: true) is { } varImage
+        op is BoundFieldOperand { Place: var vp } && PlaceRenderer.VarGroupOperandImage(vp, context) is { } varImage
             ? varImage
         : op is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false, TransferImageCapable: true } tp }
             ? PlaceRenderer.SendingGroupImage(tp, context, transfer: true)

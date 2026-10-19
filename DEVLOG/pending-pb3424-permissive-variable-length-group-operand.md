@@ -15,14 +15,15 @@ object-reference leaf; the numeric position was found by the sibling sweep.
 visitor asks, only had the fixed pointer-leaf arm; `NumericRenderer.FieldNumCore` went through `SendingGroupValue`.
 
 **Fix.** `PlaceRenderer.VarGroupOperandImage` is the one reader. `AsTransferString` asks it and DISPLAY now calls `AsTransferString`
-alone, so DISPLAY and a function argument cannot differ. `FieldNumCore` asks it with the strict capability, so a variable-length group
-holding a pointer or object leaf stays loud in a numeric position, as its fixed twin does. The image is the A.1 item 57 current-extent
+alone, so DISPLAY and a function argument cannot differ. `FieldNumCore` asks it too and reads a fixed group through `SendingGroupValue(..., transfer: true)`,
+because a group holding a pointer or object leaf, fixed or variable-length, also aborted in a numeric position (found by the sweep) and a
+digit decode never reads the characters back. The drift test `VariableLengthBoundaryDriftTests` now pins the one reader. The image is the A.1 item 57 current-extent
 image (fixed members, each dynamic member at its current extent, an OCCURS DEPENDING table at its current count, a dynamic-capacity table
 at its current capacity); the DOC-A.1-57 row names the two coercions and their witnesses.
 
-**Goldens.** `VariableLengthGroupArgumentPermissiveTests` (7 cases): strict refusal, the string lane over a fixed control group, a scalar
+**Goldens.** `VariableLengthGroupArgumentPermissiveTests` (8 cases): strict refusal, the string lane over a fixed control group, a scalar
 variable-length group, an ODO-plus-dynamic group, a dynamic-capacity group and a strong typedef with an object-reference leaf, and the
-numeric lane. The conformance-suite manifest runs strict only, so the permissive run-time witness is a Conformance test class; the strict
+numeric lane (a plain variable-length group, and a strong typedef group with an object-reference leaf, fixed and variable-length). The conformance-suite manifest runs strict only, so the permissive run-time witness is a Conformance test class; the strict
 negative is the standing `15.3-Arguments/pb124-vlg-function-argument`.
 
 **Rows.** None: PB3424 claimed no inventory row, closes none.
