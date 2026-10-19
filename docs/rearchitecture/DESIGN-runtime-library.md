@@ -2239,11 +2239,12 @@ up to four statements, every fault at every operation, every power-loss outcome 
 boundary — and it is RED when either finding is put back. The section gives a SEQUENTIAL file under an active APPLY COMMIT
 clause the same transaction as 2.2.1.10 gives a keyed file — the same scope, the same three COMMIT regions, the same dead-owner
 rollback — over a format that has no ledger. PB3340 follows PB3337 (the runtime's COMMIT and ROLLBACK) and PB3338 (the
-compiler's APPLY COMMIT), and it is held with them until the owner decides the transaction slice's scope (PB3420). **One
-decision of the owner is open and is asked in PB3340:** the journal lives in TRANSIENT files beside the physical file
-(2.2.2.4), and kb/Work PB802 decided "no sidecar of any type" of the fixed-file-attribute catalog; until the owner admits a
-journal that exists only while a transaction is open (as the lock files of `SidecarLockFiles` exist only while a holder
-lives), PB3340 implements nothing of this section.
+compiler's APPLY COMMIT), and it is held with them until the owner decides the transaction slice's scope (PB3420). **The
+journal's home is the owner's decision of 2026-10-19 15:45 PDT (kb/Work PB3340, "option a approved"):** it lives in TRANSIENT files
+beside the physical file (2.2.2.4); kb/Work PB802's "no sidecar of any type" (2026-09-07) refused a persistent
+fixed-file-attribute catalog consulted at every OPEN and does not cover a journal that exists only while a transaction is
+open, as the lock files of `SidecarLockFiles` exist only while a holder lives. The shapes the owner rejected are kept in
+2.2.2.11 with what each loses.
 
 **2.2.2.1 What the standard requires, and what it leaves to the implementor.** §9.1.18.2: *"Apart from sort-merge files and
 report writer files, any type of file on a mass storage device may be specified"* — and §12.4.5.9.3 SR1 names the organization
@@ -2389,8 +2390,8 @@ change to its retirement, and a leftover is consumed by the next entry (2.2.2.8)
 program reading F without this runtime would need: a copy of F taken without its journal is F as it stands, committed. That
 transience, and that F stays byte-identical to what a program with no transactions would write, is what distinguishes it from
 the catalog kb/Work PB802 refused ("no sidecar of any type", 2026-09-07: a `.cbattr` file describing every data file for ever,
-consulted at every OPEN); whether the owner's words also refuse this is PB3340's question to the owner, and the alternative is
-stated in 2.2.2.11. *Why the liveness is a holder file and not a byte of F's region* (2.2.1.10's `TransactionLivenessByte`,
+consulted at every OPEN); the owner decided on 2026-10-19 that those words do not cover it (PB3340, "option a approved"; PB802
+carries the clarification), and 2.2.2.11 keeps the rejected shapes. *Why the liveness is a holder file and not a byte of F's region* (2.2.1.10's `TransactionLivenessByte`,
 which stays the keyed engine's): a byte of F's region is held through a handle on F, and this transaction's F may be DELETED
 (a DELETE FILE under commit control removes the physical file, and its kept handle with it) or not yet EXIST (a creation's
 first change precedes the file); a holder in the lock directory is independent of F's existence, and the one primitive gives
@@ -2592,19 +2593,30 @@ file or lies below L, never inside a record. Nothing in the journal is organizat
 (a line's ordinal is its line number, as `_readOrdinal` counts it), which is why one journal serves the three framings and the
 print stream.
 
-**2.2.2.11 The alternative, if the owner keeps PB802's words for a journal too: memory-only undo, documented as the
-determination it would be.** The same transaction, holdings and lock test (2.2.2.3) with the record kept in the run unit's
-memory (`FileRegistry`), the before file replaced by an in-memory copy of F (O(file) memory at an OPEN OUTPUT of an existing
-file or a DELETE FILE), and the COMMIT reduced to F's sync. What it loses, stated so the owner decides with it in view: a run
-unit that is KILLED or loses power under an open transaction leaves its uncommitted appends and overwrites in F for ever (no
-entry can roll them back: nothing durable says what they were), other run units' lock tests cannot see a dead owner's holdings
-(they died with its memory), and the keyed organization's §9.1.18.5 promise does not hold for the sequential one;
-`docs/CONFORMANCE.md` would record it under §9.1.18.5 as a documented determination with the cause, and PB3340's crash rows
-for the kill and the power loss would be witnesses of that determination rather than of a restoration. The runtime's own
-abnormal-termination path (a fatal exception condition, §14.6.12) still restores, since the process still runs it. This
-alternative is cheaper by one directory listing per writable OPEN and one sync per covered REWRITE, and by every line of
-2.2.2.4 to 2.2.2.8 that touches a file; the model of 2.2.2.12 still applies to it with the medium's "die" and "power" modes
-re-read as witnesses of the determination.
+**2.2.2.11 The shapes the owner rejected (2026-10-19 15:45 PDT, kb/Work PB3340: "option a approved"), kept with what each loses
+so they are not re-asked.** The owner was shown four, with the costs of 2.2.2.13 and the losses below, and chose (A), this
+section. **(B) Memory-only undo:** the same transaction, holdings and lock test (2.2.2.3) with the record kept in the run
+unit's memory (`FileRegistry`), the before file replaced by an in-memory copy of F (O(file) memory at an OPEN OUTPUT of an
+existing file or a DELETE FILE), and the COMMIT reduced to F's sync. What it loses: a run unit that is KILLED or loses power
+under an open transaction leaves its uncommitted appends and overwrites in F for ever (no entry can roll them back: nothing
+durable says what they were), other run units' lock tests cannot see a dead owner's holdings (they died with its memory),
+and the keyed organization's §9.1.18.5 promise does not hold for the sequential one — a program's indexed file rolls back
+after a crash and its sequential file beside it does not; `docs/CONFORMANCE.md` would have recorded it under §9.1.18.5 as a
+documented determination with the cause, and PB3340's crash rows for the kill and the power loss would have been witnesses
+of that determination rather than of a restoration. The runtime's own abnormal-termination path (a fatal exception
+condition, §14.6.12) still restores under it, since the process still runs it. It is cheaper by one directory listing per
+writable OPEN and one sync per covered REWRITE, and by every line of 2.2.2.4 to 2.2.2.8 that touches a file; the model of
+2.2.2.12 would still apply to it with the medium's "die" and "power" modes re-read as witnesses of the determination.
+**(C) The journal elsewhere** — a per-machine or per-user directory keyed by the file's physical name: nothing beside the
+data file and no write permission needed there, but the crash promise holds only when the next entry runs on the same
+machine as the same user; two machines sharing a file, or two users on one machine, silently get (B)'s behaviour, a reader
+cannot tell which case it is in, and the lock directory's measured rules (`SidecarLockFiles`, kb/Work PB2917, PB3109) give
+way to a new location rule. **(D) A header inside the file:** rejected in 2.2.2.4 — it stops a record sequential file being
+plain bytes and a line sequential file being plain text, the interchange property 2.2's shapes exist for. **Why (A):**
+PB802's words targeted a persistent catalog consulted at every OPEN; the journal has none of the properties that made the
+catalog objectionable (it is transient, consumed by the next entry, and describes no attribute of F, which stays byte-identical
+to what a program without transactions would write), its mechanism already exists in the runtime, and (B) is the only shape
+honest about what it gives up, which is the one promise a transaction exists to keep.
 
 **2.2.2.12 Every crash point and every interleaving, executed — the model, and the rows it names.** The owner's rule for a
 concurrent design (2026-10-17, after the keyed store's five prose rounds) is an executable model from round one, reviewed only
