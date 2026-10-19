@@ -513,7 +513,15 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   through the host of the machine. `SidecarColumnLockHostDriftTests` holds the lock-file host to the same table over
   every (sharing × open mode) pair directly (`RunUnitFileLock.Take(host, …)`), plus the simultaneous-open race, the
   sweep of a dead holder's leftovers, the wire names and the case rule — it is plain managed code, so it runs on
-  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path.
+  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path. `RunUnitProcessBoundaryTests`
+  (kb/Work PB2485) is the witness with TWO REAL PROCESSES, which a second registry cannot be: compiled COBOL programs
+  hold a file while another process asks for it. A refused OPEN is `61` in every open mode and a refused DELETE FILE
+  `62`, each through a FILE STATUS item and a USE declarative alone, both, and neither, and through a RETRY that the
+  holder outlasts (and a `RETRY FOREVER` that is released by the holder's CLOSE); the lock comes back with the holder's
+  CLOSE while the holder lives, with its run unit's implicit CLOSE, with an abnormal end (a call of a missing program)
+  and with a kill that runs nothing; and a child process started while the lock is held does not keep it past the
+  CLOSE (the `O_CLOEXEC` guard of `OfdRegionLocks.Open`; the handle's non-inheritance on Windows). It runs on Windows
+  and Linux, through the host of the machine; the macOS lock-file host is held to the same table by the other witnesses.
 
 **⛔ DETERMINATION (Annex A.1 item 75, `docs/CONFORMANCE.md` DOC-A.1-75) — WHO IS BOUND.** §9.1.15 binds other RUN
 UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on a host that carries the region lock (Linux
