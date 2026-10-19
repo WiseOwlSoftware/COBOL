@@ -12,7 +12,9 @@ namespace CobolNet.Runtime.IO.Store;
 /// against the prefix. GR17 c) and d) define the answer as a SEQUENTIAL search — <i>"the file is searched sequentially"</i>,
 /// or <i>"in reverse order"</i> for the LESS relations — so a seek may narrow it by binary search only when
 /// <see cref="PrefixNarrows"/> says the qualifying entries are one run of the key order; otherwise
-/// <see cref="BTree.Seek"/> walks the tree in the search's own direction.</para>
+/// <see cref="BTree.Seek"/> walks the tree in the search's own direction, from the PRIMARY-LEVEL BOUND
+/// (<see cref="BoundOf"/>, <see cref="CompareBound"/>) that the tree's high-water marks (<see cref="MarksOf"/>) make exact,
+/// and only through the run of entries that tie the bound (2.2.1.4, the partial-key START).</para>
 /// </summary>
 internal interface IKeyOrder
 {
@@ -33,4 +35,22 @@ internal interface IKeyOrder
     /// <summary>The order of the leading <c>prefix.Length</c> positions of <paramref name="stored"/>'s key part against
     /// <paramref name="prefix"/> (a stored key part shorter than the prefix compares on its whole length).</summary>
     int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix);
+
+    /// <summary>The high-water marks one stored key's key part raises its tree's to (<see cref="TreeMarks"/>): its
+    /// prefix shape under the order's collating sequence when <see cref="PrefixNarrows"/> can be false, zeros otherwise.
+    /// Asked once per inserted key.</summary>
+    TreeMarks MarksOf(ReadOnlySpan<byte> key);
+
+    /// <summary>The PRIMARY-LEVEL BOUND B of a partial key <paramref name="prefix"/> in a tree whose marks are
+    /// <paramref name="marks"/>: the prefix's first level-1 weights, at most <see cref="TreeMarks.Margin"/> of them, which
+    /// every stored key's truncation to the prefix's length (§14.9.41.4 GR17 c) and d)) shares with the stored key's own
+    /// leading weights — so an entry whose leading weights are below B has a truncation below the prefix and one above
+    /// B a truncation above it. Empty (no bound) when the marks leave no margin, and for an order whose prefixes
+    /// narrow.</summary>
+    int[] BoundOf(ReadOnlySpan<byte> prefix, TreeMarks marks);
+
+    /// <summary>The leading level-1 weights of <paramref name="stored"/>'s key part, as many as <paramref name="bound"/>
+    /// holds, against it: negative, zero or positive, monotone in <see cref="Compare"/>'s order; 0 against an empty
+    /// bound.</summary>
+    int CompareBound(ReadOnlySpan<byte> stored, int[] bound);
 }
