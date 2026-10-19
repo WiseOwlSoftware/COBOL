@@ -1,4 +1,4 @@
-## PB1587: a WRITE under SHARING WITH READ ONLY is released at the statement, in every organization
+## Entry 2232 — 2026-10-18 17:58 PDT — PB1587: a WRITE under SHARING WITH READ ONLY is released at the statement, in every organization
 
 kb/Work PB1587 (wave 1126, group C of the PB3353 campaign) asked what §9.1.15 requires for the visibility of a record
 written through a connector opened `SHARING WITH READ ONLY` to a second connector's READ before the writer's CLOSE, and
@@ -49,3 +49,4 @@ the ReleaseRecord, OpenWriter, OpenConnectorWriteStream, KeyedConnector and Whol
 now say who is meant.
 
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261018T220148Z-07045e`, after the last test-only commit; the first, `20261018T213620Z-551610`, was GREEN too). The Linux unit leg also ran GREEN (34,368 unit tests, `/dev/full` included).
+
