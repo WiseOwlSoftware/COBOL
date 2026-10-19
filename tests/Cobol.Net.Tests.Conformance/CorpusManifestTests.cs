@@ -54,92 +54,98 @@ public sealed class CorpusManifestTests
     // scripts/guard-fast.sh drives the `cobol` CLI as a SEPARATE PROCESS over the whole in-scope corpus from
     // bash on Linux. Neither subsumes the other — one covers the library API and Windows, the other covers the
     // shipped exe, the CCVS chain-isolation model and the golden-less programs' compile+run health.
-    // What must never drift is that they are two VIEWS OF ONE MANIFEST: tests/nist/corpus.tsv. The facts below
-    // assert exactly that, so "the guard and the goldens agree" is a structural property rather than something
-    // re-checked by hand after every landing. (The dynamic half — every declared program produced exactly the
-    // verdict the manifest predicts, for the compiler that ran — is scripts/guard-nist-audit.sh.)
+    // What must never drift is that they are two VIEWS OF ONE MANIFEST: tests/nist/corpus.tsv. The guard's population
+    // is DERIVED from it (scripts/guard-population.sh#guard_nist_population: the asserted rows, which are
+    // NistDifferentialTests' population, plus their declared chain predecessors), so "the guard and the goldens agree"
+    // holds by construction (kb/Work PB925, PB3383); the facts below keep the construction in place, and that
+    // script's --self-test proves the derivation itself. (The dynamic half — every declared program produced exactly
+    // the verdict the manifest predicts, for the compiler that ran — is scripts/guard-nist-audit.sh.)
 
-    /// <summary>The guard's NIST population, parsed from the <c>NIST_TESTS="…"</c> block in
-    /// <c>scripts/guard.sh</c> — the ONE place it is written down (guard-fast.sh extracts the same block by
-    /// <c>sed</c> so the two guards cannot drift).</summary>
-    private static IReadOnlyList<string> GuardPopulation()
+    /// <summary>The guard's population by the shell's rule (<c>guard_nist_population</c>): every asserted row
+    /// (<see cref="CorpusManifest.Green"/>) plus every program such a row declares as a chain predecessor, at any
+    /// depth.</summary>
+    private static IReadOnlySet<string> GuardPopulation()
     {
-        var names = new List<string>();
-        bool inBlock = false;
-        foreach (string line in File.ReadLines(TestRepo.Scripts("guard.sh")))
+        var members = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var queue = new Queue<string>(CorpusManifest.Green().Select(r => r.Name));
+        while (queue.TryDequeue(out string? name))
         {
-            if (!inBlock)
-            {
-                if (line.StartsWith("NIST_TESTS=\"", StringComparison.Ordinal)) inBlock = true;
-                continue;
-            }
-            if (line.Trim() == "\"") break;
-            names.AddRange(line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+            if (!members.Add(name)) continue;
+            if (CorpusManifest.Chains.TryGetValue(name, out string[]? preds))
+                foreach (string pred in preds) queue.Enqueue(pred);
         }
-        Assert.True(names.Count > 0, "could not parse NIST_TESTS out of scripts/guard.sh — the parser, not the guard, is broken");
-        return names;
+        return members;
     }
 
-    /// <summary>Every program the guard runs is a manifest row. Without this the guard could measure a program
-    /// the golden suite has never heard of, and no expectation could be derived for it.</summary>
+    /// <summary>⭐ THE GUARD'S POPULATION IS DERIVED, NEVER WRITTEN OUT (kb/Work PB925, PB3383). The guard reads it
+    /// from the manifest through <c>guard_nist_population</c>, so it runs every program the in-process golden suite
+    /// asserts by construction. It used to be a hand-written <c>NIST_TESTS</c> block in the retired serial guard, which
+    /// these facts could hold only to CONTAINMENT: a new green row that neither guard ran passed them all.</summary>
+    [Fact]
+    public void GuardNistPopulation_IsDerivedFromTheManifest()
+    {
+        string guard = File.ReadAllText(TestRepo.Scripts("guard-fast.sh"));
+        Assert.True(guard.Contains("guard_nist_population >", StringComparison.Ordinal),
+            "scripts/guard-fast.sh no longer takes its population from guard_nist_population (scripts/guard-population.sh)");
+        string reader = File.ReadAllText(TestRepo.Scripts("guard-population.sh"));
+        Assert.True(reader.Contains("guard_nist_population()", StringComparison.Ordinal),
+            "scripts/guard-population.sh no longer defines guard_nist_population, the guard's one population");
+
+        var named = Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh").Order()
+            .Where(script => File.ReadLines(script).Any(line =>
+                !line.TrimStart().StartsWith('#') && line.Contains("NIST_TESTS", StringComparison.Ordinal)))
+            .Select(Path.GetFileName).ToList();
+        Assert.True(named.Count == 0,
+            $"a guard script reads or writes a NIST_TESTS population again (kb/Work PB925): {string.Join(", ", named)}");
+    }
+
+    /// <summary>Every program the guard runs, a declared chain predecessor included, is a manifest row with a program
+    /// on disk. A predecessor with no row is a program the guard could never compile (<c>guard_nist_population</c>
+    /// refuses the run), and one with no source would leave its consumers to run without their input.</summary>
     [Fact]
     public void GuardNistPopulation_IsDrawnFromTheManifest()
     {
         var listed = CorpusManifest.Rows.Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var unmanifested = GuardPopulation().Where(n => !listed.Contains(n)).Order().ToList();
-        Assert.True(unmanifested.Count == 0,
-            $"scripts/guard.sh runs programs absent from tests/nist/corpus.tsv: {string.Join(", ", unmanifested)}");
+        var unrunnable = GuardPopulation()
+            .Where(n => !listed.Contains(n) || !File.Exists(Path.Combine(NistProgramsDir, n + ".cob")))
+            .Order().ToList();
+        Assert.True(unrunnable.Count == 0,
+            $"the guard's population names programs with no corpus.tsv row or no source: {string.Join(", ", unrunnable)}");
     }
 
-    /// <summary>⭐ THE CONTAINMENT THAT MAKES THE TWO RUNNERS RECONCILABLE: the CLI-level guard runs every
-    /// program the in-process golden suite asserts. A program that fell out of the guard's list would still be
-    /// asserted by NistDifferentialTests, so the two legs would quietly be measuring different corpora — the
-    /// shape of drift that let a green guard line stand beside a red golden for a whole battery.</summary>
+    /// <summary>And the surplus over the asserted rows is only ever <c>pending</c> predecessors, programs the golden
+    /// suite has NOT adopted. So on every program both legs measure, both derive their expectation from the same
+    /// manifest row: neither can call a program green that the other calls red without one of them contradicting
+    /// corpus.tsv.</summary>
     [Fact]
-    public void GuardNistPopulation_RunsEveryProgramTheGoldenSuiteAsserts()
-    {
-        var guard = GuardPopulation().ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var missing = CorpusManifest.Green().Select(r => r.Name).Where(n => !guard.Contains(n)).Order().ToList();
-        Assert.True(missing.Count == 0,
-            "NistDifferentialTests asserts programs the guard's NIST_TESTS does not run — the two NIST legs are "
-            + $"no longer one population: {string.Join(", ", missing)}");
-    }
-
-    /// <summary>And the surplus is only ever <c>pending</c> rows — programs the golden suite has NOT adopted.
-    /// So on every program both legs measure, both derive their expectation from the same manifest row: neither
-    /// can call a program green that the other calls red without one of them contradicting corpus.tsv.</summary>
-    [Fact]
-    public void GuardNistPopulation_SurplusIsOnlyPendingPrograms()
+    public void GuardNistPopulation_SurplusIsOnlyPendingPredecessors()
     {
         var status = CorpusManifest.Rows.ToDictionary(r => r.Name, r => r.Status, StringComparer.OrdinalIgnoreCase);
         var asserted = CorpusManifest.Green().Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var wrong = GuardPopulation()
-            .Where(n => !asserted.Contains(n) && status.TryGetValue(n, out string? s) && s != "pending")
-            .Order().ToList();
+        var surplus = GuardPopulation().Where(n => !asserted.Contains(n)).Order().ToList();
+        Assert.NotEmpty(surplus);   // ST102A and its kind: a vacuous surplus would assert over nothing
+        var wrong = surplus.Where(n => status.GetValueOrDefault(n) != "pending").ToList();
         Assert.True(wrong.Count == 0,
             $"guard-only programs that are not `pending` in corpus.tsv: {string.Join(", ", wrong)}");
     }
 
-    /// <summary>⛔ THE PB750 REGRESSION TEST. Both guards once resolved the former legacy engine's CLI, whose project
+    /// <summary>⛔ THE PB750 REGRESSION TEST. The guards once resolved the former legacy engine's CLI, whose project
     /// graph contains no <c>Cobol.Net.Compiler</c>, and drove the whole NIST leg through it, so every battery's
     /// <c>guard NIST: 353 MATCH</c> was a true statement about the ORACLE and no statement at all about the
-    /// shipping compiler. This fact fails the moment either guard grows its own CLI path again instead of
+    /// shipping compiler. This fact fails the moment the guard grows its own CLI path again instead of
     /// asking <c>scripts/guard-compiler.sh</c>, which asserts the binary's identity against its own
     /// <c>.deps.json</c> before any measurement is taken.</summary>
     [Fact]
-    public void BothGuards_ResolveTheCompilerThroughOnePlace()
+    public void TheGuard_ResolvesTheCompilerThroughOnePlace()
     {
-        foreach (string script in new[] { "guard.sh", "guard-fast.sh" })
-        {
-            string text = File.ReadAllText(TestRepo.Scripts(script));
-            Assert.True(text.Contains("guard_select_compiler", StringComparison.Ordinal),
-                $"scripts/{script} does not resolve its compiler through scripts/guard-compiler.sh (PB750)");
-            Assert.True(text.Contains("guard_assert_compiler_identity", StringComparison.Ordinal),
-                $"scripts/{script} no longer asserts the resolved binary's identity before measuring (PB750)");
-            // A hard-coded output PATH, not a mention: the selection's paths live in guard-compiler.sh alone.
-            Assert.False(text.Contains("bin/Debug/net10.0", StringComparison.OrdinalIgnoreCase),
-                $"scripts/{script} hard-codes a compiler's bin path again — that is exactly kb/Work/PB750");
-        }
+        string text = File.ReadAllText(TestRepo.Scripts("guard-fast.sh"));
+        Assert.True(text.Contains("guard_select_compiler", StringComparison.Ordinal),
+            "scripts/guard-fast.sh does not resolve its compiler through scripts/guard-compiler.sh (PB750)");
+        Assert.True(text.Contains("guard_assert_compiler_identity", StringComparison.Ordinal),
+            "scripts/guard-fast.sh no longer asserts the resolved binary's identity before measuring (PB750)");
+        // A hard-coded output PATH, not a mention: the selection's paths live in guard-compiler.sh alone.
+        Assert.False(text.Contains("bin/Debug/net10.0", StringComparison.OrdinalIgnoreCase),
+            "scripts/guard-fast.sh hard-codes a compiler's bin path again — that is exactly kb/Work/PB750");
 
         // And the one place resolves WiseOwl COBOL.
         string resolver = File.ReadAllText(TestRepo.Scripts("guard-compiler.sh"));
@@ -194,9 +200,8 @@ public sealed class CorpusManifestTests
     /// a drift test). It is deliberately stated over ANY NIST-shaped name list in ANY guard script rather than
     /// over one variable, because the defect is the SHAPE — a hand-maintained list where a
     /// manifest column exists — and the next one will have a different variable name
-    /// (<c>feedback_scan_all_similar</c>). <c>NIST_TESTS</c> is the one population still written out, and it is a
-    /// multi-line block already asserted against the manifest by the three <c>GuardNistPopulation_*</c> facts
-    /// above.
+    /// (<c>feedback_scan_all_similar</c>). The assignment may span lines: the last population written out, the retired
+    /// serial guard's <c>NIST_TESTS</c> (kb/Work PB925), was a 27-line block a one-line scan could not see.
     /// </para>
     /// </remarks>
     [Fact]
@@ -204,20 +209,20 @@ public sealed class CorpusManifestTests
     {
         // A NIST program name: two letters, three digits, a letter (NC101A, SQ212A, IX214A).
         var name = new System.Text.RegularExpressions.Regex(@"^[A-Z]{2}[0-9]{3}[A-Z]$");
-        var assignment = new System.Text.RegularExpressions.Regex(@"^\s*([A-Za-z_][A-Za-z0-9_]*)=""([^""]*)""\s*$");
+        // NAME="…", the quoted value running over as many lines as it likes ([^"] matches a newline).
+        var assignment = new System.Text.RegularExpressions.Regex(@"^[ \t]*([A-Za-z_][A-Za-z0-9_]*)=""([^""]*)""",
+            System.Text.RegularExpressions.RegexOptions.Multiline);
 
         var offenders = new List<string>();
         foreach (string script in Directory.EnumerateFiles(TestRepo.Scripts(), "guard*.sh").Order())
         {
-            int lineNo = 0;
-            foreach (string line in File.ReadLines(script))
+            string text = File.ReadAllText(script);
+            foreach (System.Text.RegularExpressions.Match m in assignment.Matches(text))
             {
-                lineNo++;
-                var m = assignment.Match(line);
-                if (!m.Success) continue;
                 int names = m.Groups[2].Value
                     .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries)
                     .Count(t => name.IsMatch(t));
+                int lineNo = text.AsSpan(0, m.Index).Count('\n') + 1;
                 if (names >= 2) offenders.Add($"{Path.GetFileName(script)}:{lineNo} {m.Groups[1].Value} ({names} names)");
             }
         }
@@ -235,9 +240,9 @@ public sealed class CorpusManifestTests
         Assert.Contains("tests/nist/corpus.tsv", text, StringComparison.Ordinal);
         Assert.Contains("\"divergent\"", text, StringComparison.Ordinal);
 
-        // Both guards read it — the two-arm check: fixing one arm and leaving the other is this repo's most
-        // reproducible defect shape (feedback_two_arm_dispatch).
-        foreach (string script in new[] { "guard.sh", "guard-fast.sh" })
+        // The guard and its program runner both read it — the two-arm check: fixing one arm and leaving the other is
+        // this repo's most reproducible defect shape (feedback_two_arm_dispatch).
+        foreach (string script in new[] { "guard-fast.sh", "guard-run-group.sh" })
         {
             Assert.Contains("guard-population.sh", File.ReadAllText(TestRepo.Scripts(script)), StringComparison.Ordinal);
         }
@@ -258,9 +263,9 @@ public sealed class CorpusManifestTests
     /// item 103) ends the run unit there, so the run must end naming that exception. The CLI guard read
     /// every <c>divergent</c> row the plain way, so PB322's two TERMINATES rows turned CI's guard red (CI run
     /// 37217227958) while this assembly's NistDifferentialTests, which knew the marker, was green. The shell has
-    /// ONE reader (<c>scripts/guard-population.sh</c>, which both runners and the audit ask) and C# has one
-    /// (<see cref="CorpusRow.ExpectedTermination"/>); this fact holds their grammar equal, and both guards to the
-    /// reader, so the two NIST legs cannot read the same row two ways again.
+    /// ONE reader (<c>scripts/guard-population.sh</c>, which the guard, its program runner and the audit ask) and C#
+    /// has one (<see cref="CorpusRow.ExpectedTermination"/>); this fact holds their grammar equal, and the guard's
+    /// scripts to the reader, so the two NIST legs cannot read the same row two ways again.
     /// </remarks>
     [Fact]
     public void TerminatesMarker_IsOneGrammarForBothReaders()
@@ -281,8 +286,9 @@ public sealed class CorpusManifestTests
         Assert.Null(Ec("divergent", "ISO 9.1.13.1: another compiler TERMINATES EC-I-O where this does not"));
         Assert.Null(Ec("green", "TERMINATES EC-I-O-LOGIC-ERROR - a green row is never a TERMINATES row"));
 
-        // Both runners and the audit read the declaration through that file, never on their own (the two-arm check).
-        foreach (string script in new[] { "guard.sh", "guard-fast.sh", "guard-run-group.sh", "guard-nist-audit.sh" })
+        // The guard, its program runner and the audit read the declaration through that file, never on their own (the
+        // two-arm check).
+        foreach (string script in new[] { "guard-fast.sh", "guard-run-group.sh", "guard-nist-audit.sh" })
         {
             string text = File.ReadAllText(TestRepo.Scripts(script));
             Assert.True(text.Contains("guard-population.sh", StringComparison.Ordinal),
@@ -290,10 +296,7 @@ public sealed class CorpusManifestTests
             Assert.False(System.Text.RegularExpressions.Regex.IsMatch(text, @"^[^#]*TERMINATES EC-\[", System.Text.RegularExpressions.RegexOptions.Multiline),
                 $"scripts/{script} restates the TERMINATES marker instead of asking scripts/guard-population.sh (PB1955)");
         }
-        foreach (string script in new[] { "guard.sh", "guard-run-group.sh" })
-        {
-            Assert.Contains("guard_termination_verdict", File.ReadAllText(TestRepo.Scripts(script)), StringComparison.Ordinal);
-        }
+        Assert.Contains("guard_termination_verdict", File.ReadAllText(TestRepo.Scripts("guard-run-group.sh")), StringComparison.Ordinal);
     }
 
     /// <summary>A note that MEANS the marker must SAY it in the one grammar both readers parse: a row whose note
