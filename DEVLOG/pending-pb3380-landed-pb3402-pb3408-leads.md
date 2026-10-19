@@ -1,4 +1,4 @@
-## PB3380 landed by PB3381; PB3402-PB3408, PB3412 and PB3413 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang, and remote-only branches the survey never sees
+## PB3380 landed by PB3381; PB3402-PB3408 and PB3412-PB3415 filed: the soft cap's stop holds the landing lane, a DEVLOG pre-landing check, PB3381's five open leads, a prune self-test hang, remote-only branches the survey never sees, and two engine leads
 
 PB3381 (PR #270) fixed PB3380, a successor chain whose predecessors' review fixes never reached the later links. A
 successor now waits for its predecessor's whole review loop and merges the reviewed head. PB3381's note left the flip to
@@ -26,3 +26,7 @@ Seven new notes:
   10-11 that exist only on origin surfaced only through a hand query during the drain. The owner asked why. Each was
   checked by hand: all are carried on main. A remote whose local branch went any way other than `--apply` is never
   seen again. PB2708 found that `origin` is never surveyed and fixed only the `--apply` path.
+- **PB3414 and PB3415**, the Mythos lane's two remaining leads from `-326-19`'s round-5 review, filed once PR #268
+  (PB3334-PB3336) was on main. PB3414: GR-14.9.51.4-12 has no behavioural witness that a READ ONLY keyed writer runs
+  under the store mutex. PB3415: two comments still say the sequential release asks `AdmitsAnotherWriter`. The
+  `-326-31` review's three lows were filed by the enqueue unit's clerk (PB3410, PB3411, PB2749 witness (c)).
