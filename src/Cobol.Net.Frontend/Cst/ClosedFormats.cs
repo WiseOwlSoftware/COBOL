@@ -28,7 +28,7 @@ public sealed record ClosedFormat(string Clause, string FormatLabel, string Subj
 {
     /// <summary>⛔ THE ONE WORDING OF THE REFUSAL, for both of its sites (kb/Work PB2533): <c>ClosedFormatPass</c>, which
     /// refuses a word run the error production RECOGNIZED, and <c>CobolErrorStrategy</c>, which refuses a RESERVED word
-    /// written at the same position — a word the production, which begins at an IDENTIFIER, could not take.
+    /// or an unsigned integer written at the same position — a token the production never begins with (kb/Work PB3373).
     /// <paramref name="owner"/> is the entry's own name (<see cref="ClosedFormats.OwnerName"/>) or null.</summary>
     public string Refusal(string word, string? owner)
         => $"'{word}' is not a {Noun} of the {Subject}{(owner is { Length: > 0 } n ? $" for '{n}'" : "")} — the ISO "
