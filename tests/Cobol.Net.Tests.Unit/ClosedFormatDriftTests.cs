@@ -146,7 +146,8 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
                     if (atn.NextTokens(call.target).Contains(TokenConstants.EPSILON)) work.Push(call.followState);
                 }
                 else if (t.IsEpsilon) work.Push(t.target);
-                else if (t.Label?.Contains(CobolLexer.DOT) == true) after.AddAll(FirstTokens(atn, t.target, callersOf));
+                else if (t is not NotSetTransition && t.Label?.Contains(CobolLexer.DOT) == true)   // `~DOT` excludes it
+                    after.AddAll(FirstTokens(atn, t.target, callersOf));
             }
         }
         return after;
@@ -180,6 +181,9 @@ public sealed class ClosedFormatDriftTests : CobolNetTestBase
                 }
                 else if (t.IsEpsilon) work.Push((t.target, calls));
                 else if (t is not NotSetTransition and not WildcardTransition && t.Label is { } label) first.AddAll(label);
+                else   // a `~set` or `.` edge: every token type it matches, so a sink that begins a construct is not missed
+                    for (int type = TokenConstants.MinUserTokenType; type <= atn.maxTokenType; type++)
+                        if (t.Matches(type, TokenConstants.MinUserTokenType, atn.maxTokenType)) first.Add(type);
             }
         }
         return first;

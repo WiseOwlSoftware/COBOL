@@ -2958,7 +2958,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET1970: unexpected '12345'. '12345' is not a clause of the OBJECT-COMPUTER paragraph"
+  "expect": "COBOLNET1970: '12345' is not a clause of the OBJECT-COMPUTER paragraph"
  },
  "l1c33-terminate-multi-in-exc-perform": {
   "refuse-at": [
