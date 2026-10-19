@@ -1,4 +1,4 @@
-## PB3396: a keyed store's retirement is refused only at the page it writes past the format's last, never for its reservation's bound
+## Entry 2256 — 2026-10-19 11:32 PDT — PB3396: a keyed store's retirement is refused only at the page it writes past the format's last, never for its reservation's bound
 
 The keyed store engine's retirement (the OPEN I-O fence and every promotion: the CLOSE's, the generation ceiling's, the ledger
 checkpoint's) sized its reservation to `Ledger.WriteBound`, an upper bound, and `PagedFile.Reserve` refused it `Boundary`
@@ -38,3 +38,4 @@ statement that fits, at every headroom (fails on the bound-sized reservation, pa
 after statements spent every FREE page. The design's "fewer than the pages the format has left" is now "no more".
 
 Rows: none claimed, none closed (`closes_rows: []`, with its reason).
+
