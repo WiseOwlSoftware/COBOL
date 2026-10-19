@@ -351,6 +351,30 @@ public sealed class DataItem
         }
     }
 
+    /// <summary>The entry the PROGRAMMER WROTE that put this item where it is: the item itself when it is no copy,
+    /// else the nearest enclosing entry that is no copy — the subject of the TYPE or SAME AS clause whose expansion
+    /// (<c>DataBinder.CloneItem</c>) produced this subordinate (ISO §13.18.57.4 GR1 and §13.18.49.4 GR1: the clause's
+    /// effect is "as though" the description "had been coded in place"). A copy's own <see cref="DeclaredAt"/> is its
+    /// template member's, so a fault of PLACEMENT (the section it lands in, the entries that follow it, the record it
+    /// joins) born at the reference is positioned at this entry, where the user can edit it, and not at the type
+    /// declaration, which is legal on its own (kb/Work PB1629).</summary>
+    public DataItem ReferenceSite
+    {
+        get
+        {
+            var item = this;
+            while (item.ClonedFrom is not null && item.Parent is { } parent) item = parent;
+            return item;
+        }
+    }
+
+    /// <summary>True when this item is a member a TYPE or SAME AS clause copied in under <paramref name="site"/> (the
+    /// entry that wrote the clause, <see cref="ReferenceSite"/>). A fact about such a member that involves ONLY members of
+    /// that one copy is a fact of the copied DECLARATION, which reports it where it is written, so the reference must not
+    /// report it a second time at a legal entry (kb/Work PB1629). A fact that involves the site itself or anything outside
+    /// the copy is a fact of the PLACEMENT, and the site reports it.</summary>
+    public bool IsCopiedUnder(DataItem site) => !ReferenceEquals(this, site) && ReferenceEquals(ReferenceSite, site);
+
     /// <summary>True when this TYPEDEF entry also carries the EXTERNAL clause (ISO §13.18.22 SR1 — a level-1
     /// type declaration may be external; §13.18.58.3 SR3). The type declaration itself has no storage
     /// (§13.18.58.4 GR2); the effect is on its REFERENCES: any record description containing that type is itself
