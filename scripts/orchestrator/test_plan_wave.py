@@ -676,8 +676,10 @@ for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs", "scripts/gamma.py", "tests/De
 
 
 def tnote(nid, tier=None, blocked_by=(), site="", wrong=False):
+    # one subsystem per note: a note with no site block (PB944, PB948) is UNKNOWN and is planned alone on its
+    # subsystem (kb/Work PB3263, section 9g), which a shared area would turn into one chain and hide the tier order
     (TW / f"{nid}.md").write_text(
-        f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
+        f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/{nid.lower()}\n'
         f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\nblocked: {'true' if blocked_by else 'false'}\n"
         f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940, PB949]\n" +
         (f'tier: ["PB940:{tier}", "PB949:{9 - tier}"]\n' if tier else "") +
@@ -885,7 +887,7 @@ bp = pw.plan(notes, [cl(F_BIND, "PB5"), cl("src/X/Misc.cs", "PB9"), after5], [],
              budget_points=100, deps={"PB13": ["PB5"]},
              busy={"worktree-train-a": pw.InFlight({F_BIND, "src/Other.cs"}, "worktree-train-a")})
 check("a group colliding with RUNNING work waits, the collision named",
-      "file-set collision with running work worktree-train-a [RUNNING] (" + F_BIND + ")" in bp["waiting"].get("PB5", ""),
+      "file-set collision with in-flight work worktree-train-a [RUNNING] (" + F_BIND + ")" in bp["waiting"].get("PB5", ""),
       True)
 check("its successor waits for it", "PB5 is not planned" in bp["waiting"].get("PB13", ""), True)
 check("a group that meets nothing runs", [g.notes for g in bp["groups"]], [["PB9"]])
@@ -908,7 +910,7 @@ check("... its pred says merge that branch first and names the shared file",
 check("fix lane: a dispatch of the group's OWN notes never defers it (the hold already decided them)",
       ("PB9",) in FG, True)
 check("fix lane: a group meeting another dispatch's RUNNING group waits, naming it",
-      ("PB11" in fl["waiting"], "running work dispatched w1091b" in fl["waiting"].get("PB11", "")), (True, True))
+      ("PB11" in fl["waiting"], "in-flight work dispatched w1091b" in fl["waiting"].get("PB11", "")), (True, True))
 fin_own = pw.plan(notes, [cl(F_EMIT, "PB3")], [], [r3], lambda b: "UNLANDED", {}, RULES, budget_points=100,
                   busy={"worktree pred (" + str(r3.branch) + ")": pw.InFlight({F_EMIT}, r3.branch)})
 check("a finisher never collides with the branch its own pred continues (its predecessor's worktree)",
@@ -1422,6 +1424,63 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
       note_path_scanners({"scripts/arch/planted.py": PLANT, "scripts/orchestrator/p2.py": "fc" + ".sites(text, idx, exts)",
                           "scripts/orchestrator/fine.py": "x = 1"}),
       ["scripts/arch/planted.py", "scripts/orchestrator/p2.py"])
+
+# 12. AN EMPTY FILE SET IS UNKNOWN, NEVER "COLLIDES WITH NOTHING" (kb/Work PB3263). Wave 1117 recorded six of its
+#     eight PB3353 groups with `0 files` (their notes declare no site block), and wave 1126 C (PB1587, runtime/io, no
+#     site block) was planned beside the in-flight engine and landed on six of its files. An unknown side meets the
+#     other on a shared SUBSYSTEM (the notes' areas), and meets everything when that is unknown too; within a wave an
+#     unknown group is planned alone on its subsystems (a successor of the last group on one, and a later group on one
+#     follows it); a meeting by subsystem waits even for FINISHED work (never a continuation of an unrelated branch);
+#     a dispatch recorded with no files stays in flight; the plan table and the spec name the group UNPARTITIONED.
+def unsited(*ids):
+    return {"file": "", "harm": 1, "files": [], "notes": [{"id": i, "area": "", "harm": 1, "title": ""} for i in ids]}
+
+
+check("collision: two known sets meet on a shared file, never on a subsystem alone",
+      (pw.collision({"a"}, {"runtime"}, {"a", "b"}, set()), pw.collision({"a"}, {"runtime"}, {"b"}, {"runtime"})),
+      ("a", None))
+check("collision: an UNKNOWN set meets on a shared subsystem only; an unknown subsystem meets everything",
+      (pw.collision(set(), {"runtime"}, {"b"}, {"runtime"}), pw.collision(set(), {"runtime"}, set(), {"oo/classes"}),
+       pw.collision({"a"}, {"runtime"}, set(), set())),
+      ("UNKNOWN file set, subsystem runtime", None, "UNKNOWN file set, subsystem unknown"))
+check("subsystems are the notes' areas, case-folded", pw.subsystems(["PB5", "PB8", "PB404"], notes),
+      {"runtime", "oo/classes"})
+uw = pw.plan(notes, [cl(F_BIND, "PB5"), unsited("PB9"), unsited("PB10"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")],
+             [], [], lambda b: "ABSENT", {}, RULES, budget_points=100)
+check("in a wave an UNKNOWN group follows the last group on its subsystem, a known one follows the last unknown one, "
+      "and another subsystem runs beside them",
+      [(g.letter, g.after, g.notes) for g in uw["groups"]],
+      [("A", "", ["PB5"]), ("A2", "A", ["PB9"]), ("A3", "A2", ["PB10"]), ("B", "", ["PB8"]), ("A4", "A3", ["PB11"])])
+ub = pw.plan(notes, [unsited("PB9"), unsited("PB8"), cl("src/X/Misc2.cs", "PB11")], [], [], lambda b: "ABSENT", {},
+             RULES, budget_points=100,
+             busy={"dispatched w1117c (PB5)": pw.InFlight(set(), notes={"PB5"}, state="DISPATCHED, NO REPORT YET"),
+                   "worktree done (worktree-done)": pw.InFlight({"src/Y/Engine.cs"}, "worktree-done", {"PB12"}, FIN,
+                                                                "WAITING TO LAND")})
+check("an UNKNOWN group waits on an unknown dispatch and on a FINISHED branch of its subsystem, each named",
+      all(t in ub["waiting"].get("PB9", "") for t in (
+          "dispatched w1117c (PB5) [DISPATCHED, NO REPORT YET] (UNKNOWN file set, subsystem runtime)",
+          "worktree done (worktree-done) [WAITING TO LAND] (UNKNOWN file set, subsystem runtime)")), True)
+check("a known group waits on a dispatch recorded with no files in its subsystem",
+      "dispatched w1117c (PB5) [DISPATCHED, NO REPORT YET] (UNKNOWN file set, subsystem runtime)"
+      in ub["waiting"].get("PB11", ""), True)
+check("an UNKNOWN group of another subsystem runs, and continues nothing",
+      [(g.notes, g.continues) for g in ub["groups"]], [(["PB8"], [])])
+check("the spec body names an UNPARTITIONED group, its subsystem and the Sites paragraph to add",
+      all(t in pw.body_of(ub["groups"][0], notes) for t in ("UNPARTITIONED", "oo/classes", "**Sites:**")), True)
+check("a group with a file set is never named UNPARTITIONED", "UNPARTITIONED" in pw.body_of(uw["groups"][0], notes),
+      False)
+ufin = pw.plan(notes, [unsited("PB3")], [], [r3], lambda b: "UNLANDED", {}, RULES, budget_points=100,
+               busy={f"worktree pred ({r3.branch})": pw.InFlight({F_EMIT, "src/X/New.cs"}, r3.branch)})
+check("a finisher's set is what the branch it continues changes: known, so planned and recorded with those files",
+      [(g.kind, g.notes, g.files) for g in ufin["groups"]], [("finisher", ["PB3"], [F_EMIT, "src/X/New.cs"])])
+UL = TMP / "coord-unknown"
+UL.mkdir()
+coord.write_json(UL / pw.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
+UM: dict = {}
+check("a dispatch recorded with no files stays in flight: its set empty (UNKNOWN), its notes known",
+      (pw.inflight_file_sets(coord_dir=UL, terminal=lambda i: False, with_git=False, meta=UM),
+       UM.get("dispatched w1117c (PB5)", {}).get("notes")),
+      ({"dispatched w1117c (PB5)": set()}, ["PB5"]))
 
 for f in fails:
     print("FAIL:", f)
