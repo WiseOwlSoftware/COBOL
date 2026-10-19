@@ -344,6 +344,96 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
             Lines(stdout));
     }
 
+    /// <summary>The CONVERT ANY source asks for the group's STORAGE bytes (§15.19.3 rule 7), so the current-extent image
+    /// is read as storage only where it IS the storage (<c>DataItem.CurrentImageIsStorageImage</c>). A FIXED national
+    /// member is composed as its UTF-16BE byte pairs (D-N1), so the group "ab" + N"cd" + COMP 258 is
+    /// 61 62 | 00 63 00 64 | 01 02 (hand-derived: a=61 b=62 c=63 d=64, 258 = 0x0102); the dynamic-length item beside it
+    /// is one byte a character.</summary>
+    [Fact]
+    public void ConvertAnySource_FixedNationalMemberRidesAsItsUtf16Bytes()
+    {
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(ConvertNationalProgram("""
+           05 PA PIC X DYNAMIC LENGTH LIMIT IS 10.
+           05 PW PIC N(2).
+           05 PB PIC 9(4) COMP.
+""", """
+           MOVE "ab" TO PA
+           MOVE N"cd" TO PW
+           MOVE 258 TO PB
+"""), 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "[6162006300640102              ]" }, Lines(stdout));
+    }
+
+    /// <summary>A DYNAMIC-LENGTH NATIONAL member (and a dynamic-capacity table of national elements) is composed by the
+    /// current-extent image CHARACTER FOR CHARACTER (CONFORMANCE.md A.1 item 63), not as the two bytes a position
+    /// occupies, so that image is not the group's storage and CONVERT ANY must not read it as such: the storage of
+    /// <c>N"xy"</c> + <c>06</c> is 00 78 00 79 30 36, and the character image (78 79 30 36) would be a silent wrong
+    /// value (review round 2, R2-1). The refusal is the named run-time loud, the same one a group the composer
+    /// cannot take reaches; the dynamic national item's OWN CONVERT is the control the group must agree with.</summary>
+    [Theory]
+    [InlineData("""
+           05 QA PIC N DYNAMIC LENGTH LIMIT IS 10.
+           05 QN PIC 9(2).
+""", """
+           MOVE N"xy" TO QA
+           MOVE 6 TO QN
+""")]
+    [InlineData("""
+           05 QN PIC 9(2).
+           05 QT PIC N OCCURS DYNAMIC CAPACITY IN QCAP INITIALIZED.
+""", """
+           MOVE 6 TO QN
+           SET QCAP TO 2
+           MOVE N"x" TO QT(1)
+           MOVE N"y" TO QT(2)
+""")]
+    public void ConvertAnySource_DynamicNationalMemberStaysLoud(string members, string moves)
+    {
+        var (ranOk, _, detail) = EditionHarness.CompileAndRun(ConvertNationalProgram(members, moves), 2023, permissive: true);
+        Assert.False(ranOk, "a character image must not be read as the storage of a group holding a dynamic national member");
+        Assert.Contains("raw-storage image (CONVERT ANY)", detail);
+    }
+
+    /// <summary>The dynamic national item's own CONVERT ANY, the value the group's would have to agree with:
+    /// <c>N"xy"</c> is 00 78 00 79.</summary>
+    [Fact]
+    public void ConvertAnySource_DynamicNationalItemItselfIsItsUtf16Bytes()
+    {
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun("""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3424CNI.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 QA PIC N DYNAMIC LENGTH LIMIT IS 10.
+       01 WS-X PIC X(30).
+       PROCEDURE DIVISION.
+       MAIN-P.
+           MOVE N"xy" TO QA
+           MOVE FUNCTION CONVERT (QA ANY ANUM HEX) TO WS-X
+           DISPLAY "[" WS-X "]"
+           STOP RUN.
+""", 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "[00780079                      ]" }, Lines(stdout));
+    }
+
+    private static string ConvertNationalProgram(string members, string moves) => $"""
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. PB3424CNG.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 PG.
+{members}
+       01 WS-X PIC X(30).
+       PROCEDURE DIVISION.
+       MAIN-P.
+{moves}
+           MOVE FUNCTION CONVERT (PG ANY ANUM HEX) TO WS-X
+           DISPLAY "[" WS-X "]"
+           STOP RUN.
+""";
+
     /// <summary>A POINTER leaf, never set, in a group decoded in a numeric position: the NULL image adds no digit, so
     /// the group decodes "12" + "05" = 1205, plus 1 = 1206 (the pointer-leaf arm of the fixed-group decode).</summary>
     [Fact]
