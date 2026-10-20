@@ -302,7 +302,7 @@ public sealed class PagedFileRuleTests
     {
         var (medium, handle, store) = StoreKit.NewStore();
         Assert.Equal(StoreStatus.Ok, StoreKit.Put(store, 1, "a"));
-        Assert.Equal(StoreStatus.Ok, store.Begin(new StatementBound(1, 0), out var st, ordinals: 3, transactionIds: 1));
+        Assert.Equal(StoreStatus.Ok, store.Begin(new StatementBound(1, 0), out var st, ordinals: 3, drawnTransaction: 1));
         st!.Abandon();
         handle.FaultAtWrite(2, Fault.Refuse);
         Assert.Equal(StoreStatus.PermanentError, StoreKit.Put(store, 2, "b"));

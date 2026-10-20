@@ -259,7 +259,16 @@ public abstract class KeyedConnector : FileConnector
     private string? Lock(bool create)
     {
         if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
-        TakeFileLock(create);
+        if (create) ReleaseKept();   // OPEN OUTPUT creates the file anew: nothing of a kept handle's store survives it
+        try { TakeFileLock(create); }
+        catch (IOException) when (_kept is not null)
+        {
+            // The handle this connector kept at its CLOSE under commit control refuses the new one's share mode (§9.1.15
+            // speaks of OTHER run units, never of the connector's own re-OPEN): it is given back first, and the store
+            // re-takes the transaction's liveness byte through the new handle at the attach.
+            ReleaseKept();
+            TakeFileLock(create);
+        }
         return null;
     }
 
@@ -278,9 +287,20 @@ public abstract class KeyedConnector : FileConnector
         _attached = true;
         store.AttachHandle(_handle!, StoreHandleWritable,
             HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
-        var opened = InStoreMutex(() => create
-            ? store.Create(DeclaredAttributes, _coherent)
-            : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes));
+        var opened = InStoreMutex(() =>
+        {
+            var status = create
+                ? store.Create(DeclaredAttributes, _coherent)
+                : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes);
+            if (status != StoreStatus.Ok || !StoreHandleWritable) return status;
+            // The run unit's open transaction keeps its liveness byte through a live handle: the kept one's moves here
+            // inside this mutex hold, so no other run unit's probe ever finds it free (2.2.1.10).
+            if (_kept is { } kept) store.MoveLiveness(kept.Regions, _regions!);
+            store.RetakeLiveness(_regions!);
+            // R6 step 5, the DEAD-OWNER step of a writable OPEN (2.2.1.6, 2.2.1.10): after the adoption and its fence.
+            return store.RollBackDeadOwners(_regions!, Restoring);
+        });
+        ReleaseKept();
         return Failed(opened);
     }
 
@@ -330,11 +350,24 @@ public abstract class KeyedConnector : FileConnector
         }
         finally
         {
-            // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
-            // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
-            // its medium reads through is still open.
-            try { detached = Detach(); }
-            finally { ReleaseFileLock(); }
+            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE HANDLE (§14.9.7.4 GR4; §9.1.15, "the file lock is removed by the
+            // COMMIT statement"; DESIGN-runtime-library.md 2.2.1.10): while the run unit's transaction on the file is open,
+            // the connector's handle, its region endpoint — through which the transaction's liveness byte may be held — and
+            // its attachment to the store stay, so a ROLLBACK after the CLOSE can still restore through it, until the next
+            // COMMIT or ROLLBACK releases them (ReleaseKept).
+            if (CommitControlled && AttachedStore.Transaction != 0 && _store is not null && _regions is not null)
+            {
+                _kept = new KeptHandle(_store, _handle!, _regions);
+                (_store, _handle, _regions, _coherent) = (null, null, null, false);
+            }
+            else
+            {
+                // §9.1.15 — "The file lock is removed by an explicit or implicit CLOSE statement executed for that
+                // file connector", whatever the promotion did (kb/Work PB771); the store is left first, while the handle
+                // its medium reads through is still open.
+                try { detached = Detach(); }
+                finally { ReleaseFileLock(); }
+            }
         }
         // The last writable connector's CLOSE re-adopts the store as its INPUT siblings' (KeyedStore.DetachHandle); a
         // refused read there is this CLOSE's permanent error (§9.1.13.6 item 1; 2.2.1.16's refused READ row), mapped to
@@ -393,6 +426,151 @@ public abstract class KeyedConnector : FileConnector
         }
         stored = record;
         return RecordHasCharacterWithoutByteImage(record) ? FileStatusCode.CharacterWithoutByteImage : null;
+    }
+
+    // ── Commit control: APPLY COMMIT, COMMIT and ROLLBACK on the engine (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337)
+
+    /// <summary>⛔ Whether an active APPLY COMMIT clause names this connector (§12.4.6.3.4; set by
+    /// <c>FileRegistry.RegisterCommitControl</c>): its WRITE, REWRITE and DELETE keep the record's before-image and its
+    /// HOLDINGS in the run unit's transaction on the physical file (<see cref="TransactionFor"/>), which COMMIT makes
+    /// permanent and ROLLBACK restores. A second connector of the same run unit on the file that no APPLY COMMIT names logs
+    /// nothing (D.2.5's independent file connectors), and its statements meet the transaction's holdings like any other
+    /// run unit's.</summary>
+    internal bool CommitControlled { get; set; }
+
+    /// <summary>A ROLLBACK's view of the organization's trees (<see cref="IRestoringTrees"/>), which the dead-owner step,
+    /// the lock test's rollback of a dead holder and a COMMIT's reversal use as well.</summary>
+    private protected abstract RestoringTreesFactory Restoring { get; }
+
+    /// <summary>The record identity — the HOLDINGS tree's bytes — of a §9.1.16 record lock identity string
+    /// (<see cref="FileConnector.LastReadRecordId"/>'s form); null when it names no record the file can hold.</summary>
+    private protected abstract byte[]? IdentityOf(string recordId);
+
+    /// <summary>The handle, region endpoint and store attachment this connector KEPT at a CLOSE under commit control
+    /// (<see cref="CloseCore"/>), until the next COMMIT or ROLLBACK, or this connector's next OPEN, gives them back.</summary>
+    private sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, RegionLocks Regions);
+
+    private KeptHandle? _kept;
+
+    /// <summary>Give back what a CLOSE under commit control kept (§9.1.15: <i>"the file lock is removed by the COMMIT
+    /// statement"</i>): the handle leaves the store's medium and the store table, under the store mutex the kept endpoint
+    /// holds, and then the endpoint and the handle are disposed. A transaction's liveness byte still held through it at that
+    /// moment (a ROLLBACK refused, or the run unit ending) goes with it — what a death does, and the dead-owner step's to
+    /// settle.</summary>
+    internal void ReleaseKept()
+    {
+        if (_kept is not { } kept) return;
+        _kept = null;
+        try
+        {
+            var store = AttachedStore;
+            if (kept.Regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: kept.Regions.Writable, wait: true) == RegionLockResult.Ok)
+            {
+                try { _ = store.DetachHandle(kept.Handle); }
+                finally { kept.Regions.Release(HostRegionLocks.StoreMutexByte); }
+            }
+            else _ = store.DetachHandle(kept.Handle);
+            SharedStores?.Detach(HostPath);
+            if (!IsOpen)
+            {
+                _attached = false;
+                ForgetStore();
+            }
+        }
+        finally
+        {
+            try { kept.Regions.Dispose(); }
+            finally { kept.Stream.Dispose(); }
+        }
+    }
+
+    /// <summary>What this connector's record statement adds to its page statement under commit control (2.2.1.10), or null
+    /// when no active APPLY COMMIT clause names it: the record's <paramref name="identity"/>, its
+    /// <paramref name="beforeImage"/> (null: the statement creates the record) and the HOLDINGS keys of the unique alternate
+    /// key values the change frees.</summary>
+    private protected KeyedStore.TransactionWork? TransactionFor(byte[] identity, byte[]? beforeImage, IReadOnlyList<byte[]>? freed = null) =>
+        CommitControlled && _regions is { Writable: true } regions
+            ? new KeyedStore.TransactionWork(regions, identity, beforeImage, freed ?? [])
+            : null;
+
+    /// <summary>⛔ THE LOCK TEST OF THE TRANSACTIONS' HOLDINGS (DESIGN-runtime-library.md 2.2.1.10, "The lock TEST, for every
+    /// writer and every reader not IGNORING LOCK"; findings R2-3, R2-4, R4-1): when page 2's holdings root is not empty, each
+    /// HOLDINGS key the statement would touch — the record's identity, and for a WRITE or REWRITE each unique alternate key
+    /// value it would insert — is looked up, at DOC-A.1-104's point (after the invalid key conditions, which ignore locks,
+    /// §14.9.51.4 GR33/GR42; before the record is touched). No entry: the identity is nobody's, and no rollback will ever
+    /// touch it. This run unit's own transaction through a connector under commit control: proceed (§14.9.30.4 GR8's
+    /// re-access). Any other transaction — another run unit's, or this run unit's through a connector no APPLY COMMIT names —
+    /// has its owner's liveness byte probed NOW: held, '51' (§9.1.16's implementor-specified circumstance, DOC-A.1-152), and
+    /// the statement's RETRY phrase applies (§14.9.51.4 GR16, <i>"for the case where resources needed to write a record are
+    /// locked by another run unit"</i>); free, the owner died, and its transaction is rolled back HERE, under the mutex this
+    /// statement holds, before its own change. <paramref name="reevaluate"/> is then true — as after any RETRY wait — and the
+    /// caller evaluates the statement's conditions again from the invalid key conditions on, against the file as it is now
+    /// ('22' where the rollback re-created the identity or re-inserted the value). A holding is a page of the file, so the
+    /// answer does not depend on the instant a death fell. Returns the failing status ('51', a RETRY's exhaustion status, or
+    /// '30' for a torn page or a refused rollback), or null.</summary>
+    private protected string? HoldingsGate(IReadOnlyList<byte[]> keys, out bool reevaluate)
+    {
+        reevaluate = false;
+        var store = AttachedStore;
+        if (keys.Count == 0 || store.File is not { } file || file.Meta.HoldingsRoot.IsNone || _regions is not { } regions)
+            return null;
+        int attempts = 0;
+        bool rolledBack = false;
+        string status = FileRegistry.RetryLoop(() =>
+        {
+            attempts++;
+            foreach (var key in keys)
+                while (true)
+                {
+                    if (store.HolderOf(key, out ulong owner) != StoreStatus.Ok) return RetryAttempt.InRunUnit(FileStatusCode.PermanentError);
+                    if (owner == 0 || owner == store.Transaction && CommitControlled) break;
+                    if (owner == store.Transaction) return RetryAttempt.InRunUnit(FileStatusCode.RecordLocked);
+                    if (!KeyedStore.OwnerIsDead(regions, owner)) return RetryAttempt.OutsideRunUnit(FileStatusCode.RecordLocked);
+                    if (store.RollBack(owner, Restoring) != StoreStatus.Ok) return RetryAttempt.InRunUnit(FileStatusCode.PermanentError);
+                    rolledBack = true;
+                }
+            return RetryAttempt.InRunUnit(FileStatusCode.Success);
+        }, StatementRetry.Kind, StatementRetry.Amount, waiter: this);
+        reevaluate = rolledBack || attempts > 1;
+        return status == FileStatusCode.Success ? null : status;
+    }
+
+    /// <summary>The holdings test of a READ not IGNORING LOCK (2.2.1.10): the record <paramref name="recordId"/> names, by its
+    /// identity (<see cref="HoldingsGate"/>).</summary>
+    internal string? ReadHoldingsGate(string recordId, out bool reevaluate)
+    {
+        reevaluate = false;
+        return IdentityOf(recordId) is { } identity ? HoldingsGate([TransactionKeys.Record(identity)], out reevaluate) : null;
+    }
+
+    /// <inheritdoc/>
+    internal override bool HoldingsMayExist => AttachedStore.File is { } file && !file.Meta.HoldingsRoot.IsNone;
+
+    /// <summary>The run unit's transaction on this connector's physical file, if this connector is attached to its store.</summary>
+    internal ulong OpenTransaction => _attached ? AttachedStore.Transaction : 0;
+
+    /// <summary>⛔ COMMIT the run unit's transaction on this connector's physical file (§14.9.7.4 GR3; 2.2.1.10), under the
+    /// store mutex through this connector's handle (or the one it kept at its CLOSE).</summary>
+    internal CommitOutcome CommitTransaction() => InTransactionMutex(() => AttachedStore.Commit(Restoring));
+
+    /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§14.9.36.4 GR3; 2.2.1.10): the
+    /// statement's entry (which unwinds an unlanded COMMIT's claim, R5's restart rule) and the ROLLBACK statement, under the
+    /// store mutex.</summary>
+    internal StoreStatus RollbackTransaction() => InTransactionMutex(() =>
+        AttachedStore.File is not { } file ? StoreStatus.Ok
+        : !AttachedStore.Unacknowledged && file.Enter() != StoreStatus.Ok ? StoreStatus.PermanentError
+        : AttachedStore.Rollback(Restoring));
+
+    /// <summary>Run <paramref name="body"/> inside the store mutex held through this connector's live endpoint or the one it
+    /// kept at its CLOSE; a NO OTHER file has nobody to exclude.</summary>
+    private T InTransactionMutex<T>(Func<T> body)
+    {
+        var regions = _regions ?? _kept?.Regions;
+        if (regions is null || !_coherent && _kept is null) return body();
+        var holder = regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: regions.Writable, wait: true) == RegionLockResult.Ok
+            ? regions : null;
+        try { return body(); }
+        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
     }
 
     // ── Coherence ACROSS RUN UNITS (ISO §9.1.15, §9.1.16; kb/Work PB2660) ────────────────────────────────────
@@ -468,6 +646,11 @@ public abstract class KeyedConnector : FileConnector
             // mutex shared and leaves the flag to the next exclusive entry (PagedFile.Enter's exclusive rule). A store
             // with no file (an absent OPTIONAL file read INPUT) has nothing to enter.
             if (store.File is { } file && file.Enter(exclusive) != StoreStatus.Ok) SetStatus(FileStatusCode.PermanentError);
+            // The DEAD-OWNER step (2.2.1.10, finding R3-1): an exclusive entry through a writable handle, once the entry
+            // resolved a PROMOTING flag (so a COMMIT's fate is settled before its transaction is probed), rolls back
+            // every transaction whose owner's liveness byte is free before the statement proceeds.
+            else if (exclusive && store.RollBackDeadOwners(_regions, Restoring) != StoreStatus.Ok)
+                SetStatus(FileStatusCode.PermanentError);
         }
         catch (Exception failure) when (IsHostStoreFailure(failure))
         {
