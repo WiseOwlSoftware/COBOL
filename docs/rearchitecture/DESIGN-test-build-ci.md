@@ -1807,7 +1807,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    REVIEW FINISHER (a fresh implementer, because a workflow cannot message an agent that has returned: it merges the
    branch, answers every finding by its id — fixed at its root, or `no_change_needed` with the reason — re-gates and
    returns DONE), reviewed again, at most `review_fix_rounds` (2) times; after that the FINDINGS stamp stays and
-   `plan_wave.py` plans a finisher for it. **The rounds converge (kb/Work PB3381, owner 2026-10-18: "We should not be
+   `plan_wave.py` plans a finisher for it while the stamp covers the branch tip (a later commit that is not
+   mechanical makes the branch WAITING FOR REVIEW to the survey and the planner alike: `prune_worktrees.stamp_covers`,
+   kb/Work PB3394). **The rounds converge (kb/Work PB3381, owner 2026-10-18: "We should not be
    holding finished work this long, continually postponing it. Something in our process is flawed"; on the change:
    "Make the changes now and land the clean links as they come.").** Round 1 is the whole branch; round 2 and later
    review ONLY `git diff <the head the last round reviewed>..HEAD` (the wave passes `reviewed_head`) and the report's
