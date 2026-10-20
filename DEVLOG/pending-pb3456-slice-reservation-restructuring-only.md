@@ -1,0 +1,7 @@
+## PB3456 fixed: the external-repository slices reserve files from the restructuring program's groups only
+
+The owner asked for PB3456 to be fixed by hand beside the loop (dispatch hold `w1132z`). R69 §2 reserves the open slices' §12 file set from "R2 and every R3 wave", but `plan_wave.py` applied it to every `--cluster` plan, so PB3353's tier 1 and the owner's tier-2 chain waited on `docs/CONFORMANCE.md` for four slices nobody ran, and the plan printed them RUNNING.
+
+The reservation is now decided per group, because the restructuring program and the fix campaigns share notes (PB2171 and PB2220 are in PB2119 and PB3353; PB2349 is in PB2119 and PB2911). `work.RESTRUCTURING_PROGRAM` (PB1754, PB2119) and `work.restructuring` name the program once. `work.open_slices` is the one reading of the open slices, shared with `r3_program_problems`. `plan_wave.slice_reservation` builds the reservation for a campaign's plan only. `InFlight.reserves` makes the partition hold only groups that carry a reserved note, and `classify_inflight` reads the reservation OPEN (RESERVED) until in-flight work holds a slice.
+
+The register check keeps its R1 §8.6 scope (cluster PB2119). Widening it to PB1754 would refuse 43 notes, and the planner already holds those groups. DESIGN-architecture-review §8.7 and DESIGN-orchestrator-loop were corrected to match. `test_plan_wave.py` passes 305/305. A real `--cluster PB3353` dry run from the branch shows no note waiting on the slices: PB1278, PB3337, PB3338 and PB3340 wait only on wave 1132's in-flight groups.

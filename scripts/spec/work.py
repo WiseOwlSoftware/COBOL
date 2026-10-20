@@ -676,6 +676,11 @@ def topology_problems(items: list[dict]) -> list[str]:
 #   2. the measurement (DESIGN-architecture-review §8.1): an open Move/rename or Extract note of the program must
 #      reach the note that lands the architecture drift test through `blocked_by`.
 R3_PROGRAM, R3_DRIFT_TEST = "PB2119", "PB2417"
+#: THE RESTRUCTURING PROGRAM of R69 §2, "R2 and every R3 wave (the Delete program PB2119 included)": the clusters of the
+#: architecture review (PB1754, its R2 findings) and of the Delete program (R3_PROGRAM). The open external-repository
+#: slices' §12 file set is reserved from ITS waves only, whichever plan proposes them; a fix campaign (PB3353, PB2911)
+#: and the fix lane are never held for a slice (DESIGN-architecture-review §8.7 set (b); kb/Work PB3456).
+RESTRUCTURING_PROGRAM = ("PB1754", R3_PROGRAM)
 R3_MEASURED_WAVES = ("move", "move-rename", "extract", "re-model")
 _WAVE_KIND = re.compile(r"\*\*Wave kind:\*\*\s*([\w-]+)", re.I)
 #: The wave kind of an R2 defect routed to the fix lane (scripts/arch/r2_collect.py WAVES; file_census_notes writes it):
@@ -707,6 +712,19 @@ _PATH_CHAR = r"[^\s`'\"()\[\],;|]"
 _NOT_A_PATH = re.compile(r"[<>*{}…]|\.\.\.")
 #: The external-repository slices are the notes whose title says so (kb/Work PB2097-PB2104).
 EXTERNAL_SLICE_TITLE = re.compile(r"\A\S+ — external repository slice \d+\b")
+
+
+def open_slices(items: list[dict]) -> list[str]:
+    """The open external-repository slices (EXTERNAL_SLICE_TITLE, not terminal), in id order: THE reading the register's
+    R3 check and the planner's slice reservation share."""
+    return sorted((i["id"] for i in items if EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
+                   and i.get("status") not in TERMINAL_STATUSES), key=id_order)
+
+
+def restructuring(item: dict) -> bool:
+    """The note belongs to the restructuring program (its `cluster` list names a RESTRUCTURING_PROGRAM lead): THE
+    predicate of R69 §2's slice reservation, so a note shared with a fix campaign is reserved too (kb/Work PB3456)."""
+    return isinstance(item.get("cluster"), list) and any(c in item["cluster"] for c in RESTRUCTURING_PROGRAM)
 EXTERNAL_DESIGN = REPO / "docs" / "rearchitecture" / "DESIGN-external-repository.md"
 _S12 = re.compile(r"^## 12\. .*?$(.*?)^## 13\. ", re.M | re.S)
 _DECL = re.compile(r"\b(?:class|record|struct|interface|enum)\s+(?:class\s+|struct\s+)?([A-Z]\w*)")
@@ -1039,10 +1057,9 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
     blocked_by written from them would be a hand list that drifts. `unknown_names` is {note id: unknown names}
     (computed here when None)."""
     by_id = {i.get("id"): i for i in items}
-    open_slices = {i.get("id") for i in items if EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
-                   and i.get("status") not in TERMINAL_STATUSES}
+    slices = open_slices(items)
     if slice_files is None:
-        slice_files = slice_file_set() if open_slices else set()
+        slice_files = slice_file_set() if slices else set()
 
     def reaches(it: dict, target: str) -> bool:
         seen, todo = set(), list(it.get("blocked_by") or [])
@@ -1077,11 +1094,11 @@ def r3_program_problems(items: list[dict], slice_files: set[str] | None = None,
             continue
         wave = (m.group(1).lower() if (m := _WAVE_KIND.search(body)) else "")
         hit = sorted(set(note_sites(body).paths) & slice_files)
-        if hit and not any(reaches(it, s) for s in open_slices):
+        if hit and not any(reaches(it, s) for s in slices):
             bad.append(f"{it['_file']}: an R3 {wave or '?'} wave whose sites name {hit[0]}"
                        f"{f' (+{len(hit) - 1} more)' if len(hit) > 1 else ''}, a file of the external repository's "
                        f"in-flight set (DESIGN-external-repository §12; R1 §8.6), and that waits for no open slice — "
-                       f"add the slice note that changes it ({', '.join(sorted(open_slices, key=id_order))}) to "
+                       f"add the slice note that changes it ({', '.join(slices)}) to "
                        f"blocked_by")
         if wave in R3_MEASURED_WAVES and not reaches(it, R3_DRIFT_TEST):
             bad.append(f"{it['_file']}: an R3 {wave} wave that does not wait for {R3_DRIFT_TEST}, the architecture "
