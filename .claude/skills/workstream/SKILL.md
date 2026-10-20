@@ -143,8 +143,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   area (a runtime file, then its emitter).
 - **A campaign is a named cluster, and it is planned, not hand-picked** (kb/Work PB2120, design section 9.1). Process
   work the fix lane cannot see (`process_only`, sites outside `src/Cobol.Net.*`: the legacy retirement `PB2108`, the
-  architecture review `PB1754`) runs from its notes' `cluster:` and `blocked_by:`:
-  `python scripts/spec/work.py next --cluster <lead>` lists it in dependency order,
+  architecture review `PB1754`) runs from its notes' `cluster:`, `blocked_by:` and the owner's `tier:` (`tier:
+  ["<lead>:1"]` ranks a ready note first in that campaign, kb/Work PB3423):
+  `python scripts/spec/work.py next --cluster <lead>` lists it in tier, then dependency order,
   `python scripts/orchestrator/plan_wave.py --cluster <lead> --budget-points P --dry-run` plans a wave of it (its
   dependent notes become successors, `after:`, of the groups holding their blockers), and
   `pwsh scripts/orchestrator/orchestrate.ps1 -Cluster <lead>` alternates its waves with fix-lane waves until every
@@ -152,7 +153,9 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   held for the owner's per-dispatch approval and dispatched by the attended session. An owner instruction every group of
   the campaign must meet goes in the lead note's `## Standing requirements` section (a bullet each, kb/Work PB3359):
   the planner puts it in the spec, the args entry and the branch reviewer's prompt of every group whose notes name that
-  cluster, in a fix-lane wave as in a campaign wave; never hand-edit it into `groups.json`.
+  cluster, in a fix-lane wave as in a campaign wave; never hand-edit it into `groups.json`. A bullet is a case only
+  that campaign has: the owner's SORT and file I/O test rule lives in MANDATORY-PRACTICES I11 alone and is never copied
+  into a lead (kb/Work PB3369; `test_plan_wave.py` refuses the copy).
 - **Why.** Orientation was ~46 % of every implementer's tokens (waves 45–57): a successor pays the file's context
   once, not once per cluster. It is a FRESH agent, not a longer transcript, because of the quadratic cost law above:
   the cap exists because the sixth defect in one transcript costs more than a new agent, and the successor keeps the
@@ -167,9 +170,11 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   `group`, `root`, `files`, `body`, an optional `pred` text (predecessor or resume instructions) and the optional
   `after` (ignored by the renderer; the workflow uses it), and `file_set`, the list of files the group changes
   (`plan_wave.py` writes it; without it the renderer computes the set from the group's notes). Spec files are keyed
-  on the full letter: `msg-w<wave>-<letter lower-cased>.txt`. The renderer also RECORDS every group in the dispatch
-  ledger (`plan_wave.record_dispatch`, an upsert on wave and letter; `--coord DIR`), the ledger's one writer, so the
-  planners' file-set partition and the landing check see a hand-planned wave too (kb/Work PB3186).
+  on the full letter: `msg-w<wave>-<letter lower-cased>.txt`. Once its `check_practices.py` run is GREEN the renderer
+  also RECORDS every group in the dispatch ledger (`plan_wave.record_dispatch`, an upsert on wave and letter; `--coord
+  DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
+  (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
+  `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
   `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file unless one
   declares `after:` the other.
 

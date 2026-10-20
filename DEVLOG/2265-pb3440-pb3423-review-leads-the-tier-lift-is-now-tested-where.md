@@ -1,0 +1,6 @@
+## Entry 2265 — 2026-10-19 13:17 PDT — PB3440 (PB3423 review leads): the tier lift is now tested where it is called
+
+The branch review of PB3423 (#292) passed CLEAN with two low leads, and both were small enough to answer at once rather than file. R1-1: `plan_wave.plan()`'s docstring still said a campaign cluster's depth ranks first; it now names the owner's tier first and depth next. R1-2 was the real one: `test_plan_wave.py` tested `lift_tiers` directly, but no fixture needed the CALL inside `campaign_clusters`, and the reviewer's mutation (the call deleted) kept every check green.
+
+The new fixture needed the one shape where a cluster's tier and its notes' tiers part: a mixed cluster. At a cap of two, three Alpha.cs notes split into [PB961, PB962] and [PB963]; the tier-1 PB964 (blocked by PB961) shares a Beta.cs cluster with the untiered PB965 (blocked by PB963). Without the lift, PB963's lone cluster ranks after the tier-1 dependent cluster, and `plan` leaves both dependents waiting with "blocker PB963 is not planned in this wave"; with it, the lifted cluster becomes A2 on the Alpha.cs chain and the dependents follow as A3. The same mutation now fails exactly those two checks (258/258 with the call in place).
+

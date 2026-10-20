@@ -1,15 +1,15 @@
 #!/bin/bash
 # THE COMPILER UNDER TEST for the NIST guard legs — ONE place that answers "which binary is this gate
-# measuring?", SOURCED by scripts/guard.sh and scripts/guard-fast.sh.
+# measuring?", SOURCED by scripts/guard-fast.sh.
 #
 #   . "$(dirname "$0")/guard-compiler.sh"
 #   guard_select_compiler          # sets GUARD_COMPILER + the four paths below
 #
-# scripts/guard-run-group.sh and scripts/guard-compile.sh do NOT source it: they are per-group / per-program
-# workers spawned by a guard that has already made the selection, so they READ the exported GUARD_RUNTIME_DLL /
+# scripts/guard-run-group.sh and scripts/guard-compile.sh do NOT source it: they are per-program
+# workers spawned by the guard once it has made the selection, so they READ the exported GUARD_RUNTIME_DLL /
 # GUARD_CLI_DLL instead. A worker that re-resolved would be a second place the answer lives.
 #
-# ⛔ WHY THIS EXISTS (kb/Work/PB750). Until 2026-09-06 both guards hard-coded the legacy byte engine's CLI and
+# ⛔ WHY THIS EXISTS (kb/Work/PB750). Until 2026-09-06 the guards hard-coded the legacy byte engine's CLI and
 # drove the whole NIST compile-and-run leg — plus its audit and its forensics — through it. That binary's
 # dependency closure did not contain `Cobol.Net.Compiler` (the Roslyn code generator that IS WiseOwl COBOL), so
 # every battery's headline `guard NIST: 353 MATCH, 0 REGRESSION(S)` said nothing about the compiler this project
@@ -27,7 +27,7 @@
 # Outputs (globals):
 #   GUARD_COMPILER      the name that goes in every verdict line (`cobol`)
 #   GUARD_CLI_PROJECT   the .csproj the guard builds
-#   GUARD_CLI_BIN       the built output directory (guard.sh snapshots this whole directory)
+#   GUARD_CLI_BIN       the built output directory
 #   GUARD_CLI_DLL       the managed entry point the guard invokes as `dotnet "$GUARD_CLI_DLL" ...`
 #   GUARD_RUNTIME_DLL   the COBOL runtime the compiled programs bind to (copied next to a program before it runs)
 guard_select_compiler() {
@@ -59,7 +59,7 @@ guard_assert_compiler_identity() {
         echo "   Build it first (the guard builds it itself; a missing binary here means the build failed)." >&2
         return 1
     fi
-    # ⛔ ASKED AS A CONDITION, NEVER AS A BARE COMMAND. scripts/guard.sh runs under `set -e`, where a bare
+    # ⛔ ASKED AS A CONDITION, NEVER AS A BARE COMMAND. In a caller under `set -e`, a bare
     # `guard_cli_closure_has …; rc=$?` KILLS THE CALLER the moment the answer is "no", before the refusal below
     # can say why.
     if guard_cli_closure_has "$cli" "Cobol.Net.Compiler"; then rc=0; else rc=$?; fi
@@ -78,14 +78,14 @@ guard_assert_compiler_identity() {
     return 0
 }
 
-# guard_announce_compiler — the banner both guards print before doing any work.
+# guard_announce_compiler — the banner the guard prints before doing any work.
 guard_announce_compiler() {
     echo "=== COMPILER UNDER TEST: $GUARD_COMPILER ($GUARD_CLI_DLL) ==="
 }
 
 # ── Self-test: prove the watchdog REFUSES (feedback_green_gates_arent_evidence) ────────────────────────────
 # A check that has never been shown to fail is not evidence — and this one exists precisely because a gate
-# silently measured the wrong compiler for months. Run from scripts/guard-verify.sh's witness phase, which the
+# silently measured the wrong compiler for months. Run from scripts/guard-verify.sh's self-test, which the
 # battery runs (phase 2a) before it believes any guard output.
 guard_compiler_self_test() {
     local root rc=0 d out
@@ -119,7 +119,7 @@ guard_compiler_self_test() {
     # (0) THE CONTROL. Without it the watchdog could refuse EVERYTHING and every case below would "pass".
     if [ -f "$GREEN" ]; then
         out=$(guard_assert_compiler_identity "$GREEN" 2>&1); want "the real cobol.dll is accepted" 0 $? "$out"
-        # (0b) ⛔ UNDER `set -e`, WHICH IS HOW scripts/guard.sh CALLS IT. An accept must not abort the caller.
+        # (0b) ⛔ UNDER `set -e`, AS A CALLER MAY RUN IT. An accept must not abort the caller.
         #      ⚠ THE CALL MUST BE A BARE COMMAND HERE: a command on the LEFT of `&&` has `set -e` suppressed, and
         #      the suppression propagates into the function body, so `… && echo SURVIVED` could not see the defect.
         out=$( { set -e; guard_assert_compiler_identity "$GREEN"; echo SURVIVED; } 2>&1 )

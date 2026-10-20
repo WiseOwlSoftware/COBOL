@@ -1,6 +1,6 @@
       *>--- conformance-case
       *> id: pb1238_fd_formats_admitted
-      *> rules: [SR-13.4.5.3-5, FMT-13.4.5.2]
+      *> rules: [SR-13.4.5.3-5, SR-13.4.5.3-7, FMT-13.4.5.2]
       *> accept: [85]
       *> source-format: fixed
       *> portable: unverified

@@ -1,11 +1,12 @@
 #!/bin/bash
-# THE NIST VERDICT-EVIDENCE RULES — ONE implementation, SOURCED by both guards. Not executable on its own.
+# THE NIST VERDICT-EVIDENCE RULES — ONE implementation, SOURCED by the guard's program runner. Not executable alone.
 #
 #   . "$(dirname "$0")/guard-verdict.sh"
 #
-# Callers: scripts/guard.sh (serial authority) and scripts/guard-run-group.sh (the parallel guard's per-group
-# worker). They differ in WHERE the files live and HOW a verdict is recorded; the rules that turn evidence into
-# a verdict are identical, so they live here once (`feedback_one_rule_one_place`).
+# Caller: scripts/guard-run-group.sh, the one runner of NIST programs (scripts/guard-fast.sh's per-program worker;
+# kb/Work PB3383). The rules that turn evidence into a verdict live here, apart from the plumbing that gathers it,
+# so a second runner could never grow its own copy (`feedback_one_rule_one_place`): the retired serial guard and
+# the runner once carried two that had already drifted.
 #
 # ⛔ THE EVIDENCE RULES (plan §11 A12b; DESIGN-test-build-ci.md §3.10). A verdict about the COMPILER is produced
 # ONLY from an observation the harness actually made. The defect this closes is one sentence:
@@ -34,16 +35,16 @@
 # FILES whose writes complete before `diff` opens them, and the pipeline's own exit status is checked. The
 # exit-status discrimination below is defence in depth on top of that, not the fix.
 #
-# Every function sets shell options FUNCTION-LOCALLY (`local -`) and never aborts its caller: guard.sh runs
+# Every function sets shell options FUNCTION-LOCALLY (`local -`) and never aborts its caller: a caller may run
 # under `set -e`, and a scoring routine that can kill the guard is not a scoring routine.
 #
 # Outputs (globals, so nothing runs in a subshell and the caller keeps its own recording/counting):
-#   GUARD_VERDICT  the verdict TEXT, without the "NAME: " prefix — exactly what both guards print
+#   GUARD_VERDICT  the verdict TEXT, without the "NAME: " prefix — exactly what the guard prints
 #   GUARD_CLASS    match | regression | no-verdict — what the caller scores it as (a declared TERMINATES that
 #                  happened is a `match`: it is the outcome the manifest predicts)
 #   GUARD_ACTUAL   the candidate file that matched (empty unless GUARD_CLASS came from a match)
-# Vocabulary note: any new verdict WORD must be taught to scripts/guard-nist-audit.sh (actual_class) and to
-# scripts/guard-verify.sh (VERDICT_WORDS); both refuse to classify a word they do not know, loudly.
+# Vocabulary note: any new verdict WORD must be taught to scripts/guard-nist-audit.sh (actual_class), which refuses
+# to classify a word it does not know, loudly.
 
 # `local -` (function-local shell options) needs bash 4.4+. Fail LOUDLY rather than mis-score under `set -e`.
 if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ] || { [ "${BASH_VERSINFO[0]:-0}" -eq 4 ] && [ "${BASH_VERSINFO[1]:-0}" -lt 4 ]; }; then
@@ -51,9 +52,8 @@ if [ "${BASH_VERSINFO[0]:-0}" -lt 4 ] || { [ "${BASH_VERSINFO[0]:-0}" -eq 4 ] &&
     exit 90
 fi
 
-# Where a non-MATCH's evidence is kept. Both guards set a RUN-SCOPED directory; this default is for a standalone
-# guard-run-group.sh invocation, named for that process as guard.sh's is (kb/Work PB2922: one fixed name was every run's
-# on the host). Nothing is written here on a green run; guard_preserve names the directory when it writes.
+# Where a non-MATCH's evidence is kept. The guard sets a RUN-SCOPED directory; this default is for a standalone
+# guard-run-group.sh invocation, named for that process (kb/Work PB2922: one fixed name was every run's on the host). Nothing is written here on a green run; guard_preserve names the directory when it writes.
 GUARD_FORENSICS="${GUARD_FORENSICS:-${TMPDIR:-/tmp}/nist-forensics.$$}"
 
 # One line of a log/diagnostic file, flattened for a verdict line. A verdict line is PARSED (by the audit and by
@@ -79,8 +79,8 @@ guard_normalize_into() {
 }
 
 # COMPILE ARM.  guard_compile_verdict TEST CRC CLOG
-# Called when the .dll the compile claimed to produce is NOT there. CRC may be empty (guard-run-group reads it
-# from a file that a lost compile never wrote); guard.sh always has one.
+# Called when the .dll the compile claimed to produce is NOT there. CRC may be empty: guard-run-group.sh reads it
+# from a file that a lost compile never wrote.
 guard_compile_verdict() {
     local -
     set +e
@@ -351,6 +351,55 @@ guard_termination_verdict() {
     else
         GUARD_CLASS="regression"
         GUARD_VERDICT="DIFF — REGRESSION! (exited $rrc, but not on the declared $ec: $(guard_first_line "$errfile"))"
+    fi
+    return 0
+}
+
+# THE CHAIN-PREDECESSOR ARMS (kb/Work PB3385). A consumer's declared predecessors (corpus.tsv's chain-preds column) run
+# ungraded in the consumer's directory before it, to leave the files it reads; NistRunner FAILS the consumer when one
+# does not run to a normal end (`[chain p] run exit non-zero`, `[chain p] compile …`). A predecessor that did not
+# finish — or never compiled — leaves a partial file or none, so the consumer's report is no observation of the
+# compiler: its verdict is the PREDECESSOR's failure, named, under the same evidence rules as every other arm. In a
+# full guard run the predecessor is also graded as its own population member, but a GUARD_TESTS subset that names only
+# the consumer compiles the predecessor without grading it (guard_with_predecessors), so has nowhere else to see it fail. Both functions leave GUARD_CLASS EMPTY when the predecessor was fine, and
+# set GUARD_CLASS/GUARD_VERDICT (the words the audit and guard-verify already classify) when the consumer must not be
+# graded.
+#   guard_predecessor_verdict PRED PRC ERRFILE RUN_TIMEOUT   — the predecessor's RUN
+guard_predecessor_verdict() {
+    local -
+    set +e
+    local pred="$1" prc="$2" errfile="$3" timeout_s="$4"
+    GUARD_VERDICT=""; GUARD_CLASS=""; GUARD_ACTUAL=""
+    if [ "$prc" -eq 0 ]; then
+        return 0
+    elif [ "$prc" -eq 124 ] || [ "$prc" -eq 137 ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred timeout/kill after ${timeout_s}s, rc=$prc) — NOT SCORED"
+    elif [ "$prc" -gt 128 ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred killed by signal $((prc - 128))) — NOT SCORED"
+    elif [ ! -s "$errfile" ]; then
+        GUARD_CLASS="no-verdict"
+        GUARD_VERDICT="RUN NO-VERDICT (declared predecessor $pred rc=$prc with NO diagnostic — a failure with no reason is a lost result) — NOT SCORED"
+    else
+        GUARD_CLASS="regression"
+        GUARD_VERDICT="DIFF — REGRESSION! (declared predecessor $pred exited $prc: $(guard_first_line "$errfile"))"
+    fi
+    return 0
+}
+
+#   guard_predecessor_compile_verdict PRED CRC CLOG   — the predecessor has NO program (guard_compile_verdict's rules)
+guard_predecessor_compile_verdict() {
+    local -
+    set +e
+    local pred="$1" crc="$2" clog="$3" reason
+    guard_compile_verdict "$pred" "$crc" "$clog"
+    if [ "$GUARD_CLASS" = "regression" ]; then
+        reason="${GUARD_VERDICT#COMPILE FAILED — REGRESSION! (}"
+        GUARD_VERDICT="DIFF — REGRESSION! (declared predecessor $pred did not compile: ${reason%)})"
+    else
+        reason="${GUARD_VERDICT#COMPILE NO-VERDICT (}"
+        GUARD_VERDICT="COMPILE NO-VERDICT (declared predecessor $pred: ${reason%) — NOT SCORED}) — NOT SCORED"
     fi
     return 0
 }

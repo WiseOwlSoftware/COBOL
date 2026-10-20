@@ -37,10 +37,12 @@ public sealed class SharedExtendOpenDriftTests
     private static string Tmp(string tag) =>
         Path.Combine(Path.GetTempPath(), $"pb713-{tag}-{Guid.NewGuid():N}.dat");
 
-    /// <summary>How a connector becomes a §9.1.15 sharing participant. All three reach
-    /// <c>FileRegistry.RegisterSharing</c>, which puts the connector in the record-locking posture map and is
-    /// what <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived
-    /// from. (The OS share mode is NOT derived from it: that is the §9.1.15 file lock, and
+    /// <summary>How a connector comes to be opened under §9.1.15 sharing. The first two carry a LOCK MODE clause,
+    /// so they are record-locking participants (<c>FileRegistry.RecordLocksSetUnder</c>, which is what
+    /// <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived from); the
+    /// third has none, sets no record locks (§12.4.5.9.4 GR1 b) 1.) and is a non-participant
+    /// (<c>RecordLockingParticipationDriftTests</c>, kb/Work PB3372), so only its OPEN and append are asserted.
+    /// (The OS share mode is NOT derived from it: that is the §9.1.15 file lock, and
     /// <c>FileLockPosture</c> takes it from the arbitrated sharing MODE and the admitted connector set —
     /// kb/Work PB740.)</summary>
     public enum Spelling
@@ -58,7 +60,7 @@ public sealed class SharedExtendOpenDriftTests
         LockModeAndAllOtherPhrase,
 
         /// <summary>No file-control clause at all; the OPEN statement itself carries the SHARING phrase
-        /// (§14.9.27 — <c>FileRegistry.OpenShared</c> registers the posture on the spot). The phrase is READ
+        /// (§14.9.27 — <c>FileRegistry.OpenShared</c>, which registers no posture). The phrase is READ
         /// ONLY rather than ALL because §14.9.27.3 SR8 admits the ALL spelling only when <i>"the LOCK MODE
         /// clause … is specified in the file control entry"</i>, which this spelling by construction has not
         /// got — an ALL phrase here would be non-conforming source, and a guard built on non-conforming source
@@ -469,7 +471,7 @@ public sealed class SharedExtendOpenDriftTests
             $"§9.1.15 participation must have exactly one writer; found {writes.Count}. Two writers are "
             + "two answers to §9.1.15's participation question, and the streams and the release-ordinal mint "
             + "read it from opposite ends of an OPEN (kb/Work PB713, PB739). Sites:\n  " + string.Join("\n  ", writes));
-        Assert.Contains("_connectorShares.ContainsKey(name)", writes[0], StringComparison.Ordinal);
+        Assert.Contains("RecordLocksSetUnder(posture, sharing)", writes[0], StringComparison.Ordinal);   // kb/Work PB3372
 
         // The complement: it is set BEFORE the open it governs, not after it (the PB713 ordering). The open it
         // governs is the arbitrated one, whose status the attempt reports; the already-open refusal ahead of it

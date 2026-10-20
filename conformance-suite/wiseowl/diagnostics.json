@@ -2958,7 +2958,7 @@
    "2014",
    "2023"
   ],
-  "expect": "COBOLNET1970: unexpected '12345'. '12345' is not a clause of the OBJECT-COMPUTER paragraph"
+  "expect": "COBOLNET1970: '12345' is not a clause of the OBJECT-COMPUTER paragraph"
  },
  "l1c33-terminate-multi-in-exc-perform": {
   "refuse-at": [
@@ -5015,6 +5015,30 @@
   ],
   "expect": "COBOLNET2577"
  },
+ "pb1173-merge-key-boolean": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is of class boolean"
+ },
+ "pb1173-merge-key-dynamic-length": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "is a dynamic-length elementary item"
+ },
+ "pb1173-merge-key-not-in-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "is not described in a record of 'SW' (ISO §14.9.24.3 SR4 a))"
+ },
  "pb1173-merge-key-occurs": {
   "refuse-at": [
    "85",
@@ -5024,6 +5048,15 @@
   ],
   "expect": "SR4 b) and f)"
  },
+ "pb1173-merge-key-odo-group": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "dynamic-length elementary item, or an item subordinate to a dynamic-capacity table\" (ISO \u00a714.9.24.3 SR4 d))"
+ },
  "pb1173-merge-key-pointer": {
   "refuse-at": [
    "2002",
@@ -5031,6 +5064,13 @@
    "2023"
   ],
   "expect": "SR4 c)"
+ },
+ "pb1173-merge-key-variable-group": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "is a variable-length group"
  },
  "pb1173-sort-file-key-boolean": {
   "refuse-at": [
@@ -5054,7 +5094,7 @@
    "2014",
    "2023"
   ],
-  "expect": "is not described in a record"
+  "expect": "is not described in a record of 'SW' (ISO §14.9.40.3 SR6 a))"
  },
  "pb1173-sort-file-key-occurs": {
   "refuse-at": [
@@ -5067,6 +5107,7 @@
  },
  "pb1173-sort-file-key-odo-group": {
   "refuse-at": [
+   "85",
    "2002",
    "2014",
    "2023"
@@ -5080,6 +5121,13 @@
    "2023"
   ],
   "expect": "is of class pointer"
+ },
+ "pb1173-sort-file-key-variable-group": {
+  "refuse-at": [
+   "2014",
+   "2023"
+  ],
+  "expect": "dynamic-length elementary item or an item subordinate to a dynamic-capacity table\" (ISO §14.9.40.3 SR6 d))"
  },
  "pb1173-sort-table-key-boolean": {
   "refuse-at": [
@@ -12234,6 +12282,20 @@
   ],
   "expect": "COBOLNET1504"
  },
+ "pb2500-assign-constant-below-2002": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: constant entry (01 … CONSTANT AS) requires COBOL-2002"
+ },
+ "pb2500-assign-constant-numeric": {
+  "refuse-at": [
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "the constant-name 'PB2500KN' stands for a numeric literal"
+ },
  "pb2502-record-key-alias-of-numeric": {
   "refuse-at": [
    "85",
@@ -14063,6 +14125,60 @@
    "2023"
   ],
   "expect": "COBOLNET1970: '-1' is not a clause of the SOURCE-COMPUTER paragraph"
+ },
+ "pb3390-data-entry-level-number-after-run": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOL0307: missing token before '05'. A period may be missing"
+ },
+ "pb3390-object-computer-integer-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: '12' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3390-source-computer-comma-decimal-clause": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: ',5' is not a clause of the SOURCE-COMPUTER paragraph"
+ },
+ "pb3391-data-entry-picture-locale-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1941: cannot parse construct near 'FOO'. 'FOO' is not a clause of the data description entry for 'W-X'"
+ },
+ "pb3391-object-computer-predicated-clause-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: cannot parse construct near 'FOO'. 'FOO' is not a clause of the OBJECT-COMPUTER paragraph"
+ },
+ "pb3391-special-names-locale-shape-word": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1970: cannot parse construct near 'FOO'. 'FOO' is not a clause of the SPECIAL-NAMES paragraph"
  },
  "pb340-advancing-on-lock-keyed-85": {
   "refuse-at": [

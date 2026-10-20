@@ -119,7 +119,7 @@ public static class ClauseCardinalities
             // §13.16.3 SR4 ("The remaining clauses may be written in any order").
             [typeof(Core.DataDescriptionClauseContext)] =
                 new("ISO §13.16.2", "Format 1 ", "data description entry",
-                    new HashSet<Type> { typeof(Core.ValidationClauseContext), typeof(Core.UnrecognizedClauseContext) },
+                    new HashSet<Type> { typeof(Core.ValidationClauseContext), typeof(Core.UnrecognizedDataClauseContext) },
                     Sequence: null),
 
             // §13.15.2: sixteen brackets and one braced choice {source | sum | value}, no ellipsis. ORDER: free,
@@ -131,14 +131,14 @@ public static class ClauseCardinalities
             // free, §13.4.5.3 SR2 ("The clauses that follow file-name-1 may appear in any order").
             [typeof(Core.FileDescriptionClauseContext)] =
                 new("ISO §13.4.5.2", "", "file description entry",
-                    new HashSet<Type> { typeof(Core.UnrecognizedClauseContext) },
+                    new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) },
                     Sequence: null, KindOfFileDescriptionClause),
 
             // §13.4.6.2: `SD file-name-1 [ record-clause ] .` (and the '85 DATA RECORDS clause, removal-gated at
             // 2002). ORDER: nothing to order — the figure prints one element.
             [typeof(Core.SortMergeDescriptionClauseContext)] =
                 new("ISO §13.4.6.2", "", "sort-merge file description entry",
-                    new HashSet<Type> { typeof(Core.UnrecognizedClauseContext) }, Sequence: null),
+                    new HashSet<Type> { typeof(Core.UnrecognizedDataClauseContext) }, Sequence: null),
 
             // §12.4.5.1: only `ALTERNATE RECORD KEY … …` and `[ collating-sequence-clause ] …` carry an ellipsis.
             // ORDER: free after SELECT, §12.4.5.2 SR1 ("The clauses that follow the SELECT clause may appear in any

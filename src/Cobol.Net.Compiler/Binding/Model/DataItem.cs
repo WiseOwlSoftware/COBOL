@@ -1111,6 +1111,22 @@ public sealed class DataItem
     /// and never a second. For a group holding no reference this and <see cref="CurrentExtentImageCapable"/> are one.</para></summary>
     public bool CurrentExtentTransferImageCapable => ComposesCurrentExtent(transfer: true);
 
+    /// <summary>⛔ Is a variable-length group's CURRENT-EXTENT IMAGE also its STORAGE image (kb/Work PB3424)? True unless a
+    /// dynamic-length item or dynamic-capacity table of USAGE NATIONAL lies beneath it: the composer
+    /// (<c>GroupImageCodec.CurrentPartImage</c>) writes a FIXED national member as its UTF-16BE byte pairs (D-N1) but a
+    /// dynamic-length national leaf, and a dynamic table's national element, CHARACTER FOR CHARACTER (CONFORMANCE.md A.1
+    /// item 63: a dynamic-length item contributes its content character for character), so the displayed image is not
+    /// the bytes those members occupy. The consumers that want characters - DISPLAY, a function's string argument, a
+    /// digit decode - take the image as it is; the consumer that wants the storage BYTES - CONVERT's ANY source
+    /// (§15.19.3 rule 7) - must ask this first and stay loud for a group that answers false, never read a character
+    /// image as storage.</summary>
+    public bool CurrentImageIsStorageImage => !HoldsCharacterCarriedNational(this);
+
+    private static bool HoldsCharacterCarriedNational(DataItem g) =>
+        g.Children.Any(c => c.RedefinesTargetName is null
+            && (c.IsElementary ? c.Pic is { BytesPerPosition: > 1 } && (c.IsDynamicLength || c.IsDynamicTable)
+                               : HoldsCharacterCarriedNational(c)));
+
     /// <summary>An OCCURS DEPENDING table whose elements are variable-length groups, at any depth beneath
     /// <paramref name="g"/> (REDEFINES subtrees aside): a record of this shape needs a count source to be read back
     /// when it does not state its own (kb/Work PB2497; <c>PlaceRenderer.WriteVarGroupContiguous</c>).</summary>

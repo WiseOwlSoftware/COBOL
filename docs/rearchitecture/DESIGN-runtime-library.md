@@ -363,9 +363,11 @@ from a per-connector base plus a per-connector count, which had both connectors 
 record ordinal 2. `FileConnector.Physical` is how a connector reaches that state and EVERY connector holds it —
 Table 19 arbitrates every open over it, and since PB740 two clause-less connectors may share one physical file,
 so a rule about the MEDIUM cannot be gated on a clause. `SharedPhysical` is the §9.1.16 RECORD-LOCKING view of
-it, non-null only for a connector that registered a SHARING or LOCK MODE clause, because the ordinal *is* the
-lock identity and §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor
-(this compiler's determination: none). Both are written by ONE call, `AssociatePhysical`, immediately before the
+it, non-null only for a connector whose current OPEN can SET record locks (`FileRegistry.RecordLocksSetUnder`: a
+LOCK MODE clause under a sharing mode other than NO OTHER, §12.4.5.9.4 GR1 and GR3), because the ordinal *is* the
+lock identity: a SHARING clause alone (GR1 a), a SHARING or RETRY phrase on the OPEN (GR1 b) 1.) and a clause-less
+connector (GR1 b) 2., this compiler's determination: none) set no record lock and so have none to identify
+(kb/Work PB3372). The same predicate answers `LocksEffective` at every I-O statement. Both are written by ONE call, `AssociatePhysical`, immediately before the
 OPEN body runs — the boolean that used to sit beside the state is still gone, and the view is derived rather
 than stored (kb/Work PB740 removed the conflation with the OS share mode; PB753 split the medium question from
 the locking one without adding a second answer).
@@ -513,7 +515,15 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   through the host of the machine. `SidecarColumnLockHostDriftTests` holds the lock-file host to the same table over
   every (sharing × open mode) pair directly (`RunUnitFileLock.Take(host, …)`), plus the simultaneous-open race, the
   sweep of a dead holder's leftovers, the wire names and the case rule — it is plain managed code, so it runs on
-  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path.
+  EVERY host (Windows, Linux and macOS) and needs no Mac to witness the macOS path. `RunUnitProcessBoundaryTests`
+  (kb/Work PB2485) is the witness with TWO REAL PROCESSES, which a second registry cannot be: compiled COBOL programs
+  hold a file while another process asks for it. A refused OPEN is `61` in every open mode and a refused DELETE FILE
+  `62`, each through a FILE STATUS item and a USE declarative alone, both, and neither, and through a RETRY that the
+  holder outlasts (and a `RETRY FOREVER` that is released by the holder's CLOSE); the lock comes back with the holder's
+  CLOSE while the holder lives, with its run unit's implicit CLOSE, with an abnormal end (a call of a missing program)
+  and with a kill that runs nothing; and a child process started while the lock is held does not keep it past the
+  CLOSE (the `O_CLOEXEC` guard of `OfdRegionLocks.Open`; the handle's non-inheritance on Windows). It runs on Windows
+  and Linux, through the host of the machine; the macOS lock-file host is held to the same table by the other witnesses.
 
 **⛔ DETERMINATION (Annex A.1 item 75, `docs/CONFORMANCE.md` DOC-A.1-75) — WHO IS BOUND.** §9.1.15 binds other RUN
 UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on a host that carries the region lock (Linux
@@ -1471,10 +1481,25 @@ the sequential boundary's `HostFile.IsMediumBoundary`, the one place both read t
 refused write answers as the boundary while every other refusal stays '30'. The page layer does not know which statement it
 serves, so the CONNECTOR answers the boundary by the statement: a WRITE or REWRITE '24' with the invalid key condition, and a DELETE that meets it answers §9.1.13.6 item 1's '30' with no invalid key condition — item 4's '24' is an attempt to WRITE outside the boundaries, and §14.9.10.4 GR3 and GR4 give a DELETE the invalid key condition only when the file does not contain the record. A promotion, a CLOSE and an OPEN have no '24': at
 either boundary they answer '30'. The mapping is written once for both organizations, `KeyedConnector.RecordWriteFailed`
-(a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *Measured (PB3334 review,
-`IndexedEnginePermanentErrorWitnessTests.BoundaryFile`):* an `OPEN I-O` or `OPEN EXTEND`'s fence reserves its retirement's
-BOUND (R2: `Ledger.WriteBound`, a few pages even for an empty ledger), so a store fewer than that many pages below the
-format's last page answers that OPEN '30' although the fence would write only its meta pages; `OPEN INPUT` still reads it.
+(a record WRITE or REWRITE) beside `KeyedConnector.Failed` (every other statement). *The two arms of the boundary (PB3334 review, kb/Work PB3396):* a changing statement and a retirement reserve the same
+BOUND (R2: `Ledger.WriteBound`, an upper bound of the ledger pages the write takes, a few pages even for an empty ledger),
+and the format's last page treats it differently. A statement's boundary is its RESERVATION (`BoundaryAt.Reservation`): a
+bound that would grow the file past 2^32 pages is refused before the claim, the implementor's definition of the
+externally-defined boundary §9.1.13.5 item 4 leaves to it, so a WRITE a few pages short of the end may answer '24' although
+it would have fitted. A RETIREMENT (an `OPEN I-O` fence, a promotion at a CLOSE, at the generation ceiling or at the ledger
+checkpoint) has no '24' and its claim is already taken, so its boundary is the PAGE (`BoundaryAt.Take`): the pages of its
+reservation past the format's last are `PageOrigin.Beyond`, carry no page number, and the retirement is refused ('30', the
+store as the previous statement left it) only if it WRITES one of them. A fence that writes no page past the page count,
+or no more pages than the format has left, therefore completes at the format's last page (measured: the
+`PagedFileBoundaryTests` fence cases; `IndexedEnginePermanentErrorWitnessTests.BoundaryFile` opens I-O at 2^32 recorded
+pages), and one that writes one more answers '30' while `OPEN INPUT` still reads the file (`KeyedFenceBoundaryTests`, the
+`FenceRefused` program cases). A retirement that must write a page past the format's last is refused
+whatever promotion it serves, and the store is then the previous statement's. Through statements that is met at the
+OPEN's fence (a never-closed store whose adopted state owes a ledger page the format has no room for), while a CLOSE
+behind statements completes: each statement leaves its retirement the pages it released, and the bound-sized
+reservation that refused it is gone (measured: `PagedFileBoundaryTests`' close cases, a CLOSE behind the one statement
+that fits at every headroom and a CLOSE after statements spent every FREE page; no headroom made a CLOSE answer '30').
+A CLOSE whose page write the host refuses answers '30' (`KeyedClosePermanentErrorWitnessTests`).
 `RelativeConnector.HighestRelativeRecordNumber` keeps its value: the
 tree would hold 2^63 keys, but the number is the §12.4.5.13 key item's domain, a determination that need not change with the
 format. The constant `RecordFraming.MaxStoreBytes`, `KeyedConnector.StoreHolds`, `RelativeStore.FramedBytesAfterPut` and
@@ -2090,6 +2115,7 @@ of 2.2.1.12's matrix or of its R-tests; a row with none would be a design defect
 | | after sync 2, before any retirement page | as above, durable | as above | as above |
 | | during the retirement, before its page 2 | retirement pages on no-slot pages, stamped with its claim | next writer: R5 restarted — the retirement claims above the dead claim and stamps its pages afresh; OPEN: the PROMOTION SOURCE, C adopted, its fence re-runs the retirement from C's ledger (whose own pages R4 kept, finding R3-2) | the promoted state is durable and whole; the retirement's pages were reached by nothing |
 | | after the retirement's page 2 (flag clear, base = the promotion) | complete; CLOSE's third sync may be unlanded (power loss: the retirement's few pages → the PROMOTION SOURCE, as above) | none / OPEN as above | — |
+| A CLOSE that owes no promotion (no statement completed since the store's last promotion, its OPEN's fence included; 2.2.1.7): ONE sync, no write, no read | before the sync / after it | nothing written; page 2 = the last promotion's retirement, untouched | nothing to do; OPEN: a DESCENDANT or C as the state was | nothing changed, so the last completed statement is what it was. A sync the host REFUSES is the CLOSE's '30' (§9.1.13.6 item 1), never '00': the program must not believe a file durable that the host refused to flush (`PagedFileCrashMatrixTests`' `CloseUnchanged` path and `KeyedStoreReloadFailureDriftTests`' unchanged-CLOSE cases; kb/Work PB3382) |
 | The fence (R6 step 4; a promotion of the ADOPTED meta at F) | the same six points | the claim rewrote page 2 to the adopted meta at F (C's content after a rejection), so page 2 no longer holds a rejected slot from the moment the fence began | the next OPEN: before the slot landed, a DESCENDANT of C with generation F (its `fresh` pages are C's own, present) and a fence at the same F (harmless when repeated; the retirement claims above the dead one's mint); after it, the PROMOTION SOURCE. A live INPUT reader adopts page 2 when its generation becomes F — the same tree it held | the fence changes no record; the superseded history's stamps lie below F (R2) and are never reissued |
 | COMMIT (2.2.1.10; round 4): the promotion with `committing` = t — the claim → sync 1 → the slot write → sync 2 → the retirement that removes t's entry and holdings → the byte and READ locks given back | before the claim | the entry, the UNDO tree and the holdings stand; the owner is dead (the byte free) | the dead-owner step (next writer or OPEN) rolls it back | the COMMIT never began; §9.1.18.5's rollback applies |
 | | after the claim, before the slot write (before or after sync 1) | page 2 flagged with `committing` = t; the slots unchanged; the entry stands | next writer: the restart rule finds no slot naming page 2's generation and `committing` = t → UNWINDS the claim, then the dead-owner step rolls t back; OPEN: W is a DESCENDANT with the flag → the fence writes `committing` 0, step 5 rolls t back. Power loss: the same, or page 2 torn → FOREIGN → C (which carries the entry → rolled back) | the one durable write never happened, so the COMMIT is "not at all": the run unit never saw a result, and §9.1.18.5's "rolled back" is the outcome |

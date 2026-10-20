@@ -12,6 +12,9 @@
       *> KODO has an entry subordinate to it that specifies DEPENDING, so it is an occurs-depending group item and its
       *> length varies with CNT; SR6 e) takes "the same byte positions" as the key in every record, which no varying
       *> window can be. The statement used to compile clean.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FO.
        ENVIRONMENT DIVISION.
@@ -28,9 +31,9 @@
           05 KODO.
              10 KODE PIC X OCCURS 1 TO 3 DEPENDING ON CNT.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(4).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(4).
        PROCEDURE DIVISION.
        MAIN.
            SORT SW ASCENDING KEY KODO USING IN1 GIVING OU1
