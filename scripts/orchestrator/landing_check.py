@@ -12,9 +12,13 @@ ACTUALLY changed with
 
   1. its DECLARED file set, for the R3 work it lands: the set the dispatch ledger recorded for those notes when they
      were planned, read from the FULL ledger (a landing flips its own notes to terminal, and that declaration is
-     still the authority for it), or, for a note no entry records, the set computed now (plan_wave.computed_file_set,
-     on the planner's own index policy, THE index of this tree: kb/Work PB3203). A file an R3 commit changed
-     that existed on main and lies outside that set STOPS the landing: the wave touched a file nothing protected;
+     still the authority for it); for a note no entry records that the landing's OWN recorded dispatch closed on the
+     way (an implementer fixed it, MANDATORY-PRACTICES I9), that dispatch's recorded set (kb/Work PB3263); and only for
+     work no dispatch of the landing records, the set computed now (plan_wave.computed_file_set, on the planner's own
+     index policy, THE index of this tree: kb/Work PB3203). A file an R3 commit changed that existed on main and lies
+     outside that set STOPS the landing, the stop naming the arm the set came from: the wave touched a file nothing
+     protected. A consulted group recorded with NO files declared nothing: the set is UNKNOWN (plan_wave.collision),
+     so such a file is named in a warning instead, and check 2 still applies to it;
   2. every OTHER in-flight branch's actual changes (plan_wave.inflight_file_sets: worktrees, unlanded branches, the
      dispatch ledger's declared sets), when the shared file is R3 work on either side. A shared file stops the LATER
      of the two (by dispatch time: the ledger's `at`, else the branch's first commit): it re-plans and rebases onto
@@ -201,17 +205,43 @@ def check(repo: pathlib.Path, base: str, rev: str, coord_dir: pathlib.Path, item
         # From the FULL ledger, terminal or not: the declaration recorded when the work was planned is the authority
         # for the landing that makes those notes terminal (`work.load` reads the LANDING's tree, where its own notes
         # are already landed, PB2703). A note no entry records falls back to the set computed now.
+        # An R3 note no entry records that THIS LANDING'S OWN recorded dispatch closed on the way (its implementer fixed
+        # it, MANDATORY-PRACTICES I9) is that dispatch's work: it is checked against that group's recorded set, never a
+        # set computed now from sites that predate the group's own new files (kb/Work PB3263: PB3334's engine branch,
+        # which also closed PB2222 and PB2342, stopped on four engine files on 2026-10-18). Only work no dispatch of
+        # this landing records falls back to the set computed now.
         recorded = [g for g in full_ledger if set(g.get("notes", [])) & r3_notes]
         unrecorded = sorted(r3_notes - {n for g in recorded for n in g.get("notes", [])}, key=lambda s: int(s[2:]))
-        declared = {f.replace(chr(92), "/") for g in recorded for f in g.get("files", [])}
-        declared |= declared_for(unrecorded) if unrecorded else set()
-        source = " + ".join(s for s, on in (("the dispatch ledger", recorded), ("computed now", unrecorded)) if on)
+        carriers = [g for g in full_ledger if unrecorded and g not in recorded and set(g.get("notes", [])) & notes]
+        consulted = recorded + carriers
+        declared = {f.replace(chr(92), "/") for g in consulted for f in g.get("files", [])}
+        computed = unrecorded if unrecorded and not carriers else []
+        declared |= declared_for(computed) if computed else set()
+        arms = ([f"recorded in the dispatch ledger for {', '.join(plan_wave.ledger_slug(g) for g in recorded)}"]
+                if recorded else []) + \
+               ([f"the landing's own dispatch {', '.join(plan_wave.ledger_slug(g) for g in carriers)}, which closed "
+                 f"{', '.join(unrecorded)} on the way"] if carriers else []) + \
+               ([f"computed now from the site blocks of {', '.join(computed)}, which no dispatch of this landing "
+                 f"records"] if computed else [])
         existed = {p for p in mine_r3_files if git("cat-file", "-e", f"{base}:{p}").returncode == 0}
-        if outside := sorted(existed - declared):
+        outside = sorted(existed - declared)
+        listed = f"{', '.join(outside[:8])}{' …' if len(outside) > 8 else ''}"
+        # a group recorded with NO files declared nothing: its set is UNKNOWN (plan_wave.collision), so a file outside
+        # the rest cannot be judged here; it is named, and arm 2 still checks it against every in-flight branch
+        if outside and (unknown := [plan_wave.ledger_slug(g) for g in consulted if not g.get("files")]):
+            warnings.append(f"R3 work ({', '.join(mine_r3)}) changed {len(outside)} file(s) its declared file set "
+                            f"({'; '.join(arms)}) does not name: {listed} — the set is UNKNOWN, not checked: "
+                            f"{', '.join(unknown)} recorded no file set (kb/Work PB3263), so the planner never "
+                            f"partitioned these files; the in-flight check below still applies")
+        elif outside:
             stops.append(f"R3 work ({', '.join(mine_r3)}) changed {len(outside)} file(s) outside its declared file set "
-                         f"({source}): {', '.join(outside[:8])}"
-                         f"{' …' if len(outside) > 8 else ''} — re-plan: the planner's set missed them (a member_index "
-                         f"hole: file a kb/Work note), and check them against the in-flight work before landing")
+                         f"({'; '.join(arms)}): {listed} — re-plan: "
+                         + ("the recorded set missed them (the planner's estimate: its notes' sites and the member "
+                            "index's callers; if the member index missed a caller, file a kb/Work note)"
+                            if not computed else
+                            "the notes' site blocks do not name them (add them to each note's **Sites:**, or bind the "
+                            "work to its dispatch)")
+                         + ", and check them against the in-flight work before landing")
 
     meta: dict[str, dict] = {}
     # an answered dispatch (its report exists) is read through its branch, never its declared set (PB2795)
@@ -605,7 +635,42 @@ def self_test() -> int:
     sh("branch", "-D", "squashed")
     ledger()
 
-    # ── PB3180: a MERGE commit is attributed only what it introduced (the files and statuses that differ from EVERY
+    # ── PB3263: the 2026-10-18 15:28 shape. A recorded group (PB3334's engine, here PB9200) whose commits ALSO close two
+    #    R3 notes no entry records (PB2222, PB2342; here PB9003, PB9004) is checked against ITS recorded set, never a
+    #    set computed now from sites that predate its new files; only a file that existed at the base can stop it; and
+    #    a group recorded with NO files is UNKNOWN: named in a warning, never "collides with nothing" ──
+    items_e = items + [{"id": "PB9003", "status": "open", "cluster": ["PB2119"]},
+                       {"id": "PB9004", "status": "open", "cluster": ["PB2119"]},
+                       {"id": "PB9200", "status": "open", "cluster": []}]
+    engine = {"wave": "5", "letter": "a", "notes": ["PB9200"], "files": ["src/A.cs", "src/Engine.cs"], "at": 1_000_100}
+    ledger(engine)
+    commits("eng", ("PB9200+PB9003+PB9004: the engine, two R3 notes closed on the way",
+                    {"src/A.cs": "// engine\n", "src/Engine.cs": "// new\n", "src/Other.cs": "// new, undeclared\n"},
+                    1_000_200))
+    got = check(repo, "origin/main", "eng", cdir, items_e, rules, lambda ids: {"src/B.cs"}, git)
+    expect("PB3263a: R3 notes the landing's own recorded group closed on the way are checked against THAT group's set, "
+           "never the set computed now (which would stop on src/A.cs): lands", got, 0, 0)
+    sh("branch", "-D", "eng")
+    commits("eng-out", ("PB9200+PB9003+PB9004: the engine, and a file nothing declared",
+                        {"src/A.cs": "// engine\n", "src/B.cs": "// outside\n", "src/Other.cs": "// new\n"}, 1_000_200))
+    got = check(repo, "origin/main", "eng-out", cdir, items_e, rules, lambda ids: {"src/B.cs"}, git)
+    expect("PB3263b: ... a file that existed at the base and lies outside it STOPS", got, 1, 0)
+    expect("PB3263b': ... naming that file only (a new file never stops) and the arm it came from, the landing's own "
+           "dispatch",
+           ([s for s in got[0] if "src/B.cs" in s and "src/Other.cs" not in s and "own dispatch w5a" in s
+             and "member_index hole" not in s], []), 1, 0)
+    ledger(dict(engine, files=[]))
+    got = check(repo, "origin/main", "eng-out", cdir, items_e, rules, lambda ids: {"src/B.cs"}, git)
+    expect("PB3263c: a group recorded with NO files is UNKNOWN: a warning naming it, never a stop", got, 0, 1)
+    expect("PB3263c': ... the warning says UNKNOWN and names the group", ([w for w in got[1] if "UNKNOWN" in w
+                                                                          and "w5a" in w], []), 1, 0)
+    ledger()
+    got = check(repo, "origin/main", "eng-out", cdir, items_e, rules, lambda ids: {"src/A.cs"}, git)
+    expect("PB3263d: with no dispatch of the landing recorded, the set is computed now, and the stop says so",
+           ([s for s in got[0] if "computed now from the site blocks of PB9003, PB9004" in s], []), 1, 0)
+    sh("branch", "-D", "eng-out")
+
+    # ── PB3180:a MERGE commit is attributed only what it introduced (the files and statuses that differ from EVERY
     #    parent), never the diff its first parent sees, which carries the other parent's whole history ──
     commits("pred", ("WIP checkpoint: land PB9002 in the register", {"kb/Work/PB9002.md":
                                                                     "---\nid: PB9002\nstatus: landed\n---\n"}, 1_001_000),
