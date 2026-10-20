@@ -1,4 +1,4 @@
-## PB3426: the tier-2 design memos — a SEQUENTIAL file under APPLY COMMIT (2.2.2) and the sequential frame index (2.2.3)
+## Entry 2280 — 2026-10-19 18:36 PDT — PB3426: the tier-2 design memos — a SEQUENTIAL file under APPLY COMMIT (2.2.2) and the sequential frame index (2.2.3)
 
 The owner's "begin" (10:12 PDT) started kb/Work PB3420: the operator's loop runs tier 1 of the SORT and file I/O plan on
 PB3353, and the Mythos lane owes the two tier-2 design memos. Both are now sections of
@@ -53,3 +53,4 @@ a walk from 0 per step (quadratic) and the lazy whole index (today's defect) are
 PB3340 and PB3350 point at their sections; PB3426 is the analysis note of the memos, landed with them. Branch
 `notes-pb3426-io-design-memos-20261019`: docs, the register and the model script, no compiler source; the Mythos lane
 dispatched nothing.
+
