@@ -86,10 +86,12 @@ CobolNet.Runtime.CarrierLanding
 CobolNet.Runtime.CarrierLanding<T>
 CobolNet.Runtime.CellGroupShape
 CobolNet.Runtime.CellGroupShape.<Clone>$() -> CobolNet.Runtime.CellGroupShape!
-CobolNet.Runtime.CellGroupShape.CellGroupShape(int Width, int[]! DynFixedAt, int[]! DynTable, int[]! DynMax, CobolNet.Runtime.CellGroupShape?[]? Elems = null) -> void
-CobolNet.Runtime.CellGroupShape.Deconstruct(out int Width, out int[]! DynFixedAt, out int[]! DynTable, out int[]! DynMax, out CobolNet.Runtime.CellGroupShape?[]? Elems) -> void
+CobolNet.Runtime.CellGroupShape.CellGroupShape(int Width, int[]! DynFixedAt, int[]! DynTable, int[]! DynMax, int[]! DynLayout, CobolNet.Runtime.CellGroupShape?[]? Elems = null) -> void
+CobolNet.Runtime.CellGroupShape.Deconstruct(out int Width, out int[]! DynFixedAt, out int[]! DynTable, out int[]! DynMax, out int[]! DynLayout, out CobolNet.Runtime.CellGroupShape?[]? Elems) -> void
 CobolNet.Runtime.CellGroupShape.DynFixedAt.get -> int[]!
 CobolNet.Runtime.CellGroupShape.DynFixedAt.init -> void
+CobolNet.Runtime.CellGroupShape.DynLayout.get -> int[]!
+CobolNet.Runtime.CellGroupShape.DynLayout.init -> void
 CobolNet.Runtime.CellGroupShape.DynMax.get -> int[]!
 CobolNet.Runtime.CellGroupShape.DynMax.init -> void
 CobolNet.Runtime.CellGroupShape.DynTable.get -> int[]!
@@ -2027,7 +2029,7 @@ CobolNet.Runtime.StorageCell.SlotAt(int byteOffset) -> object?
 CobolNet.Runtime.StorageCell.StorageCell() -> void
 CobolNet.Runtime.StorageCell.StoreArea(long offset, CobolNet.Runtime.StorageCell! source, int dynBase = 0, int components = 0) -> void
 CobolNet.Runtime.StorageCell.StoreContiguousAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynStructure, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, string! image, CobolNet.Runtime.RecordExtents? extents = null, bool fixedForm = false, int count = 2147483647) -> bool
-CobolNet.Runtime.StorageCell.StoreVarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CobolVarGroup! v, CobolNet.Runtime.CellGroupShape?[]? elems = null, bool storage = false) -> void
+CobolNet.Runtime.StorageCell.StoreVarGroupAt(int fixedAt, int width, int dynBase, System.ReadOnlySpan<int> dynFixedAt, System.ReadOnlySpan<int> dynMax, System.ReadOnlySpan<int> dynLayout, System.ReadOnlySpan<int> dynTable, CobolNet.Runtime.OdoTail tail, int count, CobolNet.Runtime.CobolVarGroup! v, CobolNet.Runtime.CellGroupShape?[]? elems = null, bool storage = false) -> void
 CobolNet.Runtime.StorageEnd
 CobolNet.Runtime.StorageEnd.ActivationEnded = 2 -> CobolNet.Runtime.StorageEnd
 CobolNet.Runtime.StorageEnd.Cancelled = 3 -> CobolNet.Runtime.StorageEnd
@@ -2967,7 +2969,7 @@ static CobolNet.Runtime.CobolValueClass.IsInArithmeticRange(CobolNet.Runtime.Cob
 static CobolNet.Runtime.CobolValueClass.IsNumeric(CobolNet.Runtime.CobolDec value) -> bool
 static CobolNet.Runtime.CobolVarGroup.Compare(CobolNet.Runtime.CobolVarGroup! a, CobolNet.Runtime.GroupAtom![]! aShape, CobolNet.Runtime.CobolVarGroup! b, CobolNet.Runtime.GroupAtom![]! bShape, CobolNet.Runtime.CobolCollation? collation = null) -> int
 static CobolNet.Runtime.CobolVarGroup.Concat(CobolNet.Runtime.CobolVarGroup![]! occurrences) -> CobolNet.Runtime.CobolVarGroup!
-static CobolNet.Runtime.CobolVarGroup.FromContiguous(string! record, int fixedTotal, System.Collections.Generic.IReadOnlyList<int>! fixedAt, System.Collections.Generic.IReadOnlyList<int>! unit, System.Collections.Generic.IReadOnlyList<long>! maxUnits, System.Collections.Generic.IReadOnlyList<int>? recorded = null, bool fixedForm = false, System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.CobolDynStructure?>? structure = null) -> CobolNet.Runtime.CobolVarGroup!
+static CobolNet.Runtime.CobolVarGroup.FromContiguous(string! record, int fixedTotal, System.Collections.Generic.IReadOnlyList<int>! fixedAt, System.Collections.Generic.IReadOnlyList<int>! unit, System.Collections.Generic.IReadOnlyList<long>! maxUnits, System.Collections.Generic.IReadOnlyList<int>? recorded = null, bool fixedForm = false, System.Collections.Generic.IReadOnlyList<CobolNet.Runtime.CobolDynStructure?>? structure = null, System.Collections.Generic.IReadOnlyList<int>? spaceUnit = null) -> CobolNet.Runtime.CobolVarGroup!
 static CobolNet.Runtime.CobolVarGroup.Occurrences(string! content, int elementWidth) -> string![]!
 static CobolNet.Runtime.CobolVarGroup.Reshape(CobolNet.Runtime.CobolVarGroup! v, CobolNet.Runtime.GroupAtom![]! from, CobolNet.Runtime.GroupAtom![]! to) -> CobolNet.Runtime.CobolVarGroup!
 static CobolNet.Runtime.CobolVarGroup.operator !=(CobolNet.Runtime.CobolVarGroup? left, CobolNet.Runtime.CobolVarGroup? right) -> bool
