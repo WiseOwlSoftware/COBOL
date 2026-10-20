@@ -1,6 +1,6 @@
 ## PB3438 — the third EC-I-O arm of a constant-named ASSIGN file: neither FILE STATUS nor USE ends the run unit
 
-The `pb2500_assign_constant_name` golden covered a constant-named file's I-O exceptions with a FILE STATUS item (MS, status 35) and with a USE declarative and no FILE STATUS (DC), but not the arm with neither, where 14.6.13.1.3 3) sends the fatal EC-I-O condition to the I-O status rules of 9.1.13 and 7) terminates the run unit abnormally (14.6.12; implementor determination Annex A.1 item 103).
+The `pb2500_assign_constant_name` golden covered a constant-named file's I-O exceptions with a FILE STATUS item (MS, status 35) and with a USE declarative and no FILE STATUS (DC), but not the arm with neither, where 14.6.13.1.3 3) sends the fatal EC-I-O condition to the I-O status rules of 9.1.13 and 8) (checking not enabled) leave the outcome to the implementor, whose determination terminates the run unit abnormally (14.6.12; Annex A.1 item 103); 7) applies only with checking enabled.
 
 Re-probe on the wave-1132 build: `OPEN INPUT NF` of a constant-named absent file with neither prints `BEFORE`, then `abnormal run-unit termination: EC-I-O-PERMANENT-ERROR (fatal): I-O status 35 on NF (OPEN); the file has no FILE STATUS clause and no USE procedure applies`, exit 1. The runtime was right; only the witness was missing. No compiler change.
 

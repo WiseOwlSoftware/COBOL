@@ -168,7 +168,9 @@ public sealed class AssignConstantNameTests
     /// rules for 9.1.13, I-O status apply"; §9.1.13.1: a status beginning 3 or 4 "indicate[s] fatal exception
     /// conditions" and the implementor "may either continue or terminate the execution of the run unit"; the
     /// implementor's determination (docs/CONFORMANCE.md §7, DOC-A.1-103) continues only when the program is equipped
-    /// to see the failure, and with nothing equipped the run unit terminates (§14.6.13.1.3 7) and §14.6.12). The
+    /// to see the failure, and with nothing equipped the run unit terminates (§14.6.12). That is the implementor's
+    /// determination, not a rule the standard mandates: no EC-I-O checking is enabled here, so §14.6.13.1.3 8) leaves
+    /// whether execution continues to the implementor, and 7) (termination, with checking enabled) does not apply. The
     /// constant must not change that: its file is an ordinary file once named, so each fatal status of the abnormal
     /// paths the golden answers through a status item ends the run, with nothing after the failing statement run.
     /// <list type="bullet">
