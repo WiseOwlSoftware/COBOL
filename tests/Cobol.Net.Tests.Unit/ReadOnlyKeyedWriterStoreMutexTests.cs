@@ -3,6 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
+using static CobolNet.Tests.Unit.KeyedFileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -42,82 +43,6 @@ namespace CobolNet.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class ReadOnlyKeyedWriterStoreMutexTests
 {
-    public enum Org { Relative, Indexed }
-
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3414-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
-
-    private static void Register(FileRegistry reg, string name, string host, Org org, FileSharing sharing)
-    {
-        if (org == Org.Relative)
-            reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
-                relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-        else
-            reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
-                primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-        // SHARING WITH ALL OTHER needs a LOCK MODE clause (§14.9.27.3 SR8); READ ONLY needs none.
-        reg.RegisterSharing(name, sharing, sharing == FileSharing.AllOther ? FileLockMode.Manual : FileLockMode.None,
-            multiple: false);
-    }
-
-    private static string Rec(int n, string payload) => $"{n:0000}{payload}";
-
-    private static void Position(FileRegistry reg, string name, Org org, int n)
-    {
-        if (org == Org.Relative) reg.SetRelativeKey(name, n);
-    }
-
-    private static string Write(FileRegistry reg, string name, Org org, int n, string payload)
-    {
-        Position(reg, name, org, n);
-        return reg.WriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-    }
-
-    private static string Rewrite(FileRegistry reg, string name, Org org, int n, string payload)
-    {
-        Position(reg, name, org, n);
-        return reg.RewriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0);
-    }
-
-    private static string Delete(FileRegistry reg, string name, Org org, int n)
-    {
-        Position(reg, name, org, n);
-        return reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
-    }
-
-    private static string Read(FileRegistry reg, string name, Org org, int n, out string image)
-    {
-        Position(reg, name, org, n);
-        return reg.ReadKeyedShared(name, keyIndex: -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
-            FileRetryKind.None, 0, out image);
-    }
-
-    /// <summary>A file of records 1 and 2, payload "AAAA", closed (so committed).</summary>
-    private static void Seed(string host, Org org)
-    {
-        var seed = new FileRegistry();
-        Register(seed, "S", host, org, FileSharing.NoOther);
-        seed.OpenStatic("S", FileOpenMode.Output);
-        for (int n = 1; n <= 2; n++) Assert.Equal("00", Write(seed, "S", org, n, "AAAA"));
-        seed.Close("S");
-        Assert.Equal("00", seed.Status("S"));
-    }
-
-    /// <summary>What another run unit's connector meets at the store mutex: a second handle on the file, read access (a
-    /// reader's), asks the region host whether ANOTHER handle holds it.</summary>
-    private static bool MutexHeld(string host)
-    {
-        using var probe = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var regions = HostRegionLocks.Open(probe.SafeFileHandle, host, writable: false);
-        var answer = regions.HeldByAnother(HostRegionLocks.StoreMutexByte);
-        Assert.True(answer is RegionLockResult.Held or RegionLockResult.Ok, $"the region host answered {answer}");
-        return answer == RegionLockResult.Held;
-    }
-
     /// <summary>The writer's medium seam: counts the page writes and syncs a watched statement makes, notes those made
     /// while the mutex was NOT held, and refuses the <see cref="RefuseAt"/>-th operation of the watch.</summary>
     private sealed class Watch(string host)
@@ -156,10 +81,10 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
         finally { KeyedStore.MediumObserver.Value = null; }
     }
 
-    public static TheoryData<Org, FileSharing, RegionHostKind> Shapes()
+    public static TheoryData<KeyedOrg, FileSharing, RegionHostKind> Shapes()
     {
-        var data = new TheoryData<Org, FileSharing, RegionHostKind>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<KeyedOrg, FileSharing, RegionHostKind>();
+        foreach (var org in Enum.GetValues<KeyedOrg>())
             foreach (var sharing in new[] { FileSharing.ReadOnly, FileSharing.AllOther })
                 foreach (var host in Enum.GetValues<RegionHostKind>())
                     data.Add(org, sharing, host);
@@ -173,17 +98,17 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// each statement and as the statement left it, record by record.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]
-    public void Every_page_write_of_a_statement_is_made_under_the_store_mutex(Org org, FileSharing sharing, RegionHostKind regionHost)
+    public void Every_page_write_of_a_statement_is_made_under_the_store_mutex(KeyedOrg org, FileSharing sharing, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"held-{org}-{sharing}");
         try
         {
-            Seed(host, org);
+            SeedRecords(host, org, 2);
             var watch = new Watch(host);
             var a = new FileRegistry();
             var b = new FileRegistry();
-            Register(a, "A", host, org, sharing);
+            Register(a, "A", host, org, sharing, LockModeRequiredBy(sharing));
             Register(b, "B", host, org, FileSharing.AllOther);
             OpenWatched(a, "A", FileOpenMode.IO, watch);
             Assert.Equal("00", a.Status("A"));
@@ -226,15 +151,15 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     }
 
     /// <summary>The page writes and syncs one WRITE of a new record makes, measured on a run the host does not refuse.</summary>
-    private static int OperationsOfAWrite(Org org, FileSharing sharing)
+    private static int OperationsOfAWrite(KeyedOrg org, FileSharing sharing)
     {
         string host = Tmp($"measure-{org}-{sharing}");
         try
         {
-            Seed(host, org);
+            SeedRecords(host, org, 2);
             var watch = new Watch(host);
             var a = new FileRegistry();
-            Register(a, "A", host, org, sharing);
+            Register(a, "A", host, org, sharing, LockModeRequiredBy(sharing));
             OpenWatched(a, "A", FileOpenMode.IO, watch);
             Assert.Equal("00", a.Status("A"));
             watch.Begin();
@@ -246,24 +171,18 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
         finally { TryDelete(host); }
     }
 
-    public static TheoryData<Org, FileSharing> OrgsAndSharings()
-    {
-        var data = new TheoryData<Org, FileSharing>();
-        foreach (var org in Enum.GetValues<Org>())
-            foreach (var sharing in new[] { FileSharing.ReadOnly, FileSharing.AllOther })
-                data.Add(org, sharing);
-        return data;
-    }
-
     /// <summary>A host refusal of EVERY page write and sync of a WRITE, one at a time, answers '30' and releases nothing:
     /// at the moment the statement answers, the mutex is back on the host (a reader of another run unit is not wedged
     /// behind a statement that died), that reader reads the tree as it stood — records 1 and 2, and no record 3 ('23') —
     /// and the writer's permanent error (§9.1.13.1) is replayed by its next statement, which touches nothing, until its
-    /// CLOSE answers '00'. Records 1 and 2 are in the file for the next OPEN.</summary>
+    /// CLOSE answers '00'. Records 1 and 2 are in the file for the next OPEN. It runs on the machine's region host and on
+    /// the lock-file host, like the case above (<see cref="Shapes"/>): the store mutex is a different object on each, and
+    /// "the refused statement gave it back" is a claim about that object.</summary>
     [Theory]
-    [MemberData(nameof(OrgsAndSharings))]
-    public void A_refusal_at_every_page_write_of_a_WRITE_is_30_and_gives_the_store_mutex_back(Org org, FileSharing sharing)
+    [MemberData(nameof(Shapes))]
+    public void A_refusal_at_every_page_write_of_a_WRITE_is_30_and_gives_the_store_mutex_back(KeyedOrg org, FileSharing sharing, RegionHostKind regionHost)
     {
+        using var forced = RegionHostSeam.Use(regionHost);
         int operations = OperationsOfAWrite(org, sharing);
         Assert.True(operations >= 2, $"a WRITE of a new record writes its tree page and page 2 ({operations})");
         for (int k = 0; k < operations; k++)
@@ -271,11 +190,11 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
             string host = Tmp($"refuse-{org}-{sharing}-{k}");
             try
             {
-                Seed(host, org);
+                SeedRecords(host, org, 2);
                 var watch = new Watch(host);
                 var a = new FileRegistry();
                 var b = new FileRegistry();
-                Register(a, "A", host, org, sharing);
+                Register(a, "A", host, org, sharing, LockModeRequiredBy(sharing));
                 Register(b, "B", host, org, FileSharing.AllOther);
                 OpenWatched(a, "A", FileOpenMode.IO, watch);
                 b.OpenStatic("B", FileOpenMode.Input);
