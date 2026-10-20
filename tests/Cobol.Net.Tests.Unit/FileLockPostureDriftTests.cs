@@ -49,59 +49,10 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class FileLockPostureDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb740-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
-        // are the store header INSIDE it, so deleting the data file deletes them.
-        try { File.Delete(host); } catch (IOException) { }
-    }
-
     /// <summary>The four spellings a connector's §9.1.15 sharing mode can have at the registry. The first is the
     /// implementor default of the open mode (<c>FileRegistry.ImplementorDefaultSharing</c>, kb/Work PB322)
     /// reached the way a program reaches it — by writing no clause at all.</summary>
     public enum Mode { ClauseLess, NoOther, ReadOnly, AllOther }
-
-    /// <summary>⛔ THE AXIS THE FILE-LOCK MEASUREMENT WAS MISSING (kb/Work PB771). §9.1.6: <i>"There are three
-    /// organizations: sequential, relative, and indexed"</i>, and §9.1.15 names none of them — <i>"The
-    /// successful opening of a file establishes a file lock for the applicable sharing rules"</i> is owed by
-    /// every organization there is. RELATIVE and INDEXED owed it and paid nothing: they held no long-lived host
-    /// handle at all between OPEN and CLOSE, so a <c>SHARING WITH NO OTHER</c> keyed file was open to any other
-    /// run unit and the CLOSE then rewrote it whole from a snapshot taken at the OPEN.</summary>
-    public enum Org { Sequential, Relative, Indexed }
-
-    /// <summary>Register one connector of <paramref name="org"/> on <paramref name="host"/>. Every connector on
-    /// one physical file declares the SAME attributes, because §14.9.27.4 GR10 compares them at each OPEN.</summary>
-    private static void RegisterOrg(FileRegistry reg, string name, string host, Org org)
-    {
-        switch (org)
-        {
-            case Org.Relative:
-                reg.RegisterRelative(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-                break;
-            case Org.Indexed:
-                reg.RegisterIndexed(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-                break;
-            default:
-                reg.Register(name, host, recordWidth: 4, lineSequential: false, optional: false,
-                    varyMin: -1, varyMax: -1);
-                break;
-        }
-    }
-
-    /// <summary>Seed one record through a connector of <paramref name="org"/> and close — the physical file the
-    /// measurement then opens exists and holds a record in that organization's own format.</summary>
-    private static void SeedOne(FileRegistry reg, string host, Org org)
-    {
-        RegisterOrg(reg, "S", host, org);
-        reg.OpenStatic("S", FileOpenMode.Output);
-        reg.WriteShared("S", "SEED", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-        reg.Close("S");
-    }
 
     /// <summary>The sharing mode a connector declared with spelling <paramref name="m"/> holds while open in
     /// <paramref name="open"/>: the declared mode, or — for the clause-less spelling — the implementor default
@@ -114,10 +65,10 @@ public sealed class FileLockPostureDriftTests
         _ => FileRegistry.ImplementorDefaultSharing(open),
     };
 
-    public static TheoryData<Mode, FileOpenMode, Mode, FileOpenMode, Org> EveryPair()
+    public static TheoryData<Mode, FileOpenMode, Mode, FileOpenMode, FileOrg> EveryPair()
     {
-        var data = new TheoryData<Mode, FileOpenMode, Mode, FileOpenMode, Org>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<Mode, FileOpenMode, Mode, FileOpenMode, FileOrg>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var sa in Enum.GetValues<Mode>())
                 foreach (var ma in Enum.GetValues<FileOpenMode>())
                     foreach (var sb in Enum.GetValues<Mode>())
@@ -127,12 +78,12 @@ public sealed class FileLockPostureDriftTests
     }
 
     private static void RegisterAndShare(FileRegistry reg, string name, string host, Mode m,
-        Org org = Org.Sequential)
+        FileOrg org = FileOrg.Sequential)
     {
-        RegisterOrg(reg, name, host, org);
         // ClauseLess registers NOTHING: a SELECT with neither clause never reaches RegisterSharing, which is
         // exactly the shape PB740 measured. The other three record their declared sharing mode.
-        if (m != Mode.ClauseLess) reg.RegisterSharing(name, SharingOf(m, FileOpenMode.Input), FileLockMode.Manual, multiple: false);
+        FileHarness.Register(reg, name, host, org,
+            sharing: m == Mode.ClauseLess ? null : SharingOf(m, FileOpenMode.Input), lockMode: FileLockMode.Manual);
     }
 
     // ── The agreement, measured on real handles ─────────────────────────────────────────────────────────────
@@ -145,13 +96,13 @@ public sealed class FileLockPostureDriftTests
     [Theory]
     [MemberData(nameof(EveryPair))]
     public void TheHostHandleNeverVetoesWhatTable19Permits(Mode sa, FileOpenMode ma, Mode sb, FileOpenMode mb,
-        Org org)
+        FileOrg org)
     {
-        string host = Tmp($"{org}-{sa}{ma}-{sb}{mb}");
+        string host = FileHarness.Tmp($"{org}-{sa}{ma}-{sb}{mb}");
         try
         {
             var reg = new FileRegistry();
-            SeedOne(reg, host, org);
+            FileHarness.Seed(host, org, ["SEED"]);
 
             RegisterAndShare(reg, "A", host, sa, org);
             RegisterAndShare(reg, "B", host, sb, org);
@@ -178,7 +129,7 @@ public sealed class FileLockPostureDriftTests
 
             reg.CloseAll();
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The pair PB740 reported, end to end and with its DATA: two connectors on one ASSIGN declaring
@@ -192,7 +143,7 @@ public sealed class FileLockPostureDriftTests
     [Fact]
     public void AllOtherInputThenExtend_Appends_AndTheReaderKeepsItsPosition()
     {
-        string host = Tmp("input-extend");
+        string host = FileHarness.Tmp("input-extend");
         try
         {
             var reg = new FileRegistry();
@@ -227,7 +178,7 @@ public sealed class FileLockPostureDriftTests
             reg.CloseAll();
             Assert.Equal("AAAABBBBCCCC", File.ReadAllText(host));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The file lock against everything that is not this run unit ──────────────────────────────────────────
@@ -247,10 +198,10 @@ public sealed class FileLockPostureDriftTests
     /// <summary>The three §9.1.15 sharing modes whose file lock is observable from outside, crossed with every
     /// §9.1.6 organization — because §9.1.15 names no organization and the rule was implemented in one
     /// (kb/Work PB771).</summary>
-    public static TheoryData<Mode, bool, bool, Org> EveryModeAndOrganization()
+    public static TheoryData<Mode, bool, bool, FileOrg> EveryModeAndOrganization()
     {
-        var data = new TheoryData<Mode, bool, bool, Org>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<Mode, bool, bool, FileOrg>();
+        foreach (var org in Enum.GetValues<FileOrg>())
         {
             data.Add(Mode.NoOther, false, false, org);     // §9.1.15 1) exclusive — nothing else may read or write
             data.Add(Mode.ClauseLess, true, false, org);   // OPEN INPUT's default: SHARING WITH READ ONLY (§9.1.15 2))
@@ -262,13 +213,13 @@ public sealed class FileLockPostureDriftTests
     [Theory]
     [MemberData(nameof(EveryModeAndOrganization))]
     public void TheFileLockIsTheSharingMode_MeasuredFromOutsideTheConnector(
-        Mode mode, bool outsiderMayRead, bool outsiderMayWrite, Org org)
+        Mode mode, bool outsiderMayRead, bool outsiderMayWrite, FileOrg org)
     {
-        string host = Tmp($"lock-{org}-{mode}");
+        string host = FileHarness.Tmp($"lock-{org}-{mode}");
         try
         {
             var reg = new FileRegistry();
-            SeedOne(reg, host, org);
+            FileHarness.Seed(host, org, ["SEED"]);
 
             RegisterAndShare(reg, "F", host, mode, org);
             reg.OpenStatic("F", FileOpenMode.Input);
@@ -284,7 +235,7 @@ public sealed class FileLockPostureDriftTests
             reg.Close("F");
             Assert.True(HostCapability.OutsiderCan(host, FileAccess.Write));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ ISO §9.1.15'S ANSWER, TRANSLATED THROUGH WHAT THIS HOST'S SHARE MODES CAN ACTUALLY EXPRESS —
@@ -362,7 +313,7 @@ public sealed class FileLockPostureDriftTests
     [Fact]
     public void ARefusedOrAdmittedClauseLessOpen_DoesNotMoveTheFileLockAnOutsiderSees()
     {
-        string host = Tmp("bounded");
+        string host = FileHarness.Tmp("bounded");
         try
         {
             var reg = new FileRegistry();
@@ -399,7 +350,7 @@ public sealed class FileLockPostureDriftTests
                 + "connector alone establishes. " + why);
             reg.CloseAll();
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The OTHER sentence each of §9.1.15's three rules ends with, which the file lock and Table 19
@@ -413,7 +364,7 @@ public sealed class FileLockPostureDriftTests
     [InlineData(Mode.AllOther, true)]    // §9.1.15 3) "Record locks are in effect."
     public void TheSharingModeAlsoDecidesWhetherRecordLocksAreInEffect(Mode mode, bool locksInEffect)
     {
-        string host = Tmp($"locks-{mode}");
+        string host = FileHarness.Tmp($"locks-{mode}");
         try
         {
             var reg = new FileRegistry();
@@ -434,7 +385,7 @@ public sealed class FileLockPostureDriftTests
             Assert.Equal(locksInEffect, reg.IsLockedByOther("Q", "1"));
             reg.Close("F");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The file lock is owed by EVERY organization, and the handle is what pays it (kb/Work PB771) ─────────
@@ -455,13 +406,13 @@ public sealed class FileLockPostureDriftTests
     /// and GR18's OUTPUT among them), and one arm forgetting it is this defect back in a corner.</para></summary>
     [Theory]
     [MemberData(nameof(EveryOrganizationAndOpenMode))]
-    public void EveryOrganizationHoldsALiveFileLockWhileOpen(Org org, FileOpenMode mode)
+    public void EveryOrganizationHoldsALiveFileLockWhileOpen(FileOrg org, FileOpenMode mode)
     {
-        string host = Tmp($"live-{org}-{mode}");
+        string host = FileHarness.Tmp($"live-{org}-{mode}");
         try
         {
             var reg = new FileRegistry();
-            SeedOne(reg, host, org);
+            FileHarness.Seed(host, org, ["SEED"]);
 
             RegisterAndShare(reg, "F", host, Mode.NoOther, org);
             reg.OpenStatic("F", mode);
@@ -485,13 +436,13 @@ public sealed class FileLockPostureDriftTests
             Assert.True(HostCapability.OutsiderCan(host, FileAccess.Write),
                 $"({org} {mode}) the file lock outlived the CLOSE.");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
-    public static TheoryData<Org, FileOpenMode> EveryOrganizationAndOpenMode()
+    public static TheoryData<FileOrg, FileOpenMode> EveryOrganizationAndOpenMode()
     {
-        var data = new TheoryData<Org, FileOpenMode>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<FileOrg, FileOpenMode>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var mode in Enum.GetValues<FileOpenMode>())
                 data.Add(org, mode);
         return data;
@@ -524,13 +475,13 @@ public sealed class FileLockPostureDriftTests
     [Fact]
     public void EveryOrganisationsHandleAccessLiesInThatBand()
     {
-        string host = Tmp("band");
+        string host = FileHarness.Tmp("band");
         try
         {
             var reg = new FileRegistry();
-            foreach (var org in Enum.GetValues<Org>())
+            foreach (var org in Enum.GetValues<FileOrg>())
             {
-                RegisterOrg(reg, $"C{org}", host, org);
+                FileHarness.Register(reg, $"C{org}", host, org, sharing: null);
                 var c = ConnectorOf(reg, $"C{org}");
                 foreach (var mode in Enum.GetValues<FileOpenMode>())
                 {
@@ -548,13 +499,13 @@ public sealed class FileLockPostureDriftTests
 
             int concrete = typeof(FileConnector).Assembly.GetTypes()
                 .Count(t => !t.IsAbstract && typeof(FileConnector).IsAssignableFrom(t));
-            Assert.True(concrete == Enum.GetValues<Org>().Length,
-                $"{concrete} concrete FileConnector organizations exist but this class's Org enum names "
-                + $"{Enum.GetValues<Org>().Length}. A new organization owes §9.1.15's file lock exactly as the "
-                + "other three do (kb/Work PB771) — add it to Org, to RegisterOrg and to SeedOne, and every "
+            Assert.True(concrete == Enum.GetValues<FileOrg>().Length,
+                $"{concrete} concrete FileConnector organizations exist but FileOrg names "
+                + $"{Enum.GetValues<FileOrg>().Length}. A new organization owes §9.1.15's file lock exactly as the "
+                + "other three do (kb/Work PB771) — add it to FileOrg and to FileHarness.Register, and every "
                 + "measurement in this class covers it.");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The connector a registry holds under <paramref name="name"/> — the registry's own lookup, read
@@ -564,10 +515,10 @@ public sealed class FileLockPostureDriftTests
             .Invoke(reg, [name]) as FileConnector
         ?? throw new InvalidOperationException($"The registry holds no connector named '{name}'.");
 
-    public static TheoryData<Org, FileOpenMode, Mode> EveryOrganizationOpenModeAndRecordLockPosture()
+    public static TheoryData<FileOrg, FileOpenMode, Mode> EveryOrganizationOpenModeAndRecordLockPosture()
     {
-        var data = new TheoryData<Org, FileOpenMode, Mode>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<FileOrg, FileOpenMode, Mode>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var mode in Enum.GetValues<FileOpenMode>())
                 foreach (var sharing in new[] { Mode.ClauseLess, Mode.AllOther })
                     data.Add(org, mode, sharing);
@@ -591,13 +542,13 @@ public sealed class FileLockPostureDriftTests
     /// the mode's floor (a host that refuses the read half, kb/Work PB2848) is not this measurement's case.</summary>
     [Theory]
     [MemberData(nameof(EveryOrganizationOpenModeAndRecordLockPosture))]
-    public void EveryOrganisationsLiveHandleTakesItsHostAccess(Org org, FileOpenMode mode, Mode sharing)
+    public void EveryOrganisationsLiveHandleTakesItsHostAccess(FileOrg org, FileOpenMode mode, Mode sharing)
     {
-        string host = Tmp($"access-{org}-{mode}-{sharing}");
+        string host = FileHarness.Tmp($"access-{org}-{mode}-{sharing}");
         try
         {
             var reg = new FileRegistry();
-            SeedOne(reg, host, org);
+            FileHarness.Seed(host, org, ["SEED"]);
             RegisterAndShare(reg, "F", host, sharing, org);
             var c = ConnectorOf(reg, "F");
             Assert.Null(c.FileLock);
@@ -624,7 +575,7 @@ public sealed class FileLockPostureDriftTests
             Assert.True(reg.Status("F")[0] == '0', $"({org} {mode} {sharing}) CLOSE answered '{reg.Status("F")}'.");
             Assert.True(c.FileLock is null, $"({org} {mode} {sharing}) the file-lock handle outlived the CLOSE.");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The structural half ─────────────────────────────────────────────────────────────────────────────────

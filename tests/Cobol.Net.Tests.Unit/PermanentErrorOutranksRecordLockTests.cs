@@ -24,132 +24,89 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class PermanentErrorOutranksRecordLockTests
 {
-    public enum Org { Sequential, Relative, Indexed }
     public enum Place { SameRunUnit, OtherRunUnit, OtherRunUnitSidecarHost }
     public enum Verb { Rewrite, Delete }
 
     private const string Stuck = FileStatusCode.PermanentBoundary;   // '34'
 
-    private static string Tmp(Org org) => Path.Combine(Path.GetTempPath(), $"pb3416-{org}-{Guid.NewGuid():N}.dat");
-
-    public static TheoryData<Org, Place, Verb> Cells()
+    public static TheoryData<FileOrg, Place, Verb> Cells()
     {
-        var data = new TheoryData<Org, Place, Verb>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<FileOrg, Place, Verb>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var place in Enum.GetValues<Place>())
                 foreach (var verb in Enum.GetValues<Verb>())
-                    if (org != Org.Sequential || verb == Verb.Rewrite)   // §14.9.10.3 SR1
+                    if (org != FileOrg.Sequential || verb == Verb.Rewrite)   // §14.9.10.3 SR1
                         data.Add(org, place, verb);
         return data;
     }
 
-    private static void Register(FileRegistry reg, string name, string host, Org org, bool shared,
-        KeyedAccess access = KeyedAccess.Dynamic)
-    {
-        switch (org)
-        {
-            case Org.Sequential:
-                reg.Register(name, host, recordWidth: 4, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
-                break;
-            case Org.Relative:
-                reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)access,
-                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-                break;
-            default:
-                reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)access,
-                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-                break;
-        }
-        if (shared) reg.RegisterSharing(name, FileSharing.AllOther, FileLockMode.Manual, multiple: false);
-    }
-
-    private static string Image(Org org, int n, string payload) => org == Org.Sequential ? payload : $"{n:0000}{payload}";
+    /// <summary>The program's SELECT: SHARING WITH ALL OTHER under manual lock mode when <paramref name="shared"/>, else no
+    /// sharing clause.</summary>
+    private static void Register(FileRegistry reg, string name, string host, FileOrg org, bool shared,
+        KeyedAccess access = KeyedAccess.Dynamic) =>
+        FileHarness.Register(reg, name, host, org, sharing: shared ? FileSharing.AllOther : null, access: access);
 
     private static readonly string[] Payloads = ["AAAA", "BBBB", "CCCC"];
 
-    private static void Seed(string host, Org org)
-    {
-        var seed = new FileRegistry();
-        Register(seed, "S", host, org, shared: false);
-        seed.OpenStatic("S", FileOpenMode.Output);
-        for (int n = 1; n <= Payloads.Length; n++)
-        {
-            if (org == Org.Relative) seed.SetRelativeKey("S", n);
-            Assert.Equal("00", seed.WriteShared("S", Image(org, n, Payloads[n - 1]), -1, FileRecordLock.None,
-                FileRetryKind.None, 0, page: null));
-        }
-        seed.Close("S");
-        Assert.Equal("00", seed.Status("S"));
-    }
-
-    private static string ReadNext(FileRegistry reg, string name, FileRecordLock phrase, bool ignoringLock, out string image) =>
-        reg.ReadShared(name, previous: false, phrase, advancingOnLock: false, ignoringLock, FileRetryKind.None, 0, out image);
-
     /// <summary>Every record of the file, as the next run unit's OPEN INPUT and READ NEXT loop sees it.</summary>
-    private static List<string> Records(string host, Org org)
+    private static List<string> Records(string host, FileOrg org)
     {
         var reader = new FileRegistry();
         Register(reader, "R", host, org, shared: false);
         reader.OpenStatic("R", FileOpenMode.Input);
         Assert.Equal("00", reader.Status("R"));
         var all = new List<string>();
-        while (ReadNext(reader, "R", FileRecordLock.None, ignoringLock: false, out string image) == "00") all.Add(image);
+        while (FileHarness.ReadNext(reader, "R", out string image) == "00") all.Add(image);
         reader.Close("R");
         return all;
     }
 
     /// <summary>Connector A takes record 1's lock (§14.9.30.4 GR11 d): in manual lock mode the lock is set only because the
     /// READ says WITH LOCK) and holds it.</summary>
-    private static void HoldRecordOne(FileRegistry a, Org org)
+    private static void HoldRecordOne(FileRegistry a, FileOrg org)
     {
-        string status;
-        if (org == Org.Sequential)
-            status = ReadNext(a, "A", FileRecordLock.WithLock, ignoringLock: false, out _);
-        else
-        {
-            if (org == Org.Relative) a.SetRelativeKey("A", 1);
-            status = a.ReadKeyedShared("A", -1, Image(org, 1, "    "), FileRecordLock.WithLock, ignoringLock: false,
-                FileRetryKind.None, 0, out _);
-        }
+        string status = org == FileOrg.Sequential
+            ? FileHarness.ReadNext(a, "A", out _, FileRecordLock.WithLock)
+            : FileHarness.Read(a, "A", org, 1, out _, FileRecordLock.WithLock);
         Assert.Equal("00", status);
     }
 
     /// <summary>Make record 1 the record B's REWRITE or DELETE identifies: a sequential statement follows a successful READ
     /// (§14.9.35.4 GR5, §14.9.10.4 GR2) and takes the record that READ made current, which B can read only IGNORING LOCK
     /// (§14.9.30.4 GR12) while A holds it; a keyed statement names it in the key.</summary>
-    private static void AimAtRecordOne(FileRegistry b, Org org)
+    private static void AimAtRecordOne(FileRegistry b, FileOrg org)
     {
-        if (org == Org.Sequential) Assert.Equal("00", ReadNext(b, "B", FileRecordLock.None, ignoringLock: true, out _));
-        else if (org == Org.Relative) b.SetRelativeKey("B", 1);
+        if (org == FileOrg.Sequential) Assert.Equal("00", FileHarness.ReadNext(b, "B", out _, ignoringLock: true));
+        else FileHarness.Position(b, "B", org, 1);
     }
 
     /// <summary>Make the next sequential REWRITE the statement that follows a successful READ of record 1 again (a sequential
     /// file has no way back but a CLOSE and a new OPEN). A keyed connector in dynamic access names the record in its key and
     /// needs nothing.</summary>
-    private static void Reaim(FileRegistry b, Org org)
+    private static void Reaim(FileRegistry b, FileOrg org)
     {
-        if (org != Org.Sequential) return;
+        if (org != FileOrg.Sequential) return;
         b.Close("B");
         b.OpenStatic("B", FileOpenMode.IO);
         Assert.Equal("00", b.Status("B"));
         AimAtRecordOne(b, org);
     }
 
-    private static string Mutate(FileRegistry b, Org org, Verb verb, FileRetryKind retry, long amount) => verb == Verb.Rewrite
-        ? b.RewriteShared("B", Image(org, 1, "ZZZZ"), -1, FileRecordLock.None, retry, amount)
-        : b.DeleteShared("B", Image(org, 1, "    "), retry, amount);
+    private static string Mutate(FileRegistry b, Verb verb, FileRetryKind retry, long amount) => verb == Verb.Rewrite
+        ? b.RewriteShared("B", FileHarness.Rec(1, "ZZZZ"), -1, FileRecordLock.None, retry, amount)
+        : b.DeleteShared("B", FileHarness.Rec(1, "    "), retry, amount);
 
     [Theory]
     [MemberData(nameof(Cells))]
-    public void AReplayedPermanentError_OutranksTheOtherConnectorsRecordLock_OnRewriteAndDelete(Org org, Place place, Verb verb)
+    public void AReplayedPermanentError_OutranksTheOtherConnectorsRecordLock_OnRewriteAndDelete(FileOrg org, Place place, Verb verb)
     {
         using var forced = RegionHostSeam.Use(place == Place.OtherRunUnitSidecarHost ? RegionHostKind.LockFiles : RegionHostKind.OfThisProcess);
-        string host = Tmp(org);
+        string host = FileHarness.Tmp($"pb3416-{org}");
         var pauses = new List<TimeSpan>();
         FileRegistry.PauseObserver.Value = pauses.Add;
         try
         {
-            Seed(host, org);
+            FileHarness.Seed(host, org, Payloads);
             var a = new FileRegistry();
             var b = place == Place.SameRunUnit ? a : new FileRegistry();
             Register(a, "A", host, org, shared: true);
@@ -165,18 +122,18 @@ public sealed class PermanentErrorOutranksRecordLockTests
             // and pauses between attempts only for a holder outside the run unit — the one case a wait
             // can change the answer (FileRegistry.Reattempt).
             AimAtRecordOne(b, org);
-            Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.None, 0));
+            Assert.Equal("51", Mutate(b, verb, FileRetryKind.None, 0));
             Assert.Empty(pauses);
             Reaim(b, org);   // a sequential-access statement needs a READ just before it (GR5 / GR2); see the '43' test below
-            Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.Times, 2));
+            Assert.Equal("51", Mutate(b, verb, FileRetryKind.Times, 2));
             Assert.Equal(place == Place.SameRunUnit ? 0 : 2, pauses.Count);
             pauses.Clear();
 
             // The condition begins (§9.1.13.6 item 4 b)); the SAME statements now answer it: no '51', no wait, no effect.
             Assert.Equal(Stuck, b.ReadExceedsRecordMaximum("B"));
-            Assert.Equal(Stuck, Mutate(b, org, verb, FileRetryKind.None, 0));
+            Assert.Equal(Stuck, Mutate(b, verb, FileRetryKind.None, 0));
             Assert.Equal(Stuck, b.Status("B"));
-            Assert.Equal(Stuck, Mutate(b, org, verb, FileRetryKind.Times, 2));
+            Assert.Equal(Stuck, Mutate(b, verb, FileRetryKind.Times, 2));
             Assert.Equal(Stuck, b.Status("B"));
             Assert.Empty(pauses);
 
@@ -185,7 +142,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
             Register(c, "C", host, org, shared: true);
             c.OpenStatic("C", FileOpenMode.IO);
             Assert.Equal("00", c.Status("C"));
-            Assert.Equal("51", ReadNext(c, "C", FileRecordLock.WithLock, ignoringLock: false, out _));
+            Assert.Equal("51", FileHarness.ReadNext(c, "C", out _, FileRecordLock.WithLock));
             c.Close("C");
 
             // CLOSE is the technique that ends the condition (DOC-A.1-105): the next OPEN starts clean, and the statement
@@ -195,16 +152,16 @@ public sealed class PermanentErrorOutranksRecordLockTests
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("00", b.Status("B"));
             AimAtRecordOne(b, org);
-            Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.None, 0));
+            Assert.Equal("51", Mutate(b, verb, FileRetryKind.None, 0));
             b.Close("B");
             a.Close("A");
 
-            Assert.Equal(Payloads.Select((p, i) => Image(org, i + 1, p)).ToList(), Records(host, org));
+            Assert.Equal(Payloads.Select((p, i) => FileHarness.Rec(i + 1, p)).ToList(), Records(host, org));
         }
         finally
         {
             FileRegistry.PauseObserver.Value = null;
-            try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            FileHarness.TryDelete(host);
         }
     }
 
@@ -217,15 +174,15 @@ public sealed class PermanentErrorOutranksRecordLockTests
     /// where GR5 applies), the holder in the same run unit and in another, and each verb the organization has.</summary>
     [Theory]
     [MemberData(nameof(Cells))]
-    public void ASequentialAccessStatement_AfterAnUnsuccessfulOne_Is43_NotTheRecordLock(Org org, Place place, Verb verb)
+    public void ASequentialAccessStatement_AfterAnUnsuccessfulOne_Is43_NotTheRecordLock(FileOrg org, Place place, Verb verb)
     {
         using var forced = RegionHostSeam.Use(place == Place.OtherRunUnitSidecarHost ? RegionHostKind.LockFiles : RegionHostKind.OfThisProcess);
-        string host = Tmp(org);
+        string host = FileHarness.Tmp($"pb3416-{org}");
         var pauses = new List<TimeSpan>();
         FileRegistry.PauseObserver.Value = pauses.Add;
         try
         {
-            Seed(host, org);
+            FileHarness.Seed(host, org, Payloads);
             var a = new FileRegistry();
             var b = place == Place.SameRunUnit ? a : new FileRegistry();
             Register(a, "A", host, org, shared: true);
@@ -237,12 +194,12 @@ public sealed class PermanentErrorOutranksRecordLockTests
             HoldRecordOne(a, org);
 
             // A previous successful READ (IGNORING LOCK, since A holds the record) makes the statement name record 1: '51'.
-            Assert.Equal("00", ReadNext(b, "B", FileRecordLock.None, ignoringLock: true, out _));
-            Assert.Equal("51", Mutate(b, org, verb, FileRetryKind.None, 0));
+            Assert.Equal("00", FileHarness.ReadNext(b, "B", out _, ignoringLock: true));
+            Assert.Equal("51", Mutate(b, verb, FileRetryKind.None, 0));
 
             // The '51' is the immediately previous statement now: '43', with no wait, however the statement is asked.
-            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, org, verb, FileRetryKind.None, 0));
-            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, org, verb, FileRetryKind.Times, 2));
+            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, verb, FileRetryKind.None, 0));
+            Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, Mutate(b, verb, FileRetryKind.Times, 2));
             Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, b.Status("B"));
             Assert.Empty(pauses);
 
@@ -250,43 +207,41 @@ public sealed class PermanentErrorOutranksRecordLockTests
             var c = new FileRegistry();
             Register(c, "C", host, org, shared: true);
             c.OpenStatic("C", FileOpenMode.IO);
-            Assert.Equal("51", ReadNext(c, "C", FileRecordLock.WithLock, ignoringLock: false, out _));
+            Assert.Equal("51", FileHarness.ReadNext(c, "C", out _, FileRecordLock.WithLock));
             c.Close("C");
             b.Close("B");
             a.Close("A");
-            Assert.Equal(Payloads.Select((p, i) => Image(org, i + 1, p)).ToList(), Records(host, org));
+            Assert.Equal(Payloads.Select((p, i) => FileHarness.Rec(i + 1, p)).ToList(), Records(host, org));
         }
         finally
         {
             FileRegistry.PauseObserver.Value = null;
-            try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            FileHarness.TryDelete(host);
         }
     }
 
     public enum Statement { ReadNext, ReadKey, Rewrite, Delete }
 
-    public static TheoryData<Org, Statement> HostQuestionCells()
+    public static TheoryData<FileOrg, Statement> HostQuestionCells()
     {
-        var data = new TheoryData<Org, Statement>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<FileOrg, Statement>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var statement in Enum.GetValues<Statement>())
-                if (org != Org.Sequential || statement is Statement.ReadNext or Statement.Rewrite)   // no keyed READ or DELETE RECORD on a sequential file
+                if (org != FileOrg.Sequential || statement is Statement.ReadNext or Statement.Rewrite)   // no keyed READ or DELETE RECORD on a sequential file
                     data.Add(org, statement);
         return data;
     }
 
-    private static string Run(FileRegistry b, Org org, Statement statement)
+    private static string Run(FileRegistry b, FileOrg org, Statement statement)
     {
         switch (statement)
         {
             case Statement.ReadNext:
-                return ReadNext(b, "B", FileRecordLock.None, ignoringLock: false, out _);
+                return FileHarness.ReadNext(b, "B", out _);
             case Statement.ReadKey:
-                if (org == Org.Relative) b.SetRelativeKey("B", 1);
-                return b.ReadKeyedShared("B", -1, Image(org, 1, "    "), FileRecordLock.None, ignoringLock: false,
-                    FileRetryKind.None, 0, out _);
+                return FileHarness.Read(b, "B", org, 1, out _);
             default:
-                return Mutate(b, org, statement == Statement.Rewrite ? Verb.Rewrite : Verb.Delete, FileRetryKind.None, 0);
+                return Mutate(b, statement == Statement.Rewrite ? Verb.Rewrite : Verb.Delete, FileRetryKind.None, 0);
         }
     }
 
@@ -299,14 +254,14 @@ public sealed class PermanentErrorOutranksRecordLockTests
     /// governed READ, REWRITE and DELETE on every organization.</summary>
     [Theory]
     [MemberData(nameof(HostQuestionCells))]
-    public void AReplayedPermanentError_PutsNoQuestionToTheHost_OnAnyGovernedStatement(Org org, Statement statement)
+    public void AReplayedPermanentError_PutsNoQuestionToTheHost_OnAnyGovernedStatement(FileOrg org, Statement statement)
     {
         var counting = new CountingHost(SidecarRegionLocks.Host);
         using var forced = HostRegionLocks.Forcing(counting);
-        string host = Tmp(org);
+        string host = FileHarness.Tmp($"pb3416-{org}");
         try
         {
-            Seed(host, org);
+            FileHarness.Seed(host, org, Payloads);
             var a = new FileRegistry();
             var b = new FileRegistry();
             Register(a, "A", host, org, shared: true);
@@ -334,7 +289,7 @@ public sealed class PermanentErrorOutranksRecordLockTests
             b.Close("B");
             a.Close("A");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>A region-lock host that delegates to <paramref name="inner"/> and counts the questions put to it.</summary>
