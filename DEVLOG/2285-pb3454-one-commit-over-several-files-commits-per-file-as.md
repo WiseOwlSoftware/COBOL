@@ -1,4 +1,4 @@
-## PB3454: one COMMIT over several files commits PER FILE, as designed (owner 2026-10-19: "Per file (Recommended)")
+## Entry 2285 — 2026-10-19 20:26 PDT — PB3454: one COMMIT over several files commits PER FILE, as designed (owner 2026-10-19: "Per file (Recommended)")
 
 **The question.** The scope decision of 18:58 PDT (kb/Work PB3337, "Option A": the whole commit-and-rollback module) released
 the one question the PB3330 design's fifth review round had left: when one COMMIT covers several files under APPLY COMMIT and
@@ -15,3 +15,4 @@ unit's clerk had filed the question as kb/Work PB3454 (decision, `status: owner`
 simulators changes, and no commit record outside any one file is built. PB3454 records the answer and is `landed`; PB3337
 records it beside the question; PB3338, PB3330 and plan §0 no longer call it the owner's open question. No compiler source
 changed; nothing was dispatched.
+
