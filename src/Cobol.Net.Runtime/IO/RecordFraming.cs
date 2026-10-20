@@ -71,7 +71,7 @@ internal interface IFrameMedium
 /// store's own fixed file attributes, roots and coherence stamp live in its META PAGES (<c>Store.MetaPage</c>), never in a
 /// header of frames: the whole-store image that once preceded the frames with a header, and was composed and loaded whole
 /// at OPEN and CLOSE, is gone (kb/Work PB3335), and no reader of it is kept.</item>
-/// <item><b>A stream-level file</b> (<see cref="ReadStreamFrame"/>/<see cref="FrameStarts"/>/<see cref="StreamFramingParses"/>)
+/// <item><b>A stream-level file</b> (<see cref="ReadStreamFrame"/>/<see cref="CountFrames"/>/<see cref="StreamFramingParses"/>)
 /// — the incremental prefix-per-record shape the sequential connector streams through its Latin-1 reader/writer
 /// (chars 0–255 map 1:1 to bytes under Latin-1, so the head it writes and reads is the value's head bytes, converted once
 /// at the channel). It has NO header, deliberately: a header would stop a record sequential file being plain bytes and
@@ -184,34 +184,30 @@ internal static class RecordFraming
 
     // ── A stream-level file ───────────────────────────────────────────────────────────────────────────────────
 
-    /// <summary>The byte offset of every frame in a STREAM-LEVEL framed physical file, in order (index =
-    /// ordinal − 1) — a RECORD VARYING record-sequential file, which carries no header.
-    /// This is the positioning index a §14.9.30.4 GR21 BACKWARD sequential READ needs on a RECORD VARYING file,
-    /// whose frames are not uniformly wide the way a fixed record-sequential file's blocks are. Only the frame
-    /// heads are read — each payload is SEEKED over, never materialized — so the index costs one pass and no
-    /// record storage. Where the frames end is the one decoder's answer (<see cref="ReadStreamFrame"/>), so the
-    /// index holds exactly the records a forward READ delivers.
-    /// <para>⛔ IT INDEXES THE CONNECTOR'S OWN OPEN STREAM, NOT A PATH. Only a backward READ on an ALREADY-OPEN
-    /// varying file asks for this index, so the presence question is already answered and asking the host again
-    /// would be a second answer to it: <see cref="HostFile.Probe"/> is the ONE place the runtime asks the
-    /// operating environment about a physical file and it is asked once per OPEN by <c>FileConnector.Open</c>,
-    /// never by an organization body (<c>HostFileProbeDriftTests</c>, kb/Work PB323). Re-opening by path would
-    /// also take a SECOND handle on a file the connector may hold under a deny-share mode, and could index a
-    /// different file than the one the connector is reading. The walk moves the stream position and leaves it
-    /// where it stops; the backward READ reaches <c>SequentialConnector.SeekToRecord</c> immediately afterwards,
-    /// which seeks and discards the reader's buffer. The record COUNTS of <c>SequentialConnector.CountRecords</c>
-    /// walk an auxiliary stream instead, because they run where the connector's own handle is a writer.</para>
+    /// <summary>The number of frames that START in [<paramref name="from"/>, <paramref name="to"/>) of a STREAM-LEVEL
+    /// framed physical file — a RECORD VARYING record-sequential file, which carries no header. A walk that STORES
+    /// NOTHING: only the frame heads are read, each payload is SEEKED over, never materialized, and no offset is kept
+    /// (kb/Work PB3350; docs/rearchitecture/DESIGN-runtime-library.md 2.2.3 — the count used to build a list of every
+    /// frame's start only to take its length). Where the frames end is the one decoder's answer
+    /// (<see cref="ReadStreamFrame"/>), so the count is exactly the records a forward READ delivers. Where a frame
+    /// STARTS, for the backward READ, is <see cref="FrameIndex"/>'s answer, from the same walk.
+    /// <para>⛔ IT WALKS THE STREAM IT IS GIVEN, NOT A PATH. Re-opening by path would be a second answer to the presence
+    /// question (<see cref="HostFile.Probe"/> is the ONE place the runtime asks the operating environment about a physical
+    /// file, once per OPEN by <c>FileConnector.Open</c>, never by an organization body — <c>HostFileProbeDriftTests</c>,
+    /// kb/Work PB323), and could take a second handle on a file the connector holds under a deny-share mode. The walk
+    /// moves the stream position and leaves it where it stops. <c>SequentialConnector.CountRecords</c> hands it an
+    /// auxiliary stream, because it runs where the connector's own handle is a writer.</para>
     /// <para><paramref name="from"/> and <paramref name="to"/> bound the walk to the frames that START in
-    /// [from, to): <paramref name="from"/> shall be a frame boundary (kb/Work PB2692 counts only the frames
-    /// another run unit appended since the last count).</para></summary>
-    public static List<long> FrameStarts(Stream fs, long from = 0, long to = long.MaxValue)
+    /// [<paramref name="from"/>, <paramref name="to"/>): <paramref name="from"/> shall be a frame boundary (kb/Work PB2692
+    /// counts only the frames another run unit appended since the last count).</para></summary>
+    public static long CountFrames(Stream fs, long from = 0, long to = long.MaxValue)
     {
-        var starts = new List<long>();
         fs.Seek(from, SeekOrigin.Begin);
         var medium = new StreamMedium(fs);
+        long frames = 0;
         for (long at = from; at < to && ReadStreamFrame(ref medium, out _); at = fs.Position)
-            starts.Add(at);
-        return starts;
+            frames++;
+        return frames;
     }
 
     /// <summary>Does the STREAM-LEVEL record-length framing at <paramref name="path"/> PARSE — the whole of
@@ -313,7 +309,7 @@ internal static class RecordFraming
 
     /// <summary><see cref="ReadFrame"/> over a STREAM-LEVEL file, whose frames carry no release ordinals: true for a
     /// record's frame. The one answer for the forward READ (<c>SequentialConnector.NextFrame</c>), the record count and
-    /// the backward-READ index (<see cref="FrameStarts"/>) and the OPEN's framing check (<see cref="StreamFramingParses"/>).</summary>
+    /// the backward-READ index (<see cref="FrameIndex"/>) and the OPEN's framing check (<see cref="StreamFramingParses"/>).</summary>
     public static bool ReadStreamFrame<TMedium>(ref TMedium medium, out FrameHead head)
         where TMedium : struct, IFrameMedium =>
         ReadFrame(ref medium, ordinalSlots: 0, out head);
