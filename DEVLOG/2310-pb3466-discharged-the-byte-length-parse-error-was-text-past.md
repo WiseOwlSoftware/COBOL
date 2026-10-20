@@ -1,4 +1,4 @@
-## PB3466 discharged: the BYTE-LENGTH "parse error" was text past margin R
+## Entry 2310 — 2026-10-20 16:25 PDT — PB3466 discharged: the BYTE-LENGTH "parse error" was text past margin R
 
 Wave 1135 A took PB3466, filed from the PB3441 implementer report: `DISPLAY FUNCTION BYTE-LENGTH (G1) " " FUNCTION
 BYTE-LENGTH (K1)` was said to fail to parse when BYTE-LENGTH is the last operand, while the same line with LENGTH
@@ -21,3 +21,4 @@ margin all parse.
 No code changed. The note is retired unlanded with `closes_rows: []` and a reason; it claimed no inventory row. The
 margin is already witnessed by `l1_margin_r_program_text_area`, so no golden was added. The gate's verdict line is in
 the wave report.
+
