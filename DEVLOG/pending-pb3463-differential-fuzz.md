@@ -12,9 +12,9 @@ sub-clauses folded into one seed); WiseOwl and GnuCOBOL 3.2 both compile and run
 adapters and `Run.operation` (no second copy of the command lines, crash codes, locale pin or hang guard; on Windows the GnuCOBOL
 steps cross into WSL through the adapter's hook interface), both pinned to the 2014 edition in free format. A program GnuCOBOL
 refuses goes back to the model once with the diagnostics; one it still refuses is `GNU_REJECTS`, the model's failure, dropped.
-Verdict classes `AGREE`, `WE_REJECT`, `OUTPUT_DIFFERS`, `WE_CRASH`, `WE_HANG`, `THEY_FAIL_RUN`, `THEY_HANG`, `RUNNER_ERROR`;
+Verdict classes `AGREE`, `WE_REJECT`, `OUTPUT_DIFFERS`, `WE_FAIL_RUN` and `EXIT_DIFFERS` (same stdout, different exit status), `WE_CRASH`, `WE_HANG` (a compile or a run), `THEY_FAIL_RUN`, `THEY_HANG`, `RUNNER_ERROR`;
 survivors grouped by signature into `report.md`; `results.jsonl` appended per program; a `--bake-off` over several models scored
-by GnuCOBOL's acceptance; `--self-test` with 24 checks, discovered by `self_tests.py`. The triage rule is printed in every report:
+by GnuCOBOL's acceptance; `--self-test` with 30 checks, discovered by `self_tests.py`. The triage rule is printed in every report:
 the spec decides, GnuCOBOL is a net, nothing the model wrote enters the register, a golden or the suite without a check.
 
 **The smoke runs.** Run 1 (2 programs) lost both to the harness: a fence tagged "```cob" plus CJK characters that the extractor
@@ -37,3 +37,13 @@ the standard's 31-digit limit, a GnuCOBOL extension). All forty seeds came from 
 order, so it is now shuffled by default (`--seed`, deterministic; `--in-order` restores the walk). The raw report, the results
 and the twelve survivors' sources are under the evidence record's folder. kb/Work PB3463 (analysis) records the decision, the
 design and the triage rule; the overnight run is the owner's to start after a bake-off picks the generator.
+
+**Branch review (R1-1 to R1-4) and the survivors' spec check.** R1-1 (blocking): `classify` compared only stdout, so a
+WiseOwl run that exited non-zero after its last DISPLAY (a failing CLOSE or DELETE FILE, a STOP RUN status) was AGREE and
+never reached the report; the exit status is now compared (`WE_FAIL_RUN`, `EXIT_DIFFERS`, both lead classes; ISO 14.9.42.4
+GR 2 makes the termination status observable), with self-test checks. R1-2: a compile that exceeds the 90 s hang guard is an
+observation with `hung` set and classifies as `WE_HANG` / `THEY_HANG`, not a runner error. R1-3: the evidence record cited
+§8.3.3.3.2 (the literal rule) for the 31-digit item limit, which is §13.18.40.3 SR14; the same inherited clause was in the
+compiler's COBOLNET0801 message and catalog entry, now corrected with a unit test. R1-4: the check count (30). The twelve
+survivors were then checked against the standard: none is a compiler defect (the evidence record's table has each clause);
+the one open question is DISPLAY of a scaled item's decimal point, reported as a lead.

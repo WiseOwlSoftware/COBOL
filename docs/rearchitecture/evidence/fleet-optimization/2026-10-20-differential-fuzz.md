@@ -77,7 +77,7 @@ of model time, which is free overnight.
 | `OUTPUT_DIFFERS:8.8.1.5.4` | 2 | DISPLAY of a signed numeric item after `0 ** n`: WiseOwl prints the storage form (`000000000000{`, a trailing overpunched sign), GnuCOBOL `+0000000.000000`; WiseOwl's run also ended before `0 ** -1` (a size condition, EC-SIZE-EXPONENTIATION, where GnuCOBOL printed zero). Two questions: DISPLAY's rendering of a signed item (§14.9.11), and the exponentiation size condition (§8.8.1.5.4). |
 | `WE_REJECT:COBOLNET1625` | 2 | WiseOwl refuses the literal `-0.000001` in a VALUE clause as not representable in the PICTURE; GnuCOBOL accepts (truncating?). §13.18.63 VALUE rules decide. |
 | `OUTPUT_DIFFERS:8.8.1.4.4` | 1 | DISPLAY of a PIC 9(10)V9(10) item: WiseOwl prints the twenty digits, GnuCOBOL inserts a decimal point. DISPLAY's treatment of an implied decimal point (§14.9.11); likely already adjudicated, search the register first. |
-| `WE_REJECT:COBOLNET0801` | 1 | PICTURE 9(34): WiseOwl refuses (ISO §8.3.3.3.2 limits fixed-point items to 31 digits), GnuCOBOL accepts up to 38 as its extension. The refusal is ours and correct; the row is a GnuCOBOL extension, the shape the differential's header warns about. |
+| `WE_REJECT:COBOLNET0801` | 1 | PICTURE 9(34): WiseOwl refuses (ISO §13.18.40.3 syntax rule 14 limits a numeric item to 31 digit positions), GnuCOBOL accepts up to 38 as its extension. The refusal is ours and correct; the row is a GnuCOBOL extension, the shape the differential's header warns about. |
 
 Reading: five signatures from 16 compiled programs is a high lead density, and it will fall as the obvious latitude
 (DISPLAY of signs and implied decimal points) is adjudicated once and recognised in later reports. The seed order matters:
@@ -85,8 +85,22 @@ the forty programs came from §8.8 (arithmetic) only, because the seed list is w
 each; after this run the seed list is shuffled by default (deterministically, `--seed`; `--in-order` restores the spec's
 walk) so a run of any length samples every area.
 
+## The five signatures checked against the standard (finisher, wave 1134, 2026-10-20)
+
+Each lead re-run on a build of the branch (`cobol.exe --std 2014 --run`) and read against `specs/ISO_COBOL.md`; every
+citation passed `cite.py --check`. Result: **no compiler defect among the 12 survivors**; four signatures are WiseOwl
+following the standard where GnuCOBOL's default dialect is wider, one is an implementor-latitude difference.
+
+| Signature | Verdict | Why |
+|---|---|---|
+| `WE_REJECT:COBOLNET2993` × 6 | WiseOwl correct | All six refused lines are `COMPUTE X = -IDENT …` (fz00003 line 71, fz00005 line 18, fz00016 line 21, fz00027 line 27, fz00028 line 34, fz00029 line 24). §8.7.1: the arithmetic operators "shall be preceded by a space and followed by a space except that no space is required between a left parenthesis and a unary operator or between a unary operator and a left parenthesis". `-A` has no space after the unary `-`, and an identifier is not a literal, so §8.3.3.3.2's literal sign cannot absorb it. GnuCOBOL's acceptance is its extension (kb/Work PB1430, PB2017 are the landed design). |
+| `OUTPUT_DIFFERS:8.8.1.5.4` × 2, run end | WiseOwl correct | The WiseOwl run stops at `0 ** -1` with `EC-SIZE-EXPONENTIATION (fatal)`. §8.8.1.2 6) a): a zero base requires an exponent "greater than zero", otherwise the exception condition is set to exist; §14.6.13.1.6 lists EC-SIZE-EXPONENTIATION as **Fatal**; no SIZE ERROR phrase was written (fz00030, fz00032). GnuCOBOL continues with zero. The program's later `0 ** 0` is the same condition (§8.8.1.5.4 GR 4). |
+| `OUTPUT_DIFFERS:8.8.1.5.4` × 2, signed display; `OUTPUT_DIFFERS:8.8.1.4.4` × 1 | Latitude, a lead for the owner | DISPLAY of a numeric DISPLAY-usage item: §14.9.11.4 GR 1, "Any conversion of data required between … the data item … and the device is defined by the implementor". WiseOwl prints the PICTURE's digits with the IBM / Micro Focus operational sign overpunch and no decimal point (`000125{`, owner decision PB803 for the sign, DOC-A.1-177 and DOC-A.1-56); GnuCOBOL's `pretty-display` prints `+00012.50`. The sign has an owner decision; the decimal point alone has no recorded one, and CLAUDE.md rule 1 puts GnuCOBOL ahead of IBM/Micro Focus where nothing else decides. Reported as a lead, not changed: the change would alter the output of every program that displays a scaled item. |
+| `WE_REJECT:COBOLNET1625` × 2 | WiseOwl correct | `PIC S9(5)V9(5) VALUE -0.000001` (fz00020 line 24: six decimals into five) and `PIC S9(4)V99 VALUE -0.333` (fz00031 line 26: three into two). §13.18.63.3 SR 2: the values "shall be representable exactly in the subject of the entry, without truncation of leading or trailing nonzero digits". GnuCOBOL truncates. |
+| `WE_REJECT:COBOLNET0801` × 1 | WiseOwl correct | `PIC 9(34)` (fz00026 line 9). §13.18.40.3 SR 14: "the number of digit positions … shall range from 1 through 31". The first version of this table cited §8.3.3.3.2, which is the literal rule; the compiler's own message and catalog entry carried the same inherited clause and now cite §13.18.40.3 SR14 for items and §8.3.3.3.2 for literals. |
+
 ## Decision
 
 The harness lands as tooling (kb/Work PB3463); the overnight run is the owner's to start, with the bake-off (`--bake-off`)
-choosing the generator among the installed models first. Every survivor is a lead for a Claude or human check against the
-standard; none is a verdict.
+choosing the generator among the installed models first. Every survivor of a later run is a lead for a Claude or human
+check against the standard; none is a verdict until that check.

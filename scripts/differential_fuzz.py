@@ -30,9 +30,12 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
                    construct is ISO (GnuCOBOL's default dialect carries extensions, so `-std=cobol2014` is pinned).
   OUTPUT_DIFFERS   both ran, outputs differ: a candidate wrong answer on one side; the spec decides which.
   WE_CRASH         WiseOwl's compiler crashed (the adapter's crash exit codes), or an unhandled exception at run time.
-  WE_HANG          WiseOwl's program exceeded the hang guard while GnuCOBOL's finished.
+  WE_FAIL_RUN      same stdout, but WiseOwl's program exited non-zero where GnuCOBOL's exited zero: a run-time abort after the
+                   last DISPLAY (a failing CLOSE or DELETE FILE, a STOP RUN status), invisible in the output.
+  EXIT_DIFFERS     same stdout, both programs ended with a non-zero status, not the same one.
+  WE_HANG          WiseOwl's compile or program exceeded the hang guard while GnuCOBOL's finished.
   THEY_FAIL_RUN    GnuCOBOL compiled it but its program failed at run time while ours ran: low value, kept for the record.
-  THEY_HANG        GnuCOBOL's program exceeded the hang guard.
+  THEY_HANG        GnuCOBOL's compile or program exceeded the hang guard.
   RUNNER_ERROR     a compiler did not start or the harness could not observe it: never a compiler verdict (plan §11 A12e).
 Survivors are grouped by SIGNATURE (class + WiseOwl's diagnostic codes, or class + clause) so one defect hit forty times
 is one triage row. `report.md` is rendered at the end and every REPORT_EVERY programs.
@@ -249,7 +252,10 @@ def observe(run: suite_run.Run, entry: dict[str, Any], work: Path) -> Observatio
     """Compile, then run, one program through one compiler's adapter, as the suite's `accept` would, without judging."""
     source, program = run.stage(entry, work)
     step = run.operation("compile", EDITION, entry, work, source, program)
-    if step.error is not None or step.timed_out:
+    if step.timed_out:
+        # A compile that does not finish is an observation (a hang), not a harness failure: classify() reads `hung`.
+        return Observation(None, step.returncode, step.text(), [], hung=True, runner_error=run.unjudgeable(step, "the compiler") or "")
+    if step.error is not None:
         return Observation(None, step.returncode, step.text(), [], runner_error=run.unjudgeable(step, "the compiler") or "")
     diag = step.text()
     codes = sorted(set(DIAG_CODE.findall(diag)))
@@ -272,10 +278,12 @@ def classify(we: Observation, they: Observation) -> str:
     """The class of one program from the two observations. GnuCOBOL's refusal is judged first: a program it does not
     compile is the model's failure, whatever WiseOwl did with it."""
     if they.compiled is None:
-        return "RUNNER_ERROR"
+        return "THEY_HANG" if they.hung else "RUNNER_ERROR"
     if they.compiled is False:
         return "GNU_REJECTS"
-    if we.compiled is None or (we.compiled and we.ran is None):
+    if we.compiled is None:
+        return "WE_HANG" if we.hung else "RUNNER_ERROR"
+    if we.compiled and we.ran is None:
         return "RUNNER_ERROR"
     if we.crashed:
         return "WE_CRASH"
@@ -289,12 +297,17 @@ def classify(we: Observation, they: Observation) -> str:
         return "RUNNER_ERROR"
     if they.run_rc != 0 and we.run_rc == 0:
         return "THEY_FAIL_RUN"
-    if we.output == they.output:
+    if we.output != they.output:
+        return "OUTPUT_DIFFERS"
+    # The exit status is an observable result too (ISO 14.9.42.4 General rule 2: the operating system is told of an error
+    # termination): a fatal condition after the last DISPLAY leaves the same stdout, so it is compared here, never read as
+    # agreement.
+    if we.run_rc == they.run_rc:
         return "AGREE"
-    return "OUTPUT_DIFFERS"
+    return "WE_FAIL_RUN" if we.run_rc != 0 and they.run_rc == 0 else "EXIT_DIFFERS"
 
 
-LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "OUTPUT_DIFFERS", "WE_HANG", "THEY_HANG", "THEY_FAIL_RUN")
+LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "OUTPUT_DIFFERS", "WE_FAIL_RUN", "EXIT_DIFFERS", "WE_HANG", "THEY_HANG", "THEY_FAIL_RUN")
 
 
 def signature(verdict: str, clause: str, we: Observation) -> str:
@@ -513,7 +526,7 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
             lines.append(f"- WiseOwl: `{we['first_error']}`")
         if we.get("runner_error") or they.get("runner_error"):
             lines.append(f"- runner: {we.get('runner_error') or they.get('runner_error')}")
-        if r["verdict"] in ("OUTPUT_DIFFERS", "THEY_FAIL_RUN"):
+        if r["verdict"] in ("OUTPUT_DIFFERS", "THEY_FAIL_RUN", "WE_FAIL_RUN", "EXIT_DIFFERS"):
             lines.append("- outputs (WiseOwl | GnuCOBOL), first differing lines:")
             a, b = we.get("output", "").splitlines(), they.get("output", "").splitlines()
             shown = 0
@@ -524,6 +537,8 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
                     shown += 1
                     if shown == 5:
                         break
+            if we.get("run_rc") not in (None, 0):
+                lines.append(f"  - WiseOwl run exit {we['run_rc']}")
             if they.get("run_rc") not in (None, 0):
                 lines.append(f"  - GnuCOBOL run exit {they['run_rc']}: `{they.get('first_error', '')}`")
     runner = [r for r in rows if r["verdict"] == "RUNNER_ERROR"]
@@ -616,6 +631,14 @@ def self_test() -> int:
     check("classify: our hang", classify(Observation(True, 0, "", [], ran=False, hung=True), ok_run) == "WE_HANG")
     check("classify: their hang", classify(ok_run, Observation(True, 0, "", [], ran=False, hung=True)) == "THEY_HANG")
     check("classify: their run-time failure while ours ran", classify(ok_run, dataclasses.replace(ok_run, run_rc=1)) == "THEY_FAIL_RUN")
+    check("classify: same stdout but our program exits non-zero where theirs exits zero is a lead, never AGREE (review R1-1)",
+          classify(dataclasses.replace(ok_run, run_rc=1), ok_run) == "WE_FAIL_RUN")
+    check("classify: same stdout, both exit non-zero with different statuses (review R1-1)",
+          classify(dataclasses.replace(ok_run, run_rc=1), dataclasses.replace(ok_run, run_rc=8)) == "EXIT_DIFFERS"
+          and classify(dataclasses.replace(ok_run, run_rc=8), dataclasses.replace(ok_run, run_rc=8)) == "AGREE")
+    check("classify: a compile that exceeds the hang guard is a hang on its side, not a runner error (review R1-2)",
+          classify(Observation(None, None, "", [], hung=True, runner_error="hang"), ok_run) == "WE_HANG"
+          and classify(ok_run, Observation(None, None, "", [], hung=True, runner_error="hang")) == "THEY_HANG")
     check("classify: an unobserved compiler is never a verdict (plan §11 A12e)",
           classify(Observation(None, None, "", [], runner_error="did not start"), ok_run) == "RUNNER_ERROR"
           and classify(ok_run, Observation(None, None, "", [], runner_error="x")) == "RUNNER_ERROR"
@@ -653,6 +676,11 @@ def self_test() -> int:
         suite_run.execute = orig
     check("wsl bridge: the run addresses the program relative to the mapped working directory; compile passes the argv through",
           seen == [("wsl", "-d", "Ubuntu", "-e", "./fz00001"), ("wsl", "-d", "Ubuntu", "-e", "cobc", "-x", "fz00001.cob")], seen)
+    hanging = types.SimpleNamespace(stage=lambda entry, work: ("a.cob", "a"), unjudgeable=lambda step, what: f"{what} hang",
+                                    operation=lambda *_a: suite_config.Step(None, timed_out=True))
+    hung_obs = observe(hanging, {}, Path("."))  # type: ignore[arg-type]
+    check("observe: a compile that times out is an observation with hung set, so the verdict is a hang and not a runner error (review R1-2)",
+          hung_obs.compiled is None and hung_obs.hung and classify(hung_obs, ok_run) == "WE_HANG", hung_obs)
     def boom(*_a: object) -> dict[str, Any]:
         raise FileNotFoundError("fz00002.cob")
     fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m"), _one=boom)
