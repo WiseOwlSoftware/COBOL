@@ -28,7 +28,6 @@ import coord  # noqa: E402
 
 CHECKPOINT = "checkpoint.json"
 MILESTONES = "milestones.jsonl"
-IGNORED_DIRTY = (".claude/settings.local.json", "STATUS.md")  # the owner's local file and the checkpoint file itself
 SUMMARY_CAP = 900     # handoff.schema.json: summary is at most 900 characters
 
 
@@ -54,8 +53,7 @@ def worktrees(repo: pathlib.Path) -> list[dict]:
         path = pathlib.Path(w.get("worktree", ""))
         if str(path.resolve()).replace("\\", "/").lower() == main or "branch" not in w:
             continue
-        dirty = [ln for ln in git(path, "status", "--porcelain").splitlines()
-                 if not any(ln.rstrip().endswith(i) for i in IGNORED_DIRTY)]
+        dirty = coord.porcelain_work(git(path, "status", "--porcelain").splitlines())
         ahead = git(path, "rev-list", "--count", "origin/main..HEAD").strip()
         status = path / "STATUS.md"
         headline = ""

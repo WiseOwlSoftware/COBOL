@@ -390,7 +390,6 @@ def unlanded_branch_notes() -> dict[str, list[str]]:
 
 
 DISPATCH_LEDGER = "inflight-groups.json"
-_NOT_PRODUCT = ("STATUS.md", "TestResults/")
 
 
 def ledger_groups(coord_dir: pathlib.Path) -> list[dict[str, Any]]:
@@ -427,7 +426,7 @@ def answers(r: Report, g: dict[str, Any]) -> bool:
 
 
 def _names(out: str) -> set[str]:
-    return {s.strip() for s in out.splitlines() if s.strip() and not s.strip().startswith(_NOT_PRODUCT)}
+    return {s.strip() for s in out.splitlines() if s.strip() and coord.is_work(s.strip())}
 
 
 def changed_files(git: Callable[..., Any], *revs: str, cwd: Any = None) -> set[str]:

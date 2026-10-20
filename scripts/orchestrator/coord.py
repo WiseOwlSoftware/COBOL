@@ -15,7 +15,7 @@ import pathlib
 import re
 import sys
 import time
-from typing import Any, Iterator
+from typing import Any, Iterable, Iterator
 
 # scripts/, for the one Windows share-retry rule (sharedfile.py, kb/Work PB2564), which gate_slot.py uses too. Appended,
 # so a module of the importer's own directory is never shadowed.
@@ -228,6 +228,30 @@ LOOP_UNIT_ENV = "COBOL_LOOP_UNIT"
 def stop_unit(override: str | None = None) -> pathlib.Path:
     """The supervisor's wind-down signal to the running unit. Never creates the directory."""
     return coord_path(override) / "STOP-UNIT"
+
+
+#: THE paths a worktree's dirt or diff never counts as work, one list for every reader (kb/Work PB3465): the harness's
+#: local settings, modified in every agent's worktree; the checkpoint file (gitignored; excluded as well in case a tree
+#: tracks one); and the gate's results directory (an entry ending in `/` is a directory: everything under it). Six
+#: readers carried their own copy, and the planner's (`plan_wave._NOT_PRODUCT`) lacked the settings file, so every
+#: worktree owned `.claude/settings.local.json` and a finisher continuing one worktree collided with all the others
+#: (wave 1134 held PB3337, PB3460 and PB1278).
+NEVER_WORK = (".claude/settings.local.json", "STATUS.md", "TestResults/")
+#: The same list as git pathspecs: `git status --porcelain -- . *NEVER_WORK_PATHSPECS`.
+NEVER_WORK_PATHSPECS = tuple(f":!{p}" for p in NEVER_WORK)
+
+
+def is_work(path: str) -> bool:
+    """Whether a repo-relative path (either separator) can be work: it is no NEVER_WORK file and lies under no
+    NEVER_WORK directory."""
+    p = path.replace("\\", "/")
+    return not any(p.startswith(n) if n.endswith("/") else p == n for n in NEVER_WORK)
+
+
+def porcelain_work(lines: Iterable[str]) -> list[str]:
+    """The `git status --porcelain` lines that are work: each line whose path (a rename's new path, quotes removed)
+    is_work."""
+    return [ln for ln in lines if ln.strip() and is_work(ln[3:].split(" -> ")[-1].strip().strip('"'))]
 
 
 # Every coordination read and write goes through sharedfile.py: a reader holding a coordination file open on Windows
