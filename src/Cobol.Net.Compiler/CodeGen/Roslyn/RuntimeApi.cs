@@ -2365,9 +2365,15 @@ internal static class RuntimeApi
     // ── A CELL-BACKED area's VARIABLE-LENGTH half (kb/Work PB1026, PB1042) — StorageCell's component slots ──────────
 
     /// <summary>The current content of a dynamic-length member of a cell-backed area — <c>StorageCell.DynAt</c>.
-    /// <paramref name="ordinal"/> is the component ordinal expression (<c>Place.CellComponents</c>).</summary>
-    public static string CellDynRead(string cellExpr, string ordinal) =>
-        $"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))";
+    /// <paramref name="ordinal"/> is the component ordinal expression (<c>Place.CellComponents</c>).
+    /// <para>⛔ THE SLOT HOLDS THE MEMBER'S IMAGE, NOT ITS CHARACTERS (kb/Work PB3441): the cell is a byte-addressed
+    /// storage area, and the slot of a NATIONAL item is its UTF-16BE image (two image characters a position, D-N1), the
+    /// form every other reader of the slot - the group's contiguous image, its carrier, a record image - takes as it
+    /// is. <paramref name="national"/> decodes it to the item's national characters (<see cref="NatFromStorage"/>), and
+    /// <see cref="CellDynWrite"/> and the cell seeds encode them.</para></summary>
+    public static string CellDynRead(string cellExpr, string ordinal, bool national = false) =>
+        national ? NatFromStorage($"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))")
+                 : $"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))";
 
     /// <summary>The SENDING read of a dynamic-length item through a description that does not own its storage —
     /// <c>CobolDynString.Agree</c>, ISO §14.6.13.2 rule 5's agreement with THIS description's maximum size (kb/Work
@@ -2376,9 +2382,10 @@ internal static class RuntimeApi
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Agree)}({valueExpr}, {maxSize})";
 
     /// <summary>Store a dynamic-length member's new content — <c>StorageCell.SetDynAt</c>, the receiving twin of
-    /// <see cref="CellDynRead"/>. <paramref name="valueExpr"/> already carries §8.5.1.10.4's receiving rule.</summary>
-    public static string CellDynWrite(string cellExpr, string ordinal, string valueExpr) =>
-        $"{cellExpr}.{nameof(StorageCell.SetDynAt)}((int)({ordinal}), {valueExpr})";
+    /// <see cref="CellDynRead"/>. <paramref name="valueExpr"/> already carries §8.5.1.10.4's receiving rule;
+    /// <paramref name="national"/> stores the item's UTF-16BE image (<see cref="NatBytes"/>), which is what the slot holds.</summary>
+    public static string CellDynWrite(string cellExpr, string ordinal, string valueExpr, bool national = false) =>
+        $"{cellExpr}.{nameof(StorageCell.SetDynAt)}((int)({ordinal}), {(national ? NatBytes(valueExpr) : valueExpr)})";
 
     /// <summary>A cell-backed area's dynamic-capacity table, asked to agree with the referencing description's FROM
     /// minimum and element width (ISO §14.6.13.2 rule 6) — <c>StorageCell.DynTableAt</c> (kb/Work PB1042).</summary>
@@ -2410,7 +2417,7 @@ internal static class RuntimeApi
         shapes.All(s => s is null) ? "" : $", [{string.Join(", ", shapes.Select(CellShapeText))}]";
 
     private static string CellShapeText(CellGroupShape? s) => s is null ? "null"
-        : $"new {nameof(CellGroupShape)}({s.Width}, {IntSpan(s.DynFixedAt)}, {IntSpan(s.DynTable)}, {IntSpan(s.DynMax)}"
+        : $"new {nameof(CellGroupShape)}({s.Width}, {IntSpan(s.DynFixedAt)}, {IntSpan(s.DynTable)}, {IntSpan(s.DynMax)}, {IntSpan(s.DynLayout)}"
           + (s.Elems is null || s.Elems.All(e => e is null) ? ")" : $", [{string.Join(", ", s.Elems.Select(CellShapeText))}])");
 
     /// <summary>The OCCURS DEPENDING table a variable-length group holds as its trailing storage (<c>OdoTail</c>,
@@ -2466,9 +2473,9 @@ internal static class RuntimeApi
     /// <summary>Distribute a component carrier into a cell-backed variable-length group — <c>StorageCell.StoreVarGroupAt</c>.</summary>
     public static string CellVarStoreCarrier(string cellExpr, string fixedAtExpr, int width, string dynBase,
                                              IEnumerable<int> dynFixedAt, IEnumerable<int> dynMax,
-                                             IEnumerable<int> dynTable, OdoTail odo, string count, string carrierExpr,
-                                             IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
-        $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
+                                             IEnumerable<int> dynLayout, IEnumerable<int> dynTable, OdoTail odo, string count,
+                                             string carrierExpr, IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
+        $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynLayout)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
         // the storage flag reaches only the nested elements' stores (the top level's maximum sizes already say it)
         + (dynElem.All(s => s is null) ? ")" : $"{CellElemShapes(dynElem)}{(storage ? ", true" : "")})");
 
