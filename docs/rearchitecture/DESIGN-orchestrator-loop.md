@@ -708,7 +708,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
    decided rather than planned over. A group's own work never collides: the branch its `pred` already continues
    (`Group.continues`), a dispatch of its own notes, a branch whose report or commit subjects name its notes (an
    earlier attempt). A ledger group a report answers (its slug) is read through its branch, never its declared set; a
-   LANDED branch is gone. The external-repository slices gate the campaign only. The landing check stays the
+   LANDED branch is gone. The open external-repository slices are a RESERVATION (`plan_wave.slice_reservation`, kb/Work
+   PB3456): a campaign's plan holds only the restructuring program's groups for them (R69 §2, `work.restructuring`),
+   never a fix campaign's or the fix lane's, and names them OPEN (RESERVED) while nobody runs one. The landing check stays the
    guarantee for R3 work; fix lane against fix lane is never stopped there, and costs at most a conflict finisher.
    **An empty file set is UNKNOWN, never "collides with nothing"** (`plan_wave.collision`, kb/Work PB3263). A group
    none of whose notes declares a site block has an empty set, and so does a dispatch the ledger recorded with none

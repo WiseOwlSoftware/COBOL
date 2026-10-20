@@ -78,8 +78,10 @@ documentation ids), and the code files under a site folder, on THE index of this
 command mentions, nor a bare type name. fix_clusters' scored prose sites rank and group the fix lane's notes and never
 enter a declared set. The in-flight work (inflight_file_sets: every worktree's and every unlanded branch's changed files, committed or not, and every
 dispatched group whose notes are still open, from the coordination directory's dispatch ledger, which only the
-planner's and the spec renderer's record_dispatch write: kb/Work PB3186) and the open external-repository slices'
-in-flight set (work.slice_file_set, DESIGN-external-repository §12), classified by ONE rule (classify_inflight): a
+planner's and the spec renderer's record_dispatch write: kb/Work PB3186) and, for a campaign's plan, the open
+external-repository slices' RESERVATION (slice_reservation: work.slice_file_set, DESIGN-external-repository §12),
+which holds only the restructuring program's groups (R69 §2, work.restructuring; a fix campaign is never held for a
+slice, kb/Work PB3456) and reads OPEN (RESERVED) while nobody runs a slice, classified by ONE rule (classify_inflight): a
 group meeting RUNNING work (a dispatch with no report yet, a worktree or branch no finished report covers) waits, with
 the collision named; a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
 landing) is planned as their CONTINUATION, its pred telling it to merge each first. AN EMPTY SET IS UNKNOWN, never
@@ -671,12 +673,15 @@ class InFlight:
     it changes, its branch (a worktree's or an unlanded branch's), the notes it works on (a dispatch's notes; a
     branch's newest report's ids and its commit subjects' ids), its lifecycle state (the branch survey's, or the
     dispatch's), and the FINISHED report that names its branch when it is finished work. A group whose files meet a
-    finished owner CONTINUES it; one whose files meet any other owner waits."""
+    finished owner CONTINUES it; one whose files meet any other owner waits. `reserves` marks a RESERVATION, not work:
+    the file set of open notes nobody need be running (the external-repository slices, slice_reservation), held only
+    from the groups holding one of these notes; None holds every group."""
     files: set[str]
     branch: str | None = None
     notes: set[str] = dataclasses.field(default_factory=set)
     finished: Report | None = None
     state: str = "RUNNING"
+    reserves: set[str] | None = None
 
 
 #: The branch survey's lifecycle states (prune_worktrees.lifecycle, MANDATORY-PRACTICES O10) of FINISHED work: a
@@ -701,7 +706,10 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         (locked by a live agent, touched within the survey's --min-age, a dispatch's or an in-flight branch's), one
         STOPPED or BOUNCED at its landing (its finisher works on it next), one undecided (DECISION: unlanded work no
         session has decided, MANDATORY-PRACTICES O10; the collision names it, so the operator decides it), or a
-        detached worktree or owner the survey does not name (the external-repository slices).
+        detached worktree or owner the survey does not name;
+      - a RESERVATION (its meta's `reserves`, slice_reservation: the open external-repository slices) is no work of its
+        own: it reads OPEN (RESERVED) while no other owner works on one of its notes, and RUNNING (naming that owner)
+        once one does, so a plan never calls a slice nobody runs RUNNING (kb/Work PB3456).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
     report's ids are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
     plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
@@ -715,6 +723,9 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         if m.get("slug"):
             out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), state="DISPATCHED, NO REPORT YET")
             continue
+        if "reserves" in m:   # its state is read below, from the work on its notes
+            out[owner] = InFlight(set(files), notes=set(m.get("notes", [])), reserves=set(m["reserves"]))
+            continue
         branch = m.get("branch")
         state = states.get(branch or "", "RUNNING")
         if state in GONE_STATES:
@@ -723,7 +734,33 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
         done = rep if state in CONTINUED_STATES and rep and rep.finished else None
         out[owner] = InFlight(set(files), branch, notes, done, state)
+    for x in out.values():
+        if x.reserves is not None:
+            carriers = sorted(o for o, y in out.items() if y.reserves is None and y.notes & x.notes)
+            x.state = f"RUNNING ({'; '.join(carriers)})" if carriers else "OPEN (RESERVED)"
     return out
+
+
+#: The in-flight owner the open external-repository slices' reservation is filed under.
+SLICE_OWNER = "the open external-repository slices"
+
+
+def slice_reservation(items: list[dict], campaign: str | None,
+                      file_set: Callable[[], set[str]] = work.slice_file_set) -> tuple[set[str], dict] | None:
+    """The open external-repository slices' RESERVATION for one plan, as (its file set, its classify_inflight meta), or
+    None when there is none to make. R69 §2 reserves DESIGN-external-repository §12's in-flight set (`file_set`,
+    work.slice_file_set) from the restructuring program's waves only, "R2 and every R3 wave" (work.restructuring),
+    whichever campaign proposes them: a fix campaign's group is never held for slices nobody runs (kb/Work PB3456:
+    PB3353's tier 1 and its tier-2 chain waited on docs/CONFORMANCE.md for them), and the fix lane, which plans no
+    restructuring wave, never reads the set (DESIGN-architecture-review §8.7, set (b)). The meta names the slices,
+    whose notes give the owner its subsystems (a group whose set is UNKNOWN meets it only on a shared one: collision,
+    kb/Work PB3263), and `reserves`, the open restructuring notes whose groups it holds."""
+    slices = work.open_slices(items)
+    reserved = sorted((i["id"] for i in items if work.restructuring(i) and i.get("status") not in work.TERMINAL_STATUSES),
+                      key=work.id_order)
+    if not campaign or not slices or not reserved:
+        return None
+    return file_set(), {"notes": slices, "reserves": reserved}
 
 
 def continuation_pred(reps: list[Report], shared: dict[str, list[str]]) -> str:
@@ -1198,8 +1235,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         if busy:   # THE FILE-SET PARTITION, one rule for both lanes (kb/Work PB2807; classify_inflight)
             met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
                    if not (x.branch and x.branch in g.continues)              # its pred continues, or a dispatch of
-                   and not x.notes & set(g.notes)                             # its own notes (the hold decided those)
-                   and collision(mine, areas, x.files, subsystems(x.notes, notes))}
+                   and not x.notes & set(g.notes)                             # its own notes (the hold decided those);
+                   and (x.reserves is None or x.reserves & set(g.notes))      # a reservation holds only its notes'
+                   and collision(mine, areas, x.files, subsystems(x.notes, notes))}   # groups (PB3456)
             # a meeting the partition could not check by file (an UNKNOWN set) waits even for FINISHED work: a
             # continuation would merge a branch the group may share nothing with (collision, kb/Work PB3263)
             if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None or not (mine and x.files)}:
@@ -1543,17 +1581,11 @@ def main(argv: list[str] | None = None) -> int:
         return status_of.get(nid) in work.TERMINAL_STATUSES
 
     # THE FILE-SET PARTITION, for EVERY plan (kb/Work PB2807): the in-flight work (worktrees, branches, dispatched
-    # groups) read once and classified once, and the open external-repository slices
+    # groups) read once and classified once, and the open external-repository slices' reservation
     meta: dict[str, dict] = {}
     raw = inflight_file_sets(coord_dir=cdir, terminal=terminal, with_git=not a.no_branches, meta=meta, reports=reports)
-    # the slices gate the R3 campaign only (PB2118 Draft 7, R69 section 2): the fix lane is never held for them
-    slices = [i["id"] for i in items if work.EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
-              and i.get("status") not in work.TERMINAL_STATUSES]
-    if a.cluster and slices:
-        raw["the open external-repository slices"] = work.slice_file_set()
-        # their notes give the owner its subsystems, so a group whose set is UNKNOWN meets it only on a shared one
-        # (collision, kb/Work PB3263), never on "subsystem unknown"
-        meta["the open external-repository slices"] = {"notes": slices}
+    if reservation := slice_reservation(items, a.cluster):
+        raw[SLICE_OWNER], meta[SLICE_OWNER] = reservation
     states: dict[str, str] = {}
     owned: set[str] = set()
     review_covers = None

@@ -1560,6 +1560,59 @@ us = pw.plan(notes, [unsited("PB9"), unsited("PB11")], [], [], lambda b: "ABSENT
              busy=SLI)
 check("... and an UNKNOWN group meets it only on a shared subsystem (PB8 is oo/classes; PB9 and PB11 are runtime)",
       (sorted(i for g in us["groups"] for i in g.notes), sorted(us["waiting"])), (["PB11", "PB9"], []))
+
+# kb/Work PB3456: THE SLICES' RESERVATION HOLDS ONLY THE RESTRUCTURING PROGRAM'S GROUPS (R69 §2, "R2 and every R3
+# wave"), whichever campaign plans them, and reads OPEN (RESERVED) while nobody runs a slice. Wave 1132 (campaign
+# PB3353) held PB1278 and the owner's tier-2 chain (PB3337, PB3338, PB3340) on docs/CONFORMANCE.md for four slices no
+# worktree, branch or dispatch held, and printed them RUNNING.
+check("restructuring: a PB1754 or PB2119 note is the program's, also when a fix campaign shares it; no other is",
+      [work.restructuring({"cluster": c}) for c in (["PB1754"], ["PB2119"], ["PB2119", "PB3353"], ["PB3353"], [],
+                                                    "PB2119", None)],
+      [True, True, True, False, False, False, False])
+SLICE_ITEMS = [{"id": "PB2100", "title": "PB2100 — external repository slice 4: open", "status": "open"},
+               {"id": "PB2097", "title": "PB2097 — external repository slice 1: landed", "status": "landed"},
+               {"id": "PB9", "status": "open", "cluster": ["PB2119", "PB3353"]},
+               {"id": "PB11", "status": "open", "cluster": ["PB3353"]},
+               {"id": "PB12", "status": "landed", "cluster": ["PB1754"]}]
+check("open_slices: the open slice notes only, in id order", work.open_slices(SLICE_ITEMS), ["PB2100"])
+
+
+def no_slice_set():
+    raise AssertionError("the slice file set was read for a plan that reserves nothing")
+
+
+RES = pw.slice_reservation(SLICE_ITEMS, "PB3353", lambda: {"docs/CONFORMANCE.md"})
+check("slice_reservation: a campaign's plan reserves the set, naming the open slices and the open restructuring "
+      "notes it holds (never a fix campaign's own, never a landed one)",
+      RES, ({"docs/CONFORMANCE.md"}, {"notes": ["PB2100"], "reserves": ["PB9"]}))
+check("slice_reservation: none (and the set unread) for the fix lane, with no open slice, or with no open "
+      "restructuring note",
+      (pw.slice_reservation(SLICE_ITEMS, None, no_slice_set),
+       pw.slice_reservation([i for i in SLICE_ITEMS if i["id"] != "PB2100"], "PB3353", no_slice_set),
+       pw.slice_reservation([i for i in SLICE_ITEMS if i["id"] != "PB9"], "PB3353", no_slice_set)),
+      (None, None, None))
+RSV = pw.classify_inflight({pw.SLICE_OWNER: RES[0]}, {pw.SLICE_OWNER: RES[1]}, [], {})
+check("classify_inflight: a reservation nobody runs reads OPEN (RESERVED), never RUNNING, and keeps what it reserves",
+      (RSV[pw.SLICE_OWNER].state, RSV[pw.SLICE_OWNER].reserves, RSV[pw.SLICE_OWNER].notes),
+      ("OPEN (RESERVED)", {"PB9"}, {"PB2100"}))
+RSV_RUN = pw.classify_inflight({pw.SLICE_OWNER: RES[0], "dispatched w1200a (PB2100)": {"src/S.cs"}},
+                               {pw.SLICE_OWNER: RES[1],
+                                "dispatched w1200a (PB2100)": {"notes": ["PB2100"], "slug": "w1200a"}}, [], {})
+check("... and RUNNING, naming the work, once in-flight work holds one of its slices",
+      RSV_RUN[pw.SLICE_OWNER].state, "RUNNING (dispatched w1200a (PB2100))")
+
+
+def on_conformance(file, nid):
+    return {**cl(file, nid), "files": [file, "docs/CONFORMANCE.md"]}
+
+
+rp = pw.plan(notes, [on_conformance("src/X/Other.cs", "PB11"), on_conformance("src/X/Misc.cs", "PB9")], [], [],
+             lambda b: "ABSENT", {}, RULES, budget_points=100, busy=RSV)
+check("a fix campaign's group on a reserved file is planned; a restructuring note's group on it waits, the "
+      "reservation named OPEN (RESERVED)",
+      ([g.notes for g in rp["groups"]], sorted(rp["waiting"]),
+       "the open external-repository slices [OPEN (RESERVED)] (docs/CONFORMANCE.md)" in rp["waiting"].get("PB9", "")),
+      ([["PB11"]], ["PB9"], True))
 UL = TMP / "coord-unknown"
 UL.mkdir()
 coord.write_json(UL / pw.DISPATCH_LEDGER, {"groups": [{"wave": "1117", "letter": "c", "notes": ["PB5"], "files": []}]})
