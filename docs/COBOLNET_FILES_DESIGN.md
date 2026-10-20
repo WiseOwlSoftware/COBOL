@@ -2325,8 +2325,9 @@ implied, or the beginning of file … if PREVIOUS is specified".
 A backward read is a **reposition**, not a second reader: `SeekToOrdinal` positions the stream at the record's
 first character and the ordinary read body then delivers it, which is what keeps `_lastReadBlockStart` (the
 in-place REWRITE anchor, §14.9.35.4 GR5) correct after a PREVIOUS. The offset is arithmetic on a fixed-width
-record-sequential file; on a RECORD VARYING file it comes from `RecordFraming.FrameStarts`, a prefix-only scan
-built **lazily on the first backward read**, so a forward READ walk pays nothing for a facility it never uses.
+record-sequential file; on a RECORD VARYING file it comes from `FrameIndex` (a checkpoint per 4096 frames plus a window of the exact starts of the span being read,
+DESIGN-runtime-library.md 2.2.3), a prefix-only walk fed for free by the forward read and extended on demand by a
+backward one, so a forward READ walk pays nothing for a facility it never uses and no read holds O(records) memory.
 LINE SEQUENTIAL has no backward walk and needs none — §14.9.30.3 SR7 forbids the phrase there — and a stream that
 cannot seek is not §14.9.30.4 GR20's "single reel/unit mass storage file", which the connector reports as the '30'
 permanent error rather than silently reading something else.
