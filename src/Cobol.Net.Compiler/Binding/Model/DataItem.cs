@@ -834,23 +834,24 @@ public sealed class DataItem
     /// to read the OCCURS maximum a dynamic table does not have.</summary>
     public int VariableComponentMax => OccursSpec is { IsDynamic: true } dynamic ? dynamic.MaxCapacity : DynMaxSize;
 
-    /// <summary>⛔ THE IMAGE UNIT OF A DYNAMIC-LENGTH ITEM'S DATA (kb/Work PB3441): how many image characters one of its
-    /// character positions occupies in the image of the group that holds it - a variable-length group's current-extent
-    /// image (what DISPLAY shows and LENGTH counts), its carrier components, a record image and a cell's component
-    /// slots. One for an alphanumeric item, <see cref="PicInfo.BytesPerPosition"/> (two, UTF-16BE, D-N1) for a national
-    /// one: the image of a group IS its storage, so a national member contributes the bytes it occupies whether it is
-    /// fixed or dynamic-length (CONFORMANCE.md A.1 items 57 and 63). The ONE reader of the unit: the group composer, the
-    /// contiguous layout of a declared and of a cell-backed group, and the dynamic-length structure (<see
-    /// cref="FileModel.StructureOf"/>) all ask it.</summary>
-    public int DynamicImageUnit => Pic?.BytesPerPosition ?? 1;
+    /// <summary>⛔ THE IMAGE UNIT OF AN ITEM'S DATA (kb/Work PB3441): how many image characters one of its character
+    /// positions occupies in the image of the group that holds it - a variable-length group's current-extent image (what
+    /// DISPLAY shows and LENGTH counts), its carrier components, a record image and a cell's component slots. One for an
+    /// alphanumeric item (and group), <see cref="PicInfo.BytesPerPosition"/> (two, UTF-16BE, D-N1) for a national item and
+    /// two for a GROUP-USAGE NATIONAL group: the image of a group IS its storage, so a national member contributes the
+    /// bytes it occupies whether it is fixed or dynamic-length (CONFORMANCE.md A.1 items 57 and 63). The ONE reader of the
+    /// unit: the group composer, the contiguous layout of a declared and of a cell-backed group, the dynamic-length
+    /// structure (<see cref="FileModel.StructureOf"/>) and the space a table element is filled with all ask it.</summary>
+    public int ImageUnit => Pic?.BytesPerPosition
+        ?? PicInfo.BytesPerPositionOf(GroupUsage is GroupUsage.National ? Usage.National : Usage.Display);
 
     /// <summary>The maximum size of a variable-length component in the unit a cell's component SLOT holds it in
     /// (kb/Work PB3441): <see cref="VariableComponentMax"/> for a dynamic-capacity table (occurrences), and for a
     /// dynamic-length item its maximum size in IMAGE CHARACTERS (<see cref="DynMaxSize"/> positions of
-    /// <see cref="DynamicImageUnit"/> each), because the slot of a national item holds its UTF-16BE image and a store into
+    /// <see cref="ImageUnit"/> each), because the slot of a national item holds its UTF-16BE image and a store into
     /// it truncates the image on the right at the item's maximum size (§8.5.1.10.4). A layout of the same group divides it
     /// back by the unit (<c>StorageCell.LayoutOf</c>).</summary>
-    public int SlotMaxSize => OccursSpec is { IsDynamic: true } ? VariableComponentMax : DynMaxSize * DynamicImageUnit;
+    public int SlotMaxSize => OccursSpec is { IsDynamic: true } ? VariableComponentMax : DynMaxSize * ImageUnit;
 
     /// <summary>The SPECIAL-NAMES dynamic-length structure this item's DYNAMIC LENGTH clause names (ISO §13.18.19.3
     /// SR2 — dynamic-length-structure-name-1), or null when the clause names none and the structure is the

@@ -404,7 +404,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
             // text rides it as its UTF-16BE bytes, the form its cell's slot holds (kb/Work PB3441).
             string landed = $"HostLanding.LandVariable({m.Name}, {m.Item.DynMaxSize}, "
                 + $"{(m.Item.Pic!.Category is PicCategory.Boolean ? "true" : "false")}, __parameter, {path})";
-            w.Line($"__d[{at}] = {(m.Item.DynamicImageUnit > 1 ? RuntimeApi.NatBytes(landed) : landed)};");
+            w.Line($"__d[{at}] = {(m.Item.ImageUnit > 1 ? RuntimeApi.NatBytes(landed) : landed)};");
             return;
         }
         if (m.Item.IsDynamicTable)
@@ -453,7 +453,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         {
             // …and the component read back is that image: decoded to the national text the host record presents.
             string carried = RuntimeApi.VarGroupDyn("__v", at);
-            w.Line($"__r.{m.Name} = {(m.Item.DynamicImageUnit > 1 ? RuntimeApi.NatFromStorage(carried) : carried)};");
+            w.Line($"__r.{m.Name} = {(m.Item.ImageUnit > 1 ? RuntimeApi.NatFromStorage(carried) : carried)};");
             return;
         }
         if (m.Item.IsDynamicTable)

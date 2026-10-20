@@ -467,10 +467,13 @@ public sealed class StorageCell
     }
 
     /// <summary>The contiguous layout of a cell-backed variable-length group over its fixed run of
-    /// <paramref name="runWidth"/> positions: a dynamic-length item contributes its content character for character
-    /// (unit 1), a table whole occurrences (unit = its element width, maximum = its maximum capacity) — the units a
+    /// <paramref name="runWidth"/> positions: a dynamic-length item contributes its content as its slot holds it, in
+    /// positions of its image unit (<see cref="CobolDynStructure.UnitOf"/> of its layout code: two image characters for a
+    /// national item, kb/Work PB3441), a table whole occurrences (unit = its element width, maximum = its maximum
+    /// capacity) — the units a
     /// declared group's generated layout gives the same members (<c>GroupImageCodec.ContiguousLayout</c>).
-    /// <paramref name="dynStructure"/> is each component's <see cref="CobolDynStructure.Code"/> (0 = none; ISO
+    /// <paramref name="dynStructure"/> is each component's layout code (<see cref="CobolDynStructure.Code"/>, or its unit
+    /// alone, <see cref="CobolDynStructure.PlainCode"/>; 0 = a one-character unit and no structure; ISO
     /// §12.3.7.4 GR18/GR19; kb/Work PB1094) — constant data the compiler read off the same item, so this layout and a
     /// declared group's cannot disagree. A group that holds an OCCURS DEPENDING table (<paramref name="tail"/>) of
     /// fixed-image elements has it as the LAST component (§13.18.38.3 SR22; <see cref="CobolContiguousLayout"/>'s

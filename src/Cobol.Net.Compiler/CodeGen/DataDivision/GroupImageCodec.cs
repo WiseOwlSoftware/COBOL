@@ -125,7 +125,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
             {
                 // The slot of a NATIONAL item holds its UTF-16BE image (StorageCell.DynAt; kb/Work PB3441), so the seed is that.
                 string initial = vals.InitializerFrom(c, c.RawValue);
-                yield return $".{nameof(CobolNet.Runtime.StorageCell.SeedDyn)}({k}, {(c.DynamicImageUnit > 1 ? RuntimeApi.NatBytes(initial) : initial)})";
+                yield return $".{nameof(CobolNet.Runtime.StorageCell.SeedDyn)}({k}, {(c.ImageUnit > 1 ? RuntimeApi.NatBytes(initial) : initial)})";
             }
         }
     }
@@ -450,7 +450,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         // §15.50.4 r7b — a dynamic-length leaf's current content at its current length, as the image it occupies: a
         // NATIONAL leaf's characters are its UTF-16BE byte pairs (D-N1), exactly as a fixed national member's are
         // (AsImageOf; kb/Work PB3441), so the group's image is its storage and DISPLAY, LENGTH and CONVERT ANY agree.
-        : d.DynamicImageUnit > 1 ? RuntimeApi.NatBytes(DynLeafContent(d, agree))
+        : d.ImageUnit > 1 ? RuntimeApi.NatBytes(DynLeafContent(d, agree))
         : DynLeafContent(d, agree);
 
     /// <summary>A dynamic-length leaf's current content in ITS OWN characters (<see cref="CurrentMemberImage"/> images it).</summary>
@@ -486,13 +486,13 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
         : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
             ? $"__e => {NationalImage(d, d.Pic.IsFloat ? RuntimeApi.NumFormatImageFloat("__e", d.ProfileName, d.Pic.IsSingle)
                                                        : RuntimeApi.NumFormatImage("__e", d.ProfileName))}"
-        : d.DynamicImageUnit > 1 ? $"static __e => {RuntimeApi.NatBytes("__e")}"
+        : d.ImageUnit > 1 ? $"static __e => {RuntimeApi.NatBytes("__e")}"
         : "static __e => __e";
 
     /// <summary>The image of a leaf whose character image is <paramref name="characters"/>: those characters as UTF-16BE byte
-    /// pairs when the leaf is USAGE NATIONAL (<see cref="DataItem.DynamicImageUnit"/>), else themselves.</summary>
+    /// pairs when the leaf is USAGE NATIONAL (<see cref="DataItem.ImageUnit"/>), else themselves.</summary>
     private static string NationalImage(DataItem d, string characters) =>
-        d.DynamicImageUnit > 1 ? RuntimeApi.NatBytes(characters) : characters;
+        d.ImageUnit > 1 ? RuntimeApi.NatBytes(characters) : characters;
 
     // ── The VARIABLE-LENGTH GROUP's ACTIVATION-BOUNDARY codec (ISO §14.8.2.2 / §14.8.3.2 via §14.9.4.3 SR25;
     //    kb/Work PB204) ─────────────────────────────────────────────────────────────────────────────────────
@@ -780,7 +780,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                         // right to the LIMIT, never pad. The component IS the item's whole current content.
                         // A NATIONAL leaf's component is its image, UTF-16BE (CurrentMemberImage): the characters are decoded
                         // first and the LIMIT counts POSITIONS, so a store never cuts a position's pair (kb/Work PB3441).
-                        string carried = p.Item!.DynamicImageUnit > 1 ? RuntimeApi.NatFromStorage($"__v.Dyn({dynAt})") : $"__v.Dyn({dynAt})";
+                        string carried = p.Item!.ImageUnit > 1 ? RuntimeApi.NatFromStorage($"__v.Dyn({dynAt})") : $"__v.Dyn({dynAt})";
                         w.Line($"{p.Field.Name} = __storage ? {carried} : {RuntimeApi.DynStore(carried, $"{p.Item.DynMaxSize}")};");
                         dynAt++;
                         break;
@@ -831,9 +831,10 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     }
 
     /// <summary>The flattened component layout <c>CobolVarGroup.FromContiguous</c> decomposes a record over:
-    /// each variable-length component's offset in the FIXED run, its unit width in characters (one for a
-    /// dynamic-length item — <see cref="CurrentMemberImage"/> contributes its content character for character —
-    /// the element width for a dynamic-capacity table), and its maximum size in those units (§8.5.1.10.1's
+    /// each variable-length component's offset in the FIXED run, its unit width in image characters (the image unit of a
+    /// dynamic-length item's positions - <see cref="DataItem.ImageUnit"/>, one for an alphanumeric item and two for
+    /// a national one, whose image <see cref="CurrentMemberImage"/> composes as its UTF-16BE bytes, kb/Work PB3441 - the
+    /// element width for a dynamic-capacity table), and its maximum size in those units (§8.5.1.10.1's
     /// maximum size; the table's maximum capacity). Nested scalar variable-length groups flatten in place, the
     /// same flattening <see cref="VarParts"/> gives the carrier. The fourth element is the component's DYNAMIC LENGTH
     /// STRUCTURE (<c>CobolDynStructure.Code</c>, 0 for none — ISO §12.3.7.4 GR18/GR19; kb/Work PB1094), read through
@@ -847,7 +848,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 case VarPartKind.Fixed: off += p.Field.Width; break;
                 // A dynamic-length item is counted in positions of its image unit: one character an alphanumeric position, two
                 // bytes a national one (kb/Work PB3441), the unit its fixed form pads and its structure frames by.
-                case VarPartKind.DynLeaf: layout.Add((off, p.Item!.DynamicImageUnit, p.Item.VariableComponentMax, FileModel.StructureOf(p.Item)?.Code ?? 0)); break;
+                case VarPartKind.DynLeaf: layout.Add((off, p.Item!.ImageUnit, p.Item.VariableComponentMax, FileModel.StructureOf(p.Item)?.Code ?? 0)); break;
                 case VarPartKind.DynTable:
                 case VarPartKind.DynGroupTable: layout.Add((off, p.Field.Width, p.Item!.VariableComponentMax, 0)); break;
                 case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off += p.FixedWidth; break;
@@ -881,7 +882,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     {
         // A NATIONAL element's image is its UTF-16BE byte pairs (DynElementImage): decode them back to its characters first,
         // then to the carrier (the inverse composition of AsImageOf's, design D-N7; kb/Work PB3441).
-        string x = d.DynamicImageUnit > 1 && !d.IsGroup ? RuntimeApi.NatFromStorage("__x") : "__x";
+        string x = d.ImageUnit > 1 ? RuntimeApi.NatFromStorage("__x") : "__x";
         return d.IsGroup ? "(__e, __x) => { __e.FromImage(__x); return __e; }"
             : BitLayout.IsBitLeaf(d) ? $"(__e, __x) => {RuntimeApi.BitsUnpack("__x", $"{d.Pic!.Length}")}"
             : !d.StoreAsImage && d.Pic is { HasImageByteForm: true }
@@ -895,7 +896,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// element of the dynamic table is space-filled"): <paramref name="width"/> bytes of the national space (the pair 00, 20)
     /// for a national element, never the byte 0x20 twice, which is U+2020 (kb/Work PB3441); else spaces.</summary>
     private static string SpaceElementImage(DataItem d, int width) =>
-        d.DynamicImageUnit > 1 && !d.IsGroup ? RuntimeApi.NatBytes($"new string(' ', {width / d.DynamicImageUnit})") : $"new string(' ', {width})";
+        d.ImageUnit > 1 ? RuntimeApi.NatBytes($"new string(' ', {width / d.ImageUnit})") : $"new string(' ', {width})";
 
     /// <summary>THE ONE RECIPE for what a class pointer/object leaf occupies in a byte image (kb/Work PB231 ->
     /// PB244, PB1071). A class-object leaf has no image: <paramref name="width"/> RESERVED placeholder positions,

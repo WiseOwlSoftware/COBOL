@@ -708,10 +708,10 @@ public sealed class FileModel
         ((long)item.ByteWidth + DynamicLeafSum(item, static leaf => DynamicLeafMaximum(leaf))) * (item.Occurs ?? 1);
 
     /// <summary>A dynamic-length item's MAXIMUM extent in a record image: its maximum size in bytes (§8.5.1.10.1 —
-    /// <see cref="DataItem.DynMaxSize"/> character positions of <see cref="DataItem.DynamicImageUnit"/> bytes each)
+    /// <see cref="DataItem.DynMaxSize"/> character positions of <see cref="DataItem.ImageUnit"/> bytes each)
     /// plus its dynamic length structure (<see cref="StructureOverhead"/>).</summary>
     private static long DynamicLeafMaximum(DataItem leaf) =>
-        (long)leaf.DynMaxSize * leaf.DynamicImageUnit + StructureOverhead(leaf);
+        (long)leaf.DynMaxSize * leaf.ImageUnit + StructureOverhead(leaf);
 
     /// <summary>⛔ THE ONE WALK OVER THE DYNAMIC-LENGTH LEAVES OF A RECORD DESCRIPTION (kb/Work PB3253): the sum of
     /// <paramref name="leafExtent"/> over every dynamic-length item at or beneath <paramref name="item"/> that is not
@@ -741,17 +741,17 @@ public sealed class FileModel
     /// (<see cref="StructureOverhead"/>) and the elementary-record WRITE / READ arms all ask it, so what an item
     /// occupies is written once.</summary>
     internal static CobolNet.Runtime.CobolDynStructure? StructureOf(DataItem item) =>
-        item is { IsDynamicLength: true, DynStructure: { } s } ? s.Layout(item.DynamicImageUnit) : null;
+        item is { IsDynamicLength: true, DynStructure: { } s } ? s.Layout(item.ImageUnit) : null;
 
     /// <summary>⛔ THE LAYOUT CODE OF ONE VARIABLE-LENGTH COMPONENT of a cell-backed group's window
     /// (<c>VarGroupWindow.DynStructure</c>; kb/Work PB3441): the item's structure code (<see cref="StructureOf"/>) when its
-    /// clause names a structure, else the bare unit code of its data (<see cref="DataItem.DynamicImageUnit"/>: two for a
+    /// clause names a structure, else the bare unit code of its data (<see cref="DataItem.ImageUnit"/>: two for a
     /// national item); for a dynamic-capacity table the bare unit of its elements (two for a national one: what its
     /// space-filled element is made of, ISO §14.6.9.4), its layout unit being its element width. The cell's layout reads
     /// each component's unit off it (<c>StorageCell.LayoutOf</c>), as a declared group's layout states it directly.</summary>
     internal static int LayoutCodeOf(DataItem component) =>
-        component.IsDynamicTable ? CobolNet.Runtime.CobolDynStructure.PlainCode(component.DynamicImageUnit)
-        : StructureOf(component)?.Code ?? CobolNet.Runtime.CobolDynStructure.PlainCode(component.DynamicImageUnit);
+        component.IsDynamicTable ? CobolNet.Runtime.CobolDynStructure.PlainCode(component.ImageUnit)
+        : StructureOf(component)?.Code ?? CobolNet.Runtime.CobolDynStructure.PlainCode(component.ImageUnit);
 
     /// <summary>The characters <paramref name="item"/>'s DYNAMIC LENGTH STRUCTURE adds around its data in a record
     /// (length field + delimiter) — 0 for an item with none. Counted by <see cref="MaxDynamicExtent"/> and
