@@ -51,8 +51,10 @@ public sealed class NationalDynamicComponentImageTests
     [Fact]
     public void ANationalMemberOfAFixedLengthRecord_IsPaddedAndReadBackInWholePositions()
     {
-        // Record: K X(2) then ONE national dynamic item (maximum 4 positions = 8 bytes) at fixed offset 2.
-        var layout = new CobolContiguousLayout(2, [2], [2], [4L]);
+        // Record: K X(2) then ONE national dynamic item (maximum 4 positions = 8 bytes) at fixed offset 2; its layout code
+        // names the unit, so its space is the national space (a component of unit 2 with no such code - a table of
+        // two-character elements - is padded with plain spaces, FixedFormAndWideTransferEdgeTests).
+        var layout = new CobolContiguousLayout(2, [2], [2], [4L], [CobolDynStructure.PlainCode(2)]);
         foreach (string content in new[] { "xy", "†", "", "a†" })
         {
             var sent = new CobolVarGroup("KK", [Nat(content)]);

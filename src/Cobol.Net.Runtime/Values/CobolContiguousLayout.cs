@@ -59,6 +59,13 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
 {
     private readonly CobolDynStructure?[]? _structure = CobolDynStructure.FromCodes(StructureCodes);
 
+    /// <summary>Component k's SPACE in image characters a position (kb/Work PB3441): the unit its layout code names
+    /// (<see cref="CobolDynStructure.UnitOf"/>; two for a national item, whose space is the national space, the pair 00 20),
+    /// null when no component's code names one. A component's <see cref="Unit"/> is something else for a table (its
+    /// element width), so the space is never read off it.</summary>
+    private readonly int[]? _spaceUnit = StructureCodes is { } codes && codes.Any(c => CobolDynStructure.UnitOf(c) != 1)
+        ? [.. codes.Select(CobolDynStructure.UnitOf)] : null;
+
     /// <summary>The OCCURS DEPENDING table of fixed-image elements is this layout's LAST component (see <c>Odo</c>).</summary>
     private bool TableIsLastComponent => Odo.Present && Odo.Comps == 0;
 
@@ -173,9 +180,9 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     /// shares — each member at the position it has when it holds its MAXIMUM size (§8.5.1.10.1 — the number
     /// §13.18.43.4 GR8 b) sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
     /// drops the padding: a space in a fixed-size field is padding, never data.
-    /// <para>The padding is the space of the member's own unit (<see cref="CobolVarGroup.SpacesFor"/>): the space
-    /// character for an alphanumeric member, the national space (the UTF-16BE pair) for a national one, whose image is
-    /// its two bytes a position (DOC-A.1-63, kb/Work PB3441). Returns <paramref name="image"/> unchanged
+    /// <para>The padding is the space of the member's own unit (<see cref="CobolVarGroup.SpacesFor"/>, the unit its
+    /// layout code names): the space character for an alphanumeric member, the national space (the UTF-16BE pair) for a
+    /// national one, whose image is its two bytes a position (DOC-A.1-63, kb/Work PB3441). Returns <paramref name="image"/> unchanged
     /// when <paramref name="extents"/> do not describe it (a record sent through another description, a table read
     /// from a frame) — there is then no member boundary to pad at.</para></summary>
     /// <param name="image">The record's contiguous image (<c>CurrentImage()</c>).</param>
@@ -196,7 +203,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
             sb.Append(image, at, lead + lengths[k]);
             at += lead + lengths[k];
             fixedDone = FixedAt[k];
-            sb.Append(CobolVarGroup.SpacesFor(Math.Max(0, MaxExtent(k) - lengths[k]), Unit[k]));
+            sb.Append(CobolVarGroup.SpacesFor(Math.Max(0, MaxExtent(k) - lengths[k]), _spaceUnit?[k] ?? 1));
         }
         sb.Append(image, at, image.Length - at);
         return sb.ToString();
@@ -217,7 +224,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
         if (ElementsHoldComponents)
             return (Stated(record, extents) ?? AtCount(fixedForm ? Odo.Max : count)).Decompose(record, extents, fixedForm);
         var carrier = CobolVarGroup.FromContiguous(record, FixedTotal, FixedAt, Unit, MaxUnits,
-            Recorded(record, extents), fixedForm, _structure);
+            Recorded(record, extents), fixedForm, _structure, _spaceUnit);
         return TableIsLastComponent ? carrier.JoinTail(FixedAt[^1]) : carrier;
     }
 

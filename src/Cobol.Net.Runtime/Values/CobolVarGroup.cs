@@ -762,10 +762,13 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
     /// fixed run short — <c>FromVarImage</c> space-fills it, as §14.9.30.4 GR15 fills a short line. A recorded
     /// component longer than the receiving item's maximum is carried whole here and truncated on the right by
     /// the item's own receiving store (§8.5.1.10.4 — "If the maximum length is reached, the value is truncated on
-    /// the right as necessary").</para></summary>
+    /// the right as necessary").</para>
+    /// <para><paramref name="spaceUnit"/>[k] is the image characters of one position of component k's SPACE - one for an
+    /// alphanumeric item (and every component when null), two for a national item, whose space is the national space the
+    /// fixed form pads it with (<see cref="SpacesFor"/>) and drops (<see cref="TrimTrailingSpaces"/>; kb/Work PB3441).</para></summary>
     public static CobolVarGroup FromContiguous(string record, int fixedTotal, IReadOnlyList<int> fixedAt,
         IReadOnlyList<int> unit, IReadOnlyList<long> maxUnits, IReadOnlyList<int>? recorded = null,
-        bool fixedForm = false, IReadOnlyList<CobolDynStructure?>? structure = null)
+        bool fixedForm = false, IReadOnlyList<CobolDynStructure?>? structure = null, IReadOnlyList<int>? spaceUnit = null)
     {
         var dyn = new string[fixedAt.Count];
         var fixedRun = new System.Text.StringBuilder(fixedTotal);
@@ -788,7 +791,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             // blank elements are data; `fixedForm` is passed for a file record and nothing else. A STRUCTURED
             // component (§12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
             // so a trailing space is data, not padding (`data` is non-null for it).
-            if (fixedForm && data is null) dyn[k] = TrimTrailingSpaces(dyn[k], unit[k]);
+            if (fixedForm && data is null) dyn[k] = TrimTrailingSpaces(dyn[k], spaceUnit?[k] ?? 1);
         }
         fixedRun.Append(Slice(record, pos, fixedTotal - fpos));
         return new CobolVarGroup(fixedRun.ToString(), dyn);

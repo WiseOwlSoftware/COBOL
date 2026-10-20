@@ -837,8 +837,9 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
     /// element width for a dynamic-capacity table), and its maximum size in those units (§8.5.1.10.1's
     /// maximum size; the table's maximum capacity). Nested scalar variable-length groups flatten in place, the
     /// same flattening <see cref="VarParts"/> gives the carrier. The fourth element is the component's DYNAMIC LENGTH
-    /// STRUCTURE (<c>CobolDynStructure.Code</c>, 0 for none — ISO §12.3.7.4 GR18/GR19; kb/Work PB1094), read through
-    /// <see cref="FileModel.StructureOf"/>, the one reader of what a structured item occupies in a record.</summary>
+    /// STRUCTURE (<c>CobolDynStructure.Code</c>, or the bare unit for an item that names none, <c>PlainCode</c>; 0 for an
+    /// alphanumeric item with none - ISO §12.3.7.4 GR18/GR19; kb/Work PB1094), read through <see cref="FileModel.LayoutCodeOf"/>,
+    /// the one reader of what a structured item occupies in a record.</summary>
     private void ContiguousLayout(DataItem group, int baseAt, List<(int FixedAt, int Unit, long MaxUnits, int Structure)> layout)
     {
         int off = baseAt;
@@ -848,7 +849,7 @@ internal sealed class GroupImageCodec(EmitContext ctx, PhysicalModel phys, Value
                 case VarPartKind.Fixed: off += p.Field.Width; break;
                 // A dynamic-length item is counted in positions of its image unit: one character an alphanumeric position, two
                 // bytes a national one (kb/Work PB3441), the unit its fixed form pads and its structure frames by.
-                case VarPartKind.DynLeaf: layout.Add((off, p.Item!.ImageUnit, p.Item.VariableComponentMax, FileModel.StructureOf(p.Item)?.Code ?? 0)); break;
+                case VarPartKind.DynLeaf: layout.Add((off, p.Item!.ImageUnit, p.Item.VariableComponentMax, FileModel.LayoutCodeOf(p.Item))); break;
                 case VarPartKind.DynTable:
                 case VarPartKind.DynGroupTable: layout.Add((off, p.Field.Width, p.Item!.VariableComponentMax, 0)); break;
                 case VarPartKind.Nested: ContiguousLayout(p.Item!, off, layout); off += p.FixedWidth; break;
