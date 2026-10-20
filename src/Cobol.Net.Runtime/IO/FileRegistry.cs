@@ -1026,6 +1026,10 @@ public sealed class FileRegistry
         _connectorShares[name] = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
     }
 
+    /// <summary>The id of the run unit's open transaction on <paramref name="name"/>'s physical file, 0 while none (the
+    /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
+    internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;
+
     /// <summary>The keyed connectors whose physical files carry an open transaction of this run unit — one per file, in
     /// the order of the run unit's open stores (the order connectors were registered: 2.2.1.10, "Files are committed one at
     /// a time, in the order of the run unit's open stores").</summary>
