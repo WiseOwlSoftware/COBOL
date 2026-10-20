@@ -73,7 +73,8 @@ public static class DiagnosticCatalog
     // ── Digit-capacity band (emitted by EditionContext.CheckDigitCapacity) ───────────────────────────
     public static readonly DiagnosticDescriptor DigitCapacityOver31 = new(
         "COBOLNET0801", "digit-capacity-over-31", EditionSeverity.Error,
-        "A fixed-point item/literal exceeds the 31-digit ISO limit.", "ISO §8.3.3.3.2");
+        "A numeric item describes more than 31 digit positions, or a fixed-point literal has more than 31 digits.",
+        "ISO §13.18.40.3 SR14 · §8.3.3.3.2");
     public static readonly DiagnosticDescriptor DigitCapacityUnder1 = new(
         "COBOLNET2882", "digit-capacity-under-1", EditionSeverity.Error,
         "A numeric or fixed-point numeric-edited PICTURE describes no digit position (SR14's range starts at 1).",
