@@ -17,7 +17,7 @@ command below. No gate FILTERS: every gate plans the whole population, ORDERED s
 2026-09-28, kb/Work PB1708: "order, don't skip"), and runs leg 1 of it (batched gating, owner 2026-10-10, kb/Work
 PB2515); CI's merge-group run is the whole-population regression net — local runs confirm the targeted change, CI
 ensures no regression on the rest (owner 2026-10-11 ~11:20). What the owner corrected repeatedly was over-gating per
-fix with the SERIAL suites (the battery, `guard.sh`); the ordered gate is not that — its fail-fast leg 1 returns a red
+fix with the whole-corpus suites (the battery, the NIST guard); the ordered gate is not that — its fail-fast leg 1 returns a red
 in minutes, and a gate slot caps how many run at once.
 
 ## Always first
@@ -98,13 +98,13 @@ PB3022 item 10), the landing keeps `bash scripts/linux-gate.sh` (MANDATORY-PRACT
 that is not Linux it runs itself under WSL, kb/Work PB2999). CI's required `ci-gate` runs the whole population on both
 operating systems before `main` moves.
 
-**Do NOT run per commit:** the battery or the serial `scripts/guard.sh`.
+**Do NOT run per commit:** the battery or the NIST guard (`scripts/guard-fast.sh`).
 
 ## Per accumulated batch / pre-merge — comprehensive
 
 - Full greenfield Conformance + full characterization
 - The GnuCOBOL external differential, before AND after, diffing PER-CASE verdicts
-- `scripts/guard-fast.sh` (parallel, the CLI-level NIST leg through `cobol`) — never the serial `guard.sh`
+- `scripts/guard-fast.sh` (the NIST guard: the CLI-level NIST leg through `cobol`, every program in its own directory)
 
 - **CI's own Linux leg — comprehensive is not comprehensive without it.** Everything above runs on ONE host
   (this Windows machine, Debug). The workflow's `ubuntu-26.04` jobs — `guard-fast.sh`'s NIST loop, the Linux

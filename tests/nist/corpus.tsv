@@ -1,6 +1,6 @@
 # WiseOwl COBOL NIST corpus manifest (rearchitecture P0 step 7). Tab-separated; a leading # is a comment.
-# The source of the green NIST set + producer/consumer chains for NistDifferentialTests and the group guard;
-# scripts/guard.sh's NIST_TESTS still lists the guard population by hand (kb/Work PB925, PB3383).
+# The source of the green NIST set + producer/consumer chains for NistDifferentialTests and of the CLI guard's
+# population (scripts/guard-population.sh#guard_nist_population: these rows plus their predecessors; kb/Work PB925).
 # Generated mechanically; a green program is a manifest row, not a code
 # edit. A divergent row's golden departs from the output first recorded for it; its note cites the ISO § that
 # makes the golden right. Columns:

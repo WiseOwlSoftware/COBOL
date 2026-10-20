@@ -56,7 +56,7 @@ spec-derived golden. 46 items, **30 landed / 16 remain** (as of 2026-07-23). See
 [[kb/Modernization/Audit Artifacts]].
 
 ## How do I build & test it?
-`dotnet build` (regenerates ANTLR if stale — needs Java + pwsh), `dotnet test`, and `bash scripts/guard.sh` for the
+`dotnet build` (regenerates ANTLR if stale — needs Java + pwsh), `dotnet test`, and `bash scripts/guard-fast.sh` for the
 full NIST regression gate. .NET 10 / C# 14. See [[kb/Compiler/Build System]].
 
 ## What are the design SSOTs I should read first?
