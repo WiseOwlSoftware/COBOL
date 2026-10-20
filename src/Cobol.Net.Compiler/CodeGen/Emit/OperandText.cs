@@ -342,12 +342,10 @@ internal static class OperandText
         // (IntrinsicRenderer.StorageArg) under --permissive, where §15.3 14) bars the group argument and COBOLNET1627
         // warns. §8.5.1.11.2 makes a variable-length item behave as though contiguous with its neighbours whenever a
         // procedural operation is applied to a group containing it, so the contiguous current-extent image is the
-        // group's storage as an operation sees it. ⛔ ONLY WHERE THAT IMAGE IS THE STORAGE (DataItem.CurrentImageIsStorageImage):
-        // a dynamic-length NATIONAL member is composed character for character (A.1 item 63), not as the UTF-16BE bytes it
-        // occupies, so a group holding one stays at the loud SendingGroupImage refusal - a character image read as storage
-        // would be a silent wrong value (review round 2, R2-1).
+        // group's storage as an operation sees it: a dynamic-length NATIONAL member rides as the UTF-16BE bytes it
+        // occupies, exactly as a fixed one does (A.1 items 57 and 63; kb/Work PB3441), so the image IS the storage.
         if (p.Item.IsGroup)
-            return (transfer && p.Item.CurrentImageIsStorageImage ? PlaceRenderer.VarGroupOperandImage(p, context) : null)
+            return (transfer ? PlaceRenderer.VarGroupOperandImage(p, context) : null)
                 ?? PlaceRenderer.SendingGroupImage(p, context, transfer);
         // ⛔ USAGE NATIONAL IS A SERIALIZATION OF THE CHARACTER IMAGE, NOT AN ALTERNATIVE TO IT (design D-N7 —
         // the group codec's AsImageOf composes the same way, kb/Work PB646). The category decides what the
