@@ -11,8 +11,12 @@ PB3152's `awaiting` arm; one mechanism, fixed once, both notes closed.
 its file name) plus the notes of the dispatch-ledger group the report `answers` (PB3311's predicate: its slug, written at
 or after the group's `at`). The ledger records every dispatched group's notes mechanically, so no agent has to write a
 field it may forget; a report no ledger group knows answers its lead alone. `plan()`'s `newest`, `attempts` and
-`inflight_file_sets` read it. The first idea, a header-field reader shared with `prune_worktrees.newest_report`
+`classify_inflight` read it. The branch review's blocking finding (R1-1) was that a note a DONE branch closes beyond
+its dispatch (`PB3383 (+ PB925)`) lost the header channel that used to hold it: it was planned a second time. The
+branch's own register is the mechanical record, so `closed_by_branch` lists the `kb/Work` notes the branch flipped to
+`landed` or `retired` since `origin/main` and `add_closed_notes` adds them to each finished report on an unlanded
+branch (section 6b'''00: the flipped note is held, a merely touched one is planned). The first idea, a header-field reader shared with `prune_worktrees.newest_report`
 (PB3084), was dropped: a note id has no header field. `test_plan_wave.py` section 6b'''0 puts the mention in the HEADER of a
 FINDINGS and a CLEAN report and checks the notes, the awaiting set, the finisher's lead and `attempts` (six checks that
 fail on the old reading); two older fixtures that relied on a header mention for a multi-note group now record the group
-in a ledger. Sweep: no other reader of note ids in report text exists in `scripts/`. Self-test 318/318.
+in a ledger. Sweep: no other reader of note ids in report text exists in `scripts/`. Self-test 324/324.
