@@ -1,4 +1,4 @@
-## PB3463: differential fuzzing with a local model — the harness, three smoke runs, the first leads
+## Entry 2301 — 2026-10-20 14:50 PDT — PB3463: differential fuzzing with a local model — the harness, three smoke runs, the first leads
 
 The owner asked (2026-10-20 10:40 PDT) how the RTX 5090 could do some of the project's work overnight with a local model, and
 whether file edits were a fit. The evaluation, recorded in `docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md`,
@@ -47,3 +47,4 @@ observation with `hung` set and classifies as `WE_HANG` / `THEY_HANG`, not a run
 compiler's COBOLNET0801 message and catalog entry, now corrected with a unit test. R1-4: the check count (30). The twelve
 survivors were then checked against the standard: none is a compiler defect (the evidence record's table has each clause);
 the one open question is DISPLAY of a scaled item's decimal point, reported as a lead.
+
