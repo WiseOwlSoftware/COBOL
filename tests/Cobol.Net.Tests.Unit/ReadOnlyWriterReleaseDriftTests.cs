@@ -63,8 +63,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
 
     /// <summary>SHARING WITH ALL OTHER needs a LOCK MODE clause (§14.9.27.3 SR8); READ ONLY needs none.</summary>
     private static void Share(FileRegistry reg, string name, FileSharing sharing) =>
-        reg.RegisterSharing(name, sharing,
-            sharing == FileSharing.AllOther ? FileLockMode.Manual : FileLockMode.None, multiple: false);
+        reg.RegisterSharing(name, sharing, KeyedFileHarness.LockModeRequiredBy(sharing), multiple: false);
 
     private static string Read(FileRegistry reg, string name, out string image) =>
         reg.ReadShared(name, false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out image);
@@ -253,25 +252,6 @@ public sealed class ReadOnlyWriterReleaseDriftTests
         finally { TryDelete(host); }
     }
 
-    public enum Org { Relative, Indexed }
-
-    private static void RegisterKeyed(FileRegistry reg, string name, string host, Org org, FileSharing sharing)
-    {
-        if (org == Org.Relative)
-            reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
-                relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-        else
-            reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
-                primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-        Share(reg, name, sharing);
-    }
-
-    private static string WriteKeyed(FileRegistry reg, string name, Org org, int n)
-    {
-        if (org == Org.Relative) reg.SetRelativeKey(name, n);
-        return reg.WriteShared(name, $"{n:0000}DATA", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-    }
-
     /// <summary>The keyed organizations, in ANOTHER RUN UNIT (a second <see cref="FileRegistry"/> shares neither the
     /// physical-file table nor a host handle with the first, as <c>RunUnitFileLockDriftTests</c> relies on): a record a
     /// <c>SHARING WITH READ ONLY</c> writer's WRITE answered '00' for is READ by the reader at once, before the
@@ -279,25 +259,25 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     /// duplicate key, '22', §14.9.51.4 GR33 a) on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
     /// exactly the records that were accepted.</summary>
     [Theory]
-    [InlineData(Org.Relative)]
-    [InlineData(Org.Indexed)]
-    public void AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite(Org org)
+    [InlineData(KeyedOrg.Relative)]
+    [InlineData(KeyedOrg.Indexed)]
+    public void AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite(KeyedOrg org)
     {
         string host = Tmp($"keyed-{org}");
         try
         {
             var a = new FileRegistry();
             var b = new FileRegistry();
-            RegisterKeyed(a, "A", host, org, FileSharing.ReadOnly);
-            RegisterKeyed(b, "B", host, org, FileSharing.AllOther);
+            KeyedFileHarness.Register(a, "A", host, org, FileSharing.ReadOnly, KeyedFileHarness.LockModeRequiredBy(FileSharing.ReadOnly));
+            KeyedFileHarness.Register(b, "B", host, org, FileSharing.AllOther, KeyedFileHarness.LockModeRequiredBy(FileSharing.AllOther));
             Assert.Equal(FileStatusCode.Success, Open(a, "A", FileOpenMode.Output));
             Assert.Equal(FileStatusCode.Success, Open(b, "B", FileOpenMode.Input));
 
-            Assert.Equal(FileStatusCode.Success, WriteKeyed(a, "A", org, 1));
+            Assert.Equal(FileStatusCode.Success, KeyedFileHarness.Write(a, "A", org, 1, "DATA"));
             Assert.Equal(FileStatusCode.Success, Read(b, "B", out string first));
             Assert.Equal("0001DATA", first);
-            Assert.Equal(FileStatusCode.DuplicateKey, WriteKeyed(a, "A", org, 1));   // '22': nothing released
-            Assert.Equal(FileStatusCode.Success, WriteKeyed(a, "A", org, 2));
+            Assert.Equal(FileStatusCode.DuplicateKey, KeyedFileHarness.Write(a, "A", org, 1, "DATA"));   // '22': nothing released
+            Assert.Equal(FileStatusCode.Success, KeyedFileHarness.Write(a, "A", org, 2, "DATA"));
             Assert.Equal(FileStatusCode.Success, Read(b, "B", out string second));
             Assert.Equal("0002DATA", second);
             Assert.Equal(FileStatusCode.AtEnd, Read(b, "B", out _));
