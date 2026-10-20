@@ -286,6 +286,54 @@ check("a FINDINGS report's finisher is planned under its own lead alone, not und
       [("finisher", ("PB13",))])
 check("a mention is no attempt at the mentioned note (choose_model escalates on attempts)",
       (pw.attempts("PB10", mn_reports), pw.attempts("PB13", mn_reports)), (0, 1))
+# 6b'''00. A NOTE THE BRANCH CLOSES BEYOND ITS DISPATCH (branch review R1-1 of the PB3473 fix). An implementer routinely
+#         closes a note its group was not dispatched with ("PB3383 (+ PB925)"): the ledger and the report's file name
+#         name only PB13, so without the register the DONE branch waiting to land held PB13 alone and PB10, which the
+#         branch already flipped to `landed`, was planned again (a double dispatch). The branch's own kb/Work records
+#         what it finished: PB10 is flipped, PB9 is only touched (still open on the branch), PB13 is the lead.
+class _Shown:
+    def __init__(self, rc, out=""):
+        self.returncode, self.stdout = rc, out
+
+
+CL_REPORTS = TMP / "reports-closes"
+CL_REPORTS.mkdir()
+CL_COORD = TMP / "coord-closes"
+CL_COORD.mkdir()
+pw.record_dispatch(CL_COORD, "1137", [{"letter": "a", "notes": ["PB13"], "files": ["src/X/Zero.cs"]}], lambda i: False)
+(CL_REPORTS / "w1137a-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_cl-1` · **HEAD:** `8c8c8c8cc`\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CL_REPORTS)
+cl_reports = pw.load_reports(CL_REPORTS, CL_COORD)
+check("before the register is read a report answers its lead alone", [r.notes for r in cl_reports], [["PB13"]])
+
+
+def _cl_git(*args, cwd=None):
+    if args[:3] == ("diff", "--name-only", "--no-renames"):
+        want = ("origin/main...worktree-wf_cl-1", "--", "kb/Work")
+        return _Shown(0 if args[3:] == want else 1,
+                      "kb/Work/PB13.md\nkb/Work/PB10.md\nkb/Work/PB9.md\nkb/Work/README.md\nsrc/X/Zero.cs\n")
+    status = {"PB13": "landed", "PB10": "retired", "PB9": "open"}
+    for nid, st in status.items():
+        if args == ("show", f"worktree-wf_cl-1:kb/Work/{nid}.md"):
+            return _Shown(0, f"---\nid: {nid}\nstatus: {st}\narea: runtime\n---\n\n# {nid}\n")
+    return _Shown(128)
+
+
+check("a branch closes the notes it flipped to a terminal status, not the ones it only touched",
+      pw.closed_by_branch("worktree-wf_cl-1", _cl_git), ["PB10", "PB13"])
+pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git)
+check("a finished report on an unlanded branch answers its lead, its group and what the branch closes",
+      [r.notes for r in cl_reports], [["PB13", "PB10"]])
+pcl = pw.plan(notes, CLUSTERS, HALF, cl_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("the note the branch closed is awaiting landing with it, never planned a second time",
+      (pcl["awaiting_landing"], any("PB10" in g.notes or "PB13" in g.notes for g in pcl["groups"])),
+      ({"worktree-wf_cl-1": ["PB13", "PB10"]}, False))
+check("a note the branch only touched is still planned", any("PB9" in g.notes for g in pcl["groups"]), True)
+cl_landed = pw.load_reports(CL_REPORTS, CL_COORD)
+pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git)
+check("a landed branch adds nothing (its notes are closed on main)", [r.notes for r in cl_landed], [["PB13"]])
 # 6b'''. THE DRAIN AND THE UNSEEN LEAD (kb/Work PB3150). Wave 1075's drain plan (`--max-groups 2`) put the SPLIT of
 #        w1074a first, whose finisher would have started PB3101 (never started) and cherry-picked `…-e99-1` again
 #        though `…-e99-4` merged it, and never planned license-product-name's review finisher: its lead PB3146 is
@@ -317,11 +365,6 @@ DR_CARRIER = {"worktree-wf_dr-1": "worktree-wf_dr-2", "worktree-wf_dr-5": "workt
               "worktree-wf_dr-6": "worktree-wf_dr-2"}
 returned(DR)
 dr_reports = pw.load_reports(DR, DR_COORD)
-
-
-class _Shown:
-    def __init__(self, rc, out=""):
-        self.returncode, self.stdout = rc, out
 
 
 def _show(*args, cwd=None):

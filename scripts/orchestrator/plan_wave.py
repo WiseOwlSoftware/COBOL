@@ -11,8 +11,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
 
 1. AWAITING LANDING: an open note whose newest report is DONE and whose branch is not on main yet is excluded (the
    landing lane, land_lane.py, lands it first; re-planning it would dispatch the same work twice). A report's notes
-   are its lead plus the notes of the dispatch-ledger group it answers (`answered_notes`), never the ids its header
-   mentions (kb/Work PB3473, PB3152).
+   are its lead, the notes of the dispatch-ledger group it answers (`answered_notes`) and, for a finished branch, the
+   notes the branch closes in its register (`add_closed_notes`), never the ids its header mentions (kb/Work PB3473,
+   PB3152).
    HELD BY A DISPATCH: an open note that a dispatch-ledger group names (a wave this loop or another session planned
    or rendered, launched or not) and that the group's OWN report has not answered (`answers`: the report whose slug is
    the group's, `w<wave><letter>`, written at or after the dispatch; a report that merely names the note, or a
@@ -293,6 +294,35 @@ def branch_lead_notes(reports: list[Report], notes: dict[str, Note], harm_weight
         if shown.returncode == 0 and (n := note_of(shown.stdout, r.lead, harm_weights)):
             out[r.lead] = n
     return out
+
+
+BRANCH_NOTE_FILE = re.compile(r"kb/Work/(PB\d+)\.md")
+
+
+def closed_by_branch(branch: str, git: Callable[..., Any]) -> list[str]:
+    """The notes a branch CLOSES: every `kb/Work/PB*.md` it changed since it left origin/main whose version ON THE BRANCH
+    has a terminal status (work.TERMINAL_STATUSES). The register rule is that a fix flips its note's status in the commit
+    that lands it, so this is the mechanical record of what the work finished: a group's implementer routinely closes a
+    note beyond the ones it was dispatched with (`PB3383 (+ PB925)`), and neither the report's file name nor the dispatch
+    ledger names it (kb/Work PB3473, branch review R1-1)."""
+    out = []
+    for path in sorted(changed_files(git, f"origin/main...{branch}", "--", "kb/Work")):
+        if not (m := BRANCH_NOTE_FILE.fullmatch(path)):
+            continue
+        shown = git("show", f"{branch}:{path}")
+        if shown.returncode == 0 and (n := note_of(shown.stdout, m.group(1), {})) and n.status in work.TERMINAL_STATUSES:
+            out.append(m.group(1))
+    return sorted(out, key=work.id_order)
+
+
+def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any]) -> None:
+    """Complete the `notes` of every FINISHED report whose branch is not on main with the notes the branch closes
+    (closed_by_branch), so a DONE branch waiting to land holds every note it finished in `awaiting landing`, not only
+    its lead and its dispatch group's (answered_notes). A SPLIT or unfinished report is left alone: its finisher takes
+    the branch's work. With answered_notes, the only readers of "the notes a report answers" (kb/Work PB3473)."""
+    for r in reports:
+        if r.branch and r.finished and classify(r.branch) not in LANDED_CLASSES:
+            r.notes = list(dict.fromkeys([*r.notes, *closed_by_branch(r.branch, git)]))
 
 
 def header_lines(lines: list[str]) -> list[str]:
@@ -743,7 +773,7 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         own: it reads OPEN (RESERVED) while no other owner works on one of its notes, and RUNNING (naming that owner)
         once one does, so a plan never calls a slice nobody runs RUNNING (kb/Work PB3456).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
-    report's ids are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
+    report's `notes` (answered_notes, plus what a finished branch closes, add_closed_notes) are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
     plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
     by_branch: dict[str, Report] = {}
     for r in reports:   # oldest first: the last write is the newest
@@ -1606,6 +1636,7 @@ def main(argv: list[str] | None = None) -> int:
         classify, unlanded = git_branch_classifier(), unlanded_branch_notes()
         carrier = branch_carrier(reports, classify, prune_worktrees.git)
         notes.update(branch_lead_notes(reports, notes, harm_weights(), prune_worktrees.git))
+        add_closed_notes(reports, classify, prune_worktrees.git)
     items = work.load()
     status_of = {i.get("id"): i.get("status") for i in items}
 
