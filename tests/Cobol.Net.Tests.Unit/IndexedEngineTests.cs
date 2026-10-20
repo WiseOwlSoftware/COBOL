@@ -39,6 +39,7 @@ namespace CobolNet.Tests.Unit;
 /// Every expected value is the design's bar or a general rule's, never what the engine happens to do.
 /// </summary>
 [Trait("Host", "ReFS")]
+[Collection("process-globals")]   // COBOLNET_KEYCHECK is process-wide and every `new FileRegistry()` reads it: the opt-out case below sets it, as FixedFileAttributeFormatTests does, and two save-and-restore writers interleaved in parallel left it OFF for the rest of the run (that class's '39' cases read '00')
 public sealed class IndexedEngineTests
 {
     private static string ReadKey(FileRegistry reg, string name, int keyIndex, string image, out string record) =>
