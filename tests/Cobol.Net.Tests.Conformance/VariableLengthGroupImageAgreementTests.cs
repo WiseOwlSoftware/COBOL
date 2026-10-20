@@ -101,6 +101,29 @@ public sealed class VariableLengthGroupImageAgreementTests
            MOVE N"uv" TO {p}F
            MOVE N"w" TO {p}A
 """),
+        new("a dynamic-capacity table of groups each holding a dynamic national item", """
+          05 {p}E OCCURS DYNAMIC CAPACITY IN {p}C INITIALIZED.
+             10 {p}A PIC N DYNAMIC LENGTH LIMIT IS 4.
+             10 {p}B PIC X.
+""", """
+           SET {p}C TO 2
+           MOVE N"n" TO {p}A(1)
+           MOVE "u" TO {p}B(1)
+           MOVE N"op" TO {p}A(2)
+           MOVE "v" TO {p}B(2)
+"""),
+        new("an OCCURS DEPENDING table of groups each holding a dynamic national item", """
+          05 {p}K PIC 9.
+          05 {p}E OCCURS 1 TO 3 DEPENDING ON {p}K.
+             10 {p}A PIC N DYNAMIC LENGTH LIMIT IS 4.
+             10 {p}B PIC X.
+""", """
+           MOVE 2 TO {p}K
+           MOVE N"q" TO {p}A(1)
+           MOVE "u" TO {p}B(1)
+           MOVE N"rs" TO {p}A(2)
+           MOVE "v" TO {p}B(2)
+"""),
         new("the alphanumeric control", """
           05 {p}A PIC X DYNAMIC LENGTH LIMIT IS 8.
           05 {p}T PIC X(2) OCCURS DYNAMIC CAPACITY IN {p}C INITIALIZED.
