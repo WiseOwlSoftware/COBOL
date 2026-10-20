@@ -8,8 +8,10 @@ UNIT: wave.
    its own branch, list it DONE in `branches_pending`, hand off WITHOUT launching, and the next units land it and plan
    afresh. (Wave 1038's unit fixed the planner inline, passed the context cap, launched anyway, and its eight
    implementers returned SPLIT before any work.)
-2. `python scripts/orchestrator/plan_wave.py --from-budget --borrow-days {BORROW_DAYS} --scratch {SCRATCH} --stop-file {FLEET_STOP}{CLUSTER_ARG}` plans the wave deterministically,
-   allocates codes and lead ids, renders the specs with make_dispatch_specs.py and runs check_practices.py. Read its
+2. `python scripts/orchestrator/plan_wave.py --from-budget --borrow-days {BORROW_DAYS} --scratch '{SCRATCH}' --stop-file '{FLEET_STOP}'{CLUSTER_ARG}` plans the wave deterministically,
+   renders the specs with make_dispatch_specs.py and runs check_practices.py, and only on GREEN reserves the codes and
+   records the groups in the dispatch ledger (a RED plan reserves nothing and holds no note: fix the cause and re-run;
+   it refuses a scratch or stop file that is not an absolute path, kb/Work PB3114). Read its
    table. Change the plan only for a reason you write into the handoff; re-run it rather than editing groups.json.
    Under the owner's DRAIN (a steer or the last handoff names it) add `--drain`, never `--max-groups` alone: it plans
    only the finishers of started work (kb/Work PB3150).
@@ -25,7 +27,7 @@ UNIT: wave.
    (the file is empty while the Workflow runs and holds its result with `totalToolCalls` when it returns) and read the
    stall watchdog's log between waits. Never end a turn while that file is empty.
    Judge each implementer report: a branch that is not DONE gets its reason into its kb/Work note.
-5. In the same turn as the Workflow's result, render the ledger: `python scripts/spec/gen_ledger.py --out {COORD}\ledger.html`
+5. In the same turn as the Workflow's result, render the ledger: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'`
    (every figure on it is computed; its trend file gains a point when GAP or the register's series moved, so commit
    docs/rearchitecture/evidence/ledger-trend.json with the landing when it changed). You cannot
    PUBLISH it (a headless session has no Artifact tool): the supervisor announces the owed publish after you end, and the
