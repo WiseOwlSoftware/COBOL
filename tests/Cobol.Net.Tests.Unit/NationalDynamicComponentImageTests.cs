@@ -67,6 +67,20 @@ public sealed class NationalDynamicComponentImageTests
     }
 
     [Fact]
+    public void AStructuredNationalMemberOfAGroup_CountsItsLengthFieldInPositions_AndTakesItBack()
+    {
+        // ISO §12.3.7.4 GR18: SHORT PREFIXED is a two-byte length field in CHARACTER POSITIONS (DOC-A.1-205: most
+        // significant byte first), so N"AB" - two positions, four bytes - is framed 00 02 | 00 41 00 42 (kb/Work PB3441).
+        var shortPrefixed = new CobolDynStructure(2, delimited: false, unit: 2);
+        var layout = new CobolContiguousLayout(2, [2], [2], [5L], [shortPrefixed.Code]);
+        string image = "KK" + Nat("AB");
+        var extents = layout.ExtentsOf(new CobolVarGroup("KK", [Nat("AB")]));
+        string medium = layout.MediumImage(image, extents);
+        Assert.Equal("KK" + "\0\u0002" + Nat("AB"), medium);
+        Assert.Equal(Nat("AB"), layout.Decompose(medium, null).Dyn(0));
+    }
+
+    [Fact]
     public void ATableOfNationalElementsInAnAreaTheCarrierLacks_IsSpaceFilledWithTheNationalSpace()
     {
         // §14.6.9.4: the capacity is unaffected and each element is space-filled - the national space (00 20) for a national
