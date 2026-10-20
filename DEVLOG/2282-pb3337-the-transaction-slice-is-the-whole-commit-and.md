@@ -1,4 +1,4 @@
-## PB3337: the transaction slice is the whole commit-and-rollback module (owner 2026-10-19 18:58 PDT: "Option A")
+## Entry 2282 — 2026-10-19 19:29 PDT — PB3337: the transaction slice is the whole commit-and-rollback module (owner 2026-10-19 18:58 PDT: "Option A")
 
 **The hold.** Tier 2 of the SORT and file I/O completion plan (kb/Work PB3420) — PB3337, the runtime's transactions for
 indexed and relative files; PB3338, the compiler's APPLY COMMIT; PB3340, the same for sequential files — was held under
@@ -15,3 +15,4 @@ already `open`, blocked by PB3338. PB3330's route paragraph, PB3420, PB3426, pla
 2.2.2 say the scope is decided. The one question the decision releases — one COMMIT over several files with one refused by
 the medium: per file, as the design states, or all-or-nothing through a durable commit record outside any one file — is
 asked with it, laid out the same way, and PB3337 carries the answer. No compiler source changed; nothing was dispatched.
+
