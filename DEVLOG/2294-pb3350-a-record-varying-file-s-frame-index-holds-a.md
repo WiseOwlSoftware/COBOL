@@ -1,4 +1,4 @@
-## PB3350: a RECORD VARYING file's frame index holds a checkpoint per 4096 records, not one offset per record
+## Entry 2294 — 2026-10-20 11:42 PDT — PB3350: a RECORD VARYING file's frame index holds a checkpoint per 4096 records, not one offset per record
 
 **The defect.** `RecordFraming.FrameStarts` added the start of every frame to a `List<long>`. `SequentialConnector` kept the
 list for the life of the OPEN for a backward READ (`_varyingStarts`, §14.9.30.4 GR21 c)), which needs one offset at a time,
@@ -38,3 +38,4 @@ backward READ into the old span answered another record's start with status 00. 
 a slot. Pinned by `FrameIndexTests.AWindowBuildThatThrows_LeavesNoTornWindowBehind` (red without the fix, measured) and the
 sibling arm `AnExtendThatThrows_ResumesFromTheLastWholeFrame`. The structural guard now asserts it found its three files and
 scans the `List<long>` AND `long[]` members, allowing only the index's `_checkpoints` and `_window` (R1-2).
+
