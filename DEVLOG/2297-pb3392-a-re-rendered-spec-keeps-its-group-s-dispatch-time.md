@@ -1,4 +1,4 @@
-## PB3392 — a re-rendered spec keeps its group's dispatch time
+## Entry 2297 — 2026-10-20 12:22 PDT — PB3392 — a re-rendered spec keeps its group's dispatch time
 
 `plan_wave.record_dispatch`, the one writer of the dispatch ledger (`inflight-groups.json`), stamped every entry's `at` with the time of the recording, so `make_dispatch_specs.py` re-rendering an early wave's specs made each group read as dispatched at the re-render. Wave 1118 (dispatched about 05:00) read 16:42 after the Mythos lane's PB3263 re-render, later than wave 1126 C (14:02); `landing_check.py` decides which of two overlapping in-flight branches re-plans by that `at`, so the partition would have stopped the engine branch and let the campaign branch through. `answers` also bounds a report by `at` (the report's mtime must be at or after it), so a re-render after a group returned made its own report look older than the dispatch and re-held its notes.
 
@@ -9,3 +9,4 @@ Fix: `record_dispatch` reads the live entries under the keys it is about to rewr
 Self-test (`test_plan_wave.py`, after "each entry carries its report slug"): the first-record `at` survives a re-record that grows the files; the neighbouring group keeps its own; a wave-1118 fixture (`at` 5.0 against wave 1126 C at 14.0) stays earlier after a re-render that widens its notes and files; a new group A7 takes a fresh `at`; a group with an unrelated note takes the recording's time. 302 of 302 checks. Docs: `DESIGN-orchestrator-loop.md` (the ledger row) and the workstream `SKILL.md` say `at` is the first recording's.
 
 Rows: none (orchestrator tooling; `closes_rows: []`).
+
