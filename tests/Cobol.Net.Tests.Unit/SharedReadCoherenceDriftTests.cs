@@ -607,7 +607,7 @@ public sealed class SharedReadCoherenceDriftTests
         Assert.True(writes.Count == 1,
             $"The physical-file association must have exactly one writer; found {writes.Count}.\n  "
             + string.Join("\n  ", writes));
-        Assert.Contains("_connectorShares.ContainsKey(name)", writes[0], StringComparison.Ordinal);
+        Assert.Contains("RecordLocksSetUnder(posture, sharing)", writes[0], StringComparison.Ordinal);   // kb/Work PB3372
         // The state itself is UNCONDITIONAL — a clause-less connector on a shared physical file still has to
         // see a sibling's release (kb/Work PB753). If this ever becomes a ternary again the reach is lost.
         Assert.DoesNotContain("? st : null", writes[0], StringComparison.Ordinal);
