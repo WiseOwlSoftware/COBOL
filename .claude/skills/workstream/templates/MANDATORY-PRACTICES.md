@@ -81,7 +81,7 @@ Each rule carries its reason and its measurement; do not drop a rule because its
 |---|---|---|
 | R1 | Grep every lead against `kb/Work/` first; extend, never duplicate; never edit a note an in-flight implementer holds. | Duplicate notes. |
 | R2 | Re-probe on your own build ONLY when the lead lacks a runnable repro + code site (P7); otherwise run the given repro once and record the result. | Triple probing. |
-| R3 | One note per mechanism (cluster by root cause); each note records its CODE SITES (file:line) for the implementer. | Owner lever 1; P6. |
+| R3 | One note per mechanism (cluster by root cause); each note records its CODE SITES (file:line) for the implementer, as a `**Sites:**` paragraph listing the repo-relative files the fix changes (or `**Sites:** none (why)` when it changes no code file): the wave planner partitions on it, and `work.py check` refuses an open note naming a cluster without one (kb/Work PB3263). The rule binds the enqueue unit's clerk filing leads (units/enqueue.md step 5) as much as the registrar. | Owner lever 1; P6. 2026-10-19: a clerk branch cut before PB3263 filed PB3448 into cluster PB3369 with no site block, and the check refused it at PB3263's own landing. |
 
 ## Battery
 
