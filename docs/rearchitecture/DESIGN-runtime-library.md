@@ -1795,7 +1795,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   already pays at every READ, REWRITE and DELETE. Between the death and that first writable statement, a connector opened
   INPUT (no writable handle: it can neither take the mutex exclusively on Linux nor write on any host) reads the file as it
   stands, dead transaction included — D.2.5's "possible for another run unit to read a record written or updated by the
-  current run unit", for a run unit that no longer exists. DOC-A.1-75 (PB3335) and the commit row (PB3338) state this
+  current run unit", for a run unit that no longer exists. DOC-A.1-75 (PB3335) and the commit row PB3338 writes state this
   determination.
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
@@ -2593,7 +2593,7 @@ costs one failed open), and under `ALL OTHER` one listing per changing statement
 already pays per release (PB2692); no mutex, no journal, no holder, no sync. A connector opened INPUT runs no step and rolls
 back nothing (no writable handle: it can neither restore F nor remove it): it reads F as it stands, a dead transaction's
 appends included — D.2.5's "possible for another run unit to read a record written or updated by the current run unit" for a
-run unit that no longer exists, the determination DOC-A.1-75 and the commit row already state for a keyed file — and its READ
+run unit that no longer exists, the determination DOC-A.1-75 and the commit row PB3338 writes state for a keyed file — and its READ
 not IGNORING LOCK of a held ordinal answers '51' as today.
 
 **2.2.2.9 CLOSE, re-OPEN, DELETE FILE and termination under commit control.** A covered connector's CLOSE releases its records
