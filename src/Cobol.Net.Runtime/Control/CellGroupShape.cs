@@ -17,6 +17,9 @@ namespace CobolNet.Runtime;
 /// <param name="DynMax">Each component's maximum size: a dynamic-length item's in characters (§8.5.1.10.1), a table's
 /// maximum capacity — what a store into the element truncates at (kb/Work PB2496: an element receives its own
 /// §8.5.1.12 carrier, §14.6.9.2).</param>
+/// <param name="DynLayout">Each component's layout code (<c>CobolDynStructure.Code</c> / <c>PlainCode</c>): a dynamic-length
+/// item's unit (two image characters a national position) and structure, a table of leaf elements the unit of its elements
+/// (what a space-filled element is made of, ISO §14.6.9.4; kb/Work PB3441), 0 otherwise.</param>
 /// <param name="Elems">For each component that is a table, the shape of ITS element when that element is itself a
 /// variable-length group; null where every component's element is a fixed image.</param>
-public sealed record CellGroupShape(int Width, int[] DynFixedAt, int[] DynTable, int[] DynMax, CellGroupShape?[]? Elems = null);
+public sealed record CellGroupShape(int Width, int[] DynFixedAt, int[] DynTable, int[] DynMax, int[] DynLayout, CellGroupShape?[]? Elems = null);
