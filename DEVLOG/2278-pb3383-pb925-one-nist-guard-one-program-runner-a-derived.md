@@ -1,4 +1,4 @@
-## PB3383 + PB925: one NIST guard, one program runner, a derived population
+## Entry 2278 — 2026-10-19 17:45 PDT — PB3383 + PB925: one NIST guard, one program runner, a derived population
 
 **The defect (kb/Work PB3383).** `scripts/guard.sh`, the serial NIST guard, ran every program in ONE shared directory in
 the order of a hand-written `NIST_TESTS` block, and never cleaned between programs. A program therefore met every file
@@ -40,3 +40,4 @@ golden" count is corrected (the manifest has none today).
 
 **Rows.** None: test tooling, no ISO rule; PB3383 and PB925 close with `closes_rows: []` and a reason. PB3385 (a
 predecessor's exit status) is its own group in this wave.
+
