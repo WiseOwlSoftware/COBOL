@@ -34,14 +34,14 @@ internal static class NistRunner
             if (!File.Exists(src)) return Failed($"source not found: {src}");
             string dll = Path.Combine(dir, testName + ".dll");
 
-            // Guard parity (scripts/guard.sh:120): the CCVS-85 switch programs (NC174A/NC254A) run with external
-            // SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
+            // Guard parity (scripts/guard-run-group.sh, COBOL_SWITCH_1): the CCVS-85 switch programs (NC174A/NC254A)
+            // run with external SWITCH-1 ON, SWITCH-2 unset — their goldens assume exactly that.
             var env = new Dictionary<string, string?> { ["COBOL_SWITCH_1"] = "ON" };
 
             // Chain predecessors: each producer compiles from its OWN .cob and runs in THIS directory so the
             // consumer's shared TF### input files exist. Chains are self-sufficient in an isolated dir — every
-            // chain's first member re-creates its file via OPEN OUTPUT — so the legacy guard's cross-chain
-            // ordering constraints do not carry over.
+            // chain's first member re-creates its file via OPEN OUTPUT — so no order across chains exists to keep
+            // (scripts/guard-run-group.sh runs the CLI leg by the same rule).
             if (CorpusManifest.Chains.TryGetValue(testName, out var predecessors))
                 foreach (string p in predecessors)
                 {
@@ -94,8 +94,8 @@ internal static class NistRunner
     private static NistRunResult Failed(string detail) =>
         new(false, "", detail, new Dictionary<string, byte[]>());
 
-    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard.sh</c>'s <c>normalize()</c>): drop CR, strip
-    /// per-line trailing spaces, and mask the COMPUTED= operand (a value some CCVS programs print that is not part of
+    /// <summary>The NIST acceptance basis (exactly <c>scripts/guard-verdict.sh</c>'s <c>guard_normalize_into</c>): drop CR,
+    /// strip per-line trailing spaces, and mask the COMPUTED= operand (a value some CCVS programs print that is not part of
     /// the pass/fail decision). Applied identically to the golden and the produced output.
     /// <para>⛔ A LONE CR IS DROPPED, NOT TURNED INTO A LINE BREAK. <c>ReplaceLineEndings("\n")</c> — what this used
     /// to call — maps a bare CR to LF, which silently ignored the basis above: a WRITE … ADVANCING 0 is an OVERPRINT
@@ -122,7 +122,7 @@ internal static class NistRunner
 /// text file's host newline aside) with <c>tests/nist/valid-files/&lt;TEST&gt;/&lt;file&gt;</c>, and the two sets must
 /// be EQUAL: a file written with no golden is red (capture it), and a golden the program no longer writes is red.
 /// The next program that writes a second file is graded with no change here. <c>scripts/guard-verdict.sh</c>
-/// (<c>guard_files_apply</c>) is the shell guards' arm of the same rule, so CI's NIST leg grades the same files.</para>
+/// (<c>guard_files_apply</c>) is the shell guard's arm of the same rule, so CI's NIST leg grades the same files.</para>
 /// <para>The expected bytes are the program's own output — the size and layout of records on the storage medium
 /// are the implementor's (ISO §13.18.43.4 GR2: "The size of records on physical storage media may be different due
 /// to control information required by the operating environment"), so these goldens pin WiseOwl COBOL's behavior,
