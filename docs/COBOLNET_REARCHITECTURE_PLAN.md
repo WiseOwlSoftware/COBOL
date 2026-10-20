@@ -3257,7 +3257,7 @@ already-derivable coverage; none change the pipeline.
   from the repo — inventory, `kb/Work` (through `work.py`'s own predicate), `audit_annex_a1.py --json`, `CONFORMANCE.md`
   §2/§4/§5 and §0's CURRENT battery bullet — so a refresh is one run plus one publish to the artifact's existing URL,
   never a hand rewrite; `--check` reports staleness and the GAP series, with the register's defect series beside it,
-  lives in `docs/rearchitecture/evidence/ledger-trend.json`.
+  lives in `<coord>/ledger-trend.json` beside the page, never in a checkout (kb/Work PB2426).
 
 ## §10 Document map (post-consolidation)
 
