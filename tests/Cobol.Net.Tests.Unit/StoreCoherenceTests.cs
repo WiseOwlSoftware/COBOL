@@ -35,9 +35,11 @@ namespace CobolNet.Tests.Unit;
 ///   <item>PB3330's quadratic case: two run units loading one file through <c>SHARING WITH ALL OTHER</c>, every statement
 ///   meeting the other's change, write a bounded page count per statement however large the file grows.</item>
 ///   <item>The predicate each engine asks follows the engine (2.2.1.13, finding R2-7): the keyed store asks
-///   <see cref="FileLockPosture.AdmitsAnotherRunUnit"/>, and the sequential organization keeps
-///   <see cref="FileLockPosture.AdmitsAnotherWriter"/>, so a <c>SHARING WITH READ ONLY</c> sequential writer still
-///   buffers.</item>
+///   <see cref="FileLockPosture.AdmitsAnotherRunUnit"/>; so does the sequential release's flush (kb/Work PB1587,
+///   §14.9.51.4 GR12), so a <c>SHARING WITH READ ONLY</c> sequential writer hands each record over at its WRITE, and only
+///   <c>SHARING WITH NO OTHER</c> buffers to the CLOSE; the sequential organization asks
+///   <see cref="FileLockPosture.AdmitsAnotherWriter"/> only for what another WRITER may do (its append stream, its
+///   ordinal, its reader's re-anchoring).</item>
 /// </list>
 /// </summary>
 [Trait("Host", "ReFS")]
@@ -635,8 +637,9 @@ public sealed class StoreCoherenceTests
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>) and asks nothing else. The sequential organization asks two
     /// questions: its release (<c>SequentialConnector.ReleaseRecord</c>'s flush) asks about ANY other connector, a reader
     /// as well as a writer (kb/Work PB1587: §14.9.51.4 GR12 releases the record to the operating environment at the WRITE,
-    /// and §9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its append position, its ordinal count and
-    /// its shared append stream ask only about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
+    /// and §9.1.15 2) admits an INPUT reader beside a READ ONLY writer), while its shared append stream (its append
+    /// position), its ordinal count (the release's and the <c>OPEN EXTEND</c>'s) and its reader's re-anchoring ask only
+    /// about another WRITER (<see cref="FileLockPosture.AdmitsAnotherWriter"/>).
     /// Behaviourally: a <c>SHARING WITH NO OTHER</c> sequential writer keeps its record in its input-output area until the
     /// CLOSE, while a <c>SHARING WITH READ ONLY</c> or <c>SHARING WITH ALL OTHER</c> one hands each record over at its
     /// WRITE.</summary>
