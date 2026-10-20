@@ -2016,10 +2016,10 @@ Deleted with their callers (by kb/Work PB3333-PB3335; `WholeStoreBanDriftTests` 
 in-memory record maps (their names may survive as the two tree-handle views, their maps may not); `KeyedStoreTable` as the
 store of records; `KeyedConnector._coherent`'s derivation from `FileLockPosture.AdmitsAnotherWriter` — the keyed connector
 asks `AdmitsAnotherRunUnit` (2.2.1.7), a new predicate beside the old one. `AdmitsAnotherWriter` itself STAYS (finding R2-7):
-its three callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
-`EnsureReaderCoherent` (the reader's re-seek) and the EXTEND ordinal count — ask exactly "may another WRITER exist", the
-sequential organization's question. `SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work
-PB1587): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §9.1.15 2) admits beside a `SHARING WITH READ ONLY`
+its four callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
+`EnsureReaderCoherent` (the reader's re-seek), `ReleaseRecord`'s ordinal (counted off the medium, kb/Work PB2692) and the
+EXTEND's mint seed — ask exactly "may another WRITER exist", the sequential organization's question.
+`SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work PB1587, PB3415): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §9.1.15 2) admits beside a `SHARING WITH READ ONLY`
 writer must find in the physical file every record a WRITE answered '00' for (§14.9.51.4 GR12), exactly as it does beside
 a RELATIVE writer; a flush per record for such a writer is the price of that, and `SHARING WITH NO OTHER` keeps its
 buffered load. The rule is a
