@@ -25,10 +25,12 @@ using CobolNet.Runtime;
 /// TEXTFILE-NAME</c>):</para>
 /// <list type="bullet">
 ///   <item>ONE operand — device-name-1 or literal-1 IS the physical file's name (item 71's mapping,
-///   <c>CobolFile.ResolveHostPath</c>).</item>
+///   <c>CobolFile.ResolveHostPath</c>). A word that names a constant entry is literal-1 (<see cref="WordText"/>).</item>
 ///   <item>TWO operands — the first shall be a device-name-1 naming a DEVICE CLASS this implementation
 ///   provides, <see cref="DeviceClasses"/>; the second (device-name-1 or literal-1) is the physical file's name.
-///   Both classes denote a file of the host file system, so the class word selects nothing further.</item>
+///   Both classes denote a file of the host file system, so the class word selects nothing further. The leading
+///   word is read as the class even when the program declares a constant of that spelling: the only allowable
+///   two-operand list is class + name, and the constant reading would be a list of two names, which is refused.</item>
 ///   <item>Anything else — three or more operands, a literal before another operand, or a leading word that
 ///   is not a provided device class — is COBOLNET2256.</item>
 /// </list>
@@ -65,20 +67,16 @@ internal static class AssignTargetRule
         return Text(edition, env, targets[^1]);
     }
 
-    /// <summary>The physical name one operand gives: a device-name-1 word is its own spelling; literal-1 is
-    /// screened against §12.4.5.2 SR4 — "an alphanumeric literal ... neither a figurative constant nor a
-    /// zero-length literal" — and decoded (a §8.8.3 concatenation expression folds to its equivalent literal,
-    /// §8.8.3.3 GR3; the hexadecimal-alphanumeric X"..." is an alphanumeric literal, §8.3.3.2.2). A refused literal
-    /// yields "" under an already-failed compile.</summary>
+    /// <summary>The physical name one operand gives. literal-1 is screened against §12.4.5.2 SR4 — "an alphanumeric
+    /// literal ... neither a figurative constant nor a zero-length literal" — and decoded (a §8.8.3 concatenation
+    /// expression folds to its equivalent literal, §8.8.3.3 GR3; the hexadecimal-alphanumeric X"..." is an alphanumeric
+    /// literal, §8.3.3.2.2). A refused literal yields "" under an already-failed compile. A WORD is read by
+    /// <see cref="WordText"/>.</summary>
     private static string Text(EditionContext edition, LiteralEnvironment env, Core.AssignTargetContext t)
     {
-        if (t.nonNumericLiteral() is not { } nn) return t.GetText();
-        void Refuse(string why)
-        {
-            using var _ = edition.At(nn);
-            edition.Error(DiagnosticCatalog.AssignLiteralShape,
-                $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §12.4.5.2 SR4)");
-        }
+        if (t.nonNumericLiteral() is not { } nn) return WordText(edition, env, t.cobolWord());
+        void Refuse(string why) =>
+            Report(edition, nn, $"ASSIGN TO {nn.GetText()}: literal-1 {why} (ISO §12.4.5.2 SR4)");
         string value;
         if (nn.concatenationExpression() is { } ce)
         {
@@ -112,5 +110,46 @@ internal static class AssignTargetRule
         }
         if (value.Length == 0) { Refuse("shall not be a zero-length literal"); return ""; }
         return value;
+    }
+
+    /// <summary>⛔ ONE WORD, TWO ADMISSIBLE READINGS (kb/Work PB2500). A word at an ASSIGN operand is device-name-1 — a
+    /// system-name — and is ALSO literal-1 when it names a constant entry (§13.10.3 SR2: "constant-name-1 may be used
+    /// anywhere that a format specifies a literal of the class and category of constant-name-1"). §8.3.2.1 4) lets one
+    /// word be a system-name and a user-defined word, and §12.4.5.2 SR5 leaves "the meaning and rules for the allowable
+    /// specification of device-name-1 and the value of literal-1" to the implementor; neither says which reading wins.
+    /// <para>⚠ DETERMINATION (CLAUDE.md rule 1: ISO leaves it to the implementor → GnuCOBOL, which substitutes the
+    /// declared constant for an ASSIGN operand): <b>the program's own declaration of the word wins</b> — the answer the
+    /// SPECIAL-NAMES positions that admit both readings already give (the LOCALE clause's external-locale-name-1,
+    /// <c>DataBinder.LocaleBind</c>; the ALPHABET clause's code-name, <c>DataBinder.AlphabetCodeName</c>). A word that
+    /// names no constant entry is device-name-1: its own spelling. The constant is "as if literal-1 … were written"
+    /// (§13.10.4 GR1), so it meets §12.4.5.2 SR4 as a written literal does: alphanumeric, not zero-length (a constant
+    /// never stands for a figurative constant: §13.10.3 SR6 refuses that at the entry). A constant whose own entry was
+    /// refused reported there, so the operand recovers silently.</para></summary>
+    private static string WordText(EditionContext edition, LiteralEnvironment env, Core.CobolWordContext word)
+    {
+        string spelling = word.GetText();
+        var reading = env.ReadConstant(spelling);
+        switch (reading.Kind)
+        {
+            case ConstantReadingKind.NotAConstant: return spelling;
+            case ConstantReadingKind.Refused: return "";
+        }
+        string? fault = reading.Value.Category is not PicCategory.Alphanumeric
+            ? $"shall be an alphanumeric literal; the constant-name '{spelling}' stands for a "
+                + $"{reading.Value.Category.ToString().ToLowerInvariant()} literal"
+            : reading.Value.Value.Length == 0 ? $"shall not be a zero-length literal; the constant-name '{spelling}' stands for a zero-length literal"
+            : null;
+        if (fault is null) return reading.Value.Value;
+        Report(edition, word, $"ASSIGN TO {spelling}: literal-1 {fault} (ISO §12.4.5.2 SR4; §13.10.3 SR2 admits a "
+            + "constant-name only where a literal of its class and category is specified, and §13.10.4 GR1 makes it "
+            + "\"as if literal-1 … were written\")");
+        return "";
+    }
+
+    /// <summary>The ONE report of an ASSIGN operand's literal-1 shape (COBOLNET2645), anchored at the operand.</summary>
+    private static void Report(EditionContext edition, Antlr4.Runtime.ParserRuleContext at, string message)
+    {
+        using var _ = edition.At(at);
+        edition.Error(DiagnosticCatalog.AssignLiteralShape, message);
     }
 }

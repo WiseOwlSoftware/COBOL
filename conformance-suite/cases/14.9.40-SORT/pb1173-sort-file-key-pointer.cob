@@ -11,6 +11,11 @@
       *> A record with a pointer leaf has no image the sort store can hold, which the binder used to answer first
       *> (a COBOLNET1756 deferral that aborted the run unit) — hiding that the KEY is illegal at every edition.
       *> The key rules are asked of the key phrase before the record's image is.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
+      *> The SD record is one USAGE POINTER, which this implementation gives 8 bytes (DataItem.PointerByteWidth; the size
+      *> is the implementor's, 13.18.60.4 GR23), so the USING and GIVING records are X(8).
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FP.
        ENVIRONMENT DIVISION.
@@ -24,9 +29,9 @@
        SD SW.
        01 SPR USAGE POINTER.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(8).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(8).
        PROCEDURE DIVISION.
        MAIN.
            SORT SW ASCENDING KEY SPR USING IN1 GIVING OU1

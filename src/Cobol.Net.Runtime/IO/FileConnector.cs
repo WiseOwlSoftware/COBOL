@@ -265,7 +265,9 @@ public abstract class FileConnector
     internal PhysicalFileTable.State? Physical { get; private set; }
 
     /// <summary>The §9.1.16 RECORD-LOCKING view of <see cref="Physical"/> — non-null only for a connector whose
-    /// SELECT registered a SHARING or LOCK MODE clause (or whose OPEN carried a SHARING/RETRY phrase). It is
+    /// current OPEN can SET record locks: a LOCK MODE clause under a sharing mode other than NO OTHER
+    /// (<c>FileRegistry.RecordLocksSetUnder</c>, §12.4.5.9.4 GR1 and GR3). A SHARING clause alone, a SHARING or RETRY
+    /// phrase on the OPEN and the NO OTHER mode confer none (kb/Work PB3372). It is
     /// what the release-ordinal mint a shared <c>OPEN EXTEND</c> numbers its appended records from reads
     /// (kb/Work PB739), and the gate is the record-locking one because the ordinal IS the lock identity:
     /// §12.4.5.9.4 GR1 b) 2. leaves a clause-less connector's record locking to the implementor and this
@@ -285,7 +287,7 @@ public abstract class FileConnector
     /// <c>OpenCore</c> reads them, so assigning afterwards would open every stream on the PREVIOUS open's
     /// answer).</summary>
     /// <param name="physical">The physical file's shared state — every connector gets it.</param>
-    /// <param name="locksRecords">Whether this connector registered a §9.1.15/§9.1.16 posture.</param>
+    /// <param name="locksRecords">Whether this open's connector SETS record locks (<c>FileRegistry.RecordLocksSetUnder</c>: a LOCK MODE clause under a mode other than NO OTHER). A registered SHARING posture alone is NOT participation.</param>
     internal void AssociatePhysical(PhysicalFileTable.State physical, bool locksRecords)
     {
         Physical = physical;
@@ -711,6 +713,14 @@ public abstract class FileConnector
     /// sharing mode is in effect, and the lock rule presupposes one (§9.1.15).</para></summary>
     public string MutationTargetRecordId(string recordImage, RecordExtents? recordExtents) =>
         MutationOpenModeGuard() is null ? MutationTargetRecordIdCore(recordImage, recordExtents) : "";
+
+    /// <summary>The record a sequential-ACCESS REWRITE or DELETE RECORD identifies, or "" when none is: §14.9.35.4 GR5 and
+    /// §14.9.10.4 GR2 name the record the immediately previous statement's READ made current, and only a statement that follows
+    /// a successfully executed READ has one. After any other statement (an unsuccessful REWRITE, a WRITE, a START) the
+    /// statement is the '43' of <see cref="PrevOpWasSuccessfulRead"/>'s gate, tested in the general rules' order BEFORE the
+    /// record lock GR11 / GR6 would have met (docs/CONFORMANCE.md DOC-A.1-104 (2)): the registry's conflict check, which runs
+    /// ahead of the connector's own body, must therefore have no target to conflict on (kb/Work PB3416, review R1-1).</summary>
+    private protected string SequentialMutationTarget => PrevOpWasSuccessfulRead ? LastReadRecordId : "";
 
     /// <summary>The organization's answer to <see cref="MutationTargetRecordId"/> for a connector open in the I-O
     /// mode.</summary>

@@ -8,6 +8,9 @@
       *>   cite.py --check 14.9.24.3 "Key data names shall not be subject to any OCCURS clauses." ->
       *>     OK §14.9.24.3 4) b)
       *> The MERGE twin of negative/pb1173-sort-file-key-occurs, through the same key-admissibility predicate.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173MC.
        ENVIRONMENT DIVISION.
@@ -24,11 +27,11 @@
           05 K1 PIC X.
           05 KOCC PIC X OCCURS 2.
        FD MI1.
-       01 M1R PIC X(5).
+       01 M1R PIC X(3).
        FD MI2.
-       01 M2R PIC X(5).
+       01 M2R PIC X(3).
        FD MO1.
-       01 MOR PIC X(5).
+       01 MOR PIC X(3).
        PROCEDURE DIVISION.
        MAIN.
            MERGE SW ASCENDING KEY KOCC USING MI1 MI2 GIVING MO1

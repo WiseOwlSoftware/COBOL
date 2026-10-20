@@ -5,6 +5,7 @@ using Antlr4.Runtime;
 using CobolNet.Binding;
 using CobolNet.Binding.Model;
 using CobolNet.Frontend.Generated;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -21,16 +22,17 @@ using Core = CobolParserCore;
 /// (<see cref="FileDescriptionFormats"/>) is only automatic for the NEXT clause if a new <c>fileDescriptionClause</c>
 /// alternative cannot land without a row; these facts read the generated parser, not a list, so it cannot.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class FileDescriptionFormatDriftTests
 {
     /// <summary>The alternatives of <c>fileDescriptionClause</c> as the GENERATED parser exposes them: its
-    /// no-argument accessors returning a rule context, less the <c>unrecognizedClause</c> error production.</summary>
+    /// no-argument accessors returning a rule context, less the <c>unrecognizedDataClause</c> error production.</summary>
     private static IReadOnlyList<Type> Alternatives() =>
         typeof(Core.FileDescriptionClauseContext)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
             .Where(m => m.GetParameters().Length == 0
                         && typeof(ParserRuleContext).IsAssignableFrom(m.ReturnType)
-                        && m.ReturnType != typeof(Core.UnrecognizedClauseContext))
+                        && m.ReturnType != typeof(Core.UnrecognizedDataClauseContext))
             .Select(m => m.ReturnType)
             .Distinct()
             .ToList();
@@ -75,4 +77,21 @@ public sealed class FileDescriptionFormatDriftTests
     public void TheFormat_IsDecidedByOrganizationThenReportClause(
         FileOrganization organization, bool hasReport, string expected) =>
         Assert.Equal(Enum.Parse<FileDescriptionFormat>(expected), FileDescriptionFormats.Of(organization, hasReport));
+
+    /// <summary>⛔ THE LINAGE CLAIM IS HELD TO THE TABLE (kb/Work PB2503). Annex A.4.11 item 10 lists the LINAGE clause
+    /// (§13.18.34) among the optional Report Writer elements, and A.4.1 lets an implementation accept it "only when
+    /// support for that language element is claimed". <c>docs/CONFORMANCE.md</c> §5's A.4.11 row says the clause is
+    /// CLAIMED and that it is a Format 1 clause only; this reads that row and the table, so neither can change alone:
+    /// a LINAGE row that admits a second format, or a row that stops saying "CLAIMED", is red.</summary>
+    [Fact]
+    public void TheLinageClaim_AgreesWithTheFileDescriptionFormatTable()
+    {
+        string row = File.ReadAllLines(TestRepo.Docs("CONFORMANCE.md"))
+            .Single(l => l.StartsWith("| A.4.11 |", StringComparison.Ordinal));
+        Assert.Contains("The LINAGE clause (item 10, §13.18.34) is CLAIMED", row, StringComparison.Ordinal);
+        Assert.Contains("a LINAGE clause on a Format 2 (relative or indexed) or Format 3 (report) entry is refused COBOLNET2604",
+            row, StringComparison.Ordinal);
+        Assert.Equal(FileDescriptionFormat.Sequential,
+            FileDescriptionFormats.ByContext[typeof(Core.LinageClauseContext)].Formats);
+    }
 }

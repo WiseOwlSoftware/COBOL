@@ -37,18 +37,15 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // A CELL-BACKED variable-length group view (an EXTERNAL record, an ADDRESS-OF-taken record — kb/Work
         // PB1026) is the exception: its view composes the same current-extent image from the cell, through the
         // same dispatcher (PlaceRenderer.VarGroupCurrentImage).
-        var parts = d.Operands.Select(o =>
-            o is BoundFieldOperand { Place: { Item.IsGroup: true, ImageCapable: false } vp }
-                && (vp is not RedefViewPlace || vp is RedefViewPlace { Coding: VarGroupWindow })
-                && vp.Item.CurrentExtentTransferImageCapable
-            ? PlaceRenderer.VarGroupCurrentImage(vp, "DISPLAY of", transfer: true)
-            // A strongly-typed group with a class pointer/object leaf (kb/Work PB244): a legal identifier-1
-            // (§14.9.11.3 SR1 bars only an item OF class pointer/object; a strongly-typed group's class is its
-            // type-name, §8.5.2.1) whose GR1 device conversion is ours to define — CONFORMANCE.md A.1 item 56:
-            // its STORAGE image, each such leaf as its 8 positions (a pointer's storage image, kb/Work PB1071; an object's reserved placeholder, D-SLOT). The ONE-WAY
-            // transfer reader (OperandText.AsTransferString), so comparison and read-back keep refusing a
-            // non-injective, non-invertible image; an intrinsic function's string argument asks the same reader.
-            : OperandText.AsTransferString(o, num, "DISPLAY of")).ToList();
+        // A strongly-typed group with a class pointer/object leaf (kb/Work PB244): a legal identifier-1
+        // (§14.9.11.3 SR1 bars only an item OF class pointer/object; a strongly-typed group's class is its
+        // type-name, §8.5.2.1) whose GR1 device conversion is ours to define — CONFORMANCE.md A.1 item 56:
+        // its STORAGE image, each such leaf as its 8 positions (a pointer's storage image, kb/Work PB1071; an object's reserved placeholder, D-SLOT). The ONE-WAY
+        // transfer reader (OperandText.AsTransferString), so comparison and read-back keep refusing a
+        // non-injective, non-invertible image; an intrinsic function's string argument asks the same reader. The
+        // variable-length arm described above lives in that reader too (kb/Work PB3424), so DISPLAY and a function
+        // argument cannot answer "what are this group's characters" differently.
+        var parts = d.Operands.Select(o => OperandText.AsTransferString(o, num, "DISPLAY of")).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         string sink = d.ToStdErr ? "global::System.Console.Error" : "global::System.Console";
         ctx.Writer.Line(d.NoAdvancing ? $"{sink}.Write({image});" : $"{sink}.WriteLine({image});");

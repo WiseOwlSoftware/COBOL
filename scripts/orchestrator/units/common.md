@@ -26,3 +26,7 @@ supervisor starts the next unit after you end.
 - FORBIDDEN: the WSL lifecycle commands `wsl --terminate`, `wsl --shutdown`, `wsl --update`, `wsl --export`,
   `wsl --unregister` (they kill every other session's Linux gate). Run WSL from PowerShell, with scripts in files.
 - The coordination directory is {COORD}; the fleet scratch directory (reports under `reports\`) is {SCRATCH}.
+- Every command in these prompts quotes its Windows paths in single quotes, so it runs the same in Git Bash and in
+  PowerShell: keep them quoted, and quote any path you add. Git Bash drops the backslashes of an unquoted Windows path
+  (`E:\COBOL-coord\scratch` arrives as the drive-relative `E:COBOL-coordscratch`); three wave units planned into a
+  folder inside the main checkout that way (kb/Work PB3114).

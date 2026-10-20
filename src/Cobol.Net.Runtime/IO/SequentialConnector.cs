@@ -189,7 +189,7 @@ public sealed class SequentialConnector : FileConnector
         _readOrdinal > 0 ? _readOrdinal.ToString(System.Globalization.CultureInfo.InvariantCulture) : "";
 
     /// <inheritdoc/>  (a sequential REWRITE replaces the record obtained by the last successful READ, §14.9.35)
-    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => LastReadRecordId;
+    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) => SequentialMutationTarget;
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => _writeOrdinal > 0
@@ -220,8 +220,9 @@ public sealed class SequentialConnector : FileConnector
     /// (<see cref="FileLockPosture.AdmitsAnotherRunUnit"/>: every mode but <c>NO OTHER</c>). The ORDINAL is counted
     /// off the medium only where another WRITER may be on it — <c>SHARING WITH ALL OTHER</c> is the only mode Table 19
     /// admits a writing sibling beside (kb/Work PB322) — and a connector that is the only writer mints it. The ORDINAL is the §9.1.16 record-lock identity, and a connector
-    /// that registered NEITHER a SHARING nor a LOCK MODE clause sets no record locks to identify — §12.4.5.9.4
-    /// GR1 b) 2. leaves that case to the implementor (<i>"the type of record locking for that opening … is
+    /// that cannot SET record locks has none to identify (kb/Work PB3372, <c>FileRegistry.RecordLocksSetUnder</c>): a
+    /// SHARING clause or an OPEN SHARING phrase without a LOCK MODE clause sets none (§12.4.5.9.4 GR1 a), b) 1.), and
+    /// GR3 voids the LOCK MODE clause under SHARING WITH NO OTHER. §12.4.5.9.4 GR1 b) 2. leaves the no-clause case to the implementor (<i>"the type of record locking for that opening … is
     /// defined by the implementor … or specify that the default is no record locking"</i>) and this compiler's
     /// determination is no record locking (<see cref="FileLockMode.None"/>) — so the ordinal is minted only
     /// where the physical file's shared state exists to mint it from. Gating the flush on the ordinal's
@@ -463,8 +464,9 @@ public sealed class SequentialConnector : FileConnector
     /// open for reading (<c>EBADF</c>): an OUTPUT or EXTEND writer that took the mode's bare WRITE access would hold
     /// its record locks with no announcement, and every other run unit's hot-path test
     /// (<c>FileRegistry.NoRecordIsLocked</c>) would read the file as unlocked. Read is the one access the band
-    /// admits beyond a mode's floor (<c>FileLockPostureDriftTests</c>), and only a connector that registered a
-    /// record-locking posture (<see cref="FileConnector.SharedPhysical"/>) asks for it. For OUTPUT the read is a
+    /// admits beyond a mode's floor (<c>FileLockPostureDriftTests</c>), and only a connector that SETS record locks
+    /// under this open (<see cref="FileConnector.SharedPhysical"/>, <c>FileRegistry.RecordLocksSetUnder</c>; a SHARING
+    /// clause or phrase alone does not) asks for it. For OUTPUT the read is a
     /// PREFERENCE: a host that refuses it still grants the write (<see cref="OpenWriter"/>, kb/Work PB2848); for
     /// EXTEND it is a need, because the record ordinals a lock is published under are counted off the medium.</remarks>
     internal override FileAccess HostAccess(FileOpenMode mode) =>

@@ -9,6 +9,9 @@
       *>     pointer." -> OK §14.9.40.3 6) c)
       *> KB is PIC 1 USAGE BIT, class boolean (USAGE BIT is a COBOL-2002 construct, so the rule can only fire from
       *> 2002). The statement used to compile clean.
+      *> kb/Work PB2512 - the USING and GIVING records are sized to the SD record (its largest record, or its
+      *> variable-length range), so the program breaks no rule of the record-size family (SORT SR5, SR11; MERGE
+      *> SR3, SR12) and the key rule is the ONE reason it is refused.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1173FB.
        ENVIRONMENT DIVISION.
@@ -24,9 +27,9 @@
           05 K1 PIC X.
           05 KB PIC 1 USAGE BIT.
        FD IN1.
-       01 IR PIC X(5).
+       01 IR PIC X(2).
        FD OU1.
-       01 OR1 PIC X(5).
+       01 OR1 PIC X(2).
        PROCEDURE DIVISION.
        MAIN.
            SORT SW ASCENDING KEY KB USING IN1 GIVING OU1

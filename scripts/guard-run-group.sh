@@ -1,21 +1,22 @@
 #!/bin/bash
-# Run ONE NIST group serially in an isolated scratch directory, emitting one "TEST: VERDICT" line per test to
-# stdout. Used by scripts/guard-fast.sh to parallelize the NIST suite across cores with airtight isolation.
+# THE ONE RUNNER OF NIST PROGRAMS: run each named program, one after another, each in its own clean scratch
+# directory, emitting one "TEST: VERDICT" line per program to stdout. scripts/guard-fast.sh runs every program of
+# its population as its own job through it (kb/Work PB3383), and scripts/guard-verify.sh's witnesses drive it.
 #
 #   $1 = repo root (absolute)
-#   $2 = group id (informational)
-#   $3 = ordered, space-separated test names that must share a dir + run order (a producer/consumer chain, or a
-#        single self-contained test)
+#   $2 = a label (informational)
+#   $3 = space-separated test names; each is graded on its own, so the order carries nothing
 #
-# Mirrors scripts/guard.sh's per-test run+compare logic EXACTLY (same report resolution, same written-files arm, same
-# FAIL*/footer rules); only the working directory differs.
-# ⭐ THAT IS NO LONGER A PROMISE KEPT BY HAND: both guards call scripts/guard-verdict.sh, the ONE implementation
-# of the evidence rules (`feedback_one_rule_one_place`). The prose used to say the two blocks were kept
-# "character-for-character in step", and they had already drifted (this file's normalize() carried a `[ -f ]`
-# guard guard.sh's did not) while sharing every hole kb/Work/PB473 found.
+# It scores through scripts/guard-verdict.sh, the ONE implementation of the evidence rules
+# (`feedback_one_rule_one_place`), and guard-verify.sh fails on any other guard script that runs a NIST program. A
+# serial twin, scripts/guard.sh, kept a hand copy of this loop "character-for-character in step": it had drifted
+# (this file's normalize() carried a `[ -f ]` guard its copy did not), shared every hole kb/Work/PB473 found, and ran
+# every program in one shared directory, so IX115A read the files IX114A left behind (kb/Work PB3383). It is retired.
 # ⛔ EVERY PROGRAM RUNS IN ITS OWN CLEAN DIRECTORY, AFTER EXACTLY ITS DECLARED PREDECESSORS (kb/Work PB3334, review
 # round 2) — NistRunner's rule, so the two arms grade a program over the same input. Its predecessors are corpus.tsv's
-# chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own member of the group).
+# chain-preds column (guard_chain_preds), run in order and ungraded (each is graded as its own population member, when
+# it is one), and a predecessor that does not run to a normal end, or has no compiled program, makes the CONSUMER's
+# verdict that failure, named (guard_predecessor_verdict, kb/Work PB3385 — NistRunner's `[chain p] …` failures).
 # The group's programs used to share ONE directory, so a consumer ran over whatever the members before it left: IX115A,
 # which declares only IX109A, ran over the tf024.txt that IX110A and IX114A had opened I-O. That agreed with NistRunner
 # only while an OPEN and a CLOSE that changed no record left the file's bytes alone. The keyed-store engine's writable
@@ -39,8 +40,8 @@ case "$RUNTIME" in /*|[A-Za-z]:[\\/]*) ;; *) RUNTIME="$ROOT/$RUNTIME" ;; esac
 # conservative direction — and it is loud, so it gets read rather than absorbed.
 RUN_TIMEOUT="${GUARD_RUN_TIMEOUT:-120}"
 
-# THE evidence rules (compile · run · compare · termination), shared with scripts/guard.sh, and the manifest's
-# one shell reader (guard_declared_termination).
+# THE evidence rules (compile · run · compare · termination), and the manifest's one shell reader
+# (guard_declared_termination, guard_chain_preds).
 . "$(cd "$(dirname "$0")" && pwd)/guard-verdict.sh"
 . "$(cd "$(dirname "$0")" && pwd)/guard-population.sh"
 
@@ -54,25 +55,28 @@ trap 'rm -rf "$RUNS" "$CMP"' EXIT
 export COBOL_SWITCH_1=ON
 
 # run_predecessor PRED CONSUMER — run PRED, ungraded, in CONSUMER's run directory ($WORK), its standard input its data
-# file as when it is graded. A predecessor with no compiled program is said so on stderr and skipped: the consumer
-# then lacks its input and goes red, never a false green.
+# file as when it is graded, its stderr kept outside the run directory ($PRED_ERR). Returns 0 when PRED ran to a normal
+# end; otherwise 1 with GUARD_CLASS/GUARD_VERDICT set (guard_predecessor_verdict; guard_predecessor_compile_verdict for
+# a predecessor with no compiled program), and the caller reports THAT as the consumer's verdict instead of grading it
+# (kb/Work PB3385; NistRunner's `[chain p] …` failures). A consumer graded over the partial file a crashed predecessor
+# left, or over none, is no observation of the compiler — and a GUARD_TESTS subset naming only the consumer has no other
+# place where the predecessor is graded and seen to fail.
 run_predecessor() {
     local pred="$1" consumer="$2" pdata="$ROOT/tests/nist/data/$1.dat" prc=0
+    PRED_ERR="$CMP/${consumer}-${pred}-stderr.txt"
     if [ ! -f "$OUT/$pred.dll" ]; then
-        echo "  ⚠ $consumer: its declared predecessor $pred has no compiled program — $consumer runs without it" >&2
-        return 0
+        guard_predecessor_compile_verdict "$pred" "$(cat "$OUT/$pred.compile.rc" 2>/dev/null || echo "")" "$OUT/$pred.compile.log"
+        return 1
     fi
     cp "$OUT/$pred.dll" "$WORK/"
     [ -f "$OUT/$pred.runtimeconfig.json" ] && cp "$OUT/$pred.runtimeconfig.json" "$WORK/"
     if [ -f "$pdata" ]; then
-        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") < "$pdata" > /dev/null 2>&1 || prc=$?
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll" 2>"$PRED_ERR") < "$pdata" > /dev/null || prc=$?
     else
-        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll") > /dev/null 2>&1 || prc=$?
+        (cd "$WORK" && timeout -k 5 "$RUN_TIMEOUT" dotnet "$pred.dll" 2>"$PRED_ERR") > /dev/null || prc=$?
     fi
-    if [ "$prc" -eq 124 ] || [ "$prc" -eq 137 ]; then
-        echo "  ⚠ $consumer: its declared predecessor $pred timed out (rc=$prc) in $consumer's directory" >&2
-    fi
-    return 0
+    guard_predecessor_verdict "$pred" "$prc" "$PRED_ERR" "$RUN_TIMEOUT"
+    [ -z "$GUARD_CLASS" ]
 }
 
 for test in $TESTS; do
@@ -89,7 +93,15 @@ for test in $TESTS; do
     mkdir -p "$WORK"
     cp "$RUNTIME" "$WORK/"
     preds="$(guard_chain_preds "$test")" || exit 1
-    for pred in $preds; do run_predecessor "$pred" "$test"; done
+    pred_failed=""
+    for pred in $preds; do
+        if ! run_predecessor "$pred" "$test"; then pred_failed="$pred"; break; fi
+    done
+    if [ -n "$pred_failed" ]; then
+        echo "$test: $GUARD_VERDICT"
+        guard_preserve "$test" "$GUARD_VERDICT" "$PRED_ERR" "$OUT/$pred_failed.compile.log"
+        continue
+    fi
     cp "$dll" "$WORK/"
     [ -f "$OUT/$test.runtimeconfig.json" ] && cp "$OUT/$test.runtimeconfig.json" "$WORK/"
 

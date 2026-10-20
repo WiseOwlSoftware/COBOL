@@ -9,6 +9,7 @@ waits (blockers in two chains, the owner, a frontier model), and work.py check's
 Run: python scripts/orchestrator/test_plan_wave.py   (no build, no git; the campaign section needs the
 tools/claude-skills submodule, and its absence is a FAIL)."""
 import dataclasses
+import json
 import os
 import pathlib
 import re
@@ -318,6 +319,28 @@ for drain in (False, True):
                   budget_points=100, drain=False, carrier=DR_CARRIER.get, owned={"worktree-wf_dr-3"})
     check("a SPLIT report's branch IN FLIGHT is the SPLIT arm's (PB2974), not this rule's",
           any("PB6" in g.notes for g in pf2["groups"]), True)
+# kb/Work PB3394 (wave 1127's A, B and C): a FINDINGS stamp makes a finisher only when it COVERS the branch tip
+# (`review_covers`: prune_worktrees.review_coverage over the survey in plan_wave.main, the survey's own rule; the
+# end-to-end case on a real git history is prune_worktrees.py --self-test's findings-moved and findings-stamped). A stamp
+# at an older head is WAITING FOR REVIEW, named in `waiting`, never a group, in either mode. Without a survey the
+# report's own HEAD stands for the tip: a report rewritten after the review (HEAD past the stamp) is not covered.
+SV = TMP / "reports-stale-stamp"
+SV.mkdir()
+for head, stamp in (("314d06415aa", "11f7b8ab0c0e"), ("11f7b8ab0c0e", "11f7b8ab0c0e")):
+    (SV / "w1127a-PB7-report.md").write_text(
+        f"Status: DONE\n**Review:** FINDINGS 1 w1127a-review-r1 {stamp} E:/s/review-w1127-a.jsonl\n"
+        f"Branch: worktree-wf_dr-2\nHEAD: {head}\n\n## X\n", encoding="utf-8", newline="\n")
+    for drain in (False, True):
+        for covers in (None, lambda _r: False, lambda _r: True):
+            covered = covers(None) if covers else head == stamp
+            psv = pw.plan(dr_notes, CLUSTERS, HALF, pw.load_reports(SV), lambda b: DR_CLASS.get(b, "ABSENT"), {}, RULES,
+                          budget_points=100, drain=drain, review_covers=covers)
+            g7 = [g.pred for g in psv["groups"] if "PB7" in g.notes]
+            check(f"PB3394: HEAD {head[:4]}, stamp {stamp[:4]}, {'drain' if drain else 'normal'}, review_covers "
+                  f"{'default' if covers is None else covered}: {'a finisher' if covered else 'WAITING FOR REVIEW'}",
+                  (bool(g7) and g7[0].startswith("FINISH-FIRST: the branch review of w1127a"),
+                   psv["waiting"].get("PB7", "").startswith("WAITING FOR REVIEW")),
+                  (covered, not covered))
 # PB3311 review R1-1: the survey reads a FINDINGS branch IN FLIGHT ALSO when a carrier merely contains it
 # (prune_worktrees.contained: it lands through that branch), and that says nothing about who answers ITS findings. The
 # survey as plan_wave.main reads it, end to end: wf_dr-5 (PB79's FINDINGS branch, DECISION by lifecycle) is an ancestor
@@ -665,6 +688,101 @@ if fc:
     check("a dependent is never chosen without its blocker's group",
           all(g.after in {c.letter for c in cp2["groups"]} for g in cp2["groups"] if g.after), True)
 
+# 9b. THE OWNER'S TIER RANKS A CAMPAIGN FIRST (kb/Work PB3423): wave 1129's dry plan gave five of its eight groups to
+#     untiered PB3353 members because the planner ranked by rows and harm alone. Here the untiered notes carry the
+#     harm (wrong_answer) and the tiered ones none, so without the tier they would plan first.
+TW = TMP / "tiers" / "kb" / "Work"
+TW.mkdir(parents=True)
+for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs", "scripts/gamma.py", "tests/Delta.Tests/DeltaTests.cs"):
+    (TMP / "tiers" / rel).parent.mkdir(parents=True, exist_ok=True)
+    (TMP / "tiers" / rel).write_text("// fixture\n", encoding="utf-8", newline="\n")
+
+
+def tnote(nid, tier=None, blocked_by=(), site="", wrong=False):
+    (TW / f"{nid}.md").write_text(
+        f'---\ntitle: "{nid} — tiered step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
+        f"wrong_answer: {'true' if wrong else 'false'}\nprocess_only: true\nblocked: {'true' if blocked_by else 'false'}\n"
+        f"blocked_by: [{', '.join(blocked_by)}]\ncluster: [PB940, PB949]\n" +
+        (f'tier: ["PB940:{tier}", "PB949:{9 - tier}"]\n' if tier else "") +
+        f"---\n\n# {nid}\n\n" + (f"**Sites:**\n- `{site}`\n" if site else "Prose only.\n"), encoding="utf-8", newline="\n")
+
+
+tnote("PB941", site="src/Lib/Alpha.cs", wrong=True)
+tnote("PB942", site="scripts/gamma.py", wrong=True)
+tnote("PB943", tier=1, site="src/Lib/Beta.cs")
+tnote("PB944", tier=1)
+tnote("PB945", tier=2, site="tests/Delta.Tests/DeltaTests.cs")
+tnote("PB947", tier=1, blocked_by=("PB948",))
+tnote("PB948")  # untiered, but it blocks a tier-1 note: its effective tier is 1
+titems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(TW.glob("*.md"))]
+tview = work.cluster_order(titems, "PB940")
+check("cluster_order: tier first (a blocker takes the lowest tier it blocks), then depth, untiered last",
+      [(r["id"], r["tier"], r["depth"]) for r in tview["notes"]],
+      [("PB943", 1, 0), ("PB944", 1, 0), ("PB948", 1, 0), ("PB947", 1, 1), ("PB945", 2, 0), ("PB941", None, 0),
+       ("PB942", None, 0)])
+check("the tiered register is well-formed", work.topology_problems(titems), [])
+check("a tier is scoped to its campaign: the same notes in PB949 rank by that campaign's tiers",
+      [(r["id"], r["tier"]) for r in work.cluster_order(titems, "PB949")["notes"]][:5],
+      [("PB945", 7), ("PB943", 8), ("PB944", 8), ("PB948", 8), ("PB947", 8)])
+check("lift_tiers: a cluster waiting on another lowers it, transitively; an unrelated cluster keeps its tier",
+      (lambda cs: (pw.lift_tiers(cs, {"X2": ["Y1"], "Y1": ["Z1"]}), [c["tier"] for c in cs])[1])(
+          [{"notes": [{"id": "X1"}, {"id": "X2"}], "tier": 1}, {"notes": [{"id": "Y1"}], "tier": None},
+           {"notes": [{"id": "Z1"}], "tier": 3}, {"notes": [{"id": "W1"}], "tier": None}]),
+      [1, 1, 1, None])
+if fc:
+    tnotes = pw.load_notes(TW, {"wrong_answer": 8})
+    ttexts = {i: (TW / f"{i}.md").read_text(encoding="utf-8") for i in tnotes}
+    TDECL = pw.declared_sets(TMP / "tiers", pw.IndexPolicy(TMP / "no-cache-tiers", regenerate=False))
+    topen, thalf, tdeps, twait = pw.campaign_clusters(tview, tnotes, ttexts, RULES, fc, TMP / "tiers", TDECL)
+    check("campaign clusters carry the tier", {tuple(n["id"] for n in c["notes"]): c["tier"] for c in topen},
+          {("PB941",): None, ("PB942",): None, ("PB943",): 1, ("PB944",): 1, ("PB945",): 2, ("PB947",): 1,
+           ("PB948",): 1})
+    tp = pw.plan(tnotes, topen, thalf, [], lambda b: "ABSENT", {}, RULES, budget_points=100, deps=tdeps)
+    check("the plan letters tier 1 first, its successor after its blocker, then tier 2, then the untiered",
+          [(g.letter, g.after, g.notes) for g in tp["groups"]],
+          [("A", "", ["PB943"]), ("B", "", ["PB944"]), ("C", "", ["PB948"]), ("C2", "C", ["PB947"]),
+           ("D", "", ["PB945"]), ("E", "", ["PB941"]), ("F", "", ["PB942"])])
+    # THE DRIFT TEST: under a group cap, no group of a later tier is chosen while a READY group of an earlier one waits
+    capped = pw.plan(tnotes, topen, thalf, [], lambda b: "ABSENT", {}, RULES, budget_points=100, deps=tdeps, max_groups=4)
+    rank = {r["id"]: work.tier_rank(r["tier"]) for r in tview["notes"]}
+    worst_chosen = max(rank[i] for g in capped["groups"] for i in g.notes)
+    check("a group cap spends its slots on tier 1 before any untiered group, however much harm it carries",
+          ([g.notes for g in capped["groups"]],
+           all(min(rank[i] for i in g.notes) >= worst_chosen for g in capped["skipped"] if not g.after)),
+          ([["PB943"], ["PB944"], ["PB948"], ["PB947"]], True))
+    # THE LIFT, THROUGH campaign_clusters AND plan (review R1-2 of PB3423: deleting the call kept every check green).
+    # At a cap of 2, Alpha.cs's three notes split [PB961, PB962] and [PB963]; Beta.cs's tier-1 PB964 shares a cluster
+    # with the untiered PB965, whose blocker PB963 sits alone and untiered. Unlifted, that cluster ranks after the
+    # tier-1 dependent cluster, which then waits ("blocker PB963 is not planned"); lifted, it ranks before it and the
+    # dependents follow the one Alpha.cs chain.
+    LW = TMP / "lift" / "kb" / "Work"
+    LW.mkdir(parents=True)
+    for rel in ("src/Lib/Alpha.cs", "src/Lib/Beta.cs"):
+        (TMP / "lift" / rel).parent.mkdir(parents=True, exist_ok=True)
+        (TMP / "lift" / rel).write_text("// fixture\n", encoding="utf-8", newline="\n")
+    for nid, tier, bb, site in (("PB961", 0, "", "Alpha"), ("PB962", 0, "", "Alpha"), ("PB963", 0, "", "Alpha"),
+                                ("PB964", 1, "PB961", "Beta"), ("PB965", 0, "PB963", "Beta")):
+        (LW / f"{nid}.md").write_text(
+            f'---\ntitle: "{nid} — lift step"\nid: {nid}\nkind: defect\nstatus: open\narea: runtime/io\n'
+            f"wrong_answer: false\nprocess_only: true\nblocked: {'true' if bb else 'false'}\nblocked_by: [{bb}]\n"
+            f"cluster: [PB960]\n" + (f'tier: ["PB960:{tier}"]\n' if tier else "") +
+            f"---\n\n# {nid}\n\n**Sites:**\n- `src/Lib/{site}.cs`\n", encoding="utf-8", newline="\n")
+    litems = [dict(work.parse_frontmatter(p.read_text(encoding="utf-8")), _file=p.name) for p in sorted(LW.glob("*.md"))]
+    lnotes = pw.load_notes(LW, {"wrong_answer": 8})
+    ltexts = {i: (LW / f"{i}.md").read_text(encoding="utf-8") for i in lnotes}
+    LRULES = JSON.loads(JSON.dumps(RULES))
+    LRULES["wave"]["max_notes_per_group"] = 2
+    lopen, lhalf, ldeps, _ = pw.campaign_clusters(work.cluster_order(litems, "PB960"), lnotes, ltexts, LRULES, fc,
+                                                  TMP / "lift", pw.declared_sets(TMP / "lift", pw.IndexPolicy(
+                                                      TMP / "no-cache-lift", regenerate=False)))
+    check("campaign_clusters lifts the untiered blocker's cluster to its tier-1 dependent's",
+          [([n["id"] for n in c["notes"]], c["tier"], c["depth"]) for c in lopen],
+          [(["PB961", "PB962"], 1, 0), (["PB963"], 1, 0), (["PB964", "PB965"], 1, 1)])
+    lp = pw.plan(lnotes, lopen, lhalf, [], lambda b: "ABSENT", {}, LRULES, budget_points=100, deps=ldeps)
+    check("so the mixed dependent cluster follows the one Alpha.cs chain instead of waiting",
+          ([(g.letter, g.after, g.notes) for g in lp["groups"]], lp["waiting"]),
+          ([("A", "", ["PB961", "PB962"]), ("A2", "A", ["PB963"]), ("A3", "A2", ["PB964", "PB965"])], {}))
+
 # 9a. A CAMPAIGN'S STANDING REQUIREMENTS (kb/Work PB3359): the bullets of the campaign lead note's `## Standing
 #     requirements` reach every group's spec body, check_practices.py and the branch reviewer's prompt. The owner's
 #     requirement lived only in a wave unit's hand edit of groups.json, and the reviewer never saw it.
@@ -727,20 +845,32 @@ zspec = TMP / "msg-w77-z.txt"
 zspec.write_text(mds.render(CFG77, other_j, FILES(other_j)), encoding="utf-8", newline="\n")
 check("each spec is checked against its own group's requirements, not every group's",
       check_practices.specs_missing_requirements(mfile, [yspec, zspec]), [])
-real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8"))
-check("the PB3353 campaign note carries the owner's exception-path requirement (2026-10-17 ~22:25)",
-      [("abnormal exception cases" in r, "not DONE" in r) for r in real_reqs], [(True, True)])
+# The owner's SORT and file I/O test sentence (2026-10-17 ~22:25) has ONE home, MANDATORY-PRACTICES I11, which every
+# rendered spec and finisher brief points at (kb/Work PB3369). A campaign lead's `## Standing requirements` holds
+# campaign-specific cases only: a copy of the sentence in a lead is a second home that drifts from the first.
+OWNER_SENTENCE = "out test cases for sort and file i/o must cover"
+I11_ROW = next(l for l in (coord.REPO / ".claude" / "skills" / "workstream" / "templates" / "MANDATORY-PRACTICES.md")
+               .read_text(encoding="utf-8").splitlines() if l.startswith("| I11 |"))
+check("MANDATORY-PRACTICES I11 carries the owner's SORT and file I/O sentence", OWNER_SENTENCE in " ".join(I11_ROW.lower().split()), True)
+lead_copies = sorted(f.stem for f in (coord.REPO / "kb" / "Work").glob("PB*.md")
+                     if any(OWNER_SENTENCE in " ".join(r.lower().split()) or "abnormal exception cases" in r
+                            for r in pw.campaign_requirements(f.read_text(encoding="utf-8"))))
+check("no campaign lead note's Standing requirements restates the owner's SORT and file I/O sentence (kb/Work PB3369)",
+      lead_copies, [])
 # the lead note the operator reads says what the planner does: binding by membership (review R2-1), never by the --cluster mode
-lead_text = (coord.REPO / "kb" / "Work" / "PB3353.md").read_text(encoding="utf-8")
-check("the PB3353 note states the membership rule the planner implements, not the superseded --cluster-only rule",
+real_reqs = pw.campaign_requirements((coord.REPO / "kb" / "Work" / "PB3330.md").read_text(encoding="utf-8"))
+lead_text = (coord.REPO / "kb" / "Work" / "PB3330.md").read_text(encoding="utf-8")
+check("the PB3330 note states the membership rule the planner implements, not the superseded --cluster-only rule",
       ("plan_wave.group_requirements" in lead_text, "Read by `plan_wave.py --cluster" in lead_text), (True, False))
-# a fix-lane plan reaches them through the notes' cluster lists: PB3353's members are bound outside a --cluster wave
+check("the PB3330 campaign note still carries the keyed engine's own cases, so the binding test below is not vacuous",
+      len(real_reqs) > 0, True)
+# a fix-lane plan reaches them through the notes' cluster lists: PB3330's members are bound outside a --cluster wave
 real_items = work.load()
-member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3353" in i["cluster"] and i["id"] != "PB3353")
+member = next(i["id"] for i in real_items if isinstance(i.get("cluster"), list) and "PB3330" in i["cluster"] and i["id"] != "PB3330")
 fg = pw.Group(kind="cluster", notes=[member], file="", files=[], letter="Q", model="sonnet", why_model="default")
-check("a real PB3353 member planned by a fix-lane wave (no --cluster) is bound by the owner's requirement",
+check("a real PB3330 member planned by a fix-lane wave (no --cluster) is bound by the campaign's own requirements",
       pw.group_requirements([fg], {i.get("id"): i.get("cluster") for i in real_items}, coord.REPO / "kb" / "Work"),
-      [{"PB3353": real_reqs}])
+      [{"PB3330": real_reqs}])
 # the planner writes them per group into groups.json and the args file, and the rolling wave reads them into the
 # REVIEWER's prompt and names the group's dispatch spec there: the halves are pinned in source, since the workflow has
 # no process API to run here
@@ -1081,6 +1211,17 @@ check("a cycle never reads as ready", [(r["id"], r["depth"], r["ready"]) for r i
       [("T6", None, False), ("T7", None, False)])
 check("a scalar cluster is no member (no substring match)", [r["id"] for r in work.cluster_order(TOPO, "T3")["notes"]],
       ["T3"])
+# a tier (kb/Work PB3423) is a list of CAMPAIGN:N entries naming the note's own campaigns once; anything else is
+# reported, and only the well-formed entries are read
+TIERS = [{"_file": f"U{k}.md", "id": f"U{k}", "status": "open", "blocked": False, "blocked_by": [], "cluster": cl, "tier": t}
+         for k, (t, cl) in enumerate([(["C:1"], ["C"]), (["C:12", "D:2"], ["C", "D"]), (["C:0"], ["C"]),
+                                       (["C:x"], ["C"]), ("1", ["C"]), (["C:1", "C:2"], ["C"]), (["D:2"], ["C"]),
+                                       (["C"], ["C"])])]
+check("a malformed entry, a campaign named twice, or a campaign the note is not in, is a problem",
+      sorted(s.split(":")[0] for s in work.topology_problems(TIERS)), ["U2.md", "U3.md", "U4.md", "U5.md", "U6.md", "U7.md"])
+check("tier_of reads the well-formed entry for that campaign only",
+      [work.tier_of(i, "C") for i in TIERS] + [work.tier_of(TIERS[1], "D"), work.tier_of(TIERS[6], "D")],
+      [1, 12, None, None, None, 1, None, None, 2, 2])
 
 # 11. the slices' file set reads ALL of DESIGN-external-repository §12 (PB2118 Draft 7, the sixth refuter's H4): the
 #     Callers column, every name in a span (`X.Y : Z`), a member mapped to the file that declares it, tests/ and docs/
@@ -1316,6 +1457,72 @@ check("(4) the scan fails on a planted copy of the old whole-text SITE_PATH and 
       note_path_scanners({"scripts/arch/planted.py": PLANT, "scripts/orchestrator/p2.py": "fc" + ".sites(text, idx, exts)",
                           "scripts/orchestrator/fine.py": "x = 1"}),
       ["scripts/arch/planted.py", "scripts/orchestrator/p2.py"])
+
+# kb/Work PB3114: A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE, end to end through main() on a scratch
+# coordination directory (its own allocator and dispatch ledger), with the plan itself fixed (one group) so only main's
+# ordering is under test. (a) A drive-relative --scratch or --stop-file (what Git Bash makes of an unquoted Windows
+# path) is refused before anything: exit 2, nothing reserved, recorded or written. (b) A RED practices check (a stand-in
+# make_dispatch_specs.py that exits 1) reserves no code and records nothing, and its one call was the --no-record pass.
+# (c) GREEN through the real make_dispatch_specs.py: the codes are reserved after the check, the spec carries them, the
+# ledger holds the group and the args file is written. (d) The renderer alone records nothing on RED.
+C3114 = TMP / "coord-3114"
+C3114.mkdir()
+(C3114 / "inflight-groups.json").write_text('{"groups": []}\n', encoding="utf-8", newline="\n")
+for kind in ("open", "half"):
+    (C3114 / f"clusters-{kind}.json").write_text('{"clusters": []}\n', encoding="utf-8", newline="\n")
+(TMP / "reports-3114").mkdir()
+FAKE_SPECS = TMP / "fake_make_dispatch_specs.py"
+FAKE_SPECS.write_text("import pathlib, sys\npathlib.Path(sys.argv[1]).with_name('fake-calls.txt').open('a').write("
+                      "' '.join(sys.argv[2:]) + chr(10))\nsys.exit(1)\n", encoding="utf-8", newline="\n")
+
+
+def main3114(scratch, stop, specs):
+    saved_plan, saved_specs = pw.plan, pw.MAKE_SPECS
+    pw.plan = lambda *_a, **_k: {"groups": [pw.Group("cluster", ["PB3114"], "scripts/orchestrator/plan_wave.py",
+                                                     ["scripts/orchestrator/plan_wave.py"], letter="A", model="opus")],
+                                 "points": 0.1, "awaiting_landing": {}, "waiting": {}, "unlanded_without_note": [],
+                                 "drain_not_started": [], "skipped": []}
+    pw.MAKE_SPECS = specs
+    try:
+        return pw.main(["--wave", "9114", "--budget-points", "3", "--no-branches", "--coord", str(C3114),
+                        "--reports", str(TMP / "reports-3114"), "--clusters-json", str(C3114 / "clusters-open.json"),
+                        "--half-clusters-json", str(C3114 / "clusters-half.json"), "--scratch", str(scratch),
+                        "--stop-file", str(stop)])
+    finally:
+        pw.plan, pw.MAKE_SPECS = saved_plan, saved_specs
+
+
+def state3114():
+    return (pw.alloc.peek("code", coord.REPO, C3114), pw.ledger_groups(C3114))
+
+
+before = state3114()
+S3114 = TMP / "scratch-3114"
+for scratch, stop in (("E:COBOL-coordscratch", S3114 / "STOP-loop"), (S3114, "E:COBOL-coordscratchSTOP-loop"),
+                      (S3114, S3114 / "STOP")):
+    check(f"PB3114 (a): --scratch {scratch} --stop-file {stop} is refused first, nothing reserved, recorded or written",
+          (main3114(scratch, stop, pw.MAKE_SPECS), state3114(), S3114.exists()), (2, before, False))
+check("PB3114 (b): a RED check reserves no code, records nothing and writes no args file; its one render recorded nothing",
+      (main3114(S3114, S3114 / "STOP-loop", FAKE_SPECS), state3114(), (S3114 / "wf-args-w9114.json").exists(),
+       (S3114 / "fake-calls.txt").read_text(encoding="utf-8").split(chr(10))[0].split()[:1]),
+      (1, before, False, ["--no-record"]))
+rc3114 = main3114(S3114, S3114 / "STOP-loop", pw.MAKE_SPECS)
+after_code, after_ledger = state3114()
+spec3114 = (S3114 / "msg-w9114-a.txt").read_text(encoding="utf-8")
+check("PB3114 (c): GREEN reserves the group's codes after the check, renders them and records the group",
+      (rc3114, after_code - before[0], pw.alloc.render("code", before[0], 3) in spec3114,
+       [(g["wave"], g["letter"], g["notes"]) for g in after_ledger], (S3114 / "wf-args-w9114.json").is_file()),
+      (0, 3, True, [("9114", "A", ["PB3114"])], True))
+pw.release_dispatch(C3114, "9114")
+# a hand-planned groups file whose practices check is RED: a standing requirement its spec body does not carry (PB3359)
+g3114 = json.loads((S3114 / "groups.json").read_text(encoding="utf-8"))["groups"][0]
+gred = TMP / "groups-3114-red.json"
+gred.write_text(json.dumps({"wave": "9115", "scratch": str(S3114), "base": "abc", "stop_file": str(S3114 / "STOP-x"),
+                            "groups": [{**g3114, "letter": "B", "slug": "w9115b",
+                                        "requirements": {"PB1": ["a requirement no rendered spec carries (3114)"]}}]}),
+                encoding="utf-8", newline="\n")
+check("PB3114 (d): make_dispatch_specs.py records nothing when its practices check is RED",
+      (mds.main([str(gred), "--coord", str(C3114)]), pw.ledger_groups(C3114)), (1, []))
 
 for f in fails:
     print("FAIL:", f)
