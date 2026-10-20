@@ -134,14 +134,21 @@ def absolute_problem(path: pathlib.Path | str, what: str) -> str | None:
     return None
 
 
-def scratch_problem(scratch: pathlib.Path | str) -> str | None:
+def main_checkout(checkout: pathlib.Path) -> pathlib.Path | None:
+    """The main checkout `checkout` is an agent worktree of (`<main>/.claude/worktrees/<name>`), or None when it is
+    not one. Read from the path's PARTS, never from its parents by index: a checkout at a drive's top level
+    (`E:\\COBOL`) has a single parent, and indexing a second one crashed every wave plan run there (kb/Work PB3451)."""
+    return checkout.parents[2] if checkout.parts[-3:-1] == (".claude", "worktrees") else None
+
+
+def scratch_problem(scratch: pathlib.Path | str, checkout: pathlib.Path = REPO) -> str | None:
     """Why `scratch` cannot be a fleet's scratch directory, or None: absolute, and outside this repository's checkout,
-    and outside the main checkout when this is one of its agent worktrees (`<main>/.claude/worktrees/<name>`): fleet
-    files inside either are one careless `git add -A` from a commit."""
+    and outside the main checkout when this is one of its agent worktrees (main_checkout): fleet files inside either
+    are one careless `git add -A` from a commit."""
     if why := absolute_problem(scratch, "the scratch directory"):
         return why
-    here = REPO.resolve()
-    checkouts = [here] + ([here.parents[2]] if (here.parent.name, here.parents[1].name) == ("worktrees", ".claude") else [])
+    here = pathlib.Path(checkout).resolve()
+    checkouts = [here] + ([main] if (main := main_checkout(here)) else [])
     if inside := next((c for c in checkouts if pathlib.Path(scratch).resolve().is_relative_to(c)), None):
         return f"the scratch directory {scratch} is inside the repository checkout {inside}: fleet files live outside it"
     return None
@@ -374,13 +381,24 @@ def _self_test() -> int:
                 fails.append(f"lock {content!r}: want {want}, got {got} ({why})")
         # the fleet paths (kb/Work PB3114): what Git Bash makes of an unquoted Windows path is refused, on any host
         tmp = pathlib.Path(d).resolve()
+        top = pathlib.Path(tmp.anchor) / "COBOL"
+        top_wt = top / ".claude" / "worktrees" / "selftest-wt"
+        if main_checkout(top) is not None or main_checkout(top_wt) != top or main_checkout(top_wt / "src") is not None:
+            fails.append(f"main_checkout: {top} -> {main_checkout(top)}, {top_wt} -> {main_checkout(top_wt)}, "
+                         f"{top_wt / 'src'} -> {main_checkout(top_wt / 'src')}; want None, {top}, None")
         for got, want, what in (
                 (scratch_problem(tmp / "scratch"), False, "an absolute scratch outside the checkout"),
                 (scratch_problem("E:COBOL-coordscratch"), True, "a drive-relative scratch"),
                 (scratch_problem("scratch"), True, "a relative scratch"),
                 (scratch_problem(REPO / "COBOL-coordscratch"), True, "a scratch inside the repository checkout"),
-                (scratch_problem((REPO.parents[2] if REPO.parent.name == "worktrees" else REPO) / "COBOL-coordscratch"),
+                (scratch_problem((main_checkout(REPO.resolve()) or REPO) / "COBOL-coordscratch"),
                  True, "a scratch inside the main checkout, from one of its worktrees"),
+                # a checkout at a drive's top level has ONE parent (kb/Work PB3451): the main checkout `E:\COBOL`
+                (scratch_problem(tmp / "scratch", top), False, "an outside scratch, from a drive-top checkout"),
+                (scratch_problem(top / "COBOL-coordscratch", top), True, "a scratch inside a drive-top checkout"),
+                (scratch_problem(tmp / "scratch", top_wt), False, "an outside scratch, from a drive-top checkout's worktree"),
+                (scratch_problem(top / "COBOL-coordscratch", top_wt), True,
+                 "a scratch inside a drive-top main checkout, from one of its worktrees"),
                 (fleet_stop_problem(fleet_stop(tmp, "loop")), False, "the loop's STOP-loop"),
                 (fleet_stop_problem("E:COBOL-coordscratchSTOP-loop"), True, "a drive-relative stop file"),
                 (fleet_stop_problem(tmp / "STOP"), True, "the global stop's name"),
