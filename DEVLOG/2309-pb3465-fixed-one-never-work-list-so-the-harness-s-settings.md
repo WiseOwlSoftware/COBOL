@@ -1,0 +1,10 @@
+## Entry 2309 — 2026-10-20 16:07 PDT — PB3465 fixed: one never-work list, so the harness's settings file no longer makes every worktree collide
+
+Wave 1134's plan held PB3337 (the top of `work.py next`), PB3460 and PB1278 on `.claude/settings.local.json`, a file the harness modifies in every agent worktree. The planner counted it as in-flight work, so a finisher continuing one worktree collided with all the others. The rule "these paths are never work" was written six times in three shapes, and the planner's copy (`plan_wave._NOT_PRODUCT`) was the one without the settings file.
+
+`coord.NEVER_WORK` (the settings file, `STATUS.md`, `TestResults/`) is now the one list, read through `coord.is_work`, `coord.porcelain_work` and `coord.NEVER_WORK_PATHSPECS` by the planner (and through it the landing check), `prune_worktrees.py`, `checkpoint.py`, `enqueue.py` and `next_unit.py`; the five copies are deleted. `test_plan_wave.py` 312/312: the fixture's worktrees carry the modified settings file, which is in no owner's set and causes no collision. Removing it from the list fails exactly the three new checks. Fixed by the operator beside the loop (dispatch hold `w1134z`) so the owner's tier-2 chain can plan.
+
+The landing gate went RED on four `FixedFileAttributeFormatTests` key-table cases ('39' expected, '00' read). That was a test-isolation race already on main, not this branch's change: `IndexedEngineTests` sets the process-wide `COBOLNET_KEYCHECK=OFF` for its opt-out case, every `FileRegistry` reads it, and the class was outside the `process-globals` collection that the other writer belongs to. `IndexedEngineTests` now joins that collection. No other test class shares the variable.
+
+Adding that attribute, with its reason as a trailing comment, hid the class from the gate's host-witness tier: `gate_plan.CLASS_TRAIT_RE` did not allow a `//` comment after an attribute between a `[Trait]` and its class, and `HostWitnessTraitDriftTests` caught the difference from the compiled attributes. The scan now allows the comment, and its self-test covers it.
+
