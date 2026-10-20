@@ -28,8 +28,8 @@ UNIT: wave.
    stall watchdog's log between waits. Never end a turn while that file is empty.
    Judge each implementer report: a branch that is not DONE gets its reason into its kb/Work note.
 5. In the same turn as the Workflow's result, render the ledger: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'`
-   (every figure on it is computed; its trend file gains a point when GAP or the register's series moved, so commit
-   docs/rearchitecture/evidence/ledger-trend.json with the landing when it changed). You cannot
+   (every figure on it is computed; its trend series, `{COORD}\ledger-trend.json`, gains a point when GAP or the
+   register's series moved, and it is never committed: kb/Work PB2426). You cannot
    PUBLISH it (a headless session has no Artifact tool): the supervisor announces the owed publish after you end, and the
    attended session publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
 6. Write the handoff: `workflow.state`, and every branch the wave finished in `branches_pending` (DONE: the next unit is
