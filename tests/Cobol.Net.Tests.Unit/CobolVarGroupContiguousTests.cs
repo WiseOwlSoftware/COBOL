@@ -271,12 +271,12 @@ public sealed class CobolVarGroupContiguousTests
         // specified by the value of the data item ... at the start of the operation will be used" - occurrence 1 of 3.
         var carrier = new CobolVarGroup("HNEW", ["n1", "n2", "n3"]);
         var cell = ElementCell();
-        cell.StoreVarGroupAt(0, 4, 0, [1, 2, 3], [5, 5, 5], [0, 0, 0], ElementTail, 1, carrier);
+        cell.StoreVarGroupAt(0, 4, 0, [1, 2, 3], [5, 5, 5], [0, 0, 0], [0, 0, 0], ElementTail, 1, carrier);
         Assert.Equal("HNyz", cell.Ref);   // H and occurrence 1 stored; occurrences 2 and 3 keep "y", "z"
         Assert.Equal(["n1", "bb", "ccc"], [cell.DynAt(0), cell.DynAt(1), cell.DynAt(2)]);
         // the maximum count (a depending item inside the group, a record read back, a boundary) stores them all
         var whole = ElementCell();
-        whole.StoreVarGroupAt(0, 4, 0, [1, 2, 3], [5, 5, 5], [0, 0, 0], ElementTail, int.MaxValue, carrier);
+        whole.StoreVarGroupAt(0, 4, 0, [1, 2, 3], [5, 5, 5], [0, 0, 0], [0, 0, 0], ElementTail, int.MaxValue, carrier);
         Assert.Equal("HNEW", whole.Ref);
         Assert.Equal(["n1", "n2", "n3"], [whole.DynAt(0), whole.DynAt(1), whole.DynAt(2)]);
     }
@@ -294,7 +294,7 @@ public sealed class CobolVarGroupContiguousTests
         var second = table.RefReceiving(2);
         second.Ref = "2";
         second.SetDynAt(0, "c");
-        var shape = new CellGroupShape(1, [0], [0], [5]);
+        var shape = new CellGroupShape(1, [0], [0], [5], [0]);
         Assert.Equal("Hab1c2", cell.ContiguousAt(0, 2, 0, [1], [1], default, 0, [shape]));
         // Without the shape the element is its fixed run only - the image the pre-PB244 composer gave, now the
         // fixed-element lane (an element with no components of its own).
