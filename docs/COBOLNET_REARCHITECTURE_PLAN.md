@@ -1352,8 +1352,9 @@ as "not this file", so an absent report, a `diff` that could not tell, or a proc
 short data all landed on `DIFF — REGRESSION!` beside a genuine wrong answer. Battery #43's only red, `IF141A`,
 was manufactured exactly that way over a report byte-identical to its golden. Two arms fixed and one left is
 this repository's most reproducible defect shape — **when a rule has arms, count them.** The rules now live in
-ONE file (`scripts/guard-verdict.sh`) that both guards source, the comparison reads real files instead of
-`<(…)` plumbing it cannot check, and `guard-verify.sh` carries 21 witnesses that assert what each verdict MEANS. Every iterating harness also asserts that its results are a **PARTITION of its
+ONE file (`scripts/guard-verdict.sh`) that the guard's one program runner sources, the comparison reads real files
+instead of `<(…)` plumbing it cannot check, and `guard-verify.sh --self-test` carries the witnesses that assert what
+each verdict MEANS. Every iterating harness also asserts that its results are a **PARTITION of its
 declared population**, compared against a COMMITTED MANIFEST rather than a remembered number.
 ⭐ **Two things that generalise beyond this wave.**
 · **The same fifteen lines existed SEVEN times** (start `dotnet`, wait N s, return whatever came back) across five
@@ -1903,8 +1904,8 @@ result. Run the long legs ONE AT A TIME.
   (`scripts/filter_population.py`, PB708/PB751/PB752), and `FilterPopulationGuardDriftTests` fails if a new one
   does not. It is NOT the comprehensive gate.
 - **PER ACCUMULATED BATCH / PRE-MERGE — the comprehensive gate:** full greenfield Conformance + characterization +
-  the GnuCOBOL differential, plus `scripts/guard-fast.sh` (the CLI-level NIST leg through `cobol`, ~3.3 min parallel)
-  — never the ~20 min serial `guard.sh`.
+  the GnuCOBOL differential, plus `scripts/guard-fast.sh` (the CLI-level NIST leg through `cobol`, every program in
+  its own directory, in parallel).
   ⛔ **AND THE CI RUN ON THE PUSHED HEAD — the battery is ONE host and does not contain it.** Everything above is
   this Windows box in Debug; the workflow's `ubuntu-latest` jobs and its Release build are gated by CI and by
   nothing else, so a test keyed on host ACL or file-lock semantics can be green here and red there. Read it:
@@ -1926,7 +1927,7 @@ result. Run the long legs ONE AT A TIME.
   check reads as "blocked forever" — and the same path list now lives in the first job, `changes`, where it decides
   whether the MATRIX runs. A docs-only push therefore still produces a run; it is `changes` + `ci-gate`, seconds.
 - **There is no second compiler to differ against:** the legacy CobolSharp engine is deleted from `main` (P15 Cut 2, kb/Work PB2110);
-  `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it. `guard.sh` is the WiseOwl COBOL NIST leg.
+  `docs/rearchitecture/LEGACY-ARCHIVE.md` names the tag that preserves it. `guard-fast.sh` is the WiseOwl COBOL NIST leg.
 - **GnuCOBOL external differential — USE IT (owner directive):** `python3 scripts/gnucobol_differential.py --exe
   src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe --report <path>` over the fetched GPL corpus (1323 groups,
   git-ignored `tests/external/gnucobol/`; `python scripts/external_corpus.py ensure` fetches it when absent, the one
@@ -3230,7 +3231,7 @@ already-derivable coverage; none change the pipeline.
   summary` compares the merge queue with the retired trains' records.
 - Greenfield conformance: `dotnet test tests/Cobol.Net.Tests.Conformance` · unit: `tests/Cobol.Net.Tests.Unit` ·
   characterization: `tests/Cobol.Net.Tests.Characterization` ·
-  FULL CLI-level NIST guard: `bash scripts/guard.sh` (fast: `guard-fast.sh`; gate on the VERDICT line). It drives
+  FULL CLI-level NIST guard: `bash scripts/guard-fast.sh` (`JOBS=1` runs it serially; gate on the VERDICT line). It drives
   `cobol` and its lines name the compiler — `=== NIST (cobol): … ===` (PB750); it has no other arm (PB2109).
 - The conformance suite: `conformance-suite/cases/<clause>-<Name>/<id>.cob|.out` (WiseOwl's own behaviour in
   `wiseowl/cases/`), each with a metadata header (`rules`, `accept`, `source-format`); refused programs are
@@ -3403,8 +3404,8 @@ bash scripts/version-continuity-sweep.sh | tee /tmp/sweep.log ; ! grep -q BREAKS
 Expected: conformance + unit green; `guard-fast.sh` prints `=== ALL GREEN ===`; the sweep prints no `BREAKS`. Record the counts in the DEVLOG opener. If any is red, STOP — a precondition phase (P3/P13) is not actually complete.
 
 Confirm the P14 preconditions exist:
-- `tests/nist/corpus.tsv` exists (P0): the source of the green NIST set and its chains for the tests and the group
-  guard (`scripts/guard.sh`'s `NIST_TESTS` is still hand-written, kb/Work PB925).
+- `tests/nist/corpus.tsv` exists (P0): the source of the green NIST set and its chains for the tests, and of the
+  guard's population (`guard_nist_population`, kb/Work PB925).
 - The P2 diagnostic-descriptor registry exists (`src/Cobol.Net.Editions/Diagnostics/` with `DiagnosticDescriptor`/`DiagnosticCatalog`). If absent, Step 4's coverage test cannot be authored — escalate; it is a P2 deliverable.
 
 ---
@@ -3901,7 +3902,7 @@ P0/R1 had already baked the legacy stdout into committed goldens (`tests/differe
 the dead edge. The CI authoritative gate drove the legacy CLI instead of `cobol` until kb/Work PB750 (2026-09-06; it is
 why battery #58's NC215A wrong answer was invisible to it), so the `guard` job STAYS as the CLI-level, separate-process
 NIST leg and only its legacy arm retired (PB2109). Two legacy test projects and two ad-hoc dashboards existed only for
-the engine and went with it (PB2109, PB2110). The guard scripts (`guard.sh`, `guard-fast.sh`, `guard-run-group.sh`,
+the engine and went with it (PB2109, PB2110). The guard scripts (`guard-fast.sh`, `guard-run-group.sh`, `guard-population.sh`,
 `guard-verdict.sh`, `guard-nist-audit.sh`, `guard-verify.sh`, `guard-compiler.sh` and `guard-compile.sh`) are the
 WiseOwl COBOL CLI-level NIST leg plus its verdict-evidence rules, chain-isolation model and population/expectation audit.
 

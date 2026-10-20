@@ -4,8 +4,8 @@
 # usage: bash scripts/guard-baselines.sh [<valid-dir>] [<corpus.tsv>]
 # exits with the NUMBER of failures (0 = clean), and prints one `=== ERROR: … ===` line per failure.
 #
-# ⛔ WHY IT IS ITS OWN FILE. `guard.sh` and `guard-fast.sh` each carried a byte-similar copy of this loop —
-# `guard-fast.sh`'s comment even said "parity with guard.sh" — and when kb/Work PB436 gave ONE golden a
+# ⛔ WHY IT IS ITS OWN FILE. the retired serial `guard.sh` and `guard-fast.sh` each carried a byte-similar copy of this
+# loop — `guard-fast.sh`'s comment even said "parity with guard.sh" — and when kb/Work PB436 gave ONE golden a
 # declared, spec-derived CCVS failure it taught `guard-verdict.sh`'s comparison arm about the allowance and
 # NEITHER copy of this one. The Windows gate never runs these bash legs, so the train was green locally and
 # the CI Guard job was red on `NC201A.txt has 1 FAIL*` (landing train 36). One rule, one place.
