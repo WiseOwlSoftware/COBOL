@@ -344,11 +344,10 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
             Lines(stdout));
     }
 
-    /// <summary>The CONVERT ANY source asks for the group's STORAGE bytes (§15.19.3 rule 7), so the current-extent image
-    /// is read as storage only where it IS the storage (<c>DataItem.CurrentImageIsStorageImage</c>). A FIXED national
-    /// member is composed as its UTF-16BE byte pairs (D-N1), so the group "ab" + N"cd" + COMP 258 is
-    /// 61 62 | 00 63 00 64 | 01 02 (hand-derived: a=61 b=62 c=63 d=64, 258 = 0x0102); the dynamic-length item beside it
-    /// is one byte a character.</summary>
+    /// <summary>The CONVERT ANY source asks for the group's STORAGE bytes (§15.19.3 rule 7), and the current-extent image IS
+    /// the storage (kb/Work PB3441). A FIXED national member is composed as its UTF-16BE byte pairs (D-N1), so the group
+    /// "ab" + N"cd" + COMP 258 is 61 62 | 00 63 00 64 | 01 02 (hand-derived: a=61 b=62 c=63 d=64, 258 = 0x0102); the
+    /// dynamic-length item beside it is one byte a character.</summary>
     [Fact]
     public void ConvertAnySource_FixedNationalMemberRidesAsItsUtf16Bytes()
     {
@@ -365,12 +364,10 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
         Assert.Equal(new[] { "[6162006300640102              ]" }, Lines(stdout));
     }
 
-    /// <summary>A DYNAMIC-LENGTH NATIONAL member (and a dynamic-capacity table of national elements) is composed by the
-    /// current-extent image CHARACTER FOR CHARACTER (CONFORMANCE.md A.1 item 63), not as the two bytes a position
-    /// occupies, so that image is not the group's storage and CONVERT ANY must not read it as such: the storage of
-    /// <c>N"xy"</c> + <c>06</c> is 00 78 00 79 30 36, and the character image (78 79 30 36) would be a silent wrong
-    /// value (review round 2, R2-1). The refusal is the named run-time loud, the same one a group the composer
-    /// cannot take reaches; the dynamic national item's OWN CONVERT is the control the group must agree with.</summary>
+    /// <summary>A DYNAMIC-LENGTH NATIONAL member (and a dynamic-capacity table of national elements) rides the current-extent
+    /// image as the UTF-16BE bytes its positions occupy, exactly as a fixed national member does (CONFORMANCE.md A.1 items
+    /// 57 and 63; kb/Work PB3441), so the image is the group's storage and CONVERT ANY reads it (§15.19.3 rule 7).
+    /// Hand-derived: x=0x78 y=0x79 '0'=0x30 '6'=0x36, a position is two bytes high-order first (D-N1).</summary>
     [Theory]
     [InlineData("""
            05 QA PIC N DYNAMIC LENGTH LIMIT IS 10.
@@ -378,7 +375,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 """, """
            MOVE N"xy" TO QA
            MOVE 6 TO QN
-""")]
+""", "007800793036")]
     [InlineData("""
            05 QN PIC 9(2).
            05 QT PIC N OCCURS DYNAMIC CAPACITY IN QCAP INITIALIZED.
@@ -387,12 +384,12 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
            SET QCAP TO 2
            MOVE N"x" TO QT(1)
            MOVE N"y" TO QT(2)
-""")]
-    public void ConvertAnySource_DynamicNationalMemberStaysLoud(string members, string moves)
+""", "303600780079")]
+    public void ConvertAnySource_DynamicNationalMemberRidesAsItsUtf16Bytes(string members, string moves, string hex)
     {
-        var (ranOk, _, detail) = EditionHarness.CompileAndRun(ConvertNationalProgram(members, moves), 2023, permissive: true);
-        Assert.False(ranOk, "a character image must not be read as the storage of a group holding a dynamic national member");
-        Assert.Contains("raw-storage image (CONVERT ANY)", detail);
+        var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(ConvertNationalProgram(members, moves), 2023, permissive: true);
+        Assert.True(ranOk, detail);
+        Assert.Equal(new[] { "[" + hex.PadRight(30) + "]" }, Lines(stdout));
     }
 
     /// <summary>The dynamic national item's own CONVERT ANY, the value the group's would have to agree with:
