@@ -1827,7 +1827,10 @@ statements together add exactly the pages its trees gain), ℓ = the ledger's pa
 the statement's entries land on, at most the ledger tree's pages: 1 for a load whose pages are adjacent (an ascending
 load), but the ledger is keyed by page number and a statement of scattered keys releases pages anywhere in the file, so
 there ℓ grows with the ledger's fill up to the whole tree, at most 9 pages at R2's checkpoint (1 024 entries plus the pages of the one statement that begins at it; measured,
-PB3336: a random relative load writes ℓ ≈ 5 at 20 000 records, the ascending one 1); the checkpoint, not the file's
+PB3336: a random relative load writes ℓ ≈ 5 at 20 000 records, the ascending one 1, and the largest ledger of the twelve load
+cells, 1 028 entries under two alternate keys, fills 9 pages; the load witness asserts the 9 for every statement of every cell
+(`KeyedStorePerformanceWitnessTests.LedgerPagesAtCheckpoint`, PB3410), and the OPEN-after-a-death witness asserts it for the
+ledger tree it reads); the checkpoint, not the file's
 size, bounds it — the free-tree batch ≤ 2 pages (taken once per statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
 for a thousand open holdings), read only when page 2's holdings root is not empty:
 
@@ -2013,10 +2016,10 @@ Deleted with their callers (by kb/Work PB3333-PB3335; `WholeStoreBanDriftTests` 
 in-memory record maps (their names may survive as the two tree-handle views, their maps may not); `KeyedStoreTable` as the
 store of records; `KeyedConnector._coherent`'s derivation from `FileLockPosture.AdmitsAnotherWriter` — the keyed connector
 asks `AdmitsAnotherRunUnit` (2.2.1.7), a new predicate beside the old one. `AdmitsAnotherWriter` itself STAYS (finding R2-7):
-its three callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
-`EnsureReaderCoherent` (the reader's re-seek) and the EXTEND ordinal count — ask exactly "may another WRITER exist", the
-sequential organization's question. `SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work
-PB1587): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §9.1.15 2) admits beside a `SHARING WITH READ ONLY`
+its four callers outside the keyed store — `FileSupport.OpenConnectorWriteStream` (the unbuffered shared append stream),
+`EnsureReaderCoherent` (the reader's re-seek), `ReleaseRecord`'s ordinal (counted off the medium, kb/Work PB2692) and the
+EXTEND's mint seed — ask exactly "may another WRITER exist", the sequential organization's question.
+`SequentialConnector.ReleaseRecord`'s per-record flush is NOT among them (kb/Work PB1587, PB3415): it asks `AdmitsAnotherRunUnit`, because the INPUT reader §9.1.15 2) admits beside a `SHARING WITH READ ONLY`
 writer must find in the physical file every record a WRITE answered '00' for (§14.9.51.4 GR12), exactly as it does beside
 a RELATIVE writer; a flush per record for such a writer is the price of that, and `SHARING WITH NO OTHER` keeps its
 buffered load. The rule is a

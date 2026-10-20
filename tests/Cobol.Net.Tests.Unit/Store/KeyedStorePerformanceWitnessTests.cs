@@ -66,6 +66,12 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// ledger + 3 free tree + 1 meta).</summary>
     private const int PromotionWrites = 1 + 1 + 2 + 3 + 1;
 
+    /// <summary>The most pages the ledger tree holds at R2's checkpoint (2.2.1.11's ℓ): 1 024 entries plus the pages of the
+    /// one statement that begins at it fill at most this many leaves and the root above them. It is the measured maximum of
+    /// the load cells (1 028 entries under two alternate keys, 9 pages); a ledger layout that let ℓ grow past it would put
+    /// ℓ in every statement's row out of line with the number the design states.</summary>
+    private const int LedgerPagesAtCheckpoint = 9;
+
     /// <summary>The FREE batch a statement takes (2.2.1.11): at most 2 pages, at most once per statement.</summary>
     private const int FreeBatchPages = 2;
 
@@ -276,7 +282,8 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// asserting every statement against its row. A statement writes more than the row's no-split bound only by the new
     /// pages its splits add — at most one per level of each tree it changes — so the excess summed over the phase is at
     /// most the pages the trees gained. The ledger never lists more than R2's checkpoint (1 024 pages) and one statement's
-    /// own, whatever the file's size: the checkpoint is what bounds the ledger's share of every statement.</summary>
+    /// own, whatever the file's size, and its tree never holds more than <see cref="LedgerPagesAtCheckpoint"/> pages: the
+    /// checkpoint is what bounds the ledger's share of every statement.</summary>
     private Phase Load(FileRegistry reg, string name, Cell cell, int from, int to, int window, out int promoted)
     {
         var store = Store(reg, name);
@@ -309,6 +316,7 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         output.WriteLine($"{cell.Shape}/{cell.Sharing}: records {from + 1}..{to}: worst WRITE {worst} pages, mean of the last {written.Count} {written.Average():0.###} (ledger {ledger.Average():0.##} pages), {promoted} promoted, {excess} pages over the no-split row, the trees gained {gained}, depths [{string.Join(",", Depths(store))}], the ledger at most {mostListed} entries on {mostLedgerPages} pages");
         Assert.InRange(excess, 0, gained);
         Assert.InRange(mostListed, 0, PagedFile.LedgerCheckpoint + MostPagesOfOneStatement(cell, Depths(store).Max()));
+        Assert.InRange(mostLedgerPages, 1, LedgerPagesAtCheckpoint);
         return new(written.Average(), ledger.Average());
     }
 
@@ -567,6 +575,7 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         verified.UnionWith(store.LedgerEntries.Where(e => e.Value.State == LedgerState.Fresh).Select(e => e.Key));
         output.WriteLine($"{shape}/{order}/{sharing}: OPEN INPUT after a death: {open}; the ledger's pages and its fresh pages: {verified.Count}");
         Assert.InRange(open.PagesRead, 3 + verified.Count, 3 + verified.Count + 2);
+        Assert.InRange(TreePages(store, store.Meta.LedgerRoot).Count, 1, LedgerPagesAtCheckpoint);
         Assert.Equal(0, open.PagesWritten);
         Assert.Equal(0, open.Syncs);
         // The fresh pages it verified are bounded by R2's checkpoint plus the one statement that began at it (2.2.1.11's
