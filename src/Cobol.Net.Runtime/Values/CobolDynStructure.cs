@@ -22,9 +22,10 @@ namespace CobolNet.Runtime;
 /// law). <b>The delimiter</b> is one character position of binary zeroes (GR19): <see cref="Unit"/> image characters of
 /// U+0000.</para>
 /// <para><b>Unit</b> is how many image characters one character position of the item's data occupies: one for an
-/// alphanumeric item and for a national member of a group (a dynamic-length item contributes its content character
-/// for character, DOC-A.1-63), two for a national item that IS the record (its image is its UTF-16BE byte pairs,
-/// D-N1). The length field counts positions, the delimiter is one position wide, so both follow the data's own unit.</para>
+/// alphanumeric item, two for a national item, whether it IS the record or is a member of a group (its image is its
+/// UTF-16BE byte pairs, D-N1; DOC-A.1-63, kb/Work PB3441 - a member's image is its storage, so the group's displayed
+/// width, its LENGTH and its record image agree). The length field counts positions, the delimiter is one position
+/// wide, so both follow the data's own unit.</para>
 /// </summary>
 public sealed class CobolDynStructure
 {
@@ -61,23 +62,38 @@ public sealed class CobolDynStructure
     /// data. 0 is "no structure" (a structure always has a length field or a delimiter, so no structure encodes to 0).</summary>
     public int Code => PrefixBytes | (Delimited ? 8 : 0) | (Unit << 4);
 
+    /// <summary>⛔ THE LAYOUT CODE OF A COMPONENT THAT NAMES NO STRUCTURE: bits 0-3 zero, bits 4-7 the unit
+    /// (<see cref="UnitOf"/>). A cell-backed group's component table (<c>VarGroupWindow.DynStructure</c>) carries one
+    /// code per component, and the unit of a dynamic-length item's data (two image characters a national position, one
+    /// an alphanumeric one) is a fact of its layout whether or not a structure frames it. Unit one is the bare 0.</summary>
+    public static int PlainCode(int unit) => unit <= 1 ? 0 : unit << 4;
+
+    /// <summary>The image characters one character position of the data occupies, from a component's layout code
+    /// (<see cref="Code"/> or <see cref="PlainCode"/>): 1 for the bare 0.</summary>
+    public static int UnitOf(int code) => code == 0 ? 1 : code >> 4;
+
+    /// <summary>Does <paramref name="code"/> name a STRUCTURE — a length field or a delimiter around the data — and not
+    /// only a unit (<see cref="PlainCode"/>)? A structure always has one of the two (§12.3.7.4 GR18, GR19).</summary>
+    private static bool NamesStructure(int code) => (code & 15) != 0;
+
     // A structure is immutable and there are a handful of them (width x delimiter x unit), so each is made once.
     private static readonly CobolDynStructure?[] Interned = new CobolDynStructure?[64];
 
-    /// <summary>The structure <paramref name="code"/> encodes (<see cref="Code"/>), or null for 0. Interned: a WRITE
-    /// or READ of a structured elementary record asks for it every time.</summary>
+    /// <summary>The structure <paramref name="code"/> encodes (<see cref="Code"/>), or null for a code that names none
+    /// (0, or a bare unit, <see cref="PlainCode"/>). Interned: a WRITE or READ of a structured elementary record asks
+    /// for it every time.</summary>
     public static CobolDynStructure? FromCode(int code)
     {
-        if (code == 0) return null;
+        if (!NamesStructure(code)) return null;
         if ((uint)code >= (uint)Interned.Length) return new CobolDynStructure(code & 7, (code & 8) != 0, code >> 4);
         return Interned[code] ??= new CobolDynStructure(code & 7, (code & 8) != 0, code >> 4);   // a lost race makes an equal twin
     }
 
     /// <summary>The structure of each component of a layout from its <paramref name="codes"/>, or null when no
-    /// component has one (so an unstructured layout carries nothing).</summary>
+    /// component has one (so an unstructured layout carries nothing, whatever its components' units).</summary>
     internal static CobolDynStructure?[]? FromCodes(IReadOnlyList<int>? codes)
     {
-        if (codes is null || codes.All(c => c == 0)) return null;
+        if (codes is null || !codes.Any(NamesStructure)) return null;
         var all = new CobolDynStructure?[codes.Count];
         for (int k = 0; k < all.Length; k++) all[k] = FromCode(codes[k]);
         return all;

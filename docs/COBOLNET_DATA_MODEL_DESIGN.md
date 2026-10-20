@@ -621,7 +621,17 @@ content-validation half is separately answered by the declined A.4.14 facility (
   decomposition by the record's extent table else the take step, with `ContiguousExtentsAt` the table a WRITE sends
   beside it — and crosses a variable-length MOVE / boundary as its `CobolVarGroup` carrier —
   `VarGroupAt` / `StoreVarGroupAt`). Both derive from `Place.CellWindowCoding`, the one base every re-anchoring
-  consumer reads. Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
+  consumer reads. **The slot holds the item's IMAGE (kb/Work PB3441):** a cell is a byte-addressed storage area, and
+  the image of a variable-length group is its storage, so the slot of a NATIONAL item holds its UTF-16BE bytes (two
+  image characters a position, `DataItem.ImageUnit`, D-N1) - the same form a declared group's `CurrentImage()`
+  composes for it and a record image carries - and the one place that sees the item as characters, the leaf's own
+  read and write (`PlaceRenderer`'s `DynSlotWindow` arms, `CellDynRead` / `CellDynWrite`) and the seed
+  (`CellDynSeeds`), decodes (`CobolBits.NatFromStorage`) and encodes (`CobolBits.NatBytes`). The window's maximum sizes
+  are therefore IMAGE characters (`DataItem.SlotMaxSize`: the LIMIT in positions times the unit), what a store into the
+  slot truncates at, and the layout reads each component's unit off its layout code (`VarGroupWindow.DynStructure`,
+  `CobolDynStructure.PlainCode` / `UnitOf`, which `StorageCell.LayoutOf` divides the maximum by); a table of leaf
+  elements carries the unit of its elements there as well, which makes a space-filled element the national space
+  (§14.6.9.4; `CellGroupShape.DynLayout`). Before this, such a leaf was a ZERO-WIDTH byte window: `01 G EXTERNAL.
   05 A PIC X(3). 05 D PIC X DYNAMIC LENGTH.` displayed only A, silently.
 - **D-SLOT, the CELL COMPONENTS (kb/Work PB1042, 2026-10-05).** The dynamic-length half generalized: a cell-backed
   area's VARIABLE-LENGTH COMPONENTS are its dynamic-length items AND its dynamic-capacity tables (§8.5.1.9.1 3): a
