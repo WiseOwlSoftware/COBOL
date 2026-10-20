@@ -1,4 +1,4 @@
-## PB3372 - a SHARING clause, a SHARING or RETRY phrase or NO OTHER no longer makes a connector a record-locking participant
+## Entry 2273 — 2026-10-19 17:06 PDT — PB3372 - a SHARING clause, a SHARING or RETRY phrase or NO OTHER no longer makes a connector a record-locking participant
 
 **What was wrong.** `FileConnector.SharedPhysical`, the record-locking view of the physical file, was non-null for any connector with a
 registered sharing posture. Three things registered one without conferring a lock: a SELECT with a SHARING clause and no LOCK MODE clause
@@ -25,3 +25,4 @@ and the seeded ordinal; WRITE WITH LOCK sets a lock only under a LOCK MODE claus
 lock-less writer's; '35', '61' (also after a RETRY phrase exhausts) and '41' leave no participation; per-open derivation; the structural half.
 
 **Rows.** None: PB3372 claimed no inventory row, closes none.
+
