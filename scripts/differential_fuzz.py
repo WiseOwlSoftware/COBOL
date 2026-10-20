@@ -64,8 +64,10 @@ from typing import Any
 REPO = Path(__file__).resolve().parent.parent
 SUITE = REPO / "conformance-suite"
 sys.path.insert(0, str(SUITE / "harness"))
+sys.path.insert(0, str(REPO / "scripts" / "spec"))
 import config as suite_config  # noqa: E402
 import run as suite_run  # noqa: E402
+from spec_headings import GENERAL_FORMAT_NOUN  # noqa: E402  — THE one spelling of the heading (kb/Work PB284)
 
 SPEC = REPO / "specs" / "ISO_COBOL.md"
 OLLAMA = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
@@ -79,8 +81,9 @@ DEFAULT_CLAUSES = ("14.9", "15", "13.18", "8.8")   # statements, intrinsic funct
 HEADING = re.compile(r"^#{2,6} ((?:\d+|[A-Z])(?:\.\d+)+|\d+) (.*)$")
 #: any info string: a model was seen to write "```cob注释"; the program is the fenced block that has a PROCEDURE DIVISION
 CODE_FENCE = re.compile(r"```[^\n]*\n(.*?)(?:```|\Z)", re.DOTALL)   # a truncated reply never closes its fence
-#: the structural sub-clauses every statement, function and clause has; each folds into its parent seed
-STRUCTURAL = re.compile(r"^(General|General formats?|General forms?|Syntax rules|General rules|Format \d+.*|Arguments|Returned values?)\s*$",
+#: the structural sub-clauses every statement, function and clause has; each folds into its parent seed. The general-format
+#: heading's spelling is THE one in spec_headings.py (kb/Work PB284), composed, never re-typed.
+STRUCTURAL = re.compile(r"^(General|" + GENERAL_FORMAT_NOUN + r"|Syntax rules|General rules|Format \d+.*|Arguments|Returned values?)\s*$",
                         re.IGNORECASE)
 DIAG_CODE = re.compile(r"\b((?:COBOLNET|COBOL|CBL)\d{4})\b")
 
