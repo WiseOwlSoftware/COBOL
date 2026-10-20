@@ -99,12 +99,14 @@ public sealed class SequentialConnector : FileConnector
     // connector is the one that released (NoteRelease) — and compared before every physical frame.
     private long _coherentAt;
 
-    // §13.18.43 GR2 frame offsets of a RECORD VARYING file, index = ordinal − 1. Built LAZILY, on the first
-    // backward read only: a forward READ walk must not pay for a facility it never uses, and a fixed-width file
-    // never needs it at all (its offsets are arithmetic). The physical frame layout cannot change while a
-    // connector is open — §14.9.35.4 GR16 makes a record-sequential REWRITE size-preserving — so one build per
-    // OPEN is enough; OpenCore drops it.
-    private List<long>? _varyingStarts;
+    // Where the frames of a RECORD VARYING file start (kb/Work PB3350, DESIGN-runtime-library.md 2.2.3): a checkpoint
+    // per 4096 frames plus a window of the exact starts of the span being read backward, never one offset per record.
+    // The forward walk (NextFrame) feeds the checkpoints for free and a backward READ's target beyond the walked frames
+    // extends them, so a forward READ pays nothing for a facility it never uses; a fixed-width file never needs it (its
+    // offsets are arithmetic) and holds null. The physical frame layout cannot change while a connector is open —
+    // §14.9.35.4 GR16 makes a record-sequential REWRITE size-preserving — so one index per OPEN is enough; OpenCore
+    // replaces it.
+    private FrameIndex? _frameIndex;
 
     /// <summary>The ordinal a sequential Read in the given DIRECTION would deliver (the §14.9.30.4 GR9 pre-read
     /// conflict target — knowable BEFORE the read because sequential retrieval moves by exactly one record).
@@ -499,17 +501,22 @@ public sealed class SequentialConnector : FileConnector
     /// <paramref name="to"/>), <paramref name="from"/> being a record boundary. The whole file
     /// (<c>0</c>, <see cref="long.MaxValue"/>) is the OPEN's count above; a sharing writer's release counts only the
     /// bytes appended since its previous one (<see cref="PhysicalOrdinalOfRelease"/>), with the same framing, so
-    /// the two can never disagree about what a record is.</para></summary>
-    private long CountRecords(long from, long to)
+    /// the two can never disagree about what a record is.</para>
+    /// <para><paramref name="index"/> is the frame index the whole-file count of a RECORD VARYING file is taken THROUGH
+    /// (<c>from</c> 0, <c>to</c> <see cref="long.MaxValue"/>), so the one pass both counts and leaves the checkpoints
+    /// (<see cref="FrameIndex.Extend"/>).</para></summary>
+    private long CountRecords(long from, long to, FrameIndex? index = null)
     {
         if (to <= from) return 0;
         if (IsVarying)
         {
-            // The frame WALK, not ReadStore: FrameStarts seeks over every payload instead of materializing it,
-            // so counting an existing file costs one pass and no record storage (ReadStore allocated a string
-            // per record purely to take .Count of the list).
+            // The frame WALK, not ReadStore: CountFrames seeks over every payload instead of materializing it and
+            // stores no offset at all, so counting an existing file costs one pass and O(1) memory (kb/Work PB3350;
+            // ReadStore allocated a string per record purely to take .Count of the list). The REVERSED count is the
+            // whole file's walk made through the index, so the SAME pass leaves every checkpoint the first backward
+            // READ needs (DESIGN-runtime-library.md 2.2.3).
             using var fs = HostFile.OpenAuxiliary(HostPath, FileMode.Open, FileAccess.Read);
-            return RecordFraming.FrameStarts(fs, from, to).Count;
+            return index is null ? RecordFraming.CountFrames(fs, from, to) : index.Extend(fs);
         }
         if (_lineSequential)
         {
@@ -1061,7 +1068,7 @@ public sealed class SequentialConnector : FileConnector
         // (kb/Work PB668). Without this, `OPEN INPUT F REVERSED. CLOSE F. OPEN INPUT F.` read backward.
         Reversed = false;
         _reversedRecordCount = 0;
-        _varyingStarts = null;   // rebuilt on demand against THIS open's physical file
+        _frameIndex = IsVarying ? new FrameIndex() : null;   // indexes THIS open's physical file
         // §9.1.16 record-lock identity: this connector has released nothing yet. The MINT lives on the shared
         // physical-file state (kb/Work PB739), and only the OUTPUT and EXTEND arms below touch it — INPUT and
         // I-O release no records through this connector and shall not disturb another connector's numbering.
@@ -1091,7 +1098,7 @@ public sealed class SequentialConnector : FileConnector
                     NoticeIfLayoutDisagrees();
                     // OPEN INPUT … REVERSED: the count its position needs is taken HERE, inside the OPEN's try,
                     // so a host failure is this OPEN's '30' (see _reversedRecordCount).
-                    if (ReversedRequested) _reversedRecordCount = CountRecords(0, long.MaxValue);
+                    if (ReversedRequested) _reversedRecordCount = CountRecords(0, long.MaxValue, _frameIndex);
                     break;
 
                 case FileOpenMode.Output:
@@ -1686,13 +1693,13 @@ public sealed class SequentialConnector : FileConnector
         long start;
         if (IsVarying)
         {
-            _varyingStarts ??= RecordFraming.FrameStarts(stream);
             // A target past the last frame is NOT a positioning failure — it is §14.9.30.4 GR21 e), "no record
             // is found that satisfies the above rules", and the read body reports it as the ordinary at-end
             // once positioned at the end of data. (Reachable: a PREVIOUS on a freshly opened EMPTY varying
             // file targets ordinal 1 by rule b and there is no ordinal 1.) The fixed-width branch below gets
             // this for free, because seeking past the end yields a zero-character read.
-            start = ordinal <= _varyingStarts.Count ? _varyingStarts[(int)(ordinal - 1)] : stream.Length;
+            // The reader exists, so OpenCore ran and gave this RECORD VARYING open its index.
+            if (!_frameIndex!.TryStartOf(stream, ordinal, out start)) start = stream.Length;
         }
         else
         {
@@ -1757,7 +1764,7 @@ public sealed class SequentialConnector : FileConnector
         {
             // A length-framed record, read by the ONE frame decoder (RecordFraming.ReadStreamFrame; kb/Work PB2754):
             // a torn tail, a gap word or a head this writer cannot have produced ends the data here exactly where it
-            // ends the record count and the backward-READ index (FrameStarts), so a forward READ and a backward READ
+            // ends the record count and the backward-READ index (CountFrames, FrameIndex), so a forward READ and a backward READ
             // see the same records. The read offset stays at the frame's start, so a re-anchoring reader
             // (EnsureReaderCoherent) reads the frame whole once another run unit's WRITE has completed it.
             _lastReadTableCount = -1;
@@ -1768,6 +1775,7 @@ public sealed class SequentialConnector : FileConnector
             long head = frame.HeadBytes;
             _lastReadBlockStart = _reader!.BaseStream.CanSeek ? _readOffset + head : -1;
             _readOffset += head + frame.PayloadLength;
+            _frameIndex?.Observe(frameStart, _readOffset);   // the backward-READ index grows with the forward walk, free
             return FromMedium(channel.Payload!);
         }
         var buf = new char[RecordWidth];
