@@ -34,7 +34,11 @@ for the block.
 **3. Backfill.** The 27 open notes of the running campaigns that had no block got one from their own text: 21 in
 PB3353 and 6 in PB3160. PB3353 is left with its two decision notes and PB3263, and PB3160 with none. PB3337's and
 PB3338's `## Files` lists used brace and glob paths (`IO/{FileRegistry,…}.cs`, `Binding/*`), which the one reader
-rejects, so the backfill expands them.
+rejects, so the backfill expands them. PB3448, filed on main by a clerk branch cut before this rule existed (PR #310),
+named cluster PB3369 with no block, and the check refused it at this landing's gate once main was merged in; it now
+names its four sites (`work.py`, `plan_wave.py`, `test_plan_wave.py`, `r2_subsystems.py`). MANDATORY-PRACTICES R3,
+the rule the enqueue unit's clerk files leads under, now states the `**Sites:**` paragraph too, so the clerk files it
+right.
 
 **4. The landing check.** In arm 1, an R3 note that no ledger entry records, closed on the way by the landing's own
 recorded dispatch (I9), is checked against that dispatch's recorded set. It is no longer checked against a set computed
