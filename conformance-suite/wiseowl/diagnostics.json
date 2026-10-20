@@ -14198,6 +14198,13 @@
   ],
   "expect": "COBOLNET0900"
  },
+ "pb3441-vlg-national-member-at-2002": {
+  "refuse-at": [
+   "85",
+   "2002"
+  ],
+  "expect": "COBOLNET0900"
+ },
  "pb345-fd-no-record-clause": {
   "refuse-at": [
    "85",

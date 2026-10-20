@@ -572,7 +572,7 @@ public static class CellComponents
     /// <summary>⛔ THE ONE CONSTRUCTION OF A SCOPE'S WINDOW SHAPE (<c>CellGroupShape</c>, kb/Work PB244, PB3273): the fixed
     /// run's width, and for each component of <paramref name="group"/> — enumerated by <paramref name="walk"/>, <see cref="Of"/>
     /// for an item a storage class holds or <see cref="InLayout"/> for a description none holds — its position, its table
-    /// element width (0 for a dynamic-length item), its maximum, and, for a dynamic-capacity table whose elements are
+    /// element width (0 for a dynamic-length item), its maximum, its layout code and, for a dynamic-capacity table whose elements are
     /// themselves variable-length groups, the element's own shape one scope down. Null for a scope with no component.</summary>
     public static CellGroupShape? ShapeOf(DataItem group,
         Func<DataItem, IEnumerable<(DataItem Item, int At, Subscripts Fixed)>> walk)
@@ -581,7 +581,8 @@ public static class CellComponents
         return parts.Count == 0 ? null
             : new CellGroupShape(group.ByteWidth, parts.Select(p => p.At).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToArray(),
-                parts.Select(p => p.Item.VariableComponentMax).ToArray(),
+                parts.Select(p => p.Item.SlotMaxSize).ToArray(),
+                parts.Select(p => FileModel.LayoutCodeOf(p.Item)).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable && p.Item.IsGroup ? ShapeOf(p.Item, walk) : null).ToArray());
     }
 
@@ -617,9 +618,13 @@ public static class CellComponents
 /// sits at <paramref name="DynFixedAt"/> (relative to the group): a dynamic-length item occupying nothing, a
 /// dynamic-capacity table reserving its one-element extent <paramref name="DynTable"/> (0 for a dynamic-length item).
 /// The components are the cell's slots <paramref name="DynBase"/> onward (a typed position, the
-/// first ordinal), with maximum sizes <paramref name="DynMax"/> (a table's in occurrences), each laid out in a record
-/// image by its <paramref name="DynStructure"/> (<c>CobolDynStructure.Code</c>, 0 for none — ISO §12.3.7.4
-/// GR18/GR19; kb/Work PB1094). ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
+/// first ordinal), with maximum sizes <paramref name="DynMax"/> (a table's in occurrences, a dynamic-length item's in
+/// the image characters of its slot: <c>DataItem.SlotMaxSize</c>, twice its LIMIT for a national item), each laid out in
+/// a record image by its <paramref name="DynStructure"/> (its layout code, <c>FileModel.LayoutCodeOf</c>: the item's
+/// <c>CobolDynStructure.Code</c> when it names a structure - ISO §12.3.7.4 GR18/GR19; kb/Work PB1094 - else the bare
+/// unit of its data, <c>CobolDynStructure.PlainCode</c>, 0 for one image character a position and 32 for a national
+/// item; whether a code names a structure is asked of <c>CobolDynStructure.FromCode</c>, never <c>code != 0</c>;
+/// kb/Work PB3441). ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
 /// were in fact contiguous with its neighbors whenever a procedural operation is applied to a group containing it"
 /// — is why its read is the CONTIGUOUS image (<c>StorageCell.ContiguousAt</c>), exactly what a declared group's
 /// generated <c>CurrentImage()</c> composes.
@@ -632,6 +637,13 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
                                     IReadOnlyList<int> DynTable, OdoTail Odo,
                                     IReadOnlyList<CellGroupShape?> DynElem) : CellWindowCoding(Cell)
 {
+    /// <summary>Each component's layout code with its STRUCTURE left out: the unit alone (<c>CobolDynStructure.PlainCode</c>),
+    /// for a store of a character value, whose take step finds no length field or delimiter between the components
+    /// (§8.5.1.11.2: the contiguous image is the data alone) but still counts a national component in whole positions
+    /// (kb/Work PB3441).</summary>
+    public IReadOnlyList<int> DynUnitCodes =>
+        [.. DynStructure.Select(static c => CobolNet.Runtime.CobolDynStructure.PlainCode(CobolNet.Runtime.CobolDynStructure.UnitOf(c)))];
+
     /// <summary>The coding for <paramref name="group"/> when it has components under it, else null. The layout is
     /// read off the class walk (<see cref="CellComponents.Of"/> over <see cref="DataItem.ClassOffset"/>), never
     /// recomputed, so the group and its members cannot disagree about where a component sits.</summary>
@@ -642,8 +654,8 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
         return parts.Count == 0 ? null
             : new VarGroupWindow(cell, dynBase,
                 parts.Select(p => p.At).ToList(),
-                parts.Select(p => p.Item.VariableComponentMax).ToList(),
-                parts.Select(p => p.Item.IsDynamicTable ? 0 : FileModel.StructureOf(p.Item)?.Code ?? 0).ToList(),
+                parts.Select(p => p.Item.SlotMaxSize).ToList(),
+                parts.Select(p => FileModel.LayoutCodeOf(p.Item)).ToList(),
                 parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToList(),
                 OdoOf(group),
                 parts.Select(p => p.Item.IsDynamicTable ? ElementShapeOf(p.Item) : null).ToList());
