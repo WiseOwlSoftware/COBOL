@@ -1,4 +1,4 @@
-## PB3457: the ledger-pages bound in the keyed-store witnesses says it is measured, not derived
+## Entry 2300 — 2026-10-20 14:45 PDT — PB3457: the ledger-pages bound in the keyed-store witnesses says it is measured, not derived
 
 Branch review R1-1 of PB3410 found that the `LedgerPagesAtCheckpoint` doc comment in `KeyedStorePerformanceWitnessTests`
 read as if 9 pages followed from 1 024 entries plus one statement's pages. It does not: a full ledger leaf holds
@@ -12,3 +12,4 @@ says the ledger "held at most 9 pages ... in the measured workload". No assertio
 unchanged. kb/Work PB3457 landed, `closes_rows: []` (a comment that overstated its bound; no inventory row).
 
 Gate: LEG 1 ONLY (batched gating, PB2515) verdict recorded in the implementer's report.
+
