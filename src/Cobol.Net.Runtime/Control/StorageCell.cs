@@ -301,7 +301,7 @@ public sealed class StorageCell
     /// carriers, each stored into its element cell by the element's own shape — §14.6.9.2's "Correspondingly numbered
     /// elements are moved according to the rules of the MOVE statement". <paramref name="storage"/> is the formal
     /// copy-in that keeps every dynamic-length item's whole content (kb/Work PB1937), one level down too.</summary>
-    private void StoreComponentAt(int ordinal, int tableWidth, int max, CobolVarGroup v, int k,
+    private void StoreComponentAt(int ordinal, int tableWidth, int max, int layout, CobolVarGroup v, int k,
                                   CellGroupShape? element = null, bool storage = false)
     {
         if (tableWidth == 0)
@@ -315,7 +315,7 @@ public sealed class StorageCell
             StorageCell Store(StorageCell e, CobolVarGroup x)
             {
                 e.StoreVarGroupAt(0, shape.Width, 0, shape.DynFixedAt, storage ? Unlimited(shape.DynMax) : shape.DynMax,
-                    shape.DynTable, default, int.MaxValue, x, shape.Elems, storage);
+                    shape.DynLayout, shape.DynTable, default, int.MaxValue, x, shape.Elems, storage);
                 return e;
             }
             if (v.HasDyn(k)) table.Recreate(v.ElementCarriersAt(k), CobolVarGroup.Empty, Store);
@@ -323,7 +323,9 @@ public sealed class StorageCell
             return;
         }
         if (v.HasDyn(k)) table.FromCurrentImage(v.Dyn(k), tableWidth, ElementStore);
-        else table.SpaceFillElements(new string(' ', tableWidth), ElementStore);
+        // §14.6.9.4: each element is space-filled - in the element's own unit, so a NATIONAL element holds the national
+        // space (the UTF-16BE pair 00, 20), never the byte 0x20 twice, which is U+2020 (kb/Work PB3441).
+        else table.SpaceFillElements(CobolVarGroup.SpacesFor(tableWidth, CobolDynStructure.UnitOf(layout)), ElementStore);
     }
 
     /// <summary>The maximum sizes of a formal's copy-in (kb/Work PB1937): no member LIMIT applies to that store.</summary>
@@ -402,7 +404,8 @@ public sealed class StorageCell
     /// <paramref name="storage"/> marks a formal's copy-in, whose dynamic-length items keep their whole content at every
     /// level (kb/Work PB1937).</para></summary>
     public void StoreVarGroupAt(int fixedAt, int width, int dynBase, ReadOnlySpan<int> dynFixedAt,
-                                ReadOnlySpan<int> dynMax, ReadOnlySpan<int> dynTable, OdoTail tail, int count,
+                                ReadOnlySpan<int> dynMax, ReadOnlySpan<int> dynLayout, ReadOnlySpan<int> dynTable,
+                                OdoTail tail, int count,
                                 CobolVarGroup v, CellGroupShape?[]? elems = null, bool storage = false)
     {
         string run = v.Fixed;
@@ -413,7 +416,7 @@ public sealed class StorageCell
         }
         StoreRun(fixedAt, width, dynFixedAt, dynTable, run);
         for (int k = 0, used = dynFixedAt.Length - tail.CutComponents(count); k < used; k++)
-            StoreComponentAt(dynBase + k, dynTable[k], dynMax[k], v, k, elems?[k], storage);
+            StoreComponentAt(dynBase + k, dynTable[k], dynMax[k], dynLayout[k], v, k, elems?[k], storage);
     }
 
     /// <summary>A variable-length group of this area as its CONTIGUOUS image at its current extent — ISO
@@ -521,7 +524,7 @@ public sealed class StorageCell
     {
         var layout = LayoutOf(width - Reserved(dynTable), RunPositions(dynFixedAt, dynTable), dynMax, dynStructure, dynTable, tail);
         image ??= "";
-        StoreVarGroupAt(fixedAt, width, dynBase, dynFixedAt, dynMax, dynTable, tail, int.MaxValue,
+        StoreVarGroupAt(fixedAt, width, dynBase, dynFixedAt, dynMax, dynStructure, dynTable, tail, int.MaxValue,
             layout.Decompose(image, extents, fixedForm, count));
         return layout.StatesCount(image, extents, fixedForm);
     }

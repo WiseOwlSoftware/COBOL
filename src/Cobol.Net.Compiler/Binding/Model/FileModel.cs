@@ -746,10 +746,11 @@ public sealed class FileModel
     /// <summary>⛔ THE LAYOUT CODE OF ONE VARIABLE-LENGTH COMPONENT of a cell-backed group's window
     /// (<c>VarGroupWindow.DynStructure</c>; kb/Work PB3441): the item's structure code (<see cref="StructureOf"/>) when its
     /// clause names a structure, else the bare unit code of its data (<see cref="DataItem.DynamicImageUnit"/>: two for a
-    /// national item), 0 for a dynamic-capacity table, whose unit is its element width. The cell's layout reads each
-    /// component's unit off it (<c>StorageCell.LayoutOf</c>), as a declared group's layout states it directly.</summary>
+    /// national item); for a dynamic-capacity table the bare unit of its elements (two for a national one: what its
+    /// space-filled element is made of, ISO §14.6.9.4), its layout unit being its element width. The cell's layout reads
+    /// each component's unit off it (<c>StorageCell.LayoutOf</c>), as a declared group's layout states it directly.</summary>
     internal static int LayoutCodeOf(DataItem component) =>
-        component.IsDynamicTable ? 0
+        component.IsDynamicTable ? CobolNet.Runtime.CobolDynStructure.PlainCode(component.DynamicImageUnit)
         : StructureOf(component)?.Code ?? CobolNet.Runtime.CobolDynStructure.PlainCode(component.DynamicImageUnit);
 
     /// <summary>The characters <paramref name="item"/>'s DYNAMIC LENGTH STRUCTURE adds around its data in a record

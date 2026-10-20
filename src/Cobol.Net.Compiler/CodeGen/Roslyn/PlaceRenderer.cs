@@ -828,7 +828,7 @@ internal static class PlaceRenderer
         // variable-length group formal's fresh area is a cell): no member LIMIT applies to that store.
         RedefViewPlace { Coding: VarGroupWindow g } v => $"{RuntimeApi.CellVarStoreCarrier(RenderPath(g.Cell, AccessDir.Receiving),
             $"(int)({PositionRenderer.Render(v.Offset)})", v.Width, PositionRenderer.Render(g.DynBase), g.DynFixedAt,
-            formalStorage ? g.DynMax.Select(_ => int.MaxValue) : g.DynMax, g.DynTable, g.Odo,
+            formalStorage ? g.DynMax.Select(_ => int.MaxValue) : g.DynMax, g.DynStructure, g.DynTable, g.Odo,
             odoCount ?? g.Odo.Max.ToString(), value, g.DynElem, formalStorage)};",   // kb/Work PB1026, PB1042, PB244, PB2496
         _ when !group.Item.CurrentExtentImageCapable => EmitText.LoudStmt(TierCIsland.Reason(group.Item, context)),
         _ => $"{GroupTarget(group)}.FromVarImage({value}{(odoCount is null ? (formalStorage ? ", true" : "") : $", {(formalStorage ? "true" : "false")}, {odoCount}")});",
