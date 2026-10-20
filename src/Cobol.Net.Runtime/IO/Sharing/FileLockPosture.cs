@@ -94,11 +94,20 @@ public static class FileLockPosture
     };
 
     /// <summary>Would a handle carrying <paramref name="share"/> admit a handle of this run unit — or of any
-    /// other — WRITING to the same physical file? The predicate the sequential write path needs: when it is
-    /// true the connector's release must land at the physical end as it stands at that moment and be flushed
-    /// whole (§14.9.51.4 GR12/GR19, kb/Work PB739), and when it is false the connector holds the only writable
-    /// handle there is and keeps the plain, buffered append it always had.
-    /// <para>A bit test rather than <c>HasFlag</c>: <see cref="SequentialConnector"/> asks this once per
+    /// other — WRITING to the same physical file? Only <c>SHARING WITH ALL OTHER</c> does (§9.1.15 3)). The
+    /// sequential organization's question about another WRITER, and only that one; four places ask it:
+    /// <c>HostFile.OpenConnectorWriteStream</c> (true: the <see cref="SharedAppendStream"/>, which lands each
+    /// release at the physical end as it stands at that moment, §14.9.51.4 GR19, kb/Work PB739; false: the plain
+    /// append of the only writable handle there is), <c>SequentialConnector.ReleaseRecord</c>'s ordinal (counted
+    /// off the medium rather than minted, kb/Work PB2692), the <c>OPEN EXTEND</c> that seeds the mint only when it
+    /// is false, and <c>SequentialConnector.EnsureReaderCoherent</c> (a reader re-anchors at every frame when
+    /// another run unit's writer may exist, kb/Work PB2692).
+    /// <para>⛔ IT DOES NOT DECIDE THE RELEASE (kb/Work PB1587, PB3415). <c>SequentialConnector.ReleaseRecord</c>'s
+    /// flush asks <see cref="AdmitsAnotherRunUnit"/>: §14.9.51.4 GR12 releases the record to the operating
+    /// environment at the WRITE, and §9.1.15 2) admits an INPUT connector beside a <c>SHARING WITH READ ONLY</c>
+    /// writer, so that writer flushes every record too; only <c>SHARING WITH NO OTHER</c> keeps the buffered
+    /// load.</para>
+    /// <para>A bit test rather than <c>HasFlag</c>: <c>SequentialConnector.ReleaseRecord</c> asks this once per
     /// released record, which is the sequential WRITE path.</para></summary>
     public static bool AdmitsAnotherWriter(FileShare share) => (share & FileShare.Write) != 0;
 
@@ -107,8 +116,11 @@ public static class FileLockPosture
     /// <i>"The sharing with no other mode specifies exclusive access to a physical file"</i>). The predicate an engine
     /// that writes the file AT EVERY STATEMENT needs (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1.7, kb/Work
     /// PB3333): such a writer must serialize against the INPUT reader that §9.1.15 2) admits beside a
-    /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. It does NOT replace
-    /// <see cref="AdmitsAnotherWriter"/>, which a streaming writer asks (finding R2-7): the predicate a connector
-    /// asks follows the engine it drives.</summary>
+    /// <c>SHARING WITH READ ONLY</c> writer, or the reader meets a half-written path. Two places ask it:
+    /// <c>KeyedConnector.TakeFileLock</c> (the keyed store engine's coherence, its statements under the store mutex)
+    /// and <c>SequentialConnector.ReleaseRecord</c>'s flush (§14.9.51.4 GR12: that same INPUT reader must find in
+    /// the physical file every record a WRITE answered '00' for, kb/Work PB1587). It does NOT replace
+    /// <see cref="AdmitsAnotherWriter"/>, which the sequential organization still asks for what another WRITER may
+    /// do — its append stream, its ordinal and its reader's re-anchoring (finding R2-7).</summary>
     public static bool AdmitsAnotherRunUnit(FileShare share) => share != FileShare.None;
 }
