@@ -2748,7 +2748,10 @@ checkpoints by ONE counting walk from where the walked frames end (`FrameIndex.E
 REVERSED count (`CountRecords(0, long.MaxValue, index)` returns both, so OPEN REVERSED pays one pass, where `CountRecords`
 plus `FrameStarts` paid two). The layout cannot change while the connector is open — §14.9.35.4 GR16 makes a record
 sequential REWRITE size-preserving, and a sibling's appends (ALL OTHER) lie past every indexed frame and are walked when a
-target reaches them — so one index per OPEN is right; `OpenCore` replaces it.
+target reaches them — so one index per OPEN is right; `OpenCore` replaces it. **A host read that throws mid-walk leaves
+the index consistent:** `Extend` records a frame only after the decoder has returned it whole (the walk resumes at the last
+whole frame), and `BuildWindow` invalidates the window (span −1, count 0) BEFORE it overwrites any slot, so an
+`IOException` (status 30) never leaves the old span claimed over the new span's starts.
 
 **Cost, stated so a witness can measure it without a clock.** A single backward read costs at most S frame-head reads (one
 window build) and then one seek; a whole-file backward pass — the COBOL-85 REVERSED read of every record — costs one window

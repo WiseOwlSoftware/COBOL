@@ -111,6 +111,10 @@ internal sealed class FrameIndex(int stride = FrameIndex.DefaultStride)
     private void BuildWindow(Stream fs, long span)
     {
         _window ??= new long[Stride];
+        // Invalidate BEFORE overwriting: a host read that throws mid-walk (an IOException the connector answers as status 30)
+        // must leave no window claiming a span whose slots now hold another span's starts.
+        _windowSpan = -1;
+        _windowCount = 0;
         int want = (int)Math.Min(Stride, _frames - span * Stride);
         fs.Seek(_checkpoints[(int)span], SeekOrigin.Begin);
         var medium = new RecordFraming.StreamMedium(fs);

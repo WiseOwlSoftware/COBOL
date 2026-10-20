@@ -61,6 +61,32 @@ public sealed class FrameIndexTests
         }
     }
 
+    /// <summary>A stream whose host read fails mid-walk: once armed, the <see cref="FailOnHead"/>-th frame head taken throws
+    /// the <see cref="IOException"/> a byte-range lock or a device error raises (the connector answers it as status 30).</summary>
+    private sealed class FailingStream(byte[] bytes) : MemoryStream(bytes, writable: true)
+    {
+        private int _failOnHead;
+        private int _heads;
+
+        /// <summary>1-based head number that throws, or 0 when disarmed. Arming restarts the head count.</summary>
+        public int FailOnHead
+        {
+            get => _failOnHead;
+            set
+            {
+                _failOnHead = value;
+                _heads = 0;
+            }
+        }
+
+        public override long Seek(long offset, SeekOrigin loc)
+        {
+            if (loc == SeekOrigin.Current && _failOnHead != 0 && ++_heads == _failOnHead)
+                throw new IOException("injected host read failure");
+            return base.Seek(offset, loc);
+        }
+    }
+
     public static TheoryData<int> Strides() => new(1, 2, 3, 7, 64);
 
     [Theory]
@@ -185,6 +211,56 @@ public sealed class FrameIndexTests
     }
 
     [Fact]
+    public void AWindowBuildThatThrows_LeavesNoTornWindowBehind()
+    {
+        // kb/Work PB3350 review R1-1. A host read that throws while the window is rebuilt for another span must not leave the
+        // old span's window claimed with slots holding the new span's starts: the next ask for the old span would then answer
+        // another record's start, with status 00. §14.9.30.4 GR21 c): the position names the record before the current one.
+        const int Stride = 4;
+        var (bytes, starts) = MixedFile(20);
+        using var fs = new FailingStream(bytes);
+        var index = new FrameIndex(Stride);
+        Assert.Equal(20, index.Extend(fs));
+        Assert.True(index.TryStartOf(fs, 14, out long start));          // ordinal 14: span 3, slot 1; the window holds span 3
+        Assert.Equal(starts[13], start);
+
+        fs.FailOnHead = 3;                                              // the rebuild for span 0 dies on its third head
+        Assert.Throws<IOException>(() => index.TryStartOf(fs, 2, out _));
+        Assert.Equal(0, index.WindowCount);                             // no window is claimed
+
+        fs.FailOnHead = 0;
+        Assert.True(index.TryStartOf(fs, 14, out start));               // the old span is rebuilt, not read from the torn window
+        Assert.Equal(starts[13], start);
+        for (int n = 0; n < 20; n++)
+        {
+            Assert.True(index.TryStartOf(fs, n + 1, out start), $"ordinal {n + 1}");
+            Assert.Equal(starts[n], start);
+        }
+    }
+
+    [Fact]
+    public void AnExtendThatThrows_ResumesFromTheLastWholeFrame()
+    {
+        // The counting walk records a frame only after the decoder has returned it whole, so a read that dies mid-walk leaves
+        // the index at a frame boundary and the next ask resumes there (the sibling arm of the window-build fix above).
+        const int Stride = 4;
+        var (bytes, starts) = MixedFile(20);
+        using var fs = new FailingStream(bytes);
+        var index = new FrameIndex(Stride);
+        fs.FailOnHead = 7;
+        Assert.Throws<IOException>(() => index.Extend(fs));
+        Assert.Equal(6, index.Frames);
+
+        fs.FailOnHead = 0;
+        Assert.Equal(20, index.Extend(fs));
+        for (int n = 19; n >= 0; n--)
+        {
+            Assert.True(index.TryStartOf(fs, n + 1, out long start), $"ordinal {n + 1}");
+            Assert.Equal(starts[n], start);
+        }
+    }
+
+    [Fact]
     public void AllocationAndMemory_DoNotGrowWithTheFile()
     {
         // 2^20 empty-payload frames: 4 MB, one million records.
@@ -217,25 +293,43 @@ public sealed class FrameIndexTests
     [Fact]
     public void NoMemberOfTheSequentialIoLayer_HoldsAPerRecordOffsetList()
     {
-        // The defect's shape: a List<long> (or long[]) sized by the file's RECORDS. The only list of longs the layer may
-        // declare is the index's own checkpoint list, one entry per Stride records.
+        // The defect's shape: a field or property of type List<long> or long[] sized by the file's RECORDS. The only members of
+        // that type the layer may declare are the index's own: the checkpoint list (one entry per Stride records) and the
+        // window (at most Stride starts). A long[] LOCAL or a frame's own component list (RecordFraming's Ordinals) is not a
+        // per-record member and is not scanned.
+        string[] scanned = ["RecordFraming.cs", "SequentialConnector.cs", "FrameIndex.cs"];
+        var allowed = new HashSet<string> { "FrameIndex.cs:_checkpoints", "FrameIndex.cs:_window" };
+        var found = new List<string>();
         var offenders = new List<string>();
         foreach (string file in Directory.GetFiles(TestRepo.Src("Cobol.Net.Runtime", "IO"), "*.cs", SearchOption.AllDirectories))
         {
             string name = Path.GetFileName(file);
-            if (name is not ("RecordFraming.cs" or "SequentialConnector.cs" or "FrameIndex.cs")) continue;
+            if (!scanned.Contains(name)) continue;
+            found.Add(name);
             var root = CSharpSyntaxTree.ParseText(File.ReadAllText(file)).GetRoot();
-            foreach (var generic in root.DescendantNodes().OfType<GenericNameSyntax>())
+            foreach (var member in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>().SelectMany(t => t.ChildNodes()))
             {
-                if (generic.Identifier.Text != "List") continue;
-                if (generic.TypeArgumentList.Arguments is not [PredefinedTypeSyntax { Keyword.Text: "long" }]) continue;
-                bool checkpoints = name == "FrameIndex.cs"
-                    && generic.Ancestors().OfType<FieldDeclarationSyntax>().Any(f =>
-                        f.Declaration.Variables.Any(v => v.Identifier.Text == "_checkpoints"));
-                if (!checkpoints) offenders.Add($"{name}: {generic}");
+                (TypeSyntax? type, string? memberName) = member switch
+                {
+                    FieldDeclarationSyntax f => (f.Declaration.Type, string.Join(",", f.Declaration.Variables.Select(v => v.Identifier.Text))),
+                    PropertyDeclarationSyntax p => (p.Type, p.Identifier.Text),
+                    _ => (null, null),
+                };
+                if (type is null || !IsLongSequence(type)) continue;
+                if (!allowed.Contains($"{name}:{memberName}")) offenders.Add($"{name}: {memberName} : {type}");
             }
         }
+        Assert.True(found.Count == scanned.Length, $"the guard found {found.Count} of {scanned.Length} files: {string.Join(", ", found)}");
         Assert.True(offenders.Count == 0,
-            "A per-record offset list was declared (kb/Work PB3350; DESIGN-runtime-library.md 2.2.3):\n  " + string.Join("\n  ", offenders));
+            "A per-record offset collection was declared (kb/Work PB3350; DESIGN-runtime-library.md 2.2.3):" + Environment.NewLine + "  " + string.Join(Environment.NewLine + "  ", offenders));
     }
+
+    /// <summary>List&lt;long&gt;, long[] or long[]? (a nullable annotation changes nothing about the storage).</summary>
+    private static bool IsLongSequence(TypeSyntax type) => type switch
+    {
+        NullableTypeSyntax n => IsLongSequence(n.ElementType),
+        ArrayTypeSyntax { ElementType: PredefinedTypeSyntax { Keyword.Text: "long" } } => true,
+        GenericNameSyntax { Identifier.Text: "List", TypeArgumentList.Arguments: [PredefinedTypeSyntax { Keyword.Text: "long" }] } => true,
+        _ => false,
+    };
 }
