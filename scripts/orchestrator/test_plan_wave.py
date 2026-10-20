@@ -1091,6 +1091,26 @@ check("record_dispatch drops the retired hand entry and keeps the other waves", 
 check("record_dispatch UPSERTS on (wave, letter): the re-recorded group replaces its entry, its files exact, POSIX",
       [g["files"] for g in LG if g["wave"] == "1061" and g["letter"].upper() == "A"], [["src/Hand.cs", "src/More.cs"]])
 check("each entry carries its report slug", [g["slug"] for g in first + again], ["w1061a", "w1061b", "w1061a"])
+# PB3392: a re-rendered spec keeps its group's dispatch time (`at`, the order the landing check and `answers` read)
+check("PB3392: the group recorded again keeps its first `at`; the group beside it keeps its own",
+      (again[0]["at"] == first[0]["at"], first[0]["at"] < first[1]["at"]), (True, True))
+HA = TMP / "coord-at"
+HA.mkdir()
+coord.write_json(HA / pw.DISPATCH_LEDGER, {"groups": [
+    {"wave": "1118", "letter": "A5", "notes": ["PB3330"], "files": ["src/Engine.cs"], "slug": "w1118a5", "at": 5.0},
+    {"wave": "1126", "letter": "C", "notes": ["PB1587"], "files": [], "slug": "w1126c", "at": 14.0}]})
+rerender = pw.record_dispatch(HA, "1118", [{"letter": "A5", "notes": ["PB3330", "PB3331"], "files": ["src/Engine.cs", "src/More.cs"]},
+                                           {"letter": "A7", "notes": ["PB3332"], "files": ["src/New.cs"]}], lambda i: False)
+AT = {(g["wave"], g["letter"]): g for g in coord.read_json(HA / pw.DISPATCH_LEDGER, {})["groups"]}
+check("PB3392: a re-rendered early dispatch is still EARLIER than a later wave's group, though its files and notes grew",
+      (AT[("1118", "A5")]["at"], AT[("1118", "A5")]["files"], AT[("1118", "A5")]["notes"], AT[("1118", "A5")]["at"] < AT[("1126", "C")]["at"]),
+      (5.0, ["src/Engine.cs", "src/More.cs"], ["PB3330", "PB3331"], True))
+check("PB3392: a NEW group of an existing wave takes the time of its first recording; other waves' entries are untouched",
+      (AT[("1118", "A7")]["at"] > 14.0, AT[("1126", "C")]["at"], [g["at"] for g in rerender] == [AT[("1118", "A5")]["at"], AT[("1118", "A7")]["at"]]),
+      (True, 14.0, True))
+different = pw.record_dispatch(HA, "1118", [{"letter": "A5", "notes": ["PB9999"], "files": ["src/Other.cs"]}], lambda i: False)
+check("PB3392: a group that shares no note with the entry under its key is a DIFFERENT dispatch and takes this recording's time",
+      different[0]["at"] > 14.0, True)
 check("a recorded group is in flight before its agent edits a file, until its notes land",
       ({f for fs in pw.inflight_file_sets(coord_dir=HL, terminal=lambda i: False, with_git=False).values() for f in fs}
        >= {"src/Hand.cs", "src/More.cs"},
