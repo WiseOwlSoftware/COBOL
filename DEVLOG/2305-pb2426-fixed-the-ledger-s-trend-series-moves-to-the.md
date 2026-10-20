@@ -1,0 +1,6 @@
+## Entry 2305 — 2026-10-20 15:17 PDT — PB2426 fixed: the ledger's trend series moves to the coordination directory, so a render never dirties a checkout
+
+Every ledger render appended to the tracked `docs/rearchitecture/evidence/ledger-trend.json` in whatever checkout it ran in. In the main checkout the loop then started a `resume` unit whose only finding was that file: three times on 2026-10-20 alone. The owner asked for it fixed now (dispatch hold `w1132y`).
+
+`gen_ledger.TREND` is now `<coord>/ledger-trend.json`, beside the page it feeds. Each point is measured from its own commit's tree, and `missed_points` rebuilds a skipped one, so the series is the publish's cache. The tracked file is deleted; its 1,278 points were copied to the coordination directory. Because every worktree shares that file, only a render of main's page appends to it, and `write_trend` refuses a relative path (the Windows default read on Linux). The self-test gained two checks; pointing the series back into the tree fails the first. A render from the branch left its checkout clean. The generator's docstring, `.gitignore`, plan §9, DOC_INDEX, the wave and enqueue units and the workstream landing reference were updated, and the stale `--check` descriptions in the docstring and DOC_INDEX were corrected.
+

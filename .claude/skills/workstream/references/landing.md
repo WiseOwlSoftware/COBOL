@@ -114,7 +114,8 @@
   --out <html>` then an `Artifact` publish to the existing URL (recorded in the orchestrator's memory
   `conformance-ledger-artifact`). Every number is computed by the generator, never typed, and nothing on the page is
   hand-written (the in-flight narrative was removed, kb/Work PB2912): its top block is WHAT REMAINS to v1.0, and its
-  trend file gains a point whenever GAP or the register's defect series moves. **Do it in the same turn as the landing report, once per landed train, not once a day** (owner
+  trend series (`<coord>/ledger-trend.json`, never in a checkout: kb/Work PB2426) gains a point whenever GAP or the
+  register's defect series moves. **Do it in the same turn as the landing report, once per landed train, not once a day** (owner
   2026-10-04: trains 1011 and 1012 had landed with no refresh). The generator back-fills one trend point per
   inventory-moving commit since the series' last point (`missed_points`), so a missed refresh costs nothing but
   a stale page. The first publish after an unseen live version is refused with that version's source; publish the
