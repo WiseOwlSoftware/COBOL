@@ -17,14 +17,11 @@
 #   PHASE 1  Conformance ∥ Unit ∥ Characterization — three independent --no-build assemblies, fully concurrent.
 #            Wall-clock becomes the POLE (Conformance), not the SUM. Each is population-checked afterwards:
 #            its trx must hold every discovered case exactly once (scripts/test_population.py, kb/Work PB1718).
-#   PHASE 2a guard evidence-rule witnesses    — seconds. Proves the NIST guard's verdicts still MEAN what they
-#                                               say (a lost observation is a NO-VERDICT, a wrong answer is a
-#                                               REGRESSION) before phase 2's output is believed. §3.10
-#                                               corollary 3; earned by kb/Work/PB473, where a green harness
-#                                               reported a regression it had not observed.
 #   PHASE 2  guard-fast                       — REBUILDS the `cobol` CLI, whose closure includes
 #                                               Cobol.Net.Frontend and the whole greenfield compiler. Must not
-#                                               overlap phase 1.
+#                                               overlap phase 1. It first proves its verdicts still MEAN what
+#                                               they say (its self-tests, scripts/guard-verify.sh's evidence-rule
+#                                               witnesses among them: §3.10 corollary 3, kb/Work/PB473).
 #                                               ⛔ SINCE kb/Work/PB750 THIS LEG MEASURES WiseOwl COBOL. It used to
 #                                               drive the legacy byte engine's CLI, so `guard NIST: 353 MATCH`
 #                                               was a statement about the oracle and battery #58's NC215A wrong
@@ -168,16 +165,10 @@ if [ "${SKIP_TESTS:-0}" != "1" ]; then
 fi
 
 if [ "${SKIP_GUARD:-0}" != "1" ]; then
-    # ⛔ PROVE THE INSTRUMENT BEFORE BELIEVING IT (§3.10 corollary 3). Seconds: 21 synthetic cases through the
-    # real group runner, each asserting what ONE verdict MEANS. Battery #43 spent a whole run — and hours of
-    # attribution — on a `DIFF — REGRESSION!` that meant "the harness could not compare" (kb/Work/PB473).
-    el "=== PHASE 2a: guard evidence-rule witnesses + the compiler-identity watchdog ==="
-    bash scripts/guard-verify.sh --witnesses > "$OUT/guard-witnesses.log" 2>&1
-    note "$(printf '%-16s %s' 'guard witnesses:' "$(grep -E '^=== \(1\) WITNESSES' "$OUT/guard-witnesses.log" | tail -1)")"
-    grep -q '^=== (1) WITNESSES: ALL GREEN' "$OUT/guard-witnesses.log" || RC=1
-    note "$(printf '%-16s %s' 'guard compiler:' "$(grep -E '^=== guard-compiler --self-test:' "$OUT/guard-witnesses.log" | tail -1)")"
-    grep -q '^=== guard-compiler --self-test: ALL GREEN' "$OUT/guard-witnesses.log" || RC=1
-
+    # ⛔ THE INSTRUMENT IS PROVED BEFORE IT IS BELIEVED (§3.10 corollary 3): guard-fast.sh runs its own self-tests
+    # first (scripts/guard-verify.sh's evidence-rule witnesses and the compiler-identity watchdog among them) and is
+    # not ALL GREEN unless they are. Battery #43 spent a whole run — and hours of attribution — on a
+    # `DIFF — REGRESSION!` that meant "the harness could not compare" (kb/Work/PB473).
     el "=== PHASE 2: guard-fast (rebuilds — never overlapped with phase 1) ==="
     bash scripts/guard-fast.sh > "$OUT/guard.log" 2>&1
     # ⛔ THE COMPILER IS PART OF THE VERDICT (PB750): the pattern requires the `(cobol)` tag, so a guard that
