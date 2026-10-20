@@ -18,10 +18,14 @@ groups.json:
                           # only after K returns and hands it K's branch and report (workstream SKILL §2)
   ]
 }
-Writes <scratch>\\msg-w<wave>-<letter lower-cased>.txt per group (the file wf_rolling_wave.js opens), RECORDS every
-rendered group in the dispatch ledger (<coord>/inflight-groups.json) through plan_wave.record_dispatch, an upsert on
-(wave, letter) with the group's notes and file set, and runs check_practices.py over the specs AND the groups file
-(exit 1 on a miss).
+Refuses (exit 2, nothing written) a groups file whose `scratch` or `stop_file` is not a fleet path (coord.scratch_problem,
+coord.fleet_stop_problem: absolute, the scratch outside the checkout, the stop file STOP-<scope>; kb/Work PB3114: Git Bash
+made `E:COBOL-coordscratch` of an unquoted Windows path three times). Writes <scratch>\\msg-w<wave>-<letter
+lower-cased>.txt per group (the file wf_rolling_wave.js opens), runs check_practices.py over the specs AND the groups
+file (exit 1 on a miss), and only when that is GREEN RECORDS every rendered group in the dispatch ledger
+(<coord>/inflight-groups.json) through plan_wave.record_dispatch, an upsert on (wave, letter) with the group's notes and
+file set: a RED render records nothing, so it holds no note from a later plan (kb/Work PB3114). `--no-record` renders
+and checks only (the planner's first pass on peeked codes, before it reserves any).
 
 The ledger has exactly two structured writers, this renderer (every wave, the planner's and a hand-planned one alike)
 and `plan_wave.py --release` (an aborted dispatch); it is never written from a scrape of a prompt (kb/Work PB3186: the
@@ -137,8 +141,15 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('groups', help='the groups file (groups.json)')
     ap.add_argument('--coord', help=f'coordination directory of the dispatch ledger (default ${coord.ENV} or {coord.DEFAULT})')
+    ap.add_argument('--no-record', action='store_true', help='render and check only, recording nothing in the dispatch '
+                    'ledger: the planner\'s first pass, on PEEKED codes, before it reserves any (plan_wave.py, kb/Work PB3114)')
     a = ap.parse_args(argv)
     cfg = json.loads(pathlib.Path(a.groups).read_text(encoding='utf-8'))
+    # THE FLEET PATHS FIRST (kb/Work PB3114): a drive-relative scratch or stop file is refused before anything is written
+    if refused := [w for w in (coord.scratch_problem(cfg.get('scratch') or ''),
+                               coord.fleet_stop_problem(cfg.get('stop_file') or '')) if w]:
+        print('\n'.join(f'{a.groups}: {w}' for w in refused))
+        return 2
     tpl = TEMPLATE.read_text(encoding='utf-8')
     scratch = pathlib.Path(cfg['scratch'])
     ledger = coord.coord_dir(a.coord)
@@ -156,9 +167,16 @@ def main(argv=None):
         p.write_text(body, encoding='utf-8', newline="\n")
         out.append(str(p))
         print('wrote', p)
-    for e in record(cfg, ledger, file_set_of=file_set_of):
-        print(f"recorded {e['slug']} ({', '.join(e['notes'])}): {len(e['files'])} files in {ledger / plan_wave.DISPATCH_LEDGER}")
-    return subprocess.call([sys.executable, str(HERE / 'check_practices.py'), a.groups, *out])
+    rc = subprocess.call([sys.executable, str(HERE / 'check_practices.py'), a.groups, *out])
+    # ONLY A GREEN WAVE IS RECORDED (kb/Work PB3114): a ledger entry holds its notes from every later plan until its
+    # report or a `--release`, so a RED render that recorded left its notes "held by dispatch" with nothing in flight
+    if rc == 0 and not a.no_record:
+        for e in record(cfg, ledger, file_set_of=file_set_of):
+            print(f"recorded {e['slug']} ({', '.join(e['notes'])}): {len(e['files'])} files in "
+                  f"{ledger / plan_wave.DISPATCH_LEDGER}")
+    elif rc:
+        print(f"check_practices.py RED: nothing recorded in {ledger / plan_wave.DISPATCH_LEDGER}")
+    return rc
 
 
 if __name__ == '__main__':

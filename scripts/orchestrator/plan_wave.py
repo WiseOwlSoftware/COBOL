@@ -22,7 +22,9 @@ cost the orchestrator a hand-written groups.json; this computes it.
    kb/Work PB2575), a DONE report whose branch review stamped FINDINGS (kb/Work PB3027: the finisher answers each
    finding; none while the report's branch is IN FLIGHT by its own lifecycle, prune_worktrees.owned, kb/Work PB3311:
    a live agent's worktree, a dispatch still out, or a touch inside --min-age means someone is already finishing it;
-   IN FLIGHT only as a carrier's content is not that), a `status: half` note, and an UNLANDED branch
+   IN FLIGHT only as a carrier's content is not that; and none unless the stamp COVERS the branch tip,
+   prune_worktrees.stamp_covers, the survey's own rule: a stamp at an older head followed by real commits is WAITING
+   FOR REVIEW, a diff-only re-review, and waits, kb/Work PB3394), a `status: half` note, and an UNLANDED branch
    (prune_worktrees.classify) whose commit subjects
    name an open note with no report. One finisher group per predecessor; its `pred` names the predecessor report and
    branch. The lead of a FINDINGS report that the fix lane cannot see (a `process_only` note, or an owner task's
@@ -39,7 +41,8 @@ cost the orchestrator a hand-written groups.json; this computes it.
    that already failed twice; Sonnet otherwise; never Fable).
 6. COST per group from model_rules.json; groups are taken in rank order while they fit (a group that does not fit is
    skipped and a smaller later one may still fit; a successor only with its predecessor), plus each group's landing (kb/Work PB3023).
-7. Codes (three per group) come from alloc.py; --dry-run peeks and reserves nothing, and writes nothing. The planner
+7. Codes (three per group) come from alloc.py, reserved only after the specs rendered on the PEEKED codes check GREEN
+   (below); --dry-run peeks and reserves nothing, and writes nothing. The planner
    allocates no lead ids: the enqueue unit's clerk takes them from `alloc.py pb <n>` when it files the landed reports'
    leads (units/enqueue.md step 5; kb/Work PB3023 retired the train's lead-id blocks).
 8. A note whose body says it needs a frontier model under the owner's approval (model_rules.json
@@ -87,10 +90,16 @@ ADMISSION estimate; the GUARANTEE is the landing check (scripts/orchestrator/lan
 land`): R3 work whose ACTUAL diff leaves its declared set, or that meets another in-flight branch's, stops and re-plans
 (PB2118 Draft 9); fix lane against fix lane is never stopped there, and costs at most a conflict finisher at the merge.
 
-Without --dry-run it writes <scratch>/groups.json (make_dispatch_specs.py's format, each group's `file_set` a list),
-runs make_dispatch_specs.py (which renders the specs, records the groups in the dispatch ledger and runs
-check_practices.py), and writes <scratch>/wf-args-w<wave>.json, the args of
-.claude/skills/workstream/templates/wf_rolling_wave.js. Exit 1 when check_practices.py is red.
+Without --dry-run, A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114). First, before anything is
+planned, it refuses (exit 2) a --scratch, --stop-file or --reports that is not a fleet path (coord.scratch_problem,
+fleet_stop_problem, absolute_problem: absolute, the scratch outside the checkout, the stop file STOP-<scope>; Git Bash
+makes the drive-relative `E:COBOL-coordscratch` of an unquoted Windows path). Then it writes <scratch>/groups.json
+(make_dispatch_specs.py's format, each group's `file_set` a list) with the PEEKED codes and runs `make_dispatch_specs.py
+--no-record` (render, check_practices.py, record nothing); only on GREEN does it reserve the codes through alloc.py,
+write groups.json again with them, run make_dispatch_specs.py (render, check, and on GREEN record the groups in the
+dispatch ledger) and write <scratch>/wf-args-w<wave>.json, the args of
+.claude/skills/workstream/templates/wf_rolling_wave.js. Exit 1 when check_practices.py is red: no code reserved, no
+ledger entry, no args file.
 """
 from __future__ import annotations
 
@@ -921,7 +930,8 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
          deps: dict[str, list[str]] | None = None, busy: dict[str, InFlight] | None = None,
          held: dict[str, str] | None = None, drain: bool = False,
          carrier: Callable[[str], str | None] | None = None,
-         owned: set[str] | None = None) -> dict[str, Any]:
+         owned: set[str] | None = None,
+         review_covers: Callable[[Report], bool] | None = None) -> dict[str, Any]:
     """`clusters` and `half_clusters` are fix_clusters.py --json views of the open and the half notes; they also
     define which notes are plannable at all (fix_clusters applies .agent-fleet.json's kind and skip flags).
     `held`, {note: the dispatch holding it} from held_by_dispatch, applies in BOTH lanes: a held note waits.
@@ -945,17 +955,35 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     survey: the branches IN FLIGHT by their OWN lifecycle, never one IN FLIGHT only because a carrier contains it)
     lets a FINDINGS report's branch with a live owner wait: someone is already answering the findings (kb/Work
     PB3311). A FINDINGS branch that a carrier merely contains is not owned, and gets its finisher with the carrier
-    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1)."""
+    named in its pred (`carrier`, kb/Work PB3150 review R1-2; PB3311 review R1-1).
+
+    `review_covers(report)`: its review stamp COVERS its branch's tip (prune_worktrees.stamp_covers over the survey's
+    tips, the one coverage rule the branch survey's lifecycle reads; kb/Work PB3394). Only a FINDINGS stamp that covers
+    the tip makes a review finisher; a stamp at an older head followed by real commits is WAITING FOR REVIEW (those
+    commits are unreviewed, and the enqueue unit's diff-only re-review reads them, kb/Work PB3381): it is named in
+    `waiting`, never a group. Without a survey (`--no-branches`, a fixture) the report's own HEAD stands for the tip."""
     carrier = carrier or (lambda _b: None)
     owned = owned or set()
+    review_covers = review_covers or (lambda r: bool(r.review) and r.review.covers(r.head))
     wave_rules = rules["wave"]
     cap = wave_rules["max_notes_per_group"]
     open_ids = {n["id"] for c in clusters + half_clusters for n in c["notes"] if n["id"] in notes}
     note_file = {n["id"]: c["file"] for c in clusters + half_clusters for n in c["notes"]}
     note_files = {n["id"]: c.get("files", []) for c in clusters + half_clusters for n in c["notes"]}
 
-    def findings(r: Report, cls: str) -> bool:
+    def stamped(r: Report, cls: str) -> bool:
+        """A finished report on an unlanded branch whose branch review stamped FINDINGS, at whatever head."""
         return cls not in LANDED_CLASSES and r.finished and bool(r.review) and r.review.verdict == "FINDINGS"
+
+    covered: dict[pathlib.Path, bool] = {}   # review_covers may run git (a stamp at an older head): once per report
+
+    def findings(r: Report, cls: str) -> bool:
+        """... and the stamp covers the branch tip: only then does a review finisher answer it (kb/Work PB3394)."""
+        if not stamped(r, cls):
+            return False
+        if r.path not in covered:
+            covered[r.path] = review_covers(r)
+        return covered[r.path]
 
     # THE LEADS THE REPORTS DECIDE: every open note the fix lane sees, and the lead of a live FINDINGS report that the
     # fix lane cannot see (a `process_only` note, or an owner task's note main does not have yet: branch_lead_notes),
@@ -968,7 +996,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # hold and an unlanded branch's notes (review R2-1). Only the clusters' own arms read the clusters.
     leads = open_ids | {r.lead for r in reports if r.review and r.review.verdict == "FINDINGS" and
                         r.lead not in open_ids and r.lead in notes and
-                        findings(r, classify(r.branch) if r.branch else "ABSENT")}
+                        stamped(r, classify(r.branch) if r.branch else "ABSENT")}
     unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()}
     newest: dict[str, Report] = {}
     for r in reports:  # sorted oldest first, so the last write wins
@@ -996,7 +1024,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         # note NOT started still lands first: the landing lane lands its finished work.
         # A DONE branch whose review stamp says FINDINGS is unfinished too (kb/Work PB3027): the enqueue unit never fixes
         # a review finding, so its finisher answers them (finisher_pred's review arm).
-        if findings(r, cls) and r.branch in owned:
+        if stamped(r, cls) and r.branch in owned:
             # THE BRANCH IS BEING FINISHED (kb/Work PB3311): the survey reads it IN FLIGHT by its own lifecycle (a live
             # agent's worktree, its dispatch out, or a touch inside --min-age, which is how a resumed branch whose tip
             # moved past the reviewed head reads). A finisher's own branch is exempt from the file-set collision (it
@@ -1006,6 +1034,14 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             waiting[nid] = (f"its review findings are being answered: branch {r.branch} is IN FLIGHT (a live agent, a "
                             f"dispatch still out, or touched within --min-age): a finisher now would redo that work; "
                             f"it is planned again once the branch settles")
+        elif stamped(r, cls) and not findings(r, cls):
+            # THE STAMP IS OLDER THAN THE TIP (kb/Work PB3394): commits after the reviewed head are unreviewed work (the
+            # branch survey reads it WAITING FOR REVIEW by the same coverage rule), very likely the answers to these
+            # findings; one cobol-reviewer reads them (the enqueue unit's diff-only re-review, kb/Work PB3381). A
+            # finisher would redo answered work on a branch whose author may still be committing (wave 1127's C).
+            waiting[nid] = (f"WAITING FOR REVIEW: {r.slug}'s branch review stamped FINDINGS at {r.review.sha[:12]}, and "
+                            f"branch {r.branch} has commits since that no review covers: one cobol-reviewer reviews "
+                            f"them (the enqueue unit's diff-only re-review), never a finisher")
         elif r.status in FINISH_STATUSES or (cls in LANDED_CLASSES and r.not_started) or findings(r, cls):
             if drain and not findings(r, cls) and (why := drained(r.branch, cls)):
                 waiting[nid] = why
@@ -1377,6 +1413,15 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("one of the arguments --budget-points --from-budget is required")
     if not a.dry_run and not a.scratch:
         ap.error("--scratch is required without --dry-run")
+    # THE FLEET PATHS FIRST (kb/Work PB3114), before anything is planned, reserved, recorded or written: Git Bash makes the
+    # drive-relative `E:COBOL-coordscratch` of an unquoted Windows path, and three wave units wrote their specs into a
+    # folder inside the main checkout, reserved 24 codes each and held eight notes in the ledger with nothing in flight.
+    # The rules are coord's, the ones make_dispatch_specs.py and check_practices.py read too.
+    if refused := [w for w in (a.scratch and coord.scratch_problem(a.scratch),
+                               a.stop_file and coord.fleet_stop_problem(a.stop_file),
+                               a.reports and coord.absolute_problem(a.reports, "the reports directory")) if w]:
+        print("\n".join(f"⛔ {w}" for w in refused))
+        return 2
     if a.cluster and (a.clusters_json or a.half_clusters_json):
         ap.error("--cluster plans from the cluster's own notes; it takes no --clusters-json or --half-clusters-json")
     rules = coord.rules()
@@ -1442,16 +1487,21 @@ def main(argv: list[str] | None = None) -> int:
         raw["the open external-repository slices"] = work.slice_file_set()
     states: dict[str, str] = {}
     owned: set[str] = set()
+    review_covers = None
     if not a.no_branches:   # the branch survey's lifecycle state of every branch: THE lifecycle rule (O10), pull
         # requests included (ENQUEUED and BOUNCED are read from them), exactly as the landing lane reads it
         import prune_worktrees  # noqa: PLC0415
         rows = prune_worktrees.live_survey(coord_dir=cdir, reports_dir=reports_dir, terminal=terminal)
         states, owned = {r.name: r.state for r in rows}, prune_worktrees.owned(rows)
+        coverage = prune_worktrees.review_coverage(rows)   # the survey's own coverage rule, kb/Work PB3394
+
+        def review_covers(rep: Report) -> bool:
+            return coverage(rep.review, rep.branch)
     busy = classify_inflight(raw, meta, reports, states, unlanded)
     p = plan(notes, clusters, half_clusters, reports, classify, unlanded, rules, budget_points,
              a.max_groups or rules["wave"]["max_groups"], deps=deps, busy=busy,
              held=held_by_dispatch(cdir, reports, terminal), drain=a.drain, carrier=carrier,
-             owned=owned)
+             owned=owned, review_covers=review_covers)
     waiting.update(p["waiting"])
     if a.drain:
         campaign += " — DRAIN (finishers of started work only)"
@@ -1463,13 +1513,13 @@ def main(argv: list[str] | None = None) -> int:
     # file (the branch reviewer's prompt) and check_practices.py (kb/Work PB3359)
     group_reqs = group_requirements(p["groups"], {i.get("id"): i.get("cluster") for i in items}, REPO / "kb" / "Work",
                                     [a.cluster] if a.cluster else [])
-    gjson = []
-    for k, g in enumerate(p["groups"]):
-        if a.dry_run:
-            first = peek_code + k * per
-        else:
-            first, _ = alloc.allocate("code", per, REPO, cdir)
-        gjson.append(as_group_json(g, wave, notes, alloc.render("code", first, per), group_reqs[k]))
+
+    def group_json(first: int) -> list[dict[str, Any]]:
+        """The groups file's groups, each with its `per` codes from `first` on (group k: first + k·per)."""
+        return [as_group_json(g, wave, notes, alloc.render("code", first + k * per, per), group_reqs[k])
+                for k, g in enumerate(p["groups"])]
+
+    gjson = group_json(peek_code)   # PEEKED: a plan reserves its codes only once its specs check GREEN (kb/Work PB3114)
 
     print(f"=== WAVE {wave} PLAN{campaign}: {len(p['groups'])} groups, {p['points']:.2f} of "
           f"{budget_points:.2f} weekly points{' (DRY RUN: nothing reserved or written)' if a.dry_run else ''} ===")
@@ -1499,13 +1549,34 @@ def main(argv: list[str] | None = None) -> int:
                           text=True).stdout.strip()
     gfile = scratch / "groups.json"
     stop_file = pathlib.Path(a.stop_file) if a.stop_file else coord.fleet_stop(scratch, f"w{wave}")
-    if stop_file == coord.global_stop(a.coord):
-        print(f"--stop-file {stop_file} is the owner's GLOBAL stop; a fleet's stop is its own STOP-<scope> (kb/Work PB2483)")
-        return 2
-    gfile.write_text(json.dumps({"wave": wave, "scratch": str(scratch), "base": f"{head} (origin/main when planned)",
-                                 "stop_file": str(stop_file),
-                                 "groups": gjson}, indent=1, ensure_ascii=False) + "\n",
-                     encoding="utf-8", newline="\n")
+
+    def render(gjson: list[dict[str, Any]], *flags: str) -> int:
+        """Write groups.json and run make_dispatch_specs.py on it (it renders the specs, runs check_practices.py and,
+        unless `--no-record`, records the groups in the dispatch ledger when GREEN: record_dispatch, the one writer,
+        kb/Work PB3186)."""
+        gfile.write_text(json.dumps({"wave": wave, "scratch": str(scratch), "base": f"{head} (origin/main when planned)",
+                                     "stop_file": str(stop_file), "groups": gjson}, indent=1, ensure_ascii=False) + "\n",
+                         encoding="utf-8", newline="\n")
+        sys.stdout.flush()   # the plan table above prints before the renderer's own lines, redirected or not
+        return subprocess.call([sys.executable, str(MAKE_SPECS), str(gfile), *flags,
+                                *(["--coord", a.coord] if a.coord else [])], cwd=REPO)
+
+    # A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114): render and check on the PEEKED codes,
+    # recording nothing; only then reserve the codes, render again with them and record. A RED check reserves no code
+    # and holds no note in the ledger (a wave entry never expires: its notes waited for a hand `--release`).
+    if rc := render(gjson, "--no-record"):
+        print("make_dispatch_specs.py + check_practices.py: RED (no code reserved, nothing recorded in the dispatch "
+              "ledger, no wf-args file; fix the cause and plan again)")
+        return rc
+    first, _ = alloc.allocate("code", per * len(p["groups"]), REPO, cdir)
+    if first != peek_code:
+        print(f"  codes moved while the specs were checked (another allocation): reserved from "
+              f"{alloc.render('code', first, per * len(p['groups']))}")
+    gjson = group_json(first)
+    rc = render(gjson)
+    print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
+    if rc:
+        return rc
     args = {"scratch": str(scratch), "wave": wave, "stop_file": str(stop_file), "global_stop": str(coord.global_stop(a.coord)),
             "concurrency": rules["wave"]["concurrency"],
             "implementer_model": rules["wave"]["implementer_model"], "authorization": a.authorization,
@@ -1514,12 +1585,7 @@ def main(argv: list[str] | None = None) -> int:
     afile = scratch / f"wf-args-w{wave}.json"
     afile.write_text(json.dumps(args, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {gfile} and {afile}")
-    # make_dispatch_specs.py renders the specs AND records the wave's groups in the dispatch ledger (record_dispatch,
-    # the one writer: kb/Work PB3186)
-    rc = subprocess.call([sys.executable, str(MAKE_SPECS), str(gfile), *(["--coord", a.coord] if a.coord else [])],
-                         cwd=REPO)
-    print(f"make_dispatch_specs.py + check_practices.py: {'GREEN' if rc == 0 else 'RED'}")
-    return rc
+    return 0
 
 
 if __name__ == "__main__":

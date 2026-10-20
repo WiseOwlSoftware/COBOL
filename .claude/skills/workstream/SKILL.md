@@ -170,9 +170,11 @@ gathering"; "use this new rolling functionality as it reduces context and token 
   `group`, `root`, `files`, `body`, an optional `pred` text (predecessor or resume instructions) and the optional
   `after` (ignored by the renderer; the workflow uses it), and `file_set`, the list of files the group changes
   (`plan_wave.py` writes it; without it the renderer computes the set from the group's notes). Spec files are keyed
-  on the full letter: `msg-w<wave>-<letter lower-cased>.txt`. The renderer also RECORDS every group in the dispatch
-  ledger (`plan_wave.record_dispatch`, an upsert on wave and letter; `--coord DIR`), the ledger's one writer, so the
-  planners' file-set partition and the landing check see a hand-planned wave too (kb/Work PB3186).
+  on the full letter: `msg-w<wave>-<letter lower-cased>.txt`. Once its `check_practices.py` run is GREEN the renderer
+  also RECORDS every group in the dispatch ledger (`plan_wave.record_dispatch`, an upsert on wave and letter; `--coord
+  DIR`), the ledger's one writer, so the planners' file-set partition and the landing check see a hand-planned wave too
+  (kb/Work PB3186); a RED render records nothing (kb/Work PB3114). It refuses, before writing, a `scratch` or
+  `stop_file` that is not an absolute path (and a scratch inside the checkout): quote Windows paths in Git Bash.
   `check_practices.py <groups.json>` refuses two groups whose `root` names the same primary `src/` file unless one
   declares `after:` the other.
 
