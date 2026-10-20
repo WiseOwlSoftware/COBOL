@@ -1457,7 +1457,9 @@ unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), th
 discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait outside the mutex (`WaitOutsideStatement`)
 keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged in intent over the new engine (its
 sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and the refused page write, and
-`StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12). The
+`StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12, and `ReadOnlyKeyedWriterStoreMutexTests` the rule that a
+`SHARING WITH READ ONLY` or `ALL OTHER` writer makes every page write of a statement, the tree pages and page 2, inside the
+mutex and gives it back when the host refuses one: kb/Work PB3414). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
