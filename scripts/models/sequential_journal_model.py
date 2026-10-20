@@ -27,10 +27,13 @@ entry" (a fresh run unit's writable OPEN, which runs the entry step), that
 WHAT IT IS NOT. It models the protocol, not the bytes: a record is a token, a file is a list of records, L is a
 record count, a checksum is "the unit is whole or it is not". Framing, CRCs, the host APIs and the SidecarLockFiles
 publication dance are the implementation's (PB3340), whose IHostMedium simulator (2.2.2.12) re-runs these rows over
-real bytes. The second run unit's statements run atomically at an operation boundary of the first: every mutual
-exclusion the protocol relies on inside one statement is the entry mutex, modelled as a lock, so a finer interleaving
-reaches no state this one cannot (a statement that finds the mutex held is BLOCKED and simply runs after the holder's
-statement, which is another boundary of the same sweep).
+real bytes. The second run unit's statements run atomically at an interleaving point of the first — before every medium
+operation, and before every statement (the point where a ROLLBACK, a writable OPEN, a DELETE FILE or a COMMIT takes the
+entry mutex as its first act; offered the points before medium operations only, the second run unit could never begin
+between an append and the ROLLBACK that undid it: review round 3, R3-1): every mutual exclusion the protocol relies on
+inside one statement is the entry mutex, modelled as a lock, so a finer interleaving reaches no state this one cannot (a
+statement that finds the mutex held is BLOCKED and simply runs after the holder's statement, which is another point of the
+same sweep).
 
 THE PROTOCOL UNDER TEST (2.2.2.4–2.2.2.8, in the model's terms; every name below is a step the design states):
   files in the lock directory D: txn-<t>.live (the holder: locked while the owner lives, the liveness and the
@@ -62,9 +65,12 @@ THE PROTOCOL UNDER TEST (2.2.2.4–2.2.2.8, in the model's terms; every name bel
             file once REPLACED (a
             writable OPEN by another run unit: '61'); an OPEN OUTPUT or DELETE FILE also needs no other handle ('61').
 
-ITS OWN WATCHDOG (review round 2, R2-2). A model that stays GREEN proves nothing once its oracle or its fault injector
-is weakened, so --self-test also runs the protocol with each named MUTATION applied (each a defect a review found or a
-write-ahead order broken) and requires RED from every one; `--mutation <name>` runs one by hand.
+ITS OWN WATCHDOG (review round 2, R2-2; round 3, R3-1). A model that stays GREEN proves nothing once its oracle or its
+fault injector is weakened, so --self-test also runs the protocol with each named MUTATION applied (each a defect a review
+found or a write-ahead order broken); each mutation names the rows of 2.2.2.12 that must catch it, and the proof requires
+each of those rows RED under it on its own — a RED from some other row proves nothing about the row the design names for
+the defect (R3-1: the R2-1 row was GREEN under its own mutation while the arm passed on the twin found elsewhere).
+`--mutations` runs that arm alone; `--mutation <name>` applies one to a hand run.
 """
 from __future__ import annotations
 
@@ -77,13 +83,18 @@ from dataclasses import dataclass, field
 ABSENT = "ABSENT"
 ZERO = "ZERO"      # the record a SetLength past the end of F appends: zero bytes, never a committed record
 
+# name -> (what the mutation puts back or breaks, the rows of ROWS that must turn RED under it — its witnesses)
 MUTATIONS = {
-    "R1-1": "an R record journaled after a capture, re-applied over the restored before file (review round 1)",
-    "R1-2": "a creation journaled as START P with L = 0: the rollback truncates the created file instead of removing it",
-    "R1": "the header not synced before the first change",
-    "R3": "the L record not synced before the first append",
-    "R4": "the K record synced before the before file",
-    "R2-1": "L read at the BEGIN, as the first text had it: it counts another transaction's appends, undone or in flight",
+    "R1-1": ("an R record journaled after a capture, re-applied over the restored before file (review round 1)",
+             ("R1-1 capture then REWRITE",)),
+    "R1-2": ("a creation journaled as START P with L = 0: the rollback truncates the created file instead of removing it",
+             ("R1-2 OPTIONAL created by OPEN EXTEND", "R1-2 created by OPEN OUTPUT")),
+    "R1": ("the header not synced before the first change", ("first WRITE under EXTEND",)),
+    "R3": ("the L record not synced before the first append", ("first WRITE under EXTEND",)),
+    "R4": ("the K record synced before the before file", ("DELETE FILE then COMMIT",)),
+    "R2-1": ("L read at the BEGIN, as the first text had it: it counts another transaction's appends, undone or in flight",
+             ("R2-1 a transaction begun beside another's append, undone",
+              "R2-1 a transaction begun beside another's append, committed")),
 }
 REFUSE, DIE, POWER = "refuse", "die", "power"
 
@@ -108,29 +119,44 @@ class Blocked(Exception):
 
 
 class Fault:
+    """The one fault, or the one interleaving point, of a scenario. The medium counts its OPERATIONS, and the fault modes
+    index those: the n-th operation is refused, kills the run unit, or loses power. The driver counts the INTERLEAVING
+    POINTS of the first run unit's program — every medium operation AND the boundary before every statement, its implicit
+    COMMIT and item 8's ROLLBACK (the point where a ROLLBACK, a writable OPEN, a DELETE FILE or a COMMIT takes the entry
+    mutex as its first act: offered the points before medium operations only, the second run unit could never begin
+    between an append and the ROLLBACK that undid it, and the row named for R2-1 was a dead witness — review round 3,
+    R3-1) — and the second run unit's program runs at the n-th point."""
+
     def __init__(self, target: int = 0, mode: str | None = None, hook=None, die_after_hook: bool = False):
         self.target, self.mode, self.hook, self.die_after_hook = target, mode, hook, die_after_hook
-        self.count, self.fired, self.hook_done = 0, False, False
-        self.ops_at_fire = 0
+        self.ops, self.points, self.fired, self.hook_done = 0, 0, False, False
 
-    def step(self):
-        self.count += 1
-        if self.hook_done and self.die_after_hook:
-            self.die_after_hook = False
-            raise Died()
-        if self.count == self.target and not self.fired:
+    def op(self):
+        """Before a medium operation."""
+        self.ops += 1
+        self._point()
+        if self.mode is not None and self.ops == self.target and not self.fired:
             self.fired = True
-            self.ops_at_fire = self.count
-            if self.hook is not None:
-                self.hook()
-                self.hook_done = True
-                return
             if self.mode == REFUSE:
                 raise Refused()
             if self.mode == DIE:
                 raise Died()
             if self.mode == POWER:
                 raise PowerLoss()
+
+    def boundary(self):
+        """Before a statement of the first run unit, before its implicit COMMIT, and before item 8's ROLLBACK."""
+        self._point()
+
+    def _point(self):
+        self.points += 1
+        if self.hook_done and self.die_after_hook:
+            self.die_after_hook = False
+            raise Died()
+        if self.hook is not None and self.points == self.target and not self.fired:
+            self.fired = True
+            self.hook()
+            self.hook_done = True
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -155,7 +181,7 @@ class Medium:
 
     def _op(self):
         self.ops += 1
-        self.fault.step()
+        self.fault.op()
 
     def exists(self, path: str) -> bool:
         f = self.files.get(path)
@@ -462,6 +488,10 @@ class RunUnit:
         elif self.m.exists(self.BEFORE(t)):
             self.m.delete(self.BEFORE(t))             # a copy whose K never synced: F was never truncated
         if j["start"] == "P":
+            if not self.m.exists(F):
+                # the protocol never reaches this: START P is written for a file that exists, a capture's removal is
+                # undone above, and a creation is START A (the mutation R1-2 reaches it: a creation as START P)
+                raise Violation(f"I1: journal {t} says F existed at its begin (START P) but F is absent")
             cur = self._recs()
             for k, old in sorted(j["R"].items()):
                 if k < len(cur):
@@ -1031,7 +1061,7 @@ class Scenario:
     program: list
     b_program: list | None = None
     b_covered: bool = False
-    b_at: int = 0                     # the operation boundary of A at which B's program runs
+    b_at: int = 0                     # the interleaving point of A (a medium operation or a statement boundary) at which B's program runs
     fault_at: int = 0
     mode: str | None = None
     die_after_b: bool = False
@@ -1055,10 +1085,10 @@ class Scenario:
 
 
 class Outcome:
-    __slots__ = ("ops", "statuses", "b_statuses", "pending")
+    __slots__ = ("ops", "points", "statuses", "b_statuses", "pending")
 
     def __init__(self):
-        self.ops, self.statuses, self.b_statuses, self.pending = 0, [], [], []
+        self.ops, self.points, self.statuses, self.b_statuses, self.pending = 0, 0, [], [], []
 
 
 def execute(sc: Scenario) -> Outcome:
@@ -1112,18 +1142,21 @@ def execute(sc: Scenario) -> Outcome:
     try:
         fatal = False
         for stmt in sc.program:
+            fault.boundary()                           # the point before the statement: B may begin here (R3-1)
             st = run_statement(a, stmt)
             out.statuses.append(st)
             if st == "30":
                 # a fatal I-O condition on a file under APPLY COMMIT: item 8 executes a ROLLBACK unconditionally
                 # (§14.6.13.1.3), and the run unit terminates abnormally, whose path retries an owed rollback once
                 # (§14.6.12) and then exits — its locks and handles go, its cached writes stay
+                fault.boundary()
                 a.rollback()
                 if a.rollback_owed or a.marked:
                     a.rollback()
                 fatal = True
                 break
         if not fatal:
+            fault.boundary()
             a.commit()                                 # normal termination: the implicit COMMIT (§14.6.11)
         h.kill(a)                                      # the run unit ends: its locks and handles go
     except Died:
@@ -1138,7 +1171,7 @@ def execute(sc: Scenario) -> Outcome:
         h = Host()
     except Blocked:
         raise AssertionError("A found the mutex held with no one else running")
-    out.ops = m.ops
+    out.ops, out.points = m.ops, fault.points
     fault.die_after_hook = False                       # A is gone; a death armed for its next operation is moot
     for b, later in bs:                                # a B left alive runs the rest of its program, then ends normally
         if power:
@@ -1193,9 +1226,11 @@ def sweep_scenario(base: Scenario) -> int:
 
 
 def sweep_interleavings(base: Scenario, b_prog: list, b_covered: bool) -> int:
+    """B's program at every interleaving point of A's: before every medium operation and before every statement (R3-1),
+    with A continuing, and with A dying at its next point."""
     count = 0
     plain = run(base)
-    for i in range(1, plain.ops + 2):
+    for i in range(1, plain.points + 1):
         for die_after in (False, True):
             sc = Scenario(**{**base.__dict__, "b_program": b_prog, "b_covered": b_covered, "b_at": i,
                              "die_after_b": die_after})
@@ -1229,11 +1264,20 @@ ROWS = [
     ("COMMIT then more, ROLLBACK", ("C1",), False,
      [("OE",), ("W", "X1"), ("CM",), ("W", "X2"), ("RB",)]),
     ("CLOSE under commit, then COMMIT", ("C1",), False, [("OE",), ("W", "X1"), ("CL",), ("CM",)]),
-    # R2-1 lives in this row's interleavings: B "rewrite-open-roll" begins while A's append X1 is live (or still in
-    # flight, between A's begin and its write) and rolls back after A's ROLLBACK shortened F, or after A's COMMIT kept
-    # X1; "rewrite-open-append-roll" appends into the end A's ROLLBACK vacated and rolls back.
-    ("R2-1 a transaction begun beside another's append", ("C1", "C2"), False, [("OE",), ("W", "X1"), ("CL",), ("RB",)]),
+    # R2-1 lives in these two rows' interleavings, one arm each: B "rewrite-open-roll" begins while A's append X1 is live
+    # — at the boundary before A's CLOSE or its ROLLBACK, the points R3-1 added — and rolls back after A's ROLLBACK
+    # shortened F (an L read at the begin would be 3: the extension with zero bytes); or begins in flight, between A's
+    # begin and its write, and rolls back after A's COMMIT kept X1 (that L would be 2: the cut). "rewrite-open-append-
+    # roll" appends into the end A's ROLLBACK vacated and rolls back.
+    ("R2-1 a transaction begun beside another's append, undone", ("C1", "C2"), False,
+     [("OE",), ("W", "X1"), ("CL",), ("RB",)]),
+    ("R2-1 a transaction begun beside another's append, committed", ("C1", "C2"), False,
+     [("OE",), ("W", "X1"), ("CL",), ("CM",)]),
 ]
+
+_unknown = [w for _, ws in MUTATIONS.values() for w in ws if w not in {r[0] for r in ROWS}]
+if _unknown:
+    raise ValueError(f"MUTATIONS name witness rows that are not in ROWS: {_unknown}")
 
 
 def sweep_with_b(base: Scenario) -> int:
@@ -1294,20 +1338,24 @@ def run_sweep(depth: int, b_depth: int, verbose: bool, mutation: str | None = No
 
 
 def prove_mutations(verbose: bool) -> int:
-    """The watchdog proves itself (review round 2, R2-2): with each named mutation applied, the rows and the depth-3
-    sweep must turn RED. Returns the number of mutations the model failed to catch."""
+    """The watchdog proves itself (review round 2, R2-2; round 3, R3-1): with each named mutation applied, every row it
+    names as its witness must turn RED on its own. A RED from some other row proves nothing about the row the design names
+    for the defect (R3-1: the R2-1 row was GREEN under its own mutation while the arm passed on the twin other rows
+    reached). Returns the number of (mutation, witness) pairs the model failed to catch."""
+    rows = {name: (initial, optional, prog) for name, initial, optional, prog in ROWS}
     dead = 0
-    for name, what in MUTATIONS.items():
-        t0 = time.time()
-        runs, failures, first = run_rows(False, mutation=name, stop_at_first=True)
-        if failures == 0:
-            r2, failures, first = run_sweep(3, 3, False, mutation=name, stop_at_first=True)
-            runs += r2
-        if failures == 0:
+    for name, (what, witnesses) in MUTATIONS.items():
+        for row in witnesses:
+            initial, optional, prog = rows[row]
+            t0 = time.time()
+            try:
+                runs = sweep_with_b(Scenario(initial=initial, optional=optional, program=prog, mutation=name))
+            except Violation as v:
+                if verbose:
+                    print(f"RED   mutation {name} ({what}) on row '{row}' in {time.time() - t0:.1f}s: {v}")
+                continue
             dead += 1
-            print(f"FAIL  mutation {name} ({what}) left the model GREEN over {runs} runs: the watchdog is dead")
-        elif verbose:
-            print(f"RED   mutation {name} ({what}) after {runs} runs, {time.time() - t0:.1f}s: {first}")
+            print(f"FAIL  mutation {name} ({what}) left its witness row '{row}' GREEN over {runs} runs: the watchdog is dead")
     return dead
 
 
@@ -1317,7 +1365,8 @@ def main(argv=None) -> int:
     ap.add_argument("--depth", type=int, default=0, help="sweep every program of up to this many statements")
     ap.add_argument("--b-depth", type=int, default=3, help="interleave the second run unit with programs up to this length")
     ap.add_argument("--rows", action="store_true", help="run the named 2.2.2.12 rows and print each")
-    ap.add_argument("--mutations", action="store_true", help="run only the watchdog's proof: every named mutation must be RED")
+    ap.add_argument("--mutations", action="store_true",
+                    help="run only the watchdog's proof: every named mutation must be RED on each row it names")
     ap.add_argument("--mutation", choices=sorted(MUTATIONS), help="apply one named mutation to the rows or the sweep (by hand)")
     args = ap.parse_args(argv)
     t0 = time.time()
