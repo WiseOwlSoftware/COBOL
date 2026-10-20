@@ -1,0 +1,4 @@
+## Entry 2287 — 2026-10-20 10:44 PDT — PB3456 filed: the external-repository slices hold every campaign, not only the restructuring waves
+
+The wave 1132 plan (`plan_wave.py --cluster PB3353`) held the campaign's tier 1 (PB1278) and the owner's tier-2 chain (PB3337, PB3338, PB3340) behind "the open external-repository slices [RUNNING]" on `docs/CONFORMANCE.md`. R69 §2 reserves the slices' §12 file set from the R2 and R3 restructuring waves only, and the planner's own comment says so, but the code applies the reservation to every `--cluster` plan. No worktree, branch or dispatch holds a slice. An in-memory dry run with the slice pattern disabled planned PB1278 and left PB3337 to PB3340 waiting only on wave 1132's own groups. Filed as kb/Work/PB3456 with the measurement, the code sites and a fix direction. No code changed.
+
