@@ -96,13 +96,18 @@ public static class KeyedFileHarness
     /// <summary>A file whose record <i>n</i> (1 to <paramref name="payloads"/>.Length) carries <c>payloads[n - 1]</c>,
     /// written by an OUTPUT connector with no sharing clause and CLOSEd (so committed). The file has the alternate key
     /// of <see cref="Register"/> when <paramref name="alternateKey"/>.</summary>
-    public static void Seed(string host, KeyedOrg org, string[] payloads, bool alternateKey = false)
+    public static void Seed(string host, KeyedOrg org, string[] payloads, bool alternateKey = false) =>
+        Seed(host, org, [.. payloads.Select((payload, i) => (i + 1, payload))], alternateKey);
+
+    /// <summary>A file whose records are exactly <paramref name="records"/> (key, payload), in that order: for a file whose
+    /// keys are not 1 to n.</summary>
+    public static void Seed(string host, KeyedOrg org, (int Key, string Payload)[] records, bool alternateKey = false)
     {
         var seed = new FileRegistry();
         Register(seed, "S", host, org, sharing: null, alternateKey: alternateKey);
         seed.OpenStatic("S", FileOpenMode.Output);
         Assert.Equal("00", seed.Status("S"));
-        for (int n = 1; n <= payloads.Length; n++) Assert.Equal("00", Write(seed, "S", org, n, payloads[n - 1]));
+        foreach (var (key, payload) in records) Assert.Equal("00", Write(seed, "S", org, key, payload));
         seed.Close("S");
         Assert.Equal("00", seed.Status("S"));
     }

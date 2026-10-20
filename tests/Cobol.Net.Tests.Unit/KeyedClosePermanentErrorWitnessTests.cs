@@ -114,27 +114,12 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
 
     private string NewFile(string tag) => Path.Combine(TempDir, $"{tag}.dat");
 
-    private static string Write(FileRegistry reg, string name, KeyedOrg org, int key, string record)
-    {
-        if (org == KeyedOrg.Indexed)
-            return reg.WriteShared(name, record, -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-        reg.SetRelativeKey(name, key);
-        return reg.WriteKeyed(name, record, 8);
-    }
-
     /// <summary>The file with the records 0001AAAA and 0002BBBB (relative record numbers 1 and 2), written and CLOSEd
     /// through the registry.</summary>
     private string Seeded(string tag, KeyedOrg org)
     {
         string host = NewFile(tag);
-        var reg = new FileRegistry();
-        KeyedFileHarness.Register(reg, "S", host, org);
-        reg.OpenStatic("S", FileOpenMode.Output);
-        Assert.Equal("00", reg.Status("S"));
-        Assert.Equal("00", Write(reg, "S", org, 1, "0001AAAA"));
-        Assert.Equal("00", Write(reg, "S", org, 2, "0002BBBB"));
-        reg.Close("S");
-        Assert.Equal("00", reg.Status("S"));
+        KeyedFileHarness.Seed(host, org, ["AAAA", "BBBB"]);
         return host;
     }
 
@@ -152,7 +137,7 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         {
             reg.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", reg.Status("W"));
-            if (refusal == Refusal.Promotion) Assert.Equal("00", Write(reg, "W", org, 3, "0003CCCC"));
+            if (refusal == Refusal.Promotion) Assert.Equal("00", KeyedFileHarness.Write(reg, "W", org, 3, "CCCC"));
             else
             {
                 reg.OpenStatic("R", FileOpenMode.Input);

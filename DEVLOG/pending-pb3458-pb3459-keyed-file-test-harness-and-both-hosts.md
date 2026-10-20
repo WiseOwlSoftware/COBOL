@@ -13,7 +13,10 @@ every refused page write and sync. 8 cases, all green on both hosts; the PB3414 
 `optional`, `access` and `alternateKey`, `Rec`, `Position`, `Write`, `Rewrite`, `Delete`, `Read`, `Seed`, `SeedRecords`,
 `MutexHeld`) and every copy is deleted, with no forwarder left. The sweep found three more classes with the same keyed
 helpers (`CrossRunUnitKeyedStoreDriftTests`, `KeyedClosePermanentErrorWitnessTests`, `ReadOnlyWriterReleaseDriftTests`)
-and converted them too. The three-organization classes (`FileLockPostureDriftTests`, `SharingRefusalStatusTests`,
+and converted them too. Branch review round 1 (R1-1) found two more the sweep missed, `RelativeEngineTests` (a full
+private copy, the RELATIVE twin of `IndexedEngineTests`) and `IndexedEnginePermanentErrorWitnessTests`; both are converted,
+and `KeyedClosePermanentErrorWitnessTests` lost its own `Write` and seed loop. `KeyedFileHarness.Seed` gained a
+(key, payload) overload for a file whose keys are not 1 to n. The three-organization classes (`FileLockPostureDriftTests`, `SharingRefusalStatusTests`,
 `PermanentErrorOutranksRecordLockTests`, whose `Org` includes Sequential) were left. One check tightened: the retry
 witness in `CrossRunUnitKeyedStoreDriftTests` asserted "not Held"; through `MutexHeld` it now also fails on an error
 answer from the host.
