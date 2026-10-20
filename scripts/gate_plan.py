@@ -110,10 +110,11 @@ SWEEP_CHEAP_SECONDS = 2.0
 #: `HostWitnessTraitDriftTests` pins this name to its own (nameof), so a rename cannot orphan it.
 TRAIT_GUARD = "HostWitnessTraitDriftTests"
 #: `[Trait("<name>", "<value>")]` on a class: the attribute line, then any further attribute or doc-comment lines, then
-#: the class declaration. `HostWitnessTraitDriftTests` holds this scan equal to the attributes the compiler sees.
+#: the class declaration; an attribute line may end in a `//` comment, as the compiler allows.
+#: `HostWitnessTraitDriftTests` holds this scan equal to the attributes the compiler sees.
 CLASS_TRAIT_RE = re.compile(
-    r'^[ \t]*\[Trait\("(?P<name>\w+)",\s*"(?P<value>[^"]*)"\)\][ \t]*\r?\n'
-    r'(?:[ \t]*(?:\[[^\n]*\]|///[^\n]*)[ \t]*\r?\n)*'
+    r'^[ \t]*\[Trait\("(?P<name>\w+)",\s*"(?P<value>[^"]*)"\)\][ \t]*(?://[^\n]*)?\r?\n'
+    r'(?:[ \t]*(?:\[[^\n]*\][ \t]*(?://[^\n]*)?|///[^\n]*)[ \t]*\r?\n)*'
     r'[ \t]*(?:(?:public|internal|private|protected|sealed|static|partial|abstract|file)\s+)*class\s+(?P<cls>\w+)',
     re.MULTILINE)
 TRX_NS = "{http://microsoft.com/schemas/VisualStudio/TeamTest/2010}"
@@ -650,14 +651,15 @@ def self_test() -> int:
         src = Path(tmp) / "proj"
         (src / "obj").mkdir(parents=True)
         (src / "A.cs").write_text("\n".join([
-            '[Trait("Host", "ReFS")]', "/// <summary>x</summary>", "[Collection(\"c\")]",
+            '[Trait("Host", "ReFS")]', "/// <summary>x</summary>", "[Collection(\"c\")]   // why (it shares a global)",
             "public sealed class RaceA", "{", '    [Trait("Host", "ReFS")]', "    public void NotAClass() {}", "}",
-            '[Trait("Sweep", "tree")]', "internal static partial class SweepB {}",
+            '[Trait("Sweep", "tree")]   // a trailing comment', "internal static partial class SweepB {}",
             '[Trait("Host", "Elsewhere")]', "public class OtherHost {}"]), encoding="utf-8", newline="\n")
         (src / "obj" / "G.cs").write_text('[Trait("Host", "ReFS")]\npublic class Generated {}', encoding="utf-8", newline="\n")
         tr = class_traits(src)
         host, sweep = trait_sets(tr)
-        check("the trait scan reads class-level traits through attributes and doc comments, never a method's, never "
+        check("the trait scan reads class-level traits through attributes (each may end in a // comment) and doc "
+              "comments, never a method's, never "
               "obj/; only a HOST_ONLY value is tier 0h",
               host == {"RaceA"} and sweep == {"SweepB"} and tr.get("OtherHost") == {"Host": {"Elsewhere"}}
               and "Generated" not in tr and "NotAClass" not in str(tr), tr)

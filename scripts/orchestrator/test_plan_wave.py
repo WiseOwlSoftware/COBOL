@@ -993,6 +993,10 @@ class _R:
         self.stdout, self.returncode = out, rc
 
 
+# every agent worktree has the harness's local settings modified (kb/Work PB3465): both fake worktrees do
+SETTINGS_FILE = ".claude/settings.local.json"
+
+
 def fake_git(*args, cwd=None):
     key = (str(cwd).replace(chr(92), "/"), args)
     table = {
@@ -1001,11 +1005,11 @@ def fake_git(*args, cwd=None):
             "worktree /w/fresh", "HEAD aaa", "branch refs/heads/worktree-fresh", "",
             "worktree /w/edits", "HEAD bbb", "branch refs/heads/worktree-edits", ""])),
         ("/w/fresh", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R(""),
-        ("/w/fresh", ("diff", "--name-only", "--no-renames", "HEAD")): _R("src/Fresh.cs" + NL),
+        ("/w/fresh", ("diff", "--name-only", "--no-renames", "HEAD")): _R("src/Fresh.cs" + NL + SETTINGS_FILE + NL),
         ("/w/fresh", ("ls-files", "--others", "--exclude-standard")): _R("STATUS.md" + NL),
         ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main...HEAD")): _R("src/Existing.cs" + NL),
         ("/w/edits", ("diff", "--name-only", "--no-renames", "origin/main", "HEAD")): _R("src/Existing.cs" + NL),
-        ("/w/edits", ("diff", "--name-only", "--no-renames", "HEAD")): _R(""),
+        ("/w/edits", ("diff", "--name-only", "--no-renames", "HEAD")): _R(SETTINGS_FILE + NL),
         ("/w/edits", ("ls-files", "--others", "--exclude-standard")): _R(""),
         ("/r", ("branch", "--format=%(refname:short)")): _R(NL.join(
             ["main", "worktree-fresh", "worktree-edits", "squashed", "merged"])),
@@ -1033,6 +1037,18 @@ check("a dispatched group with no worktree yet is in flight", "src/Dispatched.cs
 check("a branch landed by content is not", "src/Landed.cs" in flat, False)
 check("a dispatched group whose notes all landed is not", "src/Done.cs" in flat, False)
 check("STATUS.md is never a product file", "STATUS.md" in flat, False)
+check("the harness's settings file is in no owner's set, so a finisher continuing one worktree meets no other on it "
+      "(kb/Work PB3465: wave 1134 held PB3337, PB3460 and PB1278 on it)",
+      (SETTINGS_FILE in flat, pw.file_set_collisions([SETTINGS_FILE, "src/Mine.cs"], fly)), (False, []))
+check("coord.NEVER_WORK: the settings file, STATUS.md and everything under TestResults/ are never work; a path that "
+      "merely contains one of them is",
+      [coord.is_work(x) for x in (SETTINGS_FILE, SETTINGS_FILE.replace("/", chr(92)), "STATUS.md",
+                                  "TestResults/a/b.trx", "src/STATUS.md", ".claude/settings.json", "docs/TestResults.md")],
+      [False, False, False, False, True, True, True])
+check("coord.porcelain_work keeps only the work lines of `git status --porcelain` (a rename by its new path)",
+      coord.porcelain_work([" M " + SETTINGS_FILE, "?? STATUS.md", " M src/A.cs", "R  src/Old.cs -> STATUS.md",
+                            "R  STATUS.md -> src/New.cs", ""]),
+      [" M src/A.cs", "R  STATUS.md -> src/New.cs"])
 check("the planner's own checkout is not in flight", any("main" in k for k in fly), False)
 check("the collision names the dispatched owner", pw.file_set_collisions(["src/Dispatched.cs"], fly),
       ["dispatched w1040a (PB70) (src/Dispatched.cs)"])

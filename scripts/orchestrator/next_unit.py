@@ -70,8 +70,7 @@ def meter_age_hours(cdir: pathlib.Path, now: dt.datetime, acct_name: str) -> flo
 
 
 def repo_state(repo: pathlib.Path) -> str:
-    dirty = [l for l in git(repo, "status", "--porcelain").stdout.splitlines()
-             if not l.endswith(".claude/settings.local.json")]
+    dirty = coord.porcelain_work(git(repo, "status", "--porcelain").stdout.splitlines())
     if dirty:
         return f"{len(dirty)} uncommitted path(s) in {repo}"
     ahead = git(repo, "rev-list", "--count", "@{u}..HEAD").stdout.strip()
