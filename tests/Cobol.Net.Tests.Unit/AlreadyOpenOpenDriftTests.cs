@@ -33,7 +33,7 @@ public sealed class AlreadyOpenOpenDriftTests
 
     /// <summary>A file opened EXTEND SHARING WITH ALL OTHER and then re-opened plainly (whose implementor default is
     /// SHARING WITH NO OTHER) answers '41' and keeps the sharing mode, the physical-file association and the
-    /// record-locking posture of the OPEN that is still in force; a re-OPEN carrying a SHARING phrase registers no
+    /// record-locking posture of the OPEN that is still in force; a re-OPEN carrying a SHARING phrase gains no
     /// posture, and one carrying REVERSED requests no reversal.</summary>
     [Fact]
     public void AReOpen_Answers41_AndLeavesTheOpenConnectorAsItWas()
@@ -101,7 +101,7 @@ public sealed class AlreadyOpenOpenDriftTests
     }
 
     /// <summary>⛔ THE STRUCTURAL HALF: in the one OPEN dispatch, GR2's answer comes before every statement that touches
-    /// the connector or the physical-file state — the association, the phrase posture, the tape and LINAGE requests,
+    /// the connector or the physical-file state — the association, the tape and LINAGE requests,
     /// and the arbitrated attempt.</summary>
     [Fact]
     public void TheOneOpenDispatch_AsksGr2BeforeItTouchesTheConnector()
@@ -118,7 +118,7 @@ public sealed class AlreadyOpenOpenDriftTests
             return at;
         }
         int guard = Line("RefusedAsAlreadyOpen(name, mode)");
-        foreach (string touch in new[] { "RegisterSharing(", "Associate(name", "ReversedRequested", "HasLinageClause", "SharedOpenAttempt(" })
+        foreach (string touch in new[] { "Associate(name", "ReversedRequested", "HasLinageClause", "SharedOpenAttempt(" })
             Assert.True(Line(touch) > guard, $"OpenCore reaches '{touch}' before §14.9.27.4 GR2's already-open answer.");
     }
 }
