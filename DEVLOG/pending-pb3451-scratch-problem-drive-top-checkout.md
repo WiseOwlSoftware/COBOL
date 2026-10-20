@@ -1,0 +1,5 @@
+## PB3451: the fleet-path check no longer crashes in the drive-top main checkout
+
+The loop's wave unit could not plan. `plan_wave.py` died with `IndexError` in `coord.scratch_problem` the moment it ran in the main checkout `E:\COBOL`, and so did `make_dispatch_specs.py` and `check_practices.py`'s groups-file check. PB3114's self-review (PR #308) asked whether the checkout is an agent worktree by building `(here.parent.name, here.parents[1].name)`, and a drive-top path has only one parent. The self-test never caught it because it had only run in agent worktrees and on CI runners, both deep enough to have a second parent.
+
+The question is now asked in one place, `coord.main_checkout`, which reads the path's parts instead of indexing its parents. `scratch_problem` takes the checkout as a parameter, so the self-test runs it from a drive-top checkout and from that checkout's worktree on any host. The old worktree case in the self-test had its own second rule for finding the main checkout; it now calls `main_checkout` too. The sibling sweep over `parents[N]` indexing found nothing else.
