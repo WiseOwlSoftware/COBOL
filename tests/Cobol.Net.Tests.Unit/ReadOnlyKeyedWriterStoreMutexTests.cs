@@ -3,7 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
-using static CobolNet.Tests.Unit.KeyedFileHarness;
+using static CobolNet.Tests.Unit.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -81,10 +81,10 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
         finally { KeyedStore.MediumObserver.Value = null; }
     }
 
-    public static TheoryData<KeyedOrg, FileSharing, RegionHostKind> Shapes()
+    public static TheoryData<FileOrg, FileSharing, RegionHostKind> Shapes()
     {
-        var data = new TheoryData<KeyedOrg, FileSharing, RegionHostKind>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, FileSharing, RegionHostKind>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var sharing in new[] { FileSharing.ReadOnly, FileSharing.AllOther })
                 foreach (var host in Enum.GetValues<RegionHostKind>())
                     data.Add(org, sharing, host);
@@ -98,7 +98,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// each statement and as the statement left it, record by record.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]
-    public void Every_page_write_of_a_statement_is_made_under_the_store_mutex(KeyedOrg org, FileSharing sharing, RegionHostKind regionHost)
+    public void Every_page_write_of_a_statement_is_made_under_the_store_mutex(FileOrg org, FileSharing sharing, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"held-{org}-{sharing}");
@@ -151,7 +151,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     }
 
     /// <summary>The page writes and syncs one WRITE of a new record makes, measured on a run the host does not refuse.</summary>
-    private static int OperationsOfAWrite(KeyedOrg org, FileSharing sharing)
+    private static int OperationsOfAWrite(FileOrg org, FileSharing sharing)
     {
         string host = Tmp($"measure-{org}-{sharing}");
         try
@@ -180,7 +180,7 @@ public sealed class ReadOnlyKeyedWriterStoreMutexTests
     /// "the refused statement gave it back" is a claim about that object.</summary>
     [Theory]
     [MemberData(nameof(Shapes))]
-    public void A_refusal_at_every_page_write_of_a_WRITE_is_30_and_gives_the_store_mutex_back(KeyedOrg org, FileSharing sharing, RegionHostKind regionHost)
+    public void A_refusal_at_every_page_write_of_a_WRITE_is_30_and_gives_the_store_mutex_back(FileOrg org, FileSharing sharing, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         int operations = OperationsOfAWrite(org, sharing);
