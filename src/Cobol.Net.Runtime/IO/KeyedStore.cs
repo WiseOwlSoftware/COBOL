@@ -139,7 +139,16 @@ internal abstract class KeyedStore
     /// flushed, every root set and the statement completed — page 2 last. A torn page or a refused write answers '30' and
     /// a boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and
     /// every pending edit discarded.</summary>
-    private protected StoreStatus Change(bool entered, int ordinals, Func<PagedFile, ulong, Edit> edit, out bool done)
+    /// <para>⛔ UNDER COMMIT CONTROL THE SAME STATEMENT KEEPS THE BEFORE-IMAGE AND THE HOLDINGS
+    /// (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337): with <paramref name="work"/> the statement also inserts the
+    /// record's before-image into the run unit's UNDO tree under (R, identity) unless an entry exists (the first image is
+    /// the one to restore), a V entry for every unique alternate key value the change frees, and the same keys → the
+    /// transaction id into the file's HOLDINGS tree, so the transaction's locks are pages of the file and outlive its
+    /// handle. A first change DRAWS the transaction's id by taking its liveness byte (<see cref="Draw"/>) and claims it
+    /// with the statement's other mints; a first change refused before its page 2 gives the byte back, since no entry
+    /// carries the id (finding R4-2).</para></summary>
+    private protected StoreStatus Change(bool entered, int ordinals, Func<PagedFile, ulong, Edit> edit, out bool done,
+        TransactionWork? work = null)
     {
         done = false;
         var file = File ?? throw new InvalidOperationException("a keyed store with no file changes nothing");
@@ -150,11 +159,30 @@ internal abstract class KeyedStore
             Discard(change.Trees);
             return change.Status;
         }
-        var status = file.Begin(StatementBound.Of([.. change.Trees.Select(t => t.Tree)]), out var statement,
-            ordinals: ordinals, entered: true);
+        ulong drawn = 0;
+        Holdings? holdings = null;
+        if (work is not null)
+        {
+            if (Transaction == 0 && (drawn = Draw(file, work.Drawer)) == 0)
+            {
+                Discard(change.Trees);
+                return StoreStatus.PermanentError;
+            }
+            if (Holdings.Of(file, Transaction == 0 ? drawn : Transaction, firstChange: drawn != 0, work, out holdings)
+                is var held && held != StoreStatus.Ok)
+            {
+                Discard(change.Trees);
+                GiveBack(work.Drawer, drawn);
+                return held;
+            }
+        }
+        var status = file.Begin(StatementBound.Of([.. change.Trees.Select(t => t.Tree), .. holdings?.Trees ?? []]),
+            out var statement, ordinals: ordinals, drawnTransaction: drawn, entered: true);
         if (status != StoreStatus.Ok)
         {
             Discard(change.Trees);
+            holdings?.Discard();
+            GiveBack(work?.Drawer, drawn);
             return status;
         }
         var flushed = StoreStatus.Ok;
@@ -166,18 +194,287 @@ internal abstract class KeyedStore
             if (root == TreeChange.PrimeRoot) statement!.SetPrimeRoot(pointer);
             else statement!.SetAlternateRoot(root, pointer);
         }
+        if (holdings is not null)
+        {
+            if (flushed == StoreStatus.Ok) flushed = holdings.Flush(statement!);
+            else holdings.Discard();
+        }
         var completed = statement!.Complete();
         if (flushed == StoreStatus.Ok && completed == StoreStatus.Ok)
         {
+            if (drawn != 0) (Transaction, _liveness) = (drawn, work!.Drawer);
             done = true;
             return StoreStatus.Ok;
         }
+        GiveBack(work?.Drawer, drawn);
         return completed == StoreStatus.Ok ? StoreStatus.PermanentError : completed;
     }
 
     private static void Discard(IReadOnlyList<TreeChange> trees)
     {
         foreach (var t in trees) t.Tree.Discard();
+    }
+
+    // ── Transactions: APPLY COMMIT, COMMIT and ROLLBACK on the engine (2.2.1.10; kb/Work PB3337) ─────────────────────
+
+    /// <summary>What a record statement through a connector under commit control adds to its page statement: the
+    /// endpoint whose writable handle draws (and then holds) the transaction's liveness byte, the record's identity (the
+    /// prime key's channel bytes, or the 8-byte relative record number), its BEFORE-IMAGE (null: the statement creates
+    /// it), and the HOLDINGS keys of every unique alternate key value the change frees (<see cref="TransactionKeys.Value"/>).</summary>
+    internal sealed record TransactionWork(RegionLocks Drawer, byte[] Identity, byte[]? BeforeImage, IReadOnlyList<byte[]> FreedValues);
+
+    /// <summary>⛔ THIS RUN UNIT'S OPEN TRANSACTION ON THE PHYSICAL FILE — one per (run unit, physical file), 0 while none
+    /// (2.2.1.10, "A TRANSACTION is one run unit's open unit of work on one physical file"). Its liveness byte is held
+    /// through <see cref="_liveness"/> until COMMIT or ROLLBACK ends it.</summary>
+    public ulong Transaction { get; private set; }
+
+    /// <summary>The endpoint holding <see cref="Transaction"/>'s liveness byte.</summary>
+    private RegionLocks? _liveness;
+
+    /// <summary>The file is MARKED UNACKNOWLEDGED (2.2.1.10 region 3, the reversal refused too; the UNACKNOWLEDGED row of
+    /// 2.2.1.15): until a promotion of this run unit lands, every ROLLBACK answers by a promotion's sync.</summary>
+    public bool Unacknowledged { get; private set; }
+
+    /// <summary>Whether the run unit's transaction on this file is held through <paramref name="endpoint"/> — the
+    /// endpoint a closing connector must keep until COMMIT or ROLLBACK (§9.1.15, <i>"the file lock is removed by the COMMIT
+    /// statement"</i>).</summary>
+    internal bool HoldsLivenessThrough(RegionLocks endpoint) => ReferenceEquals(_liveness, endpoint);
+
+    /// <summary>⛔ DRAW a transaction id (2.2.1.10, finding R4-2): the lowest value from the store's
+    /// <see cref="PagedFile.TransactionMint"/> whose liveness byte <paramref name="drawer"/> can take EXCLUSIVELY through
+    /// its writable handle — a held byte is a live transaction's or a refused attempt's, and is skipped. 0 when no byte
+    /// can be taken (a host that cannot carry the lock at all keeps no liveness, so it draws the mint as it stands).</summary>
+    private static ulong Draw(PagedFile file, RegionLocks drawer)
+    {
+        const int MaxSkips = 1 << 16;
+        ulong id = file.TransactionMint;
+        for (int skips = 0; skips < MaxSkips; skips++, id++)
+            switch (drawer.Hold(HostRegionLocks.TransactionLivenessByte(id), exclusive: true, wait: false))
+            {
+                case RegionLockResult.Ok: return id;
+                case RegionLockResult.Unavailable: return id;
+            }
+        return 0;
+    }
+
+    /// <summary>The liveness byte held through <paramref name="from"/> — a handle a connector kept at its CLOSE under commit
+    /// control — moves to <paramref name="to"/>, the handle its next OPEN took. The caller holds the store mutex, so no
+    /// other run unit's dead-owner probe or lock test can find the byte free in between.</summary>
+    internal void MoveLiveness(RegionLocks from, RegionLocks to)
+    {
+        if (Transaction == 0 || !ReferenceEquals(_liveness, from)) return;
+        from.Release(HostRegionLocks.TransactionLivenessByte(Transaction));
+        _liveness = null;
+        RetakeLiveness(to);
+    }
+
+    /// <summary>A transaction whose liveness byte went with a handle given back before the run unit's next writable OPEN
+    /// of the file (a kept handle whose share mode refused the new one) takes it again through <paramref name="to"/>,
+    /// under the store mutex the caller holds.</summary>
+    internal void RetakeLiveness(RegionLocks to)
+    {
+        if (Transaction == 0 || _liveness is not null) return;
+        if (to.Hold(HostRegionLocks.TransactionLivenessByte(Transaction), exclusive: true, wait: false) == RegionLockResult.Ok)
+            _liveness = to;
+    }
+
+    /// <summary>A first change refused before its page 2 gives the byte it drew back: no entry carries the id.</summary>
+    private static void GiveBack(RegionLocks? drawer, ulong drawn)
+    {
+        if (drawn != 0) drawer?.Release(HostRegionLocks.TransactionLivenessByte(drawn));
+    }
+
+    /// <summary>End this run unit's transaction: its liveness byte given back (after the entry's removal and its
+    /// promotion — 2.2.1.17, "B removes the entry (statement) and promotes before releasing the byte").</summary>
+    private void EndTransaction()
+    {
+        GiveBack(_liveness, Transaction);
+        (Transaction, _liveness, Unacknowledged) = (0, null, false);
+    }
+
+    /// <summary>The transaction holding HOLDINGS key <paramref name="key"/> (0: none) — the lookup of the lock TEST (2.2.1.10,
+    /// "The lock TEST, for every writer and every reader not IGNORING LOCK"): nothing to read while page 2's holdings root
+    /// is empty.</summary>
+    internal StoreStatus HolderOf(byte[] key, out ulong owner)
+    {
+        owner = 0;
+        if (File is not { } file || file.Meta.HoldingsRoot.IsNone) return StoreStatus.Ok;
+        var status = new BTree(file, KeyOrders.Ordinal, file.Meta.HoldingsRoot).TryGet(key, out var value);
+        if (value is not null) owner = TransactionKeys.TransactionOf(value);
+        return status;
+    }
+
+    /// <summary>Whether transaction <paramref name="id"/>'s owner is DEAD, by its liveness byte probed through
+    /// <paramref name="prober"/> NOW (2.2.1.10; findings R3-1, R4-1): free means the operating environment released it with
+    /// a dead handle. A host that cannot say answers "alive", so nothing is rolled back on a guess.</summary>
+    internal static bool OwnerIsDead(RegionLocks prober, ulong id) =>
+        prober.HeldByAnother(HostRegionLocks.TransactionLivenessByte(id)) == RegionLockResult.Ok;
+
+    /// <summary>⛔ THE ROLLBACK STATEMENT (§14.9.36.4 GR3; 2.2.1.10): transaction <paramref name="id"/>'s UNDO tree walked
+    /// once — every R before-image written back under its identity through the organization's
+    /// <paramref name="restoring"/> trees, every key the walk met removed from the HOLDINGS tree, the entry removed, the
+    /// UNDO pages released — as ONE statement of the page layer (one generation, atomic under 2.2.1.6). No promotion: lost
+    /// to a power loss, the committed state still carries the transaction and the next writable statement or OPEN rolls
+    /// it back again; the operation is idempotent (no entry: nothing to do). Run by the owner's ROLLBACK, and by any
+    /// writable connector for a DEAD owner (the dead-owner step and the lock test). The caller's entry ran.</summary>
+    internal StoreStatus RollBack(ulong id, RestoringTreesFactory restoring)
+    {
+        var file = File ?? throw new InvalidOperationException("a keyed store with no file rolls nothing back");
+        var trees = restoring(file, file.Meta);
+        var status = TransactionRetirement.Of(file, file.Meta, id, trees.Restore, out var retirement);
+        if (status != StoreStatus.Ok || retirement is null)
+        {
+            foreach (var (tree, _) in trees.Edited) tree.Discard();
+            return status;
+        }
+        status = file.Begin(StatementBound.Of([.. trees.Edited.Select(t => t.Tree), .. retirement.Trees]), out var statement,
+            entered: true);
+        if (status != StoreStatus.Ok)
+        {
+            foreach (var (tree, _) in trees.Edited) tree.Discard();
+            retirement.Discard();
+            return status;
+        }
+        var flushed = PagedFile.FlushRestored(trees, statement!);
+        if (flushed == StoreStatus.Ok) flushed = retirement.Flush(statement!);
+        var completed = statement!.Complete();
+        return flushed != StoreStatus.Ok ? StoreStatus.PermanentError : completed;
+    }
+
+    /// <summary>⛔ THE DEAD-OWNER STEP (§9.1.18.5: <i>"When a run unit terminates abnormally, all file changes made since
+    /// the previous commit or, if none, the beginning of the run unit are rolled back for all files for which there are
+    /// active APPLY COMMIT clauses."</i>; 2.2.1.10, finding R3-1): at the coherent entry of every statement through a
+    /// writable handle and at a writable OPEN (R6 step 5), under the mutex, once a PROMOTING flag has been resolved — when
+    /// page 2's transactions root is not empty, every transaction of ANOTHER run unit whose liveness byte is free is
+    /// rolled back before the entering statement proceeds; one whose byte is held is left exactly as it stands.</summary>
+    internal StoreStatus RollBackDeadOwners(RegionLocks prober, RestoringTreesFactory restoring)
+    {
+        if (File is not { Writable: true } file || file.Meta.TransactionsRoot.IsNone) return StoreStatus.Ok;
+        var ids = new List<ulong>();
+        var status = new BTree(file, KeyOrders.Ordinal, file.Meta.TransactionsRoot).First(out var cursor);
+        while (status == StoreStatus.Ok && cursor.HasCurrent)
+        {
+            ids.Add(TransactionKeys.TransactionOf(cursor.Key));
+            status = cursor.Next();
+        }
+        if (status != StoreStatus.Ok) return status;
+        foreach (ulong id in ids)
+            if (id != Transaction && OwnerIsDead(prober, id) && (status = RollBack(id, restoring)) != StoreStatus.Ok)
+                return status;
+        return StoreStatus.Ok;
+    }
+
+    /// <summary>⛔ COMMIT this run unit's transaction on the file (§14.9.7.4 GR3; 2.2.1.10): the promotion that decides it
+    /// (<see cref="PagedFile.Commit"/>). Committed, or reversed by a refused sync 2: the transaction is over and its byte
+    /// given back. Refused before the slot write: the transaction stands, intact, for the unconditional ROLLBACK
+    /// (§14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
+    internal CommitOutcome Commit(RestoringTreesFactory reverse)
+    {
+        if (Transaction == 0 || File is not { } file) return CommitOutcome.Committed;
+        var outcome = file.Commit(Transaction, reverse);
+        if (outcome is CommitOutcome.Committed or CommitOutcome.Reversed) EndTransaction();
+        else if (outcome == CommitOutcome.Unacknowledged) Unacknowledged = true;
+        return outcome;
+    }
+
+    /// <summary>⛔ ROLLBACK this run unit's transaction on the file (§14.9.36.4 GR3, <i>"restored to the state they were in at
+    /// the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been
+    /// executed"</i>; 2.2.1.10): the ROLLBACK statement, or on a file MARKED UNACKNOWLEDGED the reversal again and a
+    /// promotion answered by its sync (<see cref="PagedFile.RollBackUnacknowledged"/>). Success ends the transaction and
+    /// gives the byte back; a refusal ('30') leaves it standing for the next attempt or the dead-owner step. The caller
+    /// holds the mutex and ran the statement's entry (which unwound a COMMIT's unlanded claim, R5's restart rule).</summary>
+    internal StoreStatus Rollback(RestoringTreesFactory restoring)
+    {
+        if (Transaction == 0 || File is not { } file) return StoreStatus.Ok;
+        var status = Unacknowledged ? file.RollBackUnacknowledged(Transaction, restoring) : RollBack(Transaction, restoring);
+        if (status == StoreStatus.Ok) EndTransaction();
+        return status;
+    }
+
+    /// <summary>The UNDO and HOLDINGS edits one record statement under commit control adds (2.2.1.10): the run unit's UNDO
+    /// tree with the record's before-image and the V entries, the HOLDINGS tree with the same keys, and the
+    /// TRANSACTIONS entry naming the UNDO tree — given a placeholder of the pointer's size before the statement begins, so
+    /// its page is counted, and the UNDO tree's real root once that tree is flushed (the leaf is already this edit's, so
+    /// the second edit changes it in place).</summary>
+    private sealed class Holdings
+    {
+        private static readonly byte[] Placeholder = TransactionKeys.Pointer(new PagePointer(uint.MaxValue, ulong.MaxValue));
+
+        private readonly ulong _id;
+        private readonly BTree _undo, _transactions, _holdings;
+
+        private Holdings(ulong id, BTree undo, BTree transactions, BTree holdings) =>
+            (_id, _undo, _transactions, _holdings) = (id, undo, transactions, holdings);
+
+        public BTree[] Trees => [_undo, _transactions, _holdings];
+
+        public static StoreStatus Of(PagedFile file, ulong id, bool firstChange, TransactionWork work, out Holdings? holdings)
+        {
+            holdings = null;
+            var meta = file.Meta;
+            var transactions = new BTree(file, KeyOrders.Ordinal, meta.TransactionsRoot);
+            var undoRoot = PagePointer.None;
+            if (!firstChange)
+            {
+                var found = transactions.TryGet(TransactionKeys.Transaction(id), out var entry);
+                // A live transaction's entry is removed only by its own COMMIT or ROLLBACK, never by another run unit
+                // (its byte is held), so a missing one is a file this run unit cannot trust: '30'.
+                if (found != StoreStatus.Ok || entry is null) return StoreStatus.PermanentError;
+                undoRoot = TransactionKeys.PointerOf(entry);
+            }
+            var undo = new BTree(file, KeyOrders.Ordinal, undoRoot);
+            var held = new BTree(file, KeyOrders.Ordinal, meta.HoldingsRoot);
+            byte[] owner = TransactionKeys.Transaction(id);
+            var status = Hold(undo, held, TransactionKeys.Record(work.Identity), TransactionKeys.BeforeImage(work.BeforeImage), owner);
+            foreach (var value in work.FreedValues)
+                if (status == StoreStatus.Ok) status = Hold(undo, held, value, [], owner);
+            if (status == StoreStatus.Ok && undo.HasPendingChanges)
+                status = transactions.Put(TransactionKeys.Transaction(id), Placeholder);
+            if (status != StoreStatus.Ok)
+            {
+                undo.Discard();
+                transactions.Discard();
+                held.Discard();
+                return status;
+            }
+            holdings = new Holdings(id, undo, transactions, held);
+            return StoreStatus.Ok;
+        }
+
+        /// <summary>One holding: the UNDO entry unless one exists (the FIRST image is the one to restore) and the HOLDINGS
+        /// entry, in the same breath — the two trees carry the same keys (finding R5-2).</summary>
+        private static StoreStatus Hold(BTree undo, BTree holdings, byte[] key, byte[] undoValue, byte[] owner)
+        {
+            var status = undo.Insert(key, undoValue, out _);
+            return status == StoreStatus.Ok ? holdings.Insert(key, owner, out _) : status;
+        }
+
+        public StoreStatus Flush(PageStatement statement)
+        {
+            if (_undo.HasPendingChanges)
+            {
+                if (_undo.Flush(statement, out var undoRoot) is var u && u != StoreStatus.Ok) return Fail(u);
+                if (_transactions.Replace(TransactionKeys.Transaction(_id), TransactionKeys.Pointer(undoRoot), out _) is var r
+                    && r != StoreStatus.Ok)
+                    return Fail(r);
+            }
+            if (_transactions.Flush(statement, out var transactionsRoot) is var t && t != StoreStatus.Ok) return Fail(t);
+            if (_holdings.Flush(statement, out var holdingsRoot) is var h && h != StoreStatus.Ok) return Fail(h);
+            statement.SetTransactionsRoot(transactionsRoot);
+            statement.SetHoldingsRoot(holdingsRoot);
+            return StoreStatus.Ok;
+        }
+
+        private StoreStatus Fail(StoreStatus status)
+        {
+            Discard();
+            return status;
+        }
+
+        public void Discard()
+        {
+            foreach (var tree in Trees) tree.Discard();
+        }
     }
 
     /// <summary>The record a cursor stands on, in two parts: its key and, when <paramref name="withValue"/>, its value
@@ -248,29 +545,45 @@ internal sealed class RelativeStore : KeyedStore
     // ── Changes: one statement each ─────────────────────────────────────────────────────────────────────────────
 
     /// <summary>Release record <paramref name="rrn"/> (<paramref name="done"/> false when it exists: nothing changes).</summary>
-    public StoreStatus Insert(long rrn, byte[] value, bool entered, out bool done) =>
-        OneTree(tree => (tree.Insert(Key(rrn), value, out bool d), d), entered, out done);
+    public StoreStatus Insert(long rrn, byte[] value, bool entered, out bool done, TransactionWork? work = null) =>
+        OneTree(tree => (tree.Insert(Key(rrn), value, out bool d), d), entered, out done, work);
 
     /// <summary>Replace record <paramref name="rrn"/> (<paramref name="done"/> false when it does not exist).</summary>
-    public StoreStatus Replace(long rrn, byte[] value, bool entered, out bool done) =>
-        OneTree(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done);
+    public StoreStatus Replace(long rrn, byte[] value, bool entered, out bool done, TransactionWork? work = null) =>
+        OneTree(tree => (tree.Replace(Key(rrn), value, out bool d), d), entered, out done, work);
 
     /// <summary>Remove record <paramref name="rrn"/> (§14.9.10.4 GR5, <i>"the identified record has been logically removed
     /// from the physical file and can no longer be accessed"</i>; <paramref name="done"/> false when it does not exist).</summary>
-    public StoreStatus Delete(long rrn, bool entered, out bool done) =>
-        OneTree(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done);
+    public StoreStatus Delete(long rrn, bool entered, out bool done, TransactionWork? work = null) =>
+        OneTree(tree => (tree.Delete(Key(rrn), out bool d), d), entered, out done, work);
 
-    private StoreStatus OneTree(Func<BTree, (StoreStatus Status, bool Done)> edit, bool entered, out bool done) =>
+    private StoreStatus OneTree(Func<BTree, (StoreStatus Status, bool Done)> edit, bool entered, out bool done,
+        TransactionWork? work) =>
         Change(entered, ordinals: 0, (_, _) =>
         {
             var tree = Tree();
             var (status, applied) = edit(tree);
             return new Edit(status, applied, [new TreeChange(tree, TreeChange.PrimeRoot)]);
-        }, out done);
+        }, out done, work);
 
     private BTree Tree() => new(File!, KeyOrders.Ordinal, File!.Meta.PrimeRoot);
 
-    private static byte[] Key(long rrn) => KeyOrders.RecordNumberKey((ulong)rrn);
+    /// <summary>A record's identity in the transaction trees and its key in the record-number tree: the 8-byte big-endian
+    /// relative record number (2.2.1.4).</summary>
+    public static byte[] Key(long rrn) => KeyOrders.RecordNumberKey((ulong)rrn);
+
+    /// <summary>⛔ A ROLLBACK's view of a relative file (2.2.1.10): ONE tree, a before-image written back under its record
+    /// number, the ABSENT marker a delete.</summary>
+    public static RestoringTreesFactory Restoring { get; } =
+        (file, meta) => new RecordNumberRestoring(new BTree(file, KeyOrders.Ordinal, meta.PrimeRoot));
+
+    private sealed class RecordNumberRestoring(BTree tree) : IRestoringTrees
+    {
+        public StoreStatus Restore(byte[] identity, byte[]? image) =>
+            image is null ? tree.Delete(identity, out _) : tree.Put(identity, image);
+
+        public IReadOnlyList<(BTree Tree, int Root)> Edited => [(tree, IRestoringTrees.PrimeRoot)];
+    }
 }
 
 /// <summary>The key orders an INDEXED connector's trees are searched and changed under, chosen once at its OPEN
@@ -356,7 +669,7 @@ internal sealed class IndexedStore : KeyedStore
     /// ordinal minted with it. <paramref name="frameOf"/> builds the frame from the ordinal; <paramref name="done"/> is
     /// false when the prime key is present (nothing changes).</summary>
     public StoreStatus Release(bool entered, IndexedKeyOrders orders, byte[] prime, Func<ulong, byte[]> frameOf,
-        IReadOnlyList<byte[]?> alternates, out bool done) =>
+        IReadOnlyList<byte[]?> alternates, out bool done, TransactionWork? work = null) =>
         Change(entered, ordinals: 1, (_, ordinal) =>
         {
             var trees = new List<TreeChange>(alternates.Count + 1);
@@ -373,7 +686,7 @@ internal sealed class IndexedStore : KeyedStore
                 if (status != StoreStatus.Ok) return new Edit(status, false, trees);
             }
             return new Edit(StoreStatus.Ok, true, trees);
-        }, out done);
+        }, out done, work);
 
     /// <summary>⛔ REPLACE a record (§14.9.35.4 GR24): its prime entry's frame and, per alternate key the REWRITE changed
     /// (<paramref name="moves"/>), the old entry deleted (null: there was none — the old value was suppressed) and the new
@@ -381,7 +694,7 @@ internal sealed class IndexedStore : KeyedStore
     /// suppressed). A key the REWRITE did not change keeps its entry and its place among its duplicates (GR24 a)) because
     /// nothing touches its tree. <paramref name="done"/> is false when the record does not exist.</summary>
     public StoreStatus Replace(bool entered, IndexedKeyOrders orders, byte[] prime, Func<ulong, byte[]> frameOf, int ordinals,
-        IReadOnlyList<(int Key, byte[]? Old, byte[]? New)> moves, out bool done) =>
+        IReadOnlyList<(int Key, byte[]? Old, byte[]? New)> moves, out bool done, TransactionWork? work = null) =>
         Change(entered, ordinals, (_, ordinal) =>
         {
             var trees = new List<TreeChange>(moves.Count + 1);
@@ -400,13 +713,13 @@ internal sealed class IndexedStore : KeyedStore
                     return new Edit(status, false, trees);
             }
             return new Edit(StoreStatus.Ok, true, trees);
-        }, out done);
+        }, out done, work);
 
     /// <summary>⛔ REMOVE a record (§14.9.10.4 GR5): its prime entry and every alternate entry it has
     /// (<paramref name="entries"/>, each an alternate tree's whole entry key) — n + 1 deletes in one statement.
     /// <paramref name="done"/> is false when the record does not exist.</summary>
     public StoreStatus Remove(bool entered, IndexedKeyOrders orders, byte[] prime, IReadOnlyList<(int Key, byte[] Entry)> entries,
-        out bool done) =>
+        out bool done, TransactionWork? work = null) =>
         Change(entered, ordinals: 0, (_, _) =>
         {
             var trees = new List<TreeChange>(entries.Count + 1);
@@ -422,5 +735,53 @@ internal sealed class IndexedStore : KeyedStore
                 if ((status = tree.Delete(entry, out bool _)) != StoreStatus.Ok) return new Edit(status, false, trees);
             }
             return new Edit(StoreStatus.Ok, true, trees);
-        }, out done);
+        }, out done, work);
+    /// <summary>⛔ A ROLLBACK's view of an indexed file (2.2.1.10): the prime tree and the alternate trees under
+    /// <paramref name="orders"/>. A before-image is written back under its prime key with its OLD ordinal vector, and the
+    /// alternate trees' composite entries are rebuilt from that vector — the record's current entries removed (found from
+    /// its current frame) and the image's inserted — so the duplicate order of §14.9.35.4 GR24 is the one at the last
+    /// COMMIT (the release mint only ever grows). <paramref name="entriesOf"/> is the connector's: a frame's alternate
+    /// entries (its key values and ordinals, suppression applied), null for a frame it cannot decode ('30').</summary>
+    public static RestoringTreesFactory Restoring(IndexedKeyOrders orders,
+        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
+        (file, meta) => new IndexedRestoring(file, meta, orders, entriesOf);
+
+    private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
+        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
+    {
+        private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
+        private readonly SortedDictionary<int, BTree> _alternates = [];
+
+        public IReadOnlyList<(BTree Tree, int Root)> Edited =>
+            [(_prime, IRestoringTrees.PrimeRoot), .. _alternates.Select(a => (a.Value, a.Key))];
+
+        /// <summary>Alternate key <paramref name="key"/>'s tree, or null for a key the file records no tree for (the
+        /// DOC-A.1-129 opt-out).</summary>
+        private BTree? Alternate(int key)
+        {
+            if (key >= meta.AlternateRoots.Count) return null;
+            if (!_alternates.TryGetValue(key, out var tree))
+                _alternates[key] = tree = new BTree(file, orders.Trees[key], meta.AlternateRoots[key]);
+            return tree;
+        }
+
+        public StoreStatus Restore(byte[] identity, byte[]? image)
+        {
+            var status = _prime.TryGet(identity, out var current);
+            if (status != StoreStatus.Ok) return status;
+            if (current is not null)
+            {
+                if (entriesOf(current) is not { } entries) return StoreStatus.PermanentError;
+                foreach (var (key, entry) in entries)
+                    if (Alternate(key) is { } tree && (status = tree.Delete(entry, out _)) != StoreStatus.Ok) return status;
+                if ((status = _prime.Delete(identity, out _)) != StoreStatus.Ok) return status;
+            }
+            if (image is null) return StoreStatus.Ok;
+            if (entriesOf(image) is not { } restored) return StoreStatus.PermanentError;
+            if ((status = _prime.Put(identity, image)) != StoreStatus.Ok) return status;
+            foreach (var (key, entry) in restored)
+                if (Alternate(key) is { } tree && (status = tree.Insert(entry, identity, out _)) != StoreStatus.Ok) return status;
+            return StoreStatus.Ok;
+        }
+    }
 }

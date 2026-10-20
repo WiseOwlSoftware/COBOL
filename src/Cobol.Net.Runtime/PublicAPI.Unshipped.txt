@@ -181,3 +181,6 @@ override sealed CobolNet.Runtime.IO.KeyedConnector.AbandonOpen() -> void
 override sealed CobolNet.Runtime.IO.KeyedConnector.CloseCore() -> string!
 override sealed CobolNet.Runtime.IO.KeyedConnector.InvalidateFilePosition() -> void
 override sealed CobolNet.Runtime.IO.KeyedConnector.OpenCore(CobolNet.Runtime.IO.FileOpenMode mode, CobolNet.Runtime.IO.FilePresence presence) -> string!
+CobolNet.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
+CobolNet.Runtime.IO.FileRegistry.Commit() -> string?
+CobolNet.Runtime.IO.FileRegistry.Rollback() -> string?

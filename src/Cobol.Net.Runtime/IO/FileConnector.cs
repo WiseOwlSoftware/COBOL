@@ -186,6 +186,16 @@ public abstract class FileConnector
     /// REWRITE makes once its own rules have passed and before it changes anything.</summary>
     private protected string? RefusedAtCommit() => CommitGate?.Invoke();
 
+    /// <summary>The RETRY phrase of the governed statement now executing (§14.7.9; none outside one), which the keyed
+    /// organizations' holdings test applies to a transaction's lock (DESIGN-runtime-library.md 2.2.1.10; §14.9.51.4 GR16).
+    /// Set and cleared by the registry around the statement, as <see cref="CommitGate"/> is.</summary>
+    internal (FileRetryKind Kind, long Amount) StatementRetry { get; set; }
+
+    /// <summary>Whether a transaction may hold a record of this connector's physical file in the FILE (a keyed store's
+    /// HOLDINGS tree is not empty, DESIGN-runtime-library.md 2.2.1.10), so a READ's lock question cannot be answered from
+    /// the region alone. False for every organization without a store.</summary>
+    internal virtual bool HoldingsMayExist => false;
+
     /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE) — an
     /// attempted access like any other status assignment.</summary>
     public void SetStatus(string status) => Status = status;

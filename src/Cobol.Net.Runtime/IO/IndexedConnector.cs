@@ -188,9 +188,11 @@ public sealed class IndexedConnector : KeyedConnector
     /// are one per character position (2.2.1.5), and a tree key holds at most <see cref="BTree.MaxKeyBytes"/> bytes — the
     /// prime key's whole, an alternate key's with its 8-byte release ordinal after it — so a declaration with a longer key
     /// is one the physical format cannot hold, and the OPEN refuses it before any file is touched.</remarks>
+    /// <para>Under commit control the prime key is also a HOLDINGS key after its kind byte (2.2.1.10,
+    /// <see cref="TransactionKeys.MaxIdentityBytes"/>), so one byte less fits.</para>
     private protected override bool FormatHolds() =>
         base.FormatHolds()
-        && _primeLen <= BTree.MaxKeyBytes
+        && _primeLen <= (CommitControlled ? TransactionKeys.MaxIdentityBytes : BTree.MaxKeyBytes)
         && _alts.All(a => a.Len <= BTree.MaxKeyBytes - CompositeKeyOrder.OrdinalBytes);
 
     // ── The engine (docs/rearchitecture/DESIGN-runtime-library.md §2.2.1) ─────────────────────────────────────
@@ -224,6 +226,31 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <inheritdoc/>
     private protected override void ForgetStore() => _st = new IndexedStore();
+
+    /// <inheritdoc/>
+    private protected override RestoringTreesFactory Restoring => IndexedStore.Restoring(_orders, AlternateEntries);
+
+    /// <inheritdoc/>
+    private protected override byte[]? IdentityOf(string recordId) => recordId.Length == 0 ? null : KeyBytes(recordId);
+
+    /// <summary>Every alternate tree entry a record's frame has — the key value under each alternate key (suppression
+    /// applied, §12.4.5.6.4 GR6) composed with the record's release ordinal under that key: what a DELETE removes and what
+    /// a ROLLBACK rebuilds from a before-image's ordinal vector (2.2.1.10). Null for a frame this writer cannot have
+    /// produced (a torn page, '30').</summary>
+    private IReadOnlyList<(int Key, byte[] Entry)>? AlternateEntries(byte[] frame)
+    {
+        if (Decoded(frame) is not { } record) return null;
+        var entries = new List<(int Key, byte[] Entry)>(_alts.Count);
+        for (int i = 0; i < _alts.Count; i++)
+            if (AlternateValue(record.Image, record.Extents, i) is { } value)
+                entries.Add((i, CompositeKeyOrder.Compose(value, OrdinalOf(record, i))));
+        return entries;
+    }
+
+    /// <summary>The HOLDINGS key of a unique alternate key's value (2.2.1.10, finding R2-4): a key declared WITH DUPLICATES
+    /// needs no holding, so null for one.</summary>
+    private byte[]? UniqueValueHolding(int keyIndex, byte[]? value) =>
+        value is null || _alts[keyIndex].Dups ? null : TransactionKeys.Value(keyIndex, value);
 
     /// <summary>The key's channel bytes — the bytes its tree compares (2.2.1.4, 2.2.1.5): one per character position, the
     /// file's CODE-SET conversion applied, as the frame payload carries them. Null for a value holding a character with no
@@ -553,6 +580,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// variable-length members precede.</param>
     public string Write(string image, int length = -1, RecordExtents? extents = null)
     {
+        var (originalImage, originalExtents) = (image, extents);
         if (PermanentErrorReplay() is { } stuck) return Status = stuck;   // §9.1.13.1 — a permanent error in effect (kb/Work PB1541)
         // §14.9.51.4 GR38 "If the access mode of the write file connector is sequential, records shall be
         // released … in ascending order of prime record key values" vs. GR39 "If the access mode … is random
@@ -594,12 +622,20 @@ public sealed class IndexedConnector : KeyedConnector
             if (exists && !_alts[i].Dups) return Status = FileStatusCode.DuplicateKey;   // '22' GR40/GR42c
             if (exists) duplicateAlt = true;
         }
+        // The transactions' HOLDINGS (2.2.1.10): the identity and every unique value this WRITE would insert, after the
+        // invalid key conditions (GR42, which ignore locks) and before the record is touched.
+        var holdings = new List<byte[]> { TransactionKeys.Record(prime) };
+        for (int i = 0; i < _alts.Count; i++)
+            if (UniqueValueHolding(i, alternates[i]) is { } held) holdings.Add(held);
+        if (HoldingsGate(holdings, out bool reevaluate) is { } locked) return Status = locked;   // '51' (RETRY: GR16)
+        if (reevaluate) return Write(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.51.4 GR40 — the WRITE RELEASES the record, so it is positioned last in the duplicate set of
         // EVERY key at once: one fresh ordinal stamped into every slot (the prime slot doubles as the record's
         // release order in the physical file).
         var released = _st.Release(Entered, _orders, prime,
-            ordinal => FrameOf(framed, ReleaseOrdinals(ordinal)), alternates, out bool done);
+            ordinal => FrameOf(framed, ReleaseOrdinals(ordinal)), alternates, out bool done,
+            TransactionFor(prime, beforeImage: null));
         if (RecordWriteFailed(released) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR42 d) / '30' §9.1.13.6 1)
         if (!done) return Status = FileStatusCode.DuplicateKey;            // '22' — the tree declined (GR42 b))
         if (sequentialRelease) _lastWrittenPrime = prime;   // GR38's running "highest … written" — sequential access only
@@ -627,6 +663,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// <param name="extents">The replacing record's EXTENT TABLE (D-FRA (v); kb/Work PB1053), replaced with it.</param>
     public string Rewrite(string image, int length = -1, RecordExtents? extents = null)
     {
+        var (originalImage, originalExtents) = (image, extents);
         bool wasRead = PrevOpWasSuccessfulRead;   // the terminal status assignment drops the gate (PB140)
         if (MutationOpenModeGuard() is { } notIO) return Status = notIO;   // '49' §14.9.35.4 GR3 / §14.9.10.4 GR1
         // §14.9.35 GR18 — an indexed record's size MAY differ from the replaced record's; GR20 still bounds it.
@@ -650,6 +687,8 @@ public sealed class IndexedConnector : KeyedConnector
         // repositioned by then; the statement below changes every tree at once or none.
         bool duplicateAlt = false;
         var moves = new List<(int Key, byte[]? Old, byte[]? New)>();
+        var holdings = new List<byte[]> { TransactionKeys.Record(prime) };
+        var freed = new List<byte[]>();
         for (int i = 0; i < _alts.Count; i++)
         {
             byte[]? now = AlternateValue(image, extents, i);
@@ -660,7 +699,14 @@ public sealed class IndexedConnector : KeyedConnector
             // for a relation condition" — makes it the key's order, not a byte compare; entering OR leaving
             // suppression is a change of its own (GR24's two SUPPRESS WHEN sub-rules both reposition).
             bool changed = (now is null) != (old is null) || now is not null && _orders.Alternates[i].Compare(now, old!) != 0;
-            if (changed) moves.Add((i, old is null ? null : CompositeKeyOrder.Compose(old, OrdinalOf(target, i)), now));
+            if (changed)
+            {
+                moves.Add((i, old is null ? null : CompositeKeyOrder.Compose(old, OrdinalOf(target, i)), now));
+                // 2.2.1.10 (finding R2-4): the unique value this REWRITE inserts is tested against the holdings, and the
+                // one it frees becomes a holding of the transaction under commit control.
+                if (UniqueValueHolding(i, now) is { } inserted) holdings.Add(inserted);
+                if (UniqueValueHolding(i, old) is { } released) freed.Add(released);
+            }
             // §12.4.5.6.4 GR6 — a key whose value equals its SUPPRESS WHEN value provides no access path, so it is
             // skipped for the uniqueness check (it can never duplicate, §14.9.51.4 GR41 by parity with WRITE).
             if (now is null) continue;
@@ -671,6 +717,8 @@ public sealed class IndexedConnector : KeyedConnector
             // so it created nothing (kb/Work PB341).
             if (exists && changed) duplicateAlt = true;
         }
+        if (HoldingsGate(holdings, out bool reevaluate) is { } locked) return Status = locked;   // '51' (2.2.1.10)
+        if (reevaluate) return Rewrite(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
         // retrieval when that key is the key of reference remains unchanged" — so ONLY the keys this REWRITE
@@ -682,7 +730,7 @@ public sealed class IndexedConnector : KeyedConnector
             foreach (var (key, _, _) in moves)
                 if (key + 1 < ordinals.Length) ordinals[key + 1] = (long)ordinal;   // GR24 b)
             return FrameOf(framed, ordinals);
-        }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done);
+        }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done, TransactionFor(prime, frame, freed));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         if (!done) return Status = FileStatusCode.RecordNotFound;
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
@@ -709,12 +757,15 @@ public sealed class IndexedConnector : KeyedConnector
         if (prime is null) return Status = FileStatusCode.RecordNotFound;
         if (_st.Get(_orders, prime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (frame is null) return Status = FileStatusCode.RecordNotFound;
-        if (Decoded(frame) is not { } target) return Status = FileStatusCode.PermanentError;
-        var entries = new List<(int Key, byte[] Entry)>(_alts.Count);
-        for (int i = 0; i < _alts.Count; i++)
-            if (AlternateValue(target.Image, target.Extents, i) is { } value)
-                entries.Add((i, CompositeKeyOrder.Compose(value, OrdinalOf(target, i))));
-        var removed = _st.Remove(Entered, _orders, prime, entries, out bool done);
+        if (AlternateEntries(frame) is not { } entries) return Status = FileStatusCode.PermanentError;
+        // 2.2.1.10: the record's identity is tested against the holdings after GR3's invalid key ('23'), and under commit
+        // control the DELETE holds the identity (it stays held after the record is gone) and every unique value it frees.
+        if (HoldingsGate([TransactionKeys.Record(prime)], out bool reevaluate) is { } locked) return Status = locked;   // '51'
+        if (reevaluate) return Delete(keyedRecordImage, areaExtents);   // against the file a rollback restored
+        var freed = new List<byte[]>();
+        foreach (var (key, entry) in entries)
+            if (UniqueValueHolding(key, IndexedStore.Split(entry).KeyPart) is { } released) freed.Add(released);
+        var removed = _st.Remove(Entered, _orders, prime, entries, out bool done, TransactionFor(prime, frame, freed));
         if (Failed(removed) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
