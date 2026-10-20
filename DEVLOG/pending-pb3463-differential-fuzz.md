@@ -25,5 +25,15 @@ the tool with self-test checks (any fence string; structural sub-clauses fold in
 Run 3 (4 programs, 2 in flight, `qwen3-coder:30b`): 4 of 4 compiled under GnuCOBOL (3 after one repair round), 1 AGREE,
 3 OUTPUT_DIFFERS in two signatures, median 24 s of model time per program. The two signatures (DISPLAY of an implied decimal
 point after ADD; MOVE of figurative constants into boolean, alphanumeric and national items) are leads for a spec check, not
-verdicts. kb/Work PB3463 (analysis) records the decision, the design and the triage rule; the overnight run is the owner's to
-start after a bake-off picks the generator.
+verdicts.
+
+**The 40-program test run (12:44–12:59 PDT, three in flight).** Its first attempt died in its third program on a harness bug (a
+repair round archived a source the first reply never produced); fixed, and with it the rule that a harness exception inside one
+program is a RUNNER_ERROR row with its traceback, never the end of the run. The second attempt: 40 programs in 14 min 23 s,
+GnuCOBOL accepted 16 (13 only after the repair round), GNU_REJECTS 24 · WE_REJECT 9 · AGREE 4 · OUTPUT_DIFFERS 3, 12 survivors
+in 5 signatures (a unary `-` before a separator space, COBOLNET2993 × 6; DISPLAY of a signed item and the `0 ** -1` size
+condition; a VALUE literal not representable, COBOLNET1625 × 2; DISPLAY of an implied decimal point; PICTURE 9(34) refused at
+the standard's 31-digit limit, a GnuCOBOL extension). All forty seeds came from §8.8 because the seed list was walked in spec
+order, so it is now shuffled by default (`--seed`, deterministic; `--in-order` restores the walk). The raw report, the results
+and the twelve survivors' sources are under the evidence record's folder. kb/Work PB3463 (analysis) records the decision, the
+design and the triage rule; the overnight run is the owner's to start after a bake-off picks the generator.

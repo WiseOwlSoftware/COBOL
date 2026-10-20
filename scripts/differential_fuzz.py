@@ -46,6 +46,7 @@ import argparse
 import dataclasses
 import json
 import os
+import random
 import re
 import shutil
 import sys
@@ -125,6 +126,16 @@ def clauses(text: str, prefixes: tuple[str, ...]) -> list[tuple[str, str, str]]:
         if len(body) >= 200:
             seeds.append((number, title, body))
     return seeds
+
+
+def order_seeds(seeds: list[tuple[str, str, str]], seed: int, in_order: bool) -> list[tuple[str, str, str]]:
+    """The seed clauses in the order a run walks them: shuffled by `seed` (deterministic: the same seed is the same walk,
+    so a run can be reproduced), or the spec's own order when `in_order`."""
+    if in_order:
+        return list(seeds)
+    out = list(seeds)
+    random.Random(seed).shuffle(out)
+    return out
 
 
 def seed_text(number: str, title: str, body: str, limit: int = 7000) -> str:
@@ -304,6 +315,9 @@ class Settings:
     keep: bool
     repairs: int = 1       # corrections offered after a GnuCOBOL refusal
     variations: int = 3    # programs asked per clause before the seed list wraps
+    seed: int = 20261020   # shuffles the seed clauses deterministically, so a short run samples every area (the first
+                           # 40-program run walked the spec in order and never left §8.8); `in_order` keeps the spec's order
+    in_order: bool = False
 
 
 class Fuzz:
@@ -314,7 +328,7 @@ class Fuzz:
         self.programs.mkdir(parents=True, exist_ok=True)
         self.results_path = self.out / "results.jsonl"
         self.lock = threading.Lock()
-        self.seeds = clauses(SPEC.read_text(encoding="utf-8"), s.prefixes)
+        self.seeds = order_seeds(clauses(SPEC.read_text(encoding="utf-8"), s.prefixes), s.seed, s.in_order)
         if not self.seeds:
             raise SystemExit(f"no clauses under {s.prefixes} in {SPEC}")
         work = self.out / "work"
@@ -572,6 +586,11 @@ def self_test() -> int:
     check("seeds: the structural sub-clauses (General, General formats, Format n, General rules) fold into the statement's seed",
           [c[0] for c in got] == ["14.9.25", "14.9.26"] and "General rules" in got[0][2] and "fmt" in got[0][2]
           and got[0][1] == "MOVE statement", [(c[0], c[1]) for c in got])
+    many = [(f"14.9.{k}", f"S{k}", "b") for k in range(1, 41)]
+    check("seeds: the walk is shuffled deterministically by the seed (same seed, same order; a different seed, a different one) and in_order keeps the spec's",
+          order_seeds(many, 1, False) == order_seeds(many, 1, False) and order_seeds(many, 1, False) != many
+          and order_seeds(many, 2, False) != order_seeds(many, 1, False) and order_seeds(many, 1, True) == many
+          and sorted(order_seeds(many, 1, False)) == sorted(many))
     prog = extract_program("Here:\n```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\n STOP RUN.\n```\n")
     check("extract: the fenced program, newline-terminated", prog is not None and prog.startswith("IDENTIFICATION") and prog.endswith("STOP RUN.\n"), prog)
     odd = extract_program("不经.fromJson\n```cob注释\nIDENTIFICATION DIVISION.\nPROCEDURE DIVISION.\nSTOP RUN.\n```\n\n```text\nnotes\n```\n")
@@ -654,6 +673,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--clauses", default=",".join(DEFAULT_CLAUSES), help="comma-separated clause prefixes to seed from")
     ap.add_argument("--temperature", type=float, default=0.6)
     ap.add_argument("--repairs", type=int, default=1, help="corrections offered to the model after a GnuCOBOL refusal (0: none)")
+    ap.add_argument("--seed", type=int, default=20261020, help="shuffles the seed clauses deterministically (same seed, same walk)")
+    ap.add_argument("--in-order", action="store_true", help="walk the seed clauses in the spec's order instead")
     ap.add_argument("--cobol", default=str(REPO / "src/Cobol.Net.Cli/bin/Debug/net10.0" / ("cobol.exe" if os.name == "nt" else "cobol")),
                     help="the WiseOwl compiler to test")
     ap.add_argument("--out", help="the run directory (default conformance-suite/results/fuzz-<stamp>)")
@@ -675,7 +696,7 @@ def main(argv: list[str]) -> int:
     out = Path(a.out) if a.out else SUITE / "results" / f"fuzz-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
     s = Settings(model=a.model or "", out=out, jobs=a.jobs, count=a.count, hours=a.hours,
                  prefixes=tuple(p.strip() for p in a.clauses.split(",") if p.strip()), temperature=a.temperature,
-                 cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs))
+                 cobol_exe=str(Path(a.cobol).resolve()), keep=a.keep, repairs=max(0, a.repairs), seed=a.seed, in_order=a.in_order)
     if a.bake_off:
         bake_off([m.strip() for m in a.bake_off.split(",") if m.strip()], s)
     else:
