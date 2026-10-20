@@ -1710,8 +1710,12 @@ external-repository slices' in-flight set (`work.slice_file_set`): every file `D
 names for a row not yet landed, in ALL three columns (Draft 6 read only "Today", which missed the twelve caller
 files of "Callers updated in the same change"; H4), from every name in a code span, not only the first (`: GroupRepository`), a type
 mapped to each file declaring it, a member to the file declaring it (a one-word or widely declared name is reported,
-not guessed), and the `tests/` and `docs/` paths the table names (set (b) gates the campaign only: the fix lane
-was never held for a slice); a collision defers the group, with the collision named.
+not guessed), and the `tests/` and `docs/` paths the table names. Set (b) is a RESERVATION, not work
+(`plan_wave.slice_reservation`, kb/Work PB3456): a campaign's plan reads it, and it holds only the restructuring
+program's groups, those holding a note of R69 §2's "R2 and every R3 wave" (`work.restructuring`: a `cluster` list
+naming PB1754 or PB2119), whichever campaign plans them. A fix campaign's group (PB3353, PB2911) and the fix lane are
+never held for a slice, and the held row reads OPEN (RESERVED) until in-flight work holds a slice. A collision defers
+the group, with the collision named.
 
 **The planner's set is the ADMISSION estimate; the landing check is the GUARANTEE** (PB2118 Drafts 9–10). Three refuter
 rounds each found a new hole in the computed set (hand lists, then the index's blind spots, then its staleness), so a
