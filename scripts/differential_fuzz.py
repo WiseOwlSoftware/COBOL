@@ -51,6 +51,8 @@ import shutil
 import sys
 import threading
 import time
+import traceback
+import types
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -327,10 +329,20 @@ class Fuzz:
         return number, title, body, i % self.s.variations
 
     def one(self, i: int) -> dict[str, Any]:
+        """One program, start to verdict. A harness failure inside it is a RUNNER_ERROR row with the traceback, never the
+        end of the run: the first 40-program test died in its third program on a missing file, taking 37 unwritten rows
+        with it, and an overnight run cannot afford that shape."""
         number, title, body, variation = self.seed_for(i)
         name = f"fz{i:05d}"
         rec: dict[str, Any] = {"id": name, "clause": number, "title": title, "model": self.s.model,
                                "at": datetime.now(timezone.utc).isoformat(timespec="seconds")}
+        try:
+            return self._one(i, name, number, title, body, variation, rec)
+        except Exception as e:  # noqa: BLE001 — every failure of the harness itself is recorded, none is a verdict
+            rec.update(verdict="RUNNER_ERROR", reason=f"harness: {e!r}", traceback=traceback.format_exc()[-2000:])
+            return rec
+
+    def _one(self, i: int, name: str, number: str, title: str, body: str, variation: int, rec: dict[str, Any]) -> dict[str, Any]:
         user = seed_text(number, title, body) + f"\n\nThis is program {variation + 1} for this clause: exercise an aspect the previous programs would not."
         messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user}]
         src = self.programs / f"{name}.cob"
@@ -363,7 +375,8 @@ class Fuzz:
                 continue
             if attempt:
                 rec["repairs"] = attempt
-                shutil.copyfile(src, self.programs / f"{name}.r{attempt - 1}.cob")
+                if src.exists():        # the previous attempt may have had no program to keep
+                    shutil.copyfile(src, self.programs / f"{name}.r{attempt - 1}.cob")
             src.write_text(program, encoding="utf-8", newline="\n")
             shutil.rmtree(self.they.work / name, ignore_errors=True)
             they = observe(self.they, entry, self.they.work / name)
@@ -618,6 +631,13 @@ def self_test() -> int:
         suite_run.execute = orig
     check("wsl bridge: the run addresses the program relative to the mapped working directory; compile passes the argv through",
           seen == [("wsl", "-d", "Ubuntu", "-e", "./fz00001"), ("wsl", "-d", "Ubuntu", "-e", "cobc", "-x", "fz00001.cob")], seen)
+    def boom(*_a: object) -> dict[str, Any]:
+        raise FileNotFoundError("fz00002.cob")
+    fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m"), _one=boom)
+    rec = Fuzz.one(fake, 2)  # type: ignore[arg-type]
+    check("run: a harness failure inside one program is a RUNNER_ERROR row with its traceback, never the end of the run",
+          rec["verdict"] == "RUNNER_ERROR" and rec["reason"].startswith("harness: FileNotFoundError") and "boom" in rec["traceback"]
+          and rec["id"] == "fz00002", rec)
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
 
