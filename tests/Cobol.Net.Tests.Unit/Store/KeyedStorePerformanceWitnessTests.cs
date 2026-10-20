@@ -66,10 +66,15 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// ledger + 3 free tree + 1 meta).</summary>
     private const int PromotionWrites = 1 + 1 + 2 + 3 + 1;
 
-    /// <summary>The most pages the ledger tree holds at R2's checkpoint (2.2.1.11's ℓ): 1 024 entries plus the pages of the
-    /// one statement that begins at it fill at most this many leaves and the root above them. It is the measured maximum of
-    /// the load cells (1 028 entries under two alternate keys, 9 pages); a ledger layout that let ℓ grow past it would put
-    /// ℓ in every statement's row out of line with the number the design states.</summary>
+    /// <summary>The most pages the ledger tree held at R2's checkpoint in the twelve load cells (2.2.1.11's ℓ): a MEASURED
+    /// maximum for this workload, not a bound that follows from the entry count. The ledger lists at most 1 024 entries
+    /// plus the pages of the one statement that begins at the checkpoint (1 028 under two alternate keys, the largest cell).
+    /// A full leaf holds ⌊(4 096 − 32) / (6 + 4 + 9)⌋ = 213 entries, so 1 028 need at least 5 leaves; but the ledger is
+    /// keyed by page number and a scattered load splits leaves at the middle, leaving each anywhere from half full to full,
+    /// so the page count depends on that fill (the measured cell is 9 pages: the root over 8 leaves, about 60 percent
+    /// full). The assertion pins the measured number: a ledger layout that let ℓ grow past it would put ℓ in every
+    /// statement's row out of line with the figure the design states. A change to the entry size, the page size or the
+    /// split rule moves the fill, and the constant is then re-measured, never re-derived from the entry count.</summary>
     private const int LedgerPagesAtCheckpoint = 9;
 
     /// <summary>The FREE batch a statement takes (2.2.1.11): at most 2 pages, at most once per statement.</summary>
@@ -282,8 +287,8 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// asserting every statement against its row. A statement writes more than the row's no-split bound only by the new
     /// pages its splits add — at most one per level of each tree it changes — so the excess summed over the phase is at
     /// most the pages the trees gained. The ledger never lists more than R2's checkpoint (1 024 pages) and one statement's
-    /// own, whatever the file's size, and its tree never holds more than <see cref="LedgerPagesAtCheckpoint"/> pages: the
-    /// checkpoint is what bounds the ledger's share of every statement.</summary>
+    /// own, whatever the file's size, and its tree never holds more than <see cref="LedgerPagesAtCheckpoint"/> pages (the
+    /// most this workload measured): the checkpoint is what bounds the ledger's share of every statement.</summary>
     private Phase Load(FileRegistry reg, string name, Cell cell, int from, int to, int window, out int promoted)
     {
         var store = Store(reg, name);
