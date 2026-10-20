@@ -1,4 +1,4 @@
-## PB3114 + PB3394: a RED wave plan changes no shared state, and a FINDINGS stamp older than its branch tip plans no finisher
+## Entry 2275 — 2026-10-19 17:17 PDT — PB3114 + PB3394: a RED wave plan changes no shared state, and a FINDINGS stamp older than its branch tip plans no finisher
 
 Wave 1131, group F: two planner defects in `scripts/orchestrator/plan_wave.py`, one root each, both re-probed on this
 tree before the fix.
@@ -43,3 +43,4 @@ scratch rule also refuses the MAIN checkout when the planner runs from one of it
 `20261019T222512Z-da5920`, at be46f2427): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2
 left to CI's whole-population run` (Conformance 11,010/18,013 · Unit 33,701/34,755 · Characterization 5/36 in leg 1;
 self-tests GREEN, 41 ran, 46 reused).
+
