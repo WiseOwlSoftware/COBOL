@@ -130,9 +130,9 @@ docs/DIAGNOSTICS.md
 # Generated status page for the owner's "WiseOwl COBOL Conformance Ledger" artifact (scripts/spec/gen_ledger.py).
 # A build output for the same reason kb/Conformance/ is: every input it reads IS tracked, so the page can be
 # re-derived at will — and committing it would make `--check` red after every landing that moves a row, which
-# is a gate people learn to ignore. `ledger-trend.json` IS tracked: the trend series cannot be recomputed from the
-# current tree (the hand-written in-flight narrative is gone, kb/Work PB2912). The page is now rendered into the
-# coordination directory (<coord>/ledger.html, kb/Work PB2481); this entry stays so a copy the earlier default left in a
+# is a gate people learn to ignore. The page is rendered into the coordination directory (<coord>/ledger.html, kb/Work
+# PB2481), and so is its trend series (<coord>/ledger-trend.json, kb/Work PB2426: tracked in the tree, every render left
+# the checkout dirty and sent the loop to `resume`); this entry stays so a copy the earlier default left in a
 # checkout never makes it dirty (a dirty main checkout sends the orchestrator loop to `resume`).
 docs/rearchitecture/evidence/conformance-ledger.html
 

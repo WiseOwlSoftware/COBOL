@@ -66,20 +66,23 @@ account in the coordination directory, and this script prints it after a render 
                                                        battery's tree (which is what makes "a battery is owed"
                                                        a measurement rather than an opinion)
 
-⭐ THE TREND IS DATA, NOT MEMORY — `docs/rearchitecture/evidence/ledger-trend.json`. A burn-down chart is the one
-thing on the page that cannot be recomputed from the current tree: yesterday's GAP is gone. So the series lives in
-a small committed file, one point per battery or measurement-moving landing (`sha`, `date`, `gap`, `closed`, `dns`,
-`label`, `battery`, and the register's series `ledger_plan.REGISTER_KEYS`: open compiler notes, defects, wrong answers,
-crashes, GAP-holder notes; kb/Work PB2912), and a WRITE run appends the current point when any of them moved. Every
-field of a point is measured from that commit's own tree, so a point missed between runs is measured the same way
-(`missed_points`), and `--backfill-register` added the register fields to the points recorded before they existed,
-each from its own sha's `kb/Work` (a point whose tree has no frontmatter register carries none). `--check` never
-writes, and it reads the trend file as it is on disk: a measurement that moved with no point recorded in the FILE is
-stale even when the page matches. ⛔ Matching the page alone was self-confirming (kb/Work PB2118 Draft 7, H3): the
-render appends the current point in memory, so a page rendered by a write run whose trend-file append was then
-reverted (or never committed) matched its own re-render, and the check passed with the point missing from the only
-place it survives. The file's `program` list (the re-architecture program's counts, 2026-10-07 to 2026-10-08) is
-frozen history: the program is held (PB2911) and the page no longer draws it, so nothing appends to it.
+⭐ THE TREND IS DATA, NOT MEMORY — `<coord>/ledger-trend.json` (TREND). A burn-down chart is the one thing on the page
+that cannot be recomputed from the current tree alone: yesterday's GAP is gone. So the series is a small file, one point
+per battery or measurement-moving landing (`sha`, `date`, `gap`, `closed`, `dns`, `label`, `battery`, and the register's
+series `ledger_plan.REGISTER_KEYS`: open compiler notes, defects, wrong answers, crashes, GAP-holder notes; kb/Work
+PB2912), and a WRITE run appends the current point when any of them moved. Every field of a point is measured from that
+commit's own tree, so a point missed between runs is measured the same way (`missed_points`), and `--backfill-register`
+added the register fields to the points recorded before they existed, each from its own sha's `kb/Work` (a point whose
+tree has no frontmatter register carries none).
+⛔ THE SERIES LIVES IN THE COORDINATION DIRECTORY, beside the page it feeds, never in a checkout (kb/Work PB2426): it
+is the publish's state, not the product's. Until 2026-10-20 it was the tracked
+`docs/rearchitecture/evidence/ledger-trend.json`, so every render left the checkout it ran in dirty; in the main
+checkout that sent the orchestrator loop to a `resume` unit whose only finding was that file, and points reached git only
+when some later branch happened to carry them. And because every worktree shares the one file, only a render of MAIN'S
+page (the checkout at origin/main: ledger_state.stale_checkout_line) appends to it; a branch's render would record
+points main never had. `--check` never writes. The file's `program` list (the re-architecture program's counts,
+2026-10-07 to 2026-10-08) is frozen history: the program is held (PB2911) and the page no longer draws it, so nothing
+appends to it.
 
 ⛔ NOTHING ON THE PAGE IS HAND-WRITTEN. The "In flight right now" narrative it carried until 2026-10-10 went stale in a
 day (PB2912), and a live in-flight view is the operator's (`scripts/prune_worktrees.py --brief`, minutes per run).
@@ -111,11 +114,12 @@ CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
 PLAN = REPO / "docs" / "COBOLNET_REARCHITECTURE_PLAN.md"
 VCR = REPO / "docs" / "VERSION_CHANGE_REFERENCE.md"
 SUITE_HARNESS = REPO / "conformance-suite" / "harness"
-TREND = REPO / "docs" / "rearchitecture" / "evidence" / "ledger-trend.json"
 # The page is the orchestrator's: rendered into the coordination directory beside ledger-published.json, where the
 # units render it and the attended session publishes it (design section 14). Named without creating the directory.
 COORD_DIR = coord.coord_path()
 DEFAULT_OUT = COORD_DIR / "ledger.html"
+# The trend series is the publish's state too, so it lives beside the page, never in a checkout (kb/Work PB2426).
+TREND = COORD_DIR / "ledger-trend.json"
 
 TITLE = "WiseOwl COBOL Completion Ledger"
 
@@ -530,6 +534,12 @@ def backfill_register(pts: list[dict]) -> int:
 
 
 def write_trend(series: list[dict]) -> None:
+    """Write the series to TREND, keeping the file's other keys. A TREND that is not absolute is refused: the default
+    coordination directory is a Windows path, a relative name on Linux, and a write there would plant a private series
+    inside whatever directory the run started in (coord.absolute_problem's rule)."""
+    if not TREND.is_absolute():
+        raise SystemExit(f"⛔ the trend series {TREND} is not an absolute path on this host: set "
+                         f"{coord.ENV} to the coordination directory (kb/Work PB2426)")
     doc = json.loads(TREND.read_text(encoding="utf-8")) if TREND.exists() else {}
     doc["points"] = series
     TREND.parent.mkdir(parents=True, exist_ok=True)
@@ -1108,7 +1118,7 @@ TEMPLATE = """<title>{title}</title>
       <span class="v num">{trend_from} → {trend_to} · {trend_points} points</span>
     </div>
     {trend_svg}
-    <p class="note">Each point is a landing that moved the inventory or the register's series, measured from that commit's own tree. A flat GAP step is real and worth reading: correcting an already-CONFORMS row moves nothing, and a register-only move adds a point with GAP unchanged. Series: <span class="mono">docs/rearchitecture/evidence/ledger-trend.json</span>, appended by <span class="mono">gen_ledger.py</span>.</p>
+    <p class="note">Each point is a landing that moved the inventory or the register's series, measured from that commit's own tree. A flat GAP step is real and worth reading: correcting an already-CONFORMS row moves nothing, and a register-only move adds a point with GAP unchanged. Series: <span class="mono">ledger-trend.json</span> in the coordination directory, appended by <span class="mono">gen_ledger.py</span>.</p>
   </div>
   <div class="trend">
     <div class="trend-head">
@@ -1198,7 +1208,7 @@ TEMPLATE = """<title>{title}</title>
 
 
 <footer>
-  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/traceability-inventory.json</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">.agent-fleet.json</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">docs/rearchitecture/evidence/ledger-trend.json</span>. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
+  <p><strong>Every number on this page is computed — none is remembered, none is hand-written.</strong> Inventory from <span class="mono">tests/version-matrix/traceability-inventory.json</span>, work standing from <span class="mono">kb/Work</span> through <span class="mono">work.py</span>'s own predicates, what remains and its lanes through <span class="mono">ledger_plan.py</span> (the fix lane's population from <span class="mono">.agent-fleet.json</span>, the campaign and held clusters from the owner's decision PB2911), the estimate from <span class="mono">fix_clusters.py</span>, <span class="mono">model_rules.json</span>, <span class="mono">landing_measure.py</span> and the orchestrator's meter readings, gates from plan §0's battery reference, documentation posture from <span class="mono">docs/CONFORMANCE.md</span> §2/§4/§5 and <span class="mono">audit_annex_a1.py --json</span>, the suite and anchor counts from the trees themselves, the trend series from <span class="mono">ledger-trend.json</span> in the coordination directory. Rendered by <span class="mono">scripts/spec/gen_ledger.py</span>. The work register remains <span class="mono">kb/Work/</span> — this ledger is a derived view, never a tracker.</p>
   <p class="mono">Snapshot: {head_date} · measured tree {head_sha} — the last commit that touched an input this page reports, so an unrelated commit cannot make a correct page look stale · {rows} rows · {closed} closed · {gap} GAP · {adjudicated} adjudicated · battery #{bat_n} on {bat_sha} · A.1 {a1_discharged}/{a1_scope} · register {work_items} notes, {work_open} open, {work_actionable} actionable · {comp_n} known compiler notes.</p>
 </footer>
 
@@ -1297,9 +1307,21 @@ def self_test() -> int:
               bool(small) and abs(len(big) - len(small)) <= 8 and big.count("2026-10-") == 2,
               f"3 points: {len(small)} chars, 400 points: {len(big)} chars: {big[:200]}")
 
+    # kb/Work PB2426: a render never dirties a checkout. The series is the coordination directory's, beside the page,
+    # and a write to a path that is not absolute (the Windows default read on Linux) is refused before it creates one.
+    check("the trend series lives beside the page, outside every checkout",
+          TREND.parent == DEFAULT_OUT.parent and not TREND.resolve().is_relative_to(REPO.resolve()), str(TREND))
     saved = (REPO, TREND)
     tmp = pathlib.Path(tempfile.mkdtemp(prefix="gen-ledger-test-"))
     try:
+        TREND = pathlib.Path("relative-trend.json")
+        try:
+            write_trend([])
+            refused = False
+        except SystemExit:
+            refused = True
+        check("a trend write to a relative path is refused, and creates nothing",
+              refused and not TREND.exists(), str(TREND))
         TREND = tmp / "trend.json"
         TREND.write_text(json.dumps({"points": [{"sha": "0000000a", "date": "2026-10-09", "gap": 2, "closed": 1,
                                                  "dns": 0, "label": "x", "battery": None}]}), encoding="utf-8", newline="\n")
@@ -1397,8 +1419,7 @@ def main() -> int:
         doc = json.loads(TREND.read_text(encoding="utf-8"))
         filled = backfill_register(doc["points"])
         write_trend(doc["points"])
-        print(f"trend  : the register's series added to {filled} of {len(doc['points'])} points "
-              f"({TREND.relative_to(REPO)})")
+        print(f"trend  : the register's series added to {filled} of {len(doc['points'])} points ({TREND})")
         return 0
 
     bad = ledger_plan.live_problems()
@@ -1420,27 +1441,29 @@ def main() -> int:
         print(f"the ledger renders from the repo ({len(text):,} bytes)")
         return 0
 
-    if is_new:
+    import account  # noqa: PLC0415
+    import ledger_state  # noqa: PLC0415  (imports this module for STAMP_PATHS; loaded only here, after a render)
+    # The page describes THIS checkout; a checkout behind main (every landing is pushed from a lander's worktree) renders
+    # a page mark-published will refuse (kb/Work PB2987), and its points are not main's, so it appends none to the
+    # series every worktree shares (kb/Work PB2426).
+    try:
+        stale = ledger_state.stale_checkout_line(REPO, ledger_state.state(REPO, COORD_DIR, account.current().name))
+    except ledger_state.NoMain as e:
+        stale = f"main's stamp not read ({e})"
+    if is_new and stale:
+        print(f"trend  : NOT appended — this checkout does not render main's page ({TREND} left as it was)")
+    elif is_new:
         write_trend(pts)
         p = pts[-1]
         print(f"trend  : appended {p['sha']} — GAP {p['gap']} · closed {p['closed']} · DNS {p['dns']} · "
               f"{p.get('compiler_open')} compiler notes ({p.get('defects')} defects, {p.get('wrong_answer')} wrong "
-              f"answers, {p.get('crashes')} crashes) · {p.get('gap_holders')} GAP holders   "
-              f"({TREND.relative_to(REPO)}, {len(pts)} points)")
+              f"answers, {p.get('crashes')} crashes) · {p.get('gap_holders')} GAP holders   ({TREND}, {len(pts)} points)")
     else:
         print(f"trend  : unchanged — {len(pts)} points, last {pts[-1]['sha'] if pts else '—'}")
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(text, encoding="utf-8", newline="\n")
     print(f"wrote  : {a.out} ({len(text):,} bytes)")
-    import account  # noqa: PLC0415
-    import ledger_state  # noqa: PLC0415  (imports this module for STAMP_PATHS; loaded only here, after a render)
     print(ledger_state.publish_hint(COORD_DIR, account.current().name))
-    # The page describes THIS checkout; a checkout behind main (every landing is pushed from a lander's worktree) renders
-    # a page mark-published will refuse, so say so here, before the publish (kb/Work PB2987).
-    try:
-        stale = ledger_state.stale_checkout_line(REPO, ledger_state.state(REPO, COORD_DIR, account.current().name))
-    except ledger_state.NoMain as e:
-        stale = f"main's stamp not read ({e})"
     if stale:
         print(f"⛔ NOT MAIN'S PAGE: {stale}")
     return 0
