@@ -31,3 +31,10 @@ frames a sibling appended after the walk found when a target reaches them, and a
 Two goldens cross the span boundary with 4100 varying records: `14.9.30-READ/pb3350_read_previous_varying_span` (GR21 c and e;
 the forward walk's checkpoints) and `_unassigned/pb3350_open_reversed_varying_span_85` (the counting walk's). The existing
 PREVIOUS and REVERSED cases are the byte-identical net. Inventory rows: none claimed, none changed.
+
+**Review round 1 (R1-1, fixed).** `FrameIndex.BuildWindow` overwrote the window's slots in place and assigned the span and count
+only after the walk, so an `IOException` mid-walk (status 30) left the OLD span claimed over the NEW span's starts: the next
+backward READ into the old span answered another record's start with status 00. It now invalidates the window before it writes
+a slot. Pinned by `FrameIndexTests.AWindowBuildThatThrows_LeavesNoTornWindowBehind` (red without the fix, measured) and the
+sibling arm `AnExtendThatThrows_ResumesFromTheLastWholeFrame`. The structural guard now asserts it found its three files and
+scans the `List<long>` AND `long[]` members, allowing only the index's `_checkpoints` and `_window` (R1-2).
