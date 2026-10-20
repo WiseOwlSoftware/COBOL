@@ -834,6 +834,25 @@ public sealed class DataItem
     /// to read the OCCURS maximum a dynamic table does not have.</summary>
     public int VariableComponentMax => OccursSpec is { IsDynamic: true } dynamic ? dynamic.MaxCapacity : DynMaxSize;
 
+    /// <summary>⛔ THE IMAGE UNIT OF AN ITEM'S DATA (kb/Work PB3441): how many image characters one of its character
+    /// positions occupies in the image of the group that holds it - a variable-length group's current-extent image (what
+    /// DISPLAY shows and LENGTH counts), its carrier components, a record image and a cell's component slots. One for an
+    /// alphanumeric item (and group), <see cref="PicInfo.BytesPerPosition"/> (two, UTF-16BE, D-N1) for a national item and
+    /// two for a GROUP-USAGE NATIONAL group: the image of a group IS its storage, so a national member contributes the
+    /// bytes it occupies whether it is fixed or dynamic-length (CONFORMANCE.md A.1 items 57 and 63). The ONE reader of the
+    /// unit: the group composer, the contiguous layout of a declared and of a cell-backed group, the dynamic-length
+    /// structure (<see cref="FileModel.StructureOf"/>) and the space a table element is filled with all ask it.</summary>
+    public int ImageUnit => Pic?.BytesPerPosition
+        ?? PicInfo.BytesPerPositionOf(GroupUsage is GroupUsage.National ? Usage.National : Usage.Display);
+
+    /// <summary>The maximum size of a variable-length component in the unit a cell's component SLOT holds it in
+    /// (kb/Work PB3441): <see cref="VariableComponentMax"/> for a dynamic-capacity table (occurrences), and for a
+    /// dynamic-length item its maximum size in IMAGE CHARACTERS (<see cref="DynMaxSize"/> positions of
+    /// <see cref="ImageUnit"/> each), because the slot of a national item holds its UTF-16BE image and a store into
+    /// it truncates the image on the right at the item's maximum size (§8.5.1.10.4). A layout of the same group divides it
+    /// back by the unit (<c>StorageCell.LayoutOf</c>).</summary>
+    public int SlotMaxSize => OccursSpec is { IsDynamic: true } ? VariableComponentMax : DynMaxSize * ImageUnit;
+
     /// <summary>The SPECIAL-NAMES dynamic-length structure this item's DYNAMIC LENGTH clause names (ISO §13.18.19.3
     /// SR2 — dynamic-length-structure-name-1), or null when the clause names none and the structure is the
     /// implementor's (SR3). Its PREFIXED length field is one of <see cref="DynMaxSize"/>'s §8.5.1.10.1 candidates, and
@@ -1110,22 +1129,6 @@ public sealed class DataItem
     /// references set aside - the same member law, so there is one
     /// and never a second. For a group holding no reference this and <see cref="CurrentExtentImageCapable"/> are one.</para></summary>
     public bool CurrentExtentTransferImageCapable => ComposesCurrentExtent(transfer: true);
-
-    /// <summary>⛔ Is a variable-length group's CURRENT-EXTENT IMAGE also its STORAGE image (kb/Work PB3424)? True unless a
-    /// dynamic-length item or dynamic-capacity table of USAGE NATIONAL lies beneath it: the composer
-    /// (<c>GroupImageCodec.CurrentPartImage</c>) writes a FIXED national member as its UTF-16BE byte pairs (D-N1) but a
-    /// dynamic-length national leaf, and a dynamic table's national element, CHARACTER FOR CHARACTER (CONFORMANCE.md A.1
-    /// item 63: a dynamic-length item contributes its content character for character), so the displayed image is not
-    /// the bytes those members occupy. The consumers that want characters - DISPLAY, a function's string argument, a
-    /// digit decode - take the image as it is; the consumer that wants the storage BYTES - CONVERT's ANY source
-    /// (§15.19.3 rule 7) - must ask this first and stay loud for a group that answers false, never read a character
-    /// image as storage.</summary>
-    public bool CurrentImageIsStorageImage => !HoldsCharacterCarriedNational(this);
-
-    private static bool HoldsCharacterCarriedNational(DataItem g) =>
-        g.Children.Any(c => c.RedefinesTargetName is null
-            && (c.IsElementary ? c.Pic is { BytesPerPosition: > 1 } && (c.IsDynamicLength || c.IsDynamicTable)
-                               : HoldsCharacterCarriedNational(c)));
 
     /// <summary>An OCCURS DEPENDING table whose elements are variable-length groups, at any depth beneath
     /// <paramref name="g"/> (REDEFINES subtrees aside): a record of this shape needs a count source to be read back
