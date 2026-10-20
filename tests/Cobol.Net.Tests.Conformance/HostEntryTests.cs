@@ -702,6 +702,73 @@ public sealed class HostEntryTests
         finally { CutRunner.TryDelete(dir); }
     }
 
+    /// <summary>A program whose group formal is a VARIABLE-LENGTH group holding a dynamic-length NATIONAL item and a
+    /// dynamic-capacity table of national elements (kb/Work PB3441).</summary>
+    private const string NationalVarPrograms = """
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. H7NAT.
+        DATA DIVISION.
+        LINKAGE SECTION.
+        01 LK-N.
+           05 LK-ID PIC 9(2).
+           05 LK-NM PIC N DYNAMIC LENGTH LIMIT IS 6.
+           05 LK-NT PIC N(2) OCCURS DYNAMIC CAPACITY IN LK-NC FROM 1.
+        PROCEDURE DIVISION USING LK-N.
+        P1.
+            DISPLAY "IN " LK-ID " " FUNCTION BYTE-LENGTH (LK-NM) " " FUNCTION BYTE-LENGTH (LK-N)
+            IF LK-NM = NX"4E2D6587" DISPLAY "NM-OK" ELSE DISPLAY "NM-BAD" END-IF
+            IF LK-NT(2) = NX"00640065" DISPLAY "NT2-OK" ELSE DISPLAY "NT2-BAD" END-IF
+            MOVE NX"00780079007A" TO LK-NM
+            MOVE NX"006C006D" TO LK-NT(3)
+            GOBACK.
+        END PROGRAM H7NAT.
+        """;
+
+    private const string NationalVarHost = """
+        using System;
+        using Cobol.H7PROGS;
+
+        public static class H7HostProgram
+        {
+            public static int Main()
+            {
+                var n = new H7NAT.LK_N_Record();
+                n.LK_ID = 5;
+                n.LK_NM = "\u4E2D\u6587";
+                n.LK_NT = ["ab", "de"];
+                H7NAT.Call(ref n);
+                Console.WriteLine($"OUT {n.LK_ID} [{n.LK_NM}] {string.Join(",", n.LK_NT)}");
+                return 0;
+            }
+        }
+        """;
+
+    /// <summary>A host passes a VARIABLE-LENGTH group holding a dynamic-length NATIONAL item and a table of national
+    /// elements as the CALL lane's carrier, whose components are images (CONFORMANCE.md A.1 items 57 and 63; kb/Work
+    /// PB3441): the host's text lands as the item's UTF-16BE bytes and comes back decoded. Expected values, derived: the
+    /// item holds two positions, so four bytes, and the group two (LK-ID) + four + two elements of four = 14
+    /// (§15.14.4 rule 6); the host's U+4E2D U+6587 and the table's "de" (U+0064 U+0065) are what the activated program
+    /// compares; it stores three positions (xyz) and a THIRD element ("lm"), which creates the occurrence (§8.5.1.9.3).</summary>
+    [Fact]
+    public void AHost_PassesANationalVariableLengthGroup_AsItsUtf16Image()
+    {
+        string dir = CutRunner.NewTempDir("h7host");
+        try
+        {
+            NonCobolElement.CompileCobol(dir, "H7PROGS", NationalVarPrograms);
+            NonCobolElement.CompileCSharp(dir, "H7HOST", NationalVarHost, "H7PROGS", "H7PROGS");
+            var (exit, stdout, stderr) = CutRunner.RunExit(Path.Combine(dir, "H7HOST.dll"), dir);
+            Assert.Equal(
+                "IN 05 4 14\n" +
+                "NM-OK\n" +
+                "NT2-OK\n" +
+                "OUT 5 [xyz] ab,de,lm", stdout);
+            Assert.Equal(0, exit);
+            Assert.Equal("", stderr);
+        }
+        finally { CutRunner.TryDelete(dir); }
+    }
+
     /// <summary>A program whose group formal is a strongly-typed group holding a data pointer, a program pointer and a
     /// table: the first call sets both pointers, the second reads storage through the data pointer the host passed back.</summary>
     private const string SlotPrograms = """
