@@ -82,7 +82,13 @@ planner's and the spec renderer's record_dispatch write: kb/Work PB3186) and the
 in-flight set (work.slice_file_set, DESIGN-external-repository §12), classified by ONE rule (classify_inflight): a
 group meeting RUNNING work (a dispatch with no report yet, a worktree or branch no finished report covers) waits, with
 the collision named; a group meeting only FINISHED branches (a DONE report, no review findings: waiting for review or
-landing) is planned as their CONTINUATION, its pred telling it to merge each first. The in-flight set never reads a
+landing) is planned as their CONTINUATION, its pred telling it to merge each first. AN EMPTY SET IS UNKNOWN, never
+"collides with nothing" (collision, kb/Work PB3263): a group none of whose notes declares a site block, or a dispatch
+the ledger recorded with no files, meets the other side on a shared SUBSYSTEM (its notes' `area:`, subsystems) and
+meets everything when that is unknown too; such a meeting waits even for finished work; within a wave an unknown
+group is planned alone on its subsystems (a successor of the last group on one, and a later group on one follows it);
+and the plan table and its spec name it UNPARTITIONED. A finisher's set includes the files of the branch it continues.
+The in-flight set never reads a
 branch CLASSIFICATION: a dispatched branch with no commit classifies MERGED and one that edits only existing files
 classifies LANDED, so a classification-filtered set missed both (PB2118 Draft 7, the sixth refuter's partition lead).
 --no-branches skips the git half (a planning preview), never the dispatch ledger or the slice half. This set is the
@@ -114,7 +120,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-from typing import Any, Callable, Mapping, Sequence
+from typing import Any, Callable, Iterable, Mapping, Sequence
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -453,7 +459,8 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
          before the agent has a worktree or a commit. The planner, the landing check and the survey's in-flight slugs
          all pass their reports, so the three read one rule. Its writers are structured (kb/Work PB3186): the planner's record of a planned wave and the spec
          renderer's record of every group it renders (record_dispatch, through make_dispatch_specs.py), each with the
-         group's exact file set. An attended dispatch made without a rendered group (a direct Agent call) is in flight
+         group's exact file set; a group recorded with none is an owner with an EMPTY, that is UNKNOWN, set (collision,
+         kb/Work PB3263), never dropped. An attended dispatch made without a rendered group (a direct Agent call) is in flight
          from its worktree's first edit (sources 1-2), and the landing check is the guarantee behind it.
     `git` has prune_worktrees.git's shape (*args, cwd=); `terminal(note_id)` says whether a note is landed or retired.
     `meta`, when given, receives per owner what the planner (classify_inflight) and the landing check
@@ -506,11 +513,12 @@ def inflight_file_sets(*, git: Callable[..., Any] | None = None, repo: pathlib.P
     for g in ledger_groups(coord_dir or coord.coord_dir()):
         if (terminal is not None and all(terminal(i) for i in g.get("notes", []))) or any(answers(r, g) for r in reports):
             continue
-        if files := {f.replace(chr(92), "/") for f in g.get("files", [])}:
-            owner = f"dispatched {ledger_slug(g)} ({', '.join(g.get('notes', [])[:3])})"
-            out[owner] = files
-            if meta is not None:
-                meta[owner] = {"notes": list(g.get("notes", [])), "at": g.get("at", 0.0), "slug": ledger_slug(g)}
+        # A group recorded with NO files is in flight all the same: its set is UNKNOWN (collision, kb/Work PB3263),
+        # never "changes nothing", so it stays an owner with its empty set and its notes (whose subsystems it meets on)
+        owner = f"dispatched {ledger_slug(g)} ({', '.join(g.get('notes', [])[:3])})"
+        out[owner] = {f.replace(chr(92), "/") for f in g.get("files", [])}
+        if meta is not None:
+            meta[owner] = {"notes": list(g.get("notes", [])), "at": g.get("at", 0.0), "slug": ledger_slug(g)}
     return out
 
 
@@ -626,11 +634,35 @@ def collision_set(primary: str, declared: list[set[str]]) -> list[str]:
     return sorted(set().union(*declared) | ({primary} - {""}))
 
 
-def file_set_collisions(files: list[str] | set[str], busy: dict[str, set[str]]) -> list[str]:
-    """The in-flight file sets a group's files meet, each as '<owner> (<first file>)': the ONE collision rule of the
-    file-set partition (kb/Work PB2118 question 5). Paths are repo-relative POSIX."""
+def subsystems(ids: Iterable[str], notes: Mapping[str, Note]) -> set[str]:
+    """The SUBSYSTEMS a group or an in-flight owner works in: its notes' `area:` values, case-folded (every note carries
+    one: work.py check). The partition's key where a file set is UNKNOWN (collision, kb/Work PB3263)."""
+    return {a for i in ids if i in notes and (a := notes[i].area.strip().lower())}
+
+
+def collision(mine: set[str], areas: set[str], theirs: set[str], their_areas: set[str]) -> str | None:
+    """THE meeting rule of the file-set partition (kb/Work PB2118 question 5, PB3263), or None when the two never meet:
+    the label of what they share. Two KNOWN file sets meet on a shared file (its first, by name). An EMPTY set is
+    UNKNOWN, never "changes nothing": a group whose notes declare no site block (work.note_sites), or a dispatch the
+    ledger recorded with no files (wave 1117 recorded six of eight PB3353 groups so, and wave 1126 C's then landed on
+    the in-flight engine's files, PB3263). An unknown side meets the other on a shared SUBSYSTEM (`areas`, subsystems),
+    and meets everything when either side's subsystem is unknown too: the partition cannot tell, so it never guesses
+    "nothing". Paths are repo-relative POSIX."""
+    if mine and theirs:
+        return sorted(mine & theirs)[0] if mine & theirs else None
+    if not areas or not their_areas:
+        return "UNKNOWN file set, subsystem unknown"
+    shared = sorted(areas & their_areas)
+    return f"UNKNOWN file set, subsystem {shared[0]}" if shared else None
+
+
+def file_set_collisions(files: list[str] | set[str], busy: Mapping[str, set[str]], areas: set[str] = frozenset(),
+                        busy_areas: Mapping[str, set[str]] = {}) -> list[str]:
+    """The in-flight owners a group meets, each as '<owner> (<what they share>)', by THE one rule (collision): `files`
+    and `areas` are the group's, `busy` and `busy_areas` each owner's file set and subsystems. Paths are POSIX'd here."""
     mine = {f.replace(chr(92), "/") for f in files}
-    return [f"{owner} ({sorted(mine & theirs)[0]})" for owner, theirs in sorted(busy.items()) if mine & theirs]
+    return [f"{owner} ({hit})" for owner, theirs in sorted(busy.items())
+            if (hit := collision(mine, set(areas), theirs, set(busy_areas.get(owner, ()))))]
 
 
 @dataclasses.dataclass
@@ -671,7 +703,8 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         session has decided, MANDATORY-PRACTICES O10; the collision names it, so the operator decides it), or a
         detached worktree or owner the survey does not name (the external-repository slices).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
-    report's ids are the branch's notes: plan() never defers a group for work on its OWN notes."""
+    report's ids are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
+    plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
     by_branch: dict[str, Report] = {}
     for r in reports:   # oldest first: the last write is the newest
         if r.branch:
@@ -687,7 +720,7 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         if state in GONE_STATES:
             continue
         rep = by_branch.get(branch or "")
-        notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", []))
+        notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
         done = rep if state in CONTINUED_STATES and rep and rep.finished else None
         out[owner] = InFlight(set(files), branch, notes, done, state)
     return out
@@ -946,7 +979,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     passed none, so a fix-lane group was planned on a file another session's running group held): a group whose files
     meet RUNNING work waits, the collision named, and so does every group that would follow it; a group whose files
     meet only FINISHED branches is planned as their continuation (continuation_pred: merge each first, no `after:`).
-    The group's own work never collides: a branch its pred already continues (`Group.continues`), or a dispatch of its
+    An EMPTY file set is UNKNOWN (collision, kb/Work PB3263): it meets on a shared subsystem, such a meeting waits even
+    for finished work, and within the wave an unknown group follows the last group on its subsystems (and a later group
+    on one follows it). The group's own work never collides: a branch its pred already continues (`Group.continues`), or a dispatch of its
     own notes. Without `deps` and `busy` nothing here changes the fix lane's plan (test_plan_wave.py check 8 holds it
     to a golden).
 
@@ -1144,17 +1179,35 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     tail: dict[int, Group] = {}              # id(chain head) -> the chain's last group
     group_of: dict[str, Group] = {}          # note -> the group planned for it
     placed: list[Group] = []
+    # A group whose file set is UNKNOWN (no note declares a site block, kb/Work PB3263) is planned ALONE ON ITS
+    # SUBSYSTEMS: by THE meeting rule (collision), it follows EVERY group of this wave it meets, and every later group
+    # that meets it follows it. A successor chain is linear, so when the groups it meets lie in two chains it waits for
+    # a later wave: it never runs beside a group it cannot be checked against. Two KNOWN groups link on their primary
+    # file only (the same-file rule above); the partition by file set is the in-flight one.
+    areas_of: dict[int, set[str]] = {}       # id(group) -> its subsystems, for each placed group
     for g in groups:
+        # a finisher's set includes what the branches it continues already change (their actual diff, read once by
+        # inflight_file_sets): that much of its work is known whatever its notes declare
+        if carried := {f for x in (busy or {}).values() if x.branch and x.branch in g.continues for f in x.files}:
+            g.files = sorted(set(g.files) | carried)
         links = [last_on_file[g.file]] if g.file and g.file in last_on_file else []
+        areas = subsystems(g.notes, notes)
+        mine = {f.replace(chr(92), "/") for f in g.files}
+        unpart = [x for x in placed if not (mine and x.files) and collision(mine, areas, set(x.files), areas_of[id(x)])]
+        links += unpart
         if busy:   # THE FILE-SET PARTITION, one rule for both lanes (kb/Work PB2807; classify_inflight)
-            mine = {f.replace(chr(92), "/") for f in g.files}
-            met = {o: x for o, x in busy.items() if mine & x.files            # never the group's own work: the branch
-                   and not (x.branch and x.branch in g.continues)             # its pred continues, or a dispatch of
-                   and not x.notes & set(g.notes)}                            # its own notes (the hold decided those)
-            if running := {f"{o} [{x.state}]": x.files for o, x in met.items() if x.finished is None}:
+            met = {o: x for o, x in busy.items()                            # never the group's own work: the branch
+                   if not (x.branch and x.branch in g.continues)              # its pred continues, or a dispatch of
+                   and not x.notes & set(g.notes)                             # its own notes (the hold decided those)
+                   and collision(mine, areas, x.files, subsystems(x.notes, notes))}
+            # a meeting the partition could not check by file (an UNKNOWN set) waits even for FINISHED work: a
+            # continuation would merge a branch the group may share nothing with (collision, kb/Work PB3263)
+            if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None or not (mine and x.files)}:
                 for i in g.notes:
-                    waiting[i] = ("file-set collision with running work " + "; ".join(file_set_collisions(mine, running))
-                                  + ": it waits until that work finishes (then continues it) or is decided")
+                    waiting[i] = ("file-set collision with in-flight work " + "; ".join(file_set_collisions(
+                        mine, {o: x.files for o, x in held_by.items()}, areas,
+                        {o: subsystems(x.notes, notes) for o, x in held_by.items()}))
+                        + ": it waits until that work finishes (then continues it) or is decided")
                 continue
             done = {x.finished.branch: x.finished for x in met.values() if x.finished and x.finished.branch}
             if done:
@@ -1171,8 +1224,9 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
             links += [group_of[b] for b in g.blocked_by]
         chains = {chain_of[id(x)] for x in links}
         if len(chains) > 1:
+            what = "its blockers, its file and the groups it meets by subsystem" if unpart else "its blockers and its file"
             for i in g.notes:
-                waiting[i] = ("its blockers and its file are in different successor chains ("
+                waiting[i] = (f"{what} are in different successor chains ("
                               + ", ".join(sorted(tail[c].letter for c in chains)) + "): a later wave")
             continue
         prev = tail[chains.pop()] if chains else None
@@ -1187,6 +1241,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         tail[chain_of[id(g)]] = g
         if g.file:
             last_on_file[g.file] = g
+        areas_of[id(g)] = areas
         for i in g.notes:
             group_of[i] = g
         g.model, g.why_model = choose_model(g, notes, reports, rules)
@@ -1284,6 +1339,14 @@ def group_requirements(groups: Sequence[Group], cluster_of: Mapping[str, Any], n
     return out
 
 
+def unpartitioned(g: Group, notes: Mapping[str, Note]) -> str:
+    """The plan table's and the spec's naming of a group whose file set is UNKNOWN (kb/Work PB3263): the silence ended."""
+    return (f"⚠ UNPARTITIONED (kb/Work PB3263): no note of this group declares a file the partition covers (a site "
+            f"block's path under a campaign root), so its file set is UNKNOWN and the partition planned it alone on "
+            f"its subsystem(s) "
+            f"{', '.join(sorted(subsystems(g.notes, notes))) or '(none known)'}.")
+
+
 def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequence[str]] = {}) -> str:
     parts = []
     for nid in g.notes:
@@ -1295,6 +1358,8 @@ def body_of(g: Group, notes: dict[str, Note], requirements: Mapping[str, Sequenc
             "every row the landing really closes.")
     if g.model == "opus" and g.why_model != "default":
         tail += f" Routed to Opus: {g.why_model}; settle any open design question against its design doc first."
+    if not g.files:
+        tail += f" {unpartitioned(g, notes)} In your first checkpoint, give each note a `**Sites:**` paragraph naming the files it changes."
     if g.blocked_by:
         tail += (f" ⛔ DEPENDENCY SUCCESSOR (blocked_by, kb/Work PB2120): these notes are blocked by "
                  f"{', '.join(g.blocked_by)}, which group {g.after}'s chain does in this wave. Build on that work, never "
@@ -1482,9 +1547,13 @@ def main(argv: list[str] | None = None) -> int:
     meta: dict[str, dict] = {}
     raw = inflight_file_sets(coord_dir=cdir, terminal=terminal, with_git=not a.no_branches, meta=meta, reports=reports)
     # the slices gate the R3 campaign only (PB2118 Draft 7, R69 section 2): the fix lane is never held for them
-    if a.cluster and any(work.EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
-                         and i.get("status") not in work.TERMINAL_STATUSES for i in items):
+    slices = [i["id"] for i in items if work.EXTERNAL_SLICE_TITLE.match(i.get("title") or "")
+              and i.get("status") not in work.TERMINAL_STATUSES]
+    if a.cluster and slices:
         raw["the open external-repository slices"] = work.slice_file_set()
+        # their notes give the owner its subsystems, so a group whose set is UNKNOWN meets it only on a shared one
+        # (collision, kb/Work PB3263), never on "subsystem unknown"
+        meta["the open external-repository slices"] = {"notes": slices}
     states: dict[str, str] = {}
     owned: set[str] = set()
     review_covers = None
@@ -1528,6 +1597,8 @@ def main(argv: list[str] | None = None) -> int:
               f"{sum(len(notes[i].rows) for i in g.notes):3} rows  {g.cost:.2f} pt  {j['codes']}  {g.file or '-'}")
         print(f"      notes {j['notes']} (lead {j['lead']}); model: {g.why_model}"
               + (f"; blocked by {', '.join(g.blocked_by)} (planned before it)" if g.blocked_by else ""))
+        if not g.files:
+            print(f"      {unpartitioned(g, notes)}")
     if p["awaiting_landing"]:
         print("  awaiting landing (excluded; an `enqueue` unit first): " + "; ".join(
             f"{b}: {', '.join(ids)}" for b, ids in sorted(p["awaiting_landing"].items())))
