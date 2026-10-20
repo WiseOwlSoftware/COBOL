@@ -130,7 +130,7 @@ internal static class PlaceRenderer
         // another).
         RedefViewPlace { Coding: DynSlotWindow d } v => RuntimeApi.DynAgree(
             RuntimeApi.CellDynRead(RenderPath(d.Cell, AccessDir.Sending), PositionRenderer.Render(d.Ordinal),
-                national: v.ViewItem.DynamicImageUnit > 1), v.ViewItem.DynMaxSize),
+                national: v.ViewItem.ImageUnit > 1), v.ViewItem.DynMaxSize),
         // A VARIABLE-LENGTH GROUP of a cell-backed class (kb/Work PB1026): read as its contiguous image at its
         // current extent — §8.5.1.11.2, the same composition a declared group's CurrentImage() performs.
         // (A plain read is the group's MAXIMUM image: the OCCURS DEPENDING count is an operand decision, made by
@@ -350,7 +350,7 @@ internal static class PlaceRenderer
         // The cell is reached RECEIVING: inside a dynamic-capacity table's element cell (kb/Work PB1042) the store
         // is a receiving reference to that occurrence, which grows the table to it (§8.5.1.9.3).
         DynSlotWindow d => $"{RuntimeApi.CellDynWrite(RenderPath(d.Cell, AccessDir.Receiving), PositionRenderer.Render(d.Ordinal), rhs,
-            national: v.ViewItem.DynamicImageUnit > 1)};",
+            national: v.ViewItem.ImageUnit > 1)};",
         // A VARIABLE-LENGTH GROUP of a cell-backed class receiving a character value (kb/Work PB1026): the value is
         // a contiguous image (§8.5.1.11.2), decomposed by the ONE take step determination D-FRA states.
         VarGroupWindow g => $"{RuntimeApi.CellVarStoreContiguous(RenderPath(g.Cell, AccessDir.Receiving),

@@ -18,14 +18,16 @@ namespace CobolNet.Runtime;
 /// decomposition puts it: the record's own EXTENT TABLE (<see cref="RecordExtents"/>, determination D-FRA (v);
 /// kb/Work PB1053) when it travelled with the record and describes it — every layout then round-trips, whatever
 /// number of variable-length members sit on either side of a fixed one — and otherwise the ONE take step: walking
-/// the components left to right, each takes as many whole units (one character of a dynamic-length item, one
+/// the components left to right, each takes as many whole units (one character position of a dynamic-length item, one
 /// element of a dynamic-capacity table) as the record holds beyond the FIXED material still to come, up to its
 /// maximum.
 /// </summary>
 /// <param name="FixedTotal">The width of the FIXED run — the record with every variable-length component
 /// collapsed to nothing (the §8.5.1.12.3 zero-length accounting).</param>
 /// <param name="FixedAt">Component k's offset in the FIXED run.</param>
-/// <param name="Unit">Component k's unit width in characters.</param>
+/// <param name="Unit">Component k's unit width in image characters: the element width of a table, the image characters of
+/// one character position of a dynamic-length item (one alphanumeric, two for a national item's UTF-16BE bytes - kb/Work
+/// PB3441), the unit its fixed form pads and trims by.</param>
 /// <param name="MaxUnits">Component k's maximum size in units (§8.5.1.10.1 / the table's maximum capacity).</param>
 /// <param name="StructureCodes">Component k's DYNAMIC LENGTH STRUCTURE layout (§12.3.7.4 GR18/GR19) as
 /// <see cref="CobolDynStructure.Code"/>, 0 for a component the clause names no structure for (§13.18.19.3 SR3 —
