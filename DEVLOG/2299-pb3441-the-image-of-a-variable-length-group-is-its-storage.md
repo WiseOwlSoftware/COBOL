@@ -1,4 +1,4 @@
-## PB3441: the image of a variable-length group is its storage, for a dynamic national item and a table of national elements
+## Entry 2299 — 2026-10-20 14:09 PDT — PB3441: the image of a variable-length group is its storage, for a dynamic national item and a table of national elements
 
 A variable-length group holding a dynamic-length NATIONAL item or a dynamic-capacity table of national elements had two
 widths: DISPLAY showed its positions (`xy06`, 4) while `FUNCTION LENGTH` / `BYTE-LENGTH` counted bytes (6), and
@@ -46,3 +46,4 @@ national member already followed. Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batch
 `20261020T203628Z-0e8334`, Conformance 11,077/18,046 · Unit 34,011/34,867 · Characterization 5/36, leg 2 left to CI).
 
 Branch review round 1 (R1-1, test coverage): the record format of a DYNAMIC LENGTH STRUCTURE national member of a group record (SHORT PREFIXED length counted in positions over UTF-16BE data, DELIMITED delimiter the pair 00 00) had only a runtime unit test that hands the layout a hand-built code; the conformance golden `12.3.7-SPECIAL-NAMES/pb3441_dynamic_length_structure_national_member` now writes and reads such a record end to end (expected bytes from 12.3.7.4 GR18 and GR19 and the determination, a second description of the file shows them). R1-2 (the CobolContiguousLayout StructureCodes and VarGroupWindow DynStructure/DynMax docs still described the pre-branch encoding) rewritten to the layout-code and SlotMaxSize forms.
+
