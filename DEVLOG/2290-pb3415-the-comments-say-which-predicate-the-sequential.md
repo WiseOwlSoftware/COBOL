@@ -1,4 +1,4 @@
-## PB3415: the comments say which predicate the sequential release asks
+## Entry 2290 — 2026-10-20 11:10 PDT — PB3415: the comments say which predicate the sequential release asks
 
 kb/Work PB3415 (MINOR, process-only, comment accuracy; the Mythos lane's PB3335 review lead R5-L2). Two summaries still
 described the sequential release as asking `FileLockPosture.AdmitsAnotherWriter`, which PB1587 changed:
@@ -23,3 +23,4 @@ accurate.
 **Rows.** None (`closes_rows: []`, comment accuracy only). Self-review: no behaviour change; the caller sets the comments
 name are the ones `The_keyed_store_asks_about_any_run_unit_and_the_sequential_release_about_any_other_connector` pins
 file by file.
+
