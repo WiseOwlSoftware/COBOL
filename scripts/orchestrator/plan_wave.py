@@ -10,7 +10,9 @@ Design: docs/rearchitecture/DESIGN-orchestrator-loop.md section 9 (kb/Work PB198
 cost the orchestrator a hand-written groups.json; this computes it.
 
 1. AWAITING LANDING: an open note whose newest report is DONE and whose branch is not on main yet is excluded (the
-   landing lane, land_lane.py, lands it first; re-planning it would dispatch the same work twice).
+   landing lane, land_lane.py, lands it first; re-planning it would dispatch the same work twice). A report's notes
+   are its lead plus the notes of the dispatch-ledger group it answers (`answered_notes`), never the ids its header
+   mentions (kb/Work PB3473, PB3152).
    HELD BY A DISPATCH: an open note that a dispatch-ledger group names (a wave this loop or another session planned
    or rendered, launched or not) and that the group's OWN report has not answered (`answers`: the report whose slug is
    the group's, `w<wave><letter>`, written at or after the dispatch; a report that merely names the note, or a
@@ -229,7 +231,7 @@ class Report:
     slug: str
     lead: str
     status: str
-    ids: list[str]
+    notes: list[str]   # the notes the report ANSWERS: its lead, then its dispatch group's (answered_notes), never its prose's
     not_started: bool
     branch: str | None
     worktree: str | None
@@ -322,16 +324,22 @@ def parse_report(p: pathlib.Path) -> Report | None:
     # so every reviewed branch read as landed and wave 1064's finishers were told to merge `worktree-…-r1`.
     unstamped = "\n".join(l for l in header if not REVIEW_LINE.match(l.strip()))
     b, w = BRANCH_FIELD.search(unstamped) or BRANCH.search(unstamped), WORKTREE.search(unstamped)
-    ids = list(dict.fromkeys(PB.findall(text) + [m.group("lead")]))
-    return Report(p, int(m.group("wave")), f"w{m.group('wave')}{m.group('letter')}", m.group("lead"), status, ids,
+    return Report(p, int(m.group("wave")), f"w{m.group('wave')}{m.group('letter')}", m.group("lead"), status,
+                  [m.group("lead")],
                   bool(re.search(r"(?i)not\s+started", text)), b.group(1) if b else None, w.group(1) if w else None,
                   header_sha(HEAD, unstamped), parse_review(text), header_sha(BASE, unstamped))
 
 
-def load_reports(reports_dir: pathlib.Path | None) -> list[Report]:
+def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | None = None) -> list[Report]:
+    """The reports in `reports_dir`, oldest first. With `coord_dir`, each report's `notes` are completed from the
+    dispatch ledger there (`answered_notes`): the planner passes it; the readers of a report's status and branch (the
+    branch survey, the landing checks) have no use for the notes and read the lead alone."""
     if not reports_dir or not reports_dir.is_dir():
         return []
+    groups = ledger_groups(coord_dir) if coord_dir else []
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
+    for r in reps:
+        r.notes = answered_notes(r, groups)
     return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime))
 
 
@@ -423,6 +431,16 @@ def answers(r: Report, g: dict[str, Any]) -> bool:
         return r.slug.lower() == ledger_slug(g) and r.path.stat().st_mtime >= g.get("at", 0.0)
     except OSError:
         return False
+
+
+def answered_notes(r: Report, groups: list[dict[str, Any]]) -> list[str]:
+    """THE NOTES A REPORT ANSWERS (kb/Work PB3152, PB3473): its LEAD (the id in its file name) plus the notes of the
+    dispatch-ledger group it `answers`, the notes its group was DISPATCHED with. Never the ids its header mentions: a
+    header carries prose (a "not started" aside, a cross-reference, a merge note), and every note it named was taken as
+    this report's, so a DONE report that only mentioned PB3337 put PB3337 in `awaiting landing` (wave 1135) and a
+    FINDINGS report that mentioned PB3101 had its finisher planned under PB3101 (wave 1076). A report no ledger group
+    knows (an attended branch's) answers its lead alone."""
+    return list(dict.fromkeys([r.lead, *(n for g in groups if answers(r, g) for n in g.get("notes", []))]))
 
 
 def _names(out: str) -> set[str]:
@@ -745,7 +763,7 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         if state in GONE_STATES:
             continue
         rep = by_branch.get(branch or "")
-        notes = set(rep.ids if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
+        notes = set(rep.notes if rep else []) | set((branch_notes or {}).get(branch or "", [])) | set(m.get("notes", []))
         done = rep if state in CONTINUED_STATES and rep and rep.finished else None
         out[owner] = InFlight(set(files), branch, notes, done, state)
     for x in out.values():
@@ -935,7 +953,7 @@ def letters():
 
 
 def attempts(nid: str, reports: list[Report]) -> int:
-    return sum(1 for r in reports if nid in r.ids)
+    return sum(1 for r in reports if nid in r.notes)
 
 
 def choose_model(g: Group, notes: dict[str, Note], reports: list[Report], rules: dict[str, Any]) -> tuple[str, str]:
@@ -1086,7 +1104,7 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     unlanded = {b: [i for i in ids if i in leads] for b, ids in unlanded.items()}
     newest: dict[str, Report] = {}
     for r in reports:  # sorted oldest first, so the last write wins
-        for i in r.ids:
+        for i in r.notes:
             if i in leads:
                 newest[i] = r
 
@@ -1580,7 +1598,7 @@ def main(argv: list[str] | None = None) -> int:
         half_clusters = fix_clusters("half", a.half_clusters_json)
         declare_fix_lane(clusters + half_clusters, declared, REPO / "kb" / "Work")
     reports_dir = pathlib.Path(a.reports) if a.reports else coord.reports_dir(a.coord)
-    reports = load_reports(reports_dir)
+    reports = load_reports(reports_dir, cdir)
     if a.no_branches:
         classify, unlanded, carrier = (lambda _b: "ABSENT"), {}, None
     else:
