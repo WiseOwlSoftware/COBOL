@@ -618,9 +618,13 @@ public static class CellComponents
 /// sits at <paramref name="DynFixedAt"/> (relative to the group): a dynamic-length item occupying nothing, a
 /// dynamic-capacity table reserving its one-element extent <paramref name="DynTable"/> (0 for a dynamic-length item).
 /// The components are the cell's slots <paramref name="DynBase"/> onward (a typed position, the
-/// first ordinal), with maximum sizes <paramref name="DynMax"/> (a table's in occurrences), each laid out in a record
-/// image by its <paramref name="DynStructure"/> (<c>CobolDynStructure.Code</c>, 0 for none — ISO §12.3.7.4
-/// GR18/GR19; kb/Work PB1094). ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
+/// first ordinal), with maximum sizes <paramref name="DynMax"/> (a table's in occurrences, a dynamic-length item's in
+/// the image characters of its slot: <c>DataItem.SlotMaxSize</c>, twice its LIMIT for a national item), each laid out in
+/// a record image by its <paramref name="DynStructure"/> (its layout code, <c>FileModel.LayoutCodeOf</c>: the item's
+/// <c>CobolDynStructure.Code</c> when it names a structure - ISO §12.3.7.4 GR18/GR19; kb/Work PB1094 - else the bare
+/// unit of its data, <c>CobolDynStructure.PlainCode</c>, 0 for one image character a position and 32 for a national
+/// item; whether a code names a structure is asked of <c>CobolDynStructure.FromCode</c>, never <c>code != 0</c>;
+/// kb/Work PB3441). ISO §8.5.1.11.2 — "a variable-length data item behaves in all respects as though it
 /// were in fact contiguous with its neighbors whenever a procedural operation is applied to a group containing it"
 /// — is why its read is the CONTIGUOUS image (<c>StorageCell.ContiguousAt</c>), exactly what a declared group's
 /// generated <c>CurrentImage()</c> composes.
