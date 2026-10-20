@@ -17,7 +17,7 @@ namespace CobolNet.Tests.Unit;
 /// decide — but it is decided ONCE. The frame grammar (the length word, the gap tag, bit 31's extent flag, the extent
 /// table, the payload) was decoded in four places, two of them through a parallel decoder over Latin-1 characters,
 /// and the copies already disagreed: a torn last frame was delivered by the forward READ as one more record while the
-/// record count and the backward-READ index (<c>RecordFraming.FrameStarts</c>) ended the data before it; a gap word
+/// record count and the backward-READ index (<c>RecordFraming.CountFrames</c>, <c>FrameIndex</c>) ended the data before it; a gap word
 /// after a valid frame was a zero-length record to the index and an <see cref="OutOfMemoryException"/> to the READ;
 /// a huge extent-table count allocated its table before a single byte was read.</para>
 /// <para><b>So the guard is the shape, measured three ways:</b> the frame word's constant (bit 31's extent flag) is
@@ -53,7 +53,8 @@ public sealed class FrameDecoderDriftTests
     /// something only while it still finds them (feedback_measure_the_selectors_complement).</summary>
     private static readonly (string File, string[] Methods)[] FrameReaders =
     [
-        ("RecordFraming.cs", ["DecodeFrame", "FrameStarts", "StreamFramingParses"]),
+        ("RecordFraming.cs", ["DecodeFrame", "CountFrames", "StreamFramingParses"]),
+        ("FrameIndex.cs", ["Extend", "BuildWindow"]),
         ("SequentialConnector.cs", ["NextFrame"]),
     ];
 
@@ -180,6 +181,16 @@ public sealed class FrameDecoderDriftTests
         _ => throw new ArgumentOutOfRangeException(nameof(damage)),
     };
 
+    /// <summary>Every frame start the backward-READ index answers, in order (ordinal 1 first), until it reports no
+    /// such record.</summary>
+    internal static List<long> IndexedStarts(Stream fs, int stride = FrameIndex.DefaultStride)
+    {
+        var index = new FrameIndex(stride);
+        var starts = new List<long>();
+        for (long ordinal = 1; index.TryStartOf(fs, ordinal, out long start); ordinal++) starts.Add(start);
+        return starts;
+    }
+
     private static readonly byte[] TwoRecords = [.. Frame("HELLO"), .. Frame("WORLD!")];
 
     public static TheoryData<Damage> Damages() => new(Enum.GetValues<Damage>());
@@ -198,7 +209,10 @@ public sealed class FrameDecoderDriftTests
 
             // The record count and the backward-READ index.
             using (var fs = File.OpenRead(host))
-                Assert.Equal([0L, 9L], RecordFraming.FrameStarts(fs));
+            {
+                Assert.Equal(2, RecordFraming.CountFrames(fs));
+                Assert.Equal([0L, 9L], IndexedStarts(fs));
+            }
 
             // The forward READ delivers the same two records and then the end of the data.
             var c = new SequentialConnector(host, 20, lineSequential: false, varyMin: 1, varyMax: 20);
@@ -226,7 +240,8 @@ public sealed class FrameDecoderDriftTests
             // the decoder's End, which the OPEN answers '39' (§9.1.13.6 item 7).
             Assert.Equal(damage == Damage.TornWord, RecordFraming.StreamFramingParses(host));
             using var fs = File.OpenRead(host);
-            Assert.Empty(RecordFraming.FrameStarts(fs));
+            Assert.Equal(0, RecordFraming.CountFrames(fs));
+            Assert.Empty(IndexedStarts(fs));
         }
         finally { try { File.Delete(host); } catch (IOException) { } }
     }
@@ -269,7 +284,7 @@ public sealed class FrameDecoderDriftTests
         for (int k = 0; k < Frames; k++) bytes.AddRange(k % 2 == 0 ? Frame($"R{k:D3}") : TableFrame($"T{k:D3}"));
         using var fs = new LengthCountingStream([.. bytes]);
 
-        Assert.Equal(Frames, RecordFraming.FrameStarts(fs).Count);
+        Assert.Equal(Frames, RecordFraming.CountFrames(fs));
         Assert.Equal(1, fs.LengthQueries);
     }
 
