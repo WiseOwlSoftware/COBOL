@@ -18,18 +18,25 @@ namespace CobolNet.Runtime;
 /// decomposition puts it: the record's own EXTENT TABLE (<see cref="RecordExtents"/>, determination D-FRA (v);
 /// kb/Work PB1053) when it travelled with the record and describes it — every layout then round-trips, whatever
 /// number of variable-length members sit on either side of a fixed one — and otherwise the ONE take step: walking
-/// the components left to right, each takes as many whole units (one character of a dynamic-length item, one
+/// the components left to right, each takes as many whole units (one character position of a dynamic-length item, one
 /// element of a dynamic-capacity table) as the record holds beyond the FIXED material still to come, up to its
 /// maximum.
 /// </summary>
 /// <param name="FixedTotal">The width of the FIXED run — the record with every variable-length component
 /// collapsed to nothing (the §8.5.1.12.3 zero-length accounting).</param>
 /// <param name="FixedAt">Component k's offset in the FIXED run.</param>
-/// <param name="Unit">Component k's unit width in characters.</param>
+/// <param name="Unit">Component k's unit width in image characters: the element width of a table, the image characters of
+/// one character position of a dynamic-length item (one alphanumeric, two for a national item's UTF-16BE bytes - kb/Work
+/// PB3441), the unit its fixed form pads and trims by.</param>
 /// <param name="MaxUnits">Component k's maximum size in units (§8.5.1.10.1 / the table's maximum capacity).</param>
-/// <param name="StructureCodes">Component k's DYNAMIC LENGTH STRUCTURE layout (§12.3.7.4 GR18/GR19) as
-/// <see cref="CobolDynStructure.Code"/>, 0 for a component the clause names no structure for (§13.18.19.3 SR3 —
-/// the implementor's structure, which is the bare data and the extent table), or null when no component has one.
+/// <param name="StructureCodes">Component k's LAYOUT CODE: its DYNAMIC LENGTH STRUCTURE (§12.3.7.4 GR18/GR19) as
+/// <see cref="CobolDynStructure.Code"/> when the clause names one, else the bare unit of its data
+/// (<see cref="CobolDynStructure.PlainCode"/>: 0 for one image character a position, 32 for a national item's two bytes;
+/// §13.18.19.3 SR3 — the implementor's structure is the bare data and the extent table), or null when every component
+/// is the bare 0. Whether a code names a structure is asked of <see cref="CobolDynStructure.FromCode"/> /
+/// <see cref="CobolDynStructure.FromCodes"/>, never <c>code != 0</c>; the pad and trim space of a component derives from the
+/// code's unit (<see cref="CobolDynStructure.UnitOf"/>), as a width of two cannot say whether it is a national item
+/// or a table of two-character elements.
 /// <para>⛔ THE LAYOUT HAS TWO FORMS OF THE ONE RECORD (kb/Work PB1094). The CONTIGUOUS image is what a procedural
 /// operation on the group sees (§8.5.1.11.2) — the data alone. The MEDIUM image is what a file or a sort store holds:
 /// the contiguous image with each structured component replaced by its length field, data and delimiter
@@ -56,6 +63,13 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     IReadOnlyList<int>? StructureCodes = null, OdoTail Odo = default)
 {
     private readonly CobolDynStructure?[]? _structure = CobolDynStructure.FromCodes(StructureCodes);
+
+    /// <summary>Component k's SPACE in image characters a position (kb/Work PB3441): the unit its layout code names
+    /// (<see cref="CobolDynStructure.UnitOf"/>; two for a national item, whose space is the national space, the pair 00 20),
+    /// null when no component's code names one. A component's <see cref="Unit"/> is something else for a table (its
+    /// element width), so the space is never read off it.</summary>
+    private readonly int[]? _spaceUnit = StructureCodes is { } codes && codes.Any(c => CobolDynStructure.UnitOf(c) != 1)
+        ? [.. codes.Select(CobolDynStructure.UnitOf)] : null;
 
     /// <summary>The OCCURS DEPENDING table of fixed-image elements is this layout's LAST component (see <c>Odo</c>).</summary>
     private bool TableIsLastComponent => Odo.Present && Odo.Comps == 0;
@@ -171,8 +185,9 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
     /// shares — each member at the position it has when it holds its MAXIMUM size (§8.5.1.10.1 — the number
     /// §13.18.43.4 GR8 b) sums for the record), padded with spaces — and <see cref="Decompose"/> takes each member back at that width and
     /// drops the padding: a space in a fixed-size field is padding, never data.
-    /// <para>The characters of a member are its content character for character (a national item holds UTF-16
-    /// characters, DOC-A.1-63), so the padding is the space character. Returns <paramref name="image"/> unchanged
+    /// <para>The padding is the space of the member's own unit (<see cref="CobolVarGroup.SpacesFor"/>, the unit its
+    /// layout code names): the space character for an alphanumeric member, the national space (the UTF-16BE pair) for a
+    /// national one, whose image is its two bytes a position (DOC-A.1-63, kb/Work PB3441). Returns <paramref name="image"/> unchanged
     /// when <paramref name="extents"/> do not describe it (a record sent through another description, a table read
     /// from a frame) — there is then no member boundary to pad at.</para></summary>
     /// <param name="image">The record's contiguous image (<c>CurrentImage()</c>).</param>
@@ -193,7 +208,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
             sb.Append(image, at, lead + lengths[k]);
             at += lead + lengths[k];
             fixedDone = FixedAt[k];
-            sb.Append(' ', (int)Math.Min(Math.Max(0, MaxExtent(k) - lengths[k]), int.MaxValue));
+            sb.Append(CobolVarGroup.SpacesFor(Math.Max(0, MaxExtent(k) - lengths[k]), _spaceUnit?[k] ?? 1));
         }
         sb.Append(image, at, image.Length - at);
         return sb.ToString();
@@ -214,7 +229,7 @@ public sealed class CobolContiguousLayout(int FixedTotal, int[] FixedAt, int[] U
         if (ElementsHoldComponents)
             return (Stated(record, extents) ?? AtCount(fixedForm ? Odo.Max : count)).Decompose(record, extents, fixedForm);
         var carrier = CobolVarGroup.FromContiguous(record, FixedTotal, FixedAt, Unit, MaxUnits,
-            Recorded(record, extents), fixedForm, _structure);
+            Recorded(record, extents), fixedForm, _structure, _spaceUnit);
         return TableIsLastComponent ? carrier.JoinTail(FixedAt[^1]) : carrier;
     }
 
