@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -46,16 +47,7 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
     {
         string host = NewFile(tag);
         KeyedFileHarness.Seed(host, KeyedOrg.Indexed, [(1, "AAAA"), (4, "DDDD")], alternateKey: true);
-        byte[] file = File.ReadAllBytes(host);
-        int torn = 0;
-        for (int page = (int)MetaPage.MetaPages; page < file.Length / PageHeader.PageSize; page++)
-        {
-            if (file.AsSpan(page * PageHeader.PageSize, PageHeader.PageSize).IndexOf("0004DDDD"u8) < 0) continue;
-            file[page * PageHeader.PageSize + 100] ^= 0xFF;
-            torn++;
-        }
-        Assert.True(torn > 0, "the record's leaf was found");
-        File.WriteAllBytes(host, file);
+        KeyedFileHarness.TearPagesCarrying(host, "0004DDDD"u8);
         return host;
     }
 
