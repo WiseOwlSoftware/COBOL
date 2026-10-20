@@ -1,4 +1,4 @@
-## PB3410: the keyed ledger's 9-page bound at R2's checkpoint has a witness
+## Entry 2289 — 2026-10-20 11:05 PDT — PB3410: the keyed ledger's 9-page bound at R2's checkpoint has a witness
 
 DESIGN-runtime-library.md 2.2.1.11 says the ledger's path copy ℓ grows with the ledger's fill, "at most 9 pages at R2's
 checkpoint (1 024 entries plus the pages of the one statement that begins at it)". `KeyedStorePerformanceWitnessTests.Load`
@@ -21,3 +21,4 @@ all pass.
 
 No inventory row was claimed or closed (`closes_rows: []` with its reason). No production code changed. Self-review (silent
 failure, test analyzer, comment analyzer) found nothing further.
+
