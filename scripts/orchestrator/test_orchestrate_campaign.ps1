@@ -186,7 +186,7 @@ $r = Run-Orch 'campnolead' 'good' @('-DryRun', '-Unit', 'campaign')
 Check '-Unit campaign without -Cluster refuses to start' $r.code 2
 $r = Run-Orch 'camprun' 'good' (@('-Unit', 'campaign', '-Cluster', 'CAMP', '-MaxUnits', '1', '-FastFailSeconds', '0') + $camp)
 $inv = Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw
-Check 'the campaign unit''s plan_wave call carries --cluster' ($inv -match 'STOP-loop --cluster CAMP` plans the wave') $true
+Check 'the campaign unit''s plan_wave call carries --cluster' ($inv -match 'STOP-loop'' --cluster CAMP` plans the wave') $true
 Check 'the campaign unit is recorded as such' $r.units[0].unit 'campaign'
 Check 'the campaign unit runs on opus' ($inv -match '--model \| opus') $true
 Check 'the campaign unit''s units.jsonl line names its cluster' $r.units[0].cluster 'CAMP'
@@ -196,7 +196,7 @@ $r = Run-Orch 'camptwo' 'good' (@('-Cluster', 'CAMP,CAMP2', '-MaxUnits', '1', '-
 $inv = if ($r.runs) { Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw } else { '' }
 Check 'two leads: the supervisor names both lanes' (($r.out -match 'campaign lane: cluster CAMP, 2 open') -and ($r.out -match 'campaign lane: cluster CAMP2, 1 open')) $true
 Check 'two leads: the least recently run lead''s campaign runs' "$($r.units[-1].unit) $($r.units[-1].cluster)" 'campaign CAMP2'
-Check 'two leads: its plan_wave call carries that lead' ($inv -match 'STOP-loop --cluster CAMP2` plans the wave') $true
+Check 'two leads: its plan_wave call carries that lead' ($inv -match 'STOP-loop'' --cluster CAMP2` plans the wave') $true
 Check 'the choice''s per-cluster state is recorded in units.jsonl' "$($r.units[-1].campaigns.CAMP) $($r.units[-1].campaigns.CAMP2)" 'ready ready'
 $r = Run-Orch 'camponeleft' 'good' (@('-DryRun', '-Cluster', 'DONE,CAMP') + $camp) $fresh
 Check 'two leads, one landed: its lane ends and the other goes on' (($r.out -match 'campaign DONE: every note is landed or retired; the campaign lane ends \(campaigns CAMP go on\)') -and ($r.out -match "would run unit 'campaign' .*\n.*with --cluster CAMP>")) $true
@@ -212,7 +212,7 @@ $r = Run-Orch 'campstarved' 'good' (@('-DryRun', '-Cluster', 'CAMP') + $camp) {
 Check 'a starved campaign is announced' ($r.out -match 'campaign CAMP ready for 9\.\d h \(2 wave-type unit\(s\)\), last campaign wave at \d{4}-\d\d-\d\d \d\d:\d\d') $true
 $r = Run-Orch 'wavedefault' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0')
 $inv = Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw
-Check 'the fix lane''s wave prompt is unchanged (no --cluster, no placeholder)' (($inv -match 'STOP-loop` plans the wave') -and ($inv -notmatch '--cluster') -and ($inv -notmatch 'CLUSTER_ARG')) $true
+Check 'the fix lane''s wave prompt is unchanged (no --cluster, no placeholder)' (($inv -match 'STOP-loop''` plans the wave') -and ($inv -notmatch '--cluster') -and ($inv -notmatch 'CLUSTER_ARG')) $true
 
 # 9. open-watchers.ps1: one tab per agent whose meta.json exists, titled and coloured by model
 $wf = Join-Path $Root 'session/subagents/workflows/wf_test-1'

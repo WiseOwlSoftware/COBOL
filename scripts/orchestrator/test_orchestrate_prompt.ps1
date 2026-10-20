@@ -13,7 +13,7 @@ $Here = $PSScriptRoot
 $r = Run-Orch 'borrow' 'good' @('-Unit', 'wave', '-MaxUnits', '1', '-FastFailSeconds', '0', '-BorrowDays', '2')
 $inv = Get-Content (Join-Path $r.coord 'fake-invocations.txt') -Raw
 Check 'borrow days substituted into the unit prompt' ($inv -match '--borrow-days 2 --scratch') $true
-Check 'the wave unit plans with the loop''s own fleet stop' ($inv -match 'scratch[\\/]+STOP-loop` plans the wave') $true
+Check 'the wave unit plans with the loop''s own fleet stop' ($inv -match 'scratch[\\/]+STOP-loop''` plans the wave') $true
 Check 'no stop placeholder left in the prompt' ($inv -match '\{(FLEET|GLOBAL)_STOP\}') $false
 
 # 4d. the wave unit's prompt names the Workflow task-output directory of ITS session, so it can block on the result
