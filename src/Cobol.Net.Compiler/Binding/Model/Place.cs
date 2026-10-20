@@ -572,7 +572,7 @@ public static class CellComponents
     /// <summary>⛔ THE ONE CONSTRUCTION OF A SCOPE'S WINDOW SHAPE (<c>CellGroupShape</c>, kb/Work PB244, PB3273): the fixed
     /// run's width, and for each component of <paramref name="group"/> — enumerated by <paramref name="walk"/>, <see cref="Of"/>
     /// for an item a storage class holds or <see cref="InLayout"/> for a description none holds — its position, its table
-    /// element width (0 for a dynamic-length item), its maximum, and, for a dynamic-capacity table whose elements are
+    /// element width (0 for a dynamic-length item), its maximum, its layout code and, for a dynamic-capacity table whose elements are
     /// themselves variable-length groups, the element's own shape one scope down. Null for a scope with no component.</summary>
     public static CellGroupShape? ShapeOf(DataItem group,
         Func<DataItem, IEnumerable<(DataItem Item, int At, Subscripts Fixed)>> walk)
@@ -582,6 +582,7 @@ public static class CellComponents
             : new CellGroupShape(group.ByteWidth, parts.Select(p => p.At).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToArray(),
                 parts.Select(p => p.Item.SlotMaxSize).ToArray(),
+                parts.Select(p => FileModel.LayoutCodeOf(p.Item)).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable && p.Item.IsGroup ? ShapeOf(p.Item, walk) : null).ToArray());
     }
 

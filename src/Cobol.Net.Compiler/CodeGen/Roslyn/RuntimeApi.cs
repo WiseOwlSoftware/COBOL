@@ -2417,7 +2417,7 @@ internal static class RuntimeApi
         shapes.All(s => s is null) ? "" : $", [{string.Join(", ", shapes.Select(CellShapeText))}]";
 
     private static string CellShapeText(CellGroupShape? s) => s is null ? "null"
-        : $"new {nameof(CellGroupShape)}({s.Width}, {IntSpan(s.DynFixedAt)}, {IntSpan(s.DynTable)}, {IntSpan(s.DynMax)}"
+        : $"new {nameof(CellGroupShape)}({s.Width}, {IntSpan(s.DynFixedAt)}, {IntSpan(s.DynTable)}, {IntSpan(s.DynMax)}, {IntSpan(s.DynLayout)}"
           + (s.Elems is null || s.Elems.All(e => e is null) ? ")" : $", [{string.Join(", ", s.Elems.Select(CellShapeText))}])");
 
     /// <summary>The OCCURS DEPENDING table a variable-length group holds as its trailing storage (<c>OdoTail</c>,
@@ -2473,9 +2473,9 @@ internal static class RuntimeApi
     /// <summary>Distribute a component carrier into a cell-backed variable-length group — <c>StorageCell.StoreVarGroupAt</c>.</summary>
     public static string CellVarStoreCarrier(string cellExpr, string fixedAtExpr, int width, string dynBase,
                                              IEnumerable<int> dynFixedAt, IEnumerable<int> dynMax,
-                                             IEnumerable<int> dynTable, OdoTail odo, string count, string carrierExpr,
-                                             IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
-        $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
+                                             IEnumerable<int> dynLayout, IEnumerable<int> dynTable, OdoTail odo, string count,
+                                             string carrierExpr, IReadOnlyList<CellGroupShape?> dynElem, bool storage) =>
+        $"{cellExpr}.{nameof(StorageCell.StoreVarGroupAt)}({fixedAtExpr}, {width}, (int)({dynBase}), {IntSpan(dynFixedAt)}, {IntSpan(dynMax)}, {IntSpan(dynLayout)}, {IntSpan(dynTable)}, {OdoTailOf(odo)}, {count}, {carrierExpr}"
         // the storage flag reaches only the nested elements' stores (the top level's maximum sizes already say it)
         + (dynElem.All(s => s is null) ? ")" : $"{CellElemShapes(dynElem)}{(storage ? ", true" : "")})");
 

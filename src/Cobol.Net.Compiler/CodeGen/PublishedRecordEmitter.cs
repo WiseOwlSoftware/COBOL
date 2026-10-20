@@ -270,7 +270,7 @@ internal sealed class PublishedRecordEmitter(Func<DataItem, string> profileOf)
         using (w.Block("internal readonly StorageCell __Area(string __parameter, global::System.Func<StorageCell> __fresh)"))
         {
             w.Line("var __c = __fresh();");
-            w.Line(RuntimeApi.CellVarStoreCarrier("__c", "0", width, "0", shape.DynFixedAt, shape.DynMax, shape.DynTable, default,
+            w.Line(RuntimeApi.CellVarStoreCarrier("__c", "0", width, "0", shape.DynFixedAt, shape.DynMax, shape.DynLayout, shape.DynTable, default,
                 "0", "__Var(__parameter)", shape.Elems ?? [], storage: false) + ";");
             w.Line("__PutSlots(__c, 0, 0);");
             w.Line("return __c;");

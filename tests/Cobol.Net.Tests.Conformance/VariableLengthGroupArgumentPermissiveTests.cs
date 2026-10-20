@@ -344,7 +344,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
             Lines(stdout));
     }
 
-    /// <summary>The CONVERT ANY source asks for the group's STORAGE bytes (§15.19.3 rule 7), and the current-extent image IS
+    /// <summary>The CONVERT ANY source takes the group's bits (§15.19.3 rule 7: argument-1 of any usage; §15.19.4 rule 2: the digits of the bits of argument-1), and the current-extent image IS
     /// the storage (kb/Work PB3441). A FIXED national member is composed as its UTF-16BE byte pairs (D-N1), so the group
     /// "ab" + N"cd" + COMP 258 is 61 62 | 00 63 00 64 | 01 02 (hand-derived: a=61 b=62 c=63 d=64, 258 = 0x0102); the
     /// dynamic-length item beside it is one byte a character.</summary>
@@ -366,7 +366,7 @@ public sealed class VariableLengthGroupArgumentPermissiveTests
 
     /// <summary>A DYNAMIC-LENGTH NATIONAL member (and a dynamic-capacity table of national elements) rides the current-extent
     /// image as the UTF-16BE bytes its positions occupy, exactly as a fixed national member does (CONFORMANCE.md A.1 items
-    /// 57 and 63; kb/Work PB3441), so the image is the group's storage and CONVERT ANY reads it (§15.19.3 rule 7).
+    /// 57 and 63; kb/Work PB3441), so the image is the group's storage and CONVERT ANY reads it (§15.19.3 rule 7; §15.19.4 rule 2).
     /// Hand-derived: x=0x78 y=0x79 '0'=0x30 '6'=0x36, a position is two bytes high-order first (D-N1).</summary>
     [Theory]
     [InlineData("""
