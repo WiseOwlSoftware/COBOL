@@ -758,8 +758,8 @@ whole-store model it replaced). The core groups kb/Work PB3331 to PB3335 have bu
 B+ tree, RELATIVE and INDEXED on the engine, and coherence across run units at page granularity — and the whole-store model
 is deleted, with no reader of its format kept; the paragraphs above and the two `docs/CONFORMANCE.md` rows (DOC-A.1-107,
 DOC-A.1-75) describe the engine, and the performance witnesses (a) to (d) of 2.2.1.11 hold it to its bounds (PB3335,
-PB3336). Still the target: the transactions of 2.2.1.10 with their crash and interleaving rows (PB3337, PB3338), held until the core lands and the owner
-decides their scope. PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
+PB3336). Still the target: the transactions of 2.2.1.10 with their crash and interleaving rows (PB3337, PB3338): the core has landed, and the owner
+decided their scope on 2026-10-19 18:58 PDT — the whole module (kb/Work PB3337: "Option A"). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
 reads the header; a keyed statement touches O(log n) pages; the size limit is the host's; a statement's change reaches the
 file when it completes, crash-consistently; `SHARING WITH ALL OTHER` is coherent at page granularity with today's record locks;
 every current golden keeps passing plus measured performance witnesses; one engine, no second path and no reader of the old
@@ -2265,7 +2265,8 @@ up to four statements, every fault at every operation, every power-loss outcome 
 boundary — and it is RED when either finding is put back. The section gives a SEQUENTIAL file under an active APPLY COMMIT
 clause the same transaction as 2.2.1.10 gives a keyed file — the same scope, the same three COMMIT regions, the same dead-owner
 rollback — over a format that has no ledger. PB3340 follows PB3337 (the runtime's COMMIT and ROLLBACK) and PB3338 (the
-compiler's APPLY COMMIT), and it is held with them until the owner decides the transaction slice's scope (PB3420). **The
+compiler's APPLY COMMIT) in the tier-2 chain the owner released on 2026-10-19 18:58 PDT (the whole module, kb/Work PB3337:
+"Option A"). **The
 journal's home is the owner's decision of 2026-10-19 15:45 PDT (kb/Work PB3340, "option a approved"):** it lives in TRANSIENT files
 beside the physical file (2.2.2.4); kb/Work PB802's "no sidecar of any type" (2026-09-07) refused a persistent
 fixed-file-attribute catalog consulted at every OPEN and does not cover a journal that exists only while a transaction is
