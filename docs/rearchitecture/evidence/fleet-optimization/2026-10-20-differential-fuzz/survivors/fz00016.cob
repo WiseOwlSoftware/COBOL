@@ -1,0 +1,33 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. FUZZ.
+       ENVIRONMENT DIVISION.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 WS-A PIC 9(10) VALUE 1234567890.
+       01 WS-B PIC 9(10) VALUE 9876543210.
+       01 WS-RESULT PIC 9(10).
+       01 WS-NEGATIVE-ONE PIC 9(10) VALUE 1.
+       01 WS-POSITIVE-ONE PIC 9(10) VALUE 1.
+       01 WS-ZERO PIC 9(10) VALUE 0.
+       PROCEDURE DIVISION.
+           COMPUTE WS-RESULT = WS-A + WS-B.
+           DISPLAY "ADD: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A - WS-B.
+           DISPLAY "SUB: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A * WS-B.
+           DISPLAY "MUL: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A / WS-B.
+           DISPLAY "DIV: " WS-RESULT.
+           COMPUTE WS-RESULT = -WS-A.
+           DISPLAY "NEG: " WS-RESULT.
+           COMPUTE WS-RESULT = +WS-A.
+           DISPLAY "POS: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A + 0.
+           DISPLAY "ADD-ZERO: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A - 0.
+           DISPLAY "SUB-ZERO: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A * 1.
+           DISPLAY "MUL-ONE: " WS-RESULT.
+           COMPUTE WS-RESULT = WS-A / 1.
+           DISPLAY "DIV-ONE: " WS-RESULT.
+           STOP RUN.
