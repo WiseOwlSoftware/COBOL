@@ -1457,7 +1457,9 @@ unit's lock table, `LockRecord`/`HolderOf`/`Unlock`, the ceilings 54 and 53), th
 discipline for a reader on Linux, `RetryAttempt.HolderOutsideRunUnit` and the wait outside the mutex (`WaitOutsideStatement`)
 keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unchanged in intent over the new engine (its
 sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and the refused page write, and
-`StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12). The
+`StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12, and `ReadOnlyKeyedWriterStoreMutexTests` the rule that a
+`SHARING WITH READ ONLY` or `ALL OTHER` writer makes every page write of a statement, the tree pages and page 2, inside the
+mutex and gives it back when the host refuses one: kb/Work PB3414). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
@@ -2027,7 +2029,7 @@ property of the ENGINE, not of the posture: a per-statement-writing engine must 
 streaming writer only against another writer (its append position); so the predicate each connector asks follows the engine
 it drives, and the whole-store engine's last caller left with PB3335. The key descriptor codec moved from `RecordFraming` to
 `MetaPage`, the one format that records a key, and `StoreFormat` with it. Kept, unchanged in contract: the frame codec (`EncodeFrameHead`, `ReadFrame`,
-`ReadStreamFrame`, `FrameStarts`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
+`ReadStreamFrame`, `CountFrames`, `StreamFramingParses`, `IFrameMedium`, `StoredFrame`, `FrameHead`, the extent-table codec —
 the sequential connector and `CobolSort` use them), `FixedFileAttributes` and its comparison, the region map and every lock
 class, `PhysicalFileTable`, `StoreStatement`'s shape (`BeginStatement`/`Dispose`; its `Complete` step became a pass-through
 once every verb wrote its own pages, and PB3335 deleted it), `FileRegistry`'s statement
@@ -2723,10 +2725,13 @@ m records, one truncation when a > 0 and one sync, never a byte of another conne
 
 #### 2.2.3 The sequential frame index — bounded memory for the backward READ and a count that stores nothing (kb/Work PB3350)
 
-⛔ **STATUS.** The DESIGN of 2026-10-19 (the Mythos lane, kb/Work PB3426), implemented by PB3350 in the SORT and file I/O
-campaign (PB3353). It replaces `RecordFraming.FrameStarts`' `List<long>` — one offset per frame of a RECORD VARYING file, kept
-for the life of the OPEN by `SequentialConnector._varyingStarts` and built in full only to be counted by `CountRecords` — with
-one walk that yields a COUNT and a SPARSE index, so no consumer holds O(records) memory.
+⛔ **STATUS.** IMPLEMENTED (kb/Work PB3350, in the SORT and file I/O campaign PB3353; designed 2026-10-19 by the Mythos lane,
+PB3426) in `IO/FrameIndex.cs`, `RecordFraming.CountFrames` and `SequentialConnector._frameIndex`. It replaced
+`RecordFraming.FrameStarts`' `List<long>` — one offset per frame of a RECORD VARYING file, kept for the life of the OPEN by
+`SequentialConnector._varyingStarts` and built in full only to be counted by `CountRecords` — with one walk that yields a
+COUNT and a SPARSE index, so no consumer holds O(records) memory. The members: `FrameIndex.Observe` (the forward walk feeds
+it), `Extend` (the counting walk, which is also the REVERSED count: `CountRecords(0, long.MaxValue, index)`) and `TryStartOf`
+(a start, from the checkpoints and the window).
 
 **The two consumers and the one walk.** `ReadStreamFrame` stays the one decoder and `StreamMedium` the one walk (its
 snapshot of the length, PB2754, unchanged). (1) **The count** — `CountRecords`' VARYING arm, the OPEN EXTEND base and the
@@ -2739,14 +2744,19 @@ most S longs, 32 KB, rebuilt by one forward walk of ≤ S frame heads from the s
 span). `SeekToRecord` stays the ONE reposition (kb/Work PB352); the index answers only WHERE a frame starts.
 
 **How the index is built, and why it is never stale within an OPEN.** The forward walk the connector already makes
-(`NextFrame`) knows every frame's start as it passes it, so the index grows for free during forward reads: every S-th
-ordinal's start is appended to the checkpoint list as it is read (the `_readOrdinal` the connector keeps is the frame's
-ordinal). A backward read whose target lies beyond the frames walked so far — OPEN REVERSED's first READ, which targets the
-last record of a file nothing has read — builds the checkpoints by ONE counting walk, the same `CountFrames` call that
-measures the REVERSED count (`FrameIndex.Build(stream, stride)` returns both, so OPEN REVERSED pays one pass, as today's
-`CountRecords` plus `FrameStarts` paid two). The layout cannot change while the connector is open — §14.9.35.4 GR16 makes a
-record sequential REWRITE size-preserving, and a sibling's appends (ALL OTHER) lie past every indexed frame and are walked
-when a target reaches them — so one build per OPEN is right, as `_varyingStarts`' comment already states; `OpenCore` drops it.
+(`NextFrame`) knows every frame's start as it passes it, so the index grows for free during forward reads: `Observe(start,
+end)` takes a frame in when it begins exactly where the walked frames end (a BYTE-OFFSET contiguity test, not the connector's
+`_readOrdinal`: START FIRST/LAST walks frames without advancing the ordinal, and a re-read after a backward step is already
+known), and every S-th such frame's start is appended to the checkpoint list. A backward read whose target lies beyond the
+frames walked so far — OPEN REVERSED's first READ, which targets the last record of a file nothing has read — extends the
+checkpoints by ONE counting walk from where the walked frames end (`FrameIndex.Extend`), the same call that measures the
+REVERSED count (`CountRecords(0, long.MaxValue, index)` returns both, so OPEN REVERSED pays one pass, where `CountRecords`
+plus `FrameStarts` paid two). The layout cannot change while the connector is open — §14.9.35.4 GR16 makes a record
+sequential REWRITE size-preserving, and a sibling's appends (ALL OTHER) lie past every indexed frame and are walked when a
+target reaches them — so one index per OPEN is right; `OpenCore` replaces it. **A host read that throws mid-walk leaves
+the index consistent:** `Extend` records a frame only after the decoder has returned it whole (the walk resumes at the last
+whole frame), and `BuildWindow` invalidates the window (span −1, count 0) BEFORE it overwrites any slot, so an
+`IOException` (status 30) never leaves the old span claimed over the new span's starts.
 
 **Cost, stated so a witness can measure it without a clock.** A single backward read costs at most S frame-head reads (one
 window build) and then one seek; a whole-file backward pass — the COBOL-85 REVERSED read of every record — costs one window
@@ -2757,12 +2767,15 @@ by the current format is misread by the new one; the framing is the interchange 
 backward step (O(1) memory, but a backward pass of a file is then quadratic in its records); keeping the whole index but
 building it lazily (what exists today; the memory is the defect).
 
-**The witnesses.** A structural drift test over a generated file of 2^20 frames: `CountRecords` allocates no per-frame storage
-(the allocation delta of the count is bounded by a constant), the index's checkpoint list holds ⌈frames / S⌉ entries and the
-window at most S; the GR21 goldens of the backward READ and the REVERSED goldens stay byte-identical (`conformance:` the
-existing `14.9.30-READ` PREVIOUS cases and the `85/` REVERSED cases are the regression net); a READ PREVIOUS across a span
-boundary, at ordinal S + 1 and at ordinal 1, each answered from the index after one window build (the medium's read log counts
-the heads read).
+**The witnesses.** `FrameIndexTests` (Unit): over a generated file of 2^20 frames the count allocates no per-frame storage
+(the allocation delta of `CountFrames` is bounded by a constant), the index's checkpoint list holds ⌈frames / S⌉ entries and
+the window at most S; every ordinal's start agrees with the file at strides 1 to 64, asked forward, backward and scattered;
+a step inside a span costs no frame-head read and a step into another costs one window build (a stream that counts the
+payload seeks counts the heads read); frames a sibling appended after the walk are found when a target reaches them; and a
+structural scan finds no `List<long>` in the sequential I/O layer but the index's own checkpoint list. The goldens, which
+cross the span boundary with a 4100-record RECORD VARYING file: `14.9.30-READ/pb3350_read_previous_varying_span` (GR21 c
+and e, the forward walk's checkpoints) and `_unassigned/pb3350_open_reversed_varying_span_85` (the counting walk's); the
+existing PREVIOUS and REVERSED cases stay byte-identical.
 
 ### 2.3 Values — the value library (numeric + text + tables), role-grouped
 ```
