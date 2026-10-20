@@ -1,4 +1,4 @@
-## PB3414: a behavioural witness that a READ ONLY keyed writer runs every statement under the store mutex
+## Entry 2291 — 2026-10-20 11:21 PDT — PB3414: a behavioural witness that a READ ONLY keyed writer runs every statement under the store mutex
 
 Traceability row GR-14.9.51.4-12 names `KeyedConnector.TakeFileLock`'s predicate (`_coherent = FileLockPosture.AdmitsAnotherRunUnit(HostShare)`, line 150). Weakened to `AdmitsAnotherWriter`, no test in the row's test-ref went red: the one case that noticed (`StoreCoherenceTests.The_keyed_store_asks_about_any_run_unit_and_the_sequential_release_about_any_other_connector`) reads source text and was not in the row.
 
@@ -11,3 +11,4 @@ Mutation check: line 150 changed to `AdmitsAnotherWriter` turns exactly the six 
 Rows: GR-14.9.51.4-12 stays CONFORMS; the batch `pb3414-keyed-read-only-writer-mutex-witness` adds the two new cases and the source-text case to its test-ref and one sentence to its notes (GAP 66 to 66, no row closed). One sentence in DESIGN-runtime-library.md 2.2.1.8 names the new witness. PB3415 (the two stale comments) belongs to another group and was left alone.
 
 Gates: Windows `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261020T173412Z-491d40; all 12 new cases Passed in leg-1-Unit.trx); Linux `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD 7dc256dad) ===`. Self-review (test-analyzer, silent-failure lenses): the probe asserts the region host answered Held or Ok, so an Unavailable host fails loudly rather than reading as "not held"; the NO OTHER arm cannot be probed (its handle excludes the probe) and is covered by the source-text case.
+
