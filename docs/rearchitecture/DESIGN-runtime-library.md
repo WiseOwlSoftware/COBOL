@@ -2439,7 +2439,8 @@ entry (SR7 forbids it on the OPEN).
 **2.2.2.5 The write-ahead rules — five, each held by the model at every operation and each with a drift test.** **R1 — the
 header before the first change.** Under the entry mutex: the holder published, the record created, the header (START) written
 and SYNCED, the lock directory synced — all before the first byte of F changes or the file is created. The model's mutation
-`R1`, the header not synced, is RED: a power loss after an append with no durable header leaves the append in F for ever.
+`R1`, the header not synced, is RED on its witness row (2.2.2.12: "first WRITE under EXTEND"): a power loss after an append
+with no durable header leaves the append in F for ever.
 **R2 — the image before the overwrite.** A covered REWRITE in the base phase of a record that is not the transaction's own
 append (every ordinal before its first append; one below n(L) after it) appends its `R` record and SYNCS it before
 `OverwriteInPlace` writes F; the first record for an ordinal is the only one written (the connector keeps the set of ordinals
@@ -2453,13 +2454,13 @@ it appends the `L` record and SYNCS it before the record is written (for a first
 of the entry mutex as the header). Every later append, and an append in the REPLACED phase, writes nothing: the committed
 length is the undo of every append, so a WRITE under commit control pays nothing at the statement beyond what its posture
 already pays (`ReleaseRecord`'s flush under a sharing posture, nothing under `NO OTHER`). The model's mutation `R3`, the
-record not synced, is RED: a power loss that drops it keeps the append for ever. **R4 — the capture's order.** Under the entry mutex, with no other connector's handle on F: the
+record not synced, is RED on the same witness row: a power loss that drops it keeps the append for ever. **R4 — the capture's order.** Under the entry mutex, with no other connector's handle on F: the
 before file created and F's bytes written into it through the kept handle, the before file SYNCED, the lock directory synced,
 THEN the `K` record appended and SYNCED, and only then F truncated (an OPEN OUTPUT) or removed (a DELETE FILE). So every death
 leaves one of two states the settle reads unambiguously: no whole `K` — F is intact and a before file, if any, is litter
 (deleted); a whole `K` — the before file is whole (its sync preceded the record's) and F is restored from it whatever F now
-holds. The model's mutation `R4`, the `K` synced before the before file, is RED: a power loss between the two leaves a capture
-naming a before file that does not exist. **R5 — a refused sync of the record is fatal.** A record handed to the operating environment
+holds. The model's mutation `R4`, the `K` synced before the before file, is RED on its witness row ("DELETE FILE then COMMIT"):
+a power loss between the two leaves a capture naming a before file that does not exist. **R5 — a refused sync of the record is fatal.** A record handed to the operating environment
 whose sync is refused (the `L` of a first append, the `R` of a REWRITE, the `K` of a capture) may or may not be on the medium,
 and the run unit cannot know which; the statement answers '30' (EC-I-O-PERMANENT-ERROR), item 8's unconditional ROLLBACK follows (§14.6.13.1.3 8),
 and nothing more changes through the transaction: the rollback reads the record as the operating environment shows it (the
@@ -2512,7 +2513,8 @@ unit's own writable handle, opened for the purpose, when the owner is dead) — 
 (litter: F was never truncated, R4); (2) START `P`: every `R` record's bytes are written at its offset (one below F's current
 length; an offset at or past it is left to the truncation), F is truncated to L (`SetLength`) when the journal has an `L`
 record — F is never shorter than that L, because only an appending transaction's rollback truncates, to its own L, and two
-transactions never append at once (2.2.2.3), which the model asserts at every rollback; a journal with no `L` record truncates
+transactions never append at once (2.2.2.3), which the model asserts at every rollback and reaches only under its mutation
+`R2-1`, on the witness row 2.2.2.12 names for it (the branch review's R3-1); a journal with no `L` record truncates
 nothing (the branch review's R2-1: the first text's L, read at the begin, counted another transaction's appends, and a
 `SetLength` to it after that transaction's own rollback would have EXTENDED F with zero bytes) — F is synced and its
 directory synced; START `A`: F is removed (the owner closes its kept handle first) and its directory synced — the state at the last
@@ -2627,19 +2629,24 @@ rules state — over a medium that REFUSES any one operation (the process contin
 locks and handles go, its unsynced writes stay in the operating environment's cache), or LOSES POWER at any operation (every
 file keeps a prefix of its unsynced writes, a file created without a directory sync vanishes, a file deleted without one
 returns), with a second run unit — outside commit control, and under its own: committed, rolled back, and left open across
-the rest of the first's program and then committed, rolled back, killed, or appending first — run at every operation boundary
-of the first, and after "the next entry" (a fresh run unit's writable OPEN) asserts four invariants: **I1** F holds exactly the state at the
+the rest of the first's program and then committed, rolled back, killed, or appending first — run at every interleaving
+point of the first: before every medium operation, and before every statement, where a ROLLBACK, a writable OPEN, a DELETE
+FILE or a COMMIT takes the entry mutex as its first act (offered the points before medium operations only, the second run
+unit could never begin between an append and the ROLLBACK that undid it, and the row named for R2-1 was a dead witness: the
+branch review's R3-1) — and after "the next entry" (a fresh run unit's writable OPEN) asserts four invariants: **I1** F holds exactly the state at the
 last COMMIT (the journal open, or torn) or exactly the state the COMMIT made durable (its decision synced), never a third, and
 the program was told success only in the second case; **I2** nothing another run unit changed is undone, and a record another
 run unit holds a lock on is never written by a rollback; **I3** no holder, record, before file or lock directory is left
 behind; **I4** a capture or a DELETE FILE never runs while another connector holds the file. The gate's run sweeps the named
-rows below and every legal program of up to four statements over an absent and a present file, OPTIONAL and not — 276,000
-runs in about twenty seconds; a hand run (`--depth 5`) sweeps 631,000. **Its worth is proved in the same run** (the branch
+rows below and every legal program of up to four statements over an absent and a present file, OPTIONAL and not — 333,000
+runs in about twenty seconds; a hand run (`--depth 5`) sweeps 684,000. **Its worth is proved in the same run** (the branch
 review's R2-2): the self-test applies each named MUTATION of the protocol — each review finding put back (`R1-1`, an `R`
 record journaled after a capture; `R1-2`, a creation journaled as a truncation to nothing; `R2-1`, L read at the begin) and
-R1's, R3's and R4's write-ahead order broken — and requires RED from every one, so a later change that weakens the oracle or
-the fault injector fails the gate instead of leaving a watchdog that no longer bites (`--mutations` runs that arm alone,
-`--mutation <name>` applies one to a hand sweep). It models the PROTOCOL, not the bytes (a record is a token,
+R1's, R3's and R4's write-ahead order broken — each naming the rows below that must catch it, its WITNESSES, and requires
+each witness RED under its mutation on its own (a RED from some other row proves nothing about the row named for the
+finding: under R3-1 the R2-1 row was GREEN under its own mutation while the arm passed on the in-flight twin other rows
+reached), so a later change that weakens the oracle, the fault injector or a row fails the gate instead of leaving a
+watchdog that no longer bites (`--mutations` runs that arm alone, `--mutation <name>` applies one to a hand sweep). It models the PROTOCOL, not the bytes (a record is a token,
 L a count, a checksum "the record is whole or it is not"); the bytes are PB3340's, whose **`IHostMedium` seam** — `HostFile`'s
 roles (`OpenConnectorStream`, `OpenConnectorWriteStream`, `OpenAuxiliary`, the lock-directory and lock-holder roles) made
 instance-scoped on the run unit (`FileRegistry` takes an `IHostMedium` whose production implementation is today's static
@@ -2663,9 +2670,10 @@ with the second run unit at every boundary; the expected state in every row is I
 | REWRITE twice, ROLLBACK | F = C1 C2; OPEN I-O, READ, REWRITE Y1, REWRITE Y2, ROLLBACK | one image (C1); the record torn → ignored and F's record as before |
 | COMMIT then more, ROLLBACK | F = C1; OPEN EXTEND, WRITE X1, COMMIT, WRITE X2, ROLLBACK | C1 X1: the second transaction's L is the first's committed length |
 | CLOSE under commit, then COMMIT | F = C1; OPEN EXTEND, WRITE X1, CLOSE, COMMIT | the handle kept through the CLOSE (another run unit's `NO OTHER` OPEN '61' until the COMMIT), released by the COMMIT |
-| R2-1 a transaction begun beside another's append | F = C1 C2; the first: OPEN EXTEND, WRITE X1, CLOSE, ROLLBACK; the second, covered, at every boundary of the first: OPEN I-O, READ, REWRITE BY1, CLOSE, left open, and after the first's program ROLLBACK · dies · OPEN EXTEND, WRITE B2, ROLLBACK or COMMIT | the second's journal has no L until its own first append, so after the first's ROLLBACK its rollback restores C1 and truncates nothing — C1 C2, never C1 C2 and zero bytes (the first text's L = 3) — and after the first's COMMIT it cuts nothing of X1, even begun between the first's begin and its write (the first text's L = 2); its own append after the first's ROLLBACK writes L = 2 and is undone to C1 C2, committed to BY1 C2 B2 |
+| R2-1 a transaction begun beside another's append, undone | F = C1 C2; the first: OPEN EXTEND, WRITE X1, CLOSE, ROLLBACK; the second, covered, at every point of the first: OPEN I-O, READ, REWRITE BY1, CLOSE, left open, and after the first's program ROLLBACK · dies · OPEN EXTEND, WRITE B2, ROLLBACK or COMMIT | the second's journal has no L until its own first append, so after the first's ROLLBACK its rollback restores C1 and truncates nothing — C1 C2, never C1 C2 and zero bytes (the first text's L = 3, read at a begin between the first's append and its ROLLBACK: the mutation `R2-1`'s first witness, a point only the statement boundary reaches, R3-1); its own append after the first's ROLLBACK writes L = 2 and is undone to C1 C2, committed to BY1 C2 B2 |
+| R2-1 a transaction begun beside another's append, committed | F = C1 C2; the first: OPEN EXTEND, WRITE X1, CLOSE, COMMIT; the second as above | after the first's COMMIT the second's rollback cuts nothing of X1, even begun between the first's begin and its write (the first text's L = 2 would cut it: the in-flight twin, the mutation's second witness) — C1 C2 X1 after its rollback, BY1 C2 X1 after its commit |
 | every row × the COMMIT's regions | F synced · directory synced · `D C` written · `D C` synced · the retirement's deletes | region 1: unsuccessful, F at the previous COMMIT after item 8's rollback; region 2: success, the retirement completed by the next entry or the holder's own; region 3: reversed and rolled back, or marked and settled by the next entry — never a third state |
-| every row × the second run unit | append · rewrite of ordinal 0 · rewrite of ordinal 1 · truncate · DELETE FILE · read; plain, and covered with COMMIT, with ROLLBACK, and left open across the rest of the first's program and then committed, rolled back, killed, or appending and then committed or rolled back | '51' to a WRITE while any transaction lives; '51' to a REWRITE of a held ordinal and '00' to one below L the first did not touch, which the first's ROLLBACK leaves (I2); '61' to an OPEN OUTPUT, a DELETE FILE and every writable OPEN of a REPLACED file; a read sees F as it stands; the first run unit's death after the second's statement is settled before the second's next change |
+| every row × the second run unit | append · rewrite of ordinal 0 · rewrite of ordinal 1 · truncate · DELETE FILE · read; plain, and covered with COMMIT, with ROLLBACK, and left open across the rest of the first's program and then committed, rolled back, killed, or appending and then committed or rolled back; at every medium operation and every statement boundary of the first | '51' to a WRITE while any transaction lives; '51' to a REWRITE of a held ordinal and '00' to one below L the first did not touch, which the first's ROLLBACK leaves (I2); '61' to an OPEN OUTPUT, a DELETE FILE and every writable OPEN of a REPLACED file; a read sees F as it stands; the first run unit's death after the second's statement is settled before the second's next change |
 | a journal this process may not read | B's WRITE entry · B's OPEN EXTEND | '51' / '61', never a silent proceed (the `IHostMedium` rows; the model has no permissions) |
 | a lock directory the process may not create | the first covered change | '30' at that statement (R1 refused), F unchanged |
 

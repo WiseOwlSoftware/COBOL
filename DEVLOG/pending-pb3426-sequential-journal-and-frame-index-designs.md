@@ -33,8 +33,12 @@ that transaction's own rollback would have EXTENDED the file with zero bytes; th
 transaction left open across the first's program) found its twin, an L read below the other's in-flight append, whose
 rollback would have cut a committed record. One cause, one fix: L is read at the transaction's FIRST APPEND, when no other
 transaction lives, and journaled as its own record; a transaction that never appended truncates nothing. The self-test now
-proves its own watchdog (R2-2): six named mutations, each required RED — 276,000 runs at depth 4, 631,000 at depth 5 by
-hand. **The one owner decision it asked is made:** on 2026-10-19 at 15:45 PDT the owner, shown the durable journal, memory-only
+proves its own watchdog (R2-2): six named mutations, each required RED on the rows it names as its witnesses. **A third round
+(R3-1)** found the row named for R2-1 unable to reach its interleaving — the second run unit was offered a point only before
+a medium operation, never before the ROLLBACK whose first act takes the mutex — so it now runs before every statement of the
+first too, the row has its ROLLBACK and COMMIT arms, each mutation must redden its own witnesses, and a crash the fail-fast
+proof had hidden (a START P journal over an absent file, under the R1-2 mutation) is an I1 violation: 332,783 runs at depth 4,
+684,234 at depth 5 by hand. **The one owner decision it asked is made:** on 2026-10-19 at 15:45 PDT the owner, shown the durable journal, memory-only
 undo, a journal elsewhere and a header inside the file with what each costs and loses, approved the journal ("option a
 approved"): kb/Work PB802's "no sidecar of any type" refused a persistent attribute catalog and does not cover a transient
 journal in the lock directory (PB802 and PB3340 carry the words; 2.2.2.11 keeps the rejected shapes), and PB3340 is `open`,
