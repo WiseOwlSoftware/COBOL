@@ -143,7 +143,6 @@ TEST = re.compile(r'^\+\s*public (?:async )?(?:void|Task)\s+(\w+)\s*\(')
 LANDED_CONTENT = ('MERGED', 'LANDED')
 STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED', 'ENQUEUED', 'BOUNCED', 'LANDED', 'DECISION')
 LOCK_PID = re.compile(r'\(pid (\d+)\)')
-SETTINGS = ':!.claude/settings.local.json'   # always dirty in an agent's worktree, never work (2026-10-03)
 
 
 def git(*args, cwd=REPO, stdin: str | None = None):
@@ -178,9 +177,10 @@ def merges_to_main_unchanged(branch, repo=REPO) -> bool:
 
 
 def uncommitted(path) -> int:
-    """The worktree's uncommitted paths (the settings file excepted). A status git cannot produce (a corrupt index, a
-    dubious-ownership refusal) counts as ONE dirty path: an unmeasured worktree is never removed (train 1039b review)."""
-    r = git('status', '--porcelain', '--', '.', SETTINGS, cwd=path)
+    """The worktree's uncommitted paths that are work (coord.NEVER_WORK aside, kb/Work PB3465). A status git cannot
+    produce (a corrupt index, a dubious-ownership refusal) counts as ONE dirty path: an unmeasured worktree is never
+    removed (train 1039b review)."""
+    r = git('status', '--porcelain', '--', '.', *coord.NEVER_WORK_PATHSPECS, cwd=path)
     if r.returncode != 0:
         return 1
     return len([l for l in r.stdout.splitlines() if l.strip()])

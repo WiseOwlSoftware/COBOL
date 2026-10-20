@@ -220,8 +220,7 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
     if not branch or branch == "main":
         say(f"⛔ enqueue: HEAD is {'detached' if not branch else 'on main'} — a landing is queued from its own branch")
         return 2
-    dirty = [ln for ln in _git(cwd, "status", "--porcelain").stdout.splitlines()
-             if not ln.endswith((".claude/settings.local.json", " STATUS.md"))]
+    dirty = dirty_paths(cwd)
     if dirty:
         say("⚠ enqueue: the working tree is DIRTY — these paths are NOT part of what is queued:")
         for ln in dirty:
@@ -302,8 +301,8 @@ def worktree_of(repo: pathlib.Path, branch: str) -> pathlib.Path | None:
 
 
 def dirty_paths(wt: pathlib.Path) -> list[str]:
-    return [ln for ln in _git(wt, "status", "--porcelain").stdout.splitlines()
-            if not ln.endswith((".claude/settings.local.json", " STATUS.md"))]
+    """The worktree's uncommitted paths that are work (coord.NEVER_WORK aside), as `git status --porcelain` lines."""
+    return coord.porcelain_work(_git(wt, "status", "--porcelain").stdout.splitlines())
 
 
 def unslotted(rows, tree: pathlib.Path) -> list[tuple[str, str]]:
