@@ -6,6 +6,7 @@ using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
+using static CobolNet.Tests.Unit.KeyedFileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -40,51 +41,12 @@ namespace CobolNet.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class IndexedEngineTests
 {
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3334-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
-
-    /// <summary>An 8-character record: the prime key in positions 1-4, an alternate key WITH DUPLICATES in 5-8.</summary>
-    private static void Register(FileRegistry reg, string name, string host, FileSharing? sharing,
-        KeyedAccess access = KeyedAccess.Dynamic)
-    {
-        reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)access, primeKey: [new(0, 4)],
-            varyMin: -1, varyMax: -1);
-        reg.AddAlternateKey(name, [new(4, 4)], duplicates: true);
-        if (sharing is { } s) reg.RegisterSharing(name, s, FileLockMode.Manual, multiple: false);
-    }
-
-    private static string Rec(int n, string alternate) => $"{n:0000}{alternate}";
-
-    private static string Write(FileRegistry reg, string name, int n, string alternate) =>
-        reg.WriteShared(name, Rec(n, alternate), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-
-    private static string Rewrite(FileRegistry reg, string name, int n, string alternate) =>
-        reg.RewriteShared(name, Rec(n, alternate), -1, FileRecordLock.None, FileRetryKind.None, 0);
-
-    private static string Delete(FileRegistry reg, string name, int n) =>
-        reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
-
     private static string ReadKey(FileRegistry reg, string name, int keyIndex, string image, out string record) =>
         reg.ReadKeyedShared(name, keyIndex, image, FileRecordLock.None, ignoringLock: false, FileRetryKind.None, 0, out record);
 
     private static string ReadNext(FileRegistry reg, string name, out string image, bool previous = false) =>
         reg.ReadShared(name, previous, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
             FileRetryKind.None, 0, out image);
-
-    private static void Seed(string host)
-    {
-        var seed = new FileRegistry();
-        Register(seed, "S", host, sharing: null);
-        seed.OpenStatic("S", FileOpenMode.Output);
-        Assert.Equal("00", Write(seed, "S", 1, "AAAA"));
-        Assert.Equal("00", Write(seed, "S", 2, "BBBB"));
-        seed.Close("S");
-        Assert.Equal("00", seed.Status("S"));
-    }
 
     /// <summary>Every record of the file, read by the next run unit's OPEN INPUT: by the prime key (READ NEXT from the
     /// OPEN) and by the alternate key (START at its lowest value, then READ NEXT), each walk ending at end ('10', never
@@ -93,7 +55,7 @@ public sealed class IndexedEngineTests
     private static (List<string> ByPrime, List<string> ByAlternate) Records(string host)
     {
         var reader = new FileRegistry();
-        Register(reader, "R", host, sharing: null);
+        Register(reader, "R", host, KeyedOrg.Indexed, sharing: null, alternateKey: true);
         reader.OpenStatic("R", FileOpenMode.Input);
         Assert.Equal("00", reader.Status("R"));
         var byPrime = Walk();
@@ -119,9 +81,9 @@ public sealed class IndexedEngineTests
     /// entries.</summary>
     private static string Run(FileRegistry reg, Change change) => change switch
     {
-        Change.Write => Write(reg, "A", 3, "AAAA"),
-        Change.Rewrite => Rewrite(reg, "A", 2, "AAAA"),
-        _ => Delete(reg, "A", 1),
+        Change.Write => Write(reg, "A", KeyedOrg.Indexed, 3, "AAAA"),
+        Change.Rewrite => Rewrite(reg, "A", KeyedOrg.Indexed, 2, "AAAA"),
+        _ => Delete(reg, "A", KeyedOrg.Indexed, 1),
     };
 
     private static readonly (string[] ByPrime, string[] ByAlternate) Before = (["0001AAAA", "0002BBBB"], ["0001AAAA", "0002BBBB"]);
@@ -148,13 +110,13 @@ public sealed class IndexedEngineTests
         string host = Tmp("measure");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             DyingPageMedium? medium = null;
             KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             try
             {
-                Register(a, "A", host, sharing);
+                Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
             finally { KeyedStore.MediumObserver.Value = null; }
@@ -186,13 +148,13 @@ public sealed class IndexedEngineTests
             string host = Tmp($"die-{change}-{sharing}-{i}");
             try
             {
-                Seed(host);
+                Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 DyingPageMedium? medium = null;
                 KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
@@ -201,7 +163,7 @@ public sealed class IndexedEngineTests
                 if (sharing != FileSharing.NoOther)
                 {
                     b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    Register(b, "B", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                     b.OpenStatic("B", sharing == FileSharing.ReadOnly ? FileOpenMode.Input : FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
                 }
@@ -216,7 +178,7 @@ public sealed class IndexedEngineTests
                 {
                     if (sharing == FileSharing.AllOther)
                     {
-                        Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                        Assert.Equal("00", Write(b, "B", KeyedOrg.Indexed, 5, "EEEE"));
                         expectedPrime.Add("0005EEEE");
                         expectedAlternate.Add("0005EEEE");
                     }
@@ -258,20 +220,20 @@ public sealed class IndexedEngineTests
             int refuseAt = int.MaxValue, seen = 0;
             try
             {
-                Seed(host);
+                Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
                     write: _ => seen++ == refuseAt ? new IOException("refused by the host") : null);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
                 finally { KeyedStore.MediumObserver.Value = null; }
                 refuseAt = seen + i;
                 Assert.Equal("30", Run(a, change));
-                Assert.Equal("30", Write(a, "A", 7, "GGGG"));                     // replayed, nothing touched
+                Assert.Equal("30", Write(a, "A", KeyedOrg.Indexed, 7, "GGGG"));                     // replayed, nothing touched
                 Assert.Equal("30", ReadKey(a, "A", 0, Rec(0, "BBBB"), out string image));
                 Assert.Equal("", image.Trim());
                 var expectedPrime = Before.ByPrime.ToList();
@@ -279,9 +241,9 @@ public sealed class IndexedEngineTests
                 if (sharing == FileSharing.AllOther)
                 {
                     var b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    Register(b, "B", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                     b.OpenStatic("B", FileOpenMode.IO);
-                    Assert.Equal("02", Write(b, "B", 5, "AAAA"));   // a permitted duplicate of record 1's key: '02'
+                    Assert.Equal("02", Write(b, "B", KeyedOrg.Indexed, 5, "AAAA"));   // a permitted duplicate of record 1's key: '02'
                     b.Close("B");
                     Assert.Equal("00", b.Status("B"));
                     expectedPrime.Add("0005AAAA");
@@ -314,17 +276,17 @@ public sealed class IndexedEngineTests
         string host = Tmp("pair");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             var a = new FileRegistry();
-            Register(a, "A", host, FileSharing.AllOther);
+            Register(a, "A", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
             a.OpenStatic("A", FileOpenMode.IO);
             var b = new FileRegistry();
-            Register(b, "B", host, FileSharing.AllOther);
+            Register(b, "B", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
             b.OpenStatic("B", FileOpenMode.IO);
-            Assert.Equal("02", Write(a, "A", 4, "AAAA"));       // released second under AAAA
-            Assert.Equal("02", Write(b, "B", 3, "AAAA"));       // released third — B's mint follows A's
-            Assert.Equal("22", Write(b, "B", 4, "ZZZZ"));       // §14.9.51.4 GR42 b): the prime key A wrote exists
-            Assert.Equal("00", Delete(b, "B", 2));
+            Assert.Equal("02", Write(a, "A", KeyedOrg.Indexed, 4, "AAAA"));       // released second under AAAA
+            Assert.Equal("02", Write(b, "B", KeyedOrg.Indexed, 3, "AAAA"));       // released third — B's mint follows A's
+            Assert.Equal("22", Write(b, "B", KeyedOrg.Indexed, 4, "ZZZZ"));       // §14.9.51.4 GR42 b): the prime key A wrote exists
+            Assert.Equal("00", Delete(b, "B", KeyedOrg.Indexed, 2));
             Assert.Equal("23", ReadKey(a, "A", -1, Rec(2, "    "), out _));   // §9.1.13.5 3 a): B deleted it
             Assert.Equal("00", ReadKey(a, "A", 0, Rec(0, "AAAA"), out string first));   // GR32: the FIRST released
             Assert.Equal("0001AAAA", first);
@@ -334,7 +296,7 @@ public sealed class IndexedEngineTests
             while ((status = ReadNext(a, "A", out string next)) is "00" or "02")
             {
                 seen.Add((next, status));
-                if (seen.Count == 1) Assert.Equal("02", Write(b, "B", 9, "AAAA"));
+                if (seen.Count == 1) Assert.Equal("02", Write(b, "B", KeyedOrg.Indexed, 9, "AAAA"));
             }
             Assert.Equal("10", status);
             Assert.Equal([("0004AAAA", "02"), ("0003AAAA", "02"), ("0009AAAA", "00")], seen);
@@ -360,19 +322,19 @@ public sealed class IndexedEngineTests
         string host = Tmp("r2-6");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             var writer = new FileRegistry();
-            Register(writer, "W", host, FileSharing.ReadOnly);
+            Register(writer, "W", host, KeyedOrg.Indexed, FileSharing.ReadOnly, alternateKey: true);
             writer.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", writer.Status("W"));
             var reader = new FileRegistry();
-            Register(reader, "R", host, FileSharing.AllOther, KeyedAccess.Dynamic);
+            Register(reader, "R", host, KeyedOrg.Indexed, FileSharing.AllOther, access: KeyedAccess.Dynamic, alternateKey: true);
             reader.OpenStatic("R", FileOpenMode.Input);
             Assert.Equal("00", reader.Status("R"));
             var writes = Task.Run(() =>
             {
                 for (int n = 3; n < 3 + Records; n++)
-                    Assert.True(Write(writer, "W", n, (n % 7).ToString("0000", System.Globalization.CultureInfo.InvariantCulture)) is "00" or "02");
+                    Assert.True(Write(writer, "W", KeyedOrg.Indexed, n, (n % 7).ToString("0000", System.Globalization.CultureInfo.InvariantCulture)) is "00" or "02");
             });
             var statuses = new HashSet<string>();
             bool last = false;
@@ -408,16 +370,16 @@ public sealed class IndexedEngineTests
         try
         {
             var seed = new FileRegistry();
-            Register(seed, "S", host, sharing: null);
+            Register(seed, "S", host, KeyedOrg.Indexed, sharing: null, alternateKey: true);
             seed.OpenStatic("S", FileOpenMode.Output);
-            for (int n = 1; n <= 400; n++) Assert.True(Write(seed, "S", n, "DDDD") is "00" or "02");
-            Assert.Equal("00", Write(seed, "S", 9999, "ZZZZ"));
+            for (int n = 1; n <= 400; n++) Assert.True(Write(seed, "S", KeyedOrg.Indexed, n, "DDDD") is "00" or "02");
+            Assert.Equal("00", Write(seed, "S", KeyedOrg.Indexed, 9999, "ZZZZ"));
             seed.Close("S");
             var reader = new FileRegistry();
-            Register(reader, "R", host, FileSharing.AllOther);
+            Register(reader, "R", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
             reader.OpenStatic("R", FileOpenMode.Input);
             var writer = new FileRegistry();
-            Register(writer, "W", host, FileSharing.AllOther);
+            Register(writer, "W", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
             writer.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", reader.StartIndexed("R", 0, "==", Rec(0, "DDDD"), StartKeyLength.OfWidth(4)));
             var seen = new List<int>();
@@ -426,7 +388,7 @@ public sealed class IndexedEngineTests
             {
                 int n = int.Parse(image[..4], System.Globalization.CultureInfo.InvariantCulture);
                 seen.Add(n);
-                if (n <= 400 && n % 2 == 0) Assert.Equal("02", Write(writer, "W", 1000 + n, "DDDD"));
+                if (n <= 400 && n % 2 == 0) Assert.Equal("02", Write(writer, "W", KeyedOrg.Indexed, 1000 + n, "DDDD"));
             }
             Assert.Equal("10", status);
             var expected = Enumerable.Range(1, 400).Concat(Enumerable.Range(1, 200).Select(k => 1000 + 2 * k)).Append(9999);
@@ -457,21 +419,21 @@ public sealed class IndexedEngineTests
         {
             KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
-            Register(a, "A", host, sharing);
+            Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
             a.OpenStatic("A", FileOpenMode.Output);
             Assert.Equal("00", a.Status("A"));
             var perStatement = new List<int>();
             for (int n = 1; n <= 4000; n++)
             {
                 int before = medium!.Writes, synced = medium.Syncs;
-                Assert.True(Write(a, "A", n, (n % 50).ToString("0000", System.Globalization.CultureInfo.InvariantCulture)) is "00" or "02");
+                Assert.True(Write(a, "A", KeyedOrg.Indexed, n, (n % 50).ToString("0000", System.Globalization.CultureInfo.InvariantCulture)) is "00" or "02");
                 if (medium.Syncs == synced) perStatement.Add(medium.Writes - before);
             }
             a.Close("A");
             Assert.Equal("00", a.Status("A"));
             // The REWRITE that moves an alternate entry and the DELETE of n + 1 entries, on the full file.
             a.OpenStatic("A", FileOpenMode.IO);
-            foreach (var change in new Func<string>[] { () => Rewrite(a, "A", 2000, "XXXX"), () => Delete(a, "A", 3000) })
+            foreach (var change in new Func<string>[] { () => Rewrite(a, "A", KeyedOrg.Indexed, 2000, "XXXX"), () => Delete(a, "A", KeyedOrg.Indexed, 3000) })
             {
                 int before = medium!.Writes, synced = medium.Syncs;
                 Assert.Equal("00", change());
@@ -619,16 +581,16 @@ public sealed class IndexedEngineTests
         string? saved = Environment.GetEnvironmentVariable(FileRegistry.KeyCheckVariable);
         try
         {
-            Seed(host);   // prime 1-4, one alternate WITH DUPLICATES 5-8
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);   // prime 1-4, one alternate WITH DUPLICATES 5-8
             Environment.SetEnvironmentVariable(FileRegistry.KeyCheckVariable, "OFF");
             var wide = new FileRegistry();
-            Register(wide, "W", host, sharing: null);
+            Register(wide, "W", host, KeyedOrg.Indexed, sharing: null, alternateKey: true);
             wide.AddAlternateKey("W", [new(2, 2)], duplicates: true);   // a second alternate the file has no tree for
             wide.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", wide.Status("W"));
             Assert.Equal("23", ReadKey(wide, "W", 1, Rec(1, "AAAA"), out _));
             Assert.Equal("23", wide.StartIndexed("W", 1, ">=", Rec(0, "    "), StartKeyLength.OfWidth(2)));
-            Assert.Equal("02", Write(wide, "W", 3, "AAAA"));       // the tree the file has is maintained
+            Assert.Equal("02", Write(wide, "W", KeyedOrg.Indexed, 3, "AAAA"));       // the tree the file has is maintained
             wide.Close("W");
 
             var narrow = new FileRegistry();
@@ -752,17 +714,17 @@ public sealed class IndexedEngineTests
         string host = Tmp("measure-close");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int seen = 0;
             KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
-                Register(a, "A", host, sharing);
+                Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
             finally { KeyedStore.MediumObserver.Value = null; }
-            Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+            Assert.Equal("00", Write(a, "A", KeyedOrg.Indexed, 3, "CCCC"));
             int before = seen;
             a.Close("A");
             Assert.Equal("00", a.Status("A"));
@@ -793,12 +755,12 @@ public sealed class IndexedEngineTests
             int refuseAt = int.MaxValue, seen = 0;
             try
             {
-                Seed(host);
+                Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    Register(a, "A", host, KeyedOrg.Indexed, sharing, alternateKey: true);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
@@ -807,11 +769,11 @@ public sealed class IndexedEngineTests
                 if (sharing == FileSharing.AllOther)
                 {
                     b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    Register(b, "B", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                     b.OpenStatic("B", FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
                 }
-                Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+                Assert.Equal("00", Write(a, "A", KeyedOrg.Indexed, 3, "CCCC"));
                 refuseAt = seen + k;
                 a.Close("A");
                 Assert.Equal("30", a.Status("A"));
@@ -820,7 +782,7 @@ public sealed class IndexedEngineTests
                 var expectedAlternate = new List<string> { "0001AAAA", "0002BBBB", "0003CCCC" };
                 if (b is not null)
                 {
-                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    Assert.Equal("00", Write(b, "B", KeyedOrg.Indexed, 5, "EEEE"));
                     expectedPrime.Add("0005EEEE");
                     expectedAlternate.Add("0005EEEE");
                     b.Close("B");
@@ -847,7 +809,7 @@ public sealed class IndexedEngineTests
     /// <summary>An OPEN of the seeded file in <paramref name="mode"/>: EXTEND is sequential access's (§14.9.27.3 SR2).</summary>
     private static void Open(FileRegistry reg, string name, string host, FileOpenMode mode, FileSharing sharing)
     {
-        Register(reg, name, host, sharing, mode == FileOpenMode.Extend ? KeyedAccess.Sequential : KeyedAccess.Dynamic);
+        Register(reg, name, host, KeyedOrg.Indexed, sharing, access: mode == FileOpenMode.Extend ? KeyedAccess.Sequential : KeyedAccess.Dynamic, alternateKey: true);
         reg.OpenStatic(name, mode);
     }
 
@@ -858,7 +820,7 @@ public sealed class IndexedEngineTests
         string host = Tmp("measure-open");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int seen = 0;
             KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
@@ -907,7 +869,7 @@ public sealed class IndexedEngineTests
             int refuseAt = k, seen = 0;
             try
             {
-                Seed(host);
+                Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 var a = new FileRegistry();
                 KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
@@ -922,10 +884,10 @@ public sealed class IndexedEngineTests
                 if (sharing == FileSharing.AllOther)
                 {
                     var b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    Register(b, "B", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                     b.OpenStatic("B", FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
-                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    Assert.Equal("00", Write(b, "B", KeyedOrg.Indexed, 5, "EEEE"));
                     expectedPrime.Add("0005EEEE");
                     expectedAlternate.Add("0005EEEE");
                     b.Close("B");
@@ -963,7 +925,7 @@ public sealed class IndexedEngineTests
             string host = Tmp($"die-open-{mode}-{sharing}-{i}");
             try
             {
-                Seed(host);
+                Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
                 var a = new FileRegistry();
                 int dieAfter = i;
                 KeyedStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
@@ -996,16 +958,16 @@ public sealed class IndexedEngineTests
         string host = Tmp("r1-2");
         try
         {
-            Seed(host);
+            Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
             int xWrites = 0;
             var x = new FileRegistry();
             KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
             try
             {
-                Register(x, "XI", host, FileSharing.AllOther, KeyedAccess.Random);
+                Register(x, "XI", host, KeyedOrg.Indexed, FileSharing.AllOther, access: KeyedAccess.Random, alternateKey: true);
                 x.OpenStatic("XI", FileOpenMode.Input);
                 Assert.Equal("00", x.Status("XI"));
-                Register(x, "XO", host, FileSharing.AllOther);
+                Register(x, "XO", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                 x.OpenStatic("XO", FileOpenMode.IO);
                 Assert.Equal("00", x.Status("XO"));
             }
@@ -1016,12 +978,12 @@ public sealed class IndexedEngineTests
             KeyedStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
-                Register(y, "Y", host, FileSharing.AllOther);
+                Register(y, "Y", host, KeyedOrg.Indexed, FileSharing.AllOther, alternateKey: true);
                 y.OpenStatic("Y", FileOpenMode.IO);
                 Assert.Equal("00", y.Status("Y"));
             }
             finally { KeyedStore.MediumObserver.Value = null; }
-            Assert.Equal("00", Write(y, "Y", 3, "CCCC"));
+            Assert.Equal("00", Write(y, "Y", KeyedOrg.Indexed, 3, "CCCC"));
             // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
             refuseAt = seen + 2;
             y.Close("Y");

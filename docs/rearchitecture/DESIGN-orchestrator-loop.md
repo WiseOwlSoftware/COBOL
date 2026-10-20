@@ -1010,9 +1010,20 @@ Owner 2026-10-04: "Publish ledger each time." The page is the owner's live view 
 `conformance-ledger-artifact`), and a stale page is worse than none. Publishing is the one step a headless unit CANNOT do:
 its session has no `Artifact` tool (probed 2026-10-04 on Haiku: asked whether the tool is available, it answers NO), and a
 wrapper around the claude.ai API would be a second author of the page. So the work splits where the capability is:
-- **A unit renders** (`units/wave.md` step 5, `units/land.md` step 4): `python scripts/spec/gen_ledger.py --out
+- **A unit renders** (`units/wave.md` step 5, `units/enqueue.md` step 7): `python scripts/spec/gen_ledger.py --out
   {COORD}\ledger.html`; every figure on the page is computed and none is hand-written (the in-flight narrative was
   removed, kb/Work PB2912).
+- **The trend series lives beside the page, never in a checkout** (`{COORD}\ledger-trend.json`, `gen_ledger.TREND`;
+  kb/Work PB2426). It is the publish's state: every point is measured from its own commit's tree, and `missed_points`
+  rebuilds any point a render skipped, so only the battery marks and the frozen `program` list exist nowhere else. While
+  it was the tracked `docs/rearchitecture/evidence/ledger-trend.json`, every render left the checkout it ran in dirty,
+  and in the main checkout `next_unit.py` then started a `resume` unit whose only finding was that file. Every worktree
+  shares the one file, so ONLY A RENDER OF MAIN'S PAGE APPENDS: `gen_ledger.py` asks `ledger_state.stale_checkout_line`
+  (the check behind its NOT MAIN'S PAGE line) before it writes, and a branch's or a stale checkout's render records
+  nothing. The series is read and written through `coord.read_json` / `coord.write_json` (a temp file renamed over
+  it), so a unit killed mid-render never leaves it torn, and a write to a path that is not absolute (the Windows
+  default read on Linux) is refused. A data correction to the series (kb/Work PB3115, PB3357) is applied to this file
+  by its fix, outside any branch, and stated in the fix's note.
 - **The supervisor announces.** After every unit it runs `ledger_state.py owed`, which compares the page's own stamp (the
   last commit touching an input of the page, `gen_ledger.STAMP_PATHS`, imported so the two cannot disagree) with
   `ledger-published.json`, and prints `LEDGER PUBLISH OWED` in its log when they differ. `stop.ps1 -Status` shows the same.

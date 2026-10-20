@@ -31,68 +31,18 @@ namespace CobolNet.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class RelativeEngineTests
 {
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3333-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
-
-    private static void Register(FileRegistry reg, string name, string host, FileSharing? sharing,
-        KeyedAccess access = KeyedAccess.Dynamic)
-    {
-        reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)access, relativeKeyDigits: 4,
-            varyMin: -1, varyMax: -1);
-        if (sharing is { } s) reg.RegisterSharing(name, s, FileLockMode.Manual, multiple: false);
-    }
-
-    private static string Rec(int n, string payload) => $"{n:0000}{payload}";
-
-    private static string Write(FileRegistry reg, string name, int n, string payload)
-    {
-        reg.SetRelativeKey(name, n);
-        return reg.WriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-    }
-
-    private static string Rewrite(FileRegistry reg, string name, int n, string payload)
-    {
-        reg.SetRelativeKey(name, n);
-        return reg.RewriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0);
-    }
-
-    private static string Delete(FileRegistry reg, string name, int n)
-    {
-        reg.SetRelativeKey(name, n);
-        return reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
-    }
-
-    private static string ReadKey(FileRegistry reg, string name, int n, out string image)
-    {
-        reg.SetRelativeKey(name, n);
-        return reg.ReadKeyedShared(name, -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
-            FileRetryKind.None, 0, out image);
-    }
+    /// <summary>The two records every case starts from: 0001AAAA and 0002BBBB.</summary>
+    private static readonly string[] Seeded = ["AAAA", "BBBB"];
 
     private static string ReadNext(FileRegistry reg, string name, out string image) =>
         reg.ReadShared(name, previous: false, FileRecordLock.None, advancingOnLock: false, ignoringLock: false,
             FileRetryKind.None, 0, out image);
 
-    private static void Seed(string host)
-    {
-        var seed = new FileRegistry();
-        Register(seed, "S", host, sharing: null);
-        seed.OpenStatic("S", FileOpenMode.Output);
-        Assert.Equal("00", Write(seed, "S", 1, "AAAA"));
-        Assert.Equal("00", Write(seed, "S", 2, "BBBB"));
-        seed.Close("S");
-        Assert.Equal("00", seed.Status("S"));
-    }
-
     /// <summary>Every record of the file, read by the next run unit's OPEN INPUT and READ NEXT loop.</summary>
     private static List<string> Records(string host)
     {
         var reader = new FileRegistry();
-        Register(reader, "R", host, sharing: null);
+        KeyedFileHarness.Register(reader, "R", host, KeyedOrg.Relative, sharing: null);
         reader.OpenStatic("R", FileOpenMode.Input);
         Assert.Equal("00", reader.Status("R"));
         var all = new List<string>();
@@ -107,9 +57,9 @@ public sealed class RelativeEngineTests
 
     private static string Run(FileRegistry reg, Change change) => change switch
     {
-        Change.Write => Write(reg, "A", 3, "CCCC"),
-        Change.Rewrite => Rewrite(reg, "A", 2, "ZZZZ"),
-        _ => Delete(reg, "A", 1),
+        Change.Write => KeyedFileHarness.Write(reg, "A", KeyedOrg.Relative, 3, "CCCC"),
+        Change.Rewrite => KeyedFileHarness.Rewrite(reg, "A", KeyedOrg.Relative, 2, "ZZZZ"),
+        _ => KeyedFileHarness.Delete(reg, "A", KeyedOrg.Relative, 1),
     };
 
     private static readonly string[] Before = ["0001AAAA", "0002BBBB"];
@@ -133,16 +83,16 @@ public sealed class RelativeEngineTests
     /// <summary>The writes one statement hands over, measured on a run that does not die.</summary>
     private static int WritesOf(Change change, FileSharing sharing, out int closeWrites)
     {
-        string host = Tmp("measure");
+        string host = KeyedFileHarness.Tmp("measure");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             DyingPageMedium? medium = null;
             KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
             var a = new FileRegistry();
             try
             {
-                Register(a, "A", host, sharing);
+                KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
             finally { KeyedStore.MediumObserver.Value = null; }
@@ -153,7 +103,7 @@ public sealed class RelativeEngineTests
             closeWrites = medium.Writes - before - statement;
             return statement;
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>2.2.1.16's crash points of a changing statement and of the CLOSE's promotion, through the connector: a death
@@ -171,16 +121,16 @@ public sealed class RelativeEngineTests
         Assert.True(writes >= 2, $"a changing statement writes its pages and then page 2 ({writes})");
         for (int i = 0; i <= writes + closeWrites; i++)
         {
-            string host = Tmp($"die-{change}-{sharing}-{i}");
+            string host = KeyedFileHarness.Tmp($"die-{change}-{sharing}-{i}");
             try
             {
-                Seed(host);
+                KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
                 DyingPageMedium? medium = null;
                 KeyedStore.MediumObserver.Value = inner => medium = new DyingPageMedium(inner);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
@@ -189,7 +139,7 @@ public sealed class RelativeEngineTests
                 if (sharing != FileSharing.NoOther)
                 {
                     b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    KeyedFileHarness.Register(b, "B", host, KeyedOrg.Relative, FileSharing.AllOther);
                     b.OpenStatic("B", sharing == FileSharing.ReadOnly ? FileOpenMode.Input : FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
                 }
@@ -202,13 +152,13 @@ public sealed class RelativeEngineTests
                 {
                     if (sharing == FileSharing.AllOther)
                     {
-                        Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                        Assert.Equal("00", KeyedFileHarness.Write(b, "B", KeyedOrg.Relative, 5, "EEEE"));
                         expected.Add("0005EEEE");
                     }
                     else
                     {
                         // The INPUT reader beside a READ ONLY writer follows page 2 and reads the completed file.
-                        Assert.Equal(completed && change == Change.Delete ? "23" : "00", ReadKey(b, "B", 1, out _));
+                        Assert.Equal(completed && change == Change.Delete ? "23" : "00", KeyedFileHarness.Read(b, "B", KeyedOrg.Relative, 1, out _));
                     }
                     b.Close("B");
                     Assert.Equal("00", b.Status("B"));
@@ -218,7 +168,7 @@ public sealed class RelativeEngineTests
             finally
             {
                 KeyedStore.MediumObserver.Value = null;
-                TryDelete(host);
+                KeyedFileHarness.TryDelete(host);
             }
         }
     }
@@ -237,32 +187,32 @@ public sealed class RelativeEngineTests
         int writes = WritesOf(change, sharing, out _);
         for (int i = 0; i < writes; i++)
         {
-            string host = Tmp($"refuse-{change}-{sharing}-{i}");
+            string host = KeyedFileHarness.Tmp($"refuse-{change}-{sharing}-{i}");
             int refuseAt = int.MaxValue, seen = 0;
             try
             {
-                Seed(host);
+                KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
                 KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
                     write: _ => seen++ == refuseAt ? new IOException("refused by the host") : null);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
                 finally { KeyedStore.MediumObserver.Value = null; }
                 refuseAt = seen + i;
                 Assert.Equal("30", Run(a, change));
-                Assert.Equal("30", Write(a, "A", 7, "GGGG"));                   // replayed, nothing touched
-                Assert.Equal("30", ReadKey(a, "A", 2, out string image));
+                Assert.Equal("30", KeyedFileHarness.Write(a, "A", KeyedOrg.Relative, 7, "GGGG"));                   // replayed, nothing touched
+                Assert.Equal("30", KeyedFileHarness.Read(a, "A", KeyedOrg.Relative, 2, out string image));
                 Assert.Equal("", image.Trim());
                 if (sharing == FileSharing.AllOther)
                 {
                     var b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    KeyedFileHarness.Register(b, "B", host, KeyedOrg.Relative, FileSharing.AllOther);
                     b.OpenStatic("B", FileOpenMode.IO);
-                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    Assert.Equal("00", KeyedFileHarness.Write(b, "B", KeyedOrg.Relative, 5, "EEEE"));
                     b.Close("B");
                     Assert.Equal("00", b.Status("B"));
                 }
@@ -275,7 +225,7 @@ public sealed class RelativeEngineTests
             finally
             {
                 KeyedStore.MediumObserver.Value = null;
-                TryDelete(host);
+                KeyedFileHarness.TryDelete(host);
             }
         }
     }
@@ -290,34 +240,34 @@ public sealed class RelativeEngineTests
     public void Two_run_units_see_each_others_statements_at_every_statement()
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp("pair");
+        string host = KeyedFileHarness.Tmp("pair");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             var a = new FileRegistry();
-            Register(a, "A", host, FileSharing.AllOther);
+            KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, FileSharing.AllOther);
             a.OpenStatic("A", FileOpenMode.IO);
-            Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+            Assert.Equal("00", KeyedFileHarness.Write(a, "A", KeyedOrg.Relative, 3, "CCCC"));
             var b = new FileRegistry();                       // a writable OPEN after A's statement: adopts and fences it
-            Register(b, "B", host, FileSharing.AllOther);
+            KeyedFileHarness.Register(b, "B", host, KeyedOrg.Relative, FileSharing.AllOther);
             b.OpenStatic("B", FileOpenMode.IO);
-            Assert.Equal("00", ReadKey(b, "B", 3, out string image));
+            Assert.Equal("00", KeyedFileHarness.Read(b, "B", KeyedOrg.Relative, 3, out string image));
             Assert.Equal("0003CCCC", image);
-            Assert.Equal("22", Write(b, "B", 3, "XXXX"));      // §14.9.51.4 GR33 a): the record A wrote exists
-            Assert.Equal("00", Rewrite(b, "B", 3, "DDDD"));
-            Assert.Equal("00", Delete(b, "B", 1));
-            Assert.Equal("00", ReadKey(a, "A", 3, out image)); // A's entry adopts B's page 2 after B's fence
+            Assert.Equal("22", KeyedFileHarness.Write(b, "B", KeyedOrg.Relative, 3, "XXXX"));      // §14.9.51.4 GR33 a): the record A wrote exists
+            Assert.Equal("00", KeyedFileHarness.Rewrite(b, "B", KeyedOrg.Relative, 3, "DDDD"));
+            Assert.Equal("00", KeyedFileHarness.Delete(b, "B", KeyedOrg.Relative, 1));
+            Assert.Equal("00", KeyedFileHarness.Read(a, "A", KeyedOrg.Relative, 3, out image)); // A's entry adopts B's page 2 after B's fence
             Assert.Equal("0003DDDD", image);
-            Assert.Equal("23", ReadKey(a, "A", 1, out _));      // §9.1.13.5 3 a): B deleted it
-            Assert.Equal("23", Delete(a, "A", 1));
+            Assert.Equal("23", KeyedFileHarness.Read(a, "A", KeyedOrg.Relative, 1, out _));      // §9.1.13.5 3 a): B deleted it
+            Assert.Equal("23", KeyedFileHarness.Delete(a, "A", KeyedOrg.Relative, 1));
             var c = new FileRegistry();                       // an INPUT OPEN beside two writers
-            Register(c, "C", host, FileSharing.AllOther, KeyedAccess.Sequential);
+            KeyedFileHarness.Register(c, "C", host, KeyedOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Sequential);
             c.OpenStatic("C", FileOpenMode.Input);
             var seen = new List<string>();
             while (ReadNext(c, "C", out string next) == "00")
             {
                 seen.Add(next);
-                if (seen.Count == 1) Assert.Equal("00", Write(a, "A", 9, "IIII"));   // released past C's position
+                if (seen.Count == 1) Assert.Equal("00", KeyedFileHarness.Write(a, "A", KeyedOrg.Relative, 9, "IIII"));   // released past C's position
             }
             Assert.Equal(["0002BBBB", "0003DDDD", "0009IIII"], seen);
             c.Close("C");
@@ -325,7 +275,7 @@ public sealed class RelativeEngineTests
             b.Close("B");
             Assert.Equal(["0002BBBB", "0003DDDD", "0009IIII"], Records(host));
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ THE REGRESSION FINDING R2-6 NAMED (2.2.1.7; 2.2.1.14): a <c>SHARING WITH READ ONLY</c> writer beside the
@@ -339,22 +289,22 @@ public sealed class RelativeEngineTests
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
         const int Records = 600;   // past one leaf and one internal level of 26-byte entries: splits and reused pages
-        string host = Tmp("r2-6");
+        string host = KeyedFileHarness.Tmp("r2-6");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             var writer = new FileRegistry();
-            Register(writer, "W", host, FileSharing.ReadOnly);
+            KeyedFileHarness.Register(writer, "W", host, KeyedOrg.Relative, FileSharing.ReadOnly);
             writer.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", writer.Status("W"));
             var reader = new FileRegistry();
-            Register(reader, "R", host, FileSharing.AllOther, KeyedAccess.Dynamic);
+            KeyedFileHarness.Register(reader, "R", host, KeyedOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Dynamic);
             reader.OpenStatic("R", FileOpenMode.Input);
             Assert.Equal("00", reader.Status("R"));
             var writes = Task.Run(() =>
             {
                 for (int n = 3; n < 3 + Records; n++)
-                    Assert.Equal("00", Write(writer, "W", n, "WWWW"));
+                    Assert.Equal("00", KeyedFileHarness.Write(writer, "W", KeyedOrg.Relative, n, "WWWW"));
             });
             var statuses = new HashSet<string>();
             int highest = 0;
@@ -377,7 +327,7 @@ public sealed class RelativeEngineTests
             writer.Close("W");
             Assert.Contains("00", statuses);
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>The PB3333 row of 2.2.1.12's tree cases: a READ NEXT that steps across leaves ANOTHER run unit's inserts split
@@ -388,19 +338,19 @@ public sealed class RelativeEngineTests
     public void A_sequential_reader_continues_through_a_tree_another_run_unit_splits()
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp("split");
+        string host = KeyedFileHarness.Tmp("split");
         try
         {
             var seed = new FileRegistry();
-            Register(seed, "S", host, sharing: null);
+            KeyedFileHarness.Register(seed, "S", host, KeyedOrg.Relative, sharing: null);
             seed.OpenStatic("S", FileOpenMode.Output);
-            for (int n = 1; n < 800; n += 2) Assert.Equal("00", Write(seed, "S", n, "ODD "));
+            for (int n = 1; n < 800; n += 2) Assert.Equal("00", KeyedFileHarness.Write(seed, "S", KeyedOrg.Relative, n, "ODD "));
             seed.Close("S");
             var reader = new FileRegistry();
-            Register(reader, "R", host, FileSharing.AllOther, KeyedAccess.Sequential);
+            KeyedFileHarness.Register(reader, "R", host, KeyedOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Sequential);
             reader.OpenStatic("R", FileOpenMode.Input);
             var writer = new FileRegistry();
-            Register(writer, "W", host, FileSharing.AllOther);
+            KeyedFileHarness.Register(writer, "W", host, KeyedOrg.Relative, FileSharing.AllOther);
             writer.OpenStatic("W", FileOpenMode.IO);
             var seen = new List<int>();
             string status;
@@ -408,7 +358,7 @@ public sealed class RelativeEngineTests
             {
                 int n = int.Parse(image[..4], System.Globalization.CultureInfo.InvariantCulture);
                 seen.Add(n);
-                if (n % 2 == 1) Assert.Equal("00", Write(writer, "W", n + 1, "EVEN"));   // just past the reader's position
+                if (n % 2 == 1) Assert.Equal("00", KeyedFileHarness.Write(writer, "W", KeyedOrg.Relative, n + 1, "EVEN"));   // just past the reader's position
             }
             Assert.Equal("10", status);
             Assert.Equal(Enumerable.Range(1, 800), seen);
@@ -416,7 +366,7 @@ public sealed class RelativeEngineTests
             reader.Close("R");
             writer.Close("W");
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>A relative file round-trips through CLOSE and OPEN with gaps (a record in the billions is one leaf entry),
@@ -426,7 +376,7 @@ public sealed class RelativeEngineTests
     [Fact]
     public void A_relative_store_round_trips_gaps_varying_frames_extent_tables_and_a_code_set()
     {
-        string host = Tmp("roundtrip");
+        string host = KeyedFileHarness.Tmp("roundtrip");
         try
         {
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -461,7 +411,7 @@ public sealed class RelativeEngineTests
             Assert.Equal("23", r.ReadRandom(out _));                // a gap: §9.1.13.5 3 a)
             Assert.Equal("00", r.Close());
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     private static bool Contains(byte[] haystack, byte[] needle) =>
@@ -473,7 +423,7 @@ public sealed class RelativeEngineTests
     [Fact]
     public void A_whole_store_file_is_a_fixed_attribute_conflict_39()
     {
-        string host = Tmp("format5");
+        string host = KeyedFileHarness.Tmp("format5");
         try
         {
             File.WriteAllBytes(host, WholeStoreFile.Bytes('R', 5, "0001AAAA"));
@@ -482,7 +432,7 @@ public sealed class RelativeEngineTests
             Assert.Equal("39", c.Open(FileOpenMode.IO));
             Assert.Equal(before, File.ReadAllBytes(host));
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>The PB3333 rows of 2.2.1.12's tree cases through the connector: a WRITE of a present record number is
@@ -492,7 +442,7 @@ public sealed class RelativeEngineTests
     [Fact]
     public void Present_and_absent_keys_and_a_torn_page_answer_the_general_rules_statuses()
     {
-        string host = Tmp("keys");
+        string host = KeyedFileHarness.Tmp("keys");
         try
         {
             var c = new RelativeConnector(host, 8, KeyedAccess.Random, 4);
@@ -523,7 +473,7 @@ public sealed class RelativeEngineTests
             Assert.Equal("30", t.Write("0004XXXX"));                  // replayed
             Assert.Equal("00", t.Close());                             // the CLOSE ends it (DOC-A.1-105)
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     // ── 2.2.1.16's OPEN and CLOSE rows through the connector (review finding R1-4) ───────────────────────────────────
@@ -545,16 +495,16 @@ public sealed class RelativeEngineTests
         Assert.True(closeOps >= 3, $"a promotion writes its claim and its slot and syncs ({closeOps})");
         for (int k = 0; k < closeOps; k++)
         {
-            string host = Tmp($"refuse-close-{sharing}-{k}");
+            string host = KeyedFileHarness.Tmp($"refuse-close-{sharing}-{k}");
             int refuseAt = int.MaxValue, seen = 0;
             try
             {
-                Seed(host);
+                KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
                 RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 var a = new FileRegistry();
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                     a.OpenStatic("A", FileOpenMode.IO);
                     Assert.Equal("00", a.Status("A"));
                 }
@@ -563,11 +513,11 @@ public sealed class RelativeEngineTests
                 if (sharing == FileSharing.AllOther)
                 {
                     b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    KeyedFileHarness.Register(b, "B", host, KeyedOrg.Relative, FileSharing.AllOther);
                     b.OpenStatic("B", FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
                 }
-                Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+                Assert.Equal("00", KeyedFileHarness.Write(a, "A", KeyedOrg.Relative, 3, "CCCC"));
                 refuseAt = seen + k;
                 a.Close("A");
                 Assert.Equal("30", a.Status("A"));
@@ -575,14 +525,14 @@ public sealed class RelativeEngineTests
                 var expected = After(Change.Write).ToList();
                 if (b is not null)
                 {
-                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    Assert.Equal("00", KeyedFileHarness.Write(b, "B", KeyedOrg.Relative, 5, "EEEE"));
                     expected.Add("0005EEEE");
                     b.Close("B");
                     Assert.Equal("00", b.Status("B"));
                 }
                 a.OpenStatic("A", FileOpenMode.IO);                  // the CLOSE left the connector closed
                 Assert.Equal("00", a.Status("A"));
-                Assert.Equal("00", ReadKey(a, "A", 3, out string image));
+                Assert.Equal("00", KeyedFileHarness.Read(a, "A", KeyedOrg.Relative, 3, out string image));
                 Assert.Equal("0003CCCC", image);
                 a.Close("A");
                 Assert.Equal("00", a.Status("A"));
@@ -591,7 +541,7 @@ public sealed class RelativeEngineTests
             finally
             {
                 RelativeStore.MediumObserver.Value = null;
-                TryDelete(host);
+                KeyedFileHarness.TryDelete(host);
             }
         }
     }
@@ -599,42 +549,42 @@ public sealed class RelativeEngineTests
     /// <summary>The writes and syncs of a CLOSE after one completed WRITE, measured on a run that is not refused.</summary>
     private static int CloseOperationsAfterAWrite(FileSharing sharing)
     {
-        string host = Tmp("measure-close");
+        string host = KeyedFileHarness.Tmp("measure-close");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             int seen = 0;
             RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
-                Register(a, "A", host, sharing);
+                KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                 a.OpenStatic("A", FileOpenMode.IO);
             }
             finally { RelativeStore.MediumObserver.Value = null; }
-            Assert.Equal("00", Write(a, "A", 3, "CCCC"));
+            Assert.Equal("00", KeyedFileHarness.Write(a, "A", KeyedOrg.Relative, 3, "CCCC"));
             int before = seen;
             a.Close("A");
             Assert.Equal("00", a.Status("A"));
             return seen - before;
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     /// <summary>The writes and syncs an OPEN hands over, measured on a run that is not refused: the fence of an
     /// <c>OPEN I-O</c> of the seeded file, or an <c>OPEN OUTPUT</c>'s creation over it.</summary>
     private static int OpenOperations(FileOpenMode mode, FileSharing sharing)
     {
-        string host = Tmp("measure-open");
+        string host = KeyedFileHarness.Tmp("measure-open");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             int seen = 0;
             RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => -1, () => seen++, () => seen);
             var a = new FileRegistry();
             try
             {
-                Register(a, "A", host, sharing);
+                KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                 a.OpenStatic("A", mode);
                 Assert.Equal("00", a.Status("A"));
             }
@@ -643,7 +593,7 @@ public sealed class RelativeEngineTests
             a.Close("A");
             return opened;
         }
-        finally { TryDelete(host); }
+        finally { KeyedFileHarness.TryDelete(host); }
     }
 
     public static TheoryData<FileOpenMode, FileSharing> Opens()
@@ -678,16 +628,16 @@ public sealed class RelativeEngineTests
         Assert.True(openOps >= 2, $"an OPEN through a writable handle writes and syncs ({openOps})");
         for (int k = 0; k < openOps; k++)
         {
-            string host = Tmp($"refuse-open-{mode}-{sharing}-{k}");
+            string host = KeyedFileHarness.Tmp($"refuse-open-{mode}-{sharing}-{k}");
             int refuseAt = k, seen = 0;
             try
             {
-                Seed(host);
+                KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
                 var a = new FileRegistry();
                 RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                     a.OpenStatic("A", mode);
                     Assert.Equal("30", a.Status("A"));
                 }
@@ -700,10 +650,10 @@ public sealed class RelativeEngineTests
                 if (sharing == FileSharing.AllOther)
                 {
                     var b = new FileRegistry();
-                    Register(b, "B", host, FileSharing.AllOther);
+                    KeyedFileHarness.Register(b, "B", host, KeyedOrg.Relative, FileSharing.AllOther);
                     b.OpenStatic("B", FileOpenMode.IO);
                     Assert.Equal("00", b.Status("B"));
-                    Assert.Equal("00", Write(b, "B", 5, "EEEE"));
+                    Assert.Equal("00", KeyedFileHarness.Write(b, "B", KeyedOrg.Relative, 5, "EEEE"));
                     expected.Add("0005EEEE");
                     b.Close("B");
                     Assert.Equal("00", b.Status("B"));
@@ -717,7 +667,7 @@ public sealed class RelativeEngineTests
             finally
             {
                 RelativeStore.MediumObserver.Value = null;
-                TryDelete(host);
+                KeyedFileHarness.TryDelete(host);
             }
         }
     }
@@ -735,16 +685,16 @@ public sealed class RelativeEngineTests
         int openOps = OpenOperations(mode, sharing);
         for (int i = 0; i <= openOps; i++)
         {
-            string host = Tmp($"die-open-{mode}-{sharing}-{i}");
+            string host = KeyedFileHarness.Tmp($"die-open-{mode}-{sharing}-{i}");
             try
             {
-                Seed(host);
+                KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
                 var a = new FileRegistry();
                 int dieAfter = i;
                 RelativeStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try
                 {
-                    Register(a, "A", host, sharing);
+                    KeyedFileHarness.Register(a, "A", host, KeyedOrg.Relative, sharing);
                     a.OpenStatic("A", mode);   // what the dying run unit is told is not asked
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
@@ -755,7 +705,7 @@ public sealed class RelativeEngineTests
             finally
             {
                 RelativeStore.MediumObserver.Value = null;
-                TryDelete(host);
+                KeyedFileHarness.TryDelete(host);
             }
         }
     }
@@ -771,19 +721,19 @@ public sealed class RelativeEngineTests
     public void An_input_connector_beside_its_writable_sibling_reads_a_promoting_page_2_and_writes_nothing()
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
-        string host = Tmp("r1-2");
+        string host = KeyedFileHarness.Tmp("r1-2");
         try
         {
-            Seed(host);
+            KeyedFileHarness.Seed(host, KeyedOrg.Relative, Seeded);
             int xWrites = 0;
             var x = new FileRegistry();
             RelativeStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => { xWrites++; return null; });
             try
             {
-                Register(x, "XI", host, FileSharing.AllOther, KeyedAccess.Random);
+                KeyedFileHarness.Register(x, "XI", host, KeyedOrg.Relative, FileSharing.AllOther, access: KeyedAccess.Random);
                 x.OpenStatic("XI", FileOpenMode.Input);
                 Assert.Equal("00", x.Status("XI"));
-                Register(x, "XO", host, FileSharing.AllOther);
+                KeyedFileHarness.Register(x, "XO", host, KeyedOrg.Relative, FileSharing.AllOther);
                 x.OpenStatic("XO", FileOpenMode.IO);
                 Assert.Equal("00", x.Status("XO"));
             }
@@ -794,12 +744,12 @@ public sealed class RelativeEngineTests
             RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
             try
             {
-                Register(y, "Y", host, FileSharing.AllOther);
+                KeyedFileHarness.Register(y, "Y", host, KeyedOrg.Relative, FileSharing.AllOther);
                 y.OpenStatic("Y", FileOpenMode.IO);
                 Assert.Equal("00", y.Status("Y"));
             }
             finally { RelativeStore.MediumObserver.Value = null; }
-            Assert.Equal("00", Write(y, "Y", 3, "CCCC"));
+            Assert.Equal("00", KeyedFileHarness.Write(y, "Y", KeyedOrg.Relative, 3, "CCCC"));
             // The CLOSE's promotion: its claim (page 2 with PROMOTING), sync 1, then the slot write — refused.
             refuseAt = seen + 2;
             y.Close("Y");
@@ -807,12 +757,12 @@ public sealed class RelativeEngineTests
             Assert.True(StoreKit.PageTwoPromoting(host), "the refused promotion left PROMOTING on page 2");
 
             int before = xWrites;
-            Assert.Equal("00", ReadKey(x, "XI", 3, out string image));
+            Assert.Equal("00", KeyedFileHarness.Read(x, "XI", KeyedOrg.Relative, 3, out string image));
             Assert.Equal("0003CCCC", image);
             Assert.Equal(before, xWrites);                        // the shared entry wrote nothing
             Assert.True(StoreKit.PageTwoPromoting(host), "the INPUT connector left the flag to an exclusive entry");
 
-            Assert.Equal("00", ReadKey(x, "XO", 3, out image));   // the exclusive entry resolves it (R5's restart rule)
+            Assert.Equal("00", KeyedFileHarness.Read(x, "XO", KeyedOrg.Relative, 3, out image));   // the exclusive entry resolves it (R5's restart rule)
             Assert.Equal("0003CCCC", image);
             Assert.True(xWrites > before, "the I-O connector's entry ran the promotion again");
             Assert.False(StoreKit.PageTwoPromoting(host), "the promotion completed");
@@ -824,7 +774,7 @@ public sealed class RelativeEngineTests
         finally
         {
             RelativeStore.MediumObserver.Value = null;
-            TryDelete(host);
+            KeyedFileHarness.TryDelete(host);
         }
     }
 }

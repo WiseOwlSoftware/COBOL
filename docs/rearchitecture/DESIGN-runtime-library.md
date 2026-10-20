@@ -1459,7 +1459,9 @@ keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unc
 sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and the refused page write, and
 `StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12, and `ReadOnlyKeyedWriterStoreMutexTests` the rule that a
 `SHARING WITH READ ONLY` or `ALL OTHER` writer makes every page write of a statement, the tree pages and page 2, inside the
-mutex and gives it back when the host refuses one: kb/Work PB3414). The
+mutex and gives it back when the host refuses one, on the machine's region host and on the lock-file host: kb/Work
+PB3414, PB3458; the keyed-file helpers every one of these tests uses, and the store-mutex probe, are written once, in
+`KeyedFileHarness`: kb/Work PB3459). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
@@ -1828,9 +1830,9 @@ formulas), s = the pages a statement's splits add (one per level that splits, a 
 statements together add exactly the pages its trees gain), ℓ = the ledger's path copy — its root and every ledger leaf
 the statement's entries land on, at most the ledger tree's pages: 1 for a load whose pages are adjacent (an ascending
 load), but the ledger is keyed by page number and a statement of scattered keys releases pages anywhere in the file, so
-there ℓ grows with the ledger's fill up to the whole tree, at most 9 pages at R2's checkpoint (1 024 entries plus the pages of the one statement that begins at it; measured,
+there ℓ grows with the ledger's fill up to the whole tree, which held at most 9 pages at R2's checkpoint in the measured workload (the ledger lists 1 024 entries plus the pages of the one statement that begins at it, and a leaf holds 213 of them when full, but the ledger is keyed by page number, so a scattered load leaves its leaves anywhere from half full to full and the page count follows that fill, not the entry count; measured,
 PB3336: a random relative load writes ℓ ≈ 5 at 20 000 records, the ascending one 1, and the largest ledger of the twelve load
-cells, 1 028 entries under two alternate keys, fills 9 pages; the load witness asserts the 9 for every statement of every cell
+cells, 1 028 entries under two alternate keys, fills 9 pages; the load witness pins that measured 9 for every statement of every cell
 (`KeyedStorePerformanceWitnessTests.LedgerPagesAtCheckpoint`, PB3410), and the OPEN-after-a-death witness asserts it for the
 ledger tree it reads); the checkpoint, not the file's
 size, bounds it — the free-tree batch ≤ 2 pages (taken once per statement at most), u = the UNDO tree's depth for a connector under commit control, and h = the HOLDINGS tree's depth (≤ 2
