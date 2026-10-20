@@ -773,18 +773,24 @@ def self_test() -> int:
         for test_id in hang_tests:
             check(f"arm: {test_id} is {NO_VERDICT} (the hang guard)", hung.get(test_id, ("", ""))[0] == NO_VERDICT
                   and "exceeded the hang guard (3 s)" in hung[test_id][1], hung.get(test_id))
-        # --keep: the working directory holds the staged source under the adapter's name limit (12 here).
-        before = set(Path(tempfile.gettempdir()).glob("conformance-kept-*"))
-        quiet(["--compiler", "stub", "--out", str(out), "--editions", "85", "--test", "a-very-long-test-identifier",
-              "--test", "staged", "--keep"])
-        kept = sorted(set(Path(tempfile.gettempdir()).glob("conformance-kept-*")) - before)
+        # --keep: the working directory holds the staged source under the adapter's name limit (12 here). The run's
+        # temp root is a directory this self-test owns, never the machine-wide one: a concurrent self-test on the
+        # host (two gates' Linux legs share /tmp) would otherwise take this run's kept directory for its own and
+        # remove it (kb/Work PB2922's rule: nothing counts or removes files of a shape in the shared temp directory).
+        private = root / "tmp"
+        private.mkdir()
+        shared, tempfile.tempdir = tempfile.tempdir, str(private)
+        try:
+            quiet(["--compiler", "stub", "--out", str(out), "--editions", "85", "--test",
+                   "a-very-long-test-identifier", "--test", "staged", "--keep"])
+        finally:
+            tempfile.tempdir = shared
+        kept = sorted(private.glob("conformance-kept-*"))
         staged = kept[0] / "85" / "staged" if kept else Path("missing")
         check("arm: a kept working directory holds the source under the name limit and the declared files",
-              bool(kept) and (kept[0] / "85" / "a-very-long-test-identifier" / "a-very-long-.cob").is_file()
+              len(kept) == 1 and (kept[0] / "85" / "a-very-long-test-identifier" / "a-very-long-.cob").is_file()
               and (staged / "DATA1.dat").is_file() and (staged / "staged.cob").is_file(),
-              [str(p.relative_to(kept[0])) for p in kept[0].rglob("*")] if kept else None)
-        for k in kept:
-            shutil.rmtree(k, ignore_errors=True)
+              [str(p.relative_to(private)) for p in private.rglob("*")])
 
         # A hook performs an operation (§5: a compiler that needs more supplies a Python hook).
         (root / "adapters" / "hooked.py").write_text(_HOOK, encoding="utf-8", newline="\n")
