@@ -161,6 +161,59 @@ public sealed class AssignConstantNameTests
         Assert.Equal("GLOB", stdout.Trim());
     }
 
+    /// <summary>⛔ THE THIRD EC-I-O ARM OF A CONSTANT-NAMED FILE (kb/Work PB3438): NEITHER a FILE STATUS item NOR a USE
+    /// declarative. The corpus golden <c>pb2500_assign_constant_name</c> covers FILE STATUS (MS, status 35) and USE
+    /// without FILE STATUS (DC) but cannot hold this arm, because the harness requires exit 0 and this arm ends the run
+    /// unit abnormally. §14.6.13.1.3 3): "If the exception condition is a fatal EC-I-O exception condition, then the
+    /// rules for 9.1.13, I-O status apply"; §9.1.13.1: a status beginning 3 or 4 "indicate[s] fatal exception
+    /// conditions" and the implementor "may either continue or terminate the execution of the run unit"; the
+    /// implementor's determination (docs/CONFORMANCE.md §7, DOC-A.1-103) continues only when the program is equipped
+    /// to see the failure, and with nothing equipped the run unit terminates (§14.6.13.1.3 7) and §14.6.12). The
+    /// constant must not change that: its file is an ordinary file once named, so each fatal status of the abnormal
+    /// paths the golden answers through a status item ends the run, with nothing after the failing statement run.
+    /// <list type="bullet">
+    /// <item>OPEN INPUT of a non-optional file whose physical file is absent: '35' (§9.1.13.6 5)), first digit 3,
+    /// EC-I-O-PERMANENT-ERROR.</item>
+    /// <item>WRITE to a file that is not open: '48' (§9.1.13.7 8)), first digit 4, EC-I-O-LOGIC-ERROR.</item>
+    /// </list>
+    /// Every leg can fail: "AFTER" is displayed only if the run unit continued, and the termination must name the
+    /// exception, the statement and the status the rule gives. The constant is spelled as a word that is ALSO a
+    /// system-name (PB2500KN, the golden's spelling); the golden's RR and SP legs, not this test, pin which file it names.</summary>
+    [Theory]
+    [InlineData("PB3438A", "OPEN INPUT NF", "EC-I-O-PERMANENT-ERROR", "(OPEN)", "35")]
+    [InlineData("PB3438B", "WRITE NF-REC", "EC-I-O-LOGIC-ERROR", "(WRITE)", "48")]
+    public void ConstantNamedFile_FatalStatus_NeitherFileStatusNorUse_TerminatesTheRunUnit(
+        string pid, string statement, string ecName, string stmtTag, string status)
+    {
+        var (ok, stdout, detail) = EditionHarness.CompileAndRun($"""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. {pid}.
+            ENVIRONMENT DIVISION.
+            INPUT-OUTPUT SECTION.
+            FILE-CONTROL.
+                SELECT NF ASSIGN TO PB2500KN
+                    ORGANIZATION IS SEQUENTIAL.
+            DATA DIVISION.
+            FILE SECTION.
+            FD NF.
+            01 NF-REC PIC X(5).
+            WORKING-STORAGE SECTION.
+            01 PB2500KN CONSTANT AS "pb3438-absent.dat".
+            PROCEDURE DIVISION.
+            MAIN-P.
+                DISPLAY "BEFORE".
+                {statement}.
+                DISPLAY "AFTER".
+                STOP RUN.
+            """, 2023);
+        Assert.False(ok, $"expected abnormal termination on {ecName}; ran clean with stdout:\n{stdout}");
+        Assert.Equal("BEFORE", stdout.Trim());
+        Assert.Contains("abnormal run-unit termination", detail);
+        Assert.Contains(ecName, detail);
+        Assert.Contains(stmtTag, detail);
+        Assert.Contains($"I-O status {status}", detail);
+    }
+
     /// <summary>The leading word of a TWO-operand list is a device class when it spells one — the only allowable
     /// two-operand list is class + name (docs/CONFORMANCE.md §7 DOC-A.1-71) — even when the program also declares a
     /// constant of that spelling; the constant reading would be a list of two names, which is refused. The SECOND
