@@ -758,8 +758,16 @@ whole-store model it replaced). The core groups kb/Work PB3331 to PB3335 have bu
 B+ tree, RELATIVE and INDEXED on the engine, and coherence across run units at page granularity — and the whole-store model
 is deleted, with no reader of its format kept; the paragraphs above and the two `docs/CONFORMANCE.md` rows (DOC-A.1-107,
 DOC-A.1-75) describe the engine, and the performance witnesses (a) to (d) of 2.2.1.11 hold it to its bounds (PB3335,
-PB3336). Still the target: the transactions of 2.2.1.10 with their crash and interleaving rows (PB3337, PB3338): the core has landed, and the owner
-decided their scope on 2026-10-19 18:58 PDT — the whole module (kb/Work PB3337: "Option A"). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
+PB3336). The runtime half of 2.2.1.10's transactions is built (kb/Work PB3337; the owner decided the scope on 2026-10-19
+18:58 PDT — the whole module, "Option A"): in the tree, `Store/Transactions.cs` (the three trees' keys, the one walk that
+retires a transaction, `IRestoringTrees`), the UNDO and HOLDINGS edits of every changing statement under commit control
+(`KeyedStore.Change`), COMMIT as a promotion whose retirement retires the transaction with the region-3 reversal
+(`PagedFile.Commit`, `Retire`), ROLLBACK and the dead-owner rollback as one statement (`KeyedStore.RollBack`), the
+dead-owner step at every exclusive entry and writable OPEN, the holdings lock test (`KeyedConnector.HoldingsGate`), and
+`FileRegistry.RegisterCommitControl` / `Commit` / `Rollback`, with the connector-level cases in
+`tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs`. Still the target: the crash and interleaving rows
+`PendingStoreCases` lists for PB3337 (every crash point of COMMIT and ROLLBACK, the power-loss subsets, the reversal
+refused), witness (e) of 2.2.1.11, and the compiler half (PB3338). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
 reads the header; a keyed statement touches O(log n) pages; the size limit is the host's; a statement's change reaches the
 file when it completes, crash-consistently; `SHARING WITH ALL OTHER` is coherent at page granularity with today's record locks;
 every current golden keeps passing plus measured performance witnesses; one engine, no second path and no reader of the old
@@ -1804,6 +1812,18 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
   contradiction was between that rule and PB3337's brief; both now say the same thing).
+- **As built (kb/Work PB3337), where the text above left the shape open.** (1) The holdings test of REWRITE and DELETE is
+  made where WRITE's is, after the statement's invalid key condition ('23') and before the record is touched
+  (`KeyedConnector.HoldingsGate`, asked by each organization's verb); the region test keeps its place before the verb
+  (DOC-A.1-104's order). A dead owner's rollback at the test, or a RETRY wait, makes the verb evaluate its conditions again
+  from the top against the file as it then stands. (2) An INPUT connector that meets a dead owner's holding reads on: it
+  writes nothing and reads the file as it stands. (3) A CLOSE under commit control keeps the connector's handle, region
+  endpoint and store attachment while the run unit has an open transaction on the file; the next COMMIT or ROLLBACK gives
+  them back, and the connector's own re-OPEN moves the liveness byte to its new handle under the store mutex. Where the kept
+  handle's host share mode refuses the new handle, the kept one is given back first and the byte re-taken at the attach,
+  outside the mutex for that instant. The Table 19 run-unit file lock (the column bytes) is still released at the CLOSE.
+  (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
+  used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
   registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4,
   in the region), WRITE, REWRITE and DELETE hold the record they change and the unique key values they free (in the file;

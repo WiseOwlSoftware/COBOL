@@ -345,6 +345,7 @@ public sealed class CommitRollbackRuntimeTests
             var c = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
             Assert.Equal("23", Read(c, org, 5, out _, name: "C"));   // the file as it stands, dead transaction included
             Assert.Equal("22", Write(b, org, 5, "Z005"));
+            if (org == Org.Indexed) Assert.Equal("22", Write(b, org, 7, "A005"));   // K5's unique value is K5's again
             Assert.Equal("00", Read(b, org, 1, out var one));
             Assert.Equal(Rec(1, "A001"), one);
             AssertNoTransactionLeft(b);

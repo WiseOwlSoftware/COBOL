@@ -13,8 +13,9 @@ internal sealed record PendingCase(string Section, string Row, string Owner, str
 /// <summary>
 /// ⛔ THE ROWS OF THE CRASH MATRIX AND THE INTERLEAVINGS WHOSE PATHS THE PAGE LAYER DOES NOT OWN ARE WRITTEN DOWN WITH
 /// THEIR EXPECTED RESULTS BEFORE THE ENGINE THAT RUNS THEM EXISTS (kb/Work PB3331, "The first deliverable"; PB3330's
-/// Route from 2026-10-18). The held transaction slice (COMMIT, ROLLBACK, the dead-owner step and the holdings) is kb/Work
-/// PB3337's; the record statements' lock tests and lock publication, the alternate-key and relative statements and the
+/// Route from 2026-10-18). The transaction slice (COMMIT, ROLLBACK, the dead-owner step and the holdings) is kb/Work PB3337's,
+/// whose rows of the transaction, lock and dead-owner witnesses and the COMMIT refused before its slot write run in
+/// <c>CommitRollbackRuntimeTests</c>; the crash-point and interleaving rows below are still its own; the record statements' lock tests and lock publication, the alternate-key and relative statements and the
 /// connectors' coherence were PB3333, PB3334 and PB3335's, and run now as cases of their own. Each owner turns its rows
 /// into running cases when it lands; this class checks only that every row left names the held slice, a section and an
 /// expected result.
@@ -29,8 +30,6 @@ public sealed class PendingStoreCases
         new("2.2.1.12 R6", "an OPEN by a third run unit after one of two holders died, with a transaction", "PB3337",
             "by the live holder's next statement if it comes before the OPEN, else by the OPEN, with the live holder's own records untouched either way"),
         // 2.2.1.12's R5 restart rows for COMMIT.
-        new("2.2.1.12 R5", "a COMMIT refused before its slot write", "PB3337",
-            "unwound by the next entry (another run unit's statement or the owner's own ROLLBACK, which then restores every before-image); its transaction, UNDO tree and holdings intact until then"),
         new("2.2.1.12 R5", "a COMMIT refused in its retirement (after sync 2)", "PB3337",
             "the COMMIT reports success, and the next entry completes its retirement"),
         new("2.2.1.12 R5", "a COMMIT whose sync 2 is refused (finding R5-1)", "PB3337",
@@ -38,18 +37,6 @@ public sealed class PendingStoreCases
         new("2.2.1.12 R5", "the reversal's own page write or its promotion's sync refused", "PB3337",
             "the COMMIT reports failure, the ROLLBACK reports failure while the sync is refused and success once a sync lands; no run reports a ROLLBACK successful while the medium holds the COMMIT's slot as its highest valid slot"),
         // 2.2.1.12's transaction drift tests.
-        new("2.2.1.12 transaction", "two run units under APPLY COMMIT on disjoint records", "PB3337",
-            "A's ROLLBACK restores A's records to A's last COMMIT and leaves B's as B left them; a CLOSE then ROLLBACK restores the last COMMIT"),
-        new("2.2.1.12 transaction", "a first change under commit control refused at its n-th write (R4-2)", "PB3337",
-            "no liveness byte held afterwards; page 2's transaction mint above the drawn id; another run unit draws the next id with no wait"),
-        new("2.2.1.12 locks", "A under APPLY COMMIT DELETEs K5 without a READ; B WRITEs K5", "PB3337",
-            "'51'; after A's ROLLBACK the file holds A's K5 as at A's last COMMIT"),
-        new("2.2.1.12 locks", "A WRITEs K1; B READ K1 / READ IGNORING LOCK / REWRITE K1", "PB3337", "'51' / the record / '51'"),
-        new("2.2.1.12 locks", "A REWRITEs K1's unique alternate key X to Y; B WRITEs K2 with X, then with Y", "PB3337", "'51', then '22'"),
-        new("2.2.1.12 locks", "every holding is found (R5-2): X to Y to Z, W then DELETE, then COMMIT or ROLLBACK", "PB3337",
-            "B's WRITE with Y and with W answers '00'; the HOLDINGS tree is EMPTY; after every statement its key set equals the union of the UNDO trees' key sets"),
-        new("2.2.1.12 dead owner", "A under APPLY COMMIT DELETEs K5 (unique X) and is killed; B WRITEs K5, K7 with X", "PB3337",
-            "the entry rolls A back first: '22', '22'; B READs K5 as at A's last COMMIT; a third run unit's INPUT read between finds K5 absent, after B's statement present"),
         new("2.2.1.12 dead owner", "the holder's death at every point of another statement (R4-1)", "PB3337",
             "'22' (rolled back at B's test) or '51' (alive at B's test, RETRY then '22'), never '00'; no record B wrote overwritten by A's rollback"),
         // 2.2.1.16's crash points of the transaction paths.
