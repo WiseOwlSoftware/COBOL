@@ -77,7 +77,7 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
    and the CI wall from GitHub for every queued pull request that has no merge time yet; name a bounce's cause when its
    finisher knows it (`landing_measure.py record --pr <n> --bounces <k> --bounce-causes
    cluster-defect|load-timing|conflict|infrastructure`).
-7. Render the ledger in the same turn: `python scripts/spec/gen_ledger.py --out {COORD}\ledger.html` (every figure on it
+7. Render the ledger in the same turn: `python scripts/spec/gen_ledger.py --out '{COORD}\ledger.html'` (every figure on it
    is computed; its trend file gains a point when GAP or the register's series moved). You cannot PUBLISH it (a headless
    session has no Artifact tool): the supervisor announces the owed publish after you end, and the attended session
    publishes `{COORD}\ledger.html` to the owner's artifact. Do not look for a way around that.
