@@ -778,7 +778,9 @@ applies `.agent-fleet.json`'s kind and skip flags), run twice: once over `status
 8. **Outputs** (not in `--dry-run`). A PLAN THAT DOES NOT END GREEN CHANGES NO SHARED STATE (kb/Work PB3114). Before
    it plans, the planner refuses (exit 2) a `--scratch`, `--stop-file` or `--reports` that is not a fleet path
    (`coord.scratch_problem`, `fleet_stop_problem`, `absolute_problem`: absolute on this host, the scratch outside the
-   checkout, the stop file `STOP-<scope>`; the rules `make_dispatch_specs.py` and `check_practices.py` read too), because
+   checkout and, from an agent worktree, outside its main checkout too (`coord.main_checkout`, read from the path's
+   parts, so a drive-top checkout such as `E:\COBOL` passes, kb/Work PB3451), the stop file `STOP-<scope>`; the rules
+   `make_dispatch_specs.py` and `check_practices.py` read too), because
    Git Bash makes the drive-relative `E:COBOL-coordscratch` of an unquoted Windows path (three wave units planned into
    a folder inside the main checkout so; the unit prompts single-quote every path). It then writes
    `<scratch>\groups.json` in exactly `make_dispatch_specs.py`'s format (each group also carries its `model` and its
