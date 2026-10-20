@@ -484,7 +484,17 @@ public sealed class StorageCell
         var at = new int[n];
         var units = new int[n];
         var max = new long[n];
-        for (int k = 0; k < comps; k++) { at[k] = pos[k]; units[k] = dynTable[k] > 0 ? dynTable[k] : 1; max[k] = dynMax[k]; }
+        for (int k = 0; k < comps; k++)
+        {
+            at[k] = pos[k];
+            // A table's unit is its element width and its maximum its capacity; a dynamic-length item's unit is the image
+            // characters of one position (its layout code, CobolDynStructure.UnitOf: two for a national item, whose slot
+            // holds its UTF-16BE image, kb/Work PB3441) and its maximum - an image-character count, what a store into the
+            // slot truncates at - is that many positions of it (§8.5.1.10.1).
+            int unit = dynTable[k] > 0 ? dynTable[k] : CobolDynStructure.UnitOf(dynStructure[k]);
+            units[k] = unit;
+            max[k] = dynTable[k] > 0 ? dynMax[k] : dynMax[k] / unit;
+        }
         if (tableIsComponent) { at[comps] = runWidth - tail.Width; units[comps] = tail.RecordUnit; max[comps] = tail.RecordMaxUnits; }
         int[]? structure = null;
         if (dynStructure.ContainsAnyExcept(0))

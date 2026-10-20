@@ -2365,9 +2365,15 @@ internal static class RuntimeApi
     // ── A CELL-BACKED area's VARIABLE-LENGTH half (kb/Work PB1026, PB1042) — StorageCell's component slots ──────────
 
     /// <summary>The current content of a dynamic-length member of a cell-backed area — <c>StorageCell.DynAt</c>.
-    /// <paramref name="ordinal"/> is the component ordinal expression (<c>Place.CellComponents</c>).</summary>
-    public static string CellDynRead(string cellExpr, string ordinal) =>
-        $"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))";
+    /// <paramref name="ordinal"/> is the component ordinal expression (<c>Place.CellComponents</c>).
+    /// <para>⛔ THE SLOT HOLDS THE MEMBER'S IMAGE, NOT ITS CHARACTERS (kb/Work PB3441): the cell is a byte-addressed
+    /// storage area, and the slot of a NATIONAL item is its UTF-16BE image (two image characters a position, D-N1), the
+    /// form every other reader of the slot - the group's contiguous image, its carrier, a record image - takes as it
+    /// is. <paramref name="national"/> decodes it to the item's national characters (<see cref="NatFromStorage"/>), and
+    /// <see cref="CellDynWrite"/> and the cell seeds encode them.</para></summary>
+    public static string CellDynRead(string cellExpr, string ordinal, bool national = false) =>
+        national ? NatFromStorage($"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))")
+                 : $"{cellExpr}.{nameof(StorageCell.DynAt)}((int)({ordinal}))";
 
     /// <summary>The SENDING read of a dynamic-length item through a description that does not own its storage —
     /// <c>CobolDynString.Agree</c>, ISO §14.6.13.2 rule 5's agreement with THIS description's maximum size (kb/Work
@@ -2376,9 +2382,10 @@ internal static class RuntimeApi
         $"{nameof(CobolDynString)}.{nameof(CobolDynString.Agree)}({valueExpr}, {maxSize})";
 
     /// <summary>Store a dynamic-length member's new content — <c>StorageCell.SetDynAt</c>, the receiving twin of
-    /// <see cref="CellDynRead"/>. <paramref name="valueExpr"/> already carries §8.5.1.10.4's receiving rule.</summary>
-    public static string CellDynWrite(string cellExpr, string ordinal, string valueExpr) =>
-        $"{cellExpr}.{nameof(StorageCell.SetDynAt)}((int)({ordinal}), {valueExpr})";
+    /// <see cref="CellDynRead"/>. <paramref name="valueExpr"/> already carries §8.5.1.10.4's receiving rule;
+    /// <paramref name="national"/> stores the item's UTF-16BE image (<see cref="NatBytes"/>), which is what the slot holds.</summary>
+    public static string CellDynWrite(string cellExpr, string ordinal, string valueExpr, bool national = false) =>
+        $"{cellExpr}.{nameof(StorageCell.SetDynAt)}((int)({ordinal}), {(national ? NatBytes(valueExpr) : valueExpr)})";
 
     /// <summary>A cell-backed area's dynamic-capacity table, asked to agree with the referencing description's FROM
     /// minimum and element width (ISO §14.6.13.2 rule 6) — <c>StorageCell.DynTableAt</c> (kb/Work PB1042).</summary>

@@ -788,7 +788,7 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
             // blank elements are data; `fixedForm` is passed for a file record and nothing else. A STRUCTURED
             // component (§12.3.7.4 GR18/GR19) is never trimmed: its length field or delimiter says where its data ends,
             // so a trailing space is data, not padding (`data` is non-null for it).
-            if (fixedForm && data is null) dyn[k] = dyn[k].TrimEnd(' ');
+            if (fixedForm && data is null) dyn[k] = TrimTrailingSpaces(dyn[k], unit[k]);
         }
         fixedRun.Append(Slice(record, pos, fixedTotal - fpos));
         return new CobolVarGroup(fixedRun.ToString(), dyn);
@@ -855,6 +855,28 @@ public sealed record CobolVarGroup(string Fixed, string[] Dynamic, CobolVarGroup
 
     private static string Slice(string s, int at, int length) =>
         at >= s.Length || length <= 0 ? "" : s.Substring(at, Math.Min(length, s.Length - at));
+
+    /// <summary>⛔ THE SPACE OF A FIXED-FORM FIELD, in the unit of the item's data (kb/Work PB3441): <paramref name="chars"/>
+    /// image characters of padding for a component whose character positions occupy <paramref name="unit"/> image
+    /// characters each. A national position's space is the national space, the UTF-16BE pair (00, 20), never the byte 0x20
+    /// twice (that pair is U+2020), so a national member is padded and trimmed in WHOLE POSITIONS exactly as an
+    /// alphanumeric one is in characters.</summary>
+    internal static string SpacesFor(long chars, int unit) =>
+        unit == CobolBits.BytesPerNational
+            ? CobolBits.NatBytes(new string(' ', (int)Math.Min(int.MaxValue / unit, chars / unit)))
+            : new string(' ', (int)Math.Min(int.MaxValue, chars));
+
+    /// <summary>The inverse of <see cref="SpacesFor"/>: <paramref name="data"/> without the trailing spaces of its own
+    /// unit, whole positions at a time (a national position is a space only as the whole pair).</summary>
+    internal static string TrimTrailingSpaces(string data, int unit)
+    {
+        if (unit != CobolBits.BytesPerNational) return data.TrimEnd(' ');
+        if (data.Length % unit != 0) return data;   // not whole positions: no position of it is padding
+        string space = CobolBits.NatBytes(" ");
+        int end = data.Length;
+        while (end >= unit && string.CompareOrdinal(data, end - unit, space, 0, unit) == 0) end -= unit;
+        return data[..end];
+    }
 
     /// <summary>⛔ ISO §8.8.4.2.17 — THE COMPARISON OF TWO COMPATIBLE GROUPS, ONE OR BOTH OF WHICH IS A
     /// VARIABLE-LENGTH GROUP (kb/Work PB1467, PB2496): it "proceeds from left to right as described under 8.8.4.2.7,

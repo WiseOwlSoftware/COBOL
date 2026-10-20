@@ -581,7 +581,7 @@ public static class CellComponents
         return parts.Count == 0 ? null
             : new CellGroupShape(group.ByteWidth, parts.Select(p => p.At).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToArray(),
-                parts.Select(p => p.Item.VariableComponentMax).ToArray(),
+                parts.Select(p => p.Item.SlotMaxSize).ToArray(),
                 parts.Select(p => p.Item.IsDynamicTable && p.Item.IsGroup ? ShapeOf(p.Item, walk) : null).ToArray());
     }
 
@@ -632,6 +632,13 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
                                     IReadOnlyList<int> DynTable, OdoTail Odo,
                                     IReadOnlyList<CellGroupShape?> DynElem) : CellWindowCoding(Cell)
 {
+    /// <summary>Each component's layout code with its STRUCTURE left out: the unit alone (<c>CobolDynStructure.PlainCode</c>),
+    /// for a store of a character value, whose take step finds no length field or delimiter between the components
+    /// (§8.5.1.11.2: the contiguous image is the data alone) but still counts a national component in whole positions
+    /// (kb/Work PB3441).</summary>
+    public IReadOnlyList<int> DynUnitCodes =>
+        [.. DynStructure.Select(static c => CobolNet.Runtime.CobolDynStructure.PlainCode(CobolNet.Runtime.CobolDynStructure.UnitOf(c)))];
+
     /// <summary>The coding for <paramref name="group"/> when it has components under it, else null. The layout is
     /// read off the class walk (<see cref="CellComponents.Of"/> over <see cref="DataItem.ClassOffset"/>), never
     /// recomputed, so the group and its members cannot disagree about where a component sits.</summary>
@@ -642,8 +649,8 @@ public sealed record VarGroupWindow(AccessPath Cell, Position DynBase, IReadOnly
         return parts.Count == 0 ? null
             : new VarGroupWindow(cell, dynBase,
                 parts.Select(p => p.At).ToList(),
-                parts.Select(p => p.Item.VariableComponentMax).ToList(),
-                parts.Select(p => p.Item.IsDynamicTable ? 0 : FileModel.StructureOf(p.Item)?.Code ?? 0).ToList(),
+                parts.Select(p => p.Item.SlotMaxSize).ToList(),
+                parts.Select(p => FileModel.LayoutCodeOf(p.Item)).ToList(),
                 parts.Select(p => p.Item.IsDynamicTable ? p.Item.ByteWidth : 0).ToList(),
                 OdoOf(group),
                 parts.Select(p => p.Item.IsDynamicTable ? ElementShapeOf(p.Item) : null).ToList());
