@@ -488,9 +488,10 @@ public abstract class KeyedConnector : FileConnector
     /// when no active APPLY COMMIT clause names it: the record's <paramref name="identity"/>, its
     /// <paramref name="beforeImage"/> (null: the statement creates the record) and the HOLDINGS keys of the unique alternate
     /// key values the change frees.</summary>
-    private protected KeyedStore.TransactionWork? TransactionFor(byte[] identity, byte[]? beforeImage, IReadOnlyList<byte[]>? freed = null) =>
+    private protected KeyedStore.TransactionWork? TransactionFor(byte[] identity, byte[]? beforeImage,
+        Func<IReadOnlyList<byte[]>>? freed = null) =>
         CommitControlled && _regions is { Writable: true } regions
-            ? new KeyedStore.TransactionWork(regions, identity, beforeImage, freed ?? [])
+            ? new KeyedStore.TransactionWork(regions, identity, beforeImage, freed?.Invoke() ?? [])
             : null;
 
     /// <summary>⛔ THE LOCK TEST OF THE TRANSACTIONS' HOLDINGS (DESIGN-runtime-library.md 2.2.1.10, "The lock TEST, for every
@@ -508,12 +509,14 @@ public abstract class KeyedConnector : FileConnector
     /// ('22' where the rollback re-created the identity or re-inserted the value). A holding is a page of the file, so the
     /// answer does not depend on the instant a death fell. Returns the failing status ('51', a RETRY's exhaustion status, or
     /// '30' for a torn page or a refused rollback), or null.</summary>
-    private protected string? HoldingsGate(IReadOnlyList<byte[]> keys, out bool reevaluate)
+    /// <para><paramref name="holdingKeys"/> is asked only when a holding can exist, so a statement on a file no
+    /// transaction holds anything of builds no key.</para>
+    private protected string? HoldingsGate(Func<IReadOnlyList<byte[]>> holdingKeys, out bool reevaluate)
     {
         reevaluate = false;
         var store = AttachedStore;
-        if (keys.Count == 0 || store.File is not { } file || file.Meta.HoldingsRoot.IsNone || _regions is not { } regions)
-            return null;
+        if (store.File is not { } file || file.Meta.HoldingsRoot.IsNone || _regions is not { } regions) return null;
+        var keys = holdingKeys();
         int attempts = 0;
         bool rolledBack = false;
         string status = FileRegistry.RetryLoop(() =>
@@ -543,7 +546,7 @@ public abstract class KeyedConnector : FileConnector
     internal string? ReadHoldingsGate(string recordId, out bool reevaluate)
     {
         reevaluate = false;
-        return IdentityOf(recordId) is { } identity ? HoldingsGate([TransactionKeys.Record(identity)], out reevaluate) : null;
+        return IdentityOf(recordId) is { } identity ? HoldingsGate(() => [TransactionKeys.Record(identity)], out reevaluate) : null;
     }
 
     /// <inheritdoc/>

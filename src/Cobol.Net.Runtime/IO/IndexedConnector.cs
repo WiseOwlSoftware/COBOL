@@ -624,10 +624,9 @@ public sealed class IndexedConnector : KeyedConnector
         }
         // The transactions' HOLDINGS (2.2.1.10): the identity and every unique value this WRITE would insert, after the
         // invalid key conditions (GR42, which ignore locks) and before the record is touched.
-        var holdings = new List<byte[]> { TransactionKeys.Record(prime) };
-        for (int i = 0; i < _alts.Count; i++)
-            if (UniqueValueHolding(i, alternates[i]) is { } held) holdings.Add(held);
-        if (HoldingsGate(holdings, out bool reevaluate) is { } locked) return Status = locked;   // '51' (RETRY: GR16)
+        if (HoldingsGate(() => [TransactionKeys.Record(prime),
+                .. alternates.Select((value, i) => UniqueValueHolding(i, value)).OfType<byte[]>()], out bool reevaluate) is { } locked)
+            return Status = locked;   // '51' (RETRY: GR16)
         if (reevaluate) return Write(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.51.4 GR40 — the WRITE RELEASES the record, so it is positioned last in the duplicate set of
@@ -687,8 +686,6 @@ public sealed class IndexedConnector : KeyedConnector
         // repositioned by then; the statement below changes every tree at once or none.
         bool duplicateAlt = false;
         var moves = new List<(int Key, byte[]? Old, byte[]? New)>();
-        var holdings = new List<byte[]> { TransactionKeys.Record(prime) };
-        var freed = new List<byte[]>();
         for (int i = 0; i < _alts.Count; i++)
         {
             byte[]? now = AlternateValue(image, extents, i);
@@ -699,14 +696,7 @@ public sealed class IndexedConnector : KeyedConnector
             // for a relation condition" — makes it the key's order, not a byte compare; entering OR leaving
             // suppression is a change of its own (GR24's two SUPPRESS WHEN sub-rules both reposition).
             bool changed = (now is null) != (old is null) || now is not null && _orders.Alternates[i].Compare(now, old!) != 0;
-            if (changed)
-            {
-                moves.Add((i, old is null ? null : CompositeKeyOrder.Compose(old, OrdinalOf(target, i)), now));
-                // 2.2.1.10 (finding R2-4): the unique value this REWRITE inserts is tested against the holdings, and the
-                // one it frees becomes a holding of the transaction under commit control.
-                if (UniqueValueHolding(i, now) is { } inserted) holdings.Add(inserted);
-                if (UniqueValueHolding(i, old) is { } released) freed.Add(released);
-            }
+            if (changed) moves.Add((i, old is null ? null : CompositeKeyOrder.Compose(old, OrdinalOf(target, i)), now));
             // §12.4.5.6.4 GR6 — a key whose value equals its SUPPRESS WHEN value provides no access path, so it is
             // skipped for the uniqueness check (it can never duplicate, §14.9.51.4 GR41 by parity with WRITE).
             if (now is null) continue;
@@ -717,7 +707,11 @@ public sealed class IndexedConnector : KeyedConnector
             // so it created nothing (kb/Work PB341).
             if (exists && changed) duplicateAlt = true;
         }
-        if (HoldingsGate(holdings, out bool reevaluate) is { } locked) return Status = locked;   // '51' (2.2.1.10)
+        // 2.2.1.10 (finding R2-4): the identity and each unique value this REWRITE inserts are tested against the
+        // holdings; under commit control each unique value it frees becomes a holding of the transaction.
+        if (HoldingsGate(() => [TransactionKeys.Record(prime),
+                .. moves.Select(m => UniqueValueHolding(m.Key, m.New)).OfType<byte[]>()], out bool reevaluate) is { } locked)
+            return Status = locked;   // '51
         if (reevaluate) return Rewrite(originalImage, length, originalExtents);   // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
         // §14.9.35.4 GR24 a) — "When the value of a specific alternate record key is not changed, the order of
@@ -730,7 +724,9 @@ public sealed class IndexedConnector : KeyedConnector
             foreach (var (key, _, _) in moves)
                 if (key + 1 < ordinals.Length) ordinals[key + 1] = (long)ordinal;   // GR24 b)
             return FrameOf(framed, ordinals);
-        }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done, TransactionFor(prime, frame, freed));
+        }, ordinals: moves.Count > 0 ? 1 : 0, moves, out bool done, TransactionFor(prime, frame,
+            () => [.. moves.Select(m => UniqueValueHolding(m.Key, m.Old is null ? null : IndexedStore.Split(m.Old).KeyPart))
+                .OfType<byte[]>()]));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         if (!done) return Status = FileStatusCode.RecordNotFound;
         return Status = duplicateAlt ? FileStatusCode.DuplicateAlternateKey : FileStatusCode.Success;
@@ -760,12 +756,10 @@ public sealed class IndexedConnector : KeyedConnector
         if (AlternateEntries(frame) is not { } entries) return Status = FileStatusCode.PermanentError;
         // 2.2.1.10: the record's identity is tested against the holdings after GR3's invalid key ('23'), and under commit
         // control the DELETE holds the identity (it stays held after the record is gone) and every unique value it frees.
-        if (HoldingsGate([TransactionKeys.Record(prime)], out bool reevaluate) is { } locked) return Status = locked;   // '51'
+        if (HoldingsGate(() => [TransactionKeys.Record(prime)], out bool reevaluate) is { } locked) return Status = locked;   // '51'
         if (reevaluate) return Delete(keyedRecordImage, areaExtents);   // against the file a rollback restored
-        var freed = new List<byte[]>();
-        foreach (var (key, entry) in entries)
-            if (UniqueValueHolding(key, IndexedStore.Split(entry).KeyPart) is { } released) freed.Add(released);
-        var removed = _st.Remove(Entered, _orders, prime, entries, out bool done, TransactionFor(prime, frame, freed));
+        var removed = _st.Remove(Entered, _orders, prime, entries, out bool done, TransactionFor(prime, frame,
+            () => [.. entries.Select(e => UniqueValueHolding(e.Key, IndexedStore.Split(e.Entry).KeyPart)).OfType<byte[]>()]));
         if (Failed(removed) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }

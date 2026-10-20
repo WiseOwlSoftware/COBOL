@@ -329,7 +329,7 @@ public sealed class RelativeConnector : KeyedConnector
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
         // The transactions' HOLDINGS (2.2.1.10): after the invalid key conditions (GR33, which ignore locks), before the
         // record is touched — a record number another transaction deleted is still its holding.
-        if (HoldingsGate([TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
             return Status = locked;                                        // '51' (RETRY: §14.9.51.4 GR16)
         if (reevaluate) return Write(image, length, extents);              // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
@@ -393,7 +393,7 @@ public sealed class RelativeConnector : KeyedConnector
         if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (present is null) return Status = FileStatusCode.RecordNotFound;                     // '23'
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
-        if (HoldingsGate([TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
             return Status = locked;                                        // '51' (2.2.1.10)
         if (reevaluate) return Rewrite(image, length, extents);            // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
@@ -420,7 +420,7 @@ public sealed class RelativeConnector : KeyedConnector
         // control the DELETE holds the record number, which stays held after the record is gone.
         if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (present is null) return Status = FileStatusCode.RecordNotFound;
-        if (HoldingsGate([TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
             return Status = locked;                                        // '51'
         if (reevaluate) return Delete();                                   // against the file a rollback restored
         var deleted = _st.Delete(slot, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
