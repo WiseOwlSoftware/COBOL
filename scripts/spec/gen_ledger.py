@@ -497,7 +497,7 @@ def trend_series(inv: dict, head: dict, battery: dict, register: dict | None) ->
     that changes neither adds no point, or the series would become a commit log with a y-axis. `--check` calls this
     too and simply does not write, so a moved-but-unrecorded measurement renders differently from the file on disk
     and reports as stale."""
-    doc = json.loads(TREND.read_text(encoding="utf-8")) if TREND.exists() else {"points": []}
+    doc = coord.read_json(TREND, {"points": []})
     pts = doc.get("points", [])
     missed = missed_points(pts)
     pts = [*pts, *missed]
@@ -540,10 +540,10 @@ def write_trend(series: list[dict]) -> None:
     if not TREND.is_absolute():
         raise SystemExit(f"⛔ the trend series {TREND} is not an absolute path on this host: set "
                          f"{coord.ENV} to the coordination directory (kb/Work PB2426)")
-    doc = json.loads(TREND.read_text(encoding="utf-8")) if TREND.exists() else {}
+    doc = coord.read_json(TREND, {})
     doc["points"] = series
     TREND.parent.mkdir(parents=True, exist_ok=True)
-    TREND.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
+    coord.write_json(TREND, doc)   # a temp file renamed over it: a killed render never leaves the series torn
 
 
 # ─────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1329,8 +1329,15 @@ def self_test() -> int:
         bat = {"n": "1", "sha": "ffffffff"}
         reg = ledger_plan.register_counts(items, {"R-1", "R-2"})
         pts, new = trend_series(inv, {"sha": "0000000b", "date": "2026-10-10"}, bat, reg)
-        if new:
-            write_trend(pts)
+        writes, real_write = [], coord.write_json
+        coord.write_json = lambda path, value: (writes.append(path), real_write(path, value))
+        try:
+            if new:
+                write_trend(pts)
+        finally:
+            coord.write_json = real_write
+        check("the series is written through coord.write_json (a temp file renamed over it, never torn), and leaves "
+              "no temp file", writes == [TREND] and not list(tmp.glob("*.tmp")), str(writes))
         on_disk = json.loads(TREND.read_text(encoding="utf-8"))["points"][-1]
         check("the trend append writes the register's series",
               new and all(on_disk.get(k) == reg[k] for k in ledger_plan.REGISTER_KEYS), str(on_disk))
@@ -1416,7 +1423,7 @@ def main() -> int:
     if a.self_test:
         return self_test()
     if a.backfill_register:
-        doc = json.loads(TREND.read_text(encoding="utf-8"))
+        doc = coord.read_json(TREND, {"points": []})
         filled = backfill_register(doc["points"])
         write_trend(doc["points"])
         print(f"trend  : the register's series added to {filled} of {len(doc['points'])} points ({TREND})")
