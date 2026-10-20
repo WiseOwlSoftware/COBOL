@@ -1,4 +1,4 @@
-## PB3461: PB3455's closes_rows_reason names the notes that close the eleven 9.1.16-9.1.18 rows
+## Entry 2306 — 2026-10-20 15:30 PDT — PB3461: PB3455's closes_rows_reason names the notes that close the eleven 9.1.16-9.1.18 rows
 
 PB3455 (landed in PR #325) gave the eleven GAP rows of 9.1.16 to 9.1.18 to the tier-2 chain, but its own
 `closes_rows_reason` said the rows close "through PB3337, PB3338 and PB3340" while PB3337's note, changed in the same
@@ -25,3 +25,4 @@ expects exactly one kept directory there; three concurrent runs of the new self-
 scripts and C# for another enumeration of the shared temp directory found none. `scripts/temp_names.py` (PB2922's
 checker) catches a fixed name joined to the temp root but not a glob over it, which is how this site escaped; that gap
 is left to a note of its own.
+
