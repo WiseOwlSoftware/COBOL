@@ -44,3 +44,5 @@ code and by raising the major. A group comparison (ISO 8.8.4.2.17) remains an al
 storage, so two national members that differ only by a trailing national space compare unequal; that is the same rule a fixed
 national member already followed. Gate: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run
 `20261020T203628Z-0e8334`, Conformance 11,077/18,046 · Unit 34,011/34,867 · Characterization 5/36, leg 2 left to CI).
+
+Branch review round 1 (R1-1, test coverage): the record format of a DYNAMIC LENGTH STRUCTURE national member of a group record (SHORT PREFIXED length counted in positions over UTF-16BE data, DELIMITED delimiter the pair 00 00) had only a runtime unit test that hands the layout a hand-built code; the conformance golden `12.3.7-SPECIAL-NAMES/pb3441_dynamic_length_structure_national_member` now writes and reads such a record end to end (expected bytes from 12.3.7.4 GR18 and GR19 and the determination, a second description of the file shows them). R1-2 (the CobolContiguousLayout StructureCodes and VarGroupWindow DynStructure/DynMax docs still described the pre-branch encoding) rewritten to the layout-code and SlotMaxSize forms.

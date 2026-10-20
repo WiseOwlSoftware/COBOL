@@ -29,9 +29,14 @@ namespace CobolNet.Runtime;
 /// one character position of a dynamic-length item (one alphanumeric, two for a national item's UTF-16BE bytes - kb/Work
 /// PB3441), the unit its fixed form pads and trims by.</param>
 /// <param name="MaxUnits">Component k's maximum size in units (§8.5.1.10.1 / the table's maximum capacity).</param>
-/// <param name="StructureCodes">Component k's DYNAMIC LENGTH STRUCTURE layout (§12.3.7.4 GR18/GR19) as
-/// <see cref="CobolDynStructure.Code"/>, 0 for a component the clause names no structure for (§13.18.19.3 SR3 —
-/// the implementor's structure, which is the bare data and the extent table), or null when no component has one.
+/// <param name="StructureCodes">Component k's LAYOUT CODE: its DYNAMIC LENGTH STRUCTURE (§12.3.7.4 GR18/GR19) as
+/// <see cref="CobolDynStructure.Code"/> when the clause names one, else the bare unit of its data
+/// (<see cref="CobolDynStructure.PlainCode"/>: 0 for one image character a position, 32 for a national item's two bytes;
+/// §13.18.19.3 SR3 — the implementor's structure is the bare data and the extent table), or null when every component
+/// is the bare 0. Whether a code names a structure is asked of <see cref="CobolDynStructure.FromCode"/> /
+/// <see cref="CobolDynStructure.FromCodes"/>, never <c>code != 0</c>; the pad and trim space of a component derives from the
+/// code's unit (<see cref="CobolDynStructure.UnitOf"/>), as a width of two cannot say whether it is a national item
+/// or a table of two-character elements.
 /// <para>⛔ THE LAYOUT HAS TWO FORMS OF THE ONE RECORD (kb/Work PB1094). The CONTIGUOUS image is what a procedural
 /// operation on the group sees (§8.5.1.11.2) — the data alone. The MEDIUM image is what a file or a sort store holds:
 /// the contiguous image with each structured component replaced by its length field, data and delimiter
