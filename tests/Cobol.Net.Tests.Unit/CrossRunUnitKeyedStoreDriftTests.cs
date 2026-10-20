@@ -3,6 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
 using Xunit;
+using static CobolNet.Tests.Unit.KeyedFileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -25,61 +26,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class CrossRunUnitKeyedStoreDriftTests
 {
-    public enum Org { Relative, Indexed }
-
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb2660-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void Register(FileRegistry reg, string name, string host, Org org, bool optional = false,
-        FileSharing? sharing = FileSharing.AllOther)
-    {
-        if (org == Org.Relative)
-            reg.RegisterRelative(name, host, recordWidth: 8, optional: optional, accessMode: (int)KeyedAccess.Dynamic,
-                relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-        else
-            reg.RegisterIndexed(name, host, recordWidth: 8, optional: optional, accessMode: (int)KeyedAccess.Dynamic,
-                primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-        if (sharing is { } s) reg.RegisterSharing(name, s, FileLockMode.Manual, multiple: false);
-    }
-
-    /// <summary>Record <paramref name="n"/>'s image: its key (also its relative record number) and a payload.</summary>
-    private static string Rec(int n, string payload) => $"{n:0000}{payload}";
-
-    private static void Position(FileRegistry reg, string name, Org org, int n)
-    {
-        if (org == Org.Relative) reg.SetRelativeKey(name, n);
-    }
-
-    private static string ReadKeyed(FileRegistry reg, string name, Org org, int n, FileRecordLock phrase,
-        out string image, bool ignoringLock = false, FileRetryKind retry = FileRetryKind.None, long amount = 0)
-    {
-        Position(reg, name, org, n);
-        return reg.ReadKeyedShared(name, keyIndex: -1, Rec(n, "    "), phrase, ignoringLock, retry, amount, out image);
-    }
-
-    private static string Write(FileRegistry reg, string name, Org org, int n, string payload)
-    {
-        Position(reg, name, org, n);
-        return reg.WriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-    }
-
-    private static string Rewrite(FileRegistry reg, string name, Org org, int n, string payload)
-    {
-        Position(reg, name, org, n);
-        return reg.RewriteShared(name, Rec(n, payload), -1, FileRecordLock.None, FileRetryKind.None, 0);
-    }
-
-    private static void Seed(string host, Org org)
-    {
-        var seed = new FileRegistry();
-        Register(seed, "S", host, org, sharing: null);
-        seed.OpenStatic("S", FileOpenMode.Output);
-        Assert.Equal("00", Write(seed, "S", org, 1, "AAAA"));
-        Assert.Equal("00", Write(seed, "S", org, 2, "BBBB"));
-        seed.Close("S");
-    }
-
-    private static List<string> Records(string host, Org org)
+    private static List<string> Records(string host, KeyedOrg org)
     {
         var reader = new FileRegistry();
         Register(reader, "R", host, org, sharing: null);
@@ -93,17 +40,17 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     }
 
     [Theory]
-    [InlineData(Org.Relative, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Indexed, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Relative, RegionHostKind.LockFiles)]
-    [InlineData(Org.Indexed, RegionHostKind.LockFiles)]
-    public void AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose(Org org, RegionHostKind regionHost)
+    [InlineData(KeyedOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(KeyedOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose(KeyedOrg org, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"lock-{org}");
         try
         {
-            Seed(host, org);
+            Seed(host, org, ["AAAA", "BBBB"]);
             var a = new FileRegistry();
             var b = new FileRegistry();
             Register(a, "A", host, org);
@@ -113,30 +60,30 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             Assert.Equal("00", a.Status("A"));
             Assert.Equal("00", b.Status("B"));
 
-            Assert.Equal("00", ReadKeyed(a, "A", org, 1, FileRecordLock.WithLock, out _));
+            Assert.Equal("00", Read(a, "A", org, 1, out _, phrase: FileRecordLock.WithLock));
 
             // §9.1.16 / §9.1.13.8 1) — the record A holds is not accessible to B, in another run unit.
-            Assert.Equal("51", ReadKeyed(b, "B", org, 1, FileRecordLock.WithLock, out _));
+            Assert.Equal("51", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
             Assert.Equal("51", Rewrite(b, "B", org, 1, "ZZZZ"));
             // §14.9.30.4 GR12 — IGNORING LOCK makes it available "even if it is locked".
-            Assert.Equal("00", ReadKeyed(b, "B", org, 1, FileRecordLock.None, out string ignored, ignoringLock: true));
+            Assert.Equal("00", Read(b, "B", org, 1, out string ignored, phrase: FileRecordLock.None, ignoringLock: true));
             Assert.Equal(Rec(1, "AAAA"), ignored);
             // A record nobody holds is B's to change, and A sees the change at its next statement.
             Assert.Equal("00", Write(b, "B", org, 3, "CCCC"));
             Assert.Equal("00", Rewrite(b, "B", org, 2, "YYYY"));
-            Assert.Equal("00", ReadKeyed(a, "A", org, 3, FileRecordLock.None, out string seen));
+            Assert.Equal("00", Read(a, "A", org, 3, out string seen, phrase: FileRecordLock.None));
             Assert.Equal(Rec(3, "CCCC"), seen);
 
             // A's UNLOCK gives the record back to every run unit.
             a.Unlock("A", records: true);
-            Assert.Equal("00", ReadKeyed(b, "B", org, 1, FileRecordLock.WithLock, out _));
+            Assert.Equal("00", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
             Assert.Equal("00", Rewrite(b, "B", org, 1, "XXXX"));
 
             a.Close("A");   // A's CLOSE must not write back the image A read at its OPEN
             b.Close("B");
             Assert.Equal([Rec(1, "XXXX"), Rec(2, "YYYY"), Rec(3, "CCCC")], Records(host, org));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
     }
 
     /// <summary>A READ WITH LOCK through an <c>OPEN INPUT</c> connector — a read-only handle — sets its lock (§14.9.30.4
@@ -145,17 +92,17 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     /// it; the question must not count the asker's own hold, which on Windows (per-handle LockFileEx) an exclusive test
     /// lock through the same handle does, so the lock was refused with '51' by nobody (lander review, train 1042).</summary>
     [Theory]
-    [InlineData(Org.Relative, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Indexed, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Relative, RegionHostKind.LockFiles)]
-    [InlineData(Org.Indexed, RegionHostKind.LockFiles)]
-    public void AnInputConnectorsReadWithLock_Succeeds_AndIsSeenByAnotherRunUnit(Org org, RegionHostKind regionHost)
+    [InlineData(KeyedOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(KeyedOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnInputConnectorsReadWithLock_Succeeds_AndIsSeenByAnotherRunUnit(KeyedOrg org, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"input-lock-{org}");
         try
         {
-            Seed(host, org);
+            Seed(host, org, ["AAAA", "BBBB"]);
             var a = new FileRegistry();
             var b = new FileRegistry();
             Register(a, "A", host, org);
@@ -165,16 +112,16 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             Assert.Equal("00", a.Status("A"));
             Assert.Equal("00", b.Status("B"));
 
-            Assert.Equal("00", ReadKeyed(a, "A", org, 1, FileRecordLock.WithLock, out string image));
+            Assert.Equal("00", Read(a, "A", org, 1, out string image, phrase: FileRecordLock.WithLock));
             Assert.Equal(Rec(1, "AAAA"), image);
-            Assert.Equal("51", ReadKeyed(b, "B", org, 1, FileRecordLock.WithLock, out _));
-            Assert.Equal("00", ReadKeyed(b, "B", org, 2, FileRecordLock.WithLock, out _));
+            Assert.Equal("51", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
+            Assert.Equal("00", Read(b, "B", org, 2, out _, phrase: FileRecordLock.WithLock));
 
             a.Close("A");
-            Assert.Equal("00", ReadKeyed(b, "B", org, 1, FileRecordLock.WithLock, out _));
+            Assert.Equal("00", Read(b, "B", org, 1, out _, phrase: FileRecordLock.WithLock));
             b.Close("B");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
     }
 
     /// <summary>§14.7.9.3 — a RETRY against a holder in ANOTHER run unit waits for it to give the lock back, and the
@@ -183,40 +130,38 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     /// holder is not the deadlock docs/CONFORMANCE.md DOC-A.1-109 detects: the holder can release, so the wait goes
     /// on until it does.</summary>
     [Theory]
-    [InlineData(Org.Relative, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Indexed, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Relative, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Indexed, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
-    [InlineData(Org.Relative, FileRetryKind.Times, RegionHostKind.LockFiles)]
-    [InlineData(Org.Indexed, FileRetryKind.Times, RegionHostKind.LockFiles)]
-    [InlineData(Org.Relative, FileRetryKind.Forever, RegionHostKind.LockFiles)]
-    [InlineData(Org.Indexed, FileRetryKind.Forever, RegionHostKind.LockFiles)]
-    public void ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex(Org org, FileRetryKind kind, RegionHostKind regionHost)
+    [InlineData(KeyedOrg.Relative, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Indexed, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Relative, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Indexed, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(KeyedOrg.Relative, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(KeyedOrg.Indexed, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(KeyedOrg.Relative, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    [InlineData(KeyedOrg.Indexed, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    public void ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex(KeyedOrg org, FileRetryKind kind, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"retry-{org}");
         try
         {
-            Seed(host, org);
+            Seed(host, org, ["AAAA", "BBBB"]);
             var a = new FileRegistry();
             var b = new FileRegistry();
             Register(a, "A", host, org);
             Register(b, "B", host, org);
             a.OpenStatic("A", FileOpenMode.IO);
             b.OpenStatic("B", FileOpenMode.IO);
-            Assert.Equal("00", ReadKeyed(a, "A", org, 1, FileRecordLock.WithLock, out _));
+            Assert.Equal("00", Read(a, "A", org, 1, out _, phrase: FileRecordLock.WithLock));
 
             int pauses = 0;
             FileRegistry.PauseObserver.Value = _ =>
             {
-                using var probe = new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-                using var probeRegions = HostRegionLocks.Open(probe.SafeFileHandle, host, writable: true);
-                Assert.NotEqual(RegionLockResult.Held, probeRegions.HeldByAnother(HostRegionLocks.StoreMutexByte));
+                Assert.False(MutexHeld(host, writable: true), "a retry waits outside the store mutex");
                 if (++pauses == 2) a.Unlock("A", records: true);   // the first re-attempt still meets the lock
             };
             try
             {
-                Assert.Equal("00", ReadKeyed(b, "B", org, 1, FileRecordLock.WithLock, out string image,
+                Assert.Equal("00", Read(b, "B", org, 1, out string image, phrase: FileRecordLock.WithLock,
                     retry: kind, amount: 3));
                 Assert.Equal(Rec(1, "AAAA"), image);
             }
@@ -225,21 +170,21 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             a.Close("A");
             b.Close("B");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
     }
 
     /// <summary>kb/Work PB754 — Table 19 refuses an OUTPUT open beside any other connector (§9.1.13.9 1) e)), and
     /// the refusal precedes the OPEN body: the existing connector keeps every record. The OPTIONAL-absent shape is
     /// the one place a connector is attached with a status other than '00', and it is registered all the same.</summary>
     [Theory]
-    [InlineData(Org.Relative)]
-    [InlineData(Org.Indexed)]
-    public void AnOutputOpenBesideAnAttachedConnector_IsRefused_AndEmptiesNothing(Org org)
+    [InlineData(KeyedOrg.Relative)]
+    [InlineData(KeyedOrg.Indexed)]
+    public void AnOutputOpenBesideAnAttachedConnector_IsRefused_AndEmptiesNothing(KeyedOrg org)
     {
         string host = Tmp($"output-{org}");
         try
         {
-            Seed(host, org);
+            Seed(host, org, ["AAAA", "BBBB"]);
             foreach (var mode in new[] { FileOpenMode.Input, FileOpenMode.IO })
             {
                 var reg = new FileRegistry();
@@ -249,7 +194,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
                 Assert.Equal("00", reg.Status("A"));
                 reg.OpenStatic("B", FileOpenMode.Output);
                 Assert.Equal("61", reg.Status("B"));
-                Assert.Equal("00", ReadKeyed(reg, "A", org, 2, FileRecordLock.None, out string image));
+                Assert.Equal("00", Read(reg, "A", org, 2, out string image, phrase: FileRecordLock.None));
                 Assert.Equal(Rec(2, "BBBB"), image);
                 reg.CloseAll();
             }
@@ -263,9 +208,9 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             opt.OpenStatic("B", FileOpenMode.Output);
             Assert.Equal("61", opt.Status("B"));
             opt.CloseAll();
-            try { File.Delete(absent); } catch (IOException) { }
+            TryDelete(absent);
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
     }
 
     /// <summary>kb/Work PB2693 — a duplicate-key walk keeps its place across another run unit's change. §14.9.30.4 GR26:
@@ -341,7 +286,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             a.Close("A");
             b.Close("B");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
     }
 
     /// <summary>kb/Work PB2693 — each key's duplicate order survives the CLOSE, even when no single order of the records
@@ -383,7 +328,7 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
             Assert.Equal(["0001ax", "0002ax"], Duplicates(reader, keyIndex: 1, "0000 x"));
             reader.Close("F");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { TryDelete(host); }
 
         // §14.9.30.4 GR32 then GR21 f) 1.: the first released duplicate, then each one after it.
         static List<string> Duplicates(FileRegistry reg, int keyIndex, string keyImage)

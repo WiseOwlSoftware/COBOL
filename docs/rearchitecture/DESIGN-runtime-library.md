@@ -1459,7 +1459,9 @@ keep their code and their witnesses: `CrossRunUnitKeyedStoreDriftTests` runs unc
 sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and the refused page write, and
 `StoreCoherenceTests` the adoption cases of 2.2.1.7 and 2.2.1.12, and `ReadOnlyKeyedWriterStoreMutexTests` the rule that a
 `SHARING WITH READ ONLY` or `ALL OTHER` writer makes every page write of a statement, the tree pages and page 2, inside the
-mutex and gives it back when the host refuses one: kb/Work PB3414). The
+mutex and gives it back when the host refuses one, on the machine's region host and on the lock-file host: kb/Work
+PB3414, PB3458; the keyed-file helpers every one of these tests uses, and the store-mutex probe, are written once, in
+`KeyedFileHarness`: kb/Work PB3459). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
