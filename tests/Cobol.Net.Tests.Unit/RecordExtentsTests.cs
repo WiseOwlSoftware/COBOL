@@ -127,7 +127,8 @@ public sealed class RecordExtentsTests
         Assert.Null(second.Extents);
         Assert.False(RecordFraming.ReadStreamFrame(ref walk, out _));
 
-        Assert.Equal([0L, headBytes + Written.Length], RecordFraming.FrameStarts(medium));
+        Assert.Equal([0L, headBytes + Written.Length], FrameDecoderDriftTests.IndexedStarts(medium));
+        Assert.Equal(2, RecordFraming.CountFrames(medium));
     }
 
     /// <summary>One stream-level frame as the sequential connector writes it: the one encoder's head, then the

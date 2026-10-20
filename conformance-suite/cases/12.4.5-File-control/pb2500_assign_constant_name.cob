@@ -40,6 +40,11 @@
       *>     STANDARD ERROR declarative (14.6.13.1.3 3): the fatal
       *>     EC-I-O condition applies the I-O status rules, and the
       *>     declarative handles it, so the run continues.
+      *>     The third arm, NEITHER a FILE STATUS item NOR a USE
+      *>     declarative, ends the run unit (14.6.13.1.3 3) and 8):
+      *>     checking is not enabled, so the implementor defines the
+      *>     outcome, Annex A.1 item 103), which a golden cannot show because the harness
+      *>     requires exit 0: AssignConstantNameTests (kb/Work PB3438).
       *>   DV - a word naming NO constant is device-name-1, the file
       *>     pb2500dv.txt, which is absent: status 35.
       *>   RR - a sequential READ past the last record: AT END, status
