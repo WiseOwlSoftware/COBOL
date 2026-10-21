@@ -118,12 +118,12 @@ owner's choice of models after the evening's web research; the two lowest were r
 
 **The recount (21:5x PDT).** The owner asked whether the models' incorrect programs could be improved. The first reading of
 GnuCOBOL's messages said two fifths of the refusals were constructs GnuCOBOL 3.2 lacks; the measurement said otherwise:
-every refused program compiled by WiseOwl (`--std 2014 --source-format free`) — **1 of 68 compiles.** 37 parse errors
-(COBOL0001 ×19, COBOL0307 ×18), 6 COBOLNET0898 (a non-national VALUE on a national item), 4 COBOLNET1516
-(HIGHEST-ALGEBRAIC on a literal; §15.43.3 AR1), 3 each of COBOLNET2993, COBOLNET0801 and COBOLNET1941, 2 replies with no
-program, 8 single codes. FUNCTION TRANSLATE, NATIONAL, SUBSTRING and YEAR are refused as not intrinsic functions of
+every refused program compiled by WiseOwl (`--std 2014 --source-format free`; raw: `bakeoff1-recount.txt`) — 67 refused
+rows, 65 with a program, 2 with none; **WiseOwl compiles 1 of the 65.** The 64 others: 37 parse errors (COBOL0001 ×19,
+COBOL0307 ×18), 6 COBOLNET0898 (a non-national VALUE on a national item), 4 COBOLNET1516 (HIGHEST-ALGEBRAIC on a literal;
+§15.43.3 AR1), 3 each of COBOLNET2993, COBOLNET0801 and COBOLNET1941, 8 single codes. FUNCTION TRANSLATE, NATIONAL, SUBSTRING and YEAR are refused as not intrinsic functions of
 ISO/IEC 1989 (COBOLNET1501, §15.6); COMP-3 occurs nowhere in the standard. The models' programs were incorrect by the
-standard; GnuCOBOL's refusals were right in 67 of 68. (PB3488 records the withdrawn reading.)
+standard; GnuCOBOL's refusals were right in 64 of the 65 it judged. (PB3488 records the withdrawn reading.)
 
 **Bake-off 2a (qwen3.6 only; items 1–4 with the since-withdrawn `JUDGE_LACKS` list; the run was stopped after qwen3.6 when
 MiniMax's replies came back empty).** Usable 11/20 (55 %), THEY_REJECT 0, median 7 s. The 9 failures: FUNCTION TRANSLATE ×2,
@@ -162,8 +162,11 @@ per 20: GnuCOBOL 3.2's refusals are the model's slips, not the judge's gaps, whi
 winner for the overnight run is **qwen3.6:35b**: the highest usable share and half the latency of the others.
 
 **Not adjudicated here.** Every survivor row of bake-offs 3 and 4 is a lead for the morning triage (REM ×2–3 in every
-model, MIN with national arguments, INITIALIZE, DATE-TO-YYYYMMDD, a CLOSE refusal COBOLNET0900); none has been checked
-against the standard on this branch.
+model, MIN with national arguments, INITIALIZE, DATE-TO-YYYYMMDD); none has been checked against the standard on this
+branch. One is already explained: `WE_REJECT:COBOLNET0900` ×1 in bake-off 4 is DELETE FILE, a 2023 statement the prompt's
+own file rule asked for while the compilers run 2014; the branch review (R1-6) found that the prompt's function list was
+the 2023 standard's too (CONCAT, SUBSTITUTE, FIND-STRING …), and the harness now reads Annex E.3.3's additions out of
+both the prompt and the seeds.
 
 ## Decision
 
