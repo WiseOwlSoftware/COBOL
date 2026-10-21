@@ -54,16 +54,15 @@ internal sealed class StoreTable
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
     /// silent emptying of records another connector is reading (the analogous impossible state in
     /// <see cref="Attach{T}"/> is answered the same way).</para></summary>
-    public T AttachCreated<T>(string host) where T : KeyedStore, new()
+    public T AttachCreated<T>(string host, T created) where T : KeyedStore
     {
         if (_byHost.TryGetValue(host, out var e))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
                 + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "
                 + "arbitration defect (kb/Work PB754)");
-        var store = new T();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
+        _byHost[host] = new Entry { Store = created, Attached = 1 };
+        return created;
     }
 
     /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry, so a later

@@ -85,8 +85,14 @@ internal abstract class KeyedStore
         _fenceOwed = false;
         var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, _cachePages);
         if (status == StoreStatus.Ok) File = created;
+        FileReplaced = created is not null;
         return status;
     }
+
+    /// <summary>Whether the last <see cref="Create"/> replaced the physical file, successful or not: a creation refused before
+    /// its truncation leaves the previous file as it was (§14.9.27.4 GR25), and one whose final sync was refused left the
+    /// created store with the medium's state unknown (<see cref="PagedFile.Create"/>), the previous store gone.</summary>
+    public bool FileReplaced { get; private set; }
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
     /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a

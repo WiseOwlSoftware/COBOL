@@ -46,18 +46,19 @@ public sealed class FileRegistry
     /// <summary>The physical-file sharing/record-lock registry (§9.1.15/§9.1.16).</summary>
     private readonly PhysicalFileTable _physical = new();
 
-    /// <summary>⛔ THE CONNECTORS THAT LEFT <see cref="_files"/> (displaced by a re-registration, dropped with their object)
-    /// STILL HOLDING WHAT A CLOSE UNDER COMMIT CONTROL KEPT: the handle that is their file lock, their attachment to the run
-    /// unit's store and the transaction in it, and their record locks (<see cref="KeyedConnector.HoldsKept"/>;
-    /// kb/Work PB3484). §12.4.6.3.4 GR5 keeps an APPLY COMMIT clause active after its runtime element is canceled for as long as it
+    /// <summary>⛔ WHAT A CLOSE UNDER COMMIT CONTROL KEPT THAT NO CONNECTOR HOLDS ANY MORE (<see cref="KeptFile"/>): the connector
+    /// left <see cref="_files"/> (displaced by a re-registration, dropped with its object; kb/Work PB3484) or an ASSIGN USING
+    /// associated it with another physical file (<see cref="Associate"/>; kb/Work PB3494), so the handle that is its file lock,
+    /// its attachment to the run unit's store and the transaction in it, and its record locks belong to the file they were kept
+    /// on and are found by the name of the file-name that kept them. §12.4.6.3.4 GR5 keeps an APPLY COMMIT clause active after its runtime element is canceled for as long as it
     /// <i>"has not been deactivated by a COMMIT or ROLLBACK statement"</i>, and §14.9.7.4 GR3-GR4 and §9.1.16 give the COMMIT the changes, the
     /// file locks and the record locks of the files those clauses name — so a canceled element's connector is no less
     /// the COMMIT's and the ROLLBACK's for being replaced by its element's next activation. They are found here by
-    /// <see cref="TransactionConnectors"/> and given back with the rest (<see cref="ReleaseCommitLocks"/>,
+    /// <see cref="TransactionHolders"/> and given back with the rest (<see cref="ReleaseCommitLocks"/>,
     /// <see cref="CloseAll"/>); before kb/Work PB3484 they were dropped with the handle open, which no COMMIT, ROLLBACK or
-    /// run-unit end could ever reach. The replacement's OPEN takes the state over instead when it can
-    /// (<see cref="ReclaimRetired"/>).</summary>
-    private readonly List<(string Name, KeyedConnector Connector)> _retired = [];
+    /// run-unit end could ever reach. A connector's OPEN of the same physical file under the same name takes the state over
+    /// instead when it can (<see cref="ReclaimRetired"/>).</summary>
+    private readonly List<(string Name, KeptFile Kept)> _retired = [];
 
     /// <summary>The per-physical-file KEYED record stores (kb/Work PB143 — §14.9.10.4 GR5): one record store
     /// per resolved host path, attached by every relative/indexed connector over it, so mutations are visible
@@ -203,14 +204,14 @@ public sealed class FileRegistry
         _connectorShares.Remove(cobolName);
     }
 
-    /// <summary>A connector is about to leave <see cref="_files"/> (displaced, or dropped with its object) after its CLOSE: if
-    /// that CLOSE kept the handle, the locks and the transaction a CLOSE under commit control keeps, it moves to
-    /// <see cref="_retired"/>, where the next COMMIT or ROLLBACK, or the run unit's end, ends them
-    /// (<see cref="ReleaseCommitLocks"/>, <see cref="CloseAll"/>). Nothing else leaves a connector holding anything:
-    /// every other CLOSE released it all (<see cref="SharedClose"/>).</summary>
+    /// <summary>A connector is about to leave <see cref="_files"/> (displaced, or dropped with its object) after its CLOSE, or to
+    /// be associated with another physical file (<see cref="Associate"/>): if that CLOSE kept the handle, the locks and the
+    /// transaction a CLOSE under commit control keeps, they move to <see cref="_retired"/>, where the next COMMIT or ROLLBACK,
+    /// or the run unit's end, ends them (<see cref="ReleaseCommitLocks"/>, <see cref="CloseAll"/>). Nothing else leaves a
+    /// connector holding anything: every other CLOSE released it all (<see cref="SharedClose"/>).</summary>
     private void Retire(string name)
     {
-        if (_files.TryGetValue(name, out var c) && c is KeyedConnector { HoldsKept: true } k) _retired.Add((name, k));
+        if (_files.TryGetValue(name, out var c) && c is KeyedConnector k && k.TakeKept() is { } kept) _retired.Add((name, kept));
     }
 
     /// <summary>⛔ THE ELEMENT'S NEXT ACTIVATION OPENS WHAT ITS PREVIOUS ONE'S CLOSE KEPT (review finding R1-1): the
@@ -224,7 +225,7 @@ public sealed class FileRegistry
     private void ReclaimRetired(string name, FileConnector c)
     {
         if (_retired.Count == 0 || c is not KeyedConnector next) return;
-        int at = _retired.FindIndex(r => CobolNames.Same(r.Name, name) && next.InheritKept(r.Connector));
+        int at = _retired.FindIndex(r => CobolNames.Same(r.Name, name) && next.InheritKept(r.Kept));
         if (at >= 0) _retired.RemoveAt(at);
     }
 
@@ -605,9 +606,17 @@ public sealed class FileRegistry
     private bool Associate(string name, string assign, bool assignDynamic)
     {
         if (!_files.TryGetValue(name, out var c)) return true;
-        if (c.Associate(assign, assignDynamic) is not { } failed) return true;
-        c.SetStatus(failed);   // '31' — the status assignment is also the §15.28.4 r2a access record (PB63)
-        return false;
+        if (c.Associate(assign, assignDynamic) is { } failed)
+        {
+            c.SetStatus(failed);   // '31' — the status assignment is also the §15.28.4 r2a access record (PB63)
+            return false;
+        }
+        // ⛔ WHAT THE CLOSE KEPT BELONGS TO THE PHYSICAL FILE IT WAS KEPT ON (kb/Work PB3494; §9.1.15, §14.9.7.4 GR4): the
+        // association has just moved to ANOTHER one, so the OPEN about to run is an ordinary OPEN of that file - it adopts neither
+        // the old file's handle nor its store - while the old file's transaction, record locks and file lock stay the COMMIT's and
+        // the ROLLBACK's, as a replaced connector's do (Retire).
+        if (c is KeyedConnector { KeptIsOfAnotherFile: true }) Retire(name);
+        return true;
     }
 
     /// <summary>The file's LINAGE-COUNTER register (ISO §8.4.3.14 / §13.18.34 GR7).</summary>
@@ -1088,15 +1097,32 @@ public sealed class FileRegistry
     /// <summary>The keyed connectors whose physical files carry an open transaction of this run unit — one per file, in
     /// the order of the run unit's open stores (the order connectors were registered: 2.2.1.10, "Files are committed one at
     /// a time, in the order of the run unit's open stores").</summary>
-    private List<(string Name, KeyedConnector Connector)> TransactionConnectors()
+    private List<TransactionHolder> TransactionHolders()
     {
         var seen = new HashSet<string>(HostFile.PhysicalFileComparer);
-        var owners = new List<(string, KeyedConnector)>();
-        foreach (var (name, k) in _retired)   // registered before every connector now in _files, so first (PB3484)
-            if (k.OpenTransaction != 0 && seen.Add(k.HostPath)) owners.Add((name, k));
+        var owners = new List<TransactionHolder>();
+        foreach (var (name, kept) in _retired)   // registered before every connector now in _files, so first (PB3484)
+            if (kept.OpenTransaction != 0 && seen.Add(kept.HostPath)) owners.Add(new(name, null, kept));
         foreach (var (name, c) in _files)
-            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add((name, k));
+            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add(new(name, k, null));
         return owners;
+    }
+
+    /// <summary>One physical file's transaction of this run unit and the name it is told by: the connector that holds it open,
+    /// or — a connector that is closed and associated with another file, or replaced — what its CLOSE kept
+    /// (<see cref="_retired"/>).</summary>
+    private readonly record struct TransactionHolder(string Name, KeyedConnector? Connector, KeptFile? Kept)
+    {
+        public CommitOutcome Commit() => Connector is { } c ? c.CommitTransaction() : Kept!.CommitTransaction();
+
+        public StoreStatus Rollback() => Connector is { } c ? c.RollbackTransaction() : Kept!.RollbackTransaction();
+    }
+
+    /// <summary>The file-name whose I-O status a refused COMMIT or ROLLBACK is told through (§9.1.13.1): the connector registered
+    /// under <paramref name="name"/> now, which is the one the program tests.</summary>
+    private void TellPermanentError(string name)
+    {
+        if (_files.TryGetValue(name, out var c)) c.SetStatus(FileStatusCode.PermanentError);
     }
 
     /// <summary>⛔ COMMIT (§14.9.7.4 GR3: <i>"The execution of the COMMIT statement permanently applies any changes made to
@@ -1112,11 +1138,11 @@ public sealed class FileRegistry
     /// are not committed; those before it are). Null when every file committed.</para></summary>
     public string? Commit()
     {
-        foreach (var (name, k) in TransactionConnectors())
-            if (k.CommitTransaction() != CommitOutcome.Committed)
+        foreach (var holder in TransactionHolders())
+            if (holder.Commit() != CommitOutcome.Committed)
             {
-                k.SetStatus(FileStatusCode.PermanentError);
-                return name;
+                TellPermanentError(holder.Name);
+                return holder.Name;
             }
         ReleaseCommitLocks();
         return null;
@@ -1134,11 +1160,11 @@ public sealed class FileRegistry
     public string? Rollback()
     {
         string? refused = null;
-        foreach (var (name, k) in TransactionConnectors())
-            if (k.RollbackTransaction() != StoreStatus.Ok)
+        foreach (var holder in TransactionHolders())
+            if (holder.Rollback() != StoreStatus.Ok)
             {
-                k.SetStatus(FileStatusCode.PermanentError);
-                refused ??= name;
+                TellPermanentError(holder.Name);
+                refused ??= holder.Name;
             }
         ReleaseCommitLocks();
         return refused;
@@ -1167,15 +1193,15 @@ public sealed class FileRegistry
             try { if (c is KeyedConnector { CommitControlled: true } k) ReleaseKeptOf(name, k); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
-        foreach (var (name, k) in _retired.ToArray())
+        foreach (var (name, kept) in _retired.ToArray())
         {
             try
             {
                 // The record locks the host could not publish are this run unit's table alone and are its by name, as a registered
-                // connector's are (ReleaseKeptOf) - a retired connector's key can leave the registry (CloseAndDrop), so its own
-                // physical-file state is the way to them (review finding R1-3).
-                if (k.Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, name);
-                k.ReleaseKept();
+                // connector's are (ReleaseKeptOf) - a retired connector's key can leave the registry (CloseAndDrop) or name another
+                // file by now (Associate), so the kept state's own physical-file state is the way to them (review finding R1-3).
+                if (kept.Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, name);
+                kept.Release();
             }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
