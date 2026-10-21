@@ -92,6 +92,7 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
     /// are saved. A refused COMMIT saves nothing and deactivates nothing: §14.6.13.1.3 item 8's ROLLBACK follows it.</summary>
     public string? Commit()
     {
+        if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
         if (FlowForbidden(out string why))
         {
             exceptions.FlowCommitError($"COMMIT executed {why} (ISO §14.9.7.4 GR2)");
@@ -112,6 +113,7 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
     /// was not by its '30'.</summary>
     public string? Rollback()
     {
+        if (!AnyActive) return null;   // GR1 — CONTINUE, before GR2 is asked
         if (FlowForbidden(out string why))
         {
             exceptions.FlowRollbackError($"ROLLBACK executed {why} (ISO §14.9.36.4 GR2)");

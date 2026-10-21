@@ -900,24 +900,6 @@
   ],
   "expect": "COBOLNET1709"
  },
- "declined-ec-flow-apply-commit-use": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
- },
- "declined-ec-flow-commit-turn": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
- },
- "declined-ec-flow-rollback-raise": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1710"
- },
  "declined-ec-validate-raise": {
   "refuse-at": [
    "2002",
@@ -13911,6 +13893,19 @@
    "2023"
   ],
   "expect": "COBOL0001"
+ },
+ "pb3338_apply_commit_below_2023": {
+  "refuse-at": [
+   "2002",
+   "2014"
+  ],
+  "expect": "COBOLNET1970"
+ },
+ "pb3338_apply_commit_no_operand": {
+  "refuse-at": [
+   "2023"
+  ],
+  "expect": "COBOLNET4709"
  },
  "pb334-read-key-sequential-org": {
   "refuse-at": [
