@@ -1,4 +1,4 @@
-## PB3478: seventeen test classes' private temp-path and delete helpers collapse into FileHarness, and a drift test keeps them there
+## Entry 2324 — 2026-10-21 11:52 PDT — PB3478: seventeen test classes' private temp-path and delete helpers collapse into FileHarness, and a drift test keeps them there
 
 PB3459 and PB3471 made `tests/_shared/FileHarness.cs` the one place a test registers, seeds and reads a file. They left
 its two smallest helpers behind: `Tmp` (a fresh path in the temp directory) and `TryDelete` (delete it, ignoring the
@@ -37,3 +37,4 @@ job with their own helpers (`CutRunner`, `CobolNetTestBase.TempDir`). `PageLayou
 mask the test's own verdict.
 
 No compiler behaviour changed, so there is no golden and no inventory row; the note closes none.
+
