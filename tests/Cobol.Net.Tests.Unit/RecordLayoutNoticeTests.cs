@@ -2,6 +2,7 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -26,7 +27,7 @@ public sealed class RecordLayoutNoticeTests : IDisposable
 
     private string TempFile(int bytes)
     {
-        string path = Path.Combine(Path.GetTempPath(), $"cobolnet_v59_{Guid.NewGuid():N}.dat");
+        string path = FileHarness.Tmp("v59");
         File.WriteAllText(path, new string('7', bytes));
         _paths.Add(path);
         return path;
@@ -45,7 +46,7 @@ public sealed class RecordLayoutNoticeTests : IDisposable
     public void Dispose()
     {
         Console.SetError(_stderr);
-        foreach (string p in _paths) try { File.Delete(p); } catch (IOException) { }
+        foreach (string p in _paths) FileHarness.TryDelete(p);
     }
 
     /// <summary>13 bytes described as 5-byte records: 2 whole records and 3 trailing bytes. The notice names the

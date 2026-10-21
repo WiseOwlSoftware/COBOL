@@ -4,6 +4,7 @@ using System.Buffers.Binary;
 using System.Text;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
 using Microsoft.Win32.SafeHandles;
 using Xunit;
 
@@ -129,7 +130,7 @@ public sealed class PageLayoutGoldenTests
     [Fact]
     public void Describes_tells_empty_described_foreign_and_damaged_files_apart()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"pb3331-describes-{Guid.NewGuid():N}.dat");
+        string path = FileHarness.Tmp("pb3331-describes");
         try
         {
             File.WriteAllBytes(path, []);
@@ -157,7 +158,7 @@ public sealed class PageLayoutGoldenTests
         }
         finally
         {
-            File.Delete(path);
+            FileHarness.TryDelete(path);
         }
     }
 
@@ -166,7 +167,7 @@ public sealed class PageLayoutGoldenTests
     [Fact]
     public void A_store_round_trips_over_a_real_file_and_both_slots_torn_answers_30()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"pb3331-handle-{Guid.NewGuid():N}.dat");
+        string path = FileHarness.Tmp("pb3331-handle");
         try
         {
             using (SafeFileHandle handle = File.OpenHandle(path, FileMode.Create, FileAccess.ReadWrite))
@@ -196,7 +197,7 @@ public sealed class PageLayoutGoldenTests
         }
         finally
         {
-            File.Delete(path);
+            FileHarness.TryDelete(path);
         }
     }
 
@@ -239,7 +240,7 @@ public sealed class PageLayoutGoldenTests
     [Fact]
     public void The_host_medium_keeps_a_previous_files_length_to_the_byte()
     {
-        string path = Path.Combine(Path.GetTempPath(), $"pb3331-length-{Guid.NewGuid():N}.dat");
+        string path = FileHarness.Tmp("pb3331-length");
         try
         {
             var previous = Enumerable.Range(0, 5_000).Select(i => (byte)(i * 7 + 3)).ToArray();
@@ -266,7 +267,7 @@ public sealed class PageLayoutGoldenTests
         }
         finally
         {
-            File.Delete(path);
+            FileHarness.TryDelete(path);
         }
     }
 }

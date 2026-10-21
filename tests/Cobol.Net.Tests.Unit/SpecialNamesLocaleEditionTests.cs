@@ -3,6 +3,7 @@
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -36,7 +37,7 @@ public sealed class SpecialNamesLocaleEditionTests
             new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition }.Parse(path, diags);
             return diags;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>At 2002+ the clause PARSES (and since kb/Work PB64 T1 the binder DECLARES the locale-name; before, it

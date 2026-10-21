@@ -36,9 +36,12 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
     internal static readonly SidecarColumnLockHost Instance = new();
 
     public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
-        IReadOnlyList<ExistingSharingColumn> refused, out IDisposable? hold)
+        IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
     {
         hold = null;
+        // A superseded hold's file stays published until the replacement's test has passed (the contract on
+        // IColumnLockHost.Establish): the test skips both files, which are the asker's own.
+        var previous = supersedes as SidecarLockFiles.LockFileHolder;
         try
         {
             string directory = SidecarLockFiles.LockDirectoryOf(hostPath);
@@ -47,15 +50,24 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
             catch (UnauthorizedAccessException)
             {
                 // This user may not write the lock directory (PB2917): it cannot publish, but it can still refuse.
-                return TestOthers(directory, ownName: null, refused) == RunUnitFileLock.Outcome.Refused
+                return TestOthers(directory, previous is null ? [] : [previous.Name], refused) == RunUnitFileLock.Outcome.Refused
                     ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Unavailable;
             }
             if (published is null) return RunUnitFileLock.Outcome.Unavailable;
             bool kept = false;
             try
             {
-                var outcome = TestOthers(directory, published.Name, refused);
-                if (outcome == RunUnitFileLock.Outcome.Held) { hold = published; kept = true; }
+                var outcome = TestOthers(directory, previous is null ? [published.Name] : [published.Name, previous.Name], refused);
+                if (outcome == RunUnitFileLock.Outcome.Held)
+                {
+                    hold = published;
+                    kept = true;
+                    // The replacement stands; the column it replaced goes. A file the host will not remove is a dead holder's
+                    // litter the next tester reaps (its lock dies with the descriptor), never a reason to undo the replacement.
+                    try { previous?.Dispose(); }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
                 return outcome;
             }
             finally { if (!kept) published.Dispose(); }
@@ -68,14 +80,14 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
         catch (NotSupportedException) { return RunUnitFileLock.Outcome.Unavailable; }
     }
 
-    /// <summary>Test every column in <paramref name="refused"/> for a holder other than <paramref name="ownName"/>
-    /// (null: this process published nothing):
+    /// <summary>Test every column in <paramref name="refused"/> for a holder other than the files in
+    /// <paramref name="ownNames"/> (empty: this process published nothing):
     /// <see cref="RunUnitFileLock.Outcome.Held"/> when there is none (the caller keeps its lock),
     /// <see cref="RunUnitFileLock.Outcome.Refused"/> when one lives or cannot be observed. ⛔ A LOCK DIRECTORY THIS USER
     /// MAY ENTER BUT NOT LIST hides every holder in it, so it is unobservable as a whole and refuses a request row that
     /// refuses any column (the train 1056b review: a <c>0711</c> parent, whose mode the lock directory copies, made the
     /// listing throw, which read as a lock this host cannot hold and granted the OPEN §9.1.15 2) refuses).</summary>
-    private static RunUnitFileLock.Outcome TestOthers(string directory, string? ownName,
+    private static RunUnitFileLock.Outcome TestOthers(string directory, IReadOnlyList<string> ownNames,
         IReadOnlyList<ExistingSharingColumn> refused)
     {
         List<string> entries;
@@ -84,7 +96,7 @@ internal sealed class SidecarColumnLockHost : IColumnLockHost
         foreach (string path in entries)
         {
             string name = Path.GetFileName(path);
-            if (string.Equals(name, ownName, StringComparison.Ordinal)) continue;
+            if (ownNames.Contains(name, StringComparer.Ordinal)) continue;
             if (SidecarLockFiles.IsRetired(name)) { SidecarLockFiles.TryDelete(path); continue; }   // a crash's leftover between rename and delete
             bool pending = SidecarLockFiles.IsPending(name);
             if (!pending && !IsRefused(refused, name)) continue;

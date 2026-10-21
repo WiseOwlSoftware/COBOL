@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
+using CobolNet.Runtime.Exceptions;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
@@ -596,11 +597,15 @@ public sealed class CommitRollbackRuntimeTests
     /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, <i>"For files specified
     /// in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the file locks are
-    /// released."</i>): a connector under commit control and SHARING WITH NO OTHER changes a record and is CLOSEd; its re-OPEN
-    /// I-O meets a medium that refuses every page read, write and sync ('30', §9.1.13.6 item 1). The file lock the CLOSE kept
-    /// still stands — the host handle's share mode, and the Table 19 column lock the re-OPEN gave back to take its own, taken
-    /// again — so another run unit's OPEN I-O SHARING WITH ALL OTHER is refused '61' (§9.1.13.9 1)) until the ROLLBACK, which
-    /// restores the record and releases it, after which the same OPEN succeeds.</summary>
+    /// released."</i>): a connector under commit control and SHARING WITH ALL OTHER changes a record and is CLOSEd; its re-OPEN
+    /// INPUT adopts the kept handle (the transaction stands, so the handle is the writable one) and meets a medium that refuses
+    /// every page read, write and sync ('30', §9.1.13.6 item 1). The re-OPEN published its own Table 19 column (all other,
+    /// INPUT) on the kept lock's hold and the unsuccessful OPEN put the kept column (all other, non-INPUT) back, so another run
+    /// unit's OPEN I-O SHARING WITH READ ONLY — which Table 19 admits beside INPUT and refuses beside I-O — is refused '61'
+    /// (§9.1.13.9 1)) until the ROLLBACK, which restores the record and releases the lock, after which the same OPEN succeeds.
+    /// (Review lead R3-2 of PB3337: with A SHARING WITH NO OTHER its handle refused the other OPEN on every host by itself and
+    /// the case passed with the column restore removed. The kept handle here admits the other OPEN's share mode on a host that
+    /// carries the column lock instead of mandatory share modes, so there only the restored column refuses it.)</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void An_unsuccessful_reopen_leaves_the_kept_file_lock_standing(FileOrg org)
@@ -614,24 +619,193 @@ public sealed class CommitRollbackRuntimeTests
             KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal,
                 read: _ => Refusal());
             FileRegistry a;
-            try { a = Open(host, org, commit: true, sharing: FileSharing.NoOther); }
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
             finally { KeyedStore.MediumObserver.Value = null; }
             Assert.Equal("00", Write(a, org, 7, "A007"));
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
             a.PagedStoreOf("F")!.DropCache();   // the kept attachment's store: the re-OPEN reads its pages from the medium
             refuse = true;
-            a.OpenStatic("F", FileOpenMode.IO);
+            a.OpenStatic("F", FileOpenMode.Input);
             Assert.Equal("30", a.Status("F"));
             refuse = false;
             var b = new FileRegistry();
-            Declare(b, host, org, commit: false, name: "B");
+            Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.ReadOnly);
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("61", b.Status("B"));
             Assert.Null(a.Rollback());
             b.OpenStatic("B", FileOpenMode.IO);
             Assert.Equal("00", b.Status("B"));
             b.CloseAll();
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §9.1.13.9 1), <i>"A file
+    /// sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is
+    /// already open by another file connector in a manner that conflicts with this request"</i>; §14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, the file locks of a file
+    /// closed and not reopened are released only by the COMMIT): A, under commit control and SHARING WITH ALL OTHER, changes a
+    /// record and is CLOSEd; B opens the file I-O beside A's kept handle (Table 19: all other beside all other); A's re-OPEN
+    /// under SHARING WITH READ ONLY is refused '61' by B — and by A's own kept handle, whose share mode a host that
+    /// enforces them per handle (Windows) lets refuse the new one, which is why the OPEN gives the kept handle back and tries
+    /// again. B's refusal must not cost A the kept handle: the transaction's liveness byte stays held by a live run unit,
+    /// so a third run unit's writable OPEN (its dead-owner step) does not roll the transaction back and its REWRITE of the
+    /// record answers '51'; and the file lock stands, so an OPEN SHARING WITH NO OTHER is refused '61' after B has gone.
+    /// Before the fix the give-back was never undone, and both answered as if A held nothing. The same re-OPEN, once B has
+    /// closed, succeeds ('00') and is the transaction's. (A host whose share modes are advisory refuses the OPEN through the
+    /// Table 19 column lock before any handle is taken, so there the case passes without the restore.)</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_refused_by_another_run_unit_keeps_the_kept_handle_and_its_transaction(FileOrg org)
+    {
+        string host = Tmp($"pb3483-reopen-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            a.RegisterSharing("F", FileSharing.ReadOnly, FileLockMode.Automatic, multiple: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("61", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            // A third run unit's writable OPEN runs the dead-owner step: A is alive, so it rolls nothing back.
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            c.CloseAll();
+            b.CloseAll();
+            // The kept handle's file lock stands for the connector that is closed and not reopened.
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            // Nobody refuses it now: the same re-OPEN is the transaction's.
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 7, out var own));
+            Assert.Equal(Rec(7, "A007"), own);
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A RE-OPEN THAT IS UNSUCCESSFUL AFTER IT SWAPPED HANDLES PUTS THE KEPT HANDLE BACK (kb/Work PB3483; §14.9.27.4
+    /// GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4): A, under
+    /// commit control and SHARING WITH ALL OTHER, changes a record and is CLOSEd; its re-OPEN under SHARING WITH NO OTHER takes
+    /// a handle the kept one's share mode refuses, so the kept handle is given back and the new one taken — and the medium then
+    /// refuses the adoption's first read ('30', §9.1.13.6 item 1). The kept handle is back as the CLOSE left it: the
+    /// transaction's liveness byte is held by a live run unit, so another run unit's writable OPEN does not roll it back (its
+    /// REWRITE of the record answers '51', never '23' for a record the rollback removed), the file lock stands (an OPEN SHARING
+    /// WITH NO OTHER is refused '61', §9.1.13.9 1)), and the ROLLBACK restores the file.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void An_unsuccessful_reopen_after_the_handle_swap_gives_the_kept_handle_back(FileOrg org)
+    {
+        string host = Tmp($"pb3483-swap-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            bool refuseOnce = false;
+            IOException? Refusal()
+            {
+                if (!refuseOnce) return null;
+                refuseOnce = false;
+                return new IOException("refused by the host");
+            }
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => null, sync: () => null, read: _ => Refusal());
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, sharing: FileSharing.AllOther); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.RegisterSharing("F", FileSharing.NoOther, FileLockMode.Automatic, multiple: true);
+            refuseOnce = true;
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("30", a.Status("F"));
+            Assert.False(refuseOnce);
+            Assert.Equal(id, a.TransactionOf("F"));
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);   // the kept lock admits it (Table 19)
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            c.CloseAll();
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            Assert.Null(a.Rollback());
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));
+            d.CloseAll();
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ THE HANDLE A CLOSE KEPT IS NOT "ANOTHER FILE CONNECTOR" TO ITS OWN CONNECTOR'S OPEN OUTPUT (kb/Work PB3483;
+    /// §9.1.13.9 1) e), <i>"An attempt is made to open a physical file in the output mode and the physical file is currently
+    /// open by another file connector"</i>): a connector under commit control writes, is CLOSEd and opens OUTPUT again — the
+    /// file is created anew ('00', §14.9.27.4 GR18) with nothing of the first OPEN left in it. On a host whose share modes
+    /// are the lock (Windows) the OUTPUT question is a probe for a handle on the file, and the kept handle answered it:
+    /// '61' for a file nobody else had open.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_output_is_not_refused_by_the_handle_its_own_close_kept(FileOrg org)
+    {
+        string host = Tmp($"pb3483-output-reopen-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.NoOther, mode: FileOpenMode.Output);
+            Assert.Equal("00", Write(a, org, 1, "A001"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 2, "A002"));
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[2] = Rec(2, "A002");
+            Assert.Equal(expected, Contents(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The same OPEN OUTPUT is refused '61' when another run unit holds the file (§9.1.13.9 1) e)), and the refusal
+    /// leaves the kept state as the CLOSE left it (§14.9.27.4 GR25): the transaction is alive for a third run unit
+    /// ('51'), and the ROLLBACK restores the file.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_output_refused_by_another_run_unit_keeps_the_kept_state(FileOrg org)
+    {
+        string host = Tmp($"pb3483-output-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            a.Close("F");
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("61", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            c.CloseAll();
+            b.CloseAll();
+            Assert.Null(a.Rollback());
             a.CloseAll();
             Assert.Equal(Seeded(), Settled(host, org));
         }
@@ -722,6 +896,86 @@ public sealed class CommitRollbackRuntimeTests
         }
         finally { TryDelete(host); }
     }
+
+    /// <summary>A program that runs <paramref name="body"/> as the run unit's main program and as a CALLed one: the stand-in
+    /// for a compiled program, so the boundaries of <see cref="ProgramTable"/> are reached without the compiler's half of the
+    /// facility (kb/Work PB3338).</summary>
+    private sealed class BodyProgram(Action body) : ICobolProgram
+    {
+        public void Call(CobolArg[] args, CobolArg? returning) => body();
+        public void Activate() => body();
+        public void CloseFiles() { }
+    }
+
+    /// <summary>⛔ THE PROGRAM TABLE'S BOUNDARIES RECORD HOW THE RUN UNIT ENDED (kb/Work PB3481, review lead R1-5 of
+    /// PB3337; §9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
+    /// none, the beginning of the run unit are rolled back"</i>; §14.6.12, <i>"If commit and rollback is in effect, a
+    /// rollback is executed"</i>). A main program's boundary (<c>ProgramTable.RunMain</c>, whose <c>RunOnThisThread</c> the
+    /// standalone <c>Main</c> enters through <c>RunModule</c> too) and a .NET host's (<c>CallFromHost</c>, reached by a CALL
+    /// with no calling program) each end the run unit through <see cref="RunUnit.Terminate"/>, which chooses the implicit
+    /// CLOSE's COMMIT for a normal ending and the file-only ROLLBACK for an abnormal one by what <c>RunUnit.NoteEnding</c>
+    /// recorded at that boundary. A program writes a record under commit control and ends: by returning (the main boundary
+    /// only: a host's activation that returns does not end the run unit), by STOP RUN (<c>StopRun</c> unwinds to the
+    /// boundary: a normal ending, committed), by a fatal exception condition (<c>CobolFatalException</c>), an
+    /// implementor-defined stop (<c>CobolImplementorFatalException</c>) or a CALL fatal (<c>CobolCallException</c>, which only
+    /// the main boundary ends the run unit for: a host's activation fails with it and continues), or by a runtime failure no
+    /// condition names (an <see cref="InvalidOperationException"/>, which the main boundary rethrows) — every ending but the
+    /// first two abnormal: rolled back, and the file reads as it stood at the start.</summary>
+    [Theory]
+    [InlineData("main", "returns", true)]
+    [InlineData("main", "stop-run", true)]
+    [InlineData("main", "fatal", false)]
+    [InlineData("main", "implementor-fatal", false)]
+    [InlineData("main", "call-fatal", false)]
+    [InlineData("main", "fails", false)]
+    [InlineData("host", "stop-run", true)]
+    [InlineData("host", "fatal", false)]
+    [InlineData("host", "implementor-fatal", false)]
+    public void A_program_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one(string boundary, string ending,
+        bool committed)
+    {
+        string host = Tmp($"pb3481-{boundary}-{ending}");
+        try
+        {
+            Seed(host, FileOrg.Relative);
+            var ru = new RunUnit();
+            ru.Programs.RegisterModule("Cobol.PB3481.__CobolModule", RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi, () =>
+                ru.Programs.Register("PB3481", "PB3481", null, initial: false, common: false, recursive: false, _ =>
+                    new BodyProgram(() =>
+                    {
+                        Declare(ru.Files, host, FileOrg.Relative, commit: true);
+                        ru.Files.OpenStatic("F", FileOpenMode.IO);
+                        Assert.Equal("00", ru.Files.Status("F"));
+                        Assert.Equal("00", Write(ru.Files, FileOrg.Relative, 7, "A007"));
+                        switch (ending)
+                        {
+                            case "stop-run": throw new StopRun();
+                            case "fatal": throw new CobolFatalException("EC-DATA-PTR-NULL", "a NULL BASED item");
+                            case "implementor-fatal": throw new CobolImplementorFatalException("an implementor-defined stop");
+                            case "call-fatal": throw new CobolCallException("the program cannot be located");
+                            case "fails": throw new InvalidOperationException("a runtime failure no condition names");
+                        }
+                    })));
+            if (boundary == "main")
+            {
+                if (ending is "stop-run") Assert.Throws<StopRun>(() => ru.Programs.RunMain("PB3481"));
+                else if (ending is "fails") Assert.Throws<InvalidOperationException>(() => ru.Programs.RunMain("PB3481"));
+                else ru.Programs.RunMain("PB3481");
+                if (ending is "returns") Assert.Equal(0, ru.ExitStatus);
+                else if (ending is "fatal" or "implementor-fatal" or "call-fatal") Assert.Equal(1, ru.ExitStatus);   // §14.6.12's ERROR indication
+            }
+            else
+            {
+                var ended = Assert.Throws<RunUnitEndedException>(() => ru.Programs.CallProgram("PB3481", null, [], null));
+                Assert.Equal(!committed, ended.Abnormal);
+            }
+            var expected = Seeded();
+            if (committed) expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, FileOrg.Relative));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>§9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §14.6.12); a
     /// NORMAL ending commits them.</summary>
     [Theory]
