@@ -782,14 +782,16 @@ internal sealed class IndexedStore : KeyedStore
     /// alternate trees' composite entries are rebuilt from that vector — the record's current entries removed (found from
     /// its current frame) and the image's inserted — so the duplicate order of §14.9.35.4 GR24 is the one at the last
     /// COMMIT (the release mint only ever grows). <paramref name="entriesOf"/> is the connector's: a frame's alternate
-    /// entries (its key values and ordinals, suppression applied), null for a frame it cannot decode ('30').</summary>
+    /// entries (its key values and ordinals, suppression applied) given the number of release ordinals the FILE's frames
+    /// carry (its meta page's key table, which the file being restored states), null for a frame it cannot decode ('30').</summary>
     public static RestoringTreesFactory Restoring(IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
         (file, meta) => new IndexedRestoring(file, meta, orders, entriesOf);
 
     private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
     {
+        private readonly int _frameSlots = meta.Attributes.Keys.Count;
         private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
         private readonly SortedDictionary<int, BTree> _alternates = [];
 
@@ -812,13 +814,13 @@ internal sealed class IndexedStore : KeyedStore
             if (status != StoreStatus.Ok) return status;
             if (current is not null)
             {
-                if (entriesOf(current) is not { } entries) return StoreStatus.PermanentError;
+                if (entriesOf(_frameSlots, current) is not { } entries) return StoreStatus.PermanentError;
                 foreach (var (key, entry) in entries)
                     if (Alternate(key) is { } tree && (status = tree.Delete(entry, out _)) != StoreStatus.Ok) return status;
                 if ((status = _prime.Delete(identity, out _)) != StoreStatus.Ok) return status;
             }
             if (image is null) return StoreStatus.Ok;
-            if (entriesOf(image) is not { } restored) return StoreStatus.PermanentError;
+            if (entriesOf(_frameSlots, image) is not { } restored) return StoreStatus.PermanentError;
             if ((status = _prime.Put(identity, image)) != StoreStatus.Ok) return status;
             foreach (var (key, entry) in restored)
                 if (Alternate(key) is { } tree && (status = tree.Insert(entry, identity, out _)) != StoreStatus.Ok) return status;

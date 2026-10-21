@@ -1106,15 +1106,19 @@ public sealed class CommitRollbackRuntimeTests
     /// ordinary OPEN of host 2 - it adopts neither host 1's handle nor its store, so record 5 is '23' and record 2 is host 2's -
     /// while host 1's transaction, record lock and file lock stand (another run unit's REWRITE of record 7 answers '51', its READ
     /// of record 1 '51', a NO OTHER OPEN '61') until the COMMIT or ROLLBACK ends them at host 1, host 2 untouched, or until the
-    /// connector is associated with host 1 again and OPENs it ("back"), where the transaction goes on. Before the fix the OPEN
+    /// connector is associated with host 1 again and OPENs it ("back"), where the transaction goes on, or until the run unit's end
+    /// ("end"), whose implicit COMMIT (§9.1.18.5, <i>"When a run unit terminates normally, all file changes are permanently committed"</i>) makes
+    /// host 1's change permanent and gives the locks back. Before the fix the OPEN
     /// of host 2 took host 1's kept handle and store: record 5 was host 1's and the new file got no file lock.</summary>
     [Theory]
     [InlineData(FileOrg.Relative, "commit")]
     [InlineData(FileOrg.Relative, "rollback")]
     [InlineData(FileOrg.Relative, "back")]
+    [InlineData(FileOrg.Relative, "end")]
     [InlineData(FileOrg.Indexed, "commit")]
     [InlineData(FileOrg.Indexed, "rollback")]
     [InlineData(FileOrg.Indexed, "back")]
+    [InlineData(FileOrg.Indexed, "end")]
     public void A_kept_state_stays_with_the_physical_file_its_connector_is_associated_away_from(FileOrg org, string ending)
     {
         string host1 = Tmp($"pb3494-first-{org}-{ending}");
@@ -1164,6 +1168,7 @@ public sealed class CommitRollbackRuntimeTests
                 Assert.Equal(Rec(7, "A007"), own);
                 Assert.Null(a.Rollback());
             }
+            else if (ending == "end") a.CloseAll();   // the run unit's normal end (§9.1.18.5): the implicit COMMIT, then the locks go
             else Assert.Null(ending == "commit" ? a.Commit() : a.Rollback());
             if (ending != "back")
             {
@@ -1173,7 +1178,7 @@ public sealed class CommitRollbackRuntimeTests
             }
             a.CloseAll();
             var expected = Seeded();
-            if (ending == "commit") expected[7] = Rec(7, "A007");
+            if (ending is "commit" or "end") expected[7] = Rec(7, "A007");
             Assert.Equal(expected, Settled(host1, org));
             Assert.Equal(theirs, Contents(host2, org));
         }
@@ -1354,7 +1359,7 @@ public sealed class CommitRollbackRuntimeTests
             var b = Open(host, org, commit: false, name: "B");
             Assert.Equal("51", Read(b, org, 1, out _, name: "B"));
             Assert.Equal("00", Read(b, org, 2, out _, name: "B"));
-            // The retaken handle's endpoint is the one they are published through now (Kept.Endpoint): a re-OPEN that takes a
+            // The retaken handle's endpoint is the one they are published through now (KeptFile.Endpoint): a re-OPEN that takes a
             // handle of its own beside it moves them off it before it gives it back, so B still meets them.
             a.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal("00", a.Status("F"));
