@@ -37,7 +37,7 @@ public sealed class FileHarnessExtendDeclarationTests
         Assert.Equal(expected, FileHarness.AccessFor(mode));
 
     /// <summary>The declaration <see cref="FileHarness.AccessFor"/> gives opens in its own mode, in every organization:
-    /// the success-family status of the OPEN (§14.9.27.4 GR19, none of Table 19's refusals applies to a lone connector).</summary>
+    /// the success-family status of the OPEN (§14.9.27.4 GR4 with Table 18, an available file not currently open; none of Table 19's refusals applies to a lone connector).</summary>
     [Theory]
     [MemberData(nameof(EveryOrgAndOpenMode))]
     public void TheDeclarationAnOpenModeCanMake_OpensInThatMode(FileOrg org, FileOpenMode mode)
@@ -73,6 +73,29 @@ public sealed class FileHarnessExtendDeclarationTests
             FileHarness.Register(reg, "F", host, org, sharing: null, access: declared);
             var failure = Assert.Throws<FailException>(() => FileHarness.Open(reg, "F", FileOpenMode.Extend));
             Assert.Contains("§14.9.27.3 SR2", failure.Message);
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>The shorthand every runtime file test opens with does not route around the guard: a theory that registers
+    /// through <see cref="FileHarness.Register"/>'s default declaration and opens EXTEND with <c>OpenStatic</c> fails too
+    /// (review round 1, R1-2).</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void OpenStaticExtend_OverTheHarnessDefaultDeclaration_FailsTheTest(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"static-{org}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+            var reg = new FileRegistry();
+            FileHarness.Register(reg, "F", host, org, sharing: null);
+            var failure = Assert.Throws<FailException>(() => reg.OpenStatic("F", FileOpenMode.Extend));
+            Assert.Contains("§14.9.27.3 SR2", failure.Message);
+            reg.OpenStatic("F", FileOpenMode.IO);   // the same declaration opens in the modes DYNAMIC admits
+            Assert.Equal("00", reg.Status("F"));
+            reg.CloseAll();
         }
         finally { FileHarness.TryDelete(host); }
     }
