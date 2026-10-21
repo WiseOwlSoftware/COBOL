@@ -1,4 +1,4 @@
-## PB3488: the differential fuzz harness's yield, measured twice and corrected once
+## Entry 2321 — 2026-10-20 22:44 PDT — PB3488: the differential fuzz harness's yield, measured twice and corrected once
 
 The owner ran the harness's first bake-off tonight (five Ollama models, 20 programs each; kb/Work PB3463's `--bake-off`)
 and read the table as "the models majoritively generate incorrect programs. Can we improve that?" The best model,
@@ -77,3 +77,4 @@ the harness. The winner for the overnight run is qwen3.6:35b, the highest share 
 review-answer head; `--self-test` 30 → 54 checks. The evidence record `docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md` carries the
 tables and keeps every bake-off's scoreboard and report in its raw folder. The overnight run is the owner's to start with
 the table's winner.
+
