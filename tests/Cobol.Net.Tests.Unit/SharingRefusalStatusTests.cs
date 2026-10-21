@@ -24,49 +24,19 @@ namespace CobolNet.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class SharingRefusalStatusTests
 {
-    public enum Org { Sequential, Relative, Indexed }
-
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb860-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void RegisterOrg(FileRegistry reg, string name, string host, Org org)
-    {
-        switch (org)
-        {
-            case Org.Relative:
-                reg.RegisterRelative(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-                break;
-            case Org.Indexed:
-                reg.RegisterIndexed(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-                break;
-            default:
-                reg.Register(name, host, recordWidth: 4, lineSequential: false, optional: false,
-                    varyMin: -1, varyMax: -1);
-                break;
-        }
-    }
-
     /// <summary>A physical file of <paramref name="org"/> holding one record, written and closed by a connector
     /// of its own registry — so the file the measurement opens exists in that organization's own format.</summary>
-    private static string Seed(Org org)
+    private static string SeededFile(FileOrg org)
     {
-        string host = Tmp(org.ToString());
-        var reg = new FileRegistry();
-        RegisterOrg(reg, "S", host, org);
-        reg.OpenStatic("S", FileOpenMode.Output);
-        Assert.Equal("00", reg.Status("S"));
-        reg.WriteShared("S", "SEED", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-        reg.Close("S");
-        Assert.Equal("00", reg.Status("S"));
+        string host = FileHarness.Tmp($"pb860-{org}");
+        FileHarness.Seed(host, org, ["SEED"]);
         return host;
     }
 
-    public static TheoryData<Org, FileOpenMode> EveryOpen()
+    public static TheoryData<FileOrg, FileOpenMode> EveryOpen()
     {
-        var data = new TheoryData<Org, FileOpenMode>();
-        foreach (var org in Enum.GetValues<Org>())
+        var data = new TheoryData<FileOrg, FileOpenMode>();
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var mode in Enum.GetValues<FileOpenMode>())
                 data.Add(org, mode);
         return data;
@@ -77,16 +47,16 @@ public sealed class SharingRefusalStatusTests
     /// byte-for-byte as it was, OUTPUT's truncation included.</summary>
     [Theory]
     [MemberData(nameof(EveryOpen))]
-    public void AnOpenRefusedByAnotherRunUnitsExclusiveHandle_IsTheFileSharingConflict(Org org, FileOpenMode mode)
+    public void AnOpenRefusedByAnotherRunUnitsExclusiveHandle_IsTheFileSharingConflict(FileOrg org, FileOpenMode mode)
     {
         Assert.True(HostCapability.Sharing.EnforcesExclusiveAccess, HostCapability.Sharing.Because);
-        string host = Seed(org);
+        string host = SeededFile(org);
         try
         {
             byte[] before = File.ReadAllBytes(host);
             string status;
             var reg = new FileRegistry();
-            RegisterOrg(reg, "F", host, org);
+            FileHarness.Register(reg, "F", host, org, sharing: null);
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
                 reg.OpenStatic("F", mode);
@@ -101,22 +71,22 @@ public sealed class SharingRefusalStatusTests
                 "an unsuccessful OPEN leaves the connector in no open mode, so its CLOSE answers '42'");
             Assert.Equal(before, File.ReadAllBytes(host));   // §14.9.27.4 GR25 — the file is not affected
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The refusal ends with the handle: the SAME connector's next OPEN, once the other run unit has let
     /// go, succeeds — '61' is a statement about the conflict, not a latched state of the connector.</summary>
     [Theory]
-    [InlineData(Org.Sequential)]
-    [InlineData(Org.Relative)]
-    [InlineData(Org.Indexed)]
-    public void TheConflictEndsWhenTheOtherHandleCloses(Org org)
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void TheConflictEndsWhenTheOtherHandleCloses(FileOrg org)
     {
-        string host = Seed(org);
+        string host = SeededFile(org);
         try
         {
             var reg = new FileRegistry();
-            RegisterOrg(reg, "F", host, org);
+            FileHarness.Register(reg, "F", host, org, sharing: null);
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
                 reg.OpenStatic("F", FileOpenMode.Input);
@@ -127,7 +97,7 @@ public sealed class SharingRefusalStatusTests
             reg.Close("F");
             Assert.Equal("00", reg.Status("F"));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The host classification itself, on a refusal MEASURED on this host rather than predicted for it
@@ -136,7 +106,7 @@ public sealed class SharingRefusalStatusTests
     [Fact]
     public void TheHostsOwnSharingRefusal_IsClassifiedAsOne()
     {
-        string host = Tmp("classify");
+        string host = FileHarness.Tmp("classify");
         File.WriteAllText(host, "X");
         try
         {
@@ -166,16 +136,16 @@ public sealed class SharingRefusalStatusTests
     /// handles, so before <c>HostFile.IsHeldByAnother</c> the delete there succeeded over another run unit's open
     /// file, while Windows refused it and the refusal answered '30'. Both hosts were wrong, differently.</summary>
     [Theory]
-    [InlineData(Org.Sequential)]
-    [InlineData(Org.Relative)]
-    [InlineData(Org.Indexed)]
-    public void ADeleteFileRefusedByAnotherRunUnitsHandle_IsTheDeleteSharingConflict(Org org)
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void ADeleteFileRefusedByAnotherRunUnitsHandle_IsTheDeleteSharingConflict(FileOrg org)
     {
-        string host = Seed(org);
+        string host = SeededFile(org);
         try
         {
             var reg = new FileRegistry();
-            RegisterOrg(reg, "F", host, org);
+            FileHarness.Register(reg, "F", host, org, sharing: null);
             string status;
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                 status = reg.DeleteFile("F");
@@ -186,7 +156,7 @@ public sealed class SharingRefusalStatusTests
             Assert.Equal(FileStatusCode.Success, reg.DeleteFile("F"));
             Assert.False(File.Exists(host));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>kb/Work PB1163 — §14.7.9.3 GR3, <i>"If the FOREVER phrase is specified, the mass storage control
@@ -197,17 +167,17 @@ public sealed class SharingRefusalStatusTests
     /// The holder releases only once the statement has been refused at least once, so the test observes a real
     /// wait and times nothing.</summary>
     [Theory]
-    [InlineData(Org.Sequential)]
-    [InlineData(Org.Relative)]
-    [InlineData(Org.Indexed)]
-    public void RetryForever_WaitsForAnotherRunUnitToRelease_DeleteFileAndOpen(Org org)
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void RetryForever_WaitsForAnotherRunUnitToRelease_DeleteFileAndOpen(FileOrg org)
     {
         Assert.True(HostCapability.Sharing.EnforcesExclusiveAccess, HostCapability.Sharing.Because);
-        string host = Seed(org);
+        string host = SeededFile(org);
         try
         {
             var reg = new FileRegistry();
-            RegisterOrg(reg, "F", host, org);
+            FileHarness.Register(reg, "F", host, org, sharing: null);
 
             using (var holder = HoldUntilRefused(host))
                 reg.OpenShared("F", FileOpenMode.Input, hasSharingOverride: false, FileSharing.AllOther,
@@ -219,7 +189,7 @@ public sealed class SharingRefusalStatusTests
                 Assert.Equal(FileStatusCode.Success, reg.DeleteFile("F", FileRetryKind.Forever, 0));
             Assert.False(File.Exists(host), "DELETE FILE RETRY FOREVER completes once the other run unit lets go");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>An exclusive handle on <paramref name="host"/> — another run unit's, as far as the runtime can tell —
