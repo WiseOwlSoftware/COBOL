@@ -758,8 +758,18 @@ whole-store model it replaced). The core groups kb/Work PB3331 to PB3335 have bu
 B+ tree, RELATIVE and INDEXED on the engine, and coherence across run units at page granularity — and the whole-store model
 is deleted, with no reader of its format kept; the paragraphs above and the two `docs/CONFORMANCE.md` rows (DOC-A.1-107,
 DOC-A.1-75) describe the engine, and the performance witnesses (a) to (d) of 2.2.1.11 hold it to its bounds (PB3335,
-PB3336). Still the target: the transactions of 2.2.1.10 with their crash and interleaving rows (PB3337, PB3338): the core has landed, and the owner
-decided their scope on 2026-10-19 18:58 PDT — the whole module (kb/Work PB3337: "Option A"). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
+PB3336). The runtime half of 2.2.1.10's transactions is built (kb/Work PB3337; the owner decided the scope on 2026-10-19
+18:58 PDT — the whole module, "Option A"): in the tree, `Store/Transactions.cs` (the three trees' keys, the one walk that
+retires a transaction, `IRestoringTrees`), the UNDO and HOLDINGS edits of every changing statement under commit control
+(`KeyedStore.Change`), COMMIT as a promotion whose retirement retires the transaction with the region-3 reversal
+(`PagedFile.Commit`, `Retire`), ROLLBACK and the dead-owner rollback as one statement (`KeyedStore.RollBack`), the
+dead-owner step at every exclusive entry and writable OPEN, the holdings lock test (`KeyedConnector.HoldingsGate`), and
+`FileRegistry.RegisterCommitControl` / `Commit` / `Rollback`, with the connector-level cases in
+`tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs`; every transaction row of 2.2.1.16 and 2.2.1.17 runs
+through the fault-injecting medium of 2.2.1.12 in `tests/Cobol.Net.Tests.Unit/Store/TransactionFaultMatrixTests.cs`
+(the process death, the refusal and the power loss at every point of COMMIT, its reversal, ROLLBACK, the dead-owner step
+and a first change, and a holder's death at every point of another run unit's statement), and witness (e) of 2.2.1.11 in
+`KeyedStorePerformanceWitnessTests`. Still the target: the compiler half (PB3338) and the sequential journal (PB3340). PB3330 lands when its last group has landed. The bar it meets is PB3330's, line by line: no statement reads or writes the whole file; OPEN
 reads the header; a keyed statement touches O(log n) pages; the size limit is the host's; a statement's change reaches the
 file when it completes, crash-consistently; `SHARING WITH ALL OTHER` is coherent at page granularity with today's record locks;
 every current golden keeps passing plus measured performance witnesses; one engine, no second path and no reader of the old
@@ -1804,6 +1814,23 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
 - **CLOSE under commit control promotes like any CLOSE** (R5) and keeps the handle; the first draft's "a CLOSE of such a file
   writes the work meta and keeps the handle but does NOT promote" is withdrawn with the reason it existed (finding R1-5's
   contradiction was between that rule and PB3337's brief; both now say the same thing).
+- **As built (kb/Work PB3337), where the text above left the shape open.** (1) The holdings test of REWRITE and DELETE is
+  made where WRITE's is, after the statement's invalid key condition ('23') and before the record is touched
+  (`KeyedConnector.HoldingsGate`, asked by each organization's verb); the region test keeps its place before the verb
+  (DOC-A.1-104's order). A dead owner's rollback at the test, or a RETRY wait, makes the verb evaluate its conditions again
+  from the top against the file as it then stands. (2) An INPUT connector that meets a dead owner's holding reads on: it
+  writes nothing and reads the file as it stands. (3) A CLOSE under commit control keeps the connector's handle, region
+  endpoint and store attachment while the run unit has an open transaction on the file; the next COMMIT or ROLLBACK gives
+  them back, and the connector's own re-OPEN moves the liveness byte to its new handle under the store mutex. Where the kept
+  handle's host share mode refuses the new handle, the kept one is given back first and the byte re-taken at the attach,
+  outside the mutex for that instant. The Table 19 run-unit file lock (the column bytes a host without mandatory share
+  modes publishes) is kept with the handle (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have
+  been closed and not reopened prior to the COMMIT statement, the file locks are released."*), so another run unit's
+  conflicting OPEN is refused '61' on every host until the COMMIT or ROLLBACK; the connector's own re-OPEN gives the kept
+  column lock back immediately before it takes its own (`FileConnector.ReleaseKeptFileLock`), the same instant as the
+  handle's.
+  (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
+  used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).
 - **Record locking under commit control** is §9.1.16's implicit *"LOCK MODE IS AUTOMATIC WITH LOCK ON MULTIPLE RECORDS"*: the
   registry registers that posture for the connector and refuses the LOCK clause and UNLOCK at bind (PB3338); READ locks (GR4,
   in the region), WRITE, REWRITE and DELETE hold the record they change and the unique key values they free (in the file;
@@ -1850,7 +1877,7 @@ for a thousand open holdings), read only when page 2's holdings root is not empt
 | a promotion (CLOSE or checkpoint; COMMIT; normal termination; the fence at OPEN) | 2 (both committed slots) + ≤ 2 (the ledger) + 3 (the free tree's path) | 1 (the claim with PROMOTING) + 1 (a committed slot) + the retirement (≤ 2 ledger + 3 free tree + 1 meta) | 2 (CLOSE: 3) |
 | COMMIT, per file with a transaction | ≤ 2 (the TRANSACTIONS tree) + the UNDO tree whole — u + its leaves, one walk, which lists every R and V holding (finding R5-2) | the promotion, whose retirement also removes the entry and the holdings the walk listed and releases the UNDO tree (+ ≤ 2 + the HOLDINGS pages those entries sit on, one path copy per leaf) | 2 |
 | COMMIT, sync 2 refused (the reversal, 2.2.1.10 region 3) | as above | the reversal statement (the retirement's pages + the ROLLBACK row's) + a second promotion (its claim, slot and retirement) | + 2 |
-| ROLLBACK, per file with a transaction | ≤ 2 + the UNDO tree whole (the same walk) + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + the HOLDINGS pages its entries sit on + 2 + 1, in one statement; on a file marked UNACKNOWLEDGED + a promotion | 0; marked: 2 |
+| ROLLBACK, per file with a transaction | ≤ 2 + the UNDO tree whole (the same walk) + ≤ (k + 1) × d per before-image | ≤ (k + 1) × d per before-image + the HOLDINGS pages its entries sit on + the statement's own bookkeeping, paid once (ℓ + 2 free batch + 1 meta, + 1 claim under the mutex: the WRITE row's terms; measured 2026-10-20, kb/Work PB3337: the earlier "+ 2 + 1" left out the ledger's path copy, which a one-record ROLLBACK already exceeds), in one statement; on a file marked UNACKNOWLEDGED + a promotion | 0; marked: 2 |
 
 The witnesses: (a) **linearity** — a load of N and of 4N records (N = 5 000: the sizes straddle the prime tree's root
 split) through `NO OTHER` and through `ALL OTHER`, ascending and random keys, RELATIVE and INDEXED with none and with two
@@ -1873,12 +1900,14 @@ drift test of `Runtime/IO` (`WholeStoreBanDriftTests`; a specific rule of those 
 `Runtime/IO` that calls `RandomAccess.Read`/`Write`/`GetLength`/`SetLength` on a keyed handle and that it never reads or writes
 more than one page per call, and that `ArrayPool<byte>.Shared.Rent` with a file-length argument appears nowhere under
 `Runtime/IO` (the shape `ReadImage` has today); (e) **a transaction costs its own records only** — a run unit's ROLLBACK after
-m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + 3 pages (the ROLLBACK row above)
-and leaves every record of another run unit byte-identical.
+m changed records writes ≤ m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping
+(the ROLLBACK row above) and leaves every record of another run unit byte-identical; a COMMIT reads its UNDO tree once.
 Witness (d) is `WholeStoreBanDriftTests` (kb/Work PB3335); (a) to (c) are `tests/Cobol.Net.Tests.Unit/Store/
 KeyedStorePerformanceWitnessTests.cs` (kb/Work PB3336: one class per file shape, the real connectors over `PageArrayMedium`,
 an in-memory page array per physical file, so a load costs no host I/O and the counts are the same on every host); (e) needs
-the transaction runtime and lands with it, in PB3337. For the
+the transaction runtime and is `KeyedStorePerformanceWitnessTests.A_transaction_costs_its_own_records_only` (kb/Work
+PB3337: 40 records rolled back write 30 pages at d = 2 with no alternate key and 104 under two, and the COMMIT after them reads
+its one-page UNDO tree once, 7 and 9 pages in all). For the
 record, the prototype's wall-clock arithmetic: a million-record sequential relative load is about 6 page writes a statement at
 8 µs, some 50 s of I/O before the tree's own work; the same load through today's `ALL OTHER` path is 10^6 × O(file) and does
 not finish.
@@ -1927,9 +1956,12 @@ refusal scenario is deterministic and runs on every host without a VM:
   holdings are intact until then; a COMMIT refused in its RETIREMENT (after sync 2) reports success, and the next entry
   completes its retirement; a COMMIT whose SYNC 2 is refused (finding R5-1; the medium accepting writes, refusing the
   sync) REVERSES under its own mutex hold and reports failure, and afterwards — through the owner's unconditional
-  ROLLBACK, another run unit's next statement, the next OPEN, and a power loss that keeps any subset of {the COMMIT's slot,
-  the reversal's pages, the reversal's slot} — the records are as at the previous COMMIT and the HOLDINGS and TRANSACTIONS
-  trees hold nothing of t; the same with a second run unit's statement injected between the COMMIT's return and the
+  ROLLBACK, another run unit's next statement, the next OPEN, and a power loss — the records are as at the previous COMMIT
+  and the HOLDINGS and TRANSACTIONS trees hold nothing of t (a COMMIT that answers after a LANDED reversal has had its
+  reversal's promotion synced, and a sync makes every earlier write durable, so no subset of {the COMMIT's slot, the
+  reversal's pages, the reversal's slot} is left to lose; a power loss DURING the reversal, which the owner never survives
+  to be told, is 2.2.1.16's reversal rows: committed while it keeps the COMMIT's slot and loses the reversal's pages, rolled
+  back once the reversal's promotion has synced — measured, kb/Work PB3337, `TransactionFaultMatrixTests`); the same with a second run unit's statement injected between the COMMIT's return and the
   owner's ROLLBACK (it meets the reversed state, never a landed COMMIT to complete); the same with the reversal's own page
   write refused, or its promotion's sync refused: the COMMIT reports failure, the ROLLBACK reports failure while the sync
   is refused and success once a sync lands, and NO run reports a ROLLBACK successful while the medium holds the COMMIT's
@@ -2047,7 +2079,7 @@ PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page laye
 crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
 `Ledger`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
 `tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
-PB3332's tree replaced both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it
+PB3332's tree replaced both); PB3332 the B+ tree over it
 (in the tree: `BTree`, `BTreeCursor`, `IKeyOrder`, `KeyOrders`, `OverflowChain`, with the LEDGER a resident tree and the FREE
 set the FREE tree, and its model, shape and crash cases beside the page layer's); PB3333 RELATIVE on the engine (its connector, its tests, the
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
