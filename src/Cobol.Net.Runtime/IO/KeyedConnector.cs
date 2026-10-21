@@ -274,10 +274,15 @@ public abstract class KeyedConnector : FileConnector
     {
         if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
         if (create) ReleaseKept();   // OPEN OUTPUT creates the file anew: nothing of a kept handle's store survives it
-        // While the run unit's transaction may stand in a handle its CLOSE under commit control kept WRITABLE, the
-        // re-OPEN's handle is writable whatever its mode: it is the handle the COMMIT or ROLLBACK writes through once the
-        // kept one is given back (2.2.1.10), and an INPUT re-OPEN takes the same handle back (TakeFileLock).
-        var access = _kept?.Handle is { Stream.CanWrite: true } ? FileAccess.ReadWrite : HostAccess(Mode);
+        // While the run unit's transaction on the file STANDS and a handle its CLOSE under commit control kept is WRITABLE,
+        // the re-OPEN's handle is writable whatever its mode: it is the handle the COMMIT or ROLLBACK writes through once
+        // the kept one is given back, and the one the liveness byte moves to (2.2.1.10), and an INPUT re-OPEN takes the
+        // same handle back (TakeFileLock). With no transaction there is nothing to write, so the handle takes the access
+        // of its own mode (HostAccess) and no more (review finding R2-1): a writable handle under an INPUT re-OPEN refuses,
+        // through its host share mode, the OPENs of other run units Table 19 admits beside an INPUT opener (§9.1.15).
+        var access = _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0
+            ? FileAccess.ReadWrite
+            : HostAccess(Mode);
         try { TakeFileLock(create, access); }
         catch (IOException) when (_kept is { Handle: { } kept, Adopted: false })
         {
@@ -360,7 +365,8 @@ public abstract class KeyedConnector : FileConnector
     protected sealed override void AbandonOpen()
     {
         // A re-OPEN that ADOPTED the handle its CLOSE under commit control kept gives it back to the kept state unchanged,
-        // its liveness byte with it (§14.9.27.4 GR25).
+        // its liveness byte with it (§14.9.27.4 GR25); the kept column lock is taken again by FileConnector.Open after this
+        // OPEN's own goes (RetakeKeptFileLock).
         if (_kept is { Adopted: true } adopted)
         {
             _kept = adopted with { Adopted = false };
@@ -512,7 +518,8 @@ public abstract class KeyedConnector : FileConnector
     /// or the run unit's end (<see cref="ReleaseKept"/>), or the connector's next successful OPEN, which carries it on
     /// (<see cref="CarryKeptOver"/>); the <see cref="Handle"/>, null once given back early (a re-OPEN whose share mode it
     /// refused), and <see cref="Adopted"/> while a re-OPEN that would take the same handle uses it as its own; and the
-    /// Table 19 run-unit <see cref="FileLock"/>, null once the re-OPEN replaced it.</summary>
+    /// Table 19 run-unit <see cref="FileLock"/> (null where the host publishes none), given back while a re-OPEN runs and
+    /// taken again when the re-OPEN is unsuccessful (<see cref="ReleaseKeptFileLock"/>, <see cref="RetakeKeptFileLock"/>).</summary>
     private sealed record Kept(KeptHandle? Handle, bool Adopted, RunUnitFileLock? FileLock);
 
     private Kept? _kept;
@@ -584,12 +591,19 @@ public abstract class KeyedConnector : FileConnector
     private protected sealed override bool HoldsKeptHandle => _kept?.Handle is not null;
 
     /// <inheritdoc/>
-    private protected sealed override void ReleaseKeptFileLock()
-    {
-        if (_kept is not { FileLock: { } fileLock } kept) return;
-        _kept = kept with { FileLock = null };
-        fileLock.Dispose();
-    }
+    /// <remarks>The lock stays in <see cref="Kept"/>, given back but able to be taken again (<see cref="RunUnitFileLock.Retake"/>):
+    /// a successful re-OPEN carries the kept state over (<see cref="CarryKeptOver"/>), an unsuccessful one takes it back
+    /// (<see cref="RetakeKeptFileLock"/>).</remarks>
+    private protected sealed override void ReleaseKeptFileLock() => _kept?.FileLock?.Dispose();
+
+    /// <inheritdoc/>
+    /// <remarks>⛔ THE KEPT COLUMN LOCK IS FREE FOR TWO INSTANTS WHILE ITS OWNER LIVES — between its release and the re-OPEN's
+    /// own lock, and between that lock's release and this retake; while the body runs the re-OPEN's own column stands in for
+    /// it — the column-lock twin of the share-mode window (DESIGN-runtime-library.md 2.2.1.10 As built (3)). Another run unit
+    /// that opened against the column in such an instant holds its own, the retake is refused, and the kept handle's share
+    /// mode is what is left of the kept file lock. The OPEN's answer is already its own unsuccessful status, and an OPEN sets
+    /// one I-O status, so the refusal has no status of its own to set.</remarks>
+    private protected sealed override void RetakeKeptFileLock() => _kept?.FileLock?.Retake();
 
     /// <summary>What this connector's record statement adds to its page statement under commit control (2.2.1.10), or null
     /// when no active APPLY COMMIT clause names it: the record's <paramref name="identity"/>, its

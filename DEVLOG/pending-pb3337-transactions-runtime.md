@@ -141,3 +141,21 @@ The lead R1-5 got a witness of `RunUnit.Run`'s boundary: a body that returns or 
 runtime failure ends rolls back. The design's 2.2.1.10 "As built" (3) and (5), the liveness-byte row and three stale
 `ClosedUnderCommit` names were corrected. The remaining lead is the share-mode window itself: between the kept handle's
 release and the new handle's taking, another run unit's OPEN can take the file or run its dead-owner step.
+
+### The branch review, round 2
+
+*An INPUT re-OPEN with nothing to commit held a writable handle (R2-1).* `KeyedConnector.Lock` took the re-OPEN's handle
+ReadWrite whenever the handle the CLOSE kept was writable. Since round 1 every CLOSE under commit control keeps its handle,
+so a connector that only READ, then CLOSEd and re-OPENed INPUT, held write access. Windows' share mode then refused '61' to
+another run unit's OPEN SHARING WITH READ ONLY, which Table 19 admits beside an INPUT opener. The new witness
+`A_reopen_with_no_transaction_standing_admits_what_Table_19_admits_beside_its_mode` failed '61' on all four cases before the
+fix. The handle is now writable only while the run unit's transaction on the file stands. With a transaction standing, the
+deviation remains on Windows until the COMMIT or ROLLBACK, because the handle the COMMIT writes through has to be writable.
+2.2.1.10 As built (3) now names it as a wrong answer.
+
+*An unsuccessful re-OPEN gave the kept column lock away (lead R2-2).* `FileConnector.Open` released the kept Table 19 column
+lock before it took its own, and nothing took it back when the OPEN failed. On a host that publishes column locks, another
+run unit could then open against a transaction still in flight. `RunUnitFileLock` now remembers what it was established as,
+and `Retake` establishes it again. `FileConnector.RetakeKeptFileLock` calls it on both unsuccessful exits of the OPEN.
+Witness: `An_unsuccessful_reopen_leaves_the_kept_file_lock_standing` (a medium that refuses every page operation answers
+'30' to the re-OPEN; another run unit's OPEN gets '61' until the ROLLBACK, and '00' after).
