@@ -352,7 +352,7 @@ public abstract class FileConnector
     /// the body created it, when the connector's own handle would make the OUTPUT question answer yes.</param>
     private string? TakeRunUnitFileLock(FileOpenMode mode, bool existedBeforeBody)
     {
-        if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HostFile.IsHeldByAnother(HostPath))
+        if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HeldByAnotherHandle())
             return FileStatusCode.FileSharingConflict;
         // ⛔ A FILE LOCK THE CLOSE KEPT (KeepRunUnitFileLock) is REPLACED by this OPEN's, never given back first: the kept
         // column refuses this OPEN's as another holder's, and releasing it to get out of its way left the file unlocked for
@@ -398,6 +398,11 @@ public abstract class FileConnector
         _runUnitLock = null;
         return kept;
     }
+
+    /// <summary>Is the (present) physical file held open by a handle that is not THIS connector's own
+    /// (<see cref="HostFile.IsHeldByAnother"/>)? A handle the connector's CLOSE kept (<see cref="HoldsKeptHandle"/>) is its
+    /// own: §9.1.13.9 1) e) speaks of <i>"another file connector"</i>, so a re-OPEN OUTPUT is not refused by it (kb/Work PB3483).</summary>
+    private protected virtual bool HeldByAnotherHandle() => HostFile.IsHeldByAnother(HostPath);
 
     /// <summary>The file lock this connector's CLOSE kept (<see cref="KeepRunUnitFileLock"/>) and its re-OPEN has not yet
     /// replaced, or null. It ends when the connector is REOPENED (§14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN
