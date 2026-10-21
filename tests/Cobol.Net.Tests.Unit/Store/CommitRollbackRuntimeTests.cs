@@ -1078,7 +1078,7 @@ public sealed class CommitRollbackRuntimeTests
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
             var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
-            Assert.Equal("00", Write(maker, org, 2, "B002"));
+            Assert.Equal("00", Write(maker, org, 2, "B002", name: "S"));
             maker.CloseAll();
             a.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal("00", a.Status("F"));
