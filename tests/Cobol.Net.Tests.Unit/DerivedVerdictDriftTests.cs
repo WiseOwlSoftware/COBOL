@@ -826,9 +826,15 @@ public sealed class DerivedVerdictDriftTests
         // the single character set and encoding, the hex-digit mapping, RECORD DELIMITER feature-name-1, the lock
         // status and the listing controls. All twelve were BLANK when the selector landed.
         foreach (string id in (string[])["DOC-A.1-13", "DOC-A.1-15", "DOC-A.1-30", "DOC-A.1-34", "DOC-A.1-37",
-                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-149", "DOC-A.1-152",
-                     "DOC-A.1-200"])
+                     "DOC-A.1-88", "DOC-A.1-96", "DOC-A.1-98", "DOC-A.1-142", "DOC-A.1-149", "DOC-A.1-200"])
             Assert.Contains(id, ids);
+
+        // ⛔ AND THE ROW THAT LEFT (kb/Work PB3337, 2026-10-20): item 152's circumstance now exists — a transaction's
+        // HOLDING under an active APPLY COMMIT clause answers '51' (DESIGN-runtime-library.md 2.2.1.10) — so its §7 cell
+        // opens "Provided" and the selector no longer takes it; asserted so a cell edited back turns red.
+        Assert.DoesNotContain("DOC-A.1-152", ids);
+        Assert.StartsWith("Provided", ConformanceRegister.Plain(ConformanceRegister.Determinations["DOC-A.1-152"]),
+            StringComparison.Ordinal);
 
         // ⛔ EVERY SELECTED ROW IS A CONDITIONAL ITEM WHOSE §7 CELL OPENS "Condition absent." — asserted rather than
         // trusted, because a widened predicate would still contain the twelve above and stay green.
