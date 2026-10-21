@@ -142,10 +142,11 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
 
         /// <summary>A new run unit with one connector on the file, opened in <paramref name="mode"/> over its own view of
         /// the pages.</summary>
-        public (FileRegistry Reg, PageArrayMedium.View View) Open(string name, FileOpenMode mode)
+        public (FileRegistry Reg, PageArrayMedium.View View) Open(string name, FileOpenMode mode, bool commit = false)
         {
             var reg = new FileRegistry();
             Register(reg, name);
+            if (commit) reg.RegisterCommitControl(name);
             PageArrayMedium.View? view = null;
             KeyedStore.MediumObserver.Value = _ => view = Pages.Open();
             try { reg.OpenStatic(name, mode); }
@@ -200,10 +201,10 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         return reg.DeleteShared(name, Rec(n), retry, retryAmount);
     }
 
-    private static string Rewrite(FileRegistry reg, string name, Cell cell, int n)
+    private static string Rewrite(FileRegistry reg, string name, Cell cell, int n, string? image = null)
     {
         if (cell.Shape == Shape.Relative) reg.SetRelativeKey(name, n);
-        return reg.RewriteShared(name, Rec(n), -1, FileRecordLock.None, FileRetryKind.None, 0);
+        return reg.RewriteShared(name, image ?? Rec(n), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
     private static PagedFile Store(FileRegistry reg, string name) =>
@@ -667,6 +668,69 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
         Assert.Equal("23", Read(reader, "R", cell, cell.Keys[Held + 1], out _));
         reader.Close("R");
         Assert.Equal("00", reader.Status("R"));
+    }
+
+    /// <summary>Record n with its alternate key WITH DUPLICATES moved (the prime and the unique key kept): a REWRITE that
+    /// changes the record's bytes and, under two alternate keys, one alternate tree.</summary>
+    private static string Changed(int n) => $"{n:D8}{(n + 1) % 97:D8}{99_999_999 - n:D8}";
+
+    /// <summary>⛔ WITNESS (e) OF 2.2.1.11 (kb/Work PB3337): A TRANSACTION COSTS ITS OWN RECORDS ONLY. Run unit A under commit
+    /// control REWRITEs m records of the loaded file and B, beside it, REWRITEs others. A's ROLLBACK writes at most
+    /// m × ((k + 1) × d) + the HOLDINGS pages its entries sit on + the statement's own bookkeeping (the WRITE row's ledger
+    /// path copy, FREE batch, page 2 and claim, which one statement pays once) — never a cost that grows with the file —
+    /// and leaves every record of B's byte-identical (§14.9.36.4 GR3, the run unit's OWN changes). A's COMMIT after m more
+    /// changes reads its UNDO tree once (u + its leaves: one walk lists every R and V holding, finding R5-2) besides the
+    /// promotion's own reads, never a page per holding.</summary>
+    [Fact]
+    public void A_transaction_costs_its_own_records_only()
+    {
+        const int M = 40;
+        using var cell = new Cell(shape, Order.Random, FileSharing.AllOther);
+        cell.Load(0, N);
+        var (a, _) = cell.Open("A", FileOpenMode.IO, commit: true);
+        var (b, _) = cell.Open("B", FileOpenMode.IO);
+        int[] ours = cell.Keys[100..(100 + M)], theirs = cell.Keys[200..220];
+        // A REWRITE whose alternate key WITH DUPLICATES meets another record's value answers '02' (§9.1.13.2 2)).
+        foreach (int n in theirs) Assert.Matches("^0[02]$", Rewrite(b, "B", cell, n, Changed(n)));
+        foreach (int n in ours) Assert.Matches("^0[02]$", Rewrite(a, "A", cell, n, Changed(n)));
+
+        var store = Store(a, "A");
+        int depth = Depths(store).Max(), holdings = TreePages(store, store.Meta.HoldingsRoot).Count;
+        int bound = M * ((cell.AlternateKeys + 1) * depth) + holdings + WriteBound(cell, depth: 0, LedgerPages(store));
+        var before = store.Counters;
+        Assert.Null(a.Rollback());
+        var cost = Since(store, before);
+        output.WriteLine($"{shape}: ROLLBACK of {M} records wrote {cost.PagesWritten} pages (d {depth}, holdings {holdings}, bound {bound})");
+        Assert.InRange(cost.PagesWritten, 1, bound);
+        Assert.Equal(0, cost.Syncs);
+        foreach (int n in ours)
+        {
+            Assert.Equal("00", Read(b, "B", cell, n, out string image));
+            Assert.Equal(Rec(n), image);
+        }
+        foreach (int n in theirs)
+        {
+            Assert.Equal("00", Read(b, "B", cell, n, out string image));
+            Assert.Equal(Changed(n), image);
+        }
+
+        foreach (int n in ours) Assert.Matches("^0[02]$", Rewrite(a, "A", cell, n, Changed(n)));
+        int undo = TransactionTrees.UndoRoots(store).Sum(root => TreePages(store, root).Count);
+        holdings = TreePages(store, store.Meta.HoldingsRoot).Count;
+        int ledger = LedgerPages(store);
+        store.DropCache();
+        before = store.Counters;
+        Assert.Null(a.Commit());
+        cost = Since(store, before);
+        // page 2 + the TRANSACTIONS tree (at most 2) + the UNDO tree once + the HOLDINGS pages the retirement edits + the
+        // promotion's reads (both slots, the ledger, the FREE tree's path: 2.2.1.11's promotion row).
+        int reads = 1 + 2 + undo + holdings + 2 + ledger + 3;
+        output.WriteLine($"{shape}: COMMIT of {M} records read {cost.PagesRead} pages (UNDO {undo}, holdings {holdings}, bound {reads})");
+        Assert.InRange(cost.PagesRead, undo, reads);
+        a.Close("A");
+        b.Close("B");
+        Assert.Equal("00", a.Status("A"));
+        Assert.Equal("00", b.Status("B"));
     }
 
     [Fact]

@@ -17,8 +17,8 @@ namespace CobolNet.Tests.Unit.Store;
 /// by the next writer (another live run unit's statement), by a fresh OPEN, and by a power loss followed by an OPEN. Every
 /// expected state is the design's bar: the records of the last COMPLETED statement — a statement completed exactly when
 /// its page 2 completion was handed to the medium — or, after a power loss, of the last completed statement a sync made
-/// durable. The rows whose paths later groups build (the record statements' locks, the transactions, the dead owner)
-/// are <see cref="PendingStoreCases"/>.</para>
+/// durable. The rows whose paths the connectors own run through them: the record statements' locks and coherence in
+/// the engine tests, the transactions and the dead owner in <see cref="TransactionFaultMatrixTests"/>.</para>
 /// </summary>
 public sealed class PagedFileCrashMatrixTests
 {
