@@ -11,7 +11,7 @@ cost the orchestrator a hand-written groups.json; this computes it.
 
 1. AWAITING LANDING: an open note whose newest report is DONE and whose branch is not on main yet is excluded (the
    landing lane, land_lane.py, lands it first; re-planning it would dispatch the same work twice). A report's notes
-   are its lead, the notes of the dispatch-ledger group it answers (`answered_notes`) and, for a finished branch, the
+   are its lead, the notes of the dispatch-ledger group it answers (`answered_notes`) and, for a branch not on main, the
    notes the branch closes in its register (`add_closed_notes`), never the ids its header mentions (kb/Work PB3473,
    PB3152).
    HELD BY A DISPATCH: an open note that a dispatch-ledger group names (a wave this loop or another session planned
@@ -316,12 +316,14 @@ def closed_by_branch(branch: str, git: Callable[..., Any]) -> list[str]:
 
 
 def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git: Callable[..., Any]) -> None:
-    """Complete the `notes` of every FINISHED report whose branch is not on main with the notes the branch closes
+    """Complete the `notes` of every report whose branch is not on main with the notes the branch closes
     (closed_by_branch), so a DONE branch waiting to land holds every note it finished in `awaiting landing`, not only
-    its lead and its dispatch group's (answered_notes). A SPLIT or unfinished report is left alone: its finisher takes
-    the branch's work. With answered_notes, the only readers of "the notes a report answers" (kb/Work PB3473)."""
+    its lead and its dispatch group's (answered_notes), and a SPLIT or FINDINGS branch's finisher, which takes that
+    branch's work, is planned for them too: left out, each would be planned again as a fresh cluster group that redoes
+    the work the finisher cherry-picks (branch review R2-1). With answered_notes, the only readers of "the notes a
+    report answers" (kb/Work PB3473)."""
     for r in reports:
-        if r.branch and r.finished and classify(r.branch) not in LANDED_CLASSES:
+        if r.branch and classify(r.branch) not in LANDED_CLASSES:
             r.notes = list(dict.fromkeys([*r.notes, *closed_by_branch(r.branch, git)]))
 
 
@@ -773,7 +775,7 @@ def classify_inflight(busy: dict[str, set[str]], meta: dict[str, dict], reports:
         own: it reads OPEN (RESERVED) while no other owner works on one of its notes, and RUNNING (naming that owner)
         once one does, so a plan never calls a slice nobody runs RUNNING (kb/Work PB3456).
     `branch_notes` ({branch: the note ids its commit subjects name}, unlanded_branch_notes) and each branch's newest
-    report's `notes` (answered_notes, plus what a finished branch closes, add_closed_notes) are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
+    report's `notes` (answered_notes, plus what an unlanded branch closes, add_closed_notes) are the branch's notes, plus any `notes` its meta names (the external-repository slices' own notes):
     plan() never defers a group for work on its OWN notes, and an owner's notes are its subsystems (collision)."""
     by_branch: dict[str, Report] = {}
     for r in reports:   # oldest first: the last write is the newest
@@ -1203,13 +1205,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
         ids = sorted(set(ids) - taken, key=lambda s: int(s[2:]))
         cls = classify(rep.branch) if rep.branch else "ABSENT"
         by = carrier(rep.branch) if rep.branch and cls in ("UNLANDED", "CHECK") else None
-        for k in range(0, len(ids), cap):
-            chunk = ids[k:k + cap]
-            groups.append(Group("finisher", chunk, note_file.get(chunk[0], ""),
-                                sorted({f for i in chunk for f in note_files.get(i, [])}),
-                                pred=finisher_pred(rep, rep.branch, cls, chunk, carried_by=by),
+        # ONE finisher per report: it CONTINUES the report's one branch, so its notes are never split at the cap (a
+        # second chunk would be a second agent re-answering on the same branch what the first answered; the notes a
+        # branch closes beyond its dispatch, add_closed_notes, can exceed the cap: branch review R2-2).
+        if ids:
+            groups.append(Group("finisher", ids, note_file.get(ids[0], ""),
+                                sorted({f for i in ids for f in note_files.get(i, [])}),
+                                pred=finisher_pred(rep, rep.branch, cls, ids, carried_by=by),
                                 continues=[b for b in (rep.branch, by) if b]))
-            taken |= set(chunk)
+            taken |= set(ids)
     # A half note may also sit on an unlanded branch (a killed wave's WIP): its group carries that branch's resume
     # instruction too, or the finisher starts over from main and the branch's work is lost (wave 1018's plan).
     branch_of = {i: b for b, ids in sorted(unlanded.items()) for i in ids if i not in newest}

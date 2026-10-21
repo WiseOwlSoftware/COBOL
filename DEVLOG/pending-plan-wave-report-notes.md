@@ -14,9 +14,9 @@ field it may forget; a report no ledger group knows answers its lead alone. `pla
 `classify_inflight` read it. The branch review's blocking finding (R1-1) was that a note a DONE branch closes beyond
 its dispatch (`PB3383 (+ PB925)`) lost the header channel that used to hold it: it was planned a second time. The
 branch's own register is the mechanical record, so `closed_by_branch` lists the `kb/Work` notes the branch flipped to
-`landed` or `retired` since `origin/main` and `add_closed_notes` adds them to each finished report on an unlanded
+`landed` or `retired` since `origin/main` and `add_closed_notes` adds them to each report on an unlanded
 branch (section 6b'''00: the flipped note is held, a merely touched one is planned). The first idea, a header-field reader shared with `prune_worktrees.newest_report`
 (PB3084), was dropped: a note id has no header field. `test_plan_wave.py` section 6b'''0 puts the mention in the HEADER of a
 FINDINGS and a CLEAN report and checks the notes, the awaiting set, the finisher's lead and `attempts` (six checks that
 fail on the old reading); two older fixtures that relied on a header mention for a multi-note group now record the group
-in a ledger. Sweep: no other reader of note ids in report text exists in `scripts/`. Self-test 324/324.
+in a ledger. Sweep: no other reader of note ids in report text exists in `scripts/`. Branch review round 2: the same hold now covers SPLIT and FINDINGS branches too (their finisher takes the closed work, so those notes belong to its group), and one report gets ONE finisher, never one per cap-sized chunk (the closed notes can exceed the cap; a second chunk re-answered the first one's findings on the same branch); three checks in section 6b'00 (R2), and the fixture git now rejects a wrong range or pathspec. Self-test 327/327.
