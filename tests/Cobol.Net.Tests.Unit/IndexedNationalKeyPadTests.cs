@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -21,15 +22,13 @@ public sealed class IndexedNationalKeyPadTests
     private const int Dynamic = 2;   // KeyedAccess.Dynamic
     private const int PrimeKey = -1;
 
-    private static string Tmp() => Path.Combine(Path.GetTempPath(), $"pb679-{Guid.NewGuid():N}.dat");
-
     /// <summary>One national position, "A" = 0x00 0x41, in a record area whose key spans three positions.</summary>
     private const string ShortNationalRecord = "\0A";
 
     private static (FileRegistry reg, string host) OpenIo(bool national)
     {
         var reg = new FileRegistry();
-        string host = Tmp();
+        string host = FileHarness.Tmp("pb679");
         // 10-byte record area, prime key at offset 0 for 6 bytes, RECORD VARYING 2..10.
         reg.RegisterIndexed("X", host, 10, false, Dynamic, [new(0, 6)], 2, 10);
         if (national) reg.RegisterNationalArea("X");

@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -31,7 +32,7 @@ public sealed class PerformFormat3IoStatementTests
     private static string Prog(string name, string proc, bool fileStatus, string checking = ">>TURN EC-ALL CHECKING ON",
         string? useBody = null)
     {
-        string path = Path.Combine(Path.GetTempPath(), $"{name}-{Guid.NewGuid():N}.dat");
+        string path = FileHarness.Tmp(name);
         string status = fileStatus ? " FILE STATUS FS" : "";
         string mainSection = useBody is null ? "" : "MAIN-SECTION SECTION.";   // §14.4.1: declaratives admit only sections
         string declaratives = useBody is null ? "" : $"""

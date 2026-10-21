@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -25,14 +26,11 @@ public sealed class CommitGateDriftTests
 {
     private const string Ceiling = "54";   // §9.1.13.8 item 4 — this file connector holds the maximum number of locks
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb2848-{tag}-{Guid.NewGuid():N}.dat");
-
     private static void Gate(FileConnector c, bool refusing) => c.CommitGate = refusing ? () => Ceiling : null;
 
     private static void AssertSequential(bool lineSequential)
     {
-        string host = Tmp(lineSequential ? "lseq" : "seq");
+        string host = FileHarness.Tmp(lineSequential ? "lseq" : "seq");
         try
         {
             var c = new SequentialConnector(host, 8, lineSequential, varyMin: 4, varyMax: 8);
@@ -84,7 +82,7 @@ public sealed class CommitGateDriftTests
     [Fact]
     public void Relative_WriteAndRewrite_AskTheGateAfterTheirOwnRules()
     {
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         try
         {
             var c = new RelativeConnector(host, 8, KeyedAccess.Sequential, 4, varyMin: 4, varyMax: 8);
@@ -124,7 +122,7 @@ public sealed class CommitGateDriftTests
     [Fact]
     public void Indexed_WriteAndRewrite_AskTheGateAfterTheirOwnRules()
     {
-        string host = Tmp("idx");
+        string host = FileHarness.Tmp("idx");
         try
         {
             var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)], varyMin: 6, varyMax: 8);

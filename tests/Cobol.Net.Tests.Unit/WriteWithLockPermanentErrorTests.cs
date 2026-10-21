@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -24,8 +25,6 @@ public sealed class WriteWithLockPermanentErrorTests
     private const int Random = 1;    // KeyedAccess.Random
     private const int Dynamic = 2;   // KeyedAccess.Dynamic
     private const string Stuck = FileStatusCode.PermanentBoundary;   // '34'
-
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb1880-{tag}-{Guid.NewGuid():N}.dat");
 
     /// <summary>Hold the connector's maximum number of record locks (§12.4.5.9.4 GR7; fifteen in this implementation).</summary>
     private static void HoldTheMaximumNumberOfLocks(string name)
@@ -72,7 +71,7 @@ public sealed class WriteWithLockPermanentErrorTests
     [MemberData(nameof(EveryRetryForm))]
     public void Sequential_WriteWithLock_AtTheCeiling_AnswersThePermanentError_StoresNothing(FileRetryKind kind, long amount)
     {
-        string host = Tmp("seq");
+        string host = FileHarness.Tmp("seq");
         try
         {
             AssertCeilingOutrankedByThePermanentError("PS", host, () => CobolFile.Register("PS", host, 5, false, false),
@@ -92,7 +91,7 @@ public sealed class WriteWithLockPermanentErrorTests
     [MemberData(nameof(EveryRetryForm))]
     public void Relative_WriteWithLock_AtTheCeiling_AnswersThePermanentError_StoresNothing(FileRetryKind kind, long amount)
     {
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         try
         {
             AssertCeilingOutrankedByThePermanentError("PR", host, () => CobolFile.RegisterRelative("PR", host, 5, false, Random, 4),
@@ -113,7 +112,7 @@ public sealed class WriteWithLockPermanentErrorTests
     [MemberData(nameof(EveryRetryForm))]
     public void Indexed_WriteWithLock_AtTheCeiling_AnswersThePermanentError_StoresNothing(FileRetryKind kind, long amount)
     {
-        string host = Tmp("idx");
+        string host = FileHarness.Tmp("idx");
         try
         {
             AssertCeilingOutrankedByThePermanentError("PX", host,
@@ -137,7 +136,7 @@ public sealed class WriteWithLockPermanentErrorTests
     [Fact]
     public void Relative_RefusedWriteWithLock_SetsNoRecordLock_TheControlWriteDoes()
     {
-        string host = Tmp("rellock");
+        string host = FileHarness.Tmp("rellock");
         try
         {
             CobolFile.Init();

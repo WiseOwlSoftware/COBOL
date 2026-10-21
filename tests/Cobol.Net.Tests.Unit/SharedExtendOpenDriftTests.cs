@@ -34,9 +34,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class SharedExtendOpenDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb713-{tag}-{Guid.NewGuid():N}.dat");
-
     /// <summary>How a connector comes to be opened under §9.1.15 sharing. The first two carry a LOCK MODE clause,
     /// so they are record-locking participants (<c>FileRegistry.RecordLocksSetUnder</c>, which is what
     /// <c>FileConnector.SharedPhysical</c> — the gate the EXTEND write-base seeding reads — is derived from); the
@@ -150,7 +147,7 @@ public sealed class SharedExtendOpenDriftTests
     [MemberData(nameof(SequentialShapes))]
     public void SharedExtend_OpensAndAppends_ForEverySequentialFraming(Framing framing, Spelling spelling)
     {
-        string host = Tmp($"seq-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"seq-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -177,7 +174,7 @@ public sealed class SharedExtendOpenDriftTests
             Assert.Equal("BBBB", b);
             back.Close("R");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The VALUE the seeding exists for, not merely its survival: §9.1.16 makes a sequential record's
@@ -197,7 +194,7 @@ public sealed class SharedExtendOpenDriftTests
     [MemberData(nameof(LockBearingSequentialShapes))]
     public void SharedExtend_WriteOrdinalContinuesTheExistingRecords(Framing framing, Spelling spelling)
     {
-        string host = Tmp($"ord-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"ord-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -220,7 +217,7 @@ public sealed class SharedExtendOpenDriftTests
                 "Ordinal 1 is the record that already existed; locking it means the base was 0.");
             reg.Close("W");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The keyed organizations: no write-ordinal base, but the same OPEN contract ───────────────────────────
@@ -237,7 +234,7 @@ public sealed class SharedExtendOpenDriftTests
     [MemberData(nameof(Spellings))]
     public void SharedExtend_OpensAndAppends_ForTheRelativeOrganization(Spelling spelling)
     {
-        string host = Tmp($"rel-{spelling}");
+        string host = FileHarness.Tmp($"rel-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -261,7 +258,7 @@ public sealed class SharedExtendOpenDriftTests
             Assert.Equal("BBBB", b);
             back.Close("R");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <inheritdoc cref="SharedExtend_OpensAndAppends_ForTheRelativeOrganization"/>
@@ -269,7 +266,7 @@ public sealed class SharedExtendOpenDriftTests
     [MemberData(nameof(Spellings))]
     public void SharedExtend_OpensAndAppends_ForTheIndexedOrganization(Spelling spelling)
     {
-        string host = Tmp($"idx-{spelling}");
+        string host = FileHarness.Tmp($"idx-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -295,14 +292,7 @@ public sealed class SharedExtendOpenDriftTests
             Assert.Equal("K006BBB", b);
             back.Close("R");
         }
-        finally { TryDelete(host); }
-    }
-
-    private static void TryDelete(string host)
-    {
-        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
-        // are the store header INSIDE it, so deleting the data file deletes them.
-        try { if (Path.GetFileName(host).Length > 0) File.Delete(host); } catch (IOException) { }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The structural half: the share mode is stated in ONE place, so it cannot be omitted ──────────────────
@@ -504,7 +494,7 @@ public sealed class SharedExtendOpenDriftTests
     [Fact]
     public void ParticipationTakesEffectOnTheFirstOpenAfterRegistration()
     {
-        string host = Tmp("posture");
+        string host = FileHarness.Tmp("posture");
         try
         {
             var reg = new FileRegistry();
@@ -527,6 +517,6 @@ public sealed class SharedExtendOpenDriftTests
                 + "base; an unseeded base (−1) leaves LastWrittenRecordId empty and nothing is locked.");
             reg.Close("P");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 }

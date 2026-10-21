@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -28,14 +29,11 @@ public sealed class Table20WriteOpenModeTests
     private const int RandomAccess = 1;   // KeyedAccess.Random
     private const int DynamicAccess = 2;  // KeyedAccess.Dynamic
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb325-{tag}-{Guid.NewGuid():N}.dat");
-
     /// <summary>A relative connector at <paramref name="access"/> holding one record at RRN 1, closed.</summary>
     private static (FileRegistry reg, string host) SeededRelative(int access)
     {
         var reg = new FileRegistry();
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         reg.RegisterRelative("F", host, 8, false, access, 4, -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         reg.SetRelativeKey("F", 1);
@@ -48,7 +46,7 @@ public sealed class Table20WriteOpenModeTests
     private static (FileRegistry reg, string host) SeededIndexed(int access)
     {
         var reg = new FileRegistry();
-        string host = Tmp("idx");
+        string host = FileHarness.Tmp("idx");
         reg.RegisterIndexed("F", host, 8, false, access, [new(0, 4)], -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K001AAAA", -1));
