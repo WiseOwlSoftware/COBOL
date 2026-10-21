@@ -334,6 +334,26 @@ public static class HostFile
         catch (UnauthorizedAccessException) { return false; }
     }
 
+    /// <summary>⛔ <see cref="IsHeldByAnother"/> BESIDE A COLUMN HOLDER OF THE ASKER'S OWN (<see cref="OpenColumnHolder"/>:
+    /// a read handle that admits every reader and writer, which a <see cref="FileShare.None"/> request would meet as another's;
+    /// kb/Work PB3482, PB3483). A READ request that admits only readers, so it is refused by every outstanding handle that can
+    /// WRITE or that refuses a reader, and admitted by the holder. What it does not see is a handle that only reads: one that
+    /// refuses writers refuses the OPEN OUTPUT's own handle, before anything is truncated, and one that admits writers
+    /// admitted the truncation itself; every connector of another run unit holds a column, which an OUTPUT row refuses
+    /// (<see cref="Table19"/>). Answers as <see cref="IsHeldByAnother"/> does for everything that is not a sharing
+    /// question.</summary>
+    internal static bool IsWrittenOrExcludedByAnother(string hostPath)
+    {
+        try
+        {
+            using var _ = new FileStream(hostPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return false;
+        }
+        catch (IOException e) when (IsSharingRefusal(e)) { return true; }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
+
     // ── The lock FILE of a holder (SidecarLockFiles — kb/Work PB2484, PB2917, PB2936) ─────────────────────────────────
     // A host whose lock is a file per holder asks the operating environment three things about a lock file, and asks
     // them HERE: create-and-hold one (OpenLockHolder), is its holder alive (ProbeLockFile), and make its directory
@@ -572,6 +592,15 @@ public static class HostFile
     /// derived.</summary>
     public static FileStream OpenConnectorStore(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
         new(hostPath, mode, access, share, bufferSize: 1, FileOptions.None);
+
+    /// <summary>The handle a Table 19 COLUMN is published through where the host's locks belong to a HANDLE and the
+    /// file lock is its share mode (<see cref="HandleColumnLockHost"/>, kb/Work PB3482): a READ handle that admits every
+    /// other reader and writer, held for the life of the OPEN, so it adds nothing to what the connector's own handle
+    /// refuses — and is itself refused by exactly one posture, <see cref="FileShare.None"/>, which is §9.1.15 1)'s
+    /// exclusive access (a connector that holds it takes no column). Throws what <see cref="File.OpenHandle(string, FileMode,
+    /// FileAccess, FileShare, FileOptions, long)"/> throws; the caller maps it.</summary>
+    internal static Microsoft.Win32.SafeHandles.SafeFileHandle OpenColumnHolder(string hostPath) =>
+        File.OpenHandle(hostPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileOptions.None);
 
     // ── The input-output areas (ISO §12.4.5.14) ───────────────────────────────────────────────────────────────
 

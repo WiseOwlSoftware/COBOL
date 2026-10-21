@@ -16,11 +16,12 @@ namespace CobolNet.Runtime.IO;
 /// statement"</i>); a run unit that dies loses it with its descriptors. HOW a column is published and tested is the
 /// host's (<see cref="IColumnLockHost"/>): a shared byte-range lock on the physical file on Linux
 /// (<see cref="OfdColumnLockHost"/>), a lock file per holder beside it on every other Unix
-/// (<see cref="SidecarColumnLockHost"/>); this class is the POLICY and is the same on both.</para>
+/// (<see cref="SidecarColumnLockHost"/>), an exclusive byte of a range per column through a read handle of the holder's own
+/// on Windows (<see cref="HandleColumnLockHost"/>, kb/Work PB3482); this class is the POLICY and is the same on all three.</para>
 /// <para><b>Why publish first.</b> Two run units opening at once cannot both pass: whichever publishes second
 /// finds the first already there, and a request against a column it refuses is answered '61' (§9.1.13.9 1)). It
 /// is the ordering that makes the test race-free without a mutex, and it needs a test that ignores the asker's
-/// OWN publication — which is what both hosts are chosen for, because a class that refuses its own kind (NO OTHER,
+/// OWN publication — which is what every host is chosen for, because a class that refuses its own kind (NO OTHER,
 /// an OUTPUT) would otherwise refuse itself.</para>
 /// <para><b>What it is NOT.</b> The table is read from <see cref="Table19"/>, never rewritten: the cross-run-unit
 /// answer and the in-run-unit answer are one lookup, so they cannot drift (<c>RunUnitFileLockDriftTests</c> proves
@@ -53,12 +54,14 @@ internal sealed class RunUnitFileLock : IDisposable
 
     /// <summary>⛔ THE ONE CHOICE OF HOST, made once: Linux's open-file-description locks where the process shape
     /// carries them (<see cref="OfdRegionLocks.Available"/>); otherwise, off Windows, the lock files of
-    /// <see cref="SidecarColumnLockHost"/>; and on Windows none, because its share modes are mandatory and per-access
-    /// (<see cref="HostFile.ShareModesAreMandatory"/>) and the connector's own handle already carries the table. A host
-    /// is a fact of the process, so the platform question is asked HERE and never at a call site (kb/Work PB795).</summary>
-    internal static IColumnLockHost? HostOfThisProcess { get; } =
+    /// <see cref="SidecarColumnLockHost"/>; and on Windows the byte ranges of <see cref="HandleColumnLockHost"/>. Its share
+    /// modes are mandatory and per-access (<see cref="HostFile.ShareModesAreMandatory"/>), so the connector's own handle
+    /// carries most of the table, but not all of it: a share mode cannot say that an INPUT opener owes writes
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482). A host is a fact of the process, so the
+    /// platform question is asked HERE and never at a call site (kb/Work PB795).</summary>
+    internal static IColumnLockHost HostOfThisProcess { get; } =
         OfdRegionLocks.Available ? OfdColumnLockHost.Instance
-        : HostFile.ShareModesAreMandatory ? null
+        : HostFile.ShareModesAreMandatory ? HandleColumnLockHost.Instance
         : SidecarColumnLockHost.Instance;
 
     private IDisposable? _hold;
@@ -132,6 +135,18 @@ internal sealed class RunUnitFileLock : IDisposable
         (_before, _as, _hold) = (_as, (_as.Host, _as.HostPath, own, refused), hold);
         return outcome;
     }
+
+    /// <summary>Does another run unit's connector hold an INPUT column (ALL OTHER or READ ONLY input) — the only holders that
+    /// can owe writes while open in the input mode (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482)?
+    /// Answered by a host whose share modes are mandatory (<see cref="HandleColumnLockHost"/>); false for any other and for a
+    /// lock that was given back.</summary>
+    internal bool AnotherInputOpenerHolds() =>
+        _hold is IPublishedColumn published
+        && (published.AnotherHolds(ExistingSharingColumn.AllOtherInput) || published.AnotherHolds(ExistingSharingColumn.ReadOnlyInput));
+
+    /// <summary>Is this lock held through an open handle on the physical file (<see cref="IPublishedColumn.HoldsAHandle"/>:
+    /// the Windows column holder)? Such a handle is its owner's own, which a probe for another's handle must admit.</summary>
+    internal bool HoldsAHandle => _hold is IPublishedColumn { HoldsAHandle: true };
 
     /// <summary>Publish again the column this lock held before <see cref="Amend"/>, with no test — the amended OPEN was
     /// unsuccessful and §14.9.27.4 GR25 leaves the file unaffected, so the kept lock stands as the CLOSE left it. A holder

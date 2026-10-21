@@ -25,7 +25,8 @@ namespace CobolNet.Runtime.IO;
 /// names no requester: it cannot admit this run unit's second connector while refusing a foreign process.
 /// </description></item>
 /// </list>
-/// <para><b>So the posture is the sharing mode's own, and nothing else.</b> A connector's handle carries the file
+/// <para><b>So the posture is the sharing mode's own</b> — with the one exception below, taken only on a second attempt
+/// (<see cref="WhenOwedWritesAreAdmitted"/>). A connector's handle carries the file
 /// lock its sharing mode establishes (<see cref="OfSharingMode"/>). That is enough for the first audience too,
 /// because every pair of connectors <see cref="Table19"/> admits is a pair whose postures already admit each
 /// other's access: a READ ONLY connector admits only input-mode siblings and an ALL OTHER one admits every access,
@@ -51,6 +52,15 @@ namespace CobolNet.Runtime.IO;
 /// rules"</i> — the rest is <see cref="RunUnitFileLock"/>, which publishes the connector's Table 19 column and
 /// tests the columns its request row refuses; the posture here is deliberately NOT widened to
 /// <see cref="FileShare.None"/> to compensate, which would refuse the reader rule 2 admits.</para>
+/// <para>⛔ AND ON A HOST WHOSE SHARE MODES ARE MANDATORY (Windows) THE SHARE MODE CAN OVER-RESTRICT (kb/Work PB3482). The
+/// base posture of <c>SHARING WITH READ ONLY</c> is <see cref="FileShare.Read"/>, which refuses every WRITER, and Table 19
+/// admits a READ ONLY request beside an INPUT opener that holds a handle open for writing because its transaction still
+/// owes its COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10): the host refused an OPEN the table
+/// admits, '61' where the table says <i>Normal open</i>. A share mode cannot say "an INPUT opener that owes its
+/// transaction's writes", so that connector's OPEN is made a second time, only after the first attempt was refused with
+/// its Table 19 column held and an INPUT opener of another run unit beside it, with
+/// <see cref="WhenOwedWritesAreAdmitted"/>; the columns (<see cref="RunUnitFileLock"/>, which Windows carries since this
+/// change) keep out every request the table refuses.</para>
 /// </remarks>
 public static class FileLockPosture
 {
@@ -73,6 +83,28 @@ public static class FileLockPosture
         FileSharing.ReadOnly => FileShare.Read,       // §9.1.15 2) — others restricted to input mode
         FileSharing.AllOther => FileShare.ReadWrite,  // §9.1.15 3) — others may specify input, I-O or extend
         _ => throw new ArgumentOutOfRangeException(nameof(sharing), $"{sharing} is not an ISO §9.1.15 sharing mode"),
+    };
+
+    /// <summary>⛔ THE SECOND POSTURE: the file lock of a connector whose first attempt the host refused although Table 19
+    /// admitted the OPEN (kb/Work PB3482). <c>SHARING WITH READ ONLY</c> <i>"restricts concurrent access to a physical
+    /// file through file connectors other than this one, to input mode"</i> (§9.1.15 2)), and an INPUT connector can still
+    /// OWE WRITES: a connector under an active APPLY COMMIT clause that changed a record, was CLOSEd and re-OPENed INPUT
+    /// keeps a handle open for writing until the COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md
+    /// 2.2.1.10), and Table 19 prints <i>Normal open</i> for a READ ONLY request beside it. A host share mode
+    /// <see cref="FileShare.Read"/> refuses that handle (it refuses every writer) and cannot say "the writes it owes are
+    /// the transaction's". So where the host's share modes are mandatory and per access
+    /// (<see cref="HostFile.ShareModesAreMandatory"/>) and the file lock between run units is Table 19 itself
+    /// (<see cref="RunUnitFileLock"/> holds the column), the share mode of a READ ONLY connector yields: it admits a
+    /// writer, and the column — not the share mode — keeps every request Table 19 refuses out
+    /// (<c>FileConnector.Open</c> takes this posture on a second attempt, only after the column was held and another run
+    /// unit's INPUT opener — the only holder that can owe writes — is there to be admitted:
+    /// <c>RunUnitFileLock.AnotherInputOpenerHolds</c>; a program outside the protocol that holds the file for writing still
+    /// refuses the request). The other two modes have nothing to yield: NO OTHER is exclusive and ALL OTHER already admits
+    /// a writer.</summary>
+    public static FileShare WhenOwedWritesAreAdmitted(FileSharing sharing) => sharing switch
+    {
+        FileSharing.ReadOnly => FileShare.ReadWrite,
+        _ => OfSharingMode(sharing),
     };
 
     /// <summary>The access an open mode needs OF THE PHYSICAL FILE (ISO §9.1.4 open modes): INPUT reads, OUTPUT

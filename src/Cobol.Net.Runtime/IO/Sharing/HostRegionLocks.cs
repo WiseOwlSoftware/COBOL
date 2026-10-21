@@ -160,6 +160,23 @@ internal static class HostRegionLocks
     internal static long TransactionLivenessByte(ulong transaction) =>
         LivenessRegionBase + (long)(transaction & (ulong)RecordRegionMask);
 
+    /// <summary>The first byte of the WINDOWS Table 19 COLUMN region (<see cref="HandleColumnLockHost"/>, kb/Work PB3482):
+    /// 2^62 + 2^61 + 2^60, past the transaction-liveness region's end. Linux publishes a column as the ONE byte at
+    /// <see cref="RegionBase"/> + its wire number (<see cref="OfdColumnLockHost"/>); a Windows column is a RANGE, because
+    /// <c>LockFileEx</c> locks are per handle and a holder must be able to ask "does any holder OTHER than me hold this
+    /// column" — which one shared byte cannot answer about a column the asker itself holds.</summary>
+    internal const long ColumnRegionBase = RegionBase + (1L << 61) + (1L << 60);
+
+    /// <summary>The width of one column's range: 2^32 bytes. A holder publishes by holding exclusively ONE byte of its
+    /// column's range, chosen at random and retried on a collision, so a column has room for as many holders as there
+    /// are processes and the chance that two choose one byte is 2^-32 (and costs only a retry).</summary>
+    internal const long ColumnRangeWidth = 1L << 32;
+
+    /// <summary>The first byte of <paramref name="column"/>'s range. ⛔ A WIRE VALUE between Windows run units (see
+    /// <see cref="RunUnitFileLock.WireNumber"/>).</summary>
+    internal static long ColumnRangeStart(ExistingSharingColumn column) =>
+        ColumnRegionBase + RunUnitFileLock.WireNumber(column) * ColumnRangeWidth;
+
     // ── The host ──────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE ONE CHOICE OF HOST, made once: the per-handle expression where the process shape carries it
