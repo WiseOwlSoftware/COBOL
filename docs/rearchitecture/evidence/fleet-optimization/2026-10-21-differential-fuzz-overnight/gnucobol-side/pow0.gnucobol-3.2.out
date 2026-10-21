@@ -1,0 +1,5 @@
+VAR: SIZE ERROR, R1=+00001
+VAR: status=EC-SIZE-EXPONENTIATION         
+LIT: no size error, R2=+00001
+LIT: status=EC-SIZE-EXPONENTIATION         
+VAR no phrase: R3=+00001 status=EC-SIZE-EXPONENTIATION         

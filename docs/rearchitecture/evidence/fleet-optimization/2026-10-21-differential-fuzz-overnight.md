@@ -83,10 +83,39 @@ The `THEY_REJECT` rows are 2014 features GnuCOBOL 3.2 lacks (CONSTANT RECORD, DY
 GROUP-USAGE, class conditions), as the harness header predicts. The 41 `THEY_FAIL_RUN` rows are GnuCOBOL runtime failures on
 programs WiseOwl ran (STANDARD-COMPARE, BOOLEAN-OF-INTEGER, the EXCEPTION-*-N functions); not read further.
 
+## The GnuCOBOL side: bug or choice (read in the 3.2 source, 2026-10-21 afternoon)
+
+The owner asked whether the four most common "WiseOwl correct" rows are GnuCOBOL bugs or GnuCOBOL choices. Read in the
+GnuCOBOL source at the release tag `gnucobol-3.2` of the mirror `github.com/OCamlPro/gnucobol` (the WSL `cobc` is 3.2.0), the
+branch head `gnucobol-3.x` being identical at each site, plus one probe compiled and run under the WSL 3.2
+(`gnucobol-side/pow0.cob`, output `gnucobol-side/pow0.gnucobol-3.2.out`). This is a record of the net's known holes, not work:
+GnuCOBOL's defects are not this project's (CLAUDE.md rule 1: the differential is a regression net, never authority). A future
+triage that meets one of these rows should recognize it from this table instead of re-deriving it.
+
+| Row | GnuCOBOL mechanism (file, release 3.2) | Bug or choice |
+|---|---|---|
+| `0 ** 0` → 1 | `libcob/intrinsic.c` `cob_decimal_pow`: a comment `/* 0 ^ 0 */` and `cob_set_exception (COB_EC_SIZE_EXPONENTIATION)` for the zero-exponent, zero-base case — the runtime knows the rule. But `cobc/tree.c` `cb_build_binary_op` folds `literal ** literal` at compile time under the default `constant-folding: yes`, and its `case '^'` returns the literal `1` whenever the exponent is 0, with no check. Every one of the 23 fuzz programs that hit the row wrote the operands as literals or `ZERO`. | **Bug** (the compile-time path bypasses a rule the runtime implements) |
+| `2 ** 3 ** 4` → 349412352 | `cobc/parser.y`: `exp_factor: exp_unary EXPONENTIATION exp_factor` is right-recursive where the `exp` and `exp_term` rules for `+ - * /` are left-recursive; the result is 2^81 = 2417851639229258349412352, whose low ten digits the program's `PIC S9(10)` kept and whose low nine its `PIC -(10)` display showed. NEWS and both ChangeLogs carry no mention of the decision. | **Choice**, undocumented (Fortran's convention; §8.8.1.2 item 3 says left to right) |
+| `DATE-TO-YYYYMMDD(0, 10)` → 20000000 (and `DAY-TO-YYYYDDD`) | `libcob/intrinsic.c` `cob_intr_date_to_yyyymmdd`: the check is `year < 0 || year > 999999` where §15.23.3 rule 1 says POSITIVE, and `year` has already been divided by 10000, so the upper bound can never trigger either. The comment above it: "The unusual year checks are as specified in the standard". `cob_intr_day_to_yyyyddd` has the same two faults. | **Bug** |
+| `EXCEPTION-STATUS` inside `ON SIZE ERROR` → `EC-SIZE-ZERO-DIVIDE` | `libcob/numeric.c` `cob_decimal_div` sets `COB_EC_SIZE_ZERO_DIVIDE` unconditionally; the comment directly above it is a `FIXME` saying the exception should be set only when the division is NOT inside an arithmetic statement with a SIZE ERROR phrase. | **Known bug**, acknowledged in the source |
+
+**A fifth hole, found by the probe and not in the overnight report:** with VARIABLE operands (`WS-Z ** WS-Z`, both 0) GnuCOBOL 3.2
+takes the `ON SIZE ERROR` branch and ALSO stores 1 into the receiving item (`VAR: SIZE ERROR, R1=+00001`; R1 held 77 before).
+§14.7.5 requires the resultant identifier to be unchanged when the size error condition exists and the SIZE ERROR phrase is
+specified (section 14.7.5 rule 1, checked: the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement). The runtime sets the exception in `cob_decimal_pow` but still
+returns the value 1, and `cob_decimal_get_field` stores anything that is not NaN. A fuzz program that prints the receiving item
+after a handled `0 ** 0` will therefore show a one-sided row (WiseOwl leaves the item, GnuCOBOL writes 1); it is GnuCOBOL's, not
+ours. The probe's third statement also shows `FUNCTION EXCEPTION-STATUS` reporting `EC-SIZE-EXPONENTIATION` after a literal
+`0 ** 0` with no phrase, a stale value from the previous statement: GnuCOBOL does not clear the last exception between statements
+that raise none.
+
+Not pursued: reporting any of these upstream (the owner's call), and GnuCOBOL's behaviour at `gnucobol-3.x` head beyond the
+sites read.
+
 ## Reading
 
 - **Yield of the night: three defects (one wrong answer, one compiler hang, one harness classification) and one count that an
-  open owner decision needed**, from 5,599 programs and about three hours of one Claude session's triage. The two compiler
+  open owner decision needed**, from 5,599 programs and about 45 minutes of one Claude session's triage (10:16 to 10:59 by the scratchpad and commit stamps). The two compiler
   defects are shapes no suite case had: a transfer out of a PERFORM range by the DEPENDING form, and an error three calls
   deep. That is the fuzz doing what the suite cannot: writing the programs nobody thought to write.
 - **The noise is structural and removable.** 615 rows are one latitude (PB3467); ~150 are uninitialized items; 27 are a
@@ -98,7 +127,7 @@ programs WiseOwl ran (STANDARD-COMPARE, BOOLEAN-OF-INTEGER, the EXCEPTION-*-N fu
   not the function catalog the model finds easiest to write.
 - **What this does not show:** anything about the 170 single-row residual signatures, which are unread; whether a second
   night with a different seed finds different shapes (the same three defects would recur under any seed, since the shapes are
-  common); and the GnuCOBOL side's defects, which were not pursued (not this project's).
+  common); and whether GnuCOBOL's deviations beyond the four read in its source (next section) are bugs or choices.
 
 ## Decision
 
