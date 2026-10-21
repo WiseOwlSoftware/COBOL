@@ -78,7 +78,8 @@ public static partial class FileHarness
     /// program makes: EXTEND over a connector <see cref="Register"/> declared with RANDOM or DYNAMIC access (§14.9.27.3 SR2,
     /// <see cref="AccessFor"/>). A connector no <see cref="Register"/> call declared is not checked, so a test that
     /// registers one with the registry's own methods keeps its own declaration. <see cref="Open"/> and the unit tests'
-    /// <c>OpenStatic</c> shorthand both call it, so the check has no path around it.</summary>
+    /// <c>OpenStatic</c> shorthand both call it; a call straight to <c>FileRegistry.OpenShared</c> or <c>reg.Open</c> on a
+    /// connector <see cref="Register"/> declared does not, and is not checked.</summary>
     public static void AssertDeclarationAdmits(FileRegistry reg, string name, FileOpenMode mode)
     {
         if (mode != FileOpenMode.Extend || !Declared.TryGetValue(reg, out var declarations)
