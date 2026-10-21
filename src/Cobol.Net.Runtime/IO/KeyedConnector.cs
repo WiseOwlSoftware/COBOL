@@ -667,6 +667,10 @@ public abstract class KeyedConnector : FileConnector
     private protected sealed override bool HoldsKeptHandle => _kept?.Handle is not null;
 
     /// <inheritdoc/>
+    private protected sealed override bool KeptHandleExcludesEveryOpen =>
+        _kept?.Handle is { } kept && !FileLockPosture.AdmitsAnotherRunUnit(kept.Share);
+
+    /// <inheritdoc/>
     /// <remarks>The kept handle's own share mode refuses the probe, so it is given back for the instant of the question and,
     /// when another handle does hold the file, taken again before the OPEN answers '61' (§14.9.27.4 GR25); when none does,
     /// it stays away and the OPEN's end gives the kept state back or takes the handle again, as for any re-OPEN that swapped
