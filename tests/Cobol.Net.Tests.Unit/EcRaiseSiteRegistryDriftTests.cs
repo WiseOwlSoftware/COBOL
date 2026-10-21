@@ -70,11 +70,10 @@ public sealed class EcRaiseSiteRegistryDriftTests
           "EC-FUNCTION-IMP", "EC-LOCALE-IMP", "EC-MCS-IMP", "EC-OO-IMP", "EC-ORDER-IMP", "EC-OVERFLOW-IMP", "EC-RAISING-IMP",
           "EC-RANGE-IMP", "EC-REPORT-IMP", "EC-SCREEN-IMP", "EC-SIZE-IMP", "EC-SORT-MERGE-IMP", "EC-STORAGE-IMP",
           "EC-VALIDATE-IMP"], "DOC-A.1-100"),
-        // The facilities CONFORMANCE.md §4 declines: the Message Control System (item 1), commit and rollback (item 2), the
+        // The facilities CONFORMANCE.md §4 declines: the Message Control System (item 1), the
         // VALIDATE facility (item 3) and screen handling (item 4). Each name is refused or has no setting site.
         (["EC-MCS-ABNORMAL-TERMINATION", "EC-MCS-INVALID-TAG", "EC-MCS-MESSAGE-LENGTH", "EC-MCS-NO-REQUESTER",
           "EC-MCS-NO-SERVER", "EC-MCS-NORMAL-TERMINATION", "EC-MCS-REQUESTOR-FAILED"], "§4"),
-        (["EC-FLOW-APPLY-COMMIT", "EC-FLOW-COMMIT", "EC-FLOW-ROLLBACK"], "§4"),
         (["EC-SCREEN-FIELD-OVERLAP", "EC-SCREEN-ITEM-TRUNCATED", "EC-SCREEN-LINE-NUMBER", "EC-SCREEN-STARTING-COLUMN"], "§4"),
         (["EC-VALIDATE-CONTENT", "EC-VALIDATE-FORMAT", "EC-VALIDATE-RELATION", "EC-VALIDATE-VARYING"], "§4"),
         // §15.65.4 r2: MODULE-NAME's returned item is dynamic-length, so "does not fit" cannot happen (DOC-A.1-133).
@@ -93,6 +92,7 @@ public sealed class EcRaiseSiteRegistryDriftTests
     [
         ("EC-RAISING-NOT-SPECIFIED", "PB408"),
         ("EC-OO-EXCEPTION", "PB1121"),
+        ("EC-FLOW-APPLY-COMMIT", "PB3338"),   // §12.4.6.3.4 GR3/GR4: raised by the clause's activation (TransactionControl.Activate)
     ];
 
     private static IEnumerable<string> Level3Names =>
