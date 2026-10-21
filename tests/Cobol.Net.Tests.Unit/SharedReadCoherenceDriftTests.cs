@@ -42,16 +42,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class SharedReadCoherenceDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb753-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
-        // are the store header INSIDE it, so deleting the data file deletes them.
-        try { File.Delete(host); } catch (IOException) { }
-    }
-
     /// <summary>The sharing spellings a READER can wear. The two FILE-CONTROL spellings come from
     /// <see cref="SharedExtendOpenDriftTests.Spelling"/> so the matrices cannot drift apart; the third is the
     /// one this note added — NO clause anywhere (kb/Work PB740), which reaches the read-coherence rule on its
@@ -173,7 +163,7 @@ public sealed class SharedReadCoherenceDriftTests
     public void ASiblingsRewriteIsVisibleToAnAlreadyReadingConnector(
         SharedExtendOpenDriftTests.Framing framing, ReaderSpelling spelling)
     {
-        string host = Tmp($"rw-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"rw-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -208,7 +198,7 @@ public sealed class SharedReadCoherenceDriftTests
             reg.Close("B");
             reg.Close("A");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The axis the reported case held fixed: the record count. A file WHOLLY inside one read-ahead
@@ -226,7 +216,7 @@ public sealed class SharedReadCoherenceDriftTests
     public void TheRuleHoldsWhetherOrNotTheFileFitsInTheReadAhead(
         SharedExtendOpenDriftTests.Framing framing, int count)
     {
-        string host = Tmp($"size-{framing}-{count}");
+        string host = FileHarness.Tmp($"size-{framing}-{count}");
         try
         {
             var reg = new FileRegistry();
@@ -250,7 +240,7 @@ public sealed class SharedReadCoherenceDriftTests
             Assert.Equal("NEWX", third.TrimEnd());
             reg.Close("A");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The other ordering: the WRITER opens first and the reader second, so the reader's handle was
@@ -261,7 +251,7 @@ public sealed class SharedReadCoherenceDriftTests
     public void TheRuleHoldsWhenTheWriterOpensFirst(
         SharedExtendOpenDriftTests.Framing framing, ReaderSpelling spelling)
     {
-        string host = Tmp($"wfirst-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"wfirst-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -286,7 +276,7 @@ public sealed class SharedReadCoherenceDriftTests
             reg.Close("A");
             reg.Close("B");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── CONTROLS: the arms that were already right and shall stay right ───────────────────────────────────────
@@ -301,7 +291,7 @@ public sealed class SharedReadCoherenceDriftTests
     public void ASiblingsAppendedRecordIsStillDelivered(
         SharedExtendOpenDriftTests.Framing framing, ReaderSpelling spelling)
     {
-        string host = Tmp($"app-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"app-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -325,7 +315,7 @@ public sealed class SharedReadCoherenceDriftTests
             Assert.Equal("APPD", appended.TrimEnd());
             reg.Close("A");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The SELF control. One I-O connector reading and rewriting its own records is not a sharing
@@ -338,7 +328,7 @@ public sealed class SharedReadCoherenceDriftTests
     public void AConnectorsOwnRewriteDoesNotDisturbItsOwnForwardRead(
         SharedExtendOpenDriftTests.Framing framing, ReaderSpelling spelling)
     {
-        string host = Tmp($"self-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"self-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -364,7 +354,7 @@ public sealed class SharedReadCoherenceDriftTests
             }
             reg.Close("R");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The KEYED control, and the argument that named the fix. <c>RelativeConnector</c> and
@@ -378,7 +368,7 @@ public sealed class SharedReadCoherenceDriftTests
     [InlineData(false)]
     public void TheKeyedOrganizationsSeeASiblingsRewriteImmediately(bool indexed)
     {
-        string host = Tmp(indexed ? "idx" : "rel");
+        string host = FileHarness.Tmp(indexed ? "idx" : "rel");
         try
         {
             var reg = new FileRegistry();
@@ -419,7 +409,7 @@ public sealed class SharedReadCoherenceDriftTests
             Assert.Equal(Image(3, "NEWX"), third.TrimEnd());
             reg.Close("A");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── THE STRUCTURE, so "automatic" stays true ──────────────────────────────────────────────────────────────

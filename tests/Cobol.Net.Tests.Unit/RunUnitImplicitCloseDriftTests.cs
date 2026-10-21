@@ -26,9 +26,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class RunUnitImplicitCloseDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb603-{tag}-{Guid.NewGuid():N}.dat");
-
     private static void RegisterSequential(FileRegistry reg, string name, string host) =>
         reg.Register(name, host, recordWidth: 8, lineSequential: false, optional: false, varyMin: -1, varyMax: -1);
 
@@ -56,12 +53,6 @@ public sealed class RunUnitImplicitCloseDriftTests
         return all;
     }
 
-    private static void Delete(params string[] hosts)
-    {
-        foreach (string host in hosts)
-            try { File.Delete(host); } catch (IOException) { }
-    }
-
     /// <summary>§14.6.11 2)'s "even when an error occurs": the FIRST open file's close fails with an exception no
     /// I-O status describes (an injected held-line drain, the report writer's hook on every close path), and every
     /// later open file is still closed — its records persisted, its file lock given back to the next run unit — while
@@ -70,7 +61,7 @@ public sealed class RunUnitImplicitCloseDriftTests
     [Fact]
     public void AFailingImplicitClose_StillClosesEveryOtherOpenFile_AndIsNotSwallowed()
     {
-        string failing = Tmp("failing"), indexed = Tmp("indexed"), sequential = Tmp("sequential");
+        string failing = FileHarness.Tmp("failing"), indexed = FileHarness.Tmp("indexed"), sequential = FileHarness.Tmp("sequential");
         try
         {
             var runUnit = new FileRegistry();
@@ -105,7 +96,7 @@ public sealed class RunUnitImplicitCloseDriftTests
                 + "operations did not run, so its handle and §9.1.15 file lock outlived the run unit.");
             next.Close("N");
         }
-        finally { Delete(failing, indexed, sequential); }
+        finally { foreach (string h in new[] { failing, indexed, sequential }) FileHarness.TryDelete(h); }
     }
 
     /// <summary>§14.6.11 2) closes each file "that is in the open mode" — and nothing else. A connector that was never
@@ -114,7 +105,7 @@ public sealed class RunUnitImplicitCloseDriftTests
     [Fact]
     public void TheImplicitClose_LeavesAConnectorThatIsNotOpenUntouched()
     {
-        string closed = Tmp("closed"), never = Tmp("never");
+        string closed = FileHarness.Tmp("closed"), never = FileHarness.Tmp("never");
         try
         {
             var runUnit = new FileRegistry();
@@ -130,7 +121,7 @@ public sealed class RunUnitImplicitCloseDriftTests
             Assert.Equal("00", runUnit.Status("C"));
             Assert.Equal(neverStatus, runUnit.Status("N"));
         }
-        finally { Delete(closed, never); }
+        finally { foreach (string h in new[] { closed, never }) FileHarness.TryDelete(h); }
     }
 
     /// <summary>§9.1.16: <i>"all record locks established for a file are released by the execution of an explicit or
@@ -139,7 +130,7 @@ public sealed class RunUnitImplicitCloseDriftTests
     [Fact]
     public void TheImplicitClose_ReleasesTheRunUnitsRecordLocks()
     {
-        string host = Tmp("locks");
+        string host = FileHarness.Tmp("locks");
         try
         {
             var seed = new FileRegistry();
@@ -165,7 +156,7 @@ public sealed class RunUnitImplicitCloseDriftTests
                 ignoringLock: false, FileRetryKind.None, 0, out _));
             b.CloseAll();
         }
-        finally { Delete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ THE STRUCTURAL HALF: the CLOSE dispatch is the only member of <see cref="FileRegistry"/> that calls
