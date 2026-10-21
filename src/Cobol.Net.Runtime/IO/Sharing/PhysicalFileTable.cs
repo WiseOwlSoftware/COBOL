@@ -229,18 +229,29 @@ internal sealed class PhysicalFileTable
     public static void Rehome(State st, RegionLocks from, RegionLocks to)
     {
         if (ReferenceEquals(from, to)) return;
-        var moved = PublishedThrough(st, from);
-        if (moved.Count == 0) return;
-        foreach (var recId in moved)
-        {
-            from.Release(HostRegionLocks.RecordLockByte(recId));
-            st.Published.Remove(recId);
-        }
-        st.PublishedPerEndpoint.Remove(from);
-        from.Release(HostRegionLocks.LockPresenceByte);
-        foreach (var recId in moved)
+        foreach (var recId in Unpublish(st, from))
             if (Publish(to, HostRegionLocks.RecordLockByte(recId)) == RegionLockResult.Ok)
                 Published(st, recId, to);
+    }
+
+    /// <summary>⛔ GIVE BACK TO THE HOST every record lock published through <paramref name="endpoint"/> and leave this run
+    /// unit's table as it is: the locks stay held by their connectors, unpublished, as a lock a host cannot carry is. It is
+    /// the half of <see cref="Rehome"/> that frees the bytes, and what an unsuccessful OPEN does with the locks a CLOSE under
+    /// commit control kept, when the handle it took over goes (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is
+    /// unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9): the handle goes, the locks do not - only the COMMIT or the
+    /// ROLLBACK ends them. Returns the record ids that were published.</summary>
+    public static List<string> Unpublish(State st, RegionLocks endpoint)
+    {
+        var ids = PublishedThrough(st, endpoint);
+        if (ids.Count == 0) return ids;
+        foreach (var recId in ids)
+        {
+            endpoint.Release(HostRegionLocks.RecordLockByte(recId));
+            st.Published.Remove(recId);
+        }
+        st.PublishedPerEndpoint.Remove(endpoint);
+        endpoint.Release(HostRegionLocks.LockPresenceByte);
+        return ids;
     }
 
     /// <summary>The record ids whose locks are published through <paramref name="endpoint"/>.</summary>

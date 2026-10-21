@@ -1861,12 +1861,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   COMMIT and ROLLBACK release the unpublished ones by name. A re-OPEN that takes a handle of its own moves them to its
   endpoint inside the attach's mutex hold (`PhysicalFileTable.Rehome`, beside `KeyedStore.HoldLivenessThrough`) before the kept
   handle goes, a re-OPEN that fails moves them back (`AbandonOpen`), and one whose kept handle was given back early (the
-  share-mode window) loses them with the byte, as a death does. **A connector that leaves the registry holding what its CLOSE
+  share-mode window) takes them off the host with the byte (`PhysicalFileTable.Unpublish`) and leaves them in this run unit's table, where the
+  COMMIT or ROLLBACK ends them like any unpublished lock (§14.9.27.4 GR25). **A connector that leaves the registry holding what its CLOSE
   kept** - displaced by the re-registration of its element after a CANCEL (`CloseDisplaced`), or dropped with its object
   (`CloseAndDrop`) - is RETIRED (`FileRegistry._retired`, kb/Work PB3484): it stays the COMMIT's and the ROLLBACK's (§12.4.6.3.4
   GR5: a canceled element's APPLY COMMIT clause stays active until a COMMIT or ROLLBACK deactivates it; §14.9.7.4 GR3 applies the
   changes of the files of the active clauses) - `TransactionConnectors` finds its transaction, and `ReleaseCommitLocks` and
-  `CloseAll` give back what it kept. Before this the dropped connector's handle, file lock and transaction were beyond every
+  `CloseAll` give back what it kept, its unpublished record locks (by name, through its own physical-file state) included. The element's NEXT
+  activation OPENs what the retired connector kept as a re-OPEN would: `FileRegistry.ReclaimRetired` hands the kept state to the replacement of the
+  same name, organization and physical file under commit control (`KeyedConnector.InheritKept`) at its OPEN, so its own run unit's kept handle never
+  refuses it '61' (§9.1.13.9 1) owes '61' only against a file open by another file connector; the kept file lock is against other run units). Before this the dropped connector's handle, file lock and transaction were beyond every
   COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process.
   (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
   used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).

@@ -55,7 +55,8 @@ public sealed class FileRegistry
     /// the COMMIT's and the ROLLBACK's for being replaced by its element's next activation. They are found here by
     /// <see cref="TransactionConnectors"/> and given back with the rest (<see cref="ReleaseCommitLocks"/>,
     /// <see cref="CloseAll"/>); before kb/Work PB3484 they were dropped with the handle open, which no COMMIT, ROLLBACK or
-    /// run-unit end could ever reach.</summary>
+    /// run-unit end could ever reach. The replacement's OPEN takes the state over instead when it can
+    /// (<see cref="ReclaimRetired"/>).</summary>
     private readonly List<(string Name, KeyedConnector Connector)> _retired = [];
 
     /// <summary>The per-physical-file KEYED record stores (kb/Work PB143 — §14.9.10.4 GR5): one record store
@@ -210,6 +211,21 @@ public sealed class FileRegistry
     private void Retire(string name)
     {
         if (_files.TryGetValue(name, out var c) && c is KeyedConnector { HoldsKept: true } k) _retired.Add((name, k));
+    }
+
+    /// <summary>⛔ THE ELEMENT'S NEXT ACTIVATION OPENS WHAT ITS PREVIOUS ONE'S CLOSE KEPT (review finding R1-1): the
+    /// connector a registration displaced is closed and of THIS run unit, and §9.1.13.9 1) owes '61' only against a physical
+    /// file <i>"currently open by another file connector"</i>; the handle it kept is what is left of its file lock (§9.1.15),
+    /// which prevents OTHER run units. So the OPEN of the replacement under the same name, on the same physical file and
+    /// under commit control (<see cref="KeyedConnector.InheritKept"/>) takes the kept state over as a re-OPEN of the
+    /// displaced connector would have, rather than meet the kept handle's share mode. It runs at the OPEN (the host path
+    /// is the OPEN's: a dynamic ASSIGN, §12.4.5.3 GR3, fixes it only there), once: a retired connector that is not
+    /// matched stays in <see cref="_retired"/> for the COMMIT, the ROLLBACK or the run unit's end.</summary>
+    private void ReclaimRetired(string name, FileConnector c)
+    {
+        if (_retired.Count == 0 || c is not KeyedConnector next) return;
+        int at = _retired.FindIndex(r => CobolNames.Same(r.Name, name) && next.InheritKept(r.Connector));
+        if (at >= 0) _retired.RemoveAt(at);
     }
 
     /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b — kb/Work PB63); for a key
@@ -1151,9 +1167,16 @@ public sealed class FileRegistry
             try { if (c is KeyedConnector { CommitControlled: true } k) ReleaseKeptOf(name, k); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
-        foreach (var (_, k) in _retired.ToArray())
+        foreach (var (name, k) in _retired.ToArray())
         {
-            try { k.ReleaseKept(); }
+            try
+            {
+                // The record locks the host could not publish are this run unit's table alone and are its by name, as a registered
+                // connector's are (ReleaseKeptOf) - a retired connector's key can leave the registry (CloseAndDrop), so its own
+                // physical-file state is the way to them (review finding R1-3).
+                if (k.Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, name);
+                k.ReleaseKept();
+            }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
         _retired.Clear();
@@ -1163,7 +1186,7 @@ public sealed class FileRegistry
     /// COMMIT's and the ROLLBACK's; §9.1.18.5, the run unit's end): its record locks — the table's, by name, which also
     /// covers a lock no host published — and then everything the CLOSE kept (<see cref="KeyedConnector.ReleaseKept"/>: the
     /// locks its endpoint published, the handle, the file lock, the attachment). A connector retired from the registry is
-    /// ended by <see cref="KeyedConnector.ReleaseKept"/> alone: its name now belongs to its replacement.</summary>
+    /// ended in <see cref="ReleaseAllKept"/> by its own physical-file state, because its key may no longer name it.</summary>
     private void ReleaseKeptOf(string name, KeyedConnector k)
     {
         ReleaseAllForConnector(name);
@@ -1352,6 +1375,7 @@ public sealed class FileRegistry
         // (State.ReleaseGeneration) is a rule about the MEDIUM, which a clause-less pair sharing one file
         // under kb/Work PB740 is on exactly as much as a SHARING WITH ALL OTHER pair. The second argument is
         // the RECORD-LOCKING posture, and only the §9.1.16 questions read it through `SharedPhysical`.
+        ReclaimRetired(name, c);
         c.AssociatePhysical(st, RecordLocksSetUnder(posture, sharing));
         // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). The share mode of
         // a host handle is fixed when the handle is created, so the posture of THIS connector's sharing mode is
