@@ -292,6 +292,16 @@ internal abstract class KeyedStore
         (Transaction, _liveness, Unacknowledged) = (0, null, false);
     }
 
+    /// <summary>The witnesses' seam of a death the operating environment delivers at an instant of ANOTHER run unit's
+    /// statement (DESIGN-runtime-library.md 2.2.1.17's round-4 table: "the test lock host releasing A's byte at that
+    /// point"): the transaction's liveness byte released as a dead process's handle releases it, and nothing else of the
+    /// run unit touched — its holdings are pages of the file, and an idle run unit holds no mutex.</summary>
+    internal void ReleaseLivenessForWitness()
+    {
+        GiveBack(_liveness, Transaction);
+        _liveness = null;
+    }
+
     /// <summary>The transaction holding HOLDINGS key <paramref name="key"/> (0: none) — the lookup of the lock TEST (2.2.1.10,
     /// "The lock TEST, for every writer and every reader not IGNORING LOCK"): nothing to read while page 2's holdings root
     /// is empty.</summary>

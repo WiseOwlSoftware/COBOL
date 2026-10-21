@@ -1030,6 +1030,14 @@ public sealed class FileRegistry
     /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
     internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;
 
+    /// <summary>The witnesses' seam of a death that lands while ANOTHER run unit's statement runs (2.2.1.17's round-4
+    /// table): this run unit's liveness byte on <paramref name="name"/>'s physical file is released as the operating
+    /// environment releases a dead process's, and nothing else of the run unit is touched.</summary>
+    internal void ReleaseLivenessForWitness(string name)
+    {
+        if (Require(name) is KeyedConnector k) k.ReleaseLivenessForWitness();
+    }
+
     /// <summary>The keyed connectors whose physical files carry an open transaction of this run unit — one per file, in
     /// the order of the run unit's open stores (the order connectors were registered: 2.2.1.10, "Files are committed one at
     /// a time, in the order of the run unit's open stores").</summary>

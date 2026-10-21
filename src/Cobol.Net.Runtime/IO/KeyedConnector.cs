@@ -555,6 +555,12 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>The run unit's transaction on this connector's physical file, if this connector is attached to its store.</summary>
     internal ulong OpenTransaction => _attached ? AttachedStore.Transaction : 0;
 
+    /// <summary>The witnesses' seam (<see cref="KeyedStore.ReleaseLivenessForWitness"/>).</summary>
+    internal void ReleaseLivenessForWitness()
+    {
+        if (_attached) AttachedStore.ReleaseLivenessForWitness();
+    }
+
     /// <summary>⛔ COMMIT the run unit's transaction on this connector's physical file (§14.9.7.4 GR3; 2.2.1.10), under the
     /// store mutex through this connector's handle (or the one it kept at its CLOSE).</summary>
     internal CommitOutcome CommitTransaction() => InTransactionMutex(() => AttachedStore.Commit(Restoring));

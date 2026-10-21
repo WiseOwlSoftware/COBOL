@@ -2,7 +2,10 @@
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
 using Xunit;
+using static CobolNet.Tests.Shared.FileHarness;
+using static CobolNet.Tests.Unit.Store.TransactionTrees;
 
 namespace CobolNet.Tests.Unit.Store;
 
@@ -34,23 +37,14 @@ namespace CobolNet.Tests.Unit.Store;
 [Trait("Host", "ReFS")]
 public sealed class CommitRollbackRuntimeTests
 {
-    public enum Org { Relative, Indexed }
-
-    public static TheoryData<Org> Orgs() => new() { Org.Relative, Org.Indexed };
-
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3337-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        try { File.Delete(host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
+    public static TheoryData<FileOrg> Orgs() => [.. KeyedOrgs];
 
     /// <summary>An 8-character record: the key (relative: the record number) in positions 1-4; for an indexed file an
     /// alternate key WITHOUT DUPLICATES in 5-8 (finding R2-4's unique values).</summary>
-    private static FileRegistry Open(string host, Org org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F")
+    private static FileRegistry Open(string host, FileOrg org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F")
     {
         var reg = new FileRegistry();
-        if (org == Org.Relative)
+        if (org == FileOrg.Relative)
             reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
                 relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
         else
@@ -66,32 +60,30 @@ public sealed class CommitRollbackRuntimeTests
         return reg;
     }
 
-    private static string Rec(int n, string tail) => $"{n:0000}{tail}";
-
-    private static void Position(FileRegistry reg, Org org, int n, string name = "F")
+    private static void Position(FileRegistry reg, FileOrg org, int n, string name = "F")
     {
-        if (org == Org.Relative) reg.SetRelativeKey(name, n);
+        if (org == FileOrg.Relative) reg.SetRelativeKey(name, n);
     }
 
-    private static string Write(FileRegistry reg, Org org, int n, string tail, string name = "F")
+    private static string Write(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.WriteShared(name, Rec(n, tail), -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
     }
 
-    private static string Rewrite(FileRegistry reg, Org org, int n, string tail, string name = "F")
+    private static string Rewrite(FileRegistry reg, FileOrg org, int n, string tail, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.RewriteShared(name, Rec(n, tail), -1, FileRecordLock.None, FileRetryKind.None, 0);
     }
 
-    private static string Delete(FileRegistry reg, Org org, int n, string name = "F")
+    private static string Delete(FileRegistry reg, FileOrg org, int n, string name = "F")
     {
         Position(reg, org, n, name);
         return reg.DeleteShared(name, Rec(n, "    "), FileRetryKind.None, 0);
     }
 
-    private static string Read(FileRegistry reg, Org org, int n, out string image, bool ignoringLock = false,
+    private static string Read(FileRegistry reg, FileOrg org, int n, out string image, bool ignoringLock = false,
         FileRecordLock phrase = FileRecordLock.None, string name = "F")
     {
         Position(reg, org, n, name);
@@ -103,7 +95,7 @@ public sealed class CommitRollbackRuntimeTests
             out image);
 
     /// <summary>Records 1 to <paramref name="records"/>, each <c>nnnn</c> + <c>Annn</c> (a unique alternate value), committed.</summary>
-    private static void Seed(string host, Org org, int records = 5)
+    private static void Seed(string host, FileOrg org, int records = 5)
     {
         var seed = Open(host, org, commit: false, FileOpenMode.Output);
         for (int n = 1; n <= records; n++) Assert.Equal("00", Write(seed, org, n, $"A{n:000}"));
@@ -112,7 +104,7 @@ public sealed class CommitRollbackRuntimeTests
     }
 
     /// <summary>What a fresh run unit's OPEN INPUT reads of records 1 to 9 (absent: null).</summary>
-    private static string?[] Contents(string host, Org org)
+    private static string?[] Contents(string host, FileOrg org)
     {
         var reader = Open(host, org, commit: false, FileOpenMode.Input, name: "R");
         var records = new string?[10];
@@ -129,50 +121,13 @@ public sealed class CommitRollbackRuntimeTests
         return expected;
     }
 
-    /// <summary>⛔ The drift test of 2.2.1.12 (finding R5-2): the HOLDINGS tree's key set equals the union of the UNDO trees'
-    /// key sets, walked through the trees (never through the engine's own enumeration), on the file as
-    /// <paramref name="reg"/>'s store last saw it.</summary>
-    private static void AssertHoldingsAreTheUndoKeys(FileRegistry reg, string name = "F")
-    {
-        var file = reg.PagedStoreOf(name)!;
-        var holdings = Keys(file, file.Meta.HoldingsRoot);
-        var undo = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (var (_, value) in Entries(file, file.Meta.TransactionsRoot))
-            undo.UnionWith(Keys(file, TransactionKeys.PointerOf(value)));
-        Assert.Equal(undo, holdings);
-    }
-
-    private static SortedSet<string> Keys(PagedFile file, PagePointer root) =>
-        new(Entries(file, root).Select(e => Convert.ToHexString(e.Key)), StringComparer.Ordinal);
-
-    private static List<(byte[] Key, byte[] Value)> Entries(PagedFile file, PagePointer root)
-    {
-        var entries = new List<(byte[], byte[])>();
-        if (root.IsNone) return entries;
-        Assert.Equal(StoreStatus.Ok, new BTree(file, KeyOrders.Ordinal, root).First(out var cursor));
-        while (cursor.HasCurrent)
-        {
-            Assert.Equal(StoreStatus.Ok, cursor.ReadValue(out var value));
-            entries.Add((cursor.Key, value));
-            Assert.Equal(StoreStatus.Ok, cursor.Next());
-        }
-        return entries;
-    }
-
-    private static void AssertNoTransactionLeft(FileRegistry reg, string name = "F")
-    {
-        var meta = reg.PagedStoreOf(name)!.Meta;
-        Assert.True(meta.HoldingsRoot.IsNone, "the HOLDINGS tree is empty once no transaction is open");
-        Assert.True(meta.TransactionsRoot.IsNone, "the TRANSACTIONS tree is empty once no transaction is open");
-    }
-
     /// <summary>§14.9.36.4 GR3, the run unit's own changes: a WRITE, a REWRITE and a DELETE under commit control, then
     /// ROLLBACK — one statement — leaves the file as at the start of the run unit, and nothing of the transaction behind.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit(Org org)
+    public void Rollback_restores_the_run_units_changes_to_the_start_of_the_run_unit(FileOrg org)
     {
-        string host = Tmp($"rollback-{org}");
+        string host = Tmp($"pb3337-rollback-{org}");
         try
         {
             Seed(host, org);
@@ -189,7 +144,7 @@ public sealed class CommitRollbackRuntimeTests
             AssertNoTransactionLeft(a);
             Assert.Equal("00", Read(a, org, 2, out var two));
             Assert.Equal(Rec(2, "A002"), two);
-            if (org == Org.Indexed)
+            if (org == FileOrg.Indexed)
             {
                 Assert.Equal("00", ReadByAlternate(a, "A002", out var byOld));   // the alternate entry rebuilt from the image
                 Assert.Equal(Rec(2, "A002"), byOld);
@@ -205,9 +160,9 @@ public sealed class CommitRollbackRuntimeTests
     /// releases every lock (another run unit's REWRITE of the record then succeeds).</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it(Org org)
+    public void Commit_makes_the_changes_permanent_and_a_later_rollback_restores_to_it(FileOrg org)
     {
-        string host = Tmp($"commit-{org}");
+        string host = Tmp($"pb3337-commit-{org}");
         try
         {
             Seed(host, org);
@@ -240,16 +195,16 @@ public sealed class CommitRollbackRuntimeTests
     /// restores K5 and B's refused statements then answer by the file ('22' for K5, '23' for K8).</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_transactions_changes_are_held_against_every_other_connector(Org org)
+    public void A_transactions_changes_are_held_against_every_other_connector(FileOrg org)
     {
-        string host = Tmp($"locks-{org}");
+        string host = Tmp($"pb3337-locks-{org}");
         try
         {
             Seed(host, org);
             var a = Open(host, org, commit: true);
             var b = Open(host, org, commit: false);
             // A sibling connector of A's own run unit, outside the APPLY COMMIT clause (D.2.5's independent connector).
-            if (org == Org.Relative)
+            if (org == FileOrg.Relative)
                 a.RegisterRelative("S", host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
                     relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
             else
@@ -291,26 +246,26 @@ public sealed class CommitRollbackRuntimeTests
     [InlineData(false)]
     public void Every_holding_of_a_transaction_is_found_by_its_commit_or_rollback(bool commit)
     {
-        string host = Tmp($"holdings-{commit}");
+        string host = Tmp($"pb3337-holdings-{commit}");
         try
         {
-            Seed(host, Org.Indexed);
-            var a = Open(host, Org.Indexed, commit: true);
-            var b = Open(host, Org.Indexed, commit: false);
-            Assert.Equal("00", Rewrite(a, Org.Indexed, 1, "X001"));
-            Assert.Equal("00", Rewrite(a, Org.Indexed, 1, "Y001"));
-            Assert.Equal("00", Write(a, Org.Indexed, 8, "W008"));
-            Assert.Equal("00", Delete(a, Org.Indexed, 8));
+            Seed(host, FileOrg.Indexed);
+            var a = Open(host, FileOrg.Indexed, commit: true);
+            var b = Open(host, FileOrg.Indexed, commit: false);
+            Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "X001"));
+            Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "Y001"));
+            Assert.Equal("00", Write(a, FileOrg.Indexed, 8, "W008"));
+            Assert.Equal("00", Delete(a, FileOrg.Indexed, 8));
             AssertHoldingsAreTheUndoKeys(a);
-            Assert.Equal("51", Write(b, Org.Indexed, 9, "A001"));
-            Assert.Equal("51", Write(b, Org.Indexed, 9, "X001"));
-            Assert.Equal("51", Write(b, Org.Indexed, 9, "W008"));
-            Assert.Equal("22", Write(b, Org.Indexed, 9, "Y001"));   // invalid key first: K1 holds Y001 (GR42 ignores locks)
+            Assert.Equal("51", Write(b, FileOrg.Indexed, 9, "A001"));
+            Assert.Equal("51", Write(b, FileOrg.Indexed, 9, "X001"));
+            Assert.Equal("51", Write(b, FileOrg.Indexed, 9, "W008"));
+            Assert.Equal("22", Write(b, FileOrg.Indexed, 9, "Y001"));   // invalid key first: K1 holds Y001 (GR42 ignores locks)
             Assert.Null(commit ? a.Commit() : a.Rollback());
             AssertNoTransactionLeft(a);
-            Assert.Equal("00", Write(b, Org.Indexed, 9, "X001"));
-            Assert.Equal("00", Write(b, Org.Indexed, 6, "W008"));
-            Assert.Equal(commit ? "00" : "22", Write(b, Org.Indexed, 7, "A001"));   // ROLLBACK gave K1 back A001
+            Assert.Equal("00", Write(b, FileOrg.Indexed, 9, "X001"));
+            Assert.Equal("00", Write(b, FileOrg.Indexed, 6, "W008"));
+            Assert.Equal(commit ? "00" : "22", Write(b, FileOrg.Indexed, 7, "A001"));   // ROLLBACK gave K1 back A001
             AssertNoTransactionLeft(b);
             a.CloseAll();
             b.CloseAll();
@@ -325,9 +280,9 @@ public sealed class CommitRollbackRuntimeTests
     /// COMMIT; nothing of A is left in the file.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_dead_owner_is_rolled_back_by_the_next_writable_statement(Org org)
+    public void A_dead_owner_is_rolled_back_by_the_next_writable_statement(FileOrg org)
     {
-        string host = Tmp($"dead-{org}");
+        string host = Tmp($"pb3337-dead-{org}");
         try
         {
             Seed(host, org);
@@ -345,7 +300,7 @@ public sealed class CommitRollbackRuntimeTests
             var c = Open(host, org, commit: false, FileOpenMode.Input, name: "C");
             Assert.Equal("23", Read(c, org, 5, out _, name: "C"));   // the file as it stands, dead transaction included
             Assert.Equal("22", Write(b, org, 5, "Z005"));
-            if (org == Org.Indexed) Assert.Equal("22", Write(b, org, 7, "A005"));   // K5's unique value is K5's again
+            if (org == FileOrg.Indexed) Assert.Equal("22", Write(b, org, 7, "A005"));   // K5's unique value is K5's again
             Assert.Equal("00", Read(b, org, 1, out var one));
             Assert.Equal(Rec(1, "A001"), one);
             AssertNoTransactionLeft(b);
@@ -365,9 +320,9 @@ public sealed class CommitRollbackRuntimeTests
     /// answers '00' and is never overwritten by A's rollback.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_holder_that_dies_during_a_retry_is_rolled_back_and_the_write_evaluated_again(Org org)
+    public void A_holder_that_dies_during_a_retry_is_rolled_back_and_the_write_evaluated_again(FileOrg org)
     {
-        string host = Tmp($"retry-{org}");
+        string host = Tmp($"pb3337-retry-{org}");
         try
         {
             Seed(host, org);
@@ -411,9 +366,9 @@ public sealed class CommitRollbackRuntimeTests
     /// completed statement through both.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void Two_transactions_on_one_file_roll_back_only_their_own_records(Org org)
+    public void Two_transactions_on_one_file_roll_back_only_their_own_records(FileOrg org)
     {
-        string host = Tmp($"two-{org}");
+        string host = Tmp($"pb3337-two-{org}");
         try
         {
             Seed(host, org);
@@ -445,9 +400,9 @@ public sealed class CommitRollbackRuntimeTests
     /// the transaction had written absent ('23').</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_rollback_after_a_close_restores_the_last_commit(Org org)
+    public void A_rollback_after_a_close_restores_the_last_commit(FileOrg org)
     {
-        string host = Tmp($"close-{org}");
+        string host = Tmp($"pb3337-close-{org}");
         try
         {
             Seed(host, org);
@@ -471,17 +426,17 @@ public sealed class CommitRollbackRuntimeTests
     [InlineData(false)]
     public void Termination_commits_a_normal_ending_and_rolls_back_an_abnormal_one(bool abnormal)
     {
-        string host = Tmp($"end-{abnormal}");
+        string host = Tmp($"pb3337-end-{abnormal}");
         try
         {
-            Seed(host, Org.Indexed);
-            var a = Open(host, Org.Indexed, commit: true);
-            Assert.Equal("00", Write(a, Org.Indexed, 7, "A007"));
+            Seed(host, FileOrg.Indexed);
+            var a = Open(host, FileOrg.Indexed, commit: true);
+            Assert.Equal("00", Write(a, FileOrg.Indexed, 7, "A007"));
             if (abnormal) a.EndTransactions(abnormal: true);
             a.CloseAll();
             var expected = Seeded();
             if (!abnormal) expected[7] = Rec(7, "A007");
-            Assert.Equal(expected, Contents(host, Org.Indexed));
+            Assert.Equal(expected, Contents(host, FileOrg.Indexed));
         }
         finally { TryDelete(host); }
     }
@@ -491,15 +446,15 @@ public sealed class CommitRollbackRuntimeTests
     [Fact]
     public void A_transaction_of_300_records_meets_no_lock_ceiling()
     {
-        string host = Tmp("ceiling");
+        string host = Tmp("pb3337-ceiling");
         try
         {
-            Seed(host, Org.Relative, records: 300);
-            var a = Open(host, Org.Relative, commit: true);
+            Seed(host, FileOrg.Relative, records: 300);
+            var a = Open(host, FileOrg.Relative, commit: true);
             for (int n = 1; n <= 300; n++)
             {
-                Assert.Equal("00", Read(a, Org.Relative, n, out _));
-                Assert.Equal("00", Rewrite(a, Org.Relative, n, "B000"));
+                Assert.Equal("00", Read(a, FileOrg.Relative, n, out _));
+                Assert.Equal("00", Rewrite(a, FileOrg.Relative, n, "B000"));
             }
             Assert.Null(a.Commit());
             a.CloseAll();
@@ -513,21 +468,21 @@ public sealed class CommitRollbackRuntimeTests
     [Fact]
     public void A_refused_first_change_gives_its_byte_back()
     {
-        string host = Tmp("first");
+        string host = Tmp("pb3337-first");
         try
         {
-            Seed(host, Org.Relative);
+            Seed(host, FileOrg.Relative);
             bool refuse = false;
             KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: page => refuse && page >= MetaPage.MetaPages ? new IOException("refused by the host") : null);
             FileRegistry a;
-            try { a = Open(host, Org.Relative, commit: true); }
+            try { a = Open(host, FileOrg.Relative, commit: true); }
             finally { KeyedStore.MediumObserver.Value = null; }
             refuse = true;
-            Assert.Equal("30", Write(a, Org.Relative, 7, "A007"));
+            Assert.Equal("30", Write(a, FileOrg.Relative, 7, "A007"));
             Assert.Equal(0ul, a.TransactionOf("F"));
-            var b = Open(host, Org.Relative, commit: true);
-            Assert.Equal("00", Write(b, Org.Relative, 8, "A008"));
+            var b = Open(host, FileOrg.Relative, commit: true);
+            Assert.Equal("00", Write(b, FileOrg.Relative, 8, "A008"));
             Assert.NotEqual(0ul, b.TransactionOf("F"));
             Assert.Null(b.Commit());
             a.CloseAll();
@@ -545,20 +500,20 @@ public sealed class CommitRollbackRuntimeTests
     [InlineData(true)]
     public void A_refused_commit_is_never_reported_failed_with_its_transaction_committed(bool refuseSync)
     {
-        string host = Tmp($"refused-{refuseSync}");
+        string host = Tmp($"pb3337-refused-{refuseSync}");
         try
         {
-            Seed(host, Org.Indexed);
+            Seed(host, FileOrg.Indexed);
             bool armed = false;
             int syncs = 0;
             KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
                 write: page => armed && !refuseSync && page < MetaPage.WorkSlot ? new IOException("slot refused") : null,
                 sync: () => armed && refuseSync && ++syncs == 2 ? new IOException("sync 2 refused") : null);
             FileRegistry a;
-            try { a = Open(host, Org.Indexed, commit: true); }
+            try { a = Open(host, FileOrg.Indexed, commit: true); }
             finally { KeyedStore.MediumObserver.Value = null; }
-            Assert.Equal("00", Write(a, Org.Indexed, 7, "A007"));
-            Assert.Equal("00", Rewrite(a, Org.Indexed, 1, "X001"));
+            Assert.Equal("00", Write(a, FileOrg.Indexed, 7, "A007"));
+            Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "X001"));
             armed = true;
             Assert.Equal("F", a.Commit());
             Assert.Equal("30", a.Status("F"));
@@ -566,7 +521,7 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Null(a.Rollback());   // item 8's unconditional ROLLBACK
             Assert.Equal(0ul, a.TransactionOf("F"));
             a.CloseAll();
-            Assert.Equal(Seeded(), Contents(host, Org.Indexed));
+            Assert.Equal(Seeded(), Contents(host, FileOrg.Indexed));
         }
         finally { TryDelete(host); }
     }

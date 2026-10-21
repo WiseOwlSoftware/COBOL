@@ -253,7 +253,7 @@ public sealed class PagedFileBoundaryTests
     /// the boundary, the records as they were, and — the condition gone — the same run unit's next statement succeeds;
     /// the same refusal for any other reason (a full medium) is '30'. (The connector answers the boundary by the
     /// statement: '24' with INVALID KEY at the WRITE and REWRITE, '30' with no invalid key condition at the DELETE —
-    /// PendingStoreCases' PB3333 and PB3334 rows.)</summary>
+    /// FileBoundaryTests, through the RELATIVE and INDEXED connectors.)</summary>
     [Fact]
     public void The_hosts_file_size_refusal_is_the_boundary_and_a_full_medium_is_30_with_the_file_unchanged()
     {
