@@ -291,28 +291,29 @@ public abstract class KeyedConnector : FileConnector
             // handle refused: the kept one's, or another run unit's, which the kept one admitted. So the HANDLE is given back
             // and the new one tried again — the attachment, and with it the run unit's transaction, stays (review finding
             // R1-1), and the store takes the transaction's liveness byte again through the new handle at the attach
-            // (KeyedStore.HoldLivenessThrough). ⛔ A refusal that persists is another run unit's, and it must not cost the
-            // connector what the CLOSE kept (§14.9.27.4 GR25; §14.9.7.4 GR4): the handle is taken again as it was
-            // (RetakeKeptHandle), and the OPEN answers '61'. Any other IOException leaves the kept handle where it is.
+            // (KeyedStore.HoldLivenessThrough). ⛔ A re-OPEN that is unsuccessful after that — the refusal persists because it
+            // is another run unit's, or the attach or the positioning fails — must not cost the connector what the CLOSE kept
+            // (§14.9.27.4 GR25; §14.9.7.4 GR4): AbandonOpen takes the handle again as it was (RetakeKeptHandle). Any other
+            // IOException leaves the kept handle where it is.
             _kept = _kept with { Handle = null };
+            _givenBack = kept;
             GiveBack(kept);
-            try { TakeFileLock(create, access); }
-            catch
-            {
-                RetakeKeptHandle(kept);
-                throw;
-            }
+            TakeFileLock(create, access);
         }
         return null;
     }
 
+    /// <summary>The handle this OPEN took from <see cref="Kept"/> to try a share mode it refused (<see cref="Lock"/>), until
+    /// the OPEN succeeds (<see cref="CarryKeptOver"/>) or <see cref="AbandonOpen"/> takes it back.</summary>
+    private KeptHandle? _givenBack;
+
     /// <summary>⛔ PUT THE HANDLE A CLOSE UNDER COMMIT CONTROL KEPT BACK, as <see cref="GiveBack"/> left it (kb/Work PB3483): the
-    /// re-OPEN gave it away to try a share mode it refused and the new handle was refused by another run unit as well, so
-    /// the connector's re-OPEN is unsuccessful and §14.9.27.4 GR25's <i>"the file is not affected"</i> means the kept state
-    /// is what the CLOSE left — the file lock (§9.1.15, §14.9.7.4 GR4) and the transaction's liveness byte (2.2.1.10), which
-    /// a handle that is not there holds for nobody, so that the next writable OPEN of another run unit rolls back a
-    /// transaction whose owner lives. The handle is taken with the access and share mode it had and attached to the store
-    /// exactly as an OPEN attaches its own (<see cref="Attach"/>), then handed back to <see cref="Kept"/>.
+    /// re-OPEN gave it away to take another, and the re-OPEN is unsuccessful, so §14.9.27.4 GR25's <i>"the file is not
+    /// affected"</i> means the kept state is what the CLOSE left — the file lock (§9.1.15, §14.9.7.4 GR4) and the
+    /// transaction's liveness byte (2.2.1.10), which a handle that is not there holds for nobody, so that the next writable
+    /// OPEN of another run unit rolls back a transaction whose owner lives. The handle is taken with the access and share
+    /// mode it had and attached to the store exactly as an OPEN attaches its own (<see cref="Attach"/>), then handed back to
+    /// <see cref="Kept"/>. Runs after this OPEN's own handle is given back, which would otherwise refuse it.
     /// <para>The instant between the give-back and this retake cannot be closed on a host whose share modes are per handle: a
     /// handle that refuses the new one is a handle the new one cannot be beside. Another run unit that opened in that instant
     /// holds a handle the kept share mode refuses, so the retake is refused too and the kept state is left without its
@@ -320,7 +321,8 @@ public abstract class KeyedConnector : FileConnector
     /// (<see cref="TakeKeptFileLockOver"/>).</para></summary>
     private void RetakeKeptHandle(KeptHandle gone)
     {
-        ReleaseFileLock();   // whatever the refused attempt left behind (TakeFileLock assigns its fields in steps)
+        if (_kept is null) return;   // the kept state ended meanwhile (ReleaseKept): there is nothing to put it into
+        bool retaken = false;
         FileStream? stream = null;
         try
         {
@@ -328,17 +330,26 @@ public abstract class KeyedConnector : FileConnector
             var handle = stream.SafeFileHandle;
             (_store, _handle, _regions, _coherent) = (stream, handle, HostRegionLocks.Open(handle, HostPath, writable: stream.CanWrite),
                 FileLockPosture.AdmitsAnotherRunUnit(gone.Share));
-            stream = null;   // the connector's now: AbandonOpen gives it back with the rest of this OPEN's state when the attach fails
+            stream = null;   // the connector's now
+            if (Attach(create: false) is null)
+            {
+                _kept = _kept with { Handle = new KeptHandle(_store, _handle, _regions, gone.Access, gone.Share) };
+                (_store, _handle, _regions, _coherent) = (null, null, null, false);
+                retaken = true;
+            }
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
+        finally
         {
             stream?.Dispose();
-            return;
+            if (!retaken)
+            {
+                // The retake is refused (the window) or its attach failed: the handle goes off the store again.
+                try { _ = Detach(); }
+                catch (IOException) { }
+                finally { ReleaseFileLock(); }
+            }
         }
-        try { if (Attach(create: false) is not null) return; }
-        catch (IOException) { return; }
-        _kept = _kept! with { Handle = new KeptHandle(_store!, _handle!, _regions!, gone.Access, gone.Share) };
-        (_store, _handle, _regions, _coherent) = (null, null, null, false);
     }
 
     /// <summary>Whether the physical format can hold this connector's declaration (docs/CONFORMANCE.md DOC-A.1-129): its
@@ -427,8 +438,21 @@ public abstract class KeyedConnector : FileConnector
             });
         // The OPEN already answers its own failure; a refused re-adoption here leaves the store's fence owed
         // (KeyedStore.DetachHandle), which is all it can change.
-        try { _ = Detach(); }
-        finally { ReleaseFileLock(); }
+        try
+        {
+            try { _ = Detach(); }
+            finally { ReleaseFileLock(); }
+        }
+        finally
+        {
+            // A re-OPEN that gave the kept handle away to try another share mode is unsuccessful: the kept state stands as the
+            // CLOSE left it (§14.9.27.4 GR25), now that this OPEN's own handle is off the file.
+            if (_givenBack is { } gone)
+            {
+                _givenBack = null;
+                RetakeKeptHandle(gone);
+            }
+        }
     }
 
     /// <summary>The keyed CLOSE body (ISO §14.9.6): through a writable handle the store's PROMOTION (2.2.1.6 R5) — the
@@ -625,6 +649,7 @@ public abstract class KeyedConnector : FileConnector
     /// reopened"</i>: a reopened file's lock is the new OPEN's).</summary>
     private void CarryKeptOver()
     {
+        _givenBack = null;   // the handle this OPEN gave away stays away: the OPEN succeeded through its replacement
         if (_kept is not { } kept) return;
         _kept = null;
         try
@@ -636,6 +661,23 @@ public abstract class KeyedConnector : FileConnector
 
     /// <inheritdoc/>
     private protected sealed override bool HoldsKeptHandle => _kept?.Handle is not null;
+
+    /// <inheritdoc/>
+    /// <remarks>The kept handle's own share mode refuses the probe, so it is given back for the instant of the question and,
+    /// when another handle does hold the file, taken again before the OPEN answers '61' (§14.9.27.4 GR25); when none does,
+    /// it stays away and the OPEN's end gives the kept state back or takes the handle again, as for any re-OPEN that swapped
+    /// handles (<see cref="Lock"/>).</remarks>
+    private protected sealed override bool HeldByAnotherHandle()
+    {
+        if (_kept is not { Handle: { } kept, Adopted: false }) return HostFile.IsHeldByAnother(HostPath);
+        _kept = _kept with { Handle = null };
+        _givenBack = kept;
+        GiveBack(kept);
+        if (!HostFile.IsHeldByAnother(HostPath)) return false;
+        _givenBack = null;
+        RetakeKeptHandle(kept);
+        return true;
+    }
 
     /// <inheritdoc/>
     private protected sealed override RunUnitFileLock? KeptFileLock => _kept?.FileLock;
