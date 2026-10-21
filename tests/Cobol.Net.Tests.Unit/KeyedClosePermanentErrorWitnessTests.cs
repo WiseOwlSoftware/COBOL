@@ -5,6 +5,7 @@ using CobolNet.Frontend.Preprocessor;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
 

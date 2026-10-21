@@ -3,7 +3,7 @@
 using CobolNet.Runtime.IO;
 using Xunit;
 
-namespace CobolNet.Tests.Unit;
+namespace CobolNet.Tests.Shared;
 
 /// <summary>⛔ THE THREE FILE ORGANIZATIONS, ONE ENUM (kb/Work PB771, PB3459, PB3471). §9.1.6: <i>"There are three
 /// organizations: sequential, relative, and indexed"</i>, and §9.1.15 names none of them — <i>"The successful opening of
@@ -15,20 +15,27 @@ public enum FileOrg { Sequential, Relative, Indexed }
 
 /// <summary>
 /// ⛔ THE ONE FILE TEST HARNESS (kb/Work PB3459, PB3471): open, seed, position, read and write a SEQUENTIAL, RELATIVE or
-/// INDEXED file through a <see cref="FileRegistry"/> from a test, and ask the host whether another run unit meets the
-/// store mutex. Nine test classes each wrote these helpers privately (and the tests that followed them copied them
-/// again), so a change to the connector API or to the store-mutex shape took an edit per copy and the copies could
-/// drift. A file test that needs one of them calls it here; a new helper of this job is written here, never beside a
-/// test. A fourth organization is one new <see cref="FileOrg"/> arm in <see cref="Register"/>, and
+/// INDEXED file through a <see cref="FileRegistry"/> from a test, tear its pages, and (in the Unit project) ask the host
+/// whether another run unit meets the store mutex. Nine test classes each wrote these helpers privately (and the tests
+/// that followed them copied them again), so a change to the connector API or to the store-mutex shape took an edit per
+/// copy and the copies could drift. A file test that needs one of them calls it here; a new helper of this job is written
+/// here, never beside a test. A fourth organization is one new <see cref="FileOrg"/> arm in <see cref="Register"/>, and
 /// <c>FileLockPostureDriftTests.EveryOrganisationsHandleAccessLiesInThatBand</c> is red until it is added.
+///
+/// <para><b>Shared by every test project (kb/Work PB3472).</b> This file lives in <c>tests/_shared</c>, which
+/// <c>tests/Directory.Build.props</c> links into every test project, so a Conformance test that runs a compiled program
+/// over a file calls the same helpers as a Unit test and registers no file of its own. It uses only the runtime's PUBLIC
+/// surface, because the Conformance and Characterization assemblies are not granted the runtime's internals. The one
+/// helper that needs them, <c>MutexHeld</c> (the region host's <c>HostRegionLocks</c> is internal), is this class's other
+/// half, <c>FileHarness.StoreMutex.cs</c> in the Unit project.</para>
 ///
 /// <para><b>The file.</b> An 8-character record: the key in positions 1-4 (also the relative record number, so one
 /// <see cref="Rec"/> serves every organization; a sequential file simply carries it as data) and a 4-character
 /// payload. Dynamic access; one prime key. A test with a different record layout (an alternate key, a wider record, a
-/// LINE SEQUENTIAL file) registers its own file and may still use <see cref="Tmp"/>, <see cref="TryDelete"/>,
-/// <see cref="Rec"/> and <see cref="MutexHeld"/>.</para>
+/// LINE SEQUENTIAL file) registers its own file and may still use <see cref="Tmp"/>, <see cref="TryDelete"/> and
+/// <see cref="Rec"/>.</para>
 /// </summary>
-public static class FileHarness
+public static partial class FileHarness
 {
     /// <summary>The organizations that keep a store of keyed pages (RELATIVE and INDEXED): what a keyed-store test runs
     /// both of.</summary>
@@ -141,7 +148,7 @@ public static class FileHarness
     {
         var seed = new FileRegistry();
         Register(seed, "S", host, org, sharing: null, alternateKey: alternateKey);
-        seed.OpenStatic("S", FileOpenMode.Output);
+        seed.Open("S", FileOpenMode.Output, host, assignDynamic: false, page: null);
         Assert.Equal("00", seed.Status("S"));
         foreach (var (key, payload) in records) Assert.Equal("00", Write(seed, "S", org, key, payload));
         seed.Close("S");
@@ -152,16 +159,23 @@ public static class FileHarness
     public static void SeedRecords(string host, FileOrg org, int records) =>
         Seed(host, org, [.. Enumerable.Repeat("AAAA", records)]);
 
-    /// <summary>What another run unit's connector meets at the store mutex: a second handle on the file, opened as
-    /// that run unit's would be (<paramref name="writable"/>: write access, else read access), asks the region host
-    /// whether ANOTHER handle holds it. The answer is the host's, so a failing host fails the test here.</summary>
-    public static bool MutexHeld(string host, bool writable = false)
+    /// <summary>Tear <paramref name="host"/>'s store: every page that carries <paramref name="record"/>'s bytes gets one
+    /// byte flipped, so its checksum fails at the next read and the engine answers the record statement with the
+    /// permanent error '30' (§9.1.13.6 item 1; 2.2.1.6 R3). Scans every page from the first: a record image is never in
+    /// a meta page. Returns the number of pages torn, and fails the test when it is none (the record was not found).</summary>
+    public static int TearPagesCarrying(string host, ReadOnlySpan<byte> record)
     {
-        using var probe = new FileStream(host, FileMode.Open, writable ? FileAccess.ReadWrite : FileAccess.Read,
-            FileShare.ReadWrite);
-        using var regions = HostRegionLocks.Open(probe.SafeFileHandle, host, writable);
-        var answer = regions.HeldByAnother(HostRegionLocks.StoreMutexByte);
-        Assert.True(answer is RegionLockResult.Held or RegionLockResult.Ok, $"the region host answered {answer}");
-        return answer == RegionLockResult.Held;
+        const int PageSize = HostFile.InputOutputAreaBytes;
+        byte[] file = File.ReadAllBytes(host);
+        int torn = 0;
+        for (int page = 0; page < file.Length / PageSize; page++)
+        {
+            if (file.AsSpan(page * PageSize, PageSize).IndexOf(record) < 0) continue;
+            file[page * PageSize + 100] ^= 0xFF;
+            torn++;
+        }
+        Assert.True(torn > 0, "the record's leaf was found");
+        File.WriteAllBytes(host, file);
+        return torn;
     }
 }

@@ -3,7 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
 using Xunit;
-using static CobolNet.Tests.Unit.FileHarness;
+using static CobolNet.Tests.Shared.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 

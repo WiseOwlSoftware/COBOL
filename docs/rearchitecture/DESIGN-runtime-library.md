@@ -1461,7 +1461,7 @@ sibling `KeyedStoreReloadFailureDriftTests` holds the refused page-2 read and th
 `SHARING WITH READ ONLY` or `ALL OTHER` writer makes every page write of a statement, the tree pages and page 2, inside the
 mutex and gives it back when the host refuses one, on the machine's region host and on the lock-file host: kb/Work
 PB3414, PB3458; the file helpers every one of these tests uses (all three organizations), and the store-mutex probe, are written once, in
-`FileHarness`: kb/Work PB3459, PB3471). The
+`FileHarness`, which lives in `tests/_shared` and so reaches every test project, the Conformance witnesses included; only the store-mutex probe, which needs the runtime's internals, is that class's Unit-project half: kb/Work PB3459, PB3471, PB3472). The
 §9.1.15 file lock is still the handle the store travels through (kb/Work PB771), and every page read and write goes through
 that handle positionally (`RandomAccess`), so no second handle is ever taken.
 
