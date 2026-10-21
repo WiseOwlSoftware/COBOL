@@ -319,8 +319,8 @@ public abstract class KeyedConnector : FileConnector
         var opened = InStoreMutex(() =>
         {
             var status = create
-                ? store.Create(DeclaredAttributes, _coherent)
-                : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes);
+                ? store.Create(DeclaredAttributes, _coherent, HoldingsOrder)
+                : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes, HoldingsOrder);
             if (status != StoreStatus.Ok) return status;
             // R6 step 5, the DEAD-OWNER step of a writable OPEN (2.2.1.6, 2.2.1.10): after the adoption and its fence. It
             // never touches this run unit's own transaction.
@@ -504,6 +504,10 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>A ROLLBACK's view of the organization's trees (<see cref="IRestoringTrees"/>), which the dead-owner step,
     /// the lock test's rollback of a dead holder and a COMMIT's reversal use as well.</summary>
     private protected abstract RestoringTreesFactory Restoring { get; }
+
+    /// <summary>⛔ The order of the UNDO and HOLDINGS trees the file is opened under (<see cref="HoldingsKeyOrder"/>; kb/Work
+    /// PB3485): the organization's own key orders, so two keys the file's collating sequence makes equal are one holding.</summary>
+    private protected abstract IKeyOrder HoldingsOrder { get; }
 
     /// <summary>The record identity — the HOLDINGS tree's bytes — of a §9.1.16 record lock identity string
     /// (<see cref="FileConnector.LastReadRecordId"/>'s form); null when it names no record the file can hold.</summary>
