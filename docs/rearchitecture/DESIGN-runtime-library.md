@@ -1852,7 +1852,22 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the
   COMMIT statement, the file locks are released."*), so another run unit's conflicting OPEN is refused '61' on every host
   until the COMMIT or ROLLBACK; the connector's own re-OPEN gives the kept column lock back immediately before it takes its
-  own (`FileConnector.ReleaseKeptFileLock`).
+  own (`FileConnector.ReleaseKeptFileLock`). **The record locks are kept too** (kb/Work PB3480; §14.9.6.4 GR9: *"Except when the file
+  is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file connector referenced by
+  file-name-1 are released by the execution of the CLOSE statement"*; §9.1.16 releases them at a COMMIT or ROLLBACK): the
+  registry's CLOSE (`SharedClose`) asks the connector (`FileConnector.CloseKeepsLocks`, the one decision its handle's keeping
+  rests on) and releases none of them; they are published through the kept endpoint, so that endpoint is their one owner:
+  `KeyedConnector.ReleaseKept` releases what is published through it (`PhysicalFileTable.ReleaseThrough`) and the registry's
+  COMMIT and ROLLBACK release the unpublished ones by name. A re-OPEN that takes a handle of its own moves them to its
+  endpoint inside the attach's mutex hold (`PhysicalFileTable.Rehome`, beside `KeyedStore.HoldLivenessThrough`) before the kept
+  handle goes, a re-OPEN that fails moves them back (`AbandonOpen`), and one whose kept handle was given back early (the
+  share-mode window) loses them with the byte, as a death does. **A connector that leaves the registry holding what its CLOSE
+  kept** - displaced by the re-registration of its element after a CANCEL (`CloseDisplaced`), or dropped with its object
+  (`CloseAndDrop`) - is RETIRED (`FileRegistry._retired`, kb/Work PB3484): it stays the COMMIT's and the ROLLBACK's (§12.4.6.3.4
+  GR5: a canceled element's APPLY COMMIT clause stays active until a COMMIT or ROLLBACK deactivates it; §14.9.7.4 GR3 applies the
+  changes of the files of the active clauses) - `TransactionConnectors` finds its transaction, and `ReleaseCommitLocks` and
+  `CloseAll` give back what it kept. Before this the dropped connector's handle, file lock and transaction were beyond every
+  COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process.
   (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
   used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).
   (5) A transaction the run unit OWES a rollback — one whose ROLLBACK the medium refused, or whose file is MARKED
