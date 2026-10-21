@@ -1,3 +1,4 @@
-## Wave 1140 review leads filed (PB3492 to PB3494) and two citation chores
+## Entry 2328 — 2026-10-21 12:41 PDT — Wave 1140 review leads filed (PB3492 to PB3494) and two citation chores
 
 Filed three branch-review leads as kb/Work notes: PB3492 (DELETE FILE after a CLOSE under commit control answers '62' from the connector's own kept handle; blocked on an owner decision about a standing transaction), PB3493 (an OPEN OUTPUT re-OPEN releases the kept state before taking its own handle, against §14.9.27.4 GR25) and PB3494 (the kept state follows the connector, not the physical file, when ASSIGN USING changes HostPath). The two untested exception arms of the column-lock replacement went into PB3481 as R1-3. PB3487's citation of the next-unit campaign rule now names DESIGN-orchestrator-loop section 3.2 instead of 9.1. The stamped DEVLOG entry for PB3487 says "the two waves and two campaigns each planned 0 groups"; its own list names one wave and two campaigns, with the second wave's outcome unknown. That entry is history and stays as written. Unused ids PB3495 and PB3496 are returned.
+
