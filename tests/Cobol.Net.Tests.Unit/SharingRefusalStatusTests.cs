@@ -56,10 +56,10 @@ public sealed class SharingRefusalStatusTests
             byte[] before = File.ReadAllBytes(host);
             string status;
             var reg = new FileRegistry();
-            FileHarness.Register(reg, "F", host, org, sharing: null);
+            FileHarness.Register(reg, "F", host, org, sharing: null, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
             using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
             {
-                reg.OpenStatic("F", mode);
+                FileHarness.Open(reg, "F", mode);
                 status = reg.Status("F");
             }
             Assert.True(status == FileStatusCode.FileSharingConflict,
