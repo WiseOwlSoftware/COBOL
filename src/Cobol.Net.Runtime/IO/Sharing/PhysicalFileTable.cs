@@ -129,11 +129,16 @@ internal sealed class PhysicalFileTable
             return CobolNames.Same(owner, name)
                 ? FileStatusCode.Success                     // self re-lock (§9.1.16) — idempotent
                 : FileStatusCode.RecordLocked;               // 51 — another connector holds it
-        int mine = 0;
-        foreach (var o in st.RecordLocks.Values)
-            if (CobolNames.Same(o, name)) mine++;
-        if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;   // 54 (§12.4.5.9.4 GR7)
-        if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (§12.4.5.9.4 GR7)
+        // The commit posture's READ locks have no ceiling but the host's (DOC-A.1-154/155; DESIGN-runtime-library.md
+        // 2.2.1.10): §12.4.5.9.4 GR7 lets the implementor set the maximum, and D.2.5's deferred commits make it unbounded.
+        if (holder is not KeyedConnector { CommitControlled: true })
+        {
+            int mine = 0;
+            foreach (var o in st.RecordLocks.Values)
+                if (CobolNames.Same(o, name)) mine++;
+            if (mine >= ConnectorLockMax) return FileStatusCode.ConnectorLockLimit;   // 54 (§12.4.5.9.4 GR7)
+            if (TotalRunUnitLocks() >= RunUnitLockMax) return FileStatusCode.RunUnitLockLimit;   // 53 (§12.4.5.9.4 GR7)
+        }
         if (holder?.RecordLocks is { } regions)
         {
             switch (Publish(regions, HostRegionLocks.RecordLockByte(recId)))

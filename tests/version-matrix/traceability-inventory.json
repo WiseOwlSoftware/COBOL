@@ -54907,11 +54907,11 @@
   "subject": "Files",
   "rule-digest": "2cc538e98d9a",
   "verdict": "CONFORMS",
-  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord",
-  "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector",
+  "code-location": "src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord; src/Cobol.Net.Runtime/IO/KeyedConnector.cs#HoldingsGate",
+  "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector; unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work PB284: PROSE-PARAGRAPH row. §9.1.16 paragraph 9 PERMITS the implementor to specify circumstances other than a locked logical record that return a locked record status; it requires nothing. COBOL.NET specifies none (DOC-A.1-152, 'Condition absent', docs/CONFORMANCE.md §7): LockedRecordStatusProducersDriftTests pins that a locked status is produced only where another connector holds the lock. || editions 2002,2014,2023 (kb/Work PB284): record locking and the sharing/locking I-O statuses are decided at 2002 for the sibling rows GR-9.1.15-1..3, GR-9.1.13.8-1 and GR-9.1.13.9-1 (kb/Work PB3173), and this paragraph states the same facility.",
+  "notes": "kb/Work PB284: PROSE-PARAGRAPH row. §9.1.16 paragraph 9 PERMITS the implementor to specify circumstances other than a locked logical record that return a locked record status; it requires nothing. kb/Work PB3337 (2026-10-20): COBOL.NET specifies one, a transaction's HOLDING under an active APPLY COMMIT clause (DOC-A.1-152, 'Provided: one circumstance', docs/CONFORMANCE.md §7); LockedRecordStatusProducersDriftTests pins that a locked status is produced only where another connector holds a lock or another transaction a holding. || editions 2002,2014,2023 (kb/Work PB284): record locking and the sharing/locking I-O statuses are decided at 2002 for the sibling rows GR-9.1.15-1..3, GR-9.1.13.8-1 and GR-9.1.13.9-1 (kb/Work PB3173), and this paragraph states the same facility.",
   "state": "OK"
  },
  {
@@ -62151,12 +62151,12 @@
   "ordinal": 152,
   "subject": "Record locking (circumstances other than a locked logical record that return a locked record status)",
   "rule-digest": "3fb47b7adfa6",
-  "verdict": "DOCUMENTED-NON-SUPPORT",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-152; src/Cobol.Net.Runtime/IO/Sharing/PhysicalFileTable.cs#LockRecord; src/Cobol.Net.Runtime/IO/FileRegistry.cs#ConflictOnLockedRecord",
-  "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector",
+  "verdict": "CONFORMS",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-152; src/Cobol.Net.Runtime/IO/KeyedConnector.cs#HoldingsGate; src/Cobol.Net.Runtime/IO/FileRegistry.cs#HoldingsConflict",
+  "test-ref": "unit:LockedRecordStatusProducersDriftTests.LockedRecordStatus_IsProducedOnlyWhereAnotherConnectorHoldsTheLock; conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector; unit:CommitRollbackRuntimeTests.A_transactions_changes_are_held_against_every_other_connector; unit:CommitRollbackRuntimeTests.Every_holding_of_a_transaction_is_found_by_its_commit_or_rollback",
   "derivation": "",
   "editions": "2002,2014,2023",
-  "notes": "kb/Work R43 item 3 — OWNER DECISION 2026-09-24, answering kb/Work PB1536 Q1. An Annex A.1 item the standard marks CONDITIONALLY REQUIRED, whose docs/CONFORMANCE.md §7 determination records that its condition does not exist in COBOL.NET ('Condition absent.'), closes as DOCUMENTED-NON-SUPPORT — CONTINGENT: re-adjudicate if the capability is ever added. Licence: A.1's own preamble, 'Conditionally required: If the associated feature or language element is implemented then this element is also required.' (cite.py --check A.1 → OK). As for a not-provided optional item, the §7 row STAYS and is the row's evidence: it states which condition is absent and why, names the code that makes it absent, and its `Pinned by` witness observes the absence. kb/Work PB1536 Q1: the §7 row states the absent condition, its code and its witness. || editions 2002,2014,2023 (kb/Work PB3173, S0b; DESIGN-conformance-suite.md §6 step 0): record locking is a COBOL-2002 introduction.",
+  "notes": "kb/Work PB3337 (2026-10-20): RE-ADJUDICATED, as the R43 item 3 determination it replaces asked ('CONTINGENT: re-adjudicate if the capability is ever added'). The circumstance now exists: under an active APPLY COMMIT clause a transaction's HOLDINGS (a record it changed, a deleted record's identity, a unique alternate key value its change freed; docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10, findings R2-3 and R2-4) answer '51' to every other connector. A.1 item 152 is conditionally required ('Conditionally required: If the associated feature or language element is implemented then this element is also required.', A.1 preamble), and §9.1.16 permits it ('The implementor may specify circumstances other than a locked logical record that result in the return of a locked record status.', cite.py --check 9.1.16 OK). docs/CONFORMANCE.md §7 now documents it ('Provided: one circumstance'); LockedRecordStatusProducersDriftTests pins the three producers (KeyedConnector.HoldingsGate the new one) and CommitRollbackRuntimeTests the behaviour. || editions 2002,2014,2023 (kb/Work PB3173, S0b): record locking is a COBOL-2002 introduction.",
   "state": "OK"
  },
  {

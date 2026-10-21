@@ -20,7 +20,7 @@ namespace CobolNet.Tests.Unit;
 /// one, to input mode"</i>. Every case runs both organizations, and every expected value is the design text's or a general
 /// rule's, never what the engine happens to do:
 /// <list type="bullet">
-///   <item>2.2.1.17, "the connectors' coherence" (the row <c>PendingStoreCases</c> held for this group): a sibling's change
+///   <item>2.2.1.17, "the connectors' coherence": a sibling's change
 ///   seen at its next statement with no page read but page 2; another run unit's change adopted at the next coherent entry
 ///   with the cache dropped — the statement after it reads exactly what a COLD statement reads (1 + the tree's depth), and a
 ///   statement with no foreign change reads page 2 alone; never the file.</item>
