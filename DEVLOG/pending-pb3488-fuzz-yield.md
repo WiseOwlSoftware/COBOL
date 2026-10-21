@@ -11,11 +11,12 @@ as carefully as the fixes, because the wrong reading nearly shipped.
 reserved word in another dialect` ×1, and I told the owner that about two fifths of the refusals were the JUDGE lacking a
 2014 feature, not the model. The first version of item 3 was a hand-written `JUDGE_LACKS` list naming those four. The
 measurement that should have come first came second: every program GnuCOBOL refused in the first bake-off, compiled by
-WiseOwl. **1 of 68 compiles.** TRANSLATE, NATIONAL and SUBSTRING are not intrinsic functions of ISO/IEC 1989 (WiseOwl's
+WiseOwl. **Of the 65 refused programs, 1 compiles** (2 more refused rows held no program). TRANSLATE, NATIONAL and
+SUBSTRING are not intrinsic functions of ISO/IEC 1989 (WiseOwl's
 COBOLNET1501 cites §15.6, the summary of functions); COMP-3 occurs nowhere in the standard; HIGHEST-ALGEBRAIC's argument
 "shall be a data item of category numeric or numeric-edited" (§15.43.3 argument rule 1, `cite.py --check` OK), and the
-models passed literals. The models' programs were incorrect by the standard, and GnuCOBOL's refusals were right in 67 of
-68. The lesson is the one the memory already carries ([[a_remembered_pattern_is_a_hypothesis]]): a compiler's message says
+models passed literals. The models' programs were incorrect by the standard, and GnuCOBOL's refusals were right in 64 of
+the 65. The lesson is the one the memory already carries ([[a_remembered_pattern_is_a_hypothesis]]): a compiler's message says
 what IT refused, never whether the standard agrees. The list was withdrawn; the prompt now carries the standard's OWN
 function list, read from the `15.n NAME function` headings of `specs/ISO_COBOL.md` (94 names; `spec_functions()`), and a
 self-test holds that list to contain REVERSE and HIGHEST-ALGEBRAIC and none of the invented names.
@@ -45,6 +46,19 @@ fresh observation, and a directory that cannot be removed raises into a RUNNER_E
 HTTP 500 "prediction aborted, token repeat limit reached" is the model's degenerate reply, counted against it, not a
 RUNNER_ERROR; and a NO_PROGRAM row whose reply spent every output token thinking says so.
 
+**The branch review (one read-only reviewer, round 1: 4 blocking findings, 4 leads, all answered).** R1-1 (high): a
+WiseOwl compiler CRASH on a program GnuCOBOL also refused was recorded as "did not compile", sent back for a correction
+and lost; the rounds now end on a crash (WE_CRASH), and a self-test drives the program loop with a stubbed model and
+compilers. R1-6 (medium), the most instructive: the seeds are the 2023 text, the compilers run 2014, and the new "ONLY
+intrinsic functions" rule listed CONCAT, CONVERT, FIND-STRING, SUBSTITUTE, BASECONVERT, MODULE-NAME and
+SMALLEST-ALGEBRAIC, which WiseOwl refuses under `--std 2014` (COBOLNET1502); the prompt's file rule asked for DELETE FILE,
+2023 too, and bake-off 4's one COBOLNET0900 row was that. The harness now reads the standard's own list of what 2023
+added, Annex E.3.3's items that "has been added" (`cite.py --check E.3.3` OK on items 15 and 23), out of the function
+list and the seeds and names them to the model as errors. R1-2 (medium): the drift test over the real spec filtered with
+the very pattern under test and could never fail; it has its own word list now. R1-3 and the leads: PB3463's text, the
+recount's arithmetic (67 refused rows, 65 with a program, 1 of 65 compiles; the raw tally is kept), the bake-off column
+named for what it counts, a return annotation.
+
 **MiniMax M3.1 Flash** (`minimax-m3.1-flash:cloud`, Ollama's US-hosted model, free until 2026-10-22): the owner proposed
 it mid-evening. Through the same local API it honours `think: false` on a 60-token prompt (0.9 s) and ignores it on the
 harness's 1,455-token prompt: 28,000 characters of thinking, every one of the 6,000 output tokens, 69 s, empty content,
@@ -59,7 +73,7 @@ rounds carried most of the gain. One program is 5 points: the direction is firm,
 (9 of 20, before the forbidden-function seeds were removed) against bake-off 4's 14 says the seeds drawn matter as much as
 the harness. The winner for the overnight run is qwen3.6:35b, the highest share at half the others' latency.
 
-**Gate.** `BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 8e80f29fb (21:5x PDT); `--self-test` 30 → 49
-checks. The evidence record `docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md` carries the
+**Gate.** `BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` at 8e80f29fb (21:5x PDT) and again at the
+review-answer head; `--self-test` 30 → 54 checks. The evidence record `docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md` carries the
 tables and keeps every bake-off's scoreboard and report in its raw folder. The overnight run is the owner's to start with
 the table's winner.
