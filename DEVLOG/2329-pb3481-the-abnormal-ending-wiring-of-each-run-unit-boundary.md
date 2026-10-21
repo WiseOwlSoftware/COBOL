@@ -1,4 +1,4 @@
-## PB3481: the abnormal-ending wiring of each run-unit boundary of PB3337 now has a witness that can fail
+## Entry 2329 — 2026-10-21 12:53 PDT — PB3481: the abnormal-ending wiring of each run-unit boundary of PB3337 now has a witness that can fail
 
 Two low leads from the branch review of PB3337 (kb/Work PB3481). No runtime code changed: R1-5 was a test-coverage gap
 over code that was already right, and R3-2 was answered on main by PB3483 while this branch waited to land.
@@ -25,3 +25,4 @@ resolution keeps main's form and drops the branch's `Retake` witnesses, whose me
 
 Rows: none (the note claims no inventory row and closes none). Design: 2.2.1.10's status paragraph names the boundary
 witnesses. The gate's verdict line is recorded in the report.
+
