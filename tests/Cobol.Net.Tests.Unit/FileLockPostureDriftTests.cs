@@ -77,13 +77,17 @@ public sealed class FileLockPostureDriftTests
         return data;
     }
 
-    private static void RegisterAndShare(FileRegistry reg, string name, string host, Mode m,
-        FileOrg org = FileOrg.Sequential)
+    /// <summary>The connector <paramref name="name"/> as a program that OPENs it in <paramref name="opens"/> declares it:
+    /// an EXTEND connector has sequential access, because §14.9.27.3 SR2 allows EXTEND for no other (kb/Work PB3479;
+    /// <see cref="FileHarness.AccessFor"/>). Open it with <see cref="FileHarness.Open"/>.</summary>
+    private static void RegisterAndShare(FileRegistry reg, string name, string host, Mode m, FileOrg org,
+        FileOpenMode opens)
     {
         // ClauseLess registers NOTHING: a SELECT with neither clause never reaches RegisterSharing, which is
         // exactly the shape PB740 measured. The other three record their declared sharing mode.
         FileHarness.Register(reg, name, host, org,
-            sharing: m == Mode.ClauseLess ? null : SharingOf(m, FileOpenMode.Input), lockMode: FileLockMode.Manual);
+            sharing: m == Mode.ClauseLess ? null : SharingOf(m, FileOpenMode.Input), lockMode: FileLockMode.Manual,
+            access: FileHarness.AccessFor(opens));
     }
 
     // ── The agreement, measured on real handles ─────────────────────────────────────────────────────────────
@@ -104,15 +108,15 @@ public sealed class FileLockPostureDriftTests
             var reg = new FileRegistry();
             FileHarness.Seed(host, org, ["SEED"]);
 
-            RegisterAndShare(reg, "A", host, sa, org);
-            RegisterAndShare(reg, "B", host, sb, org);
+            RegisterAndShare(reg, "A", host, sa, org, ma);
+            RegisterAndShare(reg, "B", host, sb, org, mb);
 
-            reg.OpenStatic("A", ma);
+            FileHarness.Open(reg, "A", ma);
             Assert.True(reg.Status("A")[0] == '0',
                 $"The FIRST open, alone on the physical file, answered '{reg.Status("A")}' — the matrix measures "
                 + "the SECOND open and cannot say anything if the first one did not happen.");
 
-            reg.OpenStatic("B", mb);
+            FileHarness.Open(reg, "B", mb);
             bool refused = Table19.Conflicts((SharingOf(sb, mb), mb), (SharingOf(sa, ma), ma));
             string got = reg.Status("B");
 
@@ -221,7 +225,7 @@ public sealed class FileLockPostureDriftTests
             var reg = new FileRegistry();
             FileHarness.Seed(host, org, ["SEED"]);
 
-            RegisterAndShare(reg, "F", host, mode, org);
+            RegisterAndShare(reg, "F", host, mode, org, FileOpenMode.Input);
             reg.OpenStatic("F", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.Success, reg.Status("F"));
 
@@ -447,8 +451,8 @@ public sealed class FileLockPostureDriftTests
             var reg = new FileRegistry();
             FileHarness.Seed(host, org, ["SEED"]);
 
-            RegisterAndShare(reg, "F", host, Mode.NoOther, org);
-            reg.OpenStatic("F", mode);
+            RegisterAndShare(reg, "F", host, Mode.NoOther, org, mode);
+            FileHarness.Open(reg, "F", mode);
             Assert.True(reg.Status("F")[0] == '0',
                 $"({org} {mode}) the OPEN answered '{reg.Status("F")}' — nothing below can measure a file lock "
                 + "over an open that did not happen.");
@@ -514,10 +518,11 @@ public sealed class FileLockPostureDriftTests
             var reg = new FileRegistry();
             foreach (var org in Enum.GetValues<FileOrg>())
             {
-                FileHarness.Register(reg, $"C{org}", host, org, sharing: null);
-                var c = ConnectorOf(reg, $"C{org}");
                 foreach (var mode in Enum.GetValues<FileOpenMode>())
                 {
+                    // The connector a program that OPENs in this mode declares (§14.9.27.3 SR2; kb/Work PB3479).
+                    FileHarness.Register(reg, $"C{org}{mode}", host, org, sharing: null, access: FileHarness.AccessFor(mode));
+                    var c = ConnectorOf(reg, $"C{org}{mode}");
                     var taken = c.HostAccess(mode);
                     var floor = FileLockPosture.AccessOf(mode);
                     Assert.True((taken & floor) == floor,
@@ -582,11 +587,11 @@ public sealed class FileLockPostureDriftTests
         {
             var reg = new FileRegistry();
             FileHarness.Seed(host, org, ["SEED"]);
-            RegisterAndShare(reg, "F", host, sharing, org);
+            RegisterAndShare(reg, "F", host, sharing, org, mode);
             var c = ConnectorOf(reg, "F");
             Assert.Null(c.FileLock);
 
-            reg.OpenStatic("F", mode);
+            FileHarness.Open(reg, "F", mode);
             Assert.True(reg.Status("F")[0] == '0',
                 $"({org} {mode} {sharing}) the OPEN answered '{reg.Status("F")}' — there is no handle to measure.");
             FileStream? held = c.FileLock;

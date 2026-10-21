@@ -30,7 +30,7 @@ internal static class StorageFormEquivalence
             Assert.True(divergences.Count == 0,
                 $"{divergences.Count} StorageForm divergence(s):\n" + string.Join("\n", divergences.Take(10)));
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>Bind one .cob file and return (divergences, parsed-ok). A program that fails the FRONTEND (parse /

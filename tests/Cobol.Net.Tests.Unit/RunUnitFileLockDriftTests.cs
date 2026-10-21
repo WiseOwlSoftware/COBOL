@@ -46,14 +46,16 @@ public sealed class RunUnitFileLockDriftTests
 
             var runUnit1 = new FileRegistry();
             var runUnit2 = new FileRegistry();
-            FileHarness.Register(runUnit1, "A", host, org, sa);
-            FileHarness.Register(runUnit2, "B", host, org, sb);
+            // Each connector is declared as a program that OPENs it in its mode declares it: EXTEND is sequential access's
+            // (§14.9.27.3 SR2; kb/Work PB3479).
+            FileHarness.Register(runUnit1, "A", host, org, sa, access: FileHarness.AccessFor(ma));
+            FileHarness.Register(runUnit2, "B", host, org, sb, access: FileHarness.AccessFor(mb));
 
-            runUnit1.OpenStatic("A", ma);
+            FileHarness.Open(runUnit1, "A", ma);
             Assert.True(runUnit1.Status("A")[0] == '0',
                 $"The first run unit's OPEN answered '{runUnit1.Status("A")}' — the second one cannot be measured.");
 
-            runUnit2.OpenStatic("B", mb);
+            FileHarness.Open(runUnit2, "B", mb);
             var existing = (sa ?? FileRegistry.ImplementorDefaultSharing(ma), ma);
             var request = (sb ?? FileRegistry.ImplementorDefaultSharing(mb), mb);
             bool refused = Table19.Conflicts(request, existing);

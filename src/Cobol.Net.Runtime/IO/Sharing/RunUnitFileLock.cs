@@ -16,11 +16,12 @@ namespace CobolNet.Runtime.IO;
 /// statement"</i>); a run unit that dies loses it with its descriptors. HOW a column is published and tested is the
 /// host's (<see cref="IColumnLockHost"/>): a shared byte-range lock on the physical file on Linux
 /// (<see cref="OfdColumnLockHost"/>), a lock file per holder beside it on every other Unix
-/// (<see cref="SidecarColumnLockHost"/>); this class is the POLICY and is the same on both.</para>
+/// (<see cref="SidecarColumnLockHost"/>), an exclusive byte of a range per column through a read handle of the holder's own
+/// on Windows (<see cref="HandleColumnLockHost"/>, kb/Work PB3482); this class is the POLICY and is the same on all three.</para>
 /// <para><b>Why publish first.</b> Two run units opening at once cannot both pass: whichever publishes second
 /// finds the first already there, and a request against a column it refuses is answered '61' (§9.1.13.9 1)). It
 /// is the ordering that makes the test race-free without a mutex, and it needs a test that ignores the asker's
-/// OWN publication — which is what both hosts are chosen for, because a class that refuses its own kind (NO OTHER,
+/// OWN publication — which is what every host is chosen for, because a class that refuses its own kind (NO OTHER,
 /// an OUTPUT) would otherwise refuse itself.</para>
 /// <para><b>What it is NOT.</b> The table is read from <see cref="Table19"/>, never rewritten: the cross-run-unit
 /// answer and the in-run-unit answer are one lookup, so they cannot drift (<c>RunUnitFileLockDriftTests</c> proves
@@ -65,12 +66,25 @@ internal sealed class RunUnitFileLock : IDisposable
 
     private IDisposable? _hold;
 
-    /// <summary>What the lock was established as — the host, the physical file and the Table 19 column and row the OPEN
-    /// asked for — so <see cref="Retake"/> can establish the same lock again.</summary>
-    private readonly (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused) _as;
+    /// <summary>What the lock is established as — the host, the physical file and the Table 19 column the OPEN published
+    /// and the columns its row refuses.</summary>
+    private (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused) _as;
+
+    /// <summary>What the lock was before the last <see cref="Amend"/> replaced it — the column <see cref="Revert"/>
+    /// publishes again; null when nothing has been amended.</summary>
+    private (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused)? _before;
 
     private RunUnitFileLock(IDisposable hold, (IColumnLockHost, string, ExistingSharingColumn, ExistingSharingColumn[]) taken) =>
         (_hold, _as) = (hold, taken);
+
+    /// <summary>The column an OPEN in (<paramref name="sharing"/>, <paramref name="mode"/>) publishes and the columns its
+    /// Table 19 row refuses — the one derivation <see cref="Take(IColumnLockHost?, string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>
+    /// and <see cref="Amend"/> share.</summary>
+    private static (ExistingSharingColumn Own, ExistingSharingColumn[] Refused) RequestOf(FileSharing sharing, FileOpenMode mode)
+    {
+        var row = Table19.Row(sharing, mode);
+        return (Table19.Column(sharing, mode), Columns.Where(column => Table19.Cell(row, column) == OpenSharingOutcome.UnsuccessfulOpen).ToArray());
+    }
 
     /// <summary>The outcome of asking for the lock.</summary>
     internal enum Outcome
@@ -97,25 +111,28 @@ internal sealed class RunUnitFileLock : IDisposable
     {
         held = null;
         if (host is null) return Outcome.Unavailable;
-        var row = Table19.Row(sharing, mode);
-        var refused = Columns.Where(column => Table19.Cell(row, column) == OpenSharingOutcome.UnsuccessfulOpen).ToArray();
-        var own = Table19.Column(sharing, mode);
-        var outcome = host.Establish(hostPath, own, refused, out var hold);
+        var (own, refused) = RequestOf(sharing, mode);
+        var outcome = host.Establish(hostPath, own, refused, supersedes: null, out var hold);
         if (outcome == Outcome.Held) held = new RunUnitFileLock(hold!, (host, hostPath, own, refused));
         return outcome;
     }
 
-    /// <summary>Establish this lock again after <see cref="Dispose"/> gave it back — the same column published, against the
-    /// same refused columns — and answer how that went (<see cref="Outcome.Held"/> as well when it is still held). The one
-    /// caller is a file lock a CLOSE under commit control KEPT (§14.9.7.4 GR4), which the connector's own re-OPEN gives
-    /// back before it establishes its own and takes again when that OPEN is unsuccessful (§14.9.27.4 GR25, <i>"the file is
-    /// not affected"</i>; kb/Work PB3337 review lead R2-2). <see cref="Outcome.Refused"/> means another run unit opened the
-    /// file against the column in the instant it was free.</summary>
-    internal Outcome Retake()
+    /// <summary>⛔ REPLACE THIS LOCK BY THE ONE AN OPEN IN (<paramref name="sharing"/>, <paramref name="mode"/>) ESTABLISHES,
+    /// WITH NO INSTANT IN WHICH THE FILE IS UNLOCKED (kb/Work PB3483; <see cref="IColumnLockHost.Establish"/>'s
+    /// <c>supersedes</c>). The one caller is a file lock a CLOSE under commit control KEPT: §14.9.7.4 GR4, <i>"For files
+    /// specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the
+    /// file locks are released"</i>, so the connector's own re-OPEN, which establishes a lock of its own that the kept one
+    /// would refuse as another holder's, must not give the kept one back first and take it again if the OPEN fails
+    /// (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>): that
+    /// left the file unlocked for two instants, in which another run unit's OPEN against the kept column was admitted.
+    /// <see cref="Outcome.Held"/>: this lock now holds the new column, and <see cref="Revert"/> can publish the old one
+    /// again. <see cref="Outcome.Refused"/> or <see cref="Outcome.Unavailable"/>: the lock is exactly as it was.</summary>
+    internal Outcome Amend(FileSharing sharing, FileOpenMode mode)
     {
-        if (_hold is not null) return Outcome.Held;
-        var outcome = _as.Host.Establish(_as.HostPath, _as.Own, _as.Refused, out var hold);
-        if (outcome == Outcome.Held) _hold = hold;
+        var (own, refused) = RequestOf(sharing, mode);
+        var outcome = _as.Host.Establish(_as.HostPath, own, refused, _hold, out var hold);
+        if (outcome != Outcome.Held) return outcome;
+        (_before, _as, _hold) = (_as, (_as.Host, _as.HostPath, own, refused), hold);
         return outcome;
     }
 
@@ -127,7 +144,27 @@ internal sealed class RunUnitFileLock : IDisposable
         _hold is IPublishedColumn published
         && (published.AnotherHolds(ExistingSharingColumn.AllOtherInput) || published.AnotherHolds(ExistingSharingColumn.ReadOnlyInput));
 
-    /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent; <see cref="Retake"/> can establish it again.</summary>
+    /// <summary>Is this lock held through an open handle on the physical file (<see cref="IPublishedColumn.HoldsAHandle"/>:
+    /// the Windows column holder)? Such a handle is its owner's own, which a probe for another's handle must admit.</summary>
+    internal bool HoldsAHandle => _hold is IPublishedColumn { HoldsAHandle: true };
+
+    /// <summary>Publish again the column this lock held before <see cref="Amend"/>, with no test — the amended OPEN was
+    /// unsuccessful and §14.9.27.4 GR25 leaves the file unaffected, so the kept lock stands as the CLOSE left it. A holder
+    /// the new column admitted in the meantime was admitted by an OPEN in progress, which is the OPEN's own instant and not a
+    /// window. False (and the lock given back) when the host cannot publish it again.</summary>
+    internal bool Revert()
+    {
+        if (_before is not { } before) return true;
+        if (before.Host.Establish(before.HostPath, before.Own, [], _hold, out var hold) != Outcome.Held)
+        {
+            Dispose();
+            return false;
+        }
+        (_as, _hold, _before) = (before, hold, null);
+        return true;
+    }
+
+    /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent.</summary>
     public void Dispose()
     {
         _hold?.Dispose();

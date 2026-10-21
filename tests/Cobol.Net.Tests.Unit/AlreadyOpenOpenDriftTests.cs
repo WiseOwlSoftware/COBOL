@@ -21,8 +21,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class AlreadyOpenOpenDriftTests
 {
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb2748-{tag}-{Guid.NewGuid():N}.dat");
-
     private static FileConnector Connector(FileRegistry reg, string name) =>
         (FileConnector)typeof(FileRegistry).GetMethod("Require", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(reg, [name])!;
@@ -38,7 +36,7 @@ public sealed class AlreadyOpenOpenDriftTests
     [Fact]
     public void AReOpen_Answers41_AndLeavesTheOpenConnectorAsItWas()
     {
-        string host = Tmp("reopen");
+        string host = FileHarness.Tmp("reopen");
         try
         {
             var reg = new FileRegistry();
@@ -73,7 +71,7 @@ public sealed class AlreadyOpenOpenDriftTests
             Assert.Null(Connector(plain, "P").SharedPhysical);
             plain.Close("P");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>GR2 precedes the sharing rules (docs/CONFORMANCE.md DOC-A.1-104: the first failing general rule
@@ -82,7 +80,7 @@ public sealed class AlreadyOpenOpenDriftTests
     [Fact]
     public void AReOpenThatASiblingWouldRefuse_IsStill41()
     {
-        string host = Tmp("sibling");
+        string host = FileHarness.Tmp("sibling");
         try
         {
             File.WriteAllText(host, "AAAABBBB");
@@ -97,7 +95,7 @@ public sealed class AlreadyOpenOpenDriftTests
             reg.Close("F");
             reg.Close("G");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ THE STRUCTURAL HALF: in the one OPEN dispatch, GR2's answer comes before every statement that touches

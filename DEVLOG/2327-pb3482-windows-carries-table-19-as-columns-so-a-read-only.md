@@ -40,7 +40,7 @@ refusing it. So the fix is a structure, not a branch:
 
 **What changed for Windows.** Every OPEN of a non-NO OTHER connector now takes a second read handle on the file and about
 seven `LockFileEx` calls. `RunUnitFileLockDriftTests` (773 cases, every sharing and open mode pair through two registries)
-and the new `HandleColumnLockHostDriftTests` (every pair on the host alone, release, retake, the race, contention, 40
+and the new `HandleColumnLockHostDriftTests` (every pair on the host alone, release, the superseding requests, the race, contention, 40
 holders, the INPUT-opener question, a refusing `FileShare.None` handle, absent / directory / device paths; the cases run on
 Windows and a forced host elsewhere is `Unavailable`) hold it to the table. The doc sites that said Windows had no column
 host (`DESIGN-runtime-library.md` 2.1 and 2.2.1.10 As built (3), `CONFORMANCE.md` DOC-A.1-75, `COBOLNET_FILES_DESIGN.md`, the
@@ -55,6 +55,21 @@ the outside-writer test red. Siblings: the other arm of the dispatch is the sequ
 (no APPLY COMMIT on it yet, PB3340); the second attempt is organization-agnostic and `RunUnitFileLockDriftTests` covers it.
 PB3483 (the kept-handle give-back on any IOException in `KeyedConnector.Lock`) is a different mechanism of the same
 cluster and was left alone.
+
+**Merged with PB3483 (the merge queue removed pull request #360 on a conflict when #359 landed).** PB3483 replaced the kept
+column lock's give-back-and-retake by `RunUnitFileLock.Amend` / `Revert` (`IColumnLockHost.Establish`'s `supersedes`) while
+Windows had no column host, so the two changes met only in the merge. `HandleColumnLockHost` now keeps that contract: a
+superseding request publishes its new byte through the kept holder's own handle, the test leaving both own bytes out, and a
+re-OPEN under SHARING WITH NO OTHER gives the holder handle way once the NO OTHER row's test has passed, because the holder
+would refuse its `FileShare.None` handle. The merged tree had a wrong answer of its own: the OUTPUT probe
+(`HostFile.IsHeldByAnother`, a `FileShare.None` request) met the kept holder, which `Amend` no longer gives back, and answered
+'61' to a commit-controlled connector's own re-OPEN OUTPUT under ALL OTHER on Windows. Beside a kept holder the probe is now a
+read request that admits only readers (`HostFile.IsWrittenOrExcludedByAnother`, `FileConnector.ProbeHeldByAnother`); the
+OUTPUT rows' columns refuse every other run unit. `CommitRollbackRuntimeTests.A_reopen_is_not_refused_by_the_column_lock_its_own_close_kept`
+goes red with either the probe or the give-way removed. The second attempt of `FileConnector.Open` no longer withholds the
+kept lock's restoration (the first attempt reverts it and the second amends it again), `RunUnitFileLockAmendTests` runs on
+the Windows host too (its racer is now an OUTPUT request, which every host publishes), and the doc comments that still named
+two hosts (review lead R1-3) are current.
 
 **Gates.** Windows: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run `20261021T183116Z-6cd78e`;
 Conformance 10,850/18,047, Unit 34,263/35,147, Characterization 5/36 in leg 1). Linux (`--legs unit,conformance`):

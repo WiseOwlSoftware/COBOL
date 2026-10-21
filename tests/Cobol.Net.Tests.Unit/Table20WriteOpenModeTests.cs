@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -28,14 +29,11 @@ public sealed class Table20WriteOpenModeTests
     private const int RandomAccess = 1;   // KeyedAccess.Random
     private const int DynamicAccess = 2;  // KeyedAccess.Dynamic
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb325-{tag}-{Guid.NewGuid():N}.dat");
-
     /// <summary>A relative connector at <paramref name="access"/> holding one record at RRN 1, closed.</summary>
     private static (FileRegistry reg, string host) SeededRelative(int access)
     {
         var reg = new FileRegistry();
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         reg.RegisterRelative("F", host, 8, false, access, 4, -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         reg.SetRelativeKey("F", 1);
@@ -48,7 +46,7 @@ public sealed class Table20WriteOpenModeTests
     private static (FileRegistry reg, string host) SeededIndexed(int access)
     {
         var reg = new FileRegistry();
-        string host = Tmp("idx");
+        string host = FileHarness.Tmp("idx");
         reg.RegisterIndexed("F", host, 8, false, access, [new(0, 4)], -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         Assert.Equal(FileStatusCode.Success, reg.WriteKeyed("F", "K001AAAA", -1));
@@ -96,7 +94,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -113,7 +111,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // The complement, so the fix cannot be "always 48": Table 20's Sequential × WRITE × Extend IS an X, and
@@ -129,7 +127,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -143,7 +141,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // Item 8 b)'s permitted pair, at both non-sequential access modes: Table 20's Random/Dynamic × WRITE × I-O
@@ -162,7 +160,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -178,7 +176,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // Item 8 a)'s other half, for symmetry with the arm PB325 changed: Table 20's Sequential × WRITE × I-O is
@@ -195,7 +193,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -209,6 +207,6 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

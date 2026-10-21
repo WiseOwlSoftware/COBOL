@@ -5,6 +5,7 @@ using CobolNet.Editions;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -225,6 +226,6 @@ public sealed class ExceptionPerformDirectiveScopeTests
             _lines = File.ReadAllLines(path);
             return frontend.Directives;
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

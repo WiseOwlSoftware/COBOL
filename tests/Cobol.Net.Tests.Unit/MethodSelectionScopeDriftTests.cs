@@ -6,6 +6,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -98,7 +99,7 @@ public sealed class MethodSelectionScopeDriftTests
             var bound = emitter.Bind(tree!, new EditionContext(2002));
             return emitter.EmitBound(bound, "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>The text of one emitted method, from its header to the header of the next method (or the end).</summary>

@@ -351,25 +351,49 @@ public abstract class FileConnector
     /// OTHER</c>, and emptied it. A <see cref="FileShare.None"/> request (<see cref="HostFile.IsHeldByAnother"/>)
     /// is refused by every outstanding handle there is, which is exactly the OUTPUT rows' meaning, and it is made
     /// BEFORE anything is created (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the
-    /// file is not affected"</i>). A host without mandatory share modes has the region lock instead, which
-    /// refuses an OUTPUT like every other cell of the table and asks a REGULAR file only — the probe is a read
-    /// open, which on a FIFO waits for a writer that is this program's own next statement.</para></summary>
+    /// file is not affected"</i>). Every host also has the column lock (<see cref="RunUnitFileLock"/>, Windows too since
+    /// kb/Work PB3482), which refuses an OUTPUT like every other cell of the table; a host without mandatory share modes
+    /// has only it, and asks a REGULAR file only — the probe is a read open, which on a FIFO waits for a writer that is
+    /// this program's own next statement.</para></summary>
     /// <param name="mode">The open mode being established.</param>
     /// <param name="existedBeforeBody">True before <see cref="OpenCore"/> on a file that is present; false after
     /// the body created it, when the connector's own handle would make the OUTPUT question answer yes.</param>
     private string? TakeRunUnitFileLock(FileOpenMode mode, bool existedBeforeBody)
     {
-        if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HostFile.IsHeldByAnother(HostPath))
+        if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HeldByAnotherHandle())
             return FileStatusCode.FileSharingConflict;
+        // ⛔ A FILE LOCK THE CLOSE KEPT (KeepRunUnitFileLock) is REPLACED by this OPEN's, never given back first: the kept
+        // column refuses this OPEN's as another holder's, and releasing it to get out of its way left the file unlocked for
+        // an instant, and again when the OPEN was unsuccessful (kb/Work PB3483). A refusal leaves it exactly as the CLOSE left
+        // it (§14.9.27.4 GR25).
+        if (KeptFileLock is { } kept)
+            switch (kept.Amend(HostSharing, mode))
+            {
+                case RunUnitFileLock.Outcome.Refused: return FileStatusCode.FileSharingConflict;
+                case RunUnitFileLock.Outcome.Held:
+                    (_runUnitLock, _runUnitLockWasKept) = (kept, true);
+                    TakeKeptFileLockOver();
+                    return null;
+                default: return null;   // this host cannot hold the lock now: the kept one stands, and ends with the success
+            }
         return RunUnitFileLock.Take(HostPath, HostSharing, mode, out _runUnitLock) == RunUnitFileLock.Outcome.Refused
             ? FileStatusCode.FileSharingConflict
             : null;
     }
 
+    /// <summary>Whether <see cref="_runUnitLock"/> is the lock the CLOSE kept, amended by this OPEN
+    /// (<see cref="TakeRunUnitFileLock"/>).</summary>
+    private bool _runUnitLockWasKept;
+
+    /// <summary>The unsuccessful OPEN gives its file lock back (§9.1.15: only a SUCCESSFUL opening establishes one) — or, when
+    /// it is the kept lock this OPEN amended, returns it to the organization's kept state as the CLOSE left it
+    /// (<see cref="TryRestoreKeptFileLock"/>).</summary>
     private void ReleaseRunUnitFileLock()
     {
-        _runUnitLock?.Dispose();
-        _runUnitLock = null;
+        var (held, wasKept) = (_runUnitLock, _runUnitLockWasKept);
+        (_runUnitLock, _runUnitLockWasKept) = (null, false);
+        if (held is null) return;
+        if (!wasKept || !TryRestoreKeptFileLock(held)) held.Dispose();
     }
 
     /// <summary>The cross-run-unit file lock handed to the organization by a CLOSE that KEEPS it (§14.9.7.4 GR4: <i>"For
@@ -383,17 +407,38 @@ public abstract class FileConnector
         return kept;
     }
 
-    /// <summary>A file lock this connector's CLOSE kept (<see cref="KeepRunUnitFileLock"/>) ends when the connector is
-    /// REOPENED (§14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN gives it back immediately before it
-    /// establishes its own, which the kept one would otherwise refuse as another holder's.</summary>
-    private protected virtual void ReleaseKeptFileLock() { }
+    /// <summary>Is the (present) physical file held open by a handle that is not THIS connector's own
+    /// (<see cref="HostFile.IsHeldByAnother"/>)? A handle the connector's CLOSE kept (<see cref="HoldsKeptHandle"/>) is its
+    /// own: §9.1.13.9 1) e) speaks of <i>"another file connector"</i>, so a re-OPEN OUTPUT is not refused by it (kb/Work PB3483).</summary>
+    private protected virtual bool HeldByAnotherHandle() => ProbeHeldByAnother();
 
-    /// <summary>The re-OPEN that gave a kept file lock back (<see cref="ReleaseKeptFileLock"/>) was UNSUCCESSFUL: the
-    /// organization takes the kept lock again, because an unsuccessful OPEN leaves the file as it was (§14.9.27.4 GR25,
-    /// <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>) and the file stays closed
-    /// and not reopened until the COMMIT (§14.9.7.4 GR4). Runs after this OPEN's own lock is given back, which would
-    /// otherwise refuse it.</summary>
-    private protected virtual void RetakeKeptFileLock() { }
+    /// <summary>The host's probe behind <see cref="HeldByAnotherHandle"/>, beside what the connector's CLOSE kept of the
+    /// column lock. ⛔ A KEPT FILE LOCK THAT IS ITSELF A HANDLE ON THE FILE (the Windows column holder,
+    /// <see cref="HandleColumnLockHost"/>, kb/Work PB3482) is the connector's own too, and it stays held through the
+    /// question (<see cref="RunUnitFileLock.Amend"/> replaces it after the probe, with no instant in which the file is
+    /// unlocked, kb/Work PB3483), so the probe is the one that admits it (<see cref="HostFile.IsWrittenOrExcludedByAnother"/>);
+    /// every other run unit's connector is refused by the OUTPUT row's columns, which refuse every column.</summary>
+    private protected bool ProbeHeldByAnother() => KeptFileLock is { HoldsAHandle: true }
+        ? HostFile.IsWrittenOrExcludedByAnother(HostPath)
+        : HostFile.IsHeldByAnother(HostPath);
+
+    /// <summary>The file lock this connector's CLOSE kept (<see cref="KeepRunUnitFileLock"/>) and its re-OPEN has not yet
+    /// replaced, or null. It ends when the connector is REOPENED (§14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN
+    /// replaces it by its own (<see cref="TakeRunUnitFileLock"/>), which the kept one would otherwise refuse as another
+    /// holder's.</summary>
+    private protected virtual RunUnitFileLock? KeptFileLock => null;
+
+    /// <summary>The OPEN replaced <see cref="KeptFileLock"/> by its own: the connector holds that lock now, and the
+    /// organization's kept state no longer does.</summary>
+    private protected virtual void TakeKeptFileLockOver() { }
+
+    /// <summary>The OPEN that replaced a kept file lock (<see cref="TakeKeptFileLockOver"/>) was UNSUCCESSFUL: the
+    /// organization puts the lock back on the column the CLOSE kept (<see cref="RunUnitFileLock.Revert"/>) and into its kept
+    /// state, because an unsuccessful OPEN leaves the file as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN
+    /// statement is unsuccessful, the file is not affected"</i>) and the file stays closed and not reopened until the COMMIT
+    /// (§14.9.7.4 GR4). False when it keeps nothing any more (or the host will not publish the column again); the caller
+    /// then ends the lock.</summary>
+    private protected virtual bool TryRestoreKeptFileLock(RunUnitFileLock held) => false;
 
     /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
@@ -808,8 +853,8 @@ public abstract class FileConnector
     /// <summary>One attempt of <see cref="Open"/>. <paramref name="refusedAfterTheColumnWasHeld"/> is true when the attempt
     /// answered '61' from the host's share mode with the Table 19 column held and a posture that yields
     /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>) still to try; the connector is then exactly as an
-    /// unsuccessful OPEN leaves it, except that what a CLOSE under commit control kept has not been taken again — the second
-    /// attempt does, if it too is unsuccessful.</summary>
+    /// unsuccessful OPEN leaves it, a file lock its CLOSE under commit control kept back on the kept column
+    /// (<see cref="RunUnitFileLock.Revert"/>), which the second attempt replaces again (<see cref="RunUnitFileLock.Amend"/>).</summary>
     private string OpenOnce(FileOpenMode mode, bool ownedWritesAdmitted, out bool refusedAfterTheColumnWasHeld)
     {
         refusedAfterTheColumnWasHeld = false;
@@ -900,12 +945,8 @@ public abstract class FileConnector
             // because an OPEN that is going to be unsuccessful leaves the file unaffected (GR25) and OUTPUT's
             // body truncates it (kb/Work PB833). A file that does not exist yet is locked after the body has
             // created it, below: nothing can hold what is not there.
-            ReleaseKeptFileLock();
             if (presence is FilePresence.Present && TakeRunUnitFileLock(mode, existedBeforeBody: true) is { } refusal)
-            {
-                RetakeKeptFileLock();      // §14.9.27.4 GR25 — the kept lock stands as the CLOSE left it
-                return Status = refusal;   // '61' §9.1.13.9 1)
-            }
+                return Status = refusal;   // '61' §9.1.13.9 1) — a file lock the CLOSE kept stands as the CLOSE left it (GR25)
             s = OpenCore(mode, presence);
             if (s[0] == '0' && _runUnitLock is null && TakeRunUnitFileLock(mode, existedBeforeBody: false) is { } lateRefusal) s = lateRefusal;
         }
@@ -954,10 +995,12 @@ public abstract class FileConnector
                 && column.AnotherInputOpenerHolds();
             try { AbandonOpen(); }
             catch (IOException) { }   // the status above stands (§14.9.27.4 GR25 — the unsuccessful OPEN's own)
-            ReleaseRunUnitFileLock();   // §9.1.15 — only a SUCCESSFUL opening establishes the lock
-            if (!refusedAfterTheColumnWasHeld)
-                RetakeKeptFileLock();   // §14.9.27.4 GR25 — what a CLOSE under commit control kept stands as it was
+            // §9.1.15 — only a SUCCESSFUL opening establishes the lock; §14.9.27.4 GR25 — what a CLOSE under commit
+            // control kept stands as it was, so a kept lock this OPEN amended goes back to the kept state (a second attempt
+            // amends it again, with no instant in which the file is unlocked: RunUnitFileLock.Amend, Revert).
+            ReleaseRunUnitFileLock();
         }
+        _runUnitLockWasKept = false;   // a SUCCESSFUL OPEN's lock is the connector's own; the kept one it replaced is gone
         // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement
         // CREATES a file — GR18's OUTPUT, GR17's absent OPTIONAL I-O/EXTEND — are exactly the moments each
