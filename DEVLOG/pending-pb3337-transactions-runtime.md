@@ -96,5 +96,48 @@ synced; a power loss during the reversal follows 2.2.1.16's reversal rows. The 2
 "As built" (3) were updated too. PB3337 is landed and closes DOC-A.1-152; PB3338 is unblocked.
 
 *Self-review.* The two transaction test classes shared one tree walker, now `TransactionTrees`, and their private `Org`,
-`Tmp` and `TryDelete` copies are gone in favour of `FileHarness`. Two issues are left as leads: the re-OPEN window of a
-kept handle whose share mode refuses the new one, and HOLDINGS keys compared as bytes under an ALPHABET.
+`Tmp` and `TryDelete` copies are gone in favour of `FileHarness`. HOLDINGS keys compared as bytes under an ALPHABET is
+left as a lead.
+
+### The branch review, round 1
+
+The reviewer found four blocking defects, each probed out of tree against the branch build, and all four reproduced.
+
+*A re-OPEN lost the transaction (R1-1).* `Attach` gave back the kept handle at its end through `ReleaseKept`, which
+asked `IsOpen` to decide whether to forget the store. `IsOpen` is false until `FileConnector.Open` sets the open mode
+after `OpenCore`, so every re-OPEN forgot the live store and attached a fresh one with no records and no transaction. A
+re-OPEN then read '23' for the run unit's own uncommitted record, a WRITE escaped as an `InvalidOperationException`, and a
+COMMIT reported success while the dead-owner step later rolled the changes back. Probing the fix found three siblings.
+The GR16 write probe (`HostFile.PermitsWrite`) was refused by the kept handle's own NO OTHER share mode, so the re-OPEN of
+a file under the I-O default sharing answered '61'. The share-mode fallback forgot the store as well, and its new handle
+let the run unit's own dead-owner step roll back its own transaction. An INPUT re-OPEN left the store with no writable
+handle, so the COMMIT threw "an INPUT store commits nothing". The kept state is now `KeyedConnector.Kept`: the attachment
+always, the handle until given back, the column lock until replaced. The re-OPEN carries the attachment on (`Attach` reuses
+`AttachedStore`). It ADOPTS the kept handle when the share mode and write access match, with no gap. Otherwise it moves
+the liveness byte to its own handle inside the attach's mutex hold (`KeyedStore.HoldLivenessThrough`, shared on a handle
+that cannot hold it exclusively) and gives the kept handle back once the OPEN has succeeded (`CarryKeptOver`). While a
+writable kept handle carries the transaction, it takes its handle writable in every mode. A failed re-OPEN leaves the
+kept state as it was (GR25). The write probe is skipped for a connector that still holds its kept handle.
+
+*The CLOSE kept the lock only with a transaction (R1-2).* §9.1.15 removes the file lock at the CLOSE "except where the
+file is subject to an active APPLY COMMIT clause", so the rule is the clause's. The CLOSE now keeps it for every connector
+under commit control, and `CloseAll` releases every kept handle after its implicit CLOSEs (§9.1.18.5, "In both cases all
+file and record locks are then released").
+
+*An abnormal ending's refused rollback was committed (R1-4).* `RunUnit.Terminate` ran the file-only ROLLBACK and then
+`CloseAll`, whose first step is the normal ending's COMMIT, so a refused rollback was committed. A transaction the run unit
+owes a rollback (one refused, or a file marked UNACKNOWLEDGED) is now never committed: `KeyedStore.Commit` refuses it before
+touching the medium, and the caller rolls back again. A store left with no writable handle refuses COMMIT and ROLLBACK
+('30') where it used to answer success without doing anything.
+
+*Witnesses.* `A_transaction_carries_over_a_close_and_reopen_of_its_connector` covers both organizations under ALL OTHER
+and NO OTHER, an I-O and an INPUT re-OPEN, and COMMIT and ROLLBACK, read back through a writable OPEN whose dead-owner
+step would undo a lost transaction. Another run unit's REWRITE of the record answers '51' through the INPUT re-OPEN's
+handle. The GR4 witness gains the arm that only READ (R1-2) and the release at the run unit's end.
+`A_transaction_whose_rollback_was_refused_is_never_committed` covers the abnormal ending refused once and always, and a
+program's COMMIT after its refused ROLLBACK. The holder-death matrix gains the arm with A under commit control (R1-3): A's
+first change draws its id while B dies at every operation, A's id is never B's, and A's COMMIT keeps only A's records.
+The lead R1-5 got a witness of `RunUnit.Run`'s boundary: a body that returns or ends by STOP RUN commits, and one a
+runtime failure ends rolls back. The design's 2.2.1.10 "As built" (3) and (5), the liveness-byte row and three stale
+`ClosedUnderCommit` names were corrected. The remaining lead is the share-mode window itself: between the kept handle's
+release and the new handle's taking, another run unit's OPEN can take the file or run its dead-owner step.
