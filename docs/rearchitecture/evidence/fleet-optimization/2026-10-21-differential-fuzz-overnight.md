@@ -105,9 +105,9 @@ takes the `ON SIZE ERROR` branch and ALSO stores 1 into the receiving item (`VAR
 specified (section 14.7.5 rule 1, checked: the values of all of the resultant data items remain unchanged from the values they had at the start of the execution of the arithmetic statement). The runtime sets the exception in `cob_decimal_pow` but still
 returns the value 1, and `cob_decimal_get_field` stores anything that is not NaN. A fuzz program that prints the receiving item
 after a handled `0 ** 0` will therefore show a one-sided row (WiseOwl leaves the item, GnuCOBOL writes 1); it is GnuCOBOL's, not
-ours. The probe's third statement also shows `FUNCTION EXCEPTION-STATUS` reporting `EC-SIZE-EXPONENTIATION` after a literal
-`0 ** 0` with no phrase, a stale value from the previous statement: GnuCOBOL does not clear the last exception between statements
-that raise none.
+ours. The probe's second statement also shows `FUNCTION EXCEPTION-STATUS` reporting `EC-SIZE-EXPONENTIATION` after the literal
+`0 ** 0` that the folding reduced to 1 (so nothing was raised there): a stale value from the first statement. GnuCOBOL does not
+clear the last exception between statements that raise none.
 
 Not pursued: reporting any of these upstream (the owner's call), and GnuCOBOL's behaviour at `gnucobol-3.x` head beyond the
 sites read.
