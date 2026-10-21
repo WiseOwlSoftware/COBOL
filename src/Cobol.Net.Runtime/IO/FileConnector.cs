@@ -186,6 +186,16 @@ public abstract class FileConnector
     /// REWRITE makes once its own rules have passed and before it changes anything.</summary>
     private protected string? RefusedAtCommit() => CommitGate?.Invoke();
 
+    /// <summary>The RETRY phrase of the governed statement now executing (§14.7.9; none outside one), which the keyed
+    /// organizations' holdings test applies to a transaction's lock (DESIGN-runtime-library.md 2.2.1.10; §14.9.51.4 GR16).
+    /// Set and cleared by the registry around the statement, as <see cref="CommitGate"/> is.</summary>
+    internal (FileRetryKind Kind, long Amount) StatementRetry { get; set; }
+
+    /// <summary>Whether a transaction may hold a record of this connector's physical file in the FILE (a keyed store's
+    /// HOLDINGS tree is not empty, DESIGN-runtime-library.md 2.2.1.10), so a READ's lock question cannot be answered from
+    /// the region alone. False for every organization without a store.</summary>
+    internal virtual bool HoldingsMayExist => false;
+
     /// <summary>Set the I-O status directly (facade-level conditions: a locked-file OPEN, a REEL/UNIT CLOSE) — an
     /// attempted access like any other status assignment.</summary>
     public void SetStatus(string status) => Status = status;
@@ -354,6 +364,33 @@ public abstract class FileConnector
         _runUnitLock?.Dispose();
         _runUnitLock = null;
     }
+
+    /// <summary>The cross-run-unit file lock handed to the organization by a CLOSE that KEEPS it (§14.9.7.4 GR4: <i>"For
+    /// files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement,
+    /// the file locks are released."</i> — so until that COMMIT they are not): the connector no longer holds it, so the
+    /// CLOSE's own release passes it by, and the organization gives it back at the COMMIT or ROLLBACK.</summary>
+    private protected RunUnitFileLock? KeepRunUnitFileLock()
+    {
+        var kept = _runUnitLock;
+        _runUnitLock = null;
+        return kept;
+    }
+
+    /// <summary>A file lock this connector's CLOSE kept (<see cref="KeepRunUnitFileLock"/>) ends when the connector is
+    /// REOPENED (§14.9.7.4 GR4, <i>"closed and not reopened"</i>): the OPEN gives it back immediately before it
+    /// establishes its own, which the kept one would otherwise refuse as another holder's.</summary>
+    private protected virtual void ReleaseKeptFileLock() { }
+
+    /// <summary>The re-OPEN that gave a kept file lock back (<see cref="ReleaseKeptFileLock"/>) was UNSUCCESSFUL: the
+    /// organization takes the kept lock again, because an unsuccessful OPEN leaves the file as it was (§14.9.27.4 GR25,
+    /// <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>) and the file stays closed
+    /// and not reopened until the COMMIT (§14.9.7.4 GR4). Runs after this OPEN's own lock is given back, which would
+    /// otherwise refuse it.</summary>
+    private protected virtual void RetakeKeptFileLock() { }
+
+    /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
+    /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
+    private protected virtual bool HoldsKeptHandle => false;
 
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
@@ -823,7 +860,12 @@ public abstract class FileConnector
             // The Present guard is likewise required: an ABSENT target has no capability to probe, and the two
             // modes that reach OpenCore absent both CREATE (GR17's optional I-O/EXTEND, GR18's OUTPUT), where
             // the creating stream's own refusal is the authority answer.
-            if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HostFile.PermitsWrite(HostPath))
+            // A connector that still holds the handle its CLOSE under commit control kept (§9.1.15's file lock, until the
+            // COMMIT) is not probed either: that handle's own share mode would refuse the probe — '61' for the
+            // connector's own re-OPEN (review finding R1-1) — and the handle the re-OPEN takes writable asks the same
+            // question, its UnauthorizedAccessException reaching the same '37' through the catch below.
+            if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HoldsKeptHandle
+                && !HostFile.PermitsWrite(HostPath))
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR16 / §9.1.13.6 item 6 a)
             // §9.1.15 — "The successful opening of a file establishes a file lock for the applicable sharing
             // rules, thereby preventing other run units from opening that file with incompatible sharing rules":
@@ -831,8 +873,12 @@ public abstract class FileConnector
             // because an OPEN that is going to be unsuccessful leaves the file unaffected (GR25) and OUTPUT's
             // body truncates it (kb/Work PB833). A file that does not exist yet is locked after the body has
             // created it, below: nothing can hold what is not there.
+            ReleaseKeptFileLock();
             if (presence is FilePresence.Present && TakeRunUnitFileLock(mode, existedBeforeBody: true) is { } refusal)
+            {
+                RetakeKeptFileLock();      // §14.9.27.4 GR25 — the kept lock stands as the CLOSE left it
                 return Status = refusal;   // '61' §9.1.13.9 1)
+            }
             s = OpenCore(mode, presence);
             if (s[0] == '0' && _runUnitLock is null && TakeRunUnitFileLock(mode, existedBeforeBody: false) is { } lateRefusal) s = lateRefusal;
         }
@@ -875,6 +921,7 @@ public abstract class FileConnector
             try { AbandonOpen(); }
             catch (IOException) { }   // the status above stands (§14.9.27.4 GR25 — the unsuccessful OPEN's own)
             ReleaseRunUnitFileLock();   // §9.1.15 — only a SUCCESSFUL opening establishes the lock
+            RetakeKeptFileLock();       // §14.9.27.4 GR25 — what a CLOSE under commit control kept stands as it was
         }
         // ⛔ NOTHING IS RECORDED HERE, AND THE ABSENCE IS THE DESIGN (kb/Work PB802). §9.1.6's fixed file
         // attributes "apply to the file at the time it is created", and the two moments the OPEN statement

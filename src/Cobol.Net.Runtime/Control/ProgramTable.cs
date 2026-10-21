@@ -310,6 +310,9 @@ public sealed class ProgramTable
             ensureRegistered?.Invoke();
             ActivateMain(path);
         }
+        // Every ending but STOP RUN's is abnormal (§14.6.12), and RunUnit.Terminate's file-only ROLLBACK reads it (§9.1.18.5;
+        // kb/Work PB3337): a filter, so it records the ending before the finally and never catches.
+        catch (Exception e) when (_owner.NoteEnding(e)) { throw; }
         // The §14.6.12 abnormal-termination surface for a FATAL condition that reached the run-unit boundary
         // unhandled — every family, so none escapes as a raw CLR crash: the run-unit fatals of EndsRunUnitAbnormally
         // AND the CALL/CANCEL machinery fatals (CobolCallException — EC-PROGRAM-NOT-FOUND / -RECURSIVE-CALL /
@@ -454,6 +457,7 @@ public sealed class ProgramTable
         if (ending is null) return;
         bool abnormal = ending is not StopRun;
         long status = abnormal ? AbnormalTerminationStatus : _owner.ExitStatus;
+        _owner.NoteEnding(ending);   // §14.6.12's file-only ROLLBACK for an abnormal ending (RunUnit.Terminate)
         _owner.EndForHost();
         throw new RunUnitEndedException(status, abnormal, abnormal
             ? AbnormalTerminationReport(ending.Message)
