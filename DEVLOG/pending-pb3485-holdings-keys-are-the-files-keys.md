@@ -35,6 +35,10 @@ before the slot); the order itself, with its record numbers and its refusal of a
 namespace pass with the changed signatures. The design (2.2.1.10 As built (4)) says the keys are ordered by the file's key
 orders; it had said they compare as bytes.
 
+**Gates.** Windows: `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (Unit 33,905 cases in leg 1, the 11 new
+ones among them). Linux, `--legs unit,conformance`: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built;
+HEAD e23bc072c)`, 18,047 conformance cases.
+
 **Self-review** (pr-test-analyzer, silent-failure-hunter, comment-analyzer, type-design-analyzer on the new type). The
 order throws `NotSupportedException` for the partial-key members rather than guessing, because no seek of these trees takes
 a partial key; `MarksOf` returns zeros, which `BTree` stores in the root header. No inventory row is claimed or closed.
