@@ -34,6 +34,7 @@ namespace CobolNet.Tests.Unit;
 /// transfer — the PB405 defect — and this test names it. A new container the emitter learns to lower is covered
 /// automatically: nothing in the scanner knows what a PERFORM is.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class DispatcherTransferIdiomDriftTests
 {
     // Every transfer statement there is, each written INSIDE a lowered C# container. S1-A alone carries the
@@ -331,8 +332,10 @@ public sealed class DispatcherTransferIdiomDriftTests
         var dep = cs.Split('\n').Where(l => l.Contains("__dep", StringComparison.Ordinal) && l.Contains("goto __xfer;", StringComparison.Ordinal)).ToList();
         Assert.Single(dep);
         Assert.Contains("__atExit = false; goto __xfer;", dep[0], StringComparison.Ordinal);
-        // The format-1 GO TO beside it (the EVALUATE arm's `GO TO S2-B`) is the same explicit transfer.
-        Assert.Contains("__atExit = false; __pc = ", cs, StringComparison.Ordinal);
+        // The format-1 GO TOs beside it (the EVALUATE arm's `GO TO S2-B`, the SEARCH AT END's `GO TO S2-A`) are the
+        // same explicit transfer: three of them in the fixture, the DEPENDING one included.
+        int explicitJumps = cs.Split("__atExit = false; goto __xfer;").Length - 1;
+        Assert.True(explicitJumps >= 3, $"only {explicitJumps} explicit transfers cleared __atExit before jumping");
     }
 
     /// <summary>THE SECOND ARM. A COBOL method's dispatcher is a LOCAL FUNCTION (<c>__MDispatch</c>, OO deep-dive
