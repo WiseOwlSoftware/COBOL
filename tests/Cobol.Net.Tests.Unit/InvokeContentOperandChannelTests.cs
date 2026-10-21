@@ -10,6 +10,7 @@ using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -40,7 +41,7 @@ public sealed class InvokeContentOperandChannelTests
             var tree = new CnFrontend { InitialFormat = InitialReferenceFormat.Auto, DialectLevel = edition }.Parse(path, diags);
             return (tree, diags);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>A minimal program whose PROCEDURE DIVISION is <paramref name="invoke"/>. The INVOKE need not

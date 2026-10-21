@@ -38,7 +38,7 @@ public sealed class RelativeEnginePermanentErrorWitnessTests
     /// flipped, so its checksum fails at the next read (2.2.1.6 R3).</summary>
     private static string TornFile()
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb3333-torn-{Guid.NewGuid():N}.dat");
+        string host = FileHarness.Tmp("pb3333-torn");
         FileHarness.Seed(host, FileOrg.Relative, [(4, "DDDD")]);
         FileHarness.TearPagesCarrying(host, "0004DDDD"u8);
         return host;
