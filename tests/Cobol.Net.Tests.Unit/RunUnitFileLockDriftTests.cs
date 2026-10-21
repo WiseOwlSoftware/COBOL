@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -20,14 +21,11 @@ namespace CobolNet.Tests.Unit;
 [Trait("Host", "ReFS")]
 public sealed class RunUnitFileLockDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb833-{tag}-{Guid.NewGuid():N}.dat");
-
-    public static TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileLockPostureDriftTests.Org> EveryPair()
+    public static TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg> EveryPair()
     {
-        var data = new TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileLockPostureDriftTests.Org>();
+        var data = new TheoryData<FileSharing?, FileOpenMode, FileSharing?, FileOpenMode, FileOrg>();
         FileSharing?[] spellings = [null, FileSharing.NoOther, FileSharing.ReadOnly, FileSharing.AllOther];
-        foreach (var org in Enum.GetValues<FileLockPostureDriftTests.Org>())
+        foreach (var org in Enum.GetValues<FileOrg>())
             foreach (var sa in spellings)
                 foreach (var ma in Enum.GetValues<FileOpenMode>())
                     foreach (var sb in spellings)
@@ -36,45 +34,20 @@ public sealed class RunUnitFileLockDriftTests
         return data;
     }
 
-    private static void Register(FileRegistry reg, string name, string host, FileSharing? sharing,
-        FileLockPostureDriftTests.Org org)
-    {
-        switch (org)
-        {
-            case FileLockPostureDriftTests.Org.Relative:
-                reg.RegisterRelative(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-                break;
-            case FileLockPostureDriftTests.Org.Indexed:
-                reg.RegisterIndexed(name, host, recordWidth: 4, optional: false, accessMode: 0,
-                    primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
-                break;
-            default:
-                reg.Register(name, host, recordWidth: 4, lineSequential: false, optional: false,
-                    varyMin: -1, varyMax: -1);
-                break;
-        }
-        if (sharing is { } s) reg.RegisterSharing(name, s, FileLockMode.Manual, multiple: false);
-    }
-
     [Theory]
     [MemberData(nameof(EveryPair))]
     public void ASecondRunUnitsOpenIsArbitratedByTable19(FileSharing? sa, FileOpenMode ma, FileSharing? sb,
-        FileOpenMode mb, FileLockPostureDriftTests.Org org)
+        FileOpenMode mb, FileOrg org)
     {
-        string host = Tmp($"{org}-{sa}{ma}-{sb}{mb}");
+        string host = FileHarness.Tmp($"{org}-{sa}{ma}-{sb}{mb}");
         try
         {
-            var seed = new FileRegistry();
-            Register(seed, "S", host, null, org);
-            seed.OpenStatic("S", FileOpenMode.Output);
-            seed.WriteShared("S", "SEED", -1, FileRecordLock.None, FileRetryKind.None, 0, page: null);
-            seed.Close("S");
+            FileHarness.Seed(host, org, ["SEED"]);
 
             var runUnit1 = new FileRegistry();
             var runUnit2 = new FileRegistry();
-            Register(runUnit1, "A", host, sa, org);
-            Register(runUnit2, "B", host, sb, org);
+            FileHarness.Register(runUnit1, "A", host, org, sa);
+            FileHarness.Register(runUnit2, "B", host, org, sb);
 
             runUnit1.OpenStatic("A", ma);
             Assert.True(runUnit1.Status("A")[0] == '0',
@@ -97,30 +70,27 @@ public sealed class RunUnitFileLockDriftTests
             runUnit2.CloseAll();
             runUnit1.CloseAll();
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>§9.1.15: <i>"The file lock is removed by an explicit or implicit CLOSE statement executed for that
     /// file connector"</i> — so the refusal is not sticky: the CLOSE gives the lock back and the very next OPEN of
     /// the other run unit succeeds, in every organization.</summary>
     [Theory]
-    [InlineData(FileLockPostureDriftTests.Org.Sequential)]
-    [InlineData(FileLockPostureDriftTests.Org.Relative)]
-    [InlineData(FileLockPostureDriftTests.Org.Indexed)]
-    public void TheCloseGivesTheFileLockBack(FileLockPostureDriftTests.Org org)
+    [InlineData(FileOrg.Sequential)]
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void TheCloseGivesTheFileLockBack(FileOrg org)
     {
-        string host = Tmp($"close-{org}");
+        string host = FileHarness.Tmp($"close-{org}");
         try
         {
-            var seed = new FileRegistry();
-            Register(seed, "S", host, null, org);
-            seed.OpenStatic("S", FileOpenMode.Output);
-            seed.Close("S");
+            FileHarness.SeedRecords(host, org, 0);
 
             var runUnit1 = new FileRegistry();
             var runUnit2 = new FileRegistry();
-            Register(runUnit1, "A", host, FileSharing.NoOther, org);
-            Register(runUnit2, "B", host, FileSharing.AllOther, org);
+            FileHarness.Register(runUnit1, "A", host, org, FileSharing.NoOther);
+            FileHarness.Register(runUnit2, "B", host, org, FileSharing.AllOther);
 
             runUnit1.OpenStatic("A", FileOpenMode.IO);
             Assert.Equal(FileStatusCode.Success, runUnit1.Status("A"));
@@ -132,7 +102,7 @@ public sealed class RunUnitFileLockDriftTests
             Assert.Equal(FileStatusCode.Success, runUnit2.Status("B"));
             runUnit2.CloseAll();
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ ONLY A REGULAR FILE IS LOCKED. A device node is not a file whose bytes another run unit can
@@ -156,20 +126,17 @@ public sealed class RunUnitFileLockDriftTests
     [Fact]
     public void TwoSimultaneousExclusiveOpens_NeverBothSucceed()
     {
-        string host = Tmp("race");
+        string host = FileHarness.Tmp("race");
         try
         {
-            var seed = new FileRegistry();
-            Register(seed, "S", host, null, FileLockPostureDriftTests.Org.Sequential);
-            seed.OpenStatic("S", FileOpenMode.Output);
-            seed.Close("S");
+            FileHarness.SeedRecords(host, FileOrg.Sequential, 0);
 
             for (int round = 0; round < 200; round++)
             {
                 var a = new FileRegistry();
                 var b = new FileRegistry();
-                Register(a, "A", host, FileSharing.NoOther, FileLockPostureDriftTests.Org.Sequential);
-                Register(b, "B", host, FileSharing.NoOther, FileLockPostureDriftTests.Org.Sequential);
+                FileHarness.Register(a, "A", host, FileOrg.Sequential, FileSharing.NoOther);
+                FileHarness.Register(b, "B", host, FileOrg.Sequential, FileSharing.NoOther);
                 using var barrier = new Barrier(2);
                 var opened = new string[2];
                 var threads = new[]
@@ -187,6 +154,6 @@ public sealed class RunUnitFileLockDriftTests
                 b.CloseAll();
             }
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

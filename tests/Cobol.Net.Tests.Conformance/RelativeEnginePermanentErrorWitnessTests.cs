@@ -39,8 +39,8 @@ public sealed class RelativeEnginePermanentErrorWitnessTests
     private static string TornFile()
     {
         string host = Path.Combine(Path.GetTempPath(), $"pb3333-torn-{Guid.NewGuid():N}.dat");
-        KeyedFileHarness.Seed(host, KeyedOrg.Relative, [(4, "DDDD")]);
-        KeyedFileHarness.TearPagesCarrying(host, "0004DDDD"u8);
+        FileHarness.Seed(host, FileOrg.Relative, [(4, "DDDD")]);
+        FileHarness.TearPagesCarrying(host, "0004DDDD"u8);
         return host;
     }
 

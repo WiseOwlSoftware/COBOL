@@ -6,12 +6,12 @@ using Xunit;
 namespace CobolNet.Tests.Shared;
 
 /// <summary>
-/// The half of <see cref="KeyedFileHarness"/> that reaches the runtime's INTERNAL surface (kb/Work PB3472). The class
-/// itself is <c>tests/_shared/KeyedFileHarness.cs</c>, linked into every test project; the region host
+/// The half of <see cref="FileHarness"/> that reaches the runtime's INTERNAL surface (kb/Work PB3472). The class
+/// itself is <c>tests/_shared/FileHarness.cs</c>, linked into every test project; the region host
 /// (<c>HostRegionLocks</c>) is visible to the Unit assembly only (the runtime's <c>InternalsVisibleTo</c>), so the
 /// store-mutex probe is declared here, in the same partial class, and only the Unit project has it.
 /// </summary>
-public static partial class KeyedFileHarness
+public static partial class FileHarness
 {
     /// <summary>What another run unit's connector meets at the store mutex: a second handle on the file, opened as
     /// that run unit's would be (<paramref name="writable"/>: write access, else read access), asks the region host
