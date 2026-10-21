@@ -55,14 +55,14 @@ public sealed class CommitRollbackRuntimeTests
 
     /// <summary>Register connector <paramref name="name"/> in <paramref name="reg"/> as <see cref="Open"/> declares it.</summary>
     private static void Declare(FileRegistry reg, string host, FileOrg org, bool commit, string name = "F",
-        FileSharing sharing = FileSharing.AllOther)
+        FileSharing sharing = FileSharing.AllOther, bool optional = false)
     {
         if (org == FileOrg.Relative)
-            reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+            reg.RegisterRelative(name, host, recordWidth: 8, optional: optional, accessMode: (int)KeyedAccess.Dynamic,
                 relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
         else
         {
-            reg.RegisterIndexed(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
+            reg.RegisterIndexed(name, host, recordWidth: 8, optional: optional, accessMode: (int)KeyedAccess.Dynamic,
                 primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
             reg.AddAlternateKey(name, [new(4, 4)], duplicates: false);
         }
@@ -1038,6 +1038,55 @@ public sealed class CommitRollbackRuntimeTests
             var expected = new string?[10];
             expected[2] = Rec(2, "A002");
             Assert.Equal(expected, Contents(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
+    /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
+    /// removed outside the run unit, so the OPEN ('05') ends it instead of attaching beside it, and a later OPEN of the file made
+    /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. A host that keeps a file
+    /// while a handle on it stands (Windows: the kept handle's share mode admits no delete) refuses the removal, which is the
+    /// host's own protection of the kept state.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileOpenMode.Input)]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Input)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO)]
+    public void A_reopen_of_an_optional_file_that_vanished_ends_what_the_close_kept(FileOrg org, FileOpenMode mode)
+    {
+        string host = Tmp($"pb3493-vanished-{org}-{mode}");
+        try
+        {
+            Seed(host, org);
+            var a = new FileRegistry();
+            Declare(a, host, org, commit: true, optional: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            try { File.Delete(host); }
+            catch (IOException) when (OperatingSystem.IsWindows())
+            {
+                Assert.Null(a.Rollback());   // the host kept the file with the handle: there is no vanished file to re-OPEN
+                a.CloseAll();
+                return;
+            }
+            a.OpenStatic("F", mode);
+            Assert.Equal("05", a.Status("F"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
+            Assert.Equal("00", Write(maker, org, 2, "B002"));
+            maker.CloseAll();
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Read(a, org, 2, out var image));
+            Assert.Equal(Rec(2, "B002"), image);
+            Assert.Equal("23", Read(a, org, 7, out _));
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            a.CloseAll();
         }
         finally { TryDelete(host); }
     }

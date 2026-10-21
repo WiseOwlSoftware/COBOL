@@ -244,7 +244,10 @@ public abstract class KeyedConnector : FileConnector
                 {
                     if (!IsOptional) return FileStatusCode.FileNotFound;
                     OptionalAbsent = true;               // positioned "not present" (§14.9.27 GR13)
-                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here.
+                    // NO file lock: §9.1.15 establishes one on a PHYSICAL FILE, and there is none here. What a CLOSE under commit
+                    // control kept belonged to a file that is not there any more (removed outside the run unit): nothing of its
+                    // store describes this one, and attaching beside it would hand this OPEN the old file's records.
+                    ReleaseKept();
                     AttachStore(create: false);          // no file, no records
                     _attached = true;
                     status = FileStatusCode.OptionalFileNotFound;
