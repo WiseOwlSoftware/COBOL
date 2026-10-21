@@ -51,7 +51,7 @@ internal sealed class ControlFlowEmitter(EmitContext ctx, NumericRenderer num, C
         // In range ⇒ transfer. The jump is the dispatcher-transfer idiom, not a `break`: the statement's own
         // selector switch is itself a C# breakable, so a `break` here left the SELECTOR (or, inside an inline
         // PERFORM, that loop) and the transfer was silently discarded (kb/Work PB405).
-        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) {dispatch.TransferJump()}   // in range → transfer (ISO §14.9.17.4 GR2)");
+        w.Line($"if (__dep{id} >= 1 && __dep{id} <= {d.Targets.Count}) {{ {dispatch.ExplicitTransferJump()} }}   // in range → explicit transfer (ISO §14.9.17.4 GR2; §14.9.28.4 GR5)");
     }
 
     // DISPLAY lives on AcceptDisplayEmitter since Step 9c (the ACCEPT/DISPLAY collaborator).
