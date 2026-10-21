@@ -5,6 +5,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -196,6 +197,6 @@ public sealed class ExceptionCheckingPerformDirectiveBanDriftTests
             new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
             return edition;
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

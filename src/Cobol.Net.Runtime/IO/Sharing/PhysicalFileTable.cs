@@ -229,8 +229,20 @@ internal sealed class PhysicalFileTable
     public static void Rehome(State st, RegionLocks from, RegionLocks to)
     {
         if (ReferenceEquals(from, to)) return;
-        foreach (var recId in Unpublish(st, from))
-            if (Publish(to, HostRegionLocks.RecordLockByte(recId)) == RegionLockResult.Ok)
+        Republish(st, Unpublish(st, from), to);
+    }
+
+    /// <summary>⛔ PUBLISH AGAIN, through <paramref name="to"/>, the record locks <paramref name="ids"/> names that this run
+    /// unit's table still holds and no endpoint publishes: the second half of <see cref="Rehome"/>, and what a re-OPEN's
+    /// unsuccessful end does with the locks <see cref="Unpublish"/> took off its own handle once the handle a CLOSE under
+    /// commit control kept is taken again (<c>KeyedConnector.RetakeKeptHandle</c>; §14.9.27.4 GR25, <i>"If the execution of
+    /// the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9). A byte another run unit took
+    /// meanwhile leaves its lock recorded in this table alone, as a lock a host cannot carry is.</summary>
+    public static void Republish(State st, IEnumerable<string> ids, RegionLocks to)
+    {
+        foreach (var recId in ids)
+            if (st.RecordLocks.ContainsKey(recId) && !st.Published.ContainsKey(recId)
+                && Publish(to, HostRegionLocks.RecordLockByte(recId)) == RegionLockResult.Ok)
                 Published(st, recId, to);
     }
 
@@ -239,7 +251,8 @@ internal sealed class PhysicalFileTable
     /// the half of <see cref="Rehome"/> that frees the bytes, and what an unsuccessful OPEN does with the locks a CLOSE under
     /// commit control kept, when the handle it took over goes (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is
     /// unsuccessful, the file is not affected"</i>; §14.9.6.4 GR9): the handle goes, the locks do not - only the COMMIT or the
-    /// ROLLBACK ends them. Returns the record ids that were published.</summary>
+    /// ROLLBACK ends them - and the kept handle, once taken again, publishes them again (<see cref="Republish"/>). Returns the
+    /// record ids that were published.</summary>
     public static List<string> Unpublish(State st, RegionLocks endpoint)
     {
         var ids = PublishedThrough(st, endpoint);

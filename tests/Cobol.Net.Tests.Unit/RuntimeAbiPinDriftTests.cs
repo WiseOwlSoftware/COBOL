@@ -230,7 +230,7 @@ public sealed class RuntimeAbiPinDriftTests
             var bound = emitter.Bind(tree!, new EditionContext(2023), frontend.Directives);
             return emitter.EmitBound(bound, "ABIFIXTURE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static string Hash(IEnumerable<string> lines) =>

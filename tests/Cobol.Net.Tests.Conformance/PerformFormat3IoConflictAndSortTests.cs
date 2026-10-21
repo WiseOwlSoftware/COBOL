@@ -33,9 +33,6 @@ public sealed class PerformFormat3IoConflictAndSortTests
 
     private const string On = ">>TURN EC-ALL CHECKING ON";
 
-    /// <summary>A unique host path per call, so concurrent test processes never share a file.</summary>
-    private static string HostPath(string name) => Path.Combine(Path.GetTempPath(), $"{name}-{Guid.NewGuid():N}.dat");
-
     /// <summary>A free-form program from its parts. <paramref name="use"/> adds a USE AFTER STANDARD EXCEPTION
     /// declarative on one file whose body is the given statements (§14.4.1: with declaratives present every
     /// paragraph of the main part lives in a section).</summary>
@@ -95,7 +92,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string Share(string name, string proc, bool gStatus = true, string checking = On,
         (string File, string Body)? use = null)
     {
-        string path = HostPath(name);
+        string path = FileHarness.Tmp(name);
         return Prog(name,
             select: $"""
                 SELECT F ASSIGN "{path}" ORGANIZATION LINE SEQUENTIAL FILE STATUS FS.
@@ -229,7 +226,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string Lock(string name, string proc, bool gStatus = true, string checking = On,
         (string File, string Body)? use = null)
     {
-        string path = HostPath(name);
+        string path = FileHarness.Tmp(name);
         return Prog(name,
             select: $"""
                 SELECT S ASSIGN "{path}" ORGANIZATION RELATIVE ACCESS SEQUENTIAL FILE STATUS SS.
@@ -348,7 +345,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string Attribute39(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null)
     {
-        string path = HostPath(name);
+        string path = FileHarness.Tmp(name);
         return Prog(name,
             select: $"""
                 SELECT MK ASSIGN "{path}" ORGANIZATION RELATIVE ACCESS SEQUENTIAL FILE STATUS MS.
@@ -418,7 +415,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string Optional05(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
-            SELECT OPTIONAL OP ASSIGN "{HostPath(name)}" ORGANIZATION LINE SEQUENTIAL{(status ? " FILE STATUS OS" : "")}.
+            SELECT OPTIONAL OP ASSIGN "{FileHarness.Tmp(name)}" ORGANIZATION LINE SEQUENTIAL{(status ? " FILE STATUS OS" : "")}.
             """,
         fd: """
             FD OP.
@@ -495,7 +492,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
 
     private static void WithUnwritableFile(string name, Action<string> test)
     {
-        string path = HostPath(name);
+        string path = FileHarness.Tmp(name);
         try
         {
             if (!MakeUnwritable(path)) return;   // measured: this identity bypasses permissions
@@ -546,7 +543,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string OneFile(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
-            SELECT F ASSIGN "{HostPath(name)}" ORGANIZATION LINE SEQUENTIAL{(status ? " FILE STATUS FS" : "")}.
+            SELECT F ASSIGN "{FileHarness.Tmp(name)}" ORGANIZATION LINE SEQUENTIAL{(status ? " FILE STATUS FS" : "")}.
             """,
         fd: """
             FD F.
@@ -686,7 +683,7 @@ public sealed class PerformFormat3IoConflictAndSortTests
     private static string Relative(string name, string proc, bool status = true, string checking = On,
         (string File, string Body)? use = null) => Prog(name,
         select: $"""
-            SELECT RX ASSIGN "{HostPath(name)}" ORGANIZATION RELATIVE ACCESS RANDOM RELATIVE KEY K{(status ? " FILE STATUS RS" : "")}.
+            SELECT RX ASSIGN "{FileHarness.Tmp(name)}" ORGANIZATION RELATIVE ACCESS RANDOM RELATIVE KEY K{(status ? " FILE STATUS RS" : "")}.
             """,
         fd: """
             FD RX.
@@ -762,8 +759,8 @@ public sealed class PerformFormat3IoConflictAndSortTests
         (string File, string Body)? use = null, string paras = "")
     {
         return Prog(name,
-            select: string.Format(SortSelect, HostPath(name + "F"), HostPath(name + "G"), HostPath(name + "H"),
-                hStatus ? " FILE STATUS HS" : "", HostPath(name + "J"), HostPath(name + "S")),
+            select: string.Format(SortSelect, FileHarness.Tmp(name + "F"), FileHarness.Tmp(name + "G"), FileHarness.Tmp(name + "H"),
+                hStatus ? " FILE STATUS HS" : "", FileHarness.Tmp(name + "J"), FileHarness.Tmp(name + "S")),
             fd: """
                 FD F.
                 01 R PIC X(4).

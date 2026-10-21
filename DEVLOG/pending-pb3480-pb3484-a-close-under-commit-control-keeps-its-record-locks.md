@@ -52,4 +52,12 @@ publish were never reached (its minted key leaves the registry); `ReleaseAllKept
 region-lock host that answers unavailable for record bytes. The review's R1-2 scenario (NO OTHER) sets no record locks at all (§12.4.5.9.4 GR3), so its witness forces
 the early give-back with an OPEN phrase SHARING WITH NO OTHER over an ALL OTHER connector instead; both lead witnesses were mutation-checked.
 
+Merging main's PB3483 (an unsuccessful re-OPEN takes the kept handle again, `KeyedConnector.RetakeKeptHandle`) under this change met the record locks in one place
+both sides wrote: after an early give-back the failed OPEN takes its own handle's locks off the host (R1-2), and the retake then gave the kept state its handle back
+but not the locks, whose `Kept.Endpoint` still named the given-back endpoint. So another run unit read a record the CLOSE had locked ('00' where §14.9.6.4 GR9 keeps
+the lock and §14.9.27.4 GR25 says the failed OPEN leaves the file unaffected), and a later re-OPEN beside the retaken handle moved nothing off it before giving it back.
+The retake now publishes them again through the retaken handle (`PhysicalFileTable.Republish`, the second half of `Rehome`) and makes that endpoint the kept state's;
+the R1-2 witness gained another run unit's '51' before and after such a re-OPEN, and each half fails when removed. Review lead R2-1 is answered too: the R1-3 witness's
+forcing host reads the record region's bounds from `HostRegionLocks.IsRecordLockByte` (no copy of the layout) and asserts it was asked a record byte.
+
 Gate (round 1 re-gate): `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T191233Z-a2c6a5, Unit 34,090 cases ran, no failure; Linux gate (unit, conformance) GREEN.

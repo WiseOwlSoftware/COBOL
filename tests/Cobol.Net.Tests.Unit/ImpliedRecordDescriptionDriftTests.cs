@@ -130,6 +130,6 @@ public sealed class ImpliedRecordDescriptionDriftTests
             data.Bind(program);
             return data;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

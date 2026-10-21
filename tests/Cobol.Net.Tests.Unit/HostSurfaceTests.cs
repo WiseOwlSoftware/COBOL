@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -46,7 +47,7 @@ public sealed class HostSurfaceTests
             var bound = new BinderDriver().Bind(tree!, new EditionContext(2023));
             return bound.Units[0].Data;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     [Fact]
