@@ -1,4 +1,4 @@
-## PB3471: one file-test harness and one organization enum for all three organizations
+## Entry 2317 — 2026-10-20 18:29 PDT — PB3471: one file-test harness and one organization enum for all three organizations
 
 Four test classes that measure the file lock, the sharing refusals and the record locks over Sequential, Relative and Indexed
 (`FileLockPostureDriftTests`, `SharingRefusalStatusTests`, `PermanentErrorOutranksRecordLockTests`,
@@ -28,3 +28,4 @@ unchanged. The sibling sweep found no other class spanning the three organizatio
 `Tmp`/`TryDelete` (a different job, reported as a lead). **Sort and file I/O tests (I11).** The change reaches no new runtime
 path; the abnormal-path cells (61/62 sharing refusals, '51' record locks, '34' replay, '43') are the same cells over the shared
 helpers.
+
