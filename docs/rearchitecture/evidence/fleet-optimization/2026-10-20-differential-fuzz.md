@@ -99,8 +99,74 @@ following the standard where GnuCOBOL's default dialect is wider, one is an impl
 | `WE_REJECT:COBOLNET1625` × 2 | WiseOwl correct | `PIC S9(5)V9(5) VALUE -0.000001` (fz00020 line 24: six decimals into five) and `PIC S9(4)V99 VALUE -0.333` (fz00031 line 26: three into two). §13.18.63.3 SR 2: the values "shall be representable exactly in the subject of the entry, without truncation of leading or trailing nonzero digits". GnuCOBOL truncates. |
 | `WE_REJECT:COBOLNET0801` × 1 | WiseOwl correct | `PIC 9(34)` (fz00026 line 9). §13.18.40.3 SR 14: "the number of digit positions … shall range from 1 through 31". The first version of this table cited §8.3.3.3.2, which is the literal rule; the compiler's own message and catalog entry carried the same inherited clause and now cite §13.18.40.3 SR14 for items and §8.3.3.3.2 for literals. |
 
+## The yield changes (PB3488) — the evening of 2026-10-20, four bake-offs and a recount
+
+Raw, in `2026-10-20-differential-fuzz/`: `bakeoff1-bake-off.md`, `bakeoff2a-qwen3.6-prompt-v1-report.md`, `bakeoff3-*`,
+`bakeoff4-*` (each bake-off's scoreboard and every model's report). Every bake-off: 20 programs per model, seed 20261020,
+two in flight, the WiseOwl build of main at 0421be4df, GnuCOBOL 3.2 under WSL.
+
+**Bake-off 1 (20:36–21:2x PDT; the harness as landed in PB3463: one correction round, temperature 0.6, 394 seeds).** The
+owner's choice of models after the evening's web research; the two lowest were removed afterwards.
+
+| Model | GnuCOBOL accepted | Median model s | Lead rows |
+|---|---|---|---|
+| qwen3.6:35b | 10/20 (50 %) | 7 | 9 |
+| qwen3-coder:30b | 8/20 (40 %) | 39 | 6 |
+| laguna-xs-2.1 | 8/20 (40 %) | 20 | 6 |
+| qwen3.8:27b | 4/20 (20 %) | 27 | 2 |
+| nemotron-3.5-bolt | 3/20 (15 %) | 22 | 3 |
+
+**The recount (21:5x PDT).** The owner asked whether the models' incorrect programs could be improved. The first reading of
+GnuCOBOL's messages said two fifths of the refusals were constructs GnuCOBOL 3.2 lacks; the measurement said otherwise:
+every refused program compiled by WiseOwl (`--std 2014 --source-format free`) — **1 of 68 compiles.** 37 parse errors
+(COBOL0001 ×19, COBOL0307 ×18), 6 COBOLNET0898 (a non-national VALUE on a national item), 4 COBOLNET1516
+(HIGHEST-ALGEBRAIC on a literal; §15.43.3 AR1), 3 each of COBOLNET2993, COBOLNET0801 and COBOLNET1941, 2 replies with no
+program, 8 single codes. FUNCTION TRANSLATE, NATIONAL, SUBSTRING and YEAR are refused as not intrinsic functions of
+ISO/IEC 1989 (COBOLNET1501, §15.6); COMP-3 occurs nowhere in the standard. The models' programs were incorrect by the
+standard; GnuCOBOL's refusals were right in 67 of 68. (PB3488 records the withdrawn reading.)
+
+**Bake-off 2a (qwen3.6 only; items 1–4 with the since-withdrawn `JUDGE_LACKS` list; the run was stopped after qwen3.6 when
+MiniMax's replies came back empty).** Usable 11/20 (55 %), THEY_REJECT 0, median 7 s. The 9 failures: FUNCTION TRANSLATE ×2,
+FUNCTION NATIONAL, FUNCTION SUBSTRING, HIGHEST-ALGEBRAIC on a literal ×3, two COMPUTE syntax slips — every one a program
+the standard refuses, which is what sent the reading to the recount. MiniMax M3.1 Flash (`:cloud`): 1 program compiled in
+387 s over four rounds, 1 NO_PROGRAM with empty content after 445 s; the probe that explained it is in PB3488 (28,000
+characters of thinking despite `think: false`, every output token).
+
+**Bake-off 3 (21:3x–21:51 PDT; the spec's function list in the prompt, "Argument rules" folding, 275 seeds).**
+
+| Model | Usable | Both refuse | GnuCOBOL alone | Median model s | Lead rows |
+|---|---|---|---|---|---|
+| qwen3.6:35b | 9/20 (45 %) | 11 | 1 | 12 | 8 |
+| laguna-xs-2.1 | 12/20 (60 %) | 8 | 1 | 18 | 11 |
+| qwen3-coder:30b | 12/19 (63 %) | 7 | 0 | 20 | 9 |
+
+Its tables showed the seeds the prompt forbids (`OUTPUT_DIFFERS:15.99` WHEN-COMPILED ×2–3 and `15.53` LOCALE-TIME in every
+model) and `15.6 Summary of functions` as a seed; the one RUNNER_ERROR was Ollama's "prediction aborted, token repeat limit
+reached", the model's degenerate reply. All three fixed before bake-off 4 (PB3488 items 5–7).
+
+**Bake-off 4 (21:5x–22:05 PDT; the finished harness: 265 seeds, three correction rounds quoting both compilers, the
+function list and the worked example in the prompt, temperature 0.3).**
+
+| Model | Usable | Both refuse | GnuCOBOL alone | Median model s | Lead rows |
+|---|---|---|---|---|---|
+| qwen3.6:35b | **14/20 (70 %)** | 6 | 0 | **10** | 7 |
+| laguna-xs-2.1 | 12/20 (60 %) | 8 | 0 | 18 | 11 |
+| qwen3-coder:30b | 12/20 (60 %) | 8 | 0 | 21 | 6 |
+
+**Reading.** Against bake-off 1 on the same models: qwen3.6 50 → 70 %, laguna 40 → 60 %, qwen3-coder 40 → 60 %, with 20
+programs per cell (one program is 5 points, so the direction is firm and the size is not). The repair rounds did most of it
+(5 to 8 of each model's usable programs came through a correction). The sample is small enough that bake-off 3's qwen3.6
+(45 %) and bake-off 4's (70 %) differ by the seeds drawn, not only by the harness: the failures cluster by clause, since
+three variations of one hard clause fail together (SET on a table, the FORMATTED-* date formats). THEY_REJECT stayed at 0–1
+per 20: GnuCOBOL 3.2's refusals are the model's slips, not the judge's gaps, which the recount had already said. The
+winner for the overnight run is **qwen3.6:35b**: the highest usable share and half the latency of the others.
+
+**Not adjudicated here.** Every survivor row of bake-offs 3 and 4 is a lead for the morning triage (REM ×2–3 in every
+model, MIN with national arguments, INITIALIZE, DATE-TO-YYYYMMDD, a CLOSE refusal COBOLNET0900); none has been checked
+against the standard on this branch.
+
 ## Decision
 
-The harness lands as tooling (kb/Work PB3463); the overnight run is the owner's to start, with the bake-off (`--bake-off`)
-choosing the generator among the installed models first. Every survivor of a later run is a lead for a Claude or human
+The harness lands as tooling (kb/Work PB3463, its yield changes PB3488); the overnight run is the owner's to start, with the
+bake-off (`--bake-off`) choosing the generator among the installed models first — on 2026-10-20 it chose qwen3.6:35b. Every survivor of a later run is a lead for a Claude or human
 check against the standard; none is a verdict until that check.
