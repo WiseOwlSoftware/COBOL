@@ -362,6 +362,11 @@ public abstract class FileConnector
     {
         if (existedBeforeBody && mode == FileOpenMode.Output && HostFile.ShareModesAreMandatory && HeldByAnotherHandle())
             return FileStatusCode.FileSharingConflict;
+        // ⛔ A KEPT HANDLE THAT EXCLUDES EVERY OTHER OPEN (a CLOSE under SHARING WITH NO OTHER, KeptHandleExcludesEveryOpen)
+        // is Table 19's NO OTHER column itself: no other run unit can hold the file beside it, and the column holder of a
+        // host whose holder is a handle of its own (HandleColumnLockHost, kb/Work PB3482) would be refused by it, '61' for the
+        // connector's own re-OPEN. The lock is taken after the body, through the handle that replaced the kept one.
+        if (existedBeforeBody && HostFile.ShareModesAreMandatory && KeptHandleExcludesEveryOpen) return null;
         // ⛔ A FILE LOCK THE CLOSE KEPT (KeepRunUnitFileLock) is REPLACED by this OPEN's, never given back first: the kept
         // column refuses this OPEN's as another holder's, and releasing it to get out of its way left the file unlocked for
         // an instant, and again when the OPEN was unsuccessful (kb/Work PB3483). A refusal leaves it exactly as the CLOSE left
@@ -427,6 +432,11 @@ public abstract class FileConnector
     /// replaces it by its own (<see cref="TakeRunUnitFileLock"/>), which the kept one would otherwise refuse as another
     /// holder's.</summary>
     private protected virtual RunUnitFileLock? KeptFileLock => null;
+
+    /// <summary>Whether this (closed) connector still holds a kept handle (<see cref="HoldsKeptHandle"/>) whose share mode
+    /// refuses every other open of the file (<see cref="FileShare.None"/>: a CLOSE under SHARING WITH NO OTHER), so that no
+    /// other run unit can hold the file while it stands (<see cref="TakeRunUnitFileLock"/>).</summary>
+    private protected virtual bool KeptHandleExcludesEveryOpen => false;
 
     /// <summary>The OPEN replaced <see cref="KeptFileLock"/> by its own: the connector holds that lock now, and the
     /// organization's kept state no longer does.</summary>

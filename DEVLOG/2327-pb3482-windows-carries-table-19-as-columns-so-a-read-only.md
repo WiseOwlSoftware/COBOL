@@ -66,7 +66,10 @@ would refuse its `FileShare.None` handle. The merged tree had a wrong answer of 
 '61' to a commit-controlled connector's own re-OPEN OUTPUT under ALL OTHER on Windows. Beside a kept holder the probe is now a
 read request that admits only readers (`HostFile.IsWrittenOrExcludedByAnother`, `FileConnector.ProbeHeldByAnother`); the
 OUTPUT rows' columns refuse every other run unit. `CommitRollbackRuntimeTests.A_reopen_is_not_refused_by_the_column_lock_its_own_close_kept`
-goes red with either the probe or the give-way removed. The second attempt of `FileConnector.Open` no longer withholds the
+goes red with either the probe or the give-way removed. The sibling sweep over the same witness found the branch's own
+twin: a kept handle under SHARING WITH NO OTHER (`FileShare.None`) refused the column holder of its connector's re-OPEN
+under another sharing mode ('61' on Windows); it is the NO OTHER column itself, so that re-OPEN takes its column after the
+body, through the handle that replaced the kept one (`FileConnector.KeptHandleExcludesEveryOpen`). The second attempt of `FileConnector.Open` no longer withholds the
 kept lock's restoration (the first attempt reverts it and the second amends it again), `RunUnitFileLockAmendTests` runs on
 the Windows host too (its racer is now an OUTPUT request, which every host publishes), and the doc comments that still named
 two hosts (review lead R1-3) are current.

@@ -1909,7 +1909,10 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   beside it is a read request that admits only readers (`FileConnector.ProbeHeldByAnother`,
   `HostFile.IsWrittenOrExcludedByAnother`; `CommitRollbackRuntimeTests.A_reopen_is_not_refused_by_the_column_lock_its_own_close_kept`).
   The same window is the one a re-OPEN under SHARING WITH NO OTHER meets on Windows, whose `FileShare.None` handle the kept
-  column holder would refuse: it gives way once the NO OTHER row's test has passed. The Table 19
+  column holder would refuse: it gives way once the NO OTHER row's test has passed. The other way round, a kept handle
+  under SHARING WITH NO OTHER (`FileShare.None`) refuses the column holder of the connector's own re-OPEN; it is the NO
+  OTHER column itself, beside which no other run unit holds the file, so on Windows such a re-OPEN takes its column after
+  the body, through the handle that replaced the kept one (`FileConnector.KeptHandleExcludesEveryOpen`). The Table 19
   run-unit file lock (the column every host publishes) is kept with the handle
   (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the
   COMMIT statement, the file locks are released."*), so another run unit's conflicting OPEN is refused '61' on every host

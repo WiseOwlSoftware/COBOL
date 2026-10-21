@@ -841,28 +841,40 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
-    /// <summary>The same, when the CLOSE also kept a Table 19 column lock (every sharing mode but NO OTHER; on Windows a read
-    /// handle of the connector's own, kb/Work PB3482) and the re-OPEN changes the sharing mode: the kept lock is replaced
-    /// by the re-OPEN's (kb/Work PB3483), and neither it nor the kept handle is "another file connector" (§9.1.13.9 1) e)).
-    /// A re-OPEN under SHARING WITH NO OTHER takes an exclusive handle, which the column holder gives way to; one under
-    /// SHARING WITH ALL OTHER on OUTPUT is asked the OUTPUT question beside the holder.</summary>
+    /// <summary>The same, when the re-OPEN changes the sharing mode and the CLOSE kept a Table 19 column lock with its handle
+    /// (on Windows a read handle of the connector's own, kb/Work PB3482): the kept lock is replaced by the re-OPEN's (kb/Work
+    /// PB3483), and neither it nor the kept handle is "another file connector" (§9.1.13.9 1) e)) or a holder Table 19 refuses
+    /// the re-OPEN beside. An OPEN OUTPUT under SHARING WITH ALL OTHER is asked the OUTPUT question beside the column holder;
+    /// a re-OPEN under SHARING WITH NO OTHER takes an exclusive handle, which the column holder gives way to; and a re-OPEN
+    /// after a CLOSE under SHARING WITH NO OTHER, whose kept handle excludes every other open (the column holder's included),
+    /// takes its column through the handle that replaces it — also after a NO OTHER re-OPEN of a lock kept under ALL OTHER.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
     public void A_reopen_is_not_refused_by_the_column_lock_its_own_close_kept(FileOrg org)
     {
-        foreach (var (sharing, mode) in new[] { (FileSharing.AllOther, FileOpenMode.Output), (FileSharing.NoOther, FileOpenMode.IO) })
+        var scenarios = new (FileSharing First, (FileSharing Sharing, FileOpenMode Mode)[] Reopens)[]
         {
-            string host = Tmp($"pb3482-kept-column-reopen-{org}-{sharing}-{mode}");
+            (FileSharing.AllOther, [(FileSharing.AllOther, FileOpenMode.Output)]),
+            (FileSharing.AllOther, [(FileSharing.NoOther, FileOpenMode.IO)]),
+            (FileSharing.NoOther, [(FileSharing.AllOther, FileOpenMode.IO)]),
+            (FileSharing.AllOther, [(FileSharing.NoOther, FileOpenMode.IO), (FileSharing.AllOther, FileOpenMode.IO)]),
+        };
+        foreach (var (first, reopens) in scenarios)
+        {
+            string host = Tmp($"pb3482-kept-column-reopen-{org}-{first}-{reopens.Length}-{reopens[0].Sharing}");
             try
             {
                 Seed(host, org);
-                var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+                var a = Open(host, org, commit: true, sharing: first);
                 Assert.Equal("00", Write(a, org, 7, "A007"));
-                a.Close("F");
-                Assert.Equal("00", a.Status("F"));
-                a.OpenShared("F", mode, hasSharingOverride: true, sharing, FileRetryKind.None, 0,
-                    OpenTapePhrase.None, a.HostPathOf("F"), assignDynamic: false, page: null);
-                Assert.Equal("00", a.Status("F"));
+                foreach (var (sharing, mode) in reopens)
+                {
+                    a.Close("F");
+                    Assert.Equal("00", a.Status("F"));
+                    a.OpenShared("F", mode, hasSharingOverride: true, sharing, FileRetryKind.None, 0,
+                        OpenTapePhrase.None, a.HostPathOf("F"), assignDynamic: false, page: null);
+                    Assert.Equal("00", a.Status("F"));
+                }
                 // The re-OPEN's own lock stands: a third run unit's SHARING WITH READ ONLY INPUT, which Table 19 refuses
                 // beside an ALL OTHER connector open in a mode other than input and beside a NO OTHER one, is refused, and
                 // admitted once the first run unit ends.
