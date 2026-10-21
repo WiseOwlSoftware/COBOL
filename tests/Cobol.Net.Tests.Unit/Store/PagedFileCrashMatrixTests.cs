@@ -79,7 +79,7 @@ public sealed class PagedFileCrashMatrixTests
         PagePath.GrowingStatement => StoreKit.Put(s.A, 3, "three", blobPages: 6),
         PagePath.Close or PagePath.CloseUnchanged => s.A.Close(),
         PagePath.Checkpoint => s.A.Promote(),
-        PagePath.Fence => PagedFile.Open(s.HandleA, writable: true, coherent: true, out _),
+        PagePath.Fence => PagedFile.Open(s.HandleA, writable: true, coherent: true, HoldingsKeyOrder.RecordNumbers, out _),
         _ => throw new ArgumentOutOfRangeException(nameof(path)),
     };
 
@@ -207,7 +207,7 @@ public sealed class PagedFileCrashMatrixTests
         const string Previous = "1=old;2=older;";
         var probe = StoreKit.ClosedStore("1=old", "2=older");
         var ph = probe.Open("A");
-        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, out _));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _));
         var ops = ph.Operations.ToList();
         Assert.Equal(6, ops.Count);
         Assert.Equal(new[] { "S", "W2", $"T{MetaPage.MetaPages * PageHeader.PageSize}", "S" }, new[] { ops[1], ops[2], ops[4], ops[5] });
@@ -222,7 +222,7 @@ public sealed class PagedFileCrashMatrixTests
                     var h = medium.Open("A");
                     h.FaultAtOperation(n, fault);
                     bool died = false;
-                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
+                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _) == StoreStatus.PermanentError, where); }
                     catch (SimulatedDeath) { died = true; }
                     Assert.Equal(fault != Fault.Refuse, died);
                     // GR25: a refusal before the last sync leaves the file byte for byte as it was.
@@ -239,7 +239,7 @@ public sealed class PagedFileCrashMatrixTests
                     Assert.True(expected == StoreKit.Show(c!), $"{where}: {StoreKit.Show(c!)}");
                     StoreKit.AssertSlotsAndWorkAgree(medium);
                     var again = medium.Open("D");
-                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, out var fresh));
+                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var fresh));
                     Assert.Equal("", StoreKit.Show(fresh!));
                     Assert.Equal(StoreStatus.Ok, StoreKit.Put(fresh!, 7, "new", blobPages: 3));
                     StoreKit.AssertNoStampReused(medium);
@@ -275,7 +275,7 @@ public sealed class PagedFileCrashMatrixTests
                 var h = medium.Open("A");
                 h.FaultAtOperation(n, fault);
                 bool died = false;
-                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, out _) == StoreStatus.PermanentError, where); }
+                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _) == StoreStatus.PermanentError, where); }
                 catch (SimulatedDeath) { died = true; }
                 Assert.Equal(fault != Fault.Refuse, died);
                 bool created = fault == Fault.Refuse ? n == ops : fault == Fault.DeathAfter || n > 1;
@@ -389,7 +389,7 @@ public sealed class PagedFileCrashMatrixTests
         {
             var h = s.Medium.Open($"I{n}");
             h.FaultAtRead(n, Fault.Refuse);
-            Assert.Equal(StoreStatus.PermanentError, PagedFile.Open(h, writable: false, coherent: true, out var none));
+            Assert.Equal(StoreStatus.PermanentError, PagedFile.Open(h, writable: false, coherent: true, HoldingsKeyOrder.RecordNumbers, out var none));
             Assert.Null(none);
         }
 
@@ -472,7 +472,7 @@ public sealed class PagedFileCrashMatrixTests
         Assert.Equal(StoreStatus.Ok, store.Close());
         var h = medium.Open("A");
         h.FaultAtSync(2, Fault.DeathAfter);
-        Assert.Throws<SimulatedDeath>(() => PagedFile.Open(h, true, true, out _));
+        Assert.Throws<SimulatedDeath>(() => PagedFile.Open(h, true, true, HoldingsKeyOrder.RecordNumbers, out _));
         ulong firstFence = MetaPage.Committed(StoreKit.MetasAt(medium, medium.LastSeq).A, StoreKit.MetasAt(medium, medium.LastSeq).B)!.Value.Meta.Generation;
         var (_, status, c) = StoreKit.OpenAs(medium, "C");
         Assert.Equal(StoreStatus.Ok, status);
