@@ -1,4 +1,4 @@
-## The overnight fuzz record gains the GnuCOBOL side: one choice, three bugs, and a fifth hole in the net
+## Entry 2333 — 2026-10-21 14:29 PDT — The overnight fuzz record gains the GnuCOBOL side: one choice, three bugs, and a fifth hole in the net
 
 The owner asked whether the four most common "WiseOwl correct" output rows of the first overnight differential fuzz run
 (`docs/rearchitecture/evidence/fleet-optimization/2026-10-21-differential-fuzz-overnight.md`) are GnuCOBOL bugs or GnuCOBOL
@@ -12,3 +12,4 @@ into the receiving item.
 The record gains that section and the probe (`gnucobol-side/`), so the next triage recognizes these rows instead of re-deriving
 them. Nothing is filed: GnuCOBOL's defects are not this project's (the differential is a net, never authority). The record's
 triage duration is corrected from "about three hours" to about 45 minutes (10:16 to 10:59 by the scratchpad and commit stamps).
+
