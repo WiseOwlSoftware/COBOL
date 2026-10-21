@@ -6,6 +6,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -106,7 +107,7 @@ public sealed class Format4UseObjectSelectorDriftTests
             var comp = emitter.Bind(tree!, new EditionContext(2002));
             return (emitter.EmitBound(comp, "DRIFTPROBE"), comp.OoClasses);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>The generated <c>__EcObjDispatch</c> body — the two GR14 passes and the -3 tail.</summary>

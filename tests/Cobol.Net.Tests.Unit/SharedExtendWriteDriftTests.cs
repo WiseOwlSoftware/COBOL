@@ -30,16 +30,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class SharedExtendWriteDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb739-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        // ONE artifact per physical file (kb/Work PB802): a keyed file's §9.1.6 fixed file attributes
-        // are the store header INSIDE it, so deleting the data file deletes them.
-        try { File.Delete(host); } catch (IOException) { }
-    }
-
     /// <summary>The sharing spelling under which TWO connectors can be open on one physical file at the same time
     /// and both write — reusing <see cref="SharedExtendOpenDriftTests.Spelling"/> so the two matrices cannot drift
     /// apart. Only the FILE-CONTROL ALL OTHER spelling appears: the OPEN-phrase spellings register their posture
@@ -92,7 +82,7 @@ public sealed class SharedExtendWriteDriftTests
     public void TwoSharedExtendConnectors_KeepBothRecords_ForEverySequentialFraming(
         SharedExtendOpenDriftTests.Framing framing, SharedExtendOpenDriftTests.Spelling spelling)
     {
-        string host = Tmp($"seq-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"seq-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -116,7 +106,7 @@ public sealed class SharedExtendWriteDriftTests
 
             Assert.Equal(new[] { "SEED", "AAAA", "BBBB" }, ReadBackSequential(host, framing));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     private static List<string> ReadBackSequential(string host, SharedExtendOpenDriftTests.Framing framing)
@@ -145,7 +135,7 @@ public sealed class SharedExtendWriteDriftTests
     public void TwoSharedExtendConnectors_MintDistinctAscendingOrdinals(
         SharedExtendOpenDriftTests.Framing framing, SharedExtendOpenDriftTests.Spelling spelling)
     {
-        string host = Tmp($"ord-{framing}-{spelling}");
+        string host = FileHarness.Tmp($"ord-{framing}-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -176,7 +166,7 @@ public sealed class SharedExtendWriteDriftTests
             reg.Close("A");
             reg.Close("B");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The CONTROL: one connector, exclusive, two writes. §14.9.51.4 GR19's antecedent is absent, so
@@ -188,7 +178,7 @@ public sealed class SharedExtendWriteDriftTests
         SharedExtendOpenDriftTests.Framing framing, SharedExtendOpenDriftTests.Spelling spelling)
     {
         _ = spelling;
-        string host = Tmp($"excl-{framing}");
+        string host = FileHarness.Tmp($"excl-{framing}");
         try
         {
             var reg = new FileRegistry();
@@ -203,7 +193,7 @@ public sealed class SharedExtendWriteDriftTests
 
             Assert.Equal(new[] { "SEED", "CCCC", "DDDD" }, ReadBackSequential(host, framing));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The THIRD write arm. A plain WRITE on a print or LINAGE file reroutes through
@@ -214,7 +204,7 @@ public sealed class SharedExtendWriteDriftTests
     [Fact]
     public void ThePrintControlWriteArmAlsoMintsTheReleaseOrdinal()
     {
-        string host = Tmp("advancing");
+        string host = FileHarness.Tmp("advancing");
         try
         {
             var shared = new PhysicalFileTable.State();
@@ -232,7 +222,7 @@ public sealed class SharedExtendWriteDriftTests
             Assert.Equal(2, shared.ReleasedOrdinal);
             c.Close();
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── RELATIVE: the same defect one layer up ───────────────────────────────────────────────────────────────
@@ -249,7 +239,7 @@ public sealed class SharedExtendWriteDriftTests
     public void TwoSharedExtendConnectors_KeepBothRecords_ForTheRelativeOrganization(
         SharedExtendOpenDriftTests.Spelling spelling)
     {
-        string host = Tmp($"rel-{spelling}");
+        string host = FileHarness.Tmp($"rel-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -284,7 +274,7 @@ public sealed class SharedExtendWriteDriftTests
             back.Close("R");
             Assert.Equal(new[] { "SEED", "AAAA", "BBBB" }, got);
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The release number is read from the file at the release, after ANY change — the removal of the
@@ -295,7 +285,7 @@ public sealed class SharedExtendWriteDriftTests
     [Fact]
     public void TheExtendReleaseIsOneAboveTheHighestRecordAfterEveryChange()
     {
-        string host = Tmp("rel-highest");
+        string host = FileHarness.Tmp("rel-highest");
         try
         {
             var reg = new FileRegistry();
@@ -322,7 +312,7 @@ public sealed class SharedExtendWriteDriftTests
             Assert.Equal(4, reg.RelativeSlot("E"));   // re-derived after the DELETE of 7, never left at 7
             reg.Close("E");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── INDEXED: already right, and pinned so it stays right ─────────────────────────────────────────────────
@@ -337,7 +327,7 @@ public sealed class SharedExtendWriteDriftTests
     public void TwoSharedExtendConnectors_KeepBothRecords_ForTheIndexedOrganization(
         SharedExtendOpenDriftTests.Spelling spelling)
     {
-        string host = Tmp($"idx-{spelling}");
+        string host = FileHarness.Tmp($"idx-{spelling}");
         try
         {
             var reg = new FileRegistry();
@@ -365,7 +355,7 @@ public sealed class SharedExtendWriteDriftTests
             back.Close("R");
             Assert.Equal(new[] { "K002SSS", "K004BBB", "K006AAA" }, got);
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── The structural half: no naked append handle can come back ────────────────────────────────────────────
@@ -444,7 +434,7 @@ public sealed class SharedExtendWriteDriftTests
     [Fact]
     public void TheSharedAppendStreamWritesAtTheEndAsItStandsNow()
     {
-        string host = Tmp("append");
+        string host = FileHarness.Tmp("append");
         try
         {
             File.WriteAllBytes(host, "AA"u8.ToArray());
@@ -463,6 +453,6 @@ public sealed class SharedExtendWriteDriftTests
             }
             Assert.Equal("AABBCCDD", File.ReadAllText(host));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 }

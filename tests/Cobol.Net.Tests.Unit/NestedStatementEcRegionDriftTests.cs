@@ -144,6 +144,6 @@ public sealed class NestedStatementEcRegionDriftTests
             // GR1 default (EC-ALL CHECKING OFF) and every assertion below passes for the wrong reason.
             return emitter.EmitBound(emitter.Bind(tree!, new EditionContext(2023), frontend.Directives), "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

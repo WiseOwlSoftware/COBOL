@@ -7,6 +7,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -73,6 +74,6 @@ public sealed class WatermarkTests
             var comp = new CSharpEmitter().Bind(tree!, new EditionContext(2023));
             Assert.All(comp.Units, u => Assert.Equal(PassPhase.EditionConformanceChecked, u.Data.Watermark));
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

@@ -6,6 +6,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -109,7 +110,7 @@ public sealed class DispatcherTransferIdiomDriftTests
             var emitter = new CSharpEmitter();
             return emitter.EmitBound(emitter.Bind(tree!, new EditionContext(2002)), "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>The generated source as a flat statement stream — (text, brace depth) — with string literals
