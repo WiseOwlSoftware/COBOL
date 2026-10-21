@@ -413,6 +413,42 @@ public sealed class RelativeEngineTests
     private static bool Contains(byte[] haystack, byte[] needle) =>
         haystack.AsSpan().IndexOf(needle) >= 0;
 
+    /// <summary>⛔ ISO §13.18.43.4 GR2 — <i>"The size of records on physical storage media may be different due to control
+    /// information required by the operating environment"</i> — and the calculation docs/CONFORMANCE.md DOC-A.1-146 (d) states
+    /// for it (Annex A.1 item 146, required + documented): a relative file is a whole number of 4,096-byte pages, and an
+    /// 80-byte record is ONE leaf entry of 6 + 8 + (4 + 80) = 98 bytes, so a full leaf holds ⌊4,064 / 98⌋ = 41 of them and
+    /// no leaf holds more. The determination's example — 100 such records written in record-number order make 11 pages,
+    /// 45,056 bytes — is the measured value this pins.</summary>
+    [Fact]
+    public void A_relative_records_size_on_the_medium_is_the_documented_leaf_entry_in_a_file_of_whole_pages()
+    {
+        string host = FileHarness.Tmp("recsize");
+        try
+        {
+            var w = new RelativeConnector(host, 80, KeyedAccess.Random, 4);
+            Assert.Equal("00", w.Open(FileOpenMode.Output));
+            for (int key = 1; key <= 100; key++)
+            {
+                w.SetPendingKey(key);
+                Assert.Equal("00", w.Write(new string('R', 80), 80, null));
+            }
+            Assert.Equal("00", w.Close());
+
+            const int entryBytes = 2 + 4 + 8 + (4 + 80);   // key length, value length, record number, frame
+            Assert.Equal(98, entryBytes);
+            byte[] file = File.ReadAllBytes(host);
+            Assert.Equal(0, file.Length % PageHeader.PageSize);
+            Assert.Equal(11 * PageHeader.PageSize, file.Length);
+            int fullestLeaf = 0;
+            for (int at = 0; at < file.Length; at += PageHeader.PageSize)
+                if (file[at] == (byte)PageKind.Leaf)
+                    fullestLeaf = Math.Max(fullestLeaf, BitConverter.ToUInt16(file, at + 2));
+            Assert.Equal(PageHeader.BodyBytes / entryBytes, fullestLeaf);
+            Assert.Equal(41, fullestLeaf);
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
     /// <summary>A file of the whole-store format (version 5, its magic at offset 0, kb/Work PB1099) is not a paged store:
     /// the RELATIVE OPEN answers §14.9.27.4 GR10's '39' and leaves the file as it was (GR25), exactly as a format-3 file
     /// does (2.2.1.3 decision 1: there is no reader of the whole-store format).</summary>
