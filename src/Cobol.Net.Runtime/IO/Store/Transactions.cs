@@ -19,8 +19,11 @@ namespace CobolNet.Runtime.IO.Store;
 /// UNDO tree is its own list of its holdings: after every statement the HOLDINGS tree's key set equals the union of the
 /// UNDO trees' key sets (finding R5-2).</item>
 /// </list>
-/// Every tree is ordered by the ordinal byte order: the keys are identities, compared for equality, never for a
-/// collating sequence.</summary>
+/// ⛔ The UNDO and HOLDINGS trees are ordered by <see cref="HoldingsKeyOrder"/>, the FILE'S OWN key orders (§12.4.5.12.4
+/// GR1: <i>"The equality or inequality is based on the collating sequence used for the file according to the rules for a
+/// relation condition"</i>): two key images the file's collating sequence makes equal are ONE identity, whatever their
+/// bytes, so a holding taken under one spelling is found, and kept, under the other (kb/Work PB3485). The TRANSACTIONS
+/// tree is keyed by transaction id and is ordered by the bytes, which are numbers.</summary>
 internal static class TransactionKeys
 {
     /// <summary>The kind of a record holding: its identity.</summary>
@@ -98,6 +101,60 @@ internal static class TransactionKeys
     public static byte[]? ImageOf(byte[] value) => value.Length > 0 && value[0] == Present ? value[1..] : null;
 }
 
+/// <summary>⛔ THE ORDER OF THE UNDO AND HOLDINGS TREES' KEYS (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3485): a
+/// holding key is a kind byte and then an identity, and two keys are the same holding exactly when the FILE says they are
+/// the same key. A <see cref="TransactionKeys.RecordKind"/> key compares its record identity through
+/// <paramref name="records"/>, the order of the prime tree (the record's identity IS its prime key, and §12.4.5.12.4
+/// GR1 decides the equality of two prime keys by <i>"the collating sequence used for the file according to the rules for a
+/// relation condition"</i>); a <see cref="TransactionKeys.ValueKind"/> key compares its alternate key number and then the
+/// value through that key's own order in <paramref name="values"/> (§14.9.51.4 GR35: <i>"The comparison used for ensuring
+/// uniqueness, for ordering records, or for suppressing records in the physical file is based on the collating sequence
+/// for the file"</i>). Compared as bytes, a holding taken under the spelling "abcd" would not be found by a writer of "ABCD"
+/// where the file's sequence makes the two keys one, and a transaction's second change of the record under the other
+/// spelling would keep a second before-image — an image the first change had already replaced — for a ROLLBACK to
+/// restore.
+/// <para>The orders are the connector's, handed to the page layer when it opens the file
+/// (<see cref="PagedFile.HoldingsOrder"/>), because the page layer retires a transaction (a COMMIT's retirement, the restart
+/// rule, the fence) with no connector in reach. A relative file's identity is its 8-byte big-endian record number, which
+/// the bytes order (<see cref="RecordNumbers"/>). An alternate key number <paramref name="values"/> has no order for — a
+/// connector that declares fewer keys than the file records, under the <c>COBOLNET_KEYCHECK</c> opt-out
+/// (<c>FixedFileAttributes.Conflicts</c>) — compares as bytes: the opt-out's own limit.</para></summary>
+internal sealed class HoldingsKeyOrder(IKeyOrder records, IReadOnlyList<IKeyOrder> values) : IKeyOrder
+{
+    /// <summary>The order of a RELATIVE file's holdings: record numbers, big-endian, so the bytes are the numeric order.</summary>
+    public static HoldingsKeyOrder RecordNumbers { get; } = new(KeyOrders.Ordinal, []);
+
+    /// <inheritdoc/>
+    public int Compare(ReadOnlySpan<byte> left, ReadOnlySpan<byte> right)
+    {
+        int kinds = left[0].CompareTo(right[0]);
+        if (kinds != 0) return kinds;
+        if (left[0] == TransactionKeys.RecordKind) return records.Compare(left[1..], right[1..]);
+        int index = BinaryPrimitives.ReadUInt16BigEndian(left[1..]);
+        int keys = index.CompareTo(BinaryPrimitives.ReadUInt16BigEndian(right[1..]));
+        if (keys != 0) return keys;
+        return (index < values.Count ? values[index] : KeyOrders.Ordinal).Compare(left[3..], right[3..]);
+    }
+
+    /// <summary>A holding is looked up WHOLE: no START takes a partial key of the UNDO or HOLDINGS tree.</summary>
+    public bool PrefixNarrows(int prefixLength) => throw new NotSupportedException("a holding key is never a partial key");
+
+    /// <inheritdoc cref="PrefixNarrows"/>
+    public int ComparePrefix(ReadOnlySpan<byte> stored, ReadOnlySpan<byte> prefix) =>
+        throw new NotSupportedException("a holding key is never a partial key");
+
+    /// <summary>Zeros: no seek of these trees asks for a bound (<see cref="IKeyOrder.MarksOf"/>).</summary>
+    public TreeMarks MarksOf(ReadOnlySpan<byte> key) => default;
+
+    /// <inheritdoc cref="PrefixNarrows"/>
+    public int[] BoundOf(ReadOnlySpan<byte> prefix, TreeMarks marks) =>
+        throw new NotSupportedException("a holding key is never a partial key");
+
+    /// <inheritdoc cref="PrefixNarrows"/>
+    public int CompareBound(ReadOnlySpan<byte> stored, int[] bound) =>
+        throw new NotSupportedException("a holding key is never a partial key");
+}
+
 /// <summary>⛔ ONE WALK OF A TRANSACTION'S UNDO TREE, AND EVERYTHING THAT RETIRES IT (DESIGN-runtime-library.md 2.2.1.10,
 /// finding R5-2): every key the walk meets — R and V alike — removed from the HOLDINGS tree, the transaction's entry
 /// removed from the TRANSACTIONS tree, and the UNDO tree emptied (every page of it superseded, so the statement releases
@@ -138,8 +195,8 @@ internal sealed class TransactionRetirement
         var transactions = new BTree(file, KeyOrders.Ordinal, meta.TransactionsRoot);
         var status = transactions.TryGet(TransactionKeys.Transaction(id), out var entry);
         if (status != StoreStatus.Ok || entry is null) return status;
-        var undo = new BTree(file, KeyOrders.Ordinal, TransactionKeys.PointerOf(entry));
-        var holdings = new BTree(file, KeyOrders.Ordinal, meta.HoldingsRoot);
+        var undo = new BTree(file, file.HoldingsOrder, TransactionKeys.PointerOf(entry));
+        var holdings = new BTree(file, file.HoldingsOrder, meta.HoldingsRoot);
         var keys = new List<byte[]>();
         if ((status = undo.First(out var cursor)) != StoreStatus.Ok) return status;
         while (cursor.HasCurrent)
