@@ -897,7 +897,7 @@ def self_test() -> int:
     staged: list[bool] = []
     stale = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-observe-fresh" / "fz00009"
     stale.mkdir(parents=True, exist_ok=True)
-    (stale / "left-over.dll").write_text("x", encoding="utf-8")
+    (stale / "left-over.dll").write_bytes(b"x")
     fresh_run = types.SimpleNamespace(work=stale.parent, stage=lambda entry, work: (staged.append(work.exists()), ("a.cob", "a"))[1],
                                       operation=lambda *_a: suite_config.Step(0, timed_out=False), crashed=lambda step: False,
                                       unjudgeable=lambda step, what: "")
