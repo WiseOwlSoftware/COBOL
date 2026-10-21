@@ -178,11 +178,32 @@ public sealed class RunUnit
     /// closed, so the rest of the epilogue must not hang on it either (kb/Work PB603).</para></summary>
     public void Terminate()
     {
-        try { Files.CloseAll(); }
+        try
+        {
+            // §14.6.12: "If commit and rollback is in effect, a rollback is executed. This rollback differs from user
+            // specified rollbacks in that only files and not any of the data items" are restored — the file-only
+            // ROLLBACK of an abnormal ending, before the implicit CLOSE, whose own first step commits a NORMAL ending's
+            // transactions (§9.1.18.5; DESIGN-runtime-library.md 2.2.1.10, kb/Work PB3337).
+            if (EndedAbnormally) Files.EndTransactions(abnormal: true);
+            Files.CloseAll();
+        }
         finally
         {
             foreach (var reset in _staticStorage) reset();
         }
+    }
+
+    /// <summary>⛔ Whether this run unit is ending ABNORMALLY (§14.6.12): any exception but STOP RUN's unwind leaving its
+    /// outermost boundary — a fatal exception condition, a CALL/CANCEL fatal, or a runtime failure no condition names.
+    /// <see cref="Terminate"/> reads it to choose §9.1.18.5's rollback over its commit (kb/Work PB3337).</summary>
+    internal bool EndedAbnormally { get; private set; }
+
+    /// <summary>The exception FILTER every run-unit boundary runs over the exception leaving it (it never catches: false):
+    /// records an abnormal ending before the boundary's <c>finally</c> runs <see cref="Terminate"/>.</summary>
+    internal bool NoteEnding(Exception ending)
+    {
+        if (ending is not StopRun) EndedAbnormally = true;
+        return false;
     }
 
     private long _exitStatus;
@@ -230,6 +251,7 @@ public sealed class RunUnit
         var ru = StartAfter(prior);
         _current.Value = ru;
         try { body(ru); }
+        catch (Exception ending) when (ru.NoteEnding(ending)) { throw; }   // never taken: the filter records the ending
         finally
         {
             ru.Terminate();

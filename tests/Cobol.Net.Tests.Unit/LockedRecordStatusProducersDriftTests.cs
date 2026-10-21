@@ -8,23 +8,26 @@ using Xunit;
 namespace CobolNet.Tests.Unit;
 
 /// <summary>
-/// ⛔ THE WITNESS FOR ANNEX A.1 ITEM 152'S "Condition absent." DETERMINATION (kb/Work PB1536 Q1, owner decision
-/// R43 item 3). Item 152 — "circumstances other than a locked logical record that return a locked record status"
-/// — is conditionally required, "conditioned on the existence of such circumstances in an implementation"
-/// (A.1 item 152, <c>cite.py --check A.1 "conditioned on the existence of such circumstances in an
+/// ⛔ THE WITNESS FOR ANNEX A.1 ITEM 152'S DETERMINATION, "Provided: one circumstance" (kb/Work PB1536 Q1, owner decision
+/// R43 item 3; re-adjudicated by kb/Work PB3337). Item 152 — "circumstances other than a locked logical record that return
+/// a locked record status" — is conditionally required, "conditioned on the existence of such circumstances in an
+/// implementation" (A.1 item 152, <c>cite.py --check A.1 "conditioned on the existence of such circumstances in an
 /// implementation"</c> → OK §A.1 152)), the latitude §9.1.16 grants — "The implementor may specify circumstances
 /// other than a locked logical record that result in the return of a locked record status." (<c>cite.py --check
-/// 9.1.16</c> → OK). docs/CONFORMANCE.md §7 records that no such circumstance exists: I-O status
-/// '51' (§9.1.13.8 item 1, the record operation conflict) is produced ONLY for a record another file connector
-/// holds locked.
+/// 9.1.16</c> → OK). docs/CONFORMANCE.md §7 records the one circumstance: a transaction's HOLDING under an active APPLY
+/// COMMIT clause (a record it changed, a deleted record's identity, a unique alternate key value it freed —
+/// docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10); otherwise I-O status '51' (§9.1.13.8 item 1, the record
+/// operation conflict) is produced ONLY for a record another file connector holds locked.
 ///
-/// <para>A universal negative cannot be observed by running a program, so the determination is pinned where it
-/// lives: the set of places the runtime PRODUCES <see cref="FileStatusCode.RecordLocked"/>. Today there are two,
-/// and each is guarded by a lock held by another connector — <c>PhysicalFileTable.LockRecord</c> (the record's
-/// lock owner is a different connector) and <c>FileRegistry.ConflictOnLockedRecord</c>
-/// (<c>PhysicalFileTable.IsLockedByOther</c>). A third producer turns this RED, and the answer is to re-adjudicate
-/// item 152 (write the new circumstance into §7) — never to widen the expected set silently. The behavioural half,
-/// '51' for a genuinely locked record, is pinned by <c>conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector</c>.</para>
+/// <para>The determination is pinned where it lives: the set of places the runtime PRODUCES
+/// <see cref="FileStatusCode.RecordLocked"/>. Today there are three, each guarded by a lock another connector holds —
+/// <c>PhysicalFileTable.LockRecord</c> (the record's lock owner is a different connector),
+/// <c>FileRegistry.ConflictOnLockedRecord</c> (<c>PhysicalFileTable.IsLockedByOther</c>) and
+/// <c>KeyedConnector.HoldingsGate</c> (another transaction's holding, its owner alive). A fourth producer turns this RED,
+/// and the answer is to re-adjudicate item 152 (write the new circumstance into §7) — never to widen the expected set
+/// silently. The behavioural half, '51' for a genuinely locked record, is pinned by
+/// <c>conformance:cases/A.1-Implementor-defined-language-element-list/pb669_lock_visibility_plain_connector</c> and, for
+/// the holdings, by <c>CommitRollbackRuntimeTests</c>.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class LockedRecordStatusProducersDriftTests
@@ -73,6 +76,6 @@ public sealed class LockedRecordStatusProducersDriftTests
         Assert.True(literals.Count == 0,
             "the '51' status must be spelled FileStatusCode.RecordLocked so this witness can see every producer; a bare "
             + "literal hides one:\n  " + string.Join("\n  ", literals));
-        Assert.Equal(["FileRegistry.ConflictOnLockedRecord", "PhysicalFileTable.LockRecord"], producers);
+        Assert.Equal(["FileRegistry.ConflictOnLockedRecord", "KeyedConnector.HoldingsGate", "PhysicalFileTable.LockRecord"], producers);
     }
 }
