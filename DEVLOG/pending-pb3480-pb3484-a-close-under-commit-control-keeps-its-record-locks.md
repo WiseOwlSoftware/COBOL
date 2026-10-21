@@ -39,4 +39,17 @@ to be a holder of its own, keyed by the physical file, not a field of the connec
 table alone (documented at the method and in 2.2.1.10, the same window the liveness byte has); the release loops no longer abort at the first failure; two comments quoted the
 standard in a paraphrase and were rewritten to the checked text. Docs: DOC-A.1-75, 2.2.1.10 As built (3), FILES_DESIGN's CLOSE paragraph.
 
+**Branch review, round 1.** The reviewer found one blocking defect and two leads, all fixed here. R1-1 (blocking): a replacement connector's OPEN under SHARING WITH NO OTHER (the
+I-O default) was refused '61' by the CLOSEd connector it displaced, whose kept handle (the share mode that is what is left of its file lock) belongs to the same run unit;
+§9.1.13.9 1) owes '61' only against a file open by another file connector, and §9.1.15's lock is against other run units. The re-OPEN of the same connector gave the handle
+back early or adopted it; the replacement got neither. The shape is now one: at the replacement's OPEN `FileRegistry.ReclaimRetired` hands the retired connector's kept state
+to it (`KeyedConnector.InheritKept`: same name, organization and physical file, under commit control), so the replacement's OPEN IS a re-OPEN and every rule written for that
+(adoption, early give-back, carry-over, the failed OPEN's retake) applies unchanged; an unmatched retired connector stays retired. 12 new cases (closed or open at the
+displacement, read or write, both organizations) fail on the code before; they also pin '61' against another run unit until the COMMIT. R1-2 (lead): a kept handle given back
+early and a re-OPEN then refused after the attach dropped the kept record locks out of this run unit's table with the new handle; `PhysicalFileTable.Unpublish` (the byte
+half of `Rehome`) now takes them off the host and keeps the table entries until the COMMIT or ROLLBACK. R1-3 (lead): a retired connector's record locks the host could not
+publish were never reached (its minted key leaves the registry); `ReleaseAllKept` now releases them by name through the connector's own physical-file state, tested with a
+region-lock host that answers unavailable for record bytes. The review's R1-2 scenario (NO OTHER) sets no record locks at all (§12.4.5.9.4 GR3), so its witness forces
+the early give-back with an OPEN phrase SHARING WITH NO OTHER over an ALL OTHER connector instead; both lead witnesses were mutation-checked.
+
 Gate: `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T182319Z-8a5f1f, Unit 34,189 cases ran, no failure.

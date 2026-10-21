@@ -740,6 +740,49 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>The same, when the kept handle had to be GIVEN BACK EARLY (review finding R1-2): under an OPEN phrase SHARING WITH NO OTHER the
+    /// kept handle (SHARING WITH ALL OTHER) refuses the exclusive one the re-OPEN takes, so it goes first and the record locks published through it leave the host with
+    /// it; the OPEN is then refused at its last step, and its own handle goes too. The locks are still this run unit's, in its
+    /// table, until the ROLLBACK - a second connector of the same run unit reading record 1 meets '51' (§14.9.27.4 GR25;
+    /// §14.9.6.4 GR9), where the first fix released them with the failed OPEN's handle and answered '00'.</summary>
+    [Fact]
+    public void A_refused_reopen_that_gave_the_kept_handle_back_leaves_the_record_locks_standing()
+    {
+        const FileOrg org = FileOrg.Indexed;
+        string host = Tmp("pb3480-refused-early");
+        try
+        {
+            Seed(host, org);
+            bool armed = false;
+            uint root = 0;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                read: page => armed && page == root ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, org, commit: true, FileOpenMode.Input); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Read(a, org, 1, out _));
+            root = a.PagedStoreOf("F")!.Meta.PrimeRoot.Page;
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.PagedStoreOf("F")!.DropCache();
+            armed = true;
+            a.OpenShared("F", FileOpenMode.Extend, hasSharingOverride: true, FileSharing.NoOther, FileRetryKind.None, 0,
+                OpenTapePhrase.None, assign: "", assignDynamic: false, page: null);
+            Assert.Equal("30", a.Status("F"));
+            armed = false;
+            Declare(a, host, org, commit: false, name: "G");
+            a.OpenStatic("G", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("G"));
+            Assert.Equal("51", Read(a, org, 1, out _, name: "G"));
+            Assert.Equal("00", Read(a, org, 2, out _, name: "G"));
+            Assert.Null(a.Rollback());
+            Assert.Equal("00", Read(a, org, 1, out _, name: "G"));
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>A second connector's registration with a CLOSEd connector's name (the activation of its element again after
     /// a CANCEL, kb/Work PB168) DISPLACES the first, and what its CLOSE under commit control kept goes on being the COMMIT's
     /// and the ROLLBACK's (§12.4.6.3.4 GR5: a canceled runtime element's APPLY COMMIT clause stays active until a COMMIT or
@@ -825,6 +868,60 @@ public sealed class CommitRollbackRuntimeTests
             a.CloseAll();
             var expected = Seeded();
             if (commit) (expected[7], expected[8]) = (Rec(7, "A007"), Rec(8, "A008"));
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The replacement's OPEN under SHARING WITH NO OTHER (the I-O default) is not refused by the connector it
+    /// displaced (review finding R1-1): that connector is closed (or abandoned open, and closed at the displacement) and of
+    /// THIS run unit, and §9.1.13.9 1) owes '61' only against a physical file <i>"currently open by another file connector"</i>
+    /// - the kept handle is what is left of the closed connector's file lock (§9.1.15), which prevents OTHER run units. The
+    /// element's next activation takes the transaction over as a re-OPEN of the connector does, another run unit's OPEN stays
+    /// refused '61' until the COMMIT or ROLLBACK, and that one COMMIT or ROLLBACK ends the replacement's and the displaced
+    /// connector's share of it.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "write-closed", true)]
+    [InlineData(FileOrg.Relative, "write-closed", false)]
+    [InlineData(FileOrg.Relative, "read-closed", true)]
+    [InlineData(FileOrg.Relative, "write-open", true)]
+    [InlineData(FileOrg.Relative, "write-open", false)]
+    [InlineData(FileOrg.Relative, "read-open", false)]
+    [InlineData(FileOrg.Indexed, "write-closed", true)]
+    [InlineData(FileOrg.Indexed, "write-closed", false)]
+    [InlineData(FileOrg.Indexed, "read-closed", true)]
+    [InlineData(FileOrg.Indexed, "write-open", true)]
+    [InlineData(FileOrg.Indexed, "write-open", false)]
+    [InlineData(FileOrg.Indexed, "read-open", false)]
+    public void A_replacement_connector_opens_a_file_under_no_other_the_displaced_connector_kept(FileOrg org, string how, bool commit)
+    {
+        string host = Tmp($"pb3484-noother-{org}-{how}-{commit}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.NoOther);
+            bool writes = how.StartsWith("write", StringComparison.Ordinal);
+            Assert.Equal("00", writes ? Write(a, org, 7, "A007") : Read(a, org, 1, out _));
+            ulong id = a.TransactionOf("F");
+            if (how.EndsWith("closed", StringComparison.Ordinal)) a.Close("F");
+            Declare(a, host, org, commit: true, sharing: FileSharing.NoOther);   // the element's next activation, after its CANCEL
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            if (writes) Assert.Equal("00", Read(a, org, 7, out _));
+            var other = new FileRegistry();
+            Register(other, "B", host, org, FileSharing.NoOther);
+            if (org == FileOrg.Indexed) other.AddAlternateKey("B", [new(4, 4)], duplicates: false);
+            other.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("61", other.Status("B"));   // the file lock stands against the other run unit until the COMMIT
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            a.CloseAll();
+            other.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", other.Status("B"));
+            other.CloseAll();
+            var expected = Seeded();
+            if (commit && writes) expected[7] = Rec(7, "A007");
             Assert.Equal(expected, Settled(host, org));
         }
         finally { TryDelete(host); }
@@ -1103,5 +1200,70 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal(Seeded(), Contents(host, FileOrg.Indexed));
         }
         finally { TryDelete(host); }
+    }
+
+    /// <summary>A RETIRED connector's record locks the host could not publish are given back by the COMMIT or the ROLLBACK as a
+    /// registered one's are (review finding R1-3): §9.1.16, <i>"A COMMIT statement releases all record locks for files subject
+    /// to commit and rollback"</i> (and the ROLLBACK's sentence). An object's instance file READs record 1 on a host whose
+    /// region locks answer unavailable for record bytes (the lock is recorded in this run unit's table alone), the object is
+    /// deleted (<see cref="FileRegistry.CloseAndDrop"/>, its minted key never named again), and another connector of the run
+    /// unit meets '51' on record 1 until the COMMIT or ROLLBACK - then '00'.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    public void A_dropped_instance_files_unpublished_record_locks_end_with_the_commit_or_rollback(FileOrg org, bool commit)
+    {
+        string host = Tmp($"pb3484-unpublished-{org}-{commit}");
+        try
+        {
+            Seed(host, org);
+            using var forced = HostRegionLocks.Forcing(new RecordBytesUnavailableHost(HostRegionLocks.HostOfThisProcess));
+            var a = new FileRegistry();
+            string key = a.MintInstanceKey("F");
+            Declare(a, host, org, commit: true, name: key);
+            a.OpenStatic(key, FileOpenMode.IO);
+            Assert.Equal("00", a.Status(key));
+            Assert.Equal("00", Read(a, org, 1, out _, name: key));
+            a.CloseAndDrop(key);
+            Declare(a, host, org, commit: false, name: "B");
+            a.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("B"));
+            Assert.Equal("51", Read(a, org, 1, out _, name: "B"));
+            Assert.Equal("00", Read(a, org, 2, out _, name: "B"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            Assert.Equal("00", Read(a, org, 1, out _, name: "B"));
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>A region-lock host that delegates to its inner host but cannot carry a RECORD's byte (a filesystem without
+    /// byte-range locks, answering <see cref="RegionLockResult.Unavailable"/>): the store mutex, the liveness bytes and the
+    /// presence byte are carried as ever.</summary>
+    private sealed class RecordBytesUnavailableHost(IRegionLockHost inner) : IRegionLockHost
+    {
+        public RegionLocks Open(Microsoft.Win32.SafeHandles.SafeFileHandle handle, string hostPath, bool writable) =>
+            new Endpoint(inner.Open(handle, hostPath, writable));
+
+        private sealed class Endpoint(RegionLocks endpoint) : RegionLocks(endpoint.Writable)
+        {
+            private static bool IsRecordByte(long offset) =>
+                offset >= HostRegionLocks.RegionBase + (1L << 60) && offset < HostRegionLocks.RegionBase + (1L << 61);
+
+            internal override bool ExclusiveNeedsWritableHandle => endpoint.ExclusiveNeedsWritableHandle;
+
+            internal override RegionLockResult Hold(long offset, bool exclusive, bool wait) =>
+                IsRecordByte(offset) ? RegionLockResult.Unavailable : endpoint.Hold(offset, exclusive, wait);
+
+            internal override RegionLockResult HeldByAnother(long offset) =>
+                IsRecordByte(offset) ? RegionLockResult.Unavailable : endpoint.HeldByAnother(offset);
+
+            internal override void Release(long offset) => endpoint.Release(offset);
+
+            public override void Dispose() => endpoint.Dispose();
+        }
     }
 }
