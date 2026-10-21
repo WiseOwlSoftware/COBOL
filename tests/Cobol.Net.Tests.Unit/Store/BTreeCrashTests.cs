@@ -258,7 +258,7 @@ public sealed class BTreeCrashTests
         // before the fence wrote anything, the work slot itself (DESCENDANT, adopted); after, the fence's promotion of it.
         var (clean, expected) = DescendantScene();
         var counter = clean.Open("C");
-        Assert.Equal(StoreStatus.Ok, PagedFile.Open(counter, writable, coherent: true, out var counted));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Open(counter, writable, coherent: true, HoldingsKeyOrder.RecordNumbers, out var counted));
         Assert.True(counted!.Adoption is { WorkSlot: WorkSlotClass.Descendant, WorkAdopted: true });
         int reads = counter.ReadsPerformed, beforeAnyWrite = 0;
         Assert.True(reads > 3, $"the OPEN reads {reads} pages");
@@ -268,7 +268,7 @@ public sealed class BTreeCrashTests
             string at = $"{(writable ? "I-O" : "INPUT")} OPEN refused at read {n} of {reads}";
             var handle = medium.Open("C");
             handle.FaultAtRead(n, Fault.Refuse);
-            Assert.True(PagedFile.Open(handle, writable, coherent: true, out _) == StoreStatus.PermanentError, at);
+            Assert.True(PagedFile.Open(handle, writable, coherent: true, HoldingsKeyOrder.RecordNumbers, out _) == StoreStatus.PermanentError, at);
             var (_, status, next) = StoreKit.OpenAs(medium, "D");
             Assert.True(status == StoreStatus.Ok, at);
             Assert.True(StoreKit.Show(next!) == expected, $"{at}: {StoreKit.Show(next!)}");
