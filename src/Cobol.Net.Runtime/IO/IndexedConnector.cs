@@ -228,6 +228,9 @@ public sealed class IndexedConnector : KeyedConnector
     private protected override void ForgetStore() => _st = new IndexedStore();
 
     /// <inheritdoc/>
+    private protected override void InheritStore(KeyedConnector retired) => _st = ((IndexedConnector)retired)._st;
+
+    /// <inheritdoc/>
     private protected override RestoringTreesFactory Restoring => IndexedStore.Restoring(_orders, AlternateEntries);
 
     /// <inheritdoc/>
