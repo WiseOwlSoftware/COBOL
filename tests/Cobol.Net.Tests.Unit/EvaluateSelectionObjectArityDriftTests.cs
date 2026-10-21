@@ -169,7 +169,7 @@ public sealed class EvaluateSelectionObjectArityDriftTests
             Assert.False(diags.HasErrors, string.Join("\n", diags.Diagnostics.Select(d => d.ToString())));
             return Assert.IsAssignableFrom<IParseTree>(tree);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>The defect end-to-end at the PARSE level: the function's argument list must belong to the
@@ -199,7 +199,7 @@ public sealed class EvaluateSelectionObjectArityDriftTests
                     + "was peeled off and re-read as a second selection object (PB45). ISO §8.4.3.2 SR6: when a "
                     + "function's definition permits arguments, that left parenthesis is always its argument list.");
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static IEnumerable<IParseTree> Descendants(IParseTree node)

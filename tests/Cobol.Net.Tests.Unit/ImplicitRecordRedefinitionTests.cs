@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -191,6 +192,6 @@ public sealed class ImplicitRecordRedefinitionTests
             var bound = new BinderDriver().Bind(tree!, ed);
             return (bound.Units[0].Data, ed);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

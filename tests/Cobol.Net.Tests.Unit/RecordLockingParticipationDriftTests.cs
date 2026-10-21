@@ -26,8 +26,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class RecordLockingParticipationDriftTests
 {
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb3372-{tag}-{Guid.NewGuid():N}.dat");
-
     private static FileConnector Connector(FileRegistry reg, string name) =>
         (FileConnector)typeof(FileRegistry).GetMethod("Require", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(reg, [name])!;
@@ -124,7 +122,7 @@ public sealed class RecordLockingParticipationDriftTests
     public void ParticipationIsWhetherRecordLocksCanBeSet(SharedExtendOpenDriftTests.Framing framing, string caseName)
     {
         var c = CaseNamed(caseName);
-        string host = Tmp($"{framing}-{caseName}");
+        string host = FileHarness.Tmp($"{framing}-{caseName}");
         try
         {
             Seed(host, framing);
@@ -141,7 +139,7 @@ public sealed class RecordLockingParticipationDriftTests
             reg.Close("F");
             Assert.Equal("00", reg.Status("F"));
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>GR1 a) / b) 1. made observable: a WRITE … WITH LOCK through a connector whose SHARING clause or
@@ -156,7 +154,7 @@ public sealed class RecordLockingParticipationDriftTests
         foreach (string name in new[] { "SelectSharingAllOtherOnly", "LockModeAllOtherClause" })
         {
             var c = CaseNamed(name);
-            string host = Tmp($"wl-{framing}-{name}");
+            string host = FileHarness.Tmp($"wl-{framing}-{name}");
             try
             {
                 Seed(host, framing);
@@ -169,7 +167,7 @@ public sealed class RecordLockingParticipationDriftTests
                 Assert.Equal(c.Participates, reg.IsLockedByOther("O", "3"));
                 reg.Close("W");
             }
-            finally { TryDelete(host); }
+            finally { FileHarness.TryDelete(host); }
         }
     }
 
@@ -185,7 +183,7 @@ public sealed class RecordLockingParticipationDriftTests
         foreach (var (name, status) in new[] { ("LockModeAllOtherClause", "51"), ("SelectSharingAllOtherOnly", "00") })
         {
             var c = CaseNamed(name);
-            string host = Tmp($"rd-{framing}-{name}");
+            string host = FileHarness.Tmp($"rd-{framing}-{name}");
             try
             {
                 Seed(host, framing);
@@ -205,7 +203,7 @@ public sealed class RecordLockingParticipationDriftTests
                 reg.Close("O");
                 reg.Close("W");
             }
-            finally { TryDelete(host); }
+            finally { FileHarness.TryDelete(host); }
         }
     }
 
@@ -226,16 +224,16 @@ public sealed class RecordLockingParticipationDriftTests
         var framing = SharedExtendOpenDriftTests.Framing.FixedRecordSequential;
 
         // '35': the file is absent and not OPTIONAL.
-        string absent = Tmp($"absent-{caseName}");
+        string absent = FileHarness.Tmp($"absent-{caseName}");
         var reg35 = new FileRegistry();
         RegisterSequential(reg35, "F", absent, framing);
         Assert.Equal("35", OpenAs(reg35, "F", c, FileOpenMode.Extend));
         Assert.False(Connector(reg35, "F").IsOpen);
-        TryDelete(absent);
+        FileHarness.TryDelete(absent);
 
         // '61': a sibling holds the file NO OTHER (Table 19 refuses every opener); a RETRY phrase that exhausts
         // answers the conflict's own status.
-        string host = Tmp($"busy-{caseName}");
+        string host = FileHarness.Tmp($"busy-{caseName}");
         try
         {
             Seed(host, framing);
@@ -261,7 +259,7 @@ public sealed class RecordLockingParticipationDriftTests
             Assert.Equal(participates, Connector(reg, "F").SharedPhysical is not null);
             reg.Close("F");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The posture is derived at EVERY open, so an OPEN's phrase leaves nothing behind for the next one: a
@@ -273,7 +271,7 @@ public sealed class RecordLockingParticipationDriftTests
     public void ParticipationIsDerivedAtEachOpen_AndAPhraseLeavesNothingBehind()
     {
         var framing = SharedExtendOpenDriftTests.Framing.FixedRecordSequential;
-        string host = Tmp("perop");
+        string host = FileHarness.Tmp("perop");
         try
         {
             Seed(host, framing);
@@ -301,7 +299,7 @@ public sealed class RecordLockingParticipationDriftTests
             Assert.Null(Connector(plain, "P").SharedPhysical);
             plain.Close("P");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>Structurally, the participation fact and the per-statement lock question are ONE rule written
@@ -321,8 +319,4 @@ public sealed class RecordLockingParticipationDriftTests
         Assert.DoesNotContain(code, l => l.Contains("RegisterSharing(name, null, FileLockMode.None, false)", StringComparison.Ordinal));
     }
 
-    private static void TryDelete(string path)
-    {
-        try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
 }

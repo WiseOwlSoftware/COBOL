@@ -110,6 +110,6 @@ public sealed class TableInitialStateRunsDriftTests
             var bound = emitter.Bind(tree!, new EditionContext(2023));
             return emitter.EmitBound(bound, "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

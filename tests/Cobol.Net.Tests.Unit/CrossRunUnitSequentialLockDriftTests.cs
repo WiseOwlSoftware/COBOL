@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -21,9 +22,6 @@ namespace CobolNet.Tests.Unit;
 public sealed class CrossRunUnitSequentialLockDriftTests
 {
     public enum Framing { Fixed, Line, Varying }
-
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb2692-{tag}-{Guid.NewGuid():N}.dat");
 
     private static void Register(FileRegistry reg, string name, string host, Framing framing, bool shared = true)
     {
@@ -72,7 +70,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
     public void AnotherRunUnitsRecordLock_Answers51_AndItsRewriteIsReadFromTheFile(Framing framing, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
-        string host = Tmp($"lock-{framing}");
+        string host = FileHarness.Tmp($"lock-{framing}");
         try
         {
             Seed(host, framing, "AAAA", "BBBB", "CCCC");
@@ -107,7 +105,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
             c.Close("C");
             Assert.Equal(["AAAA", "YYYY", "CCCC"], Records(host, framing));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>A sharing writer's WRITE WITH LOCK guards the record at its PHYSICAL place: after another run unit
@@ -123,7 +121,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
     public void ASharingWritersLock_GuardsTheRecordAtItsPhysicalPlace(Framing framing, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
-        string host = Tmp($"write-{framing}");
+        string host = FileHarness.Tmp($"write-{framing}");
         try
         {
             Seed(host, framing, "AAAA", "BBBB");
@@ -151,6 +149,6 @@ public sealed class CrossRunUnitSequentialLockDriftTests
             c.Close("C");
             Assert.Equal(["AAAA", "BBBB", "CCCC", "DDDD"], Records(host, framing));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

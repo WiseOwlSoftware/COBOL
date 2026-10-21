@@ -181,7 +181,7 @@ public sealed class ArithmeticOperandRoleDriftTests
             Collect(tree!, found);
             return found;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static void Collect(IParseTree node, List<ParserRuleContext> into)

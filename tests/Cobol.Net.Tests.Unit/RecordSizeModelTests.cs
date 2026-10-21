@@ -9,6 +9,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -143,6 +144,6 @@ public sealed class RecordSizeModelTests
             Assert.False(data.Edition.HasErrors, string.Join("\n", data.Edition.Diagnostics));
             return Assert.Single(data.Files);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

@@ -164,7 +164,7 @@ internal static class CompiledProgramCache
             string tmp = target + "." + Guid.NewGuid().ToString("N") + ".tmp";
             File.WriteAllBytes(tmp, bytes);
             try { File.Move(tmp, target); }
-            catch (IOException) { TryDeleteFile(tmp); }   // a concurrent stager placed the identical file first
+            catch (IOException) { FileHarness.TryDelete(tmp); }   // a concurrent stager placed the identical file first
         }
     }
 
@@ -403,7 +403,7 @@ internal static class CompiledProgramCache
                     using (var deflate = new BrotliStream(output, CompressionLevel.Fastest))
                         deflate.Write(bytes);
                     try { File.Move(tmp, blob); }
-                    catch (IOException) { TryDeleteFile(tmp); }   // a concurrent writer stored the same content
+                    catch (IOException) { FileHarness.TryDelete(tmp); }   // a concurrent writer stored the same content
                 }
                 files.Add(new StoredFile(Path.GetFileName(file), sha));
             }
@@ -420,7 +420,7 @@ internal static class CompiledProgramCache
             string tmpEntry = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
             File.WriteAllText(tmpEntry, JsonSerializer.Serialize(entry));
             try { File.Move(tmpEntry, path, overwrite: true); Interlocked.Increment(ref s_stored); }
-            catch (IOException) { TryDeleteFile(tmpEntry); }
+            catch (IOException) { FileHarness.TryDelete(tmpEntry); }
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { /* a store is best-effort */ }
     }
@@ -452,7 +452,7 @@ internal static class CompiledProgramCache
                 var entriesDir = new DirectoryInfo(Path.Combine(Root, "entries"));
                 var entries = entriesDir.EnumerateFiles("*.json", SearchOption.AllDirectories)
                     .OrderBy(f => f.LastWriteTimeUtc).ToList();
-                foreach (var stale in entries.Take(entries.Count / 2)) TryDeleteFile(stale.FullName);
+                foreach (var stale in entries.Take(entries.Count / 2)) FileHarness.TryDelete(stale.FullName);
                 var live = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var survivor in entries.Skip(entries.Count / 2))
                 {
@@ -466,7 +466,7 @@ internal static class CompiledProgramCache
                 // A blob younger than ten minutes may belong to an entry a concurrent writer has not published yet.
                 foreach (var blob in blobs)
                     if (!live.Contains(blob.Name) && blob.LastWriteTimeUtc < DateTime.UtcNow.AddMinutes(-10))
-                        TryDeleteFile(blob.FullName);
+                        FileHarness.TryDelete(blob.FullName);
             }
             var staged = new DirectoryInfo(Path.Combine(Root, "src"));
             if (staged.Exists)
@@ -491,9 +491,4 @@ internal static class CompiledProgramCache
     }
 
     internal static string Sha256Hex(byte[] bytes) => Convert.ToHexStringLower(SHA256.HashData(bytes));
-
-    private static void TryDeleteFile(string path)
-    {
-        try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
-    }
 }
