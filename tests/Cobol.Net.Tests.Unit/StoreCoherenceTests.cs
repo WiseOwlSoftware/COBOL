@@ -5,7 +5,7 @@ using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
-using static CobolNet.Tests.Unit.FileHarness;
+using static CobolNet.Tests.Shared.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 

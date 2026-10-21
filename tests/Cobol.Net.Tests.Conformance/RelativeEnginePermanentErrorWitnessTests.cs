@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
-using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Conformance;
@@ -39,26 +39,8 @@ public sealed class RelativeEnginePermanentErrorWitnessTests
     private static string TornFile()
     {
         string host = Path.Combine(Path.GetTempPath(), $"pb3333-torn-{Guid.NewGuid():N}.dat");
-        var reg = new FileRegistry();
-        reg.RegisterRelative("RV", host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
-            relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
-        reg.Open("RV", FileOpenMode.Output, host, assignDynamic: false, page: null);
-        Assert.Equal("00", reg.Status("RV"));
-        reg.SetRelativeKey("RV", 4);
-        Assert.Equal("00", reg.WriteKeyed("RV", "0004DDDD", 8));
-        reg.Close("RV");
-        Assert.Equal("00", reg.Status("RV"));
-        const int PageSize = 4096;
-        byte[] file = File.ReadAllBytes(host);
-        int torn = 0;
-        for (int page = 3; page < file.Length / PageSize; page++)
-        {
-            if (file.AsSpan(page * PageSize, PageSize).IndexOf("0004DDDD"u8) < 0) continue;
-            file[page * PageSize + 100] ^= 0xFF;
-            torn++;
-        }
-        Assert.True(torn > 0, "the record's leaf was found");
-        File.WriteAllBytes(host, file);
+        FileHarness.Seed(host, FileOrg.Relative, [(4, "DDDD")]);
+        FileHarness.TearPagesCarrying(host, "0004DDDD"u8);
         return host;
     }
 

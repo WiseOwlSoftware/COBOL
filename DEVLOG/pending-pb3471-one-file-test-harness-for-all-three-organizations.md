@@ -18,6 +18,10 @@ new and replaces the three private copies in `IndexedEngineTests`, `RelativeEngi
 `PermanentErrorOutranksRecordLockTests`. The four classes call the harness; every private copy and all four `Org` enums are
 deleted, with no forwarder. The drift guard `EveryOrganisationsHandleAccessLiesInThatBand` still pins the count of concrete
 `FileConnector` organizations against `FileOrg`, and its message now points at `FileOrg` and `FileHarness.Register`.
+PB3472 landed while this branch was in flight and moved the harness to `tests/_shared` (namespace `CobolNet.Tests.Shared`,
+public runtime surface only, so the Conformance witnesses reach it). The merge keeps both: the one class is
+`tests/_shared/FileHarness.cs` with PB3472's `FileRegistry.Open` seed and `TearPagesCarrying`, and PB3472's Unit-only
+`MutexHeld` half is `tests/Cobol.Net.Tests.Unit/FileHarness.StoreMutex.cs`.
 
 **Rows.** None claimed, none closed. **Goldens.** Test refactor only: the 1,746 cases of the six touched classes pass
 unchanged. The sibling sweep found no other class spanning the three organizations; 17 other test classes keep a private
