@@ -49,6 +49,14 @@ def note(nid, status="open", area="runtime", rows=0, body="", wrapped=False):
         f"wrong_answer: true\n{inv}\n---\n\n# {nid}\n\n{body}\n", encoding="utf-8", newline="\n")
 
 
+def returned(reports_dir):
+    """Every report in `reports_dir` is written a minute after its dispatch was recorded (`answers` bounds a report by
+    the dispatch's `at`, and a file's mtime may trail the clock by a filesystem tick)."""
+    later = pathlib.Path(reports_dir).stat().st_mtime + 60
+    for p in pathlib.Path(reports_dir).glob("*-report.md"):
+        os.utime(p, (later, later))
+
+
 def report(name, first_line, header):
     (REPORTS / name).write_text(f"{first_line}\n{header}\n\n## Reproduced?\nPB9999 is mentioned only below the header.\n",
                                 encoding="utf-8", newline="\n")
@@ -96,7 +104,7 @@ UNLANDED = {"worktree-wf_aaa-1": ["PB1"], "worktree-wf_ddd-9": ["PB13"], "worktr
 notes = pw.load_notes(WORK, {"wrong_answer": 8})
 reports = pw.load_reports(REPORTS)
 check("wrapped inventory_rows counted", len(notes["PB6"].rows), 10)
-check("report header ids only", sorted(r.lead for r in reports if "PB9999" in r.ids), [])
+check("report header ids only", sorted(r.lead for r in reports if "PB9999" in r.notes), [])
 r3 = next(r for r in reports if r.lead == "PB3")
 check("report parse", (r3.status, r3.branch, r3.head, r3.not_started, r3.worktree),
       ("SPLIT", "worktree-wf_bbb-2", "2222222bb", True, r"E:\COBOL\.claude\worktrees\wf_bbb-2"))
@@ -158,14 +166,20 @@ check("no train: the plan carries no train count (kb/Work PB3023)", "trains" in 
 #     A DONE report that names a note NOT started still waits for its landing. Own reports, so check 8's golden holds.
 SPLIT_REPORTS = TMP / "reports-split"
 SPLIT_REPORTS.mkdir()
+# The notes a report answers are the notes its group was DISPATCHED with (PB3473): wave 1020's group E held PB7 and PB12.
+SPLIT_COORD = TMP / "coord-split"
+SPLIT_COORD.mkdir()
+pw.record_dispatch(SPLIT_COORD, "1020", [{"letter": "e", "notes": ["PB7", "PB12"], "files": ["src/X/Emitter.cs"]}],
+                   lambda i: False)
 (SPLIT_REPORTS / "w1020d-PB5-report.md").write_text(
     "SPLIT\n# PB5 group\n**Status:** SPLIT at the turn cap · **worktree:** `E:\\COBOL\\.claude\\worktrees\\wf_ggg-4` · "
     "**branch:** `worktree-wf_ggg-4` · **HEAD:** `3333333cc`\n\n## Reproduced?\n", encoding="utf-8", newline="\n")
 (SPLIT_REPORTS / "w1020e-PB7-report.md").write_text(
     "DONE\n# PB7 group (PB12 NOT started)\n**branch:** `worktree-wf_hhh-5` · **HEAD:** `4444444dd`\n\n## Reproduced?\n",
     encoding="utf-8", newline="\n")
+returned(SPLIT_REPORTS)
 SPLIT_CLASS = {"worktree-wf_ggg-4": "UNLANDED", "worktree-wf_hhh-5": "UNLANDED"}
-p5 = pw.plan(notes, CLUSTERS, HALF, pw.load_reports(SPLIT_REPORTS), lambda b: SPLIT_CLASS.get(b, "ABSENT"), {}, RULES,
+p5 = pw.plan(notes, CLUSTERS, HALF, pw.load_reports(SPLIT_REPORTS, SPLIT_COORD), lambda b: SPLIT_CLASS.get(b, "ABSENT"), {}, RULES,
              budget_points=100)
 g5 = next((g for g in p5["groups"] if "PB5" in g.notes), None)
 check("split on an unlanded branch is a finisher", (g5.kind if g5 else None, "PB5" in str(p5["awaiting_landing"])),
@@ -234,6 +248,139 @@ check("mid-prose `branch:` is not a field: with no field the branch word wins, n
       "worktree-wf_rv-6")
 check("mid-prose `branch:` above the Branch field does not pre-empt it", rv3["w1062k"].branch, "worktree-wf_rv-7")
 
+# 6b'''0. A REPORT ANSWERS THE NOTES ITS GROUP WAS DISPATCHED WITH, NEVER THE IDS ITS HEADER MENTIONS (kb/Work PB3473,
+#        PB3152). Wave 1135 held the top-ranked note back because the header of a DONE report on an unlanded branch
+#        said "Wave 1134's plan held PB3337 ..." (it went to `awaiting landing` under that branch), and wave 1076 planned
+#        a FINDINGS report's review finisher under the open note its header mentioned. Each header below MENTIONS an open
+#        note above its first `## ` heading (a mention in a section body was always ignored, so a fixture that puts it
+#        there witnesses nothing); the ledger group of each names only its own lead.
+MN_REPORTS = TMP / "reports-mention"
+MN_REPORTS.mkdir()
+MN_COORD = TMP / "coord-mention"
+MN_COORD.mkdir()
+pw.record_dispatch(MN_COORD, "1136", [{"letter": "a", "notes": ["PB13"], "files": ["src/X/Zero.cs"]},
+                                      {"letter": "b", "notes": ["PB14"], "files": ["src/X/Binder.cs"]}], lambda i: False)
+(MN_REPORTS / "w1136a-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_mn-1` · **HEAD:** `6a6a6a6aa`\n"
+    "**Review:** FINDINGS 1 w1136a-review-r1 6a6a6a6aa E:/s/review-mn-a.jsonl\n\n"
+    "Wave 1136 also held PB10 (the top of the list) and PB9, which this branch does not touch.\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+(MN_REPORTS / "w1136b-PB14-report.md").write_text(
+    "# PB14 report\n**Status:** DONE · **branch:** `worktree-wf_mn-2` · **HEAD:** `7b7b7b7bb`\n"
+    "**Review:** CLEAN w1136b-review-r1 7b7b7b7bb\n\nThis plan held PB11 on a file the branch does not edit.\n\n"
+    "## Reproduced?\n", encoding="utf-8", newline="\n")
+returned(MN_REPORTS)
+mn_reports = pw.load_reports(MN_REPORTS, MN_COORD)
+check("a report answers its lead and its dispatch group's notes, not the ids its header mentions",
+      {r.slug: r.notes for r in mn_reports}, {"w1136a": ["PB13"], "w1136b": ["PB14"]})
+check("a report no ledger group knows answers its lead alone",
+      {r.slug: r.notes for r in pw.load_reports(MN_REPORTS)}, {"w1136a": ["PB13"], "w1136b": ["PB14"]})
+pmn = pw.plan(notes, CLUSTERS, HALF, mn_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("a mentioned note is not awaiting landing under the mentioning report's branch",
+      pmn["awaiting_landing"], {"worktree-wf_mn-2": ["PB14"]})
+check("every mentioned note is planned in a group of its own cluster",
+      {i: any(i in g.notes for g in pmn["groups"]) for i in ("PB10", "PB9", "PB11")},
+      {"PB10": True, "PB9": True, "PB11": True})
+check("a FINDINGS report's finisher is planned under its own lead alone, not under a note its header mentions",
+      sorted((g.kind, tuple(g.notes)) for g in pmn["groups"] if g.kind == "finisher" and {"PB13", "PB10", "PB9"} & set(g.notes)),
+      [("finisher", ("PB13",))])
+check("a mention is no attempt at the mentioned note (choose_model escalates on attempts)",
+      (pw.attempts("PB10", mn_reports), pw.attempts("PB13", mn_reports)), (0, 1))
+# 6b'''00. A NOTE THE BRANCH CLOSES BEYOND ITS DISPATCH (branch review R1-1 of the PB3473 fix). An implementer routinely
+#         closes a note its group was not dispatched with ("PB3383 (+ PB925)"): the ledger and the report's file name
+#         name only PB13, so without the register the DONE branch waiting to land held PB13 alone and PB10, which the
+#         branch already flipped to `landed`, was planned again (a double dispatch). The branch's own kb/Work records
+#         what it finished: PB10 is flipped, PB9 is only touched (still open on the branch), PB13 is the lead.
+class _Shown:
+    def __init__(self, rc, out=""):
+        self.returncode, self.stdout = rc, out
+
+
+CL_REPORTS = TMP / "reports-closes"
+CL_REPORTS.mkdir()
+CL_COORD = TMP / "coord-closes"
+CL_COORD.mkdir()
+pw.record_dispatch(CL_COORD, "1137", [{"letter": "a", "notes": ["PB13"], "files": ["src/X/Zero.cs"]}], lambda i: False)
+(CL_REPORTS / "w1137a-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_cl-1` · **HEAD:** `8c8c8c8cc`\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CL_REPORTS)
+cl_reports = pw.load_reports(CL_REPORTS, CL_COORD)
+check("before the register is read a report answers its lead alone", [r.notes for r in cl_reports], [["PB13"]])
+
+
+def _branch_git(branch, status):
+    """A fake git for `branch`, whose register changed the notes of `status` ({id: the status ON the branch}) and the
+    source file Zero.cs. A diff asked for any other range or pathspec than `origin/main...<branch> -- kb/Work` lists
+    nothing, so a closed_by_branch that passes the wrong range or drops the pathspec finds no note and the checks go red."""
+    def git(*args, cwd=None):
+        if args[:3] == ("diff", "--name-only", "--no-renames"):
+            if args[3:] != (f"origin/main...{branch}", "--", "kb/Work"):
+                return _Shown(0, "")
+            return _Shown(0, "".join(f"kb/Work/{nid}.md\n" for nid in status) + "kb/Work/README.md\nsrc/X/Zero.cs\n")
+        for nid, st in status.items():
+            if args == ("show", f"{branch}:kb/Work/{nid}.md"):
+                return _Shown(0, f"---\nid: {nid}\nstatus: {st}\narea: runtime\n---\n\n# {nid}\n")
+        return _Shown(128)
+    return git
+
+
+_cl_git = _branch_git("worktree-wf_cl-1", {"PB13": "landed", "PB10": "retired", "PB9": "open"})
+
+
+check("a branch closes the notes it flipped to a terminal status, not the ones it only touched",
+      pw.closed_by_branch("worktree-wf_cl-1", _cl_git), ["PB10", "PB13"])
+pw.add_closed_notes(cl_reports, lambda b: "UNLANDED", _cl_git)
+check("a finished report on an unlanded branch answers its lead, its group and what the branch closes",
+      [r.notes for r in cl_reports], [["PB13", "PB10"]])
+pcl = pw.plan(notes, CLUSTERS, HALF, cl_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("the note the branch closed is awaiting landing with it, never planned a second time",
+      (pcl["awaiting_landing"], any("PB10" in g.notes or "PB13" in g.notes for g in pcl["groups"])),
+      ({"worktree-wf_cl-1": ["PB13", "PB10"]}, False))
+check("a note the branch only touched is still planned", any("PB9" in g.notes for g in pcl["groups"]), True)
+cl_landed = pw.load_reports(CL_REPORTS, CL_COORD)
+pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git)
+check("a landed branch adds nothing (its notes are closed on main)", [r.notes for r in cl_landed], [["PB13"]])
+# 6b'''00 (R2). THE SAME HOLD FOR AN UNFINISHED BRANCH (branch review R2-1, R2-2). A SPLIT report's finisher takes the
+#         branch's commits, which carry the notes the branch already closed: they belong to that finisher's group, or
+#         each is planned again as a cluster group that redoes the work the finisher cherry-picks. And a finisher
+#         CONTINUES one branch: the closed notes can take the group past the cap, and a second chunk would be a second
+#         agent re-answering the first one's review findings on the same branch.
+CL_SPLIT = TMP / "reports-closes-split"
+CL_SPLIT.mkdir()
+(CL_SPLIT / "w1137a-PB13-report.md").write_text(
+    "# PB13 report\nStatus: SPLIT at the turn cap\n**branch:** `worktree-wf_cl-1` · **HEAD:** `8c8c8c8cc`\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CL_SPLIT)
+cl_split = pw.load_reports(CL_SPLIT, CL_COORD)
+pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git)
+check("a SPLIT report on an unlanded branch answers what the branch closes too", [r.notes for r in cl_split],
+      [["PB13", "PB10"]])
+pcs = pw.plan(notes, CLUSTERS, HALF, cl_split, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("the SPLIT finisher takes the closed note, which no cluster group plans a second time",
+      sorted((g.kind, tuple(g.notes)) for g in pcs["groups"] if {"PB13", "PB10"} & set(g.notes)),
+      [("finisher", ("PB10", "PB13"))])
+
+CAP_RULES = json.loads(json.dumps(RULES))
+CAP_RULES["wave"]["max_notes_per_group"] = 2
+CAP_REPORTS = TMP / "reports-closes-cap"
+CAP_REPORTS.mkdir()
+CAP_COORD = TMP / "coord-closes-cap"
+CAP_COORD.mkdir()
+pw.record_dispatch(CAP_COORD, "1138", [{"letter": "a", "notes": ["PB13", "PB14"], "files": ["src/X/Zero.cs"]}],
+                   lambda i: False)
+(CAP_REPORTS / "w1138a-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_cap-1` · **HEAD:** `9d9d9d9dd`\n"
+    "**Review:** FINDINGS 1 w1138a-review-r1 9d9d9d9dd E:/s/review-cap-a.jsonl\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CAP_REPORTS)
+cap_reports = pw.load_reports(CAP_REPORTS, CAP_COORD)
+pw.add_closed_notes(cap_reports, lambda b: "UNLANDED",
+                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}))
+pcap = pw.plan(notes, CLUSTERS, HALF, cap_reports, lambda b: "UNLANDED", {}, CAP_RULES, budget_points=100)
+check("a FINDINGS branch that closed more notes than the cap has ONE review finisher, not one per chunk",
+      sorted((g.kind, tuple(g.notes)) for g in pcap["groups"] if {"PB13", "PB14", "PB10"} & set(g.notes)),
+      [("finisher", ("PB10", "PB13", "PB14"))])
 # 6b'''. THE DRAIN AND THE UNSEEN LEAD (kb/Work PB3150). Wave 1075's drain plan (`--max-groups 2`) put the SPLIT of
 #        w1074a first, whose finisher would have started PB3101 (never started) and cherry-picked `…-e99-1` again
 #        though `…-e99-4` merged it, and never planned license-product-name's review finisher: its lead PB3146 is
@@ -243,6 +390,10 @@ check("mid-prose `branch:` above the Branch field does not pre-empt it", rv3["w1
 #        its pred, never a reason to drop it (review R1-1, R1-2).
 DR = TMP / "reports-drain"
 DR.mkdir()
+DR_COORD = TMP / "coord-drain"      # wave 1074's group A held PB5 and PB12 (its report says PB12 was not started)
+DR_COORD.mkdir()
+pw.record_dispatch(DR_COORD, "1074", [{"letter": "a", "notes": ["PB5", "PB12"], "files": ["src/X/Binder.cs"]}],
+                   lambda i: False)
 for name, first, hdr in (
         ("w1074a-PB5-report.md", "SPLIT", "# PB5 group (PB12 not started)\n**branch:** `worktree-wf_dr-1` · **HEAD:** `1010101aa`"),
         ("w1074b-PB7-report.md", "Status: DONE", "**Review:** FINDINGS 1 w1074b-review-r1 2020202bb E:/s/review-w1074-b.jsonl\n"
@@ -259,12 +410,8 @@ DR_CLASS = {"worktree-wf_dr-1": "UNLANDED", "worktree-wf_dr-2": "UNLANDED", "wor
             "worktree-wf_dr-6": "UNLANDED", "worktree-wf_dr-7": "UNLANDED"}
 DR_CARRIER = {"worktree-wf_dr-1": "worktree-wf_dr-2", "worktree-wf_dr-5": "worktree-wf_dr-2",
               "worktree-wf_dr-6": "worktree-wf_dr-2"}
-dr_reports = pw.load_reports(DR)
-
-
-class _Shown:
-    def __init__(self, rc, out=""):
-        self.returncode, self.stdout = rc, out
+returned(DR)
+dr_reports = pw.load_reports(DR, DR_COORD)
 
 
 def _show(*args, cwd=None):
@@ -957,8 +1104,8 @@ CI_META = {"worktree a (worktree-done)": {"branch": "worktree-done", "rev": "x"}
            "branch worktree-landed": {"branch": "worktree-landed", "rev": "worktree-landed"},
            "dispatched w1092a (PB67)": {"notes": ["PB67"], "at": 1.0, "slug": "w1092a"}}
 SPL = dataclasses.replace(FIN, path=TMP / "w1090d-PB68-report.md", slug="w1090d", lead="PB68", status="SPLIT",
-                          ids=["PB68"], branch="worktree-split")
-FND = dataclasses.replace(FIN, path=TMP / "w1090e-PB69-report.md", slug="w1090e", lead="PB69", ids=["PB69"],
+                          notes=["PB68"], branch="worktree-split")
+FND = dataclasses.replace(FIN, path=TMP / "w1090e-PB69-report.md", slug="w1090e", lead="PB69", notes=["PB69"],
                           branch="worktree-findings", review=pw.Review("FINDINGS", 2, "r", "abc1234", "f.jsonl"))
 # the survey's lifecycle states (prune_worktrees.lifecycle) decide; a branch the survey does not name is running
 CI_STATES = {"worktree-done": "WAITING TO LAND", "worktree-split": "DECISION", "worktree-findings": "DECISION",
@@ -1170,7 +1317,6 @@ def rv_state(*reports):
 
 STAMPED = hl_report("w1101a-PB3198-report.md", "DONE", RV_AT + 600)           # the reviewed report, stamped after
 MENTION = hl_report("w1102z-PB3203-report.md", "DONE", RV_AT + 600)           # its header names PB3198 below
-MENTION.ids.append("PB3198")
 EARLIER = hl_report("w1101ar1-PB3198-report.md", "DONE", RV_AT - 3600, "earlier")      # an earlier dispatch's, reused slug
 RETURNED = hl_report("w1101ar1-PB3198-report.md", "DONE", RV_AT + 900)        # the review finisher's own report
 HELD = ({"PB3198": "dispatch w1101ar1"}, {"src/Review.cs"})
