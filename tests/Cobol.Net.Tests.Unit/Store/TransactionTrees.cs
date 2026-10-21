@@ -32,6 +32,11 @@ internal static class TransactionTrees
         Assert.True(meta.TransactionsRoot.IsNone, "the TRANSACTIONS tree is empty once no transaction is open");
     }
 
+    /// <summary>The root of every open transaction's UNDO tree, from the TRANSACTIONS tree as <paramref name="file"/> last
+    /// saw it.</summary>
+    public static IEnumerable<PagePointer> UndoRoots(PagedFile file) =>
+        Entries(file, file.Meta.TransactionsRoot).Select(e => TransactionKeys.PointerOf(e.Value));
+
     private static SortedSet<string> Keys(PagedFile file, PagePointer root) =>
         new(Entries(file, root).Select(e => Convert.ToHexString(e.Key)), StringComparer.Ordinal);
 
