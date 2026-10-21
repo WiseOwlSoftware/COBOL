@@ -765,7 +765,9 @@ retires a transaction, `IRestoringTrees`), the UNDO and HOLDINGS edits of every 
 (`PagedFile.Commit`, `Retire`), ROLLBACK and the dead-owner rollback as one statement (`KeyedStore.RollBack`), the
 dead-owner step at every exclusive entry and writable OPEN, the holdings lock test (`KeyedConnector.HoldingsGate`), and
 `FileRegistry.RegisterCommitControl` / `Commit` / `Rollback`, with the connector-level cases in
-`tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs`; every transaction row of 2.2.1.16 and 2.2.1.17 runs
+`tests/Cobol.Net.Tests.Unit/Store/CommitRollbackRuntimeTests.cs` (among them the abnormal-ending wiring of each run-unit
+boundary, `RunUnit.Run`, `ProgramTable.RunMain` and the host's `CallFromHost`, which record the ending that
+`RunUnit.Terminate` reads to choose the commit or the file-only ROLLBACK, kb/Work PB3481); every transaction row of 2.2.1.16 and 2.2.1.17 runs
 through the fault-injecting medium of 2.2.1.12 in `tests/Cobol.Net.Tests.Unit/Store/TransactionFaultMatrixTests.cs`
 (the process death, the refusal and the power loss at every point of COMMIT, its reversal, ROLLBACK, the dead-owner step
 and a first change, and a holder's death at every point of another run unit's statement), and witness (e) of 2.2.1.11 in
