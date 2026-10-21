@@ -419,6 +419,53 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>§14.9.7.4 GR4 (<i>"For files specified in active APPLY COMMIT clauses that have been closed and not reopened
+    /// prior to the COMMIT statement, the file locks are released."</i>) — so until then they are not: while a connector
+    /// CLOSEd under commit control keeps its file lock, another run unit's OPEN WITH NO OTHER is refused '61' (§9.1.13.9
+    /// 1), Table 19), on a host whose share modes are the lock and on one whose run-unit lock is the published column alike;
+    /// the COMMIT (or the ROLLBACK) releases it and the same OPEN then succeeds. A re-OPEN of the closed connector itself
+    /// replaces the kept lock and is never refused by it.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    public void A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit(FileOrg org, bool commit)
+    {
+        string host = Tmp($"pb3337-gr4-{org}-{commit}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            var b = new FileRegistry();
+            Register(b, "B", host, org, FileSharing.NoOther);
+            if (org == FileOrg.Indexed) b.AddAlternateKey("B", [new(4, 4)], duplicates: false);   // GR10: the same attributes
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("61", b.Status("B"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", b.Status("B"));
+            b.Close("B");
+            Assert.Equal("00", b.Status("B"));
+            // The connector's own re-OPEN after a CLOSE under commit control: the kept lock is replaced, not a refusal.
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Write(a, org, 8, "A008"));
+            a.Close("F");
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            a.CloseAll();
+            var expected = Seeded();
+            if (commit) expected[7] = Rec(7, "A007");
+            expected[8] = Rec(8, "A008");
+            Assert.Equal(expected, Contents(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>§9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §14.6.12); a
     /// NORMAL ending commits them.</summary>
     [Theory]
