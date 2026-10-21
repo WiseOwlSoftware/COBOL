@@ -27,3 +27,15 @@ each alternate tree; ⌊4,064 / entry⌋ to a full leaf; overflow pages past a 1
 the row's example (100 80-byte records: 98-byte entries, 41 to a full leaf, 11 pages, 45,056 bytes). The sibling sweep
 (`grep -n "store header" docs/CONFORMANCE.md`) found the deleted header named in §2 row 40 and DOC-A.1-129 arm (4); both
 now name the meta page. Batch `w1140a/batch-pb1278.json`: GAP 66 → 65.
+
+**The Linux gate caught what leg 1 did not.** The first Windows gate was GREEN on leg 1, and the Linux unit leg was RED
+on `AnnexA1RegisterDriftTests.EveryDocRow_IsFiledUnderTheItemAnnexA1Names`: the inventory's DOC-A.1-146 row now cited the
+new witness, and the row's `Pinned by` column in `docs/CONFORMANCE.md` did not name it. `audit_annex_a1.py --check`
+reports the same finding, but neither it nor the drift class that `drift_rules.py docs/CONFORMANCE.md` names runs in
+leg 1 without an impact map; that is kb/Work PB3247's open gap, not a new one. The row names the witness now.
+
+**PB3338 was not started.** The third note of the group, the compiler half of APPLY COMMIT, is a whole facility: the
+clause's grammar and syntax rules, activation registration, COMMIT and ROLLBACK with data-item images, the EC-FLOW
+conditions, §14.6.13.1.3 item 8, the decline's removal and its fault-injection cases. It does not fit the rest of this
+implementer's turn budget. The group was split at the note boundary, and PB3338's note records the code sites found
+while orienting.
