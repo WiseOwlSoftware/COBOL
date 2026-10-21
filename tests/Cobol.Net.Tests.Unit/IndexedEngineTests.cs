@@ -28,10 +28,10 @@ namespace CobolNet.Tests.Unit;
 ///   connector left closed, the file the table's row names — and a death after every write of each OPEN.</item>
 ///   <item>2.2.1.7's exclusive-entry rule through the shared lifecycle (review finding R1-2): an INPUT connector beside
 ///   its writable sibling enters under a SHARED hold and writes nothing.</item>
-///   <item>2.2.1.17 through the INDEXED connector (PendingStoreCases' PB3334 row): two run units' statements, §14.9.30.4
+///   <item>2.2.1.17 through the INDEXED connector: two run units' statements, §14.9.30.4
 ///   GR26's duplicate order kept across run units, the '02' look-ahead (GR27), the READ ONLY writer beside the INPUT reader
 ///   (finding R2-6), and a reader walking an alternate key's duplicates through a tree another run unit splits.</item>
-///   <item>The tree's COBOL surface (PendingStoreCases' PB3334 row of 2.2.1.12): START with each relational operator, a
+///   <item>The tree's COBOL surface (2.2.1.12): START with each relational operator, a
 ///   full key and a partial key, found and not found (§14.9.41.4 GR17); §14.9.35.4 GR24 a)'s untouched duplicate order of
 ///   the keys a REWRITE does not change; the <c>COBOLNET_KEYCHECK</c> opt-out's trees (DOC-A.1-129); the format's key
 ///   bounds ('39'); the whole-store formats ('39').</item>

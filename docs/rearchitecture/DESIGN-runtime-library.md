@@ -2067,7 +2067,7 @@ PB3331-PB3338; this paragraph is a pointer, not a tracker). PB3331 the page laye
 crash matrix (in the tree: `src/Cobol.Net.Runtime/IO/Store/` — `PagedFile`, `MetaPage`, `PageHeader`, `PagePointer`,
 `Ledger`, `HandlePageMedium` — used by no connector yet, and the simulator and its cases under
 `tests/Cobol.Net.Tests.Unit/Store/`; the LEDGER and the FREE set were serialized as overflow chains until
-PB3332's tree replaced both, and the rows the later groups' paths own are `PendingStoreCases` there); PB3332 the B+ tree over it
+PB3332's tree replaced both); PB3332 the B+ tree over it
 (in the tree: `BTree`, `BTreeCursor`, `IKeyOrder`, `KeyOrders`, `OverflowChain`, with the LEDGER a resident tree and the FREE
 set the FREE tree, and its model, shape and crash cases beside the page layer's); PB3333 RELATIVE on the engine (its connector, its tests, the
 relative halves of DOC-A.1-107 and of DOC-A.1-75 — and, because it is the first connector that writes at every statement, the coherence
