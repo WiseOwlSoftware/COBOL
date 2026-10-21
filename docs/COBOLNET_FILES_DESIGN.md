@@ -796,9 +796,11 @@ the sentence that used to stand here — *"those route through `CobolFile.OpenIn
 how §14.9.40.4 GR12 a)'s READ ONLY and GR15 a)'s NO OTHER went unrendered for as long as they did
 (kb/Work PB714). Because every successful OPEN registers in `PhysicalFileTable`, every close
 path releases, and it does so by being the SAME close: `FileRegistry.CloseByFormat`, the Table-14 CLOSE dispatch,
-runs `SharedClose` (the deregistration and the §9.1.16 record-lock release) and is the only member that calls a
+runs `SharedClose` (the deregistration and the §9.1.16 record-lock release - except the record locks of a file in an APPLY COMMIT
+clause, which its COMMIT or ROLLBACK releases, §14.9.6.4 GR9, kb/Work PB3480) and is the only member that calls a
 connector's own `Close()`. The explicit CLOSE statement, CANCEL's `CloseIfOpen`, an object's `CloseAndDrop`, a
-displaced registration's `CloseDisplaced` and run-unit termination's `CloseAll` (§14.6.11 2), which `Reset` also
+displaced registration's `CloseDisplaced` (which retires a connector still holding what a CLOSE under commit control kept, for the
+next COMMIT or ROLLBACK, kb/Work PB3484) and run-unit termination's `CloseAll` (§14.6.11 2), which `Reset` also
 runs for whatever an earlier run unit left open) are all entries over it, and
 `RunUnitImplicitCloseDriftTests` keeps it that way (kb/Work PB603: `CloseAll`, `Reset` and `CloseDisplaced` each
 used to call `Close()` directly, and `Reset` dropped keyed connectors still open). `CloseAll` closes only the files

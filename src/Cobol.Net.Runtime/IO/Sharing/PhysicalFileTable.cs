@@ -206,6 +206,53 @@ internal sealed class PhysicalFileTable
         foreach (var k in mine) Unlock(st, k);
     }
 
+    /// <summary>⛔ THE RELEASE OF EVERY RECORD LOCK PUBLISHED THROUGH <paramref name="endpoint"/> — out of this run unit's
+    /// table and given back to every other run unit — for the one owner of a lock that outlives its connector's CLOSE: the
+    /// endpoint a CLOSE under commit control kept (§14.9.6.4 GR9, §9.1.16; <c>KeyedConnector.ReleaseKept</c>). It names the
+    /// endpoint and not the connector, because the endpoint is what carries the lock to the other run units and the
+    /// connector's registry key is not its own to know. A lock that was never published (a host that cannot carry it) is
+    /// this run unit's table alone and is the registry's, by name (<see cref="ReleaseAllForConnector"/>).</summary>
+    public static void ReleaseThrough(State st, RegionLocks endpoint)
+    {
+        foreach (var recId in PublishedThrough(st, endpoint)) Unlock(st, recId);
+    }
+
+    /// <summary>⛔ MOVE every record lock published through <paramref name="from"/> to <paramref name="to"/>, the endpoint of the
+    /// handle a commit-controlled connector's re-OPEN took after its CLOSE kept the first (§14.9.6.4 GR9: the record locks
+    /// of a file in an APPLY COMMIT clause are not released by the CLOSE; §9.1.16: only COMMIT and ROLLBACK release them): the
+    /// kept handle is given back when the re-OPEN has succeeded, and every byte it holds goes with it, so the locks must
+    /// already be the new handle's. The caller holds the store mutex, which every other run unit's lock-taking statement
+    /// takes too (<c>KeyedConnector.BeginStatement</c>), so no other run unit takes a byte in the instant it is free; a byte
+    /// it did take beforehand (the share-mode window of a kept handle given back early) leaves the lock recorded in this
+    /// table alone, as a lock a host cannot carry is. The table entries stay: only the endpoint they are published through
+    /// changes. <paramref name="from"/> may be a disposed endpoint (releasing through it is then a no-op).</summary>
+    public static void Rehome(State st, RegionLocks from, RegionLocks to)
+    {
+        if (ReferenceEquals(from, to)) return;
+        var moved = PublishedThrough(st, from);
+        if (moved.Count == 0) return;
+        foreach (var recId in moved)
+        {
+            from.Release(HostRegionLocks.RecordLockByte(recId));
+            st.Published.Remove(recId);
+        }
+        st.PublishedPerEndpoint.Remove(from);
+        from.Release(HostRegionLocks.LockPresenceByte);
+        foreach (var recId in moved)
+            if (Publish(to, HostRegionLocks.RecordLockByte(recId)) == RegionLockResult.Ok)
+                Published(st, recId, to);
+    }
+
+    /// <summary>The record ids whose locks are published through <paramref name="endpoint"/>.</summary>
+    private static List<string> PublishedThrough(State st, RegionLocks endpoint)
+    {
+        var ids = new List<string>();
+        if (!st.PublishedPerEndpoint.ContainsKey(endpoint)) return ids;   // the common case: it published none
+        foreach (var (recId, through) in st.Published)
+            if (ReferenceEquals(through, endpoint)) ids.Add(recId);
+        return ids;
+    }
+
     /// <summary>Release a single record lock a connector holds (the LOCK MODE single-lock discipline, §12.4.5.9.4 GR6).</summary>
     public static void ReleaseSingle(State st, string name, string recId)
     {
