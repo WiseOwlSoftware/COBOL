@@ -3,6 +3,7 @@
 using System.Buffers.Binary;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
+using CobolNet.Tests.Shared;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -100,7 +101,7 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
     /// '02', §9.1.13.2 2)).</summary>
     private sealed class Cell(Shape shape, Order order, FileSharing sharing) : IDisposable
     {
-        public readonly string Host = Path.Combine(Path.GetTempPath(), $"pb3336-{shape}-{order}-{sharing}-{Guid.NewGuid():N}.dat");
+        public readonly string Host = FileHarness.Tmp($"pb3336-{shape}-{order}-{sharing}");
         public readonly PageArrayMedium Pages = new();
         public readonly Shape Shape = shape;
         public readonly FileSharing Sharing = sharing;
@@ -167,7 +168,7 @@ public abstract class KeyedStorePerformanceWitnessTests(KeyedStorePerformanceWit
 
         public void Dispose()
         {
-            try { File.Delete(Host); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+            FileHarness.TryDelete(Host);
         }
     }
 

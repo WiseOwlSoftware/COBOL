@@ -31,14 +31,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class ReadOnlyWriterReleaseDriftTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb1587-{tag}-{Guid.NewGuid():N}.dat");
-
-    private static void TryDelete(string host)
-    {
-        try { File.Delete(host); } catch (IOException) { }
-    }
-
     private static string Rec(int n) => $"R{n % 1000:000}";
 
     /// <summary>Every sequential framing × the two modes that add records to a file × the two sharing modes whose
@@ -87,7 +79,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     public void AWriteIsInThePhysicalFileWhenItReturns(
         SharedExtendOpenDriftTests.Framing framing, FileOpenMode mode, FileSharing writerSharing)
     {
-        string host = Tmp($"w-{framing}-{mode}-{writerSharing}");
+        string host = FileHarness.Tmp($"w-{framing}-{mode}-{writerSharing}");
         try
         {
             var reg = new FileRegistry();
@@ -123,7 +115,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             reg.Close("R");
             reg.Close("W");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The reader that has read ahead: it takes record 1 (filling its buffer with the whole file), the
@@ -134,7 +126,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     public void AReaderThatHasReadAheadSeesWhatTheWriterThenReleases(
         SharedExtendOpenDriftTests.Framing framing, FileOpenMode mode, FileSharing writerSharing)
     {
-        string host = Tmp($"ra-{framing}-{mode}-{writerSharing}");
+        string host = FileHarness.Tmp($"ra-{framing}-{mode}-{writerSharing}");
         try
         {
             var reg = new FileRegistry();
@@ -167,7 +159,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             reg.Close("R");
             reg.Close("W");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The at end path. An OUTPUT file with nothing released is empty: the reader's READ is '10' (§14.9.30.4
@@ -180,7 +172,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     [InlineData(SharedExtendOpenDriftTests.Framing.VaryingRecordSequential)]
     public void AnEmptyFile_IsAtEnd_AndTheNextRead_Is46(SharedExtendOpenDriftTests.Framing framing)
     {
-        string host = Tmp($"end-{framing}");
+        string host = FileHarness.Tmp($"end-{framing}");
         try
         {
             var reg = new FileRegistry();
@@ -202,7 +194,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             reg.Close("R");
             reg.Close("W");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>Table 19 (§14.9.27.4): a reader that states <c>SHARING WITH READ ONLY</c> is refused beside a READ
@@ -211,7 +203,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     [Fact]
     public void ARefusedReader_Is61_AndTheWriterIsUnaffected()
     {
-        string host = Tmp("refused");
+        string host = FileHarness.Tmp("refused");
         try
         {
             var reg = new FileRegistry();
@@ -232,7 +224,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             reg.Close("R");
             reg.Close("W");
 
-            string noOtherHost = Tmp("refused-no-other");
+            string noOtherHost = FileHarness.Tmp("refused-no-other");
             try
             {
                 RegisterSequential(reg, "N", noOtherHost, framing);
@@ -248,9 +240,9 @@ public sealed class ReadOnlyWriterReleaseDriftTests
                 Assert.Equal(Rec(9), after.TrimEnd());
                 reg.Close("NR");
             }
-            finally { TryDelete(noOtherHost); }
+            finally { FileHarness.TryDelete(noOtherHost); }
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The keyed organizations, in ANOTHER RUN UNIT (a second <see cref="FileRegistry"/> shares neither the
@@ -264,7 +256,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     [InlineData(FileOrg.Indexed)]
     public void AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite(FileOrg org)
     {
-        string host = Tmp($"keyed-{org}");
+        string host = FileHarness.Tmp($"keyed-{org}");
         try
         {
             var a = new FileRegistry();
@@ -285,7 +277,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
             b.Close("B");
             a.Close("A");
         }
-        finally { TryDelete(host); }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>§14.9.51.4 GR20 / §9.1.13.6 item 3 at the release: the medium that is full by construction

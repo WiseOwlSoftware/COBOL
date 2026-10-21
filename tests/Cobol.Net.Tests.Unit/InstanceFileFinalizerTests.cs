@@ -3,6 +3,7 @@
 using System.Runtime.CompilerServices;
 using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -40,7 +41,7 @@ public sealed class InstanceFileFinalizerTests
     [Fact]
     public void AnUnreachableObjectsFile_IsClosedInItsOwnRunUnit_BeforeTheNextOpen()
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb1532-{Guid.NewGuid():N}.txt");
+        string host = FileHarness.Tmp("pb1532");
         try
         {
             RunUnit.Run(_ =>
