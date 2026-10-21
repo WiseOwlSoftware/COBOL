@@ -5,7 +5,7 @@ using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
-using static CobolNet.Tests.Shared.KeyedFileHarness;
+using static CobolNet.Tests.Shared.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -58,7 +58,7 @@ public sealed class StoreCoherenceTests
         return medium!;
     }
 
-    public static TheoryData<KeyedOrg> Orgs() => new() { KeyedOrg.Relative, KeyedOrg.Indexed };
+    public static TheoryData<FileOrg> Orgs() => new() { FileOrg.Relative, FileOrg.Indexed };
 
     /// <summary>2.2.1.17's row for the connectors' coherence. A has two connectors on the file (A1 I-O, A2 INPUT), B one
     /// (I-O), every one <c>SHARING WITH ALL OTHER</c>. A1's WRITE is visible to A2's next READ, which reads page 2 and
@@ -71,7 +71,7 @@ public sealed class StoreCoherenceTests
     /// page 2 alone again.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_siblings_change_is_seen_at_once_and_another_run_units_is_adopted_with_the_cache_dropped(KeyedOrg org)
+    public void A_siblings_change_is_seen_at_once_and_another_run_units_is_adopted_with_the_cache_dropped(FileOrg org)
     {
         string host = Tmp($"adopt-{org}");
         try
@@ -150,7 +150,7 @@ public sealed class StoreCoherenceTests
     /// ceiling) is the promotion row's and is told apart by its syncs. Every record of both run units is in the file.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void Two_run_units_loading_one_file_write_a_bounded_page_count_per_statement(KeyedOrg org)
+    public void Two_run_units_loading_one_file_write_a_bounded_page_count_per_statement(FileOrg org)
     {
         string host = Tmp($"load-{org}");
         try
@@ -228,7 +228,7 @@ public sealed class StoreCoherenceTests
     /// restart rule): the promotion's writes are its, and page 2's flag is clear after it.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_readers_entry_leaves_a_promoting_flag_to_the_next_writers_entry(KeyedOrg org)
+    public void A_readers_entry_leaves_a_promoting_flag_to_the_next_writers_entry(FileOrg org)
     {
         string host = Tmp($"promoting-{org}");
         try
@@ -275,10 +275,10 @@ public sealed class StoreCoherenceTests
         finally { TryDelete(host); }
     }
 
-    public static TheoryData<KeyedOrg, RegionHostKind> OrgsAndHosts()
+    public static TheoryData<FileOrg, RegionHostKind> OrgsAndHosts()
     {
-        var data = new TheoryData<KeyedOrg, RegionHostKind>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, RegionHostKind>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var host in Enum.GetValues<RegionHostKind>())
                 data.Add(org, host);
         return data;
@@ -290,7 +290,7 @@ public sealed class StoreCoherenceTests
     /// every read of a coherent OPEN. A2 then reads the file as A1 left it.</summary>
     [Theory]
     [MemberData(nameof(OrgsAndHosts))]
-    public void The_readers_re_adoption_at_the_writers_close_runs_under_the_store_mutex(KeyedOrg org, RegionHostKind regionHost)
+    public void The_readers_re_adoption_at_the_writers_close_runs_under_the_store_mutex(FileOrg org, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"detach-{org}");
@@ -349,7 +349,7 @@ public sealed class StoreCoherenceTests
     /// and E WRITEs record 4. R's next statement adopts page 2's tree: record 4 is there, record 3 never was.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void An_input_reader_of_a_crashed_file_reads_the_committed_tree_until_a_writable_open_fences_it(KeyedOrg org)
+    public void An_input_reader_of_a_crashed_file_reads_the_committed_tree_until_a_writable_open_fences_it(FileOrg org)
     {
         string host = Tmp($"crashed-{org}");
         try
@@ -400,7 +400,7 @@ public sealed class StoreCoherenceTests
     /// <summary>Another run unit, D, over <paramref name="host"/>: it opens I-O, completes a WRITE of record 3 (page 2
     /// names it) and dies before its CLOSE; page 2 is then torn, as a death in the middle of its next page 2 write leaves
     /// it (2.2.1.16: "page 2 torn → FOREIGN → C"). Its committed meta C is its OPEN's fence: records 1 and 2.</summary>
-    private static void DieOverTheFile(string host, KeyedOrg org)
+    private static void DieOverTheFile(string host, FileOrg org)
     {
         var d = new FileRegistry();
         Register(d, "D", host, org);
@@ -426,7 +426,7 @@ public sealed class StoreCoherenceTests
     /// for all subsequent input-output operations on the file"</i>) and not for A2, whose file connector met none.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void An_input_readers_entry_beside_its_writable_sibling_keeps_its_tree_over_a_torn_page_2(KeyedOrg org)
+    public void An_input_readers_entry_beside_its_writable_sibling_keeps_its_tree_over_a_torn_page_2(FileOrg org)
     {
         string host = Tmp($"torn-sibling-{org}");
         try
@@ -470,7 +470,7 @@ public sealed class StoreCoherenceTests
     /// record A1 wrote.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void An_input_readers_entry_beside_its_writable_sibling_answers_30_to_a_refused_page_2_read(KeyedOrg org)
+    public void An_input_readers_entry_beside_its_writable_sibling_answers_30_to_a_refused_page_2_read(FileOrg org)
     {
         string host = Tmp($"refused-entry-{org}");
         try
@@ -522,7 +522,7 @@ public sealed class StoreCoherenceTests
     /// record is in no tree ('23'), and A2 reads A3's record after it.</summary>
     [Theory]
     [MemberData(nameof(Orgs))]
-    public void A_refused_re_adoption_at_the_writers_close_is_30_and_the_next_writable_open_fences(KeyedOrg org)
+    public void A_refused_re_adoption_at_the_writers_close_is_30_and_the_next_writable_open_fences(FileOrg org)
     {
         string host = Tmp($"refused-readopt-{org}");
         try

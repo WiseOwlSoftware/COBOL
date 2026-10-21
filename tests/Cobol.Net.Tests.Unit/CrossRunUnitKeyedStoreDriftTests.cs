@@ -3,7 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
 using Xunit;
-using static CobolNet.Tests.Shared.KeyedFileHarness;
+using static CobolNet.Tests.Shared.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -26,7 +26,7 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class CrossRunUnitKeyedStoreDriftTests
 {
-    private static List<string> Records(string host, KeyedOrg org)
+    private static List<string> Records(string host, FileOrg org)
     {
         var reader = new FileRegistry();
         Register(reader, "R", host, org, sharing: null);
@@ -40,11 +40,11 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     }
 
     [Theory]
-    [InlineData(KeyedOrg.Relative, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Indexed, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Relative, RegionHostKind.LockFiles)]
-    [InlineData(KeyedOrg.Indexed, RegionHostKind.LockFiles)]
-    public void AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose(KeyedOrg org, RegionHostKind regionHost)
+    [InlineData(FileOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnotherRunUnitsRecordLock_Answers51_AndItsUpdatesSurviveTheFirstClose(FileOrg org, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"lock-{org}");
@@ -92,11 +92,11 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     /// it; the question must not count the asker's own hold, which on Windows (per-handle LockFileEx) an exclusive test
     /// lock through the same handle does, so the lock was refused with '51' by nobody (lander review, train 1042).</summary>
     [Theory]
-    [InlineData(KeyedOrg.Relative, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Indexed, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Relative, RegionHostKind.LockFiles)]
-    [InlineData(KeyedOrg.Indexed, RegionHostKind.LockFiles)]
-    public void AnInputConnectorsReadWithLock_Succeeds_AndIsSeenByAnotherRunUnit(KeyedOrg org, RegionHostKind regionHost)
+    [InlineData(FileOrg.Relative, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, RegionHostKind.LockFiles)]
+    public void AnInputConnectorsReadWithLock_Succeeds_AndIsSeenByAnotherRunUnit(FileOrg org, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"input-lock-{org}");
@@ -130,15 +130,15 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     /// holder is not the deadlock docs/CONFORMANCE.md DOC-A.1-109 detects: the holder can release, so the wait goes
     /// on until it does.</summary>
     [Theory]
-    [InlineData(KeyedOrg.Relative, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Indexed, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Relative, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Indexed, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
-    [InlineData(KeyedOrg.Relative, FileRetryKind.Times, RegionHostKind.LockFiles)]
-    [InlineData(KeyedOrg.Indexed, FileRetryKind.Times, RegionHostKind.LockFiles)]
-    [InlineData(KeyedOrg.Relative, FileRetryKind.Forever, RegionHostKind.LockFiles)]
-    [InlineData(KeyedOrg.Indexed, FileRetryKind.Forever, RegionHostKind.LockFiles)]
-    public void ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex(KeyedOrg org, FileRetryKind kind, RegionHostKind regionHost)
+    [InlineData(FileOrg.Relative, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Times, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Forever, RegionHostKind.OfThisProcess)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Times, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Relative, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    [InlineData(FileOrg.Indexed, FileRetryKind.Forever, RegionHostKind.LockFiles)]
+    public void ARetryWaitsForTheOtherRunUnit_OutsideTheStoreMutex(FileOrg org, FileRetryKind kind, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"retry-{org}");
@@ -177,9 +177,9 @@ public sealed class CrossRunUnitKeyedStoreDriftTests
     /// the refusal precedes the OPEN body: the existing connector keeps every record. The OPTIONAL-absent shape is
     /// the one place a connector is attached with a status other than '00', and it is registered all the same.</summary>
     [Theory]
-    [InlineData(KeyedOrg.Relative)]
-    [InlineData(KeyedOrg.Indexed)]
-    public void AnOutputOpenBesideAnAttachedConnector_IsRefused_AndEmptiesNothing(KeyedOrg org)
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void AnOutputOpenBesideAnAttachedConnector_IsRefused_AndEmptiesNothing(FileOrg org)
     {
         string host = Tmp($"output-{org}");
         try
