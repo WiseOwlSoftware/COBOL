@@ -46,6 +46,19 @@ public sealed class FileRegistry
     /// <summary>The physical-file sharing/record-lock registry (§9.1.15/§9.1.16).</summary>
     private readonly PhysicalFileTable _physical = new();
 
+    /// <summary>⛔ THE CONNECTORS THAT LEFT <see cref="_files"/> (displaced by a re-registration, dropped with their object)
+    /// STILL HOLDING WHAT A CLOSE UNDER COMMIT CONTROL KEPT: the handle that is their file lock, their attachment to the run
+    /// unit's store and the transaction in it, and their record locks (<see cref="KeyedConnector.HoldsKept"/>;
+    /// kb/Work PB3484). §12.4.6.3.4 GR5 keeps an APPLY COMMIT clause active after its runtime element is canceled for as long as it
+    /// <i>"has not been deactivated by a COMMIT or ROLLBACK statement"</i>, and §14.9.7.4 GR3-GR4 and §9.1.16 give the COMMIT the changes, the
+    /// file locks and the record locks of the files those clauses name — so a canceled element's connector is no less
+    /// the COMMIT's and the ROLLBACK's for being replaced by its element's next activation. They are found here by
+    /// <see cref="TransactionConnectors"/> and given back with the rest (<see cref="ReleaseCommitLocks"/>,
+    /// <see cref="CloseAll"/>); before kb/Work PB3484 they were dropped with the handle open, which no COMMIT, ROLLBACK or
+    /// run-unit end could ever reach. The replacement's OPEN takes the state over instead when it can
+    /// (<see cref="ReclaimRetired"/>).</summary>
+    private readonly List<(string Name, KeyedConnector Connector)> _retired = [];
+
     /// <summary>The per-physical-file KEYED record stores (kb/Work PB143 — §14.9.10.4 GR5): one record store
     /// per resolved host path, attached by every relative/indexed connector over it, so mutations are visible
     /// across connectors and the close order cannot pick a surviving private view.</summary>
@@ -93,6 +106,7 @@ public sealed class FileRegistry
         finally
         {
             _files.Clear();
+            _retired.Clear();   // CloseAll gave back what they kept
             _locked.Clear();
             _instSeq = 0;
             while (_pendingObjectClose.TryDequeue(out _)) { }   // a new run unit starts with a clean queue
@@ -127,6 +141,7 @@ public sealed class FileRegistry
     public void CloseAndDrop(string key)
     {
         Close(key);                     // deregisters from the physical-file table (SharedClose) while _files still holds it
+        Retire(key);                    // what a CLOSE under commit control kept stays the COMMIT's and the ROLLBACK's (PB3484)
         _files.Remove(key);
         _locked.Remove(key);
         _connectorShares.Remove(key);   // the posture belonged to the dropped connector, not to its key
@@ -184,7 +199,33 @@ public sealed class FileRegistry
     private void CloseDisplaced(string cobolName)
     {
         CloseIfOpen(cobolName);
+        Retire(cobolName);   // what a CLOSE under commit control kept stays the COMMIT's and the ROLLBACK's (PB3484)
         _connectorShares.Remove(cobolName);
+    }
+
+    /// <summary>A connector is about to leave <see cref="_files"/> (displaced, or dropped with its object) after its CLOSE: if
+    /// that CLOSE kept the handle, the locks and the transaction a CLOSE under commit control keeps, it moves to
+    /// <see cref="_retired"/>, where the next COMMIT or ROLLBACK, or the run unit's end, ends them
+    /// (<see cref="ReleaseCommitLocks"/>, <see cref="CloseAll"/>). Nothing else leaves a connector holding anything:
+    /// every other CLOSE released it all (<see cref="SharedClose"/>).</summary>
+    private void Retire(string name)
+    {
+        if (_files.TryGetValue(name, out var c) && c is KeyedConnector { HoldsKept: true } k) _retired.Add((name, k));
+    }
+
+    /// <summary>⛔ THE ELEMENT'S NEXT ACTIVATION OPENS WHAT ITS PREVIOUS ONE'S CLOSE KEPT (review finding R1-1): the
+    /// connector a registration displaced is closed and of THIS run unit, and §9.1.13.9 1) owes '61' only against a physical
+    /// file <i>"currently open by another file connector"</i>; the handle it kept is what is left of its file lock (§9.1.15),
+    /// which prevents OTHER run units. So the OPEN of the replacement under the same name, on the same physical file and
+    /// under commit control (<see cref="KeyedConnector.InheritKept"/>) takes the kept state over as a re-OPEN of the
+    /// displaced connector would have, rather than meet the kept handle's share mode. It runs at the OPEN (the host path
+    /// is the OPEN's: a dynamic ASSIGN, §12.4.5.3 GR3, fixes it only there), once: a retired connector that is not
+    /// matched stays in <see cref="_retired"/> for the COMMIT, the ROLLBACK or the run unit's end.</summary>
+    private void ReclaimRetired(string name, FileConnector c)
+    {
+        if (_retired.Count == 0 || c is not KeyedConnector next) return;
+        int at = _retired.FindIndex(r => CobolNames.Same(r.Name, name) && next.InheritKept(r.Connector));
+        if (at >= 0) _retired.RemoveAt(at);
     }
 
     /// <summary>The SELECT-spelled name of a registered connector (ISO §15.28.4 r1c/r2b — kb/Work PB63); for a key
@@ -352,7 +393,7 @@ public sealed class FileRegistry
 
     /// <summary>CLOSE (ISO §14.9.6) — Table 14's <c>CLOSE</c> row, symbol c. For a sharing-active connector this
     /// also deregisters it from the physical-file registry and releases its record locks (§14.9.6.4 GR9 /
-    /// §9.1.16).</summary>
+    /// §9.1.16) - those of a file in an APPLY COMMIT clause excepted, which only a COMMIT or ROLLBACK releases.</summary>
     public void Close(string name) => CloseByFormat(name, CloseFormat.Normal);
 
     /// <summary>⛔ THE ONE CLOSE DISPATCH — §14.9.6.4 GR3: <i>"The results of executing each type of CLOSE for
@@ -496,11 +537,7 @@ public sealed class FileRegistry
         // §9.1.18.5, after the commit or the rollback: "In both cases all file and record locks are then released" — the
         // file locks a CLOSE under commit control kept, the implicit CLOSEs' just above included (review finding R1-2). A
         // transaction whose rollback the medium refused is left as a death leaves it, for the dead-owner step.
-        foreach (var c in _files.Values.ToArray())
-        {
-            try { (c as KeyedConnector)?.ReleaseKept(); }
-            catch (Exception failure) { (failures ??= []).Add(failure); }
-        }
+        ReleaseAllKept(ref failures);
         if (failures is [var only]) ExceptionDispatchInfo.Throw(only);
         if (failures is not null)
             throw new AggregateException("the run unit's implicit CLOSE failed for more than one file (ISO §14.6.11 2))",
@@ -1055,6 +1092,8 @@ public sealed class FileRegistry
     {
         var seen = new HashSet<string>(HostFile.PhysicalFileComparer);
         var owners = new List<(string, KeyedConnector)>();
+        foreach (var (name, k) in _retired)   // registered before every connector now in _files, so first (PB3484)
+            if (k.OpenTransaction != 0 && seen.Add(k.HostPath)) owners.Add((name, k));
         foreach (var (name, c) in _files)
             if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add((name, k));
         return owners;
@@ -1110,12 +1149,48 @@ public sealed class FileRegistry
     /// closed under commit control.</summary>
     private void ReleaseCommitLocks()
     {
-        foreach (var (name, c) in _files)
-            if (c is KeyedConnector { CommitControlled: true } k)
+        List<Exception>? failures = null;
+        ReleaseAllKept(ref failures);
+        if (failures is [var only]) ExceptionDispatchInfo.Throw(only);
+        if (failures is not null)
+            throw new AggregateException("the release of what a CLOSE under commit control kept failed for more than one file", failures);
+    }
+
+    /// <summary>Give back everything every connector under commit control holds past a CLOSE (<see cref="ReleaseKeptOf"/>), the
+    /// retired ones included (<see cref="_retired"/>), whether or not one release fails: a failure is collected into
+    /// <paramref name="failures"/>, never allowed to leave a later connector holding its handle. A release that threw has
+    /// spent its kept state all the same (<see cref="KeyedConnector.ReleaseKept"/>), so the list ends empty.</summary>
+    private void ReleaseAllKept(ref List<Exception>? failures)
+    {
+        foreach (var (name, c) in _files.ToArray())
+        {
+            try { if (c is KeyedConnector { CommitControlled: true } k) ReleaseKeptOf(name, k); }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        foreach (var (name, k) in _retired.ToArray())
+        {
+            try
             {
-                ReleaseAllForConnector(name);
+                // The record locks the host could not publish are this run unit's table alone and are its by name, as a registered
+                // connector's are (ReleaseKeptOf) - a retired connector's key can leave the registry (CloseAndDrop), so its own
+                // physical-file state is the way to them (review finding R1-3).
+                if (k.Physical is { } physical) PhysicalFileTable.ReleaseAllForConnector(physical, name);
                 k.ReleaseKept();
             }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        _retired.Clear();
+    }
+
+    /// <summary>⛔ THE ONE GIVING BACK of what a registered keyed connector holds past a CLOSE under commit control (§9.1.16, the
+    /// COMMIT's and the ROLLBACK's; §9.1.18.5, the run unit's end): its record locks — the table's, by name, which also
+    /// covers a lock no host published — and then everything the CLOSE kept (<see cref="KeyedConnector.ReleaseKept"/>: the
+    /// locks its endpoint published, the handle, the file lock, the attachment). A connector retired from the registry is
+    /// ended in <see cref="ReleaseAllKept"/> by its own physical-file state, because its key may no longer name it.</summary>
+    private void ReleaseKeptOf(string name, KeyedConnector k)
+    {
+        ReleaseAllForConnector(name);
+        k.ReleaseKept();
     }
 
     /// <summary>The run unit's transactions at its TERMINATION (§9.1.18.5: <i>"When a run unit terminates normally, all file
@@ -1300,6 +1375,7 @@ public sealed class FileRegistry
         // (State.ReleaseGeneration) is a rule about the MEDIUM, which a clause-less pair sharing one file
         // under kb/Work PB740 is on exactly as much as a SHARING WITH ALL OTHER pair. The second argument is
         // the RECORD-LOCKING posture, and only the §9.1.16 questions read it through `SharedPhysical`.
+        ReclaimRetired(name, c);
         c.AssociatePhysical(st, RecordLocksSetUnder(posture, sharing));
         // ⛔ AND THE §9.1.15 FILE LOCK, BEFORE THE HANDLE THAT CARRIES IT EXISTS (kb/Work PB740). The share mode of
         // a host handle is fixed when the handle is created, so the posture of THIS connector's sharing mode is
@@ -2145,6 +2221,11 @@ public sealed class FileRegistry
         // "If there is a SHARING clause in that file control entry, no record locks are set by the execution of
         // I-O statements through the associated file connector" (the general rules of the LOCK MODE clause are
         // §12.4.5.9.4, and every citation of a LOCK MODE rule in this file names it).
-        if (st.RecordLocks.Count > 0) PhysicalFileTable.ReleaseAllForConnector(st, name);
+        // ... EXCEPT those of a file in an APPLY COMMIT clause: §14.9.6.4 GR9, "Except when the file is specified in an APPLY
+        // COMMIT clause, the file lock and any record locks associated with the file connector referenced by file-name-1 are
+        // released by the execution of the CLOSE statement", and §9.1.16 releases them at a COMMIT or ROLLBACK
+        // (ReleaseCommitLocks), or the run unit's end (CloseAll) - the connector's own decision (FileConnector.CloseKeepsLocks),
+        // the one its handle's keeping rests on, kb/Work PB3480.
+        if (st.RecordLocks.Count > 0 && !c.CloseKeepsLocks) PhysicalFileTable.ReleaseAllForConnector(st, name);
     }
 }

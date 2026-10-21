@@ -106,6 +106,9 @@ public sealed class RelativeConnector : KeyedConnector
     private protected override void ForgetStore() => _st = new RelativeStore();
 
     /// <inheritdoc/>
+    private protected override void InheritStore(KeyedConnector retired) => _st = ((RelativeConnector)retired)._st;
+
+    /// <inheritdoc/>
     private protected override RestoringTreesFactory Restoring => RelativeStore.Restoring;
 
     /// <inheritdoc/>
