@@ -102,6 +102,63 @@ public sealed class SidecarColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ A LOCK GIVEN BACK CAN BE TAKEN AGAIN AS ITSELF (kb/Work PB3481, review lead R3-2 of PB3337):
+    /// <see cref="RunUnitFileLock.Retake"/> is what a connector's unsuccessful re-OPEN does for the file lock its CLOSE under
+    /// commit control kept (§14.9.7.4 GR4, <i>"the file locks are released"</i> only by the COMMIT or the ROLLBACK;
+    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>). For EVERY
+    /// sharing mode × open mode on the holder crossed with every one on a second run unit: while the lock is given back the
+    /// second is never refused (it is the only holder), and once retaken the second is refused exactly where Table 19 prints
+    /// <i>Unsuccessful open</i> — the lock refuses as the one first taken did, and retaking a lock still held is idempotent.
+    /// The connector-level witness (<c>CommitRollbackRuntimeTests.An_unsuccessful_reopen_leaves_the_kept_file_lock_standing</c>)
+    /// can see the retake only on a host whose share modes are advisory; this one runs the lock itself on every host.</summary>
+    [Theory]
+    [MemberData(nameof(EveryPair))]
+    public void ARetakenLockRefusesAsTheOneFirstTakenDid(FileSharing sa, FileOpenMode ma, FileSharing sb, FileOpenMode mb)
+    {
+        var (dir, file) = NewFile();
+        try
+        {
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, sa, ma, out var first));
+            first!.Dispose();
+            Assert.Empty(HolderFilesBeside(dir));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, sb, mb, out var whileGivenBack));
+            whileGivenBack!.Dispose();
+
+            Assert.Equal(RunUnitFileLock.Outcome.Held, first.Retake());
+            Assert.Equal(RunUnitFileLock.Outcome.Held, first.Retake());   // still held: nothing is published twice
+            Assert.Single(HolderFilesBeside(dir));
+            var outcome = RunUnitFileLock.Take(Host, file, sb, mb, out var second);
+            bool refused = Table19.Conflicts((sb, mb), (sa, ma));
+            Assert.True(outcome == (refused ? RunUnitFileLock.Outcome.Refused : RunUnitFileLock.Outcome.Held),
+                $"Table 19 {(refused ? "refuses" : "permits")} {(sb, mb)} against {(sa, ma)} retaken, but the second holder was {outcome}.");
+            second?.Dispose();
+            first.Dispose();
+            Assert.Empty(System.IO.Directory.EnumerateDirectories(dir));
+        }
+        finally { Clean(dir); }
+    }
+
+    /// <summary>A retake that meets a column its request refuses — another run unit opened the file in the instant the lock
+    /// was given back — answers <see cref="RunUnitFileLock.Outcome.Refused"/> and holds nothing, leaving the other run
+    /// unit's lock as it was; the lock can be retaken once that one is gone.</summary>
+    [Fact]
+    public void ARetakeThatMeetsARefusedColumnIsRefusedAndHoldsNothing()
+    {
+        var (dir, file) = NewFile();
+        try
+        {
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.NoOther, FileOpenMode.IO, out var first));
+            first!.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var other));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, first.Retake());
+            Assert.Single(HolderFilesBeside(dir));   // the other run unit's, and not the retaken one's
+            other!.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, first.Retake());
+            first.Dispose();
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>⛔ TWO RUN UNITS OPENING AT THE SAME INSTANT CANNOT BOTH WIN: whichever completes its publication second
     /// enumerates the lock directory and finds the first. At most one is ever <see cref="RunUnitFileLock.Outcome.Held"/>
     /// (both may be refused — each saw the other — which is a refused OPEN, not a violated lock).</summary>
