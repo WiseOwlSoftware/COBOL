@@ -94,7 +94,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -111,7 +111,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // The complement, so the fix cannot be "always 48": Table 20's Sequential × WRITE × Extend IS an X, and
@@ -127,7 +127,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // Item 8 b)'s permitted pair, at both non-sequential access modes: Table 20's Random/Dynamic × WRITE × I-O
@@ -160,7 +160,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -176,7 +176,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(2, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // Item 8 a)'s other half, for symmetry with the arm PB325 changed: Table 20's Sequential × WRITE × I-O is
@@ -193,7 +193,7 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountRelative(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -207,6 +207,6 @@ public sealed class Table20WriteOpenModeTests
             reg.Close("F");
             Assert.Equal(1, CountIndexed(host));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

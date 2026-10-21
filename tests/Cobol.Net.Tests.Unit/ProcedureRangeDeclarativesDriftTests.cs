@@ -225,6 +225,6 @@ public sealed class ProcedureRangeDeclarativesDriftTests
             new CSharpEmitter().Bind(tree!, edition);
             return edition.Diagnostics;
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

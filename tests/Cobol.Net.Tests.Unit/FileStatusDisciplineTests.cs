@@ -51,7 +51,7 @@ public sealed class FileStatusDisciplineTests
             Assert.Equal("BBBBBBBB", img);
             Assert.Equal("00", reg.DeleteRecord("F", ""));         // the fresh READ re-armed the gate
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §9.1.13.7 3) + item 1: the already-open OPEN ('41') is an executed input-output statement — the third
@@ -67,7 +67,7 @@ public sealed class FileStatusDisciplineTests
             Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.Status("F"));
             Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, reg.DeleteRecord("F", ""));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §9.1.13.7 3): DELETE FILE (on the open connector — '41', §14.9.10.4 GR13) likewise drops the gate.
@@ -81,7 +81,7 @@ public sealed class FileStatusDisciplineTests
             Assert.Equal(FileStatusCode.FileAlreadyOpen, reg.DeleteFile("F"));
             Assert.Equal(FileStatusCode.NoSuccessfulReadBeforeDeleteRewrite, reg.DeleteRecord("F", ""));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §14.9.6.4 GR1: an unsuccessful CLOSE WITH LOCK ('42' — never opened) performs NO closing action, so a
@@ -103,7 +103,7 @@ public sealed class FileStatusDisciplineTests
             reg.OpenStatic("S", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.FileLocked, reg.Status("S"));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §14.9.6.4 GR6: for an absent OPTIONAL input file NO unit processing is performed — CLOSE REEL/UNIT
@@ -218,7 +218,7 @@ public sealed class FileStatusDisciplineTests
             reg.OpenStatic("F", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.DeleteRewriteNotOpenForIO, reg.DeleteRecord("F", ""));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §9.1.13.5 ('23'): a random-access DELETE whose RELATIVE KEY names no record.
@@ -236,7 +236,7 @@ public sealed class FileStatusDisciplineTests
             reg.SetRelativeKey("F", 5);
             Assert.Equal(FileStatusCode.RecordNotFound, reg.DeleteRecord("F", ""));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // §14.9.6.4 GR8: after a successful CLOSE the connector is out of its open mode and dissociated — the
@@ -257,6 +257,6 @@ public sealed class FileStatusDisciplineTests
             reg.OpenStatic("S", FileOpenMode.Input);
             Assert.Equal(FileStatusCode.Success, reg.Status("S"));
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

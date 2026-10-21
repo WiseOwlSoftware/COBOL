@@ -57,7 +57,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("BBBB", second);
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -104,7 +104,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("23", c.ReadRandom(-1, "CCCC0003", out _));   // the stuck WRITE stored nothing
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── relative, through the registry: a REAL producer, and the two registry-level verbs ────────────────────────
@@ -147,7 +147,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("23", reg.ReadKeyed("F", -1, "", out _));
             reg.Close("F");
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── what is NOT a permanent error in effect ──────────────────────────────────────────────────────────────
@@ -164,7 +164,7 @@ public sealed class PermanentErrorInEffectTests
         Assert.Null(c.PermanentErrorInEffect);
         Assert.Equal("00", c.Open(FileOpenMode.Output));
         try { Assert.Equal("00", c.Write("AAAA", -1, null)); }
-        finally { c.Close(); try { File.Delete(host); } catch { } }
+        finally { c.Close(); FileHarness.TryDelete(host); }
     }
 
     /// <summary>Only a '3x' starts the condition: an invalid key ('22'/'23'), a logic error ('4x') and a
@@ -184,6 +184,6 @@ public sealed class PermanentErrorInEffectTests
             }
             Assert.Equal("00", c.Write("AAAA", -1, null));
         }
-        finally { c.Close(); try { File.Delete(host); } catch { } }
+        finally { c.Close(); FileHarness.TryDelete(host); }
     }
 }
