@@ -1,4 +1,4 @@
-## PB3483 - a connector's re-OPEN keeps the handle and the file lock its CLOSE kept under commit control, whatever it meets
+## Entry 2326 — 2026-10-21 11:58 PDT — PB3483 - a connector's re-OPEN keeps the handle and the file lock its CLOSE kept under commit control, whatever it meets
 
 **Mechanism.** A CLOSE of a connector under APPLY COMMIT keeps the handle (the §9.1.15 file lock, the transaction's liveness
 byte) and the Table 19 column lock until the COMMIT or ROLLBACK (§14.9.7.4 GR4), and an unsuccessful OPEN leaves the file
@@ -41,3 +41,4 @@ a racing run unit is sent in at the entry of every establishment, and the contro
 after a CLOSE under commit control is refused '62' by the connector's own kept handle (`FileRegistry.cs`, the
 `HostFile.IsHeldByAnother` arm of the DELETE FILE retry loop), which needs a decision on what DELETE FILE does to a standing
 transaction.
+
