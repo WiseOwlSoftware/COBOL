@@ -50,3 +50,10 @@ creation-refused cases fail without the fix (they do) and that the abnormal path
 `TryRestoreKeptFileLock` remark that said an unsuccessful OUTPUT created the file anew. The first gate failed one drift test
 (`SharedReadCoherenceDriftTests`: the keyed lifecycle sizes the input-output areas in one place), so `Recreate` and `Attach`
 share `AttachHandleTo`.
+
+**Gates.** Windows, at `898b2315a` (run `TestResults/build-local/20261021T221239Z-622f69`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+gating, PB2515): GREEN — … Conformance 10,724/18,047 · Unit 34,118/35,285 · Characterization 5/36 cases ran`; the creation and
+association cases ran in leg 1. The first gate (`…T220701Z-25adee`) was RED on the drift test above. Linux (`--legs unit,conformance`)
+at the same head: conformance GREEN 18,047/18,047, unit RED on four cases of the vanished-file test, which is effective only on
+Linux: it wrote through a connector name it never registered (`Write(maker, …)` without `name: "S"`). Fixed in the next commit; the
+Linux unit leg has to run again on it (the wave's stop file ended this run before it could).
