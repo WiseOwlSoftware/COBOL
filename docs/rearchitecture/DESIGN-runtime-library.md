@@ -1831,10 +1831,20 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   another handle beside it moves the byte to the new handle inside the attach's store-mutex hold
   (`KeyedStore.HoldLivenessThrough`) and then gives the kept handle back; and where the kept handle's share mode refuses
   the new one, the kept HANDLE alone is given back first — the attachment and the transaction stay — and the byte is taken
-  again through the new handle inside that hold. While a writable kept handle carries the transaction, the re-OPEN's handle
-  is taken writable whatever its open mode (an INPUT re-OPEN included): it is the handle the COMMIT or ROLLBACK writes
-  through; a handle the host lets hold no exclusive lock holds the byte SHARED, which refuses every other run unit's
-  exclusive probe and draw alike. A re-OPEN that fails leaves what the CLOSE kept as it was (§14.9.27.4 GR25). The OPEN's
+  again through the new handle inside that hold. While the run unit's transaction on the file stands and the kept handle is
+  writable, the re-OPEN's handle is taken writable whatever its open mode (an INPUT re-OPEN included): it is the handle
+  the COMMIT or ROLLBACK writes through; a handle the host lets hold no exclusive lock holds the byte SHARED, which
+  refuses every other run unit's exclusive probe and draw alike. With no transaction standing (the connector only read)
+  the re-OPEN's handle takes the access of its own open mode and no more (branch review finding R2-1). ⚠ **A WRONG
+  ANSWER, NAMED:** with the transaction standing, that writable handle under an INPUT re-OPEN is refused by, and so
+  refuses, another run unit's OPEN that Table 19 admits beside an INPUT opener (SHARING WITH READ ONLY on INPUT, I-O or
+  EXTEND) on a host whose share modes are mandatory (Windows: '61' where the table says '00'), until the COMMIT or
+  ROLLBACK, while a host that publishes the column lock instead admits it; a host share mode cannot say "an INPUT
+  opener that still owes its transaction's writes". A re-OPEN that fails leaves what the CLOSE kept as it was
+  (§14.9.27.4 GR25): the kept handle and attachment are restored (`AbandonOpen`) and the kept column lock, which the
+  OPEN gave back to take its own, is taken again (`FileConnector.RetakeKeptFileLock`, `RunUnitFileLock.Retake`; review
+  lead R2-2); the instants between the kept column's release and the re-OPEN's own lock, and between that lock's release
+  and the retake, are that column lock's window, as the share-mode window below is the handle's. The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
   writable handle the re-OPEN takes asks the same question. The share-mode window — between the kept handle's release
   and the new handle's taking — is the one instant the byte is free while the owner lives. The Table 19
