@@ -25476,13 +25476,13 @@
   "ordinal": 17,
   "subject": "RECORD clause",
   "rule-digest": "757ad77f04e3",
-  "verdict": "PARTIAL",
-  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRecordClause; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#RecordClause",
-  "test-ref": "",
+  "verdict": "CONFORMS",
+  "code-location": "src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRecordClause; src/Cobol.Net.Compiler/Binding/Model/FileModel.cs#RecordClause; docs/CONFORMANCE.md#DOC-A.1-148",
+  "test-ref": "conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Owned by kb/Work PB1278. cite.py --check 13.18.43.4 'It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records' OK; cite.py --check A.1 item 148 OK - 'This item is required. This item shall be documented in the implementor's user documentation.' Behaviour: Format 3 produces VARIABLE-length records (`RECORD CONTAINS 5 TO 20` writes a 5-byte and a 10-byte framed record, probe/record-clause/p3.cob p3c.dat 23 bytes). Documentation: docs/CONFORMANCE.md carries no DOC-A.1-148 row and no other determination stating the choice (grep for 'fixed-or-variable', 'Format 3', 'A.1-148': none). Behaviour chosen, required documentation absent => PARTIAL. Finding: A.1 146/148 determinations undocumented. || Code-location detail (moved from the field by registrar 14e): src/Cobol.Net.Compiler/Binding/DataBinder.cs#BindRecordClause (VaryingRecordInfo VaryingClause:false => variable)",
-  "state": "GAP"
+  "notes": "Landed by kb/Work PB1278 (wave 1140 A). cite.py --check 13.18.43.4 'It is implementor defined whether format 3 of the RECORD clause produces fixed-length records or variable-length records' -> OK 13.18.43.4 17). The implementor's choice is VARIABLE-length (DataBinder.BindRecordClause binds a TO-without-VARYING clause as VaryingRecordInfo(lo, hi, dep, VaryingClause: false)), and Annex A.1 item 148 documents it: docs/CONFORMANCE.md DOC-A.1-148 (each WRITE or REWRITE writes the record at its own size, a READ delivers the size written, never padded to integer-5). Re-probed on the wave-1140 build: FD F3 RECORD CONTAINS 5 TO 10 with 5- and 10-byte records writes 05000000 'ABCDE' 0A000000 'ABCDEFGHIJ', 23 bytes. Witness: conformance:cases/13.18.43-RECORD/l1c23_record_format3_variable reads the two records back at L=05 and L=10 (a fixed choice would read L=10 for both). The former PARTIAL said only that the documentation was missing; the row now exists.",
+  "state": "OK"
  },
  {
   "rule-id": "GR-13.18.43.4-18",
@@ -62062,11 +62062,11 @@
   "subject": "RECORD clause (calculations to derive size of records on storage medium)",
   "rule-digest": "4eeb6f8ea988",
   "verdict": "CONFORMS",
-  "code-location": "docs/CONFORMANCE.md#DOC-A.1-146; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#LineSequentialDelimiter; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ReadRecord",
-  "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; conformance:cases/9.1.13.2-Successful-completion/io_status_04; conformance:cases/A.1-Implementor-defined-language-element-list/pb1540_ls_lone_cr_is_data",
+  "code-location": "docs/CONFORMANCE.md#DOC-A.1-146; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#LineSequentialDelimiter; src/Cobol.Net.Runtime/IO/SequentialConnector.cs#ReadRecord; src/Cobol.Net.Runtime/IO/RecordFraming.cs#EncodeFrame; src/Cobol.Net.Runtime/IO/Store/PageHeader.cs#PageHeader",
+  "test-ref": "conformance:cases/13.18.43-RECORD/pb1276_record_contains_sizes_file; conformance:cases/9.1.13.2-Successful-completion/io_status_04; conformance:cases/A.1-Implementor-defined-language-element-list/pb1540_ls_lone_cr_is_data; unit:RelativeEngineTests.A_relative_records_size_on_the_medium_is_the_documented_leaf_entry_in_a_file_of_whole_pages",
   "derivation": "",
   "editions": "85,2002,2014,2023",
-  "notes": "Re-verdicted by kb/Work PB1540 (w67p). Arm (c)'s delimiter is now the host newline the determination states (the row's remaining ⚠ is gone). The determination also gains the fixed-length physical record rule (kb/Work PB1514: no record boundaries on the medium; the reading description's integer-1 bytes) and arm (c′), the record sequential print stream (CR LF line controls, a variable-length record presented at its GR13 length and refused '44' outside the VARYING bounds - kb/Work PB1190). Arm (a) holds (golden 85/pb1276_record_contains_sizes_file).",
+  "notes": "Re-verdicted by kb/Work PB1540 (w67p). Arm (c)'s delimiter is now the host newline the determination states (the row's remaining ⚠ is gone). The determination also gains the fixed-length physical record rule (kb/Work PB1514: no record boundaries on the medium; the reading description's integer-1 bytes) and arm (c′), the record sequential print stream (CR LF line controls, a variable-length record presented at its GR13 length and refused '44' outside the VARYING bounds - kb/Work PB1190). Arm (a) holds (golden 85/pb1276_record_contains_sizes_file). || kb/Work PB1278 (wave 1140 A): arm (d), relative and indexed, rewritten for the keyed store engine's paged store format 6 (DESIGN-runtime-library 2.2.1.4; kb/Work PB3333-PB3335 deleted the whole-store header and its 0xFFFFFFFF empty-slot tag the arm still described): the file is a whole number of 4,096-byte pages; a relative record is one leaf entry of 6 + 8 + F bytes (F = 4 + the record's size, RecordFraming.EncodeFrame), an indexed record 6 + k + F in the prime tree (F carrying 8 bytes per key) and 6 + a + 8 + k in each alternate tree; a full leaf holds floor(4,064 / entry bytes); a frame over 1,016 bytes (or an entry over 2,032) goes to overflow pages. Witness unit:RelativeEngineTests.A_relative_records_size_on_the_medium_is_the_documented_leaf_entry_in_a_file_of_whole_pages pins the determination's example (100 80-byte records: 98-byte entries, 41 to a full leaf, 11 pages = 45,056 bytes).",
   "state": "OK"
  },
  {

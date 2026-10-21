@@ -313,9 +313,10 @@ admits a reader or a writer (`AdmitsAnotherRunUnit`: READ ONLY or ALL OTHER) rel
 never WHETHER they exist (before PB643 the areas were the host handle's 4,096-byte buffer in one posture and the reader's default buffer
 in the other, so RESERVE had no one place to land). `OpenConnectorStore(path, mode, access, share)` is a
 RELATIVE or INDEXED connector's long-lived store handle (kb/Work PB771, below), UNBUFFERED: the store is read and
-written positionally (kb/Work PB2660), and every byte of it passes through the connector's own areas,
-`KeyedConnector._areas`, allocated by the OPEN that takes the handle (kb/Work PB2693 — before it the areas were the
-handle's stream buffer, which no store byte passed through). `OpenAuxiliary(path, mode, access)` is a short-lived
+written positionally, one 4,096-byte page per call (kb/Work PB2660), and every page passes through the run unit's
+page cache for the physical file, whose capacity the OPEN that attaches the connector raises to at least the
+connector's areas, one page each (`KeyedConnector.Attach` → `KeyedStore.AttachHandle`, 2.2.1.13; docs/CONFORMANCE.md
+DOC-A.1-164). `OpenAuxiliary(path, mode, access)` is a short-lived
 bookkeeping handle over a path a connector may already hold — the shared `OPEN EXTEND` write-base measurement,
 the §14.9.27.4 GR10 store-header read and the varying framing's parse check — and is **always**
 `FileShare.ReadWrite`, because a handle's share mode has to admit the access every outstanding handle already
