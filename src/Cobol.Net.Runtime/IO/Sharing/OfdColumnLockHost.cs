@@ -22,10 +22,13 @@ internal sealed class OfdColumnLockHost : IColumnLockHost
     private static long ByteOf(ExistingSharingColumn column) => HostRegionLocks.RegionBase + RunUnitFileLock.WireNumber(column);
 
     public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
-        IReadOnlyList<ExistingSharingColumn> refused, out IDisposable? hold)
+        IReadOnlyList<ExistingSharingColumn> refused, IDisposable? supersedes, out IDisposable? hold)
     {
         hold = null;
-        var region = OfdRegionLocks.Open(hostPath);
+        // A superseded hold's description is reused: F_OFD_GETLK never reports a lock the asking description holds itself, so
+        // the test already ignores the old column, and the new one is published beside it before the old is given back.
+        var previous = supersedes is Held { Region: not null } live ? live : null;
+        var region = previous?.Region ?? OfdRegionLocks.Open(hostPath);
         if (region is null) return RunUnitFileLock.Outcome.Unavailable;
         bool kept = false;
         try
@@ -44,11 +47,25 @@ internal sealed class OfdColumnLockHost : IColumnLockHost
                     case RegionLockResult.Unavailable: return RunUnitFileLock.Outcome.Unavailable;
                 }
             }
-            hold = new Held(region);
+            if (previous is null) hold = new Held(region, own);
+            else
+            {
+                if (previous.Own != own) OfdRegionLocks.Release(region, ByteOf(previous.Own), 1);
+                previous.Own = own;
+                hold = previous;
+            }
             kept = true;
             return RunUnitFileLock.Outcome.Held;
         }
-        finally { if (!kept) Give(region); }
+        finally
+        {
+            if (!kept)
+            {
+                // A superseded description stays as it was: only the byte this request added is given back.
+                if (previous is null) Give(region);
+                else if (previous.Own != own) OfdRegionLocks.Release(region, ByteOf(own), 1);
+            }
+        }
     }
 
     /// <summary>Unlock every protocol byte, THEN close the description (see <see cref="OfdRegionLocks.Release"/>).</summary>
@@ -59,9 +76,15 @@ internal sealed class OfdColumnLockHost : IColumnLockHost
     }
 
     /// <summary>The published column: closing the description releases every region it holds. Idempotent.</summary>
-    private sealed class Held(SafeFileHandle region) : IDisposable
+    private sealed class Held(SafeFileHandle region, ExistingSharingColumn own) : IDisposable
     {
         private SafeFileHandle? _region = region;
+
+        /// <summary>The description, or null once given back.</summary>
+        internal SafeFileHandle? Region => _region;
+
+        /// <summary>The column published on it now; a superseding request moves it.</summary>
+        internal ExistingSharingColumn Own { get; set; } = own;
 
         public void Dispose()
         {

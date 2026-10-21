@@ -638,6 +638,62 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §9.1.13.9 1), <i>"A file
+    /// sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is
+    /// already open by another file connector in a manner that conflicts with this request"</i>; §14.9.27.4 GR25, <i>"If the
+    /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, the file locks of a file
+    /// closed and not reopened are released only by the COMMIT): A, under commit control and SHARING WITH ALL OTHER, changes a
+    /// record and is CLOSEd; B opens the file I-O beside A's kept handle (Table 19: all other beside all other); A's re-OPEN
+    /// under SHARING WITH READ ONLY is refused '61' by B — and by A's own kept handle, whose share mode a host that
+    /// enforces them per handle (Windows) lets refuse the new one, which is why the OPEN gives the kept handle back and tries
+    /// again. B's refusal must not cost A the kept handle: the transaction's liveness byte stays held by a live run unit,
+    /// so a third run unit's writable OPEN (its dead-owner step) does not roll the transaction back and its REWRITE of the
+    /// record answers '51'; and the file lock stands, so an OPEN SHARING WITH NO OTHER is refused '61' after B has gone.
+    /// Before the fix the give-back was never undone, and both answered as if A held nothing. The same re-OPEN, once B has
+    /// closed, succeeds ('00') and is the transaction's. (A host whose share modes are advisory refuses the OPEN through the
+    /// Table 19 column lock before any handle is taken, so there the case passes without the restore.)</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_refused_by_another_run_unit_keeps_the_kept_handle_and_its_transaction(FileOrg org)
+    {
+        string host = Tmp($"pb3483-reopen-refused-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            a.RegisterSharing("F", FileSharing.ReadOnly, FileLockMode.Automatic, multiple: true);
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("61", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            // A third run unit's writable OPEN runs the dead-owner step: A is alive, so it rolls nothing back.
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            c.CloseAll();
+            b.CloseAll();
+            // The kept handle's file lock stands for the connector that is closed and not reopened.
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            // Nobody refuses it now: the same re-OPEN is the transaction's.
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 7, out var own));
+            Assert.Equal(Rec(7, "A007"), own);
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (review finding R1-4; §9.1.18.5, <i>"When a run unit
     /// terminates abnormally, all file changes made since the previous commit or, if none, the beginning of the run unit are
     /// rolled back"</i>; 2.2.1.16's refused row "ROLLBACK, at any page", the termination path's rollback the same): an
