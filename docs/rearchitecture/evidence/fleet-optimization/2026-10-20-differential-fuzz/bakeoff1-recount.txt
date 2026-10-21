@@ -1,0 +1,23 @@
+The recount of 2026-10-20 21:5x PDT: every program bake-off 1 recorded as GNU_REJECTS, compiled with WiseOwl
+(E:/COBOL/src/Cobol.Net.Cli/bin/Debug/net10.0/cobol.exe, the build of main at 0421be4df, --std 2014 --source-format free).
+67 rows: 65 with a program, 2 whose reply held no program. Of the 65, WiseOwl compiles 1.
+
+19 both refuse (COBOL0001)
+18 both refuse (COBOL0307)
+6 both refuse (COBOLNET0898)
+4 both refuse (COBOLNET1516)
+3 both refuse (COBOLNET2993)
+3 both refuse (COBOLNET0801)
+3 both refuse (COBOLNET1941)
+2 no source (no program in the reply)
+1 both refuse (COBOLNET1521)
+1 both refuse (COBOLNET0844)
+1 both refuse (COBOLNET2633)
+1 both refuse (COBOLNET1625)
+1 both refuse (COBOLNET1935)
+1 both refuse (COBOLNET0808)
+1 WiseOwl accepts (would be THEY_REJECT)
+1 both refuse (COBOLNET0819)
+1 both refuse (COBOLNET1639)
+
+qwen3.8_27b/fz00002 clause 15.42.4: GnuCOBOL said fz00002.cob:4: error: syntax error, unexpected Identifier
