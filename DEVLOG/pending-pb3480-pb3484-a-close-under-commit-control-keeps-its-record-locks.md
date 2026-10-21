@@ -60,4 +60,4 @@ The retake now publishes them again through the retaken handle (`PhysicalFileTab
 the R1-2 witness gained another run unit's '51' before and after such a re-OPEN, and each half fails when removed. Review lead R2-1 is answered too: the R1-3 witness's
 forcing host reads the record region's bounds from `HostRegionLocks.IsRecordLockByte` (no copy of the layout) and asserts it was asked a record byte.
 
-Gate (round 1 re-gate): `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T191233Z-a2c6a5, Unit 34,090 cases ran, no failure; Linux gate (unit, conformance) GREEN.
+Gate (finisher, after the merge of main): `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T193841Z-e38559, Unit 34,184 cases ran, no failure; Linux gate (unit, conformance) GREEN at 7527943e6.
