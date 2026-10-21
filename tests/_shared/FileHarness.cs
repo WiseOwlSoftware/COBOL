@@ -69,25 +69,34 @@ public static partial class FileHarness
     public static KeyedAccess AccessFor(FileOpenMode mode) =>
         mode == FileOpenMode.Extend ? KeyedAccess.Sequential : KeyedAccess.Dynamic;
 
-    /// <summary>What <see cref="Register"/> declared for each connector it registered: the physical file it names and the
-    /// access mode it declared (a registry holds no public accessor for either). Weak on the registry, so a test's registry
-    /// takes its entries with it.</summary>
-    private static readonly ConditionalWeakTable<FileRegistry, Dictionary<string, (string Host, KeyedAccess Access)>> Declared = new();
+    /// <summary>The access mode <see cref="Register"/> declared for each connector it registered (the registry keeps the
+    /// physical file a connector names, <see cref="FileRegistry.HostPathOf"/>, but not its access mode). Weak on the
+    /// registry, so a test's registry takes its entries with it.</summary>
+    private static readonly ConditionalWeakTable<FileRegistry, Dictionary<string, KeyedAccess>> Declared = new();
+
+    /// <summary>Fail the test that would OPEN <paramref name="name"/> in <paramref name="mode"/> over a declaration no
+    /// program makes: EXTEND over a connector <see cref="Register"/> declared with RANDOM or DYNAMIC access (§14.9.27.3 SR2,
+    /// <see cref="AccessFor"/>). A connector no <see cref="Register"/> call declared is not checked, so a test that
+    /// registers one with the registry's own methods keeps its own declaration. <see cref="Open"/> and the unit tests'
+    /// <c>OpenStatic</c> shorthand both call it, so the check has no path around it.</summary>
+    public static void AssertDeclarationAdmits(FileRegistry reg, string name, FileOpenMode mode)
+    {
+        if (mode != FileOpenMode.Extend || !Declared.TryGetValue(reg, out var declarations)
+            || !declarations.TryGetValue(name, out var access) || access == KeyedAccess.Sequential) return;
+        Assert.Fail($"OPEN EXTEND over '{name}' declared with {access} access: §14.9.27.3 SR2 allows EXTEND only "
+            + "for sequential access, so this declaration is no program (FileHarness.AccessFor gives the declaration "
+            + "an OPEN in this mode can make).");
+    }
 
     /// <summary>OPEN <paramref name="name"/> in <paramref name="mode"/>, as <c>OPEN mode name</c> does for a connector
-    /// <see cref="Register"/> declared, after checking that declaration: EXTEND over a connector declared with RANDOM or
-    /// DYNAMIC access fails the test (§14.9.27.3 SR2, <see cref="AccessFor"/>) instead of measuring a program the compiler
-    /// would refuse. A connector a test registered itself is opened with the registry's own methods.</summary>
+    /// <see cref="Register"/> declared, after <see cref="AssertDeclarationAdmits"/>. The connector must have been
+    /// registered through <see cref="Register"/>.</summary>
     public static void Open(FileRegistry reg, string name, FileOpenMode mode)
     {
         Assert.True(Declared.TryGetValue(reg, out var declarations) && declarations.ContainsKey(name),
             $"'{name}' was not registered through FileHarness.Register, so its declaration cannot be checked");
-        var (host, access) = declarations![name];
-        if (mode == FileOpenMode.Extend && access != KeyedAccess.Sequential)
-            Assert.Fail($"OPEN EXTEND over '{name}' declared with {access} access: §14.9.27.3 SR2 allows EXTEND only "
-                + "for sequential access, so this declaration is no program (FileHarness.AccessFor gives the declaration "
-                + "an OPEN in this mode can make).");
-        reg.Open(name, mode, host, assignDynamic: false, page: null);
+        AssertDeclarationAdmits(reg, name, mode);
+        reg.Open(name, mode, reg.HostPathOf(name), assignDynamic: false, page: null);
     }
 
     /// <summary>Register <paramref name="name"/> over <paramref name="host"/> as the program declares it: dynamic access
@@ -103,7 +112,7 @@ public static partial class FileHarness
         KeyedAccess access = KeyedAccess.Dynamic, bool alternateKey = false)
     {
         Assert.True(!alternateKey || org == FileOrg.Indexed, "only an INDEXED file has an alternate key");
-        Declared.GetOrCreateValue(reg)[name] = (host, org == FileOrg.Sequential ? KeyedAccess.Sequential : access);
+        Declared.GetOrCreateValue(reg)[name] = org == FileOrg.Sequential ? KeyedAccess.Sequential : access;
         switch (org)
         {
             case FileOrg.Sequential:

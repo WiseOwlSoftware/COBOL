@@ -17,3 +17,11 @@ conditional calls `AccessFor`. `FileHarnessExtendDeclarationTests` pins the mapp
 declaration it gives, and shows the guard failing. `Table20WriteOpenModeTests` stays as it is: it opens DYNAMIC and RANDOM
 connectors EXTEND on purpose, to test the runtime's own '48'. Seed's OUTPUT opens are legal under dynamic access. No inventory row
 is claimed; `closes_rows: []`.
+
+Review round 1: the one blocking finding was a citation. The new test's comment named §14.9.27.4 GR19 (the volume pointer) for
+the success status of a lone connector's OPEN; the rule is GR4 with Table 18, now checked with `cite.py --check`. Two leads in the
+same files were fixed: the guard now lives in `FileHarness.AssertDeclarationAdmits`, which both `FileHarness.Open` and the unit
+tests' `OpenStatic` shorthand call, so a theory that registers by default and opens EXTEND with `OpenStatic` fails too
+(`OpenStaticExtend_OverTheHarnessDefaultDeclaration_FailsTheTest`); and the side table keeps only the access mode, taking the
+host from `FileRegistry.HostPathOf`, which the registry already owns. A raw `reg.Open(...)` with explicit operands still
+bypasses the guard; no test in the tree does that for a harness-registered connector.
