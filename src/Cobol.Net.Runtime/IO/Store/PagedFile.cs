@@ -146,6 +146,11 @@ internal sealed class PagedFile
     /// is never issued again, 2.2.1.3 decision 4).</summary>
     public ulong ReleaseMint => Math.Max(_releaseMint, _meta.ReleaseMint);
 
+    /// <summary>The lowest transaction id a first change under commit control may DRAW (2.2.1.10, finding R4-2): the
+    /// higher of the meta's <c>transaction mint</c> and what this store has claimed, never 0 (<c>committing</c> 0 means
+    /// "no COMMIT"). The draw takes the id's liveness byte and skips a held one; <see cref="Begin"/> claims it.</summary>
+    public ulong TransactionMint => Math.Max(1, Math.Max(_transactionMint, _meta.TransactionMint));
+
     /// <summary>The page I/O performed so far.</summary>
     public IoCounters Counters => new(_reads, _writes, _syncs);
 
@@ -374,7 +379,9 @@ internal sealed class PagedFile
 
     /// <summary>Begin a statement that CHANGES the file, of <paramref name="bound"/>: the tree pages its edits will flush
     /// and the pages those edits stopped referencing (<see cref="StatementBound.Of"/> reads both from the trees), minting
-    /// <paramref name="ordinals"/> release ordinals and <paramref name="transactionIds"/> transaction ids. Its entry
+    /// <paramref name="ordinals"/> release ordinals and, when <paramref name="drawnTransaction"/> is not 0, claiming the
+    /// transaction id a first change under commit control DREW by taking its liveness byte (<c>transaction mint</c> :=
+    /// at least the id + 1, 2.2.1.10, finding R4-2: an id is claimed before anything carries it). Its entry
     /// (<see cref="Enter"/>, unless the caller already ran it for this statement — <paramref name="entered"/> — to read the
     /// trees its edits change); the ceiling and the ledger checkpoint (a promotion first, R2 and R5: it moves no data
     /// tree's root); its RESERVATION — the ledger's <c>released</c> pages, then one batch of the lowest FREE-tree pages,
@@ -384,7 +391,7 @@ internal sealed class PagedFile
     /// generation unchanged, before its first page write (2.2.1.7). The reservation is taken BEFORE the claim: one that
     /// would grow the file past the format's 2^32 pages is the BOUNDARY (2.2.1.9), and a torn FREE-tree page '30', both
     /// answered with nothing claimed or written.</summary>
-    public StoreStatus Begin(StatementBound bound, out PageStatement? statement, int ordinals = 0, int transactionIds = 0, bool entered = false)
+    public StoreStatus Begin(StatementBound bound, out PageStatement? statement, int ordinals = 0, ulong drawnTransaction = 0, bool entered = false)
     {
         statement = null;
         if (!_writable) throw new InvalidOperationException("an INPUT store changes nothing");
@@ -399,7 +406,7 @@ internal sealed class PagedFile
             return reserved;
         ulong claim = Claim();
         _releaseMint = Math.Max(_releaseMint, _meta.ReleaseMint) + (ulong)ordinals;
-        _transactionMint = Math.Max(_transactionMint, _meta.TransactionMint) + (ulong)transactionIds;
+        _transactionMint = Math.Max(Math.Max(_transactionMint, _meta.TransactionMint), drawnTransaction == 0 ? 0 : drawnTransaction + 1);
         if (_coherent && !TryWrite(MetaPage.WorkSlot, WithMints(_meta).Encode(MetaPage.WorkSlot)))
             return _lastRefusal;
         _active = statement = new PageStatement(this, claim, ledger, free, reservation, _meta);
@@ -508,8 +515,24 @@ internal sealed class PagedFile
     /// claim P + 1) → sync → both committed slots read and the state written, with <c>committed generation</c> = P, into
     /// the slot that does NOT hold the committed meta (decided from the slots as they are now, never from memory) → sync
     /// → the RETIREMENT. For the fence, <paramref name="state"/> is the adopted meta and P = F.</summary>
-    private StoreStatus PromoteAt(MetaPage state, ulong committing, ulong p, Rejected? rejected)
+    private StoreStatus PromoteAt(MetaPage state, ulong committing, ulong p, Rejected? rejected) =>
+        PromoteAt(state, committing, p, rejected, reverse: null, out _);
+
+    /// <summary><see cref="PromoteAt(MetaPage, ulong, ulong, Rejected?)"/>, telling a COMMIT's promotion
+    /// (<paramref name="committing"/> not 0) which of 2.2.1.10's three regions it ended in. ⛔ THE COMMIT IS DECIDED BY
+    /// THE SLOT WRITE AND ANSWERED ONLY BY THE SYNC AFTER IT (finding R5-1): refused before the slot write, the
+    /// transaction is intact (<see cref="CommitOutcome.Refused"/>); sync 2 landed, committed whatever becomes of the
+    /// retirement (<see cref="CommitOutcome.Committed"/>); sync 2 REFUSED — the operating environment holds the slot, the
+    /// medium may or may not — and the COMMIT REVERSES before it gives the mutex back: its retirement run as the
+    /// rollback of the transaction through <paramref name="reverse"/> (page 2 a DESCENDANT of the COMMIT's slot holding the
+    /// records as at the previous COMMIT, the entry and its holdings gone), then an ordinary promotion of that page 2
+    /// (<see cref="CommitOutcome.Reversed"/>, or <see cref="CommitOutcome.Unacknowledged"/> when the reversal is refused
+    /// too). Inside the hold no other entry sees the unacknowledged slot, so nobody completes a COMMIT its owner is told
+    /// failed.</summary>
+    private StoreStatus PromoteAt(MetaPage state, ulong committing, ulong p, Rejected? rejected, RestoringTreesFactory? reverse,
+        out CommitOutcome outcome)
     {
+        outcome = CommitOutcome.Refused;
         _stampMint = Math.Max(_stampMint, p);
         ulong retirement = Claim();
         var claim = WithMints(state with { Generation = p, Promoting = true, Committing = committing });
@@ -521,11 +544,70 @@ internal sealed class PagedFile
         uint target = MetaPage.Committed(a, b) is { Slot: MetaPage.SlotA } ? MetaPage.SlotB : MetaPage.SlotA;
         var slot = claim with { Promoting = false, CommittedGeneration = p };
         if (!TryWrite(target, slot.Encode(target))) return StoreStatus.PermanentError;
-        if (!TrySync()) return StoreStatus.PermanentError;
+        if (!TrySync())
+        {
+            if (committing == 0 || reverse is null) return StoreStatus.PermanentError;
+            // Region 3: the reversal, under the mutex this promotion has held since its claim.
+            _reversalLanded = Retire(claim, Claim(), null, reverse) == StoreStatus.Ok;
+            outcome = _reversalLanded && PromoteAt(_meta, 0, Claim(), null) == StoreStatus.Ok
+                ? CommitOutcome.Reversed : CommitOutcome.Unacknowledged;
+            return StoreStatus.PermanentError;
+        }
+        outcome = CommitOutcome.Committed;
         var retired = Retire(claim, retirement, rejected);
         if (retired == StoreStatus.Ok) _changedSincePromotion = false;
-        return retired;
+        return committing == 0 ? retired : StoreStatus.Ok;
     }
+
+    // ── COMMIT and the UNACKNOWLEDGED file (2.2.1.10) ──────────────────────────────────────────────────────────────
+
+    /// <summary>⛔ COMMIT transaction <paramref name="id"/> on this file (§14.9.7.4 GR3: <i>"The execution of the COMMIT
+    /// statement permanently applies any changes made to the files specified in all the active APPLY COMMIT clauses and
+    /// releases all record locks associated with those files."</i>; DESIGN-runtime-library.md 2.2.1.10): after the
+    /// statement's entry, a PROMOTION (R5) whose claim carries <c>committing</c> = the id into the committed slot — the one
+    /// durable write that decides it — and whose RETIREMENT removes the transaction's entry and every holding one walk of
+    /// its UNDO tree lists, and releases the UNDO pages (<see cref="Retire"/>). The answer is the region the promotion ended
+    /// in (<see cref="PromoteAt(MetaPage, ulong, ulong, Rejected?, RestoringTreesFactory?, out CommitOutcome)"/>);
+    /// <paramref name="reverse"/> is how a refused sync 2 reverses.</summary>
+    public CommitOutcome Commit(ulong id, RestoringTreesFactory reverse)
+    {
+        if (!_writable) throw new InvalidOperationException("an INPUT store commits nothing");
+        if (Enter() != StoreStatus.Ok) return CommitOutcome.Refused;
+        PromoteAt(_meta, id, Claim(), null, reverse, out var outcome);
+        return outcome;
+    }
+
+    /// <summary>⛔ THE ROLLBACK OF A FILE MARKED UNACKNOWLEDGED (2.2.1.10 region 3; the UNACKNOWLEDGED row of 2.2.1.15): the
+    /// COMMIT's slot may be the committed meta the operating environment holds, which the fence would FINISH, so this
+    /// ROLLBACK reads page 2 under the mutex instead of entering (an entry would complete the landed COMMIT) — the
+    /// reversal again if page 2 still carries transaction <paramref name="id"/> under the PROMOTING flag, then a promotion
+    /// of page 2 as it stands (harmless when repeated) — and answers by that promotion's sync: <see cref="StoreStatus.Ok"/>
+    /// settles the medium on the rollback (the caller clears the mark). Page 2 without the flag, with the entry gone and no
+    /// reversal of this run unit's behind it, is another connector's completion of the landed COMMIT, and the answer is
+    /// '30': the medium decides its durability.</summary>
+    public StoreStatus RollBackUnacknowledged(ulong id, RestoringTreesFactory reverse)
+    {
+        bool reversed = _reversalLanded;
+        var page = new byte[PageHeader.PageSize];
+        if (!TryReadRaw(MetaPage.WorkSlot, page) || MetaPage.Decode(page, MetaPage.WorkSlot) is not { } work)
+            return StoreStatus.PermanentError;
+        if (Ledger.Load(this, work.LedgerRoot, out var ledger) != PageCheck.Whole) return StoreStatus.PermanentError;
+        SetState(work, ledger!);
+        _lastSeen = work.Generation;
+        SeeMints(work);
+        DropCache();
+        if (work.Promoting && work.Committing == id)
+        {
+            if (Retire(work, Claim(), null, reverse) != StoreStatus.Ok) return StoreStatus.PermanentError;
+            _reversalLanded = true;
+        }
+        else if (!reversed) return StoreStatus.PermanentError;
+        return PromoteAt(_meta with { Promoting = false }, 0, Claim(), null);
+    }
+
+    /// <summary>A COMMIT's reversal statement landed (2.2.1.10 region 3): the transaction it reversed is gone from page 2
+    /// by this run unit's own doing, so a later ROLLBACK of the marked file needs only the promotion.</summary>
+    private bool _reversalLanded;
 
     /// <summary>The RETIREMENT statement (2.2.1.6 R5; finding R2-1, R3-2): an ordinary statement at
     /// <paramref name="claim"/> on the base <paramref name="promoted"/>'s generation. The promoted ledger's
@@ -536,9 +618,30 @@ internal sealed class PagedFile
     /// never-committed pages join the FREE tree too (a page the committed FREE tree already holds is held once). A page
     /// past the promoted state's page count never enters the FREE tree: it is reached by nothing and the next growth
     /// reuses it.</summary>
-    private StoreStatus Retire(MetaPage promoted, ulong claim, Rejected? rejected)
+    /// <para>⛔ A COMMIT'S RETIREMENT RETIRES ITS TRANSACTION (2.2.1.10; kb/Work PB3337): when <paramref name="promoted"/>
+    /// carries <c>committing</c> = t, the same statement walks t's UNDO tree once and removes t's entry and every holding
+    /// the walk lists, R and V alike, and releases the UNDO pages (<see cref="TransactionRetirement"/>) — the restart
+    /// rule's completion of a landed COMMIT and R6's fence over a PROMOTION SOURCE included, since both retire through
+    /// here. With <paramref name="reverse"/> it is the COMMIT's REVERSAL instead (region 3): the walk re-applies every
+    /// before-image of t through the organization's trees, so page 2 holds the records as at the previous COMMIT.</para></summary>
+    private StoreStatus Retire(MetaPage promoted, ulong claim, Rejected? rejected, RestoringTreesFactory? reverse = null)
     {
         if (Ledger.Load(this, promoted.LedgerRoot, out var old) != PageCheck.Whole) return StoreStatus.PermanentError;
+        IRestoringTrees? restoring = null;
+        TransactionRetirement? retirement = null;
+        if (promoted.Committing != 0)
+        {
+            restoring = reverse?.Invoke(this, promoted);
+            if (TransactionRetirement.Of(this, promoted, promoted.Committing, restoring is null ? null : restoring.Restore,
+                    out retirement) != StoreStatus.Ok)
+            {
+                foreach (var (tree, _) in restoring?.Edited ?? []) tree.Discard();
+                return StoreStatus.PermanentError;
+            }
+        }
+        var transactionTrees = new List<BTree>();
+        foreach (var (tree, _) in restoring?.Edited ?? []) transactionTrees.Add(tree);
+        if (retirement is not null) transactionTrees.AddRange(retirement.Trees);
         var ownPages = old!.OwnPages;
         var own = ownPages.Select(p => p.Page).ToHashSet();
         var moved = new SortedSet<uint>(old.Pages(LedgerState.Released));
@@ -557,17 +660,26 @@ internal sealed class PagedFile
             if (free.Put(KeyOrders.PageKey(p), []) != StoreStatus.Ok) return StoreStatus.PermanentError;
         // A promotion has no '24', and its claim is already taken: it is refused ('30') only if it WRITES a page past the
         // format's last, never for the bound its reservation is sized to (kb/Work PB3396).
-        if (Reserve(default, ledger, free, promoted.PageCount, BoundaryAt.Take, out var reservation) != StoreStatus.Ok) return StoreStatus.PermanentError;
+        if (Reserve(StatementBound.Of([.. transactionTrees]), ledger, free, promoted.PageCount, BoundaryAt.Take,
+                out var reservation) != StoreStatus.Ok)
+        {
+            foreach (var tree in transactionTrees) tree.Discard();
+            return StoreStatus.PermanentError;
+        }
         var s = new PageStatement(this, claim, ledger, free, reservation, promoted);
+        if (restoring is not null && FlushRestored(restoring, s) != StoreStatus.Ok
+            || retirement is not null && retirement.Flush(s) != StoreStatus.Ok)
+        {
+            foreach (var tree in transactionTrees) tree.Discard();
+            return StoreStatus.PermanentError;
+        }
         if (!WriteBookkeeping(s, out var freeRoot, out var ledgerRoot)) return StoreStatus.PermanentError;
-        var retired = WithMints(promoted with
+        var retired = WithMints(s.Meta with
         {
             Generation = claim,
             CommittedGeneration = promoted.Generation,
             Promoting = false,
-            // The retirement clears `committing`; removing the TRANSACTIONS entry it names, and the holdings its UNDO
-            // walk lists, is the transaction slice's part of this statement (kb/Work PB3337) — until it lands that tree
-            // is always empty, as R6 step 5's dead-owner step reads it.
+            // The retirement clears `committing`, in the statement that removed the transaction it names (above).
             Committing = 0,
             FreeRoot = freeRoot,
             LedgerRoot = ledgerRoot,
@@ -577,6 +689,18 @@ internal sealed class PagedFile
         SetState(retired, ledger);
         _lastSeen = retired.Generation;
         _promotionPending = false;
+        return StoreStatus.Ok;
+    }
+
+    /// <summary>Flush the data trees a rollback restored through <paramref name="s"/> and set their meta roots.</summary>
+    internal static StoreStatus FlushRestored(IRestoringTrees restoring, PageStatement s)
+    {
+        foreach (var (tree, root) in restoring.Edited)
+        {
+            if (tree.Flush(s, out var pointer) is var flushed && flushed != StoreStatus.Ok) return flushed;
+            if (root == IRestoringTrees.PrimeRoot) s.SetPrimeRoot(pointer);
+            else s.SetAlternateRoot(root, pointer);
+        }
         return StoreStatus.Ok;
     }
 
@@ -954,6 +1078,12 @@ internal sealed class PageStatement : IPageSink
         roots[alternate] = root;
         _meta = _meta with { AlternateRoots = roots };
     }
+
+    /// <summary>The TRANSACTIONS tree's new root (2.2.1.10).</summary>
+    public void SetTransactionsRoot(PagePointer root) => _meta = _meta with { TransactionsRoot = root };
+
+    /// <summary>The HOLDINGS tree's new root (2.2.1.10).</summary>
+    public void SetHoldingsRoot(PagePointer root) => _meta = _meta with { HoldingsRoot = root };
 
     /// <summary>Write the statement's bookkeeping pages and page 2, last.</summary>
     public StoreStatus Complete() => _store.Complete(this);

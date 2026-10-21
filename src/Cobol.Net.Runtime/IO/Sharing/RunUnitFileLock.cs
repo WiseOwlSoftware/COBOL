@@ -63,7 +63,12 @@ internal sealed class RunUnitFileLock : IDisposable
 
     private IDisposable? _hold;
 
-    private RunUnitFileLock(IDisposable hold) => _hold = hold;
+    /// <summary>What the lock was established as — the host, the physical file and the Table 19 column and row the OPEN
+    /// asked for — so <see cref="Retake"/> can establish the same lock again.</summary>
+    private readonly (IColumnLockHost Host, string HostPath, ExistingSharingColumn Own, ExistingSharingColumn[] Refused) _as;
+
+    private RunUnitFileLock(IDisposable hold, (IColumnLockHost, string, ExistingSharingColumn, ExistingSharingColumn[]) taken) =>
+        (_hold, _as) = (hold, taken);
 
     /// <summary>The outcome of asking for the lock.</summary>
     internal enum Outcome
@@ -92,12 +97,27 @@ internal sealed class RunUnitFileLock : IDisposable
         if (host is null) return Outcome.Unavailable;
         var row = Table19.Row(sharing, mode);
         var refused = Columns.Where(column => Table19.Cell(row, column) == OpenSharingOutcome.UnsuccessfulOpen).ToArray();
-        var outcome = host.Establish(hostPath, Table19.Column(sharing, mode), refused, out var hold);
-        if (outcome == Outcome.Held) held = new RunUnitFileLock(hold!);
+        var own = Table19.Column(sharing, mode);
+        var outcome = host.Establish(hostPath, own, refused, out var hold);
+        if (outcome == Outcome.Held) held = new RunUnitFileLock(hold!, (host, hostPath, own, refused));
         return outcome;
     }
 
-    /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent.</summary>
+    /// <summary>Establish this lock again after <see cref="Dispose"/> gave it back — the same column published, against the
+    /// same refused columns — and answer how that went (<see cref="Outcome.Held"/> as well when it is still held). The one
+    /// caller is a file lock a CLOSE under commit control KEPT (§14.9.7.4 GR4), which the connector's own re-OPEN gives
+    /// back before it establishes its own and takes again when that OPEN is unsuccessful (§14.9.27.4 GR25, <i>"the file is
+    /// not affected"</i>; kb/Work PB3337 review lead R2-2). <see cref="Outcome.Refused"/> means another run unit opened the
+    /// file against the column in the instant it was free.</summary>
+    internal Outcome Retake()
+    {
+        if (_hold is not null) return Outcome.Held;
+        var outcome = _as.Host.Establish(_as.HostPath, _as.Own, _as.Refused, out var hold);
+        if (outcome == Outcome.Held) _hold = hold;
+        return outcome;
+    }
+
+    /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent; <see cref="Retake"/> can establish it again.</summary>
     public void Dispose()
     {
         _hold?.Dispose();
