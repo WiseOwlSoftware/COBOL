@@ -573,6 +573,15 @@ public static class HostFile
     public static FileStream OpenConnectorStore(string hostPath, FileMode mode, FileAccess access, FileShare share) =>
         new(hostPath, mode, access, share, bufferSize: 1, FileOptions.None);
 
+    /// <summary>The handle a Table 19 COLUMN is published through where the host's locks belong to a HANDLE and the
+    /// file lock is its share mode (<see cref="HandleColumnLockHost"/>, kb/Work PB3482): a READ handle that admits every
+    /// other reader and writer, held for the life of the OPEN, so it adds nothing to what the connector's own handle
+    /// refuses — and is itself refused by exactly one posture, <see cref="FileShare.None"/>, which is §9.1.15 1)'s
+    /// exclusive access (a connector that holds it takes no column). Throws what <see cref="File.OpenHandle(string, FileMode,
+    /// FileAccess, FileShare, FileOptions, long)"/> throws; the caller maps it.</summary>
+    internal static Microsoft.Win32.SafeHandles.SafeFileHandle OpenColumnHolder(string hostPath) =>
+        File.OpenHandle(hostPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, FileOptions.None);
+
     // ── The input-output areas (ISO §12.4.5.14) ───────────────────────────────────────────────────────────────
 
     /// <summary>The size of ONE input-output area: 4,096 bytes — on the sequential organization's medium channel one

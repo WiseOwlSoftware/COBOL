@@ -278,8 +278,12 @@ public abstract class KeyedConnector : FileConnector
         // the re-OPEN's handle is writable whatever its mode: it is the handle the COMMIT or ROLLBACK writes through once
         // the kept one is given back, and the one the liveness byte moves to (2.2.1.10), and an INPUT re-OPEN takes the
         // same handle back (TakeFileLock). With no transaction there is nothing to write, so the handle takes the access
-        // of its own mode (HostAccess) and no more (review finding R2-1): a writable handle under an INPUT re-OPEN refuses,
-        // through its host share mode, the OPENs of other run units Table 19 admits beside an INPUT opener (§9.1.15).
+        // of its own mode (HostAccess) and no more (review finding R2-1): a writable handle under an INPUT re-OPEN would be
+        // refused by the host share mode of the OPENs of other run units that Table 19 admits beside an INPUT opener
+        // (§9.1.15). The handle that stands writable while the transaction does leaves the one case a share mode cannot say, an
+        // INPUT opener that owes its transaction's writes, to the OPEN that meets it: a SHARING WITH READ ONLY request is
+        // refused by the share mode, with its column held, and made again with FileLockPosture.WhenOwedWritesAreAdmitted
+        // (FileConnector.Open, kb/Work PB3482).
         var access = _kept?.Handle is { Stream.CanWrite: true } && AttachedStore.Transaction != 0
             ? FileAccess.ReadWrite
             : HostAccess(Mode);

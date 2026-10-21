@@ -461,13 +461,29 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   lives on the inode, so a device node such as `/dev/null` would arbitrate every run unit on the machine that assigns
   it. An unavailable lock
   leaves the connector the file lock its `FileShare` gives, nothing more.
-- **One policy, two hosts (`IColumnLockHost`, kb/Work PB2484).** `RunUnitFileLock.Take` is the POLICY — the column
-  an OPEN publishes (`Table19.Column`), the columns its row refuses (`Table19.Cell`), the wire number of each
+- **One policy, three hosts (`IColumnLockHost`, kb/Work PB2484, PB3482).** `RunUnitFileLock.Take` is the POLICY — the
+  column an OPEN publishes (`Table19.Column`), the columns its row refuses (`Table19.Cell`), the wire number of each
   (`RunUnitFileLock.WireNumber`) — and speaks to the host of the process through `IColumnLockHost.Establish`,
   chosen ONCE (`RunUnitFileLock.HostOfThisProcess`): `OfdColumnLockHost` where `OfdRegionLocks.Available` (Linux
-  x86-64/arm64), no host on Windows (`HostFile.ShareModesAreMandatory`), `SidecarColumnLockHost` everywhere else.
-  Both hosts publish BEFORE they test and never count the asker's own publication, which is the whole of the
-  race-freedom argument. Adding a host is one class and one line in the choice.
+  x86-64/arm64), `HandleColumnLockHost` where the share modes are mandatory (Windows,
+  `HostFile.ShareModesAreMandatory`), `SidecarColumnLockHost` everywhere else. All three publish BEFORE they test and
+  never count the asker's own publication, which is the whole of the race-freedom argument. Adding a host is one class
+  and one line in the choice.
+- **The Windows host: a column is a byte RANGE (`HandleColumnLockHost`, `WindowsByteRangeLocks`, kb/Work PB3482).**
+  Windows locks belong to a HANDLE and conflict with every other handle, the asker's own included, so one shared byte
+  per column (Linux) cannot answer "does any holder OTHER than me hold this column" about a column the asker holds
+  (READ ONLY beside a READ ONLY connector that writes, every OUTPUT). A holder opens a READ handle of its own
+  (`HostFile.OpenColumnHolder`: share `ReadWrite`, so it refuses nobody the connector's handle admits) and publishes by
+  holding exclusively ONE byte, chosen at random, of its column's 2^32-byte range (`HostRegionLocks.ColumnRangeStart`,
+  from 2^62 + 2^61 + 2^60, past the liveness region); it tests another column by a shared request over the whole range
+  (released at once, conflicting only with an exclusive hold, so testers never exclude each other) and its own column
+  by two shared requests either side of its own byte. A collision with a holder or a tester's instant costs a retry.
+  There is no cap on holders. `SHARING WITH NO OTHER` publishes nothing (`Unavailable`): its own handle is
+  `FileShare.None`, which refuses the holder's read handle and every other open, so the share mode already says all
+  its column would; and a holder that meets a `FileShare.None` handle is `Refused` (every request row refuses the
+  first column). A path that is not a disk file, is absent or is refused is `Unavailable`. Witnesses:
+  `HandleColumnLockHostDriftTests` (every pair, release, retake, the race, many holders) and
+  `RunUnitFileLockDriftTests` through the host of the machine.
 - **The lock-file primitive (`SidecarLockFiles`) and its column policy (`SidecarColumnLockHost`).** macOS has no host
   primitive for the Linux bytes: its classic `fcntl` locks are process-owned, its open-file-description commands are
   private, and `fcntl` is variadic, which Apple's arm64 calling convention passes differently from a fixed P/Invoke
@@ -526,12 +542,21 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   and Linux, through the host of the machine; the macOS lock-file host is held to the same table by the other witnesses.
 
 **⛔ DETERMINATION (Annex A.1 item 75, `docs/CONFORMANCE.md` DOC-A.1-75) — WHO IS BOUND.** §9.1.15 binds other RUN
-UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on a host that carries the region lock (Linux
-x86-64/arm64) or whose `FileShare` carries the table (Windows, with the OUTPUT probe above). A process that takes
-part in no protocol meets only the share mode of the connector's own handle, whose strength is the host's:
+UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on every host: by the region lock (Linux
+x86-64/arm64), by the byte-range columns of `HandleColumnLockHost` together with the connector's share mode (Windows,
+with the OUTPUT probe above), by the lock files (everywhere else). A process that takes part in no protocol meets only
+the share mode of the connector's own handle, whose strength is the host's:
 
 - **On Windows** the share modes are mandatory and per-access: rules 1–3 are enforced as written against every
-  process on the machine.
+  process on the machine, with one yielding posture (kb/Work PB3482). A share mode refuses by ACCESS, and an INPUT
+  opener can owe writes (2.2.1.10), so `SHARING WITH READ ONLY`'s `FileShare.Read` refused a request Table 19 admits
+  beside it. A connector whose first attempt the host refused with its Table 19 column HELD (the table admitted it
+  against every WiseOwl COBOL run unit) is OPENed again with `FileLockPosture.WhenOwedWritesAreAdmitted` —
+  `FileShare.ReadWrite` — and the columns, not the share mode, keep out every request Table 19 refuses. The
+  consequence for an outside program is the one A.1 item 75 already leaves to the implementor: a READ ONLY connector
+  is admitted beside an outside writer when the host's share mode alone refused it, Table 19 admitted it against
+  every WiseOwl COBOL connector and the file is open; that connector's own handle still refuses an outside writer
+  that opens AFTER it only if its first attempt was not refused.
 - **On Linux** the share mode is one advisory `flock`: rule 1 (`FileShare.None` ⇒ `LOCK_EX`) excludes an outside
   reader and writer that also take `flock`, and rule 2's refusal of an outside writer exists only against a run unit
   of this runtime (the region lock). A program that opens the file without locking is neither stopped nor
@@ -1835,12 +1860,23 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   writable, the re-OPEN's handle is taken writable whatever its open mode (an INPUT re-OPEN included): it is the handle
   the COMMIT or ROLLBACK writes through; a handle the host lets hold no exclusive lock holds the byte SHARED, which
   refuses every other run unit's exclusive probe and draw alike. With no transaction standing (the connector only read)
-  the re-OPEN's handle takes the access of its own open mode and no more (branch review finding R2-1). ⚠ **A WRONG
-  ANSWER, NAMED:** with the transaction standing, that writable handle under an INPUT re-OPEN is refused by, and so
-  refuses, another run unit's OPEN that Table 19 admits beside an INPUT opener (SHARING WITH READ ONLY on INPUT, I-O or
-  EXTEND) on a host whose share modes are mandatory (Windows: '61' where the table says '00'), until the COMMIT or
-  ROLLBACK, while a host that publishes the column lock instead admits it; a host share mode cannot say "an INPUT
-  opener that still owes its transaction's writes". A re-OPEN that fails leaves what the CLOSE kept as it was
+  the re-OPEN's handle takes the access of its own open mode and no more (branch review finding R2-1). **THE
+  OWED-WRITES POSTURE (kb/Work PB3482; it was a named wrong answer of this paragraph).** With the transaction standing,
+  that writable handle under an INPUT re-OPEN is an INPUT opener that still owes its transaction's writes, and a host
+  share mode cannot say so: on a host whose share modes are mandatory (Windows) `FileShare.Read`, the base posture of
+  SHARING WITH READ ONLY (`FileLockPosture.OfSharingMode`), refuses every writer, so another run unit's OPEN that Table 19
+  admits beside an INPUT opener (SHARING WITH READ ONLY on INPUT, I-O or EXTEND) was refused '61' where the table says
+  '00', until the COMMIT or ROLLBACK. The root is the posture, not the re-OPEN: the share mode of a SHARING WITH READ ONLY
+  connector over-restricts there, and the lock between run units is Table 19 itself, which Windows now carries as columns
+  (`HandleColumnLockHost`, 2.2.1.8's byte map). So `FileConnector.Open` makes a second attempt, with
+  `FileLockPosture.WhenOwedWritesAreAdmitted` (`FileShare.ReadWrite`), exactly when the first was refused by the host
+  with the request's column HELD (Table 19 admitted it against every WiseOwl COBOL run unit) and another run unit's INPUT
+  opener holds its column (`RunUnitFileLock.AnotherInputOpenerHolds`: only an INPUT opener can owe writes); every
+  request the table refuses is still refused, by the columns, and a program outside the protocol that holds the file for
+  writing, with no INPUT opener beside it, still refuses the READ ONLY request. Witness:
+  `CommitRollbackRuntimeTests.An_input_opener_that_owes_its_transactions_writes_admits_what_Table_19_admits` (both
+  organizations, READ ONLY INPUT and I-O beside the re-OPENed INPUT opener, COMMIT and ROLLBACK, and the requests the
+  table refuses meeting the widened connector's column). A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): the kept handle and attachment are restored (`AbandonOpen`) and the kept column lock, which the
   OPEN gave back to take its own, is taken again (`FileConnector.RetakeKeptFileLock`, `RunUnitFileLock.Retake`; review
   lead R2-2); the instants between the kept column's release and the re-OPEN's own lock, and between that lock's release

@@ -53,12 +53,14 @@ internal sealed class RunUnitFileLock : IDisposable
 
     /// <summary>⛔ THE ONE CHOICE OF HOST, made once: Linux's open-file-description locks where the process shape
     /// carries them (<see cref="OfdRegionLocks.Available"/>); otherwise, off Windows, the lock files of
-    /// <see cref="SidecarColumnLockHost"/>; and on Windows none, because its share modes are mandatory and per-access
-    /// (<see cref="HostFile.ShareModesAreMandatory"/>) and the connector's own handle already carries the table. A host
-    /// is a fact of the process, so the platform question is asked HERE and never at a call site (kb/Work PB795).</summary>
-    internal static IColumnLockHost? HostOfThisProcess { get; } =
+    /// <see cref="SidecarColumnLockHost"/>; and on Windows the byte ranges of <see cref="HandleColumnLockHost"/>. Its share
+    /// modes are mandatory and per-access (<see cref="HostFile.ShareModesAreMandatory"/>), so the connector's own handle
+    /// carries most of the table, but not all of it: a share mode cannot say that an INPUT opener owes writes
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482). A host is a fact of the process, so the
+    /// platform question is asked HERE and never at a call site (kb/Work PB795).</summary>
+    internal static IColumnLockHost HostOfThisProcess { get; } =
         OfdRegionLocks.Available ? OfdColumnLockHost.Instance
-        : HostFile.ShareModesAreMandatory ? null
+        : HostFile.ShareModesAreMandatory ? HandleColumnLockHost.Instance
         : SidecarColumnLockHost.Instance;
 
     private IDisposable? _hold;
@@ -116,6 +118,14 @@ internal sealed class RunUnitFileLock : IDisposable
         if (outcome == Outcome.Held) _hold = hold;
         return outcome;
     }
+
+    /// <summary>Does another run unit's connector hold an INPUT column (ALL OTHER or READ ONLY input) — the only holders that
+    /// can owe writes while open in the input mode (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>, kb/Work PB3482)?
+    /// Answered by a host whose share modes are mandatory (<see cref="HandleColumnLockHost"/>); false for any other and for a
+    /// lock that was given back.</summary>
+    internal bool AnotherInputOpenerHolds() =>
+        _hold is IPublishedColumn published
+        && (published.AnotherHolds(ExistingSharingColumn.AllOtherInput) || published.AnotherHolds(ExistingSharingColumn.ReadOnlyInput));
 
     /// <summary>Remove the file lock — the CLOSE's half of §9.1.15. Idempotent; <see cref="Retake"/> can establish it again.</summary>
     public void Dispose()
