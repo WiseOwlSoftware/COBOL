@@ -653,10 +653,17 @@ internal sealed class IndexedStore : KeyedStore
     }
 
     /// <summary>The frame of the record whose prime key is <paramref name="prime"/>; null when the file holds none.</summary>
-    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? frame)
+    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? frame) =>
+        Get(orders, prime, out _, out frame);
+
+    /// <summary>⛔ The frame of the record whose prime key is <paramref name="prime"/> AND the key image its prime tree holds
+    /// it under (<paramref name="stored"/>): under a collating sequence that makes two key images one, the record is named
+    /// by the spelling it was WRITTEN with, whichever spelling a statement asked for it by (§12.4.5.12.4 GR1). It is the
+    /// record's identity for the transactions' holdings and the §9.1.16 record lock; null with no record.</summary>
+    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? stored, out byte[]? frame)
     {
-        frame = null;
-        return Tree(TreeChange.PrimeRoot, orders) is { } tree ? tree.TryGet(prime, out frame) : StoreStatus.Ok;
+        stored = frame = null;
+        return Tree(TreeChange.PrimeRoot, orders) is { } tree ? tree.TryGet(prime, out stored, out frame) : StoreStatus.Ok;
     }
 
     /// <summary>A cursor of tree <paramref name="key"/> positioned by <paramref name="relation"/> against

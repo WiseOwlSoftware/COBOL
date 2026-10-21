@@ -187,14 +187,23 @@ internal sealed partial class BTree
     // ── Reads ───────────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>The value under <paramref name="key"/> (the pending edit's view); <c>null</c> when there is none.</summary>
-    public StoreStatus TryGet(ReadOnlySpan<byte> key, out byte[]? value)
+    public StoreStatus TryGet(ReadOnlySpan<byte> key, out byte[]? value) => TryGet(key, out _, out value);
+
+    /// <summary>The value under <paramref name="key"/> and the key the entry is STORED under: an order that makes two key
+    /// images one (a collating sequence with equal weights) keeps the spelling the entry was inserted with, whichever
+    /// spelling asked for it. Both null when there is no entry.</summary>
+    public StoreStatus TryGet(ReadOnlySpan<byte> key, out byte[]? storedKey, out byte[]? value)
     {
+        storedKey = null;
         value = null;
         try
         {
             if (IsEmpty(_root)) return StoreStatus.Ok;
             var path = PathTo(key, out bool found);
-            if (found) value = ValueOf(path[^1].Node.Slots[path[^1].Index]);
+            if (!found) return StoreStatus.Ok;
+            var (leaf, at) = path[^1];
+            storedKey = leaf.Keys[at];
+            value = ValueOf(leaf.Slots[at]);
             return StoreStatus.Ok;
         }
         catch (TornPage)
