@@ -792,6 +792,44 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>The element's NEXT activation opens the file again beside the displaced connector's kept state
+    /// (§12.4.6.3.4 GR5; kb/Work PB3484): the replacement attaches to the run unit's store, so the transaction the displaced
+    /// connector began is the replacement's too (one transaction per run unit and physical file, 2.2.1.10) - it reads the
+    /// uncommitted record, changes another, and one COMMIT or ROLLBACK ends both connectors' share of it (the displaced
+    /// one's kept handle is given back with it).</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    public void A_replacement_connector_shares_the_transaction_of_the_connector_it_displaced(FileOrg org, bool commit)
+    {
+        string host = Tmp($"pb3484-replacement-{org}-{commit}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Declare(a, host, org, commit: true);   // the registration displaces the CLOSEd connector
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 7, out var own));
+            Assert.Equal(Rec(7, "A007"), own);
+            Assert.Equal("00", Write(a, org, 8, "A008"));
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            a.CloseAll();
+            var expected = Seeded();
+            if (commit) (expected[7], expected[8]) = (Rec(7, "A007"), Rec(8, "A008"));
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>The same for the instance-file connector an object's deletion drops (§9.1.4, kb/Work PB603:
     /// <see cref="FileRegistry.CloseAndDrop"/>, and the GC-requested close <see cref="FileRegistry.CloseAll"/> drains): what the
     /// connector's CLOSE under commit control kept goes on being the next COMMIT's or ROLLBACK's, or the run unit's end's
