@@ -12,8 +12,11 @@ namespace CobolNet.Runtime.IO;
 /// <item><see cref="OfdColumnLockHost"/> — Linux open-file-description byte-range locks on the physical file.</item>
 /// <item><see cref="SidecarColumnLockHost"/> — one advisory lock file per holder beside the physical file, for every
 /// Unix that has no open-file-description locks (macOS above all).</item>
-/// <item>Windows has neither: its share modes are mandatory and per-access (<see cref="HostFile.ShareModesAreMandatory"/>),
-/// the connector's own handle already carries the table there, and the OUTPUT probe carries the rest.</item>
+/// <item><see cref="HandleColumnLockHost"/> — Windows byte-range locks over a range per column, through a read handle of
+/// the holder's own (kb/Work PB3482). Its share modes are mandatory and per-access
+/// (<see cref="HostFile.ShareModesAreMandatory"/>), so the connector's own handle carries most of the table, and the
+/// OUTPUT probe the truncation; the columns carry the rest: what a share mode cannot say, that an INPUT opener owes writes
+/// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>).</item>
 /// </list>
 /// <para>⛔ THE CONTRACT BOTH HOSTS KEEP: the column is published BEFORE the others are tested, and a holder never
 /// reports ITSELF as another, so two OPENs at the same instant cannot both pass — whichever completes its publication
@@ -28,4 +31,14 @@ internal interface IColumnLockHost
     /// §9.1.15). Never throws: a host failure to publish or test is <see cref="RunUnitFileLock.Outcome.Unavailable"/>.</summary>
     RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
         IReadOnlyList<ExistingSharingColumn> refused, out IDisposable? hold);
+}
+
+/// <summary>A published Table 19 column that can also be asked who else holds one (kb/Work PB3482). Only a host whose share
+/// modes are mandatory needs the question — <see cref="FileConnector.Open"/> asks it on its second attempt — so only that
+/// host's hold (<see cref="HandleColumnLockHost"/>) is one; the other hosts' holds are plain <see cref="IDisposable"/>s and
+/// <see cref="RunUnitFileLock.AnotherInputOpenerHolds"/> answers false for them.</summary>
+internal interface IPublishedColumn : IDisposable
+{
+    /// <summary>Does a holder other than this one hold <paramref name="column"/>? False once the column was given back.</summary>
+    bool AnotherHolds(ExistingSharingColumn column);
 }

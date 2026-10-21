@@ -593,6 +593,66 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ AN INPUT OPENER THAT STILL OWES ITS TRANSACTION'S WRITES IS STILL AN INPUT OPENER (kb/Work PB3482; §9.1.15 2),
+    /// <i>"The sharing with read only mode restricts concurrent access to a physical file through file connectors other than
+    /// this one, to input mode"</i>; Table 19, the cells of the SHARING WITH READ ONLY INPUT and EXTEND / I-O rows against the
+    /// existing SHARING WITH ALL OTHER INPUT column are <i>"Normal open"</i>): a connector under commit control changes a record,
+    /// is CLOSEd and re-OPENed INPUT while its transaction stands, and the handle it holds is writable all the same — the one
+    /// the COMMIT or ROLLBACK writes through (2.2.1.10 As built (3)). Another run unit's OPEN under SHARING WITH READ ONLY, INPUT
+    /// or I-O, is a normal open beside it and answers '00', on a host whose share modes are mandatory as on one that is not;
+    /// the record the transaction changed answers '51' to it (DOC-A.1-152), the others are read, and the COMMIT or ROLLBACK
+    /// the INPUT opener then executes succeeds with that run unit's connector still open. The opener that follows it is
+    /// still held to the rules of the READ ONLY connector it found — an OPEN I-O under SHARING WITH ALL OTHER is refused '61'
+    /// (Table 19, the ALL OTHER EXTEND / I-O row against the READ ONLY INPUT column) — and an OPEN OUTPUT is too.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileOpenMode.Input, true)]
+    [InlineData(FileOrg.Relative, FileOpenMode.Input, false)]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, true)]
+    [InlineData(FileOrg.Relative, FileOpenMode.IO, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Input, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.Input, false)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, true)]
+    [InlineData(FileOrg.Indexed, FileOpenMode.IO, false)]
+    public void An_input_opener_that_owes_its_transactions_writes_admits_what_Table_19_admits(FileOrg org, FileOpenMode other, bool commit)
+    {
+        string host = Tmp($"pb3482-owed-{org}-{other}-{commit}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("F"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: false, name: "B", sharing: FileSharing.ReadOnly);
+            b.OpenStatic("B", other);
+            Assert.Equal("00", b.Status("B"));
+            Assert.Equal("00", Read(b, org, 1, out var image, name: "B"));
+            Assert.Equal(Rec(1, "A001"), image);
+            Assert.Equal("51", Read(b, org, 7, out _, name: "B"));
+
+            var c = new FileRegistry();
+            Declare(c, host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            c.OpenStatic("C", FileOpenMode.IO);
+            Assert.Equal("61", c.Status("C"));
+            c.OpenStatic("C", FileOpenMode.Output);
+            Assert.Equal("61", c.Status("C"));
+
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            b.CloseAll();
+            a.CloseAll();
+            var expected = Seeded();
+            if (commit) expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>⛔ AN UNSUCCESSFUL RE-OPEN LEAVES WHAT THE CLOSE KEPT AS IT WAS (review lead R2-2; §14.9.27.4 GR25, <i>"If the
     /// execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4, <i>"For files specified
     /// in active APPLY COMMIT clauses that have been closed and not reopened prior to the COMMIT statement, the file locks are
