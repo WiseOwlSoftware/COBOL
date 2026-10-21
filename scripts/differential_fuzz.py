@@ -15,9 +15,10 @@ conformance suite without a Claude or human check against the standard. Here the
 has to write plausible standard COBOL. Two compilers judge the program, and GnuCOBOL 3.2 is a NET, never authority — an
 OUTPUT_DIFFERS row says the compilers disagree, not which one is right. The 2026-10-09 one-shot (kb/Work PB2886) sank on a
 test program that used four constructs the standard does not have; here such a program is one BOTH compilers refuse
-(BOTH_REJECT), counted against the model and dropped. A program only GnuCOBOL refuses is KEPT (THEY_REJECT): GnuCOBOL 3.2
-lacks a good part of the 2014 standard (FUNCTION TRANSLATE, FUNCTION NATIONAL, most arguments of HIGHEST-ALGEBRAIC), and the
-2026-10-20 bake-off of five models lost about two fifths of its 48 refusals to that, not to the models (kb/Work PB3488).
+(BOTH_REJECT), counted against the model and dropped. A program only GnuCOBOL refuses is KEPT (THEY_REJECT): WiseOwl is the
+compiler built to the standard, so its acceptance is a reading GnuCOBOL's refusal cannot override (kb/Work PB3488). The
+model's commonest invention is an intrinsic function the standard does not have (TRANSLATE, NATIONAL, SUBSTRING), so the
+prompt carries the standard's own function list, read from specs/ISO_COBOL.md (15.6 and the 15.n function clauses).
 
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
 `conformance-suite/adapters/<compiler>.json` by the harness's own `Run.operation` (conformance-suite/harness/run.py), so the
@@ -92,21 +93,23 @@ HEADING = re.compile(r"^#{2,6} ((?:\d+|[A-Z])(?:\.\d+)+|\d+) (.*)$")
 CODE_FENCE = re.compile(r"```[^\n]*\n(.*?)(?:```|\Z)", re.DOTALL)   # a truncated reply never closes its fence
 #: the structural sub-clauses every statement, function and clause has; each folds into its parent seed. The general-format
 #: heading's spelling is THE one in spec_headings.py (kb/Work PB284), composed, never re-typed.
-STRUCTURAL = re.compile(r"^(General|" + GENERAL_FORMAT_NOUN + r"|Syntax rules|General rules|Format \d+.*|Arguments|Returned values?)\s*$",
-                        re.IGNORECASE)
+STRUCTURAL = re.compile(r"^(General|" + GENERAL_FORMAT_NOUN + r"|Syntax rules?|General rules?|Format \d+.*|Arguments?(?: rules?)?"
+                        r"|Returned values?(?: rules?)?)\s*$", re.IGNORECASE)
+#: The spellings are the spec's own, counted over its headings under 15 and 14.9 (2026-10-20): "Argument rules" 45,
+#: "Returned value rules" 49, "Returned value rule" 43, "Argument rule" 37, "Arguments rules" 2, "Returned values rules" 1,
+#: "Returned Value rule" 1, "Syntax rule" 2. The first version folded "Arguments" and "Returned value(s)" only, so
+#: "15.66.3 Argument rules" became a seed of its own with no function name in it, and every model guessed the function.
 DIAG_CODE = re.compile(r"\b((?:COBOLNET|COBOL|CBL)\d{4})\b")
 
-#: What the judge compiler, GnuCOBOL 3.2 at -std=cobol2014, refuses although the 2014 standard has it. DERIVED, not guessed:
-#: each line is a refusal GnuCOBOL itself reported in the 2026-10-20 bake-off (100 programs by five models; kb/Work PB3488
-#: carries the tally): "FUNCTION 'TRANSLATE' unknown" x4, "FUNCTION 'NATIONAL' unknown" x2, "FUNCTION 'HIGHEST-ALGEBRAIC' has
-#: invalid argument" x6, "'COMP-3' is not defined, but is a reserved word in another dialect" x1. The model is told to avoid
-#: them EXCEPT when the clause under test is that construct: such a program is a THEY_REJECT lead, which is the point.
-JUDGE_LACKS = (
-    "FUNCTION TRANSLATE",
-    "FUNCTION NATIONAL",
-    "FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC with any argument but a plain numeric data item",
-    "USAGE COMP-3 (write PACKED-DECIMAL)",
-)
+FUNCTION_HEADING = re.compile(r"^#{2,6} 15\.\d+ ([A-Z][A-Z0-9-]*) function\s*$")
+
+
+def spec_functions(text: str) -> list[str]:
+    """The intrinsic functions the standard defines, one per `15.n NAME function` clause heading of the transcription (the
+    same headings 15.6 "Summary of functions" lists). Read from the spec, never typed here: the 2026-10-20 bake-off's models
+    invented FUNCTION TRANSLATE, NATIONAL, SUBSTRING and YEAR, and both compilers refused each of them (WiseOwl citing 15.6)."""
+    return [m.group(1) for line in text.splitlines() if (m := FUNCTION_HEADING.match(line))]
+
 
 #: One worked example of the shapes the bake-off's models kept getting wrong (PERFORM VARYING with UNTIL and END-PERFORM,
 #: COMPUTE with ROUNDED and both SIZE ERROR arms, PICTURE with S, V and editing, an intrinsic function, IF/ELSE/END-IF):
@@ -151,13 +154,20 @@ SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compile
 - Output must be deterministic: no CURRENT-DATE, WHEN-COMPILED, RANDOM, SEED, time, locale or environment dependent values.
 - No files unless the clause itself is about file handling; then ASSIGN each file to a plain name in the working directory, create it in the program, and DELETE FILE it before STOP RUN.
 - Exercise the clause named below in several distinct ways: edge values, both branches of every optional phrase, size and sign boundaries, truncation, ROUNDED, nested forms. Prefer cases a compiler could get subtly wrong.
-- Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE); use only intrinsic functions the 2014 standard defines, spelled as it defines them.
-- One of the two compilers is GnuCOBOL 3.2, which does not implement everything in the standard. Unless the clause under test is one of these, do not use: """ + "; ".join(JUDGE_LACKS) + """.
+- Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE).
+- The ONLY intrinsic functions are these; any other FUNCTION name is an error: {functions}.
+- FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM as the argument, never a literal or an expression.
+- USAGE is one of the standard's (BINARY, PACKED-DECIMAL, DISPLAY, NATIONAL, INDEX, POINTER, ...); COMP-1 to COMP-5 are not in the standard.
 - Reply with exactly one COBOL program inside one ```cobol fenced block and nothing else. PROGRAM-ID is FUZZ.
 
 This program, which both compilers accept, shows the expected shape:
 ```cobol
 """ + EXAMPLE_PROGRAM + """```"""
+
+
+def system_prompt(functions: list[str]) -> str:
+    """The system prompt with the standard's function list filled in (`spec_functions` of the spec the seeds come from)."""
+    return SYSTEM_PROMPT.replace("{functions}", ", ".join(functions))
 
 
 # ── the seeds: spec clauses ───────────────────────────────────────────────────────────────────────────────────────────
@@ -166,9 +176,22 @@ def clauses(text: str, prefixes: tuple[str, ...]) -> list[tuple[str, str, str]]:
     """(number, title, body) for every clause of the markdown whose number is under one of `prefixes` and whose body
     carries a general format or rules worth a program. A STRUCTURAL sub-clause (14.9.25.2 "General formats", 14.9.25.4
     "General rules", a function's "Arguments") is not a seed of its own: its text folds into its parent, so one seed is
-    one statement, function or clause with its formats and rules together. A bare heading with no body is not a seed."""
+    one statement, function or clause with its formats and rules together. A bare heading with no body is not a seed. A seed
+    nested under a clause of its own (13.18.40.5 "Editing rules" under the PICTURE clause, 15.3.1.6 "Week date formats") is
+    titled with its ancestors below the second level ("PICTURE clause > Editing rules"), so the model is told whose rules
+    they are: the 2026-10-20 bake-off's models guessed the function behind a bare "Argument rules" seed."""
     out: list[list[Any]] = []        # [number, title, [body lines]]
     cur: list[Any] | None = None
+    titles: dict[str, str] = {}      # every heading's number -> title, for the ancestor chain
+
+    def titled(number: str, title: str) -> str:
+        chain = []
+        n = number
+        while n.count(".") >= 3:
+            n = n.rsplit(".", 1)[0]
+            if n in titles:
+                chain.insert(0, titles[n])
+        return " > ".join(chain + [title])
 
     def under(number: str) -> bool:
         return any(number == p or number.startswith(p + ".") for p in prefixes)
@@ -177,10 +200,11 @@ def clauses(text: str, prefixes: tuple[str, ...]) -> list[tuple[str, str, str]]:
         m = HEADING.match(line)
         if m:
             number, title = m.group(1), m.group(2).strip()
+            titles[number] = title
             if cur is not None and STRUCTURAL.match(title) and number.startswith(cur[0] + "."):
                 cur[2].append(f"\n{title}\n")
                 continue
-            cur = [number, title, []]
+            cur = [number, titled(number, title), []]
             if under(number):
                 out.append(cur)
         elif cur is not None and not line.startswith("<a id="):
@@ -211,9 +235,11 @@ def seed_text(number: str, title: str, body: str, limit: int = 7000) -> str:
 
 def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, keep_alive: str = "10m",
                 timeout: float = 600.0) -> tuple[str, float, str]:
-    """One chat completion over `messages` → (content, seconds, done_reason). `done_reason` is Ollama's: "stop" for a
-    finished reply, "length" when NUM_PREDICT cut it off (the first smoke runs lost every program that way: a 3000-token cap
-    and fixed-form indentation). A model that rejects the `think` field is asked again without it (the 2026-10-03 spike)."""
+    """One chat completion over `messages` → (content, seconds, done_reason, thinking characters). `done_reason` is
+    Ollama's: "stop" for a finished reply, "length" when NUM_PREDICT cut it off (the first smoke runs lost every program that
+    way: a 3000-token cap and fixed-form indentation). A model that rejects the `think` field is asked again without it (the
+    2026-10-03 spike). A model that thinks despite `think: false` (MiniMax M3.1 Flash on a full-size prompt, 2026-10-20: 28,000
+    characters of thinking, every output token spent, empty content) is visible through the thinking length."""
     body: dict[str, Any] = {"model": model, "stream": False, "think": False, "keep_alive": keep_alive,
                             "messages": messages,
                             "options": {"temperature": temperature, "num_ctx": 16384, "num_predict": NUM_PREDICT}}
@@ -224,7 +250,9 @@ def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, 
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 reply = json.loads(r.read())
-            return reply["message"]["content"].replace("<|eot|>", ""), time.monotonic() - start, reply.get("done_reason", "stop")
+            message = reply["message"]
+            return (message["content"].replace("<|eot|>", ""), time.monotonic() - start, reply.get("done_reason", "stop"),
+                    len(message.get("thinking") or ""))
         except urllib.error.HTTPError as e:
             msg = e.read()[:300]
             if attempt == 0 and b"think" in msg:
@@ -418,7 +446,9 @@ class Fuzz:
         self.programs.mkdir(parents=True, exist_ok=True)
         self.results_path = self.out / "results.jsonl"
         self.lock = threading.Lock()
-        self.seeds = order_seeds(clauses(SPEC.read_text(encoding="utf-8"), s.prefixes), s.seed, s.in_order)
+        spec_text = SPEC.read_text(encoding="utf-8")
+        self.seeds = order_seeds(clauses(spec_text, s.prefixes), s.seed, s.in_order)
+        self.system_prompt = system_prompt(spec_functions(spec_text))
         if not self.seeds:
             raise SystemExit(f"no clauses under {s.prefixes} in {SPEC}")
         work = self.out / "work"
@@ -448,7 +478,7 @@ class Fuzz:
 
     def _one(self, i: int, name: str, number: str, title: str, body: str, variation: int, rec: dict[str, Any]) -> dict[str, Any]:
         user = seed_text(number, title, body) + f"\n\nThis is program {variation + 1} for this clause: exercise an aspect the previous programs would not."
-        messages = [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user}]
+        messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user}]
         src = self.programs / f"{name}.cob"
         rec["source"] = str(src.relative_to(self.out)).replace("\\", "/")
         entry = {"id": name, "source": rec["source"], "files": [], "source-format": SOURCE_FORMAT}
@@ -464,7 +494,7 @@ class Fuzz:
         # every earlier one is kept as <name>.r<k>.cob for diagnosis.
         for attempt in range(self.s.repairs + 1):
             try:
-                reply, secs, done = ollama_chat(self.s.model, messages, self.s.temperature)
+                reply, secs, done, thinking = ollama_chat(self.s.model, messages, self.s.temperature)
             except (RuntimeError, urllib.error.URLError, OSError, TimeoutError) as e:
                 rec.update(verdict="RUNNER_ERROR", reason=f"model: {e}")
                 return rec
@@ -472,7 +502,7 @@ class Fuzz:
             (self.programs / f"{name}.reply{attempt}.txt").write_text(reply, encoding="utf-8", newline="\n")
             program = extract_program(reply)
             if program is None or done == "length":
-                why = f"the reply was cut off at {NUM_PREDICT} tokens" if done == "length" else "no COBOL program in the reply"
+                why = cut_off_reason(done, thinking, len(reply))
                 if attempt == self.s.repairs:
                     rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
@@ -546,6 +576,17 @@ class Fuzz:
         finally:
             unload(self.s.model)
             write_report(self.out)
+
+
+def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
+    """Why a reply yielded no program: cut off at the output cap, with the thinking that spent the cap named when the content
+    is empty (a model that ignores `think: false`), or simply no program in it."""
+    if done != "length":
+        return "no COBOL program in the reply"
+    if thinking_chars and not content_chars:
+        return (f"the model spent all {NUM_PREDICT} output tokens thinking ({thinking_chars} characters; think=false was not "
+                "honoured) and wrote no content")
+    return f"the reply was cut off at {NUM_PREDICT} tokens"
 
 
 def first_error(diag: str) -> str:
@@ -713,6 +754,27 @@ def self_test() -> int:
     check("seeds: the structural sub-clauses (General, General formats, Format n, General rules) fold into the statement's seed",
           [c[0] for c in got] == ["14.9.25", "14.9.26"] and "General rules" in got[0][2] and "fmt" in got[0][2]
           and got[0][1] == "MOVE statement", [(c[0], c[1]) for c in got])
+    fn_md = ("### 15.66 NATIONAL-OF function\nintro\n#### 15.66.1 General\n" + "g " * 40 + "\n#### 15.66.2 General format\n" + "f " * 40
+             + "\n#### 15.66.3 Argument rules\n" + "a " * 40 + "\n#### 15.66.4 Returned value rules\n" + "r " * 40
+             + "\n### 15.67 NUMVAL function\n#### 15.67.3 Arguments rules\n" + "a " * 60 + "\n#### 15.67.4 Returned Value rule\n" + "r " * 60)
+    got = clauses(fn_md, ("15",))
+    check("seeds: a function's Argument rules and Returned value rules (every spelling the spec uses) fold into the function's seed, never a seed of their own",
+          [c[0] for c in got] == ["15.66", "15.67"] and "Argument rules" in got[0][2] and "Returned value rules" in got[0][2]
+          and got[1][1] == "NUMVAL function", [(c[0], c[1]) for c in got])
+    real_seeds = clauses(SPEC.read_text(encoding="utf-8"), DEFAULT_CLAUSES)
+    stray = sorted({f"{n} {title}" for n, title, _b in real_seeds if n.count(".") >= 2 and STRUCTURAL.match(title.rsplit(" > ", 1)[-1])})
+    check("seeds: no nested seed of the real spec is a bare structural sub-clause (a drift test: a new spelling of 'Argument rules' fails here; 15.3 Arguments is a clause of its own)",
+          stray == [] and any(t == "Arguments" for _n, t, _b in real_seeds), stray)
+    by_number = {n: t for n, t, _b in real_seeds}
+    check("seeds: a nested seed carries its ancestors' titles below the second level, a statement or function seed carries none",
+          by_number.get("13.18.40.5") == "PICTURE clause > Editing rules" and by_number.get("14.9.25") == "MOVE statement"
+          and by_number.get("15.66") == "NATIONAL-OF function" and by_number.get("15.3.1.6", "").endswith("> Week date formats"),
+          {k: by_number.get(k) for k in ("13.18.40.5", "14.9.25", "15.66", "15.3.1.6")})
+    check("cut off: the reason names the thinking that spent the output cap when the content is empty, the cap alone otherwise",
+          "spent all" in cut_off_reason("length", 28259, 0) and "think=false" in cut_off_reason("length", 28259, 0)
+          and cut_off_reason("length", 0, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
+          and cut_off_reason("length", 900, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
+          and cut_off_reason("stop", 0, 0) == "no COBOL program in the reply")
     many = [(f"14.9.{k}", f"S{k}", "b") for k in range(1, 41)]
     check("seeds: the walk is shuffled deterministically by the seed (same seed, same order; a different seed, a different one) and in_order keeps the spec's",
           order_seeds(many, 1, False) == order_seeds(many, 1, False) and order_seeds(many, 1, False) != many
@@ -756,8 +818,16 @@ def self_test() -> int:
           and any(line.startswith("DISPLAY") for line in ex_lines) and ex_lines[-1] == "STOP RUN."
           and {"END-PERFORM", "END-COMPUTE", "END-IF"} <= set(ex_lines) and extract_program("```cobol\n" + EXAMPLE_PROGRAM + "```") == EXAMPLE_PROGRAM,
           ex_lines)
-    check("prompt: the system prompt carries the example and every construct the judge lacks, with the clause-under-test exception",
-          EXAMPLE_PROGRAM in SYSTEM_PROMPT and all(j in SYSTEM_PROMPT for j in JUDGE_LACKS) and "Unless the clause under test" in SYSTEM_PROMPT)
+    fns = spec_functions("### 15.6 Summary of functions\n### 15.7 ABS function\n#### 15.7.1 General\n### 15.84 TRIM function\n### 15.85 Something else\n")
+    check("prompt: the standard's functions are read from the 15.n function headings (15.6's summary and a sub-clause are not functions)",
+          fns == ["ABS", "TRIM"], fns)
+    real = spec_functions(SPEC.read_text(encoding="utf-8"))
+    check("prompt: the spec defines REVERSE, HIGHEST-ALGEBRAIC and NUMVAL-F and none of the names the bake-off's models invented (TRANSLATE, NATIONAL, SUBSTRING, YEAR)",
+          {"REVERSE", "HIGHEST-ALGEBRAIC", "NUMVAL-F"} <= set(real) and not {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"} & set(real)
+          and len(real) > 80, (len(real), sorted(set(real) & {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"})))
+    sp = system_prompt(real)
+    check("prompt: the system prompt carries the example, every function of the standard and nothing unfilled",
+          EXAMPLE_PROGRAM in sp and all(f in sp for f in real) and "{functions}" not in sp and "HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM" in sp)
     check("classify: same output agrees", classify(ok_run, ok_run) == "AGREE")
     check("classify: different output differs", classify(dataclasses.replace(ok_run, output="A\n2"), ok_run) == "OUTPUT_DIFFERS")
     check("classify: our refusal of a program GnuCOBOL compiled", classify(Observation(False, 1, "e: error COBOL1234", ["COBOL1234"]), ok_run) == "WE_REJECT")
