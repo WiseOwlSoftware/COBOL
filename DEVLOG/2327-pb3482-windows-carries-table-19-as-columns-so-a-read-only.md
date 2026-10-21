@@ -1,4 +1,4 @@
-## PB3482: Windows carries Table 19 as columns, so a READ ONLY OPEN beside an INPUT opener that owes writes is admitted
+## Entry 2327 — 2026-10-21 12:10 PDT — PB3482: Windows carries Table 19 as columns, so a READ ONLY OPEN beside an INPUT opener that owes writes is admitted
 
 PB3337 landed the runtime half of APPLY COMMIT and left one wrong answer on Windows, named in its own design paragraph: a
 connector under commit control writes a record, is CLOSEd and re-OPENed INPUT, and its transaction still stands, so its
@@ -62,3 +62,4 @@ Conformance 10,850/18,047, Unit 34,263/35,147, Characterization 5/36 in leg 1). 
 once on Windows by hand before the final refinement: 35,174 of 35,176, the two reds being `ExternalCorpusPopulationDriftTests`
 (the external corpora are not in a fresh worktree). Registered: `kb/Work/PB3482.md` landed, `closes_rows: []` with its reason
 (it claims no inventory row).
+
