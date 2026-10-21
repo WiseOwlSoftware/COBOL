@@ -222,7 +222,15 @@ internal sealed class DispatchState
     /// exit paragraph is an explicit transfer out of the range (§14.9.28.4 GR5: the return mechanism sits after the
     /// last statement, which never executes), so this clears <c>__atExit</c> before the jump and the test cannot mistake
     /// the target for fall-through.</summary>
-    public string ExplicitTransferOut(string pcExpr, string comment = "") => $"__atExit = false; {TransferOut(pcExpr, comment)}";
+    public string ExplicitTransferOut(string pcExpr, string comment = "") => $"__pc = {pcExpr}; {ExplicitTransferJump()}{comment}";
+
+    /// <summary>The JUMP half of <see cref="ExplicitTransferOut(string,string)"/>, for the explicit transfer whose
+    /// <c>__pc</c> an earlier selector already set (GO TO … DEPENDING ON sets it inside its own selector
+    /// <c>switch</c>, §14.9.17.4 GR2): it clears <c>__atExit</c> and then takes <see cref="TransferJump"/>. Every
+    /// explicit transfer — format 1, ALTERed, DEPENDING, RESUME AT — leaves through here, so the one flag-clear
+    /// cannot be forgotten by one arm (kb/Work PB3491: the DEPENDING arm used the bare jump, and a selected target
+    /// physically after the PERFORM's exit paragraph was mistaken for the exit paragraph completing).</summary>
+    public string ExplicitTransferJump() => $"__atExit = false; {TransferJump()}";
 
     /// <summary>The <see cref="ExplicitTransferOut(string,string)"/> of a compile-time pc.</summary>
     public string ExplicitTransferOut(int pc, string comment = "") => ExplicitTransferOut(pc.ToString(), comment);
