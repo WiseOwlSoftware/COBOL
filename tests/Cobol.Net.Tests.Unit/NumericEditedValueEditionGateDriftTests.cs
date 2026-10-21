@@ -9,6 +9,7 @@ using CobolNet.Binding;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -135,7 +136,7 @@ public sealed class NumericEditedValueEditionGateDriftTests
         }
         finally
         {
-            try { File.Delete(path); } catch (IOException) { }
+            FileHarness.TryDelete(path);
         }
     }
 }

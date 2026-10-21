@@ -334,6 +334,26 @@ public static class HostFile
         catch (UnauthorizedAccessException) { return false; }
     }
 
+    /// <summary>⛔ <see cref="IsHeldByAnother"/> BESIDE A COLUMN HOLDER OF THE ASKER'S OWN (<see cref="OpenColumnHolder"/>:
+    /// a read handle that admits every reader and writer, which a <see cref="FileShare.None"/> request would meet as another's;
+    /// kb/Work PB3482, PB3483). A READ request that admits only readers, so it is refused by every outstanding handle that can
+    /// WRITE or that refuses a reader, and admitted by the holder. What it does not see is a handle that only reads: one that
+    /// refuses writers refuses the OPEN OUTPUT's own handle, before anything is truncated, and one that admits writers
+    /// admitted the truncation itself; every connector of another run unit holds a column, which an OUTPUT row refuses
+    /// (<see cref="Table19"/>). Answers as <see cref="IsHeldByAnother"/> does for everything that is not a sharing
+    /// question.</summary>
+    internal static bool IsWrittenOrExcludedByAnother(string hostPath)
+    {
+        try
+        {
+            using var _ = new FileStream(hostPath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            return false;
+        }
+        catch (IOException e) when (IsSharingRefusal(e)) { return true; }
+        catch (IOException) { return false; }
+        catch (UnauthorizedAccessException) { return false; }
+    }
+
     // ── The lock FILE of a holder (SidecarLockFiles — kb/Work PB2484, PB2917, PB2936) ─────────────────────────────────
     // A host whose lock is a file per holder asks the operating environment three things about a lock file, and asks
     // them HERE: create-and-hold one (OpenLockHolder), is its holder alive (ProbeLockFile), and make its directory

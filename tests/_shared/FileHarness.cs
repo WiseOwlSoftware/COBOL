@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Runtime.CompilerServices;
 using CobolNet.Runtime.IO;
 using Xunit;
 
@@ -31,7 +32,8 @@ public enum FileOrg { Sequential, Relative, Indexed }
 ///
 /// <para><b>The file.</b> An 8-character record: the key in positions 1-4 (also the relative record number, so one
 /// <see cref="Rec"/> serves every organization; a sequential file simply carries it as data) and a 4-character
-/// payload. Dynamic access; one prime key. A test with a different record layout (an alternate key, a wider record, a
+/// payload. Dynamic access, except for a connector that OPENs EXTEND (<see cref="FileHarness.AccessFor"/>, §14.9.27.3 SR2);
+/// one prime key. A test with a different record layout (an alternate key, a wider record, a
 /// LINE SEQUENTIAL file) registers its own file and may still use <see cref="Tmp"/>, <see cref="TryDelete"/> and
 /// <see cref="Rec"/>.</para>
 /// </summary>
@@ -57,8 +59,49 @@ public static partial class FileHarness
     public static FileLockMode LockModeRequiredBy(FileSharing sharing) =>
         sharing == FileSharing.AllOther ? FileLockMode.Manual : FileLockMode.None;
 
+    /// <summary>⛔ THE ACCESS MODE A CONNECTOR THAT OPENS IN <paramref name="mode"/> CAN DECLARE (kb/Work PB3479). §14.9.27.3 SR2:
+    /// <i>"The EXTEND phrase shall be specified only if the access mode of the file connector referenced by file-name-1 is
+    /// sequential"</i>, and the compiler refuses the other declarations (COBOLNET2372), so a RELATIVE or INDEXED connector
+    /// opened EXTEND in a test is a state no program reaches. Every other open mode is legal under every access mode, and
+    /// DYNAMIC is the one that admits both statement forms, so it is what the harness declares when the OPEN does not force
+    /// SEQUENTIAL. A theory that crosses open modes registers each connector with <c>access: AccessFor(mode)</c> and opens it
+    /// through <see cref="Open"/>, which fails the test that disagrees.</summary>
+    public static KeyedAccess AccessFor(FileOpenMode mode) =>
+        mode == FileOpenMode.Extend ? KeyedAccess.Sequential : KeyedAccess.Dynamic;
+
+    /// <summary>The access mode <see cref="Register"/> declared for each connector it registered (the registry keeps the
+    /// physical file a connector names, <see cref="FileRegistry.HostPathOf"/>, but not its access mode). Weak on the
+    /// registry, so a test's registry takes its entries with it.</summary>
+    private static readonly ConditionalWeakTable<FileRegistry, Dictionary<string, KeyedAccess>> Declared = new();
+
+    /// <summary>Fail the test that would OPEN <paramref name="name"/> in <paramref name="mode"/> over a declaration no
+    /// program makes: EXTEND over a connector <see cref="Register"/> declared with RANDOM or DYNAMIC access (§14.9.27.3 SR2,
+    /// <see cref="AccessFor"/>). A connector no <see cref="Register"/> call declared is not checked, so a test that
+    /// registers one with the registry's own methods keeps its own declaration. <see cref="Open"/> and the unit tests'
+    /// <c>OpenStatic</c> shorthand both call it, so the check has no path around it.</summary>
+    public static void AssertDeclarationAdmits(FileRegistry reg, string name, FileOpenMode mode)
+    {
+        if (mode != FileOpenMode.Extend || !Declared.TryGetValue(reg, out var declarations)
+            || !declarations.TryGetValue(name, out var access) || access == KeyedAccess.Sequential) return;
+        Assert.Fail($"OPEN EXTEND over '{name}' declared with {access} access: §14.9.27.3 SR2 allows EXTEND only "
+            + "for sequential access, so this declaration is no program (FileHarness.AccessFor gives the declaration "
+            + "an OPEN in this mode can make).");
+    }
+
+    /// <summary>OPEN <paramref name="name"/> in <paramref name="mode"/>, as <c>OPEN mode name</c> does for a connector
+    /// <see cref="Register"/> declared, after <see cref="AssertDeclarationAdmits"/>. The connector must have been
+    /// registered through <see cref="Register"/>.</summary>
+    public static void Open(FileRegistry reg, string name, FileOpenMode mode)
+    {
+        Assert.True(Declared.TryGetValue(reg, out var declarations) && declarations.ContainsKey(name),
+            $"'{name}' was not registered through FileHarness.Register, so its declaration cannot be checked");
+        AssertDeclarationAdmits(reg, name, mode);
+        reg.Open(name, mode, reg.HostPathOf(name), assignDynamic: false, page: null);
+    }
+
     /// <summary>Register <paramref name="name"/> over <paramref name="host"/> as the program declares it: dynamic access
-    /// (or <paramref name="access"/>; a SEQUENTIAL file has only sequential access, so it ignores it), the sharing
+    /// (or <paramref name="access"/>, which a connector opened EXTEND sets to <see cref="AccessFor"/>'s answer; a SEQUENTIAL
+    /// file has only sequential access, so it ignores it), the sharing
     /// <paramref name="sharing"/> under <paramref name="lockMode"/> (no sharing clause at all when
     /// <paramref name="sharing"/> is null: the NO OTHER default). With <paramref name="alternateKey"/> an INDEXED file also
     /// has an alternate key WITH DUPLICATES over the payload (positions 5-8), so a record is two trees' entries. Every
@@ -69,6 +112,7 @@ public static partial class FileHarness
         KeyedAccess access = KeyedAccess.Dynamic, bool alternateKey = false)
     {
         Assert.True(!alternateKey || org == FileOrg.Indexed, "only an INDEXED file has an alternate key");
+        Declared.GetOrCreateValue(reg)[name] = org == FileOrg.Sequential ? KeyedAccess.Sequential : access;
         switch (org)
         {
             case FileOrg.Sequential:

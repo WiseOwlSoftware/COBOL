@@ -97,24 +97,62 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
-    /// <summary>The lock is re-establishable after it was given back (a CLOSE under commit control keeps it and the
-    /// connector's re-OPEN gives it back and takes it again, <see cref="RunUnitFileLock.Retake"/>) — and a Retake that
-    /// meets another holder in the instant the column was free reports <see cref="RunUnitFileLock.Outcome.Refused"/>.</summary>
+    /// <summary>A kept lock's re-OPEN under the SAME column (<see cref="RunUnitFileLock.Amend"/>, kb/Work PB3483) keeps its
+    /// own byte and is not refused by it — the test leaves the holder's own byte out — while another holder of a column its
+    /// row refuses still refuses it, and the refusal leaves the kept column standing. SHARING WITH READ ONLY on I-O refuses
+    /// its own column (READ ONLY beside a READ ONLY connector that writes).</summary>
     [Fact]
-    public void ARetakeIsRefusedByAHolderThatCameInBetween()
+    public void ASupersedingRequestForTheSameColumnIsArbitratedAroundItsOwnByte()
     {
         if (!OperatingSystem.IsWindows()) return;
         var (dir, file) = NewFile();
         try
         {
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out var first));
-            first!.Dispose();
-            Assert.Equal(RunUnitFileLock.Outcome.Held, first.Retake());
-            Assert.Equal(RunUnitFileLock.Outcome.Held, first.Retake());   // already held: still held
-            first.Dispose();
-            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out var other));
-            Assert.Equal(RunUnitFileLock.Outcome.Refused, first.Retake());
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out var kept));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, kept!.Amend(FileSharing.ReadOnly, FileOpenMode.IO));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
+            Assert.True(kept.Revert());
+
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var other));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept.Amend(FileSharing.AllOther, FileOpenMode.Output));   // OUTPUT refuses every column
             other!.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));   // still kept
+            kept.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out var after));
+            after!.Dispose();
+        }
+        finally { Clean(dir); }
+    }
+
+    /// <summary>⛔ A KEPT LOCK'S RE-OPEN UNDER SHARING WITH NO OTHER GIVES ITS HOLDER HANDLE WAY (the class remarks of
+    /// <see cref="HandleColumnLockHost"/>): the connector's own <see cref="FileShare.None"/> handle, which the holder's read
+    /// handle would refuse, then opens; but only after the NO OTHER row's test passed — another holder of any column refuses
+    /// the request and leaves the kept column exactly as it was (§14.9.27.4 GR25) — and <see cref="RunUnitFileLock.Revert"/>
+    /// publishes the kept column again once the connector's handle is gone, so a request it refuses is refused again.</summary>
+    [Fact]
+    public void ANoOtherReplacementGivesWayToTheShareModeOnlyWhenTheTableAdmitsIt()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var other));
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, kept!.Amend(FileSharing.NoOther, FileOpenMode.IO));
+            Assert.True(kept.HoldsAHandle);   // the holder is still there
+            other!.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out _));   // the kept column refuses a writer
+
+            Assert.Equal(RunUnitFileLock.Outcome.Held, kept.Amend(FileSharing.NoOther, FileOpenMode.IO));
+            Assert.False(kept.HoldsAHandle);
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // the share mode's own handle opens
+
+            Assert.True(kept.Revert());
+            Assert.True(kept.HoldsAHandle);
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out _));
+            kept.Dispose();
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var after));
+            after!.Dispose();
         }
         finally { Clean(dir); }
     }

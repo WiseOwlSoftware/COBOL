@@ -283,7 +283,7 @@ public sealed class GlobalReportScopeTests
             new CSharpEmitter().Bind(tree!, edition);
             return [.. edition.Diagnostics];
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static string Emit(string source)
@@ -302,6 +302,6 @@ public sealed class GlobalReportScopeTests
             Assert.False(edition.HasErrors, string.Join("\n", edition.Diagnostics));
             return emitter.EmitBound(bound, "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }
