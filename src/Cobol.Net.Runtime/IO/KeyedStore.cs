@@ -63,12 +63,12 @@ internal abstract class KeyedStore
     /// re-adoption was refused (<see cref="_fenceOwed"/>): then the store is opened again through it, which FENCES as
     /// every writable OPEN does. A file of no bytes holds no store yet: a writable connector creates the empty one (three
     /// meta pages, §14.9.27.4 GR17's creation), a reader reads no records.</summary>
-    public StoreStatus Open(bool writable, bool coherent, FixedFileAttributes attributes)
+    public StoreStatus Open(bool writable, bool coherent, FixedFileAttributes attributes, IKeyOrder holdingsOrder)
     {
         _coherent = coherent;
         if (File is { } live && (!writable || (live.Writable && !_fenceOwed))) return StoreStatus.Ok;
-        if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent) : StoreStatus.Ok;
-        var status = PagedFile.Open(_medium, writable, coherent, out var opened, _cachePages);
+        if (File is null && _medium.Length == 0) return writable ? Create(attributes, coherent, holdingsOrder) : StoreStatus.Ok;
+        var status = PagedFile.Open(_medium, writable, coherent, holdingsOrder, out var opened, _cachePages);
         if (status != StoreStatus.Ok) return status;
         File = opened;
         _fenceOwed = false;
@@ -78,12 +78,12 @@ internal abstract class KeyedStore
     /// <summary><c>OPEN OUTPUT</c>'s creation (§14.9.27.4 GR18, <i>"After the creation of the file, the file contains no
     /// records"</i>), and the creation of a file of no bytes: <see cref="PagedFile.Create"/> through the connector's own
     /// handle, the one truncation.</summary>
-    public StoreStatus Create(FixedFileAttributes attributes, bool coherent)
+    public StoreStatus Create(FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder)
     {
         _coherent = coherent;
         File = null;
         _fenceOwed = false;
-        var status = PagedFile.Create(_medium, attributes, coherent, out var created, _cachePages);
+        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, _cachePages);
         if (status == StoreStatus.Ok) File = created;
         return status;
     }
@@ -104,8 +104,8 @@ internal abstract class KeyedStore
             _fenceOwed = false;
             return StoreStatus.Ok;
         }
-        if (File is not { Writable: true } || _handles.HasWritable) return StoreStatus.Ok;
-        var status = PagedFile.Open(_medium, writable: false, _coherent, out var reader, _cachePages);
+        if (File is not { Writable: true } writer || _handles.HasWritable) return StoreStatus.Ok;
+        var status = PagedFile.Open(_medium, writable: false, _coherent, writer.HoldingsOrder, out var reader, _cachePages);
         if (status == StoreStatus.Ok) File = reader;
         else _fenceOwed = true;
         return status;
@@ -314,7 +314,7 @@ internal abstract class KeyedStore
     {
         owner = 0;
         if (File is not { } file || file.Meta.HoldingsRoot.IsNone) return StoreStatus.Ok;
-        var status = new BTree(file, KeyOrders.Ordinal, file.Meta.HoldingsRoot).TryGet(key, out var value);
+        var status = new BTree(file, file.HoldingsOrder, file.Meta.HoldingsRoot).TryGet(key, out var value);
         if (value is not null) owner = TransactionKeys.TransactionOf(value);
         return status;
     }
@@ -450,8 +450,8 @@ internal abstract class KeyedStore
                 if (found != StoreStatus.Ok || entry is null) return StoreStatus.PermanentError;
                 undoRoot = TransactionKeys.PointerOf(entry);
             }
-            var undo = new BTree(file, KeyOrders.Ordinal, undoRoot);
-            var held = new BTree(file, KeyOrders.Ordinal, meta.HoldingsRoot);
+            var undo = new BTree(file, file.HoldingsOrder, undoRoot);
+            var held = new BTree(file, file.HoldingsOrder, meta.HoldingsRoot);
             byte[] owner = TransactionKeys.Transaction(id);
             var status = Hold(undo, held, TransactionKeys.Record(work.Identity), TransactionKeys.BeforeImage(work.BeforeImage), owner);
             foreach (var value in work.FreedValues)
@@ -653,10 +653,17 @@ internal sealed class IndexedStore : KeyedStore
     }
 
     /// <summary>The frame of the record whose prime key is <paramref name="prime"/>; null when the file holds none.</summary>
-    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? frame)
+    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? frame) =>
+        Get(orders, prime, out _, out frame);
+
+    /// <summary>⛔ The frame of the record whose prime key is <paramref name="prime"/> AND the key image its prime tree holds
+    /// it under (<paramref name="stored"/>): under a collating sequence that makes two key images one, the record is named
+    /// by the spelling it was WRITTEN with, whichever spelling a statement asked for it by (§12.4.5.12.4 GR1). It is the
+    /// record's identity for the transactions' holdings and the §9.1.16 record lock; null with no record.</summary>
+    public StoreStatus Get(IndexedKeyOrders orders, ReadOnlySpan<byte> prime, out byte[]? stored, out byte[]? frame)
     {
-        frame = null;
-        return Tree(TreeChange.PrimeRoot, orders) is { } tree ? tree.TryGet(prime, out frame) : StoreStatus.Ok;
+        stored = frame = null;
+        return Tree(TreeChange.PrimeRoot, orders) is { } tree ? tree.TryGet(prime, out stored, out frame) : StoreStatus.Ok;
     }
 
     /// <summary>A cursor of tree <paramref name="key"/> positioned by <paramref name="relation"/> against

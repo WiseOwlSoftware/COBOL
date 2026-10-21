@@ -85,10 +85,18 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>  (sequential access targets the last-read record, §14.9.35.4 GR22 / §14.9.10.4 GR2;
     /// random/dynamic the record whose prime key is the record area's key slice, §14.9.35.4 GR23 /
     /// §14.9.10.4 GR3 — the ACCESS MODE alone selects the target, see <see cref="KeyedConnector"/>)
-    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents) =>
-        Access == KeyedAccess.Sequential
-        ? SequentialMutationTarget
-        : AreaKey(recordImage, recordExtents, PrimeKey);
+    protected override string MutationTargetRecordIdCore(string recordImage, RecordExtents? recordExtents)
+    {
+        if (Access == KeyedAccess.Sequential) return SequentialMutationTarget;
+        string named = AreaKey(recordImage, recordExtents, PrimeKey);
+        // ⛔ THE RECORD'S LOCK IDENTITY IS THE SPELLING ITS PRIME TREE HOLDS (§12.4.5.12.4 GR1: key equality is the file's
+        // collating sequence's, so the key a statement names the record by may be another image of the same key), the one
+        // a READ locked it under (FindRandom); no record by that key (or a torn page, which the statement's own body then
+        // answers '30') names the record by the statement's own image.
+        return KeyBytes(named) is { } key && _st.Get(_orders, key, out var stored, out _) == StoreStatus.Ok && stored is not null
+            ? Identity(stored)
+            : named;
+    }
 
     /// <inheritdoc/>
     public override string LastWrittenRecordId => Identity(_lastWrittenPrimeId);
@@ -232,6 +240,9 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <inheritdoc/>
     private protected override RestoringTreesFactory Restoring => IndexedStore.Restoring(_orders, AlternateEntries);
+
+    /// <inheritdoc/>
+    private protected override IKeyOrder HoldingsOrder => new HoldingsKeyOrder(_orders.Prime, _orders.Alternates);
 
     /// <inheritdoc/>
     private protected override byte[]? IdentityOf(string recordId) => recordId.Length == 0 ? null : KeyBytes(recordId);
@@ -475,10 +486,12 @@ public sealed class IndexedConnector : KeyedConnector
         if (value is null) return StoreStatus.Ok;
         if (keyIndex < 0)
         {
-            var status = _st.Get(_orders, value, out var frame);
+            var status = _st.Get(_orders, value, out var stored, out var frame);
             if (status != StoreStatus.Ok || frame is null) return status;
             if (Decoded(frame) is not { } record) return StoreStatus.PermanentError;
-            found = new Found(value, record, value, OrdinalOf(record, PrimeKey));
+            // The record is named by the spelling its prime tree holds, never the one the READ asked for it by: this key is
+            // the record's §9.1.16 lock identity and its HOLDINGS identity (IndexedStore.Get).
+            found = new Found(stored!, record, stored!, OrdinalOf(record, PrimeKey));
             return StoreStatus.Ok;
         }
         var seek = _st.Seek(keyIndex, _orders, value, SeekRelation.Equal, prefix: true, out var cursor);
@@ -682,8 +695,9 @@ public sealed class IndexedConnector : KeyedConnector
         // equality is collating-sequence-based per §12.4.5.12.4 GR1 (the prime key's order), not ordinal.
         if (sequential && (_lastReadPrime is not { } lastPrime || _orders.Prime.Compare(prime, lastPrime) != 0))
             return Status = FileStatusCode.SequenceError;
-        if (_st.Get(_orders, prime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (_st.Get(_orders, prime, out var storedPrime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (frame is null) return Status = FileStatusCode.RecordNotFound;                       // '23' GR23
+        prime = storedPrime!;   // the record's identity is the spelling its prime tree holds (IndexedStore.Get)
         if (Decoded(frame) is not { } target) return Status = FileStatusCode.PermanentError;
         // ⛔ VALIDATE FIRST, THEN CHANGE. An early '22' leaves the REWRITE unsuccessful, so nothing may have been
         // repositioned by then; the statement below changes every tree at once or none.
@@ -754,8 +768,9 @@ public sealed class IndexedConnector : KeyedConnector
         else
             prime = KeyBytes(AreaKey(keyedRecordImage, areaExtents, PrimeKey));
         if (prime is null) return Status = FileStatusCode.RecordNotFound;
-        if (_st.Get(_orders, prime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (_st.Get(_orders, prime, out var storedPrime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (frame is null) return Status = FileStatusCode.RecordNotFound;
+        prime = storedPrime!;   // the record's identity is the spelling its prime tree holds (IndexedStore.Get)
         if (AlternateEntries(frame) is not { } entries) return Status = FileStatusCode.PermanentError;
         // 2.2.1.10: the record's identity is tested against the holdings after GR3's invalid key ('23'), and under commit
         // control the DELETE holds the identity (it stays held after the record is gone) and every unique value it frees.
