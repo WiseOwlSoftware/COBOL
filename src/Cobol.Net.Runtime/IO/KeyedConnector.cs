@@ -352,12 +352,15 @@ public abstract class KeyedConnector : FileConnector
         {
             // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE HANDLE (§14.9.7.4 GR4; §9.1.15, "the file lock is removed by the
             // COMMIT statement"; DESIGN-runtime-library.md 2.2.1.10): while the run unit's transaction on the file is open,
-            // the connector's handle, its region endpoint — through which the transaction's liveness byte may be held — and
-            // its attachment to the store stay, so a ROLLBACK after the CLOSE can still restore through it, until the next
-            // COMMIT or ROLLBACK releases them (ReleaseKept).
+            // the connector's handle, its region endpoint — through which the transaction's liveness byte may be held — its
+            // attachment to the store and its Table 19 run-unit file lock (the column bytes a host without mandatory share
+            // modes publishes) stay, so a ROLLBACK after the CLOSE can still restore through it and no other run unit opens
+            // the file against the kept lock (§14.9.7.4 GR4, "closed and not reopened prior to the COMMIT statement, the
+            // file locks are released"), until the next COMMIT or ROLLBACK releases them (ReleaseKept) or the connector's
+            // own re-OPEN replaces the file lock (ReleaseKeptFileLock).
             if (CommitControlled && AttachedStore.Transaction != 0 && _store is not null && _regions is not null)
             {
-                _kept = new KeptHandle(_store, _handle!, _regions);
+                _kept = new KeptHandle(_store, _handle!, _regions, KeepRunUnitFileLock());
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
             else
@@ -448,7 +451,7 @@ public abstract class KeyedConnector : FileConnector
 
     /// <summary>The handle, region endpoint and store attachment this connector KEPT at a CLOSE under commit control
     /// (<see cref="CloseCore"/>), until the next COMMIT or ROLLBACK, or this connector's next OPEN, gives them back.</summary>
-    private sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, RegionLocks Regions);
+    private sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, RegionLocks Regions, RunUnitFileLock? FileLock);
 
     private KeptHandle? _kept;
 
@@ -479,9 +482,21 @@ public abstract class KeyedConnector : FileConnector
         }
         finally
         {
-            try { kept.Regions.Dispose(); }
-            finally { kept.Stream.Dispose(); }
+            try { kept.FileLock?.Dispose(); }
+            finally
+            {
+                try { kept.Regions.Dispose(); }
+                finally { kept.Stream.Dispose(); }
+            }
         }
+    }
+
+    /// <inheritdoc/>
+    private protected sealed override void ReleaseKeptFileLock()
+    {
+        if (_kept is not { FileLock: { } fileLock } kept) return;
+        _kept = kept with { FileLock = null };
+        fileLock.Dispose();
     }
 
     /// <summary>What this connector's record statement adds to its page statement under commit control (2.2.1.10), or null
