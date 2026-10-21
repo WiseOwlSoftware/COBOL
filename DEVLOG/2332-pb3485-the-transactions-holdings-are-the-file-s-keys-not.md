@@ -1,4 +1,4 @@
-## PB3485: the transactions' holdings are the file's keys, not their bytes
+## Entry 2332 — 2026-10-21 14:24 PDT — PB3485: the transactions' holdings are the file's keys, not their bytes
 
 PB3337's HOLDINGS and UNDO trees (the locks a transaction keeps in the file, and the before-images a ROLLBACK restores) were
 ordered by their bytes, on the design's own sentence "the keys are identities, compared for equality, never for a collating
@@ -42,3 +42,4 @@ HEAD e23bc072c)`, 18,047 conformance cases.
 **Self-review** (pr-test-analyzer, silent-failure-hunter, comment-analyzer, type-design-analyzer on the new type). The
 order throws `NotSupportedException` for the partial-key members rather than guessing, because no seek of these trees takes
 a partial key; `MarksOf` returns zeros, which `BTree` stores in the root header. No inventory row is claimed or closed.
+
