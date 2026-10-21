@@ -70,7 +70,7 @@ public sealed class CommitGateDriftTests
             Assert.False(c.Read(previous: false, out _));   // the refused WRITEs released nothing
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -116,7 +116,7 @@ public sealed class CommitGateDriftTests
             Assert.Equal("10", c.ReadNext(out _));          // the refused WRITEs stored nothing
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -147,6 +147,6 @@ public sealed class CommitGateDriftTests
             Assert.Equal("AAAA99", kept.TrimEnd());
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

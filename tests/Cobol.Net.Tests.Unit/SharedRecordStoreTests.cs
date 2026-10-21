@@ -57,7 +57,7 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("00", reg.ReadKeyed("B", 0, "", out string img));   // the survivor is intact
             Assert.Equal("BETA    ", img);
         }
-        finally { reg.Close("A"); reg.Close("B"); try { File.Delete(host); } catch { } }
+        finally { reg.Close("A"); reg.Close("B"); FileHarness.TryDelete(host); }
     }
 
     // The write twin: a record WRITTEN through A is readable through B without any reopen.
@@ -73,7 +73,7 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("00", reg.ReadKeyed("B", 0, "", out string img));
             Assert.Equal("GAMMA   ", img);
         }
-        finally { reg.Close("A"); reg.Close("B"); try { File.Delete(host); } catch { } }
+        finally { reg.Close("A"); reg.Close("B"); FileHarness.TryDelete(host); }
     }
 
     // The DURABILITY half: with one shared state, the close ORDER cannot resurrect a deleted record or drop
@@ -98,7 +98,7 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("GAMMA   ", img);
             reg.Close("A");
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // The INDEXED twin with the shared arrival mint: records written through both connectors interleave into
@@ -130,6 +130,6 @@ public sealed class SharedRecordStoreTests
             Assert.Equal("00", reg.ReadKeyed("B", -1, "K2".PadRight(8), out _));
             reg.Close("B");
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

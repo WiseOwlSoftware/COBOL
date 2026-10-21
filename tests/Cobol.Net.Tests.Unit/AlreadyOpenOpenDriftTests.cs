@@ -71,7 +71,7 @@ public sealed class AlreadyOpenOpenDriftTests
             Assert.Null(Connector(plain, "P").SharedPhysical);
             plain.Close("P");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>GR2 precedes the sharing rules (docs/CONFORMANCE.md DOC-A.1-104: the first failing general rule
@@ -95,7 +95,7 @@ public sealed class AlreadyOpenOpenDriftTests
             reg.Close("F");
             reg.Close("G");
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>⛔ THE STRUCTURAL HALF: in the one OPEN dispatch, GR2's answer comes before every statement that touches

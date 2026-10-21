@@ -84,7 +84,7 @@ public sealed class WriteWithLockPermanentErrorTests
                     return status;
                 });
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -105,7 +105,7 @@ public sealed class WriteWithLockPermanentErrorTests
                     return status;
                 });
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -126,7 +126,7 @@ public sealed class WriteWithLockPermanentErrorTests
                     return status;
                 });
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The lock itself: a relative WRITE WITH LOCK the permanent error refuses takes NO record lock (§14.9.51.4
@@ -162,6 +162,6 @@ public sealed class WriteWithLockPermanentErrorTests
             Assert.Equal(FileStatusCode.RecordLocked, CobolFile.LockRecord("RB", "2"));
             CobolFile.Close("RA");
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

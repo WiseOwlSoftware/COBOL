@@ -225,7 +225,7 @@ public sealed class FrameDecoderDriftTests
             Assert.Equal("10", c.Status);
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
@@ -243,7 +243,7 @@ public sealed class FrameDecoderDriftTests
             Assert.Equal(0, RecordFraming.CountFrames(fs));
             Assert.Empty(IndexedStarts(fs));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>A keyed store engine's leaf value is exactly one frame (<see cref="RecordFraming.DecodeFrame"/>, the one

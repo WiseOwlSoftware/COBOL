@@ -369,6 +369,6 @@ public sealed class DeclarativesStructuralRulesTests
             new CSharpEmitter().Bind(tree!, edition);
             return [.. edition.Diagnostics, .. edition.Warnings];   // SR3 is a WARNING (D-DECLREF)
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

@@ -105,7 +105,7 @@ public sealed class CrossRunUnitSequentialLockDriftTests
             c.Close("C");
             Assert.Equal(["AAAA", "YYYY", "CCCC"], Records(host, framing));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>A sharing writer's WRITE WITH LOCK guards the record at its PHYSICAL place: after another run unit
@@ -149,6 +149,6 @@ public sealed class CrossRunUnitSequentialLockDriftTests
             c.Close("C");
             Assert.Equal(["AAAA", "BBBB", "CCCC", "DDDD"], Records(host, framing));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

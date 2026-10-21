@@ -46,6 +46,6 @@ public sealed class ReportHeldLineTests
             reg.Close("P");                  // one-shot: the next OPEN starts with nothing held
             Assert.Equal(["A", "B"], order);
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }

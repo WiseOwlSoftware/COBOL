@@ -21,9 +21,15 @@ paths in `PerformFormat3IoStatementTests`, `RelativeEnginePermanentErrorWitnessT
 and `CompiledProgramCache.TryDeleteFile` (an exact copy of `FileHarness.TryDelete`).
 
 **The drift test.** `FileHarnessOneHomeDriftTests` (Sweep, tree) fails on a line that builds a unique `.dat`/`.txt`
-name from `Guid.NewGuid()` and on a method that is only a try/catch around `File.Delete`; a directory delete or a delete
-with work around it is a different job and is not matched. A fixture test proves both detectors still trip on the
-shapes they exist for. `DESIGN-runtime-library.md` names the one home.
+name from `Guid.NewGuid()` and on any `try` statement whose block is only `File.Delete` calls and whose catches are all
+empty, whether it is a private helper's body or sits inline in a `finally`; a directory delete, or a try or catch that
+does other work, is a different job and is not matched. A fixture test proves both detectors still trip on the shapes
+they exist for (helper, inline, multi-line with two catches).
+
+**Review round 1.** The first draft matched only the helper-method shape, so 85 inline
+`finally { try { File.Delete(x); } catch ... { } }` copies in 45 files (three drifted catch sets: bare, IOException,
+IOException plus UnauthorizedAccessException) passed the drift test while its summary claimed one home. All 85 now call
+`FileHarness.TryDelete`, the detector is syntactic over every `try`, and the tree has no remaining copy. `DESIGN-runtime-library.md` names the one home.
 
 **Not changed.** The `.cob` and temp-directory builders (`CobolNet_*` directories, `cn_*.cob` sources) are a different
 job with their own helpers (`CutRunner`, `CobolNetTestBase.TempDir`). `PageLayoutGoldenTests`'s three bare

@@ -5,6 +5,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -173,6 +174,6 @@ public sealed class PushPopAllPlacementTests
             new CSharpEmitter().Bind(tree!, edition, frontend.Directives);
             return [.. edition.Warnings];
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }

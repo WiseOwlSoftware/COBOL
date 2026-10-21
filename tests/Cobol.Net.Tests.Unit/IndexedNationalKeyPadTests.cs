@@ -54,7 +54,7 @@ public sealed class IndexedNationalKeyPadTests
             // The area image a READ hands back is padded with the SAME space: pairs of 00 20 after the record.
             Assert.Equal("\0A\0 \0 \0 \0 ", image);
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The control: an ALPHANUMERIC record area keeps the alphanumeric space. The same two characters
@@ -69,7 +69,7 @@ public sealed class IndexedNationalKeyPadTests
             Assert.Equal("00", reg.ReadKeyed("X", PrimeKey, ShortNationalRecord, out string image));
             Assert.Equal("\0A        ", image);
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>The blank record area an UNSUCCESSFUL READ hands back (§14.9.30.4 GR18) is the area's own space
@@ -83,6 +83,6 @@ public sealed class IndexedNationalKeyPadTests
             Assert.Equal("23", reg.ReadKeyed("X", PrimeKey, "\0B", out string image));   // no such key
             Assert.Equal("\0 \0 \0 \0 \0 ", image);
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 }
