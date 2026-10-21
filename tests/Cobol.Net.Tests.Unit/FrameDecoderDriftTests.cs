@@ -199,7 +199,7 @@ public sealed class FrameDecoderDriftTests
     [MemberData(nameof(Damages))]
     public void EveryReader_EndsTheDataAtTheSameFrame(Damage damage)
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb2754-{damage}-{Guid.NewGuid():N}.dat");
+        string host = FileHarness.Tmp($"pb2754-{damage}");
         try
         {
             File.WriteAllBytes(host, [.. TwoRecords, .. Damaged(damage)]);
@@ -225,14 +225,14 @@ public sealed class FrameDecoderDriftTests
             Assert.Equal("10", c.Status);
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Theory]
     [MemberData(nameof(Damages))]
     public void ADamagedFirstFrame_IsNotAFramedFile(Damage damage)
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb2754-first-{damage}-{Guid.NewGuid():N}.dat");
+        string host = FileHarness.Tmp($"pb2754-first-{damage}");
         try
         {
             File.WriteAllBytes(host, Damaged(damage));
@@ -243,7 +243,7 @@ public sealed class FrameDecoderDriftTests
             Assert.Equal(0, RecordFraming.CountFrames(fs));
             Assert.Empty(IndexedStarts(fs));
         }
-        finally { try { File.Delete(host); } catch (IOException) { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     /// <summary>A keyed store engine's leaf value is exactly one frame (<see cref="RecordFraming.DecodeFrame"/>, the one

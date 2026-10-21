@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -20,14 +21,11 @@ public sealed class PermanentErrorInEffectTests
 {
     private const string Host = "30";   // §9.1.13.6 item 1 — "a permanent error exists and no further information is available"
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb1541-{tag}-{Guid.NewGuid():N}.dat");
-
     // ── sequential (record and line) ─────────────────────────────────────────────────────────────────────────
 
     private static void AssertSequentialEveryVerbReplays(bool lineSequential)
     {
-        string host = Tmp(lineSequential ? "lseq" : "seq");
+        string host = FileHarness.Tmp(lineSequential ? "lseq" : "seq");
         try
         {
             var c = new SequentialConnector(host, 4, lineSequential);
@@ -59,7 +57,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("BBBB", second);
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     [Fact]
@@ -75,7 +73,7 @@ public sealed class PermanentErrorInEffectTests
     [Fact]
     public void Indexed_EveryVerbReplaysThePermanentError_AndCloseEndsIt()
     {
-        string host = Tmp("idx");
+        string host = FileHarness.Tmp("idx");
         try
         {
             var c = new IndexedConnector(host, 8, KeyedAccess.Dynamic, [new(0, 4)], -1, -1);
@@ -106,7 +104,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("23", c.ReadRandom(-1, "CCCC0003", out _));   // the stuck WRITE stored nothing
             Assert.Equal("00", c.Close());
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── relative, through the registry: a REAL producer, and the two registry-level verbs ────────────────────────
@@ -115,7 +113,7 @@ public sealed class PermanentErrorInEffectTests
     public void Relative_RegistryVerbs_ReplayTheBoundaryError_UnlockAndDeleteFileToo_AndCloseEndsIt()
     {
         var reg = new FileRegistry();
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         reg.RegisterRelative("F", host, 4, false, (int)KeyedAccess.Dynamic, 4, -1, -1);
         try
         {
@@ -149,7 +147,7 @@ public sealed class PermanentErrorInEffectTests
             Assert.Equal("23", reg.ReadKeyed("F", -1, "", out _));
             reg.Close("F");
         }
-        finally { try { File.Delete(host); } catch { } }
+        finally { FileHarness.TryDelete(host); }
     }
 
     // ── what is NOT a permanent error in effect ──────────────────────────────────────────────────────────────
@@ -160,13 +158,13 @@ public sealed class PermanentErrorInEffectTests
     [Fact]
     public void FailedOpen_LeavesNoConditionInEffect_TheNextOpenStartsFresh()
     {
-        string host = Tmp("open");
+        string host = FileHarness.Tmp("open");
         var c = new SequentialConnector(host, 4, lineSequential: false);
         Assert.Equal("35", c.Open(FileOpenMode.Input));
         Assert.Null(c.PermanentErrorInEffect);
         Assert.Equal("00", c.Open(FileOpenMode.Output));
         try { Assert.Equal("00", c.Write("AAAA", -1, null)); }
-        finally { c.Close(); try { File.Delete(host); } catch { } }
+        finally { c.Close(); FileHarness.TryDelete(host); }
     }
 
     /// <summary>Only a '3x' starts the condition: an invalid key ('22'/'23'), a logic error ('4x') and a
@@ -174,7 +172,7 @@ public sealed class PermanentErrorInEffectTests
     [Fact]
     public void OnlyAClassThreeStatusStartsTheCondition()
     {
-        string host = Tmp("cls");
+        string host = FileHarness.Tmp("cls");
         var c = new SequentialConnector(host, 4, lineSequential: false);
         try
         {
@@ -186,6 +184,6 @@ public sealed class PermanentErrorInEffectTests
             }
             Assert.Equal("00", c.Write("AAAA", -1, null));
         }
-        finally { c.Close(); try { File.Delete(host); } catch { } }
+        finally { c.Close(); FileHarness.TryDelete(host); }
     }
 }

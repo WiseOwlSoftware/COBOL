@@ -5,6 +5,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -75,7 +76,7 @@ public sealed class PerformVaryingOperandWindowDriftTests
             var emitter = new CSharpEmitter();
             return emitter.EmitBound(emitter.Bind(tree!, new EditionContext(2002)), "DRIFTPROBE");
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>Every activation's position, and the varying loop's header position, in the generated C#.</summary>

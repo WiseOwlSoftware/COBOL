@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -24,12 +25,10 @@ public sealed class NationalBlankRecordAreaTests
     private const string NationalBlank = "\0 \0 \0 \0 ";    // four national positions, 00 20 each
     private const string AlphanumericBlank = "        ";    // eight alphanumeric positions
 
-    private static string Tmp() => Path.Combine(Path.GetTempPath(), $"pb1880nb-{Guid.NewGuid():N}.dat");
-
     private static (FileRegistry reg, string host) Relative(bool national)
     {
         var reg = new FileRegistry();
-        string host = Tmp();
+        string host = FileHarness.Tmp("pb1880nb");
         reg.RegisterRelative("X", host, 8, false, Dynamic, 4, -1, -1);
         if (national) reg.RegisterNationalArea("X");
         reg.OpenStatic("X", FileOpenMode.Output);
@@ -43,7 +42,7 @@ public sealed class NationalBlankRecordAreaTests
     private static (FileRegistry reg, string host) SequentialOpenedOnOneRecord(bool national)
     {
         var reg = new FileRegistry();
-        string host = Tmp();
+        string host = FileHarness.Tmp("pb1880nb");
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         if (national) reg.RegisterNationalArea("S");
         reg.OpenStatic("S", FileOpenMode.Output);
@@ -107,7 +106,7 @@ public sealed class NationalBlankRecordAreaTests
     public void Sequential_ReadOfAFileThatIsNotOpen_BlankAreaIsTheAreasOwnSpace(bool national, string expected)
     {
         var reg = new FileRegistry();
-        string host = Tmp();
+        string host = FileHarness.Tmp("pb1880nb");
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         if (national) reg.RegisterNationalArea("S");
         Assert.Equal("47", reg.ReadShared("S", false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out string image));   // §14.9.30.4 GR2

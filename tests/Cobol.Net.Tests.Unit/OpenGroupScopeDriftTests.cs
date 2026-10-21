@@ -8,6 +8,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Preprocessor;
 using Xunit;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -145,7 +146,7 @@ public sealed class OpenGroupScopeDriftTests
 
             return entries;
         }
-        finally { try { File.Delete(path); } catch (IOException) { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static void Collect(BoundStatement statement, List<BoundOpenFile> into)

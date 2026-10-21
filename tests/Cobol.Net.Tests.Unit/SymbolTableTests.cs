@@ -5,6 +5,7 @@ using CobolNet.Binding.Model;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -55,7 +56,7 @@ public sealed class SymbolTableTests
             data.Bind(program);
             return data;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     // (a) Program-scope resolution: a global name resolves at Scope.Program; an unknown name does not.

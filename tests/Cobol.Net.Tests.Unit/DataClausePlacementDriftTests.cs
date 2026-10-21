@@ -10,6 +10,7 @@ using CobolNet.Frontend.Cst;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -276,7 +277,7 @@ public sealed class DataClausePlacementDriftTests
         }
         finally
         {
-            try { File.Delete(path); } catch (IOException) { }
+            FileHarness.TryDelete(path);
         }
     }
 }
