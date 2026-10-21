@@ -103,15 +103,21 @@ internal sealed class PagedFile
     private int _cacheEpoch;
     private Adoption _adoption;
 
-    private PagedFile(IPageMedium medium, bool writable, bool coherent, MetaPage meta, int cachePages)
+    private PagedFile(IPageMedium medium, bool writable, bool coherent, IKeyOrder holdingsOrder, MetaPage meta, int cachePages)
     {
         _cache = new PageCache(cachePages);
         _medium = medium;
         _writable = writable;
         _coherent = coherent;
+        HoldingsOrder = holdingsOrder;
         _meta = meta;
         _ledger = new Ledger(this);
     }
+
+    /// <summary>⛔ THE ORDER OF THE UNDO AND HOLDINGS TREES (<see cref="HoldingsKeyOrder"/>; kb/Work PB3485): the file's own
+    /// key orders, handed in by whoever opens it, because this layer retires a transaction — the OPEN's fence, the restart
+    /// rule, a COMMIT's retirement — with no connector in reach, and a tree is read by the order it was built under.</summary>
+    public IKeyOrder HoldingsOrder { get; }
 
     /// <summary>The meta the store holds: the adopted meta, or page 2 from the moment its generation changes.</summary>
     public MetaPage Meta => _meta;
@@ -173,13 +179,13 @@ internal sealed class PagedFile
     /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync; only a refused final
     /// sync — after the truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30'
     /// either way).</summary>
-    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, out PagedFile? store,
-        int cachePages = PageCache.DefaultPages)
+    public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder,
+        out PagedFile? store, int cachePages = PageCache.DefaultPages)
     {
         if (!MetaPage.Fits(attributes))
             throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
         store = null;
-        var creator = new PagedFile(medium, writable: true, coherent, MetaPage.Empty(attributes), cachePages);
+        var creator = new PagedFile(medium, writable: true, coherent, holdingsOrder, MetaPage.Empty(attributes), cachePages);
         long length;
         try { length = medium.Length; }
         catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
@@ -240,7 +246,7 @@ internal sealed class PagedFile
     /// verifies is adopted, anything else gives C. A writable store then promotes the adopted meta at
     /// F = G + 4 097 (above every stamp a history based on G can have issued, R2) with its retirement, which also reclaims
     /// a rejected DESCENDANT's readable ledger; an INPUT store adopts in memory and writes nothing.</summary>
-    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, out PagedFile? store,
+    public static StoreStatus Open(IPageMedium medium, bool writable, bool coherent, IKeyOrder holdingsOrder, out PagedFile? store,
         int cachePages = PageCache.DefaultPages)
     {
         store = null;
@@ -255,7 +261,7 @@ internal sealed class PagedFile
         if (MetaPage.Committed(MetaPage.Decode(pages[MetaPage.SlotA], MetaPage.SlotA),
                 MetaPage.Decode(pages[MetaPage.SlotB], MetaPage.SlotB)) is not { Meta: var committed })
             return StoreStatus.PermanentError;
-        var opened = new PagedFile(medium, writable, coherent, committed, cachePages) { _reads = MetaPage.MetaPages };
+        var opened = new PagedFile(medium, writable, coherent, holdingsOrder, committed, cachePages) { _reads = MetaPage.MetaPages };
         ulong g = committed.Generation;
         var workClass = work is null || work.Attributes.Conflicts(committed.Attributes) ? WorkSlotClass.Foreign
             : work.CommittedGeneration == g ? WorkSlotClass.Descendant

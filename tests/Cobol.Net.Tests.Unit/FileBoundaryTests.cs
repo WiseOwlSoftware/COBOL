@@ -161,7 +161,7 @@ public sealed class FileBoundaryTests : IDisposable
         using var handle = File.OpenHandle(host, FileMode.Open, FileAccess.Read, FileShare.Read);
         var medium = new CobolNet.Runtime.IO.Store.HandlePageMedium(handle);
         Assert.Equal(CobolNet.Runtime.IO.Store.StoreStatus.Ok,
-            CobolNet.Runtime.IO.Store.PagedFile.Open(medium, writable: false, coherent: false, out var file));
+            CobolNet.Runtime.IO.Store.PagedFile.Open(medium, writable: false, coherent: false, HoldingsKeyOrder.RecordNumbers, out var file));
         var meta = file!.Meta;
         Assert.Equal(2, meta.Attributes.Keys.Count);
         Assert.Single(meta.AlternateRoots);
