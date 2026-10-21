@@ -1,4 +1,4 @@
-## The first overnight differential fuzz run, triaged: three defects filed, one owner decision gains its count
+## Entry 2323 — 2026-10-21 11:13 PDT — The first overnight differential fuzz run, triaged: three defects filed, one owner decision gains its count
 
 The owner started kb/Work PB3488's harness at 22:45 last night (`qwen3.6:35b`, 8 hours, 4 in flight, seed 20261021) and
 handed over the report this morning: 5,599 programs, 3,348 usable, 2,325 survivors in 378 signatures. This entry is the
@@ -31,3 +31,4 @@ following a syntax rule GnuCOBOL's dialect does not enforce, `NOT GREATER OR EQU
 signature; mark programs that display an item nothing stored into (both compilers' outputs are undefined there, and the
 suite normalizer strips WiseOwl's trailing spaces while keeping GnuCOBOL's NUL bytes, which made those rows look
 one-sided); `BOTH_HANG`. With those, the report of a night like this one is a few hundred rows, most of them GnuCOBOL's.
+
