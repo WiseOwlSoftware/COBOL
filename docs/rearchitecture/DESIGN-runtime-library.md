@@ -461,18 +461,41 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   lives on the inode, so a device node such as `/dev/null` would arbitrate every run unit on the machine that assigns
   it. An unavailable lock
   leaves the connector the file lock its `FileShare` gives, nothing more.
-- **One policy, two hosts (`IColumnLockHost`, kb/Work PB2484).** `RunUnitFileLock.Take` is the POLICY — the column
-  an OPEN publishes (`Table19.Column`), the columns its row refuses (`Table19.Cell`), the wire number of each
+- **One policy, three hosts (`IColumnLockHost`, kb/Work PB2484, PB3482).** `RunUnitFileLock.Take` is the POLICY — the
+  column an OPEN publishes (`Table19.Column`), the columns its row refuses (`Table19.Cell`), the wire number of each
   (`RunUnitFileLock.WireNumber`) — and speaks to the host of the process through `IColumnLockHost.Establish`,
   chosen ONCE (`RunUnitFileLock.HostOfThisProcess`): `OfdColumnLockHost` where `OfdRegionLocks.Available` (Linux
-  x86-64/arm64), no host on Windows (`HostFile.ShareModesAreMandatory`), `SidecarColumnLockHost` everywhere else.
-  Both hosts publish BEFORE they test and never count the asker's own publication, which is the whole of the
-  race-freedom argument. Adding a host is one class and one line in the choice. A hold can be REPLACED by a new request
-  (`Establish`'s `supersedes`; `RunUnitFileLock.Amend`, `Revert`): the new column is published on the same hold (Linux: a
-  second byte of the one description; sidecar: a second holder file) while the old stays published, the test ignores both,
-  and the old goes only when the request is admitted — the connector's re-OPEN after a CLOSE under commit control, whose
-  kept lock must never be free (PB3483, 2.2.1.10 As built (3)); `RunUnitFileLockAmendTests` observes it with a racing run
-  unit sent in at the entry of every establishment.
+  x86-64/arm64), `HandleColumnLockHost` where the share modes are mandatory (Windows,
+  `HostFile.ShareModesAreMandatory`), `SidecarColumnLockHost` everywhere else. All three publish BEFORE they test and
+  never count the asker's own publication, which is the whole of the race-freedom argument. Adding a host is one class
+  and one line in the choice. A hold can be REPLACED by a new request (`Establish`'s `supersedes`;
+  `RunUnitFileLock.Amend`, `Revert`): the new column is published on the same hold (Linux: a second byte of the one
+  description; sidecar: a second holder file; Windows: a second byte through the holder's own handle) while the old
+  stays published, the test ignores both, and the old goes only when the request is admitted — the connector's re-OPEN
+  after a CLOSE under commit control, whose kept lock must never be free (PB3483, 2.2.1.10 As built (3));
+  `RunUnitFileLockAmendTests` observes it on every host of the machine with a racing run unit sent in at the entry of
+  every establishment.
+- **The Windows host: a column is a byte RANGE (`HandleColumnLockHost`, `WindowsByteRangeLocks`, kb/Work PB3482).**
+  Windows locks belong to a HANDLE and conflict with every other handle, the asker's own included, so one shared byte
+  per column (Linux) cannot answer "does any holder OTHER than me hold this column" about a column the asker holds
+  (READ ONLY beside a READ ONLY connector that writes, every OUTPUT). A holder opens a READ handle of its own
+  (`HostFile.OpenColumnHolder`: share `ReadWrite`, so it refuses nobody the connector's handle admits) and publishes by
+  holding exclusively ONE byte, chosen at random, of its column's 2^32-byte range (`HostRegionLocks.ColumnRangeStart`,
+  from 2^62 + 2^61 + 2^60, past the liveness region); it tests another column by a shared request over the whole range
+  (released at once, conflicting only with an exclusive hold, so testers never exclude each other) and its own column
+  by two shared requests either side of its own byte. A collision with a holder or a tester's instant costs a retry.
+  There is no cap on holders. `SHARING WITH NO OTHER` publishes nothing (`Unavailable`): its own handle is
+  `FileShare.None`, which refuses the holder's read handle and every other open, so the share mode already says all
+  its column would; and a holder that meets a `FileShare.None` handle is `Refused` (every request row refuses the
+  first column). A path that is not a disk file, is absent or is refused is `Unavailable`. Two consequences of the
+  holder being a HANDLE: a re-OPEN under `SHARING WITH NO OTHER` that replaces a kept lock tests the NO OTHER row through
+  the kept holder and, admitted, gives the holder handle way to the connector's `FileShare.None` one (a hold that
+  publishes nothing; `Revert` publishes the kept column again through a new handle), the one instant this host leaves,
+  the share-mode window of the kept handle (2.2.1.10 As built (3)); and the OUTPUT probe beside a kept holder is a READ
+  request that admits only readers (`HostFile.IsWrittenOrExcludedByAnother`, `FileConnector.ProbeHeldByAnother`), which
+  the holder admits and every writer or reader-excluding handle refuses, while the OUTPUT rows' columns refuse every other
+  run unit's connector. Witnesses: `HandleColumnLockHostDriftTests` (every pair, release, the superseding requests, the
+  race, many holders), `RunUnitFileLockAmendTests` and `RunUnitFileLockDriftTests` through the host of the machine.
 - **The lock-file primitive (`SidecarLockFiles`) and its column policy (`SidecarColumnLockHost`).** macOS has no host
   primitive for the Linux bytes: its classic `fcntl` locks are process-owned, its open-file-description commands are
   private, and `fcntl` is variadic, which Apple's arm64 calling convention passes differently from a fixed P/Invoke
@@ -531,12 +554,21 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   and Linux, through the host of the machine; the macOS lock-file host is held to the same table by the other witnesses.
 
 **⛔ DETERMINATION (Annex A.1 item 75, `docs/CONFORMANCE.md` DOC-A.1-75) — WHO IS BOUND.** §9.1.15 binds other RUN
-UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on a host that carries the region lock (Linux
-x86-64/arm64) or whose `FileShare` carries the table (Windows, with the OUTPUT probe above). A process that takes
-part in no protocol meets only the share mode of the connector's own handle, whose strength is the host's:
+UNITS, and every WiseOwl COBOL run unit is arbitrated by Table 19 on every host: by the region lock (Linux
+x86-64/arm64), by the byte-range columns of `HandleColumnLockHost` together with the connector's share mode (Windows,
+with the OUTPUT probe above), by the lock files (everywhere else). A process that takes part in no protocol meets only
+the share mode of the connector's own handle, whose strength is the host's:
 
 - **On Windows** the share modes are mandatory and per-access: rules 1–3 are enforced as written against every
-  process on the machine.
+  process on the machine, with one yielding posture (kb/Work PB3482). A share mode refuses by ACCESS, and an INPUT
+  opener can owe writes (2.2.1.10), so `SHARING WITH READ ONLY`'s `FileShare.Read` refused a request Table 19 admits
+  beside it. A connector whose first attempt the host refused with its Table 19 column HELD (the table admitted it
+  against every WiseOwl COBOL run unit) is OPENed again with `FileLockPosture.WhenOwedWritesAreAdmitted` —
+  `FileShare.ReadWrite` — and the columns, not the share mode, keep out every request Table 19 refuses. The
+  consequence for an outside program is the one A.1 item 75 already leaves to the implementor: a READ ONLY connector
+  is admitted beside an outside writer when the host's share mode alone refused it, Table 19 admitted it against
+  every WiseOwl COBOL connector and the file is open; that connector's own handle still refuses an outside writer
+  that opens AFTER it only if its first attempt was not refused.
 - **On Linux** the share mode is one advisory `flock`: rule 1 (`FileShare.None` ⇒ `LOCK_EX`) excludes an outside
   reader and writer that also take `flock`, and rule 2's refusal of an outside writer exists only against a run unit
   of this runtime (the region lock). A program that opens the file without locking is neither stopped nor
@@ -1843,12 +1875,24 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   writable, the re-OPEN's handle is taken writable whatever its open mode (an INPUT re-OPEN included): it is the handle
   the COMMIT or ROLLBACK writes through; a handle the host lets hold no exclusive lock holds the byte SHARED, which
   refuses every other run unit's exclusive probe and draw alike. With no transaction standing (the connector only read)
-  the re-OPEN's handle takes the access of its own open mode and no more (branch review finding R2-1). ⚠ **A WRONG
-  ANSWER, NAMED:** with the transaction standing, that writable handle under an INPUT re-OPEN is refused by, and so
-  refuses, another run unit's OPEN that Table 19 admits beside an INPUT opener (SHARING WITH READ ONLY on INPUT, I-O or
-  EXTEND) on a host whose share modes are mandatory (Windows: '61' where the table says '00'), until the COMMIT or
-  ROLLBACK, while a host that publishes the column lock instead admits it; a host share mode cannot say "an INPUT
-  opener that still owes its transaction's writes". A re-OPEN that fails leaves what the CLOSE kept as it was
+  the re-OPEN's handle takes the access of its own open mode and no more (branch review finding R2-1). **THE
+  OWED-WRITES POSTURE (kb/Work PB3482; it was a named wrong answer of this paragraph).** With the transaction standing,
+  that writable handle under an INPUT re-OPEN is an INPUT opener that still owes its transaction's writes, and a host
+  share mode cannot say so: on a host whose share modes are mandatory (Windows) `FileShare.Read`, the base posture of
+  SHARING WITH READ ONLY (`FileLockPosture.OfSharingMode`), refuses every writer, so another run unit's OPEN that Table 19
+  admits beside an INPUT opener (SHARING WITH READ ONLY on INPUT, I-O or EXTEND) was refused '61' where the table says
+  '00', until the COMMIT or ROLLBACK. The root is the posture, not the re-OPEN: the share mode of a SHARING WITH READ ONLY
+  connector over-restricts there, and the lock between run units is Table 19 itself, which Windows now carries as columns
+  (`HandleColumnLockHost`, 2.2.1.8's byte map). So `FileConnector.Open` makes a second attempt, with
+  `FileLockPosture.WhenOwedWritesAreAdmitted` (`FileShare.ReadWrite`), exactly when the first was refused by the host
+  with the request's column HELD (Table 19 admitted it against every WiseOwl COBOL run unit) and another run unit's INPUT
+  opener holds its column (`RunUnitFileLock.AnotherInputOpenerHolds`: only an INPUT opener can owe writes); every
+  request the table refuses is still refused, by the columns, and a program outside the protocol that holds the file for
+  writing, with no INPUT opener beside it, still refuses the READ ONLY request. Witness:
+  `CommitRollbackRuntimeTests.An_input_opener_that_owes_its_transactions_writes_admits_what_Table_19_admits` (both
+  organizations, READ ONLY INPUT and I-O beside the re-OPENed INPUT opener, COMMIT and ROLLBACK, and the requests the
+  table refuses meeting the widened connector's column).
+  A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN
   attaches its own, so the liveness byte is held by a live run unit again before any other run unit's dead-owner step can
@@ -1862,8 +1906,16 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   the host share mode are free while the owner lives, and a host whose share modes are per handle cannot close it: a handle
   that refuses the new one is a handle the new one cannot be beside. Another run unit that opens in that instant holds a handle
   the retake is refused by, the kept state is left without its handle (the OPEN answers its own status) and the next writable
-  OPEN of another run unit rolls the transaction back as a death's. The Table 19
-  run-unit file lock (the column bytes a host without mandatory share modes publishes) is kept with the handle
+  OPEN of another run unit rolls the transaction back as a death's. On Windows the kept column holder (2.2.1.8,
+  `HandleColumnLockHost`) is a handle of the connector's own too, and it is NOT given back for the question: the probe
+  beside it is a read request that admits only readers (`FileConnector.ProbeHeldByAnother`,
+  `HostFile.IsWrittenOrExcludedByAnother`; `CommitRollbackRuntimeTests.A_reopen_is_not_refused_by_the_column_lock_its_own_close_kept`).
+  The same window is the one a re-OPEN under SHARING WITH NO OTHER meets on Windows, whose `FileShare.None` handle the kept
+  column holder would refuse: it gives way once the NO OTHER row's test has passed. The other way round, a kept handle
+  under SHARING WITH NO OTHER (`FileShare.None`) refuses the column holder of the connector's own re-OPEN; it is the NO
+  OTHER column itself, beside which no other run unit holds the file, so on Windows such a re-OPEN takes its column after
+  the body, through the handle that replaced the kept one (`FileConnector.KeptHandleExcludesEveryOpen`). The Table 19
+  run-unit file lock (the column every host publishes) is kept with the handle
   (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the
   COMMIT statement, the file locks are released."*), so another run unit's conflicting OPEN is refused '61' on every host
   until the COMMIT or ROLLBACK, and it has NO such window: the connector's own re-OPEN REPLACES the kept column on the same
@@ -1894,8 +1946,18 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   same name, organization and physical file under commit control (`KeyedConnector.InheritKept`) at its OPEN, so its own run unit's kept handle never
   refuses it '61' (§9.1.13.9 1) owes '61' only against a file open by another file connector; the kept file lock is against other run units). Before this the dropped connector's handle, file lock and transaction were beyond every
   COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process.
-  (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
-  used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).
+  (4) HOLDINGS and UNDO keys are ordered by the FILE'S key orders (`HoldingsKeyOrder`, kb/Work PB3485), never by their
+  bytes: a record holding compares its identity through the prime tree's order and a value holding its alternate key number
+  and then the value through that key's order, so two key images the file's collating sequence makes equal (§12.4.5.12.4
+  GR1; §14.9.51.4 GR35) are ONE holding, whichever bytes name them. The orders are the connector's, handed to the page
+  layer when it opens or creates the file (`PagedFile.HoldingsOrder`), because the page layer retires a transaction (the
+  OPEN's fence, the restart rule, a COMMIT's retirement) with no connector in reach and a tree is read by the order it was
+  built under. A record's identity is the image its PRIME TREE holds it under (the one its WRITE inserted; a REWRITE
+  keeps the tree's key), taken from the tree by a REWRITE, a DELETE and a random READ (`IndexedStore.Get`), so the before-image a
+  ROLLBACK restores goes back under the image it came from and the §9.1.16 record lock of every statement names one
+  string (`IndexedConnector.MutationTargetRecordIdCore`, `FindRandom`). A key number the order table has none for (the
+  `COBOLNET_KEYCHECK` opt-out) compares as bytes. Under commit control the prime key bound is 1 015 bytes, one below the
+  tree's, for the kind byte (DOC-A.1-129).
   (5) A transaction the run unit OWES a rollback — one whose ROLLBACK the medium refused, or whose file is MARKED
   UNACKNOWLEDGED — is never committed (finding R1-4): a COMMIT, the program's or the implicit one of a run unit ending
   normally, is refused before it touches the medium and its caller rolls back again, so the abnormal ending's refused
@@ -2197,7 +2259,7 @@ writer no reader expects, is a design defect.
 | **The FREE tree** | The retirement (adds the retired pages and, at a fence after a rejection, the rejected ledger's never-committed pages); an allocation that takes a batch of its lowest pages (path-copied by the taking statement). | The allocator, after the in-memory ledger's released pages and before growth. Relies on: a page in the committed FREE tree is referenced by no slot's tree (the older committed slot is dead once a promotion's second sync completed, R5). |
 | **Data pages** (internal, leaf, overflow) | The statement that changes them, always to a page neither slot's tree references (R1), stamped with the statement's generation, before page 2. | Every statement through stamped pointers (R3: checksum, `self`, generation); R6 through the ledger's `fresh` list. |
 | **The TRANSACTIONS tree and the UNDO trees** (an UNDO tree: (kind, identity) → R: the before-image; V: the entry alone; round 5) | The first WRITE/REWRITE/DELETE of a run unit under commit control on the file (the entry), each later such statement (the before-image under R unless present, a V entry per unique value freed, in the same statement as the change), COMMIT (its promotion's retirement walks the UNDO tree, removes the entry and the holdings the walk listed, and releases the UNDO pages, after the slot write that decided it; a reversal does the same but re-applies the images), ROLLBACK and the dead-owner rollback (the same walk: the R images re-applied, every key removed from the HOLDINGS tree, the entry removed) — all ordinary statements under R1-R3. | ROLLBACK, COMMIT's retirement and the dead-owner step at every writable connector's coherent entry and at R6 step 5 (which transactions exist, whose owner is dead by the liveness byte; read only when page 2's transactions root is not empty; the walk is the ONE enumeration of a transaction's holdings, finding R5-2). Relies on: a before-image exists for every change that completed (same statement); every identity and unique value a rollback restores or frees is an entry here AND a holding in the file (the next row), so no writer passes it while the owner lives and none after its death without the rollback running first (findings R3-1, R4-1), and nothing is left in the HOLDINGS tree once the walk has run. |
-| **The HOLDINGS tree** (finding R4-1): (kind R record identity / V unique key value, bytes) → transaction id — the file's INDEX, by identity, of every open transaction's UNDO entries (round 5) | The statement that changes a record under commit control (its identity and every unique value it frees, in the same statement as the change and the UNDO entries with the same keys); COMMIT's retirement, ROLLBACK, a reversal and the dead-owner rollback remove the keys their UNDO walk listed, in their statement. Path-copied like every tree; its root in the meta page. Invariant: its key set = the union of the UNDO trees' key sets after every statement (the drift test). | The lock test of READ (not IGNORING LOCK), WRITE, REWRITE and DELETE of every connector, under the mutex, when page 2's holdings root is not empty: own transaction → proceed; another's → its owner's byte probed at the test ('51' held; free → rolled back there, then the test again). Never enumerated by transaction: it has no such index, and needs none. Relies on: a holding is written by the same statement as the change it protects and the UNDO entry that lists it, and is removed only by the walk that restores or commits it — so the set of identities a rollback touches IS the set the test refuses, whatever the operating environment did with the owner's handle, and a holding never outlives its transaction (finding R5-2's leak, and the endless rollback of an entry-less transaction it caused at the next lock test). |
+| **The HOLDINGS tree** (finding R4-1): (kind R record identity / V unique key value, ordered by the file's key orders: `HoldingsKeyOrder`) → transaction id — the file's INDEX, by identity, of every open transaction's UNDO entries (round 5) | The statement that changes a record under commit control (its identity and every unique value it frees, in the same statement as the change and the UNDO entries with the same keys); COMMIT's retirement, ROLLBACK, a reversal and the dead-owner rollback remove the keys their UNDO walk listed, in their statement. Path-copied like every tree; its root in the meta page. Invariant: its key set = the union of the UNDO trees' key sets after every statement (the drift test). | The lock test of READ (not IGNORING LOCK), WRITE, REWRITE and DELETE of every connector, under the mutex, when page 2's holdings root is not empty: own transaction → proceed; another's → its owner's byte probed at the test ('51' held; free → rolled back there, then the test again). Never enumerated by transaction: it has no such index, and needs none. Relies on: a holding is written by the same statement as the change it protects and the UNDO entry that lists it, and is removed only by the walk that restores or commits it — so the set of identities a rollback touches IS the set the test refuses, whatever the operating environment did with the owner's handle, and a holding never outlives its transaction (finding R5-2's leak, and the endless rollback of an entry-less transaction it caused at the next lock test). |
 | **The transaction-liveness byte** (2^62 + 2^61 + id mod 2^60) | Taken exclusively through the owner's writable handle when the transaction is DRAWN — before its id is claimed and before the entry is written, in the same statement; kept with the handle a CLOSE under commit control keeps, and moved by the connector's re-OPEN to its own handle inside the attach's mutex hold (shared on a handle that cannot hold it exclusively; 2.2.1.10 As built (3)); a held byte is skipped and the next id tried; given back at COMMIT after the entry's removal and its promotion, at ROLLBACK after its statement, by a first change refused before its page 2 (no entry carries the id), and by the operating environment when the owner dies. | The dead-owner step (every writable coherent entry, R6 step 5), the lock test that meets another transaction's holding (finding R4-1), the drawing of an id and `CloseAll` (held = alive; a run unit probes only other run units' transactions). Relies on: a transaction visible in the tree has its byte held by a live owner or by nobody, never by a stranger — the byte was taken before the id was claimed or written, and a held byte is never drawn (finding R4-2). |
 | **The record-lock region** (2^62 + 2^60; a record identity) | READ under automatic locking (the commit posture's READ locks included); the explicit postures as today; released by UNLOCK/CLOSE for explicit postures and ONLY by COMMIT, ROLLBACK and termination for the commit posture; published through the holder's handle. A change under commit control publishes nothing here: its lock is its holding (the row above; finding R4-1). | READ, REWRITE, DELETE and (new) WRITE of every other connector, at DOC-A.1-104's point of their order, beside the HOLDINGS lookup; `IGNORING LOCK` bypasses both for READ. No ceiling for the commit posture's READ locks (DOC-A.1-154/155 rewritten by PB3337). Relies on: nothing a rollback restores is protected here, so a lock lost with a dead handle protects nothing that outlives it. |
 | **The store mutex and the Table 19 column bytes** | Unchanged (PB2660, PB833): taken for every statement and the OPEN of a coherent connector, exclusive through a writable handle and shared through a reader's. | The same. |
