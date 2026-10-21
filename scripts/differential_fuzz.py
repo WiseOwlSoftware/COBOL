@@ -5,7 +5,7 @@ docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md)
 
     python scripts/differential_fuzz.py --model qwen3-coder:30b --count 40 [--jobs 3] [--clauses 14.9,15] [--out DIR]
     python scripts/differential_fuzz.py --model qwen3-coder:30b --hours 8 --jobs 4           # an overnight run
-    python scripts/differential_fuzz.py --bake-off qwen3-coder:30b,north-mini-code-1.0:q4_K_M --count 20
+    python scripts/differential_fuzz.py --bake-off qwen3-coder:30b,qwen3.6:35b --count 20
     python scripts/differential_fuzz.py --report DIR                                           # re-render DIR/report.md
     python scripts/differential_fuzz.py --self-test
 
@@ -14,8 +14,10 @@ ISO spec decides (CLAUDE.md rule 1); a local model produces LEADS, and nothing i
 conformance suite without a Claude or human check against the standard. Here the model needs no judgment at all: it only
 has to write plausible standard COBOL. Two compilers judge the program, and GnuCOBOL 3.2 is a NET, never authority — an
 OUTPUT_DIFFERS row says the compilers disagree, not which one is right. The 2026-10-09 one-shot (kb/Work PB2886) sank on a
-test program that used four constructs the standard does not have; here such a program is simply one GnuCOBOL refuses
-(GNU_REJECTS), counted against the model and dropped.
+test program that used four constructs the standard does not have; here such a program is one BOTH compilers refuse
+(BOTH_REJECT), counted against the model and dropped. A program only GnuCOBOL refuses is KEPT (THEY_REJECT): GnuCOBOL 3.2
+lacks a good part of the 2014 standard (FUNCTION TRANSLATE, FUNCTION NATIONAL, most arguments of HIGHEST-ALGEBRAIC), and the
+2026-10-20 bake-off of five models lost about two fifths of its 48 refusals to that, not to the models (kb/Work PB3488).
 
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
 `conformance-suite/adapters/<compiler>.json` by the harness's own `Run.operation` (conformance-suite/harness/run.py), so the
@@ -24,7 +26,11 @@ into WSL through the adapter's hook interface (`WslBridge`), as the adapter's ow
 on Windows, under WSL"). Both compilers run the 2014 edition, the latest GnuCOBOL 3.2 has, in free reference format.
 
 THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appended as the run goes so a kill loses nothing):
-  GNU_REJECTS      GnuCOBOL did not compile it: the model's program, not a lead. Counted against the model.
+  BOTH_REJECT      neither compiler compiled it after every correction: the model's program, not a lead. Counted
+                   against the model.
+  NO_PROGRAM       the reply held no program, or was cut off, after every correction: counted against the model.
+  THEY_REJECT      WiseOwl compiled it, GnuCOBOL refused: a lead — GnuCOBOL 3.2 lacks the construct, or WiseOwl accepts a
+                   program the standard forbids (an under-rejection); the spec decides at triage.
   AGREE            both compiled and ran, same normalized output (CutRunner.Normalize). Dropped.
   WE_REJECT        GnuCOBOL compiled it, WiseOwl refused: a candidate reject-legal-source lead — ours only where the
                    construct is ISO (GnuCOBOL's default dialect carries extensions, so `-std=cobol2014` is pinned).
@@ -90,6 +96,53 @@ STRUCTURAL = re.compile(r"^(General|" + GENERAL_FORMAT_NOUN + r"|Syntax rules|Ge
                         re.IGNORECASE)
 DIAG_CODE = re.compile(r"\b((?:COBOLNET|COBOL|CBL)\d{4})\b")
 
+#: What the judge compiler, GnuCOBOL 3.2 at -std=cobol2014, refuses although the 2014 standard has it. DERIVED, not guessed:
+#: each line is a refusal GnuCOBOL itself reported in the 2026-10-20 bake-off (100 programs by five models; kb/Work PB3488
+#: carries the tally): "FUNCTION 'TRANSLATE' unknown" x4, "FUNCTION 'NATIONAL' unknown" x2, "FUNCTION 'HIGHEST-ALGEBRAIC' has
+#: invalid argument" x6, "'COMP-3' is not defined, but is a reserved word in another dialect" x1. The model is told to avoid
+#: them EXCEPT when the clause under test is that construct: such a program is a THEY_REJECT lead, which is the point.
+JUDGE_LACKS = (
+    "FUNCTION TRANSLATE",
+    "FUNCTION NATIONAL",
+    "FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC with any argument but a plain numeric data item",
+    "USAGE COMP-3 (write PACKED-DECIMAL)",
+)
+
+#: One worked example of the shapes the bake-off's models kept getting wrong (PERFORM VARYING with UNTIL and END-PERFORM,
+#: COMPUTE with ROUNDED and both SIZE ERROR arms, PICTURE with S, V and editing, an intrinsic function, IF/ELSE/END-IF):
+#: compiled and run by both compilers with identical output before it was written here (2026-10-20). Free format, no
+#: indentation, PROGRAM-ID FUZZ, as the rules below require. The self-test holds it to those rules.
+EXAMPLE_PROGRAM = """IDENTIFICATION DIVISION.
+PROGRAM-ID. FUZZ.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-AMOUNT PIC S9(5)V99 VALUE -123.45.
+01 WS-COUNT PIC 9(3) VALUE 0.
+01 WS-RESULT PIC S9(7)V99.
+01 WS-EDITED PIC -ZZ,ZZ9.99.
+01 WS-TEXT PIC X(12) VALUE "ABCDEFGHIJKL".
+01 WS-IDX PIC 99.
+PROCEDURE DIVISION.
+MAIN-PARA.
+PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 3
+COMPUTE WS-RESULT ROUNDED = WS-AMOUNT * WS-IDX / 7
+ON SIZE ERROR DISPLAY "SIZE ERROR AT " WS-IDX
+NOT ON SIZE ERROR MOVE WS-RESULT TO WS-EDITED
+END-COMPUTE
+DISPLAY "STEP " WS-IDX " RESULT " WS-EDITED
+END-PERFORM
+MOVE FUNCTION REVERSE(WS-TEXT) TO WS-TEXT
+DISPLAY "REVERSED: " WS-TEXT
+IF WS-AMOUNT < 0 AND WS-COUNT = 0
+DISPLAY "NEGATIVE AND ZERO COUNT"
+ELSE
+DISPLAY "OTHER"
+END-IF
+ADD 1 TO WS-COUNT
+DISPLAY "COUNT " WS-COUNT
+STOP RUN.
+"""
+
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:
 - Standard COBOL only, as in ISO/IEC 1989:2014. No vendor extensions, no COPY, no CALL to other programs, no EXEC.
 - Free reference format: EVERY line starts in column 1 with no indentation, one statement per line. At most 80 lines, and no repetitive filler data items: a few well-chosen items exercised many ways.
@@ -98,7 +151,13 @@ SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compile
 - Output must be deterministic: no CURRENT-DATE, WHEN-COMPILED, RANDOM, SEED, time, locale or environment dependent values.
 - No files unless the clause itself is about file handling; then ASSIGN each file to a plain name in the working directory, create it in the program, and DELETE FILE it before STOP RUN.
 - Exercise the clause named below in several distinct ways: edge values, both branches of every optional phrase, size and sign boundaries, truncation, ROUNDED, nested forms. Prefer cases a compiler could get subtly wrong.
-- Reply with exactly one COBOL program inside one ```cobol fenced block and nothing else. PROGRAM-ID is FUZZ."""
+- Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE); use only intrinsic functions the 2014 standard defines, spelled as it defines them.
+- One of the two compilers is GnuCOBOL 3.2, which does not implement everything in the standard. Unless the clause under test is one of these, do not use: """ + "; ".join(JUDGE_LACKS) + """.
+- Reply with exactly one COBOL program inside one ```cobol fenced block and nothing else. PROGRAM-ID is FUZZ.
+
+This program, which both compilers accept, shows the expected shape:
+```cobol
+""" + EXAMPLE_PROGRAM + """```"""
 
 
 # ── the seeds: spec clauses ───────────────────────────────────────────────────────────────────────────────────────────
@@ -272,21 +331,32 @@ def observe(run: suite_run.Run, entry: dict[str, Any], work: Path) -> Observatio
     return Observation(True, 0, diag, codes, ran=True, run_rc=ran.returncode, crashed=run.crashed(ran), output=out)
 
 
+def observe_fresh(run: suite_run.Run, entry: dict[str, Any], name: str) -> Observation:
+    """`observe` in a work directory that holds nothing of an earlier attempt at the same program: a correction round
+    re-stages the program, and `Run.stage` refuses an existing directory. A directory that cannot be removed (a file still
+    held by the previous run's process) raises, and the row is a RUNNER_ERROR that names the cause, never a verdict."""
+    work = run.work / name
+    if work.exists():
+        shutil.rmtree(work)
+    return observe(run, entry, work)
+
+
 # ── the verdict ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def classify(we: Observation, they: Observation) -> str:
-    """The class of one program from the two observations. GnuCOBOL's refusal is judged first: a program it does not
-    compile is the model's failure, whatever WiseOwl did with it."""
+    """The class of one program from the two observations. A refusal by GnuCOBOL alone is a lead (THEY_REJECT), a refusal
+    by both is the model's failure (BOTH_REJECT); an unobserved compiler on either side is never a verdict, and a crash of
+    ours outranks every refusal."""
     if they.compiled is None:
         return "THEY_HANG" if they.hung else "RUNNER_ERROR"
-    if they.compiled is False:
-        return "GNU_REJECTS"
     if we.compiled is None:
         return "WE_HANG" if we.hung else "RUNNER_ERROR"
-    if we.compiled and we.ran is None:
-        return "RUNNER_ERROR"
     if we.crashed:
         return "WE_CRASH"
+    if they.compiled is False:
+        return "BOTH_REJECT" if we.compiled is False else "THEY_REJECT"
+    if we.compiled and we.ran is None:
+        return "RUNNER_ERROR"
     if we.compiled is False:
         return "WE_REJECT"
     if we.hung:
@@ -307,7 +377,10 @@ def classify(we: Observation, they: Observation) -> str:
     return "WE_FAIL_RUN" if we.run_rc != 0 and they.run_rc == 0 else "EXIT_DIFFERS"
 
 
-LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "OUTPUT_DIFFERS", "WE_FAIL_RUN", "EXIT_DIFFERS", "WE_HANG", "THEY_HANG", "THEY_FAIL_RUN")
+LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "THEY_REJECT", "OUTPUT_DIFFERS", "WE_FAIL_RUN", "EXIT_DIFFERS", "WE_HANG", "THEY_HANG",
+                "THEY_FAIL_RUN")
+#: the model's failures: counted against it in the report and the bake-off, never a lead
+MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM")
 
 
 def signature(verdict: str, clause: str, we: Observation) -> str:
@@ -329,7 +402,8 @@ class Settings:
     temperature: float
     cobol_exe: str
     keep: bool
-    repairs: int = 1       # corrections offered after a GnuCOBOL refusal
+    repairs: int = 3       # corrections offered after a refusal by both compilers (one lifted 5 of 10 in the bake-off; at
+                           # 7 model-seconds a round, three cost less than one discarded program)
     variations: int = 3    # programs asked per clause before the seed list wraps
     seed: int = 20261020   # shuffles the seed clauses deterministically, so a short run samples every area (the first
                            # 40-program run walked the spec in order and never left §8.8); `in_order` keeps the spec's order
@@ -381,9 +455,13 @@ class Fuzz:
         rec["model_seconds"] = 0.0
         rec["repairs"] = 0
         they = Observation(None, None, "", [])
-        # The first reply, then up to `repairs` corrections: a program GnuCOBOL refuses goes back to the model with the
-        # diagnostics (a syntax slip is cheap to fix and costs a whole generation to discard). The verdict is the last
-        # program's; every earlier one is kept as <name>.r<k>.cob for diagnosis.
+        we: Observation | None = None
+        # The first reply, then up to `repairs` corrections. A program GnuCOBOL refuses is compiled by WiseOwl before anything
+        # else happens: one WiseOwl compiles is a THEY_REJECT lead (GnuCOBOL 3.2 lacks the construct, or we under-reject; the
+        # spec decides at triage) and is NOT sent back — a correction would replace the very construct under test, which is
+        # how the 2026-10-20 bake-off lost two fifths of its refusals. One both compilers refuse is the model's slip and goes
+        # back with both compilers' first diagnostics (WiseOwl's cite the standard). The verdict is the last program's;
+        # every earlier one is kept as <name>.r<k>.cob for diagnosis.
         for attempt in range(self.s.repairs + 1):
             try:
                 reply, secs, done = ollama_chat(self.s.model, messages, self.s.temperature)
@@ -396,7 +474,7 @@ class Fuzz:
             if program is None or done == "length":
                 why = f"the reply was cut off at {NUM_PREDICT} tokens" if done == "length" else "no COBOL program in the reply"
                 if attempt == self.s.repairs:
-                    rec.update(verdict="GNU_REJECTS", reason=why, truncated=done == "length")
+                    rec.update(verdict="NO_PROGRAM", reason=why, truncated=done == "length")
                     return rec
                 ask = ("Your reply was cut off before the program ended. Reply with a SHORTER complete program: at most 50 lines, "
                        "no indentation, a few data items, one ```cobol fenced block." if done == "length" else
@@ -408,19 +486,17 @@ class Fuzz:
                 if src.exists():        # the previous attempt may have had no program to keep
                     shutil.copyfile(src, self.programs / f"{name}.r{attempt - 1}.cob")
             src.write_text(program, encoding="utf-8", newline="\n")
-            shutil.rmtree(self.they.work / name, ignore_errors=True)
-            they = observe(self.they, entry, self.they.work / name)
-            if they.compiled is not False or attempt == self.s.repairs:
+            they = observe_fresh(self.they, entry, name)
+            if they.compiled is not False:
+                we = None
+                break
+            we = observe_fresh(self.we, entry, name)
+            if we.compiled is not False or attempt == self.s.repairs:
                 break
             messages += [{"role": "assistant", "content": reply},
-                         {"role": "user", "content": "GnuCOBOL 3.2 (-std=cobol2014, free format) refused that program:\n\n"
-                          + "\n".join(they.diagnostics.strip().splitlines()[:30])
-                          + "\n\nFix every error using only standard COBOL 2014 (do not drop the clause under test; replace a "
-                            "construct the standard lacks with one it has). Reply with the whole corrected program in one ```cobol fenced block."}]
-        if they.compiled is False:
-            we = Observation(None, None, "", [])        # not compiled by us: GnuCOBOL already refused it
-        else:
-            we = observe(self.we, entry, self.we.work / name)
+                         {"role": "user", "content": repair_request(they.diagnostics, we.diagnostics)}]
+        if we is None:
+            we = observe_fresh(self.we, entry, name)
         verdict = classify(we, they)
         rec.update(verdict=verdict, signature=signature(verdict, number, we),
                    we={"compiled": we.compiled, "codes": we.codes,
@@ -479,6 +555,28 @@ def first_error(diag: str) -> str:
     return diag.strip().splitlines()[0][:300] if diag.strip() else ""
 
 
+def error_lines(diag: str, limit: int) -> list[str]:
+    """The first `limit` diagnostic lines that report an error: a compiler cascades after the first slip (the bake-off's
+    GnuCOBOL replies ran to thirty lines of "unexpected Identifier"), and a model given the cascade fixes the wrong line."""
+    return [line.strip()[:300] for line in diag.splitlines() if "error" in line.lower()][:limit]
+
+
+REPAIR_GNU_LINES = 6
+REPAIR_WISEOWL_LINES = 4
+
+
+def repair_request(they_diag: str, we_diag: str) -> str:
+    """The correction asked after BOTH compilers refuse a program: GnuCOBOL's first errors (the judge's), then WiseOwl's
+    (they cite the standard's clause, which tells the model what the rule is rather than where it tripped)."""
+    gnu = "\n".join(error_lines(they_diag, REPAIR_GNU_LINES)) or they_diag.strip()[:600]
+    ours = "\n".join(error_lines(we_diag, REPAIR_WISEOWL_LINES))
+    text = "GnuCOBOL 3.2 (-std=cobol2014, free format) refused that program:\n\n" + gnu
+    if ours:
+        text += "\n\nA second standard-conforming compiler refused it too, citing ISO/IEC 1989:\n\n" + ours
+    return text + ("\n\nFix every error using only standard COBOL 2014 (do not drop the clause under test; replace a "
+                   "construct the standard lacks with one it has). Reply with the whole corrected program in one ```cobol fenced block.")
+
+
 # ── the report ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def read_results(out: Path) -> list[dict[str, Any]]:
@@ -498,12 +596,13 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
         counts[r["verdict"]] = counts.get(r["verdict"], 0) + 1
     n = len(rows)
     judged = n - counts.get("RUNNER_ERROR", 0)
-    rejected = counts.get("GNU_REJECTS", 0)
+    failed = sum(counts.get(c, 0) for c in MODEL_FAILURE_CLASSES)
     model_secs = [r["model_seconds"] for r in rows if "model_seconds" in r]
-    repaired = sum(1 for r in rows if r.get("repairs") and r["verdict"] != "GNU_REJECTS")
+    repaired = sum(1 for r in rows if r.get("repairs") and r["verdict"] not in MODEL_FAILURE_CLASSES)
     lines = [f"# Differential fuzz — triage report", "",
-             f"Programs: {n} · judged by GnuCOBOL: {judged} · GnuCOBOL accepted: {judged - rejected}"
-             f" ({(judged - rejected) / judged:.0%} of judged; {repaired} of them after a repair round)" if judged else f"Programs: {n}",
+             f"Programs: {n} · judged: {judged} · usable: {judged - failed} ({(judged - failed) / judged:.0%} of judged; "
+             f"{repaired} of them after a repair round) · the model's failures: {failed} · GnuCOBOL alone refused (THEY_REJECT leads): "
+             f"{counts.get('THEY_REJECT', 0)}" if judged else f"Programs: {n}",
              f"Model seconds per program (median): {sorted(model_secs)[len(model_secs) // 2]:.0f}" if model_secs else "",
              "", "| Class | Count |", "|---|---|"]
     lines += [f"| {k} | {v} |" for k, v in sorted(counts.items(), key=lambda kv: -kv[1])]
@@ -524,6 +623,8 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
         we, they = r.get("we", {}), r.get("they", {})
         if we.get("first_error"):
             lines.append(f"- WiseOwl: `{we['first_error']}`")
+        if r["verdict"] == "THEY_REJECT" and they.get("first_error"):
+            lines.append(f"- GnuCOBOL: `{they['first_error']}`")
         if we.get("runner_error") or they.get("runner_error"):
             lines.append(f"- runner: {we.get('runner_error') or they.get('runner_error')}")
         if r["verdict"] in ("OUTPUT_DIFFERS", "THEY_FAIL_RUN", "WE_FAIL_RUN", "EXIT_DIFFERS"):
@@ -558,25 +659,33 @@ def write_report(out: Path) -> Path:
 # ── the bake-off ──────────────────────────────────────────────────────────────────────────────────────────────────────
 
 def bake_off(models: list[str], base: Settings) -> None:
-    """Each model writes `count` programs from the same seeds; the score is the share GnuCOBOL accepts and the
-    seconds per program. The winner generates the overnight run."""
+    """Each model writes `count` programs from the same seeds; the score is the share of its programs that are USABLE (at
+    least one compiler accepted: both compiled, or GnuCOBOL alone refused, which is a lead) and the seconds per program.
+    The winner generates the overnight run."""
     table = []
     for m in models:
         s = dataclasses.replace(base, model=m, out=base.out / re.sub(r"[^A-Za-z0-9_.-]", "_", m))
         Fuzz(s).run()
-        rows = read_results(s.out)
-        judged = [r for r in rows if r["verdict"] != "RUNNER_ERROR"]
-        accepted = [r for r in judged if r["verdict"] != "GNU_REJECTS"]
-        secs = sorted(r["model_seconds"] for r in rows if "model_seconds" in r)
-        leads = sum(1 for r in rows if r["verdict"] in LEAD_CLASSES)
-        table.append((m, len(rows), len(accepted), len(judged), secs[len(secs) // 2] if secs else float("nan"), leads))
-    lines = ["# Bake-off", "", "| Model | Programs | GnuCOBOL accepts | Median model s | Lead rows |", "|---|---|---|---|---|"]
-    for m, n, acc, judged, med, leads in table:
-        lines.append(f"| {m} | {n} | {acc}/{judged} ({acc / judged:.0%}) | {med:.0f} | {leads} |" if judged
-                     else f"| {m} | {n} | 0/0 | - | {leads} |")
+        table.append((m, *bake_off_score(read_results(s.out))))
+    lines = ["# Bake-off", "", "| Model | Programs | Usable | Both refuse | GnuCOBOL alone refuses | Median model s | Lead rows |",
+             "|---|---|---|---|---|---|---|"]
+    for m, n, usable, judged, both, theirs, med, leads in table:
+        lines.append(f"| {m} | {n} | {usable}/{judged} ({usable / judged:.0%}) | {both} | {theirs} | {med:.0f} | {leads} |" if judged
+                     else f"| {m} | {n} | 0/0 | 0 | 0 | - | {leads} |")
     text = "\n".join(lines) + "\n"
     (base.out / "bake-off.md").write_text(text, encoding="utf-8", newline="\n")
     print(text)
+
+
+def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int, float, int]:
+    """(programs, usable, judged, both-refuse, GnuCOBOL-alone-refuses, median model seconds, lead rows) of one model's run."""
+    judged = [r for r in rows if r["verdict"] != "RUNNER_ERROR"]
+    usable = [r for r in judged if r["verdict"] not in MODEL_FAILURE_CLASSES]
+    both = sum(1 for r in judged if r["verdict"] in MODEL_FAILURE_CLASSES)
+    theirs = sum(1 for r in judged if r["verdict"] == "THEY_REJECT")
+    secs = sorted(r["model_seconds"] for r in rows if "model_seconds" in r)
+    leads = sum(1 for r in rows if r["verdict"] in LEAD_CLASSES)
+    return len(rows), len(usable), len(judged), both, theirs, secs[len(secs) // 2] if secs else float("nan"), leads
 
 
 # ── self-test ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -621,8 +730,34 @@ def self_test() -> int:
     check("extract: an unfenced program is accepted", extract_program("IDENTIFICATION DIVISION.\nPROCEDURE DIVISION.\nSTOP RUN.") is not None)
 
     ok_run = Observation(True, 0, "", [], ran=True, run_rc=0, output="A\n1")
-    check("classify: GnuCOBOL's refusal is the model's failure, whatever we did",
-          classify(Observation(None, None, "", []), Observation(False, 1, "x.cob:3: error: syntax", [])) == "GNU_REJECTS")
+    gnu_no = Observation(False, 1, "x.cob:3: error: syntax error, unexpected Identifier", [])
+    check("classify: a refusal by both compilers is the model's failure (BOTH_REJECT)",
+          classify(Observation(False, 1, "e: error COBOL0001", ["COBOL0001"]), gnu_no) == "BOTH_REJECT")
+    check("classify: a refusal by GnuCOBOL alone is a lead (THEY_REJECT), whatever our program then did at run time",
+          classify(ok_run, gnu_no) == "THEY_REJECT" and classify(dataclasses.replace(ok_run, run_rc=1), gnu_no) == "THEY_REJECT"
+          and "THEY_REJECT" in LEAD_CLASSES and "BOTH_REJECT" in MODEL_FAILURE_CLASSES and "NO_PROGRAM" in MODEL_FAILURE_CLASSES
+          and not set(LEAD_CLASSES) & set(MODEL_FAILURE_CLASSES))
+    check("classify: our compiler crash on a program GnuCOBOL refused outranks the refusal; our hang on one is our hang",
+          classify(Observation(False, -1, "", [], crashed=True), gnu_no) == "WE_CRASH"
+          and classify(Observation(None, None, "", [], hung=True), gnu_no) == "WE_HANG")
+    check("classify: an unobserved WiseOwl beside GnuCOBOL's refusal is never a verdict",
+          classify(Observation(None, None, "", [], runner_error="did not start"), gnu_no) == "RUNNER_ERROR")
+    check("signature: a THEY_REJECT groups by clause", signature("THEY_REJECT", "15.42", ok_run) == "THEY_REJECT:15.42")
+    cascade = "\n".join([f"x.cob:{k}: error: syntax error, unexpected Identifier" for k in range(3, 20)] + ["x.cob:1: note: hint"])
+    ask = repair_request(cascade, "y.cob(4,1): error COBOLNET2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOLNET1625: VALUE")
+    check("repair: the correction quotes GnuCOBOL's first errors only (the cascade is cut) and WiseOwl's cited errors, and keeps the clause under test",
+          ask.count("unexpected Identifier") == REPAIR_GNU_LINES and "note: hint" not in ask and "COBOLNET2993" in ask
+          and "ISO/IEC 1989" in ask and "do not drop the clause under test" in ask, ask)
+    check("repair: without a WiseOwl diagnostic the correction names GnuCOBOL alone",
+          "second standard-conforming compiler" not in repair_request("x.cob:3: error: bad", ""))
+    ex_lines = EXAMPLE_PROGRAM.splitlines()
+    check("prompt: the example program obeys the rules it illustrates (free format from column 1, under 80 lines, PROGRAM-ID FUZZ, DISPLAY, STOP RUN, every END- word) and extracts as a program",
+          all(line and line[0] != " " for line in ex_lines) and len(ex_lines) < 80 and "PROGRAM-ID. FUZZ." in ex_lines
+          and any(line.startswith("DISPLAY") for line in ex_lines) and ex_lines[-1] == "STOP RUN."
+          and {"END-PERFORM", "END-COMPUTE", "END-IF"} <= set(ex_lines) and extract_program("```cobol\n" + EXAMPLE_PROGRAM + "```") == EXAMPLE_PROGRAM,
+          ex_lines)
+    check("prompt: the system prompt carries the example and every construct the judge lacks, with the clause-under-test exception",
+          EXAMPLE_PROGRAM in SYSTEM_PROMPT and all(j in SYSTEM_PROMPT for j in JUDGE_LACKS) and "Unless the clause under test" in SYSTEM_PROMPT)
     check("classify: same output agrees", classify(ok_run, ok_run) == "AGREE")
     check("classify: different output differs", classify(dataclasses.replace(ok_run, output="A\n2"), ok_run) == "OUTPUT_DIFFERS")
     check("classify: our refusal of a program GnuCOBOL compiled", classify(Observation(False, 1, "e: error COBOL1234", ["COBOL1234"]), ok_run) == "WE_REJECT")
@@ -651,12 +786,20 @@ def self_test() -> int:
             {"id": "fz00001", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
              "source": "programs/fz00001.cob", "model_seconds": 12,
              "we": {"output": "A\n1", "first_error": "", "codes": []}, "they": {"output": "A\n2", "run_rc": 0}},
-            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "GNU_REJECTS", "model_seconds": 8},
-            {"id": "fz00003", "clause": "15.3", "title": "ABS", "verdict": "RUNNER_ERROR", "reason": "model: down"}]
+            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 3},
+            {"id": "fz00003", "clause": "15.3", "title": "ABS", "verdict": "RUNNER_ERROR", "reason": "model: down"},
+            {"id": "fz00004", "clause": "15.42", "title": "TRANSLATE", "verdict": "THEY_REJECT", "signature": "THEY_REJECT:15.42",
+             "source": "programs/fz00004.cob", "model_seconds": 9, "repairs": 1,
+             "we": {"output": "X", "first_error": "", "codes": []}, "they": {"first_error": "x.cob:9: error: FUNCTION 'TRANSLATE' unknown", "run_rc": None}},
+            {"id": "fz00005", "clause": "15.3", "title": "ABS", "verdict": "NO_PROGRAM", "model_seconds": 4, "reason": "no COBOL program in the reply"}]
     rep = render_report(rows, Path("."))
-    check("report: counts, acceptance over judged programs only, the survivor group and the differing line",
-          "GnuCOBOL accepted: 2 (67% of judged; 0 of them after a repair round)" in rep and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 1" in rep
+    check("report: usable over judged programs only (the model's failures are BOTH_REJECT and NO_PROGRAM), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line",
+          "judged: 5 · usable: 3 (60% of judged; 1 of them after a repair round) · the model's failures: 2 · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
+          and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 1" in rep and "### `THEY_REJECT:15.42` × 1" in rep
+          and "- GnuCOBOL: `x.cob:9: error: FUNCTION 'TRANSLATE' unknown`" in rep
           and "line 2: `1` | `2`" in rep and "Runner errors: 1" in rep, rep)
+    check("bake-off: the score is the usable share, with both-refuse and GnuCOBOL-alone counts beside it",
+          bake_off_score(rows) == (6, 3, 5, 2, 1, 9, 2), bake_off_score(rows))
     check("report: the triage rule is printed", "the spec decides" in rep)
     adapter, problems = suite_config.load_adapter(SUITE / "adapters" / "gnucobol.json")
     check("adapters: the suite's gnucobol adapter loads and has the 2014 edition this script pins",
@@ -681,6 +824,21 @@ def self_test() -> int:
     hung_obs = observe(hanging, {}, Path("."))  # type: ignore[arg-type]
     check("observe: a compile that times out is an observation with hung set, so the verdict is a hang and not a runner error (review R1-2)",
           hung_obs.compiled is None and hung_obs.hung and classify(hung_obs, ok_run) == "WE_HANG", hung_obs)
+    staged: list[bool] = []
+    stale = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-observe-fresh" / "fz00009"
+    stale.mkdir(parents=True, exist_ok=True)
+    (stale / "left-over.dll").write_text("x", encoding="utf-8")
+    fresh_run = types.SimpleNamespace(work=stale.parent, stage=lambda entry, work: (staged.append(work.exists()), ("a.cob", "a"))[1],
+                                      operation=lambda *_a: suite_config.Step(0, timed_out=False), crashed=lambda step: False,
+                                      unjudgeable=lambda step, what: "")
+    try:
+        observe_fresh(fresh_run, {}, "fz00009")  # type: ignore[arg-type]
+    except Exception as e:  # noqa: BLE001 — the check below reports it
+        staged.append(repr(e))  # type: ignore[arg-type]
+    finally:
+        shutil.rmtree(stale.parent, ignore_errors=True)
+    check("observe_fresh: an earlier attempt's work directory is removed before the program is staged again (the first PB3488 bake-off lost 3 of 20 programs to FileExistsError)",
+          staged == [False], staged)
     def boom(*_a: object) -> dict[str, Any]:
         raise FileNotFoundError("fz00002.cob")
     fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m"), _one=boom)
@@ -702,8 +860,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--hours", type=float, help="stop starting new programs after this many hours")
     ap.add_argument("--jobs", type=int, default=2, help="programs in flight at once (Ollama queues the generations)")
     ap.add_argument("--clauses", default=",".join(DEFAULT_CLAUSES), help="comma-separated clause prefixes to seed from")
-    ap.add_argument("--temperature", type=float, default=0.6)
-    ap.add_argument("--repairs", type=int, default=1, help="corrections offered to the model after a GnuCOBOL refusal (0: none)")
+    ap.add_argument("--temperature", type=float, default=0.3, help="0.3: the syntax slips are a sampling error, not a shortage of ideas")
+    ap.add_argument("--repairs", type=int, default=3, help="corrections offered to the model after both compilers refuse (0: none)")
     ap.add_argument("--seed", type=int, default=20261020, help="shuffles the seed clauses deterministically (same seed, same walk)")
     ap.add_argument("--in-order", action="store_true", help="walk the seed clauses in the spec's order instead")
     ap.add_argument("--cobol", default=str(REPO / "src/Cobol.Net.Cli/bin/Debug/net10.0" / ("cobol.exe" if os.name == "nt" else "cobol")),
