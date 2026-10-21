@@ -231,6 +231,9 @@ public sealed class IndexedConnector : KeyedConnector
     private protected override RestoringTreesFactory Restoring => IndexedStore.Restoring(_orders, AlternateEntries);
 
     /// <inheritdoc/>
+    private protected override IKeyOrder HoldingsOrder => new HoldingsKeyOrder(_orders.Prime, _orders.Alternates);
+
+    /// <inheritdoc/>
     private protected override byte[]? IdentityOf(string recordId) => recordId.Length == 0 ? null : KeyBytes(recordId);
 
     /// <summary>Every alternate tree entry a record's frame has — the key value under each alternate key (suppression
