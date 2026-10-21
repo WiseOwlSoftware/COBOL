@@ -1,4 +1,4 @@
-## PB3479 — the file harness declares OPEN EXTEND over sequential access, as ISO 14.9.27.3 SR2 requires
+## Entry 2325 — 2026-10-21 11:57 PDT — PB3479 — the file harness declares OPEN EXTEND over sequential access, as ISO 14.9.27.3 SR2 requires
 
 `FileHarness.Register` (kb/Work PB3471's merge of the nine private copies) defaults a RELATIVE or INDEXED connector to dynamic
 access, where the copies it replaced passed access mode 0. Every theory that crosses the open modes therefore opened EXTEND over a
@@ -25,3 +25,4 @@ tests' `OpenStatic` shorthand call, so a theory that registers by default and op
 (`OpenStaticExtend_OverTheHarnessDefaultDeclaration_FailsTheTest`); and the side table keeps only the access mode, taking the
 host from `FileRegistry.HostPathOf`, which the registry already owns. A raw `reg.Open(...)` with explicit operands still
 bypasses the guard; no test in the tree does that for a harness-registered connector.
+
