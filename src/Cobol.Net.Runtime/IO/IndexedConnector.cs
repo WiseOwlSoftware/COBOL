@@ -91,7 +91,8 @@ public sealed class IndexedConnector : KeyedConnector
         string named = AreaKey(recordImage, recordExtents, PrimeKey);
         // ⛔ THE RECORD'S LOCK IDENTITY IS THE SPELLING ITS PRIME TREE HOLDS (§12.4.5.12.4 GR1: key equality is the file's
         // collating sequence's, so the key a statement names the record by may be another image of the same key), the one
-        // a READ locked it under (FindRandom); no record by that key names the record by the statement's own image.
+        // a READ locked it under (FindRandom); no record by that key (or a torn page, which the statement's own body then
+        // answers '30') names the record by the statement's own image.
         return KeyBytes(named) is { } key && _st.Get(_orders, key, out var stored, out _) == StoreStatus.Ok && stored is not null
             ? Identity(stored)
             : named;
