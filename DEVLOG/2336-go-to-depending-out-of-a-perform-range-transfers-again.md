@@ -1,4 +1,4 @@
-## GO TO ... DEPENDING out of a PERFORM range transfers again (PB3491)
+## Entry 2336 — 2026-10-21 15:10 PDT — GO TO ... DEPENDING out of a PERFORM range transfers again (PB3491)
 
 A GO TO ... DEPENDING ON inside a performed paragraph, whose selected target was the paragraph that physically follows the PERFORM's exit paragraph, silently ended the PERFORM: the target never ran, control resumed after the PERFORM, and the program exited 0 with no output. The overnight differential fuzz run (PB3488 harness, program fz01959) found it; GnuCOBOL printed the two lines and ISO/IEC 1989:2023 14.9.17.4 GR2 says control is transferred to the selected procedure-name.
 
@@ -13,3 +13,4 @@ A GO TO ... DEPENDING ON inside a performed paragraph, whose selected target was
 **Golden.** `conformance-suite/cases/14.9.17-GO-TO/pb3491_go_to_depending_out_of_perform_range`, accepted at all four editions with one `.out` (the behaviour does not differ): six shapes in one chain (single target, three targets with the second selected, the format-1 twin, PERFORM THRU with the target inside the range, PERFORM THRU with the DEPENDING in the exit paragraph's last statement, and an out-of-range selector that must still return). Expected lines come from the cited rules. No refused-below negative: nothing is edition-gated.
 
 **Rows.** GR-14.9.17.4-2 and GR-14.9.28.4-1 were already OK; a record_verdicts batch adds the golden and the drift tests as witnesses. `closes_rows` is empty with its reason.
+
