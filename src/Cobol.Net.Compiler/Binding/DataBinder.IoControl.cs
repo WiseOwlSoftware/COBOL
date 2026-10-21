@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Binding.Model;
+using CobolNet.Editions;
 using CobolNet.Editions.Diagnostics;
 using CobolNet.Frontend.Generated;
 
@@ -29,10 +30,8 @@ public sealed partial class DataBinder
     /// X3.23-1985 RERUN clause (a checkpoint HINT with no program-visible effect — a null rerun facility is
     /// conforming; deleted by ISO 2002, 0902-gated ≥2002 by the version-conformance pass, VCR Table 7 row 7.15) —
     /// both skip through the non-SAME <c>continue</c> below by design. The APPLY COMMIT clause (§12.4.6.3) is the one
-    /// other arm that is not a no-op here: the facility is declined (COBOLNET1709) but the clause still records
-    /// WHICH FILES the source made "subject to an APPLY COMMIT clause" on <see cref="FileModel.SubjectToApplyCommit"/>,
-    /// because §14.9.27.3 SR8's leading conjunct keys on exactly that and is reachable under <c>--permissive</c>
-    /// (kb/Work PB319). EVERY SAME format also records its MEMBERSHIP on its files
+    /// other arm that is not a no-op here: <see cref="BindApplyCommitClause"/> (kb/Work PB3338).
+    /// EVERY SAME format also records its MEMBERSHIP on its files
     /// (<see cref="FileModel.SameClauses"/>, kb/Work PB1139), which the SORT and MERGE statements read for
     /// §14.9.40.3 SR10 / §14.9.24.3 SR11 (<c>SortBinder.ScreenSameClauses</c>). The clause's OWN syntax rules —
     /// the arity its format prints and §12.4.6.4.3 SR2, SR3 and SR5-SR10 — are <see cref="ScreenSameOperands"/> and
@@ -45,30 +44,9 @@ public sealed partial class DataBinder
         foreach (var clause in io.ioControlClause())
         {
             using var _ = Edition.At(clause);
-            // The APPLY COMMIT clause (ISO §12.4.6.3) — the facility is DECLINED by name (COBOLNET1709,
-            // DeclinedFacilityPass), but the clause still tells the binder WHICH FILES the source made "subject
-            // to an APPLY COMMIT clause", and two syntax rules key on exactly that: §14.9.27.3 SR8's leading
-            // conjunct (enforced at StatementValidation.CheckOpenSharingAllOther) and §12.4.5.9.3 SR1. The fact
-            // is LIVE, not speculative: COBOLNET1709 is PermissiveInert, so under --permissive the clause is
-            // accepted with a warning and the program compiles (kb/Work PB319). §12.4.6.3.2's operand list is a
-            // repetition of an all-optional [file-name-1][identifier-1] pair, so a name that resolves to a file
-            // IS file-name-1 and anything else is identifier-1 — the symbol table is the only discriminator.
-            // Only a BARE word can be file-name-1 (§8.4.2.2.2 gives a file-name no qualified format, kb/Work
-            // PB2040): a qualified or subscripted operand is identifier-1, and its glued text (`F OF G` → `FOFG`)
-            // must never be looked up as a file-name.
             if (clause.applyCommitClause() is { } apply)
             {
-                foreach (var operand in apply.dataReference())
-                    if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
-                        && FilesByName.TryGetValue(word.GetText(), out var subject))
-                    {
-                        subject.SubjectToApplyCommit = true;
-                        // §12.4.5.9.3 SR1 — the LOCK MODE clause of the file control entry, bound before this paragraph.
-                        ScreenApplyCommitSubject(subject, subject.LockMode is not null, "LOCK MODE clause",
-                            "ISO §12.4.5.9.3 SR1: \"This clause shall not be specified for a file that is the subject of "
-                            + "an APPLY COMMIT clause for which there is an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON "
-                            + "MULTIPLE RECORDS applied automatically\"");
-                    }
+                BindApplyCommitClause(apply);
                 continue;
             }
             if (clause.sameClause() is not { } same) continue;
@@ -104,19 +82,197 @@ public sealed partial class DataBinder
             if (site.Clause.Kind == SameClauseKind.RecordArea) LinkSameRecordArea(site.Clause);
     }
 
+    /// <summary>The source element's APPLY COMMIT clause (ISO §12.4.6.3; kb/Work PB3338), or null when its I-O-CONTROL
+    /// paragraph writes none. The code generator registers it at the runtime element's activation (§12.4.6.3.4 GR5).</summary>
+    public ApplyCommitModel? ApplyCommit { get; private set; }
+
+    /// <summary>Whether EC-FLOW-APPLY-COMMIT checking is enabled at the element's PROCEDURE DIVISION header (§7.3.25.4
+    /// GR6; <c>TurnState.EnabledAtHeader</c>) — where the activation of its APPLY COMMIT clause raises §12.4.6.3.4
+    /// GR3/GR4's condition.</summary>
+    public bool ApplyCommitActivationChecking { get; set; }
+
+    /// <summary>Whether the source element carries the RECURSIVE attribute (§11.10) — §12.4.6.3.3 SR5's antecedent (a
+    /// function is always recursive, §8.6.6, and is asked through <see cref="UnitIsFunction"/>).</summary>
+    public bool UnitIsRecursive { get; init; }
+
+    /// <summary>Bind one APPLY COMMIT clause (ISO §12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
+    /// and the syntax rules that need no data division: SR1/SR2 (the files), SR4 (an operand at all), SR5 (a recursive
+    /// source element) and SR6 (a class definition; a factory or instance definition is <c>OoEnvironmentRules</c>'s).
+    /// The identifier-1 operands are resolved, and SR3 and SR7-SR10 asked, by <see cref="ResolveApplyCommit"/> once the
+    /// data division is bound.
+    /// <para>The operand list repeats an all-optional pair, so the symbol table is the only discriminator: a BARE word
+    /// naming a file of THIS element's FILE-CONTROL paragraph is file-name-1 (SR1; §8.4.2.2.2 gives a file-name no
+    /// qualified format, kb/Work PB2040), anything else is identifier-1 — and an inherited GLOBAL file, which SR1 and
+    /// SR11 both keep out of a contained element's clause, therefore resolves as an identifier and is refused there.</para>
+    /// <para>A file of SEQUENTIAL or LINE SEQUENTIAL organization is accepted by the standard (§9.1.18.2) and refused
+    /// here by name (COBOLNET1709, Annex A.4.1): commit and rollback is provided for the keyed organizations only; the
+    /// sequential transaction journal is kb/Work PB3340. It is still recorded as subject to the clause, so the claimed
+    /// clauses' syntax rules that key on that fact speak about it under <c>--permissive</c> too (kb/Work PB319).</para></summary>
+    private void BindApplyCommitClause(Core.ApplyCommitClauseContext apply)
+    {
+        var clause = ApplyCommit ??= new ApplyCommitModel { At = Edition.Cursor };
+        if (UnitIsRecursive || UnitIsFunction)
+            ApplyCommitRule("the clause is written in a recursive source element"
+                + (UnitIsFunction ? " (a function is always recursive, ISO §8.6.6)" : ""),
+                "SR5", "This clause shall not be specified in a recursive source element.");
+        if (OoIsClassUnit)
+            ApplyCommitRule("the clause is written in a class definition", "SR6",
+                "This clause shall not be specified in a class, factory, or interface definition.");
+        if (apply.dataReference().Length == 0)
+            ApplyCommitRule("the clause names no file and no data item", "SR4",
+                "At least one file or data-item shall be specified.");
+        foreach (var operand in apply.dataReference())
+        {
+            using var at = Edition.At(operand);
+            if (operand.cobolWord() is { } word && operand.dataReferenceSuffix().Length == 0
+                && FilesByName.TryGetValue(word.GetText(), out var file))
+            {
+                if (file.IsSortMerge || file.IsReportFile)
+                {
+                    ApplyCommitRule($"'{file.CobolName}' is {(file.IsSortMerge ? "a sort-merge file" : "a report file")}",
+                        "SR2", "File-name-1 shall not represent a sort-merge file, nor a file used by report writer.");
+                    continue;
+                }
+                if (clause.Files.Contains(file)) continue;   // a repeated file-name adds nothing (GR1 is about the set)
+                clause.Files.Add(file);
+                file.SubjectToApplyCommit = true;
+                if (file.IsSequential)
+                    Edition.Declined(DiagnosticCatalog.ApplyCommitClauseUnsupported, $"the file '{file.CobolName}'");
+                // §12.4.5.9.3 SR1 — the LOCK MODE clause of the file control entry, bound before this paragraph.
+                ScreenApplyCommitSubject(file, file.LockMode is not null, "LOCK MODE clause",
+                    "ISO §12.4.5.9.3 SR1: \"This clause shall not be specified for a file that is the subject of "
+                    + "an APPLY COMMIT clause for which there is an implicit LOCK MODE IS AUTOMATIC WITH LOCK ON "
+                    + "MULTIPLE RECORDS applied automatically\"");
+                continue;
+            }
+            var (name, quals) = ClauseDataName(operand, "APPLY COMMIT identifier-1");
+            clause.Identifiers.Add((name, quals, Edition.Cursor));
+        }
+    }
+
+    /// <summary>Post-build (the data division is bound and indexed), resolve the APPLY COMMIT clause's identifier-1
+    /// operands and collect what §12.4.6.3.3 SR9 makes subject to it, asking the syntax rules that need a resolved
+    /// item: SR3 (an unreferenced-modified, distinct, non-overlapping 01 or 77 item of the LINKAGE, WORKING-STORAGE or
+    /// LOCAL-STORAGE SECTION; the reference-modified shape is already refused by <see cref="ClauseDataName"/>), SR7 (no
+    /// object reference), SR8 (both or neither of two 01/77 items one of which depends on the other), SR9 (the
+    /// implicit items' sections) and SR10 (no BASED item). Called at the end of <see cref="ResolveFiles"/>, whose FILE
+    /// STATUS, LINAGE and RECORD DEPENDING resolutions SR9 reads.</summary>
+    internal void ResolveApplyCommit()
+    {
+        if (ApplyCommit is not { } clause) return;
+        var listed = new HashSet<DataItem>(ReferenceEqualityComparer.Instance);
+        foreach (var (name, quals, at) in clause.Identifiers)
+        {
+            if (ResolveClauseOperand(name, quals, "APPLY COMMIT identifier-1", at) is not { } item) continue;
+            using var _ = Edition.At(at);
+            if (item.Level is not (1 or 77) || item.Section is not (EntrySection.WorkingStorage
+                    or EntrySection.LocalStorage or EntrySection.Linkage))
+            {
+                ApplyCommitRule($"'{item.CobolName}' is not a 01 or 77 level item of the linkage, working-storage or "
+                    + "local-storage section", "SR3", "Multiple instances of Identifier-1 shall represent different "
+                    + "non-overlapping 01 or 77 level data-items in the linkage, working-storage and local-storage sections.");
+                continue;
+            }
+            if (!listed.Add(item) || clause.Items.Any(other => SharesStorage(item, other)))
+            {
+                ApplyCommitRule($"'{item.CobolName}' repeats or overlaps another identifier-1 of the clause", "SR3",
+                    "Multiple instances of Identifier-1 shall represent different non-overlapping 01 or 77 level "
+                    + "data-items in the linkage, working-storage and local-storage sections.");
+                continue;
+            }
+            if (!ScreenApplyCommitItem(item, $"identifier-1 '{item.CobolName}'")) continue;
+            clause.Items.Add(item);
+        }
+        // SR8 — "Where there is a dependency of one data item upon another, the 01 or 77 level data items that contain or
+        // refer to them shall each either or neither be specified in the list of identifiers": the dependency the data
+        // division can state between two 01/77 items is an OCCURS DEPENDING ON whose object lies in another record.
+        foreach (var root in Roots.Where(r => r.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage
+                     or EntrySection.Linkage))
+            foreach (var table in DataItem.DescendantsOf(root).Prepend(root))
+                if (table.OccursSpec?.Depending is { } obj && !ReferenceEquals(obj.Root, root)
+                    && obj.Root.Section is EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage
+                    && listed.Contains(root) != listed.Contains(obj.Root))
+                {
+                    using var _ = Edition.At(clause.At);
+                    ApplyCommitRule($"'{root.CobolName}' depends on '{obj.Root.CobolName}' (OCCURS DEPENDING ON "
+                        + $"{obj.CobolName}), and the clause names only one of them", "SR8", "Where there is a dependency "
+                        + "of one data item upon another, the 01 or 77 level data items that contain or refer to them "
+                        + "shall each either or neither be specified in the list of identifiers, or have been specified in "
+                        + "identifiers already subject to the same or another APPLY COMMIT clause.");
+                }
+        // SR9 — "the file status data items and data-items specified in the linage or record clauses of those file
+        // descriptions are automatically subject to the APPLY COMMIT clause … and they shall only be specified in the
+        // linkage, working-storage or local-storage sections, or in the case of the record clause also in the file section".
+        foreach (var file in clause.Files)
+        {
+            using var _ = Edition.At(clause.At);
+            var implicitItems = new List<(DataItem Item, string What, bool FileSectionAllowed)>();
+            if (file.FileStatusItem is { } fs) implicitItems.Add((fs, "FILE STATUS", false));
+            if (file.Linage is { } lin)
+                foreach (var op in new[] { lin.Body, lin.Footing, lin.Top, lin.Bottom })
+                    if (op?.Item is { } li) implicitItems.Add((li, "LINAGE", false));
+            if (file.VaryingDependingItem is { } dep) implicitItems.Add((dep, "RECORD DEPENDING", true));
+            foreach (var (item, what, fileSectionAllowed) in implicitItems)
+            {
+                if (item.Section is not (EntrySection.WorkingStorage or EntrySection.LocalStorage or EntrySection.Linkage)
+                    && !(fileSectionAllowed && item.Section is EntrySection.File))
+                {
+                    ApplyCommitRule($"the {what} item '{item.CobolName}' of file '{file.CobolName}' is described outside the "
+                        + "linkage, working-storage and local-storage sections", "SR9", "… they shall only be specified in "
+                        + "the linkage, working-storage or local-storage sections, or in the case of the record clause also "
+                        + "in the file section.");
+                    continue;
+                }
+                if (!ScreenApplyCommitItem(item, $"the {what} item '{item.CobolName}' of file '{file.CobolName}'")) continue;
+                if (listed.Add(item) && !clause.Items.Any(i => DataItem.DescendantsOf(i).Contains(item)))
+                    clause.Items.Add(item);
+            }
+        }
+    }
+
+    /// <summary>SR7 and SR10 over one item the clause saves: no object reference within it (ISO §12.4.6.3.3 SR7, and
+    /// §9.1.18.6: "Data items containing object references are not permitted in APPLY COMMIT clauses") and no BASED
+    /// item (SR10). Returns whether both hold.</summary>
+    private bool ScreenApplyCommitItem(DataItem item, string what)
+    {
+        if (DataItem.DescendantsOf(item).Prepend(item).FirstOrDefault(i => i.Pic?.Usage == Usage.ObjectReference) is { } objRef)
+        {
+            ApplyCommitRule($"{what} contains the object reference '{objRef.CobolName}'", "SR7",
+                "APPLY COMMIT clauses shall not include data items containing object-reference data items.");
+            return false;
+        }
+        if (item.IsBased || item.Root.IsBased)
+        {
+            ApplyCommitRule($"{what} is subject to a BASED clause", "SR10", "No data items referenced by the FILE STATUS "
+                + "clause, the LINAGE clause, the RECORD clause, or separately specified in the APPLY COMMIT clause shall "
+                + "be subject to a BASED clause.");
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>Whether two 01/77 items occupy any storage in common — the one 01-level way to overlap is a REDEFINES
+    /// (§13.18.44), so the test follows each item's redefinition chain to the storage it starts.</summary>
+    private static bool SharesStorage(DataItem a, DataItem b)
+    {
+        static DataItem Base(DataItem i) { while (i.RedefinesTarget is { } t) i = t; return i; }
+        return ReferenceEquals(Base(a), Base(b));
+    }
+
+    /// <summary>⛔ THE ONE REPORT of the APPLY COMMIT clause's own syntax rules (COBOLNET4709; ISO §12.4.6.3.3).</summary>
+    private void ApplyCommitRule(string what, string rule, string quoted) =>
+        Edition.Error(DiagnosticCatalog.ApplyCommitClauseRule, $"APPLY COMMIT: {what} — ISO §12.4.6.3.3 {rule}: \"{quoted}\"");
+
     /// <summary>⛔ THE ONE REPORT FOR THE APPLY COMMIT ANTECEDENT FAMILY (kb/Work PB666) — the syntax rules of CLAIMED
     /// clauses and statements whose antecedent is "a file subject to an APPLY COMMIT clause": §12.4.5.9.3 SR1 (the
     /// LOCK MODE clause), §12.4.6.4.3 SR11 (a SAME clause mixing subject and non-subject files), §14.9.27.3 SR7 (OPEN's
     /// sharing phrase), §14.9.30.3 SR5 / §14.9.35.3 SR5 (READ's and REWRITE's lock phrases) and §14.9.47.3 SR2
     /// (UNLOCK). Each caller passes its own rule quoted with its citation; the fact is
     /// <see cref="FileModel.SubjectToApplyCommit"/>, recorded off this paragraph.
-    /// <para>⛔ THESE RULES ARE LIVE, NOT VACUOUS. kb/Work PB371 (owner, 2026-09-02) recorded the family CONFORMS
-    /// "witnessed by the refusal of the antecedent": COBOLNET1709 refuses the APPLY COMMIT clause (Annex A.4.3 is
-    /// not claimed). But COBOLNET1709 is <c>PermissiveInert</c>: under <c>--permissive</c> the clause is a warning,
-    /// the fact is recorded and the program compiles — and every one of these forbidden shapes then compiled with
-    /// zero errors. A refusal witnesses a rule only in the lanes where it refuses, so each rule is enforced here in
-    /// its own right (COBOLNET2974), in both lanes. (§12.4.6.4.4 GR3, the family's seventh member, is a general rule
-    /// about an ACTIVE clause's sharing at run time; no APPLY COMMIT clause is ever active here, in either lane.)</para></summary>
+    /// <para>Each rule is enforced here in its own right (COBOLNET2974): since kb/Work PB3338 the APPLY COMMIT clause is
+    /// accepted for the keyed organizations, so every one of these forbidden shapes is a program a user can write.
+    /// (§12.4.6.4.4 GR3, the family's seventh member, is a general rule about an ACTIVE clause's sharing at run time,
+    /// not a syntax rule.)</para></summary>
     /// <param name="file">The file the clause or statement names.</param>
     /// <param name="written">Whether the source wrote the construct the rule forbids for such a file.</param>
     /// <param name="what">The construct as written, for the message.</param>

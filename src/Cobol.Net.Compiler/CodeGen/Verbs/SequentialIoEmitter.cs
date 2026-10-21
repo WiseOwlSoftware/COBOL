@@ -53,9 +53,24 @@ internal sealed class SequentialIoEmitter(EmitContext ctx, NumericRenderer num, 
     /// <paramref name="successArm"/> is a call from a statement's SUCCESS branch (a sequential READ, whose failure
     /// branch owns the plain hook): only the EC bridge can raise there, so nothing is emitted without an EC-I-O
     /// mask.</para></summary>
+    /// <para>⛔ §14.6.13.1.3 ITEM 8 IS THE HOOK'S LAST STEP (kb/Work PB3338): <i>"if there is a fatal exception condition
+    /// for a file subject to an active APPLY COMMIT clause, then a ROLLBACK statement is executed unconditionally"</i>.
+    /// Emitted after every arm for a keyed file the element's clause names (where checking for the condition is enabled
+    /// the hook has already ended the run unit, whose §14.6.12 rollback is the termination's); the runtime asks whether
+    /// the status is fatal and the connector under commit control (<c>TransactionControl.RollbackOnFatal</c>).</para>
     public UseHookResult EmitUseHook(FileModel file, string verb, bool atEndHandled = false, bool invalidKeyHandled = false,
         bool onExceptionHandled = false, string? notNormalLabel = null, bool verbDisposes = false,
         string? useCompletedVar = null, bool successArm = false)
+    {
+        var result = EmitUseHookCore(file, verb, atEndHandled, invalidKeyHandled, onExceptionHandled, notNormalLabel,
+            verbDisposes, useCompletedVar, successArm);
+        if (file.SubjectToApplyCommit && !file.IsSequential && !successArm)
+            ctx.Writer.Line($"{RuntimeApi.RollbackOnFatal(FileKeyExpr(file))};   // ISO §14.6.13.1.3 item 8");
+        return result;
+    }
+
+    private UseHookResult EmitUseHookCore(FileModel file, string verb, bool atEndHandled, bool invalidKeyHandled,
+        bool onExceptionHandled, string? notNormalLabel, bool verbDisposes, string? useCompletedVar, bool successArm)
     {
         var w = ctx.Writer;
         if (successArm && ec.IoMaskFor(file) == 0) return default;

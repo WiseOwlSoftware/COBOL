@@ -519,6 +519,11 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // with no gate, no flag and no raise site, so `>>TURN EC-FLOW-RELEASE CHECKING ON` compiled clean and
         // wired nothing. Each rides a flag CobolSort's statement entry consults against the store's phase.
         ("EC-FLOW-RELEASE", "FlowReleaseChecking"),             // §14.9.32.4 GR1 — RELEASE outside its SORT's input procedure
+        // kb/Work PB3338 — the commit-and-rollback flow conditions, each read by TransactionControl at the statement's
+        // entry. (EC-FLOW-APPLY-COMMIT has no row: its raise point is the clause's activation, folded at the element's
+        // PROCEDURE DIVISION header — DataBinder.ApplyCommitActivationChecking, TransactionEmitter.EmitActivation.)
+        ("EC-FLOW-COMMIT", "FlowCommitChecking"),               // §14.9.7.4 GR2 — COMMIT under a recursive element or a SORT/MERGE
+        ("EC-FLOW-ROLLBACK", "FlowRollbackChecking"),           // §14.9.36.4 GR2 — ROLLBACK under a recursive element or a SORT/MERGE
         ("EC-FLOW-RETURN", "FlowReturnChecking"),               // §14.9.34.4 GR1 — RETURN outside its SORT/MERGE's output procedure
         ("EC-SORT-MERGE-RETURN", "SortMergeReturnChecking"),    // §14.9.34.4 GR3 — RETURN after the at end condition in the same output procedure
         // The sort-merge STATEMENT conditions (kb/Work PB1036). Before these rows the four names were catalog

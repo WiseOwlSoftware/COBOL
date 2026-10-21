@@ -722,6 +722,19 @@ public static class DiagnosticCatalog
         + "output procedure of a MERGE or file SORT statement\"; ISO §14.9.36.3 SR2 states the same rule for "
         + "ROLLBACK, with SORT unqualified.",
         "ISO §14.9.7.3 / §14.9.36.3");
+    // kb/Work PB3338: the APPLY COMMIT clause's OWN syntax rules — DataBinder.BindApplyCommitClause is the one report
+    // (OoEnvironmentRules reports SR6 for the factory and instance definitions, whose I-O-CONTROL no program binder reads).
+    public static readonly DiagnosticDescriptor ApplyCommitClauseRule = new(
+        "COBOLNET4709", "apply-commit-clause-rule", EditionSeverity.Error,
+        "An I-O-CONTROL APPLY COMMIT clause breaks one of its syntax rules (ISO §12.4.6.3.3): a file-name-1 not "
+        + "specified in this source element's FILE-CONTROL paragraph (SR1), a sort-merge file or a report file (SR2), "
+        + "an identifier-1 that is not an unreferenced-modified 01 or 77 item of the LINKAGE, WORKING-STORAGE or "
+        + "LOCAL-STORAGE SECTION or that repeats or overlaps another (SR3), no operand at all (SR4), the clause in a "
+        + "recursive source element (SR5; a function is always one, §8.6.6) or in a class, factory or interface "
+        + "definition (SR6, §9.1.18.6), a data item containing an object reference (SR7), only one of two 01/77 "
+        + "items one of which depends on the other (SR8), a FILE STATUS, LINAGE or RECORD DEPENDING item outside "
+        + "those sections (SR9), or any of them subject to a BASED clause (SR10).",
+        "ISO §12.4.6.3.3 SR1-SR10 / §9.1.18.6");
     public static readonly DiagnosticDescriptor AcceptVariableLengthGroup = new(
         "COBOLNET1691", "accept-variable-length-group", EditionSeverity.Error,
         "An ACCEPT receiver references a variable-length group: a group with a DYNAMIC LENGTH elementary item "
@@ -759,8 +772,8 @@ public static class DiagnosticCatalog
         + "written for such a file: the LOCK MODE clause (ISO §12.4.5.9.3 SR1), a SAME clause naming it with a file "
         + "not subject to one (§12.4.6.4.3 SR11), OPEN's sharing phrase (§14.9.27.3 SR7), READ's IGNORING LOCK / WITH "
         + "LOCK / WITH NO LOCK (§14.9.30.3 SR5), REWRITE's WITH LOCK / WITH NO LOCK (§14.9.35.3 SR5), or UNLOCK "
-        + "(§14.9.47.3 SR2). The APPLY COMMIT clause is itself declined (COBOLNET1709), so a program reaches these "
-        + "rules only under --permissive, where that refusal is a warning.",
+        + "(§14.9.47.3 SR2). For a file subject to commit and rollback §9.1.16 applies an implicit LOCK MODE IS "
+        + "AUTOMATIC WITH LOCK ON MULTIPLE RECORDS instead.",
         "ISO §14.9.27.3 SR7 / §12.4.5.9.3 SR1 / §12.4.6.4.3 SR11 / §14.9.30.3 SR5 / §14.9.35.3 SR5 / §14.9.47.3 SR2");
     public static readonly DiagnosticDescriptor ClosePhraseOrganization = new(
         "COBOLNET1693", "close-phrase-organization", EditionSeverity.Error,
@@ -3290,14 +3303,8 @@ public static class DiagnosticCatalog
         + "exception-name is accepted. See docs/CONFORMANCE.md §4.",
         "ISO §4.2.6 ¶3 / Annex A.3 item 4 / §14.9.31 / §14.9.38", RecognizedNotImplemented,
         Annex: DeclinedAnnex.A3);
-    public static readonly DiagnosticDescriptor CommitRollbackUnsupported = new(
-        "COBOLNET1579", "commit-rollback-unsupported", EditionSeverity.Warning,
-        "The commit and rollback facility (COMMIT/ROLLBACK, ISO §14.9.7/§14.9.36) is a processor-dependent "
-        + "element (§4.2.6; Annex A.3 items 6-7) that is not supported — the statement is accepted but performs "
-        + "no transaction control and behaves as CONTINUE, and no EC-FLOW-COMMIT/ROLLBACK condition is raised "
-        + "(§14.6.13.1.1). See docs/CONFORMANCE.md §4.",
-        "ISO §4.2.6 ¶3 / §4.2.7 / Annex A.3 items 6-7 / Annex A.4.3 items 4-5 / §14.9.7 / §14.9.36",
-        RecognizedNotImplemented, Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
+    // ⛔ COBOLNET1579 ("commit-rollback-unsupported") is RETIRED — NEVER REALLOCATE IT. It named COMMIT and ROLLBACK
+    //    accepted inert while the facility was declined; kb/Work PB3338 built them on the keyed store engine.
     public static readonly DiagnosticDescriptor ValidateFacilityUnsupported = new(
         "COBOLNET1580", "validate-facility-unsupported", EditionSeverity.Warning,
         "The VALIDATE facility (ISO §14.9.50) is an OPTIONAL element (§4.2.7; Annex A.4.14) and, at COBOL-2023, "
@@ -3422,15 +3429,14 @@ public static class DiagnosticCatalog
         PermissiveInert: true, Annex: DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor ApplyCommitClauseUnsupported = new(
         "COBOLNET1709", "apply-commit-clause-unsupported", EditionSeverity.Error,
-        "The I-O-CONTROL paragraph's APPLY COMMIT clause (ISO §12.4.6.3) is written. The commit and rollback "
-        + "facility is an OPTIONAL element (Annex A.4.3 item 2) and processor-dependent (Annex A.3 items 6-7) "
-        + "whose support WiseOwl COBOL does not claim (docs/CONFORMANCE.md §4 item 2, §5) — there is no transaction "
-        + "manager — so Annex A.4.1 makes refusing the clause by name the conforming posture. With no clause "
-        + "accepted, no APPLY COMMIT clause is ever active, which is exactly the state §14.9.7.4 GR1 / "
-        + "§14.9.36.4 GR1 make COMMIT and ROLLBACK behave as CONTINUE in. Introduced by COBOL-2023 (Annex E.3.2 "
-        + "item 2); below that APPLY and COMMIT are user-defined words (§8.9 / §8.10).",
-        "ISO §4.2.6 / §4.2.7 / Annex A.4.1 / Annex A.4.3 item 2 / Annex A.3 items 6-7 / §12.4.6.3 / Annex E.3.2 item 2",
-        DeclinedOptionalElement, PermissiveInert: true, Annex: DeclinedAnnex.A3 | DeclinedAnnex.A4);
+        "The I-O-CONTROL paragraph's APPLY COMMIT clause (ISO §12.4.6.3) names a file of SEQUENTIAL or LINE "
+        + "SEQUENTIAL organization. §9.1.18.2 admits \"any type of file on a mass storage device\", but WiseOwl COBOL "
+        + "provides commit and rollback only for RELATIVE and INDEXED files, whose keyed store engine keeps the "
+        + "transaction (docs/CONFORMANCE.md §5, Annex A.4.3: Partial); the sequential organization's transaction "
+        + "journal is not provided (kb/Work PB3340), so Annex A.4.1 makes refusing that operand by name the "
+        + "conforming posture.",
+        "ISO §4.2.7 / Annex A.4.1 / Annex A.4.3 item 2 / §9.1.18.2 / §12.4.6.3",
+        DeclinedOptionalElement, PermissiveInert: true, Annex: DeclinedAnnex.A4);
     public static readonly DiagnosticDescriptor DeclinedModuleExceptionName = new(
         "COBOLNET1710", "declined-module-exception-name", EditionSeverity.Error,
         "A written exception-name (>>TURN, RAISE, EXIT/GOBACK RAISING, a USE declarative, or an "

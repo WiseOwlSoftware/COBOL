@@ -223,6 +223,11 @@ internal sealed partial class EcBinder
         // writes. RELEASE's record size is §13.18.43.4 GR14 b) / GR19 b); the -ACTIVE rule for a RELEASE in an output
         // procedure / a RETURN in an input procedure is §14.9.40.4 GR10 / GR13, §14.9.24.4 GR8.
         new(s => s is BoundRelease, ["EC-FLOW-RELEASE", "EC-SORT-MERGE-ACTIVE", "EC-SORT-MERGE-RELEASE"]),
+        // COMMIT / ROLLBACK (kb/Work PB3338). PRECISE: the run unit's TransactionControl raises EC-FLOW-COMMIT /
+        // EC-FLOW-ROLLBACK at the statement's entry (§14.9.7.4 GR2, §14.9.36.4 GR2); the refused file's EC-I-O condition
+        // is its own exception processing (the I-O hook), as for any input-output statement.
+        new(s => s is BoundCommitRollback { IsCommit: true }, ["EC-FLOW-COMMIT"]),
+        new(s => s is BoundCommitRollback { IsCommit: false }, ["EC-FLOW-ROLLBACK"]),
         new(s => s is BoundReturn, ["EC-FLOW-RETURN", "EC-SORT-MERGE-RETURN", "EC-SORT-MERGE-ACTIVE"]),
         // The SORT / MERGE statements themselves (kb/Work PB1036). PRECISE: every raise is CobolSort's, at the point
         // the verb's rule names. A name the statement's shape cannot raise is not asked (a SORT with no USING releases
