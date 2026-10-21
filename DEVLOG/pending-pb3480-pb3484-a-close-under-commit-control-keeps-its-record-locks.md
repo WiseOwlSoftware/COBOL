@@ -52,4 +52,4 @@ publish were never reached (its minted key leaves the registry); `ReleaseAllKept
 region-lock host that answers unavailable for record bytes. The review's R1-2 scenario (NO OTHER) sets no record locks at all (§12.4.5.9.4 GR3), so its witness forces
 the early give-back with an OPEN phrase SHARING WITH NO OTHER over an ALL OTHER connector instead; both lead witnesses were mutation-checked.
 
-Gate: `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T182319Z-8a5f1f, Unit 34,189 cases ran, no failure.
+Gate (round 1 re-gate): `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T191233Z-a2c6a5, Unit 34,090 cases ran, no failure; Linux gate (unit, conformance) GREEN.
