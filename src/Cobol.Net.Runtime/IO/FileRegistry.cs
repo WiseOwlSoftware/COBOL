@@ -521,17 +521,7 @@ public sealed class FileRegistry
         // §9.1.18.5, after the commit or the rollback: "In both cases all file and record locks are then released" — the
         // file locks a CLOSE under commit control kept, the implicit CLOSEs' just above included (review finding R1-2). A
         // transaction whose rollback the medium refused is left as a death leaves it, for the dead-owner step.
-        foreach (var (name, c) in _files.ToArray())
-        {
-            try { if (c is KeyedConnector k) ReleaseKeptOf(name, k); }
-            catch (Exception failure) { (failures ??= []).Add(failure); }
-        }
-        foreach (var (_, k) in _retired.ToArray())
-        {
-            try { k.ReleaseKept(); }
-            catch (Exception failure) { (failures ??= []).Add(failure); }
-        }
-        _retired.Clear();
+        ReleaseAllKept(ref failures);
         if (failures is [var only]) ExceptionDispatchInfo.Throw(only);
         if (failures is not null)
             throw new AggregateException("the run unit's implicit CLOSE failed for more than one file (ISO §14.6.11 2))",
@@ -1143,11 +1133,30 @@ public sealed class FileRegistry
     /// closed under commit control.</summary>
     private void ReleaseCommitLocks()
     {
-        foreach (var (name, c) in _files)
-            if (c is KeyedConnector { CommitControlled: true } k)
-                ReleaseKeptOf(name, k);
-        try { foreach (var (_, k) in _retired) k.ReleaseKept(); }
-        finally { _retired.Clear(); }   // a release that threw has spent its kept state all the same (KeyedConnector.ReleaseKept)
+        List<Exception>? failures = null;
+        ReleaseAllKept(ref failures);
+        if (failures is [var only]) ExceptionDispatchInfo.Throw(only);
+        if (failures is not null)
+            throw new AggregateException("the release of what a CLOSE under commit control kept failed for more than one file", failures);
+    }
+
+    /// <summary>Give back everything every connector under commit control holds past a CLOSE (<see cref="ReleaseKeptOf"/>), the
+    /// retired ones included (<see cref="_retired"/>), whether or not one release fails: a failure is collected into
+    /// <paramref name="failures"/>, never allowed to leave a later connector holding its handle. A release that threw has
+    /// spent its kept state all the same (<see cref="KeyedConnector.ReleaseKept"/>), so the list ends empty.</summary>
+    private void ReleaseAllKept(ref List<Exception>? failures)
+    {
+        foreach (var (name, c) in _files.ToArray())
+        {
+            try { if (c is KeyedConnector { CommitControlled: true } k) ReleaseKeptOf(name, k); }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        foreach (var (_, k) in _retired.ToArray())
+        {
+            try { k.ReleaseKept(); }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        _retired.Clear();
     }
 
     /// <summary>⛔ THE ONE GIVING BACK of what a registered keyed connector holds past a CLOSE under commit control (§9.1.16, the
