@@ -103,6 +103,13 @@ DIAG_CODE = re.compile(r"\b((?:COBOLNET|COBOL|CBL)\d{4})\b")
 
 FUNCTION_HEADING = re.compile(r"^#{2,6} 15\.\d+ ([A-Z][A-Z0-9-]*) function\s*$")
 
+#: The intrinsic functions whose value depends on the clock, the compilation, the locale or a random sequence: two compilers
+#: cannot agree on their output, so the prompt forbids them AND their clauses are not seeds (the second bake-off of
+#: 2026-10-20 spent 3 to 4 programs in 20 on WHEN-COMPILED and LOCALE-TIME, every one an OUTPUT_DIFFERS that means nothing).
+#: One definition; the self-test holds every name to the spec's function list.
+NONDETERMINISTIC_FUNCTIONS = ("CURRENT-DATE", "FORMATTED-CURRENT-DATE", "WHEN-COMPILED", "RANDOM", "SECONDS-PAST-MIDNIGHT",
+                              "LOCALE-COMPARE", "LOCALE-DATE", "LOCALE-TIME", "LOCALE-TIME-FROM-SECONDS")
+
 
 def spec_functions(text: str) -> list[str]:
     """The intrinsic functions the standard defines, one per `15.n NAME function` clause heading of the transcription (the
@@ -110,6 +117,10 @@ def spec_functions(text: str) -> list[str]:
     invented FUNCTION TRANSLATE, NATIONAL, SUBSTRING and YEAR, and both compilers refused each of them (WiseOwl citing 15.6)."""
     return [m.group(1) for line in text.splitlines() if (m := FUNCTION_HEADING.match(line))]
 
+
+#: Not a seed: a clause of one of the forbidden functions (its programs cannot agree between two compilers), and 15.6
+#: "Summary of functions", a table (it was a seed of the second bake-off of 2026-10-20).
+NOT_A_SEED = re.compile(r"^(?:(?:" + "|".join(re.escape(f) for f in NONDETERMINISTIC_FUNCTIONS) + r") function|Summary of functions)\s*$")
 
 #: One worked example of the shapes the bake-off's models kept getting wrong (PERFORM VARYING with UNTIL and END-PERFORM,
 #: COMPUTE with ROUNDED and both SIZE ERROR arms, PICTURE with S, V and editing, an intrinsic function, IF/ELSE/END-IF):
@@ -151,7 +162,7 @@ SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compile
 - Free reference format: EVERY line starts in column 1 with no indentation, one statement per line. At most 80 lines, and no repetitive filler data items: a few well-chosen items exercised many ways.
 - The program must compile and run with no input: no ACCEPT from the console or standard input, no command-line arguments.
 - Every result the program computes is shown with DISPLAY, so two compilers' outputs can be compared byte for byte.
-- Output must be deterministic: no CURRENT-DATE, WHEN-COMPILED, RANDOM, SEED, time, locale or environment dependent values.
+- Output must be deterministic: no FUNCTION """ + ", ".join(NONDETERMINISTIC_FUNCTIONS) + """, no ACCEPT FROM DATE/TIME, nothing time, locale or environment dependent.
 - No files unless the clause itself is about file handling; then ASSIGN each file to a plain name in the working directory, create it in the program, and DELETE FILE it before STOP RUN.
 - Exercise the clause named below in several distinct ways: edge values, both branches of every optional phrase, size and sign boundaries, truncation, ROUNDED, nested forms. Prefer cases a compiler could get subtly wrong.
 - Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE).
@@ -201,11 +212,17 @@ def clauses(text: str, prefixes: tuple[str, ...]) -> list[tuple[str, str, str]]:
         if m:
             number, title = m.group(1), m.group(2).strip()
             titles[number] = title
-            if cur is not None and STRUCTURAL.match(title) and number.startswith(cur[0] + "."):
-                cur[2].append(f"\n{title}\n")
+            if STRUCTURAL.match(title) and number.count(".") >= 2:
+                # A structural SUB-clause folds into the seed it belongs to and never starts one of its own; at two
+                # components the same words are a clause (15.3 "Arguments", 15.4 "Returned values": the rules every function
+                # shares), and a seed.
+                if cur is not None and number.startswith(cur[0] + "."):
+                    cur[2].append(f"\n{title}\n")
+                else:
+                    cur = None
                 continue
             cur = [number, titled(number, title), []]
-            if under(number):
+            if under(number) and not NOT_A_SEED.match(title):
                 out.append(cur)
         elif cur is not None and not line.startswith("<a id="):
             cur[2].append(line)
@@ -258,6 +275,10 @@ def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, 
             if attempt == 0 and b"think" in msg:
                 body.pop("think")
                 continue
+            if b"prediction aborted" in msg:
+                # Ollama stopped a reply that fell into a repeating loop ("token repeat limit reached"): the model's reply,
+                # degenerate, not a failure of the harness or the server. The caller treats it as a reply with no program.
+                return "", time.monotonic() - start, "aborted", 0
             raise RuntimeError(f"ollama HTTP {e.code}: {msg!r}") from None
     raise AssertionError("unreachable")
 
@@ -581,6 +602,8 @@ class Fuzz:
 def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
     """Why a reply yielded no program: cut off at the output cap, with the thinking that spent the cap named when the content
     is empty (a model that ignores `think: false`), or simply no program in it."""
+    if done == "aborted":
+        return "Ollama aborted the reply: the model fell into a repeating loop (token repeat limit reached)"
     if done != "length":
         return "no COBOL program in the reply"
     if thinking_chars and not content_chars:
@@ -826,6 +849,14 @@ def self_test() -> int:
           {"REVERSE", "HIGHEST-ALGEBRAIC", "NUMVAL-F"} <= set(real) and not {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"} & set(real)
           and len(real) > 80, (len(real), sorted(set(real) & {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"})))
     sp = system_prompt(real)
+    check("seeds: the environment-dependent functions' clauses are not seeds (their output cannot agree), every name is a function of the spec, and the prompt forbids each by name",
+          set(NONDETERMINISTIC_FUNCTIONS) <= set(real) and not any(t.rsplit(" ", 1)[0] in NONDETERMINISTIC_FUNCTIONS for _n, t, _b in real_seeds if t.endswith(" function"))
+          and all(f in sp for f in NONDETERMINISTIC_FUNCTIONS),
+          sorted(set(NONDETERMINISTIC_FUNCTIONS) - set(real)))
+    check("seeds: 15.6 Summary of functions (a table) is not a seed, and a structural title at two components is a clause and stays one (15.3 Arguments, 15.4 Returned values)",
+          "15.6" not in by_number and by_number.get("15.3") == "Arguments" and by_number.get("15.4") == "Returned values", {k: by_number.get(k) for k in ("15.6", "15.3", "15.4")})
+    check("cut off: a reply Ollama aborted for a repeating loop is the model's failure, named",
+          "repeating loop" in cut_off_reason("aborted", 0, 0))
     check("prompt: the system prompt carries the example, every function of the standard and nothing unfilled",
           EXAMPLE_PROGRAM in sp and all(f in sp for f in real) and "{functions}" not in sp and "HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM" in sp)
     check("classify: same output agrees", classify(ok_run, ok_run) == "AGREE")
