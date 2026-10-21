@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -18,14 +19,11 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class ReportHeldLineTests
 {
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb1247-{tag}-{Guid.NewGuid():N}.txt");
-
     [Fact]
     public void HoldLine_DrainsADifferentHolderFirst_AndCloseDrainsTheLast()
     {
         var reg = new FileRegistry();
-        string host = Tmp("held");
+        string host = FileHarness.Tmp("held");
         reg.Register("P", host, 20, lineSequential: true, optional: false, -1, -1);
         try
         {

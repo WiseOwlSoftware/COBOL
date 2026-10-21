@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -20,14 +21,11 @@ public sealed class SharedRecordStoreTests
 {
     private const int Random = 1;   // KeyedAccess.Random
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb143-{tag}-{Guid.NewGuid():N}.dat");
-
     /// <summary>Two RANDOM-access relative connectors over one host, records 1..n preloaded through A.</summary>
     private static (FileRegistry reg, string host) TwoConnectors(params string[] records)
     {
         var reg = new FileRegistry();
-        string host = Tmp("two");
+        string host = FileHarness.Tmp("two");
         reg.RegisterRelative("A", host, 8, false, Random, 4, -1, -1);
         reg.RegisterRelative("B", host, 8, false, Random, 4, -1, -1);
         reg.RegisterSharing("A", FileSharing.AllOther, FileLockMode.Manual, multiple: false);
@@ -109,7 +107,7 @@ public sealed class SharedRecordStoreTests
     public void Indexed_SharedStore_WritesInterleaveAndPersist()
     {
         var reg = new FileRegistry();
-        string host = Tmp("ix");
+        string host = FileHarness.Tmp("ix");
         reg.RegisterIndexed("A", host, 8, false, Random, [new(0, 2)], -1, -1);
         reg.RegisterIndexed("B", host, 8, false, Random, [new(0, 2)], -1, -1);
         reg.RegisterSharing("A", FileSharing.AllOther, FileLockMode.Manual, multiple: false);

@@ -199,7 +199,7 @@ public sealed class FrameDecoderDriftTests
     [MemberData(nameof(Damages))]
     public void EveryReader_EndsTheDataAtTheSameFrame(Damage damage)
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb2754-{damage}-{Guid.NewGuid():N}.dat");
+        string host = FileHarness.Tmp($"pb2754-{damage}");
         try
         {
             File.WriteAllBytes(host, [.. TwoRecords, .. Damaged(damage)]);
@@ -232,7 +232,7 @@ public sealed class FrameDecoderDriftTests
     [MemberData(nameof(Damages))]
     public void ADamagedFirstFrame_IsNotAFramedFile(Damage damage)
     {
-        string host = Path.Combine(Path.GetTempPath(), $"pb2754-first-{damage}-{Guid.NewGuid():N}.dat");
+        string host = FileHarness.Tmp($"pb2754-first-{damage}");
         try
         {
             File.WriteAllBytes(host, Damaged(damage));

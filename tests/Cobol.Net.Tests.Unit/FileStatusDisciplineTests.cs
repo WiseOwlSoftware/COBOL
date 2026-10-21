@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using Xunit;
 
 namespace CobolNet.Tests.Unit;
@@ -18,15 +19,12 @@ public sealed class FileStatusDisciplineTests
 {
     private const int SeqAccess = 0;   // KeyedAccess.Sequential
 
-    private static string Tmp(string tag) =>
-        Path.Combine(Path.GetTempPath(), $"pb140-{tag}-{Guid.NewGuid():N}.dat");
-
     /// <summary>A relative ACCESS SEQUENTIAL connector loaded with <paramref name="records"/> and reopened I-O
     /// — the §9.1.13.7 3) DELETE-gate scenario's starting state.</summary>
     private static (FileRegistry reg, string host) SeqRelativeIo(params string[] records)
     {
         var reg = new FileRegistry();
-        string host = Tmp("rel");
+        string host = FileHarness.Tmp("rel");
         reg.RegisterRelative("F", host, 8, false, SeqAccess, 4, -1, -1);
         reg.OpenStatic("F", FileOpenMode.Output);
         foreach (string r in records) reg.WriteKeyed("F", r.PadRight(8), -1);
@@ -92,7 +90,7 @@ public sealed class FileStatusDisciplineTests
     public void CloseWithLock_Unsuccessful42_DoesNotPoisonLaterOpen()
     {
         var reg = new FileRegistry();
-        string host = Tmp("cwl");
+        string host = FileHarness.Tmp("cwl");
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         try
         {
@@ -115,7 +113,7 @@ public sealed class FileStatusDisciplineTests
     public void CloseReelUnit_AbsentOptional_NoUnitProcessing()
     {
         var reg = new FileRegistry();
-        string host = Tmp("opt");
+        string host = FileHarness.Tmp("opt");
         reg.Register("O", host, 8, lineSequential: false, optional: true, -1, -1);
         reg.OpenStatic("O", FileOpenMode.Input);
         Assert.Equal(FileStatusCode.OptionalFileNotFound, reg.Status("O"));   // '05' — open, not present
@@ -172,7 +170,7 @@ public sealed class FileStatusDisciplineTests
     public void SequentialSurface_OnAKeyedConnector_IsLoud()
     {
         var reg = new FileRegistry();
-        reg.RegisterRelative("R", Tmp("seqsurf"), 8, false, SeqAccess, 4, -1, -1);
+        reg.RegisterRelative("R", FileHarness.Tmp("seqsurf"), 8, false, SeqAccess, 4, -1, -1);
         Assert.Throws<InvalidOperationException>(() => reg.Write("R", "X", -1, null));
         Assert.Throws<InvalidOperationException>(() => reg.WriteAdvancing("R", "X", 1, false, null));
     }
@@ -183,7 +181,7 @@ public sealed class FileStatusDisciplineTests
     public void CloseReelUnit_OnAKeyedConnector_IsLoud()
     {
         var reg = new FileRegistry();
-        reg.RegisterRelative("R", Tmp("reel"), 8, false, SeqAccess, 4, -1, -1);
+        reg.RegisterRelative("R", FileHarness.Tmp("reel"), 8, false, SeqAccess, 4, -1, -1);
         Assert.Throws<InvalidOperationException>(() => reg.CloseReelUnit("R"));
     }
 
@@ -205,7 +203,7 @@ public sealed class FileStatusDisciplineTests
     public void DeleteFile_AbsentPhysicalFile_Is05()
     {
         var reg = new FileRegistry();
-        reg.Register("A", Tmp("absent"), 8, lineSequential: false, optional: false, -1, -1);
+        reg.Register("A", FileHarness.Tmp("absent"), 8, lineSequential: false, optional: false, -1, -1);
         Assert.Equal(FileStatusCode.OptionalFileNotFound, reg.DeleteFile("A"));
     }
 
@@ -228,7 +226,7 @@ public sealed class FileStatusDisciplineTests
     public void Delete_RandomMissingKey_Is23()
     {
         var reg = new FileRegistry();
-        string host = Tmp("rand");
+        string host = FileHarness.Tmp("rand");
         reg.RegisterRelative("F", host, 8, false, 1 /* Random */, 4, -1, -1);
         try
         {
@@ -247,7 +245,7 @@ public sealed class FileStatusDisciplineTests
     public void Close_ThenCloseAgain42_ThenReopen00()
     {
         var reg = new FileRegistry();
-        string host = Tmp("cycle");
+        string host = FileHarness.Tmp("cycle");
         reg.Register("S", host, 8, lineSequential: false, optional: false, -1, -1);
         try
         {

@@ -21,8 +21,6 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 public sealed class AlreadyOpenOpenDriftTests
 {
-    private static string Tmp(string tag) => Path.Combine(Path.GetTempPath(), $"pb2748-{tag}-{Guid.NewGuid():N}.dat");
-
     private static FileConnector Connector(FileRegistry reg, string name) =>
         (FileConnector)typeof(FileRegistry).GetMethod("Require", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(reg, [name])!;
@@ -38,7 +36,7 @@ public sealed class AlreadyOpenOpenDriftTests
     [Fact]
     public void AReOpen_Answers41_AndLeavesTheOpenConnectorAsItWas()
     {
-        string host = Tmp("reopen");
+        string host = FileHarness.Tmp("reopen");
         try
         {
             var reg = new FileRegistry();
@@ -82,7 +80,7 @@ public sealed class AlreadyOpenOpenDriftTests
     [Fact]
     public void AReOpenThatASiblingWouldRefuse_IsStill41()
     {
-        string host = Tmp("sibling");
+        string host = FileHarness.Tmp("sibling");
         try
         {
             File.WriteAllText(host, "AAAABBBB");
