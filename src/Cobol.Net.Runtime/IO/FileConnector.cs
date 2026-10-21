@@ -422,6 +422,14 @@ public abstract class FileConnector
     /// then ends the lock.</summary>
     private protected virtual bool TryRestoreKeptFileLock(RunUnitFileLock held) => false;
 
+    /// <summary>⛔ WHETHER THIS CONNECTOR'S CLOSE KEEPS ITS RECORD LOCKS (and its file lock): §14.9.6.4 GR9, <i>"Except when the
+    /// file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the file connector
+    /// referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16 releases a
+    /// commit-controlled file's only at a COMMIT or a ROLLBACK. Asked by the registry's CLOSE (<c>SharedClose</c>) before the
+    /// connector's own close runs, and by the connector's close itself (<c>KeyedConnector.CloseCore</c>), so the lock release
+    /// and the handle that carries the locks are one decision. False for a connector no APPLY COMMIT clause names.</summary>
+    internal virtual bool CloseKeepsLocks => false;
+
     /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
     /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
     private protected virtual bool HoldsKeptHandle => false;
