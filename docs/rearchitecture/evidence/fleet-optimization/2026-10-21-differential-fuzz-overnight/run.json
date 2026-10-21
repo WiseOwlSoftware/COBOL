@@ -1,0 +1,23 @@
+{
+ "model": "qwen3.6:35b",
+ "out": "E:\\COBOL-wt\\fuzz-yield\\conformance-suite\\results\\fuzz-20261020-224517",
+ "jobs": 4,
+ "count": null,
+ "hours": 8.0,
+ "prefixes": [
+  "14.9",
+  "15",
+  "13.18",
+  "8.8"
+ ],
+ "temperature": 0.3,
+ "cobol_exe": "E:\\COBOL\\src\\Cobol.Net.Cli\\bin\\Debug\\net10.0\\cobol.exe",
+ "keep": false,
+ "repairs": 3,
+ "variations": 3,
+ "seed": 20261021,
+ "in_order": false,
+ "seeds": 258,
+ "edition": "2014",
+ "started": "2026-10-21T05:45:17+00:00"
+}
