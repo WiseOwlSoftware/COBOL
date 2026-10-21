@@ -1861,7 +1861,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   writes nothing and reads the file as it stands. (3) A CLOSE of a connector an active APPLY COMMIT clause names keeps its
   handle, region endpoint and store attachment — whether or not the run unit changed a record through it (§9.1.15: *"The
   file lock is removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file
-  is subject to an active APPLY COMMIT clause."*; branch review finding R1-2) — in `KeyedConnector`'s `Kept`. The next
+  is subject to an active APPLY COMMIT clause."*; branch review finding R1-2) — in a `KeptFile`, the kept state KEYED BY THE PHYSICAL
+  FILE it was kept on (kb/Work PB3494; the connector holds it in `KeyedConnector._kept`). The next
   COMMIT or ROLLBACK gives them back, and so does the run unit's end, after its implicit CLOSEs (§9.1.18.5: *"In both cases
   all file and record locks are then released"*; `FileRegistry.CloseAll`). The connector's own re-OPEN CARRIES THEM ON
   (finding R1-1): the attachment stays the connector's, so the run unit's store and its transaction on the file are the
@@ -1934,18 +1935,40 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   handle goes, a re-OPEN that fails moves them back (`AbandonOpen`), and one whose kept handle was given back early (the
   share-mode window) takes them off the host with its own handle (`PhysicalFileTable.Unpublish`), leaves them in this run unit's
   table and publishes them again through the kept handle when `KeyedConnector.RetakeKeptHandle` takes it again
-  (`PhysicalFileTable.Republish`), whose endpoint becomes their owner (`Kept.Endpoint`; the OPEN OUTPUT probe's retake moves
+  (`PhysicalFileTable.Republish`), whose endpoint becomes their owner (`KeptFile.Endpoint`; the OPEN OUTPUT probe's retake moves
   them there through the attach's `Rehome`); a refused retake leaves them in the table alone, where the COMMIT or ROLLBACK
-  ends them like any unpublished lock (§14.9.27.4 GR25). **A connector that leaves the registry holding what its CLOSE
-  kept** - displaced by the re-registration of its element after a CANCEL (`CloseDisplaced`), or dropped with its object
-  (`CloseAndDrop`) - is RETIRED (`FileRegistry._retired`, kb/Work PB3484): it stays the COMMIT's and the ROLLBACK's (§12.4.6.3.4
+  ends them like any unpublished lock (§14.9.27.4 GR25). **What a connector holds past its CLOSE belongs to the physical file, not to the
+  connector** (kb/Work PB3484, PB3494). A connector that leaves the registry holding it - displaced by the re-registration of its
+  element after a CANCEL (`CloseDisplaced`), or dropped with its object (`CloseAndDrop`) - or that an ASSIGN USING associates with ANOTHER
+  physical file (§12.4.5.3 GR3 b: the association is made at the OPEN, `FileRegistry.Associate`) hands its `KeptFile` to the registry
+  (`KeyedConnector.TakeKept`, `FileRegistry.Retire`; `FileRegistry._retired`): it stays the COMMIT's and the ROLLBACK's (§12.4.6.3.4
   GR5: a canceled element's APPLY COMMIT clause stays active until a COMMIT or ROLLBACK deactivates it; §14.9.7.4 GR3 applies the
-  changes of the files of the active clauses) - `TransactionConnectors` finds its transaction, and `ReleaseCommitLocks` and
-  `CloseAll` give back what it kept, its unpublished record locks (by name, through its own physical-file state) included. The element's NEXT
-  activation OPENs what the retired connector kept as a re-OPEN would: `FileRegistry.ReclaimRetired` hands the kept state to the replacement of the
+  changes of the files of the active clauses, and the changes the connector made to the first file stay changes to a file the clause
+  names, whichever file it is associated with next) - `TransactionHolders` finds its transaction (one per physical file), and
+  `ReleaseCommitLocks` and `CloseAll` give back what it kept, its unpublished record locks (by name, through its own physical-file state)
+  included; a refused ROLLBACK or COMMIT of it is told through the file-name's connector. The OPEN that follows an association with another
+  file is an ordinary OPEN of that file: it adopts neither the first file's handle nor its store, while the first file's transaction, record locks
+  and file lock stand against other run units. The `KeptFile` carries what a ROLLBACK needs without the connector:
+  the store, the restoring trees bound to that store (`KeptFile.Restoring`: the connector's `Restoring` is bound to the store it is
+  attached to when asked, never to its field), the physical-file state and the table to detach from. The element's NEXT
+  activation, or the connector's association with the same file again, OPENs what the retired state holds as a re-OPEN would:
+  `FileRegistry.ReclaimRetired` hands the kept state to the connector of the
   same name, organization and physical file under commit control (`KeyedConnector.InheritKept`) at its OPEN, so its own run unit's kept handle never
   refuses it '61' (§9.1.13.9 1) owes '61' only against a file open by another file connector; the kept file lock is against other run units). Before this the dropped connector's handle, file lock and transaction were beyond every
-  COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process.
+  COMMIT, ROLLBACK and run-unit end, and the file lock lasted as long as the process; and before PB3494 a connector associated with
+  another file adopted the first file's kept handle and store (reads answered the first file's records) and its Table 19 column
+  was amended on the first file.
+  **An OPEN OUTPUT over a file its connector's CLOSE kept ends the kept state only when the creation has LANDED** (kb/Work PB3493;
+  §14.9.27.4 GR18 creates the file, GR25: *"If the execution of the OPEN statement is unsuccessful, the file is not affected"*):
+  `KeyedConnector.Recreate` makes the new, empty store in a store of its own (`NewStore`, off the table) through the OPEN's own handle,
+  beside the kept attachment, and `PagedFile.Create` undoes a refused creation (every page it wrote goes back and it hands back no
+  store), so a refusal - the share-mode window, a refused write or sync - leaves the transaction, the record locks, the file lock
+  and the handle as the CLOSE left them (the OPEN's `AbandonOpen` runs as for any unsuccessful re-OPEN). A landed creation gives the
+  kept state back (`ReleaseKept`) and registers the created store (`StoreTable.AttachCreated`). The one failure that lands the
+  creation is the final sync's, after the truncation: `PagedFile.Create` then hands the created store back with its '30'
+  (`KeyedStore.FileReplaced`), the previous file is gone, and the kept state ends with it while the OPEN answers '30'. The same decision
+  stands where the kept file is not there at the re-OPEN (an absent OPTIONAL file on INPUT or I-O, removed outside the run unit): the
+  kept state belonged to that file and ends, after the new handle is taken, never beside it.
   (4) HOLDINGS and UNDO keys are ordered by the FILE'S key orders (`HoldingsKeyOrder`, kb/Work PB3485), never by their
   bytes: a record holding compares its identity through the prime tree's order and a value holding its alternate key number
   and then the value through that key's order, so two key images the file's collating sequence makes equal (§12.4.5.12.4
@@ -2404,7 +2427,7 @@ any later crash — an answer the medium can later contradict is a defect.
 | a value holding V | the HOLDINGS tree (V, key index + bytes) → id, AND the owner's UNDO tree (V, ...) → nothing | the same walk, every V key removed | the same walk, removed (the value is free after the images are re-applied, or held again by the restored record) | the same | the same walk — the finding R5-2 leak had V keys in the index only |
 | a before-image | the owner's UNDO tree (R, identity) | released with the UNDO pages (`freed`) | re-applied, then the pages `freed` | step 5, the same | (k + 1) × d per image re-applied |
 | a READ's lock | the region (a record identity, through the holder's handle) | released after the retirement | released after the statement; a dead holder's went with its handle (nothing to restore) | nothing | one host lock release |
-| the §9.1.15 file lock of a CLOSEd connector | the kept handle (`KeyedConnector`'s `Kept`) | released (GR4) | released (§9.1.15's last sentence) | nothing | 0 |
+| the §9.1.15 file lock of a CLOSEd connector | the kept handle (`KeptFile`) | released (GR4) | released (§9.1.15's last sentence) | nothing | 0 |
 | the UNACKNOWLEDGED mark | the run unit's memory | set when a COMMIT's sync 2 and its reversal are both refused | consulted: promote and answer by the sync | nothing (a dead run unit's mark died with it; R6 settles by the slots) | a promotion |
 
 | The program is told | What the file holds in the operating environment | After a later process death | After a later power loss | What R6 finds |
@@ -2617,7 +2640,7 @@ file lock across the CLOSE.** A covered sequential connector takes its host hand
 ROLLBACK and KEEPS it — across its CLOSE (§14.9.6.4 GR9) and across a re-OPEN in the same transaction, whose reader or writer
 is rebuilt over the kept handle (an OUTPUT re-open truncates it after the capture, an EXTEND re-open seeks to its end, an INPUT
 or I-O re-open seeks to its start) — until the COMMIT (§14.9.7.4 GR4) or ROLLBACK (§9.1.15's last sentence) releases it, as
-`KeyedConnector` keeps its handle in its `Kept` (PB3337); the two exceptions are a DELETE FILE, which closes it
+`KeyedConnector` keeps its handle in its `KeptFile` (PB3337); the two exceptions are a DELETE FILE, which closes it
 before the physical file is removed (a Windows handle not opened for deletion blocks the removal, and after it there is no
 file to lock: the (ALL) holding is what refuses the next opener), and a creation, which opens it. It is opened READ-WRITE
 where the host grants it (every mode of the transaction must be servable through it; a host that refuses the write grants a
@@ -2769,7 +2792,7 @@ not IGNORING LOCK of a held ordinal answers '51' as today.
 
 **2.2.2.9 CLOSE, re-OPEN, DELETE FILE and termination under commit control.** A covered connector's CLOSE releases its records
 (the writer's buffer flushed, an open print line ended, `CloseCore` as today), disposes its reader or writer, and KEEPS the host
-handle with its region endpoint — the §9.1.15 file lock and the transaction's READ locks — as `KeyedConnector`'s `Kept`
+handle with its region endpoint — the §9.1.15 file lock and the transaction's READ locks — as a `KeptFile`
 does for the keyed organizations (PB3337); the holder file is the REGISTRY's, held from the first change to the retirement
 whatever the connector does. A re-OPEN before the next COMMIT or ROLLBACK rebuilds the reader or writer over the kept handle
 (2.2.2.4), and an OPEN INPUT of the file by the same run unit in that interval reads its own uncommitted changes (D.2.5; the

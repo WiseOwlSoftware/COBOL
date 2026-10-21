@@ -324,7 +324,7 @@ public abstract class KeyedConnector : FileConnector
         return null;
     }
 
-    /// <summary>The handle this OPEN took from <see cref="Kept"/> to try a share mode it refused (<see cref="Lock"/>), until
+    /// <summary>The handle this OPEN took from <see cref="_kept"/> to try a share mode it refused (<see cref="Lock"/>), until
     /// the OPEN succeeds (<see cref="CarryKeptOver"/>) or <see cref="AbandonOpen"/> takes it back.</summary>
     private KeptHandle? _givenBack;
 
@@ -334,9 +334,9 @@ public abstract class KeyedConnector : FileConnector
     /// transaction's liveness byte (2.2.1.10), which a handle that is not there holds for nobody, so that the next writable
     /// OPEN of another run unit rolls back a transaction whose owner lives. The handle is taken with the access and share
     /// mode it had and attached to the store exactly as an OPEN attaches its own (<see cref="Attach"/>), then handed back to
-    /// <see cref="Kept"/>. Runs after this OPEN's own handle is given back, which would otherwise refuse it.
+    /// <see cref="_kept"/>. Runs after this OPEN's own handle is given back, which would otherwise refuse it.
     /// <para>⛔ The record locks the CLOSE kept (§14.9.6.4 GR9) are part of that state: the retaken handle's endpoint becomes
-    /// the one they are published through (<see cref="Kept.Endpoint"/>) — <see cref="Attach"/> moves to it those the given-back
+    /// the one they are published through (<see cref="KeptFile.Endpoint"/>) — <see cref="Attach"/> moves to it those the given-back
     /// endpoint still names, and <paramref name="unpublished"/>, the ones <see cref="AbandonOpen"/> took off this OPEN's own
     /// handle, are published through it again (<see cref="PhysicalFileTable.Republish"/>). A refused retake leaves them in
     /// this run unit's table alone, until the COMMIT or the ROLLBACK.</para>
@@ -649,10 +649,10 @@ public abstract class KeyedConnector : FileConnector
     internal bool CommitControlled { get; set; }
 
     /// <summary>A ROLLBACK's view of the organization's trees (<see cref="IRestoringTrees"/>), which the dead-owner step,
-    /// the lock test's rollback of a dead holder and a COMMIT's reversal use as well. ⛔ It must stand on its own once asked
-    /// for: a CLOSE under commit control keeps it with the state it keeps (<see cref="KeptFile.Restoring"/>), which outlives the
-    /// connector's attachment to that store, so an organization binds it to the store it is attached to WHEN ASKED
-    /// (<see cref="IndexedConnector"/>'s frame slots), never to the connector's field (kb/Work PB3494).</summary>
+    /// the lock test's rollback of a dead holder and a COMMIT's reversal use as well. ⛔ It must stand on its own: a CLOSE under
+    /// commit control keeps it with the state it keeps (<see cref="KeptFile.Restoring"/>), which outlives the connector's
+    /// attachment to that store, so an organization takes what it needs of the file from the file it restores, never from the
+    /// connector's store field (kb/Work PB3494).</summary>
     private protected abstract RestoringTreesFactory Restoring { get; }
 
     /// <summary>⛔ The order of the UNDO and HOLDINGS trees the file is opened under (<see cref="HoldingsKeyOrder"/>; kb/Work
