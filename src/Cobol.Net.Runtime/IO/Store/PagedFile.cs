@@ -176,9 +176,9 @@ internal sealed class PagedFile
     /// one TRUNCATION to three pages, and a sync. A death before the commit write was handed over leaves the previous file;
     /// after it, the empty store. A REFUSAL is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
     /// pages written so far get their previous bytes back and the file its previous length IN BYTES — a previous file need
-    /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync; only a refused final
-    /// sync — after the truncation, nothing left to undo — leaves the created store, the medium's state unknown ('30'
-    /// either way).</summary>
+    /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync, and no store is handed
+    /// back; only a refused final sync — after the truncation, nothing left to undo — leaves the created store, the medium's
+    /// state unknown ('30' either way), and hands that store back with the failure.</summary>
     public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder,
         out PagedFile? store, int cachePages = PageCache.DefaultPages)
     {
@@ -211,13 +211,16 @@ internal sealed class PagedFile
         }
         try { medium.SetLength(MetaPage.MetaPages * (long)PageHeader.PageSize); }
         catch (Exception e) when (IsRefusal(e)) { return creator.UndoCreation(written, before, length); }
-        if (!creator.TrySync()) return StoreStatus.PermanentError;
+        bool durable = creator.TrySync();
         creator._meta = meta;
         creator._lastSeen = n;
         creator.SeeMints(meta);
         creator._adoption = new Adoption(WorkSlotClass.Descendant, WorkAdopted: true, Fenced: false);
+        // ⛔ PAST THE TRUNCATION THE FILE IS THE CREATED STORE, durable or not: a refused final sync answers '30' AND hands the
+        // store back, which is how a caller that kept the previous store tells "the file is not affected" (every refusal above
+        // returns with no store) from "the previous store is gone" (kb/Work PB3493).
         store = creator;
-        return StoreStatus.Ok;
+        return durable ? StoreStatus.Ok : StoreStatus.PermanentError;
     }
 
     /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): every meta page it wrote that held

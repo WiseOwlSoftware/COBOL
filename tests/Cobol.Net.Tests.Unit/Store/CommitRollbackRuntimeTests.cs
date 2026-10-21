@@ -926,6 +926,246 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ AN OPEN OUTPUT OVER THE FILE ITS CONNECTOR'S CLOSE KEPT LEAVES THE KEPT STATE UNTIL THE CREATION HAS LANDED
+    /// (kb/Work PB3493; §14.9.27.4 GR18, <i>"the successful execution of the OPEN statement creates the file"</i>; GR25, <i>"If
+    /// the execution of the OPEN statement is unsuccessful, the file is not affected"</i>; §14.9.7.4 GR4): A, under commit control,
+    /// changes record 7 and is CLOSEd; its re-OPEN OUTPUT creates the file in a store of its own, and the medium refuses the
+    /// creation at its second page write (<c>refusal</c> "write") or at its first sync ("sync"). The creation is undone, so the
+    /// OPEN answers '30' and the file is not affected: the transaction stands (its liveness byte is held by a live run unit, so
+    /// another run unit's REWRITE of record 7 answers '51' where the transaction as a death leaves it would be rolled back by
+    /// that run unit's writable OPEN), the file lock stands (a NO OTHER OPEN is refused '61'), the other records read as they
+    /// were, and the ROLLBACK restores the file. Before the fix the kept state was given back before the OUTPUT took its own
+    /// handle, and the refusal left it gone.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "write")]
+    [InlineData(FileOrg.Relative, "sync")]
+    [InlineData(FileOrg.Indexed, "write")]
+    [InlineData(FileOrg.Indexed, "sync")]
+    public void A_reopen_output_whose_creation_is_refused_keeps_the_kept_state(FileOrg org, string refusal)
+    {
+        string host = Tmp($"pb3493-creation-refused-{org}-{refusal}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            int writes = 0, syncs = 0;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                write: _ => refusal == "write" && ++writes == 2 ? new IOException("refused by the host") : null,
+                sync: () => refusal == "sync" && ++syncs == 1 ? new IOException("refused by the host") : null);
+            try { a.OpenStatic("F", FileOpenMode.Output); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("30", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            var c = Open(host, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            Assert.Equal("00", Read(c, org, 1, out var untouched, name: "C"));
+            Assert.Equal(Rec(1, "A001"), untouched);
+            c.CloseAll();
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The one refusal that lands the creation is the final sync's, after the truncation (<see cref="PagedFile.Create"/>:
+    /// the medium's state is unknown, '30' either way): the previous file is gone all the same, so what the CLOSE kept ends with
+    /// it. The OPEN answers '30', the transaction is no more, and the file is the created, empty store (§14.9.27.4 GR18).</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_output_whose_final_sync_is_refused_ends_the_kept_state_with_the_file(FileOrg org)
+    {
+        string host = Tmp($"pb3493-final-sync-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            int syncs = 0;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, sync: () => ++syncs == 2 ? new IOException("refused by the host") : null);
+            try { a.OpenStatic("F", FileOpenMode.Output); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("30", a.Status("F"));
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            var d = new FileRegistry();
+            Declare(d, host, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("00", d.Status("D"));   // the kept file lock went with the file
+            d.CloseAll();
+            Assert.Null(a.Rollback());
+            a.CloseAll();
+            Assert.Equal(new string?[10], Contents(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>An OPEN OUTPUT whose creation lands ends what the CLOSE kept with the file it was kept on (§14.9.27.4 GR18): the
+    /// transaction (A's record 7 is not in the new file and no ROLLBACK brings it back), its record lock on record 1 (another
+    /// run unit's READ of record 1, which answered '51' before, finds the new file empty) and the file lock; the connector's
+    /// next WRITE begins a transaction of the new file, which the COMMIT makes permanent.</summary>
+    [Theory]
+    [MemberData(nameof(Orgs))]
+    public void A_reopen_output_that_lands_ends_what_the_close_kept(FileOrg org)
+    {
+        string host = Tmp($"pb3493-landed-{org}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: FileSharing.AllOther);
+            Assert.Equal("00", Read(a, org, 1, out _));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            a.OpenStatic("F", FileOpenMode.Output);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            var b = Open(host, org, commit: false, name: "B", sharing: FileSharing.AllOther);
+            Assert.Equal("23", Read(b, org, 1, out _, name: "B"));
+            b.CloseAll();
+            Assert.Equal("00", Write(a, org, 2, "A002"));
+            Assert.NotEqual(0ul, a.TransactionOf("F"));
+            Assert.Null(a.Commit());
+            a.CloseAll();
+            var expected = new string?[10];
+            expected[2] = Rec(2, "A002");
+            Assert.Equal(expected, Contents(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>Open connector <paramref name="name"/> of <paramref name="reg"/> in I-O mode on the physical file the content of
+    /// its ASSIGN USING data item names (§12.4.5.3 GR3 b): the association is made by the OPEN, so one connector reaches
+    /// different physical files over a run unit.</summary>
+    private static void OpenAssigned(FileRegistry reg, string host, string name = "F") =>
+        reg.OpenShared(name, FileOpenMode.IO, hasSharingOverride: false, FileSharing.AllOther, FileRetryKind.None, 0,
+            OpenTapePhrase.None, host, assignDynamic: true, page: null);
+
+    /// <summary>⛔ WHAT A CLOSE UNDER COMMIT CONTROL KEPT BELONGS TO THE PHYSICAL FILE, NOT TO THE CONNECTOR (kb/Work PB3494;
+    /// §12.4.5.3 GR3 b, <i>"the file connector referenced by file-name-1 is associated with a physical file identified by the
+    /// content of the data item referenced by data-name-1 in the runtime element that executes the OPEN"</i>; §14.9.7.4 GR3 and
+    /// GR4; §14.9.36.4 GR3; §9.1.16): A, under commit control, changes record 7 of host 1, READs record 1 and is CLOSEd; a MOVE
+    /// to the ASSIGN USING item and an OPEN associate it with host 2, which holds three records of its own. The OPEN is an
+    /// ordinary OPEN of host 2 - it adopts neither host 1's handle nor its store, so record 5 is '23' and record 2 is host 2's -
+    /// while host 1's transaction, record lock and file lock stand (another run unit's REWRITE of record 7 answers '51', its READ
+    /// of record 1 '51', a NO OTHER OPEN '61') until the COMMIT or ROLLBACK ends them at host 1, host 2 untouched, or until the
+    /// connector is associated with host 1 again and OPENs it ("back"), where the transaction goes on. Before the fix the OPEN
+    /// of host 2 took host 1's kept handle and store: record 5 was host 1's and the new file got no file lock.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, "commit")]
+    [InlineData(FileOrg.Relative, "rollback")]
+    [InlineData(FileOrg.Relative, "back")]
+    [InlineData(FileOrg.Indexed, "commit")]
+    [InlineData(FileOrg.Indexed, "rollback")]
+    [InlineData(FileOrg.Indexed, "back")]
+    public void A_kept_state_stays_with_the_physical_file_its_connector_is_associated_away_from(FileOrg org, string ending)
+    {
+        string host1 = Tmp($"pb3494-first-{org}-{ending}");
+        string host2 = Tmp($"pb3494-second-{org}-{ending}");
+        try
+        {
+            Seed(host1, org);
+            var seed = Open(host2, org, commit: false, FileOpenMode.Output, name: "S");
+            for (int n = 1; n <= 3; n++) Assert.Equal("00", Write(seed, org, n, $"B{n:000}", name: "S"));
+            seed.CloseAll();
+            var theirs = new string?[10];
+            for (int n = 1; n <= 3; n++) theirs[n] = Rec(n, $"B{n:000}");
+            var a = new FileRegistry();
+            Declare(a, host1, org, commit: true);
+            OpenAssigned(a, host1);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal("00", Read(a, org, 1, out _));
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            OpenAssigned(a, host2);
+            Assert.Equal("00", a.Status("F"));
+            Assert.True(HostFile.PhysicalFileComparer.Equals(host2, a.HostPathOf("F")));
+            Assert.Equal("23", Read(a, org, 5, out _));
+            Assert.Equal("00", Read(a, org, 2, out var second));
+            Assert.Equal(Rec(2, "B002"), second);
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            // Host 1's state is held without a connector on it.
+            var c = Open(host1, org, commit: false, name: "C", sharing: FileSharing.AllOther);
+            Assert.Equal("51", Rewrite(c, org, 7, "C007", name: "C"));
+            Assert.Equal("51", Read(c, org, 1, out _, name: "C"));
+            c.CloseAll();
+            var d = new FileRegistry();
+            Declare(d, host1, org, commit: false, name: "D", sharing: FileSharing.NoOther);
+            d.OpenStatic("D", FileOpenMode.IO);
+            Assert.Equal("61", d.Status("D"));
+            if (ending == "back")
+            {
+                a.Close("F");
+                Assert.Equal("00", a.Status("F"));
+                OpenAssigned(a, host1);
+                Assert.Equal("00", a.Status("F"));
+                Assert.Equal(id, a.TransactionOf("F"));
+                Assert.Equal("00", Read(a, org, 7, out var own));
+                Assert.Equal(Rec(7, "A007"), own);
+                Assert.Null(a.Rollback());
+            }
+            else Assert.Null(ending == "commit" ? a.Commit() : a.Rollback());
+            if (ending != "back")
+            {
+                d.OpenStatic("D", FileOpenMode.IO);
+                Assert.Equal("00", d.Status("D"));   // host 1's file lock ended with the COMMIT or ROLLBACK
+                d.CloseAll();
+            }
+            a.CloseAll();
+            var expected = Seeded();
+            if (ending == "commit") expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host1, org));
+            Assert.Equal(theirs, Contents(host2, org));
+        }
+        finally { TryDelete(host1); TryDelete(host2); }
+    }
+
+    /// <summary>The run unit's end ends the state kept on a file its connector was associated away from (§9.1.18.5, <i>"all file
+    /// and record locks are then released"</i>; kb/Work PB3494), and a ROLLBACK the medium refuses at that file keeps its
+    /// transaction for the dead-owner step and is told through the file-name (§9.1.13.1): the connector's status is '30' and the
+    /// name returned, while the other file's COMMIT is not touched.</summary>
+    [Fact]
+    public void A_refused_rollback_of_a_file_its_connector_was_associated_away_from_is_told_through_the_file_name()
+    {
+        const FileOrg org = FileOrg.Relative;
+        string host1 = Tmp("pb3494-refused-first");
+        string host2 = Tmp("pb3494-refused-second");
+        try
+        {
+            Seed(host1, org);
+            Seed(host2, org, records: 3);
+            bool refuse = false;
+            IOException? Refusal() => refuse ? new IOException("refused by the host") : null;
+            var a = new FileRegistry();
+            Declare(a, host1, org, commit: true);
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner, write: _ => Refusal(), sync: Refusal);
+            try { OpenAssigned(a, host1); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            a.Close("F");
+            OpenAssigned(a, host2);
+            Assert.Equal("00", a.Status("F"));
+            refuse = true;
+            Assert.Equal("F", a.Rollback());
+            Assert.Equal("30", a.Status("F"));
+            refuse = false;
+            a.CloseAll();
+            Assert.Equal(Seeded(), Settled(host1, org));   // the dead-owner step of the next writable OPEN rolled the transaction back
+        }
+        finally { TryDelete(host1); TryDelete(host2); }
+    }
+
     /// <summary>⛔ A CLOSE UNDER COMMIT CONTROL KEEPS THE RECORD LOCKS OF ITS FILE UNTIL THE COMMIT OR ROLLBACK (§14.9.6.4 GR9,
     /// <i>"Except when the file is specified in an APPLY COMMIT clause, the file lock and any record locks associated with the
     /// file connector referenced by file-name-1 are released by the execution of the CLOSE statement"</i>; §9.1.16, <i>"A

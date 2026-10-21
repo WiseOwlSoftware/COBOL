@@ -229,17 +229,39 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override KeyedStore AttachStore(bool create) =>
         _st = SharedStores is { } table
-            ? create ? table.AttachCreated<IndexedStore>(HostPath) : table.Attach<IndexedStore>(HostPath)
+            ? create ? table.AttachCreated(HostPath, new IndexedStore()) : table.Attach<IndexedStore>(HostPath)
             : new IndexedStore();
+
+    /// <inheritdoc/>
+    private protected override KeyedStore NewStore() => new IndexedStore();
+
+    /// <inheritdoc/>
+    private protected override void AttachCreated(KeyedStore created) =>
+        _st = SharedStores is { } table ? table.AttachCreated(HostPath, (IndexedStore)created) : (IndexedStore)created;
 
     /// <inheritdoc/>
     private protected override void ForgetStore() => _st = new IndexedStore();
 
     /// <inheritdoc/>
-    private protected override void InheritStore(KeyedConnector retired) => _st = ((IndexedConnector)retired)._st;
+    private protected override bool InheritStore(KeyedStore store)
+    {
+        if (store is not IndexedStore indexed) return false;
+        _st = indexed;
+        return true;
+    }
 
     /// <inheritdoc/>
-    private protected override RestoringTreesFactory Restoring => IndexedStore.Restoring(_orders, AlternateEntries);
+    /// <remarks>⛔ BOUND TO THE STORE IT IS ASKED FOR, not to whichever store the connector is attached to when the factory is
+    /// used: a CLOSE under commit control hands this to the state it keeps (<c>KeptFile.Restoring</c>), and a ROLLBACK of that
+    /// state runs after the connector has been displaced or associated with another file (kb/Work PB3494).</remarks>
+    private protected override RestoringTreesFactory Restoring
+    {
+        get
+        {
+            var store = _st;
+            return IndexedStore.Restoring(_orders, frame => AlternateEntries(store, frame));
+        }
+    }
 
     /// <inheritdoc/>
     private protected override IKeyOrder HoldingsOrder => new HoldingsKeyOrder(_orders.Prime, _orders.Alternates);
@@ -250,10 +272,10 @@ public sealed class IndexedConnector : KeyedConnector
     /// <summary>Every alternate tree entry a record's frame has — the key value under each alternate key (suppression
     /// applied, §12.4.5.6.4 GR6) composed with the record's release ordinal under that key: what a DELETE removes and what
     /// a ROLLBACK rebuilds from a before-image's ordinal vector (2.2.1.10). Null for a frame this writer cannot have
-    /// produced (a torn page, '30').</summary>
-    private IReadOnlyList<(int Key, byte[] Entry)>? AlternateEntries(byte[] frame)
+    /// produced (a torn page, '30'). <paramref name="store"/> is the store the frame was read from (its frame slots).</summary>
+    private IReadOnlyList<(int Key, byte[] Entry)>? AlternateEntries(IndexedStore store, byte[] frame)
     {
-        if (Decoded(frame) is not { } record) return null;
+        if (Decoded(store, frame) is not { } record) return null;
         var entries = new List<(int Key, byte[] Entry)>(_alts.Count);
         for (int i = 0; i < _alts.Count; i++)
             if (AlternateValue(record.Image, record.Extents, i) is { } value)
@@ -326,8 +348,11 @@ public sealed class IndexedConnector : KeyedConnector
     /// <summary>The record a frame value holds, its image normalized as the WRITE stored it — a varying file's frames keep
     /// their exact stored lengths (§13.18.43 GR15 reports them on READ), fixed frames normalize to the record width; null
     /// for a value this writer cannot have produced (the torn page it is, '30').</summary>
-    private StoredFrame? Decoded(byte[] frame) =>
-        RecordFraming.DecodeFrame(frame, _st.FrameSlots, CodeSet) is not { } stored ? null
+    private StoredFrame? Decoded(byte[] frame) => Decoded(_st, frame);
+
+    /// <summary><see cref="Decoded(byte[])"/> for a frame of <paramref name="store"/>.</summary>
+    private StoredFrame? Decoded(IndexedStore store, byte[] frame) =>
+        RecordFraming.DecodeFrame(frame, store.FrameSlots, CodeSet) is not { } stored ? null
         : IsVarying ? stored
         : stored with { Image = Fit(stored.Image), Extents = null };   // a fitted fixed record is not the image a table describes
 
@@ -771,7 +796,7 @@ public sealed class IndexedConnector : KeyedConnector
         if (_st.Get(_orders, prime, out var storedPrime, out var frame) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (frame is null) return Status = FileStatusCode.RecordNotFound;
         prime = storedPrime!;   // the record's identity is the spelling its prime tree holds (IndexedStore.Get)
-        if (AlternateEntries(frame) is not { } entries) return Status = FileStatusCode.PermanentError;
+        if (AlternateEntries(_st, frame) is not { } entries) return Status = FileStatusCode.PermanentError;
         // 2.2.1.10: the record's identity is tested against the holdings after GR3's invalid key ('23'), and under commit
         // control the DELETE holds the identity (it stays held after the record is gone) and every unique value it frees.
         if (HoldingsGate(() => [TransactionKeys.Record(prime)], out bool reevaluate) is { } locked) return Status = locked;   // '51'
