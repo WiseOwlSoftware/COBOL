@@ -36,6 +36,7 @@ public sealed class RunUnit
     {
         Exceptions = new ExceptionEngine(Modules);   // the staged-RAISING slot names its activation (kb/Work PB892)
         Programs = new ProgramTable(this);
+        Transactions = new TransactionControl(Files, Programs, SortFiles, Exceptions);
         // The text-processing subsystems' cheap, idempotent initialization (Collation/CollationRuntime.cs): the key
         // cache configuration from the environment; the derived tables stay lazy unless COBOL_COLLATION_WARMUP asks.
         Collation.CollationRuntime.Initialize();
@@ -58,6 +59,10 @@ public sealed class RunUnit
 
     /// <summary>The run-unit file-connector registry (§9.1; owns the physical-file sharing table).</summary>
     public FileRegistry Files { get; } = new();
+
+    /// <summary>The run unit's commit and rollback (§9.1.18; kb/Work PB3338): its active APPLY COMMIT clauses and the
+    /// COMMIT and ROLLBACK statements over them and <see cref="Files"/>.</summary>
+    internal TransactionControl Transactions { get; }
 
     /// <summary>The run unit's sort-merge file stores (ISO §14.9.40 / §14.9.24; kb/Work PB1570) — the in-memory SD
     /// buffers of the SORT/MERGE statements this run unit executes, which no other run unit can see or mutate.</summary>

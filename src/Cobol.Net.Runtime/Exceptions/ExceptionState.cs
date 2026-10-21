@@ -1003,6 +1003,43 @@ public sealed class ExceptionEngine
     /// <summary>Raise EC-FLOW-RELEASE (§14.9.32.4 GR1; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
     public void FlowReleaseError(string detail) => FatalIfEnabled(FlowReleaseChecking, "EC-FLOW-RELEASE", detail);
 
+    // ──── THE COMMIT-AND-ROLLBACK FLOW conditions (§9.1.18.7; kb/Work PB3338) ─────────────────────────────────────
+    //
+    // All three are Table 13 FATAL. The raise precedes the statement's (or the clause's activation's) action. With
+    // checking OFF §14.6.13.1.3 item 8 leaves the continuation to the implementor: the statement is not executed and the
+    // clause is not activated (docs/CONFORMANCE.md §5, A.4.3) — a COMMIT or ROLLBACK where the standard does not permit
+    // one changes nothing.
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-COMMIT checking enabled (fatal).</summary>
+    public bool FlowCommitChecking
+    {
+        get => _checking.FlowCommit;
+        set => _checking.FlowCommit = value;
+    }
+
+    /// <summary>True while the currently-executing statement has EC-FLOW-ROLLBACK checking enabled (fatal).</summary>
+    public bool FlowRollbackChecking
+    {
+        get => _checking.FlowRollback;
+        set => _checking.FlowRollback = value;
+    }
+
+    /// <summary>True while the activating statement has EC-FLOW-APPLY-COMMIT checking enabled (fatal).</summary>
+    public bool FlowApplyCommitChecking
+    {
+        get => _checking.FlowApplyCommit;
+        set => _checking.FlowApplyCommit = value;
+    }
+
+    /// <summary>Raise EC-FLOW-COMMIT (§14.9.7.4 GR2; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void FlowCommitError(string detail) => FatalIfEnabled(FlowCommitChecking, "EC-FLOW-COMMIT", detail);
+
+    /// <summary>Raise EC-FLOW-ROLLBACK (§14.9.36.4 GR2; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void FlowRollbackError(string detail) => FatalIfEnabled(FlowRollbackChecking, "EC-FLOW-ROLLBACK", detail);
+
+    /// <summary>Raise EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
+    public void FlowApplyCommitError(string detail) => FatalIfEnabled(FlowApplyCommitChecking, "EC-FLOW-APPLY-COMMIT", detail);
+
     /// <summary>True while the currently-executing statement has EC-FLOW-RETURN checking enabled (fatal).</summary>
     public bool FlowReturnChecking
     {
@@ -1925,6 +1962,27 @@ public static class ExceptionState
 
     /// <inheritdoc cref="ExceptionEngine.FlowReleaseError"/>
     public static void FlowReleaseError(string detail) => E.FlowReleaseError(detail);
+
+    /// <inheritdoc cref="ExceptionEngine.FlowCommitChecking"/>
+    public static bool FlowCommitChecking
+    {
+        get => E.FlowCommitChecking;
+        set => E.FlowCommitChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowRollbackChecking"/>
+    public static bool FlowRollbackChecking
+    {
+        get => E.FlowRollbackChecking;
+        set => E.FlowRollbackChecking = value;
+    }
+
+    /// <inheritdoc cref="ExceptionEngine.FlowApplyCommitChecking"/>
+    public static bool FlowApplyCommitChecking
+    {
+        get => E.FlowApplyCommitChecking;
+        set => E.FlowApplyCommitChecking = value;
+    }
 
     /// <inheritdoc cref="ExceptionEngine.FlowReturnChecking"/>
     public static bool FlowReturnChecking

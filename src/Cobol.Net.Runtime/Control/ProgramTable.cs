@@ -845,6 +845,16 @@ public sealed class ProgramTable
     /// </summary>
     /// <param name="callerPath">As <see cref="CallProgram"/>'s: <c>null</c> for a .NET host, whose CANCEL locates only an
     /// outermost program (§8.4.6.3).</param>
+    /// <summary>Whether a RECURSIVE runtime element is active — a program carrying the RECURSIVE attribute, or a function
+    /// (always recursive, §8.6.6) — so that whatever runs now runs "under the control of a recursive runtime element"
+    /// (§9.1.18.7; §12.4.6.3.4 GR3, §14.9.7.4 GR2, §14.9.36.4 GR2; kb/Work PB3338).</summary>
+    internal bool AnyRecursiveActive()
+    {
+        foreach (var n in _order)
+            if (n.Active > 0 && (n.Recursive || n.IsFunction)) return true;
+        return false;
+    }
+
     public void Cancel(string name, string? callerPath)
     {
         string n = ExternalizedNames.Form(name);
