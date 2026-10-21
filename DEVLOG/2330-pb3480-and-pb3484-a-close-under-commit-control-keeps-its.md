@@ -1,4 +1,4 @@
-## PB3480 and PB3484: a CLOSE under commit control keeps its record locks, and a connector that leaves the registry holding what the CLOSE kept stays the COMMIT's
+## Entry 2330 — 2026-10-21 13:11 PDT — PB3480 and PB3484: a CLOSE under commit control keeps its record locks, and a connector that leaves the registry holding what the CLOSE kept stays the COMMIT's
 
 Two defects in the same place, the state PB3337 made a CLOSE of a connector under APPLY COMMIT keep (its handle, its Table 19 file lock, its attachment to the
 run unit's store and the transaction in it). Both are runtime defects in `src/Cobol.Net.Runtime/IO/`; neither claims an inventory row.
@@ -61,3 +61,4 @@ the R1-2 witness gained another run unit's '51' before and after such a re-OPEN,
 forcing host reads the record region's bounds from `HostRegionLocks.IsRecordLockByte` (no copy of the layout) and asserts it was asked a record byte.
 
 Gate (finisher, after the merge of main): `LEG 1 ONLY (batched gating, PB2515): GREEN`, run 20261021T193841Z-e38559, Unit 34,184 cases ran, no failure; Linux gate (unit, conformance) GREEN at 7527943e6.
+
