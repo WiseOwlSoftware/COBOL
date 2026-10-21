@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 using CobolNet.Tests.Unit.Store;
 using Xunit;
-using static CobolNet.Tests.Unit.KeyedFileHarness;
+using static CobolNet.Tests.Shared.KeyedFileHarness;
 
 namespace CobolNet.Tests.Unit;
 
