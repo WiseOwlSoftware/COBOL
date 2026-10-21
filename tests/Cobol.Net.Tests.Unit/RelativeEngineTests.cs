@@ -580,8 +580,8 @@ public sealed class RelativeEngineTests
             var a = new FileRegistry();
             try
             {
-                FileHarness.Register(a, "A", host, FileOrg.Relative, sharing);
-                a.OpenStatic("A", mode);
+                FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                FileHarness.Open(a, "A", mode);
                 Assert.Equal("00", a.Status("A"));
             }
             finally { RelativeStore.MediumObserver.Value = null; }
@@ -633,8 +633,8 @@ public sealed class RelativeEngineTests
                 RelativeStore.MediumObserver.Value = inner => RefusingPageMedium.AtOperation(inner, () => refuseAt, () => seen++, () => seen);
                 try
                 {
-                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing);
-                    a.OpenStatic("A", mode);
+                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                    FileHarness.Open(a, "A", mode);
                     Assert.Equal("30", a.Status("A"));
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
@@ -690,8 +690,8 @@ public sealed class RelativeEngineTests
                 RelativeStore.MediumObserver.Value = inner => new DyingPageMedium(inner) { DieAfter = dieAfter };
                 try
                 {
-                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing);
-                    a.OpenStatic("A", mode);   // what the dying run unit is told is not asked
+                    FileHarness.Register(a, "A", host, FileOrg.Relative, sharing, access: FileHarness.AccessFor(mode));   // §14.9.27.3 SR2 (kb/Work PB3479)
+                    FileHarness.Open(a, "A", mode);   // what the dying run unit is told is not asked
                 }
                 finally { RelativeStore.MediumObserver.Value = null; }
                 a.CloseIfOpen("A");           // its handle goes with it; none of its writes after the death land
