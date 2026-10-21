@@ -6,6 +6,7 @@ using CobolNet.Frontend.Diagnostics;
 using CobolNet.Frontend.Generated;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -118,7 +119,7 @@ public sealed class RedefinesClassificationTests
             data.Bind(program);
             return data;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static DataItem Item(DataBinder d, string name) => d.ByName[name][0];
@@ -153,7 +154,7 @@ public sealed class RedefinesClassificationTests
             var bound = new BinderDriver().Bind(tree!, ed);
             return (bound.Units[0].Data, ed);
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>§13.18.44.3 SR12 (kb/Work PB179 — the Step D Tier-D bind half): a POINTER item as the

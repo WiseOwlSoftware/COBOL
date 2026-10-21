@@ -177,6 +177,6 @@ public sealed class FormatWordDriftTests
                 "expected exactly the DISPLAY operand LOCALE (a name slot) to be reported, got: " + string.Join("; ", found));
             Assert.Equal(3, Descendants<CobolParserCore.FormatWordContext>(tree!).Count());   // LOCALE LC_ALL USER-DEFAULT
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 }
