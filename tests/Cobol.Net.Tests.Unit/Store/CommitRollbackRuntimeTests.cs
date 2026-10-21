@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime;
+using CobolNet.Runtime.Exceptions;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
@@ -895,6 +896,86 @@ public sealed class CommitRollbackRuntimeTests
         }
         finally { TryDelete(host); }
     }
+
+    /// <summary>A program that runs <paramref name="body"/> as the run unit's main program and as a CALLed one: the stand-in
+    /// for a compiled program, so the boundaries of <see cref="ProgramTable"/> are reached without the compiler's half of the
+    /// facility (kb/Work PB3338).</summary>
+    private sealed class BodyProgram(Action body) : ICobolProgram
+    {
+        public void Call(CobolArg[] args, CobolArg? returning) => body();
+        public void Activate() => body();
+        public void CloseFiles() { }
+    }
+
+    /// <summary>⛔ THE PROGRAM TABLE'S BOUNDARIES RECORD HOW THE RUN UNIT ENDED (kb/Work PB3481, review lead R1-5 of
+    /// PB3337; §9.1.18.5, <i>"When a run unit terminates abnormally, all file changes made since the previous commit or, if
+    /// none, the beginning of the run unit are rolled back"</i>; §14.6.12, <i>"If commit and rollback is in effect, a
+    /// rollback is executed"</i>). A main program's boundary (<c>ProgramTable.RunMain</c>, whose <c>RunOnThisThread</c> the
+    /// standalone <c>Main</c> enters through <c>RunModule</c> too) and a .NET host's (<c>CallFromHost</c>, reached by a CALL
+    /// with no calling program) each end the run unit through <see cref="RunUnit.Terminate"/>, which chooses the implicit
+    /// CLOSE's COMMIT for a normal ending and the file-only ROLLBACK for an abnormal one by what <c>RunUnit.NoteEnding</c>
+    /// recorded at that boundary. A program writes a record under commit control and ends: by returning (the main boundary
+    /// only: a host's activation that returns does not end the run unit), by STOP RUN (<c>StopRun</c> unwinds to the
+    /// boundary: a normal ending, committed), by a fatal exception condition (<c>CobolFatalException</c>), an
+    /// implementor-defined stop (<c>CobolImplementorFatalException</c>) or a CALL fatal (<c>CobolCallException</c>, which only
+    /// the main boundary ends the run unit for: a host's activation fails with it and continues), or by a runtime failure no
+    /// condition names (an <see cref="InvalidOperationException"/>, which the main boundary rethrows) — every ending but the
+    /// first two abnormal: rolled back, and the file reads as it stood at the start.</summary>
+    [Theory]
+    [InlineData("main", "returns", true)]
+    [InlineData("main", "stop-run", true)]
+    [InlineData("main", "fatal", false)]
+    [InlineData("main", "implementor-fatal", false)]
+    [InlineData("main", "call-fatal", false)]
+    [InlineData("main", "fails", false)]
+    [InlineData("host", "stop-run", true)]
+    [InlineData("host", "fatal", false)]
+    [InlineData("host", "implementor-fatal", false)]
+    public void A_program_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one(string boundary, string ending,
+        bool committed)
+    {
+        string host = Tmp($"pb3481-{boundary}-{ending}");
+        try
+        {
+            Seed(host, FileOrg.Relative);
+            var ru = new RunUnit();
+            ru.Programs.RegisterModule("Cobol.PB3481.__CobolModule", RuntimeAbi.Version.ToString(), RuntimeAbi.CallAbi, () =>
+                ru.Programs.Register("PB3481", "PB3481", null, initial: false, common: false, recursive: false, _ =>
+                    new BodyProgram(() =>
+                    {
+                        Declare(ru.Files, host, FileOrg.Relative, commit: true);
+                        ru.Files.OpenStatic("F", FileOpenMode.IO);
+                        Assert.Equal("00", ru.Files.Status("F"));
+                        Assert.Equal("00", Write(ru.Files, FileOrg.Relative, 7, "A007"));
+                        switch (ending)
+                        {
+                            case "stop-run": throw new StopRun();
+                            case "fatal": throw new CobolFatalException("EC-DATA-PTR-NULL", "a NULL BASED item");
+                            case "implementor-fatal": throw new CobolImplementorFatalException("an implementor-defined stop");
+                            case "call-fatal": throw new CobolCallException("the program cannot be located");
+                            case "fails": throw new InvalidOperationException("a runtime failure no condition names");
+                        }
+                    })));
+            if (boundary == "main")
+            {
+                if (ending is "stop-run") Assert.Throws<StopRun>(() => ru.Programs.RunMain("PB3481"));
+                else if (ending is "fails") Assert.Throws<InvalidOperationException>(() => ru.Programs.RunMain("PB3481"));
+                else ru.Programs.RunMain("PB3481");
+                if (ending is "returns") Assert.Equal(0, ru.ExitStatus);
+                else if (ending is "fatal" or "implementor-fatal" or "call-fatal") Assert.Equal(1, ru.ExitStatus);   // §14.6.12's ERROR indication
+            }
+            else
+            {
+                var ended = Assert.Throws<RunUnitEndedException>(() => ru.Programs.CallProgram("PB3481", null, [], null));
+                Assert.Equal(!committed, ended.Abnormal);
+            }
+            var expected = Seeded();
+            if (committed) expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, FileOrg.Relative));
+        }
+        finally { TryDelete(host); }
+    }
+
     /// <summary>§9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §14.6.12); a
     /// NORMAL ending commits them.</summary>
     [Theory]
