@@ -1,4 +1,4 @@
-## PB3337: transactions, COMMIT and ROLLBACK in the keyed store engine's runtime
+## Entry 2318 — 2026-10-20 20:30 PDT — PB3337: transactions, COMMIT and ROLLBACK in the keyed store engine's runtime
 
 kb/Work PB3337 is the runtime half of the commit-and-rollback module, the owner's "Option A" of 2026-10-19. It is
 built FROM docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10, as corrected through review round 5. The re-probe
@@ -159,3 +159,4 @@ run unit could then open against a transaction still in flight. `RunUnitFileLock
 and `Retake` establishes it again. `FileConnector.RetakeKeptFileLock` calls it on both unsuccessful exits of the OPEN.
 Witness: `An_unsuccessful_reopen_leaves_the_kept_file_lock_standing` (a medium that refuses every page operation answers
 '30' to the re-OPEN; another run unit's OPEN gets '61' until the ROLLBACK, and '00' after).
+
