@@ -3,7 +3,7 @@
 using CobolNet.Runtime.IO;
 using CobolNet.Tests.Shared;
 using Xunit;
-using static CobolNet.Tests.Shared.KeyedFileHarness;
+using static CobolNet.Tests.Shared.FileHarness;
 
 namespace CobolNet.Tests.Unit;
 
@@ -35,10 +35,10 @@ public sealed class KeyedStoreReloadFailureDriftTests
         RandomAccess.Write(page2, torn, 2L * torn.Length);
     }
 
-    private static string Run(FileRegistry reg, Verb verb, KeyedOrg org, out string image)
+    private static string Run(FileRegistry reg, Verb verb, FileOrg org, out string image)
     {
         image = "";
-        if (org == KeyedOrg.Relative && verb is not Verb.StartFirstLast) reg.SetRelativeKey("A", 2);
+        if (org == FileOrg.Relative && verb is not Verb.StartFirstLast) reg.SetRelativeKey("A", 2);
         switch (verb)
         {
             case Verb.ReadNext:
@@ -56,7 +56,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             case Verb.StartFirstLast:
                 return reg.StartFirstLast("A", last: false);
             case Verb.StartKey:
-                return org == KeyedOrg.Relative
+                return org == FileOrg.Relative
                     ? reg.StartRelative("A", ">=", 2)
                     : reg.StartIndexed("A", keyIndex: -1, ">=", Rec(2, "    "), StartKeyLength.OfWidth(4));
             case Verb.PlainReadNext:
@@ -68,14 +68,14 @@ public sealed class KeyedStoreReloadFailureDriftTests
         }
     }
 
-    public static TheoryData<KeyedOrg, Verb, RegionHostKind> Cases()
+    public static TheoryData<FileOrg, Verb, RegionHostKind> Cases()
     {
-        var data = new TheoryData<KeyedOrg, Verb, RegionHostKind>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, Verb, RegionHostKind>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var verb in Enum.GetValues<Verb>())
                 data.Add(org, verb, RegionHostKind.OfThisProcess);
         // The lock-file host carries the store mutex differently; one verb per organization is enough to cross it.
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        foreach (var org in FileHarness.KeyedOrgs)
             data.Add(org, Verb.ReadNext, RegionHostKind.LockFiles);
         return data;
     }
@@ -83,7 +83,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     [Theory]
     [MemberData(nameof(Cases))]
     public void AStoreReloadTheFileNoLongerAllows_IsAPermanentError30_NotAnEscapingException(
-        KeyedOrg org, Verb verb, RegionHostKind regionHost)
+        FileOrg org, Verb verb, RegionHostKind regionHost)
     {
         using var forced = RegionHostSeam.Use(regionHost);
         string host = Tmp($"{org}-{verb}");
@@ -126,9 +126,9 @@ public sealed class KeyedStoreReloadFailureDriftTests
     /// the re-entry reloads like any statement's entry: a reload it cannot make is the same permanent error, not an
     /// exception out of the wait.</summary>
     [Theory]
-    [InlineData(KeyedOrg.Relative)]
-    [InlineData(KeyedOrg.Indexed)]
-    public void ARetryWaitsReentryThatCannotReload_IsAPermanentError30(KeyedOrg org)
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void ARetryWaitsReentryThatCannotReload_IsAPermanentError30(FileOrg org)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
         string host = Tmp($"retry-{org}");
@@ -141,7 +141,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             Register(b, "B", host, org);
             a.OpenStatic("A", FileOpenMode.IO);
             b.OpenStatic("B", FileOpenMode.IO);
-            if (org == KeyedOrg.Relative) a.SetRelativeKey("A", 1);
+            if (org == FileOrg.Relative) a.SetRelativeKey("A", 1);
             Assert.Equal("00", a.ReadKeyedShared("A", -1, Rec(1, "    "), FileRecordLock.WithLock,
                 ignoringLock: false, FileRetryKind.None, 0, out _));
 
@@ -153,7 +153,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
             };
             try
             {
-                if (org == KeyedOrg.Relative) b.SetRelativeKey("B", 1);
+                if (org == FileOrg.Relative) b.SetRelativeKey("B", 1);
                 Assert.Equal("30", b.ReadKeyedShared("B", -1, Rec(1, "    "), FileRecordLock.WithLock,
                     ignoringLock: false, FileRetryKind.Times, 3, out string image));
                 Assert.Equal("", image.Trim());   // no record was delivered (the content is undefined, §14.9.30.4 GR18)
@@ -166,9 +166,9 @@ public sealed class KeyedStoreReloadFailureDriftTests
         finally { TryDelete(host); }
     }
 
-    private static void AssertFileHoldsThreeRecords(string host, KeyedOrg org) => AssertFileHoldsRecords(host, org, 3);
+    private static void AssertFileHoldsThreeRecords(string host, FileOrg org) => AssertFileHoldsRecords(host, org, 3);
 
-    private static void AssertFileHoldsRecords(string host, KeyedOrg org, int count)
+    private static void AssertFileHoldsRecords(string host, FileOrg org, int count)
     {
         var check = new FileRegistry();
         Register(check, "C", host, org, sharing: null);
@@ -176,7 +176,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
         Assert.Equal("00", check.Status("C"));
         for (int n = 1; n <= count; n++)
         {
-            if (org == KeyedOrg.Relative) check.SetRelativeKey("C", n);
+            if (org == FileOrg.Relative) check.SetRelativeKey("C", n);
             Assert.Equal("00", check.ReadKeyedShared("C", -1, Rec(n, "    "), FileRecordLock.None, ignoringLock: false,
                 FileRetryKind.None, 0, out string image));
             Assert.StartsWith(Rec(n, ""), image);
@@ -190,20 +190,20 @@ public sealed class KeyedStoreReloadFailureDriftTests
     /// <c>NO OTHER</c> default (null).</summary>
     private static readonly FileSharing?[] Sharings = [FileSharing.AllOther, FileSharing.ReadOnly, null];
 
-    public static TheoryData<KeyedOrg, Verb, FileSharing?> RefusedStatements()
+    public static TheoryData<FileOrg, Verb, FileSharing?> RefusedStatements()
     {
-        var data = new TheoryData<KeyedOrg, Verb, FileSharing?>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, Verb, FileSharing?>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var verb in new[] { Verb.PlainWrite, Verb.Rewrite, Verb.Delete })
                 foreach (var sharing in Sharings)
                     data.Add(org, verb, sharing);
         return data;
     }
 
-    public static TheoryData<KeyedOrg, FileSharing?> RefusedCloses()
+    public static TheoryData<FileOrg, FileSharing?> RefusedCloses()
     {
-        var data = new TheoryData<KeyedOrg, FileSharing?>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, FileSharing?>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var sharing in Sharings)
                 data.Add(org, sharing);
         return data;
@@ -217,7 +217,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     /// survive it (page 2 already named them).</summary>
     [Theory]
     [MemberData(nameof(RefusedStatements))]
-    public void APageWriteTheHostRefuses_Is30_AtTheStatement(KeyedOrg org, Verb verb, FileSharing? sharing)
+    public void APageWriteTheHostRefuses_Is30_AtTheStatement(FileOrg org, Verb verb, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
         string host = Tmp($"engine-write-{org}-{verb}-{sharing}");
@@ -248,7 +248,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
 
     [Theory]
     [MemberData(nameof(RefusedCloses))]
-    public void ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(KeyedOrg org, FileSharing? sharing)
+    public void ACloseWhosePromotionTheHostRefuses_Is30_AndKeepsTheRecords(FileOrg org, FileSharing? sharing)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
         string host = Tmp($"engine-close-{org}-{sharing}");
@@ -271,10 +271,10 @@ public sealed class KeyedStoreReloadFailureDriftTests
         finally { TryDelete(host); }
     }
 
-    public static TheoryData<KeyedOrg, FileSharing?, bool> RefusedUnchangedCloses()
+    public static TheoryData<FileOrg, FileSharing?, bool> RefusedUnchangedCloses()
     {
-        var data = new TheoryData<KeyedOrg, FileSharing?, bool>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, FileSharing?, bool>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var sharing in Sharings)
                 foreach (bool afterARead in new[] { false, true })
                     data.Add(org, sharing, afterARead);
@@ -290,7 +290,7 @@ public sealed class KeyedStoreReloadFailureDriftTests
     [Theory]
     [MemberData(nameof(RefusedUnchangedCloses))]
     public void ACloseOfAConnectorThatChangedNothingWhoseSyncTheHostRefuses_Is30_AndKeepsTheRecords(
-        KeyedOrg org, FileSharing? sharing, bool afterARead)
+        FileOrg org, FileSharing? sharing, bool afterARead)
     {
         using var forced = RegionHostSeam.Use(RegionHostKind.OfThisProcess);
         string host = Tmp($"engine-close-unchanged-{org}-{sharing}-{afterARead}");

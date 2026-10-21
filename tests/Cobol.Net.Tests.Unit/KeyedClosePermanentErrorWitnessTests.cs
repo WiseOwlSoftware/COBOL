@@ -117,28 +117,28 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
 
     /// <summary>The file with the records 0001AAAA and 0002BBBB (relative record numbers 1 and 2), written and CLOSEd
     /// through the registry.</summary>
-    private string Seeded(string tag, KeyedOrg org)
+    private string Seeded(string tag, FileOrg org)
     {
         string host = NewFile(tag);
-        KeyedFileHarness.Seed(host, org, ["AAAA", "BBBB"]);
+        FileHarness.Seed(host, org, ["AAAA", "BBBB"]);
         return host;
     }
 
     /// <summary>The precondition, measured through the registry on a copy of the file, never assumed: the program's
     /// statements before the CLOSE answer '00' over the refusing medium, and the CLOSE answers '30'.</summary>
-    private void Probe(string host, KeyedOrg org, Refusal refusal)
+    private void Probe(string host, FileOrg org, Refusal refusal)
     {
         string copy = NewFile(Path.GetFileNameWithoutExtension(host) + "-probe");
         File.Copy(host, copy);
         var reg = new FileRegistry();
-        KeyedFileHarness.Register(reg, "W", copy, org);
-        KeyedFileHarness.Register(reg, "R", copy, org);
+        FileHarness.Register(reg, "W", copy, org);
+        FileHarness.Register(reg, "R", copy, org);
         KeyedStore.MediumObserver.Value = RefusingTheNthSlotARead(RefusedSlotARead);
         try
         {
             reg.OpenStatic("W", FileOpenMode.IO);
             Assert.Equal("00", reg.Status("W"));
-            if (refusal == Refusal.Promotion) Assert.Equal("00", KeyedFileHarness.Write(reg, "W", org, 3, "CCCC"));
+            if (refusal == Refusal.Promotion) Assert.Equal("00", FileHarness.Write(reg, "W", org, 3, "CCCC"));
             else
             {
                 reg.OpenStatic("R", FileOpenMode.Input);
@@ -151,15 +151,15 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         finally { KeyedStore.MediumObserver.Value = null; }
     }
 
-    private static string Program(string id, string host, KeyedOrg org, Refusal refusal, Cover cover)
+    private static string Program(string id, string host, FileOrg org, Refusal refusal, Cover cover)
     {
         bool fileStatus = HasFileStatus(cover);
-        string organization = org == KeyedOrg.Relative ? "RELATIVE" : "INDEXED";
-        string writerKey = org == KeyedOrg.Relative ? "RELATIVE KEY WK" : "RECORD KEY KWK";
-        string readerKey = org == KeyedOrg.Relative ? "RELATIVE KEY RK" : "RECORD KEY KRK";
+        string organization = org == FileOrg.Relative ? "RELATIVE" : "INDEXED";
+        string writerKey = org == FileOrg.Relative ? "RELATIVE KEY WK" : "RECORD KEY KWK";
+        string readerKey = org == FileOrg.Relative ? "RELATIVE KEY RK" : "RECORD KEY KRK";
         // The relative key is the record number; an indexed record's key is its first four characters.
-        string WriterAt(int n) => org == KeyedOrg.Relative ? $"MOVE {n} TO WK." : "CONTINUE.";
-        string ReaderAt(int n) => org == KeyedOrg.Relative ? $"MOVE {n} TO RK." : $"MOVE \"000{n}\" TO KRK.";
+        string WriterAt(int n) => org == FileOrg.Relative ? $"MOVE {n} TO WK." : "CONTINUE.";
+        string ReaderAt(int n) => org == FileOrg.Relative ? $"MOVE {n} TO RK." : $"MOVE \"000{n}\" TO KRK.";
         string Note(string what, string status, string? record = null) =>
             $"STRING \"{what} \" {status}{(record is null ? "" : $" \" \" {record}")} \";\" DELIMITED BY SIZE INTO LG WITH POINTER P.";
         string body = refusal == Refusal.Promotion
@@ -275,10 +275,10 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
         return (trace.TrimEnd().TrimEnd(';').Split(';'), ended);
     }
 
-    public static TheoryData<KeyedOrg, Refusal, Cover> Cases()
+    public static TheoryData<FileOrg, Refusal, Cover> Cases()
     {
-        var data = new TheoryData<KeyedOrg, Refusal, Cover>();
-        foreach (var org in Enum.GetValues<KeyedOrg>())
+        var data = new TheoryData<FileOrg, Refusal, Cover>();
+        foreach (var org in FileHarness.KeyedOrgs)
             foreach (var refusal in Enum.GetValues<Refusal>())
                 foreach (var cover in Enum.GetValues<Cover>())
                     data.Add(org, refusal, cover);
@@ -305,9 +305,9 @@ public sealed class KeyedClosePermanentErrorWitnessTests : CobolNetTestBase
     [Theory]
     [MemberData(nameof(Cases))]
     public void A_keyed_close_that_answers_30_runs_the_use_procedure_stores_the_status_and_continues_or_terminates_by_the_rule(
-        KeyedOrg org, Refusal refusal, Cover cover)
+        FileOrg org, Refusal refusal, Cover cover)
     {
-        string id = $"KC{(org == KeyedOrg.Relative ? "R" : "I")}{(refusal == Refusal.Promotion ? "P" : "A")}{(int)cover}";
+        string id = $"KC{(org == FileOrg.Relative ? "R" : "I")}{(refusal == Refusal.Promotion ? "P" : "A")}{(int)cover}";
         string host = Seeded(id, org);
         Probe(host, org, refusal);
         var (trace, ended) = Run(id, Program(id, host, org, refusal, cover));

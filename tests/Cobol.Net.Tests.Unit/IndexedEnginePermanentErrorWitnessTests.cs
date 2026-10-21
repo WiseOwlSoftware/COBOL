@@ -46,8 +46,8 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
     private string TornFile(string tag)
     {
         string host = NewFile(tag);
-        KeyedFileHarness.Seed(host, KeyedOrg.Indexed, [(1, "AAAA"), (4, "DDDD")], alternateKey: true);
-        KeyedFileHarness.TearPagesCarrying(host, "0004DDDD"u8);
+        FileHarness.Seed(host, FileOrg.Indexed, [(1, "AAAA"), (4, "DDDD")], alternateKey: true);
+        FileHarness.TearPagesCarrying(host, "0004DDDD"u8);
         return host;
     }
 
@@ -77,11 +77,11 @@ public sealed class IndexedEnginePermanentErrorWitnessTests : CobolNetTestBase
     private string BoundaryFile(string tag)
     {
         string host = NewFile(tag), probe = NewFile(tag + "-probe");
-        KeyedFileHarness.Seed(host, KeyedOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
+        FileHarness.Seed(host, FileOrg.Indexed, ["AAAA", "BBBB"], alternateKey: true);
         byte[] boundary = AtTheBoundary(File.ReadAllBytes(host), headroom: 0);
         File.WriteAllBytes(probe, boundary);
         var reg = new FileRegistry();
-        KeyedFileHarness.Register(reg, "IX", probe, KeyedOrg.Indexed, sharing: null, alternateKey: true);
+        FileHarness.Register(reg, "IX", probe, FileOrg.Indexed, sharing: null, alternateKey: true);
         reg.OpenStatic("IX", FileOpenMode.IO);
         Assert.Equal("00", reg.Status("IX"));   // the fence needs no page
         Assert.Equal("00", reg.ReadKeyedShared("IX", -1, "0001    ", FileRecordLock.None, ignoringLock: false,

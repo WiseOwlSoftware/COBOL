@@ -64,7 +64,7 @@ public sealed class ReadOnlyWriterReleaseDriftTests
 
     /// <summary>SHARING WITH ALL OTHER needs a LOCK MODE clause (§14.9.27.3 SR8); READ ONLY needs none.</summary>
     private static void Share(FileRegistry reg, string name, FileSharing sharing) =>
-        reg.RegisterSharing(name, sharing, KeyedFileHarness.LockModeRequiredBy(sharing), multiple: false);
+        reg.RegisterSharing(name, sharing, FileHarness.LockModeRequiredBy(sharing), multiple: false);
 
     private static string Read(FileRegistry reg, string name, out string image) =>
         reg.ReadShared(name, false, FileRecordLock.None, false, false, FileRetryKind.None, 0, out image);
@@ -260,25 +260,25 @@ public sealed class ReadOnlyWriterReleaseDriftTests
     /// duplicate key, '22', §14.9.51.4 GR33 a) on a relative file, GR42 b) on an indexed one) releases nothing, so the reader meets
     /// exactly the records that were accepted.</summary>
     [Theory]
-    [InlineData(KeyedOrg.Relative)]
-    [InlineData(KeyedOrg.Indexed)]
-    public void AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite(KeyedOrg org)
+    [InlineData(FileOrg.Relative)]
+    [InlineData(FileOrg.Indexed)]
+    public void AKeyedReadOnlyWriter_IsReadByAnotherRunUnit_AtTheWrite(FileOrg org)
     {
         string host = Tmp($"keyed-{org}");
         try
         {
             var a = new FileRegistry();
             var b = new FileRegistry();
-            KeyedFileHarness.Register(a, "A", host, org, FileSharing.ReadOnly, KeyedFileHarness.LockModeRequiredBy(FileSharing.ReadOnly));
-            KeyedFileHarness.Register(b, "B", host, org, FileSharing.AllOther, KeyedFileHarness.LockModeRequiredBy(FileSharing.AllOther));
+            FileHarness.Register(a, "A", host, org, FileSharing.ReadOnly, FileHarness.LockModeRequiredBy(FileSharing.ReadOnly));
+            FileHarness.Register(b, "B", host, org, FileSharing.AllOther, FileHarness.LockModeRequiredBy(FileSharing.AllOther));
             Assert.Equal(FileStatusCode.Success, Open(a, "A", FileOpenMode.Output));
             Assert.Equal(FileStatusCode.Success, Open(b, "B", FileOpenMode.Input));
 
-            Assert.Equal(FileStatusCode.Success, KeyedFileHarness.Write(a, "A", org, 1, "DATA"));
+            Assert.Equal(FileStatusCode.Success, FileHarness.Write(a, "A", org, 1, "DATA"));
             Assert.Equal(FileStatusCode.Success, Read(b, "B", out string first));
             Assert.Equal("0001DATA", first);
-            Assert.Equal(FileStatusCode.DuplicateKey, KeyedFileHarness.Write(a, "A", org, 1, "DATA"));   // '22': nothing released
-            Assert.Equal(FileStatusCode.Success, KeyedFileHarness.Write(a, "A", org, 2, "DATA"));
+            Assert.Equal(FileStatusCode.DuplicateKey, FileHarness.Write(a, "A", org, 1, "DATA"));   // '22': nothing released
+            Assert.Equal(FileStatusCode.Success, FileHarness.Write(a, "A", org, 2, "DATA"));
             Assert.Equal(FileStatusCode.Success, Read(b, "B", out string second));
             Assert.Equal("0002DATA", second);
             Assert.Equal(FileStatusCode.AtEnd, Read(b, "B", out _));
