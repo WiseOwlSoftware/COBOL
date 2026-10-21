@@ -467,7 +467,12 @@ refuses the reader rule 2 admits; it is a second expression of the same table:
   chosen ONCE (`RunUnitFileLock.HostOfThisProcess`): `OfdColumnLockHost` where `OfdRegionLocks.Available` (Linux
   x86-64/arm64), no host on Windows (`HostFile.ShareModesAreMandatory`), `SidecarColumnLockHost` everywhere else.
   Both hosts publish BEFORE they test and never count the asker's own publication, which is the whole of the
-  race-freedom argument. Adding a host is one class and one line in the choice.
+  race-freedom argument. Adding a host is one class and one line in the choice. A hold can be REPLACED by a new request
+  (`Establish`'s `supersedes`; `RunUnitFileLock.Amend`, `Revert`): the new column is published on the same hold (Linux: a
+  second byte of the one description; sidecar: a second holder file) while the old stays published, the test ignores both,
+  and the old goes only when the request is admitted — the connector's re-OPEN after a CLOSE under commit control, whose
+  kept lock must never be free (PB3483, 2.2.1.10 As built (3)); `RunUnitFileLockAmendTests` observes it with a racing run
+  unit sent in at the entry of every establishment.
 - **The lock-file primitive (`SidecarLockFiles`) and its column policy (`SidecarColumnLockHost`).** macOS has no host
   primitive for the Linux bytes: its classic `fcntl` locks are process-owned, its open-file-description commands are
   private, and `fcntl` is variadic, which Apple's arm64 calling convention passes differently from a fixed P/Invoke
@@ -1831,7 +1836,8 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   another handle beside it moves the byte to the new handle inside the attach's store-mutex hold
   (`KeyedStore.HoldLivenessThrough`) and then gives the kept handle back; and where the kept handle's share mode refuses
   the new one, the kept HANDLE alone is given back first — the attachment and the transaction stay — and the byte is taken
-  again through the new handle inside that hold. While the run unit's transaction on the file stands and the kept handle is
+  again through the new handle inside that hold; only a sharing refusal (`HostFile.IsSharingRefusal`) does that, any other
+  `IOException` leaves the kept handle where it is (PB3483). While the run unit's transaction on the file stands and the kept handle is
   writable, the re-OPEN's handle is taken writable whatever its open mode (an INPUT re-OPEN included): it is the handle
   the COMMIT or ROLLBACK writes through; a handle the host lets hold no exclusive lock holds the byte SHARED, which
   refuses every other run unit's exclusive probe and draw alike. With no transaction standing (the connector only read)
@@ -1841,18 +1847,29 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   EXTEND) on a host whose share modes are mandatory (Windows: '61' where the table says '00'), until the COMMIT or
   ROLLBACK, while a host that publishes the column lock instead admits it; a host share mode cannot say "an INPUT
   opener that still owes its transaction's writes". A re-OPEN that fails leaves what the CLOSE kept as it was
-  (§14.9.27.4 GR25): the kept handle and attachment are restored (`AbandonOpen`) and the kept column lock, which the
-  OPEN gave back to take its own, is taken again (`FileConnector.RetakeKeptFileLock`, `RunUnitFileLock.Retake`; review
-  lead R2-2); the instants between the kept column's release and the re-OPEN's own lock, and between that lock's release
-  and the retake, are that column lock's window, as the share-mode window below is the handle's. The OPEN's
+  (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
+  to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN
+  attaches its own, so the liveness byte is held by a live run unit again before any other run unit's dead-owner step can
+  find it free (`KeyedConnector.RetakeKeptHandle`, run by `AbandonOpen` for every unsuccessful ending after the swap: another
+  run unit's refusal of the new handle, a refused adoption, a torn page met while positioning; PB3483). The OPEN's
   GR16 write probe is not made for a connector still holding its kept handle, whose own share mode would refuse it; the
-  writable handle the re-OPEN takes asks the same question. The share-mode window — between the kept handle's release
-  and the new handle's taking — is the one instant the byte is free while the owner lives. The Table 19
+  writable handle the re-OPEN takes asks the same question. So is the OPEN OUTPUT probe (`FileConnector.HeldByAnotherHandle`):
+  the kept handle is the connector's own, not *"another file connector"* (§9.1.13.9 1) e)); the keyed connector gives it back for
+  the instant of the question and takes it again when another handle does hold the file. ⚠ **A WINDOW, NAMED:** the share-mode
+  window — between the kept handle's release and the new handle's taking, and the retake — is the one instant the byte and
+  the host share mode are free while the owner lives, and a host whose share modes are per handle cannot close it: a handle
+  that refuses the new one is a handle the new one cannot be beside. Another run unit that opens in that instant holds a handle
+  the retake is refused by, the kept state is left without its handle (the OPEN answers its own status) and the next writable
+  OPEN of another run unit rolls the transaction back as a death's. The Table 19
   run-unit file lock (the column bytes a host without mandatory share modes publishes) is kept with the handle
   (§14.9.7.4 GR4: *"For files specified in active APPLY COMMIT clauses that have been closed and not reopened prior to the
   COMMIT statement, the file locks are released."*), so another run unit's conflicting OPEN is refused '61' on every host
-  until the COMMIT or ROLLBACK; the connector's own re-OPEN gives the kept column lock back immediately before it takes its
-  own (`FileConnector.ReleaseKeptFileLock`).
+  until the COMMIT or ROLLBACK, and it has NO such window: the connector's own re-OPEN REPLACES the kept column on the same
+  hold (`FileConnector.TakeRunUnitFileLock` → `RunUnitFileLock.Amend` → `IColumnLockHost.Establish`'s `supersedes`: the new
+  column is published while the old stays published, the test ignores both as the asker's own, and the old goes only when the
+  request is admitted; a refusal changes nothing), and an unsuccessful OPEN puts the kept column back, untested, on the same
+  hold (`RunUnitFileLock.Revert`, `KeyedConnector.TryRestoreKeptFileLock`; review lead R2-2). A holder the new column admitted
+  meanwhile was admitted by an OPEN in progress, the OPEN's own instant, not a window.
   (4) HOLDINGS and UNDO keys compare as bytes (`TransactionKeys`): a key's identity is the channel bytes the statement
   used. Under commit control the prime key bound is 1 015 bytes, one below the tree's, for the kind byte (DOC-A.1-129).
   (5) A transaction the run unit OWES a rollback — one whose ROLLBACK the medium refused, or whose file is MARKED
