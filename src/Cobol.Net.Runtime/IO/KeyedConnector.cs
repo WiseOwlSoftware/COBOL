@@ -402,9 +402,7 @@ public abstract class KeyedConnector : FileConnector
         // fresh one with no records and no transaction; a handle the re-OPEN adopted is on its medium already.
         var store = _kept is null ? AttachStore(create) : AttachedStore;
         _attached = true;
-        if (_kept is not { Adopted: true })
-            store.AttachHandle(_handle!, StoreHandleWritable,
-                HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
+        if (_kept is not { Adopted: true }) AttachHandleTo(store);
         var opened = InStoreMutex(() =>
         {
             var status = create
@@ -442,12 +440,11 @@ public abstract class KeyedConnector : FileConnector
     /// description from this OPEN's own.</para></summary>
     private string? Recreate()
     {
-        int areas = HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize;
         // This OPEN's handle is on the kept store until the creation has landed, as a re-OPEN's is, so that AbandonOpen takes it off
         // and moves the transaction's liveness byte and the record locks back in the one way it does for every unsuccessful re-OPEN.
-        AttachedStore.AttachHandle(_handle!, StoreHandleWritable, areas);
+        AttachHandleTo(AttachedStore);
         var created = NewStore();
-        created.AttachHandle(_handle!, StoreHandleWritable, areas);
+        AttachHandleTo(created);
         var status = InStoreMutex(() => created.Create(DeclaredAttributes, _coherent, HoldingsOrder));
         if (status != StoreStatus.Ok)
         {
@@ -459,6 +456,11 @@ public abstract class KeyedConnector : FileConnector
         _attached = true;
         return Failed(InStoreMutex(() => StoreHandleWritable ? created.RollBackDeadOwners(_regions!, Restoring) : StoreStatus.Ok));
     }
+
+    /// <summary>Attach this connector's handle (its §9.1.15 file lock) to <paramref name="store"/> with its input-output areas as the
+    /// page cache's floor (§12.4.5.14.3 GR1) - the ONE place the keyed lifecycle sizes them (kb/Work PB3333).</summary>
+    private void AttachHandleTo(KeyedStore store) =>
+        store.AttachHandle(_handle!, StoreHandleWritable, HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
 
     /// <summary>Leave the store: this connector's handle off its medium, and the table's attachment given back.
     /// <para>⛔ UNDER THE STORE MUTEX (kb/Work PB3335): when this was the store's last writable handle and a reader stays,
