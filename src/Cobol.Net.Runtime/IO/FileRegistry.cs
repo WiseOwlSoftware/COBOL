@@ -475,6 +475,11 @@ public sealed class FileRegistry
     /// <see cref="AggregateException"/>). Idempotent: a second call finds nothing open.</para></summary>
     public void CloseAll()
     {
+        // §9.1.18.5's first sentence: a run unit that reaches its implicit CLOSE without an abnormal ending commits (the
+        // abnormal ending ran its file-only ROLLBACK first, RunUnit.Terminate, so nothing is left to commit then — and a
+        // transaction whose ROLLBACK the medium refused there is owed a rollback, which this COMMIT refuses and retries:
+        // KeyedStore.Commit, review finding R1-4).
+        EndTransactions(abnormal: false);
         List<Exception>? failures = null;
         // §9.1.4's deletion-time closes the GC requested and the mutator has not yet performed: each object's file is
         // closed and dropped as at its deletion. One that fails stays registered, out of its open mode.
@@ -486,6 +491,14 @@ public sealed class FileRegistry
         foreach (string name in _files.Keys.ToArray())   // a snapshot: a held-line drain runs report-writer code mid-walk
         {
             try { CloseIfOpen(name); }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        // §9.1.18.5, after the commit or the rollback: "In both cases all file and record locks are then released" — the
+        // file locks a CLOSE under commit control kept, the implicit CLOSEs' just above included (review finding R1-2). A
+        // transaction whose rollback the medium refused is left as a death leaves it, for the dead-owner step.
+        foreach (var c in _files.Values.ToArray())
+        {
+            try { (c as KeyedConnector)?.ReleaseKept(); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
         if (failures is [var only]) ExceptionDispatchInfo.Throw(only);
@@ -1004,6 +1017,118 @@ public sealed class FileRegistry
         // one of its inputs and never its author.
         _connectorShares[name] = new ConnectorShare(sharing, lockMode, multiple);
 
+    // ── APPLY COMMIT, COMMIT and ROLLBACK (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337) ─────────────────────
+
+    /// <summary>⛔ PUT A KEYED FILE CONNECTOR UNDER COMMIT CONTROL — the activation of a runtime element whose APPLY COMMIT
+    /// clause names it (§12.4.6.3.4; the compiler's half is kb/Work PB3338). §9.1.16: <i>"For files subject to commit and
+    /// rollback the LOCK clause and the UNLOCK statement shall not be specified and instead an implicit LOCK MODE IS
+    /// AUTOMATIC WITH LOCK ON MULTIPLE RECORDS is applied automatically."</i> — so the connector's record-locking posture
+    /// is that one, keeping the file control entry's SHARING (a READ then locks its record in the region, §12.4.5.9.4 GR4);
+    /// and its WRITE, REWRITE and DELETE keep the record's before-image and HOLD the record (and every unique key value the
+    /// change frees) in the run unit's transaction on the physical file (<see cref="KeyedConnector.CommitControlled"/>).
+    /// Its OPEN sets nothing in the file: commit control is a transaction in the TRANSACTIONS tree, not a property of the
+    /// file. The sequential organization's commit facility is kb/Work PB3340's (2.2.2); a sequential connector is refused.</summary>
+    public void RegisterCommitControl(string name)
+    {
+        if (Require(name) is not KeyedConnector keyed)
+            throw MisroutedVerb("APPLY COMMIT (the sequential journal is kb/Work PB3340)", name, Require(name));
+        keyed.CommitControlled = true;
+        _connectorShares[name] = ShareOf(name) with { LockMode = FileLockMode.Automatic, Multiple = true };
+    }
+
+    /// <summary>The id of the run unit's open transaction on <paramref name="name"/>'s physical file, 0 while none (the
+    /// witnesses' seam, 2.2.1.12's transaction cases).</summary>
+    internal ulong TransactionOf(string name) => Require(name) is KeyedConnector k ? k.OpenTransaction : 0;
+
+    /// <summary>The witnesses' seam of a death that lands while ANOTHER run unit's statement runs (2.2.1.17's round-4
+    /// table): this run unit's liveness byte on <paramref name="name"/>'s physical file is released as the operating
+    /// environment releases a dead process's, and nothing else of the run unit is touched.</summary>
+    internal void ReleaseLivenessForWitness(string name)
+    {
+        if (Require(name) is KeyedConnector k) k.ReleaseLivenessForWitness();
+    }
+
+    /// <summary>The keyed connectors whose physical files carry an open transaction of this run unit — one per file, in
+    /// the order of the run unit's open stores (the order connectors were registered: 2.2.1.10, "Files are committed one at
+    /// a time, in the order of the run unit's open stores").</summary>
+    private List<(string Name, KeyedConnector Connector)> TransactionConnectors()
+    {
+        var seen = new HashSet<string>(HostFile.PhysicalFileComparer);
+        var owners = new List<(string, KeyedConnector)>();
+        foreach (var (name, c) in _files)
+            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add((name, k));
+        return owners;
+    }
+
+    /// <summary>⛔ COMMIT (§14.9.7.4 GR3: <i>"The execution of the COMMIT statement permanently applies any changes made to
+    /// the files specified in all the active APPLY COMMIT clauses and releases all record locks associated with those
+    /// files."</i>; DESIGN-runtime-library.md 2.2.1.10). For every physical file with a transaction of this run unit, one at
+    /// a time in the order of the run unit's open stores (per file, by the owner's decision of 2026-10-19, kb/Work PB3454):
+    /// the promotion that decides it. Then the region's READ locks of every connector under commit control (§9.1.16:
+    /// <i>"A COMMIT statement releases all record locks for files subject to commit and rollback"</i>) and the handles kept
+    /// by connectors closed under commit control (§9.1.15: <i>"the file lock is removed by the COMMIT statement"</i>).
+    /// <para>COMMIT has no I-O status (§9.1.13.1), so a COMMIT the medium refuses is told through the refused FILE: its status
+    /// '30', the permanent error of §9.1.13.1 in effect, and the name returned — the caller raises EC-I-O-PERMANENT-ERROR
+    /// for it, the fatal condition for which §14.6.13.1.3 item 8 executes a ROLLBACK unconditionally (the files after it
+    /// are not committed; those before it are). Null when every file committed.</para></summary>
+    public string? Commit()
+    {
+        foreach (var (name, k) in TransactionConnectors())
+            if (k.CommitTransaction() != CommitOutcome.Committed)
+            {
+                k.SetStatus(FileStatusCode.PermanentError);
+                return name;
+            }
+        ReleaseCommitLocks();
+        return null;
+    }
+
+    /// <summary>⛔ ROLLBACK (§14.9.36.4 GR3: <i>"All files and data-items referenced in active APPLY COMMIT clauses are
+    /// restored to the state they were in at the execution of the last COMMIT statement or the start of the run unit if no
+    /// COMMIT statements had previously been executed."</i>; 2.2.1.10) — the files' half (the data items are the compiler's,
+    /// kb/Work PB3338, and the termination path's rollback restores files only, §14.6.12): for every physical file with a
+    /// transaction of this run unit, ONE statement that re-applies the run unit's before-images and drops its holdings,
+    /// touching no other run unit's record; then the region's READ locks (§9.1.16: <i>"A ROLLBACK statement releases all
+    /// record locks for files subject to commit and rollback"</i>) and the kept handles. A file whose ROLLBACK the medium
+    /// refuses keeps its transaction (the dead-owner step restores it once the run unit is gone) and is told as COMMIT's is:
+    /// '30' on the file, its name returned; every other file is still rolled back.</summary>
+    public string? Rollback()
+    {
+        string? refused = null;
+        foreach (var (name, k) in TransactionConnectors())
+            if (k.RollbackTransaction() != StoreStatus.Ok)
+            {
+                k.SetStatus(FileStatusCode.PermanentError);
+                refused ??= name;
+            }
+        ReleaseCommitLocks();
+        return refused;
+    }
+
+    /// <summary>What COMMIT and ROLLBACK both release: every region record lock of a connector under commit control (its
+    /// READ locks; a change's lock is a holding, already gone with the transaction) and every handle kept by a connector
+    /// closed under commit control.</summary>
+    private void ReleaseCommitLocks()
+    {
+        foreach (var (name, c) in _files)
+            if (c is KeyedConnector { CommitControlled: true } k)
+            {
+                ReleaseAllForConnector(name);
+                k.ReleaseKept();
+            }
+    }
+
+    /// <summary>The run unit's transactions at its TERMINATION (§9.1.18.5: <i>"When a run unit terminates normally, all file
+    /// changes are permanently committed. When a run unit terminates abnormally, all file changes made since the previous
+    /// commit or, if none, the beginning of the run unit are rolled back for all files for which there are active APPLY
+    /// COMMIT clauses."</i>): committed, or — abnormal — the file-only ROLLBACK of §14.6.12 (a COMMIT refused at the end is
+    /// rolled back too, by §14.6.13.1.3 item 8's rule). What the runtime cannot reach (a kill, a power loss) is the
+    /// dead-owner step's.</summary>
+    internal void EndTransactions(bool abnormal)
+    {
+        if (abnormal || Commit() is not null) Rollback();
+    }
+
     /// <summary>Declare a SELECTed file's record area NATIONAL (§14.9.30.4 GR15; emitted right after
     /// registration, only for a file whose record area is of category national — kb/Work PB327). It changes the
     /// short-record pad from the alphanumeric space to the national one.</summary>
@@ -1282,8 +1407,11 @@ public sealed class FileRegistry
     /// is sound because GR7's denial is not the record operation conflict condition, so §14.9.30.4 GR10 a) never
     /// governed it — GR18 does, and the caller applies GR18 by invalidating the position the retrieval
     /// advanced.</para></summary>
+    /// <para>Nor while a transaction may hold a record of the file IN THE FILE (a keyed store's HOLDINGS tree is not
+    /// empty, DESIGN-runtime-library.md 2.2.1.10): those locks are pages, not region bytes, and the READ asks them through
+    /// its peek (<see cref="HoldingsConflict"/>).</para>
     private static bool NoRecordIsLocked(PhysicalFileTable.State st, FileConnector c) =>
-        st.RecordLocks.Count == 0 && !AnotherRunUnitMayLock(c);
+        st.RecordLocks.Count == 0 && !AnotherRunUnitMayLock(c) && !c.HoldingsMayExist;
 
     /// <summary>⛔ Does a file connector of ANOTHER run unit hold a lock on a record of this connector's physical
     /// file (kb/Work PB2660)? Only possible when this connector publishes and tests record locks across run units
@@ -1353,6 +1481,36 @@ public sealed class FileRegistry
         return conflict;
     }
 
+    /// <summary>⛔ THE HOLDINGS HALF OF A READ'S LOCK TEST (DESIGN-runtime-library.md 2.2.1.10, "The lock TEST, for every
+    /// writer and every reader not IGNORING LOCK"; kb/Work PB3337): a record a transaction changed is held IN THE FILE, not
+    /// in the region, and a READ that does not ignore locks meets it with '51' while its owner lives (§9.1.16: <i>"The
+    /// implementor may specify circumstances other than a locked logical record that result in the return of a locked
+    /// record status."</i>; DOC-A.1-152) — its RETRY phrase applying — and rolls a dead owner back at the test
+    /// (<paramref name="reevaluate"/>: the record to read is named again). IGNORING LOCK tests nothing (§14.9.30.4 GR12;
+    /// D.2.5's tolerated read). Returns the conflict status — already stored on the connector — or null.</summary>
+    private string? HoldingsConflict(string name, FileConnector c, string recId, bool ignoringLock, out bool reevaluate)
+    {
+        reevaluate = false;
+        if (ignoringLock || c is not KeyedConnector keyed || keyed.ReadHoldingsGate(recId, out reevaluate) is not { } held)
+            return null;
+        SetStatusOf(name, held);   // as ConflictOnLockedRecord: the status assignment drops the '43' gate (PB140)
+        return held;
+    }
+
+    /// <summary>The governed statement's RETRY phrase, handed to its connector for the statement's length
+    /// (<see cref="FileConnector.StatementRetry"/>: the holdings test applies it, 2.2.1.10) and cleared by the disposal.</summary>
+    private RetryScope StatementRetryOf(string name, FileRetryKind kind, long amount)
+    {
+        var c = Require(name);
+        c.StatementRetry = (kind, amount);
+        return new RetryScope(c);
+    }
+
+    private readonly struct RetryScope(FileConnector c) : IDisposable
+    {
+        public void Dispose() => c.StatementRetry = default;
+    }
+
     /// <summary>ISO §14.9.30.4 GR11 c)/d) — does this READ set a record lock on the record it makes available?
     /// GR11 c): under automatic locking every READ does; GR11 d): under manual locking only a READ carrying the
     /// LOCK phrase does.
@@ -1390,6 +1548,9 @@ public sealed class FileRegistry
     {
         if (recId.Length == 0 || !ReadSetsRecordLock(meta, phrase) || !LocksEffective(meta, st, name)) return null;
         if (st.RecordLocks.ContainsKey(recId)) return null;
+        // The commit posture's READ locks have no ceiling but the host's (DOC-A.1-154/155; 2.2.1.10): D.2.5's deferred
+        // commits make them unbounded by design, and §12.4.5.9.4 GR7 lets the implementor set the maximum.
+        if (Require(name) is KeyedConnector { CommitControlled: true }) return null;
         string pf = RecordLockCeiling(st, name, retryKind, retryAmount);
         if (pf == FileStatusCode.Success) return null;
         SetStatusOf(name, pf);   // the status assignment drops the '43' gate (PB140)
@@ -1481,6 +1642,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
+        using var retry = StatementRetryOf(name, retryKind, retryAmount);
         return ReadSharedInStatement(name, previous, phrase, advancingOnLock, ignoringLock, retryKind, retryAmount, out image);
     }
 
@@ -1509,6 +1671,12 @@ public sealed class FileRegistry
                     image = "";
                     return pre;      // GR10 — nothing has moved, so a),c),d) hold by construction
                 }
+                if (HoldingsConflict(name, c, peek, ignoringLock, out bool reevaluate) is { } held)
+                {
+                    image = "";
+                    return held;     // GR10 — nothing has moved
+                }
+                if (reevaluate) continue;   // a dead holder was rolled back: the record to read is named again
                 if (PreflightReadLock(meta, st, name, peek, phrase, retryKind, retryAmount) is { } predenied)
                 {
                     image = "";
@@ -1574,6 +1742,7 @@ public sealed class FileRegistry
         bool ignoringLock, FileRetryKind retryKind, long retryAmount, out string image, RecordExtents? areaExtents = null)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
+        using var retry = StatementRetryOf(name, retryKind, retryAmount);
         return ReadKeyedSharedInStatement(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind, retryAmount, out image, areaExtents);
     }
 
@@ -1592,6 +1761,11 @@ public sealed class FileRegistry
         {
             if (ConflictOnLockedRecord(name, st, peek, ignoringLock, retryKind, retryAmount) is { } pre)
                 return pre;                          // GR10 — nothing has moved
+            if (HoldingsConflict(name, c, peek, ignoringLock, out bool reevaluate) is { } held)
+                return held;                         // GR10 — nothing has moved
+            if (reevaluate)                          // a dead holder was rolled back: the READ is evaluated again
+                return ReadKeyedSharedInStatement(name, keyIndex, keyedRecordImage, phrase, ignoringLock, retryKind,
+                    retryAmount, out image, areaExtents);
             if (PreflightReadLock(meta, st, name, peek, phrase, retryKind, retryAmount) is { } predenied)
             {
                 c.ApplyUnsuccessfulReadPosition();   // §12.4.5.9.4 GR7 unsuccessful → §14.9.30.4 GR18
@@ -1620,6 +1794,7 @@ public sealed class FileRegistry
         RecordExtents? extents = null, bool nationalRecord = false)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
+        using var retry = StatementRetryOf(name, retryKind, retryAmount);
         return WriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, page, advance, extents, nationalRecord);
     }
 
@@ -1632,7 +1807,10 @@ public sealed class FileRegistry
         var meta = ShareOf(name);             // §12.4.5.9.4 GR1 b) 2. for a clause-less connector — never an early exit
         var st = _physical.For(c.HostPath);   // the connector's LIVE association (§12.4.5.3 GR3), never a cached copy
         ReleasePriorRecordLocks(meta, st, name);   // §14.9.51.4 GR10 / §12.4.5.9.4 GR6
-        bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name);   // GR11
+        // GR11. Under commit control the WRITE's implied lock (2.2.1.10, finding R2-3) is the transaction's HOLDING of the
+        // record, written into the file by the WRITE itself, never a region byte that dies with the handle (finding R4-1).
+        bool wantLock = phrase == FileRecordLock.WithLock && LocksEffective(meta, st, name)
+            && c is not KeyedConnector { CommitControlled: true };
         // A file of FIXED-length records carries a variable-length record in its fixed form (D-FRA (vi)).
         var (medium, mediumExtents) = c.FixedForm(image, extents);
         // ⛔ §12.4.5.9.4 GR7's ceiling ('54' / '53') is the LAST check of a statement that requests a new lock, and the
@@ -1677,6 +1855,7 @@ public sealed class FileRegistry
         FileRetryKind retryKind, long retryAmount, RecordExtents? extents = null, bool nationalRecord = false)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
+        using var retry = StatementRetryOf(name, retryKind, retryAmount);
         return RewriteSharedInStatement(name, image, length, phrase, retryKind, retryAmount, extents, nationalRecord);
     }
 
@@ -1734,6 +1913,7 @@ public sealed class FileRegistry
         RecordExtents? areaExtents = null)
     {
         using var statement = Require(name).BeginStatement();   // kb/Work PB2660 — one step to every other run unit
+        using var retry = StatementRetryOf(name, retryKind, retryAmount);
         return DeleteSharedInStatement(name, keyedRecordImage, retryKind, retryAmount, areaExtents);
     }
 
@@ -1753,8 +1933,10 @@ public sealed class FileRegistry
             && ConflictOnLockedRecord(name, st, target, ignoringLock: false, retryKind, retryAmount) is { } conflict)
             return conflict;
         string status = DeleteRecord(name, keyedRecordImage, areaExtents);
-        if (status.Length > 0 && status[0] == '0' && target.Length > 0)
-            PhysicalFileTable.ReleaseSingle(st, name, target);   // GR7a1/GR7b — the deleted record's lock releases at completion
+        // GR7a1/GR7b — the deleted record's lock releases at completion, "if record locks are in effect and the file is
+        // not subject to an active APPLY COMMIT clause": under one, the lock stays until COMMIT or ROLLBACK (2.2.1.10).
+        if (status.Length > 0 && status[0] == '0' && target.Length > 0 && c is not KeyedConnector { CommitControlled: true })
+            PhysicalFileTable.ReleaseSingle(st, name, target);
         return status;
     }
 

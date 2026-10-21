@@ -278,6 +278,39 @@ internal sealed partial class BTree
         }
     }
 
+    /// <summary>⛔ DELETE EVERY ENTRY AT ONCE — a transaction's UNDO tree, which its COMMIT, ROLLBACK or a dead owner's
+    /// rollback retires whole (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10, "releases the UNDO tree's pages";
+    /// kb/Work PB3337): every page the tree references — its nodes and its values' overflow chains, read to be found —
+    /// is superseded, so the statement that flushes the edit releases them all, and the tree is empty. A torn page
+    /// answers '30' and discards the edit.</summary>
+    public StoreStatus Clear()
+    {
+        try
+        {
+            if (IsEmpty(_root)) return StoreStatus.Ok;
+            SupersedeAll(_root, 0);
+            _root = default;
+            _version++;
+            return StoreStatus.Ok;
+        }
+        catch (TornPage)
+        {
+            Discard();
+            return StoreStatus.PermanentError;
+        }
+    }
+
+    private void SupersedeAll(Child c, int depth)
+    {
+        if (depth > MaxDepth) throw new TornPage(PageCheck.ChecksumFails);
+        var node = Load(c);
+        if (!c.Pointer.IsNone) _superseded.Add(c.Pointer);
+        if (node.IsLeaf)
+            foreach (var slot in node.Slots) Supersede(slot);
+        else
+            foreach (var child in node.Children) SupersedeAll(child, depth + 1);
+    }
+
     /// <summary>Write the pending edit through <paramref name="sink"/> — overflow chains, then each changed node once,
     /// children before parents — and release every page it superseded; the new root. A refused write discards the edit
     /// and answers '30' (the statement is refused; nothing it wrote is reachable, R1).</summary>

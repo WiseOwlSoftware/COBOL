@@ -143,6 +143,19 @@ internal static class HostRegionLocks
         return RecordRegionBase + (BitConverter.ToInt64(digest) & RecordRegionMask);
     }
 
+    /// <summary>The first byte of the TRANSACTION-LIVENESS region (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.8):
+    /// 2^62 + 2^61, past the record region's end.</summary>
+    private const long LivenessRegionBase = RegionBase + (1L << 61);
+
+    /// <summary>⛔ THE BYTE THAT SAYS A TRANSACTION'S OWNER IS ALIVE (2.2.1.8, 2.2.1.10; kb/Work PB3337): one byte per
+    /// transaction id, <c>2^62 + 2^61 + (id mod 2^60)</c>, held EXCLUSIVELY through the owner's writable handle for the
+    /// life of the transaction. The operating environment releases it with the handle when the owner dies (the lock-file
+    /// host deletes a dead holder's file), so "is this transaction's owner alive" is one test of one byte, by the same
+    /// primitive the record locks use. A transaction's own locks are NOT here: they are its HOLDINGS, pages of the file,
+    /// which must outlive the handle (finding R4-1).</summary>
+    internal static long TransactionLivenessByte(ulong transaction) =>
+        LivenessRegionBase + (long)(transaction & (ulong)RecordRegionMask);
+
     // ── The host ──────────────────────────────────────────────────────────────────────────────────────────────
 
     /// <summary>⛔ THE ONE CHOICE OF HOST, made once: the per-handle expression where the process shape carries it

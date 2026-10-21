@@ -105,6 +105,14 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override void ForgetStore() => _st = new RelativeStore();
 
+    /// <inheritdoc/>
+    private protected override RestoringTreesFactory Restoring => RelativeStore.Restoring;
+
+    /// <inheritdoc/>  (a relative record's lock identity is its record number in decimal, <see cref="LastReadRecordId"/>)
+    private protected override byte[]? IdentityOf(string recordId) =>
+        long.TryParse(recordId, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out long rrn)
+        && rrn > 0 ? RelativeStore.Key(rrn) : null;
+
     // ── OPEN (ISO §14.9.27; the arms are KeyedConnector.OpenCore's) ─────────────────────────────────────────────
 
     /// <inheritdoc/>
@@ -319,8 +327,13 @@ public sealed class RelativeConnector : KeyedConnector
             if (present is not null) return Status = FileStatusCode.DuplicateKey;   // '22' §14.9.51.4 GR33 a)
         }
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
+        // The transactions' HOLDINGS (2.2.1.10): after the invalid key conditions (GR33, which ignore locks), before the
+        // record is touched — a record number another transaction deleted is still its holding.
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+            return Status = locked;                                        // '51' (RETRY: §14.9.51.4 GR16)
+        if (reevaluate) return Write(image, length, extents);              // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        var written = _st.Insert(slot, frame, Entered, out bool inserted);
+        var written = _st.Insert(slot, frame, Entered, out bool inserted, TransactionFor(RelativeStore.Key(slot), beforeImage: null));
         if (RecordWriteFailed(written) is { } refused) return Status = refused;   // '24' §14.9.51.4 GR33 b) / '30' §9.1.13.6 1)
         if (!inserted) return Status = FileStatusCode.DuplicateKey;        // '22' — the tree declined (GR33 a))
         if (sequentialRelease) _lastReleasedSlot = slot;
@@ -380,8 +393,11 @@ public sealed class RelativeConnector : KeyedConnector
         if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
         if (present is null) return Status = FileStatusCode.RecordNotFound;                     // '23'
         var frame = RecordFraming.EncodeFrame(Framed(rec, image, extents), 0, CodeSet);
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+            return Status = locked;                                        // '51' (2.2.1.10)
+        if (reevaluate) return Rewrite(image, length, extents);            // against the file a rollback restored
         if (RefusedAtCommit() is { } lockRefused) return Status = lockRefused;   // '54' / '53': the lock request is the last check (kb/Work PB2848)
-        var replaced = _st.Replace(slot, frame, Entered, out bool done);
+        var replaced = _st.Replace(slot, frame, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (RecordWriteFailed(replaced) is { } refused) return Status = refused;   // '24' (§9.1.13.5 4) / '30' (§9.1.13.6 1)
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
@@ -400,7 +416,14 @@ public sealed class RelativeConnector : KeyedConnector
         // (kb/Work PB2751; the indexed organization's answer, DOC-A.1-104 (4)).
         long slot = sequential ? _lastSlot : _pendingKey;
         if (slot < 1) return Status = FileStatusCode.RecordNotFound;
-        var deleted = _st.Delete(slot, Entered, out bool done);
+        // GR4's invalid key first ('23', which ignores locks), then the transactions' HOLDINGS (2.2.1.10); under commit
+        // control the DELETE holds the record number, which stays held after the record is gone.
+        if (_st.Get(slot, out var present) != StoreStatus.Ok) return Status = FileStatusCode.PermanentError;
+        if (present is null) return Status = FileStatusCode.RecordNotFound;
+        if (HoldingsGate(() => [TransactionKeys.Record(RelativeStore.Key(slot))], out bool reevaluate) is { } locked)
+            return Status = locked;                                        // '51'
+        if (reevaluate) return Delete();                                   // against the file a rollback restored
+        var deleted = _st.Delete(slot, Entered, out bool done, TransactionFor(RelativeStore.Key(slot), present));
         if (Failed(deleted) is { } refused) return Status = refused;       // '30' §9.1.13.6 item 1, the boundary too
         return Status = done ? FileStatusCode.Success : FileStatusCode.RecordNotFound;
     }
