@@ -143,6 +143,10 @@ internal static class HostRegionLocks
         return RecordRegionBase + (BitConverter.ToInt64(digest) & RecordRegionMask);
     }
 
+    /// <summary>Whether <paramref name="offset"/> is a byte of the record-lock region (<see cref="RecordLockByte"/>'s range):
+    /// the one statement of the region's bounds outside its own constants, for a host that treats record bytes apart.</summary>
+    internal static bool IsRecordLockByte(long offset) => offset >= RecordRegionBase && offset <= RecordRegionBase + RecordRegionMask;
+
     /// <summary>The first byte of the TRANSACTION-LIVENESS region (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.8):
     /// 2^62 + 2^61, past the record region's end.</summary>
     private const long LivenessRegionBase = RegionBase + (1L << 61);

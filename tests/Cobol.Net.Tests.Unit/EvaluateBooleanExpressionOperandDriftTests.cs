@@ -104,7 +104,7 @@ public sealed class EvaluateBooleanExpressionOperandDriftTests
             Assert.NotNull(ev);
             return ev;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     private static IEnumerable<IParseTree> Descendants(IParseTree node)

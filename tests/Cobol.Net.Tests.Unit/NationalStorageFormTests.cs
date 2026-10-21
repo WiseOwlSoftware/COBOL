@@ -6,6 +6,7 @@ using CobolNet.CodeGen;
 using CobolNet.Frontend.Diagnostics;
 using Xunit;
 using CobolNet.Frontend.Preprocessor;
+using CobolNet.Tests.Shared;
 using CnFrontend = CobolNet.Frontend.Frontend;
 
 namespace CobolNet.Tests.Unit;
@@ -50,7 +51,7 @@ public sealed class NationalStorageFormTests
             var bound = emitter.Bind(tree!, edition, frontend.Directives);
             return bound.Units.Single().Data;
         }
-        finally { try { File.Delete(path); } catch { /* best-effort */ } }
+        finally { FileHarness.TryDelete(path); }
     }
 
     /// <summary>PIC N(5): ImageWidth == Length == 5 (one UTF-16 char per national position, D-N1) — expect 5,
