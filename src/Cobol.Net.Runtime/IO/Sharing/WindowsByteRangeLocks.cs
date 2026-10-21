@@ -13,7 +13,9 @@ namespace CobolNet.Runtime.IO;
 /// Table 19 column's range, kb/Work PB3482). The locks are owned by the HANDLE, conflict across handles of one process
 /// exactly as across processes, are MANDATORY for the bytes they cover (harmless: every range
 /// <see cref="HostRegionLocks"/> names lies at 2^62 or beyond, far past the end of any file), and go with the handle when
-/// it closes. An exclusive request over a range the SAME handle already holds in either mode conflicts with that hold.
+/// it closes. A handle's own hold conflicts with its own exclusive request (<see cref="RegionLocks.ExclusiveNeedsWritableHandle"/>:
+/// a shared hold cannot be tested through the handle that holds it), so a holder that asks about a range it holds a byte of
+/// asks around that byte.
 /// </summary>
 [SupportedOSPlatform("windows")]
 internal static class WindowsByteRangeLocks

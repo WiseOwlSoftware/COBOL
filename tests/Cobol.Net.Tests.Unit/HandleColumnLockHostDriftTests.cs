@@ -180,6 +180,76 @@ public sealed class HandleColumnLockHostDriftTests
         }
     }
 
+    /// <summary>The question a share mode needs answered to yield (<see cref="RunUnitFileLock.AnotherInputOpenerHolds"/>, kb/Work
+    /// PB3482): is there ANOTHER holder of an INPUT column — only an INPUT opener can owe writes. A holder never counts itself
+    /// (its own column's range is asked around its own byte), a column given back is not held, and a holder of a column that
+    /// is not an INPUT column is no answer to it.</summary>
+    [Fact]
+    public void AnInputOpenerIsSeenByAnotherHolderAndOnlyByAnother()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            // READ ONLY INPUT beside READ ONLY INPUT (Table 19: Normal open) — each asks around its own byte of the one column.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var a));
+            Assert.False(a!.AnotherInputOpenerHolds());   // itself is no other
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var b));
+            Assert.True(a.AnotherInputOpenerHolds());
+            Assert.True(b!.AnotherInputOpenerHolds());
+            b.Dispose();
+            Assert.False(a.AnotherInputOpenerHolds());    // given back
+            Assert.False(b.AnotherInputOpenerHolds());    // and a lock given back asks nothing
+            a.Dispose();
+            Assert.False(a.AnotherInputOpenerHolds());
+
+            // ALL OTHER: a writer (I-O) is no INPUT opener; an INPUT one beside it is.
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var x));
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.IO, out var writer));
+            Assert.False(x!.AnotherInputOpenerHolds());
+            Assert.True(writer!.AnotherInputOpenerHolds());   // the writer sees the INPUT opener
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.AllOther, FileOpenMode.Input, out var y));
+            Assert.True(x.AnotherInputOpenerHolds());
+            y!.Dispose();
+            writer.Dispose();
+            x.Dispose();
+        }
+        finally { Clean(dir); }
+    }
+
+    /// <summary>⛔ CONTENTION BETWEEN PUBLISHERS AND TESTERS NEVER MAKES THE HOST UNAVAILABLE. A tester's shared request over a
+    /// column's range conflicts, for the instant it lasts, with a publisher's exclusive attempt at a byte of it, and the
+    /// publisher chooses another byte; six threads taking and giving back the three columns that test each other's ranges,
+    /// many rounds, are only ever held or refused — a lock this host "cannot hold" would be an OPEN granted without it.</summary>
+    [Fact]
+    public void ContendedPublishersAndTesters_AreOnlyEverHeldOrRefused()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            (FileSharing Sharing, FileOpenMode Mode)[] requests =
+            [
+                (FileSharing.AllOther, FileOpenMode.IO), (FileSharing.ReadOnly, FileOpenMode.Input), (FileSharing.AllOther, FileOpenMode.Input),
+            ];
+            int unavailable = 0;
+            var threads = Enumerable.Range(0, 6).Select(i => new Thread(() =>
+            {
+                for (int round = 0; round < 300; round++)
+                {
+                    var (sharing, mode) = requests[(i + round) % requests.Length];
+                    var outcome = RunUnitFileLock.Take(Host, file, sharing, mode, out var hold);
+                    if (outcome == RunUnitFileLock.Outcome.Unavailable) Interlocked.Increment(ref unavailable);
+                    hold?.Dispose();
+                }
+            })).ToArray();
+            foreach (var t in threads) t.Start();
+            foreach (var t in threads) t.Join();
+            Assert.Equal(0, unavailable);
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>A holder that excludes every reader — a <see cref="FileShare.None"/> handle, which is what SHARING WITH NO
     /// OTHER (or a foreign program) holds — refuses the take: Table 19's first column, which every request row refuses.
     /// The refusal leaves nothing published.</summary>

@@ -35,7 +35,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
     /// <summary>How often a publication chooses another byte after a collision with a holder or a tester (a tester's
     /// shared request conflicts with an exclusive attempt for the instant it lasts). Exhausting them is a host that cannot
     /// be trusted here, not a refusal.</summary>
-    private const int PublishAttempts = 32;
+    private const int PublishAttempts = 64;
 
     public RunUnitFileLock.Outcome Establish(string hostPath, ExistingSharingColumn own,
         IReadOnlyList<ExistingSharingColumn> refused, out IDisposable? hold)
@@ -63,6 +63,9 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             long publishedByte = -1;
             for (int attempt = 0; attempt < PublishAttempts && publishedByte < 0; attempt++)
             {
+                // A tester's shared request over the range lasts microseconds: the first retries yield, the later ones wait
+                // a millisecond, so a run of tries cannot all fall inside one tester's instant.
+                if (attempt > 0) { if (attempt < 8) Thread.Yield(); else Thread.Sleep(1); }
                 long candidate = ownStart + Random.Shared.NextInt64(HostRegionLocks.ColumnRangeWidth);
                 switch (WindowsByteRangeLocks.Lock(handle, candidate, 1, exclusive: true, wait: false))
                 {
@@ -73,7 +76,7 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
             if (publishedByte < 0) return RunUnitFileLock.Outcome.Unavailable;
 
             foreach (var column in refused)
-                if (OthersHold(handle, own, publishedByte, column)) return RunUnitFileLock.Outcome.Refused;
+                if (OthersHold(handle, own, publishedByte, column, whenUnobservable: true)) return RunUnitFileLock.Outcome.Refused;
             hold = new Published(handle, own, publishedByte);
             kept = true;
             return RunUnitFileLock.Outcome.Held;
@@ -83,27 +86,30 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
 
     /// <summary>Does a holder OTHER than the one that published <paramref name="publishedByte"/> in column <paramref name="own"/>
     /// hold <paramref name="column"/>? The holder's own byte is left out of its own column's range: two shared requests,
-    /// one each side of it.</summary>
+    /// one each side of it. <paramref name="whenUnobservable"/> is the answer for a range this host cannot carry the
+    /// request over: the establishment refuses (a holder this host cannot observe is a holder), and the question that
+    /// would let a share mode yield does not (an unknown is never a reason to admit).</summary>
     [SupportedOSPlatform("windows")]
-    private static bool OthersHold(SafeFileHandle handle, ExistingSharingColumn own, long publishedByte, ExistingSharingColumn column)
+    private static bool OthersHold(SafeFileHandle handle, ExistingSharingColumn own, long publishedByte,
+        ExistingSharingColumn column, bool whenUnobservable)
     {
         long start = HostRegionLocks.ColumnRangeStart(column);
         long end = start + HostRegionLocks.ColumnRangeWidth;
         return column == own
-            ? RangeIsHeld(handle, start, publishedByte - start) || RangeIsHeld(handle, publishedByte + 1, end - publishedByte - 1)
-            : RangeIsHeld(handle, start, end - start);
+            ? RangeIsHeld(handle, start, publishedByte - start, whenUnobservable)
+              || RangeIsHeld(handle, publishedByte + 1, end - publishedByte - 1, whenUnobservable)
+            : RangeIsHeld(handle, start, end - start, whenUnobservable);
     }
 
     /// <summary>Does another handle hold an exclusive byte of the range? A shared request for the whole range, released at
-    /// once; an empty range holds nothing. A host that cannot carry the request reads as held (the caller refuses): a holder
-    /// this host cannot observe is a holder.</summary>
+    /// once; an empty range holds nothing; a host that cannot carry the request answers <paramref name="whenUnobservable"/>.</summary>
     [SupportedOSPlatform("windows")]
-    private static bool RangeIsHeld(SafeFileHandle handle, long start, long length)
+    private static bool RangeIsHeld(SafeFileHandle handle, long start, long length, bool whenUnobservable)
     {
         if (length <= 0) return false;
         var taken = WindowsByteRangeLocks.Lock(handle, start, length, exclusive: false, wait: false);
         if (taken == RegionLockResult.Ok) WindowsByteRangeLocks.Unlock(handle, start, length);
-        return taken != RegionLockResult.Ok;
+        return taken == RegionLockResult.Held || (taken == RegionLockResult.Unavailable && whenUnobservable);
     }
 
     /// <summary>The published column: closing the handle releases every byte it holds. Idempotent.</summary>
@@ -112,7 +118,8 @@ internal sealed class HandleColumnLockHost : IColumnLockHost
         private SafeFileHandle? _handle = handle;
 
         public bool AnotherHolds(ExistingSharingColumn column) =>
-            _handle is { IsClosed: false } held && OperatingSystem.IsWindows() && OthersHold(held, own, publishedByte, column);
+            _handle is { IsClosed: false } held && OperatingSystem.IsWindows()
+            && OthersHold(held, own, publishedByte, column, whenUnobservable: false);
 
         public void Dispose()
         {
