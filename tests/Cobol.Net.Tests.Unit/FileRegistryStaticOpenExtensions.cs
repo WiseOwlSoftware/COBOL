@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
 using CobolNet.Runtime.IO;
+using CobolNet.Tests.Shared;
 
 namespace CobolNet.Tests.Unit;
 
@@ -20,9 +21,15 @@ namespace CobolNet.Tests.Unit;
 /// </summary>
 internal static class FileRegistryStaticOpenExtensions
 {
-    /// <summary>OPEN with the connector's own static association and no LINAGE page.</summary>
-    public static void OpenStatic(this FileRegistry reg, string name, FileOpenMode mode) =>
+    /// <summary>OPEN with the connector's own static association and no LINAGE page. A connector
+    /// <see cref="FileHarness.Register"/> declared is first checked against the mode (EXTEND needs sequential access,
+    /// §14.9.27.3 SR2; kb/Work PB3479), so a test that skips <see cref="FileHarness.Open"/> still cannot open a
+    /// declaration no program makes.</summary>
+    public static void OpenStatic(this FileRegistry reg, string name, FileOpenMode mode)
+    {
+        FileHarness.AssertDeclarationAdmits(reg, name, mode);
         reg.Open(name, mode, reg.HostPathOf(name), assignDynamic: false, page: null);
+    }
 
     /// <summary>OPEN with a §14.9.27.2 tape phrase, the connector's own static association and no LINAGE
     /// page.</summary>
