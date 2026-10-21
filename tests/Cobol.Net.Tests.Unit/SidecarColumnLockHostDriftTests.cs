@@ -471,13 +471,13 @@ public sealed class SidecarColumnLockHostDriftTests
     }
 
     /// <summary>The host of a process is chosen once, from facts of the process: Linux open-file-description locks
-    /// where <c>OfdRegionLocks</c> carries them, no lock file on Windows (mandatory share modes carry the table), and
-    /// the lock files everywhere else.</summary>
+    /// where <c>OfdRegionLocks</c> carries them, the byte ranges of <c>HandleColumnLockHost</c> on Windows (mandatory
+    /// share modes carry most of the table, the ranges the rest, kb/Work PB3482), and the lock files everywhere else.</summary>
     [Fact]
     public void TheHostOfTheProcessIsChosenFromTheProcessShape()
     {
-        object? expected = OfdRegionLocks.Available ? OfdColumnLockHost.Instance
-            : OperatingSystem.IsWindows() ? null
+        object expected = OfdRegionLocks.Available ? OfdColumnLockHost.Instance
+            : OperatingSystem.IsWindows() ? HandleColumnLockHost.Instance
             : SidecarColumnLockHost.Instance;
         Assert.Same(expected, RunUnitFileLock.HostOfThisProcess);
         Assert.Equal(RunUnitFileLock.Outcome.Unavailable,

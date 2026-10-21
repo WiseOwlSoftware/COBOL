@@ -308,6 +308,39 @@ public sealed class FileLockPostureDriftTests
             + "it and the design doc has to be re-derived — never this line adjusted. " + host.Because);
     }
 
+    /// <summary>⛔ THE POSTURE THAT YIELDS TO AN INPUT OPENER'S OWED WRITES DOES NOT YIELD TO A PROGRAM OUTSIDE THE PROTOCOL
+    /// (kb/Work PB3482; Annex A.1 item 75, docs/CONFORMANCE.md DOC-A.1-75). A bare handle open for WRITING holds the file when
+    /// a SHARING WITH READ ONLY connector opens INPUT: where the host's share modes separate readers from writers (Windows)
+    /// the connector's first attempt is refused '61', and its second attempt (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>)
+    /// is taken only when another run unit's INPUT opener holds its column — here nobody does, so the refusal stands; where
+    /// they cannot (the advisory <c>flock</c> of Unix) the share mode admits the OPEN in the first place. Nothing a
+    /// connector has to say about it changes the outside writer's.</summary>
+    [Theory]
+    [MemberData(nameof(EveryOrganization))]
+    public void AReadOnlyOpenBesideAnOutsideWriterIsRefusedWhereTheShareModeRefusesIt(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"outside-writer-{org}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+            using (new FileStream(host, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                var reg = new FileRegistry();
+                FileHarness.Register(reg, "F", host, org, sharing: FileSharing.ReadOnly);
+                reg.OpenStatic("F", FileOpenMode.Input);
+                string expected = HostCapability.Sharing.SeparatesReadersFromWriters
+                    ? FileStatusCode.FileSharingConflict : FileStatusCode.Success;
+                Assert.True(reg.Status("F") == expected,
+                    $"({org}) SHARING WITH READ ONLY beside a bare writer answered '{reg.Status("F")}', expected "
+                    + $"'{expected}'. {HostCapability.Sharing.Because}");
+                reg.CloseAll();
+            }
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    public static TheoryData<FileOrg> EveryOrganization() => [.. Enum.GetValues<FileOrg>()];
+
     /// <summary>A clause-less OPEN that Table 19 REFUSES leaves the connectors already open exactly as they
     /// were (§14.9.27.4 GR25 — <i>"the file is not affected"</i>), and one that it admits adds nothing an outsider
     /// could use. A clause-less reader (SHARING WITH READ ONLY) alone denies an outside writer where the host can
@@ -640,6 +673,44 @@ public sealed class FileLockPostureDriftTests
         Assert.True(writers.Count == 1,
             $"The §9.1.15 file lock must be applied in exactly one place; found {writers.Count}:\n  "
             + string.Join("\n  ", writers));
+    }
+
+    /// <summary>⛔ THE THEOREM BEHIND THE OWED-WRITES POSTURE (kb/Work PB3482), checked over all 35 printed cells. An INPUT
+    /// opener can hold a handle open for WRITING — a connector under APPLY COMMIT that changed a record, was CLOSEd and
+    /// re-OPENed INPUT owes its transaction's COMMIT or ROLLBACK (docs/rearchitecture/DESIGN-runtime-library.md 2.2.1.10)
+    /// — and Table 19 admits requests beside it. The existing side's base posture admits the incoming access (it always
+    /// did: <see cref="EveryNormalOpenCellHasMutuallyAdmissiblePostures"/>), but the INCOMING side's base posture must
+    /// also admit the existing opener's WRITE, and that holds for SHARING WITH ALL OTHER alone: SHARING WITH READ ONLY is
+    /// <see cref="FileShare.Read"/>, which refuses every writer. So <see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>
+    /// must admit a writer for exactly the READ ONLY requests, and change no other posture — NO OTHER is exclusive (no
+    /// Normal cell has it as the request), and ALL OTHER already admits one.</summary>
+    [Fact]
+    public void EveryNormalOpenCellBesideAnInputOpenerThatOwesWritesIsAdmittedOnceTheReadOnlyPostureYields()
+    {
+        int readOnlyCells = 0;
+        foreach (var exS in Table19.StandardModes)
+            foreach (var incS in Table19.StandardModes)
+                foreach (var incM in Enum.GetValues<FileOpenMode>())
+                {
+                    if (Table19.Cell(incS, incM, exS, FileOpenMode.Input) != OpenSharingOutcome.NormalOpen) continue;
+                    var yielded = FileLockPosture.WhenOwedWritesAreAdmitted(incS);
+                    Assert.True(yielded.HasFlag(Admitting(FileAccess.Write)),
+                        $"Table 19 permits ({incS} {incM}) beside ({exS} INPUT), whose handle may be open for writing "
+                        + $"(its transaction's writes are owed), but the incoming file lock {yielded} refuses a writer.");
+                    foreach (var incAccess in AccessesAHandleMayTake(incM))
+                        Assert.True(FileLockPosture.OfSharingMode(exS).HasFlag(Admitting(incAccess)),
+                            $"Table 19 permits ({incS} {incM}) beside ({exS} INPUT) but the existing file lock does not admit {incAccess}.");
+                    if (incS == FileSharing.ReadOnly)
+                    {
+                        readOnlyCells++;
+                        Assert.False(FileLockPosture.OfSharingMode(incS).HasFlag(Admitting(FileAccess.Write)),
+                            "SHARING WITH READ ONLY's base posture admits a writer, so the second posture has nothing to yield (§9.1.15 2).");
+                    }
+                    else
+                        Assert.Equal(FileLockPosture.OfSharingMode(incS), yielded);
+                }
+        Assert.True(readOnlyCells > 0, "no SHARING WITH READ ONLY cell was visited — the theorem measured nothing.");
+        Assert.Equal(FileShare.None, FileLockPosture.WhenOwedWritesAreAdmitted(FileSharing.NoOther));
     }
 
     /// <summary>The host's rule is symmetric — a new open succeeds only if its access is admitted by every
