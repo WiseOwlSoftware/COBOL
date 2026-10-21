@@ -548,7 +548,7 @@ public sealed class IndexedEngineTests
         static List<List<(string Key, string Text)>> Trees(string host)
         {
             using var handle = File.OpenHandle(host, FileMode.Open, FileAccess.Read, FileShare.Read);
-            Assert.Equal(StoreStatus.Ok, PagedFile.Open(new HandlePageMedium(handle), writable: false, coherent: false, out var file));
+            Assert.Equal(StoreStatus.Ok, PagedFile.Open(new HandlePageMedium(handle), writable: false, coherent: false, HoldingsKeyOrder.RecordNumbers, out var file));
             return [.. file!.Meta.AlternateRoots.Select(root =>
             {
                 var entries = new List<(string, string)>();

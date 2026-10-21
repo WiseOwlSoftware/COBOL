@@ -111,6 +111,9 @@ public sealed class RelativeConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override RestoringTreesFactory Restoring => RelativeStore.Restoring;
 
+    /// <inheritdoc/>
+    private protected override IKeyOrder HoldingsOrder => HoldingsKeyOrder.RecordNumbers;
+
     /// <inheritdoc/>  (a relative record's lock identity is its record number in decimal, <see cref="LastReadRecordId"/>)
     private protected override byte[]? IdentityOf(string recordId) =>
         long.TryParse(recordId, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out long rrn)
