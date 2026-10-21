@@ -476,7 +476,9 @@ public sealed class FileRegistry
     public void CloseAll()
     {
         // §9.1.18.5's first sentence: a run unit that reaches its implicit CLOSE without an abnormal ending commits (the
-        // abnormal ending ran its file-only ROLLBACK first, RunUnit.Terminate, so nothing is left to commit then).
+        // abnormal ending ran its file-only ROLLBACK first, RunUnit.Terminate, so nothing is left to commit then — and a
+        // transaction whose ROLLBACK the medium refused there is owed a rollback, which this COMMIT refuses and retries:
+        // KeyedStore.Commit, review finding R1-4).
         EndTransactions(abnormal: false);
         List<Exception>? failures = null;
         // §9.1.4's deletion-time closes the GC requested and the mutator has not yet performed: each object's file is
@@ -489,6 +491,14 @@ public sealed class FileRegistry
         foreach (string name in _files.Keys.ToArray())   // a snapshot: a held-line drain runs report-writer code mid-walk
         {
             try { CloseIfOpen(name); }
+            catch (Exception failure) { (failures ??= []).Add(failure); }
+        }
+        // §9.1.18.5, after the commit or the rollback: "In both cases all file and record locks are then released" — the
+        // file locks a CLOSE under commit control kept, the implicit CLOSEs' just above included (review finding R1-2). A
+        // transaction whose rollback the medium refused is left as a death leaves it, for the dead-owner step.
+        foreach (var c in _files.Values.ToArray())
+        {
+            try { (c as KeyedConnector)?.ReleaseKept(); }
             catch (Exception failure) { (failures ??= []).Add(failure); }
         }
         if (failures is [var only]) ExceptionDispatchInfo.Throw(only);

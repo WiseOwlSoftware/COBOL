@@ -744,13 +744,15 @@ public sealed class TransactionFaultMatrixTests
     // ── 2.2.1.17's round-4 table: the holder's death at every point of another statement ──────────────────────────
 
     /// <summary>A's statements against B's transaction, by name: WRITE K5 (an identity B deleted), WRITE K7 with A001 (a
-    /// unique value B's REWRITE freed; indexed only) and WRITE K9 (an identity nobody holds).</summary>
-    public static TheoryData<FileOrg, string> HolderDeathStatements()
+    /// unique value B's REWRITE freed; indexed only) and WRITE K9 (an identity nobody holds) — each by an A that is not
+    /// under commit control and by one that is (the round-4 table's "A is any writer (under commit control or not)").</summary>
+    public static TheoryData<FileOrg, string, bool> HolderDeathStatements()
     {
-        var data = new TheoryData<FileOrg, string>();
+        var data = new TheoryData<FileOrg, string, bool>();
         foreach (var org in KeyedOrgs)
             foreach (var statement in org == FileOrg.Indexed ? new[] { "K5", "K7-A001", "K9" } : new[] { "K5", "K9" })
-                data.Add(org, statement);
+                foreach (bool commitA in new[] { false, true })
+                    data.Add(org, statement, commitA);
         return data;
     }
 
@@ -767,17 +769,22 @@ public sealed class TransactionFaultMatrixTests
     /// holding is a page of the file and a rollback touches holdings only, so A's WRITE K5 and WRITE K7 with A001 answer
     /// '22' (B rolled back at A's entry or test) or '51' (B alive at A's test; the next attempt rolls B back: '22'), never
     /// '00'; A's WRITE K9 answers '00' in every window and no rollback ever overwrites it; K5 reads back as at B's last
-    /// COMMIT.</summary>
+    /// COMMIT.
+    /// <para>Under commit control (<paramref name="commitA"/>; review finding R1-3) A's first change DRAWS its transaction id
+    /// while B dies — the round-4 row "while A draws a transaction id (A's own first change)": A draws from page 2's mint
+    /// upward, so B's freed byte is never re-drawn (finding R4-2). A's id is never B's, A's holdings are its UNDO tree's
+    /// keys, and A's COMMIT makes only A's records permanent: had A taken B's id, its dead-owner step would skip B's entry
+    /// and the COMMIT would make B's deletion of K5 and its REWRITE of K1 permanent.</para></summary>
     [Theory]
     [MemberData(nameof(HolderDeathStatements))]
     public void A_holders_death_at_every_point_of_another_statement_never_lets_it_take_a_held_record(FileOrg org,
-        string statement)
+        string statement, bool commitA)
     {
         int ops;
         using (var m = new World("measure-holder", org).Seeded())
         {
             var b = m.Open("B", commit: true);
-            var a = m.Open("A", commit: false);
+            var a = m.Open("A", commit: commitA);
             Assert.Equal("00", b.Delete(5));
             Assert.Equal("00", b.Rewrite(1, "X001"));
             b.Reg.ReleaseLivenessForWitness("F");
@@ -785,11 +792,13 @@ public sealed class TransactionFaultMatrixTests
         }
         for (int n = 0; n <= ops; n++)
         {
-            using var w = new World($"holder-{statement}-{n}", org).Seeded();
+            using var w = new World($"holder-{statement}-{commitA}-{n}", org).Seeded();
             var b = w.Open("B", commit: true);
-            var a = w.Open("A", commit: false);
+            var a = w.Open("A", commit: commitA);
             Assert.Equal("00", b.Delete(5));
             Assert.Equal("00", b.Rewrite(1, "X001"));
+            ulong held = b.Transaction();
+            Assert.NotEqual(0ul, held);
             int at = a.Log.Count + n;
             bool died = false;
             void Die()
@@ -815,6 +824,14 @@ public sealed class TransactionFaultMatrixTests
             Assert.Equal("00", a.Write(8, "Z008"));    // any later entry rolls dead B back
             var expected = With(Seed(), 8, "Z008");
             if (statement == "K9") expected = With(expected, 9, "Z009");
+            if (commitA)
+            {
+                Assert.NotEqual(0ul, a.Transaction());
+                Assert.NotEqual(held, a.Transaction());
+                AssertHoldingsAreTheUndoKeys(a.Reg);
+                Assert.Null(a.Reg.Commit());
+                Assert.Equal(0ul, a.Transaction());
+            }
             Assert.Equal(expected, a.Contents());
             AssertNoTransactionLeft(a.Reg);
         }

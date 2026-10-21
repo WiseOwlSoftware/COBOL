@@ -381,6 +381,10 @@ public abstract class FileConnector
     /// establishes its own, which the kept one would otherwise refuse as another holder's.</summary>
     private protected virtual void ReleaseKeptFileLock() { }
 
+    /// <summary>Whether this (closed) connector still holds the host handle its CLOSE under commit control kept, the
+    /// §9.1.15 file lock until the COMMIT (only a keyed connector keeps one, kb/Work PB3337).</summary>
+    private protected virtual bool HoldsKeptHandle => false;
+
     /// <summary>The ACCESS this connector's own long-lived host handle takes of the physical file in
     /// <paramref name="mode"/> — what a SIBLING connector's §9.1.15 file lock has to admit for this connector to
     /// open at all (FileLockPostureDriftTests measures that every Table-19-admitted pair does).
@@ -849,7 +853,12 @@ public abstract class FileConnector
             // The Present guard is likewise required: an ABSENT target has no capability to probe, and the two
             // modes that reach OpenCore absent both CREATE (GR17's optional I-O/EXTEND, GR18's OUTPUT), where
             // the creating stream's own refusal is the authority answer.
-            if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HostFile.PermitsWrite(HostPath))
+            // A connector that still holds the handle its CLOSE under commit control kept (§9.1.15's file lock, until the
+            // COMMIT) is not probed either: that handle's own share mode would refuse the probe — '61' for the
+            // connector's own re-OPEN (review finding R1-1) — and the handle the re-OPEN takes writable asks the same
+            // question, its UnauthorizedAccessException reaching the same '37' through the catch below.
+            if (presence is FilePresence.Present && mode is not FileOpenMode.Input && !HoldsKeptHandle
+                && !HostFile.PermitsWrite(HostPath))
                 return Status = FileStatusCode.PermissionDenied;   // '37' §14.9.27.4 GR16 / §9.1.13.6 item 6 a)
             // §9.1.15 — "The successful opening of a file establishes a file lock for the applicable sharing
             // rules, thereby preventing other run units from opening that file with incompatible sharing rules":

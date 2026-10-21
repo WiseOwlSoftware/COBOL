@@ -132,18 +132,30 @@ public abstract class KeyedConnector : FileConnector
     /// that arm ONLY: an arm with no file (an absent OPTIONAL one on INPUT) locks nothing.
     /// <para><paramref name="create"/> is §14.9.27.4 GR17/GR18's creation — the OUTPUT arm and the absent
     /// OPTIONAL I-O/EXTEND arms — and is the only difference between the arms, because the store's own
-    /// truncation is <see cref="PagedFile.Create"/>'s.</para></summary>
-    private void TakeFileLock(bool create)
+    /// truncation is <see cref="PagedFile.Create"/>'s. <paramref name="access"/> is <see cref="Lock"/>'s.</para></summary>
+    private void TakeFileLock(bool create, FileAccess access)
     {
-        var taken = HostFile.OpenConnectorStore(HostPath, create ? FileMode.OpenOrCreate : FileMode.Open,
-            HostAccess(Mode), HostShare);
         _store?.Dispose();   // no arm takes it twice; belt-and-braces so a future one cannot leak
-        _store = taken;
-        // Taken ONCE: the store's pages are read and written positionally through it (never through the stream's
-        // buffer, kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
-        _handle = taken.SafeFileHandle;
-        // Writable is what the host granted this handle, never re-derived from the open mode (kb/Work PB2758).
-        _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
+        // ⛔ THE CONNECTOR'S OWN RE-OPEN TAKES BACK THE HANDLE ITS CLOSE UNDER COMMIT CONTROL KEPT when that handle is the
+        // one this OPEN would take — the same access and the same share mode, so the same §9.1.15 file lock (review finding
+        // R1-1): the transaction's liveness byte and the file lock never leave the run unit, and no other run unit's OPEN
+        // or dead-owner step can come between them (2.2.1.10). The kept handle is the store's medium already, so only the
+        // connector's fields change.
+        if (_kept is { Handle: { } kept, Adopted: false } && kept.Share == HostShare && kept.Stream.CanWrite == (access != FileAccess.Read))
+        {
+            _kept = _kept with { Adopted = true };
+            (_store, _handle, _regions) = (kept.Stream, kept.Handle, kept.Regions);
+        }
+        else
+        {
+            var taken = HostFile.OpenConnectorStore(HostPath, create ? FileMode.OpenOrCreate : FileMode.Open, access, HostShare);
+            _store = taken;
+            // Taken ONCE: the store's pages are read and written positionally through it (never through the stream's
+            // buffer, kb/Work PB2660), and it is the handle the store mutex and this connector's record locks are held by.
+            _handle = taken.SafeFileHandle;
+            // Writable is what the host granted this handle, never re-derived from the open mode (kb/Work PB2758).
+            _regions = HostRegionLocks.Open(_handle, HostPath, writable: taken.CanWrite);
+        }
         // ⛔ The engine writes at every statement, so it serializes against EVERY other run unit's connector — a
         // SHARING WITH READ ONLY writer against the INPUT reader §9.1.15 2) admits beside it (2.2.1.7, finding R2-6) —
         // and only SHARING WITH NO OTHER runs without the mutex.
@@ -249,7 +261,9 @@ public abstract class KeyedConnector : FileConnector
                 break;
         }
         FpiValid = mode is FileOpenMode.Input or FileOpenMode.IO;
-        return Opened(mode) ?? status;
+        if (Opened(mode) is { } unpositioned) return unpositioned;
+        CarryKeptOver();   // the OPEN succeeded: what a CLOSE under commit control kept is this OPEN's now
+        return status;
     }
 
     /// <summary>The file lock of an arm that has a physical file (<see cref="TakeFileLock"/>), taken only for a declaration
@@ -260,14 +274,20 @@ public abstract class KeyedConnector : FileConnector
     {
         if (!FormatHolds()) return FileStatusCode.FixedAttributeConflict;
         if (create) ReleaseKept();   // OPEN OUTPUT creates the file anew: nothing of a kept handle's store survives it
-        try { TakeFileLock(create); }
-        catch (IOException) when (_kept is not null)
+        // While the run unit's transaction may stand in a handle its CLOSE under commit control kept WRITABLE, the
+        // re-OPEN's handle is writable whatever its mode: it is the handle the COMMIT or ROLLBACK writes through once the
+        // kept one is given back (2.2.1.10), and an INPUT re-OPEN takes the same handle back (TakeFileLock).
+        var access = _kept?.Handle is { Stream.CanWrite: true } ? FileAccess.ReadWrite : HostAccess(Mode);
+        try { TakeFileLock(create, access); }
+        catch (IOException) when (_kept is { Handle: { } kept, Adopted: false })
         {
             // The handle this connector kept at its CLOSE under commit control refuses the new one's share mode (§9.1.15
-            // speaks of OTHER run units, never of the connector's own re-OPEN): it is given back first, and the store
-            // re-takes the transaction's liveness byte through the new handle at the attach.
-            ReleaseKept();
-            TakeFileLock(create);
+            // speaks of OTHER run units, never of the connector's own re-OPEN): the HANDLE is given back first — the
+            // attachment, and with it the run unit's transaction, stays (review finding R1-1) — and the store takes the
+            // transaction's liveness byte again through the new handle at the attach (KeyedStore.HoldLivenessThrough).
+            _kept = _kept with { Handle = null };
+            GiveBack(kept);
+            TakeFileLock(create, access);
         }
         return null;
     }
@@ -283,24 +303,30 @@ public abstract class KeyedConnector : FileConnector
     /// connector. Returns the failing I-O status, or null.</summary>
     private string? Attach(bool create)
     {
-        var store = AttachStore(create);
+        // ⛔ THE ATTACHMENT A CLOSE UNDER COMMIT CONTROL KEPT CARRIES OVER TO THE CONNECTOR'S RE-OPEN (review finding
+        // R1-1): the run unit's store — and in it the run unit's transaction on the file — stays this connector's, never a
+        // fresh one with no records and no transaction; a handle the re-OPEN adopted is on its medium already.
+        var store = _kept is null ? AttachStore(create) : AttachedStore;
         _attached = true;
-        store.AttachHandle(_handle!, StoreHandleWritable,
-            HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
+        if (_kept is not { Adopted: true })
+            store.AttachHandle(_handle!, StoreHandleWritable,
+                HostFile.InputOutputAreaBuffer(InputOutputAreas) / PageHeader.PageSize);
         var opened = InStoreMutex(() =>
         {
             var status = create
                 ? store.Create(DeclaredAttributes, _coherent)
                 : store.Open(StoreHandleWritable, _coherent, DeclaredAttributes);
-            if (status != StoreStatus.Ok || !StoreHandleWritable) return status;
-            // The run unit's open transaction keeps its liveness byte through a live handle: the kept one's moves here
-            // inside this mutex hold, so no other run unit's probe ever finds it free (2.2.1.10).
-            if (_kept is { } kept) store.MoveLiveness(kept.Regions, _regions!);
-            store.RetakeLiveness(_regions!);
-            // R6 step 5, the DEAD-OWNER step of a writable OPEN (2.2.1.6, 2.2.1.10): after the adoption and its fence.
-            return store.RollBackDeadOwners(_regions!, Restoring);
+            if (status != StoreStatus.Ok) return status;
+            // R6 step 5, the DEAD-OWNER step of a writable OPEN (2.2.1.6, 2.2.1.10): after the adoption and its fence. It
+            // never touches this run unit's own transaction.
+            if (StoreHandleWritable && (status = store.RollBackDeadOwners(_regions!, Restoring)) != StoreStatus.Ok)
+                return status;
+            // The run unit's open transaction keeps its liveness byte through this handle from here: the kept one's moves,
+            // or one given back with it is taken again, inside this mutex hold, so no other run unit's probe ever finds it
+            // free (2.2.1.10).
+            store.HoldLivenessThrough(_regions!);
+            return status;
         });
-        ReleaseKept();
         return Failed(opened);
     }
 
@@ -313,7 +339,17 @@ public abstract class KeyedConnector : FileConnector
     private StoreStatus Detach()
     {
         if (!_attached) return StoreStatus.Ok;
-        var status = _handle is { } handle ? InStoreMutex(() => AttachedStore.DetachHandle(handle)) : StoreStatus.Ok;
+        var store = AttachedStore;
+        var status = _handle is { } handle && _regions is { } regions
+            ? InStoreMutex(() =>
+            {
+                store.LivenessGoneWith(regions);   // the endpoint is disposed next (ReleaseFileLock)
+                return store.DetachHandle(handle);
+            })
+            : StoreStatus.Ok;
+        // A failed re-OPEN after a CLOSE under commit control leaves the attachment the CLOSE kept as it was (§14.9.27.4
+        // GR25, "the file is not affected"): it is still the kept one's, until the COMMIT or ROLLBACK.
+        if (_kept is not null) return status;
         SharedStores?.Detach(HostPath);
         _attached = false;
         ForgetStore();
@@ -323,6 +359,22 @@ public abstract class KeyedConnector : FileConnector
     /// <inheritdoc/>
     protected sealed override void AbandonOpen()
     {
+        // A re-OPEN that ADOPTED the handle its CLOSE under commit control kept gives it back to the kept state unchanged,
+        // its liveness byte with it (§14.9.27.4 GR25).
+        if (_kept is { Adopted: true } adopted)
+        {
+            _kept = adopted with { Adopted = false };
+            (_store, _handle, _regions, _coherent) = (null, null, null, false);
+            return;
+        }
+        // One that took a handle of its own beside the kept one moves the transaction's liveness byte back to the kept
+        // handle before its own goes.
+        if (_kept is { Handle: { } kept } && _attached)
+            InStoreMutex(() =>
+            {
+                AttachedStore.HoldLivenessThrough(kept.Regions);
+                return StoreStatus.Ok;
+            });
         // The OPEN already answers its own failure; a refused re-adoption here leaves the store's fence owed
         // (KeyedStore.DetachHandle), which is all it can change.
         try { _ = Detach(); }
@@ -350,17 +402,19 @@ public abstract class KeyedConnector : FileConnector
         }
         finally
         {
-            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE HANDLE (§14.9.7.4 GR4; §9.1.15, "the file lock is removed by the
-            // COMMIT statement"; DESIGN-runtime-library.md 2.2.1.10): while the run unit's transaction on the file is open,
-            // the connector's handle, its region endpoint — through which the transaction's liveness byte may be held — its
-            // attachment to the store and its Table 19 run-unit file lock (the column bytes a host without mandatory share
-            // modes publishes) stay, so a ROLLBACK after the CLOSE can still restore through it and no other run unit opens
-            // the file against the kept lock (§14.9.7.4 GR4, "closed and not reopened prior to the COMMIT statement, the
-            // file locks are released"), until the next COMMIT or ROLLBACK releases them (ReleaseKept) or the connector's
-            // own re-OPEN replaces the file lock (ReleaseKeptFileLock).
-            if (CommitControlled && AttachedStore.Transaction != 0 && _store is not null && _regions is not null)
+            // ⛔ UNDER COMMIT CONTROL THE CLOSE KEEPS THE FILE LOCK, AND THE HANDLE THAT IS IT (§9.1.15: "The file lock is
+            // removed by an explicit or implicit CLOSE statement executed for that file connector, except where the file is
+            // subject to an active APPLY COMMIT clause."; §14.9.7.4 GR4, "closed and not reopened prior to the COMMIT
+            // statement, the file locks are released"; DESIGN-runtime-library.md 2.2.1.10). The rule is the clause's, not
+            // the transaction's (review finding R1-2): a connector that only READ keeps it as one that changed records
+            // does. The connector's handle, its region endpoint — through which the transaction's liveness byte may be
+            // held — its attachment to the store and its Table 19 run-unit file lock (the column bytes a host without
+            // mandatory share modes publishes) stay, so a ROLLBACK after the CLOSE can still restore through it and no
+            // other run unit opens the file against the kept lock, until the next COMMIT or ROLLBACK, or the run unit's
+            // end, releases them (ReleaseKept) or the connector's own re-OPEN carries them on (CarryKeptOver).
+            if (CommitControlled && _store is not null && _handle is not null && _regions is not null)
             {
-                _kept = new KeptHandle(_store, _handle!, _regions, KeepRunUnitFileLock());
+                _kept = new Kept(new KeptHandle(_store, _handle, _regions, HostShare), Adopted: false, KeepRunUnitFileLock());
                 (_store, _handle, _regions, _coherent) = (null, null, null, false);
             }
             else
@@ -449,21 +503,25 @@ public abstract class KeyedConnector : FileConnector
     /// (<see cref="FileConnector.LastReadRecordId"/>'s form); null when it names no record the file can hold.</summary>
     private protected abstract byte[]? IdentityOf(string recordId);
 
-    /// <summary>The handle, region endpoint and store attachment this connector KEPT at a CLOSE under commit control
-    /// (<see cref="CloseCore"/>), until the next COMMIT or ROLLBACK, or this connector's next OPEN, gives them back.</summary>
-    private sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, RegionLocks Regions, RunUnitFileLock? FileLock);
+    /// <summary>The handle a CLOSE under commit control kept: its stream, its region endpoint — through which the run unit's
+    /// transaction's liveness byte may be held — and the share mode it was taken with.</summary>
+    private sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, RegionLocks Regions, FileShare Share);
 
-    private KeptHandle? _kept;
+    /// <summary>⛔ WHAT A CLOSE UNDER COMMIT CONTROL KEPT (<see cref="CloseCore"/>; §9.1.15): the connector's ATTACHMENT to
+    /// the run unit's store — and in it the run unit's transaction on the physical file — until the next COMMIT or ROLLBACK
+    /// or the run unit's end (<see cref="ReleaseKept"/>), or the connector's next successful OPEN, which carries it on
+    /// (<see cref="CarryKeptOver"/>); the <see cref="Handle"/>, null once given back early (a re-OPEN whose share mode it
+    /// refused), and <see cref="Adopted"/> while a re-OPEN that would take the same handle uses it as its own; and the
+    /// Table 19 run-unit <see cref="FileLock"/>, null once the re-OPEN replaced it.</summary>
+    private sealed record Kept(KeptHandle? Handle, bool Adopted, RunUnitFileLock? FileLock);
 
-    /// <summary>Give back what a CLOSE under commit control kept (§9.1.15: <i>"the file lock is removed by the COMMIT
-    /// statement"</i>): the handle leaves the store's medium and the store table, under the store mutex the kept endpoint
-    /// holds, and then the endpoint and the handle are disposed. A transaction's liveness byte still held through it at that
-    /// moment (a ROLLBACK refused, or the run unit ending) goes with it — what a death does, and the dead-owner step's to
-    /// settle.</summary>
-    internal void ReleaseKept()
+    private Kept? _kept;
+
+    /// <summary>Give a kept handle back: off the store's medium under the store mutex its endpoint holds, the liveness byte
+    /// it may hold going with it (<see cref="KeyedStore.LivenessGoneWith"/>: what a death does — taken again by a re-OPEN,
+    /// else the dead-owner step's to settle), then the endpoint and the handle disposed. The attachment is untouched.</summary>
+    private void GiveBack(KeptHandle kept)
     {
-        if (_kept is not { } kept) return;
-        _kept = null;
         try
         {
             var store = AttachedStore;
@@ -473,23 +531,57 @@ public abstract class KeyedConnector : FileConnector
                 finally { kept.Regions.Release(HostRegionLocks.StoreMutexByte); }
             }
             else _ = store.DetachHandle(kept.Handle);
-            SharedStores?.Detach(HostPath);
-            if (!IsOpen)
+            store.LivenessGoneWith(kept.Regions);
+        }
+        finally
+        {
+            try { kept.Regions.Dispose(); }
+            finally { kept.Stream.Dispose(); }
+        }
+    }
+
+    /// <summary>Give back everything a CLOSE under commit control kept — §9.1.15, <i>"the file lock is removed by the COMMIT
+    /// statement"</i>; §9.1.18.5, at the run unit's end <i>"all file and record locks are then released"</i>; and an
+    /// <c>OPEN OUTPUT</c>, which creates the file anew: the handle, the run-unit file lock and the attachment, so the
+    /// connector, which is closed, holds nothing of the store. A transaction still standing at that moment (a ROLLBACK
+    /// refused) is left as a death leaves it, for the dead-owner step.</summary>
+    internal void ReleaseKept()
+    {
+        if (_kept is not { } kept) return;
+        try
+        {
+            if (kept.Handle is { } handle && !kept.Adopted) GiveBack(handle);
+        }
+        finally
+        {
+            _kept = null;
+            try { kept.FileLock?.Dispose(); }
+            finally
             {
+                SharedStores?.Detach(HostPath);
                 _attached = false;
                 ForgetStore();
             }
         }
-        finally
-        {
-            try { kept.FileLock?.Dispose(); }
-            finally
-            {
-                try { kept.Regions.Dispose(); }
-                finally { kept.Stream.Dispose(); }
-            }
-        }
     }
+
+    /// <summary>The connector's re-OPEN SUCCEEDED (<see cref="OpenCore"/>): what its CLOSE under commit control kept is this
+    /// OPEN's now — the attachment and the transaction's liveness byte were carried on by <see cref="Attach"/>, so the kept
+    /// handle, unless the OPEN adopted it, and any file lock left are given back (§14.9.7.4 GR4's <i>"closed and not
+    /// reopened"</i>: a reopened file's lock is the new OPEN's).</summary>
+    private void CarryKeptOver()
+    {
+        if (_kept is not { } kept) return;
+        _kept = null;
+        try
+        {
+            if (kept.Handle is { } handle && !kept.Adopted) GiveBack(handle);
+        }
+        finally { kept.FileLock?.Dispose(); }
+    }
+
+    /// <inheritdoc/>
+    private protected sealed override bool HoldsKeptHandle => _kept?.Handle is not null;
 
     /// <inheritdoc/>
     private protected sealed override void ReleaseKeptFileLock()
@@ -583,17 +675,15 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§14.9.36.4 GR3; 2.2.1.10): the
     /// statement's entry (which unwinds an unlanded COMMIT's claim, R5's restart rule) and the ROLLBACK statement, under the
     /// store mutex.</summary>
-    internal StoreStatus RollbackTransaction() => InTransactionMutex(() =>
-        AttachedStore.File is not { } file ? StoreStatus.Ok
-        : !AttachedStore.Unacknowledged && file.Enter() != StoreStatus.Ok ? StoreStatus.PermanentError
-        : AttachedStore.Rollback(Restoring));
+    internal StoreStatus RollbackTransaction() => InTransactionMutex(() => AttachedStore.Rollback(Restoring));
 
     /// <summary>Run <paramref name="body"/> inside the store mutex held through this connector's live endpoint or the one it
     /// kept at its CLOSE; a NO OTHER file has nobody to exclude.</summary>
     private T InTransactionMutex<T>(Func<T> body)
     {
-        var regions = _regions ?? _kept?.Regions;
-        if (regions is null || !_coherent && _kept is null) return body();
+        var kept = _regions is null ? _kept?.Handle?.Regions : null;
+        var regions = _regions ?? kept;
+        if (regions is null || !_coherent && kept is null) return body();
         var holder = regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: regions.Writable, wait: true) == RegionLockResult.Ok
             ? regions : null;
         try { return body(); }

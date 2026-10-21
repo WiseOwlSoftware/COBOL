@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using CobolNet.Runtime;
 using CobolNet.Runtime.IO;
 using CobolNet.Runtime.IO.Store;
 using CobolNet.Tests.Shared;
@@ -41,9 +42,20 @@ public sealed class CommitRollbackRuntimeTests
 
     /// <summary>An 8-character record: the key (relative: the record number) in positions 1-4; for an indexed file an
     /// alternate key WITHOUT DUPLICATES in 5-8 (finding R2-4's unique values).</summary>
-    private static FileRegistry Open(string host, FileOrg org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F")
+    private static FileRegistry Open(string host, FileOrg org, bool commit, FileOpenMode mode = FileOpenMode.IO, string name = "F",
+        FileSharing sharing = FileSharing.AllOther)
     {
         var reg = new FileRegistry();
+        Declare(reg, host, org, commit, name, sharing);
+        reg.OpenStatic(name, mode);
+        Assert.Equal("00", reg.Status(name));
+        return reg;
+    }
+
+    /// <summary>Register connector <paramref name="name"/> in <paramref name="reg"/> as <see cref="Open"/> declares it.</summary>
+    private static void Declare(FileRegistry reg, string host, FileOrg org, bool commit, string name = "F",
+        FileSharing sharing = FileSharing.AllOther)
+    {
         if (org == FileOrg.Relative)
             reg.RegisterRelative(name, host, recordWidth: 8, optional: false, accessMode: (int)KeyedAccess.Dynamic,
                 relativeKeyDigits: 4, varyMin: -1, varyMax: -1);
@@ -53,11 +65,8 @@ public sealed class CommitRollbackRuntimeTests
                 primeKey: [new(0, 4)], varyMin: -1, varyMax: -1);
             reg.AddAlternateKey(name, [new(4, 4)], duplicates: false);
         }
-        reg.RegisterSharing(name, FileSharing.AllOther, FileLockMode.Manual, multiple: false);
+        reg.RegisterSharing(name, sharing, LockModeRequiredBy(sharing), multiple: false);
         if (commit) reg.RegisterCommitControl(name);
-        reg.OpenStatic(name, mode);
-        Assert.Equal("00", reg.Status(name));
-        return reg;
     }
 
     private static void Position(FileRegistry reg, FileOrg org, int n, string name = "F")
@@ -112,6 +121,16 @@ public sealed class CommitRollbackRuntimeTests
             records[n] = Read(reader, org, n, out var image, name: "R") == "00" ? image : null;
         reader.CloseAll();
         return records;
+    }
+
+    /// <summary>What a fresh run unit reads after its WRITABLE OPEN, whose dead-owner step (2.2.1.6 R6 step 5) rolls back
+    /// every transaction left without a live owner — so a change reported committed reads back only if it truly is.</summary>
+    private static string?[] Settled(string host, FileOrg org)
+    {
+        var writer = Open(host, org, commit: false, name: "S");
+        AssertNoTransactionLeft(writer, "S");
+        writer.CloseAll();
+        return Contents(host, org);
     }
 
     private static string?[] Seeded(int records = 5)
@@ -423,21 +442,27 @@ public sealed class CommitRollbackRuntimeTests
     /// prior to the COMMIT statement, the file locks are released."</i>) — so until then they are not: while a connector
     /// CLOSEd under commit control keeps its file lock, another run unit's OPEN WITH NO OTHER is refused '61' (§9.1.13.9
     /// 1), Table 19), on a host whose share modes are the lock and on one whose run-unit lock is the published column alike;
-    /// the COMMIT (or the ROLLBACK) releases it and the same OPEN then succeeds. A re-OPEN of the closed connector itself
-    /// replaces the kept lock and is never refused by it.</summary>
+    /// the COMMIT (or the ROLLBACK) releases it and the same OPEN then succeeds. §9.1.15 (<i>"The file lock is removed by an
+    /// explicit or implicit CLOSE statement executed for that file connector, except where the file is subject to an
+    /// active APPLY COMMIT clause."</i>) keys the rule on the clause, so a connector that only READ before its CLOSE keeps
+    /// the lock as one that changed a record does (<paramref name="changed"/>; review finding R1-2). A re-OPEN of the closed
+    /// connector itself replaces the kept lock and is never refused by it, and the run unit's end releases the lock its
+    /// implicit CLOSE kept (§9.1.18.5, <i>"In both cases all file and record locks are then released"</i>).</summary>
     [Theory]
-    [InlineData(FileOrg.Relative, true)]
-    [InlineData(FileOrg.Relative, false)]
-    [InlineData(FileOrg.Indexed, true)]
-    [InlineData(FileOrg.Indexed, false)]
-    public void A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit(FileOrg org, bool commit)
+    [InlineData(FileOrg.Relative, true, true)]
+    [InlineData(FileOrg.Relative, false, true)]
+    [InlineData(FileOrg.Indexed, true, true)]
+    [InlineData(FileOrg.Indexed, false, true)]
+    [InlineData(FileOrg.Relative, true, false)]
+    [InlineData(FileOrg.Indexed, false, false)]
+    public void A_file_closed_under_commit_control_keeps_its_file_lock_until_the_commit(FileOrg org, bool commit, bool changed)
     {
-        string host = Tmp($"pb3337-gr4-{org}-{commit}");
+        string host = Tmp($"pb3337-gr4-{org}-{commit}-{changed}");
         try
         {
             Seed(host, org);
             var a = Open(host, org, commit: true);
-            Assert.Equal("00", Write(a, org, 7, "A007"));
+            Assert.Equal("00", changed ? Write(a, org, 7, "A007") : Read(a, org, 1, out _));
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
             var b = new FileRegistry();
@@ -458,14 +483,160 @@ public sealed class CommitRollbackRuntimeTests
             a.OpenStatic("F", FileOpenMode.IO);
             Assert.Equal("00", a.Status("F"));
             a.CloseAll();
+            b.OpenStatic("B", FileOpenMode.IO);
+            Assert.Equal("00", b.Status("B"));
+            b.CloseAll();
             var expected = Seeded();
-            if (commit) expected[7] = Rec(7, "A007");
+            if (commit && changed) expected[7] = Rec(7, "A007");
             expected[8] = Rec(8, "A008");
-            Assert.Equal(expected, Contents(host, org));
+            Assert.Equal(expected, Settled(host, org));
         }
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A TRANSACTION CARRIES OVER A CLOSE AND A RE-OPEN OF ITS CONNECTOR (§14.9.7.4 GR3, §14.9.36.4 GR3; review
+    /// finding R1-1): the CLOSE under commit control keeps the connector's attachment to the run unit's store, and the
+    /// re-OPEN carries it on — the run unit reads its own uncommitted record, changes more in the same transaction (its id
+    /// unchanged), and the COMMIT makes every change permanent, or the ROLLBACK restores the start, as a later WRITABLE OPEN
+    /// reads it (its dead-owner step rolls back any transaction left without a live owner). Both re-OPEN shapes: one that
+    /// takes the same handle back (I-O after I-O) and one that takes another (INPUT after I-O) — beside the kept handle
+    /// under SHARING WITH ALL OTHER, after giving it back under SHARING WITH NO OTHER (the I-O default), whose share mode
+    /// refuses any second handle. Through the INPUT re-OPEN's read-only handle the transaction stays alive: another run
+    /// unit's REWRITE of the record it wrote answers '51' (§9.1.16, DOC-A.1-152), never rolls it back.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, FileSharing.AllOther, true)]
+    [InlineData(FileOrg.Relative, FileSharing.AllOther, false)]
+    [InlineData(FileOrg.Relative, FileSharing.NoOther, true)]
+    [InlineData(FileOrg.Relative, FileSharing.NoOther, false)]
+    [InlineData(FileOrg.Indexed, FileSharing.AllOther, true)]
+    [InlineData(FileOrg.Indexed, FileSharing.AllOther, false)]
+    [InlineData(FileOrg.Indexed, FileSharing.NoOther, true)]
+    [InlineData(FileOrg.Indexed, FileSharing.NoOther, false)]
+    public void A_transaction_carries_over_a_close_and_reopen_of_its_connector(FileOrg org, FileSharing sharing, bool commit)
+    {
+        string host = Tmp($"pb3337-reopen-{org}-{sharing}-{commit}");
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: true, sharing: sharing);
+            Assert.Equal("00", Write(a, org, 7, "A007"));
+            ulong id = a.TransactionOf("F");
+            Assert.NotEqual(0ul, id);
+            a.Close("F");
+            Assert.Equal("00", a.Status("F"));
+            a.OpenStatic("F", FileOpenMode.IO);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 7, out var own));
+            Assert.Equal(Rec(7, "A007"), own);
+            Assert.Equal("00", Write(a, org, 8, "A008"));
+            AssertHoldingsAreTheUndoKeys(a);
+            a.Close("F");
+            a.OpenStatic("F", FileOpenMode.Input);
+            Assert.Equal("00", a.Status("F"));
+            Assert.Equal(id, a.TransactionOf("F"));
+            Assert.Equal("00", Read(a, org, 8, out own));
+            Assert.Equal(Rec(8, "A008"), own);
+            if (sharing == FileSharing.AllOther)
+            {
+                var b = Open(host, org, commit: false, name: "B");
+                Assert.Equal("51", Rewrite(b, org, 7, "B007", name: "B"));
+                b.CloseAll();
+            }
+            Assert.Null(commit ? a.Commit() : a.Rollback());
+            Assert.Equal(0ul, a.TransactionOf("F"));
+            a.CloseAll();
+            var expected = Seeded();
+            if (commit) (expected[7], expected[8]) = (Rec(7, "A007"), Rec(8, "A008"));
+            Assert.Equal(expected, Settled(host, org));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (review finding R1-4; §9.1.18.5, <i>"When a run unit
+    /// terminates abnormally, all file changes made since the previous commit or, if none, the beginning of the run unit are
+    /// rolled back"</i>; 2.2.1.16's refused row "ROLLBACK, at any page", the termination path's rollback the same): an
+    /// abnormal ending whose file-only ROLLBACK the medium refuses ('30') leaves the transaction standing, and the implicit
+    /// CLOSE's COMMIT that follows refuses it and rolls back again — restoring the file when the medium now allows
+    /// (<c>once</c>), else leaving it to the dead-owner step of the next writable OPEN (<c>always</c>). A program's COMMIT after
+    /// its refused ROLLBACK is refused the same ('30', the file's name returned), and the next ROLLBACK restores.</summary>
+    [Theory]
+    [InlineData("abnormal-once")]
+    [InlineData("abnormal-always")]
+    [InlineData("commit-after-refused-rollback")]
+    public void A_transaction_whose_rollback_was_refused_is_never_committed(string path)
+    {
+        string host = Tmp($"pb3337-owed-{path}");
+        try
+        {
+            Seed(host, FileOrg.Indexed);
+            int refusals = 0;
+            KeyedStore.MediumObserver.Value = inner => new RefusingPageMedium(inner,
+                write: page => refusals > 0 && page >= MetaPage.MetaPages && (path == "abnormal-always" || refusals-- > 0)
+                    ? new IOException("refused by the host") : null);
+            FileRegistry a;
+            try { a = Open(host, FileOrg.Indexed, commit: true); }
+            finally { KeyedStore.MediumObserver.Value = null; }
+            Assert.Equal("00", Write(a, FileOrg.Indexed, 7, "A007"));
+            Assert.Equal("00", Rewrite(a, FileOrg.Indexed, 1, "X001"));
+            refusals = 1;
+            if (path == "commit-after-refused-rollback")
+            {
+                Assert.Equal("F", a.Rollback());
+                Assert.Equal("30", a.Status("F"));
+                Assert.Equal("F", a.Commit());
+                Assert.NotEqual(0ul, a.TransactionOf("F"));
+                Assert.Null(a.Rollback());
+            }
+            else
+            {
+                a.EndTransactions(abnormal: true);
+                Assert.Equal("30", a.Status("F"));
+                Assert.NotEqual(0ul, a.TransactionOf("F"));
+            }
+            refusals = path == "abnormal-always" ? 1 : 0;
+            a.CloseAll();
+            refusals = 0;
+            Assert.Equal(Seeded(), Settled(host, FileOrg.Indexed));
+        }
+        finally { TryDelete(host); }
+    }
+
+    /// <summary>The run unit's own boundary (review lead R1-5): <see cref="RunUnit.Run"/>'s exception filter records how
+    /// the run unit ended (<c>RunUnit.NoteEnding</c>) and its <see cref="RunUnit.Terminate"/> chooses by it — a body that
+    /// returns, or ends by STOP RUN, ends NORMALLY and commits (§9.1.18.5's first sentence); one that a runtime failure
+    /// ends, ABNORMALLY, and rolls back (§9.1.18.5's second; §14.6.12's file-only ROLLBACK).</summary>
+    [Theory]
+    [InlineData("returns")]
+    [InlineData("stop-run")]
+    [InlineData("fails")]
+    public void A_run_unit_boundary_commits_a_normal_ending_and_rolls_back_an_abnormal_one(string ending)
+    {
+        string host = Tmp($"pb3337-boundary-{ending}");
+        try
+        {
+            Seed(host, FileOrg.Relative);
+            void Body(RunUnit ru)
+            {
+                Declare(ru.Files, host, FileOrg.Relative, commit: true);
+                ru.Files.OpenStatic("F", FileOpenMode.IO);
+                Assert.Equal("00", ru.Files.Status("F"));
+                Assert.Equal("00", Write(ru.Files, FileOrg.Relative, 7, "A007"));
+                if (ending == "stop-run") throw new StopRun();
+                if (ending == "fails") throw new InvalidOperationException("a runtime failure no condition names");
+            }
+            switch (ending)
+            {
+                case "returns": RunUnit.Run(Body); break;
+                case "stop-run": Assert.Throws<StopRun>(() => RunUnit.Run(Body)); break;
+                default: Assert.Throws<InvalidOperationException>(() => RunUnit.Run(Body)); break;
+            }
+            var expected = Seeded();
+            if (ending != "fails") expected[7] = Rec(7, "A007");
+            Assert.Equal(expected, Settled(host, FileOrg.Relative));
+        }
+        finally { TryDelete(host); }
+    }
     /// <summary>§9.1.18.5: an ABNORMAL ending rolls the run unit's changes back (the file-only rollback of §14.6.12); a
     /// NORMAL ending commits them.</summary>
     [Theory]

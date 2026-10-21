@@ -235,10 +235,13 @@ internal abstract class KeyedStore
     /// 2.2.1.15): until a promotion of this run unit lands, every ROLLBACK answers by a promotion's sync.</summary>
     public bool Unacknowledged { get; private set; }
 
-    /// <summary>Whether the run unit's transaction on this file is held through <paramref name="endpoint"/> — the
-    /// endpoint a closing connector must keep until COMMIT or ROLLBACK (§9.1.15, <i>"the file lock is removed by the COMMIT
-    /// statement"</i>).</summary>
-    internal bool HoldsLivenessThrough(RegionLocks endpoint) => ReferenceEquals(_liveness, endpoint);
+    /// <summary>A ROLLBACK of <see cref="Transaction"/> was refused ('30'): the transaction stands for the next ROLLBACK or
+    /// the dead-owner step, and is never committed (<see cref="Commit"/>).</summary>
+    private bool _rollbackRefused;
+
+    /// <summary>Whether the run unit owes the file a ROLLBACK of <see cref="Transaction"/> before anything else: one was
+    /// refused, or the file is <see cref="Unacknowledged"/>.</summary>
+    private bool RollbackOwed => _rollbackRefused || Unacknowledged;
 
     /// <summary>⛔ DRAW a transaction id (2.2.1.10, finding R4-2): the lowest value from the store's
     /// <see cref="PagedFile.TransactionMint"/> whose liveness byte <paramref name="drawer"/> can take EXCLUSIVELY through
@@ -257,25 +260,27 @@ internal abstract class KeyedStore
         return 0;
     }
 
-    /// <summary>The liveness byte held through <paramref name="from"/> — a handle a connector kept at its CLOSE under commit
-    /// control — moves to <paramref name="to"/>, the handle its next OPEN took. The caller holds the store mutex, so no
-    /// other run unit's dead-owner probe or lock test can find the byte free in between.</summary>
-    internal void MoveLiveness(RegionLocks from, RegionLocks to)
+    /// <summary>⛔ THE TRANSACTION'S LIVENESS BYTE IS HELD THROUGH <paramref name="to"/> FROM HERE — the endpoint of the
+    /// handle a connector's re-OPEN took after its CLOSE under commit control (2.2.1.10): the byte the handle the CLOSE kept
+    /// still holds moves, and a byte that went with a kept handle given back early (one whose share mode refused the new
+    /// handle, <see cref="LivenessGoneWith"/>) is taken again. The caller holds the store mutex, so no other run unit's
+    /// dead-owner probe, lock test or draw can find the byte free in between. A handle the host lets hold no exclusive lock
+    /// (a read-only one where the lock needs a writable handle) holds it SHARED, which refuses every other run unit's
+    /// exclusive probe and draw alike (<see cref="OwnerIsDead"/>, <see cref="Draw"/>).</summary>
+    internal void HoldLivenessThrough(RegionLocks to)
     {
-        if (Transaction == 0 || !ReferenceEquals(_liveness, from)) return;
-        from.Release(HostRegionLocks.TransactionLivenessByte(Transaction));
-        _liveness = null;
-        RetakeLiveness(to);
+        if (Transaction == 0 || ReferenceEquals(_liveness, to)) return;
+        long liveness = HostRegionLocks.TransactionLivenessByte(Transaction);
+        _liveness?.Release(liveness);
+        _liveness = to.Hold(liveness, exclusive: to.CanHoldExclusive, wait: false) == RegionLockResult.Ok ? to : null;
     }
 
-    /// <summary>A transaction whose liveness byte went with a handle given back before the run unit's next writable OPEN
-    /// of the file (a kept handle whose share mode refused the new one) takes it again through <paramref name="to"/>,
-    /// under the store mutex the caller holds.</summary>
-    internal void RetakeLiveness(RegionLocks to)
+    /// <summary>The liveness byte went with <paramref name="endpoint"/> — a kept handle given back while the transaction
+    /// stands (a re-OPEN whose share mode the kept handle refused, a ROLLBACK refused before its handle went): what a death
+    /// does to it; <see cref="HoldLivenessThrough"/> takes it again, else the dead-owner step settles it.</summary>
+    internal void LivenessGoneWith(RegionLocks endpoint)
     {
-        if (Transaction == 0 || _liveness is not null) return;
-        if (to.Hold(HostRegionLocks.TransactionLivenessByte(Transaction), exclusive: true, wait: false) == RegionLockResult.Ok)
-            _liveness = to;
+        if (ReferenceEquals(_liveness, endpoint)) _liveness = null;
     }
 
     /// <summary>A first change refused before its page 2 gives the byte it drew back: no entry carries the id.</summary>
@@ -289,7 +294,7 @@ internal abstract class KeyedStore
     private void EndTransaction()
     {
         GiveBack(_liveness, Transaction);
-        (Transaction, _liveness, Unacknowledged) = (0, null, false);
+        (Transaction, _liveness, Unacknowledged, _rollbackRefused) = (0, null, false, false);
     }
 
     /// <summary>The witnesses' seam of a death the operating environment delivers at an instant of ANOTHER run unit's
@@ -380,7 +385,15 @@ internal abstract class KeyedStore
     /// (§14.6.13.1.3 item 8). The reversal refused too: the file is MARKED UNACKNOWLEDGED. The caller holds the mutex.</summary>
     internal CommitOutcome Commit(RestoringTreesFactory reverse)
     {
-        if (Transaction == 0 || File is not { } file) return CommitOutcome.Committed;
+        if (Transaction == 0) return CommitOutcome.Committed;
+        // ⛔ A TRANSACTION A ROLLBACK IS OWED IS NEVER COMMITTED (2.2.1.10; 2.2.1.16's refused ROLLBACK and UNACKNOWLEDGED
+        // rows; review finding R1-4): once a ROLLBACK of it was refused, or its COMMIT left the file UNACKNOWLEDGED, the
+        // only statements the run unit executes on it are ROLLBACKs (item 8's unconditional one, then the termination
+        // path's). A later COMMIT, the program's or the implicit one of a run unit that then ends normally (§9.1.18.5), is
+        // refused before it touches the medium, and its caller rolls back again: the changes a ROLLBACK was asked to undo
+        // are never made permanent. Nor is a transaction whose file the run unit no longer holds a writable handle on (a
+        // re-OPEN refused in its share-mode window), which only the dead-owner step can settle.
+        if (RollbackOwed || File is not { Writable: true } file) return CommitOutcome.Refused;
         var outcome = file.Commit(Transaction, reverse);
         if (outcome is CommitOutcome.Committed or CommitOutcome.Reversed) EndTransaction();
         else if (outcome == CommitOutcome.Unacknowledged) Unacknowledged = true;
@@ -391,13 +404,18 @@ internal abstract class KeyedStore
     /// the execution of the last COMMIT statement or the start of the run unit if no COMMIT statements had previously been
     /// executed"</i>; 2.2.1.10): the ROLLBACK statement, or on a file MARKED UNACKNOWLEDGED the reversal again and a
     /// promotion answered by its sync (<see cref="PagedFile.RollBackUnacknowledged"/>). Success ends the transaction and
-    /// gives the byte back; a refusal ('30') leaves it standing for the next attempt or the dead-owner step. The caller
-    /// holds the mutex and ran the statement's entry (which unwound a COMMIT's unlanded claim, R5's restart rule).</summary>
+    /// gives the byte back; a refusal ('30') — the statement's entry (which unwinds a COMMIT's unlanded claim, R5's restart
+    /// rule), the rollback itself, or a store with no handle left — leaves it standing for the next attempt or the
+    /// dead-owner step, and never committed (<see cref="Commit"/>). The caller holds the mutex.</summary>
     internal StoreStatus Rollback(RestoringTreesFactory restoring)
     {
-        if (Transaction == 0 || File is not { } file) return StoreStatus.Ok;
-        var status = Unacknowledged ? file.RollBackUnacknowledged(Transaction, restoring) : RollBack(Transaction, restoring);
+        if (Transaction == 0) return StoreStatus.Ok;
+        var status = File is not { Writable: true } file ? StoreStatus.PermanentError   // no writable handle left: refused
+            : Unacknowledged ? file.RollBackUnacknowledged(Transaction, restoring)
+            : file.Enter() != StoreStatus.Ok ? StoreStatus.PermanentError   // the statement's entry (R5's restart rule)
+            : RollBack(Transaction, restoring);
         if (status == StoreStatus.Ok) EndTransaction();
+        else _rollbackRefused = true;
         return status;
     }
 
