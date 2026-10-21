@@ -1,4 +1,4 @@
-## PB3473, PB3152: a report answers the notes its group was dispatched with, never the ids its header mentions
+## Entry 2313 — 2026-10-20 17:25 PDT — PB3473, PB3152: a report answers the notes its group was dispatched with, never the ids its header mentions
 
 Wave 1135's planner printed `awaiting landing: fix-pb3465-never-work-paths-20261020: PB3337` and planned only PB3466,
 because the PB3465 report's opening paragraph says "Wave 1134's plan held PB3337 ..." and `plan_wave.parse_report` took
@@ -20,3 +20,4 @@ branch (section 6b'''00: the flipped note is held, a merely touched one is plann
 FINDINGS and a CLEAN report and checks the notes, the awaiting set, the finisher's lead and `attempts` (six checks that
 fail on the old reading); two older fixtures that relied on a header mention for a multi-note group now record the group
 in a ledger. Sweep: no other reader of note ids in report text exists in `scripts/`. Branch review round 2: the same hold now covers SPLIT and FINDINGS branches too (their finisher takes the closed work, so those notes belong to its group), and one report gets ONE finisher, never one per cap-sized chunk (the closed notes can exceed the cap; a second chunk re-answered the first one's findings on the same branch); three checks in section 6b'00 (R2), and the fixture git now rejects a wrong range or pathspec. Self-test 327/327.
+
