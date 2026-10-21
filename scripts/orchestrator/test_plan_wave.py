@@ -309,16 +309,23 @@ cl_reports = pw.load_reports(CL_REPORTS, CL_COORD)
 check("before the register is read a report answers its lead alone", [r.notes for r in cl_reports], [["PB13"]])
 
 
-def _cl_git(*args, cwd=None):
-    if args[:3] == ("diff", "--name-only", "--no-renames"):
-        want = ("origin/main...worktree-wf_cl-1", "--", "kb/Work")
-        return _Shown(0 if args[3:] == want else 1,
-                      "kb/Work/PB13.md\nkb/Work/PB10.md\nkb/Work/PB9.md\nkb/Work/README.md\nsrc/X/Zero.cs\n")
-    status = {"PB13": "landed", "PB10": "retired", "PB9": "open"}
-    for nid, st in status.items():
-        if args == ("show", f"worktree-wf_cl-1:kb/Work/{nid}.md"):
-            return _Shown(0, f"---\nid: {nid}\nstatus: {st}\narea: runtime\n---\n\n# {nid}\n")
-    return _Shown(128)
+def _branch_git(branch, status):
+    """A fake git for `branch`, whose register changed the notes of `status` ({id: the status ON the branch}) and the
+    source file Zero.cs. A diff asked for any other range or pathspec than `origin/main...<branch> -- kb/Work` lists
+    nothing, so a closed_by_branch that passes the wrong range or drops the pathspec finds no note and the checks go red."""
+    def git(*args, cwd=None):
+        if args[:3] == ("diff", "--name-only", "--no-renames"):
+            if args[3:] != (f"origin/main...{branch}", "--", "kb/Work"):
+                return _Shown(0, "")
+            return _Shown(0, "".join(f"kb/Work/{nid}.md\n" for nid in status) + "kb/Work/README.md\nsrc/X/Zero.cs\n")
+        for nid, st in status.items():
+            if args == ("show", f"{branch}:kb/Work/{nid}.md"):
+                return _Shown(0, f"---\nid: {nid}\nstatus: {st}\narea: runtime\n---\n\n# {nid}\n")
+        return _Shown(128)
+    return git
+
+
+_cl_git = _branch_git("worktree-wf_cl-1", {"PB13": "landed", "PB10": "retired", "PB9": "open"})
 
 
 check("a branch closes the notes it flipped to a terminal status, not the ones it only touched",
@@ -334,6 +341,46 @@ check("a note the branch only touched is still planned", any("PB9" in g.notes fo
 cl_landed = pw.load_reports(CL_REPORTS, CL_COORD)
 pw.add_closed_notes(cl_landed, lambda b: "LANDED", _cl_git)
 check("a landed branch adds nothing (its notes are closed on main)", [r.notes for r in cl_landed], [["PB13"]])
+# 6b'''00 (R2). THE SAME HOLD FOR AN UNFINISHED BRANCH (branch review R2-1, R2-2). A SPLIT report's finisher takes the
+#         branch's commits, which carry the notes the branch already closed: they belong to that finisher's group, or
+#         each is planned again as a cluster group that redoes the work the finisher cherry-picks. And a finisher
+#         CONTINUES one branch: the closed notes can take the group past the cap, and a second chunk would be a second
+#         agent re-answering the first one's review findings on the same branch.
+CL_SPLIT = TMP / "reports-closes-split"
+CL_SPLIT.mkdir()
+(CL_SPLIT / "w1137a-PB13-report.md").write_text(
+    "# PB13 report\nStatus: SPLIT at the turn cap\n**branch:** `worktree-wf_cl-1` · **HEAD:** `8c8c8c8cc`\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CL_SPLIT)
+cl_split = pw.load_reports(CL_SPLIT, CL_COORD)
+pw.add_closed_notes(cl_split, lambda b: "UNLANDED", _cl_git)
+check("a SPLIT report on an unlanded branch answers what the branch closes too", [r.notes for r in cl_split],
+      [["PB13", "PB10"]])
+pcs = pw.plan(notes, CLUSTERS, HALF, cl_split, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("the SPLIT finisher takes the closed note, which no cluster group plans a second time",
+      sorted((g.kind, tuple(g.notes)) for g in pcs["groups"] if {"PB13", "PB10"} & set(g.notes)),
+      [("finisher", ("PB10", "PB13"))])
+
+CAP_RULES = json.loads(json.dumps(RULES))
+CAP_RULES["wave"]["max_notes_per_group"] = 2
+CAP_REPORTS = TMP / "reports-closes-cap"
+CAP_REPORTS.mkdir()
+CAP_COORD = TMP / "coord-closes-cap"
+CAP_COORD.mkdir()
+pw.record_dispatch(CAP_COORD, "1138", [{"letter": "a", "notes": ["PB13", "PB14"], "files": ["src/X/Zero.cs"]}],
+                   lambda i: False)
+(CAP_REPORTS / "w1138a-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_cap-1` · **HEAD:** `9d9d9d9dd`\n"
+    "**Review:** FINDINGS 1 w1138a-review-r1 9d9d9d9dd E:/s/review-cap-a.jsonl\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(CAP_REPORTS)
+cap_reports = pw.load_reports(CAP_REPORTS, CAP_COORD)
+pw.add_closed_notes(cap_reports, lambda b: "UNLANDED",
+                    _branch_git("worktree-wf_cap-1", {"PB13": "landed", "PB14": "landed", "PB10": "retired"}))
+pcap = pw.plan(notes, CLUSTERS, HALF, cap_reports, lambda b: "UNLANDED", {}, CAP_RULES, budget_points=100)
+check("a FINDINGS branch that closed more notes than the cap has ONE review finisher, not one per chunk",
+      sorted((g.kind, tuple(g.notes)) for g in pcap["groups"] if {"PB13", "PB14", "PB10"} & set(g.notes)),
+      [("finisher", ("PB10", "PB13", "PB14"))])
 # 6b'''. THE DRAIN AND THE UNSEEN LEAD (kb/Work PB3150). Wave 1075's drain plan (`--max-groups 2`) put the SPLIT of
 #        w1074a first, whose finisher would have started PB3101 (never started) and cherry-picked `…-e99-1` again
 #        though `…-e99-4` merged it, and never planned license-product-name's review finisher: its lead PB3146 is
