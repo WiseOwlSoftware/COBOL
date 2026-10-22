@@ -1736,13 +1736,30 @@ public static class DiagnosticCatalog
         + "hex-character-sequence \"shall be composed of hexadecimal digits\" (§8.3.3.2.3 SR5). One byte is "
         + "exactly two hexadecimal digits.)",
         "ISO §11.9.10.3 SR1");
-    // ⛔ THE THREE SCREENS THAT NARROW THE USAGE CLAUSE'S FLOAT FORMAT PHRASES (kb/Work PB174). The grammar
-    // parses `floatFormatPhrase*` after ANY usageKeyword — the established binarySign / noSignPhrase posture, a
-    // superset parse the binder narrows (DESIGN-version-conformance-pipeline's parse-wide/bind-narrow direction).
-    // The general format is what scopes each phrase: §13.18.60.2 prints the endianness-phrase ONLY on
-    // FLOAT-BINARY-32/-64/-128 and FLOAT-DECIMAL-16/-34, and the encoding-phrase ONLY on FLOAT-DECIMAL-16/-34
-    // (verified against the PRINTED page, PDF p.533 = printed 503). GR19c/d and GR20c corroborate by naming the
-    // usage families the OPTIONS clauses supply the IMPLIED phrase for.
+    // ⛔ THE SCREENS THAT NARROW THE USAGE CLAUSE'S OPTIONAL PHRASES TO THE USAGES §13.18.60.2 PRINTS THEM ON
+    // (kb/Work PB174, PB3517). The grammar parses `binarySign? noSignPhrase? floatFormatPhrase*` after ANY
+    // usageKeyword — a superset parse the binder narrows (DESIGN-version-conformance-pipeline's
+    // parse-wide/bind-narrow direction) — and the general format is what scopes each phrase (verified against the
+    // PRINTED page, PDF p.533 = printed 503): SIGNED / UNSIGNED only on BINARY-CHAR/-SHORT/-LONG/-DOUBLE, WITH NO
+    // SIGN only on PACKED-DECIMAL, the endianness-phrase only on FLOAT-BINARY-32/-64/-128 and FLOAT-DECIMAL-16/-34,
+    // the encoding-phrase only on FLOAT-DECIMAL-16/-34. One descriptor per phrase, and ONE table
+    // (Binding/Model/UsagePhrase.cs, UsagePhraseRules) is the only reader of the four scope descriptors: the rule
+    // and its refusal are written in one place.
+    public static readonly DiagnosticDescriptor UsageSignPhraseScope = new(
+        "COBOLNET4733", "usage-sign-phrase-scope", EditionSeverity.Error,
+        "ISO §13.18.60.2 general format: the SIGNED / UNSIGNED choice is printed only on the BINARY-CHAR, "
+        + "BINARY-SHORT, BINARY-LONG and BINARY-DOUBLE lines of the figure; no other usage carries it. "
+        + "§13.18.60.4 general rule 12 reads it only there, as the signed and unsigned ranges of those four "
+        + "usages (\"The usages binary-char, binary-short, binary-long, and binary-double define integer numeric "
+        + "data items\"). A sign on any other usage is the PICTURE's (symbol S) or the SIGN clause's.",
+        "ISO §13.18.60.2 / §13.18.60.4 GR12");
+    public static readonly DiagnosticDescriptor UsageNoSignPhraseScope = new(
+        "COBOLNET1565", "usage-no-sign-phrase-scope", EditionSeverity.Error,
+        "ISO §13.18.60.2 general format: the WITH NO SIGN phrase is printed only on the PACKED-DECIMAL line of the "
+        + "figure, `PACKED-DECIMAL [ WITH NO SIGN ]`. §13.18.60.4 general rule 11 gives it its meaning there "
+        + "alone: \"If the WITH NO SIGN phrase is specified the representation of the data item in the storage of "
+        + "the computer reserves no storage for representing any sign value.\"",
+        "ISO §13.18.60.2 / §13.18.60.4 GR11");
     public static readonly DiagnosticDescriptor UsageEndiannessPhraseScope = new(
         "COBOLNET1716", "usage-endianness-phrase-scope", EditionSeverity.Error,
         "ISO §13.18.60.2 general format: the endianness-phrase is written only with the standard floating-point "
