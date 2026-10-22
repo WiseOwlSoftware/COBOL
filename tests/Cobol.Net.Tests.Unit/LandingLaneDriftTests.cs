@@ -91,6 +91,7 @@ public sealed class LandingLaneDriftTests
             "queue watch: a third stalled read ALERTS the operator (one mailbox question naming the pull request and "
                 + "the remedies tried) and the watch acts no more, however long it stays out",
             "queue watch: with no check-run at all the clock starts at the enqueue",
+            "queue watch: a check-run whose job the jobs API could not read never holds the watch for ever",
             "exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work",
             "exit 12 once the gate lock is free: retried at the same head",
             "wait_free for exit 12 reads the gate driver's own lock of the worktree",
