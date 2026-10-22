@@ -188,6 +188,75 @@ public sealed class TrackedTreeScopeDriftTests
         return [.. p.Distinct(StringComparer.Ordinal)];
     }
 
+    /// <summary>A header of the per-file query's output: <c>== path: N specific drift rule(s)</c>.</summary>
+    private static readonly Regex QueryHeader = new(@"^== (.+): \d+ specific drift rule\(s\)\r?$", RegexOptions.Compiled);
+
+    /// <summary>A specific rule's row under a header (a sweep line starts <c>  +</c>, a rule's text four spaces).</summary>
+    private static readonly Regex SpecificRow = new(@"^  (\w+DriftTests)  \(", RegexOptions.Compiled);
+
+    /// <summary>The drift-test classes the per-file query (<c>drift_rules.py &lt;path&gt; ...</c>, MANDATORY-PRACTICES
+    /// P11) lists as governing each path SPECIFICALLY, read from its output.</summary>
+    internal static IReadOnlyDictionary<string, IReadOnlySet<string>> SpecificRules(string output)
+    {
+        var rules = new Dictionary<string, IReadOnlySet<string>>(StringComparer.Ordinal);
+        HashSet<string>? current = null;
+        foreach (string line in output.Split('\n'))
+        {
+            if (QueryHeader.Match(line) is { Success: true } h)
+                rules[h.Groups[1].Value] = current = new HashSet<string>(StringComparer.Ordinal);
+            else if (current is not null && SpecificRow.Match(line) is { Success: true } s)
+                current.Add(s.Groups[1].Value);
+        }
+        return rules;
+    }
+
+    /// <summary>The owners (a class and a path its scope sets aside by name) that <paramref name="specific"/> does not
+    /// list the class as governing specifically, as messages.</summary>
+    internal static IReadOnlyList<string> UngovernedOwners(IEnumerable<(string Class, string Path)> owners,
+        IReadOnlyDictionary<string, IReadOnlySet<string>> specific) =>
+        [.. owners.Where(o => !(specific.TryGetValue(o.Path, out var s) && s.Contains(o.Class)))
+                  .Select(o => $"{o.Path}: {o.Class} sets it aside by name, but the per-file query does not list "
+                               + $"{o.Class} as governing it specifically")];
+
+    /// <summary>Every path a scope sets aside BY NAME (an exact-path <c>Except</c> entry: the rule's owner, where its
+    /// one pattern lives, or the test itself) is one the per-file query lists its class as governing SPECIFICALLY — so
+    /// an agent editing the owner is told the rule, and the gate's planner puts the class in leg 1 (tier 0d). Review
+    /// R1-1 of PB3531: the index blanked the declarations, and <c>scripts/spec/spec_headings.py</c> and
+    /// <c>tests/_shared/SpecClauseText.cs</c> lost <c>CatalogCoverageDriftTests</c>, which governed both on main.</summary>
+    [Fact]
+    public void EveryPathAScopeSetsAsideByName_IsGovernedSpecificallyByItsClass()
+    {
+        var owners = Compiled()
+            .SelectMany(kv => (kv.Value.Except ?? []).Where(e => !e.EndsWith('/')).Select(e => (Class: kv.Key.Split('.')[0], Path: e)))
+            .Distinct().ToList();
+        Assert.True(owners.Count >= 4, $"only {owners.Count} path(s) set aside by name — the scan of the scopes is broken");
+        ProcessObservation r = PythonInstrument.Run(TestRepo.Scripts("spec", "drift_rules.py"),
+            [.. owners.Select(o => o.Path).Distinct(StringComparer.Ordinal)]);
+        Assert.True(r.ExitCode == 0, $"drift_rules.py <paths> failed (exit {r.ExitCode}):\n{r.Stdout}{r.Stderr}");
+        IReadOnlyList<string> ungoverned = UngovernedOwners(owners, SpecificRules(r.Stdout));
+        Assert.True(ungoverned.Count == 0, "drift_rules.py does not name a rule for the file that owns it (kb/Work PB3531 "
+            + "review R1-1); its `owners` must list every exact-path Except entry:\n  " + string.Join("\n  ", ungoverned));
+    }
+
+    /// <summary>⭐ The owner check's failure branch, fired: an owner listed only as a sweep, or not listed at all, is
+    /// reported; one listed specifically is not.</summary>
+    [Fact]
+    public void TheOwnerCheck_FindsAnOwnerTheQueryDoesNotGovern()
+    {
+        string output = string.Join("\n",
+            "== a/b/owned.py: 1 specific drift rule(s)",
+            "  PlantedDriftTests  (tests/PlantedDriftTests.cs)",
+            "    the rule's text",
+            "== a/b/swept.py: 0 specific drift rule(s)",
+            "  + 1 tree-wide sweep(s) also scan it: PlantedDriftTests");
+        IReadOnlyList<string> found = UngovernedOwners(
+            [("PlantedDriftTests", "a/b/owned.py"), ("PlantedDriftTests", "a/b/swept.py"), ("PlantedDriftTests", "a/b/absent.py")],
+            SpecificRules(output));
+        Assert.Equal(2, found.Count);
+        Assert.Contains(found, f => f.StartsWith("a/b/swept.py:", StringComparison.Ordinal));
+        Assert.Contains(found, f => f.StartsWith("a/b/absent.py:", StringComparison.Ordinal));
+    }
+
     /// <summary>⭐ The source check's failure branch, fired: a scope built inline, a field the class does not declare and
     /// a scan in a class that is no drift test are each reported; a declared field is not.</summary>
     [Fact]

@@ -724,6 +724,11 @@ def self_test() -> int:
     check("a changed file names every drift test the index says governs it, a sweep of the committed tree included "
           "(tier 0d)", {"CatalogCoverageDriftTests", "ConflictMarkerDriftTests"} <= reach.drift_tests
           and "NulByteDriftTests" not in reach.drift_tests, sorted(reach.drift_tests))
+    # A file a scope sets aside BY NAME is the rule's owner, which the sweep does not read: the class still governs it
+    # (PB3531 review R1-1 — the general-format heading pattern lives in spec_headings.py).
+    _, reach = tiers_for(["scripts/spec/spec_headings.py"])
+    check("a change to the file a sweep sets aside by name (its rule's owner) names that sweep (tier 0d)",
+          "CatalogCoverageDriftTests" in reach.drift_tests, sorted(reach.drift_tests))
 
     # The method level: the entries a hunk changes (0 = One(), which M1 reached; 1 = Two(), which no test reached),
     # or None for a declaration change, which falls back to the file level.
