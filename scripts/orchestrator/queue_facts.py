@@ -241,36 +241,36 @@ def self_test() -> int:
                                                                  gate(71, 'COMPLETED', 'SUCCESS', '2026-10-22T19:36:04Z')]),
     ], entries=[1], jobs={31: {'status': 'in_progress'}, 41: {'status': 'completed', 'completed_at': '2026-10-22T18:46:46Z'},
                           70: {'status': 'completed', 'completed_at': 'w'}}, log=log), required=req) or {}
-    expect('a pull request the merge queue\'s own entries name, or that GitHub says isInMergeQueue, is in the queue; '
-           'auto-merge on is NOT in the queue',
+    expect("a pull request the merge queue's own entries name, or that GitHub says isInMergeQueue, is in the queue; "
+           "auto-merge on is NOT in the queue",
            prs['queued'].in_queue and prs['flag'].in_queue and not prs['auto'].in_queue
            and prs['auto'].auto_merge_at == '2026-10-22T18:44:50Z' and prs['auto'].repo == 'o/r', str(prs))
     stuck = prs['stuck'].checks
-    expect('a required check-run in progress whose Actions job completed is STUCK (PR #385\'s propagation fault), with '
-           'the job\'s completion as its time; one whose job still runs is not; an unrequired check is not read',
+    expect("a required check-run in progress whose Actions job completed is STUCK (PR #385's propagation fault), with "
+           "the job's completion as its time; one whose job still runs is not; an unrequired check is not read",
            [c.name for c in stuck] == ['ci-gate'] and stuck[0].stuck and stuck[0].done_at == '2026-10-22T18:46:46Z'
            and stuck[0].run == 904 and not prs['auto'].checks[0].stuck and prs['auto'].checks[0].done_at == '',
            f'{stuck} {prs["auto"].checks}')
     jobs_read = sorted(a[1].rsplit('/', 1)[1] for a in log if a[0] == 'api' and '/actions/jobs/' in a[1])
-    expect('only an unresolved required check-run asks the jobs API; the newest check-run of a context decides (a '
-           're-run\'s), so a re-run that completed is not stuck',
+    expect("only an unresolved required check-run asks the jobs API; the newest check-run of a context decides (a "
+           "re-run's), so a re-run that completed is not stuck",
            jobs_read == ['31', '41'] and prs['rerun'].checks[0].job == 71 and not prs['rerun'].checks[0].stuck,
            f'{jobs_read} {prs["rerun"].checks}')
-    expect('a pull request the queue removed with auto-merge off is BOUNCED with GitHub\'s reason; a required check '
-           'that FAILED before the queue is its red (the newest run decides)',
+    expect("a pull request the queue removed with auto-merge off is BOUNCED with GitHub's reason; a required check "
+           "that FAILED before the queue is its red (the newest run decides)",
            prs['removed'].bounced.startswith('FAILED_CHECKS') and prs['red'].red is not None
            and prs['red'].red.job == 61 and prs['stuck'].red is None and not prs['queued'].bounced,
            f'{prs["removed"]} {prs["red"]}')
     lost = read(fake([node(8, 'lost', 'h1', auto='t', runs=[gate(81, 'IN_PROGRESS')])], jobs={}), required=req) or {}
-    expect('a job the jobs API cannot read leaves the check-run unknown, never stuck',
+    expect("a job the jobs API cannot read leaves the check-run unknown, never stuck",
            not lost['lost'].checks[0].stuck and lost['lost'].checks[0].job_status == '', str(lost))
 
     def offline(args: list[str]) -> tuple[int, str, str]:
         raise ruleset.Unobserved('no network')
-    expect('offline, a gh failure or a malformed answer is None (a non-observation), never {}',
+    expect("offline, a gh failure or a malformed answer is None (a non-observation), never {}",
            read(offline, required=req) is None and read(lambda a: (1, '', 'x'), required=req) is None
            and read(lambda a: (0, 'o/r' if a[0] == 'repo' else '{"data":{}}', ''), required=req) is None)
-    expect('the required contexts come from the committed ruleset (ruleset.required_contexts)',
+    expect("the required contexts come from the committed ruleset (ruleset.required_contexts)",
            ruleset.required_contexts(ruleset.load_committed()) == ('ci-gate',))
     print(f"=== queue_facts.py self-test: {'FAIL' if failures else 'PASS'} ({len(failures)} failure(s)) ===")
     return 1 if failures else 0
