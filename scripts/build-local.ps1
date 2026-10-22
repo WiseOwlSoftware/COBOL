@@ -24,11 +24,12 @@ if ($Priority -ne 'Normal') {
 }
 Set-Location (Split-Path -Parent $PSScriptRoot)
 # THE ONE INTERPRETER (scripts/python-resolve.ps1, the twin of python-resolve.sh; kb/Work PB1637, PB3197): a host with no
-# runnable Python ends on the gate's own verdict line, NOT RUN with exit 2 as the driver's NOT RUN does.
+# runnable Python ends on the gate's own verdict line, NOT RUN [interpreter] (an ENVIRONMENT cause in
+# run_gate_legs.NOT_RUN_CAUSES) with exit 2 as the driver's NOT RUN does.
 try {
     . (Join-Path $PSScriptRoot 'python-resolve.ps1')
 } catch {
-    Write-Host "=== BUILD-LOCAL GATE: NOT RUN — $($_.Exception.Message) ==="
+    Write-Host "=== BUILD-LOCAL GATE: NOT RUN [interpreter] — $($_.Exception.Message) ==="
     exit 2
 }
 & $PY scripts/run_gate_legs.py

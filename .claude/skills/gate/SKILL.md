@@ -150,8 +150,9 @@ re-run). Here, additionally:
 - `scripts/build-local.{ps1,sh}` prints ONE `=== BUILD-LOCAL GATE: ` verdict line — `GREEN`, `RED`,
   `RED/INCOMPLETE` (stopped after leg 1 under the scope `whole`), `LEG 1 ONLY (batched gating, PB2515): GREEN|RED`
   (leg 1 ran, leg 2 is CI's — never a whole-population GREEN), `BUILD FAILED`, `BUSY` (exit 3: another gate holds
-  this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN` (exit 2: the
-  shared gate settings are malformed, the driver failed, the population could not be listed; it measured nothing) —
+  this worktree's gate lock; nothing ran and nothing is red: wait for it, then re-run) or `NOT RUN [<cause>]` (exit
+  2: it measured nothing; the cause's class is `run_gate_legs.NOT_RUN_CAUSES`' — ENVIRONMENT `[settings]`
+  `[interpreter]` is no defect of yours, BRANCH `[driver]` `[population]` is code your tree carries: fix it) —
   block on that line, never on the exit code. The run directory it names holds
   every leg's full log, trx and identity record, the plan and `verdict.json` (timings, first red, slot).
 

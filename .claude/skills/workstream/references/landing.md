@@ -44,9 +44,12 @@
   `cobol-finisher` with `templates/finisher-brief.md` fixes it at the root, gates and returns DONE; its commits are reviewed on the branch (I10) before `enqueue.py land` takes the new tip (an unreviewed tip is exit 11).
   Exit 3 (the landing check's STOP) is never retried as is: the landing lane retries it at the same head only once
   `landing_check.py` passes on the branch; exit 12 (GATE BUSY: another gate held the worktree's gate lock, nothing ran,
-  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527); nor is a gate NOT RUN
-  (it measured nothing: malformed gate settings, a host with no WSL, Python or SDK, no verdict line), which is exit 2
-  with no BLOCKED line, retried once and a second time the operator's handoff, never a finisher's (kb/Work PB3526).
+  nothing is red) is no stop either: the lane retries it once the lock is free (kb/Work PB3527). A gate NOT RUN (it
+  measured nothing) goes by its cause's class in `run_gate_legs.NOT_RUN_CAUSES` (kb/Work PB3526): an ENVIRONMENT cause
+  (malformed gate settings, a host with no WSL, Python or SDK) is exit 2 with no BLOCKED line, retried once and a second
+  time the operator's handoff; a BRANCH cause (code the gated tree carries failed: the driver, the population listing,
+  no verdict line) is measured on main at the same step, and blocks like a red (exit 5, a finisher's) unless main fails
+  the same way (then exit 2, the operator's).
   After `ENQUEUED` the
   lane's QUEUE WATCH follows the pull request into the merge queue: a NOT QUEUED pull request past the grace gets a
   re-run of its stuck check, then a close, reopen and re-queue, then a mailbox question to the operator. A stop resolved with no new commit is landed again only when the enqueue

@@ -1,4 +1,4 @@
-## PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing (a held lock, BUSY; NOT RUN) is never red
+## PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing is read by its cause (a held lock is BUSY; a NOT RUN blocks only when the branch carries it)
 
 **Why.** On 2026-10-22 PR #385's `ci-gate` job completed success at 18:46:46Z while its check-run on the head commit
 stayed `in_progress` for 50 minutes; the merge queue was empty, the pull request BLOCKED, and nothing looked, because a
@@ -37,7 +37,8 @@ at the enqueue and, past the grace, is a stalled read that names the unread job.
 whole CI time, and a runner that died would leave its pull request unwatched.
 
 **Mechanism 2 — one verdict reader.** The gate driver's verdict for a held gate lock is now `BUSY`, exit 3: it
-measured nothing and nothing is wrong. `run_gate_legs.read_verdict` reads a verdict line as GREEN, BUSY or RED, and
+measured nothing and nothing is wrong. `run_gate_legs.read_verdict` reads a verdict line as GREEN, BUSY, NOT RUN (with its
+cause) or RED, and
 `enqueue.py` reads through it: a BUSY gate ends `GATE BUSY`, exit 12, with no `BLOCKED:` report line, and the lane
 retries it at the same head once the worktree's gate lock is free (`land_lane.wait_free`, the retry-when-free class
 shared with exit 3, keyed by exit code in `WAITS`).
@@ -54,11 +55,7 @@ section 4.9 (step 4 and the table), DESIGN-test-build-ci.md sections 3.14.3 and 
 
 **Review round 1 (the finisher).** The branch reviewer recorded three blocking findings and two leads; all five
 are fixed here. R1-1: PB3526, the held-lock defect mechanism 2 fixed, stayed open, and its bar's sweep was missing:
-every other NOT RUN cause is now classified on purpose (`run_gate_legs.NOT_RUN`: malformed shared gate settings, a
-driver failure, a population unlistable after a GREEN build, the Linux gate's host with no WSL, Python or SDK, and in
-`enqueue.run_gates` a gate that printed no verdict line or a row refused for running outside the slot). Each measured
-nothing about the branch, so `read_verdict` reads NOT RUN as its own reading and `land` ends `GATE NOT RUN`, exit 2,
-with no BLOCKED line: retried once, a second the operator's handoff, never a finisher's. PB3526 is landed with this
+every other NOT RUN cause is now classified on purpose, as review round 2 corrected it (below). PB3526 is landed with this
 change. R1-3: the tick wrote each attempt record WHOLE from the copy it read before its slow survey, so a `collect` the
 enqueue unit made meanwhile was undone (the reviewer's probe: `collected` back to false and the enqueue unit asked
 again); an attempt record now has one writer, `land_lane.update`, which re-reads the record under its own lock and
@@ -72,6 +69,19 @@ fault, re-run, reopened and then asked about; `queue_facts.PullRequest.conflicts
 survey read BOUNCED, the finisher's. R1-2 (lead): the gate skill names BUSY and the NOT RUN causes. Both reviewer
 probes (`race.py`, `hang.py`) fail on the reviewed head and pass here; new self-test arms in `land_lane.py`,
 `enqueue.py`, `run_gate_legs.py`, `queue_facts.py` and `prune_worktrees.py` pin each.
+
+**Review round 2 (the finisher).** R2-1 (blocking): round 1's sweep read every NOT RUN as the environment's, so a
+landing whose merged tree broke its own gate driver (`run_gate_legs.py` raising in its plan step), its population
+listing or its verdict line ended `GATE NOT RUN`, exit 2, with no BLOCKED line, was retried once and then went to the
+operator as "an environment no finisher fixes", where the round-1 head had sent it to a finisher. Each cause is now
+classified ONCE, in `run_gate_legs.NOT_RUN_CAUSES`, and every gate prints it by tag, `NOT RUN [<cause>]` (build-local's
+two scripts, linux-gate.sh and the driver; the driver's self-test holds every printer to a known tag). ENVIRONMENT
+(`settings`, `interpreter`, `host`, `sdk`, `tree`) keeps exit 2. BRANCH (`driver`, `population`, `arguments`, and
+enqueue.py's own `verdict` and `unslotted`; a NOT RUN naming no known cause is `unclassified`, BRANCH) is measured on
+main at the same step: `enqueue.gate_main` runs the same gate row in a clean detached checkout of the origin/main the
+branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; main failing with
+the same cause is exit 2 (main's, the operator's), anything else blocks, exit 5 with a BLOCKED line naming the cause and
+main's reading, a finisher's. `read_verdict` returns a `Reading` (word and cause), and `run_gates` and `land` read it.
 
 **Gate** (run 20261022T221903Z-7338fd, at ad9ea2dc6): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN — leg 2 left to CI's whole-population run: Conformance 7,494 · Unit 1,231 · Characterization 31 … ===`.
