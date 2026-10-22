@@ -1,0 +1,4 @@
+## Entry 2365 — 2026-10-22 14:24 PDT — The drift-rule index misses the tree-wide drift classes: filed as PB3531
+
+When PB3523's branch landed, the Linux unit leg failed on a drift test that the Windows gate had left in leg 2 and that `drift_rules.py` had not listed for the edited script. The index reads only explicit path segments, so the seven drift classes that scan the whole repository through `TrackedTree.Files()` are invisible to it and to the leg planner. PB3531 records the lead and the fix shape: derive a tree-wide class's governed paths from its `TrackedTree.Files()` filter, and measure the tier change for `ConflictMarkerDriftTests` and `LandingMeasureDriftTests`.
+
