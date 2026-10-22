@@ -719,10 +719,10 @@ def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -
     of it, so the syntax rules are never squeezed out by a statement with fifteen formats (14.9.39 SET). The parts stay in
     the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end.
 
-    The general formats it sends ARE the printed page's: `scripts/spec/sweep_figures.py` generates every general format in
-    specs/ISO_COBOL.md from the PDF (`render_figure.py`, its `--check` the standing gate; 483 of 484, the one left being
-    §12.3.6.2's, which carries the Addendum's correction C3), so the OCR's lossy diagrams never reach the model and no PDF
-    is read here (review R1-3)."""
+    The general formats it sends ARE the printed page's: `scripts/spec/sweep_figures.py` generates the general formats in
+    specs/ISO_COBOL.md from the PDF (`render_figure.py`); the ones it leaves are §12.3.6.2's, which carries the Addendum's
+    correction C3, and §13.18.35.2 Format 1, re-drawn by hand from the rendered page (kb/Work PB1221). So the OCR's lossy
+    diagrams never reach the model, and no PDF is read here (review R1-3)."""
     head = f"Clause {number} {title}\n\n"
     whole = clean_spec_text(body)
     if len(whole) <= budget:

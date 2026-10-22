@@ -48,5 +48,6 @@ their 36 programs drew 5 WE_REJECT rows, which the old exclusion would have hidd
 holding the word "error", so GnuCOBOL 3.2's source-context lines ("13 > VALIDATE WS-ALPHA ON SIZE ERROR …") were recorded
 as the diagnostic and fed the early stop (3 of the bake-off's 344 rounds, 19 of the second night's 5,518 first errors).
 `ERROR_LINE` now takes a line whose severity is error. R1-3: the general formats the prompt quotes are already the printed
-page's, since `sweep_figures.py` generates every general format in the transcription from the PDF, so nothing changed
-but the docstring that says so.
+page's: `sweep_figures.py` generates the transcription's general formats from the PDF, and the one it misdraws
+(§13.18.35.2 Format 1, whose `--check` drift is a lead) was re-drawn by hand from the rendered page under PB1221. Only
+the docstring that says so changed.
