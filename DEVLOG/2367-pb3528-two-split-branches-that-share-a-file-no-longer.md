@@ -1,4 +1,4 @@
-## PB3528: two split branches that share a file no longer deadlock the planner
+## Entry 2367 — 2026-10-22 15:46 PDT — PB3528: two split branches that share a file no longer deadlock the planner
 
 **What.** Since this morning every wave planned nothing. The two branches wave 1141 left unfinished (PB3338's and
 PB3493's) both change `docs/CONFORMANCE.md`. The planner reads an idle unfinished branch as running work, so each
@@ -20,3 +20,4 @@ itself depended on the host. The reports are now ordered by name after those two
 through a reversed listing and expects the same order: it fails without the fix on Windows too, and 333 of 333 checks
 pass with it. Another place where a file's modification time picks a record, the architecture review's choice of its
 newest performance baseline, is filed as PB3532.
+
