@@ -1,4 +1,4 @@
-## PB3512: a reference-modified MOVE receiver no longer takes the sender's operational sign
+## Entry 2352 — 2026-10-22 11:44 PDT — PB3512: a reference-modified MOVE receiver no longer takes the sender's operational sign
 
 **What.** A MOVE of a signed numeric sender into a reference-modified alphanumeric receiver stored the sender's raw
 stored form, sign included: `MOVE` of a PIC S9(4) 2468 into `X5(1:5)` gave `246H`, a packed -1234 gave `-1234`, a SIGN
@@ -50,3 +50,4 @@ group's slice. `ReceivingStoreDriftTests` fails if a usage decision in the store
 `w1147c-PB3512-review-r1-group-into-national` adds both as witnesses to GR-14.9.25.4-4, which stays CONFORMS. The
 re-gate, run `20261022T181334Z-4eed94`, read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, with
 the new golden passing at 2002, 2014 and 2023.
+
