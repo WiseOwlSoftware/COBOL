@@ -40,8 +40,10 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
   OUTPUT_DIFFERS   both ran, outputs differ: a candidate wrong answer on one side; the spec decides which.
   OUTPUT_LATITUDE  both ran, the outputs differ ONLY in the display form of numeric items — GnuCOBOL's leading separate sign
                    and inserted decimal point against WiseOwl's digit image with an over-punched sign (the settled decision
-                   PB803 and the open owner decision PB3467; 615 of the first night's 1,141 output rows). Recorded under its
-                   own heading, never a survivor; the verdict changes when PB3467 is answered, the rows do not.
+                   PB803 and the open owner decision PB3467) — and the program declares no picture that prints a point and
+                   no SIGN SEPARATE item (display_fold_allowed: the text alone cannot tell the latitude from a dropped point).
+                   502 of the first night's 1,141 output rows. Recorded under its own heading, never a survivor;
+                   the verdict changes when PB3467 is answered, the rows do not.
   WE_CRASH         WiseOwl's compiler crashed (the adapter's crash exit codes), or an unhandled exception at run time.
   WE_FAIL_RUN      same stdout, but WiseOwl's program exited non-zero where GnuCOBOL's exited zero: a run-time abort after the
                    last DISPLAY (a failing CLOSE, a STOP RUN status), invisible in the output.
@@ -65,6 +67,7 @@ import os
 import random
 import re
 import shutil
+import tempfile
 import sys
 import threading
 import time
@@ -444,10 +447,11 @@ def observe_fresh(run: suite_run.Run, entry: dict[str, Any], name: str) -> Obser
 
 # ── the verdict ───────────────────────────────────────────────────────────────────────────────────────────────────────
 
-def classify(we: Observation, they: Observation) -> str:
+def classify(we: Observation, they: Observation, display_fold: bool = False) -> str:
     """The class of one program from the two observations. A refusal by GnuCOBOL alone is a lead (THEY_REJECT), a refusal
     by both is the model's failure (BOTH_REJECT); an unobserved compiler on either side is never a verdict, and a crash of
-    ours outranks every refusal."""
+    ours outranks every refusal. `display_fold` is display_fold_allowed() of the program's source: without it an output
+    difference is never OUTPUT_LATITUDE."""
     if we.hung and they.hung:
         # A program both compilers run (or compile) forever is the generator's, whichever side was observed first: the first
         # overnight report presented three of the model's infinite loops as WiseOwl hangs (kb/Work PB3490).
@@ -473,7 +477,7 @@ def classify(we: Observation, they: Observation) -> str:
     if they.run_rc != 0 and we.run_rc == 0:
         return "THEY_FAIL_RUN"
     if we.output != they.output:
-        if we.run_rc == they.run_rc and display_image(we.output) == display_image(they.output):
+        if display_fold and we.run_rc == they.run_rc and display_image(we.output) == display_image(they.output):
             return "OUTPUT_LATITUDE"
         return "OUTPUT_DIFFERS"
     # The exit status is an observable result too (ISO 14.9.42.4 General rule 2: the operating system is told of an error
@@ -491,9 +495,11 @@ MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM", "BOTH_HANG")
 #: a known implementor latitude: reported under its own heading, never a survivor
 LATITUDE_CLASSES = ("OUTPUT_LATITUDE",)
 
+#: the recorded outputs are cut at this length; a row whose output was cut keeps its recorded verdict under --report
+RECORDED_OUTPUT = 4000
+
 #: GnuCOBOL's display form of a numeric item: an optional leading separate sign, digits, a decimal point, digits. A value
-#: with an inserted comma (an EDITED item, printed alike by both compilers) is left alone, so a real difference in one
-#: is never folded away.
+#: with an inserted comma (an EDITED item, printed alike by both compilers) is left alone.
 _GNU_SCALED = re.compile(r"(?<![0-9A-Za-z.,{}])([+-]?)(\d+)\.(\d+)(?![0-9A-Za-z.,])")
 #: WiseOwl's display form of a SIGNED numeric item: the digit image with the sign over-punched on the last digit (IBM / Micro
 #: Focus, PB803): { A-I positive 0-9, } J-R negative 0-9
@@ -501,11 +507,31 @@ _OVERPUNCH = re.compile(r"(?<![0-9A-Za-z.,{}])(\d+)([{}A-R])(?![0-9A-Za-z])")
 _PUNCH = {**{c: ("+", str(i)) for i, c in enumerate("{ABCDEFGHI")}, **{c: ("-", str(i)) for i, c in enumerate("}JKLMNOPQR")}}
 
 
+#: a PICTURE character-string (the sentence's period stripped) and the SIGN clause's SEPARATE phrase
+_PICTURE = re.compile(r"\bPIC(?:TURE)?\s+(?:IS\s+)?(\S+)", re.IGNORECASE)
+_SIGN_SEPARATE = re.compile(r"\bSIGN\s+(?:IS\s+)?(?:LEADING|TRAILING)\s+SEPARATE\b", re.IGNORECASE)
+#: the picture symbols that print a point or a sign: an edited item's output can carry them legitimately
+_EDITING_SIGN_OR_POINT = re.compile(r"[.+-]|CR|DB", re.IGNORECASE)
+
+
+def display_fold_allowed(source: str) -> bool:
+    """Whether display_image() may fold this program's outputs. The text of an output cannot tell a scaled item's digit
+    image (`PIC 9(5)V99`, the PB3467 latitude: `0001250` against `00012.50`) from an EDITED item whose point one compiler
+    dropped (`PIC ZZ9.99`: a wrong answer), nor an over-punched sign from a SIGN SEPARATE item printed without its sign.
+    So the fold is allowed only when no picture in the program carries a point or an editing sign (`.`, `+`, `-`, `CR`, `DB`)
+    and no item declares SIGN SEPARATE: in that program a point or a separate sign in GnuCOBOL's output can only be its
+    display form (branch review R1-1). A program with such a picture keeps every difference as OUTPUT_DIFFERS for the
+    triage to read."""
+    if _SIGN_SEPARATE.search(source):
+        return False
+    return not any(_EDITING_SIGN_OR_POINT.search(m.group(1).rstrip(".")) for m in _PICTURE.finditer(source))
+
+
 def display_image(text: str) -> str:
     """Both compilers' display forms of a numeric item folded to one image, sign then digits with no decimal point:
     GnuCOBOL's `+00012.50` and WiseOwl's `000125{` both become `+0001250`, `00012.50` and `0001250` both `0001250`. Two
     outputs equal under this fold differ only in the display-form latitude (PB803 settled the sign, PB3467 asks about the
-    point); the fold is used to CLASSIFY the row, never to judge it."""
+    point) WHEN display_fold_allowed() holds for the program; the fold is used to CLASSIFY the row, never to judge it."""
     def punch(m: re.Match[str]) -> str:
         sign, digit = _PUNCH[m.group(2)]
         return sign + m.group(1) + digit
@@ -631,15 +657,16 @@ class Fuzz:
                          {"role": "user", "content": repair_request(they.diagnostics, we.diagnostics)}]
         if we is None:
             we = observe_fresh(self.we, entry, name)
-        verdict = classify(we, they)
-        rec.update(verdict=verdict, signature=signature(verdict, number, we),
+        display_fold = display_fold_allowed(program)
+        verdict = classify(we, they, display_fold)
+        rec.update(verdict=verdict, signature=signature(verdict, number, we), display_fold=display_fold,
                    we={"compiled": we.compiled, "codes": we.codes,
                        "first_error": first_error(we.diagnostics) if we.compiled is False or we.crashed else "",
-                       "run_rc": we.run_rc, "crashed": we.crashed, "hung": we.hung, "output": we.output[:4000],
+                       "run_rc": we.run_rc, "crashed": we.crashed, "hung": we.hung, "output": we.output[:RECORDED_OUTPUT],
                        "runner_error": we.runner_error},
                    they={"compiled": they.compiled,
                          "first_error": first_error(they.diagnostics) if they.compiled is False else "",
-                         "run_rc": they.run_rc, "hung": they.hung, "output": they.output[:4000],
+                         "run_rc": they.run_rc, "hung": they.hung, "output": they.output[:RECORDED_OUTPUT],
                          "runner_error": they.runner_error})
         if not self.s.keep:
             for r in (self.we, self.they):
@@ -726,10 +753,6 @@ def repair_request(they_diag: str, we_diag: str) -> str:
 
 # ── the report ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
-#: the recorded outputs are cut at this length; a row whose output was cut keeps its recorded verdict
-RECORDED_OUTPUT = 4000
-
-
 def recorded_observation(d: dict[str, Any]) -> Observation:
     """One compiler's recorded observation (the `we` / `they` dict of a results.jsonl row) as an Observation again."""
     hung = bool(d.get("hung"))
@@ -740,16 +763,22 @@ def recorded_observation(d: dict[str, Any]) -> Observation:
                        runner_error=d.get("runner_error") or "")
 
 
-def rederived(rec: dict[str, Any]) -> dict[str, Any]:
+def rederived(rec: dict[str, Any], out: Path) -> dict[str, Any]:
     """The row's verdict derived again by today's classify() from what the run recorded, so `--report` renders a run under the
     classes the harness has NOW (kb/Work PB3490: the first night's rows were re-read under BOTH_HANG and OUTPUT_LATITUDE
     without a second night). A row that recorded no observations (NO_PROGRAM, a model RUNNER_ERROR) or an output the record
-    cut keeps its verdict; a recorded compiler crash keeps its class whichever way the record's fields read."""
+    cut keeps its verdict; a recorded compiler crash keeps its class whichever way the record's fields read. The display
+    fold follows the recorded `display_fold`, or, for a row recorded before that field, the program's source under `out`;
+    a source that is gone allows no fold."""
     we, they = rec.get("we"), rec.get("they")
     if not we or not they or rec["verdict"] in ("WE_CRASH", "RUNNER_ERROR") or \
             len(we.get("output") or "") >= RECORDED_OUTPUT or len(they.get("output") or "") >= RECORDED_OUTPUT:
         return rec
-    verdict = classify(recorded_observation(we), recorded_observation(they))
+    fold = rec.get("display_fold")
+    if fold is None:
+        src = out / rec.get("source", "")
+        fold = display_fold_allowed(src.read_text(encoding="utf-8", errors="replace")) if rec.get("source") and src.is_file() else False
+    verdict = classify(recorded_observation(we), recorded_observation(they), fold)
     if verdict == rec["verdict"]:
         return rec
     return {**rec, "verdict": verdict, "signature": signature(verdict, rec["clause"], recorded_observation(we)),
@@ -763,7 +792,7 @@ def read_results(out: Path) -> list[dict[str, Any]]:
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
-            rows.append(rederived(json.loads(line)))
+            rows.append(rederived(json.loads(line), out))
     return rows
 
 
@@ -860,7 +889,7 @@ def bake_off(models: list[str], base: Settings) -> None:
         s = dataclasses.replace(base, model=m, out=base.out / re.sub(r"[^A-Za-z0-9_.-]", "_", m))
         Fuzz(s).run()
         table.append((m, *bake_off_score(read_results(s.out))))
-    lines = ["# Bake-off", "", "| Model | Programs | Usable | Model failures (both refuse, or no program) | GnuCOBOL alone refuses | Median model s | Lead rows |",
+    lines = ["# Bake-off", "", "| Model | Programs | Usable | Model failures (both refuse, no program, or both hang) | GnuCOBOL alone refuses | Median model s | Lead rows |",
              "|---|---|---|---|---|---|---|"]
     for m, n, usable, judged, both, theirs, med, leads in table:
         lines.append(f"| {m} | {n} | {usable}/{judged} ({usable / judged:.0%}) | {both} | {theirs} | {med:.0f} | {leads} |" if judged
@@ -871,8 +900,8 @@ def bake_off(models: list[str], base: Settings) -> None:
 
 
 def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int, float, int]:
-    """(programs, usable, judged, model failures (BOTH_REJECT and NO_PROGRAM), GnuCOBOL-alone-refuses, median model seconds,
-    lead rows) of one model's run."""
+    """(programs, usable, judged, model failures (MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG), GnuCOBOL-alone-
+    refuses, median model seconds, lead rows) of one model's run."""
     judged = [r for r in rows if r["verdict"] != "RUNNER_ERROR"]
     usable = [r for r in judged if r["verdict"] not in MODEL_FAILURE_CLASSES]
     both = sum(1 for r in judged if r["verdict"] in MODEL_FAILURE_CLASSES)
@@ -1031,10 +1060,18 @@ def self_test() -> int:
           and display_image("U=00012.50") == "U=0001250" and display_image("I=0001B") == "I=+00012" and display_image("I=0001K") == "I=-00012"
           and display_image("A B R 1,234.50 X1A") == "A B R 1,234.50 X1A",
           [display_image(x) for x in ("R=+00012.50", "R=000125{", "N=-00012.50", "N=000125}", "U=00012.50", "I=0001B", "I=0001K", "A B R 1,234.50 X1A")])
-    check("classify: outputs that differ only in the display form are OUTPUT_LATITUDE, not a survivor; any other difference, or a differing exit, stays OUTPUT_DIFFERS",
-          classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50")) == "OUTPUT_LATITUDE"
-          and classify(dataclasses.replace(ok_run, output="R=000125{ Z"), dataclasses.replace(ok_run, output="R=+00012.50")) == "OUTPUT_DIFFERS"
-          and classify(dataclasses.replace(ok_run, output="R=000125{", run_rc=1), dataclasses.replace(ok_run, output="R=+00012.50", run_rc=0)) == "OUTPUT_DIFFERS"
+    check("display fold allowed: a scaled picture (V) and a sentence period allow it; an edited picture with a point, a leading-sign edited picture, a SIGN SEPARATE item forbid it (review R1-1)",
+          display_fold_allowed("01 A PIC 9(5)V99." + chr(10) + "01 B PICTURE IS S9(3)V9(2) VALUE 1.5." + chr(10) + "DISPLAY 1.5.")
+          and not display_fold_allowed("01 A PIC ZZ9.99.") and not display_fold_allowed("01 A PIC +9(5).99 VALUE 1.")
+          and not display_fold_allowed("01 A pic $9.99.") and not display_fold_allowed("01 A PIC S9(5) SIGN IS LEADING SEPARATE.")
+          and not display_fold_allowed("01 A PIC -9(3).") and not display_fold_allowed("01 A PIC 9(3)CR.") and not display_fold_allowed("01 A PIC 9(3)DB.")
+          and display_fold_allowed("01 A PIC Z(4)9." + chr(10) + "01 B PIC X(3) VALUE 'CR'.")
+          and not display_fold_allowed("01 A PIC S9(5) SIGN TRAILING SEPARATE CHARACTER."))
+    check("classify: outputs that differ only in the display form are OUTPUT_LATITUDE only when the fold is allowed, not a survivor; any other difference, a differing exit, or a program with an edited point stays OUTPUT_DIFFERS",
+          classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50"), True) == "OUTPUT_LATITUDE"
+          and classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50")) == "OUTPUT_DIFFERS"
+          and classify(dataclasses.replace(ok_run, output="R=000125{ Z"), dataclasses.replace(ok_run, output="R=+00012.50"), True) == "OUTPUT_DIFFERS"
+          and classify(dataclasses.replace(ok_run, output="R=000125{", run_rc=1), dataclasses.replace(ok_run, output="R=+00012.50", run_rc=0), True) == "OUTPUT_DIFFERS"
           and "OUTPUT_LATITUDE" not in LEAD_CLASSES and "OUTPUT_LATITUDE" in LATITUDE_CLASSES)
     check("classify: same stdout but our program exits non-zero where theirs exits zero is a lead, never AGREE (review R1-1)",
           classify(dataclasses.replace(ok_run, run_rc=1), ok_run) == "WE_FAIL_RUN")
@@ -1085,11 +1122,22 @@ def self_test() -> int:
                 "they": {"compiled": True, "first_error": "", "run_rc": None, "hung": True, "output": "", "runner_error": ""}}
     lat_row = {**rows[1], "id": "fz00024", "we": {**rows[1]["we"], "compiled": True, "run_rc": 0, "output": "R=000C"}, "they": {**rows[1]["they"], "compiled": True, "output": "R=+0003"}}
     cut_row = {**lat_row, "id": "fz00099", "we": {**lat_row["we"], "output": "R=000C" + "x" * RECORDED_OUTPUT}, "they": {**lat_row["they"], "output": "R=+0003" + "x" * RECORDED_OUTPUT}}
-    check("rederived: a recorded row is re-read under today's classes (a both-sides hang, the latitude), keeps its recorded verdict beside it, and an unchanged, unobserved or cut row is left alone",
-          rederived(hang_row)["verdict"] == "BOTH_HANG" and rederived(hang_row)["recorded_verdict"] == "WE_HANG"
-          and rederived(lat_row)["verdict"] == "OUTPUT_LATITUDE" and rederived(lat_row)["signature"] == "OUTPUT_LATITUDE:14.9.25"
-          and rederived(rows[1]) is rows[1] and rederived(rows[2]) is rows[2] and rederived(rows[3]) is rows[3] and rederived(cut_row) is cut_row,
-          [rederived(hang_row)["verdict"], rederived(lat_row)["verdict"]])
+    with tempfile.TemporaryDirectory() as td:
+        out = Path(td)
+        (out / "programs").mkdir()
+        (out / "programs" / "fz00024.cob").write_text("01 R PIC S9(3)." + chr(10), encoding="utf-8")
+        (out / "programs" / "fz00025.cob").write_text("01 R PIC +9(3).99." + chr(10), encoding="utf-8")
+        edited_row = {**lat_row, "id": "fz00025", "source": "programs/fz00025.cob"}
+        recorded_fold = {**lat_row, "id": "fz00026", "source": "programs/gone.cob", "display_fold": True}
+        gone_row = {**lat_row, "id": "fz00027", "source": "programs/gone.cob"}
+        check("rederived: a recorded row is re-read under today's classes (a both-sides hang, the latitude), keeps its recorded verdict beside it; the fold follows the recorded display_fold, else the program's source (an edited point forbids it, a missing source forbids it); an unchanged, unobserved or cut row is left alone",
+              rederived(hang_row, out)["verdict"] == "BOTH_HANG" and rederived(hang_row, out)["recorded_verdict"] == "WE_HANG"
+              and rederived({**lat_row, "source": "programs/fz00024.cob"}, out)["verdict"] == "OUTPUT_LATITUDE"
+              and rederived({**lat_row, "source": "programs/fz00024.cob"}, out)["signature"] == "OUTPUT_LATITUDE:14.9.25"
+              and rederived(edited_row, out)["verdict"] == "OUTPUT_DIFFERS" and rederived(recorded_fold, out)["verdict"] == "OUTPUT_LATITUDE"
+              and rederived(gone_row, out)["verdict"] == "OUTPUT_DIFFERS"
+              and rederived(rows[1], out) is rows[1] and rederived(rows[2], out) is rows[2] and rederived(rows[3], out) is rows[3] and rederived(cut_row, out) is cut_row,
+              [rederived(hang_row, out)["verdict"], rederived(edited_row, out)["verdict"], rederived(gone_row, out)["verdict"]])
     solo = render_report([rows[8]], Path("."))
     check("report: a row that differs elsewhere lists its REAL differing line first and counts the lines that differ only in the display form",
           "line 2: `Q=1` | `Q=2`" in solo and "line 1:" not in solo
