@@ -1,4 +1,4 @@
-## The second fuzz night's experiment record, and a fourth defect (PB3517: SIGNED/UNSIGNED accepted on every USAGE)
+## Entry 2348 — 2026-10-22 10:34 PDT — The second fuzz night's experiment record, and a fourth defect (PB3517: SIGNED/UNSIGNED accepted on every USAGE)
 
 **What.** `docs/rearchitecture/evidence/fleet-optimization/2026-10-22-differential-fuzz-second-night.md` records the
 second overnight differential fuzz run end to end: the run (4,931 programs, 314 survivor signatures), the re-judge of
@@ -19,3 +19,4 @@ binder reads it for every usage. An under-rejection, filed for the fix lane.
 replacements finished from the checkpoint files in under half the tokens. Next time: about 25 signatures per agent, the
 report returned as text (the subagent harness refuses a report file), and one program per signature unless it is a
 candidate defect.
+
