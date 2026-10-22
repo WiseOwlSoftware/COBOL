@@ -58,7 +58,8 @@ GATE — ORDER, DON'T SKIP (owner 2026-09-28; kb/Work PB1708, PB1721): `pwsh scr
 -Priority BelowNormal` — nothing to derive, pass or trim. It takes a gate slot (`gate-slot: waiting, k ahead` is the cap
 working: keep blocking), builds, and plans EVERY discovered case of Conformance, Unit and Characterization into two
 legs — your added tests, your previous gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps
-(tier 0c) and the cheapest cases your change reaches in leg 1 — FAIL-FAST. The gate has ONE shape (kb/Work PB3022): a
+(tier 0c), the drift tests that govern a file you changed (tier 0d) and the cheapest cases your change reaches in
+leg 1 — FAIL-FAST. The gate has ONE shape (kb/Work PB3022): a
 re-gate after a fix runs leg 1 again, never the population.
 ⭐ BATCHED GATING (owner 2026-10-10, kb/Work PB2515, MANDATORY-PRACTICES I1): the gate runs LEG 1 ONLY, names every
 leg-2 case NOT RUN, and is done on `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …`; a red
