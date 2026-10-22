@@ -38,3 +38,6 @@ conformance-suite/cases/6.5-Logical-conversion/pb1496_lone_cr_is_a_character.cob
 # indexed store is a binary file (a text file's host newline aside, NistOutputs.Canonical). An eol conversion would
 # change the bytes the comparison is about.
 tests/nist/valid-files/** -text
+
+# The repo-local NuGet feed (nuget-feed/README.md, kb/Work PB3504) holds a package, a zip archive: stored as-is.
+nuget-feed/*.nupkg binary

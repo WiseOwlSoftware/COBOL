@@ -209,3 +209,6 @@ static CobolNet.Runtime.IO.CobolFile.RetireApplyCommit(object! owner) -> void
 static CobolNet.Runtime.IO.CobolFile.Rollback() -> string?
 static CobolNet.Runtime.IO.CobolFile.RollbackOnFatal(string! name) -> void
 static CobolNet.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(string! name, string! statement) -> void
+static CobolNet.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
+static CobolNet.Runtime.CobolNum.DisplayDecimal(string! image, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
+static CobolNet.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!

@@ -204,6 +204,15 @@ public static class UsageFamilies
     /// representation to the implementor, and WiseOwl COBOL pins them big-endian (Annex A.1 item 48).</summary>
     public static bool IsStandardFloat(Usage u) => IsStandardBinaryFloat(u) || IsStandardDecimalFloat(u);
 
+    /// <summary>The four fixed-width binary usages — ISO §13.18.60.4 GR12, "The usages binary-char, binary-short,
+    /// binary-long, and binary-double define integer numeric data items", the set the standard names member by
+    /// member wherever a rule reads it (§14.9.25.3 SR8, §13.18.60.4 GR12's range table) and the only usages
+    /// whose §13.18.60.2 general-format line prints the SIGNED / UNSIGNED choice (<see cref="UsagePhraseRules"/>).
+    /// Written down ONCE for the reason the float families above are: the same four-member or-chain spelled
+    /// out at each reader is where the next reader drifts.</summary>
+    public static bool IsFixedWidthBinary(Usage u) =>
+        u is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble;
+
     /// <summary>⛔ THE PICTURE-LESS USAGES — ISO §13.16.3 SR8's named set, written down ONCE. "The PICTURE
     /// clause shall not be specified for the subject of a RENAMES clause or for an item whose usage is
     /// binary-char, binary-short, binary-long, binary-double, float-short, float-long, float-extended, index,
@@ -439,7 +448,7 @@ public sealed record PicInfo(
     /// endianness-phrase is not specified" (§11.9.8.3 SR2/SR3 — so the per-item phrase wins by the implying
     /// clause's own wording, not by preference); §11.9.8.3 SR1 makes the no-clause default the implementor's
     /// documented choice, ours HIGH-ORDER-LEFT / big-endian, Annex A.1 item 48. <c>DataBinder</c> performs that
-    /// merge at the single call site and screens the phrase's applicability (COBOLNET1716/1706/1707). Always
+    /// merge at the single call site and screens the phrase's applicability (COBOLNET1716/1717/1718). Always
     /// <c>false</c> for the implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED,
     /// GR13/GR21 — pinned big-endian; GR19c scopes the clause AND the phrase to the standard usages). Rides
     /// <see cref="ProfileInitializer"/> into the runtime's <c>NumProfile.FloatLittleEndian</c>, the one switch the

@@ -11,7 +11,7 @@ namespace CobolNet.Tests.Unit.Store;
 /// nothing back. Each seam is called before its operation is made, so it also observes it (a case asks there what another
 /// run unit could see at that moment, kb/Work PB3335), and answers the exception the host would throw, or null.</summary>
 internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception?>? write = null, Func<Exception?>? sync = null,
-    Func<uint, Exception?>? read = null)
+    Func<uint, Exception?>? read = null, Func<Exception?>? truncate = null)
     : IPageMedium
 {
     /// <summary>The page writes handed to the inner medium so far.</summary>
@@ -57,5 +57,9 @@ internal sealed class RefusingPageMedium(IPageMedium inner, Func<uint, Exception
         inner.Sync();
     }
 
-    public void SetLength(long bytes) => inner.SetLength(bytes);
+    public void SetLength(long bytes)
+    {
+        if (truncate?.Invoke() is { } refusal) throw refusal;
+        inner.SetLength(bytes);
+    }
 }

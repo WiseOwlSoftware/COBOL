@@ -75,7 +75,7 @@ public sealed class RoundedDifferentialTests
     // Rounding at a fractional receiver scale (not just integer): 10 / 3 = 3.333… into PIC 9V9 (scale 1).
     [Fact]
     public void ComputeRounded_FractionalReceiverScale()
-        => AssertOutput(ComputeInto("PIC 9V9", "NEAREST-AWAY-FROM-ZERO", "20 / 3"), "67");   // 6.666… → 6.7
+        => AssertOutput(ComputeInto("PIC 9V9", "NEAREST-AWAY-FROM-ZERO", "20 / 3"), "6.7");   // 6.666… → 6.7
 
     // ── No ROUNDED phrase → TRUNCATION (§14.7.4.3 r2) — the regression guard that the default is unchanged. ────
     [Fact]
@@ -91,12 +91,12 @@ public sealed class RoundedDifferentialTests
     [Fact]
     public void AddToRounded_InPlace()
         // 1.5 + 0.25 = 1.75 into PIC 9V9 (scale 1), NEAREST-AWAY → 1.8.
-        => AssertOutput(Program("01 R PIC 9V9 VALUE 1.5.", "    ADD 0.25 TO R ROUNDED.\n    DISPLAY R."), "18");
+        => AssertOutput(Program("01 R PIC 9V9 VALUE 1.5.", "    ADD 0.25 TO R ROUNDED.\n    DISPLAY R."), "1.8");
 
     [Fact]
     public void MultiplyByRounded_InPlace_NearestEven()
         // 2.5 × 1.5 = 3.75 into PIC 9V9 (scale 1), NEAREST-EVEN → 3.8 (8 is the even digit).
-        => AssertOutput(Program("01 R PIC 9V9 VALUE 2.5.", "    MULTIPLY 1.5 BY R ROUNDED MODE IS NEAREST-EVEN.\n    DISPLAY R."), "38");
+        => AssertOutput(Program("01 R PIC 9V9 VALUE 2.5.", "    MULTIPLY 1.5 BY R ROUNDED MODE IS NEAREST-EVEN.\n    DISPLAY R."), "3.8");
 
     // ── Bare ROUNDED (no MODE) = NEAREST-AWAY-FROM-ZERO, the COBOL-85 default — cross-checked against the legacy. ─
     [Fact]

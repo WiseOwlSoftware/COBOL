@@ -38,14 +38,14 @@ public sealed class StandardDecimalTests
 
     [Fact]
     public void ExactQuotient_Eighth()
-        => Assert.Equal("012500", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
+        => Assert.Equal("0.12500", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
             "01 W PIC 9V9(5).", "COMPUTE W = 1 / 8.\n    DISPLAY W."));
 
     /// <summary>The decimal128 signature case: 2/7 rounds to 34 digits (…2857), ×7 = 1.999…9|9 rounds per-op
     /// NEAREST-AWAY-FROM-ZERO to exactly 2 — where the native Int128 engine's truncated quotient yields 1.99999.</summary>
     [Fact]
     public void PerOpRounding_TwoSeventhsTimesSeven_IsExactlyTwo()
-        => Assert.Equal("200000", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
+        => Assert.Equal("2.00000", Run("    ARITHMETIC IS STANDARD-DECIMAL.",
             "01 W PIC 9V9(5).", "COMPUTE W = 2 / 7 * 7.\n    DISPLAY W."));
 
     /// <summary>1/3 × 3 = 0.9999…(34 nines) in decimal128 — NOT 1 (§8.8.1.5; verified vs the reference).</summary>
@@ -64,7 +64,7 @@ public sealed class StandardDecimalTests
 
     [Fact]
     public void IntermediateTruncation_OneThird()
-        => Assert.Equal("033333", Run(
+        => Assert.Equal("0.33333", Run(
             "    ARITHMETIC IS STANDARD-DECIMAL\n    INTERMEDIATE ROUNDING IS TRUNCATION.",
             "01 W PIC 9V9(5).", "COMPUTE W = 1 / 3.\n    DISPLAY W."));
 

@@ -299,6 +299,22 @@ internal static class OperandText
             ? PlaceRenderer.SendingGroupImage(tp, context, transfer: true)
             : AsString(op, num);
 
+    /// <summary>⛔ DISPLAY'S GR1 DEVICE CONVERSION of one operand (ISO §14.9.11.4 GR1 — "Any conversion of data required
+    /// between literal-1 or the data item referenced by identifier-1 and the device is defined by the implementor";
+    /// Annex A.1 item 56, docs/CONFORMANCE.md DOC-A.1-56; kb/Work PB3505, owner decision PB3467). A fixed-point numeric
+    /// ELEMENTARY item under <see cref="NumericDisplayForm.Decimal"/> shows its value with the decimal point at the scale
+    /// and a signed item's leading sign (<c>CobolNum.DisplayDecimal</c>), the form of the program's decimal separator;
+    /// under <see cref="NumericDisplayForm.Digits"/> it is the digit image, and every other operand — an alphanumeric or
+    /// edited item, a group (its storage image), a float, a literal, a figurative, a function result (DOC-A.1-92's own
+    /// form) — is <see cref="AsTransferString"/>'s, whatever the option says.
+    /// <para>⛔ DISPLAY ONLY. <see cref="AsString"/> serves MOVE and the other character uses of a numeric item, whose
+    /// results §14.9.25.4 GR6 fixes, and keeps the digit image there; this method is the one place the option is read.</para></summary>
+    public static string AsDeviceString(BoundOperand op, NumericRenderer num, NumericDisplayForm form, string context) =>
+        form is NumericDisplayForm.Decimal
+        && op is BoundFieldOperand { Place: { Item.IsGroup: false, Item.Pic: { Category: PicCategory.Numeric, IsFloat: false } } and not RefModPlace } field
+            ? FieldAsString(field.Place, deSign: false, SendingRef.Normal, deviceComma: num.UnitDecimalPointIsComma)
+            : AsTransferString(op, num, context);
+
     /// <param name="context">Names the operation in the Tier-C loud message — the same parameter
     /// <c>PlaceRenderer.GroupImage</c> carries, so a caller can route through THE ONE storage channel and keep
     /// its own site-specific reason (kb/Work PB178's law, PB327's second caller).</param>
@@ -420,7 +436,7 @@ internal static class OperandText
     /// <c>Int128.MaxValue</c>'s bit pattern), then the signed Int128 lane every other form rides. An 8-byte
     /// UNSIGNED window needs no twin: <c>ParseImage</c> already returns its full [0, 2^64) range as an
     /// Int128.</para></summary>
-    private static string? NonTextBytes(Place p, bool deSign, SendingRef sending)
+    private static string? NonTextBytes(Place p, bool deSign, SendingRef sending, bool? deviceComma = null)
     {
         if (p.Item.Pic is not { Category: PicCategory.Numeric } pic
             || pic.ByteForm is NumericByteForm.Zoned or NumericByteForm.None) return null;
@@ -442,15 +458,37 @@ internal static class OperandText
             string uv = RuntimeApi.NumParseImageU128(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
             return deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplayU({uv}, {pic.Digits})", pic)
-                : RuntimeApi.NumFormatDisplay(uv, p.Item.ProfileName, u: true);
+                : NumericText(uv, p.Item.ProfileName, deviceComma, u: true);
         }
         string value = RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked());
         // GR6a: an alphanumeric move/compare drops the operational sign — the magnitude digits, never the
         // BinaryMinus form (which is VARIABLE width and would shift a fixed receiver).
         return deSign
             ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(value, pic.Digits), pic)
-            : RuntimeApi.NumFormatDisplay(value, p.Item.ProfileName);
+            : NumericText(value, p.Item.ProfileName, deviceComma);
     }
+
+    /// <summary>⛔ THE ONE PLACE A FIXED-POINT NUMERIC ITEM'S VALUE BECOMES CHARACTERS FOR A READER, in the form its
+    /// consumer asks for (kb/Work PB3505): the digit image <c>CobolNum.FormatDisplay</c> writes — MOVE's, a comparison's,
+    /// every character use whose result §14.9.25.4 GR6 fixes — or, when <paramref name="deviceComma"/> is set, DISPLAY's
+    /// GR1 device conversion under <c>--numeric-display decimal</c> (<c>CobolNum.DisplayDecimal</c>: the decimal point
+    /// at the scale and a signed item's leading sign; the flag is the unit's decimal-separator mode). The flag is
+    /// DISPLAY's and nothing else's: <see cref="AsDeviceString"/> is the only caller that sets it.</summary>
+    /// <param name="value">A native carrier read, or (device form only) the item's character image — the runtime has
+    /// an overload per carrier.</param>
+    private static string NumericText(string value, string profile, bool? deviceComma, bool u = false) =>
+        deviceComma is { } comma
+            ? RuntimeApi.NumDisplayDecimal(value, profile, comma, u)
+            : RuntimeApi.NumFormatDisplay(value, profile, u);
+
+    /// <summary>The device form's wrapper for an item whose stored image IS its text (a REDEFINES view, a
+    /// reference-modification window, an item stored as its character image): the image passes through to the
+    /// runtime, which reads only the sign position and carries the digit positions as stored. The digit-image arm
+    /// returns the image itself.</summary>
+    private static string ImageText(string image, Place p, bool? deviceComma) =>
+        deviceComma is { } comma && p.Item.Pic is { Category: PicCategory.Numeric, IsFloat: false }
+            ? RuntimeApi.NumDisplayDecimal(image, p.Item.ProfileName, comma)
+            : image;
 
     /// <summary>
     /// ⛔ THE VERBATIM CHARACTER READ of a place whose STORED IMAGE IS ITS VALUE — checked per ISO §14.6.13.2
@@ -480,7 +518,7 @@ internal static class OperandText
             _ => PlaceRenderer.Read(p),
         };
 
-    private static string FieldAsString(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal)
+    private static string FieldAsString(Place p, bool deSign = false, SendingRef sending = SendingRef.Normal, bool? deviceComma = null)
     {
         // A reference-modified result is an elementary ALPHANUMERIC item regardless of the underlying item's
         // category (ISO §8.4.3.3.4 GR6) — its Read() is already the character slice (a numeric inner goes through
@@ -501,11 +539,11 @@ internal static class OperandText
         // twin meets: `01 P USAGE POINTER BASED.` and `01 P USAGE POINTER.` must produce the same text for the
         // same statement, whatever that text is. `RedefViewPlace.ReadsCharacterImage` states the premise once.
         if (p is RedefViewPlace { ReadsCharacterImage: true })
-            return NonTextBytes(p, deSign, sending) is { } rvBytes ? rvBytes
+            return NonTextBytes(p, deSign, sending, deviceComma) is { } rvBytes ? rvBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } rvp
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), rvp.Digits), rvp)
                 // The zoned window goes through VERBATIM, checked on the way — see SendingVerbatim.
-                : SendingVerbatim(p, sending);
+                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
         // A group operand's character image is the generated AsImage(): each string-stored leaf contributes its
         // characters; a DISPLAY leaf its zoned digits; and a BINARY/PACKED leaf ⛔ ITS TRUE BYTES — radix-2
         // two's complement of StorageWidth, or BCD with a trailing sign nibble (V59). Implementor-defined
@@ -556,11 +594,11 @@ internal static class OperandText
         // A numeric-DISPLAY leaf stored as its character image is already a string holding the (sign-aware) image; when
         // it is the de-signed source of an alphanumeric move/compare, decode and re-emit the magnitude digits (GR6a).
         if (p.Item.StoreAsImage)
-            return NonTextBytes(p, deSign, sending) is { } siBytes ? siBytes
+            return NonTextBytes(p, deSign, sending, deviceComma) is { } siBytes ? siBytes
                 : deSign && p.Item.Pic is { Category: PicCategory.Numeric, Signed: true } sip
                 ? PExpand(RuntimeApi.NumFormatUnsignedDisplay(RuntimeApi.NumParseImage(PlaceRenderer.Read(p), p.Item.ProfileName, sending.FixedPointChecked()), sip.Digits), sip)
                 // The StoreAsImage twin of the RedefViewPlace arm above — same rule, same one reader.
-                : SendingVerbatim(p, sending);
+                : ImageText(SendingVerbatim(p, sending), p, deviceComma);
         return p.Item.Pic switch
         {
             // ISO §14.9.25.4 GR6a: a signed numeric moved to / compared as an alphanumeric item drops its operational
@@ -570,10 +608,10 @@ internal static class OperandText
             // overload (an int constant converts implicitly to both Int128 and UInt128; see CobolNum.FormatDisplayU).
             { IsUnsignedWideBinary: true } pic => deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplayU({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
-                : RuntimeApi.NumFormatDisplay(PlaceRenderer.Read(p), p.Item.ProfileName, u: true),
+                : NumericText(PlaceRenderer.Read(p), p.Item.ProfileName, deviceComma, u: true),
             { Category: PicCategory.Numeric, IsFloat: false } pic => deSign
                 ? PExpand($"CobolNum.FormatUnsignedDisplay({PlaceRenderer.Read(p)}, {pic.Digits})", pic)
-                : $"CobolNum.FormatDisplay({PlaceRenderer.Read(p)}, {p.Item.ProfileName})",
+                : NumericText(PlaceRenderer.Read(p), p.Item.ProfileName, deviceComma),
             // A float item (COMP-1/2/FLOAT-*, D16): DISPLAY renders the algebraic value via CobolFloat.Display
             // (invariant-culture shortest round-trip, §14.9.11 GR1 implementor-defined) — never a bare .ToString().
             // The sending read is wrapped in CobolFloat.Sending (raises EC-DATA-NOT-FINITE for NaN/±Inf under checking,
@@ -612,7 +650,7 @@ internal static class OperandText
     }
 
     /// <summary>The sending character image of a numeric item whose PICTURE has <c>P</c> scaling positions: the Ps
-    /// are counted in the sending size and are ZEROS (ISO §13.18.40.3 symbol-P operations item b; §14.9.25.4 GR6a)
+    /// are counted in the sending size and are ZEROS (ISO §13.18.40.4 GR14 symbol P, operations b); §14.9.25.4 GR6a)
     /// — appended for trailing P (a negative scale), prepended for leading P (scale &gt; digit count). The zero
     /// runs are compile-time constants, so they concatenate as literals.</summary>
     private static string PExpand(string digitsExpr, PicInfo pic)

@@ -73,8 +73,8 @@ IMPLEMENTOR_DEFINED_PATH = SUITE / "implementor-defined.json"
 DIAGNOSTICS_PATH = SUITE / "wiseowl" / "diagnostics.json"
 OPTIONS_PATH = SUITE / "wiseowl" / "options.json"
 #: wiseowl/options.json (§4): the WiseOwl compile options a WiseOwl test may need, and each one's values (the `cobol`
-#: command's --sign-encoding and --flag-extensions). Only a test of the wiseowl tree may name one.
-WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "flag-extensions": ("on", "off")}
+#: command's --sign-encoding, --numeric-display and --flag-extensions). Only a test of the wiseowl tree may name one.
+WISEOWL_OPTIONS = {"sign-encoding": ("ibm", "ascii"), "numeric-display": ("decimal", "digits"), "flag-extensions": ("on", "off")}
 OUT = SUITE / "suites"
 #: The corpus slice S2 moved into the suite (kb/Work PB3177). A file there is a test a branch cut before the move
 #: added, which no runner would ever run: refused, so the branch is red in seconds (§13 S2).

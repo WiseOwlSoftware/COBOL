@@ -539,8 +539,8 @@ internal sealed class VersionConformancePass
                 ? Constructs.UsageFunctionPointer2014   // LIVE (kb/Work PB452/PB817) — the 0900 introduction gate below 2014, the ProgramPointer2002 shape
             : cat is PicCategory.ObjectReference || pu is Usage.ObjectReference || ou is Usage.ObjectReference
                 ? Constructs.UsageObjectReference2002
-            : pu is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
-              || ou is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
+            : pu is { } fixedPu && UsageFamilies.IsFixedWidthBinary(fixedPu)
+              || ou is { } fixedOu && UsageFamilies.IsFixedWidthBinary(fixedOu)
                 ? Constructs.UsageBinaryCharFamily2002
             : pu is Usage.FloatShort || ou is Usage.FloatShort ? Constructs.UsageFloatShort2002
             : pu is Usage.FloatLong || ou is Usage.FloatLong ? Constructs.UsageFloatLong2002
@@ -810,7 +810,7 @@ internal sealed class VersionConformancePass
         /// <para>The USAGE clause's float FORMAT phrases (endianness-phrase / encoding-phrase, ISO §13.18.60.2
         /// general format) are a COBOL-2014 addition and gate from the SAME override — a disjoint alternative, the
         /// STOP-statement precedent. Recognition-based for the same reason: the phrase is a MODIFIER, and the
-        /// grammar tolerates it after any usageKeyword (the binder narrows — COBOLNET1716/1706/1707), so the
+        /// grammar tolerates it after any usageKeyword (the binder narrows — COBOLNET1716/1717/1718), so the
         /// resolved Usage enum cannot key it. A below-2014 program that writes it on a standard float usage draws
         /// this gate AND the usage keyword's own (usage-float-binary32-2014 etc.): two distinct 2014 language
         /// elements were written, and Annex A.3 item 18 names the phrase separately from item 17's usages.</para></summary>
