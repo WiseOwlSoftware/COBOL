@@ -102,7 +102,15 @@ internal sealed class RunUnitFileLock : IDisposable
     /// <paramref name="hostPath"/> through this process's host. <paramref name="held"/> is non-null exactly when the
     /// outcome is <see cref="Outcome.Held"/>; a refused or unavailable lock leaves nothing behind.</summary>
     internal static Outcome Take(string hostPath, FileSharing sharing, FileOpenMode mode, out RunUnitFileLock? held) =>
-        Take(HostOfThisProcess, hostPath, sharing, mode, out held);
+        Take(HostObserver.Value?.Invoke(HostOfThisProcess) ?? HostOfThisProcess, hostPath, sharing, mode, out held);
+
+    /// <summary>A test's view of every request the connectors of the calling flow make of the host
+    /// (<see cref="HostOfThisProcess"/>): it wraps the host a <see cref="Take(string, FileSharing, FileOpenMode, out RunUnitFileLock?)"/>
+    /// establishes through, and the lock keeps that wrapper for its <see cref="Amend"/> and <see cref="Revert"/>. It is how
+    /// a test COUNTS the requests an OPEN makes (<see cref="FileConnector.Open"/> makes at most two, kb/Work PB3498). An
+    /// <see cref="AsyncLocal{T}"/>, so only the calling test's own flow observes (the pattern of
+    /// <c>KeyedStore.MediumObserver</c>).</summary>
+    internal static readonly AsyncLocal<Func<IColumnLockHost, IColumnLockHost>?> HostObserver = new();
 
     /// <summary>The same through <paramref name="host"/> (null: a host with no lock, <see cref="Outcome.Unavailable"/>).
     /// Every host is held to the same table by <c>RunUnitFileLockDriftTests</c>, whichever the process is running on.</summary>
