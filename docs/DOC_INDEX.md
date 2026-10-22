@@ -33,6 +33,7 @@
 | `CONSTRAINTS.md` | LIVE | Doctrine: anti-patterns, process rituals (some examples are byte-engine-era — the rules generalize). |
 | `PROMPT.md` | LIVE | Doctrine + the anti-pattern catalog (multi-session continuity; C# 14 / .NET 10 **or later** — a .NET 11 upgrade is pre-authorized when it helps the goals). |
 | `README.md` | LIVE | Repo front page. |
+| `nuget-feed/README.md` | LIVE | **The repo-local NuGet feed (kb/Work PB3504):** the one package it serves, `Antlr4.Runtime.Standard 4.13.2-wiseowl.1` — our build of the ANTLR 4.13.2 C# runtime from the fork WiseOwlSoftware/antlr4 with the SLL predicate-merge-cache defect fixed — its provenance, how to rebuild it, and how to return to an upstream release. |
 | `CONTRIBUTING.md` | LIVE | Contributor guide (GitHub community standard): ways to contribute, the standard-is-authority rule with `cite.py --check`, the CLA, build + `build-local.ps1` gate, what a pull request needs, review and merge through `ci-gate`. |
 | `CLA.md` | LIVE | Individual Contributor License Agreement (modeled on the Apache ICLA; grant extended to BSL, its Change License and commercial licenses). Enforced on pull requests by CLA Assistant (cla-assistant.io), which reads the text from the gist https://gist.github.com/BrentRector/e56c12d819de9f018504a316cfcdbb62 — ⛔ every edit to `CLA.md` updates the gist in the same change (and bumps the version line), or signers agree to stale text. |
 | `CODE_OF_CONDUCT.md` | LIVE | Adopts the Contributor Covenant 2.1; private reporting contact. |
