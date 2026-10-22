@@ -688,7 +688,7 @@ captured token run faithfully.
 No change to mode semantics; only the shared-fragment factoring in 3.3b.
 
 **3.3e ⛔ The lexer carries NO semantic predicate — context the lexer needs goes in an ACTION (kb/Work PB1715).**
-ANTLR 4.13.1 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),
+ANTLR 4.13.2 caches a mode's start state only when no predicate is in its closure (`LexerATNSimulator.MatchATN`),
 and never caches a DFA edge whose target passed through one (`AddDFAEdge` returns before storing the edge), so a
 token that reaches a predicate re-runs ATN simulation — and re-adds its DFA state under `lock (dfa.states)` — on
 EVERY occurrence. Six left-edge predicates in DEFAULT mode did that to every token of every compile, which made
@@ -814,6 +814,17 @@ changes are hygiene:
    `InvalidOperationException` from a buggy semantic predicate or lexer action now propagates as an internal
    compiler error (surfaced by the driver's top-level boundary — see DESIGN-driver.md) instead of being
    silently retried under LL.
+3a. **The ANTLR runtime is our fork's build of 4.13.2 (kb/Work PB3504).** The tool jar is 4.13.2, and so is the C#
+   runtime: `Antlr4.Runtime.Standard 4.13.2-wiseowl.1`, restored from the repo-local feed `nuget-feed/` (package source
+   mapping in `nuget.config` sends that one package there), built from the fork WiseOwlSoftware/antlr4 = upstream
+   `4.13.2` plus one fix. Upstream never published a 4.13.2 C# runtime, and 4.13.1 and 4.13.2 both carry the defect
+   the fix removes: `PredictionMode.HasSLLConflictTerminatingPrediction` copied the predicated configurations WITHOUT
+   a merge cache, so an SLL decision whose lookahead runs through nested calls re-merged its prediction contexts once
+   per path and never finished (an EVALUATE operand with four nested FUNCTION calls; the Java reference runtime ran out
+   of memory on the same ATN and tokens). This grammar meets the defect because its operand rules carry semantic
+   predicates (`{boolExprAhead()}?`, `{boolArgAhead()}?`) and the first parse pass is SLL; the grammar was NOT
+   reshaped to avoid it. `nuget-feed/README.md` records the provenance, the rebuild and the way back to an upstream
+   release; `EvaluateNestedOperandPredictionTests` holds every later runtime pin to the fix by its allocation curve.
 4. Keep the two-stage SLL→LL strategy verbatim (proven; the design does not touch the prediction pipeline).
    `ZeroTokenRewriter`'s ALGORITHM is likewise untouched — but see §7 for the one thing that changed underneath
    it: what counts as an arithmetic parenthesis (fix-queue PB48).
