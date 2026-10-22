@@ -1,4 +1,4 @@
-## PB3493, PB3494: what a CLOSE under commit control keeps belongs to the physical file, and an OPEN OUTPUT ends it only when the new file exists
+## Entry 2369 — 2026-10-22 15:52 PDT — PB3493, PB3494: what a CLOSE under commit control keeps belongs to the physical file, and an OPEN OUTPUT ends it only when the new file exists
 
 A connector under commit control keeps its handle, its record locks, its file lock and the run unit's transaction when it is
 CLOSEd (§14.9.6.4 GR9, §14.9.7.4 GR4). Two reviews of PB3483 found two ways that kept state was lost or misused. Both
@@ -82,3 +82,4 @@ for the absent OPTIONAL I-O arm over a kept state when the new handle is refused
 file's store cannot be made (it has ended), and for a refused COMMIT of an associated-away state, which also pins the order.
 Each new connector and crash-matrix test failed with its fix reverted. R1-4 (a file removed and recreated at the same path
 outside the run unit is matched by path) is a lead: the run unit's tables all key a physical file by its path.
+
