@@ -1,4 +1,4 @@
-## The second overnight fuzz run, triaged: three new defects filed (PB3510 crash, PB3511 and PB3512 wrong answers)
+## Entry 2347 — 2026-10-22 10:26 PDT — The second overnight fuzz run, triaged: three new defects filed (PB3510 crash, PB3511 and PB3512 wrong answers)
 
 **What.** The second differential fuzz night (`conformance-suite/results/fuzz-20261021-211424`: qwen3.6:35b, seed
 20261022, 8 hours, 4,931 programs, judge built from main at 20:38 on 2026-10-21, before PB3489, PB3504 and PB3505 landed)
@@ -44,3 +44,4 @@ noise is gone.
 
 **Process.** Notes filed by a Sonnet clerk from the session's structured findings; verdicts in the session scratchpad
 (`adj/{A,B,C}/verdicts-*.jsonl`); the fresh judge in the detached worktree `E:\COBOL-wt\fuzz-triage-20261022`.
+
