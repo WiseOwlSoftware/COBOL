@@ -2016,12 +2016,29 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   the same CONNECTOR being half-covered) changes records without before-images; the run unit's ROLLBACK restores only what its
   covered connectors changed, which is what D.2.5's *"components of the same run unit where the files are also accessed by
   independent file connectors that are not specified in APPLY COMMIT clauses"* describes.
-- **The compiler half** (PB3338): accept the I-O-CONTROL APPLY COMMIT clause (§12.4.6.3.3 syntax rules 1-11; the period rule
-  `ParagraphPeriods` already prints), register each listed file connector and data item with the run unit, emit COMMIT and
-  ROLLBACK as registry calls, route the fatal-exception and abnormal-termination paths to the file-only rollback, and save at
-  COMMIT / restore at ROLLBACK the listed data items, the file status items and the LINAGE and RECORD clause items (§14.9.7.4
-  GR5, §14.9.36.4 GR3's second sentence), with EC-FLOW-COMMIT / EC-FLOW-ROLLBACK / EC-FLOW-APPLY-COMMIT where §9.1.18.7 raises
-  them (the catalog already lists them). Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
+- **The compiler half** (PB3338), as built. The binder accepts the clause for a RELATIVE or INDEXED file
+  (`DataBinder.BindApplyCommitClause`, then `ResolveApplyCommit` once the data division is bound: §12.4.6.3.3 SR1-SR10,
+  one diagnostic, COBOLNET4709; SR6 for a factory or instance definition is `OoEnvironmentRules`'), and the claimed
+  clauses' antecedent family (LOCK MODE, SAME, OPEN sharing, READ/REWRITE lock phrases, UNLOCK) refuses its forbidden
+  shapes in its own right (COBOLNET2974). The run unit's half of the statements is `TransactionControl`: each element
+  instance's activated clause is a PARTICIPANT whose emitted `__CommitSave` / `__CommitRestore` copy its data items (the
+  listed identifiers and SR9's file status, LINAGE and RECORD DEPENDING items) to and from an image the instance keeps,
+  saved at activation (a ROLLBACK before the first COMMIT restores the state at activation, §14.9.36.4 GR3) and at every
+  COMMIT that succeeds (§14.9.7.4 GR5); a canceled element or a returned INITIAL program RETIRES its participant (no
+  longer restored; deactivated by the next COMMIT or ROLLBACK, §14.9.7.4 GR3, §14.9.36.4 GR4-GR6). COMMIT and ROLLBACK
+  are run-unit calls (`CobolFile.Commit` / `Rollback`, named by their full name, since a statement's element need
+  describe no file); a refused file is answered by name with '30' in its status, stored into the FILE STATUS item by
+  the element that describes it, and handed to that file's exception processing, whose last step is §14.6.13.1.3 item
+  8's ROLLBACK (`SequentialIoEmitter.EmitUseHook` for every statement on a keyed file of the clause). A refused COMMIT
+  saves no data item; a refused ROLLBACK still restores them. GR1 is asked before GR2: with no active clause both
+  statements are CONTINUE wherever they run. EC-FLOW-COMMIT and EC-FLOW-ROLLBACK are read at the statement's entry;
+  EC-FLOW-APPLY-COMMIT (§12.4.6.3.4 GR3/GR4, Table 13's *"Invocation of a runtime element with an APPLY COMMIT clause in
+  effect by a runtime element for which commit and rollback is not permitted"*) is the ACTIVATING element's: the CALL
+  declares it, its guard sets the flag, `ProgramTable.CallProgram` latches it before the callee's checking scope opens
+  (`ExceptionEngine.ActivatorFlowApplyCommit`), and the activation raises under the latch. With checking off a
+  forbidden statement is not executed and a forbidden activation leaves the clause inactive. Witnesses:
+  `TransactionControlTests` (the refusing medium at every operation of a COMMIT, two files, item 8, the flow
+  conditions, retirement) and the `pb3338_apply_commit_*` goldens. Sequential files under APPLY COMMIT (§9.1.18.2 admits *"any type of file on a mass
   storage device"*) are kb/Work PB3340: the sequential organization has no ledger, and its commit facility is a separate design
   that must give a sequential transaction the same scope — 2.2.2, the transaction journal.
 
