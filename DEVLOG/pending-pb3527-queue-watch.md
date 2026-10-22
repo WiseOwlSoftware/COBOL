@@ -28,7 +28,9 @@ Each read is recorded on the attempt and as a `stall` in `landing_measure.py` (c
 a bounce, since `bounces` counts failed merge-group runs and `complete` re-reads them, so a stall in `bounce_causes`
 would break the record's own consistency rule on the next completion). The branch survey gains NOT QUEUED (`--brief`
 lists it with how long it has waited, GitHub's facts and the watch), and a required check that failed before the queue
-reads BOUNCED, never ENQUEUED. A sleep loop in enqueue.py was rejected: a landing that waits holds its runner for the
+reads BOUNCED, never ENQUEUED. The survey now tells an unobserved read (None, the git-only lifecycle) from an observed
+"no pull request open" ({}): the self-review found that an exit-0 attempt whose pull request was closed without
+merging read ENQUEUED ("no pull-request read says otherwise") although a read said otherwise; it reads NOT QUEUED now. A sleep loop in enqueue.py was rejected: a landing that waits holds its runner for the
 whole CI time, and a runner that died would leave its pull request unwatched.
 
 **Mechanism 2 — one verdict reader.** The gate driver's verdict for a held gate lock is now `BUSY`, exit 3: it
