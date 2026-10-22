@@ -45,3 +45,12 @@ COBOLNET4733), `pb3517-no-sign-phrase-on-binary-usage` (COBOLNET1565, which had 
 `pb3517_binary_sign_phrase` at 2002 (each binary usage at its GR12 range ends with SIGNED, UNSIGNED and neither).
 FMT-13.18.60.2 is re-verdicted CONFORMS with these witnesses (its verdict had stood while the format was violated);
 GR-13.18.60.4-12 gains the positive witness. Codes: COBOLNET4733 used, COBOLNET4734 returned.
+
+**Self-review.** Silent failure: a refused phrase returns its default only beside a named error, never alone. The
+positive golden discriminates: the same program with the UNSIGNED phrases dropped prints `FAIL` on every unsigned
+line (measured). Two gate reds were mine and fixed: the rule catalog had to be regenerated for the corrected figure
+note (FMT-13.18.60.2's digest), and the drift test scans `src/`, so it carries the `Sweep=tree` trait.
+
+**Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261022T181843Z-7ed66f):
+Conformance 10,648/18,075, Unit 34,255/35,311, Characterization 5/36 in leg 1, the three goldens and all 37
+`UsageClausePhraseDriftTests` cases among them.
