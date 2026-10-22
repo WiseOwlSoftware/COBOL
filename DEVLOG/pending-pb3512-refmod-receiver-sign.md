@@ -35,3 +35,5 @@ item's device form is the implementor's). Every expected value is derived from t
 `RefModMoveClassificationDriftTests` pins three things: no place-shaped kind, `Kind` asking no place-shape question, and
 one spelling of the GR6 a) sending characters. Batch `w1147c-PB3512-refmod-receiver-witnesses` adds the witnesses to
 GR-14.9.25.4-6 and GR-8.4.3.3.4-6, both already CONFORMS (GAP 66 → 66).
+
+**Gate.** The first gate was RED on one Unit pin, `BoundaryImageChannelTests` naming the old slice-store local `rmp`, now `slice`. The re-gate, run `20261022T175710Z-71aaae`, read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`. Self-review found that stale pin, and one sibling: the group into a national slice, fixed above.
