@@ -74,7 +74,8 @@ who acts next:
                    GitHub was observed; unobserved, the lane's record reads ENQUEUED.
   BOUNCED          its pull request is open but the queue REMOVED it (a red merge group, a conflict, a timeout: the
                    reason is GitHub's), or a REQUIRED check FAILED on its head before the queue took it (kb/Work PB3096,
-                   PB3527: it can never enter the queue at that head), and its head is still the branch's tip: the
+                   PB3527: it can never enter the queue at that head), or it CONFLICTS with main (merge state DIRTY:
+                   no re-run or reopen clears it), and its head is still the branch's tip: the
                    enqueue unit dispatches ONE finisher
                    with the reason named. A finisher that fixes the branch returns DONE and lands nothing: its new tip
                    is reviewed again, then the landing lane lands it. A bounce resolved with no commit (infrastructure,
@@ -542,6 +543,10 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
             return 'BOUNCED', (f'pull request #{pr.number}\'s required check {red.name} FAILED on its head before the '
                                f'merge queue took it ({red.conclusion.lower()}, workflow run {red.run}; {pr.url}), so it '
                                f'cannot enter the queue at this head (kb/Work PB3096, PB3527): {finisher}')
+        if at_head and pr.conflicts:
+            return 'BOUNCED', (f'pull request #{pr.number} conflicts with main (merge state DIRTY; {pr.url}): GitHub '
+                               f'cannot queue it until the branch brings main in, which no re-run or reopen does '
+                               f'(kb/Work PB3527 review R1-5; MANDATORY-PRACTICES L12): {finisher}')
         if pr.bounced and at_head:
             return 'BOUNCED', (f'pull request #{pr.number} was removed from the merge queue ({pr.bounced}; {pr.url}): '
                                f'{finisher}')
@@ -1255,8 +1260,8 @@ def self_test() -> int:
             rec = land_lane.launch(landed_coord, repo, {'name': branch, 'tip': head, 'worktree': str(repo)}, 'self-test',
                                    lambda argv, log: 4242)
             if rc is not None:
-                rec.update(rc=rc, verdict=verdict, ended='2026-10-15T19:00:00+00:00', end_head=end_head or head)
-                land_lane.save(rec)
+                land_lane.update(rec, {'rc': rc, 'verdict': verdict, 'ended': '2026-10-15T19:00:00+00:00',
+                                       'end_head': end_head or head})
         attempt('lane-stopped', lane_at['lane-stopped'], 5, 'GATE RED (Linux) on x',
                 g('rev-parse', 'lane-stopped').stdout.strip())
         attempt('lane-free', lane_at['lane-free'], 3, 'NOT QUEUED (exit 3, above)')
@@ -1627,6 +1632,12 @@ def self_test() -> int:
               f'the merge queue states: a PR in the queue is ENQUEUED, one handed to it but not in it NOT QUEUED, a '
               f'removed one or one whose required check failed, at the tip, BOUNCED with its reason, a moved tip reads by '
               f'its report, a predecessor of a bounced branch lands through it: {got}')
+        dirty = {**prs, 'lane-done': dataclasses.replace(prs['lane-done'], merge_state='DIRTY')}
+        conflicted = lifecycle(pr_rows['lane-done'], in_flight_slugs=set(), min_age=180, live=live, prs=dirty,
+                               lane=land_lane.view(landed_coord), now=then)
+        check(conflicted[0] == 'BOUNCED' and 'conflicts with main (merge state DIRTY' in conflicted[1],
+              f'a pull request that conflicts with main (merge state DIRTY) at the tip is BOUNCED, the finisher\'s: no '
+              f're-run or reopen clears a conflict (kb/Work PB3527 review R1-5): {conflicted}')
         nq = lifecycle(pr_rows['unreviewed'], in_flight_slugs=set(), min_age=180, live=live, prs=prs, now=then)
         check(nq[0] == 'NOT QUEUED' and 'handed to the merge queue 51 min ago (2026-10-22T18:44:50Z)' in nq[1]
               and 'ci-gate in_progress, its job completed 2026-10-22T18:46:46Z' in nq[1] and 'merge state BLOCKED' in nq[1],

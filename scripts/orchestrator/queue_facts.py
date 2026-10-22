@@ -102,6 +102,13 @@ class PullRequest:
         return '' if self.in_queue or self.auto_merge_at else self.removed
 
     @property
+    def conflicts(self) -> bool:
+        """GitHub cannot create its merge commit (mergeStateStatus DIRTY): the branch conflicts with main, so neither
+        auto-merge nor a re-run nor a reopen can queue it; only the branch can, by bringing main in (MANDATORY-PRACTICES
+        L12: a finisher). Read before the queue takes it (kb/Work PB3527 review R1-5)."""
+        return not self.in_queue and self.merge_state == 'DIRTY'
+
+    @property
     def red(self) -> CheckRun | None:
         """A required check that FAILED on the head before the queue took it: the pull request cannot enter the queue
         until the branch changes (kb/Work PB3096's pre-queue red, PB3527)."""
@@ -261,6 +268,12 @@ def self_test() -> int:
            prs['removed'].bounced.startswith('FAILED_CHECKS') and prs['red'].red is not None
            and prs['red'].red.job == 61 and prs['stuck'].red is None and not prs['queued'].bounced,
            f'{prs["removed"]} {prs["red"]}')
+    dirty = read(fake([node(9, 'dirty', 'i1', auto='t', state='DIRTY', runs=[gate(91, 'COMPLETED', 'SUCCESS', 'v')]),
+                       node(10, 'dirtyq', 'j1', in_queue=True, state='DIRTY')]), required=req) or {}
+    expect("a pull request whose merge commit GitHub cannot create (mergeStateStatus DIRTY) CONFLICTS with main, its "
+           "checks green or not; one the queue already holds does not (kb/Work PB3527 review R1-5)",
+           dirty['dirty'].conflicts and dirty['dirty'].red is None and not dirty['dirtyq'].conflicts
+           and not prs['auto'].conflicts, str(dirty))
     lost = read(fake([node(8, 'lost', 'h1', auto='t', runs=[gate(81, 'IN_PROGRESS')])], jobs={}), required=req) or {}
     expect("a job the jobs API cannot read leaves the check-run unknown, never stuck",
            not lost['lost'].checks[0].stuck and lost['lost'].checks[0].job_status == '', str(lost))
@@ -291,7 +304,8 @@ def main(argv: list[str] | None = None) -> int:
         print('queue_facts: GitHub could not be asked (offline, no gh, or not authenticated): NOT OBSERVED')
         return 2
     for branch, pr in sorted(prs.items(), key=lambda kv: kv[1].number):
-        where = 'IN THE QUEUE' if pr.in_queue else 'RED' if pr.red else 'BOUNCED' if pr.bounced else 'NOT QUEUED'
+        where = ('IN THE QUEUE' if pr.in_queue else 'RED' if pr.red else 'CONFLICTS' if pr.conflicts
+                 else 'BOUNCED' if pr.bounced else 'NOT QUEUED')
         print(f'#{pr.number} {branch} @{pr.head[:12]}: {where} — {describe(pr)}')
     return 0
 

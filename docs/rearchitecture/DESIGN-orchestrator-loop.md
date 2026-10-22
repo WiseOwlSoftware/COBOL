@@ -511,7 +511,7 @@ said in the supervisor's log, a failure said and the unit continuing. A tick:
 | `ENQUEUED` or `NOTHING TO LAND` (exit 0) at this head | nothing to land: the QUEUE WATCH (step 4) follows its pull request into the merge queue |
 | exit 3, the landing check's STOP (the branch shares a file with earlier-dispatched, INDEPENDENT in-flight work, kb/Work PB2701; a branch that descends from it, which merged any head of it, and a worktree with no commit beyond main never stop it, kb/Work PB3381) | retries at this head once `landing_check.py` passes on the branch's own range |
 | exit 12, GATE BUSY (another gate held the worktree's gate lock: the gate driver's verdict `BUSY`, exit 3; nothing ran and nothing is red, kb/Work PB3527) | retries at this head once the worktree's gate lock is free (`wait_free`); never the enqueue unit's |
-| exit 2 (main moved under every catch-up merge), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
+| exit 2 (main moved under every catch-up merge; or GATE NOT RUN: the gate measured nothing, for a cause outside the branch — malformed shared gate settings, a driver failure, an unlistable population, a host with no WSL, Python or SDK, no verdict line — and so writes no BLOCKED line, kb/Work PB3526), exit 9 (GitHub refused), or a DIED runner | retries ONCE at this head |
 | exit 8, QUEUE NOT ACTIVE | HALT; relaunches once the operator runs `land_lane.py clear-halt` |
 | exit 4, 5, 6, 7, 11, or a second exit 2 or 9 at this head | STOPPED: never relaunched at this head unless re-armed; the enqueue unit's |
 
@@ -534,14 +534,18 @@ by the lane's own attempt record, never by the survey.
 | The pull request | The watch |
 |---|---|
 | in the merge queue, or the branch's work on main | ends (`queued`, `merged`) |
-| a required check FAILED on its head, or the queue removed it | ends (`left`): the survey reads it BOUNCED, the enqueue unit's finisher |
+| a required check FAILED on its head, the queue removed it, or it CONFLICTS with main (`mergeStateStatus` DIRTY: no re-run or reopen clears a conflict, kb/Work PB3527 review R1-5) | ends (`left`): the survey reads it BOUNCED, the enqueue unit's finisher |
 | its head moved past the attempt's | ends (`left`): a new push is a new landing, watched afresh |
 | a required check still running (its job too) | watching: nothing is late |
 | not in the queue `QUEUE_GRACE_MIN` (10) minutes after its required checks' work ended (a stuck check-run's JOB time; the enqueue time when no check-run exists) or after the last remedy | a STALLED read, cause `stuck-check-run` or `not-queued`: read 1 re-runs the stuck check's workflow run (`enqueue.rerun_check`, `gh run rerun`; a pull request with no check-run goes straight to read 2's remedy), read 2 closes, reopens and re-queues it with auto-merge (`enqueue.requeue`, behind `queue`'s ACTIVE guard: enqueue.py stays the only file that queues), read 3 sends the operator a mailbox `question` and the watch acts no more (`alerted`) |
 | no pull request open and the branch's work not on main | a stalled read, cause `closed`: it alerts at once |
 
    Each read is recorded on the attempt (`watch`) and in `landing_measure.py`'s record of the pull request
-   (`stalls`: read, cause, act, ok, time; a stall is not a bounce, which counts failed merge-group runs). Under a stop
+   (`stalls`: read, cause, act, ok, time; a stall is not a bounce, which counts failed merge-group runs). A remedy
+   GitHub does not answer (gh's timeout) is a FAILED read, never an exception: the remedies answer (ok, why), so the
+   tick still launches its landings and the next stalled read escalates (kb/Work PB3527 review R1-4). The watch writes
+   only its own field of the attempt record, through the record's one writer `land_lane.update` (re-read under the
+   record's lock), so a `collect` the enqueue unit made while the tick surveyed is kept (review R1-3). Under a stop
    the watch reads but acts on nothing. `land_lane.py status` prints each exit-0 attempt's watch, and
    `prune_worktrees.py --brief` lists such a branch NOT QUEUED with how long it has waited, what GitHub says and the
    watch's state, until the queue holds it. A sleep loop inside `enqueue.py` was rejected: the landing ends at
@@ -1011,7 +1015,9 @@ against the retired train records, kb/Work PB3028; `LandingMeasureDriftTests` al
 --self-test` (section 4.7's file-set guarantee), `land_lane.py --self-test` (section 4.9: planted survey rows start
 in survey order and only once; a planted exit 3 is retried at its head only once the overlap is gone, and an exit 12
 (GATE BUSY) only once the worktree's gate lock is free; the queue watch on stubbed GitHub facts: queued, merged,
-stuck then cleared by the re-run, stuck then cleared by the reopen, the alert, nothing acted on under a stop; an exit 5 is
+stuck then cleared by the re-run, stuck then cleared by the reopen, the alert, nothing acted on under a stop, a
+conflict ends it BOUNCED, a remedy GitHub does not answer is a failed read and the tick still launches; one writer per
+field of an attempt record (a concurrent `collect` is kept, a runner's late rc is never overwritten DIED); an exit 5 is
 never relaunched at its head and a new head is eligible again; an exit 2 or 9 is retried once; a DIED runner is reaped
 and retried once; an exit 8 stops every attempt and names the operator until `clear-halt`; STOP, the hard cap's fleet stop and the
 global stop start nothing, and STOP-UNIT alone (the soft cap) does not stop it; the agent work `next_unit.py` reads; a real detached runner records its outcome; on
