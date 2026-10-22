@@ -35,3 +35,6 @@ same stack overflow.
 
 **Rows.** The note claimed no inventory row. The SR17, SR2 and SR20 rows were already OK, and the new goldens become
 their witnesses. No diagnostic code was allocated (COBOLNET4730 returned).
+
+**Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261022T174638Z-9d0d64; Conformance 10,742, Unit 34,440
+and Characterization 5 cases ran, every new refusal and positive and all ten drift-test cases among them).
