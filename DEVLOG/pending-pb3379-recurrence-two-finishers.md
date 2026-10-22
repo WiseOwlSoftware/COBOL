@@ -5,3 +5,7 @@ loop's enqueue unit dispatched a finisher for it. The two fixes stacked without 
 and two agents wrote one worktree. It is the class PB3379 already records: a branch has no owning orchestrator, so two
 lanes work it at once. The note gains this recurrence and one case for its fix: a blocked report is finished only by
 the lane that owns the branch, and a finisher dispatch records a claim that every other dispatcher reads first.
+
+The reviews doubled as well, and when both lanes then ran the landing script on the branch within a minute, the second
+run found the gate lock held and reported it as a red gate, marking the healthy branch blocked. That is filed separately
+as PB3526: a held gate lock is not a red gate.
