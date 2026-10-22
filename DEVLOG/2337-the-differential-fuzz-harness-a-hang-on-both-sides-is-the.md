@@ -1,4 +1,4 @@
-## The differential fuzz harness: a hang on both sides is the model's, and the display-form latitude is folded out of the survivors
+## Entry 2337 — 2026-10-21 20:27 PDT — The differential fuzz harness: a hang on both sides is the model's, and the display-form latitude is folded out of the survivors
 
 Before the second overnight run the harness learned the two lessons of the first night's triage (kb/Work PB3490). A program
 both compilers run forever was reported as a WiseOwl hang because `classify()` tested our hang flag before theirs; it is now
@@ -13,3 +13,4 @@ Replayed over the first night's results the gated fold takes 501 of 1,141 output
 fold-equal rows stay for the triage because their program declares an edited picture); the stored report was re-rendered
 and the one the triage read kept beside it. The verdict names an open owner decision (PB3467) and settles nothing: the rows
 are kept, only sorted.
+
