@@ -1346,9 +1346,16 @@ joined the table the same way, which is the table doing its job: a tenth format 
   closes it without touching the grammar. Its `Sync` override, at an ATN state whose closure reaches a call of
   `unrecognizedClause` (a per-state flag computed once), refuses a reserved word that is outside the full-context
   LL(1) set — so the parse fails at that token whatever follows, and no legal program is affected — instead of
-  letting the base strategy exit a list that may end; its 0g hint, read at every report, simulates the ATN from the
-  parser's state to the offending token (re-taking the tokens a failed adaptive prediction looked past) and, if
-  the production's call is reachable there, names the list rule's format through `ClosedFormats.ByRuleIndex`.
+  letting the base strategy exit a list that may end; its 0g hint, read at every report, re-runs the parser from
+  its state and real invocation stack to the offending token (re-taking the tokens a failed adaptive prediction
+  looked past) on ANTLR's OWN full-context simulator (`ResidueWalk`, a `ParserATNSimulator` subclass: the runtime's
+  `Closure`, its graph-structured `PredictionContext` stacks and its merge, kb/Work PB3489 — a closure of the
+  compiler's own with one call stack per path multiplied with each nested argument list and hung on a syntax error
+  three FUNCTION calls deep) and, if a configuration there holds the production's call on its stack, names the list
+  rule's format through `ClosedFormats.ByRuleIndex`. The failed prediction's `DeadEndConfigs` cannot serve: SLL
+  prediction follows a rule's end to every caller (a wildcard outer context). `ResidueWalkNestingTests` holds it by the
+  compiling thread's allocation per nesting level (never a clock; a configuration count cannot see the stacks, because
+  ANTLR merges configurations per state).
   The INNERMOST open list wins (`SPECIAL-NAMES. GLOBAL.` is the paragraph's, not the configuration section's).
   The code and sentence are the pass's own (`ClosedFormat.Diagnostic`, `ClosedFormat.Refusal`, one wording for
   both sites). Two exclusions keep the arm from claiming a structure error: a word that may begin what FOLLOWS the
@@ -1358,8 +1365,8 @@ joined the table the same way, which is the table doing its job: a tenth format 
   production to a `ByRuleIndex` entry; `ClosedFormatReservedWordTests` pins each format and the three controls.
   Two more positions (kb/Work PB3370). INSIDE the production the residue continues: at a Sync in the word run itself
   (`SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.`, where the paragraph has no list loop of its own to Sync once the run ends)
-  the 0g simulation names the list whose call of the production the parser is still in, met as it pops the parser's
-  context. And AFTER an optional computer-name the prediction itself had to commit: `SOURCE-COMPUTER. XYZ GLOBAL.`
+  the 0g walk names the list whose call of the production the parser is still in, a frame of the parser's own
+  stack. And AFTER an optional computer-name the prediction itself had to commit: `SOURCE-COMPUTER. XYZ GLOBAL.`
   reads XYZ as the computer-name or as an unrecognized configuration paragraph, both fail at GLOBAL, and ANTLR's
   error-time choice (`GetSynValidOrSemInvalidAltThatFinishedDecisionEntryRule`: the lowest alternative that has
   already left the decision's rule) took the configuration section's, the only one past the rule's end while the
