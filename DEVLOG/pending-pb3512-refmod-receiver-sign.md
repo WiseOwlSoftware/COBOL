@@ -37,3 +37,14 @@ one spelling of the GR6 a) sending characters. Batch `w1147c-PB3512-refmod-recei
 GR-14.9.25.4-6 and GR-8.4.3.3.4-6, both already CONFORMS (GAP 66 → 66).
 
 **Gate.** The first gate was RED on one Unit pin, `BoundaryImageChannelTests` naming the old slice-store local `rmp`, now `slice`. The re-gate, run `20261022T175710Z-71aaae`, read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`. Self-review found that stale pin, and one sibling: the group into a national slice, fixed above.
+
+**Branch review, round 1.** The reviewer found the national-slice fix incomplete for a national or bit GROUP. §14.9.25.4
+GR4 says "Bit group items and national group items are treated as elementary items in the MOVE statement", but every
+usage reader in `ReceivingStore` switched on the raw `Pic`, which is null for a GROUP-USAGE NATIONAL or BIT group. So
+`MOVE AG TO NG(1:2)` stored N"AB" where GR4 gives NX"41424344", a bit group's slice was not unpacked, and the whole
+national group (`MOVE AG TO NW`, wrong on main as well) took the group's bytes as its characters. All five readers now
+ask `DataItem.OperandPic`, the as-if picture of §13.18.29.4 GR1 b) and GR2 b). The reviewer also noted that no test
+pinned the group-into-slice decode. The golden `pb3512_group_sender_national_bit_slice` (2002 through 2023) now covers
+an elementary national slice, a national group's slice, a whole national group, an elementary bit slice and a bit
+group's slice. `ReceivingStoreDriftTests` fails if a usage decision in the store reads raw `Pic` again. Batch
+`w1147c-PB3512-review-r1-group-into-national` adds both as witnesses to GR-14.9.25.4-4, which stays CONFORMS.

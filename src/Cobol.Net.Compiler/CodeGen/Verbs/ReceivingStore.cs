@@ -90,7 +90,7 @@ internal static class ReceivingStore
     public static string SliceStorageArea(RefModPlace slice, string area)
     {
         var item = slice.Item;
-        if (item.Pic is not { Usage: Usage.National or Usage.Bit }) return PlaceRenderer.Write(slice, area);
+        if (item.OperandPic is not { Usage: Usage.National or Usage.Bit }) return PlaceRenderer.Write(slice, area);
         string positions = $"global::System.Math.Max(0, {PlaceRenderer.SliceLength(slice)})";
         return PlaceRenderer.Write(slice,
             StorageCharacters(item, RuntimeApi.StrStoreAligned(area, StorageBytes(item, positions), false), positions));
@@ -99,8 +99,14 @@ internal static class ReceivingStore
     /// <summary>The BYTES <paramref name="positions"/> positions of <paramref name="item"/>'s usage occupy — a C# int
     /// expression: two per national position (D-N1), one per eight bit positions (§8.5.1.6.3), one per character
     /// position otherwise. The receiving width a GR4 group move fits its area to, wherever the position count is a
-    /// run-time value (an ANY LENGTH receiver, a reference-modified one).</summary>
-    public static string StorageBytes(DataItem item, string positions) => item.Pic switch
+    /// run-time value (an ANY LENGTH receiver, a reference-modified one).
+    /// <para>⛔ Every storage reader in this class asks the item's OPERAND picture (<see cref="DataItem.OperandPic"/>),
+    /// never its raw <c>Pic</c> (the kb/Work PB173 pattern): ISO §14.9.25.4 GR4, "Bit group items and national group
+    /// items are treated as elementary items in the MOVE statement", and a GROUP-USAGE NATIONAL / BIT group's usage
+    /// lives only on its as-if picture (§13.18.29.4 GR1b/GR2b, D20/PB79). Raw <c>Pic</c> is null for one, so a group
+    /// moved into a national group (whole or reference-modified) took the sending bytes as its characters
+    /// (kb/Work PB3512 review R1-1).</para></summary>
+    public static string StorageBytes(DataItem item, string positions) => item.OperandPic switch
     {
         { Usage: Usage.National } => $"({positions} * {RuntimeApi.BytesPerNational})",
         { Usage: Usage.Bit } => $"(({positions} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})",
@@ -108,7 +114,8 @@ internal static class ReceivingStore
     };
 
     /// <summary>The receiver's position count in its OWN units for <see cref="StorageArea"/> — national character
-    /// positions (<see cref="NationalWindow.PositionsOf"/>), boolean BIT positions (the PICTURE length), else its
+    /// positions (<see cref="NationalWindow.WindowPositionsOf"/>, a national group's as-if N(m) included), boolean BIT
+    /// positions (the operand PICTURE length, a bit group's as-if 1(m) included), else its
     /// character positions; an ANY LENGTH receiver's comes from its carrier at run time (§13.18.2.4 GR1 b).</summary>
     public static string StoragePositions(Place target) =>
         target.Item.IsAnyLength ? AnyLengthWidth(target) : $"{StoragePositions(target.Item)}";
@@ -116,7 +123,7 @@ internal static class ReceivingStore
     /// <summary>The position count of a FIXED-length item in its own units — <see cref="StoragePositions(Place)"/> for an
     /// item that is not ANY LENGTH, whose count its description alone fixes.</summary>
     public static int StoragePositions(DataItem item) =>
-        item.Pic is { Usage: Usage.Bit } bitPic ? bitPic.Length : NationalWindow.PositionsOf(item) ?? item.ImageWidth;
+        item.OperandPic is { Usage: Usage.Bit } bitPic ? bitPic.Length : NationalWindow.WindowPositionsOf(item) ?? item.ImageWidth;
 
     /// <summary>The CHARACTERS of an elementary item whose storage holds the bytes <paramref name="area"/> — the decode
     /// half of <see cref="StorageArea"/> for every carrier that is not a native numeric cell: a NATIONAL item's UTF-16BE
@@ -124,7 +131,7 @@ internal static class ReceivingStore
     /// <c>CobolBits.Unpack</c>, every other string-backed item the bytes as they are. Asked by <see cref="StorageArea"/>
     /// and by <c>MoveEmitter.RecordValue</c>, whose receiving record exists only as a value (kb/Work PB2587), so a group
     /// move decodes its receiver one way whether the receiver is a place or a record.</summary>
-    public static string StorageCharacters(DataItem item, string area, string positions) => item.Pic switch
+    public static string StorageCharacters(DataItem item, string area, string positions) => item.OperandPic switch
     {
         { Usage: Usage.National } => RuntimeApi.NatReadWindow(area, "0", positions),
         { Usage: Usage.Bit } => RuntimeApi.BitsUnpack(area, positions),
@@ -139,7 +146,7 @@ internal static class ReceivingStore
     /// characters, so three bytes became three national positions and <c>LENGTH</c> said 6); an alphanumeric item's
     /// is the bytes as they are (§8.5.1.10.1: a dynamic-length item is alphanumeric or national). Asked by the GR4
     /// group MOVE and by the READ of an elementary dynamic-length record, so the two transfers decode alike.</summary>
-    public static string ContentCharacters(DataItem item, string image) => item.Pic switch
+    public static string ContentCharacters(DataItem item, string image) => item.OperandPic switch
     {
         { Usage: Usage.National } => RuntimeApi.NatFromStorage(image),
         _ => image,
