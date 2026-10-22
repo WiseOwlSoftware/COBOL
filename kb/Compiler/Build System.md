@@ -32,12 +32,16 @@ backend), `Microsoft.CodeAnalysis.CSharp 4.14.0` (Roslyn), `System.CommandLine 2
 ## ANTLR regen at build
 `Generated/` is a **gitignored build output** — a fresh checkout always regenerates, so **`java` + `pwsh` are build
 prerequisites** on every platform.
-- **The csproj `EnsureGeneratedFiles` target** (`BeforeTargets=CoreCompile`) is the ONE up-to-date decision
+- **The csproj `EnsureGeneratedFiles` target** (`BeforeTargets=BeforeCompile`) is the ONE up-to-date decision
   (kb/Work PB2719): it runs when `Generated/` is absent or any generation input is newer — every `Grammar/**/*.g4`
   (the `AntlrGrammar` item), the generator script, the `<AntlrJar>`, and `obj/antlr-generation.stamp`, which the
   `WriteAntlrGenerationStamp` target rewrites only when the namespace or jar path changes. So a warm tree regenerates
   on a namespace, jar or tool-flag change exactly as a fresh checkout does. The namespace `CobolNet.Frontend.Generated`
-  is single-sourced from the csproj `<AntlrNamespace>` property. `AntlrGenerationDriftTests` pins all of it.
+  is single-sourced from the csproj `<AntlrNamespace>` property. The target runs `BeforeTargets=BeforeCompile` and
+  removes the generated files from `Compile` and appends them on every build, so the SDK's ordered hash of `@(Compile)`
+  (`CoreCompileInputs.cache`) is the same on a fresh checkout's first build and every later one: a second build of
+  the same tree is a no-op and never replaces the `cobol` apphost a test is running (kb/Work PB3529).
+  `AntlrGenerationDriftTests` pins all of it.
 - **`Invoke-Antlr4CSharp.ps1`** — the one generator, run once per regeneration with mandatory `-PackageName`, `-JarPath`
   and `-OutputDir` (no defaults); runs the jar with `-Dlanguage=CSharp -no-listener -visitor -encoding UTF-8`.
   It empties `Generated/` before generating and again on any failure, and a failed generation **fails the build**
