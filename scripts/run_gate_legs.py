@@ -25,7 +25,8 @@ stopping RED/INCOMPLETE at a red in leg 1 with the remainder named.
 
 ONE GATE, in this order (§3.14.3):
   1. the worktree's GATE LOCK (`<worktree git dir>/cobol-gate.lock`): a second gate in the same worktree is REFUSED at
-     once, naming the holder — its build would overwrite the binaries between this gate's legs;
+     once, naming the holder — its build would overwrite the binaries between this gate's legs — with the verdict
+     BUSY (exit 3), never RED: it measured nothing (kb/Work PB3527);
   2. a fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/` holding the listings, the plan, every trx,
      log and identity record, and the verdict file — nothing at a fixed name, so no earlier gate's file is read as
      this one's; the newest earlier run holding a verdict gives the plan its timings and reds; five are kept;
@@ -51,7 +52,10 @@ the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or 
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
 
 Exit codes: 0 GREEN (or LEG 1 ONLY: GREEN) · 1 RED (or RED/INCOMPLETE, LEG 1 ONLY: RED, or the build failed) · 2 NOT
-RUN (the lock is held, the shared gate settings are malformed, the population could not be listed).
+RUN (the shared gate settings are malformed, the population could not be listed, the driver failed) · 3 BUSY (another
+gate holds this worktree's gate lock: nothing ran and nothing is red; wait for it and re-run, kb/Work PB3527).
+`read_verdict` is the ONE reader of a verdict line's text (GREEN, BUSY or RED); enqueue.py's landing gate reads
+through it.
 """
 from __future__ import annotations
 
@@ -100,6 +104,24 @@ RUN_DIR = re.compile(r"\d{8}T\d{6}Z-[0-9a-f]{6}")
 KEEP_RUNS = 5
 LOCK_NAME = "cobol-gate.lock"
 VERDICT_FILE = "verdict.json"
+#: A gate started while ANOTHER gate holds this worktree's gate lock: nothing about the change was measured and nothing
+#: is wrong with it, so it is neither RED nor a NOT RUN that needs a fix — it is BUSY, with its own exit code, and a
+#: caller waits for the lock or yields (enqueue.py read it as RED on 2026-10-22 12:30 and stopped PB3511's landing for
+#: a finisher with nothing to fix: kb/Work PB3527).
+BUSY = "BUSY"
+EXIT_BUSY = 3
+#: A passing verdict: plain GREEN (every leg ran) or `LEG 1 ONLY (...): GREEN` (batched gating).
+GREEN_VERDICT = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
+
+
+def read_verdict(text: str) -> str:
+    """THE ONE READER of a gate's verdict, `text` being its verdict line after the prefix (`=== BUILD-LOCAL GATE: ` or
+    the Linux gate's `=== LINUX GATE: `): GREEN (a pass), BUSY (another gate holds the worktree's lock: wait, never
+    red), else RED — every other verdict (RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD FAILED, NOT RUN) is not a
+    pass."""
+    if GREEN_VERDICT.match(text):
+        return "GREEN"
+    return BUSY if text.startswith(BUSY + " ") or text == BUSY else "RED"
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -473,8 +495,9 @@ class Gate:
         lock_path = self.host.lock_path()
         lock = ExclusiveLock.try_take(lock_path, label)
         if lock is None:
-            return self._finish(out, None, "NOT RUN", f"another gate holds this worktree's gate lock ({lock_path}): "
-                                f"{ExclusiveLock.holder(lock_path) or '(no label)'}", 2)
+            return self._finish(out, None, BUSY, f"another gate holds this worktree's gate lock ({lock_path}): "
+                                f"{ExclusiveLock.holder(lock_path) or '(no label)'}; nothing ran, nothing is red: "
+                                "re-run once it ends", EXIT_BUSY)
         with lock:
             try:
                 out.scope, setting = self.host.implementer_scope()
@@ -1231,9 +1254,18 @@ def self_test() -> int:
         finally:
             go.touch()
             holder.wait(timeout=30)
-        arm("a second gate in the same worktree is REFUSED at once, naming the holder's pid, and takes no slot",
-            first == "held" and o.verdict == "NOT RUN" and o.exit_code == 2 and f"pid {holder.pid}" in o.line
-            and host2.slots_taken == 0 and not (d / "runs").exists(), o.line)
+        arm("a second gate in the same worktree is REFUSED at once, naming the holder's pid, and takes no slot: its "
+            "verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED (kb/Work "
+            "PB3527)",
+            first == "held" and o.verdict == BUSY and o.exit_code == EXIT_BUSY and f"pid {holder.pid}" in o.line
+            and host2.slots_taken == 0 and not (d / "runs").exists()
+            and read_verdict(o.line[len(VERDICT):]) == BUSY, o.line)
+        arm("the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass; RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD "
+            "FAILED and NOT RUN are RED; a Linux gate's GREEN (legs ...) passes",
+            [read_verdict(v) for v in ("GREEN — x ===", f"{LEG1_ONLY}: GREEN — x", "RED — x", "RED/INCOMPLETE — x",
+                                       f"{LEG1_ONLY}: RED — x", "BUILD FAILED — x", "NOT RUN — x",
+                                       "GREEN (legs unit) ===", "GREENISH")]
+            == ["GREEN", "GREEN", "RED", "RED", "RED", "RED", "RED", "GREEN", "RED"])
 
         # The lock is per WORKTREE: a linked worktree's git dir is its own.
         git = ["git", "-c", "user.name=gate-legs", "-c", "user.email=gate-legs@invalid", "-c", "init.defaultBranch=main"]
