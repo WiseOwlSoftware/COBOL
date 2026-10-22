@@ -685,7 +685,8 @@ usage — its own clause, else the nearest enclosing one (a `GROUP-USAGE` clause
    `DescriptionCopyKind.Clause` field, so the TYPE / SAME AS copy carries it and the §13.18.49.4 GR3 ancestor
    transform records it rather than applying it (one adjudication, in this pass, not two). Only the
    GENERAL-FORMAT half stays at entry bind: which usage WORD the phrase may be written on (`COBOLNET1565`),
-   which is a fact about the written clause and needs no forest. Before kb/Work PB570 the whole phrase was a
+   which is a fact about the written clause and needs no forest, decided with the clause's other optional phrases
+   by the one table `UsagePhraseRules` through `DataBinder.ScreenUsagePhrases` (kb/Work PB3517). Before kb/Work PB570 the whole phrase was a
    BindEntry local adjudicated against the entry's own PICTURE — which a group header has not got — so
    `01 GRP USAGE PACKED-DECIMAL WITH NO SIGN. 05 EG PIC 9(4).` kept the 3-byte SIGNED layout and a subordinate
    `PIC S9(4)` drew no diagnostic at all, at every nesting depth.
