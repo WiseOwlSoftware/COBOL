@@ -526,13 +526,15 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     if pr.red or pr.bounced:
         return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({pr.red.name + ' failed' if pr.red else pr.bounced}):"
                                " the enqueue unit's finisher")
-    running = [c for c in pr.checks if not c.resolved and not c.stuck]
+    # Running only while its job is SEEN running: a job the jobs API could not read (job_status '') is unknown, and an
+    # unknown job must not hold the watch for ever, so its clock falls back to the enqueue, like no check-run at all.
+    running = [c for c in pr.checks if not c.resolved and c.job_status not in ("", "completed")]
     if running:
         return WatchStep(WATCHING, f"pull request #{pr.number}: {', '.join(c.name for c in running)} still running")
     ends = [t for t in (_iso(c.done_at) for c in pr.checks) if t]
-    ends += [t for t in (_iso(r.get("at", "")) for r in reads) if t]
-    if not pr.checks:
+    if not ends:
         ends += [t for t in (_iso(att.get("ended", "")),) if t]
+    ends += [t for t in (_iso(r.get("at", "")) for r in reads) if t]
     since = max(ends) if ends else now
     late = (now - since).total_seconds() / 60
     if late < QUEUE_GRACE_MIN:
@@ -540,8 +542,12 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
                                    f"ended (grace {QUEUE_GRACE_MIN} min)")
     stuck = next((c for c in pr.checks if c.stuck), None)
     cause = STUCK if stuck else NOT_QUEUED
+    unknown = [c.name for c in pr.checks if not c.resolved and not c.stuck]
     what = (f"{stuck.name}'s check-run is {stuck.status.lower()} although its job completed at {stuck.job_completed_at}"
-            if stuck else f"its required checks resolved but it is not in the queue ({pr.merge_state or '?'})")
+            if stuck else
+            f"{', '.join(unknown)} unresolved and its job could not be read, and it is not in the queue "
+            f"({pr.merge_state or '?'})" if unknown else
+            f"its required checks resolved but it is not in the queue ({pr.merge_state or '?'})")
     n = len(reads) + 1
     if n >= 3:
         return WatchStep(ALERTED, f"stalled read {n}: {what}, after a re-run and a requeue", ALERT, cause)
@@ -1379,6 +1385,13 @@ def self_test() -> int:
                    for ln in status_lines(c14))
                and "read 2 stuck-check-run: requeue done" in watch_text(watch_holder := next(
                    a for a in attempts(c14) if a["branch"] == "w14alert")), str(watch_holder))
+        unread_gate = queue_facts.CheckRun("ci-gate", "IN_PROGRESS", "", 120018552760, 39834070835)
+        enq = {"end_head": "z1", "ended": "2026-10-22T18:45:00Z"}
+        early, late = (watch_step(enq, "IN FLIGHT", pr(397, unread_gate), t(hm)) for hm in ("18:50", "18:56"))
+        expect("queue watch: a check-run whose job the jobs API could not read never holds the watch for ever: its "
+               "clock is the enqueue, and past the grace it is a stalled read (not-queued) that names the unread job",
+               early.state == WATCHING and not early.act and late.act == RERUN and late.cause == NOT_QUEUED
+               and "could not be read" in late.why, f"{early} {late}")
         noq = watch_step({"end_head": "z1", "ended": "2026-10-22T18:45:00Z"}, "IN FLIGHT", pr(399), t("18:56"))
         expect("queue watch: with no check-run at all the clock starts at the enqueue, and read 1 goes straight to the "
                "requeue (there is no run to re-run); a new head on the pull request ends the watch LEFT",
