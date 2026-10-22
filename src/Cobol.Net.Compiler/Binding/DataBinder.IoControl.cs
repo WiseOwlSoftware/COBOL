@@ -92,7 +92,8 @@ public sealed partial class DataBinder
 
     /// <summary>Bind one APPLY COMMIT clause (ISO §12.4.6.3.2: <c>APPLY COMMIT ON [ [ file-name-1 ] [ identifier-1 ] ] …</c>)
     /// and the syntax rules that need no data division: SR1/SR2 (the files), SR4 (an operand at all), SR5 (a recursive
-    /// source element) and SR6 (a class definition; a factory or instance definition is <c>OoEnvironmentRules</c>'s).
+    /// source element). SR6 (a factory or instance definition, the only class-side definitions with an I-O-CONTROL
+    /// paragraph) is <c>OoEnvironmentRules</c>'s alone.
     /// The identifier-1 operands are resolved, and SR3 and SR7-SR10 asked, by <see cref="ResolveApplyCommit"/> once the
     /// data division is bound.
     /// <para>The operand list repeats an all-optional pair, so the symbol table is the only discriminator: a BARE word
@@ -110,9 +111,8 @@ public sealed partial class DataBinder
             ApplyCommitRule("the clause is written in a recursive source element"
                 + (UnitIsFunction ? " (a function is always recursive, ISO §8.6.6)" : ""),
                 "SR5", "This clause shall not be specified in a recursive source element.");
-        if (OoIsClassUnit)
-            ApplyCommitRule("the clause is written in a class definition", "SR6",
-                "This clause shall not be specified in a class, factory, or interface definition.");
+        // SR6 (a class, factory or interface definition) is OoEnvironmentRules', which sees the definition's kind: one
+        // violation, one diagnostic.
         if (apply.dataReference().Length == 0)
             ApplyCommitRule("the clause names no file and no data item", "SR4",
                 "At least one file or data-item shall be specified.");
