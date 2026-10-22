@@ -127,7 +127,7 @@ public sealed class TrackedTreeScopeDriftTests
                 continue;
             }
             TreeScope c = compiled[key];
-            foreach ((string name, string[]? value) in new[] { ("under", (string[]?)c.Under), ("except", c.Except), ("kinds", c.Kinds) })
+            foreach ((string name, IReadOnlyList<string>? value) in new[] { ("under", (IReadOnlyList<string>?)c.Under), ("except", c.Except), ("kinds", c.Kinds) })
             {
                 string[]? read = ix.GetProperty(name).ValueKind == JsonValueKind.Null
                     ? null : [.. ix.GetProperty(name).EnumerateArray().Select(e => e.GetString()!)];
@@ -138,7 +138,7 @@ public sealed class TrackedTreeScopeDriftTests
         Assert.True(problems.Count == 0, "the drift-rule index and the compiled TreeScope fields disagree (kb/Work PB3531):\n  "
             + string.Join("\n  ", problems));
 
-        static string Show(string[]? v) => v is null ? "null" : string.Join(", ", v.Select(s => $"\"{s}\""));
+        static string Show(IReadOnlyList<string>? v) => v is null ? "null" : string.Join(", ", v.Select(s => $"\"{s}\""));
     }
 
     /// <summary>The index's mirror (<c>drift_rules.in_scope</c>) holds exactly the paths <see cref="TreeScope.Holds"/>

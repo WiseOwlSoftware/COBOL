@@ -951,7 +951,9 @@ because the raw name is not stable (`b7`):
   change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
   classes, 3,057–4,227 s, floor 224 s (`OperandClassScreenDriftTests`). The recorded seconds of these drift tests are
   contention-inflated (the nine classes this change touched ran their 60 cases in 2 s on an idle host against about
-  430 s recorded), so the gate's measured leg wall is the cost that counts; the landing's report records it.
+  430 s recorded), so the gate's measured leg wall is the cost that counts: this change's own gate ran leg 1 in
+  118 s (Unit 111 s, Conformance 117 s, with 135 and 24 tier-0d cases) against 46 s (Unit 44 s, Conformance 46 s) for
+  the gate run just before it on another branch, on the same host and the same shared timings.
   `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
