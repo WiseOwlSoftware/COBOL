@@ -731,7 +731,7 @@ public static class DiagnosticCatalog
         + "an identifier-1 that is not an unreferenced-modified 01 or 77 item of the LINKAGE, WORKING-STORAGE or "
         + "LOCAL-STORAGE SECTION or that repeats or overlaps another (SR3), no operand at all (SR4), the clause in a "
         + "recursive source element (SR5; a function is always one, §8.6.6) or in a class, factory or interface "
-        + "definition (SR6, §9.1.18.6), a data item containing an object reference (SR7), only one of two 01/77 "
+        + "definition (SR6), a data item containing an object reference (SR7), only one of two 01/77 "
         + "items one of which depends on the other (SR8), a FILE STATUS, LINAGE or RECORD DEPENDING item outside "
         + "those sections (SR9), or any of them subject to a BASED clause (SR10).",
         "ISO §12.4.6.3.3 SR1-SR10 / §9.1.18.6");
