@@ -1,0 +1,3811 @@
+{
+ "_frozen": "Frozen evidence (docs/rearchitecture/evidence/README.md): written once when the experiment ended, never edited.",
+ "experiment": "PB3523 fuzz generator first-attempt validity: the prompt, the early stop and the declined-seed exclusion",
+ "date": "2026-10-22",
+ "command": "differential_fuzz.py --bake-off qwen3.6:35b --count 40 --clauses 13.18,14.9,8.4 --seed 20261022 --jobs 4 --cobol <worktree build of origin/main 2850429db>",
+ "judges": "WiseOwl Debug build of the worktree (origin/main 2850429db plus this branch's script-only change), --std 2014 free format; GnuCOBOL 3.2 -std=cobol2014 under WSL",
+ "arms": [
+  {
+   "arm": "A: origin/main's harness (the old prompt), the full seed walk",
+   "ran": "2026-10-22 12:24-12:29 PDT",
+   "rows": [
+    {
+     "id": "fz00001",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 18.8,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00002",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 20.1,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00002.cob(28,1): error COBOLNET0827: EXIT SECTION may be specified only in a section (ISO §14.9.14.3 SR9)"
+    },
+    {
+     "id": "fz00003",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 19.5,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00003.cob(5,31): error COBOLNET2576: NULL is the predefined address / object reference — an identifier (ISO §8.4.3.1.2 Format 8; §8.4.3.7), not a literal or a figurative constant — and ISO §8.4.3.10"
+    },
+    {
+     "id": "fz00000",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.0,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00000.cob(24,1): error COBOL0001: unexpected 'END-PARAGRAPH'"
+    },
+    {
+     "id": "fz00004",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 14.6,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00004.cob(13,18): error COBOL0307: unexpected 'FOR'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00005",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 15.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00005.cob(13,23): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00006",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 14.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00006.cob(5,19): error COBOLNET1941: cannot parse construct near 'BLINK'. 'BLINK' is not a clause of the data description entry — the ISO §13.16.2 Format 1 general format lists the clauses that may "
+    },
+    {
+     "id": "fz00007",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 15.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00007.cob(5,13): error COBOLNET1941: cannot parse construct near 'BLINK'. 'BLINK' is not a clause of the data description entry — the ISO §13.16.2 Format 1 general format lists the clauses that may "
+    },
+    {
+     "id": "fz00008",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 19.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00008.cob(5,22): error COBOLNET1941: unexpected 'BLINK'. 'BLINK' is not a clause of the data description entry for 'WS-GROUP' — the ISO §13.16.2 Format 1 general format lists the clauses that may be"
+    },
+    {
+     "id": "fz00009",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 22.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00009.cob(14,1): error COBOL0001: unexpected 'FILE'"
+    },
+    {
+     "id": "fz00010",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 24.6,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00010.cob(36,1): error COBOLNET1757: SORT of 'WS-SORTED-TABLE' — neither a SELECTed/SD file nor an OCCURS table: file-name-1 shall be described in an SD (ISO §14.9.40.3 SR4) and data-name-2 shall be"
+    },
+    {
+     "id": "fz00011",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00011.cob(14,1): error COBOLNET1757: SORT of 'WS-TABLE' — neither a SELECTed/SD file nor an OCCURS table: file-name-1 shall be described in an SD (ISO §14.9.40.3 SR4) and data-name-2 shall be descri"
+    },
+    {
+     "id": "fz00014",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.0,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": "fz00014.cob(8,24): error COBOLNET2455: file 'REPORT-FILE': FILE STATUS 'WS-STATUS' is a category-numeric item, not of the category alphanumeric; data-name-1 shall reference a two-character data item o"
+    },
+    {
+     "id": "fz00012",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 29.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00012.cob(17,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00016",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": null,
+     "verdict": "THEY_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.2,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00013",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 30.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00013.cob(17,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00015",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": null,
+     "verdict": "THEY_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 22.2,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00017",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": null,
+     "verdict": "THEY_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.3,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00020",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 13.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00020.cob(6,1): error COBOLNET0898: data item 'WS-NATIONAL': the VALUE of a national data item shall be a national literal (N\"…\") or a figurative constant (ISO §13.18.63.3 SR5)"
+    },
+    {
+     "id": "fz00018",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 39.0,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00018.cob(6,1): error COBOLNET0881: data item 'WS-NATIONAL': USAGE NATIONAL may not be specified with an alphabetic or alphanumeric PICTURE (X(10)) — it admits boolean, national, national-edited, nu"
+    },
+    {
+     "id": "fz00019",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 38.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00019.cob(35,25): error COBOL0001: cannot parse construct near 'OF'"
+    },
+    {
+     "id": "fz00021",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 49.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00021.cob(15,16): error COBOL0001: cannot parse construct near 'PROCEDURE'"
+    },
+    {
+     "id": "fz00024",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 24.3,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00022",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 51.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00022.cob(18,16): error COBOL0001: cannot parse construct near 'PROCEDURE'"
+    },
+    {
+     "id": "fz00025",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 14.7,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00023",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 38.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00023.cob(10,19): error COBOLNET0901: 'CONDITION' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00028",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": null,
+     "verdict": "THEY_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 8.8,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00026",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 24.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00026.cob(20,23): error COBOLNET2993: the unary arithmetic operator '-' is not immediately followed by a separator space or a left parenthesis — ISO §8.7.1 requires it to be immediately preceded and"
+    },
+    {
+     "id": "fz00027",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 23.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00027.cob(8,16): error COBOL0312: cannot parse construct near 'SIZE'. Unexpected token in FILE-CONTROL paragraph. Check SELECT/ASSIGN TO syntax."
+    },
+    {
+     "id": "fz00029",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 21.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00029.cob(11,24): error COBOL0001: missing token before 'BRANCHING'"
+    },
+    {
+     "id": "fz00030",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00030.cob(6,1): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00031",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.7,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00031.cob(16,17): error COBOL0307: unexpected 'ON'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00033",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 9.0,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00032",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 19.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00032.cob(6,1): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00035",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 7.9,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00034",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.2,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00036",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 11.9,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00037",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 14.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00037.cob(6,17): error COBOL0307: unexpected 'FILLER'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00038",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 4.0,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00039",
+     "clause": "13.18.47",
+     "title": "REQUIRED clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 3.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00039.cob(9,17): error COBOL0307: unexpected 'REQUIRED'. A period may be missing at the end of the previous sentence."
+    }
+   ]
+  },
+  {
+   "arm": "B: this branch's prompt, early stop, no seed exclusion yet, the full seed walk",
+   "ran": "2026-10-22 12:29-12:32 PDT",
+   "rows": [
+    {
+     "id": "fz00002",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 14.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET2966",
+       "fz00002.cob:18: error: EXIT PERFORM is only valid with inline PERFORM"
+      ],
+      [
+       "COBOLNET2966",
+       "fz00002.cob:16: error: EXIT PERFORM is only valid with inline PERFORM"
+      ]
+     ],
+     "first_error_wiseowl": "fz00002.cob(9,1): error COBOLNET2966: The EXIT statement shall appear in a sentence by itself that shall be the only sentence in the paragraph or in a section without paragraphs (ISO §14.9.14.3 SR1); "
+    },
+    {
+     "id": "fz00001",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 16.0,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00001.cob:19: error: EXIT PERFORM is only valid with inline PERFORM"
+      ],
+      [
+       "COBOL0001",
+       "fz00001.cob:19: error: EXIT PERFORM is only valid with inline PERFORM"
+      ]
+     ],
+     "first_error_wiseowl": "fz00001.cob(23,4): error COBOL0001: cannot parse construct near 'WS-COUNT'"
+    },
+    {
+     "id": "fz00003",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 17.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00003.cob:5: error: 'WS-PTR-1' cannot have PICTURE clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00003.cob:13: error: target of ALLOCATE must have BASED clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00003.cob:13: error: target of ALLOCATE must have BASED clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00003.cob(13,23): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00000",
+     "clause": "14.9.14",
+     "title": "EXIT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 20.8,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1639",
+       "fz00000.cob:15: error: 'WS-CNT' is not defined"
+      ],
+      [
+       "COBOLNET0827",
+       "fz00000.cob:33: error: EXIT PERFORM is only valid with inline PERFORM"
+      ],
+      [
+       "COBOLNET0827",
+       "fz00000.cob:33: error: EXIT PERFORM is only valid with inline PERFORM"
+      ]
+     ],
+     "first_error_wiseowl": "fz00000.cob(33,1): error COBOLNET0827: EXIT PERFORM may be specified only in an inline or exception-checking PERFORM statement (ISO §14.9.14.3 SR8)"
+    },
+    {
+     "id": "fz00004",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 9.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00004.cob:5: error: 'WS-PTR1' cannot have PICTURE clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00004.cob:10: error: target of ALLOCATE must have BASED clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00004.cob:10: error: target of ALLOCATE must have BASED clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00004.cob(10,18): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00005",
+     "clause": "14.9.15",
+     "title": "FREE statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 10.3,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00005.cob:5: error: 'WS-PTR1' cannot have PICTURE clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00005.cob:14: error: target of ALLOCATE must have BASED clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00005.cob:14: error: target of ALLOCATE must have BASED clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00005.cob(14,18): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00006",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 8.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00006.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOL0307",
+       "fz00006.cob:10: error: syntax error, unexpected FILLER"
+      ],
+      [
+       "COBOL0307",
+       "fz00006.cob:10: error: syntax error, unexpected FILLER"
+      ]
+     ],
+     "first_error_wiseowl": "fz00006.cob(10,10): error COBOL0307: unexpected 'FILLER'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00007",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.8,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00007.cob:6: error: syntax error, unexpected IS, expecting SECTION"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00007.cob:6: error: VALUE may not contain a figurative constant"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00007.cob:14: error: syntax error, unexpected ACCEPT, expecting COL or COLUMN or POS or POSITION"
+      ],
+      [
+       "COBOL0001",
+       "fz00007.cob:11: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00007.cob(11,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00008",
+     "clause": "13.18.9",
+     "title": "BLINK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 24.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00008.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00008.cob:12: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00008.cob:6: error: missing file description for FILE SCR-DEV"
+      ],
+      [
+       "COBOLNET2635",
+       "fz00008.cob:6: error: missing file description for FILE SCR-DEV"
+      ]
+     ],
+     "first_error_wiseowl": "fz00008.cob(6,5): error COBOLNET2635: file 'SCR-DEV' is specified in a SELECT clause but has no file description entry (FD) or sort-merge file description entry (SD); ISO §12.4.5.2 SR3"
+    },
+    {
+     "id": "fz00009",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.3,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0306",
+       "fz00009.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOL0306",
+       "fz00009.cob:51: error: syntax error, unexpected END-PERFORM"
+      ],
+      [
+       "COBOL0307",
+       "fz00009.cob:53: error: 'WS-TABLE' has no OCCURS clause"
+      ],
+      [
+       "COBOL0307",
+       "fz00009.cob:53: error: 'WS-TABLE' has no OCCURS clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00009.cob(66,1): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00011",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 14.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00011.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOL0001",
+       "fz00011.cob:6: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00011.cob(21,13): error COBOL0001: unexpected 'AT'"
+    },
+    {
+     "id": "fz00010",
+     "clause": "14.9.40",
+     "title": "SORT statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 28.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0305",
+       "fz00010.cob:6: error: syntax error, unexpected ALPHANUMERIC"
+      ],
+      [
+       "COBOL0305",
+       "fz00010.cob:6: error: syntax error, unexpected STANDARD"
+      ],
+      [
+       "COBOL0307",
+       "fz00010.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOL0307",
+       "fz00010.cob:7: error: must be an SD filename"
+      ]
+     ],
+     "first_error_wiseowl": "fz00010.cob(61,1): error COBOL0307: unexpected 'GIVING'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00012",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 14.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00012.cob:14: error: 'REPORT-A' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00012.cob:14: error: 'REPORT-A' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00012.cob(28,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00013",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 13.0,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00013.cob:14: error: 'REPORT-A' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00013.cob:14: error: 'REPORT-A' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00013.cob(19,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00014",
+     "clause": "13.18.46",
+     "title": "REPORT clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 13.0,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00014.cob:14: error: 'RPT-MAIN' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00014.cob:14: error: 'RPT-MAIN' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00014.cob(15,1): error COBOL0001: unexpected 'CR'"
+    },
+    {
+     "id": "fz00015",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 12.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00015.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00015.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00015.cob(23,5): error COBOLNET0901: 'LENGTH' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00017",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 14.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET2257",
+       "fz00017.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET2257",
+       "fz00017.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00017.cob(6,1): error COBOLNET2257: DYNAMIC LENGTH STRUCTURE STRUCTURE IS WS-DLS-STRUCT: 'WS-DLS-STRUCT' is not a physical-structure-name this implementation supports — ISO §12.3.7.3 SR32 (\"The impl"
+    },
+    {
+     "id": "fz00019",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": "expression",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.8,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00019.cob:9: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00019.cob(8,1): error COBOLNET0898: data item 'WS-NATIONAL': the VALUE of a national data item shall be a national literal (N\"…\") or a figurative constant (ISO §13.18.63.3 SR5)"
+    },
+    {
+     "id": "fz00016",
+     "clause": "13.18.19",
+     "title": "DYNAMIC LENGTH clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 22.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00016.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET2257",
+       "fz00016.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET2257",
+       "fz00016.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00016.cob(6,1): error COBOLNET2257: DYNAMIC LENGTH STRUCTURE WS-DS-MAX IS MAX-DYN: 'MAX-DYN' is not a physical-structure-name this implementation supports — ISO §12.3.7.3 SR32 (\"The implementor shal"
+    },
+    {
+     "id": "fz00020",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": "expression",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 8.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00020.cob(33,1): error COBOLNET1647: 'WS-BINARY(1:2)': reference modification of a numeric item of USAGE Binary (SR1 admits usage DISPLAY or NATIONAL only) is not permitted (ISO §8.4.3.3.3 SR1)"
+    },
+    {
+     "id": "fz00018",
+     "clause": "8.4.3.3",
+     "title": "Identifiers > Reference-modification",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 23.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00018.cob:9: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOL0001",
+       "fz00018.cob:13: error: syntax error, unexpected SEPARATE, expecting LEADING or TRAILING"
+      ],
+      [
+       "COBOL0001",
+       "fz00018.cob:13: error: syntax error, unexpected SEPARATE, expecting LEADING or TRAILING"
+      ]
+     ],
+     "first_error_wiseowl": "fz00018.cob(13,30): error COBOL0001: unexpected 'SEPARATE'"
+    },
+    {
+     "id": "fz00022",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 15.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1637",
+       "fz00022.cob:35: error: field does not have a FALSE clause"
+      ],
+      [
+       "COBOLNET1637",
+       "fz00022.cob:40: error: field does not have a FALSE clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00022.cob(22,1): error COBOLNET1637: a MOVE sending operand references the index-name 'WS-IDX', which is not an identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, "
+    },
+    {
+     "id": "fz00024",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.8,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1637",
+       "fz00024.cob:24: error: AFTER phrase in CONTINUE statement does not conform to COBOL 2014"
+      ]
+     ],
+     "first_error_wiseowl": "fz00024.cob(41,1): error COBOLNET1637: a MOVE sending operand references the index-name 'WS-IDX', which is not an identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, "
+    },
+    {
+     "id": "fz00021",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 32.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00021.cob:9: error: syntax error, unexpected CONDITION"
+      ],
+      [
+       "COBOLNET0881",
+       "fz00021.cob:15: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1637",
+       "fz00021.cob:43: error: field does not have a FALSE clause"
+      ],
+      [
+       "COBOLNET1637",
+       "fz00021.cob:44: error: field does not have a FALSE clause"
+      ]
+     ],
+     "first_error_wiseowl": "fz00021.cob(22,1): error COBOLNET1637: a MOVE sending operand references the index-name 'WS-IDX', which is not an identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, "
+    },
+    {
+     "id": "fz00025",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.2,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0900",
+       "fz00025.cob:23: error: AFTER phrase in CONTINUE statement does not conform to COBOL 2014"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00023",
+     "clause": "14.9.39",
+     "title": "SET statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 29.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00023.cob:9: error: syntax error, unexpected STATUS"
+      ],
+      [
+       "COBOLNET1637",
+       "fz00023.cob:32: error: syntax error, unexpected ON"
+      ],
+      [
+       "COBOLNET2241",
+       "fz00023.cob:6: error: invalid system-name 'CONDITIONAL'"
+      ],
+      [
+       "COBOLNET1637",
+       "fz00023.cob:35: error: syntax error, unexpected ON"
+      ]
+     ],
+     "first_error_wiseowl": "fz00023.cob(30,1): error COBOLNET1637: a MOVE sending operand references the index-name 'WS-IDX', which is not an identifier (ISO §8.4.3.1.2); §13.18.38.3 r7 admits an index-name only as a subscript, "
+    },
+    {
+     "id": "fz00027",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 10.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00027.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00027.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00027.cob(6,5): error COBOLNET1970: unexpected 'ALPHANUMERIC'. 'ALPHANUMERIC' is not a clause of the SPECIAL-NAMES paragraph — the ISO §12.3.7.2 general format lists the clauses that may be specifie"
+    },
+    {
+     "id": "fz00026",
+     "clause": "14.9.9",
+     "title": "CONTINUE statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 18.7,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0900",
+       "fz00026.cob:17: error: AFTER phrase in CONTINUE statement does not conform to COBOL 2014"
+      ],
+      [
+       "COBOLNET0819",
+       "fz00026.cob:20: error: invalid MOVE statement"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00029",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 9.3,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00029.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00029.cob:6: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00029.cob(11,9): error COBOLNET1970: unexpected 'CODE-SET'. 'CODE-SET' is not a clause of the file control entry for 'FILE-A' — the ISO §12.4.5.1 general format lists the clauses that may be specifi"
+    },
+    {
+     "id": "fz00030",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 7.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00030.cob:6: error: syntax error, unexpected IS, expecting SECTION"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00030.cob:6: error: syntax error, unexpected IS, expecting SECTION"
+      ]
+     ],
+     "first_error_wiseowl": "fz00030.cob(6,1): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00028",
+     "clause": "13.18.13",
+     "title": "CODE-SET clause",
+     "family": "data",
+     "verdict": "THEY_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 16.0,
+     "on_topic": false,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00028.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET0898",
+       "fz00028.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET0900",
+       "fz00028.cob:6: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00031",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 10.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00031.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOL0307",
+       "fz00031.cob:9: error: 'WS-SCREEN-ITEM' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ],
+      [
+       "COBOL0307",
+       "fz00031.cob:9: error: 'WS-SCREEN-ITEM' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00031.cob(13,33): error COBOL0307: unexpected 'ON'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00033",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 7.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00033.cob:6: error: invalid system-name 'REPORT-FORMAT'"
+      ],
+      [
+       "COBOL0001",
+       "fz00033.cob:6: error: invalid system-name 'REPORT-FORMAT'"
+      ]
+     ],
+     "first_error_wiseowl": "fz00033.cob(9,1): error COBOL0001: unexpected 'FD'"
+    },
+    {
+     "id": "fz00032",
+     "clause": "13.18.7",
+     "title": "BLANK clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 16.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00032.cob:6: error: syntax error, unexpected IS, expecting SECTION"
+      ],
+      [
+       "COBOL0001",
+       "fz00032.cob:8: error: 'WS-NORMAL' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ],
+      [
+       "COBOL0001",
+       "fz00032.cob:8: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOL0001",
+       "fz00032.cob:8: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00032.cob(8,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00035",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 14.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00035.cob:38: error: syntax error, unexpected PAGE"
+      ],
+      [
+       "COBOL0307",
+       "fz00035.cob:40: error: syntax error, unexpected PAGE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00035.cob(40,5): error COBOL0307: unexpected 'PAGE'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00034",
+     "clause": "13.18.39",
+     "title": "PAGE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 22.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00034.cob:6: error: invalid system-name 'REPORT-FORMAT'"
+      ],
+      [
+       "COBOL0001",
+       "fz00034.cob:14: error: syntax error, unexpected PAGE"
+      ],
+      [
+       "COBOL0001",
+       "fz00034.cob:14: error: syntax error, unexpected intrinsic function name"
+      ],
+      [
+       "COBOL0001",
+       "fz00034.cob:13: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00034.cob(13,1): error COBOL0001: unexpected 'FD'"
+    },
+    {
+     "id": "fz00036",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 2,
+     "stopped_early": true,
+     "model_seconds": 18.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00036.cob:12: error: syntax error, unexpected DISPLAY, expecting COL or COLUMN or POS or POSITION"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00036.cob:11: error: syntax error, unexpected Literal, expecting COL or COLUMN or POS or POSITION"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00036.cob:11: error: syntax error, unexpected Literal, expecting COL or COLUMN or POS or POSITION"
+      ]
+     ],
+     "first_error_wiseowl": "fz00036.cob(11,22): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00037",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 14.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00037.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00037.cob:6: error: VALUE may not contain a figurative constant"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00037.cob:6: error: 'FILLER' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00037.cob:6: error: VALUE may not contain a figurative constant"
+      ]
+     ],
+     "first_error_wiseowl": "fz00037.cob(12,33): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00038",
+     "clause": "13.18.59",
+     "title": "UNDERLINE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 9.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00038.cob:6: error: syntax error, unexpected IS, expecting SECTION"
+      ],
+      [
+       "COBOL0001",
+       "fz00038.cob:6: error: VALUE may not contain a figurative constant"
+      ],
+      [
+       "COBOL0001",
+       "fz00038.cob:10: error: syntax error, unexpected ON, expecting ("
+      ],
+      [
+       "COBOL0001",
+       "fz00038.cob:10: error: syntax error, unexpected ON, expecting ("
+      ]
+     ],
+     "first_error_wiseowl": "fz00038.cob(10,9): error COBOL0001: unexpected 'ON'"
+    },
+    {
+     "id": "fz00039",
+     "clause": "13.18.47",
+     "title": "REQUIRED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 4.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00039.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00039.cob:7: error: VALUE may not contain a figurative constant"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00039.cob:7: error: 'WS-FIELD' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00039.cob:7: error: 'WS-FIELD' cannot have PIC without FROM, TO, USING or numeric VALUE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00039.cob(5,1): error COBOLNET0901: 'SCREEN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    }
+   ]
+  },
+  {
+   "arm": "C: origin/main's harness with the declined-module seeds filtered out",
+   "ran": "2026-10-22 12:38-12:41 PDT",
+   "rows": [
+    {
+     "id": "fz00003",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 13.6,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00003.cob(8,1): error COBOLNET2159: data item 'WS-OTHER-REC': the externalized name 'EXT-REC' is already the externalized name of data item 'WS-REC' in this source element; \"In the same source eleme"
+    },
+    {
+     "id": "fz00004",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": null,
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 2.8,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00005",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": null,
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 3.1,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00001",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 23.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00001.cob(18,1): error COBOLNET0900: DELETE FILE requires COBOL-2023 (targeting COBOL-2014) — the DELETE FILE statement (ISO 2023 §14.9.10 Format 2; Annex E.3.3 item 15)"
+    },
+    {
+     "id": "fz00002",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.2,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00002.cob(7,9): error COBOLNET0900: ORGANIZATION RECORD SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the RECORD SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.2 (RECORD not "
+    },
+    {
+     "id": "fz00000",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 28.0,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00000.cob(19,1): error COBOLNET0900: DELETE FILE requires COBOL-2023 (targeting COBOL-2014) — the DELETE FILE statement (ISO 2023 §14.9.10 Format 2; Annex E.3.3 item 15)"
+    },
+    {
+     "id": "fz00008",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.4,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00006",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 8.6,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00009",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": null,
+     "verdict": "EXIT_DIFFERS",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 9.0,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00012",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 4.3,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00007",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 21.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00007.cob(10,1): error COBOL0001: unexpected 'FD'"
+    },
+    {
+     "id": "fz00013",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 3.9,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00014",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.2,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00010",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 19.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00010.cob(18,17): error COBOL0001: unexpected 'FUNCTION'"
+    },
+    {
+     "id": "fz00011",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 20.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00011.cob(12,16): error COBOLNET2072: unexpected 'IS'. The IF statement's general format shows an imperative-statement here that is not bracketed, so at least one statement shall be specified: brack"
+    },
+    {
+     "id": "fz00016",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 7.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00017",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": null,
+     "verdict": "THEY_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 11.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00015",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 15.8,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00015.cob(5,33): error COBOLNET0901: 'NULL' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00018",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 22.6,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00018.cob(24,21): error COBOL0307: unexpected 'CLASS'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00021",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 17.8,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00019",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 31.6,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00019.cob(15,19): error COBOL0307: unexpected 'CLASS'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00020",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 36.0,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00020.cob(16,19): error COBOL0307: unexpected 'CLASS'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00024",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 10.5,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00024.cob(18,1): error COBOLNET0899: CALL … USING BY VALUE belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1’s USING admits BY REFERENCE and BY C"
+    },
+    {
+     "id": "fz00026",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.1,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00023",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 23.5,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00022",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 35.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00022.cob(35,17): error COBOL0001: unexpected 'THROUGH'"
+    },
+    {
+     "id": "fz00029",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 8.7,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00025",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 20.0,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00027",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": null,
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 14.1,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00028",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": null,
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.7,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00030",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 21.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00030.cob(8,5): error COBOLNET1970: unexpected 'BLOCK'. 'BLOCK' is not a clause of the file control entry for 'INPUT-FILE' — the ISO §12.4.5.1 general format lists the clauses that may be specified,"
+    },
+    {
+     "id": "fz00031",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.7,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00031.cob(14,15): error COBOLNET2605: file 'INPUT-FILE' is LINE SEQUENTIAL and its file description entry specifies BLOCK CONTAINS 10 CHARACTERS — ISO §13.4.5.3 SR4: \"If the LINE SEQUENTIAL phrase o"
+    },
+    {
+     "id": "fz00032",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 24.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00032.cob(18,13): error COBOL0001: cannot parse construct near 'STATUS'"
+    },
+    {
+     "id": "fz00033",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.4,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00033.cob(42,4): error COBOL0001: unexpected 'INVALID'"
+    },
+    {
+     "id": "fz00036",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 10.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00036.cob(7,9): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 sp"
+    },
+    {
+     "id": "fz00035",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 16.7,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00035.cob(8,15): error COBOLNET0863: RECORD KEY 'WS-REC-KEY' is a category-numeric item; data-name-1 shall reference a data item of category alphanumeric or category national (ISO §12.4.5.12.3 SR2)"
+    },
+    {
+     "id": "fz00034",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 23.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00034.cob(24,12): error COBOL0001: unexpected 'INVALID'"
+    },
+    {
+     "id": "fz00038",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": null,
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 8.1,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00038.cob(7,9): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 sp"
+    },
+    {
+     "id": "fz00037",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00037.cob(19,36): error COBOL0001: unexpected 'WS-COUNT'"
+    },
+    {
+     "id": "fz00039",
+     "clause": "14.9.17",
+     "title": "GO TO statement",
+     "family": null,
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 11.5,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00039.cob(11,8): error COBOLNET2172: unexpected '.'. A GO TO statement with more than one procedure-name is §14.9.17.2 Format 2, whose DEPENDING phrase is required: Format 1 prints one unbracketed p"
+    }
+   ]
+  },
+  {
+   "arm": "D: this branch's harness as committed (prompt, early stop, seed exclusion)",
+   "ran": "2026-10-22 12:41-12:45 PDT",
+   "rows": [
+    {
+     "id": "fz00003",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 18.1,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET2159",
+       "fz00003.cob:11: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00002",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 19.8,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0312",
+       "fz00002.cob:8: error: syntax error, unexpected ACCESS, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET0865",
+       "fz00002.cob:27: error: DELETE not allowed on LINE SEQUENTIAL files"
+      ]
+     ],
+     "first_error_wiseowl": "fz00002.cob(27,1): error COBOLNET0865: DELETE RECORD shall not be specified for sequential-organization file 'WS-FIXED' (ISO §14.9.10.3 SR1)"
+    },
+    {
+     "id": "fz00001",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 21.5,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00001.cob:8: error: 'WS-KEY-DATA' is not defined"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00001.cob:8: error: 'WS-KEY-DATA' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00001.cob(8,15): error COBOLNET0863: RECORD KEY 'WS-REC-KEY' is a category-numeric item; data-name-1 shall reference a data item of category alphanumeric or category national (ISO §12.4.5.12.3 SR2)"
+    },
+    {
+     "id": "fz00004",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 3.4,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00004.cob(8,1): error COBOLNET2406: data item 'WS-FIELD-B': the VALUE clause shall not be specified in an entry subordinate to 'WS-REC-B', which contains a REDEFINES clause (ISO §13.18.63.3 SR12) — "
+    },
+    {
+     "id": "fz00000",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 23.6,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0865",
+       "fz00000.cob:27: error: DELETE not allowed on LINE SEQUENTIAL files"
+      ],
+      [
+       "COBOL0307",
+       "fz00000.cob:9: error: cannot use RECORD KEY clause on RELATIVE files"
+      ]
+     ],
+     "first_error_wiseowl": "fz00000.cob(31,1): error COBOLNET1720: the INVALID KEY phrase shall not be specified for a DELETE RECORD statement that references a file that is in sequential access mode (ISO §14.9.10.3 SR2)"
+    },
+    {
+     "id": "fz00005",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 4.3,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00008",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 8.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00008.cob:6: error: missing file description for FILE REPORT-FILE"
+      ],
+      [
+       "COBOL0001",
+       "fz00008.cob:6: error: missing file description for FILE REPORT-FILE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00008.cob(15,1): error COBOL0001: unexpected 'RD-RECORD'"
+    },
+    {
+     "id": "fz00007",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 8.8,
+     "on_topic": false,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00007.cob:11: error: syntax error, unexpected SOURCE"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00006",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 17.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00006.cob:9: error: syntax error, unexpected SOURCE"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:6: error: invalid system-name 'REPORT-DEVICE'"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:15: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:6: error: invalid system-name 'REPORT-DEVICE'"
+      ]
+     ],
+     "first_error_wiseowl": "fz00006.cob(23,1): error COBOL0001: unexpected 'FD'"
+    },
+    {
+     "id": "fz00010",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 7.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00010.cob:6: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00010.cob:6: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00010.cob(6,25): error COBOLNET1941: 'WS-PTR' is not a clause of the data description entry for 'WS-BASED-FIELD' — the ISO §13.16.2 Format 1 general format lists the clauses that may be specified, a"
+    },
+    {
+     "id": "fz00009",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "EXIT_DIFFERS",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 15.2,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET2576",
+       "fz00009.cob:8: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00009.cob:8: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00009.cob:8: error: syntax error, unexpected ON"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00012",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.8,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00013",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.4,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00014",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.9,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00014.cob(41,6): error COBOLNET2269: NEXT SENTENCE: it is a phrase of exactly three general formats — IF Format 2 (§14.9.19.2), as the whole of the THEN or ELSE phrase, and both SEARCH formats (§14."
+    },
+    {
+     "id": "fz00011",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.9,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00011.cob:8: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET2576",
+       "fz00011.cob:8: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00011.cob:8: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00011.cob:8: error: syntax error, unexpected ON"
+      ]
+     ],
+     "first_error_wiseowl": "fz00011.cob(8,28): error COBOLNET1941: unexpected 'ON'. 'ON' is not a clause of the data description entry for 'WS-BASED-TEMPLATE' — the ISO §13.16.2 Format 1 general format lists the clauses that may"
+    },
+    {
+     "id": "fz00017",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 6.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00017.cob:12: error: syntax error, unexpected NULL, expecting ZERO"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00017.cob:11: error: syntax error, unexpected NULL, expecting ZERO"
+      ]
+     ],
+     "first_error_wiseowl": "fz00017.cob(11,25): error COBOLNET0901: 'NULL' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00016",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "THEY_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 8.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0867",
+       "fz00016.cob:10: error: executable program requested but PROCEDURE/ENTRY has USING clause"
+      ],
+      [
+       "COBOLNET1694",
+       "cobc: tree.c:1606: internal compiler error"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00018",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 7.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00018.cob:27: error: syntax error, unexpected ON"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00018.cob:23: error: syntax error, unexpected ON"
+      ]
+     ],
+     "first_error_wiseowl": "fz00018.cob(10,33): error COBOLNET0901: 'BOOLEAN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00015",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "THEY_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 16.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00015.cob:12: error: syntax error, unexpected FUNCTION DISPLAY-OF"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00015.cob:11: error: syntax error, unexpected NULL, expecting ZERO"
+      ],
+      [
+       "COBOLNET0867",
+       "fz00015.cob:11: error: invalid expression: unfinished expression"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00021",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 7.6,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00022",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.0,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00023",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.0,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00019",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 20.0,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET2632",
+       "fz00019.cob:22: error: syntax error, unexpected *"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00019.cob:27: error: syntax error, unexpected RETURNING"
+      ]
+     ],
+     "first_error_wiseowl": "fz00019.cob(10,30): error COBOLNET0901: 'BOOLEAN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00025",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "THEY_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.1,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00024",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 13.4,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00024.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00024.cob(48,21): error COBOL0307: unexpected 'ON'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00020",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 29.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00020.cob:24: error: syntax error, unexpected GIVING"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:23: error: 'VALID-WORKING-STORAGE' is not defined"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:21: error: MOVE of figurative constant SPACE to numeric item used"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:22: error: syntax error, unexpected GIVING"
+      ]
+     ],
+     "first_error_wiseowl": "fz00020.cob(10,32): error COBOLNET0901: 'BOOLEAN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00026",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.0,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00026.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00026.cob(21,1): error COBOL0307: unexpected 'ON'. A period may be missing at the end of the previous sentence."
+    },
+    {
+     "id": "fz00027",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 15.8,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1934",
+       "fz00027.cob:6: error: S must be at start of PICTURE string"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00029",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 23.6,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1934",
+       "fz00029.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET2191",
+       "fz00029.cob:9: error: group item 'WS-GROUP-SIGN' cannot have PICTURE clause"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00028",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 31.5,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1934",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET0881",
+       "fz00028.cob:18: error: PICTURE clause required for 'WS-COMP-NEG'"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00030",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 30.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00030.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOL0312",
+       "fz00030.cob:10: error: syntax error, unexpected SIZE, expecting Identifier"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00030.cob:13: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00030.cob:12: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00030.cob(12,5): error COBOLNET1970: unexpected 'BLOCK'. 'BLOCK' is not a clause of the file control entry for 'FILE-B' — the ISO §12.4.5.1 general format lists the clauses that may be specified, an"
+    },
+    {
+     "id": "fz00031",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 30.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00031.cob:8: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOL0312",
+       "fz00031.cob:8: error: syntax error, unexpected VARYING, expecting Identifier"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00031.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00031.cob:8: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00031.cob(8,5): error COBOLNET1970: unexpected 'BLOCK'. 'BLOCK' is not a clause of the file control entry for 'FILE-A' — the ISO §12.4.5.1 general format lists the clauses that may be specified, and"
+    },
+    {
+     "id": "fz00032",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 33.0,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOL0312",
+       "fz00032.cob:10: error: syntax error, unexpected CONTAINS, expecting Identifier"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00032.cob(10,5): error COBOLNET1970: unexpected 'BLOCK'. 'BLOCK' is not a clause of the file control entry for 'FILE-A' — the ISO §12.4.5.1 general format lists the clauses that may be specified, an"
+    },
+    {
+     "id": "fz00033",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 29.3,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0863",
+       "fz00033.cob:84: error: invalid key item"
+      ],
+      [
+       "COBOLNET0862",
+       "fz00033.cob:84: error: invalid key item"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00037",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 8.9,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00037.cob(7,9): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 sp"
+    },
+    {
+     "id": "fz00035",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 30.6,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0863",
+       "fz00035.cob:59: error: invalid key item"
+      ],
+      [
+       "COBOLNET0862",
+       "fz00035.cob:59: error: invalid key item"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00036",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 24.0,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00036.cob:8: error: syntax error, unexpected LINAGE, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00036.cob:8: error: syntax error, unexpected LINAGE, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00036.cob(8,9): error COBOLNET1970: unexpected 'LINAGE'. 'LINAGE' is not a clause of the file control entry for 'WS-PRINT' — the ISO §12.4.5.1 general format lists the clauses that may be specified,"
+    },
+    {
+     "id": "fz00034",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 44.6,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00034.cob:10: error: syntax error, unexpected Identifier, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00034.cob:75: error: invalid key item"
+      ],
+      [
+       "COBOLNET0862",
+       "fz00034.cob:79: error: invalid key item"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00038",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 7.8,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00038.cob:8: error: syntax error, unexpected LINAGE, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00038.cob:8: error: syntax error, unexpected LINAGE, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00038.cob(8,9): error COBOLNET1970: unexpected 'LINAGE'. 'LINAGE' is not a clause of the file control entry for 'WS-LINE-FILE' — the ISO §12.4.5.1 general format lists the clauses that may be specif"
+    },
+    {
+     "id": "fz00039",
+     "clause": "14.9.17",
+     "title": "GO TO statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 1,
+     "stopped_early": true,
+     "model_seconds": 9.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00039.cob:11: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOL0307",
+       "fz00039.cob:11: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00039.cob(11,1): error COBOL0307: unexpected 'P-B'. A period may be missing at the end of the previous sentence."
+    }
+   ]
+  },
+  {
+   "arm": "E: D with the early stop disabled",
+   "ran": "2026-10-22 12:45-12:52 PDT",
+   "rows": [
+    {
+     "id": "fz00002",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 31.6,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0312",
+       "fz00002.cob:8: error: syntax error, unexpected ACCESS, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00002.cob(29,1): error COBOLNET0865: DELETE RECORD shall not be specified for sequential-organization file 'WS-FILE' (ISO §14.9.10.3 SR1)"
+    },
+    {
+     "id": "fz00003",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 36.2,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1539",
+       "fz00003.cob:10: error: larger REDEFINES used"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00000",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 33.9,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0863",
+       "fz00000.cob:8: error: 'WS-KEY' is not defined"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00000.cob:8: error: 'WS-KEY-ITEM' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00000.cob(43,1): error COBOLNET1720: the INVALID KEY phrase shall not be specified for a DELETE RECORD statement that references a file that is in sequential access mode (ISO §14.9.10.3 SR2)"
+    },
+    {
+     "id": "fz00004",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "OUTPUT_DIFFERS",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 3.6,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00001",
+     "clause": "14.9.10",
+     "title": "DELETE statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 40.3,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0200",
+       "fz00001.cob:9: error: cannot use RELATIVE KEY clause on INDEXED files"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00001.cob:8: error: 'WS-KEY' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00001.cob(49,1): error COBOLNET0864: READ … KEY on 'WS-FILE' is a Format-2 phrase and cannot combine with NEXT/PREVIOUS/AT END (ISO §14.9.30 general formats)"
+    },
+    {
+     "id": "fz00005",
+     "clause": "13.18.22",
+     "title": "EXTERNAL clause",
+     "family": "data",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 4.6,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": "fz00005.cob(8,1): error COBOLNET2406: data item 'WS-VAL-B': the VALUE clause shall not be specified in an entry subordinate to 'WS-REC-B', which contains a REDEFINES clause (ISO §13.18.63.3 SR12) — th"
+    },
+    {
+     "id": "fz00006",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00006.cob:14: error: syntax error, unexpected Literal"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:14: error: syntax error, unexpected Literal"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:19: error: syntax error, unexpected Literal"
+      ],
+      [
+       "COBOL0001",
+       "fz00006.cob:19: error: syntax error, unexpected Literal"
+      ]
+     ],
+     "first_error_wiseowl": "fz00006.cob(19,25): error COBOL0001: cannot parse construct near '5'"
+    },
+    {
+     "id": "fz00007",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 25.3,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00007.cob:15: error: syntax error, unexpected SOURCE"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00007.cob:15: error: syntax error, unexpected SOURCE"
+      ],
+      [
+       "COBOL0001",
+       "fz00007.cob:10: error: 'RPT-REC' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00007.cob:10: error: 'RPT-REC' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00007.cob(18,1): error COBOL0001: unexpected 'WORKING-STORAGE'"
+    },
+    {
+     "id": "fz00008",
+     "clause": "13.18.53",
+     "title": "SOURCE clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 29.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00008.cob:11: error: syntax error, unexpected SOURCE"
+      ],
+      [
+       "COBOL0001",
+       "fz00008.cob:6: error: missing file description for FILE REPORT-FILE"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00008.cob:11: error: syntax error, unexpected SOURCE"
+      ],
+      [
+       "COBOL0001",
+       "fz00008.cob:6: error: missing file description for FILE REPORT-FILE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00008.cob(26,1): error COBOL0001: unexpected 'FD'"
+    },
+    {
+     "id": "fz00009",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 29.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET2072",
+       "fz00009.cob:6: error: BASED only allowed at 01/77 level"
+      ],
+      [
+       "COBOLNET2072",
+       "fz00009.cob:6: error: BASED only allowed at 01/77 level"
+      ],
+      [
+       "COBOLNET2072",
+       "fz00009.cob:12: error: 'EC-DATA-PTR-NULL' is not defined"
+      ],
+      [
+       "COBOLNET2072",
+       "fz00009.cob:12: error: 'EC-DATA-PTR-NULL' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00009.cob(12,24): error COBOLNET2072: unexpected 'IS'. The IF statement's general format shows an imperative-statement here that is not bracketed, so at least one statement shall be specified: brack"
+    },
+    {
+     "id": "fz00012",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.2,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00014",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 4.6,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00010",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 23.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00010.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1639",
+       "fz00010.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1639",
+       "fz00010.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1639",
+       "fz00010.cob:5: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00010.cob(15,4): error COBOLNET1639: 'EC-DATA-PTR-NULL' is not defined — no declaration in this source element gives the name 'EC-DATA-PTR-NULL', so the statement's reference identifies no resource "
+    },
+    {
+     "id": "fz00011",
+     "clause": "13.18.5",
+     "title": "BASED clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 21.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00011.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00011.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00011.cob:5: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET1941",
+       "fz00011.cob:5: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00011.cob(5,22): error COBOLNET1941: 'WS-BASED-PTR' is not a clause of the data description entry for 'WS-TEMPLATE' — the ISO §13.16.2 Format 1 general format lists the clauses that may be specified"
+    },
+    {
+     "id": "fz00013",
+     "clause": "14.9.19",
+     "title": "IF statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 23.0,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET2072",
+       "fz00013.cob:29: error: 'TEST-NESTED-ELSE' is not defined"
+      ],
+      [
+       "COBOLNET2072",
+       "fz00013.cob:29: error: 'TEST-NESTED-ELSE' is not defined"
+      ],
+      [
+       "COBOLNET1639",
+       "fz00013.cob:29: error: 'TEST-NESTED-ELSE' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00013.cob(57,21): error COBOLNET2269: NEXT SENTENCE: it is a phrase of exactly three general formats — IF Format 2 (§14.9.19.2), as the whole of the THEN or ELSE phrase, and both SEARCH formats (§14"
+    },
+    {
+     "id": "fz00015",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 5.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1546",
+       "fz00015.cob:11: error: syntax error, unexpected FUNCTION DISPLAY-OF"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00016",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 9.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0867",
+       "/tmp/cob191000_0.c:105:28: error: lvalue required as left operand of assignment"
+      ],
+      [
+       "COBOLNET2576",
+       "fz00016.cob:13: error: invalid expression: unfinished expression"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00016.cob:12: error: syntax error, unexpected NULL, expecting ZERO"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00016.cob:12: error: syntax error, unexpected NULL, expecting ZERO"
+      ]
+     ],
+     "first_error_wiseowl": "fz00016.cob(12,22): error COBOLNET0901: 'NULL' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00017",
+     "clause": "8.4.3.7",
+     "title": "Identifiers > NULL object reference",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 16.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0867",
+       "fz00017.cob:17: error: invalid SET statement"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00017.cob:13: error: syntax error, unexpected NULL, expecting ZERO"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00017.cob:13: error: syntax error, unexpected NULL, expecting ZERO"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00017.cob:13: error: syntax error, unexpected NULL, expecting ZERO"
+      ]
+     ],
+     "first_error_wiseowl": "fz00017.cob(13,23): error COBOLNET0901: 'NULL' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00018",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 14.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1747",
+       "fz00018.cob:6: error: syntax error, unexpected CLASS, expecting VALUE or VALUES"
+      ],
+      [
+       "COBOLNET1657",
+       "fz00018.cob:8: error: literal type does not match numeric data type"
+      ],
+      [
+       "COBOLNET1747",
+       "fz00018.cob:6: error: syntax error, unexpected CLASS, expecting VALUE or VALUES"
+      ],
+      [
+       "COBOLNET1657",
+       "fz00018.cob:18: error: literal type does not match numeric data type"
+      ]
+     ],
+     "first_error_wiseowl": "fz00018.cob(18,1): error COBOLNET1657: condition-name 'WS-GROUP-VALID': the VALUE literal \"A\" is not a numeric literal and the item is numeric (ISO §13.18.63.3 SR2)"
+    },
+    {
+     "id": "fz00021",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 5.8,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00022",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 6.0,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00019",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 28.4,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00019.cob:18: error: syntax error, unexpected VALIDATE-STATUS"
+      ],
+      [
+       "COBOL0307",
+       "fz00019.cob:14: error: syntax error, unexpected GIVING"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00019.cob:15: error: syntax error, unexpected VALIDATE-STATUS"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00019.cob:15: error: syntax error, unexpected VALIDATE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00019.cob(15,4): error COBOLNET0901: 'VALIDATE' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00020",
+     "clause": "13.18.11",
+     "title": "CLASS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 26.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00020.cob:23: error: 'VALID-CONTENT' is not defined"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:22: error: 'VALID-CONTENT' is not defined"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:22: error: 'VALID-CONTENT' is not defined"
+      ],
+      [
+       "COBOLNET0901",
+       "fz00020.cob:22: error: 'VALID-CONTENT' is not defined"
+      ]
+     ],
+     "first_error_wiseowl": "fz00020.cob(10,33): error COBOLNET0901: 'BOOLEAN' is a reserved word in COBOL-2014 and cannot be used as a user-defined word (ISO §8.9)"
+    },
+    {
+     "id": "fz00023",
+     "clause": "13.18.45",
+     "title": "RENAMES clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 17.3,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00023.cob:20: error: syntax error, unexpected *"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00025",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "THEY_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 10.5,
+     "on_topic": true,
+     "rounds": [],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00024",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 17.4,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00024.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": "fz00024.cob(41,4): error COBOLNET0899: CALL … USING BY VALUE belongs to the program-prototype CALL (ISO §14.9.4.2 Format 2), which the AS phrase selects — Format 1’s USING admits BY REFERENCE and BY C"
+    },
+    {
+     "id": "fz00026",
+     "clause": "14.9.4",
+     "title": "CALL statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 21.0,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET0901",
+       "fz00026.cob:6: error: PROCEDURE DIVISION header missing"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00029",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "AGREE",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 26.8,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1934",
+       "fz00029.cob:6: error: S must be at start of PICTURE string"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00030",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "WE_REJECT",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 25.9,
+     "on_topic": false,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00030.cob:8: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00030.cob(7,5): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 sp"
+    },
+    {
+     "id": "fz00031",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 11.3,
+     "on_topic": false,
+     "rounds": [],
+     "first_error_wiseowl": "fz00031.cob(6,31): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 s"
+    },
+    {
+     "id": "fz00027",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 48.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1941",
+       "fz00027.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1934",
+       "fz00027.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1625",
+       "fz00027.cob:12: error: literal type does not match numeric data type"
+      ],
+      [
+       "COBOLNET1625",
+       "fz00027.cob:23: error: a Z or * which is before the decimal point cannot follow 9"
+      ]
+     ],
+     "first_error_wiseowl": "fz00027.cob(12,1): error COBOLNET1625: condition-name 'GS-NEG': the numeric literal -100 in the VALUE clause is not a permissible value in the range the PICTURE indicates — it is not representable wit"
+    },
+    {
+     "id": "fz00028",
+     "clause": "13.18.52",
+     "title": "SIGN clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 52.5,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1934",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1934",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1934",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ],
+      [
+       "COBOLNET1934",
+       "fz00028.cob:6: error: S must be at start of PICTURE string"
+      ]
+     ],
+     "first_error_wiseowl": "fz00028.cob(6,1): error COBOLNET1934: invalid PICTURE 9(3)S (expanded: 999S) — data item 'WS-TRAILING-SEPARATE': the symbol 'S' shall be the FIRST symbol in character-string-1 (ISO §13.18.40.3 SR18)"
+    },
+    {
+     "id": "fz00035",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "AGREE",
+     "repairs": 2,
+     "stopped_early": false,
+     "model_seconds": 36.2,
+     "on_topic": true,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00035.cob:6: error: PROCEDURE DIVISION header missing"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00035.cob:8: error: duplicate ORGANIZATION clause"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    },
+    {
+     "id": "fz00032",
+     "clause": "13.18.10",
+     "title": "BLOCK CONTAINS clause",
+     "family": "data",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 49.7,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ],
+      [
+       "COBOLNET1970",
+       "fz00032.cob:10: error: syntax error, unexpected BLOCK, expecting SEQUENTIAL"
+      ]
+     ],
+     "first_error_wiseowl": "fz00032.cob(10,5): error COBOLNET1970: unexpected 'BLOCK'. 'BLOCK' is not a clause of the file control entry for 'FILE-BLOCK' — the ISO §12.4.5.1 general format lists the clauses that may be specified"
+    },
+    {
+     "id": "fz00033",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 49.1,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0200",
+       "fz00033.cob:8: error: 'WS-KEY-DATA' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00033.cob:8: error: 'WS-KEY-DATA' is not defined"
+      ],
+      [
+       "COBOL0001",
+       "fz00033.cob:25: error: syntax error, unexpected FILE"
+      ],
+      [
+       "COBOL0001",
+       "fz00033.cob:45: error: syntax error, unexpected Identifier"
+      ]
+     ],
+     "first_error_wiseowl": "fz00033.cob(45,23): error COBOL0001: unexpected 'WS-KEY-DATA'"
+    },
+    {
+     "id": "fz00034",
+     "clause": "14.9.41",
+     "title": "START statement",
+     "family": "statement",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 48.8,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOLNET0863",
+       "fz00034.cob:8: error: 'WS-KEY-DATA' is not defined"
+      ],
+      [
+       "COBOLNET0863",
+       "fz00034.cob:9: error: 'WS-REC-ALT' is not defined"
+      ],
+      [
+       "COBOLNET2670",
+       "fz00034.cob:50: error: length of 'WS-REC-DATA' out of bounds: 8"
+      ],
+      [
+       "COBOLNET2670",
+       "fz00034.cob:50: error: length of 'WS-REC-DATA' out of bounds: 8"
+      ]
+     ],
+     "first_error_wiseowl": "fz00034.cob(50,5): error COBOLNET2670: 'WS-REC-DATA(5:8)': the reference modification (5:8) extends past the 8-position item (ISO §8.4.3.3.4 5) c))"
+    },
+    {
+     "id": "fz00038",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "WE_REJECT",
+     "repairs": 0,
+     "stopped_early": false,
+     "model_seconds": 7.3,
+     "on_topic": null,
+     "rounds": [],
+     "first_error_wiseowl": "fz00038.cob(9,1): error COBOLNET0900: ORGANIZATION LINE SEQUENTIAL requires COBOL-2023 (targeting COBOL-2014) — the LINE SEQUENTIAL phrase of the ORGANIZATION clause (ISO §12.4.5.10.3 GR2; §9.1.7.2 sp"
+    },
+    {
+     "id": "fz00036",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 16.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00036.cob:20: error: syntax error, unexpected Identifier"
+      ],
+      [
+       "COBOLNET0864",
+       "fz00036.cob:26: error: invalid LINAGE-COUNTER usage"
+      ],
+      [
+       "COBOLNET0864",
+       "fz00036.cob:26: error: invalid LINAGE-COUNTER usage"
+      ],
+      [
+       "COBOLNET0864",
+       "fz00036.cob:26: error: invalid LINAGE-COUNTER usage"
+      ]
+     ],
+     "first_error_wiseowl": "fz00036.cob(25,9): error COBOLNET0864: LINAGE-COUNTER referenced, but no file description entry contains a LINAGE clause (ISO §8.4.3.14 — the register is generated by the presence of a LINAGE clause)"
+    },
+    {
+     "id": "fz00037",
+     "clause": "8.4.3.14",
+     "title": "Identifiers > LINAGE-COUNTER",
+     "family": "expression",
+     "verdict": "BOTH_REJECT",
+     "repairs": 3,
+     "stopped_early": false,
+     "model_seconds": 18.2,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0001",
+       "fz00037.cob:28: error: syntax error, unexpected LINAGE"
+      ],
+      [
+       "COBOL0001",
+       "fz00037.cob:28: error: syntax error, unexpected LINAGE"
+      ],
+      [
+       "COBOL0001",
+       "fz00037.cob:28: error: syntax error, unexpected LINAGE"
+      ],
+      [
+       "COBOL0001",
+       "fz00037.cob:28: error: syntax error, unexpected LINAGE"
+      ]
+     ],
+     "first_error_wiseowl": "fz00037.cob(28,9): error COBOL0001: unexpected 'LINAGE'"
+    },
+    {
+     "id": "fz00039",
+     "clause": "14.9.17",
+     "title": "GO TO statement",
+     "family": "statement",
+     "verdict": "BOTH_HANG",
+     "repairs": 1,
+     "stopped_early": false,
+     "model_seconds": 6.6,
+     "on_topic": null,
+     "rounds": [
+      [
+       "COBOL0307",
+       "fz00039.cob:9: error: syntax error, unexpected DEPENDING"
+      ]
+     ],
+     "first_error_wiseowl": ""
+    }
+   ]
+  }
+ ]
+}
