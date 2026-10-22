@@ -1,4 +1,4 @@
-## PB3510: an OCCURS DEPENDING table records only an admitted data-name-1, so DEPENDING ON its own record no longer overflows the binder's stack
+## Entry 2350 — 2026-10-22 11:12 PDT — PB3510: an OCCURS DEPENDING table records only an admitted data-name-1, so DEPENDING ON its own record no longer overflows the binder's stack
 
 The second overnight fuzz run's fz01530 (kb/Work PB3510) wrote `OCCURS 1 TO 5 DEPENDING ON` the group that holds the
 table. WiseOwl died with "Stack overflow." and no diagnostic; GnuCOBOL refused it. Re-probed on this branch's build:
@@ -38,3 +38,4 @@ their witnesses. No diagnostic code was allocated (COBOLNET4730 returned).
 
 **Gate.** `LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261022T174638Z-9d0d64; Conformance 10,742, Unit 34,440
 and Characterization 5 cases ran, every new refusal and positive and all ten drift-test cases among them).
+
