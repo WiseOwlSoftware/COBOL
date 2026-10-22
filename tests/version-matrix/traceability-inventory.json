@@ -57590,7 +57590,7 @@
   "kind": "FMT",
   "ordinal": 0,
   "subject": "USAGE clause",
-  "rule-digest": "90a31b8fa541",
+  "rule-digest": "d21934139e1a",
   "verdict": "CONFORMS",
   "code-location": "src/Cobol.Net.Frontend/Grammar/Core/CobolData.g4#usageClause; src/Cobol.Net.Compiler/Binding/Model/UsagePhrase.cs#UsagePhraseRules; src/Cobol.Net.Compiler/Binding/DataBinder.UsagePhrases.cs#ScreenUsagePhrases",
   "test-ref": "conformance:cases/13.18.60-USAGE/pb95_bare_usage_keywords; conformance:cases/13.18.60-USAGE/pb848_pointer_usage_to_optional; conformance-test:OptionalWordSubsetDriftTests.EveryOptionalWordSubset_CompilesAndRunsIdentically; unit:PointerUsageOperandDriftTests.AClauseLeadingKeyword_IsNeverTheToLessOperand; conformance:cases/13.18.60-USAGE/pb3517-sign-phrase-on-non-binary-usage; conformance:cases/13.18.60-USAGE/pb3517-no-sign-phrase-on-binary-usage; conformance:cases/13.18.60-USAGE/pb3517_binary_sign_phrase; unit:UsageClausePhraseDriftTests.TheTable_AgreesWithThePrintedFigure_ForEveryUsageWord; unit:UsageClausePhraseDriftTests.SignPhraseOnNonBinaryUsages_DrawsOneRefusalPerEntry_PinnedToSpec",
