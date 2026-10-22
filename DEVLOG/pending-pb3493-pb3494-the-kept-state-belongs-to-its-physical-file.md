@@ -39,7 +39,9 @@ holds no kept lock after the hand-over, so the OPEN takes its column on the new 
 
 **Tests** (`CommitRollbackRuntimeTests`, both organizations): creation refused at a write and at a sync (4), final sync refused
 (2), creation landed (2), a vanished OPTIONAL file on INPUT and I-O (4; effective on a host that lets a file be removed while a
-handle stands, so on Linux, and on Windows the case asserts the host refuses the removal), a kept state left behind by an
+handle stands, so on Linux, and on Windows the case asserts the host refuses the removal; on I-O the OPEN creates the file,
+§14.9.27.4 GR17, and the CLOSE keeps the file lock its opening established, §9.1.15, so another run unit's OPEN OUTPUT is '61'
+until the COMMIT), a kept state left behind by an
 association with another file ending in COMMIT, ROLLBACK, a return to the first file and the run unit's end (8), and a refused
 ROLLBACK of such a state (1). The design (2.2.1.10 As built (3)) says what is carried and where; PB3493 and PB3494 are
 landed with `closes_rows: []` and their reasons.
@@ -55,5 +57,13 @@ share `AttachHandleTo`.
 gating, PB2515): GREEN — … Conformance 10,724/18,047 · Unit 34,118/35,285 · Characterization 5/36 cases ran`; the creation and
 association cases ran in leg 1. The first gate (`…T220701Z-25adee`) was RED on the drift test above. Linux (`--legs unit,conformance`)
 at the same head: conformance GREEN 18,047/18,047, unit RED on four cases of the vanished-file test, which is effective only on
-Linux: it wrote through a connector name it never registered (`Write(maker, …)` without `name: "S"`). Fixed in the next commit; the
-Linux unit leg has to run again on it (the wave's stop file ended this run before it could).
+Linux. The two INPUT cases wrote through a connector name they never registered (`Write(maker, …)` without `name: "S"`). The two
+I-O cases were red one statement earlier, and the first fix did not reach them: the other run unit's OPEN OUTPUT answered '61'
+where the test expected '00'. The runtime was right. The I-O OPEN creates the absent OPTIONAL file, its successful opening
+establishes a file lock that a CLOSE under APPLY COMMIT keeps until the COMMIT, and SHARING WITH ALL OTHER admits input, I-O and
+extend only (§9.1.15). The I-O arm now asserts that '61' and COMMITs before the other run unit creates the file. After a merge of
+origin/main (165 commits, no conflicts), the Windows gate at that head
+(run `TestResults/build-local/20261022T213012Z-d8b9dd`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …
+Conformance 10,708/18,125 · Unit 34,423/35,356 · Characterization 5/36 cases ran`, the four vanished-file cases among them.
+Linux (`--legs unit,conformance`) at the same head: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
+2c3275cb1) ===`, unit 35,391/35,391 and conformance 18,125/18,125.
