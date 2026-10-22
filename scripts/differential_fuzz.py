@@ -34,7 +34,8 @@ compiled: invented phrases, reserved words used as names, TRUE as a value, a SPE
 `--std 2014`. So the seed's clause reaches the model cut at its structure (`seed_text`: the general format and the syntax
 rules whole, the general rules only as far as the budget allows) with the transcription's markup stripped and the
 diagram notation explained; the system prompt carries the program skeleton, the naming rule, the reserved words the run
-tripped on (each held to 8.9 by the self-test), the words 2023 added (Annex E.2 item 25) and one worked example per seed
+tripped on (each held to 8.9 by the self-test), the words 2023 reserved (Annex E.2 item 25) and the Foreword's other 2023
+changes (LINE SEQUENTIAL, PERFORM UNTIL EXIT …), and one worked example per seed
 FAMILY (`FAMILIES`: data description, statement, intrinsic function, expression), each compiled with the same output by
 both compilers before it was written here. A correction quotes the refused source line beside each diagnostic, every
 refusal round's first diagnostics are recorded on the row (`repair_rounds`), and a round whose first diagnostics repeat
@@ -42,7 +43,8 @@ the previous round's ends the corrections (`stopped_early`): the same error twic
 A clause of an optional module the conformance claim declines (docs/CONFORMANCE.md §5: the screen section, VALIDATE,
 COMMIT and ROLLBACK, FORMAT and SELECT WHEN) is not a seed (`declined_seed_titles`): WiseOwl refuses it by name, so its
 programs could only be refused or explained. MEASURED (2026-10-22, the PB3523 bake-offs, 40 programs an arm): the prompt
-did not move first-attempt validity beyond the run-to-run noise (10, 10 and 9 of 40 on one seed walk); the early stop
+did not move first-attempt validity beyond the run-to-run noise (on one seed walk, 10 of 40 for the old prompt and 10, 9
+and 8 for the new); the early stop
 saved 12 % of the generations; the declined seeds were 10 % of the second night's programs and 14 % of its BOTH_REJECT.
 What remains is the model writing constructs it does not know (the report writer, OO, SORT and MERGE files, SET's rarer
 formats), which a prompt has not been shown to fix.
@@ -221,6 +223,35 @@ def reserved_words(text: str) -> set[str]:
         if inside and (m := RESERVED_ITEM.match(line)):
             words.add(m.group(1))
     return words
+
+
+#: The Foreword's list of the edition's changes ("The main changes are as follows:"), one "— item" per line, its
+#: general enhancements up to the item that opens the function sub-list (`added_in_2023` reads the functions exactly).
+FOREWORD_CHANGES = "The main changes are as follows:"
+FOREWORD_ITEM = re.compile(r"^(?:- )?— (.+?)\s*$")
+FOREWORD_FUNCTIONS = "The following intrinsic functions were added or enhanced:"
+
+
+def edition_changes(text: str) -> list[str]:
+    """The 2023 edition's general enhancements as the Foreword names them ("Line Sequential file organization", "Infinite
+    loop for the PERFORM statement using the UNTIL EXIT phrase", "An Enhanced INSPECT statement to inspect backwards" …):
+    under `EDITION` 2014 each is an error to both compilers, and kb/Work PB3523 names LINE SEQUENTIAL among the 2023
+    syntax the model wrote. Read from the spec, never typed: the items between FOREWORD_CHANGES and FOREWORD_FUNCTIONS,
+    less the sub-list's own heading item."""
+    items: list[str] = []
+    inside = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line == FOREWORD_CHANGES:
+            inside = True
+            continue
+        if not inside:
+            continue
+        if line == f"- — {FOREWORD_FUNCTIONS}" or line == f"— {FOREWORD_FUNCTIONS}" or HEADING.match(raw):
+            break
+        if (m := FOREWORD_ITEM.match(line)) and not m.group(1).endswith(":"):
+            items.append(m.group(1))
+    return items
 
 
 CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
@@ -526,6 +557,7 @@ SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compile
 - In a PICTURE, B inserts a space; it is not a bit, and every PICTURE has at least one 9, X, A, N or editing symbol.
 - The ONLY intrinsic functions are these; any other FUNCTION name is an error: {functions}.
 - Not in the 2014 edition the compilers run, so an error: {added}.
+- The 2023 edition's other new features are not in 2014 either, so never use them: {changes}.
 - Optional facilities one of the compilers does not provide, so never use them: {declined}.
 - FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM as the argument, never a literal or an expression.
 - USAGE is one of the standard's (BINARY, PACKED-DECIMAL, DISPLAY, NATIONAL, INDEX, POINTER, ...); COMP-1 to COMP-5 are not in the standard.
@@ -539,16 +571,18 @@ This program, which both compilers accept, shows the expected shape:
 class PromptFacts(typing.NamedTuple):
     """What the system prompt states that is READ, never typed here: from the standard, the edition's functions
     (`spec_functions`), the functions and statements 2023 added (`added_in_2023`) and the words it reserved
-    (`added_reserved_words`); from the conformance claim, the optional modules WiseOwl declines (`declined_modules`)."""
+    (`added_reserved_words`), and the Foreword's other changes (`edition_changes`); from the conformance claim, the
+    optional modules WiseOwl declines (`declined_modules`)."""
     functions: list[str]
     added: tuple[set[str], set[str]]
     added_words: list[str]
+    changes: list[str]
     declined: list[str]
 
     @classmethod
     def read(cls, spec_text: str, conformance_text: str) -> PromptFacts:
         return cls(spec_functions(spec_text), added_in_2023(spec_text), added_reserved_words(spec_text),
-                   list(declined_modules(conformance_text).values()))
+                   edition_changes(spec_text), list(declined_modules(conformance_text).values()))
 
 
 def system_prompt(facts: PromptFacts, family: str) -> str:
@@ -557,7 +591,8 @@ def system_prompt(facts: PromptFacts, family: str) -> str:
     names = ([f"FUNCTION {f}" for f in sorted(facts.added[0])] + [f"the {st} statement" for st in sorted(facts.added[1])]
              + ([f"the words {', '.join(facts.added_words)}"] if facts.added_words else []))
     return (SYSTEM_PROMPT.replace("{functions}", ", ".join(facts.functions)).replace("{added}", ", ".join(names))
-            .replace("{declined}", "; ".join(facts.declined)).replace("{reserved}", ", ".join(MISUSED_RESERVED_WORDS))
+            .replace("{changes}", "; ".join(facts.changes)).replace("{declined}", "; ".join(facts.declined))
+            .replace("{reserved}", ", ".join(MISUSED_RESERVED_WORDS))
             .replace("{example}", EXAMPLES[family]))
 
 
@@ -1584,8 +1619,16 @@ def self_test() -> int:
     sp = prompts["statement"]
     check("prompt: the facts are the spec's and the conformance claim's (the functions, the 2023 additions, the declined modules), and every family's prompt names the declined modules",
           facts.functions == real and facts.added == (added_fns, added_sts) and facts.added_words == added_words
+          and facts.changes == edition_changes(spec_text) and all("not in 2014 either, so never use them: " + "; ".join(facts.changes) in p for p in prompts.values())
           and "ACCEPT/DISPLAY screen handling" in facts.declined and "VALIDATE" in facts.declined
           and all("never use them: " + "; ".join(facts.declined) in p for p in prompts.values()), facts.declined)
+    changes = edition_changes(spec_text)
+    check("edition: the Foreword's list of the 2023 changes is read up to its function sub-list: LINE SEQUENTIAL, PERFORM UNTIL EXIT and INSPECT BACKWARD are in it, the sub-list's heading and the functions (TRIM, only enhanced, among them) are not",
+          {"Line Sequential file organization", "Infinite loop for the PERFORM statement using the UNTIL EXIT phrase",
+           "An Enhanced INSPECT statement to inspect backwards", "Boolean exclusive or operators"} <= set(changes)
+          and not any("function" in c.lower() or c.endswith(":") for c in changes) and len(changes) > 15
+          and edition_changes("x\n" + FOREWORD_CHANGES + "\n- — Group:\n  - — Alpha thing\n— Beta thing\n- — " + FOREWORD_FUNCTIONS
+                              + "\n    — GAMMA function\n— Delta\n") == ["Alpha thing", "Beta thing"], changes)
     declined_titles = declined_seed_titles(spec_text, conformance_text)
     every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
     check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE) stay",
