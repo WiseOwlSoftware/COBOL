@@ -23,14 +23,16 @@ namespace CobolNet.Tests.Unit;
 /// the figure's optional tails had been dropped from the grammar silently (kb/Work PB174). Each failure was a phrase
 /// or a usage added without anyone asking what the printed line says.</para>
 ///
-/// <para><b>What makes it a drift test.</b> Four checks, each against an inventory the test reads rather than one
+/// <para><b>What makes it a drift test.</b> Five checks, each against an inventory the test reads rather than one
 /// somebody remembered: (1) every <c>usageKeyword</c> alternative read out of the <c>.g4</c> has a row below saying
 /// which phrases its printed line carries; (2) every phrase rule read out of the <c>usageClause</c> rule maps onto a
 /// <see cref="UsagePhrase"/> and every member has a <see cref="UsagePhraseRules"/> row; (3) the production table
 /// agrees with this test's transcription of the figure for every grammar usage word, through the compiler's own
 /// <see cref="PictureAnalyzer.ParseUsage"/>; (4) the four refusal descriptors are read only by the table, and the
 /// clause's phrase children only by <c>DataBinder.ScreenUsagePhrases</c> and the edition gate, so the rule cannot
-/// grow a second copy. A new phrase or usage word fails here until its row is decided.</para>
+/// grow a second copy; (5) every grammar rule that hosts <c>usageClause</c> is read out of the <c>.g4</c> files and
+/// probed, so a host whose reader never asks the table (the REPORT SECTION's, until branch review R1-1 of PB3517)
+/// fails. A new phrase, usage word or host fails here until its row is decided.</para>
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
@@ -228,6 +230,105 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
         Assert.True(offenders.Count == 0, string.Join("\n", offenders));
     }
 
+    /// <summary>One phrase as a programmer writes it, per <see cref="UsagePhrase"/> member — what the host probe
+    /// below writes after USAGE DISPLAY, whose §13.18.60.2 line prints none of the four.</summary>
+    private static readonly Dictionary<UsagePhrase, string> PhraseSample = new()
+    {
+        [UsagePhrase.Sign] = "UNSIGNED",
+        [UsagePhrase.NoSign] = "WITH NO SIGN",
+        [UsagePhrase.Endianness] = "HIGH-ORDER-LEFT",
+        [UsagePhrase.Encoding] = "BINARY-ENCODING",
+    };
+
+    /// <summary>How each grammar rule that hosts <c>usageClause</c> is probed: a program that writes one entry per
+    /// <see cref="UsagePhrase"/> (named <c>R-1</c>, <c>R-2</c>, …, each <c>USAGE DISPLAY</c> plus that phrase) in
+    /// that host, or <see langword="null"/> for a host whose whole module is declined (the screen description
+    /// entry, Annex A.4.2, refused by <c>ScreenFacility</c> as COBOLNET1560).</summary>
+    private static readonly Dictionary<string, Func<string, string, string>?> UsageClauseHosts = new(StringComparer.Ordinal)
+    {
+        // §13.16.2 format 1: a data description entry.
+        ["dataDescriptionClause"] = static (id, phrases) => Program(id, string.Join("\n",
+            phrases.Split('|').Select((p, i) => $"       01 R-{i + 1} PIC 9(3) USAGE DISPLAY {p}."))),
+        // §13.15.2: a report group description entry, whose USAGE clause §13.15.4 GR2 makes "the same clauses as
+        // those that are described under the general format for a data description entry".
+        ["reportGroupClause"] = static (id, phrases) => ReportProgram(id, string.Join("\n",
+            phrases.Split('|').Select((p, i) =>
+                $"          05 R-{i + 1} COLUMN {1 + 4 * i} PIC 9(3) SOURCE W USAGE DISPLAY {p}."))),
+        ["screenClause"] = null,
+    };
+
+    /// <summary>Every rule in the grammar whose alternatives name <paramref name="ruleRef"/>, read out of every
+    /// <c>.g4</c> under the Grammar directory (the repo's style: a rule's name alone on its line, its body in
+    /// <c>:</c>/<c>|</c> lines ending at a lone <c>;</c>).</summary>
+    private static SortedSet<string> RulesReferencing(string ruleRef)
+    {
+        var hosts = new SortedSet<string>(StringComparer.Ordinal);
+        var reference = new Regex($@"\b{ruleRef}\b");
+        foreach (string g4 in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Frontend", "Grammar"), "*.g4",
+                     SearchOption.AllDirectories))
+        {
+            string? rule = null;
+            foreach (string line in File.ReadAllLines(g4))
+            {
+                if (Regex.Match(line, @"^([a-z][A-Za-z0-9]*)\s*$") is { Success: true } name) { rule = name.Groups[1].Value; continue; }
+                if (rule is null) continue;
+                if (line.TrimStart().StartsWith(';')) { rule = null; continue; }
+                string body = line.Split("//")[0];
+                if (rule != ruleRef && reference.IsMatch(body)) hosts.Add(rule);
+            }
+        }
+        return hosts;
+    }
+
+    /// <summary>⛔ EVERY PLACE THE GRAMMAR ACCEPTS A USAGE CLAUSE SCREENS ITS PHRASES (kb/Work PB3517, branch review
+    /// R1-1). The one table is only as good as the set of readers that ask it: a report group description entry
+    /// parses the same <c>usageClause</c>, and its reader once took the usage word alone, so <c>USAGE DISPLAY
+    /// UNSIGNED</c> and <c>USAGE DISPLAY WITH NO SIGN</c> in a REPORT SECTION compiled clean and printed exactly what
+    /// the phrase-free entry printed — while <see cref="TheRule_IsWrittenOnlyInTheTable"/>, which finds readers of
+    /// the phrase children, stayed green, because a reader that ignores them is not a reader. This test finds the
+    /// HOSTS instead, out of the grammar, and probes each with every phrase on a usage that prints none of them:
+    /// each entry must draw its phrase's own refusal, once, naming the entry. A new host of <c>usageClause</c> fails
+    /// here until it has a probe (or is recorded as declined).</summary>
+    [Fact]
+    public void EveryGrammarHostOfTheUsageClause_ScreensItsPhrases_PinnedToSpec()
+    {
+        var hosts = RulesReferencing("usageClause");
+        Assert.NotEmpty(hosts);   // a sweep that found nothing would pass vacuously
+        Assert.True(hosts.SetEquals(UsageClauseHosts.Keys),
+            "the grammar's hosts of usageClause and this test's probes have diverged.\n"
+            + $"  grammar : {string.Join(", ", hosts)}\n"
+            + $"  probed  : {string.Join(", ", UsageClauseHosts.Keys)}\n"
+            + "A new host must pass its USAGE clause to DataBinder.ScreenUsagePhrases and get a probe here.");
+        Assert.True(Enum.GetValues<UsagePhrase>().ToHashSet().SetEquals(PhraseSample.Keys),
+            "every UsagePhrase member needs a sample in PhraseSample");
+
+        var phrases = Enum.GetValues<UsagePhrase>();
+        string written = string.Join("|", phrases.Select(p => PhraseSample[p]));
+        foreach (var (host, build) in UsageClauseHosts)
+        {
+            if (build is null)
+            {
+                var declined = CompileText($"host-{host}", 2023, id => ScreenProgram(id));
+                Assert.Contains(declined, e => e.Contains("COBOLNET1560", StringComparison.Ordinal)
+                    && e.Contains("the USAGE clause of a screen description entry", StringComparison.Ordinal));
+                continue;
+            }
+            var errors = CompileText($"host-{host}", 2023, id => build(id, written));
+            for (int i = 0; i < phrases.Length; i++)
+            {
+                string code = UsagePhraseRules.Of(phrases[i]).Refusal.Code;
+                string entry = $"'R-{i + 1}'";
+                Assert.True(errors.Count(e => e.Contains(code, StringComparison.Ordinal)) == 1,
+                    $"{host}: USAGE DISPLAY {PhraseSample[phrases[i]]} should draw exactly one {code}; drew:\n"
+                    + string.Join("\n", errors));
+                Assert.Contains(errors, e => e.Contains(code, StringComparison.Ordinal)
+                    && e.Contains(entry, StringComparison.Ordinal) && e.Contains("not USAGE DISPLAY ", StringComparison.Ordinal));
+            }
+            Assert.True(errors.Count == phrases.Length, $"{host}: expected only the {phrases.Length} phrase "
+                + $"refusals, drew:\n{string.Join("\n", errors)}");
+        }
+    }
+
     /// <summary>kb/Work PB3517's repro, verbatim in substance: three entries, each writing SIGNED / UNSIGNED on a
     /// usage whose line prints no such phrase, draw ONE COBOLNET4733 EACH and nothing else of the family. Before the
     /// fix the program compiled clean and printed <c>07 AB -005</c>.</summary>
@@ -373,12 +474,58 @@ public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
         return $"UCP-{hash:X8}-{dialect}";
     }
 
+    /// <summary>A REPORT SECTION fixture: one detail group <c>DL</c> whose elementary entries are
+    /// <paramref name="entries"/>, each sourcing the working-storage item <c>W</c>.</summary>
+    private static string ReportProgram(string programId, string entries) => $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. {programId}.
+                   ENVIRONMENT DIVISION.
+                   INPUT-OUTPUT SECTION.
+                   FILE-CONTROL.
+                       SELECT RPT ASSIGN TO "{programId}.txt".
+                   DATA DIVISION.
+                   FILE SECTION.
+                   FD RPT REPORT IS R1.
+                   WORKING-STORAGE SECTION.
+                   01 W PIC 9(3) VALUE 5.
+                   REPORT SECTION.
+                   RD R1 PAGE LIMIT 10.
+                   01 DL TYPE DETAIL LINE 1.
+            {entries}
+                   PROCEDURE DIVISION.
+                   MAIN.
+                       OPEN OUTPUT RPT
+                       INITIATE R1
+                       GENERATE DL
+                       TERMINATE R1
+                       CLOSE RPT
+                       STOP RUN.
+            """;
+
+    /// <summary>A SCREEN SECTION fixture whose one elementary screen item writes a USAGE clause with a phrase.</summary>
+    private static string ScreenProgram(string programId) => $"""
+                   IDENTIFICATION DIVISION.
+                   PROGRAM-ID. {programId}.
+                   DATA DIVISION.
+                   SCREEN SECTION.
+                   01 SCR.
+                      05 S-1 LINE 1 COLUMN 1 PIC 9(3) USAGE DISPLAY UNSIGNED.
+                   PROCEDURE DIVISION.
+                   MAIN.
+                       STOP RUN.
+            """;
+
     private List<string> CompileAt(string tag, string entries, int dialect)
+    {
+        string indented = string.Join("\n", entries.Split('\n').Select(l => l.Trim().Length == 0 ? "" : "       " + l.Trim()));
+        return CompileText(tag, dialect, id => Program(id, indented));
+    }
+
+    private List<string> CompileText(string tag, int dialect, Func<string, string> source)
     {
         string id = ProgramId(tag, dialect);
         string src = Path.Combine(TempDir, $"{id}.cob");
-        string indented = string.Join("\n", entries.Split('\n').Select(l => l.Trim().Length == 0 ? "" : "       " + l.Trim()));
-        File.WriteAllText(src, Program(id, indented));
+        File.WriteAllText(src, source(id));
         var r = CompilerDriver.Compile(new CompilerDriver.Options(src, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
         return [.. r.Errors, .. r.Warnings];
     }
