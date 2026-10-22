@@ -1,4 +1,4 @@
-## PB3504: an ANTLR runtime defect hung EVALUATE on nested function calls; the compiler now runs our fork's fixed 4.13.2 runtime
+## Entry 2343 — 2026-10-22 01:46 PDT — PB3504: an ANTLR runtime defect hung EVALUATE on nested function calls; the compiler now runs our fork's fixed 4.13.2 runtime
 
 **What.** PB3489's sibling sweep found a hang on LEGAL source: four nested FUNCTION calls in any EVALUATE operand
 (subject, WHEN object, condition, THRU range) never finished compiling, and three took seconds. MOVE, COMPUTE, IF and
@@ -26,3 +26,4 @@ Six-deep operands in all four EVALUATE positions compile.
 
 **Next.** kb/Work PB3507 tracks the upstream pull request, whose text goes to the owner before it is opened, and the
 return to an upstream release.
+
