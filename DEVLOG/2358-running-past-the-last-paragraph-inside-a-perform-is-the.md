@@ -1,4 +1,4 @@
-## Running past the last paragraph inside a PERFORM is the implicit GOBACK, not the PERFORM returning (PB3511)
+## Entry 2358 — 2026-10-22 12:38 PDT — Running past the last paragraph inside a PERFORM is the implicit GOBACK, not the PERFORM returning (PB3511)
 
 The second overnight fuzz run found fz00481 hanging: a `PERFORM P1` whose P1 says `GO TO P3`, with P3 the last paragraph,
 printed `P1`, `P3` and then `AFTER PERFORM`, and the wrong return re-entered later PERFORMs of the fuzz program. The
@@ -60,3 +60,4 @@ procedure or a MERGE output procedure left for the last paragraph returns to the
 abandoned MERGE's USING files stay open, because 14.9.24.4 GR7 c) closes them only after control passes the output
 procedure's last statement (the next OPEN OUTPUT gets 41; GnuCOBOL 3.2 closes them early and gets 00). The control-flow
 design's edge cases now state the ordering, and D-PTHRU names the MERGE case.
+
