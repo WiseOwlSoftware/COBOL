@@ -1,4 +1,4 @@
-## PB3489: the closed-format hint walk runs on ANTLR's own simulator; a nested-function syntax error no longer hangs
+## Entry 2342 — 2026-10-22 01:19 PDT — PB3489: the closed-format hint walk runs on ANTLR's own simulator; a nested-function syntax error no longer hangs
 
 **What.** Last night's differential fuzz run found the compiler hanging on a typo: `MOVE FUNCTION DATE-OF-INTEGER(FUNCTION
 INTEGER-PART(FUNCTION NUMVAL(FUNCTION SUBSTRING(A FROM 1 FOR 4)))) TO N`. One or two calls deep the compiler reported
@@ -19,12 +19,18 @@ caller) and `ComputeReachSet` (it skips the closure once one alternative remains
 
 **Witness.** `ResidueWalkNestingTests` measures the compiling thread's allocation at depths 0–2, never the clock
 (PB1590). The first version counted configurations, and the branch review showed why that cannot work: ANTLR merges
-configurations per state, so a count never sees the stacks that multiplied. Allocation does: the fixed walk allocates
-1.31, 8.22 and 8.26 MB, the old per-path walk 1.29, 10.4 and 63.7 MB, and the test went red on the old walk. It also
-checks the diagnostic at depths 1, 3 and 5. The repros,
+configurations per state, so a count never sees the stacks that multiplied. Allocation does, measured WARM: the second
+review round showed that a cold compile also fills the parser's process-wide shared DFA cache, so its bytes depended on
+which compiles ran earlier in the test process (the second level's ratio to the first ran from 0.006 to 13.5 by the
+schedule, and the correct walk could fail). Each depth is now the least of three compiles after a discarded one at
+that depth, identical whatever ran before or alongside: the fixed walk allocates 1,308,848, 1,773,072 and 2,773,584
+bytes (the second level 2.16 times the first), the old per-path walk 1.29, 3.98 and 58.2 MB (20.1 times). The bound,
+six, is the geometric mean of the two rounded down; the test went red on the old walk at 54,200,048 against 2,690,280.
+It also checks the diagnostic at depths 1, 3 and 5. The repros,
 the fuzz program and the sibling sweep (subscripts, reference modification, parentheses, IF, DISPLAY, CALL at depth 6)
 answer in under a second.
 
 **Found on the way.** The sweep turned up a different hang, on LEGAL source: four nested function calls in any EVALUATE
 operand never finish, inside ANTLR's own prediction of `evaluateSubject` and the WHEN object. Filed as PB3504 with the
 measurements; it needs a grammar redesign of the EVALUATE operand rules.
+

@@ -1365,8 +1365,9 @@ joined the table the same way, which is the table doing its job: a tenth format 
   three FUNCTION calls deep) and, if a configuration there holds the production's call on its stack, names the list
   rule's format through `ClosedFormats.ByRuleIndex`. The failed prediction's `DeadEndConfigs` cannot serve: SLL
   prediction follows a rule's end to every caller (a wildcard outer context). `ResidueWalkNestingTests` holds it by the
-  compiling thread's allocation per nesting level (never a clock; a configuration count cannot see the stacks, because
-  ANTLR merges configurations per state).
+  compiling thread's allocation per nesting level, measured warm (the parse fills the parser's process-wide shared DFA
+  cache, so a cold compile's bytes depend on what ran before; never a clock; a configuration count cannot see the
+  stacks, because ANTLR merges configurations per state).
   The INNERMOST open list wins (`SPECIAL-NAMES. GLOBAL.` is the paragraph's, not the configuration section's).
   The code and sentence are the pass's own (`ClosedFormat.Diagnostic`, `ClosedFormat.Refusal`, one wording for
   both sites). Two exclusions keep the arm from claiming a structure error: a word that may begin what FOLLOWS the
