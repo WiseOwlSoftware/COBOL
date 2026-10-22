@@ -83,6 +83,12 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
     /// each read storage by their own convention, exactly as two vendors' programs do.</summary>
     public SignEncoding SignEncoding => Data.Edition.SignEncoding;
 
+    /// <summary>⛔ THE FORM THE COMPILATION'S DISPLAY STATEMENTS GIVE A NUMERIC OPERAND (kb/Work PB3505, owner decision
+    /// PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56) — the CLI's <c>--numeric-display</c>, read from the ONE
+    /// per-compilation context the driver set it on. Read by <c>AcceptDisplayEmitter</c> alone: it reaches DISPLAY's
+    /// device conversion and no other character rendering of a numeric item (MOVE's is §14.9.25.4 GR6's).</summary>
+    public NumericDisplayForm NumericDisplay => Data.Edition.NumericDisplay;
+
     /// <summary>The trailing collation argument for collated comparison renders — <c>", __COLLATE"</c> (the program's
     /// ONE <c>CobolCollation</c> carrier — a literal-phrase table or a LOCALE sequence, kb/Work PB101) when a
     /// PROGRAM COLLATING SEQUENCE is active (ISO §12.3.6 GR11 — relation and condition-name comparisons), else empty

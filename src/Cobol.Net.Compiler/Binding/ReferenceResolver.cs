@@ -1157,7 +1157,11 @@ public sealed partial class ReferenceResolver(DataBinder data)
     /// it so the sending slice / receiving direction-split applies — whatever the group's storage shape (a record
     /// struct member, or a Tier-B / BASED class-tier window; kb/Work PB80). data-name-1 is resolved post-build,
     /// declared anywhere outside the table (SR20), and read at the operation site via CobolTable.Occ
-    /// (storage-form-agnostic). Any other place passes through unchanged.</summary>
+    /// (storage-form-agnostic). Any other place passes through unchanged.
+    /// <para>The recursion through <see cref="ResolveItem"/> ends because <c>DataBinder.OdoResolve</c> records only an
+    /// ADMITTED data-name-1 (<see cref="OccursSpec.Depending"/>: an integer, so an elementary item, kb/Work PB3510);
+    /// a group data-name-1 — the record holding the table, or a record whose own table depends on this one — is
+    /// refused there with its SR17/SR20 diagnostics and never reaches this wrap.</para></summary>
     private Place WrapIfOdoGroup(Place place, DataItem item) =>
         item.IsGroup && OdoModel.TableUnder(item) is { OccursSpec.Depending: { } dep } table
             && ResolveItem(dep) is { } depPlace

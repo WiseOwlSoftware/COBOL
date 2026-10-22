@@ -54,6 +54,6 @@ public sealed class FunctionValueLanePermissiveTests : CobolNetTestBase
         Assert.Equal(4, fields.Length);
         Assert.True(fields[1] == fields[3] && fields[2] == fields[3],
             $"a MOVE of one function to two receivers must store what the MOVE to one receiver stores (§15.4.1): {stdout.Trim()}");
-        Assert.Equal("150000123456789010000", fields[3]);
+        Assert.Equal("150000.123456789010000", fields[3]);
     }
 }

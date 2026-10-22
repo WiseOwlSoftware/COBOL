@@ -147,14 +147,14 @@ public sealed class IntrinsicFunctionDifferentialTests
                 DISPLAY R.
                 COMPUTE R = FUNCTION REM(7.5, 2).
                 DISPLAY R.
-            """), "-00010\n+00015");
+            """), "-0001.0\n+0001.5");
 
     [Fact]
     public void Median_EvenCount_MeanOfMiddles_PinnedToSpec() =>
         // §15.61.4 rule 2: an even argument count returns (b + c) / 2 of the two middle values — exact at one
         // extra fraction digit (the renderer's ×10/2 discipline).
         AssertSpec(Program("01 R PIC 9(3)V9(2).",
-            "    COMPUTE R = FUNCTION MEDIAN(1, 2, 3, 4).\n    DISPLAY R."), "00250");
+            "    COMPUTE R = FUNCTION MEDIAN(1, 2, 3, 4).\n    DISPLAY R."), "002.50");
 
     [Fact]
     public void OrdMax_TieTakesFirst_PinnedToSpec() =>
@@ -170,7 +170,7 @@ public sealed class IntrinsicFunctionDifferentialTests
         // APPROXIMATION; rounding inside the ONE FromDouble yields the true value 3 (the legacy's truncation
         // yields 2.999999 — conforming but strictly worse; hazard H2). The greenfield value is pinned.
         AssertSpec(Program("01 R PIC 9V9(6).",
-            "    COMPUTE R = FUNCTION LOG10(1000).\n    DISPLAY R."), "3000000");
+            "    COMPUTE R = FUNCTION LOG10(1000).\n    DISPLAY R."), "3.000000");
 
     [Fact]
     public void OutOfDomain_EcDefaultZero_PinnedToSpec() =>
@@ -185,25 +185,25 @@ public sealed class IntrinsicFunctionDifferentialTests
                 DISPLAY R.
                 COMPUTE R = FUNCTION FACTORIAL(0 - 1).
                 DISPLAY R.
-            """), "+000000\n+000000\n+000000\n+000000");
+            """), "+0000.00\n+0000.00\n+0000.00\n+0000.00");
 
     // ── Spec-pinned: NUMVAL / NUMVAL-C formats (§15.67.3 / §15.68.3) ─────────────────────────────────────────
 
     [Theory]
-    [InlineData("\"  -123.45 \"", "-0012345")]      // leading sign, surrounding spaces (format 1)
-    [InlineData("\"   -  929.03\"", "-0092903")]    // spaces between sign and digits — ignored before the first digit (r2)
-    [InlineData("\"82.93+\"", "+0008293")]          // trailing sign (format 2)
-    [InlineData("\"12cr\"", "-0001200")]            // CR suffix, case-insensitive (§15.67.3 r1) ⇒ negative (§15.67.4 r2)
-    [InlineData("\".5\"", "+0000050")]              // the ". digit" alternative
-    [InlineData("\"1O2\"", "+0000000")]             // malformed (letter O) → EC-ARGUMENT default 0 (§15.3)
+    [InlineData("\"  -123.45 \"", "-00123.45")]      // leading sign, surrounding spaces (format 1)
+    [InlineData("\"   -  929.03\"", "-00929.03")]    // spaces between sign and digits — ignored before the first digit (r2)
+    [InlineData("\"82.93+\"", "+00082.93")]          // trailing sign (format 2)
+    [InlineData("\"12cr\"", "-00012.00")]            // CR suffix, case-insensitive (§15.67.3 r1) ⇒ negative (§15.67.4 r2)
+    [InlineData("\".5\"", "+00000.50")]              // the ". digit" alternative
+    [InlineData("\"1O2\"", "+00000.00")]             // malformed (letter O) → EC-ARGUMENT default 0 (§15.3)
     public void Numval_Formats_PinnedToSpec(string arg, string expected) =>
         AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
             $"    COMPUTE R = FUNCTION NUMVAL({arg}).\n    DISPLAY R."), expected);
 
     [Theory]
-    [InlineData("\"$1,234.56\"", "+0123456")]       // default currency + grouping separators ignored (§15.68.4 r2)
-    [InlineData("\"- $ 890.05\"", "-0089005")]      // sign before currency with space-strings (§15.68.3 r4a)
-    [InlineData("\"Z93,021\", \"Z\"", "+9302100")]  // argument-2 names the currency string (§15.68.3 r2)
+    [InlineData("\"$1,234.56\"", "+01234.56")]       // default currency + grouping separators ignored (§15.68.4 r2)
+    [InlineData("\"- $ 890.05\"", "-00890.05")]      // sign before currency with space-strings (§15.68.3 r4a)
+    [InlineData("\"Z93,021\", \"Z\"", "+93021.00")]  // argument-2 names the currency string (§15.68.3 r2)
     public void NumvalC_Formats_PinnedToSpec(string args, string expected) =>
         AssertSpec(Program("01 R PIC S9(5)V9(2) SIGN LEADING SEPARATE.",
             $"    COMPUTE R = FUNCTION NUMVAL-C({args}).\n    DISPLAY R."), expected);
@@ -227,7 +227,7 @@ public sealed class IntrinsicFunctionDifferentialTests
                 COMPUTE R = FUNCTION NUMVAL-C("F12.50").
                 DISPLAY R.
                 STOP RUN.
-            """, "+0001250");
+            """, "+00012.50");
 
     // ── Spec-pinned: CHAR / ORD ordinals + LENGTH fold + nesting ─────────────────────────────────────────────
 

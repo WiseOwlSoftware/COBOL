@@ -20,7 +20,9 @@ namespace CobolNet.Tests.Unit;
 /// mandatory parameters with no default and carries no self-invocation guard and no second copy of a csproj value;
 /// (2) the target's Inputs carry no wildcard and name the grammar item, the generator, the jar and the stamp, the
 /// stamp carries the namespace and the jar, and the Exec passes each value from the csproj; (3) the generator is the
-/// only script in the project, so no second up-to-date decision can return.
+/// only script in the project, so no second up-to-date decision can return; (4) the target runs before
+/// <c>BeforeCompile</c>, so the generated files are in <c>@(Compile)</c> before the SDK hashes it and a second build of
+/// a fresh tree is a no-op (kb/Work PB3529).
 /// </summary>
 [Trait("Sweep", "tree")]
 public sealed class AntlrGenerationDriftTests
@@ -97,6 +99,31 @@ public sealed class AntlrGenerationDriftTests
         Assert.Contains("-PackageName $(AntlrNamespace)", command, StringComparison.Ordinal);
         Assert.Contains("-JarPath \"$(MSBuildProjectDirectory)/$(AntlrJar)\"", command, StringComparison.Ordinal);
         Assert.Contains("-OutputDir ", command, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TheTarget_AddsTheGeneratedFilesBeforeTheCompileInputsAreHashed()
+    {
+        // The SDK's CompileDependsOn runs BeforeCompile, then _GenerateCompileDependencyCache (which hashes @(Compile)
+        // into CoreCompileInputs.cache), then CoreCompile. A target that adds Generated/*.cs to Compile "before
+        // CoreCompile" adds them after the hash, so a fresh checkout's first build records a cache without them and
+        // the second build of the same tree recompiles the frontend and everything above it: on the Linux gate the
+        // guard leg's CLI build replaced the `cobol` apphost while the conformance leg ran it (kb/Work PB3529).
+        var target = Target(Project(), "EnsureGeneratedFiles");
+        Assert.Equal("BeforeCompile", (string?)target.Attribute("BeforeTargets"));
+        Assert.Null(target.Attribute("AfterTargets"));
+
+        // The hash is over @(Compile) IN ORDER: the target removes the generated files from wherever the glob put them
+        // (nowhere on a fresh checkout, mid-list on a warm tree) and appends them, so both builds hash one list.
+        var compile = target.Descendants("Compile")
+            .Select(e => (Remove: (string?)e.Attribute("Remove"), Include: (string?)e.Attribute("Include"),
+                          Exclude: (string?)e.Attribute("Exclude")))
+            .ToArray();
+        Assert.Equal(2, compile.Length);
+        Assert.Equal("Generated/*.cs", compile[0].Remove);
+        Assert.Null(compile[0].Include);
+        Assert.Equal("Generated/*.cs", compile[1].Include);
+        Assert.Null(compile[1].Exclude);
     }
 
     [Fact]

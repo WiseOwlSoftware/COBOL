@@ -1892,7 +1892,17 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   writing, with no INPUT opener beside it, still refuses the READ ONLY request. Witness:
   `CommitRollbackRuntimeTests.An_input_opener_that_owes_its_transactions_writes_admits_what_Table_19_admits` (both
   organizations, READ ONLY INPUT and I-O beside the re-OPENed INPUT opener, COMMIT and ROLLBACK, and the requests the
-  table refuses meeting the widened connector's column).
+  table refuses meeting the widened connector's column). **THE SECOND ATTEMPT IS THE LAST (kb/Work PB3498).** A second
+  attempt the host or the column refuses too ends the OPEN '61': no third attempt is made, a kept column is replaced and
+  restored once per attempt (a second attempt refused at the column leaves the kept column as the first attempt's
+  restore put it), and the unsuccessful OPEN leaves no column, no handle and the file as it was. Witnesses (the request
+  count is read through `RunUnitFileLock.HostObserver`, which wraps the host a lock is established through):
+  `FileLockPostureDriftTests.AnOpenWhoseSecondAttemptIsRefusedTooAnswers61AfterExactlyTwoRequestsAndLeavesNothingBehind`
+  (all three organizations; a third run unit's column between the attempts) and
+  `CommitRollbackRuntimeTests.A_reopen_refused_on_its_second_attempt_too_keeps_what_the_close_kept_and_makes_no_third_attempt`
+  (both keyed organizations: refused twice by the host's share mode, and refused at the column on the second attempt).
+  The sibling attempt loop, the publication's bounded tries, answers `Unavailable` when every try collides, never a
+  refusal (`HandleColumnLockHostDriftTests.APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding`).
   A re-OPEN that fails leaves what the CLOSE kept as it was
   (§14.9.27.4 GR25): a kept handle the re-OPEN adopted is given back to the kept state (`AbandonOpen`), and one it gave away
   to try a share mode it refused is taken again with the access and share mode it had, attached to the store as an OPEN

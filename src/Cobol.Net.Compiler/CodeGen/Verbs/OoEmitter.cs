@@ -1321,11 +1321,11 @@ internal sealed class OoEmitter(DispatchState dispatch, EcState ecState, CallUni
                         hasF3Perform: methodF3, w, asLocal: true);
                 if (methodF3)
                     U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
-                        m.Binding!.DeclStartPc, m.Binding!.EndPc,
+                        m.Binding!.DeclStartPc, m.Binding!.EndPc, inMethod: true,
                         m.Binding!.HandlerStartPc, m.Binding!.HandlerStartPc + m.Binding!.HandlerCount - 1);
                 else
                     U.Dispatch.EmitDispatchMethod(bound, w, "int __MDispatch(int __startPc, int __exitPc)",
-                        m.Binding!.DeclStartPc, m.Binding!.EndPc);
+                        m.Binding!.DeclStartPc, m.Binding!.EndPc, inMethod: true);
                 dispatch.DispatchName = saved;
                 dispatch.BeforeReportingSelectors.Clear();   // the selectors are this method's locals — no other unit's statement may name them
                 // The ACTIVATION boundary's checking scope (kb/Work PB841 — the INVOKE twin of ProgramTable.CallProgram):

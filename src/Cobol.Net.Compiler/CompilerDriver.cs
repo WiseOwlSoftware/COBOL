@@ -46,6 +46,11 @@ public static class CompilerDriver
     /// to indicate use of a nonstandard extension in a compilation group". When set, every use of a syntactically
     /// distinguishable extension of the register (<see cref="Editions.NonstandardExtensionRegister"/>) is named by a
     /// COBOLNET2894 warning. Orthogonal to <paramref name="DialectLevel"/> and <paramref name="Permissive"/>.</param>
+    /// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (CLI <c>--numeric-display</c>; kb/Work
+    /// PB3505, owner decision PB3467). ISO §14.9.11.4 GR1 leaves the device conversion to the implementor (Annex A.1
+    /// item 56): the default is <see cref="Binding.NumericDisplayForm.Decimal"/> (the decimal point and a leading
+    /// sign, GnuCOBOL 3.2.0's default form) and <see cref="Binding.NumericDisplayForm.Digits"/> keeps the digit image.
+    /// Orthogonal to <paramref name="DialectLevel"/>: every edition grants the same latitude.</param>
     public sealed record Options(
         string SourcePath,
         string? OutputPath = null,
@@ -56,7 +61,8 @@ public static class CompilerDriver
         bool CheckOnly = false,
         SignEncoding SignEncoding = SignEncoding.Ibm,
         Frontend.Preprocessor.InitialReferenceFormat SourceFormat = Frontend.Preprocessor.InitialReferenceFormat.Fixed,
-        bool FlagExtensions = false);
+        bool FlagExtensions = false,
+        Binding.NumericDisplayForm NumericDisplay = Binding.NumericDisplayForm.Decimal);
 
     /// <summary>Which phase a compilation reached (drives the CLI's exit code).</summary>
     public enum Outcome { Success, SourceNotFound, FrontendError, BindError, BackendError }
@@ -165,6 +171,9 @@ public static class CompilerDriver
             // per-compilation object the edition does (DataBinder.Edition → EmitContext.SignEncoding), so every
             // NumProfile and every signed class condition this compile emits states one convention.
             SignEncoding = options.SignEncoding,
+            // kb/Work PB3505: the form DISPLAY gives a numeric operand rides the same per-compilation object, and is
+            // read by the DISPLAY emitter alone (EmitContext.NumericDisplay).
+            NumericDisplay = options.NumericDisplay,
             // kb/Work PB1525: the §4.2.10 warning mechanism rides the same per-compilation object, and is read by
             // EditionContext.Extension alone.
             FlagExtensions = options.FlagExtensions,

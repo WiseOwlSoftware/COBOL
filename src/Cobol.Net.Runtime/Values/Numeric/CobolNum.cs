@@ -1007,7 +1007,7 @@ public static partial class CobolNum
         if (scale <= 0)
         {
             // A NEGATIVE scale is a P-scaled value: the Ps are trailing zeros that occupy no storage
-            // (§13.18.40.3 symbol-P operations item b), so they are restored here.
+            // (§13.18.40.4 GR14 symbol P, operations b)), so they are restored here.
             body = scale < 0 ? digits + new string('0', -scale) : digits;
         }
         else
