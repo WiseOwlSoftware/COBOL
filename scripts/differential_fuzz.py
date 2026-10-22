@@ -1125,8 +1125,8 @@ def self_test() -> int:
     with tempfile.TemporaryDirectory() as td:
         out = Path(td)
         (out / "programs").mkdir()
-        (out / "programs" / "fz00024.cob").write_text("01 R PIC S9(3)." + chr(10), encoding="utf-8")
-        (out / "programs" / "fz00025.cob").write_text("01 R PIC +9(3).99." + chr(10), encoding="utf-8")
+        (out / "programs" / "fz00024.cob").write_text("01 R PIC S9(3)." + chr(10), encoding="utf-8", newline="\n")
+        (out / "programs" / "fz00025.cob").write_text("01 R PIC +9(3).99." + chr(10), encoding="utf-8", newline="\n")
         edited_row = {**lat_row, "id": "fz00025", "source": "programs/fz00025.cob"}
         recorded_fold = {**lat_row, "id": "fz00026", "source": "programs/gone.cob", "display_fold": True}
         gone_row = {**lat_row, "id": "fz00027", "source": "programs/gone.cob"}
