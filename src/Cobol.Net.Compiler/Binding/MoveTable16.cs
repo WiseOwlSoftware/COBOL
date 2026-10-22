@@ -269,7 +269,7 @@ public static class MoveTable16
     /// binary-double" — the ONE reading of it, which the universal crossing's description carries too
     /// (<c>ActivationDescriptions</c>, <see cref="ActivationDescription.BinaryWidth"/>; kb/Work PB2076).</summary>
     public static bool IsBinaryWidth(DataItem item) =>
-        item.Pic is { Usage: Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble };
+        item.Pic is { } p && UsageFamilies.IsFixedWidthBinary(p.Usage);
 
     /// <summary>ISO §14.9.25.3 SR9 — <i>"If identifier-1 or identifier-2 references a variable-length group then
     /// these groups shall be compatible groups as specified in 8.5.1.12, Variable-length groups"</i> — as the
