@@ -306,6 +306,49 @@ public sealed class HandleColumnLockHostDriftTests
         finally { Clean(dir); }
     }
 
+    /// <summary>⛔ A PUBLICATION EVERY ONE OF ITS TRIES COLLIDES IN IS A LOCK THIS HOST CANNOT HOLD, NOT A REFUSAL (kb/Work
+    /// PB3498, the sibling of <c>FileConnector.Open</c>'s two attempts): the publication chooses another byte of its column's
+    /// range after each collision with a holder or a tester, a bounded number of times, and a range an outside program
+    /// holds exclusively collides every one. The outcome is <see cref="RunUnitFileLock.Outcome.Unavailable"/> (the OPEN goes on
+    /// without a column; the share modes it falls back on are the host's own), never <see cref="RunUnitFileLock.Outcome.Refused"/>
+    /// ('61' is another connector's, §9.1.13.9 1)) and never an exception; a first request leaves nothing published (no handle
+    /// stays on the file: a <see cref="FileShare.None"/> open is admitted), and a superseding request leaves the superseded
+    /// column standing exactly as it was (§14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the
+    /// file is not affected"</i>), refusing what it refused, and the outside program's range given back, the same requests
+    /// are held.</summary>
+    [Fact]
+    public void APublicationThatEveryTryCollidesInIsUnavailableAndLeavesWhatWasHeldStanding()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var (dir, file) = NewFile();
+        try
+        {
+            var (sharing, mode) = (FileSharing.AllOther, FileOpenMode.IO);
+            long start = HostRegionLocks.ColumnRangeStart(Table19.Column(sharing, mode));
+            // A column held already (before the outsider takes the range, which a holder of another column would meet as a holder).
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.Input, out var kept));
+            using (var outsider = new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                Assert.Equal(RegionLockResult.Ok, WindowsByteRangeLocks.Lock(outsider.SafeFileHandle, start, HostRegionLocks.ColumnRangeWidth, exclusive: true, wait: false));
+
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, RunUnitFileLock.Take(Host, file, sharing, mode, out var none));
+                Assert.Null(none);
+
+                // The held column replaced by the one whose range the outsider holds: the request is unavailable and the kept
+                // column stands (it refuses a READ ONLY I-O request, whose own range the outsider does not hold).
+                Assert.Equal(RunUnitFileLock.Outcome.Unavailable, kept!.Amend(sharing, mode));
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
+                Assert.True(kept.Revert());   // nothing was amended: the restore is a no-op
+                Assert.Equal(RunUnitFileLock.Outcome.Refused, RunUnitFileLock.Take(Host, file, FileSharing.ReadOnly, FileOpenMode.IO, out _));
+                kept.Dispose();
+            }
+            Assert.Equal(RunUnitFileLock.Outcome.Held, RunUnitFileLock.Take(Host, file, sharing, mode, out var after));
+            after!.Dispose();
+            using (new FileStream(file, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }   // no handle of a failed try stays
+        }
+        finally { Clean(dir); }
+    }
+
     /// <summary>A host that cannot hold the lock for a path — a file that is not there, a directory — holds nothing and
     /// refuses nothing: it is <see cref="RunUnitFileLock.Outcome.Unavailable"/>, never an exception out of an OPEN.</summary>
     [Fact]

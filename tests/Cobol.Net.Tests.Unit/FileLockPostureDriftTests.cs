@@ -339,6 +339,102 @@ public sealed class FileLockPostureDriftTests
         finally { FileHarness.TryDelete(host); }
     }
 
+    /// <summary>⛔ THE SECOND ATTEMPT OF AN OPEN IS REFUSED TOO, AND THEN THE OPEN IS UNSUCCESSFUL (kb/Work PB3498; §9.1.13.9 1),
+    /// <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a physical file and that
+    /// physical file is already open by another file connector in a manner that conflicts with this request"</i>, and
+    /// §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not affected"</i>). Another
+    /// run unit's INPUT opener holds the file (SHARING WITH ALL OTHER) and a program outside the protocol has it open for
+    /// writing; a connector's OPEN INPUT under SHARING WITH READ ONLY is a normal open beside the INPUT opener (Table 19), so
+    /// its Table 19 column is held, and where the host's share modes are mandatory the share mode alone refuses it. The
+    /// connector makes the OPEN again with the share mode that admits what an INPUT opener may owe
+    /// (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>), and between the two attempts a third run unit publishes a
+    /// column Table 19 refuses against this request, so the second attempt is refused by it: '61', after exactly TWO
+    /// requests of the column lock (never a third), with nothing of the OPEN left behind (no column, no handle, the file as it
+    /// was). Without the third run unit the same second attempt succeeds (the control), and a host whose share modes are
+    /// advisory admits the OPEN at its first attempt.</summary>
+    [Theory]
+    [MemberData(nameof(EveryOrganization))]
+    public void AnOpenWhoseSecondAttemptIsRefusedTooAnswers61AfterExactlyTwoRequestsAndLeavesNothingBehind(FileOrg org)
+    {
+        string host = FileHarness.Tmp($"second-refused-{org}");
+        try
+        {
+            FileHarness.Seed(host, org, ["SEED"]);
+            byte[] before = Bytes(host);
+            var inputOpener = new FileRegistry();
+            FileHarness.Register(inputOpener, "A", host, org, sharing: FileSharing.AllOther);
+            inputOpener.OpenStatic("A", FileOpenMode.Input);
+            Assert.Equal(FileStatusCode.Success, inputOpener.Status("A"));
+
+            // The third run unit: SHARING WITH READ ONLY on I-O publishes a column the OPEN INPUT under READ ONLY refuses,
+            // and the INPUT opener's column admits it.
+            (FileSharing, FileOpenMode) request = (FileSharing.ReadOnly, FileOpenMode.Input), racer = (FileSharing.ReadOnly, FileOpenMode.IO);
+            Assert.True(Table19.Conflicts(request, racer));
+            Assert.False(Table19.Conflicts(racer, (FileSharing.AllOther, FileOpenMode.Input)));
+            var requested = Table19.Column(request.Item1, request.Item2);
+            bool mandatory = HostCapability.Sharing.SeparatesReadersFromWriters;
+            var log = new ColumnRequestLog();
+            RunUnitFileLock? thirdRunUnit = null;
+            log.Before = index =>
+            {
+                if (index == 1)
+                    Assert.Equal(RunUnitFileLock.Outcome.Held,
+                        RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, racer.Item1, racer.Item2, out thirdRunUnit));
+            };
+            try
+            {
+                using var outsideWriter = new FileStream(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite);
+                var reg = new FileRegistry();
+                FileHarness.Register(reg, "B", host, org, sharing: FileSharing.ReadOnly);
+                using (log.Install()) reg.OpenStatic("B", request.Item2);
+                if (mandatory)
+                {
+                    Assert.Equal(FileStatusCode.FileSharingConflict, reg.Status("B"));
+                    Assert.Equal([new ColumnRequestLog.Request(requested, Replaces: false), new ColumnRequestLog.Request(requested, Replaces: false)],
+                        log.Requests);
+                    Assert.NotNull(thirdRunUnit);
+                    Assert.Equal(before, Bytes(host));
+                    thirdRunUnit!.Dispose();
+                    // The third run unit is gone: the same OPEN is now admitted by its second attempt, the control without
+                    // which the refusal above proves nothing about the race.
+                    log.Clear();
+                    log.Before = null;
+                    using (log.Install()) reg.OpenStatic("B", request.Item2);
+                    Assert.Equal(FileStatusCode.Success, reg.Status("B"));
+                    Assert.Equal(2, log.Requests.Count);
+                    reg.CloseAll();
+                }
+                else
+                {
+                    Assert.Equal(FileStatusCode.Success, reg.Status("B"));
+                    Assert.Equal([new ColumnRequestLog.Request(requested, Replaces: false)], log.Requests);
+                    Assert.Null(thirdRunUnit);
+                    reg.CloseAll();
+                }
+            }
+            finally { thirdRunUnit?.Dispose(); }
+            // Nothing of the refused OPEN stands: a run unit whose OPEN its column or its handle would have refused is a
+            // normal open beside the INPUT opener.
+            var third = new FileRegistry();
+            FileHarness.Register(third, "C", host, org, sharing: FileSharing.AllOther);
+            third.OpenStatic("C", FileOpenMode.IO);
+            Assert.Equal(FileStatusCode.Success, third.Status("C"));
+            third.CloseAll();
+            inputOpener.CloseAll();
+        }
+        finally { FileHarness.TryDelete(host); }
+    }
+
+    /// <summary>The file's bytes through a handle that admits every other handle's access, so the read is never what a
+    /// holder of the file refuses.</summary>
+    private static byte[] Bytes(string host)
+    {
+        using var stream = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        var bytes = new byte[stream.Length];
+        stream.ReadExactly(bytes);
+        return bytes;
+    }
+
     public static TheoryData<FileOrg> EveryOrganization() => [.. Enum.GetValues<FileOrg>()];
 
     /// <summary>A clause-less OPEN that Table 19 REFUSES leaves the connectors already open exactly as they
