@@ -63,11 +63,25 @@ The lead rows (survivors) are in the raw report and are the next triage pass's i
 ## Decision
 
 The model for the next overnight run was the owner's decision. At about 15:12 PDT on 2026-10-22 the owner answered "yes"
-to the question "Should tonight's run use nemotron-3.5-bolt?". The third overnight run therefore uses
-nemotron-3.5-bolt, with the judge `E:\tmp\fuzz-judge-20261022\cobol.exe` (the compiler of main 4ea4be06a), seed
-20261024, 8 hours and 4 jobs.
+to the question "Should tonight's run use nemotron-3.5-bolt?", and the third overnight run started with it (judge
+`E:\tmp\fuzz-judge-20261022\cobol.exe`, the compiler of main 4ea4be06a, seed 20261024, 8 hours and 4 jobs). That choice
+was reversed at about 17:25 PDT (see the addendum below): the model of the third night is qwen3.6:35b, because
+nemotron-3.5-bolt degenerated into enumeration loops that filled the token cap.
 
 ## Links
 
 kb/Work PB3523; `2026-10-22-differential-fuzz-prompt.md`; `2026-10-22-differential-fuzz-bakeoff/report.md`;
 `scripts/differential_fuzz.py` (`--bake-off`).
+
+## Addendum (2026-10-22 17:25 PDT): the third night switched to qwen3.6:35b
+
+- The third overnight run started 16:02 PDT with nemotron-3.5-bolt (run directory
+  `conformance-suite/results/fuzz-20261022-160216`).
+- 19 of its first 90 replies (21 %, rising as the walk reached §13.18 and §15 seeds) were cut off at the 6,000-token cap.
+- Every cut-off reply inspected is a DEGENERATE ENUMERATION (data items WS-ARG1 … WS-ARG309, VALUE lists, hundreds of
+  lines differing only by a counter), with `think: false` honoured (no thinking characters). The repetition is typical of
+  a very low-bit quantization: `ollama show` reports the model as 74.0B parameters at IQ2_XXS.
+- The 20-program bake-off did not expose it (its 4 model failures were not inspected for this shape).
+- The owner, asked "Switch tonight's run to qwen3.6:35b?", answered "yes" at about 17:25 PDT, and the run was restarted
+  with `-Model qwen3.6:35b`. The nemotron rows stay on disk for the morning triage.
+- Filed as the harness defect PB3537.
