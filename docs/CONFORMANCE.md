@@ -1713,7 +1713,12 @@ of an unsupported facility.
   mechanism (GR11, GR14), and GnuCOBOL 3.2 ends the activation there too (measured 2026-10-22, `cobc -x -free
   -std=cobol2002`), so the same determination applies; the SORT never passes control to the statement after it.
   Witnesses: `pb3511_implicit_goback_sort_input_procedure` and `pb3511_implicit_goback_sort_output_procedure` in the same
-  directory.
+  directory. A MERGE output procedure is the same question again (§14.9.24.4 GR8, GR9), and in a called program the
+  implicit GOBACK returns to the CALL with the abandoned MERGE's USING files still open, because GR7 c) terminates them
+  only "after control passes the last statement in the output procedure" (GnuCOBOL 3.2 differs on this one point: it
+  reads and closes the USING files before the output procedure); witness
+  `pb3511_implicit_goback_sort_merge_called_program`. A procedure whose range ENDS at the last paragraph completes there
+  and resumes the SORT or MERGE (`pb3511_sort_merge_procedure_ends_at_last_paragraph`, 85 to 2023).
 
 - **D-PROP1 — an object property that a statement stores only IN PART: the GET supplies the kept positions, and a class
   WITH NO GET still compiles (kb/Work PB2618).** §14.9.43.4 GR7: "All other portions of the data item referenced by
