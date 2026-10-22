@@ -42,7 +42,7 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
                    and inserted decimal point against WiseOwl's digit image with an over-punched sign (the settled decision
                    PB803 and the open owner decision PB3467) — and the program declares no picture that prints a point and
                    no SIGN SEPARATE item (display_fold_allowed: the text alone cannot tell the latitude from a dropped point).
-                   502 of the first night's 1,141 output rows. Recorded under its own heading, never a survivor;
+                   501 of the first night's 1,141 output rows. Recorded under its own heading, never a survivor;
                    the verdict changes when PB3467 is answered, the rows do not.
   WE_CRASH         WiseOwl's compiler crashed (the adapter's crash exit codes), or an unhandled exception at run time.
   WE_FAIL_RUN      same stdout, but WiseOwl's program exited non-zero where GnuCOBOL's exited zero: a run-time abort after the
@@ -507,9 +507,10 @@ _OVERPUNCH = re.compile(r"(?<![0-9A-Za-z.,{}])(\d+)([{}A-R])(?![0-9A-Za-z])")
 _PUNCH = {**{c: ("+", str(i)) for i, c in enumerate("{ABCDEFGHI")}, **{c: ("-", str(i)) for i, c in enumerate("}JKLMNOPQR")}}
 
 
-#: a PICTURE character-string (the sentence's period stripped) and the SIGN clause's SEPARATE phrase
-_PICTURE = re.compile(r"\bPIC(?:TURE)?\s+(?:IS\s+)?(\S+)", re.IGNORECASE)
-_SIGN_SEPARATE = re.compile(r"\bSIGN\s+(?:IS\s+)?(?:LEADING|TRAILING)\s+SEPARATE\b", re.IGNORECASE)
+#: a PICTURE character-string (the sentence's period stripped; the keyword is not the tail of a data name such as WS-PIC,
+#: review R2-1) and the SIGN clause's SEPARATE phrase (the words SIGN IS are optional, ISO 13.18.52.2; review R2-2)
+_PICTURE = re.compile(r"(?<![\w-])PIC(?:TURE)?\s+(?:IS\s+)?(\S+)", re.IGNORECASE)
+_SIGN_SEPARATE = re.compile(r"(?<![\w-])(?:SIGN\s+(?:IS\s+)?)?(?:LEADING|TRAILING)\s+SEPARATE\b", re.IGNORECASE)
 #: the picture symbols that print a point or a sign: an edited item's output can carry them legitimately
 _EDITING_SIGN_OR_POINT = re.compile(r"[.+-]|CR|DB", re.IGNORECASE)
 
@@ -1066,6 +1067,9 @@ def self_test() -> int:
           and not display_fold_allowed("01 A pic $9.99.") and not display_fold_allowed("01 A PIC S9(5) SIGN IS LEADING SEPARATE.")
           and not display_fold_allowed("01 A PIC -9(3).") and not display_fold_allowed("01 A PIC 9(3)CR.") and not display_fold_allowed("01 A PIC 9(3)DB.")
           and display_fold_allowed("01 A PIC Z(4)9." + chr(10) + "01 B PIC X(3) VALUE 'CR'.")
+          and not display_fold_allowed("01 WS-EDIT-PIC PIC ZZ9.99.") and not display_fold_allowed("01 WS-EDIT-PIC PICTURE ZZ9.99.")
+          and not display_fold_allowed("01 A PIC S9(5) LEADING SEPARATE.") and not display_fold_allowed("01 A PIC S9(5) TRAILING SEPARATE CHARACTER.")
+          and display_fold_allowed("01 A PIC S9(5) SIGN LEADING." + chr(10) + "01 WS-SEPARATE PIC 9.")
           and not display_fold_allowed("01 A PIC S9(5) SIGN TRAILING SEPARATE CHARACTER."))
     check("classify: outputs that differ only in the display form are OUTPUT_LATITUDE only when the fold is allowed, not a survivor; any other difference, a differing exit, or a program with an edited point stays OUTPUT_DIFFERS",
           classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50"), True) == "OUTPUT_LATITUDE"

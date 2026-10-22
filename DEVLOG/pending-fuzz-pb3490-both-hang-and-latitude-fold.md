@@ -8,7 +8,8 @@ latitude the triage folded by hand — GnuCOBOL's `+00012.50` against WiseOwl's 
 own heading and never a survivor, and a row that differs elsewhere lists its real differing lines first. The branch review
 (round 1) showed the text fold cannot tell that latitude from an edited item whose point WiseOwl dropped, so the fold is
 gated by the program's source: it applies only when no picture carries a point or an editing sign and no item is SIGN
-SEPARATE. Replayed over the first night's results the gated fold takes 502 of 1,141 output rows and leaves 639 to read (174
+SEPARATE (round 2 closed two holes in the guard: a data name ending in `-PIC`, and SEPARATE without the optional SIGN IS).
+Replayed over the first night's results the gated fold takes 501 of 1,141 output rows and leaves 640 to read (175
 fold-equal rows stay for the triage because their program declares an edited picture); the stored report was re-rendered
 and the one the triage read kept beside it. The verdict names an open owner decision (PB3467) and settles nothing: the rows
 are kept, only sorted.
