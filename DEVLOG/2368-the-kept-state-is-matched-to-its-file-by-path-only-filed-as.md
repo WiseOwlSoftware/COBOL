@@ -1,3 +1,4 @@
-## The kept state is matched to its file by path only: filed as PB3533
+## Entry 2368 — 2026-10-22 15:46 PDT — The kept state is matched to its file by path only: filed as PB3533
 
 Round-1 review of PB3493/PB3494's branch left a lead the review finisher answered as a redesign beyond the branch. A closed APPLY COMMIT file keeps its state, and the runtime matches that state to the file by path alone. On Linux, a file removed and recreated at the same path outside the run unit is reopened through the old handle: the program reads the deleted file's records and its COMMIT writes to the unlinked inode. PB3533 records the repro and the fix shape, a host file identity beside the path as the key of the kept state and the run-unit tables, to be decided in the runtime design first.
+
