@@ -1235,7 +1235,7 @@ in one process: 369–395 s, ~4.5 s per row, with the test host using only ~3.8 
 same work as two concurrent processes: 209 s; four: 136 s — the limit is INSIDE one process. An in-process probe of
 exactly that work (`b2-scaling`) peaks at 3.5× by 8 threads, with ~1,400 contended `Monitor` acquisitions per
 compile. Stack samples name it: **28 of 30 single-thread samples, and all 24 twelve-thread stacks, are in ANTLR's
-`LexerATNSimulator.ComputeStartState` / `AddDFAState`** — half of the latter blocked in `Monitor.Enter`. ANTLR 4.13.1
+`LexerATNSimulator.ComputeStartState` / `AddDFAState`** — half of the latter blocked in `Monitor.Enter`. ANTLR 4.13.2
 `LexerATNSimulator.MatchATN` caches a mode's start state only when its closure carries no semantic context, and
 `CobolLexer.g4`'s default mode has six predicates on the LEFT EDGE of a rule (`FN_SIGNED_FLOATLIT`,
 `FN_SIGNED_COMMA_FLOATLIT`, `FN_SIGNED_DECIMALLIT`, `FN_SIGNED_INTEGERLIT`, `DEFINED`, `FNARG_SEPARATOR`). So every
@@ -1244,7 +1244,7 @@ token of every compilation recomputes the closure over all default-mode rules an
 (the test host, an IDE) pays the lock too.
 
 - **M6 — after warm-up, lexing performs NO ATN simulation.** Moving a predicate off the left edge is NOT enough.
-  ANTLR 4.13.1 (decompiled `LexerATNSimulator`) never stores a DFA edge whose target configuration set passed
+  ANTLR 4.13.2 (decompiled `LexerATNSimulator`) never stores a DFA edge whose target configuration set passed
   through a predicate (`AddDFAEdge(from, t, q)` returns before `AddDFAEdge(from, t, state)` when
   `q.hasSemanticContext`), so every token that REACHES a predicate re-runs `ComputeTargetState` and `AddDFAState`
   under `lock (dfa.states)` — on every occurrence, not once. With `DEFINED`'s predicate one character in, s0's `D`
@@ -1271,7 +1271,7 @@ token of every compilation recomputes the closure over all default-mode rules an
     character immediately before the sign", which a mode would have to re-derive on every token.
   `LexerDfaCacheDriftTests` pins the invariant that matters: after one warm-up pass over the suite's sources, no
   ASCII character of a re-lex leaves the cached DFA, and `s0` is non-null for every mode. ⚠ The instrument is NOT
-  a counting `LexerATNSimulator` subclass as first designed: in ANTLR 4.13.1 `MatchATN`, `ComputeTargetState` and
+  a counting `LexerATNSimulator` subclass as first designed: in ANTLR 4.13.2 `MatchATN`, `ComputeTargetState` and
   `ExecATN` are not virtual, so no subclass can count them. It is a probe on the INPUT side — `Lexer.NextToken`
   and `LexerATNSimulator.Match` each `Mark()` the `ICharStream` as a match begins, and the test's stream, at that
   moment, walks the cached DFA of the lexer's current mode over the coming characters exactly as `ExecATN` will and

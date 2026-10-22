@@ -1892,7 +1892,7 @@ The G0 extraction is complete and the tree in §1.2 is the record. Nothing maps 
 
 The new `Cobol.Net.Frontend.csproj`:
 - Inherits TFM/lang from `Directory.Build.props` (net10.0 / C# 14) — **do not** re-declare.
-- `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
+- `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`; the pin is our fork's build of the 4.13.2 runtime from `nuget-feed/`, DESIGN-frontend-grammar.md §3.5 item 3a). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
 - No `ProjectReference` (the front-end is self-contained).
 - Carries the ANTLR generation: the `WriteAntlrGenerationStamp` + `EnsureGeneratedFiles` + `CleanGenerated` targets, the `AntlrGrammar` item (`Grammar/**/*.g4`) and the `AntlrNamespace`/`AntlrJar`/`AntlrGenerator` properties live in its csproj; `EnsureGeneratedFiles` is the one up-to-date decision over every generation input (kb/Work PB2719), and its `Inputs`/`Outputs` paths are relative.
 - `<InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />` if any internals need testing.
