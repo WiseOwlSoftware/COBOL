@@ -1695,7 +1695,11 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   for the file whose promotion or statement was refused, with '30' in that file's status item and the file in permanent
   error — exactly the condition item 8 names, *"a fatal exception condition for a file subject to an active APPLY COMMIT
   clause"*, so its unconditional ROLLBACK follows by the standard's own rule. **Files are committed one at a time, in the
-  order of the run unit's open stores, each by its own slot write:** a COMMIT refused at file i leaves the files before i
+  order of the run unit's open stores, each by its own slot write:** the order is the place `StoreTable` stamps on each file's
+  store when it becomes the run unit's (`KeyedStore.OpenOrder`), read by `FileRegistry.TransactionHolders` whoever holds the
+  transaction - a live connector or the state a CLOSE under commit control kept and the registry retired - so neither the
+  connectors' registration order nor the order of the registry's collections decides it (kb/Work PB3494, review finding
+  R1-2). A COMMIT refused at file i leaves the files before i
   committed (each acknowledged and durable) and the files from i on at the previous COMMIT once item 8's ROLLBACK has run.
   The standard defines no cross-file atomicity for a COMMIT that fails — §14.9.36.4 GR3 restores *"to the state they were
   in at the execution of the last COMMIT statement"*, which for the committed files is this one — and an all-or-nothing
@@ -1971,12 +1975,17 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   **An OPEN OUTPUT over a file its connector's CLOSE kept ends the kept state only when the creation has LANDED** (kb/Work PB3493;
   §14.9.27.4 GR18 creates the file, GR25: *"If the execution of the OPEN statement is unsuccessful, the file is not affected"*):
   `KeyedConnector.Recreate` makes the new, empty store in a store of its own (`NewStore`, off the table) through the OPEN's own handle,
-  beside the kept attachment, and `PagedFile.Create` undoes a refused creation (every page it wrote goes back and it hands back no
-  store), so a refusal - the share-mode window, a refused write or sync - leaves the transaction, the record locks, the file lock
-  and the handle as the CLOSE left them (the OPEN's `AbandonOpen` runs as for any unsuccessful re-OPEN). A landed creation gives the
-  kept state back (`ReleaseKept`) and registers the created store (`StoreTable.AttachCreated`). The one failure that lands the
-  creation is the final sync's, after the truncation: `PagedFile.Create` then hands the created store back with its '30'
-  (`KeyedStore.FileReplaced`), the previous file is gone, and the kept state ends with it while the OPEN answers '30'. The same decision
+  beside the kept attachment, and `PagedFile.Create` undoes a refused creation (every page it wrote goes back), so a refusal - the
+  share-mode window, a refused write or sync - leaves the transaction, the record locks, the file lock and the handle as the CLOSE
+  left them (the OPEN's `AbandonOpen` runs as for any unsuccessful re-OPEN). A landed creation gives the kept state back
+  (`ReleaseKept`) and registers the created store (`StoreTable.AttachCreated`). `PagedFile.Create` REPORTS whether the file is
+  still the previous one (`replaced`, read as `KeyedStore.FileReplaced`), whatever its status, and the kept state ends exactly when
+  it is not: the creation landed; the final sync was refused after the truncation (nothing left to undo); or the medium refused
+  the UNDO as well (review finding R1-1) - the commit slot then holds the empty meta at N, so R6 adopts the empty store at every
+  later OPEN, and a kept transaction would stand over a store the file no longer holds and its COMMIT would promote it beside
+  that slot and answer success. In those two refusals the OPEN answers '30' (§9.1.13.6 item 1) and the kept state ends with the
+  previous file. The undo goes on past a refused page, so the commit slot is the previous file's again wherever the medium lets it
+  be (2.2.1.16's row). The same decision
   stands where the kept file is not there at the re-OPEN (an absent OPTIONAL file on INPUT or I-O, removed outside the run unit): the
   kept state belonged to that file and ends, after the new handle is taken, never beside it.
   (4) HOLDINGS and UNDO keys are ordered by the FILE'S key orders (`HoldingsKeyOrder`, kb/Work PB3485), never by their
@@ -2363,6 +2372,7 @@ slot (`committing`).
 | The dead-owner rollback run at A's entry, at any page | B's entry stands; A's statement answers '30' | A: '30' replayed · CLOSE · OPEN as a record statement | the next writer's entry redoes it (idempotent) |
 | `OPEN OUTPUT`, at any read, write, sync or the truncation but the last sync | the previous file, byte for byte: the pages written get their previous bytes back (a page the file held only part of too) and a file shorter than three pages its length to the byte, then a sync (§14.9.27.4 GR25, *"the file is not affected"*) | the OPEN answers '30' and the connector stays closed · the next OPEN finds the previous store (or '30' over a file with none) · OPEN OUTPUT recreates | the same |
 | `OPEN OUTPUT`, at its last sync | the empty store, committed and truncated; the medium's state unknown | '30' · the next OPEN adopts the empty store | the same |
+| `OPEN OUTPUT`, at any refusal above whose UNDO is refused too (a restore write, the length; review finding R1-1 of kb/Work PB3493) | not the previous file: every page whose restore landed is back (the undo goes on past a refused one), the rest are the creation's; a commit slot left holding the empty meta at N makes the file the empty store, and one restored with page 2 refused leaves the previous committed store beside a foreign work slot | '30', the file REPORTED REPLACED (`PagedFile.Create`'s `replaced`): what a CLOSE under commit control kept over the previous store ends with it (2.2.1.10) · the next OPEN adopts by R6 | the same |
 | Any path, a refused READ (OPEN's meta pages, R6 step 3's verification, a statement's entry, the promotion's read of both slots, the retirement's chains, a tree page) | unchanged by the read; whatever the path wrote before it stands as at a refused write at that point | '30' (§9.1.13.6 item 1): a refused read is no verdict on the page — it never rejects a work slot, never chooses a slot for a promotion, never reads as zeros | the same |
 | A changing statement, at its reservation or a write the host refuses because the file cannot grow further (2.2.1.9) | the reservation: nothing claimed, nothing written; a refused write: as a refused write at that point | the BOUNDARY, the file unchanged: a WRITE or REWRITE answers '24' with the invalid key condition (§9.1.14); a DELETE answers '30' with no invalid key condition (§9.1.13.6 item 1: §9.1.13.5 item 4's '24' is a write's, and §14.9.10.4 GR3/GR4 give a DELETE the invalid key condition only for a record the file does not contain); the same connector's next statement that fits succeeds | the same; a promotion, a CLOSE and an OPEN meeting either boundary answer '30' (they have no '24') |
 | The reader's re-adoption when the run unit's last writable connector CLOSEs and an INPUT sibling stays (2.2.1.7), a refused read | unchanged by the read; the CLOSE's promotion, when one ran, landed before it | that CLOSE answers '30' (§9.1.13.6 item 1) and the connector is closed · the store keeps the writable meta it holds, its fence OWED: the run unit's next writable OPEN opens it again and fences (R6) | the INPUT sibling's next statement enters as a reader over the trees the store holds: '00' |
