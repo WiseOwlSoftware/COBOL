@@ -51,3 +51,6 @@ auto-merge off, a red before the queue, offline). The new arms are pinned in `La
 `LandingPipelineDriftTests`, `LandingMeasureDriftTests` and `GateLegDriftTests`. Docs: DESIGN-orchestrator-loop.md
 section 4.9 (step 4 and the table), DESIGN-test-build-ci.md sections 3.14.3 and 3.17.2, `units/enqueue.md` step 3,
 `units/resume.md`, MANDATORY-PRACTICES L12, the workstream landing reference, DOC_INDEX, session-probe.
+
+**Gate** (run 20261022T221903Z-7338fd, at ad9ea2dc6): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
+GREEN — leg 2 left to CI's whole-population run: Conformance 7,494 · Unit 1,231 · Characterization 31 … ===`.
