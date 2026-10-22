@@ -1,4 +1,4 @@
-## PB3498: the refused second attempt of FileConnector.Open is pinned, and so is the sibling publication loop
+## Entry 2349 — 2026-10-22 10:41 PDT — PB3498: the refused second attempt of FileConnector.Open is pinned, and so is the sibling publication loop
 
 **The lead.** The branch review of PB3482 (lead R1-1) found that `FileConnector.Open`'s second attempt, the OPEN made again
 with `FileLockPosture.WhenOwedWritesAreAdmitted` after the host refused the first with the request's Table 19 column held,
@@ -34,3 +34,4 @@ own witnesses (PB1590, PB3416).
 host-specific halves and assert the advisory-lock host's single attempt elsewhere.
 
 **Rows.** None claimed or closed (`closes_rows: []` with its reason).
+
