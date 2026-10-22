@@ -9,3 +9,13 @@ the lane that owns the branch, and a finisher dispatch records a claim that ever
 The reviews doubled as well, and when both lanes then ran the landing script on the branch within a minute, the second
 run found the gate lock held and reported it as a red gate, marking the healthy branch blocked. That is filed separately
 as PB3526: a held gate lock is not a red gate.
+
+The landing of this branch then stopped on a Linux gate red that was not its content, filed and fixed here as PB3529.
+`ConformanceSuiteRunnerDriftTests` found the `cobol` apphost missing ("No such file or directory", "Text file busy")
+because the guard leg's own build of the CLI recompiled it while the conformance leg ran it. A second build of a fresh
+tree was not a no-op: the frontend's `EnsureGeneratedFiles` target appended the generated parser to Compile after the
+SDK had hashed `@(Compile)` into `CoreCompileInputs.cache`, so the next build, whose glob finds those files mid-list,
+recompiled the frontend, the compiler and the CLI. The target now runs before `BeforeCompile` and removes and appends
+the generated files on every build; on a fresh WSL clone the second build now changes nothing.
+`AntlrGenerationDriftTests` pins the shape, and `linux-gate.sh` reports `build-rewritten` if the CLI's output moves
+while the legs run.
