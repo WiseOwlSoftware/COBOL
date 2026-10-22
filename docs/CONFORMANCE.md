@@ -1707,6 +1707,13 @@ of an unsupported facility.
   its `-Wsuspicious-perform-thru` warning). **Determination:** the implicit GOBACK, the same as when a GO TO has left the range (where §14.6.3 does
   decide): `DispatchEmitter.EmitDispatchMethod`'s end-of-element arm throws the element's return signal from whatever
   nested dispatch reaches it. Witness: `conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted`.
+  A SORT input or output procedure is the same question: a GO TO that leaves the named procedure for the source
+  element's last paragraph stays in the procedure's range (§14.9.40.4 GR13: "The range includes all statements that are
+  executed as the result of a transfer of control in the range of the output procedure") but never reaches its return
+  mechanism (GR11, GR14), and GnuCOBOL 3.2 ends the activation there too (measured 2026-10-22, `cobc -x -free
+  -std=cobol2002`), so the same determination applies; the SORT never passes control to the statement after it.
+  Witnesses: `pb3511_implicit_goback_sort_input_procedure` and `pb3511_implicit_goback_sort_output_procedure` in the same
+  directory.
 
 - **D-PROP1 — an object property that a statement stores only IN PART: the GET supplies the kept positions, and a class
   WITH NO GET still compiles (kb/Work PB2618).** §14.9.43.4 GR7: "All other portions of the data item referenced by
