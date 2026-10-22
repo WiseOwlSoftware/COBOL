@@ -163,6 +163,36 @@ A brace's **own** label is exempt, and that exemption is what keeps ACCEPT Forma
 `LINE NUMBER` also sits outside its brace and inside its span, but on that brace's own point row, where it
 belongs.
 
+A label is known by **what it annotates**, never by where it merely sits: a row snaps only when it is the point
+row of a brace further out, one standing between the label and the inner brace and spanning that inner brace from
+hook to hook. Sitting to the left of a brace and inside its height is not enough. The report-writer LINE clause
+(§13.18.35.2 Format 1) is the case: `LINE NUMBER IS` and `LINES ARE` sit left of the tall
+`{ integer-1 … / … integer-2 / ON NEXT PAGE }` brace and inside its height, but they are alternatives of the
+three-way brace beside it, a sibling group with hooks of its own. Snapping them as labels lifted `LINE NUMBER IS`
+above its own brace's top hook, so the figure drew it outside the brace; the same rule had pulled `PICTURE` out of
+`{ PICTURE / PIC }`, `IS EQUAL TO` out of SEARCH ALL's `{ IS EQUAL TO / IS = }`, and fused INVOKE's
+`object-class-name-1` and `identifier-1` onto one row (kb/Work PB3530).
+
+### A row never straddles an enclosure's boundary
+
+Rows are clustered by a tolerance, and a delimiter's span is then decided against each row's representative
+height. A row whose words lie on both sides of a boundary is enclosed or excluded as a whole, so the words inside
+the delimiter can land on the wrong side of it: `THROUGH`, 3.9 pt below `identifier-3` and 0.2 pt below the top
+hook of its own `{ THROUGH / THRU }` brace, was clustered onto the operand row and drawn outside its brace. **The
+words decide, never the average.** Every opening delimiter is paired with its closing one (the way a reader
+matches parentheses: same family, same height, nearest unmatched opener), a word between the pair and inside the
+boundary is HELD by it, and a row is split at the boundary exactly where a held word and the row's representative
+fall on opposite sides. A row that merely spans a boundary drawn by a group alongside is not torn: `condition-1`,
+2.2 pt above the `{ BEFORE / AFTER }` hook beside it, stays on that row.
+
+### A stem spans only the words it holds
+
+A bracket's or choice bar's top slack and bottom inset admit a row by height alone, so a row of an unrelated group
+alongside, inside that margin, was enclosed too: WRITE's `{ | BEFORE / AFTER | }` choice bars end 11 pt below
+`mnemonic-name-1`, a row of the ADVANCING brace's next alternative, and drew down through it past their own brace.
+A paired stem spans the rows from the first to the last row holding a word between the pair; an unpaired stem keeps
+the rows its height admits.
+
 ### Columns align within a group; words flow within a cell
 
 Two rows share a column only when the same delimiter spans them. Packing one column space across a whole figure
@@ -193,6 +223,11 @@ phrase and belong together.
   *touches* either end of a stem let a choice-indicator bar adopt the foot of the bracket beside it — on folio
   503 the bracket's foot ends at 243.43 and the bar begins at 244.60, 1.17 pt away, so the bar was called a
   bracket and drew a closing corner in the middle of the group. Four stems in the whole standard were affected.
+  "Anchored" means the foot's near end lies *inside the stem's own stroke*, not within a tolerance of its edge:
+  SEND's choice bars (folio 726) stand 0.70 pt clear of the bracket's foot, and that foot's end fell within the
+  1.2 pt coincidence tolerance of the bar's far edge, so both bars drew as brackets turned the wrong way
+  (`[ ] ON EXCEPTION … [ ]`). Measured over the whole standard, the stricter test changes those four bars and
+  nothing else in a general format (kb/Work PB3530).
 - **A hook brackets its content**: a delimiter's top piece maps onto the first row at or below it, its bottom
   piece onto the last row at or above it. Nearest-row snapping put the function-identifier's parentheses a row
   high, around an operand belonging to the brace beside them.
