@@ -321,7 +321,7 @@ def survey_rows(repo: pathlib.Path, cdir: pathlib.Path) -> tuple[list[dict[str, 
     fetch = prune_worktrees.git("fetch", "-q", "origin", cwd=repo)
     if fetch.returncode != 0:
         raise LaneError(f"git fetch origin failed in {repo}: {fetch.stderr.strip()[:200]}")
-    rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs if prs is not None else {})
+    rows = prune_worktrees.live_survey(repo, coord_dir=cdir, prs=prs)
     order = [r.name for r in prune_worktrees.landing_order(rows, prune_worktrees.note_rank())]
     return ([{"name": r.name, "state": r.state, "content": r.content, "tip": r.tip, "worktree": r.worktree,
               "why": r.why, "lead": r.report.lead if r.report else None} for r in rows], order, prs)

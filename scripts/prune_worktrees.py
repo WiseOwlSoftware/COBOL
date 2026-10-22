@@ -69,7 +69,9 @@ who acts next:
                    one is unresolved, its job's own status) and the landing lane's QUEUE WATCH (land_lane.py), which
                    re-runs a stuck check, then closes, reopens and re-queues the pull request, then alerts the operator.
                    The first minutes after an enqueue read NOT QUEUED too, while the pull request's own run is still
-                   running: the elapsed time and the watch say which it is.
+                   running: the elapsed time and the watch say which it is. So does an exit-0 attempt at the tip whose
+                   pull request is no longer open while its work is not on main (closed without merging), whenever
+                   GitHub was observed; unobserved, the lane's record reads ENQUEUED.
   BOUNCED          its pull request is open but the queue REMOVED it (a red merge group, a conflict, a timeout: the
                    reason is GitHub's), or a REQUIRED check FAILED on its head before the queue took it (kb/Work PB3096,
                    PB3527: it can never enter the queue at that head), and its head is still the branch's tip: the
@@ -158,6 +160,9 @@ LANDED_CONTENT = ('MERGED', 'LANDED')
 STATES = ('IN FLIGHT', 'WAITING FOR REVIEW', 'WAITING TO LAND', 'STOPPED', 'ENQUEUED', 'NOT QUEUED', 'BOUNCED', 'LANDED',
           'DECISION')
 LOCK_PID = re.compile(r'\(pid (\d+)\)')
+#: live_survey's default `prs`: read the pull requests here (a caller that already read them passes its read, None
+#: included: an unobserved read is not re-read into a different answer on the same pass).
+UNREAD = object()
 
 
 def git(*args, cwd=REPO, stdin: str | None = None):
@@ -477,12 +482,13 @@ def not_queued(row: Row, pr: PullRequest, lane: Lane | None, now: dt.datetime) -
                              'no landing-lane attempt at this tip watches it (the lane watches only its own landings)'))
 
 
-def landing_state(row: Row, rep: Report, rv: Review, lane: Lane | None) -> tuple[str, str]:
+def landing_state(row: Row, rep: Report, rv: Review, lane: Lane | None, observed: bool = False) -> tuple[str, str]:
     """A report-covered, review-CLEAN-covered branch, by the landing lane's newest attempt AT THIS TIP (its head, or the
     end head its run left: main merged in, the DEVLOG stamp) — the third coverage of lifecycle() (kb/Work PB3181,
     PB3125). The lane's own classes (land_lane.classify/effective) and its own ACTION text decide; its status text is
     never parsed. A STOPPED attempt is never WAITING TO LAND: the lane does not relaunch a stop at the same head, so
-    only a new head (its finisher's) or the enqueue unit's re-arm lands it."""
+    only a new head (its finisher's) or the enqueue unit's re-arm lands it. `observed`: GitHub's open pull requests
+    were read (an exit-0 attempt with none open is NOT QUEUED, closed; unobserved, the lane's record says ENQUEUED)."""
     since = '' if rv.covers(row.tip) else ' (later commits mechanical: main merged in, the DEVLOG stamp)'
     clean = f'{rep.name}: Status {rep.status}, Review CLEAN at {rv.sha[:12]} ({rv.reviewer}){since}'
     waiting = ('WAITING TO LAND', clean + '; the landing lane lands it (enqueue.py land)')
@@ -503,9 +509,15 @@ def landing_state(row: Row, rep: Report, rv: Review, lane: Lane | None) -> tuple
     if cls == land_lane.STOPPED:
         return 'STOPPED', (f'{clean}; {tried}: {land_lane.ACTION[land_lane.STOPPED]}'
                            + (' [collected: the enqueue unit has dispatched its owner]' if att.get('collected') else ''))
+    if cls == land_lane.DONE and observed:
+        # lifecycle() read every OPEN pull request first: one at this tip in the queue is ENQUEUED and one out of it NOT
+        # QUEUED there, so an observed read that reaches here holds NO open pull request for a branch whose work is not
+        # on main: it was closed without merging (kb/Work PB3527; the lane's queue watch alerts the operator).
+        return 'NOT QUEUED', (f'{tried} at this tip, but no pull request is open for it and its work is not on main '
+                              f'(closed by hand?); {land_lane.watch_text(att)}')
     if cls == land_lane.DONE:
-        return 'ENQUEUED', (f'{tried} at this tip: its pull request went to the merge queue (no pull-request read '
-                            'says otherwise): it lands when the queue merges it')
+        return 'ENQUEUED', (f'{tried} at this tip: its pull request went to the merge queue (GitHub not observed: '
+                            'the lane\'s record says so): it lands when the queue merges it')
     return 'WAITING TO LAND', f'{clean}; {tried}: {land_lane.ACTION[cls]}'
 
 
@@ -514,7 +526,8 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
               prs: dict[str, PullRequest] | None = None, lane: Lane | None = None,
               now: dt.datetime | None = None) -> tuple[str, str]:
     """THE lifecycle rule (module doc), as a pure function of what the survey measured: (state, the evidence). `lane`:
-    the landing lane's view (land_lane.view: each branch's newest attempt and its class, the pending re-arms). `now`:
+    the landing lane's view (land_lane.view: each branch's newest attempt and its class, the pending re-arms). `prs`:
+    queue_facts.read's answer, None when GitHub was not observed (the git-only lifecycle). `now`:
     the time a NOT QUEUED row's wait is measured to (default: now)."""
     if live(row.lock):
         return 'IN FLIGHT', f'worktree locked by a live agent ({row.lock or "locked by hand"})'
@@ -572,7 +585,7 @@ def lifecycle(row: Row, *, in_flight_slugs: set[str], min_age: int, stale_hours:
         rv = rep.review
         covered = bool(rv) and (rv.covers(row.tip) or row.review_holds)   # stamp_covers, measured by survey()
         if covered and rv.verdict == 'CLEAN':
-            return landing_state(row, rep, rv, lane)
+            return landing_state(row, rep, rv, lane, observed=prs is not None)
         if covered and rv.verdict == 'FINDINGS':
             return 'DECISION', (f'{rep.name}: {rep.status}, but its branch review found {rv.findings} finding(s) '
                                 f'({rv.file}): a finisher answers them, and the next wave plans it (plan_wave.py, '
@@ -658,28 +671,29 @@ def in_flight_slugs(coord_dir: pathlib.Path | None, terminal: Callable[[str], bo
 def live_survey(repo=REPO, *, coord_dir: pathlib.Path | None = None, reports_dir: pathlib.Path | None = None,
                 terminal: Callable[[str], bool] | None = None, min_age: int = 180, stale_hours: float = 24,
                 live: Callable[[str | None], bool] = live_lock, gh=None,
-                prs: dict[str, PullRequest] | None = None) -> list[Row]:
+                prs: dict[str, PullRequest] | None | object = UNREAD) -> list[Row]:
     """THE lifecycle as every production reader takes it: this module's main, the landing lane (land_lane.survey) and
     the planner's file-set partition (plan_wave.main) all call this, never `survey` with arguments of their own, so
     each reads the fix-lane reports, the dispatch ledger's in-flight slugs and the OPEN PULL REQUESTS the same way. A
     reader that surveyed without the pull requests could never see ENQUEUED from GitHub or BOUNCED at all, and would
     plan over a branch the merge queue rejected as if it were still queued (kb/Work PB2807, branch review R1-2).
     `gh`: queue_facts.read's runner (a self-test fake). `prs`: the pull requests the caller already read with
-    queue_facts.read on this pass (the landing lane's tick, whose queue watch reads the same facts), else read here;
-    an unobserved read (None) is the git-only lifecycle. The caller fetches origin first when it needs a current main."""
+    queue_facts.read on this pass (the landing lane's tick, whose queue watch reads the same facts; None when that read
+    was not observed), else (UNREAD) read here. The caller fetches origin first when it needs a current main."""
     terminal = terminal or note_terminal()
     rdir = reports_dir or coord.reports_dir(str(coord_dir) if coord_dir else None)
     return survey(repo, reports=report_index(rdir, terminal), slugs=in_flight_slugs(coord_dir, terminal, rdir),
                   min_age=min_age, stale_hours=stale_hours, live=live, coord_dir=coord_dir,
-                  prs=prs if prs is not None else (queue_facts.read(gh) or {}))
+                  prs=queue_facts.read(gh) if prs is UNREAD else prs)
 
 
-def survey(repo=REPO, *, prs: dict[str, PullRequest], reports: list[Report] = (), slugs: set[str] = frozenset(),
-           min_age: int = 180, stale_hours: float = 24, live: Callable[[str | None], bool] = live_lock,
-           coord_dir: pathlib.Path | None = None) -> list[Row]:
+def survey(repo=REPO, *, prs: dict[str, PullRequest] | None, reports: list[Report] = (),
+           slugs: set[str] = frozenset(), min_age: int = 180, stale_hours: float = 24,
+           live: Callable[[str | None], bool] = live_lock, coord_dir: pathlib.Path | None = None) -> list[Row]:
     """Every local branch but main, and every detached worktree, measured and given its lifecycle state. `prs`:
-    {branch: its open pull request into main} (queue_facts.read), REQUIRED so no caller reads a git-only lifecycle by
-    omission; production readers call live_survey, and a self-test passes its own (`{}` is an explicit offline)."""
+    {branch: its open pull request into main} (queue_facts.read), or None when GitHub was not observed (the git-only
+    lifecycle); REQUIRED so no caller reads a git-only lifecycle by omission; production readers call live_survey, and
+    a self-test passes its own (None is an explicit offline, {} an observed "no pull request is open")."""
     names = main_names(repo)
     trees = worktrees(repo)
     by_branch = {t.branch: t for t in trees if t.branch}
@@ -1389,7 +1403,7 @@ def self_test() -> int:
         live = lambda reason: live_lock(reason, alive=lambda pid: alive.get(pid))  # noqa: E731
         terminal = lambda n: n == 'PB4'  # noqa: E731
         rows = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
-                                          stale_hours=24, live=live, coord_dir=landed_coord, prs={})}
+                                          stale_hours=24, live=live, coord_dir=landed_coord, prs=None)}
         want = {'merged': 'LANDED', 'landed-content': 'LANDED', 'orphan': 'DECISION', 'done-branch': 'WAITING TO LAND',
                 'split-branch': 'DECISION', 'w9999a-ledger': 'IN FLIGHT', 'fresh': 'IN FLIGHT', 'superseded': 'DECISION',
                 'stale-done': 'DECISION', 'resumed': 'DECISION',
@@ -1641,6 +1655,11 @@ def self_test() -> int:
         check(queue_facts.read(offline_gh) is None and offline_rows.get('lane-done') == 'ENQUEUED'
               and offline_rows.get('done-branch') == 'WAITING TO LAND',
               f'offline the pull-request states are unobserved and the lifecycle is git-only: {offline_rows}')
+        none_open = {r.name: r for r in survey(repo, reports=report_index(rdir, terminal), slugs={'w9999a'}, min_age=180,
+                                               stale_hours=24, live=live, coord_dir=landed_coord, prs={})}
+        check(none_open['lane-done'].state == 'NOT QUEUED' and 'no pull request is open' in none_open['lane-done'].why,
+              f'observed with no pull request open, an exit-0 attempt at the tip is NOT QUEUED (closed), never ENQUEUED: '
+              f'{none_open["lane-done"].state} {none_open["lane-done"].why}')
         # THE LANDING ORDER (kb/Work PB2981's ranking, kept by PB3023): the WAITING TO LAND rows, the most harmful lead
         # first, a compiler fix before process work at equal harm, the oldest report first; nothing else
         def waiting(name, lead, age):
