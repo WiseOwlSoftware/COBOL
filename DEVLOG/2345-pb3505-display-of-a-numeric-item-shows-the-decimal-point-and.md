@@ -1,4 +1,4 @@
-## PB3505: DISPLAY of a numeric item shows the decimal point and a leading sign by default; the digit image is `--numeric-display digits`
+## Entry 2345 — 2026-10-22 03:21 PDT — PB3505: DISPLAY of a numeric item shows the decimal point and a leading sign by default; the digit image is `--numeric-display digits`
 
 **What.** `DISPLAY` of `PIC 9(5)V99` holding 12.5 printed `0001250`, and of `PIC S9(5)V99` holding -12.5 printed
 `000125}`: the digit image, no point, the sign over-punched onto the last digit. ISO §14.9.11.4 GR1 leaves the conversion
@@ -49,3 +49,4 @@ re-read. A display-form difference in a new run stays `OUTPUT_DIFFERS`, where th
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261022T095503Z-3ed10b). Beyond leg 1, the whole Conformance and Unit
 projects and the Characterization snapshots were run locally: green except two `ExternalCorpusPopulationDriftTests` cases
 that need the GPL external corpus a worktree does not carry.
+
