@@ -203,9 +203,9 @@ public sealed class BoundaryImageChannelTests
         string move = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "MoveEmitter.cs"));
         // The figurative fill reads the slice's Table 2 CLASS (kb/Work PB442), through ClassOfPlace, which asks
         // RefModPlace.Category — the OperandPic reader — so a bit-group slice is still class boolean.
-        Assert.Contains("IntrinsicArgumentRules.ClassOfPlace(rmp)", move);
+        Assert.Contains("IntrinsicArgumentRules.ClassOfPlace(slice)", move);
         Assert.Contains("Inner.Item.OperandPic is { } ip", File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "Binding", "Model", "Place.cs")));
-        Assert.DoesNotContain("rmp.Inner.Item.Pic?.Category", move);
+        Assert.DoesNotContain("slice.Inner.Item.Pic?.Category", move);
         string acc = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "AcceptDisplayEmitter.cs"));
         Assert.Contains("PlaceRenderer.SliceLength(rm)", acc);
         Assert.DoesNotContain("Pic?.Length ??", acc);
