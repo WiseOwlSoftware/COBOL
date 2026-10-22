@@ -1691,6 +1691,23 @@ of an unsupported facility.
   `conformance-test:PerformUntilExitPlacementTests.UntilExit_NotUnderAVaryingOrTestPerform_IsAccepted` (thirteen refused
   shapes, each refused exactly once; four admitted).
 
+- **D-PTHRU — control that runs off the end of the source element inside an out-of-line PERFORM whose return mechanism
+  is never reached (kb/Work PB3511, rows `GR-14.6.3-3`, `GR-14.9.28.4-5`).** §14.9.28.4 GR5 b): "If procedure-name-2 is
+  specified, the return mechanism is after the last statement of procedure-name-2"; GR6: "There is no necessary
+  relationship between procedure-name-1 and procedure-name-2 except that a consecutive sequence of operations is to be
+  executed beginning at the procedure named procedure-name-1 and ending with the execution of the procedure named
+  procedure-name-2". In `PERFORM P2 THRU P1` with P1 written before P2 and P2 the last paragraph, control runs from P2 off
+  the end of the procedure division and never reaches the return mechanism, so the PERFORM does not return under any
+  reading. §14.6.3 ("There is also no next executable statement after the last statement in a source element when the
+  procedure in which it appears is not being executed under the control of some other COBOL statement … an implicit
+  GOBACK statement without any optional phrases is executed") can be read two ways here: P2 IS in the PERFORM's range, so
+  the sentence's first case does not literally fire and the standard names no next statement; or running off the source
+  element is the implicit GOBACK whatever is active. The standard does not decide, so CLAUDE.md rule 1 takes GnuCOBOL
+  3.2, which ends the activation after P2 (measured 2026-10-22 for kb/Work PB3511, `cobc -x -free -std=cobol2014`, with
+  its `-Wsuspicious-perform-thru` warning). **Determination:** the implicit GOBACK, the same as when a GO TO has left the range (where §14.6.3 does
+  decide): `DispatchEmitter.EmitDispatchMethod`'s end-of-element arm throws the element's return signal from whatever
+  nested dispatch reaches it. Witness: `conformance:cases/14.6.3-Explicit-and-implicit-transfers-of-control/pb3511_implicit_goback_perform_thru_inverted`.
+
 - **D-PROP1 — an object property that a statement stores only IN PART: the GET supplies the kept positions, and a class
   WITH NO GET still compiles (kb/Work PB2618).** §14.9.43.4 GR7: "All other portions of the data item referenced by
   identifier-3 will contain data that was present before this execution of the STRING statement"; §8.4.3.3.4 GR5 makes a
