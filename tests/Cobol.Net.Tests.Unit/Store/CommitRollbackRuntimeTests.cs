@@ -707,6 +707,119 @@ public sealed class CommitRollbackRuntimeTests
         finally { TryDelete(host); }
     }
 
+    /// <summary>⛔ A RE-OPEN THAT IS REFUSED ON ITS SECOND ATTEMPT TOO LEAVES WHAT THE CLOSE KEPT AS IT WAS, AND MAKES NO THIRD
+    /// (kb/Work PB3498; §9.1.13.9 1), <i>"A file sharing conflict condition exists because an OPEN statement is attempted on a
+    /// physical file and that physical file is already open by another file connector in a manner that conflicts with this
+    /// request"</i>; §14.9.27.4 GR25, <i>"If the execution of the OPEN statement is unsuccessful, the file is not
+    /// affected"</i>; §14.9.7.4 GR4, <i>"For files specified in active APPLY COMMIT clauses that have been closed and not
+    /// reopened prior to the COMMIT statement, the file locks are released."</i>): B, under commit control and SHARING WITH READ
+    /// ONLY, reads and is CLOSEd (its handle and its Table 19 column kept) beside another run unit's INPUT opener; a program
+    /// outside the protocol reads the file with a share mode that refuses writers, so B's OPEN I-O is refused by the host on a
+    /// host whose share modes are mandatory, its column held, and made again with the share mode that admits what an INPUT
+    /// opener may owe (<see cref="FileLockPosture.WhenOwedWritesAreAdmitted"/>), which the outside reader refuses too: '61'.
+    /// Each attempt replaces the kept column by its own and an unsuccessful one puts the kept column back, so the host is asked
+    /// four times (replace, restore, replace, restore) and not a fifth. When a third run unit publishes a column that Table 19
+    /// refuses against B's OPEN I-O between the two attempts instead (<paramref name="thirdRunUnitRacesTheSecond"/>), the
+    /// second attempt is refused at the column, before any handle is asked: three requests, and the kept column stands as the
+    /// CLOSE left it. Either way the kept column still refuses what it refused before (an OPEN I-O under SHARING WITH ALL OTHER,
+    /// Table 19's ALL OTHER I-O row against the READ ONLY INPUT column), the kept handle still refuses a writer on a host with
+    /// mandatory share modes, B's re-OPEN INPUT adopts it, and the ROLLBACK gives both back. A host whose share modes are
+    /// advisory admits the OPEN I-O at its first attempt.</summary>
+    [Theory]
+    [InlineData(FileOrg.Relative, false)]
+    [InlineData(FileOrg.Relative, true)]
+    [InlineData(FileOrg.Indexed, false)]
+    [InlineData(FileOrg.Indexed, true)]
+    public void A_reopen_refused_on_its_second_attempt_too_keeps_what_the_close_kept_and_makes_no_third_attempt(FileOrg org,
+        bool thirdRunUnitRacesTheSecond)
+    {
+        string host = Tmp($"pb3498-twice-{org}-{thirdRunUnitRacesTheSecond}");
+        RunUnitFileLock? thirdRunUnit = null;
+        try
+        {
+            Seed(host, org);
+            var a = Open(host, org, commit: false, FileOpenMode.Input, name: "A", sharing: FileSharing.AllOther);
+            var b = new FileRegistry();
+            Declare(b, host, org, commit: true, name: "B", sharing: FileSharing.ReadOnly);
+            var log = new ColumnRequestLog();
+            var (kept, replacing) = (Table19.Column(FileSharing.ReadOnly, FileOpenMode.Input), Table19.Column(FileSharing.ReadOnly, FileOpenMode.IO));
+            ColumnRequestLog.Request restore = new(kept, Replaces: true), replace = new(replacing, Replaces: true);
+            // The third run unit: SHARING WITH READ ONLY on INPUT publishes the column B's OPEN I-O refuses and neither B's
+            // kept column nor the INPUT opener's refuses it.
+            (FileSharing, FileOpenMode) racer = (FileSharing.ReadOnly, FileOpenMode.Input);
+            Assert.True(Table19.Conflicts((FileSharing.ReadOnly, FileOpenMode.IO), racer));
+            Assert.False(Table19.Conflicts(racer, (FileSharing.ReadOnly, FileOpenMode.Input)));
+            Assert.False(Table19.Conflicts(racer, (FileSharing.AllOther, FileOpenMode.Input)));
+            bool mandatory = HostFile.ShareModesAreMandatory;
+            using (log.Install())
+            {
+                b.OpenStatic("B", FileOpenMode.Input);
+                Assert.Equal("00", b.Status("B"));
+                Assert.Equal("00", Read(b, org, 1, out _, name: "B"));
+                b.Close("B");
+                Assert.Equal("00", b.Status("B"));
+                Assert.Equal(0ul, b.TransactionOf("B"));
+            }
+            log.Clear();
+            log.Before = index =>
+            {
+                if (thirdRunUnitRacesTheSecond && index == 2)
+                    Assert.Equal(RunUnitFileLock.Outcome.Held,
+                        RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, racer.Item1, racer.Item2, out thirdRunUnit));
+            };
+            using (var outsideReader = new FileStream(host, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                b.OpenStatic("B", FileOpenMode.IO);
+                if (mandatory)
+                {
+                    Assert.Equal("61", b.Status("B"));
+                    Assert.Equal(thirdRunUnitRacesTheSecond ? [replace, restore, replace] : [replace, restore, replace, restore], log.Requests);
+                    Assert.Equal(thirdRunUnitRacesTheSecond, thirdRunUnit is not null);
+                }
+                else
+                {
+                    Assert.Equal("00", b.Status("B"));
+                    Assert.Equal([replace], log.Requests);
+                    b.Close("B");
+                    Assert.Equal("00", b.Status("B"));
+                }
+            }
+            thirdRunUnit?.Dispose();
+            // What the CLOSE kept stands: its column (an OPEN I-O under ALL OTHER is refused by it alone, the INPUT opener's
+            // column admitting it) and, where share modes are mandatory, its handle (a writer is refused by its share mode).
+            Assert.Equal(RunUnitFileLock.Outcome.Refused, Ask(host, FileSharing.AllOther, FileOpenMode.IO));
+            if (mandatory)
+            {
+                var writer = Assert.ThrowsAny<IOException>(() => new FileStream(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite).Dispose());
+                Assert.True(HostFile.IsSharingRefusal(writer));
+                b.OpenStatic("B", FileOpenMode.Input);
+                Assert.Equal("00", b.Status("B"));
+                b.Close("B");
+                Assert.Equal("00", b.Status("B"));
+            }
+            Assert.Null(b.Rollback());
+            Assert.Equal(RunUnitFileLock.Outcome.Held, Ask(host, FileSharing.AllOther, FileOpenMode.IO));
+            using (new FileStream(host, FileMode.Open, FileAccess.Write, FileShare.ReadWrite)) { }
+            a.CloseAll();
+            b.CloseAll();
+            Assert.Equal(Seeded(), Settled(host, org));
+        }
+        finally
+        {
+            thirdRunUnit?.Dispose();
+            TryDelete(host);
+        }
+    }
+
+    /// <summary>What an OPEN in (<paramref name="sharing"/>, <paramref name="mode"/>) would be told by the Table 19 column
+    /// lock of this host, the request itself left nowhere.</summary>
+    private static RunUnitFileLock.Outcome Ask(string host, FileSharing sharing, FileOpenMode mode)
+    {
+        var outcome = RunUnitFileLock.Take(RunUnitFileLock.HostOfThisProcess, host, sharing, mode, out var held);
+        held?.Dispose();
+        return outcome;
+    }
+
     /// <summary>⛔ A RE-OPEN ANOTHER RUN UNIT REFUSES KEEPS THE HANDLE THE CLOSE KEPT (kb/Work PB3483; §9.1.13.9 1), <i>"A file
     /// sharing conflict condition exists because an OPEN statement is attempted on a physical file and that physical file is
     /// already open by another file connector in a manner that conflicts with this request"</i>; §14.9.27.4 GR25, <i>"If the
