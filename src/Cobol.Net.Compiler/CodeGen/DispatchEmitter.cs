@@ -100,13 +100,13 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // no other statement may reference them from outside their section; kb/Work PB362).
             // X3.23-1985: the FIRST execution of the first nondeclarative procedure is DEBUG-CONTENTS "START PROGRAM".
             dispatchState.EmitDebugCause(w, "StartProgram");
-            // The top-level run is bounded at the last MAIN paragraph (F3HandlerBasePc − 1) when the unit has
-            // appended Format-3 handler pc-ranges above it, so fall-through off the last real paragraph ENDS the run
-            // unit (§14.9.18) and never runs into the synthetic handlers; a non-F3 unit renders the literal -1 (the
-            // whole pc space) — byte-identical (the wall, design §9.5.3). Only this top-level call is walled; every
-            // bounded __RunUse / out-of-line PERFORM passes its own exit pc.
-            int topExit = bound.F3HandlerBasePc is int hb ? hb - 1 : -1;
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
+            // The top-level run is bounded at the source element's LAST paragraph (the last MAIN paragraph,
+            // F3HandlerBasePc − 1, when the unit has appended Format-3 handler pc-ranges above it): its completion is
+            // the activation's own return, taken by the at-exit test, so this one call never reaches the dispatcher's
+            // implicit-GOBACK arm (§14.6.3; kb/Work PB3511) and never runs into the synthetic handlers. Every bounded
+            // __RunUse / out-of-line PERFORM passes its own exit pc.
+            int topExit = LastElementPc(bound);
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking
@@ -116,20 +116,35 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             EmitUseMachinery(bound.Declaratives ?? [], bound.F3HandlerBasePc is int hb0 ? bound.Paragraphs.Count - hb0 : 0,
                 bound.Ec is { HasIoChecked: true }, bound.Ec is { HasF3Perform: true }, w, asLocal: false);   // an F3 PERFORM needs __RunUse/__EcPerform even with no USE declaratives (§14.9.28)
         if (dispatchState.DebugActive) EmitDebugRunner(w);
+        // The source element's paragraphs are [0..LastElementPc]; the unit's appended Format-3 handler pc-ranges
+        // (above them, entered only through __RunUse) are the second case set.
+        int last = LastElementPc(bound);
         EmitDispatchMethod(bound, w, "private int __Dispatch(int __startPc, int __exitPc)",
-            0, bound.Paragraphs.Count - 1);
+            0, last, inMethod: false, handlerFromPc: last + 1, handlerToPc: bound.Paragraphs.Count - 1);
     }
+
+    /// <summary>The pc of a program's or function's LAST paragraph — the end of its source element's procedure
+    /// division, below any appended Format-3 handler pc-range (−1 for a unit with no paragraphs).</summary>
+    private static int LastElementPc(BoundProgram bound) => (bound.F3HandlerBasePc ?? bound.Paragraphs.Count) - 1;
+
+    /// <summary>The return signal of the source element being emitted — the one its GOBACK throws and its activation
+    /// entry catches: <c>MethodReturn</c> in a method (§14.9.18.4 GR4), <c>ProgramReturn</c> in a program or a
+    /// function (GR2, GR3, GR5).</summary>
+    private static string ReturnSignal(bool inMethod) => inMethod ? "MethodReturn" : "ProgramReturn";
 
     // The dispatch-method NAME the statement emitters call for a bounded range is DispatchState.DispatchName
     // (Step 9b — see EmitterState.cs for the __Dispatch / __MDispatch contract).
 
     /// <summary>Emit one dispatch-method body over the pc slice [<paramref name="fromPc"/>..<paramref name="toPc"/>]
-    /// — SHARED by program classes (via <see cref="EmitDispatcher"/>: the full range as the instance
+    /// — SHARED by program classes (via <see cref="EmitDispatcher"/>: the program's paragraphs as the instance
     /// <c>__Dispatch</c>) and COBOL classes (<c>OoEmitMethod</c>: each METHOD-ID's contiguous slice of the
     /// class's ONE pc space as a local function; a pc outside the slice hits <c>default:</c> and exits — the
-    /// emit-into-a-type parameterization of the OO deep-dive).</summary>
+    /// emit-into-a-type parameterization of the OO deep-dive). <paramref name="toPc"/> is the LAST paragraph of the
+    /// source element, past which the §14.6.3 implicit GOBACK executes (<paramref name="inMethod"/> picks the
+    /// method's return signal); [<paramref name="handlerFromPc"/>..<paramref name="handlerToPc"/>] is the element's
+    /// appended Format-3 handler pc-range, empty by default.</summary>
     public void EmitDispatchMethod(BoundProgram bound, CodeWriter w, string header, int fromPc, int toPc,
-        int handlerFromPc = -1, int handlerToPc = -1)
+        bool inMethod, int handlerFromPc = 0, int handlerToPc = -1)
     {
         void EmitCase(int i)
         {
@@ -176,12 +191,11 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 using (w.Block("switch (__pc)"))
                 {
                     for (int i = fromPc; i <= toPc; i++) EmitCase(i);
-                    // The method's Format-3 handler pc-ranges (design SSOT §9.10) — a NON-contiguous second case set
-                    // (appended above the whole class pc space, so outside [EntryPc..EndPc]); entered ONLY via the
-                    // method-local __RunUse(id, hpc, hpc). Empty (handlerFromPc < 0) for a program's __Dispatch — whose
-                    // main loop [0..Count−1] already covers its appended handlers — so the program path is byte-identical.
-                    if (handlerFromPc >= 0)
-                        for (int i = handlerFromPc; i <= handlerToPc; i++) EmitCase(i);
+                    // The element's Format-3 handler pc-ranges (design SSOT §9.10) — the second case set, appended above
+                    // the paragraphs (a program's directly after its last paragraph; a method's above the whole class pc
+                    // space, so outside [EntryPc..EndPc]); entered ONLY via the (method-local) __RunUse(id, hpc, hpc),
+                    // never by running off the element's last paragraph (the implicit GOBACK below).
+                    for (int i = handlerFromPc; i <= handlerToPc; i++) EmitCase(i);
                     using (w.Block("default:")) { w.Line("__pc = __N;"); w.Line("break;"); }
                 }
                 // The ONE dispatcher exit (kb/Work PB405): every statement that transfers control out of a
@@ -193,6 +207,19 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
                 if (dispatchState.TransferUsed)
                     w.Line($"{dispatchState.TransferLabel}: ;   // a transfer of control out of a paragraph (ISO §14.9.14.4 GR6/GR7, §14.9.17.4, §14.9.19.4 GR4/GR6, §14.9.33.4 GR3)");
                 w.Line("if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)");
+                // ⛔ CONTROL THAT RUNS PAST THE ELEMENT'S LAST PARAGRAPH WITHOUT COMPLETING THIS CALL'S RANGE EXECUTES
+                // THE IMPLICIT GOBACK (kb/Work PB3511). §14.6.3: "There is also no next executable statement after the
+                // last statement in a source element when the procedure in which it appears is not being executed under
+                // the control of some other COBOL statement … an implicit GOBACK statement without any optional phrases
+                // is executed." A nested call (an out-of-line PERFORM, a SORT/MERGE procedure, a __RunUse) whose range
+                // a GO TO left, or whose THRU exit lies before its start (§14.9.28.4 GR6), arrives here without the
+                // at-exit return above: returning __pc would read as its range COMPLETING and resume after the
+                // performing statement, although the return mechanism (§14.9.28.4 GR5 b)) was never reached. It leaves
+                // by the element's return signal instead, the path an explicit GOBACK takes, which unwinds every nested
+                // frame to the activation entry. Fall-through, EXIT PARAGRAPH / SECTION and NEXT SENTENCE all arrive
+                // here, so the test sits after the transfer label, not in the paragraph epilogue. The activation's
+                // own call is bounded at the last paragraph, so its fall-off returns above and never throws.
+                w.Line($"if (__pc == {toPc + 1}) throw new {ReturnSignal(inMethod)}();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)");
             }
             w.Line("return __pc;");
         }
@@ -426,7 +453,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
     /// <c>CobolSort.UseProcedureExited</c> records it when another element's format 1 SORT is active, which is then
     /// terminated once this activation has returned. <paramref name="idTest"/> limits it to DECLARATIVE ids.</summary>
     private static string UseProcedureExitFilter(bool inMethod, string idTest) =>
-        $"catch ({(inMethod ? "MethodReturn" : "ProgramReturn")}) when ({idTest}{RuntimeApi.SortUseProcedureExited("__useActive")}) "
+        $"catch ({ReturnSignal(inMethod)}) when ({idTest}{RuntimeApi.SortUseProcedureExited("__useActive")}) "
         + "{ throw; }   // §14.9.40.4 GR17 — the filter declines (never runs): the return goes on";
 
     /// <summary>Emit a paragraph body SENTENCE by sentence. When the paragraph contains a NEXT SENTENCE anywhere,
