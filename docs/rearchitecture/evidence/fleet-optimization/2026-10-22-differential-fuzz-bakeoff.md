@@ -62,7 +62,10 @@ The lead rows (survivors) are in the raw report and are the next triage pass's i
 
 ## Decision
 
-The model for the next overnight run is the owner's: pending the owner.
+The model for the next overnight run was the owner's decision. At about 15:12 PDT on 2026-10-22 the owner answered "yes"
+to the question "Should tonight's run use nemotron-3.5-bolt?". The third overnight run therefore uses
+nemotron-3.5-bolt, with the judge `E:\tmp\fuzz-judge-20261022\cobol.exe` (the compiler of main 4ea4be06a), seed
+20261024, 8 hours and 4 jobs.
 
 ## Links
 
