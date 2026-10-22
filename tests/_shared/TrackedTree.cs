@@ -53,7 +53,9 @@ internal static class TrackedTree
 /// <list type="bullet">
 /// <item><see cref="Under"/>: path prefixes, compared ordinally; <c>""</c> is the whole tree, and a directory ends in
 /// <c>/</c>.</item>
-/// <item><see cref="Except"/>: a directory (ending in <c>/</c>) and everything beneath it, or one exact path.</item>
+/// <item><see cref="Except"/>: a directory (ending in <c>/</c>) and everything beneath it, or one exact path. A path
+/// set aside BY NAME is the rule's owner (where its one pattern lives, or the test itself): the sweep does not read it,
+/// and the drift-rule index lists the class as governing it specifically (<c>drift_rules.owners</c>).</item>
 /// <item><see cref="Kinds"/>: file-name suffixes such as <c>.cs</c>, compared case-insensitively.</item>
 /// </list>
 /// <para>

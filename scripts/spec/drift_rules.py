@@ -27,7 +27,10 @@ reads the tree only through a declared scope, `static readonly TreeScope Name = 
 Kinds: [...]);` of string literals, and this index reads that declaration (`scopes_of`) and applies it exactly as the
 test does (`in_scope` mirrors `TreeScope.Holds`), so the test governs every file its scope holds — specifically when the
 prefix that holds the file is SPECIFIC_DEPTH segments deep, as a tree-wide sweep otherwise (kb/Work PB3531: the seven
-such classes were invisible here, and one stopped PB3523's landing). `TrackedTreeScopeDriftTests` holds every
+such classes were invisible here, and one stopped PB3523's landing). An Except entry is a directory the rule does not
+apply to, or ONE EXACT PATH: a file the scope sets aside BY NAME is the rule's OWNER (where its pattern may be written,
+or the test itself), so the class governs that file SPECIFICALLY too (`owners`): editing the owner edits the rule
+(PB3531 review R1-1: CatalogCoverageDriftTests owns scripts/spec/spec_headings.py). `TrackedTreeScopeDriftTests` holds every
 declaration this reads equal to the value the compiler builds (`--scopes`), and every `TrackedTree.Files` call to a
 declared field of a drift test.
 """
@@ -154,6 +157,12 @@ def in_scope(scope, rel):
             and (scope["kinds"] is None or any(rel.lower().endswith(k.lower()) for k in scope["kinds"])))
 
 
+def owners(scope):
+    """The paths a scope sets aside BY NAME (an Except entry that is one exact path, not a directory ending in /): the
+    rule's owners. The sweep does not read them because the rule lives there, so the class governs them specifically."""
+    return [e for e in scope["except"] or [] if not e.endswith("/")]
+
+
 def index():
     rows = []
     for f in drift_files():
@@ -235,7 +244,8 @@ def governing(rows, rel):
         under = [p for p in r["paths"] if rel == p or rel.startswith(p.rstrip("/") + "/")]
         held = [u for sc in readable(r) if in_scope(sc, rel) for u in sc["under"] if rel.startswith(u)]
         deep = (any(p == rel or len(p.split("/")) >= SPECIFIC_DEPTH for p in under)
-                or any(segments(u) >= SPECIFIC_DEPTH for u in held))
+                or any(segments(u) >= SPECIFIC_DEPTH for u in held)
+                or any(rel in owners(sc) for sc in readable(r)))
         by_name = len(stem) > 3 and re.search(r"\b" + re.escape(stem) + r"\b", r["rule"]) is not None
         if deep or by_name or base == pathlib.PurePosixPath(r["file"]).name:
             specific.append(r)
