@@ -315,6 +315,17 @@ every syntax screen reads (`MoveBinder`'s SR1/Table-16 arms, `VersionConformance
 GR2/GR3 substitute a *value*, and gating on the substitution would reject `MOVE "" TO PIC 9(3)`, which the
 standard permits at every edition.
 
+**AS BUILT, no kind names a PLACE SHAPE** (kb/Work PB3512): the sketch's `RefModSlice` is gone. The built enum
+is `Group · GroupToElementary · FigurativeToNumericImage · Convert` — the CONVERSION one (sender, receiver) pair
+takes — and a reference-modified receiver is classified like any elementary receiver, because ISO §8.4.3.3.4 GR6
+makes the slice "an elementary data item without the JUSTIFIED clause" (`MoveClassifier.ReceivingCategory` reads
+its category through `RefModPlace.Category`, never numeric). A `RefModSlice` kind answered before the sender was
+asked, so a signed numeric sender moved its operational sign into the slice, against §14.9.25.4 GR6 a). The slice
+is only the place the emitter's receiving half writes: `MoveEmitter.SliceStore` (Convert; the run-time-length
+splice and §8.3.3.6.4 GR2's whole-slice figurative fill) over the ONE `SendingCharacters`, and
+`ReceivingStore.SliceStorageArea` (GroupToElementary; GR4's unconverted storage bytes). Pinned by
+`RefModMoveClassificationDriftTests`.
+
 **GR1's zero-length-*item* clause is CONDITIONAL, and §8.5.4 says on what.** `ZeroLengthItemRoute` emits a
 runtime length test only for a sending shape that carries its own length field; a reference-modified or
 function-identifier sender is first frozen into `SendingValueTemp`'s carrier by `MoveBinder`, and
