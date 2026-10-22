@@ -1,4 +1,4 @@
-## PB3489: the closed-format hint walk runs on ANTLR's own simulator; a nested-function syntax error no longer hangs
+## Entry 2342 — 2026-10-22 01:19 PDT — PB3489: the closed-format hint walk runs on ANTLR's own simulator; a nested-function syntax error no longer hangs
 
 **What.** Last night's differential fuzz run found the compiler hanging on a typo: `MOVE FUNCTION DATE-OF-INTEGER(FUNCTION
 INTEGER-PART(FUNCTION NUMVAL(FUNCTION SUBSTRING(A FROM 1 FOR 4)))) TO N`. One or two calls deep the compiler reported
@@ -33,3 +33,4 @@ answer in under a second.
 **Found on the way.** The sweep turned up a different hang, on LEGAL source: four nested function calls in any EVALUATE
 operand never finish, inside ANTLR's own prediction of `evaluateSubject` and the WHEN object. Filed as PB3504 with the
 measurements; it needs a grammar redesign of the EVALUATE operand rules.
+
