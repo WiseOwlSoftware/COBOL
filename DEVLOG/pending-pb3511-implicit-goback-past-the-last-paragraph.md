@@ -29,3 +29,6 @@ inverted THRU, a CALLed program (called twice, plus an EXIT PARAGRAPH variant), 
 run, and a COBOL 2023 program with an exception-checking PERFORM. Probes also covered the ALTERed GO TO at --std 85. The
 batch w1147b-pb3511-implicit-goback-witnesses adds them to GR-14.6.3-3 and GR-14.9.28.4-1/5/6 (all already OK, GAP 66 ->
 66). Self-review found the return-signal type spelled twice in DispatchEmitter; `ReturnSignal` now serves both.
+
+Gate (run 20261022T175037Z-912edc): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to
+CI's whole-population run ===`, with all six goldens Passed at 2002 (2023 for the Format-3 case) in leg 1.
