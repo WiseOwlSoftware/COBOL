@@ -31,6 +31,12 @@ public sealed partial class DataBinder
     /// does not. It runs where the entry's usage is resolved and before anything reads a phrase, and it runs
     /// whether or not the entry turns out to be a group, because which usage a phrase may follow is a fact about
     /// the written clause.
+    /// <para>It is asked at every grammar host of <c>usageClause</c> the binder accepts: a data description entry
+    /// (<c>BindEntry</c>) and a report group description entry (<c>DescribeReportItem</c>), whose USAGE clause
+    /// §13.15.4 GR2 makes "the same clauses as those that are described under the general format for a data
+    /// description entry". The third host, a screen description entry, is declined with its whole module
+    /// (<c>ScreenFacility</c>, COBOLNET1560). <c>UsageClausePhraseDriftTests</c> reads every host out of the
+    /// grammar and probes each, so a fourth cannot ship unscreened (branch review R1-1 of kb/Work PB3517).</para>
     /// <para>The FLOAT-DECIMAL-16/-34 tail is a bracketed choice-indicator group, and the FLOAT-BINARY-* tail a
     /// single bracket, so the float phrases are also screened for REPEAT: §5.2.6.4, "any single alternative may
     /// be specified only once" (COBOLNET1718). The same clause makes their order free ("The alternatives may be

@@ -10434,7 +10434,25 @@
   ],
   "expect": "COBOLNET1565"
  },
+ "pb3517-no-sign-phrase-on-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1565"
+ },
  "pb3517-sign-phrase-on-non-binary-usage": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4733"
+ },
+ "pb3517-sign-phrase-on-report-item": {
   "refuse-at": [
    "85",
    "2002",
