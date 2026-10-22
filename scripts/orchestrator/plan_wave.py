@@ -321,10 +321,23 @@ def add_closed_notes(reports: list[Report], classify: Callable[[str], str], git:
     its lead and its dispatch group's (answered_notes), and a SPLIT or FINDINGS branch's finisher, which takes that
     branch's work, is planned for them too: left out, each would be planned again as a fresh cluster group that redoes
     the work the finisher cherry-picks (branch review R2-1). With answered_notes, the only readers of "the notes a
-    report answers" (kb/Work PB3473)."""
+    report answers" (kb/Work PB3473).
+
+    A note that a CONTAINED branch closes belongs to that branch, never to the branch that carries it. A same-file
+    successor merges its predecessor's head, so the predecessor's terminal flip is in the successor's diff from main
+    too. When the note was credited to the successor's report (the newest), that report superseded the predecessor's
+    FINDINGS report. The planner then read the note as `awaiting landing` with the successor and never planned the
+    predecessor's review finisher, while the survey held the successor for those same findings. Wave 1143 planned
+    nothing that way (PB3489 behind fix-pb3504, kb/Work PB3508). The contained branch's own report decides the note,
+    as plan()'s carrier rule already says (`branch_carrier`)."""
+    unlanded = list(dict.fromkeys(r.branch for r in reports if r.branch and classify(r.branch) not in LANDED_CLASSES))
+    closed = {b: closed_by_branch(b, git) for b in unlanded}
     for r in reports:
-        if r.branch and classify(r.branch) not in LANDED_CLASSES:
-            r.notes = list(dict.fromkeys([*r.notes, *closed_by_branch(r.branch, git)]))
+        if r.branch not in closed:
+            continue
+        carried = {n for c in unlanded if c != r.branch and
+                   git("merge-base", "--is-ancestor", c, r.branch).returncode == 0 for n in closed[c]}
+        r.notes = list(dict.fromkeys([*r.notes, *(n for n in closed[r.branch] if n not in carried)]))
 
 
 def header_lines(lines: list[str]) -> list[str]:

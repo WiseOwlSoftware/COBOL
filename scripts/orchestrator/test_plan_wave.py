@@ -381,6 +381,44 @@ pcap = pw.plan(notes, CLUSTERS, HALF, cap_reports, lambda b: "UNLANDED", {}, CAP
 check("a FINDINGS branch that closed more notes than the cap has ONE review finisher, not one per chunk",
       sorted((g.kind, tuple(g.notes)) for g in pcap["groups"] if {"PB13", "PB14", "PB10"} & set(g.notes)),
       [("finisher", ("PB10", "PB13", "PB14"))])
+# 6b'''00 (PB3508). A NOTE THE PREDECESSOR CLOSES IS NEVER ITS SUCCESSOR'S. fix-pb3504 (the successor) merged
+#         fix-pb3489 (the predecessor) at its reviewed head, so PB3489's flip to `landed` was in fix-pb3504's diff from
+#         main too. Credited to fix-pb3504's newer DONE report, PB3489 read `awaiting landing` with it, and PB3489's
+#         review finisher was never planned while the survey held fix-pb3504 for those findings: wave 1143 planned
+#         nothing. Here the predecessor's FINDINGS report (PB13) keeps its finisher and the successor holds PB14 alone.
+PR_REPORTS = TMP / "reports-closes-pred"
+PR_REPORTS.mkdir()
+PR_COORD = TMP / "coord-closes-pred"
+PR_COORD.mkdir()
+pw.record_dispatch(PR_COORD, "1141", [{"letter": "e", "notes": ["PB13"], "files": ["src/X/Zero.cs"]},
+                                      {"letter": "g", "notes": ["PB14"], "files": ["src/X/Zero.cs"]}], lambda i: False)
+(PR_REPORTS / "w1141e-PB13-report.md").write_text(
+    "# PB13 report\n**Status:** DONE · **branch:** `worktree-wf_pr-1` · **HEAD:** `5e5e5e5ee`\n"
+    "**Review:** FINDINGS 1 w1141e-review-r1 5e5e5e5ee E:/s/review-pr-e.jsonl\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+(PR_REPORTS / "w1141g-PB14-report.md").write_text(
+    "# PB14 report\n**Status:** DONE · **branch:** `worktree-wf_pr-2` · **HEAD:** `6f6f6f6ff`\n\n## Reproduced?\n",
+    encoding="utf-8", newline="\n")
+returned(PR_REPORTS)
+pr_reports = pw.load_reports(PR_REPORTS, PR_COORD)
+_pr_pred = _branch_git("worktree-wf_pr-1", {"PB13": "landed"})
+_pr_succ = _branch_git("worktree-wf_pr-2", {"PB13": "landed", "PB14": "landed"})
+
+
+def _pr_git(*args, cwd=None):
+    if args[:2] == ("merge-base", "--is-ancestor"):
+        return _Shown(0 if args[2:] == ("worktree-wf_pr-1", "worktree-wf_pr-2") else 1)
+    pred = _pr_pred(*args)
+    return pred if pred.returncode == 0 and pred.stdout else _pr_succ(*args)
+
+
+pw.add_closed_notes(pr_reports, lambda b: "UNLANDED", _pr_git)
+check("the successor's report answers what it closed itself, not what its contained predecessor closed",
+      sorted((r.lead, tuple(r.notes)) for r in pr_reports), [("PB13", ("PB13",)), ("PB14", ("PB14",))])
+ppr = pw.plan(notes, CLUSTERS, HALF, pr_reports, lambda b: "UNLANDED", {}, RULES, budget_points=100)
+check("the predecessor's review finisher is planned and the successor awaits landing with its own note alone",
+      (ppr["awaiting_landing"], sorted((g.kind, tuple(g.notes)) for g in ppr["groups"] if {"PB13", "PB14"} & set(g.notes))),
+      ({"worktree-wf_pr-2": ["PB14"]}, [("finisher", ("PB13",))]))
 # 6b'''. THE DRAIN AND THE UNSEEN LEAD (kb/Work PB3150). Wave 1075's drain plan (`--max-groups 2`) put the SPLIT of
 #        w1074a first, whose finisher would have started PB3101 (never started) and cherry-picked `…-e99-1` again
 #        though `…-e99-4` merged it, and never planned license-product-name's review finisher: its lead PB3146 is
