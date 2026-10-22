@@ -40,3 +40,13 @@ the activation bounded at LAST, the implicit-GOBACK arm in both sketches, and th
 paragraph (the activation's own return; a nested call's implicit GOBACK). The sibling sweep found the same -1 activation
 in COBOLNET_PIPELINE_DESIGN.md's control-flow sketch, rewritten the same way. The ALTER edge case now says what a
 never-ALTERed target-less GO TO does inside a PERFORM (it returns to the performer, unchanged by this branch).
+
+The landing's Linux gate stopped on one conformance case outside leg 1: `pb1277_record_size_in_bytes` (2002) ended
+after `FA=00 ...` instead of printing `SORTED=2`. Its SORT named `OUTPUT PROCEDURE IS RET-SN` alone, and RET-SN's AT END
+said `GO TO RET-SN-EXIT`, the program's last paragraph: control left the output procedure and never reached its return
+mechanism (14.9.40.4 GR14), so running past the last paragraph is now the implicit GOBACK, which GnuCOBOL 3.2 also
+executes (measured under WSL). The expected output had rested on the old fall-off; the Windows gate passed because the
+case is not in leg 1. The case now names `RET-SN THRU RET-SN-EXIT`, the procedure its derivation describes, and prints
+`SORTED=2` again. Two goldens pin the SORT arm the case exposed (an input procedure and an output procedure left by a
+GO TO), D-PTHRU in docs/CONFORMANCE.md now covers SORT procedures, and batch w1147b-pb3511-sort-procedure-witnesses adds
+them to GR-14.6.3-3 and GR-14.9.40.4-11/13/14 (GAP 66 -> 66).
