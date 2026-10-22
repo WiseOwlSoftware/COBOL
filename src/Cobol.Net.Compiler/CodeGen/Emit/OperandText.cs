@@ -650,7 +650,7 @@ internal static class OperandText
     }
 
     /// <summary>The sending character image of a numeric item whose PICTURE has <c>P</c> scaling positions: the Ps
-    /// are counted in the sending size and are ZEROS (ISO §13.18.40.3 symbol-P operations item b; §14.9.25.4 GR6a)
+    /// are counted in the sending size and are ZEROS (ISO §13.18.40.4 GR14 symbol P, operations b); §14.9.25.4 GR6a)
     /// — appended for trailing P (a negative scale), prepended for leading P (scale &gt; digit count). The zero
     /// runs are compile-time constants, so they concatenate as literals.</summary>
     private static string PExpand(string digitsExpr, PicInfo pic)

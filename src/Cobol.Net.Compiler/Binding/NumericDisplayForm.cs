@@ -12,7 +12,7 @@ namespace CobolNet.Binding;
 /// <para>The form is a property of the COMPILED PROGRAM, never of the process — the compiler chooses which of two
 /// runtime conversions a DISPLAY operand is emitted against, exactly as <c>--sign-encoding</c> bakes its convention into
 /// every emitted profile. It reaches only DISPLAY's GR1 device conversion: a MOVE of the same item to an alphanumeric
-/// receiver is §14.9.25.4 GR6's, and a record image is the item's storage (§14.9.30.4 GR14), whatever this option says.</para>
+/// receiver is §14.9.25.4 GR6's, and a record image is the item's storage, whatever this option says.</para>
 /// </summary>
 public enum NumericDisplayForm
 {
