@@ -1094,24 +1094,28 @@ public sealed class FileRegistry
         if (Require(name) is KeyedConnector k) k.ReleaseLivenessForWitness();
     }
 
-    /// <summary>The keyed connectors whose physical files carry an open transaction of this run unit — one per file, in
-    /// the order of the run unit's open stores (the order connectors were registered: 2.2.1.10, "Files are committed one at
-    /// a time, in the order of the run unit's open stores").</summary>
+    /// <summary>The holders of this run unit's open transactions — one per physical file — in the order of the run unit's
+    /// open stores (2.2.1.10, <i>"Files are committed one at a time, in the order of the run unit's open stores"</i>): the
+    /// place <see cref="StoreTable"/> stamped on each file's store (<see cref="KeyedStore.OpenOrder"/>), whoever holds the
+    /// transaction now, so a state a CLOSE kept and the registry retired (<see cref="_retired"/>: its connector displaced, or
+    /// associated with another file and perhaps holding a later file's transaction open) keeps the place of its file. Neither
+    /// the registration order nor the order of the two collections is that order (review finding R1-2 of kb/Work PB3494). A
+    /// file both a retired state and a registered connector reach has ONE transaction, told by the retired state's name.</summary>
     private List<TransactionHolder> TransactionHolders()
     {
         var seen = new HashSet<string>(HostFile.PhysicalFileComparer);
         var owners = new List<TransactionHolder>();
-        foreach (var (name, kept) in _retired)   // registered before every connector now in _files, so first (PB3484)
-            if (kept.OpenTransaction != 0 && seen.Add(kept.HostPath)) owners.Add(new(name, null, kept));
+        foreach (var (name, kept) in _retired)
+            if (kept.OpenTransaction != 0 && seen.Add(kept.HostPath)) owners.Add(new(name, null, kept, kept.Store.OpenOrder));
         foreach (var (name, c) in _files)
-            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add(new(name, k, null));
-        return owners;
+            if (c is KeyedConnector { OpenTransaction: not 0 } k && seen.Add(k.HostPath)) owners.Add(new(name, k, null, k.StoreOpenOrder));
+        return [.. owners.OrderBy(h => h.Order)];
     }
 
-    /// <summary>One physical file's transaction of this run unit and the name it is told by: the connector that holds it open,
-    /// or — a connector that is closed and associated with another file, or replaced — what its CLOSE kept
-    /// (<see cref="_retired"/>).</summary>
-    private readonly record struct TransactionHolder(string Name, KeyedConnector? Connector, KeptFile? Kept)
+    /// <summary>One physical file's transaction of this run unit, the name it is told by and its file's place in the order of
+    /// the open stores: the connector that holds it open, or — a connector that is closed and associated with another file, or
+    /// replaced — what its CLOSE kept (<see cref="_retired"/>).</summary>
+    private readonly record struct TransactionHolder(string Name, KeyedConnector? Connector, KeptFile? Kept, long Order)
     {
         public CommitOutcome Commit() => Connector is { } c ? c.CommitTransaction() : Kept!.CommitTransaction();
 

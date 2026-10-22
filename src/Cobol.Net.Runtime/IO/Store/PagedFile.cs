@@ -176,15 +176,22 @@ internal sealed class PagedFile
     /// one TRUNCATION to three pages, and a sync. A death before the commit write was handed over leaves the previous file;
     /// after it, the empty store. A REFUSAL is §14.9.27.4 GR25's unsuccessful OPEN, <i>"the file is not affected"</i>: the
     /// pages written so far get their previous bytes back and the file its previous length IN BYTES — a previous file need
-    /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync, and no store is handed
-    /// back; only a refused final sync — after the truncation, nothing left to undo — leaves the created store, the medium's
-    /// state unknown ('30' either way), and hands that store back with the failure.</summary>
+    /// not be a whole number of pages (a format-5 whole store, any foreign file) — then one more sync ('30').
+    /// <para>⛔ <paramref name="replaced"/> SAYS WHETHER THE FILE IS STILL THE PREVIOUS ONE, whatever the status (kb/Work PB3493,
+    /// review finding R1-1): false only when nothing was written or every page written got its previous bytes back and the
+    /// length its previous value (the undo's own sync refused leaves those bytes what every reader reads, the medium's state
+    /// unknown as at every refused sync); true when the creation landed ('00', <paramref name="store"/> the created store), when
+    /// the final sync after the truncation was refused (nothing left to undo, '30'), and when the medium refused the UNDO too —
+    /// then the file is neither the previous store nor certainly the created one ('30'; R6 decides what the next OPEN adopts:
+    /// the empty store at N while the commit slot holds it). A caller that keeps state over the previous store (a CLOSE under
+    /// commit control's, <c>KeyedConnector.Recreate</c>) ends it exactly when this is true.</para></summary>
     public static StoreStatus Create(IPageMedium medium, FixedFileAttributes attributes, bool coherent, IKeyOrder holdingsOrder,
-        out PagedFile? store, int cachePages = PageCache.DefaultPages)
+        out PagedFile? store, out bool replaced, int cachePages = PageCache.DefaultPages)
     {
         if (!MetaPage.Fits(attributes))
             throw new ArgumentException("the key descriptors exceed the meta page; the OPEN refuses the declaration first", nameof(attributes));
         store = null;
+        replaced = false;
         var creator = new PagedFile(medium, writable: true, coherent, holdingsOrder, MetaPage.Empty(attributes), cachePages);
         long length;
         try { length = medium.Length; }
@@ -205,40 +212,42 @@ internal sealed class PagedFile
         var written = new List<uint>((int)MetaPage.MetaPages);
         foreach (uint p in new[] { target, MetaPage.WorkSlot, target == MetaPage.SlotA ? MetaPage.SlotB : MetaPage.SlotA })
         {
-            if (!creator.TryWrite(p, meta.Encode(p))) return creator.UndoCreation(written, before, length);
+            if (!creator.TryWrite(p, meta.Encode(p))) return creator.UndoCreation(written, before, length, out replaced);
             written.Add(p);
-            if (p == target && !creator.TrySync()) return creator.UndoCreation(written, before, length);
+            if (p == target && !creator.TrySync()) return creator.UndoCreation(written, before, length, out replaced);
         }
         try { medium.SetLength(MetaPage.MetaPages * (long)PageHeader.PageSize); }
-        catch (Exception e) when (IsRefusal(e)) { return creator.UndoCreation(written, before, length); }
-        bool durable = creator.TrySync();
+        catch (Exception e) when (IsRefusal(e)) { return creator.UndoCreation(written, before, length, out replaced); }
+        // ⛔ PAST THE TRUNCATION THE FILE IS THE CREATED STORE, durable or not: nothing is left to undo, so a refused final sync
+        // answers '30' with the file replaced (the medium's state unknown, 2.2.1.16's last-sync row).
+        replaced = true;
+        if (!creator.TrySync()) return StoreStatus.PermanentError;
         creator._meta = meta;
         creator._lastSeen = n;
         creator.SeeMints(meta);
         creator._adoption = new Adoption(WorkSlotClass.Descendant, WorkAdopted: true, Fenced: false);
-        // ⛔ PAST THE TRUNCATION THE FILE IS THE CREATED STORE, durable or not: a refused final sync answers '30' AND hands the
-        // store back, which is how a caller that kept the previous store tells "the file is not affected" (every refusal above
-        // returns with no store) from "the previous store is gone" (kb/Work PB3493).
         store = creator;
-        return durable ? StoreStatus.Ok : StoreStatus.PermanentError;
+        return StoreStatus.Ok;
     }
 
-    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): every meta page it wrote that held
+    /// <summary>A refused creation (§14.9.27.4 GR25, <i>"the file is not affected"</i>): EVERY meta page it wrote that held
     /// previous bytes gets them back, newest first — a page the previous file held only PART of too, its tail read as
     /// zeros and cut off again — then a file shorter than three pages its previous <paramref name="length"/> in BYTES, and
-    /// one sync; '30' whatever the medium then does.</summary>
-    private StoreStatus UndoCreation(List<uint> written, byte[][] before, long length)
+    /// one sync; '30' whatever the medium then does. A refused write does not stop the undo: the pages after it still go
+    /// back, so the commit slot is the previous file's again wherever the medium lets it be. <paramref name="replaced"/> is
+    /// true when any of it was refused — the file is then not the previous one (<see cref="Create"/>).</summary>
+    private StoreStatus UndoCreation(List<uint> written, byte[][] before, long length, out bool replaced)
     {
-        if (written.Count == 0) return StoreStatus.PermanentError;
+        replaced = false;
         for (int i = written.Count - 1; i >= 0; i--)
             if ((long)written[i] * PageHeader.PageSize < length && !TryWrite(written[i], before[written[i]]))
-                return StoreStatus.PermanentError;
-        if (length < MetaPage.MetaPages * (long)PageHeader.PageSize)
+                replaced = true;
+        if (written.Count > 0 && length < MetaPage.MetaPages * (long)PageHeader.PageSize)
         {
             try { _medium.SetLength(length); }
-            catch (Exception e) when (IsRefusal(e)) { return StoreStatus.PermanentError; }
+            catch (Exception e) when (IsRefusal(e)) { replaced = true; }
         }
-        TrySync();
+        if (written.Count > 0) TrySync();
         return StoreStatus.PermanentError;
     }
 

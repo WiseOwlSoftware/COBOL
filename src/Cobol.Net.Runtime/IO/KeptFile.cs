@@ -34,24 +34,12 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
     internal ulong OpenTransaction => Store.Transaction;
 
     /// <summary>⛔ COMMIT the run unit's transaction on this file (§14.9.7.4 GR3; 2.2.1.10), under the store mutex through
-    /// the kept endpoint.</summary>
-    internal CommitOutcome CommitTransaction() => InMutex(() => Store.Commit(Restoring));
+    /// the kept endpoint (a kept handle given back early has none, and the body runs as a NO OTHER file's does).</summary>
+    internal CommitOutcome CommitTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Commit(Restoring));
 
     /// <summary>⛔ ROLLBACK the run unit's transaction on this file (§14.9.36.4 GR3; 2.2.1.10), under the store mutex through
     /// the kept endpoint.</summary>
-    internal StoreStatus RollbackTransaction() => InMutex(() => Store.Rollback(Restoring));
-
-    /// <summary>Run <paramref name="body"/> inside the store mutex held through the kept handle's endpoint (a kept handle
-    /// given back early has none, and the body runs as a NO OTHER file's does).</summary>
-    private T InMutex<T>(Func<T> body)
-    {
-        var regions = Handle?.Regions;
-        if (regions is null) return body();
-        var holder = regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: regions.Writable, wait: true) == RegionLockResult.Ok
-            ? regions : null;
-        try { return body(); }
-        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
-    }
+    internal StoreStatus RollbackTransaction() => HostRegionLocks.InStoreMutex(Handle?.Regions, () => Store.Rollback(Restoring));
 
     /// <summary>Give a kept handle back: off <paramref name="store"/>'s medium under the store mutex its endpoint holds, the
     /// liveness byte it may hold going with it (<see cref="KeyedStore.LivenessGoneWith"/>: what a death does — taken again
@@ -61,12 +49,7 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
     {
         try
         {
-            if (kept.Regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: kept.Regions.Writable, wait: true) == RegionLockResult.Ok)
-            {
-                try { _ = store.DetachHandle(kept.Handle); }
-                finally { kept.Regions.Release(HostRegionLocks.StoreMutexByte); }
-            }
-            else _ = store.DetachHandle(kept.Handle);
+            _ = HostRegionLocks.InStoreMutex(kept.Regions, () => store.DetachHandle(kept.Handle));
             store.LivenessGoneWith(kept.Regions);
         }
         finally

@@ -83,15 +83,17 @@ internal abstract class KeyedStore
         _coherent = coherent;
         File = null;
         _fenceOwed = false;
-        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, _cachePages);
-        if (status == StoreStatus.Ok) File = created;
-        FileReplaced = created is not null;
+        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, out bool replaced, _cachePages);
+        File = created;
+        FileReplaced = replaced;
         return status;
     }
 
-    /// <summary>Whether the last <see cref="Create"/> replaced the physical file, successful or not: a creation refused before
-    /// its truncation leaves the previous file as it was (§14.9.27.4 GR25), and one whose final sync was refused left the
-    /// created store with the medium's state unknown (<see cref="PagedFile.Create"/>), the previous store gone.</summary>
+    /// <summary>Whether the last <see cref="Create"/> left the physical file other than the previous one, successful or not
+    /// (<see cref="PagedFile.Create"/>'s <c>replaced</c>): false only for a creation refused and undone, which leaves the
+    /// previous file as it was (§14.9.27.4 GR25); true for one that landed, one whose final sync was refused after the
+    /// truncation, and one whose undo the medium refused too — the previous store is gone in all three, so what was kept
+    /// over it ends with it (<c>KeyedConnector.Recreate</c>; kb/Work PB3493, review finding R1-1).</summary>
     public bool FileReplaced { get; private set; }
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
@@ -233,6 +235,14 @@ internal abstract class KeyedStore
     /// (2.2.1.10, "A TRANSACTION is one run unit's open unit of work on one physical file"). Its liveness byte is held
     /// through <see cref="_liveness"/> until COMMIT or ROLLBACK ends it.</summary>
     public ulong Transaction { get; private set; }
+
+    /// <summary>⛔ THE STORE'S PLACE IN THE RUN UNIT'S ORDER OF OPEN STORES (<see cref="StoreTable"/>, which stamps it when the
+    /// store becomes the run unit's for its physical file; 0 for a store no table holds): the order COMMIT and ROLLBACK take
+    /// the run unit's transactions in (2.2.1.10, <i>"Files are committed one at a time, in the order of the run unit's open
+    /// stores"</i>; <c>FileRegistry.TransactionHolders</c>). A transaction's store stays in the table from its first change
+    /// to its COMMIT or ROLLBACK (a CLOSE under commit control keeps the attachment), so the place is stable for as long as
+    /// a transaction stands, whoever holds it: a live connector, or what a CLOSE kept (<see cref="KeptFile"/>).</summary>
+    internal long OpenOrder { get; set; }
 
     /// <summary>The endpoint holding <see cref="Transaction"/>'s liveness byte.</summary>
     private RegionLocks? _liveness;
