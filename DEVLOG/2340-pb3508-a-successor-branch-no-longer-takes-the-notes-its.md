@@ -1,4 +1,4 @@
-## PB3508: a successor branch no longer takes the notes its predecessor closed
+## Entry 2340 — 2026-10-22 00:08 PDT — PB3508: a successor branch no longer takes the notes its predecessor closed
 
 Wave 1143 planned 0 groups. PB3489's branch had one blocking review finding, so it needed a review finisher. The planner
 excluded that finisher as `awaiting landing` with fix-pb3504, the same-file successor that merged PB3489's head. The
@@ -11,3 +11,4 @@ report a note that a contained unlanded report branch also closes. This is the c
 
 Witness: `test_plan_wave.py` check 6b'''00 (PB3508), 329/329. A live dry run lists no `awaiting landing`, and PB3489
 waits only on the survey's `--min-age`.
+
