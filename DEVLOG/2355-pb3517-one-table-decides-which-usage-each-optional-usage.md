@@ -1,4 +1,4 @@
-## PB3517: one table decides which usage each optional USAGE-clause phrase may follow
+## Entry 2355 — 2026-10-22 12:12 PDT — PB3517: one table decides which usage each optional USAGE-clause phrase may follow
 
 **The defect.** `PIC 9(2) USAGE COMP UNSIGNED`, `PIC X(2) USAGE DISPLAY SIGNED` and `PIC S9(3) PACKED-DECIMAL
 UNSIGNED` compiled clean at every `--std`, and the program printed `07 AB -005`, the word ignored (kb/Work PB3517,
@@ -56,3 +56,4 @@ note (FMT-13.18.60.2's digest), and the drift test scans `src/`, so it carries t
 **Gate.** `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN` (run 20261022T181843Z-7ed66f):
 Conformance 10,648/18,075, Unit 34,255/35,311, Characterization 5/36 in leg 1, the three goldens and all 37
 `UsageClausePhraseDriftTests` cases among them.
+
