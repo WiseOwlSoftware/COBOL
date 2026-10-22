@@ -11,10 +11,11 @@ or sync of the creation) left the connector without its transaction, as a death 
 execution of the OPEN statement is unsuccessful, the file is not affected"*). Test: the medium refuses the creation's second
 write, or its first sync; before the fix the OPEN answered '30' and `TransactionOf` read 0 where the CLOSE's id stood.
 `KeyedConnector.Recreate` now makes the new empty store in a store of its own, off the run unit's table, through the OPEN's
-handle and beside the kept attachment. `PagedFile.Create` already undoes a refused creation page by page and hands back no
-store, so a refusal changes nothing; only a creation that landed gives the kept state back and registers the created store
-(`StoreTable.AttachCreated(host, created)`). The one failure that lands the creation is the final sync's, after the
-truncation: `Create` now hands the store back with its '30', and the kept state ends with the file it described.
+handle and beside the kept attachment. `PagedFile.Create` already undoes a refused creation page by page, so a refusal
+changes nothing; only a creation that landed gives the kept state back and registers the created store
+(`StoreTable.AttachCreated(host, created)`). `Create` now REPORTS whether the file is still the previous one (`replaced`), and
+the kept state ends with the file it described when it is not: the creation landed, the final sync after the truncation was
+refused, or (the branch review's R1-1) the medium refused the undo as well.
 
 The sweep found the same ordering in two siblings. The absent OPTIONAL I-O/EXTEND arm released the kept state before its
 handle; it releases after. The absent OPTIONAL INPUT arm attached beside the kept store without releasing it, so the table
@@ -67,3 +68,17 @@ origin/main (165 commits, no conflicts), the Windows gate at that head
 Conformance 10,708/18,125 · Unit 34,423/35,356 · Characterization 5/36 cases ran`, the four vanished-file cases among them.
 Linux (`--legs unit,conformance`) at the same head: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
 2c3275cb1) ===`, unit 35,391/35,391 and conformance 18,125/18,125.
+
+**The branch review (round 1) and its finisher.** R1-1 (blocking): a refused creation whose UNDO the medium also refused left
+the commit slot holding the empty meta at N, but `FileReplaced` read "no store handed back" as "the file is not affected", so
+the kept transaction stood over a store the file no longer held, and the next COMMIT promoted it beside that slot and answered
+success over a file every later OPEN read as empty. `PagedFile.Create` now says it outright (`out bool replaced`), the undo goes
+on past a refused page (the commit slot is the previous file's again wherever the medium lets it be), and 2.2.1.16 has the row.
+R1-2: the COMMIT took every retired state first, but a state `Associate` retires belongs to a connector that is still
+registered, so that was not 2.2.1.10's order of the open stores; `StoreTable` now stamps each store's place
+(`KeyedStore.OpenOrder`) and `TransactionHolders` sorts by it. R1-3: the store-mutex hold had three copies (the connector's
+transaction hold, `KeptFile`'s and `GiveBack`'s); `HostRegionLocks.HoldStoreMutex` and `InStoreMutex` are the one. R1-5: tests
+for the absent OPTIONAL I-O arm over a kept state when the new handle is refused (the kept state stands) and when the new
+file's store cannot be made (it has ended), and for a refused COMMIT of an associated-away state, which also pins the order.
+Each new connector and crash-matrix test failed with its fix reverted. R1-4 (a file removed and recreated at the same path
+outside the run unit is matched by path) is a lead: the run unit's tables all key a physical file by its path.
