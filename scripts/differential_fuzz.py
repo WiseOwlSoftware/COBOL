@@ -30,19 +30,25 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
   BOTH_REJECT      neither compiler compiled it after every correction: the model's program, not a lead. Counted
                    against the model.
   NO_PROGRAM       the reply held no program, or was cut off, after every correction: counted against the model.
+  BOTH_HANG        both compilers' compiles or programs exceeded the hang guard: the model's program (an unsigned PERFORM
+                   VARYING counter, a loop that changes neither bound), not a lead. Counted against the model (kb/Work PB3490).
   THEY_REJECT      WiseOwl compiled it, GnuCOBOL refused: a lead — GnuCOBOL 3.2 lacks the construct, or WiseOwl accepts a
                    program the standard forbids (an under-rejection); the spec decides at triage.
   AGREE            both compiled and ran, same normalized output (CutRunner.Normalize). Dropped.
   WE_REJECT        GnuCOBOL compiled it, WiseOwl refused: a candidate reject-legal-source lead — ours only where the
                    construct is ISO (GnuCOBOL's default dialect carries extensions, so `-std=cobol2014` is pinned).
   OUTPUT_DIFFERS   both ran, outputs differ: a candidate wrong answer on one side; the spec decides which.
+  OUTPUT_LATITUDE  both ran, the outputs differ ONLY in the display form of numeric items — GnuCOBOL's leading separate sign
+                   and inserted decimal point against WiseOwl's digit image with an over-punched sign (the settled decision
+                   PB803 and the open owner decision PB3467; 615 of the first night's 1,141 output rows). Recorded under its
+                   own heading, never a survivor; the verdict changes when PB3467 is answered, the rows do not.
   WE_CRASH         WiseOwl's compiler crashed (the adapter's crash exit codes), or an unhandled exception at run time.
   WE_FAIL_RUN      same stdout, but WiseOwl's program exited non-zero where GnuCOBOL's exited zero: a run-time abort after the
                    last DISPLAY (a failing CLOSE, a STOP RUN status), invisible in the output.
   EXIT_DIFFERS     same stdout, both programs ended with a non-zero status, not the same one.
-  WE_HANG          WiseOwl's compile or program exceeded the hang guard while GnuCOBOL's finished.
+  WE_HANG          WiseOwl's compile or program exceeded the hang guard while GnuCOBOL's did not hang.
   THEY_FAIL_RUN    GnuCOBOL compiled it but its program failed at run time while ours ran: low value, kept for the record.
-  THEY_HANG        GnuCOBOL's compile or program exceeded the hang guard.
+  THEY_HANG        GnuCOBOL's compile or program exceeded the hang guard while WiseOwl's did not hang.
   RUNNER_ERROR     a compiler did not start or the harness could not observe it: never a compiler verdict (plan §11 A12e).
 Survivors are grouped by SIGNATURE (class + WiseOwl's diagnostic codes, or class + clause) so one defect hit forty times
 is one triage row. `report.md` is rendered at the end and every REPORT_EVERY programs.
@@ -442,6 +448,10 @@ def classify(we: Observation, they: Observation) -> str:
     """The class of one program from the two observations. A refusal by GnuCOBOL alone is a lead (THEY_REJECT), a refusal
     by both is the model's failure (BOTH_REJECT); an unobserved compiler on either side is never a verdict, and a crash of
     ours outranks every refusal."""
+    if we.hung and they.hung:
+        # A program both compilers run (or compile) forever is the generator's, whichever side was observed first: the first
+        # overnight report presented three of the model's infinite loops as WiseOwl hangs (kb/Work PB3490).
+        return "BOTH_HANG"
     if they.compiled is None:
         return "THEY_HANG" if they.hung else "RUNNER_ERROR"
     if we.compiled is None:
@@ -463,6 +473,8 @@ def classify(we: Observation, they: Observation) -> str:
     if they.run_rc != 0 and we.run_rc == 0:
         return "THEY_FAIL_RUN"
     if we.output != they.output:
+        if we.run_rc == they.run_rc and display_image(we.output) == display_image(they.output):
+            return "OUTPUT_LATITUDE"
         return "OUTPUT_DIFFERS"
     # The exit status is an observable result too (ISO 14.9.42.4 General rule 2: the operating system is told of an error
     # termination): a fatal condition after the last DISPLAY leaves the same stdout, so it is compared here, never read as
@@ -475,7 +487,29 @@ def classify(we: Observation, they: Observation) -> str:
 LEAD_CLASSES = ("WE_CRASH", "WE_REJECT", "THEY_REJECT", "OUTPUT_DIFFERS", "WE_FAIL_RUN", "EXIT_DIFFERS", "WE_HANG", "THEY_HANG",
                 "THEY_FAIL_RUN")
 #: the model's failures: counted against it in the report and the bake-off, never a lead
-MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM")
+MODEL_FAILURE_CLASSES = ("BOTH_REJECT", "NO_PROGRAM", "BOTH_HANG")
+#: a known implementor latitude: reported under its own heading, never a survivor
+LATITUDE_CLASSES = ("OUTPUT_LATITUDE",)
+
+#: GnuCOBOL's display form of a numeric item: an optional leading separate sign, digits, a decimal point, digits. A value
+#: with an inserted comma (an EDITED item, printed alike by both compilers) is left alone, so a real difference in one
+#: is never folded away.
+_GNU_SCALED = re.compile(r"(?<![0-9A-Za-z.,{}])([+-]?)(\d+)\.(\d+)(?![0-9A-Za-z.,])")
+#: WiseOwl's display form of a SIGNED numeric item: the digit image with the sign over-punched on the last digit (IBM / Micro
+#: Focus, PB803): { A-I positive 0-9, } J-R negative 0-9
+_OVERPUNCH = re.compile(r"(?<![0-9A-Za-z.,{}])(\d+)([{}A-R])(?![0-9A-Za-z])")
+_PUNCH = {**{c: ("+", str(i)) for i, c in enumerate("{ABCDEFGHI")}, **{c: ("-", str(i)) for i, c in enumerate("}JKLMNOPQR")}}
+
+
+def display_image(text: str) -> str:
+    """Both compilers' display forms of a numeric item folded to one image, sign then digits with no decimal point:
+    GnuCOBOL's `+00012.50` and WiseOwl's `000125{` both become `+0001250`, `00012.50` and `0001250` both `0001250`. Two
+    outputs equal under this fold differ only in the display-form latitude (PB803 settled the sign, PB3467 asks about the
+    point); the fold is used to CLASSIFY the row, never to judge it."""
+    def punch(m: re.Match[str]) -> str:
+        sign, digit = _PUNCH[m.group(2)]
+        return sign + m.group(1) + digit
+    return _OVERPUNCH.sub(punch, _GNU_SCALED.sub(lambda m: m.group(1) + m.group(2) + m.group(3), text))
 
 
 def signature(verdict: str, clause: str, we: Observation) -> str:
@@ -692,6 +726,36 @@ def repair_request(they_diag: str, we_diag: str) -> str:
 
 # ── the report ────────────────────────────────────────────────────────────────────────────────────────────────────────
 
+#: the recorded outputs are cut at this length; a row whose output was cut keeps its recorded verdict
+RECORDED_OUTPUT = 4000
+
+
+def recorded_observation(d: dict[str, Any]) -> Observation:
+    """One compiler's recorded observation (the `we` / `they` dict of a results.jsonl row) as an Observation again."""
+    hung = bool(d.get("hung"))
+    run_rc = d.get("run_rc")
+    return Observation(d.get("compiled"), None, "", list(d.get("codes") or []),
+                       ran=True if run_rc is not None else (False if hung and d.get("compiled") else None),
+                       run_rc=run_rc, crashed=bool(d.get("crashed")), hung=hung, output=d.get("output") or "",
+                       runner_error=d.get("runner_error") or "")
+
+
+def rederived(rec: dict[str, Any]) -> dict[str, Any]:
+    """The row's verdict derived again by today's classify() from what the run recorded, so `--report` renders a run under the
+    classes the harness has NOW (kb/Work PB3490: the first night's rows were re-read under BOTH_HANG and OUTPUT_LATITUDE
+    without a second night). A row that recorded no observations (NO_PROGRAM, a model RUNNER_ERROR) or an output the record
+    cut keeps its verdict; a recorded compiler crash keeps its class whichever way the record's fields read."""
+    we, they = rec.get("we"), rec.get("they")
+    if not we or not they or rec["verdict"] in ("WE_CRASH", "RUNNER_ERROR") or \
+            len(we.get("output") or "") >= RECORDED_OUTPUT or len(they.get("output") or "") >= RECORDED_OUTPUT:
+        return rec
+    verdict = classify(recorded_observation(we), recorded_observation(they))
+    if verdict == rec["verdict"]:
+        return rec
+    return {**rec, "verdict": verdict, "signature": signature(verdict, rec["clause"], recorded_observation(we)),
+            "recorded_verdict": rec["verdict"]}
+
+
 def read_results(out: Path) -> list[dict[str, Any]]:
     path = out / "results.jsonl"
     if not path.exists():
@@ -699,7 +763,7 @@ def read_results(out: Path) -> list[dict[str, Any]]:
     rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.strip():
-            rows.append(json.loads(line))
+            rows.append(rederived(json.loads(line)))
     return rows
 
 
@@ -743,18 +807,34 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
         if r["verdict"] in ("OUTPUT_DIFFERS", "THEY_FAIL_RUN", "WE_FAIL_RUN", "EXIT_DIFFERS"):
             lines.append("- outputs (WiseOwl | GnuCOBOL), first differing lines:")
             a, b = we.get("output", "").splitlines(), they.get("output", "").splitlines()
-            shown = 0
+            shown = latitude_only = 0
             for k in range(max(len(a), len(b))):
                 x, y = (a[k] if k < len(a) else "<end>"), (b[k] if k < len(b) else "<end>")
-                if x != y:
+                if x == y:
+                    continue
+                if display_image(x) == display_image(y):
+                    latitude_only += 1       # the display-form latitude (PB803 / PB3467) on a line of a row that differs elsewhere
+                    continue
+                if shown < 5:
                     lines.append(f"  - line {k + 1}: `{x[:120]}` | `{y[:120]}`")
-                    shown += 1
-                    if shown == 5:
-                        break
+                shown += 1
+            if latitude_only:
+                lines.append(f"  - {latitude_only} other line(s) differ only in the display form of a numeric item (PB803 / PB3467)")
             if we.get("run_rc") not in (None, 0):
                 lines.append(f"  - WiseOwl run exit {we['run_rc']}")
             if they.get("run_rc") not in (None, 0):
                 lines.append(f"  - GnuCOBOL run exit {they['run_rc']}: `{they.get('first_error', '')}`")
+    latitude = [r for r in rows if r["verdict"] in LATITUDE_CLASSES]
+    if latitude:
+        by_clause: dict[str, list[dict[str, Any]]] = {}
+        for r in latitude:
+            by_clause.setdefault(r["clause"], []).append(r)
+        lines += ["", f"## Display-form latitude: {len(latitude)} programs (not survivors)",
+                  "The outputs differ only in how a numeric item is displayed: GnuCOBOL's leading separate sign and inserted",
+                  "decimal point against WiseOwl's digit image with an over-punched sign. The sign is the settled decision",
+                  "PB803; the decimal point is the open owner decision PB3467. Nothing here needs triage until PB3467 is answered."]
+        lines += [f"- clause {c} ({g[0]['title']}): {len(g)} — {', '.join(x['id'] for x in g[:6])}{' …' if len(g) > 6 else ''}"
+                  for c, g in sorted(by_clause.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
     runner = [r for r in rows if r["verdict"] == "RUNNER_ERROR"]
     if runner:
         lines += ["", f"## Runner errors: {len(runner)} (not compiler verdicts)"]
@@ -939,6 +1019,23 @@ def self_test() -> int:
     check("classify: our hang", classify(Observation(True, 0, "", [], ran=False, hung=True), ok_run) == "WE_HANG")
     check("classify: their hang", classify(ok_run, Observation(True, 0, "", [], ran=False, hung=True)) == "THEY_HANG")
     check("classify: their run-time failure while ours ran", classify(ok_run, dataclasses.replace(ok_run, run_rc=1)) == "THEY_FAIL_RUN")
+    both_run_hang = Observation(True, 0, "", [], ran=False, hung=True)
+    both_compile_hang = Observation(None, None, "", [], hung=True, runner_error="hang")
+    check("classify: a hang on BOTH sides is the model's program, never ours, at run time, at compile time, and mixed (kb/Work PB3490)",
+          classify(both_run_hang, both_run_hang) == "BOTH_HANG" and classify(both_compile_hang, both_compile_hang) == "BOTH_HANG"
+          and classify(both_run_hang, both_compile_hang) == "BOTH_HANG" and classify(both_compile_hang, both_run_hang) == "BOTH_HANG"
+          and "BOTH_HANG" in MODEL_FAILURE_CLASSES and "BOTH_HANG" not in LEAD_CLASSES)
+    check("display image: GnuCOBOL's sign and point and WiseOwl's over-punch fold to one image; an unsigned point folds; words and edited values do not",
+          display_image("R=+00012.50") == "R=+0001250" and display_image("R=000125{") == "R=+0001250"
+          and display_image("N=-00012.50") == "N=-0001250" and display_image("N=000125}") == "N=-0001250"
+          and display_image("U=00012.50") == "U=0001250" and display_image("I=0001B") == "I=+00012" and display_image("I=0001K") == "I=-00012"
+          and display_image("A B R 1,234.50 X1A") == "A B R 1,234.50 X1A",
+          [display_image(x) for x in ("R=+00012.50", "R=000125{", "N=-00012.50", "N=000125}", "U=00012.50", "I=0001B", "I=0001K", "A B R 1,234.50 X1A")])
+    check("classify: outputs that differ only in the display form are OUTPUT_LATITUDE, not a survivor; any other difference, or a differing exit, stays OUTPUT_DIFFERS",
+          classify(dataclasses.replace(ok_run, output="R=000125{"), dataclasses.replace(ok_run, output="R=+00012.50")) == "OUTPUT_LATITUDE"
+          and classify(dataclasses.replace(ok_run, output="R=000125{ Z"), dataclasses.replace(ok_run, output="R=+00012.50")) == "OUTPUT_DIFFERS"
+          and classify(dataclasses.replace(ok_run, output="R=000125{", run_rc=1), dataclasses.replace(ok_run, output="R=+00012.50", run_rc=0)) == "OUTPUT_DIFFERS"
+          and "OUTPUT_LATITUDE" not in LEAD_CLASSES and "OUTPUT_LATITUDE" in LATITUDE_CLASSES)
     check("classify: same stdout but our program exits non-zero where theirs exits zero is a lead, never AGREE (review R1-1)",
           classify(dataclasses.replace(ok_run, run_rc=1), ok_run) == "WE_FAIL_RUN")
     check("classify: same stdout, both exit non-zero with different statuses (review R1-1)",
@@ -958,21 +1055,45 @@ def self_test() -> int:
     rows = [{"id": "fz00000", "clause": "14.9.25", "title": "MOVE", "verdict": "AGREE", "model_seconds": 10},
             {"id": "fz00001", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
              "source": "programs/fz00001.cob", "model_seconds": 12,
-             "we": {"output": "A\n1", "first_error": "", "codes": []}, "they": {"output": "A\n2", "run_rc": 0}},
+             "we": {"compiled": True, "run_rc": 0, "output": "A\n1", "first_error": "", "codes": []}, "they": {"compiled": True, "output": "A\n2", "run_rc": 0}},
             {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 3},
             {"id": "fz00003", "clause": "15.3", "title": "ABS", "verdict": "RUNNER_ERROR", "reason": "model: down"},
             {"id": "fz00004", "clause": "15.42", "title": "TRANSLATE", "verdict": "THEY_REJECT", "signature": "THEY_REJECT:15.42",
              "source": "programs/fz00004.cob", "model_seconds": 9, "repairs": 1,
              "we": {"output": "X", "first_error": "", "codes": []}, "they": {"first_error": "x.cob:9: error: FUNCTION 'TRANSLATE' unknown", "run_rc": None}},
-            {"id": "fz00005", "clause": "15.3", "title": "ABS", "verdict": "NO_PROGRAM", "model_seconds": 4, "reason": "no COBOL program in the reply"}]
+            {"id": "fz00005", "clause": "15.3", "title": "ABS", "verdict": "NO_PROGRAM", "model_seconds": 4, "reason": "no COBOL program in the reply"},
+            {"id": "fz00006", "clause": "14.9.11", "title": "DISPLAY", "verdict": "OUTPUT_LATITUDE", "signature": "OUTPUT_LATITUDE:14.9.11",
+             "source": "programs/fz00006.cob", "model_seconds": 7,
+             "we": {"output": "R=000125{", "first_error": "", "codes": []}, "they": {"output": "R=+00012.50", "run_rc": 0}},
+            {"id": "fz00007", "clause": "14.9.28", "title": "PERFORM", "verdict": "BOTH_HANG", "signature": "BOTH_HANG:14.9.28", "model_seconds": 5},
+            {"id": "fz00008", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
+             "source": "programs/fz00008.cob", "model_seconds": 11,
+             "we": {"output": "R=000125{" + chr(10) + "Q=1", "first_error": "", "codes": []}, "they": {"output": "R=+00012.50" + chr(10) + "Q=2", "run_rc": 0}}]
     rep = render_report(rows, Path("."))
-    check("report: usable over judged programs only (the model's failures are BOTH_REJECT and NO_PROGRAM), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line",
-          "judged: 5 · usable: 3 (60% of judged; 1 of them after a repair round) · the model's failures: 2 · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
-          and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 1" in rep and "### `THEY_REJECT:15.42` × 1" in rep
+    check("report: usable over judged programs only (the model's failures are BOTH_REJECT, NO_PROGRAM and BOTH_HANG), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line, the latitude rows under their own heading and not among the survivors",
+          "judged: 8 · usable: 5 (62% of judged; 1 of them after a repair round) · the model's failures: 3 · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
+          and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 2" in rep and "### `THEY_REJECT:15.42` × 1" in rep
+          and "line 2: `Q=1` | `Q=2`" not in rep       # the group shows its FIRST row's lines (fz00001); fz00008 is listed in it
           and "- GnuCOBOL: `x.cob:9: error: FUNCTION 'TRANSLATE' unknown`" in rep
-          and "line 2: `1` | `2`" in rep and "Runner errors: 1" in rep, rep)
+          and "line 2: `1` | `2`" in rep and "Runner errors: 1" in rep
+          and "## Survivors: 3 programs in 2 signatures" in rep and "OUTPUT_LATITUDE:14.9.11" not in rep and "BOTH_HANG:14.9.28" not in rep
+          and "## Display-form latitude: 1 programs (not survivors)" in rep and "- clause 14.9.11 (DISPLAY): 1 — fz00006" in rep, rep)
     check("bake-off: the score is the usable share, with both-refuse and GnuCOBOL-alone counts beside it",
-          bake_off_score(rows) == (6, 3, 5, 2, 1, 9, 2), bake_off_score(rows))
+          bake_off_score(rows) == (9, 5, 8, 3, 1, 9, 3), bake_off_score(rows))
+    hang_row = {"id": "fz01771", "clause": "14.9.28", "title": "PERFORM", "verdict": "WE_HANG", "signature": "WE_HANG:14.9.28", "model_seconds": 9,
+                "we": {"compiled": True, "codes": [], "first_error": "", "run_rc": None, "crashed": False, "hung": True, "output": "", "runner_error": ""},
+                "they": {"compiled": True, "first_error": "", "run_rc": None, "hung": True, "output": "", "runner_error": ""}}
+    lat_row = {**rows[1], "id": "fz00024", "we": {**rows[1]["we"], "compiled": True, "run_rc": 0, "output": "R=000C"}, "they": {**rows[1]["they"], "compiled": True, "output": "R=+0003"}}
+    cut_row = {**lat_row, "id": "fz00099", "we": {**lat_row["we"], "output": "R=000C" + "x" * RECORDED_OUTPUT}, "they": {**lat_row["they"], "output": "R=+0003" + "x" * RECORDED_OUTPUT}}
+    check("rederived: a recorded row is re-read under today's classes (a both-sides hang, the latitude), keeps its recorded verdict beside it, and an unchanged, unobserved or cut row is left alone",
+          rederived(hang_row)["verdict"] == "BOTH_HANG" and rederived(hang_row)["recorded_verdict"] == "WE_HANG"
+          and rederived(lat_row)["verdict"] == "OUTPUT_LATITUDE" and rederived(lat_row)["signature"] == "OUTPUT_LATITUDE:14.9.25"
+          and rederived(rows[1]) is rows[1] and rederived(rows[2]) is rows[2] and rederived(rows[3]) is rows[3] and rederived(cut_row) is cut_row,
+          [rederived(hang_row)["verdict"], rederived(lat_row)["verdict"]])
+    solo = render_report([rows[8]], Path("."))
+    check("report: a row that differs elsewhere lists its REAL differing line first and counts the lines that differ only in the display form",
+          "line 2: `Q=1` | `Q=2`" in solo and "line 1:" not in solo
+          and "1 other line(s) differ only in the display form of a numeric item (PB803 / PB3467)" in solo, solo)
     check("report: the triage rule is printed", "the spec decides" in rep)
     adapter, problems = suite_config.load_adapter(SUITE / "adapters" / "gnucobol.json")
     check("adapters: the suite's gnucobol adapter loads and has the 2014 edition this script pins",
