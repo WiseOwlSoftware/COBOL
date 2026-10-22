@@ -11,8 +11,13 @@ figures fails here without the PDF; `sweep_figures.py --check` remains the whole
 THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
   SIBLING_BRACE_BESIDE_A_TALLER_ONE          — §13.18.35.2 Format 1: `LINE NUMBER IS` / `LINES ARE` are alternatives
                                                of the three-way brace beside a taller one, never labels to snap.
-  HELD_WORD_CLUSTERED_ACROSS_ITS_HOOK        — `THROUGH` clusters with the operand row above its own brace's hook;
-                                               the row is split so the brace holds it.
+  HELD_WORD_CLUSTERED_ACROSS_ITS_HOOK        — `FOR ALPHANUMERIC` clusters with `CODE-SET` onto a row whose average
+                                               lies above its own brace's hook; the WHOLE row moves inside, so
+                                               `CODE-SET` stays on the point row it labels (review R1-1).
+  NEXT_LINE_BESIDE_A_TALLER_BRACE            — `THROUGH`, 3.9 pt below `identifier-3` and within the row width, is
+                                               the next printed line: the step ends the row (LINE_GAP).
+  NEXT_LINE_AT_THE_NARROWEST_GAP             — the `…` 3.6 pt below `object-class-name-1`, the narrowest step
+                                               that is a new line, repeats the argument INSIDE the parentheses.
   ENCLOSURE_LABEL_BETWEEN_INNER_ALTERNATIVES — `ASSIGN`, the label of the enclosing brace, snaps rather than
                                                subdividing `{ device-name-1 / literal-1 }`.
   BOUNDARY_OF_A_GROUP_ALONGSIDE              — `condition-1` sits 2.2 pt above the `{ BEFORE / AFTER }` hook beside
@@ -20,7 +25,6 @@ THE SHAPES (FIGURE-STYLE.md, "Layout rules, for the generator"; kb/Work PB3530):
   CHOICE_BARS_BESIDE_A_TALLER_BRACE          — WRITE's `{ | BEFORE / AFTER | }` bars stop at the last row they hold.
   LABEL_ON_ITS_OWN_POINT_ROW                 — ACCEPT Format 3's `LINE NUMBER` stays on its own brace's point row.
 """
-import collections
 import pathlib
 import sys
 
@@ -101,7 +105,7 @@ FIGURES = {
         ],
     ),
     # folio 619 (PDF page 649), band y 121-174
-    'HELD_WORD_CLUSTERED_ACROSS_ITS_HOOK': (
+    'NEXT_LINE_BESIDE_A_TALLER_BRACE': (
         [
             ('ì', 86.5, 91.8, 126.7, False),
             ('ü', 214.8, 220.1, 126.7, False),
@@ -391,6 +395,114 @@ FIGURES = {
             '[ END-ACCEPT ]',
         ],
     ),
+    # folio 342 (PDF page 372), band y 500-575
+    'HELD_WORD_CLUSTERED_ACROSS_ITS_HOOK': (
+        [
+            ('ì', 128.0, 133.3, 513.9, False),
+            ('ü', 369.5, 374.8, 513.9, False),
+            ('IS', 140.0, 148.7, 522.7, False),
+            ('alphabet-name-1', 151.1, 229.2, 522.7, False),
+            ('[', 231.5, 235.3, 522.7, False),
+            ('alphabet-name-2]', 237.6, 319.5, 522.7, False),
+            ('ê', 128.0, 133.3, 523.1, False),
+            ('ê', 369.5, 374.8, 523.1, False),
+            ('ê', 128.0, 133.3, 532.3, False),
+            ('ê', 369.5, 374.8, 532.3, False),
+            ('.', 381.9, 384.1, 538.8, False),
+            ('CODE-SET', 75.5, 123.1, 540.5, True),
+            ('í', 128.0, 133.3, 541.5, False),
+            ('ý', 369.5, 374.8, 541.5, False),
+            ('ì', 139.8, 145.1, 541.8, False),
+            ('ü', 358.6, 363.9, 541.8, False),
+            ('FOR', 154.8, 175.6, 542.0, False),
+            ('ALPHANUMERIC', 179.5, 257.1, 542.0, True),
+            ('IS', 260.2, 269.0, 542.0, False),
+            ('alphabet-name-1', 271.3, 349.4, 542.0, False),
+            ('ê', 128.0, 133.3, 550.6, False),
+            ('ê', 369.5, 374.8, 550.6, False),
+            ('í', 139.8, 145.1, 551.0, False),
+            ('ý', 358.6, 363.9, 551.0, False),
+            ('FOR', 154.7, 174.1, 559.3, False),
+            ('NATIONAL', 177.2, 227.6, 559.3, True),
+            ('IS', 230.7, 239.4, 559.3, False),
+            ('alphabet-name-2', 241.8, 319.9, 559.3, False),
+            ('ê', 128.0, 133.3, 559.8, False),
+            ('ê', 369.5, 374.8, 559.8, False),
+            ('î', 139.8, 145.1, 560.1, False),
+            ('þ', 358.6, 363.9, 560.1, False),
+            ('î', 128.0, 133.3, 569.0, False),
+            ('þ', 369.5, 374.8, 569.0, False),
+        ],
+        [
+            (72.56, 509.20, 585.53, 'bracket', 'L'),
+            (376.25, 509.20, 585.53, 'bracket', 'R'),
+            (147.49, 538.61, 576.20, 'bar', None),
+            (355.48, 538.61, 576.20, 'bar', None),
+        ],
+        [
+            '┌          ╭ IS alphabet-name-1 [ alphabet-name-2]       ╮ ┐',
+            '│          │                                             │ │',
+            '│ CODE-SET ┤ ╭ │ FOR ALPHANUMERIC IS alphabet-name-1 │ ╮ ├ │ .',
+            '│          │ ┤ │                                     │ ├ │ │',
+            '└          ╰ ╰ │ FOR NATIONAL IS alphabet-name-2     │ ╯ ╯ ┘',
+        ],
+    ),
+    # folio 133 (PDF page 163), band y 328.9-422.3
+    'NEXT_LINE_AT_THE_NARROWEST_GAP': (
+        [
+            ('ì', 285.9, 291.2, 334.9, False),
+            ('ü', 414.2, 419.5, 334.9, False),
+            ('arithmetic-expression-1', 297.8, 408.1, 343.8, False),
+            ('ê', 285.9, 291.2, 344.1, False),
+            ('ê', 414.2, 419.5, 344.1, False),
+            ('ê', 285.9, 291.2, 353.3, False),
+            ('ê', 414.2, 419.5, 353.3, False),
+            ('boolean-expression-1', 297.8, 397.0, 357.9, False),
+            ('ì', 92.2, 97.5, 362.4, False),
+            ('ü', 202.0, 207.3, 362.4, False),
+            ('ê', 285.9, 291.2, 362.4, False),
+            ('ê', 414.2, 419.5, 362.4, False),
+            ('object-class-name-1', 104.0, 195.8, 366.5, False),
+            ('¼', 424.0, 434.7, 370.1, False),
+            ('::', 211.7, 217.4, 370.7, False),
+            ('literal-1', 219.7, 256.4, 370.7, False),
+            ('(', 276.8, 280.9, 370.7, False),
+            (')', 439.8, 443.9, 370.7, False),
+            ('í', 92.2, 97.5, 371.6, False),
+            ('ý', 202.0, 207.3, 371.6, False),
+            ('í', 285.9, 291.2, 371.6, False),
+            ('ý', 414.2, 419.5, 371.6, False),
+            ('identifier-2', 297.7, 349.7, 372.0, False),
+            ('identifier-1', 104.0, 156.0, 380.6, False),
+            ('î', 92.2, 97.5, 380.8, False),
+            ('þ', 202.0, 207.3, 380.8, False),
+            ('ê', 285.9, 291.2, 380.8, False),
+            ('ê', 414.2, 419.5, 380.8, False),
+            ('literal-2', 297.7, 334.4, 386.1, False),
+            ('ê', 285.9, 291.2, 390.0, False),
+            ('ê', 414.2, 419.5, 390.0, False),
+            ('ê', 285.9, 291.2, 399.1, False),
+            ('ê', 414.2, 419.5, 399.1, False),
+            ('OMITTED', 297.7, 342.7, 400.2, True),
+            ('î', 285.9, 291.2, 408.3, False),
+            ('þ', 414.2, 419.5, 408.3, False),
+        ],
+        [
+            (267.24, 329.92, 424.70, 'bracket', 'L'),
+            (452.12, 329.92, 424.70, 'bracket', 'R'),
+        ],
+        [
+            '                                     ┌   ╭ arithmetic-expression-1 ╮     ┐',
+            '                                     │   │                         │     │',
+            '                                     │   │ boolean-expression-1    │     │',
+            '╭ object-class-name-1 ╮              │   │                         │     │',
+            '┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ … ) │',
+            '╰ identifier-1        ╯              │   │                         │     │',
+            '                                     │   │ literal-2               │     │',
+            '                                     │   │                         │     │',
+            '                                     └   ╰ OMITTED                 ╯     ┘',
+        ],
+    ),
 }
 
 
@@ -407,7 +519,7 @@ def piece(text, x, y):
     return {"text": text, "x0": x, "x1": x + 5.0, "y0": y, "underlined": False}
 
 
-UNIT_CHECKS = 6                       # the checks unit_failures makes, so the verdict counts every one
+UNIT_CHECKS = 10                      # the checks unit_failures makes, so the verdict counts every one
 
 
 def unit_failures():
@@ -441,17 +553,32 @@ def unit_failures():
     if got != [(5, 50, True)]:
         fails.append(f"enclosures: a pair of choice bars paired as {got}, want [(5, 50, True)]")
 
-    # A row is split at a boundary only where a HELD word and the row's representative disagree.
-    words = [{"text": "outside", "x0": 0, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 103.9}]
+    # A row keeps its words together: a held word below its hook moves the WHOLE row inside, and the word beside
+    # the enclosure goes with it (review R1-1: `CODE-SET` was torn off the row of `FOR ALPHANUMERIC`).
+    words = [{"text": "beside", "x0": 0, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 103.9}]
     encl = [(20, 60, 103.0, None, (None, None))]
-    rowof = R.split_rows(R.cluster([100.0, 103.9], 4.0), words, encl)
-    if rowof[100.0] == rowof[103.9]:
-        fails.append("split_rows: a held word below its hook stayed on a row whose representative is above it")
+    rowof = R.place_rows(R.cluster([100.0, 103.9], 4.0), words, encl)
+    if rowof[100.0] != rowof[103.9] or rowof[103.9] < 103.0:
+        fails.append(f"place_rows: a row holding a word below its hook was not moved inside whole: {rowof}")
+    # A row whose average already agrees with every word is left where it is.
     words = [{"text": "alongside", "x0": 0, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 102.2}]
     encl = [(20, 60, 101.0, None, (None, None))]
-    rowof = R.split_rows(R.cluster([100.0, 102.2], 4.0), words, encl)
-    if rowof[100.0] != rowof[102.2]:
-        fails.append("split_rows: a row whose representative already agrees with the held word was torn")
+    rowof = R.place_rows(R.cluster([100.0, 102.2], 4.0), words, encl)
+    if rowof[100.0] != rowof[102.2] or rowof[100.0] != 101.1:
+        fails.append(f"place_rows: a row whose average already agrees with the held word was moved: {rowof}")
+    # Only words that cannot share one row are split: one inside the hook and one above it, between the same pair.
+    words = [{"text": "above", "x0": 25, "y0": 100.0}, {"text": "held", "x0": 30, "y0": 103.9}]
+    encl = [(20, 60, 103.0, None, (None, None))]
+    rowof = R.place_rows(R.cluster([100.0, 103.9], 4.0), words, encl)
+    if not (rowof[100.0] < 103.0 <= rowof[103.9]):
+        fails.append(f"place_rows: two words that cannot share a row across a hook were not split: {rowof}")
+    # One printed line: the width bound, and a step wider than the line gap inside it.
+    if len(set(R.cluster([0.0, 1.7, 3.2], R.ROW_TOL, R.LINE_GAP).values())) != 1:
+        fails.append("cluster: words 1.7 and 1.5 pt apart (3.2 pt end to end) were not one row")
+    if len(set(R.cluster([0.0, 3.6], R.ROW_TOL, R.LINE_GAP).values())) != 2:
+        fails.append("cluster: a 3.6 pt step inside the row width did not end the row")
+    if len(set(R.cluster([0.0, 3.6], R.ROW_TOL).values())) != 1:
+        fails.append("cluster: without a gap the width bound alone no longer groups a 3.6 pt step")
     return fails
 
 

@@ -4192,8 +4192,8 @@ The PUSH directive is used to save the state of a directive so that its status m
 ##### 7.3.22.2 General format
 
 <pre style="line-height:1">
->> <u>PUSH</u> ╭ directive-name ╮
-        ┤                ├
+        ╭ directive-name ╮
+>> <u>PUSH</u> ┤                ├
         ╰ <u>ALL</u>            ╯
 </pre>
 
@@ -6215,16 +6215,15 @@ Inline method invocation references a temporary data item returned from invocati
 ###### 8.4.3.4.2 General format
 
 <pre style="line-height:1">
-                                     ┌   ╭ arithmetic-expression-1 ╮   ┐
-                                     │   │                         │   │
-                                     │   │ boolean-expression-1    │   │
-╭ object-class-name-1 ╮              │   │                         │ … │
-│                     │              │   │                         │   │
-┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ ) │
-╰ identifier-1        ╯              │   │                         │   │
-                                     │   │ literal-2               │   │
-                                     │   │                         │   │
-                                     └   ╰ <u>OMITTED</u>                 ╯   ┘
+                                     ┌   ╭ arithmetic-expression-1 ╮     ┐
+                                     │   │                         │     │
+                                     │   │ boolean-expression-1    │     │
+╭ object-class-name-1 ╮              │   │                         │     │
+┤                     ├ :: literal-1 │ ( ┤ identifier-2            ├ … ) │
+╰ identifier-1        ╯              │   │                         │     │
+                                     │   │ literal-2               │     │
+                                     │   │                         │     │
+                                     └   ╰ <u>OMITTED</u>                 ╯     ┘
 </pre>
 
 > **Figure notes (inline method invocation syntax diagram).** `OMITTED` is the only underlined word in the printed figure (required word); `::` and the parentheses are required punctuation as printed. The outer brackets make the whole parenthesized argument list optional; the inner braces select exactly one argument form, and the `…` repeats that brace group to give a list of arguments inside the single parenthesis pair.
@@ -12352,8 +12351,8 @@ The SPECIAL-NAMES paragraph provides a means for:
 │ <u>CLASS</u> class-name-1 │ FOR ┤              ├ │                             │
 │                    └     ╰ <u>NATIONAL</u>     ╯ ┘                             │
 │                                                                         │ …
-│ IS ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮ … [ <u>IN</u> alphabet-name-4 ] │
-│    ┤ literal-5     │ ┤         ├ literal-6 │ ├                          │
+│    ╭               ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮                          │
+│ IS ┤ literal-5     │ ┤         ├ literal-6 │ ├ … [ <u>IN</u> alphabet-name-4 ] │
 └    ╰               └ ╰ <u>THRU</u>    ╯           ┘ ╯                          ┘
 
 [ <u>CRT</u> <u>STATUS</u> IS data-name-2 ]
@@ -14192,8 +14191,8 @@ Format 1 (sequential):
 [ linage-clause ]
 
 ┌          ╭ IS alphabet-name-1 [ alphabet-name-2]       ╮ ┐
-│ <u>CODE-SET</u> │                                             │ │ .
-│          ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │
+│          │                                             │ │
+│ <u>CODE-SET</u> ┤ ╭ │ FOR <u>ALPHANUMERIC</u> IS alphabet-name-1 │ ╮ ├ │ .
 │          │ ┤ │                                     │ ├ │ │
 └          ╰ ╰ │ FOR <u>NATIONAL</u> IS alphabet-name-2     │ ╯ ╯ ┘
 </pre>
@@ -15233,8 +15232,8 @@ level-number [ entry-name-clause ]
 
 ┌                ┌ <u>PLUS</u>  ┐                  ┐
 │                │       │                  │
-│ <u>LINE</u> NUMBER IS │ +     │ ╭ identifier-1 ╮ │
-│                │       │ ┤              ├ │
+│                │ +     │ ╭ identifier-1 ╮ │
+│ <u>LINE</u> NUMBER IS │       │ ┤              ├ │
 │                │ <u>MINUS</u> │ ╰ integer-1    ╯ │
 │                │       │                  │
 └                └ -     ┘                  ┘
@@ -15757,8 +15756,8 @@ The CLASS clause specifies a range of values for each character of a data item, 
          │ <u>ALPHABETIC</u>       │
          │                  │
          │ <u>ALPHABETIC-LOWER</u> │
-         │                  │
-<u>CLASS</u> IS ┤ <u>ALPHABETIC-UPPER</u> ├
+<u>CLASS</u> IS ┤                  ├
+         │ <u>ALPHABETIC-UPPER</u> │
          │                  │
          │ <u>BOOLEAN</u>          │
          │                  │
@@ -17733,8 +17732,7 @@ Format 1 (basic):
 <pre style="line-height:1">
                                   ┌                     ╭ IS literal-1                      ╮ ┐
 ╭ <u>PICTURE</u> ╮                       │                     │                                   │ │
-┤         ├ IS character-string-1 │                     │                                   │ │ …
-│         │                       │ <u>EDITING</u> character-1 ┤     ╭ │ <u>NEGATIVE</u> IS literal-2 │ ╮ ├ │
+┤         ├ IS character-string-1 │ <u>EDITING</u> character-1 ┤     ╭ │ <u>NEGATIVE</u> IS literal-2 │ ╮ ├ │ …
 ╰ <u>PIC</u>     ╯                       │                     │ <u>FOR</u> ┤ │                       │ ├ │ │
                                   └                     ╰     ╰ │ <u>POSITIVE</u> IS literal-3 │ ╯ ╯ ┘
 </pre>
@@ -20290,11 +20288,10 @@ Format 4 (report-section):
 Format 5 (content-validation-entry):
 
 <pre style="line-height:1">
-╭ <u>VALUE</u>  ╮ ╭                                     ╮
-│        │ │           ┌ ╭ <u>THROUGH</u> ╮           ┐ │
+╭ <u>VALUE</u>  ╮ ╭           ┌ ╭ <u>THROUGH</u> ╮           ┐ ╮
 ┤        ├ ┤ literal-5 │ ┤         ├ literal-6 │ ├
-│ <u>VALUES</u> │ │           │ │         │           │ │ … [ IN alphabet-name-1 ]
-╰        ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
+│        │ │           │ │         │           │ │ … [ IN alphabet-name-1 ]
+╰ <u>VALUES</u> ╯ ╰           └ ╰ <u>THRU</u>    ╯           ┘ ╯
 
 ┌ IS  ┐ ╭ <u>INVALID</u> ╮
 │     │ ┤         ├ [ <u>WHEN</u> condition-1 ]
@@ -24890,9 +24887,9 @@ The INVOKE statement causes a method to be invoked.
                                                 │       │                                            │   │
                                                 │       │                ╭ arithmetic-expression-1 ╮ │   │
                                                 │       │                │                         │ │   │
-       ╭                     ╮ ╭              ╮ │       │ [ BY <u>CONTENT</u> ] │ boolean-expression-1    │ │   │
-<u>INVOKE</u> │ object-class-name-1 │ │ identifier-2 │ │       │                ┤                         ├ │   │
-       ┤                     ├ ┤              ├ │ <u>USING</u> ┤                │ identifier-5            │ ├ … │
+                                                │       │                │ boolean-expression-1    │ │   │
+       ╭ object-class-name-1 ╮ ╭ identifier-2 ╮ │       │ [ BY <u>CONTENT</u> ] ┤                         ├ │   │
+<u>INVOKE</u> ┤                     ├ ┤              ├ │ <u>USING</u> ┤                │ identifier-5            │ ├ … │
        ╰ identifier-1        ╯ ╰ literal-1    ╯ │       │                │                         │ │   │
                                                 │       │                ╰ literal-2               ╯ │   │
                                                 │       │                                            │   │

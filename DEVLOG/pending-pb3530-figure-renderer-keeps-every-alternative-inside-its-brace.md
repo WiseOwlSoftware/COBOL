@@ -23,8 +23,8 @@ folio, line range and the diff that `--apply` would write.
    average lay above the hook, so the brace started a row lower and drew `THROUGH` outside itself (EVALUATE
    §14.9.13.2, VALUE §13.18.63.2 Format 5, and CODE-SET's inner brace in the file description entry).
    `enclosures` now pairs every delimiter the way a reader matches parentheses (same family, same height, nearest
-   open). `split_rows` splits a row at a boundary only where a word the enclosure holds and the row's average fall
-   on opposite sides. A row that only spans the boundary of a group alongside stays whole (UNTIL's `condition-1`).
+   open), and `place_rows` seats each row inside every enclosure that holds one of its words (see the review below).
+   A row that only spans the boundary of a group alongside stays where it is (UNTIL's `condition-1`).
 3. *Stems spanning by height alone.* `covers` enclosed every row inside a stem's slack, including rows of another
    group. WRITE's `| BEFORE / AFTER |` choice bars therefore drew past their brace, through `mnemonic-name-1`. A
    paired stem now spans from the first to the last row that holds its words.
@@ -52,6 +52,30 @@ catalog and the inventory were regenerated. No row closed.
 licensed PDF, and adds six unit checks of the delimiter splitter, the pairing and the row split. Main's renderer
 fails the three cases for the new mechanisms and passes the three guard cases (ASSIGN, UNTIL, ACCEPT Format 3).
 `scripts/spec/test_figure_geometry.py` holds SEND's four measured stems. Main reads both bars as brackets.
+
+**Review round 1 (R1-1) and its fix.** The first cut split a straddling row by checking every word's height
+against the boundary, including words outside the enclosure. On folio 342 `CODE-SET`, `.` and `FOR ALPHANUMERIC
+IS alphabet-name-1` are one printed line, level with the outer brace's point. The inner `{ | FOR … | }` brace's
+boundary moved `FOR …` down and left `CODE-SET` a row above the point it labels. On folio 441 it tore
+`IS character-string-1` from `EDITING character-1`. A probe over the whole standard found four torn rows, and only
+two of them (EVALUATE's and VALUE's `THROUGH`) were wanted. The row rule is now `place_rows`. A word between a
+delimiter pair must sit on a row inside the boundary when it lies inside it, and outside when it lies outside. A
+word beside the pair is not constrained by it. A row whose words agree stays whole and moves to the nearest height
+of one of its own words that satisfies them all. It splits only on a conflict, which no figure of the standard has
+today, so the self-test holds that case. That left EVALUATE's `THROUGH`. It is 3.9 pt below `identifier-3`, visibly
+the next printed line, and the 4.0 pt width bound had merged the two. I measured every step between neighbouring
+heights that the width bound groups. Words printed level sit up to 3.2 pt apart end to end, and the widest step
+drawn as one line is 3.5 pt (`ALL` beside `BINARY ZEROES`, folio 277). Every step from 3.6 to 4.0 pt is the next
+line. `cluster` therefore takes a gap as well as a width: a row ends at a step wider than 3.5 pt (`LINE_GAP`).
+Narrowing the width instead moves where every later row starts, and at 3.5 pt it redrew six more figures, tearing
+`IS [ NOT ] =` and `CLOSE … UNIT` apart. The gap regenerated nine figures, each checked against its printed page.
+One was a real error: the `…` of the inline method invocation (§8.4.3.4.2, folio 133) repeats the argument inside
+the parentheses, as its figure notes say, and the drawing had it outside them. `>> PUSH`, `CLASS IS`, `INVOKE`,
+`[ BY CONTENT ]` and the CLASS clause's `IS` now sit on the point rows they are printed level with. `CODE-SET` is
+back on its point row, and PICTURE draws as one line again. The nine FMT rows' verdicts were re-affirmed through
+batch `w1150c-pb3530-review-r1-figure-regeneration` (GAP 66 → 66). The self-test gains the folio 342 and folio 133
+figures, both of which fail on the first cut's renderer, plus unit checks for a whole row, a conflict split and the
+line gap (18/18).
 
 **Self-review.** I checked for a second copy of the pairing or span rule (none), a split that could fail to end
 (each split makes both parts agree with the boundary that caused it), and the effect on

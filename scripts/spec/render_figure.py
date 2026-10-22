@@ -27,6 +27,7 @@ from __future__ import annotations
 import argparse
 import collections
 import itertools
+import math
 import pathlib
 import re
 import sys
@@ -82,24 +83,38 @@ ASCII_ELLIPSIS = "..."
 TEXT_SAFE = set("…–‒")
 
 X_TOL = 2.0                           # how far apart two positions may be and still be one column
+# ONE PRINTED LINE, measured over every figure in the standard: a row's words lie within ROW_TOL of its first
+# word, and no step between neighbouring heights is wider than LINE_GAP. Words printed level sit up to 3.2 pt
+# apart end to end (`.`, `CODE-SET` and `FOR ALPHANUMERIC` on folio 342, steps of 1.7 and 1.5 pt), and the widest
+# step drawn as one line is 3.5 pt (`ALL` beside `BINARY ZEROES`, folio 277). Every step from 3.6 to 4.0 pt is
+# the NEXT printed line, which the width bound alone merged: the `…` that repeats the argument INSIDE the
+# parentheses of an inline method invocation (folio 133, 3.6 pt below `object-class-name-1`) was drawn outside
+# them, and `THROUGH` (folio 619, 3.9 pt below `identifier-3`), `>> PUSH`, `CLASS IS`, `INVOKE` and
+# `[ BY CONTENT ]` were lifted off the point rows they are printed level with (kb/Work PB3530). See `cluster`.
+ROW_TOL, LINE_GAP = 4.0, 3.5
 TOP_SLACK, BOTTOM_INSET = 2.0, 8.0    # how a stem's span maps onto rows of text — see `covers`
 HOOK_REACH = 1.0                      # how far above its first enclosed row a top hook may sit — see `hook_row`
 
 
-def cluster(values, tol):
+def cluster(values, tol, gap=None):
     """Map each coordinate onto a shared representative, so near-identical positions become one row or column.
 
     A group is bounded by its WIDTH, not by the gap to the previous value. Single-link chaining looks
     equivalent and is not: page 607's left edge runs 89.5 · 90.8 · 92.2 · 95.9 · 96.4 · 97.7 with every step
     under 4 pt, so a chain swallowed a bracket, its choice-indicator bar, `AT` and `[ END-ACCEPT ]` into ONE
     column — and the delimiters then drew straight through the text.
+
+    `gap`, when given, ALSO ends a group at a step wider than it, inside the width. Narrowing the width instead
+    is not equivalent: a width bound is anchored at a group's first value, so a narrower one moves where every
+    later group begins: a 3.5 pt width redrew six more figures than the 3.5 pt gap does, tearing printed
+    lines such as `IS [ NOT ] =` and `CLOSE … UNIT` apart (kb/Work PB3530).
     """
     keys = sorted(set(values))
     if not keys:
         return {}
     groups, cur = [], [keys[0]]
     for v in keys[1:]:
-        if v - cur[0] <= tol:
+        if v - cur[0] <= tol and (gap is None or v - cur[-1] <= gap):
             cur.append(v)
         else:
             groups.append(cur)
@@ -225,50 +240,66 @@ def enclosures(glyphs, stems):
     return out
 
 
-def split_rows(rowof, words, encl):
-    """Split every row of text that STRADDLES an enclosure's boundary against the words the enclosure holds.
+def place_rows(rowof, words, encl):
+    """Seat every row of text inside each enclosure that holds one of its words, splitting it only on a conflict.
 
     Rows are clustered by a tolerance, and a delimiter's span is then decided against each row's
-    REPRESENTATIVE y. A row whose words lie on both sides of a boundary is therefore enclosed or excluded as a
-    whole, and when the words inside the delimiter disagree with the representative they are drawn on the
-    wrong side of it. `THROUGH`, 3.9 pt below `identifier-3` and 0.2 pt below the top hook of its own
-    `{ THROUGH / THRU }` brace, was clustered onto the operand row, whose representative lies ABOVE the hook,
-    so the brace began a row lower and drew `THROUGH` outside itself (kb/Work PB3530).
+    REPRESENTATIVE y. When that average falls on the other side of an enclosure's boundary from the words the
+    enclosure holds, the words are drawn on the wrong side of their own delimiter: `FOR ALPHANUMERIC IS
+    alphabet-name-1`, 1.5 pt below `CODE-SET` and 0.2 pt below the top hook of its `{ | FOR … | }` brace, was
+    clustered with `CODE-SET` onto a row whose average lies ABOVE that hook, so the brace began a row lower and
+    drew its first alternative outside itself (kb/Work PB3530).
 
-    The words decide, never the average: a word is HELD by an enclosure when it lies between the opener and
-    the closer and inside the boundary. A row is split at the boundary only where a held word and the row's
-    representative fall on opposite sides of it — a row that merely spans a boundary drawn by a group
-    alongside, such as `condition-1` set 2.2 pt above the `{ BEFORE / AFTER }` hook beside it, is not torn.
+    The words decide, never the average. Each word is constrained by every enclosure whose opener and closer
+    lie on either side of it: it is HELD, and its row must lie inside the boundary, when it lies inside it, and
+    its row must lie outside when it lies outside. A word between no delimiter pair, such as `CODE-SET` beside
+    that brace or the `.` after it, is constrained by nothing that pair draws. A row whose words' constraints
+    agree stays WHOLE: it keeps its average when that satisfies them all, and otherwise moves to the nearest
+    height of one of its own words that does. It is one printed line, and tearing it by an enclosure that holds
+    only some of its words broke `CODE-SET` off the point row of the brace it labels (the review of PB3530). A
+    row is split only where its words' constraints cannot all hold on one row, between neighbouring words in y
+    order, so each part is again one row its words agree on; no figure of the standard needs that today, and
+    the self-test holds the case. A word whose own constraints contradict each other is drawn where it is.
     """
+    lo_of, hi_of = {}, {}
+    for w in words:
+        y, lo, hi = w["y0"], -math.inf, math.inf
+        for xo, xc, top, bottom, _ in encl:
+            if not xo < w["x0"] < xc:
+                continue
+            if y < top:
+                hi = min(hi, math.nextafter(top, -math.inf))
+            elif bottom is not None and y > bottom:
+                lo = max(lo, math.nextafter(bottom, math.inf))
+            else:
+                lo, hi = max(lo, top), min(hi, math.inf if bottom is None else bottom)
+        lo_of[y], hi_of[y] = max(lo_of.get(y, -math.inf), lo), min(hi_of.get(y, math.inf), hi)
     groups = collections.defaultdict(list)
     for v, r in rowof.items():
         groups[r].append(v)
-    changed = True
-    while changed:
-        changed = False
-        for r, vs in list(groups.items()):
-            for xo, xc, top, bottom, _ in encl:
-                held = [w["y0"] for w in words if rowof[w["y0"]] == r and xo < w["x0"] < xc
-                        and w["y0"] >= top and (bottom is None or w["y0"] <= bottom)]
-                cut = None
-                if held and r < top <= max(vs):
-                    cut = lambda v: v >= top          # held words below the top boundary, the row above it
-                elif held and bottom is not None and min(vs) <= bottom < r:
-                    cut = lambda v: v <= bottom       # held words above the bottom boundary, the row below it
-                if cut is None:
-                    continue
-                inner, outer = [v for v in vs if cut(v)], [v for v in vs if not cut(v)]
-                del groups[r]
-                for part in (inner, outer):
-                    rep_ = sum(part) / len(part)
-                    groups[rep_].extend(part)       # an equal representative is one row already
-                    for v in part:
-                        rowof[v] = rep_
-                changed = True
-                break
-            if changed:
-                break
-    return rowof
+    out = {}
+    for vs in groups.values():
+        parts, cur, lo, hi = [], [], -math.inf, math.inf
+        for v in sorted(vs):
+            nlo, nhi = max(lo, lo_of.get(v, -math.inf)), min(hi, hi_of.get(v, math.inf))
+            if cur and nlo > nhi:
+                parts.append((cur, lo, hi))
+                cur, nlo, nhi = [], lo_of.get(v, -math.inf), hi_of.get(v, math.inf)
+            cur.append(v)
+            lo, hi = nlo, nhi
+        parts.append((cur, lo, hi))
+        for part, lo, hi in parts:
+            mean = sum(part) / len(part)
+            if lo > hi:
+                rep = mean                            # a contradictory measurement: drawn where it is
+            elif lo <= mean <= hi:
+                rep = mean
+            else:
+                rep = min((v for v in part if lo <= v <= hi), key=lambda v: abs(v - mean),
+                          default=min(max(mean, lo), hi))
+            for v in part:
+                out[v] = rep
+    return out
 
 
 def split_delimiters(pieces):
@@ -329,9 +360,9 @@ def build(page, lo, hi, extract, classify_page):
                  + " — notation drawn as a letter would corrupt the figure silently; map it in GLYPH_PIECES")
 
     stems = [s for s in classify_page(page) if not (s["y1"] < lo or s["y0"] > hi)]
-    rowof = cluster([w["y0"] for w in text_w], tol=4.0)   # 4.9 pt separates rows, 3.2 pt does not
+    rowof = cluster([w["y0"] for w in text_w], ROW_TOL, LINE_GAP)
     encl = enclosures(glyphs, stems)
-    rowof = split_rows(rowof, text_w, encl)
+    rowof = place_rows(rowof, text_w, encl)
     rows = sorted(set(rowof.values()))
     rindex = {y: i for i, y in enumerate(rows)}
 

@@ -173,16 +173,27 @@ above its own brace's top hook, so the figure drew it outside the brace; the sam
 `{ PICTURE / PIC }`, `IS EQUAL TO` out of SEARCH ALL's `{ IS EQUAL TO / IS = }`, and fused INVOKE's
 `object-class-name-1` and `identifier-1` onto one row (kb/Work PB3530).
 
-### A row never straddles an enclosure's boundary
+### A row is one printed line, seated inside every enclosure that holds its words
 
-Rows are clustered by a tolerance, and a delimiter's span is then decided against each row's representative
-height. A row whose words lie on both sides of a boundary is enclosed or excluded as a whole, so the words inside
-the delimiter can land on the wrong side of it: `THROUGH`, 3.9 pt below `identifier-3` and 0.2 pt below the top
-hook of its own `{ THROUGH / THRU }` brace, was clustered onto the operand row and drawn outside its brace. **The
-words decide, never the average.** Every opening delimiter is paired with its closing one (the way a reader
-matches parentheses: same family, same height, nearest unmatched opener), a word between the pair and inside the
-boundary is HELD by it, and a row is split at the boundary exactly where a held word and the row's representative
-fall on opposite sides. A row that merely spans a boundary drawn by a group alongside is not torn: `condition-1`,
+A row is the words within 4.0 pt of its first word, with no step between neighbouring heights wider than 3.5 pt
+(`render_figure.ROW_TOL`, `LINE_GAP`). Measured over every figure: words printed level sit up to 3.2 pt apart end
+to end, and the widest step drawn as one line is 3.5 pt (`ALL` beside `BINARY ZEROES`). Every step from 3.6 to
+4.0 pt is the next printed line, and the width bound alone merged it: the `…` that repeats the argument inside the
+parentheses of an inline method invocation (folio 133) was drawn outside them, and `THROUGH` (3.9 pt below
+`identifier-3`), `>> PUSH`, `CLASS IS`, `INVOKE` and `[ BY CONTENT ]` were lifted off the rows they are printed on.
+Narrowing the width instead moves where every later row begins, and it tore printed lines such as `IS [ NOT ] =`
+apart.
+
+A delimiter's span is then decided against each row's representative height, so a row whose average falls on the
+other side of a boundary from the words inside it puts them outside their own delimiter: `FOR ALPHANUMERIC`, 1.5 pt
+below `CODE-SET` and 0.2 pt below the top hook of its `{ | FOR … | }` brace, shared `CODE-SET`'s row, whose average
+lies above that hook. **The words decide, never the average.** Every opening delimiter is paired with its closing
+one (the way a reader matches parentheses: same family, same height, nearest unmatched opener). A word between the
+pair must be on a row inside the boundary when it lies inside it, and outside when it lies outside; a word beside
+the pair is not constrained by it. A row whose words agree stays whole and moves, when its average does not satisfy
+them, to the nearest height of one of its own words that does: `CODE-SET` stays on the point row of the brace it
+labels, beside `FOR ALPHANUMERIC`. A row is split only where its words cannot all be satisfied on one row (kb/Work
+PB3530 and its review). A row that merely spans a boundary drawn by a group alongside is not moved: `condition-1`,
 2.2 pt above the `{ BEFORE / AFTER }` hook beside it, stays on that row.
 
 ### A stem spans only the words it holds
