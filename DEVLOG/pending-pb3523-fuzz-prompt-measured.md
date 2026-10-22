@@ -37,4 +37,5 @@ before the next fuzz") is now the module docstring's rule. A `--model` run refus
 compiler-defect note is open; today that is PB3511, PB3512 and PB3517. `--force-open-notes` starts the run anyway and
 names them. The self-test grew from 63 to 89 checks: the clause cut, the examples and the families, the 2023 lists, the
 declined seeds, the quoted line, the recorded rounds, the early stop and the full budget against a stubbed model, and the
-cadence refusal against a fixture register. No compiler code changed.
+cadence refusal against a fixture register. No compiler code changed. The gate at 7ca0e264f: `=== BUILD-LOCAL GATE: LEG 1
+ONLY (batched gating, PB2515): GREEN` (run 20261022T200825Z-7d8ba5, the harness self-test re-run in its audits).
