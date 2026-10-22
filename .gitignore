@@ -14,6 +14,8 @@ out-*/
 # NuGet
 packages/
 *.nupkg
+# ...except the repo-local feed of the patched ANTLR runtime (nuget-feed/README.md, kb/Work PB3504)
+!nuget-feed/*.nupkg
 
 # IDE
 .vs/
