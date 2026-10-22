@@ -3,7 +3,8 @@
 # driver, scripts/run_gate_legs.py, which holds this worktree's gate lock, runs the audits (before any slot, kb/Work
 # PB2524), takes a gate slot, runs the solution build, lists the population, plans the order and runs leg 1 of it —
 # the change's own tests, the previous gate's reds, the host-only witnesses (tier 0h), the cheap tree-wide sweeps
-# (tier 0c) and the cheapest cases the change reaches — then checks that population and prints
+# (tier 0c), the drift tests that govern a changed file (tier 0d) and the cheapest cases the change reaches — then
+# checks that population and prints
 # `=== BUILD-LOCAL GATE: … ===`.
 # ⛔ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015/PB3022): there is no mode. Every gate — an implementer's, a
 # re-gate after a fix, a landing's — is the ordered leg 1, FAIL-FAST, inside a gate slot (the shared cap, 3 by default,
