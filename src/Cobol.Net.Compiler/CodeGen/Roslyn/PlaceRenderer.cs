@@ -184,7 +184,7 @@ internal static class PlaceRenderer
         // Splice the new slice back into the inner field, preserving its width. A BOOLEAN receiver pads with
         // boolean-zero (§14.6.8.6; §8.4.3.3 GR5a); every other category keeps the space fill.
         // ⛔ THE PAD READS OperandPic, NOT RAW Pic (kb/Work PB173 — one of the TWO arms of this defect; the other
-        // is MoveEmitter's RefModSlice figurative fill, nine files away, which made the identical raw-`Pic` read).
+        // is MoveEmitter.SliceStore's figurative fill, nine files away, which made the identical raw-`Pic` read).
         // `Pic` is NULL for any GROUP, so a BIT-GROUP slice padded with SPACE where §14.6.8.6 requires the value
         // be "transferred … into the corresponding boolean positions of the receiving data item, with zero fill
         // or truncation to the right". `OperandPic` is the ONE category reader — it answers the bit group's as-if

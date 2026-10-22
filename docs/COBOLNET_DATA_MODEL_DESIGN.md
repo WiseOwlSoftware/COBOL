@@ -1025,7 +1025,7 @@ VCR row) with the ParseArm gate on `VisitGroupUsageClause`; the edition-gate swe
 `ItemLength.Positions` (r1/r2 — drop the `IsElementary` guard, read `OperandPic`),
 `IsStringOperand`, `DISPLAY-OF`/`NATIONAL-OF` argument screens, `DataBinder`'s §13.18.49.3 SR9 SIGN guard (the
 "GROUP-USAGE is not modeled" branch becomes the real check),
-⛔ **`PlaceRenderer.Write`'s reference-modification BOOLEAN PAD and `MoveEmitter`'s `RefModSlice` FIGURATIVE
+⛔ **`PlaceRenderer.Write`'s reference-modification BOOLEAN PAD and `MoveEmitter.SliceStore`'s FIGURATIVE
 FILL** — the two WRITE-SIDE sites this sweep list ORIGINALLY OMITTED, and that omission is the origin of
 [[PB173]]. Both read raw `Pic`, which is **null for any group**, so a bit-group slice padded and filled with
 SPACE where §14.6.8.6 requires the value be "transferred … into the corresponding boolean positions of the

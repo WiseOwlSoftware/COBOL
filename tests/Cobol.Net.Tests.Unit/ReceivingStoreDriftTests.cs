@@ -42,6 +42,34 @@ public sealed class ReceivingStoreDriftTests
             + "(ISO §8.5.1.10.4; kb/Work PB871):\n" + string.Join("\n", offenders));
     }
 
+    /// <summary>kb/Work PB3512 (branch review R1-1) — every USAGE decision in the receiving store reads the item's
+    /// OPERAND picture (<c>DataItem.OperandPic</c>), never its raw <c>Pic</c>. ISO §14.9.25.4 GR4: "Bit group items
+    /// and national group items are treated as elementary items in the MOVE statement", and a GROUP-USAGE NATIONAL /
+    /// BIT group's usage lives only on its as-if picture (§13.18.29.4 GR1 b) / GR2 b)). The storage readers used to
+    /// switch on raw <c>Pic</c>, which is null for such a group, so a group MOVE into a national group (whole or
+    /// reference-modified) took the sending bytes as its characters. Golden:
+    /// <c>pb3512_group_sender_national_bit_slice</c>.</summary>
+    [Fact]
+    public void TheReceivingStore_AsksUsageOfTheOperandPicture_NeverTheRawPicture()
+    {
+        string[] lines = File.ReadAllLines(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "ReceivingStore.cs"));
+        var rawUsage = new Regex(@"(?<![A-Za-z])Pic\s+(switch|is\s+(not\s+)?\{[^}]*Usage)");
+        var offenders = new List<string>();
+        int operandReads = 0;
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].TrimStart().StartsWith("//")) continue;
+            if (rawUsage.IsMatch(lines[i])) offenders.Add($"ReceivingStore.cs:{i + 1}: {lines[i].Trim()}");
+            if (lines[i].Contains("OperandPic switch", StringComparison.Ordinal)
+                || lines[i].Contains("OperandPic is", StringComparison.Ordinal)) operandReads++;
+        }
+        // Make the scan able to FAIL: the usage readers must still be here, spelled over the operand picture.
+        Assert.True(operandReads >= 4, $"expected the storage usage readers over OperandPic, found {operandReads}");
+        Assert.True(offenders.Count == 0,
+            "A receiving-store usage decision reads the raw PICTURE, which is null for a national / bit group "
+            + "(ISO §14.9.25.4 GR4; kb/Work PB3512):\n" + string.Join("\n", offenders));
+    }
+
     [Fact]
     public void TheOneHome_StillCarriesBothArms()
     {
