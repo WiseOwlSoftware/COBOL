@@ -1541,7 +1541,8 @@ def self_test() -> int:
     occurs = seed_text("13.18.38", *bodies["13.18.38"])
     check("seed: a clause over the budget keeps its formats and its syntax rules ahead of its general rules, says where it cut, and names what it omitted (14.9.39 SET's fifteen formats take at most two thirds; 13.18.38 OCCURS keeps syntax rule 1)",
           set_text.count("Format ") >= 2 and "Syntax rules" in set_text and CUT_MARK in set_text and "omitted to fit the prompt" in set_text
-          and "General formats" in occurs and "The OCCURS clause shall not be specified in a data description entry that" in occurs
+          and any(FORMAT_PART.match(line) for line in occurs.split("\n"))
+          and "The OCCURS clause shall not be specified in a data description entry that" in occurs
           and occurs.index("Syntax rules") < len(occurs) and ("General rules" not in occurs or occurs.index("General rules") > occurs.index("Syntax rules")),
           (set_text[-300:], occurs[-300:]))
     short = "#### 14.9.99 FOO statement\n##### 14.9.99.1 General\n" + "intro " * 30 + "\n##### 14.9.99.2 General format\nFOO <u>BAR</u> x\n##### 14.9.99.3 Syntax rules\n1\\) rule\n##### 14.9.99.4 General rules\n" + "g " * 40
