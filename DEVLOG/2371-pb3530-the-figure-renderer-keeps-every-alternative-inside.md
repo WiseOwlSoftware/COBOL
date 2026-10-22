@@ -1,4 +1,4 @@
-## PB3530: the figure renderer keeps every alternative inside its own brace, and the figure sweep is GREEN
+## Entry 2371 — 2026-10-22 16:28 PDT — PB3530: the figure renderer keeps every alternative inside its own brace, and the figure sweep is GREEN
 
 Wave 1150 group C. `python scripts/spec/sweep_figures.py --check` was RED on main: one figure had drifted. The
 renderer (`scripts/spec/render_figure.py`) drew §13.18.35.2 Format 1, the report-writer LINE clause, with
@@ -80,3 +80,4 @@ line gap (18/18).
 **Self-review.** I checked for a second copy of the pairing or span rule (none), a split that could fail to end
 (each split makes both parts agree with the boundary that caused it), and the effect on
 RequiredFormatPhraseDriftTests' scrape of §14.9 figures (its rows are unchanged). The semgrep counts did not change.
+
