@@ -47,7 +47,7 @@ clauses. A screen program compiled by hand drew COBOLNET1560 from WiseOwl, which
 screen-handling module (docs/CONFORMANCE.md §5, A.4.2), so such a seed can only end BOTH_REJECT or as a WE_REJECT the
 conformance claim already explains. Arm A's "usable" screen and PAGE programs (five AGREE rows) used no screen or report
 construct at all: they DISPLAYed the clause's words. That produced the seed exclusion (`declined_seed_titles`: the whole
-clauses and statements of every Annex A.4 module §5 records as Not claimed, 27 titles) and arms C to E on the walk it
+clauses and statements of every Annex A.4 module §5 records as Not claimed and no other module lists, 25 titles) and arms C to E on the walk it
 gives (BASED, BLOCK CONTAINS, CALL, CLASS, DELETE, EXTERNAL, GO TO, IF, LINAGE-COUNTER, NULL, RENAMES, SIGN, SOURCE,
 START).
 
@@ -62,9 +62,12 @@ START).
 - **The early stop saved 12 % of the generations** (D and F 98, E 112, C 110) with no loss outside the noise. In D, 7
   programs stopped early, in F 10; in B, 23 (its FREE, EXIT, screen and report programs drew the same refusal round
   after round).
-- **The declined seeds are 10 % of a night, not its root.** In the second night they wrote 486 of the 4,931 programs, 335
-  of the 2,326 BOTH_REJECT rows (14 %) and 40 WE_REJECT rows the claim explains, at 1,687 of the 14,479 generations
-  (12 %). Excluding them moves that night's BOTH_REJECT share from 47 % to 45 %. B's walk drew four of them in its first
+- **The declined seeds are 9 % of a night, not its root.** In the second night they wrote 450 of the 4,931 programs, 330
+  of the 2,326 BOTH_REJECT rows (14 %) and 35 WE_REJECT rows the claim explains, at 1,613 of the 14,479 generations
+  (11 %). Excluding them moves that night's BOTH_REJECT share from 47 % to 45 %. (The bake-off ran with 27 declined
+  titles: two of them, the PRESENT WHEN and VARYING clauses, are listed by declined A.4.14 VALIDATE and by claimed A.4.11
+  Report Writer alike, and branch review R1-1 returned them to the seeds. Neither was on any arm's walk, so no arm's
+  figures change; on the second night their 36 programs drew 5 BOTH_REJECT and 5 WE_REJECT rows.) B's walk drew four of them in its first
   fourteen seeds, which is why the A-to-D comparison overstates the change (BOTH_REJECT 23 of 40 to 13 of 40).
 - What the remaining refusals show (B, D, E rounds): `ALLOCATE … GIVING` in a FREE program, EXIT PERFORM outside an inline
   PERFORM, SET condition-name TO FALSE with no WHEN SET TO FALSE, a REPORT SECTION before WORKING-STORAGE, an

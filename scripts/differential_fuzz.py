@@ -276,13 +276,18 @@ def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
     """The seed titles that are a WHOLE clause or statement of a declined optional module (kb/Work PB3523): the Annex A.4
     items of each module `declined_modules` names. WiseOwl refuses such a construct by name (the screen section's
     COBOLNET1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
-    claim already explains, never a lead. In the second night's run (fuzz-20261021-211424) these seeds wrote 486 of the
-    4,931 programs, 335 of its 2,326 BOTH_REJECT rows and 40 such WE_REJECT rows, at 1,687 of its 14,479 generations; the
+    claim already explains, never a lead. In the second night's run (fuzz-20261021-211424) these seeds wrote 450 of the
+    4,931 programs, 330 of its 2,326 BOTH_REJECT rows and 35 such WE_REJECT rows, at 1,613 of its 14,479 generations; the
     first fourteen seeds of the 2026-10-22 bake-off held four of them (BLINK, BLANK, UNDERLINE, REQUIRED). Matched by TITLE,
     because the transcription's numbers in these lists are not all right (A.4.14 item 9 prints "VALIDATE statement
-    (13.18.64)", the VARYING clause's number). A module that becomes claimed returns its seeds with no change here."""
+    (13.18.64)", the VARYING clause's number). A module that becomes claimed returns its seeds with no change here.
+
+    A title that a module the claim does NOT decline also lists stays a seed, whole or as one of its formats: A.4.14
+    VALIDATE (declined) and A.4.11 Report Writer (claimed in part, its RW nucleus with PRESENT WHEN and VARYING) both list
+    the PRESENT WHEN clause (13.18.41) and the VARYING clause (13.18.64), and WiseOwl implements both (review R1-1)."""
     declined = declined_modules(conformance_text)
-    titles: set[str] = set()
+    refused: set[str] = set()
+    kept: set[str] = set()
     module = None
     for line in spec_text.splitlines():
         if (h := ANNEX_A4_HEADING.match(line)):
@@ -290,9 +295,15 @@ def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
             continue
         if module and HEADING.match(line):
             module = None
-        if module in declined and (m := ANNEX_A4_ITEM.match(line)) and WHOLE_ELEMENT.match(m.group("name")):
-            titles.add(m.group("name"))
-    return titles
+        if module is None or not (m := ANNEX_A4_ITEM.match(line)):
+            continue
+        name = m.group("name")
+        if module in declined:
+            if WHOLE_ELEMENT.match(name):
+                refused.add(name)
+        elif WHOLE_ELEMENT.match(element := name.split(",", 1)[0].strip()):
+            kept.add(element)
+    return refused - kept
 
 
 #: Annex E.2 item 25 "The following reserved words have been added": one "- — WORD" line each ("— XOR", the last, lost its
@@ -706,7 +717,12 @@ def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -
     general rules, each whole while it fits and cut once it does not (what the model gets wrong is the syntax, not the
     general rules). When the formats and the syntax rules together exceed the budget, the formats take at most two thirds
     of it, so the syntax rules are never squeezed out by a statement with fifteen formats (14.9.39 SET). The parts stay in
-    the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end."""
+    the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end.
+
+    The general formats it sends ARE the printed page's: `scripts/spec/sweep_figures.py` generates every general format in
+    specs/ISO_COBOL.md from the PDF (`render_figure.py`, its `--check` the standing gate; 483 of 484, the one left being
+    §12.3.6.2's, which carries the Addendum's correction C3), so the OCR's lossy diagrams never reach the model and no PDF
+    is read here (review R1-3)."""
     head = f"Clause {number} {title}\n\n"
     whole = clean_spec_text(body)
     if len(whole) <= budget:
@@ -1203,17 +1219,29 @@ def cut_off_reason(done: str, thinking_chars: int, content_chars: int) -> str:
     return f"the reply was cut off at {NUM_PREDICT} tokens"
 
 
+#: A diagnostic line whose SEVERITY is error: an optional location (GnuCOBOL's "fz00609.cob:18:", the C compiler's
+#: "/tmp/cob1_0.c:105:28:", WiseOwl's "fz00609.cob(24,4):", a tool's "cobc:") and then "error" or "fatal error", or cobc's
+#: "internal compiler error". Not the word anywhere in the line: GnuCOBOL 3.2 follows an error with the source lines around
+#: it ("   13 > VALIDATE WS-ALPHA ON SIZE ERROR …") and a "fz00345.cob: in paragraph 'TEST-SIZE-ERROR':" header, and a
+#: substring match recorded those as the error (review R1-2: 3 of the bake-off's 344 rounds, 19 of the second night's 5,518
+#: first errors), so the early stop compared source text, not the message.
+ERROR_LINE = re.compile(r"^(?:\S*?(?::\d+(?::\d+)?:|\(\d+(?:,\d+)?\):)|\S+:)?\s*(?:fatal )?error\b|\binternal compiler error\b",
+                        re.IGNORECASE)
+
+
 def first_error(diag: str) -> str:
+    """The first line that reports an error (ERROR_LINE), else the diagnostics' first line ("Stack overflow.")."""
     for line in diag.splitlines():
-        if "error" in line.lower():
+        if ERROR_LINE.search(line.strip()):
             return line.strip()[:300]
     return diag.strip().splitlines()[0][:300] if diag.strip() else ""
 
 
 def error_lines(diag: str, limit: int) -> list[str]:
-    """The first `limit` diagnostic lines that report an error: a compiler cascades after the first slip (the bake-off's
-    GnuCOBOL replies ran to thirty lines of "unexpected Identifier"), and a model given the cascade fixes the wrong line."""
-    return [line.strip()[:300] for line in diag.splitlines() if "error" in line.lower()][:limit]
+    """The first `limit` diagnostic lines that report an error (ERROR_LINE): a compiler cascades after the first slip (the
+    bake-off's GnuCOBOL replies ran to thirty lines of "unexpected Identifier"), and a model given the cascade fixes the
+    wrong line."""
+    return [line.strip()[:300] for line in diag.splitlines() if ERROR_LINE.search(line.strip())][:limit]
 
 
 REPAIR_GNU_LINES = 6
@@ -1579,6 +1607,18 @@ def self_test() -> int:
           and with_source(["x.cob:99: error: past the end", "error: no line"], refused) == "x.cob:99: error: past the end\nerror: no line"
           and diagnostic_line("fz00609.cob(24,4): error COBOLNET2072: x") == 24 and diagnostic_line("fz00609.cob:18: error: x") == 18
           and diagnostic_line("cobc: error: x") is None, ask)
+    gnu_context = ("fz00345.cob: in paragraph 'TEST-SIZE-ERROR':\n   13 > VALIDATE WS-ALPHA ON SIZE ERROR ADD 1 TO WS-LEN\n"
+                   "   12 | 01 WS-ERROR-CODE PIC 99.\nfz00345.cob:13: error: syntax error, unexpected SIZE\n"
+                   "fz00345.cob:14: warning: ERROR is ignored\n/tmp/cob1_0.c:105:28: error: lvalue required\n"
+                   "cobc: tree.c:1606: internal compiler error\ncobc: error: no input")
+    check("diagnostics: an error is a line whose severity is error (GnuCOBOL's file:line, the C compiler's file:line:col, WiseOwl's file(line,col), cobc's own and its internal compiler error), never GnuCOBOL's source-context lines or paragraph header that hold the word (review R1-2); nothing an error, the first line",
+          first_error(gnu_context) == "fz00345.cob:13: error: syntax error, unexpected SIZE"
+          and error_lines(gnu_context, 9) == ["fz00345.cob:13: error: syntax error, unexpected SIZE", "/tmp/cob1_0.c:105:28: error: lvalue required",
+                                              "cobc: tree.c:1606: internal compiler error", "cobc: error: no input"]
+          and first_error("x.cob(4,1): error COBOLNET2993: the unary operator") == "x.cob(4,1): error COBOLNET2993: the unary operator"
+          and first_error("Stack overflow.\n   at ErrorReporter.Report()") == "Stack overflow." and first_error("") == ""
+          and refusal_round(1, gnu_context, "")["gnucobol"] == "fz00345.cob:13: error: syntax error, unexpected SIZE",
+          error_lines(gnu_context, 9))
     for family, example in EXAMPLES.items():
         ex_lines = example.splitlines()
         check(f"prompt: the {family} example obeys the rules it illustrates (free format from column 1, under 80 lines, PROGRAM-ID FUZZ, DISPLAY, STOP RUN, every IF closed by END-IF, the 2014 edition's functions only) and extracts as a program",
@@ -1633,16 +1673,18 @@ def self_test() -> int:
                               + "\n    — GAMMA function\n— Delta\n") == ["Alpha thing", "Beta thing"], changes)
     declined_titles = declined_seed_titles(spec_text, conformance_text)
     every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
-    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE) stay",
+    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE, and PRESENT WHEN and VARYING, which declined VALIDATE lists too) stay",
           {"BLINK clause", "UNDERLINE clause", "REQUIRED clause", "BLANK clause", "VALIDATE statement", "VALIDATE-STATUS clause",
            "DEFAULT clause", "COMMIT statement", "ROLLBACK statement", "FORMAT clause", "SELECT WHEN clause"} <= declined_titles
           and not {"ACCEPT statement", "SET statement", "COLUMN clause", "PAGE clause", "REWRITE statement", "WRITE statement",
-                   "VALUE clause", "OCCURS clause", "DISPLAY statement"} & declined_titles
+                   "VALUE clause", "OCCURS clause", "DISPLAY statement", "PRESENT WHEN clause", "VARYING clause"} & declined_titles
           and declined_titles <= every_title, sorted(declined_titles - every_title))
     fixture_spec = ("#### A.4.2 Screens\n1\\) ACCEPT statement, format 3: screen (14.9.1)\n2\\) BLINK clause (13.18.9)\n"
-                    "#### A.4.3 Commit\n4\\) COMMIT statement 14.9.7\n#### A.4.4 Tables\n1\\) OCCURS clause (13.18.38)\n#### A.5 Other\n3\\) FOO clause (1.2)\n")
+                    "3\\) SHARED clause (13.18.70)\n4\\) PART clause (13.18.71)\n"
+                    "#### A.4.3 Commit\n4\\) COMMIT statement 14.9.7\n#### A.4.4 Tables\n1\\) OCCURS clause (13.18.38)\n"
+                    "2\\) SHARED clause (13.18.70)\n3\\) PART clause, format 2: tables (13.18.71)\n#### A.5 Other\n3\\) FOO clause (1.2)\n")
     fixture_claim = ("| A.4.2 | Screens | Not claimed | x |\n| A.4.3 | Commit | **Not claimed** | x |\n| A.4.4 | Tables | **Claimed** | x |\n")
-    check("seeds: the declined titles are read from the Annex A.4 items of the modules the claim declines, whole elements only, the parenthesized and the bare clause number alike, nothing past A.4",
+    check("seeds: the declined titles are read from the Annex A.4 items of the modules the claim declines, whole elements only, the parenthesized and the bare clause number alike, nothing past A.4, less every title a module the claim does not decline lists, whole (SHARED) or by one format (PART)",
           declined_seed_titles(fixture_spec, fixture_claim) == {"BLINK clause", "COMMIT statement"}
           and declined_modules(fixture_claim) == {"A.4.2": "Screens", "A.4.3": "Commit"},
           declined_seed_titles(fixture_spec, fixture_claim))
