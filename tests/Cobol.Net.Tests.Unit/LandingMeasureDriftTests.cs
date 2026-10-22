@@ -43,6 +43,9 @@ public sealed class LandingMeasureDriftTests
             // kb/Work PB3096: a pull request's own red before the queue is measured, never a silent 0
             "complete counts the pull request's own failed runs before the queue on its head branch (pre_queue_reds), and a "
                 + "branch with no pull-request run stays UNMEASURED, never 0",
+            // kb/Work PB3527: the landing lane's queue watch records each stalled read, never as a bounce
+            "a queue stall is recorded once per read with its cause and what the watch did, never as a bounce (complete "
+                + "re-reads the bounces and keeps the stalls), a malformed stall is refused, and summary counts the stalls",
         });
     }
 
