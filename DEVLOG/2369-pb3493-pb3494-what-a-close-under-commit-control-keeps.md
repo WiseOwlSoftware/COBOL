@@ -1,0 +1,85 @@
+## Entry 2369 — 2026-10-22 15:52 PDT — PB3493, PB3494: what a CLOSE under commit control keeps belongs to the physical file, and an OPEN OUTPUT ends it only when the new file exists
+
+A connector under commit control keeps its handle, its record locks, its file lock and the run unit's transaction when it is
+CLOSEd (§14.9.6.4 GR9, §14.9.7.4 GR4). Two reviews of PB3483 found two ways that kept state was lost or misused. Both
+notes reproduced on this build; the baseline run is in `E:/COBOL-coord/scratch/w1141b/probe-baseline-evidence.log` (ten of the
+fourteen new cases fail on the merge base).
+
+**PB3493: the OPEN OUTPUT released the kept state before it had its own handle.** `Lock(create: true)` called `ReleaseKept`
+first, so an OUTPUT the host or the medium then refused (a third run unit opening in the share-mode window, a refused write
+or sync of the creation) left the connector without its transaction, as a death leaves it (§14.9.27.4 GR25: *"If the
+execution of the OPEN statement is unsuccessful, the file is not affected"*). Test: the medium refuses the creation's second
+write, or its first sync; before the fix the OPEN answered '30' and `TransactionOf` read 0 where the CLOSE's id stood.
+`KeyedConnector.Recreate` now makes the new empty store in a store of its own, off the run unit's table, through the OPEN's
+handle and beside the kept attachment. `PagedFile.Create` already undoes a refused creation page by page, so a refusal
+changes nothing; only a creation that landed gives the kept state back and registers the created store
+(`StoreTable.AttachCreated(host, created)`). `Create` now REPORTS whether the file is still the previous one (`replaced`), and
+the kept state ends with the file it described when it is not: the creation landed, the final sync after the truncation was
+refused, or (the branch review's R1-1) the medium refused the undo as well.
+
+The sweep found the same ordering in two siblings. The absent OPTIONAL I-O/EXTEND arm released the kept state before its
+handle; it releases after. The absent OPTIONAL INPUT arm attached beside the kept store without releasing it, so the table
+kept the removed file's store: a file made anew by another run unit then read as the old one. Both end the kept state of a
+file that is no longer there, after the new handle is taken.
+
+**PB3494: the kept state belonged to the connector, so an ASSIGN USING to another file adopted the old file's handle and
+store.** After a CLOSE under commit control, a MOVE to the ASSIGN USING item and an OPEN associate the connector with a
+second file (§12.4.5.3 GR3 b). The OPEN took the first file's kept handle and store: READ of record 5 of a three-record
+second file answered '00' with the first file's record. The decision is that the changes made to the first file stay changes
+to a file the connector's APPLY COMMIT clause names (§14.9.7.4 GR3, §14.9.36.4 GR3), so its transaction, record locks and
+file lock are carried until the COMMIT or ROLLBACK, as for a displaced connector (PB3484). `KeptFile` (new) is the kept
+state keyed by its physical file: the handle, endpoint, file lock, and now the file's path, physical-file state, store and
+restoring trees. `KeyedConnector.TakeKept` hands it to the registry; `FileRegistry.Associate` does so when the association moved
+to another file, and the displaced-connector path (`Retire`) uses the same hand-over, so one mechanism serves both. COMMIT and
+ROLLBACK find it through `TransactionHolders`, a refused one is told through the file-name's connector, the connector that
+opens the same file again takes it back (`InheritKept`), and the run unit's end commits and releases it. On the way:
+`IndexedConnector.Restoring` read the connector's current store for the frame slots when it ran, so a ROLLBACK after the
+connector had left the store could not decode the before-images; the restoring trees now take the slots from the file they
+restore. The Table 19 column the first part of the note said was amended on the old file was the same root: the connector
+holds no kept lock after the hand-over, so the OPEN takes its column on the new file.
+
+**Tests** (`CommitRollbackRuntimeTests`, both organizations): creation refused at a write and at a sync (4), final sync refused
+(2), creation landed (2), a vanished OPTIONAL file on INPUT and I-O (4; effective on a host that lets a file be removed while a
+handle stands, so on Linux, and on Windows the case asserts the host refuses the removal; on I-O the OPEN creates the file,
+§14.9.27.4 GR17, and the CLOSE keeps the file lock its opening established, §9.1.15, so another run unit's OPEN OUTPUT is '61'
+until the COMMIT), a kept state left behind by an
+association with another file ending in COMMIT, ROLLBACK, a return to the first file and the run unit's end (8), and a refused
+ROLLBACK of such a state (1). The design (2.2.1.10 As built (3)) says what is carried and where; PB3493 and PB3494 are
+landed with `closes_rows: []` and their reasons.
+
+**Self-review.** The silent-failure pass looked at every path that answers '30' with state changed: `Recreate` releases only
+when `FileReplaced`, and a refused COMMIT or ROLLBACK of a retired state is told by name. The test pass checked that the
+creation-refused cases fail without the fix (they do) and that the abnormal paths are covered. The comment pass corrected the
+`TryRestoreKeptFileLock` remark that said an unsuccessful OUTPUT created the file anew. The first gate failed one drift test
+(`SharedReadCoherenceDriftTests`: the keyed lifecycle sizes the input-output areas in one place), so `Recreate` and `Attach`
+share `AttachHandleTo`.
+
+**Gates.** Windows, at `898b2315a` (run `TestResults/build-local/20261021T221239Z-622f69`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched
+gating, PB2515): GREEN — … Conformance 10,724/18,047 · Unit 34,118/35,285 · Characterization 5/36 cases ran`; the creation and
+association cases ran in leg 1. The first gate (`…T220701Z-25adee`) was RED on the drift test above. Linux (`--legs unit,conformance`)
+at the same head: conformance GREEN 18,047/18,047, unit RED on four cases of the vanished-file test, which is effective only on
+Linux. The two INPUT cases wrote through a connector name they never registered (`Write(maker, …)` without `name: "S"`). The two
+I-O cases were red one statement earlier, and the first fix did not reach them: the other run unit's OPEN OUTPUT answered '61'
+where the test expected '00'. The runtime was right. The I-O OPEN creates the absent OPTIONAL file, its successful opening
+establishes a file lock that a CLOSE under APPLY COMMIT keeps until the COMMIT, and SHARING WITH ALL OTHER admits input, I-O and
+extend only (§9.1.15). The I-O arm now asserts that '61' and COMMITs before the other run unit creates the file. After a merge of
+origin/main (165 commits, no conflicts), the Windows gate at that head
+(run `TestResults/build-local/20261022T213012Z-d8b9dd`): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — …
+Conformance 10,708/18,125 · Unit 34,423/35,356 · Characterization 5/36 cases ran`, the four vanished-file cases among them.
+Linux (`--legs unit,conformance`) at the same head: `=== LINUX GATE: GREEN (legs selftests unit conformance selftests-built; HEAD
+2c3275cb1) ===`, unit 35,391/35,391 and conformance 18,125/18,125.
+
+**The branch review (round 1) and its finisher.** R1-1 (blocking): a refused creation whose UNDO the medium also refused left
+the commit slot holding the empty meta at N, but `FileReplaced` read "no store handed back" as "the file is not affected", so
+the kept transaction stood over a store the file no longer held, and the next COMMIT promoted it beside that slot and answered
+success over a file every later OPEN read as empty. `PagedFile.Create` now says it outright (`out bool replaced`), the undo goes
+on past a refused page (the commit slot is the previous file's again wherever the medium lets it be), and 2.2.1.16 has the row.
+R1-2: the COMMIT took every retired state first, but a state `Associate` retires belongs to a connector that is still
+registered, so that was not 2.2.1.10's order of the open stores; `StoreTable` now stamps each store's place
+(`KeyedStore.OpenOrder`) and `TransactionHolders` sorts by it. R1-3: the store-mutex hold had three copies (the connector's
+transaction hold, `KeptFile`'s and `GiveBack`'s); `HostRegionLocks.HoldStoreMutex` and `InStoreMutex` are the one. R1-5: tests
+for the absent OPTIONAL I-O arm over a kept state when the new handle is refused (the kept state stands) and when the new
+file's store cannot be made (it has ended), and for a refused COMMIT of an associated-away state, which also pins the order.
+Each new connector and crash-matrix test failed with its fix reverted. R1-4 (a file removed and recreated at the same path
+outside the run unit is matched by path) is a lead: the run unit's tables all key a physical file by its path.
+
