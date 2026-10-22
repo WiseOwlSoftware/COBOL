@@ -127,31 +127,6 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         senderFirst &= prefill.Kind == OverlapPrefillKind.None;
         switch (kind)
         {
-            case MoveKind.RefModSlice:
-                // The slice takes the source's characters (SpliceInto left-justifies, space-fills, and
-                // truncates to the slice length), so pass the raw image, not a full-width store. EXCEPT a
-                // figurative source — a figurative word AND `ALL literal-1`, both Format-6/7 figurative constants
-                // — which fills EVERY position of the slice (ISO §8.3.3.6.4 GR2 — "the string of characters is
-                // repeated character by character until the size of the resultant string is greater than or equal
-                // to the number of character positions in the associated data item"; §8.4.3.3.4 GR5 makes the
-                // slice that data item). The ALL literal used to fall to the plain splice and land ONCE,
-                // space-padded (kb/Work PB1655). The figurative word's fill char is category-aware
-                // (national/boolean = the D-N3 pin, not the PCS extreme).
-                var rmp = (RefModPlace)target;
-                // ⛔ The slice's CLASS, NOT the inner item's raw `Pic` — THE SECOND ARM of kb/Work PB173's pad defect
-                // (its twin is PlaceRenderer.Write's RefModPlace boolean pad). `Pic` is null for any GROUP, so a
-                // figurative fill into a BIT-GROUP slice chose the alphanumeric SPACE instead of the boolean
-                // zero §14.6.8.6 requires. ClassOfPlace reads RefModPlace.Category, which answers the as-if
-                // PICTURE 1(m) of §13.18.29.4 GR1b, and CharacterContext projects the class (kb/Work PB442).
-                ctx.Writer.Line(source switch
-                {
-                    BoundFigurative fig => PlaceRenderer.WriteFill(rmp,
-                        FigurativeConstants.FillText(fig.Kind, ctx.Data.Collating,
-                            IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPlace(rmp)), ctx.Data.NationalCollating)),
-                    BoundAllLiteral all => PlaceRenderer.WriteFill(rmp, CsLiteral(all.Literal)),
-                    _ => Ordered(senderFirst, source, rmp, OperandText.AsString(source, num), v => PlaceRenderer.Write(rmp, v)),
-                });
-                break;
             case MoveKind.Group:
                 EmitGroupMove(target, source, senderFirst);
                 break;
@@ -223,10 +198,44 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     private string ElementaryStore(Place target, BoundOperand source, MoveSenderOrigin origin, bool senderFirst) =>
         MoveClassifier.Kind(source, target) is MoveKind.FigurativeToNumericImage
             ? FigurativeToNumericImageStore(target, source, FillCite(origin))
+            : target is RefModPlace slice ? SliceStore(slice, source, senderFirst)
             // An ANY LENGTH receiver stores at the CARRIER's current length (ISO §13.18.2 GR1 — the item is n
             // repetitions of its picture symbol, n = the activating argument's length).
             : Ordered(senderFirst, source, target, ConvertSource(source, target.Item,
                 target.Item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : null), v => PlaceRenderer.Write(target, v));
+
+    /// <summary>The elementary-move store into a REFERENCE-MODIFIED receiver — ISO §8.4.3.3.4 GR6's unique data
+    /// item, "an elementary data item without the JUSTIFIED clause" of <see cref="RefModPlace.Category"/>'s
+    /// category (alphanumeric, national or boolean; never numeric or edited). It differs from
+    /// <see cref="ConvertSource"/>'s character arm ONLY in the receiving half, because the slice's length is a
+    /// run-time value: the splice (<see cref="PlaceRenderer.Write"/>) is §14.6.8's alignment — left-justified,
+    /// space filled (boolean-zero filled, §14.6.8.6), truncated on the right — and a figurative constant or
+    /// <c>ALL literal-1</c> fills EVERY position of the slice (§8.3.3.6.4 GR2 — "the string of characters is repeated
+    /// character by character until the size of the resultant string is greater than or equal to the number of
+    /// character positions in the associated data item"; kb/Work PB1655), its fill character read from the slice's
+    /// CLASS, never the inner item's raw <c>Pic</c> (kb/Work PB173, PB442). Every other sender is
+    /// <see cref="SendingCharacters"/> — THE characters every elementary character receiver takes, so §14.9.25.4
+    /// GR6 a)'s sign rule is written once for the whole item and the slice alike (kb/Work PB3512: this store used
+    /// to read the sender's raw text and moved the operational sign).</summary>
+    private string SliceStore(RefModPlace slice, BoundOperand source, bool senderFirst) => source switch
+    {
+        BoundFigurative fig => PlaceRenderer.WriteFill(slice,
+            FigurativeConstants.FillText(fig.Kind, ctx.Data.Collating,
+                IntrinsicArgumentRules.CharacterContext(IntrinsicArgumentRules.ClassOfPlace(slice)), ctx.Data.NationalCollating)),
+        BoundAllLiteral all => PlaceRenderer.WriteFill(slice, CsLiteral(all.Literal)),
+        _ => Ordered(senderFirst, source, slice, SendingCharacters(source), v => PlaceRenderer.Write(slice, v)),
+    };
+
+    /// <summary>⛔ THE CHARACTERS AN ELEMENTARY MOVE DELIVERS TO A CHARACTER RECEIVER — alphanumeric,
+    /// alphanumeric-edited, national, national-edited, numeric-edited (the GR5 alphanumeric-sender read aside) and
+    /// boolean, whole item or reference-modified slice (kb/Work PB3512). ISO §14.9.25.4 GR6 a): "If the sending
+    /// operand is described as being signed numeric, the operational sign is not moved; if the operational sign
+    /// occupies a separate character position, that character is not moved and the size of the sending operand is
+    /// considered to be one less than its actual size." GR6's own lead sentence performs the alphanumeric-to-national
+    /// conversion "before any alignment" (here the D-N4 character correspondence, so the characters are the
+    /// same), and the receiving half then aligns them. Written once so the receivers cannot disagree about the
+    /// sign.</summary>
+    private string SendingCharacters(BoundOperand source) => OperandText.AsString(source, num, deSign: true);
 
     /// <summary>The store of <paramref name="value"/>, the rendered sending value, into <paramref name="target"/> —
     /// through <see cref="PlaceIdentification.SenderFirst"/> when the move keeps the MOVE statement's own order
@@ -287,6 +296,18 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
     /// IEEE), deterministically for possibly-incompatible content as §14.6.13.2 permits.</summary>
     private void EmitGroupToElementaryMove(Place target, BoundOperand source, bool senderFirst)
     {
+        // A REFERENCE-MODIFIED receiver is §8.4.3.3.4 GR6's elementary item, so a group sender into it is GR4's group
+        // move like any other (kb/Work PB3512 — MoveClassifier no longer short-circuits the slice before the sender is
+        // asked): the sending group's image, through the ONE GR4 sending codec, lands in the slice's storage unconverted
+        // (ReceivingStore.SliceStorageArea — a national slice decodes its UTF-16BE pairs as the whole national receiver
+        // below does). A slice of a dynamic-length item is "treated as a fixed-length data item" (§8.5.1.10.4), so it
+        // takes this arm, never the dynamic one below.
+        if (target is RefModPlace slice)
+        {
+            ctx.Writer.Line(Ordered(senderFirst, source, slice, OperandText.NonElementaryMoveSender(source, num, "group MOVE into"),
+                v => ReceivingStore.SliceStorageArea(slice, v)));
+            return;
+        }
         var item = target.Item;
         // ⛔ ISO §14.9.25.4 GR8 FIRST — "If the sending or receiving item is a dynamic-length elementary item,
         // the current content of the dynamic-length elementary item is moved or changed as specified in
@@ -297,8 +318,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // RuntimeApi.DynStore) is reached only by MoveKind.Convert, and a GROUP sender routes here instead —
         // the two-arm dispatch with one arm fixed. The other three kinds cannot reach a dynamic-length
         // receiver: MoveKind.Group's receiver is a group, FigurativeToNumericImage's is numeric (a
-        // dynamic-length item is alphanumeric or national, §8.5.1.10.1), and a RefModSlice receiver is by
-        // §8.5.1.10.4's own first sentence a FIXED-length item of the current length.</para>
+        // dynamic-length item is alphanumeric or national, §8.5.1.10.1), and a reference-modified receiver (the arm
+        // above) is by §8.5.1.10.4's own first sentence a FIXED-length item of the current length.</para>
         // The image is the receiver's new STORAGE (GR4: no conversion), so a national receiver decodes its
         // characters from the bytes exactly as the fixed national receiver below does (design D-N8, kb/Work PB546).
         if (item.IsDynamicLength)
@@ -329,11 +350,8 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // in a boolean carrier. An ANY LENGTH receiver's width exists only at runtime (§13.18.2 GR1 — the
         // carrier's current length, in its own positions).
         // ReceivingStore.AnyLengthWidth is the ONE spelling of an ANY LENGTH receiver's width (kb/Work PB979).
-        string len = item.IsAnyLength ? ReceivingStore.AnyLengthWidth(target) : "";
         string gw = !item.IsAnyLength ? $"{item.ByteWidth}"
-            : item.Pic is { Usage: Usage.National } ? $"({len} * {RuntimeApi.BytesPerNational})"
-            : item.Pic is { Usage: Usage.Bit } ? $"(({len} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})"
-            : len;
+            : ReceivingStore.StorageBytes(item, ReceivingStore.AnyLengthWidth(target));
         // The receiver's representation is decoded FROM the area's bytes by THE ONE elementary storage-area
         // store — the same decode a READ into an elementary record area rides (kb/Work PB1556). The width-fitted
         // area reads the receiver's width, so only the sending image is the value evaluated first (kb/Work PB3261).
@@ -747,7 +765,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
         // DynStore path is exhaustive. A PIC X/N dynamic-length item carries no edit mask, so this precedes the
         // fixed-width figurative/ALL and numeric-edited paths below.
         if (target.IsDynamicLength)   // the ONE elementary character receiving store owns §8.5.1.10.4 (kb/Work PB871)
-            return CharacterStore(target, OperandText.AsString(source, num, deSign: true), "");
+            return CharacterStore(target, SendingCharacters(source), "");
         string wN = runtimeWidth ?? pic.Length.ToString();   // the string-category store width (§13.18.2 GR1)
         // ⛔ A WHOLE-WIDTH FILL GOES THROUGH THE EDITOR, NEVER AROUND IT, when the receiver edits. §8.3.3.6.4 GR2
         // and §14.9.25.4 GR6 are two different steps and both apply: the figurative / ALL-literal source is first
@@ -794,7 +812,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
                 BoundFigurative ff =>
                     $"new string({FigurativeConstants.Fill(ff.Kind, ctx.Data.Collating, figContext, ctx.Data.NationalCollating)}, {pic.Length})",
                 BoundAllLiteral al => CsLiteral(EmitText.RepeatToWidth(al.Literal, pic.Length)),
-                _ => OperandText.AsString(source, num, deSign: true),
+                _ => SendingCharacters(source),
             };
             return CharacterStore(target, aeSrc, wN);
         }
@@ -834,7 +852,7 @@ internal sealed class MoveEmitter(EmitContext ctx, NumericRenderer num, Referenc
             // Figurative ZERO into a boolean receiver already early-returned above as a '0' fill; the SR7-illegal
             // figurative shapes never reach emit (bind-rejected, MoveCategoryLegality).
             case PicCategory.NumericEdited or PicCategory.Alphanumeric or PicCategory.National or PicCategory.Boolean:
-                return CharacterStore(target, OperandText.AsString(source, num, deSign: true), wN);
+                return CharacterStore(target, SendingCharacters(source), wN);
             case PicCategory.Numeric:
                 // A digit-only ALL "literal" repeats across the RECEIVER's digit positions (ISO §8.3.3.6.4 GR2 —
                 // repetition to the associated item's size, truncated from the right; §14.9.25.4 GR6d3b — a

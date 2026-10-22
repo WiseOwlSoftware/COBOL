@@ -60,7 +60,13 @@ public sealed class OccursSpec
 
     /// <summary>The resolved data-name-1 item — set by the post-build <c>DataBinder.OdoResolve</c> pass
     /// (data-name-1 may legally be declared anywhere outside the span the table starts, §13.18.38 SR20, so
-    /// resolution must wait for the complete forest).</summary>
+    /// resolution must wait for the complete forest).
+    /// <para>⛔ ONLY AN ADMITTED data-name-1 IS RECORDED (kb/Work PB3510): an integer (§13.18.38.3 SR17), so an
+    /// ELEMENTARY item, not subscripted (SR2) and outside the table's range (SR20); a data-name-1 any of them refuses
+    /// leaves this <see langword="null"/>, as an undefined one does. A consumer that resolves data-name-1's place
+    /// therefore never meets a group, and so never wraps the group that holds this table again (the resolver's
+    /// GR8 slice did, without end, for DEPENDING ON the record holding the table). <c>OdoDependingAdmissionDriftTests</c>
+    /// pins the writers.</para></summary>
     public DataItem? Depending { get; set; }
 
     /// <summary>The KEY phrase as written: EVERY ASCENDING/DESCENDING key data-name in ONE list, in the order the

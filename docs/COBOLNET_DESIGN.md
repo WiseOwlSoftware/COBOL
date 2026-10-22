@@ -598,15 +598,22 @@ private static int Dispatch(int startPc, int exitPc) {
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell off its end
+    if (pc == LAST + 1) throw new ProgramReturn(); // past the element's last paragraph: the implicit GOBACK (§14.6.3)
   }
   return pc;
 }
-internal static void Main() { try { Dispatch(/*EntryParagraphIndex*/0, -1); } catch (StopRun) { } }
+// The activation's own call is bounded at the LAST paragraph, so its fall-off is the at-exit return, never the throw.
+public void __Activate() { try { Dispatch(/*EntryPc*/0, /*LAST*/N - 1); } catch (ProgramReturn) { } }
 ```
 
 This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch in idiomatic C#.
 Control is followed by **pc value, never by physical block extent** — which is why inverted THRU ranges and
-GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
+GO-TO-out-of-and-back-into a PERFORM range are correct *for free*. A nested call (out-of-line PERFORM, SORT/MERGE
+procedure, `__RunUse`) whose range a GO TO left, or whose inverted THRU exit is never reached, can run past the
+source element's last paragraph without completing its range; that is the implicit GOBACK of §14.6.3, so it throws
+the element's return signal (`MethodReturn` in a method's `__MDispatch`) instead of returning `pc`, which the
+performer would read as its range completing (kb/Work PB3511; `LAST` is below a unit's appended Format-3 handler
+pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 
 ### 5.2 Statement → emission table
 
@@ -747,6 +754,16 @@ verified NIST-exact against the legacy: positive `0→'{',1→'A'…9→'I'`; ne
 `PIC S9(3)` +42→`"04B"`, −42→`"04K"`, −150→`"0015}"`, SIGN LEADING −37→`"}37"`. The default with no SIGN
 clause is TRAILING overpunch. Under `ascii` (the compile option `--sign-encoding=ascii`) a positive digit is left
 alone and a negative digit is digit+0x40: `PIC S9(4)` −1234→`"123t"`, SIGN LEADING→`"q234"`.
+**The digit image above is not what DISPLAY shows by default** (kb/Work PB3505, owner decision PB3467): DISPLAY of a
+fixed-point numeric item is ISO §14.9.11.4 GR1's implementor-defined conversion, and the compile option
+`--numeric-display decimal|digits` (default `decimal`, at every `--std`) selects it per compiled program, as
+`--sign-encoding` selects the overpunch. `decimal` is GnuCOBOL 3.2.0's default form — `PIC 9(5)V99` holding 12.5 shows
+`00012.50`, `PIC S9(5)V99` holding −12.5 `-00012.50`, a P scaling's zeros written, the program's decimal separator, a
+BINARY-CAPACITY item's container digits — and `digits` is the image of this section. ONE composition
+(`CobolNum.DisplayDecimal`, `CobolNum.DeviceDecimal.cs`) serves the native carriers and the character image;
+`OperandText.AsDeviceString` is the one entry the DISPLAY emitter asks (every other character use of a numeric item,
+MOVE's included, keeps the digit image, §14.9.25.4 GR6), and `NumericDisplayFormDriftTests` holds the reach. The
+survey table and the divergences are `docs/CONFORMANCE.md` item 56.
 **`CobolNum.FormatDisplaySigned`/`ParseDisplay` (encode+decode incl. overpunch + separate sign) must land before §4
 Tier-B/C numeric-view accessors are exact** — the current `FormatDisplay` returns magnitude.
 
@@ -1892,7 +1909,7 @@ The G0 extraction is complete and the tree in §1.2 is the record. Nothing maps 
 
 The new `Cobol.Net.Frontend.csproj`:
 - Inherits TFM/lang from `Directory.Build.props` (net10.0 / C# 14) — **do not** re-declare.
-- `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
+- `<PackageReference Include="Antlr4.Runtime.Standard" />` — **no `Version`** (central package management via `Directory.Packages.props`; the pin is our fork's build of the 4.13.2 runtime from `nuget-feed/`, DESIGN-frontend-grammar.md §3.5 item 3a). It needs `Antlr4.Runtime`; it does **not** need `Mono.Cecil`.
 - No `ProjectReference` (the front-end is self-contained).
 - Carries the ANTLR generation: the `WriteAntlrGenerationStamp` + `EnsureGeneratedFiles` + `CleanGenerated` targets, the `AntlrGrammar` item (`Grammar/**/*.g4`) and the `AntlrNamespace`/`AntlrJar`/`AntlrGenerator` properties live in its csproj; `EnsureGeneratedFiles` is the one up-to-date decision over every generation input (kb/Work PB2719), and its `Inputs`/`Outputs` paths are relative.
 - `<InternalsVisibleTo Include="Cobol.Net.Tests.Unit" />` if any internals need testing.

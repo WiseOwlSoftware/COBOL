@@ -26,6 +26,19 @@ internal sealed class StoreTable
 
     private readonly Dictionary<string, Entry> _byHost = new(HostFile.PhysicalFileComparer);   // kb/Work PB2748
 
+    /// <summary>The last <see cref="KeyedStore.OpenOrder"/> stamped: every store that becomes the run unit's for its physical
+    /// file takes the next one, so the stamps are the order of the run unit's open stores.</summary>
+    private long _opened;
+
+    /// <summary>Make <paramref name="store"/> the run unit's for <paramref name="host"/>, stamped with its place in the order of
+    /// the open stores.</summary>
+    private T Enter<T>(string host, T store) where T : KeyedStore
+    {
+        store.OpenOrder = ++_opened;
+        _byHost[host] = new Entry { Store = store, Attached = 1 };
+        return store;
+    }
+
     /// <summary>Attach to the store of organization <typeparamref name="T"/> for <paramref name="host"/>: the live store
     /// when one exists (its trees are the truth — nothing is re-read), else a new store with no file, which the attaching
     /// connector opens through its own handle (<see cref="KeyedStore.Open"/>; a failed OPEN detaches again).</summary>
@@ -39,9 +52,7 @@ internal sealed class StoreTable
             e.Attached++;
             return live;
         }
-        var store = new T();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
+        return Enter(host, new T());
     }
 
     /// <summary>⛔ ATTACH TO A STORE THAT IS BEING CREATED — <c>OPEN OUTPUT</c>, §14.9.27.4 GR18: a new, EMPTY store
@@ -54,16 +65,14 @@ internal sealed class StoreTable
     /// still exists here therefore means the arbitration was bypassed, and the answer is a loud defect, never a
     /// silent emptying of records another connector is reading (the analogous impossible state in
     /// <see cref="Attach{T}"/> is answered the same way).</para></summary>
-    public T AttachCreated<T>(string host) where T : KeyedStore, new()
+    public T AttachCreated<T>(string host, T created) where T : KeyedStore
     {
         if (_byHost.TryGetValue(host, out var e))
             throw new InvalidOperationException(
                 $"physical file '{host}' is being created by OPEN OUTPUT while {e.Attached} other connector(s) of this "
                 + "run unit hold it open; Table 19 refuses that OPEN (§9.1.13.9 1) e)), so reaching here is an "
                 + "arbitration defect (kb/Work PB754)");
-        var store = new T();
-        _byHost[host] = new Entry { Store = store, Attached = 1 };
-        return store;
+        return Enter(host, created);
     }
 
     /// <summary>Detach one connector from <paramref name="host"/>'s store; the LAST detach drops the entry, so a later

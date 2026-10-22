@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Atn;
+using Antlr4.Runtime.Dfa;
 using CobolNet.Editions;
 using CobolNet.Frontend.Cst;          // ClosedFormats — the ONE table of closed general formats (0g)
 using CobolNet.Frontend.Generated;
@@ -555,19 +556,18 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// then exactly what the production would have refused by name: no clause of the list opens with it. The
     /// after-period exclusion below does not apply to it: the decision's own lookahead already tried every path out of
     /// the list, its period included, and none took the tokens written.</para>
-    /// <para><b>The position, from the ATN.</b> A small simulation of the parser from its current ATN state and its
-    /// real context stack: the closure follows every epsilon edge (entering a rule pushes its follow state; leaving one
-    /// pops it, and past the rules the simulation itself entered, pops the parser's own invocation stack), and a token
-    /// edge is taken only for the tokens between the parser's current token and <paramref name="token"/> — the ones a
-    /// failed adaptive prediction looked past (a decision that read k tokens before it failed reports the k-th, with
-    /// the decision's first token still current). If the closure at <paramref name="token"/> reaches
-    /// a call of the error production (either form), the rule making that call is the closed format's alternative list
+    /// <para><b>The position, from the ATN.</b> ANTLR's own full-context simulation (<see cref="ResidueWalk"/>) re-runs
+    /// the parser from its current ATN state and its real invocation stack over the tokens between the parser's current
+    /// token and <paramref name="token"/> — the ones a failed adaptive prediction looked past (a decision that read k
+    /// tokens before it failed reports the k-th, with the decision's first token still current). If a configuration
+    /// at <paramref name="token"/> holds a call of the error production (either form) on its stack, the rule making
+    /// that call is the closed format's alternative list
     /// (<see cref="ClosedFormats.OfRule"/>): an IDENTIFIER there would have been taken by the error production and
     /// refused by name, and a reserved word or a literal it cannot hold is the same residue. The integer that may be
     /// the next entry's level-number is the after-period exclusion below, met in the data division's lists (<c>01 X
     /// PIC X 05 Y …</c>), where the missing period stands; the integer that heads a comma decimal (<c>1,5</c>) is no
     /// level-number and is refused here, quoted whole (kb/Work PB3390).
-    /// So is the list whose call of the production the PARSER is still inside, met as the closure pops its context
+    /// So is the list whose call of the production the PARSER is still inside, a frame of the parser's own stack
     /// (<c>SOURCE-COMPUTER. XYZ WIBBLE GLOBAL.</c>: the run WIBBLE ended at GLOBAL, kb/Work PB3370) — the innermost
     /// list of all, since the word continues that run.
     /// Where two lists are open at once (<c>SPECIAL-NAMES. GLOBAL.</c> could continue the paragraph's entries or start
@@ -577,7 +577,7 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// <para><b>A missing separator period is NOT this.</b> A clause list such a format writes ends at a separator
     /// period, and a word that could begin what FOLLOWS that period (<c>PROCEDURE DIVISION</c>, the next <c>SD</c>,
     /// <c>WORKING-STORAGE SECTION</c> after <c>01 X PIC X</c> with its period forgotten) is far likelier the start of
-    /// the next construct than a stray clause — so the closure also collects, at each period edge it reaches in the
+    /// the next construct than a stray clause — so the walk also collects, at each period edge it reaches in the
     /// parser's own context, the tokens that may come after the period, and a word among them is left to the
     /// missing-period guess (hint 14).</para></summary>
     private static Residue? ClosedFormatResidue(Parser recognizer, IToken token, bool predictionFailedAt)
@@ -586,26 +586,16 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         bool refusedWord = predictionFailedAt && token.Type == CobolLexer.IDENTIFIER;
         if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
-        List<Config> configs = [new(atn.states[recognizer.State], null, recognizer.Context)];
+        var walk = new ResidueWalk(recognizer);
         int k = 1;
         for (; ; k++)
         {
             var at = stream.LT(k);
             if (at.TokenIndex == token.TokenIndex) break;
             if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || k > MaxResimulatedTokens) return null;
-            var moved = new List<Config>();
-            foreach (var c in Closure(atn, configs, probe: null))
-                for (int i = 0; i < c.State.NumberOfTransitions; i++)
-                {
-                    var t = c.State.Transition(i);
-                    if (!t.IsEpsilon && t.Matches(at.Type, TokenConstants.MinUserTokenType, atn.maxTokenType))
-                        moved.Add(c with { State = t.target });
-                }
-            if (moved.Count == 0) return null;
-            configs = moved;
+            if (!walk.Consume(at.Type)) return null;
         }
-        var probe = new ResidueProbe();
-        Closure(atn, configs, probe);
+        var probe = walk.Probe();
         // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
         // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
         // no separator, ISO §8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
@@ -678,61 +668,133 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// ahead than this is not at a clause position anyone would call "the place", and the walk declines.</summary>
     private const int MaxResimulatedTokens = 16;
 
-    /// <summary>The epsilon closure of <paramref name="seeds"/>: every configuration reached, each with its own calls
-    /// and context. With a <paramref name="probe"/> it also records each call of the error production (with the
-    /// depth of the list making it) and, at each period edge in the parser's own context, what may follow the
-    /// period.</summary>
-    private static List<Config> Closure(ATN atn, List<Config> seeds, ResidueProbe? probe)
+    /// <summary>⛔ THE WALK IS ANTLR'S OWN FULL-CONTEXT SIMULATION, NOT A COPY OF IT (kb/Work PB3489). The re-simulation
+    /// runs on the runtime's <see cref="ParserATNSimulator"/>: its <c>Closure</c> in full-context mode, its
+    /// graph-structured call stacks (<see cref="PredictionContext"/>, seeded from the parser's real invocation stack by
+    /// <see cref="PredictionContext.FromRuleContext"/>) and its merge of the configurations reaching one state. The walk
+    /// used to keep its own closure with one linked call stack per path, and every argument reaches a function-identifier
+    /// along many call paths, so the stacks multiplied with each nested argument list: <c>FUNCTION A(FUNCTION B(FUNCTION
+    /// C(FUNCTION SUBSTRING(X FROM 1 FOR 4))))</c> never finished. Merged, the work grows with the nesting, never
+    /// exponentially in it.
+    /// <para>Why not the failed prediction's own <c>NoViableAltException.DeadEndConfigs</c>: the parse predicts in SLL
+    /// mode first, and an SLL closure that leaves the decision's rule follows the links to EVERY caller of that rule
+    /// (the outer context is a wildcard), so those configurations cannot say which list a word stands in. And not the
+    /// runtime's <c>ComputeReachSet</c>: once a single alternative remains it returns the moved configurations without
+    /// closing them, which serves prediction and defeats a walk with one alternative. So the token step is the loop of
+    /// <see cref="Consume"/>, and everything else is the runtime's.</para>
+    /// <para>The answer is then READ off the final configuration set (<see cref="Probe"/>): the closure keeps every
+    /// configuration at a state with a token edge, each with its whole stack, so a call of the error production is a
+    /// frame of some stack, and a period in the parser's own context is a period edge whose stack is one of the
+    /// parser's own (<see cref="_own"/>).</para></summary>
+    private sealed class ResidueWalk : ParserATNSimulator
     {
-        var reached = new List<Config>();
-        var visited = new HashSet<Config>();
-        var work = new Stack<Config>(seeds);
-        while (work.TryPop(out var c))
+        /// <summary>The stack of each rule context on the parser's real invocation stack: a configuration whose stack is
+        /// one of these stands in the parser's own context, not in a rule the walk entered.</summary>
+        private readonly Dictionary<PredictionContext, RuleContext> _own = [];
+
+        private readonly Dictionary<PredictionContext, int> _frames = [];
+
+        private ATNConfigSet _configs;
+
+        /// <summary>A walk from the parser's current state and real context. It never predicts, so it never reads a DFA:
+        /// the base constructor only stores the array it is given, and an empty one of the parser's size keeps the walk
+        /// from touching the parser's shared DFA cache at all.</summary>
+        public ResidueWalk(Parser parser)
+            : base(parser, parser.Atn, new DFA[parser.Atn.NumberOfDecisions], new PredictionContextCache())
         {
-            if (!visited.Add(c)) continue;
-            var (state, calls, context) = c;
-            if (state is RuleStopState)
+            mergeCache = new MergeCache();
+            for (RuleContext? c = parser.Context; c is not null; c = c.Parent)
+                _own.TryAdd(PredictionContext.FromRuleContext(atn, c), c);
+            _configs = Close([new ATNConfig(atn.states[parser.State], 1, PredictionContext.FromRuleContext(atn, parser.Context))]);
+        }
+
+        /// <summary>Step every configuration over one token of type <paramref name="ttype"/> and close the result;
+        /// false when none can take it.</summary>
+        public bool Consume(int ttype)
+        {
+            var moved = new List<ATNConfig>();
+            foreach (var c in _configs.Elements)
+                for (int i = 0; i < c.state.NumberOfTransitions; i++)
+                    if (GetReachableTarget(c.state.Transition(i), ttype) is { } target)
+                        moved.Add(new ATNConfig(c, target));
+            _configs = Close(moved);
+            return _configs.Count > 0;
+        }
+
+        private ATNConfigSet Close(IEnumerable<ATNConfig> seeds)
+        {
+            var closed = new ATNConfigSet(fullCtx: true);
+            var busy = new HashSet<ATNConfig>();
+            foreach (var c in seeds)
+                Closure(c, closed, busy, collectPredicates: false, fullCtx: true, treatEofAsEpsilon: false);
+            return closed;
+        }
+
+        /// <summary>What the closed configurations show at the refused token: every call of the error production on a
+        /// stack (the list rule that made it, at that list's depth — the parser's own call included, kb/Work PB3370),
+        /// and, at every period edge in the parser's own context, the tokens that may follow the period.</summary>
+        public ResidueProbe Probe()
+        {
+            var probe = new ResidueProbe();
+            var searched = new HashSet<(PredictionContext, int)>();
+            foreach (var c in _configs.Elements)
             {
-                if (calls is not null) work.Push(new(atn.states[calls.FollowState], calls.Next, context));
-                else if (context.invokingState >= 0 && context.Parent is { } caller)
+                FindProductionCalls(c.context, c.state.ruleIndex, probe, searched);
+                for (int i = 0; i < c.state.NumberOfTransitions; i++)
                 {
-                    // Leaving the PARSER's own call of the production: the word run is still open in the list that
-                    // made the call, the innermost list of all (kb/Work PB3370 — a reserved word after the run).
-                    if (ClosedFormats.IsErrorProduction(context.RuleIndex))
-                        probe?.Found(caller.RuleIndex, context.RuleIndex, caller.Depth());
-                    work.Push(new(((RuleTransition)atn.states[context.invokingState].Transition(0)).followState, null, caller));
+                    var t = c.state.Transition(i);
+                    if (t.IsEpsilon || t is NotSetTransition || t.Label?.Contains(CobolLexer.DOT) != true) continue;
+                    foreach (var own in OwnContexts(c.context))
+                        probe.AfterPeriod.AddAll(atn.NextTokens(t.target, own));
                 }
-                continue;
             }
-            reached.Add(c);
-            for (int i = 0; i < state.NumberOfTransitions; i++)
+            return probe;
+        }
+
+        /// <summary>Walk <paramref name="stack"/> down from a configuration in rule <paramref name="rule"/>: where a
+        /// frame returns from the error production, the rule it returns into is the list that called it.</summary>
+        private void FindProductionCalls(PredictionContext stack, int rule, ResidueProbe probe,
+            HashSet<(PredictionContext, int)> searched)
+        {
+            if (!searched.Add((stack, rule))) return;
+            for (int i = 0; i < stack.Size; i++)
             {
-                var t = state.Transition(i);
-                if (t is RuleTransition call)
-                {
-                    if (ClosedFormats.IsErrorProduction(call.target.ruleIndex))
-                        probe?.Found(state.ruleIndex, call.target.ruleIndex, context.Depth() + Frame.Count(calls));
-                    work.Push(new(call.target, new Frame(call.followState.stateNumber, calls), context));
-                }
-                else if (t.IsEpsilon)
-                    work.Push(c with { State = t.target });
-                else if (probe is not null && calls is null && t is not NotSetTransition
-                         && t.Label?.Contains(CobolLexer.DOT) == true)
-                    probe.AfterPeriod.AddAll(atn.NextTokens(t.target, context));
+                int returnState = stack.GetReturnState(i);
+                if (returnState == PredictionContext.EMPTY_RETURN_STATE) continue;
+                int caller = atn.states[returnState].ruleIndex;
+                var beneath = stack.GetParent(i);
+                if (ClosedFormats.IsErrorProduction(rule)) probe.Found(caller, rule, Frames(beneath) + 1);
+                FindProductionCalls(beneath, caller, probe, searched);
             }
         }
-        return reached;
-    }
 
-    /// <summary>A simulated parser configuration: an ATN state, the rule calls the simulation made itself, and the
-    /// parser's own context beneath them.</summary>
-    private readonly record struct Config(ATNState State, Frame? Calls, RuleContext Context);
+        /// <summary>The number of frames on the longest stack <paramref name="stack"/> stands for.</summary>
+        private int Frames(PredictionContext stack)
+        {
+            if (stack.IsEmpty) return 0;
+            if (_frames.TryGetValue(stack, out int frames)) return frames;
+            frames = 0;
+            for (int i = 0; i < stack.Size; i++)
+                if (stack.GetReturnState(i) != PredictionContext.EMPTY_RETURN_STATE)
+                    frames = Math.Max(frames, 1 + Frames(stack.GetParent(i)));
+            _frames[stack] = frames;
+            return frames;
+        }
 
-    /// <summary>One rule call the simulation made itself: where to resume when the called rule ends. A record, so two
-    /// configurations that reach a state through the same calls are one visit.</summary>
-    private sealed record Frame(int FollowState, Frame? Next)
-    {
-        public static int Count(Frame? f) { int n = 0; for (; f is not null; f = f.Next) n++; return n; }
+        /// <summary>The parser's own rule contexts <paramref name="stack"/> stands in: a merged stack may hold one of
+        /// them beside stacks the walk built.</summary>
+        private IEnumerable<RuleContext> OwnContexts(PredictionContext stack)
+        {
+            if (_own.TryGetValue(stack, out var whole)) { yield return whole; yield break; }
+            for (int i = 0; i < stack.Size; i++)
+            {
+                int returnState = stack.GetReturnState(i);
+                var branch = returnState == PredictionContext.EMPTY_RETURN_STATE
+                    ? EmptyPredictionContext.Instance
+                    : SingletonPredictionContext.Create(stack.GetParent(i), returnState);
+                if (_own.TryGetValue(branch, out var own)) yield return own;
+            }
+        }
     }
 
     /// <summary>What the final closure of <see cref="ClosedFormatResidue"/> found: the innermost closed format whose

@@ -5264,11 +5264,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         var indexNames = new List<string>();
         SignSpec? ownSign = null;
         bool justified = false, blankWhenZero = false, synchronized = false;
-        bool binaryUnsigned = false;   // USAGE BINARY-CHAR/... UNSIGNED (SIGNED is the default, ISO §13.18.60.4 GR12)
-        bool noSign = false;           // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.4 GR11 — no sign nibble; 2023)
-        // The entry's USAGE clause node, kept for the float FORMAT phrases (ISO §13.18.60.2 general format, 2014):
-        // their applicability depends on the RESOLVED usage, so the whole phrase adjudication runs in one block
-        // after entryUsage exists. kb/Work PB174.
+        // The entry's USAGE clause node, kept for its optional phrases (SIGNED / UNSIGNED, WITH NO SIGN, the float
+        // FORMAT phrases — ISO §13.18.60.2): which usage each may follow depends on the RESOLVED usage, so they are
+        // read and screened in ONE place, ScreenUsagePhrases, after entryUsage exists. kb/Work PB174, PB3517.
         Core.UsageClauseContext? usageCtx = null;
         // §13.18.60.3 SR21's subject is the SET of usage clauses in the entry, not the last one to win an
         // overwrite (kb/Work PB544). Split in two so the overwhelmingly common ONE-clause entry allocates
@@ -5470,15 +5468,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                     if (firstUsage is null) firstUsage = usage;
                     else (extraUsages ??= []).Add(usage);
                     usageText = UsageKeyword(usage);
-                    // SIGNED (default) / UNSIGNED on a fixed-width binary usage (ISO §13.18.60.4 GR12) — the
-                    // binarySign sibling is a direct child of usageClause in BOTH the full (USAGE IS
-                    // BINARY-CHAR SIGNED) and the bare (BINARY-CHAR SIGNED) alternatives.
-                    binaryUnsigned = usage.binarySign()?.UNSIGNED() is not null;
-                    noSign = usage.noSignPhrase() is not null;   // §13.18.60.4 GR11 — validated against usage/picture below
-                    // The item's OWN float format phrases (ISO §13.18.60.2, 2014) are adjudicated in ONE block
-                    // below, where entryUsage is resolved (their applicability is per-usage) — the clause node is
-                    // captured here rather than four derived locals, so §13.18.60.2's phrase rules stay in one
-                    // place. kb/Work PB174.
+                    // The clause's optional phrases are read off this node by ScreenUsagePhrases below, where
+                    // entryUsage is resolved: which usage each may follow is per-usage (ISO §13.18.60.2), so no
+                    // phrase is read here. kb/Work PB174, PB3517.
                     usageCtx = usage;
                     // USAGE OBJECT REFERENCE — the WHOLE §13.18.60.2 phrase (kind × FACTORY × ONLY × name),
                     // carried raw to OoBindObjectRefDescriptor below. FACTORY OF used to be loud-staged here
@@ -5748,74 +5740,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             restrictedPrototypeName = null;
         }
 
-        // ⛔ THE USAGE CLAUSE'S OWN FLOAT FORMAT PHRASES (ISO §13.18.60.2 general format, a COBOL-2014 addition;
-        // kb/Work PB174). ONE block owns all three of the general format's rules over them, because the grammar
-        // parses `floatFormatPhrase*` after ANY usageKeyword (the established binarySign/noSignPhrase superset
-        // posture) and the narrowing is the binder's:
-        //   • REPEAT — §5.2.6.4, "any single alternative may be specified only once" (COBOLNET1718). The
-        //     FLOAT-DECIMAL-16/-34 tail is a BRACKETED CHOICE-INDICATOR group over { encoding-phrase,
-        //     endianness-phrase }: zero or more, each at most once, in ANY order. The FLOAT-BINARY-* tail is a
-        //     plain single bracket, so at most one endianness-phrase there too.
-        //   • ENDIANNESS APPLICABILITY — the figure prints the endianness-phrase only on the five STANDARD float
-        //     usages (COBOLNET1716); §13.18.60.4 GR19c/d scope the OPTIONS-implied phrase the same way, and
-        //     GR13/GR21 leave the implementor-defined float usages (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED) to
-        //     our documented big-endian pin (Annex A.1 item 48).
-        //   • ENCODING APPLICABILITY — the figure prints the encoding-phrase only on FLOAT-DECIMAL-16/-34
-        //     (COBOLNET1717); GR20a says the same in prose ("any standard decimal floating-point usage").
-        // The RESULT — the item's own endianness — then feeds PicInfo.FloatItem below as the phrase that WINS over
-        // the OPTIONS-supplied implied one, which is not a preference but §11.9.8.3 SR2/SR3's own wording: the
-        // clause is implied "for … any data item described with a standard binary floating-point usage IN WHICH AN
-        // ENDIANNESS-PHRASE IS NOT SPECIFIED". §11.9.9.3 SR1-SR6 say it for the decimal usages.
-        // A phrase on FLOAT-BINARY-128 / FLOAT-DECIMAL-16 / -34 PARSES and is applicable — those usages are
-        // documented non-support (COBOLNET1564, Annex A.3 items 17/19), so the reject a user sees names the
-        // non-support, never a raw parse error at the wrong stage.
-        FloatEndianness itemEndianness = FloatEndianness.Unspecified;
-        FloatEncoding itemEncoding = FloatEncoding.Unspecified;
-        if (usageCtx is not null)
-        {
-            foreach (var phrase in usageCtx.floatFormatPhrase())
-            {
-                if (phrase.endiannessPhrase() is { } ep)
-                {
-                    if (itemEndianness is not FloatEndianness.Unspecified)
-                        Edition.Error(DiagnosticCatalog.UsageFloatFormatPhraseRepeated, $"{entryWhere}: the "
-                            + "endianness-phrase is specified more than once on this USAGE clause "
-                            + "(ISO §5.2.6.4 — any single alternative may be specified only once)");
-                    itemEndianness = FloatFormatPhrase.Endianness(ep);
-                }
-                else if (phrase.encodingPhrase() is { } enc)
-                {
-                    if (itemEncoding is not FloatEncoding.Unspecified)
-                        Edition.Error(DiagnosticCatalog.UsageFloatFormatPhraseRepeated, $"{entryWhere}: the "
-                            + "encoding-phrase is specified more than once on this USAGE clause "
-                            + "(ISO §5.2.6.4 — any single alternative may be specified only once)");
-                    itemEncoding = FloatFormatPhrase.Encoding(enc);
-                }
-            }
-            if (itemEndianness is not FloatEndianness.Unspecified && !UsageFamilies.IsStandardFloat(entryUsage))
-            {
-                Edition.Error(DiagnosticCatalog.UsageEndiannessPhraseScope, $"{entryWhere}: an endianness-phrase "
-                    + "(HIGH-ORDER-LEFT / HIGH-ORDER-RIGHT) is written only with a standard floating-point usage — "
-                    + "FLOAT-BINARY-32/-64/-128 or FLOAT-DECIMAL-16/-34 — not USAGE "
-                    + $"{usageText ?? "DISPLAY"} (ISO §13.18.60.2 general format; §13.18.60.4 GR19c/d)");
-                itemEndianness = FloatEndianness.Unspecified;
-            }
-            if (itemEncoding is not FloatEncoding.Unspecified
-                && !UsageFamilies.IsStandardDecimalFloat(entryUsage))
-            {
-                Edition.Error(DiagnosticCatalog.UsageEncodingPhraseScope, $"{entryWhere}: an encoding-phrase "
-                    + "(BINARY-ENCODING / DECIMAL-ENCODING) is written only with a standard DECIMAL "
-                    + "floating-point usage — FLOAT-DECIMAL-16 or FLOAT-DECIMAL-34 — not USAGE "
-                    + $"{usageText ?? "DISPLAY"} (ISO §13.18.60.2 general format; §13.18.60.4 GR20a)");
-                itemEncoding = FloatEncoding.Unspecified;
-            }
-            // A SURVIVING encoding-phrase has no consumer, and that is a MEASURED state, not an oversight: the
-            // only usages it is applicable to — FLOAT-DECIMAL-16/-34 — are documented non-support (COBOLNET1564,
-            // Annex A.3 item 19: .NET has no IEEE decimal64/128 type and GR17/GR18 pin the formats). The phrase
-            // is screened here so the reject a user sees names that non-support rather than a parse error, and the
-            // value is deliberately NOT carried onto PicInfo: a field nothing reads is a lookup nothing has ever
-            // contradicted. It threads through when the usages themselves land.
-        }
+        // THE USAGE CLAUSE'S OPTIONAL PHRASES — SIGNED / UNSIGNED, WITH NO SIGN, the endianness-phrase and the
+        // encoding-phrase (ISO §13.18.60.2) — screened against the resolved usage in ONE place, which keeps only the
+        // phrases the usage's line of the general format prints (kb/Work PB174, PB3517). The item's own
+        // endianness then feeds PicInfo.FloatItem below as the phrase that WINS over the OPTIONS-supplied implied
+        // one, which is §11.9.8.3 SR2/SR3's own wording: the clause is implied "for … any data item described with a
+        // standard binary floating-point usage IN WHICH AN ENDIANNESS-PHRASE IS NOT SPECIFIED". An admitted
+        // encoding-phrase has no consumer: the only usages it is applicable to, FLOAT-DECIMAL-16/-34, are
+        // documented non-support (COBOLNET1564, Annex A.3 item 19), so it is screened and not carried.
+        var usagePhrases = ScreenUsagePhrases(usageCtx, entryUsage, usageText, entryWhere);
 
         var pic = pictureText is not null
             ? PictureAnalyzer.Analyze(pictureText, entryUsage, Edition, entryWhere, ownSign, currencies: CurrencySigns,
@@ -5841,8 +5774,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             // category still is not an analysis, which is what IsRecovery goes on saying.
             : entryUsage is Usage.MessageTag ? PicInfo.MessageTagRecovery()
             : entryUsage is Usage.ObjectReference ? PicInfo.ObjectReferenceItem(objectRefDesc)
-            : entryUsage is Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble
-                ? PicInfo.BinaryItem(entryUsage, signed: !binaryUnsigned)
+            : UsageFamilies.IsFixedWidthBinary(entryUsage)
+                ? PicInfo.BinaryItem(entryUsage, signed: !usagePhrases.Unsigned)
             // A PICTURE-less floating-point item (COMP-1/COMP-2/FLOAT-SHORT/-LONG/-EXTENDED + the 2014
             // FLOAT-BINARY-*/FLOAT-DECIMAL-* family, §13.18.60.2, D16) — its value is a native float/double, never
             // scaled-integer (before this the chain fell to null → NRE). The processor-dependent non-support forms
@@ -5856,8 +5789,8 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             : entryUsage is Usage.Float or Usage.Double or Usage.FloatShort or Usage.FloatLong or Usage.FloatExtended
                 or Usage.FloatBinary32 or Usage.FloatBinary64 or Usage.FloatBinary128
                 or Usage.FloatDecimal16 or Usage.FloatDecimal34
-                ? PicInfo.FloatItem(entryUsage, itemEndianness is FloatEndianness.Unspecified
-                    ? Options.FloatBinaryEndianness : itemEndianness)
+                ? PicInfo.FloatItem(entryUsage, usagePhrases.Endianness is FloatEndianness.Unspecified
+                    ? Options.FloatBinaryEndianness : usagePhrases.Endianness)
             : null;   // incl. a PICTURE-less USAGE NATIONAL/BIT entry — Pending (below) carries its adjudication
 
         // A PICTURE-less USAGE NATIONAL/BIT entry is a GROUP header (legal — the usage sheds to subordinates,
@@ -5886,24 +5819,15 @@ public sealed partial class DataBinder(EditionContext? edition = null)
                 pending = groupUsage is GroupUsage.Bit ? PicPending.BitUsage : PicPending.NationalUsage;
         }
 
-        // USAGE … WITH NO SIGN — the GENERAL-FORMAT half, and only that half. §13.18.60.2 prints the phrase on
-        // exactly one alternative, `PACKED-DECIMAL [ WITH NO SIGN ]` (rendered figure, kb/Work PB570), while the
-        // grammar tolerates it after ANY usageKeyword (the established binarySign / floatFormatPhrase superset
-        // posture), so the usage word it was written on is screened HERE — where the clause is, and where the word
-        // is known whether or not the entry turns out to be a group. COBOLNET1565.
-        //
-        // ⛔ THE PHRASE'S EFFECT AND ITS §13.18.40.3 SR31 SCREEN ARE NOT HERE. Both are written against the item
-        // the phrase APPLIES TO, and §13.18.60.4 GR1 makes that "each elementary item in the group" whenever the
-        // clause is written at a group level — which entry bind cannot yet see (the subordinate entries are not
-        // parsed, so `pic` is null on a group header). Adjudicated once, for BOTH spellings, in
-        // UsageInheritancePass → ApplyEffectiveNoSign; the phrase travels there on DataItem.OwnNoSign. Before
-        // PB570 the two arms below ran here on the entry's own `pic` and a group-level phrase fell through all of
-        // them in silence: `01 GRP USAGE PACKED-DECIMAL WITH NO SIGN. 05 EG PIC 9(4).` kept the 3-byte SIGNED
-        // layout, and `05 W1 PIC S9(4).` under the same header drew no diagnostic at all.
+        // USAGE … WITH NO SIGN: which usage the phrase may follow is ScreenUsagePhrases' (above). ⛔ THE PHRASE'S
+        // EFFECT AND ITS §13.18.40.3 SR31 SCREEN ARE NOT HERE. Both are written against the item the phrase APPLIES
+        // TO, and §13.18.60.4 GR1 makes that "each elementary item in the group" whenever the clause is written at a
+        // group level — which entry bind cannot yet see (the subordinate entries are not parsed, so `pic` is null on
+        // a group header). Adjudicated once, for BOTH spellings, in UsageInheritancePass → ApplyEffectiveNoSign; the
+        // phrase travels there on DataItem.OwnNoSign. Before PB570 the phrase was applied here on the entry's own
+        // `pic` and a group-level phrase fell through in silence: `01 GRP USAGE PACKED-DECIMAL WITH NO SIGN. 05 EG
+        // PIC 9(4).` kept the 3-byte SIGNED layout, and `05 W1 PIC S9(4).` under the same header drew no diagnostic.
         // The 2023 introduction gate is VersionConformancePass (recognition-based, so it sees both spellings).
-        if (noSign && entryUsage is not Usage.Packed)
-            Edition.Error("COBOLNET1565", $"{entryWhere}: the WITH NO SIGN phrase (ISO §13.18.60.2; §13.18.60.4 GR11) "
-                + $"applies only to USAGE PACKED-DECIMAL, not USAGE {usageText}");
 
         // Edition gating (the four-compilers rule): a fixed-point picture's digit positions are capped at 18 by
         // COBOL-85 and 31 by 2002+ (ISO §8.3.3.3.2 / §13.18.40) — reject, never silently mis-store.
@@ -6051,10 +5975,9 @@ public sealed partial class DataBinder(EditionContext? edition = null)
             OwnSign = ownSign,
             OwnUsage = usageText is not null ? entryUsage : null,
             // The WITH NO SIGN phrase of that clause (§13.18.60.2) rides WITH it — §13.18.60.4 GR1 applies the
-            // clause, phrase included, to each elementary item in the group (kb/Work PB570). Kept only when the
-            // phrase was written on a usage the general format admits it on: the COBOLNET1565 arm above has
-            // already refused the others, and a rejected phrase must not go on to change a width.
-            OwnNoSign = noSign && entryUsage is Usage.Packed,
+            // clause, phrase included, to each elementary item in the group (kb/Work PB570). ScreenUsagePhrases
+            // keeps it only when the usage admits it, so a refused phrase never goes on to change a width.
+            OwnNoSign = usagePhrases.NoSign,
             RawValue = rawValue,
             TableValues = tableValues,
             RedefinesTargetName = redefinesTargetName,
@@ -6294,10 +6217,10 @@ public sealed partial class DataBinder(EditionContext? edition = null)
     }
 
     /// <summary>Extract a usage clause's canonical keyword text by TOKEN inspection — never string-stripping.
-    /// The full form (<c>USAGE [IS] usageKeyword [binarySign]</c>) carries the keyword in its
-    /// <c>usageKeyword</c> child; a bare-keyword alternative (the USAGE word is optional, ISO §13.18.60 general
-    /// format) carries the keyword TERMINAL as the clause's FIRST child with an optional <c>binarySign</c>
-    /// sibling (SIGNED/UNSIGNED on the BINARY-CHAR/-SHORT/-LONG/-DOUBLE family). The historical
+    /// Both spellings (<c>[USAGE IS] usageKeyword</c> — the USAGE word is optional, ISO §13.18.60.2, one grammar
+    /// alternative since kb/Work PB95) carry the keyword in the <c>usageKeyword</c> child, and the clause's
+    /// optional phrases (<c>binarySign</c>, <c>noSignPhrase</c>, <c>floatFormatPhrase</c>) are its SIBLINGS, read
+    /// by <see cref="ScreenUsagePhrases"/>, never part of the keyword. The historical
     /// <c>GetText()</c>-and-strip fallback GLUED the sign phrase into the keyword (bare <c>BINARY-CHAR
     /// SIGNED</c> → <c>"BINARY-CHARSIGNED"</c>, which then silently misbound to DISPLAY — the W2 loud-guard
     /// sweep), and even bare <c>DISPLAY</c> survived it only by accident. <c>USAGE OBJECT REFERENCE</c> (a rule,
@@ -6930,7 +6853,7 @@ public sealed partial class DataBinder(EditionContext? edition = null)
         Usage.ObjectReference => ("COBOLNET0812",
             "PICTURE may not be specified with USAGE OBJECT REFERENCE (ISO §13.16.3 SR8 — an "
             + "object-reference item is picture-less)"),
-        Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble => ("COBOLNET0870",
+        _ when UsageFamilies.IsFixedWidthBinary(usage) => ("COBOLNET0870",
             "PICTURE may not be specified with a fixed-width binary usage "
             + "(BINARY-CHAR/-SHORT/-LONG/-DOUBLE) — the item is picture-less (ISO §13.16.3 SR8)"),
         Usage.ProgramPointer or Usage.FunctionPointer => (DiagnosticCatalog.UsageClauseCompatibility.Code,

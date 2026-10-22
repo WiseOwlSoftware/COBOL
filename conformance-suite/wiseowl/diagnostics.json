@@ -10407,6 +10407,42 @@
   ],
   "expect": "COBOLNET1718"
  },
+ "pb3517-no-sign-phrase-on-binary-usage": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1565"
+ },
+ "pb3517-no-sign-phrase-on-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET1565"
+ },
+ "pb3517-sign-phrase-on-non-binary-usage": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4733"
+ },
+ "pb3517-sign-phrase-on-report-item": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET4733"
+ },
  "pb174-float-decimal-encoding-nonsupport": {
   "refuse-at": [
    "2014",
@@ -22524,5 +22560,41 @@
    "2014"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb3510-depending-on-containing-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0857"
+ },
+ "pb3510-depending-on-each-others-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0852"
+ },
+ "pb3510-depending-on-group-with-picture": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0852"
+ },
+ "pb3510-depending-on-the-table-itself": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0853"
  }
 }

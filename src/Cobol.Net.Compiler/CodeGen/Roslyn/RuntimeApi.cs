@@ -128,6 +128,15 @@ internal static class RuntimeApi
     public static string NumFormatDisplay(string value, string profile, bool u = false) =>
         $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.FormatDisplayU) : nameof(CobolNum.FormatDisplay))}({value}, {profile})";
 
+    /// <summary>The DECIMAL DEVICE FORM of a numeric item — <c>CobolNum.DisplayDecimal</c> (<c>DisplayDecimalU</c> for a
+    /// UInt128-carrier read, by name as <see cref="NumFormatDisplay"/> is): what DISPLAY shows of the item under
+    /// <c>--numeric-display decimal</c>, the default (ISO §14.9.11.4 GR1, DOC-A.1-56; kb/Work PB3505). The
+    /// <paramref name="value"/> is a native carrier read or an item's character image (the runtime has an overload per
+    /// carrier, as <c>FormatDisplay</c> has); <paramref name="commaMode"/> is the unit's decimal separator
+    /// (DECIMAL-POINT IS COMMA). The digit-image arm is <see cref="NumFormatDisplay"/>.</summary>
+    public static string NumDisplayDecimal(string value, string profile, bool commaMode, bool u = false) =>
+        $"{nameof(CobolNum)}.{(u ? nameof(CobolNum.DisplayDecimalU) : nameof(CobolNum.DisplayDecimal))}({value}, {profile}, {(commaMode ? "true" : "false")})";
+
     /// <summary>Encode an unscaled value as the BYTES the item occupies at a byte boundary — the record/group
     /// image, a file record, a SORT key window, a Tier-B REDEFINES backing (<c>CobolNum.FormatImage</c>,
     /// COBOLNET_DESIGN §14.4). Zoned items render exactly as <see cref="NumFormatDisplay"/>; BINARY and PACKED

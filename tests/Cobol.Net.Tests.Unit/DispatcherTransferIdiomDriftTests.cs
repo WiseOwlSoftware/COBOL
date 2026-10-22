@@ -34,6 +34,7 @@ namespace CobolNet.Tests.Unit;
 /// transfer — the PB405 defect — and this test names it. A new container the emitter learns to lower is covered
 /// automatically: nothing in the scanner knows what a PERFORM is.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class DispatcherTransferIdiomDriftTests
 {
     // Every transfer statement there is, each written INSIDE a lowered C# container. S1-A alone carries the
@@ -170,7 +171,7 @@ public sealed class DispatcherTransferIdiomDriftTests
     /// really does leave <c>switch (__pc)</c>.
     /// <para>The GO TO … DEPENDING selector's own arms (<c>case 1: __pc = 5; break;</c>) are a deliberate TWO-STEP
     /// idiom — the <c>break</c> leaves the SELECTOR switch and the transfer is completed by the
-    /// <c>if (in range) goto __xfer;</c> that follows it — and they are recognized by carrying their <c>case</c>
+    /// <c>if (in range) { __atExit = false; goto __xfer; }</c> that follows it — and they are recognized by carrying their <c>case</c>
     /// label in the same statement. If that emission is ever split across lines this scanner reports it; a red
     /// drift test asking a maintainer to re-read the idiom is the safe direction of the two.</para></summary>
     private static List<string> CapturedTransfers(string cs)
@@ -290,6 +291,51 @@ public sealed class DispatcherTransferIdiomDriftTests
         string none = Emit(NoTransferSrc);
         Assert.DoesNotContain("goto __xfer;", none, StringComparison.Ordinal);
         Assert.DoesNotContain("__xfer: ;", none, StringComparison.Ordinal);
+    }
+
+    /// <summary>⛔ kb/Work PB3491 — AN EXPLICIT TRANSFER CLEARS <c>__atExit</c> BEFORE IT JUMPS, AND IT CANNOT BE
+    /// FORGOTTEN BY ONE ARM. The dispatcher's return test (<c>__atExit &amp;&amp; __pc == __exitPc + 1</c>) is the
+    /// §14.6.3 rule 1 implied return, for control that LEAVES the exit paragraph by completing it; a GO TO whose
+    /// target is the paragraph physically after the exit paragraph is an explicit transfer out of the range
+    /// (§14.9.28.4 GR5) and must not be mistaken for completion. The format-1 and ALTERed GO TO did that through
+    /// <c>ExplicitTransferOut</c>; GO TO … DEPENDING left through the bare jump and silently ended the PERFORM.
+    /// The bare <c>TransferJump()</c> is therefore the COMPLETION idiom: its callers are EmitterState itself (the
+    /// two renderings built on it) and the one completion statement that needs a statement between the
+    /// <c>__pc</c> assignment and the jump (EXIT SECTION, §14.9.14.4 GR7). A new caller is a new arm of the
+    /// dispatch and must say which kind of transfer it is.</summary>
+    [Fact]
+    public void OnlyACompletionCallsTheBareTransferJump()
+    {
+        var callers = new SortedSet<string>(StringComparer.Ordinal);
+        foreach (string path in Directory.EnumerateFiles(TestRepo.Src("Cobol.Net.Compiler"), "*.cs", SearchOption.AllDirectories))
+        {
+            if (path.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.Ordinal)
+                || path.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                continue;
+            foreach (string line in File.ReadLines(path))
+            {
+                string code = line.TrimStart();
+                if (code.StartsWith("//", StringComparison.Ordinal)) continue;   // comments and /// docs name it freely
+                if (code.Contains("TransferJump()", StringComparison.Ordinal) && !code.Contains("ExplicitTransferJump()", StringComparison.Ordinal))
+                    callers.Add(Path.GetFileName(path));
+            }
+        }
+        Assert.Equal(new[] { "EmitterState.cs", "StatementEmitter.cs" }, callers);
+    }
+
+    /// <summary>The conjunction the PB3491 defect needed, measured over the generated C#: GO TO … DEPENDING's
+    /// in-range jump clears <c>__atExit</c> (it is an explicit transfer), as the format-1 GO TO beside it does.</summary>
+    [Fact]
+    public void GoToDependingLeavesThroughTheExplicitTransfer()
+    {
+        string cs = Emit(Src);
+        var dep = cs.Split('\n').Where(l => l.Contains("__dep", StringComparison.Ordinal) && l.Contains("goto __xfer;", StringComparison.Ordinal)).ToList();
+        Assert.Single(dep);
+        Assert.Contains("__atExit = false; goto __xfer;", dep[0], StringComparison.Ordinal);
+        // The format-1 GO TOs beside it (the EVALUATE arm's `GO TO S2-B`, the SEARCH AT END's `GO TO S2-A`) are the
+        // same explicit transfer: three of them in the fixture, the DEPENDING one included.
+        int explicitJumps = cs.Split("__atExit = false; goto __xfer;").Length - 1;
+        Assert.True(explicitJumps >= 3, $"only {explicitJumps} explicit transfers cleared __atExit before jumping");
     }
 
     /// <summary>THE SECOND ARM. A COBOL method's dispatcher is a LOCAL FUNCTION (<c>__MDispatch</c>, OO deep-dive

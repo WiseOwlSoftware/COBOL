@@ -34,7 +34,7 @@ internal sealed class _PRG_CHAR_MOVE_BASIC : ICobolProgram
 
     public void __Activate()
     {
-        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
+        try { __Dispatch(0, 0); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
     }
 
     private int __Dispatch(int __startPc, int __exitPc)
@@ -53,7 +53,7 @@ internal sealed class _PRG_CHAR_MOVE_BASIC : ICobolProgram
                     WS_EDITED = CobolEdit.Format(WS_SIGNED, 2, "ZZ,ZZ9.99-");
                     WS_ALPHA = new string(' ', 6);
                     WS_NUM = (long)(CobolNum.Store(0L, 0, _P_1, CobolRounding.Truncation));
-                    global::System.Console.WriteLine(WS_ALPHA + CobolNum.FormatDisplay(WS_NUM, _P_1) + WS_EDITED);
+                    global::System.Console.WriteLine(WS_ALPHA + CobolNum.DisplayDecimal(WS_NUM, _P_1, false) + WS_EDITED);
                     throw new StopRun();
                 }
                 default:
@@ -63,6 +63,7 @@ internal sealed class _PRG_CHAR_MOVE_BASIC : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)
+            if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)
         }
         return __pc;
     }

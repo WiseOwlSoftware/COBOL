@@ -312,7 +312,7 @@ public sealed class FloatIntegerArgumentPermissiveTests
 
         var (ranOk, stdout, detail) = EditionHarness.CompileAndRun(Pb651FractionProgram, 2023, permissive: true);
         Assert.True(ranOk, detail);
-        Assert.Equal(new[] { "MOD=1", "CDT=14395103600", "ANN=0367208564" },
+        Assert.Equal(new[] { "MOD=1", "CDT=143951.03600", "ANN=0.367208564" },
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }
 

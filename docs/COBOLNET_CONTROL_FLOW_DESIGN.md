@@ -35,15 +35,17 @@ markers) — never pre-rendered C#-specific fragments (SSOT §18 #23).
 
 **Rationale (kb/Work PB405, PB414).** C# binds `break` to the innermost enclosing BREAKABLE statement, and this emitter lowers COBOL containers to real C# breakables: an inline PERFORM is a `for`/`while`/`do` (D6), a GO TO … DEPENDING selector is a `switch` (D3). A `break` written for the dispatcher's `switch (__pc)` was therefore captured by whatever container the statement happened to sit in — the transfer was discarded and the paragraph's fall-through epilogue (D2) then overwrote the `__pc` the statement had set. Four rules were measured wrong that way: EXIT PARAGRAPH silently degraded to EXIT PERFORM (§14.9.14.4 GR6), EXIT SECTION's target was discarded so the remaining paragraphs of the section ran (GR7), NEXT SENTENCE in a LAST sentence resumed inside the sentence it was told to leave (§14.9.19.4 GR4/GR6), and GO TO did not transfer at all (§14.9.17.4 GR1/GR2). A `goto` cannot be captured, so the NEXT container this emitter learns to lower is correct by construction instead of by review.
 
-**The shape.** `DispatchState.TransferOut(pc)` / `TransferJump()` / `ResumeTransfer(var)` are the ONLY renderers of a paragraph-leaving transfer (the same one-place discipline as `DispatchCall` and `RunUseCall`), and `DispatchEmitter.EmitDispatchMethod` plants the landing — `__xfer: ;` (`__mxfer:` in an OO method's local-function dispatcher, whose own label a `goto` may not leave) — between the `switch` and the `__atExit` tail-check, so a transfer skips the epilogue and still meets the bounded-dispatch return test. The label is planted ONLY when a transfer was rendered, so a transfer-free program's generated source carries no unreferenced label. `DispatcherTransferIdiomDriftTests` re-measures the invariant over the GENERATED C#: a `__pc = …;` whose next jump is `break;` is legal only at case-body depth.
+**The shape.** `DispatchState.TransferOut(pc)` / `ExplicitTransferOut(pc)` / `TransferJump()` / `ExplicitTransferJump()` / `ResumeTransfer(var)` are the ONLY renderers of a paragraph-leaving transfer (the same one-place discipline as `DispatchCall` and `RunUseCall`), and `DispatchEmitter.EmitDispatchMethod` plants the landing — `__xfer: ;` (`__mxfer:` in an OO method's local-function dispatcher, whose own label a `goto` may not leave) — between the `switch` and the `__atExit` tail-check, so a transfer skips the epilogue and still meets the bounded-dispatch return test. The label is planted ONLY when a transfer was rendered, so a transfer-free program's generated source carries no unreferenced label. `DispatcherTransferIdiomDriftTests` re-measures the invariant over the GENERATED C#: a `__pc = …;` whose next jump is `break;` is legal only at case-body depth.
 
-**The two statements that are NOT plain jumps.** EXIT SECTION renders the section's own return mechanism (`if (__exitPc == sectionEndPc) return __pc;`, D8) BETWEEN the assignment and the jump — a C# `return` no container can capture. The GO TO … DEPENDING selector's arms set `__pc` and `break` out of their OWN selector switch; the transfer is then completed by the single `if (in range) goto __xfer;` after it (D3).
+**Completion versus explicit transfer (kb/Work PB1148, PB3491).** The bare `TransferOut`/`TransferJump` is the COMPLETION idiom (fall-through, EXIT PARAGRAPH, EXIT SECTION, NEXT SENTENCE in a last sentence): the dispatcher's return test `__atExit && __pc == __exitPc + 1` must fire for it (§14.6.3 rule 1). An EXPLICIT transfer (GO TO in every form — format 1, ALTERed, DEPENDING — and a RESUME AT landing) leaves through `ExplicitTransferOut`/`ExplicitTransferJump`, which clear `__atExit` first, because a target paragraph that physically follows the PERFORM's exit paragraph is not the exit paragraph completing (§14.9.28.4 GR5). `DispatcherTransferIdiomDriftTests.OnlyACompletionCallsTheBareTransferJump` closes the list of bare-jump callers.
+
+**The two statements that are NOT plain jumps.** EXIT SECTION renders the section's own return mechanism (`if (__exitPc == sectionEndPc) return __pc;`, D8) BETWEEN the assignment and the jump — a C# `return` no container can capture. The GO TO … DEPENDING selector's arms set `__pc` and `break` out of their OWN selector switch; the transfer is then completed by the single `if (in range) { __atExit = false; goto __xfer; }` after it (D3).
 
 **Rejected alternative — a sentinel `__pc` plus per-container re-checks** (each lowered loop testing "did a transfer happen?" and breaking outward): rejected — it is O(containers × statements) of emitted noise, it is exactly the hand-maintained-list shape the project forbids, and it re-introduces the defect the moment a new container forgets its check.
 
 ### D2. Sequential fall-through emits `pc = i+1; break;` as the LAST statement of each non-terminating case; a paragraph that ends by reaching the next paragraph just advances the PC. This `break` is written at CASE-BODY level, where it really does leave `switch (__pc)`, and it sits BEFORE the D1a landing label, so a transfer that jumped to the label can never have its target overwritten by it.
 
-**Rationale.** Direct port of legacy `IrReturnConst(myIndex+1)` (Binder.cs:243). COBOL paragraphs are not isolated — control falls from one into the next textually (ISO §14.4 sequential execution). pc=i+1 with the switch covering [0,N) makes the last paragraph's fall-through (pc==N) exit the loop = run-unit end.
+**Rationale.** Direct port of legacy `IrReturnConst(myIndex+1)` (Binder.cs:243). COBOL paragraphs are not isolated — control falls from one into the next textually (ISO §14.4 sequential execution). pc=i+1 with the switch covering [0,N) makes the last paragraph's fall-through reach pc==LAST+1: the activation's own call, bounded at LAST (D10), returns there through the at-exit test, and a NESTED call that arrives there without completing its range executes the implicit GOBACK of §14.6.3 (Edge cases, "Last paragraph falls off the end"; kb/Work PB3511).
 
 **Rejected alternatives.** Emitting the next paragraph's body inline after the current (textual concatenation) — rejected: breaks PERFORM THRU exit detection (no clean boundary for the named exit paragraph) and breaks GO TO targeting a mid-program paragraph.
 
@@ -146,7 +148,7 @@ section, so a USE range is never empty by construction.
 
 **Rejected alternatives.** Treating NEXT SENTENCE like END-IF scope exit — rejected: ISO explicitly warns this is the common MISunderstanding (line 50371); it goes to the period, not the scope delimiter.
 
-### D10. DECLARATIVES + USE procedures: declarative sections occupy PC indices [0..declEnd); `EntryParagraphIndex` = first NON-declarative paragraph, so normal flow starts AFTER declaratives (the main Dispatch call uses startPc=EntryParagraphIndex, exitPc=-1). A USE procedure is invoked from the runtime I/O/error path as its own `Dispatch(useStart, useEnd)` call. For a NONFATAL condition, normal completion of the declarative returns control to the statement following the triggering I/O; for a FATAL exception condition, normal completion of the declarative TERMINATES the run unit abnormally (§14.6.13.1.3 GR5 → §14.6.12) — resuming after the I/O requires an explicit RESUME statement (§14.9.33). (ISO §14.3, §14.6.13.)
+### D10. DECLARATIVES + USE procedures: declarative sections occupy PC indices [0..declEnd); `EntryParagraphIndex` = first NON-declarative paragraph, so normal flow starts AFTER declaratives (the activation's Dispatch call uses startPc=EntryParagraphIndex, exitPc=LAST, the source element's last paragraph and below any appended Format-3 handler pcs, so the element's normal completion is that call's at-exit return; kb/Work PB3511). A USE procedure is invoked from the runtime I/O/error path as its own `Dispatch(useStart, useEnd)` call. For a NONFATAL condition, normal completion of the declarative returns control to the statement following the triggering I/O; for a FATAL exception condition, normal completion of the declarative TERMINATES the run unit abnormally (§14.6.13.1.3 GR5 → §14.6.12) — resuming after the I/O requires an explicit RESUME statement (§14.9.33). (ISO §14.3, §14.6.13.)
 
 **Rationale.** Port of legacy ir.EntryParagraphIndex (CilEmitter.EmitEntryMethodBody:723) which skips the declaratives region, and the GlobalUse declarative dispatch (CilEmitter EmitDispatchGlobalUse). Declaratives must never run by fall-through, only by event. The USE-from-runtime wiring is realized by the emitted `__RunUse`/`__IoCheck` machinery (DispatchEmitter.EmitUseMachinery); the PC layout (declaratives first, EntryParagraphIndex marker) is fundamental — designed in from the start so it is not a retrofit.
 
@@ -274,15 +276,17 @@ private static int Dispatch(int startPc, int exitPc) {
         pc = 4; break;                 // fall-through
       case 4:   // SUB-END
         System.Console.WriteLine("SE");
-        pc = 5; break;                 // fall-through (pc==N) -> loop exits
+        pc = 5; break;                 // fall-through: pc == LAST+1 (LAST = 4, the element's last paragraph)
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell through
+    if (pc == 5) throw new ProgramReturn();      // LAST+1 without completing this call's range: the implicit GOBACK (§14.6.3)
   }
   return pc;
 }
 internal static void Main() {
-  try { Dispatch(/*EntryParagraphIndex*/0, -1); }   // exitPc=-1: run to STOP RUN / off-end
+  try { Dispatch(/*EntryParagraphIndex*/0, /*LAST*/4); }   // bounded at LAST: SUB-END's fall-off is this call's at-exit return, never the throw
+  catch (ProgramReturn) { }                               // GOBACK, explicit or implicit (§14.9.18.4 GR3: in a main program it acts as STOP)
   catch (StopRun) { }
   // (run-unit cleanup: implicit CLOSE of open files, ISO 14.6.11)
 }
@@ -314,8 +318,8 @@ break;
 GOBACK / EXIT PROGRAM in a CALLed program:
 ```csharp
 internal static int Entry(ManagedPointer[] args) {
-  try { Dispatch(EntryParagraphIndex, -1); }
-  catch (ProgramReturn) { }                     // GOBACK/EXIT PROGRAM -> return to caller, run unit lives
+  try { Dispatch(EntryParagraphIndex, LAST); }  // bounded at the element's last paragraph (D10)
+  catch (ProgramReturn) { }                     // GOBACK (explicit, or the §14.6.3 implicit one) / EXIT PROGRAM -> return to caller, run unit lives
   return 0;                                      // StopRun is NOT caught here -> propagates to run-unit Main
 }
 // GOBACK body:        throw new ProgramReturn();                        // in a main program: acts as STOP (§14.9.18.4 GR3) — the run-unit boundary ends the run unit
@@ -342,7 +346,7 @@ Two distinct exceptions, never integer-pc: STOP RUN throws StopRun (caught only 
 
 ### GO TO that leaves a PERFORM range and later re-enters it; inverted THRU range (proc-2 physically precedes proc-1).
 
-Inherited FREE from the exit-bounded full-switch model: Dispatch(idxP, idxQ) follows pc anywhere in [0,N), and returns ONLY when paragraph idxQ falls through (atExit && pc==idxQ+1). It is a RETURN-ADDRESS model, not a physical-range model — never iterate a contiguous [min,max] block. Verbatim port of the legacy invariant (CilEmitter.EmitDispatchHelper doc; NC102A). The atExit flag is captured BEFORE the case body runs because the body overwrites pc.
+Inherited FREE from the exit-bounded full-switch model: Dispatch(idxP, idxQ) follows pc anywhere in [0,N), and returns ONLY when paragraph idxQ falls through (atExit && pc==idxQ+1). When that return mechanism is never reached (a GO TO left the range for good, or an inverted THRU's exit lies before its start), control eventually runs past the source element's last paragraph, and that is the implicit GOBACK of §14.6.3, never a return to the performer (Edge cases, "Last paragraph falls off the end"; kb/Work PB3511). It is a RETURN-ADDRESS model, not a physical-range model — never iterate a contiguous [min,max] block. Verbatim port of the legacy invariant (CilEmitter.EmitDispatchHelper doc; NC102A). The atExit flag is captured BEFORE the case body runs because the body overwrites pc.
 
 ### Overlapping / recursive PERFORM ranges (range B PERFORMed from inside range A, or a paragraph PERFORMing a range that contains itself).
 
@@ -377,7 +381,30 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
 - PERFORM proc THRU proc where the two endpoints are the same paragraph: idxQ==idxP, Dispatch(i,i) returns when paragraph i falls through (pc==i+1).
 - Inverted THRU: PERFORM proc-2 THRU proc-1 where proc-1 physically follows proc-2 in source but is the named exit — handled by following pc, exit on the NAMED exit paragraph's fall-through, never by [min,max] block iteration (NIST NC102A).
 - A paragraph that is BOTH fallen into sequentially AND a PERFORM target: identical case body serves both; PERFORM uses Dispatch(idx,idx) (exit-bounded return), fall-through uses pc=idx (continues).
-- Last paragraph falls off the end: pc becomes N, (uint)pc<(uint)N is false, loop exits = normal run-unit termination (no STOP RUN needed; ISO §14.6.11 then does implicit CLOSE of open files).
+- Last paragraph falls off the end: pc becomes LAST+1 (LAST = the source element's last paragraph, below any
+  appended Format-3 handler pcs, which only `__RunUse` enters). Two cases (§14.6.3 item 3, kb/Work PB3511):
+  - The activation's own call (bounded at LAST, D10) returns through the at-exit test = the element's normal end
+    (no STOP RUN needed; at the run-unit end ISO §14.6.11 then does the implicit CLOSE of open files).
+  - A NESTED call (out-of-line PERFORM, SORT/MERGE procedure, `__RunUse`, `__RunDebug`) arrives there only when its
+    own return mechanism was never reached (a GO TO left its range, or `PERFORM P2 THRU P1` with P1 before P2, whose
+    exit is never reached: docs/CONFORMANCE.md D-PTHRU). The procedure is then not executing under the control of
+    another statement, so §14.6.3 item 3's implicit GOBACK executes: the dispatcher emits
+    `if (__pc == LAST + 1) throw new ProgramReturn();` after the at-exit return (`MethodReturn` in a method's
+    `__MDispatch`), the same signal an explicit GOBACK throws, unwinding every nested frame to the activation entry
+    (§14.9.18.4 GR2–GR5: return to the CALL / INVOKE / function reference, or STOP in a main program). Returning `pc`
+    instead would read as the range COMPLETING and resume after the performing statement, although §14.9.28.4 GR5 b)'s
+    return mechanism was never reached. The test sits after the `__xfer` landing, so fall-through, EXIT
+    PARAGRAPH/SECTION and NEXT SENTENCE all reach it.
+  - A NESTED call whose range ENDS at LAST (`PERFORM` of the last paragraph, `INPUT`/`OUTPUT PROCEDURE IS P THRU
+    LAST-EXIT`, a MERGE output procedure ending there) has `__exitPc == LAST`, so reaching LAST+1 is its range
+    COMPLETING: the at-exit return fires first and the implicit-GOBACK test is never reached. The order of those two
+    lines is what separates "the range ended at the last paragraph" from "control ran off the element", for every
+    bounded form alike (PERFORM, SORT/MERGE procedures, `__RunUse`, `__RunDebug`; a Format-3 handler's pcs lie above
+    LAST and complete at their own exit). A SORT or MERGE abandoned this way, or by any GOBACK, never reaches its
+    return mechanism, so a MERGE's USING files are not terminated (§14.9.24.4 GR7 c) closes them only "after control
+    passes the last statement in the output procedure") and a called program re-activated without CANCEL finds them
+    still open. Witnesses (cases/14.6.3-*): `pb3511_sort_merge_procedure_ends_at_last_paragraph` (85–2023),
+    `pb3511_implicit_goback_sort_input_procedure`, `_sort_output_procedure`, `_sort_merge_called_program`.
 - Empty paragraph (no statements): case body is just `pc = i+1; break;` (pure fall-through). It has its OWN pc,
   so `PERFORM` of it is an ordinary one-pc range — never the empty-SECTION case below.
 - **Section with ZERO paragraphs** (ISO §14.4.2): the resolved range is `PcRange.IsEmpty`. `PERFORM` of it emits the
@@ -389,7 +416,7 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
   paragraph so the USE range always has a pc.
 - Empty/absent PROCEDURE DIVISION or zero paragraphs: emit a Main with an empty try (N==0 → no Dispatch).
 - GO TO DEPENDING ON selector value 0 or > number of targets: no transfer, control passes to the next statement (fall-through) — ISO §14.9.17.
-- Bare GO TO (alterable) never targeted by an ALTER and never given a written target: default _alter_X = -1 → on dispatch pc=-1 → treated as run-unit end (undefined behavior; ALTER is archaic Annex F.1).
+- Bare GO TO (alterable) never targeted by an ALTER and never given a written target: default _alter_X = -1 → on dispatch pc=-1 exits the dispatcher loop: the end of the element at the activation, a return to the performer inside a PERFORM (undefined behavior in ANSI X3.23-1985; ALTER is archaic Annex F.1).
 - ALTER targeting a GO TO that was written with an explicit target: the explicit target is the _alter_X initial value, ALTER overwrites it at runtime.
 - EXIT PROGRAM executed in the MAIN program (not a CALLed subprogram): treated as CONTINUE — control passes to the next statement (§14.9.14.4 GR2; §14.6.3); emitted as `if (__asCalled) throw ProgramReturn`, so in a main program it is a plain fall-through. GOBACK executed in the MAIN program: acts as a STOP statement, ending the run unit (§14.9.18.4 GR3) — its `ProgramReturn` reaches the run-unit boundary, which terminates the run unit.
 - STOP RUN inside a USE declarative or inside the deepest of several nested PERFORMs: StopRun exception unwinds every frame up to the run-unit Main regardless of depth.

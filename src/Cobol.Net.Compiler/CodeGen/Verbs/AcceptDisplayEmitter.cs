@@ -45,7 +45,9 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // non-injective, non-invertible image; an intrinsic function's string argument asks the same reader. The
         // variable-length arm described above lives in that reader too (kb/Work PB3424), so DISPLAY and a function
         // argument cannot answer "what are this group's characters" differently.
-        var parts = d.Operands.Select(o => OperandText.AsTransferString(o, num, "DISPLAY of")).ToList();
+        // A fixed-point numeric item is DISPLAY's GR1 device conversion, in the form the compilation selected
+        // (--numeric-display, kb/Work PB3505, DOC-A.1-56); every other operand is the transfer reader's, as above.
+        var parts = d.Operands.Select(o => OperandText.AsDeviceString(o, num, ctx.NumericDisplay, "DISPLAY of")).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         string sink = d.ToStdErr ? "global::System.Console.Error" : "global::System.Console";
         ctx.Writer.Line(d.NoAdvancing ? $"{sink}.Write({image});" : $"{sink}.WriteLine({image});");
@@ -77,7 +79,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // A ref-modified receiver: the slice length IS the transfer size; the splice left-justifies/space-fills
         // into the slice (§8.4.3.3.4 GR6), which coincides with the GR4 left-aligned store.
         // ⛔ THE OMITTED-LENGTH WIDTH READS OperandPic, NOT RAW Pic — the THIRD arm of kb/Work PB173's pad family
-        // (the other two are PlaceRenderer.Write's boolean ref-mod pad and MoveEmitter's RefModSlice figurative
+        // (the other two are PlaceRenderer.Write's boolean ref-mod pad and MoveEmitter.SliceStore's figurative
         // fill). §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the
         // position identified by leftmost-position up to and including the rightmost POSITION of the data item
         // referenced by identifier-1", and GR5a fixes what a POSITION is: "If the usage of identifier-1 is bit,
