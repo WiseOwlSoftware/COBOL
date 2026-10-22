@@ -934,7 +934,25 @@ because the raw name is not stable (`b7`):
   Windows leg 1 never checked the two tiers; two branches on 2026-10-16 gated GREEN there over a trait drift (a new
   sweep without the trait, a non-sweep with it) that the landing's whole-population Linux unit leg found (kb/Work
   PB2730's finisher). A tier the gate does not check at every gate is a tier on trust.
-  `TIER_ORDER = ("0a", "0h", "0c", "0u", "1", "2", "3")`.
+  **Tier 0d — the governing drift tests** (kb/Work PB3531): every case whose class the drift-rule index
+  (`scripts/spec/drift_rules.py`) says governs a file the diff changes, specifically or as a tree-wide sweep that reads
+  it — the rules an implementer is told to honor before it edits the file (MANDATORY-PRACTICES P11). Gathered from the
+  diff alone (`impacted_tests.Reach.drift_tests`), with or without a map, and checked before 0c; always leg 1, exempt
+  from the budget and the cap, so a dear sweep over a changed file runs there too. Why: a sweep of the COMMITTED tree
+  (`TrackedTree.Files`) once filtered `git ls-files` in code and named no path, so the index never listed it; one of
+  them (`CatalogCoverageDriftTests`, 44 s recorded) scans every tracked script, PB3523's branch edited one, the Windows
+  gate left the case in leg 2 (dear, so not 0c) and the landing's Linux unit leg found the red. Such a sweep now reads
+  the tree only through a declared `TreeScope` (`Under` / `Except` / `Kinds`, string literals in named arguments;
+  `tests/_shared/TrackedTree.cs`), which the index reads from the source and applies exactly as `TreeScope.Holds` does;
+  `TrackedTreeScopeDriftTests` holds every scan to a declared field, every declaration as the index reads it equal to
+  the value the compiler builds, and the index's `in_scope` equal to `Holds`. **Measured cost** (the Unit assembly, the
+  shared store's recorded seconds, no map, as at every gate on 2026-10-22; leg 1 before: 34,324 cases, 723 s, floor
+  49 s): a diff to one script plus its DEVLOG entry and note governs 10 classes, leg 1 1,209 s, floor 111 s; this
+  change's own diff 22 classes, 1,867 s, floor 154 s; four landed compiler fixes of 2026-10-22 (13–44 files) 123–173
+  classes, 3,057–4,227 s, floor 224 s (`OperandClassScreenDriftTests`). The recorded seconds of these drift tests are
+  contention-inflated (the nine classes this change touched ran their 60 cases in 2 s on an idle host against about
+  430 s recorded), so the gate's measured leg wall is the cost that counts; the landing's report records it.
+  `TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")`.
 - **Tier 0a** — a case of a test METHOD the diff adds (matched by method name in the assemblies the file is compiled
   into); a corpus row whose manifest entry or golden files the diff changes; a case red at this worktree's previous
   gate. Always leg 1, exempt from the budget and the cap. The implementer's own new tests and goldens are here by
@@ -1951,7 +1969,7 @@ only whole-population run.
   Windows first (no clone), Linux second; a Linux-only red names its host in the verdict line. Until this lands, the
   land units keep today's whole-leg WSL gate (operator steer, 2026-10-11 12:37).
 - **LANDED (kb/Work PB3022) — tier 0h, host-only witnesses, and tier 0c, the cheap tree-wide sweeps** (§3.14.2's
-  tiers; `TIER_ORDER = 0a, 0h, 0c, 0u, 1, 2, 3`; the race witnesses are the Unit classes that drive the sharing
+  tiers; `TIER_ORDER = 0a, 0h, 0c, 0d, 0u, 1, 2, 3`, tier 0d since kb/Work PB3531; the race witnesses are the Unit classes that drive the sharing
   layer's host types from concurrent workers, the sweeps are `drift_rules.py --sweeps`). The design as decided: every
   test case whose class carries the xUnit trait `Host` with a value naming a property CI's runners lack (`ReFS` today)
   is in leg 1 at every gate, whatever the diff. Membership is DERIVED from the trait, never listed; a drift test asserts
