@@ -61,7 +61,7 @@ internal sealed class _PRG_CHAR_PERFORM : ICobolProgram
                     }
                     __pexit2: ;
                     __Dispatch(1, 1);
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(T, _P_1));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(T, _P_1, false));
                     throw new StopRun();
                 }
                 case 1:   // SUB-PARA

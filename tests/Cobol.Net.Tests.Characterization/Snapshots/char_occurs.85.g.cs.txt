@@ -72,7 +72,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     {
                         _IX_1 = __set0;
                     }
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1, false));
                     if (_IX_1 < 1 || _IX_1 > 5L)
                     {
                         goto __searchAtEnd0;

@@ -69,7 +69,7 @@ internal sealed class _PRG_CHAR_ARITHMETIC : ICobolProgram
                     {
                         global::System.Console.WriteLine("OVERFLOW");
                     }
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(C, _P_2));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(C, _P_2, false));
                     throw new StopRun();
                 }
                 default:

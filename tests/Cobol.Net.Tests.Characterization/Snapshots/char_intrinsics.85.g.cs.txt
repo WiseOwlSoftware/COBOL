@@ -57,7 +57,7 @@ internal sealed class _PRG_CHAR_INTRINSICS : ICobolProgram
                     } else {
                     WS_U = CobolString.Store(__sendval5_MOVE, 5);
                     }
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(WS_R, _P_2) + WS_U);
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_R, _P_2, false) + WS_U);
                     global::System.Console.WriteLine("5");
                     throw new StopRun();
                 }
