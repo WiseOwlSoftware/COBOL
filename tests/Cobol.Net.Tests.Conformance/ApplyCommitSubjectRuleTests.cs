@@ -55,7 +55,9 @@ public sealed class ApplyCommitSubjectRuleTests
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the SR7 fixture with its I-O-CONTROL paragraph removed — the
     /// same OPEN … SHARING on a file no APPLY COMMIT clause names — compiles in both lanes, so the refusal above is the
-    /// antecedent's and not the statement's.</summary>
+    /// antecedent's and not the statement's. Without the clause §14.9.27.3 SR8 applies ("When file-name-1 is not subject
+    /// to an APPLY COMMIT clause, … if the ALL phrase is specified on the OPEN statement, the LOCK MODE clause shall be
+    /// specified"), so the arm writes the LOCK MODE clause the clause's file may not have (§12.4.5.9.3 SR1).</summary>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -63,7 +65,10 @@ public sealed class ApplyCommitSubjectRuleTests
     {
         string source = string.Join('\n', Fixture("apply-commit-open-sharing").Split('\n')
             .Where(line => !line.Contains("I-O-CONTROL", StringComparison.Ordinal)
-                           && !line.Contains("APPLY COMMIT", StringComparison.Ordinal)));
+                           && !line.Contains("APPLY COMMIT", StringComparison.Ordinal))
+            .Select(line => line.Replace("ORGANIZATION IS RELATIVE.", "ORGANIZATION IS RELATIVE LOCK MODE IS AUTOMATIC.",
+                StringComparison.Ordinal)));
+        Assert.Contains("LOCK MODE IS AUTOMATIC", source, StringComparison.Ordinal);
         var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive);
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2974");
         Assert.True(ok, string.Join("\n", errors));

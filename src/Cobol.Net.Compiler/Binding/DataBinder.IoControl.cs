@@ -86,11 +86,6 @@ public sealed partial class DataBinder
     /// paragraph writes none. The code generator registers it at the runtime element's activation (§12.4.6.3.4 GR5).</summary>
     public ApplyCommitModel? ApplyCommit { get; private set; }
 
-    /// <summary>Whether EC-FLOW-APPLY-COMMIT checking is enabled at the element's PROCEDURE DIVISION header (§7.3.25.4
-    /// GR6; <c>TurnState.EnabledAtHeader</c>) — where the activation of its APPLY COMMIT clause raises §12.4.6.3.4
-    /// GR3/GR4's condition.</summary>
-    public bool ApplyCommitActivationChecking { get; set; }
-
     /// <summary>Whether the source element carries the RECURSIVE attribute (§11.10) — §12.4.6.3.3 SR5's antecedent (a
     /// function is always recursive, §8.6.6, and is asked through <see cref="UnitIsFunction"/>).</summary>
     public bool UnitIsRecursive { get; init; }

@@ -59,12 +59,19 @@ internal sealed class TransactionControl(FileRegistry files, ProgramTable progra
     /// which for an element activated later is its state at activation. Returns false — and activates nothing — when
     /// the activation is one §12.4.6.3.4 GR3/GR4 forbids: EC-FLOW-APPLY-COMMIT is raised when checking is enabled
     /// (Table 13's row for "Invocation of a runtime element with an APPLY COMMIT clause in effect by a runtime element for
-    /// which commit and rollback is not permitted"), and with checking off the clause stays inactive.</summary>
+    /// which commit and rollback is not permitted") — the ACTIVATING element's checking, which the activation boundary
+    /// latched (<see cref="ExceptionEngine.ActivatorFlowApplyCommit"/>) — and with checking off the clause stays
+    /// inactive.</summary>
     public bool Activate(object owner, string[] keyedFiles, Action save, Action restore, Func<string, bool> storeStatus)
     {
         if (FlowForbidden(out string why))
         {
-            exceptions.FlowApplyCommitError($"an APPLY COMMIT clause activated {why} (ISO §12.4.6.3.4 GR3/GR4)");
+            // The activated element's own checking scope is open here (all off but what its statements enable), so the
+            // activator's latched answer is put in force for this one raise and the scope's value handed back.
+            bool scoped = exceptions.FlowApplyCommitChecking;
+            exceptions.FlowApplyCommitChecking = exceptions.ActivatorFlowApplyCommit;
+            try { exceptions.FlowApplyCommitError($"an APPLY COMMIT clause activated {why} (ISO §12.4.6.3.4 GR3/GR4)"); }
+            finally { exceptions.FlowApplyCommitChecking = scoped; }
             return false;
         }
         foreach (var name in keyedFiles) files.RegisterCommitControl(name);

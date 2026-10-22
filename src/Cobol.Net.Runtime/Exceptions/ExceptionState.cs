@@ -1024,12 +1024,19 @@ public sealed class ExceptionEngine
         set => _checking.FlowRollback = value;
     }
 
-    /// <summary>True while the activating statement has EC-FLOW-APPLY-COMMIT checking enabled (fatal).</summary>
+    /// <summary>True while the activating statement (a CALL) has EC-FLOW-APPLY-COMMIT checking enabled (fatal).</summary>
     public bool FlowApplyCommitChecking
     {
         get => _checking.FlowApplyCommit;
         set => _checking.FlowApplyCommit = value;
     }
+
+    /// <summary>The current activation's ACTIVATING-element EC-FLOW-APPLY-COMMIT checking (Table 13: "Invocation of a
+    /// runtime element with an APPLY COMMIT clause in effect by a runtime element for which commit and rollback is not
+    /// permitted"): latched by the activation boundary from <see cref="FlowApplyCommitChecking"/> before the activated
+    /// element's checking scope opens, saved/restored around nested activations, false at the main program's
+    /// activation (no activating element). The clause's activation raises under it (<c>TransactionControl.Activate</c>).</summary>
+    internal bool ActivatorFlowApplyCommit { get; set; }
 
     /// <summary>Raise EC-FLOW-COMMIT (§14.9.7.4 GR2; Table 13 Fatal) when checking is enabled; otherwise return.</summary>
     public void FlowCommitError(string detail) => FatalIfEnabled(FlowCommitChecking, "EC-FLOW-COMMIT", detail);

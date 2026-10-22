@@ -507,6 +507,12 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         ("EC-EXTERNAL-FORMAT-CONFLICT", "ExternalFormatConflictChecking"),   // §14.8.4.3
         ("EC-EXTERNAL-DATA-MISMATCH", "ExternalDataMismatchChecking"),       // §14.8.4.2
         ("EC-EXTERNAL-FILE-MISMATCH", "ExternalFileMismatchChecking"),       // §14.8.4.4
+        // kb/Work PB3338: FLAGGED for the same reason — Table 13's EC-FLOW-APPLY-COMMIT is the "Invocation of a runtime
+        // element with an APPLY COMMIT clause in effect by a runtime element for which commit and rollback is not
+        // permitted", the ACTIVATING element's condition (§12.4.6.3.4 GR3/GR4). The CALL's guard sets the flag, the
+        // activation boundary latches it before the callee's checking scope opens (ProgramTable.CallProgram), and the
+        // clause's activation raises under the latch (TransactionControl.Activate).
+        ("EC-FLOW-APPLY-COMMIT", "FlowApplyCommitChecking"),
         ("EC-FLOW-SEARCH", "FlowSearchChecking"),               // §14.9.39.4 GR31 — capacity SET during a SEARCH
         ("EC-FLOW-USE", "FlowUseChecking"),                     // §14.9.49.4 GR2 — a USE procedure re-entered while active (kb/Work PB368)
         // §14.9.18.4 GR6 — a GOBACK executed within the RANGE of one of THIS program's GLOBAL declaratives
@@ -520,8 +526,7 @@ internal sealed class EcEmitter(EmitContext ctx, EcState ecState, DispatchState 
         // wired nothing. Each rides a flag CobolSort's statement entry consults against the store's phase.
         ("EC-FLOW-RELEASE", "FlowReleaseChecking"),             // §14.9.32.4 GR1 — RELEASE outside its SORT's input procedure
         // kb/Work PB3338 — the commit-and-rollback flow conditions, each read by TransactionControl at the statement's
-        // entry. (EC-FLOW-APPLY-COMMIT has no row: its raise point is the clause's activation, folded at the element's
-        // PROCEDURE DIVISION header — DataBinder.ApplyCommitActivationChecking, TransactionEmitter.EmitActivation.)
+        // entry. (EC-FLOW-APPLY-COMMIT's row is with the activation-boundary rows above.)
         ("EC-FLOW-COMMIT", "FlowCommitChecking"),               // §14.9.7.4 GR2 — COMMIT under a recursive element or a SORT/MERGE
         ("EC-FLOW-ROLLBACK", "FlowRollbackChecking"),           // §14.9.36.4 GR2 — ROLLBACK under a recursive element or a SORT/MERGE
         ("EC-FLOW-RETURN", "FlowReturnChecking"),               // §14.9.34.4 GR1 — RETURN outside its SORT/MERGE's output procedure

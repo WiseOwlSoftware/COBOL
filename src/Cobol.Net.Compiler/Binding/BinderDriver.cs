@@ -719,10 +719,6 @@ internal sealed class BinderDriver
         // that follow" (kb/Work PB1381 — TurnState.EnabledAtHeader, which the METHOD twin asks too).
         data.ArgMismatchChecking = session.Turn.EnabledAtHeader(
             "EC-PROGRAM-ARG-MISMATCH", unit.Ctx.procedureDivision(), int.MaxValue);
-        // §12.4.6.3.4 GR3/GR4 (kb/Work PB3338): the activation of the element's APPLY COMMIT clause is a point of its
-        // PROCEDURE DIVISION HEADER, folded there like GR3 d)'s activated half above.
-        data.ApplyCommitActivationChecking = session.Turn.EnabledAtHeader(
-            "EC-FLOW-APPLY-COMMIT", unit.Ctx.procedureDivision(), int.MaxValue);
         data.ExternalDescribe = Procedure.EcBinder.ExternalNames.Any(session.Turn.AnyEnabledFor);
         data.OdoReferenceChecking = session.Turn.AnyEnabledFor("EC-BOUND-ODO");   // §13.18.38.4 GR7 (kb/Work PB1268)
         // §7.3.21.4 GR1/GR3 — automatic propagation for this program or function (kb/Work PB1119), folded at the
