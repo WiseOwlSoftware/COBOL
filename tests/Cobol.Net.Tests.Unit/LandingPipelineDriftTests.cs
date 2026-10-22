@@ -287,6 +287,15 @@ public sealed class LandingPipelineDriftTests
                 + "run_gate_legs.py and every other row under `gate_slot.py run` (kb/Work PB3104)",
             "gate rows: a planted unslotted row (a bare row, an unknown slot, a script claiming its own slot without "
                 + "the driver, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
+            // kb/Work PB3527: a held gate lock is BUSY, never a red; the queue watch's remedies live in the only file that queues
+            "land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
+                + "no stamp, nothing queued (kb/Work PB3527)",
+            "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
+                + "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527)",
+            "the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
+                + "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
+                + "failed close stops before anything else (kb/Work PB3527)",
+            "the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
         });
         SelfTestArmSource.AssertDeclares(TestRepo.Scripts("orchestrator", "ruleset.py"), new[]
         {

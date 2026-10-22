@@ -1115,7 +1115,9 @@ unchanged, every self-test takes a place in one machine-wide budget, and a hung 
 kb/Work PB2914). One gate:
 1. **The worktree's gate lock** — an exclusive OS lock on `<worktree git dir>/cobol-gate.lock`, held from before the
    build to the verdict. A second gate in the same worktree REFUSES at once, naming the holder's pid: its build would
-   otherwise overwrite the binaries between the first gate's legs.
+   otherwise overwrite the binaries between the first gate's legs. Its verdict is `BUSY` (exit 3), neither RED nor
+   NOT RUN: it measured nothing and nothing is wrong, so a caller waits for the lock (kb/Work PB3527: the landing read
+   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY or RED).
 2. A fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/`: the plan, every trx, every identity record
    and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
    next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
@@ -1877,7 +1879,9 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    predecessor or a sibling carries conflict resolutions in its merge commits, which a rebase discards and asks for
    again, and the queue lands by merge commit anyway (a conflict stops it, exit 4: the merge is aborted, the branch's
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves); run the ONE local gate on the
-   merged head (§3.17.3; exit 5 on a red, the host named; a commit gated GREEN, or a head that differs from it only
+   merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
+   gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
+   PB3527; a commit gated GREEN, or a head that differs from it only
    by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
    rule — is not gated again on a re-run); bring main in AGAIN when it moved during the gate, without a second gate
    (review R1-2, corrected at implementation: the queue merges other pull requests while a branch gates, `queue` takes
@@ -1887,7 +1891,10 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    the former direct-push landing script — `devlog.py check` (exactly one new entry file, stamped and well-formed) and `landing_check.py` (the R3 file-set
    partition, PB2118) — then `gh pr create` (title = the branch's one-line subject, body = the forensic message) and
    `gh pr merge --merge-queue`-equivalent (`gh pr merge --auto`) so the PR joins the queue. Done. No lease, no local
-   whole population, no waiting for CI. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
+   whole population, no waiting for CI. That the pull request then ENTERS the queue is the landing lane's QUEUE WATCH
+   (DESIGN-orchestrator-loop.md section 4.9 step 4, kb/Work PB3527): on every tick it reads the merge queue's entries
+   and the head's required check-runs (`queue_facts.py`) and, past a 10-minute grace, re-runs a stuck check, then
+   closes, reopens and re-queues the pull request, then asks the operator. Until the targeted leg runs on both hosts (§3.17.3, PB3022 item 10) the
    gate at enqueue adds CI's Linux legs under WSL (`linux-gate.sh --nice`), run under `gate_slot.py run` as a
    landing ticket of the same shared gate slot (§3.14.6; kb/Work PB3104: run bare, seven concurrent landings ran seven
    uncapped WSL gates and load alone turned five RED); then that row goes. A HOST-I-O group (a file of its set under
