@@ -522,9 +522,11 @@ STOP RUN.
 """,
 }
 
-#: The reserved words the 2026-10-21 run used as data names, functions or mnemonic-names, commonest first (WiseOwl's
-#: COBOLNET0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74, NULL 41, ADDRESS 34,
-#: DESTINATION 22, OBJECT 21, CONDITION 18, BOOLEAN 13, VALIDATE-STATUS 13, DEFAULT 10). §8.3.2.4.1: "Reserved words shall
+#: The reserved words the 2026-10-21 run misused, commonest first: the ones it wrote as data names, functions or
+#: mnemonic-names (WiseOwl's COBOLNET0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74,
+#: NULL 41, ADDRESS 34, DESTINATION 22, OBJECT 21, CONDITION 18, BOOLEAN 13, VALIDATE-STATUS 13, DEFAULT 10, then LENGTH,
+#: RETURNING and COLUMN), then the ones its first refusal most often stopped at as an unexpected word (COBOL0001 at CLASS 23,
+#: STATUS 22, TYPE 15, FUNCTION 13: a clause or phrase the model invented around them). §8.3.2.4.1: "Reserved words shall
 #: not be used as system-names or user-defined words". Named, not the whole §8.9 list of several hundred: the naming rule
 #: (a prefix and a hyphen on every name) is what keeps the rest out. The self-test holds each to `reserved_words`.
 MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", "CONDITION", "BOOLEAN", "VALIDATE-STATUS",
@@ -1721,7 +1723,7 @@ def self_test() -> int:
             {"id": "fz00001", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
              "source": "programs/fz00001.cob", "model_seconds": 12,
              "we": {"compiled": True, "run_rc": 0, "output": "A\n1", "first_error": "", "codes": []}, "they": {"compiled": True, "output": "A\n2", "run_rc": 0}},
-            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 3},
+            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 1, "stopped_early": True},
             {"id": "fz00003", "clause": "15.3", "title": "ABS", "verdict": "RUNNER_ERROR", "reason": "model: down"},
             {"id": "fz00004", "clause": "15.42", "title": "TRANSLATE", "verdict": "THEY_REJECT", "signature": "THEY_REJECT:15.42",
              "source": "programs/fz00004.cob", "model_seconds": 9, "repairs": 1,
@@ -1737,7 +1739,7 @@ def self_test() -> int:
     rep = render_report(rows, Path("."))
     check("report: usable over judged programs only (the model's failures are BOTH_REJECT, NO_PROGRAM and BOTH_HANG), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line, the latitude rows under their own heading and not among the survivors",
           "judged: 8 · usable: 5 (62% of judged; 1 of them after a repair round) · usable on the first attempt: 4 (50% of judged) · "
-          "the model's failures: 3 (0 ended early on a repeated diagnostic) · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
+          "the model's failures: 3 (1 ended early on a repeated diagnostic) · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
           and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 2" in rep and "### `THEY_REJECT:15.42` × 1" in rep
           and "line 2: `Q=1` | `Q=2`" not in rep       # the group shows its FIRST row's lines (fz00001); fz00008 is listed in it
           and "- GnuCOBOL: `x.cob:9: error: FUNCTION 'TRANSLATE' unknown`" in rep
