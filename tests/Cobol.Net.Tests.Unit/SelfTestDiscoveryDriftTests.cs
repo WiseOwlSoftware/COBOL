@@ -33,6 +33,14 @@ public sealed class SelfTestDiscoveryDriftTests
     private static readonly string[] LiveTreeReaders = ["self_tests.py", "line_endings.py", "temp_names.py"];
 
     /// <summary>
+    /// The files the net reads, before <see cref="Roots"/> narrows them: every tracked script (declared, kb/Work PB3531,
+    /// so the drift-rule index names this class for each one). The roots are read at run time from the one list, so the
+    /// scope cannot copy them and holds the whole tree's scripts instead: the index may name this class for a script
+    /// outside the roots, and never misses one inside them.
+    /// </summary>
+    private static readonly TreeScope ScriptKinds = new(Under: [""], Kinds: [".py", ".sh", ".ps1"]);
+
+    /// <summary>
     /// The trees the runner discovers in: the live tools' trees, read from <c>scripts/live_tools.py</c>'s
     /// <c>ROOTS = (…)</c> so the net below scans exactly what the runner is meant to: <c>scripts/</c>, <c>.claude/</c>
     /// and the conformance suite's harness, whose generator is a gate audit with a <c>--self-test</c> (kb/Work PB3174,
@@ -102,14 +110,10 @@ public sealed class SelfTestDiscoveryDriftTests
         var discovered = Discovered();
         var roots = Roots();
         var net = new SortedSet<string>(StringComparer.Ordinal);
-        foreach (string rel in TrackedTree.Files())
+        foreach (string rel in TrackedTree.Files(ScriptKinds))
         {
-            if (!roots.Any(root => rel.StartsWith(root, StringComparison.Ordinal))
-                || !(rel.EndsWith(".py", StringComparison.Ordinal)
-                || rel.EndsWith(".sh", StringComparison.Ordinal) || rel.EndsWith(".ps1", StringComparison.Ordinal)))
-            {
+            if (!roots.Any(root => rel.StartsWith(root, StringComparison.Ordinal)))
                 continue;
-            }
 
             if (StandaloneName.IsMatch(rel[(rel.LastIndexOf('/') + 1)..]))
             {

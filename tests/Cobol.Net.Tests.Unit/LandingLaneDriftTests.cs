@@ -37,14 +37,15 @@ public sealed class LandingLaneDriftTests
         @"\benqueue unit (?:then |only )?(?:lands|re-runs)\b(?! nothing)|landed by the enqueue unit|re-runs? enqueue\.py"
         + @"|(?:finished|DONE) work is the enqueue unit's", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    /// <summary>Tracked paths that record history rather than describe the current pipeline (CLAUDE.md rule 6), and the
-    /// test sources (this file names the pattern).</summary>
-    private static readonly string[] History = ["DEVLOG/", "kb/", "adjudication/", "specs/", "tests/"];
+    /// <summary>The files that describe the current pipeline: the whole tree but the paths that record history
+    /// (CLAUDE.md rule 6) and the test sources (this file names the pattern). Declared (kb/Work PB3531), so the
+    /// drift-rule index names this class for each of them.</summary>
+    private static readonly TreeScope Current = new(Under: [""], Except: ["DEVLOG/", "kb/", "adjudication/", "specs/", "tests/"]);
 
-    /// <summary>The tracked files, outside <see cref="History"/>, with a line in the retired wording, as <c>path:line</c>.</summary>
+    /// <summary>The files of <paramref name="tracked"/> (already narrowed to <see cref="Current"/>) with a line in the
+    /// retired wording, as <c>path:line</c>.</summary>
     internal static IReadOnlyList<string> RetiredWordingSites(string root, IEnumerable<string> tracked) =>
-        [.. tracked.Where(p => !History.Any(h => p.StartsWith(h, StringComparison.Ordinal)))
-                   .Where(p => File.Exists(Path.Combine(root, p)))
+        [.. tracked.Where(p => File.Exists(Path.Combine(root, p)))
                    .SelectMany(p => File.ReadLines(Path.Combine(root, p))
                        .Select((line, i) => (line, i))
                        .Where(x => RetiredLandingWording.IsMatch(x.line))
@@ -105,7 +106,7 @@ public sealed class LandingLaneDriftTests
     [Trait("Sweep", "tree")]
     public void NoCurrentFile_SaysTheEnqueueUnitLands()
     {
-        IReadOnlyList<string> tracked = TrackedTree.Files();
+        IReadOnlyList<string> tracked = TrackedTree.Files(Current);
         Assert.True(tracked.Count >= 1000, $"`git ls-files` reported only {tracked.Count} paths — the sweep would scan nothing");
         IReadOnlyList<string> sites = RetiredWordingSites(TestRepo.Root, tracked);
         Assert.True(sites.Count == 0,
@@ -138,7 +139,7 @@ public sealed class LandingLaneDriftTests
                 "the enqueue unit's `rearm` lands it again.",
             ]);
             File.WriteAllText(Path.Combine(dir, "kb", "note.md"), "before PB3103 the enqueue unit lands it.");
-            var sites = RetiredWordingSites(dir, ["brief/stale.md", "brief/current.md", "kb/note.md"]);
+            var sites = RetiredWordingSites(dir, new[] { "brief/stale.md", "brief/current.md", "kb/note.md" }.Where(Current.Holds));
             Assert.Equal(new[] { "brief/stale.md:1", "brief/stale.md:2", "brief/stale.md:3", "brief/stale.md:4" }, sites);
         }
         finally

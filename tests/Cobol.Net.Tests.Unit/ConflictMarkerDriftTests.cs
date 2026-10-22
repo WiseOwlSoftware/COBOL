@@ -42,6 +42,7 @@ namespace CobolNet.Tests.Unit;
 /// across agents for want of exactly that).
 /// </para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class ConflictMarkerDriftTests
 {
     /// <summary>A conflict marker is a run of exactly seven identical characters at the start of a line.</summary>
@@ -90,13 +91,21 @@ public sealed class ConflictMarkerDriftTests
         IReadOnlyList<Offender> Offenders, int FilesScanned, int FilesBinary, int FilesMissing,
         IReadOnlyList<Unreadable> FilesUnreadable);
 
+    /// <summary>The sweep reads the whole committed tree (kb/Work PB3531: declared, so the drift-rule index names it).</summary>
+    private static readonly TreeScope WholeTree = new(Under: [""]);
+
+    /// <summary>The one sweep of the committed tree both tree tests judge: the tree is read once per test assembly, not
+    /// once per test (a whole-tree read costs about 30 s under a gate's load, and the gate runs this class in leg 1 for
+    /// every change, tier 0d).</summary>
+    private static readonly Lazy<SweepResult> s_tree = new(() => Sweep(TestRepo.Root, TrackedTree.Files(WholeTree)));
+
     /// <summary>
     /// No file in the committed tree carries an unresolved merge conflict.
     /// </summary>
     [Fact]
     public void NoTrackedFileCarriesAConflictMarker()
     {
-        SweepResult r = Sweep(TestRepo.Root, TrackedTree.Files());
+        SweepResult r = s_tree.Value;
 
         AssertEveryFileWasRead(r);
         Assert.True(r.Offenders.Count == 0,
@@ -120,12 +129,12 @@ public sealed class ConflictMarkerDriftTests
     [Fact]
     public void TheSweepActuallyReadsTheTrackedTree()
     {
-        IReadOnlyList<string> tracked = TrackedTree.Files();
+        IReadOnlyList<string> tracked = TrackedTree.Files(WholeTree);
         Assert.True(tracked.Count >= 1000,
             $"`git ls-files -z` reported only {tracked.Count} tracked path(s) under {TestRepo.Root} — the "
             + "enumeration is broken, so the conflict-marker sweep is scanning nothing.");
 
-        SweepResult r = Sweep(TestRepo.Root, tracked);
+        SweepResult r = s_tree.Value;
         AssertEveryFileWasRead(r);
         Assert.True(r.FilesScanned >= 1000,
             $"the sweep opened {tracked.Count} tracked path(s) but scanned only {r.FilesScanned} as text "

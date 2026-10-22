@@ -369,6 +369,13 @@ public sealed class CatalogCoverageDriftTests
         Assert.Equal(flagged, SpellsTheHeading(line));
     }
 
+    /// <summary>The scripts the no-copy sweep reads: every tracked Python script but the heading's owner.</summary>
+    private static readonly TreeScope HeadingScripts = new(Under: ["scripts/"], Except: ["scripts/spec/spec_headings.py"], Kinds: [".py"]);
+
+    /// <summary>The C# the no-copy sweep reads: the compiler's and the tests', but the heading's owner and this file.</summary>
+    private static readonly TreeScope HeadingSources = new(Under: ["src/", "tests/"],
+        Except: ["tests/_shared/SpecClauseText.cs", "tests/Cobol.Net.Tests.Unit/CatalogCoverageDriftTests.cs"], Kinds: [".cs"]);
+
     /// <summary>⛔ ONE RULE, ONE PLACE: NO SCRIPT AND NO TEST SPELLS THE GENERAL-FORMAT HEADING ITSELF (kb/Work PB284,
     /// branch review round 1). The extractor was repaired for the one clause headed "General forms" while seven
     /// sibling copies of the heading regex kept keying on "format" alone: the figure sweep located 0 figures for
@@ -379,16 +386,10 @@ public sealed class CatalogCoverageDriftTests
     [Fact]
     public void NoScriptOrTest_SpellsTheGeneralFormatHeadingItself()
     {
-        string[] owners = ["scripts/spec/spec_headings.py", "tests/_shared/SpecClauseText.cs",
-                           "tests/Cobol.Net.Tests.Unit/CatalogCoverageDriftTests.cs"];
         var offenders = new List<string>();
         int scanned = 0;
-        foreach (string path in TrackedTree.Files())
+        foreach (string path in TrackedTree.Files(HeadingScripts).Concat(TrackedTree.Files(HeadingSources)))
         {
-            bool py = path.StartsWith("scripts/", StringComparison.Ordinal) && path.EndsWith(".py", StringComparison.Ordinal);
-            bool cs = (path.StartsWith("tests/", StringComparison.Ordinal) || path.StartsWith("src/", StringComparison.Ordinal))
-                      && path.EndsWith(".cs", StringComparison.Ordinal);
-            if ((!py && !cs) || owners.Contains(path, StringComparer.Ordinal)) continue;
             scanned++;
             string[] lines = File.ReadAllLines(TestRepo.At(path));
             for (int i = 0; i < lines.Length; i++)

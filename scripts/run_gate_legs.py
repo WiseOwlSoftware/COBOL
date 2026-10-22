@@ -13,8 +13,9 @@ implementer's, a re-gate after a fix, a landing's — makes the order plan (scri
 (scripts/gate_slot.py) from before the build to the verdict, so at most N gates build or test at once,
 repository-wide, runs its audits BEFORE it queues for the slot (kb/Work PB2524), and runs leg 1 FAIL-FAST. Leg 1 is
 the change's own tests and goldens and the previous gate's reds (tier 0a), the host-only witnesses (tier 0h: the
-Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap tree-wide sweeps (tier 0c) and the
-cheapest cases the change reaches; so a re-gate after a fix runs leg 1 again — seconds for a bookkeeping fix, never a
+Windows file-system race witnesses CI's NTFS runners may not reproduce), the cheap tree-wide sweeps (tier 0c), the
+drift tests the drift-rule index says govern a changed file (tier 0d, kb/Work PB3531) and the cheapest cases the
+change reaches; so a re-gate after a fix runs leg 1 again — seconds for a bookkeeping fix, never a
 population run. The local whole-population run is GONE (it was the lander's: 7-53 min, 8 of 15 RED under load on
 2026-10-10); CI's merge-group run is the whole-population regression net.
 Its SCOPE is a shared gate setting (gate_slot.py, read once at the start): `leg1` (the coded default, batched gating,
