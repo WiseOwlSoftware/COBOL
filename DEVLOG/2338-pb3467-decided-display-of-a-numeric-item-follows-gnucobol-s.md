@@ -1,4 +1,4 @@
-## PB3467 decided: DISPLAY of a numeric item follows GnuCOBOL's default form; PB3505 filed to implement it
+## Entry 2338 — 2026-10-21 22:37 PDT — PB3467 decided: DISPLAY of a numeric item follows GnuCOBOL's default form; PB3505 filed to implement it
 
 **Decision.** The owner answered PB3467 "yes" (2026-10-21 ~22:12 PDT): the §14.9.11.4 GR1 conversion of a numeric
 DISPLAY operand (Annex A.1 item 56) defaults to GnuCOBOL 3.2.0's default-configuration form, `00012.50` for
@@ -15,3 +15,4 @@ followed GnuCOBOL for this one (numeric literals as written).
 **Next.** PB3505 carries the implementation and its bar: survey every numeric usage and sign form by running
 GnuCOBOL, one conversion selected by a compile option, goldens computed from the surveyed rule, and the fuzz harness's
 display-form fold revisited. The owner made it tonight's work, past the weekly allowance.
+
