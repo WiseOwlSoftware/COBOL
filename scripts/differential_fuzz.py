@@ -9,6 +9,14 @@ docs/rearchitecture/evidence/fleet-optimization/2026-10-20-differential-fuzz.md)
     python scripts/differential_fuzz.py --report DIR                                           # re-render DIR/report.md
     python scripts/differential_fuzz.py --self-test
 
+THE RUN CADENCE (the owner's standing rule, 2026-10-22 ~12:15 PDT: "We fix all compiler bugs diagnosed by each fuzz test
+and get the fixes into main before the next fuzz"). One run, then its triage (every survivor read against the standard;
+each confirmed compiler defect a `kb/Work/` note tagged `fuzz`), then every one of those defects fixed and landed on main,
+then the judge (`--cobol`) rebuilt from that main, and only then the next run. The harness holds the third step: a run
+(`--model`) REFUSES to start while any `kb/Work/` note tagged `fuzz` that is not `process_only` is still open (any status
+the register does not call terminal, `work.TERMINAL_STATUSES`), and names those notes; `--force-open-notes` starts it
+anyway and names them. A bake-off, `--report` and `--self-test` are not runs and are never refused (kb/Work PB3523).
+
 WHAT THE MODEL IS FOR, AND WHAT IT IS NOT. The owner's rule (2026-10-03, kept by every local-model experiment since): the
 ISO spec decides (CLAUDE.md rule 1); a local model produces LEADS, and nothing it writes enters `kb/Work/`, a golden or the
 conformance suite without a Claude or human check against the standard. Here the model needs no judgment at all: it only
@@ -20,6 +28,27 @@ compiler built to the standard, so its acceptance is a reading GnuCOBOL's refusa
 model's commonest invention is an intrinsic function the standard does not have (TRANSLATE, NATIONAL, SUBSTRING), so the
 prompt carries the standard's own function list, read from specs/ISO_COBOL.md (15.6 and the 15.n function clauses).
 
+A REFUSED PROGRAM COSTS FOUR GENERATIONS, SO THE PROMPT AIMS AT THE FIRST ONE (kb/Work PB3523). The second night's model
+wrote a program both compilers refused 47 % of the time, and about 65 % of its generations went to programs that never
+compiled: invented phrases, reserved words used as names, TRUE as a value, a SPECIAL-NAMES "section", 2023 words under
+`--std 2014`. So the seed's clause reaches the model cut at its structure (`seed_text`: the general format and the syntax
+rules whole, the general rules only as far as the budget allows) with the transcription's markup stripped and the
+diagram notation explained; the system prompt carries the program skeleton, the naming rule, the reserved words the run
+tripped on (each held to 8.9 by the self-test), the words 2023 reserved (Annex E.2 item 25) and the Foreword's other 2023
+changes (LINE SEQUENTIAL, PERFORM UNTIL EXIT …), and one worked example per seed
+FAMILY (`FAMILIES`: data description, statement, intrinsic function, expression), each compiled with the same output by
+both compilers before it was written here. A correction quotes the refused source line beside each diagnostic, every
+refusal round's first diagnostics are recorded on the row (`repair_rounds`), and a round whose first diagnostics repeat
+the previous round's ends the corrections (`stopped_early`): the same error twice is a program the model cannot fix.
+A clause of an optional module the conformance claim declines (docs/CONFORMANCE.md §5: the screen section, VALIDATE,
+COMMIT and ROLLBACK, FORMAT and SELECT WHEN) is not a seed (`declined_seed_titles`): WiseOwl refuses it by name, so its
+programs could only be refused or explained. MEASURED (2026-10-22, the PB3523 bake-offs, 40 programs an arm): the prompt
+did not move first-attempt validity beyond the run-to-run noise (on one seed walk, 10 of 40 for the old prompt and 10, 9
+and 8 for the new); the early stop
+saved 12 % of the generations; the declined seeds were 10 % of the second night's programs and 14 % of its BOTH_REJECT.
+What remains is the model writing constructs it does not know (the report writer, OO, SORT and MERGE files, SET's rarer
+formats), which a prompt has not been shown to fix.
+
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
 `conformance-suite/adapters/<compiler>.json` by the harness's own `Run.operation` (conformance-suite/harness/run.py), so the
 command lines, the crash exit codes, the locale pin and the hang guard are the suite's. On Windows the GnuCOBOL steps cross
@@ -27,8 +56,8 @@ into WSL through the adapter's hook interface (`WslBridge`), as the adapter's ow
 on Windows, under WSL"). Both compilers run the 2014 edition, the latest GnuCOBOL 3.2 has, in free reference format.
 
 THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appended as the run goes so a kill loses nothing):
-  BOTH_REJECT      neither compiler compiled it after every correction: the model's program, not a lead. Counted
-                   against the model.
+  BOTH_REJECT      neither compiler compiled it after every correction, or a correction drew the same first diagnostics
+                   as the round before it (`stopped_early`): the model's program, not a lead. Counted against the model.
   NO_PROGRAM       the reply held no program, or was cut off, after every correction: counted against the model.
   BOTH_HANG        both compilers' compiles or programs exceeded the hang guard: the model's program (an unsigned PERFORM
                    VARYING counter, a loop that changes neither bound), not a lead. Counted against the model (kb/Work PB3490).
@@ -64,7 +93,10 @@ the repository's tracked files. The model is unloaded when the run ends (the GPU
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
+import html
+import io
 import json
 import os
 import random
@@ -76,6 +108,7 @@ import threading
 import time
 import traceback
 import types
+import typing
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -97,6 +130,7 @@ EDITION = "2014"            # the latest edition GnuCOBOL 3.2 has a dialect for;
 SOURCE_FORMAT = "free"
 HANG_GUARD = 90.0           # seconds per process: a generous limit, never a time expectation
 NUM_PREDICT = 6000          # output tokens per reply; an 80-line free-format program is well under 2000
+NUM_CTX = 16384             # the context Ollama gives the model: the whole exchange, every correction included
 REPORT_EVERY = 25
 DEFAULT_CLAUSES = ("14.9", "15", "13.18", "8.8")   # statements, intrinsic functions, data description clauses, arithmetic
 #: the spec's own heading shape (one definition for the markdown transcription; the PDF's is clause_page.index)
@@ -170,70 +204,398 @@ def spec_functions(text: str) -> list[str]:
     return [m.group(1) for line in text.splitlines() if (m := FUNCTION_HEADING.match(line)) and m.group(1) not in added]
 
 
+RESERVED_HEADING = re.compile(r"^#{2,6} 8\.9 Reserved words\s*$")
+RESERVED_ITEM = re.compile(r"^- ([A-Z][A-Z0-9-]*)\s*$")
+
+
+def reserved_words(text: str) -> set[str]:
+    """The reserved words of §8.9 ("The following is the list of reserved words:", one `- WORD` item per line), which
+    §8.3.2.4.1 says "shall not be used as system-names or user-defined words". The prompt names only the ones the
+    2026-10-21 run misused (`MISUSED_RESERVED_WORDS`); this list is what the self-test holds those names to."""
+    words: set[str] = set()
+    inside = False
+    for line in text.splitlines():
+        if RESERVED_HEADING.match(line):
+            inside = True
+            continue
+        if inside and HEADING.match(line):
+            break
+        if inside and (m := RESERVED_ITEM.match(line)):
+            words.add(m.group(1))
+    return words
+
+
+#: The Foreword's list of the edition's changes ("The main changes are as follows:"), one "— item" per line, its
+#: general enhancements up to the item that opens the function sub-list (`added_in_2023` reads the functions exactly).
+FOREWORD_CHANGES = "The main changes are as follows:"
+FOREWORD_ITEM = re.compile(r"^(?:- )?— (.+?)\s*$")
+FOREWORD_FUNCTIONS = "The following intrinsic functions were added or enhanced:"
+
+
+def edition_changes(text: str) -> list[str]:
+    """The 2023 edition's general enhancements as the Foreword names them ("Line Sequential file organization", "Infinite
+    loop for the PERFORM statement using the UNTIL EXIT phrase", "An Enhanced INSPECT statement to inspect backwards" …):
+    under `EDITION` 2014 each is an error to both compilers, and kb/Work PB3523 names LINE SEQUENTIAL among the 2023
+    syntax the model wrote. Read from the spec, never typed: the items between FOREWORD_CHANGES and FOREWORD_FUNCTIONS,
+    less the sub-list's own heading item."""
+    items: list[str] = []
+    inside = False
+    for raw in text.splitlines():
+        line = raw.strip()
+        if line == FOREWORD_CHANGES:
+            inside = True
+            continue
+        if not inside:
+            continue
+        if line == f"- — {FOREWORD_FUNCTIONS}" or line == f"— {FOREWORD_FUNCTIONS}" or HEADING.match(raw):
+            break
+        if (m := FOREWORD_ITEM.match(line)) and not m.group(1).endswith(":"):
+            items.append(m.group(1))
+    return items
+
+
+CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
+ANNEX_A4_HEADING = re.compile(r"^#{2,6} (A\.4\.\d+) ")
+#: An Annex A.4 item naming a language element and its clause: "6\) BLINK clause (13.18.9)", "4\) COMMIT statement 14.9.7".
+ANNEX_A4_ITEM = re.compile(r"^\d+\\?\) (?P<name>.+?)(?: \([\d.]+\)| \d+(?:\.\d+)+.*)\s*$")
+#: An item that is a WHOLE clause or statement; "ACCEPT statement, format 3: screen (14.9.1)" is one format of a claimed
+#: statement and "REWRITE FILE file-name-1 (14.9.35)" one phrase of one, so neither is.
+WHOLE_ELEMENT = re.compile(r"^[A-Z][A-Z0-9-]*(?: [A-Z][A-Z0-9-]*)* (?:clause|statement)$")
+#: A row of CONFORMANCE.md §5, "Annex A.4 optional-element disposition": `| A.4.2 | <module> | Not claimed | … |`.
+DISPOSITION_ROW = re.compile(r"^\| (A\.4\.\d+) \| ([^|]+?) \| ([^|]+?) \|")
+
+
+def declined_modules(conformance_text: str) -> dict[str, str]:
+    """{Annex A.4 number: module name} for every optional module docs/CONFORMANCE.md §5 records as Not claimed: the
+    conformance claim's one statement of what WiseOwl declines (§4.2.7), read, never restated here."""
+    return {m.group(1): m.group(2).strip() for line in conformance_text.splitlines()
+            if (m := DISPOSITION_ROW.match(line)) and m.group(3).strip("* ").startswith("Not claimed")}
+
+
+def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
+    """The seed titles that are a WHOLE clause or statement of a declined optional module (kb/Work PB3523): the Annex A.4
+    items of each module `declined_modules` names. WiseOwl refuses such a construct by name (the screen section's
+    COBOLNET1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
+    claim already explains, never a lead. In the second night's run (fuzz-20261021-211424) these seeds wrote 486 of the
+    4,931 programs, 335 of its 2,326 BOTH_REJECT rows and 40 such WE_REJECT rows, at 1,687 of its 14,479 generations; the
+    first fourteen seeds of the 2026-10-22 bake-off held four of them (BLINK, BLANK, UNDERLINE, REQUIRED). Matched by TITLE,
+    because the transcription's numbers in these lists are not all right (A.4.14 item 9 prints "VALIDATE statement
+    (13.18.64)", the VARYING clause's number). A module that becomes claimed returns its seeds with no change here."""
+    declined = declined_modules(conformance_text)
+    titles: set[str] = set()
+    module = None
+    for line in spec_text.splitlines():
+        if (h := ANNEX_A4_HEADING.match(line)):
+            module = h.group(1)
+            continue
+        if module and HEADING.match(line):
+            module = None
+        if module in declined and (m := ANNEX_A4_ITEM.match(line)) and WHOLE_ELEMENT.match(m.group("name")):
+            titles.add(m.group("name"))
+    return titles
+
+
+#: Annex E.2 item 25 "The following reserved words have been added": one "- — WORD" line each ("— XOR", the last, lost its
+#: list marker in the transcription), up to the item's "Justification:".
+ANNEX_E2_RESERVED_ITEM = re.compile(r"^\d+\\?\) \*\*Reserved words\.\*\* The following reserved words have been added:")
+ADDED_WORD = re.compile(r"^(?:- )?— ([A-Z][A-Z0-9-]*)\s*$")
+
+
+def added_reserved_words(text: str) -> list[str]:
+    """The words 2023 reserved (Annex E.2 item 25: XOR, EXCLUSIVE-OR, SEND, RECEIVE, COMMIT, ROLLBACK, the B-SHIFT
+    operators …), read from the spec: under `EDITION` 2014 each is a user-defined word to both compilers, and the second
+    night's model wrote XOR and SEND as 2023 syntax (WiseOwl COBOLNET0900, "requires COBOL-2023"), so the prompt names them
+    beside the functions and the statement 2023 added."""
+    words: list[str] = []
+    inside = False
+    for line in text.splitlines():
+        if ANNEX_E2_RESERVED_ITEM.match(line):
+            inside = True
+            continue
+        if inside and line.startswith("Justification"):
+            break
+        if inside and (m := ADDED_WORD.match(line)):
+            words.append(m.group(1))
+    return words
+
+
 #: Not a seed (built per spec text in `clauses`): a clause of one of the forbidden functions (its programs cannot agree
 #: between two compilers), a function or statement 2023 added (the compilers run 2014: review R1-6), and 15.6 "Summary of
 #: functions", a table (it was a seed of the second bake-off of 2026-10-20).
 
-#: One worked example of the shapes the bake-off's models kept getting wrong (PERFORM VARYING with UNTIL and END-PERFORM,
-#: COMPUTE with ROUNDED and both SIZE ERROR arms, PICTURE with S, V and editing, an intrinsic function, IF/ELSE/END-IF):
-#: compiled and run by both compilers with identical output before it was written here (2026-10-20). Free format, no
-#: indentation, PROGRAM-ID FUZZ, as the rules below require. The self-test holds it to those rules.
-EXAMPLE_PROGRAM = """IDENTIFICATION DIVISION.
+#: The seed FAMILIES (kb/Work PB3523 item 1): a clause's family is the first entry whose prefix it is under, and a clause
+#: under none is a statement's. Each family has its own worked example in the system prompt, because the night of
+#: 2026-10-21 failed by family: data description clauses (§13.18: 61 % refused by both compilers), statements (§14.9: 58 %)
+#: and references and expressions (§8.4: 53 %), each with a shape one statement example did not show.
+FAMILIES: tuple[tuple[str, str], ...] = (("15", "function"), ("14", "statement"), ("13", "data"), ("8.5", "data"),
+                                         ("8.8", "expression"), ("8.4", "expression"))
+DEFAULT_FAMILY = "statement"
+
+
+def family_of(number: str) -> str:
+    """The seed family of clause `number` (FAMILIES; whole components only, so 8.40 is not under 8.4)."""
+    return next((family for prefix, family in FAMILIES if number == prefix or number.startswith(prefix + ".")), DEFAULT_FAMILY)
+
+
+#: One worked example per family, of the shapes the models kept getting wrong: a table with INDEXED BY and the SEARCH of its
+#: OCCURS entry, COMPUTE with ROUNDED and both SIZE ERROR arms, EVALUATE, STRING and INSPECT (statement); level numbers,
+#: condition-names and SET TO TRUE, REDEFINES, USAGE PACKED-DECIMAL and BINARY, SIGN SEPARATE, JUSTIFIED, BLANK WHEN ZERO
+#: and a table inside a group (data); intrinsic functions as operands of COMPUTE and DISPLAY (function); qualification,
+#: reference modification, abbreviated combined relations, class, sign and condition-name conditions, EVALUATE ALSO
+#: (expression). Each was compiled and run by both compilers with identical output (AGREE) on 2026-10-22, with WiseOwl
+#: built from this tree and GnuCOBOL 3.2 under `-std=cobol2014`, before it was written here. Free format, no
+#: indentation, PROGRAM-ID FUZZ, as the rules require; the self-test holds every one to those rules.
+EXAMPLES: dict[str, str] = {
+    "statement": """IDENTIFICATION DIVISION.
 PROGRAM-ID. FUZZ.
 DATA DIVISION.
 WORKING-STORAGE SECTION.
 01 WS-AMOUNT PIC S9(5)V99 VALUE -123.45.
-01 WS-COUNT PIC 9(3) VALUE 0.
-01 WS-RESULT PIC S9(7)V99.
+01 WS-RESULT PIC S9(7)V99 VALUE 0.
 01 WS-EDITED PIC -ZZ,ZZ9.99.
-01 WS-TEXT PIC X(12) VALUE "ABCDEFGHIJKL".
-01 WS-IDX PIC 99.
+01 WS-TEXT PIC X(12) VALUE "ABCDEFGHIJKC".
+01 WS-OUT PIC X(12) VALUE SPACES.
+01 WS-COUNT PIC 9(3) VALUE 0.
+01 WS-IDX PIC 99 VALUE 0.
+01 WS-TABLE.
+05 WS-ENTRY OCCURS 4 TIMES INDEXED BY WS-TX.
+10 WS-KEY PIC 9(2).
+10 WS-NAME PIC X(5).
 PROCEDURE DIVISION.
 MAIN-PARA.
-PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 3
-COMPUTE WS-RESULT ROUNDED = WS-AMOUNT * WS-IDX / 7
-ON SIZE ERROR DISPLAY "SIZE ERROR AT " WS-IDX
+PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 4
+MOVE WS-IDX TO WS-KEY (WS-IDX)
+MOVE "ITEM" TO WS-NAME (WS-IDX)
+END-PERFORM
+SET WS-TX TO 1
+SEARCH WS-ENTRY
+AT END DISPLAY "NOT FOUND"
+WHEN WS-KEY (WS-TX) = 3
+DISPLAY "FOUND " WS-NAME (WS-TX) " AT " WS-KEY (WS-TX)
+END-SEARCH
+COMPUTE WS-RESULT ROUNDED = WS-AMOUNT * 3 / 7
+ON SIZE ERROR DISPLAY "SIZE ERROR"
 NOT ON SIZE ERROR MOVE WS-RESULT TO WS-EDITED
 END-COMPUTE
-DISPLAY "STEP " WS-IDX " RESULT " WS-EDITED
-END-PERFORM
-MOVE FUNCTION REVERSE(WS-TEXT) TO WS-TEXT
-DISPLAY "REVERSED: " WS-TEXT
-IF WS-AMOUNT < 0 AND WS-COUNT = 0
-DISPLAY "NEGATIVE AND ZERO COUNT"
-ELSE
-DISPLAY "OTHER"
-END-IF
-ADD 1 TO WS-COUNT
+DISPLAY "RESULT " WS-EDITED
+EVALUATE TRUE
+WHEN WS-AMOUNT < 0 DISPLAY "NEGATIVE"
+WHEN WS-AMOUNT = 0 DISPLAY "ZERO"
+WHEN OTHER DISPLAY "POSITIVE"
+END-EVALUATE
+STRING "AB" DELIMITED BY SIZE WS-TEXT (3:4) DELIMITED BY SIZE INTO WS-OUT
+END-STRING
+DISPLAY "STRING [" WS-OUT "]"
+INSPECT WS-TEXT TALLYING WS-COUNT FOR ALL "C"
 DISPLAY "COUNT " WS-COUNT
+IF WS-COUNT > 1 AND WS-AMOUNT < 0
+DISPLAY "BOTH"
+ELSE
+DISPLAY "NOT BOTH"
+END-IF
 STOP RUN.
-"""
+""",
+    "data": """IDENTIFICATION DIVISION.
+PROGRAM-ID. FUZZ.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-RECORD.
+05 WS-NAME PIC X(8) VALUE "ALPHA".
+05 WS-CODE PIC 9(3) VALUE 42.
+05 WS-STATE PIC X VALUE "Y".
+88 WS-ACTIVE VALUE "Y".
+88 WS-INACTIVE VALUE "N".
+05 FILLER PIC X(2) VALUE SPACES.
+01 WS-DATE PIC 9(8) VALUE 20261022.
+01 WS-DATE-PARTS REDEFINES WS-DATE.
+05 WS-YEAR PIC 9(4).
+05 WS-MONTH PIC 9(2).
+05 WS-DAY PIC 9(2).
+01 WS-PACKED PIC S9(5)V99 USAGE PACKED-DECIMAL VALUE -12.5.
+01 WS-BIN PIC S9(4) USAGE BINARY VALUE 300.
+01 WS-LEAD PIC S9(3) SIGN IS LEADING SEPARATE VALUE -7.
+01 WS-RIGHT PIC X(6) JUSTIFIED RIGHT VALUE SPACES.
+01 WS-BWZ PIC ZZ9 BLANK WHEN ZERO.
+01 WS-EDIT PIC +ZZ,ZZ9.99.
+01 WS-LIST.
+05 WS-ITEM PIC 9(2) OCCURS 3 TIMES.
+PROCEDURE DIVISION.
+MAIN-PARA.
+DISPLAY "NAME [" WS-NAME "] CODE " WS-CODE
+IF WS-ACTIVE
+DISPLAY "ACTIVE"
+END-IF
+SET WS-INACTIVE TO TRUE
+DISPLAY "STATE " WS-STATE
+DISPLAY "YEAR " WS-YEAR " MONTH " WS-MONTH " DAY " WS-DAY
+MOVE WS-PACKED TO WS-EDIT
+DISPLAY "PACKED " WS-EDIT
+MOVE WS-BIN TO WS-EDIT
+DISPLAY "BINARY " WS-EDIT
+DISPLAY "LEADING " WS-LEAD
+MOVE "AB" TO WS-RIGHT
+DISPLAY "JUSTIFIED [" WS-RIGHT "]"
+MOVE 0 TO WS-BWZ
+DISPLAY "BLANK [" WS-BWZ "]"
+MOVE 10 TO WS-ITEM (1)
+MOVE 20 TO WS-ITEM (2)
+MOVE 30 TO WS-ITEM (3)
+DISPLAY "ITEMS " WS-ITEM (1) " " WS-ITEM (2) " " WS-ITEM (3)
+DISPLAY "RECORD [" WS-RECORD "]"
+STOP RUN.
+""",
+    "function": """IDENTIFICATION DIVISION.
+PROGRAM-ID. FUZZ.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-TEXT PIC X(10) VALUE "Hello".
+01 WS-NUM PIC S9(5)V99 VALUE 0.
+01 WS-INT PIC S9(9) VALUE 0.
+01 WS-EDIT PIC -Z(8)9.99.
+01 WS-ARG PIC S9(3) VALUE -42.
+PROCEDURE DIVISION.
+MAIN-PARA.
+DISPLAY "UPPER [" FUNCTION UPPER-CASE(WS-TEXT) "]"
+DISPLAY "REVERSE [" FUNCTION REVERSE(WS-TEXT) "]"
+COMPUTE WS-INT = FUNCTION LENGTH(WS-TEXT)
+MOVE WS-INT TO WS-EDIT
+DISPLAY "LENGTH " WS-EDIT
+COMPUTE WS-INT = FUNCTION MOD(17, 5) + FUNCTION ABS(WS-ARG)
+MOVE WS-INT TO WS-EDIT
+DISPLAY "MOD+ABS " WS-EDIT
+COMPUTE WS-NUM = FUNCTION NUMVAL("12.50") * 2
+MOVE WS-NUM TO WS-EDIT
+DISPLAY "NUMVAL " WS-EDIT
+COMPUTE WS-INT = FUNCTION MAX(3, 9, 4) - FUNCTION MIN(3, 9, 4)
+MOVE WS-INT TO WS-EDIT
+DISPLAY "MAX-MIN " WS-EDIT
+COMPUTE WS-INT = FUNCTION INTEGER-OF-DATE(20261022) - FUNCTION INTEGER-OF-DATE(20260101)
+MOVE WS-INT TO WS-EDIT
+DISPLAY "DAYS " WS-EDIT
+COMPUTE WS-NUM ROUNDED = FUNCTION SQRT(2)
+MOVE WS-NUM TO WS-EDIT
+DISPLAY "SQRT " WS-EDIT
+STOP RUN.
+""",
+    "expression": """IDENTIFICATION DIVISION.
+PROGRAM-ID. FUZZ.
+DATA DIVISION.
+WORKING-STORAGE SECTION.
+01 WS-GROUP.
+05 WS-A PIC S9(3) VALUE 7.
+05 WS-B PIC S9(3) VALUE -2.
+05 WS-WORD PIC X(6) VALUE "ABC123".
+01 WS-OTHER.
+05 WS-A PIC S9(3) VALUE 1.
+01 WS-LEVEL PIC 9 VALUE 2.
+88 WS-LOW VALUE 0 THRU 3.
+88 WS-HIGH VALUE 4 THRU 9.
+01 WS-R PIC S9(5)V99 VALUE 0.
+01 WS-EDIT PIC -ZZZZ9.99.
+PROCEDURE DIVISION.
+MAIN-PARA.
+COMPUTE WS-R = (WS-A OF WS-GROUP + WS-B) * 2 ** 3 / 4
+MOVE WS-R TO WS-EDIT
+DISPLAY "EXPR " WS-EDIT
+IF WS-A OF WS-GROUP > 5 AND < 10
+DISPLAY "BETWEEN"
+END-IF
+IF WS-B IS NEGATIVE AND WS-A OF WS-OTHER IS NOT ZERO
+DISPLAY "SIGNS"
+END-IF
+IF WS-WORD (1:3) IS ALPHABETIC AND WS-WORD (4:3) IS NUMERIC
+DISPLAY "CLASSES"
+END-IF
+IF WS-LOW
+DISPLAY "LOW"
+END-IF
+SET WS-HIGH TO TRUE
+DISPLAY "LEVEL " WS-LEVEL
+EVALUATE TRUE ALSO WS-A OF WS-OTHER
+WHEN WS-HIGH ALSO 1 DISPLAY "HIGH AND ONE"
+WHEN OTHER DISPLAY "OTHER"
+END-EVALUATE
+IF (WS-A OF WS-GROUP = 7 OR WS-B = 0) AND NOT (WS-LEVEL = 0)
+DISPLAY "COMBINED"
+END-IF
+STOP RUN.
+""",
+}
 
+#: The reserved words the 2026-10-21 run misused, commonest first: the ones it wrote as data names, functions or
+#: mnemonic-names (WiseOwl's COBOLNET0901 "is a reserved word in COBOL-2014", 294 programs both compilers refused: SCREEN 74,
+#: NULL 41, ADDRESS 34, DESTINATION 22, OBJECT 21, CONDITION 18, BOOLEAN 13, VALIDATE-STATUS 13, DEFAULT 10, then LENGTH,
+#: RETURNING and COLUMN), then the ones its first refusal most often stopped at as an unexpected word (COBOL0001 at CLASS 23,
+#: STATUS 22, TYPE 15, FUNCTION 13: a clause or phrase the model invented around them). §8.3.2.4.1: "Reserved words shall
+#: not be used as system-names or user-defined words". Named, not the whole §8.9 list of several hundred: the naming rule
+#: (a prefix and a hyphen on every name) is what keeps the rest out. The self-test holds each to `reserved_words`.
+MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", "CONDITION", "BOOLEAN", "VALIDATE-STATUS",
+                          "DEFAULT", "LENGTH", "RETURNING", "COLUMN", "TYPE", "CLASS", "STATUS", "FUNCTION")
+
+#: The standing rules (kb/Work PB3523 item 1), each written against what the second night's refusals show the model lacked:
+#: the division skeleton (GnuCOBOL "PROCEDURE DIVISION header missing" 83, WiseOwl "unexpected 'SPECIAL-NAMES'" 35 and
+#: "unexpected 'WORKING-STORAGE'" 34), the general format as the whole of a statement's or clause's syntax (COBOL0307, an
+#: invented phrase, 315; COBOLNET1941, an invented data-description clause, 133), the naming rule and the misused reserved
+#: words (COBOLNET0901, 294), TRUE and FALSE as values (COBOL0001 at 'TRUE' 57, 'FALSE' 11), a table at level 01 (GnuCOBOL
+#: "01/77 OCCURS does not conform" 52, WiseOwl COBOLNET2404 33: §13.18.38.3 rule 1, "The OCCURS clause shall not be
+#: specified in a data description entry that" has a level-number of 01, 66, 77 or 88), the SEARCH of a group rather than
+#: of its OCCURS entry (GnuCOBOL "not indexed": §14.9.37.3 rule 2, "The data description of identifier-1 shall contain an
+#: OCCURS clause with an INDEXED phrase"), and B in a PICTURE taken for a bit (COBOLNET1934 on PIC B(8), GnuCOBOL's
+#: "PICTURE string must contain at least one of" 71).
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:
 - Standard COBOL only, as in ISO/IEC 1989:2014. No vendor extensions, no COPY, no CALL to other programs, no EXEC.
 - Free reference format: EVERY line starts in column 1 with no indentation, one statement per line. At most 80 lines, and no repetitive filler data items: a few well-chosen items exercised many ways.
+- The headers, in this order, each ending in a period: IDENTIFICATION DIVISION. PROGRAM-ID. FUZZ. Then only when needed: ENVIRONMENT DIVISION. CONFIGURATION SECTION. SPECIAL-NAMES. (a paragraph, never a section) and INPUT-OUTPUT SECTION. FILE-CONTROL. Then DATA DIVISION. with FILE SECTION., WORKING-STORAGE SECTION., LOCAL-STORAGE SECTION., LINKAGE SECTION. and REPORT SECTION. in that order, each only when needed. Then PROCEDURE DIVISION. and a paragraph name such as MAIN-PARA. before the first statement. In the procedure division use either no sections at all or put every paragraph in a section.
 - The program must compile and run with no input: no ACCEPT from the console or standard input, no command-line arguments.
 - Every result the program computes is shown with DISPLAY, so two compilers' outputs can be compared byte for byte.
 - Output must be deterministic: no FUNCTION """ + ", ".join(NONDETERMINISTIC_FUNCTIONS) + """, no ACCEPT FROM DATE/TIME, nothing time, locale or environment dependent.
 - No files unless the clause itself is about file handling; then ASSIGN each file to a plain name in the working directory and create it in the program (the harness removes the working directory afterwards).
 - Exercise the clause named below in several distinct ways: edge values, both branches of every optional phrase, size and sign boundaries, truncation, ROUNDED, nested forms. Prefer cases a compiler could get subtly wrong.
-- Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE).
+- A statement or clause has exactly the phrases its general format shows, in that order; anything else is an error. The clause's own general format is given below. In a general format, [ ] (drawn with ┌ │ └) encloses an optional part, { } (drawn with ╭ ┤ ╰) a choice of exactly one alternative, and … lets the part before it repeat; lower-case words (identifier-1, literal-1, integer-1) stand for your own items and values; the figure notes say which upper-case words are required.
+- Close every conditional statement with its END- word (END-IF, END-PERFORM, END-COMPUTE, END-EVALUATE, END-SEARCH).
+- Every name you define (data items, condition-names, indexes, paragraphs, files) is a prefix and a hyphen and a word, such as WS-COUNT, WS-SCREEN-ROW or P-START, so it is never a reserved word. These are reserved words and never a data name, a function or a mnemonic-name: {reserved}.
+- TRUE and FALSE are not values: never VALUE TRUE, never TRUE as an argument or an operand. They appear only in SET condition-name TO TRUE (or FALSE), in EVALUATE TRUE and WHEN TRUE, and in an 88 entry's WHEN SET TO FALSE phrase. NULL is only the value of a POINTER (SET WS-PTR TO NULL); there is no FUNCTION NULL.
+- A table is an OCCURS entry inside an 01 group, never at level 01 or 77; SEARCH names that OCCURS entry, which has INDEXED BY.
+- In a PICTURE, B inserts a space; it is not a bit, and every PICTURE has at least one 9, X, A, N or editing symbol.
 - The ONLY intrinsic functions are these; any other FUNCTION name is an error: {functions}.
 - Not in the 2014 edition the compilers run, so an error: {added}.
+- The 2023 edition's other new features are not in 2014 either, so never use them: {changes}.
+- Optional facilities one of the compilers does not provide, so never use them: {declined}.
 - FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM as the argument, never a literal or an expression.
 - USAGE is one of the standard's (BINARY, PACKED-DECIMAL, DISPLAY, NATIONAL, INDEX, POINTER, ...); COMP-1 to COMP-5 are not in the standard.
 - Reply with exactly one COBOL program inside one ```cobol fenced block and nothing else. PROGRAM-ID is FUZZ.
 
 This program, which both compilers accept, shows the expected shape:
 ```cobol
-""" + EXAMPLE_PROGRAM + """```"""
+{example}```"""
 
 
-def system_prompt(functions: list[str], added: tuple[set[str], set[str]]) -> str:
-    """The system prompt with the edition's function list and the 2023 additions filled in (`spec_functions` and
-    `added_in_2023` of the spec the seeds come from)."""
-    names = [f"FUNCTION {f}" for f in sorted(added[0])] + [f"the {st} statement" for st in sorted(added[1])]
-    return SYSTEM_PROMPT.replace("{functions}", ", ".join(functions)).replace("{added}", ", ".join(names))
+class PromptFacts(typing.NamedTuple):
+    """What the system prompt states that is READ, never typed here: from the standard, the edition's functions
+    (`spec_functions`), the functions and statements 2023 added (`added_in_2023`) and the words it reserved
+    (`added_reserved_words`), and the Foreword's other changes (`edition_changes`); from the conformance claim, the
+    optional modules WiseOwl declines (`declined_modules`)."""
+    functions: list[str]
+    added: tuple[set[str], set[str]]
+    added_words: list[str]
+    changes: list[str]
+    declined: list[str]
+
+    @classmethod
+    def read(cls, spec_text: str, conformance_text: str) -> PromptFacts:
+        return cls(spec_functions(spec_text), added_in_2023(spec_text), added_reserved_words(spec_text),
+                   edition_changes(spec_text), list(declined_modules(conformance_text).values()))
+
+
+def system_prompt(facts: PromptFacts, family: str) -> str:
+    """The system prompt for a seed of `family` (FAMILIES): `facts` filled in, the misused reserved words, and the family's
+    worked example."""
+    names = ([f"FUNCTION {f}" for f in sorted(facts.added[0])] + [f"the {st} statement" for st in sorted(facts.added[1])]
+             + ([f"the words {', '.join(facts.added_words)}"] if facts.added_words else []))
+    return (SYSTEM_PROMPT.replace("{functions}", ", ".join(facts.functions)).replace("{added}", ", ".join(names))
+            .replace("{changes}", "; ".join(facts.changes)).replace("{declined}", "; ".join(facts.declined))
+            .replace("{reserved}", ", ".join(MISUSED_RESERVED_WORDS))
+            .replace("{example}", EXAMPLES[family]))
 
 
 # ── the seeds: spec clauses ───────────────────────────────────────────────────────────────────────────────────────────
@@ -302,8 +664,76 @@ def order_seeds(seeds: list[tuple[str, str, str]], seed: int, in_order: bool) ->
     return out
 
 
-def seed_text(number: str, title: str, body: str, limit: int = 7000) -> str:
-    return f"Clause {number} {title}\n\n{body[:limit]}"
+#: Characters of clause text a prompt carries (kb/Work PB3523 item 6); measured in `self_test` against NUM_CTX.
+CLAUSE_BUDGET = 6000
+#: A part of a seed's body starts at a sub-clause title `clauses` folded in (STRUCTURAL) other than a "Format n" one: the
+#: spec writes "Format 1 (serial):" inside General formats and "FORMAT 1" inside the rules as lines of their own, so a
+#: format line is the content of the part it stands in, never a part.
+PART_TITLE = re.compile(r"^(?!Format \d)(?:" + STRUCTURAL.pattern.removeprefix("^") + r")", re.IGNORECASE)
+FORMAT_PART = re.compile(r"^" + GENERAL_FORMAT_NOUN + r"$", re.IGNORECASE)
+SYNTAX_PART = re.compile(r"^(?:Syntax rules?|Arguments?(?: rules?)?)$", re.IGNORECASE)
+#: The transcription's markup the model has no use for: the diagrams' <pre> wrappers, the underline of a required word
+#: (the figure notes name the underlined words in prose), line breaks, and the escaped list parentheses ("1\)").
+MARKUP = re.compile(r"</?(?:pre|u|br|sup|sub)\b[^>]*>")
+MD_ESCAPE = re.compile(r"\\([()\[\]*_#.])")
+CUT_MARK = "[… the rest of this part is cut to fit the prompt]"
+
+
+def clean_spec_text(text: str) -> str:
+    """Clause text as the model reads it: the transcription's HTML markup and markdown escapes removed, entities decoded,
+    runs of blank lines folded. The diagram's drawing (┌ │ └ for brackets, ╭ ┤ ╰ for braces) stays: the system prompt
+    explains it."""
+    text = html.unescape(MD_ESCAPE.sub(r"\1", MARKUP.sub("", text)))
+    return re.sub(r"\n{3,}", "\n\n", text).strip()
+
+
+def seed_parts(body: str) -> list[tuple[str, str]]:
+    """(title, text) for each structural part of a seed's body, in the spec's order: the text before the first folded
+    sub-clause title has the title "", and every line `clauses` wrote as a part title (PART_TITLE) starts a part."""
+    parts: list[tuple[str, list[str]]] = [("", [])]
+    for line in body.split("\n"):
+        if line and line == line.strip() and PART_TITLE.match(line):
+            parts.append((line, []))
+        else:
+            parts[-1][1].append(line)
+    return [(title, "\n".join(lines)) for title, lines in parts if title or "\n".join(lines).strip()]
+
+
+def seed_text(number: str, title: str, body: str, budget: int = CLAUSE_BUDGET) -> str:
+    """The clause as the prompt carries it (kb/Work PB3523 items 1 and 6). Within `budget` characters it is the whole
+    clause, cleaned. Over it, the cut keeps the clause's STRUCTURE rather than its first `budget` characters, in this
+    order of claim: the general formats, then the syntax (or argument) rules, then the general introduction, then the
+    general rules, each whole while it fits and cut once it does not (what the model gets wrong is the syntax, not the
+    general rules). When the formats and the syntax rules together exceed the budget, the formats take at most two thirds
+    of it, so the syntax rules are never squeezed out by a statement with fifteen formats (14.9.39 SET). The parts stay in
+    the spec's order; a cut part ends with CUT_MARK and an omitted one is named at the end."""
+    head = f"Clause {number} {title}\n\n"
+    whole = clean_spec_text(body)
+    if len(whole) <= budget:
+        return head + whole
+    parts = [(t, clean_spec_text(x)) for t, x in seed_parts(body)]
+    rank = [0 if FORMAT_PART.match(t) else 1 if SYNTAX_PART.match(t) else 2 if t in ("", "General") else 3 for t, _x in parts]
+    core = sum(len(t) + len(x) + 2 for k, (t, x) in enumerate(parts) if rank[k] < 2)
+    room = budget
+    kept: dict[int, str] = {}
+    for tier in (0, 1, 2, 3):
+        allowance = budget * 2 // 3 if tier == 0 and core > budget else room
+        for k, (t, x) in enumerate(parts):
+            if rank[k] != tier:
+                continue
+            cost = len(t) + len(x) + 2
+            if cost <= min(room, allowance):
+                kept[k] = x
+            elif min(room, allowance) > 200:
+                kept[k] = x[:min(room, allowance) - len(t) - len(CUT_MARK) - 4].rstrip() + "\n" + CUT_MARK
+                cost = len(t) + len(kept[k]) + 2
+            else:
+                continue
+            room -= cost
+            allowance -= cost
+    text = "\n\n".join((t + "\n" + kept[k]).strip() for k, (t, _x) in enumerate(parts) if k in kept)
+    dropped = [t or "the introduction" for k, (t, _x) in enumerate(parts) if k not in kept]
+    return head + text + (f"\n\n[{', '.join(dropped)}: omitted to fit the prompt]" if dropped else "")
 
 
 # ── the model ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -317,7 +747,7 @@ def ollama_chat(model: str, messages: list[dict[str, str]], temperature: float, 
     characters of thinking, every output token spent, empty content) is visible through the thinking length."""
     body: dict[str, Any] = {"model": model, "stream": False, "think": False, "keep_alive": keep_alive,
                             "messages": messages,
-                            "options": {"temperature": temperature, "num_ctx": 16384, "num_predict": NUM_PREDICT}}
+                            "options": {"temperature": temperature, "num_ctx": NUM_CTX, "num_predict": NUM_PREDICT}}
     for attempt in (0, 1):
         start = time.monotonic()
         req = urllib.request.Request(f"{OLLAMA}/api/chat", json.dumps(body).encode("utf-8"),
@@ -605,8 +1035,13 @@ class Fuzz:
         self.results_path = self.out / "results.jsonl"
         self.lock = threading.Lock()
         spec_text = SPEC.read_text(encoding="utf-8")
-        self.seeds = order_seeds(clauses(spec_text, s.prefixes), s.seed, s.in_order)
-        self.system_prompt = system_prompt(spec_functions(spec_text), added_in_2023(spec_text))
+        conformance_text = CONFORMANCE.read_text(encoding="utf-8")
+        declined = declined_seed_titles(spec_text, conformance_text)
+        every = clauses(spec_text, s.prefixes)
+        self.seeds = order_seeds([c for c in every if c[1] not in declined], s.seed, s.in_order)
+        self.declined_seeds = len(every) - len(self.seeds)
+        facts = PromptFacts.read(spec_text, conformance_text)
+        self.system_prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
         if not self.seeds:
             raise SystemExit(f"no clauses under {s.prefixes} in {SPEC}")
         work = self.out / "work"
@@ -636,12 +1071,17 @@ class Fuzz:
 
     def _one(self, i: int, name: str, number: str, title: str, body: str, variation: int, rec: dict[str, Any]) -> dict[str, Any]:
         user = seed_text(number, title, body) + f"\n\nThis is program {variation + 1} for this clause: exercise an aspect the previous programs would not."
-        messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user}]
+        rec["family"] = family_of(number)
+        messages = [{"role": "system", "content": self.system_prompts[rec["family"]]}, {"role": "user", "content": user}]
         src = self.programs / f"{name}.cob"
         rec["source"] = str(src.relative_to(self.out)).replace("\\", "/")
         entry = {"id": name, "source": rec["source"], "files": [], "source-format": SOURCE_FORMAT}
         rec["model_seconds"] = 0.0
         rec["repairs"] = 0
+        # Every round both compilers refused, with each one's first diagnostic (kb/Work PB3523 item 3): the record that
+        # measures whether a correction fixed anything.
+        rounds: list[dict[str, Any]] = []
+        rec["repair_rounds"] = rounds
         they = Observation(None, None, "", [])
         we: Observation | None = None
         # The first reply, then up to `repairs` corrections. A program GnuCOBOL refuses is compiled by WiseOwl before anything
@@ -679,13 +1119,21 @@ class Fuzz:
                 we = None
                 break
             we = observe_fresh(self.we, entry, name)
-            if we.compiled is not False or we.crashed or attempt == self.s.repairs:
+            if we.compiled is not False or we.crashed:
                 # WiseOwl compiled it (THEY_REJECT), or CRASHED on it (WE_CRASH: a compiler crash is a lead whatever GnuCOBOL
-                # said, and a correction would have replaced the program that crashed it: review R1-1), or the rounds are
-                # spent (BOTH_REJECT).
+                # said, and a correction would have replaced the program that crashed it: review R1-1).
+                break
+            rounds.append(refusal_round(attempt, they.diagnostics, we.diagnostics))
+            if attempt == self.s.repairs:
+                break           # the rounds are spent (BOTH_REJECT)
+            if len(rounds) >= 2 and refusal_key(rounds[-1]) == refusal_key(rounds[-2]):
+                # The correction drew the same first diagnostics from both compilers as the round before it: the model
+                # cannot fix this program, and a further round would cost a generation and two compiles for nothing
+                # (kb/Work PB3523 item 4). A program whose errors change keeps the whole budget.
+                rec["stopped_early"] = True
                 break
             messages += [{"role": "assistant", "content": reply},
-                         {"role": "user", "content": repair_request(they.diagnostics, we.diagnostics)}]
+                         {"role": "user", "content": repair_request(they.diagnostics, we.diagnostics, program)}]
         if we is None:
             we = observe_fresh(self.we, entry, name)
         display_fold = display_fold_applies(NUMERIC_DISPLAY, program)
@@ -717,7 +1165,8 @@ class Fuzz:
 
     def run(self) -> None:
         (self.out / "run.json").write_text(json.dumps({**dataclasses.asdict(self.s), "out": str(self.out),
-                                                       "seeds": len(self.seeds), "edition": EDITION,
+                                                       "seeds": len(self.seeds), "declined_seeds": self.declined_seeds,
+                                                       "edition": EDITION,
                                                        "started": datetime.now(timezone.utc).isoformat(timespec="seconds")},
                                                       indent=1), encoding="utf-8", newline="\n")
         total = self.s.count if self.s.count is not None else 10 ** 9
@@ -771,16 +1220,67 @@ REPAIR_GNU_LINES = 6
 REPAIR_WISEOWL_LINES = 4
 
 
-def repair_request(they_diag: str, we_diag: str) -> str:
+#: The source line a diagnostic names: GnuCOBOL's "fz00609.cob:18: error: …", WiseOwl's "fz00609.cob(24,4): error COBOL…".
+DIAG_LINE = re.compile(r"^\S*?(?::(\d+):|\((\d+),\d+\):)")
+
+
+def diagnostic_line(diag_line: str) -> int | None:
+    """The 1-based source line number a diagnostic line names, or None when it names none."""
+    m = DIAG_LINE.match(diag_line.strip())
+    return int(m.group(1) or m.group(2)) if m else None
+
+
+def with_source(diag_lines: list[str], program: str) -> str:
+    """The diagnostic lines, each followed by the source line it names, quoted (kb/Work PB3523 item 2): a model given only
+    "line 18: 'WS-TABLE' not indexed" rewrites whatever it guesses line 18 was; given the line itself it changes that line."""
+    source = program.splitlines()
+    out = []
+    for d in diag_lines:
+        out.append(d)
+        n = diagnostic_line(d)
+        if n is not None and 1 <= n <= len(source):
+            out.append(f"    > line {n}: {source[n - 1].strip()[:200]}")
+    return "\n".join(out)
+
+
+def repair_request(they_diag: str, we_diag: str, program: str) -> str:
     """The correction asked after BOTH compilers refuse a program: GnuCOBOL's first errors (the judge's), then WiseOwl's
-    (they cite the standard's clause, which tells the model what the rule is rather than where it tripped)."""
-    gnu = "\n".join(error_lines(they_diag, REPAIR_GNU_LINES)) or they_diag.strip()[:600]
-    ours = "\n".join(error_lines(we_diag, REPAIR_WISEOWL_LINES))
+    (they cite the standard's clause, which tells the model what the rule is rather than where it tripped), each beside the
+    refused source line, and the ask for the smallest change that fixes them."""
+    gnu = with_source(error_lines(they_diag, REPAIR_GNU_LINES), program) or they_diag.strip()[:600]
+    ours = with_source(error_lines(we_diag, REPAIR_WISEOWL_LINES), program)
     text = "GnuCOBOL 3.2 (-std=cobol2014, free format) refused that program:\n\n" + gnu
     if ours:
         text += "\n\nA second standard-conforming compiler refused it too, citing ISO/IEC 1989:\n\n" + ours
-    return text + ("\n\nFix every error using only standard COBOL 2014 (do not drop the clause under test; replace a "
-                   "construct the standard lacks with one it has). Reply with the whole corrected program in one ```cobol fenced block.")
+    return text + ("\n\nFix every error with the smallest change: correct the quoted lines and keep the rest of the program "
+                   "as it is. Use only standard COBOL 2014 (do not drop the clause under test; replace a construct the "
+                   "standard lacks with one it has). Reply with the whole corrected program in one ```cobol fenced block.")
+
+
+#: GnuCOBOL's diagnostics carry no code, so a refusal is identified by its message FAMILY: the message with the file and
+#: line, every quoted name and every number taken out ("'WS-TABLE' not indexed" and "'WS-T2' not indexed" are one family).
+GNU_LOCATION = re.compile(r"^\S*?:\d+:\s*")
+GNU_QUOTED = re.compile(r"'[^']*'")
+
+
+def gnucobol_family(message: str) -> str:
+    """The message family of one GnuCOBOL diagnostic line (GNU_LOCATION, GNU_QUOTED)."""
+    return re.sub(r"\d+", "N", GNU_QUOTED.sub("'_'", GNU_LOCATION.sub("", message.strip())))
+
+
+def refusal_round(attempt: int, they_diag: str, we_diag: str) -> dict[str, Any]:
+    """One round both compilers refused, as the row records it (`repair_rounds`, kb/Work PB3523 item 3): WiseOwl's first
+    error's code and message, and GnuCOBOL's first error."""
+    ours = first_error(we_diag)
+    code = DIAG_CODE.search(ours)
+    return {"round": attempt, "code": code.group(1) if code else "", "message": ours, "gnucobol": first_error(they_diag)}
+
+
+def refusal_key(rnd: dict[str, Any]) -> tuple[str, str]:
+    """What makes two refusal rounds THE SAME error (kb/Work PB3523 item 4): WiseOwl's first code (its message when it
+    printed none) and GnuCOBOL's first message family. Both must repeat: a WiseOwl code as broad as COBOL0001 ("unexpected
+    token") repeats across different slips, and GnuCOBOL's family tells them apart."""
+    return rnd["code"] or rnd["message"], gnucobol_family(rnd["gnucobol"])
 
 
 # ── the report ────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -833,10 +1333,13 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
     failed = sum(counts.get(c, 0) for c in MODEL_FAILURE_CLASSES)
     model_secs = [r["model_seconds"] for r in rows if "model_seconds" in r]
     repaired = sum(1 for r in rows if r.get("repairs") and r["verdict"] not in MODEL_FAILURE_CLASSES)
+    first = first_attempt_usable(rows)
+    early = sum(1 for r in rows if r.get("stopped_early"))
     lines = [f"# Differential fuzz — triage report", "",
              f"Programs: {n} · judged: {judged} · usable: {judged - failed} ({(judged - failed) / judged:.0%} of judged; "
-             f"{repaired} of them after a repair round) · the model's failures: {failed} · GnuCOBOL alone refused (THEY_REJECT leads): "
-             f"{counts.get('THEY_REJECT', 0)}" if judged else f"Programs: {n}",
+             f"{repaired} of them after a repair round) · usable on the first attempt: {first} ({first / judged:.0%} of judged) · "
+             f"the model's failures: {failed} ({early} ended early on a repeated diagnostic) · GnuCOBOL alone refused "
+             f"(THEY_REJECT leads): {counts.get('THEY_REJECT', 0)}" if judged else f"Programs: {n}",
              f"Model seconds per program (median): {sorted(model_secs)[len(model_secs) // 2]:.0f}" if model_secs else "",
              "", "| Class | Count |", "|---|---|"]
     lines += [f"| {k} | {v} |" for k, v in sorted(counts.items(), key=lambda kv: -kv[1])]
@@ -919,26 +1422,33 @@ def bake_off(models: list[str], base: Settings) -> None:
         s = dataclasses.replace(base, model=m, out=base.out / re.sub(r"[^A-Za-z0-9_.-]", "_", m))
         Fuzz(s).run()
         table.append((m, *bake_off_score(read_results(s.out))))
-    lines = ["# Bake-off", "", "| Model | Programs | Usable | Model failures (both refuse, no program, or both hang) | GnuCOBOL alone refuses | Median model s | Lead rows |",
-             "|---|---|---|---|---|---|---|"]
-    for m, n, usable, judged, both, theirs, med, leads in table:
-        lines.append(f"| {m} | {n} | {usable}/{judged} ({usable / judged:.0%}) | {both} | {theirs} | {med:.0f} | {leads} |" if judged
-                     else f"| {m} | {n} | 0/0 | 0 | 0 | - | {leads} |")
+    lines = ["# Bake-off", "", "| Model | Programs | Usable | Usable on the first attempt | Model failures (both refuse, no program, or both hang) | GnuCOBOL alone refuses | Median model s | Lead rows |",
+             "|---|---|---|---|---|---|---|---|"]
+    for m, n, usable, judged, both, theirs, med, leads, first in table:
+        lines.append(f"| {m} | {n} | {usable}/{judged} ({usable / judged:.0%}) | {first}/{judged} ({first / judged:.0%}) | {both} | {theirs} | {med:.0f} | {leads} |"
+                     if judged else f"| {m} | {n} | 0/0 | 0/0 | 0 | 0 | - | {leads} |")
     text = "\n".join(lines) + "\n"
     (base.out / "bake-off.md").write_text(text, encoding="utf-8", newline="\n")
     print(text)
 
 
-def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int, float, int]:
+def first_attempt_usable(rows: list[dict[str, Any]]) -> int:
+    """The judged programs usable without a correction round (kb/Work PB3523 item 5: the prompt's own validity, before the
+    repair loop lifts it)."""
+    return sum(1 for r in rows if r["verdict"] != "RUNNER_ERROR" and r["verdict"] not in MODEL_FAILURE_CLASSES and not r.get("repairs"))
+
+
+def bake_off_score(rows: list[dict[str, Any]]) -> tuple[int, int, int, int, int, float, int, int]:
     """(programs, usable, judged, model failures (MODEL_FAILURE_CLASSES: BOTH_REJECT, NO_PROGRAM, BOTH_HANG), GnuCOBOL-alone-
-    refuses, median model seconds, lead rows) of one model's run."""
+    refuses, median model seconds, lead rows, usable on the first attempt) of one model's run."""
     judged = [r for r in rows if r["verdict"] != "RUNNER_ERROR"]
     usable = [r for r in judged if r["verdict"] not in MODEL_FAILURE_CLASSES]
     both = sum(1 for r in judged if r["verdict"] in MODEL_FAILURE_CLASSES)
     theirs = sum(1 for r in judged if r["verdict"] == "THEY_REJECT")
     secs = sorted(r["model_seconds"] for r in rows if "model_seconds" in r)
     leads = sum(1 for r in rows if r["verdict"] in LEAD_CLASSES)
-    return len(rows), len(usable), len(judged), both, theirs, secs[len(secs) // 2] if secs else float("nan"), leads
+    return (len(rows), len(usable), len(judged), both, theirs, secs[len(secs) // 2] if secs else float("nan"), leads,
+            first_attempt_usable(rows))
 
 
 # ── self-test ─────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -988,6 +1498,37 @@ def self_test() -> int:
           by_number.get("13.18.40.5") == "PICTURE clause > Editing rules" and by_number.get("14.9.25") == "MOVE statement"
           and by_number.get("15.66") == "NATIONAL-OF function" and by_number.get("15.3.1.6", "").endswith("> Week date formats"),
           {k: by_number.get(k) for k in ("13.18.40.5", "14.9.25", "15.66", "15.3.1.6")})
+    bodies = {n: (t, b) for n, t, b in clauses(SPEC.read_text(encoding="utf-8"), ("14.9", "13.18", "8.4", "15"))}
+    search = seed_text("14.9.37", *bodies["14.9.37"])
+    check("seed: the prompt for a seed carries its clause's general format and syntax rules, the diagram's markup stripped (14.9.37 SEARCH: both formats, syntax rule 2 on INDEXED; kb/Work PB3523 item 1)",
+          "SEARCH identifier-1" in search and "SEARCH ALL identifier-1" in search and "Syntax rules" in search
+          and "shall contain an OCCURS clause with an INDEXED phrase" in search and "<u>" not in search and "<pre" not in search
+          and "1)" in search and "1\\)" not in search, search[:400])
+    sizes = {n: len(seed_text(n, t, b)) for n, (t, b) in bodies.items()}
+    overhead = max(len(f"Clause {n} {t}\n\n") for n, (t, _b) in bodies.items()) + len(CUT_MARK) + 200
+    longest = max(sizes, key=lambda n: sizes[n])
+    check("seed: no clause's prompt text exceeds the budget (the longest whole clause, 14.9.39 SET, is over 40,000 characters; kb/Work PB3523 item 6)",
+          sizes[longest] <= CLAUSE_BUDGET + overhead and max(len(b) for _t, b in bodies.values()) > 40000, (longest, sizes[longest]))
+    set_text = seed_text("14.9.39", *bodies["14.9.39"])
+    occurs = seed_text("13.18.38", *bodies["13.18.38"])
+    check("seed: a clause over the budget keeps its formats and its syntax rules ahead of its general rules, says where it cut, and names what it omitted (14.9.39 SET's fifteen formats take at most two thirds; 13.18.38 OCCURS keeps syntax rule 1)",
+          set_text.count("Format ") >= 2 and "Syntax rules" in set_text and CUT_MARK in set_text and "omitted to fit the prompt" in set_text
+          and "General formats" in occurs and "The OCCURS clause shall not be specified in a data description entry that" in occurs
+          and occurs.index("Syntax rules") < len(occurs) and ("General rules" not in occurs or occurs.index("General rules") > occurs.index("Syntax rules")),
+          (set_text[-300:], occurs[-300:]))
+    short = "#### 14.9.99 FOO statement\n##### 14.9.99.1 General\n" + "intro " * 30 + "\n##### 14.9.99.2 General format\nFOO <u>BAR</u> x\n##### 14.9.99.3 Syntax rules\n1\\) rule\n##### 14.9.99.4 General rules\n" + "g " * 40
+    foo = clauses(short, ("14.9",))[0]
+    whole, cut = seed_text(*foo), seed_text(*foo, budget=100)
+    order = [whole.find(s) for s in ("General", "intro", "General format", "FOO BAR x", "Syntax rules", "1) rule", "General rules", "g g")]
+    check("seed: a clause within the budget is whole, cleaned and in the spec's order; one over it keeps its format and syntax rules and names the parts it omitted",
+          whole.startswith("Clause 14.9.99 FOO statement\n\nGeneral") and -1 not in order and order == sorted(order)
+          and "<u>" not in whole and "1\\)" not in whole
+          and "FOO BAR x" in cut and "1) rule" in cut and "intro" not in cut and "g g" not in cut
+          and cut.endswith("[General, General rules: omitted to fit the prompt]"), (whole, cut))
+    budget_facts = PromptFacts.read(SPEC.read_text(encoding="utf-8"), CONFORMANCE.read_text(encoding="utf-8"))
+    check("budget: the longest system prompt and the longest clause, at a conservative 2.5 characters a token, leave the reply's NUM_PREDICT and three corrections of 1,500 tokens inside NUM_CTX",
+          (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES) + sizes[longest]) / 2.5 + NUM_PREDICT + 3 * 1500 <= NUM_CTX,
+          (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES), sizes[longest]))
     check("cut off: the reason names the thinking that spent the output cap when the content is empty, the cap alone otherwise",
           "spent all" in cut_off_reason("length", 28259, 0) and "think=false" in cut_off_reason("length", 28259, 0)
           and cut_off_reason("length", 0, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
@@ -1024,18 +1565,33 @@ def self_test() -> int:
           classify(Observation(None, None, "", [], runner_error="did not start"), gnu_no) == "RUNNER_ERROR")
     check("signature: a THEY_REJECT groups by clause", signature("THEY_REJECT", "15.42", ok_run) == "THEY_REJECT:15.42")
     cascade = "\n".join([f"x.cob:{k}: error: syntax error, unexpected Identifier" for k in range(3, 20)] + ["x.cob:1: note: hint"])
-    ask = repair_request(cascade, "y.cob(4,1): error COBOLNET2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOLNET1625: VALUE")
+    refused = "\n".join(f"LINE-{k}" for k in range(1, 30))
+    ask = repair_request(cascade, "y.cob(4,1): error COBOLNET2993: the unary operator — ISO §8.7.1\ny.cob(5,1): error COBOLNET1625: VALUE", refused)
     check("repair: the correction quotes GnuCOBOL's first errors only (the cascade is cut) and WiseOwl's cited errors, and keeps the clause under test",
           ask.count("unexpected Identifier") == REPAIR_GNU_LINES and "note: hint" not in ask and "COBOLNET2993" in ask
           and "ISO/IEC 1989" in ask and "do not drop the clause under test" in ask, ask)
     check("repair: without a WiseOwl diagnostic the correction names GnuCOBOL alone",
-          "second standard-conforming compiler" not in repair_request("x.cob:3: error: bad", ""))
-    ex_lines = EXAMPLE_PROGRAM.splitlines()
-    check("prompt: the example program obeys the rules it illustrates (free format from column 1, under 80 lines, PROGRAM-ID FUZZ, DISPLAY, STOP RUN, every END- word) and extracts as a program",
-          all(line and line[0] != " " for line in ex_lines) and len(ex_lines) < 80 and "PROGRAM-ID. FUZZ." in ex_lines
-          and any(line.startswith("DISPLAY") for line in ex_lines) and ex_lines[-1] == "STOP RUN."
-          and {"END-PERFORM", "END-COMPUTE", "END-IF"} <= set(ex_lines) and extract_program("```cobol\n" + EXAMPLE_PROGRAM + "```") == EXAMPLE_PROGRAM,
-          ex_lines)
+          "second standard-conforming compiler" not in repair_request("x.cob:3: error: bad", "", refused))
+    check("repair: each diagnostic is followed by the source line it names, GnuCOBOL's file:line and WiseOwl's file(line,column) alike; a line past the program or no line quotes nothing (kb/Work PB3523 item 2)",
+          "x.cob:3: error: syntax error, unexpected Identifier\n    > line 3: LINE-3" in ask and "    > line 8: LINE-8" in ask
+          and "    > line 9: LINE-9" not in ask and "COBOLNET2993: the unary operator — ISO §8.7.1\n    > line 4: LINE-4" in ask
+          and "COBOLNET1625: VALUE\n    > line 5: LINE-5" in ask and "smallest change" in ask
+          and with_source(["x.cob:99: error: past the end", "error: no line"], refused) == "x.cob:99: error: past the end\nerror: no line"
+          and diagnostic_line("fz00609.cob(24,4): error COBOLNET2072: x") == 24 and diagnostic_line("fz00609.cob:18: error: x") == 18
+          and diagnostic_line("cobc: error: x") is None, ask)
+    for family, example in EXAMPLES.items():
+        ex_lines = example.splitlines()
+        check(f"prompt: the {family} example obeys the rules it illustrates (free format from column 1, under 80 lines, PROGRAM-ID FUZZ, DISPLAY, STOP RUN, every IF closed by END-IF, the 2014 edition's functions only) and extracts as a program",
+              all(line and line[0] != " " for line in ex_lines) and len(ex_lines) < 80 and "PROGRAM-ID. FUZZ." in ex_lines
+              and any(line.startswith("DISPLAY") for line in ex_lines) and ex_lines[-1] == "STOP RUN."
+              and sum(line.startswith("IF ") for line in ex_lines) == ex_lines.count("END-IF")
+              and set(re.findall(r"FUNCTION ([A-Z][A-Z0-9-]*)", example)) <= set(spec_functions(SPEC.read_text(encoding="utf-8")))
+              and extract_program("```cobol\n" + example + "```") == example, ex_lines)
+    check("prompt: one example per family, and every family FAMILIES names has one",
+          set(EXAMPLES) == {f for _p, f in FAMILIES} | {DEFAULT_FAMILY} == {"statement", "data", "function", "expression"})
+    check("families: a clause's family is its first matching prefix, whole components only (8.40 is not under 8.4), a statement's otherwise",
+          [family_of(n) for n in ("13.18.38", "8.5.1.6", "14.9.37", "14.6.9", "15.66", "8.8.4.2.5", "8.4.3", "8.40", "12.4.5")]
+          == ["data", "data", "statement", "statement", "function", "expression", "expression", "statement", "statement"])
     fns = spec_functions("### 15.6 Summary of functions\n### 15.7 ABS function\n#### 15.7.1 General\n### 15.84 TRIM function\n### 15.85 Something else\n")
     check("prompt: the standard's functions are read from the 15.n function headings (15.6's summary and a sub-clause are not functions)",
           fns == ["ABS", "TRIM"], fns)
@@ -1057,7 +1613,48 @@ def self_test() -> int:
     check("prompt: the spec defines REVERSE, HIGHEST-ALGEBRAIC and NUMVAL-F and none of the names the bake-off's models invented (TRANSLATE, NATIONAL, SUBSTRING, YEAR)",
           {"REVERSE", "HIGHEST-ALGEBRAIC", "NUMVAL-F"} <= set(real) and not {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"} & set(real)
           and len(real) > 80, (len(real), sorted(set(real) & {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"})))
-    sp = system_prompt(real, (added_fns, added_sts))
+    added_words = added_reserved_words(spec_text)
+    reserved = reserved_words(spec_text)
+    conformance_text = CONFORMANCE.read_text(encoding="utf-8")
+    facts = PromptFacts.read(spec_text, conformance_text)
+    prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
+    sp = prompts["statement"]
+    check("prompt: the facts are the spec's and the conformance claim's (the functions, the 2023 additions, the declined modules), and every family's prompt names the declined modules",
+          facts.functions == real and facts.added == (added_fns, added_sts) and facts.added_words == added_words
+          and facts.changes == edition_changes(spec_text) and all("not in 2014 either, so never use them: " + "; ".join(facts.changes) in p for p in prompts.values())
+          and "ACCEPT/DISPLAY screen handling" in facts.declined and "VALIDATE" in facts.declined
+          and all("never use them: " + "; ".join(facts.declined) in p for p in prompts.values()), facts.declined)
+    changes = edition_changes(spec_text)
+    check("edition: the Foreword's list of the 2023 changes is read up to its function sub-list: LINE SEQUENTIAL, PERFORM UNTIL EXIT and INSPECT BACKWARD are in it, the sub-list's heading and the functions (TRIM, only enhanced, among them) are not",
+          {"Line Sequential file organization", "Infinite loop for the PERFORM statement using the UNTIL EXIT phrase",
+           "An Enhanced INSPECT statement to inspect backwards", "Boolean exclusive or operators"} <= set(changes)
+          and not any("function" in c.lower() or c.endswith(":") for c in changes) and len(changes) > 15
+          and edition_changes("x\n" + FOREWORD_CHANGES + "\n- — Group:\n  - — Alpha thing\n— Beta thing\n- — " + FOREWORD_FUNCTIONS
+                              + "\n    — GAMMA function\n— Delta\n") == ["Alpha thing", "Beta thing"], changes)
+    declined_titles = declined_seed_titles(spec_text, conformance_text)
+    every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
+    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE) stay",
+          {"BLINK clause", "UNDERLINE clause", "REQUIRED clause", "BLANK clause", "VALIDATE statement", "VALIDATE-STATUS clause",
+           "DEFAULT clause", "COMMIT statement", "ROLLBACK statement", "FORMAT clause", "SELECT WHEN clause"} <= declined_titles
+          and not {"ACCEPT statement", "SET statement", "COLUMN clause", "PAGE clause", "REWRITE statement", "WRITE statement",
+                   "VALUE clause", "OCCURS clause", "DISPLAY statement"} & declined_titles
+          and declined_titles <= every_title, sorted(declined_titles - every_title))
+    fixture_spec = ("#### A.4.2 Screens\n1\\) ACCEPT statement, format 3: screen (14.9.1)\n2\\) BLINK clause (13.18.9)\n"
+                    "#### A.4.3 Commit\n4\\) COMMIT statement 14.9.7\n#### A.4.4 Tables\n1\\) OCCURS clause (13.18.38)\n#### A.5 Other\n3\\) FOO clause (1.2)\n")
+    fixture_claim = ("| A.4.2 | Screens | Not claimed | x |\n| A.4.3 | Commit | **Not claimed** | x |\n| A.4.4 | Tables | **Claimed** | x |\n")
+    check("seeds: the declined titles are read from the Annex A.4 items of the modules the claim declines, whole elements only, the parenthesized and the bare clause number alike, nothing past A.4",
+          declined_seed_titles(fixture_spec, fixture_claim) == {"BLINK clause", "COMMIT statement"}
+          and declined_modules(fixture_claim) == {"A.4.2": "Screens", "A.4.3": "Commit"},
+          declined_seed_titles(fixture_spec, fixture_claim))
+    check("edition: Annex E.2 item 25 names the sixteen words 2023 reserved, the last one (XOR) without its list marker, and §8.9 lists each",
+          added_words == ["B-SHIFT-L", "B-SHIFT-LC", "B-SHIFT-R", "B-SHIFT-RC", "COMMIT", "EDITING", "END-RECEIVE", "END-SEND",
+                          "EXCLUSIVE-OR", "FINALLY", "LOCATION", "MESSAGE-TAG", "RECEIVE", "ROLLBACK", "SEND", "XOR"]
+          and set(added_words) <= reserved, added_words)
+    check("prompt: every reserved word the prompt names as misused is in §8.9's list (the list has hundreds), and every family's prompt names them, the 2023 words, its own example and nothing unfilled",
+          set(MISUSED_RESERVED_WORDS) <= reserved and len(reserved) > 300
+          and all(", ".join(MISUSED_RESERVED_WORDS) in p and "the words B-SHIFT-L" in p and "XOR" in p and EXAMPLES[f] in p
+                  and not re.search(r"\{[a-z]+\}", p) for f, p in prompts.items()),
+          sorted(set(MISUSED_RESERVED_WORDS) - reserved))
     check("seeds: the environment-dependent functions' clauses are not seeds (their output cannot agree), every name is a function of the spec, and the prompt forbids each by name",
           set(NONDETERMINISTIC_FUNCTIONS) <= set(real) and not any(t.rsplit(" ", 1)[0] in NONDETERMINISTIC_FUNCTIONS for _n, t, _b in real_seeds if t.endswith(" function"))
           and all(f in sp for f in NONDETERMINISTIC_FUNCTIONS),
@@ -1067,7 +1664,7 @@ def self_test() -> int:
     check("cut off: a reply Ollama aborted for a repeating loop is the model's failure, named",
           "repeating loop" in cut_off_reason("aborted", 0, 0))
     check("prompt: the system prompt carries the example, every function of the edition, the 2023 additions as errors, no DELETE FILE rule, and nothing unfilled",
-          EXAMPLE_PROGRAM in sp and all(f in sp for f in real) and "{functions}" not in sp and "{added}" not in sp
+          EXAMPLES["statement"] in sp and all(f in sp for f in real) and "{functions}" not in sp and "{added}" not in sp
           and "FUNCTION CONCAT, FUNCTION CONVERT" in sp and "the DELETE FILE statement" in sp and "DELETE FILE it" not in sp
           and "HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM" in sp)
     check("classify: same output agrees", classify(ok_run, ok_run) == "AGREE")
@@ -1126,7 +1723,7 @@ def self_test() -> int:
             {"id": "fz00001", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
              "source": "programs/fz00001.cob", "model_seconds": 12,
              "we": {"compiled": True, "run_rc": 0, "output": "A\n1", "first_error": "", "codes": []}, "they": {"compiled": True, "output": "A\n2", "run_rc": 0}},
-            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 3},
+            {"id": "fz00002", "clause": "15.3", "title": "ABS", "verdict": "BOTH_REJECT", "model_seconds": 8, "repairs": 1, "stopped_early": True},
             {"id": "fz00003", "clause": "15.3", "title": "ABS", "verdict": "RUNNER_ERROR", "reason": "model: down"},
             {"id": "fz00004", "clause": "15.42", "title": "TRANSLATE", "verdict": "THEY_REJECT", "signature": "THEY_REJECT:15.42",
              "source": "programs/fz00004.cob", "model_seconds": 9, "repairs": 1,
@@ -1141,15 +1738,16 @@ def self_test() -> int:
              "we": {"output": "R=000125{" + chr(10) + "Q=1", "first_error": "", "codes": []}, "they": {"output": "R=+00012.50" + chr(10) + "Q=2", "run_rc": 0}}]
     rep = render_report(rows, Path("."))
     check("report: usable over judged programs only (the model's failures are BOTH_REJECT, NO_PROGRAM and BOTH_HANG), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line, the latitude rows under their own heading and not among the survivors",
-          "judged: 8 · usable: 5 (62% of judged; 1 of them after a repair round) · the model's failures: 3 · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
+          "judged: 8 · usable: 5 (62% of judged; 1 of them after a repair round) · usable on the first attempt: 4 (50% of judged) · "
+          "the model's failures: 3 (1 ended early on a repeated diagnostic) · GnuCOBOL alone refused (THEY_REJECT leads): 1" in rep
           and "| AGREE | 1 |" in rep and "### `OUTPUT_DIFFERS:14.9.25` × 2" in rep and "### `THEY_REJECT:15.42` × 1" in rep
           and "line 2: `Q=1` | `Q=2`" not in rep       # the group shows its FIRST row's lines (fz00001); fz00008 is listed in it
           and "- GnuCOBOL: `x.cob:9: error: FUNCTION 'TRANSLATE' unknown`" in rep
           and "line 2: `1` | `2`" in rep and "Runner errors: 1" in rep
           and "## Survivors: 3 programs in 2 signatures" in rep and "OUTPUT_LATITUDE:14.9.11" not in rep and "BOTH_HANG:14.9.28" not in rep
           and "## Display-form latitude: 1 programs (not survivors)" in rep and "- clause 14.9.11 (DISPLAY): 1 — fz00006" in rep, rep)
-    check("bake-off: the score is the usable share, with both-refuse and GnuCOBOL-alone counts beside it",
-          bake_off_score(rows) == (9, 5, 8, 3, 1, 9, 3), bake_off_score(rows))
+    check("bake-off: the score is the usable share, with both-refuse and GnuCOBOL-alone counts beside it, and the share usable on the first attempt (a repaired THEY_REJECT is usable, not first-attempt)",
+          bake_off_score(rows) == (9, 5, 8, 3, 1, 9, 3, 4), bake_off_score(rows))
     hang_row = {"id": "fz01771", "clause": "14.9.28", "title": "PERFORM", "verdict": "WE_HANG", "signature": "WE_HANG:14.9.28", "model_seconds": 9,
                 "we": {"compiled": True, "codes": [], "first_error": "", "run_rc": None, "crashed": False, "hung": True, "output": "", "runner_error": ""},
                 "they": {"compiled": True, "first_error": "", "run_rc": None, "hung": True, "output": "", "runner_error": ""}}
@@ -1228,26 +1826,67 @@ def self_test() -> int:
         shutil.rmtree(stale.parent, ignore_errors=True)
     check("observe_fresh: an earlier attempt's work directory is removed before the program is staged again (the first PB3488 bake-off lost 3 of 20 programs to FileExistsError)",
           staged == [False], staged)
-    # R1-1: a WiseOwl crash on a program GnuCOBOL refused ends the rounds as WE_CRASH; it is never sent back for a correction.
-    one_dir = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-one"
-    shutil.rmtree(one_dir, ignore_errors=True)
-    (one_dir / "programs").mkdir(parents=True)
-    calls: list[str] = []
-    saved_chat, saved_fresh = ollama_chat, observe_fresh
-    try:
-        globals()["ollama_chat"] = lambda *_a, **_k: (calls.append("model"), ("```cobol\nIDENTIFICATION DIVISION.\nPROCEDURE DIVISION.\nSTOP RUN.\n```", 1.0, "stop", 0))[1]
-        globals()["observe_fresh"] = lambda run, entry, name: (calls.append(run.name),
-                                                               Observation(False, 1, "x: error: syntax", []) if run.name == "they"
-                                                               else Observation(False, -1, "crash", [], crashed=True))[1]
-        fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True), out=one_dir,
-                                     programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
-                                     they=types.SimpleNamespace(name="they", work=one_dir / "t"), system_prompt="sys")
-        rec_crash = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
-    finally:
-        globals()["ollama_chat"], globals()["observe_fresh"] = saved_chat, saved_fresh
+    def stubbed_one(sides: dict[str, Any]) -> tuple[dict[str, Any], list[str], list[str]]:
+        """Fuzz._one over a stubbed model (one fixed program, line 4 "DISPLAY WS-X") and stubbed compilers: sides[name](k) is
+        that compiler's Observation of its k-th compile. Returns the row, the calls in order and every user message sent."""
+        one_dir = Path(__file__).resolve().parent.parent / "conformance-suite" / "results" / "self-test-one"
         shutil.rmtree(one_dir, ignore_errors=True)
-    check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost)",
-          rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0, (rec_crash.get("verdict"), calls))
+        (one_dir / "programs").mkdir(parents=True)
+        calls: list[str] = []
+        asked: list[str] = []
+        seen = {"they": 0, "we": 0}
+
+        def chat(_model: str, messages: list[dict[str, str]], _temperature: float) -> tuple[str, float, str, int]:
+            calls.append("model")
+            asked.append(messages[-1]["content"])
+            return "```cobol\nIDENTIFICATION DIVISION.\nPROGRAM-ID. FUZZ.\nPROCEDURE DIVISION.\nDISPLAY WS-X\nSTOP RUN.\n```", 1.0, "stop", 0
+
+        def fresh(run: Any, _entry: dict[str, Any], _name: str) -> Observation:
+            calls.append(run.name)
+            seen[run.name] += 1
+            return sides[run.name](seen[run.name])
+
+        saved_chat, saved_fresh = ollama_chat, observe_fresh
+        try:
+            globals()["ollama_chat"], globals()["observe_fresh"] = chat, fresh
+            fake = types.SimpleNamespace(s=types.SimpleNamespace(model="m", temperature=0.3, repairs=3, keep=True), out=one_dir,
+                                         programs=one_dir / "programs", we=types.SimpleNamespace(name="we", work=one_dir / "w"),
+                                         they=types.SimpleNamespace(name="they", work=one_dir / "t"),
+                                         system_prompts={family: f"sys {family}" for family in EXAMPLES})
+            row = Fuzz._one(fake, 0, "fz00000", "14.9.25", "MOVE statement", "body", 0, {"id": "fz00000"})  # type: ignore[arg-type]
+        finally:
+            globals()["ollama_chat"], globals()["observe_fresh"] = saved_chat, saved_fresh
+            shutil.rmtree(one_dir, ignore_errors=True)
+        return row, calls, asked
+
+    gnu_refuses = lambda k: Observation(False, 1, f"fz00000.cob:4: error: 'WS-X{k}' is not defined", [])  # noqa: E731
+    # R1-1: a WiseOwl crash on a program GnuCOBOL refused ends the rounds as WE_CRASH; it is never sent back for a correction.
+    rec_crash, calls, _asked = stubbed_one({"they": gnu_refuses, "we": lambda k: Observation(False, -1, "crash", [], crashed=True)})
+    check("run: a WiseOwl crash on a program GnuCOBOL refused is WE_CRASH after ONE round (review R1-1: it was sent back and lost), and no refusal round is recorded",
+          rec_crash["verdict"] == "WE_CRASH" and calls == ["model", "they", "we"] and rec_crash["repairs"] == 0
+          and rec_crash["repair_rounds"] == [], (rec_crash.get("verdict"), calls))
+    same = lambda k: Observation(False, 1, "fz00000.cob(4,1): error COBOLNET1639: 'WS-X' is not defined", ["COBOLNET1639"])  # noqa: E731
+    rec_same, calls, asked = stubbed_one({"they": gnu_refuses, "we": same})
+    check("run: a correction that draws the same first diagnostics from both compilers ends the rounds there, BOTH_REJECT and stopped_early, after one correction rather than three (kb/Work PB3523 item 4)",
+          rec_same["verdict"] == "BOTH_REJECT" and rec_same.get("stopped_early") is True and rec_same["repairs"] == 1
+          and calls == ["model", "they", "we"] * 2, (rec_same.get("verdict"), rec_same.get("stopped_early"), calls))
+    check("run: each refusal round is recorded on the row with WiseOwl's first code and message and GnuCOBOL's first error, and the row names its seed family (kb/Work PB3523 item 3)",
+          rec_same["repair_rounds"] == [{"round": k, "code": "COBOLNET1639", "message": "fz00000.cob(4,1): error COBOLNET1639: 'WS-X' is not defined",
+                                         "gnucobol": f"fz00000.cob:4: error: 'WS-X{k + 1}' is not defined"} for k in (0, 1)]
+          and rec_same["family"] == "statement", rec_same["repair_rounds"])
+    check("run: the correction sent to the model quotes the refused source line beside each compiler's diagnostic (kb/Work PB3523 item 2)",
+          len(asked) == 2 and asked[1].count("    > line 4: DISPLAY WS-X") == 2, asked[1:])
+    changing = lambda k: Observation(False, 1, f"fz00000.cob({k},1): error COBOL000{k}: unexpected", [f"COBOL000{k}"])  # noqa: E731
+    rec_changing, calls, _asked = stubbed_one({"they": gnu_refuses, "we": changing})
+    check("run: a program whose first diagnostic changes every round keeps the whole budget of three corrections (four rounds recorded, not stopped early)",
+          rec_changing["verdict"] == "BOTH_REJECT" and "stopped_early" not in rec_changing and rec_changing["repairs"] == 3
+          and calls == ["model", "they", "we"] * 4 and [r["code"] for r in rec_changing["repair_rounds"]] == ["COBOL0001", "COBOL0002", "COBOL0003", "COBOL0004"],
+          (rec_changing.get("verdict"), calls))
+    check("refusal key: GnuCOBOL's message family drops the file, the line, the quoted names and the numbers; WiseOwl's code must repeat too, and a broad code with a new GnuCOBOL family is a new error",
+          gnucobol_family("a.cob:4: error: 'WS-T' not indexed") == gnucobol_family("b.cob:19: error: 'X2' not indexed") == "error: '_' not indexed"
+          and refusal_key({"code": "COBOL0001", "message": "m", "gnucobol": "a.cob:3: error: syntax error, unexpected Identifier"})
+          != refusal_key({"code": "COBOL0001", "message": "m", "gnucobol": "a.cob:9: error: PROCEDURE DIVISION header missing"})
+          and refusal_key({"code": "", "message": "x.cob(3,1): error: boom", "gnucobol": "g"})[0] == "x.cob(3,1): error: boom")
     def boom(*_a: object) -> dict[str, Any]:
         raise FileNotFoundError("fz00002.cob")
     fake = types.SimpleNamespace(seed_for=lambda i: ("14.9.25", "MOVE statement", "body", 0), s=types.SimpleNamespace(model="m"), _one=boom)
@@ -1255,8 +1894,74 @@ def self_test() -> int:
     check("run: a harness failure inside one program is a RUNNER_ERROR row with its traceback, never the end of the run",
           rec["verdict"] == "RUNNER_ERROR" and rec["reason"].startswith("harness: FileNotFoundError") and "boom" in rec["traceback"]
           and rec["id"] == "fz00002", rec)
+    # The run cadence (kb/Work PB3523): a fixture register with one note of each kind that must and must not hold a run.
+    with tempfile.TemporaryDirectory() as td3:
+        reg = Path(td3)
+        for nid, status, tags, process_only in (("PB9001", "open", "[work, defect, fuzz]", "false"), ("PB9002", "landed", "[work, defect, fuzz]", "false"),
+                                                ("PB9003", "open", "[work, analysis, fuzz]", "true"), ("PB9004", "open", "[work, defect]", "false"),
+                                                ("PB9005", "owner", "[work, defect, fuzz]", "false"), ("PB9006", "retired", "[fuzz]", "false")):
+            (reg / f"{nid}.md").write_text(f'---\ntitle: "{nid} — a fixture note"\nid: {nid}\nkind: defect\nstatus: {status}\n'
+                                           f"process_only: {process_only}\ntags: {tags}\n---\n\n# {nid}\n", encoding="utf-8", newline="\n")
+        check("cadence: an open note tagged fuzz that is a compiler defect holds the next run, whatever its non-terminal status; a landed or retired one, a process-only one and an untagged one do not",
+              [it["id"] for it in open_fuzz_notes(reg)] == ["PB9001", "PB9005"], [it.get("id") for it in open_fuzz_notes(reg)])
+        missing = str(reg / "no-such-cobol.exe")
+        saved_work = WORK_DIR
+        outputs: dict[str, tuple[object, str]] = {}
+        try:
+            globals()["WORK_DIR"] = reg
+            for case, argv in (("run", ["--model", "m", "--count", "1", "--cobol", missing]),
+                               ("forced", ["--model", "m", "--hours", "8", "--cobol", missing, "--force-open-notes"]),
+                               ("bake-off", ["--bake-off", "m", "--count", "1", "--cobol", missing])):
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(io.StringIO()):
+                    try:
+                        got: object = main(argv)
+                    except SystemExit as e:     # argparse's error on the missing compiler: past the cadence
+                        got = f"exit {e.code}"
+                outputs[case] = (got, buf.getvalue())
+        finally:
+            globals()["WORK_DIR"] = saved_work
+        check("cadence: a run is REFUSED while such a note is open (exit EXIT_OPEN_NOTES, before anything starts), naming each note with its status",
+              outputs["run"][0] == EXIT_OPEN_NOTES and "REFUSED" in outputs["run"][1] and "PB9001 [open]" in outputs["run"][1]
+              and "PB9005 [owner]" in outputs["run"][1] and "PB9002" not in outputs["run"][1], outputs["run"])
+        check("cadence: --force-open-notes starts the run anyway (it reaches the compiler check) and still names every open note",
+              outputs["forced"][0] == "exit 2" and "--force-open-notes: starting despite" in outputs["forced"][1]
+              and "PB9001" in outputs["forced"][1] and "PB9005" in outputs["forced"][1], outputs["forced"])
+        check("cadence: a bake-off is not a run and is never refused", outputs["bake-off"][0] == "exit 2" and outputs["bake-off"][1] == "",
+              outputs["bake-off"])
     print("self-test " + ("PASSED" if rc == 0 else "FAILED"))
     return rc
+
+
+# ── the run cadence ───────────────────────────────────────────────────────────────────────────────────────────────────
+
+#: The register a run reads (the self-test points it at a fixture directory).
+WORK_DIR = REPO / "kb" / "Work"
+#: The exit status of a run refused by the cadence (argparse's own errors exit 2).
+EXIT_OPEN_NOTES = 3
+
+
+def open_fuzz_notes(work_dir: Path) -> list[dict[str, Any]]:
+    """The notes that hold the next run (the owner's rule in the module docstring, kb/Work PB3523): tagged `fuzz`, not
+    `process_only` (a compiler defect, not a note about the harness), and open: any status the register does not call
+    terminal (`work.TERMINAL_STATUSES`, the register's one vocabulary for DONE, kb/Work PB3196), so a note waiting on the
+    owner or blocked still holds the run."""
+    import work  # scripts/spec, on sys.path above
+    return [it for it in work.load(work_dir) if "fuzz" in (it.get("tags") or []) and it.get("process_only") is not True
+            and it.get("status") not in work.TERMINAL_STATUSES]
+
+
+def cadence_gate(work_dir: Path, force: bool) -> bool:
+    """True when a run may start: no note holds it, or `force` (`--force-open-notes`). Either way every holding note is
+    printed with its status and title, so an overridden start is never a silent one."""
+    holding = open_fuzz_notes(work_dir)
+    if not holding:
+        return True
+    print(f"{'--force-open-notes: starting despite' if force else 'REFUSED: the run cadence holds this run;'} "
+          f"{len(holding)} open kb/Work note(s) from an earlier fuzz run (fix and land them on main, rebuild the judge, then run):")
+    for it in holding:
+        print(f"  {it.get('id', it.get('_file'))} [{it.get('status')}] {str(it.get('title', ''))[:140]}")
+    return force
 
 
 # ── main ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -1278,6 +1983,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--out", help="the run directory (default conformance-suite/results/fuzz-<stamp>)")
     ap.add_argument("--keep", action="store_true", help="keep every program's working directories")
     ap.add_argument("--report", help="re-render DIR/report.md from DIR/results.jsonl and exit")
+    ap.add_argument("--force-open-notes", action="store_true",
+                    help="start a run although kb/Work notes from an earlier fuzz run are open (they are listed)")
     ap.add_argument("--self-test", action="store_true")
     a = ap.parse_args(argv)
     if a.self_test:
@@ -1289,6 +1996,8 @@ def main(argv: list[str]) -> int:
         ap.error("--model or --bake-off is required")
     if a.count is None and a.hours is None:
         ap.error("--count or --hours is required")
+    if not a.bake_off and not cadence_gate(WORK_DIR, a.force_open_notes):
+        return EXIT_OPEN_NOTES
     if not Path(a.cobol).exists():
         ap.error(f"compiler not found: {a.cobol} (build src/Cobol.Net.Cli first, or pass --cobol)")
     out = Path(a.out) if a.out else SUITE / "results" / f"fuzz-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
