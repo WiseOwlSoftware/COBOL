@@ -87,6 +87,14 @@ def load_committed(path: pathlib.Path = COMMITTED) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def required_contexts(committed: dict) -> tuple[str, ...]:
+    """The status-check contexts the committed ruleset requires on main (`required_status_checks`): the checks a pull
+    request must pass before auto-merge hands it to the merge queue (queue_facts.py reads their check-runs)."""
+    rules = {r.get("type"): r.get("parameters", {}) for r in committed["ruleset"]["rules"]}
+    return tuple(c["context"] for c in rules.get("required_status_checks", {}).get("required_status_checks", [])
+                 if c.get("context"))
+
+
 def merge_commit_pair_problem(repository: dict) -> str:
     """"" when the repository settings name a merge-commit pair GitHub accepts (VALID_MERGE_COMMIT_PAIRS), else what
     is wrong, in GitHub's terms."""
@@ -396,12 +404,11 @@ def self_test() -> int:
            f"refused={refused} rc={rc_create} created={created} updated={updated}")
 
     rules = {r["type"]: r.get("parameters", {}) for r in want["ruleset"]["rules"]}
-    checks = rules.get("required_status_checks", {}).get("required_status_checks", [])
     expect("the committed ruleset requires a pull request, the merge queue with a merge commit and ci-gate, with no bypass",
            want["ruleset"]["enforcement"] == "active" and want["ruleset"]["bypass_actors"] == []
            and want["ruleset"]["conditions"]["ref_name"]["include"] == ["refs/heads/main"]
            and "pull_request" in rules and rules.get("merge_queue", {}).get("merge_method") == "MERGE"
-           and [c.get("context") for c in checks] == ["ci-gate"]
+           and required_contexts(want) == ("ci-gate",)
            and want["repository"].get("allow_auto_merge") is True, json.dumps(rules))
 
     expect("the committed repository settings name a merge-commit pair GitHub accepts",

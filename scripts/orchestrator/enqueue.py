@@ -110,6 +110,10 @@ EXIT_UNREVIEWED = 11
 # about once per landing the queue merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
 VERDICT = "=== ENQUEUE: "
+# The line `queue` prints once the pull request is queued, and its one reader (land_lane.py records the number, so its
+# queue watch can follow the pull request into the merge queue: kb/Work PB3527).
+QUEUED = "ENQUEUED pr={number} sha={sha} branch={branch} url={url}"
+QUEUED_LINE = re.compile(r"^ENQUEUED pr=(?P<pr>\d+) sha=(?P<sha>\S+) branch=(?P<branch>\S+) url=(?P<url>\S+)\s*$")
 # The lanes MANDATORY-PRACTICES I10 does not review: they write no fix-lane report, change no compiled program's source
 # (the registrar's and the clerk's notes; the golden lane's spec-derived goldens, which the gate runs), and their briefs
 # name themselves with `land --lane <lane>`. Every other branch lands only under a CLEAN review stamp (review_gate).
@@ -273,7 +277,7 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
         say(f"⛔ enqueue: gh pr merge --auto #{number} failed (exit {rc}): {(out + err).strip()} — the pull request is "
             "open but NOT queued; re-run once the cause is fixed.")
         return EXIT_GITHUB
-    say(f"ENQUEUED pr={number} sha={sha} branch={branch} url={url}")
+    say(QUEUED.format(number=number, sha=sha, branch=branch, url=url))
     # 5. Measure it (kb/Work PB3028). The pull request IS queued: a record that cannot be written is a loud warning,
     # never a failed landing and never silence.
     if measure is not None:
@@ -283,6 +287,34 @@ def queue(cwd: pathlib.Path, title: str, body_file: str, *, gh: Gh, state: Calla
             say(f"⚠ enqueue: PR #{number} is queued but its landing record was NOT written ({e}); record it with "
                 f"`python scripts/orchestrator/landing_measure.py record --pr {number} --branch {branch}`")
     return 0
+
+
+# ── the queue watch's remedies (kb/Work PB3527) ──────────────────────────────────────────────────────────────────
+# The landing lane's queue watch (land_lane.py) follows each pull request this script queued into GitHub's merge queue
+# and, when one is not in it past the grace, applies these, one per stalled read: they live HERE because this is the
+# only file that queues a pull request (LandingPipelineDriftTests), behind the same ACTIVE guard as `queue`.
+def rerun_check(repo: str, run_id: int, *, gh: Gh) -> tuple[bool, str]:
+    """Re-run the workflow run whose required check-run is stuck (its job completed, its check-run never resolved, PR
+    #385 on 2026-10-22): the re-run reports a fresh check-run on the same head commit. (ok, what GitHub said)."""
+    rc, out, err = gh(["run", "rerun", str(run_id), "-R", repo])
+    return rc == 0, (out + err).strip() or f"gh run rerun {run_id}: exit {rc}"
+
+
+def requeue(repo: str, number: int, *, gh: Gh, state: Callable[[], tuple[str, str]]) -> tuple[bool, str]:
+    """Close and reopen the pull request (GitHub re-evaluates its head commit and runs its pull-request checks again)
+    and queue it again with auto-merge, as `queue` does: what cleared PR #385 when a re-run did not. Refused, touching
+    nothing, while the merge queue is not ACTIVE (queue's guard). (ok, what happened)."""
+    st, detail = state()
+    if st != ruleset.ACTIVE:
+        return False, f"the merge queue is not ACTIVE (ruleset: {st} — {detail}): nothing closed or re-queued"
+    for verb in ("close", "reopen"):
+        rc, out, err = gh(["pr", verb, str(number), "-R", repo])
+        if rc != 0:
+            return False, f"gh pr {verb} #{number} failed (exit {rc}): {(out + err).strip()}"
+    rc, out, err = gh(["pr", "merge", str(number), "--auto", "-R", repo])
+    if rc != 0 and "already" not in (out + err).lower():
+        return False, f"#{number} reopened but gh pr merge --auto failed (exit {rc}): {(out + err).strip()}"
+    return True, f"#{number} closed, reopened and queued again with auto-merge"
 
 
 # ── land: the whole step for one branch ─────────────────────────────────────────────────────────────────────────
@@ -665,6 +697,40 @@ def self_test() -> int:
                                 say=lines.append))
         expect("GitHub's refusal of the pull request list, the pull request or the queue is exit 9, never 0",
                fails9 == [EXIT_GITHUB] * 3, str(fails9))
+
+        # The queue watch's remedies (kb/Work PB3527): a re-run of the stuck check's workflow run, then close, reopen and
+        # auto-merge again, behind queue's own ACTIVE guard; every call names the repository.
+        def remedy_gh(log: list[list[str]], fail: str = "", merge_says: str = "") -> Gh:
+            def gh(args: list[str]) -> tuple[int, str, str]:
+                log.append(list(args))
+                if fail and args[:2] == ["pr", fail]:
+                    return 1, "", f"refused ({fail})"
+                if args[:2] == ["pr", "merge"] and merge_says:
+                    return 1, "", merge_says
+                return 0, "", ""
+            return gh
+        rlog: list[list[str]] = []
+        ok_rerun = rerun_check("o/r", 39834070835, gh=remedy_gh(rlog))
+        qlog: list[list[str]] = []
+        ok_requeue = requeue("o/r", 385, gh=remedy_gh(qlog), state=active)
+        idle: list[list[str]] = []
+        refused = requeue("o/r", 385, gh=remedy_gh(idle), state=lambda: (ruleset.DRIFT, "x"))
+        closefail: list[list[str]] = []
+        stopped = requeue("o/r", 385, gh=remedy_gh(closefail, fail="close"), state=active)
+        already = requeue("o/r", 385, gh=remedy_gh([], merge_says="pull request is already queued"), state=active)
+        expect("the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
+               "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
+               "failed close stops before anything else (kb/Work PB3527)",
+               ok_rerun[0] and rlog == [["run", "rerun", "39834070835", "-R", "o/r"]]
+               and ok_requeue[0] and [a[:3] for a in qlog] == [["pr", "close", "385"], ["pr", "reopen", "385"],
+                                                               ["pr", "merge", "385"]]
+               and qlog[2][3] == "--auto" and all(a[-2:] == ["-R", "o/r"] for a in qlog)
+               and not refused[0] and not idle and not stopped[0] and len(closefail) == 1 and already[0],
+               f"{ok_rerun} {rlog} {ok_requeue} {qlog} {refused} {idle} {stopped} {closefail} {already}")
+        m = QUEUED_LINE.match(QUEUED.format(number=17, sha="ab12", branch="fix", url="https://github.com/o/r/pull/17"))
+        expect("the queued line `queue` prints is the one its reader parses (the lane records the pull request's number)",
+               bool(m) and m.group("pr") == "17" and m.group("branch") == "fix"
+               and any(QUEUED_LINE.match(ln) for ln in lines), str(m))
 
         seen_m: list[tuple[str, int]] = []
 

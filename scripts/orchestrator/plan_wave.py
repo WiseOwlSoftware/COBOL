@@ -763,7 +763,7 @@ class InFlight:
 
 #: The branch survey's lifecycle states (prune_worktrees.lifecycle, MANDATORY-PRACTICES O10) of FINISHED work: a
 #: finished report covers the tip and nobody is working on it, so a group on its files continues it (merges it first).
-CONTINUED_STATES = ("WAITING FOR REVIEW", "WAITING TO LAND", "ENQUEUED")
+CONTINUED_STATES = ("WAITING FOR REVIEW", "WAITING TO LAND", "ENQUEUED", "NOT QUEUED")
 #: ... and the state whose work is on main already: nothing in flight.
 GONE_STATES = ("LANDED",)
 
