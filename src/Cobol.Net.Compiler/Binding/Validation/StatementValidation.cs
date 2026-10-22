@@ -1128,7 +1128,7 @@ internal sealed class StatementValidation(DataBinder data)
         // the superimposition. Its DigitPositions is 0 anyway, so inclusion would contribute nothing.
         static bool InComposite(PicInfo p) =>
             p is { Category: PicCategory.Numeric or PicCategory.NumericEdited, IsFloat: false, IsFloatEdited: false }
-            && p.Usage is not (Usage.BinaryChar or Usage.BinaryShort or Usage.BinaryLong or Usage.BinaryDouble);
+            && !UsageFamilies.IsFixedWidthBinary(p.Usage);
         void OfExpr(BoundExpr e)
         {
             switch (e)

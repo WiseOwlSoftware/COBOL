@@ -588,7 +588,7 @@ the keyword is not reserved (an older edition, `--permissive`), and it deliberat
 — and BIT and NATIONAL are also bare USAGE keywords, so `01 P USAGE POINTER BIT.` bound BIT as a type-name. That
 was MEASURED, not reasoned: a first cut dropped the guard after PROPERTY (gated) proved safe without it, and the
 drift test then failed on BIT; a second cut that excluded only clause-LEADING words then let
-`USAGE POINTER HIGH-ORDER-RIGHT` bind the endianness phrase (UsageFloatFormatPhraseDriftTests caught it). So the
+`USAGE POINTER HIGH-ORDER-RIGHT` bind the endianness phrase (UsageClausePhraseDriftTests caught it). So the
 TO-less arm is `{pointerOperandHere()}? cobolWord`, a LEFT-EDGE predicate (`CobolParserCoreBase`) refusing any
 token in FOLLOW(`usageKeyword`) — the USAGE tail phrases and whatever may follow the clause — **computed off the
 generated ATN** (`UsageFollowSet`, a context-free FOLLOW over every call site) — never a hand list, so a clause or
