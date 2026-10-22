@@ -66,7 +66,7 @@ internal static class TrackedTree
 /// tools' roots): the index then names the sweep for a file it skips, and never misses a file it reads.
 /// </para>
 /// </summary>
-internal sealed record TreeScope(string[] Under, string[]? Except = null, string[]? Kinds = null)
+internal sealed record TreeScope(IReadOnlyList<string> Under, IReadOnlyList<string>? Except = null, IReadOnlyList<string>? Kinds = null)
 {
     /// <summary>Whether the repo-root-relative <paramref name="path"/> is in the scope: the one filter, applied to the
     /// tracked tree by <see cref="TrackedTree.Files"/> and to a planted tree by a sweep's failure-branch test.</summary>
