@@ -1,4 +1,4 @@
-## The fuzz generator's prompt rebuilt and measured: first-attempt validity did not move; repeated errors now stop early and declined modules are no longer seeds (PB3523)
+## Entry 2364 — 2026-10-22 14:24 PDT — The fuzz generator's prompt rebuilt and measured: first-attempt validity did not move; repeated errors now stop early and declined modules are no longer seeds (PB3523)
 
 PB3523 asked for a prompt that makes the local model write correct COBOL at the first attempt. On the second fuzz night,
 47 % of the programs were refused by both compilers, and every one of them used all three repair rounds. The note's
@@ -51,3 +51,4 @@ as the diagnostic and fed the early stop (3 of the bake-off's 344 rounds, 19 of 
 page's: `sweep_figures.py` generates the transcription's general formats from the PDF, and the one it misdraws
 (§13.18.35.2 Format 1, whose `--check` drift is a lead) was re-drawn by hand from the rendered page under PB1221. Only
 the docstring that says so changed.
+
