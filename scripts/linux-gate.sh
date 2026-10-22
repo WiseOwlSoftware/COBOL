@@ -249,7 +249,8 @@ guard_leg() {
   # audit, the baseline check and the guard's own self-tests — the one CI Linux job that runs a SCRIPT rather than
   # `dotnet test`, so it was the one no local gate ran. Train 1013's CI red on PB322's TERMINATES rows was invisible to
   # every local leg. Its scratch is private to this clone (guard-fast.sh's own mktemp directory and every
-  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). Its own `dotnet build` of the CLI is up to date after the ONE build.
+  # group's lie under TMPDIR, and implementers run this gate concurrently; kb/Work PB2922). Its own `dotnet build` of
+  # the CLI is up to date after the ONE build (a second build of the tree is a no-op, kb/Work PB3529).
   # ⛔ The scratch lies BESIDE the clone, never inside it (kb/Work PB2989): `selftests-built` runs at the same time and
   # keys its inputs by every untracked file of the clone (scripts/self_test_inputs.py), so a guard temp file listed by
   # `git ls-files -o` and deleted before `git hash-object` read it made that leg NOT RUN (train 1056b, 2026-10-11).
@@ -295,6 +296,14 @@ start=$(date +%s)
 ( cd "$snap" && "${nice_prefix[@]}" dotnet build Cobol.Net.sln -c Debug ) > "$out/build.log" 2>&1
 brc=$?
 echo "linux-gate: ONE build of Cobol.Net.sln in $(( $(date +%s) - start ))s (rc=$brc); the legs run in parallel against it"
+# THE ONE BUILD IS FINAL (kb/Work PB3529). The legs run the CLI while the guard leg's own `dotnet build` of it runs, which
+# is safe only while a second build of the tree is a no-op. A fresh clone's second build once recompiled the frontend
+# and everything above it (the generated parser joined Compile after the SDK hashed it), replacing the `cobol` apphost
+# while the conformance leg ran it: "No such file or directory", "Text file busy". The fix is the build's own
+# (Cobol.Net.Frontend.csproj, AntlrGenerationDriftTests); this fingerprint of the CLI's output names a recurrence as
+# itself instead of as a red in whichever leg ran the binary at that moment.
+cli_fingerprint() { find "$snap/src/Cobol.Net.Cli/bin" -type f -printf '%i %T@ %P\n' 2>/dev/null | sort; }
+cli_before="$(cli_fingerprint)"
 if [ $brc -ne 0 ]; then
   echo "linux-gate: the Linux BUILD failed; see TestResults/linux-gate/build.log"
   grep -E ' error ' "$out/build.log" | sort -u | head -10 | sed 's/^/    /'
@@ -339,6 +348,12 @@ for leg in "${order[@]}"; do
   esac
 done
 [ $brc -ne 0 ] && bad="$bad build"
+if [ $brc -eq 0 ] && [ "$(cli_fingerprint)" != "$cli_before" ]; then
+  echo "build: RED — the CLI's output changed after the ONE build while the legs ran (a second build of the same tree" \
+       "was not a no-op, kb/Work PB3529); a leg that ran the CLI meanwhile may have failed for that alone. Changed:"
+  diff <(printf '%s\n' "$cli_before") <(cli_fingerprint) | grep -E '^[<>]' | head -10 | sed 's/^/    /'
+  bad="$bad build-rewritten"
+fi
 
 state_after="$(repo_state)"
 if [ "$state_after" != "$state_before" ]; then
