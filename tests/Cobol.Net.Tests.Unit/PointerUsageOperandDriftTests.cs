@@ -26,7 +26,7 @@ namespace CobolNet.Tests.Unit;
 /// NATIONAL are also bare USAGE keywords (this test caught <c>USAGE POINTER BIT</c> binding BIT as a type-name
 /// when the guard was briefly removed), and a first cut that excluded only the clause-leading words let
 /// <c>USAGE POINTER HIGH-ORDER-RIGHT</c> bind the endianness phrase as a type-name (caught by the Unit assembly's
-/// UsageFloatFormatPhraseDriftTests). So the per-word fact checks EVERY word that may follow a usage keyword and
+/// UsageClausePhraseDriftTests). So the per-word fact checks EVERY word that may follow a usage keyword and
 /// that <c>cobolWord</c> can match, at every edition, reserved there or not.</para>
 /// <para>The overlap fact flips the axis the subject holds fixed (feedback_probe_the_shape_the_subject_hides): it
 /// requires the overlap to be NON-EMPTY, so the per-word fact can never pass vacuously.</para>
