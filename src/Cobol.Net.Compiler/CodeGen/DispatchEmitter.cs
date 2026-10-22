@@ -106,7 +106,7 @@ internal sealed class DispatchEmitter(EmitContext ctx, DispatchState dispatchSta
             // implicit-GOBACK arm (§14.6.3; kb/Work PB3511) and never runs into the synthetic handlers. Every bounded
             // __RunUse / out-of-line PERFORM passes its own exit pc.
             int topExit = LastElementPc(bound);
-            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
+            w.Line($"try {{ __Dispatch({bound.EntryPc}, {topExit}); }} catch (ProgramReturn) {{ }}   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)");
         }
         w.Line();
         // The machinery also emits for a declarative-FREE program whose statements carry enabled EC-I-O checking

@@ -598,15 +598,22 @@ private static int Dispatch(int startPc, int exitPc) {
       default: pc = N; break;
     }
     if (atExit && pc == exitPc + 1) return pc;   // named THRU exit paragraph fell off its end
+    if (pc == LAST + 1) throw new ProgramReturn(); // past the element's last paragraph: the implicit GOBACK (§14.6.3)
   }
   return pc;
 }
-internal static void Main() { try { Dispatch(/*EntryParagraphIndex*/0, -1); } catch (StopRun) { } }
+// The activation's own call is bounded at the LAST paragraph, so its fall-off is the at-exit return, never the throw.
+public void __Activate() { try { Dispatch(/*EntryPc*/0, /*LAST*/N - 1); } catch (ProgramReturn) { } }
 ```
 
 This realizes the legacy's PROVEN **return-address / exit-bounded** dispatch in idiomatic C#.
 Control is followed by **pc value, never by physical block extent** — which is why inverted THRU ranges and
-GO-TO-out-of-and-back-into a PERFORM range are correct *for free*.
+GO-TO-out-of-and-back-into a PERFORM range are correct *for free*. A nested call (out-of-line PERFORM, SORT/MERGE
+procedure, `__RunUse`) whose range a GO TO left, or whose inverted THRU exit is never reached, can run past the
+source element's last paragraph without completing its range; that is the implicit GOBACK of §14.6.3, so it throws
+the element's return signal (`MethodReturn` in a method's `__MDispatch`) instead of returning `pc`, which the
+performer would read as its range completing (kb/Work PB3511; `LAST` is below a unit's appended Format-3 handler
+pcs, docs/CONFORMANCE.md D-PTHRU for the inverted THRU).
 
 ### 5.2 Statement → emission table
 
