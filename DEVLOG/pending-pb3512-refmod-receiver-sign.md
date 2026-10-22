@@ -47,4 +47,6 @@ ask `DataItem.OperandPic`, the as-if picture of §13.18.29.4 GR1 b) and GR2 b). 
 pinned the group-into-slice decode. The golden `pb3512_group_sender_national_bit_slice` (2002 through 2023) now covers
 an elementary national slice, a national group's slice, a whole national group, an elementary bit slice and a bit
 group's slice. `ReceivingStoreDriftTests` fails if a usage decision in the store reads raw `Pic` again. Batch
-`w1147c-PB3512-review-r1-group-into-national` adds both as witnesses to GR-14.9.25.4-4, which stays CONFORMS.
+`w1147c-PB3512-review-r1-group-into-national` adds both as witnesses to GR-14.9.25.4-4, which stays CONFORMS. The
+re-gate, run `20261022T181334Z-4eed94`, read `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN`, with
+the new golden passing at 2002, 2014 and 2023.
