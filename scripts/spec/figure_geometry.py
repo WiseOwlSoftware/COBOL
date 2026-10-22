@@ -54,6 +54,7 @@ MAX_VERT_W = 3.0      # ... and this thin
 MAX_HORZ_H = 3.0      # a horizontal rule is at most this thick
 FOOT_MIN, FOOT_MAX = 1.5, 9.0   # a bracket foot's length; longer means it is an underline
 TOL = 1.2             # coincidence tolerance for "touches the end of the stem"
+STROKE_EPS = 0.1      # how far a foot's anchored end may lie outside its stem's own stroke (measurement noise)
 
 
 def _load(page):
@@ -83,14 +84,16 @@ def _foot_side(v, horzs):
             continue                                  # too long: that is an underline under a required word
         if min(abs(h.y0 - v.y0), abs(h.y0 - v.y1), abs(h.y1 - v.y0), abs(h.y1 - v.y1)) > TOL:
             continue                                  # not at either end of the stem
-        # A foot is ANCHORED at its own stem and extends AWAY from it. Accepting a rule that merely touches
-        # either end of the stem let a CHOICE-INDICATOR BAR adopt the foot of the bracket beside it: on folio
-        # 503 the bracket's foot ends at 243.43 and the bar starts at 244.60, 1.17 pt away, so the bar was
-        # called a bracket and drew as a closing one in the middle of the group. Requiring the anchored end to
-        # be the NEAR one, and the far end to lie outside the stem, tells the two apart at any spacing.
-        if abs(h.x0 - v.x0) <= TOL and h.x1 > v.x1:
+        # A foot is ANCHORED IN its own stem's stroke and extends AWAY from it. Accepting a rule that merely
+        # touches either end of the stem let a CHOICE-INDICATOR BAR adopt the foot of the bracket beside it: on
+        # folio 503 the bracket's foot ends at 243.43 and the bar starts at 244.60, 1.17 pt away. Comparing the
+        # near end with the stem's edge within TOL was not enough either: SEND's bars (folio 726) stand 0.70 pt
+        # clear of the bracket's foot, whose end then fell within TOL of the bar's FAR edge (0.47 pt of stroke
+        # further), so both bars drew as brackets turned the wrong way — `[ ]  ON EXCEPTION …  [ ]` (kb/Work
+        # PB3530). A real foot's anchored end lies INSIDE its stem's stroke; a neighbour's foot never reaches it.
+        if v.x0 - STROKE_EPS <= h.x0 <= v.x1 + STROKE_EPS and h.x1 > v.x1:
             votes.append("L")                         # foot turns right: an opening bracket
-        elif abs(h.x1 - v.x1) <= TOL and h.x0 < v.x0:
+        elif v.x0 - STROKE_EPS <= h.x1 <= v.x1 + STROKE_EPS and h.x0 < v.x0:
             votes.append("R")                         # foot turns left: a closing bracket
     return max(set(votes), key=votes.count) if votes else None
 

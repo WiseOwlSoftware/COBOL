@@ -223,6 +223,11 @@ phrase and belong together.
   *touches* either end of a stem let a choice-indicator bar adopt the foot of the bracket beside it — on folio
   503 the bracket's foot ends at 243.43 and the bar begins at 244.60, 1.17 pt away, so the bar was called a
   bracket and drew a closing corner in the middle of the group. Four stems in the whole standard were affected.
+  "Anchored" means the foot's near end lies *inside the stem's own stroke*, not within a tolerance of its edge:
+  SEND's choice bars (folio 726) stand 0.70 pt clear of the bracket's foot, and that foot's end fell within the
+  1.2 pt coincidence tolerance of the bar's far edge, so both bars drew as brackets turned the wrong way
+  (`[ ] ON EXCEPTION … [ ]`). Measured over the whole standard, the stricter test changes those four bars and
+  nothing else in a general format (kb/Work PB3530).
 - **A hook brackets its content**: a delimiter's top piece maps onto the first row at or below it, its bottom
   piece onto the last row at or above it. Nearest-row snapping put the function-identifier's parentheses a row
   high, around an operand belonging to the brace beside them.

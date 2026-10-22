@@ -27137,9 +27137,9 @@ Format 1 (to-message-server)
 
 <u>RETURNING</u> data-name-1
 
-┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
 │ │                                         │ │
-└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
 
 <u>END-SEND</u>
 </pre>
@@ -27155,9 +27155,9 @@ Format 2 (message-server-response)
 │ <u>RAISING</u> ┤                            ├ │
 └         ╰ <u>LAST</u> EXCEPTION             ╯ ┘
 
-┌ ┐ ON <u>EXCEPTION</u> imperative-statement-1     ┌ ┐
+┌ │ ON <u>EXCEPTION</u> imperative-statement-1     │ ┐
 │ │                                         │ │
-└ ┘ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 └ ┘
+└ │ <u>NOT</u> ON <u>EXCEPTION</u> imperative-statement-2 │ ┘
 
 <u>END-SEND</u>
 </pre>
