@@ -32,3 +32,11 @@ batch w1147b-pb3511-implicit-goback-witnesses adds them to GR-14.6.3-3 and GR-14
 
 Gate (run 20261022T175037Z-912edc): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515): GREEN — leg 2 left to
 CI's whole-population run ===`, with all six goldens Passed at 2002 (2023 for the Format-3 case) in leg 1.
+
+Branch review round 1 (finding R1-1) found the control-flow deep-dive, COBOLNET_CONTROL_FLOW_DESIGN.md, still describing
+the old dispatcher: the activation called with exit pc -1 (D10 and both C# sketches), and the last paragraph's fall-off
+exiting the loop as if every caller ended there (D2, the edge cases, the GO-TO-out-of-range hard problem). It now gives
+the activation bounded at LAST, the implicit-GOBACK arm in both sketches, and the two cases of running off the last
+paragraph (the activation's own return; a nested call's implicit GOBACK). The sibling sweep found the same -1 activation
+in COBOLNET_PIPELINE_DESIGN.md's control-flow sketch, rewritten the same way. The ALTER edge case now says what a
+never-ALTERed target-less GO TO does inside a PERFORM (it returns to the performer, unchanged by this branch).

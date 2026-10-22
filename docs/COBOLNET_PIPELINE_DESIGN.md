@@ -107,7 +107,7 @@ COBOL:
   C. DISPLAY "C".
   D. DISPLAY "D". STOP RUN.
 C# (the pc-variable + bounded-while shape — as implemented in DispatchEmitter.EmitDispatcher, G4 ✅):
-  static void Main(){ try { __Dispatch(0, -1); } catch (StopRun) { } }
+  static void Main(){ try { __Dispatch(0, /*LAST*/3); } catch (ProgramReturn) { } catch (StopRun) { } }   // bounded at the last paragraph (control-flow design D10)
   const int __N = 4;
   static int __Dispatch(int __startPc, int __exitPc){
     int __pc = __startPc;
@@ -122,6 +122,7 @@ C# (the pc-variable + bounded-while shape — as implemented in DispatchEmitter.
         default: __pc = __N; break;
       }
       if (__atExit && __pc == __exitPc + 1) return __pc;                      // a named THRU exit paragraph fell off its end
+      if (__pc == 4) throw new ProgramReturn();                               // past the last paragraph, range not completed: the implicit GOBACK (§14.6.3; kb/Work PB3511)
     }
     return __pc;
   }
