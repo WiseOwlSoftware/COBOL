@@ -79,7 +79,7 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // A ref-modified receiver: the slice length IS the transfer size; the splice left-justifies/space-fills
         // into the slice (§8.4.3.3.4 GR6), which coincides with the GR4 left-aligned store.
         // ⛔ THE OMITTED-LENGTH WIDTH READS OperandPic, NOT RAW Pic — the THIRD arm of kb/Work PB173's pad family
-        // (the other two are PlaceRenderer.Write's boolean ref-mod pad and MoveEmitter's RefModSlice figurative
+        // (the other two are PlaceRenderer.Write's boolean ref-mod pad and MoveEmitter.SliceStore's figurative
         // fill). §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the
         // position identified by leftmost-position up to and including the rightmost POSITION of the data item
         // referenced by identifier-1", and GR5a fixes what a POSITION is: "If the usage of identifier-1 is bit,

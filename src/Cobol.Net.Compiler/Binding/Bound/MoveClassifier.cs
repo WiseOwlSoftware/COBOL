@@ -12,11 +12,13 @@ namespace CobolNet.Binding.Bound;
 /// travel on the node — <c>DataItem.Storage</c> is null while the binder runs (StorageFormPass is a group-tail
 /// pass, and the MOVE's own bind records the facts that decide it); the emitter reads the by-then-settled
 /// <c>item.Storage</c> projection instead.</summary>
+/// <para>⛔ <b>NO KIND NAMES A RECEIVER'S PLACE SHAPE</b> (kb/Work PB3512). A kind is the CONVERSION one (sender,
+/// receiver) pair takes; WHERE its result is written (a whole item, a reference-modified slice) is the emitter's
+/// receiving half. A <c>RefModSlice</c> kind used to be answered FIRST, before the sender's category was asked, so
+/// every slice took one arm and a signed numeric sender moved its operational sign into it
+/// (<c>MOVE</c> of a PIC S9(4) 2468 into <c>X5(1:5)</c> stored "246H").</para>
 public enum MoveKind
 {
-    /// <summary>A reference-modified receiver: the slice takes the source characters (or a figurative fills
-    /// every slice position, §8.3.3.6.4 GR2 / §8.4.3.3 GR5-6).</summary>
-    RefModSlice,
     /// <summary>A GROUP receiver — the §14.9.25.4 GR4 group move (no conversion; filled without consideration
     /// for subordinate items).</summary>
     Group,
@@ -290,14 +292,21 @@ public static class MoveClassifier
     private static bool SubstitutesForZeroLength(Place target) =>
         !(target.DenotedItem is not null && target.Item.IsDynamicLength);
 
-    /// <summary>The dispatch kind of storing <paramref name="source"/> into <paramref name="target"/> —
-    /// EXACTLY the pre-P7.7 <c>EmitMove</c> dispatch order: ref-mod receiver → group receiver → group sender →
-    /// figurative-into-numeric → elementary conversion. <paramref name="source"/> is the SUBSTITUTED sender
-    /// (<see cref="Sender"/>) wherever the caller goes through <see cref="Classify"/>, so a zero-length literal
-    /// into a numeric receiver classifies as the figurative fill §14.9.25.4 GR2 makes it.</summary>
+    /// <summary>The dispatch kind of storing <paramref name="source"/> into <paramref name="target"/>, in
+    /// §14.9.25.4 GR4's order: group receiver → group sender → figurative-into-numeric → elementary conversion.
+    /// <paramref name="source"/> is the SUBSTITUTED sender (<see cref="Sender"/>) wherever the caller goes through
+    /// <see cref="Classify"/>, so a zero-length literal into a numeric receiver classifies as the figurative fill
+    /// §14.9.25.4 GR2 makes it.
+    /// <para>⛔ <b>A REFERENCE-MODIFIED RECEIVER IS CLASSIFIED, NEVER SHORT-CIRCUITED</b> (kb/Work PB3512). ISO
+    /// §8.4.3.3.4 GR6: "The unique data item is considered to be an elementary data item without the JUSTIFIED
+    /// clause", of the category <see cref="RefModPlace.Category"/> answers (alphanumeric, national or boolean —
+    /// never numeric, GR6 c)). So the slice takes EVERY elementary move's sender-category rules — §14.9.25.4 GR6 a)
+    /// "If the sending operand is described as being signed numeric, the operational sign is not moved" among
+    /// them — and a group sender into it is still GR4's group move: the slice is only the PLACE the emitter's
+    /// receiving half writes. <c>RefModMoveClassificationDriftTests</c> pins that no arm here answers on the
+    /// receiver's place shape before the sender is asked.</para></summary>
     public static MoveKind Kind(BoundOperand source, Place target)
     {
-        if (target is RefModPlace) return MoveKind.RefModSlice;
         // ⛔ THE RECEIVING HALF OF GR4'S ONE TEST, through THE ONE PREDICATE (kb/Work PB430). A bit / national
         // group RECEIVER is an elementary boolean / national receiver (§13.18.29.4 GR1b/GR2b — D20/PB79): the
         // Convert path over its as-if picture, stored through PlaceRenderer.Write's as-if arm. A level-66
@@ -305,11 +314,18 @@ public static class MoveClassifier
         // used to re-spell the structural test and therefore answered the two sides differently.
         if (IsGroupPlace(target)) return MoveKind.Group;
         if (IsGroupSender(source)) return MoveKind.GroupToElementary;
-        if (target.Item.Pic is { Category: PicCategory.Numeric }
+        if (ReceivingCategory(target) is PicCategory.Numeric
             && source is BoundFigurative { Kind: 'S' or 'Q' or 'H' or 'L' } or BoundAllLiteral { IsDigitOnly: false })
             return MoveKind.FigurativeToNumericImage;
         return MoveKind.Convert;
     }
+
+    /// <summary>The CATEGORY of the elementary item <paramref name="target"/> denotes as a MOVE receiver: a
+    /// reference-modified slice's is its unique data item's (§8.4.3.3.4 GR6, through THE ONE reader
+    /// <see cref="RefModPlace.Category"/> — never numeric), every other place's is its item's operand PICTURE's
+    /// (an as-if PICTURE for a bit / national group, D20/PB79); <see langword="null"/> for a group.</summary>
+    private static PicCategory? ReceivingCategory(Place target) =>
+        target is RefModPlace slice ? slice.Category : target.Item.OperandPic?.Category;
 
     /// <summary>Classify every target of one MOVE (the <see cref="BoundMove.Stores"/> parallel list): each
     /// receiver's §14.9.25.4 GR2/GR3 sender AND the kind that sender dispatches to, computed together so the
