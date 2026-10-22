@@ -83,6 +83,7 @@ TEXT_SAFE = set("…–‒")
 
 X_TOL = 2.0                           # how far apart two positions may be and still be one column
 TOP_SLACK, BOTTOM_INSET = 2.0, 8.0    # how a stem's span maps onto rows of text — see `covers`
+HOOK_REACH = 1.0                      # how far above its first enclosed row a top hook may sit — see `hook_row`
 
 
 def cluster(values, tol):
@@ -175,6 +176,122 @@ def split_fused(page, words):
     return out
 
 
+def enclosures(glyphs, stems):
+    """Every OPENING delimiter paired with its CLOSING one, as (x_open, x_close, top, bottom, stems).
+
+    `top` is the y at or below which a row is enclosed, exactly as the span tests draw it: a brace's or a
+    parenthesis' top piece less HOOK_REACH (`hook_row`), a bracket stem's top less TOP_SLACK (`covers`).
+    `bottom` is the y at or above which a row is enclosed — a bracket stem's bottom less BOTTOM_INSET — and
+    None for a glyph delimiter, whose bottom hook takes the NEAREST row and so draws no boundary of its own.
+
+    The pair is found the way a reader matches parentheses: each closer takes the nearest unmatched opener to
+    its left of the same family and the same height. Matching heights is what keeps nested groups apart —
+    `{ [ … ] }` closes the bracket first because the bracket is the shorter one — and the stack order is what
+    keeps two sibling groups of identical height apart, `{ a / b } { c / d }`. A pair of choice-indicator
+    BARS (figure_geometry) has no hand, so a bar closes the nearest open bar of its height and opens one
+    otherwise. `stems` is the pair's two vector stems, (None, None) for a glyph delimiter.
+    """
+    delims = []                                       # (x, family, side, y_top, y_bottom, top, bottom, stem)
+    gxc = cluster([b["x0"] for b in glyphs], X_TOL)
+    cols = collections.defaultdict(list)
+    for b in glyphs:
+        cols[gxc[b["x0"]]].append(b)
+    for ps in cols.values():
+        for g in split_delimiters(ps):
+            kinds = [GLYPH_PIECES[b["text"]] for b in g]
+            family = next((f for f, _, _ in kinds if f), None)
+            side = next((sd for _, sd, _ in kinds if sd), None)
+            tops = [b["y0"] for b in g if GLYPH_PIECES[b["text"]][2] == "top"]
+            if family is None or side is None or not tops:
+                continue                              # a stray extender: nothing to pair, no hook to draw
+            y_top, y_bot = min(b["y0"] for b in g), max(b["y0"] for b in g)
+            delims.append((min(b["x0"] for b in g), family, side, y_top, y_bot, tops[0] - HOOK_REACH, None,
+                           None))
+    for st in stems:
+        delims.append((st["x"], st["kind"], st["side"] if st["kind"] == "bracket" else None, st["y0"], st["y1"],
+                       st["y0"] - TOP_SLACK, st["y1"] - BOTTOM_INSET, st))
+    out, open_ = [], []
+    for d in sorted(delims, key=lambda d: (d[0], d[2] != "R")):
+        x, family, side, y_top, y_bot, top, bottom, stem = d
+        match = next((k for k in range(len(open_) - 1, -1, -1)
+                      if open_[k][1] == family and abs(open_[k][3] - y_top) <= X_TOL
+                      and abs(open_[k][4] - y_bot) <= X_TOL), None) if side != "L" else None
+        if match is None:
+            if side != "R":
+                open_.append(d)
+            continue
+        o = open_.pop(match)
+        out.append((o[0], x, o[5], o[6], (o[7], stem)))
+    return out
+
+
+def split_rows(rowof, words, encl):
+    """Split every row of text that STRADDLES an enclosure's boundary against the words the enclosure holds.
+
+    Rows are clustered by a tolerance, and a delimiter's span is then decided against each row's
+    REPRESENTATIVE y. A row whose words lie on both sides of a boundary is therefore enclosed or excluded as a
+    whole, and when the words inside the delimiter disagree with the representative they are drawn on the
+    wrong side of it. `THROUGH`, 3.9 pt below `identifier-3` and 0.2 pt below the top hook of its own
+    `{ THROUGH / THRU }` brace, was clustered onto the operand row, whose representative lies ABOVE the hook,
+    so the brace began a row lower and drew `THROUGH` outside itself (kb/Work PB3530).
+
+    The words decide, never the average: a word is HELD by an enclosure when it lies between the opener and
+    the closer and inside the boundary. A row is split at the boundary only where a held word and the row's
+    representative fall on opposite sides of it — a row that merely spans a boundary drawn by a group
+    alongside, such as `condition-1` set 2.2 pt above the `{ BEFORE / AFTER }` hook beside it, is not torn.
+    """
+    groups = collections.defaultdict(list)
+    for v, r in rowof.items():
+        groups[r].append(v)
+    changed = True
+    while changed:
+        changed = False
+        for r, vs in list(groups.items()):
+            for xo, xc, top, bottom, _ in encl:
+                held = [w["y0"] for w in words if rowof[w["y0"]] == r and xo < w["x0"] < xc
+                        and w["y0"] >= top and (bottom is None or w["y0"] <= bottom)]
+                cut = None
+                if held and r < top <= max(vs):
+                    cut = lambda v: v >= top          # held words below the top boundary, the row above it
+                elif held and bottom is not None and min(vs) <= bottom < r:
+                    cut = lambda v: v <= bottom       # held words above the bottom boundary, the row below it
+                if cut is None:
+                    continue
+                inner, outer = [v for v in vs if cut(v)], [v for v in vs if not cut(v)]
+                del groups[r]
+                for part in (inner, outer):
+                    rep_ = sum(part) / len(part)
+                    groups[rep_].extend(part)       # an equal representative is one row already
+                    for v in part:
+                        rowof[v] = rep_
+                changed = True
+                break
+            if changed:
+                break
+    return rowof
+
+
+def split_delimiters(pieces):
+    """Split one column's pieces into SEPARATE delimiters, cutting at each top hook.
+
+    A column is not a delimiter: the file-control entry stacks clause after clause, and two braces in the
+    same column belonging to different clauses were merging into one tall brace spanning everything
+    between — the LOCK MODE brace drew straight up through ACCESS MODE and FILE STATUS. The pieces carry
+    their own role, so the cut is exact and needs no gap threshold.
+    """
+    groups, cur = [], []
+    for b in sorted(pieces, key=lambda b: b["y0"]):
+        role = GLYPH_PIECES[b["text"]][2]
+        if role == "top" and cur:
+            groups.append(cur)
+            cur = []
+        cur.append(b)
+        if role == "bot":
+            groups.append(cur)
+            cur = []
+    return groups + ([cur] if cur else [])
+
+
 def build(page, lo, hi, extract, classify_page):
     """Lay the figure out and return (grid rows, {row: [(col,len)] underlined spans})."""
     words = split_fused(page, [w for w in extract(page) if lo <= w["y0"] <= hi])
@@ -211,7 +328,10 @@ def build(page, lo, hi, extract, classify_page):
                  + ", ".join(f"U+{ord(c):04X} {c!r}" for c in stray)
                  + " — notation drawn as a letter would corrupt the figure silently; map it in GLYPH_PIECES")
 
+    stems = [s for s in classify_page(page) if not (s["y1"] < lo or s["y0"] > hi)]
     rowof = cluster([w["y0"] for w in text_w], tol=4.0)   # 4.9 pt separates rows, 3.2 pt does not
+    encl = enclosures(glyphs, stems)
+    rowof = split_rows(rowof, text_w, encl)
     rows = sorted(set(rowof.values()))
     rindex = {y: i for i, y in enumerate(rows)}
 
@@ -220,6 +340,15 @@ def build(page, lo, hi, extract, classify_page):
     # between the INNER brace's two alternatives — so `{ device-name-1 / literal-1 }` drew FOUR rows where
     # `LOCK MODE IS { MANUAL / AUTOMATIC }`, identical in shape but with nothing enclosing it, drew three.
     # Such a label is snapped onto the nearer neighbouring row instead of claiming one of its own.
+    #
+    # A LABEL IS IDENTIFIED BY WHAT IT ANNOTATES, never by where it merely sits. A row is snapped only when it
+    # is the POINT row of a brace further out — one standing between the row's words and the inner brace, and
+    # spanning that inner brace from hook to hook: the label of an ENCLOSURE. Sitting to the left of a brace
+    # and inside its height is not enough, and the report-writer LINE clause (§13.18.35.2 Format 1) is the
+    # case: `LINE NUMBER IS` and `LINES ARE` sit left of the tall `{ integer-1 … / … integer-2 / ON NEXT PAGE }`
+    # brace and inside its height, but they are ALTERNATIVES of the three-way brace beside it, a sibling group
+    # with hooks of its own. Snapping them as labels lifted `LINE NUMBER IS` onto `integer-1`'s row, above its
+    # own brace's top hook, so the figure drew it as a prefix OUTSIDE the brace (kb/Work PB1221, PB3530).
     #
     # A brace's OWN label is exempt, and that exemption is what keeps ACCEPT Format 3 right: `LINE NUMBER`
     # also sits outside its brace and inside its span, but on that brace's own point row, where it belongs.
@@ -230,34 +359,29 @@ def build(page, lo, hi, extract, classify_page):
         cols = collections.defaultdict(list)
         for b in glyphs:
             cols[gxc[b["x0"]]].append(b)
-        out = set()
+        braces = []                                   # every LEFT brace: (edge, top y, bottom y, point row)
         for ps in cols.values():
-            groups, cur = [], []
-            for b in sorted(ps, key=lambda b: b["y0"]):
-                role = GLYPH_PIECES[b["text"]][2]
-                if role == "top" and cur:
-                    groups.append(cur)
-                    cur = []
-                cur.append(b)
-                if role == "bot":
-                    groups.append(cur)
-                    cur = []
-            for g in groups + ([cur] if cur else []):
+            for g in split_delimiters(ps):
                 kinds = [GLYPH_PIECES[b["text"]] for b in g]
                 if next((f for f, _, _ in kinds if f), "brace") != "brace":
                     continue
                 if next((sd for _, sd, _ in kinds if sd), "L") != "L":
                     continue
-                y0, y1 = min(b["y0"] for b in g), max(b["y0"] for b in g)
-                edge = min(b["x0"] for b in g)
                 mids = [b["y0"] for b in g if GLYPH_PIECES[b["text"]][2] == "mid"]
-                own = min(rows, key=lambda r: abs(r - mids[0])) if mids else None
-                for r in rows:
-                    if not (y0 < r < y1) or r == own:
-                        continue
-                    ws = [w for w in text_w if rowof[w["y0"]] == r]
-                    if ws and all(w["x0"] < edge for w in ws):
-                        out.add(r)
+                braces.append((min(b["x0"] for b in g), min(b["y0"] for b in g), max(b["y0"] for b in g),
+                               min(rows, key=lambda r: abs(r - mids[0])) if mids else None))
+        out = set()
+        for edge, y0, y1, own in braces:
+            for r in rows:
+                if not (y0 < r < y1) or r == own:
+                    continue
+                ws = [w for w in text_w if rowof[w["y0"]] == r]
+                if not ws or not all(w["x0"] < edge for w in ws):
+                    continue
+                if any(h_own == r and h_edge < edge and all(w["x0"] < h_edge for w in ws)
+                       and h_y0 <= y0 and h_y1 >= y1
+                       for h_edge, h_y0, h_y1, h_own in braces):
+                    out.add(r)
         return out
 
     intruders = outer_label_rows()
@@ -272,15 +396,28 @@ def build(page, lo, hi, extract, classify_page):
                     rowof[k] = target
         rows = sorted(set(rowof.values()))
         rindex = {y: i for i, y in enumerate(rows)}
-    stems = [s for s in classify_page(page) if not (s["y1"] < lo or s["y0"] > hi)]
 
     # WHICH ROWS A STEM ENCLOSES. The bottom test takes an INSET, not slack: a stem stops just above the next
     # row of text, so the `y1 + 6` this once used reached the row BELOW the group — which is how `[ END-START ]`
     # and `[ END-COMPUTE ]` kept being drawn through by the exception bracket above them. The two populations
     # are cleanly separated, so the threshold is not delicate: measured on pages 784 and 632, an ENCLOSED row's
     # top sits 13.7-15.9 pt above its stem's bottom, while the NEXT row's top sits 1.9-3.6 pt below it.
+    #
+    # And a stem spans only as far as the words it HOLDS. Its slack and inset admit a row by height alone, so a
+    # row of an unrelated group alongside, falling inside that margin, was enclosed too: WRITE's
+    # `{ | BEFORE / AFTER | }` choice bars end 11 pt below `mnemonic-name-1`, a row of the ADVANCING brace's
+    # next alternative, and drew down through it past their own brace (kb/Work PB3530). The rows between the
+    # first and the last row holding a word between the pair's two stems are the span; a stem with no partner
+    # keeps the rows its height admits.
+    held_between = {id(st): (xo, xc) for xo, xc, _, _, pair in encl for st in pair if st is not None}
+
     def covers(s):
-        return sorted(rindex[y] for y in rows if s["y0"] - TOP_SLACK <= y <= s["y1"] - BOTTOM_INSET)
+        span = [rindex[y] for y in rows if s["y0"] - TOP_SLACK <= y <= s["y1"] - BOTTOM_INSET]
+        if id(s) not in held_between:
+            return span
+        xo, xc = held_between[id(s)]
+        held = {rindex[rowof[w["y0"]]] for w in text_w if xo < w["x0"] < xc} & set(span)
+        return [r for r in span if min(held) <= r <= max(held)] if held else span
 
     raw_near = lambda y: rindex[min(rows, key=lambda r: abs(r - y))]
 
@@ -308,26 +445,6 @@ def build(page, lo, hi, extract, classify_page):
     for b in glyphs:
         gx[xbrace[b["x0"]]].append(b)
 
-    def delimiters(pieces):
-        """Split one column's pieces into SEPARATE delimiters, cutting at each top hook.
-
-        A column is not a delimiter: the file-control entry stacks clause after clause, and two braces in the
-        same column belonging to different clauses were merging into one tall brace spanning everything
-        between — the LOCK MODE brace drew straight up through ACCESS MODE and FILE STATUS. The pieces carry
-        their own role, so the cut is exact and needs no gap threshold.
-        """
-        groups, cur = [], []
-        for b in sorted(pieces, key=lambda b: b["y0"]):
-            role = GLYPH_PIECES[b["text"]][2]
-            if role == "top" and cur:
-                groups.append(cur)
-                cur = []
-            cur.append(b)
-            if role == "bot":
-                groups.append(cur)
-                cur = []
-        return groups + ([cur] if cur else [])
-
     # A TOP HOOK BRACKETS WHAT IS BELOW IT, so it maps onto the first row at or below itself rather than onto
     # the merely NEAREST row — which put the top hook of the function-identifier's parentheses a row high, onto
     # `function-pointer-name-1`, an operand of the brace beside them and not inside the parentheses at all.
@@ -337,12 +454,12 @@ def build(page, lo, hi, extract, classify_page):
     def hook_row(b):
         role, y = GLYPH_PIECES[b["text"]][2], b["y0"]
         if role == "top":
-            below = [r for r in rows if r >= y - 1.0]
+            below = [r for r in rows if r >= y - HOOK_REACH]
             return rindex[below[0]] if below else raw_near(y)
         return raw_near(y)
 
     glyph_raw = [(x, min(hook_row(b) for b in grp), max(hook_row(b) for b in grp), grp)
-                 for x, ps in gx.items() for grp in delimiters(ps)]
+                 for x, ps in gx.items() for grp in split_delimiters(ps)]
 
     # A group spanning only TWO rows renders one row tall, because a corner glyph strokes from its cell centre.
     # Insert a spacer row between such a pair — which is also what the printed page does, giving each operand
