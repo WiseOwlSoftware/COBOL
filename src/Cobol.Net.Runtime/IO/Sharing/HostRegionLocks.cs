@@ -114,6 +114,26 @@ internal static class HostRegionLocks
     /// action are one step to every other run unit (kb/Work PB2660).</summary>
     internal const long StoreMutexByte = RegionBase + 0x100;
 
+    /// <summary>Take the store mutex through <paramref name="endpoint"/>, waiting for another run unit's statement: exclusive
+    /// through a writable handle, shared through an <c>OPEN INPUT</c> connector's read-only one (a reader never changes the
+    /// store, and Linux refuses an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). Null when
+    /// the host cannot carry the lock, and the caller then has no protection against another run unit's writer but the file
+    /// lock (docs/CONFORMANCE.md DOC-A.1-75). The one way the mutex is taken (review finding R1-3 of kb/Work PB3494).</summary>
+    internal static RegionLocks? HoldStoreMutex(RegionLocks endpoint) =>
+        endpoint.Hold(StoreMutexByte, exclusive: endpoint.Writable, wait: true) == RegionLockResult.Ok ? endpoint : null;
+
+    /// <summary>⛔ THE ONE STORE-MUTEX HOLD AROUND A BODY that is not a record statement — an OPEN's adoption or creation, a
+    /// CLOSE's promotion, a COMMIT or a ROLLBACK, a kept handle given back — through <paramref name="endpoint"/>
+    /// (<see cref="HoldStoreMutex"/>), released whatever the body does; a null endpoint (a NO OTHER connector, which has
+    /// nobody to exclude, or a kept handle given back early) runs the body without it. A live connector and the state a
+    /// CLOSE under commit control kept both come here, so the two arms never disagree on the mutex's rule.</summary>
+    internal static T InStoreMutex<T>(RegionLocks? endpoint, Func<T> body)
+    {
+        var holder = endpoint is null ? null : HoldStoreMutex(endpoint);
+        try { return body(); }
+        finally { holder?.Release(StoreMutexByte); }
+    }
+
     /// <summary>⭐ "Some connector of this run unit holds a record lock on this file": held SHARED by every endpoint
     /// that has published at least one record lock, for as long as it holds one. A run unit that wants to know
     /// whether ANY other run unit may hold a record lock asks this one byte (<see cref="RegionLocks.HeldByAnother"/>)

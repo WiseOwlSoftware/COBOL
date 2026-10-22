@@ -83,10 +83,18 @@ internal abstract class KeyedStore
         _coherent = coherent;
         File = null;
         _fenceOwed = false;
-        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, _cachePages);
-        if (status == StoreStatus.Ok) File = created;
+        var status = PagedFile.Create(_medium, attributes, coherent, holdingsOrder, out var created, out bool replaced, _cachePages);
+        File = created;
+        FileReplaced = replaced;
         return status;
     }
+
+    /// <summary>Whether the last <see cref="Create"/> left the physical file other than the previous one, successful or not
+    /// (<see cref="PagedFile.Create"/>'s <c>replaced</c>): false only for a creation refused and undone, which leaves the
+    /// previous file as it was (§14.9.27.4 GR25); true for one that landed, one whose final sync was refused after the
+    /// truncation, and one whose undo the medium refused too — the previous store is gone in all three, so what was kept
+    /// over it ends with it (<c>KeyedConnector.Recreate</c>; kb/Work PB3493, review finding R1-1).</summary>
+    public bool FileReplaced { get; private set; }
 
     /// <summary>Detach a connector's handle. The last detach leaves the store with no file; a store left with readers
     /// only is opened again as a reader's (R6 in memory, nothing written), so no reader's statement writes through a
@@ -227,6 +235,14 @@ internal abstract class KeyedStore
     /// (2.2.1.10, "A TRANSACTION is one run unit's open unit of work on one physical file"). Its liveness byte is held
     /// through <see cref="_liveness"/> until COMMIT or ROLLBACK ends it.</summary>
     public ulong Transaction { get; private set; }
+
+    /// <summary>⛔ THE STORE'S PLACE IN THE RUN UNIT'S ORDER OF OPEN STORES (<see cref="StoreTable"/>, which stamps it when the
+    /// store becomes the run unit's for its physical file; 0 for a store no table holds): the order COMMIT and ROLLBACK take
+    /// the run unit's transactions in (2.2.1.10, <i>"Files are committed one at a time, in the order of the run unit's open
+    /// stores"</i>; <c>FileRegistry.TransactionHolders</c>). A transaction's store stays in the table from its first change
+    /// to its COMMIT or ROLLBACK (a CLOSE under commit control keeps the attachment), so the place is stable for as long as
+    /// a transaction stands, whoever holds it: a live connector, or what a CLOSE kept (<see cref="KeptFile"/>).</summary>
+    internal long OpenOrder { get; set; }
 
     /// <summary>The endpoint holding <see cref="Transaction"/>'s liveness byte.</summary>
     private RegionLocks? _liveness;
@@ -776,14 +792,16 @@ internal sealed class IndexedStore : KeyedStore
     /// alternate trees' composite entries are rebuilt from that vector — the record's current entries removed (found from
     /// its current frame) and the image's inserted — so the duplicate order of §14.9.35.4 GR24 is the one at the last
     /// COMMIT (the release mint only ever grows). <paramref name="entriesOf"/> is the connector's: a frame's alternate
-    /// entries (its key values and ordinals, suppression applied), null for a frame it cannot decode ('30').</summary>
+    /// entries (its key values and ordinals, suppression applied) given the number of release ordinals the FILE's frames
+    /// carry (its meta page's key table, which the file being restored states), null for a frame it cannot decode ('30').</summary>
     public static RestoringTreesFactory Restoring(IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) =>
         (file, meta) => new IndexedRestoring(file, meta, orders, entriesOf);
 
     private sealed class IndexedRestoring(PagedFile file, MetaPage meta, IndexedKeyOrders orders,
-        Func<byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
+        Func<int, byte[], IReadOnlyList<(int Key, byte[] Entry)>?> entriesOf) : IRestoringTrees
     {
+        private readonly int _frameSlots = meta.Attributes.Keys.Count;
         private readonly BTree _prime = new(file, orders.Prime, meta.PrimeRoot);
         private readonly SortedDictionary<int, BTree> _alternates = [];
 
@@ -806,13 +824,13 @@ internal sealed class IndexedStore : KeyedStore
             if (status != StoreStatus.Ok) return status;
             if (current is not null)
             {
-                if (entriesOf(current) is not { } entries) return StoreStatus.PermanentError;
+                if (entriesOf(_frameSlots, current) is not { } entries) return StoreStatus.PermanentError;
                 foreach (var (key, entry) in entries)
                     if (Alternate(key) is { } tree && (status = tree.Delete(entry, out _)) != StoreStatus.Ok) return status;
                 if ((status = _prime.Delete(identity, out _)) != StoreStatus.Ok) return status;
             }
             if (image is null) return StoreStatus.Ok;
-            if (entriesOf(image) is not { } restored) return StoreStatus.PermanentError;
+            if (entriesOf(_frameSlots, image) is not { } restored) return StoreStatus.PermanentError;
             if ((status = _prime.Put(identity, image)) != StoreStatus.Ok) return status;
             foreach (var (key, entry) in restored)
                 if (Alternate(key) is { } tree && (status = tree.Insert(entry, identity, out _)) != StoreStatus.Ok) return status;
