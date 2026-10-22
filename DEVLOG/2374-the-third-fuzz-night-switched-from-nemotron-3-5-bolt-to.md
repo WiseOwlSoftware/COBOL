@@ -1,3 +1,4 @@
-## The third fuzz night switched from nemotron-3.5-bolt to qwen3.6:35b: the IQ2 model degenerates into enumeration loops (filed as PB3537)
+## Entry 2374 — 2026-10-22 16:45 PDT — The third fuzz night switched from nemotron-3.5-bolt to qwen3.6:35b: the IQ2 model degenerates into enumeration loops (filed as PB3537)
 
 The third overnight run started at 16:02 PDT with nemotron-3.5-bolt, the bake-off's first-attempt leader. Within its first 90 replies, 19 (21 %) were cut off at the 6,000-token cap, each a degenerate enumeration of data items differing only by a counter, which fits a model that `ollama show` reports at IQ2_XXS. The owner agreed at about 17:25 PDT to restart the run on qwen3.6:35b; the nemotron rows stay on disk for the morning triage. The bake-off record gains an addendum and a corrected Decision section, and PB3537 files the harness fix: abort a degenerating reply early, record it as its own NO_PROGRAM reason, and expose the repeat-penalty options per model.
+
