@@ -22529,5 +22529,41 @@
    "2014"
   ],
   "expect": "COBOLNET0900"
+ },
+ "pb3510-depending-on-containing-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0857"
+ },
+ "pb3510-depending-on-each-others-record": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0852"
+ },
+ "pb3510-depending-on-group-with-picture": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0852"
+ },
+ "pb3510-depending-on-the-table-itself": {
+  "refuse-at": [
+   "85",
+   "2002",
+   "2014",
+   "2023"
+  ],
+  "expect": "COBOLNET0853"
  }
 }
