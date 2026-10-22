@@ -9,4 +9,4 @@ INTEGER(U2): stored
 UR holds the integer part
 INTEGER-PART(U2): stored
 UR holds the integer part
-FRACTION-PART(U2) = 029
+FRACTION-PART(U2) = 0.29
