@@ -395,6 +395,16 @@ Lay declarative paragraphs at the LOW PC indices [0..declEnd); set EntryParagrap
     instead would read as the range COMPLETING and resume after the performing statement, although §14.9.28.4 GR5 b)'s
     return mechanism was never reached. The test sits after the `__xfer` landing, so fall-through, EXIT
     PARAGRAPH/SECTION and NEXT SENTENCE all reach it.
+  - A NESTED call whose range ENDS at LAST (`PERFORM` of the last paragraph, `INPUT`/`OUTPUT PROCEDURE IS P THRU
+    LAST-EXIT`, a MERGE output procedure ending there) has `__exitPc == LAST`, so reaching LAST+1 is its range
+    COMPLETING: the at-exit return fires first and the implicit-GOBACK test is never reached. The order of those two
+    lines is what separates "the range ended at the last paragraph" from "control ran off the element", for every
+    bounded form alike (PERFORM, SORT/MERGE procedures, `__RunUse`, `__RunDebug`; a Format-3 handler's pcs lie above
+    LAST and complete at their own exit). A SORT or MERGE abandoned this way, or by any GOBACK, never reaches its
+    return mechanism, so a MERGE's USING files are not terminated (§14.9.24.4 GR7 c) closes them only "after control
+    passes the last statement in the output procedure") and a called program re-activated without CANCEL finds them
+    still open. Witnesses (cases/14.6.3-*): `pb3511_sort_merge_procedure_ends_at_last_paragraph` (85–2023),
+    `pb3511_implicit_goback_sort_input_procedure`, `_sort_output_procedure`, `_sort_merge_called_program`.
 - Empty paragraph (no statements): case body is just `pc = i+1; break;` (pure fall-through). It has its OWN pc,
   so `PERFORM` of it is an ordinary one-pc range — never the empty-SECTION case below.
 - **Section with ZERO paragraphs** (ISO §14.4.2): the resolved range is `PcRange.IsEmpty`. `PERFORM` of it emits the

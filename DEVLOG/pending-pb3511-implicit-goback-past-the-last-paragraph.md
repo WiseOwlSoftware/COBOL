@@ -50,3 +50,13 @@ case is not in leg 1. The case now names `RET-SN THRU RET-SN-EXIT`, the procedur
 `SORTED=2` again. Two goldens pin the SORT arm the case exposed (an input procedure and an output procedure left by a
 GO TO), D-PTHRU in docs/CONFORMANCE.md now covers SORT procedures, and batch w1147b-pb3511-sort-procedure-witnesses adds
 them to GR-14.6.3-3 and GR-14.9.40.4-11/13/14 (GAP 66 -> 66).
+
+A second finisher sent to the same stop swept the other half of the question: a bounded call whose range ENDS at the
+last paragraph must complete there, not take the implicit GOBACK. It does for every form, because the dispatcher tests
+the at-exit return before the end-of-element arm; `pb3511_sort_merge_procedure_ends_at_last_paragraph` pins SORT input
+and output procedures, a MERGE output procedure and a PERFORM, each ending at the last paragraph, at all four editions.
+`pb3511_implicit_goback_sort_merge_called_program` pins the abnormal paths in a called program: a SORT input or output
+procedure or a MERGE output procedure left for the last paragraph returns to the CALL, the next SORT still runs, and the
+abandoned MERGE's USING files stay open, because 14.9.24.4 GR7 c) closes them only after control passes the output
+procedure's last statement (the next OPEN OUTPUT gets 41; GnuCOBOL 3.2 closes them early and gets 00). The control-flow
+design's edge cases now state the ordering, and D-PTHRU names the MERGE case.
