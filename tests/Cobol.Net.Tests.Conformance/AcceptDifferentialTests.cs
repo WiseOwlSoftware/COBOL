@@ -528,7 +528,7 @@ public sealed class AcceptDifferentialTests
             dialect: 2023);
 
     // kb/Work PB173 — the OMITTED-LENGTH ref-mod width over a GROUP-USAGE BIT receiver, the THIRD arm of the
-    // pad family (PlaceRenderer.Write's boolean pad and MoveEmitter's RefModSlice fill were the first two).
+    // pad family (PlaceRenderer.Write's boolean pad and MoveEmitter.SliceStore's fill were the first two).
     // §8.4.3.3.4 GR5c: "If length is not specified, the unique data item extends from and includes the position
     // identified by leftmost-position up to and including the rightmost position of the data item referenced by
     // identifier-1"; GR5a: "If the usage of identifier-1 is bit, positions used in evaluation are bit positions".
