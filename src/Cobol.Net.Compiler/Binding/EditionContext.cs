@@ -103,6 +103,14 @@ public sealed class EditionContext(int dialectLevel, bool permissive = false) : 
     /// test construction and every unflagged compile is unchanged.</summary>
     public SignEncoding SignEncoding { get; set; } = SignEncoding.Ibm;
 
+    /// <summary>The form the compilation's DISPLAY statements give a numeric operand — the CLI's
+    /// <c>--numeric-display</c> (kb/Work PB3505, owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). Not a
+    /// dialect axis, for the reason <see cref="SignEncoding"/> is not: every edition leaves the device conversion to the
+    /// implementor. It rides this per-compilation object to the emitter (<c>EmitContext.NumericDisplay</c>), where
+    /// <c>AcceptDisplayEmitter</c> chooses which runtime conversion the operand is emitted against. Defaults to
+    /// <see cref="NumericDisplayForm.Decimal"/>, the documented default.</summary>
+    public NumericDisplayForm NumericDisplay { get; set; } = NumericDisplayForm.Decimal;
+
     /// <summary>The compilation's §4.2.10 warning mechanism is ON — the CLI's <c>--flag-extensions</c> (kb/Work
     /// PB1525): "An implementation shall provide a warning mechanism that optionally may be invoked by the user at
     /// compile time to indicate use of a nonstandard extension in a compilation group". Orthogonal to

@@ -22,7 +22,7 @@ public sealed class ValueLiteralClassTests
     [Theory]
     [InlineData("01 A PIC 99 VALUE \"7\".", "[07]")]
     [InlineData("01 A PIC 9(3) COMP VALUE \"12\".", "[012]")]
-    [InlineData("01 A PIC 9V9 VALUE \"1.5\".", "[15]")]
+    [InlineData("01 A PIC 9V9 VALUE \"1.5\".", "[1.5]")]
     [InlineData("01 A PIC 9(3) VALUE ALL \"1\".", "[111]")]
     [InlineData("01 A PIC 9(3) VALUE SPACES.", "[000]")]
     [InlineData("01 A PIC X(3) VALUE 12.", "[12 ]")]

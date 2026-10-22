@@ -119,8 +119,12 @@ public sealed class VariableLengthBoundaryDriftTests
                 $"{consumer[^1]} must read a variable-length group's characters through PlaceRenderer.VarGroupOperandImage (kb/Work PB3424).");
         }
         string display = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Verbs", "AcceptDisplayEmitter.cs"));
-        Assert.True(CodeOccurrences(display, "OperandText.AsTransferString(") > 0 && CodeOccurrences(display, "CurrentExtentTransferImageCapable") == 0,
-            "DISPLAY must read a group operand through OperandText.AsTransferString, never its own copy of the capability gate (kb/Work PB3424).");
+        // DISPLAY asks OperandText.AsDeviceString (kb/Work PB3505), whose every operand other than a fixed-point numeric
+        // item - a group among them - is OperandText.AsTransferString's.
+        string operandText = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "Emit", "OperandText.cs"));
+        Assert.True(CodeOccurrences(display, "OperandText.AsDeviceString(") > 0 && CodeOccurrences(display, "CurrentExtentTransferImageCapable") == 0
+                    && CodeOccurrences(operandText, ": AsTransferString(op, num, context)") > 0,
+            "DISPLAY must read a group operand through OperandText.AsDeviceString -> AsTransferString, never its own copy of the capability gate (kb/Work PB3424).");
 
         // The record struct emits the one-way CurrentImage for the wider capability and the carrier pair only for the narrower.
         string emitter = File.ReadAllText(TestRepo.At("src", "Cobol.Net.Compiler", "CodeGen", "DataDivision", "RecordStructEmitter.cs"));

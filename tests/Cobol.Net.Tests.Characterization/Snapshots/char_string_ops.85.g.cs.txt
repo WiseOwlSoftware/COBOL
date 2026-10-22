@@ -107,7 +107,7 @@ internal sealed class _PRG_CHAR_STRING_OPS : ICobolProgram
                             if (__unsPtr1 <= __unsSrc1.Length) __unsOvf1 = true;   // unexamined characters remain (ISO §14.9.48.4 GR15b)
                         }
                     }
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(WS_CNT, _P_1) + WS_OUT + WS_P1 + WS_P2);
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_CNT, _P_1, false) + WS_OUT + WS_P1 + WS_P2);
                     throw new StopRun();
                 }
                 default:

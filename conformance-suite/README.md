@@ -71,7 +71,7 @@ the tests pin.
   front end or the binder to refuse it with that text. A clause pass (design §6 step 2) turns such a test into a
   flagged test with a control.
 - **A WiseOwl compile option** a WiseOwl test needs is its entry in `wiseowl/options.json` (`sign-encoding`:
-  `ibm` · `ascii`; `flag-extensions`: `on` · `off`); the generator refuses one for a test of `cases/`.
+  `ibm` · `ascii`; `numeric-display`: `decimal` · `digits`; `flag-extensions`: `on` · `off`); the generator refuses one for a test of `cases/`.
 - **Migrated tests.** The programs of the former `tests/conformance/` corpus (design §6 step 1, kb/Work PB3177)
   carry `portable: unverified`, are accepted at the edition their old directory named, and wait for their clause
   pass; one no inventory row cited is in `cases/_unassigned/`.
