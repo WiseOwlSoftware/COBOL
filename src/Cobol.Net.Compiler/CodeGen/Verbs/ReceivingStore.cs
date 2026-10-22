@@ -78,6 +78,35 @@ internal static class ReceivingStore
         return PlaceRenderer.Write(target, nativeNumeric ? Emit.NumericRenderer.CarrierOfImage(chars, item) : chars);
     }
 
+    /// <summary>The STORAGE-AREA store into a REFERENCE-MODIFIED receiver — <see cref="StorageArea"/> for §8.4.3.3.4
+    /// GR6's unique data item, whose length is a run-time value (kb/Work PB3512). A group MOVE into it is still GR4's:
+    /// "there is no conversion of data from one form of internal representation to another", so the slice's
+    /// STORAGE takes the sending bytes and its characters are decoded from them exactly as a whole receiver of the
+    /// same usage decodes its own (a NATIONAL slice's UTF-16BE pairs, a USAGE BIT slice's packed bits — design D-N8).
+    /// The area is fitted to the slice's bytes with no JUSTIFIED (GR6: "an elementary data item without the
+    /// JUSTIFIED clause"); a character-positioned slice's bytes ARE its characters, so the splice's own §14.6.8
+    /// alignment fits them. The position count is floored at zero so an out-of-range length reaches the splice,
+    /// which raises EC-BOUND-REF-MOD, instead of failing in the decode first.</summary>
+    public static string SliceStorageArea(RefModPlace slice, string area)
+    {
+        var item = slice.Item;
+        if (item.Pic is not { Usage: Usage.National or Usage.Bit }) return PlaceRenderer.Write(slice, area);
+        string positions = $"global::System.Math.Max(0, {PlaceRenderer.SliceLength(slice)})";
+        return PlaceRenderer.Write(slice,
+            StorageCharacters(item, RuntimeApi.StrStoreAligned(area, StorageBytes(item, positions), false), positions));
+    }
+
+    /// <summary>The BYTES <paramref name="positions"/> positions of <paramref name="item"/>'s usage occupy — a C# int
+    /// expression: two per national position (D-N1), one per eight bit positions (§8.5.1.6.3), one per character
+    /// position otherwise. The receiving width a GR4 group move fits its area to, wherever the position count is a
+    /// run-time value (an ANY LENGTH receiver, a reference-modified one).</summary>
+    public static string StorageBytes(DataItem item, string positions) => item.Pic switch
+    {
+        { Usage: Usage.National } => $"({positions} * {RuntimeApi.BytesPerNational})",
+        { Usage: Usage.Bit } => $"(({positions} + {BitLayout.BitsPerCharacter - 1}) / {BitLayout.BitsPerCharacter})",
+        _ => positions,
+    };
+
     /// <summary>The receiver's position count in its OWN units for <see cref="StorageArea"/> — national character
     /// positions (<see cref="NationalWindow.PositionsOf"/>), boolean BIT positions (the PICTURE length), else its
     /// character positions; an ANY LENGTH receiver's comes from its carrier at run time (§13.18.2.4 GR1 b).</summary>
