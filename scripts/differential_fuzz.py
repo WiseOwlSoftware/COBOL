@@ -39,11 +39,14 @@ THE VERDICT CLASSES, per program (one JSON line each in `results.jsonl`, appende
                    construct is ISO (GnuCOBOL's default dialect carries extensions, so `-std=cobol2014` is pinned).
   OUTPUT_DIFFERS   both ran, outputs differ: a candidate wrong answer on one side; the spec decides which.
   OUTPUT_LATITUDE  both ran, the outputs differ ONLY in the display form of numeric items — GnuCOBOL's leading separate sign
-                   and inserted decimal point against WiseOwl's digit image with an over-punched sign (the settled decision
-                   PB803 and the open owner decision PB3467) — and the program declares no picture that prints a point and
-                   no SIGN SEPARATE item (display_fold_allowed: the text alone cannot tell the latitude from a dropped point).
-                   501 of the first night's 1,141 output rows. Recorded under its own heading, never a survivor;
-                   the verdict changes when PB3467 is answered, the rows do not.
+                   and inserted decimal point against WiseOwl's digit image with an over-punched sign — and the program
+                   declares no picture that prints a point and no SIGN SEPARATE item (display_fold_allowed: the text alone
+                   cannot tell the latitude from a dropped point). ONLY A ROW RECORDED BEFORE kb/Work PB3505 can be one: until
+                   then WiseOwl's DISPLAY of a numeric item was the digit image (the settled PB803 sign convention, and the
+                   point PB3467 asked about); PB3467's answer made GnuCOBOL's form WiseOwl's default (`--numeric-display
+                   decimal`), so in a run made now the same difference is a defect and stays OUTPUT_DIFFERS. A row records the
+                   form its WiseOwl compile used (`numeric_display`); a row recorded without it is a digit-image row.
+                   501 of the first night's 1,141 output rows. Recorded under its own heading, never a survivor.
   WE_CRASH         WiseOwl's compiler crashed (the adapter's crash exit codes), or an unhandled exception at run time.
   WE_FAIL_RUN      same stdout, but WiseOwl's program exited non-zero where GnuCOBOL's exited zero: a run-time abort after the
                    last DISPLAY (a failing CLOSE, a STOP RUN status), invisible in the output.
@@ -515,10 +518,37 @@ _SIGN_SEPARATE = re.compile(r"(?<![\w-])(?:SIGN\s+(?:IS\s+)?)?(?:LEADING|TRAILIN
 _EDITING_SIGN_OR_POINT = re.compile(r"[.+-]|CR|DB", re.IGNORECASE)
 
 
+#: The display form WiseOwl's DEFAULT compile gives a numeric item (`--numeric-display`, kb/Work PB3505, owner decision PB3467):
+#: GnuCOBOL's own, so a run compiled now has no display-form latitude against GnuCOBOL and display_fold_applies() is false.
+#: A row recorded before the option existed has no `numeric_display` and is read as the form WiseOwl then had, `digits`.
+NUMERIC_DISPLAY = "decimal"
+NUMERIC_DISPLAY_BEFORE_PB3505 = "digits"
+
+
+def display_fold_applies(numeric_display: str, source: str) -> bool:
+    """Whether a row compiled with the WiseOwl display form `numeric_display` may fold its outputs: only the digit image
+    differs from GnuCOBOL's form by latitude, and only in a program display_fold_allowed() clears."""
+    return numeric_display == NUMERIC_DISPLAY_BEFORE_PB3505 and display_fold_allowed(source)
+
+
+def row_display_fold(rec: dict[str, Any], out: Path) -> bool:
+    """The fold of a recorded row: nil for a row compiled with the decimal form; for a digit-image row (every row recorded
+    before kb/Work PB3505) the recorded `display_fold`, or, for a row recorded before that field, the program's source under
+    `out`; a source that is gone allows no fold."""
+    if rec.get("numeric_display", NUMERIC_DISPLAY_BEFORE_PB3505) != NUMERIC_DISPLAY_BEFORE_PB3505:
+        return False
+    fold = rec.get("display_fold")
+    if fold is None:
+        src = out / rec.get("source", "")
+        fold = display_fold_allowed(src.read_text(encoding="utf-8", errors="replace")) if rec.get("source") and src.is_file() else False
+    return bool(fold)
+
+
 def display_fold_allowed(source: str) -> bool:
     """Whether display_image() may fold this program's outputs. The text of an output cannot tell a scaled item's digit
-    image (`PIC 9(5)V99`, the PB3467 latitude: `0001250` against `00012.50`) from an EDITED item whose point one compiler
-    dropped (`PIC ZZ9.99`: a wrong answer), nor an over-punched sign from a SIGN SEPARATE item printed without its sign.
+    image (`PIC 9(5)V99`: `0001250` against `00012.50`, the form WiseOwl showed before kb/Work PB3505) from an EDITED item
+    whose point one compiler dropped (`PIC ZZ9.99`: a wrong answer), nor an over-punched sign from a SIGN SEPARATE item
+    printed without its sign.
     So the fold is allowed only when no picture in the program carries a point or an editing sign (`.`, `+`, `-`, `CR`, `DB`)
     and no item declares SIGN SEPARATE: in that program a point or a separate sign in GnuCOBOL's output can only be its
     display form (branch review R1-1). A program with such a picture keeps every difference as OUTPUT_DIFFERS for the
@@ -531,8 +561,8 @@ def display_fold_allowed(source: str) -> bool:
 def display_image(text: str) -> str:
     """Both compilers' display forms of a numeric item folded to one image, sign then digits with no decimal point:
     GnuCOBOL's `+00012.50` and WiseOwl's `000125{` both become `+0001250`, `00012.50` and `0001250` both `0001250`. Two
-    outputs equal under this fold differ only in the display-form latitude (PB803 settled the sign, PB3467 asks about the
-    point) WHEN display_fold_allowed() holds for the program; the fold is used to CLASSIFY the row, never to judge it."""
+    outputs equal under this fold differ only in the display form of a digit-image WiseOwl compile (PB803 settled the sign,
+    PB3467 the point) WHEN display_fold_applies() holds for the row; the fold is used to CLASSIFY the row, never to judge it."""
     def punch(m: re.Match[str]) -> str:
         sign, digit = _PUNCH[m.group(2)]
         return sign + m.group(1) + digit
@@ -658,9 +688,10 @@ class Fuzz:
                          {"role": "user", "content": repair_request(they.diagnostics, we.diagnostics)}]
         if we is None:
             we = observe_fresh(self.we, entry, name)
-        display_fold = display_fold_allowed(program)
+        display_fold = display_fold_applies(NUMERIC_DISPLAY, program)
         verdict = classify(we, they, display_fold)
         rec.update(verdict=verdict, signature=signature(verdict, number, we), display_fold=display_fold,
+                   numeric_display=NUMERIC_DISPLAY,
                    we={"compiled": we.compiled, "codes": we.codes,
                        "first_error": first_error(we.diagnostics) if we.compiled is False or we.crashed else "",
                        "run_rc": we.run_rc, "crashed": we.crashed, "hung": we.hung, "output": we.output[:RECORDED_OUTPUT],
@@ -769,17 +800,13 @@ def rederived(rec: dict[str, Any], out: Path) -> dict[str, Any]:
     classes the harness has NOW (kb/Work PB3490: the first night's rows were re-read under BOTH_HANG and OUTPUT_LATITUDE
     without a second night). A row that recorded no observations (NO_PROGRAM, a model RUNNER_ERROR) or an output the record
     cut keeps its verdict; a recorded compiler crash keeps its class whichever way the record's fields read. The display
-    fold follows the recorded `display_fold`, or, for a row recorded before that field, the program's source under `out`;
-    a source that is gone allows no fold."""
+    fold is row_display_fold()'s: a row compiled with the decimal form has none (kb/Work PB3505), a digit-image row follows
+    the recorded `display_fold` or the program's source under `out`."""
     we, they = rec.get("we"), rec.get("they")
     if not we or not they or rec["verdict"] in ("WE_CRASH", "RUNNER_ERROR") or \
             len(we.get("output") or "") >= RECORDED_OUTPUT or len(they.get("output") or "") >= RECORDED_OUTPUT:
         return rec
-    fold = rec.get("display_fold")
-    if fold is None:
-        src = out / rec.get("source", "")
-        fold = display_fold_allowed(src.read_text(encoding="utf-8", errors="replace")) if rec.get("source") and src.is_file() else False
-    verdict = classify(recorded_observation(we), recorded_observation(they), fold)
+    verdict = classify(recorded_observation(we), recorded_observation(they), row_display_fold(rec, out))
     if verdict == rec["verdict"]:
         return rec
     return {**rec, "verdict": verdict, "signature": signature(verdict, rec["clause"], recorded_observation(we)),
@@ -836,20 +863,21 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
             lines.append(f"- runner: {we.get('runner_error') or they.get('runner_error')}")
         if r["verdict"] in ("OUTPUT_DIFFERS", "THEY_FAIL_RUN", "WE_FAIL_RUN", "EXIT_DIFFERS"):
             lines.append("- outputs (WiseOwl | GnuCOBOL), first differing lines:")
+            fold = row_display_fold(r, out)
             a, b = we.get("output", "").splitlines(), they.get("output", "").splitlines()
             shown = latitude_only = 0
             for k in range(max(len(a), len(b))):
                 x, y = (a[k] if k < len(a) else "<end>"), (b[k] if k < len(b) else "<end>")
                 if x == y:
                     continue
-                if display_image(x) == display_image(y):
-                    latitude_only += 1       # the display-form latitude (PB803 / PB3467) on a line of a row that differs elsewhere
+                if fold and display_image(x) == display_image(y):
+                    latitude_only += 1       # the digit-image display form (PB803 / PB3467) on a line of a row that differs elsewhere
                     continue
                 if shown < 5:
                     lines.append(f"  - line {k + 1}: `{x[:120]}` | `{y[:120]}`")
                 shown += 1
             if latitude_only:
-                lines.append(f"  - {latitude_only} other line(s) differ only in the display form of a numeric item (PB803 / PB3467)")
+                lines.append(f"  - {latitude_only} other line(s) differ only in the digit-image display form of a numeric item (PB803 / PB3467)")
             if we.get("run_rc") not in (None, 0):
                 lines.append(f"  - WiseOwl run exit {we['run_rc']}")
             if they.get("run_rc") not in (None, 0):
@@ -861,8 +889,9 @@ def render_report(rows: list[dict[str, Any]], out: Path) -> str:
             by_clause.setdefault(r["clause"], []).append(r)
         lines += ["", f"## Display-form latitude: {len(latitude)} programs (not survivors)",
                   "The outputs differ only in how a numeric item is displayed: GnuCOBOL's leading separate sign and inserted",
-                  "decimal point against WiseOwl's digit image with an over-punched sign. The sign is the settled decision",
-                  "PB803; the decimal point is the open owner decision PB3467. Nothing here needs triage until PB3467 is answered."]
+                  "decimal point against the digit image with an over-punched sign that WiseOwl displayed before kb/Work PB3505",
+                  "(the sign is the settled decision PB803, the point PB3467's). These rows were recorded by a digit-image compile",
+                  "and need no triage: a run made now compiles WiseOwl's default decimal form, where this difference is a defect."]
         lines += [f"- clause {c} ({g[0]['title']}): {len(g)} — {', '.join(x['id'] for x in g[:6])}{' …' if len(g) > 6 else ''}"
                   for c, g in sorted(by_clause.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
     runner = [r for r in rows if r["verdict"] == "RUNNER_ERROR"]
@@ -1108,7 +1137,7 @@ def self_test() -> int:
              "we": {"output": "R=000125{", "first_error": "", "codes": []}, "they": {"output": "R=+00012.50", "run_rc": 0}},
             {"id": "fz00007", "clause": "14.9.28", "title": "PERFORM", "verdict": "BOTH_HANG", "signature": "BOTH_HANG:14.9.28", "model_seconds": 5},
             {"id": "fz00008", "clause": "14.9.25", "title": "MOVE", "verdict": "OUTPUT_DIFFERS", "signature": "OUTPUT_DIFFERS:14.9.25",
-             "source": "programs/fz00008.cob", "model_seconds": 11,
+             "source": "programs/fz00008.cob", "model_seconds": 11, "display_fold": True,
              "we": {"output": "R=000125{" + chr(10) + "Q=1", "first_error": "", "codes": []}, "they": {"output": "R=+00012.50" + chr(10) + "Q=2", "run_rc": 0}}]
     rep = render_report(rows, Path("."))
     check("report: usable over judged programs only (the model's failures are BOTH_REJECT, NO_PROGRAM and BOTH_HANG), repairs counted on usable rows, the THEY_REJECT count and group with GnuCOBOL's error, the differing line, the latitude rows under their own heading and not among the survivors",
@@ -1143,9 +1172,23 @@ def self_test() -> int:
               and rederived(rows[1], out) is rows[1] and rederived(rows[2], out) is rows[2] and rederived(rows[3], out) is rows[3] and rederived(cut_row, out) is cut_row,
               [rederived(hang_row, out)["verdict"], rederived(edited_row, out)["verdict"], rederived(gone_row, out)["verdict"]])
     solo = render_report([rows[8]], Path("."))
-    check("report: a row that differs elsewhere lists its REAL differing line first and counts the lines that differ only in the display form",
+    check("report: a digit-image row that differs elsewhere lists its REAL differing line first and counts the lines that differ only in the display form",
           "line 2: `Q=1` | `Q=2`" in solo and "line 1:" not in solo
-          and "1 other line(s) differ only in the display form of a numeric item (PB803 / PB3467)" in solo, solo)
+          and "1 other line(s) differ only in the digit-image display form of a numeric item (PB803 / PB3467)" in solo, solo)
+    decimal_row = {**rows[8], "numeric_display": "decimal", "display_fold": False}
+    decimal_solo = render_report([decimal_row], Path("."))
+    check("report: a row compiled with WiseOwl's default decimal form lists the display-form line as a REAL difference (kb/Work PB3505)",
+          "line 1: `R=000125{` | `R=+00012.50`" in decimal_solo and "differ only in the digit-image display form" not in decimal_solo, decimal_solo)
+    check("display fold: only a digit-image compile can fold, in a program the text allows (kb/Work PB3505); a recorded row follows its form",
+          not display_fold_applies(NUMERIC_DISPLAY, "01 A PIC 9(5)V99.") and display_fold_applies("digits", "01 A PIC 9(5)V99.")
+          and not display_fold_applies("digits", "01 A PIC ZZ9.99.") and NUMERIC_DISPLAY == "decimal"
+          and not row_display_fold({"numeric_display": "decimal", "display_fold": True}, Path("."))
+          and row_display_fold({"display_fold": True}, Path(".")) and not row_display_fold({"display_fold": False}, Path("."))
+          and not row_display_fold({"source": "programs/gone.cob"}, Path(".")))
+    with tempfile.TemporaryDirectory() as td2:
+        decimal_lat = {**lat_row, "id": "fz00028", "numeric_display": "decimal", "display_fold": True}
+        check("rederived: a row compiled with the decimal form is never OUTPUT_LATITUDE, whatever its recorded fold (kb/Work PB3505)",
+              rederived(decimal_lat, Path(td2))["verdict"] == "OUTPUT_DIFFERS" and rederived({**lat_row, "display_fold": True}, Path(td2))["verdict"] == "OUTPUT_LATITUDE")
     check("report: the triage rule is printed", "the spec decides" in rep)
     adapter, problems = suite_config.load_adapter(SUITE / "adapters" / "gnucobol.json")
     check("adapters: the suite's gnucobol adapter loads and has the 2014 edition this script pins",

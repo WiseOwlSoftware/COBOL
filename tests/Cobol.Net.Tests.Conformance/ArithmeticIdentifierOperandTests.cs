@@ -200,6 +200,6 @@ public sealed class ArithmeticIdentifierOperandTests
         var (ok, stdout, detail) = EditionHarness.CompileAndRun(Program(programId, $"MULTIPLY {id} BY B."), 2023,
             permissive: true);
         Assert.True(ok, detail);
-        Assert.Equal("B=0396 C=0000", stdout.Trim());
+        Assert.Equal("B=039.6 C=000.0", stdout.Trim());
     }
 }

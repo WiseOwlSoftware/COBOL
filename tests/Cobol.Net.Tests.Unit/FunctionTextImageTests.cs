@@ -44,7 +44,7 @@ public sealed class FunctionTextImageTests
         Assert.Equal(expected, CobolNum.FormatFunctionText(unscaled, scale));
 
     /// <summary>A NEGATIVE scale is P-scaling: the P positions are trailing zeros that occupy no storage
-    /// (§13.18.40.3 symbol-P operations item b), so the text restores them.</summary>
+    /// (§13.18.40.4 GR14 symbol P, operations b)), so the text restores them.</summary>
     [Theory]
     [InlineData(12, -2, "1200")]
     [InlineData(-12, -2, "-1200")]

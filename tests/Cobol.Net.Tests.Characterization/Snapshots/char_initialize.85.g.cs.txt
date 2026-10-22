@@ -57,7 +57,7 @@ internal sealed class _PRG_CHAR_INITIALIZE : ICobolProgram
                 {
                     WS_REC.WS_N = (long)(CobolNum.Store(0L, 0, _P_1, CobolRounding.Truncation));
                     WS_REC.WS_A = new string(' ', 4);
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(WS_REC.WS_N, _P_1) + WS_REC.WS_A);
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_REC.WS_N, _P_1, false) + WS_REC.WS_A);
                     throw new StopRun();
                 }
                 default:

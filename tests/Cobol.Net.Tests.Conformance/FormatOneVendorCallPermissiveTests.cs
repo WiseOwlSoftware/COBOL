@@ -93,11 +93,11 @@ public sealed class FormatOneVendorCallPermissiveTests
             {
                 "A=abcd B=WXYZ",   // BY CONTENT literal — a detached BY CONTENT value
                 "A=abcd B=QRST",   // bare literal — the same
-                "V=000000002",     // BY VALUE identifier — the Value mode
-                "V=000000005",     // BY VALUE literal
-                "V=000000003",     // BY VALUE expression N + 1
+                "V=+0000000002",    // BY VALUE identifier — the Value mode (a COMP-5 item shows its 4-byte container's ten digits, signed)
+                "V=+0000000005",    // BY VALUE literal
+                "V=+0000000003",    // BY VALUE expression N + 1
                 "D=7",             // BY CONTENT numeric literal into a PIC X formal of its length
-                "N=000000002",     // no BY VALUE store reached the caller's N
+                "N=+0000000002",    // no BY VALUE store reached the caller's N
             },
             stdout.Replace("\r\n", "\n").TrimEnd('\n').Split('\n'));
     }

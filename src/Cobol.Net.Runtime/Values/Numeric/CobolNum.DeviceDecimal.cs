@@ -83,10 +83,12 @@ public static partial class CobolNum
     ///   <item>scale &gt; 0 — the point stands before the last <c>scale</c> digits; a scale past the digit run (leading
     ///         <c>P</c>) writes the point and then the zeros the Ps stand for: <c>PIC PP9(3)</c> holding .00123 is <c>.00123</c>;</item>
     ///   <item>scale &lt; 0 — trailing <c>P</c> positions are zeros that occupy no storage and are written:
-    ///         <c>PIC 9(3)PP</c> holding 1200 is <c>01200</c> (§13.18.40.3 symbol-P operations item b);</item>
+    ///         <c>PIC 9(3)PP</c> holding 1200 is <c>01200</c>. DISPLAY is none of the operations a) to d) of §13.18.40.4 GR14 (symbol P)
+    ///         that use the item's algebraic value, so the Ps are not counted in the item's size; writing their zeros is this GR1
+    ///         conversion's choice (the value as a reader writes it, DOC-A.1-56), and the transfer is the converted text's size (GR6);</item>
     ///   <item>a SIGNED item always shows <c>+</c> or <c>-</c>, so zero is <c>+</c>: LEADING, except that an item the
     ///         program wrote <c>SIGN TRAILING SEPARATE</c> shows it where the program put it, trailing
-    ///         (<c>001.50-</c>) — the character position §13.18.52.4 GR6 gives it;</item>
+    ///         (<c>001.50-</c>) — the character position §13.18.52.4 GR6 a) gives it;</item>
     /// </list></summary>
     private static string Compose(bool negative, string digits, in NumProfile item, bool commaMode, bool padTo = true)
     {

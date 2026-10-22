@@ -74,10 +74,10 @@ public sealed class MoveEditionDifferentialTests
 
     [Fact]
     // GR6d3b: "if the receiving item is not an integer, the number of digits includes both those to the right
-    // and the left of the decimal point" — ALL "5" → PIC 9V9 is 5.5 (digit image "55"; legacy-confirmed).
+    // and the left of the decimal point" — ALL "5" → PIC 9V9 is 5.5 (DISPLAY shows 5.5; legacy-confirmed).
     public void AllDigitToNonInteger_FillsFractionDigits_Gr6d3b()
         => AssertSpec(Program("MVEDA2", "01 W-FRAC PIC 9V9.",
-            "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), "R[55]");
+            "    MOVE ALL \"5\" TO W-FRAC.\n    DISPLAY \"R[\" W-FRAC \"]\"."), "R[5.5]");
 
     [Fact]
     // §8.3.3.6.4 GR2 repetition with right truncation — ALL "57" → PIC 9(3) stores 575. A multi-character ALL

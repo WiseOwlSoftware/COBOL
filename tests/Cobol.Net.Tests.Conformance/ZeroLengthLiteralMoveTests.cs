@@ -249,7 +249,7 @@ public sealed class ZeroLengthLiteralMoveTests
             MOVE FUNCTION NUMVAL("0.123456789012345") TO R-FRAC.
             DISPLAY "FRAC=[" R-FRAC "]".
             """);
-        Assert.Equal("FRAC=[0123456789012345]", Run(src, 2014));
+        Assert.Equal("FRAC=[0.123456789012345]", Run(src, 2014));
     }
 
     /// <summary>⛔ A reference-modified sender is a §8.5.4 zero-length item only "when that has been permitted
