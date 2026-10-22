@@ -15,26 +15,39 @@ namespace CobolNet.Tests.Unit;
 /// did not answer in 90 seconds. The walk now runs on ANTLR's own full-context simulator (<c>ResidueWalk</c>), whose
 /// graph-structured stacks merge the paths after every token.
 /// <para>⛔ The witness is ALLOCATION, never the clock (kb/Work PB1590): the bytes the compiling thread allocates while
-/// it checks the program, at depths 0, 1 and 2, after one discarded warm-up. A count of configurations cannot serve:
-/// ANTLR's configuration set merges per (state, alternative, predicate), so the per-path walk's blow-up was in the
-/// STACKS, which a configuration count never sees (branch review R1-1); every stack the walk builds is an allocation.
-/// Depths 0–2 finish in a second even under the per-path walk, so a regression fails here by its count, never by
-/// hanging the run. Measured (identical run to run): the walk on ANTLR's simulator 1.31 MB · 8.22 MB · 8.26 MB, the
-/// per-path walk 1.29 MB · 10.4 MB · 63.7 MB. The bound — the second level costs at most three times the first — holds
-/// at 0.006 and fails at 5.8.</para>
+/// it checks the program, at depths 0, 1 and 2. A count of configurations cannot serve: ANTLR's configuration set merges
+/// per (state, alternative, predicate), so the per-path walk's blow-up was in the STACKS, which a configuration count
+/// never sees (branch review R1-1); every stack the walk builds is an allocation. Depths 0–2 finish in a second even
+/// under the per-path walk, so a regression fails here by its count, never by hanging the run.</para>
+/// <para>⛔ Every depth is measured WARM, as the least of three compiles after a discarded one at that same depth (branch
+/// review R2-1): the parse's adaptive prediction fills the parser's process-wide shared DFA cache, so a cold compile's
+/// bytes depend on which compiles ran before it, on any thread, in this test process (measured cold, the second level
+/// cost 0.006 times the first when nothing ran before and 13.5 times after one malformed one-level FUNCTION argument
+/// list, so the correct walk failed or passed by the schedule). A warm compile adds nothing to that
+/// cache, so its bytes are the walk's and the parse's own, whatever ran before; the least of three also drops a fill a
+/// concurrent compile could cause. Measured warm (identical run to run, and after a cold start, a malformed one-level
+/// FUNCTION list, a valid one, the Theory's depths, or another thread compiling throughout): the walk on ANTLR's
+/// simulator 1,308,848 · 1,773,072 · 2,773,584 bytes, so the second level costs 2.16 times the first; the per-path walk
+/// 1.29 MB · 3.98 MB · 58.2 MB, 20.1 times. The first level is cheaper than the levels above it (464 KB against about
+/// 1 MB, then 916 KB at depths 3 and 4): depth 0 is not a FUNCTION argument at all. The bound, six, is the geometric
+/// mean of the two ratios rounded down, so each sits about three times from it. Depth 3 cannot be measured: the
+/// per-path walk does not answer there in 90 seconds.</para>
 /// </summary>
 public sealed class ResidueWalkNestingTests
 {
+    private const int MaxSecondToFirstLevelRatio = 6;
+
     [Fact]
     public void NestedFunctionCallSyntaxError_WalkWorkIsLinearInDepth()
     {
-        CheckAllocation(0);   // warm-up, discarded: the first compile in a process allocates its one-time state
-        long zero = CheckAllocation(0), one = CheckAllocation(1), two = CheckAllocation(2);
+        long zero = WarmAllocation(0), one = WarmAllocation(1), two = WarmAllocation(2);
         long first = one - zero, second = two - one;
-        Assert.True(second <= 3 * Math.Max(first, 1),
-            $"checking the error at depths 0, 1 and 2 allocated {zero:N0}, {one:N0} and {two:N0} bytes: the second level "
-            + $"cost {second:N0} against {first:N0} for the first — the walk's stacks multiply per level, the blow-up of "
-            + "kb/Work PB3489 has regressed");
+        Assert.True(first > 0, $"checking the error one FUNCTION call deep allocated {one:N0} bytes, no more than at depth "
+            + $"0 ({zero:N0}): the program no longer exercises the walk, so the bound below proves nothing");
+        Assert.True(second <= MaxSecondToFirstLevelRatio * first,
+            $"checking the error at depths 0, 1 and 2 allocated {zero:N0}, {one:N0} and {two:N0} bytes warm: the second "
+            + $"level cost {second:N0} against {first:N0} for the first, above {MaxSecondToFirstLevelRatio} times — the "
+            + "walk's stacks multiply per level, the blow-up of kb/Work PB3489 has regressed");
     }
 
     [Theory]
@@ -44,11 +57,20 @@ public sealed class ResidueWalkNestingTests
     public void NestedFunctionCallSyntaxError_IsReportedAtTheOffendingWord(int depth)
         => Assert.Contains(Check(depth).Errors, e => e.Contains("COBOL0001") && e.Contains("near 'FROM'"));
 
-    private static long CheckAllocation(int depth)
+    /// <summary>The bytes the compiling thread allocates to check the program at <paramref name="depth"/>, warm: the least
+    /// of three compiles after a discarded one, so the parser's shared DFA cache holds everything this program's parse
+    /// adds to it and the measure does not depend on what ran before (branch review R2-1).</summary>
+    private static long WarmAllocation(int depth)
     {
-        long before = GC.GetAllocatedBytesForCurrentThread();
         Check(depth);
-        return GC.GetAllocatedBytesForCurrentThread() - before;
+        long least = long.MaxValue;
+        for (int i = 0; i < 3; i++)
+        {
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            Check(depth);
+            least = Math.Min(least, GC.GetAllocatedBytesForCurrentThread() - before);
+        }
+        return least;
     }
 
     /// <summary>Compile the fuzz program's shape with <paramref name="depth"/> FUNCTION calls around the malformed
