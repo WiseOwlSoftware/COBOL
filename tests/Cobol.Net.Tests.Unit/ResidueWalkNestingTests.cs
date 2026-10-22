@@ -13,15 +13,15 @@ namespace CobolNet.Tests.Unit;
 /// strategy's closed-format walk (<c>CobolErrorStrategy.ClosedFormatResidue</c>), which re-simulates the tokens the
 /// failed prediction read, kept one call stack per path. Every argument reaches a function-identifier along many call
 /// paths, so the distinct stacks multiplied with each nested argument list: one or two levels answered at once, three
-/// did not answer in 90 seconds. The walk now shares its stacks as one graph (<c>CallStacks</c>), merged after every
-/// token as ANTLR's own prediction merges its contexts.
+/// did not answer in 90 seconds. The walk now runs on ANTLR's own full-context simulator (<c>ResidueWalk</c>), whose
+/// graph-structured stacks merge the paths after every token.
 /// <para>⛔ These tests count the WORK, never the clock (kb/Work PB1590): the walk reports the configurations its
 /// closures visited (<see cref="CobolErrorStrategy.ResidueWalkObserver"/>), and the count must grow by the same amount
 /// for every added level. The depths stay inside the walk's 16-token window (five calls is 16 tokens to FROM), so every
-/// depth exercises the walk. Measured: merged, depths 1 to 5 visit 11,098 · 20,952 · 30,806 · 40,660 · 50,514; unmerged,
-/// depths 1 and 2 visited 19,585 and 320,041 and depth 3 did not finish. So depths 1 and 2 are asked FIRST, against a
-/// bound the unmerged walk breaks by an order of magnitude, and a regression fails there by its count before a deeper
-/// level could hang the run.</para>
+/// depth exercises the walk. Measured: on ANTLR's simulator depths 1 to 5 produce 427 · 740 · 1,053 · 1,366 · 1,679
+/// configurations (a step of 313); the deleted per-path closure visited 19,585 and 320,041 at depths 1 and 2 and never
+/// finished depth 3. So depths 1 and 2 are asked FIRST, against a bound a multiplying walk breaks by an order of
+/// magnitude, and a regression fails there by its count before a deeper level could hang the run.</para>
 /// </summary>
 public sealed class ResidueWalkNestingTests
 {
