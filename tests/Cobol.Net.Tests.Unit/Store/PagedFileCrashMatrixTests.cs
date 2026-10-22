@@ -207,7 +207,8 @@ public sealed class PagedFileCrashMatrixTests
         const string Previous = "1=old;2=older;";
         var probe = StoreKit.ClosedStore("1=old", "2=older");
         var ph = probe.Open("A");
-        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _));
+        Assert.Equal(StoreStatus.Ok, PagedFile.Create(ph, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out bool landed));
+        Assert.True(landed, "a creation that landed replaced the file");
         var ops = ph.Operations.ToList();
         Assert.Equal(6, ops.Count);
         Assert.Equal(new[] { "S", "W2", $"T{MetaPage.MetaPages * PageHeader.PageSize}", "S" }, new[] { ops[1], ops[2], ops[4], ops[5] });
@@ -221,10 +222,12 @@ public sealed class PagedFileCrashMatrixTests
                     var previousBytes = medium.Contents();
                     var h = medium.Open("A");
                     h.FaultAtOperation(n, fault);
-                    bool died = false;
-                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _) == StoreStatus.PermanentError, where); }
+                    bool died = false, replaced = false;
+                    try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
                     catch (SimulatedDeath) { died = true; }
                     Assert.Equal(fault != Fault.Refuse, died);
+                    // A refusal undone reports the file not replaced; the last sync's follows the truncation and reports it replaced.
+                    if (fault == Fault.Refuse) Assert.True((n == ops.Count) == replaced, $"{where}: replaced {replaced}");
                     // GR25: a refusal before the last sync leaves the file byte for byte as it was.
                     if (fault == Fault.Refuse && n < ops.Count)
                         Assert.True(previousBytes.AsSpan().SequenceEqual(medium.Contents()), $"{where}: the file was affected");
@@ -239,12 +242,47 @@ public sealed class PagedFileCrashMatrixTests
                     Assert.True(expected == StoreKit.Show(c!), $"{where}: {StoreKit.Show(c!)}");
                     StoreKit.AssertSlotsAndWorkAgree(medium);
                     var again = medium.Open("D");
-                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var fresh));
+                    Assert.Equal(StoreStatus.Ok, PagedFile.Create(again, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var fresh, out _));
                     Assert.Equal("", StoreKit.Show(fresh!));
                     Assert.Equal(StoreStatus.Ok, StoreKit.Put(fresh!, 7, "new", blobPages: 3));
                     StoreKit.AssertNoStampReused(medium);
                     StoreKit.AssertR1(medium);
                 }
+    }
+
+    /// <summary>2.2.1.16's OPEN OUTPUT row at a refusal whose UNDO the medium refuses too (kb/Work PB3493, review finding R1-1):
+    /// GR25's <i>"the file is not affected"</i> is then out of the creation's reach, so <see cref="PagedFile.Create"/> answers
+    /// '30' with the file REPORTED REPLACED — the one fact a caller that keeps state over the previous store (a CLOSE under
+    /// commit control's) ends it by — and R6 decides what the next OPEN adopts. The operations are the creation's six (the
+    /// commit slot's write, its sync, page 2, the other slot, the truncation, the last sync) and then the undo's, newest page
+    /// first; <c>refused</c> names the ones the medium refuses, 1-based. A refusal of the commit slot's own write (op 1)
+    /// wrote nothing and reports the file kept; every later refusal whose undo is refused reports it replaced. The undo goes on
+    /// past a refused page: with page 2's restore refused and the commit slot's landed, the previous committed store is the
+    /// file's again (the work slot is foreign to it), while a commit slot left holding the empty meta at N makes the file the
+    /// empty store.</summary>
+    [Theory]
+    [InlineData(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, false, "1=old;2=older;")]   // op 1 refused: nothing written, nothing to undo
+    [InlineData(new[] { 2, 3, 4, 5, 6, 7, 8, 9 }, true, "")]                     // sync 1, then the commit slot's restore
+    [InlineData(new[] { 3, 4, 5, 6, 7, 8, 9 }, true, "")]                        // page 2, then the commit slot's restore
+    [InlineData(new[] { 4, 5, 6, 7, 8, 9 }, true, "")]                           // the other slot, then every restore
+    [InlineData(new[] { 5, 6, 7, 8, 9 }, true, "")]                              // the truncation, then every restore
+    [InlineData(new[] { 6 }, true, "")]                                         // the last sync: nothing left to undo
+    [InlineData(new[] { 4, 5 }, true, "1=old;2=older;")]                        // page 2's restore refused, the commit slot's landed
+    [InlineData(new[] { 5, 6 }, true, "")]                                      // the previous commit slot's restore refused
+    public void A_creation_whose_undo_is_refused_reports_the_file_replaced(int[] refused, bool expectReplaced, string expectNext)
+    {
+        var medium = StoreKit.ClosedStore("1=old", "2=older");
+        var previousBytes = medium.Contents();
+        int op = 0;
+        IOException? Next() => refused.Contains(++op) ? new IOException("refused by the host") : null;
+        var h = new RefusingPageMedium(medium.Open("A"), write: _ => Next(), sync: Next, truncate: Next);
+        Assert.Equal(StoreStatus.PermanentError, PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out var store, out bool replaced));
+        Assert.Null(store);
+        Assert.Equal(expectReplaced, replaced);
+        if (!expectReplaced) Assert.True(previousBytes.AsSpan().SequenceEqual(medium.Contents()), "the file was affected");
+        var (_, status, next) = StoreKit.OpenAs(medium, "C");
+        Assert.Equal(StoreStatus.Ok, status);
+        Assert.Equal(expectNext, StoreKit.Show(next!));
     }
 
     /// <summary>The previous files a creation meets that hold no store: empty, and foreign bytes of every length class.
@@ -274,10 +312,11 @@ public sealed class PagedFileCrashMatrixTests
                 var medium = MemoryPageMedium.Holding(previous);
                 var h = medium.Open("A");
                 h.FaultAtOperation(n, fault);
-                bool died = false;
-                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _) == StoreStatus.PermanentError, where); }
+                bool died = false, replaced = false;
+                try { Assert.True(PagedFile.Create(h, StoreKit.Relative, true, HoldingsKeyOrder.RecordNumbers, out _, out replaced) == StoreStatus.PermanentError, where); }
                 catch (SimulatedDeath) { died = true; }
                 Assert.Equal(fault != Fault.Refuse, died);
+                if (fault == Fault.Refuse) Assert.True((n == ops) == replaced, $"{where}: replaced {replaced}");
                 bool created = fault == Fault.Refuse ? n == ops : fault == Fault.DeathAfter || n > 1;
                 if (!created)
                 {
