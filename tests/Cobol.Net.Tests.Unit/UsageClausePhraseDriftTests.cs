@@ -32,6 +32,7 @@ namespace CobolNet.Tests.Unit;
 /// clause's phrase children only by <c>DataBinder.ScreenUsagePhrases</c> and the edition gate, so the rule cannot
 /// grow a second copy. A new phrase or usage word fails here until its row is decided.</para>
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class UsageClausePhraseDriftTests : CobolNetTestBase
 {
     /// <summary>Which of the four optional phrases the PRINTED §13.18.60.2 figure (PDF p.533 = printed folio 503,
