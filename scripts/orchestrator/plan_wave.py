@@ -93,6 +93,9 @@ the ledger recorded with no files, meets the other side on a shared SUBSYSTEM (i
 meets everything when that is unknown too; such a meeting waits even for finished work; within a wave an unknown
 group is planned alone on its subsystems (a successor of the last group on one, and a later group on one follows it);
 and the plan table and its spec name it UNPARTITIONED. A finisher's set includes the files of the branch it continues.
+A branch ANOTHER group of the same wave continues is planned work, never a hold (kb/Work PB3528): the group that meets
+it follows that group (a successor, `after:`), so two SPLIT branches sharing a file are finished in one chain instead of
+each waiting on the other forever.
 The in-flight set never reads a
 branch CLASSIFICATION: a dispatched branch with no commit classifies MERGED and one that edits only existing files
 classifies LANDED, so a classification-filtered set missed both (PB2118 Draft 7, the sixth refuter's partition lead).
@@ -1301,6 +1304,15 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
     # a later wave: it never runs beside a group it cannot be checked against. Two KNOWN groups link on their primary
     # file only (the same-file rule above); the partition by file set is the in-flight one.
     areas_of: dict[int, set[str]] = {}       # id(group) -> its subsystems, for each placed group
+    # ⛔ A BRANCH THIS WAVE FINISHES IS PLANNED WORK, NOT UNDECIDED WORK (kb/Work PB3528). Two SPLIT branches whose file
+    # sets meet were each a DECISION owner (read RUNNING) in the other's finisher's partition check, so neither finisher
+    # was ever planned. A group meeting a branch that ANOTHER group of this wave continues is not held by it: it joins
+    # that group's chain once the group is placed (the later of two such finishers becomes the earlier's successor and
+    # merges its branch), and the earlier one goes ahead. A branch no group of this wave continues still holds.
+    finisher_of: dict[str, Group] = {}       # branch -> the group of this wave that continues it
+    for g in groups:
+        for b in g.continues:
+            finisher_of.setdefault(b, g)
     for g in groups:
         # a finisher's set includes what the branches it continues already change (their actual diff, read once by
         # inflight_file_sets): that much of its work is known whatever its notes declare
@@ -1317,6 +1329,10 @@ def plan(notes: dict[str, Note], clusters: list[dict[str, Any]], half_clusters: 
                    and not x.notes & set(g.notes)                             # its own notes (the hold decided those);
                    and (x.reserves is None or x.reserves & set(g.notes))      # a reservation holds only its notes'
                    and collision(mine, areas, x.files, subsystems(x.notes, notes))}   # groups (PB3456)
+            # a branch another group of this wave finishes: follow that group when it is placed (PB3528, above)
+            planned = {o: finisher_of[x.branch] for o, x in met.items() if x.branch and x.branch in finisher_of}
+            links += [f for f in planned.values() if id(f) in chain_of and f not in links]
+            met = {o: x for o, x in met.items() if o not in planned}
             # a meeting the partition could not check by file (an UNKNOWN set) waits even for FINISHED work: a
             # continuation would merge a branch the group may share nothing with (collision, kb/Work PB3263)
             if held_by := {f"{o} [{x.state}]": x for o, x in met.items() if x.finished is None or not (mine and x.files)}:
