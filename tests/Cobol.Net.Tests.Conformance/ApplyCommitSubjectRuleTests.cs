@@ -6,20 +6,20 @@ using Xunit;
 namespace CobolNet.Tests.Conformance;
 
 /// <summary>
-/// The APPLY COMMIT antecedent family under <c>--permissive</c> (kb/Work PB666): the syntax rules of CLAIMED clauses
-/// and statements whose antecedent is "a file subject to an APPLY COMMIT clause" are enforced in their own right
-/// (COBOLNET2974, <c>DataBinder.ScreenApplyCommitSubject</c>), not only "witnessed by the refusal of the antecedent".
+/// The APPLY COMMIT antecedent family (kb/Work PB666, PB3338): the syntax rules of the clauses and statements whose
+/// antecedent is "a file subject to an APPLY COMMIT clause" are enforced in their own right (COBOLNET2974,
+/// <c>DataBinder.ScreenApplyCommitSubject</c>) in BOTH lanes.
 /// </summary>
 /// <remarks>
-/// <para>⛔ WHY THIS EXISTS. kb/Work PB371 (owner, 2026-09-02) recorded the family CONFORMS because COBOLNET1709 refuses
-/// the APPLY COMMIT clause (Annex A.4.3 is not claimed), and each row's witness is the negative fixture that pins that
-/// refusal. But COBOLNET1709 is <c>PermissiveInert</c>: under <c>--permissive</c> the clause is a warning, the program
-/// binds — and every one of these fixtures, each written in its rule's own forbidden shape, compiled with ZERO errors.
-/// The negative corpus runs strict only, so it could not see it; <c>EditionHarness.CompileFull(…, permissive: true)</c>
-/// is the seam, exactly as for SR8's exemption in <see cref="OpenSharingLockModeTests"/>.</para>
-/// <para>The sources ARE the corpus fixtures, read from disk, so the forbidden shape is written once.
-/// <c>apply-commit-same-area-shared</c> is deliberately absent: §12.4.6.4.4 GR3 is a general rule about an ACTIVE
-/// clause's sharing at run time, and no APPLY COMMIT clause is ever active here in either lane.</para>
+/// <para>⛔ WHY THIS EXISTS. Until kb/Work PB3338 the APPLY COMMIT clause was declined (COBOLNET1709, Annex A.4.3 item 2),
+/// so the family was recorded CONFORMS as vacuously satisfied (kb/Work PB371) and only <c>--permissive</c>, where the
+/// declined clause was a warning, reached the rules (PB666). Since PB3338 the clause is accepted for a RELATIVE or
+/// INDEXED file, so every forbidden shape is a program a user can write in the strict lane. The corpus negatives pin the
+/// strict lane's refusal by code; this class pins, for both lanes, that the refusal is the rule's own (its citation in
+/// the message) and that the clause itself is no longer declined (no COBOLNET1709).</para>
+/// <para>The sources ARE the corpus fixtures, read from disk, so the forbidden shape is written once. §12.4.6.4.4 GR3
+/// (two files of one SAME clause both subject to commit and rollback) is a general rule, not one of these syntax
+/// rules, and has no fixture here.</para>
 /// </remarks>
 public sealed class ApplyCommitSubjectRuleTests
 {
@@ -28,34 +28,43 @@ public sealed class ApplyCommitSubjectRuleTests
         string.Join('\n', File.ReadAllText(TestRepo.SuiteCase(name)).Split('\n')
             .Where(line => !line.TrimStart().StartsWith("*>", StringComparison.Ordinal)));
 
-    /// <summary>Each fixture's forbidden shape draws its rule under <c>--permissive</c>, beside the declined clause's
-    /// warning — the rule is enforced, not merely unreachable.</summary>
+    /// <summary>Each fixture's forbidden shape, over a RELATIVE file, draws its rule in the strict lane and under
+    /// <c>--permissive</c> alike, and the APPLY COMMIT clause itself is accepted (no COBOLNET1709).</summary>
     [Theory]
-    [InlineData("apply-commit-open-sharing", "§14.9.27.3 SR7")]
-    [InlineData("apply-commit-lock-mode", "§12.4.5.9.3 SR1")]
-    [InlineData("apply-commit-same-area", "§12.4.6.4.3 SR11")]
-    [InlineData("apply-commit-read-lock", "§14.9.30.3 SR5")]
-    [InlineData("apply-commit-rewrite-lock", "§14.9.35.3 SR5")]
-    [InlineData("apply-commit-unlock", "§14.9.47.3 SR2")]
-    public void ForbiddenShape_IsRefusedUnderPermissive(string fixture, string rule)
+    [InlineData("apply-commit-open-sharing", "§14.9.27.3 SR7", false)]
+    [InlineData("apply-commit-open-sharing", "§14.9.27.3 SR7", true)]
+    [InlineData("apply-commit-lock-mode", "§12.4.5.9.3 SR1", false)]
+    [InlineData("apply-commit-lock-mode", "§12.4.5.9.3 SR1", true)]
+    [InlineData("apply-commit-same-area", "§12.4.6.4.3 SR11", false)]
+    [InlineData("apply-commit-same-area", "§12.4.6.4.3 SR11", true)]
+    [InlineData("apply-commit-read-lock", "§14.9.30.3 SR5", false)]
+    [InlineData("apply-commit-read-lock", "§14.9.30.3 SR5", true)]
+    [InlineData("apply-commit-rewrite-lock", "§14.9.35.3 SR5", false)]
+    [InlineData("apply-commit-rewrite-lock", "§14.9.35.3 SR5", true)]
+    [InlineData("apply-commit-unlock", "§14.9.47.3 SR2", false)]
+    [InlineData("apply-commit-unlock", "§14.9.47.3 SR2", true)]
+    public void ForbiddenShape_IsRefusedByItsOwnRule(string fixture, string rule, bool permissive)
     {
-        var (ok, errors, warnings) = EditionHarness.CompileFull(Fixture(fixture), 2023, permissive: true);
-        EditionHarness.AssertHasDiagnostic(warnings, "COBOLNET1709");   // the clause WAS seen and declined
+        var (ok, errors, warnings) = EditionHarness.CompileFull(Fixture(fixture), 2023, permissive);
         Assert.False(ok, $"{fixture}: {rule} forbids this shape for a file subject to an APPLY COMMIT clause");
         Assert.Contains(errors, e => e.Contains("COBOLNET2974", StringComparison.Ordinal)
                                      && e.Contains(rule, StringComparison.Ordinal));
+        EditionHarness.AssertNoDiagnostic(errors, "COBOLNET1709");     // the clause is accepted for a RELATIVE file
+        EditionHarness.AssertNoDiagnostic(warnings, "COBOLNET1709");
     }
 
     /// <summary>THE ARM THAT PROVES THE PROBE CAN FAIL: the SR7 fixture with its I-O-CONTROL paragraph removed — the
-    /// same OPEN … SHARING on a file no APPLY COMMIT clause names — compiles under <c>--permissive</c>, so the refusal
-    /// above is the antecedent's and not the statement's.</summary>
-    [Fact]
-    public void WithoutTheApplyCommitClause_TheSharingPhraseIsLegal()
+    /// same OPEN … SHARING on a file no APPLY COMMIT clause names — compiles in both lanes, so the refusal above is the
+    /// antecedent's and not the statement's.</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WithoutTheApplyCommitClause_TheSharingPhraseIsLegal(bool permissive)
     {
         string source = string.Join('\n', Fixture("apply-commit-open-sharing").Split('\n')
             .Where(line => !line.Contains("I-O-CONTROL", StringComparison.Ordinal)
                            && !line.Contains("APPLY COMMIT", StringComparison.Ordinal)));
-        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive: true);
+        var (ok, errors, _) = EditionHarness.CompileFull(source, 2023, permissive);
         EditionHarness.AssertNoDiagnostic(errors, "COBOLNET2974");
         Assert.True(ok, string.Join("\n", errors));
     }

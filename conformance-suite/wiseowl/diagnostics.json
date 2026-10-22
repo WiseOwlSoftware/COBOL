@@ -483,43 +483,37 @@
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-open-sharing": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-read-lock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-rewrite-lock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-same-area": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
- },
- "apply-commit-same-area-shared": {
-  "refuse-at": [
-   "2023"
-  ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "apply-commit-unlock": {
   "refuse-at": [
    "2023"
   ],
-  "expect": "COBOLNET1709"
+  "expect": "COBOLNET2974"
  },
  "arith-standard-at-85": {
   "refuse-at": [
