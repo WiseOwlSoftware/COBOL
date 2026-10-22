@@ -1,4 +1,4 @@
-## PB3379 recurs: the loop and the Mythos lane both sent a finisher to one blocked branch
+## Entry 2363 — 2026-10-22 13:57 PDT — PB3379 recurs: the loop and the Mythos lane both sent a finisher to one blocked branch
 
 The Mythos lane's PB3511 branch went red at its landing (Linux, one golden), and both the Mythos session and the
 loop's enqueue unit dispatched a finisher for it. The two fixes stacked without loss, but both accounts paid for one fix
@@ -19,3 +19,4 @@ recompiled the frontend, the compiler and the CLI. The target now runs before `B
 the generated files on every build; on a fresh WSL clone the second build now changes nothing.
 `AntlrGenerationDriftTests` pins the shape, and `linux-gate.sh` reports `build-rewritten` if the CLI's output moves
 while the legs run.
+
