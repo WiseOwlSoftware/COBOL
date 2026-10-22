@@ -101,6 +101,22 @@ public sealed class CliParserTests
         Assert.NotEmpty(Errors("a.cob", "--sign-encoding", "--run"));
     }
 
+    /// <summary>⛔ <c>--numeric-display</c> (kb/Work PB3505, owner decision PB3467) — the form DISPLAY gives a numeric
+    /// operand, ISO §14.9.11.4 GR1 / Annex A.1 item 56. An ABSENT option is the decimal form (GnuCOBOL 3.2.0's default),
+    /// <c>digits</c> keeps the digit image, and anything else is a CLI argument error, as for <c>--sign-encoding</c>;
+    /// the option must not swallow a following flag.</summary>
+    [Fact]
+    public void NumericDisplay_DefaultsToDecimal_SelectsDigits_AndRejectsAnythingElse()
+    {
+        Assert.Equal(CobolNet.Binding.NumericDisplayForm.Decimal, Resolve("a.cob").NumericDisplay);
+        Assert.Equal(CobolNet.Binding.NumericDisplayForm.Decimal, Resolve("a.cob", "--numeric-display", "decimal").NumericDisplay);
+        Assert.Equal(CobolNet.Binding.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display=digits").NumericDisplay);
+        Assert.Equal(CobolNet.Binding.NumericDisplayForm.Digits, Resolve("a.cob", "--numeric-display", "DIGITS").NumericDisplay);
+        Assert.Contains(Errors("a.cob", "--numeric-display", "1"), m => m.Contains("--numeric-display must be one of"));
+        Assert.Contains(Errors("a.cob", "--numeric-display", "ebcdic"), m => m.Contains("--numeric-display must be one of"));
+        Assert.NotEmpty(Errors("a.cob", "--numeric-display", "--run"));
+    }
+
     /// <summary>kb/Work PB1362 — <c>--source-format</c>: ISO §7.3.24.3 2) "The default reference format of a
     /// compilation group is fixed form", so an ABSENT option is fixed form; <c>free</c> and <c>auto</c> are the
     /// §4.2.10 3) selection of the nonstandard behavior; anything else is a CLI argument error.</summary>

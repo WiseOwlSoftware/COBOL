@@ -1584,7 +1584,7 @@ public sealed class OoSpineTests
             END METHOD SHOW.
             """).Replace("01 T USAGE OBJECT", "01 W5 PIC 9(5) VALUE 123.\n01 T USAGE OBJECT"));
         Assert.True(ok, detail);
-        Assert.Equal("LK=1230\nLK=0425", CutRunner.Normalize(stdout));
+        Assert.Equal("LK=123.0\nLK=042.5", CutRunner.Normalize(stdout));
     }
 
     /// <summary>§8.4.6.2.1 rule 3a — a METHOD-LOCAL declaration shadows the object level in EVERY lookup

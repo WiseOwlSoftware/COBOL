@@ -138,7 +138,7 @@ public sealed class CorrespondingDifferentialTests
                 DISPLAY AMT2 OF DST-G.
             """);
         // 1.0+1.25 = 2.25 → 2.3 and 1.0+2.34 = 3.34 → 3.3, each rounded NEAREST-AWAY-FROM-ZERO (§14.7.4.3 r1).
-        AssertOutput(src, "23\n33");
+        AssertOutput(src, "2.3\n3.3");
         AssertMatchesGolden(src);
     }
 
