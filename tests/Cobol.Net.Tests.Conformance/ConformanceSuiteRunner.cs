@@ -205,7 +205,8 @@ internal static class ConformanceSuiteRunner
     }
 
     /// <summary>A WiseOwl test's WiseOwl compile options (<c>wiseowl/options.json</c>, which the generator validates),
-    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c> and <c>--flag-extensions</c> apply them.</summary>
+    /// applied as the <c>cobol</c> command's <c>--sign-encoding</c>, <c>--numeric-display</c> and <c>--flag-extensions</c>
+    /// apply them.</summary>
     private static CompilerDriver.Options WithWiseOwlOptions(CompilerDriver.Options options,
         IReadOnlyDictionary<string, string> wiseOwlOptions)
     {
@@ -217,6 +218,10 @@ internal static class ConformanceSuiteRunner
                     ? options with { SignEncoding = encoding }
                     : throw new SuiteHarnessException($"sign-encoding '{value}' is not one of "
                         + string.Join(", ", CobolNet.Runtime.ZonedSign.OptionSpellings)),
+                "numeric-display" => CobolNet.Binding.NumericDisplayFormOption.TryParse(value, out var form)
+                    ? options with { NumericDisplay = form }
+                    : throw new SuiteHarnessException($"numeric-display '{value}' is not one of "
+                        + string.Join(", ", CobolNet.Binding.NumericDisplayFormOption.OptionSpellings)),
                 "flag-extensions" => options with { FlagExtensions = options.FlagExtensions || value == "on" },
                 _ => throw new SuiteHarnessException($"'{key}' is not a WiseOwl compile option"),
             };

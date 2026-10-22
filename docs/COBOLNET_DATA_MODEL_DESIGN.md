@@ -1025,7 +1025,7 @@ VCR row) with the ParseArm gate on `VisitGroupUsageClause`; the edition-gate swe
 `ItemLength.Positions` (r1/r2 — drop the `IsElementary` guard, read `OperandPic`),
 `IsStringOperand`, `DISPLAY-OF`/`NATIONAL-OF` argument screens, `DataBinder`'s §13.18.49.3 SR9 SIGN guard (the
 "GROUP-USAGE is not modeled" branch becomes the real check),
-⛔ **`PlaceRenderer.Write`'s reference-modification BOOLEAN PAD and `MoveEmitter`'s `RefModSlice` FIGURATIVE
+⛔ **`PlaceRenderer.Write`'s reference-modification BOOLEAN PAD and `MoveEmitter.SliceStore`'s FIGURATIVE
 FILL** — the two WRITE-SIDE sites this sweep list ORIGINALLY OMITTED, and that omission is the origin of
 [[PB173]]. Both read raw `Pic`, which is **null for any group**, so a bit-group slice padded and filled with
 SPACE where §14.6.8.6 requires the value be "transferred … into the corresponding boolean positions of the
@@ -1117,11 +1117,16 @@ optional TAILS as siblings of the keyword rather than inside it — `binarySign?
 That placement is load-bearing, not cosmetic: `DataBinder.UsageKeyword` derives the canonical keyword from the
 `usageKeyword` node's text, so a tail written INSIDE it glues (`"FLOAT-BINARY-32HIGH-ORDER-LEFT"`) and lands on
 `PictureAnalyzer.ParseUsage`'s internal-error arm — the failure bare `BINARY-CHAR SIGNED` produced historically.
-**PB174** added `floatFormatPhrase*` for §13.18.60.2's per-item `endianness-phrase` / `encoding-phrase`; each is
-grammatically tolerated after any keyword and narrowed by the binder (COBOLNET1716/1706/1707), the same
-parse-wide/bind-narrow posture `noSignPhrase` established. `UsageFloatFormatPhraseDriftTests` reads the keyword
-inventory out of the `.g4` and fails when a usage is added without deciding which tails the printed diagram
-gives it.
+**PB174** added `floatFormatPhrase*` for §13.18.60.2's per-item `endianness-phrase` / `encoding-phrase`. All four
+tails are parsed after any keyword and narrowed by the binder, the parse-wide/bind-narrow posture: which usage each
+tail may follow is ONE table, `UsagePhraseRules` (`Binding/Model/UsagePhrase.cs`) — SIGNED / UNSIGNED on
+BINARY-CHAR/-SHORT/-LONG/-DOUBLE (COBOLNET4733), WITH NO SIGN on PACKED-DECIMAL (COBOLNET1565), the endianness-phrase
+on the five standard float usages (COBOLNET1716), the encoding-phrase on FLOAT-DECIMAL-16/-34 (COBOLNET1717) — read
+by ONE method, `DataBinder.ScreenUsagePhrases`, which also screens a repeated float phrase (COBOLNET1718) and hands
+back only the phrases the usage admits (kb/Work PB3517: the SIGNED / UNSIGNED arm had never been written, so
+`USAGE COMP UNSIGNED` compiled clean with the word ignored). `UsageClausePhraseDriftTests` reads the keyword
+inventory and the clause's phrase rules out of the `.g4`, checks the table against its transcription of the
+printed figure for every usage word, and pins the table as the only reader of the four refusals.
 
 ### D21. Floating-point numeric-edited data (the PICTURE symbol E — §13.18.40.4 GR13 b): a numeric-EDITED item whose value channel is EXACT DECIMAL (`CobolDec`), stored as its character image; the form dispatch lives in the four existing edited-store / edited-read choke points. (kb/Work PB66; adopts `docs/rearchitecture/pb66-extfloat-design-draft-2026-08-09.md`, re-derived 2026-08-18.)
 

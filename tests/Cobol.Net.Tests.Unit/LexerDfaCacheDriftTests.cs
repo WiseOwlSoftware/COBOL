@@ -15,7 +15,7 @@ namespace CobolNet.Tests.Unit;
 /// ⛔ AFTER WARM-UP THE LEXER PERFORMS NO ATN SIMULATION (kb/Work PB1715; DESIGN-test-build-ci.md §3.14.5 M6):
 /// once the suite's sources have been lexed, lexing them again takes a cached DFA edge for every ASCII character
 /// of every token, and every mode of CobolLexer.g4 has a cached start state. A semantic predicate anywhere on a
-/// path the DFA must cache breaks it, because ANTLR 4.13.1 never caches a start state whose closure passed through a
+/// path the DFA must cache breaks it, because ANTLR 4.13.2 never caches a start state whose closure passed through a
 /// predicate (<c>LexerATNSimulator.MatchATN</c>) nor a DFA edge whose target did (<c>AddDFAEdge</c>) — so the tokens that
 /// reach the predicate re-run ATN simulation, and re-add their state under <c>lock (dfa.states)</c>, on every
 /// occurrence. Six left-edge predicates did exactly that to every token of every compile: the <c>cobol</c> CLI

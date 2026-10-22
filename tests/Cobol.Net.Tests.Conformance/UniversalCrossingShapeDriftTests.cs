@@ -46,7 +46,7 @@ public sealed class UniversalCrossingShapeDriftTests
     // A packed member inside a group: the group's IMAGE carries the member's bytes, so the copy-out must restore them.
     [InlineData("UCS05", 2002, "01 G. 05 G1 PIC X(1) VALUE \"P\". 05 G2 PIC S9(3) COMP-3 VALUE 123.", "", "USING G",
         "01 LG. 05 L1 PIC X(1). 05 L2 PIC S9(3) COMP-3.", "USING LG",
-        "DISPLAY \"in=\" L1 \"/\" L2 ADD 1 TO L2", "DISPLAY \"out=\" G1 \"/\" G2", "in=P/123\nout=P/124")]
+        "DISPLAY \"in=\" L1 \"/\" L2 ADD 1 TO L2", "DISPLAY \"out=\" G1 \"/\" G2", "in=P/+123\nout=P/+124")]
     // A group ENTRY of a table as the argument (a subscripted group place).
     [InlineData("UCS06", 2002, "01 T. 05 E OCCURS 2. 10 E1 PIC X(2).", "MOVE \"AB\" TO E1 (1) MOVE \"CD\" TO E1 (2)", "USING E (2)",
         "01 LG. 05 L1 PIC X(2).", "USING LG",

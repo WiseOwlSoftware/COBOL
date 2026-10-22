@@ -263,7 +263,7 @@ channels { ABSENT_DEBUG_LINE }
     }
 
     // ⛔ NO SEMANTIC PREDICATE ON A PATH THE DFA MUST CACHE — CONTEXT GOES IN AN ACTION (kb/Work PB1715). ANTLR
-    // 4.13.1 never caches a mode's start state whose closure passed through a predicate (LexerATNSimulator.MatchATN)
+    // 4.13.2 never caches a mode's start state whose closure passed through a predicate (LexerATNSimulator.MatchATN)
     // nor a DFA edge whose target did (AddDFAEdge), so every token that REACHES a predicate re-runs ATN simulation
     // and re-adds its DFA state under lock(dfa.states) — on every occurrence, not once. Six left-edge predicates in
     // this mode (the four FN_SIGNED_* twins, DEFINED, FNARG_SEPARATOR) did that to EVERY token of every compile:

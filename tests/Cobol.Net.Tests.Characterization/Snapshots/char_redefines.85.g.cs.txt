@@ -32,7 +32,7 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
 
     public void __Activate()
     {
-        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
+        try { __Dispatch(0, 0); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
     }
 
     private int __Dispatch(int __startPc, int __exitPc)
@@ -46,7 +46,7 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
                 case 0:   // MAIN-PARA
                 {
                     WS_A = (long)(CobolNum.Store(1234L, 0, _P_0, CobolRounding.Truncation));
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(WS_A, _P_1));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(WS_A, _P_1, false));
                     _redef_WS_G = CobolString.WindowInto(_redef_WS_G, (int)(0 + 1), 4, CobolString.Store("WXYZ", 4));
                     global::System.Console.WriteLine(CobolString.Window(_redef_WS_G, (int)(0 + 1), 2) + CobolString.Window(_redef_WS_G, (int)(2 + 1), 2));
                     throw new StopRun();
@@ -58,6 +58,7 @@ internal sealed class _PRG_CHAR_REDEFINES : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)
+            if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)
         }
         return __pc;
     }

@@ -35,7 +35,7 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
 
     public void __Activate()
     {
-        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
+        try { __Dispatch(0, 0); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
     }
 
     private int __Dispatch(int __startPc, int __exitPc)
@@ -50,7 +50,7 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
                 {
                     var __ident0 = _scell_WS_ARG;
                     ProgramRegistry.CallProgram("CHAR-SUB", "CHAR-CALL", new CobolArg[] { new CobolArg(CobolPassMode.Reference, ManagedPointer<string>.OverField(() => CobolString.Window(__ident0.Ref, (int)(0 + 1), 4), __v => { __ident0.Ref = CobolString.WindowInto(__ident0.Ref, (int)(0 + 1), 4, CobolString.Store(__v, 4)); }), new NumProfile { Digits = 4, FractionDigits = 0, Signed = false, SignKind = NumericSign.TrailingOverpunch, Truncation = NumericTruncation.DigitCount, ByteForm = NumericByteForm.Zoned, StorageLength = 0 }, Area: new CellPointer(__ident0, 0)) }, null);
-                    global::System.Console.WriteLine(CobolNum.SendingImage(CobolString.Window(_redef_WS_ARG, (int)(0 + 1), 4), _P_0));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(CobolNum.SendingImage(CobolString.Window(_redef_WS_ARG, (int)(0 + 1), 4), _P_0), _P_0, false));
                     throw new StopRun();
                 }
                 default:
@@ -60,6 +60,7 @@ internal sealed class _PRG_CHAR_CALL : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)
+            if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)
         }
         return __pc;
     }

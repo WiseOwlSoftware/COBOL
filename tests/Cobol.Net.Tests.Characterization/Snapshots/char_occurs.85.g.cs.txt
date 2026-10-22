@@ -46,7 +46,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
 
     public void __Activate()
     {
-        try { __Dispatch(0, -1); } catch (ProgramReturn) { }   // GOBACK / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
+        try { __Dispatch(0, 0); } catch (ProgramReturn) { }   // GOBACK (an implicit one too, §14.6.3) / called-program EXIT PROGRAM returns to the activator here (ISO §14.9.18.4 GR2/GR3; §14.9.14.4 GR3)
     }
 
     private int __Dispatch(int __startPc, int __exitPc)
@@ -72,7 +72,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                     {
                         _IX_1 = __set0;
                     }
-                    global::System.Console.WriteLine(CobolNum.FormatDisplay(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1));
+                    global::System.Console.WriteLine(CobolNum.DisplayDecimal(CobolTable.At(WS_TBL.WS_ELEM, _IX_1), _P_1, false));
                     if (_IX_1 < 1 || _IX_1 > 5L)
                     {
                         goto __searchAtEnd0;
@@ -101,6 +101,7 @@ internal sealed class _PRG_CHAR_OCCURS : ICobolProgram
                 }
             }
             if (__atExit && __pc == __exitPc + 1) return __pc;   // a named THRU exit paragraph COMPLETED (an explicit GO TO cleared __atExit — §14.6.3 rule 1)
+            if (__pc == 1) throw new ProgramReturn();   // the implicit GOBACK past the source element's last paragraph (ISO §14.6.3)
         }
         return __pc;
     }
