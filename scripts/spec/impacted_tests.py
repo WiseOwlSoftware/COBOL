@@ -63,6 +63,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "scripts"))
 from test_population import GATED_ASSEMBLIES  # noqa: E402
+import drift_rules  # noqa: E402  (scripts/spec, beside this file)
 SCHEMA = 2
 CONFORMANCE_DIR = "tests/Cobol.Net.Tests.Conformance/"
 # The gated test projects, by the assembly name the map and the gate use ("Conformance", "Unit", ...).
@@ -94,6 +95,7 @@ class Reach:
     direct_names: set[str] = field(default_factory=set)            # display-name substrings reached outside the map
     added_tests: dict[str, set[str]] = field(default_factory=dict)  # assembly -> test methods the change ADDS
     goldens: set[str] = field(default_factory=set)                 # suite test ids the change touches
+    drift_tests: set[str] = field(default_factory=set)             # drift classes the index says govern a changed file
     every_tier1: list[str] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
 
@@ -520,8 +522,11 @@ def declaration_change(ix: MapIndex, path: str, base: str | None, reach: Reach, 
 
 
 def reach_of(ix: MapIndex | None, changes: list[tuple[str, str]], base: str | None, reach: Reach) -> None:
-    """Fill `reach` for the changed files. The tier-0a facts (added test methods, suite tests) come from the diff
-    alone and are gathered with or without a map; the tiers need the map."""
+    """Fill `reach` for the changed files. The tier-0a facts (added test methods, suite tests) and the tier-0d one (the
+    drift tests the drift-rule index says govern a changed file, kb/Work PB3531) come from the diff alone and are
+    gathered with or without a map; the tiers need the map."""
+    if changes:
+        reach.drift_tests |= drift_rules.governed(drift_rules.index(), [path for _, path in changes])
     sources = None
     for status, path in changes:
         if path.startswith("tools/impact/"):
@@ -643,6 +648,7 @@ def plan_json(a: Analysis) -> dict:
             "every_tier1": a.reach.every_tier1, "tiers": a.tiers,
             "tier0a": {"added_tests": {k: sorted(v) for k, v in sorted(a.reach.added_tests.items())},
                        "goldens": sorted(a.reach.goldens)},
+            "tier0d": {"drift_tests": sorted(a.reach.drift_tests)},
             "notes": a.reach.notes}
 
 
@@ -712,6 +718,12 @@ def self_test() -> int:
     _, reach = tiers_for([copy + "CSCOPY01.cpy"])
     check("a declared suite file's test is tier 0a, every other row keeps its tier",
           reach.goldens == {"copy-library-text"} and not reach.every_tier1, (reach.goldens, reach.every_tier1))
+    # Tier 0d, from the REAL drift-rule index: the sweep that stopped PB3523's landing reads every tracked script
+    # through its declared TreeScope, and names no path (kb/Work PB3531).
+    _, reach = tiers_for(["scripts/differential_fuzz.py"])
+    check("a changed file names every drift test the index says governs it, a sweep of the committed tree included "
+          "(tier 0d)", {"CatalogCoverageDriftTests", "ConflictMarkerDriftTests"} <= reach.drift_tests
+          and "NulByteDriftTests" not in reach.drift_tests, sorted(reach.drift_tests))
 
     # The method level: the entries a hunk changes (0 = One(), which M1 reached; 1 = Two(), which no test reached),
     # or None for a declaration change, which falls back to the file level.
