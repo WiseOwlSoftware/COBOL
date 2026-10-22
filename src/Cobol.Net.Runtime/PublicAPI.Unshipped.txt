@@ -185,3 +185,6 @@ override sealed CobolNet.Runtime.IO.KeyedConnector.OpenCore(CobolNet.Runtime.IO.
 CobolNet.Runtime.IO.FileRegistry.RegisterCommitControl(string! name) -> void
 CobolNet.Runtime.IO.FileRegistry.Commit() -> string?
 CobolNet.Runtime.IO.FileRegistry.Rollback() -> string?
+static CobolNet.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
+static CobolNet.Runtime.CobolNum.DisplayDecimal(string! image, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
+static CobolNet.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!

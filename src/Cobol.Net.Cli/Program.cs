@@ -3,6 +3,7 @@
 using System.CommandLine;
 using System.Diagnostics;
 using CobolNet;
+using CobolNet.Binding;
 using CobolNet.Frontend.Preprocessor;
 using CobolNet.Runtime;
 
@@ -16,7 +17,7 @@ namespace CobolNet.Cli;
 /// </summary>
 /// <remarks>
 /// Usage: <c>cobol &lt;source.cob&gt; [-o out.dll] [--nist [NAME]] [--std 85|2002|2014|2023] [--permissive]
-/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--source-format fixed|free|auto] [--flag-extensions]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
+/// [--copy DIR] [--run] [--sign-encoding ibm|ascii] [--numeric-display decimal|digits] [--source-format fixed|free|auto] [--flag-extensions]</c>. Every value option accepts BOTH <c>--opt value</c> and <c>--opt=value</c>; no
 /// option can swallow a following flag. The generated C# is written next to the output assembly
 /// (<c>&lt;name&gt;.g.cs</c>) so the translation is directly inspectable.
 /// </remarks>
@@ -98,6 +99,22 @@ internal static class Program
                 result.AddError($"--sign-encoding must be one of {string.Join(", ", ZonedSign.OptionSpellings)} (got {v}).");
         });
 
+        // kb/Work PB3505 (owner decision PB3467): the form DISPLAY gives a numeric operand, Annex A.1 item 56. ISO
+        // §14.9.11.4 GR1 leaves the device conversion to the implementor; the default follows GnuCOBOL 3.2.0 (the
+        // decimal point, a leading sign) and `digits` keeps the digit image. A REPRESENTATION option, orthogonal to
+        // --std/--permissive, refused by the parser when unknown exactly as --sign-encoding's value is.
+        var numericDisplayOption = new Option<string?>("--numeric-display")
+        {
+            Description = "How DISPLAY shows a numeric item: decimal (default — the decimal point and a leading +/-, "
+                + "00012.50 and -00012.50) or digits (the digit image, 0001250 and 000125} — see --sign-encoding).",
+            HelpName = string.Join("|", NumericDisplayFormOption.OptionSpellings),
+        };
+        numericDisplayOption.Validators.Add(result =>
+        {
+            if (result.GetValueOrDefault<string?>() is { } v && !NumericDisplayFormOption.TryParse(v, out _))
+                result.AddError($"--numeric-display must be one of {string.Join(", ", NumericDisplayFormOption.OptionSpellings)} (got {v}).");
+        });
+
         // kb/Work PB1362: the reference format the source starts in. ISO §7.3.24.3 2) makes FIXED form the default;
         // free form and the structural auto-detection are the implementor-defined selection mechanism §4.2.10 3)
         // requires for a nonstandard behavior (docs/CONFORMANCE.md DOC-A.1-158). A >>SOURCE FORMAT directive in the
@@ -127,7 +144,7 @@ internal static class Program
         var root = new RootCommand("cobol — translate a COBOL source unit to typed-native .NET (the Roslyn backend).")
         {
             sourceArgument, outputOption, nistOption, stdOption, permissiveOption, copyOption, runOption,
-            signEncodingOption, sourceFormatOption, flagExtensionsOption,
+            signEncodingOption, numericDisplayOption, sourceFormatOption, flagExtensionsOption,
         };
 
         CliOptions Resolve(ParseResult parse)
@@ -145,13 +162,15 @@ internal static class Program
             // The validator above has already refused any unparseable value, so a false here can only be the
             // ABSENT option — the documented IBM default (kb/Work PB803).
             _ = ZonedSign.TryParseOption(parse.GetValue(signEncodingOption), out var signEncoding);
+            // Likewise: false can only be the absent option — the decimal form, the documented default (kb/Work PB3505).
+            _ = NumericDisplayFormOption.TryParse(parse.GetValue(numericDisplayOption), out var numericDisplay);
             // Likewise: false can only be the absent option — fixed form, the standard default (kb/Work PB1362).
             _ = InitialReferenceFormatOption.TryParse(parse.GetValue(sourceFormatOption), out var sourceFormat);
 
             return new CliOptions(
                 source, parse.GetValue(outputOption), nistName, std,
                 parse.GetValue(copyOption) ?? [], parse.GetValue(runOption), parse.GetValue(permissiveOption),
-                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption));
+                signEncoding, sourceFormat, parse.GetValue(flagExtensionsOption), numericDisplay);
         }
 
         // A no-emit BATCH check subcommand (the INV-1 continuity sweep fast path): parse + edition-validate +
@@ -215,7 +234,7 @@ internal static class Program
         var result = CompilerDriver.Compile(new CompilerDriver.Options(
             options.SourcePath, options.OutputPath, options.NistTestName, options.DialectLevel, options.CopyPaths,
             options.Permissive, SignEncoding: options.SignEncoding, SourceFormat: options.SourceFormat,
-            FlagExtensions: options.FlagExtensions));
+            FlagExtensions: options.FlagExtensions, NumericDisplay: options.NumericDisplay));
 
         // What the compilation itself transferred — the lines of its DISPLAY directives (ISO §7.3.12.4 GR1, DOC-A.1-53,
         // kb/Work PB1538) — each to the compiler stream it names, in the order the directives were met.

@@ -24,6 +24,9 @@ namespace CobolNet.Cli;
 /// fixed form, ISO §7.3.24.3 2)'s default, unless <c>free</c> or <c>auto</c> is selected.</param>
 /// <param name="FlagExtensions">The §4.2.10 warning mechanism (<c>--flag-extensions</c>; kb/Work PB1525): name every
 /// use of a nonstandard extension in the compilation group with a COBOLNET2894 warning.</param>
+/// <param name="NumericDisplay">The form DISPLAY gives a numeric operand (<c>--numeric-display</c>; kb/Work PB3505,
+/// owner decision PB3467; ISO §14.9.11.4 GR1, Annex A.1 item 56). Defaults to
+/// <see cref="CobolNet.Binding.NumericDisplayForm.Decimal"/> — the decimal point and a leading sign.</param>
 internal sealed record CliOptions(
     string SourcePath,
     string? OutputPath,
@@ -35,4 +38,5 @@ internal sealed record CliOptions(
     CobolNet.Runtime.SignEncoding SignEncoding = CobolNet.Runtime.SignEncoding.Ibm,
     CobolNet.Frontend.Preprocessor.InitialReferenceFormat SourceFormat =
         CobolNet.Frontend.Preprocessor.InitialReferenceFormat.Fixed,
-    bool FlagExtensions = false);
+    bool FlagExtensions = false,
+    CobolNet.Binding.NumericDisplayForm NumericDisplay = CobolNet.Binding.NumericDisplayForm.Decimal);
