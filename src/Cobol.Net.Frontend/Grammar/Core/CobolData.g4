@@ -590,9 +590,15 @@ editingLiteral
 // USAGE Clause (ISO §13.18.60.2): `[USAGE IS] usage-keyword` — the USAGE keyword is OPTIONAL for EVERY usage, so
 // the bare and the prefixed spellings are ONE alternative over ONE usageKeyword rule (kb/Work PB95: the former
 // hand-listed bare alternatives omitted POINTER, OBJECT REFERENCE, NATIONAL, BIT, PROGRAM-POINTER and
-// FUNCTION-POINTER, so `PIC 1(3) BIT` was a parse error). The optional binarySign applies to the COBOL-2002
-// BINARY-CHAR/SHORT/LONG/DOUBLE usages; it is grammatically tolerated after any usageKeyword and rejected by the
-// binder for non-binary ones, as is noSignPhrase off PACKED-DECIMAL (§13.18.60.4 GR11, 2023). A 2002 usage word
+// FUNCTION-POINTER, so `PIC 1(3) BIT` was a parse error). The clause's four optional PHRASES — binarySign,
+// noSignPhrase and the two floatFormatPhrase kinds — are parsed after EVERY usageKeyword, and the binder narrows
+// each to the usages whose line of the §13.18.60.2 figure prints it: ONE table, UsagePhraseRules
+// (Binding/Model/UsagePhrase.cs), read by ONE method, DataBinder.ScreenUsagePhrases, with a named refusal per
+// phrase (COBOLNET4733 SIGNED/UNSIGNED, COBOLNET1565 WITH NO SIGN, COBOLNET1716 endianness, COBOLNET1717
+// encoding). The phrases stay OUT of usageKeyword because DataBinder.UsageKeyword derives the canonical keyword
+// from that node's text (a phrase inside it would glue: "BINARY-CHARSIGNED"), and the narrowing is the binder's so
+// the misuse draws a diagnostic naming the usage and the phrase rather than a raw parse error.
+// UsageClausePhraseDriftTests holds this rule's phrase children to the table's rows (kb/Work PB3517). A 2002 usage word
 // that is a USER word at 85 (BIT, NATIONAL, PROGRAM-POINTER, FUNCTION-POINTER — all reservation-gated) needs no
 // predicate here: at 85 `05 BIT.` is an item named BIT (the word is free, so the entry-name reading stands), from 2002
 // `05 BIT.` is an unnamed USAGE BIT item (dataDescriptionEntry's entryNameHere(), kb/Work PB845), and `05 X BIT.`
@@ -603,8 +609,9 @@ usageClause
     ;
 
 // USAGE PACKED-DECIMAL WITH NO SIGN (ISO §13.18.60.2 / GR11 — a COBOL-2023 addition): no trailing sign nibble.
-// Grammatically tolerated after any usageKeyword; the binder rejects it on a non-PACKED-DECIMAL usage (COBOLNET1565)
-// and rejects an 'S' picture with NO SIGN (SR31, COBOLNET1566). WITH is the conventional optional noise word.
+// Parsed after any usageKeyword; the binder refuses it on any usage but PACKED-DECIMAL (COBOLNET1565, the
+// UsagePhraseRules table) and refuses an 'S' picture with NO SIGN (§13.18.40.3 SR31, COBOLNET1566). WITH is an
+// optional word (not underlined on the printed page).
 noSignPhrase
     : WITH? NO SIGN
     ;
@@ -619,9 +626,9 @@ noSignPhrase
 // DataBinder.UsageKeyword derives the canonical keyword from the usageKeyword node, so a phrase INSIDE it would
 // glue ("FLOAT-BINARY-32HIGH-ORDER-LEFT") and fall to PictureAnalyzer.ParseUsage's internal-error arm — the exact
 // failure that method's own doc comment records for bare `BINARY-CHAR SIGNED` (the W2 loud-guard sweep).
-// Grammatically tolerated after ANY usageKeyword, the established binarySign/noSignPhrase posture: the binder
-// rejects an endianness-phrase on a non-standard-float usage (COBOLNET1716, §13.18.60.4 GR19c/d scope it) and an
-// encoding-phrase on anything but FLOAT-DECIMAL-16/-34 (COBOLNET1717, GR20). The 2014 introduction gate is
+// Parsed after ANY usageKeyword, like binarySign and noSignPhrase: the binder refuses an endianness-phrase on a
+// usage that is not a standard float (COBOLNET1716, §13.18.60.4 GR19c/d scope it) and an encoding-phrase on
+// anything but FLOAT-DECIMAL-16/-34 (COBOLNET1717, GR20), through the UsagePhraseRules table. The 2014 introduction gate is
 // VersionConformancePass ParseArm.VisitUsageClause (Constructs.UsageFloatFormatPhrase2014) — NOT a parse-time
 // {is2014()}? predicate: a parse-time edition read is sanctioned only where it decides §8.9 word status, and no
 // word here has another reading (COBOLNET_DESIGN §1.1; kb/Work PB2291, pinned by EditionReadDriftTests).
@@ -728,7 +735,10 @@ functionPointerUsage
     : FUNCTION_POINTER (TO cobolWord | {pointerOperandHere()}? cobolWord)?
     ;
 
-// SIGNED (default) / UNSIGNED phrase on a fixed-width binary usage (ISO §13.18.60).
+// SIGNED / UNSIGNED — ISO §13.18.60.2 prints `{ SIGNED | UNSIGNED }` after BINARY-CHAR, BINARY-SHORT, BINARY-LONG
+// and BINARY-DOUBLE only, with SIGNED not underlined (an optional word, so omitting the phrase means SIGNED) and
+// UNSIGNED underlined; §13.18.60.4 GR12 tabulates both ranges. Parsed after any usageKeyword (usageClause above) and
+// refused by the binder on every other usage (COBOLNET4733, the UsagePhraseRules table).
 binarySign
     : SIGNED
     | UNSIGNED
