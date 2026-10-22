@@ -134,6 +134,9 @@ public sealed class GateLegDriftTests
                      "its verdict is BUSY with its own exit code, which the one verdict reader reads as BUSY, never RED",
                      "the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass",
                      "a defect in the driver still ends in ONE verdict line",
+                     // kb/Work PB3526, review R2-1 of wave 1150: every NOT RUN cause classified ONCE, its printers held to it
+                     "a population that cannot be listed after a GREEN build is NOT RUN [population]",
+                     "every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies",
                      "the gate lock is per worktree",
                  });
     }

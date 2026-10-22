@@ -1117,11 +1117,22 @@ kb/Work PB2914). One gate:
    build to the verdict. A second gate in the same worktree REFUSES at once, naming the holder's pid: its build would
    otherwise overwrite the binaries between the first gate's legs. Its verdict is `BUSY` (exit 3), neither RED nor
    NOT RUN: it measured nothing and nothing is wrong, so a caller waits for the lock (kb/Work PB3527: the landing read
-   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY, NOT RUN or RED).
-   NOT RUN (exit 2) is a gate that measured nothing, for a cause outside the change, each classified on purpose
-   (`run_gate_legs.NOT_RUN`, kb/Work PB3526): malformed shared gate settings, a driver failure, a population that could
-   not be listed after a GREEN build, and the Linux gate's host with no WSL, Python or SDK; a landing reads it as no red
-   of the branch (exit 2, no BLOCKED line: retried once, a second is the operator's handoff).
+   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY, NOT RUN with its
+   cause, or RED). NOT RUN (exit 2) is a gate that measured nothing; it prints `NOT RUN [<cause>]`, and
+   `run_gate_legs.NOT_RUN_CAUSES` classifies each cause ONCE (kb/Work PB3526; review R2-1 of wave 1150). ENVIRONMENT
+   (outside the code the gated tree carries; no finisher fixes it): `[settings]` malformed shared gate settings, at the
+   start or while the gate queued; `[interpreter]` no runnable Python, or one without PyYAML; `[host]` no WSL; `[sdk]`
+   no .NET SDK in the Linux environment; `[tree]` the tree's git state unreadable or its clone failed. BRANCH (a failure
+   of code the gated tree carries: a landing gates the branch merged with main and runs that tree's own scripts):
+   `[driver]` the gate driver failed; `[population]` the population could not be listed after a GREEN build;
+   `[arguments]` the gate script refused its arguments; and, made by `enqueue.py`, `[verdict]` no verdict line and
+   `[unslotted]` a gate row that would run outside the shared slot; a NOT RUN naming no known cause is `[unclassified]`,
+   BRANCH. The driver's self-test holds every NOT RUN line of build-local.ps1, build-local.sh and linux-gate.sh, and
+   its own, to a known tag. A landing reads an ENVIRONMENT cause as no red of the branch (exit 2, no BLOCKED line:
+   retried once, a second is the operator's handoff); a BRANCH cause blocks like a red (exit 5, a finisher's) unless
+   main fails the same way at the same step (`enqueue.gate_main`: the same row in a clean checkout of the origin/main
+   the branch merged, once per main head and host, recorded in the common git dir's `enqueue-main-gate.json`; then exit
+   2, the operator's).
 2. A fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/`: the plan, every trx, every identity record
    and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
    next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
@@ -1144,7 +1155,8 @@ kb/Work PB2914). One gate:
    IN-PROCESS over one loaded standard (kb/Work PB2525: one `cite.py` process per citation was 75 of its 79 s).
 4. The gate slot (every gate, section 3.14.6), timed as `slot_wait_s` — taken BEFORE the build, so the
    cap bounds the builds too. The lock order is always worktree lock, then slot, so no two gates can wait on each
-   other in a cycle. Shared gate settings that turn malformed while a gate queues stop it `NOT RUN`, with the reason.
+   other in a cycle. Shared gate settings that turn malformed while a gate queues stop it `NOT RUN [settings]`, with
+   the reason.
    Then the solution build and the binaries' SHA-256 record — per assembly, the test assembly and every product
    assembly beside it, the set each identity record names.
 5. `--list-tests` per assembly (the three concurrently), the plan — any planning failure, like no plan input, gives
@@ -1605,7 +1617,8 @@ So every gate script runs ONE interpreter, resolved by PROBING each candidate, i
 and its PowerShell twin `scripts/python-resolve.ps1`, dot-sourced by `build-local.ps1`. Each sets `PY`; the script then
 runs `"$PY"` (bash) or `& $PY` (PowerShell). A script with a verdict line of its own keeps it: `build-local.sh` and
 `linux-gate.sh` source the resolver in a subshell and `build-local.ps1` catches the twin's terminating error, so a host
-with no runnable Python ends `=== BUILD-LOCAL GATE: NOT RUN — … ===` or `=== LINUX GATE: NOT RUN (…) ===`, exit 2, as
+with no runnable Python ends `=== BUILD-LOCAL GATE: NOT RUN [interpreter] — … ===` or `=== LINUX GATE: NOT RUN
+[interpreter] (…) ===`, exit 2, as
 every other NOT RUN does. `linux-gate.sh --self-test` drives the resolver through that path with stand-in interpreters
 (a `python3` below the floor is passed over, `$PYTHON` is probed first, none is NOT RUN with exit 2). Only a provisioner
 that installs the interpreter itself (`scripts/cloud/setup-env.sh`, `scripts/wsl/setup-wsl.sh`: `uv python install`)
@@ -1681,7 +1694,8 @@ other agents add and remove worktrees of the shared repository while it runs.)
 PB3029, §3.17.4). Before it, `core.autocrlf=true` checked a script out CRLF in every fresh Windows worktree, and bash
 died at its first line (`set: -: invalid option`).
 
-**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN ===` line naming the HEAD it tested. NOT RUN is never green.
+**Verdict.** One `=== LINUX GATE: GREEN|RED|NOT RUN [<cause>] ===` line naming the HEAD it tested. NOT RUN is never
+green; its cause's class is `run_gate_legs.NOT_RUN_CAUSES`' (§3.14.3 item 1).
 
 **Which legs run (MANDATORY-PRACTICES I8, L10): all four, at every landing** — and at an implementer gate only while
 the owner has set the implementer scope to `whole`; under batched gating (kb/Work PB2515, the default) the Linux gate
@@ -1885,7 +1899,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves); run the ONE local gate on the
    merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
    gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
-   PB3527; exit 2, never a red, when a gate is NOT RUN or prints no verdict line: it measured nothing, kb/Work PB3526;
+   PB3527; a gate NOT RUN, which measured nothing, by its cause's class, kb/Work PB3526: exit 2, no red, for an
+   ENVIRONMENT cause or a BRANCH cause main fails the same way at the same step, else exit 5 like a red;
    a commit gated GREEN, or a head that differs from it only
    by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
    rule — is not gated again on a re-run); bring main in AGAIN when it moved during the gate, without a second gate

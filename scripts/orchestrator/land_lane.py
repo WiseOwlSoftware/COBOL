@@ -63,10 +63,12 @@ THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead 
                                                                    on the branch (the overlap is gone); never as is
        exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
                 lock (kb/Work PB3527; nothing ran, nothing red)   is free (`wait_free`); never the enqueue unit's
-       exit 2 (main moved under every catch-up, or the branch could not be read), exit 9 (GitHub refused the push, the
-                PR or the queue), or a runner that DIED           retried ONCE at this head (enqueue.md's own rule)
+       exit 2 (main moved under every catch-up, the branch could not be read, or a GATE NOT RUN for an ENVIRONMENT
+                cause or one main fails the same way, kb/Work PB3526), exit 9 (GitHub refused the push, the PR or the
+                queue), or a runner that DIED                     retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
-       anything else — CONFLICT 4, GATE RED 5, a DEVLOG refusal 6, UNREVIEWED 11, an exit
+       anything else — CONFLICT 4, GATE RED 5 (a branch-carried GATE NOT RUN too), a DEVLOG refusal 6,
+                UNREVIEWED 11, an exit
                 2 or 9 retried once already                       STOPPED: never relaunched at this head unless
                                                                    re-armed; the enqueue unit dispatches its finisher
                                                                    or reviewer, and re-arms a stop resolved with no

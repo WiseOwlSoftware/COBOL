@@ -292,6 +292,15 @@ public sealed class LandingPipelineDriftTests
                 + "no stamp, nothing queued (kb/Work PB3527)",
             "gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
                 + "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527)",
+            // kb/Work PB3526, review R2-1 of wave 1150: a NOT RUN blocks by its cause's class, and main is measured
+            "land: a gate NOT RUN for a cause in the ENVIRONMENT (a host with no SDK; or no gate row at all) is exit "
+                + "2, never a red",
+            "land: a BRANCH-carried NOT RUN (the tree's own gate driver failed) on a main that passes the same gate "
+                + "is exit 5 with a BLOCKED line naming the cause and main's reading",
+            "land: a BRANCH-carried NOT RUN that main fails the SAME way at the same step (its cause) is exit 2 with "
+                + "no report line",
+            "land: an UNCLASSIFIED NOT RUN (no known cause) is BRANCH-carried",
+            "gate_main: main is measured in a clean checkout of its head",
             "the queue watch's remedies: a re-run of the stuck check's run, then close, reopen and auto-merge again "
                 + "(in that order, each naming the repository); refused touching nothing while the queue is not ACTIVE; a "
                 + "failed close stops before anything else (kb/Work PB3527)",

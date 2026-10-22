@@ -52,10 +52,11 @@ the `leg1` scope the verdict is `LEG 1 ONLY (batched gating, PB2515): GREEN` or 
 plan had a leg 2 it did not run (a gate with no plan runs its one leg — the whole population — and says plain GREEN).
 
 Exit codes: 0 GREEN (or LEG 1 ONLY: GREEN) · 1 RED (or RED/INCOMPLETE, LEG 1 ONLY: RED, or the build failed) · 2 NOT
-RUN (the shared gate settings are malformed, the population could not be listed, the driver failed) · 3 BUSY (another
-gate holds this worktree's gate lock: nothing ran and nothing is red; wait for it and re-run, kb/Work PB3527).
-`read_verdict` is the ONE reader of a verdict line's text (GREEN, BUSY, NOT RUN or RED); enqueue.py's landing gate
-reads through it.
+RUN [<cause>] (the shared gate settings are malformed: ENVIRONMENT; the population could not be listed, the driver
+failed: BRANCH, the tree's own code; NOT_RUN_CAUSES classifies every cause once) · 3 BUSY (another gate holds this
+worktree's gate lock: nothing ran and nothing is red; wait for it and re-run, kb/Work PB3527). `read_verdict` is the
+ONE reader of a verdict line's text (GREEN, BUSY, NOT RUN with its cause, or RED); enqueue.py's landing gate reads
+through it.
 """
 from __future__ import annotations
 
@@ -110,29 +111,96 @@ VERDICT_FILE = "verdict.json"
 #: a finisher with nothing to fix: kb/Work PB3527).
 BUSY = "BUSY"
 EXIT_BUSY = 3
-#: A gate that MEASURED NOTHING about the change, for a cause outside it (kb/Work PB3526's sweep, classified on purpose,
-#: cause by cause): the shared gate settings are malformed (the coordination directory's file, at the start or while the
-#: gate queued); the gate driver itself failed (a defect in the driver, which reports it); the population could not be
-#: listed after a GREEN build (`--list-tests` on assemblies that built and that the branch's own gate listed); and, from
-#: the Linux gate, no WSL, no runnable Python or no .NET SDK on the host. None is a red of the branch, so none may send
-#: it to a finisher: the landing exits 2 (usage or state) with no BLOCKED line, the landing lane retries it once, and a
-#: second at the same head is the operator's handoff (enqueue.py, land_lane.py).
+#: A gate that MEASURED NOTHING about the change prints `NOT RUN [<cause>]`, the cause's TAG naming one row of
+#: NOT_RUN_CAUSES, which classifies it ONCE (kb/Work PB3526; review R2-1 of wave 1150). ENVIRONMENT: a cause outside the
+#: code the gated tree carries (the coordination directory's shared gate settings, the host's WSL, Python, .NET SDK or
+#: git): no finisher can fix it, so it never blocks the branch; the landing retries it once and a second at the same head
+#: is the operator's. BRANCH: a failure of code the gated tree CARRIES (a landing gates the branch merged with main, and
+#: runs that tree's own build-local, run_gate_legs.py and linux-gate.sh): the driver itself, the listing of the
+#: population its test projects build, the verdict writer, the gate rows' slot driver, the arguments its script accepts.
+#: That blocks like a RED and goes to a finisher, UNLESS main fails the same way at the same step, which enqueue.py
+#: measures (a defect main carries is not the branch's). Every printer of a NOT RUN verdict names its cause by tag
+#: (the self-test reads build-local.ps1, build-local.sh and linux-gate.sh to hold them to it); a line with no known tag
+#: is UNCLASSIFIED and reads as BRANCH, since the gate that printed it is the tree's own code.
 NOT_RUN = "NOT RUN"
+ENVIRONMENT, BRANCH = "environment", "branch"
+
+
+@dataclass(frozen=True)
+class NotRunCause:
+    """One cause of a NOT RUN verdict: its TAG (printed `NOT RUN [<tag>]`), the class it is CARRIED by (ENVIRONMENT or
+    BRANCH), and what it is."""
+    tag: str
+    carried: str
+    what: str
+
+    @property
+    def verdict(self) -> str:
+        """The verdict word a gate prints for this cause."""
+        return f"{NOT_RUN} [{self.tag}]"
+
+
+#: THE ONE CLASSIFICATION of every NOT RUN cause (above; kb/Work PB3526). enqueue.py reads it through read_verdict and
+#: never re-derives it.
+NOT_RUN_CAUSES: dict[str, NotRunCause] = {c.tag: c for c in (
+    NotRunCause("settings", ENVIRONMENT, "the shared gate settings in the coordination directory are malformed (at the "
+                                         "start, or while the gate queued)"),
+    NotRunCause("interpreter", ENVIRONMENT, "no runnable Python (or one without PyYAML) on the host"),
+    NotRunCause("host", ENVIRONMENT, "the host is not Linux and has no WSL to run the Linux gate on"),
+    NotRunCause("sdk", ENVIRONMENT, "no .NET SDK in the Linux environment"),
+    NotRunCause("tree", ENVIRONMENT, "the tree's git state could not be read or cloned (not at a repository root, no "
+                                     "HEAD, no reachable Windows git, a failed clone)"),
+    NotRunCause("driver", BRANCH, "the gate driver (run_gate_legs.py, the tree's own) failed"),
+    NotRunCause("population", BRANCH, "the population could not be listed after a GREEN build (the tree's test "
+                                      "projects: `--list-tests` failed, or not exactly one built test assembly)"),
+    NotRunCause("arguments", BRANCH, "the tree's gate script refused the arguments it was given"),
+    NotRunCause("verdict", BRANCH, "the gate printed no verdict line (the tree's gate script died first)"),
+    NotRunCause("unslotted", BRANCH, "a gate row would run outside the shared gate slot (the tree's gate driver no "
+                                     "longer takes one, kb/Work PB3104)"),
+    NotRunCause("unclassified", BRANCH, "a NOT RUN verdict naming no known cause (the tree's gate printed it)"),
+)}
+UNCLASSIFIED = NOT_RUN_CAUSES["unclassified"]
+_NOT_RUN_TAG = re.compile(r"^NOT RUN \[([a-z-]+)\]")
 #: A passing verdict: plain GREEN (every leg ran) or `LEG 1 ONLY (...): GREEN` (batched gating).
 GREEN_VERDICT = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
 
 
-def read_verdict(text: str) -> str:
+@dataclass(frozen=True)
+class Reading:
+    """What a gate's verdict line says: its WORD (GREEN, BUSY, NOT RUN or RED) and, for NOT RUN only, its CAUSE."""
+    word: str
+    cause: NotRunCause | None = None
+
+    @property
+    def branch_carried(self) -> bool:
+        """A NOT RUN of code the gated tree carries (NOT_RUN_CAUSES' BRANCH class)."""
+        return self.cause is not None and self.cause.carried == BRANCH
+
+
+GREEN_READING, BUSY_READING, RED_READING = Reading("GREEN"), Reading(BUSY), Reading("RED")
+
+
+def not_run(cause: str) -> Reading:
+    """The reading of a NOT RUN for the cause tagged `cause`: a caller that MAKES one (enqueue.py's missing verdict line,
+    its refused gate rows) names its cause here. KeyError for a tag NOT_RUN_CAUSES lacks."""
+    return Reading(NOT_RUN, NOT_RUN_CAUSES[cause])
+
+
+def read_verdict(text: str) -> Reading:
     """THE ONE READER of a gate's verdict, `text` being its verdict line after the prefix (`=== BUILD-LOCAL GATE: ` or
     the Linux gate's `=== LINUX GATE: `): GREEN (a pass), BUSY (another gate holds the worktree's lock: wait, never
-    red), NOT RUN (the gate measured nothing, for a cause outside the change: NOT_RUN), else RED — every other verdict
+    red), NOT RUN with its cause from NOT_RUN_CAUSES (UNCLASSIFIED when it names none), else RED: every other verdict
     (RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD FAILED) is the change's."""
     if GREEN_VERDICT.match(text):
-        return "GREEN"
-    for word in (BUSY, NOT_RUN):
-        if text == word or text.startswith(word + " "):
-            return word
-    return "RED"
+        return GREEN_READING
+    if text == BUSY or text.startswith(BUSY + " "):
+        return BUSY_READING
+    if text == NOT_RUN or text.startswith(NOT_RUN + " "):
+        tag = _NOT_RUN_TAG.match(text)
+        return Reading(NOT_RUN, NOT_RUN_CAUSES.get(tag.group(1), UNCLASSIFIED) if tag else UNCLASSIFIED)
+    return RED_READING
+
+
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -513,7 +581,7 @@ class Gate:
             try:
                 out.scope, setting = self.host.implementer_scope()
             except ValueError as e:  # malformed shared gate settings stop the gate, with the reason
-                return self._finish(out, None, NOT_RUN, str(e), 2)
+                return self._finish(out, None, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
             if setting is not None and setting.until is not None:
                 out.scope_until = setting.until.isoformat()
             # The pool the work BESIDE the critical path runs in (`_beside`); leaving it waits for that work, so no
@@ -526,7 +594,8 @@ class Gate:
                     # silence: every caller BLOCKS on that line (MANDATORY-PRACTICES P2), so a traceback alone would
                     # hang it.
                     self.say(traceback.format_exc().rstrip())
-                    return self._finish(out, None, NOT_RUN, f"the gate driver failed: {type(e).__name__}: {e}", 2)
+                    return self._finish(out, None, NOT_RUN_CAUSES["driver"].verdict,
+                                        f"the gate driver failed: {type(e).__name__}: {e}", 2)
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -601,7 +670,7 @@ class Gate:
         try:
             slot = self.host.take_slot(label, self.say)
         except ValueError as e:  # the shared gate settings turned malformed while this gate queued: stop, with the reason
-            return self._finish(out, run, NOT_RUN, str(e), 2)
+            return self._finish(out, run, NOT_RUN_CAUSES["settings"].verdict, str(e), 2)
         out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
         out.slot = slot.describe()  # acquire() has printed `gate-slot: took slot k of N …`; the verdict line names it
         try:
@@ -627,7 +696,8 @@ class Gate:
                 listings[asm] = names
                 (run / f"listing-{asm}.txt").write_text(raw, encoding="utf-8", newline="\n")
         except PopulationError as e:
-            return self._finish(out, run, NOT_RUN, f"the population could not be listed: {e}", 2)
+            return self._finish(out, run, NOT_RUN_CAUSES["population"].verdict,
+                                f"the population could not be listed: {e}", 2)
 
         # The self-tests that read the BUILT assemblies (kb/Work PB2563) run beside the legs: they only list tests, and
         # the legs are the gate's longest step, so they add no wall time. Joined, and printed, after the legs.
@@ -946,6 +1016,8 @@ class FakeHost(Host):
         return {a: {"<test>": f"test-{a}", "Cobol.Net.Compiler.dll": f"compiler-{a}"} for a in GATED_ASSEMBLIES}
 
     def listing(self, asm, spawn):
+        if "population" in self.plant and asm == "Unit":
+            raise PopulationError("Unit: planted: `--list-tests` exited 1 (a test class's static constructor threw)")
         path = synthetic_listing(self.root / f"src-listing-{asm}.txt", self.POPULATION[asm])
         text = Path(path).read_text(encoding="utf-8")
         return Counter(self.POPULATION[asm]), text
@@ -1115,8 +1187,17 @@ def self_test() -> int:
         arm("scope leg1 with no plan: the one leg IS the whole population, so the verdict is a plain GREEN",
             o.verdict == "GREEN" and not o.leg1_only and all(p.exact for p in o.populations.values()), o.line)
         o, _ = gate("settings", plant={"settings"})
-        arm("malformed shared gate settings: the gate is NOT RUN, exit 2, with the reason",
-            o.verdict == "NOT RUN" and o.exit_code == 2 and "malformed settings.json" in o.line, o.line)
+        arm("malformed shared gate settings: the gate is NOT RUN [settings], exit 2, with the reason, and the one "
+            "verdict reader classifies it ENVIRONMENT: it never blocks the branch (kb/Work PB3526)",
+            o.verdict == "NOT RUN [settings]" and o.exit_code == 2 and "malformed settings.json" in o.line
+            and read_verdict(o.line[len(VERDICT):]) == not_run("settings")
+            and not read_verdict(o.line[len(VERDICT):]).branch_carried, o.line)
+        o, h = gate("population", plant={"population"})
+        arm("a population that cannot be listed after a GREEN build is NOT RUN [population], exit 2, no leg run, and "
+            "the one verdict reader classifies it BRANCH: the tree's own test projects (review R2-1 of wave 1150)",
+            o.verdict == "NOT RUN [population]" and o.exit_code == 2 and h.built and not o.runs
+            and "planted: `--list-tests` exited 1" in o.line
+            and read_verdict(o.line[len(VERDICT):]).branch_carried, o.line)
 
         o, h = gate("audit", plant={"audit"})
         arm("a red audit (a tracked rendered view) STOPS the gate before the build: RED, the audit "
@@ -1149,9 +1230,10 @@ def self_test() -> int:
             o.verdict == "GREEN" and said("timings store was NOT updated")
             and rec["timings_store"].startswith("NOT updated (OSError"), o.line)
         o, h = gate("slot-settings", plant={"slot-settings"})
-        arm("shared gate settings that turn malformed while the gate queues: NOT RUN, exit 2, with the reason, "
-            "the audits already run",
-            o.verdict == "NOT RUN" and o.exit_code == 2 and "while the gate queued" in o.line and not h.built
+        arm("shared gate settings that turn malformed while the gate queues: NOT RUN [settings] (ENVIRONMENT), exit 2, "
+            "with the reason, the audits already run",
+            o.verdict == "NOT RUN [settings]" and o.exit_code == 2 and "while the gate queued" in o.line
+            and not h.built and not read_verdict(o.line[len(VERDICT):]).branch_carried
             and h.events == ["audits", "fetch", "slot"], o.line)
 
         class HungSelfTests(Host):  # the real Host.audits over planted exit codes: no audit runs
@@ -1219,8 +1301,10 @@ def self_test() -> int:
                                                                   .joinpath(VERDICT_FILE).read_text(encoding="utf-8"))
             and f"leg 2 left to {LEG2_OWNER}" in o.line, o.line)
         o, _ = gate("crash", plant={"crash"})
-        arm("a defect in the driver still ends in ONE verdict line (NOT RUN, exit 2) — the callers block on it",
-            o.verdict == "NOT RUN" and o.exit_code == 2 and sink[-1] == o.line and "RuntimeError" in o.line
+        arm("a defect in the driver still ends in ONE verdict line (NOT RUN [driver], exit 2) — the callers block on "
+            "it — which the one verdict reader classifies BRANCH: the driver is the tree's own code (review R2-1)",
+            o.verdict == "NOT RUN [driver]" and o.exit_code == 2 and sink[-1] == o.line and "RuntimeError" in o.line
+            and read_verdict(o.line[len(VERDICT):]) == not_run("driver")
             and said("Traceback"), o.line)
         o, _ = gate("build", plant={"build"})
         arm("a failed build is BUILD FAILED, exit 1, and no leg runs",
@@ -1270,15 +1354,40 @@ def self_test() -> int:
             "PB3527)",
             first == "held" and o.verdict == BUSY and o.exit_code == EXIT_BUSY and f"pid {holder.pid}" in o.line
             and host2.slots_taken == 0 and not (d / "runs").exists()
-            and read_verdict(o.line[len(VERDICT):]) == BUSY, o.line)
+            and read_verdict(o.line[len(VERDICT):]) == BUSY_READING, o.line)
         arm("the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass; RED, RED/INCOMPLETE, LEG 1 ONLY: RED and BUILD "
-            "FAILED are RED; NOT RUN (this driver's and the Linux gate's) is NOT RUN, never RED (kb/Work PB3526); a "
-            "Linux gate's GREEN (legs ...) passes",
+            "FAILED are RED; NOT RUN (this driver's and the Linux gate's) is NOT RUN with its cause's class, never RED "
+            "(kb/Work PB3526), and one naming no known cause is UNCLASSIFIED, BRANCH; a Linux gate's GREEN (legs ...) "
+            "passes",
             [read_verdict(v) for v in ("GREEN — x ===", f"{LEG1_ONLY}: GREEN — x", "RED — x", "RED/INCOMPLETE — x",
-                                       f"{LEG1_ONLY}: RED — x", "BUILD FAILED — x", "NOT RUN — x",
-                                       "NOT RUN (no .NET SDK in this Linux environment) ===", "NOT RUNNING",
+                                       f"{LEG1_ONLY}: RED — x", "BUILD FAILED — x", "NOT RUN [settings] — x",
+                                       "NOT RUN [sdk] (no .NET SDK in this Linux environment) ===",
+                                       "NOT RUN [driver] — x", "NOT RUN — x", "NOT RUN [nosuch] — x", "NOT RUNNING",
                                        "GREEN (legs unit) ===", "GREENISH")]
-            == ["GREEN", "GREEN", "RED", "RED", "RED", "RED", NOT_RUN, NOT_RUN, "RED", "GREEN", "RED"])
+            == [GREEN_READING, GREEN_READING, RED_READING, RED_READING, RED_READING, RED_READING, not_run("settings"),
+                not_run("sdk"), not_run("driver"), Reading(NOT_RUN, UNCLASSIFIED), Reading(NOT_RUN, UNCLASSIFIED),
+                RED_READING, GREEN_READING, RED_READING]
+            and [c.tag for c in NOT_RUN_CAUSES.values() if c.carried == BRANCH]
+            == ["driver", "population", "arguments", "verdict", "unslotted", "unclassified"])
+        # Every printer of a NOT RUN verdict names its cause (the classification is read, never guessed from prose):
+        # the gate scripts' verdict lines and this driver's own.
+        printers = {f: (REPO / "scripts" / f).read_text(encoding="utf-8")
+                    for f in ("build-local.ps1", "build-local.sh", "linux-gate.sh")}
+        untagged, unknown = [], []
+        for f, text in printers.items():
+            for ln in text.splitlines():
+                at = ln.find("GATE: NOT RUN")
+                if at < 0 or ln.lstrip().startswith("#"):
+                    continue
+                tag = _NOT_RUN_TAG.match(ln[at + len("GATE: "):])
+                (unknown if tag and tag.group(1) not in NOT_RUN_CAUSES else untagged if not tag else []).append(
+                    f"{f}: {ln.strip()[:90]}")
+        own = re.findall(r'_finish\(out, \w+, (NOT_RUN[^,]*),', (REPO / "scripts" / "run_gate_legs.py").read_text(
+            encoding="utf-8"))
+        arm("every NOT RUN verdict a gate prints names a cause NOT_RUN_CAUSES classifies: build-local.ps1, "
+            "build-local.sh and linux-gate.sh, and this driver's own (_finish with NOT_RUN_CAUSES[...].verdict)",
+            all(printers.values()) and not untagged and not unknown and own
+            and all(v.startswith("NOT_RUN_CAUSES[") for v in own), f"untagged={untagged} unknown={unknown} own={own}")
 
         # The lock is per WORKTREE: a linked worktree's git dir is its own.
         git = ["git", "-c", "user.name=gate-legs", "-c", "user.email=gate-legs@invalid", "-c", "init.defaultBranch=main"]

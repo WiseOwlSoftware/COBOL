@@ -37,13 +37,15 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      past the grace it re-runs a stuck check, then closes, reopens and re-queues the pull request, then sends the
      operator a mailbox question and stops (`ALERTED`) — never a finisher's, and nothing to do here but name an
      ALERTED one in the handoff. Its leads go to step 5 and its record to step 6b.
-   - `STOPPED`: `CONFLICT` (exit 4, before or after the gate), `GATE RED` (exit 5) or a DEVLOG refusal (exit 6): the
+   - `STOPPED`: `CONFLICT` (exit 4, before or after the gate), `GATE RED` or `GATE NOT RUN, BRANCH-CARRIED` (exit 5:
+     a gate that measured nothing because code the branch carries failed, and main passes that step; kb/Work PB3526)
+     or a DEVLOG refusal (exit 6): the
      reason is in the log and in the branch's report (`BLOCKED: enqueue …`); the branch survey reads the branch
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
      I10): it goes back to step 2's reviewer, never to a finisher and never landed another way. A repeated exit 2 or
-     9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice: it measured nothing, an
-     environment no finisher fixes, kb/Work PB3526): name it in the handoff with its log.
+     9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice for a cause in the environment or
+     one main fails the same way: no finisher fixes it, kb/Work PB3526): name it in the handoff with its log.
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
      INDEPENDENT in-flight work; a branch that descends from it — its successor, its finisher, a carrier that merged
      any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
