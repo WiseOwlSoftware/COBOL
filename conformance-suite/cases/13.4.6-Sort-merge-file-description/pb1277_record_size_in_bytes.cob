@@ -45,7 +45,12 @@
       *>   SN   SNR = PIC N(3) + PIC N(1) = 8 bytes, inside FROM 6 TO 8, and the
       *>        key NK (6 bytes) lies within the first 6 bytes (14.9.40.3 SR6 g),
       *>        so the program compiles; two records released, both returned:
-      *>        SORTED=2.
+      *>        SORTED=2. The output procedure is RET-SN THRU RET-SN-EXIT, so
+      *>        its AT END GO TO stays in it and reaches the return mechanism
+      *>        after RET-SN-EXIT (14.9.40.4 GR14), which resumes after the
+      *>        SORT. (Named RET-SN alone, that GO TO would leave the procedure
+      *>        for the last paragraph, and running past it is the implicit
+      *>        GOBACK, kb/Work PB3511: SORTED= would never be displayed.)
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PB1277RB.
        ENVIRONMENT DIVISION.
@@ -126,7 +131,7 @@
            CLOSE FA
            SORT SN ON ASCENDING KEY NK
                INPUT PROCEDURE IS REL-SN
-               OUTPUT PROCEDURE IS RET-SN
+               OUTPUT PROCEDURE IS RET-SN THRU RET-SN-EXIT
            DISPLAY "SORTED=" N
            STOP RUN.
        REL-SN.

@@ -98,7 +98,14 @@ public sealed partial class DataBinder
                 // HERE, where every entry's clause passes — before this, a group entry's `USAGE COMP` was captured and
                 // then silently discarded, and the only usage screen in the compiler was a staged-loud on the leaf's
                 // analyzed picture.
-                ScreenReportUsage(PictureAnalyzer.ParseUsage(usageText, Edition, where), at.ReportName, entryName, usageText);
+                var resolved = PictureAnalyzer.ParseUsage(usageText, Edition, where);
+                ScreenReportUsage(resolved, at.ReportName, entryName, usageText);
+                // §13.15.4 GR2 makes the report entry's USAGE clause "the same clause" as a data description entry's,
+                // so its optional phrases are screened by the ONE reader against the same §13.18.60.2 table (kb/Work
+                // PB3517, branch review R1-1: `USAGE DISPLAY UNSIGNED` / `WITH NO SIGN` here compiled clean, the
+                // phrase ignored). Nothing is carried: SR7 above admits only DISPLAY and NATIONAL, whose lines print
+                // none of the four phrases, so an admitted phrase can only follow a usage SR7 has already refused.
+                ScreenUsagePhrases(usage, resolved, usageText, where);
             }
             else if (clause.signClause() is { } sign)
                 ownSign = new SignSpec(sign.LEADING() is not null, sign.SEPARATE() is not null);
