@@ -3266,9 +3266,8 @@ public static class DiagnosticCatalog
     //    every site routes through `EditionContext.Declined(descriptor, seen)`, never a local strictness test
     //    and never a second helper (feedback_one_mechanism_per_job).
     //
-    //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1579 / 1580 / 1778. These facilities are ADDITIVE: the
-    //      program still means what it says with them absent (no message I-O, COMMIT behaves as
-    //      CONTINUE, VALIDATE validates nothing, a RECORD DELIMITER selects a framing §12.4.5.11.4 GR1
+    //    • ACCEPT-INERT (Warning) — COBOLNET1578 / 1580 / 1778. These facilities are ADDITIVE: the
+    //      program still means what it says with them absent (no message I-O, VALIDATE validates nothing, a RECORD DELIMITER selects a framing §12.4.5.11.4 GR1
     //      forbids the program from seeing), so the program COMPILES, RUNS, and the facility is inert, with
     //      §14.6.13.1.1 licensing NO exception conditions. Before this band these constructs produced a
     //      GENERIC parse error, which satisfied neither obligation below nor the "never a silent wrong
@@ -3276,9 +3275,9 @@ public static class DiagnosticCatalog
     //      ⛔ TWO DIFFERENT LICENCES REACH THIS ONE DISPOSITION, and conflating them is kb/Work PB709's
     //      defect — the descriptor's `Annex` datum is what tells them apart now, and `PostureClause` derives
     //      the § from it so that no site writes the clause by hand:
-    //        · 1578 (MCS, Annex A.3 item 4), 1579 (commit and rollback, A.3 items 6-7) and 1778 (RECORD
-    //          DELIMITER, A.3 item 26) are PROCESSOR-DEPENDENT, and §4.2.6 ¶3 makes the warning MANDATORY:
-    //          "shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
+    //        · 1578 (MCS, Annex A.3 item 4) and 1778 (RECORD DELIMITER, A.3 item 26) are
+    //          PROCESSOR-DEPENDENT (1579, commit and rollback, A.3 items 6-7, is retired: kb/Work PB3338),
+    //          and §4.2.6 ¶3 makes the warning MANDATORY: "shall provide a warning mechanism at compile time to indicate use of syntactically-detectable
     //          processor-dependent language elements not supported". There the warning IS the obligation.
     //        · 1580 (VALIDATE) is NOT in Annex A.3 at all — it is Annex A.4.14, OPTIONAL, and §4.2.7 carries
     //          no warning-mechanism sentence to mandate anything. What §4.2.7 requires is that the
@@ -3395,7 +3394,7 @@ public static class DiagnosticCatalog
         + "inert. Refused at EVERY edition: an inert FORMAT changes which bytes reach the medium "
         + "(§13.18.24.4 GR1) and an inert SELECT WHEN selects the wrong record description entry "
         + "(§13.18.51.4 GR1) with an I-O status 45 path (§9.1.13.7 rule 5) — a wrong answer, not a missing "
-        + "facility, which is why this is an Error and not the COBOLNET1578/1579/1580 accept-inert band. "
+        + "facility, which is why this is an Error and not the COBOLNET1578/1580 accept-inert band. "
         + "At --std 85 the FORMAT clause additionally cannot be written at all: §8.9 reserves FORMAT only from "
         + "2002, so there the word is a user-defined name.",
         "ISO §4.2.7 / Annex A.4.1 / Annex A.4.8 items 1-2 / §13.18.24 / §13.18.51",
@@ -3417,7 +3416,7 @@ public static class DiagnosticCatalog
         Annex: DeclinedAnnex.A4);
     // ── The A.4 DECLINED-OPTIONAL-ELEMENT band (§4.2.7 / Annex A.4.1). ⛔ A DIFFERENT OBLIGATION FROM THE
     //    WAVE-H BAND ABOVE, and the severity difference is the whole point. §4.2.6 ¶3 covers PROCESSOR-DEPENDENT
-    //    elements (Annex A.3): we may accept them and must WARN — 1578/1579 do exactly that. Annex A.4.1 covers
+    //    elements (Annex A.3): we may accept them and must WARN — 1578 does exactly that. Annex A.4.1 covers
     //    OPTIONAL elements: "An implementation shall accept the syntax and provide the functionality for an
     //    optional element ONLY when support for that language element is claimed by the implementor", so for a
     //    module docs/CONFORMANCE.md §5 records as Not claimed, ACCEPTING the syntax is itself the
@@ -3482,8 +3481,8 @@ public static class DiagnosticCatalog
 
     // ── Annex A.4.2 — ACCEPT and DISPLAY SCREEN HANDLING, the largest DECLINED optional module (kb/Work PB260).
     //
-    //    ⛔ WHY AN ERROR AND NOT THE §4.2.6 RECOGNIZE-AND-WARN OF 1578/1579/1580. Those three name Annex A.3
-    //    PROCESSOR-DEPENDENT elements, whose licence is §4.2.6 — "the decision to provide support … is within an
+    //    ⛔ WHY AN ERROR AND NOT THE §4.2.6 RECOGNIZE-AND-WARN OF 1578/1580. 1578 names an Annex A.3
+    //    PROCESSOR-DEPENDENT element, whose licence is §4.2.6 — "the decision to provide support … is within an
     //    implementor's discretion" plus a mandatory compile-time WARNING mechanism, i.e. accept-and-flag. Screen
     //    handling is an Annex A.4 OPTIONAL module, and A.4.1's licence reads the other way: "An implementation
     //    shall accept the syntax and provide the functionality for an optional element ONLY WHEN support for that
