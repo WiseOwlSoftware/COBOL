@@ -9,7 +9,7 @@ as one brace.
 **The re-probe.** The check failed, but it printed only a count. It now names each drifted figure with its clause,
 folio, line range and the diff that `--apply` would write.
 
-**Three mechanisms, one root.** In each, the row layout let a word leave the enclosure it belongs to.
+**Four mechanisms, one root.** In each, the drawing put a word or a delimiter outside the enclosure it belongs to.
 
 1. *Label snapping.* `outer_label_rows` snapped a row onto a neighbour when the row's words sat left of a brace and
    inside its height. That is the test for an outer enclosure's label (ASSIGN in the file-control entry), but the
@@ -29,20 +29,29 @@ folio, line range and the diff that `--apply` would write.
    group. WRITE's `| BEFORE / AFTER |` choice bars therefore drew past their brace, through `mnemonic-name-1`. A
    paired stem now spans from the first to the last row that holds its words.
 
+4. *A choice bar read as a bracket* (the sibling sweep). Across the standard the pairing left 7 of 1,733
+   delimiters unpaired. Four were SEND's choice bars (§14.9.38.2, folio 726). Each stands 0.70 pt clear of the
+   bracket's foot, and that foot's end fell within `figure_geometry._foot_side`'s 1.2 pt tolerance of the bar's far
+   edge, so both SEND formats drew `[ ] ON EXCEPTION … [ ]`. A foot now belongs to a stem only when its near end
+   lies inside that stem's stroke. Over the whole standard this changes those four bars and no other general-format
+   stem. The other three unpaired delimiters are one-sided brackets that the print continues across a page, and
+   they keep the height-based span.
+
 The column-splitting loop in `outer_label_rows` duplicated the one in `build`. Both now call `split_delimiters`.
 
-**The sweep.** 22 figures were regenerated, and I checked each against its printed page. Several replace drawings
+**The sweep.** 24 figures were regenerated, and I checked each against its printed page. Several replace drawings
 that were wrong. `--check` is GREEN with no hand-kept exception. The LINE figure's note and FIGURE-STYLE.md now
 describe the current rules.
 
-**Rows.** Twenty FMT rows' rule text changed. Only the layout changed; the words did not, which the sweep's word
-gate confirms. Their verdicts were re-affirmed through the `record_verdicts` batch
-`w1150c-pb3530-figure-regeneration` (20 rows; GAP 66 → 66). The catalog and the inventory were regenerated. No row
-closed.
+**Rows.** Twenty-one FMT rows' rule text changed. Only the layout changed; the words did not, which the sweep's word
+gate confirms. Their verdicts were re-affirmed through the `record_verdicts` batches
+`w1150c-pb3530-figure-regeneration` (20 rows) and `w1150c-pb3530-send-choice-bars` (1 row); GAP stays 66 → 66. The
+catalog and the inventory were regenerated. No row closed.
 
-**The witness.** `scripts/spec/test_render_figure.py` replays six measured figures through `build` without the
+**The witnesses.** `scripts/spec/test_render_figure.py` replays six measured figures through `build` without the
 licensed PDF, and adds six unit checks of the delimiter splitter, the pairing and the row split. Main's renderer
 fails the three cases for the new mechanisms and passes the three guard cases (ASSIGN, UNTIL, ACCEPT Format 3).
+`scripts/spec/test_figure_geometry.py` holds SEND's four measured stems. Main reads both bars as brackets.
 
 **Self-review.** I checked for a second copy of the pairing or span rule (none), a split that could fail to end
 (each split makes both parts agree with the boundary that caused it), and the effect on
