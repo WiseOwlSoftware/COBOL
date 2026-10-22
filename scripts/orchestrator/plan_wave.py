@@ -379,16 +379,21 @@ def parse_report(p: pathlib.Path) -> Report | None:
 
 
 def load_reports(reports_dir: pathlib.Path | None, coord_dir: pathlib.Path | None = None) -> list[Report]:
-    """The reports in `reports_dir`, oldest first. With `coord_dir`, each report's `notes` are completed from the
-    dispatch ledger there (`answered_notes`): the planner passes it; the readers of a report's status and branch (the
-    branch survey, the landing checks) have no use for the notes and read the lead alone."""
+    """The reports in `reports_dir`, oldest first: by wave, then modification time, then file name. The name makes the
+    order TOTAL: two reports of one wave written within one file-system tick tie on the first two keys, and a tie left
+    to `glob` takes the directory's enumeration order, which is the name on NTFS and a hash order on ext4, so a note's
+    newest report, the order finishers are planned in and which of two chained finishers is the successor differed
+    between Windows and Linux (kb/Work PB3528's self-test, red only under the Linux gate). With `coord_dir`, each
+    report's `notes` are completed from the dispatch ledger there (`answered_notes`): the planner passes it; the readers
+    of a report's status and branch (the branch survey, the landing checks) have no use for the notes and read the lead
+    alone."""
     if not reports_dir or not reports_dir.is_dir():
         return []
     groups = ledger_groups(coord_dir) if coord_dir else []
     reps = [r for p in reports_dir.glob("w*-PB*-report.md") if (r := parse_report(p))]
     for r in reps:
         r.notes = answered_notes(r, groups)
-    return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime))
+    return sorted(reps, key=lambda r: (r.wave, r.path.stat().st_mtime, r.path.name))
 
 
 def git_branch_classifier() -> Callable[[str], str]:
