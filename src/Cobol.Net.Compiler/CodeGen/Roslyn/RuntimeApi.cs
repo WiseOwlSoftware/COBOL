@@ -1628,31 +1628,30 @@ internal static class RuntimeApi
         $"{nameof(CobolFile)}.{nameof(CobolFile.TerminateOnUncoveredFatalStatus)}({name}, {verbLiteral})";
 
     // ── COMMIT AND ROLLBACK (ISO §9.1.18; kb/Work PB3338) — TransactionEmitter's calls ───────────────────────────────
+    //    Each names the facade by its FULL name: a COMMIT or ROLLBACK statement acts on the run unit's clauses whatever
+    //    element executes it (§14.9.7.1), and an APPLY COMMIT clause may name only data items, so an element that
+    //    emits these calls need not describe a file, and the file-I/O namespace import is emitted only for one that does.
+    private const string TransactionFacade = "global::CobolNet.Runtime.IO." + nameof(CobolFile);
 
     /// <summary>Activate the element's APPLY COMMIT clause — <c>CobolFile.ActivateApplyCommit</c>.</summary>
     public static string ActivateApplyCommit(string keyedFilesArray, string save, string restore, string storeStatus) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.ActivateApplyCommit)}(this, {keyedFilesArray}, {save}, {restore}, {storeStatus})";
+        $"{TransactionFacade}.{nameof(CobolFile.ActivateApplyCommit)}(this, {keyedFilesArray}, {save}, {restore}, {storeStatus})";
 
     /// <summary>Retire the element instance's clause (canceled, or an INITIAL program returned) — <c>CobolFile.RetireApplyCommit</c>.</summary>
-    public static string RetireApplyCommit() => $"{nameof(CobolFile)}.{nameof(CobolFile.RetireApplyCommit)}(this)";
+    public static string RetireApplyCommit() => $"{TransactionFacade}.{nameof(CobolFile.RetireApplyCommit)}(this)";
 
     /// <summary>The COMMIT statement — <c>CobolFile.Commit</c>; the refused file's connector name or null.</summary>
-    public static string Commit() => $"{nameof(CobolFile)}.{nameof(CobolFile.Commit)}()";
+    public static string Commit() => $"{TransactionFacade}.{nameof(CobolFile.Commit)}()";
 
     /// <summary>The ROLLBACK statement — <c>CobolFile.Rollback</c>; the refused file's connector name or null.</summary>
-    public static string Rollback() => $"{nameof(CobolFile)}.{nameof(CobolFile.Rollback)}()";
+    public static string Rollback() => $"{TransactionFacade}.{nameof(CobolFile.Rollback)}()";
 
     /// <summary>§14.6.13.1.3 item 8's unconditional ROLLBACK after a fatal status — <c>CobolFile.RollbackOnFatal</c>.</summary>
-    public static string RollbackOnFatal(string name) => $"{nameof(CobolFile)}.{nameof(CobolFile.RollbackOnFatal)}({name})";
+    public static string RollbackOnFatal(string name) => $"{TransactionFacade}.{nameof(CobolFile.RollbackOnFatal)}({name})";
 
     /// <summary>A refused COMMIT/ROLLBACK on another element's file with no FILE STATUS item — <c>CobolFile.TerminateOnRefusalWithoutStatusItem</c>.</summary>
     public static string TerminateOnRefusalWithoutStatusItem(string name, string verbLiteral) =>
-        $"{nameof(CobolFile)}.{nameof(CobolFile.TerminateOnRefusalWithoutStatusItem)}({name}, {verbLiteral})";
-
-    /// <summary>The EC-FLOW-APPLY-COMMIT checking flag the clause's activation reads — <c>ExceptionState.FlowApplyCommitChecking</c>.</summary>
-    public static string FlowApplyCommitChecking { get; } =
-        $"global::CobolNet.Runtime.Exceptions.{nameof(Runtime.Exceptions.ExceptionState)}"
-        + $".{nameof(Runtime.Exceptions.ExceptionState.FlowApplyCommitChecking)}";
+        $"{TransactionFacade}.{nameof(CobolFile.TerminateOnRefusalWithoutStatusItem)}({name}, {verbLiteral})";
 
     /// <summary>The EC-I-O level-3 exception-name the connector's last I-O operation set to exist (§9.1.13.1's
     /// status correspondence, or a name the operation's own rule gave) — <c>CobolFile.IoConditionName</c>.</summary>

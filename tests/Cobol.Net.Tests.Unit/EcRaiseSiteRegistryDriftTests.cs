@@ -92,7 +92,6 @@ public sealed class EcRaiseSiteRegistryDriftTests
     [
         ("EC-RAISING-NOT-SPECIFIED", "PB408"),
         ("EC-OO-EXCEPTION", "PB1121"),
-        ("EC-FLOW-APPLY-COMMIT", "PB3338"),   // §12.4.6.3.4 GR3/GR4: raised by the clause's activation (TransactionControl.Activate)
     ];
 
     private static IEnumerable<string> Level3Names =>

@@ -61,18 +61,15 @@ internal sealed class TransactionEmitter(EmitContext ctx, ReferenceResolver refs
 
     /// <summary>The clause's ACTIVATION, in <c>__Activate</c> after the connectors are registered (§12.4.6.3.4 GR5:
     /// "active when the runtime element in which it is contained has been activated"), once per instance. GR3/GR4's
-    /// EC-FLOW-APPLY-COMMIT is checked as of the element's PROCEDURE DIVISION header
-    /// (<see cref="DataBinder.ApplyCommitActivationChecking"/>).</summary>
+    /// EC-FLOW-APPLY-COMMIT is the ACTIVATING element's: the runtime raises it under the checking the activation boundary
+    /// latched from the CALL (<c>ExceptionEngine.ActivatorFlowApplyCommit</c>).</summary>
     public void EmitActivation(CodeWriter w)
     {
         if (Clause is not { } clause) return;
         using (w.Block("if (!__applyCommitActive)"))
         {
             string files = "new string[] { " + string.Join(", ", KeyedFiles(clause).Select(FileKeyExpr)) + " }";
-            bool checking = ctx.Data.ApplyCommitActivationChecking;
-            if (checking) w.Line($"{RuntimeApi.FlowApplyCommitChecking} = true;");
             w.Line($"__applyCommitActive = {RuntimeApi.ActivateApplyCommit(files, "__CommitSave", "__CommitRestore", "__CommitStatus")};");
-            if (checking) w.Line($"{RuntimeApi.FlowApplyCommitChecking} = false;");
         }
     }
 

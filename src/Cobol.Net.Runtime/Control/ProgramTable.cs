@@ -475,6 +475,7 @@ public sealed class ProgramTable
         // statement — the invariant the retired pending-mask register had to enforce by hand (kb/Work PB1138).
         var excState = _owner.Exceptions;
         int activatingExternalMask = excState.ExternalActivatingMask;
+        bool activatingApplyCommit = excState.FlowApplyCommitChecking;   // §12.4.6.3.4 GR3/GR4's activating half (kb/Work PB3338)
         var n = ResolveVisible(name, callerPath, wantFunction: notFoundEc == "EC-FUNCTION-NOT-FOUND")
             ?? throw new CobolCallException(
                 notFoundEc == "EC-FUNCTION-NOT-FOUND"
@@ -581,6 +582,8 @@ public sealed class ProgramTable
         var exc = excState;
         int savedActivator = exc.ActivatorExternalMask;
         exc.ActivatorExternalMask = activatingExternalMask;   // captured before resolution (GR3e)
+        bool savedActivatorApplyCommit = exc.ActivatorFlowApplyCommit;
+        exc.ActivatorFlowApplyCommit = activatingApplyCommit;
         // The exception-checking PERFORM's WHEN frames need nothing here: the Modules.Push above IS their boundary
         // (ExceptionEngine.RunTopFrame stops at a frame another activation pushed; kb/Work PB442).
         // Per-activation scope for the §14.6.13.1.4 #3 selector of a NONFATAL condition raised at a RUNTIME site
@@ -638,6 +641,7 @@ public sealed class ProgramTable
         {
             n.Active--; _owner.Modules.Pop();
             exc.ActivatorExternalMask = savedActivator;
+            exc.ActivatorFlowApplyCommit = savedActivatorApplyCommit;
             exc.NonfatalDispatcher = savedNonfatalDispatcher;
             exc.RestoreChecking(savedChecking);
             if (freshInstance)

@@ -243,8 +243,11 @@ internal sealed partial class EcBinder
         new(s => s is BoundContinueAfter, ["EC-CONTINUE-LESS-THAN-ZERO"]),
         // CALL: the EC-PROGRAM family, the EC-EXTERNAL trio (§14.9.4.4 GR3e — the CALL is the EC-EXTERNAL raise point,
         // §14.8.4) and the activation's resources (§14.9.4.4 GR3c / §8.4.3.2.4 GR6c; kb/Work PB2659 — PRECISE: an
-        // ACTIVATION raises it, so it is not in ProgramNames, which a CANCEL queries too).
-        new(s => s is BoundCallProgram, [.. ProgramNames, .. ExternalNames, "EC-PROGRAM-RESOURCES"]),
+        // ACTIVATION raises it, so it is not in ProgramNames, which a CANCEL queries too). EC-FLOW-APPLY-COMMIT likewise
+        // (kb/Work PB3338): the activated element's APPLY COMMIT clause raises it at its activation, under the CALL's
+        // checking (§12.4.6.3.4 GR3/GR4; Table 13: "Invocation … by a runtime element for which commit and rollback is
+        // not permitted").
+        new(s => s is BoundCallProgram, [.. ProgramNames, .. ExternalNames, "EC-PROGRAM-RESOURCES", "EC-FLOW-APPLY-COMMIT"]),
         // A USER-FUNCTION activation is a DIFFERENT raise: a locate miss is EC-FUNCTION-NOT-FOUND (§8.4.3.2.4 GR6b).
         new(s => s is BoundCallProgram { IsFunction: true }, FunctionActivationNames),
         // PRECISE: only an activation THROUGH a function-pointer can find the pointer NULL (§8.4.3.2.4 GR6c; PB847).
