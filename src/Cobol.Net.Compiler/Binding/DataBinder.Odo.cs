@@ -417,11 +417,26 @@ public sealed partial class DataBinder
                 && !tier.Any(c => !c.IsCopiedUnder(placedAt));
             if (UniqueOrReportAmbiguous(tier, depFace, writtenDep, out bool _, report: !ambiguityIsDeclarationFact)
                 is not { } dep) continue;
-            spec.Depending = dep;
+
+            // ⛔ THE LINK IS RECORDED ONLY WHEN data-name-1 IS WHAT §13.18.38.3 REQUIRES OF IT (kb/Work PB3510): an
+            // integer (SR17), not subscripted (SR2), and outside the range from the table's first byte to its record's
+            // last (SR20). Every OccursSpec.Depending consumer — the GR8 group-operand slice
+            // (ReferenceResolver.WrapIfOdoGroup), the extent freeze (SendingValueTemp), the GR7 counts — resolves
+            // data-name-1's own place, and that resolution wraps a GROUP holding an occurs-depending table again. A
+            // group data-name-1 that contains its table (DEPENDING ON the record that holds it) therefore resolved
+            // itself without end: the binder died of a stack overflow before these diagnostics reached the user. An
+            // integer is elementary, so a recorded link never leads back into a group, and the refused link leaves
+            // the table where an undefined data-name-1 leaves it (COBOLNET0851): Depending unset, the compile failed.
+            // The predicates are facts of the entries, so a TYPE declaration and its clone refuse the same link even
+            // where only one of them REPORTS the fault (DeclarationFact).
+            bool notInteger = dep.Pic is not { IsIntegerDescription: true };
+            bool subscripted = dep.SubscriptArity > 0;
+            bool inTableRange = DependingInsideTableRange(item, dep);
+            if (!notInteger && !subscripted && !inTableRange) spec.Depending = dep;
 
             // SR17: data-name-1 shall describe an integer — §5.5 2) b) 2., so a trailing-P PIC 99P is one (an index
             // item is NOT an integer data item).
-            if (dep.Pic is not { IsIntegerDescription: true } && !DeclarationFact(dep))
+            if (notInteger && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0852", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': data-name-1 "
                     + "shall describe an integer (ISO §13.18.38.3 SR17)" + via);
 
@@ -435,10 +450,12 @@ public sealed partial class DataBinder
                 Edition.Error(DiagnosticCatalog.OccursDependingAttributeMismatch,
                     $"OCCURS … DEPENDING ON '{writtenDep}' on '{subject}': {attributeFault}{via}");
 
-            // SR2: data-name-1 shall not be subscripted (it cannot lie within any table). A TABLE is any OCCURS — a
-            // Format-4 DYNAMIC one leaves Occurs null (kb/Work PB1260) — and "lies within a table" is the ONE arity
-            // answer, DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests).
-            if (dep.Parent is { SubscriptArity: > 0 } depParent && !DeclarationFact(dep, depParent.SubscriptLevels()[^1]))
+            // SR2: data-name-1 shall not be subscripted (it cannot lie within any table, nor BE one: a table's own
+            // entry is referenced with a subscript too, kb/Work PB3510). A TABLE is any OCCURS — a Format-4 DYNAMIC one
+            // leaves Occurs null (kb/Work PB1260) — and "is or lies within a table" is the ONE arity answer,
+            // DataItem.SubscriptArity (a walk written nowhere else: SubscriptAdmissionDriftTests); the fault involves
+            // data-name-1 and the innermost table that makes it subscripted.
+            if (subscripted && !DeclarationFact(dep, dep.SubscriptLevels()[^1]))
                 Edition.Error("COBOLNET0853", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not be subscripted (ISO §13.18.38.3 SR2)" + via);
 
@@ -492,7 +509,7 @@ public sealed partial class DataBinder
             // SR20: "The data item defined by data-name-1 shall not occupy a byte position within the range of the
             // first byte position defined by the data description entry containing the OCCURS clause and the last
             // byte position defined by the record description entry containing that OCCURS clause."
-            if (DependingInsideTableRange(item, dep) && !DeclarationFact(dep))
+            if (inTableRange && !DeclarationFact(dep))
                 Edition.Error("COBOLNET0857", $"OCCURS … DEPENDING ON '{depName}' on '{subject}': "
                     + "data-name-1 shall not occupy a byte position within the range from the table's first byte "
                     + "position to the last byte position of its record (ISO §13.18.38.3 SR20)"
@@ -523,7 +540,10 @@ public sealed partial class DataBinder
     /// sits at its own record offset in the same area. The test compared record ROOTS and so let that counter
     /// through, though it overlays the table's bytes.
     /// <para>Within ONE record, leaf order IS byte order for the canonical storage, so the counter must lie strictly
-    /// before the table. Across the records of one area the counter's byte window is compared with the table's:
+    /// before the table: its LAST leaf, for data-name-1 "occupies" every byte position of its own extent, and a GROUP
+    /// data-name-1 has no leaf of its own — one that contains the table (DEPENDING ON the record that holds it)
+    /// occupies every byte of the range, and the test that looked for data-name-1 itself among the leaves passed it
+    /// (kb/Work PB3510). Across the records of one area the counter's byte window is compared with the table's:
     /// its offset in its own record against the table's offset and its record's extent (the table at its maximum,
     /// §8.5.1.8 — the allocation every record of the area is described against).</para></summary>
     private static bool DependingInsideTableRange(DataItem table, DataItem dep)
@@ -532,8 +552,8 @@ public sealed partial class DataBinder
         {
             var leaves = LeavesOf(table.Root).ToList();
             int tableStart = leaves.FindIndex(l => OdoModel.IsWithin(l, table));
-            int depIdx = leaves.FindIndex(l => ReferenceEquals(l, dep));
-            return tableStart >= 0 && depIdx >= tableStart;
+            int depLast = leaves.FindLastIndex(l => OdoModel.IsWithin(l, dep));
+            return tableStart >= 0 && depLast >= tableStart;
         }
         if (dep.Root.Class is not { } area || !ReferenceEquals(table.Root.Class, area)) return false;
         if (RecordLayout.FirstOccurrenceOffsetOf(table) is not { } first || RecordLayout.OffsetOf(dep) is not { } at)
