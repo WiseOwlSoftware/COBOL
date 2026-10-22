@@ -45,7 +45,9 @@ internal sealed class AcceptDisplayEmitter(EmitContext ctx, NumericRenderer num,
         // non-injective, non-invertible image; an intrinsic function's string argument asks the same reader. The
         // variable-length arm described above lives in that reader too (kb/Work PB3424), so DISPLAY and a function
         // argument cannot answer "what are this group's characters" differently.
-        var parts = d.Operands.Select(o => OperandText.AsTransferString(o, num, "DISPLAY of")).ToList();
+        // A fixed-point numeric item is DISPLAY's GR1 device conversion, in the form the compilation selected
+        // (--numeric-display, kb/Work PB3505, DOC-A.1-56); every other operand is the transfer reader's, as above.
+        var parts = d.Operands.Select(o => OperandText.AsDeviceString(o, num, ctx.NumericDisplay, "DISPLAY of")).ToList();
         string image = parts.Count == 0 ? "\"\"" : string.Join(" + ", parts);
         string sink = d.ToStdErr ? "global::System.Console.Error" : "global::System.Console";
         ctx.Writer.Line(d.NoAdvancing ? $"{sink}.Write({image});" : $"{sink}.WriteLine({image});");

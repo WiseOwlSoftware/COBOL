@@ -21,7 +21,7 @@ namespace CobolNet.Tests.Shared;
 /// <param name="Control">A flagged test's control: the accepted twin with the violation removed.</param>
 /// <param name="InSuite">Whether the per-edition suites carry it (the rest are WiseOwl's own tests).</param>
 /// <param name="Options">A WiseOwl test's WiseOwl compile options (<c>conformance-suite/wiseowl/options.json</c>), by
-/// option: <c>sign-encoding</c>, <c>flag-extensions</c>; empty for every other test.</param>
+/// option: <c>sign-encoding</c>, <c>numeric-display</c>, <c>flag-extensions</c>; empty for every other test.</param>
 internal sealed record SuiteTest(
     string Id, string Clause, string Source, string SourceFormat, IReadOnlyList<string> Files,
     IReadOnlyList<string> Requires, IReadOnlyList<string> Words, string Expect, IReadOnlyList<int> ImplementorDefined,

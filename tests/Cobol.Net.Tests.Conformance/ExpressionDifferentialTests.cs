@@ -101,12 +101,12 @@ public sealed class ExpressionDifferentialTests
     [Fact]
     public void Display_MixedOperandKinds()
         // TXT (X(4)="HI") sits mid-DISPLAY, so its 2 trailing spaces are transferred per ISO §14.9.11.4 GR6 (the
-        // legacy trims them — non-conforming — so this is spec-pinned). NUM→0042, SGN -7→00P (trailing over-punch).
+        // legacy trims them — non-conforming — so this is spec-pinned). NUM→0042, SGN -7→-007 (the decimal device form: a leading sign).
         => AssertSpec(Program("""
             01 NUM PIC 9(4) VALUE 42.
             01 TXT PIC X(4) VALUE "HI".
             01 SGN PIC S9(3) VALUE -7.
             """, """
                 DISPLAY "N=" NUM " T=" TXT " S=" SGN " END".
-            """), "N=0042 T=HI   S=00P END");
+            """), "N=0042 T=HI   S=-007 END");
 }
