@@ -587,31 +587,24 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
         if (!(refusedWord || IsReservedWord(token) || IsLiteral(token)) || HeaderWords(atn).Contains(token.Type)) return null;
         var stream = (ITokenStream)recognizer.InputStream;
         var walk = new ResidueWalk(recognizer);
-        try
+        int k = 1;
+        for (; ; k++)
         {
-            int k = 1;
-            for (; ; k++)
-            {
-                var at = stream.LT(k);
-                if (at.TokenIndex == token.TokenIndex) break;
-                if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || k > MaxResimulatedTokens) return null;
-                if (!walk.Consume(at.Type)) return null;
-            }
-            var probe = walk.Probe();
-            // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
-            // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
-            // no separator, ISO §8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
-            // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
-            bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
-                                     && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
-            return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
-                ? new Residue(format, probe.Production)
-                : null;
+            var at = stream.LT(k);
+            if (at.TokenIndex == token.TokenIndex) break;
+            if (at.TokenIndex > token.TokenIndex || at.Type == TokenConstants.EOF || k > MaxResimulatedTokens) return null;
+            if (!walk.Consume(at.Type)) return null;
         }
-        finally
-        {
-            ResidueWalkObserver.Value?.Invoke(walk.Visits);
-        }
+        var probe = walk.Probe();
+        // A token that may begin what follows the period is the missing period's, unless it HEADS a longer literal: the
+        // comma decimal `1,5` begins with INTEGERLIT, but it is one character-string (a comma that no space follows is
+        // no separator, ISO §8.3.5 2)), never a level-number — the data division's run cannot hold it (kb/Work PB3390).
+        // A word refused where its prediction failed is exempt (kb/Work PB3391, above).
+        bool beginsWhatFollows = probe.AfterPeriod.Contains(token.Type)
+                                 && CobolParserCoreBase.NumericLiteralWidth(stream, k) <= 1;
+        return probe.Format is { } format && (refusedWord || !beginsWhatFollows)
+            ? new Residue(format, probe.Production)
+            : null;
     }
 
     /// <summary>A closed format's residue: the format whose list stands there, and the error production's form
@@ -675,12 +668,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
     /// ahead than this is not at a clause position anyone would call "the place", and the walk declines.</summary>
     private const int MaxResimulatedTokens = 16;
 
-    /// <summary>Test seam (kb/Work PB3489): when set, every <see cref="ClosedFormatResidue"/> walk reports how many
-    /// configurations its closures produced, so a drift test asserts that COUNT grows linearly with the nesting it
-    /// re-simulates — never a stopwatch (kb/Work PB1590). <see cref="AsyncLocal{T}"/>, so only the observing test's
-    /// own parse reports here while the Unit assembly runs in parallel.</summary>
-    internal static readonly AsyncLocal<Action<long>?> ResidueWalkObserver = new();
-
     /// <summary>⛔ THE WALK IS ANTLR'S OWN FULL-CONTEXT SIMULATION, NOT A COPY OF IT (kb/Work PB3489). The re-simulation
     /// runs on the runtime's <see cref="ParserATNSimulator"/>: its <c>Closure</c> in full-context mode, its
     /// graph-structured call stacks (<see cref="PredictionContext"/>, seeded from the parser's real invocation stack by
@@ -709,11 +696,9 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
 
         private ATNConfigSet _configs;
 
-        /// <summary>The configurations the walk's closures produced (<see cref="ResidueWalkObserver"/>).</summary>
-        public long Visits { get; private set; }
-
-        /// <summary>A walk from the parser's current state and real context. Its DFA array is its own: the base
-        /// constructor resets every entry of the array it is given, and the parser's is shared by every parse.</summary>
+        /// <summary>A walk from the parser's current state and real context. It never predicts, so it never reads a DFA:
+        /// the base constructor only stores the array it is given, and an empty one of the parser's size keeps the walk
+        /// from touching the parser's shared DFA cache at all.</summary>
         public ResidueWalk(Parser parser)
             : base(parser, parser.Atn, new DFA[parser.Atn.NumberOfDecisions], new PredictionContextCache())
         {
@@ -742,7 +727,6 @@ public sealed class CobolErrorStrategy : DefaultErrorStrategy
             var busy = new HashSet<ATNConfig>();
             foreach (var c in seeds)
                 Closure(c, closed, busy, collectPredicates: false, fullCtx: true, treatEofAsEpsilon: false);
-            Visits += closed.Count;
             return closed;
         }
 

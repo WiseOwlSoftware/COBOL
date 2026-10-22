@@ -15,11 +15,13 @@ duplicating what ANTLR already has, and the walk now IS ANTLR's: `ResidueWalk` s
 its full-context `Closure`, its `PredictionContext` stack graph seeded from the parser's real invocation stack, and its
 merge; the answer is read off the final configuration set. The compiler's closure and its stack records are deleted.
 Two shortcuts were refused for stated reasons: the exception's `DeadEndConfigs` (SLL follows a rule's end into every
-caller) and `ComputeReachSet` (it skips the closure once one alternative remains). Depths 1 to 5 now produce 427 to
-1,679 configurations in a constant step of 313.
+caller) and `ComputeReachSet` (it skips the closure once one alternative remains).
 
-**Witness.** `ResidueWalkNestingTests` counts configurations, never the clock (PB1590): depths 1 and 2 first against a
-bound a multiplying walk breaks, then a constant step to depth 5, and the diagnostic at depths 1, 3 and 5. The repros,
+**Witness.** `ResidueWalkNestingTests` measures the compiling thread's allocation at depths 0–2, never the clock
+(PB1590). The first version counted configurations, and the branch review showed why that cannot work: ANTLR merges
+configurations per state, so a count never sees the stacks that multiplied. Allocation does: the fixed walk allocates
+1.31, 8.22 and 8.26 MB, the old per-path walk 1.29, 10.4 and 63.7 MB, and the test went red on the old walk. It also
+checks the diagnostic at depths 1, 3 and 5. The repros,
 the fuzz program and the sibling sweep (subscripts, reference modification, parentheses, IF, DISPLAY, CALL at depth 6)
 answer in under a second.
 
