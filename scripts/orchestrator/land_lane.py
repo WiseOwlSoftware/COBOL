@@ -21,8 +21,10 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
   attempts/<id>.json  one per `enqueue.py land` run: branch, head (its tip at launch), worktree, argv, log
                       (`<coord>/logs/land-lane-<branch>-<stamp>.log`), runner pid, and once it ends rc, the log's
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
-                      and `collected` (the enqueue unit handled it). Only the runner writes a running attempt; the tick
-                      writes one only to mark it DIED (its runner is gone with no rc).
+                      pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
+                      unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
+                      read). Only the runner writes a running attempt; the tick writes a finished one only to mark it
+                      DIED (its runner is gone with no rc) and to record its queue watch.
   survey.json         the last tick's branch survey (prune_worktrees' rows, imported, never re-parsed from its text):
                       what next_unit.py reads to decide whether the enqueue unit has AGENT work.
   rearm/<branch>.json the enqueue unit's re-arm of a branch at its tip (branch, head, why, at): a stop that was resolved
@@ -35,7 +37,7 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
                       `clear-halt`; the operator is named through the mailbox.
   tick.lock           an OS lock: one tick at a time (a second exits at once, saying so).
 
-THE TICK, in order:
+THE TICK, in order (the queue watch, step 4, runs right after the survey, ahead of the stops):
   1. REAP: an attempt whose runner is gone without an rc is DIED. A run that ended QUEUE NOT ACTIVE writes HALT.
   2. SURVEY: `git fetch`, then `prune_worktrees.live_survey` and its landing order (the most harmful lead first, kb/Work
      PB2981), written to survey.json. The survey reads these attempts back (`view`, kb/Work PB3125, PB3181): a branch
@@ -51,10 +53,13 @@ THE TICK, in order:
        a run in flight                                             wait
        re-armed by the enqueue unit at this head                   launch (once: the launch consumes the re-arm)
        no attempt, or a NEW HEAD (a finisher's commit, reviewed)  launch
-       ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to do: the queue has it
+       ENQUEUED or NOTHING TO LAND (exit 0) at this head           nothing to land: the QUEUE WATCH (below) follows its
+                                                                   pull request into the merge queue
        exit 3 — the landing check's STOP: the branch shares a file with earlier-dispatched in-flight work (kb/Work
                 PB2701)                                            retried at this head once `landing_check.py` passes
                                                                    on the branch (the overlap is gone); never as is
+       exit 12 — GATE BUSY: another gate held the worktree's gate retried at this head once the worktree's gate lock
+                lock (kb/Work PB3527; nothing ran, nothing red)   is free (`wait_free`); never the enqueue unit's
        exit 2 (main moved under every catch-up, or the branch could not be read), exit 9 (GitHub refused the push, the
                 PR or the queue), or a runner that DIED           retried ONCE at this head (enqueue.md's own rule)
        exit 8 — QUEUE NOT ACTIVE                                   HALT (above); relaunched once the halt is cleared
@@ -66,6 +71,15 @@ THE TICK, in order:
      A launch writes the attempt and starts `land_lane.py run <attempt>` DETACHED (its own process group, out of the
      supervisor's job where Windows allows it), which runs `enqueue.py land <branch> --worktree <wt>` with its output in
      the log and records the outcome. (A permission refusal cannot happen here: a script has no permission layer.)
+  4. THE QUEUE WATCH (kb/Work PB3527), on the facts the survey read (queue_facts.read, the one reader of GitHub's
+     facts), before the stops are read: `ENQUEUED` means only that the pull request was HANDED to the queue (auto-merge
+     on); on 2026-10-22 PR #385's ci-gate job completed and its check-run stayed in_progress for 50 minutes, outside
+     the queue, and nothing looked. Each branch's latest exit-0 attempt is watched until its pull request is in the
+     merge queue (or merged, BOUNCED, or superseded by a new head). Not in the queue QUEUE_GRACE_MIN after its required
+     checks' work ended (a stuck check-run's JOB time) is a STALLED read: read 1 re-runs the stuck check's workflow run,
+     read 2 (one grace after) closes, reopens and re-queues the pull request (both enqueue.py's: the only file that
+     queues), read 3 sends the operator a mailbox question and the watch acts no more; each read is recorded on the
+     attempt (`watch`) and in landing_measure.py's record (`stalls`). Under a stop the watch reads but acts on nothing.
 `status` prints each branch's latest attempt; the enqueue unit reads it (units/enqueue.md step 3), sends each STOPPED
 attempt to a finisher or a reviewer, files the leads of each ENQUEUED one, and then `collect`s them. `agent_work` is
 next_unit.py's one reader: the enqueue unit starts only for agent work (WAITING FOR REVIEW, a BOUNCED branch the lane is
@@ -95,7 +109,7 @@ HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(HERE.parent))
 import coord  # noqa: E402
-from enqueue import (EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
+from enqueue import (EXIT_GATE_BUSY, EXIT_GITHUB, EXIT_QUEUE_NOT_ACTIVE, QUEUED_LINE, VERDICT)  # noqa: E402  (the landing's contract)
 from gate_slot import ExclusiveLock  # noqa: E402  (an OS lock: the tick lock frees itself when its holder dies)
 
 LANE_DIR = "land-lane"
@@ -106,6 +120,9 @@ REARM = "rearm"
 TICK_LOCK = "tick.lock"
 EXIT_CHECK_STOP = 3      # enqueue.py: landing_check.py's STOP (the branch shares a file with in-flight work)
 EXIT_STATE = 2           # enqueue.py: usage or state, among them "main moved under every catch-up merge"
+#: The exits the lane retries at the same head once what they wait on is free (wait_free asks): nothing is wrong with
+#: the branch, so neither is ever the enqueue unit's (kb/Work PB2701; PB3527: a held gate lock was read as a red).
+WAITS = {EXIT_CHECK_STOP: "the in-flight work it shares a file with", EXIT_GATE_BUSY: "the worktree's gate lock"}
 # How old survey.json may be before next_unit.py treats the lane as not ticking (the supervisor ticks every
 # -LandLaneSeconds, 300 by default, while any unit runs, and once as each unit starts).
 SURVEY_MAX_AGE_MIN = 30
@@ -174,7 +191,7 @@ def classify(a: dict[str, Any]) -> str:
     rc = a.get("rc")
     if rc == 0:
         return DONE
-    if rc == EXIT_CHECK_STOP:
+    if rc in WAITS:
         return FREE
     if rc in (EXIT_STATE, EXIT_GITHUB):
         return ONCE
@@ -236,11 +253,11 @@ class Decision:
     why: str
 
 
-def decide(tip: str, atts: list[dict[str, Any]], overlap_free: Callable[[], tuple[bool, str]],
+def decide(tip: str, atts: list[dict[str, Any]], free_now: Callable[[], tuple[bool, str]],
            rearmed: dict[str, Any] | None = None) -> Decision:
     """Whether to start `enqueue.py land` for a branch at `tip`, given its attempts (oldest first) and the enqueue
-    unit's re-arm of it, if any. The global stops (HALT, STOP, the loop's fleet stop) are the caller's; `overlap_free` is asked
-    only for an exit 3 at this head."""
+    unit's re-arm of it, if any. The global stops (HALT, STOP, the loop's fleet stop) are the caller's; `free_now` is
+    asked only for a retry-when-free exit at this head (WAITS names what it waits on; wait_free says if it is free)."""
     last = atts[-1] if atts else None
     if last is not None and not finished(last):
         return Decision(False, f"being landed (attempt {last['id']}, pid {last.get('pid')})")
@@ -257,9 +274,9 @@ def decide(tip: str, atts: list[dict[str, Any]], overlap_free: Callable[[], tupl
     if cls == HALTED:
         return Decision(True, "the queue halt was cleared since its exit 8")
     if cls == FREE:
-        free, detail = overlap_free()
-        return Decision(free, ("the in-flight work it shared a file with is gone; retried at this head" if free else
-                               f"exit 3 at this head and it still shares a file with in-flight work ({detail})"))
+        free, detail = free_now()
+        return Decision(free, (f"{WAITS[rc]} is free now; retried at this head" if free else
+                               f"exit {rc} at this head and it still waits on {WAITS[rc]} ({detail})"))
     if cls == ONCE and trailing(atts, ONCE) < 2:
         return Decision(True, f"{'its runner DIED' if rc is None else f'exit {rc}'} at this head: retried once")
     return Decision(False, f"STOPPED at this head ({'exit ' + str(rc) if rc is not None else 'DIED'}: "
@@ -321,6 +338,29 @@ def landing_check_free(worktree: str) -> tuple[bool, str]:
                        cwd=worktree, capture_output=True, text=True, encoding="utf-8", errors="replace")
     stops = [ln for ln in p.stdout.splitlines() if ln.startswith("⛔")]
     return p.returncode == 0, (stops[0] if stops else (p.stdout.strip().splitlines() or ["no output"])[-1])[:240]
+
+
+def gate_lock_free(worktree: str) -> tuple[bool, str]:
+    """Whether the worktree's gate lock (the gate driver's own: run_gate_legs.Host.lock_path) is free now: taken and
+    released at once (an OS lock, freed when its holder dies, so a lock that reads held is a live gate)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its lock's path)
+    try:
+        path = run_gate_legs.Host(pathlib.Path(worktree)).lock_path()
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        return False, f"the gate lock of {worktree} could not be located ({exc})"
+    lock = ExclusiveLock.try_take(path, f"land_lane.py probe (pid {os.getpid()})")
+    if lock is None:
+        return False, f"held by {ExclusiveLock.holder(path) or '(no label)'}"
+    lock.release()
+    return True, ""
+
+
+def wait_free(rc: int | None, worktree: str) -> tuple[bool, str]:
+    """Whether what a retry-when-free exit (WAITS) waits on is free now: exit 3, landing_check.py passes on the
+    branch; exit 12, the worktree's gate lock is free."""
+    if rc == EXIT_GATE_BUSY:
+        return gate_lock_free(worktree)
+    return landing_check_free(worktree)
 
 
 def spawn(argv: list[str], log: pathlib.Path) -> int:
@@ -713,7 +753,7 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
          survey: Callable[[pathlib.Path, pathlib.Path], tuple[list, list[str], dict | None]] = survey_rows,
          start: Callable[[list[str], pathlib.Path], int] = spawn,
          alive: Callable[[int | None], bool] = pid_alive,
-         overlap_free: Callable[[str], tuple[bool, str]] = landing_check_free,
+         wait_free: Callable[[int | None, str], tuple[bool, str]] = wait_free,
          argv_for: Callable[[dict[str, Any]], list[str] | None] = lambda row: None,
          effects: WatchEffects | None = None, now: dt.datetime | None = None, say: Say = print) -> int:
     d = lane_dir(cdir)
@@ -745,12 +785,13 @@ def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
         failed = 0
         for row in candidates(rows, order, branches, pending):
             dec = decide(row["tip"], branches.get(row["name"], []),
-                         lambda r=row: overlap_free(r["worktree"]) if r["worktree"] else (False, "no worktree"),
+                         lambda r=row: (wait_free((branches.get(r["name"]) or [{}])[-1].get("rc"), r["worktree"])
+                                        if r["worktree"] else (False, "no worktree")),
                          pending.get(row["name"]))
             if not dec.launch:
                 if branches.get(row["name"]) and classify(branches[row["name"]][-1]) == FREE \
                         and finished(branches[row["name"]][-1]):
-                    say(f"land lane: {row['name']}: {dec.why}")   # why an exit 3 still waits, every tick
+                    say(f"land lane: {row['name']}: {dec.why}")   # why an exit 3 or 12 still waits, every tick
                 continue
             if not row["worktree"]:
                 say(f"land lane: {row['name']}: WAITING TO LAND with no worktree; not launched (enqueue.py needs one)")
@@ -791,7 +832,8 @@ def run_attempt(path: pathlib.Path) -> int:
 ACTION = {STOPPED: "the enqueue unit's: step 4 finisher (UNREVIEWED: step 2 reviewer; a repeated exit 2 or 9: handoff)",
           DONE: "the lane's queue watch follows its pull request into the merge queue; the enqueue unit's: file its "
                 "leads (step 5), complete its landing record (step 6b), then collect it",
-          FREE: "the lane retries it once landing_check.py passes (the in-flight work it shares a file with is gone)",
+          FREE: "the lane retries it at this head once what it waits on is free (exit 3: landing_check.py passes, the "
+                "in-flight work it shares a file with is gone; exit 12: the worktree's gate lock is free)",
           ONCE: "the lane retries it once at this head",
           HALTED: "HALT: the operator clears it once the merge queue is ACTIVE",
           "running": "being landed"}
@@ -954,14 +996,14 @@ def self_test() -> int:
             def alive(self, pid: int | None) -> bool:
                 return pid in self.live
 
-            def overlap(self, wt: str) -> tuple[bool, str]:
+            def overlap(self, rc: int | None, wt: str) -> tuple[bool, str]:
                 self.asked.append(wt)
                 return self.free, "shares scripts/x.py with w1069g (dispatched earlier)"
 
             def tick(self, cdir: pathlib.Path) -> list[str]:
                 before = len(self.started)
                 out: list[str] = []
-                tick(cdir, root, survey=self.survey, start=self.start, alive=self.alive, overlap_free=self.overlap,
+                tick(cdir, root, survey=self.survey, start=self.start, alive=self.alive, wait_free=self.overlap,
                      effects=self.watch_effects(), now=self.now, say=out.append)
                 self.said = out
                 return self.started[before:]
@@ -1021,6 +1063,34 @@ def self_test() -> int:
                str(agent_work(c3).reasons))
         f3.free = True
         expect("exit 3 once the overlap is gone: retried at the same head", f3.tick(c3) == ["w2a"], str(f3.started))
+
+        # 3b. exit 12 (GATE BUSY: another gate held the worktree's gate lock, kb/Work PB3527): never the enqueue unit's
+        #     and never a red; retried at the same head once the lock is free.
+        c3b = fresh("busy")
+        f3b = Fake([row("w2b", "WAITING TO LAND", "g1")])
+        f3b.tick(c3b)
+        finish(c3b, "w2b", EXIT_GATE_BUSY, "GATE BUSY (Windows) on g2 — another gate holds the worktree's gate lock",
+               end_head="g2")
+        f3b.live.clear()
+        f3b.rows[0] = row("w2b", "IN FLIGHT", "g2")
+        expect("exit 12 while the gate lock is held: not relaunched, not the enqueue unit's work, and status says the "
+               "lane retries it once the lock is free",
+               f3b.tick(c3b) == [] and agent_work(c3b).reasons == []
+               and any("w2b" in ln and "gate lock is free" in ln for ln in status_lines(c3b)), str(status_lines(c3b)))
+        f3b.free = True
+        expect("exit 12 once the gate lock is free: retried at the same head", f3b.tick(c3b) == ["w2b"], str(f3b.started))
+        lock_wt = root / "wt-lock"
+        lock_wt.mkdir()
+        subprocess.run(["git", "init", "-q"], cwd=lock_wt, check=True, capture_output=True)
+        import run_gate_legs  # noqa: PLC0415
+        held = ExclusiveLock.try_take(run_gate_legs.Host(lock_wt).lock_path(), "gate (pid 356316)")
+        try:
+            while_held = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+        finally:
+            held.release()
+        after = wait_free(EXIT_GATE_BUSY, str(lock_wt))
+        expect("wait_free for exit 12 reads the gate driver's own lock of the worktree: held names its holder, then free",
+               while_held[0] is False and "pid 356316" in while_held[1] and after == (True, ""), f"{while_held} {after}")
 
         # 4. exit 2 / 9 retried ONCE at the same head; the second is STOPPED (the handoff's).
         c4 = fresh("once")

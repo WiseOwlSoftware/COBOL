@@ -28,8 +28,12 @@ this per WAITING TO LAND branch, and an agent is dispatched only for what a scri
      the exit is 4: a finisher resolves it.
   3. THE GATE on the merged head, every host in GATES, each under the shared gate slot (the cap of 3, so concurrent
      enqueues queue there and never beyond it; build-local takes its own, every other row runs under `gate_slot.py
-     run`, and no row runs while one would run outside it, kb/Work PB3104): a verdict that is not GREEN (or no verdict
-     line) is exit 5, the report gains `BLOCKED: <host> gate … at enqueue — <verdict>`. A green head is recorded in
+     run`, and no row runs while one would run outside it, kb/Work PB3104): each verdict line is read by the gate
+     driver's one reader (`run_gate_legs.read_verdict`). BUSY — another gate holds the worktree's gate lock: it measured
+     nothing and nothing is red — is exit 12 with NO report line (kb/Work PB3527: on 2026-10-22 it was read as a red and
+     sent PB3511's branch to a finisher with nothing to fix); the landing lane lands it again once the lock is free. Any
+     other verdict that is not GREEN (or no verdict line) is exit 5, the report gains `BLOCKED: <host> gate … at
+     enqueue — <verdict>`. A green head is recorded in
      the worktree's git directory (`enqueue-gated`); a later run whose head differs from it only by commits that are
      main's, clean merges or DEVLOG-only (`prune_worktrees.unreviewed_since`, the review's coverage rule) is not gated again.
   4. MAIN AGAIN, then the stamp, then `queue` (below). Main moves while a branch gates (the queue merges other pull
@@ -79,7 +83,13 @@ Exit: 0 queued or nothing to land · 2 usage or state (a dirty worktree, no bran
 run, main still moving after CATCH_UP merges) · 3/6 a landing check refused (above) · 4 bringing main in conflicted ·
 5 a gate is not GREEN · 8 the merge queue is not ACTIVE (nothing merged, gated, pushed or opened) · 9 GitHub refused
 the push, the pull request or the queue (main untouched; re-run after the cause is fixed — every step is idempotent) ·
-11 the branch is not reviewed at its tip (`land` only; above).
+11 the branch is not reviewed at its tip (`land` only; above) · 12 the gate is BUSY: another gate holds the worktree's
+gate lock (`land` only; nothing ran, nothing is red; above).
+
+AFTER `ENQUEUED`: the pull request is only HANDED to the queue (auto-merge on): GitHub queues it once its required
+checks pass. Nothing here waits for that (no sleep loop in a landing): the landing lane's QUEUE WATCH (land_lane.py,
+kb/Work PB3527) follows it into the merge queue on every tick and, when it stalls, applies `rerun_check` and then
+`requeue` (below: this is the only file that queues a pull request) before it alerts the operator.
 """
 from __future__ import annotations
 
@@ -106,6 +116,7 @@ EXIT_GATE = 5
 EXIT_QUEUE_NOT_ACTIVE = 8
 EXIT_GITHUB = 9
 EXIT_UNREVIEWED = 11
+EXIT_GATE_BUSY = 12   # another gate holds the worktree's gate lock: nothing ran, nothing is red (kb/Work PB3527)
 # How many times `land` brings a moved main in after its gate before it gives up (exit 2): main moves under a gate
 # about once per landing the queue merges, and between `land`'s fetch and `queue`'s only by seconds.
 CATCH_UP = 3
@@ -150,7 +161,6 @@ GATES_WINDOWS = (GateRow("Windows", ("pwsh", "-NoProfile", "-File", "scripts/bui
                          SLOT_OWN),
                  GateRow("Linux", ("bash", "scripts/linux-gate.sh", "--nice"), "=== LINUX GATE: ", SLOT_WRAP))
 GATES_LINUX = (GateRow("Linux", ("bash", "scripts/build-local.sh"), "=== BUILD-LOCAL GATE: ", SLOT_OWN),)
-GREEN = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
 GATED_MARK = "enqueue-gated"     # in the worktree's git directory: the head this script last gated GREEN
 # (the check's name, its command under scripts/, its refusal's exit code here, whether it takes --base, whether its
 # every non-zero is a refusal). A refusal is the script's exit 1; any other non-zero is "could not run", except for
@@ -318,7 +328,7 @@ def requeue(repo: str, number: int, *, gh: Gh, state: Callable[[], tuple[str, st
 
 
 # ── land: the whole step for one branch ─────────────────────────────────────────────────────────────────────────
-Gate = Callable[[pathlib.Path], list[tuple[str, bool, str]]]
+Gate = Callable[[pathlib.Path], list[tuple[str, str, str]]]   # [(host, GREEN | BUSY | RED, verdict line)]: run_gates
 
 
 def worktree_of(repo: pathlib.Path, branch: str) -> pathlib.Path | None:
@@ -372,13 +382,16 @@ def gate_argv(row: GateRow, wt: pathlib.Path, label: str) -> list[str]:
             "--label", f"{label}: {row.host} gate", "--", *row.command]
 
 
-def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
-    """Each host's gate in order, fail-fast: [(host, green, its verdict line or why there is none)]. The output goes to
-    `<worktree>/TestResults/enqueue/<host>-gate.log`; only the verdict line decides (never the exit code alone). No row
-    runs while any row of `gates` would run outside the shared gate slot (`unslotted`, kb/Work PB3104)."""
+def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, str, str]]:
+    """Each host's gate in order, fail-fast: [(host, GREEN | BUSY | RED, its verdict line or why there is none)]. The
+    output goes to `<worktree>/TestResults/enqueue/<host>-gate.log`; only the verdict line decides, read by the gate
+    driver's one reader (`run_gate_legs.read_verdict`), and GREEN needs exit 0 too. BUSY (another gate holds the
+    worktree's gate lock) is neither a pass nor a red (kb/Work PB3527). No row runs while any row of `gates` would run
+    outside the shared gate slot (`unslotted`, kb/Work PB3104)."""
+    import run_gate_legs  # noqa: PLC0415  (scripts/: the gate driver owns its verdict's vocabulary and its reader)
     gates = gates if gates is not None else (GATES_WINDOWS if os.name == "nt" else GATES_LINUX)
     if refused := unslotted(gates, wt):
-        return [(refused[0][0], False, "REFUSED — no gate ran: a gate row would run outside the shared gate slot "
+        return [(refused[0][0], "RED", "REFUSED — no gate ran: a gate row would run outside the shared gate slot "
                                        "(kb/Work PB3104): " + "; ".join(f"{h}: {why}" for h, why in refused))]
     logs = wt / "TestResults" / "enqueue"
     logs.mkdir(parents=True, exist_ok=True)
@@ -387,7 +400,7 @@ def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
     # build-local's driver and `gate_slot.py run` both read the class from this environment.
     env = {**os.environ, gate_slot.CLASS_ENV: gate_slot.LANDING}
     label = f"enqueue {_git(wt, 'branch', '--show-current').stdout.strip() or wt.name}"
-    out: list[tuple[str, bool, str]] = []
+    out: list[tuple[str, str, str]] = []
     for row in gates:
         host, prefix = row.host, row.prefix
         log = logs / f"{host.lower()}-gate.log"
@@ -397,12 +410,12 @@ def run_gates(wt: pathlib.Path, gates=None) -> list[tuple[str, bool, str]]:
         lines = [ln.strip() for ln in log.read_bytes().decode("utf-8", errors="replace").splitlines()
                  if ln.strip().startswith(prefix)]
         if not lines:
-            out.append((host, False, f"no `{prefix.strip()}` line (exit {rc}; {log})"))
+            out.append((host, "RED", f"no `{prefix.strip()}` line (exit {rc}; {log})"))
             return out
         verdict = lines[-1]
-        green = rc == 0 and bool(GREEN.match(verdict[len(prefix):]))
-        out.append((host, green, verdict))
-        if not green:
+        reading = run_gate_legs.read_verdict(verdict[len(prefix):])
+        out.append((host, "RED" if reading == "GREEN" and rc != 0 else reading, verdict))
+        if out[-1][1] != "GREEN":
             return out
     return out
 
@@ -557,9 +570,14 @@ def land(repo: pathlib.Path, branch: str, worktree: pathlib.Path | None, *, gh: 
         say(f"enqueue: {head[:12]} is covered by the head an earlier enqueue run gated GREEN ({mark}); not gated again")
     else:
         results = gates(wt)
-        for host, green, line in results:
+        for host, _, line in results:
             say(f"enqueue: {host} gate: {line}")
-        bad = next(((h, line) for h, g, line in results if not g), None) if results else ("(none)", "no gate ran")
+        # A held gate lock is its own stop, never a red (kb/Work PB3527): no report line sends a finisher to fix what
+        # is not broken; the landing lane retries the branch at this head once the worktree's gate lock is free.
+        if busy := next(((h, line) for h, v, line in results if v == "BUSY"), None):
+            return end(EXIT_GATE_BUSY, f"GATE BUSY ({busy[0]}) on {head[:12]} — another gate holds the worktree's gate "
+                                       "lock; nothing ran and nothing is red: landed again once the lock is free")
+        bad = next(((h, line) for h, v, line in results if v != "GREEN"), None) if results else ("(none)", "no gate ran")
         if bad:
             blocked(branch, wt, f"BLOCKED: enqueue — the {bad[0]} gate is not GREEN on {head[:12]}: {bad[1]}")
             return end(EXIT_GATE, f"GATE RED ({bad[0]}) on {head[:12]}")
@@ -839,9 +857,9 @@ def self_test() -> int:
                 return 0
             return stamp
 
-        def gates_of(results: list[tuple[str, bool, str]], ran: list[int]) -> Gate:
+        def gates_of(results: list[tuple[str, str, str]], ran: list[int]) -> Gate:
             return lambda w: ran.append(1) or list(results)
-        green = [("Windows", True, "=== BUILD-LOCAL GATE: GREEN ==="), ("Linux", True, "=== LINUX GATE: GREEN ===")]
+        green = [("Windows", "GREEN", "=== BUILD-LOCAL GATE: GREEN ==="), ("Linux", "GREEN", "=== LINUX GATE: GREEN ===")]
         absent = lambda: (ruleset.ABSENT, "no ruleset")   # noqa: E731
         notes: list[str] = []
         record = lambda b, w, line: notes.append(line)    # noqa: E731
@@ -898,13 +916,25 @@ def self_test() -> int:
                and lines[-1].startswith(VERDICT + "QUEUE NOT ACTIVE"), f"{rc_inactive} {lines[-1:]}")
 
         ran, stamped = [], []
-        rc_red = run_land(gates=gates_of([("Windows", True, "G"), ("Linux", False, "=== LINUX GATE: RED (x) ===")], ran),
+        rc_red = run_land(gates=gates_of([("Windows", "GREEN", "G"), ("Linux", "RED", "=== LINUX GATE: RED (x) ===")], ran),
                           stamped=stamped)
         expect("land: main is MERGED in (the branch's commits kept), and a host's red gate is exit 5 with the host "
                "named in the report, before any stamp",
                rc_red == EXIT_GATE and ran and not stamped and "Linux" in notes[-1]
                and _git(lw, "merge-base", "--is-ancestor", "origin/main", "HEAD").returncode == 0
                and _git(lw, "merge-base", "--is-ancestor", fix_tip, "HEAD").returncode == 0, f"{rc_red} {notes[-1:]}")
+
+        # kb/Work PB3527: PB3511's branch, 2026-10-22 12:30 — the Windows gate found another gate holding the
+        # worktree's gate lock, and the landing read that as a red and sent the branch to a finisher.
+        held_line = ("=== BUILD-LOCAL GATE: BUSY — another gate holds this worktree's gate lock (E:\\x\\cobol-gate.lock): "
+                     "gate E:\\x (pid 356316, since 2026-10-22 12:30:29); nothing ran, nothing is red: re-run once it "
+                     "ends ===")
+        ran, stamped, notes[:] = [], [], []
+        rc_busy = run_land(gates=gates_of([("Windows", "BUSY", held_line)], ran), stamped=stamped)
+        expect("land: a gate BUSY (another gate holds the worktree's gate lock) is exit 12, never a red: no report line, "
+               "no stamp, nothing queued (kb/Work PB3527)",
+               rc_busy == EXIT_GATE_BUSY and ran and not stamped and not notes
+               and lines[-1].startswith(VERDICT + "GATE BUSY (Windows)"), f"{rc_busy} {notes} {lines[-1:]}")
 
         prs, log, ran = [], [], []
         measured: list[tuple[pathlib.Path, str, int]] = []
@@ -1028,7 +1058,7 @@ def self_test() -> int:
                                   f" + os.environ.get({gate_slot.CLASS_ENV!r}, 'none'))"), "=== PROBE GATE: ", SLOT_WRAP)
         got = run_gates(wt, gates=(probe,))
         expect("the gate at enqueue is a LANDING gate: its slot is served before waiting implementer gates "
-               "(kb/Work PB3103, gate_slot.py CLASS_ENV)", got and got[0][1] and got[0][2].endswith(
+               "(kb/Work PB3103, gate_slot.py CLASS_ENV)", got and got[0][1] == "GREEN" and got[0][2].endswith(
                    f"class {gate_slot.LANDING}"), str(got))
         probe_log = (wt / "TestResults" / "enqueue" / "probe-gate.log").read_text(encoding="utf-8", errors="replace")
         took, ran_at = probe_log.find("gate-slot: took slot"), probe_log.find("=== PROBE GATE: ")
@@ -1040,6 +1070,16 @@ def self_test() -> int:
                and linux_argv[1:3] == [str(HERE.parent / "gate_slot.py"), "run"]
                and linux_argv[linux_argv.index("--") + 1:] == ["bash", "scripts/linux-gate.sh", "--nice"],
                f"took={took} ran={ran_at} {linux_argv}")
+
+        def says(text: str, rc: int) -> GateRow:
+            return GateRow("Probe", (sys.executable, "-c", f"print({text!r}); raise SystemExit({rc})"),
+                           "=== PROBE GATE: ", SLOT_WRAP)
+        busy_run = run_gates(wt, gates=(says("=== PROBE GATE: BUSY — another gate holds this worktree's gate lock ===",
+                                             3),))
+        lying = run_gates(wt, gates=(says("=== PROBE GATE: GREEN — but the exit says otherwise ===", 1),))
+        expect("gate rows: each verdict line is read by the gate driver's one reader: BUSY is BUSY (neither a pass nor "
+               "a red), and a GREEN line with a non-zero exit is RED (kb/Work PB3527)",
+               [r[1] for r in busy_run] == ["BUSY"] and [r[1] for r in lying] == ["RED"], f"{busy_run} {lying}")
 
         repo_root = HERE.parent.parent
         every_row = unslotted(GATES_WINDOWS + GATES_LINUX, repo_root)
@@ -1068,7 +1108,7 @@ def self_test() -> int:
         expect("gate rows: a planted unslotted row (a bare row, an unknown slot, a script claiming its own slot without "
                "the driver, a driver that no longer acquires) is refused, and run_gates runs no row (kb/Work PB3104)",
                refused == [True, True, True] and no_acquire and not acquires and not marker.exists()
-               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Planted", False)
+               and len(blocked_run) == 1 and blocked_run[0][:2] == ("Planted", "RED")
                and blocked_run[0][2].startswith("REFUSED"),
                f"{refused} no_acquire={no_acquire} acquires={acquires} marker={marker.exists()} {blocked_run}")
 
