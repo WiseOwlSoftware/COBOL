@@ -34,16 +34,22 @@ THE TIERS (per case; a key shared by several cases takes the lowest):
       (a drift test that scans a whole tree: an index, a register, a citation sweep) and its recorded time is at most
       SWEEP_CHEAP_SECONDS — leg 1 at every gate within the collection cap, so a gate catches the bookkeeping red a
       later whole-population run used to find;
+  0d  a GOVERNING DRIFT TEST (kb/Work PB3531): its class is one the drift-rule index (`scripts/spec/drift_rules.py`)
+      says governs a file the diff changes — specifically, or as a tree-wide sweep that reads it, a sweep of the
+      committed tree through its declared `TreeScope` included — gathered from the diff alone
+      (`impacted_tests.Reach.drift_tests`), with or without a map. Always leg 1, exempt from the budgets and the cap:
+      the rule a change is told to honor before it edits a file (MANDATORY-PRACTICES P11) is the likeliest red, and a
+      dear sweep (CatalogCoverageDriftTests' 44 s) was left in leg 2 by 0c and found only by the landing's Linux leg;
   0u  known to no timing source and to no map (genuinely new) — charged the assembly's median time and admitted to
       leg 1, in declaration order, within LEG_ONE_UNKNOWN_BUDGET; the overflow LEADS leg 2;
   1–3 impacted_tests.py's tiers (§3.13); with no map, every case is tier 1.
-LEG 1 = tier 0a + 0h + the cheap 0c + the admitted 0u + the cheapest tier-1 cases while their recorded time stays
-within LEG_ONE_BUDGET and each case's collection's budgeted leg-1 time within LEG_ONE_COLLECTION_CAP (tiers 0a and 0h
-are exempt from the cap). Trait membership is DERIVED from the test sources (`class_traits`), never listed here;
+LEG 1 = tier 0a + 0h + the cheap 0c + 0d + the admitted 0u + the cheapest tier-1 cases while their recorded time stays
+within LEG_ONE_BUDGET and each case's collection's budgeted leg-1 time within LEG_ONE_COLLECTION_CAP (tiers 0a, 0h and
+0d are exempt from the cap). Trait membership is DERIVED from the test sources (`class_traits`), never listed here;
 `HostWitnessTraitDriftTests` holds the scan to the compiled attributes and the witnesses to their trait.
 LEG 2 = everything else, collections LONGEST FIRST. Degenerate inputs are decided PER ASSEMBLY: no timings → leg 1
-is tier 0a and 0h alone; an assembly whose whole recorded time fits the collection cap runs entirely in leg 1; an empty
-leg 1, or one holding the whole population, makes the assembly ONE leg.
+is tier 0a, 0h and 0d alone; an assembly whose whole recorded time fits the collection cap runs entirely in leg 1; an
+empty leg 1, or one holding the whole population, makes the assembly ONE leg.
 
 THE PLAN FILE (`--out`), canonical JSON (UTF-8, sorted keys, no insignificant whitespace):
   {"schema": 1, "base", "map", "map_state", "every_tier1": [...], "constants": {...},
@@ -87,7 +93,7 @@ PLAN_SCHEMA = 1
 LEG_ONE_BUDGET = 0.02            # of the assembly's recorded test-seconds, for tier 1
 LEG_ONE_UNKNOWN_BUDGET = 0.02    # of the assembly's recorded test-seconds, for tier 0u (charged the median)
 LEG_ONE_COLLECTION_CAP = 15.0    # seconds of one collection's BUDGETED leg-1 time (xunit runs a collection serially)
-TIER_ORDER = ("0a", "0h", "0c", "0u", "1", "2", "3")
+TIER_ORDER = ("0a", "0h", "0c", "0d", "0u", "1", "2", "3")
 #: ⛔ THE HOST-ONLY TRAIT VALUES — ONE table (kb/Work PB3022; DESIGN-test-build-ci.md §3.17.3). A test class carrying
 #: `[Trait("Host", v)]` with v here is tier 0h: it witnesses a property of THIS host that CI's runners lack, so the
 #: local gate is the only run that can see it fail. A Host value not here is an ordinary case.
@@ -329,6 +335,7 @@ class Context:
     collection_of_class: dict[str, str] = field(default_factory=dict)
     host_classes: set[str] = field(default_factory=set)    # tier 0h (HOST_ONLY trait), by class
     sweep_classes: set[str] = field(default_factory=set)   # tier 0c when cheap (SWEEP_TRAIT), by class
+    drift_classes: set[str] = field(default_factory=set)   # tier 0d: drift tests governing a changed file, by class
 
 
 @dataclass
@@ -356,6 +363,9 @@ def tier_of(display: str, key: str, ctx: Context, per_case: float | None, has_ti
     cls = class_of(key)  # the class without its partition suffix: a trait is declared on the family
     if cls in ctx.host_classes or cls == TRAIT_GUARD:
         return "0h"
+    # Before 0c: a governing drift test is leg 1 whatever its cost, where a cheap sweep is leg 1 only within the cap.
+    if cls in ctx.drift_classes:
+        return "0d"
     if cls in ctx.sweep_classes and per_case is not None and per_case <= SWEEP_CHEAP_SECONDS:
         return "0c"
     if has_timings and per_case is None and key not in ctx.map_known:
@@ -400,7 +410,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
         leg1 = list(order)
         reason = f"its whole recorded time {whole:.1f} s fits the collection cap"
     else:
-        leg1 = [u for u in order if u.tier in ("0a", "0h")]  # exempt from the budgets and the collection cap
+        leg1 = [u for u in order if u.tier in ("0a", "0h", "0d")]  # exempt from the budgets and the collection cap
         for u in sorted((u for u in order if u.tier == "0c"), key=lambda u: (u.cost(median), u.index)):
             part = fits(u)
             if part is not None:  # a cheap sweep beyond its collection's cap stays in leg 2, never nowhere
@@ -427,7 +437,7 @@ def plan_assembly(displays: list[str], ctx: Context) -> dict:
                 for c, s in part.items():
                     budget_per[c] += s
         else:
-            reason = "no timings: leg 1 is tier 0a and 0h alone"
+            reason = "no timings: leg 1 is tier 0a, 0h and 0d alone"
 
     in_leg1 = {u.key for u in leg1}
     rest = [u for u in order if u.key not in in_leg1]
@@ -500,7 +510,8 @@ def build_plan(listings: dict[str, list[str]], analysis: impacted_tests.Analysis
         ctx = Context(tiers=tiers, map_known=map_known, every_tier1=bool(analysis.reach.every_tier1),
                       added_tests=analysis.reach.added_tests.get(asm, set()), goldens=analysis.reach.goldens,
                       reds=reds, previous=previous, recorded=recorded,
-                      collection_of_class=collection_of_class.get(asm, {}), host_classes=host, sweep_classes=sweep)
+                      collection_of_class=collection_of_class.get(asm, {}), host_classes=host, sweep_classes=sweep,
+                      drift_classes=analysis.reach.drift_tests)
         plan["assemblies"][asm] = plan_assembly(displays, ctx)
     plan["sha256"] = hashlib.sha256(canonical(plan)).hexdigest()
     return plan
@@ -647,6 +658,20 @@ def self_test() -> int:
     check("tier 0c: a cheap sweep's cases fill leg 1 up to the collection cap; a dear or untimed sweep is not 0c",
           p["stats"]["tiers"]["0c"] == 20 and sum(k.startswith(f"{ns}IndexSweep.") for k in p["leg1"]) == 15
           and f"{ns}DearSweep.M" in p["leg2"] and p["stats"]["tiers"]["1"] == 1, p["stats"])
+    # tier 0d: a drift test the index says governs a changed file is leg 1 whatever its cost and its collection's cap —
+    # a dear sweep, which 0c leaves in leg 2, included (kb/Work PB3531: CatalogCoverageDriftTests, 44 s).
+    gov = [f"{ns}CatalogSweep.Dear"] + [f"{ns}Governed.M{i}" for i in range(20)]
+    t7 = timed([(d, 1.0) for d in cheap] + [(pole, 1000.0), (gov[0], 44.0)] + [(d, 1.0) for d in gov[1:]])
+    k7 = {name_key(d) for d in cheap + [pole] + gov}
+    p = plan_assembly(cheap + [pole] + gov, ctx(previous=t7, map_known=k7, tiers={k: 3 for k in k7},
+                                                sweep_classes={"CatalogSweep"},
+                                                drift_classes={"CatalogSweep", "Governed"}))
+    check("tier 0d: a governing drift test is leg 1 whatever its cost and its collection's cap",
+          p["stats"]["tiers"]["0d"] == 21 and all(name_key(d) in p["leg1"] for d in gov)
+          and p["leg1"].index(name_key(gov[0])) == len(p["leg1"]) - 1, p["stats"])
+    p = plan_assembly(cheap + [f"{ns}Governed.M0"], ctx(drift_classes={"Governed"}))
+    check("tier 0d with no timings: the governing drift test is still leg 1",
+          p["leg1"] == [f"{ns}Governed.M0"] and p["stats"]["tiers"]["0d"] == 1, p["stats"])
     with tempfile.TemporaryDirectory() as tmp:
         src = Path(tmp) / "proj"
         (src / "obj").mkdir(parents=True)
