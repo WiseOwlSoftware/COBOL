@@ -1158,7 +1158,9 @@ public sealed class CommitRollbackRuntimeTests
     /// <summary>The same decision where the file a connector's CLOSE kept is not there at the re-OPEN (kb/Work PB3493's sibling arms,
     /// the absent OPTIONAL file of §14.9.27.4 GR13 on INPUT and of GR17 on I-O): what the CLOSE kept belonged to a file that was
     /// removed outside the run unit, so the OPEN ('05') ends it instead of attaching beside it, and a later OPEN of the file made
-    /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. A host that keeps a file
+    /// anew by another run unit reads THAT file's records, never the removed file's from the kept store. On I-O the OPEN creates
+    /// the file (GR17) and the CLOSE keeps the file lock its opening established (§9.1.15), so another run unit's OPEN OUTPUT is
+    /// '61' until the COMMIT removes it. A host that keeps a file
     /// while a handle on it stands (Windows: the kept handle's share mode admits no delete) refuses the removal, which is the
     /// host's own protection of the kept state.</summary>
     [Theory]
@@ -1190,6 +1192,17 @@ public sealed class CommitRollbackRuntimeTests
             Assert.Equal("05", a.Status("F"));
             a.Close("F");
             Assert.Equal("00", a.Status("F"));
+            if (mode == FileOpenMode.IO)
+            {
+                // The I-O OPEN created the file (§14.9.27.4 GR17), and its successful opening established a file lock that the
+                // CLOSE under APPLY COMMIT keeps (§9.1.15): ALL OTHER admits input, I-O and extend only, so another run unit's
+                // OPEN OUTPUT is refused ('61') until the COMMIT removes the lock.
+                var refused = new FileRegistry();
+                Declare(refused, host, org, commit: false, name: "S");
+                refused.OpenStatic("S", FileOpenMode.Output);
+                Assert.Equal("61", refused.Status("S"));
+                Assert.Null(a.Commit());
+            }
             var maker = Open(host, org, commit: false, FileOpenMode.Output, name: "S");
             Assert.Equal("00", Write(maker, org, 2, "B002", name: "S"));
             maker.CloseAll();
