@@ -434,8 +434,11 @@ public abstract class KeyedConnector : FileConnector
     /// OUTPUT the medium refuses leaves the kept transaction, its record locks, its file lock and its handle as the CLOSE left
     /// them, and the next COMMIT or ROLLBACK still reaches the file. A creation that landed ends the transaction with the file
     /// it was in (the new file has no records and holds nothing), so the kept state is given back then and the created store
-    /// becomes the run unit's for the path. The one refusal that lands the creation is the final sync's, after the
-    /// truncation: the previous file is gone all the same, and the kept state ends with it while the OPEN answers '30'.
+    /// becomes the run unit's for the path. Two refusals leave the previous file gone all the same, and the kept state ends with
+    /// it while the OPEN answers '30' (<see cref="KeyedStore.FileReplaced"/>): the final sync's, after the truncation, and a
+    /// refusal whose UNDO the medium refused too (review finding R1-1) — kept, the transaction would stand over a store the
+    /// file no longer holds, and its COMMIT would promote it beside the creation's slot and answer success over a file R6 reads
+    /// as the empty store.
     /// <para>Not inside the store mutex: giving the kept handle back takes it through the kept endpoint, a different open file
     /// description from this OPEN's own.</para></summary>
     private string? Recreate()
@@ -869,6 +872,10 @@ public abstract class KeyedConnector : FileConnector
     /// <summary>The run unit's transaction on this connector's physical file, if this connector is attached to its store.</summary>
     internal ulong OpenTransaction => _attached ? AttachedStore.Transaction : 0;
 
+    /// <summary>The place of the store this connector is attached to in the run unit's order of open stores
+    /// (<see cref="KeyedStore.OpenOrder"/>), which COMMIT and ROLLBACK follow.</summary>
+    internal long StoreOpenOrder => AttachedStore.OpenOrder;
+
     /// <summary>The witnesses' seam (<see cref="KeyedStore.ReleaseLivenessForWitness"/>).</summary>
     internal void ReleaseLivenessForWitness()
     {
@@ -879,24 +886,13 @@ public abstract class KeyedConnector : FileConnector
     /// store mutex through this connector's handle, or — a connector that is closed — through the one it kept at its CLOSE
     /// (<see cref="KeptFile.CommitTransaction"/>).</summary>
     internal CommitOutcome CommitTransaction() =>
-        _regions is null && _kept is { } kept ? kept.CommitTransaction() : InTransactionMutex(() => AttachedStore.Commit(Restoring));
+        _regions is null && _kept is { } kept ? kept.CommitTransaction() : InStoreMutex(() => AttachedStore.Commit(Restoring));
 
     /// <summary>⛔ ROLLBACK the run unit's transaction on this connector's physical file (§14.9.36.4 GR3; 2.2.1.10): the
     /// statement's entry (which unwinds an unlanded COMMIT's claim, R5's restart rule) and the ROLLBACK statement, under the
-    /// store mutex.</summary>
+    /// store mutex, or — a connector that is closed — through the handle it kept (<see cref="KeptFile.RollbackTransaction"/>).</summary>
     internal StoreStatus RollbackTransaction() =>
-        _regions is null && _kept is { } kept ? kept.RollbackTransaction() : InTransactionMutex(() => AttachedStore.Rollback(Restoring));
-
-    /// <summary>Run <paramref name="body"/> inside the store mutex held through this connector's live endpoint; a NO OTHER file
-    /// has nobody to exclude.</summary>
-    private T InTransactionMutex<T>(Func<T> body)
-    {
-        if (_regions is not { } regions || !_coherent) return body();
-        var holder = regions.Hold(HostRegionLocks.StoreMutexByte, exclusive: regions.Writable, wait: true) == RegionLockResult.Ok
-            ? regions : null;
-        try { return body(); }
-        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
-    }
+        _regions is null && _kept is { } kept ? kept.RollbackTransaction() : InStoreMutex(() => AttachedStore.Rollback(Restoring));
 
     // ── Coherence ACROSS RUN UNITS (ISO §9.1.15, §9.1.16; kb/Work PB2660) ────────────────────────────────────
 
@@ -964,7 +960,7 @@ public abstract class KeyedConnector : FileConnector
         try
         {
             bool exclusive = _regions!.Writable;
-            store.MutexHolder = HoldStoreMutex(exclusive);
+            store.MutexHolder = HostRegionLocks.HoldStoreMutex(_regions);
             // 2.2.1.7's coherent entry: page 2 read — one page — and adopted when another run unit's statement moved it
             // (its roots, its ledger, the page cache dropped); a writer also takes the mints and, under an EXCLUSIVE
             // hold, resolves a PROMOTING flag. An INPUT connector entering the store a writable sibling opened holds the
@@ -988,16 +984,11 @@ public abstract class KeyedConnector : FileConnector
         }
     }
 
-    /// <summary>Run <paramref name="body"/> — an OPEN's adoption or creation, a CLOSE's promotion — inside the store mutex
-    /// when this connector is coherent (2.2.1.7: <i>"runs every record statement, and its OPEN's adoption rule (R6),
-    /// inside the store mutex"</i>); a NO OTHER connector has nobody to exclude.</summary>
-    private T InStoreMutex<T>(Func<T> body)
-    {
-        if (!_coherent || _regions is null) return body();
-        var holder = HoldStoreMutex(exclusive: _regions.Writable);
-        try { return body(); }
-        finally { holder?.Release(HostRegionLocks.StoreMutexByte); }
-    }
+    /// <summary>Run <paramref name="body"/> — an OPEN's adoption or creation, a CLOSE's promotion, a COMMIT or a ROLLBACK —
+    /// inside the store mutex when this connector is coherent (2.2.1.7: <i>"runs every record statement, and its OPEN's
+    /// adoption rule (R6), inside the store mutex"</i>; <see cref="HostRegionLocks.InStoreMutex"/>); a NO OTHER connector has
+    /// nobody to exclude.</summary>
+    private T InStoreMutex<T>(Func<T> body) => HostRegionLocks.InStoreMutex(_coherent ? _regions : null, body);
 
     /// <summary>Leave the statement; the outermost leave gives the mutex back. The statement's verb wrote its own pages
     /// and page 2 before it answered (2.2.1.7: each change is one statement of the page layer, run inside this one), so
@@ -1031,15 +1022,6 @@ public abstract class KeyedConnector : FileConnector
             store.StatementDepth = depth;
         }
     }
-
-    /// <summary>The store mutex, held for the length of one statement — exclusive through a writable handle, shared
-    /// through an <c>OPEN INPUT</c> connector's read-only one (a reader never changes the store, and Linux refuses
-    /// an exclusive lock through a read-only descriptor; <see cref="RegionLocks.Hold"/>). Null when the host
-    /// cannot carry the lock, and the run unit then has no protection against another's writer but the file lock
-    /// (docs/CONFORMANCE.md DOC-A.1-75).</summary>
-    private RegionLocks? HoldStoreMutex(bool exclusive) =>
-        _regions!.Hold(HostRegionLocks.StoreMutexByte, exclusive, wait: true) == RegionLockResult.Ok ? _regions : null;
-
 }
 
 /// <summary>⛔ ONE STATEMENT'S HOLD ON A KEYED STORE that another run unit may write (kb/Work PB2660) — returned by
