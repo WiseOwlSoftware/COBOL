@@ -39,6 +39,13 @@ FAMILY (`FAMILIES`: data description, statement, intrinsic function, expression)
 both compilers before it was written here. A correction quotes the refused source line beside each diagnostic, every
 refusal round's first diagnostics are recorded on the row (`repair_rounds`), and a round whose first diagnostics repeat
 the previous round's ends the corrections (`stopped_early`): the same error twice is a program the model cannot fix.
+A clause of an optional module the conformance claim declines (docs/CONFORMANCE.md §5: the screen section, VALIDATE,
+COMMIT and ROLLBACK, FORMAT and SELECT WHEN) is not a seed (`declined_seed_titles`): WiseOwl refuses it by name, so its
+programs could only be refused or explained. MEASURED (2026-10-22, the PB3523 bake-offs, 40 programs an arm): the prompt
+did not move first-attempt validity beyond the run-to-run noise (10, 10 and 9 of 40 on one seed walk); the early stop
+saved 12 % of the generations; the declined seeds were 10 % of the second night's programs and 14 % of its BOTH_REJECT.
+What remains is the model writing constructs it does not know (the report writer, OO, SORT and MERGE files, SET's rarer
+formats), which a prompt has not been shown to fix.
 
 THE MECHANICS ARE THE CONFORMANCE SUITE'S, NOT A SECOND COPY. Each program is compiled and run through
 `conformance-suite/adapters/<compiler>.json` by the harness's own `Run.operation` (conformance-suite/harness/run.py), so the
@@ -99,6 +106,7 @@ import threading
 import time
 import traceback
 import types
+import typing
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -213,6 +221,47 @@ def reserved_words(text: str) -> set[str]:
         if inside and (m := RESERVED_ITEM.match(line)):
             words.add(m.group(1))
     return words
+
+
+CONFORMANCE = REPO / "docs" / "CONFORMANCE.md"
+ANNEX_A4_HEADING = re.compile(r"^#{2,6} (A\.4\.\d+) ")
+#: An Annex A.4 item naming a language element and its clause: "6\) BLINK clause (13.18.9)", "4\) COMMIT statement 14.9.7".
+ANNEX_A4_ITEM = re.compile(r"^\d+\\?\) (?P<name>.+?)(?: \([\d.]+\)| \d+(?:\.\d+)+.*)\s*$")
+#: An item that is a WHOLE clause or statement; "ACCEPT statement, format 3: screen (14.9.1)" is one format of a claimed
+#: statement and "REWRITE FILE file-name-1 (14.9.35)" one phrase of one, so neither is.
+WHOLE_ELEMENT = re.compile(r"^[A-Z][A-Z0-9-]*(?: [A-Z][A-Z0-9-]*)* (?:clause|statement)$")
+#: A row of CONFORMANCE.md §5, "Annex A.4 optional-element disposition": `| A.4.2 | <module> | Not claimed | … |`.
+DISPOSITION_ROW = re.compile(r"^\| (A\.4\.\d+) \| ([^|]+?) \| ([^|]+?) \|")
+
+
+def declined_modules(conformance_text: str) -> dict[str, str]:
+    """{Annex A.4 number: module name} for every optional module docs/CONFORMANCE.md §5 records as Not claimed: the
+    conformance claim's one statement of what WiseOwl declines (§4.2.7), read, never restated here."""
+    return {m.group(1): m.group(2).strip() for line in conformance_text.splitlines()
+            if (m := DISPOSITION_ROW.match(line)) and m.group(3).strip("* ").startswith("Not claimed")}
+
+
+def declined_seed_titles(spec_text: str, conformance_text: str) -> set[str]:
+    """The seed titles that are a WHOLE clause or statement of a declined optional module (kb/Work PB3523): the Annex A.4
+    items of each module `declined_modules` names. WiseOwl refuses such a construct by name (the screen section's
+    COBOLNET1560, VALIDATE's, COMMIT's …), so a program seeded there ends BOTH_REJECT or as a WE_REJECT the conformance
+    claim already explains, never a lead. In the second night's run (fuzz-20261021-211424) these seeds wrote 486 of the
+    4,931 programs, 335 of its 2,326 BOTH_REJECT rows and 40 such WE_REJECT rows, at 1,687 of its 14,479 generations; the
+    first fourteen seeds of the 2026-10-22 bake-off held four of them (BLINK, BLANK, UNDERLINE, REQUIRED). Matched by TITLE,
+    because the transcription's numbers in these lists are not all right (A.4.14 item 9 prints "VALIDATE statement
+    (13.18.64)", the VARYING clause's number). A module that becomes claimed returns its seeds with no change here."""
+    declined = declined_modules(conformance_text)
+    titles: set[str] = set()
+    module = None
+    for line in spec_text.splitlines():
+        if (h := ANNEX_A4_HEADING.match(line)):
+            module = h.group(1)
+            continue
+        if module and HEADING.match(line):
+            module = None
+        if module in declined and (m := ANNEX_A4_ITEM.match(line)) and WHOLE_ELEMENT.match(m.group("name")):
+            titles.add(m.group("name"))
+    return titles
 
 
 #: Annex E.2 item 25 "The following reserved words have been added": one "- — WORD" line each ("— XOR", the last, lost its
@@ -463,7 +512,7 @@ MISUSED_RESERVED_WORDS = ("SCREEN", "NULL", "ADDRESS", "DESTINATION", "OBJECT", 
 SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compiler differential. Rules:
 - Standard COBOL only, as in ISO/IEC 1989:2014. No vendor extensions, no COPY, no CALL to other programs, no EXEC.
 - Free reference format: EVERY line starts in column 1 with no indentation, one statement per line. At most 80 lines, and no repetitive filler data items: a few well-chosen items exercised many ways.
-- The headers, in this order, each ending in a period: IDENTIFICATION DIVISION. PROGRAM-ID. FUZZ. Then only when needed: ENVIRONMENT DIVISION. CONFIGURATION SECTION. SPECIAL-NAMES. (a paragraph, never a section) and INPUT-OUTPUT SECTION. FILE-CONTROL. Then DATA DIVISION. with FILE SECTION., WORKING-STORAGE SECTION., LOCAL-STORAGE SECTION., LINKAGE SECTION., REPORT SECTION. and SCREEN SECTION. in that order, each only when needed. Then PROCEDURE DIVISION. and a paragraph name such as MAIN-PARA. before the first statement. In the procedure division use either no sections at all or put every paragraph in a section.
+- The headers, in this order, each ending in a period: IDENTIFICATION DIVISION. PROGRAM-ID. FUZZ. Then only when needed: ENVIRONMENT DIVISION. CONFIGURATION SECTION. SPECIAL-NAMES. (a paragraph, never a section) and INPUT-OUTPUT SECTION. FILE-CONTROL. Then DATA DIVISION. with FILE SECTION., WORKING-STORAGE SECTION., LOCAL-STORAGE SECTION., LINKAGE SECTION. and REPORT SECTION. in that order, each only when needed. Then PROCEDURE DIVISION. and a paragraph name such as MAIN-PARA. before the first statement. In the procedure division use either no sections at all or put every paragraph in a section.
 - The program must compile and run with no input: no ACCEPT from the console or standard input, no command-line arguments.
 - Every result the program computes is shown with DISPLAY, so two compilers' outputs can be compared byte for byte.
 - Output must be deterministic: no FUNCTION """ + ", ".join(NONDETERMINISTIC_FUNCTIONS) + """, no ACCEPT FROM DATE/TIME, nothing time, locale or environment dependent.
@@ -477,6 +526,7 @@ SYSTEM_PROMPT = """You write small, standalone COBOL test programs for a compile
 - In a PICTURE, B inserts a space; it is not a bit, and every PICTURE has at least one 9, X, A, N or editing symbol.
 - The ONLY intrinsic functions are these; any other FUNCTION name is an error: {functions}.
 - Not in the 2014 edition the compilers run, so an error: {added}.
+- Optional facilities one of the compilers does not provide, so never use them: {declined}.
 - FUNCTION HIGHEST-ALGEBRAIC and LOWEST-ALGEBRAIC take a numeric DATA ITEM as the argument, never a literal or an expression.
 - USAGE is one of the standard's (BINARY, PACKED-DECIMAL, DISPLAY, NATIONAL, INDEX, POINTER, ...); COMP-1 to COMP-5 are not in the standard.
 - Reply with exactly one COBOL program inside one ```cobol fenced block and nothing else. PROGRAM-ID is FUZZ.
@@ -486,14 +536,29 @@ This program, which both compilers accept, shows the expected shape:
 {example}```"""
 
 
-def system_prompt(functions: list[str], added: tuple[set[str], set[str]], added_words: list[str], family: str) -> str:
-    """The system prompt for a seed of `family` (FAMILIES): the edition's function list, the functions, statement and
-    reserved words 2023 added (`spec_functions`, `added_in_2023` and `added_reserved_words` of the spec the seeds come
-    from), the misused reserved words, and the family's worked example."""
-    names = ([f"FUNCTION {f}" for f in sorted(added[0])] + [f"the {st} statement" for st in sorted(added[1])]
-             + ([f"the words {', '.join(added_words)}"] if added_words else []))
-    return (SYSTEM_PROMPT.replace("{functions}", ", ".join(functions)).replace("{added}", ", ".join(names))
-            .replace("{reserved}", ", ".join(MISUSED_RESERVED_WORDS)).replace("{example}", EXAMPLES[family]))
+class PromptFacts(typing.NamedTuple):
+    """What the system prompt states that is READ, never typed here: from the standard, the edition's functions
+    (`spec_functions`), the functions and statements 2023 added (`added_in_2023`) and the words it reserved
+    (`added_reserved_words`); from the conformance claim, the optional modules WiseOwl declines (`declined_modules`)."""
+    functions: list[str]
+    added: tuple[set[str], set[str]]
+    added_words: list[str]
+    declined: list[str]
+
+    @classmethod
+    def read(cls, spec_text: str, conformance_text: str) -> PromptFacts:
+        return cls(spec_functions(spec_text), added_in_2023(spec_text), added_reserved_words(spec_text),
+                   list(declined_modules(conformance_text).values()))
+
+
+def system_prompt(facts: PromptFacts, family: str) -> str:
+    """The system prompt for a seed of `family` (FAMILIES): `facts` filled in, the misused reserved words, and the family's
+    worked example."""
+    names = ([f"FUNCTION {f}" for f in sorted(facts.added[0])] + [f"the {st} statement" for st in sorted(facts.added[1])]
+             + ([f"the words {', '.join(facts.added_words)}"] if facts.added_words else []))
+    return (SYSTEM_PROMPT.replace("{functions}", ", ".join(facts.functions)).replace("{added}", ", ".join(names))
+            .replace("{declined}", "; ".join(facts.declined)).replace("{reserved}", ", ".join(MISUSED_RESERVED_WORDS))
+            .replace("{example}", EXAMPLES[family]))
 
 
 # ── the seeds: spec clauses ───────────────────────────────────────────────────────────────────────────────────────────
@@ -933,9 +998,13 @@ class Fuzz:
         self.results_path = self.out / "results.jsonl"
         self.lock = threading.Lock()
         spec_text = SPEC.read_text(encoding="utf-8")
-        self.seeds = order_seeds(clauses(spec_text, s.prefixes), s.seed, s.in_order)
-        facts = (spec_functions(spec_text), added_in_2023(spec_text), added_reserved_words(spec_text))
-        self.system_prompts = {family: system_prompt(*facts, family) for family in EXAMPLES}
+        conformance_text = CONFORMANCE.read_text(encoding="utf-8")
+        declined = declined_seed_titles(spec_text, conformance_text)
+        every = clauses(spec_text, s.prefixes)
+        self.seeds = order_seeds([c for c in every if c[1] not in declined], s.seed, s.in_order)
+        self.declined_seeds = len(every) - len(self.seeds)
+        facts = PromptFacts.read(spec_text, conformance_text)
+        self.system_prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
         if not self.seeds:
             raise SystemExit(f"no clauses under {s.prefixes} in {SPEC}")
         work = self.out / "work"
@@ -1059,7 +1128,8 @@ class Fuzz:
 
     def run(self) -> None:
         (self.out / "run.json").write_text(json.dumps({**dataclasses.asdict(self.s), "out": str(self.out),
-                                                       "seeds": len(self.seeds), "edition": EDITION,
+                                                       "seeds": len(self.seeds), "declined_seeds": self.declined_seeds,
+                                                       "edition": EDITION,
                                                        "started": datetime.now(timezone.utc).isoformat(timespec="seconds")},
                                                       indent=1), encoding="utf-8", newline="\n")
         total = self.s.count if self.s.count is not None else 10 ** 9
@@ -1418,11 +1488,10 @@ def self_test() -> int:
           and "<u>" not in whole and "1\\)" not in whole
           and "FOO BAR x" in cut and "1) rule" in cut and "intro" not in cut and "g g" not in cut
           and cut.endswith("[General, General rules: omitted to fit the prompt]"), (whole, cut))
-    spec_md = SPEC.read_text(encoding="utf-8")
-    facts = (spec_functions(spec_md), added_in_2023(spec_md), added_reserved_words(spec_md))
+    budget_facts = PromptFacts.read(SPEC.read_text(encoding="utf-8"), CONFORMANCE.read_text(encoding="utf-8"))
     check("budget: the longest system prompt and the longest clause, at a conservative 2.5 characters a token, leave the reply's NUM_PREDICT and three corrections of 1,500 tokens inside NUM_CTX",
-          (max(len(system_prompt(*facts, f)) for f in EXAMPLES) + sizes[longest]) / 2.5 + NUM_PREDICT + 3 * 1500 <= NUM_CTX,
-          (max(len(system_prompt(*facts, f)) for f in EXAMPLES), sizes[longest]))
+          (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES) + sizes[longest]) / 2.5 + NUM_PREDICT + 3 * 1500 <= NUM_CTX,
+          (max(len(system_prompt(budget_facts, f)) for f in EXAMPLES), sizes[longest]))
     check("cut off: the reason names the thinking that spent the output cap when the content is empty, the cap alone otherwise",
           "spent all" in cut_off_reason("length", 28259, 0) and "think=false" in cut_off_reason("length", 28259, 0)
           and cut_off_reason("length", 0, 500) == f"the reply was cut off at {NUM_PREDICT} tokens"
@@ -1509,8 +1578,29 @@ def self_test() -> int:
           and len(real) > 80, (len(real), sorted(set(real) & {"TRANSLATE", "NATIONAL", "SUBSTRING", "YEAR"})))
     added_words = added_reserved_words(spec_text)
     reserved = reserved_words(spec_text)
-    prompts = {family: system_prompt(real, (added_fns, added_sts), added_words, family) for family in EXAMPLES}
+    conformance_text = CONFORMANCE.read_text(encoding="utf-8")
+    facts = PromptFacts.read(spec_text, conformance_text)
+    prompts = {family: system_prompt(facts, family) for family in EXAMPLES}
     sp = prompts["statement"]
+    check("prompt: the facts are the spec's and the conformance claim's (the functions, the 2023 additions, the declined modules), and every family's prompt names the declined modules",
+          facts.functions == real and facts.added == (added_fns, added_sts) and facts.added_words == added_words
+          and "ACCEPT/DISPLAY screen handling" in facts.declined and "VALIDATE" in facts.declined
+          and all("never use them: " + "; ".join(facts.declined) in p for p in prompts.values()), facts.declined)
+    declined_titles = declined_seed_titles(spec_text, conformance_text)
+    every_title = {t for _n, t, _b in clauses(spec_text, ("13.18", "14.9"))}
+    check("seeds: a WHOLE clause or statement of an optional module CONFORMANCE.md §5 records as Not claimed is not a seed (the screen clauses, VALIDATE's, COMMIT and ROLLBACK, FORMAT, SELECT WHEN), matched by title; a module's single format of a claimed statement (ACCEPT format 3, SET format 6, COLUMN format 2) and a claimed module's clause (Report Writer's PAGE) stay",
+          {"BLINK clause", "UNDERLINE clause", "REQUIRED clause", "BLANK clause", "VALIDATE statement", "VALIDATE-STATUS clause",
+           "DEFAULT clause", "COMMIT statement", "ROLLBACK statement", "FORMAT clause", "SELECT WHEN clause"} <= declined_titles
+          and not {"ACCEPT statement", "SET statement", "COLUMN clause", "PAGE clause", "REWRITE statement", "WRITE statement",
+                   "VALUE clause", "OCCURS clause", "DISPLAY statement"} & declined_titles
+          and declined_titles <= every_title, sorted(declined_titles - every_title))
+    fixture_spec = ("#### A.4.2 Screens\n1\\) ACCEPT statement, format 3: screen (14.9.1)\n2\\) BLINK clause (13.18.9)\n"
+                    "#### A.4.3 Commit\n4\\) COMMIT statement 14.9.7\n#### A.4.4 Tables\n1\\) OCCURS clause (13.18.38)\n#### A.5 Other\n3\\) FOO clause (1.2)\n")
+    fixture_claim = ("| A.4.2 | Screens | Not claimed | x |\n| A.4.3 | Commit | **Not claimed** | x |\n| A.4.4 | Tables | **Claimed** | x |\n")
+    check("seeds: the declined titles are read from the Annex A.4 items of the modules the claim declines, whole elements only, the parenthesized and the bare clause number alike, nothing past A.4",
+          declined_seed_titles(fixture_spec, fixture_claim) == {"BLINK clause", "COMMIT statement"}
+          and declined_modules(fixture_claim) == {"A.4.2": "Screens", "A.4.3": "Commit"},
+          declined_seed_titles(fixture_spec, fixture_claim))
     check("edition: Annex E.2 item 25 names the sixteen words 2023 reserved, the last one (XOR) without its list marker, and §8.9 lists each",
           added_words == ["B-SHIFT-L", "B-SHIFT-LC", "B-SHIFT-R", "B-SHIFT-RC", "COMMIT", "EDITING", "END-RECEIVE", "END-SEND",
                           "EXCLUSIVE-OR", "FINALLY", "LOCATION", "MESSAGE-TAG", "RECEIVE", "ROLLBACK", "SEND", "XOR"]
