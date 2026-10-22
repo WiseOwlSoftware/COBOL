@@ -1929,6 +1929,18 @@ check("PB3528: two SPLIT branches sharing a file are both finished, the second a
       (sorted(dl), dl["PB9"].after if "PB9" in dl else None, dl["PB5"].kind if "PB5" in dl else None),
       (["PB5", "PB9"], dl["PB5"].letter if "PB5" in dl else "?", "finisher"))
 check("PB3528: neither waits on the other", sorted(n for n in pdl["waiting"] if n in ("PB5", "PB9")), [])
+# ... and on every host alike: the two reports tie on wave and modification time (returned() above), so only their
+# NAME orders them; left to the directory's enumeration order (the name on NTFS, a hash order on ext4) the successor
+# was PB5's finisher under the Linux gate and PB9's on Windows. A reversed listing must not change the order read.
+_glob = pathlib.Path.glob
+try:
+    pathlib.Path.glob = lambda self, pattern: reversed(list(_glob(self, pattern)))
+    reversed_listing = [r.path.name for r in pw.load_reports(DL_REPORTS)]
+finally:
+    pathlib.Path.glob = _glob
+check("PB3528: reports tied on wave and mtime are read in name order, whatever order the directory lists them in",
+      (reversed_listing, [r.path.name for r in pw.load_reports(DL_REPORTS)]),
+      (["w1141a-PB5-report.md", "w1141b-PB9-report.md"], ["w1141a-PB5-report.md", "w1141b-PB9-report.md"]))
 # ... and a branch no group of this wave finishes still holds a group that meets it (the partition is unchanged)
 pdl2 = pw.plan(notes, [cl(F_BIND, "PB5")], [], [], lambda b: "ABSENT", {}, RULES, budget_points=100,
                busy={"worktree dl-3 (worktree-dl-3)": pw.InFlight({F_BIND}, "worktree-dl-3", {"PB9"}, state="DECISION")})

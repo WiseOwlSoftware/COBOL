@@ -11,3 +11,12 @@ A branch nothing in the wave finishes still holds, as before.
 **Witness.** The planner's self-test plans two split branches sharing a file: both finishers are planned, one after
 the other. It failed before the fix and all 332 checks pass after it. On the live state, a dry run now plans six groups
 (the two finishers first) where it planned none.
+
+**Linux.** The first landing attempt stopped on the Linux gate: the same check named the other finisher the successor.
+The planner reads the reports oldest first, by wave and then modification time, and the test's two reports share
+both. The remaining tie fell to the order the directory lists files in, which is the name on Windows (NTFS) and a hash
+order on Linux (ext4). That order also decides a note's newest report and which finisher goes first, so the plan
+itself depended on the host. The reports are now ordered by name after those two keys. A new check reads the reports
+through a reversed listing and expects the same order: it fails without the fix on Windows too, and 333 of 333 checks
+pass with it. Another place where a file's modification time picks a record, the architecture review's choice of its
+newest performance baseline, is filed as PB3532.
