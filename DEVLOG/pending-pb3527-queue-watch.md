@@ -1,4 +1,4 @@
-## PB3527: the landing lane watches each pull request into the merge queue, and a held gate lock is BUSY, never red
+## PB3527, PB3526: the landing lane watches each pull request into the merge queue, and a gate that measured nothing (a held lock, BUSY; NOT RUN) is never red
 
 **Why.** On 2026-10-22 PR #385's `ci-gate` job completed success at 18:46:46Z while its check-run on the head commit
 stayed `in_progress` for 50 minutes; the merge queue was empty, the pull request BLOCKED, and nothing looked, because a
@@ -51,6 +51,27 @@ auto-merge off, a red before the queue, offline). The new arms are pinned in `La
 `LandingPipelineDriftTests`, `LandingMeasureDriftTests` and `GateLegDriftTests`. Docs: DESIGN-orchestrator-loop.md
 section 4.9 (step 4 and the table), DESIGN-test-build-ci.md sections 3.14.3 and 3.17.2, `units/enqueue.md` step 3,
 `units/resume.md`, MANDATORY-PRACTICES L12, the workstream landing reference, DOC_INDEX, session-probe.
+
+**Review round 1 (the finisher).** The branch reviewer recorded three blocking findings and two leads; all five
+are fixed here. R1-1: PB3526, the held-lock defect mechanism 2 fixed, stayed open, and its bar's sweep was missing:
+every other NOT RUN cause is now classified on purpose (`run_gate_legs.NOT_RUN`: malformed shared gate settings, a
+driver failure, a population unlistable after a GREEN build, the Linux gate's host with no WSL, Python or SDK, and in
+`enqueue.run_gates` a gate that printed no verdict line or a row refused for running outside the slot). Each measured
+nothing about the branch, so `read_verdict` reads NOT RUN as its own reading and `land` ends `GATE NOT RUN`, exit 2,
+with no BLOCKED line: retried once, a second the operator's handoff, never a finisher's. PB3526 is landed with this
+change. R1-3: the tick wrote each attempt record WHOLE from the copy it read before its slow survey, so a `collect` the
+enqueue unit made meanwhile was undone (the reviewer's probe: `collected` back to false and the enqueue unit asked
+again); an attempt record now has one writer, `land_lane.update`, which re-reads the record under its own lock and
+changes only the caller's fields (runner, reap, watch, launch, collect, all moved to it; the whole-record `save` is
+deleted). It also closes a sibling: reap could mark DIED a runner that wrote its rc between reap's read and its write.
+R1-4: `real_gh` raises `ruleset.Unobserved` on a 120 s timeout, and the remedies let it escape, so one hung GitHub call
+aborted the whole tick before any landing launched and, the read unsaved, every tick repeated it; `rerun_check` and
+`requeue` now answer (False, the unanswered step), the watch records a failed read and escalates, and the tick
+launches. R1-5 (lead): a pull request that conflicts with main (mergeStateStatus DIRTY) was treated as a propagation
+fault, re-run, reopened and then asked about; `queue_facts.PullRequest.conflicts` now ends the watch LEFT and makes the
+survey read BOUNCED, the finisher's. R1-2 (lead): the gate skill names BUSY and the NOT RUN causes. Both reviewer
+probes (`race.py`, `hang.py`) fail on the reviewed head and pass here; new self-test arms in `land_lane.py`,
+`enqueue.py`, `run_gate_legs.py`, `queue_facts.py` and `prune_worktrees.py` pin each.
 
 **Gate** (run 20261022T221903Z-7338fd, at ad9ea2dc6): `=== BUILD-LOCAL GATE: LEG 1 ONLY (batched gating, PB2515):
 GREEN — leg 2 left to CI's whole-population run: Conformance 7,494 · Unit 1,231 · Characterization 31 … ===`.

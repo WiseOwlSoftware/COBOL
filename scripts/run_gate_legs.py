@@ -54,8 +54,8 @@ plan had a leg 2 it did not run (a gate with no plan runs its one leg — the wh
 Exit codes: 0 GREEN (or LEG 1 ONLY: GREEN) · 1 RED (or RED/INCOMPLETE, LEG 1 ONLY: RED, or the build failed) · 2 NOT
 RUN (the shared gate settings are malformed, the population could not be listed, the driver failed) · 3 BUSY (another
 gate holds this worktree's gate lock: nothing ran and nothing is red; wait for it and re-run, kb/Work PB3527).
-`read_verdict` is the ONE reader of a verdict line's text (GREEN, BUSY or RED); enqueue.py's landing gate reads
-through it.
+`read_verdict` is the ONE reader of a verdict line's text (GREEN, BUSY, NOT RUN or RED); enqueue.py's landing gate
+reads through it.
 """
 from __future__ import annotations
 
@@ -110,6 +110,14 @@ VERDICT_FILE = "verdict.json"
 #: a finisher with nothing to fix: kb/Work PB3527).
 BUSY = "BUSY"
 EXIT_BUSY = 3
+#: A gate that MEASURED NOTHING about the change, for a cause outside it (kb/Work PB3526's sweep, classified on purpose,
+#: cause by cause): the shared gate settings are malformed (the coordination directory's file, at the start or while the
+#: gate queued); the gate driver itself failed (a defect in the driver, which reports it); the population could not be
+#: listed after a GREEN build (`--list-tests` on assemblies that built and that the branch's own gate listed); and, from
+#: the Linux gate, no WSL, no runnable Python or no .NET SDK on the host. None is a red of the branch, so none may send
+#: it to a finisher: the landing exits 2 (usage or state) with no BLOCKED line, the landing lane retries it once, and a
+#: second at the same head is the operator's handoff (enqueue.py, land_lane.py).
+NOT_RUN = "NOT RUN"
 #: A passing verdict: plain GREEN (every leg ran) or `LEG 1 ONLY (...): GREEN` (batched gating).
 GREEN_VERDICT = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
 
@@ -117,11 +125,14 @@ GREEN_VERDICT = re.compile(r"^(?:LEG 1 ONLY \([^)]*\): )?GREEN\b")
 def read_verdict(text: str) -> str:
     """THE ONE READER of a gate's verdict, `text` being its verdict line after the prefix (`=== BUILD-LOCAL GATE: ` or
     the Linux gate's `=== LINUX GATE: `): GREEN (a pass), BUSY (another gate holds the worktree's lock: wait, never
-    red), else RED — every other verdict (RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD FAILED, NOT RUN) is not a
-    pass."""
+    red), NOT RUN (the gate measured nothing, for a cause outside the change: NOT_RUN), else RED — every other verdict
+    (RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD FAILED) is the change's."""
     if GREEN_VERDICT.match(text):
         return "GREEN"
-    return BUSY if text.startswith(BUSY + " ") or text == BUSY else "RED"
+    for word in (BUSY, NOT_RUN):
+        if text == word or text.startswith(word + " "):
+            return word
+    return "RED"
 #: A stopped gate's remainder is named in full in the run directory; the console shows this many per assembly.
 NOT_RUN_SHOWN = 10
 
@@ -448,7 +459,7 @@ class LegRun:
 @dataclass
 class Outcome:
     """What one gate did — the verdict file's content, and what the self-test asserts on."""
-    verdict: str = "NOT RUN"
+    verdict: str = NOT_RUN
     line: str = ""
     exit_code: int = 2
     reasons: list[str] = field(default_factory=list)
@@ -502,7 +513,7 @@ class Gate:
             try:
                 out.scope, setting = self.host.implementer_scope()
             except ValueError as e:  # malformed shared gate settings stop the gate, with the reason
-                return self._finish(out, None, "NOT RUN", str(e), 2)
+                return self._finish(out, None, NOT_RUN, str(e), 2)
             if setting is not None and setting.until is not None:
                 out.scope_until = setting.until.isoformat()
             # The pool the work BESIDE the critical path runs in (`_beside`); leaving it waits for that work, so no
@@ -515,7 +526,7 @@ class Gate:
                     # silence: every caller BLOCKS on that line (MANDATORY-PRACTICES P2), so a traceback alone would
                     # hang it.
                     self.say(traceback.format_exc().rstrip())
-                    return self._finish(out, None, "NOT RUN", f"the gate driver failed: {type(e).__name__}: {e}", 2)
+                    return self._finish(out, None, NOT_RUN, f"the gate driver failed: {type(e).__name__}: {e}", 2)
 
     def _beside(self, out: Outcome, name: str, work: Callable[[], tuple[list[str], list[str]]]) -> None:
         """Start `work` BESIDE the gate's critical path (kb/Work PB2880): a step that needs nothing the critical path
@@ -590,7 +601,7 @@ class Gate:
         try:
             slot = self.host.take_slot(label, self.say)
         except ValueError as e:  # the shared gate settings turned malformed while this gate queued: stop, with the reason
-            return self._finish(out, run, "NOT RUN", str(e), 2)
+            return self._finish(out, run, NOT_RUN, str(e), 2)
         out.timings["slot_wait_s"] = round(time.monotonic() - t, 1)
         out.slot = slot.describe()  # acquire() has printed `gate-slot: took slot k of N …`; the verdict line names it
         try:
@@ -616,7 +627,7 @@ class Gate:
                 listings[asm] = names
                 (run / f"listing-{asm}.txt").write_text(raw, encoding="utf-8", newline="\n")
         except PopulationError as e:
-            return self._finish(out, run, "NOT RUN", f"the population could not be listed: {e}", 2)
+            return self._finish(out, run, NOT_RUN, f"the population could not be listed: {e}", 2)
 
         # The self-tests that read the BUILT assemblies (kb/Work PB2563) run beside the legs: they only list tests, and
         # the legs are the gate's longest step, so they add no wall time. Joined, and printed, after the legs.
@@ -1260,12 +1271,14 @@ def self_test() -> int:
             first == "held" and o.verdict == BUSY and o.exit_code == EXIT_BUSY and f"pid {holder.pid}" in o.line
             and host2.slots_taken == 0 and not (d / "runs").exists()
             and read_verdict(o.line[len(VERDICT):]) == BUSY, o.line)
-        arm("the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass; RED, RED/INCOMPLETE, LEG 1 ONLY: RED, BUILD "
-            "FAILED and NOT RUN are RED; a Linux gate's GREEN (legs ...) passes",
+        arm("the one verdict reader: GREEN and LEG 1 ONLY: GREEN pass; RED, RED/INCOMPLETE, LEG 1 ONLY: RED and BUILD "
+            "FAILED are RED; NOT RUN (this driver's and the Linux gate's) is NOT RUN, never RED (kb/Work PB3526); a "
+            "Linux gate's GREEN (legs ...) passes",
             [read_verdict(v) for v in ("GREEN — x ===", f"{LEG1_ONLY}: GREEN — x", "RED — x", "RED/INCOMPLETE — x",
                                        f"{LEG1_ONLY}: RED — x", "BUILD FAILED — x", "NOT RUN — x",
+                                       "NOT RUN (no .NET SDK in this Linux environment) ===", "NOT RUNNING",
                                        "GREEN (legs unit) ===", "GREENISH")]
-            == ["GREEN", "GREEN", "RED", "RED", "RED", "RED", "RED", "GREEN", "RED"])
+            == ["GREEN", "GREEN", "RED", "RED", "RED", "RED", NOT_RUN, NOT_RUN, "RED", "GREEN", "RED"])
 
         # The lock is per WORKTREE: a linked worktree's git dir is its own.
         git = ["git", "-c", "user.name=gate-legs", "-c", "user.email=gate-legs@invalid", "-c", "init.defaultBranch=main"]

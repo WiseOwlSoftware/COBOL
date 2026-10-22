@@ -1117,7 +1117,11 @@ kb/Work PB2914). One gate:
    build to the verdict. A second gate in the same worktree REFUSES at once, naming the holder's pid: its build would
    otherwise overwrite the binaries between the first gate's legs. Its verdict is `BUSY` (exit 3), neither RED nor
    NOT RUN: it measured nothing and nothing is wrong, so a caller waits for the lock (kb/Work PB3527: the landing read
-   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY or RED).
+   it as a red); `run_gate_legs.read_verdict` is the one reader of a verdict line (GREEN, BUSY, NOT RUN or RED).
+   NOT RUN (exit 2) is a gate that measured nothing, for a cause outside the change, each classified on purpose
+   (`run_gate_legs.NOT_RUN`, kb/Work PB3526): malformed shared gate settings, a driver failure, a population that could
+   not be listed after a GREEN build, and the Linux gate's host with no WSL, Python or SDK; a landing reads it as no red
+   of the branch (exit 2, no BLOCKED line: retried once, a second is the operator's handoff).
 2. A fresh RUN DIRECTORY `TestResults/build-local/<UTC stamp>-<nonce>/`: the plan, every trx, every identity record
    and the verdict file. Nothing is written to a fixed name, so no earlier gate's file can be read as this one's. The
    next gate's reds come from the newest run directory holding a verdict file (its timings from the shared timings
@@ -1881,7 +1885,8 @@ locally at every enqueue and PB1957's local-vs-CI survey lists the filesystem.
    report gains `BLOCKED: enqueue … conflict in <files>`, a `cobol-finisher` resolves); run the ONE local gate on the
    merged head (§3.17.3; exit 5 on a red, the host named; exit 12, never a red, when the gate driver says BUSY: another
    gate holds the worktree's gate lock, nothing ran, and the landing lane retries it once the lock is free, kb/Work
-   PB3527; a commit gated GREEN, or a head that differs from it only
+   PB3527; exit 2, never a red, when a gate is NOT RUN or prints no verdict line: it measured nothing, kb/Work PB3526;
+   a commit gated GREEN, or a head that differs from it only
    by main's commits, clean merges and DEVLOG-only commits — `prune_worktrees.unreviewed_since`, the review's coverage
    rule — is not gated again on a re-run); bring main in AGAIN when it moved during the gate, without a second gate
    (review R1-2, corrected at implementation: the queue merges other pull requests while a branch gates, `queue` takes

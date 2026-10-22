@@ -23,8 +23,11 @@ STATE, all under `<coord>/land-lane/` (the coordination directory, never a workt
                       `=== ENQUEUE: ` verdict, end_head (the tip after it: the run merges main in and stamps the entry),
                       pr (the pull request it queued, from the log's `ENQUEUED pr=` line), `collected` (the enqueue
                       unit handled it) and, on an exit-0 attempt, `watch` (the queue watch's state and each stalled
-                      read). Only the runner writes a running attempt; the tick writes a finished one only to mark it
-                      DIED (its runner is gone with no rc) and to record its queue watch.
+                      read). Several processes write one record, each only ITS fields, through the ONE writer
+                      `update` (it re-reads the record under the record's own lock and changes only the fields named):
+                      the runner (rc, verdict, end_head, pr), the tick (`reap`'s DIED and halted, the queue watch's
+                      `watch`), `launch` (the pid) and the enqueue unit's `collect` (`collected`). A whole-record write
+                      from a copy read earlier undid a concurrent writer's field (kb/Work PB3527 review R1-3).
   survey.json         the last tick's branch survey (prune_worktrees' rows, imported, never re-parsed from its text):
                       what next_unit.py reads to decide whether the enqueue unit has AGENT work.
   rearm/<branch>.json the enqueue unit's re-arm of a branch at its tip (branch, head, why, at): a stop that was resolved
@@ -176,8 +179,24 @@ def by_branch(atts: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     return out
 
 
-def save(rec: dict[str, Any]) -> None:
-    coord.write_json(pathlib.Path(rec["_path"]), {k: v for k, v in rec.items() if k != "_path"})
+def update(rec: dict[str, Any], fields: dict[str, Any] | Callable[[dict[str, Any]], dict[str, Any]]) -> dict[str, Any]:
+    """THE ONE WRITER of an existing attempt record (module doc, STATE). Under the record's own lock it re-reads the
+    record and changes only `fields` (or, given a function, the fields it returns from the FRESH record; {} writes
+    nothing), so no writer undoes another's field: a tick that read the record before its slow survey no longer writes
+    back over the `collected` the enqueue unit set meanwhile (kb/Work PB3527 review R1-3). `rec` is refreshed to what
+    is on disk and returned."""
+    path = pathlib.Path(rec["_path"])
+    with coord.locked(path.parent, f"{path.stem}.lock"):
+        fresh = coord.read_json(path, None)
+        if not isinstance(fresh, dict):
+            fresh = {k: v for k, v in rec.items() if k != "_path"}
+        change = fields(fresh) if callable(fields) else fields
+        if change:
+            fresh.update(change)
+            coord.write_json(path, fresh)
+    rec.clear()
+    rec.update(fresh, _path=str(path))
+    return rec
 
 
 def finished(a: dict[str, Any]) -> bool:
@@ -499,7 +518,8 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
     `row_state`: the branch's survey state (None: no longer surveyed); `pr`: its open pull request (queue_facts), None
     when none is open.
       merged, or in the queue                        the watch ends: the queue has it (a bounce is BOUNCED's, PB3023)
-      a required check FAILED, or the queue removed  the watch ends: BOUNCED, the enqueue unit's finisher (PB3096)
+      a required check FAILED, the queue removed    the watch ends: BOUNCED, the enqueue unit's finisher (PB3096;
+        it, or it conflicts with main (DIRTY)          a conflict is the branch's: no re-run or reopen clears it)
       the head moved past the attempt's              the watch ends: a new push is a new landing, watched afresh
       a required check still running (its job too)  watching: nothing is late yet
       not in the queue, the checks' work ended       a STALLED read once QUEUE_GRACE_MIN have passed since that work
@@ -523,9 +543,10 @@ def watch_step(att: dict[str, Any], row_state: str | None, pr: Any, now: dt.date
         return WatchStep(LEFT, f"pull request #{pr.number}'s head moved to {pr.head[:12]}: a new landing")
     if pr.in_queue:
         return WatchStep(IN_QUEUE, f"pull request #{pr.number} is in the merge queue")
-    if pr.red or pr.bounced:
-        return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({pr.red.name + ' failed' if pr.red else pr.bounced}):"
-                               " the enqueue unit's finisher")
+    if pr.red or pr.conflicts or pr.bounced:
+        why = (f"{pr.red.name} failed" if pr.red else "it conflicts with main: merge state DIRTY" if pr.conflicts
+               else pr.bounced)
+        return WatchStep(LEFT, f"pull request #{pr.number} is BOUNCED ({why}): the enqueue unit's finisher")
     # Running only while its job is SEEN running: a job the jobs API could not read (job_status '') is unknown, and an
     # unknown job must not hold the watch for ever, so its clock falls back to the enqueue, like no check-run at all.
     running = [c for c in pr.checks if not c.resolved and c.job_status not in ("", "completed")]
@@ -651,8 +672,7 @@ def watch_queue(cdir: pathlib.Path, branches: dict[str, list[dict[str, Any]]], r
             say(f"land lane: {branch}: queue watch: {step.why} — {step.act} {'done' if ok else 'FAILED'}: {detail}")
         elif w.get("state") != (att.get("watch") or {}).get("state"):
             say(f"land lane: {branch}: queue watch: {step.why}")
-        att["watch"] = w
-        save(att)
+        update(att, {"watch": w})
 
 
 # ── the tick ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -676,16 +696,14 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | 
             continue
         if alive(a.get("pid")):
             continue
-        fresh = coord.read_json(pathlib.Path(a["_path"]), {})   # the runner writes its rc and then exits
-        if "rc" in fresh:
-            a.update(fresh)
-            continue
         # Its tip now is its end head: a runner that died after `enqueue.py land` committed (main merged in, the stamp)
-        # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it.
-        a.update(outcome="DIED", ended=_now().isoformat(timespec="seconds"),
-                 verdict=last_verdict(pathlib.Path(a["log"])), end_head=tip_of(a.get("worktree")))
-        save(a)
-        say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
+        # leaves the branch IN FLIGHT in the survey, and only this record lets the lane retry it. A runner that wrote
+        # its rc and then exited is not DIED: the fresh record decides, under the record's lock.
+        update(a, lambda fresh: {} if "rc" in fresh else {
+            "outcome": "DIED", "ended": _now().isoformat(timespec="seconds"),
+            "verdict": last_verdict(pathlib.Path(a["log"])), "end_head": tip_of(a.get("worktree"))})
+        if a.get("outcome") == "DIED":
+            say(f"land lane: {a['branch']}: the runner of attempt {a['id']} is gone with no exit code (DIED; {a['log']})")
     for a in atts:
         if finished(a) and a.get("rc") == EXIT_QUEUE_NOT_ACTIVE and not a.get("halted"):
             halt = lane_dir(cdir) / HALT
@@ -699,8 +717,7 @@ def reap(cdir: pathlib.Path, atts: list[dict[str, Any]], alive: Callable[[int | 
                                 f"{a.get('verdict')}. The landing lane starts no landing until the queue is ACTIVE "
                                 "(`python scripts/orchestrator/ruleset.py check`) and the operator runs "
                                 "`python scripts/orchestrator/land_lane.py clear-halt`.", a["log"], say)
-            a["halted"] = True
-            save(a)
+            update(a, {"halted": True})
 
 
 def candidates(rows: list[dict[str, Any]], order: list[str], branches: dict[str, list[dict[str, Any]]],
@@ -742,17 +759,13 @@ def launch(cdir: pathlib.Path, repo: pathlib.Path, row: dict[str, Any], why: str
     rec = {"id": aid, "branch": row["name"], "head": row["tip"], "worktree": row["worktree"], "why": why,
            "argv": argv or [sys.executable, str(HERE / "enqueue.py"), "land", row["name"], "--worktree", row["worktree"]],
            "cwd": str(repo), "log": str(log), "started": now.isoformat(timespec="seconds"), "pid": None,
-           "collected": False, "_path": str(path)}
-    save(rec)
-    rec["pid"] = start([sys.executable, str(pathlib.Path(__file__).resolve()), "run", str(path)], log)
+           "collected": False}
+    coord.write_json(path, rec)   # a new record: no other writer knows its path yet
+    rec["_path"] = str(path)
+    pid = start([sys.executable, str(pathlib.Path(__file__).resolve()), "run", str(path)], log)
     rearm_path(cdir, row["name"]).unlink(missing_ok=True)   # a re-arm buys ONE attempt: this one
-    # The runner may already have finished (a fast refusal) and written its outcome: keep it, add only the pid.
-    current = coord.read_json(path, {})
-    if "rc" in current:
-        rec.update(current)
-        rec["_path"] = str(path)
-    save(rec)
-    return rec
+    # The runner may already have finished (a fast refusal) and written its outcome: `update` keeps it, adding the pid.
+    return update(rec, {"pid": pid})
 
 
 def tick(cdir: pathlib.Path, repo: pathlib.Path, *,
@@ -826,10 +839,9 @@ def run_attempt(path: pathlib.Path) -> int:
     with open(rec["log"], "ab") as log:
         rc = subprocess.run(rec["argv"], cwd=rec.get("cwd") or None, stdin=subprocess.DEVNULL, stdout=log,
                             stderr=subprocess.STDOUT).returncode
-    current = coord.read_json(path, rec)
-    current.update(rc=rc, ended=_now().isoformat(timespec="seconds"), end_head=tip_of(rec.get("worktree")),
-                   verdict=last_verdict(pathlib.Path(rec["log"])), pr=queued_pr(pathlib.Path(rec["log"])))
-    coord.write_json(path, current)
+    current = update({**rec, "_path": str(path)},
+                     {"rc": rc, "ended": _now().isoformat(timespec="seconds"), "end_head": tip_of(rec.get("worktree")),
+                      "verdict": last_verdict(pathlib.Path(rec["log"])), "pr": queued_pr(pathlib.Path(rec["log"]))})
     print(f"land lane: attempt {rec['id']} ended exit {rc}: {current['verdict'] or 'no verdict line'}", flush=True)
     return rc
 
@@ -948,8 +960,7 @@ def collect(cdir: pathlib.Path, branches: list[str], say: Say = print) -> int:
             missing += 1
             continue
         for a in done:
-            a["collected"] = True
-            save(a)
+            update(a, {"collected": True})
         say(f"land lane: {b}: {len(done)} attempt(s) collected")
     return 1 if missing else 0
 
@@ -1018,8 +1029,8 @@ def self_test() -> int:
             """The runner's own completion of the branch's running attempt (the record `run_attempt` writes)."""
             for a in attempts(cdir):
                 if a["branch"] == branch and not finished(a):
-                    a.update(rc=rc, verdict=verdict, ended=_now().isoformat(), end_head=end_head or a["head"])
-                    save(a)
+                    update(a, {"rc": rc, "verdict": verdict, "ended": _now().isoformat(),
+                               "end_head": end_head or a["head"]})
 
         # 1. planted survey rows: exactly the WAITING TO LAND rows start, in survey order; a second tick starts none.
         c = fresh("survey")
@@ -1397,6 +1408,81 @@ def self_test() -> int:
                "requeue (there is no run to re-run); a new head on the pull request ends the watch LEFT",
                noq.act == REQUEUE and noq.cause == NOT_QUEUED
                and watch_step({"end_head": "z1"}, "IN FLIGHT", pr(398, head="z9"), t("19:00")).state == LEFT, str(noq))
+        dirty = watch_step(enq, "IN FLIGHT", dataclasses.replace(pr(396, green_gate), merge_state="DIRTY"), t("19:30"))
+        expect("queue watch: a pull request that conflicts with main (merge state DIRTY), its checks green, ends the "
+               "watch LEFT (BOUNCED, the finisher's) with no remedy: a re-run or a reopen cannot clear a conflict "
+               "(kb/Work PB3527 review R1-5)",
+               dirty.state == LEFT and not dirty.act and "DIRTY" in dirty.why, str(dirty))
+
+        # 12b. ONE WRITER PER FIELD (kb/Work PB3527 review R1-3): the tick reads the attempts before its slow survey (git
+        #      fetch, the GraphQL read, the jobs API); the enqueue unit's `collect` that lands in between is kept, and the
+        #      watch's own field is written beside it. And a runner that writes its rc after reap read the record is
+        #      never marked DIED.
+        c15 = fresh("race")
+        f15 = Fake([row("w15", "WAITING TO LAND", "y0")])
+        f15.tick(c15)
+        finish(c15, "w15", 0, "ENQUEUED", end_head="y1")
+        f15.live.clear()
+        f15.rows = [row("w15", "IN FLIGHT", "y1")]
+        f15.prs, f15.now = {"w15": pr(415, running_gate, head="y1")}, t("18:50")
+        planted = f15.survey
+        f15.survey = lambda repo, cdir: (collect(cdir, ["w15"], say=lambda s: None), planted(repo, cdir))[1]
+        f15.tick(c15)
+        raced = next(a for a in attempts(c15) if a["branch"] == "w15")
+        expect("one writer per field: a `collect` between the tick's read and its queue watch's write is kept (collected "
+               "stays true, nothing asks the enqueue unit again), and the watch's state is written beside it",
+               raced.get("collected") is True and (raced.get("watch") or {}).get("state") == WATCHING
+               and not agent_work(c15, t("18:51")).reasons, f"{raced} {agent_work(c15, t('18:51')).reasons}")
+        f15.survey = planted
+        f15.rows = [row("w15b", "WAITING TO LAND", "x0")]
+        f15.prs = None
+        f15.tick(c15)
+        stale = next(a for a in attempts(c15) if a["branch"] == "w15b")
+        late = next(a for a in attempts(c15) if a["branch"] == "w15b")
+        update(late, {"rc": 0, "verdict": "ENQUEUED", "ended": _now().isoformat(), "end_head": "x1"})
+        reap(c15, [stale], lambda pid: False, say=lambda s: None)
+        expect("one writer per field: a runner that wrote its rc after reap read the record is not marked DIED (the "
+               "fresh record decides, under the record's lock)",
+               "outcome" not in stale and stale.get("rc") == 0
+               and "outcome" not in next(a for a in attempts(c15) if a["branch"] == "w15b"), str(stale))
+
+        # 12c. A HUNG GITHUB CALL NEVER STOPS THE TICK (kb/Work PB3527 review R1-4): the real remedy (enqueue.rerun_check)
+        #      on a gh that gives no answer (real_gh's timeout raises ruleset.Unobserved) is a FAILED read, recorded and
+        #      measured; the tick still launches the branch WAITING TO LAND; the next stalled read escalates.
+        import enqueue  # noqa: PLC0415
+        import ruleset  # noqa: PLC0415
+
+        def silent(args: list[str]) -> tuple[int, str, str]:
+            raise ruleset.Unobserved(f"`gh {' '.join(args[:2])}` gave no answer in 120 s")
+        c16 = fresh("hang")
+        f16 = Fake([row("w16", "WAITING TO LAND", "v0")])
+        f16.tick(c16)
+        finish(c16, "w16", 0, "ENQUEUED", end_head="v1")
+        f16.live.clear()
+        f16.rows = [row("w16", "IN FLIGHT", "v1"), row("w16next", "WAITING TO LAND", "u0")]
+        f16.prs, f16.now = {"w16": pr(416, stuck_gate, head="v1")}, t("18:57")
+        recorded: list[tuple] = []
+        f16.watch_effects = lambda: WatchEffects(
+            rerun=lambda repo, run: enqueue.rerun_check(repo, run, gh=silent),
+            requeue=lambda repo, number: enqueue.requeue(repo, number, gh=silent, state=lambda: (ruleset.ACTIVE, "x")),
+            alert=lambda subject, body, ref: recorded.append(("alert", subject)),
+            measure=lambda number, b, read, cause, act, ok: recorded.append(("measure", number, read, act, ok)))
+        try:
+            launched = f16.tick(c16)
+            hung = None
+        except ruleset.Unobserved as exc:
+            launched, hung = [], exc
+        reads16 = (next(a for a in attempts(c16) if a["branch"] == "w16").get("watch") or {}).get("reads") or []
+        f16.rows = [row("w16", "IN FLIGHT", "v1")]
+        f16.now = t("19:08")
+        f16.tick(c16)
+        reads16b = (next(a for a in attempts(c16) if a["branch"] == "w16").get("watch") or {}).get("reads") or []
+        expect("a remedy GitHub does not answer (gh's timeout) is a FAILED read, recorded and measured, and the tick "
+               "still launches the branch WAITING TO LAND; the next stalled read escalates to the requeue, never "
+               "repeats the re-run",
+               hung is None and launched == ["w16next"] and [r["ok"] for r in reads16] == [False]
+               and "GitHub gave no answer" in reads16[0]["detail"] and ("measure", 416, 1, RERUN, False) in recorded
+               and [r["act"] for r in reads16b] == [RERUN, REQUEUE], f"{hung} {launched} {reads16b} {recorded}")
 
         # 13. a launch opens no window (kb/Work PB3117): the runner OWNS a console with no visible window, so every
         #     console program it starts (enqueue.py, git, pwsh, dotnet) shares it. Under DETACHED_PROCESS the runner has

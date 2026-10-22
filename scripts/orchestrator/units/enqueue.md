@@ -42,7 +42,8 @@ unit keeps the judgment: the reviews, the finishers, the leads, the records and 
      STOPPED too, never WAITING TO LAND, until a new tip or a re-arm (kb/Work PB3125):
      step 4. `UNREVIEWED` (exit 11): the branch's tip is not covered by its CLEAN review stamp (MANDATORY-PRACTICES
      I10): it goes back to step 2's reviewer, never to a finisher and never landed another way. A repeated exit 2 or
-     9 (main kept moving, GitHub refused twice at one head): name it in the handoff with its log.
+     9 (main kept moving, GitHub refused twice at one head, or a gate NOT RUN twice: it measured nothing, an
+     environment no finisher fixes, kb/Work PB3526): name it in the handoff with its log.
    - `RETRY-WHEN-FREE` (exit 3, the landing check's STOP: the branch shares a file with earlier-dispatched,
      INDEPENDENT in-flight work; a branch that descends from it — its successor, its finisher, a carrier that merged
      any head of it — and a worktree with no commit beyond main never stop it, kb/Work PB3381; or exit 12, `GATE BUSY`:
