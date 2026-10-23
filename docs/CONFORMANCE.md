@@ -219,6 +219,23 @@ of an unsupported facility.
   GR arms agree. Written once, in `FigurativeConstants.FillChar` — the compiler's one fill-character
   computation; witnessed by `conformance:cases/8.3.3.2-Alphanumeric-literals/pb425_zero_length_literal_move` (`A-BOOL=[0000]`).
   *(Unrelated to the superseded D-B1 boolean-representation determination in `COBOLNET_DATA_MODEL_DESIGN.md`.)*
+- **D-B3 — the usage of a boolean literal is DISPLAY, so a MOVE of one to a group deposits its '0'/'1' characters**
+  (kb/Work PB3562). A MOVE to an alphanumeric group is §14.9.25.4 GR4's "alphanumeric to alphanumeric elementary
+  move, except that there is no conversion of data from one form of internal representation to another", so the
+  sender's representation, and therefore its usage, decides the bytes deposited. A boolean *function* has a stated
+  usage — §15.2 2) "Boolean functions have an implicit usage bit", §15.13.4 1) "a boolean item of usage bit" — and so
+  does a national literal (§8.3.3.5.4 GR3 a), "usage NATIONAL"), so each deposits its own representation (packed bits,
+  UTF-16BE pairs: `MOVE FUNCTION BOOLEAN-OF-INTEGER(102 8) TO G` deposits the one byte X"66"). A boolean *literal* has no
+  stated usage: §8.3.3.4.4 GR3 gives only its value, "the sequence of occurrences of boolean-character-1". WiseOwl
+  COBOL reads it as what it is written with, the characters '0' and '1' "from the computer's coded character set"
+  (§8.3.3.4.3 SR2): usage DISPLAY, one byte a position, so `MOVE B"01100110" TO G` deposits the eight characters
+  01100110. That is the answer the compiler's one static-usage reader (`IntrinsicArgumentRules.StaticUsageOf`) already
+  gave every argument screen (a boolean literal passes CONCAT's display-usage screen), and the same usage a boolean
+  item written without USAGE BIT has (§13.18.60.4 GR7); the alternative, packing the literal as bits, would make one
+  literal two usages. A zero-length boolean literal is not affected: GR3 makes it the figurative ZERO before the sender
+  is asked. Written once, in `OperandText.NonElementaryMoveSender`, which every group-move sender channel (MOVE, an
+  implicit MOVE such as WRITE FROM, a CALL / INVOKE argument into a group formal) reads;
+  witnessed by `conformance:wiseowl/cases/14.9.25-MOVE/pb3562_boolean_literal_group_move`.
 - **D-DL1 — §14.9.20.4 GR7's length-zeroing is the GR6c arm's rule, not a post-pass over all three
   sending-operand arms** (2026-09-20; kb/Work PB418 + PB415, rows `GR-14.9.20.4-7` and `SR-14.9.20.3-8`).
   GR7 is printed without a condition — *"When a dynamic-length elementary item is initialized, its length is

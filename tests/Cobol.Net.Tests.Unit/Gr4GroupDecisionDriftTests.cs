@@ -19,6 +19,7 @@ namespace CobolNet.Tests.Unit;
 /// source produces it, and the next arm added to either switch would inherit it. These assert the SHAPE
 /// (feedback_two_arm_dispatch; CLAUDE.md rule 5 — pair the structure with a drift test).
 /// </summary>
+[Trait("Sweep", "tree")]
 public sealed class Gr4GroupDecisionDriftTests
 {
     private static string Classifier() => StripComments(File.ReadAllText(
@@ -68,6 +69,54 @@ public sealed class Gr4GroupDecisionDriftTests
         Assert.True(body.Success, $"MoveEmitter.{method} is no longer recognizable");
         Assert.Contains("OperandText.NonElementaryMoveSender", body.Groups["b"].Value);
         Assert.DoesNotContain("OperandText.AsString", body.Groups["b"].Value);
+    }
+
+    private static string Src(params string[] path) => StripComments(File.ReadAllText(TestRepo.Src(path)));
+
+    /// <summary>⛔ A SENDER WHOSE USAGE HAS A REPRESENTATION OF ITS OWN SENDS THAT REPRESENTATION, NEVER ITS OPERAND TEXT
+    /// (kb/Work PB3562). <c>NonElementaryMoveSender</c>'s non-field arm answers by the sender's usage, read through the one
+    /// static-usage reader: national through <c>NatBytes</c> (UTF-16BE pairs), bit through <c>BitsPackAll</c> (packed bits) - the two usages whose storage image
+    /// is not the '0'/'1' or one-character-a-position text <c>AsString</c> renders. A literal or function value that took the
+    /// bare <c>AsString</c> arm deposited that text into a group (`MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G` stored
+    /// 00110001), and the failure is silent for every DISPLAY-form sender, where the two readers agree.</summary>
+    [Fact]
+    public void NonElementaryMoveSender_NationalAndBooleanValues_SendTheirRepresentation()
+    {
+        string src = Src("Cobol.Net.Compiler", "CodeGen", "Emit", "OperandText.cs");
+        var body = Regex.Match(src, @"public\s+static\s+string\s+NonElementaryMoveSender\s*\([^)]*\)(?<b>.*?)\n    \};",
+            RegexOptions.Singleline);
+        Assert.True(body.Success, "OperandText.NonElementaryMoveSender is no longer recognizable");
+        Assert.Contains("IntrinsicArgumentRules.StaticUsageOf(op)", body.Groups["b"].Value);
+        Assert.Matches(@"Usage\.National\s*=>\s*RuntimeApi\.NatBytes\(", body.Groups["b"].Value);
+        Assert.Matches(@"Usage\.Bit\s*=>\s*RuntimeApi\.BitsPackAll\(", body.Groups["b"].Value);
+    }
+
+    /// <summary>The temporary that stands for a boolean function's returned value has usage BIT (ISO §15.13.4 1), §15.2 2)),
+    /// so the storage image of a MOVE's sender (<c>OperandText.AsStorageImage</c>) is its packed bits (kb/Work PB3562).
+    /// <c>CharacterUsage</c> answered DISPLAY for it, and the group move copied the carrier text.</summary>
+    [Fact]
+    public void SendingValueTemp_BooleanFunctionResult_HasUsageBit()
+    {
+        string src = Src("Cobol.Net.Compiler", "Binding", "Procedure", "SendingValueTemp.cs");
+        var body = Regex.Match(src, @"private\s+static\s+Usage\s+CharacterUsage\s*\([^)]*\)(?<b>.*?)\n    \};",
+            RegexOptions.Singleline);
+        Assert.True(body.Success, "SendingValueTemp.CharacterUsage is no longer recognizable");
+        Assert.Matches(@"PicCategory\.Boolean\s*=>\s*Usage\.Bit", body.Groups["b"].Value);
+        Assert.Matches(@"PicCategory\.National\s*=>\s*Usage\.National", body.Groups["b"].Value);
+    }
+
+    /// <summary>The CALL and INVOKE boundaries into a KNOWN plain-group formal are the same unconverted move (kb/Work PB3562),
+    /// so they read the sender through the one codec, <c>NonElementaryMoveSender</c>, not <c>AsString</c> /
+    /// <c>CallContentRead</c> alone.</summary>
+    [Theory]
+    [InlineData("Verbs", "CallEmitter.cs", "GroupFormal(a)")]
+    [InlineData("Verbs", "OoEmitter.cs", "CallEmitter.IsPlainGroupFormal(a.Formal)")]
+    public void GroupFormalCrossings_ReadTheSenderThroughTheOneRepresentationCodec(string dir, string file, string guard)
+    {
+        string src = Src("Cobol.Net.Compiler", "CodeGen", dir, file);
+        Assert.Contains(guard, src);
+        Assert.Contains("OperandText.CarrierDiffersFromStorage", src);
+        Assert.Contains("OperandText.NonElementaryMoveSender", src);
     }
 
     /// <summary>Comment-stripped source, so a mechanism DISCUSSED in prose (these files discuss this one at
