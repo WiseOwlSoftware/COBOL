@@ -6,6 +6,11 @@
 # (tier 0c), the drift tests that govern a changed file (tier 0d) and the cheapest cases the change reaches — then
 # checks that population and prints
 # `=== BUILD-LOCAL GATE: … ===`.
+# ⛔ THE GATE OUTLIVES THIS COMMAND (kb/Work PB3536; DESIGN-test-build-ci.md §3.14.12): the driver starts the gate
+# DETACHED in its run directory (`TestResults/build-local/<run>/`: gate.log, gate.pid, verdict.json) and follows it, so
+# a caller killed mid-gate (a workflow agent's return) leaves it running to its verdict, which
+# `python scripts/run_gate_legs.py --await <run>` reads; and a re-gate of an unchanged tree answers from the recorded
+# GREEN (`… GREEN — REUSED: …`), running nothing.
 # ⛔ ONE GATE, ONE SHAPE (owner 2026-10-11, kb/Work PB3015/PB3022): there is no mode. Every gate — an implementer's, a
 # re-gate after a fix, a landing's — is the ordered leg 1, FAIL-FAST, inside a gate slot (the shared cap, 3 by default,
 # `gate_slot.py set-cap`, kb/Work PB2514); its verdict line says `LEG 1 ONLY (batched gating, PB2515)`. CI's
