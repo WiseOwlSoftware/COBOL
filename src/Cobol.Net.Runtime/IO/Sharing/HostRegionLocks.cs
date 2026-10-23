@@ -143,6 +143,14 @@ internal static class HostRegionLocks
     /// anything in, costs one host question per statement (kb/Work PB2660).</summary>
     internal const long LockPresenceByte = RegionBase + 0x101;
 
+    /// <summary>⭐ The sequential journal's ENTRY MUTEX (docs/rearchitecture/DESIGN-runtime-library.md 2.2.2.4; kb/Work PB3340):
+    /// held exclusively, one per physical file, for every writable OPEN of a sequential file, every DELETE FILE, a covered
+    /// connector's first change, every capture and every rollback, so no transaction begins on the file between another's
+    /// lock test and its journal header. ⛔ Held through <see cref="SidecarRegionLocks"/> on EVERY host
+    /// (<see cref="SidecarRegionLocks.WithoutHandle"/>), never through a handle on the file: the file it guards may not exist
+    /// (a creation's first change precedes it, a DELETE FILE removes it).</summary>
+    internal const long EntryMutexByte = RegionBase + 0x102;
+
     /// <summary>The first byte of the record-lock region; a record's byte is <see cref="RecordLockByte"/>.</summary>
     private const long RecordRegionBase = RegionBase + (1L << 60);
 
