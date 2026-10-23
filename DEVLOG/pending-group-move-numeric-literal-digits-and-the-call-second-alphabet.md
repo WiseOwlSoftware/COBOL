@@ -8,7 +8,7 @@ form of internal representation to another") needs.
 `-4.`: PB1113's determination was that a numeric literal sent to a group stores its characters, sign included, while an elementary
 `PIC X` receiver already dropped the sign by GR6 a). The standard gives a literal no representation to preserve; rule 1's precedence
 (ISO, then GnuCOBOL) picks GnuCOBOL's literal data, the digits without sign or decimal point. Fix: one arm in `NonElementaryMoveSender`
-for `BoundNumericLiteral { FunctionValue: false }` (`LiteralDigits`, over `NumericLiteral.TryUnscaledParts`, so `1.5E+3` sends 1500).
+for `BoundNumericLiteral { FunctionValue: false }` (`LiteralDigits`; a floating-point literal sends the digits of its significand as written, `1.5E+3` sends 15 as cobc 3.2.0 does. The first landing expanded the exponent through `NumericLiteral.TryUnscaledParts` and sent 1500; branch review R1-1 measured the divergence from GnuCOBOL, and the fix drops that call, which also ends the text expansion of `1.0E+6144`, with `pb3570_floating_literal_group_move` and a `1.5E+3` leg in each lane of `pb3570_numeric_literal_group_formal`).
 The CALL lane's known-group-formal literal arm (it spelled `CsLiteral(n.Text)` itself) and the INVOKE lane (whose binder handed a numeric
 literal to a group formal through the string channel) now read the same arm; the INVOKE binder uses the numeric channel for every formal.
 D-B4 in `docs/CONFORMANCE.md` records the determination. A numeric FUNCTION value sent to a group keeps its signed rendering (separate
