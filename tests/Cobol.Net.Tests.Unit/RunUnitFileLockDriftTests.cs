@@ -56,8 +56,8 @@ public sealed class RunUnitFileLockDriftTests
                 $"The first run unit's OPEN answered '{runUnit1.Status("A")}' — the second one cannot be measured.");
 
             FileHarness.Open(runUnit2, "B", mb);
-            var existing = (sa ?? FileRegistry.ImplementorDefaultSharing(ma), ma);
-            var request = (sb ?? FileRegistry.ImplementorDefaultSharing(mb), mb);
+            var existing = (sa ?? FileRegistry.ImplementorDefaultSharing(ma, 2023), ma);
+            var request = (sb ?? FileRegistry.ImplementorDefaultSharing(mb, 2023), mb);
             bool refused = Table19.Conflicts(request, existing);
             string got = runUnit2.Status("B");
             if (refused)
