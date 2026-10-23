@@ -52,10 +52,29 @@ internal readonly record struct RewriteImage(long Ordinal, long Offset, byte[] B
 internal readonly record struct JournalCapture(CaptureKind Kind, long Length);
 
 /// <summary>What a transaction's record says, as <see cref="SequentialJournal.Parse"/> reads it: its header and every whole
-/// record before the first torn one (2.2.2.4).</summary>
-internal sealed record JournalContent(ulong Id, JournalStart Start, long? CommittedLength, IReadOnlyList<RewriteImage> Images,
-    JournalCapture? Capture, JournalDecision Decision)
+/// record before the first torn one (2.2.2.4). A class, not a record: it is read, never compared, and the ordinal set a lock
+/// test builds on demand is no part of what it says.</summary>
+internal sealed class JournalContent(ulong id, JournalStart start, long? committedLength, IReadOnlyList<RewriteImage> images,
+    JournalCapture? capture, JournalDecision decision)
 {
+    /// <summary>The transaction id the header carries.</summary>
+    internal ulong Id { get; } = id;
+
+    /// <summary>The header's START.</summary>
+    internal JournalStart Start { get; } = start;
+
+    /// <summary>The committed length L (the record <c>L</c>), or null when the transaction never appended.</summary>
+    internal long? CommittedLength { get; } = committedLength;
+
+    /// <summary>The first image of each record the transaction rewrote in its BASE phase (the records <c>R</c>).</summary>
+    internal IReadOnlyList<RewriteImage> Images { get; } = images;
+
+    /// <summary>The capture (the record <c>K</c>), or null.</summary>
+    internal JournalCapture? Capture { get; } = capture;
+
+    /// <summary>The decision: the last whole record <c>D</c>, <see cref="JournalDecision.Open"/> when there is none.</summary>
+    internal JournalDecision Decision { get; } = decision;
+
     /// <summary>Is the file REPLACED (2.2.2.2): created by the transaction, or captured?</summary>
     internal bool Replaced => Start == JournalStart.Absent || Capture is not null;
 
@@ -150,9 +169,10 @@ internal sealed class RestoreTarget(IHostMedium medium, string hostPath) : Journ
 /// first change, R2 a rewritten record's image synced before the overwrite, R3 the committed length synced before the first
 /// append and nothing for a later one, R4 the capture's order (the before file, its sync, the directory's, then the
 /// <c>K</c> record and its sync, and only then the truncation or removal), R5 a refused sync of a handed-over record fatal —
-/// COMMIT's three regions (2.2.2.6), the idempotent ROLLBACK (2.2.2.7) and the settle the next entry runs (2.2.2.8). Every
-/// method that changes the medium is called with the ENTRY MUTEX held (<see cref="EntryMutex"/>) except the record appends of
-/// R2 and R3, which only the owner makes.</para>
+/// COMMIT's three regions (2.2.2.6), the idempotent ROLLBACK (2.2.2.7) and the settle the next entry runs (2.2.2.8). The
+/// caller holds the ENTRY MUTEX (<see cref="EntryMutex"/>) for <see cref="Begin"/>, <see cref="Capture"/>, a ROLLBACK and every
+/// entry step; the owner's own record writes — R2's and R3's, and a COMMIT's decision — need none, since only the owner
+/// writes its record while its holder lives.</para>
 /// <para><b>The record's format</b> (little-endian): a 24-byte HEADER — magic <c>WOLJ</c>, format 1 (2), the START (1), zero (1),
 /// the transaction id (8), zero (4), and the CRC-32C of the 20 bytes before it (4) — then RECORDS, each its kind, its payload and
 /// the CRC-32C of the two (4): <c>L</c> the committed length (8); <c>R</c> the ordinal (8), the offset (8), the length (4) and the
