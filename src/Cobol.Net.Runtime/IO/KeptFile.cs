@@ -26,10 +26,25 @@ internal sealed record KeptHandle(FileStream Stream, SafeFileHandle Handle, Regi
 /// own (<c>FileConnector.TakeKeptFileLockOver</c>, put back by <c>TryRestoreKeptFileLock</c> when the re-OPEN is
 /// unsuccessful); and the <see cref="Endpoint"/> the record locks (§14.9.6.4 GR9) are published through and are its to find:
 /// the CLOSE's, or the one a retake took, which stays named when the <see cref="Handle"/> is given back.</para>
+/// <para>⛔ <see cref="Identity"/> is the host's identity of the physical file the CLOSE kept it on (kb/Work PB3533), taken from the
+/// CLOSE's handle: the path alone cannot tell that file from another one made at the same path once it is removed or renamed away
+/// outside the run unit (<see cref="IsOfTheFileAt"/>).</para>
 /// </summary>
 internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLock? FileLock, RegionLocks Endpoint,
-    string HostPath, PhysicalFileTable.State? Physical, KeyedStore Store, StoreTable? Table, RestoringTreesFactory Restoring)
+    string HostPath, PhysicalFileIdentity? Identity, PhysicalFileTable.State? Physical, KeyedStore Store, StoreTable? Table,
+    RestoringTreesFactory Restoring)
 {
+    /// <summary>⛔ WHETHER <paramref name="hostPath"/> NAMES THE PHYSICAL FILE THIS STATE WAS KEPT ON, NOW (kb/Work PB3533): the same
+    /// path (<see cref="HostFile.PhysicalFileComparer"/>) and, where the host can tell, the same file
+    /// (<see cref="HostFile.IdentityAt"/>) — false for a file made at the path after the kept one was removed or renamed away outside
+    /// the run unit, which a host that unlinks a file under an open handle (Linux) permits whatever the kept handle's share mode.
+    /// The kept file's identity cannot pass to the new one meanwhile: the kept handle, or the descriptor of the column lock kept
+    /// with it, keeps the kept file alive. Where the host cannot tell (no identity, or a path that names nothing), the path
+    /// decides.</summary>
+    internal bool IsOfTheFileAt(string hostPath) =>
+        HostFile.PhysicalFileComparer.Equals(HostPath, hostPath)
+        && (Identity is not { } kept || HostFile.IdentityAt(hostPath) is not { } now || now == kept);
+
     /// <summary>The run unit's transaction on the physical file, 0 while none.</summary>
     internal ulong OpenTransaction => Store.Transaction;
 
@@ -78,7 +93,7 @@ internal sealed record KeptFile(KeptHandle? Handle, bool Adopted, RunUnitFileLoc
         finally
         {
             try { FileLock?.Dispose(); }
-            finally { Table?.Detach(HostPath); }
+            finally { Table?.Detach(HostPath, Store); }
         }
     }
 }
