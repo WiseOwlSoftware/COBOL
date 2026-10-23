@@ -1187,12 +1187,18 @@ public sealed class SequentialConnector : FileConnector
     {
         // Both handles go whatever either disposal throws: a writer whose final flush is refused would otherwise
         // leave the reader held — a file lock no COBOL statement can remove (kb/Work PB771's reason for this
-        // member) — and FileConnector.Open reports the refusal as nothing more than the OPEN's own status.
-        try { _reader?.Dispose(); }
+        // member) — and FileConnector.Open reports the refusal as nothing more than the OPEN's own status. The region
+        // endpoint goes FIRST, while the handle it holds its bytes through is still open (HandleRegionLocks: a byte is
+        // never left to the handle's close; kb/Work PB3549).
+        try { GiveUpRegions(); }
         finally
         {
-            try { _writer?.Dispose(); }
-            finally { _reader = null; _writer = null; GiveUpRegions(); }
+            try { _reader?.Dispose(); }
+            finally
+            {
+                try { _writer?.Dispose(); }
+                finally { _reader = null; _writer = null; }
+            }
         }
     }
 
@@ -1234,18 +1240,30 @@ public sealed class SequentialConnector : FileConnector
             // An unterminated line — an AFTER write's record — is ended here; a line some travel already ended
             // gets nothing (kb/Work PB864).
             if (_device != DeviceLine.Fresh) { _writer?.Write(_lineEnd); _device = DeviceLine.Fresh; }
-            _reader?.Dispose();
-            _writer?.Dispose();   // a flush failure here maps to '30' on FileConnector.Close (§9.1.13.6 item 1)
+            _writer?.Flush();   // the records land before the bytes that guard them are given back; a refusal maps to '30' (§9.1.13.6 item 1)
         }
         finally
         {
-            // Whatever the outcome, the streams never survive the CLOSE — a stale disposed _writer after a
-            // reopen-for-INPUT would take the WRITE arms (kb/Work PB140). OptionalAbsent (the FPI's "not
+            // The region endpoint goes FIRST, every byte it holds unlocked while the handle is still open (HandleRegionLocks:
+            // never left to the handle's close, which a fork's copy of the descriptor outlives; kb/Work PB3549); §9.1.15, the
+            // CLOSE removes the file lock. Whatever the outcome, the streams never survive the CLOSE — a stale disposed
+            // _writer after a reopen-for-INPUT would take the WRITE arms (kb/Work PB140). OptionalAbsent (the FPI's "not
             // present" state) DOES survive — §14.9.6.4 GR6; the next OPEN resets it.
-            _reader = null;
-            _writer = null;
-            GiveUpRegions();   // its locks went with it (§9.1.15: the CLOSE removes the file lock)
-            EndLinagePage();   // …and neither does the logical page — see EndLinagePage
+            try { GiveUpRegions(); }
+            finally
+            {
+                try
+                {
+                    _reader?.Dispose();
+                    _writer?.Dispose();   // a flush failure here maps to '30' on FileConnector.Close (§9.1.13.6 item 1)
+                }
+                finally
+                {
+                    _reader = null;
+                    _writer = null;
+                    EndLinagePage();   // …and neither does the logical page — see EndLinagePage
+                }
+            }
         }
         ModeKnown = false;   // §9.1.4 — after a successful CLOSE the file is in no open mode
         return FileStatusCode.Success;
