@@ -1,0 +1,8 @@
+L1 G1=[AB] X=[B] B=[0]
+L2 B=[1] X=[B] ORD=194,67
+L3 W2=194,67 G3=194,67 B=[1]
+L3 group equal
+L3 literal different
+L4 B1=[01] Y=[A] B2=[11] Z=[B] ORD=127,66,255,67
+L5 ORD=63,33,63,33
+L6 X=[A] B=[111] ORD=255
