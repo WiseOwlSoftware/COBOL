@@ -82,9 +82,10 @@ public sealed class FloatLandingModeDriftTests
     /// holding the IDENTICAL binary64 gave 3.464101615, which §15.4.1 forbids ("the returned value is the same
     /// for all instances of a given function within a single execution of the runtime element so long as the
     /// value and order of the arguments, the collating sequence, and the locale are unchanged").
-    /// <para>The alternative — guard digits, the way <c>Divide</c>'s nested arm carries them — is what this
+    /// <para>The alternative — guard digits, as <c>Divide</c>'s nested arm carries them — is what this
     /// invariant exists to REFUSE: a landing has no bound on how many multiplications sit above it, so a guarded
-    /// scale accumulates until the Int128 carrier wraps (two scale-23 operands multiply to scale 46). Keeping the
+    /// scale accumulates until the Int128 carrier wraps (two scale-23 operands multiply to scale 46). <c>Divide</c>
+    /// adds its guard to its operands' precision and decides its lane from a digit bound (kb/Work PB3538). Keeping the
     /// binary64 is the shape that has no tuning constant in it at all.</para>
     /// </summary>
     [Theory]

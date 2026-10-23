@@ -45,7 +45,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// signed <see cref="Int128"/> the other lift takes (kb/Work PB2918): §8.8.1.5.2 r1 rounds it to 34 digits under
     /// <paramref name="mode"/> exactly as it does a signed one.</summary>
     public static CobolDec FromUnsigned(UInt128 magnitude, int scale, CobolRounding mode) =>
-        magnitude == 0 ? new CobolDec(0, 0) : Round34Wide(0, magnitude, negative: false, -scale, mode);
+        Round34Wide(0, magnitude, negative: false, -scale, mode);
 
     /// <summary>FUNCTION E under a standard arithmetic mode — the EXACT §15.27.3 r3 value
     /// (2.718281828459045235360287471352662, the full 34-digit SDIDI significand; kb/Work R18). The compiler
@@ -149,7 +149,6 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// (an unsigned 16-byte dividend, or a float past 1.7E+38) is as exact here as 7.</summary>
     public static CobolDec SubsidiaryQuotient(CobolDec quotient, int scale, int digits)
     {
-        if (quotient.Sig == 0) return new CobolDec(0, 0);
         Int128 sig = quotient.Sig;
         int exp = quotient.Exp;
         int e = exp + scale;                                    // the decimal places between the quotient's last digit and the scale
@@ -161,10 +160,12 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         }
         if (digits > 0 && digits <= 38)
         {
-            if (e >= digits) return new CobolDec(0, 0);         // every kept digit lies below the first nonzero one
+            if (e >= digits) return Zero(-(long)scale);         // every kept digit lies below the first nonzero one
             sig %= Pow10.AsWide(digits - e);                    // (sig × 10^e) mod 10^digits, sign preserved
         }
-        return sig == 0 ? new CobolDec(0, 0) : new CobolDec(sig, exp);
+        // A ZERO subsidiary quotient has "the same decimal point location as the data item referenced by identifier-3":
+        // it is held at the receiver's scale, never at exponent 0 (kb/Work PB3538 review finding R5-1).
+        return sig == 0 ? Zero(-(long)scale) : new CobolDec(sig, exp);
     }
 
     /// <summary>The multiplicative identity (the §8.8.1.5.4 r1/r3 constant 1).</summary>
@@ -193,7 +194,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
             if (e.Sig <= 0)
                 throw new CobolSizeError("exponentiation of zero with a non-positive exponent "
                     + "(ISO §8.8.1.2 r6a / §8.8.1.5.4 r4)", "EC-SIZE-EXPONENTIATION");
-            return new CobolDec(0, 0);
+            return eInt ? ZeroPower(b, eBoundProbe) : Zero(0);   // a non-integer power is a transcendental, never formed here
         }
         if (e.Sig == 0) return One;                              // §8.8.1.5.4 r1: b ** 0 = 1 (b ≠ 0)
         if (b.Sig < 0 && !eInt)
@@ -557,6 +558,27 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         return sig == 1 && exp == 0;
     }
 
+    /// <summary>The value's FRACTION DIGITS: the decimal places <paramref name="value"/> is HELD at, <c>-Exp</c> (0 for an
+    /// exponent of 0 or more). ⛔ THE WRITTEN OR DECLARED SCALE, NEVER A COUNT THAT DEPENDS ON THE VALUE (kb/Work PB3538 review
+    /// findings R3-1 and R4-1; numeric design D2; CONFORMANCE.md DOC-A.1-123). An operand lifted EXACTLY keeps the scale it
+    /// was written or declared at: a floating-point literal its significand's places less its exponent (`2.50E0` is
+    /// 250 × 10^-2, so 2, the 2 of `2.50` and of a <c>PIC 9V99</c> item; `1.0E-15` has the 16 of `0.0000000000000010`), a
+    /// NUMVAL-family value its argument's written places (`NUMVAL ("2.50")` has 2), an item lifted to the SDIDI its
+    /// declared scale. A value an operation formed (a function's returned value, a power formed on the SDIDI) has the places
+    /// its result is held at: an exact sum or product keeps its operands' (the larger, the sum), a ZERO operand's places
+    /// included and a zero result's too (<see cref="Zero"/>: `0.000 + 2.5` has 3, as `0.001 + 2.5` has; R5-1), and a
+    /// result the SDIDI rounded holds its 34 significant digits. It is the precision a NESTED native quotient gives an SDIDI operand whose
+    /// precision the compiler cannot know (<see cref="CobolDecWithPrecision.Own"/>), and the compiler computes the same for
+    /// a floating-point literal. Counting the value's SIGNIFICANT fraction digits instead dropped a trailing zero, so
+    /// `2.50E0` and `NUMVAL ("2.50")` had 1 where `2.50` has 2, and a quotient over them was truncated one place sooner
+    /// (R4-1). A significand the SDIDI has rounded has at most 34 digits, so the precision ends at most 33 places past the
+    /// leading digit: it is bounded by the significand, never by the expression's depth.</summary>
+    public static int FractionDigits(CobolDec value) => value.Exp < 0 ? -value.Exp : 0;
+
+    /// <summary>The negation of <paramref name="value"/>, its operand evaluated once (the renderer spelled it
+    /// <c>new CobolDec(-(x).Sig, (x).Exp)</c>, which evaluated the operand expression twice).</summary>
+    public static CobolDec Negate(CobolDec value) => new(-value.Sig, value.Exp);
+
     public static CobolDec Add(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: false, mode);
 
     public static CobolDec Sub(CobolDec a, CobolDec b, CobolRounding mode) => AddSigned(a, b, negateB: true, mode);
@@ -564,8 +586,21 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static CobolDec AddSigned(CobolDec a, CobolDec b, bool negateB, CobolRounding mode)
     {
         Int128 bSig = negateB ? -b.Sig : b.Sig;
-        if (a.Sig == 0) return Round34(bSig, b.Exp, sticky: false, mode);
-        if (bSig == 0) return Round34(a.Sig, a.Exp, sticky: false, mode);
+        if (a.Sig == 0 || bSig == 0)
+        {
+            // ⛔ A ZERO OPERAND CARRIES ITS PLACES LIKE ANY OTHER VALUE (kb/Work PB3538 review finding R5-1). The exact sum
+            // is the other operand, and ISO/IEC 60559 5.4.1 (ISO §8.8.1.5.3) holds an exact sum at the PREFERRED EXPONENT,
+            // the smaller of the two: `0.000 + 2.5` is 2.500, as `0.001 + 2.5` is 2.501. Returning the other operand at its
+            // own exponent made the places a sum is held at depend on whether an operand's VALUE was zero.
+            (Int128 sig, int exp) = a.Sig == 0 ? (bSig, b.Exp) : (a.Sig, a.Exp);
+            int preferred = Math.Min(a.Exp, b.Exp);
+            if (sig == 0) return Zero(preferred);
+            // The exponent moves toward the preferred one as far as the 34-digit significand holds — exact, since only
+            // zeros are appended: the representation of the exact sum nearest the preferred exponent.
+            int down = Math.Min(exp - preferred, 34 - DigitCount(Int128.Abs(sig)));
+            if (down > 0) { sig *= Pow10.AsWide(down); exp -= down; }
+            return Round34(sig, exp, sticky: false, mode);
+        }
 
         // Align to the smaller exponent. Shift the higher-exponent significand UP while it fits the wide scratch
         // (38 digits); if the gap is larger, shift the LOWER one DOWN and account for its dropped tail — which has
@@ -799,7 +834,9 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private static CobolDec Div(CobolDec a, CobolDec b, CobolRounding mode, bool jam)
     {
         if (b.Sig == 0) throw CobolSizeError.ZeroDivide();
-        if (a.Sig == 0) return new CobolDec(0, 0);
+        // A zero dividend's exact quotient is zero at ISO/IEC 60559 5.4.1's preferred exponent for a division, the
+        // dividend's less the divisor's (ISO §8.8.1.5.3; kb/Work PB3538 review finding R5-1), never at exponent 0.
+        if (a.Sig == 0) return Zero((long)a.Exp - b.Exp);
         bool negative = (a.Sig < 0) ^ (b.Sig < 0);
         UInt128 den = UAbs(b.Sig);
 
@@ -808,23 +845,87 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
         // a short numerator over a long denominator wants scaleUp = 34 + digits(den) − digits(num) + 1, up to 73
         // for a 1-digit numerator and a 38-digit denominator. The multiplier used to be CAPPED at 10^38 while the
         // result exponent still subtracted the UNCAPPED scaleUp, so `100000 / 123456789012345678901234567890`
-        // (scaleUp 59) answered 0 under STANDARD-DECIMAL where 8.1E-25 is owed — wrong by 10^(scaleUp − 38). The
-        // scale is applied in two exact steps: first inside the numerator's own Int128 headroom
-        // (k = 38 − digits(num), exact), then the remainder through the 256-bit product — which is at most 10^36
-        // (scaleUp − k = digits(den) − 3 ≤ 36 for a ≤39-digit divisor), so the second factor always fits.
+        // (scaleUp 59) answered 0 under STANDARD-DECIMAL where 8.1E-25 is owed — wrong by 10^(scaleUp − 38).
+        // ScaledQuotient applies it in full, in two exact steps.
         UInt128 num = UAbs(a.Sig);
-        int scaleUp = Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
-        // ⛔ A 39-DIGIT NUMERATOR HAS NO HEADROOM (kb/Work PB2633 - found when Pow10.AsWide stopped answering 1 for -1):
-        // an Int128 significand reaches 1.7E+38, so 38 - digits(num) is -1 there, and `AsWide(-1)` multiplied by 1
-        // while the second factor below still counted that -1 as an extra step, scaling the quotient 10 times too
-        // far. The first step is clamped to zero; the second then carries the whole pre-scale (≤ 36 for a ≤39-digit divisor).
-        int k = Math.Max(0, Math.Min(scaleUp, 38 - DigitCount(num)));
-        num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38 (k = 0 above it)
-        var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(scaleUp - k));   // scaleUp − k ≤ 36
-        var (q, rem) = DivRem256(hi, lo, den);
+        int scaleUp = PreScale(num, den);
+        var (q, rem) = ScaledQuotient(num, scaleUp, den);
 
         // q < 10^37 by construction → fits Int128. Round to 34 digits, folding the division remainder into sticky.
         return Round34Wide(0, q, negative, a.Exp - scaleUp - b.Exp, mode, extraSticky: rem != 0, jam: jam);
+    }
+
+    /// <summary>The pre-scale <see cref="Div"/> gives the numerator so the integer quotient has 34–36 significant
+    /// digits.</summary>
+    private static int PreScale(UInt128 num, UInt128 den) => Math.Max(0, 34 + DigitCount(den) - DigitCount(num) + 1);
+
+    /// <summary>The integer quotient and remainder of <paramref name="num"/> × 10^<paramref name="up"/> by
+    /// <paramref name="den"/>, for any <paramref name="up"/> from 0 to <see cref="PreScale"/>'s (the quotient then has at
+    /// most 36 digits, inside <see cref="DivRem256"/>'s precondition).</summary>
+    private static (UInt128 Quotient, UInt128 Remainder) ScaledQuotient(UInt128 num, int up, UInt128 den)
+    {
+        // The scale is applied in two exact steps: first inside the numerator's own Int128 headroom
+        // (k = 38 − digits(num), exact), then the remainder through the 256-bit product — which is at most 10^36
+        // (up − k ≤ digits(den) − 3 ≤ 36 for a ≤39-digit divisor), so the second factor always fits.
+        // ⛔ A 39-DIGIT NUMERATOR HAS NO HEADROOM (kb/Work PB2633 - found when Pow10.AsWide stopped answering 1 for -1):
+        // an Int128 significand reaches 1.7E+38, so 38 - digits(num) is -1 there, and `AsWide(-1)` multiplied by 1
+        // while the second factor below still counted that -1 as an extra step, scaling the quotient 10 times too
+        // far. The first step is clamped to zero; the second then carries the whole pre-scale.
+        int k = Math.Max(0, Math.Min(up, 38 - DigitCount(num)));
+        num *= (UInt128)Pow10.AsWide(k);                                    // exact — digits(num) + k ≤ 38 (k = 0 above it)
+        var (hi, lo) = Mul128(num, (UInt128)Pow10.AsWide(up - k));         // up − k ≤ 36
+        return DivRem256(hi, lo, den);
+    }
+
+    /// <summary>⛔ A NESTED NATIVE QUOTIENT ON THE SDIDI (kb/Work PB3538 review finding R2-1; CONFORMANCE.md DOC-A.1-123):
+    /// the quotient TRUNCATED at <paramref name="scale"/> fraction digits — the one rule a nested native quotient has on
+    /// every lane (the scaled <c>CobolNum.Divide</c> at that scale, <see cref="CobolWide.DivTruncated"/>) — then held to
+    /// the SDIDI's 34 significant digits by ROUND-TO-ODD (<see cref="MulToOdd"/>'s reduction). A truncated quotient of at
+    /// most 34 digits is therefore EXACT, and the lane never changes the value: `2 / 7 * 7` at a working scale of 20 is
+    /// 1.99999999999999999996 whether the 2 is an item, an intrinsic's value or a product the compiler could not bound.
+    /// <see cref="DivToOdd"/> rounds the EXACT quotient to 34 digits instead, and the product above it rounded back up to
+    /// 2. Only the digits of the truncated quotient count: a remainder below 10^-<paramref name="scale"/> is not part of
+    /// the value and never makes it inexact. A zero divisor raises <see cref="CobolSizeError.ZeroDivide"/> (ISO §14.7.5
+    /// case 2), checked or not.</summary>
+    public static CobolDec DivTruncatedToOdd(CobolDec a, CobolDec b, int scale)
+    {
+        if (b.Sig == 0) throw CobolSizeError.ZeroDivide();
+        // A zero quotient is the truncated quotient at 10^-scale, where the arm below holds every quotient it truncates
+        // to fewer digits than Div's (kb/Work PB3538 review finding R5-1), never at exponent 0.
+        if (a.Sig == 0) return Zero(-(long)scale);
+        bool negative = (a.Sig < 0) ^ (b.Sig < 0);
+        UInt128 num = UAbs(a.Sig), den = UAbs(b.Sig);
+        int scaleUp = PreScale(num, den);
+        int exp = a.Exp - scaleUp - b.Exp;                  // the exponent of Div's 34–36-digit quotient
+        if (exp >= -scale)
+        {
+            // The truncated quotient has at least as many digits as Div's: its 34-digit truncation is Div's, and it is
+            // inexact when a dropped digit of Div's quotient, or a digit of the remainder ABOVE 10^-scale, is nonzero.
+            var (q, rem) = ScaledQuotient(num, scaleUp, den);
+            return Round34Wide(0, q, negative, exp, CobolRounding.Truncation,
+                extraSticky: RemainderReaches(rem, den, exp + scale), jam: true);
+        }
+        // The truncated quotient has fewer digits than Div's: form it exactly at 10^-scale.
+        int up = a.Exp - b.Exp + scale;                     // below scaleUp, so ScaledQuotient's bounds hold
+        UInt128 truncated;
+        if (up >= 0) truncated = ScaledQuotient(num, up, den).Quotient;
+        else if (-up > 38) truncated = 0;                   // the divisor × 10^-up is at least 10^39, past any significand
+        else
+        {
+            var (hi, lo) = Mul128(den, (UInt128)Pow10.AsWide(-up));
+            truncated = hi != 0 ? 0 : num / lo;
+        }
+        return Round34Wide(0, truncated, negative, -scale, CobolRounding.Truncation, jam: true);
+    }
+
+    /// <summary>Does the remainder <paramref name="rem"/> of a division by <paramref name="den"/> carry a nonzero digit in
+    /// the next <paramref name="places"/> decimal places of the quotient — is ⌊rem × 10^places / den⌋ nonzero?</summary>
+    private static bool RemainderReaches(UInt128 rem, UInt128 den, int places)
+    {
+        if (rem == 0 || places <= 0) return false;
+        if (places > 38) return true;                       // rem ≥ 1 and 10^39 exceeds any divisor
+        var (hi, lo) = Mul128(rem, (UInt128)Pow10.AsWide(places));
+        return hi != 0 || lo >= den;
     }
 
     /// <summary>Algebraic comparison (−1/0/+1) — exact: equal orders of magnitude align within the wide range;
@@ -934,7 +1035,10 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// Negative arguments are the caller's §15.84.3 r2 screen; a defensive zero comes back for them.</summary>
     public static CobolDec Sqrt(CobolDec v, CobolRounding mode)
     {
-        if (v.Sig <= 0) return new CobolDec(0, 0);
+        // The root of a zero is zero at ISO/IEC 60559's preferred exponent for a square root, half the operand's rounded
+        // down (`SQRT (0.0000)` is 0.00), never exponent 0 (kb/Work PB3538 review finding R5-1).
+        if (v.Sig == 0) return Zero((long)Math.Floor(v.Exp / 2.0));
+        if (v.Sig < 0) return new CobolDec(0, 0);
         var sig = (System.Numerics.BigInteger)v.Sig;
         int digits = 1;
         for (var t = sig; t >= 10; t /= 10) digits++;
@@ -1040,6 +1144,26 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     private const int MaxAdjustedExp = 6144;
     private const int MinExp = -6176;
 
+    /// <summary>The largest exponent a decimal128 value is held at, a 34-digit significand's last digit at 10^(6144 − 33):
+    /// the ceiling on a ZERO's exponent, as <see cref="MinExp"/> is its floor.</summary>
+    private const int MaxExp = MaxAdjustedExp - 33;
+
+    /// <summary>⛔ ZERO, HELD AT THE PLACES ITS OPERATION FORMED (kb/Work PB3538 review finding R5-1; numeric design D2;
+    /// CONFORMANCE.md DOC-A.1-123): <paramref name="exp"/> brought inside the decimal128 exponent range. A zero result keeps
+    /// its exponent like every other value — ISO §8.8.1.5.3 performs the operations as ISO/IEC 60559 5.4.1 does, whose
+    /// exact results take the preferred exponent, a zero's included — so <see cref="FractionDigits"/> reads the same places
+    /// for `0.000 + 2.5` as for `0.001 + 2.5`. Every arm that forms a zero comes here: the rounding funnel
+    /// (<see cref="Clamp"/>), a sum with a zero operand, a zero dividend, a power of zero and a zero subsidiary quotient.
+    /// Before it the funnel returned every zero at exponent 0, and a value's precision depended on whether it was zero.</summary>
+    internal static CobolDec Zero(long exp) => new(0, (int)Math.Clamp(exp, MinExp, MaxExp));
+
+    /// <summary>Zero raised to the positive INTEGER power <paramref name="n"/> (§8.8.1.2 r6a has excluded every other): the
+    /// power is the product of <paramref name="n"/> factors (§8.8.1.5.4 r2 on the SDIDI; native, GnuCOBOL's scale × n,
+    /// <c>CobolIntrinsics.PowNativeDec</c>), so its zero is held at <paramref name="n"/> times the base's exponent, as a
+    /// product of nonzero factors is (<see cref="Mul"/>, <see cref="Zero"/>).</summary>
+    internal static CobolDec ZeroPower(CobolDec b, Int128 n) =>
+        Zero(b.Exp * (long)Int128.Clamp(n, 0, int.MaxValue));
+
     /// <summary>The §8.8.1.5.2 r2 decimal128 range check, applied by the ONE rounding funnel to every operation
     /// result: a value whose adjusted exponent exceeds +6144 raises the size error condition with
     /// EC-SIZE-OVERFLOW; a value below the smallest subnormal quantum (10^−6176) re-rounds onto that quantum
@@ -1047,7 +1171,7 @@ public readonly record struct CobolDec(Int128 Sig, int Exp)
     /// zero there is too small to be contained and raises EC-SIZE-UNDERFLOW.</summary>
     private static CobolDec Clamp(Int128 sig, int exp, CobolRounding mode)
     {
-        if (sig == 0) return new CobolDec(0, 0);
+        if (sig == 0) return Zero(exp);
         if (DigitCount(Int128.Abs(sig)) + exp - 1 > MaxAdjustedExp)
             throw new CobolSizeError("standard-decimal intermediate exceeds the decimal128 range "
                 + "(ISO §8.8.1.5.2 r2)", "EC-SIZE-OVERFLOW");

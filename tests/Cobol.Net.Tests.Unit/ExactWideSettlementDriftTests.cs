@@ -15,8 +15,9 @@ namespace CobolNet.Tests.Unit;
 /// <c>CobolWide</c> text as an <c>Int128</c>. So every public entry of the renderer SETTLES it
 /// (<c>NumericRenderer.Settle</c>: into the receiver's own scale and mode at the final transfer, else into the SDIDI), and a
 /// consumer may take it exact only by passing <c>keepWide: true</c> — which it then owes a settlement of its own. This class
-/// pins both halves: the entries all settle, and the opt-in sites are the two that do (a several-receiver COMPUTE's one
-/// initial evaluation and a relation). A third site is a design decision (add its settlement here), never a silent edit.</para>
+/// pins both halves: the entries all settle, and the opt-in sites are the ones that do (a several-receiver COMPUTE's one
+/// initial evaluation, the DIVIDE ... REMAINDER back-multiply that the subtraction around it settles, kb/Work PB3538, and a
+/// relation). Another site is a design decision (add its settlement here), never a silent edit.</para>
 /// </summary>
 public sealed class ExactWideSettlementDriftTests
 {
@@ -47,7 +48,7 @@ public sealed class ExactWideSettlementDriftTests
         foreach (string entry in new[] { "public NumX Render(BoundExpr e", "public NumX AsNum(BoundOperand op" })
             Assert.Contains("keepWide ? x : Settle(x, rcv, outermost)", BodyOf(src, entry));
         Assert.Contains("return Settle(acc, rcv, outermost: false);", BodyOf(src, "public NumX Fold("));
-        Assert.Contains("Settle(CombineCore(a, op, b), rcv, outermost)", BodyOf(src, "public NumX Combine("));
+        Assert.Contains("return keepWide ? x : Settle(x, rcv, outermost);", BodyOf(src, "public NumX Combine("));
     }
 
     /// <summary>The consumers that opt in to the exact form are exactly the two that settle it themselves.</summary>
@@ -74,6 +75,9 @@ public sealed class ExactWideSettlementDriftTests
         string arithmetic = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Verbs", "ArithmeticEmitter.cs"));
         Assert.Contains("keepWide: true", arithmetic);
         Assert.Contains("num.Settle(v, RcvFor(r, ise), outermost: true)", arithmetic);
+        // The REMAINDER back-multiply is kept exact only as the operand of the Combine that settles the remainder.
+        Assert.Contains("num.Combine(dividend, \"-\",", arithmetic);
+        Assert.Contains("num.Combine(subsidiary, \"*\", divisor, rcv, keepWide: true), rcv)", arithmetic);
         string condition = File.ReadAllText(TestRepo.Src("Cobol.Net.Compiler", "CodeGen", "Emit", "ConditionRenderer.cs"));
         Assert.Contains("keepWide: true", condition);
         Assert.Contains("NumericRenderer.CompareWide(l, rr)", condition);
