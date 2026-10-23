@@ -926,7 +926,7 @@ public sealed class SequentialConnector : FileConnector
     /// <summary>⛔ DOES THIS CONNECTOR'S FILE HAVE A RECORD DESCRIPTION THAT A READ WILL CONSUME (kb/Work PB677)? A
     /// file description entry with record description entries does; a REPORT FILE's does not (§13.4.5.3 SR8 lets
     /// a report file carry none, and §9.1.22 makes its content the report writer's print lines), so the
-    /// <see cref="RecordWidth"/> such a connector holds is the widest RD's LINE WIDTH, a figure that is not the
+    /// <see cref="FileConnector.RecordWidth"/> such a connector holds is the widest RD's LINE WIDTH, a figure that is not the
     /// length of any record. Every rule that compares the file's bytes with a record length asks this first —
     /// <see cref="NoticeIfLayoutDisagrees"/> is the one such rule today — so the next one cannot treat a
     /// line width as a record length either. Fixed at registration by the emitter's one record-less arm
@@ -1210,7 +1210,7 @@ public sealed class SequentialConnector : FileConnector
     /// Excluded, because a differing physical length is NORMAL for them: LINE SEQUENTIAL (records are delimited,
     /// §9.1.13.2) and RECORD IS VARYING (each record carries its own length prefix, so a mismatch is detected
     /// per record — §14.9.30.4 GR14). Excluded too: a REPORT FILE, which has no record description to disagree
-    /// with — its <see cref="RecordWidth"/> is the widest RD's line width and its bytes are print lines with their
+    /// with — its <see cref="FileConnector.RecordWidth"/> is the widest RD's line width and its bytes are print lines with their
     /// terminators and spacing (<see cref="_recordDescribed"/>, kb/Work PB677).</summary>
     private void NoticeIfLayoutDisagrees()
     {

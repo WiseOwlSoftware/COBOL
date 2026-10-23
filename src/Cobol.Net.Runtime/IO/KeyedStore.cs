@@ -158,7 +158,7 @@ internal abstract class KeyedStore
     /// <see cref="PagedFile.Begin"/> sized to exactly the pages the edits write (its claim, its reservation), every edit
     /// flushed, every root set and the statement completed — page 2 last. A torn page or a refused write answers '30' and
     /// a boundary '24' (<see cref="StoreStatus.Boundary"/>), with page 2 naming the previous statement's trees (R1) and
-    /// every pending edit discarded.</summary>
+    /// every pending edit discarded.
     /// <para>⛔ UNDER COMMIT CONTROL THE SAME STATEMENT KEEPS THE BEFORE-IMAGE AND THE HOLDINGS
     /// (DESIGN-runtime-library.md 2.2.1.10; kb/Work PB3337): with <paramref name="work"/> the statement also inserts the
     /// record's before-image into the run unit's UNDO tree under (R, identity) unless an entry exists (the first image is
@@ -294,7 +294,7 @@ internal abstract class KeyedStore
     /// handle, <see cref="LivenessGoneWith"/>) is taken again. The caller holds the store mutex, so no other run unit's
     /// dead-owner probe, lock test or draw can find the byte free in between. A handle the host lets hold no exclusive lock
     /// (a read-only one where the lock needs a writable handle) holds it SHARED, which refuses every other run unit's
-    /// exclusive probe and draw alike (<see cref="OwnerIsDead"/>, <see cref="Draw"/>).</summary>
+    /// exclusive probe and draw alike (<see cref="OwnerOf"/>, <see cref="Draw"/>).</summary>
     internal void HoldLivenessThrough(RegionLocks to)
     {
         if (Transaction == 0 || ReferenceEquals(_liveness, to)) return;
@@ -691,7 +691,7 @@ internal sealed class IndexedStore : KeyedStore
     /// first, §14.9.30.4 GR26, §14.9.35.4 GR24; kb/Work PB341).</summary>
     public int FrameSlots => File?.Meta.Attributes.Keys.Count ?? 1;
 
-    /// <summary>The tree of key <paramref name="key"/> (<see cref="TreeChange.PrimeRoot"/> the prime key, else an
+    /// <summary>The tree of key <paramref name="key"/> (<see cref="KeyedStore.TreeChange.PrimeRoot"/> the prime key, else an
     /// alternate key's index) under <paramref name="orders"/>; null when the file holds no store, or no such tree.</summary>
     public BTree? Tree(int key, IndexedKeyOrders orders)
     {
