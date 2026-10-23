@@ -20,7 +20,8 @@ public sealed class AcceptDifferentialTests
     /// <summary>Compile (at <paramref name="dialect"/>) and run with <paramref name="stdin"/> piped to the
     /// program's standard input and, when given, <paramref name="clock"/> pinned via <c>COBOLNET_CLOCK</c>.</summary>
     private static (bool ok, string stdout, string detail) AcceptRun(
-        string source, string stdin = "", string? clock = null, int dialect = 85)
+        string source, string stdin = "", string? clock = null, int dialect = 85,
+        CobolNet.Binding.NumericDisplayForm numericDisplay = CobolNet.Binding.NumericDisplayForm.Decimal)
     {
         string dir = CutRunner.NewTempDir("acc");
         try
@@ -28,7 +29,7 @@ public sealed class AcceptDifferentialTests
             string src = Path.Combine(dir, "prog.cob");
             string dll = Path.Combine(dir, "prog.dll");
             src = CompiledProgramCache.StageSource(src, source);
-            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto));
+            var result = CompiledProgramCache.Compile(new CompilerDriver.Options(src, dll, DialectLevel: dialect, SourceFormat: InitialReferenceFormat.Auto, NumericDisplay: numericDisplay));
             if (!result.Success)
                 return (false, "", $"[compile] {result.Status}: {string.Join("\n", result.Errors)}");
 
@@ -43,9 +44,10 @@ public sealed class AcceptDifferentialTests
         finally { CutRunner.TryDelete(dir); }
     }
 
-    private static void AssertOutputs(string source, string expected, string stdin = "", string? clock = null, int dialect = 85)
+    private static void AssertOutputs(string source, string expected, string stdin = "", string? clock = null, int dialect = 85,
+        CobolNet.Binding.NumericDisplayForm numericDisplay = CobolNet.Binding.NumericDisplayForm.Decimal)
     {
-        var (ok, stdout, detail) = AcceptRun(source, stdin, clock, dialect);
+        var (ok, stdout, detail) = AcceptRun(source, stdin, clock, dialect, numericDisplay);
         Assert.True(ok, detail);
         Assert.Equal(expected, stdout);
     }
@@ -170,6 +172,134 @@ public sealed class AcceptDifferentialTests
             """),
             expected: "0043",
             stdin: "0042\n");
+
+    // §14.9.1.4 GR1 + GR3/GR4 (kb/Work PB3513): the conversion the device and a numeric item need is the implementor's, and ours
+    // is the INVERSE of DISPLAY's decimal form (DOC-A.1-1, DOC-A.1-56): GR4b hands each DISPLAY receiver its own size in
+    // leftmost characters, which are read as a signed decimal number, so DISPLAY's "00012.50" reads back as 12.50 into PIC
+    // 9(5)V99; the seven characters of "-00012.50" end after the point, so PIC S9(5)V99 holds -12.00, and the three of
+    // "+005" are "+00", so PIC S9(3) holds zero. Those are the values GnuCOBOL 3.2.0 (the precedence tiebreaker when the
+    // standard gives the latitude to the implementor) stores for this program, and the form the note reported as wrong
+    // (the digit window read 00001.25|+00000.12|+000).
+    [Fact]
+    public void Device_NumericReceiver_ReadsTheDecimalFormDisplayWrites()
+        => AssertOutputs(
+            Program("ACCDEC1", """
+                01 WS-A PIC 9(5)V99.
+                01 WS-B PIC S9(5)V99.
+                01 WS-C PIC S9(3).
+                """, """
+                ACCEPT WS-A.
+                ACCEPT WS-B.
+                ACCEPT WS-C.
+                DISPLAY WS-A "|" WS-B "|" WS-C "|".
+            """),
+            expected: "00012.50|-00012.00|+000|",
+            stdin: "00012.50\n-00012.50\n+005\n");
+
+    // The same program under the option's other value: `digits` keeps the digit window (GR3/GR4's leftmost characters decoded as
+    // the item's own display image, every non-digit contributing no digit) and DISPLAY's digit image (DOC-A.1-56): "00012.5" is
+    // the digits 000125, so 1.25 shows as 0000125; "-00012." has no sign position at its end, so it is the digits 00012 (0.12),
+    // whose positive trailing over-punch IBM writes B; "+00" is zero, shown with the positive zero over-punch {.
+    [Fact]
+    public void Device_NumericReceiver_DigitsFormKeepsTheDigitWindow()
+        => AssertOutputs(
+            Program("ACCDEC2", """
+                01 WS-A PIC 9(5)V99.
+                01 WS-B PIC S9(5)V99.
+                01 WS-C PIC S9(3).
+                """, """
+                ACCEPT WS-A.
+                ACCEPT WS-B.
+                ACCEPT WS-C.
+                DISPLAY WS-A "|" WS-B "|" WS-C "|".
+            """),
+            expected: "0000125|000001B|00{|",
+            stdin: "00012.50\n-00012.50\n+005\n",
+            numericDisplay: CobolNet.Binding.NumericDisplayForm.Digits);
+
+    // The decimal form, receiver by receiver (DOC-A.1-1): a DISPLAY item reads its own size in characters, a binary or packed item
+    // the whole record; the sign is a leading + or -; the fraction keeps its scale's digits (truncated); a surplus of HIGH-order
+    // integer digits is lost (§14.6.8.2 4), "zero fill or truncation on either end"); a COMP-5 container keeps every digit and
+    // wraps (1234567890 mod 2**16 = 722). SIGN LEADING SEPARATE has six positions, so "+12.567" reads "+12.56".
+    [Fact]
+    public void Device_NumericReceivers_ReadTheDecimalFormByUsage()
+        => AssertOutputs(
+            Program("ACCDEC3", """
+                01 WS-A PIC 9(5)V99.
+                01 WS-B PIC S9(5)V99.
+                01 WS-C PIC S9(3)V99 SIGN LEADING SEPARATE.
+                01 WS-D PIC S9(3)V99 COMP.
+                01 WS-E PIC S9(5)V99 COMP-3.
+                01 WS-F PIC S9(4) COMP-5.
+                01 WS-G PIC 9(3)PP.
+                """, """
+                ACCEPT WS-A.
+                ACCEPT WS-B.
+                ACCEPT WS-C.
+                ACCEPT WS-D.
+                ACCEPT WS-E.
+                ACCEPT WS-F.
+                ACCEPT WS-G.
+                DISPLAY WS-A "|" WS-B "|" WS-C "|" WS-D "|" WS-E "|" WS-F "|" WS-G "|".
+            """),
+            expected: "00012.50|-00012.50|+012.56|-012.50|+67890.00|+00722|00100|",
+            stdin: "12.5\n-12.5\n+12.567\n-00012.50\n1234567890\n1234567890\n123\n",
+            dialect: 2023);
+
+    // Text that is not a number converts to ZERO and sets no exception (DOC-A.1-1; §14.6.13.2 leaves such content undefined):
+    // a trailing sign, a letter before the last digit position is filled, a second decimal point. A DISPLAY item stops reading
+    // when its last position is filled, so what follows never matters ("12.50CR" fills PIC 9(5)V99's fraction); a binary item
+    // reads the whole record, where the same "CR" is a letter.
+    [Fact]
+    public void Device_NumericReceiver_InvalidTextConvertsToZero()
+        => AssertOutputs(
+            Program("ACCDEC4", """
+                01 WS-A PIC 9(5)V99.
+                01 WS-B PIC S9(5)V99.
+                01 WS-D PIC 9(3)V99 COMP.
+                """, """
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-B.
+                DISPLAY WS-B "|".
+                ACCEPT WS-B.
+                DISPLAY WS-B "|".
+                ACCEPT WS-D.
+                DISPLAY WS-D "|".
+                ACCEPT WS-D.
+                DISPLAY WS-D "|".
+            """),
+            expected: "00000.00|\n00012.50|\n+00000.00|\n+00000.00|\n000.00|\n012.50|",
+            stdin: "12.5CR\n12.50CR\n12.5-\n1.2.3\n12.50CR\n12.50\n");
+
+    // §12.3.7.4 GR14 (DECIMAL-POINT IS COMMA exchanges the decimal separator and the grouping separator): the comma is the point
+    // the item reads, and a period is a grouping separator, skipped like a space.
+    [Fact]
+    public void Device_NumericReceiver_ReadsTheProgramsDecimalSeparator()
+        => AssertOutputs(
+            """
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. ACCDEC5.
+            ENVIRONMENT DIVISION.
+            CONFIGURATION SECTION.
+            SPECIAL-NAMES. DECIMAL-POINT IS COMMA.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-A PIC 9(5)V99.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                ACCEPT WS-A.
+                DISPLAY WS-A "|".
+                STOP RUN.
+            """,
+            expected: "00012,50|\n00125,00|\n00000,00|",
+            stdin: "12,5\n12.5\n1,5,7\n");
 
     // §14.9.1.4 GR7: DATE is the conceptual 6-digit unsigned integer YYMMDD — an exact-width numeric receiver
     // shows precisely that format.
