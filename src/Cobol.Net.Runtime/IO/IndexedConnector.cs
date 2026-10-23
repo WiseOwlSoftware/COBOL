@@ -229,7 +229,7 @@ public sealed class IndexedConnector : KeyedConnector
     /// <inheritdoc/>
     private protected override KeyedStore AttachStore(bool create) =>
         _st = SharedStores is { } table
-            ? create ? table.AttachCreated(HostPath, new IndexedStore()) : table.Attach<IndexedStore>(HostPath)
+            ? create ? table.AttachCreated(HostPath, HandleIdentity, new IndexedStore()) : table.Attach<IndexedStore>(HostPath, HandleIdentity)
             : new IndexedStore();
 
     /// <inheritdoc/>
@@ -237,7 +237,7 @@ public sealed class IndexedConnector : KeyedConnector
 
     /// <inheritdoc/>
     private protected override void AttachCreated(KeyedStore created) =>
-        _st = SharedStores is { } table ? table.AttachCreated(HostPath, (IndexedStore)created) : (IndexedStore)created;
+        _st = SharedStores is { } table ? table.AttachCreated(HostPath, HandleIdentity, (IndexedStore)created) : (IndexedStore)created;
 
     /// <inheritdoc/>
     private protected override void ForgetStore() => _st = new IndexedStore();
