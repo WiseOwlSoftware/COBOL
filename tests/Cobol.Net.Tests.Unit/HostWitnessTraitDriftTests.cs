@@ -38,8 +38,11 @@ public sealed class HostWitnessTraitDriftTests
     private static readonly Regex ConcurrentWorker = new(@"\bnew Thread\(|\bnew Barrier\(|\bTask\.Run\(|\bParallel\.",
         RegexOptions.NonBacktracking);
 
+    /// <summary>A top-level type declaration and its name. ⛔ <c>record struct</c> and <c>record class</c> are ONE keyword pair: read
+    /// as <c>record</c> alone they named a type <c>struct</c>, and every concurrent test that says "struct" became a race witness
+    /// (kb/Work PB3533's <c>PhysicalFileIdentity</c>, the first <c>record struct</c> in the sharing layer this pattern reached).</summary>
     private static readonly Regex TypeDeclaration = new(
-        @"^\s*(?:(?:public|internal|sealed|static|partial|abstract|readonly|ref|file)\s+)*(?:class|struct|interface|enum|record)\s+(?<name>\w+)",
+        @"^\s*(?:(?:public|internal|sealed|static|partial|abstract|readonly|ref|file)\s+)*(?:record\s+(?:class|struct)|class|struct|interface|enum|record)\s+(?<name>\w+)",
         RegexOptions.Multiline | RegexOptions.NonBacktracking);
 
     private static IEnumerable<(string Name, string Value)> ClassTraits(Type t) =>

@@ -220,6 +220,17 @@ public static class HostFile
     /// SPELLED, so the case rule is applied here and nowhere else.</summary>
     internal static string PhysicalFileKey(string name) => FileSystemFoldsCase ? name.ToUpperInvariant() : name;
 
+    /// <summary>⛔ WHICH PHYSICAL FILE <paramref name="handle"/> IS OPEN ON (kb/Work PB3533; <see cref="PhysicalFileIdentity"/>), or
+    /// null where the host cannot tell. A path names a physical file at the instant it is asked
+    /// (<see cref="PhysicalFileComparer"/>); a handle keeps naming the one it was opened on, also once that file is removed or
+    /// renamed away and another is made at its path outside the run unit — which a host that lets a file be unlinked under an
+    /// open handle (Linux) permits whatever the handle's share mode.</summary>
+    internal static PhysicalFileIdentity? IdentityOf(Microsoft.Win32.SafeHandles.SafeFileHandle handle) => HostFileIdentity.Of(handle);
+
+    /// <summary>Which physical file <paramref name="hostPath"/> names NOW (<see cref="IdentityOf"/>), or null when it names none
+    /// or the host cannot tell. It opens nothing another handle could refuse, or be refused by.</summary>
+    internal static PhysicalFileIdentity? IdentityAt(string hostPath) => HostFileIdentity.At(hostPath);
+
     /// <summary>Probe the physical file at <paramref name="hostPath"/>, distinguishing §9.1.13.6 item 5's
     /// ABSENT from §14.9.27.4 GR3's PRESENT-but-unauthorized. Never throws for either of those two.
     /// <para>The probe is <c>File.GetAttributes</c> rather than <c>File.Exists</c> precisely because its
