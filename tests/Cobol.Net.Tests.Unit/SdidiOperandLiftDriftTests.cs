@@ -11,8 +11,9 @@ namespace CobolNet.Tests.Unit;
 /// PB2918). ISO §8.8.1.5.2 r1: "If the operand value cannot be expressed exactly in an SDIDI, the value is rounded
 /// according to the rules in 11.9.11" — and a 16-byte binary container holds 39 digits to the SDIDI's 34.
 /// <c>CobolDec.From</c> is the EXACT lift (it carries the value as given); the emitter reaches it only through
-/// <c>NumericRenderer.DecOperandExact</c>, whose callers are the two ROUND-TO-ODD consumers (the exact product and
-/// quotient reduce the exact value once, so a pre-rounded operand would be rounded twice). Every other operand lift
+/// <c>NumericRenderer.DecOperandExact</c>, whose callers are the three ROUND-TO-ODD consumers (the exact product, the
+/// exact quotient and the nested quotient truncated at its working scale reduce the value once, so a pre-rounded operand
+/// would be rounded twice). Every other operand lift
 /// goes through <c>DecOperand</c>, which rounds an operand whose digit bound passes 34. A new emit site that spells
 /// <c>CobolDec.From(</c> itself puts an unrounded significand past the 34-digit invariant of every CobolDec
 /// operation back into the intermediate, which is the defect.
@@ -91,7 +92,36 @@ public sealed class SdidiOperandLiftDriftTests
             if (line.Contains("private string DecOperandExact(")) continue;                // the declaration
             if (line.Contains("!LiftRounds(x) ? DecOperandExact(x)")) continue;           // DecOperand's own pass-through, guarded by the ONE predicate (kb/Work PB3018)
             if (line.Contains("DecMulToOdd(") || line.Contains("DecDivToOdd(")) continue;   // the round-to-odd consumers
+            // The nested quotient's operand (kb/Work PB3538 review finding R2-1): exact except an unsigned-wide value,
+            // and read only by the third round-to-odd consumer, DecDivTruncatedToOdd (checked below).
+            if (line.Contains("private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);")) continue;
             offenders.Add(line.Trim());
+        }
+        // Every call of DecQuotientOperand lies inside the argument list of a nested-quotient consumer: DecDivTruncatedToOdd,
+        // or its run-time-precision twin DecWithPrecisionDivTruncatedToOdd (review finding R3-1), which reduces the same
+        // truncated quotient by the same round-to-odd (CobolDecWithPrecision.DivTruncatedToOdd → CobolDec.DivTruncatedToOdd).
+        string code = string.Join("\n", src.Split('\n').Where(IsCode));
+        var consumerArguments = new List<(int Start, int End)>();
+        foreach (string consumer in new[] { "RuntimeApi.DecDivTruncatedToOdd(", "RuntimeApi.DecWithPrecisionDivTruncatedToOdd(" })
+            for (int at = code.IndexOf(consumer, StringComparison.Ordinal); at >= 0; at = code.IndexOf(consumer, at + 1, StringComparison.Ordinal))
+            {
+                int open = at + consumer.Length - 1, depth = 0, close = open;
+                for (; close < code.Length; close++)
+                {
+                    if (code[close] == '(') depth++;
+                    else if (code[close] == ')' && --depth == 0) break;
+                }
+                consumerArguments.Add((open, close));
+            }
+        for (int at = code.IndexOf("DecQuotientOperand(", StringComparison.Ordinal); at >= 0;
+             at = code.IndexOf("DecQuotientOperand(", at + 1, StringComparison.Ordinal))
+        {
+            if (code.AsSpan(Math.Max(0, at - "private string ".Length), Math.Min(at, "private string ".Length)).SequenceEqual("private string ")) continue;
+            if (!consumerArguments.Any(span => at > span.Start && at < span.End))
+            {
+                int lineStart = code.LastIndexOf('\n', at) + 1, lineEnd = code.IndexOf('\n', at);
+                offenders.Add(code[lineStart..(lineEnd < 0 ? code.Length : lineEnd)].Trim());
+            }
         }
         Assert.True(offenders.Count == 0,
             "DecOperandExact lifts a fixed-point operand WITHOUT rounding, which only a round-to-odd consumer may do "

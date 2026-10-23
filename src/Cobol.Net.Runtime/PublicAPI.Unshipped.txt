@@ -213,3 +213,29 @@ static CobolNet.Runtime.IO.CobolFile.TerminateOnRefusalWithoutStatusItem(string!
 static CobolNet.Runtime.CobolNum.DisplayDecimal(System.Int128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolNum.DisplayDecimal(string! image, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
 static CobolNet.Runtime.CobolNum.DisplayDecimalU(System.UInt128 unscaled, in CobolNet.Runtime.NumProfile receiver, bool commaMode) -> string!
+static CobolNet.Runtime.CobolWide.DivTruncated(CobolNet.Runtime.CobolWide a, int aScale, CobolNet.Runtime.CobolWide b, int bScale, int resultScale) -> CobolNet.Runtime.CobolWide
+static CobolNet.Runtime.CobolDec.DivTruncatedToOdd(CobolNet.Runtime.CobolDec a, CobolNet.Runtime.CobolDec b, int scale) -> CobolNet.Runtime.CobolDec
+CobolNet.Runtime.CobolDecWithPrecision
+CobolNet.Runtime.CobolDecWithPrecision.CobolDecWithPrecision() -> void
+CobolNet.Runtime.CobolDecWithPrecision.CobolDecWithPrecision(CobolNet.Runtime.CobolDec Value, int Precision) -> void
+CobolNet.Runtime.CobolDecWithPrecision.Deconstruct(out CobolNet.Runtime.CobolDec Value, out int Precision) -> void
+CobolNet.Runtime.CobolDecWithPrecision.Equals(CobolNet.Runtime.CobolDecWithPrecision other) -> bool
+CobolNet.Runtime.CobolDecWithPrecision.Precision.get -> int
+CobolNet.Runtime.CobolDecWithPrecision.Precision.init -> void
+CobolNet.Runtime.CobolDecWithPrecision.Value.get -> CobolNet.Runtime.CobolDec
+CobolNet.Runtime.CobolDecWithPrecision.Value.init -> void
+override CobolNet.Runtime.CobolDecWithPrecision.GetHashCode() -> int
+~override CobolNet.Runtime.CobolDecWithPrecision.ToString() -> string
+static CobolNet.Runtime.CobolDecWithPrecision.operator !=(CobolNet.Runtime.CobolDecWithPrecision left, CobolNet.Runtime.CobolDecWithPrecision right) -> bool
+static CobolNet.Runtime.CobolDecWithPrecision.operator ==(CobolNet.Runtime.CobolDecWithPrecision left, CobolNet.Runtime.CobolDecWithPrecision right) -> bool
+static CobolNet.Runtime.CobolDecWithPrecision.Own(CobolNet.Runtime.CobolDec value) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDecWithPrecision.Add(CobolNet.Runtime.CobolDecWithPrecision a, CobolNet.Runtime.CobolDecWithPrecision b, CobolNet.Runtime.CobolRounding mode) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDecWithPrecision.Sub(CobolNet.Runtime.CobolDecWithPrecision a, CobolNet.Runtime.CobolDecWithPrecision b, CobolNet.Runtime.CobolRounding mode) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDecWithPrecision.Mul(CobolNet.Runtime.CobolDecWithPrecision a, CobolNet.Runtime.CobolDecWithPrecision b, CobolNet.Runtime.CobolRounding mode) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDecWithPrecision.Negate(CobolNet.Runtime.CobolDecWithPrecision a) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDecWithPrecision.DivTruncatedToOdd(CobolNet.Runtime.CobolDecWithPrecision a, CobolNet.Runtime.CobolDecWithPrecision b, int receiverScale) -> CobolNet.Runtime.CobolDecWithPrecision
+static CobolNet.Runtime.CobolDec.FractionDigits(CobolNet.Runtime.CobolDec value) -> int
+static CobolNet.Runtime.CobolDec.Negate(CobolNet.Runtime.CobolDec value) -> CobolNet.Runtime.CobolDec
+const CobolNet.Runtime.CobolNum.NestedQuotientGuardDigits = 14 -> int
+static CobolNet.Runtime.CobolNum.NestedQuotientScale(int receiverScale, int precision) -> int
+~override CobolNet.Runtime.CobolDecWithPrecision.Equals(object obj) -> bool

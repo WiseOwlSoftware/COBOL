@@ -183,8 +183,9 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// carrier — a product of an N-digit and an M-digit unscaled value is below 10^(N+M) — and fall to the SDIDI,
 /// whose exponent is carried at run time, exactly where it can and never otherwise. Producers that know it set it
 /// (a field read: the PICTURE's digit count; a literal: its digit count; the exact additive, multiplicative and
-/// aligned results derived from those); every other producer leaves it 0 and keeps the carrier's checked
-/// behaviour.</param>
+/// aligned results derived from those, and a nested quotient's from its operands' bounds); every other producer leaves
+/// it 0, and an operation on it then assumes the bound of the <see cref="Int128"/> that carries it, 39 digits
+/// (<c>PicInfo.CarrierDigitBound</c>, kb/Work PB3538).</param>
 /// <param name="Wide">True when <see cref="Expr"/> is a <c>CobolWide</c>-typed EXACT 256-bit intermediate of the NATIVE
 /// lane (kb/Work PB1900): the unscaled value at the compile-time <see cref="Scale"/>, with <see cref="Digits"/> its
 /// (always known, at most <c>CobolWide.MaxDigits</c>) magnitude bound. ⛔ IT NEVER LEAVES <c>NumericRenderer</c>: the
@@ -192,9 +193,39 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// otherwise (or the consumer opts in with <c>keepWide</c> and settles it itself) — so it is deliberately NOT a
 /// <see cref="NumXCarrier"/>, and <see cref="Carrier"/> throws on it. Mutually exclusive with <see cref="Dec"/>,
 /// <see cref="Real"/> and <see cref="U"/>.</param>
+/// <param name="Precision">The fraction digits the value's operands carry when they differ from <see cref="Scale"/> (a
+/// nested quotient's guard digits are not among them), or <c>null</c> when they are the scale; read through
+/// <see cref="FractionPrecision"/>. ⛔ For a <see cref="Dec"/> value (whose <see cref="Scale"/> is a placeholder 0)
+/// <c>null</c> means the precision is known only at RUN TIME (<see cref="RuntimePrecision"/>).</param>
+/// <param name="WithPrecision">Only with <see cref="RuntimePrecision"/>: the SAME value as a C# expression of type
+/// <c>CobolDecWithPrecision</c>, the SDIDI value paired with the precision its operands carry, built for a nested
+/// quotient that reads it (kb/Work PB3538 review finding R3-1). It is an ALTERNATIVE spelling of <see cref="Expr"/>,
+/// never an addition: a consumer emits exactly one of the two, so the operands are evaluated once either way, and a
+/// consumer that rewrites <see cref="Expr"/> drops it. <c>null</c> on a runtime-precision value means the precision is
+/// the fraction digits the value is held at (<c>CobolDecWithPrecision.Own</c>: a NUMVAL value's written places, a power's
+/// or a function's result's).</param>
 internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false, bool U = false,
-    bool Approximate = false, int Digits = 0, bool Wide = false)
+    bool Approximate = false, int Digits = 0, bool Wide = false, int? Precision = null, string? WithPrecision = null)
 {
+    /// <summary>⛔ AN SDIDI VALUE WHOSE PRECISION ONLY THE RUN TIME KNOWS (kb/Work PB3538 review finding R3-1): a
+    /// <see cref="Dec"/> with no compile-time <see cref="Precision"/>, such as a NUMVAL value, a power formed on the SDIDI or
+    /// a function's result, and every operation over one. Its precision is NOT its placeholder scale 0: giving it 0 made
+    /// `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0` truncate the quotient at 14 places, to zero.
+    /// <see cref="FractionPrecision"/> refuses it; a nested quotient reads it through <see cref="WithPrecision"/>.</summary>
+    public bool RuntimePrecision => Dec && Precision is null;
+
+    /// <summary>⛔ THE FRACTION DIGITS THE VALUE'S OPERANDS CARRY, which is not always its <see cref="Scale"/> (kb/Work PB3538;
+    /// numeric design D2). A nested quotient on the scaled lane is carried at its operands' precision plus the guard
+    /// digits of <c>NumericRenderer.Divide</c>, and those guard digits are a property of the CARRIER, not of the value: the
+    /// next quotient derives its own working scale from this, never from <see cref="Scale"/>, or the guard digits
+    /// compound with the expression's depth (14, 28, 42 …) until a value of 1 leaves the Int128 carrier. <c>null</c> (every
+    /// value no quotient produced) means it IS the scale; the exact sum, product, negation and power of a value that
+    /// has one carry theirs (the larger, the sum, the same, the multiple), as their scales do. ⛔ A
+    /// <see cref="RuntimePrecision"/> value has no compile-time precision, and asking for one is a compiler defect.</summary>
+    public int FractionPrecision => Precision ?? (Dec
+        ? throw new InvalidOperationException("an SDIDI value's precision is known only at run time (NumX.RuntimePrecision)")
+        : Scale);
+
     /// <summary>WHICH carrier <see cref="Expr"/> is typed as — the one question every total-over-carriers dispatch
     /// (<c>IntrinsicRenderer.IntegerIntake</c>, the landings, the stores) asks, answered once from the mutually
     /// exclusive flags. <see cref="NumXCarrier"/> is the enumeration a drift test walks to prove such a dispatch

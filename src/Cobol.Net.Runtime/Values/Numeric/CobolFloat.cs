@@ -462,7 +462,7 @@ public static class CobolFloat
         return double.IsFinite(a) && double.IsFinite(b) ? InBinary64Range(r, nonzero: false, "subtraction") : r;
     }
 
-    /// <summary>The CHECKED native binary64 product (the twin of <c>CobolNum.MulChecked</c>): overflow, and the
+    /// <summary>The CHECKED native binary64 product: overflow, and the
     /// underflow of a product of two nonzero operands.</summary>
     public static double MulChecked(double a, double b)
     {
