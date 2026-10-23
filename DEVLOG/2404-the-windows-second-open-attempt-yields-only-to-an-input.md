@@ -1,4 +1,4 @@
-## The Windows second OPEN attempt yields only to an INPUT opener that owes writes (PB3499)
+## Entry 2404 — 2026-10-23 12:13 PDT — The Windows second OPEN attempt yields only to an INPUT opener that owes writes (PB3499)
 
 PB3499 was a low-severity lead from the branch review of PB3482: on Windows the second attempt of `FileConnector.Open`
 (the OPEN made again with `FileLockPosture.WhenOwedWritesAreAdmitted`, `FileShare.ReadWrite`) was gated by "does ANY other
@@ -54,3 +54,4 @@ holds the whole owed-writes range from an outside handle and asserts, for a firs
 the kept column still refusing, and no handle left on the file; dropping the `added` unlock in the `finally` turns it red (mutation measured). The design doc named a
 `KeyedConnector.OwesWrites` that does not exist; it now names `FileConnector.OwesWrites` over `KeyedConnector.WillTakeWritableHandle`. Re-gate: leg 1 GREEN; Linux gate
 (unit, conformance) GREEN on the new head.
+
