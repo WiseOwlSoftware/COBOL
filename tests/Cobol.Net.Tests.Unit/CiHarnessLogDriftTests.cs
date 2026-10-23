@@ -19,7 +19,6 @@ namespace CobolNet.Tests.Unit;
 /// local gates write it beside each leg's log (<c>scripts/run_gate_legs.py</c>'s <c>leg_env</c>,
 /// <c>scripts/linux-gate.sh</c>'s <c>test_leg</c>).
 /// </remarks>
-[Trait("Sweep", "tree")]
 public sealed class CiHarnessLogDriftTests
 {
     private const string LogName = "harness-observations.log";
