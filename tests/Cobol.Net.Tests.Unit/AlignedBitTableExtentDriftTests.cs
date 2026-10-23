@@ -62,11 +62,30 @@ public sealed class AlignedBitTableExtentDriftTests
     [Fact]
     public void Strided_PadsEveryOccurrenceButTheLast()
     {
-        Assert.Equal("10100000" + "011", CobolBits.Strided(["101", "011"], 8));
-        Assert.Equal("101", CobolBits.Strided(["101"], 8));
-        Assert.Equal("", CobolBits.Strided([], 8));
+        Assert.Equal("10100000" + "011", CobolBits.Strided(["101", "011"], 8, ""));
+        Assert.Equal("101", CobolBits.Strided(["101"], 8, ""));
+        Assert.Equal("", CobolBits.Strided([], 8, ""));
         // No ALIGNED clause: the stride is the width and the carrier is the plain concatenation.
-        Assert.Equal("101011", CobolBits.Strided(["101", "011"], 3));
+        Assert.Equal("101011", CobolBits.Strided(["101", "011"], 3, ""));
+    }
+
+    /// <summary>The padding between the occurrences is STORED filler (ISO §8.5.1.6.3 "implicitly described as a filler elementary
+    /// bit data item"; kb/Work PB3564): <c>Strided</c> composes the occurrences around the stored pads and
+    /// <c>StridePads</c> reads them back out of a carrier, so a write of the whole carrier round-trips.</summary>
+    [Fact]
+    public void Strided_TakesItsPaddingFromTheStoredFiller_AndStridePadsReadsItBack()
+    {
+        Assert.Equal("101" + "11111" + "011", CobolBits.Strided(["101", "011"], 8, "11111"));
+        Assert.Equal("101" + "11111" + "011" + "00101" + "110", CobolBits.Strided(["101", "011", "110"], 8, "1111100101"));
+        string carrier = "101" + "11011" + "011";
+        Assert.Equal("11011", CobolBits.StridePads(carrier, 0, 3, 8, 2));
+        Assert.Equal(carrier, CobolBits.Strided(["101", "011"], 8, CobolBits.StridePads(carrier, 0, 3, 8, 2)));
+        // A table packed bit by bit, or with one occurrence, has no padding to read.
+        Assert.Equal("", CobolBits.StridePads(carrier, 0, 3, 3, 2));
+        Assert.Equal("", CobolBits.StridePads(carrier, 0, 3, 8, 1));
+        // A carrier or pad string shorter than the gap reads zero past its end (the benign decode of a short image).
+        Assert.Equal("101" + "00000" + "011", CobolBits.Strided(["101", "011"], 8, ""));
+        Assert.Equal("10000", CobolBits.StridePads("1011", 0, 3, 8, 2));
     }
 
     /// <summary>The third reader of the rule, <see cref="OdoTail"/> (the variable-length group codec's and a cell window's
@@ -99,7 +118,7 @@ public sealed class AlignedBitTableExtentDriftTests
         string[] occurrences = ["101", "011", "110", "001"];
         for (int count = 0; count <= 4; count++)
         {
-            int carrier = CobolBits.Strided(occurrences[..count], 8).Length;
+            int carrier = CobolBits.Strided(occurrences[..count], 8, "").Length;
             Assert.Equal(CobolTable.OdoExtentTrimmed(count, 0, 4, 0, 8, 5), carrier);
         }
     }
