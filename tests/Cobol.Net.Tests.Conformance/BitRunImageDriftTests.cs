@@ -133,6 +133,54 @@ public sealed class BitRunImageDriftTests
         Assert.Equal(Normalize(outP), Normalize(outA));
     }
 
+    /// <summary>⛔ THE IMPLICIT FILLER OF A BIT RUN IS STORAGE ON BOTH LANES (kb/Work PB3564). §8.5.1.6.3 "implicitly
+    /// describes" the bits that complete a byte, or lie between the occurrences of an ALIGNED table, "as a filler
+    /// elementary bit data item", so a group move writes them and the group reads them back (§14.9.25.4 GR4: the
+    /// group is moved as an alphanumeric item, no conversion). The REDEFINES lane has always had them (its string
+    /// backing is the bytes); the record-struct lane packed the members and zero-filled the rest, so
+    /// <c>MOVE "AB" TO G1</c> read back NUL,B. Each case moves the byte <c>0x5A</c> (0101 1010: ones and zeros on both
+    /// sides of every possible split) to the whole group and requires (a) every byte of the group to read back as 0x5A
+    /// (ORD 91) — the expectation is the round trip itself, not an oracle — and (b) the aliased and unaliased twins to
+    /// agree on everything they print.</summary>
+    [Theory]
+    // A one-bit item, then a character: seven filler bits between them (the note's own shape).
+    [InlineData("BFL01", 2, "05 M1 PIC 1 USAGE BIT. 05 M2 PIC X(1).", "M1|M2")]
+    // Two runs with a character between, and the record's last item a character.
+    [InlineData("BFL02", 4, "05 M1 PIC 1(2) USAGE BIT. 05 M2 PIC X(1). 05 M3 PIC 1(2) USAGE BIT. 05 M4 PIC X(1).", "M1|M2|M3|M4")]
+    // The end of the record: "as needed to increase the number of bits to fill an integral number of characters".
+    [InlineData("BFL03", 2, "05 M1 PIC X(1). 05 M2 PIC 1(3) USAGE BIT.", "M1|M2")]
+    // An ALIGNED table: the bits between the occurrences (§13.18.1.4 GR2) and the tail after the last.
+    [InlineData("BFL04", 3, "05 T PIC 1(3) USAGE BIT ALIGNED OCCURS 2. 05 X PIC X(1).", "T (1)|T (2)|X")]
+    // A bit group with an ALIGNED member: the six filler bits between Q1 and Q2 belong to the bit group.
+    [InlineData("BFL05", 3, "05 M1 PIC X(1). 05 S GROUP-USAGE BIT. 10 Q1 PIC 1(2). 10 Q2 PIC 1(2) ALIGNED.", "M1|Q1|Q2|S")]
+    // A table of bit groups that begins mid-byte (the BRD13 shape): the pad between occurrences and the tail.
+    [InlineData("BFL06", 4,
+        "05 M1 PIC 1(2) USAGE BIT. 05 S1 GROUP-USAGE BIT OCCURS 2. 10 Q1 PIC 1 USAGE BIT. 10 Q2 PIC 1(5) USAGE BIT ALIGNED.",
+        "M1|Q1 (1)|Q2 (1)|Q1 (2)|Q2 (2)|S1 (2)")]
+    // A two-member run before an ALIGNED member in a bit group: the four filler bits follow the RUN, not each member.
+    [InlineData("BFL07", 3,
+        "05 M1 PIC X(1). 05 S GROUP-USAGE BIT. 10 Q1 PIC 1(2). 10 Q2 PIC 1(2). 10 Q3 PIC 1(2) ALIGNED.", "M1|Q1|Q2|Q3|S")]
+    // A bit group that begins MID-byte (PB3158): the gap inside it is measured from the record's byte, and the tail after
+    // the enclosing run is the parent's.
+    [InlineData("BFL08", 2,
+        "05 BA PIC 1(2) USAGE BIT. 05 SUB GROUP-USAGE BIT. 10 SA PIC 1 USAGE BIT. 10 TA PIC 1(5) USAGE BIT ALIGNED.",
+        "BA|SA|TA|SUB")]
+    public void AliasedGroup_HoldsTheFillerAGroupMoveWrote(string pid, int width, string members, string reads)
+    {
+        string bytes = string.Concat(Enumerable.Repeat("5A", width));
+        string aliased = Program(pid + "A", members, reads, $"01 V REDEFINES G PIC X({width}).", bytes);
+        string plain = Program(pid + "P", members, reads, null, bytes);
+        var compiler = new CobolNetCompiler(Edition);
+        var (okA, outA, detailA) = compiler.CompileAndRun(aliased);
+        var (okP, outP, detailP) = compiler.CompileAndRun(plain);
+        Assert.True(okA, detailA);
+        Assert.True(okP, detailP);
+        string roundTrip = " ORD=" + string.Join(",", Enumerable.Repeat("91", width));
+        Assert.EndsWith(roundTrip + "]", Normalize(outP));
+        Assert.EndsWith(roundTrip + "]", Normalize(outA));
+        Assert.Equal(Normalize(outP), Normalize(outA));
+    }
+
     /// <summary>⛔ THE RUN LAW HAS ONE COMPUTATION AND BOTH COMPOSERS ASK IT. The behavioural theory above
     /// catches the shapes it enumerates; this catches the RE-INLINING that put them out of step in the first
     /// place — <c>PhysicalModel</c> owned a private run scan and the image seed had none, so the two could not
@@ -180,10 +228,15 @@ public sealed class BitRunImageDriftTests
     /// <summary>The program under test, FREE FORM (the harness's own convention — see
     /// <c>SendingValueOnceDriftTests</c>): one group, the member declarations under test, optionally the
     /// REDEFINES alias, and one DISPLAY of every read.</summary>
-    private static string Program(string pid, string members, string reads, string? alias)
+    private static string Program(string pid, string members, string reads, string? alias, string? moveHex = null)
     {
         string display = string.Join(" \"][\" ",
             reads.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(r => r.Trim()));
+        // With a hex literal the program moves it to the whole group first and reads every byte of the group back
+        // through FUNCTION ORD (byte + 1), after the members — the group-move round trip.
+        string move = moveHex is null ? "" : $"MOVE X\"{moveHex}\" TO G";
+        string ords = moveHex is null ? "" : " \" ORD=\" "
+            + string.Join(" \",\" ", Enumerable.Range(1, moveHex.Length / 2).Select(i => $"FUNCTION ORD(G({i}:1))"));
         return $"""
             IDENTIFICATION DIVISION.
             PROGRAM-ID. {pid}.
@@ -194,7 +247,8 @@ public sealed class BitRunImageDriftTests
             {alias ?? "*> no alias - the record-struct lane"}
             PROCEDURE DIVISION.
             MAIN.
-                DISPLAY "[" {display} "]".
+                {move}
+                DISPLAY "[" {display}{ords} "]".
                 STOP RUN.
             """;
     }
