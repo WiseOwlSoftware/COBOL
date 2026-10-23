@@ -80,7 +80,7 @@ Read `references/checkpointing.md` before writing a dispatch prompt, briefing a 
 
 ## 2. The cost law, the turn caps, and the concurrency budget
 
-- Turn caps: 160 for any read-only agent, 400 for an implementer; at the cap, checkpoint and return `SPLIT`. A job that will not fit is SPLIT, never extended.
+- Turn caps: 160 for any read-only agent, 400 for an implementer; at the cap, checkpoint and return `SPLIT`. A job that will not fit is SPLIT, never extended. The one exception (kb/Work PB3536, MANDATORY-PRACTICES P2): an implementer or finisher whose gate still runs at the cap returns `GATE-PENDING` with the gate's run directory, and the rolling wave awaits that run's verdict file (the gate runs detached, so the return does not kill it) instead of a finisher re-running it.
 - One mechanism per implementer. The fill unit is a GROUP computed by `fix_clusters.py` (never hand-picked), one group per subsystem, orientation through `orient.py` before any source is read.
 - Budget: at most 6 implementers + one 4-wide read-only chunk; workflows take `concurrency` args and run chunks with `parallel()` in a loop, never a 16-wide `pipeline`; a fleet over ~40 agents is split.
 - The gate (one shape, kb/Work PB3022): `build-local.ps1 -Priority BelowNormal` (holds a gate slot under the shared cap, 3 by default, kb/Work PB2514; leg 1 only — batched gating, the coded default implementer scope `leg1`, kb/Work PB2515); the landing's gate: `enqueue.py land` runs the same gate on the merged head plus CI's Linux legs, one branch per pull request, CI's merge-group run is the population check, and every landing is recorded by `landing_measure.py` (MANDATORY-PRACTICES L1, L2, L12).
