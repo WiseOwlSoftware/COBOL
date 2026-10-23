@@ -47,3 +47,10 @@ host bullet, 2.2.1.8's byte map, the DETERMINATION, 2.2.1.10 As built (3)) and C
 **Self-review** (pr-test-analyzer, silent-failure-hunter, comment-analyzer): the one silent-failure shape on the path, an
 unobservable or exhausted owed-writes range, answers "does not owe" (the share mode does not yield, '61'), never the other way;
 the first draft's `Take` assumed a fresh lock owes nothing, which the NO OTHER-close arm falsified, so both arms now carry it.
+
+Branch review round 1 found the rollback of `HandleColumnLockHost.Establish` when the owed-writes byte cannot be published untested (the column byte the request
+already added must be unlocked, a fresh handle disposed, a superseded hold left standing). `AnOwedWritesByteThatCannotBePublishedFailsTheRequestAndGivesBackTheColumnByteAlreadyAdded`
+holds the whole owed-writes range from an outside handle and asserts, for a first request and for a superseding `Amend`, `Unavailable`, the column range free again,
+the kept column still refusing, and no handle left on the file; dropping the `added` unlock in the `finally` turns it red (mutation measured). The design doc named a
+`KeyedConnector.OwesWrites` that does not exist; it now names `FileConnector.OwesWrites` over `KeyedConnector.WillTakeWritableHandle`. Re-gate: leg 1 GREEN; Linux gate
+(unit, conformance) GREEN on the new head.
