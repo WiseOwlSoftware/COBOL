@@ -232,10 +232,10 @@ internal static class BitLayout
     ///   <item><see cref="BitFillerKind.RunTail"/> — the positions after the LAST member of a run, up to the byte the next
     ///     item (or the end of the record) starts on. Present only where the group has something to measure them against:
     ///     a bit group's own extent is exact (its NOTE), so no tail follows its LAST run. For a run that holds an OCCURS
-    ///     DEPENDING table it is the tail of the run at its MAXIMUM count: at a smaller count the positions that complete
-    ///     the current extent's last character are the first bits of the first unused occurrence (which a receiving store
-    ///     takes from the sender, <c>OdoTail.KeepUnused</c>), and the positions beyond the maximum extent are the stored
-    ///     field (kb/Work PB3598).</item>
+    ///     DEPENDING table it is the tail of the run at its MAXIMUM count: the stored field holds the positions beyond the
+    ///     maximum extent, which no occurrence owns. At a smaller count the positions that complete the current extent's
+    ///     last character lie in the first unused occurrence's storage and are that occurrence's bits as well (which of the
+    ///     two a receiving store honours is kb/Work PB3598's open question).</item>
     ///   <item><see cref="BitFillerKind.TablePad"/> — the positions §13.18.1.4 GR2 puts BETWEEN the occurrences of an
     ///     ALIGNED table, or of a table whose elements hold an ALIGNED member (<see cref="StrideBits"/> &gt;
     ///     <see cref="WidthBits"/>): every occurrence but the last is padded to its stride.</item>

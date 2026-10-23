@@ -163,15 +163,13 @@ public sealed class CobolVarGroupContiguousTests
     }
 
     [Fact]
-    public void BitOdoTail_KeepUnused_SplicesAtTheCharacterAfterTheCurrentExtent()
+    public void BitOdoTail_KeepUnused_SplicesAtTheFirstUnusedOccurrencesBit()
     {
-        // §13.18.38.4 GR8 a): a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender. The group is
-        // moved as characters (§14.9.25.4 GR4) and the bits after them up to the end of their character are the implicit
-        // filler of §8.5.1.6.3 (kb/Work PB3598), data of the group, so the receiver takes the whole first character from the
-        // sender and keeps its own content only from the next one on.
+        // §13.18.38.4 GR8 a): a receiving count of 2 uses B, TB(1) and TB(2) — bits 0..2 — from the sender and keeps
+        // every later bit of the receiver's own image, inside the shared first character too.
         string received = CobolBits.Pack("010" + "00000" + "00000000");
         string current = CobolBits.Pack("111" + "11111" + "10000000");
-        Assert.Equal("010" + "00000" + "10000000", CobolBits.Unpack(BitTail.KeepUnused(received, current, 2), 16));
+        Assert.Equal("010" + "11111" + "10000000", CobolBits.Unpack(BitTail.KeepUnused(received, current, 2), 16));
         Assert.Equal(received, BitTail.KeepUnused(received, current, 8));   // the maximum stores it all
         Assert.Equal("Hay", new OdoTail(1, 2).KeepUnused("Hab", "Hxy", 1));   // the character arm: whole elements
     }

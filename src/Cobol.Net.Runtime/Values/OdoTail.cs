@@ -78,22 +78,22 @@ public readonly record struct OdoTail(int Elem, int Max, int Comps = 0, int Lead
 
     /// <summary>A receiving store's run when only <paramref name="count"/> occurrences are used (ISO §13.18.38.4 GR8 a:
     /// "only that part of the table area that is specified by the value of the data item referenced by data-name-1 at
-    /// the start of the operation will be used"): <paramref name="received"/> up to the end of the group's CURRENT EXTENT
-    /// (<see cref="CutAt"/>: the first <paramref name="count"/> occurrences, in characters), <paramref name="current"/> from
-    /// there on, so the occurrences beyond keep their content. Both strings are the same run, whose trailing
-    /// <see cref="Width"/> characters hold the table (§13.18.38.3 SR22).
-    /// <para>⛔ THE SPLICE IS AT A CHARACTER, for a table counted in bits too (kb/Work PB3598): a group is moved as characters
-    /// (§14.9.25.4 GR4), and the bits after the last used occurrence up to the end of its character are the implicit filler
-    /// §8.5.1.6.3 describes ("as needed to increase the number of bits to fill an integral number of characters"), which is
-    /// data of the group like any other member and travels with it. They lie in the storage of the first unused
-    /// occurrence, and the receiver takes them from the sender; only the characters wholly beyond the extent keep the
-    /// receiver's content. (The splice was at the first unused occurrence's BIT, so the sender's filler was replaced by
-    /// whatever the receiver's unused occurrence held.)</para></summary>
+    /// the start of the operation will be used"): <paramref name="received"/> up to the end of the first
+    /// <paramref name="count"/> occurrences, <paramref name="current"/> from there on, so the remaining occurrences
+    /// keep their content. Both strings are the same run, whose trailing <see cref="Width"/> characters hold the table
+    /// (§13.18.38.3 SR22). A table counted in bits is spliced at the bit (<see cref="CobolBits.WriteWindow"/>): its
+    /// first unused occurrence may start inside a character.</summary>
     public string KeepUnused(string received, string current, int count)
     {
         if (!Present || count >= Max) return received;
-        int cut = CutAt(count);
-        return received[..^cut] + current[^cut..];
+        if (PerCharacter == 1)
+        {
+            int cut = CutAt(count);
+            return received[..^cut] + current[^cut..];
+        }
+        int from = (current.Length - Width) * PerCharacter + Lead + Math.Max(0, count) * Elem;
+        return CobolBits.WriteWindow(received, from,
+            CobolBits.ReadWindow(current, from, current.Length * PerCharacter - from));
     }
 
     /// <summary>How many of the group's trailing COMPONENTS belong to the occurrences beyond <paramref name="count"/>
