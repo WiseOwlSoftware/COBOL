@@ -2845,7 +2845,6 @@ static CobolNet.Runtime.CobolNum.ImageFloatBits(string! image, in CobolNet.Runti
 static CobolNet.Runtime.CobolNum.ImageIsNegative(string! image, in CobolNet.Runtime.NumProfile receiver) -> bool
 static CobolNet.Runtime.CobolNum.IntegerLiteralValue(string! literal) -> System.Int128
 static CobolNet.Runtime.CobolNum.IsNumericImage(string? image, in CobolNet.Runtime.NumProfile item) -> bool
-static CobolNet.Runtime.CobolNum.MulChecked(System.Int128 a, System.Int128 b) -> System.Int128
 static CobolNet.Runtime.CobolNum.ParseDisplay(string! image, in CobolNet.Runtime.NumProfile receiver) -> System.Int128
 static CobolNet.Runtime.CobolNum.ParseImage(string! image, in CobolNet.Runtime.NumProfile item) -> System.Int128
 static CobolNet.Runtime.CobolNum.ParseImageFloat(string! image, in CobolNet.Runtime.NumProfile item) -> double

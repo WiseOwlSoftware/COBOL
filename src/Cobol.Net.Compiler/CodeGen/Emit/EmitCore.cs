@@ -183,8 +183,9 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// carrier — a product of an N-digit and an M-digit unscaled value is below 10^(N+M) — and fall to the SDIDI,
 /// whose exponent is carried at run time, exactly where it can and never otherwise. Producers that know it set it
 /// (a field read: the PICTURE's digit count; a literal: its digit count; the exact additive, multiplicative and
-/// aligned results derived from those); every other producer leaves it 0 and keeps the carrier's checked
-/// behaviour.</param>
+/// aligned results derived from those, and a nested quotient's from its operands' bounds); every other producer leaves
+/// it 0, and an operation on it then assumes the bound of the <see cref="Int128"/> that carries it, 39 digits
+/// (<c>PicInfo.CarrierDigitBound</c>, kb/Work PB3538).</param>
 /// <param name="Wide">True when <see cref="Expr"/> is a <c>CobolWide</c>-typed EXACT 256-bit intermediate of the NATIVE
 /// lane (kb/Work PB1900): the unscaled value at the compile-time <see cref="Scale"/>, with <see cref="Digits"/> its
 /// (always known, at most <c>CobolWide.MaxDigits</c>) magnitude bound. ⛔ IT NEVER LEAVES <c>NumericRenderer</c>: the
@@ -192,9 +193,21 @@ internal sealed class EmitContext(CodeWriter writer, DataBinder data, NameAlloca
 /// otherwise (or the consumer opts in with <c>keepWide</c> and settles it itself) — so it is deliberately NOT a
 /// <see cref="NumXCarrier"/>, and <see cref="Carrier"/> throws on it. Mutually exclusive with <see cref="Dec"/>,
 /// <see cref="Real"/> and <see cref="U"/>.</param>
+/// <param name="Precision">The fraction digits the value's operands carry when they differ from <see cref="Scale"/> (a
+/// nested quotient's guard digits are not among them), or <c>null</c> when they are the scale; read through
+/// <see cref="FractionPrecision"/>.</param>
 internal readonly record struct NumX(string Expr, int Scale, bool Dec = false, bool Real = false, bool U = false,
-    bool Approximate = false, int Digits = 0, bool Wide = false)
+    bool Approximate = false, int Digits = 0, bool Wide = false, int? Precision = null)
 {
+    /// <summary>⛔ THE FRACTION DIGITS THE VALUE'S OPERANDS CARRY, which is not always its <see cref="Scale"/> (kb/Work PB3538;
+    /// numeric design D2). A nested quotient on the scaled lane is carried at its operands' precision plus the guard
+    /// digits of <c>NumericRenderer.Divide</c>, and those guard digits are a property of the CARRIER, not of the value: the
+    /// next quotient derives its own working scale from this, never from <see cref="Scale"/>, or the guard digits
+    /// compound with the expression's depth (14, 28, 42 …) until a value of 1 leaves the Int128 carrier. <c>null</c> (every
+    /// value no quotient produced) means it IS the scale; the exact sum, product, negation and power of a value that
+    /// has one carry theirs (the larger, the sum, the same, the multiple), as their scales do.</summary>
+    public int FractionPrecision => Precision ?? Scale;
+
     /// <summary>WHICH carrier <see cref="Expr"/> is typed as — the one question every total-over-carriers dispatch
     /// (<c>IntrinsicRenderer.IntegerIntake</c>, the landings, the stores) asks, answered once from the mutually
     /// exclusive flags. <see cref="NumXCarrier"/> is the enumeration a drift test walks to prove such a dispatch
