@@ -81,7 +81,9 @@ internal static class StorageFormPass
         //     specified-fill-character, numeric items included, and a native carrier holds a decoded VALUE, not a
         //     run of fill characters or bytes. So a VALUE-less fixed-point numeric item of a governed section
         //     stores its image, and InitialStateBackground seeds that image with the fill. An item under a VALUE
-        //     (its own or an ancestor group's) is excluded: action 2 overwrites the background there.
+        //     (its own or an ancestor group's) is excluded: action 2 overwrites the background there. A REDEFINES
+        //     class member is NOT excluded (kb/Work PB3563): InitialStateBackground.Seed seeds a class member's
+        //     image, so the promotion must give the leaf image storage as arms (3) and (4) do.
         foreach (var d in ctx.AllBindersAndInterfaces())
             if (d.Options.Initialize is { HasFill: true } init)
             {
@@ -110,7 +112,7 @@ internal static class StorageFormPass
             if (item.RawValue is not null || item.ContainsTableValue) return;   // action 2 owns this subtree
             if (!item.IsGroup)
             {
-                if (item.Class is null && IsImagePromotable(item)) promoted.Add(item);
+                if (IsImagePromotable(item)) promoted.Add(item);
                 return;
             }
             foreach (var child in item.Children) AddBackgroundFilled(child, promoted);

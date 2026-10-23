@@ -37,9 +37,23 @@ a REDEFINES class (`05 R-B PIC 999.` with `05 R-B2 REDEFINES R-B PIC 9V99.` insi
 elementary character channel) filtered `item.Class is null`, which arm (3) (the whole group) never did, so the two arms of one
 promotion disagreed on a class member. The filter's stated reason (a class member keeps its tier's classification) is already honored
 downstream, where `Classify` arm (2) reads the one promoted union: a Tier-B view becomes `CharImage(Numeric)` and a Tier-A alias
-forwards to its canonical's promoted form. The filter is deleted (arm (5), the OPTIONS INITIALIZE background, keeps its own and is a
-different rule). The same root was pre-existing for an elementary receiver: `MOVE SG TO R-B` (SG a 3-character group, R-B in a
+forwards to its canonical's promoted form. The filter is deleted (arm (5) is addressed in round 2). The same root was pre-existing for an elementary receiver: `MOVE SG TO R-B` (SG a 3-character group, R-B in a
 REDEFINES class) stored `000` for `ABC` and now stores `ABC` (§14.9.25.4 GR4). Witnesses: golden legs 10 and 11 added to the same
 case (eleven legs), unit cases `ThroughAlias_OverARedefinedNumericLeaf_PromotesIt` and `GroupMoveIntoARedefinedNumericReceiver_PromotesIt`.
 The lead (design doc paragraph claiming a NATIONAL numeric leaf is not promoted) was stale against `IsImagePromotable` and is corrected
 in the same paragraph.
+
+**Review round 2 (one blocking finding).** Round 1 dismissed arm (5) of `StorageFormPass.ComputePromotedSet` (the OPTIONS INITIALIZE
+background) as "a different rule", and it was not. `AddBackgroundFilled` carried the same `item.Class is null` exclusion, while
+`InitialStateBackground.Seed` seeds a class member's IMAGE (`item.Class is not null && ... HasImageByteForm`). So
+`OPTIONS. INITIALIZE WORKING-STORAGE TO X"5A".` over `05 RE-B PIC 9(3). 05 RE-B2 REDEFINES RE-B PIC 9V99.` left `RE-B` a native
+`long` and emitted `RE = new _T_0 { RE_B = new string('Z', 3) }`: backend error CS0029 on legal source (the same program without the
+REDEFINES line printed `ZZZ`). ISO §14.6.2.3.2 GR1 sets the allocated storage to the fill character with no exemption for a redefined
+item, and the owner decision R53 extends it to numeric items. Root: the promotion decision and the seed answered "does a class member
+take the image?" differently, the same split as round 1's arm (3)/(4). The filter is deleted from arm (5) too, so all three arms that
+promote a leaf (whole group, character channel, background) read `IsImagePromotable` alone; a Tier-A alias member forwards to its
+canonical's promoted form and a Tier-B view becomes `CharImage(Numeric)`, in `Classify`. Sweep: no other `Class is null` filter remains
+in `StorageFormPass`. Witnesses: golden `14.6.2.3.2-Initial-state/pb3563_options_initialize_redefined_numeric_leaf` (DISPLAY leaf `ZZZ`
+and NOT NUMERIC, COMP-5 pair `23130 23130`, unredefined control `ZZZ`; accept 2023, and the OPTIONS paragraph's existing
+below-2023 refusal golden is its negative) and unit `OptionsInitializeBackground_PromotesTheNumericLeaf_WhetherOrNotItIsRedefined`
+(Tier-A DISPLAY, Tier-A COMP-5, Tier-B numeric view, unredefined control).
