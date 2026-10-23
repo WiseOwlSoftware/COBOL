@@ -12,6 +12,10 @@ namespace CobolNet.Runtime;
 /// <c>[ThreadStatic]</c> — the ambient run unit's AsyncLocal now carries the activation scope uniformly,
 /// DESIGN-runtime-library §2.1).
 ///
+/// Each frame also records whether its element is RECURSIVE (§8.6.6), so <see cref="AnyRecursive"/> answers COMMIT's
+/// and ROLLBACK's "under the control of a recursive runtime element" for a RECURSIVE program, a function and a method
+/// alike (kb/Work PB3540).
+///
 /// OO method (INVOKE) activation does not funnel through CallProgram (methods are not registry nodes), so the
 /// push is emitted INSIDE the method body — <c>OoEmitter.EmitMethod</c>, in a try/finally — rather than at any
 /// call site: a method is reached by a typed direct call, by the universal <c>__CobolInvoke</c> switch, and by
@@ -27,21 +31,42 @@ namespace CobolNet.Runtime;
 /// </summary>
 public sealed class ModuleStack
 {
-    private readonly record struct Frame(string Name, string Outermost, bool IsNested, bool IsMain, long Activation);
+    private readonly record struct Frame(string Name, string Outermost, bool IsNested, bool IsMain, bool Recursive, long Activation);
 
     private readonly List<Frame> _stack = [];
+
+    /// <summary>How many of the running activations are RECURSIVE runtime elements (§8.6.6: a program carrying the
+    /// RECURSIVE attribute, and every function and method — "Functions and methods are always recursive"). Kept beside
+    /// the frames because this stack is the run unit's one record of what is running, and a method is a frame here and
+    /// nowhere else (it is no <see cref="ProgramTable"/> node).</summary>
+    private int _recursiveFrames;
 
     /// <summary>The last activation identity handed out — monotonic for the life of the run unit and never
     /// reset, so no two activations, live or finished, ever share one.</summary>
     private long _lastActivation;
 
-    /// <summary>Push the run-unit main program (TOP-LEVEL, §15.65.4 r10; ACTIVATING → single space, r5).</summary>
-    public void PushMain(string name) => _stack.Add(new(name, name, IsNested: false, IsMain: true, ++_lastActivation));
+    /// <summary>Push the run-unit main program (TOP-LEVEL, §15.65.4 r10; ACTIVATING → single space, r5).
+    /// <paramref name="recursive"/>: it carries the RECURSIVE attribute (§8.6.6).</summary>
+    public void PushMain(string name, bool recursive)
+        => Add(new(name, name, IsNested: false, IsMain: true, recursive, ++_lastActivation));
 
-    /// <summary>Push a CALLed / referenced element (its name, its compilation unit's outermost program-id, and
-    /// whether it is a contained/nested program).</summary>
-    public void Push(string name, string outermost, bool isNested)
-        => _stack.Add(new(name, outermost, isNested, IsMain: false, ++_lastActivation));
+    /// <summary>Push a CALLed / referenced / INVOKEd element (its name, its compilation unit's outermost program-id, and
+    /// whether it is a contained/nested program). <paramref name="recursive"/>: the element is a RECURSIVE runtime
+    /// element — a program with the RECURSIVE attribute, a function or a method (§8.6.6).</summary>
+    public void Push(string name, string outermost, bool isNested, bool recursive)
+        => Add(new(name, outermost, isNested, IsMain: false, recursive, ++_lastActivation));
+
+    private void Add(Frame f)
+    {
+        _stack.Add(f);
+        if (f.Recursive) _recursiveFrames++;
+    }
+
+    /// <summary>Whether a RECURSIVE runtime element is running (§8.6.6): whatever runs while one is active runs "under the
+    /// control of a recursive runtime element", which §9.1.18.7, §12.4.6.3.4 GR3, §14.9.7.4 GR2 and §14.9.36.4 GR2 forbid
+    /// for COMMIT, ROLLBACK and the activation of an APPLY COMMIT clause (kb/Work PB3338, PB3540). One answer for every
+    /// kind of recursive element, because every activation mechanism pushes its frame here.</summary>
+    public bool AnyRecursive => _recursiveFrames > 0;
 
     // ── ACTIVATION IDENTITY (kb/Work PB892 Arm B) ─────────────────────────────────────────────────────────────
     // This stack is the run unit's ONE record of which activation is running: every activation mechanism
@@ -60,7 +85,12 @@ public sealed class ModuleStack
     public long ActivatingActivation => _stack.Count >= 2 ? _stack[^2].Activation : -1;
 
     /// <summary>Pop the current element on activation return (paired with every push in a finally).</summary>
-    public void Pop() { if (_stack.Count > 0) _stack.RemoveAt(_stack.Count - 1); }
+    public void Pop()
+    {
+        if (_stack.Count == 0) return;
+        if (_stack[^1].Recursive) _recursiveFrames--;
+        _stack.RemoveAt(_stack.Count - 1);
+    }
 
 
     /// <summary>Resolve MODULE-NAME for the keyword selector (0 CURRENT · 1 ACTIVATING · 2 NESTED · 3 STACK ·
