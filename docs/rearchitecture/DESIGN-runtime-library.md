@@ -1933,7 +1933,7 @@ is reversed by its groups: the runtime half (PB3337) and the compiler half (PB33
   (`HandleColumnLockHost`, 2.2.1.8's byte map). So `FileConnector.Open` makes a second attempt, with
   `FileLockPosture.WhenOwedWritesAreAdmitted` (`FileShare.ReadWrite`), exactly when the first was refused by the host
   with the request's column HELD (Table 19 admitted it against every WiseOwl COBOL run unit) and another run unit's
-  connector OWES WRITES: the re-OPEN INPUT of this very paragraph publishes it with its column (`KeyedConnector.OwesWrites`: the
+  connector OWES WRITES: the re-OPEN INPUT of this very paragraph publishes it with its column (`FileConnector.OwesWrites`, from `KeyedConnector.WillTakeWritableHandle`: the
   OPEN is INPUT and `HandleAccess` is writable, the one expression `Lock` opens the handle by; `RunUnitFileLock.Amend`'s
   `owesWrites`), and the second attempt asks `RunUnitFileLock.AnotherOwesWrites` (kb/Work PB3499: it had asked whether any
   INPUT opener held a column, a proxy an unrelated reader satisfied); every request the table refuses is still refused, by the
