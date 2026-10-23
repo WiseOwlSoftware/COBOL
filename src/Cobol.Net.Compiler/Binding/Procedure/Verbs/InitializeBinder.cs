@@ -443,13 +443,27 @@ internal sealed class InitializeBinder(BinderContext ctx, StatementBinder host)
     /// <see cref="BitFiller.Item"/>, qualified and sent exactly as an explicit FILLER boolean item is (GR5c, GR6: the
     /// ZEROES default, or the REPLACING BOOLEAN operand) and stored by the ordinary implicit MOVE (kb/Work PB3564 review
     /// R1-4). Without the phrase they are not receivers, so a group MOVE's filler bits survive an INITIALIZE.
-    /// <para>A table's pad is ONE stored string of every gap in turn; a sender that is not the zero default would have to
-    /// reach each gap as its own item, which no place addresses, so that one combination is staged named instead of
-    /// smearing the sender across the gaps.</para></summary>
+    /// <para>In a Tier-B class (a REDEFINES area, an EXTERNAL or BASED record, a LINKAGE area) the filler is bytes of the
+    /// class's backing, and each gap is its own item (<see cref="BitLayout.WindowFillersOf"/>), received through the class's
+    /// view cursor like any other bit member (kb/Work PB3564 review R2-1). In the record-struct lane a table's pad is ONE
+    /// stored string of every gap in turn; a sender that is not the zero default would have to reach each gap as its own
+    /// item, which no place addresses, so that one combination is staged named instead of smearing the sender across the
+    /// gaps.</para></summary>
     private void ExpandImplicitFillers(PlaceCursor cur, DataItem group, in InitializeSpec spec, List<InitializeAction> actions)
     {
         var qualification = Qualify(InitializeCategory.Boolean, effectiveValue: null, spec);
         if (qualification is InitializeQualification.None) return;                              // GR5c — left unchanged
+        foreach (var gap in BitLayout.WindowFillersOf(group))
+        {
+            if (cur.Child(gap) is not { } gapCur)
+            {
+                actions.Add(new InitializeErrorAction("INITIALIZE ... WITH FILLER of the implicit filler bits of "
+                    + $"'{group.CobolName ?? "FILLER"}' (unwired storage tier; ISO §8.5.1.6.3)"));
+                continue;
+            }
+            if (ElementaryAction(gapCur, gap, InitializeCategory.Boolean, spec, effectiveValue: null) is { } gapAction)
+                actions.Add(gapAction);
+        }
         foreach (var filler in BitLayout.FillersOf(group))
         {
             var item = filler.Item;
