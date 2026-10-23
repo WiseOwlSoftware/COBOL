@@ -139,7 +139,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     /// <summary>An exact wide intermediate as the SDIDI (round-to-odd, 34 digits); every other value passes through.</summary>
     internal static NumX LowerWide(NumX x) =>
-        x.Wide ? new NumX(RuntimeApi.WideToDec(x.Expr, x.Scale), 0, Dec: true) : x;
+        x.Wide ? new NumX(RuntimeApi.WideToDec(x.Expr, x.Scale), 0, Dec: true, Precision: x.FractionPrecision) : x;
 
     /// <summary>The wide-lane spelling of an exact operand: a wide value as itself, an <c>Int128</c>-lane value lifted.</summary>
     private static string WideOperand(NumX x) => x.Wide ? x.Expr : RuntimeApi.WideFrom(x.Expr);
@@ -679,8 +679,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
         // literal's VALUE is exact either way, and the LANE is the determination. It also means INTERMEDIATE
         // ROUNDING (§11.9.11) reaches a native statement carrying a float literal, PROHIBITED included.
         // MOD/REM keep exact integers exact through their own integer fast path.
-        if (StandardDecimal || ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real))
-            return DecBinary(op, a, b);   // an UNSIGNED-WIDE operand enters here as it is: DecOperand rounds it (PB2966, below)
+        // ⛔ EXCEPT A NESTED QUOTIENT, WHICH HAS ONE RULE ON EVERY NATIVE LANE (kb/Work PB3538 review finding R2-1;
+        // CONFORMANCE.md DOC-A.1-123): the quotient truncated at the working scale (Divide). An SDIDI-carried operand is
+        // not only a float literal or a power: a product the compiler cannot bound within 77 digits (two intrinsic
+        // values, an intrinsic beside a wide item) is formed there too (Multiply), and its quotient taken here at 34
+        // digits under the INTERMEDIATE ROUNDING mode made `FUNCTION INTEGER (X) * FUNCTION INTEGER (Y) / 7 * 7` 2.000000
+        // where `X * Y / 7 * 7` is 1.999999. A literal's notation does not change that rule either: `2.0E0 / 7 * 7` is
+        // the same 1.999999.
+        if (StandardDecimal) return DecBinary(op, a, b);
+        if ((a.Dec || b.Dec) && !a.Real && !b.Real && !_rcv.Real)
+            return op == "/" && NestedQuotient
+                ? Divide(a, b)
+                : DecBinary(op, a, b);   // an UNSIGNED-WIDE operand enters here as it is: DecOperand rounds it (PB2966, below)
         // The unsigned-wide funnel (kb/Work R10): on the NATIVE lanes an ARITHMETIC operand enters the engine's documented
         // Int128 intermediate through CobolNum.Widen — a value beyond it raises the size-error condition (ON SIZE ERROR
         // catches it; without the phrase it is loud), never a silent two's-complement wrap. The VALUE paths
@@ -705,15 +715,16 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// <see cref="DecOperand"/> (a fixed-point value exactly, a float by its shortest round-trip decimal, an exact wide
     /// intermediate by round-to-odd). The ONE spelling of the four operators for every caller that takes an operation
     /// there: the standard-decimal engine, an SDIDI-carried native operand (kb/Work PB69) and an exact wide operand whose
-    /// operation has no wide form (kb/Work PB1900).</summary>
-    private NumX DecBinary(string op, NumX a, NumX b) => op switch
+    /// operation has no wide form (kb/Work PB1900). The result carries the operation's <see cref="NumX.FractionPrecision"/>
+    /// rule (the larger for a sum, difference or quotient, the sum for a product) as the exact lanes do, so a nested
+    /// quotient above it takes the same working scale whichever lane carried its dividend (kb/Work PB3538).</summary>
+    private NumX DecBinary(string op, NumX a, NumX b)
     {
-        "+" => new NumX($"CobolDec.Add({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
-        "-" => new NumX($"CobolDec.Sub({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
-        "*" => new NumX($"CobolDec.Mul({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
-        "/" => new NumX($"CobolDec.Div({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true),
-        _ => a,
-    };
+        string? kernel = op switch { "+" => "Add", "-" => "Sub", "*" => "Mul", "/" => "Div", _ => null };
+        if (kernel is null) return a;
+        int precision = op == "*" ? a.FractionPrecision + b.FractionPrecision : Math.Max(a.FractionPrecision, b.FractionPrecision);
+        return new NumX($"CobolDec.{kernel}({DecOperand(a)}, {DecOperand(b)}, {IntermediateMode})", 0, Dec: true, Precision: precision);
+    }
 
     /// <summary>Does a FLOAT operand own this operation's lane — a floating-point data item or carrier literal
     /// (<c>Real</c> and not <see cref="NumX.Approximate"/>) or a floating-point receiver (kb/Work PB1641)? When none
@@ -873,11 +884,12 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         stay exact on the same form (<see cref="CombineAdditive"/>, <see cref="Negate"/>), and the value is SETTLED once, at
     ///         the public entry (<see cref="Settle"/>): into the receiver's scale and mode at the final transfer — §14.7.7 rule 3
     ///         NOTE 1, ROUNDED sees every digit, for a 16-byte COMP-5 receiver as for a PICTURE-limited one — else into the SDIDI.
-    ///         A product whose bound passes 77 digits, or whose other operand has no bound, is formed on the SDIDI as before
+    ///         A product whose bound passes 77 digits (two intrinsic values, 39 + 39) is formed on the SDIDI as before
     ///         (<c>CobolDec.MulToOdd</c>: the exact product reduced to 34 significant digits by ROUND-TO-ODD, which keeps an odd
     ///         last digit whenever digits were dropped, so a receiver of at most 32 digit positions — every PICTURE-limited one,
-    ///         §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product).
-    ///         A NESTED quotient above a wide value is the truncated quotient on the wide form (<see cref="Divide"/>); a final
+    ///         §13.18.40.3 SR14 caps them at 31 — rounds that value, in every mode, exactly as it would round the exact product),
+    ///         carrying the product's <see cref="NumX.FractionPrecision"/> as the exact lanes do.
+    ///         A NESTED quotient above it is the truncated quotient at the working scale on every lane (<see cref="Divide"/>); a final
     ///         transfer's is formed on the SDIDI (<c>CobolDec.DivToOdd</c>): GnuCOBOL's own divide is inexact
     ///         (<c>shift_decimal</c> then a truncating <c>mpz_tdiv_q</c>), so the precedence does not demand an exact quotient.</item>
     ///   <item><b>A bound unknown</b> (an intrinsic's value, a windowed view, a counter) — ⛔ IS STILL A BOUND: the
@@ -906,7 +918,8 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
             if (digits <= RuntimeApi.WideMaxDigits)
                 return new NumX(RuntimeApi.WideMul(WideOperand(a), WideOperand(b)), a.Scale + b.Scale, Digits: digits, Wide: true,
                     Precision: Carried(a, b, a.FractionPrecision + b.FractionPrecision));
-            return new NumX(RuntimeApi.DecMulToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true);
+            return new NumX(RuntimeApi.DecMulToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true,
+                Precision: a.FractionPrecision + b.FractionPrecision);
         }
         return new NumX($"((Int128)({a.Expr}) * ({b.Expr}))", a.Scale + b.Scale, Digits: digits,
             Precision: Carried(a, b, a.FractionPrecision + b.FractionPrecision));
@@ -928,7 +941,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// an intermediate's scale, so they are added ONCE whatever the expression's depth (kb/Work PB3538).</summary>
     private const int DivGuardDigits = 14;
 
-    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). ⛔ FOUR ARMS, AND A NESTED QUOTIENT HAS ONE PRECISION
+    /// <summary>Division quotient (ISO §8.8.1 / §14.7.4). ⛔ FIVE ARMS, AND A NESTED QUOTIENT HAS ONE PRECISION
     /// WHATEVER THE EXPRESSION'S DEPTH (kb/Work PB3538; numeric design D2).
     /// <list type="bullet">
     ///   <item><b>The final transfer</b> (<see cref="_outermost"/> into a resultant that rounds at its own scale — the
@@ -954,12 +967,18 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     ///         truncated quotient at <c>w</c> on the exact wide form (<c>CobolWide.DivTruncated</c>). The lane is a
     ///         representation, never a rule: the SDIDI's round-to-odd here made `FUNCTION INTEGER(X) / 7 * 7` 2.000000
     ///         beside `X / 7 * 7`'s 1.999999 (kb/Work PB3538 review finding R1-1).</item>
-    ///   <item><b>Every other quotient</b> — a nested one whose bound passes 77 digits, a final transfer over an exact
-    ///         wide operand, a floating-point edited resultant: formed on the SDIDI, whose
-    ///         exponent floats with the VALUE, and reduced to its 34 significant digits by ROUND-TO-ODD
-    ///         (<c>CobolDec.DivToOdd</c>), so the one rounding at the final transfer into a receiver of at most 32 digit
-    ///         positions equals rounding the exact quotient. Its size error is the one §14.7.5 case 5 licenses: the
-    ///         VALUE outside the documented range at its landing (CONFORMANCE.md DOC-A.1-123 / DOC-A.1-179).</item>
+    ///   <item><b>Every other nested quotient</b> — one whose bound passes 77 digits (an intrinsic's value times a wide
+    ///         item), or one with an SDIDI-carried operand (a product of two intrinsic values the bounds cannot fit in 77
+    ///         digits, a float literal, a power; <see cref="CombineCore"/> routes it here): the SAME truncated quotient at
+    ///         <c>w</c> on the SDIDI, held to its 34 significant digits by ROUND-TO-ODD (<c>CobolDec.DivTruncatedToOdd</c>),
+    ///         so a quotient of at most 34 digits is exact and equal to the other lanes' (kb/Work PB3538 review finding
+    ///         R2-1: the SDIDI's own quotients made `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` 2.000000).</item>
+    ///   <item><b>Every other quotient</b> — a final transfer over an exact wide operand, a floating-point edited
+    ///         resultant: formed on the SDIDI, whose exponent floats with the VALUE, and reduced to its 34 significant
+    ///         digits by ROUND-TO-ODD (<c>CobolDec.DivToOdd</c>), so the one rounding at the final transfer into a
+    ///         receiver of at most 32 digit positions equals rounding the exact quotient. Its size error is the one
+    ///         §14.7.5 case 5 licenses: the VALUE outside the documented range at its landing (CONFORMANCE.md
+    ///         DOC-A.1-123 / DOC-A.1-179).</item>
     /// </list>
     /// Earlier forms of the nested arm, kept because each was a measured defect: a quotient at the receiver's scale and
     /// mode rounded before the receiver saw the operations above it (CA5); a quotient at the hint scale of a
@@ -968,26 +987,49 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
     /// (PB3538).</summary>
     private NumX Divide(NumX a, NumX b)
     {
-        if (!a.Wide && !b.Wide && _outermost && _rcv.RoundsAtItsScale)
+        // The scaled Int128 lane or the exact wide form; an SDIDI-carried operand reaches Divide only as a nested
+        // quotient (CombineCore), and a float never does.
+        bool exact = !a.Dec && !b.Dec;
+        if (exact && !a.Wide && !b.Wide && _outermost && _rcv.RoundsAtItsScale)
             return new NumX(DivideAt(a, b, _rcv.Scale, _rcv.Rounding), _rcv.Scale);
-        if (!_rcv.FloatEdited && !(_outermost && _rcv.RoundsAtItsScale))
+        if (NestedQuotient)
         {
             int precision = Math.Max(a.FractionPrecision, b.FractionPrecision);
             int w = Math.Max(_rcv.Scale, precision) + DivGuardDigits;
-            int digits = Math.Max(0, DigitBound(a) - a.Scale + b.Scale) + w;
-            if (!a.Wide && !b.Wide && digits <= ReceiverContext.IntermediateDigits)
-                return new NumX(DivideAt(a, b, w, CobolRounding.Truncation), w, Digits: digits, Precision: precision);
-            // ⛔ THE SAME VALUE ON THE WIDE FORM (kb/Work PB3538 review finding R1-1): a bound past the Int128 lane — a
-            // dividend of unknown bound (an intrinsic's value: the carrier's 39 digits), a wide product — changes the
-            // REPRESENTATION, never the rule. The SDIDI's round-to-odd here made `FUNCTION INTEGER(X) / 7 * 7` 2.000000
-            // where `X / 7 * 7` is 1.999999. A divisor scaled up to the dividend's scale must fit the form as well.
-            int divisorDigits = DigitBound(b) + Math.Max(0, a.Scale - b.Scale - w);
-            if (digits <= RuntimeApi.WideMaxDigits && divisorDigits <= RuntimeApi.WideMaxDigits)
-                return new NumX(RuntimeApi.WideDivTruncated(WideOperand(a), a.Scale, WideOperand(b), b.Scale, w), w,
-                    Digits: digits, Wide: true, Precision: precision);
+            if (exact)
+            {
+                int digits = Math.Max(0, DigitBound(a) - a.Scale + b.Scale) + w;
+                if (!a.Wide && !b.Wide && digits <= ReceiverContext.IntermediateDigits)
+                    return new NumX(DivideAt(a, b, w, CobolRounding.Truncation), w, Digits: digits, Precision: precision);
+                // ⛔ THE SAME VALUE ON THE WIDE FORM (kb/Work PB3538 review finding R1-1): a bound past the Int128 lane — a
+                // dividend of unknown bound (an intrinsic's value: the carrier's 39 digits), a wide product — changes the
+                // REPRESENTATION, never the rule. The SDIDI's round-to-odd here made `FUNCTION INTEGER(X) / 7 * 7` 2.000000
+                // where `X / 7 * 7` is 1.999999. A divisor scaled up to the dividend's scale must fit the form as well.
+                int divisorDigits = DigitBound(b) + Math.Max(0, a.Scale - b.Scale - w);
+                if (digits <= RuntimeApi.WideMaxDigits && divisorDigits <= RuntimeApi.WideMaxDigits)
+                    return new NumX(RuntimeApi.WideDivTruncated(WideOperand(a), a.Scale, WideOperand(b), b.Scale, w), w,
+                        Digits: digits, Wide: true, Precision: precision);
+            }
+            // ⛔ AND THE SAME VALUE ON THE SDIDI (kb/Work PB3538 review finding R2-1): past 77 digits, or beside an
+            // SDIDI-carried operand, the quotient is still the one truncated at w, held to 34 digits by round-to-odd —
+            // never the SDIDI's own quotient of the exact value, whose 34th digit the product above it rounded back up:
+            // `FUNCTION INTEGER(X) * Y20 / 7 * 7` stored 2.000000 where `X * Y20 / 7 * 7` stores 1.999999.
+            return new NumX(RuntimeApi.DecDivTruncatedToOdd(DecQuotientOperand(a), DecQuotientOperand(b), w), 0, Dec: true,
+                Precision: precision);
         }
         return new NumX(RuntimeApi.DecDivToOdd(DecOperandExact(a), DecOperandExact(b)), 0, Dec: true);
     }
+
+    /// <summary>Is the quotient being rendered NESTED — neither the final transfer to a resultant that rounds at its own
+    /// scale nor a floating-point edited resultant's — so that it is the truncated quotient at the working scale on
+    /// every lane (<see cref="Divide"/>; CONFORMANCE.md DOC-A.1-123)?</summary>
+    private bool NestedQuotient => !_rcv.FloatEdited && !(_outermost && _rcv.RoundsAtItsScale);
+
+    /// <summary>The SDIDI spelling of a nested quotient's operand (<c>CobolDec.DivTruncatedToOdd</c>, a round-to-odd
+    /// consumer): exact (<see cref="DecOperandExact"/>), except an UNSIGNED-WIDE value beside an SDIDI-carried operand,
+    /// whose [2^127, 2^128) range no SDIDI significand holds, which takes the SDIDI lane's rounding lift as it did
+    /// before the quotient left <see cref="DecBinary"/> (<see cref="DecOperand"/>, kb/Work PB2966).</summary>
+    private string DecQuotientOperand(NumX x) => x.U ? DecOperand(x) : DecOperandExact(x);
 
     /// <summary>The scaled kernel's quotient of <paramref name="a"/> by <paramref name="b"/> at <paramref name="scale"/> in
     /// <paramref name="mode"/>. Both kernels raise a zero divisor (ISO §14.7.5 case 2, checked or not, kb/Work PB1605); the
@@ -1323,7 +1365,7 @@ internal sealed class NumericRenderer(EmitContext ctx, EcState ecState) : IBound
 
     private static NumX Negate(NumX x) =>
         x.Real ? new NumX($"(-({Real(x)}))", 0, Real: true, Approximate: x.Approximate)
-        : x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true)
+        : x.Dec ? new NumX($"(new CobolDec(-({x.Expr}).Sig, ({x.Expr}).Exp))", 0, Dec: true, Precision: x.Precision)
         : x.Wide ? new NumX(RuntimeApi.WideNegate(x.Expr), x.Scale, Digits: x.Digits, Wide: true, Precision: x.Precision)
         : x.U ? new NumX($"(-{DeU(x).Expr})", x.Scale, Digits: x.Digits)   // negation is arithmetic — the Widen funnel applies
         : new($"(-{x.Expr})", x.Scale, Digits: x.Digits, Precision: x.Precision);
