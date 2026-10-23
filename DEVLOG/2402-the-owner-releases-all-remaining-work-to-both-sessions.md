@@ -1,3 +1,4 @@
-## The owner releases all remaining work to both sessions; PB1636's derivation signed
+## Entry 2402 — 2026-10-23 11:49 PDT — The owner releases all remaining work to both sessions; PB1636's derivation signed
 
 On 2026-10-23 the owner released all remaining work across both sessions, honoring the quota limits, and said the fuzz run will go overnight while the GPU is idle. That lifts the "after quota 90 %" deferral on kb/Work PB1086 (its cluster goes to the loop, PB2100 and PB2104 ready) and the "after the weekly quota resets" start condition on tier 3 of PB3420. The owner also signed the last drafted PB1636 derivation, DRV-GR-12.4.5.9.4-2 (record locking is supported on every organization and host, so section 12.4.5.9.4 GR2 never applies). The row is in docs/CONFORMANCE.md section 8, GR-12.4.5.9.4-2 is CONFORMS on it and joins the drift test's enumerated list, and the inventory GAP count falls from 67 to 66.
+
