@@ -1,4 +1,4 @@
-## A boolean or national function or literal moved to a group now deposits its usage-bit or UTF-16BE representation (PB3562)
+## A boolean function or a national literal moved to a group now deposits its usage-bit or UTF-16BE representation (PB3562)
 
 `MOVE FUNCTION BOOLEAN-OF-INTEGER(255 8) TO G`, with `G` an alphanumeric group of eight one-bit items (a USAGE clause at a
 group level applies only to the elementary items, §13.18.60.4 1)), stored 00110001 where an elementary USAGE BIT item holding
@@ -13,17 +13,21 @@ group move was a DISPLAY boolean whose storage image is its '0'/'1' text. A nati
 reason: its temporary is usage national.
 
 **Fix.** (1) `CharacterUsage` maps boolean to USAGE BIT, and `OperandText.ElementaryCharacterImage` packs a run-time-length
-usage-bit carrier with `BitsPackAll`. (2) `OperandText.NonElementaryMoveSender`'s non-field arm sends a national or boolean
-literal or function value as `NatBytes` or `BitsPackAll`: the literal is the other un-materialized sender
-(`MOVE N"EF" TO G` deposited the alphanumeric bytes 'E' 'F', a second defect of the same arm). (3) The CALL and INVOKE
-boundaries into a KNOWN plain-group formal (a Format-2 CALL, CALL AS NESTED, a user-defined function, a method) read the
-same codec through `CallEmitter.IsPlainGroupFormal`: a USAGE BIT or USAGE NATIONAL argument, a national or boolean literal
-and a function value cross as their storage image. Before, `CALL .. AS NESTED USING BY CONTENT E8` into a group of eight
-bit items arrived as 00110001, and INVOKE the same.
+usage-bit carrier with `BitsPackAll`. (2) `OperandText.NonElementaryMoveSender`'s non-field arm sends a value whose usage is
+national or bit (the usage read through the one reader, `IntrinsicArgumentRules.StaticUsageOf`) as `NatBytes` or
+`BitsPackAll`: the national literal is the other un-materialized sender (`MOVE N"EF" TO G` deposited the alphanumeric bytes
+'E' 'F', a second defect of the same arm). (3) The CALL and INVOKE boundaries into a KNOWN plain-group formal (a Format-2
+CALL, CALL AS NESTED, a user-defined function, a method) read the same codec through `CallEmitter.IsPlainGroupFormal`: a
+USAGE BIT or USAGE NATIONAL argument (a bit or national group too), a national literal and a function value cross as their
+storage image. Before, `CALL .. AS NESTED USING BY CONTENT E8` into a group of eight bit items arrived as 00110001, and
+INVOKE the same.
 
 **Determination D-B3** (`docs/CONFORMANCE.md`): the standard states a usage for a boolean function (§15.2 2)) and a national
-literal (§8.3.3.5.4 GR3 a)) but none for a boolean literal (§8.3.3.4.4 GR3 gives its value only), so a boolean literal is
-USAGE BIT, the usage of a boolean function value; `MOVE B"01100110" TO G` and the function deposit one byte.
+literal (§8.3.3.5.4 GR3 a)) but none for a boolean literal (§8.3.3.4.4 GR3 gives its value only; §8.3.3.4.3 SR2 writes its
+positions as characters of the coded character set), so a boolean literal stays usage DISPLAY, which is what
+`StaticUsageOf` already answered every argument screen: `MOVE B"01100110" TO G` deposits the eight characters, while the
+boolean function value deposits one packed byte. (The first reading of this note, packing the literal, was dropped when
+the static-usage reader was found: it would have given one literal two usages.)
 
 **Not fixed, filed as a lead in the note.** A Format-1 CALL that does not see the formal (no program-specifier, or one
 defined later) still crosses a usage-bit or usage-national argument as its operand-text cell into a plain-group formal.
