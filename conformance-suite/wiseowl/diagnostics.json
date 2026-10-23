@@ -22834,5 +22834,11 @@
    "2023"
   ],
   "expect": "COBOLNET1511"
+ },
+ "pb3586-function-returning-usage-bit-85": {
+  "refuse-at": [
+   "85"
+  ],
+  "expect": "COBOLNET0900: a FUNCTION-ID paragraph (user-defined function definition) requires COBOL-2002"
  }
 }
