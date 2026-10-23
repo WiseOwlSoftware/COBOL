@@ -44,8 +44,10 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 **Rationale.** The proven legacy lowerer (ArithmeticLowerer.LowerDivide) computes division into a `decimal` accumulator (≈28-29 significant digits) and only rescales to the receiver on the final IrMoveAccumulatedToTarget — so its division 'intermediate scale' is decimal's natural headroom, the ONE scale `decimal` auto-picked that Int128 forces me to make explicit. 14 guard digits past the deepest receiver/operand scale reproduces that headroom while staying inside Int128's 38 digits for realistic operand sizes; rounding then happens exactly once, at the receiver, honoring the ROUNDED mode (ISO §14.7 — ROUNDED applies to the transfer into the resultant, NOTE 1 p595).
 
 > **Realization.** `NumericRenderer.Divide` keeps the exact single-rounding path for the OUTERMOST division (no
-> guard needed — `RoundDiv` rounds on the true integer remainder) and applies `DivGuardDigits = 14` to the
-> NESTED case, with TRUNCATION. ⛔ **The guard is added to the operands' PRECISION, never to an intermediate's scale**
+> guard needed — `RoundDiv` rounds on the true integer remainder) and truncates the NESTED case at ONE working scale,
+> `CobolNum.NestedQuotientScale(receiver scale, precision)`: the larger of the two plus
+> `CobolNum.NestedQuotientGuardDigits` (14), one rule in the runtime that the compiler applies at compile time and
+> `CobolDecWithPrecision` at run time. ⛔ **The guard is added to the operands' PRECISION, never to an intermediate's scale**
 > (kb/Work PB3538): `NumX.FractionPrecision` is the fraction digits a value's operands carry — a field's or literal's
 > scale, the larger for a sum, the sum for a product, unchanged by a negation — and a nested quotient's PRECISION is
 > its operands', not its scale (which holds its guard digits). The first realization added the guard to
@@ -66,7 +68,19 @@ NUMERIC-EDITED formatting: PORT the proven two-pass legacy `PicRuntime.FormatByE
 > quotient of at most 34 digits is exact there too (review finding R2-1: the SDIDI's own quotient of the exact value
 > made the product above it round back up, and `FUNCTION INTEGER(X) * FUNCTION INTEGER(Y) / 7 * 7` was 2.000000).
 > Every lane carries `NumX.Precision` (the SDIDI's scale is 0, so its products, sums and quotients state the operands'
-> fraction digits explicitly), so the next quotient's working scale does not depend on the lane either. Only a
+> fraction digits explicitly), so the next quotient's working scale does not depend on the lane either. ⛔ **An SDIDI
+> value's precision is the fraction digits of its VALUE, never the placeholder 0 of its scale** (review finding R3-1):
+> a floating-point literal's is known at compile time (`CobolDec.FractionDigits` of its exact value, so `1.0E-15` has
+> the 15 of `0.000000000000001` and `2.0E0` the 0 of `2`); a NUMVAL value's, a power's formed on the SDIDI and a
+> function's result's only at run time (`NumX.RuntimePrecision`). A nested quotient over such a value, and every sum,
+> difference, product and negation between it and that quotient, is then also spelled as a `CobolDecWithPrecision`
+> (the value paired with its operands' precision, `NumX.WithPrecision`: an alternative spelling of the same
+> evaluation, never a second one), whose `DivTruncatedToOdd` applies `NestedQuotientScale` to the carried precision and
+> carries that precision, not the working scale, upward. Given 0, `IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0`
+> and `IF 1.0E-15 / 2 > 0` were NOT GREATER (the quotient truncated at 14 places). The precision is bounded by the
+> value's significance (an SDIDI value has at most 34 significant digits), never by a scale chosen without it, and it
+> does not grow with depth (`pb3538_runtime_precision_quotients`, `pb3538_float_literal_precision`,
+> `CobolDecWithPrecisionTests`). Only a
 > final-transfer quotient over a wide operand and a floating-point edited resultant take the SDIDI's own
 > `CobolDec.DivToOdd` (the exact quotient, round-to-odd, rounded once at the receiver). Depth therefore changes neither a nested quotient's
 > precision nor its lane (`NestedQuotientPrecisionDriftTests` compiles each quotient-crossing shape at depth 2 and
@@ -552,7 +566,7 @@ expression: `COMPUTE R = FUNCTION SQRT(3) * 2` into `PIC 9V9(9)` gave 3.46410161
 which never quantized, already agreed with the COMP-2 item — the arithmetic channel was the one arm out of step.
 
 **Guard digits were REJECTED, and the reason is structural.** The obvious repair is `Divide`'s: a nested quotient
-carries D2's `DivGuardDigits`. It does not transfer, because `Divide` clamps its guard against ITS OWN radix
+carries D2's guard digits (`CobolNum.NestedQuotientGuardDigits`). It does not transfer, because `Divide` clamps its guard against ITS OWN radix
 alignment, which it knows, while a LANDING cannot know how many multiplications sit above it. At guard 14 a
 nested float operand lands at scale 23 and `FUNCTION SQRT(10) * FUNCTION SQRT(10)` multiplies two scale-23
 operands into a scale-46 product — past the 38-digit Int128 carrier, where the unchecked no-phrase store WRAPS.

@@ -27,6 +27,10 @@ namespace CobolNet.Tests.Unit;
 /// value) or a wide product passes the Int128 lane's bound, and its nested quotient is the same truncated quotient on
 /// the exact wide form (<c>CobolWide.DivTruncated</c>), never the SDIDI's round-to-odd <c>CobolDec.DivToOdd</c>, which
 /// made `FUNCTION INTEGER(X) / 7 * 7` 2.000000 where `X / 7 * 7` is 1.999999.</para>
+/// <para>⛔ AND AN OPERAND WHOSE PRECISION ONLY THE RUN TIME KNOWS IS NEVER GIVEN 0 (review finding R3-1): a NUMVAL value,
+/// a power or a function's result carries its value's fraction digits at run time (<c>CobolDecWithPrecision</c>, whose
+/// <c>DivTruncatedToOdd</c> is asked for the receiver scale and applies <c>CobolNum.NestedQuotientScale</c> itself), and a
+/// floating-point literal its value's at compile time.</para>
 /// </summary>
 public sealed class NestedQuotientPrecisionDriftTests
 {
@@ -60,6 +64,10 @@ public sealed class NestedQuotientPrecisionDriftTests
             sb.AppendLine($"    COMPUTE {r} = {Chain("FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B", "/", "B")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("(F * FUNCTION INTEGER(A) * FUNCTION INTEGER(B) / B)", "*", "(A / B)")}.");
             sb.AppendLine($"    COMPUTE {r} = {Chain("2.0E0 / B", "/", "B")}.");
+            // An operand whose precision only the run time knows (review finding R3-1): its quotients carry the
+            // operands' precision at run time, so the receiver scale they are asked for is the same at every depth.
+            sb.AppendLine($"    COMPUTE {r} = {Chain("FUNCTION NUMVAL(\"2\") / B", "/", "B")}.");
+            sb.AppendLine($"    COMPUTE {r} = {Chain("(FUNCTION NUMVAL(\"2\") / B)", "*", "(A / B)")}.");
         }
         sb.AppendLine($"    IF {Chain("A / B", "/", "B")} > 0 DISPLAY \"GT\" END-IF.");
         sb.AppendLine("    STOP RUN.");
@@ -91,6 +99,7 @@ public sealed class NestedQuotientPrecisionDriftTests
                  {
                      ("CobolNum.Divide(", 6, 4), ("CobolNum.DivideOrThrow(", 6, 4), ("CobolWide.DivTruncated(", 5, 4),
                      ("CobolDec.DivTruncatedToOdd(", 3, 2),
+                     ("CobolDecWithPrecision.DivTruncatedToOdd(", 3, 2),   // its third argument is the receiver scale
                  })
             for (int at = cs.IndexOf(call, StringComparison.Ordinal); at >= 0; at = cs.IndexOf(call, at + 1, StringComparison.Ordinal))
             {
@@ -185,5 +194,37 @@ public sealed class NestedQuotientPrecisionDriftTests
         // Receiver scale 4 + 14 guard digits; the relation has no receiver, so 0 + 14.
         Assert.True(DivisionScales(cs).SetEquals(new[] { 14, 18 }),
             $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where every lane owes 18 (receiver) and 14 (relation)");
+    }
+
+    /// <summary>⛔ AN SDIDI OPERAND IS NEVER GIVEN THE PRECISION 0 (review finding R3-1). A floating-point literal's precision
+    /// is its value's fraction digits, known at compile time (`1.0E-15` has 15, so its quotient's working scale is 29); a
+    /// NUMVAL value's and a power's are known only at run time, so their quotients are
+    /// <c>CobolDecWithPrecision.DivTruncatedToOdd</c> over <c>CobolDecWithPrecision.Own</c>, which applies the same rule to
+    /// the value's own digits. Given 0, each of these quotients was truncated at 14 places, to zero.</summary>
+    [Fact]
+    public void AnSdidiOperandsPrecision_IsItsValuesFractionDigits_NeverZero()
+    {
+        string cs = EmitCSharp("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. PB3538P.
+            PROCEDURE DIVISION.
+            MAIN.
+                IF 1.0E-15 / 2 > 0 DISPLAY "FLT" END-IF.
+                IF FUNCTION NUMVAL ("0.000000000000001") / 2 > 0 DISPLAY "NUMVAL" END-IF.
+                IF 10 ** -15 / 2 > 0 DISPLAY "POW" END-IF.
+                STOP RUN.
+            """);
+        Assert.Contains("CobolDec.DivTruncatedToOdd(", cs);
+        Assert.Equal(2, CountOf(cs, "CobolDecWithPrecision.DivTruncatedToOdd(CobolDecWithPrecision.Own("));
+        // The literal's 15 fraction digits + 14 guard digits; the run-time quotients are asked for the relation's scale 0.
+        Assert.True(DivisionScales(cs).SetEquals(new[] { 0, 29 }),
+            $"nested quotient scales {{{string.Join(", ", DivisionScales(cs))}}}, where 1.0E-15 owes 29 and the run-time quotients 0");
+    }
+
+    private static int CountOf(string text, string what)
+    {
+        int n = 0;
+        for (int at = text.IndexOf(what, StringComparison.Ordinal); at >= 0; at = text.IndexOf(what, at + 1, StringComparison.Ordinal)) n++;
+        return n;
     }
 }
