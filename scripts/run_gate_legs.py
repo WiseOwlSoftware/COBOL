@@ -1511,7 +1511,8 @@ def self_test() -> int:
         first, _ = regate(d)
         again, h2 = regate(d)
         third, h3 = regate(d)
-        rec2 = read_record(d / "runs" / sorted(p.name for p in (d / "runs").iterdir())[1])
+        # the record of the second gate: run names sort by the second they started, so read it by its own name
+        rec2 = read_record(d / "runs" / again.line.rsplit("(run ", 1)[1].split(")", 1)[0])
         arm("a re-gate of an unchanged tree answers from the recorded GREEN: no audit, slot, build or leg runs, the "
             "verdict line says REUSED and names the run that measured it, exit 0",
             first.verdict == f"{LEG1_ONLY}: GREEN" and again.verdict == first.verdict and again.exit_code == 0
