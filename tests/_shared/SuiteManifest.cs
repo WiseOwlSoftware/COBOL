@@ -61,7 +61,7 @@ internal static class SuiteManifest
     /// generator's own output, when it refuses the tree.</summary>
     internal static void Generate(string outDir)
     {
-        ProcessObservation r = PythonInstrument.Run(Generator, "--out", outDir);
+        ProcessObservation r = PythonInstrument.Run(ObservationBudget.OneProcess, Generator, "--out", outDir);
         if (r.ExitCode != 0)
             throw new InvalidOperationException(
                 $"conformance-suite/harness/generate.py refused the suite (exit {r.ExitCode}), so no manifest exists "

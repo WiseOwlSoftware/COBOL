@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Brent Rector. All rights reserved.
 // Licensed under the Business Source License 1.1. See LICENSE file in the project root.
+using System.Globalization;
 using System.Text.Json;
 using CobolNet.Tests.Shared;
 using Xunit;
@@ -22,9 +23,10 @@ namespace CobolNet.Tests.Conformance;
 /// the profile its own way; a difference between them would make WiseOwl's own gate green on a suite a user's
 /// <c>run.py</c> run reports red. This test runs both on the same generated suites and names every test whose verdict
 /// differs, with both reasons.</para>
-/// <para><b>Its cost grows with the suite</b>: <c>run.py</c> starts one <c>cobol</c> process per compile. It runs the
-/// whole suite while the suite is the seed; the move (slice S2, kb/Work PB3177) decides its shape at the corpus's
-/// size.</para>
+/// <para><b>Its cost grows with the suite</b>: <c>run.py</c> starts a <c>cobol</c> process per compile and one per
+/// run. It runs every test of every per-edition suite, one <c>run.py</c> observation per edition, each bounded by the
+/// work it does (<see cref="ObservationBudget.ForChildren"/>, kb/Work PB3108), so the budget grows with the suite
+/// instead of killing it at one program's limit.</para>
 /// </remarks>
 public sealed class ConformanceSuiteRunnerDriftTests
 {
@@ -40,16 +42,11 @@ public sealed class ConformanceSuiteRunnerDriftTests
         {
             string suites = Path.Combine(scratch, "suites");
             SuiteManifest.Generate(suites);
-            string results = Path.Combine(scratch, "results");
-            ProcessObservation run = PythonInstrument.Run(ConformanceSuite.Harness, "--compiler", ConformanceSuite.Compiler,
-                "--set", $"cobol={cli}", "--suites", suites, "--out", results);
-            // 0 GREEN, 1 RED (a FAIL: the in-process runner must then say FAIL too); 2 is a usage or configuration error.
-            Assert.True(run.ExitCode is 0 or 1, $"run.py could not run the suite (exit {run.ExitCode}):\n{run.Stdout}\n{run.Stderr}");
-
-            using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(results, "results.json")));
-            var theirs = doc.RootElement.GetProperty("tests").EnumerateArray().ToDictionary(
-                t => (Edition: t.GetProperty("edition").GetString()!, Id: t.GetProperty("id").GetString()!),
-                t => new SuiteResult(t.GetProperty("verdict").GetString()!, t.GetProperty("reason").GetString()!));
+            var theirs = new Dictionary<(string Edition, string Id), SuiteResult>();
+            foreach (var (edition, tests) in GeneratedSuites(suites))
+                foreach (var (id, result) in RunPy(cli, suites, edition, tests, Path.Combine(scratch, "results", edition)))
+                    theirs.Add((edition, id), result);
+            Assert.NotEmpty(theirs);
 
             var ours = SuiteManifest.Manifest.Editions
                 .SelectMany(e => e.Value.Values.Where(t => t.InSuite).Select(t => (Edition: e.Key, t.Id, Test: t)))
@@ -71,6 +68,60 @@ public sealed class ConformanceSuiteRunnerDriftTests
                 $"{differing.Count} test(s) of the suite have different verdicts in the two runners:\n{string.Join("\n", differing)}");
         }
         finally { CutRunner.TryDelete(scratch); }
+    }
+
+    /// <summary>The processes run.py starts for one test, at most: an accepted test's compile and run, or a flagged
+    /// test's control compile and its flagged compile (run.py's <c>accept</c> and <c>flagged</c>); a test NOT APPLICABLE
+    /// starts none.</summary>
+    private const int RunPyProcessesPerTest = 2;
+
+    /// <summary>run.py's parallelism, stated here so its budget and its run agree: half the logical processors, at most
+    /// eight (run.py's own default).</summary>
+    private static readonly int RunPyJobs = Math.Clamp(Environment.ProcessorCount / 2, 1, 8);
+
+    /// <summary>The generator's per-edition suites, each with its test count: the population run.py runs (a suite is
+    /// <c>suites/&lt;edition&gt;/manifest.json</c>, an edition being all digits; <c>suites/wiseowl</c> is the WiseOwl
+    /// manifest, not a suite).</summary>
+    private static IEnumerable<(string Edition, int Tests)> GeneratedSuites(string suites)
+    {
+        foreach (string dir in Directory.EnumerateDirectories(suites).Order(StringComparer.Ordinal))
+        {
+            string edition = Path.GetFileName(dir);
+            string manifest = Path.Combine(dir, "manifest.json");
+            if (!edition.All(char.IsAsciiDigit) || !File.Exists(manifest)) continue;
+            using var doc = JsonDocument.Parse(File.ReadAllText(manifest));
+            yield return (edition, doc.RootElement.GetProperty("tests").GetArrayLength());
+        }
+    }
+
+    /// <summary>
+    /// run.py over ONE edition's suite, within the budget of the work it does (kb/Work PB3108): one harness unit for
+    /// run.py itself and one per round of <see cref="RunPyJobs"/> of its at most <see cref="RunPyProcessesPerTest"/>
+    /// processes per test. One observation per edition, so a retry re-runs one edition and no observation covers the
+    /// whole suite. Until PB3108 one run.py process ran every edition under one program's 120 s, and went RED on load
+    /// alone at least eight times between 2026-10-18 and 2026-10-22 (its 78 processes take 30 s on a quiet host).
+    /// </summary>
+    private static IEnumerable<(string Id, SuiteResult Result)> RunPy(string cli, string suites, string edition, int tests,
+        string results)
+    {
+        var budget = ObservationBudget.ForChildren(RunPyProcessesPerTest * tests, RunPyJobs,
+            $"run.py over the {edition} suite ({tests} test(s), at most {RunPyProcessesPerTest} processes each, "
+            + $"{RunPyJobs} at a time)");
+        ProcessObservation run = PythonInstrument.Run(budget, ConformanceSuite.Harness, "--compiler", ConformanceSuite.Compiler,
+            "--set", $"cobol={cli}", "--suites", suites, "--editions", edition,
+            "--jobs", RunPyJobs.ToString(CultureInfo.InvariantCulture), "--out", results);
+        // 0 GREEN, 1 RED (a FAIL: the in-process runner must then say FAIL too); 2 is a usage or configuration error.
+        Assert.True(run.ExitCode is 0 or 1,
+            $"run.py could not run the {edition} suite (exit {run.ExitCode}):\n{run.Stdout}\n{run.Stderr}");
+        using var doc = JsonDocument.Parse(File.ReadAllText(Path.Combine(results, "results.json")));
+        var ran = doc.RootElement.GetProperty("tests").EnumerateArray()
+            .Select(t => (Edition: t.GetProperty("edition").GetString()!, Id: t.GetProperty("id").GetString()!,
+                Result: new SuiteResult(t.GetProperty("verdict").GetString()!, t.GetProperty("reason").GetString()!)))
+            .ToList();
+        Assert.True(ran.All(t => t.Edition == edition),
+            $"run.py --editions {edition} reported tests of another edition: "
+            + string.Join(", ", ran.Where(t => t.Edition != edition).Select(t => $"{t.Edition}/{t.Id}")));
+        return ran.Select(t => (t.Id, t.Result));
     }
 
     /// <summary>The two runners run a program under the same default locales: <see cref="CutRunner.RunExit"/> pins
@@ -107,7 +158,7 @@ public sealed class ConformanceSuiteRunnerDriftTests
         const string Code = "import json, sys; sys.path.insert(0, sys.argv[2]); import run; "
             + "cases = json.load(open(sys.argv[1], encoding='utf-8'))['cases']; "
             + "print(json.dumps([run.normalize(c['input']) for c in cases]))";
-        ProcessObservation python = PythonInstrument.Run("-c", Code, fixture, Path.GetDirectoryName(ConformanceSuite.Harness)!);
+        ProcessObservation python = PythonInstrument.Run(ObservationBudget.OneProcess, "-c", Code, fixture, Path.GetDirectoryName(ConformanceSuite.Harness)!);
         Assert.True(python.ExitCode == 0, $"run.py's normalize() could not be run on the fixture:\n{python.Stdout}\n{python.Stderr}");
         string[] pythonResults = JsonSerializer.Deserialize<string[]>(python.Stdout.Trim())!;
         Assert.Equal(cases.Count, pythonResults.Length);
