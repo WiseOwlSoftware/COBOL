@@ -536,7 +536,17 @@ import prune_worktrees  # noqa: E402
 _dr_tips = {"worktree-wf_dr-2": "2020202bb", "worktree-wf_dr-5": "6060606ff"}
 _dr_rep = {r.lead: r for r in prune_worktrees.report_index(DR, lambda _i: False)}
 _git_saved = prune_worktrees.git
-prune_worktrees.git = lambda *a, **_k: _Shown(0 if a == ("merge-base", "--is-ancestor", "6060606ff", "2020202bb") else 1)
+
+
+def _dr_git(*a, **_k):
+    """The one ancestry fact of this scenario, in contained()'s question (kb/Work PB3583: one `rev-list <carrier tip>`
+    per carrier): 6060606ff is a commit of 2020202bb's history, and no origin/main exists."""
+    if a[:1] == ("rev-list",):
+        return _Shown(0, {"2020202bb": "2020202bb\n6060606ff\n", "6060606ff": "6060606ff\n"}.get(a[1], ""))
+    return _Shown(1)
+
+
+prune_worktrees.git = _dr_git
 try:
     for carrier_state, pb7_planned in (("IN FLIGHT", False), ("WAITING TO LAND", True)):
         rows = [prune_worktrees.Row(b, "UNLANDED", [], [], 1, None, None, 0, 999.0, "", report=_dr_rep[lead], state=st,
